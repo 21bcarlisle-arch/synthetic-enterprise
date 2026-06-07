@@ -42,7 +42,7 @@ Standing approval for all reversible actions — file creation, scaffolding, git
 - CLV modelling requires contractual PyMC-Marketing variants (Shifted-BG, BG/BB)
 
 ## Observability Surfaces
-1. **Process** — token-to-feature efficiency, DORA-style agentic dev metrics, speculative burn later discarded
+1. **Process** — token-to-feature efficiency, DORA-style agentic dev metrics, speculative burn later discarded. Logged per-session in [`docs/observability/token-log.md`](docs/observability/token-log.md) — append an entry at the end of each session following the template there.
 2. **Business** — P&L by cohort, CLV/CAC, churn, hedge effectiveness
 3. **Experience** — customer reaction function scoring, expectation gap, comprehensibility, tolerance
 
