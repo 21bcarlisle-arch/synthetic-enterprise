@@ -7,7 +7,20 @@
       "Bash(echo \"exit: $?\")",
       "Bash(git init *)",
       "Bash(git branch *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git config *)",
+      "Bash(git push *)",
+      "Skill(fewer-permission-prompts)",
+      "Bash(python3 -c ' *)",
+      "Bash(cat)",
+      "Bash(python3 /tmp/sim_engineer_attempt.py)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" \"https://data.elexon.co.uk/bmrs/api/v1/systemprices/latest\")",
+      "Bash(curl -s --max-time 20 \"https://data.elexon.co.uk/bmrs/api/v1/reference/data-providers\" -o /dev/null -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s --max-time 20 \"https://data.elexon.co.uk/bmrs/api/v1/balancing/settlement/system-prices/2026-06-05\" -o /dev/null -w \"HTTP %{http_code} \\(system-prices/{date}\\)\\\\n\")",
+      "Bash(curl -s --max-time 20 \"https://data.elexon.co.uk/bmrs/api/v1/balancing/settlement/system-prices/2026-06-05?format=json\")",
+      "Bash(python3 /tmp/sim_engineer_v2.py)",
+      "Bash(python3 *)"
     ]
   }
 }
