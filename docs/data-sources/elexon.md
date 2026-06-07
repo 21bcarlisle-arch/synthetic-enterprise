@@ -50,3 +50,12 @@ Example record shape (values illustrative, not to be treated as current):
 
 See [`sim/system_prices.py`](../../sim/system_prices.py) for the working
 retrieval function (`get_latest_system_prices()`).
+
+## Historical depth
+
+The `DISEBSP` dataset begins on **2015-11-07** (first complete day) — earlier
+dates return `HTTP 200` with empty `data: []`, not an error. This is a real
+discontinuity (BSC Modification P305 changed the imbalance pricing methodology
+in November 2015), not an API gap. See
+[`../simulation-period.md`](../simulation-period.md) for how this shaped the
+chosen simulation window and the completeness probe across it.
