@@ -20,7 +20,14 @@
       "Bash(curl -s --max-time 20 \"https://data.elexon.co.uk/bmrs/api/v1/balancing/settlement/system-prices/2026-06-05\" -o /dev/null -w \"HTTP %{http_code} \\(system-prices/{date}\\)\\\\n\")",
       "Bash(curl -s --max-time 20 \"https://data.elexon.co.uk/bmrs/api/v1/balancing/settlement/system-prices/2026-06-05?format=json\")",
       "Bash(python3 /tmp/sim_engineer_v2.py)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "WebSearch",
+      "WebFetch(domain:guylipman.medium.com)",
+      "WebFetch(domain:www.elexon.co.uk)",
+      "WebFetch(domain:developer.data.elexon.co.uk)",
+      "Bash(curl -s --max-time 20 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -o /tmp/elexon_probe/profiling.html -w \"HTTP %{http_code}\\\\n\" \"https://www.elexon.co.uk/bsc/settlement/profiling/\")",
+      "Bash(curl -s --max-time 20 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -o /tmp/elexon_probe/dataflows.html -w \"HTTP %{http_code}\\\\n\" \"https://www.elexon.co.uk/bsc/about/other-services/data-flows/\")",
+      "Bash(curl -sL --max-time 25 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -o /tmp/elexon_probe/dataflows.html -w \"HTTP %{http_code}  final-url: %{url_effective}\\\\n\" \"https://www.elexon.co.uk/bsc/about/other-services/data-flows/\")"
     ]
   }
 }
