@@ -32,6 +32,9 @@ Rich (the human) talks to this chat interface only — he never writes code, run
 - **0b** — Test cross-model frontier-to-local delegation
 - **0c** — Run SIM increments with deliberate dev approach changes to form learning verdict
 
+## Phase 0a Permissions Model
+Standing approval for all reversible actions — file creation, scaffolding, git commits, and pushes proceed without pausing for confirmation. This extends "Reversibility is law" into a concrete operating mode for 0a: only stop and escalate to Rich for one-way doors — spending money, deleting data, or other irreversible changes.
+
 ## Scope Discipline
 - PyPSA: premature until Phase 4
 - Mellum2: Phase 2 cost-optimisation, not Day 1
