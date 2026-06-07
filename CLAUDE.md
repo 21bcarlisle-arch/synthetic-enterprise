@@ -6,6 +6,11 @@ A simulated UK energy supplier powered by autonomous AI agents. The core thesis:
 ## Who Instructs Whom
 Rich (the human) talks to this chat interface only — he never writes code, runs terminals, or dispatches tasks directly. This chat → Claude Code (lead orchestrator) → subagents (Cline, Aider, local models). Rich sets direction and unblocks genuine blockers. The system does the rest.
 
+## How Rich Connects
+- **Primary:** Claude mobile app, Remote Control — this is the day-to-day interface to this session.
+- **Fallback:** SSH via Tailscale, port 2222, direct to the machine — only when Remote Control is unavailable.
+- **Autostart:** Claude Code launches automatically into this project on machine boot — no manual session setup required to pick up where things left off.
+
 ## Architecture Stack
 - **Lead orchestrator:** Claude Code (Anthropic API)
 - **Local execution:** Cline, Aider
@@ -31,6 +36,9 @@ Rich (the human) talks to this chat interface only — he never writes code, run
 - **0a** — Prove plumbing and instruct-execute-observe path
 - **0b** — Test cross-model frontier-to-local delegation
 - **0c** — Run SIM increments with deliberate dev approach changes to form learning verdict
+
+## Simulation Window
+**2016-01-01 → 2025-06-07** — 1 build year (accumulate priced portfolio) + ~9.5 test years. The floor is set by the **BSC P305 boundary**: Elexon's settlement-price dataset begins 2015-11-07 because P305 replaced the imbalance pricing methodology that month — there's no earlier data under the current regime to extend into. See [`docs/simulation-period.md`](docs/simulation-period.md) for the full derivation and completeness evidence.
 
 ## Phase 0a Permissions Model
 Standing approval for all reversible actions — file creation, scaffolding, git commits, and pushes proceed without pausing for confirmation. This extends "Reversibility is law" into a concrete operating mode for 0a: only stop and escalate to Rich for one-way doors — spending money, deleting data, or other irreversible changes.
