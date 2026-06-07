@@ -27,7 +27,20 @@
       "WebFetch(domain:developer.data.elexon.co.uk)",
       "Bash(curl -s --max-time 20 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -o /tmp/elexon_probe/profiling.html -w \"HTTP %{http_code}\\\\n\" \"https://www.elexon.co.uk/bsc/settlement/profiling/\")",
       "Bash(curl -s --max-time 20 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -o /tmp/elexon_probe/dataflows.html -w \"HTTP %{http_code}\\\\n\" \"https://www.elexon.co.uk/bsc/about/other-services/data-flows/\")",
-      "Bash(curl -sL --max-time 25 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -o /tmp/elexon_probe/dataflows.html -w \"HTTP %{http_code}  final-url: %{url_effective}\\\\n\" \"https://www.elexon.co.uk/bsc/about/other-services/data-flows/\")"
+      "Bash(curl -sL --max-time 25 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -o /tmp/elexon_probe/dataflows.html -w \"HTTP %{http_code}  final-url: %{url_effective}\\\\n\" \"https://www.elexon.co.uk/bsc/about/other-services/data-flows/\")",
+      "Read(//tmp/**)",
+      "Bash(mkdir -p /tmp/phase0b)",
+      "Bash(echo \"Write a one-line Python function add\\(a, b\\) that returns a + b. Output only the code, no explanation.\")",
+      "WebFetch(domain:ukerc.rl.ac.uk)",
+      "WebFetch(domain:data.ceda.ac.uk)",
+      "WebFetch(domain:dap.ceda.ac.uk)",
+      "Bash(curl -sL --max-time 25 \"https://dap.ceda.ac.uk/edc/d1/5af8ae29-86a7-4e8c-9fe4-1e2d99d9fb96/data/\" -o /tmp/phase0b/ceda_data_dir.html -w \"HTTP %{http_code}  url: %{url_effective}\\\\n\")",
+      "Bash(curl -sL --max-time 25 \"https://dap.ceda.ac.uk/edc/d1/5af8ae29-86a7-4e8c-9fe4-1e2d99d9fb96/data/version_0/\" -o /tmp/phase0b/v0.html -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -sL --max-time 25 \"https://dap.ceda.ac.uk/edc/d1/5af8ae29-86a7-4e8c-9fe4-1e2d99d9fb96/data/version_0/data/\" -o /tmp/phase0b/v0d.html -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -sL --max-time 25 \"https://dap.ceda.ac.uk/edc/d1/5af8ae29-86a7-4e8c-9fe4-1e2d99d9fb96/data/version_0/data/ProfileClass1.csv\" -o /tmp/phase0b/ProfileClass1.csv -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s --max-time 20 \"https://dap.ceda.ac.uk/edc/d1/5af8ae29-86a7-4e8c-9fe4-1e2d99d9fb96/00README\")",
+      "WebFetch(domain:bscdocs.elexon.co.uk)",
+      "WebFetch(domain:www.google.com)"
     ]
   }
 }
