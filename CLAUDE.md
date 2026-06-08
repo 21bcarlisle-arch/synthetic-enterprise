@@ -14,8 +14,8 @@ Rich (the human) talks to this chat interface only — he never writes code, run
 ## Architecture Stack
 - **Lead orchestrator:** Claude Code (Anthropic API)
 - **Local execution:** Cline, Aider
-- **Local model runner:** Ollama at http://localhost:11434
-- **Primary local model:** Qwen2.5-Coder 14B Q4
+- **Local model runner:** Ollama at http://localhost:11434 (one model running at a time — swap, never run both simultaneously)
+- **Local models:** Qwen2.5-Coder 14B Q4 (`qwen2.5-coder:14b` — code generation, file writing, data transformation) and Qwen2.5 7B (`qwen2.5:7b` — result analysis, summary drafting, structured output, README/STATUS updates). Routed automatically by task type — see `tools/delegate_ollama.py` and the Delegation Protocol in `docs/instructions/MASTER_BACKLOG.md`
 - **Data sources:** Elexon Insights Solution (data.elexon.co.uk, key-free REST), NESO data portal (CKAN/PostgreSQL)
 - **Version control:** GitHub
 

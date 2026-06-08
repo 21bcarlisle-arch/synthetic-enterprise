@@ -26,10 +26,30 @@ One page, readable in 60 seconds. Commit and push before sending NTFY.
 
 ## Delegation Protocol
 
-- Delegate all code generation and file writing to local Qwen (`qwen2.5-coder:14b` at `localhost:11434`)
+Two local models, routed by task type via `tools/delegate_ollama.py --task-type coder|analysis` (`localhost:11434`, one running at a time — swap, don't run both simultaneously):
+
+**`qwen2.5-coder:14b`** ("coder" tasks — code stays local):
+- All code generation and file writing
+- Data transformation scripts
+- Test scaffolding
+
+**`qwen2.5:7b`** ("analysis" tasks — drafts only, frontier reviews and edits before anything is committed):
+- Analysing settlement-result CSVs and producing structured summaries
+- Drafting `PHASE_SUMMARY.md` files (frontier reviews and edits the draft — never commits it raw)
+- Writing README updates and inline code comments
+- Extracting key figures from result tables
+- Drafting `docs/STATUS.md` updates
+
+**Stays on frontier, always:**
+- Architecture decisions
+- Reviewing local-model output before committing (code AND analysis/drafts)
+- One-way door decisions
+- Genuine blockers
+
+General delegation notes:
 - When asking for edits, supply the full current file content verbatim
-- Watch for Qwen quirks: markdown fence wrapping, placeholder echoes, multi-constraint ordering slips
-- Use frontier only for architecture decisions, reviewing Qwen output, genuine blockers, one-way doors
+- Watch for Qwen quirks: markdown fence wrapping, placeholder echoes, multi-constraint ordering slips, and (for "copy this file, change only X" requests) a tendency to silently regenerate parts the instruction said to leave untouched — keep those diffs small or hand-write the orchestration instead
+- Goal: frontier touches results and decisions only — drafting and analysis routes to local models, with frontier review as the gate before anything ships
 
 ## Where We Are
 
