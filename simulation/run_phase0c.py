@@ -10,6 +10,7 @@ from saas.tariff_pricing import price_fixed_tariff
 from simulation.settlement import run_settlement
 from simulation.portfolio_pnl import build_portfolio_pnl
 from saas.customer_reaction import score_dissatisfaction
+from saas.clv_seed import build_clv_seed
 
 ACQUISITION_DATES = ["2016-01-01", "2016-04-01", "2016-07-01", "2016-10-01"]
 REPORT_START = "2016-01-01"
@@ -76,7 +77,13 @@ def main():
     for customer_id, data in reaction.items():
         print(f"  {customer_id}: {data['dissatisfaction_count']} / {data['periods_scored']} periods triggered dissatisfaction")
     
-    return {"pnl": pnl, "settlement_records": settlement_records, "reaction": reaction}
+    # CLV seed
+    clv = build_clv_seed(settlement_records)
+    print("\nCLV seed — running total (contract value minus actual cost of supply) per customer:")
+    for customer_id, data in clv.items():
+        print(f"  {customer_id}: £{data['running_total_gbp']:.2f} over {data['periods_counted']} periods")
+    
+    return {"pnl": pnl, "settlement_records": settlement_records, "reaction": reaction, "clv": clv}
 
 
 if __name__ == "__main__":
