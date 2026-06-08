@@ -28,6 +28,7 @@ Rich (the human) talks to this chat interface only — he never writes code, run
 - **Reversibility is law** — two-way doors run free, one-way doors escalate to Rich
 - **Non-blocking concurrency** — independent work always proceeds; never speculate past an open question unless explicitly tagged as throwaway
 - **Escalation format** — lightweight PR/FAQ, answerable in ~30 seconds, ranked by how much work is parked behind each question
+- **NTFY links are raw, not blob** — any file referenced in an `ntfy.sh/skynet-synthetic` notification must be a raw GitHub URL (`https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/[filepath]`), never a `github.com/.../blob/...` link — Rich's strategy advisor reads these directly as text, not rendered HTML. Push to `main` before sending; see the NTFY Protocol in `docs/instructions/MASTER_BACKLOG.md` for the full spec
 - **Token ceiling** — async streams cannot run away with budget overnight; respect token limits
 - **CLV-per-frontier-token** — steady-state prioritisation objective once build loop is reliable
 - **The system prompts itself** — build routines, not one-off prompts

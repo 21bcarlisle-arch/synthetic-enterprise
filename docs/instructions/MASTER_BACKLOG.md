@@ -6,10 +6,14 @@
 
 Send all notifications via: `curl -d "message" ntfy.sh/skynet-synthetic`
 
+**Any file referenced in a notification must be a raw GitHub URL, not a blob URL** — Rich's strategy advisor reads these links directly and needs raw text, not a rendered HTML page. Format:
+`https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/[filepath]`
+(e.g. a reference to `docs/observability/PHASE_1d_SUMMARY.md` becomes `https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/observability/PHASE_1d_SUMMARY.md`). This only works for files already committed and pushed to `main` — push before sending the notification, never after (this is also already required by the Phase Summary Protocol below).
+
 Required notifications:
 1. Session start: `"Agent started. Next phase: [ID]"`
 2. Phase started: `"Phase [ID] started: [description]"`
-3. Phase complete: `"Phase [ID] complete. Summary at docs/observability/PHASE_[ID]_SUMMARY.md"`
+3. Phase complete: `"Phase [ID] complete. Summary at https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/observability/PHASE_[ID]_SUMMARY.md"`
 4. Gate reached: `"GATE after Phase [ID]. Waiting for instruction before proceeding."`
 5. Error: `"ERROR in Phase [ID]: [brief description]"`
 
