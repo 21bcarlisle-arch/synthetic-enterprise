@@ -168,19 +168,87 @@ After each contract year completes:
 
 ---
 
-## Phase 1e — Nine-Year Portfolio Run
+## Phase 1e — Nine-Year Portfolio Run with Enterprise Risk Physics
 
-Run the complete simulation 2016-2025 with forward curve pricing and the hedge strategy chosen at the Phase 1d gate.
+**Objective:** Run the complete 2016-2025 simulation with the hedging agent from Phase 1d, augmented with real clearinghouse economics. The agent must discover organically that holding naked risk is not free. No strategy is pre-specified — the capital mechanics create the incentive to hedge.
 
-Prerequisite: Phase 1d gate must be cleared and default hedge strategy confirmed before starting.
+### Starting Conditions
 
-Deliverables:
-1. Implement contract renewal in `saas/customers.py` — when a 1-year fixed contract ends, automatically renew at the forward curve price available at renewal date. Assume 100% renewal rate for now
-2. Run full portfolio 2016-01-01 to 2025-06-07 with: forward curve pricing, chosen hedge strategy, contract renewals, all four customers
-3. Report: annual P&L per customer, portfolio totals, CLV per customer accumulated, dissatisfaction events per year, worst and best years
-4. Identify: did any customer CLV turn positive? Which years drove most losses? How does 2021-2022 show up?
+- Reset all four customers' `hedge_fraction` to **0.50** (neutral prior — do not carry forward Phase 1d's converged 0.00 position; that was a lesson documented, not a state to inherit)
+- Portfolio treasury: **£3,250 initial cash balance** (single pool shared across all four customers, representing ~3 months of expected wholesale cost)
+- Simulation window: 2016-01-01 → 2025-06-07, full renewal cycle as established in Phase 1d
 
-**[REVIEW_GATE]** — write PHASE_1e_SUMMARY.md, send NTFY, then wait. This is the key Phase 1 milestone.
+### The Risk Engine (add to `sim/risk_engine.py`)
+
+**1. Dual-Window VaR**
+
+At each contract term start, calculate:
+
+```
+VaR_current = 1.645 × σ_recent × V_naked × P_forward
+VaR_stressed = 1.645 × σ_stressed × V_naked × P_forward
+Active_Collateral = max(VaR_current, VaR_stressed)
+```
+
+Where:
+- `σ_recent` = standard deviation of SSP over the trailing 12 months (rolling, PiT-safe)
+- `σ_stressed` = regime-dependent floor (see below — NOT the 2021-2022 σ at simulation start)
+- `V_naked` = unhedged volume for the term (EAC × (1 - hedge_fraction))
+- `P_forward` = forward price at term start
+
+**Stressed VaR floor — PiT-safe and historically accurate:**
+- 2016-01-01 → 2022-12-31: `σ_stressed` = **0.50** (50% — reflecting the pre-reform Ofgem capital adequacy environment; lax by design, historically correct)
+- 2023-01-01 onwards: `σ_stressed` = **1.50** (150% — Ofgem post-crisis capital adequacy reforms; the regulatory environment the agent operates under permanently changes after the crisis)
+
+This transition is not foresight — it is a regulatory change the agent experiences at the point it happens.
+
+**2. Cost of Capital**
+
+Each settlement period, deduct from the portfolio treasury:
+
+```
+Monthly_CoC = Active_Collateral × WACC / 12
+```
+
+Where `WACC` = **0.10** (10% annualised — mid-range of the 8-12% typical for energy retail).
+
+Deduct proportionally per settlement period (i.e. divide by number of periods in the month). Record as `capital_cost_gbp` in the settlement record.
+
+**3. Treasury & Administration Event**
+
+- `treasury_cash_balance` starts at £3,250 and updates each period: `+margin_gbp - capital_cost_gbp`
+- If `treasury_cash_balance` <= 0 at any point: trigger **Administration Event** — log the date, the proximate cause (margin call vs accumulated CoC drain), and halt the simulation for that run
+- Report whether the portfolio survives the full nine-year window or enters administration, and if so when and why
+
+### Evolution Rule (carry forward from Phase 1d, unchanged)
+
+The agent still uses Phase 1d's `evolve_hedge_fraction()` — compare completed term margin against naked counterfactual, step by 0.1, deadband ±£5. Do not modify it. The CoC signal will now compete with and reshape the evolution signal organically — let it do so without pre-specifying the outcome.
+
+### Deliverables
+
+1. `sim/risk_engine.py` — VaR calculation (dual window), CoC deduction, treasury tracking, administration event trigger
+2. Update `simulation/hedged_settlement.py` — incorporate CoC deduction into per-period P&L
+3. Update `simulation/run_phase1d.py` → `simulation/run_phase1e.py` — full nine-year run with risk engine active, administration event handling
+4. Report per year: gross margin, capital costs, net margin (gross minus CoC), treasury balance end of year, hedge_fraction per customer end of year, VaR_current vs VaR_stressed
+5. Report the full hedge_fraction evolution per customer year by year — did the agent discover the ~40-60% optimal zone organically?
+6. Report whether administration was triggered and if so when and why
+7. `docs/simulation-strategy.md` — update with Phase 1e findings: did the risk physics produce emergent hedging behaviour? How did the 2023 regulatory floor change affect the agent?
+
+### Delegation
+
+- `sim/risk_engine.py` — delegate to `qwen2.5-coder:14b` with full algorithm spec as above. Supply exact formula. Review output before committing.
+- `simulation/run_phase1e.py` — hand-write orchestration (Phase 1d finding: orchestration scripts touching existing schemas produce wrong field names when delegated)
+- Analysis and PHASE_1e_SUMMARY.md — delegate to `qwen2.5:7b`
+- Frontier reviews all output before committing
+
+### NTFY
+
+Send raw URL in all notifications:
+- Phase started: `"Phase 1e started — enterprise risk physics active, treasury £3,250, hedge reset to 0.50"`
+- Phase complete: `"Phase 1e complete. [survived/administration on DATE]. Net 9yr margin: £X. Hedge converged to: X%. Summary: https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/observability/PHASE_1e_SUMMARY.md"`
+- Gate: `"GATE after Phase 1e — Rich reviews whether risk physics produced organic hedging behaviour before Phase 2"`
+
+**[REVIEW_GATE]** after delivering results and summary. This is the key Phase 1 milestone.
 
 ---
 
