@@ -1,8 +1,8 @@
 # Project Status
 
-Last updated: 2026-06-08T17:10:00Z
-Current phase: Phase 1d (complete, parked at `[REVIEW_GATE]`)
-Last commit: 50dee80 — Token-log entry: renewal mechanism + Phase 1d agent-discovered hedging
+Last updated: 2026-06-08T21:45:00Z
+Current phase: Phase 1e — Nine-Year Portfolio Run with Enterprise Risk Physics (RUN IN PROGRESS)
+Last commit: d1275cc — Phase 1e orchestration (capital-aware hedged settlement + 9yr run script)
 
 ## Committed files (all phases)
 
@@ -19,6 +19,7 @@ Last commit: 50dee80 — Token-log entry: renewal mechanism + Phase 1d agent-dis
 - `sim/weather_ingestor.py` — Open-Meteo historical daily weather pull, by customer location
 - `sim/hedging.py` — `settle_hedged_period()`: pure per-period hedge economics (hedged share at forward price, unhedged at spot)
 - `sim/hedging_strategy.py` — the agent's hedging decision/evolution logic (`decide_initial_hedge_fraction`, `evolve_hedge_fraction`)
+- `sim/risk_engine.py` — Phase 1e: dual-window VaR (sigma_recent coefficient-of-variation + sigma_stressed regulatory floor), active collateral, monthly cost of capital (WACC=10%)
 
 **`saas/` — business layer**
 - `saas/README.md` — module purpose and seam boundary
@@ -40,6 +41,7 @@ Last commit: 50dee80 — Token-log entry: renewal mechanism + Phase 1d agent-dis
 - `simulation/run_phase1c_full_window.py` — Phase 1c: full 2016-2025 run that surfaced the empty-book gap (no renewal mechanic)
 - `simulation/run_phase1c_renewals.py` — re-runs the full-window settlement with renewals active (book stays full, 4 customers every year 2016-2025)
 - `simulation/run_phase1d.py` — Phase 1d: full agent-discovered hedging run across all customers and the full window
+- `simulation/run_phase1e.py` — Phase 1e: nine-year portfolio run with enterprise risk physics (dual-window VaR, shared £3,250 treasury, administration-event halting, chronological interleaving)
 
 **`interface/` — sim/saas seam**
 - `interface/README.md`, `interface/contracts/.gitkeep` — seam scaffold (contracts not yet populated)
@@ -63,6 +65,7 @@ Last commit: 50dee80 — Token-log entry: renewal mechanism + Phase 1d agent-dis
 - Phase 1b: `docs/observability/PHASE_1b_SUMMARY.md` (9.5 years of real daily weather, 4 locations)
 - Phase 1c: `docs/observability/PHASE_1c_SUMMARY.md` (forward-curve pricing fixes 2016 losses; surfaced the empty-book gap)
 - Phase 1d: `docs/observability/PHASE_1d_SUMMARY.md` (agent-discovered hedging — converged to fully naked, "learned the wrong lesson from a calm period")
+- Phase 1e: `docs/observability/PHASE_1e_SUMMARY.md` (pending — run in progress)
 
 ## Open gates
-- **Phase 1d** (`[REVIEW_GATE]`, live): the agent-discovered hedging strategy converged to `hedge_fraction = 0.0` (fully naked) for all four customers by mid-simulation, having learned from a calm 2016-2020 period that hedging cost money — and was mostly de-hedged before the 2021-2022 crisis tested whether that lesson generalised. Rich needs to judge whether the evolution logic "makes domain sense" as-is, and whether Phase 1e should build on this converged agent or whether the rule itself needs revision first. Full write-up: `docs/observability/PHASE_1d_SUMMARY.md` + `docs/simulation-strategy.md`.
+- **Phase 1e** (`[REVIEW_GATE]`, pending after run completes): does real capital physics (dual-window VaR collateral + WACC cost of capital) cause the agent's unchanged evolution rule to organically discover a hedged equilibrium? Does the £3,250 treasury survive 9.5 years? Full write-up will be in `docs/observability/PHASE_1e_SUMMARY.md` + updated `docs/simulation-strategy.md`. Rich reviews before Phase 2.
