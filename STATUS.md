@@ -1,8 +1,8 @@
 # Project Status
 
-Last updated: 2026-06-08T21:45:00Z
-Current phase: Phase 1e — Nine-Year Portfolio Run with Enterprise Risk Physics (RUN IN PROGRESS)
-Last commit: d1275cc — Phase 1e orchestration (capital-aware hedged settlement + 9yr run script)
+Last updated: 2026-06-08T23:15:00Z
+Current phase: Phase 1e complete — parked at `[REVIEW_GATE]`. Rich reviews whether risk physics produced organic hedging before Phase 2.
+Last commit: bc8f569 — Phase 1e results: PHASE_1e_SUMMARY.md + simulation-strategy.md Phase 1e section
 
 ## Committed files (all phases)
 
@@ -65,7 +65,7 @@ Last commit: d1275cc — Phase 1e orchestration (capital-aware hedged settlement
 - Phase 1b: `docs/observability/PHASE_1b_SUMMARY.md` (9.5 years of real daily weather, 4 locations)
 - Phase 1c: `docs/observability/PHASE_1c_SUMMARY.md` (forward-curve pricing fixes 2016 losses; surfaced the empty-book gap)
 - Phase 1d: `docs/observability/PHASE_1d_SUMMARY.md` (agent-discovered hedging — converged to fully naked, "learned the wrong lesson from a calm period")
-- Phase 1e: `docs/observability/PHASE_1e_SUMMARY.md` (pending — run in progress)
+- Phase 1e: `docs/observability/PHASE_1e_SUMMARY.md` — capital physics run. Survived. Treasury £3,250→£9,114. Central hypothesis not confirmed: capital costs (37.6% of gross) didn't produce organic hedging. C1/C2 trapped at hf=0.00 (evolution rule blind at that boundary). C3/C4 held at 0.10. 2021 only net-loss year (-£154). 2023 σ_stressed regime shift tripled collateral — invisible to trapped agents.
 
 ## Open gates
-- **Phase 1e** (`[REVIEW_GATE]`, pending after run completes): does real capital physics (dual-window VaR collateral + WACC cost of capital) cause the agent's unchanged evolution rule to organically discover a hedged equilibrium? Does the £3,250 treasury survive 9.5 years? Full write-up will be in `docs/observability/PHASE_1e_SUMMARY.md` + updated `docs/simulation-strategy.md`. Rich reviews before Phase 2.
+- **Phase 1e** (`[REVIEW_GATE]`, LIVE): Rich reviews whether risk physics produced organic hedging behaviour, and what the hf=0.00 trap finding implies for Phase 2 (Context Handshake threshold triggers vs. modified evolution rule). Full write-up: `docs/observability/PHASE_1e_SUMMARY.md` + `docs/simulation-strategy.md` Phase 1e section. This is the key Phase 1 milestone.
