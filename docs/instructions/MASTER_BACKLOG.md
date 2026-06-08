@@ -89,22 +89,58 @@ Constraints: forward curve lives in SIM side behind the interface seam. Risk fac
 
 ---
 
-## Phase 1d — Hedging Strategy
+## Phase 1d — Hedging Strategy (Agent-Discovered, Time-Evolving)
 
-Model the supplier's actual hedging position — what energy contracts back the fixed tariffs sold.
+**Objective:** The agent learns to hedge the portfolio over time using available wholesale instruments. It makes decisions using only information available at each decision point (Point-in-Time Blindfold applies to strategy, not just data). It observes outcomes and evolves its approach at each contract renewal cycle.
 
-Deliverables:
-1. Write `sim/hedging.py` — models the hedge book. Given acquisition date and expected volume (EAC): records hedge price and volume, computes at each settlement period: revenue (fixed tariff × volume), cost (hedge price × hedged volume + spot × unhedged volume), margin
-2. Implement three hedge strategies as configurable options:
-   - Strategy A (naked): 100% spot exposure — current baseline
-   - Strategy B (full hedge): 100% of expected volume bought at acquisition date forward price
-   - Strategy C (partial hedge): 80% at acquisition date forward price, 20% at spot
-3. Run all three strategies across full 2016-2025 window — report annual P&L per strategy per customer and portfolio totals
-4. Report: which strategy performed best in crisis years (2021-2022)? Which in stable years?
+**Design principle:** Do not give the agent a pre-defined strategy to test. Give it instruments and let it reason about how to use them. The gate at this phase reviews whether the agent's initial reasoning and evolution logic make domain sense — not which strategy "won."
 
-Constraints: hedge book lives in SIM side. Assume EAC is realised exactly for now — volume risk is Phase 2. All three strategies runnable from a single config flag.
+### Wholesale Instrument Menu (Electricity)
 
-**[REVIEW_GATE]** — write PHASE_1d_SUMMARY.md, send NTFY, then wait for instruction before proceeding.
+The agent may use any combination of these instruments when hedging a customer position:
+
+| Instrument | Tenor | Typical use |
+|---|---|---|
+| Day-ahead spot | Next day | Top-up / short-term balancing |
+| Month-ahead | M+1 | Short-term cover |
+| Quarterly (Q+1 to Q+4) | 3 months | Medium-term volume matching |
+| Seasonal strip (Summer/Winter) | ~6 months | Seasonal shape management |
+| Annual (Cal+1, Cal+2) | 12 months | Long-term fixed price cover |
+
+Instruments are purchased at the forward price available at the decision date (from `sim/forward_curve.py`). No instrument gives the agent knowledge of future spot prices.
+
+### Decision Function (Initial)
+
+At each customer acquisition or renewal date, the agent must:
+1. Review what it knows: current forward curve shape, volatility (σ), season, time of year
+2. Choose a hedge position: which instruments to buy, what volume (% of EAC), what tenor
+3. Record the hedge book: instrument, price, volume, delivery period
+4. At settlement: compute actual cost (hedge price × hedged volume + spot × unhedged volume) vs tariff revenue
+
+### Evolution Mechanic (No Foresight)
+
+After each contract year completes:
+1. Agent observes: realised P&L vs expected P&L, where cost exceeded tariff, which periods drove losses
+2. Agent updates its hedging parameters for the next cycle — e.g., increase hedge ratio, extend tenor, add seasonal cover
+3. Update must be based only on observed history up to that date — no look-ahead, no knowing what 2022 will bring
+4. Document the reasoning: why did it change the approach, what signal drove the adjustment
+
+### Deliverables
+
+1. Implement hedge book in `sim/hedging.py` — records positions, computes cost at settlement, supports multiple instrument types
+2. Implement decision function in `sim/hedging_strategy.py` — agent's reasoning at each acquisition/renewal date, based only on PiT-available information
+3. Implement evolution mechanic — after each year, agent reviews outcomes and updates strategy parameters
+4. Run the full 2016-2025 window with renewals active — report annual P&L, hedge effectiveness, how the strategy evolves year by year
+5. Document in `docs/simulation-strategy.md`: how the strategy evolved, what signals drove changes, whether it improved over time
+
+### Constraints
+
+- No look-ahead: decisions made only on data available at the decision date
+- Hedge book lives in SIM side behind the interface seam
+- Volume assumption: EAC realised exactly for now — volume risk is a future phase
+- Instrument prices sourced from `sim/forward_curve.py` — the synthetic forward series, per Law 3
+
+**[REVIEW_GATE]** — write PHASE_1d_SUMMARY.md showing: the agent's initial hedging reasoning, how the strategy evolved year by year, and the nine-year P&L outcome. Send NTFY. Rich reviews whether the evolution logic makes domain sense before Phase 1e.
 
 ---
 
