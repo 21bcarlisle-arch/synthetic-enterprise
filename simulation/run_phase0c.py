@@ -9,6 +9,7 @@ from sim.system_prices_history import get_system_prices_range
 from saas.tariff_pricing import price_fixed_tariff
 from simulation.settlement import run_settlement
 from simulation.portfolio_pnl import build_portfolio_pnl
+from saas.customer_reaction import score_dissatisfaction
 
 ACQUISITION_DATES = ["2016-01-01", "2016-04-01", "2016-07-01", "2016-10-01"]
 REPORT_START = "2016-01-01"
@@ -69,7 +70,13 @@ def main():
         print(f"Cost (£): £{customer_data['wholesale_cost_gbp']:0.2f}")
         print(f"Margin (£): £{customer_data['margin_gbp']:0.2f}\n")
     
-    return {"pnl": pnl, "settlement_records": settlement_records}
+    # Customer reaction
+    reaction = score_dissatisfaction(settlement_records)
+    print("Customer reaction — dissatisfaction count (period cost > fixed-tariff bill by more than 20%):")
+    for customer_id, data in reaction.items():
+        print(f"  {customer_id}: {data['dissatisfaction_count']} / {data['periods_scored']} periods triggered dissatisfaction")
+    
+    return {"pnl": pnl, "settlement_records": settlement_records, "reaction": reaction}
 
 
 if __name__ == "__main__":
