@@ -11,8 +11,8 @@ from simulation.settlement import run_settlement
 from simulation.portfolio_pnl import build_portfolio_pnl
 from saas.customer_reaction import score_dissatisfaction
 from saas.clv_seed import build_clv_seed
+from saas.customers import CUSTOMERS, customer_to_settlement_input
 
-ACQUISITION_DATES = ["2016-01-01", "2016-04-01", "2016-07-01", "2016-10-01"]
 REPORT_START = "2016-01-01"
 REPORT_END = "2016-12-31"
 PRICING_LOOKBACK_DAYS = 30
@@ -20,13 +20,14 @@ PRICING_LOOKBACK_DAYS = 30
 
 def build_priced_customers() -> list[dict]:
     customers = []
-    for index, acquisition_date in enumerate(ACQUISITION_DATES, start=1):
-        acquisition = date.fromisoformat(acquisition_date)
-        lookback_start = (acquisition - timedelta(days=PRICING_LOOKBACK_DAYS)).isoformat()
+    for customer in CUSTOMERS:
+        settlement_input = customer_to_settlement_input(customer)
+        acquisition_date = settlement_input["acquisition_date"]
+        lookback_start = (date.fromisoformat(acquisition_date) - timedelta(days=PRICING_LOOKBACK_DAYS)).isoformat()
         pricing_window_records = get_system_prices_range(lookback_start, acquisition_date)
         unit_rate = price_fixed_tariff(acquisition_date, pricing_window_records)
         customers.append({
-            "customer_id": f"C{index}",
+            "customer_id": settlement_input["customer_id"],
             "acquisition_date": acquisition_date,
             "unit_rate_gbp_per_mwh": unit_rate,
         })
