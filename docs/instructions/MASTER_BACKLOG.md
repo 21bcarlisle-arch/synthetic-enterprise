@@ -38,7 +38,7 @@ Two local models, routed by task type via `tools/delegate_ollama.py --task-type 
 - Drafting `PHASE_SUMMARY.md` files (frontier reviews and edits the draft — never commits it raw)
 - Writing README updates and inline code comments
 - Extracting key figures from result tables
-- Drafting `docs/STATUS.md` updates
+- Drafting `STATUS.md` updates
 
 **Stays on frontier, always:**
 - Architecture decisions
