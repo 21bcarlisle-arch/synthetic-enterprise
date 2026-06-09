@@ -252,35 +252,133 @@ Send raw URL in all notifications:
 
 ---
 
-## Phase 2a — SME Segment [Run after Phase 1c, parallel with 1d]
+## Phase 2 — Context Handshake, SME Segment & Gas Dual Fuel
 
-Add one SME customer alongside the resi cohort.
+### The Context Handshake (build first, before Phase 2a or 2b)
 
-Deliverables:
-1. Add C5: SME, acquired 2016-01-01, London small office, Profile Class 3, EAC 25,000 kWh, `segment` = "SME"
-2. Confirm `commodity` and `segment` fields are first-class in the customer schema
-3. Run C5 through the same pricing, hedging, and settlement pipeline as resi — confirm no segment-specific code needed
-4. Report C5 2016 P&L alongside resi cohort — note differences in shape risk profile (PC3 vs PC1)
+**Objective:** Implement the risk committee agent wake-up mechanism. This breaks the hf=0.00 structural blindness identified in Phase 1e by giving an LLM agent direct visibility of treasury dynamics and VaR regime — information the evolution rule is structurally blind to.
 
-Constraint: if any code change is needed for SME, it must be backwards-compatible with resi. No if/else on segment type in the core pipeline.
+**Design:**
 
-No gate. Write PHASE_2a_SUMMARY.md and send NTFY.
+1. Write `sim/risk_committee.py` — the wake-up trigger and context packager:
+   - Monitor two hard thresholds after every settlement period:
+     - Treasury drawdown > 10% from its rolling 12-month peak
+     - VaR_current > VaR_stressed × 1.2 (current risk exceeds stressed floor by 20%)
+   - When either threshold is breached, package the context handshake summary (see format below) and write it to `docs/context-handshake-latest.md`
+   - Flag the session for a risk committee wake-up
+
+2. Write `sim/risk_committee_agent.py` — the LLM agent (frontier model only, not delegated):
+   - Reads `docs/context-handshake-latest.md`
+   - Adjusts exactly one lever: `hedge_fraction` for the customer(s) whose VaR triggered the threshold
+   - Writes the updated parameter back to the simulation state
+   - Logs its reasoning in `docs/observability/risk-committee-log.md` (one entry per wake-up)
+   - Returns to sleep immediately
+
+3. Context handshake format (write to `docs/context-handshake-latest.md` on each trigger):
+```
+## Risk Committee Wake-Up — [timestamp]
+Trigger: [treasury drawdown X% / VaR breach X%]
+Treasury balance: £X (peak: £X, drawdown: X%)
+Portfolio gross margin YTD: £X | Net margin YTD: £X
+Active collateral: £X | Monthly CoC: £X
+VaR_current: £X | VaR_stressed: £X | Ratio: X
+Per-customer hedge_fraction: C1=X C2=X C3=X C4=X
+Rolling 12m SSP avg: £X/MWh | σ_recent: X
+Regime: [pre/post 2023 regulatory change]
+Recommendation requested: adjust hedge_fraction for [customer(s)]
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30
+```
+
+4. The risk committee agent must:
+   - Justify its decision in plain English in the log
+   - Never decrease hedge_fraction (it only acts when risk is elevated)
+   - Return to sleep after a single adjustment — no further intervention until the next threshold breach
+
+**Constraints:**
+- Zero LLM activity except at threshold breaches — the inner loop remains pure Python/NumPy
+- The agent adjusts one lever only — hedge_fraction. It does not change treasury policy, tariff margins, or contract terms
+- The evolution rule (`evolve_hedge_fraction()`) continues to run unchanged alongside the risk committee — they are two independent signals; the evolution rule can still decrease the fraction between wake-ups
+
+**Commit risk_committee.py and risk_committee_agent.py separately. No gate on this — it is infrastructure, not a deliverable.**
 
 ---
 
-## Phase 2b — Gas Dual Fuel [BLOCKED: start after Phase 1c complete]
+## Phase 2a — SME Segment
 
-Add gas supply to C1-C4, making them dual-fuel.
+**Objective:** Add SME customers alongside resi. Tests whether the pipeline handles multiple segments cleanly and whether the risk physics and Context Handshake behave correctly at larger volumes.
 
-Deliverables:
-1. Research and document the best free historical NBP gas price data source back to 2016 in `docs/data-sources/gas-nbp.md`
-2. Add gas commodity records to C1-C4: AQ field (not EAC), CV conversion factor (~39.5 MJ/m³), separate gas tariff pricing
-3. Extend pricing and hedging pipeline to handle gas — commodity field routes to the correct price feed automatically
-4. Run 2016 settlement for all four customers, both commodities — report dual-fuel P&L
+**Deliverables:**
 
-Constraint: gas and electricity run through the same pipeline. Commodity is a routing field, not a code branch.
+1. Add two SME customers to `saas/customers.py`:
+   - C5 (acquired 2016-01-01): London, small office, Profile Class 3, EAC 25,000 kWh, `segment`="SME", `commodity`="electricity"
+   - C6 (acquired 2016-04-01): Manchester, warehouse unit, Profile Class 3, EAC 45,000 kWh, `segment`="SME", `commodity`="electricity"
 
-**[REVIEW_GATE]** — write PHASE_2b_SUMMARY.md, send NTFY, then wait.
+2. Confirm the full pipeline (pricing, hedging, settlement, risk engine, Context Handshake) handles SME customers without segment-specific code. If any code change is needed it must be backwards-compatible — no if/else on segment type in the core pipeline.
+
+3. Update the shared portfolio treasury: starting balance scales with portfolio size. New starting balance = £3,250 × (total portfolio EAC / original 4-customer EAC). Calculate and apply.
+
+4. Run full 2016-2025 with all six customers (C1-C4 resi + C5-C6 SME). Report:
+   - Annual P&L per customer and portfolio total
+   - Context Handshake wake-up log — did the risk committee fire? When? What did it do?
+   - Did the SME customers' larger volumes change the treasury dynamics vs resi-only?
+   - Per-customer CLV accumulated
+
+5. Pull PC3 shape profile data (same source as PC1 — Elexon portal) and document in `docs/data-sources/profile-class-3.md`
+
+**Delegation:** PC3 shape loader — delegate to qwen2.5-coder:14b with full source verbatim. Orchestration — hand-written. Analysis and summary — delegate to qwen2.5:7b.
+
+**[REVIEW_GATE]** — write PHASE_2a_SUMMARY.md, send NTFY with raw URL and headline figures. Include: did the Context Handshake fire and did it make domain-sensible decisions?
+
+---
+
+## Phase 2b — Gas Dual Fuel
+
+**Prerequisite:** Phase 2a gate cleared.
+
+**Objective:** Add gas supply to C1-C4 resi customers (dual fuel). Tests the commodity abstraction — gas and electricity must route through the same pipeline with commodity as a field, not a branch.
+
+**Ground truth (do not research — use exactly what follows):**
+
+NBP gas price data:
+- Primary source: NGT MIPI API at https://mipidata.nationalgas.com/api
+- Use System Average Price (SAP) — JSON, fields: `ApplicableFor` (gas day), `Value` (p/kWh)
+- Do NOT use NESO CKAN — electricity only. Do NOT use ICE — paywalled.
+
+AQ (Annualised Quantity):
+- Use fixed synthetic AQ per customer (same logic as EAC for electricity)
+- AQ field is nullable — do not hardcode. Weather-driven AQ adjustment is future work.
+
+CV conversion formula:
+```
+kWh = V × CF × CV / 3.6
+```
+- CF = 1.02264 (standard UK legal value)
+- CV = 39.5 MJ/m³ (fixed assumption — store as configurable field, not hardcoded constant)
+- V in m³
+
+**Deliverables:**
+
+1. Pull historical NBP SAP data 2016-2025 from NGT MIPI API. Store in `sim/gas_data/nbp_sap.csv`. Document in `docs/data-sources/gas-nbp.md`.
+
+2. Add gas commodity records to C1-C4 in `saas/customers.py`:
+   - `commodity`="gas", `aq_kwh` (synthetic, based on home type and EPC rating — use ~12,000 kWh for C1 flat, ~15,000 for C2 semi, ~14,000 for C3 tenement, ~22,000 for C4 detached), `cv_factor`=39.5, `cf`=1.02264
+   - Same acquisition dates, same contract structure (1-year fixed)
+
+3. Extend pricing and hedging pipeline to handle gas:
+   - `commodity` field routes to the correct price feed (NBP SAP for gas, Elexon SSP for electricity)
+   - Forward curve logic applies to gas using NBP seasonal structure
+   - Risk engine applies to gas positions — same VaR logic, commodity-aware
+
+4. Run 2016-2025 with dual-fuel C1-C4 plus electricity-only C5-C6. Report:
+   - Dual-fuel P&L per customer (electricity + gas separated)
+   - Portfolio-level commodity exposure split (£ at risk: electricity vs gas)
+   - Did the gas positions change the Context Handshake trigger frequency?
+
+5. Confirm `data_regime`="historical" field is present on all gas records.
+
+**Delegation:** NBP ingestion and CV conversion — delegate to qwen2.5-coder:14b with full formula spec. Orchestration — hand-written. Analysis — qwen2.5:7b.
+
+**[REVIEW_GATE]** — write PHASE_2b_SUMMARY.md, send NTFY with raw URL and headline dual-fuel P&L figures.
 
 ---
 
