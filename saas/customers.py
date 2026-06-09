@@ -72,7 +72,33 @@ CUSTOMERS = [
         "commodity": "electricity",
         "contract_type": "fixed_1yr",
         "segment": "resi",
-    }
+    },
+    {
+        "customer_id": "C5",
+        "acquisition_date": "2016-01-01",
+        "location": {"lat": 51.5074, "lon": -0.1278, "region": "London"},
+        "home_type": "small_office",
+        "bedrooms": None,
+        "epc_rating": "C",
+        "eac_kwh": 25000,
+        "profile_class": 3,
+        "commodity": "electricity",
+        "contract_type": "fixed_1yr",
+        "segment": "SME",
+    },
+    {
+        "customer_id": "C6",
+        "acquisition_date": "2016-04-01",
+        "location": {"lat": 53.4808, "lon": -2.2426, "region": "Manchester"},
+        "home_type": "warehouse_unit",
+        "bedrooms": None,
+        "epc_rating": "D",
+        "eac_kwh": 45000,
+        "profile_class": 3,
+        "commodity": "electricity",
+        "contract_type": "fixed_1yr",
+        "segment": "SME",
+    },
 ]
 
 
