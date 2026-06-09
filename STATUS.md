@@ -1,8 +1,8 @@
 # Project Status
 
-Last updated: 2026-06-09T00:00:00Z
-Current phase: Phase 2a in progress — 6-customer run (SME segment + Context Handshake) running. Gate LIVE pending simulation completion.
-Last commit: 510ea6e — Phase 2a bootstrap: SME customers, PC3 loader, 6-customer orchestration
+Last updated: 2026-06-09T07:30:00Z
+Current phase: Phase 2a complete — parked at [REVIEW_GATE]. Rich reviews C6 net-negative finding + Context Handshake 401 fix before Phase 2b.
+Last commit: (pending) — Phase 2a results: PHASE_2a_SUMMARY.md + simulation-strategy.md Phase 2a section
 
 ## Committed files (all phases)
 
@@ -82,7 +82,7 @@ Last commit: 510ea6e — Phase 2a bootstrap: SME customers, PC3 loader, 6-custom
 
 ## Open gates
 - **Phase 1e** (`[REVIEW_GATE]`, SUPERSEDED by Rich's Phase 2 instruction): Context Handshake was chosen as the escape mechanism. Phase 2a is now in progress.
-- **Phase 2a** (`[REVIEW_GATE]`, LIVE): Rich reviews 6-customer run results after simulation completes. Key questions: (1) did Context Handshake fire? Under what conditions? (2) Did SME customers (C5/C6) materially change portfolio risk profile vs resi-only? (3) Did the risk committee's hedge_fraction overrides improve net margin? Full write-up in `docs/observability/PHASE_2a_SUMMARY.md` (generated post-run).
+- **Phase 2a** (`[REVIEW_GATE]`, LIVE): Three headline findings: (1) C6 (warehouse, 45k kWh) net −£1,176 — capital costs exceed gross margin at flat-margin pricing; (2) Context Handshake fired 200+ times but all 401 — API key not in subprocess env; (3) VaR trigger too sensitive (fires every ~30 days even during healthy growth periods). Two fixes required before Phase 2b: API key mechanism for subprocesses, VaR threshold recalibration (1.20 → ~2.0). Full write-up: `docs/observability/PHASE_2a_SUMMARY.md`.
 
 ## Background Worker Performance
 

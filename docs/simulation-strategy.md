@@ -115,3 +115,52 @@ This is the open question Phase 2 must answer: does the Context Handshake model 
 
 The company survived. Treasury grew from £3,250 to £9,114.38 across 9.5 years. The starting capital was never under serious threat — the worst moment was 2021 (the net-loss year), after which treasury still stood at £4,785.10. The £3,250 floor was set deliberately small; its real purpose was to make administration a *plausible* outcome rather than a guaranteed survival or certain failure, so the administration-event mechanism could be validated. No administration occurred, which means the mechanism was not stress-tested beyond detection. A smaller treasury (£500-1,000) would likely have triggered administration in 2021.
 
+
+---
+
+## Phase 2a — SME Segment, Context Handshake, and the Warehouse Problem
+
+**Run:** 2026-06-09 | **Customers:** C1–C4 (resi, PC1) + C5 (25k kWh SME, PC3) + C6 (45k kWh SME, PC3) | **Treasury start:** £18,416.67 (scaled)
+
+### Headline: survived, but C6 destroys more value than it creates
+
+Treasury grew from £18,416.67 to £27,118.62 (+£8,701.95 net margin). But C6 — the warehouse customer at 45,000 kWh EAC — ran net **−£1,175.64** over the full window. Capital costs (£6,470) exceeded gross margin (£5,294) by £1,176. The company survived despite C6, not with its help.
+
+The capital cost ratio doubled vs Phase 1e: 66.2% of gross (vs 37.6% in 4-customer resi-only run). C5 and C6 together contributed 79% of total capital costs on 82% of EAC. The lesson: large SME customers under current flat-margin pricing are net-negative in a capital-physics world.
+
+### The hf=0.00 trap is EAC-dependent
+
+C6 (45k kWh) uniquely escaped the trap. C5 (25k kWh) did not. The pattern:
+
+- **C5, resi:** all four hit hf=0.00 by 2019–2021, then trapped. Same pathology as Phase 1e.
+- **C6 (45k kWh):** started at 0.50, briefly pulled back to 0.40, then climbed monotonically to 0.80 by 2024 and 0.90 projected. The only upward trajectory in the portfolio.
+
+The reason: with 45,000 kWh EAC, even at hf=0.50 the naked volume (22,500 kWh) generates a capital cost signal strong enough to consistently show `naked_net << actual_net`. The evolution rule reads this correctly. C6 never reached hf=0.00, so it never entered the self-referential trap. C5 at 25,000 kWh generated a weaker signal at low hedge fractions — enough to fall below the noise threshold by 2019 (hf=0.10, naked volume = 2,500 kWh).
+
+**Implication:** the trap is not a design flaw in the evolution rule itself — it's a natural consequence of signal attenuation at low naked volume. The risk committee is still needed for customers that DO reach hf=0.00 (all four resi + C5). But the solution for large SME customers may simply be that the physics is loud enough for the rule to self-correct.
+
+### Context Handshake: fired constantly, landed nothing
+
+The VaR trigger (VaR_current > VaR_stressed × 1.20) was too sensitive — it fired on virtually every cooldown cycle from 2016-01-01 onwards. `sigma_recent` was consistently > 0.60 (the 1.20 × 0.50 pre-reform threshold), so the ratio was always above the trigger level. The context file was written hundreds of times.
+
+All agent invocations failed: HTTP 401. The `ANTHROPIC_API_KEY` environment variable is not visible to subprocess environments launched outside Claude Code's managed shell.
+
+Two fixes required before Phase 2b:
+1. **API key:** use SDK auto-discovery or write key to `~/.anthropic/` for subprocess access
+2. **VaR threshold:** raise from 1.20 to ~2.0, add treasury-health gate
+
+### 2021 was far worse than Phase 1e
+
+| Metric | Phase 1e (4 resi) | Phase 2a (6 customers) |
+|--------|------------------|----------------------|
+| 2021 net margin | -£154 | **-£1,600** |
+| 2021 capital costs | £455 | £2,285 |
+| C5 2021 alone | — | -£661 net |
+| C6 2021 alone | — | -£985 net |
+
+The SME customers' large naked volumes during the energy crisis spike (Sep-Dec 2021) generated enormous collateral requirements. Even with the treasury surviving, 2021 confirmed that large unhedged SME customers amplify crisis exposure dramatically.
+
+### Post-crisis recovery (2023) remains the redemption pattern
+
+2023: gross £8,417, net £5,127 — best year in the run. Same mechanism as Phase 1e: high fixed tariffs locked in during 2021-2022 renewals (when the forward curve was elevated) proved profitable as 2023 spot prices fell back. The post-2023 sigma_stressed regime change (0.50→1.50) tripled collateral for all customers, but the gross margin was strong enough to absorb it.
+
