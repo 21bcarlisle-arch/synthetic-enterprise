@@ -19,7 +19,7 @@ from saas.tariff_pricing import price_fixed_tariff
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 
-def build_renewal_schedule(customer_id: str, original_acquisition_date: str, report_end_date: str, price_records: list[dict]) -> list[dict]:
+def build_renewal_schedule(customer_id: str, original_acquisition_date: str, report_end_date: str, price_records: list[dict], eac_kwh: int) -> list[dict]:
     """Build a chronological sequence of contiguous 1-year contract terms
     for one customer, covering [original_acquisition_date, report_end_date].
 
@@ -50,7 +50,7 @@ def build_renewal_schedule(customer_id: str, original_acquisition_date: str, rep
     while term_start <= report_end:
         term_start_str = term_start.isoformat()
         forward_price = generate_forward_price(term_start_str, price_records)
-        unit_rate = price_fixed_tariff(forward_price)
+        unit_rate = price_fixed_tariff(forward_price, eac_kwh, term_start_str)
         terms.append({
             "customer_id": customer_id,
             "acquisition_date": term_start_str,

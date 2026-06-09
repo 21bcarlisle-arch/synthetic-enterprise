@@ -29,14 +29,12 @@ makes a real-time decision that affects the simulation's financial state.
 
 import json
 import re
-import urllib.request
 from datetime import datetime
 from pathlib import Path
 
 HANDSHAKE_FILE = "docs/context-handshake-latest.md"
 COMMITTEE_LOG_FILE = "docs/observability/risk-committee-log.md"
 
-ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 COMMITTEE_MODEL = "claude-sonnet-4-6"
 
 SYSTEM_PROMPT = """You are the risk committee agent for a simulated UK energy supplier.
@@ -71,29 +69,15 @@ def _call_frontier(context: str) -> dict:
     """Call the frontier model with the handshake context. Returns the parsed
     decision dict. Raises on API error or unparseable response.
     """
-    import os
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-
-    payload = json.dumps({
-        "model": COMMITTEE_MODEL,
-        "max_tokens": 512,
-        "system": SYSTEM_PROMPT,
-        "messages": [{"role": "user", "content": context}],
-    }).encode()
-
-    request = urllib.request.Request(
-        ANTHROPIC_API_URL,
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
-        },
+    import anthropic  # lazy import — not available in all Python envs; failure caught by caller
+    client = anthropic.Anthropic()  # auto-discovers key from ~/.anthropic/ or ANTHROPIC_API_KEY env
+    message = client.messages.create(
+        model=COMMITTEE_MODEL,
+        max_tokens=512,
+        system=SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": context}],
     )
-    with urllib.request.urlopen(request, timeout=60) as response:
-        result = json.loads(response.read())
-
-    raw_text = result["content"][0]["text"]
+    raw_text = message.content[0].text
 
     # Strip any accidental markdown fences before parsing
     cleaned = re.sub(r"^```[a-z]*\n?", "", raw_text.strip(), flags=re.MULTILINE)

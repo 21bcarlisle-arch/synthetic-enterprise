@@ -36,7 +36,7 @@ from collections import deque
 import statistics
 
 TREASURY_DRAWDOWN_THRESHOLD = 0.10    # trigger if treasury has fallen >10% from 12-month peak
-VAR_BREACH_MULTIPLIER = 1.20          # trigger if VaR_current > VaR_stressed × this
+VAR_BREACH_MULTIPLIER = 2.50          # trigger if VaR_current > VaR_stressed × this (raised from 1.20 — prevents nuisance fires during healthy growth)
 PEAK_LOOKBACK_PERIODS = 365 * 48      # ~12 months of half-hourly periods for rolling peak window
 
 HANDSHAKE_FILE = "docs/context-handshake-latest.md"
@@ -53,6 +53,7 @@ class RiskCommitteeMonitor:
 
     def __init__(self, starting_treasury_gbp: float):
         self._treasury = starting_treasury_gbp
+        self._starting_treasury = starting_treasury_gbp  # treasury health gate reference
         self._peak = starting_treasury_gbp
         # Rolling deque of (date_str, treasury_balance) tuples for the 12-month window
         self._history: deque = deque()
@@ -95,7 +96,9 @@ class RiskCommitteeMonitor:
         var_breach_ratio = var_current_gbp / var_stressed_gbp if var_stressed_gbp > 0 else 0.0
 
         treasury_breached = drawdown_pct > TREASURY_DRAWDOWN_THRESHOLD
-        var_breached = var_breach_ratio > VAR_BREACH_MULTIPLIER
+        # VaR gate also requires treasury below 1.5× starting balance — suppresses nuisance
+        # fires during healthy growth periods where VaR is high but capital is adequate.
+        var_breached = (var_breach_ratio > VAR_BREACH_MULTIPLIER) and (new_treasury_gbp < self._starting_treasury * 1.5)
 
         if treasury_breached or var_breached:
             trigger_description = []

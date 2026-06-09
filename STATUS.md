@@ -1,8 +1,8 @@
 # Project Status
 
-Last updated: 2026-06-09T07:30:00Z
-Current phase: Phase 2a complete — parked at [REVIEW_GATE]. Rich reviews C6 net-negative finding + Context Handshake 401 fix before Phase 2b.
-Last commit: 2fdf6d7 — Phase 2a results: PHASE_2a_SUMMARY.md + simulation-strategy.md Phase 2a section
+Last updated: 2026-06-09T11:30:00Z
+Current phase: Pricing fix complete — [REVIEW_GATE]. C6 flipped net-positive (+£620 vs -£1,176). Context Handshake SDK fix partial (lazy import). Ready for Phase 2b pending Rich review.
+Last commit: pending — pricing fix + risk committee recalibration + repriced simulation runs
 
 ## Committed files (all phases)
 
@@ -43,6 +43,8 @@ Last commit: 2fdf6d7 — Phase 2a results: PHASE_2a_SUMMARY.md + simulation-stra
 - `simulation/run_phase1d.py` — Phase 1d: full agent-discovered hedging run across all customers and the full window
 - `simulation/run_phase1e.py` — Phase 1e: nine-year portfolio run with enterprise risk physics (dual-window VaR, shared £3,250 treasury, administration-event halting, chronological interleaving)
 - `simulation/run_phase2a.py` — Phase 2a: 6-customer run with SME segment (PC3 shape), Context Handshake (RiskCommitteeMonitor + risk_committee_agent), scaled treasury £18,416.67, chronological term interleaving
+- `simulation/run_phase1e_repriced.py` — Phase 1e re-run with activity-based pricing (comparison baseline)
+- `simulation/run_phase2a_repriced.py` — Phase 2a re-run with activity-based pricing + recalibrated risk committee (VAR_BREACH_MULTIPLIER=2.50, treasury health gate)
 
 **`interface/` — sim/saas seam**
 - `interface/README.md`, `interface/contracts/.gitkeep` — seam scaffold (contracts not yet populated)
@@ -70,6 +72,7 @@ Last commit: 2fdf6d7 — Phase 2a results: PHASE_2a_SUMMARY.md + simulation-stra
 - `docs/instructions/background-tasks.md` — background worker task queue (QUEUED/RUNNING/DONE)
 - `docs/observability/PHASE_{1a,1b,1c,1d}_SUMMARY.md` — per-phase summaries (What was built / Key findings / Key decisions / Open questions / Token efficiency)
 - `docs/observability/token-log.md` — running process-observability log (frontier vs local token spend, per session)
+- `docs/observability/pricing-fix-comparison.md` — flat-margin vs activity-based pricing comparison (C6 flip, all-customer net margins, year-by-year)
 
 ## Phase summary index
 - Phase 0a/0b: no standalone summary doc — see `docs/instructions/MASTER_BACKLOG.md` "Where We Are" for the headline numbers (Q4 2016 P&L = −£77.67)
@@ -81,8 +84,9 @@ Last commit: 2fdf6d7 — Phase 2a results: PHASE_2a_SUMMARY.md + simulation-stra
 - Phase 1e: `docs/observability/PHASE_1e_SUMMARY.md` — capital physics run. Survived. Treasury £3,250→£9,114. Central hypothesis not confirmed: capital costs (37.6% of gross) didn't produce organic hedging. C1/C2 trapped at hf=0.00 (evolution rule blind at that boundary). C3/C4 held at 0.10. 2021 only net-loss year (-£154). 2023 σ_stressed regime shift tripled collateral — invisible to trapped agents.
 
 ## Open gates
-- **Phase 1e** (`[REVIEW_GATE]`, SUPERSEDED by Rich's Phase 2 instruction): Context Handshake was chosen as the escape mechanism. Phase 2a is now in progress.
-- **Phase 2a** (`[REVIEW_GATE]`, LIVE): Three headline findings: (1) C6 (warehouse, 45k kWh) net −£1,176 — capital costs exceed gross margin at flat-margin pricing; (2) Context Handshake fired 200+ times but all 401 — API key not in subprocess env; (3) VaR trigger too sensitive (fires every ~30 days even during healthy growth periods). Two fixes required before Phase 2b: API key mechanism for subprocesses, VaR threshold recalibration (1.20 → ~2.0). Full write-up: `docs/observability/PHASE_2a_SUMMARY.md`.
+- **Phase 1e** (`[REVIEW_GATE]`, SUPERSEDED): Closed by Phase 2a.
+- **Phase 2a** (`[REVIEW_GATE]`, SUPERSEDED): Pricing fix applied; C6 now net-positive. See pricing-fix-comparison.md.
+- **Pricing fix + Context Handshake** (`[REVIEW_GATE]`, LIVE): Activity-based pricing confirmed working (C6: -£1,176 → +£620, treasury +£4,977 improvement vs flat margin). Context Handshake SDK: lazy import in place, but anthropic SDK not installed in system Python 3.14 — committee still cannot fire. VaR threshold recalibrated (1.20 → 2.50) + treasury health gate: 0 spurious wake-ups in repriced run. Full comparison: `docs/observability/pricing-fix-comparison.md`. Next: Phase 2b (gas dual-fuel) — requires SDK install or alternative invocation path for committee.
 
 ## Background Worker Performance
 
