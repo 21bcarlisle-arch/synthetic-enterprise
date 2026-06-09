@@ -1,8 +1,8 @@
 # Project Status
 
-Last updated: 2026-06-08T23:15:00Z
-Current phase: Phase 1e complete — parked at `[REVIEW_GATE]`. Rich reviews whether risk physics produced organic hedging before Phase 2.
-Last commit: bc8f569 — Phase 1e results: PHASE_1e_SUMMARY.md + simulation-strategy.md Phase 1e section
+Last updated: 2026-06-09T00:00:00Z
+Current phase: Phase 2a in progress — 6-customer run (SME segment + Context Handshake) running. Gate LIVE pending simulation completion.
+Last commit: 510ea6e — Phase 2a bootstrap: SME customers, PC3 loader, 6-customer orchestration
 
 ## Committed files (all phases)
 
@@ -23,7 +23,7 @@ Last commit: bc8f569 — Phase 1e results: PHASE_1e_SUMMARY.md + simulation-stra
 
 **`saas/` — business layer**
 - `saas/README.md` — module purpose and seam boundary
-- `saas/customers.py` — the 4-customer cohort (`CUSTOMERS`, `customer_to_settlement_input`) — C1 London/C2 Manchester/C3 Glasgow/C4 Cotswolds
+- `saas/customers.py` — the 6-customer cohort (C1-C4 resi, C5-C6 SME with profile_class=3)
 - `saas/tariff_pricing.py` — `price_fixed_tariff()`: applies business margin to a pre-generated forward price (pure margin step, curve-generation lives in `sim/`)
 - `saas/customer_reaction.py` — `score_dissatisfaction()`: Experience-observability seed (counts periods where wholesale cost > 120% of bill)
 - `saas/clv_seed.py` — `build_clv_seed()`: per-customer running (billed − cost) total, the first CLV building block
@@ -42,6 +42,7 @@ Last commit: bc8f569 — Phase 1e results: PHASE_1e_SUMMARY.md + simulation-stra
 - `simulation/run_phase1c_renewals.py` — re-runs the full-window settlement with renewals active (book stays full, 4 customers every year 2016-2025)
 - `simulation/run_phase1d.py` — Phase 1d: full agent-discovered hedging run across all customers and the full window
 - `simulation/run_phase1e.py` — Phase 1e: nine-year portfolio run with enterprise risk physics (dual-window VaR, shared £3,250 treasury, administration-event halting, chronological interleaving)
+- `simulation/run_phase2a.py` — Phase 2a: 6-customer run with SME segment (PC3 shape), Context Handshake (RiskCommitteeMonitor + risk_committee_agent), scaled treasury £18,416.67, chronological term interleaving
 
 **`interface/` — sim/saas seam**
 - `interface/README.md`, `interface/contracts/.gitkeep` — seam scaffold (contracts not yet populated)
@@ -49,12 +50,24 @@ Last commit: bc8f569 — Phase 1e results: PHASE_1e_SUMMARY.md + simulation-stra
 **`tools/`**
 - `tools/delegate_ollama.py` — local-model delegation harness, routes to `qwen2.5-coder:14b` (code) or `qwen2.5:7b` (analysis/drafting) by task type
 
+**`sim/`** (continued)
+- `sim/profile_class_3.py` + `sim/data/profile_class_3_gad.csv` — PC3 (non-domestic unrestricted) GAD shape (fetched from UKERC/CEDA)
+- `sim/risk_committee.py` — RiskCommitteeMonitor: treasury drawdown + VaR breach threshold checks, context packager
+- `sim/risk_committee_agent.py` — frontier LLM risk committee agent (one lever: hedge_fraction, fired on threshold breach)
+- `sim/cache_store.py` — lightweight JSON cache layer; background tasks pre-fetch, simulation checks before live API
+
+**`background/`**
+- `background/background_worker.py` — autonomous off-peak worker (Qwen only, no frontier tokens, pauses 16:00-19:00 GMT)
+- `background/run_queued_tasks.py` — task dispatcher: reads background-tasks.md queue, runs via Ollama, logs performance + sends NTFY
+- `background/start_worker.sh` — launches worker in detached tmux session
+
 **`docs/`**
 - `docs/simulation-period.md` — derivation of the 2016-01-01 → 2025-06-07 simulation window (P305 boundary)
 - `docs/simulation-strategy.md` — companion to Phase 1d: hedging-strategy mechanics, what signal drove each evolution step, whether it improved
 - `docs/phase0c-findings.md` — Phase 0c delegation-approach findings ("delegate everything" verdict)
 - `docs/instructions/MASTER_BACKLOG.md` — the standing phase roadmap + NTFY/Phase-Summary/Delegation protocols (read at the start of every session)
-- `docs/data-sources/{elexon,profile-class-1,customers,weather,gas-nbp}.md` — data-source design records (one per external/internal data source brought into the sim)
+- `docs/data-sources/{elexon,profile-class-1,profile-class-3,customers,weather,gas-nbp}.md` — data-source design records
+- `docs/instructions/background-tasks.md` — background worker task queue (QUEUED/RUNNING/DONE)
 - `docs/observability/PHASE_{1a,1b,1c,1d}_SUMMARY.md` — per-phase summaries (What was built / Key findings / Key decisions / Open questions / Token efficiency)
 - `docs/observability/token-log.md` — running process-observability log (frontier vs local token spend, per session)
 
@@ -68,4 +81,16 @@ Last commit: bc8f569 — Phase 1e results: PHASE_1e_SUMMARY.md + simulation-stra
 - Phase 1e: `docs/observability/PHASE_1e_SUMMARY.md` — capital physics run. Survived. Treasury £3,250→£9,114. Central hypothesis not confirmed: capital costs (37.6% of gross) didn't produce organic hedging. C1/C2 trapped at hf=0.00 (evolution rule blind at that boundary). C3/C4 held at 0.10. 2021 only net-loss year (-£154). 2023 σ_stressed regime shift tripled collateral — invisible to trapped agents.
 
 ## Open gates
-- **Phase 1e** (`[REVIEW_GATE]`, LIVE): Rich reviews whether risk physics produced organic hedging behaviour, and what the hf=0.00 trap finding implies for Phase 2 (Context Handshake threshold triggers vs. modified evolution rule). Full write-up: `docs/observability/PHASE_1e_SUMMARY.md` + `docs/simulation-strategy.md` Phase 1e section. This is the key Phase 1 milestone.
+- **Phase 1e** (`[REVIEW_GATE]`, SUPERSEDED by Rich's Phase 2 instruction): Context Handshake was chosen as the escape mechanism. Phase 2a is now in progress.
+- **Phase 2a** (`[REVIEW_GATE]`, LIVE): Rich reviews 6-customer run results after simulation completes. Key questions: (1) did Context Handshake fire? Under what conditions? (2) Did SME customers (C5/C6) materially change portfolio risk profile vs resi-only? (3) Did the risk committee's hedge_fraction overrides improve net margin? Full write-up in `docs/observability/PHASE_2a_SUMMARY.md` (generated post-run).
+
+## Background Worker Performance
+
+| Task | Tokens (P/E) | Wall time | Output | Consumed by | Value |
+|------|-------------|-----------|--------|-------------|-------|
+| pre-fetch-elexon-full | -/- | - | pending | pending | pending |
+| pre-fetch-weather-full | -/- | - | pending | pending | pending |
+| pre-fetch-pc3-profiles | -/- | - | pending | pending | pending |
+| pre-fetch-nbp-gas-full | -/- | - | pending | pending | pending |
+| code-quality-audit | -/- | - | pending | pending | pending |
+| simulation-sensitivity-experiments | -/- | - | pending | pending | pending |

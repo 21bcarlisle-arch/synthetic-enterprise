@@ -36,6 +36,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from saas.customers import CUSTOMERS, get_customer
+from sim.cache_store import get_cached_prices, log_cache_access
 from sim.hedging_strategy import evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape
 from sim.profile_class_3 import load_pc3_shape
@@ -99,7 +100,14 @@ def main():
     earliest_acquisition = min(date.fromisoformat(c["acquisition_date"]) for c in CUSTOMERS)
     fetch_start_natural = (earliest_acquisition - timedelta(days=365)).isoformat()
     fetch_start = max(fetch_start_natural, EARLIEST_SSP_DATE)
-    price_records = get_system_prices_range(fetch_start, REPORT_END)
+    cached = get_cached_prices(fetch_start, REPORT_END)
+    if cached is not None:
+        price_records = cached
+        print(f"Cache hit: {len(price_records):,} SSP records from sim/cache/elexon_ssp_full.json ({fetch_start} to {REPORT_END}).")
+        log_cache_access("elexon_ssp_full.json", hit=True, phase="2a", task_name="pre-fetch-elexon-full")
+    else:
+        price_records = get_system_prices_range(fetch_start, REPORT_END)
+        log_cache_access("elexon_ssp_full.json", hit=False, phase="2a")
     print(f"Retrieved {len(price_records):,} SSP records ({fetch_start} to {REPORT_END}).\n")
 
     # Flat lookup for spot price by (date, period) — used in naked counterfactual calculation

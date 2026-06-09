@@ -9,7 +9,7 @@ Rich (the human) talks to this chat interface only — he never writes code, run
 ## How Rich Connects
 - **Primary:** Claude mobile app, Remote Control — this is the day-to-day interface to this session.
 - **Fallback:** SSH via Tailscale, port 2222, direct to the machine — only when Remote Control is unavailable.
-- **Autostart:** Claude Code launches automatically into this project on machine boot — no manual session setup required to pick up where things left off.
+- **Autostart:** Claude Code launches automatically into this project on machine boot — no manual session setup required to pick up where things left off. On Skynet startup, run `bash background/start_worker.sh` after Claude Code starts. The background worker runs independently in its own tmux session and never interferes with the main Claude Code session.
 
 ## Architecture Stack
 - **Lead orchestrator:** Claude Code (Anthropic API)
