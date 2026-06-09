@@ -225,3 +225,32 @@ fix errors — this is a log, not a living document.
   - **Background worker infrastructure created this session** — autonomous off-peak Qwen-only task runner, pauses 16:00-19:00 GMT, reads docs/instructions/background-tasks.md queue. 6 tasks queued (Elexon cache, weather cache, PC3 profiles, NBP gas, code-quality audit, sensitivity experiments). Worker started in tmux session `background-worker`.
   - **API key subprocess problem confirmed** — risk_committee_agent.py uses os.environ.get("ANTHROPIC_API_KEY", "") which returns "" in background subprocesses. Fix: switch to anthropic SDK auto-discovery from ~/.anthropic/ config, or write key to a credentials file. This is the pre-condition for Phase 2b (working Context Handshake required before adding gas commodity).
   - **C6 pricing insight** — current price_fixed_tariff() applies same margin % regardless of customer size or segment. C6 at 45,000 kWh annual needs a higher margin loading to be viable under capital physics. This is Phase 2+ work; the finding is documented for Rich's review.
+
+- [2026-06-09T10:14:18Z] cache_miss: elexon_ssp_full.json — fetched live (Phase 2a_repriced)
+
+---
+
+## Session: Pricing Fix + Context Handshake Recalibration (2026-06-09)
+
+- **Frontier tokens:** ~9,000 (estimated — continuation from Phase 2a session)
+- **Local model calls:** 1:
+  - `qwen2.5-coder:14b` (~2,400 prompt / ~900 eval) → `saas/tariff_pricing.py` full rewrite, activity-based formula. Draft correct. Frontier: stripped fences, improved docstring (size-independence note), wrote final file.
+- **Hand-written:** `simulation/run_phase1e_repriced.py`, `simulation/run_phase2a_repriced.py`, `docs/observability/pricing-fix-comparison.md`, all risk committee edits (direct frontier edits — minimal diffs not worth delegating).
+- **Produced:**
+  - Files created (3): `simulation/run_phase1e_repriced.py`, `simulation/run_phase2a_repriced.py`, `docs/observability/pricing-fix-comparison.md`
+  - Files modified (5): `saas/tariff_pricing.py`, `simulation/renewals.py`, `sim/risk_committee.py`, `sim/risk_committee_agent.py`, `STATUS.md`
+  - Run output: 2× full 9.5-year simulation runs (Phase 1e repriced + Phase 2a repriced)
+  - Commit: `71d7d0e`
+- **Pricing fix key numbers:**
+  - C6: net -£1,176 → +£620 (+£1,795 improvement). Flat margin was under-pricing capital costs.
+  - Portfolio net margin: £8,702 → £13,679 (+£4,977). Treasury: £27,119 → £32,095.
+  - Capital cost ratio: 66.2% → 55.4% (gross margin grew, capital unchanged).
+  - Year 2025: net -£135 → +£496 (flipped positive under new pricing).
+- **Context Handshake:**
+  - risk_committee_agent.py: switched from urllib+env-var to `anthropic.Anthropic()` SDK (lazy import inside `_call_frontier` — SDK not installed in system Python 3.14; fails gracefully via try/except in orchestration).
+  - risk_committee.py: `VAR_BREACH_MULTIPLIER` 1.20 → 2.50; added `_starting_treasury` health gate.
+  - Result: 0 wake-ups in repriced run (correct — treasury grew to £32,095, well above 1.5× start threshold of £27,625).
+- **Notes:**
+  - **Anthropic SDK not in system Python 3.14** — `python3` has no `pip`, no `ensurepip`. Lazy import is the workaround: module imports cleanly, committee invocations fail at call time (caught by try/except). SDK install via `pip install --break-system-packages` is the pending fix for Phase 2b.
+  - **Phase 1e repriced picked up C5/C6** — `CUSTOMERS` now includes all 6; run_phase1e_repriced.py (which uses only PC1 shape) settled C5/C6 with wrong profile. Numbers for C1-C4 correct and match Phase 2a repriced exactly. C5/C6 in Phase 1e repriced output should be ignored; Phase 2a repriced is the authoritative comparison.
+  - **Activity-based pricing is size-neutral per MWh** — eac_mwh cancels in the formula; confirmed by C2 and C6 having identical unit rates on shared term start dates, despite 12.9× EAC difference.
