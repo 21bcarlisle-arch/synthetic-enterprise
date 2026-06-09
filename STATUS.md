@@ -2,7 +2,7 @@
 
 Last updated: 2026-06-09T07:30:00Z
 Current phase: Phase 2a complete — parked at [REVIEW_GATE]. Rich reviews C6 net-negative finding + Context Handshake 401 fix before Phase 2b.
-Last commit: (pending) — Phase 2a results: PHASE_2a_SUMMARY.md + simulation-strategy.md Phase 2a section
+Last commit: 2fdf6d7 — Phase 2a results: PHASE_2a_SUMMARY.md + simulation-strategy.md Phase 2a section
 
 ## Committed files (all phases)
 
