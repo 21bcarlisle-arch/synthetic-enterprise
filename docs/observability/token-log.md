@@ -200,3 +200,28 @@ fix errors — this is a log, not a living document.
   - **Delegation boundary validated again**: pure numeric functions (no settlement-record schema dependency) go to qwen2.5-coder:14b; orchestration hand-written. No field-name errors this phase (zero schema-touching delegation).
   - **New architectural insight from Phase 1e**: the evolution rule's comparison becomes self-referential at hf=0.00. Any proposed escape mechanism (minimum hedge floor, direct capital term, threshold-triggered risk committee) must be evaluated against this exact structural constraint — not just "does it make the agent hedge more" but "does it produce a non-zero comparison signal when both sides of the evolution's counterfactual coincide."
   - **NTFY protocol updated this session**: all future notifications must use raw GitHub URLs (https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/[filepath]), not blob URLs. Documented in CLAUDE.md Governing Principles and MASTER_BACKLOG.md NTFY Protocol.
+
+---
+
+## Session: Phase 2a — SME Segment, Context Handshake, Background Worker (2026-06-09)
+
+- **Frontier tokens:** ~11,500 (estimated — session spans context summary continuation)
+- **Local model calls:** 1:
+  - `qwen2.5-coder:14b` (~2,100 prompt / ~1,800 eval) → `sim/profile_class_3.py` from edit-in-place spec (copy `profile_class_1.py`, change CSV path and function name). Draft correct on first pass. Frontier: stripped markdown fences (sed), validated 48 periods / 48.12 kWh daily total.
+- **Hand-written:** `simulation/run_phase2a.py` (360-line orchestration — true chronological term interleaving, Context Handshake integration, profile-class routing), all background worker files (background_worker.py, run_queued_tasks.py, start_worker.sh), sim/cache_store.py, all documentation.
+- **Produced:**
+  - Files created (11): sim/profile_class_3.py, sim/data/profile_class_3_gad.csv, simulation/run_phase2a.py, sim/cache_store.py, background/background_worker.py, background/run_queued_tasks.py, background/start_worker.sh, docs/instructions/background-tasks.md, docs/observability/background-worker-log.md, docs/observability/PHASE_2a_SUMMARY.md, docs/data-sources/profile-class-3.md
+  - Files modified (5): saas/customers.py (C5+C6 added), STATUS.md, CLAUDE.md (autostart line), docs/simulation-strategy.md (Phase 2a section), docs/observability/token-log.md
+  - Run output: 1,622 lines, 9.5-year full window, 760k+ settlement records across 6 customers (C1–C6), 54+ terms total
+  - Key numbers: Treasury £18,417→£27,119 (+£8,702). Gross £25,721. Capital £17,019 (66.2%). Net £8,702. SURVIVED.
+- **Phase 2a key findings:**
+  1. **C6 (warehouse, 45k kWh) net −£1,176** — capital costs (£6,470) exceeded gross margin (£5,294) across 9.5 years. Large SME customers are not viable at flat-margin pricing under capital physics.
+  2. **hf=0.00 trap is EAC-dependent** — C6 (45k) escaped it (capital cost signal strong enough throughout); C5 (25k) trapped same as all 4 resi customers. Threshold somewhere between 25k–45k kWh at prevailing price levels.
+  3. **Context Handshake: all 401** — `ANTHROPIC_API_KEY` not in subprocess environment. Monitor fired ~200 times (VaR trigger too sensitive: fires every 30-day cooldown because σ_recent > 0.60 throughout), but zero successful agent invocations. Pre-Phase-2b fix required.
+  4. **VaR trigger recalibration needed** — 1.20× threshold triggers too easily; treasury-health gate required so committee doesn't wake on every cycle during good years.
+  5. **2021 worst year: −£1,600 net** — SME capital costs during energy crisis spike were 10× the Phase 1e 2021 loss.
+  6. **2023 redemption: +£5,127 net** — same crisis-tariff-vs-falling-spot mechanism as Phase 1e, amplified by SME volume.
+- **Notes:**
+  - **Background worker infrastructure created this session** — autonomous off-peak Qwen-only task runner, pauses 16:00-19:00 GMT, reads docs/instructions/background-tasks.md queue. 6 tasks queued (Elexon cache, weather cache, PC3 profiles, NBP gas, code-quality audit, sensitivity experiments). Worker started in tmux session `background-worker`.
+  - **API key subprocess problem confirmed** — risk_committee_agent.py uses os.environ.get("ANTHROPIC_API_KEY", "") which returns "" in background subprocesses. Fix: switch to anthropic SDK auto-discovery from ~/.anthropic/ config, or write key to a credentials file. This is the pre-condition for Phase 2b (working Context Handshake required before adding gas commodity).
+  - **C6 pricing insight** — current price_fixed_tariff() applies same margin % regardless of customer size or segment. C6 at 45,000 kWh annual needs a higher margin loading to be viable under capital physics. This is Phase 2+ work; the finding is documented for Rich's review.
