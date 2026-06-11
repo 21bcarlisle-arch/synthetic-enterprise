@@ -70,7 +70,7 @@ def main():
         log("Found queued tasks — beginning execution")
         # Tasks are executed by the individual task scripts (see below)
         # This worker just triggers them and logs completion
-        exec(open("background/run_queued_tasks.py").read())
+        exec(open("background/run_queued_tasks.py").read(), globals())
         time.sleep(60 * CHECK_INTERVAL_MINUTES)
 
 if __name__ == "__main__":

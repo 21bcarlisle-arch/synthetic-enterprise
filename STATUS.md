@@ -92,7 +92,7 @@ Last commit: pending — pricing fix + risk committee recalibration + repriced s
 
 | Task | Tokens (P/E) | Wall time | Output | Consumed by | Value |
 |------|-------------|-----------|--------|-------------|-------|
-| pre-fetch-elexon-full | -/- | - | pending | pending | pending |
+| pre-fetch-elexon-full | 96/44 | 8s | background-task-pre-fetch-elexon-full.md (0.3KB) | pending | pending |
 | pre-fetch-weather-full | -/- | - | pending | pending | pending |
 | pre-fetch-pc3-profiles | -/- | - | pending | pending | pending |
 | pre-fetch-nbp-gas-full | -/- | - | pending | pending | pending |

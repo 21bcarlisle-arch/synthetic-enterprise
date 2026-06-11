@@ -8,12 +8,6 @@ Tasks move to RUNNING then DONE. Worker logs to docs/observability/background-wo
 
 ## QUEUED
 
-### Task: pre-fetch-elexon-full
-Description: Fetch and cache full Elexon SSP/SBP settlement data for 2016-01-01 to 2025-06-07.
-Store as parquet in sim/cache/elexon_ssp_full.parquet.
-Use sim/system_prices.py as the base — extend to support date range batching.
-Model: qwen2.5-coder:14b
-Output: sim/cache/elexon_ssp_full.parquet + docs/observability/cache-status.md
 
 ### Task: pre-fetch-weather-full
 Description: Fetch and cache Open-Meteo historical daily weather for all four customer locations, 2016-01-01 to 2025-06-07.
@@ -65,4 +59,8 @@ Output: docs/observability/sensitivity-results.md
 (none)
 
 ## DONE
-(none)
+
+### Task: pre-fetch-elexon-full
+Completed: 2026-06-11 13:59 UTC
+
+
