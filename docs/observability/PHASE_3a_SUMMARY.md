@@ -30,3 +30,37 @@
 - Frontier: `score_experience_signals()`, `run_phase3a.py`, and the test suite — all hand-written (small, schema-adjacent additions to an existing pure module, per the Phase 1d delegation lesson).
 - Local: none this session.
 - Output: one new pure function (~70 lines), one new orchestration script (~85 lines), 8 new tests, full Phase 2b re-run (8s) used to generate report data.
+
+## Addendum — Combined Dual-Fuel Billing (2026-06-11)
+
+Resolved the first Open Question above: `score_experience_signals()` now
+combines each resi customer's electricity and gas legs (e.g. C1 + C1g)
+into a single monthly bill via `_billing_account_id()`, before computing
+`bill_shock_score`/`expectation_gap_gbp`. Gas-leg ids (C1g-C4g) no longer
+appear as separate keys in the returned dict — `simulation/run_phase3a.py`
+required no changes (it already skips ids not present in `signals`).
+
+**Shock counts changed materially — roughly halved or more, especially
+during the crisis years:**
+
+| | 2016 (separate, summed) | 2016 (combined) | 2021-22 (separate, summed) | 2021-22 (combined) |
+|---|---|---|---|---|
+| C1 | 6 | 4 | 20 | 11 |
+| C2 | 2 | 1 | 25 | 12 |
+| C3 | 2 | 1 | 31 | 12 |
+| C4 | 1 | 0 | 26 | 9 |
+| **Total (C1-C4)** | **11** | **6** | **102** | **44** |
+
+By region (2021-22): Cotswolds 26→9, Glasgow 31→12, London 31→22 (includes
+electricity-only C5), Manchester 39→26 (includes electricity-only C6). By
+home type: tenement_flat 31→12, urban_flat 20→11.
+
+**Why**: electricity (SSP) and gas (NBP) prices don't move in lockstep
+month-to-month — when one leg spikes the other is often flat or down, so a
+combined bill's percentage swing is damped relative to either single-fuel
+bill's swing. This mirrors real dual-fuel billing, where gas and
+electricity volatility partially diversify each other from the customer's
+point of view. The headline finding stands directionally (crisis years
+still produce far more shocks than 2016, smaller-consumption profiles
+still shock more often than larger ones) but the magnitudes were
+overstated by treating each fuel as a separate bill.

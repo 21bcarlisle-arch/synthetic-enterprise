@@ -10,12 +10,6 @@ Tasks move to RUNNING then DONE. Worker logs to docs/observability/background-wo
 
 
 
-### Task: pre-fetch-pc3-profiles
-Description: Download PC3 Standard Load Profile data from Elexon portal (portal.elexon.co.uk).
-Same DTC pipe-delimited format as PC1. Parse for profile_class='03'.
-Store as sim/profiles/pc3_coefficients.csv with columns: season, day_type, period_1..period_48.
-Model: qwen2.5-coder:14b
-Output: sim/profiles/pc3_coefficients.csv + docs/data-sources/profile-class-3.md
 
 ### Task: pre-fetch-nbp-gas-full
 Description: Fetch historical NBP System Average Price (SAP) from NGT MIPI API.
@@ -52,6 +46,10 @@ Output: docs/observability/sensitivity-results.md
 (none)
 
 ## DONE
+
+### Task: pre-fetch-pc3-profiles
+Completed: 2026-06-11 14:30 UTC
+
 
 ### Task: pre-fetch-weather-full
 Completed: 2026-06-11 14:00 UTC

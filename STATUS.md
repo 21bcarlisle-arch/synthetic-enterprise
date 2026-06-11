@@ -97,7 +97,7 @@ Last commit: pending — Phase 3a experience signals + report
 |------|-------------|-----------|--------|-------------|-------|
 | pre-fetch-elexon-full | 96/44 | 8s | background-task-pre-fetch-elexon-full.md (0.3KB) | pending | pending |
 | pre-fetch-weather-full | 99/26 | 1s | background-task-pre-fetch-weather-full.md (0.3KB) | pending | pending |
-| pre-fetch-pc3-profiles | -/- | - | pending | pending | pending |
+| pre-fetch-pc3-profiles | 79/40 | 7s | background-task-pre-fetch-pc3-profiles.md (0.4KB) | pending | pending |
 | pre-fetch-nbp-gas-full | -/- | - | pending | pending | pending |
 | code-quality-audit | -/- | - | pending | pending | pending |
 | simulation-sensitivity-experiments | -/- | - | pending | pending | pending |

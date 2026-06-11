@@ -106,6 +106,20 @@ def test_multiple_records_in_one_billing_period_are_summed():
     assert signals["C1"][0]["actual_cost_gbp"] == 80.0
 
 
+def test_dual_fuel_legs_are_combined_into_one_bill():
+    records = [
+        _record("C1", "2016-01-01", 60.0, 50.0),
+        _record("C1g", "2016-01-15", 40.0, 30.0),
+        _record("C2", "2016-01-01", 90.0, 70.0),
+    ]
+    signals = score_experience_signals(records)
+
+    assert "C1g" not in signals
+    assert signals["C1"][0]["actual_bill_gbp"] == 100.0
+    assert signals["C1"][0]["actual_cost_gbp"] == 80.0
+    assert signals["C2"][0]["actual_bill_gbp"] == 90.0
+
+
 def test_customers_are_independent():
     records = [
         _record("C1", "2016-01-01", 100.0, 80.0),

@@ -38,3 +38,16 @@ Structured performance entries are added after each task completes.
 - Output produced: docs/observability/background-task-pre-fetch-weather-full.md (0.3 KB)
 - Status: DONE
 - Consumed by: pending — filled in by main pipeline
+
+- [2026-06-11 14:30 UTC] Found queued tasks — beginning execution
+- [2026-06-11 14:30 UTC] Ollama(qwen2.5) starting task: pre-fetch-pc3-profiles
+- [2026-06-11 14:30 UTC] Ollama task complete: pre-fetch-pc3-profiles — 6.9s, P=79 E=40
+- [2026-06-11 14:30 UTC] Task 'pre-fetch-pc3-profiles' moved to DONE
+### Task: pre-fetch-pc3-profiles
+- Started: 2026-06-11 14:30 UTC
+- Completed: 2026-06-11 14:30 UTC
+- Wall time: 6.9s
+- Ollama tokens: prompt=79 eval=40
+- Output produced: docs/observability/background-task-pre-fetch-pc3-profiles.md (0.4 KB)
+- Status: DONE
+- Consumed by: pending — filled in by main pipeline

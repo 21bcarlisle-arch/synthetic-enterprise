@@ -16,16 +16,32 @@ structural (the same pattern as saas/tariff_pricing.py).
 """
 
 
+def _billing_account_id(customer_id: str) -> str:
+    """Map a per-commodity customer_id to its billing-account id.
+
+    Phase 2b's gas legs (C1g-C4g) are the same household as their paired
+    electricity customer (C1-C4) and receive a single combined dual-fuel
+    bill in real life — so "C1g" and "C1" both bill under "C1". Any
+    customer_id not following the "<id>g" gas-leg convention (e.g. C5, C6,
+    which are electricity-only) bills under itself unchanged.
+    """
+    if customer_id.endswith("g") and len(customer_id) > 1:
+        return customer_id[:-1]
+    return customer_id
+
+
 def score_experience_signals(settlement_records, bill_shock_threshold=0.15, rolling_window=6):
     """Phase 3a — richer per-billing-period experience signals.
 
     A "billing period" is one calendar month (settlement_date[:7]) for one
-    customer_id. Within each billing period, `actual_bill_gbp` sums
-    `revenue_gbp` (what the customer is billed) and `actual_cost_gbp` sums
-    `wholesale_cost_gbp` (what it actually cost to supply them) across every
-    settlement record in that month.
+    billing account (see `_billing_account_id` — dual-fuel customers'
+    electricity and gas legs are combined into a single bill). Within each
+    billing period, `actual_bill_gbp` sums `revenue_gbp` (what the customer
+    is billed) and `actual_cost_gbp` sums `wholesale_cost_gbp` (what it
+    actually cost to supply them) across every settlement record in that
+    month, across both commodity legs where applicable.
 
-    Three signals are computed per customer per billing period, each
+    Three signals are computed per billing account per billing period, each
     point-in-time safe (using only that period and earlier):
 
     - `bill_shock_score`: abs(actual_bill_gbp - rolling_avg_gbp) / rolling_avg_gbp,
@@ -43,15 +59,15 @@ def score_experience_signals(settlement_records, bill_shock_threshold=0.15, roll
       x 1.02 (the customer's naive "a bit more than last time" expectation).
       `None` until a previous period exists.
 
-    Returns a dict keyed by customer_id, each value a chronologically
-    ordered list of per-billing-period dicts:
+    Returns a dict keyed by billing-account id (e.g. "C1", not "C1g"), each
+    value a chronologically ordered list of per-billing-period dicts:
       {billing_period, actual_bill_gbp, actual_cost_gbp,
        rolling_avg_gbp, bill_shock_score, bill_shock_triggered,
        cumulative_exposure_gbp, expected_bill_gbp, expectation_gap_gbp}
     """
     by_customer_period: dict[str, dict[str, dict]] = {}
     for record in settlement_records:
-        customer_id = record["customer_id"]
+        customer_id = _billing_account_id(record["customer_id"])
         billing_period = record["settlement_date"][:7]
         periods = by_customer_period.setdefault(customer_id, {})
         bucket = periods.setdefault(
