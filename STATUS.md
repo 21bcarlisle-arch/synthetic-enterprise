@@ -1,8 +1,8 @@
 # Project Status
 
-Last updated: 2026-06-09T11:30:00Z
-Current phase: Pricing fix complete — [REVIEW_GATE]. C6 flipped net-positive (+£620 vs -£1,176). Context Handshake SDK fix partial (lazy import). Ready for Phase 2b pending Rich review.
-Last commit: pending — pricing fix + risk committee recalibration + repriced simulation runs
+Last updated: 2026-06-11T15:05:00Z
+Current phase: Phase 2b (gas dual fuel) complete — [REVIEW_GATE]. Full 2016-2025 dual-fuel run survived: net margin £16,799.11 (electricity £13,678.68 + gas £3,120.43), treasury £21,829.17 → £38,628.27. anthropic SDK confirmed installed and importable; risk committee still cannot fire (no ANTHROPIC_API_KEY — escalated to Rich). See `docs/observability/PHASE_2b_SUMMARY.md`.
+Last commit: 060b231 — fix background worker crash (exec globals) + Phase 2b summary
 
 ## Committed files (all phases)
 
@@ -82,18 +82,20 @@ Last commit: pending — pricing fix + risk committee recalibration + repriced s
 - Phase 1c: `docs/observability/PHASE_1c_SUMMARY.md` (forward-curve pricing fixes 2016 losses; surfaced the empty-book gap)
 - Phase 1d: `docs/observability/PHASE_1d_SUMMARY.md` (agent-discovered hedging — converged to fully naked, "learned the wrong lesson from a calm period")
 - Phase 1e: `docs/observability/PHASE_1e_SUMMARY.md` — capital physics run. Survived. Treasury £3,250→£9,114. Central hypothesis not confirmed: capital costs (37.6% of gross) didn't produce organic hedging. C1/C2 trapped at hf=0.00 (evolution rule blind at that boundary). C3/C4 held at 0.10. 2021 only net-loss year (-£154). 2023 σ_stressed regime shift tripled collateral — invisible to trapped agents.
+- Phase 2b: `docs/observability/PHASE_2b_SUMMARY.md` — gas dual fuel (NBP SAP price feed, CV/CF conversion, C1g-C4g). Full 2016-2025 run survived: net margin £16,799.11 (electricity £13,678.68 + gas £3,120.43), treasury £21,829.17 → £38,628.27. 2021 only net-loss year (-£2,002.62). 0 Context Handshake wake-ups.
 
 ## Open gates
 - **Phase 1e** (`[REVIEW_GATE]`, SUPERSEDED): Closed by Phase 2a.
 - **Phase 2a** (`[REVIEW_GATE]`, SUPERSEDED): Pricing fix applied; C6 now net-positive. See pricing-fix-comparison.md.
-- **Pricing fix + Context Handshake** (`[REVIEW_GATE]`, LIVE): Activity-based pricing confirmed working (C6: -£1,176 → +£620, treasury +£4,977 improvement vs flat margin). Context Handshake SDK: lazy import in place, but anthropic SDK not installed in system Python 3.14 — committee still cannot fire. VaR threshold recalibrated (1.20 → 2.50) + treasury health gate: 0 spurious wake-ups in repriced run. Full comparison: `docs/observability/pricing-fix-comparison.md`. Next: Phase 2b (gas dual-fuel) — requires SDK install or alternative invocation path for committee.
+- **Pricing fix + Context Handshake** (`[REVIEW_GATE]`, SUPERSEDED): Closed by Phase 2b. Activity-based pricing confirmed working (C6: -£1,176 → +£620, treasury +£4,977 improvement vs flat margin). Full comparison: `docs/observability/pricing-fix-comparison.md`.
+- **Phase 2b — Gas Dual Fuel** (`[REVIEW_GATE]`, LIVE): anthropic SDK confirmed installed (0.107.1) and importable from risk_committee_agent.py. Full 2016-2025 dual-fuel run survived (net margin £16,799.11, treasury £21,829.17 → £38,628.27). Risk committee still cannot fire — no `ANTHROPIC_API_KEY` in this environment, every wake-up (had any fired) would fail with an auth error, caught and logged. **Escalation to Rich**: an API key / billing decision is needed before the Context Handshake can ever activate. See `docs/observability/PHASE_2b_SUMMARY.md` for full findings and open questions.
 
 ## Background Worker Performance
 
 | Task | Tokens (P/E) | Wall time | Output | Consumed by | Value |
 |------|-------------|-----------|--------|-------------|-------|
 | pre-fetch-elexon-full | 96/44 | 8s | background-task-pre-fetch-elexon-full.md (0.3KB) | pending | pending |
-| pre-fetch-weather-full | -/- | - | pending | pending | pending |
+| pre-fetch-weather-full | 99/26 | 1s | background-task-pre-fetch-weather-full.md (0.3KB) | pending | pending |
 | pre-fetch-pc3-profiles | -/- | - | pending | pending | pending |
 | pre-fetch-nbp-gas-full | -/- | - | pending | pending | pending |
 | code-quality-audit | -/- | - | pending | pending | pending |
