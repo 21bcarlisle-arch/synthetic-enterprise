@@ -14,6 +14,18 @@
 - Format: CSV, fields: Date (DD/MM/YYYY), Price (p/therm or £/MWh)
 - Use only if MIPI API is unavailable or incomplete
 
+**Tertiary source (Phase 2b actual):** FRED PNGASEUUSDM (IMF Primary Commodity Prices)
+- Endpoint: `https://fred.stlouisfed.org/graph/fredgraph.csv?id=PNGASEUUSDM`
+- Series: "Global price of Natural Gas, Europe" — sourced from UK NBP spot price by IMF
+- Format: CSV, monthly, USD/MMBtu from 1992 onwards
+- Download: `wget` (Python requests/urllib time out; wget -q --timeout=30 works reliably)
+- Unit conversion: `£/MWh = USD_per_MMBtu / (GBPUSD × 0.29307)` with fixed GBPUSD=1.28
+- Frequency: monthly averages expanded to daily (same price all days in each month)
+- Status: used in Phase 2b after NGT MIPI portal (data.nationalgas.com) required OAuth
+  login for download endpoints. NGT folder listing API (GET /api/find-gas-data-folders)
+  still works unauthenticated and confirmed PUBOB603=SAP Actual Day exists.
+- Output stored as: `sim/gas_data/nbp_sap.csv` (`settlementDate`, `systemSellPrice` £/MWh)
+
 **Do NOT use:** NESO CKAN portal (api.neso.energy) — contains electricity data only. NGT MIPI is the correct gas operator system.
 
 **Do NOT use:** ICE — paywalled, requires commercial subscription.

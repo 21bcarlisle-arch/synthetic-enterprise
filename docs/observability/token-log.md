@@ -254,3 +254,14 @@ fix errors — this is a log, not a living document.
   - **Anthropic SDK not in system Python 3.14** — `python3` has no `pip`, no `ensurepip`. Lazy import is the workaround: module imports cleanly, committee invocations fail at call time (caught by try/except). SDK install via `pip install --break-system-packages` is the pending fix for Phase 2b.
   - **Phase 1e repriced picked up C5/C6** — `CUSTOMERS` now includes all 6; run_phase1e_repriced.py (which uses only PC1 shape) settled C5/C6 with wrong profile. Numbers for C1-C4 correct and match Phase 2a repriced exactly. C5/C6 in Phase 1e repriced output should be ignored; Phase 2a repriced is the authoritative comparison.
   - **Activity-based pricing is size-neutral per MWh** — eac_mwh cancels in the formula; confirmed by C2 and C6 having identical unit rates on shared term start dates, despite 12.9× EAC difference.
+- [2026-06-09T13:40:31Z] cache_miss: elexon_ssp_full.json — fetched live (Phase 2b)
+- [2026-06-09T13:42:11Z] cache_miss: elexon_ssp_full.json — fetched live (Phase 2b)
+- [2026-06-09T13:51:45Z] cache_miss: elexon_ssp_full.json — fetched live (Phase 2b)
+- [2026-06-09T13:52:24Z] cache_miss: elexon_ssp_full.json — fetched live (Phase 2b)
+- [2026-06-09T13:55:29Z] cache_miss: elexon_ssp_full.json — fetched live (Phase 2b)
+- [2026-06-11T13:44:15Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-11T13:46:47Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-11T13:51:57Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-11T13:55:04Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-11T13:55:10Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-11T13:55:56Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b

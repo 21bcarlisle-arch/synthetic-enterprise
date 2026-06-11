@@ -70,8 +70,16 @@ def calculate_sigma_recent(reference_date: str, system_price_records: list[dict]
     SIGMA_STRESSED_PRE_REFORM / SIGMA_STRESSED_POST_REFORM, and to
     get_sigma_stressed()'s return value.
 
+    Bootstrap exception: if a price series begins ON reference_date (no prior
+    history exists at all — e.g. a customer's acquisition date coincides with
+    the first day of the dataset), the backward-looking window is necessarily
+    empty. In that one-time case only, falls back to a forward-looking window
+    of the same length starting at reference_date — the only data available —
+    rather than raising. Every subsequent call has real prior history and uses
+    the backward-looking window unchanged.
+
     Raises ValueError with a clear message (including the window bounds and
-    reference_date) if no records fall in the window.
+    reference_date) if no records fall in either window.
     """
     ref_date = date.fromisoformat(reference_date)
     start_date = ref_date - timedelta(days=lookback_days)
@@ -81,6 +89,13 @@ def calculate_sigma_recent(reference_date: str, system_price_records: list[dict]
         record for record in system_price_records
         if start_date <= date.fromisoformat(record['settlementDate']) <= end_date
     ]
+
+    if not filtered_records:
+        bootstrap_end = ref_date + timedelta(days=lookback_days - 1)
+        filtered_records = [
+            record for record in system_price_records
+            if ref_date <= date.fromisoformat(record['settlementDate']) <= bootstrap_end
+        ]
 
     if not filtered_records:
         raise ValueError(

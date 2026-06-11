@@ -54,8 +54,10 @@ class RiskCommitteeMonitor:
         self._treasury = starting_treasury_gbp
         self._starting_treasury = starting_treasury_gbp  # treasury health gate reference
         self._peak = starting_treasury_gbp
-        # Rolling deque of (date_str, treasury_balance) tuples for the 12-month window
-        self._history: deque = deque()
+        # Monotonic decreasing deque of (date_str, treasury_balance) — front is
+        # always the current rolling-window max, giving O(1) amortized peak
+        # lookup instead of an O(n) max() over up to 17,520 entries every period.
+        self._max_history: deque = deque()
         self._triggered_this_period = False
 
     def update(
@@ -81,14 +83,20 @@ class RiskCommitteeMonitor:
           forward_price_gbp_per_mwh: float  (representative forward price, latest term)
         """
         self._treasury = new_treasury_gbp
-        self._history.append((settlement_date, new_treasury_gbp))
 
         # Maintain rolling 12-month peak window
         cutoff = (date.fromisoformat(settlement_date) - timedelta(days=365)).isoformat()
-        while self._history and self._history[0][0] < cutoff:
-            self._history.popleft()
 
-        rolling_peak = max(b for _, b in self._history) if self._history else new_treasury_gbp
+        # Monotonic deque: drop entries from the back that can never be the max
+        # again (superseded by the new value), then drop expired entries from
+        # the front. Front is always the current rolling-window max.
+        while self._max_history and self._max_history[-1][1] <= new_treasury_gbp:
+            self._max_history.pop()
+        self._max_history.append((settlement_date, new_treasury_gbp))
+        while self._max_history and self._max_history[0][0] < cutoff:
+            self._max_history.popleft()
+
+        rolling_peak = self._max_history[0][1] if self._max_history else new_treasury_gbp
         self._peak = rolling_peak
 
         drawdown_pct = (rolling_peak - new_treasury_gbp) / rolling_peak if rolling_peak > 0 else 0.0
