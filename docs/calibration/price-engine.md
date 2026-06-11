@@ -49,3 +49,92 @@ Either redesign should be re-run through `simulation/run_phase3b_calibration.py`
 - Frontier: `price_engine.py`, `generation_demand_history.py`, `run_phase3b_calibration.py`, and the test suite — all hand-written (new physics-engine module + data ingestion, schema-defining work per the Phase 1d delegation lesson).
 - Local: none this session.
 - Output: one new pure module (~120 lines), one new data-ingestion module (~110 lines), one calibration script (~110 lines), 15 new tests, two real-data calibration runs (2019, 2022; ~9s combined).
+
+---
+
+## Addendum — Redesign: Statistical Regression Model (2026-06-11)
+
+Per direction from Rich, the merit-order physics model above is **deferred to
+Regime 3** (see `docs/instructions/MASTER_BACKLOG.md` Phase 3b) — `sim/price_engine.py`
+and its 15 tests remain in the repo (correct and tested in isolation), but are
+no longer the active Phase 3b deliverable. The replacement deliverable is a
+statistical regression model, fit directly on real data.
+
+### What Was Built
+- `sim/generation_demand_history.aggregate_wind_generation()` — new function,
+  sums AGWS quantity across Wind Onshore + Wind Offshore only (excludes Solar),
+  returning `{(date, period): wind_mw}`.
+- `sim/prefetch_demand_generation.py` — one-off prefetch of full-window
+  (2016-03-01..2025-06-07) demand/outturn and AGWS records to
+  `sim/cache/elexon_demand_full.json` (161,536 records) and
+  `sim/cache/elexon_agws_full.json` (474,726 records), so the regression
+  doesn't re-fetch ~600 API requests on every run.
+- `simulation/run_phase3b_regression.py` — fits an OLS regression of
+  `SSP ~ gas_price + demand_mw + wind_mw` (intercept included) via
+  `numpy.linalg.lstsq`, on every settlement period 2016-03-01..2025-06-07
+  with all four real inputs available (157,106 of 165,386 periods in the
+  simulation window — the gap is the pre-2016-03-01 AGWS/demand data
+  boundary documented in `generation_demand_history.py`).
+- `tests/sim/test_generation_demand_history.py` — 2 new tests for
+  `aggregate_wind_generation` / `aggregate_renewable_generation`.
+- `tests/simulation/test_run_phase3b_regression.py` — 2 new tests for
+  `_fit_ols` (exact recovery of a known linear relationship; MAE/R^2 sanity
+  on an imperfect fit).
+
+### Methodology
+Features: `gas_price` (NBP daily £/MWh), `demand_mw` (national
+`initialDemandOutturn`), `wind_mw` (Wind Onshore + Wind Offshore AGWS,
+excluding Solar — isolating wind specifically per the brief). Target: real
+SSP (`sim/cache/elexon_ssp_full.json`). Fit by ordinary least squares
+(`numpy.linalg.lstsq`, closed-form normal equations) — sklearn is not
+installed in this environment.
+
+### Results — Full Window (2016-03-01..2025-06-07, n=157,106)
+
+| Metric | Value |
+|---|---|
+| SSP mean | £77.19/MWh |
+| SSP std dev | £92.04/MWh |
+| Intercept | -44.76 |
+| coef(gas_price) | +1.8897 |
+| coef(demand_mw) | +0.002521 |
+| coef(wind_mw) | -0.001145 |
+| **MAE** | **£33.96/MWh** |
+| RMSE | £72.13/MWh |
+| **R^2** | **0.3858** |
+
+### Results — Per-Year Refit (shows fit quality across regimes)
+
+| Year | n | SSP mean £ | MAE £ | RMSE £ | R^2 |
+|---|---|---|---|---|---|
+| 2016 | 14,484 | 39.32 | 20.07 | 44.21 | 0.0810 |
+| 2017 | 17,169 | 44.40 | 17.69 | 29.56 | 0.1098 |
+| 2018 | 17,305 | 57.27 | 18.55 | 28.66 | 0.1052 |
+| 2019 | 17,226 | 41.75 | 16.40 | 20.51 | 0.1805 |
+| 2020 | 16,576 | 34.79 | 17.45 | 34.18 | 0.1419 |
+| 2021 | 16,833 | 115.06 | 48.29 | 130.72 | 0.1752 |
+| 2022 | 14,963 | 200.07 | 81.30 | 127.63 | 0.2950 |
+| 2023 | 17,457 | 94.56 | 42.17 | 53.99 | 0.2693 |
+| 2024 | 17,523 | 71.14 | 27.78 | 35.60 | 0.2707 |
+| 2025 | 7,570 | 89.85 | 32.43 | 100.10 | 0.1251 |
+
+### Interpretation
+The regression is a dramatic improvement over the physics model — coefficients
+have sensible signs and magnitudes (gas_price coefficient ≈1.89 is close to
+the merit-order intuition of "SSP tracks gas price roughly 1:1 to 2:1 via
+thermal efficiency", demand has a small positive effect, wind a small negative
+effect, both physically plausible). MAE of £33.96/MWh against a mean of
+£77.19/MWh (≈44% relative error) and R^2≈0.39 mean the model explains a
+meaningful share of variance but leaves substantial unexplained residual —
+expected for a 3-feature linear model of a market also driven by carbon
+prices, interconnector flows, plant outages, and non-linear merit-order
+effects (price spikes are not linear in the inputs, as the per-year table
+shows: fit is weakest in 2016 (low-variance year, R^2=0.08) and strongest in
+2022 (the gas-crisis year, R^2=0.295), where gas price dominates).
+
+### Status
+This regression model is the active Phase 3b/Regime 2 deliverable for
+synthetic SSP generation beyond the historical window. It has not been
+tuned further (no feature transforms, interactions, or non-linear terms) —
+that is left as a documented option for a future iteration if forward
+projections built on it prove materially miscalibrated.

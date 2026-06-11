@@ -100,6 +100,20 @@ def aggregate_renewable_generation(wind_solar_records: list[dict]) -> dict[tuple
     return totals
 
 
+def aggregate_wind_generation(wind_solar_records: list[dict]) -> dict[tuple[str, int], float]:
+    """Sum AGWS quantity across the two wind psrTypes only (Wind Onshore +
+    Wind Offshore, excluding Solar) for each (settlementDate,
+    settlementPeriod), returning a {(date, period): wind_mw} lookup.
+    """
+    totals: dict[tuple[str, int], float] = {}
+    for record in wind_solar_records:
+        if record["psrType"] not in ("Wind Onshore", "Wind Offshore"):
+            continue
+        key = (record["settlementDate"], record["settlementPeriod"])
+        totals[key] = totals.get(key, 0.0) + record["quantity"]
+    return totals
+
+
 if __name__ == "__main__":
     demand = get_demand_outturn_range("2024-01-01", "2024-01-02")
     print(f"{len(demand)} demand records retrieved")

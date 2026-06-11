@@ -475,22 +475,38 @@ This format must be updated in `docs/context-handshake.md` whenever a new data l
 
 ---
 
-## Phase 3b — Physics Engine Calibration: Wholesale Price Model
+## Phase 3b — Wholesale Price Model: Statistical Regression (active) + Physics Engine (deferred to Regime 3)
 
-**Objective:** Build and calibrate the merit-order wholesale price engine. This is the first step toward Regime 3 — validate the synthetic price model against 9 years of real SSP data before trusting it for forward projection.
+**Objective:** Provide a wholesale price model for Regime 2 (synthetic forward beyond the historical window), validated against real SSP data.
 
 **Do not start until Phase 2 is complete.**
 
-Deliverables:
-1. `sim/price_engine.py` — merit-order price model:
-   - Gas floor: `P_gas_floor = gas_price / thermal_efficiency` (start with `thermal_efficiency = 0.50`)
-   - System margin shape: `P_HH = P_gas_floor × (demand / renewable_generation)^γ` where `γ` is parameterized between 1.5 and 2.5
-   - Wind cubic physics: cut-in <3 m/s (zero), cubic ramp 3-12 m/s (P ∝ v³), rated flat 12-25 m/s, storm cut-out >25 m/s (zero)
-2. Calibration run: generate synthetic prices for 2016-2025, compare against real Elexon SSP
-3. `docs/calibration/price-engine.md` — calibration report: error distribution, systematic bias, γ parameter fit
-4. Gate: does the calibrated engine produce price distributions that match real SSP within acceptable bounds?
+**Status (2026-06-11): redesigned per Rich's direction ("Option B").** The
+originally spec'd merit-order physics model (`sim/price_engine.py`: gas
+floor / system margin shape `(demand/renewable)^γ` / wind cubic power curve)
+was implemented, tested (15 tests), and calibrated against real 2019/2022
+SSP — it overestimated SSP by ~10x at γ=1.5 (the spec floor) and got worse
+toward γ=2.5 (see `docs/calibration/price-engine.md`, original sections).
+**This physics model is deferred to Regime 3** — the module and its tests
+remain in the repo (correct in isolation), but margin-term redesign is
+parked, not abandoned, and is not the current deliverable.
 
-**[REVIEW_GATE]** — Rich reviews calibration report before the price engine graduates to Regime 3.
+**Active Phase 3b deliverable: statistical regression model.**
+1. `simulation/run_phase3b_regression.py` — OLS regression of
+   `SSP ~ gas_price + demand_mw + wind_mw` (intercept included), fit via
+   `numpy.linalg.lstsq` (sklearn unavailable) on real 2016-03-01..2025-06-07
+   data (157,106 settlement periods).
+2. `docs/calibration/price-engine.md` (Addendum) — fit-quality report:
+   full-window MAE £33.96/MWh, R^2=0.386 (mean SSP £77.19/MWh); per-year
+   breakdown shows R^2 ranging 0.08 (2016) to 0.295 (2022).
+3. Gate: regression coefficients have physically sensible signs/magnitudes
+   and the model is usable as the Regime 2 synthetic-SSP generator for
+   forward projection beyond 2025-06-07, pending Rich's review of the fit
+   quality above.
+
+**[REVIEW_GATE]** — Rich reviews regression fit quality (MAE/R^2) before this
+model is used for forward projection. Physics-model margin-term redesign
+remains a Regime 3 backlog item, not blocking this gate.
 
 ---
 

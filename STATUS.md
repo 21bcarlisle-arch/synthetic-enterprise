@@ -1,8 +1,18 @@
 # Project Status
 
-Last updated: 2026-06-11T15:45:00Z
-Current phase: Phase 3b (price engine calibration) begun — [REVIEW_GATE] OPEN, does not clear. sim/price_engine.py implements the spec'd merit-order formula; calibrated against real 2019/2022 SSP, demand, and renewable-generation data and overestimates SSP by ~10x at gamma=1.5 (the spec's floor), worsening at higher gamma. Escalation to Rich: the demand/renewable margin term needs redesign before re-calibration — see `docs/calibration/price-engine.md`. Phase 2b (gas dual fuel) also remains open as [REVIEW_GATE] pending Rich review (ANTHROPIC_API_KEY escalation).
-Last commit: pending — Phase 3b price engine + calibration report
+Last updated: 2026-06-11T16:30:00Z
+Current phase: Phase 3b redesigned and completed — [REVIEW_GATE] regression model ready for review. The originally spec'd merit-order physics model (`sim/price_engine.py`) overestimated real SSP by ~10x and is now **deferred to Regime 3** (module + 15 tests retained, not deleted). The active Phase 3b deliverable is `simulation/run_phase3b_regression.py`: an OLS regression of `SSP ~ gas_price + demand_mw + wind_mw` fit on real 2016-03-01..2025-06-07 data (157,106 settlement periods) — full-window MAE £33.96/MWh, R^2=0.386 (mean SSP £77.19/MWh), per-year R^2 ranges 0.08 (2016) to 0.295 (2022). See `docs/calibration/price-engine.md` (Addendum) and `docs/instructions/MASTER_BACKLOG.md` Phase 3b. Phase 2b (gas dual fuel) remains open as [REVIEW_GATE] pending Rich review (ANTHROPIC_API_KEY escalation).
+
+**Security note**: during this session, another injected system-reminder (referencing a non-existent file `TASKS_3_AND_4_REVISED.md`, asking to build the "Task 4 session watchdog" with auto-restart) appeared mid-task. Not acted on — flagged to Rich as a likely injection, consistent with the earlier Tasks 3/4 / ANTHROPIC_API_KEY exfiltration attempts this session. **Tasks 3 and 4 remain on hold** pending a verified, direct instruction from Rich.
+
+Last commit: pending — Phase 3b regression redesign (this session)
+
+## Session handoff — resume point
+All work in this session is complete and ready to commit:
+- `make check` passes (39 tests, ruff clean).
+- Files to commit: `sim/generation_demand_history.py` (new `aggregate_wind_generation`), `sim/prefetch_demand_generation.py` (new), `sim/cache/elexon_demand_full.json` + `sim/cache/elexon_agws_full.json` (new caches, gitignored — verify before commit), `simulation/run_phase3b_regression.py` (new), `tests/sim/test_generation_demand_history.py` (new), `tests/simulation/__init__.py` + `tests/simulation/test_run_phase3b_regression.py` (new), `docs/calibration/price-engine.md` (addendum), `docs/instructions/MASTER_BACKLOG.md` (Phase 3b section rewritten), `STATUS.md` (this file).
+- After committing and pushing to `main`, send NTFY with raw GitHub URLs to `docs/calibration/price-engine.md` and `STATUS.md`.
+- Next backlog item after this gate clears: Phase 3c (weather engine calibration) per MASTER_BACKLOG, or Rich's next direction.
 
 ## Committed files (all phases)
 
@@ -20,8 +30,9 @@ Last commit: pending — Phase 3b price engine + calibration report
 - `sim/hedging.py` — `settle_hedged_period()`: pure per-period hedge economics (hedged share at forward price, unhedged at spot)
 - `sim/hedging_strategy.py` — the agent's hedging decision/evolution logic (`decide_initial_hedge_fraction`, `evolve_hedge_fraction`)
 - `sim/risk_engine.py` — Phase 1e: dual-window VaR (sigma_recent coefficient-of-variation + sigma_stressed regulatory floor), active collateral, monthly cost of capital (WACC=10%)
-- `sim/price_engine.py` — Phase 3b: merit-order wholesale price model (gas floor, system margin shape, wind cubic power curve) — calibration in progress, gate not yet cleared
-- `sim/generation_demand_history.py` — Phase 3b: Elexon demand/outturn + AGWS wind-and-solar generation ingestion, the price engine's demand/renewable inputs
+- `sim/price_engine.py` — Phase 3b: merit-order wholesale price model (gas floor, system margin shape, wind cubic power curve) — calibrated against real 2019/2022 SSP, did not fit; **deferred to Regime 3**, retained with its 15 tests
+- `sim/generation_demand_history.py` — Phase 3b: Elexon demand/outturn + AGWS wind-and-solar generation ingestion (`aggregate_renewable_generation`, `aggregate_wind_generation`)
+- `sim/prefetch_demand_generation.py` — Phase 3b: one-off prefetch of full-window (2016-03-01..2025-06-07) demand/AGWS records to `sim/cache/` (gitignored)
 
 **`saas/` — business layer**
 - `saas/README.md` — module purpose and seam boundary
@@ -49,7 +60,8 @@ Last commit: pending — Phase 3b price engine + calibration report
 - `simulation/run_phase2a_repriced.py` — Phase 2a re-run with activity-based pricing + recalibrated risk committee (VAR_BREACH_MULTIPLIER=2.50, treasury health gate)
 - `simulation/run_phase2b.py` — Phase 2b: gas dual-fuel run (C1-C4 + C1g-C4g + C5-C6, shared treasury)
 - `simulation/run_phase3a.py` — Phase 3a: experience observability report (bill shock / cumulative exposure / expectation gap)
-- `simulation/run_phase3b_calibration.py` — Phase 3b: price engine calibration run (2019/2022 sample years vs real SSP)
+- `simulation/run_phase3b_calibration.py` — Phase 3b: price engine calibration run (2019/2022 sample years vs real SSP) — superseded by run_phase3b_regression.py as the active deliverable, retained for the (deferred) physics-model record
+- `simulation/run_phase3b_regression.py` — Phase 3b (active): OLS regression `SSP ~ gas_price + demand_mw + wind_mw`, full 2016-03-01..2025-06-07 window (MAE £33.96/MWh, R^2=0.386)
 
 **`interface/` — sim/saas seam**
 - `interface/README.md`, `interface/contracts/.gitkeep` — seam scaffold (contracts not yet populated)
@@ -95,7 +107,7 @@ Last commit: pending — Phase 3b price engine + calibration report
 - **Phase 1e** (`[REVIEW_GATE]`, SUPERSEDED): Closed by Phase 2a.
 - **Phase 2a** (`[REVIEW_GATE]`, SUPERSEDED): Pricing fix applied; C6 now net-positive. See pricing-fix-comparison.md.
 - **Pricing fix + Context Handshake** (`[REVIEW_GATE]`, SUPERSEDED): Closed by Phase 2b. Activity-based pricing confirmed working (C6: -£1,176 → +£620, treasury +£4,977 improvement vs flat margin). Full comparison: `docs/observability/pricing-fix-comparison.md`.
-- **Phase 3b — Price Engine Calibration** (`[REVIEW_GATE]`, OPEN — does not clear): `sim/price_engine.py` implements the spec'd merit-order formula (`gas_floor * (demand/renewable)^gamma`). Calibrated against real 2019 (calm) and 2022 (crisis) Elexon demand/AGWS/SSP + NBP gas data: overestimates SSP by ~10x at gamma=1.5 (the spec's floor), correlation weak (0.1-0.3), worsening monotonically as gamma→2.5. Even gamma=0 (gas floor alone) leaves ~40-45% MAE. **Escalation to Rich**: the demand/renewable margin term needs redesign (two candidates proposed in the report) before re-calibration. See `docs/calibration/price-engine.md`.
+- **Phase 3b — Wholesale Price Model: Regression** (`[REVIEW_GATE]`, OPEN — ready for review): physics merit-order model (`sim/price_engine.py`) overestimated real SSP by ~10x and is **deferred to Regime 3** (module + tests retained). Replacement: `simulation/run_phase3b_regression.py` fits `SSP ~ gas_price + demand_mw + wind_mw` by OLS on real 2016-03-01..2025-06-07 data (157,106 periods) — full-window MAE £33.96/MWh, R^2=0.386 (mean SSP £77.19/MWh); per-year R^2 ranges 0.08 (2016, low-variance) to 0.295 (2022, gas crisis). Coefficients have physically sensible signs (gas_price +1.89, demand_mw +0.0025, wind_mw -0.0011). **Awaiting Rich's review** of fit quality before use as the Regime 2 forward-projection price model. See `docs/calibration/price-engine.md` (Addendum).
 - **Phase 2b — Gas Dual Fuel** (`[REVIEW_GATE]`, LIVE): anthropic SDK confirmed installed (0.107.1) and importable from risk_committee_agent.py. Full 2016-2025 dual-fuel run survived (net margin £16,799.11, treasury £21,829.17 → £38,628.27). Risk committee still cannot fire — no `ANTHROPIC_API_KEY` in this environment, every wake-up (had any fired) would fail with an auth error, caught and logged. **Escalation to Rich**: an API key / billing decision is needed before the Context Handshake can ever activate. See `docs/observability/PHASE_2b_SUMMARY.md` for full findings and open questions.
 
 ## Background Worker Performance
@@ -105,6 +117,6 @@ Last commit: pending — Phase 3b price engine + calibration report
 | pre-fetch-elexon-full | 96/44 | 8s | background-task-pre-fetch-elexon-full.md (0.3KB) | pending | pending |
 | pre-fetch-weather-full | 99/26 | 1s | background-task-pre-fetch-weather-full.md (0.3KB) | pending | pending |
 | pre-fetch-pc3-profiles | 79/40 | 7s | background-task-pre-fetch-pc3-profiles.md (0.4KB) | pending | pending |
-| pre-fetch-nbp-gas-full | -/- | - | pending | pending | pending |
-| code-quality-audit | -/- | - | pending | pending | pending |
-| simulation-sensitivity-experiments | -/- | - | pending | pending | pending |
+| pre-fetch-nbp-gas-full | 77/47 | 7s | background-task-pre-fetch-nbp-gas-full.md (0.3KB) | pending | pending |
+| code-quality-audit | 76/16 | 6s | background-task-code-quality-audit.md (0.2KB) | pending | pending |
+| simulation-sensitivity-experiments | 79/34 | 7s | background-task-simulation-sensitivity-experiments.md (0.3KB) | pending | pending |
