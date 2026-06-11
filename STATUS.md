@@ -1,8 +1,8 @@
 # Project Status
 
-Last updated: 2026-06-11T15:05:00Z
-Current phase: Phase 2b (gas dual fuel) complete — [REVIEW_GATE]. Full 2016-2025 dual-fuel run survived: net margin £16,799.11 (electricity £13,678.68 + gas £3,120.43), treasury £21,829.17 → £38,628.27. anthropic SDK confirmed installed and importable; risk committee still cannot fire (no ANTHROPIC_API_KEY — escalated to Rich). See `docs/observability/PHASE_2b_SUMMARY.md`.
-Last commit: 060b231 — fix background worker crash (exec globals) + Phase 2b summary
+Last updated: 2026-06-11T15:20:00Z
+Current phase: Phase 3a (experience observability depth) complete — no gate. Phase 2b (gas dual fuel) remains open as [REVIEW_GATE] pending Rich review (ANTHROPIC_API_KEY escalation). See `docs/observability/PHASE_3a_SUMMARY.md` and `docs/observability/PHASE_2b_SUMMARY.md`.
+Last commit: pending — Phase 3a experience signals + report
 
 ## Committed files (all phases)
 
@@ -83,6 +83,7 @@ Last commit: 060b231 — fix background worker crash (exec globals) + Phase 2b s
 - Phase 1d: `docs/observability/PHASE_1d_SUMMARY.md` (agent-discovered hedging — converged to fully naked, "learned the wrong lesson from a calm period")
 - Phase 1e: `docs/observability/PHASE_1e_SUMMARY.md` — capital physics run. Survived. Treasury £3,250→£9,114. Central hypothesis not confirmed: capital costs (37.6% of gross) didn't produce organic hedging. C1/C2 trapped at hf=0.00 (evolution rule blind at that boundary). C3/C4 held at 0.10. 2021 only net-loss year (-£154). 2023 σ_stressed regime shift tripled collateral — invisible to trapped agents.
 - Phase 2b: `docs/observability/PHASE_2b_SUMMARY.md` — gas dual fuel (NBP SAP price feed, CV/CF conversion, C1g-C4g). Full 2016-2025 run survived: net margin £16,799.11 (electricity £13,678.68 + gas £3,120.43), treasury £21,829.17 → £38,628.27. 2021 only net-loss year (-£2,002.62). 0 Context Handshake wake-ups.
+- Phase 3a: `docs/observability/PHASE_3a_SUMMARY.md` — experience observability depth (`score_experience_signals()`: bill_shock_score, cumulative_exposure, expectation_gap). 2016 shocks concentrated in London (C1=6, C5=4); 2021-22 shocks 7-20x higher across all legs, highest for smaller-consumption profiles (tenement_flat=31, urban_flat=20) — bill shock is a relative measure so small bills amplify % swings.
 
 ## Open gates
 - **Phase 1e** (`[REVIEW_GATE]`, SUPERSEDED): Closed by Phase 2a.

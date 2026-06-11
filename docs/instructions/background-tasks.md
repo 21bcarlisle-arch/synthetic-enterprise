@@ -9,13 +9,6 @@ Tasks move to RUNNING then DONE. Worker logs to docs/observability/background-wo
 ## QUEUED
 
 
-### Task: pre-fetch-weather-full
-Description: Fetch and cache Open-Meteo historical daily weather for all four customer locations, 2016-01-01 to 2025-06-07.
-Locations: London (51.51,-0.12), Manchester (53.48,-2.24), Glasgow (55.86,-4.25), Cotswolds (51.83,-1.83).
-Fields: temperature_max_c, temperature_min_c, temperature_mean_c, wind_speed_mean_ms, cloud_cover_pct, precipitation_mm.
-Store as sim/weather_data/{location}.csv (update existing files if partial).
-Model: qwen2.5-coder:14b
-Output: sim/weather_data/*.csv updated + entry in docs/observability/cache-status.md
 
 ### Task: pre-fetch-pc3-profiles
 Description: Download PC3 Standard Load Profile data from Elexon portal (portal.elexon.co.uk).
@@ -59,6 +52,10 @@ Output: docs/observability/sensitivity-results.md
 (none)
 
 ## DONE
+
+### Task: pre-fetch-weather-full
+Completed: 2026-06-11 14:00 UTC
+
 
 ### Task: pre-fetch-elexon-full
 Completed: 2026-06-11 13:59 UTC
