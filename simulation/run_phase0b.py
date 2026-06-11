@@ -10,11 +10,11 @@ each module, scaled up to span the whole pipeline).
 
 from datetime import date, timedelta
 
+from saas.tariff_pricing import price_fixed_tariff
 from sim.profile_class_1 import load_pc1_shape
 from sim.system_prices_history import get_system_prices_range
-from saas.tariff_pricing import price_fixed_tariff
-from simulation.settlement import run_settlement
 from simulation.portfolio_pnl import build_portfolio_pnl
+from simulation.settlement import run_settlement
 
 ACQUISITION_DATES = ["2016-01-01", "2016-04-01", "2016-07-01", "2016-10-01"]
 REPORT_START = "2016-10-01"

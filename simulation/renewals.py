@@ -14,8 +14,8 @@ increment.
 
 from datetime import date, timedelta
 
-from sim.forward_curve import generate_forward_price
 from saas.tariff_pricing import price_fixed_tariff
+from sim.forward_curve import generate_forward_price
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 

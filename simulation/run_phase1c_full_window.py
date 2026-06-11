@@ -12,18 +12,18 @@ year, to surface what a multi-year forward-curve-priced book actually looks
 like against real historical wholesale data.
 """
 
-from datetime import date, timedelta
 from collections import defaultdict
+from datetime import date, timedelta
 
+from saas.clv_seed import build_clv_seed
+from saas.customer_reaction import score_dissatisfaction
+from saas.customers import CUSTOMERS, customer_to_settlement_input
+from saas.tariff_pricing import price_fixed_tariff
+from sim.forward_curve import generate_forward_price
 from sim.profile_class_1 import load_pc1_shape
 from sim.system_prices_history import get_system_prices_range
-from sim.forward_curve import generate_forward_price
-from saas.tariff_pricing import price_fixed_tariff
-from simulation.settlement import run_settlement
 from simulation.portfolio_pnl import build_portfolio_pnl
-from saas.customer_reaction import score_dissatisfaction
-from saas.clv_seed import build_clv_seed
-from saas.customers import CUSTOMERS, customer_to_settlement_input
+from simulation.settlement import run_settlement
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"

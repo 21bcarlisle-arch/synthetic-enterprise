@@ -31,9 +31,8 @@ wake-up overwrites the file (one active context at a time — the agent acts onc
 and goes back to sleep before the next breach can occur).
 """
 
-from datetime import date, timedelta
 from collections import deque
-import statistics
+from datetime import date, timedelta
 
 TREASURY_DRAWDOWN_THRESHOLD = 0.10    # trigger if treasury has fallen >10% from 12-month peak
 VAR_BREACH_MULTIPLIER = 2.50          # trigger if VaR_current > VaR_stressed × this (raised from 1.20 — prevents nuisance fires during healthy growth)

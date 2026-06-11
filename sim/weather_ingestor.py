@@ -12,8 +12,9 @@ Maps Open-Meteo's daily variable names to this project's schema field names:
   cloud_cover_mean -> cloud_cover_pct, precipitation_sum -> precipitation_mm.
 """
 
-import requests
 import csv
+
+import requests
 
 
 def get_daily_weather(location_id: str, latitude: float, longitude: float,
@@ -41,15 +42,15 @@ def get_daily_weather(location_id: str, latitude: float, longitude: float,
         "wind_speed_unit": "ms",
         "timezone": "Europe/London"
     }
-    
+
     response = requests.get(base_url, params=params)
-    
+
     if response.status_code != 200:
         return []
-    
+
     data = response.json()
     daily_data = data["daily"]
-    
+
     records = []
     for i in range(len(daily_data["time"])):
         record = {
@@ -63,7 +64,7 @@ def get_daily_weather(location_id: str, latitude: float, longitude: float,
             "precipitation_mm": daily_data["precipitation_sum"][i]
         }
         records.append(record)
-    
+
     return records
 
 
@@ -79,10 +80,10 @@ def write_weather_csv(records: list[dict], output_path: str) -> None:
         "date", "location_id", "temperature_max_c", "temperature_min_c",
         "temperature_mean_c", "wind_speed_mean_ms", "cloud_cover_pct", "precipitation_mm"
     ]
-    
+
     with open(output_path, mode='w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        
+
         writer.writeheader()
         for record in records:
             writer.writerow(record)

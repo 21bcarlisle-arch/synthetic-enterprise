@@ -28,6 +28,11 @@ At the end of every phase write `docs/observability/PHASE_<ID>_SUMMARY.md` with:
 
 One page, readable in 60 seconds. Commit and push before sending NTFY.
 
+## Harness Rule (standing instruction)
+
+`make check` must pass before any REVIEW_GATE is cleared and before any phase summary is committed.
+Every new feature instruction must include: write the test that proves it works.
+
 ## Delegation Protocol
 
 Two local models, routed by task type via `tools/delegate_ollama.py --task-type coder|analysis` (`localhost:11434`, one running at a time — swap, don't run both simultaneously):

@@ -10,8 +10,8 @@ background worker log and sends an ntfy.sh notification on completion.
 import re
 import subprocess
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 

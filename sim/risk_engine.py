@@ -39,8 +39,8 @@ reviewed/integrated by the frontier orchestrator -- Phase 1e risk-engine
 increment.
 """
 
-from datetime import date, timedelta
 import statistics
+from datetime import date, timedelta
 
 Z_SCORE_90_CONFIDENCE = 1.645      # one-tailed 90% confidence z-score for VaR
 SIGMA_RECENT_LOOKBACK_DAYS = 365   # trailing window for the "current conditions" volatility view
@@ -148,6 +148,28 @@ def calculate_monthly_cost_of_capital(active_collateral_gbp: float, wacc: float 
     Monthly Cost of Capital = active_collateral_gbp * wacc / 12
     """
     return active_collateral_gbp * wacc / 12
+
+
+def compute_net_margin(gross_margin_gbp: float, capital_cost_gbp: float) -> float:
+    """Net margin after the cost of capital is deducted.
+
+    net_margin_gbp = gross_margin_gbp - capital_cost_gbp
+
+    Consolidates the per-period net-margin calculation that previously lived
+    inline in simulation/hedged_settlement.py — the cost of capital computed
+    by calculate_monthly_cost_of_capital() is what this function deducts.
+    """
+    return gross_margin_gbp - capital_cost_gbp
+
+
+def is_administration_triggered(treasury_balance_gbp: float) -> bool:
+    """Whether the portfolio treasury balance forces an administration event.
+
+    Administration triggers the moment the treasury cash balance reaches or
+    falls below zero (treasury_balance_gbp <= 0). Consolidates the check
+    duplicated across the simulation/run_phase*.py scripts.
+    """
+    return treasury_balance_gbp <= 0
 
 
 def assess_term_risk(term_start_date: str, naked_volume_kwh: float, forward_price_gbp_per_mwh: float, system_price_records: list[dict], wacc: float = WACC) -> dict:

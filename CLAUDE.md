@@ -33,6 +33,10 @@ Rich (the human) talks to this chat interface only — he never writes code, run
 - **CLV-per-frontier-token** — steady-state prioritisation objective once build loop is reliable
 - **The system prompts itself** — build routines, not one-off prompts
 
+## Harness Rule (standing instruction)
+`make check` must pass before any REVIEW_GATE is cleared and before any phase summary is committed.
+Every new feature instruction must include: write the test that proves it works.
+
 ## Phase 0 Structure
 - **0a** — Prove plumbing and instruct-execute-observe path
 - **0b** — Test cross-model frontier-to-local delegation

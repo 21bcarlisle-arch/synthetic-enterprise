@@ -15,17 +15,17 @@ wholesale data, but now a living book of business across the full 9.5-year
 window instead of one that runs dry after ~21 months.
 """
 
-from datetime import date, timedelta
 from collections import defaultdict
+from datetime import date, timedelta
 
+from saas.clv_seed import build_clv_seed
+from saas.customer_reaction import score_dissatisfaction
+from saas.customers import CUSTOMERS, customer_to_settlement_input
 from sim.profile_class_1 import load_pc1_shape
 from sim.system_prices_history import get_system_prices_range
-from simulation.settlement import run_settlement
-from simulation.renewals import build_renewal_schedule
 from simulation.portfolio_pnl import build_portfolio_pnl
-from saas.customer_reaction import score_dissatisfaction
-from saas.clv_seed import build_clv_seed
-from saas.customers import CUSTOMERS, customer_to_settlement_input
+from simulation.renewals import build_renewal_schedule
+from simulation.settlement import run_settlement
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"

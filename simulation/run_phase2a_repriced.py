@@ -18,7 +18,9 @@ The original run_phase2a.py is preserved as a historical artefact.
 from collections import defaultdict
 from datetime import date, timedelta
 
-from saas.customers import CUSTOMERS, get_customer
+import sim.risk_committee_agent as risk_committee_agent
+from saas.customers import CUSTOMERS as _ALL_CUSTOMERS
+from saas.customers import get_customer
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.hedging_strategy import evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape
@@ -30,7 +32,9 @@ from simulation.hedged_settlement import run_hedged_term
 from simulation.portfolio_pnl import build_portfolio_pnl
 from simulation.renewals import build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
-import sim.risk_committee_agent as risk_committee_agent
+
+# Phase 2a handles electricity-only customers; filter out gas records added in Phase 2b
+CUSTOMERS = [c for c in _ALL_CUSTOMERS if c.get("commodity") == "electricity"]
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"
@@ -73,8 +77,8 @@ def classify_administration_cause(record: dict) -> str:
 def main():
     total_eac = sum(c["eac_kwh"] for c in CUSTOMERS)
     print("=== Phase 2a REPRICED — Activity-Based Pricing Fix + Recalibrated Risk Committee ===")
-    print(f"Pricing: forward + capital_cost_per_mwh + £2/MWh flat margin")
-    print(f"Risk committee: VAR_BREACH_MULTIPLIER=2.50 + treasury health gate (< 1.5x starting)")
+    print("Pricing: forward + capital_cost_per_mwh + £2/MWh flat margin")
+    print("Risk committee: VAR_BREACH_MULTIPLIER=2.50 + treasury health gate (< 1.5x starting)")
     print(f"Customers: {[c['customer_id'] for c in CUSTOMERS]}")
     print(f"Portfolio EAC: {total_eac:,} kWh")
     print(f"Starting treasury: £{STARTING_TREASURY_GBP:.2f}\n")

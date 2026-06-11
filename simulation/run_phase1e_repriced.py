@@ -134,7 +134,7 @@ def classify_administration_cause(record: dict) -> str:
 
 def main():
     print("=== Phase 1e REPRICED — Nine-Year Portfolio Run with Activity-Based Pricing ===")
-    print(f"Pricing: activity-based (forward + capital_cost_per_mwh + £2/MWh flat margin)")
+    print("Pricing: activity-based (forward + capital_cost_per_mwh + £2/MWh flat margin)")
     print(f"Treasury: £{STARTING_TREASURY_GBP:.2f} | Hedge reset: {RESET_HEDGE_FRACTION:.2f}\n")
 
     earliest_acquisition = min(date.fromisoformat(c["acquisition_date"]) for c in CUSTOMERS)
@@ -248,7 +248,7 @@ def main():
     if administration_event:
         print(f"ADMINISTRATION: {administration_event['date']} — {administration_event['proximate_cause']}")
     else:
-        print(f"SURVIVED — full window completed.")
+        print("SURVIVED — full window completed.")
 
     print("\nPer-customer breakdown (REPRICED):")
     for customer_id, cdata in pnl["by_customer"].items():

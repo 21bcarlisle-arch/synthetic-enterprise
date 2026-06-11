@@ -7,9 +7,8 @@ Respects UK peak electricity hours: pauses between 16:00-19:00 GMT daily.
 Logs all activity to docs/observability/background-worker-log.md
 """
 
-import time
 import subprocess
-import json
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 

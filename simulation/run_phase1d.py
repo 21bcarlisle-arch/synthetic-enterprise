@@ -46,17 +46,17 @@ reviewed/integrated by the frontier orchestrator — Phase 1d hedging
 increment.
 """
 
-from datetime import date, timedelta
 from collections import defaultdict
+from datetime import date, timedelta
 
+from saas.customers import CUSTOMERS, customer_to_settlement_input
+from sim.hedging_strategy import decide_initial_hedge_fraction, evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape
 from sim.system_prices_history import get_system_prices_range
-from sim.hedging_strategy import decide_initial_hedge_fraction, evolve_hedge_fraction
-from simulation.renewals import build_renewal_schedule
 from simulation.hedged_settlement import run_hedged_term
-from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.portfolio_pnl import build_portfolio_pnl
-from saas.customers import CUSTOMERS, customer_to_settlement_input
+from simulation.renewals import build_renewal_schedule
+from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"

@@ -296,7 +296,7 @@ def main():
         print(f"    Treasury balance: £{administration_event['treasury_balance_gbp']:.4f}")
         print(f"    Proximate cause: {administration_event['proximate_cause']}")
         print(f"    Triggered by customer: {administration_event['customer_id']}")
-        print(f"    Reporting truncated to periods before administration.")
+        print("    Reporting truncated to periods before administration.")
     else:
         final_balance = all_records[-1]["treasury_cash_balance_gbp"] if all_records else STARTING_TREASURY_GBP
         print(f"\n=== Company survived the full window. Final treasury balance: £{final_balance:.2f} ===")
@@ -415,7 +415,7 @@ def main():
     if administration_event:
         print(f"ADMINISTRATION: {administration_event['date']} — {administration_event['proximate_cause']}")
     else:
-        print(f"SURVIVED — full window completed.")
+        print("SURVIVED — full window completed.")
 
     print("\nPer-customer breakdown:")
     for customer_id, cdata in pnl["by_customer"].items():
