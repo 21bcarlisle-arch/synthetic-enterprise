@@ -40,6 +40,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
+from sim.risk_engine import compute_net_margin
 
 
 def run_hedged_term(
@@ -152,6 +153,6 @@ def run_hedged_term(
         capital_cost_per_period_gbp = monthly_cost_of_capital_gbp / len(month_records)
         for record in month_records:
             record["capital_cost_gbp"] = capital_cost_per_period_gbp
-            record["net_margin_gbp"] = record["margin_gbp"] - capital_cost_per_period_gbp
+            record["net_margin_gbp"] = compute_net_margin(record["margin_gbp"], capital_cost_per_period_gbp)
 
     return records

@@ -42,7 +42,7 @@ from sim.hedging_strategy import evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape
 from sim.profile_class_3 import load_pc3_shape
 from sim.risk_committee import RiskCommitteeMonitor
-from sim.risk_engine import assess_term_risk
+from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
 from simulation.hedged_settlement import run_hedged_term
 from simulation.portfolio_pnl import build_portfolio_pnl
@@ -216,7 +216,7 @@ def main():
             ytd_capital += record["capital_cost_gbp"]
             settled_this_term.append(record)
 
-            if treasury <= 0 and administration_event is None:
+            if is_administration_triggered(treasury) and administration_event is None:
                 administration_event = {
                     "date": record["settlement_date"],
                     "period": record["settlement_period"],
