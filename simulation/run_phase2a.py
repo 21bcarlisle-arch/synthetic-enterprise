@@ -1,5 +1,12 @@
 """Phase 2a: Six-customer portfolio with SME segment and Context Handshake.
 
+SUPERSEDED by simulation/run_phase2a_repriced.py (activity-based pricing +
+recalibrated risk committee). Preserved as a historical artefact only — do
+not run as part of the live pipeline. As of the Phase 2b gas dual-fuel WIP,
+this script is also broken (`saas.customers.CUSTOMERS` now includes gas
+records without `eac_kwh`, and this script iterates CUSTOMERS unfiltered
+unlike the repriced version's electricity-only filter).
+
 Two new things vs Phase 1e:
 
   1. SME customers C5 (25,000 kWh, PC3, London small office) and C6
