@@ -52,17 +52,26 @@ def test_list_returns_files():
     assert "files" in r.json()
 
 
-def test_stage_ui_renders_filename_and_content():
-    r = client.get("/stage-ui", params={"filename": "note.md", "content": "hello world", "key": "abc"})
+def test_stage_ui_get_returns_form():
+    r = client.get("/stage-ui")
+    assert r.status_code == 200
+    assert "<form" in r.text
+    assert 'name="filename"' in r.text
+    assert 'name="content"' in r.text
+    assert 'name="key"' in r.text
+
+
+def test_stage_ui_post_renders_filename_and_content():
+    r = client.post("/stage-ui", data={"filename": "note.md", "content": "hello world", "key": "abc"})
     assert r.status_code == 200
     assert "note.md" in r.text
     assert "hello world" in r.text
 
 
-def test_stage_ui_escapes_html_in_filename_and_content():
-    r = client.get(
+def test_stage_ui_post_escapes_html_in_filename_and_content():
+    r = client.post(
         "/stage-ui",
-        params={"filename": "<script>alert(1)</script>", "content": "<img src=x onerror=alert(1)>", "key": "abc"},
+        data={"filename": "<script>alert(1)</script>", "content": "<img src=x onerror=alert(1)>", "key": "abc"},
     )
     assert r.status_code == 200
     # The visible HTML (filename heading + <pre> content block) must be escaped.
@@ -70,6 +79,38 @@ def test_stage_ui_escapes_html_in_filename_and_content():
     assert "&lt;img src=x onerror=alert(1)&gt;" in r.text
     assert "<pre><img" not in r.text
     assert "<h1><script>" not in r.text
+
+
+def test_stage_ui_post_handles_large_content_without_url_limits():
+    big_content = "x" * 50_000
+    r = client.post("/stage-ui", data={"filename": "big.md", "content": big_content, "key": "abc"})
+    assert r.status_code == 200
+    assert big_content in r.text
+
+
+def test_healthz_no_auth_required():
+    r = client.get("/healthz")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["uvicorn"] == "alive"
+    assert "funnel_active" in body
+    assert "staging_writable" in body
+    assert "last_file_received" in body
+
+
+def test_healthz_reports_staging_writable(tmp_path, monkeypatch):
+    monkeypatch.setattr("background.file_api.STAGING_DIR", tmp_path)
+    r = client.get("/healthz")
+    assert r.status_code == 200
+    assert r.json()["staging_writable"] is True
+
+
+def test_healthz_reports_last_file_received(tmp_path, monkeypatch):
+    monkeypatch.setattr("background.file_api.STAGING_DIR", tmp_path)
+    (tmp_path / "TASK_X.md").write_text("hello")
+    r = client.get("/healthz")
+    assert r.status_code == 200
+    assert r.json()["last_file_received"] is not None
 
 
 def test_write_and_read_roundtrip(tmp_path, monkeypatch):

@@ -1,0 +1,15 @@
+[Unit]
+Description=Synthetic Enterprise file API (Claude staging read/write)
+After=network.target
+
+[Service]
+Type=simple
+User=rich
+WorkingDirectory=/home/rich/synthetic-enterprise
+EnvironmentFile=/home/rich/synthetic-enterprise/background/.env.file-api
+ExecStart=/usr/bin/python3 -m uvicorn background.file_api:app --host 0.0.0.0 --port 8765
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

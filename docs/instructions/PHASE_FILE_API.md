@@ -270,6 +270,54 @@ without manual relay.
 
 Replace `<FUNNEL_URL>` with the actual URL captured above.
 
+### 10a. Reliability improvements (2026-06-12)
+
+The original deployment above is still accurate for `/read`, `/list`, `/write`,
+and the auth model. Three additions were made on top of it:
+
+**POST-based `/stage-ui`** — the old `/stage-ui` took `filename`/`content` as
+query parameters, which hit URL-length limits and required URL-encoding for
+large staged instructions. It's now two routes:
+- `GET /stage-ui` — returns an HTML form (filename, content, API key fields)
+  that POSTs to `/stage-ui`.
+- `POST /stage-ui` (`filename`, `content`, `key` as form fields) — renders an
+  HTML-escaped preview with a Submit button that calls `POST /write` via JS.
+
+This requires the `python-multipart` package for FastAPI's `Form(...)`:
+```bash
+pip install --user --break-system-packages python-multipart
+```
+
+**`/healthz`** — unauthenticated endpoint for monitoring, returns:
+```json
+{"uvicorn": "alive", "funnel_active": true|false|null,
+ "staging_writable": true|false, "last_file_received": "<ISO timestamp>|null"}
+```
+`funnel_active` is `null` if the `tailscale` CLI isn't available.
+
+**systemd service instead of tmux** — `background/file-api.service` is a
+systemd unit that runs the same uvicorn command as the old tmux session, but
+with `Restart=on-failure` so it survives crashes and reboots. The file-api
+tmux block was removed from `background/start_worker.sh`.
+
+Installing the unit requires one-time root access (no passwordless sudo is
+available to Claude in this environment), so Rich needs to run:
+```bash
+sudo cp ~/synthetic-enterprise/background/file-api.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now file-api
+```
+Then stop the old tmux session if it's still running:
+```bash
+tmux kill-session -t file-api 2>/dev/null
+```
+
+Verify:
+```bash
+systemctl status file-api
+curl -s http://127.0.0.1:8765/healthz
+```
+
 ### 11. Commit and push
 ```bash
 git add background/file_api.py tests/background/test_file_api.py \
