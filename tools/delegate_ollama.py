@@ -4,7 +4,7 @@ Two local models are available, each suited to a different kind of work
 (running one at a time — never both simultaneously, per Rich's housekeeping
 note: swap as needed rather than competing for the same GPU/RAM):
 
-  qwen2.5-coder:14b — code generation, file writing, data transformation,
+  qwen3:14b         — code generation, file writing, data transformation,
                       test scaffolding ("coder" tasks)
   qwen2.5:7b        — result analysis, summary drafting, structured output,
                       README updates, PHASE_SUMMARY drafts, STATUS.md
@@ -31,7 +31,7 @@ import urllib.request
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
 MODELS_BY_TASK_TYPE = {
-    "coder": "qwen2.5-coder:14b",
+    "coder": "qwen3:14b",
     "analysis": "qwen2.5:7b",
 }
 DEFAULT_TASK_TYPE = "coder"

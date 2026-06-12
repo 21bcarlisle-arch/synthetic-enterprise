@@ -52,7 +52,7 @@ Every new feature instruction must include: write the test that proves it works.
 
 Two local models, routed by task type via `tools/delegate_ollama.py --task-type coder|analysis` (`localhost:11434`, one running at a time — swap, don't run both simultaneously):
 
-**`qwen2.5-coder:14b`** ("coder" tasks — code stays local):
+**`qwen3:14b`** ("coder" tasks — code stays local):
 - All code generation and file writing
 - Data transformation scripts
 - Test scaffolding
@@ -396,7 +396,7 @@ kWh = V × CF × CV / 3.6
 
 5. Confirm `data_regime`="historical" field is present on all gas records.
 
-**Delegation:** NBP ingestion and CV conversion — delegate to qwen2.5-coder:14b with full formula spec. Orchestration — hand-written. Analysis — qwen2.5:7b.
+**Delegation:** NBP ingestion and CV conversion — delegate to qwen3:14b with full formula spec. Orchestration — hand-written. Analysis — qwen2.5:7b.
 
 **[REVIEW_GATE]** — write PHASE_2b_SUMMARY.md, send NTFY with raw URL and headline dual-fuel P&L figures.
 

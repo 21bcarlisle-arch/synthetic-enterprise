@@ -68,7 +68,7 @@ Phase 4a (fully synthetic ecosystem bootstrap) per MASTER_BACKLOG, or Rich's nex
 - `interface/README.md`, `interface/contracts/.gitkeep` — seam scaffold (contracts not yet populated)
 
 **`tools/`**
-- `tools/delegate_ollama.py` — local-model delegation harness, routes to `qwen2.5-coder:14b` (code) or `qwen2.5:7b` (analysis/drafting) by task type
+- `tools/delegate_ollama.py` — local-model delegation harness, routes to `qwen3:14b` (code) or `qwen2.5:7b` (analysis/drafting) by task type
 
 **`sim/`** (continued)
 - `sim/profile_class_3.py` + `sim/data/profile_class_3_gad.csv` — PC3 (non-domestic unrestricted) GAD shape (fetched from UKERC/CEDA)

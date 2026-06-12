@@ -17,7 +17,7 @@ PEAK_END = 19    # 7pm GMT
 CHECK_INTERVAL_MINUTES = 30
 TASKS_FILE = Path("docs/instructions/background-tasks.md")
 LOG_FILE = Path("docs/observability/background-worker-log.md")
-OLLAMA_MODEL = "qwen2.5-coder:14b"
+OLLAMA_MODEL = "qwen3:14b"
 
 def is_peak_hours():
     """Return True if current GMT time is between 16:00 and 19:00."""
