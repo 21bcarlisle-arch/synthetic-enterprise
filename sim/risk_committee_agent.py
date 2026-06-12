@@ -9,7 +9,7 @@ back to the simulation state, and logs its reasoning.
 Architecture contract (the Context Handshake):
   1. The Python engine detects a threshold breach (risk_committee.py)
   2. The engine writes the context summary to docs/context-handshake-latest.md
-  3. THIS module reads the summary, calls the frontier LLM, and extracts a decision
+  3. THIS module reads the summary, calls the local LLM via Ollama, and extracts a decision
   4. The decision (new hedge_fraction per customer) is returned to the engine
   5. The engine updates its simulation state and continues the inner loop
   6. THIS module logs the reasoning in docs/observability/risk-committee-log.md
@@ -22,20 +22,38 @@ The LLM agent:
   - Justifies its decision in plain English
   - Returns to sleep immediately after adjusting
 
-Frontier model only — this module MUST NOT be delegated to a local model. The
-risk committee agent is the first place in this project where a live LLM agent
-makes a real-time decision that affects the simulation's financial state.
+Routing — local Ollama, not the frontier (decision reversed 2026-06-12):
+  Earlier versions of this module called the Anthropic frontier API directly
+  and were marked "frontier model only — MUST NOT be delegated to a local
+  model", on the basis that this is the one place a live LLM agent makes a
+  real-time decision affecting the simulation's financial state. In practice
+  this left the Context Handshake permanently unable to fire: this
+  environment has no ANTHROPIC_API_KEY, so every wake-up would fail with an
+  auth error (see PHASE_2b_SUMMARY.md open questions).
+
+  Rich's call: the simulation is synthetic — there is no portfolio, customer,
+  or money at stake outside the simulation's own bookkeeping, so there is no
+  justification for an autonomous frontier API call (with its associated cost
+  and external dependency) during a simulation run. The risk committee agent
+  is therefore routed through local Ollama like every other subagent in this
+  project, via the same Ollama HTTP API used by tools/delegate_ollama.py. The
+  validation logic below (no decrease, +0.10..+0.30 clamp) is the actual
+  safety boundary regardless of which model proposes the adjustment, so this
+  change does not weaken the guardrails on what the agent can do — only on
+  which model is allowed to propose it.
 """
 
 import json
 import re
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
 HANDSHAKE_FILE = "docs/context-handshake-latest.md"
 COMMITTEE_LOG_FILE = "docs/observability/risk-committee-log.md"
 
-COMMITTEE_MODEL = "claude-sonnet-4-6"
+OLLAMA_URL = "http://localhost:11434/api/chat"
+COMMITTEE_MODEL = "qwen3:14b"  # best available local model — see routing note above
 
 SYSTEM_PROMPT = """You are the risk committee agent for a simulated UK energy supplier.
 You have been woken by a threshold breach in the portfolio's risk monitoring system.
@@ -65,22 +83,29 @@ def _read_handshake_context() -> str:
     return Path(HANDSHAKE_FILE).read_text()
 
 
-def _call_frontier(context: str) -> dict:
-    """Call the frontier model with the handshake context. Returns the parsed
-    decision dict. Raises on API error or unparseable response.
+def _call_local(context: str) -> dict:
+    """Call the local Ollama model with the handshake context. Returns the
+    parsed decision dict. Raises on connection error or unparseable response.
     """
-    import anthropic  # lazy import — not available in all Python envs; failure caught by caller
-    client = anthropic.Anthropic()  # auto-discovers key from ~/.anthropic/ or ANTHROPIC_API_KEY env
-    message = client.messages.create(
-        model=COMMITTEE_MODEL,
-        max_tokens=512,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": context}],
+    payload = json.dumps({
+        "model": COMMITTEE_MODEL,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": context},
+        ],
+        "stream": False,
+    }).encode()
+    request = urllib.request.Request(
+        OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"}
     )
-    raw_text = message.content[0].text
+    with urllib.request.urlopen(request, timeout=600) as response:
+        result = json.loads(response.read())
+    raw_text = result["message"]["content"]
 
-    # Strip any accidental markdown fences before parsing
-    cleaned = re.sub(r"^```[a-z]*\n?", "", raw_text.strip(), flags=re.MULTILINE)
+    # Strip a leading <think>...</think> block (qwen3 reasoning trace) and any
+    # accidental markdown fences before parsing
+    cleaned = re.sub(r"^\s*<think>.*?</think>\s*", "", raw_text.strip(), flags=re.DOTALL)
+    cleaned = re.sub(r"^```[a-z]*\n?", "", cleaned.strip(), flags=re.MULTILINE)
     cleaned = re.sub(r"\n?```$", "", cleaned.strip())
     return json.loads(cleaned)
 
@@ -124,7 +149,7 @@ def invoke(settlement_date: str, settlement_period: int, current_hedge_fractions
       no decrease, clamp to [0.0, 1.0]).
     """
     context = _read_handshake_context()
-    decision = _call_frontier(context)
+    decision = _call_local(context)
 
     validated_adjustments = {}
     for adj in decision.get("adjustments", []):
