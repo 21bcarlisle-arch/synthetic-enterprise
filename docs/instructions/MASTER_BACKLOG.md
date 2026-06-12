@@ -17,6 +17,21 @@ Required notifications:
 4. Gate reached: `"GATE after Phase [ID]. Waiting for instruction before proceeding."`
 5. Error: `"ERROR in Phase [ID]: [brief description]"`
 
+## Staging Review Protocol
+
+The file API's `/write` endpoint targets `docs/staging/` (not `docs/instructions/` directly), so externally-submitted
+instruction files always pass through review before they can affect the agent's own behaviour.
+
+At the start of every session (and on each polling cycle thereafter):
+1. Check `docs/staging/` for any new files.
+2. Review each one on its merits.
+3. **Two-way door** (reversible — e.g. a new backlog item, a clarification, a non-destructive config tweak):
+   promote it by moving/copying the file into `docs/instructions/`, then delete it from `docs/staging/`.
+4. **One-way door** (anything spending money, deleting data, changing irreversible external state, or otherwise
+   matching the "Reversibility is law" escalation criteria): do **not** promote automatically. Leave the file in
+   `docs/staging/` and send an NTFY to `skynet-synthetic` summarising the item and asking Rich to approve promotion,
+   including the raw GitHub URL to the staged file.
+
 ## Phase Summary Protocol
 
 At the end of every phase write `docs/observability/PHASE_<ID>_SUMMARY.md` with:
