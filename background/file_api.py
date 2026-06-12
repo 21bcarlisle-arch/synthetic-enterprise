@@ -133,6 +133,94 @@ def stage_ui_preview(
 </html>"""
 
 
+_MOBILE_STYLE = """
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 0 auto; padding: 1em; }
+    input, textarea, button { width: 100%; font-size: 16px; padding: 0.5em; margin: 0.3em 0; box-sizing: border-box; }
+    pre { white-space: pre-wrap; word-break: break-word; background: #f4f4f4; padding: 1em; border-radius: 4px; }
+  </style>"""
+
+
+@app.get("/ui/stage", response_class=HTMLResponse)
+def ui_stage():
+    """Mobile-friendly form that writes a file straight to docs/staging/ via
+    POST /write. The API key is cached in localStorage so it only needs to
+    be entered once per device."""
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stage a file</title>
+  {_MOBILE_STYLE}
+</head>
+<body>
+  <h1>Stage a file</h1>
+  <label>API Key<br><input type="password" id="key"></label>
+  <label>Filename<br><input type="text" id="filename" placeholder="TASK_FOO.md"></label>
+  <label>Content<br><textarea id="content" rows="14"></textarea></label>
+  <button id="submit">Submit</button>
+  <p id="result"></p>
+  <script>
+    const keyEl = document.getElementById("key");
+    keyEl.value = localStorage.getItem("fileApiKey") || "";
+    document.getElementById("submit").addEventListener("click", async () => {{
+      const key = keyEl.value;
+      localStorage.setItem("fileApiKey", key);
+      const filename = document.getElementById("filename").value;
+      const content = document.getElementById("content").value;
+      const res = await fetch("/write", {{
+        method: "POST",
+        headers: {{ "Content-Type": "application/json", "X-Api-Key": key }},
+        body: JSON.stringify({{ path: filename, content: content }})
+      }});
+      document.getElementById("result").textContent = res.ok
+        ? "Staged: " + JSON.stringify(await res.json())
+        : "Error: " + res.status;
+    }});
+  </script>
+</body>
+</html>"""
+
+
+@app.get("/ui/status", response_class=HTMLResponse)
+def ui_status():
+    """Mobile-friendly read page — fetches and displays docs/status/LATEST.md
+    via GET /read. The API key is cached in localStorage so it only needs to
+    be entered once per device."""
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Latest Status</title>
+  {_MOBILE_STYLE}
+</head>
+<body>
+  <h1>Latest Status</h1>
+  <label>API Key<br><input type="password" id="key"></label>
+  <button id="load">Load</button>
+  <pre id="content">(not loaded)</pre>
+  <script>
+    const keyEl = document.getElementById("key");
+    keyEl.value = localStorage.getItem("fileApiKey") || "";
+    async function load() {{
+      const key = keyEl.value;
+      localStorage.setItem("fileApiKey", key);
+      const res = await fetch("/read?path=status/LATEST.md", {{
+        headers: {{ "X-Api-Key": key }}
+      }});
+      document.getElementById("content").textContent = res.ok
+        ? (await res.json()).content
+        : "Error: " + res.status;
+    }}
+    document.getElementById("load").addEventListener("click", load);
+    if (keyEl.value) load();
+  </script>
+</body>
+</html>"""
+
+
 class WriteRequest(BaseModel):
     path: str
     content: str

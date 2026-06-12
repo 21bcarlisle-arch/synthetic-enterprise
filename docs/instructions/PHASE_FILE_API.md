@@ -300,23 +300,44 @@ systemd unit that runs the same uvicorn command as the old tmux session, but
 with `Restart=on-failure` so it survives crashes and reboots. The file-api
 tmux block was removed from `background/start_worker.sh`.
 
-Installing the unit requires one-time root access (no passwordless sudo is
-available to Claude in this environment), so Rich needs to run:
+**Installed (2026-06-12) as a user-level systemd unit** — no root needed after
+all: `/run/user/1000/bus` exists even without `XDG_RUNTIME_DIR`/
+`DBUS_SESSION_BUS_ADDRESS` set in the shell, so `systemctl --user` works once
+those are exported, and `loginctl enable-linger rich` (also doesn't need
+sudo) makes the user systemd instance start at boot/persist without an active
+login session. Installed via:
 ```bash
-sudo cp ~/synthetic-enterprise/background/file-api.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now file-api
+mkdir -p ~/.config/systemd/user
+cp ~/synthetic-enterprise/background/file-api.service ~/.config/systemd/user/
+export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+systemctl --user daemon-reload
+systemctl --user enable --now file-api
+loginctl enable-linger rich
 ```
-Then stop the old tmux session if it's still running:
-```bash
-tmux kill-session -t file-api 2>/dev/null
-```
+The unit's `[Install]` target is `default.target` (user manager), not
+`multi-user.target` (system manager), and it has no `User=` line.
 
 Verify:
 ```bash
-systemctl status file-api
+systemctl --user status file-api
 curl -s http://127.0.0.1:8765/healthz
 ```
+
+### 10b. Mobile UI pages (2026-06-12)
+
+Two browser-friendly pages, served directly by the file API (no auth on the
+GET — the API key is entered client-side and cached in `localStorage`):
+
+- **`GET /ui/stage`** — write form. Filename + content + API key, POSTs
+  straight to `POST /write` (lands in `docs/staging/`). Useful for staging
+  instruction files from a phone.
+- **`GET /ui/status`** — read page. Fetches `GET /read?path=status/LATEST.md`
+  and renders it in a wrapped `<pre>` block. `docs/status/LATEST.md` is a
+  short mobile-friendly status snapshot (kept separate from the full
+  `STATUS.md` at the repo root).
+
+Both pages set `<meta name="viewport" content="width=device-width,
+initial-scale=1">` and use 16px inputs (avoids iOS auto-zoom on focus).
 
 ### 11. Commit and push
 ```bash

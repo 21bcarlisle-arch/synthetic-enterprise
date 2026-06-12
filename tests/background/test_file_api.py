@@ -88,6 +88,22 @@ def test_stage_ui_post_handles_large_content_without_url_limits():
     assert big_content in r.text
 
 
+def test_ui_stage_returns_mobile_form():
+    r = client.get("/ui/stage")
+    assert r.status_code == 200
+    assert "viewport" in r.text
+    assert 'id="filename"' in r.text
+    assert 'id="content"' in r.text
+    assert "/write" in r.text
+
+
+def test_ui_status_returns_mobile_page_that_reads_latest():
+    r = client.get("/ui/status")
+    assert r.status_code == 200
+    assert "viewport" in r.text
+    assert "/read?path=status/LATEST.md" in r.text
+
+
 def test_healthz_no_auth_required():
     r = client.get("/healthz")
     assert r.status_code == 200
