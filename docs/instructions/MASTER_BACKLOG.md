@@ -504,9 +504,13 @@ parked, not abandoned, and is not the current deliverable.
    forward projection beyond 2025-06-07, pending Rich's review of the fit
    quality above.
 
-**[REVIEW_GATE]** — Rich reviews regression fit quality (MAE/R^2) before this
-model is used for forward projection. Physics-model margin-term redesign
-remains a Regime 3 backlog item, not blocking this gate.
+**[REVIEW_GATE] — CLEARED (2026-06-12).** Rich approved: R^2=0.386 is
+acceptable for Regime 2 *distributional* behaviour. **Caveat (binding):**
+this model is **not suitable for period-by-period price generation** — it
+should be used to generate distributionally-realistic synthetic SSP series
+(e.g. sampling/perturbing around its prediction plus residual variance), not
+as a deterministic period-by-period price oracle. Physics-model margin-term
+redesign remains a Regime 3 backlog item, not blocking this gate.
 
 ---
 
@@ -514,7 +518,7 @@ remains a Regime 3 backlog item, not blocking this gate.
 
 **Objective:** Build and calibrate the two-pass weather engine. Validate synthetic weather against real Open-Meteo historical data for all four customer locations.
 
-**Do not start until Phase 3b calibration is approved.**
+**Do not start until Phase 3b calibration is approved.** — Approved 2026-06-12, see Phase 3b above.
 
 Deliverables:
 1. `sim/weather_engine.py` — two-pass model:
