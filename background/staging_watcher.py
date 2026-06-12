@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""Staging directory watcher — notification only, no automatic execution.
+
+Polls docs/staging/ for new files. When a new file appears, sends an NTFY
+notification to skynet-synthetic naming the file (so Rich/Claude know a
+staged instruction is waiting for an explicit staging review per CLAUDE.md's
+Staging Directory Protocol) and logs the event.
+
+This watcher NEVER reads staged file contents into a prompt, runs commands
+based on them, or sends them via tmux send-keys — it only announces that a
+new file exists. Processing happens only during an explicit staging review.
+
+Logs to docs/observability/staging-watcher-log.md.
+Persists the set of already-seen filenames to
+background/.staging_watcher_seen.json so restarts don't re-notify for files
+that arrived in an earlier run.
+"""
+
+import json
+import subprocess
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+PROJECT_DIR = Path("/home/rich/synthetic-enterprise")
+STAGING_DIR = PROJECT_DIR / "docs" / "staging"
+STATE_FILE = PROJECT_DIR / "background" / ".staging_watcher_seen.json"
+LOG_FILE = PROJECT_DIR / "docs" / "observability" / "staging-watcher-log.md"
+NTFY_TOPIC = "skynet-synthetic"
+NTFY_PUBLISH_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
+POLL_INTERVAL_SECONDS = 30
+IGNORED_NAMES = {".gitkeep"}
+
+
+def log(msg: str) -> None:
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    entry = f"\n- [{ts}] {msg}"
+    LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(LOG_FILE, "a") as f:
+        f.write(entry)
+    print(entry)
+
+
+def ntfy(msg: str) -> None:
+    subprocess.run(["curl", "-s", "-d", msg, NTFY_PUBLISH_URL], capture_output=True)
+
+
+def current_files() -> set[str]:
+    if not STAGING_DIR.is_dir():
+        return set()
+    return {p.name for p in STAGING_DIR.iterdir() if p.is_file() and p.name not in IGNORED_NAMES}
+
+
+def load_seen() -> set[str]:
+    if STATE_FILE.exists():
+        return set(json.loads(STATE_FILE.read_text()))
+    return None
+
+
+def save_seen(seen: set[str]) -> None:
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    STATE_FILE.write_text(json.dumps(sorted(seen)))
+
+
+def check_once(seen: set[str]) -> set[str]:
+    """Check docs/staging/ once. Notifies (filename only) for any file not in
+    `seen`, logs each notification, and returns the updated seen set."""
+    files = current_files()
+    new_files = sorted(files - seen)
+    for name in new_files:
+        msg = f"New file in docs/staging/: {name} — pending explicit staging review"
+        ntfy(msg)
+        log(f"Notified: {name}")
+    if new_files:
+        seen = files
+        save_seen(seen)
+    return seen
+
+
+def main() -> None:
+    seen = load_seen()
+    if seen is None:
+        # First run: seed with whatever's already there so we don't notify
+        # about a backlog that predates the watcher.
+        seen = current_files()
+        save_seen(seen)
+        log(f"Staging watcher started — seeded with {len(seen)} existing file(s), no notification sent for these")
+    else:
+        log("Staging watcher started — resuming from saved state")
+
+    while True:
+        try:
+            seen = check_once(seen)
+        except Exception as e:
+            log(f"Watcher error: {e}")
+        time.sleep(POLL_INTERVAL_SECONDS)
+
+
+if __name__ == "__main__":
+    main()
