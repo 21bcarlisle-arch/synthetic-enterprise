@@ -559,6 +559,24 @@ accepted for Regime 2.
 
 ---
 
+## Phase 5: Smart Tariff Innovation (PLACEHOLDER - do not design in detail until Phase 4 is complete)
+
+Introduce one smart tariff type (ToU as first candidate) and stress-test the full stack:
+
+- Property asset layer: customer assets (EV, solar, heat pump, smart meter) by segment and location
+- Behaviour model: consumption shape as a function of tariff signal, weather, and asset mix
+- Dynamic forecasting: volume is no longer fixed shape - it responds to price
+- Tariff-conditional hedging: hedge position depends on forecast behaviour under the tariff
+- CLV under smart tariff: margin depends on how well behaviour was modelled and hedged
+
+Key dependency: Phase 4 core value drivers must be complete on standard tariffs before Phase 5 begins.
+
+First smart tariff candidate: ToU (time-of-use). EV and solar export follow.
+
+This phase is where forecasting and hedging become coupled to the customer layer.
+
+---
+
 ## Future Backlog (not yet designed — do not execute)
 
 - Weather→consumption correlation
