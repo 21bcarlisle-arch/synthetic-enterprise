@@ -528,7 +528,9 @@ Deliverables:
 2. Calibration run: generate synthetic weather for 2016-2025, compare against real Open-Meteo data for all four locations
 3. `docs/calibration/weather-engine.md` — calibration report
 
-**[REVIEW_GATE]** — Rich reviews before weather engine graduates to Regime 3.
+**[REVIEW_GATE] — CLEARED (2026-06-12).** Rich approved: 0.952 cross-location
+temperature correlation (real vs synthetic) is "excellent" — weather engine
+accepted for Regime 2.
 
 ---
 

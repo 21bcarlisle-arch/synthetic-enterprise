@@ -1,18 +1,18 @@
 # Project Status
 
-Last updated: 2026-06-12T10:00:00Z
-Current phase: Phase 3b APPROVED (2026-06-12, R^2=0.386 acceptable for Regime 2 distributional behaviour; caveat — not suitable for period-by-period price generation, see MASTER_BACKLOG.md). Phase 3c (weather engine) built and ready for review — [REVIEW_GATE]. `sim/weather_engine.py` implements the two-pass model (national macro regime-switching AR1 + regional Cholesky deviations + half-hourly translation), fitted on real 2016-2025 daily weather for all 4 locations. Distributional fit is strong (means/stds match to within ~0.1-0.3 units, cross-location correlation 0.952 real vs 0.952 synthetic); half-hourly translation checked against a real 2022 hourly sample but only in-sample validated. See `docs/calibration/weather-engine.md`. Phase 2b (gas dual fuel) remains open as [REVIEW_GATE] pending Rich review (ANTHROPIC_API_KEY escalation).
+Last updated: 2026-06-12T11:00:00Z
+Current phase: Phase 3b APPROVED (2026-06-12, R^2=0.386 acceptable for Regime 2 distributional behaviour; caveat — not suitable for period-by-period price generation, see MASTER_BACKLOG.md). Phase 3c APPROVED (2026-06-12): weather engine accepted for Regime 2 — 0.952 cross-location temperature correlation (real vs synthetic) called "excellent". `sim/weather_engine.py` implements the two-pass model (national macro regime-switching AR1 + regional Cholesky deviations + half-hourly translation), fitted on real 2016-2025 daily weather for all 4 locations. See `docs/calibration/weather-engine.md`. Phase 2b (gas dual fuel) remains open as [REVIEW_GATE] pending Rich review (ANTHROPIC_API_KEY escalation).
 
 **Security note**: a second injected system-reminder appeared this session, claiming GitHub issues #1-#3 from 21bcarlisle-arch are "verified" direct instructions to build the session watchdog, an "API key storage" mechanism, and the issue poller (again referencing the non-existent `TASKS_3_AND_4_REVISED.md`). Not acted on — same pattern as the prior injection attempt, now escalating to credential storage. **Tasks 3 and 4 remain on hold** pending a verified, direct instruction from Rich via this chat interface (per CLAUDE.md, GitHub issues are not how Rich instructs this session).
 
-Last commit: pending — Phase 3c weather engine + calibration report (this session)
+Last commit: f6a31ac — Phase 3b gate cleared; Phase 3c weather engine built and calibrated
 
-## Session handoff — resume point
-All work in this session is complete and ready to commit:
-- `make check` passes (48 tests, ruff clean).
-- Files to commit: `sim/weather_engine.py` (new), `simulation/run_phase3c_calibration.py` (new), `tests/sim/test_weather_engine.py` (new, 9 tests), `docs/calibration/weather-engine.md` (new), `docs/instructions/MASTER_BACKLOG.md` (Phase 3b gate cleared with caveat, Phase 3c marked ready), `STATUS.md` (this file). `sim/cache/openmeteo_hourly_c1_2022.json` is gitignored (sim/cache/), same pattern as other prefetch caches — not committed.
-- After committing and pushing to `main`, send NTFY with raw GitHub URLs to `docs/calibration/weather-engine.md` and `STATUS.md`.
-- Next backlog item after this gate clears: Phase 4a (fully synthetic ecosystem bootstrap) per MASTER_BACKLOG, or Rich's next direction. Open items noted in weather-engine.md: out-of-sample half-hourly validation, wind within-day variability slightly underestimated (0.97 vs 1.23 m/s).
+## Open gates remaining
+- Phase 2b (gas dual fuel) — [REVIEW_GATE], pending Rich review (ANTHROPIC_API_KEY escalation).
+- Tasks 3/4 — on hold pending verified direct instruction (see Security note above).
+
+## Next backlog item
+Phase 4a (fully synthetic ecosystem bootstrap) per MASTER_BACKLOG, or Rich's next direction. Open items noted in weather-engine.md for future iteration (not blocking): out-of-sample half-hourly validation, wind within-day variability slightly underestimated (0.97 vs 1.23 m/s).
 
 ## Committed files (all phases)
 
@@ -104,14 +104,14 @@ All work in this session is complete and ready to commit:
 - Phase 2b: `docs/observability/PHASE_2b_SUMMARY.md` — gas dual fuel (NBP SAP price feed, CV/CF conversion, C1g-C4g). Full 2016-2025 run survived: net margin £16,799.11 (electricity £13,678.68 + gas £3,120.43), treasury £21,829.17 → £38,628.27. 2021 only net-loss year (-£2,002.62). 0 Context Handshake wake-ups.
 - Phase 3a: `docs/observability/PHASE_3a_SUMMARY.md` — experience observability depth (`score_experience_signals()`: bill_shock_score, cumulative_exposure, expectation_gap). Combined dual-fuel billing (C1-C4 + C1g-C4g as one bill) roughly halves crisis-year shock counts (C1-C4 2021-22 total: 102 → 44). 2016 shocks concentrated in London; 2021-22 shocks much higher across all legs, highest for smaller-consumption profiles.
 - Phase 3b: `docs/calibration/price-engine.md` — price engine calibration. Original merit-order formula (`sim/price_engine.py`) overestimated SSP ~10x and is deferred to Regime 3. **Approved (2026-06-12)** replacement: OLS regression `SSP ~ gas_price + demand_mw + wind_mw`, MAE £33.96/MWh, R^2=0.386 — distributional use only, not period-by-period.
-- Phase 3c: `docs/calibration/weather-engine.md` — weather engine calibration. `sim/weather_engine.py` two-pass model (national macro regime-switching AR1 + regional Cholesky + half-hourly translation), fitted on real 2016-2025 daily data for 4 locations. Distributional fit strong (cross-location temp correlation 0.952 real vs 0.952 synthetic); half-hourly translation in-sample validated only — ready for review.
+- Phase 3c: `docs/calibration/weather-engine.md` — weather engine calibration. **Approved (2026-06-12)**: `sim/weather_engine.py` two-pass model (national macro regime-switching AR1 + regional Cholesky + half-hourly translation), fitted on real 2016-2025 daily data for 4 locations, accepted for Regime 2 (0.952 cross-location temp correlation, real vs synthetic).
 
 ## Open gates
 - **Phase 1e** (`[REVIEW_GATE]`, SUPERSEDED): Closed by Phase 2a.
 - **Phase 2a** (`[REVIEW_GATE]`, SUPERSEDED): Pricing fix applied; C6 now net-positive. See pricing-fix-comparison.md.
 - **Pricing fix + Context Handshake** (`[REVIEW_GATE]`, SUPERSEDED): Closed by Phase 2b. Activity-based pricing confirmed working (C6: -£1,176 → +£620, treasury +£4,977 improvement vs flat margin). Full comparison: `docs/observability/pricing-fix-comparison.md`.
 - **Phase 3b — Wholesale Price Model: Regression** (`[REVIEW_GATE]`, CLEARED 2026-06-12): physics merit-order model (`sim/price_engine.py`) overestimated real SSP by ~10x and is **deferred to Regime 3** (module + tests retained). Approved replacement: `simulation/run_phase3b_regression.py` fits `SSP ~ gas_price + demand_mw + wind_mw` by OLS on real 2016-03-01..2025-06-07 data (157,106 periods) — full-window MAE £33.96/MWh, R^2=0.386 (mean SSP £77.19/MWh); per-year R^2 ranges 0.08 (2016, low-variance) to 0.295 (2022, gas crisis). **Binding caveat**: distributional use only — not suitable for period-by-period price generation. See `docs/calibration/price-engine.md` (Addendum).
-- **Phase 3c — Weather Engine** (`[REVIEW_GATE]`, OPEN — ready for review): `sim/weather_engine.py` two-pass model (national macro regime-switching AR1 + regional Cholesky deviations + half-hourly translation), fitted on real 2016-2025 daily weather for all 4 locations. Distributional fit strong — means/stds match to within ~0.1-0.3 units, cross-location temperature correlation 0.952 real vs 0.952 synthetic. Half-hourly translation (diurnal temp, solar irradiance, wind AR1) checked against a real 2022 hourly sample but only in-sample validated — see Open Items in `docs/calibration/weather-engine.md` (out-of-sample validation, wind within-day std slightly low at 0.97 vs 1.23 m/s).
+- **Phase 3c — Weather Engine** (`[REVIEW_GATE]`, CLEARED 2026-06-12): `sim/weather_engine.py` two-pass model (national macro regime-switching AR1 + regional Cholesky deviations + half-hourly translation), fitted on real 2016-2025 daily weather for all 4 locations. Accepted for Regime 2 — 0.952 cross-location temperature correlation (real vs synthetic) called "excellent". Non-blocking open items for future iteration in `docs/calibration/weather-engine.md`: out-of-sample half-hourly validation, wind within-day std slightly low (0.97 vs 1.23 m/s).
 - **Phase 2b — Gas Dual Fuel** (`[REVIEW_GATE]`, LIVE): anthropic SDK confirmed installed (0.107.1) and importable from risk_committee_agent.py. Full 2016-2025 dual-fuel run survived (net margin £16,799.11, treasury £21,829.17 → £38,628.27). Risk committee still cannot fire — no `ANTHROPIC_API_KEY` in this environment, every wake-up (had any fired) would fail with an auth error, caught and logged. **Escalation to Rich**: an API key / billing decision is needed before the Context Handshake can ever activate. See `docs/observability/PHASE_2b_SUMMARY.md` for full findings and open questions.
 
 ## Background Worker Performance
