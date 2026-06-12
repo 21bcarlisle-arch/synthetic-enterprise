@@ -10,6 +10,7 @@ Rich (the human) talks to this chat interface only — he never writes code, run
 - **Primary:** Claude mobile app, Remote Control — this is the day-to-day interface to this session.
 - **Fallback:** SSH via Tailscale, port 2222, direct to the machine — only when Remote Control is unavailable.
 - **Autostart:** Claude Code launches automatically into this project on machine boot — no manual session setup required to pick up where things left off. On Skynet startup, run `bash background/start_worker.sh` after Claude Code starts. The background worker runs independently in its own tmux session and never interferes with the main Claude Code session.
+- **Session watchdog:** `bash background/start_worker.sh` also starts `session-watchdog` (own tmux session), which monitors the `claude` tmux session. If Claude Code stops, it sends an NTFY alert to `skynet-synthetic` and waits up to 4 hours for a reply containing "YES" before restarting `claude` with plain `claude` (never `--dangerously-skip-permissions` — normal permission prompts apply on restart). Max 3 restarts/hour. See `background/session_watchdog.py`.
 
 ## Architecture Stack
 - **Lead orchestrator:** Claude Code (Anthropic API)
