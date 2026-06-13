@@ -36,6 +36,16 @@ def test_write_path_traversal_blocked():
     assert r.status_code == 400
 
 
+def test_write_rejects_empty_path():
+    r = client.post("/write", json={"path": "", "content": "x"}, headers=HEADERS)
+    assert r.status_code == 400
+
+
+def test_write_rejects_path_resolving_to_staging_dir():
+    r = client.post("/write", json={"path": ".", "content": "x"}, headers=HEADERS)
+    assert r.status_code == 400
+
+
 def test_read_path_traversal_blocked():
     r = client.get("/read?path=../CLAUDE.md", headers=HEADERS)
     assert r.status_code == 400

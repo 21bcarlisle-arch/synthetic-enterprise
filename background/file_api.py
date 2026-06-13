@@ -157,8 +157,8 @@ def ui_stage():
 <body>
   <h1>Stage a file</h1>
   <label>API Key<br><input type="password" id="key"></label>
-  <label>Filename<br><input type="text" id="filename" placeholder="TASK_FOO.md"></label>
-  <label>Content<br><textarea id="content" rows="14"></textarea></label>
+  <label>Filename<br><input type="text" id="filename" placeholder="TASK_FOO.md" required></label>
+  <label>Content<br><textarea id="content" rows="14" required></textarea></label>
   <button id="submit">Submit</button>
   <p id="result"></p>
   <script>
@@ -167,8 +167,12 @@ def ui_stage():
     document.getElementById("submit").addEventListener("click", async () => {{
       const key = keyEl.value;
       localStorage.setItem("fileApiKey", key);
-      const filename = document.getElementById("filename").value;
+      const filename = document.getElementById("filename").value.trim();
       const content = document.getElementById("content").value;
+      if (!filename) {{
+        document.getElementById("result").textContent = "Error: filename is required";
+        return;
+      }}
       const res = await fetch("/write", {{
         method: "POST",
         headers: {{ "Content-Type": "application/json", "X-Api-Key": key }},
@@ -232,8 +236,10 @@ def write_file(
     x_api_key: str = Header(..., alias="X-Api-Key"),
 ):
     _auth(x_api_key)
+    if not req.path.strip():
+        raise HTTPException(status_code=400, detail="Path must not be empty")
     target = (STAGING_DIR / req.path).resolve()
-    if not str(target).startswith(str(STAGING_DIR)):
+    if not str(target).startswith(str(STAGING_DIR)) or target == STAGING_DIR:
         raise HTTPException(status_code=400, detail="Path outside docs/staging/")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(req.content, encoding="utf-8")
