@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-13T19:40:00Z
+Last updated: 2026-06-14T00:25:00Z
 
 Current phase: Phase 2b (gas dual fuel) COMPLETE. Full 9.5-year re-run
 finished with active Context Handshake (160 wake-ups, routed through local
@@ -199,11 +199,25 @@ Open gates:
   is complete").
 - **Phase 4c — REVIEW_GATE (informational)**: all six sub-phases (4c-1
   through 4c-6) complete. See `docs/observability/PHASE_4c_SUMMARY.md` for
-  full detail, the integration backlog (4c-2/4c-5/4c-6 standalone modules
-  not yet wired into `simulation/settlement.py` /
-  `simulation/portfolio_pnl.py`), and seed-estimate caveats. With 4b and 4c
-  both complete, Phase 4's "core value drivers" prerequisite for Phase 5 is
-  satisfied — Phase 4a remains a placeholder ("do not design in detail until
-  Phase 3 is complete" — likely now satisfied too, but undesigned). Awaiting
-  Rich's direction: a Phase 4c integration re-run, Phase 4a, or Phase 5
-  design.
+  full detail and seed-estimate caveats. With 4b and 4c both complete,
+  Phase 4's "core value drivers" prerequisite for Phase 5 is satisfied —
+  Phase 4a remains a placeholder ("do not design in detail until Phase 3 is
+  complete" — likely now satisfied too, but undesigned). Awaiting Rich's
+  direction: Phase 4a, or Phase 5 design.
+
+**Phase 4c full-portfolio re-run — done (2026-06-13)**:
+`simulation/run_phase4c_on_phase2b.py` ran the full 9.5-year Phase 2b
+settlement (10 accounts: 6 electricity + 4 gas) once, grouped settlement
+records into 1,101 monthly bills via `build_monthly_bills()` (chronological,
+per-customer bill-shock tracking), then fed them through 4c-5 (payment
+behaviour) and 4c-6 (contact/complaints). Portfolio results: average clarity
+0.923, average bill shock 10.9%, total bad-debt provision £2,016.30, avg
+complaint probability 0.030, **service quality score 0.941**. Phase 2b
+financials re-confirmed (net margin £13,646.21, treasury £21,829.17 →
+£35,475.37 — a different point estimate from earlier re-runs, consistent
+with the stochastic-trajectory caveat). 3 new tests (231 total), lint clean.
+4c-2/4c-3 (which modify settlement inputs rather than consume its output)
+remain the only items in the integration backlog — see "Follow-up — Full
+Portfolio Re-run" in `docs/observability/PHASE_4c_SUMMARY.md` for the
+per-account table and open questions (notably C5/C6's lower clarity, and
+C5/C6/Cxg falling back to default credit-risk/property seed estimates).

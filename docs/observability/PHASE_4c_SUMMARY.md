@@ -190,6 +190,79 @@ flagged pending the `customer-archetype-data-enrichment` background task.
    resolution date). If a future phase adds per-contact tracking, this
    constant should be replaced by a real day-14 unresolved check.
 
+---
+
+## Follow-up — Full Portfolio Re-run (2026-06-13)
+
+New `simulation/run_phase4c_on_phase2b.py` ran the full 9.5-year Phase 2b
+settlement (2016-01-01 → 2025-06-07, 10 accounts: 6 electricity + 4 gas)
+once, grouped its `all_records` output into one monthly bill per customer
+via `build_monthly_bills()` (chronological, carrying each customer's own
+`previous_bill_total_gbp` for the bill-shock penalty), then fed those bills
+through 4c-5 (`build_payment_behaviour`) and 4c-6 (`build_contact_model`).
+3 new tests for `build_monthly_bills` (231 total), lint clean.
+
+**Scope note**: 4c-2 (weather-driven demand) and 4c-3 (weather→price
+sensitivity) are *not* included in this re-run — both modify
+`simulation/settlement.py`'s inputs (consumption shape, forward price) rather
+than consuming its output, so wiring them in means re-running
+`simulation/run_phase2b.py` itself with different inputs, not a downstream
+pass over its existing records. That remains open (see item 1 above, now
+narrowed to 4c-2/4c-3 only).
+
+### Phase 2b re-run (re-confirmed, point estimate)
+- Gross margin £28,014.63; capital costs £14,368.43; net margin £13,646.21
+- Treasury £21,829.17 → £35,475.37 (+£13,646.21); capital cost ratio 51.3%
+- OUTCOME: SURVIVED — full window completed
+- (Differs slightly from PHASE_2b_SUMMARY.md's £13,970.60 and 4b's
+  £13,430.48 — each re-run is its own stochastic trajectory through the same
+  Context Handshake/hedging agent, consistent with 4b's "single point
+  estimate, not a distribution" caveat.)
+
+### Phase 4c billing-experience layer — portfolio-level results
+- Bills generated: 1,101
+- Average clarity score: 0.923
+- Average bill shock (where shown): 10.9%
+- Total bad-debt provision: £2,016.30
+- Avg complaint probability: 0.030
+- **Service quality score: 0.941**
+
+| Account | Bills | Avg clarity | Credit risk | Bad debt £ |
+|---|---|---|---|---|
+| C1  | 114 | 0.926 | low        |  35.25 |
+| C2  | 111 | 0.930 | medium     | 132.97 |
+| C3  | 108 | 0.928 | vulnerable | 376.29 |
+| C4  | 105 | 0.929 | low        |  31.67 |
+| C5  | 114 | 0.841 | medium     | 487.46 |
+| C6  | 111 | 0.842 | medium     | 460.33 |
+| C1g | 114 | 0.965 | medium     | 100.39 |
+| C2g | 111 | 0.959 | medium     | 111.85 |
+| C3g | 108 | 0.959 | medium     |  85.39 |
+| C4g | 105 | 0.957 | medium     | 194.72 |
+
+### Open Questions
+- **C5/C6's lower clarity (0.84 vs ~0.93 elsewhere)**: these are the two
+  customers without 4c-1 property records (`saas/property_model.py` only
+  covers C1-C4), so this isn't driven by occupancy/asset mix — it's purely
+  consumption volatility and bill-shock from their settlement records.
+  Worth checking whether C5/C6's consumption shapes are inherently more
+  volatile (e.g. SME load profile from Phase 2a) once 4c-2's per-customer
+  demand shapes are wired in.
+- **Gas accounts (Cxg) have higher clarity (0.96) and lower bad-debt (despite
+  `medium` risk, same as their electricity counterparts) than electricity**:
+  gas consumption is naturally smoother (heating-dominated, less peaky than
+  electricity), so less CV-driven clarity penalty — consistent with the
+  4c-4 model's mechanics, not a bug.
+- **`CREDIT_RISK_BY_CUSTOMER` (4c-5) and 4c-1's property records only cover
+  C1-C4** — C5/C6 and all four gas accounts (Cxg) fall back to
+  `DEFAULT_CREDIT_RISK = "medium"`. Extending these seed tables to the full
+  10-account portfolio is part of the same
+  `customer-archetype-data-enrichment` background task referenced
+  throughout.
+- 0.030 avg complaint probability / 0.941 service quality score are a single
+  point estimate from one stochastic Phase 2b trajectory — same "not a
+  distribution" caveat as 4b's enterprise-value figures.
+
 ## Token Efficiency
 
 Phase 4c (all six sub-phases) ran as a single continuous session with no
