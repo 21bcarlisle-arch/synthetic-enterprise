@@ -114,9 +114,29 @@ Open gates:
   Awaiting Rich's review and direction on next steps — Phase 5 is currently
   a placeholder per MASTER_BACKLOG ("do not design in detail until Phase 4
   is complete").
-- **Phase 4c-1 — REVIEW_GATE**: property and asset model complete (above).
+**Phase 4c-2 (weather-driven demand) — done (2026-06-13)**: new
+`simulation/demand_model.py` (`build_demand_shape()`) adjusts a base PC1/PC3
+shape with heating/cooling degree days (UK 15.5C/22C bases, gas boiler vs
+electric storage vs heat pump heating rates), an occupancy-pattern time-of-day
+multiplier (single/family/elderly), and asset adjustments (EV overnight
+charging block, solar generation netted off daytime demand via
+`solar_generation_shape()`, floored at 0). Pure module — takes a daily mean
+temperature and optional half-hourly irradiance as plain inputs rather than
+importing `sim.weather_engine` directly, so existing weather-engine output
+slots straight in. 20 new tests (186 total), lint clean. Not yet wired into
+`simulation/settlement.py` — that integration (replacing the population-average
+PC1/PC3 shape with `build_demand_shape()` per customer) is the natural next
+step, either as part of 4c-2's wrap-up or folded into 4c-4 (bill generation).
+
+Open gates:
+- **Phase 4b — REVIEW_GATE**: all five sub-phases (4b-1 through 4b-5) plus
+  the full-portfolio re-run complete. See `docs/observability/PHASE_4b_SUMMARY.md`
+  for full detail and open questions across the layer (seed-estimate
+  constants throughout, point-estimate CLV prior, C3's low relative CLV).
+  Awaiting Rich's review and direction on next steps — Phase 5 is currently
+  a placeholder per MASTER_BACKLOG ("do not design in detail until Phase 4
+  is complete").
+- **Phase 4c-2 — REVIEW_GATE**: weather-driven demand model complete (above).
   Per MASTER_BACKLOG's "REVIEW_GATE after each sub-phase" for Phase 4c,
-  pausing here before 4c-2 (weather-driven demand, `simulation/demand_model.py`)
-  — a larger module that calibrates against the weather engine and will be
-  harder to unwind than 4c-1's standalone pure module. Awaiting Rich's go-ahead
-  to continue into 4c-2.
+  pausing here before 4c-3 (weather -> wholesale price influence, which
+  touches the forward curve generator) — awaiting Rich's go-ahead.
