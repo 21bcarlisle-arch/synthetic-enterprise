@@ -169,3 +169,15 @@ Structured performance entries are added after each task completes.
 - [2026-06-13 12:50 UTC] run_queued_tasks: no parseable QUEUED task found
 - [2026-06-13 13:20 UTC] Found queued tasks — beginning execution
 - [2026-06-13 13:20 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-13 13:50 UTC] Found queued tasks — beginning execution
+- [2026-06-13 13:50 UTC] Ollama(qwen3:14b) starting task: phase4b-4-draft-home-move-win-rate
+- [2026-06-13 13:51 UTC] Ollama task complete: phase4b-4-draft-home-move-win-rate — 50.1s, P=160 E=1205
+- [2026-06-13 13:51 UTC] Task 'phase4b-4-draft-home-move-win-rate' moved to DONE
+### Task: phase4b-4-draft-home-move-win-rate
+- Started: 2026-06-13 13:50 UTC
+- Completed: 2026-06-13 13:51 UTC
+- Wall time: 50.1s
+- Ollama tokens: prompt=160 eval=1205
+- Output produced: docs/observability/background-task-phase4b-4-draft-home-move-win-rate.md (5.5 KB)
+- Status: DONE
+- Consumed by: pending — filled in by main pipeline

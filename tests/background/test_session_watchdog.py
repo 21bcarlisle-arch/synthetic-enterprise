@@ -40,13 +40,25 @@ def test_restarts_in_last_hour_counts_recent_only():
 
 def test_usage_limit_detected_matches_known_phrasings():
     assert watchdog.usage_limit_detected("Claude usage limit reached. Try again later.")
-    assert watchdog.usage_limit_detected("You are approaching your usage limit for this session.")
+    assert watchdog.usage_limit_detected("You are approaching your usage limit reached for this session.")
     assert watchdog.usage_limit_detected("5-hour limit reached — resets at 3pm")
     assert watchdog.usage_limit_detected("Weekly limit reached")
+    assert watchdog.usage_limit_detected("Your usage limit will reset at 3pm")
 
 
 def test_usage_limit_detected_ignores_normal_output():
     assert not watchdog.usage_limit_detected("Running tests...\n96 passed in 0.34s")
+
+
+def test_usage_limit_detected_ignores_discussion_of_the_pattern():
+    # The watchdog's own source/docs/conversation discuss usage limits and
+    # rate limits constantly -- bare mentions must not trigger.
+    assert not watchdog.usage_limit_detected("rate limit")
+    assert not watchdog.usage_limit_detected("5-hour limit")
+    assert not watchdog.usage_limit_detected("weekly limit")
+    assert not watchdog.usage_limit_detected(
+        '"(usage limit reached|approaching[^\\n]*usage limit|rate limit|"'
+    )
 
 
 def test_restart_claude_resume_uses_continue_flag(monkeypatch):
@@ -84,6 +96,56 @@ def test_handle_usage_limit_resumes_in_place_once_message_clears(monkeypatch):
 
     assert any("resumed automatically" in msg for msg in ntfy_messages)
     assert any(c[:2] == ["tmux", "send-keys"] for c in send_keys_calls)
+
+
+def test_queue_downtime_tasks_appends_to_queued_section(tmp_path, monkeypatch):
+    tasks_file = tmp_path / "background-tasks.md"
+    tasks_file.write_text("# Background Task Queue\n\n## QUEUED\n\n## RUNNING\n(none)\n")
+    monkeypatch.setattr(watchdog, "DOWNTIME_TASKS_FILE", tasks_file)
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+
+    watchdog.queue_downtime_tasks()
+
+    content = tasks_file.read_text()
+    for task in watchdog.DOWNTIME_TASKS:
+        assert f"### Task: {task['name']}" in content
+        assert f"Model: {task['model']}" in content
+    # appended before the RUNNING section
+    assert content.index("## QUEUED") < content.index(watchdog.DOWNTIME_TASKS[0]["name"])
+    assert content.index(watchdog.DOWNTIME_TASKS[-1]["name"]) < content.index("## RUNNING")
+
+
+def test_queue_downtime_tasks_is_idempotent(tmp_path, monkeypatch):
+    tasks_file = tmp_path / "background-tasks.md"
+    tasks_file.write_text("# Background Task Queue\n\n## QUEUED\n\n## RUNNING\n(none)\n")
+    monkeypatch.setattr(watchdog, "DOWNTIME_TASKS_FILE", tasks_file)
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+
+    watchdog.queue_downtime_tasks()
+    once = tasks_file.read_text()
+    watchdog.queue_downtime_tasks()
+    twice = tasks_file.read_text()
+
+    assert once == twice
+
+
+def test_handle_usage_limit_queues_downtime_tasks(tmp_path, monkeypatch):
+    tasks_file = tmp_path / "background-tasks.md"
+    tasks_file.write_text("# Background Task Queue\n\n## QUEUED\n\n## RUNNING\n(none)\n")
+    monkeypatch.setattr(watchdog, "DOWNTIME_TASKS_FILE", tasks_file)
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg: None)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "session_exists", lambda: True)
+    monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "capture_pane", lambda: "all clear")
+
+    watchdog.handle_usage_limit()
+
+    content = tasks_file.read_text()
+    for task in watchdog.DOWNTIME_TASKS:
+        assert f"### Task: {task['name']}" in content
 
 
 def test_restart_claude_respects_cap(monkeypatch):

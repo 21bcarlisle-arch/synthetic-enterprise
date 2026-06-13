@@ -17,7 +17,7 @@ figures: net margin **£13,970.60** (electricity £10,850.17 + gas £3,120.43)
 over 2016-2025; treasury grew £21,829.17 → £35,799.77. Capital cost ratio
 50.9% of gross. See `docs/observability/PHASE_2b_SUMMARY.md` for full detail.
 
-`make check` passes — 109 tests, lint clean.
+`make check` passes — 112 tests, lint clean.
 
 Live status page: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/
 (renders this file, auto-refreshes every 2 minutes).
@@ -41,7 +41,11 @@ value function. REVIEW_GATE after each sub-phase, full summary on completion.
 
 Session watchdog: now auto-resumes on Claude Code usage-limit messages
 without a "YES" confirmation (waits up to 6h, retrying every 15min) — only
-crash/exit still requires confirmation. See `background/session_watchdog.py`.
+crash/exit still requires confirmation. It also queues two tasks for the
+independent background-worker (local Ollama, GPU) during the wait: a
+forward-prep draft of 4b-4 (qwen3:14b) and an observability/housekeeping
+digest (qwen2.5:7b) — both land as review-only drafts under
+`docs/observability/`. See `background/session_watchdog.py`.
 
 `docs/staging/TASK_AUTOSTART.md` — complete, registered manually by Rich.
 Cleared from staging.

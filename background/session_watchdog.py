@@ -33,6 +33,17 @@ confirmation-gated `handle_session_ended` flow — at that point something
 other than an ordinary rolling-limit reset is likely going on, and that
 case should still involve Rich.
 
+DOWNTIME GPU WORK: when a usage limit pauses the main session,
+`handle_usage_limit` also queues DOWNTIME_TASKS into
+docs/instructions/background-tasks.md (`queue_downtime_tasks`) — one
+forward-prep task (qwen3:14b drafts the next backlog sub-phase) and one
+housekeeping/observability task (qwen2.5:7b summarises recent logs). The
+independent background-worker tmux session picks these up and writes its
+output to docs/observability/background-task-<name>.md as a draft for the
+main session to review on resume — never a direct commit. This keeps the
+GPU doing useful prep/housekeeping work instead of sitting idle during the
+wait (Rich's instruction).
+
 KNOWN LIMITATION — "verified sender": https://ntfy.sh/skynet-synthetic is a
 public, unauthenticated topic. There is no cryptographic way to verify who
 posted a "YES" reply; this is a best-effort keyword match on messages
@@ -69,13 +80,18 @@ LOG_FILE = Path(f"{PROJECT_DIR}/docs/observability/session-watchdog-log.md")
 
 # Best-effort match for Claude Code's usage-limit message. The exact wording
 # is not confirmed against current Claude Code output (no access to a live
-# rate-limited session to verify) — this casts a deliberately wide net across
-# known phrasings ("usage limit reached", "5-hour limit", "weekly limit",
-# "approaching ... limit", "rate limit"). If real messages don't match,
-# tighten/extend this pattern from an observed transcript.
+# rate-limited session to verify). Deliberately narrower than a bare
+# "rate limit" / "5-hour limit" / "weekly limit" match: this session's own
+# conversation and source code talk *about* usage limits constantly (this
+# very file, this comment included), and capture_pane() would false-positive
+# on a generic match of those words scrolling through the pane. Each
+# alternative below pairs a limit-type word with "reached"/"will reset" to
+# require it look like an actual exhaustion notice, not discussion of one.
+# If real messages don't match, tighten/extend this pattern from an observed
+# transcript.
 USAGE_LIMIT_PATTERN = re.compile(
-    r"(usage limit reached|approaching[^\n]*usage limit|rate limit|"
-    r"5-hour limit|weekly limit|limit will reset)",
+    r"(usage limit reached|approaching[^\n]*usage limit reached|"
+    r"(5-hour|weekly) limit reached|usage limit will reset)",
     re.IGNORECASE,
 )
 
@@ -83,6 +99,45 @@ RESUME_INSTRUCTION = (
     "Read CLAUDE.md and STATUS.md. Continue from where the last session ended. "
     "Check docs/instructions/MASTER_BACKLOG.md for the current phase. Proceed autonomously."
 )
+
+DOWNTIME_TASKS_FILE = Path(f"{PROJECT_DIR}/docs/instructions/background-tasks.md")
+
+# Tasks queued for the independent background-worker tmux session (local
+# Ollama models) while the main session is paused on a usage limit — "GPU
+# doing work to minimise downtime" (Rich's instruction). One forward-prep
+# (drafting the next backlog sub-phase) and one housekeeping/observability
+# task. Both land as draft files under docs/observability/ (via
+# run_queued_tasks.py's existing output convention) for the main session to
+# review and integrate on resume — never a direct commit.
+DOWNTIME_TASKS = [
+    {
+        "name": "phase4b-4-draft-home-move-win-rate",
+        "model": "qwen3:14b",
+        "description": (
+            "Draft Phase 4b-4 (home move win rate) for the synthetic energy "
+            "supplier project, per docs/instructions/MASTER_BACKLOG.md's "
+            "Phase 4b section and the pattern established by "
+            "saas/churn_model.py and saas/clv_model.py (pure module, plain "
+            "dict in/out, no sim/ imports). Output a draft "
+            "saas/home_move_win_rate.py module plus a draft "
+            "tests/saas/test_home_move_win_rate.py, as markdown code blocks "
+            "with file path headers -- this is a first-pass draft for "
+            "Claude Code to review and integrate, not a direct commit."
+        ),
+    },
+    {
+        "name": "downtime-observability-housekeeping",
+        "model": "qwen2.5:7b",
+        "description": (
+            "Summarise the last 10 entries of "
+            "docs/observability/session-watchdog-log.md and "
+            "docs/observability/background-worker-log.md into a short "
+            "markdown digest (recent restarts, completed background tasks, "
+            "any errors) -- a housekeeping/observability catch-up draft for "
+            "Claude Code to fold into STATUS.md on resume."
+        ),
+    },
+]
 
 restart_times: deque = deque()
 
@@ -120,10 +175,17 @@ def claude_is_running() -> bool:
 
 
 def capture_pane() -> str:
-    """Visible content of the 'claude' pane (last 50 lines), or "" if the
-    session doesn't exist."""
+    """Currently visible content of the 'claude' pane (the viewport only —
+    not scrollback), or "" if the session doesn't exist.
+
+    Deliberately excludes scrollback: a real usage-limit message is part of
+    Claude Code's persistent current state, not a one-off line that scrolls
+    past. Including scrollback risks matching transient text (e.g. a command
+    that echoes the word "limit") rather than an actual live exhaustion
+    notice — see USAGE_LIMIT_PATTERN's comment.
+    """
     result = subprocess.run(
-        ["tmux", "capture-pane", "-t", SESSION_NAME, "-p", "-S", "-50"],
+        ["tmux", "capture-pane", "-t", SESSION_NAME, "-p"],
         capture_output=True, text=True,
     )
     return result.stdout if result.returncode == 0 else ""
@@ -132,10 +194,20 @@ def capture_pane() -> str:
 def usage_limit_detected(pane_text: str) -> bool:
     """True if `pane_text` looks like a Claude usage-limit message.
 
-    Best-effort — see USAGE_LIMIT_PATTERN's docstring comment for the
+    Checked line by line, skipping any line containing `|`, `[`, or `]` —
+    source code and regex literals (including USAGE_LIMIT_PATTERN's own
+    definition, or this conversation discussing it) commonly contain these
+    and would otherwise false-positive; a real UI message is plain prose.
+
+    Best-effort — see USAGE_LIMIT_PATTERN's comment for the
     wording-uncertainty caveat.
     """
-    return bool(USAGE_LIMIT_PATTERN.search(pane_text))
+    for line in pane_text.splitlines():
+        if any(ch in line for ch in "|[]"):
+            continue
+        if USAGE_LIMIT_PATTERN.search(line):
+            return True
+    return False
 
 
 def restarts_in_last_hour() -> int:
@@ -230,10 +302,43 @@ def restart_claude(resume: bool = False) -> None:
     ntfy("Claude Code resumed after usage limit." if resume else "Claude Code restarted — session running.")
 
 
+def queue_downtime_tasks() -> None:
+    """Append DOWNTIME_TASKS to the background task queue
+    (docs/instructions/background-tasks.md) for the independent
+    background-worker tmux session to pick up while the main session is
+    paused — "GPU doing work to minimise downtime" (Rich's instruction).
+
+    Idempotent: skips any task whose "### Task: <name>" header already
+    appears in the file (queued, running, or done in an earlier episode).
+    """
+    if not DOWNTIME_TASKS_FILE.exists():
+        return
+    content = DOWNTIME_TASKS_FILE.read_text()
+
+    new_blocks = [
+        f"\n### Task: {task['name']}\n"
+        f"Description: {task['description']}\n"
+        f"Model: {task['model']}\n"
+        for task in DOWNTIME_TASKS
+        if f"### Task: {task['name']}" not in content
+    ]
+    if not new_blocks:
+        return
+
+    marker = "## QUEUED\n"
+    if marker not in content:
+        return
+    content = content.replace(marker, marker + "".join(new_blocks), 1)
+    DOWNTIME_TASKS_FILE.write_text(content)
+    log(f"Queued {len(new_blocks)} downtime task(s) for background worker")
+
+
 def handle_usage_limit() -> None:
     """Usage-limit auto-resume — no NTFY "YES" gate (see module docstring).
 
-    Polls every USAGE_LIMIT_POLL_INTERVAL_SECONDS, nudging the session with
+    Queues forward-prep and housekeeping work for the background-worker
+    tmux session (`queue_downtime_tasks`), then polls every
+    USAGE_LIMIT_POLL_INTERVAL_SECONDS, nudging the session with
     RESUME_INSTRUCTION, until either the usage-limit message clears (session
     resumed in place) or the process has exited (restart with
     `claude -c`). Falls back to the normal confirmation-gated
@@ -243,6 +348,7 @@ def handle_usage_limit() -> None:
     log("Usage-limit message detected — auto-wait (no confirmation required)")
     ntfy("Claude Code usage limit reached — watchdog will auto-resume when it "
          "resets, no action needed.")
+    queue_downtime_tasks()
 
     waited = 0
     while waited < USAGE_LIMIT_MAX_WAIT_SECONDS:

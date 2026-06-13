@@ -8,6 +8,11 @@ Tasks move to RUNNING then DONE. Worker logs to docs/observability/background-wo
 
 ## QUEUED
 
+
+### Task: downtime-observability-housekeeping
+Description: Summarise the last 10 entries of docs/observability/session-watchdog-log.md and docs/observability/background-worker-log.md into a short markdown digest (recent restarts, completed background tasks, any errors) -- a housekeeping/observability catch-up draft for Claude Code to fold into STATUS.md on resume.
+Model: qwen2.5:7b
+
 ### Task: gpu-utilisation-monitor
 Add a background process to background/start_worker.sh that samples nvidia-smi
 every 30s and appends to logs/gpu_utilisation.log in format:
@@ -36,6 +41,10 @@ Promoted from docs/staging/TASK_TOKEN_EFFICIENCY.md on 2026-06-12.
 (none)
 
 ## DONE
+
+### Task: phase4b-4-draft-home-move-win-rate
+Completed: 2026-06-13 13:51 UTC
+
 
 ### Task: simulation-sensitivity-experiments
 Completed: 2026-06-11 19:00 UTC
