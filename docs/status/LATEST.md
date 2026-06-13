@@ -136,7 +136,29 @@ Open gates:
   Awaiting Rich's review and direction on next steps — Phase 5 is currently
   a placeholder per MASTER_BACKLOG ("do not design in detail until Phase 4
   is complete").
-- **Phase 4c-2 — REVIEW_GATE**: weather-driven demand model complete (above).
-  Per MASTER_BACKLOG's "REVIEW_GATE after each sub-phase" for Phase 4c,
-  pausing here before 4c-3 (weather -> wholesale price influence, which
-  touches the forward curve generator) — awaiting Rich's go-ahead.
+**Phase 4c-3 (weather -> wholesale price influence) — done (2026-06-13)**: new
+`sim/weather_price_sensitivity.py` (`weather_sensitivity_multiplier()`)
+applies a `COLD_SPELL_PRICE_MULTIPLIER` (1.10x, seed estimate) to the
+synthetic forward price when the *lookback window's* average heating-degree-days
+exceeds `COLD_SPELL_HDD_THRESHOLD` — Point-in-Time-safe, since it reads only
+the same lookback window `sim/forward_curve.py` already uses for its
+base/volatility calculation. `generate_forward_price()` gains an optional
+`lookback_daily_mean_temps_c` parameter (defaults to `None` = no change,
+fully backward compatible). Note: real Elexon SSP data already covers
+2016-2025 per Historical Ground Truth law — there was no synthetic
+historical curve to "replace"; this sub-phase's scope was the forward-price
+sensitivity layer only. 6 new tests (192 total), lint clean.
+
+**Per Rich's 2026-06-13 instruction** (now in `CLAUDE.md`): Phase 4c
+REVIEW_GATEs are informational-only — NTFY each milestone, continue
+automatically unless a genuine blocker or one-way-door decision arises.
+Proceeding to 4c-4 (bill generation).
+
+Open gates:
+- **Phase 4b — REVIEW_GATE**: all five sub-phases (4b-1 through 4b-5) plus
+  the full-portfolio re-run complete. See `docs/observability/PHASE_4b_SUMMARY.md`
+  for full detail and open questions across the layer (seed-estimate
+  constants throughout, point-estimate CLV prior, C3's low relative CLV).
+  Awaiting Rich's review and direction on next steps — Phase 5 is currently
+  a placeholder per MASTER_BACKLOG ("do not design in detail until Phase 4
+  is complete").

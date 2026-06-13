@@ -3,6 +3,7 @@ from datetime import date, timedelta
 import pytest
 
 from sim.forward_curve import SUMMER_MULTIPLIER, WINTER_MULTIPLIER, generate_forward_price
+from sim.weather_price_sensitivity import COLD_SPELL_PRICE_MULTIPLIER
 
 
 def create_records(start_date: str, end_date: str, price_pattern=None):
@@ -55,6 +56,38 @@ def test_risk_factor_increases_forward_price():
     forward_price_risk_2_0 = generate_forward_price(acquisition_date, records, contract_length_months=6, risk_factor=2.0)
 
     assert forward_price_risk_2_0 > forward_price_risk_1_0
+
+
+def test_cold_spell_lookback_temps_increase_forward_price():
+    acquisition_date = "2023-01-15"
+    start_lookback_date = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()
+    end_lookback_date = (date.fromisoformat(acquisition_date) - timedelta(days=1)).isoformat()
+    records = create_records(start_lookback_date, end_lookback_date, price_pattern=[50.0] * 90)
+
+    no_weather = generate_forward_price(acquisition_date, records, contract_length_months=12, risk_factor=1.2)
+    cold_lookback_temps = [0.0] * 90  # average HDD well above the cold-spell threshold
+    with_weather = generate_forward_price(
+        acquisition_date, records, contract_length_months=12, risk_factor=1.2,
+        lookback_daily_mean_temps_c=cold_lookback_temps,
+    )
+
+    assert with_weather == pytest.approx(no_weather * COLD_SPELL_PRICE_MULTIPLIER)
+
+
+def test_mild_lookback_temps_do_not_change_forward_price():
+    acquisition_date = "2023-01-15"
+    start_lookback_date = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()
+    end_lookback_date = (date.fromisoformat(acquisition_date) - timedelta(days=1)).isoformat()
+    records = create_records(start_lookback_date, end_lookback_date, price_pattern=[50.0] * 90)
+
+    no_weather = generate_forward_price(acquisition_date, records, contract_length_months=12, risk_factor=1.2)
+    mild_lookback_temps = [10.0] * 90  # average HDD below the cold-spell threshold
+    with_weather = generate_forward_price(
+        acquisition_date, records, contract_length_months=12, risk_factor=1.2,
+        lookback_daily_mean_temps_c=mild_lookback_temps,
+    )
+
+    assert with_weather == pytest.approx(no_weather)
 
 
 def test_forward_curve_is_pit_safe():

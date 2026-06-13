@@ -36,6 +36,8 @@ reviewed/integrated by the frontier orchestrator — Phase 1c increment.
 import statistics
 from datetime import date, timedelta
 
+from sim.weather_price_sensitivity import weather_sensitivity_multiplier
+
 WINTER_MONTHS = {10, 11, 12, 1, 2, 3}
 WINTER_MULTIPLIER = 1.15
 SUMMER_MULTIPLIER = 0.95
@@ -43,7 +45,8 @@ SUMMER_MULTIPLIER = 0.95
 def generate_forward_price(acquisition_date: str, system_price_records: list[dict],
                            contract_length_months: int = 12,
                            lookback_days: int = 90,
-                           risk_factor: float = 1.2) -> float:
+                           risk_factor: float = 1.2,
+                           lookback_daily_mean_temps_c: list[float] | None = None) -> float:
     # Convert acquisition date to a date object
     start_date = date.fromisoformat(acquisition_date)
 
@@ -87,5 +90,12 @@ def generate_forward_price(acquisition_date: str, system_price_records: list[dic
 
     # Calculate final forward price with seasonal adjustment
     forward_price = forward_base * seasonal_multiplier
+
+    # Phase 4c-3: weather sensitivity — a cold-spell lookback window (per
+    # sim.weather_price_sensitivity, using only the same Point-in-Time
+    # lookback data as the price/volatility calculation above) applies an
+    # additional premium. Optional, defaults to no adjustment.
+    if lookback_daily_mean_temps_c is not None:
+        forward_price *= weather_sensitivity_multiplier(lookback_daily_mean_temps_c)
 
     return forward_price
