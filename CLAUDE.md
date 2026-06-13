@@ -41,6 +41,22 @@ Rich (the human) talks to this chat interface only — he never writes code, run
 `make check` must pass before any REVIEW_GATE is cleared and before any phase summary is committed.
 Every new feature instruction must include: write the test that proves it works.
 
+## REVIEW_GATE Policy for Phase 4c (standing instruction, 2026-06-13)
+For Phase 4c (physical simulation layer) sub-phases, REVIEW_GATEs are
+informational only: NTFY each milestone and continue automatically to the
+next sub-phase without waiting for Rich's confirmation. Only pause and wait
+for Rich when either:
+- a genuine technical blocker is hit (tests fail and can't be fixed without
+  a design decision, a data source is unavailable, etc.), or
+- the change is a one-way door (per "Reversibility is law") — e.g. spending
+  money, deleting data, or an architectural decision that would be costly to
+  reverse, or
+- a sub-phase instruction is explicitly marked HOLD.
+
+This is a Phase-4c-scoped relaxation of the general "REVIEW_GATE after each
+sub-phase" pattern in MASTER_BACKLOG — other phases still pause at
+REVIEW_GATE by default unless given the same instruction.
+
 ## Standard Completion Protocol (standing instruction)
 At the end of every task — after `make check`, the NTFY completion message, and the
 `docs/status/LATEST.md` update — before going idle:
