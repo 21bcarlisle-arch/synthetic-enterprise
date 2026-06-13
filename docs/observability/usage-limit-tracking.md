@@ -38,7 +38,8 @@ fix errors.
 | logged_at (UTC) | reported_pct | reset_at | session_tokens_since_reset | implied_limit_tokens | notes |
 |---|---|---|---|---|---|
 | 2026-06-13T16:25:00Z | 54% | 2026-06-13T17:39:00Z | 25474400 | 47175000 | from /cost: haiku 162.2k (29.2k in + 4.0k out + 101.8k cache read + 27.2k cache write) + sonnet 25312200 (4.5k in + 171.2k out + 24.4m cache read + 736.5k cache write). Assumes this session is the sole consumer of the current 4h window. |
-| 2026-06-13T19:53:00Z | 83% | 2026-06-13T21:39:00Z | | | reported_pct only (no /cost run this time) — this is a new 4h window (previous one reset at 17:39Z), so the prior implied_limit_tokens doesn't directly carry over. |
+| 2026-06-13T19:53:00Z | 83% | 2026-06-13T17:39:00Z | | | CORRECTION: this is the *same* window as the row above (reset still 17:39Z, not a new window as originally guessed) — reported_pct only, no /cost this time. |
+| 2026-06-13T20:10:00Z | 84% | 2026-06-13T17:39:00Z | 39388600 | 46891190 | from /usage: haiku 162.2k (unchanged) + sonnet 39226400 (11.7k in + 237.1k out + 38.1m cache read + 877.6k cache write). Second reading of the same window/session — implied limit 46.89M vs the earlier 47.175M (avg ~47.0M), consistent given the cache-heavy composition is unchanged. Window now ~84% full with reset still pending — close to the limit. |
 
 ## Weekly Window
 
