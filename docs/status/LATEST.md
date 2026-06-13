@@ -162,7 +162,18 @@ cold-spell-driven spike from 4c-2/4c-3 makes a flat-rate bill harder to
 reconcile) and by "bill shock" (% change vs the previous month's total,
 capped at 100% for the penalty). All current `fixed_1yr` contracts start at
 clarity 1.0; unknown/future tariff types (e.g. ToU) default to 0.7. 9 new
-tests (201 total), lint clean. Proceeding to 4c-5 (payment behaviour).
+tests (201 total), lint clean.
+
+**Phase 4c-5 (payment behaviour) — done (2026-06-13)**: new
+`saas/payment_behaviour.py` (`build_payment_behaviour()`) replaces
+`saas/cost_to_serve.py`'s flat 2%/1% `BAD_DEBT_RATE` with a per-customer
+credit-risk segment (low/medium/high/vulnerable), each with its own bad-debt
+provision rate (0.5%-8% of revenue) and payment-timing delay (5-45 days
+after bill period-end). C1-C4 seeded as low/medium/vulnerable/low (seed
+estimates). Not yet wired into `cost_to_serve.py`/`portfolio_pnl.py` — same
+"standalone, ready for integration" pattern as 4c-2's `demand_model.py`. 9
+new tests (210 total), lint clean. Proceeding to 4c-6 (contact and
+complaints) — the final Phase 4c sub-phase.
 
 Open gates:
 - **Phase 4b — REVIEW_GATE**: all five sub-phases (4b-1 through 4b-5) plus
