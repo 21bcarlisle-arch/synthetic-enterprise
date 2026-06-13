@@ -3,6 +3,24 @@ import time
 from background import session_watchdog as watchdog
 
 
+def test_ntfy_default_uses_done_priority_and_tag(monkeypatch):
+    calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+    watchdog.ntfy("done")
+    cmd = calls[0]
+    assert "X-Priority: default" in cmd
+    assert "X-Tags: white_check_mark" in cmd
+
+
+def test_ntfy_needs_input_uses_high_priority_and_warning_tag(monkeypatch):
+    calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+    watchdog.ntfy("please review", needs_input=True)
+    cmd = calls[0]
+    assert "X-Priority: high" in cmd
+    assert "X-Tags: warning" in cmd
+
+
 def test_is_yes_reply_matches_message_after_since():
     since = 1000.0
     record = {"event": "message", "time": 1001, "message": "YES, please restart"}
@@ -65,8 +83,8 @@ def test_restart_claude_resume_uses_continue_flag(monkeypatch):
     watchdog.restart_times.clear()
     calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg: None)
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
 
     watchdog.restart_claude(resume=True)
@@ -79,9 +97,9 @@ def test_restart_claude_resume_uses_continue_flag(monkeypatch):
 
 
 def test_handle_usage_limit_resumes_in_place_once_message_clears(monkeypatch):
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
     monkeypatch.setattr(watchdog, "session_exists", lambda: True)
     monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)
@@ -102,7 +120,7 @@ def test_queue_downtime_tasks_appends_to_queued_section(tmp_path, monkeypatch):
     tasks_file = tmp_path / "background-tasks.md"
     tasks_file.write_text("# Background Task Queue\n\n## QUEUED\n\n## RUNNING\n(none)\n")
     monkeypatch.setattr(watchdog, "DOWNTIME_TASKS_FILE", tasks_file)
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
 
     watchdog.queue_downtime_tasks()
 
@@ -119,7 +137,7 @@ def test_queue_downtime_tasks_is_idempotent(tmp_path, monkeypatch):
     tasks_file = tmp_path / "background-tasks.md"
     tasks_file.write_text("# Background Task Queue\n\n## QUEUED\n\n## RUNNING\n(none)\n")
     monkeypatch.setattr(watchdog, "DOWNTIME_TASKS_FILE", tasks_file)
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
 
     watchdog.queue_downtime_tasks()
     once = tasks_file.read_text()
@@ -133,8 +151,8 @@ def test_handle_usage_limit_queues_downtime_tasks(tmp_path, monkeypatch):
     tasks_file = tmp_path / "background-tasks.md"
     tasks_file.write_text("# Background Task Queue\n\n## QUEUED\n\n## RUNNING\n(none)\n")
     monkeypatch.setattr(watchdog, "DOWNTIME_TASKS_FILE", tasks_file)
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: None)
     monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
     monkeypatch.setattr(watchdog, "session_exists", lambda: True)
     monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)
@@ -157,8 +175,8 @@ def _reset_autoloop_state():
 
 def test_check_autoloop_resets_streak_on_pane_change(monkeypatch):
     _reset_autoloop_state()
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: None)
     send_keys_calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
 
@@ -172,9 +190,9 @@ def test_check_autoloop_resets_streak_on_pane_change(monkeypatch):
 
 def test_check_autoloop_sends_instruction_after_idle_streak(monkeypatch):
     _reset_autoloop_state()
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     send_keys_calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
 
@@ -189,9 +207,9 @@ def test_check_autoloop_sends_instruction_after_idle_streak(monkeypatch):
 
 def test_check_autoloop_pauses_on_review_gate(monkeypatch):
     _reset_autoloop_state()
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     send_keys_calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
 
@@ -206,9 +224,9 @@ def test_check_autoloop_pauses_on_review_gate(monkeypatch):
 
 def test_check_autoloop_pauses_on_permission_prompt(monkeypatch):
     _reset_autoloop_state()
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     send_keys_calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
 
@@ -227,9 +245,9 @@ def test_check_autoloop_respects_cap(monkeypatch):
     for _ in range(watchdog.MAX_AUTOLOOP_PER_HOUR):
         watchdog.autoloop_times.append(now)
 
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     send_keys_calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
 
@@ -251,8 +269,8 @@ def test_restart_claude_respects_cap(monkeypatch):
     subprocess_calls = []
     ntfy_messages = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: subprocess_calls.append(a))
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
-    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
 
     watchdog.restart_claude()
 

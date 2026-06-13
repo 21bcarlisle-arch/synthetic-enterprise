@@ -204,9 +204,22 @@ def log(msg: str) -> None:
     print(entry)
 
 
-def ntfy(msg: str) -> None:
+def ntfy(msg: str, needs_input: bool = False) -> None:
+    """Send an NTFY message.
+
+    needs_input=False (default): "FYI/done" — default priority, checkmark
+    tag. needs_input=True: the session is paused waiting on Rich
+    (REVIEW_GATE, permission prompt, restart confirmation, etc.) — high
+    priority + warning tag, so it stands out on the phone from the routine
+    completion pings. See docs/instructions/NTFY_TWO_WAY_PROTOCOL.md.
+    """
+    priority = "high" if needs_input else "default"
+    tags = "warning" if needs_input else "white_check_mark"
     subprocess.run(
-        ["curl", "-s", "-d", msg, NTFY_PUBLISH_URL],
+        ["curl", "-s",
+         "-H", f"X-Priority: {priority}",
+         "-H", f"X-Tags: {tags}",
+         "-d", msg, NTFY_PUBLISH_URL],
         capture_output=True,
     )
 
@@ -332,7 +345,7 @@ def restart_claude(resume: bool = False) -> None:
         msg = (f"Session watchdog: restart cap reached "
                f"({MAX_RESTARTS_PER_HOUR}/hour) — manual intervention needed.")
         log(msg)
-        ntfy(msg)
+        ntfy(msg, needs_input=True)
         return
 
     log(f"Restarting Claude Code (normal permissions, no skip flag, resume={resume})")
@@ -430,7 +443,7 @@ def handle_usage_limit() -> None:
     log(f"Usage limit still showing after {USAGE_LIMIT_MAX_WAIT_SECONDS}s — "
         "escalating to normal restart-confirmation flow")
     ntfy("Claude Code usage limit has not cleared after the auto-wait window — "
-         "escalating for a manual check.")
+         "escalating for a manual check.", needs_input=True)
     handle_session_ended()
 
 
@@ -455,7 +468,7 @@ def check_autoloop(pane_text: str) -> None:
         if not _autoloop_waiting_notified:
             log("REVIEW_GATE visible — waiting for Rich, autoloop paused")
             ntfy("Claude Code is waiting at a REVIEW_GATE — check the session "
-                 "when you have a moment.")
+                 "when you have a moment.", needs_input=True)
             _autoloop_waiting_notified = True
         _autoloop_last_pane = pane_text
         _autoloop_idle_streak = 0
@@ -465,7 +478,7 @@ def check_autoloop(pane_text: str) -> None:
         if not _autoloop_waiting_notified:
             log("Permission prompt visible — waiting for Rich, autoloop paused")
             ntfy("Claude Code is waiting on a permission prompt — check the "
-                 "session when you have a moment.")
+                 "session when you have a moment.", needs_input=True)
             _autoloop_waiting_notified = True
         _autoloop_last_pane = pane_text
         _autoloop_idle_streak = 0
@@ -488,7 +501,7 @@ def check_autoloop(pane_text: str) -> None:
         if not _autoloop_waiting_notified:
             log(f"Autoloop cap reached ({MAX_AUTOLOOP_PER_HOUR}/hour) — pausing")
             ntfy(f"Claude Code autoloop cap reached ({MAX_AUTOLOOP_PER_HOUR}/hour) "
-                 "— pausing autonomous continuation, check the session.")
+                 "— pausing autonomous continuation, check the session.", needs_input=True)
             _autoloop_waiting_notified = True
         return
 
@@ -502,13 +515,13 @@ def check_autoloop(pane_text: str) -> None:
 def handle_session_ended() -> None:
     alert_time = time.time()
     log("Claude Code session ended — sending restart-confirmation request")
-    ntfy("Claude Code session ended — reply YES to this notification to restart.")
+    ntfy("Claude Code session ended — reply YES to this notification to restart.", needs_input=True)
 
     confirmed = wait_for_restart_confirmation(alert_time)
     if not confirmed:
         log("Confirmation window expired (4h) — no restart. Resuming monitoring.")
         ntfy("Session watchdog: no restart confirmation received within 4 hours — "
-              "session left stopped.")
+              "session left stopped.", needs_input=True)
         return
 
     log("Restart confirmation ('YES') received")
