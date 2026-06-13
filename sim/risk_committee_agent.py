@@ -46,7 +46,7 @@ Routing — local Ollama, not the frontier (decision reversed 2026-06-12):
 import json
 import re
 import urllib.request
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 HANDSHAKE_FILE = "docs/context-handshake-latest.md"
@@ -115,7 +115,7 @@ def _log_decision(settlement_date: str, settlement_period: int, context: str, de
     log_path = Path(COMMITTEE_LOG_FILE)
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     adjustments_text = "\n".join(
         f"  - {a['customer_id']}: {a['old_hedge_fraction']:.2f} → {a['new_hedge_fraction']:.2f}"
         for a in decision.get("adjustments", [])

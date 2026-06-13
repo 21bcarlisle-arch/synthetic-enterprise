@@ -116,11 +116,17 @@ Phase 4a (fully synthetic ecosystem bootstrap) per MASTER_BACKLOG, or Rich's nex
 
 ## Background Worker Performance
 
-| Task | Tokens (P/E) | Wall time | Output | Consumed by | Value |
-|------|-------------|-----------|--------|-------------|-------|
-| pre-fetch-elexon-full | 96/44 | 8s | background-task-pre-fetch-elexon-full.md (0.3KB) | pending | pending |
-| pre-fetch-weather-full | 99/26 | 1s | background-task-pre-fetch-weather-full.md (0.3KB) | pending | pending |
-| pre-fetch-pc3-profiles | 79/40 | 7s | background-task-pre-fetch-pc3-profiles.md (0.4KB) | pending | pending |
-| pre-fetch-nbp-gas-full | 77/47 | 7s | background-task-pre-fetch-nbp-gas-full.md (0.3KB) | pending | pending |
-| code-quality-audit | 76/16 | 6s | background-task-code-quality-audit.md (0.2KB) | pending | pending |
-| simulation-sensitivity-experiments | 79/34 | 7s | background-task-simulation-sensitivity-experiments.md (0.3KB) | pending | pending |
+The original `background-task-*.md` outputs below (2026-06-11, model `qwen2.5`)
+were low-quality placeholders — several were hallucinated ("I don't have
+direct internet access...", "Variants evaluated: ...") rather than real work,
+and the underlying tasks have since been superseded by real implementations.
+Files removed 2026-06-13; outcomes recorded here for the record:
+
+| Task | Superseded by |
+|------|---------------|
+| pre-fetch-elexon-full | `background/prefetch_elexon_ssp.py` — 168,026 real SSP records (Phase 2b) |
+| pre-fetch-weather-full | real Open-Meteo daily weather, 4 locations (Phase 3c, `sim/weather_engine.py`) |
+| pre-fetch-pc3-profiles | `sim/profile_class_3.py` — real PC3 SME profile (Phase 2a/2b, C5/C6) |
+| pre-fetch-nbp-gas-full | `sim/gas_prices_history.py` — 3,446 real NBP records (Phase 2b) |
+| code-quality-audit | `make check` (ruff + pytest) on every change |
+| simulation-sensitivity-experiments | not actually run (hallucinated output) — genuine open item, see Phase 1e open question 4 (WACC/σ_stressed sensitivity), still in Future Backlog |
