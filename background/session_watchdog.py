@@ -124,6 +124,15 @@ MAX_AUTOLOOP_PER_HOUR = 6
 # CLAUDE.md/MASTER_BACKLOG conventions), and a permission prompt needs a
 # human y/n — auto-approving it would defeat the point of never using
 # --dangerously-skip-permissions.
+#
+# KNOWN FALSE POSITIVE (2026-06-13): this plain substring match also fires
+# on Claude's own prose when it *reports* a gate it already cleared (e.g.
+# "REVIEW_GATE: 4b-5 complete, awaiting Rich's review") — not just on a
+# genuine pending stop. Observed back-to-back triggers in
+# docs/observability/session-watchdog-log.md around 16:04-16:16 UTC. A
+# better check would combine this pattern with the idle-pane check (only
+# treat it as a real stop once the pane has also stopped changing for a
+# cycle or two), since a genuine REVIEW_GATE stop is by definition idle.
 REVIEW_GATE_PATTERN = re.compile(r"REVIEW_GATE", re.IGNORECASE)
 PERMISSION_PROMPT_PATTERN = re.compile(
     r"do you want to proceed|\(y/n\)|❯ 1\.", re.IGNORECASE
