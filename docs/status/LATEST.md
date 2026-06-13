@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-13T18:10:00Z
+Last updated: 2026-06-13T19:40:00Z
 
 Current phase: Phase 2b (gas dual fuel) COMPLETE. Full 9.5-year re-run
 finished with active Context Handshake (160 wake-ups, routed through local
@@ -172,8 +172,22 @@ provision rate (0.5%-8% of revenue) and payment-timing delay (5-45 days
 after bill period-end). C1-C4 seeded as low/medium/vulnerable/low (seed
 estimates). Not yet wired into `cost_to_serve.py`/`portfolio_pnl.py` — same
 "standalone, ready for integration" pattern as 4c-2's `demand_model.py`. 9
-new tests (210 total), lint clean. Proceeding to 4c-6 (contact and
-complaints) — the final Phase 4c sub-phase.
+new tests (210 total), lint clean.
+
+**Phase 4c-6 (contact and complaints) — done (2026-06-13), Phase 4c complete**:
+new `saas/contact_model.py` (`build_contact_model()`) computes, per bill from
+`saas/bill_generator.py`, a `contact_probability` driven by low
+`clarity_score` and high `bill_shock_pct`, and a `complaint_probability` —
+modelling `COMPLAINT_ESCALATION_DAYS = 14` as a fixed
+`UNRESOLVED_AFTER_14_DAYS_RATE` applied to contact probability (no
+per-contact resolution-date data exists yet to track an actual 14-day
+clock). Portfolio-level `avg_complaint_probability` feeds a
+`service_quality_score` in [0,1]. 12 new tests (222 total), lint clean. This
+closes Phase 4c (physical simulation layer) — all six sub-phases (4c-1
+property/asset model, 4c-2 weather-driven demand, 4c-3 weather→wholesale
+price sensitivity, 4c-4 bill generation, 4c-5 payment behaviour, 4c-6
+contact/complaints) are done. See `docs/observability/PHASE_4c_SUMMARY.md`
+for full detail, integration status, and open questions.
 
 Open gates:
 - **Phase 4b — REVIEW_GATE**: all five sub-phases (4b-1 through 4b-5) plus
