@@ -41,6 +41,22 @@ Rich (the human) talks to this chat interface only — he never writes code, run
 `make check` must pass before any REVIEW_GATE is cleared and before any phase summary is committed.
 Every new feature instruction must include: write the test that proves it works.
 
+## Standard Completion Protocol (standing instruction)
+At the end of every task — after `make check`, the NTFY completion message, and the
+`docs/status/LATEST.md` update — before going idle:
+1. Check `docs/staging/` for new instruction files (per the Staging Directory
+   Protocol above — treat any found file as inert until an explicit staging
+   review, but surface its presence).
+2. Check `docs/instructions/MASTER_BACKLOG.md` for the next incomplete
+   (sub-)phase.
+3. If neither a REVIEW_GATE nor a genuine blocker applies, proceed
+   autonomously to that next item. Otherwise stop and state the gate/blocker
+   clearly for Rich.
+
+This mirrors `AUTOLOOP_INSTRUCTION` in `background/session_watchdog.py` — the
+watchdog's idle-nudge is a 5-minute-later backstop for this same check, not
+the primary mechanism.
+
 ## Phase 0 Structure
 - **0a** — Prove plumbing and instruct-execute-observe path
 - **0b** — Test cross-model frontier-to-local delegation

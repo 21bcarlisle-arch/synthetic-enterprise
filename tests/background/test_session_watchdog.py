@@ -172,6 +172,7 @@ def _reset_autoloop_state():
     watchdog._autoloop_last_pane = None
     watchdog._autoloop_idle_streak = 0
     watchdog._autoloop_waiting_notified = False
+    watchdog._autoloop_gate_clear_streak = 0
 
 
 def test_check_autoloop_resets_streak_on_pane_change(monkeypatch):
@@ -314,6 +315,34 @@ def test_check_autoloop_pauses_on_permission_prompt(monkeypatch):
 
     assert send_keys_calls == []
     assert sum("permission prompt" in msg for msg in ntfy_messages) == 1
+    _reset_autoloop_state()
+
+
+def test_check_autoloop_debounces_gate_clear_flicker(monkeypatch, tmp_path):
+    """A single capture where REVIEW_GATE_PATTERN no longer matches (e.g. the
+    viewport shifted by a line) must not clear _autoloop_waiting_notified —
+    otherwise the gate text reappearing on the next poll would trigger a
+    duplicate ntfy_gate notification."""
+    _reset_autoloop_state()
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "RESPONSES_DIR", tmp_path / "responses")
+    monkeypatch.setattr(watchdog, "GATE_TOKENS_DIR", tmp_path / "tokens")
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: None)
+    gate_calls = []
+    monkeypatch.setattr(watchdog, "ntfy_gate", lambda msg, gate, token: gate_calls.append((msg, gate, token)))
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: type("R", (), {"returncode": 0})())
+
+    gate_pane = "Summary complete. REVIEW_GATE: awaiting Rich's review of Phase 4b-4."
+    other_pane = "Summary complete. awaiting Rich's review of Phase 4b-4."
+
+    watchdog.check_autoloop(gate_pane)
+    assert len(gate_calls) == 1
+
+    # One-off flicker where the pattern doesn't match, then back again —
+    # must not produce a second notification.
+    watchdog.check_autoloop(other_pane)
+    watchdog.check_autoloop(gate_pane)
+    assert len(gate_calls) == 1
     _reset_autoloop_state()
 
 

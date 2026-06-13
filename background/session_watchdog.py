@@ -277,6 +277,18 @@ _autoloop_last_pane: str | None = None
 _autoloop_idle_streak = 0
 _autoloop_waiting_notified = False
 
+# Debounce counter for clearing a gate/permission "waiting" state. A single
+# capture where REVIEW_GATE_PATTERN/PERMISSION_PROMPT_PATTERN no longer
+# matches isn't enough to conclude the wait is over — tmux's captured
+# viewport can shift by a line or two between polls (cursor blink, prompt
+# redraw, a status line scrolling the gate text just out of frame) even
+# though the session's actual state hasn't changed. Require
+# AUTOLOOP_IDLE_CHECKS consecutive non-matching captures before treating the
+# wait as resolved, so a momentary capture miss doesn't reset
+# _autoloop_waiting_notified and trigger a duplicate notification next time
+# the pattern reappears.
+_autoloop_gate_clear_streak = 0
+
 
 def log(msg: str) -> None:
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -546,8 +558,10 @@ def check_autoloop(pane_text: str) -> None:
       - Pane changed: idle streak resets — still mid-task.
     """
     global _autoloop_last_pane, _autoloop_idle_streak, _autoloop_waiting_notified
+    global _autoloop_gate_clear_streak
 
     if REVIEW_GATE_PATTERN.search(pane_text):
+        _autoloop_gate_clear_streak = 0
         response = read_and_clear_response(GATE_ID)
         if response is not None:
             decision = response.get("decision", "")
@@ -573,6 +587,7 @@ def check_autoloop(pane_text: str) -> None:
         return
 
     if PERMISSION_PROMPT_PATTERN.search(pane_text):
+        _autoloop_gate_clear_streak = 0
         if not _autoloop_waiting_notified:
             log("Permission prompt visible — waiting for Rich, autoloop paused")
             ntfy("Claude Code is waiting on a permission prompt — check the "
@@ -581,6 +596,18 @@ def check_autoloop(pane_text: str) -> None:
         _autoloop_last_pane = pane_text
         _autoloop_idle_streak = 0
         return
+
+    # Neither pattern matches this capture. If we were waiting on a gate or
+    # permission prompt, don't immediately clear that state on a single
+    # non-matching capture — debounce it (see _autoloop_gate_clear_streak's
+    # comment) so a one-off viewport shift doesn't cause a duplicate
+    # notification when the same gate text reappears next poll.
+    if _autoloop_waiting_notified:
+        _autoloop_gate_clear_streak += 1
+        if _autoloop_gate_clear_streak < AUTOLOOP_IDLE_CHECKS:
+            _autoloop_last_pane = pane_text
+            return
+        _autoloop_gate_clear_streak = 0
 
     _autoloop_waiting_notified = False
 
