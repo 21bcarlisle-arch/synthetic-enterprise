@@ -85,6 +85,27 @@ a prompt from Rich either.
 `docs/staging/TASK_AUTOSTART.md` — complete, registered manually by Rich.
 Cleared from staging.
 
+**Phase 4c-1 (property and asset model) — done (2026-06-13)**: new
+`saas/property_model.py` (`build_properties()`) gives each resi customer
+(C1-C4) a physical property record: property type (mapped from
+`home_type` — flat/semi/detached), EPC rating and bedroom count (from
+`saas/customers.py`), heating system (`gas_boiler` for the four current
+dual-fuel customers, `electric_storage` otherwise), occupancy pattern
+(single/family/elderly), and an asset mix (EV/solar/smart meter). Occupancy
+pattern and asset mix are seed-estimate constants pending the
+`customer-archetype-data-enrichment` background task. 10 new tests (166
+total), lint clean.
+
+**Autoloop pane-capture debounce (2026-06-13)**: fixed a false-positive
+pattern in `background/session_watchdog.py`'s `check_autoloop` — a
+REVIEW_GATE/permission-prompt "waiting" state now requires
+`AUTOLOOP_IDLE_CHECKS` consecutive non-matching pane captures before
+clearing, so a one-off tmux viewport shift (cursor blink, redraw) can't
+cause a duplicate notification when the same gate text reappears. Also added
+a "Standard Completion Protocol" to `CLAUDE.md`: after NTFY + LATEST.md
+update, always check `docs/staging/` and `MASTER_BACKLOG.md` before going
+idle.
+
 Open gates:
 - **Phase 4b — REVIEW_GATE**: all five sub-phases (4b-1 through 4b-5) plus
   the full-portfolio re-run complete. See `docs/observability/PHASE_4b_SUMMARY.md`
@@ -93,3 +114,8 @@ Open gates:
   Awaiting Rich's review and direction on next steps — Phase 5 is currently
   a placeholder per MASTER_BACKLOG ("do not design in detail until Phase 4
   is complete").
+- **Phase 4c-1 — REVIEW_GATE**: property and asset model complete (above).
+  Proceeding to 4c-2 (weather-driven demand) per the Standard Completion
+  Protocol, since this is a two-way-door addition (new pure module, no
+  existing behaviour changed) — flag if Rich wants to review 4c-1 in
+  isolation before 4c-2 builds on it.
