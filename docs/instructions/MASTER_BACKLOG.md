@@ -559,6 +559,19 @@ accepted for Regime 2.
 
 ---
 
+## Phase 4b — Customer Value Layer
+
+**Objective:** Core value drivers on top of the dual-fuel portfolio — the "Phase 4 core value drivers" referenced as a prerequisite for Phase 5.
+
+Build in order, REVIEW_GATE after each sub-phase, full summary in `docs/observability/PHASE_4b_SUMMARY.md` on completion:
+- **4b-1** — cost to serve model
+- **4b-2** — churn model
+- **4b-3** — CLV using Shifted-BG via PyMC-Marketing
+- **4b-4** — home move win rate
+- **4b-5** — enterprise value function
+
+---
+
 ## Phase 5: Smart Tariff Innovation (PLACEHOLDER - do not design in detail until Phase 4 is complete)
 
 Introduce one smart tariff type (ToU as first candidate) and stress-test the full stack:
@@ -569,7 +582,7 @@ Introduce one smart tariff type (ToU as first candidate) and stress-test the ful
 - Tariff-conditional hedging: hedge position depends on forecast behaviour under the tariff
 - CLV under smart tariff: margin depends on how well behaviour was modelled and hedged
 
-Key dependency: Phase 4 core value drivers must be complete on standard tariffs before Phase 5 begins.
+Key dependency: Phase 4b core value drivers must be complete on standard tariffs before Phase 5 begins.
 
 First smart tariff candidate: ToU (time-of-use). EV and solar export follow.
 
@@ -586,7 +599,6 @@ This phase is where forecasting and hedging become coupled to the customer layer
 - Other countries
 - EV flex / solar / battery
 - VPP dispatch
-- CLV model sophistication (PyMC-Marketing Shifted-BG/BG/BB)
 
 ---
 

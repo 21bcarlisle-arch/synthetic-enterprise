@@ -1,0 +1,1 @@
+Action Phase 4b: customer value layer. Build in order: 4b-1 cost to serve model, 4b-2 churn model, 4b-3 CLV using Shifted-BG via PyMC-Marketing, 4b-4 home move win rate, 4b-5 enterprise value function. REVIEW_GATE summary after each sub-phase. Update LATEST.md and NTFY on each milestone. Full summary to docs/observability/PHASE_4b_SUMMARY.md on completion.
