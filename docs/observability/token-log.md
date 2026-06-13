@@ -267,3 +267,5 @@ fix errors — this is a log, not a living document.
 - [2026-06-11T13:55:56Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-06-11T14:23:58Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-06-11T14:30:08Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-12T16:55:01Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-12T17:06:11Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
