@@ -3,6 +3,11 @@
 This file is served by `/ui/status` on the file API for quick mobile checks.
 For full detail see `STATUS.md` at the repo root.
 
+**Share with Claude.ai**: paste this URL into a claude.ai chat and Claude
+will fetch the live content directly — no copy/paste needed, always
+up to date with the latest push to `main`:
+https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
+
 Last updated: 2026-06-13T12:30:00Z
 
 Current phase: Phase 2b (gas dual fuel) COMPLETE. Full 9.5-year re-run
