@@ -7,6 +7,7 @@ Auth:        X-Api-Key header
 import html
 import json
 import os
+import secrets
 import subprocess
 import time
 from pathlib import Path
@@ -28,6 +29,8 @@ app.add_middleware(
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DOCS_DIR = (REPO_ROOT / "docs").resolve()
 STAGING_DIR = (REPO_ROOT / "docs" / "staging").resolve()
+RESPONSES_DIR = (STAGING_DIR / "responses").resolve()
+GATE_TOKENS_DIR = (STAGING_DIR / ".gate_tokens").resolve()
 _API_KEY = os.environ.get("FILE_API_KEY", "")
 
 
@@ -244,6 +247,61 @@ def write_file(
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(req.content, encoding="utf-8")
     return {"written": str(target.relative_to(REPO_ROOT))}
+
+
+def generate_gate_token(gate: str) -> str:
+    """Create and store a single-use response token for `gate`.
+
+    Called by session_watchdog when it sends a REVIEW_GATE notification, so
+    the notification's reply action can authenticate to POST /respond
+    without embedding FILE_API_KEY (which would transit ntfy.sh's servers).
+    """
+    token = secrets.token_urlsafe(16)
+    GATE_TOKENS_DIR.mkdir(parents=True, exist_ok=True)
+    (GATE_TOKENS_DIR / f"{gate}.token").write_text(token, encoding="utf-8")
+    return token
+
+
+class RespondRequest(BaseModel):
+    gate: str
+    decision: str
+    token: str | None = None
+
+
+@app.post("/respond")
+def respond(
+    req: RespondRequest,
+    x_api_key: str | None = Header(default=None, alias="X-Api-Key"),
+):
+    """Record Rich's decision on a gate, for the watchdog autoloop to pick
+    up on its next polling cycle. Authenticates via either a single-use
+    gate token (from generate_gate_token, consumed on use) or the full
+    FILE_API_KEY."""
+    if not req.gate.strip() or "/" in req.gate or "\\" in req.gate or ".." in req.gate:
+        raise HTTPException(status_code=400, detail="Invalid gate id")
+
+    token_path = GATE_TOKENS_DIR / f"{req.gate}.token"
+    authorized = bool(_API_KEY) and x_api_key == _API_KEY
+    if not authorized and req.token and token_path.is_file():
+        authorized = token_path.read_text(encoding="utf-8") == req.token
+
+    if not authorized:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    if token_path.is_file():
+        token_path.unlink()
+
+    RESPONSES_DIR.mkdir(parents=True, exist_ok=True)
+    response_path = RESPONSES_DIR / f"{req.gate}.json"
+    response_path.write_text(
+        json.dumps({
+            "gate": req.gate,
+            "decision": req.decision,
+            "received_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }),
+        encoding="utf-8",
+    )
+    return {"recorded": str(response_path.relative_to(REPO_ROOT))}
 
 
 def _funnel_active() -> bool | None:

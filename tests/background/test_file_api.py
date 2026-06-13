@@ -1,3 +1,4 @@
+import json
 import os
 
 os.environ["FILE_API_KEY"] = "test-key-abc123"
@@ -137,6 +138,60 @@ def test_healthz_reports_last_file_received(tmp_path, monkeypatch):
     r = client.get("/healthz")
     assert r.status_code == 200
     assert r.json()["last_file_received"] is not None
+
+
+def test_respond_rejects_invalid_gate_id():
+    r = client.post("/respond", json={"gate": "../escape", "decision": "x"}, headers=HEADERS)
+    assert r.status_code == 400
+
+
+def test_respond_rejects_without_token_or_key():
+    r = client.post("/respond", json={"gate": "phase4b", "decision": "approve"})
+    assert r.status_code == 403
+
+
+def test_respond_with_valid_api_key_records_decision(tmp_path, monkeypatch):
+    monkeypatch.setattr("background.file_api.RESPONSES_DIR", tmp_path / "responses")
+    monkeypatch.setattr("background.file_api.GATE_TOKENS_DIR", tmp_path / "tokens")
+    monkeypatch.setattr("background.file_api.REPO_ROOT", tmp_path)
+    r = client.post(
+        "/respond",
+        json={"gate": "phase4b", "decision": "approved, proceed"},
+        headers=HEADERS,
+    )
+    assert r.status_code == 200
+    recorded = json.loads((tmp_path / "responses" / "phase4b.json").read_text())
+    assert recorded["decision"] == "approved, proceed"
+    assert recorded["gate"] == "phase4b"
+
+
+def test_respond_with_valid_gate_token_invalidates_it(tmp_path, monkeypatch):
+    monkeypatch.setattr("background.file_api.RESPONSES_DIR", tmp_path / "responses")
+    monkeypatch.setattr("background.file_api.GATE_TOKENS_DIR", tmp_path / "tokens")
+    monkeypatch.setattr("background.file_api.REPO_ROOT", tmp_path)
+    from background.file_api import generate_gate_token
+
+    token = generate_gate_token("phase4b")
+
+    r = client.post("/respond", json={"gate": "phase4b", "decision": "hold", "token": token})
+    assert r.status_code == 200
+    assert not (tmp_path / "tokens" / "phase4b.token").exists()
+
+    # Token is single-use — a second attempt with the same token fails.
+    r = client.post("/respond", json={"gate": "phase4b", "decision": "hold", "token": token})
+    assert r.status_code == 403
+
+
+def test_respond_rejects_wrong_gate_token(tmp_path, monkeypatch):
+    monkeypatch.setattr("background.file_api.RESPONSES_DIR", tmp_path / "responses")
+    monkeypatch.setattr("background.file_api.GATE_TOKENS_DIR", tmp_path / "tokens")
+    monkeypatch.setattr("background.file_api.REPO_ROOT", tmp_path)
+    from background.file_api import generate_gate_token
+
+    generate_gate_token("phase4b")
+
+    r = client.post("/respond", json={"gate": "phase4b", "decision": "hold", "token": "wrong-token"})
+    assert r.status_code == 403
 
 
 def test_write_and_read_roundtrip(tmp_path, monkeypatch):
