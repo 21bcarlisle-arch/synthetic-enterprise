@@ -38,6 +38,54 @@ def test_restarts_in_last_hour_counts_recent_only():
     watchdog.restart_times.clear()
 
 
+def test_usage_limit_detected_matches_known_phrasings():
+    assert watchdog.usage_limit_detected("Claude usage limit reached. Try again later.")
+    assert watchdog.usage_limit_detected("You are approaching your usage limit for this session.")
+    assert watchdog.usage_limit_detected("5-hour limit reached — resets at 3pm")
+    assert watchdog.usage_limit_detected("Weekly limit reached")
+
+
+def test_usage_limit_detected_ignores_normal_output():
+    assert not watchdog.usage_limit_detected("Running tests...\n96 passed in 0.34s")
+
+
+def test_restart_claude_resume_uses_continue_flag(monkeypatch):
+    watchdog.restart_times.clear()
+    calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+
+    watchdog.restart_claude(resume=True)
+
+    send_keys_calls = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, "claude -c", "Enter"] in send_keys_calls
+    # resume=True should NOT also send RESUME_INSTRUCTION
+    assert not any(watchdog.RESUME_INSTRUCTION in c for c in send_keys_calls)
+    watchdog.restart_times.clear()
+
+
+def test_handle_usage_limit_resumes_in_place_once_message_clears(monkeypatch):
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "session_exists", lambda: True)
+    monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)
+
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    # First poll: still limited; second poll: cleared.
+    pane_outputs = iter(["usage limit reached", "all clear, continuing"])
+    monkeypatch.setattr(watchdog, "capture_pane", lambda: next(pane_outputs))
+
+    watchdog.handle_usage_limit()
+
+    assert any("resumed automatically" in msg for msg in ntfy_messages)
+    assert any(c[:2] == ["tmux", "send-keys"] for c in send_keys_calls)
+
+
 def test_restart_claude_respects_cap(monkeypatch):
     watchdog.restart_times.clear()
     now = time.time()

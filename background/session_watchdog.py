@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Claude Code session watchdog — gated restart, no auto-restart without
-human confirmation.
+human confirmation (except usage-limit auto-resume, see below).
 
 Monitors the 'claude' tmux session. When Claude Code is no longer running
 (token limit, crash, or completion):
@@ -17,6 +17,22 @@ Monitors the 'claude' tmux session. When Claude Code is no longer running
 Safety cap: at most MAX_RESTARTS_PER_HOUR restarts, regardless of how many
 "YES" confirmations arrive.
 
+USAGE-LIMIT AUTO-RESUME (no confirmation gate): a Claude usage-limit message
+is a benign, expected, time-boxed condition — not a crash — so it is
+exempted from the "YES" gate above (Rich's instruction: don't ask about
+paying for more tokens, just wait for the reset and continue). When the
+tmux pane shows a usage-limit message (`usage_limit_detected`,
+best-effort regex — see its docstring for the wording-uncertainty caveat),
+`handle_usage_limit` polls every USAGE_LIMIT_POLL_INTERVAL_SECONDS, nudging
+the session with the resume instruction, until the message clears or the
+process needs restarting (`restart_claude(resume=True)`, using `claude -c`
+to continue the same conversation — still no
+--dangerously-skip-permissions). If USAGE_LIMIT_MAX_WAIT_SECONDS passes with
+the limit message still showing, this falls back to the normal
+confirmation-gated `handle_session_ended` flow — at that point something
+other than an ordinary rolling-limit reset is likely going on, and that
+case should still involve Rich.
+
 KNOWN LIMITATION — "verified sender": https://ntfy.sh/skynet-synthetic is a
 public, unauthenticated topic. There is no cryptographic way to verify who
 posted a "YES" reply; this is a best-effort keyword match on messages
@@ -29,6 +45,7 @@ Logs to docs/observability/session-watchdog-log.md.
 """
 
 import json
+import re
 import subprocess
 import time
 from collections import deque
@@ -43,10 +60,24 @@ CHECK_INTERVAL_SECONDS = 60
 CONFIRM_POLL_INTERVAL_SECONDS = 60
 CONFIRM_TIMEOUT_SECONDS = 4 * 3600  # 4 hours
 MAX_RESTARTS_PER_HOUR = 3
+USAGE_LIMIT_POLL_INTERVAL_SECONDS = 15 * 60  # 15 minutes
+USAGE_LIMIT_MAX_WAIT_SECONDS = 6 * 3600  # 6 hours — covers the 5h session limit with margin
 NTFY_TOPIC = "skynet-synthetic"
 NTFY_PUBLISH_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
 LOG_FILE = Path(f"{PROJECT_DIR}/docs/observability/session-watchdog-log.md")
+
+# Best-effort match for Claude Code's usage-limit message. The exact wording
+# is not confirmed against current Claude Code output (no access to a live
+# rate-limited session to verify) — this casts a deliberately wide net across
+# known phrasings ("usage limit reached", "5-hour limit", "weekly limit",
+# "approaching ... limit", "rate limit"). If real messages don't match,
+# tighten/extend this pattern from an observed transcript.
+USAGE_LIMIT_PATTERN = re.compile(
+    r"(usage limit reached|approaching[^\n]*usage limit|rate limit|"
+    r"5-hour limit|weekly limit|limit will reset)",
+    re.IGNORECASE,
+)
 
 RESUME_INSTRUCTION = (
     "Read CLAUDE.md and STATUS.md. Continue from where the last session ended. "
@@ -86,6 +117,25 @@ def claude_is_running() -> bool:
     )
     output = result.stdout.lower()
     return "claude" in output or "node" in output
+
+
+def capture_pane() -> str:
+    """Visible content of the 'claude' pane (last 50 lines), or "" if the
+    session doesn't exist."""
+    result = subprocess.run(
+        ["tmux", "capture-pane", "-t", SESSION_NAME, "-p", "-S", "-50"],
+        capture_output=True, text=True,
+    )
+    return result.stdout if result.returncode == 0 else ""
+
+
+def usage_limit_detected(pane_text: str) -> bool:
+    """True if `pane_text` looks like a Claude usage-limit message.
+
+    Best-effort — see USAGE_LIMIT_PATTERN's docstring comment for the
+    wording-uncertainty caveat.
+    """
+    return bool(USAGE_LIMIT_PATTERN.search(pane_text))
 
 
 def restarts_in_last_hour() -> int:
@@ -136,7 +186,16 @@ def wait_for_restart_confirmation(since: float) -> bool:
     return False
 
 
-def restart_claude() -> None:
+def restart_claude(resume: bool = False) -> None:
+    """Restart the 'claude' tmux session.
+
+    resume=False (default, crash path): fresh `claude` + RESUME_INSTRUCTION
+    (the prior conversation may be in an unknown state).
+    resume=True (usage-limit path): `claude -c` to continue the same
+    conversation — the session was paused by the limit, not crashed, so
+    there's nothing to "resume from CLAUDE.md/STATUS.md" about. Either way,
+    --dangerously-skip-permissions is never used.
+    """
     if restarts_in_last_hour() >= MAX_RESTARTS_PER_HOUR:
         msg = (f"Session watchdog: restart cap reached "
                f"({MAX_RESTARTS_PER_HOUR}/hour) — manual intervention needed.")
@@ -144,7 +203,7 @@ def restart_claude() -> None:
         ntfy(msg)
         return
 
-    log("Restart confirmed — restarting Claude Code (normal permissions, no skip flag)")
+    log(f"Restarting Claude Code (normal permissions, no skip flag, resume={resume})")
     subprocess.run(["tmux", "kill-session", "-t", SESSION_NAME], capture_output=True)
     time.sleep(5)
 
@@ -155,19 +214,58 @@ def restart_claude() -> None:
 
     subprocess.run([
         "tmux", "send-keys", "-t", SESSION_NAME,
-        "claude", "Enter"
+        "claude -c" if resume else "claude", "Enter"
     ])
     time.sleep(15)
 
-    subprocess.run([
-        "tmux", "send-keys", "-t", SESSION_NAME,
-        RESUME_INSTRUCTION, "Enter"
-    ])
+    if not resume:
+        subprocess.run([
+            "tmux", "send-keys", "-t", SESSION_NAME,
+            RESUME_INSTRUCTION, "Enter"
+        ])
 
     restart_times.append(time.time())
     count = restarts_in_last_hour()
-    log(f"Claude Code restarted ({count}/{MAX_RESTARTS_PER_HOUR} this hour)")
-    ntfy("Claude Code restarted — session running.")
+    log(f"Claude Code restarted ({count}/{MAX_RESTARTS_PER_HOUR} this hour, resume={resume})")
+    ntfy("Claude Code resumed after usage limit." if resume else "Claude Code restarted — session running.")
+
+
+def handle_usage_limit() -> None:
+    """Usage-limit auto-resume — no NTFY "YES" gate (see module docstring).
+
+    Polls every USAGE_LIMIT_POLL_INTERVAL_SECONDS, nudging the session with
+    RESUME_INSTRUCTION, until either the usage-limit message clears (session
+    resumed in place) or the process has exited (restart with
+    `claude -c`). Falls back to the normal confirmation-gated
+    handle_session_ended() if USAGE_LIMIT_MAX_WAIT_SECONDS passes with the
+    limit message still showing.
+    """
+    log("Usage-limit message detected — auto-wait (no confirmation required)")
+    ntfy("Claude Code usage limit reached — watchdog will auto-resume when it "
+         "resets, no action needed.")
+
+    waited = 0
+    while waited < USAGE_LIMIT_MAX_WAIT_SECONDS:
+        time.sleep(USAGE_LIMIT_POLL_INTERVAL_SECONDS)
+        waited += USAGE_LIMIT_POLL_INTERVAL_SECONDS
+
+        if not session_exists() or not claude_is_running():
+            log("Session ended while usage-limited — resuming with `claude -c`")
+            restart_claude(resume=True)
+            return
+
+        subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, RESUME_INSTRUCTION, "Enter"])
+        time.sleep(5)
+        if not usage_limit_detected(capture_pane()):
+            log("Usage limit cleared — session resumed in place")
+            ntfy("Claude Code usage limit cleared — session resumed automatically.")
+            return
+
+    log(f"Usage limit still showing after {USAGE_LIMIT_MAX_WAIT_SECONDS}s — "
+        "escalating to normal restart-confirmation flow")
+    ntfy("Claude Code usage limit has not cleared after the auto-wait window — "
+         "escalating for a manual check.")
+    handle_session_ended()
 
 
 def handle_session_ended() -> None:
@@ -187,15 +285,22 @@ def handle_session_ended() -> None:
 
 
 def main() -> None:
-    log("Session watchdog started (gated mode — restarts require NTFY YES confirmation)")
+    log("Session watchdog started (gated mode — restarts require NTFY YES "
+        "confirmation, except usage-limit auto-resume)")
     ntfy("Session watchdog started — monitoring 'claude' tmux session. "
-         "Restarts require a YES reply, no --dangerously-skip-permissions, max "
-         f"{MAX_RESTARTS_PER_HOUR} restarts/hour.")
+         "Crash restarts require a YES reply (no --dangerously-skip-permissions, "
+         f"max {MAX_RESTARTS_PER_HOUR}/hour); usage-limit pauses auto-resume "
+         "without confirmation.")
     consecutive_down = 0
 
     while True:
         time.sleep(CHECK_INTERVAL_SECONDS)
         try:
+            if session_exists() and usage_limit_detected(capture_pane()):
+                handle_usage_limit()
+                consecutive_down = 0
+                continue
+
             if not session_exists() or not claude_is_running():
                 consecutive_down += 1
                 log(f"Claude Code not detected (check {consecutive_down}/2)")
