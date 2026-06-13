@@ -6,3 +6,4 @@
 - [2026-06-13 13:48 UTC] Session watchdog started (gated mode — restarts require NTFY YES confirmation, except usage-limit auto-resume)
 - [2026-06-13 13:49 UTC] Usage-limit message detected — auto-wait (no confirmation required)
 - [2026-06-13 13:51 UTC] Session watchdog started (gated mode — restarts require NTFY YES confirmation, except usage-limit auto-resume)
+- [2026-06-13 14:00 UTC] Session watchdog started (gated mode — restarts require NTFY YES confirmation, except usage-limit auto-resume); autoloop active (idle 300s -> continue, REVIEW_GATE/permission prompts pause for Rich)

@@ -100,6 +100,43 @@ RESUME_INSTRUCTION = (
     "Check docs/instructions/MASTER_BACKLOG.md for the current phase. Proceed autonomously."
 )
 
+# --- Autonomous main loop (between-task continuation) ---
+#
+# After Claude Code finishes a task and goes idle (sitting at its input
+# prompt with nothing further queued), the watchdog nudges it to pick up the
+# next item itself — "the missing piece that makes the system fully
+# autonomous between sessions" (Rich's instruction). This is separate from
+# the crash/usage-limit handling above: the session is healthy and not
+# rate-limited, it has simply finished and is waiting for a human prompt
+# that, in this autonomous setup, never comes unless Rich is actively
+# steering.
+#
+# AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS = how long the pane must be
+# completely unchanged before it's considered "finished and idle" rather
+# than "mid-task, just quiet for a moment" (e.g. a slow test run). 5 minutes
+# is conservative — long enough that sending keystrokes won't land in the
+# middle of a running command's stdin.
+AUTOLOOP_IDLE_CHECKS = 5
+MAX_AUTOLOOP_PER_HOUR = 6
+
+# If the visible pane shows either of these, the session needs Rich, not a
+# nudge: a REVIEW_GATE is a deliberate stop for human review (per
+# CLAUDE.md/MASTER_BACKLOG conventions), and a permission prompt needs a
+# human y/n — auto-approving it would defeat the point of never using
+# --dangerously-skip-permissions.
+REVIEW_GATE_PATTERN = re.compile(r"REVIEW_GATE", re.IGNORECASE)
+PERMISSION_PROMPT_PATTERN = re.compile(
+    r"do you want to proceed|\(y/n\)|❯ 1\.", re.IGNORECASE
+)
+
+AUTOLOOP_INSTRUCTION = (
+    "Check docs/instructions/MASTER_BACKLOG.md for the next incomplete phase "
+    "or sub-phase, and docs/staging/ for any new instructions. If found, "
+    "proceed autonomously following the established REVIEW_GATE/NTFY "
+    "pattern. If you hit a REVIEW_GATE or a genuine blocker, stop and state "
+    "it clearly so Rich can review."
+)
+
 DOWNTIME_TASKS_FILE = Path(f"{PROJECT_DIR}/docs/instructions/background-tasks.md")
 
 # Tasks queued for the independent background-worker tmux session (local
@@ -140,6 +177,13 @@ DOWNTIME_TASKS = [
 ]
 
 restart_times: deque = deque()
+autoloop_times: deque = deque()
+
+# Mutable across main() loop iterations — tracks the autoloop idle
+# state-machine. Reset implicitly whenever the pane content changes.
+_autoloop_last_pane: str | None = None
+_autoloop_idle_streak = 0
+_autoloop_waiting_notified = False
 
 
 def log(msg: str) -> None:
@@ -215,6 +259,13 @@ def restarts_in_last_hour() -> int:
     while restart_times and now - restart_times[0] > 3600:
         restart_times.popleft()
     return len(restart_times)
+
+
+def autoloop_sends_in_last_hour() -> int:
+    now = time.time()
+    while autoloop_times and now - autoloop_times[0] > 3600:
+        autoloop_times.popleft()
+    return len(autoloop_times)
 
 
 def _is_yes_reply(record: dict, since: float) -> bool:
@@ -374,6 +425,71 @@ def handle_usage_limit() -> None:
     handle_session_ended()
 
 
+def check_autoloop(pane_text: str) -> None:
+    """Autonomous main-loop nudge — see the "Autonomous main loop" section
+    of this module's constants for the rationale.
+
+    State machine over successive calls (one per CHECK_INTERVAL_SECONDS,
+    pane content from `capture_pane()`):
+      - REVIEW_GATE or a permission prompt visible: NTFY once (not every
+        check) that the session needs Rich, and do nothing further —
+        these are deliberate stops, not idleness.
+      - Pane unchanged from the previous call: idle streak increments.
+      - Pane unchanged for AUTOLOOP_IDLE_CHECKS consecutive calls: send
+        AUTOLOOP_INSTRUCTION (subject to MAX_AUTOLOOP_PER_HOUR) and NTFY a
+        milestone message.
+      - Pane changed: idle streak resets — still mid-task.
+    """
+    global _autoloop_last_pane, _autoloop_idle_streak, _autoloop_waiting_notified
+
+    if REVIEW_GATE_PATTERN.search(pane_text):
+        if not _autoloop_waiting_notified:
+            log("REVIEW_GATE visible — waiting for Rich, autoloop paused")
+            ntfy("Claude Code is waiting at a REVIEW_GATE — check the session "
+                 "when you have a moment.")
+            _autoloop_waiting_notified = True
+        _autoloop_last_pane = pane_text
+        _autoloop_idle_streak = 0
+        return
+
+    if PERMISSION_PROMPT_PATTERN.search(pane_text):
+        if not _autoloop_waiting_notified:
+            log("Permission prompt visible — waiting for Rich, autoloop paused")
+            ntfy("Claude Code is waiting on a permission prompt — check the "
+                 "session when you have a moment.")
+            _autoloop_waiting_notified = True
+        _autoloop_last_pane = pane_text
+        _autoloop_idle_streak = 0
+        return
+
+    _autoloop_waiting_notified = False
+
+    if pane_text != _autoloop_last_pane:
+        _autoloop_last_pane = pane_text
+        _autoloop_idle_streak = 0
+        return
+
+    _autoloop_idle_streak += 1
+    if _autoloop_idle_streak < AUTOLOOP_IDLE_CHECKS:
+        return
+
+    _autoloop_idle_streak = 0
+
+    if autoloop_sends_in_last_hour() >= MAX_AUTOLOOP_PER_HOUR:
+        if not _autoloop_waiting_notified:
+            log(f"Autoloop cap reached ({MAX_AUTOLOOP_PER_HOUR}/hour) — pausing")
+            ntfy(f"Claude Code autoloop cap reached ({MAX_AUTOLOOP_PER_HOUR}/hour) "
+                 "— pausing autonomous continuation, check the session.")
+            _autoloop_waiting_notified = True
+        return
+
+    log("Session idle — sending autoloop continuation instruction")
+    subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, AUTOLOOP_INSTRUCTION, "Enter"])
+    autoloop_times.append(time.time())
+    ntfy("Claude Code milestone reached — autoloop continuing to the next "
+         "backlog item.")
+
+
 def handle_session_ended() -> None:
     alert_time = time.time()
     log("Claude Code session ended — sending restart-confirmation request")
@@ -392,29 +508,35 @@ def handle_session_ended() -> None:
 
 def main() -> None:
     log("Session watchdog started (gated mode — restarts require NTFY YES "
-        "confirmation, except usage-limit auto-resume)")
+        "confirmation, except usage-limit auto-resume); autoloop active "
+        f"(idle {AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS}s -> continue, "
+        "REVIEW_GATE/permission prompts pause for Rich)")
     ntfy("Session watchdog started — monitoring 'claude' tmux session. "
          "Crash restarts require a YES reply (no --dangerously-skip-permissions, "
          f"max {MAX_RESTARTS_PER_HOUR}/hour); usage-limit pauses auto-resume "
-         "without confirmation.")
+         "without confirmation; idle sessions auto-continue to the next "
+         "backlog item unless a REVIEW_GATE or permission prompt is showing.")
     consecutive_down = 0
 
     while True:
         time.sleep(CHECK_INTERVAL_SECONDS)
         try:
-            if session_exists() and usage_limit_detected(capture_pane()):
-                handle_usage_limit()
-                consecutive_down = 0
-                continue
-
             if not session_exists() or not claude_is_running():
                 consecutive_down += 1
                 log(f"Claude Code not detected (check {consecutive_down}/2)")
                 if consecutive_down >= 2:
                     handle_session_ended()
                     consecutive_down = 0
-            else:
-                consecutive_down = 0
+                continue
+
+            consecutive_down = 0
+            pane_text = capture_pane()
+
+            if usage_limit_detected(pane_text):
+                handle_usage_limit()
+                continue
+
+            check_autoloop(pane_text)
         except Exception as e:
             log(f"Watchdog error: {e}")
 

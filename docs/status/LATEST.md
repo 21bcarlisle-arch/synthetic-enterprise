@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-13T13:15:00Z
+Last updated: 2026-06-13T14:05:00Z
 
 Current phase: Phase 2b (gas dual fuel) COMPLETE. Full 9.5-year re-run
 finished with active Context Handshake (160 wake-ups, routed through local
@@ -17,7 +17,7 @@ figures: net margin **£13,970.60** (electricity £10,850.17 + gas £3,120.43)
 over 2016-2025; treasury grew £21,829.17 → £35,799.77. Capital cost ratio
 50.9% of gross. See `docs/observability/PHASE_2b_SUMMARY.md` for full detail.
 
-`make check` passes — 112 tests, lint clean.
+`make check` passes — 118 tests, lint clean.
 
 Live status page: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/
 (renders this file, auto-refreshes every 2 minutes).
@@ -46,6 +46,16 @@ independent background-worker (local Ollama, GPU) during the wait: a
 forward-prep draft of 4b-4 (qwen3:14b) and an observability/housekeeping
 digest (qwen2.5:7b) — both land as review-only drafts under
 `docs/observability/`. See `background/session_watchdog.py`.
+
+**Autonomous main loop — live**: the watchdog now detects when this Claude
+Code session goes idle (pane unchanged for 5 minutes) and sends a
+continuation instruction — check `MASTER_BACKLOG.md` for the next
+incomplete (sub-)phase and `docs/staging/` for new instructions, proceed
+autonomously. It pauses (NTFY only, no nudge) if the pane shows a
+`REVIEW_GATE` or a permission prompt — those need Rich. Capped at 6
+continuations/hour. This closes the loop: usage-limit pauses auto-resume,
+crashes need a "YES", and now ordinary task-to-task handoffs no longer need
+a prompt from Rich either.
 
 `docs/staging/TASK_AUTOSTART.md` — complete, registered manually by Rich.
 Cleared from staging.

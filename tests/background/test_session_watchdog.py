@@ -148,6 +148,100 @@ def test_handle_usage_limit_queues_downtime_tasks(tmp_path, monkeypatch):
         assert f"### Task: {task['name']}" in content
 
 
+def _reset_autoloop_state():
+    watchdog.autoloop_times.clear()
+    watchdog._autoloop_last_pane = None
+    watchdog._autoloop_idle_streak = 0
+    watchdog._autoloop_waiting_notified = False
+
+
+def test_check_autoloop_resets_streak_on_pane_change(monkeypatch):
+    _reset_autoloop_state()
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg: None)
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+
+    for pane in ["working...", "still working...", "now done."]:
+        watchdog.check_autoloop(pane)
+
+    assert send_keys_calls == []
+    assert watchdog._autoloop_idle_streak == 0
+    _reset_autoloop_state()
+
+
+def test_check_autoloop_sends_instruction_after_idle_streak(monkeypatch):
+    _reset_autoloop_state()
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+
+    idle_pane = "Claude Code is idle at the prompt"
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
+        watchdog.check_autoloop(idle_pane)
+
+    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, watchdog.AUTOLOOP_INSTRUCTION, "Enter"] in send_keys_calls
+    assert any("milestone reached" in msg for msg in ntfy_messages)
+    _reset_autoloop_state()
+
+
+def test_check_autoloop_pauses_on_review_gate(monkeypatch):
+    _reset_autoloop_state()
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+
+    review_gate_pane = "Summary complete. REVIEW_GATE: awaiting Rich's review of Phase 4b-4."
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 2):
+        watchdog.check_autoloop(review_gate_pane)
+
+    assert send_keys_calls == []
+    assert sum("REVIEW_GATE" in msg for msg in ntfy_messages) == 1
+    _reset_autoloop_state()
+
+
+def test_check_autoloop_pauses_on_permission_prompt(monkeypatch):
+    _reset_autoloop_state()
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+
+    prompt_pane = "Bash command\n\nDo you want to proceed?\n❯ 1. Yes\n  2. No"
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 2):
+        watchdog.check_autoloop(prompt_pane)
+
+    assert send_keys_calls == []
+    assert sum("permission prompt" in msg for msg in ntfy_messages) == 1
+    _reset_autoloop_state()
+
+
+def test_check_autoloop_respects_cap(monkeypatch):
+    _reset_autoloop_state()
+    now = time.time()
+    for _ in range(watchdog.MAX_AUTOLOOP_PER_HOUR):
+        watchdog.autoloop_times.append(now)
+
+    monkeypatch.setattr(watchdog, "log", lambda msg: None)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg: ntfy_messages.append(msg))
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+
+    idle_pane = "Claude Code is idle at the prompt"
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
+        watchdog.check_autoloop(idle_pane)
+
+    assert send_keys_calls == []
+    assert any("cap reached" in msg for msg in ntfy_messages)
+    _reset_autoloop_state()
+
+
 def test_restart_claude_respects_cap(monkeypatch):
     watchdog.restart_times.clear()
     now = time.time()
