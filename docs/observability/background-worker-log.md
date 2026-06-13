@@ -181,3 +181,21 @@ Structured performance entries are added after each task completes.
 - Output produced: docs/observability/background-task-phase4b-4-draft-home-move-win-rate.md (5.5 KB)
 - Status: DONE
 - Consumed by: pending — filled in by main pipeline
+
+- [2026-06-13 14:21 UTC] Found queued tasks — beginning execution
+- [2026-06-13 14:21 UTC] Ollama(qwen2.5:7b) starting task: downtime-observability-housekeeping
+- [2026-06-13 14:21 UTC] Ollama task complete: downtime-observability-housekeeping — 13.0s, P=125 E=184
+- [2026-06-13 14:21 UTC] Task 'downtime-observability-housekeeping' moved to DONE
+### Task: downtime-observability-housekeeping
+- Started: 2026-06-13 14:21 UTC
+- Completed: 2026-06-13 14:21 UTC
+- Wall time: 13.0s
+- Ollama tokens: prompt=125 eval=184
+- Output produced: docs/observability/background-task-downtime-observability-housekeeping.md (0.8 KB)
+- Status: DONE
+- Consumed by: pending — filled in by main pipeline
+
+- [2026-06-13 14:51 UTC] Found queued tasks — beginning execution
+- [2026-06-13 14:51 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-13 15:21 UTC] Found queued tasks — beginning execution
+- [2026-06-13 15:21 UTC] run_queued_tasks: no parseable QUEUED task found

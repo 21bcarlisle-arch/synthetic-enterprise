@@ -215,3 +215,72 @@ REVIEW_GATE.
   `idata` shape) to find a stable approach for this all-censored portfolio —
   the highest-investigation-cost sub-phase of 4b so far, reflected in the
   "Open Questions" above rather than a clean calibrated result.
+
+---
+
+## 4b-4 — Home Move Win Rate
+
+### What Was Built
+- `saas/home_move_win_rate.py` — new pure module, `build_home_move_win_rates()`
+  and `home_move_win_probability()`. Answers the "inverse of churn" question
+  flagged as a follow-up in 4b-2's Open Questions: when `churn_model` says an
+  account doesn't renew (the occupant moves out), what happens to the
+  property? A new occupant moves in, and either stays with us (a "win") or
+  switches to a competitor (a "loss").
+  - `home_move_win_probability(segment, epc_rating, price_differential_pct)`
+    — `BASE_WIN_PROBABILITY` by segment (resi 0.55, SME 0.35, reflecting UK
+    "deemed contract" inertia vs SME premises being more often re-tendered
+    at move-in), adjusted by `price_differential_pct` (our price vs market
+    average) scaled by `PRICE_SENSITIVITY_BY_EPC` (0.5 for A/B up to 3.0 for
+    G), clamped to `[0.05, 0.95]`.
+  - `build_home_move_win_rates(churn_risk, customers, price_differential_pct)`
+    — for every renewal point in `churn_model.build_churn_risk()`'s output,
+    attaches `win_probability` and `effective_retention_probability =
+    (1 - churn_probability) + churn_probability * win_probability`: the
+    chance the property stays on supply either via normal renewal or by
+    winning the post-move-in occupant.
+- `tests/saas/test_home_move_win_rate.py` — 14 tests: baseline-equals-segment
+  at zero price differential, price-differential direction and magnitude,
+  EPC-driven price sensitivity ordering, clamping, unknown-segment/EPC
+  fallbacks, empty/no-renewal accounts, the retention-probability formula
+  (including the no-churn-risk == 1.0 case), renewal-order preservation, and
+  an unknown billing-account KeyError.
+
+### Key Decisions Made
+- **Win probability is a property-level constant, not per-renewal-point**:
+  it depends only on the property's segment, EPC rating, and a single
+  portfolio-wide `price_differential_pct` — none of which vary per renewal
+  point in this model — so the same value is repeated across an account's
+  renewal points for convenience when consumed downstream.
+- **EPC rating as the price-sensitivity multiplier** (rather than e.g.
+  `eac_kwh` directly): keeps the model driven by a categorical field already
+  present on every customer record, and mirrors the Key Domain Insight
+  framing used elsewhere (3a/4b-2) — non-rational, salience-driven reaction
+  to *absolute* bill size, which EPC rating proxies for.
+- **`price_differential_pct` is an external scalar input, not derived
+  in-module**: this module doesn't compute "our price vs market average"
+  itself (that would need `sim/tariff_pricing.py` and a market-rate series,
+  pulling SIM-side data across the seam) — it's left as a parameter for
+  whatever orchestration layer has both numbers, keeping this module pure
+  and seam-safe.
+
+### Open Questions
+- `BASE_WIN_PROBABILITY` (0.55 resi / 0.35 SME) and `PRICE_SENSITIVITY_BY_EPC`
+  (0.5-3.0) are seed estimates, not calibrated against any real switching
+  data.
+- `effective_retention_probability` is computed but not yet *consumed* —
+  wiring it into a renewal-schedule simulator (so won-back properties
+  actually continue contributing to settlement, and lost ones drop out) is
+  a natural input to 4b-5 (enterprise value function).
+- As with 4b-1/4b-2/4b-3, applying this to the full Phase 2b portfolio
+  requires `churn_risk` computed from a full settlement re-run — same
+  multi-hour re-run constraint, deferred to the same follow-up.
+
+### Token Efficiency
+- Frontier (hand-written): `saas/home_move_win_rate.py`,
+  `tests/saas/test_home_move_win_rate.py`, this summary section. A GPU
+  background-worker draft (`docs/observability/background-task-phase4b-4-draft-home-move-win-rate.md`,
+  qwen3:14b) was reviewed but not used directly — it didn't build on
+  `churn_model`'s output (the "inverse of churn" framing from 4b-2's Open
+  Questions) and used arbitrary unscaled weights; writing from the existing
+  `churn_model.py`/`clv_model.py` pattern directly was faster than adapting it.
