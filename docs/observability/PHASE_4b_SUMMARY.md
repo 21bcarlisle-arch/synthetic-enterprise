@@ -284,3 +284,78 @@ REVIEW_GATE.
   `churn_model`'s output (the "inverse of churn" framing from 4b-2's Open
   Questions) and used arbitrary unscaled weights; writing from the existing
   `churn_model.py`/`clv_model.py` pattern directly was faster than adapting it.
+
+---
+
+## 4b-5 — Enterprise Value Function (Phase 4b complete)
+
+### What Was Built
+- `saas/enterprise_value.py` — new module, `build_enterprise_value()`,
+  `adjust_churn_risk_for_home_move()`, `effective_churn_probability()`. The
+  final 4b sub-phase, closing the loop flagged in both 4b-4's and 4b-2's
+  Open Questions: 4b-3's CLV projection treats a churned account as gone for
+  good, but 4b-4 established that a churned property can still be won back
+  via the new occupant.
+  - `effective_churn_probability(churn_probability, win_probability) =
+    churn_probability * (1 - win_probability)` — the probability a property
+    is *actually* lost: the occupant moves out AND we fail to win the new
+    occupant.
+  - `adjust_churn_risk_for_home_move(churn_risk, home_move_win_rates)` —
+    returns a copy of `churn_model.build_churn_risk()`'s output with each
+    renewal point's `churn_probability` replaced by its
+    `effective_churn_probability`.
+  - `build_enterprise_value(churn_risk, cost_to_serve, customers,
+    price_differential_pct, n_draws, random_seed)` — runs 4b-4's
+    `build_home_move_win_rates()`, adjusts the churn risk, then re-runs
+    4b-3's `build_clv()` on the adjusted figures. Returns
+    `{by_customer: {...same shape as build_clv()}, portfolio:
+    {enterprise_value_gbp, account_count}}` — `enterprise_value_gbp` is the
+    portfolio-wide sum of per-account `clv_gbp`.
+- `tests/saas/test_enterprise_value.py` — 10 tests: the
+  `effective_churn_probability` formula and its boundary cases (win
+  probability 0 and 1), `adjust_churn_risk_for_home_move`'s effect and
+  field-preservation, no-renewal accounts passing through unchanged,
+  portfolio total equals the sum of per-account CLV, home-move win-back
+  raising CLV versus 4b-3's raw-churn projection, a higher price
+  differential not increasing enterprise value, and the empty-input case.
+
+### Key Decisions Made
+- **Re-run 4b-3's `build_clv()` on adjusted churn risk, rather than a new
+  CLV implementation**: `effective_churn_probability` has the same shape and
+  range as raw `churn_probability` (both in `[0, 1]`, both feed
+  `fit_theta_prior_from_churn_probabilities`'s method-of-moments Beta fit),
+  so the existing Shifted-BG machinery applies unchanged — avoids
+  duplicating 4b-3's PyMC-Marketing setup and its all-censored-portfolio
+  workarounds.
+- **`effective_churn_probability` as its own function, not just inlined**:
+  it's the natural complement of 4b-4's `effective_retention_probability`
+  (`effective_churn_probability == 1 - effective_retention_probability`),
+  and stating it explicitly makes the "must churn AND lose the move-in" logic
+  legible on its own, independent of the CLV re-projection that consumes it.
+- **`enterprise_value_gbp` is a straight sum of per-account `clv_gbp`, no
+  further discounting**: each `clv_gbp` is already a present value (4b-3's
+  annuity factor), so summing them is itself a present value of the whole
+  book — no portfolio-level discount rate is needed on top.
+
+### Open Questions
+- This completes Phase 4b's planned scope (4b-1 through 4b-5). The CLV chain
+  (4b-3 through 4b-5) still rests on the method-of-moments point-estimate
+  prior noted in 4b-3 — a genuine posterior would require a portfolio with
+  observed churn events.
+- `price_differential_pct` remains an external scalar (4b-4's Open
+  Questions) — an orchestration layer that derives it from
+  `sim/tariff_pricing.py` vs a market-rate series would let
+  `build_enterprise_value()` respond to actual pricing decisions, turning
+  this into a genuine pricing-strategy evaluation function.
+- As with 4b-1 through 4b-4, applying this to the full Phase 2b portfolio
+  requires `churn_risk`/`cost_to_serve` from a full settlement re-run — same
+  multi-hour re-run constraint, deferred to the same follow-up. That
+  follow-up would also be the first point where a single headline
+  "enterprise value £X" figure for the whole 9.5-year portfolio becomes
+  meaningful.
+
+### Token Efficiency
+- Frontier (hand-written): `saas/enterprise_value.py`,
+  `tests/saas/test_enterprise_value.py`, this summary section. Small
+  composition module over existing 4b-2/4b-3/4b-4 building blocks — similar
+  delegation calculus to 4b-1.

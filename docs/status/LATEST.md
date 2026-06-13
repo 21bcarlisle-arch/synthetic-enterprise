@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-13T16:55:00Z
+Last updated: 2026-06-13T17:15:00Z
 
 Current phase: Phase 2b (gas dual fuel) COMPLETE. Full 9.5-year re-run
 finished with active Context Handshake (160 wake-ups, routed through local
@@ -17,16 +17,16 @@ figures: net margin **£13,970.60** (electricity £10,850.17 + gas £3,120.43)
 over 2016-2025; treasury grew £21,829.17 → £35,799.77. Capital cost ratio
 50.9% of gross. See `docs/observability/PHASE_2b_SUMMARY.md` for full detail.
 
-`make check` passes — 132 tests, lint clean.
+`make check` passes — 142 tests, lint clean.
 
 Live status page: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/
 (renders this file, auto-refreshes every 2 minutes).
 
 Phase 4a (Fully Synthetic Ecosystem Bootstrap, per MASTER_BACKLOG) remains a
-placeholder. The customer value layer is **Phase 4b** — instruction staged by
-Rich and now being actioned: 4b-1 cost to serve, 4b-2 churn model, 4b-3 CLV
+placeholder. The customer value layer, **Phase 4b**, is now **complete**
+(all five sub-phases): 4b-1 cost to serve, 4b-2 churn model, 4b-3 CLV
 (Shifted-BG via PyMC-Marketing), 4b-4 home move win rate, 4b-5 enterprise
-value function. REVIEW_GATE after each sub-phase, full summary on completion.
+value function.
 
 - **4b-1 (cost to serve) — done**: `saas/cost_to_serve.py` + 5 tests added
   (89 total). See `docs/observability/PHASE_4b_SUMMARY.md`.
@@ -43,7 +43,16 @@ value function. REVIEW_GATE after each sub-phase, full summary on completion.
   occupant either stays with us (win) or switches (loss).
   `effective_retention_probability` combines churn and win probability per
   renewal point. See `docs/observability/PHASE_4b_SUMMARY.md`.
-- 4b-5 — not started. REVIEW_GATE for 4b-4 below.
+- **4b-5 (enterprise value function) — done**: `saas/enterprise_value.py` +
+  10 tests added (142 total). Re-runs 4b-3's CLV projection on an
+  "effective" churn probability (`churn_probability * (1 -
+  win_probability)`, from 4b-4) — portfolio-wide sum of the result is
+  `enterprise_value_gbp`. See `docs/observability/PHASE_4b_SUMMARY.md`.
+
+**Phase 4b REVIEW_GATE**: all five sub-phases complete, `make check` passes
+(142 tests, lint clean). Awaiting Rich's review of the full customer value
+layer before deciding next steps (Phase 5 is currently a placeholder per
+MASTER_BACKLOG — "do not design in detail until Phase 4 is complete").
 
 Session watchdog: now auto-resumes on Claude Code usage-limit messages
 without a "YES" confirmation (waits up to 6h, retrying every 15min) — only
@@ -67,7 +76,8 @@ a prompt from Rich either.
 Cleared from staging.
 
 Open gates:
-- **Phase 4b-4 (home move win rate) — REVIEW_GATE**: `saas/home_move_win_rate.py`
-  + 14 tests, see `docs/observability/PHASE_4b_SUMMARY.md`. Awaiting Rich's
-  review before starting 4b-5 (enterprise value function), the final 4b
-  sub-phase.
+- **Phase 4b — REVIEW_GATE**: all five sub-phases (4b-1 through 4b-5)
+  complete. See `docs/observability/PHASE_4b_SUMMARY.md` for full detail and
+  open questions across the layer (seed-estimate constants throughout,
+  point-estimate CLV prior, full-portfolio re-run still pending). Awaiting
+  Rich's review and direction on next steps.
