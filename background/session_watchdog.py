@@ -44,6 +44,25 @@ main session to review on resume — never a direct commit. This keeps the
 GPU doing useful prep/housekeeping work instead of sitting idle during the
 wait (Rich's instruction).
 
+PROACTIVE USAGE PAUSE (soft, self-checkpointing — Rich's instruction,
+2026-06-13): the usage-limit handling above is reactive — it waits for
+Claude Code's own "usage limit reached" message, which can land mid-tool-call
+and leave a messier resume than a stop at a natural checkpoint (between
+sub-phases, after a commit). To avoid that, every AUTOLOOP_INSTRUCTION sent
+when the session goes idle is prefixed with USAGE_PAUSE_CHECK_INSTRUCTION:
+run `/usage`, and if "Current session" usage is at or above
+USAGE_PAUSE_THRESHOLD_PCT (90%), wrap up the current sub-phase (commit/push,
+update LATEST.md), write the session's reset time (from `/usage`, converted
+to UTC ISO8601) to docs/observability/.usage_pause.json as
+`{"resume_at": "<iso8601>"}`, and stop without starting new work. Before
+sending the next autoloop nudge, `usage_pause_active()` checks for this file:
+if `resume_at` is still in the future, the nudge is suppressed entirely
+(logged once, not every cycle); once it has passed, the file is deleted and
+normal autoloop resumes — the resumed instruction re-checks `/usage` itself,
+so it only pauses again if still >= 90%. This is a soft self-imposed
+checkpoint layered in front of the hard usage-limit path above, not a
+replacement for it.
+
 KNOWN LIMITATION — "verified sender": https://ntfy.sh/skynet-synthetic is a
 public, unauthenticated topic. There is no cryptographic way to verify who
 posted a "YES" reply; this is a best-effort keyword match on messages
@@ -221,7 +240,25 @@ PERMISSION_PROMPT_PATTERN = re.compile(
     r"do you want to proceed|\(y/n\)|❯ 1\.", re.IGNORECASE
 )
 
-AUTOLOOP_INSTRUCTION = (
+USAGE_PAUSE_THRESHOLD_PCT = 90
+
+USAGE_PAUSE_FILE = Path(f"{PROJECT_DIR}/docs/observability/.usage_pause.json")
+
+# Prefixed onto AUTOLOOP_INSTRUCTION (see "PROACTIVE USAGE PAUSE" in the
+# module docstring) — a soft self-checkpoint before the hard usage-limit path.
+USAGE_PAUSE_CHECK_INSTRUCTION = (
+    f"Before continuing: run /usage and check the 'Current session' "
+    f"percentage. If it is at or above {USAGE_PAUSE_THRESHOLD_PCT}%, wrap up "
+    "cleanly now instead of starting new work — commit and push any "
+    "completed work, update docs/status/LATEST.md noting a scheduled usage "
+    "pause and the session reset time shown by /usage, then write that "
+    "reset time converted to UTC as ISO8601 to "
+    'docs/observability/.usage_pause.json as {"resume_at": "<iso8601>"} '
+    "and stop — do not start new work. Otherwise, ignore this paragraph and "
+    "proceed: "
+)
+
+AUTOLOOP_INSTRUCTION = USAGE_PAUSE_CHECK_INSTRUCTION + (
     "Check docs/instructions/MASTER_BACKLOG.md for the next incomplete phase "
     "or sub-phase, and docs/staging/ for any new instructions. If found, "
     "proceed autonomously following the established REVIEW_GATE/NTFY "
@@ -288,6 +325,10 @@ _autoloop_waiting_notified = False
 # _autoloop_waiting_notified and trigger a duplicate notification next time
 # the pattern reappears.
 _autoloop_gate_clear_streak = 0
+
+# Mutable across main() loop iterations — debounces the "usage pause active"
+# log/notify in check_autoloop so it logs once per pause, not every cycle.
+_usage_pause_notified = False
 
 
 def log(msg: str) -> None:
@@ -542,6 +583,39 @@ def handle_usage_limit() -> None:
     handle_session_ended()
 
 
+def usage_pause_active() -> bool:
+    """True if docs/observability/.usage_pause.json exists and its
+    "resume_at" timestamp (ISO8601, written by Claude itself per
+    USAGE_PAUSE_CHECK_INSTRUCTION) is still in the future.
+
+    A malformed file is logged and removed (treated as "not paused"). Once
+    `resume_at` has passed, the file is deleted and an NTFY sent — the next
+    autoloop nudge proceeds normally, and its USAGE_PAUSE_CHECK_INSTRUCTION
+    prefix will re-check /usage and pause again if still >= threshold.
+    """
+    if not USAGE_PAUSE_FILE.is_file():
+        return False
+
+    try:
+        data = json.loads(USAGE_PAUSE_FILE.read_text(encoding="utf-8"))
+        resume_at = datetime.fromisoformat(data["resume_at"])
+    except (json.JSONDecodeError, KeyError, ValueError) as e:
+        log(f"Malformed usage-pause file ({e}) — clearing and resuming autoloop")
+        USAGE_PAUSE_FILE.unlink()
+        return False
+
+    if resume_at.tzinfo is None:
+        resume_at = resume_at.replace(tzinfo=timezone.utc)
+
+    if datetime.now(timezone.utc) < resume_at:
+        return True
+
+    log(f"Usage pause window ended (resume_at={data['resume_at']}) — resuming autoloop")
+    USAGE_PAUSE_FILE.unlink()
+    ntfy("Claude Code usage-pause window has ended — autoloop resuming.")
+    return False
+
+
 def check_autoloop(pane_text: str) -> None:
     """Autonomous main-loop nudge — see the "Autonomous main loop" section
     of this module's constants for the rationale.
@@ -558,7 +632,15 @@ def check_autoloop(pane_text: str) -> None:
       - Pane changed: idle streak resets — still mid-task.
     """
     global _autoloop_last_pane, _autoloop_idle_streak, _autoloop_waiting_notified
-    global _autoloop_gate_clear_streak
+    global _autoloop_gate_clear_streak, _usage_pause_notified
+
+    if usage_pause_active():
+        if not _usage_pause_notified:
+            log("Usage pause active (docs/observability/.usage_pause.json) — "
+                "autoloop continuation suppressed until session reset")
+            _usage_pause_notified = True
+        return
+    _usage_pause_notified = False
 
     if REVIEW_GATE_PATTERN.search(pane_text):
         _autoloop_gate_clear_streak = 0

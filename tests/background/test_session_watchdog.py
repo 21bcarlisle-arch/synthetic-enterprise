@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime, timedelta, timezone
 
 from background import session_watchdog as watchdog
 
@@ -173,6 +174,7 @@ def _reset_autoloop_state():
     watchdog._autoloop_idle_streak = 0
     watchdog._autoloop_waiting_notified = False
     watchdog._autoloop_gate_clear_streak = 0
+    watchdog._usage_pause_notified = False
 
 
 def test_check_autoloop_resets_streak_on_pane_change(monkeypatch):
@@ -385,3 +387,83 @@ def test_restart_claude_respects_cap(monkeypatch):
     assert subprocess_calls == []
     assert any("cap reached" in msg for msg in ntfy_messages)
     watchdog.restart_times.clear()
+
+
+def test_usage_pause_active_false_when_no_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(watchdog, "USAGE_PAUSE_FILE", tmp_path / ".usage_pause.json")
+    assert watchdog.usage_pause_active() is False
+
+
+def test_usage_pause_active_true_when_resume_in_future(tmp_path, monkeypatch):
+    pause_file = tmp_path / ".usage_pause.json"
+    resume_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    pause_file.write_text(json.dumps({"resume_at": resume_at.isoformat()}))
+    monkeypatch.setattr(watchdog, "USAGE_PAUSE_FILE", pause_file)
+
+    assert watchdog.usage_pause_active() is True
+    assert pause_file.is_file()  # not consumed while still active
+
+
+def test_usage_pause_active_clears_file_once_resume_time_passes(tmp_path, monkeypatch):
+    pause_file = tmp_path / ".usage_pause.json"
+    resume_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+    pause_file.write_text(json.dumps({"resume_at": resume_at.isoformat()}))
+    monkeypatch.setattr(watchdog, "USAGE_PAUSE_FILE", pause_file)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+
+    assert watchdog.usage_pause_active() is False
+    assert not pause_file.is_file()
+    assert any("resuming" in msg for msg in ntfy_messages)
+
+
+def test_usage_pause_active_clears_malformed_file(tmp_path, monkeypatch):
+    pause_file = tmp_path / ".usage_pause.json"
+    pause_file.write_text("not json")
+    monkeypatch.setattr(watchdog, "USAGE_PAUSE_FILE", pause_file)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+
+    assert watchdog.usage_pause_active() is False
+    assert not pause_file.is_file()
+
+
+def test_check_autoloop_suppressed_while_usage_pause_active(tmp_path, monkeypatch):
+    _reset_autoloop_state()
+    pause_file = tmp_path / ".usage_pause.json"
+    resume_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    pause_file.write_text(json.dumps({"resume_at": resume_at.isoformat()}))
+    monkeypatch.setattr(watchdog, "USAGE_PAUSE_FILE", pause_file)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: None)
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+
+    idle_pane = "Claude Code is idle at the prompt"
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 2):
+        watchdog.check_autoloop(idle_pane)
+
+    assert send_keys_calls == []
+    assert watchdog._usage_pause_notified is True
+    _reset_autoloop_state()
+
+
+def test_check_autoloop_resumes_after_usage_pause_expires(tmp_path, monkeypatch):
+    _reset_autoloop_state()
+    pause_file = tmp_path / ".usage_pause.json"
+    resume_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+    pause_file.write_text(json.dumps({"resume_at": resume_at.isoformat()}))
+    monkeypatch.setattr(watchdog, "USAGE_PAUSE_FILE", pause_file)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+
+    idle_pane = "Claude Code is idle at the prompt"
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
+        watchdog.check_autoloop(idle_pane)
+
+    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, watchdog.AUTOLOOP_INSTRUCTION, "Enter"] in send_keys_calls
+    assert not pause_file.is_file()
+    _reset_autoloop_state()
