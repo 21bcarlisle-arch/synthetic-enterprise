@@ -1,9 +1,28 @@
-# Design Proposal: Two-Way NTFY Protocol
+# Two-Way NTFY Protocol
 
-Status: **proposed, not yet implemented** — written up 2026-06-13 per Rich's
-request for (1) visually distinct "done" vs "please review" notifications,
-and (2) the ability to respond to a gate directly from the notification
-rather than opening the session.
+Status: **implemented 2026-06-13** — built per Rich's request for (1)
+visually distinct "done" vs "please review" notifications, and (2) the
+ability to respond to a gate directly from the notification rather than
+opening the session.
+
+Summary of what shipped:
+- `ntfy(msg, needs_input=...)` in `background/session_watchdog.py` sets
+  `X-Priority`/`X-Tags` (default+✅ for done, high+⚠️ for needs-input).
+- `POST /respond` on `background/file_api.py`, authenticated by either
+  `FILE_API_KEY` or a single-use per-gate token (`generate_gate_token`).
+- REVIEW_GATE notifications (`ntfy_gate`) include two `http` action buttons
+  ("Approve, proceed" / "Hold") that POST to `/respond` via Tailscale
+  Funnel (`https://skynet-1.taila062fa.ts.net`, enabled this session — was
+  previously off). The watchdog's autoloop checks
+  `docs/staging/responses/main.json` each cycle and, if Rich tapped a
+  button, relays the decision text into the session as the continuation
+  instruction.
+- 155 tests pass (`make check`), including the new `/respond` and gate-token
+  tests.
+
+Open: real-device confirmation that the `http` action buttons render and
+work from the ntfy app — first live REVIEW_GATE since this shipped will
+exercise it.
 
 ## Part 1 — Distinguish message types (cheap, no code)
 

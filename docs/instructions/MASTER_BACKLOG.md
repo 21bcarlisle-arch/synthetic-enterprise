@@ -17,14 +17,12 @@ Required notifications:
 4. Gate reached: `"GATE after Phase [ID]. Waiting for instruction before proceeding."`
 5. Error: `"ERROR in Phase [ID]: [brief description]"`
 
-**HIGH PRIORITY — pick up next** (raised by Rich 2026-06-13): distinct
-priority/tags for "done" vs "needs your input" notifications, plus tappable
-reply actions that land back in the session via the file API. See
-[`docs/instructions/NTFY_TWO_WAY_PROTOCOL.md`](NTFY_TWO_WAY_PROTOCOL.md).
-Rationale: this directly reduces how often the session blocks on Rich,
-compounding with the usage-limit auto-resume and idle autoloop already in
-place toward fully continuous autonomous operation — worth front-loading
-ahead of further phase work.
+**DONE 2026-06-13**: distinct priority/tags for "done" vs "needs your input"
+notifications, plus tappable reply actions on REVIEW_GATE notifications that
+land back in the session via the file API (`/respond`, Tailscale Funnel now
+enabled). See [`docs/instructions/NTFY_TWO_WAY_PROTOCOL.md`](NTFY_TWO_WAY_PROTOCOL.md)
+for what shipped and the one open item (real-device confirmation of the
+action buttons).
 
 ## Staging Review Protocol
 
