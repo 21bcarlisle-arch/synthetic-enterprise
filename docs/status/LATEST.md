@@ -197,3 +197,13 @@ Open gates:
   Awaiting Rich's review and direction on next steps — Phase 5 is currently
   a placeholder per MASTER_BACKLOG ("do not design in detail until Phase 4
   is complete").
+- **Phase 4c — REVIEW_GATE (informational)**: all six sub-phases (4c-1
+  through 4c-6) complete. See `docs/observability/PHASE_4c_SUMMARY.md` for
+  full detail, the integration backlog (4c-2/4c-5/4c-6 standalone modules
+  not yet wired into `simulation/settlement.py` /
+  `simulation/portfolio_pnl.py`), and seed-estimate caveats. With 4b and 4c
+  both complete, Phase 4's "core value drivers" prerequisite for Phase 5 is
+  satisfied — Phase 4a remains a placeholder ("do not design in detail until
+  Phase 3 is complete" — likely now satisfied too, but undesigned). Awaiting
+  Rich's direction: a Phase 4c integration re-run, Phase 4a, or Phase 5
+  design.
