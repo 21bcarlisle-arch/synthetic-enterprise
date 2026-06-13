@@ -566,16 +566,62 @@ accepted for Regime 2.
 
 ---
 
-## Phase 4b — Customer Value Layer
+## Phase 4b — Customer Value Layer [COMPLETE 2026-06-13]
 
 **Objective:** Core value drivers on top of the dual-fuel portfolio — the "Phase 4 core value drivers" referenced as a prerequisite for Phase 5.
 
 Build in order, REVIEW_GATE after each sub-phase, full summary in `docs/observability/PHASE_4b_SUMMARY.md` on completion:
-- **4b-1** — cost to serve model
-- **4b-2** — churn model
-- **4b-3** — CLV using Shifted-BG via PyMC-Marketing
-- **4b-4** — home move win rate
-- **4b-5** — enterprise value function
+- **4b-1** — cost to serve model — done
+- **4b-2** — churn model — done
+- **4b-3** — CLV using Shifted-BG via PyMC-Marketing — done
+- **4b-4** — home move win rate — done
+- **4b-5** — enterprise value function — done
+
+Full-portfolio re-run also complete (2026-06-13): enterprise value
+£17,569.06, net margin post cost-to-serve £21,941.36. See
+`docs/observability/PHASE_4b_SUMMARY.md` ("Follow-up — Full Portfolio
+Re-run").
+
+---
+
+## Phase 4c — Physical Simulation Layer
+
+**Objective:** Replace flat consumption/billing/payment assumptions with a
+physical and behavioural model — properties, weather-driven demand, weather
+sensitivity in wholesale prices, real bills with a clarity score, dynamic
+payment behaviour, and contact/complaints. Promoted from
+`docs/staging/PHASE_4c_INSTRUCTION.md` on 2026-06-13.
+
+Build in order, REVIEW_GATE after each sub-phase, NTFY each milestone,
+update `LATEST.md` throughout, full summary in
+`docs/observability/PHASE_4c_SUMMARY.md` on completion:
+
+- **4c-1** — Property and asset model: each customer gets a physical
+  property (type: terrace/semi/flat/detached; EPC rating; occupancy pattern:
+  single/family/elderly; heating system: gas boiler/heat pump/electric;
+  assets: EV/solar/smart meter). Seed from existing customer definitions.
+  `saas/property_model.py`.
+- **4c-2** — Weather-driven demand: replace flat consumption profiles with
+  physical demand shapes. Half-hourly demand = base load + weather-sensitive
+  load (heating degree days for gas, cooling for electricity) + occupancy
+  pattern + asset adjustments. Calibrate to existing weather engine output.
+  `simulation/demand_model.py`.
+- **4c-3** — Weather → wholesale price influence: add a weather sensitivity
+  layer to the forward curve generator. Cold spells (heating degree days
+  above threshold) tighten gas supply/demand and spike spot prices. Use real
+  Elexon half-hourly settlement prices where available
+  (data.elexon.co.uk, key-free) to replace synthetic curves for 2016-2025.
+- **4c-4** — Bill generation: produce actual customer bills at each monthly
+  settlement, including a clarity score (complex tariff structures or high
+  price volatility produce confusing bills). `saas/bill_generator.py`.
+- **4c-5** — Payment behaviour: replace the flat 2% bad debt rate with a
+  dynamic payment model. Segment by credit risk (low/medium/high/
+  vulnerable). Model payment timing distribution and default probability per
+  segment. `saas/payment_behaviour.py`.
+- **4c-6** — Contact and complaints: bill shock + confusing bills trigger
+  contact probability. Unresolved contacts escalate to complaints after 14
+  days. Complaint rate modifies service quality score.
+  `saas/contact_model.py`.
 
 ---
 

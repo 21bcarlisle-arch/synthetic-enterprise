@@ -28,6 +28,33 @@ message; flag WARNING if local_pct < 60%. Write a test. make check, commit,
 push, NTFY confirming live.
 Promoted from docs/staging/TASK_TOKEN_EFFICIENCY.md on 2026-06-12.
 
+### Task: customer-archetype-data-enrichment
+Run as a GPU side mission alongside Phase 4c. Build a statistically grounded
+synthetic customer population from real UK public datasets to replace
+hand-crafted customer definitions.
+
+Sources to acquire and profile:
+1. EPC register — DLUHC England/Wales full dataset
+   (https://epc.opendatacommunities.org). Download, sample if needed for
+   memory, cluster into 8-12 archetypal property types by: property type,
+   floor area, EPC rating, heating system, construction era, estimated
+   annual consumption.
+2. Census 2021 — ONS output area data (https://www.ons.gov.uk/census).
+   Extract household composition, tenure, occupation group, car ownership by
+   output area. Map to energy demand archetypes.
+3. Ofgem vulnerability and debt data — extract payment method distributions,
+   debt levels, vulnerability segment sizes from published Ofgem reports.
+
+Deliverable: docs/data/customer_archetypes.md — a parameter file defining
+8-12 customer archetypes, each with: property type, EPC rating, heating
+system, asset mix, occupancy pattern, socio-demographic profile, estimated
+annual consumption (elec/gas), credit risk score, vulnerability flag,
+preferred channel, debt risk indicator. This file replaces the hand-crafted
+customer definitions in saas/customers.py in a future increment.
+
+Use local models (qwen3:14b) for all data processing. No frontier tokens.
+NTFY when complete with archetype summary.
+Promoted from docs/staging/TASK_DATA_ENRICHMENT.md on 2026-06-13.
 
 
 
