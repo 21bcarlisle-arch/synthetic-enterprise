@@ -1,3 +1,4 @@
+import json
 import time
 
 from background import session_watchdog as watchdog
@@ -205,11 +206,15 @@ def test_check_autoloop_sends_instruction_after_idle_streak(monkeypatch):
     _reset_autoloop_state()
 
 
-def test_check_autoloop_pauses_on_review_gate(monkeypatch):
+def test_check_autoloop_pauses_on_review_gate(monkeypatch, tmp_path):
     _reset_autoloop_state()
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "RESPONSES_DIR", tmp_path / "responses")
+    monkeypatch.setattr(watchdog, "GATE_TOKENS_DIR", tmp_path / "tokens")
     ntfy_messages = []
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    gate_calls = []
+    monkeypatch.setattr(watchdog, "ntfy_gate", lambda msg, gate, token: gate_calls.append((msg, gate, token)))
     send_keys_calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
 
@@ -218,8 +223,81 @@ def test_check_autoloop_pauses_on_review_gate(monkeypatch):
         watchdog.check_autoloop(review_gate_pane)
 
     assert send_keys_calls == []
-    assert sum("REVIEW_GATE" in msg for msg in ntfy_messages) == 1
+    assert len(gate_calls) == 1
+    assert "REVIEW_GATE" in gate_calls[0][0]
+    assert gate_calls[0][1] == watchdog.GATE_ID
+    assert ntfy_messages == []
     _reset_autoloop_state()
+
+
+def test_check_autoloop_relays_gate_response(monkeypatch, tmp_path):
+    _reset_autoloop_state()
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    responses_dir = tmp_path / "responses"
+    responses_dir.mkdir()
+    monkeypatch.setattr(watchdog, "RESPONSES_DIR", responses_dir)
+    monkeypatch.setattr(watchdog, "GATE_TOKENS_DIR", tmp_path / "tokens")
+    (responses_dir / f"{watchdog.GATE_ID}.json").write_text(
+        json.dumps({"gate": watchdog.GATE_ID, "decision": "Rich approved — proceed."})
+    )
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+
+    review_gate_pane = "Summary complete. REVIEW_GATE: awaiting Rich's review of Phase 4b-4."
+    watchdog.check_autoloop(review_gate_pane)
+
+    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, "Rich approved — proceed.", "Enter"] in send_keys_calls
+    assert not (responses_dir / f"{watchdog.GATE_ID}.json").exists()
+    assert any("Rich approved" in msg for msg in ntfy_messages)
+    _reset_autoloop_state()
+
+
+def test_generate_gate_token_creates_single_use_token(tmp_path, monkeypatch):
+    monkeypatch.setattr(watchdog, "GATE_TOKENS_DIR", tmp_path / "tokens")
+    token = watchdog.generate_gate_token("main")
+    assert (tmp_path / "tokens" / "main.token").read_text(encoding="utf-8") == token
+    assert len(token) > 10
+
+
+def test_read_and_clear_response_consumes_file(tmp_path, monkeypatch):
+    responses_dir = tmp_path / "responses"
+    responses_dir.mkdir()
+    monkeypatch.setattr(watchdog, "RESPONSES_DIR", responses_dir)
+    (responses_dir / "main.json").write_text(json.dumps({"gate": "main", "decision": "hold"}))
+
+    result = watchdog.read_and_clear_response("main")
+    assert result == {"gate": "main", "decision": "hold"}
+    assert not (responses_dir / "main.json").exists()
+
+
+def test_read_and_clear_response_returns_none_when_absent(tmp_path, monkeypatch):
+    monkeypatch.setattr(watchdog, "RESPONSES_DIR", tmp_path / "responses")
+    assert watchdog.read_and_clear_response("main") is None
+
+
+def test_gate_actions_header_escapes_commas_and_includes_token():
+    header = watchdog._gate_actions_header("main", "tok123")
+    assert "tok123" in header
+    # Two semicolon-separated actions (Approve, Hold), each an "http" action.
+    actions = header.split("; ")
+    assert len(actions) == 2
+    for action in actions:
+        assert action.startswith("http, ")
+        assert f"{watchdog.FUNNEL_BASE_URL}/respond" in action
+    # The "Approve, proceed" label's comma must be escaped, not a field separator.
+    assert "Approve\\, proceed" in header
+
+
+def test_ntfy_gate_sends_actions_header(monkeypatch):
+    calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+    watchdog.ntfy_gate("waiting for review", "main", "tok123")
+    cmd = calls[0]
+    assert "X-Priority: high" in cmd
+    assert "X-Tags: warning" in cmd
+    assert any(c.startswith("X-Actions: ") and "tok123" in c for c in cmd)
 
 
 def test_check_autoloop_pauses_on_permission_prompt(monkeypatch):

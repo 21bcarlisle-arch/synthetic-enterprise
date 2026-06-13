@@ -57,6 +57,7 @@ Logs to docs/observability/session-watchdog-log.md.
 
 import json
 import re
+import secrets
 import subprocess
 import time
 from collections import deque
@@ -77,6 +78,88 @@ NTFY_TOPIC = "skynet-synthetic"
 NTFY_PUBLISH_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
 LOG_FILE = Path(f"{PROJECT_DIR}/docs/observability/session-watchdog-log.md")
+
+# --- Two-way NTFY (gate reply actions) ---
+#
+# See docs/instructions/NTFY_TWO_WAY_PROTOCOL.md. The file API is exposed via
+# Tailscale Funnel at this URL (update if `tailscale funnel status` changes —
+# e.g. after re-enabling Funnel from scratch).
+FUNNEL_BASE_URL = "https://skynet-1.taila062fa.ts.net"
+
+# Single-slot gate id: only one REVIEW_GATE is ever active in this session's
+# pane at a time, so a fixed id is sufficient.
+GATE_ID = "main"
+
+RESPONSES_DIR = Path(PROJECT_DIR) / "docs" / "staging" / "responses"
+GATE_TOKENS_DIR = Path(PROJECT_DIR) / "docs" / "staging" / ".gate_tokens"
+
+
+def generate_gate_token(gate: str) -> str:
+    """Create and store a single-use response token for `gate` — mirrors
+    background.file_api.generate_gate_token (duplicated, not imported, since
+    this script runs standalone via `python3 background/session_watchdog.py`
+    and isn't on a package path)."""
+    token = secrets.token_urlsafe(16)
+    GATE_TOKENS_DIR.mkdir(parents=True, exist_ok=True)
+    (GATE_TOKENS_DIR / f"{gate}.token").write_text(token, encoding="utf-8")
+    return token
+
+
+def read_and_clear_response(gate: str) -> dict | None:
+    """If Rich has tapped a reply action for `gate` (POST /respond wrote
+    docs/staging/responses/<gate>.json), consume and return it. Returns None
+    if no response is pending."""
+    path = RESPONSES_DIR / f"{gate}.json"
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        path.unlink()
+        return None
+    path.unlink()
+    return data
+
+
+def _escape_ntfy_action_value(value: str) -> str:
+    """ntfy's X-Actions header uses `,` and `;` as field/action separators —
+    escape literal backslashes and commas in a field's value (semicolons are
+    not expected in our labels/JSON bodies)."""
+    return value.replace("\\", "\\\\").replace(",", "\\,")
+
+
+def _gate_actions_header(gate: str, token: str) -> str:
+    """Build the X-Actions header value for a REVIEW_GATE notification: two
+    `http` actions (Approve/Hold) that POST a decision + single-use token to
+    POST /respond, landing in docs/staging/responses/ for the next autoloop
+    cycle to pick up."""
+    url = f"{FUNNEL_BASE_URL}/respond"
+    decisions = [
+        ("Approve, proceed", "Rich approved — proceed autonomously with the plan as discussed."),
+        ("Hold", "Rich says hold — do not proceed, wait for further instruction."),
+    ]
+    actions = []
+    for label, decision in decisions:
+        body = json.dumps({"gate": gate, "decision": decision, "token": token})
+        actions.append(
+            f"http, {_escape_ntfy_action_value(label)}, {url}, method=POST, "
+            f"headers.Content-Type=application/json, "
+            f"body={_escape_ntfy_action_value(body)}, clear=true"
+        )
+    return "; ".join(actions)
+
+
+def ntfy_gate(msg: str, gate: str, token: str) -> None:
+    """Send a REVIEW_GATE notification with tap-to-reply action buttons (high
+    priority + warning tag, same as ntfy(needs_input=True))."""
+    subprocess.run(
+        ["curl", "-s",
+         "-H", "X-Priority: high",
+         "-H", "X-Tags: warning",
+         "-H", f"X-Actions: {_gate_actions_header(gate, token)}",
+         "-d", msg, NTFY_PUBLISH_URL],
+        capture_output=True,
+    )
 
 # Best-effort match for Claude Code's usage-limit message. The exact wording
 # is not confirmed against current Claude Code output (no access to a live
@@ -465,10 +548,25 @@ def check_autoloop(pane_text: str) -> None:
     global _autoloop_last_pane, _autoloop_idle_streak, _autoloop_waiting_notified
 
     if REVIEW_GATE_PATTERN.search(pane_text):
+        response = read_and_clear_response(GATE_ID)
+        if response is not None:
+            decision = response.get("decision", "")
+            log(f"Gate reply received via NTFY action: {decision!r} — relaying to session")
+            subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, decision, "Enter"])
+            ntfy(f"Got it — relayed to the session: {decision}")
+            _autoloop_waiting_notified = False
+            _autoloop_last_pane = pane_text
+            _autoloop_idle_streak = 0
+            return
+
         if not _autoloop_waiting_notified:
             log("REVIEW_GATE visible — waiting for Rich, autoloop paused")
-            ntfy("Claude Code is waiting at a REVIEW_GATE — check the session "
-                 "when you have a moment.", needs_input=True)
+            token = generate_gate_token(GATE_ID)
+            ntfy_gate(
+                "Claude Code is waiting at a REVIEW_GATE — tap to respond, "
+                "or check the session when you have a moment.",
+                GATE_ID, token,
+            )
             _autoloop_waiting_notified = True
         _autoloop_last_pane = pane_text
         _autoloop_idle_streak = 0
