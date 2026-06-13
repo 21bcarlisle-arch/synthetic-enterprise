@@ -38,9 +38,11 @@ fix errors.
 | logged_at (UTC) | reported_pct | reset_at | session_tokens_since_reset | implied_limit_tokens | notes |
 |---|---|---|---|---|---|
 | 2026-06-13T16:25:00Z | 54% | 2026-06-13T17:39:00Z | 25474400 | 47175000 | from /cost: haiku 162.2k (29.2k in + 4.0k out + 101.8k cache read + 27.2k cache write) + sonnet 25312200 (4.5k in + 171.2k out + 24.4m cache read + 736.5k cache write). Assumes this session is the sole consumer of the current 4h window. |
+| 2026-06-13T19:53:00Z | 83% | 2026-06-13T21:39:00Z | | | reported_pct only (no /cost run this time) — this is a new 4h window (previous one reset at 17:39Z), so the prior implied_limit_tokens doesn't directly carry over. |
 
 ## Weekly Window
 
 | logged_at (UTC) | reported_pct | reset_at | session_tokens_since_reset | implied_limit_tokens | notes |
 |---|---|---|---|---|---|
 | 2026-06-13T16:25:00Z | 12% | 2026-06-15T02:59:00Z | 25474400 | | same /cost total as the 4h row above, but the weekly window started before this session — other sessions likely contributed too, so this total is a lower bound only. implied_limit left blank. |
+| 2026-06-13T19:53:00Z | 15% | 2026-06-15T02:59:00Z | | | reported_pct only. 12%->15% over ~3.5h (16:25Z->19:53Z), consistent with the 4b-5 work + full portfolio re-run now running in the background. |
