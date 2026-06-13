@@ -41,7 +41,9 @@ def _auth(x_api_key: str = Header(..., alias="X-Api-Key")) -> None:
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "repo": str(REPO_ROOT)}
+    # Deliberately omits REPO_ROOT (a local filesystem path) — this endpoint
+    # is unauthenticated and reachable via Tailscale Funnel.
+    return {"status": "ok"}
 
 
 @app.get("/read")
