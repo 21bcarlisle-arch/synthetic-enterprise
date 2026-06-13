@@ -118,3 +118,100 @@ REVIEW_GATE.
   `tests/saas/test_churn_model.py`, this summary section. Small,
   schema-adjacent pure module building directly on Phase 3a's
   `score_experience_signals()`.
+
+---
+
+## 4b-3 — CLV via Shifted Beta-Geometric (PyMC-Marketing)
+
+### What Was Built
+- `saas/clv_model.py` — new pure module, `build_clv()`,
+  `build_clv_model()`, `build_shifted_beta_geo_data()`,
+  `fit_theta_prior_from_churn_probabilities()`, `expected_lifetime_periods()`.
+  - `build_shifted_beta_geo_data()` shapes `churn_model.build_churn_risk()`
+    output into PyMC-Marketing's `{customer_id, t_churn, T}` convention for
+    `ShiftedBetaGeoModelIndividual` — every account is right-censored
+    (`t_churn == T`), accounts with no renewal points excluded.
+  - `fit_theta_prior_from_churn_probabilities()` derives Beta(alpha, beta)
+    hyperparameters for theta (per-renewal churn probability) via
+    method-of-moments across every `churn_probability` value in
+    `churn_risk`, with a weakly-informative fallback
+    (`FALLBACK_PRIOR_PSEUDO_COUNT = 10`) if the spread is degenerate.
+  - `build_clv_model()` constructs a `ShiftedBetaGeoModelIndividual`,
+    `build_model()`s it against the shaped data, and installs the
+    method-of-moments alpha/beta as a fixed "posterior" (`model.idata`,
+    `n_draws` repeated point-estimate draws) — see "Key Decisions" below for
+    why this bypasses `.fit()`.
+  - `expected_lifetime_periods()` calls
+    `distribution_customer_churn_time()` against that idata and takes the
+    mean over draws, capped at `MAX_PROJECTION_PERIODS` (50 renewal
+    periods).
+  - `build_clv()` combines `expected_lifetime_periods` with each billing
+    account's average annual `net_margin_gbp` (from `cost_to_serve`, summed
+    across dual-fuel electricity/gas legs via
+    `customer_reaction._billing_account_id`), discounted via an annuity
+    factor at `DISCOUNT_RATE_ANNUAL` (10%/year) to produce `clv_gbp`.
+- `tests/saas/test_clv_model.py` — 9 tests: data-shaping (censoring,
+  exclusion of accounts with no renewals), method-of-moments arithmetic and
+  its degenerate-variance fallback, dual-fuel net-margin combination,
+  positive lifetime/CLV with discounting verified against an undiscounted
+  upper bound, and empty-input handling.
+
+### Key Decisions Made
+- **Method-of-moments priors installed directly as `model.idata`, not a
+  `.fit()`**: this portfolio has only 6 billing accounts, each ~9 annual
+  renewal points, **0 observed churns** — every account is right-censored.
+  Both approaches tried on this data were unusable:
+  - Default MCMC (`draws=50-100`, `chains=1-2`): divergences, NaN r_hat,
+    theta collapsing to ~0.001 — `distribution_customer_churn_time`
+    projections came out around 1e15 periods (theta -> 0 makes the
+    geometric expectation blow up).
+  - MAP with informative `HalfNormal` priors on alpha/beta: converged to
+    alpha=0 exactly, beta~1816 — degenerate, and
+    `distribution_customer_churn_time` errors on a Geometric with p=0.
+
+  Installing alpha/beta as a fixed point-estimate "posterior" (`n_draws`
+  identical draws) keeps `ShiftedBetaGeoModelIndividual`'s data-shaping
+  convention and its `distribution_customer_churn_time`
+  posterior-predictive machinery, while sourcing the actual theta estimate
+  from `churn_model`'s bill-shock-driven `churn_probability` — which is
+  already calibrated (informally) to this portfolio's behaviour — instead of
+  trying to re-derive it from 6 all-censored data points.
+- **CLV = avg annual net margin x annuity factor over expected lifetime**:
+  a simple, auditable closed form rather than a full discounted
+  posterior-predictive simulation — appropriate given the prior itself is a
+  point estimate, not a real posterior.
+- **`DISCOUNT_RATE_ANNUAL = 0.10`** and **`MAX_PROJECTION_PERIODS = 50`**
+  are seed values (10% discount rate is a common UK retail cost-of-capital
+  proxy; 50-year cap prevents a near-zero theta from producing an absurd
+  horizon) — both are tunable constants, not calibrated against a real
+  dataset.
+
+### Open Questions
+- **This is a point-estimate prior standing in for a posterior** — `alpha`,
+  `beta`, and therefore `expected_lifetime_periods` are method-of-moments
+  estimates from `churn_model`'s churn probabilities, not a Bayesian fit on
+  observed churn events (because this portfolio has none). If/when a larger
+  synthetic portfolio with actual observed churns exists, re-fitting
+  `ShiftedBetaGeoModelIndividual` via `.fit(method="mcmc")` on that data
+  would produce a genuine posterior and should replace this approach.
+- **New runtime dependency**: `pymc-marketing` (and its dependency tree —
+  `pymc`, `arviz`, `pytensor`, `scipy`, ~35 packages) was installed via
+  `python3 -m pip install --break-system-packages pymc-marketing` into the
+  system Python's user site-packages. The repo has no `requirements.txt` to
+  record this; whoever next sets up this environment from scratch will need
+  to repeat this install. Worth adding a `requirements.txt` (or
+  `pyproject.toml` dependency group) in a future increment.
+- `DISCOUNT_RATE_ANNUAL` and `MAX_PROJECTION_PERIODS` (see "Key Decisions")
+  are seed estimates, not calibrated.
+- As with 4b-1/4b-2, applying this to the full Phase 2b 9.5-year settlement
+  output requires re-running `simulation/run_phase2b.py` — same multi-hour
+  re-run constraint, deferred to the same follow-up.
+
+### Token Efficiency
+- Frontier (hand-written): `saas/clv_model.py`,
+  `tests/saas/test_clv_model.py`, this summary section, plus exploratory
+  investigation of `pymc-marketing`'s `ShiftedBetaGeoModelIndividual` API
+  (model_config, `.fit()` methods, `distribution_customer_churn_time`,
+  `idata` shape) to find a stable approach for this all-censored portfolio —
+  the highest-investigation-cost sub-phase of 4b so far, reflected in the
+  "Open Questions" above rather than a clean calibrated result.
