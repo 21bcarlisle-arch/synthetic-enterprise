@@ -21,6 +21,12 @@ from datetime import date, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
 from saas.customers import CUSTOMERS, get_customer
+from saas.property_model import (
+    DEFAULT_ASSETS,
+    DEFAULT_HEATING_SYSTEM,
+    DEFAULT_OCCUPANCY_PATTERN,
+    build_properties,
+)
 from saas.tariff_pricing import price_fixed_tariff
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
@@ -36,10 +42,13 @@ from sim.profile_class_3 import load_pc3_shape
 from sim.risk_committee import RiskCommitteeMonitor
 from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
+from sim.weather_price_sensitivity import weather_sensitivity_multiplier
+from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_hedged_term
 from simulation.renewals import build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
+from simulation.weather_inputs import lookback_mean_temps, weather_means_for_customer
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"
@@ -65,6 +74,32 @@ COMMITTEE_COOLDOWN_PERIODS = 1440
 
 SHAPE_LOADERS = {1: load_pc1_shape, 3: load_pc3_shape}
 
+# Phase 4c-1 property records only cover resi electricity customers (C1-C4).
+# SME customers (C5, C6) get this default property for 4c-2's demand-shape
+# adjustment — no occupancy/asset seed data exists for them.
+DEFAULT_PROPERTY = {
+    "heating_system": DEFAULT_HEATING_SYSTEM,
+    "occupancy_pattern": DEFAULT_OCCUPANCY_PATTERN,
+    "assets": dict(DEFAULT_ASSETS),
+}
+
+
+def _weather_adjusted_shape_fn(base_shape_fn, weather_means: dict[str, float], property_record: dict):
+    """Wrap a SHAPE_LOADERS[...] base-shape function with 4c-2's
+    weather/occupancy/asset demand adjustment (`build_demand_shape`).
+
+    Falls back to the unadjusted base shape on dates with no weather data
+    (e.g. outside sim/weather_data's 2016-01-01..2025-06-07 coverage)."""
+
+    def shape_fn(date_str):
+        base_shape = base_shape_fn(date_str)
+        mean_temp = weather_means.get(date_str)
+        if mean_temp is None:
+            return base_shape
+        return build_demand_shape(base_shape, mean_temp, "electricity", property_record)
+
+    return shape_fn
+
 
 def _clamp_term_end(term_start: str) -> str:
     natural = (date.fromisoformat(term_start) + timedelta(days=CONTRACT_LENGTH_DAYS)).isoformat()
@@ -76,6 +111,7 @@ def _clamp_term_end(term_start: str) -> str:
 def _bootstrap_first_term_forward_price(
     term_start: str, gas_records: list[dict],
     contract_length_months: int = 12, lookback_days: int = 90, risk_factor: float = 1.2,
+    lookback_daily_mean_temps_c: list[float] | None = None,
 ) -> float:
     """Forward price for a customer's first gas term when NBP history begins
     on (not before) term_start — the standard 90-day-prior lookback in
@@ -108,14 +144,23 @@ def _bootstrap_first_term_forward_price(
         for offset in range(contract_length_months)
     ]
     seasonal_multiplier = statistics.mean(seasonal_multipliers)
+    forward_price = forward_base * seasonal_multiplier
 
-    return forward_base * seasonal_multiplier
+    if lookback_daily_mean_temps_c is not None:
+        forward_price *= weather_sensitivity_multiplier(lookback_daily_mean_temps_c)
+
+    return forward_price
 
 
 def _build_gas_renewal_schedule(
-    customer: dict, gas_records: list[dict]
+    customer: dict, gas_records: list[dict], lookback_temps_fn=None,
 ) -> list[dict]:
-    """Build renewal schedule for a gas customer using NBP forward prices."""
+    """Build renewal schedule for a gas customer using NBP forward prices.
+
+    lookback_temps_fn (Phase 4c-3, optional): see
+    `simulation.renewals.build_renewal_schedule` — same callable, threaded
+    through to `generate_forward_price`'s `lookback_daily_mean_temps_c`.
+    """
     aq_kwh = customer["aq_kwh"]
     acq_date = customer["acquisition_date"]
     schedule = []
@@ -123,11 +168,14 @@ def _build_gas_renewal_schedule(
 
     while term_start <= REPORT_END:
         term_end = _clamp_term_end(term_start)
+        lookback_temps = lookback_temps_fn(term_start) if lookback_temps_fn else None
         try:
-            fwd = generate_forward_price(term_start, gas_records)
+            fwd = generate_forward_price(term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps)
         except ValueError:
             if not schedule:
-                fwd = _bootstrap_first_term_forward_price(term_start, gas_records)
+                fwd = _bootstrap_first_term_forward_price(
+                    term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps
+                )
             else:
                 break
         unit_rate = price_fixed_tariff(fwd, aq_kwh, term_start)
@@ -175,18 +223,30 @@ def main():
         for r in elec_records
     }
 
+    # ---- Phase 4c-1/4c-2/4c-3 inputs: per-customer weather + property records ----
+    properties = build_properties(CUSTOMERS)
+    weather_by_customer = {
+        c["customer_id"]: weather_means_for_customer(c) for c in ELEC_CUSTOMERS + GAS_CUSTOMERS
+    }
+
+    def _lookback_temps_fn(cid):
+        weather_means = weather_by_customer[cid]
+        return lambda term_start: lookback_mean_temps(weather_means, term_start)
+
     # ---- Build electricity schedules ----
     elec_schedules = {}
     for c in ELEC_CUSTOMERS:
         elec_schedules[c["customer_id"]] = build_renewal_schedule(
             c["customer_id"], c["acquisition_date"], REPORT_END,
-            elec_records, c["eac_kwh"]
+            elec_records, c["eac_kwh"], lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
         )
 
     # ---- Build gas schedules ----
     gas_schedules = {}
     for c in GAS_CUSTOMERS:
-        gas_schedules[c["customer_id"]] = _build_gas_renewal_schedule(c, gas_records)
+        gas_schedules[c["customer_id"]] = _build_gas_renewal_schedule(
+            c, gas_records, lookback_temps_fn=_lookback_temps_fn(c["customer_id"])
+        )
 
     # ---- Interleave all terms chronologically ----
     all_terms = []
@@ -245,7 +305,10 @@ def main():
             customer = get_customer(cid)
             eac_kwh = customer["eac_kwh"]
             profile_class = customer.get("profile_class", 1)
-            shape_fn = SHAPE_LOADERS[profile_class]
+            property_record = properties.get(cid, DEFAULT_PROPERTY)
+            shape_fn = _weather_adjusted_shape_fn(
+                SHAPE_LOADERS[profile_class], weather_by_customer[cid], property_record
+            )
 
             naked_kwh = eac_kwh * (1.0 - hf)
             risk = assess_term_risk(term_start_str, naked_kwh, forward_price, elec_records)

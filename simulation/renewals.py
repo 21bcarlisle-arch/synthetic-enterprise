@@ -19,7 +19,10 @@ from sim.forward_curve import generate_forward_price
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 
-def build_renewal_schedule(customer_id: str, original_acquisition_date: str, report_end_date: str, price_records: list[dict], eac_kwh: int) -> list[dict]:
+def build_renewal_schedule(
+    customer_id: str, original_acquisition_date: str, report_end_date: str,
+    price_records: list[dict], eac_kwh: int, lookback_temps_fn=None,
+) -> list[dict]:
     """Build a chronological sequence of contiguous 1-year contract terms
     for one customer, covering [original_acquisition_date, report_end_date].
 
@@ -42,6 +45,13 @@ def build_renewal_schedule(customer_id: str, original_acquisition_date: str, rep
     own per-customer 365-day active-window logic will then process each term
     as its own independent contract window):
       {customer_id, acquisition_date, unit_rate_gbp_per_mwh, forward_price_gbp_per_mwh}
+
+    lookback_temps_fn (Phase 4c-3, optional): a callable taking a term's
+    start-date string and returning the lookback window's daily mean
+    temperatures (or None), passed through to
+    `generate_forward_price`'s `lookback_daily_mean_temps_c` for its
+    weather-sensitivity multiplier. Defaults to None (no adjustment),
+    fully backward compatible.
     """
     term_start = date.fromisoformat(original_acquisition_date)
     report_end = date.fromisoformat(report_end_date)
@@ -49,7 +59,10 @@ def build_renewal_schedule(customer_id: str, original_acquisition_date: str, rep
 
     while term_start <= report_end:
         term_start_str = term_start.isoformat()
-        forward_price = generate_forward_price(term_start_str, price_records)
+        lookback_temps = lookback_temps_fn(term_start_str) if lookback_temps_fn else None
+        forward_price = generate_forward_price(
+            term_start_str, price_records, lookback_daily_mean_temps_c=lookback_temps
+        )
         unit_rate = price_fixed_tariff(forward_price, eac_kwh, term_start_str)
         terms.append({
             "customer_id": customer_id,
