@@ -8,7 +8,27 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-14T00:25:00Z
+Last updated: 2026-06-14T00:10:00Z
+
+**4c-2/4c-3 wired into Phase 2b (2026-06-14)**: `simulation/run_phase2b.py`
+now applies weather effects directly to the settlement run, closing the last
+item in Phase 4c's integration backlog:
+- `simulation/weather_inputs.py` (new) maps each customer to a C1-C4 weather
+  CSV by shared location (C5/C1, C6/C2, C1g-C4g/C1-C4) and provides
+  lookback-window mean temperatures.
+- Electricity consumption shapes now run through 4c-2's
+  `build_demand_shape()` per customer (real daily weather + 4c-1 property
+  records; SME C5/C6 use `DEFAULT_PROPERTY`).
+- Forward prices (both elec and gas renewal schedules) now pass the
+  lookback-window temperatures through to 4c-3's
+  `weather_sensitivity_multiplier()` via a new optional `lookback_temps_fn`
+  on `simulation.renewals.build_renewal_schedule` and
+  `_build_gas_renewal_schedule`.
+- 6 new tests (243 total), lint clean, pushed (`91847d0`).
+
+A full 9.5-year re-run with these weather effects live
+(`simulation/run_phase4c_on_phase2b`) is running in the background —
+headline figures to follow once it completes.
 
 Current phase: Phase 2b (gas dual fuel) COMPLETE. Full 9.5-year re-run
 finished with active Context Handshake (160 wake-ups, routed through local
