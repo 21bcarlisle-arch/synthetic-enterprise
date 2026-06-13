@@ -17,6 +17,12 @@ Required notifications:
 4. Gate reached: `"GATE after Phase [ID]. Waiting for instruction before proceeding."`
 5. Error: `"ERROR in Phase [ID]: [brief description]"`
 
+**Proposed (not yet implemented):** distinct priority/tags for "done" vs
+"needs your input" notifications, plus tappable reply actions that land
+back in the session via the file API. See
+[`docs/instructions/NTFY_TWO_WAY_PROTOCOL.md`](NTFY_TWO_WAY_PROTOCOL.md) —
+pick up as a backlog item, not urgent.
+
 ## Staging Review Protocol
 
 The file API's `/write` endpoint targets `docs/staging/` (not `docs/instructions/` directly), so externally-submitted
