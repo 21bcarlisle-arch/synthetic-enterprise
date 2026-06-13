@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-13T17:15:00Z
+Last updated: 2026-06-13T18:10:00Z
 
 Current phase: Phase 2b (gas dual fuel) COMPLETE. Full 9.5-year re-run
 finished with active Context Handshake (160 wake-ups, routed through local
@@ -49,10 +49,20 @@ value function.
   win_probability)`, from 4b-4) — portfolio-wide sum of the result is
   `enterprise_value_gbp`. See `docs/observability/PHASE_4b_SUMMARY.md`.
 
-**Phase 4b REVIEW_GATE**: all five sub-phases complete, `make check` passes
-(142 tests, lint clean). Awaiting Rich's review of the full customer value
-layer before deciding next steps (Phase 5 is currently a placeholder per
-MASTER_BACKLOG — "do not design in detail until Phase 4 is complete").
+**Phase 4b — fully complete, including full-portfolio re-run (2026-06-13)**:
+`simulation/run_phase4b_on_phase2b.py` ran the full 9.5-year Phase 2b
+settlement once and fed it through all five 4b modules. Portfolio-level
+results: cost to serve £5,732.08, net margin post cost-to-serve £21,941.36,
+enterprise value (sum of CLV, 6 accounts) £17,569.06. See "Follow-up — Full
+Portfolio Re-run" in `docs/observability/PHASE_4b_SUMMARY.md` for the
+per-account table and open questions (notably C3's low CLV relative to its
+peers). `make check` passes (155 tests, lint clean).
+
+**Two-way NTFY (2026-06-13)**: NTFY messages now carry priority/tags
+(default+✅ for done, high+⚠️ for needs-input), and REVIEW_GATE notifications
+include tap-to-reply "Approve, proceed"/"Hold" buttons (via Tailscale Funnel
++ `POST /respond`, single-use gate tokens) that relay your decision straight
+into the session. See `docs/instructions/NTFY_TWO_WAY_PROTOCOL.md`.
 
 Session watchdog: now auto-resumes on Claude Code usage-limit messages
 without a "YES" confirmation (waits up to 6h, retrying every 15min) — only
@@ -76,8 +86,10 @@ a prompt from Rich either.
 Cleared from staging.
 
 Open gates:
-- **Phase 4b — REVIEW_GATE**: all five sub-phases (4b-1 through 4b-5)
-  complete. See `docs/observability/PHASE_4b_SUMMARY.md` for full detail and
-  open questions across the layer (seed-estimate constants throughout,
-  point-estimate CLV prior, full-portfolio re-run still pending). Awaiting
-  Rich's review and direction on next steps.
+- **Phase 4b — REVIEW_GATE**: all five sub-phases (4b-1 through 4b-5) plus
+  the full-portfolio re-run complete. See `docs/observability/PHASE_4b_SUMMARY.md`
+  for full detail and open questions across the layer (seed-estimate
+  constants throughout, point-estimate CLV prior, C3's low relative CLV).
+  Awaiting Rich's review and direction on next steps — Phase 5 is currently
+  a placeholder per MASTER_BACKLOG ("do not design in detail until Phase 4
+  is complete").

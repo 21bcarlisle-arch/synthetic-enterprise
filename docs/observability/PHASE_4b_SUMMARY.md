@@ -359,3 +359,54 @@ REVIEW_GATE.
   `tests/saas/test_enterprise_value.py`, this summary section. Small
   composition module over existing 4b-2/4b-3/4b-4 building blocks — similar
   delegation calculus to 4b-1.
+
+---
+
+## Follow-up — Full Portfolio Re-run (2026-06-13)
+
+The "applying to the full Phase 2b portfolio" open question from every
+sub-phase above is now resolved: `simulation/run_phase4b_on_phase2b.py` ran
+the full 9.5-year Phase 2b settlement (2016-01-01 → 2025-06-07, 6 accounts)
+once, then fed its `all_records` output through all five 4b modules in
+order. `PRICE_DIFFERENTIAL_PCT = 0.0` (price parity), per 4b-4/4b-5's Open
+Questions.
+
+### Phase 2b re-run (unchanged from PHASE_2b_SUMMARY.md, re-confirmed)
+- Gross margin: £27,673.44; capital costs: £14,242.96; net margin: £13,430.48
+- Treasury: £21,829.17 → £35,259.65 (+£13,430.48); capital cost ratio 51.5%
+- OUTCOME: SURVIVED — full window completed
+
+### Phase 4b customer value layer — portfolio-level results
+- Cost to serve (portfolio): £5,732.08
+- Net margin post cost-to-serve: £21,941.36
+- Enterprise value (sum of CLV across 6 accounts): £17,569.06
+
+| Account | Renewals | Expected lifetime (periods) | Avg net margin/period | CLV |
+|---|---|---|---|---|
+| C1 | 9 | 12.22 | £258.54 | £1,777.81 |
+| C2 | 9 | 12.07 | £369.78 | £2,527.31 |
+| C3 | 9 | 13.36 | £134.14 | £965.40 |
+| C4 | 8 | 14.13 | £423.68 | £3,134.72 |
+| C5 | 9 | 12.13 | £659.26 | £4,516.44 |
+| C6 | 9 | 13.62 | £639.60 | £4,647.38 |
+
+### Open Questions
+- This is a single point-estimate run (one Phase 2b trajectory, one set of
+  method-of-moments CLV priors per 4b-3) — not a distribution. Re-running
+  with different hedging/dispatch policy choices would show how enterprise
+  value responds to portfolio-level decisions, but each such run is the same
+  multi-hour cost as this one.
+- C3's CLV (£965.40) is markedly lower than the other five accounts despite
+  a similar renewal count and longer expected lifetime — its avg net margin
+  per period (£134.14) is roughly a third of the portfolio average. Worth a
+  look at C3's cohort/segment characteristics if this layer is used to rank
+  accounts for retention prioritisation.
+- `enterprise_value_gbp` (£17,569.06) and `net_margin_gbp` post cost-to-serve
+  (£21,941.36) are different denominators measuring different things (CLV is
+  forward-looking/projected; net margin is the realised 9.5-year actual) —
+  don't conflate them when reporting a single "value" headline.
+
+**Phase 4b is now fully complete**, including this full-portfolio
+application. REVIEW_GATE: awaiting Rich's direction on next steps — Phase 5
+remains a placeholder per MASTER_BACKLOG ("do not design in detail until
+Phase 4 is complete").
