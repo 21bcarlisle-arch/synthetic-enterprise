@@ -115,7 +115,8 @@ Open gates:
   a placeholder per MASTER_BACKLOG ("do not design in detail until Phase 4
   is complete").
 - **Phase 4c-1 — REVIEW_GATE**: property and asset model complete (above).
-  Proceeding to 4c-2 (weather-driven demand) per the Standard Completion
-  Protocol, since this is a two-way-door addition (new pure module, no
-  existing behaviour changed) — flag if Rich wants to review 4c-1 in
-  isolation before 4c-2 builds on it.
+  Per MASTER_BACKLOG's "REVIEW_GATE after each sub-phase" for Phase 4c,
+  pausing here before 4c-2 (weather-driven demand, `simulation/demand_model.py`)
+  — a larger module that calibrates against the weather engine and will be
+  harder to unwind than 4c-1's standalone pure module. Awaiting Rich's go-ahead
+  to continue into 4c-2.
