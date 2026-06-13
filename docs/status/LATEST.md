@@ -152,7 +152,17 @@ sensitivity layer only. 6 new tests (192 total), lint clean.
 **Per Rich's 2026-06-13 instruction** (now in `CLAUDE.md`): Phase 4c
 REVIEW_GATEs are informational-only — NTFY each milestone, continue
 automatically unless a genuine blocker or one-way-door decision arises.
-Proceeding to 4c-4 (bill generation).
+
+**Phase 4c-4 (bill generation) — done (2026-06-13)**: new
+`saas/bill_generator.py` (`generate_bill()`) aggregates a customer's monthly
+settlement records into total consumption, total amount due, average unit
+rate, and a clarity score in [0,1]. Clarity is reduced by consumption
+volatility within the month (coefficient of variation of daily kWh — a
+cold-spell-driven spike from 4c-2/4c-3 makes a flat-rate bill harder to
+reconcile) and by "bill shock" (% change vs the previous month's total,
+capped at 100% for the penalty). All current `fixed_1yr` contracts start at
+clarity 1.0; unknown/future tariff types (e.g. ToU) default to 0.7. 9 new
+tests (201 total), lint clean. Proceeding to 4c-5 (payment behaviour).
 
 Open gates:
 - **Phase 4b — REVIEW_GATE**: all five sub-phases (4b-1 through 4b-5) plus

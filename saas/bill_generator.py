@@ -1,0 +1,123 @@
+"""Bill generation — Phase 4c-4 (physical simulation layer).
+
+Aggregates a customer's per-settlement-period records (from
+`simulation/settlement.run_settlement`) for one billing month into a bill:
+total consumption, total amount due, average unit rate, and a *clarity
+score* in [0, 1] (1 = very clear, 0 = very confusing).
+
+Per the Key Domain Insight (CLAUDE.md): customer reaction to bills is
+non-rational, and arithmetically correct bills frequently produce complaints
+when they're hard to understand or jump unexpectedly month-to-month. Two
+factors reduce clarity, both seed estimates pending real data:
+
+1. **Tariff structure complexity** — `BASE_CLARITY_BY_CONTRACT_TYPE`. All
+   current contracts are `"fixed_1yr"` (single flat rate) — maximally
+   clear. Future multi-rate tariffs (e.g. Phase 5's time-of-use) would get a
+   lower base.
+2. **Consumption volatility within the month** — the coefficient of
+   variation (stdev/mean) of daily consumption. A bill covering wildly
+   uneven days (e.g. a cold spell, per Phase 4c-2/4c-3) is harder to
+   reconcile against a flat unit rate than one covering steady days.
+3. **Bill shock** — the percentage change in total amount due versus the
+   previous month's bill, if supplied. A big swing is confusing even if both
+   bills were individually correct.
+
+This module is pure: plain dicts/lists in, plain dict out. No imports from
+`sim/`.
+"""
+
+import statistics
+
+BASE_CLARITY_BY_CONTRACT_TYPE = {
+    "fixed_1yr": 1.0,
+}
+DEFAULT_BASE_CLARITY = 0.7
+
+# Reduction in clarity score per unit of consumption coefficient-of-variation
+# (stdev/mean of daily consumption_kwh across the billing period).
+CONSUMPTION_CV_PENALTY_FACTOR = 0.5
+
+# Reduction in clarity score per 100% change in total bill amount versus the
+# previous month, capped at a 100% change (pct change beyond that doesn't
+# further reduce clarity — the bill is already as confusing as it gets).
+BILL_SHOCK_PENALTY_FACTOR = 0.5
+
+MIN_CLARITY_SCORE = 0.0
+MAX_CLARITY_SCORE = 1.0
+
+
+def consumption_coefficient_of_variation(settlement_records: list[dict]) -> float:
+    """Coefficient of variation (population stdev / mean) of total daily
+    consumption_kwh across the distinct settlement_dates in
+    `settlement_records`. Returns 0.0 if there's only one day or the mean is
+    zero (no variation to report)."""
+    daily_totals: dict[str, float] = {}
+    for record in settlement_records:
+        daily_totals[record["settlement_date"]] = (
+            daily_totals.get(record["settlement_date"], 0.0) + record["consumption_kwh"]
+        )
+
+    totals = list(daily_totals.values())
+    if len(totals) < 2:
+        return 0.0
+    mean = statistics.mean(totals)
+    if mean == 0:
+        return 0.0
+    return statistics.pstdev(totals) / mean
+
+
+def generate_bill(
+    customer_id: str,
+    settlement_records: list[dict],
+    contract_type: str,
+    previous_bill_total_gbp: float | None = None,
+) -> dict:
+    """Aggregate one customer's `settlement_records` (their
+    `simulation.settlement.run_settlement` records for one billing month)
+    into a bill.
+
+    contract_type: looked up in BASE_CLARITY_BY_CONTRACT_TYPE for the
+        tariff-complexity component of the clarity score, defaulting to
+        DEFAULT_BASE_CLARITY for unknown values.
+    previous_bill_total_gbp: the previous month's total_amount_gbp, if
+        available — used for the bill-shock clarity penalty. If None (e.g.
+        the customer's first bill), no bill-shock penalty is applied and
+        `bill_shock_pct` is None in the result.
+
+    Returns:
+      {customer_id, period_start, period_end, total_consumption_kwh,
+       total_amount_gbp, average_unit_rate_gbp_per_mwh, clarity_score,
+       bill_shock_pct}
+
+    Raises ValueError if `settlement_records` is empty.
+    """
+    if not settlement_records:
+        raise ValueError("settlement_records must be non-empty")
+
+    dates = sorted(record["settlement_date"] for record in settlement_records)
+    total_consumption_kwh = sum(record["consumption_kwh"] for record in settlement_records)
+    total_amount_gbp = sum(record["revenue_gbp"] for record in settlement_records)
+    average_unit_rate_gbp_per_mwh = (
+        total_amount_gbp / (total_consumption_kwh / 1000) if total_consumption_kwh > 0 else 0.0
+    )
+
+    clarity_score = BASE_CLARITY_BY_CONTRACT_TYPE.get(contract_type, DEFAULT_BASE_CLARITY)
+    clarity_score -= consumption_coefficient_of_variation(settlement_records) * CONSUMPTION_CV_PENALTY_FACTOR
+
+    bill_shock_pct = None
+    if previous_bill_total_gbp is not None and previous_bill_total_gbp != 0:
+        bill_shock_pct = abs(total_amount_gbp - previous_bill_total_gbp) / previous_bill_total_gbp
+        clarity_score -= min(bill_shock_pct, 1.0) * BILL_SHOCK_PENALTY_FACTOR
+
+    clarity_score = max(MIN_CLARITY_SCORE, min(MAX_CLARITY_SCORE, clarity_score))
+
+    return {
+        "customer_id": customer_id,
+        "period_start": dates[0],
+        "period_end": dates[-1],
+        "total_consumption_kwh": total_consumption_kwh,
+        "total_amount_gbp": total_amount_gbp,
+        "average_unit_rate_gbp_per_mwh": average_unit_rate_gbp_per_mwh,
+        "clarity_score": clarity_score,
+        "bill_shock_pct": bill_shock_pct,
+    }
