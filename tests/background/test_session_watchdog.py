@@ -8,7 +8,10 @@ from background import session_watchdog as watchdog
 
 def test_ntfy_default_uses_done_priority_and_tag(monkeypatch):
     calls = []
-    monkeypatch.setattr(watchdog.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+    monkeypatch.setattr(
+        watchdog.subprocess, "run",
+        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"stdout": "{}"})(),
+    )
     watchdog.ntfy("done")
     cmd = calls[0]
     assert "X-Priority: default" in cmd
@@ -17,7 +20,10 @@ def test_ntfy_default_uses_done_priority_and_tag(monkeypatch):
 
 def test_ntfy_needs_input_uses_high_priority_and_warning_tag(monkeypatch):
     calls = []
-    monkeypatch.setattr(watchdog.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+    monkeypatch.setattr(
+        watchdog.subprocess, "run",
+        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"stdout": "{}"})(),
+    )
     watchdog.ntfy("please review", needs_input=True)
     cmd = calls[0]
     assert "X-Priority: high" in cmd
@@ -300,7 +306,10 @@ def test_gate_actions_header_escapes_commas_and_includes_token():
 
 def test_ntfy_gate_sends_actions_header(monkeypatch):
     calls = []
-    monkeypatch.setattr(watchdog.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+    monkeypatch.setattr(
+        watchdog.subprocess, "run",
+        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"stdout": "{}"})(),
+    )
     watchdog.ntfy_gate("waiting for review", "main", "tok123")
     cmd = calls[0]
     assert "X-Priority: high" in cmd
@@ -538,3 +547,125 @@ def test_check_autoloop_writes_usage_pause_file_at_threshold(tmp_path, monkeypat
     assert "resume_at" in data
     assert any("92%" in msg for msg in ntfy_messages)
     _reset_autoloop_state()
+
+
+def test_check_inbound_commands_relays_new_message(monkeypatch):
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(
+        watchdog.subprocess, "run",
+        lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})(),
+    )
+    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
+
+    body = "\n".join([
+        json.dumps({"id": "in1", "event": "message", "time": 2000, "message": "what's the capital cost ratio?"}),
+    ])
+    monkeypatch.setattr(
+        watchdog.requests, "get",
+        lambda *a, **k: type("R", (), {"text": body})(),
+    )
+
+    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
+
+    assert new_since == 2000
+    assert len(send_keys_calls) == 1
+    cmd = send_keys_calls[0]
+    assert cmd[:4] == ["tmux", "send-keys", "-t", watchdog.SESSION_NAME]
+    assert "what's the capital cost ratio?" in cmd[4]
+    assert "Received via NTFY from Rich's phone" in cmd[4]
+    assert cmd[5] == "Enter"
+
+
+def test_check_inbound_commands_skips_own_messages(monkeypatch):
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(
+        watchdog.subprocess, "run",
+        lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})(),
+    )
+    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: msg_id == "own1")
+
+    body = "\n".join([
+        json.dumps({"id": "own1", "event": "message", "time": 2000, "message": "Claude Code milestone reached"}),
+    ])
+    monkeypatch.setattr(
+        watchdog.requests, "get",
+        lambda *a, **k: type("R", (), {"text": body})(),
+    )
+
+    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
+
+    assert new_since == 2000
+    assert send_keys_calls == []
+
+
+def test_check_inbound_commands_ignores_messages_before_since(monkeypatch):
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(
+        watchdog.subprocess, "run",
+        lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})(),
+    )
+    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
+
+    body = json.dumps({"id": "old1", "event": "message", "time": 500, "message": "old message"})
+    monkeypatch.setattr(
+        watchdog.requests, "get",
+        lambda *a, **k: type("R", (), {"text": body})(),
+    )
+
+    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
+
+    assert new_since == 1000
+    assert send_keys_calls == []
+
+
+def test_check_inbound_commands_defers_when_permission_prompt_visible(monkeypatch):
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(
+        watchdog.subprocess, "run",
+        lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})(),
+    )
+    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
+
+    body = json.dumps({"id": "in1", "event": "message", "time": 2000, "message": "steer away"})
+    monkeypatch.setattr(
+        watchdog.requests, "get",
+        lambda *a, **k: type("R", (), {"text": body})(),
+    )
+
+    new_since = watchdog.check_inbound_commands("Do you want to proceed? (y/n)", since=1000)
+
+    assert new_since == 1000
+    assert send_keys_calls == []
+
+
+def test_check_inbound_commands_handles_poll_error(monkeypatch):
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+
+    def _raise(*a, **k):
+        raise watchdog.requests.RequestException("boom")
+
+    monkeypatch.setattr(watchdog.requests, "get", _raise)
+
+    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
+
+    assert new_since == 1000
+
+
+def test_load_and_save_command_since_roundtrip(tmp_path, monkeypatch):
+    since_file = tmp_path / ".ntfy_command_since.json"
+    monkeypatch.setattr(watchdog, "NTFY_COMMAND_SINCE_FILE", since_file)
+
+    watchdog._save_command_since(12345.0)
+    assert watchdog._load_command_since() == 12345.0
+
+
+def test_load_command_since_defaults_to_now_when_missing(tmp_path, monkeypatch):
+    since_file = tmp_path / ".ntfy_command_since.json"
+    monkeypatch.setattr(watchdog, "NTFY_COMMAND_SINCE_FILE", since_file)
+    monkeypatch.setattr(watchdog.time, "time", lambda: 99999.0)
+
+    assert watchdog._load_command_since() == 99999.0

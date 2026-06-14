@@ -8,7 +8,20 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-14T16:18:17Z
+Last updated: 2026-06-14T18:21:17Z
+
+**Two-way NTFY command channel (2026-06-14)**: Rich can now send a short
+message from the ntfy app on his phone (topic `skynet-synthetic`) and the
+agent will act on it and reply via NTFY — no staging required. New shared
+helper `background/ntfy_utils.py` records the id of every outgoing
+notification; `session_watchdog.py`'s existing 60s loop now also polls
+`ntfy.sh/skynet-synthetic/json?poll=1&since=...`, skips messages it sent
+itself (via the recorded ids), and relays anything else into the `claude`
+tmux session with an instruction to reply concisely via NTFY (deferring if a
+permission prompt is showing). The watermark persists to
+`docs/observability/.ntfy_command_since.json` so it survives restarts.
+Staged instruction `docs/staging/FIX_NTFY_TWO_WAY.md` actioned and moved to
+`docs/staging/done/`. 265 tests passing, lint clean.
 
 **Phase 5b complete — report data pipeline (2026-06-14)**: the combined
 2b+4b+4c run (`python3 -m simulation.run_phase4c_on_phase2b --save-json`)

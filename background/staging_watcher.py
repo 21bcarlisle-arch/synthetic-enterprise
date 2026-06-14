@@ -17,7 +17,7 @@ that arrived in an earlier run.
 """
 
 import json
-import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,10 +26,13 @@ PROJECT_DIR = Path("/home/rich/synthetic-enterprise")
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 STATE_FILE = PROJECT_DIR / "background" / ".staging_watcher_seen.json"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "staging-watcher-log.md"
-NTFY_TOPIC = "skynet-synthetic"
-NTFY_PUBLISH_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 POLL_INTERVAL_SECONDS = 30
 IGNORED_NAMES = {".gitkeep"}
+
+# Standalone script -- add the repo root so `from background.ntfy_utils
+# import ...` works regardless of how it's invoked.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from background.ntfy_utils import send_ntfy  # noqa: E402
 
 
 def log(msg: str) -> None:
@@ -42,7 +45,7 @@ def log(msg: str) -> None:
 
 
 def ntfy(msg: str) -> None:
-    subprocess.run(["curl", "-s", "-d", msg, NTFY_PUBLISH_URL], capture_output=True)
+    send_ntfy(msg)
 
 
 def current_files() -> set[str]:

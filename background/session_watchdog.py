@@ -85,6 +85,7 @@ import json
 import re
 import secrets
 import subprocess
+import sys
 import time
 from collections import deque
 from datetime import datetime, timedelta, timezone
@@ -92,6 +93,13 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
+
+# This script runs standalone via `python3 background/session_watchdog.py`,
+# so `background` isn't on sys.path as a package by default -- add the repo
+# root so `from background.ntfy_utils import ...` works regardless of how
+# it's invoked.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from background.ntfy_utils import send_ntfy, was_sent_by_us  # noqa: E402
 
 SESSION_NAME = "claude"
 PROJECT_DIR = "/home/rich/synthetic-enterprise"
@@ -119,6 +127,22 @@ GATE_ID = "main"
 
 RESPONSES_DIR = Path(PROJECT_DIR) / "docs" / "staging" / "responses"
 GATE_TOKENS_DIR = Path(PROJECT_DIR) / "docs" / "staging" / ".gate_tokens"
+
+# --- Two-way NTFY (inbound command channel) ---
+#
+# Rich can send a short message from the ntfy app on his phone (the
+# built-in publish button -- no staging file needed) for quick questions or
+# mid-run steering. Persisted so a watchdog restart doesn't re-relay old
+# messages or miss ones sent while the watchdog was briefly down.
+NTFY_COMMAND_SINCE_FILE = Path(PROJECT_DIR) / "docs" / "observability" / ".ntfy_command_since.json"
+
+INBOUND_COMMAND_SUFFIX = (
+    " [Received via NTFY from Rich's phone -- a short steering message, not "
+    "a staged instruction. Reply concisely via NTFY too (curl -s -d "
+    "\"<answer>\" https://ntfy.sh/skynet-synthetic) in addition to your "
+    "normal response. If this is actually a substantial multi-step "
+    "instruction, treat it per the Staging Directory Protocol instead.]"
+)
 
 
 def generate_gate_token(gate: str) -> str:
@@ -179,14 +203,11 @@ def _gate_actions_header(gate: str, token: str) -> str:
 def ntfy_gate(msg: str, gate: str, token: str) -> None:
     """Send a REVIEW_GATE notification with tap-to-reply action buttons (high
     priority + warning tag, same as ntfy(needs_input=True))."""
-    subprocess.run(
-        ["curl", "-s",
-         "-H", "X-Priority: high",
-         "-H", "X-Tags: warning",
-         "-H", f"X-Actions: {_gate_actions_header(gate, token)}",
-         "-d", msg, NTFY_PUBLISH_URL],
-        capture_output=True,
-    )
+    send_ntfy(msg, headers={
+        "X-Priority": "high",
+        "X-Tags": "warning",
+        "X-Actions": _gate_actions_header(gate, token),
+    })
 
 # Best-effort match for Claude Code's usage-limit message. The exact wording
 # is not confirmed against current Claude Code output (no access to a live
@@ -364,13 +385,7 @@ def ntfy(msg: str, needs_input: bool = False) -> None:
     """
     priority = "high" if needs_input else "default"
     tags = "warning" if needs_input else "white_check_mark"
-    subprocess.run(
-        ["curl", "-s",
-         "-H", f"X-Priority: {priority}",
-         "-H", f"X-Tags: {tags}",
-         "-d", msg, NTFY_PUBLISH_URL],
-        capture_output=True,
-    )
+    send_ntfy(msg, headers={"X-Priority": priority, "X-Tags": tags})
 
 
 def session_exists() -> bool:
@@ -478,6 +493,88 @@ def wait_for_restart_confirmation(since: float) -> bool:
         if _poll_for_yes_reply(since):
             return True
     return False
+
+
+def _load_command_since() -> float:
+    """Last-seen timestamp for the inbound NTFY command poller, persisted
+    across watchdog restarts. Defaults to "now" on first run, so a fresh
+    watchdog doesn't replay the topic's entire history."""
+    if NTFY_COMMAND_SINCE_FILE.is_file():
+        try:
+            return json.loads(NTFY_COMMAND_SINCE_FILE.read_text(encoding="utf-8"))["since"]
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+    return time.time()
+
+
+def _save_command_since(since: float) -> None:
+    NTFY_COMMAND_SINCE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    NTFY_COMMAND_SINCE_FILE.write_text(json.dumps({"since": since}), encoding="utf-8")
+
+
+def _relay_inbound_command(message: str) -> None:
+    """Type `message` (plus INBOUND_COMMAND_SUFFIX) into the 'claude' tmux
+    session as a new chat input, so Claude picks it up and replies via NTFY
+    per the suffix's instruction. Claude Code queues input typed while busy,
+    so this is safe whether the session is idle or mid-task."""
+    log(f"Inbound NTFY command from Rich: {message!r} — relaying to session")
+    subprocess.run([
+        "tmux", "send-keys", "-t", SESSION_NAME, message + INBOUND_COMMAND_SUFFIX, "Enter"
+    ])
+
+
+def check_inbound_commands(pane_text: str, since: float) -> float:
+    """Poll the NTFY topic for messages posted after `since` that we didn't
+    send ourselves (`was_sent_by_us`), and relay each as a new chat input to
+    the 'claude' session (see `_relay_inbound_command`).
+
+    If a permission prompt is currently visible, relaying is deferred --
+    typing arbitrary text could be misread as a y/n response -- and `since`
+    is left at the point just before the first deferred message, so it (and
+    anything after it) is retried next cycle once the prompt clears.
+
+    Returns the new watermark to persist via `_save_command_since`.
+    """
+    try:
+        response = requests.get(
+            NTFY_POLL_URL, params={"poll": "1", "since": int(since)}, timeout=10,
+        )
+    except requests.RequestException as e:
+        log(f"Inbound command poll error: {e}")
+        return since
+
+    latest = since
+    for line in response.text.splitlines():
+        if not line.strip():
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+
+        if record.get("event") != "message":
+            continue
+        msg_time = record.get("time", 0)
+        if msg_time <= since:
+            continue
+        if was_sent_by_us(record.get("id")):
+            latest = max(latest, msg_time)
+            continue
+
+        message = record.get("message", "").strip()
+        if not message:
+            latest = max(latest, msg_time)
+            continue
+
+        if PERMISSION_PROMPT_PATTERN.search(pane_text):
+            log("Inbound NTFY command received but a permission prompt is "
+                "showing — deferring to next cycle")
+            return latest
+
+        _relay_inbound_command(message)
+        latest = max(latest, msg_time)
+
+    return latest
 
 
 def restart_claude(resume: bool = False) -> None:
@@ -817,8 +914,11 @@ def main() -> None:
          "Crash restarts require a YES reply (no --dangerously-skip-permissions, "
          f"max {MAX_RESTARTS_PER_HOUR}/hour); usage-limit pauses auto-resume "
          "without confirmation; idle sessions auto-continue to the next "
-         "backlog item unless a REVIEW_GATE or permission prompt is showing.")
+         "backlog item unless a REVIEW_GATE or permission prompt is showing. "
+         "Short NTFY messages from Rich's phone are relayed to the session "
+         "as steering input (see NTFY_TWO_WAY_PROTOCOL.md).")
     consecutive_down = 0
+    command_since = _load_command_since()
 
     while True:
         time.sleep(CHECK_INTERVAL_SECONDS)
@@ -833,6 +933,11 @@ def main() -> None:
 
             consecutive_down = 0
             pane_text = capture_pane()
+
+            new_command_since = check_inbound_commands(pane_text, command_since)
+            if new_command_since != command_since:
+                command_since = new_command_since
+                _save_command_since(command_since)
 
             if usage_limit_detected(pane_text):
                 handle_usage_limit()

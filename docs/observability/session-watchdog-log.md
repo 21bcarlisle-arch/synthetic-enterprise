@@ -75,3 +75,6 @@
 - [2026-06-14 15:49 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
 - [2026-06-14 16:00 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-14 16:01 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-14 16:57 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 16:58 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-14 18:17 UTC] Session watchdog started (gated mode — restarts require NTFY YES confirmation, except usage-limit auto-resume); autoloop active (idle 300s -> continue, REVIEW_GATE/permission prompts pause for Rich)
