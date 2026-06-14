@@ -8,7 +8,17 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-14T13:09:20Z
+Last updated: 2026-06-14T13:55:48Z
+
+**Usage-pause fix #2 (2026-06-14)**: the soft 90%-usage self-pause never
+fired because `/usage` was embedded mid-instruction in
+`USAGE_PAUSE_CHECK_INSTRUCTION` — a slash command is only recognised when
+it's the entire input, so Claude never actually ran it. Fixed:
+`background/session_watchdog.py`'s `check_session_usage()` now sends a
+standalone `/usage`, captures and parses the pane itself
+(`parse_usage_pane()`), and writes `.usage_pause.json` directly if usage is
+>= 90% — no Claude-side action needed. 5 new tests (252 total), lint clean,
+pushed (`a31caa1`).
 
 **Weather-effects re-run completed cleanly with Ollama caps (2026-06-14)**:
 the restarted run (num_predict=2048 cap + 60s timeout on all Ollama calls,
