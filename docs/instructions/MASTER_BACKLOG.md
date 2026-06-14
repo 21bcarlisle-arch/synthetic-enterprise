@@ -584,7 +584,7 @@ Re-run").
 
 ---
 
-## Phase 4c — Physical Simulation Layer
+## Phase 4c — Physical Simulation Layer [COMPLETE 2026-06-14]
 
 **Objective:** Replace flat consumption/billing/payment assumptions with a
 physical and behavioural model — properties, weather-driven demand, weather
@@ -622,6 +622,20 @@ update `LATEST.md` throughout, full summary in
   contact probability. Unresolved contacts escalate to complaints after 14
   days. Complaint rate modifies service quality score.
   `saas/contact_model.py`.
+
+All six sub-phases done, plus the integration backlog (4c-2 weather-driven
+demand and 4c-3 weather→price sensitivity wired directly into
+`simulation/run_phase2b.py`'s settlement run via new
+`simulation/weather_inputs.py`). Full re-run with weather effects live
+(2026-06-14): net margin **£25,470.20** (up from £13,646.21 without weather
+effects), treasury £21,829.17 → £47,299.37, capital cost ratio 40.2% of gross,
+service quality score 0.935. See `docs/observability/PHASE_4c_SUMMARY.md`
+("Follow-up — Full Re-run with 4c-2/4c-3 Weather Effects Live") for full
+detail, the per-account table, and open questions. 243 tests, lint clean.
+
+With Phase 4b and 4c both complete, Phase 4's "core value drivers"
+prerequisite for Phase 5 is satisfied. Phase 4a remains an undesigned
+placeholder. Awaiting Rich's direction: Phase 4a, or Phase 5 design.
 
 ---
 

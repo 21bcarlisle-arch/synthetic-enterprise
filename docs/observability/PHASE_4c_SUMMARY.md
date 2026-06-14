@@ -165,7 +165,7 @@ flagged pending the `customer-archetype-data-enrichment` background task.
 
 ## Phase 4c — Cross-Cutting Open Questions
 
-1. **Integration backlog**: 4c-2 (`demand_model.py`), 4c-5
+1. **Integration backlog — RESOLVED 2026-06-14**: 4c-2 (`demand_model.py`), 4c-5
    (`payment_behaviour.py`), and 4c-6 (`contact_model.py`) are all built as
    standalone modules, not yet wired into `simulation/settlement.py`,
    `saas/cost_to_serve.py`, or `simulation/portfolio_pnl.py`. A natural next
@@ -262,6 +262,95 @@ narrowed to 4c-2/4c-3 only).
 - 0.030 avg complaint probability / 0.941 service quality score are a single
   point estimate from one stochastic Phase 2b trajectory — same "not a
   distribution" caveat as 4b's enterprise-value figures.
+
+---
+
+## Follow-up — Full Re-run with 4c-2/4c-3 Weather Effects Live (2026-06-14)
+
+The previous re-run (above) explicitly excluded 4c-2 (weather-driven demand)
+and 4c-3 (weather→price sensitivity) because both modify
+`simulation/run_phase2b.py`'s *inputs* rather than consuming its output. New
+`simulation/weather_inputs.py` maps every customer to a C1-C4 weather CSV by
+shared location (C5/C1, C6/C2, C1g-C4g/C1-C4 all share an exact `location`
+dict in `saas/customers.py`) and now feeds real daily-mean temperatures into:
+- **4c-2**: every electricity customer's consumption shape is now
+  `demand_model.build_demand_shape(base_shape, mean_temp_c, "electricity",
+  property_record)` instead of the raw PC1/PC3 population-average shape — C1-C4
+  use their 4c-1 property records, C5/C6 (no property record) use
+  `DEFAULT_PROPERTY` (electric storage heating, single occupancy, no assets).
+- **4c-3**: both electricity and gas renewal schedules now pass each term's
+  90-day lookback-window temperatures through `generate_forward_price`'s
+  `lookback_daily_mean_temps_c`, applying `COLD_SPELL_PRICE_MULTIPLIER`
+  (1.10x) to the forward price whenever that window's average heating-degree-days
+  exceeds `COLD_SPELL_HDD_THRESHOLD`.
+
+This resolves Open Question 1 above — the integration backlog is now empty.
+6 new tests (243 total), lint clean.
+
+### Phase 2b re-run, weather effects live (point estimate)
+- Gross margin £42,613.51; capital costs £17,143.31; **net margin £25,470.20**
+  (vs £13,646.21 without weather effects — +£11,823.99)
+- Treasury £21,829.17 → £47,299.37 (+£25,470.20); capital cost ratio 40.2% of
+  gross (vs 51.3%)
+- Commodity split: electricity gross £37,712.40/net £21,994.69, gas gross
+  £4,901.12/net £3,475.50
+- Context Handshake wake-ups: 161 (vs 160 without weather effects)
+- OUTCOME: SURVIVED — full window completed
+
+The net-margin increase is driven by 4c-3: cold-spell lookback windows push
+up the *forward* price used to set each term's fixed unit rate, while actual
+spot costs (and 4c-2's extra heating-driven consumption) only rise on the
+days that are actually cold — the fixed-rate side captures a bigger margin on
+those terms than the extra wholesale cost it pays out. This is the same
+"forward desk" dynamic `sim/forward_curve.py`'s docstring describes for the
+volatility premium generally, now extended to weather.
+
+### Phase 4c billing-experience layer — portfolio-level results
+- Bills generated: 1,101 (unchanged)
+- Average clarity score: 0.918 (was 0.923)
+- Average bill shock (where shown): 12.7% (was 10.9%)
+- Total bad-debt provision: £2,639.69 (was £2,016.30)
+- Avg complaint probability: 0.032 (was 0.030)
+- **Service quality score: 0.935** (was 0.941)
+
+| Account | Bills | Avg clarity | Credit risk | Bad debt £ |
+|---|---|---|---|---|
+| C1  | 114 | 0.926 | low        |  33.98 |
+| C2  | 111 | 0.946 | medium     | 267.42 |
+| C3  | 108 | 0.927 | vulnerable | 432.55 |
+| C4  | 105 | 0.948 | low        |  57.81 |
+| C5  | 114 | 0.796 | medium     | 650.92 |
+| C6  | 111 | 0.800 | medium     | 694.04 |
+| C1g | 114 | 0.965 | medium     | 100.39 |
+| C2g | 111 | 0.959 | medium     | 122.48 |
+| C3g | 108 | 0.959 | medium      |  85.39 |
+| C4g | 105 | 0.957 | medium     | 194.72 |
+
+### Open Questions
+- **Clarity and bad-debt both move slightly worse with weather effects live**
+  (service quality 0.941 → 0.935): 4c-2's heating-driven consumption spikes on
+  cold days raise the within-month coefficient of variation that 4c-4 uses for
+  `clarity_score`, and 4c-3's higher forward-priced unit rates raise
+  `bill_shock_pct` on renewal months — both penalties 4c-4/4c-6 were built to
+  capture. C5/C6 absorb most of the clarity drop (0.841/0.842 → 0.796/0.800),
+  consistent with their `DEFAULT_PROPERTY` fallback (electric storage heating
+  responds to every heating-degree-day, with no asset offsets like solar/EV
+  smoothing).
+- **161 vs 160 wake-ups**: one extra Context Handshake wake-up with weather
+  effects live — consistent with the slightly higher capital costs (£17,143.31
+  vs £14,368.43) from larger naked exposures on cold-spell-priced terms, but a
+  single-trajectory difference of 1 wake-up isn't itself meaningful.
+- **+£11,823.99 net margin is a single stochastic point estimate** — same
+  "not a distribution" caveat throughout this document. The direction (higher
+  margin from forward-priced cold-spell premiums) is structurally expected
+  from 4c-3's design, but the magnitude isn't a forecast.
+- **Operational note**: during this re-run, one risk-committee Ollama
+  (`qwen3:14b`) call ran away for >80 minutes under `--context-shift` with no
+  `num_predict` cap before the connection dropped and a fresh `llama-server`
+  retried successfully. Not a correctness issue (the sim's `except Exception`
+  fallback leaves hedge fractions unchanged for that one wake-up either way),
+  but worth a `num_predict` cap on `sim/risk_committee_agent.py`'s Ollama
+  calls and `tools/delegate_ollama.py` to bound future runs' wall-clock time.
 
 ## Token Efficiency
 

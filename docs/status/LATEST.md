@@ -8,10 +8,11 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-14T00:10:00Z
+Last updated: 2026-06-14T01:30:00Z
 
-**4c-2/4c-3 wired into Phase 2b (2026-06-14)**: `simulation/run_phase2b.py`
-now applies weather effects directly to the settlement run, closing the last
+**Phase 4c complete, including the weather-effects re-run (2026-06-14)**:
+`simulation/run_phase2b.py` now applies 4c-2 (weather-driven demand) and 4c-3
+(weather→price sensitivity) directly to the settlement run, closing the last
 item in Phase 4c's integration backlog:
 - `simulation/weather_inputs.py` (new) maps each customer to a C1-C4 weather
   CSV by shared location (C5/C1, C6/C2, C1g-C4g/C1-C4) and provides
@@ -26,9 +27,29 @@ item in Phase 4c's integration backlog:
   `_build_gas_renewal_schedule`.
 - 6 new tests (243 total), lint clean, pushed (`91847d0`).
 
-A full 9.5-year re-run with these weather effects live
-(`simulation/run_phase4c_on_phase2b`) is running in the background —
-headline figures to follow once it completes.
+**Full 9.5-year re-run with weather effects live — headline figures**:
+- Net margin **£25,470.20** (up from £13,646.21 without weather effects,
+  +£11,823.99) — gross margin £42,613.51, capital costs £17,143.31
+- Treasury £21,829.17 → £47,299.37; capital cost ratio 40.2% of gross (down
+  from 51.3%)
+- Electricity: gross £37,712.40 / net £21,994.69. Gas: gross £4,901.12 / net
+  £3,475.50
+- Billing layer: 1,101 bills, avg clarity 0.918 (was 0.923), avg bill shock
+  12.7% (was 10.9%), bad debt £2,639.69 (was £2,016.30), **service quality
+  score 0.935** (was 0.941)
+- OUTCOME: SURVIVED — full 2016-2025 window completed, 161 Context Handshake
+  wake-ups (was 160)
+- See `docs/observability/PHASE_4c_SUMMARY.md` ("Follow-up — Full Re-run with
+  4c-2/4c-3 Weather Effects Live") for the per-account table and open
+  questions (clarity/bad-debt move slightly worse with weather effects live —
+  expected, since 4c-2/4c-3 are exactly the volatility and price-shock 4c-4/
+  4c-6 were built to penalise).
+
+This closes Phase 4c's integration backlog entirely. With Phase 4b and 4c
+both complete, Phase 4's "core value drivers" prerequisite for Phase 5 is
+satisfied. Phase 4a remains an undesigned placeholder. **Open question for
+Rich**: Phase 4a (fully synthetic ecosystem bootstrap, run forward beyond
+2025) or Phase 5 (smart tariff innovation) design next?
 
 Current phase: Phase 2b (gas dual fuel) COMPLETE. Full 9.5-year re-run
 finished with active Context Handshake (160 wake-ups, routed through local
