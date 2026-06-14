@@ -8,7 +8,38 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-14T06:22:45Z
+Last updated: 2026-06-14T11:06:34Z
+
+**Weather-effects re-run completed cleanly with Ollama caps (2026-06-14)**:
+the restarted run (num_predict=2048 cap + 60s timeout on all Ollama calls,
+see `sim/risk_committee_agent.py`/`tools/delegate_ollama.py`) finished the
+full 2016-2025 window with no timeout/runaway-loop issues. Final figures
+(slightly different from the earlier interrupted attempt below, due to LLM
+non-determinism in the risk committee's responses): net margin **£25,666.60**
+(gross £42,889.16, capital cost ratio 40.2%), treasury £21,829.17 →
+£47,495.77, electricity net £22,191.09 / gas net £3,475.50, 1,101 bills (avg
+clarity 0.918, avg bill shock 12.7%, bad debt £2,639.69), 161 Context
+Handshake wake-ups, SURVIVED full window.
+
+**Watchdog fix (2026-06-14)**: `background/session_watchdog.py`'s
+`check_autoloop` checked `REVIEW_GATE_PATTERN`/`PERMISSION_PROMPT_PATTERN` on
+every poll regardless of pane activity. Claude's own prose mentioning
+"REVIEW_GATE" while actively working (e.g. discussing a staged instruction's
+gate requirements) could sit in the captured pane tail and get treated as a
+deliberate stop on every poll — suppressing `AUTOLOOP_INSTRUCTION` (and its
+soft 90%-usage self-check) for hours, until the hard 100% usage-limit path
+caught it instead. Fixed: these patterns are now only checked once the pane
+has been idle (unchanged) for `AUTOLOOP_IDLE_CHECKS` consecutive polls. 34
+watchdog tests updated and passing.
+
+**Phase 5a (annual reporting) — in progress**: `saas/reporting/annual_report.py`
+(standing `extract_report_data()`/`generate_annual_report()` functions, `make
+report` target, fixture-based tests) is built and committed.
+`docs/reports/REPORTING_BACKLOG.md` (15 prioritised items) is drafted. A
+bootstrap run of `python3 -m saas.reporting.annual_report` is in progress to
+capture the first persisted run-output JSON and generate
+`docs/reports/ANNUAL_REPORT.md` — REVIEW_GATE on both report files once that
+completes.
 
 **Phase 4c complete, including the weather-effects re-run (2026-06-14)**:
 `simulation/run_phase2b.py` now applies 4c-2 (weather-driven demand) and 4c-3
