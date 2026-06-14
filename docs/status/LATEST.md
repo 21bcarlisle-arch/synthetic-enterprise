@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-14T01:30:00Z
+Last updated: 2026-06-14T06:22:24Z
 
 **Phase 4c complete, including the weather-effects re-run (2026-06-14)**:
 `simulation/run_phase2b.py` now applies 4c-2 (weather-driven demand) and 4c-3
@@ -262,3 +262,4 @@ remain the only items in the integration backlog — see "Follow-up — Full
 Portfolio Re-run" in `docs/observability/PHASE_4c_SUMMARY.md` for the
 per-account table and open questions (notably C5/C6's lower clarity, and
 C5/C6/Cxg falling back to default credit-risk/property seed estimates).
+
