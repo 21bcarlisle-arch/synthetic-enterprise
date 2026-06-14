@@ -1,4 +1,4 @@
-.PHONY: check lint test
+.PHONY: check lint test report
 
 check: lint test
 
@@ -10,3 +10,6 @@ test:
 
 fix:
 	ruff check . --fix
+
+report:
+	python3 -m saas.reporting.annual_report

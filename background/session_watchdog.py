@@ -630,14 +630,28 @@ def check_autoloop(pane_text: str) -> None:
 
     State machine over successive calls (one per CHECK_INTERVAL_SECONDS,
     pane content from `capture_pane()`):
-      - REVIEW_GATE or a permission prompt visible: NTFY once (not every
-        check) that the session needs Rich, and do nothing further —
-        these are deliberate stops, not idleness.
-      - Pane unchanged from the previous call: idle streak increments.
-      - Pane unchanged for AUTOLOOP_IDLE_CHECKS consecutive calls: send
-        AUTOLOOP_INSTRUCTION (subject to MAX_AUTOLOOP_PER_HOUR) and NTFY a
-        milestone message.
-      - Pane changed: idle streak resets — still mid-task.
+      - Pane changed from the previous call: idle streak resets — still
+        mid-task. Any prior "waiting on Rich" state is cleared once the pane
+        has been changing for AUTOLOOP_IDLE_CHECKS consecutive polls.
+      - Pane unchanged for AUTOLOOP_IDLE_CHECKS consecutive calls: a genuine
+        stop, not mid-task quiet. Then:
+          - REVIEW_GATE or a permission prompt visible: NTFY once (not every
+            check) that the session needs Rich, and do nothing further.
+          - Otherwise: send AUTOLOOP_INSTRUCTION (subject to
+            MAX_AUTOLOOP_PER_HOUR) and NTFY a milestone message.
+
+    REVIEW_GATE_PATTERN/PERMISSION_PROMPT_PATTERN are deliberately only
+    checked once the pane is idle. Checking them unconditionally on every
+    poll (regardless of pane activity) caused a real incident: Claude's own
+    prose routinely *mentions* "REVIEW_GATE" while actively working (e.g.
+    discussing a staged instruction's gate requirements), and if that text
+    sat in the captured pane tail, the old code treated it as a deliberate
+    stop on every single poll — returning early before ever reaching the
+    idle/nudge logic. That suppressed AUTOLOOP_INSTRUCTION (and its
+    USAGE_PAUSE_CHECK_INSTRUCTION prefix, the soft 90%-usage self-check) for
+    hours while Claude kept working, until the hard usage-limit path caught
+    it at 100% instead of the soft check catching it at 90%. Gating these
+    patterns on idle means an actively-changing pane never triggers them.
     """
     global _autoloop_last_pane, _autoloop_idle_streak, _autoloop_waiting_notified
     global _autoloop_gate_clear_streak, _usage_pause_notified
@@ -650,8 +664,23 @@ def check_autoloop(pane_text: str) -> None:
         return
     _usage_pause_notified = False
 
+    if pane_text != _autoloop_last_pane:
+        _autoloop_last_pane = pane_text
+        _autoloop_idle_streak = 0
+        if _autoloop_waiting_notified:
+            _autoloop_gate_clear_streak += 1
+            if _autoloop_gate_clear_streak >= AUTOLOOP_IDLE_CHECKS:
+                _autoloop_waiting_notified = False
+                _autoloop_gate_clear_streak = 0
+        return
+
+    _autoloop_idle_streak += 1
+    if _autoloop_idle_streak < AUTOLOOP_IDLE_CHECKS:
+        return
+
+    _autoloop_gate_clear_streak = 0
+
     if REVIEW_GATE_PATTERN.search(pane_text):
-        _autoloop_gate_clear_streak = 0
         response = read_and_clear_response(GATE_ID)
         if response is not None:
             decision = response.get("decision", "")
@@ -659,7 +688,6 @@ def check_autoloop(pane_text: str) -> None:
             subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, decision, "Enter"])
             ntfy(f"Got it — relayed to the session: {decision}")
             _autoloop_waiting_notified = False
-            _autoloop_last_pane = pane_text
             _autoloop_idle_streak = 0
             return
 
@@ -672,44 +700,17 @@ def check_autoloop(pane_text: str) -> None:
                 GATE_ID, token,
             )
             _autoloop_waiting_notified = True
-        _autoloop_last_pane = pane_text
-        _autoloop_idle_streak = 0
         return
 
     if PERMISSION_PROMPT_PATTERN.search(pane_text):
-        _autoloop_gate_clear_streak = 0
         if not _autoloop_waiting_notified:
             log("Permission prompt visible — waiting for Rich, autoloop paused")
             ntfy("Claude Code is waiting on a permission prompt — check the "
                  "session when you have a moment.", needs_input=True)
             _autoloop_waiting_notified = True
-        _autoloop_last_pane = pane_text
-        _autoloop_idle_streak = 0
         return
-
-    # Neither pattern matches this capture. If we were waiting on a gate or
-    # permission prompt, don't immediately clear that state on a single
-    # non-matching capture — debounce it (see _autoloop_gate_clear_streak's
-    # comment) so a one-off viewport shift doesn't cause a duplicate
-    # notification when the same gate text reappears next poll.
-    if _autoloop_waiting_notified:
-        _autoloop_gate_clear_streak += 1
-        if _autoloop_gate_clear_streak < AUTOLOOP_IDLE_CHECKS:
-            _autoloop_last_pane = pane_text
-            return
-        _autoloop_gate_clear_streak = 0
 
     _autoloop_waiting_notified = False
-
-    if pane_text != _autoloop_last_pane:
-        _autoloop_last_pane = pane_text
-        _autoloop_idle_streak = 0
-        return
-
-    _autoloop_idle_streak += 1
-    if _autoloop_idle_streak < AUTOLOOP_IDLE_CHECKS:
-        return
-
     _autoloop_idle_streak = 0
 
     if autoloop_sends_in_last_hour() >= MAX_AUTOLOOP_PER_HOUR:

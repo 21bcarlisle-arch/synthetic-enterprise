@@ -561,6 +561,7 @@ def main():
         "all_records": all_records,
         "administration_event": administration_event,
         "committee_wake_ups": committee_wake_ups,
+        "hedge_evolution": evolution_logs,
         "total_gross": total_gross,
         "total_capital": total_capital,
         "total_net": total_net,

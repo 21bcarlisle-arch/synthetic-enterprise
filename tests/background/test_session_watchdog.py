@@ -249,7 +249,10 @@ def test_check_autoloop_relays_gate_response(monkeypatch, tmp_path):
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
 
     review_gate_pane = "Summary complete. REVIEW_GATE: awaiting Rich's review of Phase 4b-4."
-    watchdog.check_autoloop(review_gate_pane)
+    # REVIEW_GATE_PATTERN is only checked once the pane has been idle
+    # (unchanged) for AUTOLOOP_IDLE_CHECKS consecutive polls.
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
+        watchdog.check_autoloop(review_gate_pane)
 
     assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, "Rich approved — proceed.", "Enter"] in send_keys_calls
     assert not (responses_dir / f"{watchdog.GATE_ID}.json").exists()
@@ -337,11 +340,15 @@ def test_check_autoloop_debounces_gate_clear_flicker(monkeypatch, tmp_path):
     gate_pane = "Summary complete. REVIEW_GATE: awaiting Rich's review of Phase 4b-4."
     other_pane = "Summary complete. awaiting Rich's review of Phase 4b-4."
 
-    watchdog.check_autoloop(gate_pane)
+    # REVIEW_GATE_PATTERN is only checked once the pane has been idle
+    # (unchanged) for AUTOLOOP_IDLE_CHECKS consecutive polls.
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
+        watchdog.check_autoloop(gate_pane)
     assert len(gate_calls) == 1
 
-    # One-off flicker where the pattern doesn't match, then back again —
-    # must not produce a second notification.
+    # One-off flicker where the pane changes, then back again — must not
+    # clear _autoloop_waiting_notified (which would allow a re-notification)
+    # on a single flicker.
     watchdog.check_autoloop(other_pane)
     watchdog.check_autoloop(gate_pane)
     assert len(gate_calls) == 1
