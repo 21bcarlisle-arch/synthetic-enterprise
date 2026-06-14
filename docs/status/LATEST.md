@@ -8,7 +8,28 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-14T13:55:48Z
+Last updated: 2026-06-14T16:18:17Z
+
+**Phase 5b complete — report data pipeline (2026-06-14)**: the combined
+2b+4b+4c run (`python3 -m simulation.run_phase4c_on_phase2b --save-json`)
+now runs Phase 2b once and feeds the same settlement records through the
+4b customer-value builders and 4c billing-experience builders, persisting
+the reduced output to `docs/reports/run_output_latest.json` (+ a versioned
+copy stamped with git commit and timestamp). `ANNUAL_REPORT.md` regenerates
+from this JSON with real customer-book, pricing/margin, and VaR-ratio data
+where it exists; remaining "Not available" placeholders are limited to
+genuinely-unbuilt mechanics (roster churn events, regulatory threshold
+tracking — see REPORTING_BACKLOG.md). A new "Hedge Effectiveness" section
+(whole-run + per-year) answers whether the risk committee's hedging actually
+made money: across the full 2016-2025 run, hedging **cost** £6,696.63 vs. a
+fully naked book (actual net £26,779.56 vs. naked net £33,476.19). Final
+figures: treasury £21,829.17 -> £48,608.72, net margin £26,779.56 (gross
+£45,417.31, capital cost ratio 41.0%), 130 Context Handshake wake-ups, 1,101
+bills (avg clarity 0.918, avg bill shock 12.7%, bad debt £2,639.69),
+enterprise value £32,018.72 across 6 billing accounts, SURVIVED full window.
+`make publish-report` pushes `ANNUAL_REPORT.md` to a public Gist:
+https://gist.github.com/21bcarlisle-arch/84943fc547781e6389e0561691ee5b4b
+252 tests passing, lint clean, pushed (`c56e6e8` + this run's commit).
 
 **Usage-pause fix #2 (2026-06-14)**: the soft 90%-usage self-pause never
 fired because `/usage` was embedded mid-instruction in
