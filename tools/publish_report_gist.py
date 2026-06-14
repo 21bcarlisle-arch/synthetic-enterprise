@@ -1,24 +1,36 @@
 #!/usr/bin/env python3
-"""Publish docs/reports/ANNUAL_REPORT.md as a public GitHub Gist.
+"""Publish docs/reports/ANNUAL_REPORT.md so Rich's strategy advisor
+(claude.ai) can fetch it directly, with no copy-paste from Rich.
 
-Phase 5b deliverable 5: Rich's strategy advisor cannot fetch
-raw.githubusercontent.com or Tailscale URLs -- only publicly indexed pages.
-Publishing the report as a Gist with a fixed, searchable description lets
-the advisor find and fetch it directly without copy-paste.
+claude.ai's sandbox cannot fetch raw.githubusercontent.com or Tailscale
+URLs, and Gists aren't indexed by search engines. GitHub Pages URLs are
+normal public web pages and already work for this repo (the status page at
+docs/status/ is served the same way) -- Pages is configured to serve from
+the `main` branch's `/docs` directory and rebuilds automatically on every
+push.
 
-Finds an existing gist with description `GIST_DESCRIPTION` and updates its
-file from `docs/reports/ANNUAL_REPORT.md`, or creates a new public gist if
-none exists. Prints the gist's HTML URL on stdout.
+So the fix is: commit and push docs/reports/ANNUAL_REPORT.md (and the JSON
+cache) to `main` whenever they change, which makes the regenerated report
+available within a couple of minutes at:
 
-Delegation note: hand-written (orchestration-adjacent -- shells out to `gh`,
-per protocol).
+    https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
+
+A Gist is also kept up to date as a secondary access path.
+
+Prints the Pages URL (primary) and Gist URL (secondary) on stdout.
+
+Delegation note: hand-written (orchestration-adjacent -- shells out to `git`
+and `gh`, per protocol).
 """
 
 import subprocess
 
-from saas.reporting.annual_report import DEFAULT_REPORT_PATH
+from saas.reporting.annual_report import DEFAULT_REPORT_DATA_PATH, DEFAULT_REPORT_PATH
 
 GIST_DESCRIPTION = "Synthetic Enterprise Annual Report — latest"
+PAGES_REPORT_URL = "https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md"
+
+REPORT_PATHS = [str(DEFAULT_REPORT_PATH), str(DEFAULT_REPORT_DATA_PATH)]
 
 
 def _find_existing_gist_id() -> str | None:
@@ -39,7 +51,7 @@ def _gist_url(gist_id: str) -> str:
     return result.stdout.strip()
 
 
-def publish() -> str:
+def publish_gist() -> str:
     """Create or update the Gist and return its HTML URL."""
     report_path = str(DEFAULT_REPORT_PATH)
     gist_id = _find_existing_gist_id()
@@ -55,9 +67,33 @@ def publish() -> str:
     return result.stdout.strip().splitlines()[-1]
 
 
+def publish_pages() -> str:
+    """Commit and push the report files to `main` so GitHub Pages picks up
+    the regenerated report, then return its Pages URL.
+
+    No-op (no commit) if the report files are unchanged.
+    """
+    status = subprocess.run(
+        ["git", "status", "--porcelain", *REPORT_PATHS],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+
+    if status:
+        subprocess.run(["git", "add", *REPORT_PATHS], check=True)
+        subprocess.run(
+            ["git", "commit", "-m", "Update published annual report (make publish-report)"],
+            check=True,
+        )
+        subprocess.run(["git", "push"], check=True)
+
+    return PAGES_REPORT_URL
+
+
 def main() -> None:
-    url = publish()
-    print(url)
+    pages_url = publish_pages()
+    gist_url = publish_gist()
+    print(f"Pages (primary): {pages_url}")
+    print(f"Gist (secondary): {gist_url}")
 
 
 if __name__ == "__main__":
