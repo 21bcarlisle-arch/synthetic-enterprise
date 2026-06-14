@@ -39,11 +39,16 @@ DEFAULT_TASK_TYPE = "coder"
 
 def delegate(prompt: str, task_type: str = DEFAULT_TASK_TYPE) -> dict:
     model = MODELS_BY_TASK_TYPE[task_type]
-    payload = json.dumps({"model": model, "prompt": prompt, "stream": False}).encode()
+    payload = json.dumps({
+        "model": model,
+        "prompt": prompt,
+        "stream": False,
+        "options": {"num_predict": 2048},
+    }).encode()
     request = urllib.request.Request(
         OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"}
     )
-    with urllib.request.urlopen(request, timeout=600) as response:
+    with urllib.request.urlopen(request, timeout=60) as response:
         result = json.loads(response.read())
     result["_model"] = model
     result["_task_type"] = task_type

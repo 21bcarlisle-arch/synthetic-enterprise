@@ -94,11 +94,12 @@ def _call_local(context: str) -> dict:
             {"role": "user", "content": context},
         ],
         "stream": False,
+        "options": {"num_predict": 2048},
     }).encode()
     request = urllib.request.Request(
         OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"}
     )
-    with urllib.request.urlopen(request, timeout=600) as response:
+    with urllib.request.urlopen(request, timeout=60) as response:
         result = json.loads(response.read())
     raw_text = result["message"]["content"]
 
