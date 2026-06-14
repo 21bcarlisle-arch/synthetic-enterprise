@@ -435,6 +435,8 @@ def main():
                         "settlement_date": rec["settlement_date"],
                         "treasury_gbp": treasury,
                         "adjustments": adjustments,
+                        "portfolio_var_current_gbp": portfolio_var_current,
+                        "portfolio_var_stressed_gbp": portfolio_var_stressed,
                     })
                 except Exception as exc:
                     print(f"    [ERROR] Committee invocation failed: {exc}")

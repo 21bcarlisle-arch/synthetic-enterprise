@@ -1,4 +1,4 @@
-.PHONY: check lint test report
+.PHONY: check lint test report publish-report
 
 check: lint test
 
@@ -13,3 +13,6 @@ fix:
 
 report:
 	python3 -m saas.reporting.annual_report
+
+publish-report: report
+	python3 -m tools.publish_report_gist

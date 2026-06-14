@@ -13,25 +13,33 @@ function over `extract_report_data()`'s result. The CLI entry point below
 (`docs/observability/phase4c_report_data.json`) so subsequent report
 regenerations can run from `--from-json` without re-running the simulation.
 
-Not-yet-available metrics (CLV, churn risk, home-move win rate, enterprise
-value, cost to serve, VaR ratios, treasury drawdown events) are not part of
-`run_phase4c_on_phase2b`'s output -- they come from
-`simulation/run_phase4b_on_phase2b.py` (4b) or aren't persisted at all yet.
-Per the "do not invent numbers" constraint, every such field is rendered as
-an explicit "Not available in current run output" note rather than an
-estimate. See `docs/reports/REPORTING_BACKLOG.md` for the integration work
-that would close each gap.
+Phase 5b: `run_phase4c_on_phase2b.main()` now runs Phase 2b once and feeds
+the same `all_records`/`CUSTOMERS` through both the 4c billing-experience
+builders and the 4b customer-value builders (`cost_to_serve`, `churn_model`,
+`home_move_win_rate`, `enterprise_value`), so CLV, churn risk, cost to serve,
+home-move win rate, enterprise value, and per-wake-up VaR are now part of the
+run output and reflected here. Two figures remain "Not available" by design
+(see `docs/reports/REPORTING_BACKLOG.md`): the churn-risk threshold and
+"losses during year" (no churn mechanic is applied to the actual settlement
+roster -- 4b's churn/home-move scores are point-in-time risk estimates, not
+roster events) and regulatory threshold breaches (no threshold defined yet).
+Per the "do not invent numbers" constraint, every other still-missing field
+would be rendered as an explicit "Not available in current run output" note
+rather than an estimate.
 """
 
 import argparse
 import json
 from pathlib import Path
 
+from saas.customer_reaction import _billing_account_id
 from saas.customers import CUSTOMERS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 
-DEFAULT_REPORT_DATA_PATH = Path("docs/observability/phase4c_report_data.json")
+DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
+
+DRAWDOWN_THRESHOLD_PCT = 0.10
 
 CRISIS_YEARS = {"2021", "2022"}
 
@@ -44,6 +52,33 @@ def _year(date_str: str) -> str:
 
 def _avg(values: list[float]) -> float | None:
     return sum(values) / len(values) if values else None
+
+
+def _drawdown_events(treasury_series: list[float], threshold: float = DRAWDOWN_THRESHOLD_PCT) -> list[dict]:
+    """Peak-to-trough drawdowns in `treasury_series` (chronological order)
+    of at least `threshold` (fraction of the peak). Returns
+    `[{peak_gbp, trough_gbp, drawdown_pct}]`, one entry per completed
+    drawdown (a new peak above the previous one ends/restarts tracking)."""
+    events = []
+    peak = treasury_series[0] if treasury_series else 0.0
+    trough = peak
+    for value in treasury_series[1:]:
+        if value > peak:
+            if peak > 0 and trough < peak:
+                drawdown_pct = (peak - trough) / peak
+                if drawdown_pct >= threshold:
+                    events.append({
+                        "peak_gbp": peak, "trough_gbp": trough, "drawdown_pct": drawdown_pct,
+                    })
+            peak = value
+            trough = value
+        elif value < trough:
+            trough = value
+    if peak > 0 and trough < peak:
+        drawdown_pct = (peak - trough) / peak
+        if drawdown_pct >= threshold:
+            events.append({"peak_gbp": peak, "trough_gbp": trough, "drawdown_pct": drawdown_pct})
+    return events
 
 
 def extract_report_data(run_output: dict) -> dict:
@@ -60,6 +95,17 @@ def extract_report_data(run_output: dict) -> dict:
     committee_wake_ups = phase2b.get("committee_wake_ups", [])
     hedge_evolution = phase2b.get("hedge_evolution", {})
     by_customer_contact = contact_model.get("by_customer", {})
+
+    cost_to_serve = run_output.get("cost_to_serve", {})
+    churn_risk = run_output.get("churn_risk", {})
+    home_move_win_rates = run_output.get("home_move_win_rates", {})
+    enterprise_value = run_output.get("enterprise_value", {})
+
+    hedge_entries = [
+        {**entry, "customer_id": cid}
+        for cid, entries in hedge_evolution.items()
+        for entry in entries
+    ]
 
     years = sorted({_year(r["settlement_date"]) for r in all_records})
 
@@ -126,6 +172,41 @@ def extract_report_data(run_output: dict) -> dict:
             if _year(e["period_end"]) == year
         ]
 
+        treasury_series = [
+            r["treasury_cash_balance_gbp"]
+            for r in sorted(yr_records, key=lambda r: (r["settlement_date"], r["settlement_period"]))
+        ]
+        treasury_drawdown_events = _drawdown_events(treasury_series)
+
+        var_wake_ups = [w for w in wake_ups if "portfolio_var_current_gbp" in w]
+        var_ratio = (
+            _avg([
+                w["portfolio_var_current_gbp"] / w["portfolio_var_stressed_gbp"]
+                for w in var_wake_ups
+                if w["portfolio_var_stressed_gbp"]
+            ])
+            if var_wake_ups
+            else None
+        )
+
+        yr_hedge_entries = [e for e in hedge_entries if _year(e["term_start"]) == year]
+        hedge_by_customer = {}
+        for cid in sorted({e["customer_id"] for e in yr_hedge_entries}):
+            centries = [e for e in yr_hedge_entries if e["customer_id"] == cid]
+            actual = sum(e["actual_net"] for e in centries)
+            naked = sum(e["naked_net"] for e in centries)
+            hedge_by_customer[cid] = {
+                "actual_net_gbp": actual,
+                "naked_net_gbp": naked,
+                "hedging_value_add_gbp": actual - naked,
+            }
+        hedge_effectiveness = {
+            "actual_net_gbp": sum(e["actual_net"] for e in yr_hedge_entries),
+            "naked_net_gbp": sum(e["naked_net"] for e in yr_hedge_entries),
+            "hedging_value_add_gbp": sum(e["actual_net"] - e["naked_net"] for e in yr_hedge_entries),
+            "by_customer": hedge_by_customer,
+        }
+
         yearly[year] = {
             "gross_gbp": sum(r["margin_gbp"] for r in yr_records),
             "capital_gbp": sum(r["capital_cost_gbp"] for r in yr_records),
@@ -151,6 +232,9 @@ def extract_report_data(run_output: dict) -> dict:
             "bill_shock_events": shock_events,
             "bad_debt_gbp": bad_debt_gbp,
             "avg_complaint_probability": _avg(complaint_probs),
+            "treasury_drawdown_events": treasury_drawdown_events,
+            "var_ratio": var_ratio,
+            "hedge_effectiveness": hedge_effectiveness,
         }
 
     per_customer_lifetime = {}
@@ -159,6 +243,7 @@ def extract_report_data(run_output: dict) -> dict:
         recs = [r for r in all_records if r["customer_id"] == cid]
         if not recs:
             continue
+        cts = cost_to_serve.get("by_customer", {}).get(cid, {})
         per_customer_lifetime[cid] = {
             "commodity": c["commodity"],
             "segment": c["segment"],
@@ -166,7 +251,58 @@ def extract_report_data(run_output: dict) -> dict:
             "gross_gbp": sum(r["margin_gbp"] for r in recs),
             "capital_gbp": sum(r["capital_cost_gbp"] for r in recs),
             "net_gbp": sum(r["net_margin_gbp"] for r in recs),
+            "cost_to_serve_gbp": cts.get("cost_to_serve_gbp"),
+            "net_margin_after_cost_to_serve_gbp": cts.get("net_margin_gbp"),
         }
+
+    # CLV/churn/enterprise-value are computed per billing account (dual-fuel
+    # electricity+gas legs combined, see _billing_account_id) -- a different
+    # key space than per_customer_lifetime's per-commodity customer_id.
+    by_billing_account = {}
+    for cid, c in {c["customer_id"]: c for c in CUSTOMERS}.items():
+        account_id = _billing_account_id(cid)
+        if account_id in by_billing_account:
+            continue
+        renewals = churn_risk.get(account_id, [])
+        win_rates = home_move_win_rates.get(account_id, [])
+        ev = enterprise_value.get("by_customer", {}).get(account_id)
+        by_billing_account[account_id] = {
+            "latest_churn_probability": renewals[-1]["churn_probability"] if renewals else None,
+            "latest_renewal_period": renewals[-1]["renewal_period"] if renewals else None,
+            "home_move_win_probability": win_rates[-1]["win_probability"] if win_rates else None,
+            "clv_gbp": ev["clv_gbp"] if ev else None,
+            "expected_lifetime_periods": ev["expected_lifetime_periods"] if ev else None,
+        }
+
+    clv_values = [v["clv_gbp"] for v in by_billing_account.values() if v["clv_gbp"] is not None]
+    if clv_values:
+        highest_clv = max(by_billing_account.items(), key=lambda kv: kv[1]["clv_gbp"] or float("-inf"))
+        lowest_clv = min(by_billing_account.items(), key=lambda kv: kv[1]["clv_gbp"] or float("inf"))
+    else:
+        highest_clv = lowest_clv = None
+
+    if hedge_entries:
+        best_decision = max(hedge_entries, key=lambda e: e["actual_net"] - e["naked_net"])
+        worst_decision = min(hedge_entries, key=lambda e: e["actual_net"] - e["naked_net"])
+        hedge_effectiveness_total = {
+            "actual_net_gbp": sum(e["actual_net"] for e in hedge_entries),
+            "naked_net_gbp": sum(e["naked_net"] for e in hedge_entries),
+            "hedging_value_add_gbp": sum(e["actual_net"] - e["naked_net"] for e in hedge_entries),
+            "best_decision": {
+                "customer_id": best_decision["customer_id"],
+                "term_start": best_decision["term_start"],
+                "hedging_value_add_gbp": best_decision["actual_net"] - best_decision["naked_net"],
+                "hf_used": best_decision["hf_used"],
+            },
+            "worst_decision": {
+                "customer_id": worst_decision["customer_id"],
+                "term_start": worst_decision["term_start"],
+                "hedging_value_add_gbp": worst_decision["actual_net"] - worst_decision["naked_net"],
+                "hf_used": worst_decision["hf_used"],
+            },
+        }
+    else:
+        hedge_effectiveness_total = None
 
     return {
         "starting_treasury_gbp": phase2b["starting_treasury"],
@@ -184,6 +320,19 @@ def extract_report_data(run_output: dict) -> dict:
         "avg_complaint_probability_total": contact_model.get("portfolio", {}).get(
             "avg_complaint_probability"
         ),
+        "cost_to_serve_portfolio_gbp": cost_to_serve.get("portfolio", {}).get("cost_to_serve_gbp"),
+        "net_margin_after_cost_to_serve_gbp": cost_to_serve.get("portfolio", {}).get("net_margin_gbp"),
+        "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
+        "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
+        "by_billing_account": by_billing_account,
+        "highest_clv": (
+            {"customer_id": highest_clv[0], "clv_gbp": highest_clv[1]["clv_gbp"]} if highest_clv else None
+        ),
+        "lowest_clv": (
+            {"customer_id": lowest_clv[0], "clv_gbp": lowest_clv[1]["clv_gbp"]} if lowest_clv else None
+        ),
+        "avg_clv_gbp": _avg(clv_values),
+        "hedge_effectiveness_total": hedge_effectiveness_total,
     }
 
 
@@ -211,6 +360,22 @@ def _executive_summary(data: dict) -> str:
             "wake-up(s)."
         )
 
+    if data["enterprise_value_gbp"] is not None:
+        enterprise_value_line = (
+            f"- Enterprise value (CLV sum across {data['enterprise_value_account_count']} "
+            f"billing accounts): {_fmt_gbp(data['enterprise_value_gbp'])}"
+        )
+    else:
+        enterprise_value_line = f"- Enterprise value: {NOT_AVAILABLE}"
+
+    if data["cost_to_serve_portfolio_gbp"] is not None:
+        cost_to_serve_line = (
+            f"- Cost to serve (whole portfolio): {_fmt_gbp(data['cost_to_serve_portfolio_gbp'])}, "
+            f"net margin after cost to serve: {_fmt_gbp(data['net_margin_after_cost_to_serve_gbp'])}"
+        )
+    else:
+        cost_to_serve_line = f"- Cost to serve (whole portfolio): {NOT_AVAILABLE}"
+
     return f"""## Executive Summary
 
 This report covers {years[0]}–{years[-1]} ({len(years)} calendar years,
@@ -226,17 +391,27 @@ the last partial). The business {outcome}.
 - Risk committee (Context Handshake) interventions: {data['committee_wake_ups_total']}
 - Bills issued: {data['bills_total']}, average clarity {data['avg_clarity_total']:.3f},
   service quality score {data['service_quality_score']:.3f}
+{enterprise_value_line}
+{cost_to_serve_line}
+- Hedge effectiveness (whole window): {_hedge_value_add_line(data['hedge_effectiveness_total'])}
 
 {chr(10).join(crisis_lines) if crisis_lines else "No crisis years in this window."}
-
-**Enterprise value, CLV, churn risk, and cost-to-serve figures are not
-included** -- they are produced by a separate run
-(`simulation/run_phase4b_on_phase2b.py`) not yet integrated into this
-report's data source. See REPORTING_BACKLOG.md.
 """
 
 
-def _customer_book_section(year: str, yd: dict) -> str:
+def _hedge_value_add_line(totals: dict | None) -> str:
+    if totals is None:
+        return NOT_AVAILABLE
+    add = totals["hedging_value_add_gbp"]
+    verb = "added" if add >= 0 else "cost"
+    return (
+        f"hedging {verb} {_fmt_gbp(abs(add))} vs. a fully unhedged book "
+        f"(actual net {_fmt_gbp(totals['actual_net_gbp'])} vs. naked net "
+        f"{_fmt_gbp(totals['naked_net_gbp'])})"
+    )
+
+
+def _customer_book_section(year: str, yd: dict, data: dict) -> str:
     lines = ["**Customer Book**", ""]
     active = yd["active_customer_ids"]
     resi_elec = [c for c in active if c in {"C1", "C2", "C3", "C4"}]
@@ -257,8 +432,20 @@ def _customer_book_section(year: str, yd: dict) -> str:
         "the settlement run; 4b's churn/home-move models are point-in-time "
         "risk scores, not roster events."
     )
-    lines.append(f"- Average CLV across book at year end: {NOT_AVAILABLE}")
-    lines.append(f"- Highest/lowest CLV customer: {NOT_AVAILABLE}")
+    if data["avg_clv_gbp"] is not None:
+        lines.append(
+            f"- Average CLV across book (whole-run projection, per billing account): "
+            f"{_fmt_gbp(data['avg_clv_gbp'])}"
+        )
+        lines.append(
+            f"- Highest CLV: {data['highest_clv']['customer_id']} "
+            f"({_fmt_gbp(data['highest_clv']['clv_gbp'])}); "
+            f"Lowest CLV: {data['lowest_clv']['customer_id']} "
+            f"({_fmt_gbp(data['lowest_clv']['clv_gbp'])})"
+        )
+    else:
+        lines.append(f"- Average CLV across book at year end: {NOT_AVAILABLE}")
+        lines.append(f"- Highest/lowest CLV customer: {NOT_AVAILABLE}")
     if yd["bill_shock_events"]:
         events = "; ".join(
             f"{e['customer_id']} {e['period_end']} ({e['bill_shock_pct']:.0%})"
@@ -271,7 +458,7 @@ def _customer_book_section(year: str, yd: dict) -> str:
     return "\n".join(lines)
 
 
-def _pricing_margin_section(yd: dict) -> str:
+def _pricing_margin_section(yd: dict, data: dict) -> str:
     lines = ["**Pricing & Margin**", ""]
     for cid, pc in sorted(yd["per_customer"].items()):
         if pc["tariff_min_gbp_per_mwh"] == pc["tariff_max_gbp_per_mwh"]:
@@ -283,8 +470,29 @@ def _pricing_margin_section(yd: dict) -> str:
             f"{_fmt_gbp(pc['net_gbp'])}"
             + (" -- **net-negative**" if pc["net_gbp"] < 0 else "")
         )
-    lines.append(f"- Cost to serve per customer (average and range): {NOT_AVAILABLE}")
-    lines.append(f"- Net margin per customer after cost to serve: {NOT_AVAILABLE}")
+    cts_values = [
+        v["cost_to_serve_gbp"]
+        for v in data["per_customer_lifetime"].values()
+        if v["cost_to_serve_gbp"] is not None
+    ]
+    if cts_values:
+        lines.append(
+            f"- Cost to serve per customer (whole-run total, average "
+            f"{_fmt_gbp(_avg(cts_values))}, range "
+            f"{_fmt_gbp(min(cts_values))}-{_fmt_gbp(max(cts_values))}):"
+        )
+        for cid, pcl in sorted(data["per_customer_lifetime"].items()):
+            if pcl["cost_to_serve_gbp"] is None:
+                continue
+            lines.append(
+                f"  - {cid}: cost to serve {_fmt_gbp(pcl['cost_to_serve_gbp'])}, "
+                f"net margin after cost to serve "
+                f"{_fmt_gbp(pcl['net_margin_after_cost_to_serve_gbp'])}"
+                + (" -- **net-negative**" if pcl["net_margin_after_cost_to_serve_gbp"] < 0 else "")
+            )
+    else:
+        lines.append(f"- Cost to serve per customer (average and range): {NOT_AVAILABLE}")
+        lines.append(f"- Net margin per customer after cost to serve: {NOT_AVAILABLE}")
     return "\n".join(lines)
 
 
@@ -311,8 +519,20 @@ def _trading_risk_section(year: str, yd: dict) -> str:
     lines.append(f"- Risk committee (Context Handshake) interventions: {len(yd['committee_wake_ups'])}")
     for wu in yd["committee_wake_ups"]:
         adj = ", ".join(f"{k}->{v:.2f}" for k, v in wu["adjustments"].items()) or "(none)"
-        lines.append(f"  - {wu['settlement_date']}: treasury {_fmt_gbp(wu['treasury_gbp'])}, {adj}")
-    lines.append(f"- VaR ratio (current vs stressed floor): {NOT_AVAILABLE}")
+        line = f"  - {wu['settlement_date']}: treasury {_fmt_gbp(wu['treasury_gbp'])}, {adj}"
+        if "portfolio_var_current_gbp" in wu and wu["portfolio_var_stressed_gbp"]:
+            ratio = wu["portfolio_var_current_gbp"] / wu["portfolio_var_stressed_gbp"]
+            line += (
+                f", VaR (current {_fmt_gbp(wu['portfolio_var_current_gbp'])} / "
+                f"stressed {_fmt_gbp(wu['portfolio_var_stressed_gbp'])}) ratio {ratio:.2f}"
+            )
+        lines.append(line)
+    if yd["var_ratio"] is not None:
+        lines.append(f"- VaR ratio (current vs stressed floor, avg of this year's wake-ups): {yd['var_ratio']:.2f}")
+    elif yd["committee_wake_ups"]:
+        lines.append(f"- VaR ratio (current vs stressed floor): {NOT_AVAILABLE}")
+    else:
+        lines.append("- VaR ratio (current vs stressed floor): no risk committee wake-up this year")
     wp = yd["worst_period"]
     lines.append(
         f"- Worst single period: {wp['customer_id']} on {wp['settlement_date']} "
@@ -327,7 +547,17 @@ def _portfolio_health_section(year: str, yd: dict, data: dict) -> str:
         lines.append(f"- Capital cost ratio: {yd['capital_gbp'] / yd['gross_gbp']:.1%} of gross")
     else:
         lines.append("- Capital cost ratio: n/a (no gross margin this year)")
-    lines.append(f"- Treasury drawdown events (>10% threshold): {NOT_AVAILABLE}")
+    if yd["treasury_drawdown_events"]:
+        events = "; ".join(
+            f"{_fmt_gbp(e['peak_gbp'])} -> {_fmt_gbp(e['trough_gbp'])} ({e['drawdown_pct']:.1%})"
+            for e in yd["treasury_drawdown_events"]
+        )
+        lines.append(
+            f"- Treasury drawdown events (>={DRAWDOWN_THRESHOLD_PCT:.0%} threshold): "
+            f"{len(yd['treasury_drawdown_events'])} -- {events}"
+        )
+    else:
+        lines.append(f"- Treasury drawdown events (>={DRAWDOWN_THRESHOLD_PCT:.0%} threshold): none")
     if yd["bills_count"]:
         lines.append(
             f"- Bills issued: {yd['bills_count']}, average clarity {yd['avg_clarity']:.3f}, "
@@ -363,6 +593,57 @@ def _year_narrative(year: str, yd: dict) -> str:
     )
 
 
+def _hedge_effectiveness_section(yd: dict) -> str:
+    """Per-year hedge effectiveness: actual (hedged) vs naked (unhedged)
+    net margin across all renewal terms starting in this year, overall and
+    per customer. Answers the strategic question: did the risk committee's
+    hedge-fraction interventions make money, or just reduce variance?"""
+    he = yd["hedge_effectiveness"]
+    lines = ["**Hedge Effectiveness**", ""]
+    if not he["by_customer"]:
+        lines.append("- No renewal terms started this year -- nothing to evaluate.")
+        return "\n".join(lines)
+    lines.append(
+        f"- Actual (hedged) net margin: {_fmt_gbp(he['actual_net_gbp'])} vs. naked "
+        f"(unhedged) net margin: {_fmt_gbp(he['naked_net_gbp'])}"
+    )
+    lines.append(f"- {_hedge_value_add_line(he)}")
+    for cid, c in sorted(he["by_customer"].items()):
+        add = c["hedging_value_add_gbp"]
+        verb = "added" if add >= 0 else "cost"
+        lines.append(
+            f"  - {cid}: actual {_fmt_gbp(c['actual_net_gbp'])} vs. naked "
+            f"{_fmt_gbp(c['naked_net_gbp'])} -- hedging {verb} {_fmt_gbp(abs(add))}"
+        )
+    return "\n".join(lines)
+
+
+def _hedge_effectiveness_summary_section(data: dict) -> str:
+    """Whole-run hedge effectiveness summary -- the best and worst single
+    hedging decisions across the full 9.5-year run."""
+    totals = data["hedge_effectiveness_total"]
+    if totals is None:
+        return f"## Hedge Effectiveness — Whole Run\n\n{NOT_AVAILABLE}\n"
+
+    best = totals["best_decision"]
+    worst = totals["worst_decision"]
+    return f"""## Hedge Effectiveness — Whole Run
+
+This is the most strategically interesting question in the whole
+simulation: did the risk committee's hedging interventions actually make
+money, or just reduce variance?
+
+- {_hedge_value_add_line(totals)}
+- **Best hedging decision of the run**: {best['customer_id']}, term starting
+  {best['term_start']} (hedge fraction {best['hf_used']:.2f}) -- hedging
+  protected {_fmt_gbp(best['hedging_value_add_gbp'])} vs. going naked.
+- **Worst hedging decision of the run**: {worst['customer_id']}, term
+  starting {worst['term_start']} (hedge fraction {worst['hf_used']:.2f}) --
+  over-hedging cost {_fmt_gbp(abs(worst['hedging_value_add_gbp']))} vs. going
+  naked.
+"""
+
+
 def generate_annual_report(data: dict) -> str:
     """Build the full markdown annual report from `extract_report_data()`'s
     output."""
@@ -371,16 +652,20 @@ def generate_annual_report(data: dict) -> str:
         _executive_summary(data),
     ]
 
+    sections.append(_hedge_effectiveness_summary_section(data))
+
     for year in sorted(data["years"]):
         yd = data["years"][year]
         sections.append(f"## {year}\n")
         sections.append(_trading_risk_section(year, yd))
         sections.append("")
-        sections.append(_customer_book_section(year, yd))
+        sections.append(_customer_book_section(year, yd, data))
         sections.append("")
-        sections.append(_pricing_margin_section(yd))
+        sections.append(_pricing_margin_section(yd, data))
         sections.append("")
         sections.append(_portfolio_health_section(year, yd, data))
+        sections.append("")
+        sections.append(_hedge_effectiveness_section(yd))
         sections.append("")
         sections.append(_year_narrative(year, yd))
         sections.append("")
