@@ -1,6 +1,7 @@
 import json
 import time
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from background import session_watchdog as watchdog
 
@@ -199,6 +200,7 @@ def test_check_autoloop_sends_instruction_after_idle_streak(monkeypatch):
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     send_keys_calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
 
     idle_pane = "Claude Code is idle at the prompt"
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
@@ -466,6 +468,7 @@ def test_check_autoloop_resumes_after_usage_pause_expires(tmp_path, monkeypatch)
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     send_keys_calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
 
     idle_pane = "Claude Code is idle at the prompt"
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
@@ -473,4 +476,65 @@ def test_check_autoloop_resumes_after_usage_pause_expires(tmp_path, monkeypatch)
 
     assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, watchdog.AUTOLOOP_INSTRUCTION, "Enter"] in send_keys_calls
     assert not pause_file.is_file()
+    _reset_autoloop_state()
+
+
+def test_parse_usage_pane_extracts_pct_reset_time_and_tz():
+    pane_text = (
+        "Current session · Resets 4:59pm (Europe/London)\n"
+        "██████████████████\n"
+        "                                                          33% used\n"
+    )
+    assert watchdog.parse_usage_pane(pane_text) == (33, "4:59pm", "Europe/London")
+
+
+def test_parse_usage_pane_returns_none_without_usage_block():
+    assert watchdog.parse_usage_pane("Claude Code is idle at the prompt") is None
+
+
+def test_usage_resume_at_returns_future_utc_iso8601():
+    tz = ZoneInfo("Europe/London")
+    now_local = datetime.now(tz)
+    future_time = (now_local + timedelta(hours=1)).strftime("%I:%M%p").lstrip("0").lower()
+
+    resume_at = watchdog._usage_resume_at(future_time, "Europe/London")
+
+    resume_dt = datetime.fromisoformat(resume_at)
+    assert resume_dt.tzinfo is not None
+    assert resume_dt > datetime.now(timezone.utc)
+
+
+def test_check_session_usage_sends_standalone_usage_and_dismisses(monkeypatch):
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "capture_pane", lambda: "Current session · Resets 4:59pm (Europe/London)\n33% used\n")
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+
+    result = watchdog.check_session_usage()
+
+    assert result == (33, "4:59pm", "Europe/London")
+    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, "/usage", "Enter"] in send_keys_calls
+    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, "Escape"] in send_keys_calls
+
+
+def test_check_autoloop_writes_usage_pause_file_at_threshold(tmp_path, monkeypatch):
+    _reset_autoloop_state()
+    pause_file = tmp_path / ".usage_pause.json"
+    monkeypatch.setattr(watchdog, "USAGE_PAUSE_FILE", pause_file)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    send_keys_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (92, "4:59pm", "Europe/London"))
+
+    idle_pane = "Claude Code is idle at the prompt"
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
+        watchdog.check_autoloop(idle_pane)
+
+    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, watchdog.AUTOLOOP_INSTRUCTION, "Enter"] not in send_keys_calls
+    assert pause_file.is_file()
+    data = json.loads(pause_file.read_text())
+    assert "resume_at" in data
+    assert any("92%" in msg for msg in ntfy_messages)
     _reset_autoloop_state()

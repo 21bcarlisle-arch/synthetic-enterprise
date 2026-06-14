@@ -45,23 +45,30 @@ GPU doing useful prep/housekeeping work instead of sitting idle during the
 wait (Rich's instruction).
 
 PROACTIVE USAGE PAUSE (soft, self-checkpointing — Rich's instruction,
-2026-06-13): the usage-limit handling above is reactive — it waits for
-Claude Code's own "usage limit reached" message, which can land mid-tool-call
-and leave a messier resume than a stop at a natural checkpoint (between
-sub-phases, after a commit). To avoid that, every AUTOLOOP_INSTRUCTION sent
-when the session goes idle is prefixed with USAGE_PAUSE_CHECK_INSTRUCTION:
-run `/usage`, and if "Current session" usage is at or above
-USAGE_PAUSE_THRESHOLD_PCT (90%), wrap up the current sub-phase (commit/push,
-update LATEST.md), write the session's reset time (from `/usage`, converted
-to UTC ISO8601) to docs/observability/.usage_pause.json as
-`{"resume_at": "<iso8601>"}`, and stop without starting new work. Before
-sending the next autoloop nudge, `usage_pause_active()` checks for this file:
-if `resume_at` is still in the future, the nudge is suppressed entirely
-(logged once, not every cycle); once it has passed, the file is deleted and
-normal autoloop resumes — the resumed instruction re-checks `/usage` itself,
-so it only pauses again if still >= 90%. This is a soft self-imposed
-checkpoint layered in front of the hard usage-limit path above, not a
-replacement for it.
+2026-06-13, fixed 2026-06-14): the usage-limit handling above is reactive —
+it waits for Claude Code's own "usage limit reached" message, which can land
+mid-tool-call and leave a messier resume than a stop at a natural checkpoint
+(between sub-phases, after a commit). To avoid that, the watchdog itself
+checks usage before sending each autoloop nudge: `check_session_usage()`
+sends a standalone `/usage` keystroke to the session (a slash command can
+only be recognised when it's the entire input — embedding "run /usage..."
+inside a longer instruction, as the original version of this did, is never
+executed as a command), captures the pane, parses the "Current session"
+percentage and reset time via `parse_usage_pane()`, then dismisses the
+dialog with Escape.
+
+If usage is at or above USAGE_PAUSE_THRESHOLD_PCT (90%), the watchdog writes
+docs/observability/.usage_pause.json itself (`{"resume_at": "<iso8601>"}`,
+computed from the parsed reset time via `_usage_resume_at`) and skips sending
+AUTOLOOP_INSTRUCTION for this cycle — Claude's current sub-phase is left to
+finish naturally rather than being interrupted. Before sending the next
+autoloop nudge, `usage_pause_active()` checks this file: if `resume_at` is
+still in the future, the nudge is suppressed entirely (logged once, not every
+cycle); once it has passed, the file is deleted, an NTFY is sent, and normal
+autoloop resumes — `check_session_usage()` runs again on the next nudge and
+will pause again if still >= 90%. This is a soft self-imposed checkpoint
+layered in front of the hard usage-limit path above, not a replacement for
+it.
 
 KNOWN LIMITATION — "verified sender": https://ntfy.sh/skynet-synthetic is a
 public, unauthenticated topic. There is no cryptographic way to verify who
@@ -80,8 +87,9 @@ import secrets
 import subprocess
 import time
 from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -248,21 +256,18 @@ USAGE_PAUSE_THRESHOLD_PCT = 90
 
 USAGE_PAUSE_FILE = Path(f"{PROJECT_DIR}/docs/observability/.usage_pause.json")
 
-# Prefixed onto AUTOLOOP_INSTRUCTION (see "PROACTIVE USAGE PAUSE" in the
-# module docstring) — a soft self-checkpoint before the hard usage-limit path.
-USAGE_PAUSE_CHECK_INSTRUCTION = (
-    f"Before continuing: run /usage and check the 'Current session' "
-    f"percentage. If it is at or above {USAGE_PAUSE_THRESHOLD_PCT}%, wrap up "
-    "cleanly now instead of starting new work — commit and push any "
-    "completed work, update docs/status/LATEST.md noting a scheduled usage "
-    "pause and the session reset time shown by /usage, then write that "
-    "reset time converted to UTC as ISO8601 to "
-    'docs/observability/.usage_pause.json as {"resume_at": "<iso8601>"} '
-    "and stop — do not start new work. Otherwise, ignore this paragraph and "
-    "proceed: "
+# Matches the "Current session" block of `/usage` output, e.g.:
+#   Current session · Resets 4:59pm (Europe/London)
+#   █████████████████▊
+#                                                           33% used
+# Captures the reset time, timezone name, and percentage used.
+USAGE_PCT_PATTERN = re.compile(
+    r"Current session.*?Resets\s+(?P<time>\d{1,2}:\d{2}\s*(?:am|pm))\s*"
+    r"\((?P<tz>[^)]+)\).*?(?P<pct>\d{1,3})%\s*used",
+    re.IGNORECASE | re.DOTALL,
 )
 
-AUTOLOOP_INSTRUCTION = USAGE_PAUSE_CHECK_INSTRUCTION + (
+AUTOLOOP_INSTRUCTION = (
     "Per the Staging Directory Protocol, first check docs/staging/ for any "
     "file not yet in docs/staging/done/ -- staging is pre-approval, action it "
     "now without waiting for confirmation, following its own Gate/NTFY "
@@ -591,6 +596,47 @@ def handle_usage_limit() -> None:
     handle_session_ended()
 
 
+def parse_usage_pane(pane_text: str) -> tuple[int, str, str] | None:
+    """Parse the "Current session" block of `/usage` output from `pane_text`.
+
+    Returns (pct_used, reset_time, tz_name) — e.g. (33, "4:59pm",
+    "Europe/London") — or None if the pane doesn't contain a recognisable
+    /usage block (e.g. the dialog hasn't rendered yet)."""
+    m = USAGE_PCT_PATTERN.search(pane_text)
+    if not m:
+        return None
+    return int(m["pct"]), m["time"].strip(), m["tz"].strip()
+
+
+def _usage_resume_at(reset_time: str, tz_name: str) -> str:
+    """Convert a `/usage` reset time (e.g. "4:59pm") and IANA timezone name
+    (e.g. "Europe/London") into a UTC ISO8601 timestamp, assuming the reset
+    is the next occurrence of that time (today if still in the future,
+    otherwise tomorrow)."""
+    tz = ZoneInfo(tz_name)
+    now_local = datetime.now(tz)
+    reset_t = datetime.strptime(reset_time.lower().replace(" ", ""), "%I:%M%p").time()
+    resume_local = datetime.combine(now_local.date(), reset_t, tzinfo=tz)
+    if resume_local <= now_local:
+        resume_local += timedelta(days=1)
+    return resume_local.astimezone(timezone.utc).isoformat()
+
+
+def check_session_usage() -> tuple[int, str, str] | None:
+    """Send a standalone `/usage` command to the session, capture the
+    resulting dialog, dismiss it, and parse the "Current session" block.
+
+    Returns (pct_used, reset_time, tz_name), or None if the output couldn't
+    be parsed (e.g. the dialog didn't render within the wait — treated as
+    "unknown, don't pause" by callers).
+    """
+    subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, "/usage", "Enter"])
+    time.sleep(2)
+    pane_text = capture_pane()
+    subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, "Escape"])
+    return parse_usage_pane(pane_text)
+
+
 def usage_pause_active() -> bool:
     """True if docs/observability/.usage_pause.json exists and its
     "resume_at" timestamp (ISO8601, written by Claude itself per
@@ -647,11 +693,11 @@ def check_autoloop(pane_text: str) -> None:
     discussing a staged instruction's gate requirements), and if that text
     sat in the captured pane tail, the old code treated it as a deliberate
     stop on every single poll — returning early before ever reaching the
-    idle/nudge logic. That suppressed AUTOLOOP_INSTRUCTION (and its
-    USAGE_PAUSE_CHECK_INSTRUCTION prefix, the soft 90%-usage self-check) for
-    hours while Claude kept working, until the hard usage-limit path caught
-    it at 100% instead of the soft check catching it at 90%. Gating these
-    patterns on idle means an actively-changing pane never triggers them.
+    idle/nudge logic. That suppressed AUTOLOOP_INSTRUCTION (and the soft
+    90%-usage self-check that used to be prefixed onto it) for hours while
+    Claude kept working, until the hard usage-limit path caught it at 100%
+    instead of the soft check catching it at 90%. Gating these patterns on
+    idle means an actively-changing pane never triggers them.
     """
     global _autoloop_last_pane, _autoloop_idle_streak, _autoloop_waiting_notified
     global _autoloop_gate_clear_streak, _usage_pause_notified
@@ -720,6 +766,24 @@ def check_autoloop(pane_text: str) -> None:
                  "— pausing autonomous continuation, check the session.", needs_input=True)
             _autoloop_waiting_notified = True
         return
+
+    usage = check_session_usage()
+    if usage is not None:
+        pct, reset_time, tz_name = usage
+        if pct >= USAGE_PAUSE_THRESHOLD_PCT:
+            resume_at = _usage_resume_at(reset_time, tz_name)
+            USAGE_PAUSE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            USAGE_PAUSE_FILE.write_text(
+                json.dumps({"resume_at": resume_at}), encoding="utf-8"
+            )
+            log(f"Session usage at {pct}% (>= {USAGE_PAUSE_THRESHOLD_PCT}%) — "
+                f"writing usage pause until {resume_at}, holding off the "
+                "autoloop nudge this cycle")
+            ntfy(f"Claude Code session usage at {pct}% — autoloop pausing "
+                 f"until reset ({reset_time} {tz_name}).")
+            _autoloop_waiting_notified = False
+            _autoloop_idle_streak = 0
+            return
 
     log("Session idle — sending autoloop continuation instruction")
     subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, AUTOLOOP_INSTRUCTION, "Enter"])
