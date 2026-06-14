@@ -1,0 +1,8 @@
+#!/bin/sh
+# If docs/status/LATEST.md is staged, auto-stamp its "Last updated:" line to
+# the current UTC time and re-stage it. This makes the timestamp a fact about
+# when the commit happened rather than something a human/agent has to
+# remember to edit by hand (see tools/stamp_latest_md.py for the why).
+if git diff --cached --name-only | grep -qx "docs/status/LATEST.md"; then
+    python3 tools/stamp_latest_md.py && git add docs/status/LATEST.md
+fi

@@ -57,6 +57,17 @@ This is a Phase-4c-scoped relaxation of the general "REVIEW_GATE after each
 sub-phase" pattern in MASTER_BACKLOG — other phases still pause at
 REVIEW_GATE by default unless given the same instruction.
 
+## LATEST.md Timestamp (standing instruction, 2026-06-14)
+`docs/status/LATEST.md`'s "Last updated:" line is auto-stamped to the current
+UTC time by a pre-commit hook (`tools/git-hooks/pre-commit` ->
+`tools/stamp_latest_md.py`) whenever the file is part of a commit — do not
+hand-edit that line, it will be overwritten on commit anyway. After a fresh
+clone, run `git config core.hooksPath tools/git-hooks` once to enable it
+(this repo's working copy already has it set). This exists because the
+timestamp was repeatedly left stale or even moved backwards across several
+commits on 2026-06-13 when edited by hand (e.g. left at
+`2026-06-13T12:30:00Z` across two unrelated phase-completion commits).
+
 ## Standard Completion Protocol (standing instruction)
 At the end of every task — after `make check`, the NTFY completion message, and the
 `docs/status/LATEST.md` update — before going idle:
