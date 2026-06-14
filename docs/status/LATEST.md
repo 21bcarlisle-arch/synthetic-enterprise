@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-14T11:06:34Z
+Last updated: 2026-06-14T13:09:20Z
 
 **Weather-effects re-run completed cleanly with Ollama caps (2026-06-14)**:
 the restarted run (num_predict=2048 cap + 60s timeout on all Ollama calls,
@@ -32,14 +32,17 @@ caught it instead. Fixed: these patterns are now only checked once the pane
 has been idle (unchanged) for `AUTOLOOP_IDLE_CHECKS` consecutive polls. 34
 watchdog tests updated and passing.
 
-**Phase 5a (annual reporting) — in progress**: `saas/reporting/annual_report.py`
-(standing `extract_report_data()`/`generate_annual_report()` functions, `make
-report` target, fixture-based tests) is built and committed.
-`docs/reports/REPORTING_BACKLOG.md` (15 prioritised items) is drafted. A
-bootstrap run of `python3 -m saas.reporting.annual_report` is in progress to
-capture the first persisted run-output JSON and generate
-`docs/reports/ANNUAL_REPORT.md` — REVIEW_GATE on both report files once that
-completes.
+**Phase 5a complete — annual report generated, REVIEW_GATE (2026-06-14)**:
+the bootstrap run of `python3 -m saas.reporting.annual_report` finished
+(net margin £26,173.89, gross £44,682.49, capital cost ratio 41.4%,
+treasury £21,829.17 → £48,003.06, 122 Context Handshake wake-ups, 1,101
+bills, SURVIVED full window — figures differ slightly from the weather-effects
+re-run above due to LLM non-determinism in risk-committee responses).
+`docs/observability/phase4c_report_data.json` now holds the persisted run
+output, and `docs/reports/ANNUAL_REPORT.md` (10 year sections, 2016-2025) was
+generated from it. `docs/reports/REPORTING_BACKLOG.md` (15 prioritised items)
+is also ready. **Awaiting Rich's review of both and prioritisation of the
+backlog before any further reporting work.**
 
 **Phase 4c complete, including the weather-effects re-run (2026-06-14)**:
 `simulation/run_phase2b.py` now applies 4c-2 (weather-driven demand) and 4c-3

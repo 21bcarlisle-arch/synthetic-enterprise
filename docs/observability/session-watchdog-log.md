@@ -11,3 +11,56 @@
 - [2026-06-13 14:07 UTC] Permission prompt visible — waiting for Rich, autoloop paused
 - [2026-06-13 15:33 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
 - [2026-06-13 15:39 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 15:44 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 16:04 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 16:10 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 16:11 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 16:16 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 16:19 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 16:30 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 16:42 UTC] Permission prompt visible — waiting for Rich, autoloop paused
+- [2026-06-13 17:00 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 17:01 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 17:12 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 17:17 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 17:26 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 17:27 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 17:48 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 17:49 UTC] Session watchdog started (gated mode — restarts require NTFY YES confirmation, except usage-limit auto-resume); autoloop active (idle 300s -> continue, REVIEW_GATE/permission prompts pause for Rich)
+- [2026-06-13 17:50 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 17:58 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 19:14 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 19:40 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 19:41 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 19:45 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 19:52 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 19:55 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 20:02 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 20:11 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 20:14 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 20:21 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 20:22 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 20:45 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 20:49 UTC] Usage-limit message detected — auto-wait (no confirmation required)
+- [2026-06-13 21:04 UTC] Usage limit cleared — session resumed in place
+- [2026-06-13 21:10 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 21:15 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 21:20 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 21:28 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 21:29 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 21:49 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 21:50 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-13 23:12 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-13 23:13 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-14 06:29 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 06:30 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-14 06:58 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-14 07:21 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 07:22 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-14 07:32 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 07:33 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-14 08:30 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 08:31 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-14 11:07 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-14 12:16 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 12:17 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused

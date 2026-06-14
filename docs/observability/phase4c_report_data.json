@@ -1,0 +1,3630 @@
+{
+  "starting_treasury_gbp": 21829.166666666668,
+  "final_treasury_gbp": 48003.05719444606,
+  "total_gross_gbp": 44682.48582537733,
+  "total_capital_gbp": 18508.595297599,
+  "total_net_gbp": 26173.89052777833,
+  "administration_event": null,
+  "committee_wake_ups_total": 122,
+  "years": {
+    "2016": {
+      "gross_gbp": 1841.207796304793,
+      "capital_gbp": 812.0869940437294,
+      "net_gbp": 1029.1208022610635,
+      "treasury_end_gbp": 22668.715968604363,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 1686.580286304793,
+          "capital_gbp": 790.8878885637295,
+          "net_gbp": 895.6923977410636
+        },
+        "gas": {
+          "gross_gbp": 154.62751,
+          "capital_gbp": 21.19910548,
+          "net_gbp": 133.42840452
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": 188.40059845196967,
+          "capital_gbp": 47.92926689020008,
+          "net_gbp": 140.4713315617696,
+          "tariff_min_gbp_per_mwh": 132.42548300618805,
+          "tariff_max_gbp_per_mwh": 166.0935916444757
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": 55.543785,
+          "capital_gbp": 7.84432786,
+          "net_gbp": 47.69945714,
+          "tariff_min_gbp_per_mwh": 17.552,
+          "tariff_max_gbp_per_mwh": 17.6475
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 156.9388508377423,
+          "capital_gbp": 21.36717604866711,
+          "net_gbp": 135.5716747890752,
+          "tariff_min_gbp_per_mwh": 91.21158006836323,
+          "tariff_max_gbp_per_mwh": 91.21158006836323
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": 62.994505000000004,
+          "capital_gbp": 7.3452102,
+          "net_gbp": 55.6492948,
+          "tariff_min_gbp_per_mwh": 19.182,
+          "tariff_max_gbp_per_mwh": 19.182
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 40.627075803931966,
+          "capital_gbp": 9.65005345170556,
+          "net_gbp": 30.977022352226406,
+          "tariff_min_gbp_per_mwh": 76.47179970377411,
+          "tariff_max_gbp_per_mwh": 76.47179970377411
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": 19.476858,
+          "capital_gbp": 3.25629424,
+          "net_gbp": 16.22056376,
+          "tariff_min_gbp_per_mwh": 14.2419,
+          "tariff_max_gbp_per_mwh": 14.2419
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 44.715435874182376,
+          "capital_gbp": 9.280674313507467,
+          "net_gbp": 35.43476156067491,
+          "tariff_min_gbp_per_mwh": 87.57877079996041,
+          "tariff_max_gbp_per_mwh": 87.57877079996041
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": 16.612362,
+          "capital_gbp": 2.75327318,
+          "net_gbp": 13.85908882,
+          "tariff_min_gbp_per_mwh": 15.1737,
+          "tariff_max_gbp_per_mwh": 15.1737
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": 919.9679252884115,
+          "capital_gbp": 427.939882948215,
+          "net_gbp": 492.0280423401965,
+          "tariff_min_gbp_per_mwh": 132.42548300618805,
+          "tariff_max_gbp_per_mwh": 166.0935916444757
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 335.9304000485552,
+          "capital_gbp": 274.7208349114342,
+          "net_gbp": 61.209565137120975,
+          "tariff_min_gbp_per_mwh": 91.21158006836323,
+          "tariff_max_gbp_per_mwh": 91.21158006836323
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "committee_wake_ups": [
+        {
+          "settlement_date": "2016-01-01",
+          "treasury_gbp": 21829.17123470897,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-01-31",
+          "treasury_gbp": 21844.201462217043,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-03-01",
+          "treasury_gbp": 21859.527120346585,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-03-31",
+          "treasury_gbp": 21873.95305110568,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-04-30",
+          "treasury_gbp": 21885.313783936737,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-05-30",
+          "treasury_gbp": 21896.617732822804,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-06-29",
+          "treasury_gbp": 21906.062488097126,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-07-29",
+          "treasury_gbp": 21916.185792971388,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-08-28",
+          "treasury_gbp": 21926.474931186796,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-09-27",
+          "treasury_gbp": 21937.028715832173,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-10-27",
+          "treasury_gbp": 21947.44477555132,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-11-26",
+          "treasury_gbp": 21956.039021248496,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-12-26",
+          "treasury_gbp": 21969.872619792088,
+          "adjustments": {
+            "C1": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-01-18",
+          "treasury_gbp": 22064.537309211923,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-02-17",
+          "treasury_gbp": 22139.54460180272,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-03-18",
+          "treasury_gbp": 22220.364681547726,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-04-17",
+          "treasury_gbp": 22282.48633255174,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-05-17",
+          "treasury_gbp": 22329.065323667073,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-06-16",
+          "treasury_gbp": 22353.019406900003,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-07-16",
+          "treasury_gbp": 22369.321782479354,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-08-15",
+          "treasury_gbp": 22382.97576401689,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-09-14",
+          "treasury_gbp": 22393.649077308066,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-10-14",
+          "treasury_gbp": 22415.398697107677,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-11-13",
+          "treasury_gbp": 22444.842463147004,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-12-13",
+          "treasury_gbp": 22493.32328143038,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-04-13",
+          "treasury_gbp": 22540.000664324845,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-05-13",
+          "treasury_gbp": 22555.42067634671,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-06-12",
+          "treasury_gbp": 22571.064347523323,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-07-12",
+          "treasury_gbp": 22586.00122134281,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-08-11",
+          "treasury_gbp": 22601.85146432099,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-10-10",
+          "treasury_gbp": 22632.014142466218,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-11-09",
+          "treasury_gbp": 22644.535119816377,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-12-09",
+          "treasury_gbp": 22656.635961557527,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-04-30",
+          "treasury_gbp": 22805.476095636015,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-05-30",
+          "treasury_gbp": 22820.736612318058,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-06-29",
+          "treasury_gbp": 22820.597518694936,
+          "adjustments": {
+            "C1": 0.7,
+            "C5": 0.7
+          }
+        },
+        {
+          "settlement_date": "2016-07-29",
+          "treasury_gbp": 22821.33865889963,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-09-27",
+          "treasury_gbp": 22817.817774249866,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-10-27",
+          "treasury_gbp": 22824.83581159849,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-11-26",
+          "treasury_gbp": 22817.70661381132,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-12-26",
+          "treasury_gbp": 22838.684755498205,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-07-26",
+          "treasury_gbp": 22901.820910971604,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-08-25",
+          "treasury_gbp": 22908.27396431041,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-09-24",
+          "treasury_gbp": 22914.021335330006,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-10-24",
+          "treasury_gbp": 22919.4886777559,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-11-23",
+          "treasury_gbp": 22920.14342192316,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-12-23",
+          "treasury_gbp": 22926.378262226244,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2016-10-13",
+          "treasury_gbp": 22989.362267339417,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2016-11-12",
+          "treasury_gbp": 23000.154447621204,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        }
+      ],
+      "hedge_fractions": {
+        "C1": {
+          "start_hf": 0.5,
+          "avg_hf": 0.55
+        },
+        "C2": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C3": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C4": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C5": {
+          "start_hf": 0.5,
+          "avg_hf": 0.55
+        },
+        "C6": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C1g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.45
+        },
+        "C2g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C3g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C4g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2016-11-08",
+        "settlement_period": 40,
+        "customer_id": "C6",
+        "net_margin_gbp": -1.4405073932192187
+      },
+      "bills_count": 81,
+      "avg_clarity": 0.9313637980723687,
+      "avg_bill_shock_pct": 0.08598919463554239,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2016-04-30",
+          "bill_shock_pct": 0.21367020341168888
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2016-04-30",
+          "bill_shock_pct": 0.2064876058939162
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2016-05-31",
+          "bill_shock_pct": 0.295249219379095
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2016-06-30",
+          "bill_shock_pct": 0.2225123224078247
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2016-10-31",
+          "bill_shock_pct": 0.4712810656062192
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2016-11-30",
+          "bill_shock_pct": 0.4880233277145015
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2016-05-31",
+          "bill_shock_pct": 0.27777255506566517
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2016-06-30",
+          "bill_shock_pct": 0.2505446015413409
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2016-10-31",
+          "bill_shock_pct": 0.4575771969139838
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2016-11-30",
+          "bill_shock_pct": 0.5081072020814881
+        }
+      ],
+      "bad_debt_gbp": 111.6305184718075,
+      "avg_complaint_probability": 0.027069370729639497
+    },
+    "2017": {
+      "gross_gbp": 2444.3189131086237,
+      "capital_gbp": 796.6946651370318,
+      "net_gbp": 1647.6242479715918,
+      "treasury_end_gbp": 24215.33697948207,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 2253.253626108624,
+          "capital_gbp": 755.9817656370318,
+          "net_gbp": 1497.2718604715917
+        },
+        "gas": {
+          "gross_gbp": 191.065287,
+          "capital_gbp": 40.7128995,
+          "net_gbp": 150.3523875
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": 209.6087680508188,
+          "capital_gbp": 34.19485157911149,
+          "net_gbp": 175.4139164717073,
+          "tariff_min_gbp_per_mwh": 88.75447652592615,
+          "tariff_max_gbp_per_mwh": 166.0935916444757
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": 31.577007,
+          "capital_gbp": 9.34631927,
+          "net_gbp": 22.23068773,
+          "tariff_min_gbp_per_mwh": 17.552,
+          "tariff_max_gbp_per_mwh": 24.0096
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 251.56868435213244,
+          "capital_gbp": 33.40141462052971,
+          "net_gbp": 218.16726973160274,
+          "tariff_min_gbp_per_mwh": 91.21158006836323,
+          "tariff_max_gbp_per_mwh": 100.68716781553711
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": 85.975024,
+          "capital_gbp": 13.52671312,
+          "net_gbp": 72.44831088,
+          "tariff_min_gbp_per_mwh": 19.182,
+          "tariff_max_gbp_per_mwh": 23.5954
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 135.85303567239515,
+          "capital_gbp": 27.860665552901168,
+          "net_gbp": 107.99237011949397,
+          "tariff_min_gbp_per_mwh": 76.47179970377411,
+          "tariff_max_gbp_per_mwh": 110.09202849537064
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": 26.407276,
+          "capital_gbp": 6.53008192,
+          "net_gbp": 19.87719408,
+          "tariff_min_gbp_per_mwh": 14.2419,
+          "tariff_max_gbp_per_mwh": 17.3845
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 182.8081410446067,
+          "capital_gbp": 38.39128225407218,
+          "net_gbp": 144.41685879053455,
+          "tariff_min_gbp_per_mwh": 80.07625322089372,
+          "tariff_max_gbp_per_mwh": 87.57877079996041
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": 47.10598,
+          "capital_gbp": 11.30978519,
+          "net_gbp": 35.79619481,
+          "tariff_min_gbp_per_mwh": 15.1737,
+          "tariff_max_gbp_per_mwh": 20.2416
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": 995.5892437245649,
+          "capital_gbp": 305.3111748134954,
+          "net_gbp": 690.2780689110693,
+          "tariff_min_gbp_per_mwh": 88.75447652592615,
+          "tariff_max_gbp_per_mwh": 166.0935916444757
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 477.82575326410574,
+          "capital_gbp": 316.82237681692186,
+          "net_gbp": 161.00337644718383,
+          "tariff_min_gbp_per_mwh": 91.21158006836323,
+          "tariff_max_gbp_per_mwh": 100.68716781553711
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [],
+      "committee_wake_ups": [
+        {
+          "settlement_date": "2017-01-08",
+          "treasury_gbp": 22672.34717190373,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-02-07",
+          "treasury_gbp": 22685.477250903867,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-03-09",
+          "treasury_gbp": 22701.11459377998,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-03-30",
+          "treasury_gbp": 22780.057860714067,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-01-25",
+          "treasury_gbp": 22855.069376601085,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-02-24",
+          "treasury_gbp": 22871.012647555177,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-02-21",
+          "treasury_gbp": 22936.065211213205,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-03-23",
+          "treasury_gbp": 22943.48247421888,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-04-22",
+          "treasury_gbp": 22950.100497791696,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-05-22",
+          "treasury_gbp": 22953.983618898226,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-06-21",
+          "treasury_gbp": 22959.682481062588,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-01-11",
+          "treasury_gbp": 23024.113539213777,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-02-10",
+          "treasury_gbp": 23034.858505081967,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-03-12",
+          "treasury_gbp": 23049.045226473965,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-04-11",
+          "treasury_gbp": 23064.242942065575,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-05-11",
+          "treasury_gbp": 23076.25996320969,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-06-10",
+          "treasury_gbp": 23087.311964316123,
+          "adjustments": {
+            "C1": 0.8,
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-07-10",
+          "treasury_gbp": 23100.06563954242,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-08-09",
+          "treasury_gbp": 23112.90531849412,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-09-08",
+          "treasury_gbp": 23124.627980818186,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-09-25",
+          "treasury_gbp": 23168.276003084702,
+          "adjustments": {
+            "C1": 0.6,
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-01-29",
+          "treasury_gbp": 23181.93305859415,
+          "adjustments": {
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-03-30",
+          "treasury_gbp": 23216.531025481938,
+          "adjustments": {
+            "C5": 0.7
+          }
+        },
+        {
+          "settlement_date": "2017-04-29",
+          "treasury_gbp": 23230.742655199072,
+          "adjustments": {
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-05-29",
+          "treasury_gbp": 23242.62842727162,
+          "adjustments": {
+            "C5": 0.7
+          }
+        },
+        {
+          "settlement_date": "2017-06-28",
+          "treasury_gbp": 23255.4731524443,
+          "adjustments": {
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-07-28",
+          "treasury_gbp": 23267.957949731866,
+          "adjustments": {
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-08-27",
+          "treasury_gbp": 23280.17906065259,
+          "adjustments": {
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-09-26",
+          "treasury_gbp": 23292.989608044136,
+          "adjustments": {
+            "C5": 0.6
+          }
+        },
+        {
+          "settlement_date": "2017-10-26",
+          "treasury_gbp": 23306.78029777203,
+          "adjustments": {
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-11-25",
+          "treasury_gbp": 23323.967389716767,
+          "adjustments": {
+            "C5": 0.8
+          }
+        },
+        {
+          "settlement_date": "2017-12-25",
+          "treasury_gbp": 23339.977230135653,
+          "adjustments": {
+            "C5": 0.6
+          }
+        }
+      ],
+      "hedge_fractions": {
+        "C1": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C2": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C3": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C4": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C5": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C6": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        },
+        "C1g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C2g": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C3g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        },
+        "C4g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2017-05-17",
+        "settlement_period": 34,
+        "customer_id": "C6",
+        "net_margin_gbp": -0.9403010732486774
+      },
+      "bills_count": 120,
+      "avg_clarity": 0.9286257869858624,
+      "avg_bill_shock_pct": 0.08758537825580218,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2017-01-31",
+          "bill_shock_pct": 0.2464145715205859
+        },
+        {
+          "customer_id": "C1",
+          "period_end": "2017-04-30",
+          "bill_shock_pct": 0.20602498367307243
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2017-01-31",
+          "bill_shock_pct": 0.4476283316265883
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2017-02-28",
+          "bill_shock_pct": 0.23378353324305157
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2017-05-31",
+          "bill_shock_pct": 0.2154596180160102
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2017-06-30",
+          "bill_shock_pct": 0.23399908930264804
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2017-11-30",
+          "bill_shock_pct": 0.6248118728239785
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2017-05-31",
+          "bill_shock_pct": 0.23720589693332006
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2017-06-30",
+          "bill_shock_pct": 0.21403004295278394
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2017-11-30",
+          "bill_shock_pct": 0.5496788446116835
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2017-07-31",
+          "bill_shock_pct": 0.48796230134627433
+        },
+        {
+          "customer_id": "C3g",
+          "period_end": "2017-07-31",
+          "bill_shock_pct": 0.2613535970768657
+        },
+        {
+          "customer_id": "C4g",
+          "period_end": "2017-10-31",
+          "bill_shock_pct": 0.37846020395518526
+        }
+      ],
+      "bad_debt_gbp": 172.7853449224886,
+      "avg_complaint_probability": 0.028801238258035586
+    },
+    "2018": {
+      "gross_gbp": 1838.028227747128,
+      "capital_gbp": 539.1043170381313,
+      "net_gbp": 1298.9239107089968,
+      "treasury_end_gbp": 25375.46986808694,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 1607.215314747128,
+          "capital_gbp": 487.74107121813125,
+          "net_gbp": 1119.4742435289968
+        },
+        "gas": {
+          "gross_gbp": 230.812913,
+          "capital_gbp": 51.363245819999996,
+          "net_gbp": 179.44966718
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": 69.00416946659246,
+          "capital_gbp": 14.091804663490176,
+          "net_gbp": 54.91236480310228,
+          "tariff_min_gbp_per_mwh": 88.75447652592615,
+          "tariff_max_gbp_per_mwh": 105.28688858054822
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": 39.558235,
+          "capital_gbp": 10.8260255,
+          "net_gbp": 28.7322095,
+          "tariff_min_gbp_per_mwh": 24.0096,
+          "tariff_max_gbp_per_mwh": 27.9796
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 388.45002998000683,
+          "capital_gbp": 39.043158223813386,
+          "net_gbp": 349.4068717561935,
+          "tariff_min_gbp_per_mwh": 100.68716781553711,
+          "tariff_max_gbp_per_mwh": 141.79030826801164
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": 101.003097,
+          "capital_gbp": 20.8836165,
+          "net_gbp": 80.1194805,
+          "tariff_min_gbp_per_mwh": 23.5954,
+          "tariff_max_gbp_per_mwh": 30.7236
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 127.22570312377252,
+          "capital_gbp": 27.139321256688678,
+          "net_gbp": 100.08638186708384,
+          "tariff_min_gbp_per_mwh": 87.89684080572074,
+          "tariff_max_gbp_per_mwh": 110.09202849537064
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": 30.342895,
+          "capital_gbp": 6.93983857,
+          "net_gbp": 23.40305643,
+          "tariff_min_gbp_per_mwh": 17.3845,
+          "tariff_max_gbp_per_mwh": 24.9705
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 153.90332920869366,
+          "capital_gbp": 39.69600358593628,
+          "net_gbp": 114.20732562275737,
+          "tariff_min_gbp_per_mwh": 80.07625322089372,
+          "tariff_max_gbp_per_mwh": 101.05834843752683
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": 59.908686,
+          "capital_gbp": 12.71376525,
+          "net_gbp": 47.19492075,
+          "tariff_min_gbp_per_mwh": 20.2416,
+          "tariff_max_gbp_per_mwh": 30.4203
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": 325.4625824756023,
+          "capital_gbp": 125.81968449544799,
+          "net_gbp": 199.6428979801543,
+          "tariff_min_gbp_per_mwh": 88.75447652592615,
+          "tariff_max_gbp_per_mwh": 105.28688858054822
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 543.1695004924603,
+          "capital_gbp": 241.95109899275474,
+          "net_gbp": 301.2184014997055,
+          "tariff_min_gbp_per_mwh": 100.68716781553711,
+          "tariff_max_gbp_per_mwh": 141.79030826801164
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [],
+      "committee_wake_ups": [],
+      "hedge_fractions": {
+        "C1": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C2": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C3": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C4": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C5": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C6": {
+          "start_hf": 0.7,
+          "avg_hf": 0.7
+        },
+        "C1g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        },
+        "C2g": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C3g": {
+          "start_hf": 0.7,
+          "avg_hf": 0.7
+        },
+        "C4g": {
+          "start_hf": 0.7,
+          "avg_hf": 0.7
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2018-03-01",
+        "settlement_period": 34,
+        "customer_id": "C5",
+        "net_margin_gbp": -0.8781844377758088
+      },
+      "bills_count": 120,
+      "avg_clarity": 0.9262678580527876,
+      "avg_bill_shock_pct": 0.0920922325845837,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2018-01-31",
+          "bill_shock_pct": 0.45828109119651145
+        },
+        {
+          "customer_id": "C1",
+          "period_end": "2018-04-30",
+          "bill_shock_pct": 0.20177901475868976
+        },
+        {
+          "customer_id": "C1g",
+          "period_end": "2018-01-31",
+          "bill_shock_pct": 0.3518666730530728
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2018-01-31",
+          "bill_shock_pct": 0.4722984216491127
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2018-04-30",
+          "bill_shock_pct": 0.33852803151381566
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2018-05-31",
+          "bill_shock_pct": 0.2003095273522521
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2018-06-30",
+          "bill_shock_pct": 0.22679079669452956
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2018-10-31",
+          "bill_shock_pct": 0.35043739397177265
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2018-11-30",
+          "bill_shock_pct": 0.29828425350323173
+        },
+        {
+          "customer_id": "C2",
+          "period_end": "2018-04-30",
+          "bill_shock_pct": 0.21543526615031983
+        },
+        {
+          "customer_id": "C2g",
+          "period_end": "2018-04-30",
+          "bill_shock_pct": 0.2600962598204771
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2018-05-31",
+          "bill_shock_pct": 0.22944663937585344
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2018-06-30",
+          "bill_shock_pct": 0.2382702949703444
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2018-10-31",
+          "bill_shock_pct": 0.3276178939935458
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2018-11-30",
+          "bill_shock_pct": 0.2349020475897093
+        },
+        {
+          "customer_id": "C3g",
+          "period_end": "2018-07-31",
+          "bill_shock_pct": 0.4842423960664103
+        },
+        {
+          "customer_id": "C4",
+          "period_end": "2018-10-31",
+          "bill_shock_pct": 0.3331994450194256
+        },
+        {
+          "customer_id": "C4g",
+          "period_end": "2018-10-31",
+          "bill_shock_pct": 0.5529550573585874
+        }
+      ],
+      "bad_debt_gbp": 170.0554251656975,
+      "avg_complaint_probability": 0.029541439719113893
+    },
+    "2019": {
+      "gross_gbp": 2788.213824488059,
+      "capital_gbp": 428.9892965115323,
+      "net_gbp": 2359.2245279765266,
+      "treasury_end_gbp": 27624.68940760902,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 2267.191506488059,
+          "capital_gbp": 377.66407194153226,
+          "net_gbp": 1889.5274345465266
+        },
+        "gas": {
+          "gross_gbp": 521.022318,
+          "capital_gbp": 51.32522457,
+          "net_gbp": 469.69709343
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": 150.06388100493132,
+          "capital_gbp": 15.029927172154425,
+          "net_gbp": 135.0339538327769,
+          "tariff_min_gbp_per_mwh": 79.54402234391613,
+          "tariff_max_gbp_per_mwh": 105.28688858054822
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": 105.864557,
+          "capital_gbp": 10.03380582,
+          "net_gbp": 95.83075118000001,
+          "tariff_min_gbp_per_mwh": 16.6467,
+          "tariff_max_gbp_per_mwh": 27.9796
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 400.70348306694996,
+          "capital_gbp": 25.75993640047445,
+          "net_gbp": 374.94354666647547,
+          "tariff_min_gbp_per_mwh": 100.15559014815896,
+          "tariff_max_gbp_per_mwh": 141.79030826801164
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": 188.640385,
+          "capital_gbp": 21.91933488,
+          "net_gbp": 166.72105012,
+          "tariff_min_gbp_per_mwh": 25.6685,
+          "tariff_max_gbp_per_mwh": 30.7236
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 140.96527548021726,
+          "capital_gbp": 16.37028684760634,
+          "net_gbp": 124.59498863261092,
+          "tariff_min_gbp_per_mwh": 78.4974112584497,
+          "tariff_max_gbp_per_mwh": 87.89684080572074
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": 74.976252,
+          "capital_gbp": 6.87523327,
+          "net_gbp": 68.10101873,
+          "tariff_min_gbp_per_mwh": 17.0809,
+          "tariff_max_gbp_per_mwh": 24.9705
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 281.6075297486142,
+          "capital_gbp": 29.979006345147035,
+          "net_gbp": 251.62852340346717,
+          "tariff_min_gbp_per_mwh": 70.47243229810623,
+          "tariff_max_gbp_per_mwh": 101.05834843752683
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": 151.541124,
+          "capital_gbp": 12.4968506,
+          "net_gbp": 139.0442734,
+          "tariff_min_gbp_per_mwh": 12.7971,
+          "tariff_max_gbp_per_mwh": 30.4203
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": 710.223369903942,
+          "capital_gbp": 134.19577832280737,
+          "net_gbp": 576.0275915811345,
+          "tariff_min_gbp_per_mwh": 79.54402234391613,
+          "tariff_max_gbp_per_mwh": 105.28688858054822
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 583.6279672834042,
+          "capital_gbp": 156.32913685334265,
+          "net_gbp": 427.29883043006157,
+          "tariff_min_gbp_per_mwh": 100.15559014815896,
+          "tariff_max_gbp_per_mwh": 141.79030826801164
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [],
+      "committee_wake_ups": [],
+      "hedge_fractions": {
+        "C1": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C2": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C3": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C4": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C5": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C6": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        },
+        "C1g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C2g": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C3g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        },
+        "C4g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2019-12-31",
+        "settlement_period": 1,
+        "customer_id": "C1g",
+        "net_margin_gbp": -0.41770216
+      },
+      "bills_count": 120,
+      "avg_clarity": 0.9253838613279332,
+      "avg_bill_shock_pct": 0.09684214822049195,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2019-04-30",
+          "bill_shock_pct": 0.2388078655740773
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2019-01-31",
+          "bill_shock_pct": 0.4168703395569001
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2019-02-28",
+          "bill_shock_pct": 0.2192982410951029
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2019-06-30",
+          "bill_shock_pct": 0.2760540655620598
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2019-10-31",
+          "bill_shock_pct": 0.47833424814942094
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2019-11-30",
+          "bill_shock_pct": 0.3853227961205477
+        },
+        {
+          "customer_id": "C2",
+          "period_end": "2019-04-30",
+          "bill_shock_pct": 0.40806777069907374
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2019-02-28",
+          "bill_shock_pct": 0.2137280156958328
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2019-04-30",
+          "bill_shock_pct": 0.4406886643235009
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2019-06-30",
+          "bill_shock_pct": 0.25944162947196764
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2019-09-30",
+          "bill_shock_pct": 0.21664078860849723
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2019-10-31",
+          "bill_shock_pct": 0.4538068161174291
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2019-11-30",
+          "bill_shock_pct": 0.28595851361272073
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2019-04-30",
+          "bill_shock_pct": 0.22456761695699648
+        },
+        {
+          "customer_id": "C3g",
+          "period_end": "2019-07-31",
+          "bill_shock_pct": 0.29315439740592675
+        },
+        {
+          "customer_id": "C4",
+          "period_end": "2019-10-31",
+          "bill_shock_pct": 0.2613924566311491
+        },
+        {
+          "customer_id": "C4g",
+          "period_end": "2019-10-31",
+          "bill_shock_pct": 0.5653034860330524
+        }
+      ],
+      "bad_debt_gbp": 165.51213310650724,
+      "avg_complaint_probability": 0.03020147892796651
+    },
+    "2020": {
+      "gross_gbp": 2467.7363888477503,
+      "capital_gbp": 579.6662066275142,
+      "net_gbp": 1888.0701822202361,
+      "treasury_end_gbp": 29725.261629211167,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 2168.74597384775,
+          "capital_gbp": 542.8916133175142,
+          "net_gbp": 1625.8543605302361
+        },
+        "gas": {
+          "gross_gbp": 298.990415,
+          "capital_gbp": 36.77459331,
+          "net_gbp": 262.21582169
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": 114.90223552484954,
+          "capital_gbp": 15.77626261301798,
+          "net_gbp": 99.12597291183155,
+          "tariff_min_gbp_per_mwh": 79.54402234391613,
+          "tariff_max_gbp_per_mwh": 113.28044555139384
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": 67.975714,
+          "capital_gbp": 7.4673177,
+          "net_gbp": 60.5083963,
+          "tariff_min_gbp_per_mwh": 16.6467,
+          "tariff_max_gbp_per_mwh": 19.2921
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 480.96055370223235,
+          "capital_gbp": 41.09477222849237,
+          "net_gbp": 439.86578147373996,
+          "tariff_min_gbp_per_mwh": 100.15559014815896,
+          "tariff_max_gbp_per_mwh": 113.28049145381561
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": 112.426818,
+          "capital_gbp": 15.582160510000001,
+          "net_gbp": 96.84465749,
+          "tariff_min_gbp_per_mwh": 13.9134,
+          "tariff_max_gbp_per_mwh": 25.6685
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 115.31666384833424,
+          "capital_gbp": 20.243193780370706,
+          "net_gbp": 95.07347006796354,
+          "tariff_min_gbp_per_mwh": 57.1656210466826,
+          "tariff_max_gbp_per_mwh": 78.4974112584497
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": 43.369808,
+          "capital_gbp": 5.1301641799999995,
+          "net_gbp": 38.23964382,
+          "tariff_min_gbp_per_mwh": 8.1901,
+          "tariff_max_gbp_per_mwh": 17.0809
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 229.8215200183446,
+          "capital_gbp": 35.113676810729054,
+          "net_gbp": 194.70784320761553,
+          "tariff_min_gbp_per_mwh": 70.47243229810623,
+          "tariff_max_gbp_per_mwh": 76.39335958252138
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": 75.218075,
+          "capital_gbp": 8.59495092,
+          "net_gbp": 66.62312408,
+          "tariff_min_gbp_per_mwh": 12.7971,
+          "tariff_max_gbp_per_mwh": 13.4088
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": 527.2358397475805,
+          "capital_gbp": 140.85948761623197,
+          "net_gbp": 386.37635213134854,
+          "tariff_min_gbp_per_mwh": 79.54402234391613,
+          "tariff_max_gbp_per_mwh": 113.28044555139384
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 700.5091610064089,
+          "capital_gbp": 289.804220268672,
+          "net_gbp": 410.7049407377369,
+          "tariff_min_gbp_per_mwh": 100.15559014815896,
+          "tariff_max_gbp_per_mwh": 113.28049145381561
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [],
+      "committee_wake_ups": [],
+      "hedge_fractions": {
+        "C1": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C2": {
+          "start_hf": 0.10000000000000003,
+          "avg_hf": 0.10000000000000003
+        },
+        "C3": {
+          "start_hf": 0.10000000000000003,
+          "avg_hf": 0.10000000000000003
+        },
+        "C4": {
+          "start_hf": 0.10000000000000003,
+          "avg_hf": 0.10000000000000003
+        },
+        "C5": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C6": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C1g": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C2g": {
+          "start_hf": 0.10000000000000003,
+          "avg_hf": 0.10000000000000003
+        },
+        "C3g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C4g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2020-03-04",
+        "settlement_period": 37,
+        "customer_id": "C5",
+        "net_margin_gbp": -4.528067710464247
+      },
+      "bills_count": 120,
+      "avg_clarity": 0.9291961193282997,
+      "avg_bill_shock_pct": 0.08513598958555835,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2020-01-31",
+          "bill_shock_pct": 0.2401437315565241
+        },
+        {
+          "customer_id": "C1",
+          "period_end": "2020-04-30",
+          "bill_shock_pct": 0.22763386786662554
+        },
+        {
+          "customer_id": "C1g",
+          "period_end": "2020-01-31",
+          "bill_shock_pct": 0.39716563603559146
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2020-01-31",
+          "bill_shock_pct": 0.24206277642372398
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2020-04-30",
+          "bill_shock_pct": 0.3057253520954779
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2020-10-31",
+          "bill_shock_pct": 0.4187174590980329
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2020-11-30",
+          "bill_shock_pct": 0.2142736271737121
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2020-12-31",
+          "bill_shock_pct": 0.30748567076424566
+        },
+        {
+          "customer_id": "C2g",
+          "period_end": "2020-04-30",
+          "bill_shock_pct": 0.46757952617741905
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2020-09-30",
+          "bill_shock_pct": 0.23499730407913558
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2020-10-31",
+          "bill_shock_pct": 0.3664954152873236
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2020-12-31",
+          "bill_shock_pct": 0.27452980456810117
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2020-04-30",
+          "bill_shock_pct": 0.213641986216646
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2020-07-31",
+          "bill_shock_pct": 0.2424499227797704
+        },
+        {
+          "customer_id": "C3g",
+          "period_end": "2020-07-31",
+          "bill_shock_pct": 0.495778888753522
+        }
+      ],
+      "bad_debt_gbp": 132.23967262540782,
+      "avg_complaint_probability": 0.028452289748572314
+    },
+    "2021": {
+      "gross_gbp": 1260.7021685971536,
+      "capital_gbp": 2357.1316947754335,
+      "net_gbp": -1096.4295261782802,
+      "treasury_end_gbp": 29670.024982687108,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 1884.0772875971534,
+          "capital_gbp": 2286.7810681654337,
+          "net_gbp": -402.7037805682801
+        },
+        "gas": {
+          "gross_gbp": -623.375119,
+          "capital_gbp": 70.35062661,
+          "net_gbp": -693.72574561
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": -19.30841546370966,
+          "capital_gbp": 53.49770698951211,
+          "net_gbp": -72.80612245322178,
+          "tariff_min_gbp_per_mwh": 113.28044555139384,
+          "tariff_max_gbp_per_mwh": 430.43845490975303
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": -148.003484,
+          "capital_gbp": 14.85445317,
+          "net_gbp": -162.85793716999999,
+          "tariff_min_gbp_per_mwh": 19.2921,
+          "tariff_max_gbp_per_mwh": 112.5228
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 707.1921454676196,
+          "capital_gbp": 173.41330574147455,
+          "net_gbp": 533.7788397261451,
+          "tariff_min_gbp_per_mwh": 113.28049145381561,
+          "tariff_max_gbp_per_mwh": 247.58859589456242
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": -258.154065,
+          "capital_gbp": 23.59419518,
+          "net_gbp": -281.74826018,
+          "tariff_min_gbp_per_mwh": 13.9134,
+          "tariff_max_gbp_per_mwh": 26.0219
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 8.247118056796682,
+          "capital_gbp": 65.96901830371766,
+          "net_gbp": -57.721900246920974,
+          "tariff_min_gbp_per_mwh": 57.1656210466826,
+          "tariff_max_gbp_per_mwh": 185.57320312802258
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": -102.692739,
+          "capital_gbp": 9.42189361,
+          "net_gbp": -112.11463261,
+          "tariff_min_gbp_per_mwh": 8.1901,
+          "tariff_max_gbp_per_mwh": 33.3189
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 329.28076504284894,
+          "capital_gbp": 184.63280185923173,
+          "net_gbp": 144.64796318361724,
+          "tariff_min_gbp_per_mwh": 76.39335958252138,
+          "tariff_max_gbp_per_mwh": 411.48156920776063
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": -114.524831,
+          "capital_gbp": 22.48008465,
+          "net_gbp": -137.00491565000002,
+          "tariff_min_gbp_per_mwh": 13.4088,
+          "tariff_max_gbp_per_mwh": 66.994
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": -124.56324562683099,
+          "capital_gbp": 477.6580981206438,
+          "net_gbp": -602.2213437474747,
+          "tariff_min_gbp_per_mwh": 113.28044555139384,
+          "tariff_max_gbp_per_mwh": 430.43845490975303
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 983.2289201204288,
+          "capital_gbp": 1331.6101371508537,
+          "net_gbp": -348.3812170304249,
+          "tariff_min_gbp_per_mwh": 113.28049145381561,
+          "tariff_max_gbp_per_mwh": 247.58859589456245
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [],
+      "committee_wake_ups": [
+        {
+          "settlement_date": "2021-03-31",
+          "treasury_gbp": 29252.422068556327,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-04-30",
+          "treasury_gbp": 29198.137780234654,
+          "adjustments": {
+            "C2": 0.3,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-05-30",
+          "treasury_gbp": 29240.344466470786,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-06-29",
+          "treasury_gbp": 29217.001273429218,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-07-29",
+          "treasury_gbp": 29181.677073614504,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-08-28",
+          "treasury_gbp": 29140.741666047896,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2021-10-27",
+          "treasury_gbp": 28993.426366528172,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-11-26",
+          "treasury_gbp": 28935.970890100165,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-12-26",
+          "treasury_gbp": 28824.67681061655,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-07-25",
+          "treasury_gbp": 28588.42818022704,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-08-24",
+          "treasury_gbp": 28601.94919516928,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-09-23",
+          "treasury_gbp": 28594.724390534462,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2021-10-23",
+          "treasury_gbp": 28594.752716812898,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2021-12-22",
+          "treasury_gbp": 28568.620370449422,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.4,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-11-11",
+          "treasury_gbp": 28410.95960553712,
+          "adjustments": {
+            "C2": 0.3,
+            "C3": 0.5,
+            "C4": 0.5,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2021-12-30",
+          "treasury_gbp": 28849.169723357474,
+          "adjustments": {
+            "C1": 0.4,
+            "C2": 0.1,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C6": 0.5
+          }
+        }
+      ],
+      "hedge_fractions": {
+        "C1": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C2": {
+          "start_hf": 2.7755575615628914e-17,
+          "avg_hf": 2.7755575615628914e-17
+        },
+        "C3": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C4": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C5": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C6": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C1g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C2g": {
+          "start_hf": 0.10000000000000003,
+          "avg_hf": 0.10000000000000003
+        },
+        "C3g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        },
+        "C4g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2021-01-08",
+        "settlement_period": 39,
+        "customer_id": "C5",
+        "net_margin_gbp": -11.213038047134905
+      },
+      "bills_count": 120,
+      "avg_clarity": 0.9036786059312657,
+      "avg_bill_shock_pct": 0.21071428597518596,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2021-01-31",
+          "bill_shock_pct": 0.3890068284908287
+        },
+        {
+          "customer_id": "C1",
+          "period_end": "2021-04-30",
+          "bill_shock_pct": 0.22033422560570698
+        },
+        {
+          "customer_id": "C1",
+          "period_end": "2021-12-31",
+          "bill_shock_pct": 0.21791548660527923
+        },
+        {
+          "customer_id": "C1g",
+          "period_end": "2021-12-31",
+          "bill_shock_pct": 0.3555048229280643
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2021-01-31",
+          "bill_shock_pct": 0.48932597451609733
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2021-05-31",
+          "bill_shock_pct": 0.2401393874430259
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2021-06-30",
+          "bill_shock_pct": 0.3437430308007632
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2021-10-31",
+          "bill_shock_pct": 0.32638998418793164
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2021-11-30",
+          "bill_shock_pct": 0.5507542388462984
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2021-12-31",
+          "bill_shock_pct": 0.20520940601149082
+        },
+        {
+          "customer_id": "C2",
+          "period_end": "2021-04-30",
+          "bill_shock_pct": 0.7992902430645128
+        },
+        {
+          "customer_id": "C2g",
+          "period_end": "2021-04-30",
+          "bill_shock_pct": 0.7605235448326089
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2021-04-30",
+          "bill_shock_pct": 0.9384526965620152
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2021-06-30",
+          "bill_shock_pct": 0.37470621189870823
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2021-10-31",
+          "bill_shock_pct": 0.29264003766141733
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2021-11-30",
+          "bill_shock_pct": 0.5348678688211705
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2021-04-30",
+          "bill_shock_pct": 0.20574947903748855
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2021-07-31",
+          "bill_shock_pct": 2.117434289307963
+        },
+        {
+          "customer_id": "C3g",
+          "period_end": "2021-07-31",
+          "bill_shock_pct": 2.8137384480822383
+        },
+        {
+          "customer_id": "C4",
+          "period_end": "2021-10-31",
+          "bill_shock_pct": 3.9426483528220677
+        },
+        {
+          "customer_id": "C4g",
+          "period_end": "2021-10-31",
+          "bill_shock_pct": 3.555920142382487
+        }
+      ],
+      "bad_debt_gbp": 231.0160800779436,
+      "avg_complaint_probability": 0.03728240985143379
+    },
+    "2022": {
+      "gross_gbp": 8706.808835075115,
+      "capital_gbp": 4788.590688112757,
+      "net_gbp": 3918.218146962359,
+      "treasury_end_gbp": 31558.704649842653,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 8458.840223075114,
+          "capital_gbp": 4517.212320692756,
+          "net_gbp": 3941.627902382359
+        },
+        "gas": {
+          "gross_gbp": 247.968612,
+          "capital_gbp": 271.37836742,
+          "net_gbp": -23.409755419999986
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": 609.4642704742615,
+          "capital_gbp": 174.54697777734336,
+          "net_gbp": 434.9172926969182,
+          "tariff_min_gbp_per_mwh": 400.32896609628466,
+          "tariff_max_gbp_per_mwh": 430.43845490975303
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": 135.830716,
+          "capital_gbp": 67.95942251,
+          "net_gbp": 67.87129349,
+          "tariff_min_gbp_per_mwh": 108.9638,
+          "tariff_max_gbp_per_mwh": 112.5228
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 1367.0441986389064,
+          "capital_gbp": 231.43788385640934,
+          "net_gbp": 1135.606314782497,
+          "tariff_min_gbp_per_mwh": 247.58859589456242,
+          "tariff_max_gbp_per_mwh": 521.3599309015025
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": 120.29289800000001,
+          "capital_gbp": 108.50126819,
+          "net_gbp": 11.79162981,
+          "tariff_min_gbp_per_mwh": 26.0219,
+          "tariff_max_gbp_per_mwh": 136.6592
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 96.78257090356988,
+          "capital_gbp": 100.19871352558951,
+          "net_gbp": -3.4161426220196263,
+          "tariff_min_gbp_per_mwh": 185.57320312802258,
+          "tariff_max_gbp_per_mwh": 276.5947584400934
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": -99.685457,
+          "capital_gbp": 25.61789602,
+          "net_gbp": -125.30335302,
+          "tariff_min_gbp_per_mwh": 33.3189,
+          "tariff_max_gbp_per_mwh": 103.7914
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 1382.903392494161,
+          "capital_gbp": 398.82303371978617,
+          "net_gbp": 984.0803587743746,
+          "tariff_min_gbp_per_mwh": 411.48156920776063,
+          "tariff_max_gbp_per_mwh": 506.3739866574755
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": 91.530455,
+          "capital_gbp": 69.2997807,
+          "net_gbp": 22.23067430000001,
+          "tariff_min_gbp_per_mwh": 66.994,
+          "tariff_max_gbp_per_mwh": 210.2224
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": 2757.327222998138,
+          "capital_gbp": 1558.45515872628,
+          "net_gbp": 1198.872064271858,
+          "tariff_min_gbp_per_mwh": 400.32896609628466,
+          "tariff_max_gbp_per_mwh": 430.43845490975303
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 2245.3185675660784,
+          "capital_gbp": 2053.750553087348,
+          "net_gbp": 191.56801447873033,
+          "tariff_min_gbp_per_mwh": 247.58859589456245,
+          "tariff_max_gbp_per_mwh": 521.3599309015025
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [],
+      "committee_wake_ups": [
+        {
+          "settlement_date": "2022-01-25",
+          "treasury_gbp": 28748.430790497736,
+          "adjustments": {
+            "C2": 0.2,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-02-24",
+          "treasury_gbp": 28715.811245827295,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2022-03-26",
+          "treasury_gbp": 28600.55897939752,
+          "adjustments": {
+            "C2": 0.1,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2022-01-21",
+          "treasury_gbp": 28562.152543917335,
+          "adjustments": {
+            "C2": 0.3,
+            "C3": 0.5,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2022-02-20",
+          "treasury_gbp": 28551.14780311859,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C6": 0.7
+          }
+        },
+        {
+          "settlement_date": "2022-03-22",
+          "treasury_gbp": 28529.57701373286,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-04-21",
+          "treasury_gbp": 28519.574624861107,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-05-21",
+          "treasury_gbp": 28526.50507180941,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-06-09",
+          "treasury_gbp": 28977.17650955738,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-07-09",
+          "treasury_gbp": 29045.005958873575,
+          "adjustments": {
+            "C2": 0.1,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-03-30",
+          "treasury_gbp": 28971.01172960407,
+          "adjustments": {
+            "C1": 0.4,
+            "C2": 0.1,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-07-28",
+          "treasury_gbp": 29114.625409430006,
+          "adjustments": {
+            "C1": 0.4,
+            "C2": 0.1,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-01-16",
+          "treasury_gbp": 29372.16336631317,
+          "adjustments": {
+            "C1": 0.4,
+            "C2": 0.1,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-05-16",
+          "treasury_gbp": 30023.0521856104,
+          "adjustments": {
+            "C1": 0.4,
+            "C2": 0.1,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-08-14",
+          "treasury_gbp": 30120.44062077843,
+          "adjustments": {
+            "C1": 0.4,
+            "C2": 0.1,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-10-13",
+          "treasury_gbp": 30107.667354701796,
+          "adjustments": {
+            "C1": 0.4,
+            "C2": 0.3,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-04-12",
+          "treasury_gbp": 30507.31067608426,
+          "adjustments": {
+            "C1": 0.4,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-05-12",
+          "treasury_gbp": 30646.104756031375,
+          "adjustments": {
+            "C1": 0.4,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-06-11",
+          "treasury_gbp": 30784.32802383929,
+          "adjustments": {
+            "C1": 0.4,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-07-11",
+          "treasury_gbp": 30896.865881105117,
+          "adjustments": {
+            "C1": 0.4,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-08-10",
+          "treasury_gbp": 30989.8625390614,
+          "adjustments": {
+            "C1": 0.4,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-10-09",
+          "treasury_gbp": 31157.055820668826,
+          "adjustments": {
+            "C1": 0.4,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2022-12-08",
+          "treasury_gbp": 31464.613058536597,
+          "adjustments": {
+            "C1": 0.4,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        }
+      ],
+      "hedge_fractions": {
+        "C1": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C2": {
+          "start_hf": 0.3,
+          "avg_hf": 0.3
+        },
+        "C3": {
+          "start_hf": 0.3,
+          "avg_hf": 0.3
+        },
+        "C4": {
+          "start_hf": 0.3,
+          "avg_hf": 0.3
+        },
+        "C5": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C6": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C1g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        },
+        "C2g": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C3g": {
+          "start_hf": 0.7,
+          "avg_hf": 0.7
+        },
+        "C4g": {
+          "start_hf": 0.7,
+          "avg_hf": 0.7
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2022-01-24",
+        "settlement_period": 34,
+        "customer_id": "C5",
+        "net_margin_gbp": -10.069752538127968
+      },
+      "bills_count": 120,
+      "avg_clarity": 0.9017301594170711,
+      "avg_bill_shock_pct": 0.22517254240263226,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2022-01-31",
+          "bill_shock_pct": 2.2302400804188625
+        },
+        {
+          "customer_id": "C1",
+          "period_end": "2022-04-30",
+          "bill_shock_pct": 0.21367020341168894
+        },
+        {
+          "customer_id": "C1g",
+          "period_end": "2022-01-31",
+          "bill_shock_pct": 3.4463076192031474
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2022-01-31",
+          "bill_shock_pct": 2.7631304531491656
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2022-02-28",
+          "bill_shock_pct": 0.2123331303472789
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2022-04-30",
+          "bill_shock_pct": 0.20816245351455478
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2022-05-31",
+          "bill_shock_pct": 0.2654518290991352
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2022-11-30",
+          "bill_shock_pct": 0.5195067690987658
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2022-12-31",
+          "bill_shock_pct": 0.3623799274065553
+        },
+        {
+          "customer_id": "C2",
+          "period_end": "2022-04-30",
+          "bill_shock_pct": 0.746202233622286
+        },
+        {
+          "customer_id": "C2g",
+          "period_end": "2022-03-31",
+          "bill_shock_pct": 0.25898945382048866
+        },
+        {
+          "customer_id": "C2g",
+          "period_end": "2022-04-30",
+          "bill_shock_pct": 3.469319782371911
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2022-04-30",
+          "bill_shock_pct": 0.6445504563931519
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2022-05-31",
+          "bill_shock_pct": 0.2412195697211877
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2022-09-30",
+          "bill_shock_pct": 0.2679439232805811
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2022-11-30",
+          "bill_shock_pct": 0.4510684484901305
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2022-12-31",
+          "bill_shock_pct": 0.34217884085455214
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2022-07-31",
+          "bill_shock_pct": 0.5161482163225302
+        },
+        {
+          "customer_id": "C3g",
+          "period_end": "2022-07-31",
+          "bill_shock_pct": 2.0069307543917687
+        },
+        {
+          "customer_id": "C4",
+          "period_end": "2022-10-31",
+          "bill_shock_pct": 0.28794705483870253
+        },
+        {
+          "customer_id": "C4g",
+          "period_end": "2022-10-31",
+          "bill_shock_pct": 2.026822406522023
+        }
+      ],
+      "bad_debt_gbp": 605.5762938737741,
+      "avg_complaint_probability": 0.03765977345232278
+    },
+    "2023": {
+      "gross_gbp": 13940.878015259977,
+      "capital_gbp": 3727.691498868675,
+      "net_gbp": 10213.186516391303,
+      "treasury_end_gbp": 41772.775151574744,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 11288.484977259977,
+          "capital_gbp": 3327.0192125486747,
+          "net_gbp": 7961.465764711303
+        },
+        "gas": {
+          "gross_gbp": 2652.393038,
+          "capital_gbp": 400.67228632,
+          "net_gbp": 2251.72075168
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": 710.2452125145394,
+          "capital_gbp": 81.93356012373184,
+          "net_gbp": 628.3116523908076,
+          "tariff_min_gbp_per_mwh": 199.60394897174103,
+          "tariff_max_gbp_per_mwh": 400.32896609628466
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": 430.034213,
+          "capital_gbp": 43.88786245,
+          "net_gbp": 386.14635055,
+          "tariff_min_gbp_per_mwh": 51.1925,
+          "tariff_max_gbp_per_mwh": 108.9638
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 1685.1307983351633,
+          "capital_gbp": 208.99136467214495,
+          "net_gbp": 1476.1394336630183,
+          "tariff_min_gbp_per_mwh": 335.90731812139313,
+          "tariff_max_gbp_per_mwh": 521.3599309015025
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": 820.163002,
+          "capital_gbp": 208.89550573,
+          "net_gbp": 611.26749627,
+          "tariff_min_gbp_per_mwh": 82.0316,
+          "tariff_max_gbp_per_mwh": 136.6592
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 469.58156273833237,
+          "capital_gbp": 100.97052217499999,
+          "net_gbp": 368.6110405633324,
+          "tariff_min_gbp_per_mwh": 189.7544506642447,
+          "tariff_max_gbp_per_mwh": 276.5947584400934
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": 281.41738300000003,
+          "capital_gbp": 46.32250934,
+          "net_gbp": 235.09487366,
+          "tariff_min_gbp_per_mwh": 48.521,
+          "tariff_max_gbp_per_mwh": 103.7914
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 1707.4970823960282,
+          "capital_gbp": 213.46017848315174,
+          "net_gbp": 1494.0369039128764,
+          "tariff_min_gbp_per_mwh": 174.9918588164181,
+          "tariff_max_gbp_per_mwh": 506.3739866574755
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": 1120.77844,
+          "capital_gbp": 101.5664088,
+          "net_gbp": 1019.2120312,
+          "tariff_min_gbp_per_mwh": 42.0209,
+          "tariff_max_gbp_per_mwh": 210.2224
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": 3314.4670917963513,
+          "capital_gbp": 731.5496439618914,
+          "net_gbp": 2582.91744783446,
+          "tariff_min_gbp_per_mwh": 199.60394897174103,
+          "tariff_max_gbp_per_mwh": 400.32896609628466
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 3401.5632294795632,
+          "capital_gbp": 1990.113943132755,
+          "net_gbp": 1411.4492863468083,
+          "tariff_min_gbp_per_mwh": 335.90731812139313,
+          "tariff_max_gbp_per_mwh": 521.3599309015025
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [],
+      "committee_wake_ups": [
+        {
+          "settlement_date": "2023-01-07",
+          "treasury_gbp": 31598.510267337042,
+          "adjustments": {
+            "C1": 0.4,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        },
+        {
+          "settlement_date": "2023-02-06",
+          "treasury_gbp": 31762.653477813765,
+          "adjustments": {
+            "C1": 0.4,
+            "C3": 0.3,
+            "C4": 0.3,
+            "C5": 0.4,
+            "C6": 0.5
+          }
+        }
+      ],
+      "hedge_fractions": {
+        "C1": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C2": {
+          "start_hf": 0.19999999999999998,
+          "avg_hf": 0.19999999999999998
+        },
+        "C3": {
+          "start_hf": 0.19999999999999998,
+          "avg_hf": 0.19999999999999998
+        },
+        "C4": {
+          "start_hf": 0.19999999999999998,
+          "avg_hf": 0.19999999999999998
+        },
+        "C5": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C6": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C1g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C2g": {
+          "start_hf": 0.10000000000000003,
+          "avg_hf": 0.10000000000000003
+        },
+        "C3g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        },
+        "C4g": {
+          "start_hf": 0.6,
+          "avg_hf": 0.6
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2023-03-31",
+        "settlement_period": 1,
+        "customer_id": "C2g",
+        "net_margin_gbp": -16.07957064
+      },
+      "bills_count": 120,
+      "avg_clarity": 0.9233341574359685,
+      "avg_bill_shock_pct": 0.09765075388586932,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2023-04-30",
+          "bill_shock_pct": 0.20567730814410137
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2023-05-31",
+          "bill_shock_pct": 0.22693301961269957
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2023-06-30",
+          "bill_shock_pct": 0.2575981733485903
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2023-10-31",
+          "bill_shock_pct": 0.33166329891485835
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2023-11-30",
+          "bill_shock_pct": 0.553951037991368
+        },
+        {
+          "customer_id": "C2",
+          "period_end": "2023-04-30",
+          "bill_shock_pct": 0.4399527765830619
+        },
+        {
+          "customer_id": "C2g",
+          "period_end": "2023-04-30",
+          "bill_shock_pct": 0.4115104903436846
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2023-04-30",
+          "bill_shock_pct": 0.48101879825329746
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2023-05-31",
+          "bill_shock_pct": 0.2427894884873547
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2023-06-30",
+          "bill_shock_pct": 0.23739757739544906
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2023-10-31",
+          "bill_shock_pct": 0.40665887477406704
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2023-11-30",
+          "bill_shock_pct": 0.4592744073866898
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2023-07-31",
+          "bill_shock_pct": 0.2835700992552671
+        },
+        {
+          "customer_id": "C3g",
+          "period_end": "2023-07-31",
+          "bill_shock_pct": 0.5082013579916022
+        },
+        {
+          "customer_id": "C4",
+          "period_end": "2023-10-31",
+          "bill_shock_pct": 0.6271050784206018
+        },
+        {
+          "customer_id": "C4g",
+          "period_end": "2023-10-31",
+          "bill_shock_pct": 0.7877894108307185
+        }
+      ],
+      "bad_debt_gbp": 599.5359636226682,
+      "avg_complaint_probability": 0.030456282428036035
+    },
+    "2024": {
+      "gross_gbp": 6680.090461621062,
+      "capital_gbp": 2757.9693885072893,
+      "net_gbp": 3922.121073113773,
+      "treasury_end_gbp": 46877.2053410762,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 5759.100284621062,
+          "capital_gbp": 2435.319128327289,
+          "net_gbp": 3323.781156293773
+        },
+        "gas": {
+          "gross_gbp": 920.990177,
+          "capital_gbp": 322.65026018,
+          "net_gbp": 598.33991682
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": 369.1092139118151,
+          "capital_gbp": 83.66364794895841,
+          "net_gbp": 285.44556596285673,
+          "tariff_min_gbp_per_mwh": 191.76238035520606,
+          "tariff_max_gbp_per_mwh": 199.60394897174103
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": 203.755854,
+          "capital_gbp": 63.260619059999996,
+          "net_gbp": 140.49523494000002,
+          "tariff_min_gbp_per_mwh": 50.962,
+          "tariff_max_gbp_per_mwh": 51.1925
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 838.3615696396415,
+          "capital_gbp": 123.82885255217452,
+          "net_gbp": 714.532717087467,
+          "tariff_min_gbp_per_mwh": 151.3078290491142,
+          "tariff_max_gbp_per_mwh": 335.90731812139313
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": 288.234675,
+          "capital_gbp": 144.18851588,
+          "net_gbp": 144.04615912,
+          "tariff_min_gbp_per_mwh": 38.6746,
+          "tariff_max_gbp_per_mwh": 82.0316
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 379.3277717895069,
+          "capital_gbp": 96.32136294958049,
+          "net_gbp": 283.00640883992645,
+          "tariff_min_gbp_per_mwh": 148.6403569247706,
+          "tariff_max_gbp_per_mwh": 189.7544506642447
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": 173.181631,
+          "capital_gbp": 44.08270694,
+          "net_gbp": 129.09892406,
+          "tariff_min_gbp_per_mwh": 39.7458,
+          "tariff_max_gbp_per_mwh": 48.521
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 631.2263229791768,
+          "capital_gbp": 162.7411641488437,
+          "net_gbp": 468.4851588303331,
+          "tariff_min_gbp_per_mwh": 154.3676904358651,
+          "tariff_max_gbp_per_mwh": 174.9918588164181
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": 255.818017,
+          "capital_gbp": 71.1184183,
+          "net_gbp": 184.6995987,
+          "tariff_min_gbp_per_mwh": 42.0209,
+          "tariff_max_gbp_per_mwh": 45.2732
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": 1698.5145815735643,
+          "capital_gbp": 746.9968566871288,
+          "net_gbp": 951.5177248864356,
+          "tariff_min_gbp_per_mwh": 191.76238035520606,
+          "tariff_max_gbp_per_mwh": 199.60394897174103
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 1842.5608247273574,
+          "capital_gbp": 1221.7672440406031,
+          "net_gbp": 620.7935806867541,
+          "tariff_min_gbp_per_mwh": 151.30782904911422,
+          "tariff_max_gbp_per_mwh": 335.90731812139313
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [],
+      "committee_wake_ups": [],
+      "hedge_fractions": {
+        "C1": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C2": {
+          "start_hf": 0.09999999999999998,
+          "avg_hf": 0.09999999999999998
+        },
+        "C3": {
+          "start_hf": 0.09999999999999998,
+          "avg_hf": 0.09999999999999998
+        },
+        "C4": {
+          "start_hf": 0.09999999999999998,
+          "avg_hf": 0.09999999999999998
+        },
+        "C5": {
+          "start_hf": 0.20000000000000004,
+          "avg_hf": 0.20000000000000004
+        },
+        "C6": {
+          "start_hf": 0.30000000000000004,
+          "avg_hf": 0.30000000000000004
+        },
+        "C1g": {
+          "start_hf": 0.5,
+          "avg_hf": 0.5
+        },
+        "C2g": {
+          "start_hf": 2.7755575615628914e-17,
+          "avg_hf": 2.7755575615628914e-17
+        },
+        "C3g": {
+          "start_hf": 0.7,
+          "avg_hf": 0.7
+        },
+        "C4g": {
+          "start_hf": 0.7,
+          "avg_hf": 0.7
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2024-03-30",
+        "settlement_period": 1,
+        "customer_id": "C2g",
+        "net_margin_gbp": -3.87955097
+      },
+      "bills_count": 120,
+      "avg_clarity": 0.9261636259657944,
+      "avg_bill_shock_pct": 0.09433274356901446,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2024-01-31",
+          "bill_shock_pct": 0.4854919290752443
+        },
+        {
+          "customer_id": "C1",
+          "period_end": "2024-04-30",
+          "bill_shock_pct": 0.23880786557407732
+        },
+        {
+          "customer_id": "C1g",
+          "period_end": "2024-01-31",
+          "bill_shock_pct": 0.5135484364095478
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2024-01-31",
+          "bill_shock_pct": 0.4071210493713978
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2024-02-29",
+          "bill_shock_pct": 0.21773047744149265
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2024-05-31",
+          "bill_shock_pct": 0.2689370154206133
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2024-09-30",
+          "bill_shock_pct": 0.20230471838865882
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2024-10-31",
+          "bill_shock_pct": 0.2826154860240977
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2024-11-30",
+          "bill_shock_pct": 0.3837915519615388
+        },
+        {
+          "customer_id": "C2",
+          "period_end": "2024-04-30",
+          "bill_shock_pct": 0.6095143576241081
+        },
+        {
+          "customer_id": "C2g",
+          "period_end": "2024-04-30",
+          "bill_shock_pct": 0.5276418285302849
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2024-04-30",
+          "bill_shock_pct": 0.625061575572358
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2024-05-31",
+          "bill_shock_pct": 0.29967342097397853
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2024-09-30",
+          "bill_shock_pct": 0.2597072173032134
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2024-10-31",
+          "bill_shock_pct": 0.23750102020273473
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2024-11-30",
+          "bill_shock_pct": 0.38631689006958414
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2024-04-30",
+          "bill_shock_pct": 0.22456761695699662
+        }
+      ],
+      "bad_debt_gbp": 307.03170788946284,
+      "avg_complaint_probability": 0.02982932099869223
+    },
+    "2025": {
+      "gross_gbp": 2714.501194327668,
+      "capital_gbp": 1720.6705479769073,
+      "net_gbp": 993.8306463507605,
+      "treasury_end_gbp": 46955.01619826435,
+      "commodity_split": {
+        "electricity": {
+          "gross_gbp": 2407.878630327668,
+          "capital_gbp": 1561.4836161269075,
+          "net_gbp": 846.3950142007606
+        },
+        "gas": {
+          "gross_gbp": 306.622564,
+          "capital_gbp": 159.18693185,
+          "net_gbp": 147.43563215
+        }
+      },
+      "per_customer": {
+        "C1": {
+          "commodity": "electricity",
+          "gross_gbp": 137.1343879103125,
+          "capital_gbp": 42.0635503789571,
+          "net_gbp": 95.07083753135542,
+          "tariff_min_gbp_per_mwh": 191.76238035520606,
+          "tariff_max_gbp_per_mwh": 191.76238035520606
+        },
+        "C1g": {
+          "commodity": "gas",
+          "gross_gbp": 71.160946,
+          "capital_gbp": 29.070859369999997,
+          "net_gbp": 42.09008663,
+          "tariff_min_gbp_per_mwh": 50.962,
+          "tariff_max_gbp_per_mwh": 50.962
+        },
+        "C2": {
+          "commodity": "electricity",
+          "gross_gbp": 486.1013753388339,
+          "capital_gbp": 111.79742058427388,
+          "net_gbp": 374.30395475456004,
+          "tariff_min_gbp_per_mwh": 151.3078290491142,
+          "tariff_max_gbp_per_mwh": 385.39762047545514
+        },
+        "C2g": {
+          "commodity": "gas",
+          "gross_gbp": 88.068578,
+          "capital_gbp": 86.16564061,
+          "net_gbp": 1.902937389999999,
+          "tariff_min_gbp_per_mwh": 38.6746,
+          "tariff_max_gbp_per_mwh": 61.5676
+        },
+        "C3": {
+          "commodity": "electricity",
+          "gross_gbp": 100.92022566135017,
+          "capital_gbp": 41.792060655712454,
+          "net_gbp": 59.12816500563772,
+          "tariff_min_gbp_per_mwh": 148.6403569247706,
+          "tariff_max_gbp_per_mwh": 148.6403569247706
+        },
+        "C3g": {
+          "commodity": "gas",
+          "gross_gbp": 48.342307,
+          "capital_gbp": 15.68793223,
+          "net_gbp": 32.65437477,
+          "tariff_min_gbp_per_mwh": 39.7458,
+          "tariff_max_gbp_per_mwh": 39.7458
+        },
+        "C4": {
+          "commodity": "electricity",
+          "gross_gbp": 190.56466472135466,
+          "capital_gbp": 74.63557316803532,
+          "net_gbp": 115.92909155331934,
+          "tariff_min_gbp_per_mwh": 154.3676904358651,
+          "tariff_max_gbp_per_mwh": 154.3676904358651
+        },
+        "C4g": {
+          "commodity": "gas",
+          "gross_gbp": 99.050733,
+          "capital_gbp": 28.262499639999998,
+          "net_gbp": 70.78823335999999,
+          "tariff_min_gbp_per_mwh": 45.2732,
+          "tariff_max_gbp_per_mwh": 45.2732
+        },
+        "C5": {
+          "commodity": "electricity",
+          "gross_gbp": 677.5723596482424,
+          "capital_gbp": 375.5674140978312,
+          "net_gbp": 302.0049455504112,
+          "tariff_min_gbp_per_mwh": 191.76238035520606,
+          "tariff_max_gbp_per_mwh": 191.76238035520606
+        },
+        "C6": {
+          "commodity": "electricity",
+          "gross_gbp": 815.5856170475743,
+          "capital_gbp": 915.6275972420974,
+          "net_gbp": -100.04198019452318,
+          "tariff_min_gbp_per_mwh": 151.30782904911422,
+          "tariff_max_gbp_per_mwh": 385.39762047545514
+        }
+      },
+      "active_customer_ids": [
+        "C1",
+        "C1g",
+        "C2",
+        "C2g",
+        "C3",
+        "C3g",
+        "C4",
+        "C4g",
+        "C5",
+        "C6"
+      ],
+      "acquisitions": [],
+      "committee_wake_ups": [],
+      "hedge_fractions": {
+        "C2": {
+          "start_hf": 0.0,
+          "avg_hf": 0.0
+        },
+        "C6": {
+          "start_hf": 0.4,
+          "avg_hf": 0.4
+        },
+        "C2g": {
+          "start_hf": 2.7755575615628914e-17,
+          "avg_hf": 2.7755575615628914e-17
+        }
+      },
+      "worst_period": {
+        "settlement_date": "2025-01-08",
+        "settlement_period": 34,
+        "customer_id": "C5",
+        "net_margin_gbp": -9.720551467618902
+      },
+      "bills_count": 60,
+      "avg_clarity": 0.8560201094935225,
+      "avg_bill_shock_pct": 0.23606769317482398,
+      "bill_shock_events": [
+        {
+          "customer_id": "C1",
+          "period_end": "2025-04-30",
+          "bill_shock_pct": 0.23333770906753112
+        },
+        {
+          "customer_id": "C1",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7810824412114556
+        },
+        {
+          "customer_id": "C1g",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7741935483870968
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2025-04-30",
+          "bill_shock_pct": 0.31389071359083354
+        },
+        {
+          "customer_id": "C5",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7921041950990683
+        },
+        {
+          "customer_id": "C2",
+          "period_end": "2025-04-30",
+          "bill_shock_pct": 0.9723564932924249
+        },
+        {
+          "customer_id": "C2",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7779958191948276
+        },
+        {
+          "customer_id": "C2g",
+          "period_end": "2025-04-30",
+          "bill_shock_pct": 0.4839163164603845
+        },
+        {
+          "customer_id": "C2g",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7741935483870969
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2025-01-31",
+          "bill_shock_pct": 0.25251625418026896
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2025-02-28",
+          "bill_shock_pct": 0.2007552732696584
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2025-04-30",
+          "bill_shock_pct": 0.7037007365908703
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2025-05-31",
+          "bill_shock_pct": 0.21008784048053902
+        },
+        {
+          "customer_id": "C6",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7581656072945069
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2025-04-30",
+          "bill_shock_pct": 0.21945118978737374
+        },
+        {
+          "customer_id": "C3",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.780289763256933
+        },
+        {
+          "customer_id": "C3g",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7741935483870968
+        },
+        {
+          "customer_id": "C4",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7779958191948276
+        },
+        {
+          "customer_id": "C4g",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7741935483870966
+        }
+      ],
+      "bad_debt_gbp": 144.30483123722405,
+      "avg_complaint_probability": 0.052806953434838814
+    }
+  },
+  "per_customer_lifetime": {
+    "C1": {
+      "commodity": "electricity",
+      "segment": "resi",
+      "acquisition_date": "2016-01-01",
+      "gross_gbp": 2538.6243218463806,
+      "capital_gbp": 562.727556136477,
+      "net_gbp": 1975.8967657099038
+    },
+    "C2": {
+      "commodity": "electricity",
+      "segment": "resi",
+      "acquisition_date": "2016-04-01",
+      "gross_gbp": 6762.451689359229,
+      "capital_gbp": 1010.1352849284542,
+      "net_gbp": 5752.316404430774
+    },
+    "C3": {
+      "commodity": "electricity",
+      "segment": "resi",
+      "acquisition_date": "2016-07-01",
+      "gross_gbp": 1614.847003078207,
+      "capital_gbp": 506.51519849887256,
+      "net_gbp": 1108.3318045793346
+    },
+    "C4": {
+      "commodity": "electricity",
+      "segment": "resi",
+      "acquisition_date": "2016-10-01",
+      "gross_gbp": 5134.328183528011,
+      "capital_gbp": 1186.7533946884407,
+      "net_gbp": 3947.5747888395704
+    },
+    "C5": {
+      "commodity": "electricity",
+      "segment": "SME",
+      "acquisition_date": "2016-01-01",
+      "gross_gbp": 11801.796971529566,
+      "capital_gbp": 5024.353179789973,
+      "net_gbp": 6777.4437917395935
+    },
+    "C6": {
+      "commodity": "electricity",
+      "segment": "SME",
+      "acquisition_date": "2016-04-01",
+      "gross_gbp": 11929.319941035936,
+      "capital_gbp": 8792.497142496783,
+      "net_gbp": 3136.8227985391536
+    },
+    "C1g": {
+      "commodity": "gas",
+      "segment": "resi",
+      "acquisition_date": "2016-01-01",
+      "gross_gbp": 993.297543,
+      "capital_gbp": 264.55101271,
+      "net_gbp": 728.74653029
+    },
+    "C2g": {
+      "commodity": "gas",
+      "segment": "resi",
+      "acquisition_date": "2016-04-01",
+      "gross_gbp": 1609.644917,
+      "capital_gbp": 650.6021608,
+      "net_gbp": 959.0427562
+    },
+    "C3g": {
+      "commodity": "gas",
+      "segment": "resi",
+      "acquisition_date": "2016-07-01",
+      "gross_gbp": 495.136214,
+      "capital_gbp": 169.86455032,
+      "net_gbp": 325.27166368
+    },
+    "C4g": {
+      "commodity": "gas",
+      "segment": "resi",
+      "acquisition_date": "2016-10-01",
+      "gross_gbp": 1803.039041,
+      "capital_gbp": 340.59581723,
+      "net_gbp": 1462.44322377
+    }
+  },
+  "bills_total": 1101,
+  "avg_clarity_total": 0.9178267894158684,
+  "service_quality_score": 0.9352807552383435,
+  "avg_complaint_probability_total": 0.03235962238082825
+}

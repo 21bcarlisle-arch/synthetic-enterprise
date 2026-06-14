@@ -1,0 +1,128 @@
+# Phase 5a: Annual Reporting Function
+
+## Objective
+
+Build a reporting function that produces a single annual report document
+covering all years of the simulation run. This is a first-class business
+process, not a diagnostic tool. It will evolve through a feedback and
+improvement backlog, with Rich providing steering on prioritisation.
+
+## Context
+
+The simulation has completed a full 9.5-year run (2016–mid 2025) with the
+following layers active: dual-fuel portfolio (electricity + gas), multi-tenor
+hedging with risk committee governance, weather-driven demand, cost to serve,
+churn model, Shifted-BG CLV, home move win rate, and enterprise value
+function. 243 tests passing.
+
+The problem: there is currently no way for Rich (as MD/board) to read what
+happened to the business across those years. Numbers exist in summary files
+but there is no coherent narrative or structured reporting that a company
+operator would actually use.
+
+## Deliverable 1 — v1 Annual Report
+
+Produce a single document: `docs/reports/ANNUAL_REPORT.md`
+
+One section per calendar year (2016 through 2024, plus partial 2025 if data
+exists). Each year section must contain:
+
+**Trading & Risk**
+- Opening and closing treasury
+- Net margin (total, electricity, gas split)
+- Wholesale cost vs tariff revenue
+- Hedge fraction at start of year and average across year
+- Number of risk committee interventions (Context Handshake wake-ups)
+- VaR ratio: current vs stressed floor
+- Worst single period loss and when it occurred
+
+**Customer Book**
+- Customers on supply at start and end of year
+- Acquisitions and losses (churn + home move) during year
+- Segment breakdown (resi/SME, electricity/gas/dual)
+- Average CLV across book at year end
+- Highest and lowest CLV customer
+- Bill shock events: count and which customers affected
+- Churn risk: how many customers above threshold at year end
+
+**Pricing & Margin**
+- Tariff rates in effect (or range if changed during year)
+- Average margin per customer per MWh
+- Cost to serve per customer (average and range)
+- Net margin per customer after cost to serve
+- Activity-based pricing flag: any customers net-negative?
+
+**Portfolio Health**
+- Capital cost ratio
+- Treasury drawdown events (>10% threshold)
+- Service quality score
+- Any regulatory threshold breaches
+
+**Year narrative (3-4 sentences):** What happened to this business this year?
+What was the dominant risk or opportunity? What did the risk committee do?
+
+The document should open with a one-page executive summary covering the full
+9.5-year arc: how the business started, survived the 2021-2022 crisis, and
+what its current financial position and enterprise value represent.
+
+Format: clean markdown, readable without a renderer. Numbers to 2 decimal
+places. Years as H2 headers. No raw data dumps — synthesised figures only.
+
+## Deliverable 2 — Reporting Improvement Backlog
+
+Immediately after generating v1, produce `docs/reports/REPORTING_BACKLOG.md`
+
+This is the agent's own assessment of what v1 is missing, what a real energy
+supplier's board pack would contain that this doesn't, and what improvements
+would most increase the report's usefulness to Rich as operator and advisor.
+
+Format each backlog item as:
+- **Item:** what it is
+- **Value:** why it matters to a company operator
+- **Effort:** Low / Medium / High (token + GPU cost estimate)
+- **Depends on:** any data or features not yet built
+
+Aim for 10-15 items. Prioritise by value/effort ratio. Flag any items that
+require new simulation data to be generated (e.g. HH smart meter customers,
+competitor pricing) vs items that can be built from existing run output.
+
+End the backlog with a section: **What Rich needs to decide** — any items
+where the right answer depends on a strategic choice only Rich can make.
+
+## Deliverable 3 — Report Generator as Standing Function
+
+The report must not be a one-off script. Implement as:
+
+`saas/reporting/annual_report.py`
+
+A callable function that reads from the existing simulation output and
+produces the full annual report document. It should be runnable at any time
+to regenerate the report from current data.
+
+Add `make report` to the Makefile as a target that runs this and writes the
+output to `docs/reports/ANNUAL_REPORT.md`.
+
+Tests: at minimum, assert the function runs without error and produces a
+non-empty document with the correct year sections present.
+
+## Constraints
+
+- Read only from existing simulation output — do not re-run the simulation
+- Do not invent numbers — if data for a metric doesn't exist in the output,
+  say so explicitly in the report rather than estimating
+- The report is for a human operator, not for another model — write it that way
+- Delegate all code generation to local Qwen
+
+## Gate
+
+**[REVIEW_GATE]** — Rich reviews ANNUAL_REPORT.md and REPORTING_BACKLOG.md
+before any further reporting work proceeds. He will prioritise the backlog
+and confirm which items to action next.
+
+## NTFY
+
+On completion send two notifications:
+1. "Phase 5a complete. Annual report at docs/reports/ANNUAL_REPORT.md — please review."
+2. "Reporting backlog at docs/reports/REPORTING_BACKLOG.md — awaiting prioritisation from Rich."
+
+Include the raw GitHub URLs for both files.
