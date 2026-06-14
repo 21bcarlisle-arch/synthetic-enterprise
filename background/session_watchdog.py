@@ -199,7 +199,11 @@ USAGE_LIMIT_PATTERN = re.compile(
 
 RESUME_INSTRUCTION = (
     "Read CLAUDE.md and STATUS.md. Continue from where the last session ended. "
-    "Check docs/instructions/MASTER_BACKLOG.md for the current phase. Proceed autonomously."
+    "Per the Staging Directory Protocol, first check docs/staging/ for any "
+    "file not yet in docs/staging/done/ -- staging is pre-approval, action it "
+    "now without waiting for confirmation. Only once docs/staging/ is empty, "
+    "check docs/instructions/MASTER_BACKLOG.md for the current phase. Proceed "
+    "autonomously."
 )
 
 # --- Autonomous main loop (between-task continuation) ---
@@ -259,11 +263,15 @@ USAGE_PAUSE_CHECK_INSTRUCTION = (
 )
 
 AUTOLOOP_INSTRUCTION = USAGE_PAUSE_CHECK_INSTRUCTION + (
-    "Check docs/instructions/MASTER_BACKLOG.md for the next incomplete phase "
-    "or sub-phase, and docs/staging/ for any new instructions. If found, "
-    "proceed autonomously following the established REVIEW_GATE/NTFY "
-    "pattern. If you hit a REVIEW_GATE or a genuine blocker, stop and state "
-    "it clearly so Rich can review."
+    "Per the Staging Directory Protocol, first check docs/staging/ for any "
+    "file not yet in docs/staging/done/ -- staging is pre-approval, action it "
+    "now without waiting for confirmation, following its own Gate/NTFY "
+    "instructions, then move it to docs/staging/done/. Repeat until "
+    "docs/staging/ is empty. Only then check docs/instructions/MASTER_BACKLOG.md "
+    "for the next incomplete phase or sub-phase and proceed autonomously "
+    "following the established REVIEW_GATE/NTFY pattern. If you hit a "
+    "REVIEW_GATE or a genuine blocker, stop and state it clearly so Rich can "
+    "review."
 )
 
 DOWNTIME_TASKS_FILE = Path(f"{PROJECT_DIR}/docs/instructions/background-tasks.md")
