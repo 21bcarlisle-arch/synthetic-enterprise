@@ -577,6 +577,59 @@ def test_check_inbound_commands_relays_new_message(monkeypatch):
     assert cmd[5] == "Enter"
 
 
+def test_check_inbound_commands_handles_usage_directly(monkeypatch):
+    send_keys_calls = []
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(
+        watchdog.subprocess, "run",
+        lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})(),
+    )
+    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
+    monkeypatch.setattr(watchdog, "send_ntfy", lambda msg, headers=None: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
+
+    body = json.dumps({"id": "in1", "event": "message", "time": 2000, "message": "/usage"})
+    monkeypatch.setattr(
+        watchdog.requests, "get",
+        lambda *a, **k: type("R", (), {"text": body})(),
+    )
+
+    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
+
+    assert new_since == 2000
+    # /usage is handled directly, not relayed to the session
+    assert send_keys_calls == []
+    assert len(ntfy_messages) == 1
+    assert "33%" in ntfy_messages[0]
+    assert "4:59pm" in ntfy_messages[0]
+    assert "Europe/London" in ntfy_messages[0]
+
+
+def test_check_inbound_commands_usage_reports_fallback_when_unreadable(monkeypatch):
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(
+        watchdog.subprocess, "run",
+        lambda *a, **k: type("R", (), {"returncode": 0})(),
+    )
+    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
+    monkeypatch.setattr(watchdog, "send_ntfy", lambda msg, headers=None: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "check_session_usage", lambda: None)
+
+    body = json.dumps({"id": "in1", "event": "message", "time": 2000, "message": "/usage"})
+    monkeypatch.setattr(
+        watchdog.requests, "get",
+        lambda *a, **k: type("R", (), {"text": body})(),
+    )
+
+    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
+
+    assert new_since == 2000
+    assert len(ntfy_messages) == 1
+    assert "try again" in ntfy_messages[0].lower()
+
+
 def test_check_inbound_commands_skips_own_messages(monkeypatch):
     send_keys_calls = []
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)

@@ -571,10 +571,41 @@ def check_inbound_commands(pane_text: str, since: float) -> float:
                 "showing — deferring to next cycle")
             return latest
 
-        _relay_inbound_command(message)
+        if message.strip().lower() == "/usage":
+            _handle_usage_command()
+        else:
+            _relay_inbound_command(message)
         latest = max(latest, msg_time)
 
     return latest
+
+
+def _handle_usage_command() -> None:
+    """Handle an inbound "/usage" command from Rich's phone directly,
+    without relaying it to Claude.
+
+    Relaying "/usage" (the way every other inbound command is relayed, via
+    `_relay_inbound_command`) doesn't work: a slash command is only
+    recognised when it's the *entire* input, and the relay always appends
+    INBOUND_COMMAND_SUFFIX — so Claude received literal text "/usage [...]"
+    that it could only guess about, producing exactly the "wildly
+    overestimating" answers Rich flagged. Instead, reuse
+    `check_session_usage()` (the same standalone-/usage + parse mechanism
+    the soft 90% self-pause already relies on) and reply with the real
+    figure directly.
+
+    If the dialog doesn't render in time (e.g. the session is mid-task and
+    the keystrokes were queued rather than executed), reports that plainly
+    rather than a guess.
+    """
+    usage = check_session_usage()
+    if usage is None:
+        send_ntfy(
+            "Couldn't read /usage just now (session may be mid-task) — try again in a moment."
+        )
+        return
+    pct, reset_time, tz_name = usage
+    send_ntfy(f"Usage: {pct}% of current session window used, resets {reset_time} {tz_name}.")
 
 
 def restart_claude(resume: bool = False) -> None:
