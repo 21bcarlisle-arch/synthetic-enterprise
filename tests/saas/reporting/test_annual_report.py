@@ -225,6 +225,16 @@ def test_segment_margin_trend_section_handles_no_years():
     assert NOT_AVAILABLE in _segment_margin_trend_section(data)
 
 
+def test_segment_margin_trend_section_handles_missing_segment_split():
+    # Cached report-data JSON generated before this section existed won't
+    # have "segment_split" -- regenerating the report from it must degrade
+    # gracefully rather than raising KeyError.
+    data = extract_report_data(_run_output())
+    for yd in data["years"].values():
+        del yd["segment_split"]
+    assert NOT_AVAILABLE in _segment_margin_trend_section(data)
+
+
 def test_mandate_comparison_section_reports_not_available_without_old_data():
     data = extract_report_data(_run_output())
     section = _mandate_comparison_section(data, None)

@@ -195,7 +195,7 @@ def _build_gas_renewal_schedule(
                 )
             else:
                 break
-        unit_rate = price_fixed_tariff(fwd, aq_kwh, term_start)
+        unit_rate = price_fixed_tariff(fwd, aq_kwh, term_start, naked_fraction=1 - MIN_HEDGE_FLOOR)
         schedule.append({
             "acquisition_date": term_start,
             "term_end": term_end,

@@ -774,7 +774,7 @@ def _segment_margin_trend_section(data: dict) -> str:
     segments = sorted({
         segment
         for year in years
-        for segment in data["years"][year]["segment_split"]
+        for segment in data["years"][year].get("segment_split", {})
     })
     if not segments:
         return f"## Segment Margin Trend\n\n{NOT_AVAILABLE}\n"
@@ -783,7 +783,7 @@ def _segment_margin_trend_section(data: dict) -> str:
     lines.append("| Year | " + " | ".join(segments) + " | Total |")
     lines.append("|---" * (len(segments) + 2) + "|")
     for year in years:
-        split = data["years"][year]["segment_split"]
+        split = data["years"][year].get("segment_split", {})
         row_values = [split.get(segment, {}).get("net_gbp", 0.0) for segment in segments]
         cells = " | ".join(_fmt_gbp(v) for v in row_values)
         lines.append(f"| {year} | {cells} | {_fmt_gbp(sum(row_values))} |")

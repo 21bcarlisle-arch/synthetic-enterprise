@@ -8,7 +8,54 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-15T11:52:48Z
+Last updated: 2026-06-15T18:35:58Z
+
+**naked_kwh pricing fix re-run — net margin now within industry benchmark
+(2026-06-15)**: `saas/tariff_pricing.price_fixed_tariff()` previously priced
+capital cost on 100% of EAC as if fully unhedged, even though the Phase 5c
+mandate keeps the book 85-100% hedged. New `naked_fraction` parameter (default
+1.0, preserving old behaviour for any other callers) lets
+`simulation/run_phase2b.py` (gas) and `simulation/renewals.py` (electricity)
+pass `naked_fraction=1 - MIN_HEDGE_FLOOR` (0.15), so the priced-in capital cost
+reflects only the ~15% active position. 2 new tests (285 total at the time),
+lint clean.
+
+Full 2016-2025 re-run with the fix: **net margin as % of revenue dropped from
+12.6% to 4.3%** — now inside the 2-5% industry-benchmark range. Revenue
+£171,786.67 (was £188,190.32), gross margin £11,230.43 (was £27,525.43),
+capital cost £3,899.42 (was £3,846.88, ~flat — this is the risk engine's
+actual capital charge based on real hedge fractions, separate from the
+pricing formula), net margin £7,331.01 (was £23,678.55). Capital cost ratio
+rose to 34.7% of gross (was 14.0%) — gross margin shrank much more than
+capital cost because customers are now charged less (lower priced-in capital
+cost), not because the capital charge itself grew. SURVIVED full window,
+final treasury £29,846.19 -> £37,177.20, 155 Context Handshake wake-ups, 1,434
+bills (avg clarity 0.878, service quality 0.919). Whole-run hedging cost
+£27,427.04 vs. a fully naked book (actual £7,331.01 vs. naked £34,758.04).
+295 tests passing, lint clean. `ANNUAL_REPORT.md` regenerated from the
+persisted run data (now also includes a new "Segment Margin Trend" section —
+REPORTING_BACKLOG item 11, closed; shows "Not available" for this run since
+the cached JSON predates the field, will populate on the next full re-run).
+
+**Forward curve overpricing — root cause found, fix proposed, awaiting
+steer (2026-06-15)**: Rich quantified the remaining gap (hedged £23,678 vs
+naked £51,161 under the pre-fix figures, implying forwards priced ~116% above
+realised spot). Investigated `sim/forward_curve.py`: the systematic 40-290%
+overpricing is pervasive across 2016-2024, NOT crisis-specific — the only
+realistic period was 2020-07 to 2021-07 (the crisis run-up). Root cause:
+`generate_forward_price()`'s volatility premium uses `pstdev()` of
+**half-hourly** SSP records (captures intraday peak/off-peak spread, e.g.
+sigma=63.24) instead of **daily-mean** SSP (sigma=14.81, a 4.3x difference) —
+with `risk_factor=1.2` this term often exceeds the base price itself. Proposed
+two-phase fix in `docs/staging/drafts/FORWARD_CURVE_FIX_PROPOSAL.md`
+(`acf30ba`): Phase A (mechanical, low-risk) switches to daily-mean sigma,
+cutting the average premium from ~116% to ~45%; Phase B (re-pricing, needs
+sign-off) would further reduce `risk_factor` to ~0.25-0.3 to hit the 5-15%
+literature range. Sign-changing/backwardation emerges naturally from the
+existing trailing-average structure once the volatility term is fixed — no
+special-casing needed. Default plan absent redirection: build+re-run Phase A
+next (isolating its effect from this naked_kwh fix), hold Phase B for
+sign-off based on Phase A's actual results.
 
 **Phase 6a complete — HH smart meter customers (2026-06-15)**: added three
 half-hourly (smart meter) residential customers, C7 (London, single

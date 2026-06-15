@@ -280,3 +280,65 @@
 - [2026-06-15 12:04 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-15 12:07 UTC] Inbound NTFY command from Rich: 'Investigated all 3:\n1) NOT stale - gist+pages both show 14.0%/£23,678.55. The 41%/£26,779 you saw is the "Hedging Mandate" section\'s "Old-model run" row (pre-5c snapshot), sitting right next to the new figures - likely what got skimmed.\n2) VaR is computed once per customer per ANNUAL contract term (365d lookback at term start), not per monthly committee check. With 13 staggered anniversaries, portfolio VaR is static within ~30-day cycles, jumps only when someone renews. Dynamic at contract level, not mark-to-market.\n3) Found it: tariff_pricing.py prices capital cost as if each customer\'s FULL EAC is unhedged (8-25% of fwd price), but Phase 5c keeps the book 85-100% hedged, so actual capital cost charged (£3,846=2% rev) is far less than what\'s priced in. That gap = most of the excess margin, plus the flat £2/MWh target on top. Recommend: price capital cost on naked_kwh (eac*(1-MIN_HEDGE_FLOOR)) not full eac - scoped fix, complements #16/17. Holding Phase 6b as requested - want me to scope/build this pricing fix next?' — relaying to session
 - [2026-06-15 12:13 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 12:28 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 12:33 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 12:39 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 12:44 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 12:49 UTC] Inbound NTFY command from Rich: 'After the pricing fix: (1) re-run and verify net margin lands in 2-5% of revenue. (2) Then Phase 6b event-driven lifecycle. (3) Then improve VaR to update on volatility regime changes not just annual renewal. (4) Then forward curve term structure. (5) Then ToU tariffs for HH customers. Work concurrently wherever unblocked.' — relaying to session
+- [2026-06-15 12:49 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 12:54 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 12:59 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 13:04 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 13:09 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 13:14 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 13:19 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 13:24 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 13:29 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 13:35 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 13:40 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 13:45 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 13:50 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 13:55 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 14:00 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 14:05 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 14:10 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 14:15 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 14:20 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 14:25 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 14:30 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 14:35 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 14:41 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 14:46 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 14:51 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 14:56 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 15:01 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 15:06 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 15:11 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 15:16 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 15:31 UTC] Inbound NTFY command from Rich: "While the re-run runs in the background, don't wait — work on other unblocked backlog items. What are you doing right now?" — relaying to session
+- [2026-06-15 15:40 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 15:46 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 15:51 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 15:56 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 16:01 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 16:10 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 16:16 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 16:21 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 16:26 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 16:31 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 16:41 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 16:47 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 16:52 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 16:57 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 17:16 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 17:25 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 17:31 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 17:44 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 17:50 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 17:55 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 18:02 UTC] Inbound NTFY command from Rich: "Let's check it's working...reply please" — relaying to session
+- [2026-06-15 18:03 UTC] Inbound NTFY command from Rich: "Nice. That's cool!" — relaying to session
+- [2026-06-15 18:04 UTC] Inbound NTFY command from Rich: 'Can you say anything other than that response?' — relaying to session
+- [2026-06-15 18:07 UTC] Inbound NTFY command from Rich: "Forward curve issue quantified. Academic literature shows UK power season-ahead forwards trade at 5-15% premium above expected spot in normal conditions, premium compresses during crises. Our simulation shows hedged book earning £23,678 vs naked £51,161 — implying forwards were priced at ~116% above realised spot on average. That's not a risk premium, it's a systematic overpricing. The forward curve construction needs to be rebuilt to reflect realistic term structure with 5-15% seasonal premium, sign-changing risk premium (sometimes backwardated), and premium compression during 2021-22 crisis when liquidity dried up. This is the root cause of the 12.6% net margin vs 2-5% benchmark. Please investigate how the synthetic forward curves are currently constructed and propose a fix" — relaying to session
+- [2026-06-15 18:13 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 18:27 UTC] Inbound NTFY command from Rich: "Agreed on both phases. Proceed with Phase A after the 6c re-run completes. One thing to preserve in the fix: the sign-changing behaviour you mentioned (backwardation emerging naturally in 2020-21 run-up) is exactly right and should be confirmed in the Phase A re-run output. Report the average forward premium by year in the annual report so we can see the regime shifts. That's the data we need to calibrate Phase B." — relaying to session

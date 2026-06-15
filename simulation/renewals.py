@@ -16,6 +16,7 @@ from datetime import date, timedelta
 
 from saas.tariff_pricing import price_fixed_tariff
 from sim.forward_curve import generate_forward_price
+from sim.hedging_strategy import MIN_HEDGE_FLOOR
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 
@@ -63,7 +64,7 @@ def build_renewal_schedule(
         forward_price = generate_forward_price(
             term_start_str, price_records, lookback_daily_mean_temps_c=lookback_temps
         )
-        unit_rate = price_fixed_tariff(forward_price, eac_kwh, term_start_str)
+        unit_rate = price_fixed_tariff(forward_price, eac_kwh, term_start_str, naked_fraction=1 - MIN_HEDGE_FLOOR)
         terms.append({
             "customer_id": customer_id,
             "acquisition_date": term_start_str,

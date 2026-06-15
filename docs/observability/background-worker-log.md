@@ -378,3 +378,27 @@ Structured performance entries are added after each task completes.
 - [2026-06-15 11:37 UTC] run_queued_tasks: no parseable QUEUED task found
 - [2026-06-15 12:07 UTC] Found queued tasks — beginning execution
 - [2026-06-15 12:07 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-15 12:37 UTC] Found queued tasks — beginning execution
+- [2026-06-15 12:37 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-15 13:07 UTC] Found queued tasks — beginning execution
+- [2026-06-15 13:07 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-15 13:37 UTC] Found queued tasks — beginning execution
+- [2026-06-15 13:37 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-15 14:07 UTC] Found queued tasks — beginning execution
+- [2026-06-15 14:07 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-15 14:37 UTC] Found queued tasks — beginning execution
+- [2026-06-15 14:37 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-15 15:07 UTC] Found queued tasks — beginning execution
+- [2026-06-15 15:07 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-15 15:37 UTC] Found queued tasks — beginning execution
+- [2026-06-15 15:37 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-15 16:07 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:07 UTC
+- [2026-06-15 16:22 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:22 UTC
+- [2026-06-15 16:37 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:37 UTC
+- [2026-06-15 16:52 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:52 UTC
+- [2026-06-15 17:07 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:07 UTC
+- [2026-06-15 17:22 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:22 UTC
+- [2026-06-15 17:37 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:37 UTC
+- [2026-06-15 17:52 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:52 UTC
+- [2026-06-15 18:07 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:07 UTC
+- [2026-06-15 18:22 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:22 UTC

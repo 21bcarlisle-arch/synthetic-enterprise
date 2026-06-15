@@ -1,7 +1,7 @@
 ## Risk Committee Wake-Up — 2023-03-11 period 35
 Trigger: VaR_current £5460.16 exceeds VaR_stressed £2143.57 × 2.5 (ratio 2.55)
-Treasury balance: £41081.66 (12-month peak: £41081.66, drawdown: 0.0%)
-Portfolio gross margin YTD: £288.58 | Net margin YTD: £249.02
+Treasury balance: £34218.79 (12-month peak: £34218.79, drawdown: 0.0%)
+Portfolio gross margin YTD: £120.49 | Net margin YTD: £80.93
 Capital costs YTD: £39.56
 VaR_current: £5460.16 | VaR_stressed: £2143.57 | Ratio: 2.55
 Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.85 C9=0.95

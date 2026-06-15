@@ -1,6 +1,9 @@
+import pytest
+
 from saas.tariff_pricing import (
     SIGMA_STRESSED_POST_2023,
     SIGMA_STRESSED_PRE_2023,
+    TARGET_MARGIN_GBP_PER_MWH,
     WACC,
     Z_SCORE,
     price_fixed_tariff,
@@ -47,3 +50,26 @@ def test_tariff_uses_sigma_stressed_not_recent():
     pre_2023_tariff = price_fixed_tariff(forward_price, eac_kwh, pre_2023_term_start)
     post_2023_tariff = price_fixed_tariff(forward_price, eac_kwh, post_2023_term_start)
     assert post_2023_tariff > pre_2023_tariff
+
+
+def test_naked_fraction_scales_capital_cost():
+    forward_price = 60.0
+    eac_kwh = 3500
+    term_start = "2024-01-01"
+    fully_naked = price_fixed_tariff(forward_price, eac_kwh, term_start, naked_fraction=1.0)
+    mandate_naked = price_fixed_tariff(forward_price, eac_kwh, term_start, naked_fraction=0.15)
+
+    fully_naked_capital_cost = fully_naked - forward_price - TARGET_MARGIN_GBP_PER_MWH
+    mandate_naked_capital_cost = mandate_naked - forward_price - TARGET_MARGIN_GBP_PER_MWH
+
+    assert mandate_naked_capital_cost == pytest.approx(fully_naked_capital_cost * 0.15)
+    assert mandate_naked < fully_naked
+
+
+def test_default_naked_fraction_is_fully_naked():
+    forward_price = 60.0
+    eac_kwh = 3500
+    term_start = "2024-01-01"
+    default = price_fixed_tariff(forward_price, eac_kwh, term_start)
+    explicit = price_fixed_tariff(forward_price, eac_kwh, term_start, naked_fraction=1.0)
+    assert default == explicit
