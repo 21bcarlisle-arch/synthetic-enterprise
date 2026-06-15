@@ -115,6 +115,8 @@ def extract_report_data(run_output: dict) -> dict:
 
     years = sorted({_year(r["settlement_date"]) for r in all_records})
 
+    segment_by_customer = {c["customer_id"]: c["segment"] for c in CUSTOMERS}
+
     yearly = {}
     for year in years:
         yr_records = [r for r in all_records if _year(r["settlement_date"]) == year]
@@ -127,6 +129,17 @@ def extract_report_data(run_output: dict) -> dict:
                 "capital_gbp": sum(r["capital_cost_gbp"] for r in recs),
                 "net_gbp": sum(r["net_margin_gbp"] for r in recs),
             }
+
+        segment_split: dict[str, dict] = {}
+        for r in yr_records:
+            segment = segment_by_customer.get(r["customer_id"], "unknown")
+            label = f"{segment} {r.get('commodity', 'electricity')}"
+            entry = segment_split.setdefault(
+                label, {"gross_gbp": 0.0, "capital_gbp": 0.0, "net_gbp": 0.0}
+            )
+            entry["gross_gbp"] += r["margin_gbp"]
+            entry["capital_gbp"] += r["capital_cost_gbp"]
+            entry["net_gbp"] += r["net_margin_gbp"]
 
         per_customer = {}
         for cid in sorted({r["customer_id"] for r in yr_records}):
@@ -220,6 +233,7 @@ def extract_report_data(run_output: dict) -> dict:
             "net_gbp": sum(r["net_margin_gbp"] for r in yr_records),
             "treasury_end_gbp": treasury_end,
             "commodity_split": commodity_split,
+            "segment_split": segment_split,
             "per_customer": per_customer,
             "active_customer_ids": sorted({r["customer_id"] for r in yr_records}),
             "acquisitions": sorted(
@@ -752,6 +766,31 @@ def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
     return "\n".join(lines)
 
 
+def _segment_margin_trend_section(data: dict) -> str:
+    """Whole-run net-margin trend by segment (e.g. "resi electricity", "SME
+    electricity", "resi gas"), one row per year — REPORTING_BACKLOG item 11.
+    A coarser-grained view than per-customer, for portfolio-strategy review."""
+    years = sorted(data["years"])
+    segments = sorted({
+        segment
+        for year in years
+        for segment in data["years"][year]["segment_split"]
+    })
+    if not segments:
+        return f"## Segment Margin Trend\n\n{NOT_AVAILABLE}\n"
+
+    lines = ["## Segment Margin Trend", "", "Net margin (£) by segment, by year:", ""]
+    lines.append("| Year | " + " | ".join(segments) + " | Total |")
+    lines.append("|---" * (len(segments) + 2) + "|")
+    for year in years:
+        split = data["years"][year]["segment_split"]
+        row_values = [split.get(segment, {}).get("net_gbp", 0.0) for segment in segments]
+        cells = " | ".join(_fmt_gbp(v) for v in row_values)
+        lines.append(f"| {year} | {cells} | {_fmt_gbp(sum(row_values))} |")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -770,6 +809,7 @@ def generate_annual_report(data: dict) -> str:
 
     sections.append(_mandate_comparison_section(data, _load_old_model_data()))
     sections.append(_hedge_effectiveness_summary_section(data))
+    sections.append(_segment_margin_trend_section(data))
 
     for year in sorted(data["years"]):
         yd = data["years"][year]

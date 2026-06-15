@@ -1,6 +1,7 @@
 from saas.reporting.annual_report import (
     NOT_AVAILABLE,
     _mandate_comparison_section,
+    _segment_margin_trend_section,
     extract_report_data,
     generate_annual_report,
 )
@@ -153,6 +154,9 @@ def test_extract_report_data_splits_by_year():
     assert y2016["net_gbp"] == 21.0
     assert y2016["commodity_split"]["electricity"]["net_gbp"] == 17.0
     assert y2016["commodity_split"]["gas"]["net_gbp"] == 4.0
+    # C1 and C1g are both segment "resi" (saas.customers.CUSTOMERS)
+    assert y2016["segment_split"]["resi electricity"]["net_gbp"] == 17.0
+    assert y2016["segment_split"]["resi gas"]["net_gbp"] == 4.0
     # Picked from the chronologically latest record (2016-06-01), not list order
     assert y2016["treasury_end_gbp"] == 1017.0
     # All 13 customers (incl. Phase 6a HH customers C7-C9) have a 2016
@@ -194,6 +198,31 @@ def test_generate_annual_report_produces_year_sections():
     assert "net-negative" in report
     # Phase 5c hedging mandate before/after comparison
     assert "## Hedging Mandate — Before/After Phase 5c" in report
+    # Segment margin trend (REPORTING_BACKLOG item 11)
+    assert "## Segment Margin Trend" in report
+
+
+def test_segment_margin_trend_section_breaks_down_by_segment_and_year():
+    data = extract_report_data(_run_output())
+    section = _segment_margin_trend_section(data)
+
+    assert "resi electricity" in section
+    assert "resi gas" in section
+    # 2016: resi electricity net = 17.0, resi gas net = 4.0, total = 21.0
+    assert "| 2016 |" in section
+    row_2016 = [line for line in section.splitlines() if line.startswith("| 2016 |")][0]
+    assert "£17.00" in row_2016
+    assert "£4.00" in row_2016
+    assert "£21.00" in row_2016
+    # 2017: resi electricity net = -6.0, no gas activity that year
+    row_2017 = [line for line in section.splitlines() if line.startswith("| 2017 |")][0]
+    assert "£-6.00" in row_2017
+
+
+def test_segment_margin_trend_section_handles_no_years():
+    data = extract_report_data(_run_output())
+    data["years"] = {}
+    assert NOT_AVAILABLE in _segment_margin_trend_section(data)
 
 
 def test_mandate_comparison_section_reports_not_available_without_old_data():
