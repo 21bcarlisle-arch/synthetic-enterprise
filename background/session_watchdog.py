@@ -138,10 +138,13 @@ NTFY_COMMAND_SINCE_FILE = Path(PROJECT_DIR) / "docs" / "observability" / ".ntfy_
 
 INBOUND_COMMAND_SUFFIX = (
     " [Received via NTFY from Rich's phone -- a short steering message, not "
-    "a staged instruction. Reply concisely via NTFY too (curl -s -d "
-    "\"<answer>\" https://ntfy.sh/skynet-synthetic) in addition to your "
-    "normal response. If this is actually a substantial multi-step "
-    "instruction, treat it per the Staging Directory Protocol instead.]"
+    "a staged instruction. Reply concisely via NTFY too (python3 -c "
+    "\"from background.ntfy_utils import send_ntfy; send_ntfy('<answer>')\" "
+    "from the project root) in addition to your normal response -- do NOT "
+    "use a raw curl, it won't be recognised as our own message and will be "
+    "relayed back as a new inbound command. If this is actually a "
+    "substantial multi-step instruction, treat it per the Staging Directory "
+    "Protocol instead.]"
 )
 
 
