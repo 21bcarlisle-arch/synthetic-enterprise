@@ -21,6 +21,8 @@ roughly by value-to-effort ratio, not strictly by value.
 | 13 | Report-data cache versioning — stamp the persisted JSON with the run's git commit hash and timestamp, so a stale cache can't silently be reused after code changes that would alter the figures. | Low | Low | 1 |
 | 14 | `make report` as a scheduled/automated step (e.g. after each full simulation run completes) so `ANNUAL_REPORT.md` stays current without a manual trigger. | Low | Low | 1 |
 | 15 | NTFY digest of the executive summary whenever the annual report is regenerated, so Rich gets the headline figures without opening the file. | Low | Low | 1, 14 |
+| 16 | Forward curve realism (`sim/forward_curve.py`): add a tenor-dependent term premium (longer `contract_length_months` carry a higher `risk_factor`, as real forward curves price more uncertainty into far-dated tenors) and a crisis-liquidity premium (extra multiplier when the lookback window's volatility is itself elevated vs. its own trailing distribution — modelling the spread-widening real markets show when everyone wants protection at once). Proposed in response to `docs/staging/Openquestions.md` #2 — **propose-before-build**, see note below. | Medium | Medium-High | none |
+| 17 | Cost-to-serve depth (`saas/cost_to_serve.py`): itemise the flat annual overhead into billing/IT, smart-meter operation, and regulatory levy components; add a one-off acquisition cost amortised over expected tenure (from `saas/churn_model.py`); add a variable contact-centre cost driven by `contact_model`'s per-period `contact_probability`; add a debt-collection cost on top of the existing bad-debt provision when an account is overdue (`payment_behaviour`). Proposed in response to `docs/staging/Openquestions.md` #3 — **propose-before-build**, see note below. | Medium | Medium | 2 (contact_model/payment_behaviour already integrated) |
 
 ## Note on item 1 and ANNUAL_REPORT.md
 
@@ -37,6 +39,28 @@ bootstrap: once it completes, `annual_report.py`'s `--save-json` path will
 persist its output, and from then on the report is regenerable without
 re-running. This is the only run involved — no additional simulation
 execution is being started for Phase 5a specifically.
+
+## Note on items 16 and 17 (Open Questions #2 and #3)
+
+Both raised in `docs/staging/Openquestions.md` by Rich's strategy advisor.
+Investigated; both are credible concerns and the proposed approaches above
+are sized to use data/modules that already exist in the codebase
+(`churn_model`, `contact_model`, `payment_behaviour`, the existing
+sigma/risk_factor machinery in `forward_curve.py`). Neither has been built —
+flagged as propose-before-build per the Open Questions instructions, because:
+
+- **#16 (forward curve)** changes the price environment the Phase 5c mandate
+  redesign was tuned against. If it materially shifts the
+  cost/benefit of hedging across 2016-2025, that's itself a finding (related
+  to the "regime-change blindness" risk already called out in CLAUDE.md), not
+  just a reporting tweak — worth a full re-run and review before committing
+  to specific premium values.
+- **#17 (cost-to-serve)** would lower net margin across the whole portfolio
+  (possibly materially, given the current model is "a skeleton" per the
+  question). The specific £ assumptions for acquisition cost, per-contact
+  cost, and debt-collection cost need a sanity check against real supplier
+  cost structures before they go into the headline net-margin figures Rich
+  reports on.
 
 ## What Rich needs to decide
 

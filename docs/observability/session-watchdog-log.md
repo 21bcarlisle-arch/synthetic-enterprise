@@ -195,3 +195,82 @@
 - [2026-06-15 04:26 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-15 04:39 UTC] Inbound NTFY command from Rich: "Net margin (£26,779) is higher than gross margin (£18,970) in the whole-run figures — that's mathematically impossible. Investigate and explain how this can be, and fix it before Phase 6a starts. Once you've fixed please start 6a. In general please keep busy and progressing whilst we have tokens to use for the session and the week" — relaying to session
 - [2026-06-15 04:45 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 05:20 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 05:23 UTC] Inbound NTFY command from Rich: 'Add the following strategic roadmap to CLAUDE.md as a new section replacing "Roadmap from here". This is the authoritative sequencing: (1) Fundamentals — pricing, hedging, tariff, profit calculation credible and trustworthy. In progress. (2) ToU tariffs — makes HH customers meaningful, deaggregates consumption, enables dynamic pricing. (3) Customer preference model — customers choose fixed/variable/dynamic based on what they value (certainty, cheapness, flexibility). Drives tariff preference, switching, churn, CLV. (4) Billing and payment infrastructure — real invoices, payment methods, ledger entries, money actually moving. Closes the hollow gap. (5) Bad debt — emerges naturally from billing as missed payments, arrears, collection, write-off. Cost to serve model: baseline per customer plus cost per interaction. Good service reduces interaction volume, reduces cost, improves margin. Do not over-engineer cost to serve until billing infrastructure exists. Work across all stages concurrently wherever dependencies allow. Don\'t wait for one stage to be perfect before starting the next. Flag hard dependencies explicitly and work around them. The roadmap is a sequencing guide not a gate system' — relaying to session
+- [2026-06-15 05:26 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 05:34 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 05:40 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 05:45 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 05:54 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 05:59 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 06:04 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 06:09 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 06:15 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 06:20 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 06:25 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 06:30 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 06:35 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 06:40 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 06:45 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 06:50 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 06:55 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 07:00 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 07:05 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 07:10 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 07:15 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 07:20 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 07:25 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 07:30 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 07:35 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 07:40 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 07:45 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 07:50 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 07:56 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 08:01 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 08:06 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 08:11 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 08:16 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 08:21 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 08:26 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 08:31 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 08:36 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 08:41 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 08:46 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 08:51 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 08:56 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 09:01 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 09:06 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 09:11 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 09:16 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 09:21 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 09:26 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 09:31 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 09:37 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 09:42 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 09:47 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 09:52 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 09:57 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 10:02 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 10:04 UTC] Inbound NTFY command from Rich: 'How are you getting on? Making good progress? Keeping token and GPU utilisation high?' — relaying to session
+- [2026-06-15 10:07 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 10:12 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 10:17 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 10:22 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 10:27 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 10:32 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 10:37 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 10:42 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 10:47 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 10:52 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 10:57 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 11:03 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 11:05 UTC] Inbound NTFY command from Rich: 'Are you ok. Please reply via ntfy' — relaying to session
+- [2026-06-15 11:08 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 11:13 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 11:18 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 11:23 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 11:28 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 11:33 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 11:38 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 11:43 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 11:48 UTC] Session idle — sending autoloop continuation instruction

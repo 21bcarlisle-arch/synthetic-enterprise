@@ -4,7 +4,8 @@ from saas.property_model import build_properties
 
 def test_build_properties_covers_all_resi_electricity_customers():
     properties = build_properties(CUSTOMERS)
-    assert set(properties) == {"C1", "C2", "C3", "C4"}
+    # C7-C9 are Phase 6a HH (smart meter) resi electricity customers.
+    assert set(properties) == {"C1", "C2", "C3", "C4", "C7", "C8", "C9"}
 
 
 def test_excludes_sme_and_gas_records():

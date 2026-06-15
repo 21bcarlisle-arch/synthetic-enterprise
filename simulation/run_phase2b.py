@@ -46,6 +46,12 @@ from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_hedged_term
+from simulation.hh_consumption import (
+    estimate_annual_kwh,
+    hh_shape_fn,
+    is_hh_customer,
+    load_hh_consumption,
+)
 from simulation.renewals import build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.weather_inputs import lookback_mean_temps, weather_means_for_customer
@@ -60,7 +66,16 @@ ELEC_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "electricity"]
 GAS_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "gas"]
 ORIGINAL_4_CUSTOMER_EAC_KWH = 15_000
 
-TOTAL_ELEC_EAC = sum(c["eac_kwh"] for c in ELEC_CUSTOMERS)
+# Phase 6a: HH (smart meter) customers have eac_kwh=None — their effective
+# EAC for hedging-volume sizing and treasury scaling is derived from real
+# half-hourly consumption data (simulation/hh_consumption.py) instead.
+EFFECTIVE_EAC_KWH: dict[str, float] = {
+    c["customer_id"]: c["eac_kwh"] if c["eac_kwh"] is not None
+    else estimate_annual_kwh(load_hh_consumption(c["customer_id"]))
+    for c in ELEC_CUSTOMERS
+}
+
+TOTAL_ELEC_EAC = sum(EFFECTIVE_EAC_KWH.values())
 TOTAL_GAS_AQ = sum(c["aq_kwh"] for c in GAS_CUSTOMERS)
 # Gas is priced ~10x cheaper per MWh than electricity; weight accordingly
 # Treat 1 kWh gas ≈ 0.25 kWh electricity for treasury sizing (conservative)
@@ -196,7 +211,7 @@ def main():
     print("=== Phase 2b — Gas Dual Fuel ===")
     print(f"Electricity customers: {[c['customer_id'] for c in ELEC_CUSTOMERS]}")
     print(f"Gas customers:         {[c['customer_id'] for c in GAS_CUSTOMERS]}")
-    print(f"Elec EAC: {TOTAL_ELEC_EAC:,} kWh  Gas AQ: {TOTAL_GAS_AQ:,} kWh")
+    print(f"Elec EAC: {TOTAL_ELEC_EAC:,.0f} kWh  Gas AQ: {TOTAL_GAS_AQ:,} kWh")
     print(f"Starting treasury: £{STARTING_TREASURY_GBP:.2f}\n")
 
     # ---- Load price feeds ----
@@ -231,6 +246,12 @@ def main():
         c["customer_id"]: weather_means_for_customer(c) for c in ELEC_CUSTOMERS + GAS_CUSTOMERS
     }
 
+    # Phase 6a: per-customer HH consumption for HH (smart meter) customers.
+    hh_consumption_by_customer = {
+        c["customer_id"]: load_hh_consumption(c["customer_id"])
+        for c in ELEC_CUSTOMERS if is_hh_customer(c)
+    }
+
     def _lookback_temps_fn(cid):
         weather_means = weather_by_customer[cid]
         return lambda term_start: lookback_mean_temps(weather_means, term_start)
@@ -240,7 +261,7 @@ def main():
     for c in ELEC_CUSTOMERS:
         elec_schedules[c["customer_id"]] = build_renewal_schedule(
             c["customer_id"], c["acquisition_date"], REPORT_END,
-            elec_records, c["eac_kwh"], lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
+            elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]], lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
         )
 
     # ---- Build gas schedules ----
@@ -305,12 +326,15 @@ def main():
 
         if commodity == "electricity":
             customer = get_customer(cid)
-            eac_kwh = customer["eac_kwh"]
-            profile_class = customer.get("profile_class", 1)
-            property_record = properties.get(cid, DEFAULT_PROPERTY)
-            shape_fn = _weather_adjusted_shape_fn(
-                SHAPE_LOADERS[profile_class], weather_by_customer[cid], property_record
-            )
+            eac_kwh = EFFECTIVE_EAC_KWH[cid]
+            if is_hh_customer(customer):
+                shape_fn = hh_shape_fn(hh_consumption_by_customer[cid])
+            else:
+                profile_class = customer.get("profile_class", 1)
+                property_record = properties.get(cid, DEFAULT_PROPERTY)
+                shape_fn = _weather_adjusted_shape_fn(
+                    SHAPE_LOADERS[profile_class], weather_by_customer[cid], property_record
+                )
 
             naked_kwh = eac_kwh * (1.0 - hf)
             risk = assess_term_risk(term_start_str, naked_kwh, forward_price, elec_records)
@@ -388,9 +412,9 @@ def main():
             portfolio_var_stressed = sum(
                 current_risk[c["customer_id"]]["var_stressed_gbp"] for c in active_elec
             )
-            total_eac_active = sum(c["eac_kwh"] for c in active_elec)
+            total_eac_active = sum(EFFECTIVE_EAC_KWH[c["customer_id"]] for c in active_elec)
             sigma_weighted = sum(
-                current_risk[c["customer_id"]]["sigma_recent"] * c["eac_kwh"] / total_eac_active
+                current_risk[c["customer_id"]]["sigma_recent"] * EFFECTIVE_EAC_KWH[c["customer_id"]] / total_eac_active
                 for c in active_elec
             )
 
@@ -399,7 +423,7 @@ def main():
                     {
                         "customer_id": c["customer_id"],
                         "hedge_fraction": current_hf[c["customer_id"]],
-                        "eac_kwh": c["eac_kwh"],
+                        "eac_kwh": EFFECTIVE_EAC_KWH[c["customer_id"]],
                         "active_collateral_gbp": current_risk[c["customer_id"]]["active_collateral_gbp"],
                         "monthly_cost_of_capital_gbp": current_risk[c["customer_id"]]["monthly_cost_of_capital_gbp"],
                         "var_current_gbp": current_risk[c["customer_id"]]["var_current_gbp"],
@@ -452,7 +476,6 @@ def main():
         if commodity == "electricity":
             months = len({r["settlement_date"][:7] for r in settled_this_term})
             naked_capital = counterfactual_risk["monthly_cost_of_capital_gbp"] * months
-            eac_kwh = get_customer(cid)["eac_kwh"]
             naked_gross = sum(
                 r["revenue_gbp"]
                 - (r["consumption_kwh"] / 1000)
@@ -528,10 +551,10 @@ def main():
         gross = sum(r["margin_gbp"] for r in recs)
         cap = sum(r["capital_cost_gbp"] for r in recs)
         net = sum(r["net_margin_gbp"] for r in recs)
-        kwh = c.get("eac_kwh") or c.get("aq_kwh")
+        kwh = EFFECTIVE_EAC_KWH.get(cid) or c.get("aq_kwh")
         comm = c["commodity"]
         print(
-            f"  {cid} ({comm[:4]}, {kwh:,} kWh): "
+            f"  {cid} ({comm[:4]}, {kwh:,.0f} kWh): "
             f"gross=£{gross:.2f}  capital=£{cap:.2f}  net=£{net:.2f}"
         )
 

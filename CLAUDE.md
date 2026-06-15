@@ -292,3 +292,13 @@ GitHub wrappers are partially stale. Always verify against live endpoints.
   even before the functional separation is built. The company makes decisions
   based on what it's allowed to see. The simulation is the environment it
   operates in.
+- **Non-blocking concurrency.** If blocked on one task (e.g. a long
+  background simulation run), don't wait idle — move to the next
+  independent item in `docs/staging/` or the backlog and come back once
+  unblocked.
+- **The session usage window is ~5 hours, not 4.** Claude Code's UI calls it
+  the "5-hour limit"; `docs/observability/usage-limit-tracking.md` logs the
+  actual reset intervals observed. Don't assume a 4-hour budget when
+  estimating how much work fits in a session (the REVIEW_GATE opt-out
+  window's "4 hours" is an unrelated, deliberately-chosen wait period for
+  staged instructions, not a usage-window estimate).

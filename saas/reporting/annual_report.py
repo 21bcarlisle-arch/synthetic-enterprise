@@ -213,6 +213,7 @@ def extract_report_data(run_output: dict) -> dict:
         }
 
         yearly[year] = {
+            "revenue_gbp": sum(r["revenue_gbp"] for r in yr_records),
             "gross_gbp": sum(r["margin_gbp"] for r in yr_records),
             "capital_gbp": sum(r["capital_cost_gbp"] for r in yr_records),
             "net_gbp": sum(r["net_margin_gbp"] for r in yr_records),
@@ -312,6 +313,7 @@ def extract_report_data(run_output: dict) -> dict:
     return {
         "starting_treasury_gbp": phase2b["starting_treasury"],
         "final_treasury_gbp": phase2b["final_treasury"],
+        "total_revenue_gbp": sum(r["revenue_gbp"] for r in all_records),
         "total_gross_gbp": phase2b["total_gross"],
         "total_capital_gbp": phase2b["total_capital"],
         "total_net_gbp": phase2b["total_net"],
@@ -389,10 +391,13 @@ the last partial). The business {outcome}.
 - Starting treasury: {_fmt_gbp(data['starting_treasury_gbp'])}
 - Final treasury: {_fmt_gbp(data['final_treasury_gbp'])}
   ({_fmt_gbp(data['final_treasury_gbp'] - data['starting_treasury_gbp'])} net change)
+- Revenue: {_fmt_gbp(data['total_revenue_gbp'])}
 - Gross margin: {_fmt_gbp(data['total_gross_gbp'])}
 - Capital costs: {_fmt_gbp(data['total_capital_gbp'])}
 - Net margin: {_fmt_gbp(data['total_net_gbp'])}
 - Capital cost ratio: {data['total_capital_gbp'] / data['total_gross_gbp']:.1%} of gross
+- Net margin as % of revenue: {data['total_net_gbp'] / data['total_revenue_gbp']:.1%}
+  (industry benchmark for a retail energy supplier: 2-5%)
 - Risk committee (Context Handshake) interventions: {data['committee_wake_ups_total']}
 - Bills issued: {data['bills_total']}, average clarity {data['avg_clarity_total']:.3f},
   service quality score {data['service_quality_score']:.3f}
@@ -708,6 +713,23 @@ def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
         )
     else:
         lines.append(f"- **2021 net margin**: {NOT_AVAILABLE}")
+
+    old_revenue = old_data.get("total_revenue_gbp")
+    if old_revenue:
+        new_margin_pct = data["total_net_gbp"] / data["total_revenue_gbp"]
+        old_margin_pct = old_data["total_net_gbp"] / old_revenue
+        lines.append(
+            f"- **Net margin as % of revenue**: {_fmt_pct(new_margin_pct)} "
+            f"under the new mandate vs. {_fmt_pct(old_margin_pct)} under the "
+            "old reactive model (industry benchmark: 2-5%)."
+        )
+    else:
+        lines.append(
+            f"- **Net margin as % of revenue**: this run "
+            f"{_fmt_pct(data['total_net_gbp'] / data['total_revenue_gbp'])}; "
+            f"old-model run {NOT_AVAILABLE} (revenue wasn't captured in that "
+            "snapshot)."
+        )
     lines.append("")
     lines.append("**Whole-run net margin, three ways:**")
     lines.append("")

@@ -8,7 +8,53 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-15T04:04:50Z
+Last updated: 2026-06-15T11:52:48Z
+
+**Phase 6a complete — HH smart meter customers (2026-06-15)**: added three
+half-hourly (smart meter) residential customers, C7 (London, single
+occupant), C8 (Manchester, family), C9 (Glasgow, elderly) — `eac_kwh: None`,
+`"metering": "HH"` in `saas/customers.py`. New `simulation/hh_consumption.py`
+loads real per-half-hour consumption from `sim/hh_data/{C7,C8,C9}.csv`
+(synthetic, generated once via `tools/generate_hh_data.py` from the existing
+PC1 GAD shape run through `simulation.demand_model.build_demand_shape()` with
+real Open-Meteo weather for each customer's location — reusing C1/C2/C3's
+London/Manchester/Glasgow weather data, so no new weather pulls needed).
+`run_phase2b.py`'s new `EFFECTIVE_EAC_KWH` dict is the single source of truth
+for hedging-volume sizing: profile-class customers (C1-C6, C1g-C4g) keep
+their static `eac_kwh`; HH customers derive an effective annual figure from
+real consumption (`estimate_annual_kwh`). C1-C6/C1g-C4g settlement is
+unaffected — same shape_fn path as before. 11 new tests (283 total), lint
+clean.
+
+Full 2016-2025 re-run (13 accounts: 9 electricity incl. C7-C9 + 4 gas):
+**SURVIVED full window**, final treasury £29,846.19 ->
+£53,524.74 (net margin **£23,678.55**, gross £27,525.43, capital cost ratio
+**14.0%** of gross), 168 Context Handshake wake-ups, 1,434 bills (avg clarity
+0.878, service quality score 0.920), enterprise value £12,801.58 across 9
+billing accounts, cost to serve £8,878.73 (net margin after cost to serve
+£18,646.70). Contrary to the original plan's expectation, C7-C9's 4b/4c
+metrics (cost-to-serve, CLV/enterprise value, bills, bill-shock) all computed
+correctly — no "Not available" placeholders were needed for the new
+customers; the existing data architecture handled the mixed profile-class +
+HH portfolio without any gaps.
+
+**Revenue capture (Open Questions #1/#5)**: `saas/reporting/annual_report.py`
+now captures `total_revenue_gbp` (sum of `revenue_gbp` across all settlement
+records) and reports **net margin as % of revenue: 12.6%** in the executive
+summary (industry benchmark for a retail energy supplier: 2-5% — flagged as
+an open question about pricing realism, see REPORTING_BACKLOG item 17). The
+mandate-comparison section also reports this metric, falling back to "Not
+available" for the pre-5c snapshot (which has no revenue figure).
+
+**Other Open Questions actioned**: idle-detector false positives (#4,
+`AUTOLOOP_IDLE_CHECKS` 5->10, i.e. 10 minutes) and two CLAUDE.md gaps (#6,
+non-blocking concurrency + ~5hr session window) fixed directly. Forward-curve
+realism (#2) and cost-to-serve depth (#3) are larger, propose-before-build
+items — proposed approaches documented in `docs/reports/REPORTING_BACKLOG.md`
+items 16-17, awaiting Rich's steer before any implementation.
+
+283 tests passing, lint clean. Report:
+https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 
 **Phase 5c complete — minimum hedge mandate (2026-06-15)**: redesigned the
 hedging philosophy from "speculative book with a risk governor" to "supply

@@ -147,14 +147,19 @@ def test_extract_report_data_splits_by_year():
     assert set(data["years"]) == {"2016", "2017"}
 
     y2016 = data["years"]["2016"]
+    # revenue_gbp = margin + 100.0 per _record(); 110.0 + 112.0 + 105.0
+    assert y2016["revenue_gbp"] == 327.0
     assert y2016["gross_gbp"] == 27.0
     assert y2016["net_gbp"] == 21.0
     assert y2016["commodity_split"]["electricity"]["net_gbp"] == 17.0
     assert y2016["commodity_split"]["gas"]["net_gbp"] == 4.0
     # Picked from the chronologically latest record (2016-06-01), not list order
     assert y2016["treasury_end_gbp"] == 1017.0
-    # All 10 real customers have a 2016 acquisition_date
-    assert y2016["acquisitions"] == ["C1", "C1g", "C2", "C2g", "C3", "C3g", "C4", "C4g", "C5", "C6"]
+    # All 13 customers (incl. Phase 6a HH customers C7-C9) have a 2016
+    # acquisition_date.
+    assert y2016["acquisitions"] == [
+        "C1", "C1g", "C2", "C2g", "C3", "C3g", "C4", "C4g", "C5", "C6", "C7", "C8", "C9",
+    ]
     assert y2016["hedge_fractions"]["C1"]["start_hf"] == 0.5
     assert y2016["hedge_fractions"]["C1"]["avg_hf"] == 0.55
     assert y2016["committee_wake_ups"] == []
@@ -170,6 +175,8 @@ def test_extract_report_data_splits_by_year():
     assert y2017["bill_shock_events"][0]["customer_id"] == "C1"
     assert y2017["bad_debt_gbp"] == 4.0
 
+    # revenue_gbp = margin + 100.0 per _record(); 110 + 112 + 105 + 95
+    assert data["total_revenue_gbp"] == 422.0
     assert data["total_net_gbp"] == 15.0
     assert data["per_customer_lifetime"]["C1"]["net_gbp"] == 11.0
 
@@ -213,3 +220,27 @@ def test_mandate_comparison_section_compares_capital_ratio_and_2021_margin():
     assert "different" in section
     assert "This run: gross" in section
     assert "Old-model run: gross" in section
+
+
+def test_mandate_comparison_section_reports_revenue_pct_when_old_has_revenue():
+    data = extract_report_data(_run_output())
+    old_data = extract_report_data(_run_output())
+
+    section = _mandate_comparison_section(data, old_data)
+
+    assert "Net margin as % of revenue" in section
+    assert NOT_AVAILABLE not in section.split("Net margin as % of revenue")[1].split("\n")[0]
+
+
+def test_mandate_comparison_section_reports_not_available_revenue_pct_for_old_snapshot():
+    data = extract_report_data(_run_output())
+    old_data = extract_report_data(_run_output())
+    # Simulate a pre-revenue-capture snapshot (e.g. the preserved
+    # run_output_old_reactive_model_pre5c.json), which has no
+    # total_revenue_gbp key at all.
+    del old_data["total_revenue_gbp"]
+
+    section = _mandate_comparison_section(data, old_data)
+
+    assert "Net margin as % of revenue" in section
+    assert NOT_AVAILABLE in section

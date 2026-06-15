@@ -40,6 +40,9 @@ OCCUPANCY_PATTERN_BY_CUSTOMER = {
     "C2": "family",
     "C3": "elderly",
     "C4": "family",
+    "C7": "single",
+    "C8": "family",
+    "C9": "elderly",
 }
 DEFAULT_OCCUPANCY_PATTERN = "single"
 
@@ -51,6 +54,9 @@ ASSET_PROFILE_BY_CUSTOMER = {
     "C2": {"ev": True, "solar": False, "smart_meter": True},
     "C3": {"ev": False, "solar": False, "smart_meter": False},
     "C4": {"ev": True, "solar": True, "smart_meter": True},
+    "C7": {"ev": True, "solar": False, "smart_meter": True},
+    "C8": {"ev": False, "solar": False, "smart_meter": True},
+    "C9": {"ev": False, "solar": False, "smart_meter": True},
 }
 DEFAULT_ASSETS = {"ev": False, "solar": False, "smart_meter": False}
 

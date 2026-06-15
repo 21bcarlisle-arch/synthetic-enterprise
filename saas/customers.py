@@ -99,6 +99,51 @@ CUSTOMERS = [
         "contract_type": "fixed_1yr",
         "segment": "SME",
     },
+    # Phase 6a: HH (half-hourly metered, smart meter) resi electricity
+    # customers. eac_kwh is None -- these customers have no static
+    # "estimated annual consumption"; settlement reads real half-hourly
+    # meter data (sim/hh_data/{customer_id}.csv, see
+    # simulation/hh_consumption.py) and an effective EAC for hedging-volume
+    # sizing is derived from that data instead.
+    {
+        "customer_id": "C7",
+        "acquisition_date": "2016-01-01",
+        "location": {"lat": 51.5074, "lon": -0.1278, "region": "London"},
+        "home_type": "urban_flat",
+        "bedrooms": 1,
+        "epc_rating": "C",
+        "eac_kwh": None,
+        "metering": "HH",
+        "commodity": "electricity",
+        "contract_type": "fixed_1yr",
+        "segment": "resi",
+    },
+    {
+        "customer_id": "C8",
+        "acquisition_date": "2016-04-01",
+        "location": {"lat": 53.4808, "lon": -2.2426, "region": "Manchester"},
+        "home_type": "suburban_semi",
+        "bedrooms": 3,
+        "epc_rating": "C",
+        "eac_kwh": None,
+        "metering": "HH",
+        "commodity": "electricity",
+        "contract_type": "fixed_1yr",
+        "segment": "resi",
+    },
+    {
+        "customer_id": "C9",
+        "acquisition_date": "2016-07-01",
+        "location": {"lat": 55.8642, "lon": -4.2518, "region": "Glasgow"},
+        "home_type": "tenement_flat",
+        "bedrooms": 2,
+        "epc_rating": "D",
+        "eac_kwh": None,
+        "metering": "HH",
+        "commodity": "electricity",
+        "contract_type": "fixed_1yr",
+        "segment": "resi",
+    },
     # Phase 2b: gas dual-fuel records for C1-C4 resi customers
     {
         "customer_id": "C1g",

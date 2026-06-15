@@ -248,10 +248,14 @@ RESUME_INSTRUCTION = (
 #
 # AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS = how long the pane must be
 # completely unchanged before it's considered "finished and idle" rather
-# than "mid-task, just quiet for a moment" (e.g. a slow test run). 5 minutes
+# than "mid-task, just quiet for a moment" (e.g. a slow test run). 10 minutes
 # is conservative — long enough that sending keystrokes won't land in the
-# middle of a running command's stdin.
-AUTOLOOP_IDLE_CHECKS = 5
+# middle of a running command's stdin, and long enough that a "Cogitating"
+# extended-thinking stretch with a static spinner (no live elapsed-time
+# redraw) doesn't read as a finished/idle session and trigger a
+# false-positive autoloop nudge. Previously 5 minutes, raised June 2026 after
+# observed false positives during long thinking stretches.
+AUTOLOOP_IDLE_CHECKS = 10
 MAX_AUTOLOOP_PER_HOUR = 6
 
 # If the visible pane shows either of these, the session needs Rich, not a
