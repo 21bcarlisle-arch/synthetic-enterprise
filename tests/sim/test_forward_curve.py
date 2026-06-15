@@ -90,6 +90,38 @@ def test_mild_lookback_temps_do_not_change_forward_price():
     assert with_weather == pytest.approx(no_weather)
 
 
+def test_volatility_premium_uses_daily_mean_not_intraday_spread():
+    """Half-hourly records with a large *intraday* peak/off-peak spread but
+    an identical daily mean every day should produce the same forward price
+    as flat £50/MWh records -- the volatility premium reflects day-to-day
+    price uncertainty, not the normal intraday spread."""
+    acquisition_date = "2023-07-01"
+    start_lookback_date = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()
+    end_lookback_date = (date.fromisoformat(acquisition_date) - timedelta(days=1)).isoformat()
+
+    flat_records = create_records(start_lookback_date, end_lookback_date, price_pattern=[50.0])
+
+    # Every day has the same two half-hourly prices (£20 and £80), so the
+    # daily mean is £50 every day -- zero day-to-day volatility -- despite a
+    # large intraday spread.
+    intraday_spread_records = []
+    current_date = date.fromisoformat(start_lookback_date)
+    end = date.fromisoformat(end_lookback_date)
+    while current_date <= end:
+        for price in (20.0, 80.0):
+            intraday_spread_records.append(
+                {"settlementDate": current_date.isoformat(), "systemSellPrice": price}
+            )
+        current_date += timedelta(days=1)
+
+    flat_price = generate_forward_price(acquisition_date, flat_records, contract_length_months=6, risk_factor=1.2)
+    intraday_price = generate_forward_price(
+        acquisition_date, intraday_spread_records, contract_length_months=6, risk_factor=1.2
+    )
+
+    assert intraday_price == pytest.approx(flat_price)
+
+
 def test_forward_curve_is_pit_safe():
     acquisition_date = "2023-04-01"
     start_lookback_date = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()

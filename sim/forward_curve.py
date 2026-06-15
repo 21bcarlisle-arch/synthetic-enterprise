@@ -9,13 +9,20 @@ applies its margin to, not a real market quote).
 
 A forward price for a fixed-rate contract starting on `acquisition_date` has
 three components, each a configurable parameter per the Master Backlog:
-  1. base — the arithmetic mean System Sell Price over the `lookback_days`
-     days immediately before acquisition_date (real spot, rolling-average)
-  2. volatility premium — the population standard deviation (sigma) of SSP
-     over that same window, scaled by `risk_factor`, added to the base. This
-     is what makes the price forward-looking rather than a flat spot average:
-     it loads in a margin for the price uncertainty actually observed in the
-     run-up to the contract.
+  1. base — the arithmetic mean of *daily mean* System Sell Price over the
+     `lookback_days` days immediately before acquisition_date (real spot,
+     rolling-average)
+  2. volatility premium — the population standard deviation (sigma) of
+     *daily mean* SSP over that same window, scaled by `risk_factor`, added
+     to the base. This is what makes the price forward-looking rather than a
+     flat spot average: it loads in a margin for the year-ahead price
+     uncertainty actually observed in the run-up to the contract. Both (1)
+     and (2) are computed from daily means, not the raw half-hourly
+     `system_price_records` -- the half-hourly series' own sigma is
+     dominated by the normal intraday peak/off-peak spread (e.g. ~£20
+     overnight vs ~£150-300+ at evening peak), which is not year-ahead price
+     uncertainty and was overwhelming this term (see
+     docs/staging/drafts/FORWARD_CURVE_FIX_PROPOSAL.md).
   3. seasonal adjustment — a fixed-rate contract delivers across
      `contract_length_months` months, not just the month it's sold in, so the
      per-month winter/summer multipliers are blended (averaged) across every
@@ -65,11 +72,23 @@ def generate_forward_price(acquisition_date: str, system_price_records: list[dic
     if not filtered_records:
         raise ValueError(f"No price records found in the lookback window [{start_lookback_date}, {end_lookback_date}] for acquisition date {acquisition_date}.")
 
-    # Calculate base price: arithmetic mean of systemSellPrice
-    base_price = statistics.mean(record['systemSellPrice'] for record in filtered_records)
+    # Aggregate to daily means first. `system_price_records` is half-hourly
+    # (48 records/day) -- its pstdev captures the normal intraday peak/
+    # off-peak spread (e.g. ~£20 overnight vs ~£150-300+ at evening peak),
+    # not year-ahead price uncertainty. Computing base/volatility from
+    # daily means avoids loading that intraday spread into the "volatility
+    # premium" term, where it was dwarfing the base price itself.
+    daily_prices: dict[str, list[float]] = {}
+    for record in filtered_records:
+        daily_prices.setdefault(record['settlementDate'], []).append(record['systemSellPrice'])
+    daily_means = [statistics.mean(prices) for prices in daily_prices.values()]
 
-    # Calculate volatility premium: population standard deviation * risk factor
-    volatility_premium = statistics.pstdev(record['systemSellPrice'] for record in filtered_records) * risk_factor
+    # Calculate base price: arithmetic mean of daily mean systemSellPrice
+    base_price = statistics.mean(daily_means)
+
+    # Calculate volatility premium: population standard deviation of daily
+    # means * risk factor
+    volatility_premium = statistics.pstdev(daily_means) * risk_factor
 
     # Calculate forward base price with volatility premium
     forward_base = base_price + volatility_premium
