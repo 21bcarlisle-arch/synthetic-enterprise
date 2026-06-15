@@ -82,19 +82,19 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog (usage-limit auto-resume), staging-watcher,
   File API (systemd user unit), GitHub Pages status
 
-**252 tests passing.**
+**273 tests passing.**
 
-**Key financial position (latest run):**
-- Treasury: £21,829.17 → £48,003.06
-- Net margin: £26,173.89
-- Gross margin: £44,682.49
-- Capital cost ratio: 41.4%
-- Risk committee interventions: 122
-- Enterprise value: £17,569.06
+**Key financial position (latest run, mandate-hedged per Phase 5c):**
+- Treasury: £21,829.17 → £37,953.15
+- Net margin: £16,123.98
+- Gross margin: £18,970.93
+- Capital cost ratio: 15.0% (was 41.4% under the old reactive model)
+- Risk committee interventions: 99
+- Enterprise value: £10,496.28
+- 2021 net margin: £632.78 (was £-1,096.43 under the old reactive model)
 
 **In progress:**
-- Phase 5b: persist run output to JSON, integrate 4b outputs, hedge
-  effectiveness analysis, GitHub Gist publishing for report access
+- Phase 6a: next phase TBD — see `docs/staging/`
 
 ---
 
@@ -149,6 +149,35 @@ an operating company. They are the primary design challenge going forward:
 - I&C deferred until HH and event-driven customer lifecycle are in place
 - VPP/DER remains the long-horizon destination
 - C&I not being pursued yet
+
+---
+
+## Simulation Design Decisions
+
+**Minimum hedge mandate (Phase 5c, 14 June 2026):** the hedging model was
+redesigned from "speculative book with a risk governor" to "supply
+obligation first, active position second" — matching how real suppliers
+(e.g. EDF) actually operate.
+
+- `sim/hedging_strategy.MIN_HEDGE_FLOOR = 0.85` — every contract term starts
+  at least 85% hedged. Day one no longer starts at a neutral 50/50 guess;
+  `decide_initial_hedge_fraction()` returns the mandate floor directly.
+- The active position (at most 15% of volume, unhedged) is what the risk
+  committee and `evolve_hedge_fraction()` manage. `evolve_hedge_fraction()`
+  can raise the fraction toward 1.0 (lean further into hedging) but never
+  drops below `MIN_HEDGE_FLOOR` — a bad term trims the active position back
+  toward the floor, it never unwinds the supply obligation itself.
+- Capital cost was *already* charged only on the unhedged (naked) portion of
+  volume (`naked_kwh = eac_kwh * (1 - hedge_fraction)` in
+  `simulation/run_phase2b.py`, fed to `sim.risk_engine.assess_term_risk`).
+  Raising the floor to 0.85 therefore caps that naked exposure — and the
+  collateral/capital-cost charge derived from it — at 15% of volume by
+  construction, with no separate capital-cost code change needed.
+- The previous reactive model's run output is preserved as
+  `docs/reports/run_output_old_reactive_model_pre5c.json` so
+  `ANNUAL_REPORT.md`'s "Hedging Mandate — Before/After Phase 5c" section can
+  compare mandate-hedged vs. old reactive vs. fully naked without re-running
+  the old model.
 
 ---
 

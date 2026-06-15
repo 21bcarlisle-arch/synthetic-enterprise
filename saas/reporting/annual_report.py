@@ -39,6 +39,11 @@ from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
 
+# Phase 5c: snapshot of the pre-mandate (old reactive-hedging) run's
+# extracted report data, kept so the mandate's effect can be shown
+# side-by-side without re-running the old model.
+OLD_MODEL_REPORT_DATA_PATH = Path("docs/reports/run_output_old_reactive_model_pre5c.json")
+
 DRAWDOWN_THRESHOLD_PCT = 0.10
 
 CRISIS_YEARS = {"2021", "2022"}
@@ -644,6 +649,82 @@ money, or just reduce variance?
 """
 
 
+def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
+    """Phase 5c: whole-run before/after comparison of the minimum hedge
+    mandate (MIN_HEDGE_FLOOR=0.85, see sim/hedging_strategy.py) against the
+    old reactive model (50/50 start, risk committee reacts upward from
+    there with no floor) and against a fully naked book.
+
+    `old_data` is the pre-Phase-5c run's extract_report_data() output
+    (docs/reports/run_output_old_reactive_model_pre5c.json), kept as a
+    snapshot specifically so this comparison doesn't require re-running the
+    old model. If that snapshot isn't available, the section reports
+    NOT_AVAILABLE rather than inventing numbers."""
+    if old_data is None:
+        return f"## Hedging Mandate — Before/After Phase 5c\n\n{NOT_AVAILABLE}\n"
+
+    new_ratio = data["total_capital_gbp"] / data["total_gross_gbp"]
+    old_ratio = old_data["total_capital_gbp"] / old_data["total_gross_gbp"]
+
+    new_2021 = data["years"].get("2021", {}).get("net_gbp")
+    old_2021 = old_data["years"].get("2021", {}).get("net_gbp")
+
+    new_het = data["hedge_effectiveness_total"]
+    old_het = old_data["hedge_effectiveness_total"]
+
+    lines = ["## Hedging Mandate — Before/After Phase 5c", ""]
+    lines.append(
+        "Phase 5c replaced the old reactive hedging model (start at 50/50, "
+        "risk committee reacts upward from there with no floor) with a "
+        "minimum hedge mandate: every term starts at least 85% hedged "
+        "(`MIN_HEDGE_FLOOR` in `sim/hedging_strategy.py`), modelling a real "
+        "supplier's supply-obligation-first behaviour rather than a "
+        "speculative book with a safety valve. Because capital cost is "
+        "charged on the unhedged (active) position only, raising the floor "
+        "to 85% caps that active position at 15% of volume by construction."
+    )
+    lines.append("")
+    lines.append(
+        f"- **Capital cost as % of gross margin**: {_fmt_pct(new_ratio)} "
+        f"under the new mandate vs. {_fmt_pct(old_ratio)} under the old "
+        "reactive model."
+    )
+    if new_2021 is not None and old_2021 is not None:
+        lines.append(
+            f"- **2021 net margin**: {_fmt_gbp(new_2021)} under the new "
+            f"mandate vs. {_fmt_gbp(old_2021)} under the old reactive model."
+        )
+    else:
+        lines.append(f"- **2021 net margin**: {NOT_AVAILABLE}")
+    lines.append("")
+    lines.append("**Whole-run net margin, three ways:**")
+    lines.append("")
+    lines.append(f"- Mandate-hedged (actual, this run): {_fmt_gbp(data['total_net_gbp'])}")
+    if old_data is not None:
+        lines.append(f"- Old reactive model (actual): {_fmt_gbp(old_data['total_net_gbp'])}")
+    if new_het is not None:
+        lines.append(f"- Fully naked (this run's counterfactual): {_fmt_gbp(new_het['naked_net_gbp'])}")
+    if old_het is not None:
+        lines.append(f"- Fully naked (old run's counterfactual): {_fmt_gbp(old_het['naked_net_gbp'])}")
+    lines.append("")
+    lines.append(
+        "Comparing the two naked counterfactuals shows what changed in the "
+        "underlying weather/price data between runs (LLM non-determinism in "
+        "risk-committee responses also shifts these slightly run-to-run); "
+        "comparing each model's actual to its own naked figure isolates what "
+        "that model's hedging behaviour itself contributed."
+    )
+    return "\n".join(lines)
+
+
+def _load_old_model_data() -> dict | None:
+    """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
+    or None if it isn't present."""
+    if not OLD_MODEL_REPORT_DATA_PATH.exists():
+        return None
+    return json.loads(OLD_MODEL_REPORT_DATA_PATH.read_text())
+
+
 def generate_annual_report(data: dict) -> str:
     """Build the full markdown annual report from `extract_report_data()`'s
     output."""
@@ -652,6 +733,7 @@ def generate_annual_report(data: dict) -> str:
         _executive_summary(data),
     ]
 
+    sections.append(_mandate_comparison_section(data, _load_old_model_data()))
     sections.append(_hedge_effectiveness_summary_section(data))
 
     for year in sorted(data["years"]):

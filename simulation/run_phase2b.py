@@ -36,7 +36,7 @@ from sim.forward_curve import (
     generate_forward_price,
 )
 from sim.gas_prices_history import load_nbp_history
-from sim.hedging_strategy import evolve_hedge_fraction
+from sim.hedging_strategy import MIN_HEDGE_FLOOR, evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape
 from sim.profile_class_3 import load_pc3_shape
 from sim.risk_committee import RiskCommitteeMonitor
@@ -68,7 +68,9 @@ GAS_ELEC_WEIGHT = 0.25
 EFFECTIVE_EAC = TOTAL_ELEC_EAC + TOTAL_GAS_AQ * GAS_ELEC_WEIGHT
 STARTING_TREASURY_GBP = 3250.0 * (EFFECTIVE_EAC / ORIGINAL_4_CUSTOMER_EAC_KWH)
 
-RESET_HEDGE_FRACTION = 0.50
+# Phase 5c minimum hedge mandate: every term starts at the mandate floor
+# (sim.hedging_strategy.MIN_HEDGE_FLOOR), not a neutral 50/50 guess.
+RESET_HEDGE_FRACTION = MIN_HEDGE_FLOOR
 EARLIEST_SSP_DATE = "2015-11-07"
 COMMITTEE_COOLDOWN_PERIODS = 1440
 

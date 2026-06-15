@@ -1,4 +1,9 @@
-from saas.reporting.annual_report import extract_report_data, generate_annual_report
+from saas.reporting.annual_report import (
+    NOT_AVAILABLE,
+    _mandate_comparison_section,
+    extract_report_data,
+    generate_annual_report,
+)
 
 
 def _record(cid, commodity, settlement_date, period, margin, capital, net, rate, treasury):
@@ -180,3 +185,26 @@ def test_generate_annual_report_produces_year_sections():
     assert "Not available in current run output" in report
     # Net-negative customer flagged in pricing section
     assert "net-negative" in report
+    # Phase 5c hedging mandate before/after comparison
+    assert "## Hedging Mandate — Before/After Phase 5c" in report
+
+
+def test_mandate_comparison_section_reports_not_available_without_old_data():
+    data = extract_report_data(_run_output())
+    section = _mandate_comparison_section(data, None)
+
+    assert "## Hedging Mandate — Before/After Phase 5c" in section
+    assert NOT_AVAILABLE in section
+
+
+def test_mandate_comparison_section_compares_capital_ratio_and_2021_margin():
+    data = extract_report_data(_run_output())
+    old_data = extract_report_data(_run_output())
+    # Simulate the old reactive model having a higher capital cost ratio
+    old_data["total_capital_gbp"] = old_data["total_gross_gbp"] * 0.5
+
+    section = _mandate_comparison_section(data, old_data)
+
+    assert "Capital cost as % of gross margin" in section
+    assert "2021 net margin" in section
+    assert "Whole-run net margin, three ways" in section

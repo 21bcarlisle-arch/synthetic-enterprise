@@ -8,7 +8,36 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-14T18:21:17Z
+Last updated: 2026-06-15T04:04:50Z
+
+**Phase 5c complete — minimum hedge mandate (2026-06-15)**: redesigned the
+hedging philosophy from "speculative book with a risk governor" to "supply
+obligation first, active position second", matching how real suppliers
+(e.g. EDF) operate. `sim/hedging_strategy.MIN_HEDGE_FLOOR = 0.85` — every
+contract term now starts at least 85% hedged; the risk committee's
+`evolve_hedge_fraction()` operates only in `[0.85, 1.0]`, managing the
+~15% active position rather than deciding whether to hedge at all. Capital
+cost was already charged on the unhedged (naked) portion of volume, so
+raising the floor to 0.85 caps that exposure — and the capital charge
+derived from it — at 15% of volume by construction, with no separate
+capital-cost code change needed.
+
+Re-ran the full 2016-2025 simulation under the new mandate:
+treasury £21,829.17 -> £37,953.15, net margin £16,123.98 (gross £18,970.93,
+**capital cost ratio 15.0%**, down from 41.0% under the old reactive
+model). **2021 net margin £632.78** (was £-1,096.43 under the old reactive
+model) — the business was largely protected going into the crisis rather
+than scrambling to hedge after the fact. Whole-run hedging cost £17,352.21
+vs. a fully naked book (actual £16,123.98 vs. naked £33,476.19) — more than
+the old model's £6,696.63, reflecting the cost of carrying the mandate
+through calm years; the new `ANNUAL_REPORT.md` section "Hedging Mandate —
+Before/After Phase 5c" lays out the full mandate-vs-old-reactive-vs-naked
+comparison for Rich's review.
+99 Context Handshake wake-ups, 1,101 bills (avg clarity 0.918, bad debt
+£2,639.69), enterprise value £10,496.28 across 6 billing accounts, SURVIVED
+full window. Report:
+https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
+273 tests passing, lint clean.
 
 **Two-way NTFY command channel (2026-06-14)**: Rich can now send a short
 message from the ntfy app on his phone (topic `skynet-synthetic`) and the

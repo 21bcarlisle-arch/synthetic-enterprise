@@ -78,3 +78,114 @@
 - [2026-06-14 16:57 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-14 16:58 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
 - [2026-06-14 18:17 UTC] Session watchdog started (gated mode — restarts require NTFY YES confirmation, except usage-limit auto-resume); autoloop active (idle 300s -> continue, REVIEW_GATE/permission prompts pause for Rich)
+- [2026-06-14 18:27 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 18:33 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 18:38 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 18:43 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 18:48 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 18:52 UTC] Inbound NTFY command from Rich: 'Are you receiving me?!' — relaying to session
+- [2026-06-14 18:53 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 18:58 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 19:06 UTC] Inbound NTFY command from Rich: 'Are you receiving this? Please immediately reply via this ntfy if you are?' — relaying to session
+- [2026-06-14 19:14 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 19:21 UTC] Inbound NTFY command from Rich: 'And this one?' — relaying to session
+- [2026-06-14 19:27 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 19:32 UTC] Inbound NTFY command from Rich: '41% usage resets in 1hr38m' — relaying to session
+- [2026-06-14 19:33 UTC] Inbound NTFY command from Rich: 'Explain capital cost calculation in plain English' — relaying to session
+- [2026-06-14 19:47 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 19:57 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 20:03 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 20:08 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 20:13 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 20:20 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 20:27 UTC] Inbound NTFY command from Rich: 'Are you working or idle?' — relaying to session
+- [2026-06-14 20:33 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 20:39 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 20:44 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 20:48 UTC] Inbound NTFY command from Rich: "Check docs/staging/drafts/ and docs/staging/ for any unactioned files and proceed. If you didn't proceed and should have, please fix." — relaying to session
+- [2026-06-14 20:49 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 20:54 UTC] Inbound NTFY command from Rich: "Your estimates of usage are wildly overestimating. It's not working. Need a better way. Also, don't forget to keep the GPU busy too." — relaying to session
+- [2026-06-14 20:56 UTC] Inbound NTFY command from Rich: "If you get blocked on any task, don't wait — move to the next independent item in staging and come back. Nothing should sit idle while blockable work exists elsewhere." — relaying to session
+- [2026-06-14 21:05 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 21:16 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 21:22 UTC] Inbound NTFY command from Rich: 'What about 6?' — relaying to session
+- [2026-06-14 21:23 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 21:25 UTC] Inbound NTFY command from Rich: "While Qwen runs the 5c simulation, you should be designing and building Phase 6a (HH smart meter customers) in parallel. Don't wait for 5c to finish — the GPU has that covered. Start 6a now." — relaying to session
+- [2026-06-14 21:31 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 21:36 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 21:41 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 21:46 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 21:51 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 21:56 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 22:01 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 22:06 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 22:11 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 22:16 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 22:21 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 22:26 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 22:31 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 22:36 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 22:41 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 22:46 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 22:51 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 22:56 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 23:01 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 23:06 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 23:11 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 23:17 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 23:22 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 23:27 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 23:32 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 23:37 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 23:42 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 23:47 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-14 23:52 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-14 23:57 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 00:02 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 00:07 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 00:12 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 00:17 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 00:22 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 00:27 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 00:32 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 00:37 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 00:42 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 00:47 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 00:53 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 00:58 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 01:03 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 01:08 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 01:13 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 01:18 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 01:23 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 01:28 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 01:33 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 01:38 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 01:43 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 01:48 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 01:53 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 01:58 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 02:03 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 02:08 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 02:13 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 02:18 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 02:23 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 02:29 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 02:34 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 02:39 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 02:44 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 02:49 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 02:54 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 02:59 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 03:04 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 03:09 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 03:14 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 03:19 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 03:24 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 03:29 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 03:34 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 03:39 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 03:44 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 03:49 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 03:54 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 03:59 UTC] Autoloop cap reached (6/hour) — pausing
