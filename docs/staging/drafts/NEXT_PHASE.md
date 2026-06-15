@@ -1,13 +1,15 @@
 # Proposed next phase: HH smart meter customers (Phase 6a)
 
-Status: DRAFT — proposed by Claude Code under the opt-out REVIEW_GATE
-process in CLAUDE.md ("How to operate autonomously"). Will be actioned in
-4 hours from the second NTFY unless Rich stages a different instruction in
+Status: DRAFT — re-proposed by Claude Code under the opt-out REVIEW_GATE
+process in CLAUDE.md ("How to operate autonomously"), following Phase 5c
+(minimum hedge mandate, `1bcd4dc`, pushed). Will be actioned in 4 hours from
+the second NTFY unless Rich stages a different instruction in
 docs/staging/.
 
 ## Why this, why now
 
-Phase 5b (report data pipeline) is complete and pushed (`05d4156`).
+Phase 5b (report data pipeline) and Phase 5c (minimum hedge mandate,
+capital cost ratio down to 15.0%) are both complete and pushed.
 CLAUDE.md's "Decisions made 14 June 2026" names HH smart meter customers as
 the next priority, ahead of I&C (deferred) and event-driven customer
 lifecycle (depends on this). This is also "hollow gap #4" — every customer
@@ -42,7 +44,7 @@ customers can be removed or left dormant without touching C1-C6/C1g-C4g.
    `simulation/settlement.py` so HH customers' settlement uses real
    half-hourly consumption directly instead of a profile-class shape ×
    annual estimate. Profile-class customers (C1-C6, C1g-C4g) must be
-   unaffected — same outputs as today, verified by the existing 252 tests
+   unaffected — same outputs as today, verified by the existing 273 tests
    continuing to pass unchanged.
 4. **Run + verify**: a full 2016-2025 run with the new customers included,
    confirming the simulation still produces a coherent settlement record set
@@ -52,7 +54,7 @@ customers can be removed or left dormant without touching C1-C6/C1g-C4g.
    4b/4c metrics not yet computed for them — document explicitly, as Phase 5b
    did for other gaps).
 5. **Tests**: new tests for the HH data loader and HH consumption path; no
-   regressions in the 252 existing tests.
+   regressions in the 273 existing tests.
 
 ## Explicitly out of scope for this phase
 
