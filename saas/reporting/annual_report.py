@@ -30,6 +30,7 @@ rather than an estimate.
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 
 from saas.customer_reaction import _billing_account_id
@@ -789,6 +790,19 @@ def generate_annual_report(data: dict) -> str:
     return "\n".join(sections)
 
 
+def _current_git_commit() -> str | None:
+    """Short hash of HEAD, or None if it can't be determined (e.g. not a
+    git checkout)."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, check=True,
+        )
+        return result.stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
 def _run_and_extract() -> dict:
     run_output = run_phase4c_on_phase2b()
     return extract_report_data(run_output)
@@ -811,6 +825,15 @@ def main() -> None:
         data = json.loads(args.from_json.read_text())
     elif DEFAULT_REPORT_DATA_PATH.exists() and args.save_json == DEFAULT_REPORT_DATA_PATH:
         data = json.loads(DEFAULT_REPORT_DATA_PATH.read_text())
+        cached_commit = data.get("_cache_meta", {}).get("git_commit")
+        current_commit = _current_git_commit()
+        if cached_commit and current_commit and cached_commit != current_commit:
+            print(
+                f"WARNING: cached report data ({DEFAULT_REPORT_DATA_PATH}) was "
+                f"generated at commit {cached_commit}, but HEAD is now "
+                f"{current_commit} -- figures may be stale. Delete the cache "
+                f"or pass --save-json to re-run the simulation."
+            )
     else:
         data = _run_and_extract()
         args.save_json.parent.mkdir(parents=True, exist_ok=True)
