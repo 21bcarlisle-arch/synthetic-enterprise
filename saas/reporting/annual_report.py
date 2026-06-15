@@ -685,6 +685,18 @@ def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
     )
     lines.append("")
     lines.append(
+        "**Note:** the figures below come from two *different* simulation "
+        "runs (this run vs. the preserved old-model snapshot) — do not "
+        "subtract a figure from one run's row from a figure in the other's. "
+        f"This run: gross {_fmt_gbp(data['total_gross_gbp'])}, capital "
+        f"{_fmt_gbp(data['total_capital_gbp'])}, net "
+        f"{_fmt_gbp(data['total_net_gbp'])}. Old-model run: gross "
+        f"{_fmt_gbp(old_data['total_gross_gbp'])}, capital "
+        f"{_fmt_gbp(old_data['total_capital_gbp'])}, net "
+        f"{_fmt_gbp(old_data['total_net_gbp'])}."
+    )
+    lines.append("")
+    lines.append(
         f"- **Capital cost as % of gross margin**: {_fmt_pct(new_ratio)} "
         f"under the new mandate vs. {_fmt_pct(old_ratio)} under the old "
         "reactive model."

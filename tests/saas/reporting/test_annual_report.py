@@ -208,3 +208,8 @@ def test_mandate_comparison_section_compares_capital_ratio_and_2021_margin():
     assert "Capital cost as % of gross margin" in section
     assert "2021 net margin" in section
     assert "Whole-run net margin, three ways" in section
+    # Clarify that gross/capital/net figures from the two runs aren't
+    # comparable across rows (e.g. don't subtract old net from new gross).
+    assert "different" in section
+    assert "This run: gross" in section
+    assert "Old-model run: gross" in section

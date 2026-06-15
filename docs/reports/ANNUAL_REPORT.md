@@ -26,6 +26,8 @@ the last partial). The business survived the full window.
 
 Phase 5c replaced the old reactive hedging model (start at 50/50, risk committee reacts upward from there with no floor) with a minimum hedge mandate: every term starts at least 85% hedged (`MIN_HEDGE_FLOOR` in `sim/hedging_strategy.py`), modelling a real supplier's supply-obligation-first behaviour rather than a speculative book with a safety valve. Because capital cost is charged on the unhedged (active) position only, raising the floor to 85% caps that active position at 15% of volume by construction.
 
+**Note:** the figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run: gross £18,970.93, capital £2,846.94, net £16,123.98. Old-model run: gross £45,417.31, capital £18,637.75, net £26,779.56.
+
 - **Capital cost as % of gross margin**: 15.0% under the new mandate vs. 41.0% under the old reactive model.
 - **2021 net margin**: £632.78 under the new mandate vs. £-1,096.43 under the old reactive model.
 

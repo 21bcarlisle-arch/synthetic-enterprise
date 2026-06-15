@@ -189,3 +189,9 @@
 - [2026-06-15 03:49 UTC] Autoloop cap reached (6/hour) — pausing
 - [2026-06-15 03:54 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-15 03:59 UTC] Autoloop cap reached (6/hour) — pausing
+- [2026-06-15 04:12 UTC] Inbound NTFY command from Rich: 'Investigate and explain: (1) why executive summary still shows 41% capital cost ratio when NTFY said 15% after 5c run — is there a data/report bug? (2) What does gross margin actually represent — is it revenue minus wholesale cost? What is total revenue? (3) How is cost to serve calculated — what does it include? Report back via NTFY.' — relaying to session
+- [2026-06-15 04:16 UTC] Inbound NTFY command from Rich: "Hold Phase 6a — don't start yet. First answer: (1) how long did the 5c re-run take wall-clock? (2) Does the settlement engine scale linearly with customers? (3) What's the estimated run time impact of adding 2-3 real HH customers with 48 reads/day vs profile class shapes? (4) Answer the margin/cost-to-serve questions from Rich's previous message too." — relaying to session
+- [2026-06-15 04:17 UTC] Inbound NTFY command from Rich: "Usage is 13% and resets in 4hrs 44mins (so maybe it's a 5 hour reset cycle??)" — relaying to session
+- [2026-06-15 04:26 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-15 04:39 UTC] Inbound NTFY command from Rich: "Net margin (£26,779) is higher than gross margin (£18,970) in the whole-run figures — that's mathematically impossible. Investigate and explain how this can be, and fix it before Phase 6a starts. Once you've fixed please start 6a. In general please keep busy and progressing whilst we have tokens to use for the session and the week" — relaying to session
+- [2026-06-15 04:45 UTC] Session idle — sending autoloop continuation instruction
