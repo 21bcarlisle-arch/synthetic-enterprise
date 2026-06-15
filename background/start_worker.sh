@@ -21,3 +21,9 @@ tmux new-session -d -s staging-watcher -c ~/synthetic-enterprise \
 echo "Staging watcher started in tmux session 'staging-watcher'"
 echo "Attach with: tmux attach -t staging-watcher"
 echo "Sends NTFY (skynet-synthetic) when a new file lands in docs/staging/ — notification only, no auto-execution"
+
+tmux new-session -d -s ntfy-responder -c ~/synthetic-enterprise \
+  "python3 background/ntfy_responder.py"
+echo "NTFY instant-ack responder started in tmux session 'ntfy-responder'"
+echo "Attach with: tmux attach -t ntfy-responder"
+echo "Replies to every inbound NTFY message with a status snapshot (sim progress, GPU, git HEAD), independent of the main session"
