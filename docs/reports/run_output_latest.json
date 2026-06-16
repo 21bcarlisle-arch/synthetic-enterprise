@@ -620,8 +620,8 @@
           "treasury_gbp": 29971.262267329475,
           "adjustments": {
             "C1": 0.95,
-            "C5": 0.95,
-            "C7": 0.95
+            "C5": 1.0,
+            "C7": 1.0
           },
           "portfolio_var_current_gbp": 1028.8681536848817,
           "portfolio_var_stressed_gbp": 322.4716301649622
@@ -1607,9 +1607,9 @@
           "settlement_date": "2017-06-11",
           "treasury_gbp": 30046.739186199047,
           "adjustments": {
-            "C1": 1.0,
-            "C5": 1.0,
-            "C7": 1.0
+            "C1": 0.95,
+            "C5": 0.95,
+            "C7": 0.95
           },
           "portfolio_var_current_gbp": 2018.1329664880716,
           "portfolio_var_stressed_gbp": 736.6350608151723
@@ -6118,18 +6118,23 @@
     "C6"
   ],
   "ledger_meta": {
-    "event_count": 2121727,
+    "event_count": 2123881,
     "by_type": {
       "billing_event": 1077,
       "capital_charge_event": 963273,
-      "settlement_event": 1157377
+      "settlement_event": 1157377,
+      "payment_received_event": 1077,
+      "bad_debt_event": 1077
     },
     "pnl": {
       "revenue_gbp": 93868.3824224368,
       "wholesale_cost_gbp": 89694.40795305715,
       "gross_margin_gbp": 4173.974469379653,
       "capital_cost_gbp": 1146.693309166886,
-      "net_margin_gbp": 3027.2811602127667
+      "net_margin_gbp": 3027.2811602127667,
+      "cash_collected_gbp": 92064.37408208192,
+      "bad_debt_gbp": 1804.0083403548815,
+      "cash_net_margin_gbp": 1223.272819857889
     }
   },
   "ledger_pnl": {
@@ -6137,6 +6142,9 @@
     "wholesale_cost_gbp": 89694.40795305715,
     "gross_margin_gbp": 4173.974469379653,
     "capital_cost_gbp": 1146.693309166886,
-    "net_margin_gbp": 3027.2811602127667
+    "net_margin_gbp": 3027.2811602127667,
+    "cash_collected_gbp": 92064.37408208192,
+    "bad_debt_gbp": 1804.0083403548815,
+    "cash_net_margin_gbp": 1223.272819857889
   }
 }
