@@ -1,4 +1,4 @@
-.PHONY: check lint test report publish-report
+.PHONY: check lint test report publish-report run run-fast
 
 check: lint test
 
@@ -16,3 +16,12 @@ report:
 
 publish-report: report
 	python3 -m tools.publish_report_gist
+
+# Full 2016-2025 simulation run with LLM risk committee — generates report + JSON
+run:
+	rm -f docs/reports/run_output_latest.json
+	python3 -m saas.reporting.annual_report --save-json docs/reports/run_output_latest.json
+
+# Fast iteration run (deterministic committee, truncated window) — no LLM calls
+run-fast:
+	python3 -m saas.reporting.annual_report --fast --end-year 2020 --save-json /tmp/run_output_fast.json --output /tmp/ANNUAL_REPORT_fast.md
