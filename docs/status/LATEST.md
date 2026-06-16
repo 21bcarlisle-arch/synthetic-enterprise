@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T09:28:56Z
+Last updated: 2026-06-16T09:35:56Z
 
 **Full validation run in progress (PID 106909, 2026-06-16)**:
 Third attempt at the 2016–2025 full run with real LLM committee calls. Root
@@ -17,8 +17,12 @@ qwen3:14b via Ollama's `/api/chat` endpoint must be set at the **top level**
 of the request JSON — when placed inside `options{}` it is silently ignored,
 causing the model to spend all `num_predict` tokens on thinking with zero
 text output, returning an empty response body and triggering a JSON parse
-error on every committee call. Committee calls now confirmed working (tested
-end-to-end — model returns structured JSON decision in ~30s).
+error on every committee call. Fix committed (f190a9a).
+
+**Confirmed healthy (10:35 UTC)**: committee first woke at 2016-01-01
+(opening the simulation), second at 2016-01-31. Progress at 2,900+ periods
+by 10:35, treasury progressing correctly from £29,846.19.
+ETA: ~2-3 hours total (committee calls add ~30s each; ~80-100 expected).
 Also: `ledger_latest.json` now only written on full runs (not `--fast` or
 `--end-year` truncated runs), and gitignored (~700 MB for a 10-year run).
 
