@@ -1,6 +1,4 @@
 """Tests for simulation/customer_events.py — Phase 6b lifecycle event rolling."""
-import random as _random
-
 from simulation.customer_events import PRICE_DIFFERENTIAL_PCT, roll_lifecycle_event
 
 
