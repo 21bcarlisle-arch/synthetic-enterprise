@@ -213,7 +213,8 @@ def test_check_autoloop_sends_instruction_after_idle_streak(monkeypatch):
         watchdog.check_autoloop(idle_pane)
 
     assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, watchdog.AUTOLOOP_INSTRUCTION, "Enter"] in send_keys_calls
-    assert any("milestone reached" in msg for msg in ntfy_messages)
+    # No "milestone reached" NTFY — removed to reduce notification noise (Rich's request 2026-06-16)
+    assert not any("milestone reached" in msg for msg in ntfy_messages)
     _reset_autoloop_state()
 
 

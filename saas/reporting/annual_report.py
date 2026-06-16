@@ -793,6 +793,33 @@ def _segment_margin_trend_section(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _administration_section(data: dict) -> str:
+    """Dedicated administration/insolvency section — REPORTING_BACKLOG item 12.
+    Renders as a single clean line when the business survived the full window;
+    expands to a full incident record if treasury ever hit the floor."""
+    event = data.get("administration_event")
+    if event is None:
+        return "## Administration Events\n\nNone — business survived the full simulation window.\n"
+
+    lines = [
+        "## Administration Events",
+        "",
+        "> **ADMINISTRATION TRIGGERED** — the supplier entered insolvency within the simulation window.",
+        "",
+        f"| Field | Value |",
+        f"|-------|-------|",
+        f"| Trigger date | {event['date']} |",
+        f"| Customer (last settled) | {event['customer_id']} |",
+        f"| Commodity | {event['commodity']} |",
+        f"| Treasury at trigger | {_fmt_gbp(event['treasury_balance_gbp'])} |",
+        "",
+        "Settlement processing halted at trigger date. All P&L figures in this report "
+        "reflect only the period up to and including the trigger date.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _customer_lifecycle_events_section(data: dict) -> str:
     """Customer lifecycle events — Phase 6b. One row per renewal-time churn/
     retained event rolled during the simulation run. Replaces the
@@ -848,6 +875,7 @@ def generate_annual_report(data: dict) -> str:
     ]
 
     sections.append(_mandate_comparison_section(data, _load_old_model_data()))
+    sections.append(_administration_section(data))
     sections.append(_hedge_effectiveness_summary_section(data))
     sections.append(_segment_margin_trend_section(data))
     sections.append(_customer_lifecycle_events_section(data))
