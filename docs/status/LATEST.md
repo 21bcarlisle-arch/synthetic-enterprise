@@ -8,13 +8,21 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T13:06:00Z
+Last updated: 2026-06-16T13:09:00Z
+
+**Phase 7b complete — Payment Lifecycle Ledger (2026-06-16)**:
+Two new event types in `saas/ledger.py`:
+- `payment_received_event`: cash collected per bill (total minus bad-debt provision)
+- `bad_debt_event`: provision written off 30 days after expected payment date
+`derive_pnl()` now includes `cash_collected_gbp`, `bad_debt_gbp`, `cash_net_margin_gbp`.
+Report waterfall shows cash vs. revenue view when 7b events present.
+347 tests passing. Commit: 929e7a6
 
 **NTFY spam fixed (2026-06-16)**: Root bug: `_autoloop_waiting_notified` was
 reset to `False` before the cap check on every idle cycle, so the "autoloop
 cap reached" NTFY fired every ~5 min while idle (not once per cap window).
 Fixed: flag only resets in the success path (just before sending the nudge).
-Watchdog restarted on fixed code. 333 tests passing.
+Watchdog restarted on fixed code.
 
 **GitHub Pages confirmed correct (2026-06-16)**: Pages at
 https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
@@ -57,7 +65,7 @@ the sum of transactions, not just a formula. New `saas/ledger.py`:
 - `docs/reports/ledger_latest.json` written alongside `run_output_latest.json`
   at end of every fresh full run (Phase 7a 4-hour gate passed, no redirect)
 
-332 tests passing, lint clean.
+347 tests passing, lint clean.
 Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 
 **Previous full runs failed (PIDs 96308, 101492)**:
@@ -90,8 +98,9 @@ Churn pattern from degraded run (committee-independent, structurally valid):
 - 2024-03: C6, 2024-09: C4 (late attrition)
 - C7/C8/C9 (HH customers) — all survived full window
 
-332 tests passing, lint clean. Key commits: db56e35 (Phase 6b), ded6d11
-(Phase 7a), fd44c70 (NTFY cleanup), 4175b6f (run-complete NTFY digest).
+347 tests passing, lint clean. Key commits: db56e35 (Phase 6b), ded6d11
+(Phase 7a), fd44c70 (NTFY cleanup), 4175b6f (run-complete NTFY digest),
+929e7a6 (Phase 7b).
 
 **Three simulation speed improvements committed (2026-06-16)**:
 1. `think:False` + `num_predict:512` on risk committee Ollama calls —

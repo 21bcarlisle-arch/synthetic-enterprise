@@ -898,9 +898,8 @@ def _ledger_summary_section(data: dict) -> str:
 
     if "cash_collected_gbp" in pnl:
         lines += [
-            f"|   Cash received (payment events) | ({_fmt_gbp(pnl['cash_collected_gbp'])}) |",
-            f"|   Bad debt written off | ({_fmt_gbp(pnl['bad_debt_gbp'])}) |",
-            f"| Cash collected net | {_fmt_gbp(pnl['cash_collected_gbp'])} |",
+            f"|   Less: bad debt written off | ({_fmt_gbp(pnl['bad_debt_gbp'])}) |",
+            f"| = Cash collected | {_fmt_gbp(pnl['cash_collected_gbp'])} |",
         ]
 
     lines += [
