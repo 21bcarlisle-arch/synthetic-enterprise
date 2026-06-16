@@ -843,12 +843,14 @@ def _current_git_commit() -> str | None:
         return None
 
 
-def _run_and_extract() -> dict:
-    run_output = run_phase4c_on_phase2b()
+def _run_and_extract(report_end: str | None = None) -> dict:
+    run_output = run_phase4c_on_phase2b(report_end=report_end)
     return extract_report_data(run_output)
 
 
 def main() -> None:
+    import os
+
     parser = argparse.ArgumentParser(description="Generate the annual report")
     parser.add_argument(
         "--from-json",
@@ -859,11 +861,33 @@ def main() -> None:
     )
     parser.add_argument("--save-json", type=Path, default=DEFAULT_REPORT_DATA_PATH)
     parser.add_argument("--output", type=Path, default=DEFAULT_REPORT_PATH)
+    parser.add_argument(
+        "--end-year",
+        type=int,
+        default=None,
+        metavar="YYYY",
+        help="Truncate the simulation window at Dec 31 of this year (e.g. 2020). "
+        "Useful for fast iteration on early years without running the full window.",
+    )
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Set SIM_FAST_MODE=1: use the deterministic mock risk committee "
+        "(no LLM calls). Cuts per-run time from ~hours to ~minutes.",
+    )
     args = parser.parse_args()
+
+    if args.fast:
+        os.environ["SIM_FAST_MODE"] = "1"
+        print("[FAST MODE] SIM_FAST_MODE=1 — deterministic mock committee, no LLM calls.")
+
+    report_end = f"{args.end_year}-12-31" if args.end_year else None
+    if report_end:
+        print(f"[TRUNCATED] Simulation window truncated to {report_end}.")
 
     if args.from_json:
         data = json.loads(args.from_json.read_text())
-    elif DEFAULT_REPORT_DATA_PATH.exists() and args.save_json == DEFAULT_REPORT_DATA_PATH:
+    elif not report_end and DEFAULT_REPORT_DATA_PATH.exists() and args.save_json == DEFAULT_REPORT_DATA_PATH:
         data = json.loads(DEFAULT_REPORT_DATA_PATH.read_text())
         cached_commit = data.get("_cache_meta", {}).get("git_commit")
         current_commit = _current_git_commit()
@@ -875,7 +899,7 @@ def main() -> None:
                 f"or pass --save-json to re-run the simulation."
             )
     else:
-        data = _run_and_extract()
+        data = _run_and_extract(report_end=report_end)
         args.save_json.parent.mkdir(parents=True, exist_ok=True)
         args.save_json.write_text(json.dumps(data, indent=2))
 

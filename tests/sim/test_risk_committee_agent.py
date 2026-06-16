@@ -84,6 +84,40 @@ def test_invoke_never_decreases_hedge_fraction(tmp_path, monkeypatch):
     assert adjustments == {}
 
 
+def test_fast_mode_skips_llm_and_applies_minimum_increase(tmp_path, monkeypatch):
+    handshake = tmp_path / "handshake.md"
+    handshake.write_text("Risk Committee Wake-Up — context")
+    log_file = tmp_path / "risk-committee-log.md"
+    monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
+    monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.setenv("SIM_FAST_MODE", "1")
+
+    # _call_local must NOT be invoked in fast mode
+    monkeypatch.setattr(agent, "_call_local", lambda ctx: (_ for _ in ()).throw(AssertionError("LLM called in fast mode")))
+
+    adjustments = agent.invoke("2020-01-01", 1, {"C1": 0.50, "C2": 0.85})
+
+    # C1: 0.50 + 0.10 = 0.60, C2: 0.85 + 0.10 = 0.95
+    assert adjustments == {"C1": 0.60, "C2": 0.95}
+    log_text = log_file.read_text()
+    assert "[FAST-MODE]" in log_text
+
+
+def test_fast_mode_does_not_adjust_customers_already_fully_hedged(tmp_path, monkeypatch):
+    handshake = tmp_path / "handshake.md"
+    handshake.write_text("context")
+    log_file = tmp_path / "log.md"
+    monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
+    monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.setenv("SIM_FAST_MODE", "1")
+
+    adjustments = agent.invoke("2020-01-01", 1, {"C1": 1.00, "C2": 0.70})
+
+    # C1 is already at 1.0 — mock skips it; C2 gets bumped to 0.80
+    assert "C1" not in adjustments
+    assert adjustments == {"C2": 0.80}
+
+
 def test_invoke_logs_decision(tmp_path, monkeypatch):
     handshake = tmp_path / "handshake.md"
     handshake.write_text("Risk Committee Wake-Up — context")

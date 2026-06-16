@@ -118,10 +118,10 @@ def _weather_adjusted_shape_fn(base_shape_fn, weather_means: dict[str, float], p
     return shape_fn
 
 
-def _clamp_term_end(term_start: str) -> str:
+def _clamp_term_end(term_start: str, end_date: str = REPORT_END) -> str:
     natural = (date.fromisoformat(term_start) + timedelta(days=CONTRACT_LENGTH_DAYS)).isoformat()
-    if natural > REPORT_END:
-        return (date.fromisoformat(REPORT_END) + timedelta(days=1)).isoformat()
+    if natural > end_date:
+        return (date.fromisoformat(end_date) + timedelta(days=1)).isoformat()
     return natural
 
 
@@ -171,6 +171,7 @@ def _bootstrap_first_term_forward_price(
 
 def _build_gas_renewal_schedule(
     customer: dict, gas_records: list[dict], lookback_temps_fn=None,
+    report_end: str = REPORT_END,
 ) -> list[dict]:
     """Build renewal schedule for a gas customer using NBP forward prices.
 
@@ -183,8 +184,8 @@ def _build_gas_renewal_schedule(
     schedule = []
     term_start = acq_date
 
-    while term_start <= REPORT_END:
-        term_end = _clamp_term_end(term_start)
+    while term_start <= report_end:
+        term_end = _clamp_term_end(term_start, end_date=report_end)
         lookback_temps = lookback_temps_fn(term_start) if lookback_temps_fn else None
         try:
             fwd = generate_forward_price(term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps)
@@ -207,12 +208,24 @@ def _build_gas_renewal_schedule(
     return schedule
 
 
-def main():
+def main(report_end: str | None = None):
+    """Run the full Phase 2b + 4c settlement simulation.
+
+    report_end: ISO date string (e.g. "2022-12-31") to truncate the
+        simulation window for faster iteration. Defaults to REPORT_END
+        (the full 2016-2025 window). Use --end-year on the annual_report
+        CLI or pass directly for experiment runs.
+    """
+    effective_end = report_end or REPORT_END
     print("=== Phase 2b — Gas Dual Fuel ===")
     print(f"Electricity customers: {[c['customer_id'] for c in ELEC_CUSTOMERS]}")
     print(f"Gas customers:         {[c['customer_id'] for c in GAS_CUSTOMERS]}")
     print(f"Elec EAC: {TOTAL_ELEC_EAC:,.0f} kWh  Gas AQ: {TOTAL_GAS_AQ:,} kWh")
-    print(f"Starting treasury: £{STARTING_TREASURY_GBP:.2f}\n")
+    print(f"Starting treasury: £{STARTING_TREASURY_GBP:.2f}")
+    if effective_end != REPORT_END:
+        print(f"[Truncated window: {REPORT_START} to {effective_end}]\n")
+    else:
+        print()
 
     # ---- Load price feeds ----
     earliest_acq = min(
@@ -222,15 +235,15 @@ def main():
     fetch_start_natural = (earliest_acq - timedelta(days=365)).isoformat()
     fetch_start = max(fetch_start_natural, EARLIEST_SSP_DATE)
 
-    cached = get_cached_prices(fetch_start, REPORT_END)
+    cached = get_cached_prices(fetch_start, effective_end)
     if cached is not None:
         elec_records = cached
         print(f"Cache hit: {len(elec_records):,} SSP records.")
         log_cache_access("elexon_ssp_full.json", hit=True, phase="2b")
     else:
-        elec_records = get_system_prices_range(fetch_start, REPORT_END)
+        elec_records = get_system_prices_range(fetch_start, effective_end)
         log_cache_access("elexon_ssp_full.json", hit=False, phase="2b")
-    print(f"Electricity: {len(elec_records):,} SSP records ({fetch_start} to {REPORT_END}).")
+    print(f"Electricity: {len(elec_records):,} SSP records ({fetch_start} to {effective_end}).")
 
     gas_records = load_nbp_history()
     print(f"Gas: {len(gas_records):,} NBP daily records.\n")
@@ -260,7 +273,7 @@ def main():
     elec_schedules = {}
     for c in ELEC_CUSTOMERS:
         elec_schedules[c["customer_id"]] = build_renewal_schedule(
-            c["customer_id"], c["acquisition_date"], REPORT_END,
+            c["customer_id"], c["acquisition_date"], effective_end,
             elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]], lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
         )
 
@@ -268,7 +281,8 @@ def main():
     gas_schedules = {}
     for c in GAS_CUSTOMERS:
         gas_schedules[c["customer_id"]] = _build_gas_renewal_schedule(
-            c, gas_records, lookback_temps_fn=_lookback_temps_fn(c["customer_id"])
+            c, gas_records, lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
+            report_end=effective_end,
         )
 
     # ---- Interleave all terms chronologically ----
@@ -312,7 +326,7 @@ def main():
         if administration_event:
             break
 
-        term_end_str = term.get("term_end") or _clamp_term_end(term_start_str)
+        term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
         forward_price = term["forward_price_gbp_per_mwh"]
         unit_rate = term["unit_rate_gbp_per_mwh"]
         term_index = term_indices[cid]

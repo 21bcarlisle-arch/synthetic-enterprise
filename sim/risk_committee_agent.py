@@ -44,6 +44,7 @@ Routing — local Ollama, not the frontier (decision reversed 2026-06-12):
 """
 
 import json
+import os
 import re
 import urllib.request
 from datetime import UTC, datetime
@@ -83,9 +84,32 @@ def _read_handshake_context() -> str:
     return Path(HANDSHAKE_FILE).read_text()
 
 
+def _call_mock(current_hedge_fractions: dict[str, float]) -> dict:
+    """Fast-mode deterministic committee (no LLM). Increases every customer's
+    hedge fraction by the minimum +0.10, capped at 1.0. Used when
+    SIM_FAST_MODE=1 is set — gives realistic committee behaviour (always
+    cautious, always increases) without any GPU time. Results are clearly
+    labelled in the log so fast-mode runs are distinguishable."""
+    adjustments = [
+        {
+            "customer_id": cid,
+            "old_hedge_fraction": hf,
+            "new_hedge_fraction": round(min(1.0, hf + 0.10), 2),
+        }
+        for cid, hf in current_hedge_fractions.items()
+        if hf < 1.0
+    ]
+    return {
+        "reasoning": "[FAST-MODE] Deterministic minimum-increase policy — no LLM call.",
+        "adjustments": adjustments,
+    }
+
+
 def _call_local(context: str) -> dict:
     """Call the local Ollama model with the handshake context. Returns the
     parsed decision dict. Raises on connection error or unparseable response.
+    think:False suppresses qwen3's verbose reasoning trace, cutting per-call
+    latency from ~60s+ (2048-token think trace) to ~15-20s (JSON only).
     """
     payload = json.dumps({
         "model": COMMITTEE_MODEL,
@@ -94,7 +118,7 @@ def _call_local(context: str) -> dict:
             {"role": "user", "content": context},
         ],
         "stream": False,
-        "options": {"num_predict": 2048},
+        "options": {"num_predict": 512, "think": False},
     }).encode()
     request = urllib.request.Request(
         OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"}
@@ -103,8 +127,7 @@ def _call_local(context: str) -> dict:
         result = json.loads(response.read())
     raw_text = result["message"]["content"]
 
-    # Strip a leading <think>...</think> block (qwen3 reasoning trace) and any
-    # accidental markdown fences before parsing
+    # Strip any residual <think>...</think> block and markdown fences
     cleaned = re.sub(r"^\s*<think>.*?</think>\s*", "", raw_text.strip(), flags=re.DOTALL)
     cleaned = re.sub(r"^```[a-z]*\n?", "", cleaned.strip(), flags=re.MULTILINE)
     cleaned = re.sub(r"\n?```$", "", cleaned.strip())
@@ -150,7 +173,10 @@ def invoke(settlement_date: str, settlement_period: int, current_hedge_fractions
       no decrease, clamp to [0.0, 1.0]).
     """
     context = _read_handshake_context()
-    decision = _call_local(context)
+    if os.environ.get("SIM_FAST_MODE") == "1":
+        decision = _call_mock(current_hedge_fractions)
+    else:
+        decision = _call_local(context)
 
     validated_adjustments = {}
     for adj in decision.get("adjustments", []):
