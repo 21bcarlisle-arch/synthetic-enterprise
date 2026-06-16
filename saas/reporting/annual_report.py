@@ -39,6 +39,7 @@ from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
+LEDGER_LATEST_PATH = Path("docs/reports/ledger_latest.json")
 
 # Phase 5c: snapshot of the pre-mandate (old reactive-hedging) run's
 # extracted report data, kept so the mandate's effect can be shown
@@ -357,6 +358,8 @@ def extract_report_data(run_output: dict) -> dict:
         "hedge_effectiveness_total": hedge_effectiveness_total,
         "customer_events": phase2b.get("customer_events", []),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
+        "ledger_meta": run_output.get("ledger_meta"),
+        "ledger_pnl": run_output.get("ledger_pnl"),
     }
 
 
@@ -858,6 +861,51 @@ def _customer_lifecycle_events_section(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _ledger_summary_section(data: dict) -> str:
+    """Transaction log summary — Phase 7a. Shows event counts by type, the
+    cash-flow waterfall derived from the ledger, and a verification that
+    ledger P&L agrees with the simulation's direct figure."""
+    meta = data.get("ledger_meta")
+    pnl = data.get("ledger_pnl")
+
+    if meta is None or pnl is None:
+        return f"## Transaction Log\n\n{NOT_AVAILABLE}\n"
+
+    by_type = meta.get("by_type", {})
+    direct_net = data.get("total_net_gbp", 0.0)
+    ledger_net = pnl.get("net_margin_gbp", 0.0)
+    discrepancy = abs(direct_net - ledger_net)
+    agreement = "✓ agrees with simulation" if discrepancy < 0.01 else f"⚠ discrepancy £{discrepancy:.2f}"
+
+    lines = [
+        "## Transaction Log",
+        "",
+        f"Total events: {meta['event_count']:,}",
+        "",
+        "| Event type | Count |",
+        "|------------|-------|",
+    ]
+    for etype, count in sorted(by_type.items()):
+        lines.append(f"| {etype} | {count:,} |")
+
+    lines += [
+        "",
+        "**Cash-flow waterfall (from ledger)**",
+        "",
+        "| Flow | Amount |",
+        "|------|--------|",
+        f"| Revenue collected (billing events) | {_fmt_gbp(pnl['revenue_gbp'])} |",
+        f"| Wholesale cost (settlement events) | ({_fmt_gbp(pnl['wholesale_cost_gbp'])}) |",
+        f"| Gross margin | {_fmt_gbp(pnl['gross_margin_gbp'])} |",
+        f"| Capital charges | ({_fmt_gbp(pnl['capital_cost_gbp'])}) |",
+        f"| Net margin | {_fmt_gbp(pnl['net_margin_gbp'])} |",
+        "",
+        f"Ledger P&L vs simulation direct: {agreement}",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -879,6 +927,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_hedge_effectiveness_summary_section(data))
     sections.append(_segment_margin_trend_section(data))
     sections.append(_customer_lifecycle_events_section(data))
+    sections.append(_ledger_summary_section(data))
 
     for year in sorted(data["years"]):
         yd = data["years"][year]
@@ -1002,9 +1051,15 @@ def main() -> None:
                 f"or pass --save-json to re-run the simulation."
             )
     else:
-        data = _run_and_extract(report_end=report_end)
+        raw_output = run_phase4c_on_phase2b(report_end=report_end)
+        data = extract_report_data(raw_output)
         args.save_json.parent.mkdir(parents=True, exist_ok=True)
         args.save_json.write_text(json.dumps(data, indent=2))
+        ledger_events = raw_output.get("ledger_events", [])
+        if ledger_events:
+            LEDGER_LATEST_PATH.parent.mkdir(parents=True, exist_ok=True)
+            LEDGER_LATEST_PATH.write_text(json.dumps(ledger_events, indent=2))
+            print(f"Wrote {LEDGER_LATEST_PATH} ({len(ledger_events):,} events)")
         fresh_full_run = not args.fast and not report_end
         if fresh_full_run:
             _send_run_complete_ntfy(data, args.output)

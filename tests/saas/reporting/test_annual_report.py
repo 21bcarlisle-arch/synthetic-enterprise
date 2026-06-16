@@ -2,6 +2,7 @@ from pathlib import Path
 
 from saas.reporting.annual_report import (
     NOT_AVAILABLE,
+    _ledger_summary_section,
     _mandate_comparison_section,
     _segment_margin_trend_section,
     _send_run_complete_ntfy,
@@ -286,6 +287,41 @@ def test_mandate_comparison_section_reports_not_available_revenue_pct_for_old_sn
 
     assert "Net margin as % of revenue" in section
     assert NOT_AVAILABLE in section
+
+
+def test_ledger_summary_section_shows_waterfall_and_event_counts():
+    meta = {
+        "event_count": 300,
+        "by_type": {"billing_event": 100, "settlement_event": 150, "capital_charge_event": 50},
+    }
+    pnl = {
+        "revenue_gbp": 10000.0,
+        "wholesale_cost_gbp": 7000.0,
+        "gross_margin_gbp": 3000.0,
+        "capital_cost_gbp": 500.0,
+        "net_margin_gbp": 2500.0,
+    }
+    data = {"ledger_meta": meta, "ledger_pnl": pnl, "total_net_gbp": 2500.0}
+    section = _ledger_summary_section(data)
+    assert "Transaction Log" in section
+    assert "300" in section
+    assert "billing_event" in section
+    assert "£10,000.00" in section  # revenue
+    assert "✓ agrees with simulation" in section
+
+
+def test_ledger_summary_section_shows_not_available_when_no_meta():
+    section = _ledger_summary_section({})
+    assert NOT_AVAILABLE in section
+
+
+def test_ledger_summary_section_flags_discrepancy():
+    meta = {"event_count": 1, "by_type": {}}
+    pnl = {"revenue_gbp": 100.0, "wholesale_cost_gbp": 50.0, "gross_margin_gbp": 50.0,
+           "capital_cost_gbp": 10.0, "net_margin_gbp": 40.0}
+    data = {"ledger_meta": meta, "ledger_pnl": pnl, "total_net_gbp": 41.0}
+    section = _ledger_summary_section(data)
+    assert "discrepancy" in section
 
 
 def _ntfy_data():

@@ -45,6 +45,7 @@ from saas.cost_to_serve import build_cost_to_serve
 from saas.customers import CUSTOMERS, get_customer
 from saas.enterprise_value import build_enterprise_value
 from saas.home_move_win_rate import build_home_move_win_rates
+from saas.ledger import build_ledger, derive_pnl, ledger_summary
 from saas.payment_behaviour import build_payment_behaviour
 from simulation.run_phase2b import main as run_phase2b
 
@@ -139,6 +140,10 @@ def main(report_end: str | None = None):
             f"{credit_risk:>11} {bad_debt:>10.2f}"
         )
 
+    ledger_events = build_ledger(all_records, bills)
+    ledger_pnl = derive_pnl(ledger_events)
+    ledger_meta = ledger_summary(ledger_events)
+
     return {
         "phase2b": phase2b_result,
         "bills": bills,
@@ -149,6 +154,9 @@ def main(report_end: str | None = None):
         "home_move_win_rates": home_move_win_rates,
         "enterprise_value": enterprise_value,
         "price_differential_pct": PRICE_DIFFERENTIAL_PCT,
+        "ledger_events": ledger_events,
+        "ledger_pnl": ledger_pnl,
+        "ledger_meta": ledger_meta,
     }
 
 
