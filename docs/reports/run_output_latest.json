@@ -620,8 +620,8 @@
           "treasury_gbp": 29971.262267329475,
           "adjustments": {
             "C1": 0.95,
-            "C5": 1.0,
-            "C7": 1.0
+            "C5": 0.95,
+            "C7": 0.95
           },
           "portfolio_var_current_gbp": 1028.8681536848817,
           "portfolio_var_stressed_gbp": 322.4716301649622
@@ -1289,6 +1289,11 @@
             "hedging_value_add_gbp": 114.16819962419612
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C1": 0.08,
+        "C5": 0.29,
+        "C7": 0.29
       }
     },
     "2017": {
@@ -2200,6 +2205,17 @@
             "hedging_value_add_gbp": 23.24242453078356
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C1": 0.2,
+        "C5": 0.32,
+        "C7": 0.35,
+        "C2": 0.05,
+        "C6": 0.35,
+        "C8": 0.35,
+        "C3": 0.05,
+        "C9": 0.29,
+        "C4": 0.05
       }
     },
     "2018": {
@@ -2695,6 +2711,17 @@
             "hedging_value_add_gbp": 3.4164575531748014
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C1": 0.08,
+        "C5": 0.32,
+        "C7": 0.37999999999999995,
+        "C2": 0.05,
+        "C6": 0.32,
+        "C8": 0.35,
+        "C3": 0.22999999999999998,
+        "C9": 0.37999999999999995,
+        "C4": 0.14
       }
     },
     "2019": {
@@ -3185,6 +3212,17 @@
             "hedging_value_add_gbp": -168.19728184423897
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C1": 0.11,
+        "C5": 0.35,
+        "C7": 0.35,
+        "C2": 0.11,
+        "C6": 0.32,
+        "C8": 0.32,
+        "C3": 0.14,
+        "C9": 0.32,
+        "C4": 0.16999999999999998
       }
     },
     "2020": {
@@ -3637,6 +3675,17 @@
             "hedging_value_add_gbp": 421.31268280450655
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C1": 0.22999999999999998,
+        "C5": 0.32,
+        "C7": 0.35,
+        "C2": 0.16999999999999998,
+        "C6": 0.37999999999999995,
+        "C8": 0.37999999999999995,
+        "C3": 0.14,
+        "C9": 0.41,
+        "C4": 0.2
       }
     },
     "2021": {
@@ -4103,6 +4152,16 @@
             "hedging_value_add_gbp": 1281.3899978014397
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C1": 0.16999999999999998,
+        "C5": 0.35,
+        "C7": 0.37999999999999995,
+        "C2": 0.2,
+        "C6": 0.37999999999999995,
+        "C8": 0.41,
+        "C9": 0.35,
+        "C4": 0.05
       }
     },
     "2022": {
@@ -4715,6 +4774,14 @@
             "hedging_value_add_gbp": 63.24392862430495
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C7": 0.37999999999999995,
+        "C2": 0.2,
+        "C6": 0.35,
+        "C8": 0.37999999999999995,
+        "C9": 0.37999999999999995,
+        "C4": 0.22999999999999998
       }
     },
     "2023": {
@@ -5009,6 +5076,13 @@
             "hedging_value_add_gbp": -97.86480424054076
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C7": 0.37999999999999995,
+        "C6": 0.26,
+        "C8": 0.35,
+        "C9": 0.41,
+        "C4": 0.16999999999999998
       }
     },
     "2024": {
@@ -5256,6 +5330,13 @@
             "hedging_value_add_gbp": 349.82209853455475
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C7": 0.37999999999999995,
+        "C6": 0.37999999999999995,
+        "C8": 0.41,
+        "C9": 0.35,
+        "C4": 0.22999999999999998
       }
     },
     "2025": {
@@ -5413,6 +5494,10 @@
             "hedging_value_add_gbp": 8.589301376043966
           }
         }
+      },
+      "churn_risk_by_account": {
+        "C8": 0.37999999999999995,
+        "C9": 0.37999999999999995
       }
     }
   },
@@ -5421,131 +5506,196 @@
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-01-01",
+      "revenue_gbp": 1623.5625208570084,
       "gross_gbp": 66.2535366328308,
       "capital_gbp": 21.38099665526236,
       "net_gbp": 44.872539977568444,
       "cost_to_serve_gbp": 362.40218649018504,
-      "net_margin_after_cost_to_serve_gbp": -296.1486498573697
+      "net_margin_after_cost_to_serve_gbp": -296.1486498573697,
+      "pricing_action": {
+        "flag": "NET_NEGATIVE",
+        "recommended_uplift_pct": 18.2
+      }
     },
     "C2": {
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-04-01",
+      "revenue_gbp": 3567.39600122305,
       "gross_gbp": 249.06452623888327,
       "capital_gbp": 43.62040444357678,
       "net_gbp": 205.4441217953065,
       "cost_to_serve_gbp": 401.2819953669154,
-      "net_margin_after_cost_to_serve_gbp": -152.21746912804312
+      "net_margin_after_cost_to_serve_gbp": -152.21746912804312,
+      "pricing_action": {
+        "flag": "NET_NEGATIVE",
+        "recommended_uplift_pct": 4.3
+      }
     },
     "C3": {
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-07-01",
+      "revenue_gbp": 1109.615587850778,
       "gross_gbp": 73.85525004830168,
       "capital_gbp": 11.45755784034673,
       "net_gbp": 62.39769220795496,
       "cost_to_serve_gbp": 242.14208344652292,
-      "net_margin_after_cost_to_serve_gbp": -168.2868333982109
+      "net_margin_after_cost_to_serve_gbp": -168.2868333982109,
+      "pricing_action": {
+        "flag": "NET_NEGATIVE",
+        "recommended_uplift_pct": 15.2
+      }
     },
     "C4": {
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-10-01",
+      "revenue_gbp": 7705.520370136416,
       "gross_gbp": 287.78332891607704,
       "capital_gbp": 63.462692923500995,
       "net_gbp": 224.32063599257603,
       "cost_to_serve_gbp": 594.0005329734678,
-      "net_margin_after_cost_to_serve_gbp": -306.21720405740797
+      "net_margin_after_cost_to_serve_gbp": -306.21720405740797,
+      "pricing_action": {
+        "flag": "NET_NEGATIVE",
+        "recommended_uplift_pct": 4.0
+      }
     },
     "C5": {
       "commodity": "electricity",
       "segment": "SME",
       "acquisition_date": "2016-01-01",
+      "revenue_gbp": 7886.829385690798,
       "gross_gbp": 300.7122643486428,
       "capital_gbp": 190.90175585055678,
       "net_gbp": 109.81050849808604,
       "cost_to_serve_gbp": 798.7176089253164,
-      "net_margin_after_cost_to_serve_gbp": -498.00534457675474
+      "net_margin_after_cost_to_serve_gbp": -498.00534457675474,
+      "pricing_action": {
+        "flag": "NET_NEGATIVE",
+        "recommended_uplift_pct": 6.3
+      }
     },
     "C6": {
       "commodity": "electricity",
       "segment": "SME",
       "acquisition_date": "2016-04-01",
+      "revenue_gbp": 19701.391983754984,
       "gross_gbp": 672.4214497532195,
       "capital_gbp": 255.35286894342272,
       "net_gbp": 417.0685808097968,
       "cost_to_serve_gbp": 1156.7878924401891,
-      "net_margin_after_cost_to_serve_gbp": -484.3664426870534
+      "net_margin_after_cost_to_serve_gbp": -484.3664426870534,
+      "pricing_action": {
+        "flag": "NET_NEGATIVE",
+        "recommended_uplift_pct": 2.5
+      }
     },
     "C7": {
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-01-01",
+      "revenue_gbp": 15638.337606385934,
       "gross_gbp": 614.8791655156623,
       "capital_gbp": 216.51889060482375,
       "net_gbp": 398.3602749108385,
       "cost_to_serve_gbp": 831.901455324219,
-      "net_margin_after_cost_to_serve_gbp": -217.02228980839865
+      "net_margin_after_cost_to_serve_gbp": -217.02228980839865,
+      "pricing_action": {
+        "flag": "NET_NEGATIVE",
+        "recommended_uplift_pct": 1.4
+      }
     },
     "C8": {
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-04-01",
+      "revenue_gbp": 13694.598807687664,
       "gross_gbp": 696.1360268756762,
       "capital_gbp": 213.41396671056606,
       "net_gbp": 482.7220601651101,
       "cost_to_serve_gbp": 779.3237683911825,
-      "net_margin_after_cost_to_serve_gbp": -83.18774151551405
+      "net_margin_after_cost_to_serve_gbp": -83.18774151551405,
+      "pricing_action": {
+        "flag": "NET_NEGATIVE",
+        "recommended_uplift_pct": 0.6
+      }
     },
     "C9": {
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-07-01",
+      "revenue_gbp": 10219.116843850175,
       "gross_gbp": 358.3788740503667,
       "capital_gbp": 62.54684051482967,
       "net_gbp": 295.832033535537,
       "cost_to_serve_gbp": 696.1018003471607,
-      "net_margin_after_cost_to_serve_gbp": -337.72292629693067
+      "net_margin_after_cost_to_serve_gbp": -337.72292629693067,
+      "pricing_action": {
+        "flag": "NET_NEGATIVE",
+        "recommended_uplift_pct": 3.3
+      }
     },
     "C1g": {
       "commodity": "gas",
       "segment": "resi",
       "acquisition_date": "2016-01-01",
+      "revenue_gbp": 1391.38511,
       "gross_gbp": 121.26535200000001,
       "capital_gbp": 9.54232891,
       "net_gbp": 111.72302309,
       "cost_to_serve_gbp": 34.702702199999884,
-      "net_margin_after_cost_to_serve_gbp": 86.5626497999988
+      "net_margin_after_cost_to_serve_gbp": 86.5626497999988,
+      "pricing_action": {
+        "flag": "OK",
+        "recommended_uplift_pct": null
+      }
     },
     "C2g": {
       "commodity": "gas",
       "segment": "resi",
       "acquisition_date": "2016-04-01",
+      "revenue_gbp": 1963.407635,
       "gross_gbp": 231.672663,
       "capital_gbp": 19.28004764,
       "net_gbp": 212.39261536,
       "cost_to_serve_gbp": 46.143152700000215,
-      "net_margin_after_cost_to_serve_gbp": 185.52951029999855
+      "net_margin_after_cost_to_serve_gbp": 185.52951029999855,
+      "pricing_action": {
+        "flag": "OK",
+        "recommended_uplift_pct": null
+      }
     },
     "C3g": {
       "commodity": "gas",
       "segment": "resi",
       "acquisition_date": "2016-07-01",
+      "revenue_gbp": 972.09136,
       "gross_gbp": 124.206636,
       "capital_gbp": 4.37681638,
       "net_gbp": 119.82981962,
       "cost_to_serve_gbp": 24.02516053333258,
-      "net_margin_after_cost_to_serve_gbp": 100.18147546666626
+      "net_margin_after_cost_to_serve_gbp": 100.18147546666626,
+      "pricing_action": {
+        "flag": "OK",
+        "recommended_uplift_pct": null
+      }
     },
     "C4g": {
       "commodity": "gas",
       "segment": "resi",
       "acquisition_date": "2016-10-01",
+      "revenue_gbp": 8395.129210000001,
       "gross_gbp": 377.345671,
       "capital_gbp": 34.83814175,
       "net_gbp": 342.50752925,
       "cost_to_serve_gbp": 177.06925086666774,
-      "net_margin_after_cost_to_serve_gbp": 200.2764201333378
+      "net_margin_after_cost_to_serve_gbp": 200.2764201333378,
+      "pricing_action": {
+        "flag": "OK",
+        "recommended_uplift_pct": null
+      }
     }
   },
   "bills_total": 1077,
@@ -6146,5 +6296,111 @@
     "cash_collected_gbp": 92064.37408208192,
     "bad_debt_gbp": 1804.0083403548815,
     "cash_net_margin_gbp": 1223.272819857889
+  },
+  "clv_snapshots": {
+    "2016": {
+      "C1": -74.07348766463387,
+      "C5": -177.3051522423033,
+      "C7": -18.76230632064873
+    },
+    "2017": {
+      "C1": -105.84620207350791,
+      "C5": -234.59167240304149,
+      "C7": -41.392822851507034,
+      "C2": 93.4851617694534,
+      "C6": -580.5768048899876,
+      "C8": -257.1710987791623,
+      "C3": -163.77002332898888,
+      "C9": -286.38666098450244,
+      "C4": 1.9698706621024362
+    },
+    "2018": {
+      "C1": -99.77214624971278,
+      "C5": -272.4674796793865,
+      "C7": -65.13036882453886,
+      "C2": 126.5062035995603,
+      "C6": -401.866779687581,
+      "C8": -104.4871959550109,
+      "C3": -129.59700898318175,
+      "C9": -198.62143357134423,
+      "C4": -20.233068709296344
+    },
+    "2019": {
+      "C1": -100.2306346763494,
+      "C5": -238.5047211823697,
+      "C7": -64.97760765439175,
+      "C2": 158.99867617699738,
+      "C6": -321.43029677351785,
+      "C8": -26.214183441948677,
+      "C3": -94.64807780370131,
+      "C9": -184.8712771471787,
+      "C4": -5.829230605677254
+    },
+    "2020": {
+      "C1": -92.00837740883104,
+      "C5": -218.30696923375675,
+      "C7": -54.09616042154897,
+      "C2": 121.1082809082739,
+      "C6": -258.9356899845668,
+      "C8": -22.724474411169926,
+      "C3": -70.42510839773026,
+      "C9": -171.25024637049796,
+      "C4": 11.596978549133446
+    },
+    "2021": {
+      "C1": -151.06885903632948,
+      "C5": -349.4964467737967,
+      "C7": -133.26655705081873,
+      "C2": 51.30316104969939,
+      "C6": -303.79853500490077,
+      "C8": -78.08426343369653,
+      "C3": -69.88689661103952,
+      "C9": -189.33017467392995,
+      "C4": -51.36018796384489
+    },
+    "2022": {
+      "C1": -134.58491295262496,
+      "C5": -321.2916396916804,
+      "C7": -134.80732129314035,
+      "C2": 20.763790681503032,
+      "C6": -319.17871885914906,
+      "C8": -111.6489963589189,
+      "C3": -65.15832162797092,
+      "C9": -176.48662101233512,
+      "C4": -74.29645385383077
+    },
+    "2023": {
+      "C1": -130.24703240428167,
+      "C5": -307.11427320821133,
+      "C7": -134.51624468041888,
+      "C2": 19.8536877876582,
+      "C6": -250.9926966483965,
+      "C8": -74.42039194323512,
+      "C3": -64.35292613288729,
+      "C9": -158.3603141669272,
+      "C4": -83.51706107681194
+    },
+    "2024": {
+      "C1": -116.23567823313279,
+      "C5": -299.07449763463796,
+      "C7": -93.53305887602565,
+      "C2": 19.48137296744895,
+      "C6": -222.2229665888011,
+      "C8": -32.59247317497398,
+      "C3": -60.4835678235714,
+      "C9": -140.96738600589254,
+      "C4": -47.108163344172816
+    },
+    "2025": {
+      "C1": -114.84755645766296,
+      "C5": -293.81772129807075,
+      "C7": -87.84598091666307,
+      "C2": 18.722953889244923,
+      "C6": -214.92969536716262,
+      "C8": -32.111548691853486,
+      "C3": -61.35047323713398,
+      "C9": -128.8276406430509,
+      "C4": -46.26945697474209
+    }
   }
 }

@@ -8,11 +8,26 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T21:08:19Z
+Last updated: 2026-06-16T21:13:34Z
 
-**Phase 7d in progress (started 2026-06-16 ~21:53 BST)**: Fresh full 2016-2025 run to
-populate CLV trajectory table, per-year churn risk, and activity-based pricing flags
-(code from REPORTING_BACKLOG #6/#8 is in place but Phase 7c ran on old code).
+**Phase 7d complete — full 2016-2025 run, feature-complete report (2026-06-16)**:
+Same deterministic figures as Phase 7c. CLV trajectory table, per-year churn risk,
+and activity-based pricing flags now live in the published report.
+- Churn events confirmed deterministic: C3 2020-06, C1+C5 2021-12, C2 2022-03, C6 2024-03, C4 2024-09
+- CLV trajectory: 10 years × 9 billing accounts. Only C2 is CLV-positive (£18.72 at 2025).
+- NET_NEGATIVE pricing flag: 9 of 13 customer legs (all electricity resi/SME/HH)
+- C1g, C2g, C3g, C4g (gas legs) are the only CLV-positive legs — electricity legs lose after CTS
+- Pricing Actions section now appears ONCE (refactor from repeating per-year)
+
+370 tests passing.
+
+**Report improvements committed with Phase 7d (2026-06-16)**:
+- `_lifetime_pricing_section()`: new top-level section for CTS breakdown + pricing flags
+  (was incorrectly repeated in every year's Pricing & Margin block)
+- `_customer_book_section()`: HH resi customers (C7/C8/C9) now correctly counted in
+  resi electricity total (previously excluded by hardcoded C1-C4 set)
+- 11 new unit tests covering `_append_pricing_actions_summary`, `_customer_book_section`,
+  `_lifetime_pricing_section` rendering and "appears once" invariant
 
 **Phase 7c complete — full 2016-2025 run with Phase 7b payment events (2026-06-16)**:
 Baseline figures confirmed deterministic (same as Phase 6b+7a):
@@ -38,7 +53,7 @@ Per-year Point-in-Time CLV trajectory snapshots. `_build_clv_snapshots()`
 recomputes CLV at each year-end using only data up to that date. New
 "CLV Trajectory" table section in published report. 3 new tests.
 
-359 tests passing.
+370 tests passing.
 
 **Phase 7b complete — Payment Lifecycle Ledger (2026-06-16)**:
 Two new event types in `saas/ledger.py`:

@@ -137,7 +137,52 @@ Accounts lost before end of window: C1, C2, C3, C4, C5, C6
 
 ## CLV Trajectory
 
-Not available in current run output (see REPORTING_BACKLOG.md)
+Point-in-Time Customer Lifetime Value per billing account at each year-end.
+CLV is computed from churn renewal history and net margins accumulated up to that date only (Point-in-Time Blindfold). '—' = no renewal points yet.
+
+| Year | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 |
+|------|------:|------:|------:|------:|------:|------:|------:|------:|------:|
+| 2016 | £-74.07 | — | — | — | £-177.31 | — | £-18.76 | — | — |
+| 2017 | £-105.85 | £93.49 | £-163.77 | £1.97 | £-234.59 | £-580.58 | £-41.39 | £-257.17 | £-286.39 |
+| 2018 | £-99.77 | £126.51 | £-129.60 | £-20.23 | £-272.47 | £-401.87 | £-65.13 | £-104.49 | £-198.62 |
+| 2019 | £-100.23 | £159.00 | £-94.65 | £-5.83 | £-238.50 | £-321.43 | £-64.98 | £-26.21 | £-184.87 |
+| 2020 | £-92.01 | £121.11 | £-70.43 | £11.60 | £-218.31 | £-258.94 | £-54.10 | £-22.72 | £-171.25 |
+| 2021 | £-151.07 | £51.30 | £-69.89 | £-51.36 | £-349.50 | £-303.80 | £-133.27 | £-78.08 | £-189.33 |
+| 2022 | £-134.58 | £20.76 | £-65.16 | £-74.30 | £-321.29 | £-319.18 | £-134.81 | £-111.65 | £-176.49 |
+| 2023 | £-130.25 | £19.85 | £-64.35 | £-83.52 | £-307.11 | £-250.99 | £-134.52 | £-74.42 | £-158.36 |
+| 2024 | £-116.24 | £19.48 | £-60.48 | £-47.11 | £-299.07 | £-222.22 | £-93.53 | £-32.59 | £-140.97 |
+| 2025 | £-114.85 | £18.72 | £-61.35 | £-46.27 | £-293.82 | £-214.93 | £-87.85 | £-32.11 | £-128.83 |
+
+## Cost to Serve & Pricing Actions
+
+Whole-run totals (cumulative across all settlement periods). Average: £472.66, range £24.03–£1,156.79.
+
+- C1: cost to serve £362.40, net margin after CTS £-296.15 — **NET_NEGATIVE** (tariff uplift needed: +18.2%)
+- C1g: cost to serve £34.70, net margin after CTS £86.56
+- C2: cost to serve £401.28, net margin after CTS £-152.22 — **NET_NEGATIVE** (tariff uplift needed: +4.3%)
+- C2g: cost to serve £46.14, net margin after CTS £185.53
+- C3: cost to serve £242.14, net margin after CTS £-168.29 — **NET_NEGATIVE** (tariff uplift needed: +15.2%)
+- C3g: cost to serve £24.03, net margin after CTS £100.18
+- C4: cost to serve £594.00, net margin after CTS £-306.22 — **NET_NEGATIVE** (tariff uplift needed: +4.0%)
+- C4g: cost to serve £177.07, net margin after CTS £200.28
+- C5: cost to serve £798.72, net margin after CTS £-498.01 — **NET_NEGATIVE** (tariff uplift needed: +6.3%)
+- C6: cost to serve £1,156.79, net margin after CTS £-484.37 — **NET_NEGATIVE** (tariff uplift needed: +2.5%)
+- C7: cost to serve £831.90, net margin after CTS £-217.02 — **NET_NEGATIVE** (tariff uplift needed: +1.4%)
+- C8: cost to serve £779.32, net margin after CTS £-83.19 — **NET_NEGATIVE** (tariff uplift needed: +0.6%)
+- C9: cost to serve £696.10, net margin after CTS £-337.72 — **NET_NEGATIVE** (tariff uplift needed: +3.3%)
+
+**Activity-Based Pricing Actions**
+
+The following 9 customer(s) are loss-making after cost-to-serve and require immediate tariff review:
+  - C1: net margin after CTS £-296.15 on revenue £1,623.56 — raise tariff by ≥18.2% to break even
+  - C2: net margin after CTS £-152.22 on revenue £3,567.40 — raise tariff by ≥4.3% to break even
+  - C3: net margin after CTS £-168.29 on revenue £1,109.62 — raise tariff by ≥15.2% to break even
+  - C4: net margin after CTS £-306.22 on revenue £7,705.52 — raise tariff by ≥4.0% to break even
+  - C5: net margin after CTS £-498.01 on revenue £7,886.83 — raise tariff by ≥6.3% to break even
+  - C6: net margin after CTS £-484.37 on revenue £19,701.39 — raise tariff by ≥2.5% to break even
+  - C7: net margin after CTS £-217.02 on revenue £15,638.34 — raise tariff by ≥1.4% to break even
+  - C8: net margin after CTS £-83.19 on revenue £13,694.60 — raise tariff by ≥0.6% to break even
+  - C9: net margin after CTS £-337.72 on revenue £10,219.12 — raise tariff by ≥3.3% to break even
 
 ## Transaction Log
 
@@ -219,7 +264,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - 2016-07-07: treasury £29,962.87, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
   - 2016-08-06: treasury £29,965.66, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
   - 2016-09-05: treasury £29,968.54, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-10-05: treasury £29,971.26, C1->0.95, C5->1.00, C7->1.00, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
+  - 2016-10-05: treasury £29,971.26, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
   - 2016-11-04: treasury £29,973.34, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
   - 2016-12-04: treasury £29,974.22, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
   - 2016-08-05: treasury £29,997.59, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
@@ -263,14 +308,14 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 13 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9)
-  - Resi electricity: 4, SME electricity: 2, gas (dual-fuel): 4
+  - Resi electricity: 7, SME electricity: 2, gas (dual-fuel): 4
 - New acquisitions this year: C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9
 - Losses (churn) during year: none
   - Renewals (retained): 3 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2016): £-90.05
+  - By billing account: C1 £-74.07, C5 £-177.31, C7 £-18.76
 - Bill shock events (>=20%): 23 -- C1 2016-04-30 (21%); C5 2016-04-30 (21%); C5 2016-05-31 (30%); C5 2016-06-30 (22%); C5 2016-10-31 (47%); C5 2016-11-30 (49%); C7 2016-04-30 (20%); C7 2016-05-31 (38%); C7 2016-06-30 (31%); C7 2016-10-31 (81%); C7 2016-11-30 (52%); C6 2016-05-31 (28%); C6 2016-06-30 (25%); C6 2016-10-31 (46%); C6 2016-11-30 (51%); C8 2016-05-31 (42%); C8 2016-06-30 (45%); C8 2016-09-30 (29%); C8 2016-10-31 (118%); C8 2016-11-30 (71%); C9 2016-09-30 (22%); C9 2016-10-31 (86%); C9 2016-11-30 (60%)
-- Churn risk (accounts renewing in 2016): no renewals this year
+- Churn risk (accounts renewing in 2016): 2 at risk (≥20% churn prob): C5 29%, C7 29%
 
 **Pricing & Margin**
 
@@ -287,20 +332,6 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 - C7 (electricity): tariff £62.25-£94.12/MWh, net margin £36.03
 - C8 (electricity): tariff £59.02/MWh, net margin £12.77
 - C9 (electricity): tariff £51.42/MWh, net margin £2.60
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 
@@ -387,14 +418,14 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 13 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9)
-  - Resi electricity: 4, SME electricity: 2, gas (dual-fuel): 4
+  - Resi electricity: 7, SME electricity: 2, gas (dual-fuel): 4
 - New acquisitions this year: none
 - Losses (churn) during year: none
   - Renewals (retained): 3 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2017): £-174.92
+  - By billing account: C1 £-105.85, C2 £93.49, C3 £-163.77, C4 £1.97, C5 £-234.59, C6 £-580.58, C7 £-41.39, C8 £-257.17, C9 £-286.39
 - Bill shock events (>=20%): 32 -- C1 2017-01-31 (49%); C1 2017-04-30 (21%); C5 2017-01-31 (73%); C5 2017-02-28 (23%); C5 2017-05-31 (22%); C5 2017-06-30 (23%); C5 2017-11-30 (62%); C7 2017-01-31 (82%); C7 2017-02-28 (28%); C7 2017-05-31 (31%); C7 2017-06-30 (31%); C7 2017-09-30 (28%); C7 2017-10-31 (20%); C7 2017-11-30 (76%); C6 2017-05-31 (24%); C6 2017-06-30 (21%); C6 2017-11-30 (55%); C8 2017-05-31 (42%); C8 2017-06-30 (38%); C8 2017-09-30 (52%); C8 2017-10-31 (22%); C8 2017-11-30 (89%); C8 2017-12-31 (23%); C3 2017-07-31 (39%); C3g 2017-07-31 (26%); C9 2017-05-31 (35%); C9 2017-06-30 (27%); C9 2017-07-31 (24%); C9 2017-09-30 (33%); C9 2017-10-31 (22%); C9 2017-11-30 (74%); C4g 2017-10-31 (38%)
-- Churn risk (accounts renewing in 2017): no renewals this year
+- Churn risk (accounts renewing in 2017): 6 at risk (≥20% churn prob): C1 20%, C5 32%, C6 35%, C7 35%, C8 35%, C9 29%
 
 **Pricing & Margin**
 
@@ -411,20 +442,6 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 - C7 (electricity): tariff £67.79-£94.12/MWh, net margin £53.99
 - C8 (electricity): tariff £59.02-£73.42/MWh, net margin £30.53
 - C9 (electricity): tariff £51.42-£69.10/MWh, net margin £24.91
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 
@@ -469,14 +486,14 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 13 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9)
-  - Resi electricity: 4, SME electricity: 2, gas (dual-fuel): 4
+  - Resi electricity: 7, SME electricity: 2, gas (dual-fuel): 4
 - New acquisitions this year: none
 - Losses (churn) during year: none
   - Renewals (retained): 3 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2018): £-129.52
+  - By billing account: C1 £-99.77, C2 £126.51, C3 £-129.60, C4 £-20.23, C5 £-272.47, C6 £-401.87, C7 £-65.13, C8 £-104.49, C9 £-198.62
 - Bill shock events (>=20%): 39 -- C1 2018-01-31 (27%); C1 2018-04-30 (20%); C1g 2018-01-31 (35%); C5 2018-01-31 (29%); C5 2018-04-30 (34%); C5 2018-05-31 (20%); C5 2018-06-30 (23%); C5 2018-10-31 (35%); C5 2018-11-30 (30%); C7 2018-01-31 (31%); C7 2018-04-30 (38%); C7 2018-05-31 (29%); C7 2018-06-30 (30%); C7 2018-09-30 (30%); C7 2018-10-31 (44%); C7 2018-11-30 (31%); C2 2018-04-30 (31%); C2g 2018-04-30 (26%); C6 2018-05-31 (23%); C6 2018-06-30 (24%); C6 2018-10-31 (33%); C6 2018-11-30 (23%); C8 2018-05-31 (41%); C8 2018-06-30 (44%); C8 2018-08-31 (27%); C8 2018-09-30 (60%); C8 2018-10-31 (56%); C8 2018-11-30 (30%); C3g 2018-07-31 (48%); C9 2018-04-30 (32%); C9 2018-05-31 (37%); C9 2018-06-30 (34%); C9 2018-07-31 (29%); C9 2018-08-31 (44%); C9 2018-09-30 (49%); C9 2018-10-31 (40%); C9 2018-12-31 (22%); C4 2018-10-31 (41%); C4g 2018-10-31 (55%)
-- Churn risk (accounts renewing in 2018): no renewals this year
+- Churn risk (accounts renewing in 2018): 6 at risk (≥20% churn prob): C3 23%, C5 32%, C6 32%, C7 38%, C8 35%, C9 38%
 
 **Pricing & Margin**
 
@@ -493,20 +510,6 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 - C7 (electricity): tariff £67.79-£77.97/MWh, net margin £30.32
 - C8 (electricity): tariff £73.42-£111.24/MWh, net margin £65.07
 - C9 (electricity): tariff £67.49-£69.10/MWh, net margin £34.09
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 
@@ -551,14 +554,14 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 13 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9)
-  - Resi electricity: 4, SME electricity: 2, gas (dual-fuel): 4
+  - Resi electricity: 7, SME electricity: 2, gas (dual-fuel): 4
 - New acquisitions this year: none
 - Losses (churn) during year: none
   - Renewals (retained): 3 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2019): £-97.52
+  - By billing account: C1 £-100.23, C2 £159.00, C3 £-94.65, C4 £-5.83, C5 £-238.50, C6 £-321.43, C7 £-64.98, C8 £-26.21, C9 £-184.87
 - Bill shock events (>=20%): 38 -- C1 2019-04-30 (24%); C5 2019-01-31 (38%); C5 2019-02-28 (22%); C5 2019-06-30 (28%); C5 2019-10-31 (48%); C5 2019-11-30 (39%); C7 2019-01-31 (43%); C7 2019-02-28 (25%); C7 2019-05-31 (23%); C7 2019-06-30 (34%); C7 2019-10-31 (67%); C7 2019-11-30 (45%); C2 2019-04-30 (42%); C6 2019-02-28 (21%); C6 2019-04-30 (45%); C6 2019-06-30 (26%); C6 2019-09-30 (22%); C6 2019-10-31 (45%); C6 2019-11-30 (29%); C8 2019-01-31 (24%); C8 2019-02-28 (26%); C8 2019-04-30 (49%); C8 2019-06-30 (40%); C8 2019-07-31 (38%); C8 2019-09-30 (67%); C8 2019-10-31 (87%); C8 2019-11-30 (40%); C3 2019-04-30 (22%); C3g 2019-07-31 (29%); C9 2019-02-28 (25%); C9 2019-04-30 (25%); C9 2019-06-30 (37%); C9 2019-07-31 (42%); C9 2019-09-30 (56%); C9 2019-10-31 (74%); C9 2019-11-30 (40%); C4 2019-10-31 (29%); C4g 2019-10-31 (56%)
-- Churn risk (accounts renewing in 2019): no renewals this year
+- Churn risk (accounts renewing in 2019): 5 at risk (≥20% churn prob): C5 35%, C6 32%, C7 35%, C8 32%, C9 32%
 
 **Pricing & Margin**
 
@@ -575,20 +578,6 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 - C7 (electricity): tariff £56.59-£77.97/MWh, net margin £51.62
 - C8 (electricity): tariff £77.43-£111.24/MWh, net margin £90.67
 - C9 (electricity): tariff £58.84-£67.49/MWh, net margin £34.36
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 
@@ -633,14 +622,14 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 13 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9)
-  - Resi electricity: 4, SME electricity: 2, gas (dual-fuel): 4
+  - Resi electricity: 7, SME electricity: 2, gas (dual-fuel): 4
 - New acquisitions this year: none
 - Losses (churn) during year: C3
   - Renewals (retained): 8 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2020): £-83.89
+  - By billing account: C1 £-92.01, C2 £121.11, C3 £-70.43, C4 £11.60, C5 £-218.31, C6 £-258.94, C7 £-54.10, C8 £-22.72, C9 £-171.25
 - Bill shock events (>=20%): 34 -- C1 2020-01-31 (27%); C1 2020-04-30 (23%); C1g 2020-01-31 (40%); C5 2020-01-31 (27%); C5 2020-04-30 (31%); C5 2020-10-31 (42%); C5 2020-11-30 (21%); C5 2020-12-31 (29%); C7 2020-01-31 (28%); C7 2020-04-30 (35%); C7 2020-06-30 (27%); C7 2020-10-31 (60%); C7 2020-11-30 (22%); C7 2020-12-31 (36%); C2 2020-04-30 (37%); C2g 2020-04-30 (47%); C6 2020-04-30 (46%); C6 2020-09-30 (23%); C6 2020-10-31 (37%); C6 2020-12-31 (27%); C8 2020-04-30 (53%); C8 2020-05-31 (25%); C8 2020-06-30 (35%); C8 2020-09-30 (57%); C8 2020-10-31 (69%); C8 2020-12-31 (42%); C3 2020-04-30 (21%); C9 2020-04-30 (29%); C9 2020-05-31 (25%); C9 2020-06-30 (38%); C9 2020-07-31 (23%); C9 2020-09-30 (47%); C9 2020-10-31 (52%); C9 2020-12-31 (35%)
-- Churn risk (accounts renewing in 2020): no renewals this year
+- Churn risk (accounts renewing in 2020): 7 at risk (≥20% churn prob): C1 23%, C4 20%, C5 32%, C6 38%, C7 35%, C8 38%, C9 41%
 
 **Pricing & Margin**
 
@@ -657,20 +646,6 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 - C7 (electricity): tariff £56.59-£72.32/MWh, net margin £48.97
 - C8 (electricity): tariff £57.53-£77.43/MWh, net margin £51.88
 - C9 (electricity): tariff £40.71-£58.84/MWh, net margin £20.92
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 
@@ -717,14 +692,14 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 11 (C1, C1g, C2, C2g, C4, C4g, C5, C6, C7, C8, C9)
-  - Resi electricity: 3, SME electricity: 2, gas (dual-fuel): 3
+  - Resi electricity: 6, SME electricity: 2, gas (dual-fuel): 3
 - New acquisitions this year: none
 - Losses (churn) during year: C1, C5
   - Renewals (retained): 6 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2021): £-141.67
+  - By billing account: C1 £-151.07, C2 £51.30, C3 £-69.89, C4 £-51.36, C5 £-349.50, C6 £-303.80, C7 £-133.27, C8 £-78.08, C9 £-189.33
 - Bill shock events (>=20%): 36 -- C1 2021-01-31 (26%); C1 2021-04-30 (22%); C5 2021-01-31 (35%); C5 2021-05-31 (24%); C5 2021-06-30 (34%); C5 2021-10-31 (33%); C5 2021-11-30 (55%); C7 2021-01-31 (42%); C7 2021-05-31 (29%); C7 2021-06-30 (47%); C7 2021-10-31 (56%); C7 2021-11-30 (60%); C2 2021-04-30 (73%); C2g 2021-04-30 (75%); C6 2021-04-30 (87%); C6 2021-06-30 (37%); C6 2021-10-31 (29%); C6 2021-11-30 (53%); C8 2021-02-28 (21%); C8 2021-04-30 (96%); C8 2021-05-31 (28%); C8 2021-06-30 (63%); C8 2021-09-30 (24%); C8 2021-10-31 (78%); C8 2021-11-30 (81%); C9 2021-02-28 (23%); C9 2021-05-31 (24%); C9 2021-06-30 (51%); C9 2021-07-31 (95%); C9 2021-08-31 (23%); C9 2021-09-30 (21%); C9 2021-10-31 (68%); C9 2021-11-30 (48%); C9 2021-12-31 (23%); C4 2021-10-31 (339%); C4g 2021-10-31 (352%)
-- Churn risk (accounts renewing in 2021): no renewals this year
+- Churn risk (accounts renewing in 2021): 6 at risk (≥20% churn prob): C2 20%, C5 35%, C6 38%, C7 38%, C8 41%, C9 35%
 
 **Pricing & Margin**
 
@@ -739,20 +714,6 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 - C7 (electricity): tariff £72.32-£287.43/MWh, net margin £-86.46 -- **net-negative**
 - C8 (electricity): tariff £57.53-£120.87/MWh, net margin £-11.98 -- **net-negative**
 - C9 (electricity): tariff £40.71-£117.05/MWh, net margin £-0.73 -- **net-negative**
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 
@@ -813,14 +774,14 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 8 (C2, C2g, C4, C4g, C6, C7, C8, C9)
-  - Resi electricity: 2, SME electricity: 1, gas (dual-fuel): 2
+  - Resi electricity: 5, SME electricity: 1, gas (dual-fuel): 2
 - New acquisitions this year: none
 - Losses (churn) during year: C2
   - Renewals (retained): 5 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2022): £-146.30
+  - By billing account: C1 £-134.58, C2 £20.76, C3 £-65.16, C4 £-74.30, C5 £-321.29, C6 £-319.18, C7 £-134.81, C8 £-111.65, C9 £-176.49
 - Bill shock events (>=20%): 31 -- C7 2022-01-31 (329%); C7 2022-02-28 (26%); C7 2022-04-30 (21%); C7 2022-05-31 (35%); C7 2022-06-30 (26%); C7 2022-09-30 (31%); C7 2022-11-30 (58%); C7 2022-12-31 (53%); C6 2022-04-30 (121%); C6 2022-05-31 (24%); C6 2022-09-30 (27%); C6 2022-11-30 (45%); C6 2022-12-31 (34%); C8 2022-02-28 (22%); C8 2022-04-30 (114%); C8 2022-05-31 (40%); C8 2022-06-30 (34%); C8 2022-07-31 (21%); C8 2022-09-30 (83%); C8 2022-10-31 (20%); C8 2022-11-30 (67%); C8 2022-12-31 (58%); C9 2022-05-31 (31%); C9 2022-06-30 (29%); C9 2022-07-31 (44%); C9 2022-09-30 (49%); C9 2022-10-31 (33%); C9 2022-11-30 (41%); C9 2022-12-31 (54%); C4 2022-10-31 (64%); C4g 2022-10-31 (202%)
-- Churn risk (accounts renewing in 2022): no renewals this year
+- Churn risk (accounts renewing in 2022): 6 at risk (≥20% churn prob): C2 20%, C4 23%, C6 35%, C7 38%, C8 38%, C9 38%
 
 **Pricing & Margin**
 
@@ -832,20 +793,6 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 - C7 (electricity): tariff £287.43-£329.46/MWh, net margin £68.92
 - C8 (electricity): tariff £120.87-£353.40/MWh, net margin £30.48
 - C9 (electricity): tariff £117.05-£220.84/MWh, net margin £46.47
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 
@@ -883,14 +830,14 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 6 (C4, C4g, C6, C7, C8, C9)
-  - Resi electricity: 1, SME electricity: 1, gas (dual-fuel): 1
+  - Resi electricity: 4, SME electricity: 1, gas (dual-fuel): 1
 - New acquisitions this year: none
 - Losses (churn) during year: none
   - Renewals (retained): 5 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2023): £-131.52
+  - By billing account: C1 £-130.25, C2 £19.85, C3 £-64.35, C4 £-83.52, C5 £-307.11, C6 £-250.99, C7 £-134.52, C8 £-74.42, C9 £-158.36
 - Bill shock events (>=20%): 24 -- C7 2023-05-31 (32%); C7 2023-06-30 (35%); C7 2023-10-31 (52%); C7 2023-11-30 (65%); C6 2023-04-30 (53%); C6 2023-05-31 (24%); C6 2023-06-30 (24%); C6 2023-10-31 (41%); C6 2023-11-30 (46%); C8 2023-04-30 (54%); C8 2023-05-31 (43%); C8 2023-06-30 (44%); C8 2023-10-31 (101%); C8 2023-11-30 (69%); C9 2023-02-28 (20%); C9 2023-04-30 (25%); C9 2023-05-31 (34%); C9 2023-06-30 (46%); C9 2023-07-31 (32%); C9 2023-09-30 (23%); C9 2023-10-31 (76%); C9 2023-11-30 (53%); C4 2023-10-31 (70%); C4g 2023-10-31 (81%)
-- Churn risk (accounts renewing in 2023): no renewals this year
+- Churn risk (accounts renewing in 2023): 4 at risk (≥20% churn prob): C6 26%, C7 38%, C8 35%, C9 41%
 
 **Pricing & Margin**
 
@@ -900,20 +847,6 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 - C7 (electricity): tariff £131.28-£329.46/MWh, net margin £72.31
 - C8 (electricity): tariff £204.90-£353.40/MWh, net margin £112.53
 - C9 (electricity): tariff £128.17-£220.84/MWh, net margin £65.33
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 
@@ -951,14 +884,14 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 6 (C4, C4g, C6, C7, C8, C9)
-  - Resi electricity: 1, SME electricity: 1, gas (dual-fuel): 1
+  - Resi electricity: 4, SME electricity: 1, gas (dual-fuel): 1
 - New acquisitions this year: none
 - Losses (churn) during year: C6, C4
   - Renewals (retained): 3 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2024): £-110.30
+  - By billing account: C1 £-116.24, C2 £19.48, C3 £-60.48, C4 £-47.11, C5 £-299.07, C6 £-222.22, C7 £-93.53, C8 £-32.59, C9 £-140.97
 - Bill shock events (>=20%): 20 -- C7 2024-01-31 (51%); C7 2024-02-29 (26%); C7 2024-04-30 (21%); C7 2024-05-31 (36%); C7 2024-09-30 (33%); C7 2024-10-31 (35%); C7 2024-11-30 (46%); C8 2024-02-29 (23%); C8 2024-04-30 (60%); C8 2024-05-31 (51%); C8 2024-07-31 (29%); C8 2024-09-30 (78%); C8 2024-10-31 (38%); C8 2024-11-30 (62%); C9 2024-04-30 (22%); C9 2024-05-31 (50%); C9 2024-07-31 (40%); C9 2024-09-30 (56%); C9 2024-10-31 (24%); C9 2024-11-30 (48%)
-- Churn risk (accounts renewing in 2024): no renewals this year
+- Churn risk (accounts renewing in 2024): 5 at risk (≥20% churn prob): C4 23%, C6 38%, C7 38%, C8 41%, C9 35%
 
 **Pricing & Margin**
 
@@ -968,20 +901,6 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 - C7 (electricity): tariff £128.48-£131.28/MWh, net margin £95.38
 - C8 (electricity): tariff £102.60-£204.90/MWh, net margin £91.03
 - C9 (electricity): tariff £99.91-£128.17/MWh, net margin £57.00
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 
@@ -1015,34 +934,20 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 **Customer Book**
 
 - Active accounts: 3 (C7, C8, C9)
-  - Resi electricity: 0, SME electricity: 0, gas (dual-fuel): 0
+  - Resi electricity: 3, SME electricity: 0, gas (dual-fuel): 0
 - New acquisitions this year: none
 - Losses (churn) during year: none
   - Renewals (retained): 1 accounts
-- Average CLV across book (whole-run projection, per billing account): £-185.97
-- Highest CLV: C2 (£35.01); Lowest CLV: C5 (£-496.82)
+- Average CLV (Point-in-Time, year-end 2025): £-106.81
+  - By billing account: C1 £-114.85, C2 £18.72, C3 £-61.35, C4 £-46.27, C5 £-293.82, C6 £-214.93, C7 £-87.85, C8 £-32.11, C9 £-128.83
 - Bill shock events (>=20%): 13 -- C7 2025-01-31 (23%); C7 2025-04-30 (37%); C7 2025-05-31 (22%); C7 2025-06-07 (80%); C8 2025-01-31 (39%); C8 2025-02-28 (24%); C8 2025-04-30 (25%); C8 2025-05-31 (38%); C8 2025-06-07 (73%); C9 2025-01-31 (22%); C9 2025-04-30 (26%); C9 2025-05-31 (34%); C9 2025-06-07 (71%)
-- Churn risk (accounts renewing in 2025): no renewals this year
+- Churn risk (accounts renewing in 2025): 2 at risk (≥20% churn prob): C8 38%, C9 38%
 
 **Pricing & Margin**
 
 - C7 (electricity): tariff £128.48/MWh, net margin £27.30
 - C8 (electricity): tariff £102.60-£222.51/MWh, net margin £9.73
 - C9 (electricity): tariff £99.91/MWh, net margin £10.86
-- Cost to serve per customer (whole-run total, average £472.66, range £24.03-£1,156.79):
-  - C1: cost to serve £362.40, net margin after cost to serve £-296.15
-  - C1g: cost to serve £34.70, net margin after cost to serve £86.56
-  - C2: cost to serve £401.28, net margin after cost to serve £-152.22
-  - C2g: cost to serve £46.14, net margin after cost to serve £185.53
-  - C3: cost to serve £242.14, net margin after cost to serve £-168.29
-  - C3g: cost to serve £24.03, net margin after cost to serve £100.18
-  - C4: cost to serve £594.00, net margin after cost to serve £-306.22
-  - C4g: cost to serve £177.07, net margin after cost to serve £200.28
-  - C5: cost to serve £798.72, net margin after cost to serve £-498.01
-  - C6: cost to serve £1,156.79, net margin after cost to serve £-484.37
-  - C7: cost to serve £831.90, net margin after cost to serve £-217.02
-  - C8: cost to serve £779.32, net margin after cost to serve £-83.19
-  - C9: cost to serve £696.10, net margin after cost to serve £-337.72
 
 **Portfolio Health**
 

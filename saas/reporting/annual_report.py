@@ -589,7 +589,9 @@ def _customer_book_section(year: str, yd: dict, data: dict) -> str:
     return "\n".join(lines)
 
 
-def _pricing_margin_section(yd: dict, data: dict) -> str:
+def _pricing_margin_section(yd: dict) -> str:
+    """Per-year net margin per customer (tariff range + net). Lifetime cost-to-serve
+    and pricing flags appear once in `_lifetime_pricing_section`, not here."""
     lines = ["**Pricing & Margin**", ""]
     for cid, pc in sorted(yd["per_customer"].items()):
         if pc["tariff_min_gbp_per_mwh"] == pc["tariff_max_gbp_per_mwh"]:
@@ -601,38 +603,50 @@ def _pricing_margin_section(yd: dict, data: dict) -> str:
             f"{_fmt_gbp(pc['net_gbp'])}"
             + (" -- **net-negative**" if pc["net_gbp"] < 0 else "")
         )
+    return "\n".join(lines)
+
+
+def _lifetime_pricing_section(data: dict) -> str:
+    """Whole-window cost-to-serve breakdown and activity-based pricing flags.
+    Appears once at the top level (not repeated per year)."""
     cts_values = [
         v["cost_to_serve_gbp"]
         for v in data["per_customer_lifetime"].values()
         if v["cost_to_serve_gbp"] is not None
     ]
-    if cts_values:
-        lines.append(
-            f"- Cost to serve per customer (whole-run total, average "
-            f"{_fmt_gbp(_avg(cts_values))}, range "
-            f"{_fmt_gbp(min(cts_values))}-{_fmt_gbp(max(cts_values))}):"
+    if not cts_values:
+        return (
+            "## Cost to Serve & Pricing Actions\n\n"
+            f"- Cost to serve per customer: {NOT_AVAILABLE}\n"
+            f"- Net margin per customer after cost to serve: {NOT_AVAILABLE}\n"
         )
-        for cid, pcl in sorted(data["per_customer_lifetime"].items()):
-            if pcl["cost_to_serve_gbp"] is None:
-                continue
-            action = pcl.get("pricing_action", {})
-            flag = action.get("flag", "UNKNOWN")
-            uplift = action.get("recommended_uplift_pct")
-            flag_str = ""
-            if flag == "NET_NEGATIVE":
-                flag_str = f" -- **NET_NEGATIVE** (tariff uplift needed: +{uplift:.1f}%)"
-            elif flag == "MARGIN_SQUEEZE":
-                flag_str = " -- MARGIN_SQUEEZE (below 2% benchmark)"
-            lines.append(
-                f"  - {cid}: cost to serve {_fmt_gbp(pcl['cost_to_serve_gbp'])}, "
-                f"net margin after cost to serve "
-                f"{_fmt_gbp(pcl['net_margin_after_cost_to_serve_gbp'])}"
-                + flag_str
-            )
-        _append_pricing_actions_summary(lines, data)
-    else:
-        lines.append(f"- Cost to serve per customer (average and range): {NOT_AVAILABLE}")
-        lines.append(f"- Net margin per customer after cost to serve: {NOT_AVAILABLE}")
+    lines = [
+        "## Cost to Serve & Pricing Actions",
+        "",
+        f"Whole-run totals (cumulative across all settlement periods). "
+        f"Average: {_fmt_gbp(_avg(cts_values))}, range "
+        f"{_fmt_gbp(min(cts_values))}–{_fmt_gbp(max(cts_values))}.",
+        "",
+    ]
+    for cid, pcl in sorted(data["per_customer_lifetime"].items()):
+        if pcl["cost_to_serve_gbp"] is None:
+            continue
+        action = pcl.get("pricing_action", {})
+        flag = action.get("flag", "UNKNOWN")
+        uplift = action.get("recommended_uplift_pct")
+        flag_str = ""
+        if flag == "NET_NEGATIVE":
+            flag_str = f" — **NET_NEGATIVE** (tariff uplift needed: +{uplift:.1f}%)"
+        elif flag == "MARGIN_SQUEEZE":
+            flag_str = " — MARGIN_SQUEEZE (below 2% benchmark)"
+        lines.append(
+            f"- {cid}: cost to serve {_fmt_gbp(pcl['cost_to_serve_gbp'])}, "
+            f"net margin after CTS "
+            f"{_fmt_gbp(pcl['net_margin_after_cost_to_serve_gbp'])}"
+            + flag_str
+        )
+    _append_pricing_actions_summary(lines, data)
+    lines.append("")
     return "\n".join(lines)
 
 
@@ -1132,6 +1146,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_segment_margin_trend_section(data))
     sections.append(_customer_lifecycle_events_section(data))
     sections.append(_clv_trajectory_section(data))
+    sections.append(_lifetime_pricing_section(data))
     sections.append(_ledger_summary_section(data))
 
     for year in sorted(data["years"]):
@@ -1141,7 +1156,7 @@ def generate_annual_report(data: dict) -> str:
         sections.append("")
         sections.append(_customer_book_section(year, yd, data))
         sections.append("")
-        sections.append(_pricing_margin_section(yd, data))
+        sections.append(_pricing_margin_section(yd))
         sections.append("")
         sections.append(_portfolio_health_section(year, yd, data))
         sections.append("")

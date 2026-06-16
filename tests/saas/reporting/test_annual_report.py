@@ -6,6 +6,7 @@ from saas.reporting.annual_report import (
     _clv_trajectory_section,
     _customer_book_section,
     _ledger_summary_section,
+    _lifetime_pricing_section,
     _mandate_comparison_section,
     _pricing_action,
     _segment_margin_trend_section,
@@ -609,6 +610,37 @@ def test_customer_book_section_churn_risk_above_threshold_shown():
     assert "C1" in section
     assert "35%" in section
     assert "C2" not in section.split("at risk")[1]
+
+
+def test_lifetime_pricing_section_not_available_without_cts():
+    data = {"per_customer_lifetime": {"C1": {"cost_to_serve_gbp": None}}}
+    section = _lifetime_pricing_section(data)
+    assert "## Cost to Serve & Pricing Actions" in section
+    assert NOT_AVAILABLE in section
+
+
+def test_lifetime_pricing_section_renders_once_with_flags():
+    data = {
+        "per_customer_lifetime": {
+            "C1": {
+                "cost_to_serve_gbp": 100.0,
+                "net_margin_after_cost_to_serve_gbp": -20.0,
+                "revenue_gbp": 500.0,
+                "pricing_action": {"flag": "NET_NEGATIVE", "recommended_uplift_pct": 4.0},
+            },
+        }
+    }
+    section = _lifetime_pricing_section(data)
+    assert "## Cost to Serve & Pricing Actions" in section
+    assert "NET_NEGATIVE" in section
+    assert "4.0%" in section
+    assert "Activity-Based Pricing Actions" in section
+
+
+def test_generate_annual_report_pricing_section_appears_once():
+    report = generate_annual_report(extract_report_data(_run_output()))
+    assert report.count("## Cost to Serve & Pricing Actions") == 1
+    assert "**Pricing & Margin**" in report
 
 
 def test_customer_book_section_hh_resi_counted_separately():
