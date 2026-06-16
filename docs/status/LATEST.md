@@ -8,14 +8,28 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T08:58:06Z
+Last updated: 2026-06-16T09:19:20Z
 
-**Phase 6b full validation run in progress (PID 101490, 2026-06-16)**:
+**Phase 7a complete — The Ledger (Gap #2 MVP, 2026-06-16)**:
+Hollow gap #2 (no ledger) is now closed at MVP level. P&L is derivable as
+the sum of transactions, not just a formula. New `saas/ledger.py`:
+- `build_ledger(all_records, bills)` — derives chronological transaction log
+  from existing simulation output (pure, no simulation changes)
+- Three event types: `settlement_event` (wholesale cost, cash out per HH
+  period), `capital_charge_event` (VaR charge, cash out per HH period),
+  `billing_event` (revenue collected per customer-month, cash in)
+- `derive_pnl(events)` — pure aggregation; verification section in report
+  confirms ledger net matches simulation direct figure
+- `docs/reports/ledger_latest.json` written alongside `run_output_latest.json`
+  at end of every fresh full run (Phase 7a 4-hour gate passed, no redirect)
+
+332 tests passing, lint clean.
+
+**Phase 6b full validation run in progress (PID 101492, 2026-06-16)**:
 Re-run started after discovering that the previous full run (PID 96308) had
 147/148 risk committee calls fail (Ollama was starved by a competing
-llama-server on the GPU). Phase 6b churn data from that run is structurally
-valid (churn decisions are committee-independent), but financial figures
-require a clean committee run. Ollama confirmed responsive. ETA ~1-2h.
+llama-server on the GPU). New run confirmed with active committee calls
+(llama-server at ~90% CPU). ETA ~40-50 min total from 09:57 UTC.
 
 **Phase 6b complete — event-driven customer lifecycle MVP (2026-06-16)**:
 Gap #1 from the "five hollow gaps" (static customer roster since 2016) is
@@ -43,8 +57,8 @@ Churn pattern from degraded run (committee-independent, structurally valid):
 - 2024-03: C6, 2024-09: C4 (late attrition)
 - C7/C8/C9 (HH customers) — all survived full window
 
-309 tests passing, lint clean. Commits: db56e35 (Phase 6b), 2d315b4
-(admin section, backlog cleanup), 6a64abb (NTFY noise fix).
+332 tests passing, lint clean. Key commits: db56e35 (Phase 6b), ded6d11
+(Phase 7a), fd44c70 (NTFY cleanup), 4175b6f (run-complete NTFY digest).
 
 **Three simulation speed improvements committed (2026-06-16)**:
 1. `think:False` + `num_predict:512` on risk committee Ollama calls —
@@ -94,7 +108,8 @@ Phase 5c mandate-hedged baseline: net margin £23,678.55, treasury
 **Five hollow gaps status (as of 2026-06-16)**:
 1. ~~No customer events firing~~ — **CLOSED by Phase 6b**: accounts can
    churn at renewal; portfolio can shrink. Replacement onboarding deferred.
-2. No ledger — bills computed, money not posted to accounts.
+2. ~~No ledger~~ — **CLOSED by Phase 7a**: transaction log built, P&L
+   derivable from events, ledger_latest.json persisted on each full run.
 3. SIM/company barrier structural not functional.
 4. HH data path — **CLOSED by Phase 6a**: C7-C9 on real HH consumption.
 5. Reporting — **CLOSED by Phase 5a/5b**: ANNUAL_REPORT.md, full pipeline.
