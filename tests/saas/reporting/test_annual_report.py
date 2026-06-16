@@ -1,7 +1,10 @@
+from pathlib import Path
+
 from saas.reporting.annual_report import (
     NOT_AVAILABLE,
     _mandate_comparison_section,
     _segment_margin_trend_section,
+    _send_run_complete_ntfy,
     extract_report_data,
     generate_annual_report,
 )
@@ -283,3 +286,58 @@ def test_mandate_comparison_section_reports_not_available_revenue_pct_for_old_sn
 
     assert "Net margin as % of revenue" in section
     assert NOT_AVAILABLE in section
+
+
+def _ntfy_data():
+    return {
+        "total_net_gbp": 3121.74,
+        "total_revenue_gbp": 93868.0,
+        "starting_treasury_gbp": 29846.0,
+        "final_treasury_gbp": 32967.0,
+        "committee_wake_ups_total": 85,
+        "churned_billing_accounts": ["C1", "C5"],
+        "customer_events": [
+            {"customer_id": "C1", "event_date": "2021-12-30", "event_type": "churned"},
+            {"customer_id": "C5", "event_date": "2021-12-30", "event_type": "churned"},
+            {"customer_id": "C2", "event_date": "2020-03-31", "event_type": "renewed"},
+        ],
+    }
+
+
+def test_send_run_complete_ntfy_includes_key_figures(monkeypatch):
+    import background.ntfy_utils as ntfy_utils
+
+    sent = []
+    monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+
+    _send_run_complete_ntfy(_ntfy_data(), Path("docs/reports/ANNUAL_REPORT.md"))
+
+    assert len(sent) == 1
+    msg = sent[0]
+    assert "3,122" in msg or "3,121" in msg  # net margin rounded
+    assert "3.3%" in msg  # 3121/93868 = 3.32%
+    assert "29,846" in msg  # treasury start
+    assert "32,967" in msg  # treasury end
+    assert "85" in msg  # committee wake-ups
+    assert "C1 (2021-12)" in msg
+    assert "C5 (2021-12)" in msg
+    assert "Churns: 2" in msg
+
+
+def test_send_run_complete_ntfy_no_churns(monkeypatch):
+    import background.ntfy_utils as ntfy_utils
+
+    sent = []
+    monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+
+    data = {**_ntfy_data(), "churned_billing_accounts": [], "customer_events": []}
+    _send_run_complete_ntfy(data, Path("ANNUAL_REPORT.md"))
+
+    assert "none — all accounts retained" in sent[0]
+
+
+def test_send_run_complete_ntfy_silently_skips_when_ntfy_unavailable(monkeypatch):
+    import sys
+    monkeypatch.setitem(sys.modules, "background.ntfy_utils", None)
+    # Should not raise, just return silently
+    _send_run_complete_ntfy(_ntfy_data(), Path("ANNUAL_REPORT.md"))
