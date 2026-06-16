@@ -37176,3 +37176,5150 @@ The current VaR is 2.55 times the stressed VaR threshold, indicating excessive r
   - C7: 0.95 → 1.05
   - C8: 0.85 → 0.95
   - C9: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2016-01-01 period 1 (logged 2026-06-15T18:43:20Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-01-01 period 1
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29846.19 (12-month peak: £29846.19, drawdown: 0.0%)
+Portfolio gross margin YTD: £0.00 | Net margin YTD: £0.00
+Capital costs YTD: £0.00
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times higher than the allowed 2.5× VaR_stressed threshold, indicating significant exposure. With σ_recent (1.627) far exceeding σ_stressed (0.50), the existing hedge_fraction (0.85) is insufficient to mitigate tail risks. A maximum adjustment of +0.30 is required to bring the portfolio closer to stress-test resilience.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-01-31 period 2 (logged 2026-06-15T18:44:09Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-01-31 period 2
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29847.61 (12-month peak: £29847.61, drawdown: 0.0%)
+Portfolio gross margin YTD: £1.97 | Net margin YTD: £1.43
+Capital costs YTD: £0.54
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£66.93) is 3.25x the stressed VaR threshold, indicating severe exposure. Customer C1's hedge fraction (85%) is insufficient given the high volatility (σ_recent = 1.627) and exact collateral match to VaR. Maximum adjustment of +0.30 is required to ensure adequate protection against potential losses under stress scenarios.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-03-01 period 2 (logged 2026-06-15T18:44:52Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-03-01 period 2
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29849.16 (12-month peak: £29849.16, drawdown: 0.0%)
+Portfolio gross margin YTD: £4.08 | Net margin YTD: £2.97
+Capital costs YTD: £1.12
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times higher than the stressed VaR threshold, indicating significant exposure risk. Despite a high current hedge_fraction of 0.85, the volatility (σ_recent = 1.627) far exceeds the stressed regime volatility (σ_stressed = 0.50), necessitating a maximum adjustment to reduce tail risk. Increasing hedge_fraction by the maximum allowed (0.30) will better align the portfolio with stress-test parameters.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-03-31 period 4 (logged 2026-06-15T18:45:31Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-03-31 period 4
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29850.51 (12-month peak: £29850.51, drawdown: 0.0%)
+Portfolio gross margin YTD: £5.98 | Net margin YTD: £4.32
+Capital costs YTD: £1.66
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times the VaR_stressed threshold, indicating severe overexposure. With C1's hedge_fraction already at 0.85, the maximum allowable adjustment of +0.30 is needed to reduce risk exposure and bring VaR_current closer to acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-04-30 period 4 (logged 2026-06-15T18:46:28Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-04-30 period 4
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29851.64 (12-month peak: £29851.64, drawdown: 0.0%)
+Portfolio gross margin YTD: £7.67 | Net margin YTD: £5.46
+Capital costs YTD: £2.21
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.25x the stressed threshold, indicating excessive risk exposure. With recent volatility (σ_recent = 1.627) far exceeding the stressed regime (σ_stressed = 0.50), the existing 85% hedge is inadequate. To aggressively reduce exposure and align with risk limits, the maximum allowable adjustment of +0.30 is applied.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-05-30 period 4 (logged 2026-06-15T18:47:04Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-05-30 period 4
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29852.89 (12-month peak: £29852.89, drawdown: 0.0%)
+Portfolio gross margin YTD: £9.46 | Net margin YTD: £6.70
+Capital costs YTD: £2.75
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.25 times the stressed VaR threshold, indicating excessive risk exposure. Increasing the hedge_fraction to its maximum allowable adjustment will reduce price volatility risk for customer C1, aligning portfolio risk with regulatory limits.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-06-29 period 4 (logged 2026-06-15T18:47:23Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-06-29 period 4
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29853.74 (12-month peak: £29853.74, drawdown: 0.0%)
+Portfolio gross margin YTD: £10.86 | Net margin YTD: £7.55
+Capital costs YTD: £3.31
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times higher than the stressed threshold, indicating significant exposure. Increasing hedge_fraction for C1 by the maximum allowed (0.30) will reduce portfolio volatility and align risk with stressed regime parameters. The treasury balance is stable, so additional hedging is feasible without liquidity constraints.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-07-29 period 4 (logged 2026-06-15T18:48:10Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-07-29 period 4
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29854.76 (12-month peak: £29854.76, drawdown: 0.0%)
+Portfolio gross margin YTD: £12.42 | Net margin YTD: £8.57
+Capital costs YTD: £3.85
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.25 times the stressed VaR threshold, indicating significant exposure. With σ_recent (1.627) far exceeding σ_stressed (0.50), the existing hedge_fraction (0.85) is insufficient to mitigate volatility. Increasing the hedge_fraction closer to 1.0 will reduce tail risk while respecting the 0.30 maximum adjustment limit.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2016-08-28 period 4 (logged 2026-06-15T18:49:04Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-08-28 period 4
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29855.86 (12-month peak: £29855.86, drawdown: 0.0%)
+Portfolio gross margin YTD: £14.06 | Net margin YTD: £9.67
+Capital costs YTD: £4.39
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25x the stressed VaR threshold, indicating excessive risk exposure. With σ_recent (1.63) far exceeding σ_stressed (0.50), the current 85% hedge is insufficient. Increasing hedge_fraction by the maximum allowed +0.30 will better align the portfolio with stressed volatility conditions.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-09-27 period 4 (logged 2026-06-15T18:49:37Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-09-27 period 4
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29856.78 (12-month peak: £29856.78, drawdown: 0.0%)
+Portfolio gross margin YTD: £15.53 | Net margin YTD: £10.59
+Capital costs YTD: £4.95
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times the stressed VaR threshold, indicating excessive risk exposure. Increasing C1's hedge_fraction by the maximum allowed adjustment (+0.30) will sharply reduce portfolio volatility given the high σ_recent (1.627) and forward price instability. This addresses the breach while respecting capital constraints.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-10-27 period 4 (logged 2026-06-15T18:50:20Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-10-27 period 4
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29857.55 (12-month peak: £29857.55, drawdown: 0.0%)
+Portfolio gross margin YTD: £16.85 | Net margin YTD: £11.36
+Capital costs YTD: £5.49
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25x the stressed VaR threshold, indicating severe exposure. With treasury balance stable and no drawdown, increasing C1's hedge_fraction is feasible. A +0.30 adjustment (max allowed) will sharply reduce risk while maintaining margin coverage.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-11-26 period 4 (logged 2026-06-15T18:51:14Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-11-26 period 4
+Trigger: VaR_current £66.93 exceeds VaR_stressed £20.56 × 2.5 (ratio 3.25)
+Treasury balance: £29857.13 (12-month peak: £29857.55, drawdown: 0.0%)
+Portfolio gross margin YTD: £16.99 | Net margin YTD: £10.94
+Capital costs YTD: £6.04
+VaR_current: £66.93 | VaR_stressed: £20.56 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.25 times the stressed threshold, indicating severe risk exposure. Increasing hedge_fraction to its maximum allowable adjustment reduces portfolio vulnerability to price volatility and aligns with the need for stronger risk mitigation.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-01-18 period 24 (logged 2026-06-15T18:52:53Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-01-18 period 24
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29891.13 (12-month peak: £29891.13, drawdown: 0.0%)
+Portfolio gross margin YTD: £56.58 | Net margin YTD: £44.94
+Capital costs YTD: £11.64
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25x the stressed VaR threshold, indicating excessive risk exposure. Both customers have hedge_fraction at 0.85, but this is insufficient to control the portfolio's volatility. Increasing hedge_fraction by the minimum allowed (+0.10) will help reduce un-hedged exposure and bring VaR closer to acceptable levels.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-02-17 period 24 (logged 2026-06-15T18:53:14Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-02-17 period 24
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29897.62 (12-month peak: £29897.62, drawdown: 0.0%)
+Portfolio gross margin YTD: £68.08 | Net margin YTD: £51.43
+Capital costs YTD: £16.65
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25x the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for both customers will reduce portfolio volatility. Minimum required adjustment of +0.10 per customer is applied to bring risk metrics back toward acceptable levels.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-03-18 period 24 (logged 2026-06-15T18:54:00Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-03-18 period 24
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29904.53 (12-month peak: £29904.53, drawdown: 0.0%)
+Portfolio gross margin YTD: £79.95 | Net margin YTD: £58.34
+Capital costs YTD: £21.61
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.25 times the stressed threshold, indicating excessive risk exposure. With σ_recent (1.627) much higher than σ_stressed (0.50), current hedge_fraction (0.85) is insufficient. Increasing hedge_fraction to 1.00 for both customers will fully offset risk while respecting the +0.15 maximum adjustment (since 0.85 + 0.30 would exceed 1.00).
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+  - C5: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2016-05-17 period 26 (logged 2026-06-15T18:55:41Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-05-17 period 26
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29914.70 (12-month peak: £29914.70, drawdown: 0.0%)
+Portfolio gross margin YTD: £99.92 | Net margin YTD: £68.51
+Capital costs YTD: £31.41
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times the VaR_stressed, far exceeding the 2.5 threshold. This indicates significant overexposure to price volatility (σ_recent=1.627 vs σ_stressed=0.50). Increasing hedge_fraction for both customers to maximum allowed +0.30 will better align their risk exposure with the stressed regime parameters.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-06-16 period 26 (logged 2026-06-15T18:56:32Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-06-16 period 26
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29916.45 (12-month peak: £29916.45, drawdown: 0.0%)
+Portfolio gross margin YTD: £106.57 | Net margin YTD: £70.26
+Capital costs YTD: £36.31
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times the stressed VaR threshold, indicating excessive unhedged risk. Both customers have hedge_fraction at 0.85, but higher volatility (σ_recent=1.627) than the stressed regime (σ_stressed=0.50) necessitates stronger hedging. Increasing hedge_fraction by the maximum allowable +0.30 per customer will reduce exposure to volatility and bring VaR closer to acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-07-16 period 26 (logged 2026-06-15T18:57:03Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-07-16 period 26
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29917.26 (12-month peak: £29917.26, drawdown: 0.0%)
+Portfolio gross margin YTD: £112.28 | Net margin YTD: £71.07
+Capital costs YTD: £41.21
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25x the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for both customers will reduce portfolio volatility and align with the regime's σ_stressed parameter. Minimum adjustments are applied to avoid over-hedging while addressing the breach.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-08-15 period 26 (logged 2026-06-15T18:57:17Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-08-15 period 26
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29917.87 (12-month peak: £29917.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £117.70 | Net margin YTD: £71.68
+Capital costs YTD: £46.03
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.25x the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for both customers will reduce portfolio volatility and bring VaR back within acceptable limits. The adjustment of +0.10 per customer is minimal but sufficient to address the breach given the high VaR ratio.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-09-14 period 26 (logged 2026-06-15T18:58:13Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-09-14 period 26
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29917.35 (12-month peak: £29917.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £122.08 | Net margin YTD: £71.16
+Capital costs YTD: £50.92
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.25 times the stressed VaR threshold, indicating significant exposure. Increasing hedge_fraction for both customers will add more protection against price volatility. The adjustment of +0.30 per customer is justified by the severe VaR breach and the need for stronger hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-10-14 period 26 (logged 2026-06-15T18:58:36Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-10-14 period 26
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29917.69 (12-month peak: £29917.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £127.32 | Net margin YTD: £71.50
+Capital costs YTD: £55.83
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25x the stressed VaR threshold, indicating excessive risk exposure. Both customers have hedge_fraction at 0.85, leaving 15% of exposure unhedged. Increasing hedge_fraction to 1.00 (max allowed) fully covers remaining risk while respecting the +0.30 adjustment limit.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+  - C5: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2016-11-13 period 26 (logged 2026-06-15T18:59:09Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-11-13 period 26
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29915.08 (12-month peak: £29917.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £129.60 | Net margin YTD: £68.89
+Capital costs YTD: £60.71
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times the stressed VaR, indicating excessive risk exposure. Increasing hedge_fraction for both customers will reduce portfolio volatility and align risk with regulatory thresholds. Maximum allowed adjustments are applied to ensure rapid mitigation.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-12-13 period 26 (logged 2026-06-15T18:59:41Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-12-13 period 26
+Trigger: VaR_current £664.48 exceeds VaR_stressed £204.14 × 2.5 (ratio 3.25)
+Treasury balance: £29914.56 (12-month peak: £29917.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £134.06 | Net margin YTD: £68.37
+Capital costs YTD: £65.69
+VaR_current: £664.48 | VaR_stressed: £204.14 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25x the stressed VaR threshold, indicating significant overexposure. Increasing hedge_fraction for both customers will reduce portfolio volatility. Maximum allowable adjustment is applied to address the severe breach.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-01-13 period 27 (logged 2026-06-15T19:00:22Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-01-13 period 27
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29919.74 (12-month peak: £29919.74, drawdown: 0.0%)
+Portfolio gross margin YTD: £143.17 | Net margin YTD: £73.55
+Capital costs YTD: £69.62
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.25 times the stressed VaR threshold, indicating significant risk exposure. Increasing hedge_fraction for all three customers to 1.00 (maximum possible) will fully hedge their positions and reduce portfolio volatility, despite the per-customer adjustment limit of +0.30 (since 0.85 + 0.15 = 1.00 is within the allowed range).
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+  - C5: 0.85 → 1.00
+  - C7: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2016-02-12 period 27 (logged 2026-06-15T19:00:47Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-02-12 period 27
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29925.69 (12-month peak: £29925.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £151.66 | Net margin YTD: £79.50
+Capital costs YTD: £72.16
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 3.25x, indicating excessive risk exposure. Since all customers have identical hedge_fraction (0.85) and the minimum adjustment is +0.10, we apply equal increases to reduce portfolio volatility uniformly. The treasury balance allows for higher hedging without liquidity constraints.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-03-13 period 27 (logged 2026-06-15T19:01:32Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-03-13 period 27
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29932.15 (12-month peak: £29932.15, drawdown: 0.0%)
+Portfolio gross margin YTD: £160.69 | Net margin YTD: £85.96
+Capital costs YTD: £74.72
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times the stressed VaR threshold, indicating severe overexposure. With current hedge fractions at 0.85 for all customers, further increases are needed to reduce risk. Maximum allowed adjustment of +0.30 per customer will bring hedge fractions to 1.15, ensuring compliance with constraints while addressing the overexposure.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-04-12 period 29 (logged 2026-06-15T19:02:04Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-04-12 period 29
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29938.76 (12-month peak: £29938.76, drawdown: 0.0%)
+Portfolio gross margin YTD: £169.79 | Net margin YTD: £92.57
+Capital costs YTD: £77.22
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times the stressed VaR threshold, indicating significant exposure. Increasing hedge_fraction for all three customers to 1.00 (maximum allowed) will fully hedge their positions and reduce tail risk, given the high volatility (σ_recent = 1.627) and pre-2023 stress regime.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+  - C5: 0.85 → 1.00
+  - C7: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2016-05-12 period 29 (logged 2026-06-15T19:02:41Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-05-12 period 29
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29942.57 (12-month peak: £29942.57, drawdown: 0.0%)
+Portfolio gross margin YTD: £176.13 | Net margin YTD: £96.39
+Capital costs YTD: £79.74
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times higher than the stressed VaR threshold, indicating severe exposure. Since all customers have a hedge_fraction of 0.85 (already high), the maximum allowable adjustment of +0.30 per customer is applied to aggressively reduce risk. This brings their hedge_fraction to 1.15, ensuring compliance with the threshold despite the over-hedge.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-06-11 period 29 (logged 2026-06-15T19:03:25Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-06-11 period 29
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29945.09 (12-month peak: £29945.09, drawdown: 0.0%)
+Portfolio gross margin YTD: £181.14 | Net margin YTD: £98.90
+Capital costs YTD: £82.24
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times higher than the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for all three customers by the maximum allowed adjustment (0.15) will raise their hedges to 1.00, fully offsetting price risk and reducing VaR to acceptable levels.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+  - C5: 0.85 → 1.00
+  - C7: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2016-07-11 period 29 (logged 2026-06-15T19:04:12Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-07-11 period 29
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29945.94 (12-month peak: £29945.94, drawdown: 0.0%)
+Portfolio gross margin YTD: £184.52 | Net margin YTD: £99.75
+Capital costs YTD: £84.76
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.25 times the stressed VaR threshold, indicating significant overexposure. Increasing hedge fractions will reduce portfolio volatility and align with the stress regime's lower σ_stressed. The maximum allowed adjustment is applied to each customer to rapidly mitigate risk.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-08-10 period 29 (logged 2026-06-15T19:04:57Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-08-10 period 29
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29947.02 (12-month peak: £29947.02, drawdown: 0.0%)
+Portfolio gross margin YTD: £188.06 | Net margin YTD: £100.83
+Capital costs YTD: £87.23
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for all three customers by the maximum allowable +0.30 will reduce portfolio volatility and bring VaR closer to acceptable levels, given the high σ_recent relative to σ_stressed.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-09-09 period 29 (logged 2026-06-15T19:05:41Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-09-09 period 29
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29947.70 (12-month peak: £29947.70, drawdown: 0.0%)
+Portfolio gross margin YTD: £191.23 | Net margin YTD: £101.51
+Capital costs YTD: £89.72
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25 times the stressed VaR threshold, indicating significant exposure. Increasing hedge_fraction for all three customers to 1.00 (maximum possible) will fully hedge their positions and reduce tail risk, as the treasury balance is stable and margins are positive.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+  - C5: 0.85 → 1.00
+  - C7: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2016-10-09 period 29 (logged 2026-06-15T19:06:13Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-10-09 period 29
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29948.89 (12-month peak: £29948.89, drawdown: 0.0%)
+Portfolio gross margin YTD: £194.95 | Net margin YTD: £102.70
+Capital costs YTD: £92.25
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by a significant margin (ratio 3.25), indicating excessive unhedged risk exposure. Increasing hedge_fraction for all three customers will reduce portfolio volatility and align risk exposure with the stressed regime's lower σ_stressed (0.50). Minimum adjustment of +0.10 per customer is applied to immediately address the breach without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-12-08 period 29 (logged 2026-06-15T19:07:36Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-12-08 period 29
+Trigger: VaR_current £970.47 exceeds VaR_stressed £298.15 × 2.5 (ratio 3.25)
+Treasury balance: £29950.59 (12-month peak: £29950.59, drawdown: 0.0%)
+Portfolio gross margin YTD: £201.68 | Net margin YTD: £104.40
+Capital costs YTD: £97.28
+VaR_current: £970.47 | VaR_stressed: £298.15 | Ratio: 3.25
+Per-customer hedge_fraction: C1=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.627 | Forward price: £59.52/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.25x the stressed VaR threshold, indicating excessive risk exposure. Current hedge fractions (0.85) are insufficient to mitigate this risk given the high volatility (σ_recent = 1.627). Increasing hedge_fraction by the maximum allowable +0.30 per customer will strengthen position protection against price shocks.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-04-08 period 29 (logged 2026-06-15T19:08:35Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-04-08 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29954.66 (12-month peak: £29954.66, drawdown: 0.0%)
+Portfolio gross margin YTD: £207.78 | Net margin YTD: £108.47
+Capital costs YTD: £99.31
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.19 times the stressed VaR threshold, indicating excessive risk exposure. Since hedge_fraction is already at 0.85 for all three customers, increasing it by the maximum allowed adjustment (+0.30) will significantly reduce portfolio volatility and align risk with the stressed regime's lower σ_stressed of 0.50.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-05-08 period 29 (logged 2026-06-15T19:09:32Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-05-08 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29957.42 (12-month peak: £29957.42, drawdown: 0.0%)
+Portfolio gross margin YTD: £211.03 | Net margin YTD: £111.24
+Capital costs YTD: £99.79
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.19 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for all three customers by the maximum allowable amount (+0.30) will most aggressively reduce portfolio volatility and bring VaR closer to acceptable levels given the stressed scenario parameters.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-06-07 period 29 (logged 2026-06-15T19:10:27Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-06-07 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29960.37 (12-month peak: £29960.37, drawdown: 0.0%)
+Portfolio gross margin YTD: £214.44 | Net margin YTD: £114.18
+Capital costs YTD: £100.27
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.19 times higher than the allowed threshold, indicating significant exposure. Increasing hedge_fraction for all three customers to 1.00 (maximum possible) will fully offset risk while adhering to the +0.15 adjustment (within the +0.30 maximum limit). This addresses the extreme VaR breach without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+  - C5: 0.85 → 1.00
+  - C7: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2016-07-07 period 29 (logged 2026-06-15T19:11:26Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-07-07 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29962.87 (12-month peak: £29962.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £217.43 | Net margin YTD: £116.68
+Capital costs YTD: £100.75
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.19 times higher than the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility by locking in more price protection. Minimum adjustment of +0.10 per customer is required to address the breach.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-08-06 period 29 (logged 2026-06-15T19:12:05Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-08-06 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29965.66 (12-month peak: £29965.66, drawdown: 0.0%)
+Portfolio gross margin YTD: £220.69 | Net margin YTD: £119.47
+Capital costs YTD: £101.22
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.19 times higher than the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility by better aligning hedges with current market stress levels (σ_recent=1.594 vs. σ_stressed=0.50). Minimum required adjustment of +0.10 per customer is applied to bring hedge coverage closer to 100%.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-09-05 period 29 (logged 2026-06-15T19:12:52Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-09-05 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29968.54 (12-month peak: £29968.54, drawdown: 0.0%)
+Portfolio gross margin YTD: £224.05 | Net margin YTD: £122.35
+Capital costs YTD: £101.70
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.19 times higher than the stressed VaR threshold, indicating significant exposure. Since the portfolio's volatility (σ_recent = 1.594) far exceeds the stressed regime (σ_stressed = 0.50), increasing hedge fractions for all three customers is necessary to reduce risk. The maximum allowed adjustment (+0.30) is applied to each to address the severe breach.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-10-05 period 29 (logged 2026-06-15T19:13:52Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-10-05 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29971.26 (12-month peak: £29971.26, drawdown: 0.0%)
+Portfolio gross margin YTD: £227.25 | Net margin YTD: £125.07
+Capital costs YTD: £102.18
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 3.19 times higher than the stressed VaR threshold, indicating significant exposure. Increasing hedge_fraction for all three customers will reduce un-hedged risk. The minimum adjustment of +0.10 per customer is applied to immediately mitigate the breach while staying within the maximum +0.30 limit.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-12-04 period 29 (logged 2026-06-15T19:15:39Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-12-04 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29974.22 (12-month peak: £29974.22, drawdown: 0.0%)
+Portfolio gross margin YTD: £231.17 | Net margin YTD: £128.03
+Capital costs YTD: £103.14
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.19 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 to 1.00 (max allowed) will fully hedge these customers and reduce portfolio volatility. This adjustment aligns with the constraint of never decreasing hedge_fraction.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+  - C5: 0.85 → 1.00
+  - C7: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2017-01-03 period 29 (logged 2026-06-15T19:16:22Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-01-03 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29976.71 (12-month peak: £29976.71, drawdown: 0.0%)
+Portfolio gross margin YTD: £0.26 | Net margin YTD: £0.22
+Capital costs YTD: £0.04
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.19 times the stressed threshold, indicating significant exposure. Increasing hedge_fraction for C1, C5, and C7 by the maximum allowable amount (0.30) will sharply reduce portfolio risk while respecting constraints.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2017-03-04 period 29 (logged 2026-06-15T19:17:41Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-03-04 period 29
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29980.65 (12-month peak: £29980.65, drawdown: 0.0%)
+Portfolio gross margin YTD: £5.20 | Net margin YTD: £4.17
+Capital costs YTD: £1.03
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.19x the stressed VaR threshold, indicating excessive exposure to price volatility. Increasing hedge_fraction for all three customers will reduce portfolio risk by locking in more prices, aligning with the pre-2023 regime's lower stress volatility assumptions. Minimum adjustments are applied to meet the threshold without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-08-05 period 1 (logged 2026-06-15T19:18:27Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-08-05 period 1
+Trigger: VaR_current £1028.87 exceeds VaR_stressed £322.47 × 2.5 (ratio 3.19)
+Treasury balance: £29997.59 (12-month peak: £29997.59, drawdown: 0.0%)
+Portfolio gross margin YTD: £15.34 | Net margin YTD: £14.33
+Capital costs YTD: £1.02
+VaR_current: £1028.87 | VaR_stressed: £322.47 | Ratio: 3.19
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.594 | Forward price: £0.00/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 3.19 times higher than the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge fractions for C1, C5, and C7 by the minimum allowed adjustment (0.10) will reduce portfolio volatility and bring VaR closer to acceptable levels, while respecting the constraint that hedge_fraction cannot exceed 1.00.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-04-26 period 2 (logged 2026-06-15T19:19:15Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-04-26 period 2
+Trigger: VaR_current £1779.68 exceeds VaR_stressed £635.16 × 2.5 (ratio 2.80)
+Treasury balance: £30023.91 (12-month peak: £30023.91, drawdown: 0.0%)
+Portfolio gross margin YTD: £7.89 | Net margin YTD: £2.67
+Capital costs YTD: £5.22
+VaR_current: £1779.68 | VaR_stressed: £635.16 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.395 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR ratio of 2.80 exceeds the acceptable threshold of 2.5, indicating excessive unhedged risk exposure. Increasing hedge_fraction for C1, C5, and C7 by the maximum allowed adjustment (+0.30) will most effectively reduce portfolio volatility and bring VaR_current closer to the stressed VaR benchmark, given the pre-2023 regime's lower σ_stressed.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-05-26 period 2 (logged 2026-06-15T19:19:49Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-05-26 period 2
+Trigger: VaR_current £1779.68 exceeds VaR_stressed £635.16 × 2.5 (ratio 2.80)
+Treasury balance: £30026.69 (12-month peak: £30026.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £16.76 | Net margin YTD: £5.45
+Capital costs YTD: £11.31
+VaR_current: £1779.68 | VaR_stressed: £635.16 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.395 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.80x, indicating insufficient hedging. Increasing hedge_fraction for C1, C5, and C7 by the minimum required +0.10 will reduce exposure to volatile price movements while respecting the no-decrease constraint. The high σ_recent (1.395) compared to σ_stressed (0.50) suggests market stress requires stronger hedges.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-08-24 period 2 (logged 2026-06-15T19:22:44Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-08-24 period 2
+Trigger: VaR_current £1779.68 exceeds VaR_stressed £635.16 × 2.5 (ratio 2.80)
+Treasury balance: £30024.78 (12-month peak: £30026.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £33.22 | Net margin YTD: £3.54
+Capital costs YTD: £29.68
+VaR_current: £1779.68 | VaR_stressed: £635.16 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.395 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.8 times the stressed threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility and lower VaR, bringing it within acceptable limits. The minimum adjustment of +0.10 per customer is applied to ensure compliance without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-09-23 period 2 (logged 2026-06-15T19:23:44Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-09-23 period 2
+Trigger: VaR_current £1779.68 exceeds VaR_stressed £635.16 × 2.5 (ratio 2.80)
+Treasury balance: £30022.88 (12-month peak: £30026.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £37.52 | Net margin YTD: £1.64
+Capital costs YTD: £35.88
+VaR_current: £1779.68 | VaR_stressed: £635.16 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.395 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.8 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility by better aligning hedges with their energy price risks. Minimum adjustment of +0.10 per customer is applied to meet the threshold without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-10-23 period 2 (logged 2026-06-15T19:24:40Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-10-23 period 2
+Trigger: VaR_current £1779.68 exceeds VaR_stressed £635.16 × 2.5 (ratio 2.80)
+Treasury balance: £30022.21 (12-month peak: £30026.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £42.95 | Net margin YTD: £0.96
+Capital costs YTD: £41.99
+VaR_current: £1779.68 | VaR_stressed: £635.16 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.395 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 2.8 times higher than the stressed VaR threshold, indicating insufficient hedging. Increasing hedge_fraction for C1, C5, and C7 by the maximum allowable +0.30 will reduce exposure to price volatility and bring VaR closer to acceptable levels.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-12-22 period 2 (logged 2026-06-15T19:26:31Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-12-22 period 2
+Trigger: VaR_current £1779.68 exceeds VaR_stressed £635.16 × 2.5 (ratio 2.80)
+Treasury balance: £30015.77 (12-month peak: £30026.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £48.82 | Net margin YTD: £-5.48
+Capital costs YTD: £54.30
+VaR_current: £1779.68 | VaR_stressed: £635.16 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.395 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.8 times the stressed threshold, indicating significant overexposure. Increasing hedge_fraction for C1, C5, and C7 by the maximum allowable amount (+0.30) will reduce portfolio volatility and align risk exposure with the stressed regime's lower σ_stressed of 0.50.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2017-01-21 period 2 (logged 2026-06-15T19:27:07Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-01-21 period 2
+Trigger: VaR_current £1779.68 exceeds VaR_stressed £635.16 × 2.5 (ratio 2.80)
+Treasury balance: £30015.61 (12-month peak: £30026.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £3.77 | Net margin YTD: £-0.27
+Capital costs YTD: £4.05
+VaR_current: £1779.68 | VaR_stressed: £635.16 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.395 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.8x, indicating significant exposure. With σ_recent (1.395) far above σ_stressed (0.50), current hedge_fraction (0.85) is insufficient to manage volatility. Increasing hedges for C1, C5, and C7 will reduce tail risk despite their existing high hedging levels.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2017-02-20 period 2 (logged 2026-06-15T19:27:59Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-02-20 period 2
+Trigger: VaR_current £1779.68 exceeds VaR_stressed £635.16 × 2.5 (ratio 2.80)
+Treasury balance: £30014.18 (12-month peak: £30026.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £8.81 | Net margin YTD: £-1.70
+Capital costs YTD: £10.51
+VaR_current: £1779.68 | VaR_stressed: £635.16 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.395 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.80x, indicating excessive risk exposure. Customers C1, C5, and C7 have hedge fractions at 0.85, but given the high volatility (σ_recent = 1.395) and negative net margin, further hedging is needed. Increasing hedge_fraction by the minimum required +0.10 per customer will reduce portfolio risk while respecting the maximum adjustment limit.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-03-22 period 2 (logged 2026-06-15T19:28:26Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-03-22 period 2
+Trigger: VaR_current £1779.68 exceeds VaR_stressed £635.16 × 2.5 (ratio 2.80)
+Treasury balance: £30016.97 (12-month peak: £30026.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £17.85 | Net margin YTD: £1.08
+Capital costs YTD: £16.77
+VaR_current: £1779.68 | VaR_stressed: £635.16 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo
+Rolling 12m SSP: σ_recent = 1.395 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.8x, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility by better aligning hedges with current market conditions (σ_recent=1.395 vs σ_stressed=0.50). Minimum adjustment of +0.10 per customer is justified to bring VaR ratio closer to acceptable levels without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-07-20 period 4 (logged 2026-06-15T19:31:53Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-07-20 period 4
+Trigger: VaR_current £1977.06 exceeds VaR_stressed £717.36 × 2.5 (ratio 2.76)
+Treasury balance: £30026.40 (12-month peak: £30026.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £14.93 | Net margin YTD: £8.98
+Capital costs YTD: £5.95
+VaR_current: £1977.06 | VaR_stressed: £717.36 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.372 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the 2.5× stressed VaR threshold by 2.76×, indicating excessive risk exposure. While treasury balance is positive, the high volatility (σ_recent=1.372) compared to σ_stressed=0.50 necessitates stronger hedging. Increasing hedge_fraction for C1, C5, C7 by 0.10 each reduces un-hedged risk while respecting the minimum adjustment requirement.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-08-19 period 4 (logged 2026-06-15T19:32:23Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-08-19 period 4
+Trigger: VaR_current £1977.06 exceeds VaR_stressed £717.36 × 2.5 (ratio 2.76)
+Treasury balance: £30026.87 (12-month peak: £30026.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £16.98 | Net margin YTD: £9.44
+Capital costs YTD: £7.54
+VaR_current: £1977.06 | VaR_stressed: £717.36 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.372 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.76x the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility by locking in more price protection. Minimum required adjustment of +0.10 per customer is applied to ensure VaR stays within acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-09-18 period 4 (logged 2026-06-15T19:33:21Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-09-18 period 4
+Trigger: VaR_current £1977.06 exceeds VaR_stressed £717.36 × 2.5 (ratio 2.76)
+Treasury balance: £30026.81 (12-month peak: £30026.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £18.54 | Net margin YTD: £9.38
+Capital costs YTD: £9.16
+VaR_current: £1977.06 | VaR_stressed: £717.36 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.372 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.76 times the stressed VaR, exceeding the 2.5x threshold. Increasing hedge_fraction for C1, C5, and C7 by the minimum required amount will reduce exposure to price volatility. The high VaR ratio indicates insufficient hedging despite existing high hedge fractions, necessitating further protection.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-10-18 period 4 (logged 2026-06-15T19:33:49Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-10-18 period 4
+Trigger: VaR_current £1977.06 exceeds VaR_stressed £717.36 × 2.5 (ratio 2.76)
+Treasury balance: £30027.83 (12-month peak: £30027.83, drawdown: 0.0%)
+Portfolio gross margin YTD: £21.18 | Net margin YTD: £10.41
+Capital costs YTD: £10.78
+VaR_current: £1977.06 | VaR_stressed: £717.36 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.372 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.76x the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility by locking in more price protection. Minimum +0.10 adjustment per customer is required to bring risk metrics back within acceptable limits given the high σ_recent (1.372) compared to σ_stressed (0.50).
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-01-16 period 4 (logged 2026-06-15T19:36:19Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-01-16 period 4
+Trigger: VaR_current £1977.06 exceeds VaR_stressed £717.36 × 2.5 (ratio 2.76)
+Treasury balance: £30031.28 (12-month peak: £30031.28, drawdown: 0.0%)
+Portfolio gross margin YTD: £1.89 | Net margin YTD: £1.09
+Capital costs YTD: £0.80
+VaR_current: £1977.06 | VaR_stressed: £717.36 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.372 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.76x, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 by the minimum required adjustment (+0.10) will reduce portfolio volatility and align risk exposure with the stressed scenario regime.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-03-17 period 4 (logged 2026-06-15T19:37:54Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-03-17 period 4
+Trigger: VaR_current £1977.06 exceeds VaR_stressed £717.36 × 2.5 (ratio 2.76)
+Treasury balance: £30036.96 (12-month peak: £30036.96, drawdown: 0.0%)
+Portfolio gross margin YTD: £10.92 | Net margin YTD: £6.77
+Capital costs YTD: £4.14
+VaR_current: £1977.06 | VaR_stressed: £717.36 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.372 | Forward price: £56.32/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is significantly above the stressed VaR threshold, indicating increased risk exposure. To mitigate this, we increase the hedge fraction for the specified customers by the minimum allowed adjustment of 0.10 each, reducing potential losses without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-07-16 period 6 (logged 2026-06-15T19:38:19Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-07-16 period 6
+Trigger: VaR_current £2018.13 exceeds VaR_stressed £736.64 × 2.5 (ratio 2.74)
+Treasury balance: £30039.02 (12-month peak: £30039.02, drawdown: 0.0%)
+Portfolio gross margin YTD: £0.74 | Net margin YTD: £0.57
+Capital costs YTD: £0.17
+VaR_current: £2018.13 | VaR_stressed: £736.64 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.363 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.74x, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility. Minimum adjustment of +0.10 per customer is required to bring risk metrics back within acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-08-15 period 6 (logged 2026-06-15T19:38:50Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-08-15 period 6
+Trigger: VaR_current £2018.13 exceeds VaR_stressed £736.64 × 2.5 (ratio 2.74)
+Treasury balance: £30040.22 (12-month peak: £30040.22, drawdown: 0.0%)
+Portfolio gross margin YTD: £2.27 | Net margin YTD: £1.77
+Capital costs YTD: £0.50
+VaR_current: £2018.13 | VaR_stressed: £736.64 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.363 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.74x, indicating heightened risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility. Minimum adjustment of +0.10 per customer is applied to ensure compliance while avoiding over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-10-14 period 6 (logged 2026-06-15T19:40:15Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-10-14 period 6
+Trigger: VaR_current £2018.13 exceeds VaR_stressed £736.64 × 2.5 (ratio 2.74)
+Treasury balance: £30041.98 (12-month peak: £30041.98, drawdown: 0.0%)
+Portfolio gross margin YTD: £4.70 | Net margin YTD: £3.53
+Capital costs YTD: £1.17
+VaR_current: £2018.13 | VaR_stressed: £736.64 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.363 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.74x, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility. Minimum adjustment of +0.10 per customer is applied to ensure compliance while maintaining operational flexibility.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-11-13 period 6 (logged 2026-06-15T19:41:01Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-11-13 period 6
+Trigger: VaR_current £2018.13 exceeds VaR_stressed £736.64 × 2.5 (ratio 2.74)
+Treasury balance: £30041.97 (12-month peak: £30041.98, drawdown: 0.0%)
+Portfolio gross margin YTD: £5.03 | Net margin YTD: £3.53
+Capital costs YTD: £1.51
+VaR_current: £2018.13 | VaR_stressed: £736.64 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.363 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.74x, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility. Minimum required adjustment of +0.10 per customer is applied to ensure compliance.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-12-13 period 6 (logged 2026-06-15T19:41:37Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-12-13 period 6
+Trigger: VaR_current £2018.13 exceeds VaR_stressed £736.64 × 2.5 (ratio 2.74)
+Treasury balance: £30041.94 (12-month peak: £30041.98, drawdown: 0.0%)
+Portfolio gross margin YTD: £5.34 | Net margin YTD: £3.49
+Capital costs YTD: £1.85
+VaR_current: £2018.13 | VaR_stressed: £736.64 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.363 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.74 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 by 0.10 each will reduce portfolio volatility, as these customers have significant collateral (C5 has £597.56) and their current 0.85 hedge level may not fully offset the 1.363σ recent volatility against the 0.50σ stressed regime.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-01-12 period 6 (logged 2026-06-15T19:42:03Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-01-12 period 6
+Trigger: VaR_current £2018.13 exceeds VaR_stressed £736.64 × 2.5 (ratio 2.74)
+Treasury balance: £30042.81 (12-month peak: £30042.81, drawdown: 0.0%)
+Portfolio gross margin YTD: £0.34 | Net margin YTD: £0.22
+Capital costs YTD: £0.12
+VaR_current: £2018.13 | VaR_stressed: £736.64 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.363 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.74x, indicating heightened risk exposure. With σ_recent (1.363) significantly above σ_stressed (0.50), increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility. Minimum adjustment of +0.10 per customer is required to bring risk metrics back within acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-02-11 period 6 (logged 2026-06-15T19:43:03Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-02-11 period 6
+Trigger: VaR_current £2018.13 exceeds VaR_stressed £736.64 × 2.5 (ratio 2.74)
+Treasury balance: £30042.97 (12-month peak: £30042.97, drawdown: 0.0%)
+Portfolio gross margin YTD: £0.84 | Net margin YTD: £0.37
+Capital costs YTD: £0.47
+VaR_current: £2018.13 | VaR_stressed: £736.64 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.363 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 2.74 times the stressed VaR, exceeding the 2.5 threshold. This indicates insufficient hedging under current volatility (σ_recent = 1.363) compared to the pre-2023 stressed regime (σ_stressed = 0.50). Increasing hedge_fraction for C1, C5, and C7 by the maximum allowed +0.30 will reduce exposure to price swings and lower VaR.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2017-04-12 period 8 (logged 2026-06-15T19:45:03Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-04-12 period 8
+Trigger: VaR_current £2018.13 exceeds VaR_stressed £736.64 × 2.5 (ratio 2.74)
+Treasury balance: £30045.35 (12-month peak: £30045.35, drawdown: 0.0%)
+Portfolio gross margin YTD: £3.91 | Net margin YTD: £2.75
+Capital costs YTD: £1.15
+VaR_current: £2018.13 | VaR_stressed: £736.64 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.363 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.74 times the stressed threshold, indicating significant exposure. Increasing hedge_fraction for C1, C5, and C7 by the maximum allowable adjustment (0.15) brings their hedge coverage to 1.00, fully offsetting risk while respecting the 1.00 cap. This reduces portfolio volatility and aligns with the regime's stress parameters.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.00
+  - C5: 0.85 → 1.00
+  - C7: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2017-05-12 period 8 (logged 2026-06-15T19:45:45Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-05-12 period 8
+Trigger: VaR_current £2018.13 exceeds VaR_stressed £736.64 × 2.5 (ratio 2.74)
+Treasury balance: £30046.17 (12-month peak: £30046.17, drawdown: 0.0%)
+Portfolio gross margin YTD: £5.07 | Net margin YTD: £3.58
+Capital costs YTD: £1.49
+VaR_current: £2018.13 | VaR_stressed: £736.64 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo
+Rolling 12m SSP: σ_recent = 1.363 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.74 times the stressed VaR threshold, indicating significant overexposure. Since the portfolio's hedge_fraction is already at 0.85 for all customers, increasing it further is necessary to reduce risk. The maximum allowable adjustment of +0.30 per customer will most effectively lower the VaR ratio and align the portfolio with stress-test requirements.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-07-03 period 27 (logged 2026-06-15T19:47:12Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-07-03 period 27
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30072.08 (12-month peak: £30072.08, drawdown: 0.0%)
+Portfolio gross margin YTD: £0.33 | Net margin YTD: £0.22
+Capital costs YTD: £0.11
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.68x, indicating heightened risk exposure. Increasing hedge_fraction for C1, C5, and C7 by the minimum allowed adjustment (+0.10) will reduce portfolio volatility without over-hedging, given the treasury balance remains positive and sufficient collateral exists for these customers.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-08-02 period 27 (logged 2026-06-15T19:47:36Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-08-02 period 27
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30072.91 (12-month peak: £30072.91, drawdown: 0.0%)
+Portfolio gross margin YTD: £2.45 | Net margin YTD: £1.06
+Capital costs YTD: £1.39
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.68 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 by the minimum required +0.10 will add protective hedging to reduce portfolio volatility and bring VaR within acceptable limits, given the high σ_recent (1.331) compared to σ_stressed (0.50).
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-09-01 period 27 (logged 2026-06-15T19:48:03Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-09-01 period 27
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30073.73 (12-month peak: £30073.73, drawdown: 0.0%)
+Portfolio gross margin YTD: £4.54 | Net margin YTD: £1.87
+Capital costs YTD: £2.67
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.68x, indicating significant portfolio exposure. With σ_recent (1.331) far above σ_stressed (0.50), the current 85% hedge_fraction is insufficient to manage volatility. Increasing hedge_fraction by 0.10 for C1, C5, and C7 will better align risk coverage with current market conditions.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-10-01 period 27 (logged 2026-06-15T19:48:46Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-10-01 period 27
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30074.53 (12-month peak: £30074.53, drawdown: 0.0%)
+Portfolio gross margin YTD: £6.67 | Net margin YTD: £2.67
+Capital costs YTD: £3.99
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.68x, indicating heightened risk exposure. Increasing hedge_fraction for C1, C5, and C7 reduces unhedged positions, mitigating volatility risk. Minimum adjustment of +0.10 per customer aligns with rules while addressing the breach.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-11-30 period 27 (logged 2026-06-15T19:50:40Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-11-30 period 27
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30072.14 (12-month peak: £30075.65, drawdown: 0.0%)
+Portfolio gross margin YTD: £6.88 | Net margin YTD: £0.28
+Capital costs YTD: £6.60
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.68 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will better align the portfolio with stressed scenario parameters, reducing tail risk. Maximum allowable adjustments are applied to ensure compliance.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-12-30 period 27 (logged 2026-06-15T19:51:09Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-12-30 period 27
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30074.33 (12-month peak: £30075.65, drawdown: 0.0%)
+Portfolio gross margin YTD: £10.35 | Net margin YTD: £2.47
+Capital costs YTD: £7.88
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.68x, indicating heightened risk exposure. Increasing hedge_fraction for C1, C5, and C7 by the minimum required +0.10 will proportionally reduce portfolio volatility while respecting the 0.85 baseline and 1.0 cap. This adjustment aligns with the regime's stress parameters and avoids over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-01-29 period 27 (logged 2026-06-15T19:51:42Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-01-29 period 27
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30074.40 (12-month peak: £30075.65, drawdown: 0.0%)
+Portfolio gross margin YTD: £1.16 | Net margin YTD: £-0.06
+Capital costs YTD: £1.22
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.68x, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility. The minimum adjustment of +0.10 per customer is applied to address the breach without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-02-28 period 27 (logged 2026-06-15T19:52:34Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-02-28 period 27
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30076.28 (12-month peak: £30076.28, drawdown: 0.0%)
+Portfolio gross margin YTD: £4.45 | Net margin YTD: £1.82
+Capital costs YTD: £2.63
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR by 2.68x, indicating excessive risk exposure. Customers C1, C5, and C7 have the highest collateral and cost of carry, suggesting they contribute disproportionately to the risk. Increasing their hedge_fraction by the maximum allowable +0.30 will reduce portfolio volatility and align with the pre-2023 regime's lower stress σ (0.50).
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2017-05-29 period 29 (logged 2026-06-15T19:55:22Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-05-29 period 29
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30082.07 (12-month peak: £30082.07, drawdown: 0.0%)
+Portfolio gross margin YTD: £14.12 | Net margin YTD: £7.61
+Capital costs YTD: £6.51
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.68 times the stressed VaR, indicating insufficient hedging given the recent volatility (σ_recent=1.33) compared to the stressed regime (σ_stressed=0.50). Increasing hedge_fraction for C1, C5, and C7 by the maximum allowed adjustment will reduce exposure to price swings and bring VaR closer to acceptable levels.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2017-06-28 period 29 (logged 2026-06-15T19:56:03Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-06-28 period 29
+Trigger: VaR_current £2176.93 exceeds VaR_stressed £811.14 × 2.5 (ratio 2.68)
+Treasury balance: £30083.17 (12-month peak: £30083.17, drawdown: 0.0%)
+Portfolio gross margin YTD: £16.54 | Net margin YTD: £8.71
+Capital costs YTD: £7.83
+VaR_current: £2176.93 | VaR_stressed: £811.14 | Ratio: 2.68
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.331 | Forward price: £48.82/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.68x, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility and align risk with stressed scenario parameters. Maximum adjustments are warranted given the significant VaR breach.
+
+**Adjustments made:**
+  - C1: 0.85 → 1.15
+  - C5: 0.85 → 1.15
+  - C7: 0.85 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2016-10-28 period 29 (logged 2026-06-15T19:56:35Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-10-28 period 29
+Trigger: VaR_current £2252.15 exceeds VaR_stressed £847.39 × 2.5 (ratio 2.66)
+Treasury balance: £30085.29 (12-month peak: £30085.29, drawdown: 0.0%)
+Portfolio gross margin YTD: £2.55 | Net margin YTD: £1.99
+Capital costs YTD: £0.56
+VaR_current: £2252.15 | VaR_stressed: £847.39 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.318 | Forward price: £53.41/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66 times the stressed VaR, exceeding the 2.5x threshold. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio exposure to price volatility. C5's high collateral (£597.56) and C1/C7's significant positions warrant immediate risk mitigation.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2016-11-27 period 29 (logged 2026-06-15T19:56:59Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2016-11-27 period 29
+Trigger: VaR_current £2252.15 exceeds VaR_stressed £847.39 × 2.5 (ratio 2.66)
+Treasury balance: £30085.48 (12-month peak: £30085.48, drawdown: 0.0%)
+Portfolio gross margin YTD: £3.36 | Net margin YTD: £2.18
+Capital costs YTD: £1.18
+VaR_current: £2252.15 | VaR_stressed: £847.39 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.318 | Forward price: £53.41/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. With σ_recent (1.318) significantly higher than σ_stressed (0.50), increasing hedge fractions for C1, C5, and C7 will reduce price volatility risk. Minimum adjustments of +0.10 per customer are applied to bring hedge fractions to 0.95, balancing risk mitigation with operational constraints.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-02-25 period 29 (logged 2026-06-15T19:59:51Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-02-25 period 29
+Trigger: VaR_current £2252.15 exceeds VaR_stressed £847.39 × 2.5 (ratio 2.66)
+Treasury balance: £30090.49 (12-month peak: £30090.49, drawdown: 0.0%)
+Portfolio gross margin YTD: £3.99 | Net margin YTD: £2.81
+Capital costs YTD: £1.18
+VaR_current: £2252.15 | VaR_stressed: £847.39 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.318 | Forward price: £53.41/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66x the stressed threshold, requiring immediate risk mitigation. Increasing hedge_fraction for C1, C5, and C7 by the minimum allowed +0.10 reduces exposure while respecting constraints. Higher collateral/coc for C5 and C7 suggests greater sensitivity to price volatility, but uniform adjustment is mandated.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-03-27 period 31 (logged 2026-06-15T20:00:24Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-03-27 period 31
+Trigger: VaR_current £2252.15 exceeds VaR_stressed £847.39 × 2.5 (ratio 2.66)
+Treasury balance: £30092.79 (12-month peak: £30092.79, drawdown: 0.0%)
+Portfolio gross margin YTD: £6.90 | Net margin YTD: £5.10
+Capital costs YTD: £1.79
+VaR_current: £2252.15 | VaR_stressed: £847.39 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.318 | Forward price: £53.41/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating insufficient hedging. Increasing hedge_fraction for C1, C5, and C7 by the minimum required +0.10 will reduce portfolio volatility while respecting the constraint that hedge_fraction cannot be decreased. This adjustment aligns with the need to strengthen risk mitigation for the most exposed customers.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-04-26 period 31 (logged 2026-06-15T20:00:52Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-04-26 period 31
+Trigger: VaR_current £2252.15 exceeds VaR_stressed £847.39 × 2.5 (ratio 2.66)
+Treasury balance: £30095.20 (12-month peak: £30095.20, drawdown: 0.0%)
+Portfolio gross margin YTD: £9.93 | Net margin YTD: £7.51
+Capital costs YTD: £2.42
+VaR_current: £2252.15 | VaR_stressed: £847.39 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.318 | Forward price: £53.41/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66 times the stressed VaR, exceeding the 2.5 threshold. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio risk exposure. Minimum adjustment of +0.10 per customer is applied to bring VaR closer to acceptable levels.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-05-26 period 31 (logged 2026-06-15T20:01:17Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-05-26 period 31
+Trigger: VaR_current £2252.15 exceeds VaR_stressed £847.39 × 2.5 (ratio 2.66)
+Treasury balance: £30096.46 (12-month peak: £30096.46, drawdown: 0.0%)
+Portfolio gross margin YTD: £11.80 | Net margin YTD: £8.78
+Capital costs YTD: £3.03
+VaR_current: £2252.15 | VaR_stressed: £847.39 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.318 | Forward price: £53.41/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66x the stressed threshold, requiring immediate risk mitigation. Increasing hedge_fraction for C1, C5, and C7 by the minimum +0.10 each will reduce exposure while respecting constraints. These customers have varying collateral levels, but uniform adjustment ensures consistency across the portfolio.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-06-25 period 31 (logged 2026-06-15T20:01:40Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-06-25 period 31
+Trigger: VaR_current £2252.15 exceeds VaR_stressed £847.39 × 2.5 (ratio 2.66)
+Treasury balance: £30098.61 (12-month peak: £30098.61, drawdown: 0.0%)
+Portfolio gross margin YTD: £14.57 | Net margin YTD: £10.93
+Capital costs YTD: £3.65
+VaR_current: £2252.15 | VaR_stressed: £847.39 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.318 | Forward price: £53.41/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. With σ_recent (1.318) far above σ_stressed (0.50), increasing hedges for C1, C5, C7 will reduce portfolio volatility. Minimum +0.10 adjustments align with the 2.5x threshold breach while maintaining liquidity (treasury at 12-month peak).
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-07-25 period 31 (logged 2026-06-15T20:02:06Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-07-25 period 31
+Trigger: VaR_current £2252.15 exceeds VaR_stressed £847.39 × 2.5 (ratio 2.66)
+Treasury balance: £30100.82 (12-month peak: £30100.82, drawdown: 0.0%)
+Portfolio gross margin YTD: £17.39 | Net margin YTD: £13.14
+Capital costs YTD: £4.26
+VaR_current: £2252.15 | VaR_stressed: £847.39 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.318 | Forward price: £53.41/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will reduce portfolio volatility by better aligning hedging with current market conditions (σ_recent=1.318 vs σ_stressed=0.50). Minimum adjustment of +0.10 per customer is appropriate given the moderate breach severity.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-08-24 period 31 (logged 2026-06-15T20:02:39Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-08-24 period 31
+Trigger: VaR_current £2252.15 exceeds VaR_stressed £847.39 × 2.5 (ratio 2.66)
+Treasury balance: £30102.83 (12-month peak: £30102.83, drawdown: 0.0%)
+Portfolio gross margin YTD: £20.01 | Net margin YTD: £15.14
+Capital costs YTD: £4.87
+VaR_current: £2252.15 | VaR_stressed: £847.39 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£66.93 coc=£0.5577/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.318 | Forward price: £53.41/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is slightly above the 2.5× stressed threshold, indicating increased risk exposure due to higher recent volatility (σ_recent=1.318 vs σ_stressed=0.50). Increasing hedge_fraction for C1, C5, and C7 by 0.10 will better offset this volatility without over-hedging, given the moderate breach severity.
+
+**Adjustments made:**
+  - C1: 0.85 → 0.95
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-01-15 period 2 (logged 2026-06-15T20:04:29Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-01-15 period 2
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30143.58 (12-month peak: £30143.58, drawdown: 0.0%)
+Portfolio gross margin YTD: £0.83 | Net margin YTD: £0.73
+Capital costs YTD: £0.09
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR by 2.64x, indicating excessive risk exposure. Customers C5 and C7 have relatively high collateral but their current hedge_fraction (0.85) is insufficient to mitigate volatility. Increasing their hedge_fraction by 0.15 each reduces un-hedged risk while respecting the 0.30 maximum adjustment limit.
+
+**Adjustments made:**
+  - C5: 0.85 → 1.00
+  - C7: 0.85 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2017-02-14 period 2 (logged 2026-06-15T20:04:51Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-02-14 period 2
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30145.10 (12-month peak: £30145.10, drawdown: 0.0%)
+Portfolio gross margin YTD: £2.56 | Net margin YTD: £2.25
+Capital costs YTD: £0.30
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.64x the stressed threshold, indicating excessive risk exposure. C5 and C7 have significant collateral (top 3 in portfolio) but their hedge fractions are below the highest customer (C1=0.95). Increasing their hedge fractions by 0.10 each will better align their risk mitigation with their collateral exposure and the current high volatility regime (σ_recent=1.31).
+
+**Adjustments made:**
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-03-16 period 2 (logged 2026-06-15T20:05:13Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-03-16 period 2
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30146.87 (12-month peak: £30146.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £4.55 | Net margin YTD: £4.03
+Capital costs YTD: £0.51
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.64x, indicating excessive unhedged exposure. Customers C5 and C7 have relatively high collateral values (£597.56 and £305.99) but lower hedge fractions (0.85), suggesting their positions are under-hedged relative to their risk contribution. Increasing their hedge fractions will reduce portfolio volatility and bring VaR_current closer to acceptable levels.
+
+**Adjustments made:**
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-04-15 period 4 (logged 2026-06-15T20:06:01Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-04-15 period 4
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30148.45 (12-month peak: £30148.45, drawdown: 0.0%)
+Portfolio gross margin YTD: £6.32 | Net margin YTD: £5.60
+Capital costs YTD: £0.72
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current hedge fractions for C5 and C7 are insufficient given the VaR breach and elevated volatility (σ_recent=1.308). Increasing their hedge_fraction by 0.20 reduces exposure to price fluctuations, lowering VaR while maintaining treasury balance adequacy.
+
+**Adjustments made:**
+  - C5: 0.85 → 1.05
+  - C7: 0.85 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2017-05-15 period 4 (logged 2026-06-15T20:06:23Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-05-15 period 4
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30149.76 (12-month peak: £30149.76, drawdown: 0.0%)
+Portfolio gross margin YTD: £7.84 | Net margin YTD: £6.92
+Capital costs YTD: £0.92
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£2210.07) exceeds the stressed VaR threshold by 2.64x, indicating significant overexposure. Customers C5 and C7 have the highest collateral values (£597.56 and £305.99) and cost-of-collateral rates (£4.98/mo and £2.55/mo), suggesting they contribute disproportionately to risk. Increasing their hedge fractions will reduce portfolio volatility and align VaR with acceptable limits.
+
+**Adjustments made:**
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-06-14 period 4 (logged 2026-06-15T20:06:45Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-06-14 period 4
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30150.94 (12-month peak: £30150.94, drawdown: 0.0%)
+Portfolio gross margin YTD: £9.23 | Net margin YTD: £8.10
+Capital costs YTD: £1.13
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.64x, indicating excessive risk exposure. Increasing hedge_fraction for C5 and C7 reduces portfolio volatility by locking in more prices, mitigating the gap between current and stressed VaR. Both customers have moderate-to-high collateral but lower hedge fractions compared to the portfolio average, making them priority targets for adjustment.
+
+**Adjustments made:**
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-07-14 period 4 (logged 2026-06-15T20:07:10Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-07-14 period 4
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30152.20 (12-month peak: £30152.20, drawdown: 0.0%)
+Portfolio gross margin YTD: £10.69 | Net margin YTD: £9.36
+Capital costs YTD: £1.33
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.64x, indicating heightened exposure. Increasing hedge_fraction for C5 and C7 reduces portfolio volatility by locking in more prices, especially as their collateral values are mid-range but not extreme. Minimum required adjustment of +0.10 per customer aligns with risk mitigation priorities.
+
+**Adjustments made:**
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-08-13 period 4 (logged 2026-06-15T20:07:39Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-08-13 period 4
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30153.45 (12-month peak: £30153.45, drawdown: 0.0%)
+Portfolio gross margin YTD: £12.14 | Net margin YTD: £10.61
+Capital costs YTD: £1.53
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.64 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for C5 and C7 will reduce portfolio volatility, as these customers have significant collateral and high forward price sensitivity. Minimum required adjustment of +0.10 per customer is applied to bring risk metrics back within acceptable limits.
+
+**Adjustments made:**
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-09-12 period 4 (logged 2026-06-15T20:07:59Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-09-12 period 4
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30154.69 (12-month peak: £30154.69, drawdown: 0.0%)
+Portfolio gross margin YTD: £13.58 | Net margin YTD: £11.85
+Capital costs YTD: £1.73
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.64x, indicating excessive risk exposure. Increasing hedge_fraction for C5 and C7 (both at 0.85) will reduce portfolio volatility. C5 has the highest collateral value but lowest per-unit cost, making it a priority for deeper hedging. C7's moderate collateral also warrants adjustment to balance risk.
+
+**Adjustments made:**
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-10-12 period 4 (logged 2026-06-15T20:08:14Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-10-12 period 4
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30155.98 (12-month peak: £30155.98, drawdown: 0.0%)
+Portfolio gross margin YTD: £15.07 | Net margin YTD: £13.14
+Capital costs YTD: £1.94
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.64x, indicating heightened risk exposure. C5 and C7 have the highest collateral values (£597.56 and £305.99), suggesting greater potential liability. Increasing their hedge fractions by 0.10 each will reduce portfolio volatility while staying within regulatory limits.
+
+**Adjustments made:**
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-11-11 period 4 (logged 2026-06-15T20:08:50Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-11-11 period 4
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30157.51 (12-month peak: £30157.51, drawdown: 0.0%)
+Portfolio gross margin YTD: £16.81 | Net margin YTD: £14.67
+Capital costs YTD: £2.14
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.64x, indicating heightened risk exposure. Increasing hedge_fraction for C5 and C7 reduces un-hedged price risk, aligning with the rule to only increase hedges. Minimum adjustment of +0.10 per customer is applied to bring their hedge_fraction closer to full coverage.
+
+**Adjustments made:**
+  - C5: 0.85 → 0.95
+  - C7: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2017-12-11 period 4 (logged 2026-06-15T20:09:19Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2017-12-11 period 4
+Trigger: VaR_current £2210.07 exceeds VaR_stressed £837.30 × 2.5 (ratio 2.64)
+Treasury balance: £30159.10 (12-month peak: £30159.10, drawdown: 0.0%)
+Portfolio gross margin YTD: £18.60 | Net margin YTD: £16.26
+Capital costs YTD: £2.35
+VaR_current: £2210.07 | VaR_stressed: £837.30 | Ratio: 2.64
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.85 C4=0.85 C5=0.85 C6=0.85 C7=0.85 C8=0.85 C9=0.85
+Per-customer collateral: C1: collateral=£24.84 coc=£0.2070/mo C2: collateral=£58.40 coc=£0.4866/mo C3: collateral=£41.08 coc=£0.3423/mo C4: collateral=£75.22 coc=£0.6269/mo C5: collateral=£597.56 coc=£4.9796/mo C6: collateral=£750.81 coc=£6.2568/mo C7: collateral=£305.99 coc=£2.5499/mo C8: collateral=£197.37 coc=£1.6448/mo C9: collateral=£158.80 coc=£1.3233/mo
+Rolling 12m SSP: σ_recent = 1.308 | Forward price: £90.99/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.64x, indicating heightened risk exposure. Increasing hedge_fraction for C5 and C7 will reduce portfolio volatility by better aligning with the stressed regime's lower σ_stressed (0.50) compared to recent σ_recent (1.308). Higher collateral for C5 suggests greater capacity to absorb hedging costs, while C7's moderate collateral still benefits from improved risk mitigation.
+
+**Adjustments made:**
+  - C5: 0.85 → 1.05
+  - C7: 0.85 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2021-11-29 period 1 (logged 2026-06-15T20:12:28Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2021-11-29 period 1
+Trigger: VaR_current £1918.19 exceeds VaR_stressed £745.38 × 2.5 (ratio 2.57)
+Treasury balance: £31554.01 (12-month peak: £31910.41, drawdown: 1.1%)
+Portfolio gross margin YTD: £11.63 | Net margin YTD: £7.17
+Capital costs YTD: £4.46
+VaR_current: £1918.19 | VaR_stressed: £745.38 | Ratio: 2.57
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.95 C4=0.95 C5=0.85 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£50.00 coc=£0.4167/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£446.45 coc=£3.7204/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.326 | Forward price: £253.60/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C2, C3, C4, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 2.57 times higher than the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility and align risk with stressed scenario parameters, while adhering to the minimum adjustment requirement of +0.10 per customer.
+
+**Adjustments made:**
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2021-12-29 period 1 (logged 2026-06-15T20:13:00Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2021-12-29 period 1
+Trigger: VaR_current £1918.19 exceeds VaR_stressed £745.38 × 2.5 (ratio 2.57)
+Treasury balance: £31556.67 (12-month peak: £31910.41, drawdown: 1.1%)
+Portfolio gross margin YTD: £15.76 | Net margin YTD: £9.83
+Capital costs YTD: £5.93
+VaR_current: £1918.19 | VaR_stressed: £745.38 | Ratio: 2.57
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.95 C4=0.95 C5=0.85 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£50.00 coc=£0.4167/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£446.45 coc=£3.7204/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.326 | Forward price: £253.60/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C2, C3, C4, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.57x, indicating increased exposure risk. Since the treasury balance is near its 12-month peak (drawdown 1.1%), a minimal but necessary increase in hedge_fraction for the specified customers will reduce tail risk without over-hedging. The adjustment aligns with the pre-2023 regime's lower volatility assumptions.
+
+**Adjustments made:**
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-03-29 period 3 (logged 2026-06-15T20:15:47Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-03-29 period 3
+Trigger: VaR_current £1918.19 exceeds VaR_stressed £745.38 × 2.5 (ratio 2.57)
+Treasury balance: £31568.32 (12-month peak: £31910.41, drawdown: 1.1%)
+Portfolio gross margin YTD: £15.39 | Net margin YTD: £10.98
+Capital costs YTD: £4.41
+VaR_current: £1918.19 | VaR_stressed: £745.38 | Ratio: 2.57
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.95 C4=0.95 C5=0.85 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£50.00 coc=£0.4167/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£446.45 coc=£3.7204/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.326 | Forward price: £253.60/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C2, C3, C4, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR exceeds the stressed VaR threshold by 2.57x, requiring immediate risk mitigation. Applying the minimum required adjustment of +0.10 to each specified customer will increase hedging coverage and reduce exposure while adhering to constraints.
+
+**Adjustments made:**
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-04-28 period 3 (logged 2026-06-15T20:16:11Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-04-28 period 3
+Trigger: VaR_current £1918.19 exceeds VaR_stressed £745.38 × 2.5 (ratio 2.57)
+Treasury balance: £31571.71 (12-month peak: £31910.41, drawdown: 1.1%)
+Portfolio gross margin YTD: £20.30 | Net margin YTD: £14.37
+Capital costs YTD: £5.93
+VaR_current: £1918.19 | VaR_stressed: £745.38 | Ratio: 2.57
+Per-customer hedge_fraction: C1=0.85 C2=0.85 C3=0.95 C4=0.95 C5=0.85 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£50.00 coc=£0.4167/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£446.45 coc=£3.7204/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.326 | Forward price: £253.60/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C2, C3, C4, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.57x, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility and align with the higher σ_recent (1.326) compared to the stressed regime's σ_stressed (0.50). Minimum adjustments are applied to all flagged customers to ensure compliance without over-hedging.
+
+**Adjustments made:**
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-05-16 period 26 (logged 2026-06-15T20:25:53Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-05-16 period 26
+Trigger: VaR_current £1953.78 exceeds VaR_stressed £753.86 × 2.5 (ratio 2.59)
+Treasury balance: £31602.13 (12-month peak: £31894.99, drawdown: 0.9%)
+Portfolio gross margin YTD: £14.40 | Net margin YTD: £11.19
+Capital costs YTD: £3.21
+VaR_current: £1953.78 | VaR_stressed: £753.86 | Ratio: 2.59
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.85 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£446.45 coc=£3.7204/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.332 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.59 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge fractions reduces price volatility risk by locking in more supply costs. Minimum adjustments are applied to all flagged customers to bring VaR within acceptable limits without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-08-14 period 28 (logged 2026-06-15T20:28:42Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-08-14 period 28
+Trigger: VaR_current £1953.78 exceeds VaR_stressed £753.86 × 2.5 (ratio 2.59)
+Treasury balance: £31607.00 (12-month peak: £31894.99, drawdown: 0.9%)
+Portfolio gross margin YTD: £21.37 | Net margin YTD: £16.07
+Capital costs YTD: £5.31
+VaR_current: £1953.78 | VaR_stressed: £753.86 | Ratio: 2.59
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.85 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£446.45 coc=£3.7204/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.332 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£1953.78) exceeds the 2.5× stressed VaR threshold by 2.59×, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility and align risk with regulatory limits. Minimum adjustment of +0.10 per customer is applied to ensure compliance without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2022-09-13 period 28 (logged 2026-06-15T20:29:37Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-09-13 period 28
+Trigger: VaR_current £1953.78 exceeds VaR_stressed £753.86 × 2.5 (ratio 2.59)
+Treasury balance: £31606.75 (12-month peak: £31894.99, drawdown: 0.9%)
+Portfolio gross margin YTD: £21.82 | Net margin YTD: £15.81
+Capital costs YTD: £6.01
+VaR_current: £1953.78 | VaR_stressed: £753.86 | Ratio: 2.59
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.85 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£446.45 coc=£3.7204/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.332 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.59x, indicating insufficient hedging. A minimum adjustment of +0.10 per customer is required to reduce exposure while adhering to constraints. Customers with lower initial hedge fractions (C2, C8) receive the minimum adjustment, while others are increased proportionally to balance risk across the portfolio.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-01-04 period 1 (logged 2026-06-15T20:33:33Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-01-04 period 1
+Trigger: VaR_current £2271.58 exceeds VaR_stressed £829.50 × 2.5 (ratio 2.74)
+Treasury balance: £31645.57 (12-month peak: £31850.84, drawdown: 0.6%)
+Portfolio gross margin YTD: £2.34 | Net margin YTD: £1.72
+Capital costs YTD: £0.62
+VaR_current: £2271.58 | VaR_stressed: £829.50 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.388 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.74 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge fractions for all seven customers by the minimum required amount will help reduce portfolio volatility and bring VaR within acceptable limits, even though existing hedge levels are already high.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-02-03 period 1 (logged 2026-06-15T20:34:31Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-02-03 period 1
+Trigger: VaR_current £2271.58 exceeds VaR_stressed £829.50 × 2.5 (ratio 2.74)
+Treasury balance: £31656.11 (12-month peak: £31850.84, drawdown: 0.6%)
+Portfolio gross margin YTD: £19.09 | Net margin YTD: £12.27
+Capital costs YTD: £6.83
+VaR_current: £2271.58 | VaR_stressed: £829.50 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.388 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.74 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge fractions for all specified customers by the minimum adjustment will reduce portfolio volatility and align risk levels with regulatory limits.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-03-05 period 1 (logged 2026-06-15T20:35:30Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-03-05 period 1
+Trigger: VaR_current £2271.58 exceeds VaR_stressed £829.50 × 2.5 (ratio 2.74)
+Treasury balance: £31669.16 (12-month peak: £31850.84, drawdown: 0.6%)
+Portfolio gross margin YTD: £38.88 | Net margin YTD: £25.32
+Capital costs YTD: £13.56
+VaR_current: £2271.58 | VaR_stressed: £829.50 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.388 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.74x, indicating excessive portfolio risk exposure. Increasing hedge_fraction for all flagged customers will reduce price volatility risk, as higher hedges lower unmitigated exposure. Minimum adjustments are applied per rule to ensure compliance without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-05-04 period 3 (logged 2026-06-15T20:37:19Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-05-04 period 3
+Trigger: VaR_current £2271.58 exceeds VaR_stressed £829.50 × 2.5 (ratio 2.74)
+Treasury balance: £31685.38 (12-month peak: £31850.84, drawdown: 0.5%)
+Portfolio gross margin YTD: £67.64 | Net margin YTD: £41.53
+Capital costs YTD: £26.10
+VaR_current: £2271.58 | VaR_stressed: £829.50 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.388 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£2271.58) exceeds the stressed VaR threshold by 2.74x, indicating excessive risk exposure. Increasing hedge fractions for all specified customers by the minimum allowed adjustment (+0.10) will reduce portfolio volatility while maintaining sufficient treasury reserves (£31,685.38). This adjustment aligns with the regime's stress parameters (σ_stressed = 0.50) and avoids over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-07-03 period 5 (logged 2026-06-15T20:39:06Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-07-03 period 5
+Trigger: VaR_current £2271.58 exceeds VaR_stressed £829.50 × 2.5 (ratio 2.74)
+Treasury balance: £31697.00 (12-month peak: £31850.84, drawdown: 0.5%)
+Portfolio gross margin YTD: £91.80 | Net margin YTD: £53.15
+Capital costs YTD: £38.64
+VaR_current: £2271.58 | VaR_stressed: £829.50 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.388 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the 2.5x stressed VaR threshold by 2.74x, indicating unacceptable risk exposure. Increasing hedge_fraction for all specified customers by the minimum required adjustment (+0.10) will reduce portfolio volatility and align risk exposure with stressed regime parameters.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.85 → 0.95
+
+---
+
+## Risk Committee Wake-Up — 2022-08-02 period 5 (logged 2026-06-15T20:40:01Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-08-02 period 5
+Trigger: VaR_current £2271.58 exceeds VaR_stressed £829.50 × 2.5 (ratio 2.74)
+Treasury balance: £31696.99 (12-month peak: £31850.84, drawdown: 0.5%)
+Portfolio gross margin YTD: £97.95 | Net margin YTD: £53.14
+Capital costs YTD: £44.81
+VaR_current: £2271.58 | VaR_stressed: £829.50 | Ratio: 2.74
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.85 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£228.61 coc=£1.9051/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.388 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.74x, indicating excessive risk exposure. Increasing hedge_fraction for all flagged customers will reduce portfolio volatility by better aligning hedges with potential price swings, especially given the high σ_recent of 1.388. Minimum adjustment of +0.10 per customer is applied to ensure compliance while respecting the constraint.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-01-29 period 7 (logged 2026-06-15T20:45:46Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-01-29 period 7
+Trigger: VaR_current £2434.31 exceeds VaR_stressed £868.23 × 2.5 (ratio 2.80)
+Treasury balance: £31724.09 (12-month peak: £31850.84, drawdown: 0.4%)
+Portfolio gross margin YTD: £13.74 | Net margin YTD: £10.77
+Capital costs YTD: £2.96
+VaR_current: £2434.31 | VaR_stressed: £868.23 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.417 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.8x the stressed VaR threshold, indicating significant overexposure. With high volatility (σ_recent=1.42) and most customers already hedged above 95%, increasing hedge fractions to maximum allowed levels will reduce tail risk. The treasury balance provides liquidity to support higher hedges without immediate drawdown.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.25
+  - C2: 0.85 → 1.15
+  - C3: 0.95 → 1.25
+  - C4: 0.95 → 1.25
+  - C5: 0.95 → 1.25
+  - C6: 0.95 → 1.25
+  - C7: 0.95 → 1.25
+  - C8: 0.95 → 1.25
+
+---
+
+## Risk Committee Wake-Up — 2022-02-28 period 7 (logged 2026-06-15T20:46:29Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-02-28 period 7
+Trigger: VaR_current £2434.31 exceeds VaR_stressed £868.23 × 2.5 (ratio 2.80)
+Treasury balance: £31736.71 (12-month peak: £31850.84, drawdown: 0.4%)
+Portfolio gross margin YTD: £29.82 | Net margin YTD: £23.40
+Capital costs YTD: £6.42
+VaR_current: £2434.31 | VaR_stressed: £868.23 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.417 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.80 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction by the minimum required amount (+0.10) for all affected customers will help reduce this risk while maintaining sufficient treasury balance (£31,736.71). The adjustment is proportionate to the breach severity and within capital constraints.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-10-26 period 13 (logged 2026-06-15T20:54:08Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-10-26 period 13
+Trigger: VaR_current £2434.31 exceeds VaR_stressed £868.23 × 2.5 (ratio 2.80)
+Treasury balance: £31766.25 (12-month peak: £31850.84, drawdown: 0.3%)
+Portfolio gross margin YTD: £84.94 | Net margin YTD: £52.94
+Capital costs YTD: £32.01
+VaR_current: £2434.31 | VaR_stressed: £868.23 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.417 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.80 times the stressed VaR, exceeding the 2.5 threshold. Increasing hedge fractions by the minimum required amount will reduce portfolio risk exposure while adhering to constraints. All affected customers require uniform adjustment to bring VaR within acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-12-25 period 13 (logged 2026-06-15T20:55:57Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-12-25 period 13
+Trigger: VaR_current £2434.31 exceeds VaR_stressed £868.23 × 2.5 (ratio 2.80)
+Treasury balance: £31779.37 (12-month peak: £31846.33, drawdown: 0.2%)
+Portfolio gross margin YTD: £104.66 | Net margin YTD: £66.05
+Capital costs YTD: £38.60
+VaR_current: £2434.31 | VaR_stressed: £868.23 | Ratio: 2.80
+Per-customer hedge_fraction: C1=0.95 C2=0.85 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£151.49 coc=£1.2624/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.417 | Forward price: £281.96/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C2, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.8x the stressed VaR threshold, indicating insufficient hedging. Increasing hedge_fraction for all customers by the minimum required adjustment will reduce exposure to price volatility, aligning with the stressed regime's lower volatility assumptions.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C2: 0.85 → 0.95
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-06-24 period 15 (logged 2026-06-15T20:58:42Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-06-24 period 15
+Trigger: VaR_current £2396.06 exceeds VaR_stressed £867.49 × 2.5 (ratio 2.76)
+Treasury balance: £31803.42 (12-month peak: £31846.33, drawdown: 0.1%)
+Portfolio gross margin YTD: £132.80 | Net margin YTD: £90.11
+Capital costs YTD: £42.70
+VaR_current: £2396.06 | VaR_stressed: £867.49 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.407 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£2396.06) is 2.76 times the stressed VaR threshold, significantly exceeding the 2.5x safety limit. Given the high volatility (σ_recent = 1.407) and the need to reduce exposure, increasing hedge_fraction to the maximum allowed (+0.30) for each customer will enhance risk mitigation without violating constraints.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.25
+  - C3: 0.95 → 1.25
+  - C4: 0.95 → 1.25
+  - C5: 0.95 → 1.25
+  - C6: 0.95 → 1.25
+  - C7: 0.95 → 1.25
+  - C8: 0.95 → 1.25
+
+---
+
+## Risk Committee Wake-Up — 2022-07-24 period 15 (logged 2026-06-15T20:59:28Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-07-24 period 15
+Trigger: VaR_current £2396.06 exceeds VaR_stressed £867.49 × 2.5 (ratio 2.76)
+Treasury balance: £31809.48 (12-month peak: £31846.33, drawdown: 0.1%)
+Portfolio gross margin YTD: £139.79 | Net margin YTD: £96.17
+Capital costs YTD: £43.62
+VaR_current: £2396.06 | VaR_stressed: £867.49 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.407 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR exceeds the stressed VaR threshold by 2.76x, indicating excessive exposure. Increasing hedge_fraction for all specified customers by the minimum required +0.10 will reduce portfolio volatility and bring VaR closer to acceptable levels without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-08-23 period 15 (logged 2026-06-15T21:00:19Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-08-23 period 15
+Trigger: VaR_current £2396.06 exceeds VaR_stressed £867.49 × 2.5 (ratio 2.76)
+Treasury balance: £31813.28 (12-month peak: £31846.33, drawdown: 0.1%)
+Portfolio gross margin YTD: £144.50 | Net margin YTD: £99.97
+Capital costs YTD: £44.53
+VaR_current: £2396.06 | VaR_stressed: £867.49 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.407 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.76 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility. Applying the minimum required adjustment of +0.10 to each customer to bring their hedge fractions closer to full coverage.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-10-22 period 16 (logged 2026-06-15T21:02:07Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-10-22 period 16
+Trigger: VaR_current £2396.06 exceeds VaR_stressed £867.49 × 2.5 (ratio 2.76)
+Treasury balance: £31825.09 (12-month peak: £31846.33, drawdown: 0.1%)
+Portfolio gross margin YTD: £158.17 | Net margin YTD: £111.78
+Capital costs YTD: £46.39
+VaR_current: £2396.06 | VaR_stressed: £867.49 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.407 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.76 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge fractions will reduce portfolio volatility by locking in more prices. Minimum required adjustment of +0.10 per customer is applied to all specified customers.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-11-21 period 17 (logged 2026-06-15T21:03:00Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-11-21 period 17
+Trigger: VaR_current £2396.06 exceeds VaR_stressed £867.49 × 2.5 (ratio 2.76)
+Treasury balance: £31836.10 (12-month peak: £31846.33, drawdown: 0.0%)
+Portfolio gross margin YTD: £170.11 | Net margin YTD: £122.78
+Capital costs YTD: £47.32
+VaR_current: £2396.06 | VaR_stressed: £867.49 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.407 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.76 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for all specified customers by the minimum allowed adjustment will reduce portfolio volatility and align risk metrics with acceptable thresholds.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-12-21 period 17 (logged 2026-06-15T21:03:53Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-12-21 period 17
+Trigger: VaR_current £2396.06 exceeds VaR_stressed £867.49 × 2.5 (ratio 2.76)
+Treasury balance: £31841.48 (12-month peak: £31846.33, drawdown: 0.0%)
+Portfolio gross margin YTD: £176.41 | Net margin YTD: £128.17
+Capital costs YTD: £48.25
+VaR_current: £2396.06 | VaR_stressed: £867.49 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.407 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.76 times the stressed threshold, indicating excessive risk exposure despite a strong treasury balance. Increasing hedge_fraction for the specified customers will reduce portfolio volatility by locking in more price protection, aligning risk levels with regulatory thresholds.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-02-19 period 21 (logged 2026-06-15T21:05:27Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-02-19 period 21
+Trigger: VaR_current £2396.06 exceeds VaR_stressed £867.49 × 2.5 (ratio 2.76)
+Treasury balance: £31861.74 (12-month peak: £31861.74, drawdown: 0.0%)
+Portfolio gross margin YTD: £18.06 | Net margin YTD: £16.50
+Capital costs YTD: £1.57
+VaR_current: £2396.06 | VaR_stressed: £867.49 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.407 | Forward price: £347.12/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.76 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for all specified customers by the minimum required +0.10 will reduce portfolio volatility and bring VaR closer to acceptable limits without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-03-21 period 23 (logged 2026-06-15T21:06:08Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-03-21 period 23
+Trigger: VaR_current £2396.06 exceeds VaR_stressed £867.49 × 2.5 (ratio 2.76)
+Treasury balance: £31871.61 (12-month peak: £31871.61, drawdown: 0.0%)
+Portfolio gross margin YTD: £28.90 | Net margin YTD: £26.37
+Capital costs YTD: £2.53
+VaR_current: £2396.06 | VaR_stressed: £867.49 | Ratio: 2.76
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=0.95 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£649.25 coc=£5.4104/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.407 | Forward price: £347.12/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C6, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.76x the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility. Minimum adjustment of +0.10 per customer is applied to bring risk metrics back within acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C6: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-04-12 period 44 (logged 2026-06-15T21:06:47Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-04-12 period 44
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £31933.02 (12-month peak: £31933.02, drawdown: 0.0%)
+Portfolio gross margin YTD: £5.06 | Net margin YTD: £5.06
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£1746.81) exceeds the stressed VaR threshold by 2.69x, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility. Minimum adjustment of +0.10 per customer is applied to bring VaR within acceptable limits while respecting constraints.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-05-12 period 44 (logged 2026-06-15T21:07:39Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-05-12 period 44
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £31941.74 (12-month peak: £31941.74, drawdown: 0.0%)
+Portfolio gross margin YTD: £13.78 | Net margin YTD: £13.78
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.69 times the stressed VaR, exceeding the 2.5x threshold by a significant margin. Increasing hedge_fraction for the affected customers will reduce portfolio exposure and lower VaR, ensuring compliance with risk limits.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.15
+  - C3: 0.95 → 1.15
+  - C4: 0.95 → 1.15
+  - C5: 0.95 → 1.15
+  - C7: 0.95 → 1.15
+  - C8: 0.95 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2022-06-11 period 46 (logged 2026-06-15T21:08:11Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-06-11 period 46
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £31948.68 (12-month peak: £31948.68, drawdown: 0.0%)
+Portfolio gross margin YTD: £20.72 | Net margin YTD: £20.72
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.69x the stressed threshold, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility by better aligning hedges with potential price swings, particularly important given the high σ_recent (1.274) compared to the stressed regime σ_stressed (0.50). Minimum adjustments are applied to meet the threshold without overcorrecting.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-07-11 period 46 (logged 2026-06-15T21:08:44Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-07-11 period 46
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £31954.52 (12-month peak: £31954.52, drawdown: 0.0%)
+Portfolio gross margin YTD: £26.57 | Net margin YTD: £26.57
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£1746.81) exceeds the stressed VaR threshold by 2.69x, requiring increased hedging to reduce exposure. Minimum adjustment of +0.10 per customer is applied to all flagged customers to bring VaR back toward acceptable levels, while avoiding excessive over-hedging given the treasury balance is at its 12-month peak.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-09-09 period 46 (logged 2026-06-15T21:10:31Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-09-09 period 46
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £31965.51 (12-month peak: £31965.51, drawdown: 0.0%)
+Portfolio gross margin YTD: £37.55 | Net margin YTD: £37.55
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.69x, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce price volatility risk, aligning portfolio risk with the stress regime. Minimum adjustment of +0.10 per customer is applied to bring VaR within acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-10-09 period 46 (logged 2026-06-15T21:11:00Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-10-09 period 46
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £31972.99 (12-month peak: £31972.99, drawdown: 0.0%)
+Portfolio gross margin YTD: £45.03 | Net margin YTD: £45.03
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£1746.81) exceeds the stressed VaR threshold by 2.69x, indicating excessive risk exposure. Increasing hedge_fraction for all flagged customers will reduce portfolio volatility by aligning hedges closer to stressed regime parameters. The treasury balance is strong (no drawdown), allowing for increased hedging without liquidity constraints.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-11-08 period 48 (logged 2026-06-15T21:11:41Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-11-08 period 48
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £31981.57 (12-month peak: £31981.57, drawdown: 0.0%)
+Portfolio gross margin YTD: £53.62 | Net margin YTD: £53.62
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is significantly above the stressed VaR threshold, indicating heightened risk exposure. Increasing hedge fractions for the specified customers by the minimum adjustment will reduce portfolio volatility and bring VaR within acceptable limits, while respecting liquidity constraints.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-12-08 period 48 (logged 2026-06-15T21:12:13Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-12-08 period 48
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £31993.96 (12-month peak: £31993.96, drawdown: 0.0%)
+Portfolio gross margin YTD: £66.00 | Net margin YTD: £66.00
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current is 2.69 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers by the minimum allowed adjustment (+0.10) will reduce portfolio volatility and bring VaR closer to acceptable levels without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-01-07 period 48 (logged 2026-06-15T21:12:54Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-01-07 period 48
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £32007.87 (12-month peak: £32007.87, drawdown: 0.0%)
+Portfolio gross margin YTD: £2.73 | Net margin YTD: £2.73
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.69x the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility by better aligning hedges with forward price movements. Minimum adjustment of +0.10 per customer is applied to bring hedge coverage closer to 100%.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-02-07 period 4 (logged 2026-06-15T21:13:23Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-02-07 period 4
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £32021.81 (12-month peak: £32021.81, drawdown: 0.0%)
+Portfolio gross margin YTD: £16.67 | Net margin YTD: £16.67
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.69x, indicating insufficient hedging against potential losses. Increasing hedge_fraction for the specified customers will reduce exposure during stress scenarios, aligning with the post-2023 regime's higher volatility (σ_stressed = 1.50). Minimum adjustment of +0.10 per customer is applied to address the breach without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-03-09 period 4 (logged 2026-06-15T21:14:16Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-03-09 period 4
+Trigger: VaR_current £1746.81 exceeds VaR_stressed £650.20 × 2.5 (ratio 2.69)
+Treasury balance: £32035.21 (12-month peak: £32035.21, drawdown: 0.0%)
+Portfolio gross margin YTD: £30.07 | Net margin YTD: £30.07
+Capital costs YTD: £0.00
+VaR_current: £1746.81 | VaR_stressed: £650.20 | Ratio: 2.69
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=0.95 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£170.67 coc=£1.4223/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.274 | Forward price: £347.12/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7, C8
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.69x, indicating significant exposure. Increasing hedge_fraction for all flagged customers by the minimum required adjustment (+0.10) will reduce portfolio volatility and bring risk metrics closer to acceptable levels without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+  - C8: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-04-08 period 8 (logged 2026-06-15T21:15:04Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-04-08 period 8
+Trigger: VaR_current £1576.14 exceeds VaR_stressed £593.07 × 2.5 (ratio 2.66)
+Treasury balance: £32046.20 (12-month peak: £32046.20, drawdown: 0.0%)
+Portfolio gross margin YTD: £2.33 | Net margin YTD: £2.33
+Capital costs YTD: £0.00
+VaR_current: £1576.14 | VaR_stressed: £593.07 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.239 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£1576.14) exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. Increasing hedge_fraction for flagged customers will reduce portfolio volatility by covering more of their energy price risk. A minimum +0.10 adjustment per customer is required to bring VaR within acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-06-07 period 10 (logged 2026-06-15T21:16:34Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-06-07 period 10
+Trigger: VaR_current £1576.14 exceeds VaR_stressed £593.07 × 2.5 (ratio 2.66)
+Treasury balance: £32055.55 (12-month peak: £32055.55, drawdown: 0.0%)
+Portfolio gross margin YTD: £11.67 | Net margin YTD: £11.67
+Capital costs YTD: £0.00
+VaR_current: £1576.14 | VaR_stressed: £593.07 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.239 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£1576.14) exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility and align risk levels with regulatory limits. The treasury balance, while high, cannot offset this structural risk imbalance.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-07-07 period 10 (logged 2026-06-15T21:17:31Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-07-07 period 10
+Trigger: VaR_current £1576.14 exceeds VaR_stressed £593.07 × 2.5 (ratio 2.66)
+Treasury balance: £32057.85 (12-month peak: £32057.85, drawdown: 0.0%)
+Portfolio gross margin YTD: £13.97 | Net margin YTD: £13.97
+Capital costs YTD: £0.00
+VaR_current: £1576.14 | VaR_stressed: £593.07 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.239 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66 times the stressed VaR, indicating insufficient hedging. Increasing hedge_fraction for the specified customers will reduce exposure to price volatility, especially given the high recent volatility (σ_recent = 1.239) relative to the stressed regime (σ_stressed = 0.50). Minimum adjustment of +0.10 per customer is applied to bring their hedge fractions closer to full coverage.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-08-06 period 10 (logged 2026-06-15T21:18:02Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-08-06 period 10
+Trigger: VaR_current £1576.14 exceeds VaR_stressed £593.07 × 2.5 (ratio 2.66)
+Treasury balance: £32059.75 (12-month peak: £32059.75, drawdown: 0.0%)
+Portfolio gross margin YTD: £15.87 | Net margin YTD: £15.87
+Capital costs YTD: £0.00
+VaR_current: £1576.14 | VaR_stressed: £593.07 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.239 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility. Minimum required adjustment of +0.10 per customer is applied to bring their hedge levels closer to full coverage.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-09-05 period 10 (logged 2026-06-15T21:18:51Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-09-05 period 10
+Trigger: VaR_current £1576.14 exceeds VaR_stressed £593.07 × 2.5 (ratio 2.66)
+Treasury balance: £32061.59 (12-month peak: £32061.59, drawdown: 0.0%)
+Portfolio gross margin YTD: £17.71 | Net margin YTD: £17.71
+Capital costs YTD: £0.00
+VaR_current: £1576.14 | VaR_stressed: £593.07 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.239 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66 times the stressed VaR threshold, indicating significant exposure. Increasing hedge_fraction by the minimum allowed +0.10 for each flagged customer will reduce portfolio risk while adhering to constraints. Customers C1, C3, C4, C5, and C7 all have hedge_fraction at 0.95, leaving room for improvement.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-12-04 period 12 (logged 2026-06-15T21:21:36Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-12-04 period 12
+Trigger: VaR_current £1576.14 exceeds VaR_stressed £593.07 × 2.5 (ratio 2.66)
+Treasury balance: £32077.32 (12-month peak: £32077.32, drawdown: 0.0%)
+Portfolio gross margin YTD: £33.45 | Net margin YTD: £33.45
+Capital costs YTD: £0.00
+VaR_current: £1576.14 | VaR_stressed: £593.07 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.239 | Forward price: £347.12/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. Increasing hedge_fraction for the flagged customers will reduce portfolio volatility and align with the stressed regime's lower σ_stressed. Minimum adjustments are applied to ensure compliance while avoiding over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-01-03 period 12 (logged 2026-06-15T21:22:16Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-01-03 period 12
+Trigger: VaR_current £1576.14 exceeds VaR_stressed £593.07 × 2.5 (ratio 2.66)
+Treasury balance: £32088.29 (12-month peak: £32088.29, drawdown: 0.0%)
+Portfolio gross margin YTD: £0.64 | Net margin YTD: £0.64
+Capital costs YTD: £0.00
+VaR_current: £1576.14 | VaR_stressed: £593.07 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.239 | Forward price: £347.12/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is significantly above the stressed VaR threshold, indicating insufficient hedging. Increasing the hedge fraction for the specified customers by the minimum allowed adjustment (0.10) will reduce portfolio risk and bring VaR within acceptable limits. This adjustment aligns with the requirement to only increase hedge fractions and ensures compliance with risk thresholds.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-02-02 period 16 (logged 2026-06-15T21:22:55Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-02-02 period 16
+Trigger: VaR_current £1576.14 exceeds VaR_stressed £593.07 × 2.5 (ratio 2.66)
+Treasury balance: £32098.22 (12-month peak: £32098.22, drawdown: 0.0%)
+Portfolio gross margin YTD: £10.57 | Net margin YTD: £10.57
+Capital costs YTD: £0.00
+VaR_current: £1576.14 | VaR_stressed: £593.07 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.239 | Forward price: £347.12/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. To reduce this, we increase hedge_fraction for each affected customer by the minimum required amount (0.10) to improve risk mitigation without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-03-04 period 16 (logged 2026-06-15T21:23:40Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-03-04 period 16
+Trigger: VaR_current £1576.14 exceeds VaR_stressed £593.07 × 2.5 (ratio 2.66)
+Treasury balance: £32107.32 (12-month peak: £32107.32, drawdown: 0.0%)
+Portfolio gross margin YTD: £19.67 | Net margin YTD: £19.67
+Capital costs YTD: £0.00
+VaR_current: £1576.14 | VaR_stressed: £593.07 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=0.95 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£39.48 coc=£0.3290/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.239 | Forward price: £347.12/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C3, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce price volatility risk, aligning with the post-2023 regime's higher volatility (σ_stressed = 1.50). The treasury balance provides capacity to absorb additional hedging costs without liquidity constraints.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C3: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-09-01 period 20 (logged 2026-06-15T21:26:09Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-09-01 period 20
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32118.07 (12-month peak: £32118.07, drawdown: 0.0%)
+Portfolio gross margin YTD: £3.06 | Net margin YTD: £3.06
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.230 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating insufficient hedging. Increasing hedge_fraction for the specified customers by the minimum required amount will reduce portfolio risk exposure while adhering to constraints.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-10-01 period 20 (logged 2026-06-15T21:26:43Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-10-01 period 20
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32119.66 (12-month peak: £32119.66, drawdown: 0.0%)
+Portfolio gross margin YTD: £4.65 | Net margin YTD: £4.65
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.230 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating insufficient hedging. Customers C1, C4, C5, and C7 have lower hedge fractions (0.95) compared to others at 1.00. Increasing their hedge_fraction by the minimum required +0.10 will better align risk exposure with the stressed regime's volatility (σ_stressed = 0.50) and reduce tail risk.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-11-30 period 22 (logged 2026-06-15T21:28:42Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-11-30 period 22
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32123.31 (12-month peak: £32123.31, drawdown: 0.0%)
+Portfolio gross margin YTD: £8.29 | Net margin YTD: £8.29
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.230 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current (£1536.66) exceeds the stressed VaR threshold by 2.66x, requiring immediate risk mitigation. Increasing hedge_fraction for C1, C4, C5, and C7 by the minimum required adjustment (+0.10) will reduce exposure while adhering to constraints. This action aligns with the need to bring VaR_current closer to acceptable levels without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-12-30 period 22 (logged 2026-06-15T21:29:21Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-12-30 period 22
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32125.31 (12-month peak: £32125.31, drawdown: 0.0%)
+Portfolio gross margin YTD: £10.30 | Net margin YTD: £10.30
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.230 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility. Minimum adjustment of +0.10 per customer is required to bring risk metrics back within acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-01-29 period 26 (logged 2026-06-15T21:29:51Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-01-29 period 26
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32127.32 (12-month peak: £32127.32, drawdown: 0.0%)
+Portfolio gross margin YTD: £1.90 | Net margin YTD: £1.90
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.230 | Forward price: £216.18/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive exposure. Increasing hedge_fraction for C1, C4, C5, and C7 by 0.10 each will better align hedges with the higher σ_stressed (1.50) regime, reducing tail risk while maintaining treasury balance stability.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-03-30 period 30 (logged 2026-06-15T21:31:30Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-03-30 period 30
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32131.28 (12-month peak: £32131.28, drawdown: 0.0%)
+Portfolio gross margin YTD: £5.85 | Net margin YTD: £5.85
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.230 | Forward price: £216.18/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating elevated risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility. Minimum adjustment of +0.10 per customer is applied to address the breach without overcorrecting.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-06-28 period 30 (logged 2026-06-15T21:34:06Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-06-28 period 30
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32135.86 (12-month peak: £32135.86, drawdown: 0.0%)
+Portfolio gross margin YTD: £10.44 | Net margin YTD: £10.44
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.230 | Forward price: £216.18/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility. Minimum adjustment of +0.10 per customer is applied to all four as required.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-07-21 period 1 (logged 2026-06-15T21:34:39Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-07-21 period 1
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32181.52 (12-month peak: £32181.52, drawdown: 0.0%)
+Portfolio gross margin YTD: £1.35 | Net margin YTD: £1.35
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66x the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for the specified customers will reduce portfolio volatility by better aligning hedges with their energy price risk. The minimum required adjustment of +0.10 per customer is applied to bring VaR within acceptable limits.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-08-20 period 1 (logged 2026-06-15T21:35:30Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-08-20 period 1
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32183.28 (12-month peak: £32183.28, drawdown: 0.0%)
+Portfolio gross margin YTD: £3.11 | Net margin YTD: £3.11
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66 times the stressed VaR threshold, indicating significant exposure. Increasing hedge_fraction for the specified customers by the maximum allowed amount will reduce risk exposure and bring VaR closer to acceptable levels. All four customers have existing collateral, making them suitable candidates for increased hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.25
+  - C4: 0.95 → 1.25
+  - C5: 0.95 → 1.25
+  - C7: 0.95 → 1.25
+
+---
+
+## Risk Committee Wake-Up — 2022-09-19 period 1 (logged 2026-06-15T21:35:53Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-09-19 period 1
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32185.55 (12-month peak: £32185.55, drawdown: 0.0%)
+Portfolio gross margin YTD: £5.37 | Net margin YTD: £5.37
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating excessive risk exposure. Increasing hedge_fraction for C1, C4, C5, and C7 will reduce portfolio volatility by locking in more price protection. Since treasury balance is strong and capital costs are zero, we can safely increase hedges without impacting liquidity.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-10-19 period 1 (logged 2026-06-15T21:36:19Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-10-19 period 1
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32189.30 (12-month peak: £32189.30, drawdown: 0.0%)
+Portfolio gross margin YTD: £9.13 | Net margin YTD: £9.13
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 6.6%, indicating increased risk exposure. Increasing hedge fractions for the specified customers will reduce portfolio volatility. Minimum adjustments are applied to all four customers to bring VaR in line with stress-test parameters.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-11-18 period 3 (logged 2026-06-15T21:36:58Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-11-18 period 3
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32193.42 (12-month peak: £32193.42, drawdown: 0.0%)
+Portfolio gross margin YTD: £13.24 | Net margin YTD: £13.24
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating increased risk exposure. Since the trigger is a slight overage and treasury balance is stable, applying the minimum required adjustment of +0.10 to each specified customer will reduce portfolio volatility without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-12-18 period 3 (logged 2026-06-15T21:37:55Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-12-18 period 3
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32201.19 (12-month peak: £32201.19, drawdown: 0.0%)
+Portfolio gross margin YTD: £21.02 | Net margin YTD: £21.02
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.66x, indicating significant exposure risk. Increasing hedge_fraction for C1, C4, C5, and C7 by the minimum required adjustment (+0.10) will reduce portfolio volatility and align with the pre-2023 regime's lower stressed volatility assumptions.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-01-17 period 3 (logged 2026-06-15T21:38:33Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-01-17 period 3
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32208.08 (12-month peak: £32208.08, drawdown: 0.0%)
+Portfolio gross margin YTD: £3.69 | Net margin YTD: £3.69
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66x the stressed VaR threshold, indicating excessive risk exposure. Since the flagged customers (C1, C4, C5, C7) have hedge fractions at 0.95 but not 1.00, increasing their hedge_fraction by the minimum required +0.10 will help reduce tail risk without over-hedging. This adjustment aligns with the rule to only increase hedge_fraction when thresholds are breached.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-02-16 period 7 (logged 2026-06-15T21:39:20Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-02-16 period 7
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32214.77 (12-month peak: £32214.77, drawdown: 0.0%)
+Portfolio gross margin YTD: £10.38 | Net margin YTD: £10.38
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£1536.66) exceeds the stressed VaR threshold by 2.66x, indicating significant exposure. Increasing hedge_fraction for C1, C4, C5, and C7 by the minimum required +0.10 will reduce portfolio risk while adhering to constraints. This adjustment aligns with the need to bring VaR closer to acceptable levels without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-04-17 period 11 (logged 2026-06-15T21:41:04Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-04-17 period 11
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32227.36 (12-month peak: £32227.36, drawdown: 0.0%)
+Portfolio gross margin YTD: £22.97 | Net margin YTD: £22.97
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66 times the stressed VaR threshold, indicating excessive risk exposure. Increasing hedge_fraction for the flagged customers will reduce portfolio volatility by aligning hedges more closely with stressed regime conditions. Maximum adjustments are applied to ensure rapid risk mitigation given the significant VaR overage.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.25
+  - C4: 0.95 → 1.25
+  - C5: 0.95 → 1.25
+  - C7: 0.95 → 1.25
+
+---
+
+## Risk Committee Wake-Up — 2023-06-16 period 11 (logged 2026-06-15T21:42:56Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-06-16 period 11
+Trigger: VaR_current £1536.66 exceeds VaR_stressed £578.12 × 2.5 (ratio 2.66)
+Treasury balance: £32234.09 (12-month peak: £32234.09, drawdown: 0.0%)
+Portfolio gross margin YTD: £29.70 | Net margin YTD: £29.70
+Capital costs YTD: £0.00
+VaR_current: £1536.66 | VaR_stressed: £578.12 | Ratio: 2.66
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=0.95 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£182.24 coc=£1.5186/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.195 | Forward price: £216.18/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C4, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.66 times the stressed VaR, exceeding the 2.5x threshold. Customers C1, C4, C5, and C7 have hedge fractions at 0.95, which may be insufficient given the elevated volatility regime (σ_stressed = 1.50). Increasing hedge_fraction by the minimum required +0.10 for each will better align portfolio risk with stress-test parameters.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C4: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-10-16 period 11 (logged 2026-06-15T21:43:31Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-10-16 period 11
+Trigger: VaR_current £1354.42 exceeds VaR_stressed £520.76 × 2.5 (ratio 2.60)
+Treasury balance: £32237.00 (12-month peak: £32237.00, drawdown: 0.0%)
+Portfolio gross margin YTD: £2.17 | Net margin YTD: £2.17
+Capital costs YTD: £0.00
+VaR_current: £1354.42 | VaR_stressed: £520.76 | Ratio: 2.60
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.156 | Forward price: £404.49/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.60x the stressed threshold, indicating excessive risk exposure. Increasing hedge_fraction for C1, C5, and C7 will better protect against price volatility, reducing VaR while treasury balance remains sufficient. The high σ_recent (1.156) compared to σ_stressed (0.50) justifies stronger hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-11-15 period 13 (logged 2026-06-15T21:44:08Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-11-15 period 13
+Trigger: VaR_current £1354.42 exceeds VaR_stressed £520.76 × 2.5 (ratio 2.60)
+Treasury balance: £32241.28 (12-month peak: £32241.28, drawdown: 0.0%)
+Portfolio gross margin YTD: £6.45 | Net margin YTD: £6.45
+Capital costs YTD: £0.00
+VaR_current: £1354.42 | VaR_stressed: £520.76 | Ratio: 2.60
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.156 | Forward price: £404.49/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£1354.42) exceeds the stressed VaR threshold by 2.60x, indicating insufficient hedging. Customers C1, C5, and C7 have lower hedge fractions and/or collateral, making them more vulnerable. A minimum +0.10 adjustment per customer is required to reduce exposure while adhering to constraints.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2022-12-15 period 13 (logged 2026-06-15T21:44:32Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2022-12-15 period 13
+Trigger: VaR_current £1354.42 exceeds VaR_stressed £520.76 × 2.5 (ratio 2.60)
+Treasury balance: £32245.81 (12-month peak: £32245.81, drawdown: 0.0%)
+Portfolio gross margin YTD: £10.98 | Net margin YTD: £10.98
+Capital costs YTD: £0.00
+VaR_current: £1354.42 | VaR_stressed: £520.76 | Ratio: 2.60
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.156 | Forward price: £404.49/MWh
+Regime: pre-2023 (σ_stressed = 0.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.6x, requiring increased hedging. Customers C1, C5, and C7 have lower collateral coverage (C5 has £764.24 collateral but £6.37/mo cost) and are likely contributing to higher un-hedged exposure. Increasing their hedge_fraction by 0.10 each reduces tail risk while staying within capital limits.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-01-14 period 13 (logged 2026-06-15T21:44:55Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-01-14 period 13
+Trigger: VaR_current £1354.42 exceeds VaR_stressed £520.76 × 2.5 (ratio 2.60)
+Treasury balance: £32250.34 (12-month peak: £32250.34, drawdown: 0.0%)
+Portfolio gross margin YTD: £2.03 | Net margin YTD: £2.03
+Capital costs YTD: £0.00
+VaR_current: £1354.42 | VaR_stressed: £520.76 | Ratio: 2.60
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.156 | Forward price: £404.49/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.60x, requiring increased hedging. Customers C1, C5, and C7 have lower hedge fractions (0.95) compared to others (up to 1.00), and increasing their hedge_fraction by 0.10 each will better align their risk exposure with the stressed regime volatility (σ_stressed = 1.50). The treasury balance is stable, allowing this adjustment without liquidity concerns.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-02-13 period 17 (logged 2026-06-15T21:45:47Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-02-13 period 17
+Trigger: VaR_current £1354.42 exceeds VaR_stressed £520.76 × 2.5 (ratio 2.60)
+Treasury balance: £32254.89 (12-month peak: £32254.89, drawdown: 0.0%)
+Portfolio gross margin YTD: £6.57 | Net margin YTD: £6.57
+Capital costs YTD: £0.00
+VaR_current: £1354.42 | VaR_stressed: £520.76 | Ratio: 2.60
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.156 | Forward price: £404.49/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR ratio of 2.60 exceeds the 2.5 threshold, indicating heightened risk exposure. Customers C1, C5, and C7 have lower collateral coverage compared to others, making them more vulnerable to price volatility. Increasing their hedge_fraction by the minimum required amount (+0.10) will proportionally reduce their risk exposure without over-hedging.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-04-14 period 21 (logged 2026-06-15T21:47:37Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-04-14 period 21
+Trigger: VaR_current £1354.42 exceeds VaR_stressed £520.76 × 2.5 (ratio 2.60)
+Treasury balance: £32263.56 (12-month peak: £32263.56, drawdown: 0.0%)
+Portfolio gross margin YTD: £15.25 | Net margin YTD: £15.25
+Capital costs YTD: £0.00
+VaR_current: £1354.42 | VaR_stressed: £520.76 | Ratio: 2.60
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.156 | Forward price: £404.49/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.60 times the stressed VaR threshold, indicating excessive risk exposure. Customers C1, C5, and C7 have lower collateral coverage compared to others, making them more vulnerable to price volatility. Increasing their hedge_fraction by the minimum required amount will help reduce portfolio risk while adhering to constraints.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-06-13 period 21 (logged 2026-06-15T21:49:07Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-06-13 period 21
+Trigger: VaR_current £1354.42 exceeds VaR_stressed £520.76 × 2.5 (ratio 2.60)
+Treasury balance: £32271.15 (12-month peak: £32271.15, drawdown: 0.0%)
+Portfolio gross margin YTD: £22.84 | Net margin YTD: £22.84
+Capital costs YTD: £0.00
+VaR_current: £1354.42 | VaR_stressed: £520.76 | Ratio: 2.60
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.156 | Forward price: £404.49/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.60x the stressed VaR threshold, indicating excessive risk exposure. Customers C1, C5, and C7 have hedge fractions below 1.00, leaving them vulnerable to price volatility. Increasing their hedge fractions to 1.00 (maximum allowable) will fully offset their exposure and reduce the VaR ratio.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.00
+  - C5: 0.95 → 1.00
+  - C7: 0.95 → 1.00
+
+---
+
+## Risk Committee Wake-Up — 2023-09-11 period 21 (logged 2026-06-15T21:52:03Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-09-11 period 21
+Trigger: VaR_current £1354.42 exceeds VaR_stressed £520.76 × 2.5 (ratio 2.60)
+Treasury balance: £32282.26 (12-month peak: £32282.26, drawdown: 0.0%)
+Portfolio gross margin YTD: £33.95 | Net margin YTD: £33.95
+Capital costs YTD: £0.00
+VaR_current: £1354.42 | VaR_stressed: £520.76 | Ratio: 2.60
+Per-customer hedge_fraction: C1=0.95 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£85.60 coc=£0.7133/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.156 | Forward price: £404.49/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C1, C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.6 times the stressed VaR, exceeding the 2.5x threshold. This indicates excessive risk exposure requiring immediate mitigation. Increasing hedge fractions for C1, C5, and C7 will reduce un-hedged risk while respecting the minimum adjustment requirement.
+
+**Adjustments made:**
+  - C1: 0.95 → 1.05
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-01-02 period 40 (logged 2026-06-15T21:52:29Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-01-02 period 40
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32381.18 (12-month peak: £32381.18, drawdown: 0.0%)
+Portfolio gross margin YTD: £0.13 | Net margin YTD: £0.13
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.60×, indicating excessive risk exposure. Customers C5 and C7 have lower hedge fractions (0.95) compared to others (1.00) and moderate collateral, making them vulnerable to price volatility. Increasing their hedge_fraction by 0.10 each will better align their risk coverage with the portfolio's stressed scenario requirements.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-02-01 period 44 (logged 2026-06-15T21:52:57Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-02-01 period 44
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32383.37 (12-month peak: £32383.37, drawdown: 0.0%)
+Portfolio gross margin YTD: £2.32 | Net margin YTD: £2.32
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR exceeds the stressed VaR threshold by 2.60x, requiring increased hedging to reduce exposure. Customers C5 and C7 have lower hedge fractions (0.95) and significant collateral, making them suitable for adjustment. A minimum +0.10 increase per customer will help align risk exposure with the stressed scenario regime.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-03-03 period 44 (logged 2026-06-15T21:53:54Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-03-03 period 44
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32385.55 (12-month peak: £32385.55, drawdown: 0.0%)
+Portfolio gross margin YTD: £4.50 | Net margin YTD: £4.50
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£1268.82) exceeds the stressed VaR threshold by 2.6x, indicating excessive risk exposure. Customers C5 and C7 have lower collateral coverage and higher vulnerability, so increasing their hedge_fraction by 0.20 each will reduce portfolio volatility while respecting adjustment limits.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.15
+  - C7: 0.95 → 1.15
+
+---
+
+## Risk Committee Wake-Up — 2023-04-02 period 48 (logged 2026-06-15T21:54:28Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-04-02 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32387.62 (12-month peak: £32387.62, drawdown: 0.0%)
+Portfolio gross margin YTD: £6.57 | Net margin YTD: £6.57
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.60x, indicating heightened portfolio risk. Customers C5 and C7 have lower hedge fractions (0.95) compared to others and hold significant collateral, suggesting increased exposure. Raising their hedge_fraction by the minimum required (+0.10) will better align their risk coverage with the stressed regime's volatility (σ_stressed = 1.50).
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-05-02 period 48 (logged 2026-06-15T21:55:14Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-05-02 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32389.32 (12-month peak: £32389.32, drawdown: 0.0%)
+Portfolio gross margin YTD: £8.27 | Net margin YTD: £8.27
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current has exceeded the stressed VaR threshold by 2.6x, indicating heightened risk exposure. Customers C5 and C7 have lower hedge fractions (0.95) and significant collateral, suggesting potential under-hedging. Increasing their hedge fractions by 0.10 each will better align portfolio risk with stressed conditions without over-hedging.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-06-01 period 48 (logged 2026-06-15T21:55:37Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-06-01 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32390.91 (12-month peak: £32390.91, drawdown: 0.0%)
+Portfolio gross margin YTD: £9.86 | Net margin YTD: £9.86
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.60x, indicating excessive risk exposure. Customers C5 and C7 have lower hedge fractions (0.95) compared to others (1.00), creating a potential imbalance. Increasing their hedge fractions by 0.10 each will better align their risk protection with the portfolio's overall hedging strategy, while staying within the maximum adjustment limit.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-07-01 period 48 (logged 2026-06-15T21:56:25Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-07-01 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32392.45 (12-month peak: £32392.45, drawdown: 0.0%)
+Portfolio gross margin YTD: £11.40 | Net margin YTD: £11.40
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.60x, indicating excessive risk exposure. Customers C5 and C7 have lower hedge fractions (0.95) and significant collateral obligations, making them vulnerable to margin calls during stress. Increasing their hedge_fraction reduces unhedged exposure and aligns with the need to strengthen risk mitigation.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-07-31 period 48 (logged 2026-06-15T21:56:50Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-07-31 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32393.98 (12-month peak: £32393.98, drawdown: 0.0%)
+Portfolio gross margin YTD: £12.93 | Net margin YTD: £12.93
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.60x, indicating heightened risk exposure. Customers C5 and C7 have lower hedge fractions (0.95) compared to others (1.00) and significant collateral requirements, suggesting their positions are under-hedged. Increasing their hedge_fraction by the minimum required +0.10 will better align risk exposure with the stressed regime's volatility (σ_stressed = 1.50).
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-08-30 period 48 (logged 2026-06-15T21:57:17Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-08-30 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32395.50 (12-month peak: £32395.50, drawdown: 0.0%)
+Portfolio gross margin YTD: £14.45 | Net margin YTD: £14.45
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.6x, indicating excessive risk exposure. Customers C5 and C7 have lower hedge fractions (0.95) compared to others (1.00), and their collateral positions suggest they may be under-hedged relative to the post-2023 stress regime (σ_stressed = 1.50). Increasing their hedge fractions will reduce portfolio volatility and align with the higher stress volatility environment.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-09-29 period 48 (logged 2026-06-15T21:57:55Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-09-29 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32397.23 (12-month peak: £32397.23, drawdown: 0.0%)
+Portfolio gross margin YTD: £16.18 | Net margin YTD: £16.18
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.60×, indicating heightened exposure. Customers C5 and C7 have lower hedge fractions (0.95) compared to others (1.00) and hold collateral, suggesting they may require additional hedging to align with risk limits. Increasing their hedge_fraction by the minimum required amount reduces potential losses without over-hedging.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-10-29 period 48 (logged 2026-06-15T21:58:23Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-10-29 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32398.99 (12-month peak: £32398.99, drawdown: 0.0%)
+Portfolio gross margin YTD: £17.94 | Net margin YTD: £17.94
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR ratio (2.60) exceeds the 2.5 threshold, indicating excessive risk exposure. Customers C5 and C7 have lower hedge fractions (0.95) compared to others (1.00), and while they have collateral, their lower hedges may leave them vulnerable under stressed conditions (σ_stressed = 1.50). Increasing their hedge fractions by the minimum required (0.10) will better align their risk protection with the portfolio's overall stress regime.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-11-28 period 48 (logged 2026-06-15T21:59:14Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-11-28 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32401.17 (12-month peak: £32401.17, drawdown: 0.0%)
+Portfolio gross margin YTD: £20.12 | Net margin YTD: £20.12
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.6x, indicating heightened risk exposure. Customers C5 and C7 have lower hedge fractions (0.95) compared to others (1.00), and their collateral coverage is moderate but not fully protective. Increasing their hedge_fraction by the minimum required +0.10 will reduce tail risk exposure without over-hedging.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-12-28 period 48 (logged 2026-06-15T22:00:08Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-12-28 period 48
+Trigger: VaR_current £1268.82 exceeds VaR_stressed £488.29 × 2.5 (ratio 2.60)
+Treasury balance: £32403.35 (12-month peak: £32403.35, drawdown: 0.0%)
+Portfolio gross margin YTD: £22.30 | Net margin YTD: £22.30
+Capital costs YTD: £0.00
+VaR_current: £1268.82 | VaR_stressed: £488.29 | Ratio: 2.60
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=0.95 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£764.24 coc=£6.3687/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.143 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C5, C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.6x, indicating heightened risk exposure. Customers C5 and C7 have lower collateral coverage compared to others, making them more vulnerable to price volatility. Increasing their hedge_fraction will reduce portfolio risk by aligning exposure more closely with forward prices.
+
+**Adjustments made:**
+  - C5: 0.95 → 1.05
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-01-20 period 20 (logged 2026-06-15T22:00:31Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-01-20 period 20
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32450.56 (12-month peak: £32450.56, drawdown: 0.0%)
+Portfolio gross margin YTD: £7.88 | Net margin YTD: £7.88
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the 2.5x stressed VaR threshold, indicating increased portfolio risk. C7 has the highest collateral but a lower hedge_fraction (0.95) compared to others (mostly 1.00). Increasing C7's hedge_fraction by +0.10 aligns with the need to reduce exposure while leveraging its collateral capacity.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-02-19 period 23 (logged 2026-06-15T22:01:03Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-02-19 period 23
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32463.82 (12-month peak: £32463.82, drawdown: 0.0%)
+Portfolio gross margin YTD: £21.14 | Net margin YTD: £21.14
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£504.58) exceeds the stressed VaR threshold by 2.54x, indicating heightened risk exposure. Customer C7 has the lowest hedge_fraction (0.95) among all customers and holds collateral (£391.34), making it a logical target for adjustment. Increasing the hedge_fraction by 0.10 will better align risk mitigation with the elevated volatility regime (σ_stressed = 1.50).
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-03-21 period 25 (logged 2026-06-15T22:01:26Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-03-21 period 25
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32476.29 (12-month peak: £32476.29, drawdown: 0.0%)
+Portfolio gross margin YTD: £33.61 | Net margin YTD: £33.61
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.54x, indicating insufficient hedging. Customer C7 has the lowest hedge_fraction (0.95) among peers and holds collateral (£391.34), suggesting room for increased protection. A +0.10 adjustment aligns with minimum requirements while addressing the VaR imbalance without over-hedging.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-04-20 period 27 (logged 2026-06-15T22:01:50Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-04-20 period 27
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32486.22 (12-month peak: £32486.22, drawdown: 0.0%)
+Portfolio gross margin YTD: £43.54 | Net margin YTD: £43.54
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.54x, indicating insufficient hedging. C7 has the lowest hedge_fraction (0.95) and significant collateral, but its exposure may still contribute to the elevated VaR. A minimum +0.10 increase aligns with the threshold breach severity and ensures compliance without over-hedging.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-05-20 period 27 (logged 2026-06-15T22:02:37Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-05-20 period 27
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32494.44 (12-month peak: £32494.44, drawdown: 0.0%)
+Portfolio gross margin YTD: £51.76 | Net margin YTD: £51.76
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+Customer C7 has a lower hedge_fraction (0.95) compared to others and holds collateral, but the current VaR ratio exceeds the threshold. Increasing C7's hedge_fraction by the maximum allowed adjustment (+0.30) will better align their risk exposure with the portfolio's stressed scenario and reduce overall VaR.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.25
+
+---
+
+## Risk Committee Wake-Up — 2023-06-19 period 27 (logged 2026-06-15T22:03:04Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-06-19 period 27
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32500.39 (12-month peak: £32500.39, drawdown: 0.0%)
+Portfolio gross margin YTD: £57.71 | Net margin YTD: £57.71
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR by 2.54x, indicating insufficient hedging. C7 has the lowest hedge_fraction (0.95) among customers with collateral, suggesting under-hedging relative to their exposure. Increasing their hedge_fraction reduces tail risk and aligns with the need to bring VaR_current closer to the stressed VaR threshold.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-07-19 period 27 (logged 2026-06-15T22:03:52Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-07-19 period 27
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32505.70 (12-month peak: £32505.70, drawdown: 0.0%)
+Portfolio gross margin YTD: £63.02 | Net margin YTD: £63.02
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.54x, indicating excessive risk exposure. Customer C7 has the highest collateral but its current hedge_fraction (0.95) is insufficient to mitigate volatility risks in the post-2023 regime (σ_stressed=1.50). Increasing the hedge_fraction by the minimum required +0.10 will better align risk exposure with stressed market conditions.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-08-18 period 27 (logged 2026-06-15T22:04:36Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-08-18 period 27
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32510.84 (12-month peak: £32510.84, drawdown: 0.0%)
+Portfolio gross margin YTD: £68.16 | Net margin YTD: £68.16
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR is 2.54 times the stressed VaR, indicating insufficient hedging. C7's hedge_fraction (0.95) is lower than most customers, so increasing it by the minimum allowed (0.10) will help reduce the VaR ratio without over-hedging. The treasury balance is sufficient to absorb any adjustment.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-09-17 period 27 (logged 2026-06-15T22:05:24Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-09-17 period 27
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32516.08 (12-month peak: £32516.08, drawdown: 0.0%)
+Portfolio gross margin YTD: £73.40 | Net margin YTD: £73.40
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR (£504.58) exceeds the 2.5× stressed VaR threshold, indicating excessive portfolio risk. Customer C7 has a lower hedge_fraction (0.95) than most peers and holds £391.34 in collateral, suggesting potential under-hedging. Increasing their hedge_fraction reduces exposure to price volatility, aligning the portfolio with risk limits.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-10-17 period 27 (logged 2026-06-15T22:05:50Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-10-17 period 27
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32522.26 (12-month peak: £32522.26, drawdown: 0.0%)
+Portfolio gross margin YTD: £79.57 | Net margin YTD: £79.57
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The current VaR exceeds the stressed VaR threshold by 2.54x, indicating heightened risk exposure. Customer C7 has the lowest hedge_fraction (0.95) among all customers and holds the most collateral (£391.34), suggesting their position is relatively less protected. Increasing their hedge_fraction will reduce portfolio volatility and bring VaR closer to acceptable limits.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-11-16 period 27 (logged 2026-06-15T22:06:20Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-11-16 period 27
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32531.85 (12-month peak: £32531.85, drawdown: 0.0%)
+Portfolio gross margin YTD: £89.17 | Net margin YTD: £89.17
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR threshold by 2.54x, indicating excessive risk exposure. C7 has the highest collateral but currently the lowest hedge_fraction (0.95), creating an imbalance. Increasing C7's hedge_fraction by +0.10 will better align its risk protection with the portfolio's stressed scenario requirements.
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05
+
+---
+
+## Risk Committee Wake-Up — 2023-12-16 period 27 (logged 2026-06-15T22:07:07Z)
+
+**Context summary:**
+## Risk Committee Wake-Up — 2023-12-16 period 27
+Trigger: VaR_current £504.58 exceeds VaR_stressed £198.40 × 2.5 (ratio 2.54)
+Treasury balance: £32544.38 (12-month peak: £32544.38, drawdown: 0.0%)
+Portfolio gross margin YTD: £101.70 | Net margin YTD: £101.70
+Capital costs YTD: £0.00
+VaR_current: £504.58 | VaR_stressed: £198.40 | Ratio: 2.54
+Per-customer hedge_fraction: C1=1.00 C2=0.95 C3=1.00 C4=1.00 C5=1.00 C6=1.00 C7=0.95 C8=1.00 C9=1.00
+Per-customer collateral: C1: collateral=£0.00 coc=£0.0000/mo C2: collateral=£113.24 coc=£0.9437/mo C3: collateral=£0.00 coc=£0.0000/mo C4: collateral=£0.00 coc=£0.0000/mo C5: collateral=£0.00 coc=£0.0000/mo C6: collateral=£0.00 coc=£0.0000/mo C7: collateral=£391.34 coc=£3.2612/mo C8: collateral=£0.00 coc=£0.0000/mo C9: collateral=£0.00 coc=£0.0000/mo
+Rolling 12m SSP: σ_recent = 1.025 | Forward price: £323.47/MWh
+Regime: post-2023 (σ_stressed = 1.50)
+Recommendation requested: adjust hedge_fraction for C7
+Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
+
+**Agent reasoning:**
+The VaR_current exceeds the stressed VaR by 2.54x, indicating heightened risk exposure. Customer C7 has a lower hedge_fraction (0.95) compared to others and holds significant collateral (£391.34), suggesting potential overexposure. Increasing the hedge_fraction by 0.10 will better align risk mitigation with the stressed regime's volatility (σ_stressed = 1.50).
+
+**Adjustments made:**
+  - C7: 0.95 → 1.05

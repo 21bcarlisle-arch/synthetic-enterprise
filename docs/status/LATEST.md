@@ -8,7 +8,50 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-15T18:35:58Z
+Last updated: 2026-06-16T04:41:09Z
+
+**Phase A forward-curve fix (daily-mean sigma) — re-run complete
+(2026-06-16)**: `sim/forward_curve.py`'s volatility premium now uses
+`pstdev(daily mean SSP)` instead of `pstdev(half-hourly SSP)` — fixing a
+systematic ~4.3x inflation of the volatility term that was causing 40-290%
+overpriced forwards (2016-2024 pervasive, not crisis-specific). Root cause,
+empirical analysis, and fix in `docs/staging/drafts/FORWARD_CURVE_FIX_PROPOSAL.md`
+(`acf30ba`). Code change committed `038c26d`, 296 tests passing, lint clean.
+
+Full 2016-2025 re-run with BOTH fixes applied (naked_kwh + forward-curve
+daily-mean sigma) — comparison against naked_kwh-only and Phase 6a baseline:
+
+| Metric | Phase 6a baseline | +naked_kwh fix | +fwd curve Phase A |
+|--------|------------------|----------------|-------------------|
+| Revenue | £188,190 | £171,787 | £132,449 |
+| Gross margin | £27,525 | £11,230 | £5,912 |
+| Capital cost | £3,847 | £3,899 | £1,463 |
+| Net margin | £23,679 | £7,331 | £4,450 |
+| Net/revenue | 12.6% | 4.3% | **3.4%** |
+| Naked counterfactual | £51,161 | £34,758 | £6,662 |
+| Hedging cost vs naked | -£27,483 | -£27,427 | -£2,212 |
+| Treasury change | £23,678 | £7,331 | £4,450 |
+| Committee wake-ups | 168 | 155 | — |
+
+Key observations:
+- Net margin 3.4% of revenue — inside the 2-5% industry benchmark ✓
+- Capital cost dropped to £1,463 (was £3,899) because VaR-based capital
+  charge scales with forward price × naked position — more realistic
+  forwards produce more realistic capital charges ✓
+- Hedging cost vs. naked dropped from £27,427 to £2,212 — the old
+  overstated figure was an artifact of paying massively overpriced forward
+  prices to hedge (naked position just paid spot). Now hedging only costs
+  slightly more than going naked in calm years, but provided meaningful
+  protection in 2021 crisis ✓
+- 2021 net margin: £-355.59 (was £-63.46 with naked_kwh-only, was
+  £23,679 fully unhedged) — crisis still hurts but manageable
+- SURVIVED full window, treasury £29,846 → £34,296
+
+**Phase B (risk_factor recalibration 1.2→~0.25) on hold pending Rich's
+steer**: Phase A alone brings net margin to 3.4%, within benchmark. Phase B
+would further reduce revenue/gross and could push net margin below 2% — the
+direction and magnitude would need validation. Recommend reviewing Phase A's
+results first before committing to Phase B.
 
 **naked_kwh pricing fix re-run — net margin now within industry benchmark
 (2026-06-15)**: `saas/tariff_pricing.price_fixed_tariff()` previously priced
