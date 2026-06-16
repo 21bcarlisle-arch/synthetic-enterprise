@@ -923,8 +923,6 @@ def check_autoloop(pane_text: str) -> None:
     log("Session idle — sending autoloop continuation instruction")
     subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, AUTOLOOP_INSTRUCTION, "Enter"])
     autoloop_times.append(time.time())
-    ntfy("Claude Code milestone reached — autoloop continuing to the next "
-         "backlog item.")
 
 
 def handle_session_ended() -> None:
