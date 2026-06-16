@@ -8,7 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T05:58:59Z
+Last updated: 2026-06-16T08:58:06Z
+
+**Phase 6b full validation run in progress (PID 101490, 2026-06-16)**:
+Re-run started after discovering that the previous full run (PID 96308) had
+147/148 risk committee calls fail (Ollama was starved by a competing
+llama-server on the GPU). Phase 6b churn data from that run is structurally
+valid (churn decisions are committee-independent), but financial figures
+require a clean committee run. Ollama confirmed responsive. ETA ~1-2h.
 
 **Phase 6b complete — event-driven customer lifecycle MVP (2026-06-16)**:
 Gap #1 from the "five hollow gaps" (static customer roster since 2016) is
@@ -28,9 +35,13 @@ Key design:
 - New "Customer Lifecycle Events" section in ANNUAL_REPORT.md — replaces
   "Not available" for REPORTING_BACKLOG item 7
 
-Fast-mode smoke test (--fast --end-year 2018): 9 renewal events, 0 churns
-(expected at 5% base rate with this seed). Full 2016-2025 validation run
-in progress (with LLM committee calls — no fast mode).
+Churn pattern from degraded run (committee-independent, structurally valid):
+- 46 renewal rolls, 6 churns
+- 2020-06: C3 (unlucky roll)
+- 2021-12: C1+C5 (energy crisis — bill shocks raised churn probability)
+- 2022-03: C2 (crisis aftermath)
+- 2024-03: C6, 2024-09: C4 (late attrition)
+- C7/C8/C9 (HH customers) — all survived full window
 
 309 tests passing, lint clean. Commits: db56e35 (Phase 6b), 2d315b4
 (admin section, backlog cleanup), 6a64abb (NTFY noise fix).
@@ -88,5 +99,11 @@ Phase 5c mandate-hedged baseline: net margin £23,678.55, treasury
 4. HH data path — **CLOSED by Phase 6a**: C7-C9 on real HH consumption.
 5. Reporting — **CLOSED by Phase 5a/5b**: ANNUAL_REPORT.md, full pipeline.
 
+**NTFY cleanup (2026-06-16)**: removed two per-cycle notifications that were
+firing without needing Rich's attention:
+- "usage-pause window has ended — autoloop resuming" (fired on every soft-pause
+  expiry; not actionable)
+- Verbose 7-line startup message → shortened to one sentence
+
 309 tests passing, lint clean.
-Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
+Report (awaiting clean run): https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md

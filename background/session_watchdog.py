@@ -801,7 +801,6 @@ def usage_pause_active() -> bool:
 
     log(f"Usage pause window ended (resume_at={data['resume_at']}) — resuming autoloop")
     USAGE_PAUSE_FILE.unlink()
-    ntfy("Claude Code usage-pause window has ended — autoloop resuming.")
     return False
 
 
@@ -946,13 +945,7 @@ def main() -> None:
         "confirmation, except usage-limit auto-resume); autoloop active "
         f"(idle {AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS}s -> continue, "
         "REVIEW_GATE/permission prompts pause for Rich)")
-    ntfy("Session watchdog started — monitoring 'claude' tmux session. "
-         "Crash restarts require a YES reply (no --dangerously-skip-permissions, "
-         f"max {MAX_RESTARTS_PER_HOUR}/hour); usage-limit pauses auto-resume "
-         "without confirmation; idle sessions auto-continue to the next "
-         "backlog item unless a REVIEW_GATE or permission prompt is showing. "
-         "Short NTFY messages from Rich's phone are relayed to the session "
-         "as steering input (see NTFY_TWO_WAY_PROTOCOL.md).")
+    ntfy(f"Session watchdog started — autoloop active, crash restarts need YES (max {MAX_RESTARTS_PER_HOUR}/hr).")
     consecutive_down = 0
     command_since = _load_command_since()
 

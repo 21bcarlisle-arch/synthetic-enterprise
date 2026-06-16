@@ -434,7 +434,8 @@ def test_usage_pause_active_clears_file_once_resume_time_passes(tmp_path, monkey
 
     assert watchdog.usage_pause_active() is False
     assert not pause_file.is_file()
-    assert any("resuming" in msg for msg in ntfy_messages)
+    # No "resuming" NTFY — removed to reduce notification noise (Rich's request 2026-06-16)
+    assert not any("resuming" in msg for msg in ntfy_messages)
 
 
 def test_usage_pause_active_clears_malformed_file(tmp_path, monkeypatch):
