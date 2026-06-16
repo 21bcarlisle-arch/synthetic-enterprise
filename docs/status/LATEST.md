@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T09:46:32Z
+Last updated: 2026-06-16T09:47:04Z
 
 **Phase 6b+7a validated — first clean full run complete (2026-06-16)**:
 Full 2016-2025 run (PID 106909) completed with working committee calls.
@@ -45,8 +45,6 @@ the sum of transactions, not just a formula. New `saas/ledger.py`:
   confirms ledger net matches simulation direct figure
 - `docs/reports/ledger_latest.json` written alongside `run_output_latest.json`
   at end of every fresh full run (Phase 7a 4-hour gate passed, no redirect)
-
-332 tests passing, lint clean.
 
 332 tests passing, lint clean.
 Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
@@ -144,5 +142,4 @@ firing without needing Rich's attention:
   expiry; not actionable)
 - Verbose 7-line startup message → shortened to one sentence
 
-309 tests passing, lint clean.
-Report (awaiting clean run): https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
+332 tests passing, lint clean.
