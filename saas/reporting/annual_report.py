@@ -995,7 +995,9 @@ def _send_run_complete_ntfy(data: dict, report_path: Path) -> None:
         f"Net margin: £{net:,.0f} ({net/rev*100:.1f}% of revenue)\n"
         f"Treasury: £{t_start:,.0f} → £{t_end:,.0f}\n"
         f"Committee: {wakeups} wake-ups"
-        f"{churn_line}"
+        f"{churn_line}\n"
+        f"Next: Phase 7b (payment lifecycle ledger) proposed — "
+        f"proceeds in 4h unless redirected via staging"
     )
     send_ntfy(msg, headers={"X-Priority": "default", "X-Tags": "bar_chart"})
 
