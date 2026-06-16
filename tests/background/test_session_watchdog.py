@@ -388,6 +388,28 @@ def test_check_autoloop_respects_cap(monkeypatch):
     _reset_autoloop_state()
 
 
+def test_check_autoloop_cap_ntfy_fires_only_once(monkeypatch):
+    """Cap NTFY must not repeat on every idle check — only fires once per cap window."""
+    _reset_autoloop_state()
+    now = time.time()
+    for _ in range(watchdog.MAX_AUTOLOOP_PER_HOUR):
+        watchdog.autoloop_times.append(now)
+
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: None)
+
+    idle_pane = "Claude Code is idle at the prompt"
+    # Run many idle check cycles (well beyond AUTOLOOP_IDLE_CHECKS)
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS * 5):
+        watchdog.check_autoloop(idle_pane)
+
+    cap_msgs = [m for m in ntfy_messages if "cap reached" in m]
+    assert len(cap_msgs) == 1, f"Cap NTFY fired {len(cap_msgs)} times — should be exactly 1"
+    _reset_autoloop_state()
+
+
 def test_restart_claude_respects_cap(monkeypatch):
     watchdog.restart_times.clear()
     now = time.time()
@@ -547,7 +569,8 @@ def test_check_autoloop_writes_usage_pause_file_at_threshold(tmp_path, monkeypat
     assert pause_file.is_file()
     data = json.loads(pause_file.read_text())
     assert "resume_at" in data
-    assert any("92%" in msg for msg in ntfy_messages)
+    # No NTFY for 90% usage pause — not actionable, removed to reduce noise
+    assert not any("92%" in msg for msg in ntfy_messages)
     _reset_autoloop_state()
 
 

@@ -890,7 +890,6 @@ def check_autoloop(pane_text: str) -> None:
             _autoloop_waiting_notified = True
         return
 
-    _autoloop_waiting_notified = False
     _autoloop_idle_streak = 0
 
     if autoloop_sends_in_last_hour() >= MAX_AUTOLOOP_PER_HOUR:
@@ -913,12 +912,11 @@ def check_autoloop(pane_text: str) -> None:
             log(f"Session usage at {pct}% (>= {USAGE_PAUSE_THRESHOLD_PCT}%) — "
                 f"writing usage pause until {resume_at}, holding off the "
                 "autoloop nudge this cycle")
-            ntfy(f"Claude Code session usage at {pct}% — autoloop pausing "
-                 f"until reset ({reset_time} {tz_name}).")
             _autoloop_waiting_notified = False
             _autoloop_idle_streak = 0
             return
 
+    _autoloop_waiting_notified = False
     log("Session idle — sending autoloop continuation instruction")
     subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, AUTOLOOP_INSTRUCTION, "Enter"])
     autoloop_times.append(time.time())
