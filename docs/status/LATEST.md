@@ -8,7 +8,18 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T09:47:04Z
+Last updated: 2026-06-16T13:06:00Z
+
+**NTFY spam fixed (2026-06-16)**: Root bug: `_autoloop_waiting_notified` was
+reset to `False` before the cap check on every idle cycle, so the "autoloop
+cap reached" NTFY fired every ~5 min while idle (not once per cap window).
+Fixed: flag only resets in the success path (just before sending the nudge).
+Watchdog restarted on fixed code. 333 tests passing.
+
+**GitHub Pages confirmed correct (2026-06-16)**: Pages at
+https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
+is serving Phase 6b+7a figures (3.2%, £3,027) — Pages build at 09:47 UTC
+picked up commit 125b0c4 correctly. Prior complaint was likely a cached view.
 
 **Phase 6b+7a validated — first clean full run complete (2026-06-16)**:
 Full 2016-2025 run (PID 106909) completed with working committee calls.

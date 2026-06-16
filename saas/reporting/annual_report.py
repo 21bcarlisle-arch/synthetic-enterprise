@@ -862,9 +862,8 @@ def _customer_lifecycle_events_section(data: dict) -> str:
 
 
 def _ledger_summary_section(data: dict) -> str:
-    """Transaction log summary — Phase 7a. Shows event counts by type, the
-    cash-flow waterfall derived from the ledger, and a verification that
-    ledger P&L agrees with the simulation's direct figure."""
+    """Transaction log summary — Phase 7a/7b. Shows event counts, cash-flow
+    waterfall, and verification that ledger P&L agrees with the simulation."""
     meta = data.get("ledger_meta")
     pnl = data.get("ledger_pnl")
 
@@ -894,11 +893,27 @@ def _ledger_summary_section(data: dict) -> str:
         "",
         "| Flow | Amount |",
         "|------|--------|",
-        f"| Revenue collected (billing events) | {_fmt_gbp(pnl['revenue_gbp'])} |",
+        f"| Revenue billed (billing events) | {_fmt_gbp(pnl['revenue_gbp'])} |",
+    ]
+
+    if "cash_collected_gbp" in pnl:
+        lines += [
+            f"|   Cash received (payment events) | ({_fmt_gbp(pnl['cash_collected_gbp'])}) |",
+            f"|   Bad debt written off | ({_fmt_gbp(pnl['bad_debt_gbp'])}) |",
+            f"| Cash collected net | {_fmt_gbp(pnl['cash_collected_gbp'])} |",
+        ]
+
+    lines += [
         f"| Wholesale cost (settlement events) | ({_fmt_gbp(pnl['wholesale_cost_gbp'])}) |",
         f"| Gross margin | {_fmt_gbp(pnl['gross_margin_gbp'])} |",
         f"| Capital charges | ({_fmt_gbp(pnl['capital_cost_gbp'])}) |",
         f"| Net margin | {_fmt_gbp(pnl['net_margin_gbp'])} |",
+    ]
+
+    if "cash_net_margin_gbp" in pnl:
+        lines.append(f"| Net margin (cash) | {_fmt_gbp(pnl['cash_net_margin_gbp'])} |")
+
+    lines += [
         "",
         f"Ledger P&L vs simulation direct: {agreement}",
         "",

@@ -38,6 +38,7 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
+import saas.payment_behaviour as payment_behaviour_module
 from saas.bill_generator import generate_bill
 from saas.churn_model import build_churn_risk
 from saas.contact_model import build_contact_model
@@ -140,7 +141,7 @@ def main(report_end: str | None = None):
             f"{credit_risk:>11} {bad_debt:>10.2f}"
         )
 
-    ledger_events = build_ledger(all_records, bills)
+    ledger_events = build_ledger(all_records, bills, payment_behaviour_module)
     ledger_pnl = derive_pnl(ledger_events)
     ledger_meta = ledger_summary(ledger_events)
 

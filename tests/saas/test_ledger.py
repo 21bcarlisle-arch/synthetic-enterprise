@@ -1,4 +1,4 @@
-"""Tests for saas/ledger.py — Phase 7a transaction log."""
+"""Tests for saas/ledger.py — Phase 7a/7b transaction log."""
 import pytest
 
 from saas.ledger import (
@@ -6,8 +6,10 @@ from saas.ledger import (
     derive_cash_position,
     derive_pnl,
     ledger_summary,
+    make_bad_debt_event,
     make_billing_event,
     make_capital_charge_event,
+    make_payment_received_event,
     make_settlement_event,
 )
 
@@ -202,3 +204,146 @@ def test_ledger_summary_counts_event_types():
     assert summary["by_type"]["capital_charge_event"] == 1
     assert summary["by_type"]["billing_event"] == 1
     assert summary["event_count"] == 3
+
+
+# --- Phase 7b: payment lifecycle events ---
+
+class _FakePaymentBehaviour:
+    """Duck-typed stand-in for saas.payment_behaviour."""
+    CREDIT_RISK_BY_CUSTOMER = {"C1": "high", "C2": "low"}
+    DEFAULT_CREDIT_RISK = "medium"
+
+    @staticmethod
+    def bad_debt_provision_gbp(credit_risk: str, revenue_gbp: float) -> float:
+        rates = {"low": 0.005, "medium": 0.02, "high": 0.05, "vulnerable": 0.08}
+        return revenue_gbp * rates.get(credit_risk, 0.02)
+
+    @staticmethod
+    def expected_payment_date(bill_period_end: str, credit_risk: str) -> str:
+        from datetime import date, timedelta
+        days = {"low": 5, "medium": 14, "high": 30, "vulnerable": 45}
+        d = date.fromisoformat(bill_period_end) + timedelta(days=days.get(credit_risk, 14))
+        return d.isoformat()
+
+
+def test_make_payment_received_event_amount():
+    bill = _bill(amount=100.0)
+    e = make_payment_received_event(bill, 5.0, "2016-02-15")
+    assert abs(e["amount_gbp"] - 95.0) < 1e-9
+    assert e["event_type"] == "payment_received_event"
+    assert e["timestamp"] == "2016-02-15"
+
+
+def test_make_payment_received_event_zero_provision():
+    bill = _bill(amount=100.0)
+    e = make_payment_received_event(bill, 0.0, "2016-02-15")
+    assert abs(e["amount_gbp"] - 100.0) < 1e-9
+
+
+def test_make_bad_debt_event_amount_is_negative():
+    bill = _bill(period_end="2016-01-31")
+    e = make_bad_debt_event(bill, 5.0, "2016-02-15")
+    assert abs(e["amount_gbp"] - (-5.0)) < 1e-9
+    assert e["event_type"] == "bad_debt_event"
+
+
+def test_make_bad_debt_event_timestamp_is_30d_after_payment_date():
+    bill = _bill(period_end="2016-01-31")
+    e = make_bad_debt_event(bill, 5.0, "2016-02-15")
+    assert e["timestamp"] == "2016-03-16"  # 2016-02-15 + 30 days
+
+
+def test_make_payment_received_event_id_is_deterministic():
+    bill = _bill()
+    e1 = make_payment_received_event(bill, 5.0, "2016-02-15")
+    e2 = make_payment_received_event(bill, 5.0, "2016-02-15")
+    assert e1["transaction_id"] == e2["transaction_id"]
+
+
+def test_make_bad_debt_event_id_differs_from_payment_received():
+    bill = _bill()
+    p = make_payment_received_event(bill, 5.0, "2016-02-15")
+    b = make_bad_debt_event(bill, 5.0, "2016-02-15")
+    assert p["transaction_id"] != b["transaction_id"]
+
+
+def test_build_ledger_with_payment_behaviour_adds_payment_events():
+    records = [_settlement_record(date="2016-01-01", period=1)]
+    bills = [_bill(customer_id="C1", period_end="2016-01-31", amount=100.0)]
+    pb = _FakePaymentBehaviour()
+    events = build_ledger(records, bills, pb)
+    types = [e["event_type"] for e in events]
+    assert "payment_received_event" in types
+    assert "bad_debt_event" in types
+
+
+def test_build_ledger_no_bad_debt_event_when_zero_provision():
+    records = [_settlement_record()]
+    # C4 not in CREDIT_RISK_BY_CUSTOMER → falls back to "medium" (2% provision)
+    # To get zero provision, use a customer with "low" segment but override amount to 0
+    bills = [_bill(customer_id="C2", amount=0.0)]
+    pb = _FakePaymentBehaviour()
+    events = build_ledger(records, bills, pb)
+    assert not any(e["event_type"] == "bad_debt_event" for e in events)
+
+
+def test_build_ledger_without_payment_behaviour_omits_payment_events():
+    records = [_settlement_record()]
+    bills = [_bill()]
+    events = build_ledger(records, bills)
+    assert not any(e["event_type"] == "payment_received_event" for e in events)
+    assert not any(e["event_type"] == "bad_debt_event" for e in events)
+
+
+def test_derive_pnl_with_payment_events_adds_cash_fields():
+    records = [_settlement_record(wholesale=6.0, capital=0.5)]
+    bills = [_bill(customer_id="C1", period_end="2016-01-31", amount=100.0)]
+    pb = _FakePaymentBehaviour()
+    events = build_ledger(records, bills, pb)
+    pnl = derive_pnl(events)
+    # C1 is "high" credit risk → 5% provision = £5 bad debt
+    assert "cash_collected_gbp" in pnl
+    assert "bad_debt_gbp" in pnl
+    assert "cash_net_margin_gbp" in pnl
+    assert abs(pnl["cash_collected_gbp"] - 95.0) < 1e-9   # 100 - 5
+    assert abs(pnl["bad_debt_gbp"] - 5.0) < 1e-9
+    # cash_net = 95 - 6 (wholesale) - 0.5 (capital) = 88.5
+    assert abs(pnl["cash_net_margin_gbp"] - 88.5) < 1e-9
+
+
+def test_derive_pnl_cash_net_margin_less_than_net_margin_when_bad_debt():
+    records = [_settlement_record(wholesale=6.0, capital=0.5)]
+    bills = [_bill(customer_id="C1", period_end="2016-01-31", amount=100.0)]
+    pb = _FakePaymentBehaviour()
+    events = build_ledger(records, bills, pb)
+    pnl = derive_pnl(events)
+    assert pnl["cash_net_margin_gbp"] < pnl["net_margin_gbp"]
+
+
+def test_derive_pnl_without_payment_events_has_no_cash_fields():
+    records = [_settlement_record()]
+    bills = [_bill()]
+    pnl = derive_pnl(build_ledger(records, bills))
+    assert "cash_net_margin_gbp" not in pnl
+    assert "cash_collected_gbp" not in pnl
+
+
+def test_build_ledger_payment_events_sorted_after_billing_event():
+    records = [_settlement_record(date="2016-01-01", period=1)]
+    bills = [_bill(customer_id="C1", period_start="2016-01-01", period_end="2016-01-31", amount=100.0)]
+    pb = _FakePaymentBehaviour()
+    events = build_ledger(records, bills, pb)
+    billing_ts = next(e["timestamp"] for e in events if e["event_type"] == "billing_event")
+    payment_ts = next(e["timestamp"] for e in events if e["event_type"] == "payment_received_event")
+    assert payment_ts > billing_ts
+
+
+def test_derive_cash_position_includes_payment_events():
+    records = [_settlement_record(wholesale=6.0, capital=0.5)]
+    # With payment events: cash flow = -6 (wholesale) - 0.5 (capital) + 100 (billing)
+    #   + 95 (payment received) - 5 (bad debt) = 183.5
+    bills = [_bill(customer_id="C1", period_end="2016-01-31", amount=100.0)]
+    pb = _FakePaymentBehaviour()
+    events = build_ledger(records, bills, pb)
+    ending = derive_cash_position(1000.0, events)
+    assert abs(ending - 1183.5) < 1e-9
