@@ -510,8 +510,15 @@ def _hedge_value_add_line(totals: dict | None) -> str:
 def _customer_book_section(year: str, yd: dict, data: dict) -> str:
     lines = ["**Customer Book**", ""]
     active = yd["active_customer_ids"]
-    resi_elec = [c for c in active if c in {"C1", "C2", "C3", "C4"}]
-    sme_elec = [c for c in active if c in {"C5", "C6"}]
+    pcl = data.get("per_customer_lifetime", {})
+    resi_elec = [
+        c for c in active
+        if not c.endswith("g") and pcl.get(c, {}).get("segment") == "resi"
+    ]
+    sme_elec = [
+        c for c in active
+        if not c.endswith("g") and pcl.get(c, {}).get("segment") == "SME"
+    ]
     gas = [c for c in active if c.endswith("g")]
     lines.append(f"- Active accounts: {len(active)} ({', '.join(active)})")
     lines.append(

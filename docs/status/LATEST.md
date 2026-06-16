@@ -8,7 +8,11 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T20:41:20Z
+Last updated: 2026-06-16T21:08:19Z
+
+**Phase 7d in progress (started 2026-06-16 ~21:53 BST)**: Fresh full 2016-2025 run to
+populate CLV trajectory table, per-year churn risk, and activity-based pricing flags
+(code from REPORTING_BACKLOG #6/#8 is in place but Phase 7c ran on old code).
 
 **Phase 7c complete — full 2016-2025 run with Phase 7b payment events (2026-06-16)**:
 Baseline figures confirmed deterministic (same as Phase 6b+7a):
@@ -34,7 +38,7 @@ Per-year Point-in-Time CLV trajectory snapshots. `_build_clv_snapshots()`
 recomputes CLV at each year-end using only data up to that date. New
 "CLV Trajectory" table section in published report. 3 new tests.
 
-357 tests passing.
+359 tests passing.
 
 **Phase 7b complete — Payment Lifecycle Ledger (2026-06-16)**:
 Two new event types in `saas/ledger.py`:

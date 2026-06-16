@@ -2,7 +2,9 @@ from pathlib import Path
 
 from saas.reporting.annual_report import (
     NOT_AVAILABLE,
+    _append_pricing_actions_summary,
     _clv_trajectory_section,
+    _customer_book_section,
     _ledger_summary_section,
     _mandate_comparison_section,
     _pricing_action,
@@ -485,3 +487,148 @@ def test_extract_report_data_churn_risk_by_account_per_year():
     assert data["years"]["2016"]["churn_risk_by_account"] == {"C1": 0.15}
     # 2017: C1 (0.30) and C2 (0.10) both renewed
     assert data["years"]["2017"]["churn_risk_by_account"] == {"C1": 0.30, "C2": 0.10}
+
+
+def _pricing_data_with_flags(flags: dict) -> dict:
+    """Build a minimal data dict with per_customer_lifetime pricing flags."""
+    per_customer_lifetime = {}
+    for cid, flag_info in flags.items():
+        per_customer_lifetime[cid] = {
+            "revenue_gbp": flag_info.get("revenue", 1000.0),
+            "cost_to_serve_gbp": 100.0,
+            "net_margin_after_cost_to_serve_gbp": flag_info.get("net_after_cts", 50.0),
+            "pricing_action": {
+                "flag": flag_info["flag"],
+                "recommended_uplift_pct": flag_info.get("uplift"),
+            },
+        }
+    return {"per_customer_lifetime": per_customer_lifetime}
+
+
+def test_append_pricing_actions_summary_no_flags_emits_nothing():
+    data = _pricing_data_with_flags({"C1": {"flag": "OK"}})
+    lines: list[str] = []
+    _append_pricing_actions_summary(lines, data)
+    assert lines == []
+
+
+def test_append_pricing_actions_summary_net_negative_shows_uplift():
+    data = _pricing_data_with_flags({
+        "C1": {"flag": "NET_NEGATIVE", "revenue": 1000.0, "net_after_cts": -50.0, "uplift": 5.0},
+    })
+    lines: list[str] = []
+    _append_pricing_actions_summary(lines, data)
+    output = "\n".join(lines)
+    assert "Activity-Based Pricing Actions" in output
+    assert "C1" in output
+    assert "5.0%" in output
+    assert "loss-making" in output.lower()
+
+
+def test_append_pricing_actions_summary_margin_squeeze_listed():
+    data = _pricing_data_with_flags({
+        "C2": {"flag": "MARGIN_SQUEEZE", "revenue": 1000.0, "net_after_cts": 10.0},
+    })
+    lines: list[str] = []
+    _append_pricing_actions_summary(lines, data)
+    output = "\n".join(lines)
+    assert "MARGIN_SQUEEZE" in output
+    assert "C2" in output
+    assert "2%" in output
+
+
+def test_append_pricing_actions_summary_both_sections_rendered():
+    data = _pricing_data_with_flags({
+        "C1": {"flag": "NET_NEGATIVE", "revenue": 1000.0, "net_after_cts": -30.0, "uplift": 3.0},
+        "C3": {"flag": "MARGIN_SQUEEZE", "revenue": 1000.0, "net_after_cts": 5.0},
+        "C5": {"flag": "OK"},
+    })
+    lines: list[str] = []
+    _append_pricing_actions_summary(lines, data)
+    output = "\n".join(lines)
+    assert "C1" in output
+    assert "C3" in output
+    assert "C5" not in output
+
+
+def _minimal_year_data(year: str = "2016") -> dict:
+    return {
+        "active_customer_ids": ["C1"],
+        "acquisitions": [],
+        "bill_shock_events": [],
+        "bills_count": 1,
+        "avg_clarity": 0.8,
+        "avg_bill_shock_pct": None,
+        "churn_risk_by_account": {},
+    }
+
+
+def test_customer_book_section_per_year_clv_from_snapshots():
+    yd = _minimal_year_data("2016")
+    data = {
+        "customer_events": [],
+        "churned_billing_accounts": [],
+        "avg_clv_gbp": None,
+        "highest_clv": None,
+        "lowest_clv": None,
+        "clv_snapshots": {"2016": {"C1": 500.0}},
+    }
+    section = _customer_book_section("2016", yd, data)
+    assert "Point-in-Time" in section
+    assert "£500" in section
+
+
+def test_customer_book_section_per_year_clv_falls_back_to_whole_run():
+    yd = _minimal_year_data("2016")
+    data = {
+        "customer_events": [],
+        "churned_billing_accounts": [],
+        "avg_clv_gbp": 750.0,
+        "highest_clv": {"customer_id": "C1", "clv_gbp": 750.0},
+        "lowest_clv": {"customer_id": "C1", "clv_gbp": 750.0},
+        "clv_snapshots": None,
+    }
+    section = _customer_book_section("2016", yd, data)
+    assert "whole-run projection" in section
+    assert "£750" in section
+
+
+def test_customer_book_section_churn_risk_above_threshold_shown():
+    yd = _minimal_year_data("2017")
+    yd["churn_risk_by_account"] = {"C1": 0.35, "C2": 0.10}
+    data = {
+        "customer_events": [],
+        "churned_billing_accounts": [],
+        "avg_clv_gbp": None,
+        "highest_clv": None,
+        "lowest_clv": None,
+        "clv_snapshots": None,
+    }
+    section = _customer_book_section("2017", yd, data)
+    assert "1 at risk" in section
+    assert "C1" in section
+    assert "35%" in section
+    assert "C2" not in section.split("at risk")[1]
+
+
+def test_customer_book_section_hh_resi_counted_separately():
+    yd = _minimal_year_data("2016")
+    yd["active_customer_ids"] = ["C1", "C5", "C7", "C1g"]
+    data = {
+        "customer_events": [],
+        "churned_billing_accounts": [],
+        "avg_clv_gbp": None,
+        "highest_clv": None,
+        "lowest_clv": None,
+        "clv_snapshots": None,
+        "per_customer_lifetime": {
+            "C1":  {"segment": "resi", "commodity": "electricity"},
+            "C5":  {"segment": "SME",  "commodity": "electricity"},
+            "C7":  {"segment": "resi", "commodity": "electricity"},
+            "C1g": {"segment": "resi", "commodity": "gas"},
+        },
+    }
+    section = _customer_book_section("2016", yd, data)
+    assert "Resi electricity: 2" in section
+    assert "SME electricity: 1" in section
+    assert "gas (dual-fuel): 1" in section
