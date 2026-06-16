@@ -1055,13 +1055,13 @@ def main() -> None:
         data = extract_report_data(raw_output)
         args.save_json.parent.mkdir(parents=True, exist_ok=True)
         args.save_json.write_text(json.dumps(data, indent=2))
-        ledger_events = raw_output.get("ledger_events", [])
-        if ledger_events:
-            LEDGER_LATEST_PATH.parent.mkdir(parents=True, exist_ok=True)
-            LEDGER_LATEST_PATH.write_text(json.dumps(ledger_events, indent=2))
-            print(f"Wrote {LEDGER_LATEST_PATH} ({len(ledger_events):,} events)")
         fresh_full_run = not args.fast and not report_end
         if fresh_full_run:
+            ledger_events = raw_output.get("ledger_events", [])
+            if ledger_events:
+                LEDGER_LATEST_PATH.parent.mkdir(parents=True, exist_ok=True)
+                LEDGER_LATEST_PATH.write_text(json.dumps(ledger_events, indent=2))
+                print(f"Wrote {LEDGER_LATEST_PATH} ({len(ledger_events):,} events)")
             _send_run_complete_ntfy(data, args.output)
 
     report = generate_annual_report(data)

@@ -118,7 +118,8 @@ def _call_local(context: str) -> dict:
             {"role": "user", "content": context},
         ],
         "stream": False,
-        "options": {"num_predict": 512, "think": False},
+        "think": False,
+        "options": {"num_predict": 512},
     }).encode()
     request = urllib.request.Request(
         OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"}
