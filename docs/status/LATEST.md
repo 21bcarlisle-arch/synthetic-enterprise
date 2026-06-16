@@ -8,7 +8,19 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T09:19:20Z
+Last updated: 2026-06-16T09:28:56Z
+
+**Full validation run in progress (PID 106909, 2026-06-16)**:
+Third attempt at the 2016–2025 full run with real LLM committee calls. Root
+cause of the first two failures identified and fixed: `think:false` for
+qwen3:14b via Ollama's `/api/chat` endpoint must be set at the **top level**
+of the request JSON — when placed inside `options{}` it is silently ignored,
+causing the model to spend all `num_predict` tokens on thinking with zero
+text output, returning an empty response body and triggering a JSON parse
+error on every committee call. Committee calls now confirmed working (tested
+end-to-end — model returns structured JSON decision in ~30s).
+Also: `ledger_latest.json` now only written on full runs (not `--fast` or
+`--end-year` truncated runs), and gitignored (~700 MB for a 10-year run).
 
 **Phase 7a complete — The Ledger (Gap #2 MVP, 2026-06-16)**:
 Hollow gap #2 (no ledger) is now closed at MVP level. P&L is derivable as
@@ -25,11 +37,11 @@ the sum of transactions, not just a formula. New `saas/ledger.py`:
 
 332 tests passing, lint clean.
 
-**Phase 6b full validation run in progress (PID 101492, 2026-06-16)**:
-Re-run started after discovering that the previous full run (PID 96308) had
-147/148 risk committee calls fail (Ollama was starved by a competing
-llama-server on the GPU). New run confirmed with active committee calls
-(llama-server at ~90% CPU). ETA ~40-50 min total from 09:57 UTC.
+**Previous two full runs failed (PIDs 96308, 101492)**:
+- PID 96308: 147/148 committee calls failed (Ollama GPU-starved by competing
+  llama-server). Killed.
+- PID 101492: All committee calls failed silently (think:false bug — see above).
+  Killed 2026-06-16 after root cause identified.
 
 **Phase 6b complete — event-driven customer lifecycle MVP (2026-06-16)**:
 Gap #1 from the "five hollow gaps" (static customer roster since 2016) is
