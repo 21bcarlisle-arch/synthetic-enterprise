@@ -917,6 +917,40 @@ def _run_and_extract(report_end: str | None = None) -> dict:
     return extract_report_data(run_output)
 
 
+def _send_run_complete_ntfy(data: dict, report_path: Path) -> None:
+    """Send a brief executive-summary NTFY when a full (non-fast, non-truncated)
+    run completes. Only fires if background.ntfy_utils is importable."""
+    try:
+        from background.ntfy_utils import send_ntfy
+    except ImportError:
+        return
+
+    net = data.get("total_net_gbp", 0.0)
+    rev = data.get("total_revenue_gbp", 1.0) or 1.0
+    t_start = data.get("starting_treasury_gbp", 0.0)
+    t_end = data.get("final_treasury_gbp", 0.0)
+    wakeups = data.get("committee_wake_ups_total", 0)
+    churned = data.get("churned_billing_accounts", [])
+    events = data.get("customer_events", [])
+    churn_events = [e for e in events if e.get("event_type") == "churned"]
+
+    churn_line = ""
+    if churned:
+        summaries = [f"{e['customer_id']} ({e['event_date'][:7]})" for e in churn_events]
+        churn_line = f"\nChurns: {len(churned)} — {', '.join(summaries)}"
+    else:
+        churn_line = "\nChurns: none — all accounts retained"
+
+    msg = (
+        f"Full run complete — {report_path.name}\n"
+        f"Net margin: £{net:,.0f} ({net/rev*100:.1f}% of revenue)\n"
+        f"Treasury: £{t_start:,.0f} → £{t_end:,.0f}\n"
+        f"Committee: {wakeups} wake-ups"
+        f"{churn_line}"
+    )
+    send_ntfy(msg, headers={"X-Priority": "default", "X-Tags": "bar_chart"})
+
+
 def main() -> None:
     import os
 
@@ -971,6 +1005,9 @@ def main() -> None:
         data = _run_and_extract(report_end=report_end)
         args.save_json.parent.mkdir(parents=True, exist_ok=True)
         args.save_json.write_text(json.dumps(data, indent=2))
+        fresh_full_run = not args.fast and not report_end
+        if fresh_full_run:
+            _send_run_complete_ntfy(data, args.output)
 
     report = generate_annual_report(data)
     args.output.parent.mkdir(parents=True, exist_ok=True)
