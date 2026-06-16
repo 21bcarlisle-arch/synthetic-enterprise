@@ -4,6 +4,7 @@ from saas.reporting.annual_report import (
     NOT_AVAILABLE,
     _ledger_summary_section,
     _mandate_comparison_section,
+    _pricing_action,
     _segment_margin_trend_section,
     _send_run_complete_ntfy,
     extract_report_data,
@@ -377,3 +378,51 @@ def test_send_run_complete_ntfy_silently_skips_when_ntfy_unavailable(monkeypatch
     monkeypatch.setitem(sys.modules, "background.ntfy_utils", None)
     # Should not raise, just return silently
     _send_run_complete_ntfy(_ntfy_data(), Path("ANNUAL_REPORT.md"))
+
+
+# --- _pricing_action tests ---
+
+def test_pricing_action_ok_when_margin_exceeds_benchmark():
+    result = _pricing_action(net_margin_after_cts_gbp=500.0, revenue_gbp=10_000.0)
+    assert result["flag"] == "OK"
+    assert result["recommended_uplift_pct"] is None
+
+
+def test_pricing_action_margin_squeeze_below_benchmark():
+    # 1% net margin after CTS — below 2% benchmark
+    result = _pricing_action(net_margin_after_cts_gbp=100.0, revenue_gbp=10_000.0)
+    assert result["flag"] == "MARGIN_SQUEEZE"
+    assert result["recommended_uplift_pct"] is None
+
+
+def test_pricing_action_net_negative_computes_uplift():
+    # -£200 shortfall on £10,000 revenue → 2% tariff uplift needed
+    result = _pricing_action(net_margin_after_cts_gbp=-200.0, revenue_gbp=10_000.0)
+    assert result["flag"] == "NET_NEGATIVE"
+    assert abs(result["recommended_uplift_pct"] - 2.0) < 0.01
+
+
+def test_pricing_action_unknown_when_cts_missing():
+    result = _pricing_action(net_margin_after_cts_gbp=None, revenue_gbp=10_000.0)
+    assert result["flag"] == "UNKNOWN"
+    assert result["recommended_uplift_pct"] is None
+
+
+def test_pricing_action_unknown_when_zero_revenue():
+    result = _pricing_action(net_margin_after_cts_gbp=-50.0, revenue_gbp=0.0)
+    assert result["flag"] == "UNKNOWN"
+    assert result["recommended_uplift_pct"] is None
+
+
+def test_extract_report_data_includes_pricing_action():
+    data = extract_report_data(_run_output())
+    for pcl in data["per_customer_lifetime"].values():
+        assert "pricing_action" in pcl
+        assert "flag" in pcl["pricing_action"]
+        assert pcl["pricing_action"]["flag"] in ("OK", "MARGIN_SQUEEZE", "NET_NEGATIVE", "UNKNOWN")
+
+
+def test_extract_report_data_includes_revenue_gbp_per_customer():
+    data = extract_report_data(_run_output())
+    # C1 has records with revenue = margin + 100: (10+100) + (12+100) + (-5+100) = 317
+    assert abs(data["per_customer_lifetime"]["C1"]["revenue_gbp"] - 317.0) < 0.01

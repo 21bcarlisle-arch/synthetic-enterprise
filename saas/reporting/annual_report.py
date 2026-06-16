@@ -61,6 +61,28 @@ def _avg(values: list[float]) -> float | None:
     return sum(values) / len(values) if values else None
 
 
+_MARGIN_BENCHMARK_LOW = 0.02  # 2% net-margin floor per industry benchmark
+
+
+def _pricing_action(net_margin_after_cts_gbp: float | None, revenue_gbp: float) -> dict:
+    """Activity-based pricing policy for a customer's lifetime figures.
+
+    Returns a dict with:
+      flag: "OK" | "MARGIN_SQUEEZE" | "NET_NEGATIVE" | "UNKNOWN"
+      recommended_uplift_pct: float | None  (% tariff increase to reach breakeven)
+    """
+    if net_margin_after_cts_gbp is None:
+        return {"flag": "UNKNOWN", "recommended_uplift_pct": None}
+    if revenue_gbp <= 0:
+        return {"flag": "UNKNOWN", "recommended_uplift_pct": None}
+    if net_margin_after_cts_gbp < 0:
+        uplift_pct = (-net_margin_after_cts_gbp / revenue_gbp) * 100
+        return {"flag": "NET_NEGATIVE", "recommended_uplift_pct": round(uplift_pct, 1)}
+    if net_margin_after_cts_gbp < _MARGIN_BENCHMARK_LOW * revenue_gbp:
+        return {"flag": "MARGIN_SQUEEZE", "recommended_uplift_pct": None}
+    return {"flag": "OK", "recommended_uplift_pct": None}
+
+
 def _drawdown_events(treasury_series: list[float], threshold: float = DRAWDOWN_THRESHOLD_PCT) -> list[dict]:
     """Peak-to-trough drawdowns in `treasury_series` (chronological order)
     of at least `threshold` (fraction of the peak). Returns
@@ -266,15 +288,19 @@ def extract_report_data(run_output: dict) -> dict:
         if not recs:
             continue
         cts = cost_to_serve.get("by_customer", {}).get(cid, {})
+        revenue_gbp = sum(r["revenue_gbp"] for r in recs)
+        net_after_cts = cts.get("net_margin_gbp")
         per_customer_lifetime[cid] = {
             "commodity": c["commodity"],
             "segment": c["segment"],
             "acquisition_date": c["acquisition_date"],
+            "revenue_gbp": revenue_gbp,
             "gross_gbp": sum(r["margin_gbp"] for r in recs),
             "capital_gbp": sum(r["capital_cost_gbp"] for r in recs),
             "net_gbp": sum(r["net_margin_gbp"] for r in recs),
             "cost_to_serve_gbp": cts.get("cost_to_serve_gbp"),
-            "net_margin_after_cost_to_serve_gbp": cts.get("net_margin_gbp"),
+            "net_margin_after_cost_to_serve_gbp": net_after_cts,
+            "pricing_action": _pricing_action(net_after_cts, revenue_gbp),
         }
 
     # CLV/churn/enterprise-value are computed per billing account (dual-fuel
@@ -514,16 +540,61 @@ def _pricing_margin_section(yd: dict, data: dict) -> str:
         for cid, pcl in sorted(data["per_customer_lifetime"].items()):
             if pcl["cost_to_serve_gbp"] is None:
                 continue
+            action = pcl.get("pricing_action", {})
+            flag = action.get("flag", "UNKNOWN")
+            uplift = action.get("recommended_uplift_pct")
+            flag_str = ""
+            if flag == "NET_NEGATIVE":
+                flag_str = f" -- **NET_NEGATIVE** (tariff uplift needed: +{uplift:.1f}%)"
+            elif flag == "MARGIN_SQUEEZE":
+                flag_str = " -- MARGIN_SQUEEZE (below 2% benchmark)"
             lines.append(
                 f"  - {cid}: cost to serve {_fmt_gbp(pcl['cost_to_serve_gbp'])}, "
                 f"net margin after cost to serve "
                 f"{_fmt_gbp(pcl['net_margin_after_cost_to_serve_gbp'])}"
-                + (" -- **net-negative**" if pcl["net_margin_after_cost_to_serve_gbp"] < 0 else "")
+                + flag_str
             )
+        _append_pricing_actions_summary(lines, data)
     else:
         lines.append(f"- Cost to serve per customer (average and range): {NOT_AVAILABLE}")
         lines.append(f"- Net margin per customer after cost to serve: {NOT_AVAILABLE}")
     return "\n".join(lines)
+
+
+def _append_pricing_actions_summary(lines: list[str], data: dict) -> None:
+    """Append an activity-based pricing summary block when actionable flags exist."""
+    net_negative = [
+        (cid, pcl)
+        for cid, pcl in sorted(data["per_customer_lifetime"].items())
+        if pcl.get("pricing_action", {}).get("flag") == "NET_NEGATIVE"
+    ]
+    squeeze = [
+        cid
+        for cid, pcl in sorted(data["per_customer_lifetime"].items())
+        if pcl.get("pricing_action", {}).get("flag") == "MARGIN_SQUEEZE"
+    ]
+    if not net_negative and not squeeze:
+        return
+    lines.append("")
+    lines.append("**Activity-Based Pricing Actions**")
+    lines.append("")
+    if net_negative:
+        lines.append(
+            f"The following {len(net_negative)} customer(s) are loss-making after cost-to-serve "
+            f"and require immediate tariff review:"
+        )
+        for cid, pcl in net_negative:
+            uplift = pcl["pricing_action"]["recommended_uplift_pct"]
+            lines.append(
+                f"  - {cid}: net margin after CTS {_fmt_gbp(pcl['net_margin_after_cost_to_serve_gbp'])} "
+                f"on revenue {_fmt_gbp(pcl['revenue_gbp'])} — "
+                f"raise tariff by ≥{uplift:.1f}% to break even"
+            )
+    if squeeze:
+        lines.append(
+            f"The following {len(squeeze)} customer(s) are profitable but below the 2% "
+            f"net-margin benchmark (MARGIN_SQUEEZE): {', '.join(squeeze)}"
+        )
 
 
 def _trading_risk_section(year: str, yd: dict) -> str:
