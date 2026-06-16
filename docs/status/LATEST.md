@@ -8,12 +8,21 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T20:31:14Z
+Last updated: 2026-06-16T20:41:20Z
 
-**Phase 7c full simulation run in progress (2026-06-16)**:
-`make run` running in `phase7c-run` tmux session. Will regenerate all
-ledger events including Phase 7b payment waterfall. At 2016-08-13 (~7%
-through full 2016-2025 window). ETA: 45-75 min from start.
+**Phase 7c complete — full 2016-2025 run with Phase 7b payment events (2026-06-16)**:
+Baseline figures confirmed deterministic (same as Phase 6b+7a):
+- Revenue: £93,868 | Net margin: £3,027 (3.2%) | Treasury: £29,846→£32,873 ✓
+- Committee interventions: 148 | SURVIVED full window
+- Ledger events: 2,123,881 (+2,154 vs Phase 6b+7a from Phase 7b payment events)
+- payment_received_event: 1,077 | bad_debt_event: 1,077
+
+Phase 7b cash-flow waterfall now in published report:
+- Revenue billed: £93,868 → Less bad debt: (£1,804) → Cash collected: £92,064
+- Net margin (cash): £1,223 (margin after bad debt provision)
+
+**Note**: CLV trajectory table and per-year pricing flags will appear in the
+next full run (code is in place, JSON from Phase 7c pre-dates the code changes).
 
 **REPORTING_BACKLOG #6 done (2026-06-16, commit 98ec923)**:
 Activity-based pricing flags for net-negative customers. `_pricing_action()`
