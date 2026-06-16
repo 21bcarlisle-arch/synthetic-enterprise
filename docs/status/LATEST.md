@@ -8,7 +8,24 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T13:09:00Z
+Last updated: 2026-06-16T20:31:14Z
+
+**Phase 7c full simulation run in progress (2026-06-16)**:
+`make run` running in `phase7c-run` tmux session. Will regenerate all
+ledger events including Phase 7b payment waterfall. At 2016-08-13 (~7%
+through full 2016-2025 window). ETA: 45-75 min from start.
+
+**REPORTING_BACKLOG #6 done (2026-06-16, commit 98ec923)**:
+Activity-based pricing flags for net-negative customers. `_pricing_action()`
+returns OK / MARGIN_SQUEEZE / NET_NEGATIVE + recommended tariff uplift %.
+Shown in report's Pricing & Margin section. 7 new tests.
+
+**REPORTING_BACKLOG #8 done (2026-06-16, commit 20dbab0)**:
+Per-year Point-in-Time CLV trajectory snapshots. `_build_clv_snapshots()`
+recomputes CLV at each year-end using only data up to that date. New
+"CLV Trajectory" table section in published report. 3 new tests.
+
+357 tests passing.
 
 **Phase 7b complete — Payment Lifecycle Ledger (2026-06-16)**:
 Two new event types in `saas/ledger.py`:
