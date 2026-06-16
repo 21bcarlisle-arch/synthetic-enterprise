@@ -309,6 +309,11 @@ def extract_report_data(run_output: dict) -> dict:
             "treasury_drawdown_events": treasury_drawdown_events,
             "var_ratio": var_ratio,
             "hedge_effectiveness": hedge_effectiveness,
+            "churn_risk_by_account": {
+                account_id: yr_renewals[-1]["churn_probability"]
+                for account_id, all_renewals in churn_risk.items()
+                if (yr_renewals := [r for r in all_renewals if r["renewal_period"][:4] == year])
+            },
         }
 
     per_customer_lifetime = {}
@@ -563,7 +568,17 @@ def _customer_book_section(year: str, yd: dict, data: dict) -> str:
         lines.append(f"- Bill shock events (>=20%): {len(yd['bill_shock_events'])} -- {events}")
     else:
         lines.append("- Bill shock events (>=20%): none")
-    lines.append(f"- Churn risk: how many customers above threshold at year end: {NOT_AVAILABLE}")
+    yr_churn_risk = yd.get("churn_risk_by_account", {})
+    if yr_churn_risk:
+        at_risk = {a: p for a, p in yr_churn_risk.items() if p >= 0.20}
+        risk_str = (
+            f"{len(at_risk)} at risk (≥20% churn prob): "
+            + ", ".join(f"{a} {p:.0%}" for a, p in sorted(at_risk.items()))
+            if at_risk else "none above 20% threshold"
+        )
+        lines.append(f"- Churn risk (accounts renewing in {year}): {risk_str}")
+    else:
+        lines.append(f"- Churn risk (accounts renewing in {year}): no renewals this year")
     return "\n".join(lines)
 
 
