@@ -8,23 +8,30 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T09:35:56Z
+Last updated: 2026-06-16T09:46:32Z
 
-**Full validation run in progress (PID 106909, 2026-06-16)**:
-Third attempt at the 2016–2025 full run with real LLM committee calls. Root
-cause of the first two failures identified and fixed: `think:false` for
-qwen3:14b via Ollama's `/api/chat` endpoint must be set at the **top level**
-of the request JSON — when placed inside `options{}` it is silently ignored,
-causing the model to spend all `num_predict` tokens on thinking with zero
-text output, returning an empty response body and triggering a JSON parse
-error on every committee call. Fix committed (f190a9a).
+**Phase 6b+7a validated — first clean full run complete (2026-06-16)**:
+Full 2016-2025 run (PID 106909) completed with working committee calls.
+Root cause of all previous failures: `think:false` for qwen3:14b must be
+at the request **top level** in `/api/chat` calls — inside `options{}` it
+is silently ignored. Fix: `f190a9a`.
 
-**Confirmed healthy (10:35 UTC)**: committee first woke at 2016-01-01
-(opening the simulation), second at 2016-01-31. Progress at 2,900+ periods
-by 10:35, treasury progressing correctly from £29,846.19.
-ETA: ~2-3 hours total (committee calls add ~30s each; ~80-100 expected).
-Also: `ledger_latest.json` now only written on full runs (not `--fast` or
-`--end-year` truncated runs), and gitignored (~700 MB for a 10-year run).
+**Validated financial figures (Phase 6b+7a baseline)**:
+| Metric | Value |
+|--------|-------|
+| Revenue | £93,868 |
+| Gross margin | £4,174 |
+| Capital cost | £1,147 (27.5% of gross) |
+| Net margin | £3,027 (**3.2%** of revenue, within 2-5% benchmark ✓) |
+| Treasury start → end | £29,846 → £32,873 |
+| Committee interventions | 148 (vs 1 in buggy run) |
+| 2021 crisis net margin | £-343 (4 committee wake-ups) |
+| 2022 crisis net margin | £+238 (21 committee wake-ups) |
+| Ledger events | 2,121,727 (P&L agrees ✓) |
+
+**Churn events (deterministic, unchanged from Phase 6b)**:
+- 2020-06: C3 | 2021-12: C1, C5 | 2022-03: C2 | 2024-03: C6 | 2024-09: C4
+- HH customers C7/C8/C9 survived full 2016-2025 window
 
 **Phase 7a complete — The Ledger (Gap #2 MVP, 2026-06-16)**:
 Hollow gap #2 (no ledger) is now closed at MVP level. P&L is derivable as
@@ -41,11 +48,12 @@ the sum of transactions, not just a formula. New `saas/ledger.py`:
 
 332 tests passing, lint clean.
 
-**Previous two full runs failed (PIDs 96308, 101492)**:
-- PID 96308: 147/148 committee calls failed (Ollama GPU-starved by competing
-  llama-server). Killed.
-- PID 101492: All committee calls failed silently (think:false bug — see above).
-  Killed 2026-06-16 after root cause identified.
+332 tests passing, lint clean.
+Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
+
+**Previous full runs failed (PIDs 96308, 101492)**:
+- PID 96308: 147/148 committee calls failed (Ollama GPU-starved). Killed.
+- PID 101492: All calls failed silently (think:false bug). Killed 2026-06-16.
 
 **Phase 6b complete — event-driven customer lifecycle MVP (2026-06-16)**:
 Gap #1 from the "five hollow gaps" (static customer roster since 2016) is
