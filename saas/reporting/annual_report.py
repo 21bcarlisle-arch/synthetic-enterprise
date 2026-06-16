@@ -33,6 +33,8 @@ import json
 import subprocess
 from pathlib import Path
 
+from saas.clv_model import build_clv
+from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
 from saas.customers import CUSTOMERS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
@@ -62,6 +64,34 @@ def _avg(values: list[float]) -> float | None:
 
 
 _MARGIN_BENCHMARK_LOW = 0.02  # 2% net-margin floor per industry benchmark
+
+
+def _build_clv_snapshots(
+    all_records: list[dict],
+    churn_risk: dict,
+    years: list[str],
+) -> dict[str, dict[str, float | None]]:
+    """Per-year Point-in-Time CLV snapshots.
+
+    For each year Y, computes CLV using only records and churn renewal events
+    up to and including 31-Dec-Y. Accounts with no renewal points through year
+    Y are excluded (nothing to project). Returns
+    {year: {billing_account_id: clv_gbp | None}}.
+    """
+    snapshots: dict[str, dict] = {}
+    for year in years:
+        cutoff = f"{year}-12-31"
+        records_to_year = [r for r in all_records if r["settlement_date"] <= cutoff]
+        risk_to_year = {
+            account_id: [r for r in renewals if r["renewal_period"] <= cutoff[:7]]
+            for account_id, renewals in churn_risk.items()
+        }
+        cts_to_year = build_cost_to_serve(records_to_year, CUSTOMERS)
+        clv_to_year = build_clv(risk_to_year, cts_to_year)
+        snapshots[year] = {
+            account_id: v["clv_gbp"] for account_id, v in clv_to_year.items()
+        }
+    return snapshots
 
 
 def _pricing_action(net_margin_after_cts_gbp: float | None, revenue_gbp: float) -> dict:
@@ -352,6 +382,10 @@ def extract_report_data(run_output: dict) -> dict:
     else:
         hedge_effectiveness_total = None
 
+    clv_snapshots = (
+        _build_clv_snapshots(all_records, churn_risk, years) if churn_risk else None
+    )
+
     return {
         "starting_treasury_gbp": phase2b["starting_treasury"],
         "final_treasury_gbp": phase2b["final_treasury"],
@@ -386,6 +420,7 @@ def extract_report_data(run_output: dict) -> dict:
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),
+        "clv_snapshots": clv_snapshots,
     }
 
 
@@ -488,7 +523,21 @@ def _customer_book_section(year: str, yd: dict, data: dict) -> str:
         "the settlement run; 4b's churn/home-move models are point-in-time "
         "risk scores, not roster events."
     )
-    if data["avg_clv_gbp"] is not None:
+    year_clv = (data.get("clv_snapshots") or {}).get(year)
+    if year_clv:
+        clv_vals = [v for v in year_clv.values() if v is not None]
+        avg_yr_clv = _avg(clv_vals)
+        if avg_yr_clv is not None:
+            lines.append(
+                f"- Average CLV (Point-in-Time, year-end {year}): {_fmt_gbp(avg_yr_clv)}"
+            )
+            per_acct = ", ".join(
+                f"{acct} {_fmt_gbp(clv)}" for acct, clv in sorted(year_clv.items()) if clv is not None
+            )
+            lines.append(f"  - By billing account: {per_acct}")
+        else:
+            lines.append(f"- Average CLV (Point-in-Time, year-end {year}): {NOT_AVAILABLE}")
+    elif data["avg_clv_gbp"] is not None:
         lines.append(
             f"- Average CLV across book (whole-run projection, per billing account): "
             f"{_fmt_gbp(data['avg_clv_gbp'])}"
@@ -932,6 +981,50 @@ def _customer_lifecycle_events_section(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _clv_trajectory_section(data: dict) -> str:
+    """Whole-run CLV trajectory table — Point-in-Time CLV per billing account
+    at each year end, showing how estimates evolved as renewal data accumulated.
+    Only rendered when clv_snapshots is available (fresh simulation run).
+    """
+    snapshots = data.get("clv_snapshots")
+    if not snapshots:
+        return f"## CLV Trajectory\n\n{NOT_AVAILABLE}\n"
+
+    years = sorted(snapshots)
+    # Collect billing accounts that appear in at least one year
+    all_accounts = sorted({
+        account_id
+        for yr_snap in snapshots.values()
+        for account_id in yr_snap
+    })
+    if not all_accounts:
+        return f"## CLV Trajectory\n\n{NOT_AVAILABLE}\n"
+
+    header = "| Year | " + " | ".join(all_accounts) + " |"
+    sep = "|------|" + "|".join("------:" for _ in all_accounts) + "|"
+    rows = []
+    for year in years:
+        yr = snapshots[year]
+        cells = [
+            _fmt_gbp(yr[acct]) if yr.get(acct) is not None else "—"
+            for acct in all_accounts
+        ]
+        rows.append(f"| {year} | " + " | ".join(cells) + " |")
+
+    return "\n".join([
+        "## CLV Trajectory",
+        "",
+        "Point-in-Time Customer Lifetime Value per billing account at each year-end.",
+        "CLV is computed from churn renewal history and net margins accumulated up to "
+        "that date only (Point-in-Time Blindfold). '—' = no renewal points yet.",
+        "",
+        header,
+        sep,
+        *rows,
+        "",
+    ])
+
+
 def _ledger_summary_section(data: dict) -> str:
     """Transaction log summary — Phase 7a/7b. Shows event counts, cash-flow
     waterfall, and verification that ledger P&L agrees with the simulation."""
@@ -1012,6 +1105,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_hedge_effectiveness_summary_section(data))
     sections.append(_segment_margin_trend_section(data))
     sections.append(_customer_lifecycle_events_section(data))
+    sections.append(_clv_trajectory_section(data))
     sections.append(_ledger_summary_section(data))
 
     for year in sorted(data["years"]):

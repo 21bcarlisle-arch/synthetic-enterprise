@@ -2,6 +2,7 @@ from pathlib import Path
 
 from saas.reporting.annual_report import (
     NOT_AVAILABLE,
+    _clv_trajectory_section,
     _ledger_summary_section,
     _mandate_comparison_section,
     _pricing_action,
@@ -426,3 +427,32 @@ def test_extract_report_data_includes_revenue_gbp_per_customer():
     data = extract_report_data(_run_output())
     # C1 has records with revenue = margin + 100: (10+100) + (12+100) + (-5+100) = 317
     assert abs(data["per_customer_lifetime"]["C1"]["revenue_gbp"] - 317.0) < 0.01
+
+
+def test_extract_report_data_includes_clv_snapshots_key():
+    data = extract_report_data(_run_output())
+    # clv_snapshots is None when churn_risk is empty (fixture has no churn_risk)
+    assert "clv_snapshots" in data
+
+
+def test_clv_trajectory_section_shows_not_available_when_no_snapshots():
+    section = _clv_trajectory_section({"clv_snapshots": None})
+    assert NOT_AVAILABLE in section
+
+
+def test_clv_trajectory_section_renders_table_with_snapshots():
+    snapshots = {
+        "2016": {"C1": 1000.0, "C2": None},
+        "2017": {"C1": 1100.0, "C2": 950.0},
+    }
+    section = _clv_trajectory_section({"clv_snapshots": snapshots})
+    assert "## CLV Trajectory" in section
+    assert "2016" in section
+    assert "2017" in section
+    assert "C1" in section
+    assert "C2" in section
+    assert "£1,000" in section
+    assert "£1,100" in section
+    assert "£950" in section
+    # 2016 C2 has no data yet — should show em-dash
+    assert "—" in section
