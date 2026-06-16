@@ -20,6 +20,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
+from saas.customer_reaction import _billing_account_id
 from saas.customers import CUSTOMERS, get_customer
 from saas.property_model import (
     DEFAULT_ASSETS,
@@ -52,6 +53,7 @@ from simulation.hh_consumption import (
     is_hh_customer,
     load_hh_consumption,
 )
+from simulation.customer_events import roll_lifecycle_event
 from simulation.renewals import build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.weather_inputs import lookback_mean_temps, weather_means_for_customer
@@ -312,6 +314,8 @@ def main(report_end: str | None = None):
     evolution_logs: dict[str, list] = {cid: [] for cid in all_customers_ids}
     term_indices: dict[str, int] = {cid: 0 for cid in all_customers_ids}
     committee_wake_ups: list[dict] = []
+    customer_events_log: list[dict] = []
+    churned_billing_accounts: set[str] = set()
     administration_event = None
     periods_since_committee = COMMITTEE_COOLDOWN_PERIODS
     total_periods_processed = 0
@@ -326,11 +330,33 @@ def main(report_end: str | None = None):
         if administration_event:
             break
 
+        # Phase 6b: skip churned accounts (billing-account level — covers both elec + gas legs)
+        billing_account = _billing_account_id(cid)
+        if billing_account in churned_billing_accounts:
+            term_indices[cid] += 1
+            continue
+
         term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
         forward_price = term["forward_price_gbp_per_mwh"]
         unit_rate = term["unit_rate_gbp_per_mwh"]
         term_index = term_indices[cid]
         term_indices[cid] += 1
+
+        # Phase 6b: roll churn/renewal event at each renewal point (electricity legs drive billing)
+        if term_index >= 1 and commodity == "electricity":
+            event = roll_lifecycle_event(
+                cid, term_start_str, commodity, list(all_records), CUSTOMERS
+            )
+            if event is not None:
+                customer_events_log.append(event)
+                if event["event_type"] == "churned":
+                    churned_billing_accounts.add(billing_account)
+                    print(
+                        f"  [CHURN] {billing_account} at {term_start_str} — "
+                        f"p_retain={event['effective_retention_probability']:.4f}  "
+                        f"roll={event['random_roll']:.4f}"
+                    )
+                    continue
 
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)
@@ -572,6 +598,21 @@ def main(report_end: str | None = None):
             f"gross=£{gross:.2f}  capital=£{cap:.2f}  net=£{net:.2f}"
         )
 
+    print(f"\n=== Customer lifecycle events: {len(customer_events_log)} ===")
+    renewals_by_type: dict[str, int] = {}
+    for evt in customer_events_log:
+        renewals_by_type[evt["event_type"]] = renewals_by_type.get(evt["event_type"], 0) + 1
+    print(f"  Renewed: {renewals_by_type.get('renewed', 0)}  Churned: {renewals_by_type.get('churned', 0)}")
+    for evt in customer_events_log:
+        flag = " *** CHURNED ***" if evt["event_type"] == "churned" else ""
+        print(
+            f"  {evt['customer_id']} {evt['event_date']}: "
+            f"p_churn={evt['churn_probability']:.4f}  "
+            f"p_win={evt['win_probability']:.4f}  "
+            f"p_retain={evt['effective_retention_probability']:.4f}  "
+            f"roll={evt['random_roll']:.4f}{flag}"
+        )
+
     print(f"\n=== Context Handshake wake-ups: {len(committee_wake_ups)} ===")
     if committee_wake_ups:
         for wu in committee_wake_ups:
@@ -602,6 +643,8 @@ def main(report_end: str | None = None):
         "all_records": all_records,
         "administration_event": administration_event,
         "committee_wake_ups": committee_wake_ups,
+        "customer_events": customer_events_log,
+        "churned_billing_accounts": sorted(churned_billing_accounts),
         "hedge_evolution": evolution_logs,
         "total_gross": total_gross,
         "total_capital": total_capital,

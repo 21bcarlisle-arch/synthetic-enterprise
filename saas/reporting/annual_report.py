@@ -355,6 +355,8 @@ def extract_report_data(run_output: dict) -> dict:
         ),
         "avg_clv_gbp": _avg(clv_values),
         "hedge_effectiveness_total": hedge_effectiveness_total,
+        "customer_events": phase2b.get("customer_events", []),
+        "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
     }
 
 
@@ -791,6 +793,44 @@ def _segment_margin_trend_section(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _customer_lifecycle_events_section(data: dict) -> str:
+    """Customer lifecycle events — Phase 6b. One row per renewal-time churn/
+    retained event rolled during the simulation run. Replaces the
+    "Not available" placeholder for REPORTING_BACKLOG item 7 (churn events)."""
+    events = data.get("customer_events", [])
+    churned = data.get("churned_billing_accounts", [])
+
+    if not events:
+        return f"## Customer Lifecycle Events\n\n{NOT_AVAILABLE}\n"
+
+    renewed = [e for e in events if e["event_type"] == "renewed"]
+    churned_events = [e for e in events if e["event_type"] == "churned"]
+
+    lines = [
+        "## Customer Lifecycle Events",
+        "",
+        f"Renewal decisions rolled at each annual renewal point across the simulation window.",
+        f"Retained: **{len(renewed)}** renewals.  Lost (churned): **{len(churned_events)}** accounts.",
+    ]
+
+    if churned:
+        lines.append(f"\nAccounts lost before end of window: {', '.join(churned)}")
+
+    lines += ["", "| Account | Date | Outcome | p(churn) | p(win-back) | p(retain) | Roll |"]
+    lines.append("|---------|------|---------|----------|-------------|-----------|------|")
+
+    for evt in events:
+        flag = " **CHURNED**" if evt["event_type"] == "churned" else ""
+        lines.append(
+            f"| {evt['customer_id']} | {evt['event_date']} | {evt['event_type']}{flag} "
+            f"| {evt['churn_probability']:.4f} | {evt['win_probability']:.4f} "
+            f"| {evt['effective_retention_probability']:.4f} | {evt['random_roll']:.4f} |"
+        )
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -810,6 +850,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_mandate_comparison_section(data, _load_old_model_data()))
     sections.append(_hedge_effectiveness_summary_section(data))
     sections.append(_segment_margin_trend_section(data))
+    sections.append(_customer_lifecycle_events_section(data))
 
     for year in sorted(data["years"]):
         yd = data["years"][year]
