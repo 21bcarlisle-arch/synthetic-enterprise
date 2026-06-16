@@ -806,8 +806,8 @@ def _administration_section(data: dict) -> str:
         "",
         "> **ADMINISTRATION TRIGGERED** — the supplier entered insolvency within the simulation window.",
         "",
-        f"| Field | Value |",
-        f"|-------|-------|",
+        "| Field | Value |",
+        "|-------|-------|",
         f"| Trigger date | {event['date']} |",
         f"| Customer (last settled) | {event['customer_id']} |",
         f"| Commodity | {event['commodity']} |",
@@ -836,7 +836,7 @@ def _customer_lifecycle_events_section(data: dict) -> str:
     lines = [
         "## Customer Lifecycle Events",
         "",
-        f"Renewal decisions rolled at each annual renewal point across the simulation window.",
+        "Renewal decisions rolled at each annual renewal point across the simulation window.",
         f"Retained: **{len(renewed)}** renewals.  Lost (churned): **{len(churned_events)}** accounts.",
     ]
 

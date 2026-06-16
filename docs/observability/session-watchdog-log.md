@@ -458,3 +458,9 @@
 - [2026-06-16 04:32 UTC] Autoloop cap reached (6/hour) — pausing
 - [2026-06-16 04:37 UTC] Autoloop cap reached (6/hour) — pausing
 - [2026-06-16 04:38 UTC] Inbound NTFY command from Rich: "I'm getting hundreds of milestone reached and autoloop cap reached message. Are they really serving any purpose?" — relaying to session
+- [2026-06-16 05:00 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-16 05:06 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-16 05:11 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-16 05:31 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-16 05:37 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-16 06:05 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused

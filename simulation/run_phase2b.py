@@ -44,6 +44,7 @@ from sim.risk_committee import RiskCommitteeMonitor
 from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
+from simulation.customer_events import roll_lifecycle_event
 from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_hedged_term
@@ -53,7 +54,6 @@ from simulation.hh_consumption import (
     is_hh_customer,
     load_hh_consumption,
 )
-from simulation.customer_events import roll_lifecycle_event
 from simulation.renewals import build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.weather_inputs import lookback_mean_temps, weather_means_for_customer

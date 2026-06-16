@@ -62,6 +62,7 @@ def _first_renewal_date(acquisition_date: str) -> str:
     Note: 2016-01-01 + 365 = 2016-12-31 because 2016 is a leap year (366 days).
     """
     from datetime import date, timedelta
+
     from simulation.settlement import CONTRACT_LENGTH_DAYS
     return (date.fromisoformat(acquisition_date) + timedelta(days=CONTRACT_LENGTH_DAYS)).isoformat()
 

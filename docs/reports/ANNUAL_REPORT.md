@@ -75,6 +75,10 @@ Net margin (£) by segment, by year:
 | 2024 | £243.99 | £448.03 | £199.79 | £891.81 |
 | 2025 | £121.76 | £109.99 | £76.86 | £308.61 |
 
+## Customer Lifecycle Events
+
+Not available in current run output (see REPORTING_BACKLOG.md)
+
 ## 2016
 
 **Trading & Risk**
