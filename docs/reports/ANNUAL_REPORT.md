@@ -149,7 +149,7 @@ Total events: 2,121,727
 
 | Flow | Amount |
 |------|--------|
-| Revenue collected (billing events) | £93,868.38 |
+| Revenue billed (billing events) | £93,868.38 |
 | Wholesale cost (settlement events) | (£89,694.41) |
 | Gross margin | £4,173.97 |
 | Capital charges | (£1,146.69) |
