@@ -517,12 +517,16 @@ def _customer_book_section(year: str, yd: dict, data: dict) -> str:
         lines.append(f"- New acquisitions this year: {', '.join(yd['acquisitions'])}")
     else:
         lines.append("- New acquisitions this year: none")
-    lines.append(
-        "- Losses (churn / home move) during year: " + NOT_AVAILABLE
-        + " -- no churn mechanic is applied to the actual customer roster in "
-        "the settlement run; 4b's churn/home-move models are point-in-time "
-        "risk scores, not roster events."
-    )
+    customer_events = data.get("customer_events") or []
+    yr_events = [e for e in customer_events if e.get("event_date", "")[:4] == year]
+    churned_this_year = [e["customer_id"] for e in yr_events if e.get("event_type") == "churned"]
+    renewed_this_year = [e["customer_id"] for e in yr_events if e.get("event_type") == "renewed"]
+    if yr_events:
+        churn_str = ", ".join(churned_this_year) if churned_this_year else "none"
+        lines.append(f"- Losses (churn) during year: {churn_str}")
+        lines.append(f"  - Renewals (retained): {len(renewed_this_year)} accounts")
+    else:
+        lines.append("- Losses (churn / home move) during year: none (no renewal dates fell this year)")
     year_clv = (data.get("clv_snapshots") or {}).get(year)
     if year_clv:
         clv_vals = [v for v in year_clv.values() if v is not None]
