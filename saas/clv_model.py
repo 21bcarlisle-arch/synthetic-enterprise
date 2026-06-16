@@ -178,16 +178,22 @@ def build_clv(
     future years of net margin at this account's historical average,
     discounted at `DISCOUNT_RATE_ANNUAL` per year.
     """
-    accounts = [account_id for account_id, renewals in churn_risk.items() if renewals]
-    if not accounts:
-        return {}
-
     net_margin_by_account: dict[str, float] = {}
     for customer_id, entry in cost_to_serve["by_customer"].items():
         account_id = _billing_account_id(customer_id)
         net_margin_by_account[account_id] = (
             net_margin_by_account.get(account_id, 0.0) + entry["net_margin_gbp"]
         )
+
+    # Only include accounts that have both renewal history and cost_to_serve data.
+    # Per-year snapshots may have churn data for an account that churned before
+    # accumulating any billed records in the truncated window.
+    accounts = [
+        account_id for account_id, renewals in churn_risk.items()
+        if renewals and account_id in net_margin_by_account
+    ]
+    if not accounts:
+        return {}
 
     alpha, beta = fit_theta_prior_from_churn_probabilities(churn_risk)
     model = build_clv_model(churn_risk, n_draws=n_draws, random_seed=random_seed)

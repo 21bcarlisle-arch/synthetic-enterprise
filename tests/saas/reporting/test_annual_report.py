@@ -456,3 +456,32 @@ def test_clv_trajectory_section_renders_table_with_snapshots():
     assert "£950" in section
     # 2016 C2 has no data yet — should show em-dash
     assert "—" in section
+
+
+def test_extract_report_data_churn_risk_by_account_empty_when_no_churn_data():
+    data = extract_report_data(_run_output())
+    # Fixture has no churn_risk — should give empty dict for all years
+    for year_data in data["years"].values():
+        assert year_data["churn_risk_by_account"] == {}
+
+
+def _run_output_with_churn_risk():
+    base = _run_output()
+    base["churn_risk"] = {
+        "C1": [
+            {"renewal_period": "2016-06", "churn_probability": 0.15},
+            {"renewal_period": "2017-06", "churn_probability": 0.30},
+        ],
+        "C2": [
+            {"renewal_period": "2017-06", "churn_probability": 0.10},
+        ],
+    }
+    return base
+
+
+def test_extract_report_data_churn_risk_by_account_per_year():
+    data = extract_report_data(_run_output_with_churn_risk())
+    # 2016: only C1 had a renewal (2016-06); churn prob 0.15
+    assert data["years"]["2016"]["churn_risk_by_account"] == {"C1": 0.15}
+    # 2017: C1 (0.30) and C2 (0.10) both renewed
+    assert data["years"]["2017"]["churn_risk_by_account"] == {"C1": 0.30, "C2": 0.10}
