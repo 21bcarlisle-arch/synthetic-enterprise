@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T21:13:34Z
+Last updated: 2026-06-16T21:13:56Z
 
 **Phase 7d complete — full 2016-2025 run, feature-complete report (2026-06-16)**:
 Same deterministic figures as Phase 7c. CLV trajectory table, per-year churn risk,
@@ -40,9 +40,6 @@ Phase 7b cash-flow waterfall now in published report:
 - Revenue billed: £93,868 → Less bad debt: (£1,804) → Cash collected: £92,064
 - Net margin (cash): £1,223 (margin after bad debt provision)
 
-**Note**: CLV trajectory table and per-year pricing flags will appear in the
-next full run (code is in place, JSON from Phase 7c pre-dates the code changes).
-
 **REPORTING_BACKLOG #6 done (2026-06-16, commit 98ec923)**:
 Activity-based pricing flags for net-negative customers. `_pricing_action()`
 returns OK / MARGIN_SQUEEZE / NET_NEGATIVE + recommended tariff uplift %.
@@ -52,8 +49,6 @@ Shown in report's Pricing & Margin section. 7 new tests.
 Per-year Point-in-Time CLV trajectory snapshots. `_build_clv_snapshots()`
 recomputes CLV at each year-end using only data up to that date. New
 "CLV Trajectory" table section in published report. 3 new tests.
-
-370 tests passing.
 
 **Phase 7b complete — Payment Lifecycle Ledger (2026-06-16)**:
 Two new event types in `saas/ledger.py`:
