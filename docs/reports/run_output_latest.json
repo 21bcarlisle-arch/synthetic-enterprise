@@ -238,7 +238,7 @@
           "settlement_date": "2016-06-29",
           "treasury_gbp": 29853.736427854772,
           "adjustments": {
-            "C1": 1.0
+            "C1": 0.95
           },
           "portfolio_var_current_gbp": 66.92645350035774,
           "portfolio_var_stressed_gbp": 20.561354228121694
@@ -1095,127 +1095,102 @@
         "net_margin_gbp": -0.44436445950028186
       },
       "bills_count": 108,
-      "avg_clarity": 0.887818343259736,
-      "avg_bill_shock_pct": 0.14637654727588084,
+      "avg_clarity": 0.8937773176772974,
+      "avg_bill_shock_pct": 0.13110306472570116,
       "bill_shock_events": [
         {
-          "customer_id": "C1",
-          "period_end": "2016-04-30",
-          "bill_shock_pct": 0.21367020341168896
-        },
-        {
-          "customer_id": "C5",
-          "period_end": "2016-04-30",
-          "bill_shock_pct": 0.20648760589391613
-        },
-        {
           "customer_id": "C5",
           "period_end": "2016-05-31",
-          "bill_shock_pct": 0.2952492193790951
-        },
-        {
-          "customer_id": "C5",
-          "period_end": "2016-06-30",
-          "bill_shock_pct": 0.2225123224078246
+          "bill_shock_pct": 0.2676532116302213
         },
         {
           "customer_id": "C5",
           "period_end": "2016-10-31",
-          "bill_shock_pct": 0.47128106560621924
+          "bill_shock_pct": 0.40776209086548526
         },
         {
           "customer_id": "C5",
           "period_end": "2016-11-30",
-          "bill_shock_pct": 0.4880233277145014
-        },
-        {
-          "customer_id": "C7",
-          "period_end": "2016-04-30",
-          "bill_shock_pct": 0.20471379080602722
+          "bill_shock_pct": 0.43263341708485353
         },
         {
           "customer_id": "C7",
           "period_end": "2016-05-31",
-          "bill_shock_pct": 0.37836543270673517
+          "bill_shock_pct": 0.3575862404497528
         },
         {
           "customer_id": "C7",
           "period_end": "2016-06-30",
-          "bill_shock_pct": 0.3098253768338836
+          "bill_shock_pct": 0.2872911313569171
         },
         {
           "customer_id": "C7",
           "period_end": "2016-10-31",
-          "bill_shock_pct": 0.808336290965696
+          "bill_shock_pct": 0.7215108086737236
         },
         {
           "customer_id": "C7",
           "period_end": "2016-11-30",
-          "bill_shock_pct": 0.52074122515762
+          "bill_shock_pct": 0.48355354361311953
         },
         {
           "customer_id": "C6",
           "period_end": "2016-05-31",
-          "bill_shock_pct": 0.27777255506566517
+          "bill_shock_pct": 0.25267660097274136
         },
         {
           "customer_id": "C6",
           "period_end": "2016-06-30",
-          "bill_shock_pct": 0.25054460154134084
+          "bill_shock_pct": 0.2261971062873718
         },
         {
           "customer_id": "C6",
           "period_end": "2016-10-31",
-          "bill_shock_pct": 0.4575771969139838
+          "bill_shock_pct": 0.39841432080147626
         },
         {
           "customer_id": "C6",
           "period_end": "2016-11-30",
-          "bill_shock_pct": 0.5081072020814881
+          "bill_shock_pct": 0.45242380643129865
         },
         {
           "customer_id": "C8",
           "period_end": "2016-05-31",
-          "bill_shock_pct": 0.4234757001336415
+          "bill_shock_pct": 0.4003255756019324
         },
         {
           "customer_id": "C8",
           "period_end": "2016-06-30",
-          "bill_shock_pct": 0.4469912051439041
+          "bill_shock_pct": 0.4107742195241115
         },
         {
           "customer_id": "C8",
           "period_end": "2016-09-30",
-          "bill_shock_pct": 0.2863217043781363
+          "bill_shock_pct": 0.22874644858621304
         },
         {
           "customer_id": "C8",
           "period_end": "2016-10-31",
-          "bill_shock_pct": 1.1844285463995794
+          "bill_shock_pct": 1.0205861783258074
         },
         {
           "customer_id": "C8",
           "period_end": "2016-11-30",
-          "bill_shock_pct": 0.7137940170522005
-        },
-        {
-          "customer_id": "C9",
-          "period_end": "2016-09-30",
-          "bill_shock_pct": 0.22165656317832239
+          "bill_shock_pct": 0.6594880969727887
         },
         {
           "customer_id": "C9",
           "period_end": "2016-10-31",
-          "bill_shock_pct": 0.8564720933713795
+          "bill_shock_pct": 0.7544141160940768
         },
         {
           "customer_id": "C9",
           "period_end": "2016-11-30",
-          "bill_shock_pct": 0.600498222814979
+          "bill_shock_pct": 0.554290060229748
         }
       ],
-      "bad_debt_gbp": 98.24961794804558,
-      "avg_complaint_probability": 0.036794808798122934,
+      "bad_debt_gbp": 221.00087675672214,
+      "avg_complaint_probability": 0.03485814211241543,
       "treasury_drawdown_events": [],
       "var_ratio": 3.0315876781945947,
       "hedge_effectiveness": {
@@ -1970,172 +1945,132 @@
         "net_margin_gbp": -0.16591897101596476
       },
       "bills_count": 156,
-      "avg_clarity": 0.8863611471290892,
-      "avg_bill_shock_pct": 0.13268925375354818,
+      "avg_clarity": 0.8960358997674018,
+      "avg_bill_shock_pct": 0.11333974847692312,
       "bill_shock_events": [
         {
           "customer_id": "C1",
           "period_end": "2017-01-31",
-          "bill_shock_pct": 0.4901109610622078
-        },
-        {
-          "customer_id": "C1",
-          "period_end": "2017-04-30",
-          "bill_shock_pct": 0.2060249836730724
+          "bill_shock_pct": 0.2214463346907756
         },
         {
           "customer_id": "C5",
           "period_end": "2017-01-31",
-          "bill_shock_pct": 0.7323385058041086
+          "bill_shock_pct": 0.469104489472994
         },
         {
           "customer_id": "C5",
           "period_end": "2017-02-28",
-          "bill_shock_pct": 0.23378353324305148
-        },
-        {
-          "customer_id": "C5",
-          "period_end": "2017-05-31",
-          "bill_shock_pct": 0.21545961801601016
+          "bill_shock_pct": 0.22719895854377314
         },
         {
           "customer_id": "C5",
           "period_end": "2017-06-30",
-          "bill_shock_pct": 0.2339990893026482
+          "bill_shock_pct": 0.21488602660966957
         },
         {
           "customer_id": "C5",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.6248118728239785
+          "bill_shock_pct": 0.563596415370801
         },
         {
           "customer_id": "C7",
           "period_end": "2017-01-31",
-          "bill_shock_pct": 0.821359134740288
+          "bill_shock_pct": 0.5206851493654955
         },
         {
           "customer_id": "C7",
           "period_end": "2017-02-28",
-          "bill_shock_pct": 0.2750880773872796
+          "bill_shock_pct": 0.2700865089273689
         },
         {
           "customer_id": "C7",
           "period_end": "2017-05-31",
-          "bill_shock_pct": 0.3096752186458497
+          "bill_shock_pct": 0.2937773056302468
         },
         {
           "customer_id": "C7",
           "period_end": "2017-06-30",
-          "bill_shock_pct": 0.3149517130095407
+          "bill_shock_pct": 0.2957804825050765
         },
         {
           "customer_id": "C7",
           "period_end": "2017-09-30",
-          "bill_shock_pct": 0.276868997463742
-        },
-        {
-          "customer_id": "C7",
-          "period_end": "2017-10-31",
-          "bill_shock_pct": 0.20409293658479313
+          "bill_shock_pct": 0.24745407361145277
         },
         {
           "customer_id": "C7",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.7599579595131836
+          "bill_shock_pct": 0.7092401843570255
         },
         {
           "customer_id": "C6",
           "period_end": "2017-05-31",
-          "bill_shock_pct": 0.2372058969333201
-        },
-        {
-          "customer_id": "C6",
-          "period_end": "2017-06-30",
-          "bill_shock_pct": 0.214030042952784
+          "bill_shock_pct": 0.2155013419949077
         },
         {
           "customer_id": "C6",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.5496788446116836
+          "bill_shock_pct": 0.4901698457915102
         },
         {
           "customer_id": "C8",
           "period_end": "2017-05-31",
-          "bill_shock_pct": 0.41684536287857865
+          "bill_shock_pct": 0.39252108974741334
         },
         {
           "customer_id": "C8",
           "period_end": "2017-06-30",
-          "bill_shock_pct": 0.38423129167719694
+          "bill_shock_pct": 0.3518813280767242
         },
         {
           "customer_id": "C8",
           "period_end": "2017-09-30",
-          "bill_shock_pct": 0.5160334085088492
+          "bill_shock_pct": 0.43793612744825006
         },
         {
           "customer_id": "C8",
           "period_end": "2017-10-31",
-          "bill_shock_pct": 0.22001406084994599
+          "bill_shock_pct": 0.20211855937977724
         },
         {
           "customer_id": "C8",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.8928222677273299
+          "bill_shock_pct": 0.8165938381686161
         },
         {
           "customer_id": "C8",
           "period_end": "2017-12-31",
-          "bill_shock_pct": 0.22890813372227384
-        },
-        {
-          "customer_id": "C3",
-          "period_end": "2017-07-31",
-          "bill_shock_pct": 0.3888570900306017
-        },
-        {
-          "customer_id": "C3g",
-          "period_end": "2017-07-31",
-          "bill_shock_pct": 0.2591633231898385
+          "bill_shock_pct": 0.22032289956610526
         },
         {
           "customer_id": "C9",
           "period_end": "2017-05-31",
-          "bill_shock_pct": 0.3511711117651093
+          "bill_shock_pct": 0.3269026976438092
         },
         {
           "customer_id": "C9",
           "period_end": "2017-06-30",
-          "bill_shock_pct": 0.274477746015441
-        },
-        {
-          "customer_id": "C9",
-          "period_end": "2017-07-31",
-          "bill_shock_pct": 0.23678658717366155
+          "bill_shock_pct": 0.25100780218553903
         },
         {
           "customer_id": "C9",
           "period_end": "2017-09-30",
-          "bill_shock_pct": 0.33430128667681364
-        },
-        {
-          "customer_id": "C9",
-          "period_end": "2017-10-31",
-          "bill_shock_pct": 0.21554715130425658
+          "bill_shock_pct": 0.2917410403552312
         },
         {
           "customer_id": "C9",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.7419771246735313
+          "bill_shock_pct": 0.6839694312049016
         },
         {
           "customer_id": "C4g",
           "period_end": "2017-10-31",
-          "bill_shock_pct": 0.375347914827763
+          "bill_shock_pct": 0.20539156555126037
         }
       ],
-      "bad_debt_gbp": 170.75861684895077,
-      "avg_complaint_probability": 0.037609070684511824,
+      "bad_debt_gbp": 347.914414553561,
+      "avg_complaint_probability": 0.03446477607706026,
       "treasury_drawdown_events": [],
       "var_ratio": 2.7233398593953515,
       "hedge_effectiveness": {
@@ -2446,207 +2381,177 @@
         "net_margin_gbp": -0.2732349800817026
       },
       "bills_count": 156,
-      "avg_clarity": 0.8890354661718869,
-      "avg_bill_shock_pct": 0.12552165153114464,
+      "avg_clarity": 0.8973244656417194,
+      "avg_bill_shock_pct": 0.10894365259147944,
       "bill_shock_events": [
         {
-          "customer_id": "C1",
-          "period_end": "2018-01-31",
-          "bill_shock_pct": 0.27448593431299917
-        },
-        {
-          "customer_id": "C1",
-          "period_end": "2018-04-30",
-          "bill_shock_pct": 0.20177901475868965
-        },
-        {
-          "customer_id": "C1g",
-          "period_end": "2018-01-31",
-          "bill_shock_pct": 0.34915279884556927
-        },
-        {
-          "customer_id": "C5",
-          "period_end": "2018-01-31",
-          "bill_shock_pct": 0.29096989251353356
-        },
-        {
           "customer_id": "C5",
           "period_end": "2018-04-30",
-          "bill_shock_pct": 0.33852803151381555
-        },
-        {
-          "customer_id": "C5",
-          "period_end": "2018-05-31",
-          "bill_shock_pct": 0.20030952735225227
+          "bill_shock_pct": 0.31819938456680763
         },
         {
           "customer_id": "C5",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.2267907966945295
+          "bill_shock_pct": 0.20374324564526122
         },
         {
           "customer_id": "C5",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.35043739397177265
+          "bill_shock_pct": 0.31098062912789914
         },
         {
           "customer_id": "C5",
           "period_end": "2018-11-30",
-          "bill_shock_pct": 0.2982842535032319
+          "bill_shock_pct": 0.26586590378452235
         },
         {
           "customer_id": "C7",
           "period_end": "2018-01-31",
-          "bill_shock_pct": 0.31007953325793863
+          "bill_shock_pct": 0.2062719296160078
         },
         {
           "customer_id": "C7",
           "period_end": "2018-04-30",
-          "bill_shock_pct": 0.38135508425548303
+          "bill_shock_pct": 0.36759740199423774
         },
         {
           "customer_id": "C7",
           "period_end": "2018-05-31",
-          "bill_shock_pct": 0.2876999520868954
+          "bill_shock_pct": 0.2683395170167939
         },
         {
           "customer_id": "C7",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.2991463789394612
+          "bill_shock_pct": 0.2764150174839524
         },
         {
           "customer_id": "C7",
           "period_end": "2018-09-30",
-          "bill_shock_pct": 0.30042693199882
+          "bill_shock_pct": 0.26286028385541926
         },
         {
           "customer_id": "C7",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.443819810352452
+          "bill_shock_pct": 0.4082998606728787
         },
         {
           "customer_id": "C7",
           "period_end": "2018-11-30",
-          "bill_shock_pct": 0.3102361418037529
-        },
-        {
-          "customer_id": "C2",
-          "period_end": "2018-04-30",
-          "bill_shock_pct": 0.30771199251149145
-        },
-        {
-          "customer_id": "C2g",
-          "period_end": "2018-04-30",
-          "bill_shock_pct": 0.25839418804395525
+          "bill_shock_pct": 0.2884905105374619
         },
         {
           "customer_id": "C6",
           "period_end": "2018-05-31",
-          "bill_shock_pct": 0.2294466393758535
+          "bill_shock_pct": 0.212643303414164
         },
         {
           "customer_id": "C6",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.23827029497034444
+          "bill_shock_pct": 0.2209814824377414
         },
         {
           "customer_id": "C6",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.3276178939935459
+          "bill_shock_pct": 0.3022666797740031
         },
         {
           "customer_id": "C6",
           "period_end": "2018-11-30",
-          "bill_shock_pct": 0.23490204758970937
+          "bill_shock_pct": 0.21664025463246958
+        },
+        {
+          "customer_id": "C8",
+          "period_end": "2018-04-30",
+          "bill_shock_pct": 0.20026938468966984
         },
         {
           "customer_id": "C8",
           "period_end": "2018-05-31",
-          "bill_shock_pct": 0.40787324826339405
+          "bill_shock_pct": 0.3878402791346754
         },
         {
           "customer_id": "C8",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.4369233825448919
+          "bill_shock_pct": 0.40590815206032216
         },
         {
           "customer_id": "C8",
           "period_end": "2018-08-31",
-          "bill_shock_pct": 0.2711619878136647
+          "bill_shock_pct": 0.2317782001947377
         },
         {
           "customer_id": "C8",
           "period_end": "2018-09-30",
-          "bill_shock_pct": 0.6043805503564176
+          "bill_shock_pct": 0.5293135373796851
         },
         {
           "customer_id": "C8",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.560522005868713
+          "bill_shock_pct": 0.5211864532125996
         },
         {
           "customer_id": "C8",
           "period_end": "2018-11-30",
-          "bill_shock_pct": 0.2953434006700682
+          "bill_shock_pct": 0.278739007380098
         },
         {
           "customer_id": "C3g",
           "period_end": "2018-07-31",
-          "bill_shock_pct": 0.4806907762882466
+          "bill_shock_pct": 0.25614763947228447
         },
         {
           "customer_id": "C9",
           "period_end": "2018-04-30",
-          "bill_shock_pct": 0.3243538182426189
+          "bill_shock_pct": 0.3130835645200873
         },
         {
           "customer_id": "C9",
           "period_end": "2018-05-31",
-          "bill_shock_pct": 0.36691023194330574
+          "bill_shock_pct": 0.34515376047974583
         },
         {
           "customer_id": "C9",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.341868268071095
+          "bill_shock_pct": 0.3153111790686702
         },
         {
           "customer_id": "C9",
           "period_end": "2018-07-31",
-          "bill_shock_pct": 0.29462935897444803
+          "bill_shock_pct": 0.24832954483488995
         },
         {
           "customer_id": "C9",
           "period_end": "2018-08-31",
-          "bill_shock_pct": 0.44003494686992817
+          "bill_shock_pct": 0.36669650893956574
         },
         {
           "customer_id": "C9",
           "period_end": "2018-09-30",
-          "bill_shock_pct": 0.49469771109817096
+          "bill_shock_pct": 0.4304368456117314
         },
         {
           "customer_id": "C9",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.39643431176043464
+          "bill_shock_pct": 0.36647783778923776
         },
         {
           "customer_id": "C9",
           "period_end": "2018-12-31",
-          "bill_shock_pct": 0.2197779566619131
+          "bill_shock_pct": 0.21021877565079247
         },
         {
           "customer_id": "C4",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.41142559579136984
+          "bill_shock_pct": 0.21431713432978294
         },
         {
           "customer_id": "C4g",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.5494325299226528
+          "bill_shock_pct": 0.32957656886263653
         }
       ],
-      "bad_debt_gbp": 190.38992624478382,
-      "avg_complaint_probability": 0.03651254647850156,
+      "bad_debt_gbp": 370.24894944467184,
+      "avg_complaint_probability": 0.033818621650805965,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
@@ -2957,202 +2862,182 @@
         "net_margin_gbp": -0.03276743
       },
       "bills_count": 156,
-      "avg_clarity": 0.8843828071504128,
-      "avg_bill_shock_pct": 0.14151277824827302,
+      "avg_clarity": 0.8930490289626567,
+      "avg_bill_shock_pct": 0.12418033462378535,
       "bill_shock_events": [
         {
           "customer_id": "C1",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.23880786557407732
+          "bill_shock_pct": 0.20905445131288986
         },
         {
           "customer_id": "C5",
           "period_end": "2019-01-31",
-          "bill_shock_pct": 0.37551155987130863
+          "bill_shock_pct": 0.2873850093185531
         },
         {
           "customer_id": "C5",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.21929824109510276
+          "bill_shock_pct": 0.2125188949633787
         },
         {
           "customer_id": "C5",
           "period_end": "2019-06-30",
-          "bill_shock_pct": 0.27605406556205975
+          "bill_shock_pct": 0.25221930922513247
         },
         {
           "customer_id": "C5",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.4783342481494212
+          "bill_shock_pct": 0.42330651898512944
         },
         {
           "customer_id": "C5",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.38532279612054743
+          "bill_shock_pct": 0.3478338464486867
         },
         {
           "customer_id": "C7",
           "period_end": "2019-01-31",
-          "bill_shock_pct": 0.42884294963337144
+          "bill_shock_pct": 0.33303680970110894
         },
         {
           "customer_id": "C7",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.24886232929921087
+          "bill_shock_pct": 0.2439047207176773
         },
         {
           "customer_id": "C7",
           "period_end": "2019-05-31",
-          "bill_shock_pct": 0.23069619227653254
+          "bill_shock_pct": 0.21749225843799244
         },
         {
           "customer_id": "C7",
           "period_end": "2019-06-30",
-          "bill_shock_pct": 0.3417848848054287
+          "bill_shock_pct": 0.32134394182767845
         },
         {
           "customer_id": "C7",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.6723022191406558
+          "bill_shock_pct": 0.6139167664749776
         },
         {
           "customer_id": "C7",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.4545885308631158
+          "bill_shock_pct": 0.42610614382162343
         },
         {
           "customer_id": "C2",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.41669245560799656
+          "bill_shock_pct": 0.3113748542613484
         },
         {
           "customer_id": "C6",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.21372801569583286
+          "bill_shock_pct": 0.2085422280293499
         },
         {
           "customer_id": "C6",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.44883805000891225
+          "bill_shock_pct": 0.36440136150054026
         },
         {
           "customer_id": "C6",
           "period_end": "2019-06-30",
-          "bill_shock_pct": 0.25944162947196764
-        },
-        {
-          "customer_id": "C6",
-          "period_end": "2019-09-30",
-          "bill_shock_pct": 0.21664078860849717
+          "bill_shock_pct": 0.23864157051816845
         },
         {
           "customer_id": "C6",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.4538068161174291
+          "bill_shock_pct": 0.4069237842147114
         },
         {
           "customer_id": "C6",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.2859585136127209
+          "bill_shock_pct": 0.25989879353928863
         },
         {
           "customer_id": "C8",
           "period_end": "2019-01-31",
-          "bill_shock_pct": 0.2373437225792381
+          "bill_shock_pct": 0.22928522918889224
         },
         {
           "customer_id": "C8",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.2643062792630843
+          "bill_shock_pct": 0.2596790455400867
         },
         {
           "customer_id": "C8",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.4858704397543444
+          "bill_shock_pct": 0.3981529469763328
         },
         {
           "customer_id": "C8",
           "period_end": "2019-06-30",
-          "bill_shock_pct": 0.4025333395344092
+          "bill_shock_pct": 0.37642554542642637
         },
         {
           "customer_id": "C8",
           "period_end": "2019-07-31",
-          "bill_shock_pct": 0.37696788925790387
+          "bill_shock_pct": 0.3320706618494459
         },
         {
           "customer_id": "C8",
           "period_end": "2019-09-30",
-          "bill_shock_pct": 0.6657619255758916
+          "bill_shock_pct": 0.5535676004421989
         },
         {
           "customer_id": "C8",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.874846517237365
+          "bill_shock_pct": 0.7905919678679598
         },
         {
           "customer_id": "C8",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.40043563868913007
-        },
-        {
-          "customer_id": "C3",
-          "period_end": "2019-04-30",
-          "bill_shock_pct": 0.2245676169569965
-        },
-        {
-          "customer_id": "C3g",
-          "period_end": "2019-07-31",
-          "bill_shock_pct": 0.2913588305075089
+          "bill_shock_pct": 0.3754346710496814
         },
         {
           "customer_id": "C9",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.2545451042520366
+          "bill_shock_pct": 0.24840304401674937
         },
         {
           "customer_id": "C9",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.2526490713237022
+          "bill_shock_pct": 0.24235486119638472
         },
         {
           "customer_id": "C9",
           "period_end": "2019-06-30",
-          "bill_shock_pct": 0.3703929659118014
+          "bill_shock_pct": 0.3471201615149118
         },
         {
           "customer_id": "C9",
           "period_end": "2019-07-31",
-          "bill_shock_pct": 0.4240631400171489
+          "bill_shock_pct": 0.3432501677388916
         },
         {
           "customer_id": "C9",
           "period_end": "2019-09-30",
-          "bill_shock_pct": 0.5611855935488681
+          "bill_shock_pct": 0.47073257449233274
         },
         {
           "customer_id": "C9",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.7444840154534519
+          "bill_shock_pct": 0.6731607770025949
         },
         {
           "customer_id": "C9",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.3999229239851554
-        },
-        {
-          "customer_id": "C4",
-          "period_end": "2019-10-31",
-          "bill_shock_pct": 0.2890820807610031
+          "bill_shock_pct": 0.37315357276544775
         },
         {
           "customer_id": "C4g",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.5625977230585403
+          "bill_shock_pct": 0.36529723144108883
         }
       ],
-      "bad_debt_gbp": 189.4979471564523,
-      "avg_complaint_probability": 0.038860386744753166,
+      "bad_debt_gbp": 369.77426969533,
+      "avg_complaint_probability": 0.036043864655773916,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
@@ -3455,182 +3340,142 @@
         "net_margin_gbp": -0.9750116448081949
       },
       "bills_count": 144,
-      "avg_clarity": 0.8828829164039127,
-      "avg_bill_shock_pct": 0.12891175575116703,
+      "avg_clarity": 0.8918694063466314,
+      "avg_bill_shock_pct": 0.11093877586572948,
       "bill_shock_events": [
-        {
-          "customer_id": "C1",
-          "period_end": "2020-01-31",
-          "bill_shock_pct": 0.2693710007507901
-        },
-        {
-          "customer_id": "C1",
-          "period_end": "2020-04-30",
-          "bill_shock_pct": 0.2276338678666256
-        },
         {
           "customer_id": "C1g",
           "period_end": "2020-01-31",
-          "bill_shock_pct": 0.395189046948297
-        },
-        {
-          "customer_id": "C5",
-          "period_end": "2020-01-31",
-          "bill_shock_pct": 0.2711332054759415
+          "bill_shock_pct": 0.2354918540035192
         },
         {
           "customer_id": "C5",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.30572535209547796
+          "bill_shock_pct": 0.2844243738173256
         },
         {
           "customer_id": "C5",
           "period_end": "2020-10-31",
-          "bill_shock_pct": 0.418717459098033
-        },
-        {
-          "customer_id": "C5",
-          "period_end": "2020-11-30",
-          "bill_shock_pct": 0.21427362717371212
+          "bill_shock_pct": 0.36417942867793757
         },
         {
           "customer_id": "C5",
           "period_end": "2020-12-31",
-          "bill_shock_pct": 0.2915855410117198
-        },
-        {
-          "customer_id": "C7",
-          "period_end": "2020-01-31",
-          "bill_shock_pct": 0.2838456520580341
+          "bill_shock_pct": 0.2572677281979944
         },
         {
           "customer_id": "C7",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.3516798905586262
+          "bill_shock_pct": 0.33666240127040226
         },
         {
           "customer_id": "C7",
           "period_end": "2020-06-30",
-          "bill_shock_pct": 0.2725988311439122
+          "bill_shock_pct": 0.25172792047948184
         },
         {
           "customer_id": "C7",
           "period_end": "2020-10-31",
-          "bill_shock_pct": 0.5978848191088307
+          "bill_shock_pct": 0.539856636263931
         },
         {
           "customer_id": "C7",
           "period_end": "2020-11-30",
-          "bill_shock_pct": 0.22059460800835587
+          "bill_shock_pct": 0.20315394002789824
         },
         {
           "customer_id": "C7",
           "period_end": "2020-12-31",
-          "bill_shock_pct": 0.3649145057049778
+          "bill_shock_pct": 0.33136568473007844
         },
         {
           "customer_id": "C2",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.36705195817148817
+          "bill_shock_pct": 0.2567797991664322
         },
         {
           "customer_id": "C2g",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.46521433718560035
+          "bill_shock_pct": 0.2905540977057048
         },
         {
           "customer_id": "C6",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.46431762113142255
-        },
-        {
-          "customer_id": "C6",
-          "period_end": "2020-09-30",
-          "bill_shock_pct": 0.23499730407913552
+          "bill_shock_pct": 0.37735425747600315
         },
         {
           "customer_id": "C6",
           "period_end": "2020-10-31",
-          "bill_shock_pct": 0.36649541528732366
+          "bill_shock_pct": 0.32436860446860627
         },
         {
           "customer_id": "C6",
           "period_end": "2020-12-31",
-          "bill_shock_pct": 0.2745298045681011
+          "bill_shock_pct": 0.2541026715654629
         },
         {
           "customer_id": "C8",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.5328369283158381
+          "bill_shock_pct": 0.4495876144891417
         },
         {
           "customer_id": "C8",
           "period_end": "2020-05-31",
-          "bill_shock_pct": 0.2450824132156263
+          "bill_shock_pct": 0.2249143876938662
         },
         {
           "customer_id": "C8",
           "period_end": "2020-06-30",
-          "bill_shock_pct": 0.350550184563987
+          "bill_shock_pct": 0.3198114320242545
         },
         {
           "customer_id": "C8",
           "period_end": "2020-09-30",
-          "bill_shock_pct": 0.5742607082936603
+          "bill_shock_pct": 0.473077998446797
         },
         {
           "customer_id": "C8",
           "period_end": "2020-10-31",
-          "bill_shock_pct": 0.6949398832721421
+          "bill_shock_pct": 0.6224302559897777
         },
         {
           "customer_id": "C8",
           "period_end": "2020-12-31",
-          "bill_shock_pct": 0.42002162249015407
-        },
-        {
-          "customer_id": "C3",
-          "period_end": "2020-04-30",
-          "bill_shock_pct": 0.21364198621664612
+          "bill_shock_pct": 0.3973851501179951
         },
         {
           "customer_id": "C9",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.2911334315300178
+          "bill_shock_pct": 0.2789295638294912
         },
         {
           "customer_id": "C9",
           "period_end": "2020-05-31",
-          "bill_shock_pct": 0.24551292395606905
+          "bill_shock_pct": 0.22787069499733698
         },
         {
           "customer_id": "C9",
           "period_end": "2020-06-30",
-          "bill_shock_pct": 0.3803096180786604
-        },
-        {
-          "customer_id": "C9",
-          "period_end": "2020-07-31",
-          "bill_shock_pct": 0.23188089477327126
+          "bill_shock_pct": 0.3480715383522223
         },
         {
           "customer_id": "C9",
           "period_end": "2020-09-30",
-          "bill_shock_pct": 0.4659950132344368
+          "bill_shock_pct": 0.3876972787401025
         },
         {
           "customer_id": "C9",
           "period_end": "2020-10-31",
-          "bill_shock_pct": 0.5231580286862151
+          "bill_shock_pct": 0.4694789927524144
         },
         {
           "customer_id": "C9",
           "period_end": "2020-12-31",
-          "bill_shock_pct": 0.3457166058501694
+          "bill_shock_pct": 0.32507896997337027
         }
       ],
-      "bad_debt_gbp": 124.90129269392189,
-      "avg_complaint_probability": 0.03739775073860244,
+      "bad_debt_gbp": 280.2877956360922,
+      "avg_complaint_probability": 0.03447714150721883,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
@@ -3942,192 +3787,177 @@
         "net_margin_gbp": -2.1160418607198466
       },
       "bills_count": 132,
-      "avg_clarity": 0.8584765708534702,
-      "avg_bill_shock_pct": 0.2175704741587408,
+      "avg_clarity": 0.8751223252807832,
+      "avg_bill_shock_pct": 0.15775582517964118,
       "bill_shock_events": [
         {
-          "customer_id": "C1",
-          "period_end": "2021-01-31",
-          "bill_shock_pct": 0.25794421179755883
-        },
-        {
-          "customer_id": "C1",
-          "period_end": "2021-04-30",
-          "bill_shock_pct": 0.2203342256057069
-        },
-        {
           "customer_id": "C5",
           "period_end": "2021-01-31",
-          "bill_shock_pct": 0.3529853628543357
+          "bill_shock_pct": 0.22274485397275834
         },
         {
           "customer_id": "C5",
           "period_end": "2021-05-31",
-          "bill_shock_pct": 0.24013938744302588
+          "bill_shock_pct": 0.2204348529580537
         },
         {
           "customer_id": "C5",
           "period_end": "2021-06-30",
-          "bill_shock_pct": 0.3437430308007632
+          "bill_shock_pct": 0.3139936943786778
         },
         {
           "customer_id": "C5",
           "period_end": "2021-10-31",
-          "bill_shock_pct": 0.3263899841879316
+          "bill_shock_pct": 0.2874928685045023
         },
         {
           "customer_id": "C5",
           "period_end": "2021-11-30",
-          "bill_shock_pct": 0.5507542388462985
+          "bill_shock_pct": 0.48864744026300233
         },
         {
           "customer_id": "C7",
           "period_end": "2021-01-31",
-          "bill_shock_pct": 0.4170767785982925
+          "bill_shock_pct": 0.26811462866794755
         },
         {
           "customer_id": "C7",
           "period_end": "2021-05-31",
-          "bill_shock_pct": 0.2896320629594821
+          "bill_shock_pct": 0.2758118748179389
         },
         {
           "customer_id": "C7",
           "period_end": "2021-06-30",
-          "bill_shock_pct": 0.46715531535274335
+          "bill_shock_pct": 0.44060108828319877
         },
         {
           "customer_id": "C7",
           "period_end": "2021-10-31",
-          "bill_shock_pct": 0.5630655887484279
+          "bill_shock_pct": 0.5089856263309194
         },
         {
           "customer_id": "C7",
           "period_end": "2021-11-30",
-          "bill_shock_pct": 0.6042194563183944
+          "bill_shock_pct": 0.5597237229475217
         },
         {
           "customer_id": "C2",
           "period_end": "2021-04-30",
-          "bill_shock_pct": 0.7334598370396378
+          "bill_shock_pct": 0.2745756749428006
         },
         {
           "customer_id": "C2g",
           "period_end": "2021-04-30",
-          "bill_shock_pct": 0.7529417028320878
+          "bill_shock_pct": 0.3261902208538517
         },
         {
           "customer_id": "C6",
           "period_end": "2021-04-30",
-          "bill_shock_pct": 0.8664929193370644
+          "bill_shock_pct": 0.4300124802363868
         },
         {
           "customer_id": "C6",
           "period_end": "2021-06-30",
-          "bill_shock_pct": 0.3747062118987081
+          "bill_shock_pct": 0.3524807984322105
         },
         {
           "customer_id": "C6",
           "period_end": "2021-10-31",
-          "bill_shock_pct": 0.29264003766141733
+          "bill_shock_pct": 0.26863515206198524
         },
         {
           "customer_id": "C6",
           "period_end": "2021-11-30",
-          "bill_shock_pct": 0.5348678688211704
+          "bill_shock_pct": 0.49210477674272757
         },
         {
           "customer_id": "C8",
           "period_end": "2021-02-28",
-          "bill_shock_pct": 0.20500730123173025
+          "bill_shock_pct": 0.20081855451719244
         },
         {
           "customer_id": "C8",
           "period_end": "2021-04-30",
-          "bill_shock_pct": 0.9558197001018036
+          "bill_shock_pct": 0.44093145063036027
         },
         {
           "customer_id": "C8",
           "period_end": "2021-05-31",
-          "bill_shock_pct": 0.2825001602123873
+          "bill_shock_pct": 0.27196095461650543
         },
         {
           "customer_id": "C8",
           "period_end": "2021-06-30",
-          "bill_shock_pct": 0.6315912769123051
+          "bill_shock_pct": 0.6032053026219396
         },
         {
           "customer_id": "C8",
           "period_end": "2021-09-30",
-          "bill_shock_pct": 0.23549904002760058
+          "bill_shock_pct": 0.20217180585407593
         },
         {
           "customer_id": "C8",
           "period_end": "2021-10-31",
-          "bill_shock_pct": 0.7791711847626234
+          "bill_shock_pct": 0.7044410590799526
         },
         {
           "customer_id": "C8",
           "period_end": "2021-11-30",
-          "bill_shock_pct": 0.8072547428899116
+          "bill_shock_pct": 0.7562586304406503
         },
         {
           "customer_id": "C9",
           "period_end": "2021-02-28",
-          "bill_shock_pct": 0.2279498779084737
+          "bill_shock_pct": 0.22213613137972912
         },
         {
           "customer_id": "C9",
           "period_end": "2021-05-31",
-          "bill_shock_pct": 0.24011097660919842
+          "bill_shock_pct": 0.22375259569818895
         },
         {
           "customer_id": "C9",
           "period_end": "2021-06-30",
-          "bill_shock_pct": 0.5092738550751291
+          "bill_shock_pct": 0.483245625474839
         },
         {
           "customer_id": "C9",
           "period_end": "2021-07-31",
-          "bill_shock_pct": 0.9548968604760987
+          "bill_shock_pct": 0.22237344603257417
         },
         {
           "customer_id": "C9",
           "period_end": "2021-08-31",
-          "bill_shock_pct": 0.2294447327451998
-        },
-        {
-          "customer_id": "C9",
-          "period_end": "2021-09-30",
-          "bill_shock_pct": 0.21154149968825336
+          "bill_shock_pct": 0.20051784384187382
         },
         {
           "customer_id": "C9",
           "period_end": "2021-10-31",
-          "bill_shock_pct": 0.6825202641027505
+          "bill_shock_pct": 0.6268885919544784
         },
         {
           "customer_id": "C9",
           "period_end": "2021-11-30",
-          "bill_shock_pct": 0.4755764594518645
+          "bill_shock_pct": 0.4479352403705478
         },
         {
           "customer_id": "C9",
           "period_end": "2021-12-31",
-          "bill_shock_pct": 0.23198830854847177
+          "bill_shock_pct": 0.22476152844960867
         },
         {
           "customer_id": "C4",
           "period_end": "2021-10-31",
-          "bill_shock_pct": 3.3934220201194196
+          "bill_shock_pct": 1.62585745259274
         },
         {
           "customer_id": "C4g",
           "period_end": "2021-10-31",
-          "bill_shock_pct": 3.524188911093075
+          "bill_shock_pct": 1.790698982189268
         }
       ],
-      "bad_debt_gbp": 166.85100686879306,
-      "avg_complaint_probability": 0.04565373792248718,
+      "bad_debt_gbp": 312.5799422967181,
+      "avg_complaint_probability": 0.04024386773361041,
       "treasury_drawdown_events": [],
       "var_ratio": 2.5232710335342015,
       "hedge_effectiveness": {
@@ -4736,207 +4566,187 @@
         "net_margin_gbp": -0.8208325279449343
       },
       "bills_count": 88,
-      "avg_clarity": 0.8014784279070725,
-      "avg_bill_shock_pct": 0.4778085257212942,
+      "avg_clarity": 0.8092931855621681,
+      "avg_bill_shock_pct": 0.4402187291945743,
       "bill_shock_events": [
         {
           "customer_id": "C7",
           "period_end": "2022-01-31",
-          "bill_shock_pct": 3.2926823931854114
+          "bill_shock_pct": 1.952226827670177
         },
         {
           "customer_id": "C7",
           "period_end": "2022-02-28",
-          "bill_shock_pct": 0.2566821468486175
+          "bill_shock_pct": 0.2545314156252596
         },
         {
           "customer_id": "C7",
           "period_end": "2022-04-30",
-          "bill_shock_pct": 0.20673387635317989
+          "bill_shock_pct": 0.20372839235803902
         },
         {
           "customer_id": "C7",
           "period_end": "2022-05-31",
-          "bill_shock_pct": 0.3511727769709324
+          "bill_shock_pct": 0.34312305708830976
         },
         {
           "customer_id": "C7",
           "period_end": "2022-06-30",
-          "bill_shock_pct": 0.2595165175891235
+          "bill_shock_pct": 0.2520321692994578
         },
         {
           "customer_id": "C7",
           "period_end": "2022-09-30",
-          "bill_shock_pct": 0.3061544613153827
+          "bill_shock_pct": 0.29081638697931395
         },
         {
           "customer_id": "C7",
           "period_end": "2022-11-30",
-          "bill_shock_pct": 0.5777037858345134
+          "bill_shock_pct": 0.558417018044808
         },
         {
           "customer_id": "C7",
           "period_end": "2022-12-31",
-          "bill_shock_pct": 0.5343337099796847
+          "bill_shock_pct": 0.5230893667584087
         },
         {
           "customer_id": "C6",
           "period_end": "2022-04-30",
-          "bill_shock_pct": 1.2143593738889307
+          "bill_shock_pct": 0.8296529995974729
         },
         {
           "customer_id": "C6",
           "period_end": "2022-05-31",
-          "bill_shock_pct": 0.2412195697211877
+          "bill_shock_pct": 0.23426370868097418
         },
         {
           "customer_id": "C6",
           "period_end": "2022-09-30",
-          "bill_shock_pct": 0.2679439232805811
+          "bill_shock_pct": 0.2541101569219098
         },
         {
           "customer_id": "C6",
           "period_end": "2022-11-30",
-          "bill_shock_pct": 0.4510684484901305
+          "bill_shock_pct": 0.4348154077190241
         },
         {
           "customer_id": "C6",
           "period_end": "2022-12-31",
-          "bill_shock_pct": 0.342178840854552
+          "bill_shock_pct": 0.3351739911212872
         },
         {
           "customer_id": "C8",
           "period_end": "2022-02-28",
-          "bill_shock_pct": 0.22174048901266005
+          "bill_shock_pct": 0.21829495120925083
         },
         {
           "customer_id": "C8",
           "period_end": "2022-04-30",
-          "bill_shock_pct": 1.1446304254842938
+          "bill_shock_pct": 0.7203817586190161
         },
         {
           "customer_id": "C8",
           "period_end": "2022-05-31",
-          "bill_shock_pct": 0.40030144023861125
+          "bill_shock_pct": 0.39223356416407656
         },
         {
           "customer_id": "C8",
           "period_end": "2022-06-30",
-          "bill_shock_pct": 0.3416536222921746
-        },
-        {
-          "customer_id": "C8",
-          "period_end": "2022-07-31",
-          "bill_shock_pct": 0.21042036676134626
+          "bill_shock_pct": 0.33186654725624715
         },
         {
           "customer_id": "C8",
           "period_end": "2022-09-30",
-          "bill_shock_pct": 0.8337480862353569
-        },
-        {
-          "customer_id": "C8",
-          "period_end": "2022-10-31",
-          "bill_shock_pct": 0.20243812975075132
+          "bill_shock_pct": 0.7797999436051237
         },
         {
           "customer_id": "C8",
           "period_end": "2022-11-30",
-          "bill_shock_pct": 0.6740080496104748
+          "bill_shock_pct": 0.6533512175325212
         },
         {
           "customer_id": "C8",
           "period_end": "2022-12-31",
-          "bill_shock_pct": 0.5836338607657466
+          "bill_shock_pct": 0.5742130187752006
         },
         {
           "customer_id": "C9",
           "period_end": "2022-05-31",
-          "bill_shock_pct": 0.3094696929974344
+          "bill_shock_pct": 0.2953585858719164
         },
         {
           "customer_id": "C9",
           "period_end": "2022-06-30",
-          "bill_shock_pct": 0.28882702266925125
+          "bill_shock_pct": 0.2791352191220104
         },
         {
           "customer_id": "C9",
           "period_end": "2022-07-31",
-          "bill_shock_pct": 0.43979002490290403
+          "bill_shock_pct": 0.21790318765665403
         },
         {
           "customer_id": "C9",
           "period_end": "2022-09-30",
-          "bill_shock_pct": 0.4877290653513462
+          "bill_shock_pct": 0.4519913883524141
         },
         {
           "customer_id": "C9",
           "period_end": "2022-10-31",
-          "bill_shock_pct": 0.33103885732315474
+          "bill_shock_pct": 0.3174019421779784
         },
         {
           "customer_id": "C9",
           "period_end": "2022-11-30",
-          "bill_shock_pct": 0.413737896542343
+          "bill_shock_pct": 0.3977134768667958
         },
         {
           "customer_id": "C9",
           "period_end": "2022-12-31",
-          "bill_shock_pct": 0.5400626392768249
+          "bill_shock_pct": 0.527456885651978
         },
         {
           "customer_id": "C4",
           "period_end": "2022-10-31",
-          "bill_shock_pct": 0.6448254366361857
+          "bill_shock_pct": 0.5209253858276934
         },
         {
           "customer_id": "C4g",
           "period_end": "2022-10-31",
-          "bill_shock_pct": 2.0229933644530718
+          "bill_shock_pct": 1.6772186553677282
         },
         {
           "customer_id": "C2_2",
           "period_end": "2022-04-30",
-          "bill_shock_pct": 16.977068722024086
+          "bill_shock_pct": 17.127373845470093
         },
         {
           "customer_id": "C2_2",
           "period_end": "2022-05-31",
-          "bill_shock_pct": 0.40140762213441267
+          "bill_shock_pct": 0.39241305352810385
         },
         {
           "customer_id": "C2_2",
           "period_end": "2022-06-30",
-          "bill_shock_pct": 0.34297037343210207
-        },
-        {
-          "customer_id": "C2_2",
-          "period_end": "2022-07-31",
-          "bill_shock_pct": 0.2122878374274908
+          "bill_shock_pct": 0.33203735083471786
         },
         {
           "customer_id": "C2_2",
           "period_end": "2022-09-30",
-          "bill_shock_pct": 0.8413910247512171
-        },
-        {
-          "customer_id": "C2_2",
-          "period_end": "2022-10-31",
-          "bill_shock_pct": 0.20314285784813457
+          "bill_shock_pct": 0.7807982691848847
         },
         {
           "customer_id": "C2_2",
           "period_end": "2022-11-30",
-          "bill_shock_pct": 0.6764121755258473
+          "bill_shock_pct": 0.6533493582831872
         },
         {
           "customer_id": "C2_2",
           "period_end": "2022-12-31",
-          "bill_shock_pct": 0.5854936420712529
+          "bill_shock_pct": 0.5749757604943728
         }
       ],
-      "bad_debt_gbp": 373.9644264884979,
-      "avg_complaint_probability": 0.0585220830471923,
+      "bad_debt_gbp": 499.9579451289736,
+      "avg_complaint_probability": 0.055982286809286214,
       "treasury_drawdown_events": [],
       "var_ratio": 2.580764886860395,
       "hedge_effectiveness": {
@@ -5176,157 +4986,157 @@
         "net_margin_gbp": -1.25011
       },
       "bills_count": 84,
-      "avg_clarity": 0.807809911274033,
-      "avg_bill_shock_pct": 0.2125737630917984,
+      "avg_clarity": 0.8138242573394867,
+      "avg_bill_shock_pct": 0.2001372908830599,
       "bill_shock_events": [
         {
           "customer_id": "C7",
           "period_end": "2023-05-31",
-          "bill_shock_pct": 0.31804512835381954
+          "bill_shock_pct": 0.31201744560539635
         },
         {
           "customer_id": "C7",
           "period_end": "2023-06-30",
-          "bill_shock_pct": 0.34566589119497987
+          "bill_shock_pct": 0.3375907876418055
         },
         {
           "customer_id": "C7",
           "period_end": "2023-10-31",
-          "bill_shock_pct": 0.5182192455282263
+          "bill_shock_pct": 0.5005460357097522
         },
         {
           "customer_id": "C7",
           "period_end": "2023-11-30",
-          "bill_shock_pct": 0.6517021685464678
+          "bill_shock_pct": 0.6345350330860192
         },
         {
           "customer_id": "C6",
           "period_end": "2023-04-30",
-          "bill_shock_pct": 0.5321926364645858
+          "bill_shock_pct": 0.4871474212573742
         },
         {
           "customer_id": "C6",
           "period_end": "2023-05-31",
-          "bill_shock_pct": 0.24278948848735465
+          "bill_shock_pct": 0.23200599641674044
         },
         {
           "customer_id": "C6",
           "period_end": "2023-06-30",
-          "bill_shock_pct": 0.23739757739544914
+          "bill_shock_pct": 0.2266183148429912
         },
         {
           "customer_id": "C6",
           "period_end": "2023-10-31",
-          "bill_shock_pct": 0.40665887477406704
+          "bill_shock_pct": 0.3827937832736697
         },
         {
           "customer_id": "C6",
           "period_end": "2023-11-30",
-          "bill_shock_pct": 0.4592744073866896
+          "bill_shock_pct": 0.43579372929374605
         },
         {
           "customer_id": "C8",
           "period_end": "2023-04-30",
-          "bill_shock_pct": 0.5431618219405688
+          "bill_shock_pct": 0.4924829745093763
         },
         {
           "customer_id": "C8",
           "period_end": "2023-05-31",
-          "bill_shock_pct": 0.4250629337248209
+          "bill_shock_pct": 0.41254715220422594
         },
         {
           "customer_id": "C8",
           "period_end": "2023-06-30",
-          "bill_shock_pct": 0.43637559190710107
+          "bill_shock_pct": 0.41696709003670973
         },
         {
           "customer_id": "C8",
           "period_end": "2023-10-31",
-          "bill_shock_pct": 1.0135387167984313
+          "bill_shock_pct": 0.9434049729652214
         },
         {
           "customer_id": "C8",
           "period_end": "2023-11-30",
-          "bill_shock_pct": 0.6857253819597419
+          "bill_shock_pct": 0.6584103633846332
         },
         {
           "customer_id": "C9",
           "period_end": "2023-02-28",
-          "bill_shock_pct": 0.20329998231288884
+          "bill_shock_pct": 0.20128242975672872
         },
         {
           "customer_id": "C9",
           "period_end": "2023-04-30",
-          "bill_shock_pct": 0.2546881900832679
+          "bill_shock_pct": 0.2502352093090228
         },
         {
           "customer_id": "C9",
           "period_end": "2023-05-31",
-          "bill_shock_pct": 0.3440856524085788
+          "bill_shock_pct": 0.33433316327152185
         },
         {
           "customer_id": "C9",
           "period_end": "2023-06-30",
-          "bill_shock_pct": 0.4649189067737256
+          "bill_shock_pct": 0.4458874192909933
         },
         {
           "customer_id": "C9",
           "period_end": "2023-07-31",
-          "bill_shock_pct": 0.3165966514566814
+          "bill_shock_pct": 0.2028331592185039
         },
         {
           "customer_id": "C9",
           "period_end": "2023-09-30",
-          "bill_shock_pct": 0.23205188326721263
+          "bill_shock_pct": 0.2070938550906294
         },
         {
           "customer_id": "C9",
           "period_end": "2023-10-31",
-          "bill_shock_pct": 0.7612700799958512
+          "bill_shock_pct": 0.7061628061598513
         },
         {
           "customer_id": "C9",
           "period_end": "2023-11-30",
-          "bill_shock_pct": 0.5318035786584501
+          "bill_shock_pct": 0.5059415957306005
         },
         {
           "customer_id": "C4",
           "period_end": "2023-10-31",
-          "bill_shock_pct": 0.7034724327913291
+          "bill_shock_pct": 0.5923134210486956
         },
         {
           "customer_id": "C4g",
           "period_end": "2023-10-31",
-          "bill_shock_pct": 0.8094736962980451
+          "bill_shock_pct": 0.7514605519428593
         },
         {
           "customer_id": "C2_2",
           "period_end": "2023-04-30",
-          "bill_shock_pct": 0.543218772712595
+          "bill_shock_pct": 0.4917934580294824
         },
         {
           "customer_id": "C2_2",
           "period_end": "2023-05-31",
-          "bill_shock_pct": 0.42615594972277276
+          "bill_shock_pct": 0.41222078997222233
         },
         {
           "customer_id": "C2_2",
           "period_end": "2023-06-30",
-          "bill_shock_pct": 0.4381242389995125
+          "bill_shock_pct": 0.41648481773758966
         },
         {
           "customer_id": "C2_2",
           "period_end": "2023-10-31",
-          "bill_shock_pct": 1.0207148097393521
+          "bill_shock_pct": 0.9422896973130235
         },
         {
           "customer_id": "C2_2",
           "period_end": "2023-11-30",
-          "bill_shock_pct": 0.687822170465638
+          "bill_shock_pct": 0.6573938839102562
         }
       ],
-      "bad_debt_gbp": 410.5201800733132,
-      "avg_complaint_probability": 0.053435004531193486,
+      "bad_debt_gbp": 538.6663839220831,
+      "avg_complaint_probability": 0.05148034205992097,
       "treasury_drawdown_events": [],
       "var_ratio": 2.6054051097144786,
       "hedge_effectiveness": {
@@ -5513,147 +5323,147 @@
         "net_margin_gbp": -0.14260906076444502
       },
       "bills_count": 69,
-      "avg_clarity": 0.8006431608154887,
-      "avg_bill_shock_pct": 0.21184343984056306,
+      "avg_clarity": 0.8094222049703957,
+      "avg_bill_shock_pct": 0.1942853515307489,
       "bill_shock_events": [
         {
           "customer_id": "C7",
           "period_end": "2024-01-31",
-          "bill_shock_pct": 0.5070531659195926
+          "bill_shock_pct": 0.39762331699465486
         },
         {
           "customer_id": "C7",
           "period_end": "2024-02-29",
-          "bill_shock_pct": 0.26188519898388735
+          "bill_shock_pct": 0.2568751488564661
         },
         {
           "customer_id": "C7",
           "period_end": "2024-04-30",
-          "bill_shock_pct": 0.20783050573241854
+          "bill_shock_pct": 0.20221448203092438
         },
         {
           "customer_id": "C7",
           "period_end": "2024-05-31",
-          "bill_shock_pct": 0.3643787133308577
+          "bill_shock_pct": 0.34894697883369435
         },
         {
           "customer_id": "C7",
           "period_end": "2024-09-30",
-          "bill_shock_pct": 0.3312092724755547
+          "bill_shock_pct": 0.30192152102492786
         },
         {
           "customer_id": "C7",
           "period_end": "2024-10-31",
-          "bill_shock_pct": 0.34917922598345436
+          "bill_shock_pct": 0.33026142598922525
         },
         {
           "customer_id": "C7",
           "period_end": "2024-11-30",
-          "bill_shock_pct": 0.46042021871572386
+          "bill_shock_pct": 0.43749770418447576
         },
         {
           "customer_id": "C8",
           "period_end": "2024-02-29",
-          "bill_shock_pct": 0.22804977269624682
+          "bill_shock_pct": 0.22499229023374612
         },
         {
           "customer_id": "C8",
           "period_end": "2024-04-30",
-          "bill_shock_pct": 0.6039797286582718
+          "bill_shock_pct": 0.5115721159026544
         },
         {
           "customer_id": "C8",
           "period_end": "2024-05-31",
-          "bill_shock_pct": 0.5109687745914144
+          "bill_shock_pct": 0.4850382559643825
         },
         {
           "customer_id": "C8",
           "period_end": "2024-07-31",
-          "bill_shock_pct": 0.2880038758808303
+          "bill_shock_pct": 0.2605223145733189
         },
         {
           "customer_id": "C8",
           "period_end": "2024-09-30",
-          "bill_shock_pct": 0.7824724790042
+          "bill_shock_pct": 0.6717111179524082
         },
         {
           "customer_id": "C8",
           "period_end": "2024-10-31",
-          "bill_shock_pct": 0.38021039579790145
+          "bill_shock_pct": 0.35291130401774323
         },
         {
           "customer_id": "C8",
           "period_end": "2024-11-30",
-          "bill_shock_pct": 0.6201836812354438
+          "bill_shock_pct": 0.5809656786623585
         },
         {
           "customer_id": "C9",
           "period_end": "2024-04-30",
-          "bill_shock_pct": 0.21578985724925304
+          "bill_shock_pct": 0.21001481768969976
         },
         {
           "customer_id": "C9",
           "period_end": "2024-05-31",
-          "bill_shock_pct": 0.5005217730309981
+          "bill_shock_pct": 0.4799435593094554
         },
         {
           "customer_id": "C9",
           "period_end": "2024-07-31",
-          "bill_shock_pct": 0.40004447960849726
+          "bill_shock_pct": 0.3263639331573896
         },
         {
           "customer_id": "C9",
           "period_end": "2024-09-30",
-          "bill_shock_pct": 0.5551656003112897
+          "bill_shock_pct": 0.49357476654570887
         },
         {
           "customer_id": "C9",
           "period_end": "2024-10-31",
-          "bill_shock_pct": 0.2434263348052991
+          "bill_shock_pct": 0.22915354652599504
         },
         {
           "customer_id": "C9",
           "period_end": "2024-11-30",
-          "bill_shock_pct": 0.48493964423279584
+          "bill_shock_pct": 0.4554011651011401
         },
         {
           "customer_id": "C2_2",
           "period_end": "2024-02-29",
-          "bill_shock_pct": 0.2284406858392867
+          "bill_shock_pct": 0.2250345914978214
         },
         {
           "customer_id": "C2_2",
           "period_end": "2024-04-30",
-          "bill_shock_pct": 0.6039906019312742
+          "bill_shock_pct": 0.5102691510759179
         },
         {
           "customer_id": "C2_2",
           "period_end": "2024-05-31",
-          "bill_shock_pct": 0.5124089867530812
+          "bill_shock_pct": 0.48359161697036196
         },
         {
           "customer_id": "C2_2",
           "period_end": "2024-07-31",
-          "bill_shock_pct": 0.2896137382667123
+          "bill_shock_pct": 0.2590724244271178
         },
         {
           "customer_id": "C2_2",
           "period_end": "2024-09-30",
-          "bill_shock_pct": 0.788701470112147
+          "bill_shock_pct": 0.6656354765070046
         },
         {
           "customer_id": "C2_2",
           "period_end": "2024-10-31",
-          "bill_shock_pct": 0.38181126278833954
+          "bill_shock_pct": 0.35146038978539196
         },
         {
           "customer_id": "C2_2",
           "period_end": "2024-11-30",
-          "bill_shock_pct": 0.6220193315242215
+          "bill_shock_pct": 0.5784485907083661
         }
       ],
-      "bad_debt_gbp": 159.7470182017466,
-      "avg_complaint_probability": 0.05393219291890873,
+      "bad_debt_gbp": 246.54509119177325,
+      "avg_complaint_probability": 0.05107900356856394,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
@@ -5780,102 +5590,92 @@
         "net_margin_gbp": -1.6634671514144443
       },
       "bills_count": 24,
-      "avg_clarity": 0.725817303423546,
-      "avg_bill_shock_pct": 0.3232105523414725,
+      "avg_clarity": 0.7372081911583516,
+      "avg_bill_shock_pct": 0.3004287768718614,
       "bill_shock_events": [
         {
           "customer_id": "C7",
           "period_end": "2025-01-31",
-          "bill_shock_pct": 0.23065707036699298
+          "bill_shock_pct": 0.2306362984954947
         },
         {
           "customer_id": "C7",
           "period_end": "2025-04-30",
-          "bill_shock_pct": 0.3720421076258753
+          "bill_shock_pct": 0.3611777696248319
         },
         {
           "customer_id": "C7",
           "period_end": "2025-05-31",
-          "bill_shock_pct": 0.22077772332881723
+          "bill_shock_pct": 0.20846927261338724
         },
         {
           "customer_id": "C7",
           "period_end": "2025-06-07",
-          "bill_shock_pct": 0.7971644717372004
+          "bill_shock_pct": 0.7957119222353748
         },
         {
           "customer_id": "C8",
           "period_end": "2025-01-31",
-          "bill_shock_pct": 0.3939108146171684
+          "bill_shock_pct": 0.37914678714423466
         },
         {
           "customer_id": "C8",
           "period_end": "2025-02-28",
-          "bill_shock_pct": 0.2412268087562467
-        },
-        {
-          "customer_id": "C8",
-          "period_end": "2025-04-30",
-          "bill_shock_pct": 0.25360953961154264
+          "bill_shock_pct": 0.23730106582685084
         },
         {
           "customer_id": "C8",
           "period_end": "2025-05-31",
-          "bill_shock_pct": 0.3837817902007578
+          "bill_shock_pct": 0.3691085511030261
         },
         {
           "customer_id": "C8",
           "period_end": "2025-06-07",
-          "bill_shock_pct": 0.7255990549519494
+          "bill_shock_pct": 0.7283989574959923
         },
         {
           "customer_id": "C9",
           "period_end": "2025-01-31",
-          "bill_shock_pct": 0.22294888222280496
+          "bill_shock_pct": 0.21470433682092568
         },
         {
           "customer_id": "C9",
           "period_end": "2025-04-30",
-          "bill_shock_pct": 0.2588357974341995
+          "bill_shock_pct": 0.2497451457274456
         },
         {
           "customer_id": "C9",
           "period_end": "2025-05-31",
-          "bill_shock_pct": 0.3430043836760255
+          "bill_shock_pct": 0.32352809134049854
         },
         {
           "customer_id": "C9",
           "period_end": "2025-06-07",
-          "bill_shock_pct": 0.7149670157712671
+          "bill_shock_pct": 0.7196490600750035
         },
         {
           "customer_id": "C2_2",
           "period_end": "2025-01-31",
-          "bill_shock_pct": 0.3950900745395158
+          "bill_shock_pct": 0.3786585648643454
         },
         {
           "customer_id": "C2_2",
           "period_end": "2025-02-28",
-          "bill_shock_pct": 0.2415370941692742
-        },
-        {
-          "customer_id": "C2_2",
-          "period_end": "2025-04-30",
-          "bill_shock_pct": 0.2525920031673211
+          "bill_shock_pct": 0.23717010715294531
         },
         {
           "customer_id": "C2_2",
           "period_end": "2025-05-31",
-          "bill_shock_pct": 0.38514054826012756
+          "bill_shock_pct": 0.36878726652612126
         },
         {
           "customer_id": "C2_2",
           "period_end": "2025-06-07",
-          "bill_shock_pct": 0.7252690913210968
+          "bill_shock_pct": 0.7283989682735325
         }
       ],
-      "bad_debt_gbp": 59.26617572851685,
-      "avg_complaint_probability": 0.07346502128591811,
+      "bad_debt_gbp": 93.6675025161927,
+      "avg_complaint_probability": 0.06976298277210631,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
@@ -6119,9 +5919,9 @@
     }
   },
   "bills_total": 1117,
-  "avg_clarity_total": 0.861516692532287,
-  "service_quality_score": 0.9138163527610101,
-  "avg_complaint_probability_total": 0.04309182361949492,
+  "avg_clarity_total": 0.870792590831575,
+  "service_quality_score": 0.9198456866555473,
+  "avg_complaint_probability_total": 0.04007715667222635,
   "cost_to_serve_portfolio_gbp": 6460.235174802013,
   "net_margin_after_cost_to_serve_gbp": -1672.1943857108865,
   "enterprise_value_gbp": -1635.315283244441,
@@ -6770,10 +6570,12 @@
     "C2_2": "2022-03-31"
   },
   "ledger_meta": {
-    "event_count": 2235928,
+    "event_count": 2238162,
     "by_type": {
       "billing_event": 1117,
       "fixed_cost_event": 114,
+      "non_commodity_cost_event": 1117,
+      "vat_remittance_event": 1117,
       "capital_charge_event": 1019177,
       "settlement_event": 1213281,
       "payment_received_event": 1117,
@@ -6781,31 +6583,37 @@
       "acquisition_spend_event": 5
     },
     "pnl": {
-      "revenue_gbp": 100875.27581734383,
+      "revenue_gbp": 154160.5366042101,
       "wholesale_cost_gbp": 96087.23530325659,
-      "gross_margin_gbp": 4788.040514087246,
+      "gross_margin_gbp": 15185.84051408725,
       "capital_cost_gbp": 1227.629943705635,
-      "net_margin_gbp": 3560.4105703816113,
-      "cash_collected_gbp": 98931.12960909081,
-      "bad_debt_gbp": 1944.146208253022,
-      "cash_net_margin_gbp": 1616.2643621285915,
+      "net_margin_gbp": 13958.210570381614,
+      "total_billed_gbp": 168067.4732224275,
+      "vat_remittance_gbp": 13906.936618217407,
+      "non_commodity_cost_gbp": 42887.46078686626,
+      "cash_collected_gbp": 164786.8300512854,
+      "bad_debt_gbp": 3280.643171142118,
+      "cash_net_margin_gbp": 24584.504017456915,
       "acquisition_spend_gbp": 1250.0,
       "fixed_cost_gbp": 5700.0,
-      "operating_net_margin_gbp": -3389.5894296183887
+      "operating_net_margin_gbp": 7008.210570381614
     }
   },
   "ledger_pnl": {
-    "revenue_gbp": 100875.27581734383,
+    "revenue_gbp": 154160.5366042101,
     "wholesale_cost_gbp": 96087.23530325659,
-    "gross_margin_gbp": 4788.040514087246,
+    "gross_margin_gbp": 15185.84051408725,
     "capital_cost_gbp": 1227.629943705635,
-    "net_margin_gbp": 3560.4105703816113,
-    "cash_collected_gbp": 98931.12960909081,
-    "bad_debt_gbp": 1944.146208253022,
-    "cash_net_margin_gbp": 1616.2643621285915,
+    "net_margin_gbp": 13958.210570381614,
+    "total_billed_gbp": 168067.4732224275,
+    "vat_remittance_gbp": 13906.936618217407,
+    "non_commodity_cost_gbp": 42887.46078686626,
+    "cash_collected_gbp": 164786.8300512854,
+    "bad_debt_gbp": 3280.643171142118,
+    "cash_net_margin_gbp": 24584.504017456915,
     "acquisition_spend_gbp": 1250.0,
     "fixed_cost_gbp": 5700.0,
-    "operating_net_margin_gbp": -3389.5894296183887
+    "operating_net_margin_gbp": 7008.210570381614
   },
   "clv_snapshots": {
     "2016": {
@@ -6923,8 +6731,13 @@
   "total_acquisition_attempts": 5,
   "total_acquisition_wins": 0,
   "acquired_customers": [],
-  "_cache_meta": {
-    "git_commit": "f5808bd",
-    "generated_at_utc": "20260618T054253Z"
+  "_ledger_headline": {
+    "total_billed_gbp": 168067.4732224275,
+    "vat_remittance_gbp": 13906.936618217407,
+    "revenue_gbp": 154160.5366042101,
+    "non_commodity_cost_gbp": 42887.46078686626,
+    "gross_margin_gbp": 15185.84051408725,
+    "capital_cost_gbp": 1227.629943705635,
+    "net_margin_gbp": 13958.210570381614
   }
 }

@@ -8,16 +8,18 @@ the last partial). The business survived the full window.
 - Starting treasury: £29,846.19
 - Final treasury: £33,406.60
   (£3,560.41 net change)
-- Revenue: £100,875.28
-- Gross margin: £4,788.04
+- Customer bills (all-in): £168,067.47
+  VAT remitted to HMRC: (£13,906.94) | Revenue (ex-VAT): £154,160.54
+  Non-commodity pass-through: (£42,887.46)
+- Gross margin: £15,185.84
 - Capital costs: £1,227.63
-- Net margin: £3,560.41
-- Capital cost ratio: 25.6% of gross
-- Net margin as % of revenue: 3.5%
+- Net margin: £13,958.21
+- Capital cost ratio: 8.1% of gross
+- Net margin as % of revenue: 9.1%
   (industry benchmark for a retail energy supplier: 2-5%)
 - Risk committee (Context Handshake) interventions: 160
-- Bills issued: 1117, average clarity 0.862,
-  service quality score 0.914
+- Bills issued: 1117, average clarity 0.871,
+  service quality score 0.920
 - Enterprise value (CLV sum across 10 billing accounts): £-1,635.32
 - Cost to serve (whole portfolio): £6,460.24, net margin after cost to serve: £-1,672.19
 - Hedge effectiveness (whole window): hedging cost £1,656.28 vs. a fully unhedged book (actual net £3,560.41 vs. naked net £5,216.69)
@@ -190,7 +192,7 @@ The following 9 customer(s) are loss-making after cost-to-serve and require imme
 
 ## Transaction Log
 
-Total events: 2,235,928
+Total events: 2,238,162
 
 | Event type | Count |
 |------------|-------|
@@ -199,23 +201,30 @@ Total events: 2,235,928
 | billing_event | 1,117 |
 | capital_charge_event | 1,019,177 |
 | fixed_cost_event | 114 |
+| non_commodity_cost_event | 1,117 |
 | payment_received_event | 1,117 |
 | settlement_event | 1,213,281 |
+| vat_remittance_event | 1,117 |
 
 **Cash-flow waterfall (from ledger)**
 
 | Flow | Amount |
 |------|--------|
-| Revenue billed (billing events) | £100,875.28 |
-|   Less: bad debt written off | (£1,944.15) |
-| = Cash collected | £98,931.13 |
+| Customer bills (all-in) | £168,067.47 |
+|   Less: VAT remitted to HMRC | (£13,906.94) |
+| = Revenue (ex-VAT) | £154,160.54 |
+|   Less: bad debt written off | (£3,280.64) |
+| = Cash collected | £164,786.83 |
+| Less: non-commodity pass-through | (£42,887.46) |
 | Wholesale cost (settlement events) | (£96,087.24) |
-| Gross margin | £4,788.04 |
+| Gross margin | £15,185.84 |
 | Capital charges | (£1,227.63) |
-| Net margin | £3,560.41 |
-| Net margin (cash) | £1,616.26 |
+| Net margin | £13,958.21 |
+| Net margin (cash) | £24,584.50 |
 
-Ledger P&L vs simulation direct: ✓ agrees with simulation
+| Acquisition spend | (£1,250.00) |
+| Fixed overhead | (£5,700.00) |
+| Operating net margin | £7,008.21 |
 
 ## Growth & Acquisition
 
@@ -265,7 +274,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - 2016-03-31: treasury £29,850.51, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-04-30: treasury £29,851.64, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-05-30: treasury £29,852.89, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-06-29: treasury £29,853.74, C1->1.00, VaR (current £66.93 / stressed £20.56) ratio 3.25
+  - 2016-06-29: treasury £29,853.74, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-07-29: treasury £29,854.76, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-08-28: treasury £29,855.86, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-09-27: treasury £29,856.78, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
@@ -352,7 +361,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 3 accounts
 - Average CLV (Point-in-Time, year-end 2016): £-90.05
   - By billing account: C1 £-74.07, C5 £-177.31, C7 £-18.76
-- Bill shock events (>=20%): 23 -- C1 2016-04-30 (21%); C5 2016-04-30 (21%); C5 2016-05-31 (30%); C5 2016-06-30 (22%); C5 2016-10-31 (47%); C5 2016-11-30 (49%); C7 2016-04-30 (20%); C7 2016-05-31 (38%); C7 2016-06-30 (31%); C7 2016-10-31 (81%); C7 2016-11-30 (52%); C6 2016-05-31 (28%); C6 2016-06-30 (25%); C6 2016-10-31 (46%); C6 2016-11-30 (51%); C8 2016-05-31 (42%); C8 2016-06-30 (45%); C8 2016-09-30 (29%); C8 2016-10-31 (118%); C8 2016-11-30 (71%); C9 2016-09-30 (22%); C9 2016-10-31 (86%); C9 2016-11-30 (60%)
+- Bill shock events (>=20%): 18 -- C5 2016-05-31 (27%); C5 2016-10-31 (41%); C5 2016-11-30 (43%); C7 2016-05-31 (36%); C7 2016-06-30 (29%); C7 2016-10-31 (72%); C7 2016-11-30 (48%); C6 2016-05-31 (25%); C6 2016-06-30 (23%); C6 2016-10-31 (40%); C6 2016-11-30 (45%); C8 2016-05-31 (40%); C8 2016-06-30 (41%); C8 2016-09-30 (23%); C8 2016-10-31 (102%); C8 2016-11-30 (66%); C9 2016-10-31 (75%); C9 2016-11-30 (55%)
 - Churn risk (accounts renewing in 2016): 2 at risk (≥20% churn prob): C5 29%, C7 29%
 
 **Pricing & Margin**
@@ -375,7 +384,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: 49.0% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 108, average clarity 0.888, average bill shock 14.6%, bad debt provision £98.25, avg complaint probability 3.7%
+- Bills issued: 108, average clarity 0.894, average bill shock 13.1%, bad debt provision £221.00, avg complaint probability 3.5%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -396,7 +405,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - C8: actual £21.02 vs. naked £-43.79 -- hedging added £64.81
   - C9: actual £11.44 vs. naked £-102.73 -- hedging added £114.17
 
-**Year narrative:** 2016 produced a net gain of £201.59 across 13 accounts. The risk committee intervened 81 time(s), raising hedge fractions in response to elevated VaR. 23 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2016 produced a net gain of £201.59 across 13 accounts. The risk committee intervened 81 time(s), raising hedge fractions in response to elevated VaR. 18 customer(s) experienced a bill shock of >=20%.
 
 ## 2017
 
@@ -462,7 +471,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 3 accounts
 - Average CLV (Point-in-Time, year-end 2017): £-193.91
   - By billing account: C1 £-124.70, C2 £135.97, C3 £-186.20, C4 £2.26, C5 £-242.72, C6 £-671.10, C7 £-45.22, C8 £-307.56, C9 £-305.89
-- Bill shock events (>=20%): 32 -- C1 2017-01-31 (49%); C1 2017-04-30 (21%); C5 2017-01-31 (73%); C5 2017-02-28 (23%); C5 2017-05-31 (22%); C5 2017-06-30 (23%); C5 2017-11-30 (62%); C7 2017-01-31 (82%); C7 2017-02-28 (28%); C7 2017-05-31 (31%); C7 2017-06-30 (31%); C7 2017-09-30 (28%); C7 2017-10-31 (20%); C7 2017-11-30 (76%); C6 2017-05-31 (24%); C6 2017-06-30 (21%); C6 2017-11-30 (55%); C8 2017-05-31 (42%); C8 2017-06-30 (38%); C8 2017-09-30 (52%); C8 2017-10-31 (22%); C8 2017-11-30 (89%); C8 2017-12-31 (23%); C3 2017-07-31 (39%); C3g 2017-07-31 (26%); C9 2017-05-31 (35%); C9 2017-06-30 (27%); C9 2017-07-31 (24%); C9 2017-09-30 (33%); C9 2017-10-31 (22%); C9 2017-11-30 (74%); C4g 2017-10-31 (38%)
+- Bill shock events (>=20%): 24 -- C1 2017-01-31 (22%); C5 2017-01-31 (47%); C5 2017-02-28 (23%); C5 2017-06-30 (21%); C5 2017-11-30 (56%); C7 2017-01-31 (52%); C7 2017-02-28 (27%); C7 2017-05-31 (29%); C7 2017-06-30 (30%); C7 2017-09-30 (25%); C7 2017-11-30 (71%); C6 2017-05-31 (22%); C6 2017-11-30 (49%); C8 2017-05-31 (39%); C8 2017-06-30 (35%); C8 2017-09-30 (44%); C8 2017-10-31 (20%); C8 2017-11-30 (82%); C8 2017-12-31 (22%); C9 2017-05-31 (33%); C9 2017-06-30 (25%); C9 2017-09-30 (29%); C9 2017-11-30 (68%); C4g 2017-10-31 (21%)
 - Churn risk (accounts renewing in 2017): 6 at risk (≥20% churn prob): C1 20%, C5 32%, C6 35%, C7 35%, C8 35%, C9 29%
 
 **Pricing & Margin**
@@ -485,7 +494,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: 23.6% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 156, average clarity 0.886, average bill shock 13.3%, bad debt provision £170.76, avg complaint probability 3.8%
+- Bills issued: 156, average clarity 0.896, average bill shock 11.3%, bad debt provision £347.91, avg complaint probability 3.4%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -506,7 +515,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - C8: actual £36.74 vs. naked £62.86 -- hedging cost £26.12
   - C9: actual £35.30 vs. naked £12.06 -- hedging added £23.24
 
-**Year narrative:** 2017 produced a net gain of £420.88 across 13 accounts. The risk committee intervened 42 time(s), raising hedge fractions in response to elevated VaR. 32 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2017 produced a net gain of £420.88 across 13 accounts. The risk committee intervened 42 time(s), raising hedge fractions in response to elevated VaR. 24 customer(s) experienced a bill shock of >=20%.
 
 ## 2018
 
@@ -530,7 +539,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 3 accounts
 - Average CLV (Point-in-Time, year-end 2018): £-156.42
   - By billing account: C1 £-134.87, C2 £141.18, C3 £-163.18, C4 £-23.27, C5 £-271.19, C6 £-524.99, C7 £-73.54, C8 £-118.16, C9 £-239.74
-- Bill shock events (>=20%): 39 -- C1 2018-01-31 (27%); C1 2018-04-30 (20%); C1g 2018-01-31 (35%); C5 2018-01-31 (29%); C5 2018-04-30 (34%); C5 2018-05-31 (20%); C5 2018-06-30 (23%); C5 2018-10-31 (35%); C5 2018-11-30 (30%); C7 2018-01-31 (31%); C7 2018-04-30 (38%); C7 2018-05-31 (29%); C7 2018-06-30 (30%); C7 2018-09-30 (30%); C7 2018-10-31 (44%); C7 2018-11-30 (31%); C2 2018-04-30 (31%); C2g 2018-04-30 (26%); C6 2018-05-31 (23%); C6 2018-06-30 (24%); C6 2018-10-31 (33%); C6 2018-11-30 (23%); C8 2018-05-31 (41%); C8 2018-06-30 (44%); C8 2018-08-31 (27%); C8 2018-09-30 (60%); C8 2018-10-31 (56%); C8 2018-11-30 (30%); C3g 2018-07-31 (48%); C9 2018-04-30 (32%); C9 2018-05-31 (37%); C9 2018-06-30 (34%); C9 2018-07-31 (29%); C9 2018-08-31 (44%); C9 2018-09-30 (49%); C9 2018-10-31 (40%); C9 2018-12-31 (22%); C4 2018-10-31 (41%); C4g 2018-10-31 (55%)
+- Bill shock events (>=20%): 33 -- C5 2018-04-30 (32%); C5 2018-06-30 (20%); C5 2018-10-31 (31%); C5 2018-11-30 (27%); C7 2018-01-31 (21%); C7 2018-04-30 (37%); C7 2018-05-31 (27%); C7 2018-06-30 (28%); C7 2018-09-30 (26%); C7 2018-10-31 (41%); C7 2018-11-30 (29%); C6 2018-05-31 (21%); C6 2018-06-30 (22%); C6 2018-10-31 (30%); C6 2018-11-30 (22%); C8 2018-04-30 (20%); C8 2018-05-31 (39%); C8 2018-06-30 (41%); C8 2018-08-31 (23%); C8 2018-09-30 (53%); C8 2018-10-31 (52%); C8 2018-11-30 (28%); C3g 2018-07-31 (26%); C9 2018-04-30 (31%); C9 2018-05-31 (35%); C9 2018-06-30 (32%); C9 2018-07-31 (25%); C9 2018-08-31 (37%); C9 2018-09-30 (43%); C9 2018-10-31 (37%); C9 2018-12-31 (21%); C4 2018-10-31 (21%); C4g 2018-10-31 (33%)
 - Churn risk (accounts renewing in 2018): 6 at risk (≥20% churn prob): C3 23%, C5 32%, C6 32%, C7 38%, C8 35%, C9 38%
 
 **Pricing & Margin**
@@ -553,7 +562,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: 18.4% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 156, average clarity 0.889, average bill shock 12.6%, bad debt provision £190.39, avg complaint probability 3.7%
+- Bills issued: 156, average clarity 0.897, average bill shock 10.9%, bad debt provision £370.25, avg complaint probability 3.4%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -574,7 +583,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - C8: actual £92.99 vs. naked £406.73 -- hedging cost £313.74
   - C9: actual £34.14 vs. naked £30.72 -- hedging added £3.42
 
-**Year narrative:** 2018 produced a net gain of £448.93 across 13 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 39 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2018 produced a net gain of £448.93 across 13 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 33 customer(s) experienced a bill shock of >=20%.
 
 ## 2019
 
@@ -598,7 +607,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 3 accounts
 - Average CLV (Point-in-Time, year-end 2019): £-116.70
   - By billing account: C1 £-120.70, C2 £170.31, C3 £-103.49, C4 £-6.81, C5 £-291.82, C6 £-382.99, C7 £-76.13, C8 £-30.01, C9 £-208.68
-- Bill shock events (>=20%): 38 -- C1 2019-04-30 (24%); C5 2019-01-31 (38%); C5 2019-02-28 (22%); C5 2019-06-30 (28%); C5 2019-10-31 (48%); C5 2019-11-30 (39%); C7 2019-01-31 (43%); C7 2019-02-28 (25%); C7 2019-05-31 (23%); C7 2019-06-30 (34%); C7 2019-10-31 (67%); C7 2019-11-30 (45%); C2 2019-04-30 (42%); C6 2019-02-28 (21%); C6 2019-04-30 (45%); C6 2019-06-30 (26%); C6 2019-09-30 (22%); C6 2019-10-31 (45%); C6 2019-11-30 (29%); C8 2019-01-31 (24%); C8 2019-02-28 (26%); C8 2019-04-30 (49%); C8 2019-06-30 (40%); C8 2019-07-31 (38%); C8 2019-09-30 (67%); C8 2019-10-31 (87%); C8 2019-11-30 (40%); C3 2019-04-30 (22%); C3g 2019-07-31 (29%); C9 2019-02-28 (25%); C9 2019-04-30 (25%); C9 2019-06-30 (37%); C9 2019-07-31 (42%); C9 2019-09-30 (56%); C9 2019-10-31 (74%); C9 2019-11-30 (40%); C4 2019-10-31 (29%); C4g 2019-10-31 (56%)
+- Bill shock events (>=20%): 34 -- C1 2019-04-30 (21%); C5 2019-01-31 (29%); C5 2019-02-28 (21%); C5 2019-06-30 (25%); C5 2019-10-31 (42%); C5 2019-11-30 (35%); C7 2019-01-31 (33%); C7 2019-02-28 (24%); C7 2019-05-31 (22%); C7 2019-06-30 (32%); C7 2019-10-31 (61%); C7 2019-11-30 (43%); C2 2019-04-30 (31%); C6 2019-02-28 (21%); C6 2019-04-30 (36%); C6 2019-06-30 (24%); C6 2019-10-31 (41%); C6 2019-11-30 (26%); C8 2019-01-31 (23%); C8 2019-02-28 (26%); C8 2019-04-30 (40%); C8 2019-06-30 (38%); C8 2019-07-31 (33%); C8 2019-09-30 (55%); C8 2019-10-31 (79%); C8 2019-11-30 (38%); C9 2019-02-28 (25%); C9 2019-04-30 (24%); C9 2019-06-30 (35%); C9 2019-07-31 (34%); C9 2019-09-30 (47%); C9 2019-10-31 (67%); C9 2019-11-30 (37%); C4g 2019-10-31 (37%)
 - Churn risk (accounts renewing in 2019): 5 at risk (≥20% churn prob): C5 35%, C6 32%, C7 35%, C8 32%, C9 32%
 
 **Pricing & Margin**
@@ -621,7 +630,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: 9.6% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 156, average clarity 0.884, average bill shock 14.2%, bad debt provision £189.50, avg complaint probability 3.9%
+- Bills issued: 156, average clarity 0.893, average bill shock 12.4%, bad debt provision £369.77, avg complaint probability 3.6%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -642,7 +651,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - C8: actual £81.02 vs. naked £342.81 -- hedging cost £261.79
   - C9: actual £33.12 vs. naked £201.32 -- hedging cost £168.20
 
-**Year narrative:** 2019 produced a net gain of £616.92 across 13 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 38 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2019 produced a net gain of £616.92 across 13 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 34 customer(s) experienced a bill shock of >=20%.
 
 ## 2020
 
@@ -666,7 +675,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 8 accounts
 - Average CLV (Point-in-Time, year-end 2020): £-95.28
   - By billing account: C1 £-107.66, C2 £156.27, C3 £-74.96, C4 £14.82, C5 £-277.17, C6 £-290.28, C7 £-64.59, C8 £-25.80, C9 £-188.11
-- Bill shock events (>=20%): 34 -- C1 2020-01-31 (27%); C1 2020-04-30 (23%); C1g 2020-01-31 (40%); C5 2020-01-31 (27%); C5 2020-04-30 (31%); C5 2020-10-31 (42%); C5 2020-11-30 (21%); C5 2020-12-31 (29%); C7 2020-01-31 (28%); C7 2020-04-30 (35%); C7 2020-06-30 (27%); C7 2020-10-31 (60%); C7 2020-11-30 (22%); C7 2020-12-31 (36%); C2 2020-04-30 (37%); C2g 2020-04-30 (47%); C6 2020-04-30 (46%); C6 2020-09-30 (23%); C6 2020-10-31 (37%); C6 2020-12-31 (27%); C8 2020-04-30 (53%); C8 2020-05-31 (25%); C8 2020-06-30 (35%); C8 2020-09-30 (57%); C8 2020-10-31 (69%); C8 2020-12-31 (42%); C3 2020-04-30 (21%); C9 2020-04-30 (29%); C9 2020-05-31 (25%); C9 2020-06-30 (38%); C9 2020-07-31 (23%); C9 2020-09-30 (47%); C9 2020-10-31 (52%); C9 2020-12-31 (35%)
+- Bill shock events (>=20%): 26 -- C1g 2020-01-31 (24%); C5 2020-04-30 (28%); C5 2020-10-31 (36%); C5 2020-12-31 (26%); C7 2020-04-30 (34%); C7 2020-06-30 (25%); C7 2020-10-31 (54%); C7 2020-11-30 (20%); C7 2020-12-31 (33%); C2 2020-04-30 (26%); C2g 2020-04-30 (29%); C6 2020-04-30 (38%); C6 2020-10-31 (32%); C6 2020-12-31 (25%); C8 2020-04-30 (45%); C8 2020-05-31 (22%); C8 2020-06-30 (32%); C8 2020-09-30 (47%); C8 2020-10-31 (62%); C8 2020-12-31 (40%); C9 2020-04-30 (28%); C9 2020-05-31 (23%); C9 2020-06-30 (35%); C9 2020-09-30 (39%); C9 2020-10-31 (47%); C9 2020-12-31 (33%)
 - Churn risk (accounts renewing in 2020): 7 at risk (≥20% churn prob): C1 23%, C4 20%, C5 32%, C6 38%, C7 35%, C8 38%, C9 41%
 
 **Pricing & Margin**
@@ -689,7 +698,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: 19.9% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 144, average clarity 0.883, average bill shock 12.9%, bad debt provision £124.90, avg complaint probability 3.7%
+- Bills issued: 144, average clarity 0.892, average bill shock 11.1%, bad debt provision £280.29, avg complaint probability 3.4%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -708,7 +717,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - C8: actual £10.91 vs. naked £-109.17 -- hedging added £120.08
   - C9: actual £-14.49 vs. naked £-435.80 -- hedging added £421.31
 
-**Year narrative:** 2020 produced a net gain of £473.74 across 13 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 34 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2020 produced a net gain of £473.74 across 13 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 26 customer(s) experienced a bill shock of >=20%.
 
 ## 2021
 
@@ -736,7 +745,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 6 accounts
 - Average CLV (Point-in-Time, year-end 2021): £-164.27
   - By billing account: C1 £-171.04, C2 £70.91, C3 £-73.89, C4 £-71.90, C5 £-438.00, C6 £-335.26, C7 £-157.89, C8 £-88.91, C9 £-212.44
-- Bill shock events (>=20%): 36 -- C1 2021-01-31 (26%); C1 2021-04-30 (22%); C5 2021-01-31 (35%); C5 2021-05-31 (24%); C5 2021-06-30 (34%); C5 2021-10-31 (33%); C5 2021-11-30 (55%); C7 2021-01-31 (42%); C7 2021-05-31 (29%); C7 2021-06-30 (47%); C7 2021-10-31 (56%); C7 2021-11-30 (60%); C2 2021-04-30 (73%); C2g 2021-04-30 (75%); C6 2021-04-30 (87%); C6 2021-06-30 (37%); C6 2021-10-31 (29%); C6 2021-11-30 (53%); C8 2021-02-28 (21%); C8 2021-04-30 (96%); C8 2021-05-31 (28%); C8 2021-06-30 (63%); C8 2021-09-30 (24%); C8 2021-10-31 (78%); C8 2021-11-30 (81%); C9 2021-02-28 (23%); C9 2021-05-31 (24%); C9 2021-06-30 (51%); C9 2021-07-31 (95%); C9 2021-08-31 (23%); C9 2021-09-30 (21%); C9 2021-10-31 (68%); C9 2021-11-30 (48%); C9 2021-12-31 (23%); C4 2021-10-31 (339%); C4g 2021-10-31 (352%)
+- Bill shock events (>=20%): 33 -- C5 2021-01-31 (22%); C5 2021-05-31 (22%); C5 2021-06-30 (31%); C5 2021-10-31 (29%); C5 2021-11-30 (49%); C7 2021-01-31 (27%); C7 2021-05-31 (28%); C7 2021-06-30 (44%); C7 2021-10-31 (51%); C7 2021-11-30 (56%); C2 2021-04-30 (27%); C2g 2021-04-30 (33%); C6 2021-04-30 (43%); C6 2021-06-30 (35%); C6 2021-10-31 (27%); C6 2021-11-30 (49%); C8 2021-02-28 (20%); C8 2021-04-30 (44%); C8 2021-05-31 (27%); C8 2021-06-30 (60%); C8 2021-09-30 (20%); C8 2021-10-31 (70%); C8 2021-11-30 (76%); C9 2021-02-28 (22%); C9 2021-05-31 (22%); C9 2021-06-30 (48%); C9 2021-07-31 (22%); C9 2021-08-31 (20%); C9 2021-10-31 (63%); C9 2021-11-30 (45%); C9 2021-12-31 (22%); C4 2021-10-31 (163%); C4g 2021-10-31 (179%)
 - Churn risk (accounts renewing in 2021): 6 at risk (≥20% churn prob): C2 20%, C5 35%, C6 38%, C7 38%, C8 41%, C9 35%
 
 **Pricing & Margin**
@@ -757,7 +766,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: -132.7% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 132, average clarity 0.858, average bill shock 21.8%, bad debt provision £166.85, avg complaint probability 4.6%
+- Bills issued: 132, average clarity 0.875, average bill shock 15.8%, bad debt provision £312.58, avg complaint probability 4.0%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -773,7 +782,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - C8: actual £-17.03 vs. naked £-1,097.25 -- hedging added £1,080.21
   - C9: actual £38.91 vs. naked £-1,242.48 -- hedging added £1,281.39
 
-**Year narrative:** 2021 (flagged crisis year) produced a net loss of £-343.62 across 11 accounts. The risk committee intervened 4 time(s), raising hedge fractions in response to elevated VaR. 36 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2021 (flagged crisis year) produced a net loss of £-343.62 across 11 accounts. The risk committee intervened 4 time(s), raising hedge fractions in response to elevated VaR. 33 customer(s) experienced a bill shock of >=20%.
 
 ## 2022
 
@@ -827,7 +836,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 5 accounts
 - Average CLV (Point-in-Time, year-end 2022): £-151.76
   - By billing account: C1 £-176.61, C2 £23.82, C2_2 £48.13, C3 £-83.46, C4 £-104.60, C5 £-382.11, C6 £-362.25, C7 £-142.26, C8 £-114.46, C9 £-223.80
-- Bill shock events (>=20%): 39 -- C7 2022-01-31 (329%); C7 2022-02-28 (26%); C7 2022-04-30 (21%); C7 2022-05-31 (35%); C7 2022-06-30 (26%); C7 2022-09-30 (31%); C7 2022-11-30 (58%); C7 2022-12-31 (53%); C6 2022-04-30 (121%); C6 2022-05-31 (24%); C6 2022-09-30 (27%); C6 2022-11-30 (45%); C6 2022-12-31 (34%); C8 2022-02-28 (22%); C8 2022-04-30 (114%); C8 2022-05-31 (40%); C8 2022-06-30 (34%); C8 2022-07-31 (21%); C8 2022-09-30 (83%); C8 2022-10-31 (20%); C8 2022-11-30 (67%); C8 2022-12-31 (58%); C9 2022-05-31 (31%); C9 2022-06-30 (29%); C9 2022-07-31 (44%); C9 2022-09-30 (49%); C9 2022-10-31 (33%); C9 2022-11-30 (41%); C9 2022-12-31 (54%); C4 2022-10-31 (64%); C4g 2022-10-31 (202%); C2_2 2022-04-30 (1698%); C2_2 2022-05-31 (40%); C2_2 2022-06-30 (34%); C2_2 2022-07-31 (21%); C2_2 2022-09-30 (84%); C2_2 2022-10-31 (20%); C2_2 2022-11-30 (68%); C2_2 2022-12-31 (59%)
+- Bill shock events (>=20%): 35 -- C7 2022-01-31 (195%); C7 2022-02-28 (25%); C7 2022-04-30 (20%); C7 2022-05-31 (34%); C7 2022-06-30 (25%); C7 2022-09-30 (29%); C7 2022-11-30 (56%); C7 2022-12-31 (52%); C6 2022-04-30 (83%); C6 2022-05-31 (23%); C6 2022-09-30 (25%); C6 2022-11-30 (43%); C6 2022-12-31 (34%); C8 2022-02-28 (22%); C8 2022-04-30 (72%); C8 2022-05-31 (39%); C8 2022-06-30 (33%); C8 2022-09-30 (78%); C8 2022-11-30 (65%); C8 2022-12-31 (57%); C9 2022-05-31 (30%); C9 2022-06-30 (28%); C9 2022-07-31 (22%); C9 2022-09-30 (45%); C9 2022-10-31 (32%); C9 2022-11-30 (40%); C9 2022-12-31 (53%); C4 2022-10-31 (52%); C4g 2022-10-31 (168%); C2_2 2022-04-30 (1713%); C2_2 2022-05-31 (39%); C2_2 2022-06-30 (33%); C2_2 2022-09-30 (78%); C2_2 2022-11-30 (65%); C2_2 2022-12-31 (57%)
 - Churn risk (accounts renewing in 2022): 6 at risk (≥20% churn prob): C2 20%, C4 23%, C6 35%, C7 38%, C8 38%, C9 38%
 
 **Pricing & Margin**
@@ -846,7 +855,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: 23.4% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 88, average clarity 0.801, average bill shock 47.8%, bad debt provision £373.96, avg complaint probability 5.9%
+- Bills issued: 88, average clarity 0.809, average bill shock 44.0%, bad debt provision £499.96, avg complaint probability 5.6%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -861,7 +870,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - C8: actual £71.13 vs. naked £903.27 -- hedging cost £832.14
   - C9: actual £54.65 vs. naked £-8.59 -- hedging added £63.24
 
-**Year narrative:** 2022 (flagged crisis year) produced a net gain of £361.19 across 9 accounts. The risk committee intervened 30 time(s), raising hedge fractions in response to elevated VaR. 39 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2022 (flagged crisis year) produced a net gain of £361.19 across 9 accounts. The risk committee intervened 30 time(s), raising hedge fractions in response to elevated VaR. 35 customer(s) experienced a bill shock of >=20%.
 
 ## 2023
 
@@ -888,7 +897,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 6 accounts
 - Average CLV (Point-in-Time, year-end 2023): £-127.78
   - By billing account: C1 £-151.46, C2 £25.55, C2_2 £161.78, C3 £-66.39, C4 £-97.75, C5 £-407.88, C6 £-321.01, C7 £-156.66, C8 £-76.67, C9 £-187.33
-- Bill shock events (>=20%): 29 -- C7 2023-05-31 (32%); C7 2023-06-30 (35%); C7 2023-10-31 (52%); C7 2023-11-30 (65%); C6 2023-04-30 (53%); C6 2023-05-31 (24%); C6 2023-06-30 (24%); C6 2023-10-31 (41%); C6 2023-11-30 (46%); C8 2023-04-30 (54%); C8 2023-05-31 (43%); C8 2023-06-30 (44%); C8 2023-10-31 (101%); C8 2023-11-30 (69%); C9 2023-02-28 (20%); C9 2023-04-30 (25%); C9 2023-05-31 (34%); C9 2023-06-30 (46%); C9 2023-07-31 (32%); C9 2023-09-30 (23%); C9 2023-10-31 (76%); C9 2023-11-30 (53%); C4 2023-10-31 (70%); C4g 2023-10-31 (81%); C2_2 2023-04-30 (54%); C2_2 2023-05-31 (43%); C2_2 2023-06-30 (44%); C2_2 2023-10-31 (102%); C2_2 2023-11-30 (69%)
+- Bill shock events (>=20%): 29 -- C7 2023-05-31 (31%); C7 2023-06-30 (34%); C7 2023-10-31 (50%); C7 2023-11-30 (63%); C6 2023-04-30 (49%); C6 2023-05-31 (23%); C6 2023-06-30 (23%); C6 2023-10-31 (38%); C6 2023-11-30 (44%); C8 2023-04-30 (49%); C8 2023-05-31 (41%); C8 2023-06-30 (42%); C8 2023-10-31 (94%); C8 2023-11-30 (66%); C9 2023-02-28 (20%); C9 2023-04-30 (25%); C9 2023-05-31 (33%); C9 2023-06-30 (45%); C9 2023-07-31 (20%); C9 2023-09-30 (21%); C9 2023-10-31 (71%); C9 2023-11-30 (51%); C4 2023-10-31 (59%); C4g 2023-10-31 (75%); C2_2 2023-04-30 (49%); C2_2 2023-05-31 (41%); C2_2 2023-06-30 (42%); C2_2 2023-10-31 (94%); C2_2 2023-11-30 (66%)
 - Churn risk (accounts renewing in 2023): 5 at risk (≥20% churn prob): C2_2 35%, C6 26%, C7 38%, C8 35%, C9 41%
 
 **Pricing & Margin**
@@ -905,7 +914,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: 10.4% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 84, average clarity 0.808, average bill shock 21.3%, bad debt provision £410.52, avg complaint probability 5.3%
+- Bills issued: 84, average clarity 0.814, average bill shock 20.0%, bad debt provision £538.67, avg complaint probability 5.1%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -944,7 +953,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 4 accounts
 - Average CLV (Point-in-Time, year-end 2024): £-99.96
   - By billing account: C1 £-133.91, C2 £21.89, C2_2 £161.85, C3 £-77.18, C4 £-51.58, C5 £-337.88, C6 £-259.32, C7 £-126.15, C8 £-32.70, C9 £-164.65
-- Bill shock events (>=20%): 27 -- C7 2024-01-31 (51%); C7 2024-02-29 (26%); C7 2024-04-30 (21%); C7 2024-05-31 (36%); C7 2024-09-30 (33%); C7 2024-10-31 (35%); C7 2024-11-30 (46%); C8 2024-02-29 (23%); C8 2024-04-30 (60%); C8 2024-05-31 (51%); C8 2024-07-31 (29%); C8 2024-09-30 (78%); C8 2024-10-31 (38%); C8 2024-11-30 (62%); C9 2024-04-30 (22%); C9 2024-05-31 (50%); C9 2024-07-31 (40%); C9 2024-09-30 (56%); C9 2024-10-31 (24%); C9 2024-11-30 (48%); C2_2 2024-02-29 (23%); C2_2 2024-04-30 (60%); C2_2 2024-05-31 (51%); C2_2 2024-07-31 (29%); C2_2 2024-09-30 (79%); C2_2 2024-10-31 (38%); C2_2 2024-11-30 (62%)
+- Bill shock events (>=20%): 27 -- C7 2024-01-31 (40%); C7 2024-02-29 (26%); C7 2024-04-30 (20%); C7 2024-05-31 (35%); C7 2024-09-30 (30%); C7 2024-10-31 (33%); C7 2024-11-30 (44%); C8 2024-02-29 (22%); C8 2024-04-30 (51%); C8 2024-05-31 (49%); C8 2024-07-31 (26%); C8 2024-09-30 (67%); C8 2024-10-31 (35%); C8 2024-11-30 (58%); C9 2024-04-30 (21%); C9 2024-05-31 (48%); C9 2024-07-31 (33%); C9 2024-09-30 (49%); C9 2024-10-31 (23%); C9 2024-11-30 (46%); C2_2 2024-02-29 (23%); C2_2 2024-04-30 (51%); C2_2 2024-05-31 (48%); C2_2 2024-07-31 (26%); C2_2 2024-09-30 (67%); C2_2 2024-10-31 (35%); C2_2 2024-11-30 (58%)
 - Churn risk (accounts renewing in 2024): 6 at risk (≥20% churn prob): C2_2 41%, C4 23%, C6 38%, C7 38%, C8 41%, C9 35%
 
 **Pricing & Margin**
@@ -961,7 +970,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: 22.5% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 69, average clarity 0.801, average bill shock 21.2%, bad debt provision £159.75, avg complaint probability 5.4%
+- Bills issued: 69, average clarity 0.809, average bill shock 19.4%, bad debt provision £246.55, avg complaint probability 5.1%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -996,7 +1005,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - Renewals (retained): 2 accounts
 - Average CLV (Point-in-Time, year-end 2025): £-97.56
   - By billing account: C1 £-125.43, C2 £23.75, C2_2 £132.25, C3 £-70.69, C4 £-54.49, C5 £-357.18, C6 £-230.20, C7 £-97.59, C8 £-35.23, C9 £-160.76
-- Bill shock events (>=20%): 18 -- C7 2025-01-31 (23%); C7 2025-04-30 (37%); C7 2025-05-31 (22%); C7 2025-06-07 (80%); C8 2025-01-31 (39%); C8 2025-02-28 (24%); C8 2025-04-30 (25%); C8 2025-05-31 (38%); C8 2025-06-07 (73%); C9 2025-01-31 (22%); C9 2025-04-30 (26%); C9 2025-05-31 (34%); C9 2025-06-07 (71%); C2_2 2025-01-31 (40%); C2_2 2025-02-28 (24%); C2_2 2025-04-30 (25%); C2_2 2025-05-31 (39%); C2_2 2025-06-07 (73%)
+- Bill shock events (>=20%): 16 -- C7 2025-01-31 (23%); C7 2025-04-30 (36%); C7 2025-05-31 (21%); C7 2025-06-07 (80%); C8 2025-01-31 (38%); C8 2025-02-28 (24%); C8 2025-05-31 (37%); C8 2025-06-07 (73%); C9 2025-01-31 (21%); C9 2025-04-30 (25%); C9 2025-05-31 (32%); C9 2025-06-07 (72%); C2_2 2025-01-31 (38%); C2_2 2025-02-28 (24%); C2_2 2025-05-31 (37%); C2_2 2025-06-07 (73%)
 - Churn risk (accounts renewing in 2025): 3 at risk (≥20% churn prob): C2_2 38%, C8 38%, C9 38%
 
 **Pricing & Margin**
@@ -1010,7 +1019,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
 
 - Capital cost ratio: 50.4% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 24, average clarity 0.726, average bill shock 32.3%, bad debt provision £59.27, avg complaint probability 7.3%
+- Bills issued: 24, average clarity 0.737, average bill shock 30.0%, bad debt provision £93.67, avg complaint probability 7.0%
 - Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
 
 **Hedge Effectiveness**
@@ -1020,4 +1029,4 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - C2_2: actual £19.03 vs. naked £129.21 -- hedging cost £110.19
   - C8: actual £14.31 vs. naked £5.72 -- hedging added £8.59
 
-**Year narrative:** 2025 produced a net gain of £69.25 across 4 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 18 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2025 produced a net gain of £69.25 across 4 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 16 customer(s) experienced a bill shock of >=20%.

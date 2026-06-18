@@ -8,7 +8,18 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-18T05:48:41Z
+Last updated: 2026-06-18T06:36:30Z
+
+**Phase 9a full run complete (2026-06-18)**: SURVIVED. 465 tests passing.
+
+**Phase 9a bill structure results (2016–2025)**:
+- Customer bills (all-in): £168,067 | VAT remitted: (£13,907) | Revenue (ex-VAT): £154,161
+- Non-commodity pass-through: (£42,887) | Wholesale: (£96,087)
+- Gross margin: £15,186 | Capital: £1,228 | Net margin: £13,958 (9.1% of ex-VAT revenue)
+- Operating net margin (after fixed overhead £5,700 + acquisition £1,250): **£+7,008** (profitable!)
+- Previously: net margin £3,560 (3.8%) commodity-only, operating net -£3,390 (loss-making)
+- Standing charges are the key driver: pure supplier revenue ~£15,080 over 10 years
+- Treasury: £29,846 → £33,407 | 2,238,162 ledger events | 160 committee interventions
 
 **Phase 8a full run complete (2026-06-18)**: SURVIVED. 449 tests passing.
 
