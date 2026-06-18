@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-18T06:36:30Z
+Last updated: 2026-06-18T20:00:15Z
+
+**Annual report consistency review complete (2026-06-18)**: 474 tests passing.
+- Fixed 4 inconsistencies: operating net margin showed -£3,389 AND +£7,008 in same doc (critical); waterfall "Cash collected" row was mathematically broken; Hedging Mandate figures conflicted with Executive Summary without labels; hedge effectiveness line unlabelled
+- Discovery agent live: `background/discovery_agent.py` + `docs/market_research/ASSUMPTIONS.md` — standing habit after every report regeneration
+- Intelligent dispatcher live: `background/dispatcher.py` — Qwen classifies inbound NTFY messages as URGENT/NORMAL/FYI; urgent messages relay immediately to Claude session via tmux
 
 **Phase 9a full run complete (2026-06-18)**: SURVIVED. 465 tests passing.
 
