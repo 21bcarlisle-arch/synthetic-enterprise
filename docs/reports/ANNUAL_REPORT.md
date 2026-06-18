@@ -190,13 +190,15 @@ The following 9 customer(s) are loss-making after cost-to-serve and require imme
 
 ## Transaction Log
 
-Total events: 2,235,809
+Total events: 2,235,928
 
 | Event type | Count |
 |------------|-------|
+| acquisition_spend_event | 5 |
 | bad_debt_event | 1,117 |
 | billing_event | 1,117 |
 | capital_charge_event | 1,019,177 |
+| fixed_cost_event | 114 |
 | payment_received_event | 1,117 |
 | settlement_event | 1,213,281 |
 
@@ -215,6 +217,38 @@ Total events: 2,235,809
 
 Ledger P&L vs simulation direct: ✓ agrees with simulation
 
+## Growth & Acquisition
+
+**Mandate:** `flat`  **Acquisition cost:** resi £150 / SME £400  **Fixed overhead:** £50/month
+
+**Acquisition activity by year**
+
+| Year | Attempts | Wins | Win Rate | Spend |
+|------|----------|------|----------|-------|
+| 2020 | 1 | 0 | 0% | £150.00 |
+| 2021 | 2 | 0 | 0% | £550.00 |
+| 2024 | 2 | 0 | 0% | £550.00 |
+
+**Total:** 5 attempts, 0 wins (0% win rate), £1,250.00 total spend
+
+**Operating overhead**
+
+| Year | Fixed Cost |
+|------|-----------|
+| 2016 | (£600.00) |
+| 2017 | (£600.00) |
+| 2018 | (£600.00) |
+| 2019 | (£600.00) |
+| 2020 | (£600.00) |
+| 2021 | (£600.00) |
+| 2022 | (£600.00) |
+| 2023 | (£600.00) |
+| 2024 | (£600.00) |
+| 2025 | (£300.00) |
+
+**Total fixed cost:** £5,700.00 over simulation window
+**Operating net margin** (energy margin less acquisition spend & fixed costs): £-3,389.59
+
 ## 2016
 
 **Trading & Risk**
@@ -231,7 +265,7 @@ Ledger P&L vs simulation direct: ✓ agrees with simulation
   - 2016-03-31: treasury £29,850.51, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-04-30: treasury £29,851.64, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-05-30: treasury £29,852.89, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-06-29: treasury £29,853.74, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
+  - 2016-06-29: treasury £29,853.74, C1->1.00, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-07-29: treasury £29,854.76, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-08-28: treasury £29,855.86, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-09-27: treasury £29,856.78, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25

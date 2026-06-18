@@ -8,19 +8,28 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-18T05:26:44Z
+Last updated: 2026-06-18T05:48:41Z
 
-**Phase 8a: Growth Mandate & Acquisition Model (2026-06-18)**: Full run in progress (tmux: phase8a-run, ~15 min). 406 tests passing.
+**Phase 8a full run complete (2026-06-18)**: SURVIVED. 449 tests passing.
 
-New this phase:
-- `saas/growth_mandate.py`: mandate config (flat/grow/shrink), `COST_PER_ACQUISITION` (resi £150 / SME £400), `FIXED_COST_MONTHLY` £50/month, `roll_acquisition()` deterministic seeded roll
-- `saas/ledger.py`: `acquisition_spend_event` + `fixed_cost_event` types; `derive_pnl()` now includes `acquisition_spend_gbp`, `fixed_cost_gbp`, `operating_net_margin_gbp`; `build_ledger()` accepts `extra_events`
-- `saas/customers.py`: `ACQUIRED_CUSTOMERS` runtime accumulator, `make_acquired_customer()`, `_clear_acquired_customers()`
-- `simulation/run_phase2b.py`: acquisition attempt fires on every churn where home-move lost (MANDATE != "shrink"); fixed cost event emitted once per calendar month (dedup'd across customers)
-- `saas/reporting/annual_report.py`: "Growth & Acquisition" section with per-year attempt/win/spend table and fixed cost summary
-- Fast-mode validation (2016-2022): 3 acquisition attempts (C3/C1/C5 post-churn), 0 wins (base rates 20%/12%), £700 acquisition spend, £4,200 fixed costs (84 months)
+**Phase 8a growth mandate results (2016–2025)**:
+- Mandate: flat | 5 acquisition attempts (C3 2020, C1+C5 2021, C6+C4 2024) | 0 wins
+- Acquisition spend: £1,250 | Fixed overhead: £5,700 (114 months × £50)
+- Energy net margin: £3,560 | Operating net margin: £-3,390 (overhead exceeds energy profit)
+- Treasury: £29,846 → £33,407 (energy trading only; fixed costs tracked separately)
+- Key insight: fixed overhead (£5,700) + acquisition spend (£1,250) = £6,950 > energy net margin £3,560 — business is operationally loss-making at this scale without pricing uplift
 
-Next: full run results, then Company Layer Foundation.
+**Margin analysis (response to Rich's NTFY question)**:
+- Gross margin 4.7% (£4,788 on £100,875 revenue) is NOT an overcorrection — this is how real energy supply works. Wholesale = 95% of revenue is normal for fixed-rate retail tariffs. The Phase A forward curve fix was correct.
+- CLV negative for 8 of 9: cost-to-serve consumes the thin margin. This is the pricing signal the simulation is designed to surface, confirmed by NET_NEGATIVE flags already in the report. C2 (suburban semi, good consumption, survived to 2022) is the only CLV-positive account at £35.90.
+- 2021 was the only year with negative gross margin (-1.6%), caused by the energy crisis. All other years: 2–9% gross margin.
+- Fix required: tariff uplift 15–20% to cover cost-to-serve at current customer scale, OR grow to dilute fixed cost per customer.
+
+**Company Layer Foundation complete (2026-06-18)** (commit f5808bd):
+- `company/crm/customer_registry.py`: SQLite; 19 accounts seeded; HH flag; status lifecycle
+- `company/billing/invoice.py`: invoice artefact engine; 5% VAT; 14-day payment terms
+- `company/finance/pnl.py`: cash-basis income statement; reconcile_with_sim()
+- `company/interfaces/sim_interface.py`: formal SIM/company seam with stubs
 
 **NTFY relay fixed (2026-06-17)**: `ntfy_responder.py` now writes substantive inbound messages
 (>25 chars) to `docs/staging/from_rich_TIMESTAMP.md`. Claude Code picks these up on its next
