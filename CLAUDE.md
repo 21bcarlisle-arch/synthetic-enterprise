@@ -55,6 +55,10 @@ urgent or more involved conversations. The protocol:
 
 **At startup and after every completed task:** check `docs/staging/` for
 unactioned files and action them immediately. Do not wait to be told.
+- `run_complete_*.md` — a full run finished while the session was down; publish
+  results (regenerate report, update LATEST.md, commit, push, NTFY) then delete.
+- `run_pending_*.md` — a run was started; check if it finished and act accordingly.
+- `from_rich_*.md` — an inbound NTFY message from Rich; act on it and reply via NTFY.
 
 **At every REVIEW_GATE:** do not stop and wait indefinitely. Instead:
 1. Complete the phase and commit all outputs

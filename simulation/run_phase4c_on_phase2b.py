@@ -212,12 +212,36 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    _staging_dir = Path("docs/staging")
+    _staging_dir.mkdir(parents=True, exist_ok=True)
+    _run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    _pending_marker = _staging_dir / f"run_pending_{_run_ts}.md"
+    _pending_marker.write_text(
+        f"# Run in progress — action required on completion\n\n"
+        f"Started: {_run_ts}\n\n"
+        "When this run finishes: regenerate the annual report (`make report` or "
+        "`python3 -m saas.reporting.annual_report --from-json docs/reports/run_output_latest.json`), "
+        "update LATEST.md with key figures, commit, push to GitHub, and send NTFY digest.\n\n"
+        "Delete this file once done.\n"
+    )
+
     try:
         output = main()
 
         if args.save_json:
             latest_path, versioned_path = save_run_output_json(output)
             print(f"\nSaved report data to {latest_path} and {versioned_path}")
+
+        # Write a completion marker so the next session knows results are ready to publish
+        _complete_marker = _staging_dir / f"run_complete_{_run_ts}.md"
+        _complete_marker.write_text(
+            f"# Run complete — publish results\n\n"
+            f"Completed: {datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}\n"
+            f"Output: {latest_path if args.save_json else 'not saved (no --save-json)'}\n\n"
+            "Action: regenerate annual report, update LATEST.md, commit, push, send NTFY.\n\n"
+            "Delete this file once done.\n"
+        )
+        _pending_marker.unlink(missing_ok=True)
 
     except Exception as exc:
         import traceback
