@@ -43,7 +43,7 @@ from saas.bill_generator import generate_bill
 from saas.churn_model import build_churn_risk
 from saas.contact_model import build_contact_model
 from saas.cost_to_serve import build_cost_to_serve
-from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS, get_customer
+from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS, get_customer
 from saas.enterprise_value import build_enterprise_value
 from saas.home_move_win_rate import build_home_move_win_rates
 from saas.ledger import build_ledger, derive_pnl, ledger_summary
@@ -51,7 +51,15 @@ from saas.payment_behaviour import build_payment_behaviour
 from simulation.run_phase2b import main as run_phase2b
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
-_ALL_CUSTOMERS = CUSTOMERS + SUCCESSOR_CUSTOMERS
+
+
+def _get_all_customers() -> list[dict]:
+    """Live customer list including Phase 8a acquired customers.
+
+    Must be a function (not a module-level constant) because ACQUIRED_CUSTOMERS
+    is populated by run_phase2b.main() after import time.
+    """
+    return CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
 
 RUN_OUTPUT_LATEST_PATH = Path("docs/reports/run_output_latest.json")
 RUN_OUTPUT_VERSIONED_DIR = Path("docs/reports")
@@ -97,11 +105,12 @@ def main(report_end: str | None = None):
     payment_behaviour = build_payment_behaviour(bills)
     contact_model = build_contact_model(bills)
 
-    cost_to_serve = build_cost_to_serve(all_records, _ALL_CUSTOMERS)
-    churn_risk = build_churn_risk(all_records, _ALL_CUSTOMERS)
-    home_move_win_rates = build_home_move_win_rates(churn_risk, _ALL_CUSTOMERS, PRICE_DIFFERENTIAL_PCT)
+    all_customers = _get_all_customers()
+    cost_to_serve = build_cost_to_serve(all_records, all_customers)
+    churn_risk = build_churn_risk(all_records, all_customers)
+    home_move_win_rates = build_home_move_win_rates(churn_risk, all_customers, PRICE_DIFFERENTIAL_PCT)
     enterprise_value = build_enterprise_value(
-        churn_risk, cost_to_serve, _ALL_CUSTOMERS, PRICE_DIFFERENTIAL_PCT
+        churn_risk, cost_to_serve, all_customers, PRICE_DIFFERENTIAL_PCT
     )
 
     avg_clarity = sum(b["clarity_score"] for b in bills) / len(bills)
@@ -142,7 +151,15 @@ def main(report_end: str | None = None):
             f"{credit_risk:>11} {bad_debt:>10.2f}"
         )
 
-    ledger_events = build_ledger(all_records, bills, payment_behaviour_module)
+    # Phase 8a: merge acquisition_spend and fixed_cost events into the ledger
+    extra_events = (
+        phase2b_result.get("acquisition_spend_events", [])
+        + phase2b_result.get("fixed_cost_events", [])
+    )
+    ledger_events = build_ledger(
+        all_records, bills, payment_behaviour_module,
+        extra_events=extra_events or None,
+    )
     ledger_pnl = derive_pnl(ledger_events)
     ledger_meta = ledger_summary(ledger_events)
 
@@ -160,6 +177,11 @@ def main(report_end: str | None = None):
         "ledger_pnl": ledger_pnl,
         "ledger_meta": ledger_meta,
         "won_successor_activations": phase2b_result.get("won_successor_activations", {}),
+        # Phase 8a: growth mandate outputs
+        "acquisition_spend_events": phase2b_result.get("acquisition_spend_events", []),
+        "fixed_cost_events": phase2b_result.get("fixed_cost_events", []),
+        "acquired_customers": phase2b_result.get("acquired_customers", []),
+        "growth_mandate": phase2b_result.get("growth_mandate", "flat"),
     }
 
 

@@ -1,4 +1,4 @@
-"""Tests for saas/ledger.py — Phase 7a/7b transaction log."""
+"""Tests for saas/ledger.py — Phase 7a/7b/8a transaction log."""
 import pytest
 
 from saas.ledger import (
@@ -6,8 +6,10 @@ from saas.ledger import (
     derive_cash_position,
     derive_pnl,
     ledger_summary,
+    make_acquisition_spend_event,
     make_bad_debt_event,
     make_billing_event,
+    make_fixed_cost_event,
     make_capital_charge_event,
     make_payment_received_event,
     make_settlement_event,
@@ -347,3 +349,85 @@ def test_derive_cash_position_includes_payment_events():
     events = build_ledger(records, bills, pb)
     ending = derive_cash_position(1000.0, events)
     assert abs(ending - 1183.5) < 1e-9
+
+
+# ---- Phase 8a: acquisition_spend_event and fixed_cost_event ----
+
+def test_make_acquisition_spend_event_amount_is_negative():
+    event = make_acquisition_spend_event("C3", "2020-06-01", 150.0, False, "resi")
+    assert event["amount_gbp"] == -150.0
+    assert event["event_type"] == "acquisition_spend_event"
+    assert event["acquisition_won"] is False
+
+
+def test_make_acquisition_spend_event_won_flag():
+    won = make_acquisition_spend_event("C3", "2020-06-01", 150.0, True, "resi")
+    lost = make_acquisition_spend_event("C3", "2020-07-01", 150.0, False, "resi")
+    assert won["acquisition_won"] is True
+    assert lost["acquisition_won"] is False
+
+
+def test_make_fixed_cost_event_amount_is_negative():
+    event = make_fixed_cost_event("2020-01", 50.0)
+    assert event["amount_gbp"] == -50.0
+    assert event["event_type"] == "fixed_cost_event"
+    assert event["month"] == "2020-01"
+
+
+def test_make_fixed_cost_event_timestamp_is_first_of_month():
+    event = make_fixed_cost_event("2020-03", 50.0)
+    assert event["timestamp"] == "2020-03-01"
+
+
+def test_build_ledger_with_extra_events_includes_them():
+    records = [_settlement_record(date="2020-01-01")]
+    bills = [_bill(period_start="2020-01-01", period_end="2020-01-31")]
+    acq_event = make_acquisition_spend_event("C3", "2020-06-01", 150.0, False, "resi")
+    fixed_event = make_fixed_cost_event("2020-01", 50.0)
+    events = build_ledger(records, bills, extra_events=[acq_event, fixed_event])
+    types = {e["event_type"] for e in events}
+    assert "acquisition_spend_event" in types
+    assert "fixed_cost_event" in types
+
+
+def test_build_ledger_without_extra_events_unchanged():
+    records = [_settlement_record()]
+    bills = [_bill()]
+    events = build_ledger(records, bills)
+    types = {e["event_type"] for e in events}
+    assert "acquisition_spend_event" not in types
+    assert "fixed_cost_event" not in types
+
+
+def test_derive_pnl_includes_acquisition_spend_when_present():
+    records = [_settlement_record(wholesale=6.0, capital=0.5)]
+    bills = [_bill(amount=100.0)]
+    acq_event = make_acquisition_spend_event("C3", "2020-06-01", 150.0, False, "resi")
+    events = build_ledger(records, bills, extra_events=[acq_event])
+    pnl = derive_pnl(events)
+    assert "acquisition_spend_gbp" in pnl
+    assert abs(pnl["acquisition_spend_gbp"] - 150.0) < 1e-6
+    assert "operating_net_margin_gbp" in pnl
+
+
+def test_derive_pnl_includes_fixed_cost_when_present():
+    records = [_settlement_record(wholesale=6.0, capital=0.5)]
+    bills = [_bill(amount=100.0)]
+    fixed_event = make_fixed_cost_event("2016-01", 50.0)
+    events = build_ledger(records, bills, extra_events=[fixed_event])
+    pnl = derive_pnl(events)
+    assert "fixed_cost_gbp" in pnl
+    assert abs(pnl["fixed_cost_gbp"] - 50.0) < 1e-6
+    assert "operating_net_margin_gbp" in pnl
+
+
+def test_operating_net_margin_is_net_less_acquisition_and_fixed():
+    records = [_settlement_record(revenue=100.0, wholesale=60.0, capital=5.0, net=35.0)]
+    bills = [_bill(amount=100.0)]
+    acq_event = make_acquisition_spend_event("C3", "2020-06-01", 150.0, False, "resi")
+    fixed_event = make_fixed_cost_event("2016-01", 50.0)
+    events = build_ledger(records, bills, extra_events=[acq_event, fixed_event])
+    pnl = derive_pnl(events)
+    # net_margin = revenue - wholesale - capital = 100 - 60 - 5 = 35
+    # operating_net = 35 - 150 - 50 = -165
+    assert abs(pnl["operating_net_margin_gbp"] - (pnl["net_margin_gbp"] - 150.0 - 50.0)) < 1e-6

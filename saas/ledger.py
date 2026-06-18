@@ -1,7 +1,7 @@
-"""Phase 7a/7b — The Ledger.
+"""Phase 7a/7b/8a — The Ledger.
 
 A pure-function ledger that derives a chronological transaction log from
-existing simulation outputs. Five event types:
+existing simulation outputs. Seven event types:
 
 Phase 7a:
 - billing_event: revenue raised when a bill is issued (cash in)
@@ -12,6 +12,10 @@ Phase 7b (payment lifecycle):
 - payment_received_event: cash actually collected (revenue minus bad debt provision)
 - bad_debt_event: provision written off (cash out) — only when provision > 0
 
+Phase 8a (growth mandate):
+- acquisition_spend_event: cost of a fresh market acquisition attempt (cash out)
+- fixed_cost_event: monthly operating overhead (cash out)
+
 All amounts use the sign convention: positive = cash in, negative = cash out.
 Transaction IDs are deterministic UUIDs (uuid5) so the same inputs always
 produce the same IDs — the ledger is idempotent and auditable.
@@ -20,6 +24,10 @@ Phase 7b: pass a `payment_behaviour` module (or duck-typed equivalent with
 `CREDIT_RISK_BY_CUSTOMER`, `DEFAULT_CREDIT_RISK`, `bad_debt_provision_gbp()`,
 `expected_payment_date()`) as the third argument to `build_ledger()` to add
 payment lifecycle events. Omit it (or pass None) for Phase 7a behaviour.
+
+Phase 8a: pass `extra_events` (list of acquisition_spend_event and
+fixed_cost_event dicts) as the fourth argument to `build_ledger()`. These are
+generated upstream by the simulation loop and merged into the sorted output.
 """
 
 import uuid
@@ -122,10 +130,41 @@ def make_bad_debt_event(
     }
 
 
+def make_acquisition_spend_event(
+    billing_account: str,
+    event_date: str,
+    amount_gbp: float,
+    won: bool,
+    segment: str,
+) -> dict[str, Any]:
+    """Cash out: cost of a fresh market acquisition attempt (win or loss)."""
+    return {
+        "transaction_id": _tid("acquisition_spend", billing_account, event_date),
+        "event_type": "acquisition_spend_event",
+        "timestamp": event_date,
+        "billing_account": billing_account,
+        "segment": segment,
+        "amount_gbp": -amount_gbp,
+        "acquisition_won": won,
+    }
+
+
+def make_fixed_cost_event(month: str, amount_gbp: float) -> dict[str, Any]:
+    """Cash out: monthly operating overhead (metering admin, licensing, ops)."""
+    return {
+        "transaction_id": _tid("fixed_cost", month),
+        "event_type": "fixed_cost_event",
+        "timestamp": month + "-01",
+        "month": month,
+        "amount_gbp": -amount_gbp,
+    }
+
+
 def build_ledger(
     all_records: list[dict[str, Any]],
     bills: list[dict[str, Any]],
     payment_behaviour: Any = None,
+    extra_events: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """Derive the full transaction log from simulation outputs.
 
@@ -135,6 +174,8 @@ def build_ledger(
         `CREDIT_RISK_BY_CUSTOMER`, `DEFAULT_CREDIT_RISK`,
         `bad_debt_provision_gbp()`, `expected_payment_date()`.
         When provided, adds payment_received_event and bad_debt_event entries.
+    `extra_events` — optional list of pre-built events (Phase 8a acquisition_spend_event
+        and fixed_cost_event dicts) to merge into the sorted output.
 
     Returns events sorted chronologically.
     """
@@ -180,6 +221,9 @@ def build_ledger(
             if provision > 0:
                 events.append(make_bad_debt_event(b, provision, payment_date))
 
+    if extra_events:
+        events.extend(extra_events)
+
     events.sort(key=lambda e: (e["timestamp"], e.get("settlement_period", 0), e["event_type"]))
     return events
 
@@ -213,6 +257,21 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         result["cash_collected_gbp"] = cash_collected
         result["bad_debt_gbp"] = bad_debt
         result["cash_net_margin_gbp"] = cash_collected - wholesale - capital
+
+    acq_events = [e for e in events if e["event_type"] == "acquisition_spend_event"]
+    if acq_events:
+        acq_spend = -sum(e["amount_gbp"] for e in acq_events)
+        result["acquisition_spend_gbp"] = acq_spend
+
+    fixed_events = [e for e in events if e["event_type"] == "fixed_cost_event"]
+    if fixed_events:
+        fixed_cost = -sum(e["amount_gbp"] for e in fixed_events)
+        result["fixed_cost_gbp"] = fixed_cost
+
+    if acq_events or fixed_events:
+        acq = result.get("acquisition_spend_gbp", 0.0)
+        fixed = result.get("fixed_cost_gbp", 0.0)
+        result["operating_net_margin_gbp"] = net - acq - fixed
 
     return result
 

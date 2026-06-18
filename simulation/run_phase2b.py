@@ -21,7 +21,20 @@ from datetime import date, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
 from saas.customer_reaction import _billing_account_id
-from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS, get_customer
+from saas.customers import (
+    ACQUIRED_CUSTOMERS,
+    CUSTOMERS,
+    SUCCESSOR_CUSTOMERS,
+    get_customer,
+    make_acquired_customer,
+)
+from saas.growth_mandate import (
+    COST_PER_ACQUISITION,
+    FIXED_COST_MONTHLY,
+    MANDATE,
+    roll_acquisition,
+)
+from saas.ledger import make_acquisition_spend_event, make_fixed_cost_event
 from saas.property_model import (
     DEFAULT_ASSETS,
     DEFAULT_HEATING_SYSTEM,
@@ -351,6 +364,12 @@ def main(report_end: str | None = None):
     total_periods_processed = 0
     PROGRESS_EVERY_PERIODS = 100
 
+    # Phase 8a: growth mandate tracking
+    acquisition_spend_events: list[dict] = []
+    fixed_cost_events: list[dict] = []
+    _acquisition_counter: dict[str, int] = {}  # base_id -> next fresh-acquisition suffix
+    _fixed_cost_emitted: set[str] = set()  # months already charged (dedup across customers)
+
     current_year_str = REPORT_START[:4]
     ytd_gross = ytd_net = ytd_capital = 0.0
 
@@ -401,6 +420,35 @@ def main(report_end: str | None = None):
                         if successor_id:
                             won_successor_activations[successor_id] = term_start_str
                             print(f"  [WIN] Home-mover won: {successor_id} activates at {term_start_str}")
+                    elif MANDATE != "shrink":
+                        # Phase 8a: home-mover lost — attempt fresh market acquisition
+                        customer_data = get_customer(billing_account)
+                        segment = customer_data["segment"] if customer_data else "resi"
+                        acq_cost = COST_PER_ACQUISITION.get(segment, 150.0)
+                        acq_seed = f"acquire_{billing_account}_{term_start_str}"
+                        acq_won = roll_acquisition(segment, acq_seed)
+
+                        acquisition_spend_events.append(
+                            make_acquisition_spend_event(
+                                billing_account, term_start_str, acq_cost, acq_won, segment
+                            )
+                        )
+
+                        if acq_won:
+                            suffix = _acquisition_counter.get(billing_account, 3)
+                            _acquisition_counter[billing_account] = suffix + 1
+                            new_cid = f"{billing_account}_{suffix}"
+                            new_customer = make_acquired_customer(new_cid, customer_data, term_start_str)
+                            ACQUIRED_CUSTOMERS.append(new_customer)
+                            print(
+                                f"  [ACQUIRE] Fresh acquisition won: {new_cid} at {term_start_str} "
+                                f"(£{acq_cost:.0f}, {segment})"
+                            )
+                        else:
+                            print(
+                                f"  [ACQUIRE] Fresh acquisition failed: {billing_account} at {term_start_str} "
+                                f"(£{acq_cost:.0f}, {segment})"
+                            )
                     continue
 
         if cid in pending_committee_overrides:
@@ -457,6 +505,16 @@ def main(report_end: str | None = None):
             if rec_year != current_year_str:
                 ytd_gross = ytd_net = ytd_capital = 0.0
                 current_year_str = rec_year
+
+            # Phase 8a: emit one fixed_cost_event per calendar month.
+            # Use a seen-set to deduplicate across customers (multiple customers'
+            # terms interleave, so naive current_month_str comparison double-counts).
+            # Fixed costs flow through the ledger only — not deducted from the
+            # energy trading treasury (trading vs. ops architectural separation).
+            rec_month = rec["settlement_date"][:7]
+            if rec_month not in _fixed_cost_emitted:
+                fixed_cost_events.append(make_fixed_cost_event(rec_month, FIXED_COST_MONTHLY))
+                _fixed_cost_emitted.add(rec_month)
 
             treasury += rec["net_margin_gbp"]
             rec["treasury_cash_balance_gbp"] = treasury
@@ -697,6 +755,11 @@ def main(report_end: str | None = None):
         "total_net": total_net,
         "final_treasury": final_treasury,
         "starting_treasury": STARTING_TREASURY_GBP,
+        # Phase 8a: growth mandate outputs
+        "acquisition_spend_events": acquisition_spend_events,
+        "fixed_cost_events": fixed_cost_events,
+        "acquired_customers": [c["customer_id"] for c in ACQUIRED_CUSTOMERS],
+        "growth_mandate": MANDATE,
     }
 
 

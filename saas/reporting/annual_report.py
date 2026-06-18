@@ -36,7 +36,7 @@ from pathlib import Path
 from saas.clv_model import build_clv
 from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
-from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS
+from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
@@ -168,7 +168,16 @@ def extract_report_data(run_output: dict) -> dict:
 
     years = sorted({_year(r["settlement_date"]) for r in all_records})
     won_successor_activations: dict[str, str] = run_output.get("won_successor_activations", {})
-    segment_by_customer = {c["customer_id"]: c["segment"] for c in CUSTOMERS + SUCCESSOR_CUSTOMERS}
+    segment_by_customer = {
+        c["customer_id"]: c["segment"]
+        for c in CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
+    }
+
+    # Phase 8a: growth mandate data
+    acquisition_spend_events = run_output.get("acquisition_spend_events", [])
+    fixed_cost_events = run_output.get("fixed_cost_events", [])
+    acquired_customer_ids = run_output.get("acquired_customers", [])
+    growth_mandate = run_output.get("growth_mandate", "flat")
 
     yearly = {}
     for year in years:
@@ -318,6 +327,20 @@ def extract_report_data(run_output: dict) -> dict:
                 for account_id, all_renewals in churn_risk.items()
                 if (yr_renewals := [r for r in all_renewals if r["renewal_period"][:4] == year])
             },
+            # Phase 8a: per-year acquisition and fixed cost data
+            "acquisition_attempts": sum(
+                1 for e in acquisition_spend_events if e["timestamp"][:4] == year
+            ),
+            "acquisition_wins": sum(
+                1 for e in acquisition_spend_events
+                if e["timestamp"][:4] == year and e.get("acquisition_won")
+            ),
+            "acquisition_spend_gbp": sum(
+                -e["amount_gbp"] for e in acquisition_spend_events if e["timestamp"][:4] == year
+            ),
+            "fixed_cost_gbp": sum(
+                -e["amount_gbp"] for e in fixed_cost_events if e["timestamp"][:4] == year
+            ),
         }
 
     per_customer_lifetime = {}
@@ -431,6 +454,13 @@ def extract_report_data(run_output: dict) -> dict:
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),
         "clv_snapshots": clv_snapshots,
+        # Phase 8a: growth mandate summary
+        "growth_mandate": growth_mandate,
+        "total_acquisition_spend_gbp": sum(-e["amount_gbp"] for e in acquisition_spend_events),
+        "total_fixed_cost_gbp": sum(-e["amount_gbp"] for e in fixed_cost_events),
+        "total_acquisition_attempts": len(acquisition_spend_events),
+        "total_acquisition_wins": sum(1 for e in acquisition_spend_events if e.get("acquisition_won")),
+        "acquired_customers": acquired_customer_ids,
     }
 
 
@@ -1129,6 +1159,88 @@ def _ledger_summary_section(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _growth_acquisition_section(data: dict) -> str:
+    """Phase 8a: Growth Mandate & Acquisition model summary section."""
+    mandate = data.get("growth_mandate", "flat")
+    total_attempts = data.get("total_acquisition_attempts", 0)
+    total_wins = data.get("total_acquisition_wins", 0)
+    total_spend = data.get("total_acquisition_spend_gbp", 0.0)
+    total_fixed = data.get("total_fixed_cost_gbp", 0.0)
+    acquired = data.get("acquired_customers", [])
+    from saas.growth_mandate import COST_PER_ACQUISITION, FIXED_COST_MONTHLY
+
+    if not total_attempts and not total_fixed:
+        return ""
+
+    lines = [
+        "## Growth & Acquisition\n",
+        f"**Mandate:** `{mandate}`  "
+        f"**Acquisition cost:** resi £{COST_PER_ACQUISITION['resi']:.0f} / SME £{COST_PER_ACQUISITION['SME']:.0f}  "
+        f"**Fixed overhead:** £{FIXED_COST_MONTHLY:.0f}/month\n",
+    ]
+
+    # Per-year table
+    years = sorted(data["years"])
+    if total_attempts:
+        lines += [
+            "**Acquisition activity by year**\n",
+            "| Year | Attempts | Wins | Win Rate | Spend |",
+            "|------|----------|------|----------|-------|",
+        ]
+        for year in years:
+            yd = data["years"][year]
+            attempts = yd.get("acquisition_attempts", 0)
+            wins = yd.get("acquisition_wins", 0)
+            spend = yd.get("acquisition_spend_gbp", 0.0)
+            if not attempts:
+                continue
+            win_rate = wins / attempts if attempts else 0.0
+            lines.append(
+                f"| {year} | {attempts} | {wins} | {win_rate:.0%} | {_fmt_gbp(spend)} |"
+            )
+        lines += [
+            "",
+            f"**Total:** {total_attempts} attempts, {total_wins} wins "
+            f"({total_wins/total_attempts:.0%} win rate), "
+            f"{_fmt_gbp(total_spend)} total spend",
+            "",
+        ]
+
+    if acquired:
+        lines += [
+            f"**Fresh acquisitions won ({len(acquired)}):** {', '.join(sorted(acquired))}\n",
+            "_Note: acquired customers are registered but do not yet settle energy in Phase 8a. "
+            "Settlement revenue deferred to Phase 8b._\n",
+        ]
+
+    # Fixed cost summary
+    if total_fixed:
+        lines += [
+            "**Operating overhead**\n",
+            "| Year | Fixed Cost |",
+            "|------|-----------|",
+        ]
+        for year in years:
+            yd = data["years"][year]
+            fc = yd.get("fixed_cost_gbp", 0.0)
+            if fc:
+                lines.append(f"| {year} | ({_fmt_gbp(fc)}) |")
+        net_gbp = data.get("total_net_gbp", 0.0)
+        lines += [
+            "",
+            f"**Total fixed cost:** {_fmt_gbp(total_fixed)} over simulation window",
+        ]
+        if net_gbp:
+            operating_margin = net_gbp - total_spend - total_fixed
+            lines.append(
+                f"**Operating net margin** (energy margin less acquisition spend & fixed costs): "
+                f"{_fmt_gbp(operating_margin)}"
+            )
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -1153,6 +1265,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
     sections.append(_ledger_summary_section(data))
+    sections.append(_growth_acquisition_section(data))
 
     for year in sorted(data["years"]):
         yd = data["years"][year]

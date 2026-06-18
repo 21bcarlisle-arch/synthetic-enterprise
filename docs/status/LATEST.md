@@ -8,7 +8,19 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-18T05:02:10Z
+Last updated: 2026-06-18T05:26:44Z
+
+**Phase 8a: Growth Mandate & Acquisition Model (2026-06-18)**: Full run in progress (tmux: phase8a-run, ~15 min). 406 tests passing.
+
+New this phase:
+- `saas/growth_mandate.py`: mandate config (flat/grow/shrink), `COST_PER_ACQUISITION` (resi £150 / SME £400), `FIXED_COST_MONTHLY` £50/month, `roll_acquisition()` deterministic seeded roll
+- `saas/ledger.py`: `acquisition_spend_event` + `fixed_cost_event` types; `derive_pnl()` now includes `acquisition_spend_gbp`, `fixed_cost_gbp`, `operating_net_margin_gbp`; `build_ledger()` accepts `extra_events`
+- `saas/customers.py`: `ACQUIRED_CUSTOMERS` runtime accumulator, `make_acquired_customer()`, `_clear_acquired_customers()`
+- `simulation/run_phase2b.py`: acquisition attempt fires on every churn where home-move lost (MANDATE != "shrink"); fixed cost event emitted once per calendar month (dedup'd across customers)
+- `saas/reporting/annual_report.py`: "Growth & Acquisition" section with per-year attempt/win/spend table and fixed cost summary
+- Fast-mode validation (2016-2022): 3 acquisition attempts (C3/C1/C5 post-churn), 0 wins (base rates 20%/12%), £700 acquisition spend, £4,200 fixed costs (84 months)
+
+Next: full run results, then Company Layer Foundation.
 
 **NTFY relay fixed (2026-06-17)**: `ntfy_responder.py` now writes substantive inbound messages
 (>25 chars) to `docs/staging/from_rich_TIMESTAMP.md`. Claude Code picks these up on its next

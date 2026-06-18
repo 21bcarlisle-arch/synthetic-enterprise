@@ -296,6 +296,43 @@ SUCCESSOR_CUSTOMERS: list[dict] = [
 ]
 
 
+# Phase 8a: runtime accumulator for dynamically acquired customers.
+# Populated by run_phase2b.main() when a fresh market acquisition wins.
+# Never pre-defined — entries are appended at runtime, not at import time.
+# Use _clear_acquired_customers() between test runs to avoid cross-test state.
+ACQUIRED_CUSTOMERS: list[dict] = []
+
+
+def _clear_acquired_customers() -> None:
+    """Clear the runtime acquisition accumulator. Use in test teardown."""
+    ACQUIRED_CUSTOMERS.clear()
+
+
+def make_acquired_customer(
+    customer_id: str,
+    predecessor: dict,
+    acquisition_date: str,
+) -> dict:
+    """Build a fresh-market acquisition customer record cloned from a predecessor's
+    property profile. Electricity only (no gas leg in Phase 8a).
+    """
+    return {
+        "customer_id": customer_id,
+        "successor_of": predecessor["customer_id"],
+        "acquisition_type": "fresh_market",
+        "acquisition_date": acquisition_date,
+        "location": predecessor["location"],
+        "home_type": predecessor["home_type"],
+        "bedrooms": predecessor.get("bedrooms"),
+        "epc_rating": predecessor["epc_rating"],
+        "eac_kwh": predecessor.get("eac_kwh", 3200),
+        "commodity": "electricity",
+        "contract_type": predecessor.get("contract_type", "fixed_1yr"),
+        "segment": predecessor["segment"],
+        **({"profile_class": predecessor["profile_class"]} if "profile_class" in predecessor else {}),
+    }
+
+
 def get_customer(customer_id: str) -> dict | None:
     """
     Retrieve a customer record by customer ID.
@@ -303,7 +340,7 @@ def get_customer(customer_id: str) -> dict | None:
     :param customer_id: The unique identifier for the customer.
     :return: The customer dictionary if found, otherwise None.
     """
-    all_customers = CUSTOMERS + SUCCESSOR_CUSTOMERS
+    all_customers = CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
     return next((customer for customer in all_customers if customer["customer_id"] == customer_id), None)
 
 
