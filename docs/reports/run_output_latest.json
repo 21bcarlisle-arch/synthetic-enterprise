@@ -1,12 +1,12 @@
 {
   "starting_treasury_gbp": 29846.1890926376,
-  "final_treasury_gbp": 32873.47052785877,
-  "total_revenue_gbp": 93868.3824224368,
-  "total_gross_gbp": 4173.9747443796605,
-  "total_capital_gbp": 1146.693309166886,
-  "total_net_gbp": 3027.2814352127743,
+  "final_treasury_gbp": 33406.59993802562,
+  "total_revenue_gbp": 100875.27581734383,
+  "total_gross_gbp": 4788.0407890872475,
+  "total_capital_gbp": 1227.629943705635,
+  "total_net_gbp": 3560.4108453816125,
   "administration_event": null,
-  "committee_wake_ups_total": 148,
+  "committee_wake_ups_total": 160,
   "years": {
     "2016": {
       "revenue_gbp": 4826.616006761186,
@@ -2215,7 +2215,8 @@
         "C8": 0.35,
         "C3": 0.05,
         "C9": 0.29,
-        "C4": 0.05
+        "C4": 0.05,
+        "C2_2": 0.05
       }
     },
     "2018": {
@@ -2721,7 +2722,8 @@
         "C8": 0.35,
         "C3": 0.22999999999999998,
         "C9": 0.37999999999999995,
-        "C4": 0.14
+        "C4": 0.14,
+        "C2_2": 0.05
       }
     },
     "2019": {
@@ -3222,7 +3224,8 @@
         "C8": 0.32,
         "C3": 0.14,
         "C9": 0.32,
-        "C4": 0.16999999999999998
+        "C4": 0.16999999999999998,
+        "C2_2": 0.05
       }
     },
     "2020": {
@@ -3685,7 +3688,8 @@
         "C8": 0.37999999999999995,
         "C3": 0.14,
         "C9": 0.41,
-        "C4": 0.2
+        "C4": 0.2,
+        "C2_2": 0.05
       }
     },
     "2021": {
@@ -4161,20 +4165,21 @@
         "C6": 0.37999999999999995,
         "C8": 0.41,
         "C9": 0.35,
-        "C4": 0.05
+        "C4": 0.05,
+        "C2_2": 0.05
       }
     },
     "2022": {
-      "revenue_gbp": 18097.97662733651,
-      "gross_gbp": 319.41787607079823,
-      "capital_gbp": 81.74026117312042,
-      "net_gbp": 237.6776148976778,
-      "treasury_end_gbp": 31795.89331079603,
+      "revenue_gbp": 20304.762667141742,
+      "gross_gbp": 471.23875888590743,
+      "capital_gbp": 110.04993972925348,
+      "net_gbp": 361.18881915665395,
+      "treasury_end_gbp": 31842.220463204932,
       "commodity_split": {
         "electricity": {
-          "gross_gbp": 293.00380707079825,
-          "capital_gbp": 77.08727467312042,
-          "net_gbp": 215.91653239767783
+          "gross_gbp": 444.8246898859074,
+          "capital_gbp": 105.39695322925348,
+          "net_gbp": 339.4277366566539
         },
         "gas": {
           "gross_gbp": 26.414068999999998,
@@ -4184,9 +4189,9 @@
       },
       "segment_split": {
         "resi electricity": {
-          "gross_gbp": 227.49127280951697,
-          "capital_gbp": 60.856057813332626,
-          "net_gbp": 166.63521499618125
+          "gross_gbp": 379.3121556246158,
+          "capital_gbp": 89.16573636941561,
+          "net_gbp": 290.1464192551767
         },
         "resi gas": {
           "gross_gbp": 26.41406900000005,
@@ -4207,6 +4212,14 @@
           "net_gbp": -18.955100353789135,
           "tariff_min_gbp_per_mwh": 120.86758069682854,
           "tariff_max_gbp_per_mwh": 120.86758069682854
+        },
+        "C2_2": {
+          "commodity": "electricity",
+          "gross_gbp": 151.82088281510917,
+          "capital_gbp": 28.30967855613306,
+          "net_gbp": 123.5112042589761,
+          "tariff_min_gbp_per_mwh": 353.40355079587874,
+          "tariff_max_gbp_per_mwh": 353.40355079587874
         },
         "C2g": {
           "commodity": "gas",
@@ -4267,6 +4280,7 @@
       },
       "active_customer_ids": [
         "C2",
+        "C2_2",
         "C2g",
         "C4",
         "C4g",
@@ -4275,7 +4289,9 @@
         "C8",
         "C9"
       ],
-      "acquisitions": [],
+      "acquisitions": [
+        "C2_2"
+      ],
       "committee_wake_ups": [
         {
           "settlement_date": "2022-01-28",
@@ -4540,6 +4556,123 @@
           },
           "portfolio_var_current_gbp": 2061.728891235393,
           "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2022-04-12",
+          "treasury_gbp": 31726.432722188787,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2022-05-12",
+          "treasury_gbp": 31747.749216170087,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2022-06-11",
+          "treasury_gbp": 31763.526198013264,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2022-07-11",
+          "treasury_gbp": 31769.753756211197,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2022-08-10",
+          "treasury_gbp": 31772.182627635277,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2022-09-09",
+          "treasury_gbp": 31770.175770020192,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2022-10-09",
+          "treasury_gbp": 31780.34026494128,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2022-11-08",
+          "treasury_gbp": 31804.619170745384,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2022-12-08",
+          "treasury_gbp": 31829.9575366218,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
         }
       ],
       "hedge_fractions": {
@@ -4566,6 +4699,10 @@
         "C4g": {
           "start_hf": 1.0,
           "avg_hf": 1.0
+        },
+        "C2_2": {
+          "start_hf": 0.85,
+          "avg_hf": 0.85
         }
       },
       "worst_period": {
@@ -4574,9 +4711,9 @@
         "customer_id": "C6",
         "net_margin_gbp": -0.8208325279449343
       },
-      "bills_count": 78,
-      "avg_clarity": 0.8195411486760357,
-      "avg_bill_shock_pct": 0.27275283164811653,
+      "bills_count": 88,
+      "avg_clarity": 0.8014784279070725,
+      "avg_bill_shock_pct": 0.4778085257212942,
       "bill_shock_events": [
         {
           "customer_id": "C7",
@@ -4732,17 +4869,62 @@
           "customer_id": "C4g",
           "period_end": "2022-10-31",
           "bill_shock_pct": 2.0229933644530718
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2022-04-30",
+          "bill_shock_pct": 16.977068722024086
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2022-05-31",
+          "bill_shock_pct": 0.40140762213441267
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2022-06-30",
+          "bill_shock_pct": 0.34297037343210207
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2022-07-31",
+          "bill_shock_pct": 0.2122878374274908
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2022-09-30",
+          "bill_shock_pct": 0.8413910247512171
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2022-10-31",
+          "bill_shock_pct": 0.20314285784813457
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2022-11-30",
+          "bill_shock_pct": 0.6764121755258473
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2022-12-31",
+          "bill_shock_pct": 0.5854936420712529
         }
       ],
-      "bad_debt_gbp": 329.8287056923932,
-      "avg_complaint_probability": 0.054239630694716205,
+      "bad_debt_gbp": 373.9644264884979,
+      "avg_complaint_probability": 0.0585220830471923,
       "treasury_drawdown_events": [],
-      "var_ratio": 2.5702047913515025,
+      "var_ratio": 2.580764886860395,
       "hedge_effectiveness": {
-        "actual_net_gbp": 462.4888140062362,
-        "naked_net_gbp": 7572.531274539782,
-        "hedging_value_add_gbp": -7110.042460533547,
+        "actual_net_gbp": 712.9149653707948,
+        "naked_net_gbp": 8880.542820808385,
+        "hedging_value_add_gbp": -8167.62785543759,
         "by_customer": {
+          "C2_2": {
+            "actual_net_gbp": 250.42615136455854,
+            "naked_net_gbp": 1308.0115462686022,
+            "hedging_value_add_gbp": -1057.5853949040436
+          },
           "C4": {
             "actual_net_gbp": 49.85386434916274,
             "naked_net_gbp": 1800.0796711816492,
@@ -4781,20 +4963,21 @@
         "C6": 0.35,
         "C8": 0.37999999999999995,
         "C9": 0.37999999999999995,
-        "C4": 0.22999999999999998
+        "C4": 0.22999999999999998,
+        "C2_2": 0.05
       }
     },
     "2023": {
-      "revenue_gbp": 19644.419180674082,
-      "gross_gbp": 594.3824276544862,
-      "capital_gbp": 61.51645222015041,
-      "net_gbp": 532.8659754343357,
-      "treasury_end_gbp": 32294.106994804326,
+      "revenue_gbp": 22295.24903104277,
+      "gross_gbp": 879.6066812591957,
+      "capital_gbp": 91.13132278709763,
+      "net_gbp": 788.475358472098,
+      "treasury_end_gbp": 32560.318660248187,
       "commodity_split": {
         "electricity": {
-          "gross_gbp": 505.9027316544861,
-          "capital_gbp": 55.70792408015041,
-          "net_gbp": 450.1948075743357
+          "gross_gbp": 791.1269852591957,
+          "capital_gbp": 85.32279464709762,
+          "net_gbp": 705.8041906120981
         },
         "gas": {
           "gross_gbp": 88.479696,
@@ -4803,15 +4986,15 @@
         }
       },
       "segment_split": {
+        "resi electricity": {
+          "gross_gbp": 639.4795301325566,
+          "capital_gbp": 85.32279464709778,
+          "net_gbp": 554.1567354854592
+        },
         "SME electricity": {
           "gross_gbp": 151.6474551266512,
           "capital_gbp": 0.0,
           "net_gbp": 151.6474551266512
-        },
-        "resi electricity": {
-          "gross_gbp": 354.2552765278467,
-          "capital_gbp": 55.7079240801341,
-          "net_gbp": 298.5473524476948
         },
         "resi gas": {
           "gross_gbp": 88.47969599999996,
@@ -4820,6 +5003,14 @@
         }
       },
       "per_customer": {
+        "C2_2": {
+          "commodity": "electricity",
+          "gross_gbp": 285.2242536047096,
+          "capital_gbp": 29.614870566947207,
+          "net_gbp": 255.60938303776237,
+          "tariff_min_gbp_per_mwh": 204.90050708303954,
+          "tariff_max_gbp_per_mwh": 353.40355079587874
+        },
         "C4": {
           "commodity": "electricity",
           "gross_gbp": 53.21156605165215,
@@ -4870,6 +5061,7 @@
         }
       },
       "active_customer_ids": [
+        "C2_2",
         "C4",
         "C4g",
         "C6",
@@ -4878,7 +5070,47 @@
         "C9"
       ],
       "acquisitions": [],
-      "committee_wake_ups": [],
+      "committee_wake_ups": [
+        {
+          "settlement_date": "2023-01-07",
+          "treasury_gbp": 31850.96468415831,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2023-02-06",
+          "treasury_gbp": 31897.440531963664,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        },
+        {
+          "settlement_date": "2023-03-08",
+          "treasury_gbp": 31938.968237945897,
+          "adjustments": {
+            "C2": 0.95,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0
+          },
+          "portfolio_var_current_gbp": 2061.728891235393,
+          "portfolio_var_stressed_gbp": 791.3275688099552
+        }
+      ],
       "hedge_fractions": {
         "C4": {
           "start_hf": 0.9,
@@ -4903,6 +5135,10 @@
         "C4g": {
           "start_hf": 0.9,
           "avg_hf": 0.9
+        },
+        "C2_2": {
+          "start_hf": 0.85,
+          "avg_hf": 0.85
         }
       },
       "worst_period": {
@@ -4911,9 +5147,9 @@
         "customer_id": "C4g",
         "net_margin_gbp": -1.25011
       },
-      "bills_count": 72,
-      "avg_clarity": 0.8241560356452778,
-      "avg_bill_shock_pct": 0.19761956962961538,
+      "bills_count": 84,
+      "avg_clarity": 0.807809911274033,
+      "avg_bill_shock_pct": 0.2125737630917984,
       "bill_shock_events": [
         {
           "customer_id": "C7",
@@ -5034,17 +5270,47 @@
           "customer_id": "C4g",
           "period_end": "2023-10-31",
           "bill_shock_pct": 0.8094736962980451
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2023-04-30",
+          "bill_shock_pct": 0.543218772712595
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2023-05-31",
+          "bill_shock_pct": 0.42615594972277276
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2023-06-30",
+          "bill_shock_pct": 0.4381242389995125
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2023-10-31",
+          "bill_shock_pct": 1.0207148097393521
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2023-11-30",
+          "bill_shock_pct": 0.687822170465638
         }
       ],
-      "bad_debt_gbp": 357.5035830659394,
-      "avg_complaint_probability": 0.05036723881364214,
+      "bad_debt_gbp": 410.5201800733132,
+      "avg_complaint_probability": 0.053435004531193486,
       "treasury_drawdown_events": [],
-      "var_ratio": null,
+      "var_ratio": 2.6054051097144786,
       "hedge_effectiveness": {
-        "actual_net_gbp": 619.6289902458252,
-        "naked_net_gbp": 1085.9500556437274,
-        "hedging_value_add_gbp": -466.3210653979022,
+        "actual_net_gbp": 847.0381196600287,
+        "naked_net_gbp": 2077.561205514615,
+        "hedging_value_add_gbp": -1230.5230858545863,
         "by_customer": {
+          "C2_2": {
+            "actual_net_gbp": 227.40912941420348,
+            "naked_net_gbp": 991.6111498708876,
+            "hedging_value_add_gbp": -764.2020204566842
+          },
           "C4": {
             "actual_net_gbp": 54.47989989573965,
             "naked_net_gbp": 161.45710334427721,
@@ -5082,20 +5348,21 @@
         "C6": 0.26,
         "C8": 0.35,
         "C9": 0.41,
-        "C4": 0.16999999999999998
+        "C4": 0.16999999999999998,
+        "C2_2": 0.35
       }
     },
     "2024": {
-      "revenue_gbp": 7000.157714360498,
-      "gross_gbp": 525.0254578230407,
-      "capital_gbp": 134.62387832979786,
-      "net_gbp": 390.4015794932428,
-      "treasury_end_gbp": 32815.001947755714,
+      "revenue_gbp": 8429.012169165875,
+      "gross_gbp": 674.4826507949074,
+      "capital_gbp": 151.4334034880116,
+      "net_gbp": 523.0492473068958,
+      "treasury_end_gbp": 33312.59531830571,
       "commodity_split": {
         "electricity": {
-          "gross_gbp": 463.99726982304065,
-          "capital_gbp": 121.55468981979787,
-          "net_gbp": 342.44258000324277
+          "gross_gbp": 613.4544627949074,
+          "capital_gbp": 138.3642149780116,
+          "net_gbp": 475.09024781689584
         },
         "gas": {
           "gross_gbp": 61.028188,
@@ -5104,15 +5371,15 @@
         }
       },
       "segment_split": {
+        "resi electricity": {
+          "gross_gbp": 556.8973714875079,
+          "capital_gbp": 138.36421497801825,
+          "net_gbp": 418.5331565094916
+        },
         "SME electricity": {
           "gross_gbp": 56.55709130740458,
           "capital_gbp": 0.0,
           "net_gbp": 56.55709130740458
-        },
-        "resi electricity": {
-          "gross_gbp": 407.4401785156266,
-          "capital_gbp": 121.55468981973273,
-          "net_gbp": 285.8854886958265
         },
         "resi gas": {
           "gross_gbp": 61.02818799999986,
@@ -5121,6 +5388,14 @@
         }
       },
       "per_customer": {
+        "C2_2": {
+          "commodity": "electricity",
+          "gross_gbp": 149.45719297186676,
+          "capital_gbp": 16.80952515821372,
+          "net_gbp": 132.64766781365304,
+          "tariff_min_gbp_per_mwh": 102.6044481530523,
+          "tariff_max_gbp_per_mwh": 204.90050708303954
+        },
         "C4": {
           "commodity": "electricity",
           "gross_gbp": 53.34917901415857,
@@ -5171,6 +5446,7 @@
         }
       },
       "active_customer_ids": [
+        "C2_2",
         "C4",
         "C4g",
         "C6",
@@ -5192,6 +5468,10 @@
         "C9": {
           "start_hf": 0.9,
           "avg_hf": 0.9
+        },
+        "C2_2": {
+          "start_hf": 0.85,
+          "avg_hf": 0.85
         }
       },
       "worst_period": {
@@ -5200,9 +5480,9 @@
         "customer_id": "C8",
         "net_margin_gbp": -0.14260906076444502
       },
-      "bills_count": 57,
-      "avg_clarity": 0.8222481830927791,
-      "avg_bill_shock_pct": 0.1889198715059338,
+      "bills_count": 69,
+      "avg_clarity": 0.8006431608154887,
+      "avg_bill_shock_pct": 0.21184343984056306,
       "bill_shock_events": [
         {
           "customer_id": "C7",
@@ -5303,17 +5583,57 @@
           "customer_id": "C9",
           "period_end": "2024-11-30",
           "bill_shock_pct": 0.48493964423279584
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2024-02-29",
+          "bill_shock_pct": 0.2284406858392867
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2024-04-30",
+          "bill_shock_pct": 0.6039906019312742
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2024-05-31",
+          "bill_shock_pct": 0.5124089867530812
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2024-07-31",
+          "bill_shock_pct": 0.2896137382667123
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2024-09-30",
+          "bill_shock_pct": 0.788701470112147
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2024-10-31",
+          "bill_shock_pct": 0.38181126278833954
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2024-11-30",
+          "bill_shock_pct": 0.6220193315242215
         }
       ],
-      "bad_debt_gbp": 131.1699291056391,
-      "avg_complaint_probability": 0.04944637020628328,
+      "bad_debt_gbp": 159.7470182017466,
+      "avg_complaint_probability": 0.05393219291890873,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
-        "actual_net_gbp": 58.329653879579574,
-        "naked_net_gbp": -708.0790840599203,
-        "hedging_value_add_gbp": 766.4087379394998,
+        "actual_net_gbp": 94.59663904139096,
+        "naked_net_gbp": -796.1578453355762,
+        "hedging_value_add_gbp": 890.7544843769672,
         "by_customer": {
+          "C2_2": {
+            "actual_net_gbp": 36.266985161811384,
+            "naked_net_gbp": -88.07876127565594,
+            "hedging_value_add_gbp": 124.34574643746731
+          },
           "C7": {
             "actual_net_gbp": 24.3803562188334,
             "naked_net_gbp": -78.78567758397327,
@@ -5336,20 +5656,21 @@
         "C6": 0.37999999999999995,
         "C8": 0.41,
         "C9": 0.35,
-        "C4": 0.22999999999999998
+        "C4": 0.22999999999999998,
+        "C2_2": 0.41
       }
     },
     "2025": {
-      "revenue_gbp": 2242.8857364981177,
-      "gross_gbp": 112.16042241319593,
-      "capital_gbp": 64.2675576448494,
-      "net_gbp": 47.89286476834652,
-      "treasury_end_gbp": 32834.77636085739,
+      "revenue_gbp": 2963.3087864258423,
+      "gross_gbp": 139.72413772909772,
+      "capital_gbp": 70.47011790230455,
+      "net_gbp": 69.25401982679315,
+      "treasury_end_gbp": 33348.87862679615,
       "commodity_split": {
         "electricity": {
-          "gross_gbp": 112.16042241319593,
-          "capital_gbp": 64.2675576448494,
-          "net_gbp": 47.89286476834652
+          "gross_gbp": 139.72413772909772,
+          "capital_gbp": 70.47011790230455,
+          "net_gbp": 69.25401982679315
         },
         "gas": {
           "gross_gbp": 0,
@@ -5359,12 +5680,20 @@
       },
       "segment_split": {
         "resi electricity": {
-          "gross_gbp": 112.16042241319633,
-          "capital_gbp": 64.267557644856,
-          "net_gbp": 47.89286476834661
+          "gross_gbp": 139.7241377290985,
+          "capital_gbp": 70.47011790231394,
+          "net_gbp": 69.25401982679304
         }
       },
       "per_customer": {
+        "C2_2": {
+          "commodity": "electricity",
+          "gross_gbp": 27.56371531590179,
+          "capital_gbp": 6.202560257455156,
+          "net_gbp": 21.361155058446634,
+          "tariff_min_gbp_per_mwh": 102.6044481530523,
+          "tariff_max_gbp_per_mwh": 222.50981494589442
+        },
         "C7": {
           "commodity": "electricity",
           "gross_gbp": 56.19081782663003,
@@ -5391,6 +5720,7 @@
         }
       },
       "active_customer_ids": [
+        "C2_2",
         "C7",
         "C8",
         "C9"
@@ -5401,6 +5731,10 @@
         "C8": {
           "start_hf": 0.95,
           "avg_hf": 0.95
+        },
+        "C2_2": {
+          "start_hf": 0.95,
+          "avg_hf": 0.95
         }
       },
       "worst_period": {
@@ -5409,9 +5743,9 @@
         "customer_id": "C8",
         "net_margin_gbp": -1.6634671514144443
       },
-      "bills_count": 18,
-      "avg_clarity": 0.7310292224136625,
-      "avg_bill_shock_pct": 0.31760968076315965,
+      "bills_count": 24,
+      "avg_clarity": 0.725817303423546,
+      "avg_bill_shock_pct": 0.3232105523414725,
       "bill_shock_events": [
         {
           "customer_id": "C7",
@@ -5477,17 +5811,47 @@
           "customer_id": "C9",
           "period_end": "2025-06-07",
           "bill_shock_pct": 0.7149670157712671
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2025-01-31",
+          "bill_shock_pct": 0.3950900745395158
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2025-02-28",
+          "bill_shock_pct": 0.2415370941692742
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2025-04-30",
+          "bill_shock_pct": 0.2525920031673211
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2025-05-31",
+          "bill_shock_pct": 0.38514054826012756
+        },
+        {
+          "customer_id": "C2_2",
+          "period_end": "2025-06-07",
+          "bill_shock_pct": 0.7252690913210968
         }
       ],
-      "bad_debt_gbp": 44.85771472996235,
-      "avg_complaint_probability": 0.07237401841437026,
+      "bad_debt_gbp": 59.26617572851685,
+      "avg_complaint_probability": 0.07346502128591811,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
-        "actual_net_gbp": 14.313810782511826,
-        "naked_net_gbp": 5.72450940646786,
-        "hedging_value_add_gbp": 8.589301376043966,
+        "actual_net_gbp": 33.34095501077658,
+        "naked_net_gbp": 134.93694824202146,
+        "hedging_value_add_gbp": -101.59599323124488,
         "by_customer": {
+          "C2_2": {
+            "actual_net_gbp": 19.027144228264756,
+            "naked_net_gbp": 129.2124388355536,
+            "hedging_value_add_gbp": -110.18529460728884
+          },
           "C8": {
             "actual_net_gbp": 14.313810782511826,
             "naked_net_gbp": 5.72450940646786,
@@ -5497,7 +5861,8 @@
       },
       "churn_risk_by_account": {
         "C8": 0.37999999999999995,
-        "C9": 0.37999999999999995
+        "C9": 0.37999999999999995,
+        "C2_2": 0.37999999999999995
       }
     }
   },
@@ -5696,94 +6061,109 @@
         "flag": "OK",
         "recommended_uplift_pct": null
       }
+    },
+    "C2_2": {
+      "commodity": "electricity",
+      "segment": "resi",
+      "acquisition_date": "2016-04-01",
+      "revenue_gbp": 7006.893394907026,
+      "gross_gbp": 614.0660447075873,
+      "capital_gbp": 80.93663453874915,
+      "net_gbp": 533.1294101688381,
+      "cost_to_serve_gbp": 315.6355847931127,
+      "net_margin_after_cost_to_serve_gbp": 298.43045991447383,
+      "pricing_action": {
+        "flag": "OK",
+        "recommended_uplift_pct": null
+      }
     }
   },
-  "bills_total": 1077,
-  "avg_clarity_total": 0.8677382865183052,
-  "service_quality_score": 0.9164551359444331,
-  "avg_complaint_probability_total": 0.041772432027783496,
-  "cost_to_serve_portfolio_gbp": 6144.599590007491,
-  "net_margin_after_cost_to_serve_gbp": -1970.6248456257747,
-  "enterprise_value_gbp": -1673.729519544502,
-  "enterprise_value_account_count": 9,
+  "bills_total": 1117,
+  "avg_clarity_total": 0.861516692532287,
+  "service_quality_score": 0.9138163527610101,
+  "avg_complaint_probability_total": 0.04309182361949492,
+  "cost_to_serve_portfolio_gbp": 6460.235174802013,
+  "net_margin_after_cost_to_serve_gbp": -1672.1943857108865,
+  "enterprise_value_gbp": -1635.315283244441,
+  "enterprise_value_account_count": 10,
   "by_billing_account": {
     "C1": {
       "latest_churn_probability": 0.16999999999999998,
       "latest_renewal_period": "2021-12",
       "home_move_win_probability": 0.55,
-      "clv_gbp": -209.38358269589114,
-      "expected_lifetime_periods": 9.61
+      "clv_gbp": -216.129532121672,
+      "expected_lifetime_periods": 10.122
     },
     "C2": {
       "latest_churn_probability": 0.2,
       "latest_renewal_period": "2022-03",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 35.00981322094954,
-      "expected_lifetime_periods": 10.46
+      "clv_gbp": 35.90105581798285,
+      "expected_lifetime_periods": 10.918
     },
     "C3": {
       "latest_churn_probability": 0.14,
       "latest_renewal_period": "2020-06",
       "home_move_win_probability": 0.55,
-      "clv_gbp": -101.92808523532103,
-      "expected_lifetime_periods": 9.59
+      "clv_gbp": -110.52743735516137,
+      "expected_lifetime_periods": 10.99
     },
     "C4": {
       "latest_churn_probability": 0.22999999999999998,
       "latest_renewal_period": "2024-09",
       "home_move_win_probability": 0.55,
-      "clv_gbp": -78.05139539314621,
-      "expected_lifetime_periods": 9.35
+      "clv_gbp": -85.56590263384899,
+      "expected_lifetime_periods": 10.904
     },
     "C5": {
       "latest_churn_probability": 0.35,
       "latest_renewal_period": "2021-12",
       "home_move_win_probability": 0.35,
-      "clv_gbp": -496.82036330773144,
-      "expected_lifetime_periods": 9.588
+      "clv_gbp": -617.4025468987949,
+      "expected_lifetime_periods": 14.3
     },
     "C6": {
       "latest_churn_probability": 0.37999999999999995,
       "latest_renewal_period": "2024-03",
       "home_move_win_probability": 0.35,
-      "clv_gbp": -381.87427788522575,
-      "expected_lifetime_periods": 10.464
+      "clv_gbp": -407.2159331159592,
+      "expected_lifetime_periods": 11.724
     },
     "C7": {
       "latest_churn_probability": 0.37999999999999995,
       "latest_renewal_period": "2024-12",
       "home_move_win_probability": 0.55,
-      "clv_gbp": -150.7199610808279,
-      "expected_lifetime_periods": 10.302
+      "clv_gbp": -153.66114064116186,
+      "expected_lifetime_periods": 10.65
     },
     "C8": {
       "latest_churn_probability": 0.37999999999999995,
       "latest_renewal_period": "2025-03",
       "home_move_win_probability": 0.55,
-      "clv_gbp": -53.68014628038929,
-      "expected_lifetime_periods": 9.126
+      "clv_gbp": -62.72034338405045,
+      "expected_lifetime_periods": 11.912
     },
     "C9": {
       "latest_churn_probability": 0.37999999999999995,
       "latest_renewal_period": "2025-06",
       "home_move_win_probability": 0.55,
-      "clv_gbp": -236.28152088691868,
-      "expected_lifetime_periods": 10.434
+      "clv_gbp": -244.65827842860395,
+      "expected_lifetime_periods": 11.078
     }
   },
   "highest_clv": {
     "customer_id": "C2",
-    "clv_gbp": 35.00981322094954
+    "clv_gbp": 35.90105581798285
   },
   "lowest_clv": {
     "customer_id": "C5",
-    "clv_gbp": -496.82036330773144
+    "clv_gbp": -617.4025468987949
   },
-  "avg_clv_gbp": -185.96994661605578,
+  "avg_clv_gbp": -206.88667319569666,
   "hedge_effectiveness_total": {
-    "actual_net_gbp": 3027.2814352127743,
-    "naked_net_gbp": 2875.933997254287,
-    "hedging_value_add_gbp": 151.34743795848735,
+    "actual_net_gbp": 3560.4108453816125,
+    "naked_net_gbp": 5216.690370953675,
+    "hedging_value_add_gbp": -1656.2795255720619,
     "best_decision": {
       "customer_id": "C6",
       "term_start": "2021-03-31",
@@ -5806,7 +6186,8 @@
       "churn_probability": 0.08,
       "win_probability": 0.55,
       "effective_retention_probability": 0.964,
-      "random_roll": 0.1646
+      "random_roll": 0.1646,
+      "home_move_won": false
     },
     {
       "customer_id": "C5",
@@ -5816,7 +6197,8 @@
       "churn_probability": 0.29,
       "win_probability": 0.35,
       "effective_retention_probability": 0.8115,
-      "random_roll": 0.2812
+      "random_roll": 0.2812,
+      "home_move_won": false
     },
     {
       "customer_id": "C7",
@@ -5826,7 +6208,8 @@
       "churn_probability": 0.29,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8695,
-      "random_roll": 0.105
+      "random_roll": 0.105,
+      "home_move_won": false
     },
     {
       "customer_id": "C1",
@@ -5836,7 +6219,8 @@
       "churn_probability": 0.2,
       "win_probability": 0.55,
       "effective_retention_probability": 0.91,
-      "random_roll": 0.6188
+      "random_roll": 0.6188,
+      "home_move_won": false
     },
     {
       "customer_id": "C5",
@@ -5846,7 +6230,8 @@
       "churn_probability": 0.32,
       "win_probability": 0.35,
       "effective_retention_probability": 0.792,
-      "random_roll": 0.4449
+      "random_roll": 0.4449,
+      "home_move_won": false
     },
     {
       "customer_id": "C7",
@@ -5856,7 +6241,8 @@
       "churn_probability": 0.35,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8425,
-      "random_roll": 0.8255
+      "random_roll": 0.8255,
+      "home_move_won": false
     },
     {
       "customer_id": "C1",
@@ -5866,7 +6252,8 @@
       "churn_probability": 0.08,
       "win_probability": 0.55,
       "effective_retention_probability": 0.964,
-      "random_roll": 0.048
+      "random_roll": 0.048,
+      "home_move_won": false
     },
     {
       "customer_id": "C5",
@@ -5876,7 +6263,8 @@
       "churn_probability": 0.32,
       "win_probability": 0.35,
       "effective_retention_probability": 0.792,
-      "random_roll": 0.3096
+      "random_roll": 0.3096,
+      "home_move_won": false
     },
     {
       "customer_id": "C7",
@@ -5886,7 +6274,8 @@
       "churn_probability": 0.38,
       "win_probability": 0.55,
       "effective_retention_probability": 0.829,
-      "random_roll": 0.6312
+      "random_roll": 0.6312,
+      "home_move_won": false
     },
     {
       "customer_id": "C1",
@@ -5896,7 +6285,8 @@
       "churn_probability": 0.11,
       "win_probability": 0.55,
       "effective_retention_probability": 0.9505,
-      "random_roll": 0.2972
+      "random_roll": 0.2972,
+      "home_move_won": false
     },
     {
       "customer_id": "C5",
@@ -5906,7 +6296,8 @@
       "churn_probability": 0.35,
       "win_probability": 0.35,
       "effective_retention_probability": 0.7725,
-      "random_roll": 0.4302
+      "random_roll": 0.4302,
+      "home_move_won": false
     },
     {
       "customer_id": "C7",
@@ -5916,7 +6307,8 @@
       "churn_probability": 0.35,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8425,
-      "random_roll": 0.767
+      "random_roll": 0.767,
+      "home_move_won": false
     },
     {
       "customer_id": "C2",
@@ -5926,7 +6318,8 @@
       "churn_probability": 0.17,
       "win_probability": 0.55,
       "effective_retention_probability": 0.9235,
-      "random_roll": 0.8936
+      "random_roll": 0.8936,
+      "home_move_won": false
     },
     {
       "customer_id": "C6",
@@ -5936,7 +6329,8 @@
       "churn_probability": 0.38,
       "win_probability": 0.35,
       "effective_retention_probability": 0.753,
-      "random_roll": 0.4643
+      "random_roll": 0.4643,
+      "home_move_won": false
     },
     {
       "customer_id": "C8",
@@ -5946,7 +6340,8 @@
       "churn_probability": 0.38,
       "win_probability": 0.55,
       "effective_retention_probability": 0.829,
-      "random_roll": 0.1066
+      "random_roll": 0.1066,
+      "home_move_won": false
     },
     {
       "customer_id": "C3",
@@ -5956,7 +6351,8 @@
       "churn_probability": 0.14,
       "win_probability": 0.55,
       "effective_retention_probability": 0.937,
-      "random_roll": 0.9704
+      "random_roll": 0.9704,
+      "home_move_won": false
     },
     {
       "customer_id": "C9",
@@ -5966,7 +6362,8 @@
       "churn_probability": 0.41,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8155,
-      "random_roll": 0.5378
+      "random_roll": 0.5378,
+      "home_move_won": false
     },
     {
       "customer_id": "C4",
@@ -5976,7 +6373,8 @@
       "churn_probability": 0.2,
       "win_probability": 0.55,
       "effective_retention_probability": 0.91,
-      "random_roll": 0.2845
+      "random_roll": 0.2845,
+      "home_move_won": false
     },
     {
       "customer_id": "C1",
@@ -5986,7 +6384,8 @@
       "churn_probability": 0.23,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8965,
-      "random_roll": 0.8047
+      "random_roll": 0.8047,
+      "home_move_won": false
     },
     {
       "customer_id": "C5",
@@ -5996,7 +6395,8 @@
       "churn_probability": 0.32,
       "win_probability": 0.35,
       "effective_retention_probability": 0.792,
-      "random_roll": 0.748
+      "random_roll": 0.748,
+      "home_move_won": false
     },
     {
       "customer_id": "C7",
@@ -6006,7 +6406,8 @@
       "churn_probability": 0.35,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8425,
-      "random_roll": 0.4829
+      "random_roll": 0.4829,
+      "home_move_won": false
     },
     {
       "customer_id": "C2",
@@ -6016,7 +6417,8 @@
       "churn_probability": 0.2,
       "win_probability": 0.55,
       "effective_retention_probability": 0.91,
-      "random_roll": 0.6102
+      "random_roll": 0.6102,
+      "home_move_won": false
     },
     {
       "customer_id": "C6",
@@ -6026,7 +6428,8 @@
       "churn_probability": 0.38,
       "win_probability": 0.35,
       "effective_retention_probability": 0.753,
-      "random_roll": 0.5431
+      "random_roll": 0.5431,
+      "home_move_won": false
     },
     {
       "customer_id": "C8",
@@ -6036,7 +6439,8 @@
       "churn_probability": 0.41,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8155,
-      "random_roll": 0.4901
+      "random_roll": 0.4901,
+      "home_move_won": false
     },
     {
       "customer_id": "C9",
@@ -6046,7 +6450,8 @@
       "churn_probability": 0.35,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8425,
-      "random_roll": 0.5305
+      "random_roll": 0.5305,
+      "home_move_won": false
     },
     {
       "customer_id": "C4",
@@ -6056,7 +6461,8 @@
       "churn_probability": 0.05,
       "win_probability": 0.55,
       "effective_retention_probability": 0.9775,
-      "random_roll": 0.4564
+      "random_roll": 0.4564,
+      "home_move_won": false
     },
     {
       "customer_id": "C1",
@@ -6066,7 +6472,8 @@
       "churn_probability": 0.17,
       "win_probability": 0.55,
       "effective_retention_probability": 0.9235,
-      "random_roll": 0.9691
+      "random_roll": 0.9691,
+      "home_move_won": false
     },
     {
       "customer_id": "C5",
@@ -6076,7 +6483,8 @@
       "churn_probability": 0.35,
       "win_probability": 0.35,
       "effective_retention_probability": 0.7725,
-      "random_roll": 0.8247
+      "random_roll": 0.8247,
+      "home_move_won": false
     },
     {
       "customer_id": "C7",
@@ -6086,7 +6494,8 @@
       "churn_probability": 0.38,
       "win_probability": 0.55,
       "effective_retention_probability": 0.829,
-      "random_roll": 0.1963
+      "random_roll": 0.1963,
+      "home_move_won": false
     },
     {
       "customer_id": "C2",
@@ -6096,7 +6505,8 @@
       "churn_probability": 0.2,
       "win_probability": 0.55,
       "effective_retention_probability": 0.91,
-      "random_roll": 0.9547
+      "random_roll": 0.9547,
+      "home_move_won": true
     },
     {
       "customer_id": "C6",
@@ -6106,7 +6516,8 @@
       "churn_probability": 0.35,
       "win_probability": 0.35,
       "effective_retention_probability": 0.7725,
-      "random_roll": 0.1058
+      "random_roll": 0.1058,
+      "home_move_won": false
     },
     {
       "customer_id": "C8",
@@ -6116,7 +6527,8 @@
       "churn_probability": 0.38,
       "win_probability": 0.55,
       "effective_retention_probability": 0.829,
-      "random_roll": 0.5712
+      "random_roll": 0.5712,
+      "home_move_won": false
     },
     {
       "customer_id": "C9",
@@ -6126,7 +6538,8 @@
       "churn_probability": 0.38,
       "win_probability": 0.55,
       "effective_retention_probability": 0.829,
-      "random_roll": 0.5875
+      "random_roll": 0.5875,
+      "home_move_won": false
     },
     {
       "customer_id": "C4",
@@ -6136,7 +6549,8 @@
       "churn_probability": 0.23,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8965,
-      "random_roll": 0.8552
+      "random_roll": 0.8552,
+      "home_move_won": false
     },
     {
       "customer_id": "C7",
@@ -6146,7 +6560,19 @@
       "churn_probability": 0.38,
       "win_probability": 0.55,
       "effective_retention_probability": 0.829,
-      "random_roll": 0.0637
+      "random_roll": 0.0637,
+      "home_move_won": false
+    },
+    {
+      "customer_id": "C2_2",
+      "event_date": "2023-03-31",
+      "commodity": "electricity",
+      "event_type": "renewed",
+      "churn_probability": 0.35,
+      "win_probability": 0.55,
+      "effective_retention_probability": 0.8425,
+      "random_roll": 0.0093,
+      "home_move_won": false
     },
     {
       "customer_id": "C6",
@@ -6156,7 +6582,8 @@
       "churn_probability": 0.26,
       "win_probability": 0.35,
       "effective_retention_probability": 0.831,
-      "random_roll": 0.5155
+      "random_roll": 0.5155,
+      "home_move_won": false
     },
     {
       "customer_id": "C8",
@@ -6166,7 +6593,8 @@
       "churn_probability": 0.35,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8425,
-      "random_roll": 0.3785
+      "random_roll": 0.3785,
+      "home_move_won": false
     },
     {
       "customer_id": "C9",
@@ -6176,7 +6604,8 @@
       "churn_probability": 0.41,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8155,
-      "random_roll": 0.0307
+      "random_roll": 0.0307,
+      "home_move_won": false
     },
     {
       "customer_id": "C4",
@@ -6186,7 +6615,8 @@
       "churn_probability": 0.17,
       "win_probability": 0.55,
       "effective_retention_probability": 0.9235,
-      "random_roll": 0.6095
+      "random_roll": 0.6095,
+      "home_move_won": false
     },
     {
       "customer_id": "C7",
@@ -6196,7 +6626,19 @@
       "churn_probability": 0.38,
       "win_probability": 0.55,
       "effective_retention_probability": 0.829,
-      "random_roll": 0.1905
+      "random_roll": 0.1905,
+      "home_move_won": false
+    },
+    {
+      "customer_id": "C2_2",
+      "event_date": "2024-03-30",
+      "commodity": "electricity",
+      "event_type": "renewed",
+      "churn_probability": 0.41,
+      "win_probability": 0.55,
+      "effective_retention_probability": 0.8155,
+      "random_roll": 0.6064,
+      "home_move_won": false
     },
     {
       "customer_id": "C6",
@@ -6206,7 +6648,8 @@
       "churn_probability": 0.38,
       "win_probability": 0.35,
       "effective_retention_probability": 0.753,
-      "random_roll": 0.9632
+      "random_roll": 0.9632,
+      "home_move_won": false
     },
     {
       "customer_id": "C8",
@@ -6216,7 +6659,8 @@
       "churn_probability": 0.41,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8155,
-      "random_roll": 0.0592
+      "random_roll": 0.0592,
+      "home_move_won": false
     },
     {
       "customer_id": "C9",
@@ -6226,7 +6670,8 @@
       "churn_probability": 0.35,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8425,
-      "random_roll": 0.0025
+      "random_roll": 0.0025,
+      "home_move_won": false
     },
     {
       "customer_id": "C4",
@@ -6236,7 +6681,8 @@
       "churn_probability": 0.23,
       "win_probability": 0.55,
       "effective_retention_probability": 0.8965,
-      "random_roll": 0.9018
+      "random_roll": 0.9018,
+      "home_move_won": false
     },
     {
       "customer_id": "C7",
@@ -6246,7 +6692,19 @@
       "churn_probability": 0.38,
       "win_probability": 0.55,
       "effective_retention_probability": 0.829,
-      "random_roll": 0.4099
+      "random_roll": 0.4099,
+      "home_move_won": false
+    },
+    {
+      "customer_id": "C2_2",
+      "event_date": "2025-03-30",
+      "commodity": "electricity",
+      "event_type": "renewed",
+      "churn_probability": 0.38,
+      "win_probability": 0.55,
+      "effective_retention_probability": 0.829,
+      "random_roll": 0.4434,
+      "home_move_won": false
     },
     {
       "customer_id": "C8",
@@ -6256,7 +6714,8 @@
       "churn_probability": 0.38,
       "win_probability": 0.55,
       "effective_retention_probability": 0.829,
-      "random_roll": 0.4808
+      "random_roll": 0.4808,
+      "home_move_won": false
     }
   ],
   "churned_billing_accounts": [
@@ -6267,35 +6726,38 @@
     "C5",
     "C6"
   ],
+  "won_successor_activations": {
+    "C2_2": "2022-03-31"
+  },
   "ledger_meta": {
-    "event_count": 2123881,
+    "event_count": 2235809,
     "by_type": {
-      "billing_event": 1077,
-      "capital_charge_event": 963273,
-      "settlement_event": 1157377,
-      "payment_received_event": 1077,
-      "bad_debt_event": 1077
+      "billing_event": 1117,
+      "capital_charge_event": 1019177,
+      "settlement_event": 1213281,
+      "payment_received_event": 1117,
+      "bad_debt_event": 1117
     },
     "pnl": {
-      "revenue_gbp": 93868.3824224368,
-      "wholesale_cost_gbp": 89694.40795305715,
-      "gross_margin_gbp": 4173.974469379653,
-      "capital_cost_gbp": 1146.693309166886,
-      "net_margin_gbp": 3027.2811602127667,
-      "cash_collected_gbp": 92064.37408208192,
-      "bad_debt_gbp": 1804.0083403548815,
-      "cash_net_margin_gbp": 1223.272819857889
+      "revenue_gbp": 100875.27581734383,
+      "wholesale_cost_gbp": 96087.23530325659,
+      "gross_margin_gbp": 4788.040514087246,
+      "capital_cost_gbp": 1227.629943705635,
+      "net_margin_gbp": 3560.4105703816113,
+      "cash_collected_gbp": 98931.12960909081,
+      "bad_debt_gbp": 1944.146208253022,
+      "cash_net_margin_gbp": 1616.2643621285915
     }
   },
   "ledger_pnl": {
-    "revenue_gbp": 93868.3824224368,
-    "wholesale_cost_gbp": 89694.40795305715,
-    "gross_margin_gbp": 4173.974469379653,
-    "capital_cost_gbp": 1146.693309166886,
-    "net_margin_gbp": 3027.2811602127667,
-    "cash_collected_gbp": 92064.37408208192,
-    "bad_debt_gbp": 1804.0083403548815,
-    "cash_net_margin_gbp": 1223.272819857889
+    "revenue_gbp": 100875.27581734383,
+    "wholesale_cost_gbp": 96087.23530325659,
+    "gross_margin_gbp": 4788.040514087246,
+    "capital_cost_gbp": 1227.629943705635,
+    "net_margin_gbp": 3560.4105703816113,
+    "cash_collected_gbp": 98931.12960909081,
+    "bad_debt_gbp": 1944.146208253022,
+    "cash_net_margin_gbp": 1616.2643621285915
   },
   "clv_snapshots": {
     "2016": {
@@ -6304,103 +6766,111 @@
       "C7": -18.76230632064873
     },
     "2017": {
-      "C1": -105.84620207350791,
-      "C5": -234.59167240304149,
-      "C7": -41.392822851507034,
-      "C2": 93.4851617694534,
-      "C6": -580.5768048899876,
-      "C8": -257.1710987791623,
-      "C3": -163.77002332898888,
-      "C9": -286.38666098450244,
-      "C4": 1.9698706621024362
+      "C1": -124.70132837455522,
+      "C5": -242.7151318664031,
+      "C7": -45.22439165379792,
+      "C2": 135.97026478066903,
+      "C6": -671.0956543980716,
+      "C8": -307.5581932799935,
+      "C3": -186.20105763380408,
+      "C9": -305.8919594679207,
+      "C4": 2.258789007051481
     },
     "2018": {
-      "C1": -99.77214624971278,
-      "C5": -272.4674796793865,
-      "C7": -65.13036882453886,
-      "C2": 126.5062035995603,
-      "C6": -401.866779687581,
-      "C8": -104.4871959550109,
-      "C3": -129.59700898318175,
-      "C9": -198.62143357134423,
-      "C4": -20.233068709296344
+      "C1": -134.87185653789123,
+      "C5": -271.1887385210414,
+      "C7": -73.54341906870208,
+      "C2": 141.17867035994723,
+      "C6": -524.9928840939208,
+      "C8": -118.1587277520195,
+      "C3": -163.18323723754085,
+      "C9": -239.7384501637081,
+      "C4": -23.271108540232035
     },
     "2019": {
-      "C1": -100.2306346763494,
-      "C5": -238.5047211823697,
-      "C7": -64.97760765439175,
-      "C2": 158.99867617699738,
-      "C6": -321.43029677351785,
-      "C8": -26.214183441948677,
-      "C3": -94.64807780370131,
-      "C9": -184.8712771471787,
-      "C4": -5.829230605677254
+      "C1": -120.70006584902522,
+      "C5": -291.8184396094177,
+      "C7": -76.12874355559785,
+      "C2": 170.30577209209704,
+      "C6": -382.9899406877483,
+      "C8": -30.008711844520345,
+      "C3": -103.49334314785486,
+      "C9": -208.68276714086596,
+      "C4": -6.81447591897613
     },
     "2020": {
-      "C1": -92.00837740883104,
-      "C5": -218.30696923375675,
-      "C7": -54.09616042154897,
-      "C2": 121.1082809082739,
-      "C6": -258.9356899845668,
-      "C8": -22.724474411169926,
-      "C3": -70.42510839773026,
-      "C9": -171.25024637049796,
-      "C4": 11.596978549133446
+      "C1": -107.66137415627855,
+      "C5": -277.17444676356007,
+      "C7": -64.58597147647366,
+      "C2": 156.2669818339263,
+      "C6": -290.28372796971274,
+      "C8": -25.796192834449908,
+      "C3": -74.9579700038204,
+      "C9": -188.1116575028194,
+      "C4": 14.822047214203476
     },
     "2021": {
-      "C1": -151.06885903632948,
-      "C5": -349.4964467737967,
-      "C7": -133.26655705081873,
-      "C2": 51.30316104969939,
-      "C6": -303.79853500490077,
-      "C8": -78.08426343369653,
-      "C3": -69.88689661103952,
-      "C9": -189.33017467392995,
-      "C4": -51.36018796384489
+      "C1": -171.03647192553674,
+      "C5": -438.0022810946805,
+      "C7": -157.89360533978598,
+      "C2": 70.91297376763949,
+      "C6": -335.2593344532179,
+      "C8": -88.91218235576697,
+      "C3": -73.88504131217069,
+      "C9": -212.44393225242084,
+      "C4": -71.90118384476831
     },
     "2022": {
-      "C1": -134.58491295262496,
-      "C5": -321.2916396916804,
-      "C7": -134.80732129314035,
-      "C2": 20.763790681503032,
-      "C6": -319.17871885914906,
-      "C8": -111.6489963589189,
-      "C3": -65.15832162797092,
-      "C9": -176.48662101233512,
-      "C4": -74.29645385383077
+      "C1": -176.6095566270146,
+      "C5": -382.1053267225557,
+      "C7": -142.26469002641193,
+      "C2": 23.816897565744195,
+      "C6": -362.2543062371566,
+      "C8": -114.4608153901277,
+      "C3": -83.46324127283515,
+      "C9": -223.80367031063153,
+      "C4": -104.59765330122053,
+      "C2_2": 48.133759419144305
     },
     "2023": {
-      "C1": -130.24703240428167,
-      "C5": -307.11427320821133,
-      "C7": -134.51624468041888,
-      "C2": 19.8536877876582,
-      "C6": -250.9926966483965,
-      "C8": -74.42039194323512,
-      "C3": -64.35292613288729,
-      "C9": -158.3603141669272,
-      "C4": -83.51706107681194
+      "C1": -151.46321181345158,
+      "C5": -407.87771022912693,
+      "C7": -156.6573127065246,
+      "C2": 25.547984838158794,
+      "C6": -321.0097259811831,
+      "C8": -76.66568963348206,
+      "C3": -66.38851999754975,
+      "C9": -187.32680527390292,
+      "C4": -97.75074161371603,
+      "C2_2": 161.78447496352717
     },
     "2024": {
-      "C1": -116.23567823313279,
-      "C5": -299.07449763463796,
-      "C7": -93.53305887602565,
-      "C2": 19.48137296744895,
-      "C6": -222.2229665888011,
-      "C8": -32.59247317497398,
-      "C3": -60.4835678235714,
-      "C9": -140.96738600589254,
-      "C4": -47.108163344172816
+      "C1": -133.91451323151733,
+      "C5": -337.877190700101,
+      "C7": -126.14691406585689,
+      "C2": 21.88637627577031,
+      "C6": -259.31817082482,
+      "C8": -32.695884804797096,
+      "C3": -77.17721990348674,
+      "C9": -164.6463997411224,
+      "C4": -51.57528390007129,
+      "C2_2": 161.85231832826352
     },
     "2025": {
-      "C1": -114.84755645766296,
-      "C5": -293.81772129807075,
-      "C7": -87.84598091666307,
-      "C2": 18.722953889244923,
-      "C6": -214.92969536716262,
-      "C8": -32.111548691853486,
-      "C3": -61.35047323713398,
-      "C9": -128.8276406430509,
-      "C4": -46.26945697474209
+      "C1": -125.43198499562058,
+      "C5": -357.1801483709181,
+      "C7": -97.58908663873228,
+      "C2": 23.754218303082705,
+      "C6": -230.19976838416395,
+      "C8": -35.22638368042896,
+      "C3": -70.69421429107561,
+      "C9": -160.7612532207125,
+      "C4": -54.490573419482935,
+      "C2_2": 132.24954601408368
     }
+  },
+  "_cache_meta": {
+    "git_commit": "174c174",
+    "generated_at_utc": "20260617T193641Z"
   }
 }

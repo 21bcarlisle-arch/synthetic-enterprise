@@ -43,7 +43,7 @@ from saas.bill_generator import generate_bill
 from saas.churn_model import build_churn_risk
 from saas.contact_model import build_contact_model
 from saas.cost_to_serve import build_cost_to_serve
-from saas.customers import CUSTOMERS, get_customer
+from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS, get_customer
 from saas.enterprise_value import build_enterprise_value
 from saas.home_move_win_rate import build_home_move_win_rates
 from saas.ledger import build_ledger, derive_pnl, ledger_summary
@@ -51,6 +51,7 @@ from saas.payment_behaviour import build_payment_behaviour
 from simulation.run_phase2b import main as run_phase2b
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
+_ALL_CUSTOMERS = CUSTOMERS + SUCCESSOR_CUSTOMERS
 
 RUN_OUTPUT_LATEST_PATH = Path("docs/reports/run_output_latest.json")
 RUN_OUTPUT_VERSIONED_DIR = Path("docs/reports")
@@ -96,11 +97,11 @@ def main(report_end: str | None = None):
     payment_behaviour = build_payment_behaviour(bills)
     contact_model = build_contact_model(bills)
 
-    cost_to_serve = build_cost_to_serve(all_records, CUSTOMERS)
-    churn_risk = build_churn_risk(all_records, CUSTOMERS)
-    home_move_win_rates = build_home_move_win_rates(churn_risk, CUSTOMERS, PRICE_DIFFERENTIAL_PCT)
+    cost_to_serve = build_cost_to_serve(all_records, _ALL_CUSTOMERS)
+    churn_risk = build_churn_risk(all_records, _ALL_CUSTOMERS)
+    home_move_win_rates = build_home_move_win_rates(churn_risk, _ALL_CUSTOMERS, PRICE_DIFFERENTIAL_PCT)
     enterprise_value = build_enterprise_value(
-        churn_risk, cost_to_serve, CUSTOMERS, PRICE_DIFFERENTIAL_PCT
+        churn_risk, cost_to_serve, _ALL_CUSTOMERS, PRICE_DIFFERENTIAL_PCT
     )
 
     avg_clarity = sum(b["clarity_score"] for b in bills) / len(bills)
@@ -158,6 +159,7 @@ def main(report_end: str | None = None):
         "ledger_events": ledger_events,
         "ledger_pnl": ledger_pnl,
         "ledger_meta": ledger_meta,
+        "won_successor_activations": phase2b_result.get("won_successor_activations", {}),
     }
 
 
@@ -210,8 +212,21 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    output = main()
+    try:
+        output = main()
 
-    if args.save_json:
-        latest_path, versioned_path = save_run_output_json(output)
-        print(f"\nSaved report data to {latest_path} and {versioned_path}")
+        if args.save_json:
+            latest_path, versioned_path = save_run_output_json(output)
+            print(f"\nSaved report data to {latest_path} and {versioned_path}")
+
+    except Exception as exc:
+        import traceback
+        from background.ntfy_utils import send_ntfy
+        err_summary = f"{type(exc).__name__}: {exc}"
+        send_ntfy(
+            f"Run FAILED at save/extract step: {err_summary}\n"
+            "Sim itself may have completed — check phase*_run.log",
+            headers={"X-Priority": "5", "X-Tags": "rotating_light"},
+        )
+        traceback.print_exc()
+        raise

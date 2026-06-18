@@ -1,4 +1,4 @@
-"""Customer lifecycle event log — Phase 6b.
+"""Customer lifecycle event log — Phase 6b / Phase 7e.
 
 Provides `roll_lifecycle_event()`, called by `run_phase2b.main()` at each
 billing-account renewal point (electricity legs only; gas legs share the
@@ -8,6 +8,11 @@ The roll is fully deterministic: `random.Random(f"{billing_account}_{term_start}
 Two identical runs always produce the same event sequence. Tests can force
 specific outcomes by patching `_RANDOM_CLASS` or seeding via a known
 `customer_id` + `term_start_str` combination.
+
+Phase 7e adds a second deterministic roll when an account churns: did we win
+the home-mover's business? Seed: `f"win_{billing_account}_{term_start_str}"`.
+`home_move_won` appears on every event dict (False for renewals; True/False for
+churns). When True, `run_phase2b.main()` activates the successor customer.
 
 Architecture note: this module sits at the interface between the sim (raw
 settlement records) and the SaaS layer (churn/win-rate models). It imports
@@ -69,6 +74,13 @@ def roll_lifecycle_event(
     roll = _random.Random(f"{billing_account}_{term_start_str}").random()
     retained = roll <= renewal_data["effective_retention_probability"]
 
+    # Phase 7e: when an account churns, roll whether we win the home-mover's
+    # business. Separate seed so it never interferes with the churn roll.
+    home_move_won = False
+    if not retained:
+        win_roll = _random.Random(f"win_{billing_account}_{term_start_str}").random()
+        home_move_won = win_roll <= renewal_data["win_probability"]
+
     return {
         "customer_id": billing_account,
         "event_date": term_start_str,
@@ -78,4 +90,5 @@ def roll_lifecycle_event(
         "win_probability": round(renewal_data["win_probability"], 4),
         "effective_retention_probability": round(renewal_data["effective_retention_probability"], 4),
         "random_roll": round(roll, 4),
+        "home_move_won": home_move_won,
     }

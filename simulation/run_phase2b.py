@@ -21,7 +21,7 @@ from datetime import date, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
 from saas.customer_reaction import _billing_account_id
-from saas.customers import CUSTOMERS, get_customer
+from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS, get_customer
 from saas.property_model import (
     DEFAULT_ASSETS,
     DEFAULT_HEATING_SYSTEM,
@@ -66,6 +66,14 @@ CRISIS_YEARS = {"2021", "2022"}
 # Base: £3,250 per 15,000 kWh of electricity EAC
 ELEC_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "electricity"]
 GAS_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "gas"]
+# Phase 7e: successor electricity customers (activated on home-move win).
+# Separate from ELEC_CUSTOMERS so they don't inflate the starting treasury.
+SUCCESSOR_ELEC_CUSTOMERS = [c for c in SUCCESSOR_CUSTOMERS if c["commodity"] == "electricity"]
+SUCCESSOR_MAP: dict[str, str] = {
+    c["successor_of"]: c["customer_id"] for c in SUCCESSOR_ELEC_CUSTOMERS
+}
+_SUCCESSOR_ELEC_IDS: frozenset[str] = frozenset(c["customer_id"] for c in SUCCESSOR_ELEC_CUSTOMERS)
+_ALL_KNOWN_CUSTOMERS = CUSTOMERS + SUCCESSOR_CUSTOMERS
 ORIGINAL_4_CUSTOMER_EAC_KWH = 15_000
 
 # Phase 6a: HH (smart meter) customers have eac_kwh=None — their effective
@@ -76,8 +84,16 @@ EFFECTIVE_EAC_KWH: dict[str, float] = {
     else estimate_annual_kwh(load_hh_consumption(c["customer_id"]))
     for c in ELEC_CUSTOMERS
 }
+# Successor customers share the same property EAC as their predecessor.
+EFFECTIVE_EAC_KWH.update({
+    c["customer_id"]: c["eac_kwh"]
+    for c in SUCCESSOR_ELEC_CUSTOMERS
+})
 
-TOTAL_ELEC_EAC = sum(EFFECTIVE_EAC_KWH.values())
+# Treasury sized on original customers only — successors don't exist yet at t=0.
+TOTAL_ELEC_EAC = sum(
+    EFFECTIVE_EAC_KWH[c["customer_id"]] for c in ELEC_CUSTOMERS
+)
 TOTAL_GAS_AQ = sum(c["aq_kwh"] for c in GAS_CUSTOMERS)
 # Gas is priced ~10x cheaper per MWh than electricity; weight accordingly
 # Treat 1 kWh gas ≈ 0.25 kWh electricity for treasury sizing (conservative)
@@ -258,7 +274,8 @@ def main(report_end: str | None = None):
     # ---- Phase 4c-1/4c-2/4c-3 inputs: per-customer weather + property records ----
     properties = build_properties(CUSTOMERS)
     weather_by_customer = {
-        c["customer_id"]: weather_means_for_customer(c) for c in ELEC_CUSTOMERS + GAS_CUSTOMERS
+        c["customer_id"]: weather_means_for_customer(c)
+        for c in ELEC_CUSTOMERS + GAS_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
     }
 
     # Phase 6a: per-customer HH consumption for HH (smart meter) customers.
@@ -274,6 +291,15 @@ def main(report_end: str | None = None):
     # ---- Build electricity schedules ----
     elec_schedules = {}
     for c in ELEC_CUSTOMERS:
+        elec_schedules[c["customer_id"]] = build_renewal_schedule(
+            c["customer_id"], c["acquisition_date"], effective_end,
+            elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]], lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
+        )
+
+    # Phase 7e: pre-generate successor schedules (gated until activation).
+    # Successors use the same acquisition_date as their predecessor so the
+    # term schedule aligns — actual settlement only starts at the churn date.
+    for c in SUCCESSOR_ELEC_CUSTOMERS:
         elec_schedules[c["customer_id"]] = build_renewal_schedule(
             c["customer_id"], c["acquisition_date"], effective_end,
             elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]], lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
@@ -304,7 +330,11 @@ def main(report_end: str | None = None):
     all_customers_ids = (
         [c["customer_id"] for c in ELEC_CUSTOMERS]
         + [c["customer_id"] for c in GAS_CUSTOMERS]
+        + [c["customer_id"] for c in SUCCESSOR_ELEC_CUSTOMERS]
     )
+    # Phase 7e: successor_id → activation_date (set when home-move is won).
+    # Gate: successor terms are skipped until their activation date.
+    won_successor_activations: dict[str, str] = {}
     next_hf = {cid: RESET_HEDGE_FRACTION for cid in all_customers_ids}
     pending_committee_overrides: dict[str, float] = {}
     current_risk: dict[str, dict] = {}
@@ -336,16 +366,25 @@ def main(report_end: str | None = None):
             term_indices[cid] += 1
             continue
 
+        # Phase 7e: gate successor terms until activated by a home-move win.
+        # Do NOT increment term_indices here — we want term_index=0 on first real term
+        # so the churn roll doesn't fire prematurely.
+        if cid in _SUCCESSOR_ELEC_IDS:
+            activation_date = won_successor_activations.get(cid)
+            if not activation_date or term_start_str < activation_date:
+                continue
+
         term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
         forward_price = term["forward_price_gbp_per_mwh"]
         unit_rate = term["unit_rate_gbp_per_mwh"]
         term_index = term_indices[cid]
         term_indices[cid] += 1
 
-        # Phase 6b: roll churn/renewal event at each renewal point (electricity legs drive billing)
+        # Phase 6b+7e: roll churn/renewal event at each renewal point (electricity legs drive billing).
+        # Pass _ALL_KNOWN_CUSTOMERS so successors are found by build_churn_risk.
         if term_index >= 1 and commodity == "electricity":
             event = roll_lifecycle_event(
-                cid, term_start_str, commodity, list(all_records), CUSTOMERS
+                cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS
             )
             if event is not None:
                 customer_events_log.append(event)
@@ -356,6 +395,12 @@ def main(report_end: str | None = None):
                         f"p_retain={event['effective_retention_probability']:.4f}  "
                         f"roll={event['random_roll']:.4f}"
                     )
+                    # Phase 7e: if we won the home mover, activate the successor now
+                    if event.get("home_move_won"):
+                        successor_id = SUCCESSOR_MAP.get(billing_account)
+                        if successor_id:
+                            won_successor_activations[successor_id] = term_start_str
+                            print(f"  [WIN] Home-mover won: {successor_id} activates at {term_start_str}")
                     continue
 
         if cid in pending_committee_overrides:
@@ -645,6 +690,7 @@ def main(report_end: str | None = None):
         "committee_wake_ups": committee_wake_ups,
         "customer_events": customer_events_log,
         "churned_billing_accounts": sorted(churned_billing_accounts),
+        "won_successor_activations": won_successor_activations,
         "hedge_evolution": evolution_logs,
         "total_gross": total_gross,
         "total_capital": total_capital,

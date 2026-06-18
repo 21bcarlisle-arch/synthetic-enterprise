@@ -42,6 +42,17 @@ API spend in simulation runs.
 
 ## How to operate autonomously
 
+**NTFY is the primary communication channel.** Rich uses it for steering,
+questions, and quick direction changes. This window (Claude Code chat) is for
+urgent or more involved conversations. The protocol:
+- `background/ntfy_responder.py` acks inbound messages and writes them to
+  `docs/staging/from_rich_TIMESTAMP.md` for substantive messages (>25 chars)
+- At startup and after every task, poll `docs/staging/` — `from_rich_*.md`
+  files are Rich's NTFY instructions; act on them exactly like staged files
+- After acting on a `from_rich_*.md` message, send the result summary back
+  via `background.ntfy_utils.send_ntfy` so Rich sees the answer on his phone
+- Move actioned files to `docs/staging/done/` after processing
+
 **At startup and after every completed task:** check `docs/staging/` for
 unactioned files and action them immediately. Do not wait to be told.
 

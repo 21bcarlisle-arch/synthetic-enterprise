@@ -3,6 +3,7 @@ from pathlib import Path
 from saas.reporting.annual_report import (
     NOT_AVAILABLE,
     _append_pricing_actions_summary,
+    _build_clv_snapshots,
     _clv_trajectory_section,
     _customer_book_section,
     _ledger_summary_section,
@@ -664,3 +665,57 @@ def test_customer_book_section_hh_resi_counted_separately():
     assert "Resi electricity: 2" in section
     assert "SME electricity: 1" in section
     assert "gas (dual-fuel): 1" in section
+
+
+# ---- Phase 7e: successor activations in extract_report_data ----
+
+def _run_output_with_successor_activation():
+    """Extend the base fixture with a won_successor_activations entry for 2017."""
+    base = _run_output()
+    base["won_successor_activations"] = {"C1_2": "2017-01-01"}
+    return base
+
+
+def test_extract_report_data_passes_through_won_successor_activations():
+    """won_successor_activations from run output is forwarded into extracted data."""
+    data = extract_report_data(_run_output_with_successor_activation())
+    assert data.get("won_successor_activations") == {"C1_2": "2017-01-01"}
+
+
+def test_extract_report_data_won_successor_activations_empty_by_default():
+    """When not present in run output, won_successor_activations defaults to empty dict."""
+    data = extract_report_data(_run_output())
+    assert data.get("won_successor_activations") == {}
+
+
+def test_acquisitions_includes_won_successors_in_activation_year():
+    """A won successor activated in 2017 appears in 2017's acquisitions list."""
+    data = extract_report_data(_run_output_with_successor_activation())
+    assert "C1_2" in data["years"]["2017"]["acquisitions"]
+
+
+def test_acquisitions_excludes_won_successors_from_other_years():
+    """A won successor activated in 2017 does NOT appear in 2016's acquisitions."""
+    data = extract_report_data(_run_output_with_successor_activation())
+    assert "C1_2" not in data["years"]["2016"]["acquisitions"]
+
+
+# ---- Regression: successor customer records must not cause KeyError in CLV snapshots ----
+
+def test_build_clv_snapshots_with_successor_records():
+    """Regression: _build_clv_snapshots must not raise KeyError when all_records
+    contains a successor customer (e.g. C1_2). This was the exact failure mode in
+    the Phase 7e run where the JSON-save step crashed with KeyError: 'C1_2' because
+    build_cost_to_serve was called with only CUSTOMERS, not CUSTOMERS+SUCCESSOR_CUSTOMERS.
+    """
+    records = [
+        _record("C1",   "electricity", "2016-01-01", 1, 10.0, 2.0, 8.0, 50.0, 1008.0),
+        _record("C1_2", "electricity", "2022-01-01", 1, 12.0, 2.0, 9.0, 50.0, 1017.0),
+    ]
+    churn_risk = {
+        "C1": [{"renewal_period": "2016-12", "bill_shock_count": 0, "churn_probability": 0.05}],
+    }
+    # Must not raise KeyError: 'C1_2'
+    snapshots = _build_clv_snapshots(records, churn_risk, ["2016", "2022"])
+    assert "2016" in snapshots
+    assert "2022" in snapshots

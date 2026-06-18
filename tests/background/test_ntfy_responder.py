@@ -82,7 +82,36 @@ def test_check_once_acks_messages_not_sent_by_us(tmp_path, monkeypatch):
     new_since = responder.check_once(500)
     assert new_since == 1000
     assert len(sent) == 1
-    assert "Got it" in sent[0]
+    # Short message ("Hello Rich" < 25 chars) → status ping, no staging file
+    assert "Status ping" in sent[0]
+    assert "Sim:" in sent[0]
+
+
+def test_check_once_stages_substantive_messages(tmp_path, monkeypatch):
+    """Inbound messages >= 25 chars are written to docs/staging/ as from_rich_*.md."""
+    monkeypatch.setattr(responder, "STATE_FILE", tmp_path / "since.json")
+    monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
+    monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
+    monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+
+    sent = []
+    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+
+    long_message = "Start the full 2016-2025 run when GPU is free."
+
+    class FakeResponse:
+        text = json.dumps({"event": "message", "id": "xyz", "time": 2000, "message": long_message})
+
+    monkeypatch.setattr(responder.requests, "get", lambda *a, **k: FakeResponse())
+
+    responder.check_once(500)
+
+    staging_dir = tmp_path / "docs" / "staging"
+    staged_files = list(staging_dir.glob("from_rich_*.md"))
+    assert len(staged_files) == 1
+    assert long_message in staged_files[0].read_text()
+    assert "Staged for Claude Code pickup" in sent[0]
 
 
 def test_check_once_ignores_messages_at_or_before_watermark(tmp_path, monkeypatch):

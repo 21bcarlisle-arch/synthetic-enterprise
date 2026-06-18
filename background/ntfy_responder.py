@@ -145,9 +145,27 @@ def _git_head_summary() -> str:
         return "git HEAD unavailable"
 
 
-def build_status_reply() -> str:
+def _write_to_staging(message: str) -> Path | None:
+    """Write an inbound NTFY message to docs/staging/ so the Claude Code session
+    picks it up on its next staging-directory poll. Returns the path written, or
+    None if the message is too short to warrant staging (plain status pings)."""
+    if len(message) < 25:
+        return None
+    staging_dir = PROJECT_DIR / "docs" / "staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    path = staging_dir / f"from_rich_{ts}.md"
+    path.write_text(f"# Inbound NTFY message from Rich\n\n{message}\n")
+    return path
+
+
+def build_status_reply(staged_path: Path | None = None) -> str:
+    if staged_path:
+        relay_line = f"Staged for Claude Code pickup: {staged_path.name}"
+    else:
+        relay_line = "Status ping — no staging file written (message too short to be an instruction)"
     return (
-        "Got it — relaying to the Claude Code session now.\n"
+        f"{relay_line}\n"
         f"Sim: {_run_progress_summary()}\n"
         f"{_gpu_summary()}\n"
         f"HEAD: {_git_head_summary()}"
@@ -188,9 +206,11 @@ def check_once(since: float) -> float:
         if not message:
             continue
 
-        reply = build_status_reply()
+        staged_path = _write_to_staging(message)
+        reply = build_status_reply(staged_path)
         send_ntfy(reply, headers={"X-Priority": "3", "X-Tags": "satellite_antenna"})
-        log(f"Acked inbound message {record.get('id')!r} ({message[:60]!r})")
+        log(f"Acked inbound message {record.get('id')!r} ({message[:60]!r})"
+            + (f" — staged as {staged_path.name}" if staged_path else ""))
 
     return latest
 

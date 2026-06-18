@@ -36,7 +36,7 @@ from pathlib import Path
 from saas.clv_model import build_clv
 from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
-from saas.customers import CUSTOMERS
+from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
@@ -86,7 +86,7 @@ def _build_clv_snapshots(
             account_id: [r for r in renewals if r["renewal_period"] <= cutoff[:7]]
             for account_id, renewals in churn_risk.items()
         }
-        cts_to_year = build_cost_to_serve(records_to_year, CUSTOMERS)
+        cts_to_year = build_cost_to_serve(records_to_year, CUSTOMERS + SUCCESSOR_CUSTOMERS)
         clv_to_year = build_clv(risk_to_year, cts_to_year)
         snapshots[year] = {
             account_id: v["clv_gbp"] for account_id, v in clv_to_year.items()
@@ -167,8 +167,8 @@ def extract_report_data(run_output: dict) -> dict:
     ]
 
     years = sorted({_year(r["settlement_date"]) for r in all_records})
-
-    segment_by_customer = {c["customer_id"]: c["segment"] for c in CUSTOMERS}
+    won_successor_activations: dict[str, str] = run_output.get("won_successor_activations", {})
+    segment_by_customer = {c["customer_id"]: c["segment"] for c in CUSTOMERS + SUCCESSOR_CUSTOMERS}
 
     yearly = {}
     for year in years:
@@ -290,7 +290,11 @@ def extract_report_data(run_output: dict) -> dict:
             "per_customer": per_customer,
             "active_customer_ids": sorted({r["customer_id"] for r in yr_records}),
             "acquisitions": sorted(
-                c["customer_id"] for c in CUSTOMERS if _year(c["acquisition_date"]) == year
+                [c["customer_id"] for c in CUSTOMERS if _year(c["acquisition_date"]) == year]
+                + [
+                    sid for sid, act_date in won_successor_activations.items()
+                    if _year(act_date) == year
+                ]
             ),
             "committee_wake_ups": wake_ups,
             "hedge_fractions": hedge_fractions,
@@ -317,7 +321,7 @@ def extract_report_data(run_output: dict) -> dict:
         }
 
     per_customer_lifetime = {}
-    for c in CUSTOMERS:
+    for c in CUSTOMERS + SUCCESSOR_CUSTOMERS:
         cid = c["customer_id"]
         recs = [r for r in all_records if r["customer_id"] == cid]
         if not recs:
@@ -423,6 +427,7 @@ def extract_report_data(run_output: dict) -> dict:
         "hedge_effectiveness_total": hedge_effectiveness_total,
         "customer_events": phase2b.get("customer_events", []),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
+        "won_successor_activations": won_successor_activations,
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),
         "clv_snapshots": clv_snapshots,

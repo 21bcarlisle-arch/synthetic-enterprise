@@ -8,7 +8,41 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-16T21:13:56Z
+Last updated: 2026-06-18T05:02:10Z
+
+**NTFY relay fixed (2026-06-17)**: `ntfy_responder.py` now writes substantive inbound messages
+(>25 chars) to `docs/staging/from_rich_TIMESTAMP.md`. Claude Code picks these up on its next
+staging poll and replies via NTFY. CLAUDE.md updated with the new protocol: NTFY is now the
+primary communication channel. 380 tests passing.
+
+**Phase 7e full run started (2026-06-17)**: Running in tmux `phase7e-run`. Expected ~15 min.
+Smoke test confirmed: 6 churns (same deterministic sequence), 1 home-move win (C2→C2_2 at
+2022-03-31). C2_2 will generate ~3 years of revenue. Result: 1 win from 6 churns (~12%
+probability from seeded RNG — model parameters fine, just unlucky seeds).
+
+**Revenue trajectory analysis (in response to NTFY 05:47)**:
+Crisis prices MASKED churn damage in 2022 — revenue DOUBLED (£9K→£18K) even with 3 lost
+accounts. Real cliff was 2024 when C6 (£19.7K warehouse, highest-revenue) and C4 exited.
+Only C7/C8/C9 (HH smart meter) survived the full window. £93,868 total revenue.
+
+**Phase 7e implementation complete — home-move win / replacement customer onboarding (2026-06-16)**:
+Successor customers (C1_2 through C6_2) are now activated when an original account churns AND we win
+the home-mover competition. A second deterministic roll (seed: `win_{account}_{date}`) fires at each
+churn event. Successors are gated in the main loop — terms are skipped until activation date, and
+`term_index` is NOT incremented during gating (so first activated term is index 0, no premature churn roll).
+
+Key implementation details:
+- `SUCCESSOR_CUSTOMERS` (C1_2..C6_2) in `saas/customers.py` — electricity only for MVP
+- `home_move_won` field on every lifecycle event dict (always False for renewals)
+- `_SUCCESSOR_ELEC_IDS` / `SUCCESSOR_MAP` in `run_phase2b.py` for O(1) gating lookups
+- `_ALL_KNOWN_CUSTOMERS = CUSTOMERS + SUCCESSOR_CUSTOMERS` passed to churn model (avoids KeyError)
+- Successors subject to the same churn model as originals after first term
+- `won_successor_activations` dict passed through `run_phase4c` → `extract_report_data` → `annual_report`
+- Successor acquisitions appear in the correct year's `acquisitions` field in the report
+- `per_customer_lifetime` and `segment_by_customer` updated to cover successors
+- 9 new tests (5 customer_events, 4 annual_report) — 379 total passing
+
+Next: Phase 7e full run to see which original accounts win home-mover replacements.
 
 **Phase 7d complete — full 2016-2025 run, feature-complete report (2026-06-16)**:
 Same deterministic figures as Phase 7c. CLV trajectory table, per-year churn risk,

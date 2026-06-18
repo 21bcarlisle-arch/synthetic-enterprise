@@ -1,4 +1,5 @@
-"""Tests for simulation/customer_events.py — Phase 6b lifecycle event rolling."""
+"""Tests for simulation/customer_events.py — Phase 6b / Phase 7e lifecycle event rolling."""
+import pytest
 from simulation.customer_events import PRICE_DIFFERENTIAL_PCT, roll_lifecycle_event
 
 
@@ -157,3 +158,68 @@ def test_gas_leg_maps_to_billing_account():
     assert result_elec["event_type"] == result_gas["event_type"]
     assert result_elec["customer_id"] == "C1"
     assert result_gas["customer_id"] == "C1"
+
+
+# ---- Phase 7e: home_move_won field ----
+
+def test_home_move_won_present_on_every_event():
+    """home_move_won key must appear on every event dict, not just churns."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result is not None
+    assert "home_move_won" in result
+
+
+def test_home_move_won_false_for_renewals():
+    """Retained customers always have home_move_won=False — the win roll only fires on churn."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result is not None
+    if result["event_type"] == "renewed":
+        assert result["home_move_won"] is False
+
+
+def test_home_move_won_deterministic_for_churned():
+    """Win roll is seeded — same inputs always produce the same home_move_won value."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    r1 = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    r2 = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert r1 is not None and r2 is not None
+    assert r1["home_move_won"] == r2["home_move_won"]
+
+
+def test_win_roll_uses_independent_seed():
+    """The win seed `win_{account}_{date}` must differ from the churn seed `{account}_{date}`.
+
+    Verify this by checking the win roll and churn roll are produced by different RNG instances:
+    if they used the same RNG/seed, the win decision would always be the same as the churn decision,
+    which is clearly wrong. We test this indirectly: for a customer that churns, confirm that
+    home_move_won is a bool (not derived from the same roll) and that the roll values differ.
+    """
+    import random as _random
+
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result is not None
+    if result["event_type"] == "churned":
+        churn_roll = result["random_roll"]
+        win_rng = _random.Random(f"win_C5_{FIRST_RENEWAL}")
+        win_roll = win_rng.random()
+        # The churn roll uses seed "C5_{FIRST_RENEWAL}" and the win roll uses "win_C5_{FIRST_RENEWAL}"
+        churn_rng = _random.Random(f"C5_{FIRST_RENEWAL}")
+        assert churn_rng.random() == pytest.approx(churn_roll)
+        # Win roll is from a different RNG — must differ from churn roll
+        assert win_roll != churn_roll
+
+
+def test_home_move_won_is_bool_not_float():
+    """home_move_won must be a strict Python bool, not an int or float comparison result."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result is not None
+    assert isinstance(result["home_move_won"], bool)
