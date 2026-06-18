@@ -4,6 +4,7 @@ from saas.reporting.annual_report import (
     NOT_AVAILABLE,
     _append_pricing_actions_summary,
     _build_clv_snapshots,
+    _build_ledger_headline,
     _clv_trajectory_section,
     _customer_book_section,
     _ledger_summary_section,
@@ -313,7 +314,7 @@ def test_ledger_summary_section_shows_waterfall_and_event_counts():
     assert "300" in section
     assert "billing_event" in section
     assert "£10,000.00" in section  # revenue
-    assert "✓ agrees with simulation" in section
+    assert "£2,500.00" in section  # net margin
 
 
 def test_ledger_summary_section_shows_not_available_when_no_meta():
@@ -321,13 +322,55 @@ def test_ledger_summary_section_shows_not_available_when_no_meta():
     assert NOT_AVAILABLE in section
 
 
-def test_ledger_summary_section_flags_discrepancy():
-    meta = {"event_count": 1, "by_type": {}}
-    pnl = {"revenue_gbp": 100.0, "wholesale_cost_gbp": 50.0, "gross_margin_gbp": 50.0,
-           "capital_cost_gbp": 10.0, "net_margin_gbp": 40.0}
-    data = {"ledger_meta": meta, "ledger_pnl": pnl, "total_net_gbp": 41.0}
+def test_ledger_summary_section_phase9a_shows_vat_breakdown():
+    """Phase 9a: total_billed, VAT remittance, and non-commodity lines appear."""
+    meta = {"event_count": 5, "by_type": {"billing_event": 1}}
+    pnl = {
+        "total_billed_gbp": 12000.0,
+        "vat_remittance_gbp": 1000.0,
+        "revenue_gbp": 11000.0,
+        "non_commodity_cost_gbp": 3000.0,
+        "wholesale_cost_gbp": 7000.0,
+        "gross_margin_gbp": 1000.0,
+        "capital_cost_gbp": 100.0,
+        "net_margin_gbp": 900.0,
+    }
+    data = {"ledger_meta": meta, "ledger_pnl": pnl}
     section = _ledger_summary_section(data)
-    assert "discrepancy" in section
+    assert "£12,000.00" in section   # total_billed
+    assert "£1,000.00" in section    # VAT (£1,000.00 also matches vat_remittance)
+    assert "£11,000.00" in section   # ex-VAT revenue
+    assert "non-commodity" in section.lower()
+    assert "VAT" in section
+
+
+def test_build_ledger_headline_returns_none_for_pre9a():
+    """Pre-Phase-9a ledger (no total_billed_gbp) returns None."""
+    pnl = {"revenue_gbp": 10000.0, "gross_margin_gbp": 3000.0, "net_margin_gbp": 2500.0,
+           "capital_cost_gbp": 500.0}
+    assert _build_ledger_headline(pnl) is None
+    assert _build_ledger_headline(None) is None
+
+
+def test_build_ledger_headline_extracts_phase9a_fields():
+    """Phase 9a ledger with total_billed_gbp returns all headline fields."""
+    pnl = {
+        "total_billed_gbp": 12000.0,
+        "vat_remittance_gbp": 1000.0,
+        "revenue_gbp": 11000.0,
+        "non_commodity_cost_gbp": 3000.0,
+        "wholesale_cost_gbp": 7000.0,
+        "gross_margin_gbp": 1000.0,
+        "capital_cost_gbp": 100.0,
+        "net_margin_gbp": 900.0,
+    }
+    hl = _build_ledger_headline(pnl)
+    assert hl is not None
+    assert hl["total_billed_gbp"] == 12000.0
+    assert hl["vat_remittance_gbp"] == 1000.0
+    assert hl["revenue_gbp"] == 11000.0
+    assert hl["non_commodity_cost_gbp"] == 3000.0
+    assert hl["net_margin_gbp"] == 900.0
 
 
 def _ntfy_data():

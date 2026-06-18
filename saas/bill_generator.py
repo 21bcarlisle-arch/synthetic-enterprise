@@ -1,4 +1,4 @@
-"""Bill generation — Phase 4c-4 (physical simulation layer).
+"""Bill generation — Phase 4c-4 / Phase 9a (physical simulation layer).
 
 Aggregates a customer's per-settlement-period records (from
 `simulation/settlement.run_settlement`) for one billing month into a bill:
@@ -22,11 +22,19 @@ factors reduce clarity, both seed estimates pending real data:
    previous month's bill, if supplied. A big swing is confusing even if both
    bills were individually correct.
 
+Phase 9a: bills now include non-commodity pass-through (network charges +
+levies), standing charge, and VAT via saas.non_commodity. The commodity
+amount (from settlement records) is separated from non-commodity and
+standing so the ledger can track pass-through costs correctly.
+
 This module is pure: plain dicts/lists in, plain dict out. No imports from
 `sim/`.
 """
 
+import datetime
 import statistics
+
+from saas.non_commodity import non_commodity_rate, standing_charge_rate, vat_rate
 
 BASE_CLARITY_BY_CONTRACT_TYPE = {
     "fixed_1yr": 1.0,
@@ -71,23 +79,18 @@ def generate_bill(
     settlement_records: list[dict],
     contract_type: str,
     previous_bill_total_gbp: float | None = None,
+    segment: str = "resi",
+    commodity: str = "electricity",
 ) -> dict:
-    """Aggregate one customer's `settlement_records` (their
-    `simulation.settlement.run_settlement` records for one billing month)
-    into a bill.
+    """Aggregate one customer's `settlement_records` for one billing month.
 
-    contract_type: looked up in BASE_CLARITY_BY_CONTRACT_TYPE for the
-        tariff-complexity component of the clarity score, defaulting to
-        DEFAULT_BASE_CLARITY for unknown values.
-    previous_bill_total_gbp: the previous month's total_amount_gbp, if
-        available — used for the bill-shock clarity penalty. If None (e.g.
-        the customer's first bill), no bill-shock penalty is applied and
-        `bill_shock_pct` is None in the result.
+    Phase 9a: bills include non-commodity pass-through, standing charge, VAT.
 
     Returns:
       {customer_id, period_start, period_end, total_consumption_kwh,
-       total_amount_gbp, average_unit_rate_gbp_per_mwh, clarity_score,
-       bill_shock_pct}
+       commodity_amount_gbp, non_commodity_amount_gbp, standing_charge_gbp,
+       vat_gbp, total_amount_gbp, average_unit_rate_gbp_per_mwh,
+       clarity_score, bill_shock_pct, segment, commodity}
 
     Raises ValueError if `settlement_records` is empty.
     """
@@ -96,9 +99,24 @@ def generate_bill(
 
     dates = sorted(record["settlement_date"] for record in settlement_records)
     total_consumption_kwh = sum(record["consumption_kwh"] for record in settlement_records)
-    total_amount_gbp = sum(record["revenue_gbp"] for record in settlement_records)
+    commodity_amount_gbp = sum(record["revenue_gbp"] for record in settlement_records)
+
+    # Non-commodity pass-through: network charges + environmental levies
+    non_commodity_amount_gbp = total_consumption_kwh / 1000 * non_commodity_rate(commodity, segment)
+
+    # Standing charge: pure supplier margin (covers metering, admin, data)
+    period_start_date = datetime.date.fromisoformat(dates[0])
+    period_end_date = datetime.date.fromisoformat(dates[-1])
+    days_in_period = (period_end_date - period_start_date).days + 1
+    standing_charge_gbp = days_in_period * standing_charge_rate(commodity, segment)
+
+    # VAT on full pre-tax bill (5% domestic, 20% business)
+    subtotal_gbp = commodity_amount_gbp + non_commodity_amount_gbp + standing_charge_gbp
+    vat_gbp = subtotal_gbp * vat_rate(segment)
+    total_amount_gbp = subtotal_gbp + vat_gbp
+
     average_unit_rate_gbp_per_mwh = (
-        total_amount_gbp / (total_consumption_kwh / 1000) if total_consumption_kwh > 0 else 0.0
+        commodity_amount_gbp / (total_consumption_kwh / 1000) if total_consumption_kwh > 0 else 0.0
     )
 
     clarity_score = BASE_CLARITY_BY_CONTRACT_TYPE.get(contract_type, DEFAULT_BASE_CLARITY)
@@ -116,8 +134,14 @@ def generate_bill(
         "period_start": dates[0],
         "period_end": dates[-1],
         "total_consumption_kwh": total_consumption_kwh,
+        "commodity_amount_gbp": commodity_amount_gbp,
+        "non_commodity_amount_gbp": non_commodity_amount_gbp,
+        "standing_charge_gbp": standing_charge_gbp,
+        "vat_gbp": vat_gbp,
         "total_amount_gbp": total_amount_gbp,
         "average_unit_rate_gbp_per_mwh": average_unit_rate_gbp_per_mwh,
         "clarity_score": clarity_score,
         "bill_shock_pct": bill_shock_pct,
+        "segment": segment,
+        "commodity": commodity,
     }

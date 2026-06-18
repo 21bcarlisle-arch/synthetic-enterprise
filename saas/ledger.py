@@ -1,10 +1,10 @@
-"""Phase 7a/7b/8a — The Ledger.
+"""Phase 7a/7b/8a/9a — The Ledger.
 
 A pure-function ledger that derives a chronological transaction log from
-existing simulation outputs. Seven event types:
+existing simulation outputs. Nine event types:
 
 Phase 7a:
-- billing_event: revenue raised when a bill is issued (cash in)
+- billing_event: total customer bill (cash in, all-in including non-commodity + VAT from 9a)
 - settlement_event: wholesale cost paid to grid (cash out) — one per HH period
 - capital_charge_event: VaR-based capital charge (cash out) — one per HH period
 
@@ -15,6 +15,16 @@ Phase 7b (payment lifecycle):
 Phase 8a (growth mandate):
 - acquisition_spend_event: cost of a fresh market acquisition attempt (cash out)
 - fixed_cost_event: monthly operating overhead (cash out)
+
+Phase 9a (bill structure — non-commodity + VAT):
+- non_commodity_cost_event: network/levy pass-through remitted to network operators (cash out)
+- vat_remittance_event: VAT collected from customer, remitted to HMRC (cash out)
+
+P&L accounting (Phase 9a):
+- revenue_gbp = billing - vat = ex-VAT revenue (commodity + non-commodity + standing)
+- gross_margin_gbp = revenue - wholesale - non_commodity = commodity margin + standing
+- Non-commodity and VAT events cancel out their billing-event counterparts so
+  the net cash position reflects only supplier-owned margin.
 
 All amounts use the sign convention: positive = cash in, negative = cash out.
 Transaction IDs are deterministic UUIDs (uuid5) so the same inputs always
@@ -160,6 +170,37 @@ def make_fixed_cost_event(month: str, amount_gbp: float) -> dict[str, Any]:
     }
 
 
+def make_non_commodity_cost_event(bill: dict[str, Any]) -> dict[str, Any]:
+    """Cash out: network/levy pass-through remitted to network operators.
+
+    Offsets the non-commodity portion of the billing_event — zero net margin
+    on this component. Only generated when bill has non_commodity_amount_gbp.
+    """
+    return {
+        "transaction_id": _tid("non_commodity", bill["customer_id"], bill["period_start"]),
+        "event_type": "non_commodity_cost_event",
+        "timestamp": bill["period_start"],
+        "customer_id": bill["customer_id"],
+        "commodity": bill.get("commodity", "electricity"),
+        "amount_gbp": -bill["non_commodity_amount_gbp"],
+    }
+
+
+def make_vat_remittance_event(bill: dict[str, Any]) -> dict[str, Any]:
+    """Cash out: VAT collected from customer, remitted to HMRC.
+
+    Offsets the VAT portion of the billing_event — VAT is not supplier income.
+    Only generated when bill has vat_gbp.
+    """
+    return {
+        "transaction_id": _tid("vat_remittance", bill["customer_id"], bill["period_start"]),
+        "event_type": "vat_remittance_event",
+        "timestamp": bill["period_start"],
+        "customer_id": bill["customer_id"],
+        "amount_gbp": -bill["vat_gbp"],
+    }
+
+
 def build_ledger(
     all_records: list[dict[str, Any]],
     bills: list[dict[str, Any]],
@@ -207,6 +248,12 @@ def build_ledger(
             b["total_consumption_kwh"],
         ))
 
+        # Phase 9a: non-commodity pass-through and VAT offsets
+        if b.get("non_commodity_amount_gbp"):
+            events.append(make_non_commodity_cost_event(b))
+        if b.get("vat_gbp"):
+            events.append(make_vat_remittance_event(b))
+
         if payment_behaviour is not None:
             credit_risk = payment_behaviour.CREDIT_RISK_BY_CUSTOMER.get(
                 cid, payment_behaviour.DEFAULT_CREDIT_RISK
@@ -231,14 +278,26 @@ def build_ledger(
 def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
     """Aggregate ledger events to P&L. Pure function — no simulation state.
 
+    Phase 9a accounting:
+    - revenue_gbp = total billed - VAT remittance (ex-VAT supplier revenue)
+    - gross_margin_gbp = revenue - wholesale - non_commodity (commodity + standing margin)
+    When no Phase 9a events exist (pre-9a ledgers), behaviour is unchanged.
+
     When payment lifecycle events are present (Phase 7b), also computes
-    `cash_collected_gbp`, `bad_debt_gbp`, and `cash_net_margin_gbp`
-    (cash actually collected minus wholesale and capital costs).
+    `cash_collected_gbp`, `bad_debt_gbp`, and `cash_net_margin_gbp`.
     """
-    revenue = sum(e["amount_gbp"] for e in events if e["event_type"] == "billing_event")
+    total_billed = sum(e["amount_gbp"] for e in events if e["event_type"] == "billing_event")
     wholesale = -sum(e["amount_gbp"] for e in events if e["event_type"] == "settlement_event")
     capital = -sum(e["amount_gbp"] for e in events if e["event_type"] == "capital_charge_event")
-    gross = revenue - wholesale
+
+    # Phase 9a: VAT is not supplier income; non-commodity is a pass-through cost
+    vat_events = [e for e in events if e["event_type"] == "vat_remittance_event"]
+    nc_events = [e for e in events if e["event_type"] == "non_commodity_cost_event"]
+    vat_remittance = -sum(e["amount_gbp"] for e in vat_events)       # positive (cash out)
+    non_commodity_cost = -sum(e["amount_gbp"] for e in nc_events)     # positive (cash out)
+
+    revenue = total_billed - vat_remittance      # ex-VAT revenue (supplier's reported revenue)
+    gross = revenue - wholesale - non_commodity_cost  # margin on commodity + standing
     net = gross - capital
     result: dict[str, float] = {
         "revenue_gbp": revenue,
@@ -248,6 +307,13 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         "net_margin_gbp": net,
     }
 
+    if vat_events or nc_events:
+        result["total_billed_gbp"] = total_billed
+        if vat_events:
+            result["vat_remittance_gbp"] = vat_remittance
+        if nc_events:
+            result["non_commodity_cost_gbp"] = non_commodity_cost
+
     payment_events = [e for e in events if e["event_type"] == "payment_received_event"]
     if payment_events:
         cash_collected = sum(e["amount_gbp"] for e in payment_events)
@@ -256,7 +322,7 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         )
         result["cash_collected_gbp"] = cash_collected
         result["bad_debt_gbp"] = bad_debt
-        result["cash_net_margin_gbp"] = cash_collected - wholesale - capital
+        result["cash_net_margin_gbp"] = cash_collected - wholesale - capital - non_commodity_cost
 
     acq_events = [e for e in events if e["event_type"] == "acquisition_spend_event"]
     if acq_events:

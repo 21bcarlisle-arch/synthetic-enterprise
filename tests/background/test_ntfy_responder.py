@@ -82,8 +82,8 @@ def test_check_once_acks_messages_not_sent_by_us(tmp_path, monkeypatch):
     new_since = responder.check_once(500)
     assert new_since == 1000
     assert len(sent) == 1
-    # Short message ("Hello Rich" < 25 chars) → status ping, no staging file
-    assert "Status ping" in sent[0]
+    # Short message ("Hello Rich" < 25 chars) → [status ping] classification, no staging file
+    assert "status ping" in sent[0].lower()
     assert "Sim:" in sent[0]
 
 
@@ -111,7 +111,9 @@ def test_check_once_stages_substantive_messages(tmp_path, monkeypatch):
     staged_files = list(staging_dir.glob("from_rich_*.md"))
     assert len(staged_files) == 1
     assert long_message in staged_files[0].read_text()
-    assert "Staged for Claude Code pickup" in sent[0]
+    # Dispatcher ack shows classification and action without file link
+    assert "instruction" in sent[0].lower()
+    assert "queued for Claude Code" in sent[0]
 
 
 def test_check_once_ignores_messages_at_or_before_watermark(tmp_path, monkeypatch):

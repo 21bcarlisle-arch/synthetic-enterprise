@@ -160,12 +160,10 @@ def _write_to_staging(message: str) -> Path | None:
 
 
 def build_status_reply(staged_path: Path | None = None) -> str:
-    if staged_path:
-        relay_line = f"Staged for Claude Code pickup: {staged_path.name}"
-    else:
-        relay_line = "Status ping — no staging file written (message too short to be an instruction)"
+    classification = "instruction" if staged_path else "status ping"
+    action = "queued for Claude Code" if staged_path else "no action (message too short)"
     return (
-        f"{relay_line}\n"
+        f"[{classification}] {action}\n"
         f"Sim: {_run_progress_summary()}\n"
         f"{_gpu_summary()}\n"
         f"HEAD: {_git_head_summary()}"

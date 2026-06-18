@@ -67,13 +67,20 @@ def save_seen(seen: set[str]) -> None:
 
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
-    `seen`, logs each notification, and returns the updated seen set."""
+    `seen`, logs each notification, and returns the updated seen set.
+
+    NTFY-originated files (from_rich_*.md) are silently added to seen without
+    sending a notification — the ntfy_responder already acked those messages.
+    """
     files = current_files()
     new_files = sorted(files - seen)
     for name in new_files:
-        msg = f"New file in docs/staging/: {name} — pending explicit staging review"
-        ntfy(msg)
-        log(f"Notified: {name}")
+        if name.startswith("from_rich_") and name.endswith(".md"):
+            log(f"Silently registered NTFY-originated file: {name} (no staging notification)")
+        else:
+            msg = f"New staged instruction: {name} — pending explicit staging review"
+            ntfy(msg)
+            log(f"Notified: {name}")
     if new_files:
         seen = files
         save_seen(seen)

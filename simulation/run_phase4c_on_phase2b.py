@@ -87,10 +87,16 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
 
     bills = []
     for customer_id, months in by_customer_month.items():
-        contract_type = get_customer(customer_id)["contract_type"]
+        customer_data = get_customer(customer_id)
+        contract_type = customer_data["contract_type"]
+        segment = customer_data.get("segment", "resi")
+        commodity = customer_data.get("commodity", "electricity")
         previous_bill_total_gbp = None
         for month in sorted(months):
-            bill = generate_bill(customer_id, months[month], contract_type, previous_bill_total_gbp)
+            bill = generate_bill(
+                customer_id, months[month], contract_type,
+                previous_bill_total_gbp, segment, commodity,
+            )
             bills.append(bill)
             previous_bill_total_gbp = bill["total_amount_gbp"]
 

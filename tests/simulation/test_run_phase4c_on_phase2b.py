@@ -33,13 +33,16 @@ def test_build_monthly_bills_groups_by_customer_and_month():
 
 def test_build_monthly_bills_carries_previous_bill_total_for_shock():
     records = [
-        make_record("C1", "2023-01-01", 10.0),  # 10kWh @ 200/MWh = £2
-        make_record("C1", "2023-02-01", 100.0),  # £20 -- big jump
+        make_record("C1", "2023-01-01", 10.0),   # small bill
+        make_record("C1", "2023-02-01", 100.0),  # 10× jump — big shock
     ]
     bills = build_monthly_bills(records)
 
     assert bills[0]["bill_shock_pct"] is None  # first bill, no prior total
-    assert bills[1]["bill_shock_pct"] == pytest.approx((20.0 - 2.0) / 2.0)
+    # bill_shock_pct = |feb_total - jan_total| / jan_total (both totals include non-commodity + VAT)
+    jan_total = bills[0]["total_amount_gbp"]
+    feb_total = bills[1]["total_amount_gbp"]
+    assert bills[1]["bill_shock_pct"] == pytest.approx((feb_total - jan_total) / jan_total)
     assert bills[1]["clarity_score"] < bills[0]["clarity_score"]
 
 

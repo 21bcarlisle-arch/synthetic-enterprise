@@ -11,8 +11,10 @@ from saas.ledger import (
     make_billing_event,
     make_fixed_cost_event,
     make_capital_charge_event,
+    make_non_commodity_cost_event,
     make_payment_received_event,
     make_settlement_event,
+    make_vat_remittance_event,
 )
 
 
@@ -55,6 +57,27 @@ def _bill(customer_id="C1", period_start="2016-01-01", period_end="2016-01-31",
         "total_consumption_kwh": consumption,
         "clarity_score": 0.85,
         "bill_shock_pct": None,
+    }
+
+
+def _bill_9a(customer_id="C1", period_start="2016-01-01", period_end="2016-01-31",
+             commodity_amount=80.0, non_commodity=11.0, standing=5.0,
+             vat=4.8, segment="resi", commodity="electricity"):
+    total = commodity_amount + non_commodity + standing + vat
+    return {
+        "customer_id": customer_id,
+        "period_start": period_start,
+        "period_end": period_end,
+        "commodity_amount_gbp": commodity_amount,
+        "non_commodity_amount_gbp": non_commodity,
+        "standing_charge_gbp": standing,
+        "vat_gbp": vat,
+        "total_amount_gbp": total,
+        "total_consumption_kwh": 1500.0,
+        "clarity_score": 0.85,
+        "bill_shock_pct": None,
+        "segment": segment,
+        "commodity": commodity,
     }
 
 
@@ -431,3 +454,98 @@ def test_operating_net_margin_is_net_less_acquisition_and_fixed():
     # net_margin = revenue - wholesale - capital = 100 - 60 - 5 = 35
     # operating_net = 35 - 150 - 50 = -165
     assert abs(pnl["operating_net_margin_gbp"] - (pnl["net_margin_gbp"] - 150.0 - 50.0)) < 1e-6
+
+
+# ---- Phase 9a: non_commodity_cost_event and vat_remittance_event ----
+
+def test_make_non_commodity_cost_event_amount_is_negative():
+    bill = _bill_9a(non_commodity=11.0)
+    e = make_non_commodity_cost_event(bill)
+    assert e["amount_gbp"] == pytest.approx(-11.0)
+    assert e["event_type"] == "non_commodity_cost_event"
+
+
+def test_make_non_commodity_cost_event_deterministic_id():
+    bill = _bill_9a()
+    e1 = make_non_commodity_cost_event(bill)
+    e2 = make_non_commodity_cost_event(bill)
+    assert e1["transaction_id"] == e2["transaction_id"]
+
+
+def test_make_vat_remittance_event_amount_is_negative():
+    bill = _bill_9a(vat=4.8)
+    e = make_vat_remittance_event(bill)
+    assert e["amount_gbp"] == pytest.approx(-4.8)
+    assert e["event_type"] == "vat_remittance_event"
+
+
+def test_make_vat_remittance_event_deterministic_id():
+    bill = _bill_9a()
+    e1 = make_vat_remittance_event(bill)
+    e2 = make_vat_remittance_event(bill)
+    assert e1["transaction_id"] == e2["transaction_id"]
+
+
+def test_make_non_commodity_and_vat_events_have_different_ids():
+    bill = _bill_9a()
+    nc = make_non_commodity_cost_event(bill)
+    vat = make_vat_remittance_event(bill)
+    assert nc["transaction_id"] != vat["transaction_id"]
+
+
+def test_build_ledger_phase9a_bill_generates_nc_and_vat_events():
+    records = [_settlement_record(date="2016-01-01", period=1)]
+    bills = [_bill_9a(period_start="2016-01-01")]
+    events = build_ledger(records, bills)
+    types = {e["event_type"] for e in events}
+    assert "non_commodity_cost_event" in types
+    assert "vat_remittance_event" in types
+
+
+def test_build_ledger_pre9a_bill_omits_nc_and_vat_events():
+    """Bills without non_commodity_amount_gbp / vat_gbp don't generate Phase 9a events."""
+    records = [_settlement_record()]
+    bills = [_bill()]  # no Phase 9a fields
+    events = build_ledger(records, bills)
+    types = {e["event_type"] for e in events}
+    assert "non_commodity_cost_event" not in types
+    assert "vat_remittance_event" not in types
+
+
+def test_derive_pnl_phase9a_revenue_excludes_vat():
+    """revenue_gbp = total_billed - vat (ex-VAT revenue)."""
+    records = [_settlement_record(wholesale=60.0, capital=5.0)]
+    # total_amount = 80 + 11 + 5 + 4.8 = 100.8; ex-VAT revenue = 100.8 - 4.8 = 96
+    bills = [_bill_9a(commodity_amount=80.0, non_commodity=11.0, standing=5.0, vat=4.8)]
+    events = build_ledger(records, bills)
+    pnl = derive_pnl(events)
+    # revenue = total_billed - vat = 100.8 - 4.8 = 96.0
+    assert abs(pnl["revenue_gbp"] - 96.0) < 1e-9
+    assert "total_billed_gbp" in pnl
+    assert abs(pnl["total_billed_gbp"] - 100.8) < 1e-9
+    assert abs(pnl["vat_remittance_gbp"] - 4.8) < 1e-9
+
+
+def test_derive_pnl_phase9a_gross_margin_excludes_non_commodity():
+    """gross_margin = revenue - wholesale - non_commodity (commodity + standing only)."""
+    records = [_settlement_record(wholesale=60.0, capital=5.0)]
+    bills = [_bill_9a(commodity_amount=80.0, non_commodity=11.0, standing=5.0, vat=4.8)]
+    events = build_ledger(records, bills)
+    pnl = derive_pnl(events)
+    # revenue = 96.0, wholesale = 60, non_commodity = 11
+    # gross = 96 - 60 - 11 = 25
+    assert abs(pnl["gross_margin_gbp"] - 25.0) < 1e-9
+    assert abs(pnl["non_commodity_cost_gbp"] - 11.0) < 1e-9
+
+
+def test_derive_pnl_phase9a_backward_compatible_with_pre9a_bills():
+    """Pre-Phase-9a bills (no non_commodity/vat fields) still produce correct P&L."""
+    records = [_settlement_record(wholesale=6.0, capital=0.5)]
+    bills = [_bill(amount=10.0)]
+    pnl = derive_pnl(build_ledger(records, bills))
+    # Behaviour unchanged: revenue=10, gross=4, net=3.5
+    assert abs(pnl["revenue_gbp"] - 10.0) < 1e-9
+    assert abs(pnl["gross_margin_gbp"] - 4.0) < 1e-9
+    assert abs(pnl["net_margin_gbp"] - 3.5) < 1e-9
+    assert "total_billed_gbp" not in pnl
+    assert "vat_remittance_gbp" not in pnl

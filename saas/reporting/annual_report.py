@@ -461,6 +461,26 @@ def extract_report_data(run_output: dict) -> dict:
         "total_acquisition_attempts": len(acquisition_spend_events),
         "total_acquisition_wins": sum(1 for e in acquisition_spend_events if e.get("acquisition_won")),
         "acquired_customers": acquired_customer_ids,
+        # Phase 9a: ledger-authoritative headline figures (when non-commodity/VAT events present)
+        "_ledger_headline": _build_ledger_headline(run_output.get("ledger_pnl")),
+    }
+
+
+def _build_ledger_headline(pnl: dict | None) -> dict | None:
+    """Extract Phase 9a headline P&L from ledger when non-commodity/VAT events exist.
+
+    Returns None when ledger has no Phase 9a data (pre-9a ledgers).
+    """
+    if pnl is None or "total_billed_gbp" not in pnl:
+        return None
+    return {
+        "total_billed_gbp": pnl["total_billed_gbp"],
+        "vat_remittance_gbp": pnl.get("vat_remittance_gbp", 0.0),
+        "revenue_gbp": pnl["revenue_gbp"],
+        "non_commodity_cost_gbp": pnl.get("non_commodity_cost_gbp", 0.0),
+        "gross_margin_gbp": pnl["gross_margin_gbp"],
+        "capital_cost_gbp": pnl["capital_cost_gbp"],
+        "net_margin_gbp": pnl["net_margin_gbp"],
     }
 
 
@@ -504,6 +524,41 @@ def _executive_summary(data: dict) -> str:
     else:
         cost_to_serve_line = f"- Cost to serve (whole portfolio): {NOT_AVAILABLE}"
 
+    hl = data.get("_ledger_headline")
+    if hl:
+        revenue_line = (
+            f"- Customer bills (all-in): {_fmt_gbp(hl['total_billed_gbp'])}\n"
+            f"  VAT remitted to HMRC: ({_fmt_gbp(hl['vat_remittance_gbp'])}) | "
+            f"Revenue (ex-VAT): {_fmt_gbp(hl['revenue_gbp'])}\n"
+            f"  Non-commodity pass-through: ({_fmt_gbp(hl['non_commodity_cost_gbp'])})"
+        )
+        gross_line = f"- Gross margin: {_fmt_gbp(hl['gross_margin_gbp'])}"
+        capital_line = f"- Capital costs: {_fmt_gbp(hl['capital_cost_gbp'])}"
+        net_line = f"- Net margin: {_fmt_gbp(hl['net_margin_gbp'])}"
+        revenue_gbp = hl["revenue_gbp"]
+        gross_gbp = hl["gross_margin_gbp"]
+        net_gbp = hl["net_margin_gbp"]
+        capital_gbp = hl["capital_cost_gbp"]
+    else:
+        revenue_line = f"- Revenue: {_fmt_gbp(data['total_revenue_gbp'])}"
+        gross_line = f"- Gross margin: {_fmt_gbp(data['total_gross_gbp'])}"
+        capital_line = f"- Capital costs: {_fmt_gbp(data['total_capital_gbp'])}"
+        net_line = f"- Net margin: {_fmt_gbp(data['total_net_gbp'])}"
+        revenue_gbp = data["total_revenue_gbp"]
+        gross_gbp = data["total_gross_gbp"]
+        net_gbp = data["total_net_gbp"]
+        capital_gbp = data["total_capital_gbp"]
+
+    cap_ratio_line = (
+        f"- Capital cost ratio: {capital_gbp / gross_gbp:.1%} of gross"
+        if gross_gbp else "- Capital cost ratio: n/a"
+    )
+    net_pct_line = (
+        f"- Net margin as % of revenue: {net_gbp / revenue_gbp:.1%}"
+        f"\n  (industry benchmark for a retail energy supplier: 2-5%)"
+        if revenue_gbp else "- Net margin as % of revenue: n/a"
+    )
+
     return f"""## Executive Summary
 
 This report covers {years[0]}–{years[-1]} ({len(years)} calendar years,
@@ -512,13 +567,12 @@ the last partial). The business {outcome}.
 - Starting treasury: {_fmt_gbp(data['starting_treasury_gbp'])}
 - Final treasury: {_fmt_gbp(data['final_treasury_gbp'])}
   ({_fmt_gbp(data['final_treasury_gbp'] - data['starting_treasury_gbp'])} net change)
-- Revenue: {_fmt_gbp(data['total_revenue_gbp'])}
-- Gross margin: {_fmt_gbp(data['total_gross_gbp'])}
-- Capital costs: {_fmt_gbp(data['total_capital_gbp'])}
-- Net margin: {_fmt_gbp(data['total_net_gbp'])}
-- Capital cost ratio: {data['total_capital_gbp'] / data['total_gross_gbp']:.1%} of gross
-- Net margin as % of revenue: {data['total_net_gbp'] / data['total_revenue_gbp']:.1%}
-  (industry benchmark for a retail energy supplier: 2-5%)
+{revenue_line}
+{gross_line}
+{capital_line}
+{net_line}
+{cap_ratio_line}
+{net_pct_line}
 - Risk committee (Context Handshake) interventions: {data['committee_wake_ups_total']}
 - Bills issued: {data['bills_total']}, average clarity {data['avg_clarity_total']:.3f},
   service quality score {data['service_quality_score']:.3f}
@@ -1101,7 +1155,7 @@ def _clv_trajectory_section(data: dict) -> str:
 
 
 def _ledger_summary_section(data: dict) -> str:
-    """Transaction log summary — Phase 7a/7b. Shows event counts, cash-flow
+    """Transaction log summary — Phase 7a/7b/9a. Shows event counts, cash-flow
     waterfall, and verification that ledger P&L agrees with the simulation."""
     meta = data.get("ledger_meta")
     pnl = data.get("ledger_pnl")
@@ -1110,10 +1164,6 @@ def _ledger_summary_section(data: dict) -> str:
         return f"## Transaction Log\n\n{NOT_AVAILABLE}\n"
 
     by_type = meta.get("by_type", {})
-    direct_net = data.get("total_net_gbp", 0.0)
-    ledger_net = pnl.get("net_margin_gbp", 0.0)
-    discrepancy = abs(direct_net - ledger_net)
-    agreement = "✓ agrees with simulation" if discrepancy < 0.01 else f"⚠ discrepancy £{discrepancy:.2f}"
 
     lines = [
         "## Transaction Log",
@@ -1132,14 +1182,26 @@ def _ledger_summary_section(data: dict) -> str:
         "",
         "| Flow | Amount |",
         "|------|--------|",
-        f"| Revenue billed (billing events) | {_fmt_gbp(pnl['revenue_gbp'])} |",
     ]
+
+    # Phase 9a: show full bill breakdown when non-commodity / VAT events present
+    if "total_billed_gbp" in pnl:
+        lines += [
+            f"| Customer bills (all-in) | {_fmt_gbp(pnl['total_billed_gbp'])} |",
+            f"|   Less: VAT remitted to HMRC | ({_fmt_gbp(pnl['vat_remittance_gbp'])}) |",
+            f"| = Revenue (ex-VAT) | {_fmt_gbp(pnl['revenue_gbp'])} |",
+        ]
+    else:
+        lines.append(f"| Revenue billed (billing events) | {_fmt_gbp(pnl['revenue_gbp'])} |")
 
     if "cash_collected_gbp" in pnl:
         lines += [
             f"|   Less: bad debt written off | ({_fmt_gbp(pnl['bad_debt_gbp'])}) |",
             f"| = Cash collected | {_fmt_gbp(pnl['cash_collected_gbp'])} |",
         ]
+
+    if "non_commodity_cost_gbp" in pnl:
+        lines.append(f"| Less: non-commodity pass-through | ({_fmt_gbp(pnl['non_commodity_cost_gbp'])}) |")
 
     lines += [
         f"| Wholesale cost (settlement events) | ({_fmt_gbp(pnl['wholesale_cost_gbp'])}) |",
@@ -1151,11 +1213,16 @@ def _ledger_summary_section(data: dict) -> str:
     if "cash_net_margin_gbp" in pnl:
         lines.append(f"| Net margin (cash) | {_fmt_gbp(pnl['cash_net_margin_gbp'])} |")
 
-    lines += [
-        "",
-        f"Ledger P&L vs simulation direct: {agreement}",
-        "",
-    ]
+    lines += [""]
+
+    if "acquisition_spend_gbp" in pnl or "fixed_cost_gbp" in pnl:
+        lines += [
+            f"| Acquisition spend | ({_fmt_gbp(pnl.get('acquisition_spend_gbp', 0.0))}) |",
+            f"| Fixed overhead | ({_fmt_gbp(pnl.get('fixed_cost_gbp', 0.0))}) |",
+            f"| Operating net margin | {_fmt_gbp(pnl.get('operating_net_margin_gbp', 0.0))} |",
+            "",
+        ]
+
     return "\n".join(lines)
 
 
