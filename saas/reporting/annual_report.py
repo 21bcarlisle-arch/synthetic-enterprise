@@ -591,7 +591,7 @@ def _hedge_value_add_line(totals: dict | None) -> str:
     verb = "added" if add >= 0 else "cost"
     return (
         f"hedging {verb} {_fmt_gbp(abs(add))} vs. a fully unhedged book "
-        f"(actual net {_fmt_gbp(totals['actual_net_gbp'])} vs. naked net "
+        f"(commodity-only: actual net {_fmt_gbp(totals['actual_net_gbp'])} vs. naked net "
         f"{_fmt_gbp(totals['naked_net_gbp'])})"
     )
 
@@ -959,10 +959,18 @@ def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
     )
     lines.append("")
     lines.append(
-        "**Note:** the figures below come from two *different* simulation "
+        "**Note:** all figures in this section are **commodity-only** (energy "
+        "margin, before Phase 9a standing charges, non-commodity pass-through, "
+        "and VAT). This is intentional — hedging decisions affect only commodity "
+        "P&L, not pass-through costs. See Executive Summary for Phase 9a all-in "
+        "revenue and net margin."
+    )
+    lines.append("")
+    lines.append(
+        "The figures below come from two *different* simulation "
         "runs (this run vs. the preserved old-model snapshot) — do not "
         "subtract a figure from one run's row from a figure in the other's. "
-        f"This run: gross {_fmt_gbp(data['total_gross_gbp'])}, capital "
+        f"This run (commodity-only): gross {_fmt_gbp(data['total_gross_gbp'])}, capital "
         f"{_fmt_gbp(data['total_capital_gbp'])}, net "
         f"{_fmt_gbp(data['total_net_gbp'])}. Old-model run: gross "
         f"{_fmt_gbp(old_data['total_gross_gbp'])}, capital "
@@ -988,21 +996,21 @@ def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
         new_margin_pct = data["total_net_gbp"] / data["total_revenue_gbp"]
         old_margin_pct = old_data["total_net_gbp"] / old_revenue
         lines.append(
-            f"- **Net margin as % of revenue**: {_fmt_pct(new_margin_pct)} "
+            f"- **Net margin as % of revenue (commodity-only)**: {_fmt_pct(new_margin_pct)} "
             f"under the new mandate vs. {_fmt_pct(old_margin_pct)} under the "
             "old reactive model (industry benchmark: 2-5%)."
         )
     else:
         lines.append(
-            f"- **Net margin as % of revenue**: this run "
+            f"- **Net margin as % of revenue (commodity-only)**: this run "
             f"{_fmt_pct(data['total_net_gbp'] / data['total_revenue_gbp'])}; "
             f"old-model run {NOT_AVAILABLE} (revenue wasn't captured in that "
             "snapshot)."
         )
     lines.append("")
-    lines.append("**Whole-run net margin, three ways:**")
+    lines.append("**Whole-run net margin, three ways (commodity-only):**")
     lines.append("")
-    lines.append(f"- Mandate-hedged (actual, this run): {_fmt_gbp(data['total_net_gbp'])}")
+    lines.append(f"- Mandate-hedged (actual, this run, commodity-only): {_fmt_gbp(data['total_net_gbp'])}")
     if old_data is not None:
         lines.append(f"- Old reactive model (actual): {_fmt_gbp(old_data['total_net_gbp'])}")
     if new_het is not None:
@@ -1194,12 +1202,6 @@ def _ledger_summary_section(data: dict) -> str:
     else:
         lines.append(f"| Revenue billed (billing events) | {_fmt_gbp(pnl['revenue_gbp'])} |")
 
-    if "cash_collected_gbp" in pnl:
-        lines += [
-            f"|   Less: bad debt written off | ({_fmt_gbp(pnl['bad_debt_gbp'])}) |",
-            f"| = Cash collected | {_fmt_gbp(pnl['cash_collected_gbp'])} |",
-        ]
-
     if "non_commodity_cost_gbp" in pnl:
         lines.append(f"| Less: non-commodity pass-through | ({_fmt_gbp(pnl['non_commodity_cost_gbp'])}) |")
 
@@ -1210,8 +1212,18 @@ def _ledger_summary_section(data: dict) -> str:
         f"| Net margin | {_fmt_gbp(pnl['net_margin_gbp'])} |",
     ]
 
-    if "cash_net_margin_gbp" in pnl:
-        lines.append(f"| Net margin (cash) | {_fmt_gbp(pnl['cash_net_margin_gbp'])} |")
+    if "cash_collected_gbp" in pnl:
+        # Cash reconciliation: shown after the P&L waterfall as a memo.
+        # cash_collected = bills (all-in) − bad_debt (different path from revenue ex-VAT).
+        # cash_net_margin = cash_collected − wholesale − capital − non_commodity (before VAT remittance).
+        lines += [
+            "",
+            f"_Cash reconciliation: of {_fmt_gbp(pnl['total_billed_gbp'])} billed, "
+            f"bad debt of {_fmt_gbp(pnl['bad_debt_gbp'])} was written off, leaving "
+            f"{_fmt_gbp(pnl['cash_collected_gbp'])} cash collected (gross of VAT). "
+            f"After operating costs, net cash position before VAT remittance: "
+            f"{_fmt_gbp(pnl['cash_net_margin_gbp'])}._",
+        ]
 
     lines += [""]
 
@@ -1292,7 +1304,8 @@ def _growth_acquisition_section(data: dict) -> str:
             fc = yd.get("fixed_cost_gbp", 0.0)
             if fc:
                 lines.append(f"| {year} | ({_fmt_gbp(fc)}) |")
-        net_gbp = data.get("total_net_gbp", 0.0)
+        hl = data.get("_ledger_headline")
+        net_gbp = hl["net_margin_gbp"] if hl else data.get("total_net_gbp", 0.0)
         lines += [
             "",
             f"**Total fixed cost:** {_fmt_gbp(total_fixed)} over simulation window",

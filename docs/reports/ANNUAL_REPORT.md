@@ -22,7 +22,7 @@ the last partial). The business survived the full window.
   service quality score 0.920
 - Enterprise value (CLV sum across 10 billing accounts): £-1,635.32
 - Cost to serve (whole portfolio): £6,460.24, net margin after cost to serve: £-1,672.19
-- Hedge effectiveness (whole window): hedging cost £1,656.28 vs. a fully unhedged book (actual net £3,560.41 vs. naked net £5,216.69)
+- Hedge effectiveness (whole window): hedging cost £1,656.28 vs. a fully unhedged book (commodity-only: actual net £3,560.41 vs. naked net £5,216.69)
 
 - **2021** (crisis year): net margin £-343.62, 4 risk committee wake-up(s).
 - **2022** (crisis year): net margin £361.19, 30 risk committee wake-up(s).
@@ -31,15 +31,17 @@ the last partial). The business survived the full window.
 
 Phase 5c replaced the old reactive hedging model (start at 50/50, risk committee reacts upward from there with no floor) with a minimum hedge mandate: every term starts at least 85% hedged (`MIN_HEDGE_FLOOR` in `sim/hedging_strategy.py`), modelling a real supplier's supply-obligation-first behaviour rather than a speculative book with a safety valve. Because capital cost is charged on the unhedged (active) position only, raising the floor to 85% caps that active position at 15% of volume by construction.
 
-**Note:** the figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run: gross £4,788.04, capital £1,227.63, net £3,560.41. Old-model run: gross £45,417.31, capital £18,637.75, net £26,779.56.
+**Note:** all figures in this section are **commodity-only** (energy margin, before Phase 9a standing charges, non-commodity pass-through, and VAT). This is intentional — hedging decisions affect only commodity P&L, not pass-through costs. See Executive Summary for Phase 9a all-in revenue and net margin.
+
+The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (commodity-only): gross £4,788.04, capital £1,227.63, net £3,560.41. Old-model run: gross £45,417.31, capital £18,637.75, net £26,779.56.
 
 - **Capital cost as % of gross margin**: 25.6% under the new mandate vs. 41.0% under the old reactive model.
 - **2021 net margin**: £-343.62 under the new mandate vs. £-1,096.43 under the old reactive model.
-- **Net margin as % of revenue**: this run 3.5%; old-model run Not available in current run output (see REPORTING_BACKLOG.md) (revenue wasn't captured in that snapshot).
+- **Net margin as % of revenue (commodity-only)**: this run 3.5%; old-model run Not available in current run output (see REPORTING_BACKLOG.md) (revenue wasn't captured in that snapshot).
 
-**Whole-run net margin, three ways:**
+**Whole-run net margin, three ways (commodity-only):**
 
-- Mandate-hedged (actual, this run): £3,560.41
+- Mandate-hedged (actual, this run, commodity-only): £3,560.41
 - Old reactive model (actual): £26,779.56
 - Fully naked (this run's counterfactual): £5,216.69
 - Fully naked (old run's counterfactual): £33,476.19
@@ -55,7 +57,7 @@ This is the most strategically interesting question in the whole
 simulation: did the risk committee's hedging interventions actually make
 money, or just reduce variance?
 
-- hedging cost £1,656.28 vs. a fully unhedged book (actual net £3,560.41 vs. naked net £5,216.69)
+- hedging cost £1,656.28 vs. a fully unhedged book (commodity-only: actual net £3,560.41 vs. naked net £5,216.69)
 - **Best hedging decision of the run**: C6, term starting
   2021-03-31 (hedge fraction 0.95) -- hedging
   protected £2,367.75 vs. going naked.
@@ -213,14 +215,13 @@ Total events: 2,238,162
 | Customer bills (all-in) | £168,067.47 |
 |   Less: VAT remitted to HMRC | (£13,906.94) |
 | = Revenue (ex-VAT) | £154,160.54 |
-|   Less: bad debt written off | (£3,280.64) |
-| = Cash collected | £164,786.83 |
 | Less: non-commodity pass-through | (£42,887.46) |
 | Wholesale cost (settlement events) | (£96,087.24) |
 | Gross margin | £15,185.84 |
 | Capital charges | (£1,227.63) |
 | Net margin | £13,958.21 |
-| Net margin (cash) | £24,584.50 |
+
+_Cash reconciliation: of £168,067.47 billed, bad debt of £3,280.64 was written off, leaving £164,786.83 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £24,584.50._
 
 | Acquisition spend | (£1,250.00) |
 | Fixed overhead | (£5,700.00) |
@@ -256,7 +257,7 @@ Total events: 2,238,162
 | 2025 | (£300.00) |
 
 **Total fixed cost:** £5,700.00 over simulation window
-**Operating net margin** (energy margin less acquisition spend & fixed costs): £-3,389.59
+**Operating net margin** (energy margin less acquisition spend & fixed costs): £7,008.21
 
 ## 2016
 
@@ -390,7 +391,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £459.84 vs. naked (unhedged) net margin: £480.69
-- hedging cost £20.85 vs. a fully unhedged book (actual net £459.84 vs. naked net £480.69)
+- hedging cost £20.85 vs. a fully unhedged book (commodity-only: actual net £459.84 vs. naked net £480.69)
   - C1: actual £29.16 vs. naked £141.08 -- hedging cost £111.92
   - C1g: actual £51.31 vs. naked £45.90 -- hedging added £5.41
   - C2: actual £29.42 vs. naked £87.21 -- hedging cost £57.79
@@ -500,7 +501,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £381.90 vs. naked (unhedged) net margin: £-103.28
-- hedging added £485.17 vs. a fully unhedged book (actual net £381.90 vs. naked net £-103.28)
+- hedging added £485.17 vs. a fully unhedged book (commodity-only: actual net £381.90 vs. naked net £-103.28)
   - C1: actual £9.53 vs. naked £3.78 -- hedging added £5.75
   - C1g: actual £25.47 vs. naked £-3.82 -- hedging added £29.29
   - C2: actual £38.72 vs. naked £142.12 -- hedging cost £103.40
@@ -568,7 +569,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £598.95 vs. naked (unhedged) net margin: £2,695.46
-- hedging cost £2,096.51 vs. a fully unhedged book (actual net £598.95 vs. naked net £2,695.46)
+- hedging cost £2,096.51 vs. a fully unhedged book (commodity-only: actual net £598.95 vs. naked net £2,695.46)
   - C1: actual £15.62 vs. naked £102.35 -- hedging cost £86.72
   - C1g: actual £27.55 vs. naked £147.39 -- hedging cost £119.84
   - C2: actual £73.60 vs. naked £355.64 -- hedging cost £282.05
@@ -636,7 +637,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £623.83 vs. naked (unhedged) net margin: £2,212.02
-- hedging cost £1,588.19 vs. a fully unhedged book (actual net £623.83 vs. naked net £2,212.02)
+- hedging cost £1,588.19 vs. a fully unhedged book (commodity-only: actual net £623.83 vs. naked net £2,212.02)
   - C1: actual £16.05 vs. naked £49.84 -- hedging cost £33.79
   - C1g: actual £30.66 vs. naked £72.58 -- hedging cost £41.92
   - C2: actual £58.48 vs. naked £271.55 -- hedging cost £213.07
@@ -704,7 +705,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £-246.25 vs. naked (unhedged) net margin: £-3,843.88
-- hedging added £3,597.64 vs. a fully unhedged book (actual net £-246.25 vs. naked net £-3,843.88)
+- hedging added £3,597.64 vs. a fully unhedged book (commodity-only: actual net £-246.25 vs. naked net £-3,843.88)
   - C1: actual £-25.49 vs. naked £-230.78 -- hedging added £205.29
   - C1g: actual £-23.27 vs. naked £-304.56 -- hedging added £281.29
   - C2: actual £27.89 vs. naked £77.45 -- hedging cost £49.56
@@ -772,7 +773,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £54.25 vs. naked (unhedged) net margin: £-6,521.21
-- hedging added £6,575.46 vs. a fully unhedged book (actual net £54.25 vs. naked net £-6,521.21)
+- hedging added £6,575.46 vs. a fully unhedged book (commodity-only: actual net £54.25 vs. naked net £-6,521.21)
   - C2: actual £-22.66 vs. naked £-290.46 -- hedging added £267.80
   - C2g: actual £4.80 vs. naked £-552.00 -- hedging added £556.81
   - C4: actual £36.75 vs. naked £39.38 -- hedging cost £2.63
@@ -861,7 +862,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £712.91 vs. naked (unhedged) net margin: £8,880.54
-- hedging cost £8,167.63 vs. a fully unhedged book (actual net £712.91 vs. naked net £8,880.54)
+- hedging cost £8,167.63 vs. a fully unhedged book (commodity-only: actual net £712.91 vs. naked net £8,880.54)
   - C2_2: actual £250.43 vs. naked £1,308.01 -- hedging cost £1,057.59
   - C4: actual £49.85 vs. naked £1,800.08 -- hedging cost £1,750.23
   - C4g: actual £96.22 vs. naked £2,961.18 -- hedging cost £2,864.96
@@ -920,7 +921,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £847.04 vs. naked (unhedged) net margin: £2,077.56
-- hedging cost £1,230.52 vs. a fully unhedged book (actual net £847.04 vs. naked net £2,077.56)
+- hedging cost £1,230.52 vs. a fully unhedged book (commodity-only: actual net £847.04 vs. naked net £2,077.56)
   - C2_2: actual £227.41 vs. naked £991.61 -- hedging cost £764.20
   - C4: actual £54.48 vs. naked £161.46 -- hedging cost £106.98
   - C4g: actual £58.93 vs. naked £-41.99 -- hedging added £100.92
@@ -976,7 +977,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £94.60 vs. naked (unhedged) net margin: £-796.16
-- hedging added £890.75 vs. a fully unhedged book (actual net £94.60 vs. naked net £-796.16)
+- hedging added £890.75 vs. a fully unhedged book (commodity-only: actual net £94.60 vs. naked net £-796.16)
   - C2_2: actual £36.27 vs. naked £-88.08 -- hedging added £124.35
   - C7: actual £24.38 vs. naked £-78.79 -- hedging added £103.17
   - C8: actual £9.59 vs. naked £-303.83 -- hedging added £313.42
@@ -1025,7 +1026,7 @@ Total events: 2,238,162
 **Hedge Effectiveness**
 
 - Actual (hedged) net margin: £33.34 vs. naked (unhedged) net margin: £134.94
-- hedging cost £101.60 vs. a fully unhedged book (actual net £33.34 vs. naked net £134.94)
+- hedging cost £101.60 vs. a fully unhedged book (commodity-only: actual net £33.34 vs. naked net £134.94)
   - C2_2: actual £19.03 vs. naked £129.21 -- hedging cost £110.19
   - C8: actual £14.31 vs. naked £5.72 -- hedging added £8.59
 
