@@ -98,3 +98,34 @@ def test_launch_turn_skips_when_binary_missing(tmp_path, monkeypatch):
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
         autonomous_runner.launch_turn()
         mock_popen.assert_not_called()
+
+
+def test_usage_limit_active_detects_limit_phrase(monkeypatch):
+    monkeypatch.setattr(
+        autonomous_runner, "_pane_content",
+        lambda: "Claude.ai usage limit reached. Try again at 18:00."
+    )
+    assert autonomous_runner._usage_limit_active() is True
+
+
+def test_usage_limit_active_false_when_normal(monkeypatch):
+    monkeypatch.setattr(
+        autonomous_runner, "_pane_content",
+        lambda: "Working on Phase 9b implementation..."
+    )
+    assert autonomous_runner._usage_limit_active() is False
+
+
+def test_launch_turn_skips_during_usage_limit(monkeypatch):
+    autonomous_runner._active_proc = None
+    autonomous_runner._turn_times.clear()
+    monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", Path("/usr/bin/true"))
+    monkeypatch.setattr(
+        autonomous_runner, "_pane_content",
+        lambda: "Claude.ai usage limit reached."
+    )
+    monkeypatch.setattr(autonomous_runner, "send_ntfy", lambda *a, **k: None)
+
+    with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
+        autonomous_runner.launch_turn()
+        mock_popen.assert_not_called()

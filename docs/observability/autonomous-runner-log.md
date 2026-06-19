@@ -1,0 +1,37 @@
+
+- [2026-06-19 20:47 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-19 20:47 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-19 20:47 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-153/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-19 20:47 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-19 20:47 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-19 20:47 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-154/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-19 20:47 UTC] Autonomous runner started
+- [2026-06-19 20:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 20:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 20:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 20:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 20:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 20:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:01 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-19 21:01 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-19 21:01 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-155/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-19 21:01 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-19 21:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:29 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-19 21:29 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-19 21:29 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-156/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-19 21:29 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn

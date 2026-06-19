@@ -8,12 +8,34 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-18T20:00:15Z
+Last updated: 2026-06-19T21:30:59Z
 
-**Annual report consistency review complete (2026-06-18)**: 474 tests passing.
-- Fixed 4 inconsistencies: operating net margin showed -£3,389 AND +£7,008 in same doc (critical); waterfall "Cash collected" row was mathematically broken; Hedging Mandate figures conflicted with Executive Summary without labels; hedge effectiveness line unlabelled
-- Discovery agent live: `background/discovery_agent.py` + `docs/market_research/ASSUMPTIONS.md` — standing habit after every report regeneration
-- Intelligent dispatcher live: `background/dispatcher.py` — Qwen classifies inbound NTFY messages as URGENT/NORMAL/FYI; urgent messages relay immediately to Claude session via tmux
+**Autonomous stack fully operational (2026-06-19)**: 497 tests passing.
+- `sim_runner.py`: continuous 9.5yr simulation loop — pegs GPU off-peak, writes `run_complete_*.md` staging markers every ~17min
+- `autonomous_runner.py`: fires `claude -p` turns after 30min session idle — replaces broken tmux keystroke autoloop; rate-capped 2/hr; skips during usage limits
+- `health_check.py`: 8-process stack health check; NTFYs on degraded state
+- NTFY feedback loop fixed: background worker NTFYs no longer re-ingested as from_rich messages
+- Dispatcher urgency fast-path: "urgent/investigation/idle/broken" keywords bypass Qwen, classify immediately
+- Autonomous fallback updated: prioritises closing CLAUDE.md hollow gaps, not reporting backlog refinements
+- Annual report republished from fresh sim run (git 58bcfbe, 2026-06-19T21:05 UTC)
+
+**Phase 9a bill structure results (2016–2025)** — confirmed fresh run:
+- Customer bills (all-in): £168,067 | VAT remitted: (£13,907) | Revenue (ex-VAT): £154,161
+- Non-commodity pass-through: (£42,887) | Wholesale: (£96,087)
+- Gross margin: £15,186 | Capital: £1,228 | Net margin: £13,958 (9.1% of ex-VAT revenue)
+- Operating net margin (after fixed overhead £5,700 + acquisition £1,250): **£+7,008** (profitable!)
+- Treasury: £29,846 → £33,407 | 2,238,162 ledger events | 160 committee interventions
+- Enterprise value: £-1,635 | Cost-to-serve: £6,460 | Net after CTS: £+7,498
+
+**Five hollow gaps status (as of 2026-06-19)**:
+1. ~~No customer events firing~~ — CLOSED (Phase 6b): churn events, Phase 7e replacement onboarding
+2. ~~No ledger~~ — CLOSED (Phase 7a/7b): transaction log, cash waterfall, bad-debt events
+3. SIM/company barrier structural not functional — Company layer foundation built (Phase 9a), interfaces stubbed
+4. ~~HH data path~~ — CLOSED (Phase 6a): C7-C9 on real HH consumption
+5. ~~Reporting~~ — CLOSED (Phase 5a/5b): ANNUAL_REPORT.md, full pipeline
+
+**Next**: Phase 9b — close gap #3 (functional SIM/company separation) or propose next hollow-gap phase.
+Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 
 **Phase 9a full run complete (2026-06-18)**: SURVIVED. 465 tests passing.
 

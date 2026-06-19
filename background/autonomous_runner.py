@@ -57,12 +57,15 @@ AUTONOMOUS_PROMPT = (
     "push, NTFY Rich with results. "
     "If staging is empty, check docs/staging/drafts/ for a proposed next phase "
     "and proceed if the 4h opt-out window has passed. "
-    "If nothing is pending, advance the highest-priority item in "
-    "docs/reports/REPORTING_BACKLOG.md with tests. "
+    "If nothing is pending, your job is to ADVANCE THE PROJECT, not fill time. "
+    "Read CLAUDE.md's 'five hollow gaps' section — pick the highest-priority gap "
+    "that is not yet closed, design the next phase that closes it (or materially "
+    "reduces it), write it to docs/staging/drafts/NEXT_PHASE.md, and NTFY Rich: "
+    "'Proposed Phase X: <one sentence> — will proceed in 4h unless redirected.' "
+    "Do NOT default to reporting backlog refinements (more metrics, deeper CLV "
+    "snapshots, forward curve tweaks) unless all five hollow gaps are closed. "
     "Always: run tests before committing, commit with a clear message, push, "
-    "and NTFY Rich with what was done. "
-    "If you genuinely have nothing to do, NTFY Rich: 'Autonomous turn: staging "
-    "empty and no backlog work available — idling.' and exit."
+    "and NTFY Rich with what was done."
 )
 
 sys.path.insert(0, str(PROJECT_DIR))
@@ -116,6 +119,25 @@ def idle_seconds() -> float:
     return 0.0
 
 
+_USAGE_LIMIT_PHRASES = (
+    "Claude.ai usage limit",
+    "usage limit reached",
+    "Your Claude.ai Pro",
+)
+
+
+def _usage_limit_active() -> bool:
+    """Return True if the Claude pane is showing a usage-limit message.
+
+    When a usage limit is active the pane is static (triggering our idle
+    threshold) but firing claude -p would immediately fail with the same
+    limit. session_watchdog handles the wait/resume — we must stay out of
+    the way.
+    """
+    content = _pane_content()
+    return any(phrase.lower() in content.lower() for phrase in _USAGE_LIMIT_PHRASES)
+
+
 def launch_turn() -> None:
     global _active_proc
 
@@ -129,6 +151,10 @@ def launch_turn() -> None:
 
     if turns_in_last_hour() >= MAX_TURNS_PER_HOUR:
         log(f"Rate cap ({MAX_TURNS_PER_HOUR}/hour) — skipping turn")
+        return
+
+    if _usage_limit_active():
+        log("Usage limit active — session_watchdog will resume; skipping autonomous turn")
         return
 
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
