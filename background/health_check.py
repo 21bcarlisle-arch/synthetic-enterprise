@@ -29,6 +29,8 @@ EXPECTED_PANES = {
     "dispatcher": "dispatcher.py",
     "discovery-daemon": "discovery_agent.py",
     "background-worker": "background_worker.py",
+    "sim-runner": "sim_runner.py",
+    "autonomous-runner": "autonomous_runner.py",
 }
 
 

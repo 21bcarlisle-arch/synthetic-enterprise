@@ -44,6 +44,14 @@ _start_session "discovery-daemon" \
   "python3 background/discovery_agent.py --daemon" \
   "Validates simulation assumptions every 6h via Qwen"
 
+_start_session "sim-runner" \
+  "python3 background/sim_runner.py" \
+  "Continuous 9.5yr simulation loop — pegs GPU off-peak, writes run_complete markers"
+
+_start_session "autonomous-runner" \
+  "python3 background/autonomous_runner.py" \
+  "Fires claude -p turn after 30min idle — replaces broken tmux keystrokes autoloop"
+
 echo ""
 echo "Stack startup complete. Running health check..."
 python3 background/health_check.py --always
