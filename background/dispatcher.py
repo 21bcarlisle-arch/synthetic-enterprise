@@ -101,17 +101,32 @@ def _call_qwen(prompt: str, max_tokens: int = 100) -> str:
     return ""
 
 
-def classify_message(message: str) -> str:
-    """Use Qwen to classify a message as 'urgent', 'normal', or 'fyi'.
+_URGENT_KEYWORDS = frozenset([
+    "urgent", "stop", "immediately", "wrong", "broken", "incorrect",
+    "investigation", "investigate", "idle", "nothing", "silence",
+    "radio silence", "are you", "doing anything",
+])
 
-    Falls back to 'normal' if Qwen is unavailable.
+
+def classify_message(message: str) -> str:
+    """Classify a message as 'urgent', 'normal', or 'fyi'.
+
+    Fast-path: if the message contains explicit urgency keywords, return
+    'urgent' without calling Qwen (Qwen has missed these before).
+    Falls back to Qwen for ambiguous cases.
     """
+    lower = message.lower()
+
+    # Explicit urgency signals — don't trust Qwen with these
+    if any(kw in lower for kw in _URGENT_KEYWORDS):
+        return "urgent"
+
     prompt = f"""You are a message classifier for an energy simulation operator (Rich) communicating with an autonomous AI agent (Claude Code). Classify this inbound message from Rich.
 
 Message: "{message}"
 
 Rules:
-- URGENT: Rich has spotted a fundamental correctness problem (wrong numbers, wrong logic, invalid assumptions) that would cause the AI to waste significant work if it continues. Examples: "gross margin looks wrong", "the P&L is off", "stop what you're doing", "this is broken", "fundamental error".
+- URGENT: Rich is asking why something is wrong or why the agent is idle; or has spotted a correctness problem; or has explicitly flagged urgency. Examples: "gross margin looks wrong", "are you idle", "why no messages", "URGENT", "investigation", "stop what you're doing".
 - NORMAL: a real instruction, request, or design steer that needs action but is not an emergency. Examples: "start the next phase", "review the report", "when GPU is free, run X", "add feature Y".
 - FYI: informational only, no action required. Examples: "I'll be back in an hour", "nice work", "ok", acknowledgement.
 

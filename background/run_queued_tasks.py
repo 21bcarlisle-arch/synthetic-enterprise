@@ -9,15 +9,16 @@ background worker log and sends an ntfy.sh notification on completion.
 
 import re
 import subprocess
+import sys
 import time
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from background.ntfy_utils import send_ntfy as _send_ntfy_tracked  # noqa: E402
+
 TASKS_FILE = Path("docs/instructions/background-tasks.md")
 LOG_FILE = Path("docs/observability/background-worker-log.md")
-NTFY_TOPIC = "https://ntfy.sh/skynet-synthetic"
 
 
 def _timestamp() -> str:
@@ -32,17 +33,8 @@ def _log(message: str) -> None:
 
 
 def _send_ntfy(message: str) -> None:
-    try:
-        urllib.request.urlopen(
-            urllib.request.Request(
-                NTFY_TOPIC,
-                data=message.encode(),
-                headers={"Content-Type": "text/plain"},
-            ),
-            timeout=10,
-        )
-    except urllib.error.URLError as exc:
-        _log(f"NTFY send failed: {exc}")
+    """Send via ntfy_utils so the ID is recorded and was_sent_by_us() filters it."""
+    _send_ntfy_tracked(message)
 
 
 def _parse_ollama_tokens(stderr: str) -> tuple[int, int]:
