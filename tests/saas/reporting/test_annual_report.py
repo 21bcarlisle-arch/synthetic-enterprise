@@ -268,8 +268,8 @@ def test_mandate_comparison_section_compares_capital_ratio_and_2021_margin():
     # Clarify that gross/capital/net figures from the two runs aren't
     # comparable across rows (e.g. don't subtract old net from new gross).
     assert "different" in section
-    assert "This run (commodity-only): gross" in section
-    assert "Old-model run: gross" in section
+    assert "This run (Phase 9a): gross" in section
+    assert "Old-model run (commodity-only, pre-Phase-9a): gross" in section
     assert "commodity-only" in section
 
 

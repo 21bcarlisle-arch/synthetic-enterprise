@@ -21,7 +21,7 @@ the last partial). The business survived the full window.
 - Bills issued: 1117, average clarity 0.871,
   service quality score 0.920
 - Enterprise value (CLV sum across 10 billing accounts): £-1,635.32
-- Cost to serve (whole portfolio): £6,460.24, net margin after cost to serve: £-1,672.19
+- Cost to serve (whole portfolio): £6,460.24, net margin after cost to serve: £7,497.98
 - Hedge effectiveness (whole window): hedging cost £1,656.28 vs. a fully unhedged book (commodity-only: actual net £3,560.41 vs. naked net £5,216.69)
 
 - **2021** (crisis year): net margin £-343.62, 4 risk committee wake-up(s).
@@ -31,22 +31,22 @@ the last partial). The business survived the full window.
 
 Phase 5c replaced the old reactive hedging model (start at 50/50, risk committee reacts upward from there with no floor) with a minimum hedge mandate: every term starts at least 85% hedged (`MIN_HEDGE_FLOOR` in `sim/hedging_strategy.py`), modelling a real supplier's supply-obligation-first behaviour rather than a speculative book with a safety valve. Because capital cost is charged on the unhedged (active) position only, raising the floor to 85% caps that active position at 15% of volume by construction.
 
-**Note:** all figures in this section are **commodity-only** (energy margin, before Phase 9a standing charges, non-commodity pass-through, and VAT). This is intentional — hedging decisions affect only commodity P&L, not pass-through costs. See Executive Summary for Phase 9a all-in revenue and net margin.
+The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (Phase 9a): gross £15,185.84, capital £1,227.63, net £13,958.21. Old-model run (commodity-only, pre-Phase-9a): gross £45,417.31, capital £18,637.75, net £26,779.56.
 
-The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (commodity-only): gross £4,788.04, capital £1,227.63, net £3,560.41. Old-model run: gross £45,417.31, capital £18,637.75, net £26,779.56.
-
-- **Capital cost as % of gross margin**: 25.6% under the new mandate vs. 41.0% under the old reactive model.
+- **Capital cost as % of gross margin**: 25.6% (commodity basis, comparable to old model) / 8.1% (Phase 9a all-in gross) under the new mandate vs. 41.0% (commodity-only) under the old reactive model.
 - **2021 net margin**: £-343.62 under the new mandate vs. £-1,096.43 under the old reactive model.
-- **Net margin as % of revenue (commodity-only)**: this run 3.5%; old-model run Not available in current run output (see REPORTING_BACKLOG.md) (revenue wasn't captured in that snapshot).
+- **Net margin as % of revenue**: this run 9.1%; old-model run Not available in current run output (see REPORTING_BACKLOG.md) (revenue wasn't captured in that snapshot).
 
-**Whole-run net margin, three ways (commodity-only):**
+**Whole-run net margin, three ways:**
 
-- Mandate-hedged (actual, this run, commodity-only): £3,560.41
-- Old reactive model (actual): £26,779.56
-- Fully naked (this run's counterfactual): £5,216.69
-- Fully naked (old run's counterfactual): £33,476.19
+- Mandate-hedged (actual, this run, Phase 9a): £13,958.21
+- Old reactive model (actual, commodity-only): £26,779.56
+- Fully naked (this run's counterfactual, commodity-only): £5,216.69
+- Fully naked (old run's counterfactual, commodity-only): £33,476.19
 
 Comparing the two naked counterfactuals shows what changed in the underlying weather/price data between runs (LLM non-determinism in risk-committee responses also shifts these slightly run-to-run); comparing each model's actual to its own naked figure isolates what that model's hedging behaviour itself contributed.
+
+_Note: old reactive model figures are commodity-only (pre-Phase-9a). Naked counterfactuals are commodity-only since non-commodity pass-through is not affected by hedging decisions._
 ## Administration Events
 
 None — business survived the full simulation window.

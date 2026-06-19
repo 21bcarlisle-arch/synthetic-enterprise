@@ -517,9 +517,12 @@ def _executive_summary(data: dict) -> str:
         enterprise_value_line = f"- Enterprise value: {NOT_AVAILABLE}"
 
     if data["cost_to_serve_portfolio_gbp"] is not None:
+        _hl_cts = data.get("_ledger_headline")
+        _cts_base = _hl_cts["net_margin_gbp"] if _hl_cts else data.get("total_net_gbp", 0.0)
+        _net_after_cts = _cts_base - data["cost_to_serve_portfolio_gbp"]
         cost_to_serve_line = (
             f"- Cost to serve (whole portfolio): {_fmt_gbp(data['cost_to_serve_portfolio_gbp'])}, "
-            f"net margin after cost to serve: {_fmt_gbp(data['net_margin_after_cost_to_serve_gbp'])}"
+            f"net margin after cost to serve: {_fmt_gbp(_net_after_cts)}"
         )
     else:
         cost_to_serve_line = f"- Cost to serve (whole portfolio): {NOT_AVAILABLE}"
@@ -937,8 +940,17 @@ def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
     if old_data is None:
         return f"## Hedging Mandate — Before/After Phase 5c\n\n{NOT_AVAILABLE}\n"
 
-    new_ratio = data["total_capital_gbp"] / data["total_gross_gbp"]
+    # Use Phase 9a figures for "this run" when available; old model is always commodity-only.
+    hl = data.get("_ledger_headline")
+    new_gross = hl["gross_margin_gbp"] if hl else data["total_gross_gbp"]
+    new_capital = hl["capital_cost_gbp"] if hl else data["total_capital_gbp"]
+    new_net = hl["net_margin_gbp"] if hl else data["total_net_gbp"]
+    new_revenue = hl["revenue_gbp"] if hl else data.get("total_revenue_gbp", 0.0)
+
+    # Capital ratio on commodity-only gross keeps the comparison apples-to-apples vs. old model.
+    new_ratio_commodity = data["total_capital_gbp"] / data["total_gross_gbp"]
     old_ratio = old_data["total_capital_gbp"] / old_data["total_gross_gbp"]
+    new_ratio_phase9a = (data["total_capital_gbp"] / new_gross) if (hl and new_gross) else None
 
     new_2021 = data["years"].get("2021", {}).get("net_gbp")
     old_2021 = old_data["years"].get("2021", {}).get("net_gbp")
@@ -959,30 +971,30 @@ def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
     )
     lines.append("")
     lines.append(
-        "**Note:** all figures in this section are **commodity-only** (energy "
-        "margin, before Phase 9a standing charges, non-commodity pass-through, "
-        "and VAT). This is intentional — hedging decisions affect only commodity "
-        "P&L, not pass-through costs. See Executive Summary for Phase 9a all-in "
-        "revenue and net margin."
-    )
-    lines.append("")
-    lines.append(
         "The figures below come from two *different* simulation "
         "runs (this run vs. the preserved old-model snapshot) — do not "
         "subtract a figure from one run's row from a figure in the other's. "
-        f"This run (commodity-only): gross {_fmt_gbp(data['total_gross_gbp'])}, capital "
-        f"{_fmt_gbp(data['total_capital_gbp'])}, net "
-        f"{_fmt_gbp(data['total_net_gbp'])}. Old-model run: gross "
+        f"This run (Phase 9a): gross {_fmt_gbp(new_gross)}, capital "
+        f"{_fmt_gbp(new_capital)}, net "
+        f"{_fmt_gbp(new_net)}. Old-model run (commodity-only, pre-Phase-9a): gross "
         f"{_fmt_gbp(old_data['total_gross_gbp'])}, capital "
         f"{_fmt_gbp(old_data['total_capital_gbp'])}, net "
         f"{_fmt_gbp(old_data['total_net_gbp'])}."
     )
     lines.append("")
-    lines.append(
-        f"- **Capital cost as % of gross margin**: {_fmt_pct(new_ratio)} "
-        f"under the new mandate vs. {_fmt_pct(old_ratio)} under the old "
+
+    cap_ratio_text = (
+        f"- **Capital cost as % of gross margin**: "
+        f"{_fmt_pct(new_ratio_commodity)} (commodity basis, comparable to old model)"
+    )
+    if new_ratio_phase9a is not None:
+        cap_ratio_text += f" / {_fmt_pct(new_ratio_phase9a)} (Phase 9a all-in gross)"
+    cap_ratio_text += (
+        f" under the new mandate vs. {_fmt_pct(old_ratio)} (commodity-only) under the old "
         "reactive model."
     )
+    lines.append(cap_ratio_text)
+
     if new_2021 is not None and old_2021 is not None:
         lines.append(
             f"- **2021 net margin**: {_fmt_gbp(new_2021)} under the new "
@@ -992,31 +1004,34 @@ def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
         lines.append(f"- **2021 net margin**: {NOT_AVAILABLE}")
 
     old_revenue = old_data.get("total_revenue_gbp")
-    if old_revenue:
-        new_margin_pct = data["total_net_gbp"] / data["total_revenue_gbp"]
+    if new_revenue and old_revenue:
+        new_margin_pct = new_net / new_revenue
         old_margin_pct = old_data["total_net_gbp"] / old_revenue
         lines.append(
-            f"- **Net margin as % of revenue (commodity-only)**: {_fmt_pct(new_margin_pct)} "
-            f"under the new mandate vs. {_fmt_pct(old_margin_pct)} under the "
+            f"- **Net margin as % of revenue**: {_fmt_pct(new_margin_pct)} "
+            f"under the new mandate vs. {_fmt_pct(old_margin_pct)} (commodity-only) under the "
             "old reactive model (industry benchmark: 2-5%)."
         )
-    else:
+    elif new_revenue:
         lines.append(
-            f"- **Net margin as % of revenue (commodity-only)**: this run "
-            f"{_fmt_pct(data['total_net_gbp'] / data['total_revenue_gbp'])}; "
+            f"- **Net margin as % of revenue**: this run "
+            f"{_fmt_pct(new_net / new_revenue)}; "
             f"old-model run {NOT_AVAILABLE} (revenue wasn't captured in that "
             "snapshot)."
         )
+    else:
+        lines.append(f"- **Net margin as % of revenue**: {NOT_AVAILABLE}")
+
     lines.append("")
-    lines.append("**Whole-run net margin, three ways (commodity-only):**")
+    lines.append("**Whole-run net margin, three ways:**")
     lines.append("")
-    lines.append(f"- Mandate-hedged (actual, this run, commodity-only): {_fmt_gbp(data['total_net_gbp'])}")
+    lines.append(f"- Mandate-hedged (actual, this run, Phase 9a): {_fmt_gbp(new_net)}")
     if old_data is not None:
-        lines.append(f"- Old reactive model (actual): {_fmt_gbp(old_data['total_net_gbp'])}")
+        lines.append(f"- Old reactive model (actual, commodity-only): {_fmt_gbp(old_data['total_net_gbp'])}")
     if new_het is not None:
-        lines.append(f"- Fully naked (this run's counterfactual): {_fmt_gbp(new_het['naked_net_gbp'])}")
+        lines.append(f"- Fully naked (this run's counterfactual, commodity-only): {_fmt_gbp(new_het['naked_net_gbp'])}")
     if old_het is not None:
-        lines.append(f"- Fully naked (old run's counterfactual): {_fmt_gbp(old_het['naked_net_gbp'])}")
+        lines.append(f"- Fully naked (old run's counterfactual, commodity-only): {_fmt_gbp(old_het['naked_net_gbp'])}")
     lines.append("")
     lines.append(
         "Comparing the two naked counterfactuals shows what changed in the "
@@ -1024,6 +1039,12 @@ def _mandate_comparison_section(data: dict, old_data: dict | None) -> str:
         "risk-committee responses also shifts these slightly run-to-run); "
         "comparing each model's actual to its own naked figure isolates what "
         "that model's hedging behaviour itself contributed."
+    )
+    lines.append("")
+    lines.append(
+        "_Note: old reactive model figures are commodity-only (pre-Phase-9a). "
+        "Naked counterfactuals are commodity-only since non-commodity pass-through "
+        "is not affected by hedging decisions._"
     )
     return "\n".join(lines)
 
