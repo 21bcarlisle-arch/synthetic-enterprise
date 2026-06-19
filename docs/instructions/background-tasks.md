@@ -9,7 +9,6 @@ Tasks move to RUNNING then DONE. Worker logs to docs/observability/background-wo
 ## QUEUED
 
 
-
 ### Task: gpu-utilisation-monitor
 Add a background process to background/start_worker.sh that samples nvidia-smi
 every 30s and appends to logs/gpu_utilisation.log in format:
@@ -65,6 +64,10 @@ Promoted from docs/staging/TASK_DATA_ENRICHMENT.md on 2026-06-13.
 (none)
 
 ## DONE
+
+### Task: stack-health-check
+Completed: 2026-06-19 06:08 UTC
+
 
 ### Task: downtime-observability-housekeeping
 Completed: 2026-06-13 14:21 UTC

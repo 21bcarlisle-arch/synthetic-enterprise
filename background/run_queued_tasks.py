@@ -148,32 +148,96 @@ def _move_task_to_done(task_name: str) -> None:
 
 
 def _find_first_queued_task():
+    """Parse the first task from the QUEUED section.
+
+    Supports two formats:
+      1. Structured (Description:/Model: fields) — runs via Qwen prompt
+      2. Script: path/to/script.py [args] — runs as a Python subprocess
+      3. Free-form (any ### Task: block) — passes full body as Qwen prompt,
+         defaults to qwen3:14b. Suitable for research/analysis tasks.
+
+    Returns (task_name, description_or_None, model_or_None, script_or_None).
+    """
     content = TASKS_FILE.read_text()
     queued_section = re.search(r"## QUEUED\n(.*?)(?=\n## |\Z)", content, re.DOTALL)
     if not queued_section:
-        return None, None, None
-    task_match = re.search(
-        r"### Task: (\S+)\nDescription: (.*?)\n.*?Model: ([\w.:]+)",
-        queued_section.group(1), re.DOTALL,
+        return None, None, None, None
+    body = queued_section.group(1)
+
+    # Format 1: Script: path [args]
+    script_match = re.search(
+        r"### Task: (\S+)\s*\nScript: (.+?)(?:\n|$)",
+        body,
     )
-    if not task_match:
-        return None, None, None
-    return task_match.group(1), task_match.group(2).strip(), task_match.group(3)
+    if script_match:
+        return script_match.group(1), None, None, script_match.group(2).strip()
+
+    # Format 2: Description:/Model: structured
+    structured_match = re.search(
+        r"### Task: (\S+)\nDescription: (.*?)\n.*?Model: ([\w.:]+)",
+        body, re.DOTALL,
+    )
+    if structured_match:
+        return structured_match.group(1), structured_match.group(2).strip(), structured_match.group(3), None
+
+    # Format 3: Free-form — grab task name + full body up to next ### or ##
+    freeform_match = re.search(
+        r"### Task: (\S+)\n(.*?)(?=\n### Task:|\n## |\Z)",
+        body, re.DOTALL,
+    )
+    if freeform_match:
+        task_body = freeform_match.group(2).strip()
+        if task_body:
+            return freeform_match.group(1), task_body, "qwen3:14b", None
+
+    return None, None, None, None
+
+
+def _run_script(script_line: str, task_name: str) -> tuple[str, float]:
+    """Run a Python script task. Returns (stdout, wall_time_seconds)."""
+    import time
+    import shlex
+    _log(f"Script task starting: {task_name} — {script_line}")
+    t0 = time.monotonic()
+    parts = shlex.split(script_line)
+    cmd = ["python3"] + parts if not parts[0].startswith("python") else parts
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=600,
+            cwd=str(Path(__file__).resolve().parent.parent),
+        )
+        wall_time = time.monotonic() - t0
+        output = result.stdout + (result.stderr if result.returncode != 0 else "")
+        status = "DONE" if result.returncode == 0 else "FAILED"
+        _log(f"Script task {status}: {task_name} — {wall_time:.1f}s")
+        return output, wall_time
+    except Exception as exc:
+        wall_time = time.monotonic() - t0
+        _log(f"Script task FAILED: {task_name} — {exc}")
+        return "", wall_time
 
 
 # --- Main dispatch ---
-task_name, description, model = _find_first_queued_task()
+task_name, description, model, script = _find_first_queued_task()
 if task_name is None:
     _log("run_queued_tasks: no parseable QUEUED task found")
 else:
     started = _timestamp()
-    prompt = (
-        f"You are a code and data assistant for a UK energy supplier simulation. "
-        f"Complete the following task and output only the result — no explanation, no fences:\n\n"
-        f"{description}"
-    )
-    output, prompt_tokens, eval_tokens, wall_time = _run_ollama(model, prompt, task_name)
-    completed = _timestamp()
+
+    if script is not None:
+        # Script-type task
+        output, wall_time = _run_script(script, task_name)
+        prompt_tokens, eval_tokens = 0, 0
+        completed = _timestamp()
+    else:
+        # Qwen prompt task
+        prompt = (
+            f"You are a code and data assistant for a UK energy supplier simulation. "
+            f"Complete the following task and output only the result — no explanation, no fences:\n\n"
+            f"{description}"
+        )
+        output, prompt_tokens, eval_tokens, wall_time = _run_ollama(model, prompt, task_name)
+        completed = _timestamp()
 
     output_path = None
     status = "FAILED"
@@ -182,7 +246,7 @@ else:
         out_file.write_text(
             f"# Background Task Output: {task_name}\n"
             f"Completed: {completed}\n"
-            f"Model: {model}\n"
+            f"Model: {model or 'script'}\n"
             f"Wall time: {wall_time:.1f}s | Tokens: P={prompt_tokens} E={eval_tokens}\n\n"
             f"## Output\n\n{output}\n"
         )

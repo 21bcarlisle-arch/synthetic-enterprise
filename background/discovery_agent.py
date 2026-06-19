@@ -204,16 +204,29 @@ def _update_last_checked(assumptions_file: Path, today: str) -> None:
 
 
 def main() -> None:
+    import sys
+    import time
+
+    daemon = "--daemon" in sys.argv
+    interval_hours = 6
+
     today = date.today().isoformat()
-    log(f"Discovery agent started (date: {today})")
-    findings = run_discovery_cycle()
-    _update_last_checked(ASSUMPTIONS_FILE, today)
-    ok = sum(1 for f in findings if f["severity"] == "ok")
-    warn = sum(1 for f in findings if f["severity"] == "warning")
-    crit = sum(1 for f in findings if f["severity"] == "critical")
-    print(f"\nSummary: {ok} OK, {warn} warnings, {crit} critical")
-    print(f"Full log: {LOG_FILE}")
-    print(f"Assumption library: {ASSUMPTIONS_FILE}")
+    log(f"Discovery agent started (date: {today}, daemon={daemon})")
+
+    while True:
+        today = date.today().isoformat()
+        findings = run_discovery_cycle()
+        _update_last_checked(ASSUMPTIONS_FILE, today)
+        ok = sum(1 for f in findings if f["severity"] == "ok")
+        warn = sum(1 for f in findings if f["severity"] == "warning")
+        crit = sum(1 for f in findings if f["severity"] == "critical")
+        summary = f"Discovery: {ok} OK, {warn} warnings, {crit} critical"
+        log(summary)
+        print(f"\n{summary}")
+        if not daemon:
+            break
+        log(f"Next cycle in {interval_hours}h — sleeping")
+        time.sleep(interval_hours * 3600)
 
 
 if __name__ == "__main__":
