@@ -8,18 +8,16 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-19T21:30:59Z
+Last updated: 2026-06-20T09:01:33Z
 
-**Autonomous stack fully operational (2026-06-19)**: 497 tests passing.
-- `sim_runner.py`: continuous 9.5yr simulation loop — pegs GPU off-peak, writes `run_complete_*.md` staging markers every ~17min
-- `autonomous_runner.py`: fires `claude -p` turns after 30min session idle — replaces broken tmux keystroke autoloop; rate-capped 2/hr; skips during usage limits
-- `health_check.py`: 8-process stack health check; NTFYs on degraded state
-- NTFY feedback loop fixed: background worker NTFYs no longer re-ingested as from_rich messages
-- Dispatcher urgency fast-path: "urgent/investigation/idle/broken" keywords bypass Qwen, classify immediately
-- Autonomous fallback updated: prioritises closing CLAUDE.md hollow gaps, not reporting backlog refinements
-- Annual report republished from fresh sim run (git 58bcfbe, 2026-06-19T21:05 UTC)
+**Phase 10a LIVE (2026-06-20)**: 517 tests passing. Segment customer model committed (05372e9).
+- `simulation/segments.py`: 5 customer segments (resi_standard 150 customers, resi_smart 20, sme_standard 40, sme_smart 5, gas_resi 80)
+- `simulation/run_segments.py`: simulation loop with annual headcount evolution (churn, smart upgrades, acquisition)
+- Non→Smart flow: UK smart meter rollout modelled — Standard customers upgrade to Smart at 3-10%/yr
+- Speed: O(segments×periods) same as before, just economically credible at realistic headcounts
+- Full 9.5yr segment run in progress; named-customer model (run_phase2b) preserved for comparison
 
-**Phase 9a bill structure results (2016–2025)** — confirmed fresh run:
+**Phase 9a bill structure results (2016–2025)** — latest named-customer run (git 34d9cb2):
 - Customer bills (all-in): £168,067 | VAT remitted: (£13,907) | Revenue (ex-VAT): £154,161
 - Non-commodity pass-through: (£42,887) | Wholesale: (£96,087)
 - Gross margin: £15,186 | Capital: £1,228 | Net margin: £13,958 (9.1% of ex-VAT revenue)
@@ -27,17 +25,15 @@ Last updated: 2026-06-19T21:30:59Z
 - Treasury: £29,846 → £33,407 | 2,238,162 ledger events | 160 committee interventions
 - Enterprise value: £-1,635 | Cost-to-serve: £6,460 | Net after CTS: £+7,498
 
-**Five hollow gaps status (as of 2026-06-19)**:
-1. ~~No customer events firing~~ — CLOSED (Phase 6b): churn events, Phase 7e replacement onboarding
+**Five hollow gaps status (as of 2026-06-20)**:
+1. ~~No customer events firing~~ — CLOSED (Phase 6b/7e): churn events, replacement onboarding
 2. ~~No ledger~~ — CLOSED (Phase 7a/7b): transaction log, cash waterfall, bad-debt events
-3. SIM/company barrier structural not functional — Company layer foundation built (Phase 9a), interfaces stubbed
+3. SIM/company barrier structural not functional — Company layer foundation built (Phase 9a)
 4. ~~HH data path~~ — CLOSED (Phase 6a): C7-C9 on real HH consumption
 5. ~~Reporting~~ — CLOSED (Phase 5a/5b): ANNUAL_REPORT.md, full pipeline
 
-**Next**: Phase 9b — close gap #3 (functional SIM/company separation) or propose next hollow-gap phase.
+**Autonomous stack status**: 8-process stack — sim_runner, autonomous_runner, health_check, staging_watcher, ntfy_responder, all operational. NTFY spam fixed (all 3 sources). Cron self-healing installed.
 Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
-
-**Phase 9a full run complete (2026-06-18)**: SURVIVED. 465 tests passing.
 
 **Phase 9a bill structure results (2016–2025)**:
 - Customer bills (all-in): £168,067 | VAT remitted: (£13,907) | Revenue (ex-VAT): £154,161
