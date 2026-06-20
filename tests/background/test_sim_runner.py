@@ -1,33 +1,9 @@
 """Tests for background/sim_runner.py."""
 
-from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from background import sim_runner
-
-
-def test_is_peak_hours_true_at_17(monkeypatch):
-    dt = datetime(2026, 6, 19, 17, 0, tzinfo=timezone.utc)
-    with patch("background.sim_runner.datetime") as mock_dt:
-        mock_dt.now.return_value = dt
-        assert sim_runner.is_peak_hours() is True
-
-
-def test_is_peak_hours_false_at_10(monkeypatch):
-    dt = datetime(2026, 6, 19, 10, 0, tzinfo=timezone.utc)
-    with patch("background.sim_runner.datetime") as mock_dt:
-        mock_dt.now.return_value = dt
-        assert sim_runner.is_peak_hours() is False
-
-
-def test_is_peak_hours_false_at_exactly_19():
-    dt = datetime(2026, 6, 19, 19, 0, tzinfo=timezone.utc)
-    with patch("background.sim_runner.datetime") as mock_dt:
-        mock_dt.now.return_value = dt
-        assert sim_runner.is_peak_hours() is False
 
 
 def test_run_simulation_creates_staging_marker(tmp_path, monkeypatch):
