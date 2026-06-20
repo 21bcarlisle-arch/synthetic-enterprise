@@ -246,7 +246,52 @@ def _build_gas_renewal_schedule(
     return schedule
 
 
-def main(report_end: str | None = None):
+def _build_company_event_log(
+    customer_events_log: list,
+    won_successor_activations: dict,
+    fresh_acquisitions: list,
+    successor_map: dict,
+) -> list:
+    """Build the company CRM event log from simulation outputs — Phase 12a.
+
+    Returns a list of dicts (one per event) that the company CRM knows about.
+    Churn events come from customer_events_log; acquisition events come from
+    won_successor_activations (home-move wins) and fresh_acquisitions (market wins).
+    """
+    result = []
+    for evt in customer_events_log:
+        if evt["event_type"] == "churned":
+            result.append({
+                "event_type": "churn",
+                "customer_id": evt["customer_id"],
+                "event_date": evt["event_date"],
+                "reason": "non-renewal",
+                "sim_churn_probability": evt.get("churn_probability"),
+                "company_churn_estimate": evt.get("company_churn_estimate"),
+            })
+    for successor_id, activation_date in won_successor_activations.items():
+        predecessor = next(
+            (p for p, s in successor_map.items() if s == successor_id), None
+        )
+        result.append({
+            "event_type": "acquisition",
+            "customer_id": successor_id,
+            "event_date": activation_date,
+            "channel": "home-move-win",
+            "predecessor_id": predecessor,
+        })
+    for acq in fresh_acquisitions:
+        result.append({
+            "event_type": "acquisition",
+            "customer_id": acq["customer_id"],
+            "event_date": acq["event_date"],
+            "channel": "market-acquisition",
+            "predecessor_id": acq.get("predecessor_id"),
+        })
+    return sorted(result, key=lambda e: e["event_date"])
+
+
+def main(report_end: str | None = None, sim_interface=None):
     """Run the full Phase 2b + 4c settlement simulation.
 
     report_end: ISO date string (e.g. "2022-12-31") to truncate the
@@ -381,6 +426,8 @@ def main(report_end: str | None = None):
     basis_risk_terms: list[dict] = []
     # Phase 11b: track previous electricity unit rate per customer for churn estimate
     prev_elec_unit_rates: dict[str, float] = {}
+    # Phase 12a: fresh acquisition wins for company_event_log
+    fresh_acquisitions: list[dict] = []
 
     current_year_str = REPORT_START[:4]
     ytd_gross = ytd_net = ytd_capital = 0.0
@@ -444,14 +491,27 @@ def main(report_end: str | None = None):
                         f"p_retain={event['effective_retention_probability']:.4f}  "
                         f"roll={event['random_roll']:.4f}"
                     )
-                    # Phase 7e: if we won the home mover, activate the successor now
+                    if sim_interface is not None:
+                        sim_interface.notify_churn(
+                            billing_account,
+                            term_start_str,
+                            reason="non-renewal",
+                            sim_churn_probability=event.get("churn_probability"),
+                            company_churn_estimate=event.get("company_churn_estimate"),
+                        )
                     if event.get("home_move_won"):
                         successor_id = SUCCESSOR_MAP.get(billing_account)
                         if successor_id:
                             won_successor_activations[successor_id] = term_start_str
                             print(f"  [WIN] Home-mover won: {successor_id} activates at {term_start_str}")
+                            if sim_interface is not None:
+                                sim_interface.notify_acquisition(
+                                    successor_id,
+                                    term_start_str,
+                                    channel="home-move-win",
+                                    predecessor_id=billing_account,
+                                )
                     elif MANDATE != "shrink":
-                        # Phase 8a: home-mover lost — attempt fresh market acquisition
                         customer_data = get_customer(billing_account)
                         segment = customer_data["segment"] if customer_data else "resi"
                         acq_cost = COST_PER_ACQUISITION.get(segment, 150.0)
@@ -470,6 +530,18 @@ def main(report_end: str | None = None):
                             new_cid = f"{billing_account}_{suffix}"
                             new_customer = make_acquired_customer(new_cid, customer_data, term_start_str)
                             ACQUIRED_CUSTOMERS.append(new_customer)
+                            fresh_acquisitions.append({
+                                "customer_id": new_cid,
+                                "event_date": term_start_str,
+                                "predecessor_id": billing_account,
+                            })
+                            if sim_interface is not None:
+                                sim_interface.notify_acquisition(
+                                    new_cid,
+                                    term_start_str,
+                                    channel="market-acquisition",
+                                    predecessor_id=billing_account,
+                                )
                             print(
                                 f"  [ACQUIRE] Fresh acquisition won: {new_cid} at {term_start_str} "
                                 f"(£{acq_cost:.0f}, {segment})"
@@ -804,6 +876,10 @@ def main(report_end: str | None = None):
             for e in customer_events_log
             if e.get("company_churn_estimate") is not None
         ],
+        # Phase 12a: company CRM event log — dated artefacts of churn and acquisition
+        "company_event_log": _build_company_event_log(
+            customer_events_log, won_successor_activations, fresh_acquisitions, SUCCESSOR_MAP
+        ),
     }
 
 

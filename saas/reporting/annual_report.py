@@ -450,6 +450,7 @@ def extract_report_data(run_output: dict) -> dict:
         "hedge_effectiveness_total": hedge_effectiveness_total,
         "customer_events": phase2b.get("customer_events", []),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
+        "company_event_log": phase2b.get("company_event_log", []),
         "won_successor_activations": won_successor_activations,
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),
@@ -1408,6 +1409,98 @@ def _growth_acquisition_section(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_company_crm(data: dict) -> str:
+    """Company CRM vs SIM Ground Truth — Phase 12a.
+
+    Shows dated churn and acquisition events as the company CRM knows them,
+    and reconciles company CRM active accounts against SIM churned accounts
+    at each year-end.
+    """
+    cel = data.get("company_event_log", [])
+    churned_ba = set(data.get("churned_billing_accounts", []))
+    years = sorted(data.get("years", {}).keys())
+
+    if not cel:
+        return "## Company CRM — Event Log\n\nNo events recorded in current run.\n"
+
+    lines = [
+        "## Company CRM — Event Log",
+        "",
+        "Dated artefacts of customer lifecycle events as seen by the company layer.",
+        f"Total events: **{len(cel)}** "
+        f"({sum(1 for e in cel if e['event_type'] == 'churn')} churn, "
+        f"{sum(1 for e in cel if e['event_type'] == 'acquisition')} acquisition)",
+        "",
+        "| Date | Event | Customer | Detail |",
+        "|------|-------|----------|--------|",
+    ]
+
+    for ev in sorted(cel, key=lambda e: e["event_date"]):
+        if ev["event_type"] == "churn":
+            sim_p = ev.get("sim_churn_probability")
+            co_est = ev.get("company_churn_estimate")
+            sim_str = f"SIM p={sim_p:.2f}" if sim_p is not None else "SIM p=n/a"
+            co_str = f"est={co_est:.2f}" if co_est is not None else "est=n/a"
+            detail = f"{sim_str}, company {co_str}"
+            lines.append(f"| {ev['event_date']} | CHURN | {ev['customer_id']} | {detail} |")
+        else:
+            ch = ev.get("channel", "market-acquisition")
+            pred = ev.get("predecessor_id")
+            detail = f"{ch}" + (f" (predecessor: {pred})" if pred else "")
+            lines.append(f"| {ev['event_date']} | ACQUISITION | {ev['customer_id']} | {detail} |")
+
+    if years:
+        lines += [
+            "",
+            "**SIM ground truth vs company CRM reconciliation (year-end snapshots):**",
+            "",
+            "| Year-end | SIM churned (cumulative) | CRM active | Match |",
+            "|----------|--------------------------|------------|-------|",
+        ]
+        from company.crm.event_log import AcquisitionEvent, ChurnEvent, CompanyEventLog
+        log = CompanyEventLog()
+        for ev in sorted(cel, key=lambda e: e["event_date"]):
+            if ev["event_type"] == "churn":
+                log.record_churn(ChurnEvent(
+                    customer_id=ev["customer_id"],
+                    event_date=ev["event_date"],
+                    reason=ev.get("reason", "non-renewal"),
+                    sim_churn_probability=ev.get("sim_churn_probability"),
+                    company_churn_estimate=ev.get("company_churn_estimate"),
+                ))
+            else:
+                log.record_acquisition(AcquisitionEvent(
+                    customer_id=ev["customer_id"],
+                    event_date=ev["event_date"],
+                    channel=ev.get("channel", "market-acquisition"),
+                    predecessor_id=ev.get("predecessor_id"),
+                ))
+
+        for year in years:
+            year_end = f"{year}-12-31"
+            crm_active = log.active_accounts(year_end)
+            crm_churned = {
+                e["customer_id"] for e in cel
+                if e["event_type"] == "churn" and e["event_date"] <= year_end
+            }
+            sim_churned_by_year = {
+                ba for ba in churned_ba
+                if any(
+                    e["event_type"] == "churn" and e["customer_id"] == ba
+                    and e["event_date"] <= year_end
+                    for e in cel
+                )
+            }
+            match = "yes" if crm_churned == sim_churned_by_year else "mismatch"
+            lines.append(
+                f"| {year_end} | {len(crm_churned)} accounts | "
+                f"{len(crm_active)} active | {match} |"
+            )
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -1430,6 +1523,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_segment_margin_trend_section(data))
     sections.append(_customer_lifecycle_events_section(data))
     sections.append(_churn_basis_risk_section(data))
+    sections.append(_section_company_crm(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
     sections.append(_ledger_summary_section(data))

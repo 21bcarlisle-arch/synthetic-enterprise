@@ -51,19 +51,39 @@ class SimInterface:
         """
         raise NotImplementedError
 
-    def notify_churn(self, account_id: str, event_date: str) -> None:
+    def notify_churn(
+        self,
+        account_id: str,
+        event_date: str,
+        *,
+        reason: str = "non-renewal",
+        sim_churn_probability = None,
+        company_churn_estimate = None,
+    ) -> None:
         """Notify that a customer has left supply.
 
         account_id: customer identifier
         event_date: ISO date string of the churn event
+        reason: human-readable departure reason (default: non-renewal)
+        sim_churn_probability: SIM ground-truth churn probability at this renewal
+        company_churn_estimate: company observable-data estimate at this renewal
         """
         raise NotImplementedError
 
-    def notify_acquisition(self, account_id: str, event_date: str) -> None:
+    def notify_acquisition(
+        self,
+        account_id: str,
+        event_date: str,
+        *,
+        channel: str = "market-acquisition",
+        predecessor_id = None,
+    ) -> None:
         """Notify that a new customer has been activated.
 
         account_id: customer identifier
         event_date: ISO date string of the activation
+        channel: acquisition channel (e.g. home-move-win, market-acquisition)
+        predecessor_id: account_id of the account that churned, if applicable
         """
         raise NotImplementedError
 
@@ -110,12 +130,21 @@ class StubSimInterface(SimInterface):
     def get_customer_status(self, account_id: str) -> str:
         return self._customer_statuses.get(account_id, "active")
 
-    def notify_churn(self, account_id: str, event_date: str) -> None:
-        self._churn_notifications.append({"account_id": account_id, "event_date": event_date})
+    def notify_churn(self, account_id, event_date, *, reason="non-renewal",
+                 sim_churn_probability=None, company_churn_estimate=None):
+        self._churn_notifications.append({
+            "account_id": account_id, "event_date": event_date,
+            "reason": reason, "sim_churn_probability": sim_churn_probability,
+            "company_churn_estimate": company_churn_estimate,
+        })
         self._customer_statuses[account_id] = "churned"
 
-    def notify_acquisition(self, account_id: str, event_date: str) -> None:
-        self._acquisition_notifications.append({"account_id": account_id, "event_date": event_date})
+    def notify_acquisition(self, account_id, event_date, *, channel="market-acquisition",
+                       predecessor_id=None):
+        self._acquisition_notifications.append({
+            "account_id": account_id, "event_date": event_date,
+            "channel": channel, "predecessor_id": predecessor_id,
+        })
         self._customer_statuses[account_id] = "active"
 
     def get_churn_estimate(
@@ -141,12 +170,19 @@ class LiveSimInterface(SimInterface):
 
     get_forward_price() calls CompanyTariffEngine, which reads only public
     spot price history (Elexon SSP / TTF proxy) — never reads sim internals.
-    Other methods remain stubs until the ledger/CRM seam is fully wired.
+    Phase 12a: event_log wired — notify_churn/notify_acquisition now record
+    dated company CRM artefacts instead of silently discarding events.
     """
 
     def __init__(self):
+        from company.crm.event_log import CompanyEventLog
         self._engine = CompanyTariffEngine()
         self._price_cache: dict[str, list[dict]] = {}
+        self._event_log = CompanyEventLog()
+
+    @property
+    def event_log(self):
+        return self._event_log
 
     def _load_price_records(self, fuel: str) -> list[dict]:
         if fuel not in self._price_cache:
@@ -180,11 +216,26 @@ class LiveSimInterface(SimInterface):
     def get_customer_status(self, account_id: str) -> str:
         return "active"
 
-    def notify_churn(self, account_id: str, event_date: str) -> None:
-        pass
+    def notify_churn(self, account_id, event_date, *, reason="non-renewal",
+                 sim_churn_probability=None, company_churn_estimate=None):
+        from company.crm.event_log import ChurnEvent
+        self._event_log.record_churn(ChurnEvent(
+            customer_id=account_id,
+            event_date=event_date,
+            reason=reason,
+            sim_churn_probability=sim_churn_probability,
+            company_churn_estimate=company_churn_estimate,
+        ))
 
-    def notify_acquisition(self, account_id: str, event_date: str) -> None:
-        pass
+    def notify_acquisition(self, account_id, event_date, *, channel="market-acquisition",
+                       predecessor_id=None):
+        from company.crm.event_log import AcquisitionEvent
+        self._event_log.record_acquisition(AcquisitionEvent(
+            customer_id=account_id,
+            event_date=event_date,
+            channel=channel,
+            predecessor_id=predecessor_id,
+        ))
 
     def get_churn_estimate(
         self,
