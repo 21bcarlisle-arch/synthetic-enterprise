@@ -107,8 +107,6 @@ def run_simulation() -> bool:
 
 def main() -> None:
     log("Simulation runner started")
-    send_ntfy("[SIM-RUNNER] Continuous simulation loop started — runs 24/7")
-
     while True:
         success = run_simulation()
         wait = BETWEEN_RUN_PAUSE_SECONDS if success else 300
