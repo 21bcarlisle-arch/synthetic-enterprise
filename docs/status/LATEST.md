@@ -8,7 +8,17 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-20T19:18:34Z
+Last updated: 2026-06-20T23:42:10Z
+
+**Phase 12a LIVE (2026-06-20)**: 597 tests passing. Company CRM event log — customers actually leave as dated artefacts.
+- `company/crm/event_log.py`: `CompanyEventLog` with `ChurnEvent` / `AcquisitionEvent` dataclasses
+  - Append-only, dated artefacts — churn is no longer just a flag in a set
+  - `active_accounts(as_of_date)`: replays event history to determine CRM view at any point in time
+- `company/interfaces/sim_interface.py`: `LiveSimInterface.notify_churn` / `notify_acquisition` now record to event log
+- `simulation/run_phase2b.py`: emits `notify_churn` on every churn roll, `notify_acquisition` on home-move wins and fresh acquisitions; returns `company_event_log` in output
+- `saas/reporting/annual_report.py`: "Company CRM — Event Log" section: dated event table + year-end SIM vs CRM reconciliation
+- Hollow gap 1 (customer events): **DEEPER** — company now has a CRM event log with dated churn/acquisition artefacts; reconciliation table shows CRM vs SIM ground truth match
+- 20 new tests (597 total passing)
 
 **Phase 11b LIVE (2026-06-20)**: 577 tests passing. Company churn model implemented.
 - `company/crm/churn_model.py`: `estimate_churn_probability()` — observable-data churn estimator

@@ -109,7 +109,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed
 
-**577 tests passing.**
+**597 tests passing.**
 
 **Key financial position (Phase 11a run, company observable pricing):**
 - Treasury: £29,846 → £11,131 (Phase 11a basis risk consumes treasury)
@@ -120,10 +120,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 net margin: £-3,069 | 2022: £-5,582 (worst year, crisis + basis risk)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
-**In progress:**
-- Phase 12a: event-driven customer lifecycle — company CRM event log,
-  customers leave as dated artefacts not just flags (opt-out window until
-  ~23:08 BST 20 June; will proceed unless redirected)
+**Phase 12a COMPLETE (2026-06-20)**: Company CRM event log live.
+- `CompanyEventLog` with dated `ChurnEvent` / `AcquisitionEvent` artefacts
+- `LiveSimInterface.notify_churn` / `notify_acquisition` record to event log
+- `run_phase2b.py` emits notifications on every churn/acquisition roll
+- Annual report: "Company CRM — Event Log" section with year-end reconciliation
+- 597 tests passing (20 new)
 
 ---
 
@@ -132,12 +134,14 @@ If LATEST.md is stale, investigate and fix the root cause.
 These are the things that make the simulation feel like a model rather than
 an operating company. Status as of 20 June 2026:
 
-1. **Customer events firing — PARTIALLY CLOSED.** Six customers have
+1. **Customer events firing — DEEPENED (Phase 12a).** Six customers have
    actually churned with specific dates (C3/C1/C5/C2/C6/C4). Replacement
-   customers activate via home-move wins. But there is no company-side CRM
-   event log — churn is a flag in `churned_billing_accounts`, not a dated
-   artefact that the company knows about. Phase 12a creates `CompanyEventLog`
-   so every churn/acquisition has a permanent, dated company record.
+   customers activate via home-move wins. Company CRM now has a `CompanyEventLog`
+   with dated `ChurnEvent` / `AcquisitionEvent` artefacts — churn is no longer
+   just a flag in a set. Year-end reconciliation table (company CRM vs SIM ground
+   truth) shows zero discrepancy in Phase 12a. Phase 12b: company acts on its own
+   churn estimate before the SIM rolls — retention offers — first case of company
+   decision affecting simulation outcome.
 
 2. **Ledger — CLOSED.** 2.2M ledger events: billing, settlement, capital
    charges, VAT remittance, bad debt, acquisition spend. P&L is now the sum
@@ -277,11 +281,11 @@ pricing model must account for cost-to-serve at the customer level.
 
 ## Roadmap from here
 
-**Immediate (Phase 12a, pending 4h opt-out until ~23:08 BST 20 June):**
-- Company CRM event log: `CompanyEventLog` with `ChurnEvent` / `AcquisitionEvent`
-- Wire `notify_churn` / `notify_acquisition` in `LiveSimInterface`
-- Emit events from `run_phase2b` at each churn/acquisition roll
-- Annual report section: company CRM vs SIM ground truth reconciliation
+**Immediate (Phase 12b):**
+- Company acts on its own churn estimate before the SIM rolls
+- Retention offer reduces churn probability; outcome depends on SIM ground truth
+- First case of company decision affecting simulation outcome
+- Company's imperfect churn estimate drives a real business decision
 
 **Next:**
 - Phase 12b: company acts on its own churn estimate before the SIM roll —
