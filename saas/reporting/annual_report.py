@@ -1406,39 +1406,9 @@ def _run_and_extract(report_end: str | None = None) -> dict:
 
 
 def _send_run_complete_ntfy(data: dict, report_path: Path) -> None:
-    """Send a brief executive-summary NTFY when a full (non-fast, non-truncated)
-    run completes. Only fires if background.ntfy_utils is importable."""
-    try:
-        from background.ntfy_utils import send_ntfy
-    except ImportError:
-        return
-
-    net = data.get("total_net_gbp", 0.0)
-    rev = data.get("total_revenue_gbp", 1.0) or 1.0
-    t_start = data.get("starting_treasury_gbp", 0.0)
-    t_end = data.get("final_treasury_gbp", 0.0)
-    wakeups = data.get("committee_wake_ups_total", 0)
-    churned = data.get("churned_billing_accounts", [])
-    events = data.get("customer_events", [])
-    churn_events = [e for e in events if e.get("event_type") == "churned"]
-
-    churn_line = ""
-    if churned:
-        summaries = [f"{e['customer_id']} ({e['event_date'][:7]})" for e in churn_events]
-        churn_line = f"\nChurns: {len(churned)} — {', '.join(summaries)}"
-    else:
-        churn_line = "\nChurns: none — all accounts retained"
-
-    msg = (
-        f"Full run complete — {report_path.name}\n"
-        f"Net margin: £{net:,.0f} ({net/rev*100:.1f}% of revenue)\n"
-        f"Treasury: £{t_start:,.0f} → £{t_end:,.0f}\n"
-        f"Committee: {wakeups} wake-ups"
-        f"{churn_line}\n"
-        f"Next: Phase 7b (payment lifecycle ledger) proposed — "
-        f"proceeds in 4h unless redirected via staging"
-    )
-    send_ntfy(msg, headers={"X-Priority": "default", "X-Tags": "bar_chart"})
+    # Removed: per-run NTFYs from annual_report are spam (one run every ~17min).
+    # Claude picks up results via run_complete_*.md staging markers instead.
+    pass
 
 
 def main() -> None:

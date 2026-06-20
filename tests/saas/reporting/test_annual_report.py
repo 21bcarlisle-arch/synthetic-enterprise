@@ -390,43 +390,14 @@ def _ntfy_data():
     }
 
 
-def test_send_run_complete_ntfy_includes_key_figures(monkeypatch):
+def test_send_run_complete_ntfy_is_no_op(monkeypatch):
+    # _send_run_complete_ntfy was removed (per-run NTFYs are spam at 1 run/17min).
+    # Verify the function exists but sends nothing.
     import background.ntfy_utils as ntfy_utils
-
     sent = []
     monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda msg, headers=None: sent.append(msg))
-
-    _send_run_complete_ntfy(_ntfy_data(), Path("docs/reports/ANNUAL_REPORT.md"))
-
-    assert len(sent) == 1
-    msg = sent[0]
-    assert "3,122" in msg or "3,121" in msg  # net margin rounded
-    assert "3.3%" in msg  # 3121/93868 = 3.32%
-    assert "29,846" in msg  # treasury start
-    assert "32,967" in msg  # treasury end
-    assert "85" in msg  # committee wake-ups
-    assert "C1 (2021-12)" in msg
-    assert "C5 (2021-12)" in msg
-    assert "Churns: 2" in msg
-
-
-def test_send_run_complete_ntfy_no_churns(monkeypatch):
-    import background.ntfy_utils as ntfy_utils
-
-    sent = []
-    monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda msg, headers=None: sent.append(msg))
-
-    data = {**_ntfy_data(), "churned_billing_accounts": [], "customer_events": []}
-    _send_run_complete_ntfy(data, Path("ANNUAL_REPORT.md"))
-
-    assert "none — all accounts retained" in sent[0]
-
-
-def test_send_run_complete_ntfy_silently_skips_when_ntfy_unavailable(monkeypatch):
-    import sys
-    monkeypatch.setitem(sys.modules, "background.ntfy_utils", None)
-    # Should not raise, just return silently
     _send_run_complete_ntfy(_ntfy_data(), Path("ANNUAL_REPORT.md"))
+    assert sent == []
 
 
 # --- _pricing_action tests ---
