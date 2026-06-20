@@ -11,7 +11,7 @@ ANNUAL_REPORT.md is NOT overwritten — Claude regenerates that explicitly
 when it processes the run_complete marker (preserving manual fixes like
 Phase 9a reconciliation).
 
-Respects peak electricity hours: pauses 16:00-19:00 UTC.
+Runs continuously 24/7 — token budget takes priority over electricity cost.
 """
 
 import subprocess
@@ -25,8 +25,6 @@ LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 REPORTS_DIR = PROJECT_DIR / "docs" / "reports"
 
-PEAK_START = 16
-PEAK_END = 19
 BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
 
 sys.path.insert(0, str(PROJECT_DIR))
@@ -40,10 +38,6 @@ def log(msg: str) -> None:
     with open(LOG_FILE, "a") as f:
         f.write(entry)
     print(entry, flush=True)
-
-
-def is_peak_hours() -> bool:
-    return PEAK_START <= datetime.now(timezone.utc).hour < PEAK_END
 
 
 def _git_head() -> str:
@@ -113,16 +107,9 @@ def run_simulation() -> bool:
 
 def main() -> None:
     log("Simulation runner started")
-    send_ntfy("[SIM-RUNNER] Continuous simulation loop started — will run every ~15-20 min off-peak")
+    send_ntfy("[SIM-RUNNER] Continuous simulation loop started — runs 24/7")
 
     while True:
-        if is_peak_hours():
-            now = datetime.now(timezone.utc)
-            log(f"Peak hours ({PEAK_START}:00-{PEAK_END}:00 UTC) — pausing. "
-                f"Current: {now.strftime('%H:%M UTC')}")
-            time.sleep(900)
-            continue
-
         success = run_simulation()
         wait = BETWEEN_RUN_PAUSE_SECONDS if success else 300
         log(f"Waiting {wait}s before next run...")
