@@ -86,7 +86,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 
 ---
 
-## Current state (as of 14 June 2026)
+## Current state (as of 20 June 2026)
 
 **What's built:**
 - Phase 0+1: agentic loop, Elexon data ingestion, profile-class billing,
@@ -97,52 +97,67 @@ If LATEST.md is stale, investigate and fix the root cause.
   half-hourly translation, 4 locations, fitted 2016–2025
 - Customer value layer: cost-to-serve, churn model (bill-shock driven),
   Shifted-BG CLV via PyMC-Marketing, home-move win rate, enterprise value
-- Reporting function: `saas/reporting/annual_report.py`, `make report`,
-  REPORTING_BACKLOG.md
-- Infrastructure: session-watchdog (usage-limit auto-resume), staging-watcher,
-  File API (systemd user unit), GitHub Pages status
+- Reporting function: `saas/reporting/annual_report.py`, `make report`
+- Event-driven customer lifecycle: 6 customers actually churned (dated
+  events), replacement customers activated via home-move wins
+- Real ledger: 2.2M events — billing, settlement, capital charges, VAT,
+  bad debt, acquisition; P&L emerges from transaction sum
+- HH smart meter path: `simulation/hh_consumption.py`, C7-C9 on real HH data
+- SIM/company separation deepened (Phase 11a+11b): company tariff engine
+  (observable-data only) + company churn estimator; pricing and churn
+  basis risk both visible in annual report
+- Infrastructure: session-watchdog, staging-watcher, NTFY responder,
+  File API, GitHub Pages status; NTFY spam fixed
 
-**273 tests passing.**
+**577 tests passing.**
 
-**Key financial position (latest run, mandate-hedged per Phase 5c):**
-- Treasury: £21,829.17 → £37,953.15
-- Net margin: £16,123.98
-- Gross margin: £18,970.93
-- Capital cost ratio: 15.0% (was 41.4% under the old reactive model)
-- Risk committee interventions: 99
-- Enterprise value: £10,496.28
-- 2021 net margin: £632.78 (was £-1,096.43 under the old reactive model)
+**Key financial position (Phase 11a run, company observable pricing):**
+- Treasury: £29,846 → £11,131 (Phase 11a basis risk consumes treasury)
+- Net margin: £-18,715 (company tariff underprices SIM forward curve)
+- Gross margin: £-17,487
+- Risk committee interventions: 323 (higher — price volatility 2021-2022)
+- Enterprise value: £-20,661
+- 2021 net margin: £-3,069 | 2022: £-5,582 (worst year, crisis + basis risk)
+- *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
 **In progress:**
-- Phase 6a: next phase TBD — see `docs/staging/`
+- Phase 12a: event-driven customer lifecycle — company CRM event log,
+  customers leave as dated artefacts not just flags (opt-out window until
+  ~23:08 BST 20 June; will proceed unless redirected)
 
 ---
 
 ## The five hollow gaps
 
 These are the things that make the simulation feel like a model rather than
-an operating company. They are the primary design challenge going forward:
+an operating company. Status as of 20 June 2026:
 
-1. **No customer events actually firing.** Home move, renewal, complaint,
-   debt — these are probability scores and win rates, not events. No customer
-   has ever actually left, arrived, complained, or moved house in the
-   simulation. The customer roster has been static since 2016.
+1. **Customer events firing — PARTIALLY CLOSED.** Six customers have
+   actually churned with specific dates (C3/C1/C5/C2/C6/C4). Replacement
+   customers activate via home-move wins. But there is no company-side CRM
+   event log — churn is a flag in `churned_billing_accounts`, not a dated
+   artefact that the company knows about. Phase 12a creates `CompanyEventLog`
+   so every churn/acquisition has a permanent, dated company record.
 
-2. **No ledger.** There is no record of money moving. Bills are computed but
-   not issued as artefacts. Wholesale costs are settled but not posted to an
-   account. The P&L is a formula, not the sum of transactions.
+2. **Ledger — CLOSED.** 2.2M ledger events: billing, settlement, capital
+   charges, VAT remittance, bad debt, acquisition spend. P&L is now the sum
+   of transactions, not a formula.
 
-3. **SIM/company barrier is architectural, not functional.** The seam exists
-   in code structure but the company layer has no operational independence.
-   It doesn't make decisions based only on what it's allowed to see.
+3. **SIM/company barrier — DEEPENED, not yet closed.** Company now has its
+   own tariff engine (observable forward prices only) and churn estimator
+   (observable rate change + tenure). Both make consequential decisions using
+   only what a real supplier could see. But the company still has implicit
+   visibility into SIM internals through shared code paths. Full operational
+   independence (company running blind on its own models) is the long-horizon
+   goal.
 
-4. **HH smart meter data path never built.** All customers are on profile
-   class shapes. No half-hourly consumption data exists for any customer.
-   This blocks ToU tariffs, demand flexibility, EV charging, solar export —
-   the entire smart energy value chain.
+4. **HH smart meter data path — CLOSED.** `simulation/hh_consumption.py`
+   provides real HH consumption data. C7-C9 run on HH shapes instead of
+   profile class. ToU tariffs are architecturally possible.
 
-5. **Reporting only recently added.** The operator had no visibility into
-   what was happening to the business. Being fixed in Phase 5a/5b.
+5. **Reporting — CLOSED.** Annual report, cost-to-serve breakdown, CLV
+   snapshots, churn basis risk, pricing basis risk — all published to
+   GitHub Pages on every sim run.
 
 ---
 
@@ -262,28 +277,27 @@ pricing model must account for cost-to-serve at the customer level.
 
 ## Roadmap from here
 
-**Immediate (in progress):**
-- Phase 5b: data pipeline, 4b integration, hedge effectiveness, Gist URL
+**Immediate (Phase 12a, pending 4h opt-out until ~23:08 BST 20 June):**
+- Company CRM event log: `CompanyEventLog` with `ChurnEvent` / `AcquisitionEvent`
+- Wire `notify_churn` / `notify_acquisition` in `LiveSimInterface`
+- Emit events from `run_phase2b` at each churn/acquisition roll
+- Annual report section: company CRM vs SIM ground truth reconciliation
 
 **Next:**
-- Add 2-3 HH smart meter residential customers with real half-hourly
-  consumption data (source: public Ofgem/UKPN smart meter trial datasets
-  or Open-Meteo correlated synthetic HH profiles)
-- Prove the data architecture handles profile-class and HH customers
-  simultaneously
+- Phase 12b: company acts on its own churn estimate before the SIM roll —
+  retention offer reduces churn probability; outcome depends on SIM ground
+  truth. First case of company decision affecting simulation outcome.
 
 **Then:**
-- Event-driven customer lifecycle: acquisition, renewal, home move,
-  complaint, debt, disconnection as actual events with timestamps and
-  consequences
-- A real ledger: money moves when a bill is raised, when wholesale is
-  settled, when a hedge is marked. P&L emerges from transactions.
+- SIM/company full operational independence: company runs on its own models
+  end-to-end; divergence from SIM ground truth accumulates and is measured
+- ToU tariffs for HH customers (C7-C9 eligible now)
+- I&C accounts (when HH data path and event lifecycle are solid)
 
 **Later:**
-- ToU tariffs enabled by HH data
-- SIM/company functional separation
-- I&C accounts
 - VPP/DER
+- Complaint, debt, disconnection as events
+- Real forward hedging (company decides hedge fraction, not SIM agent)
 
 ---
 
