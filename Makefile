@@ -25,3 +25,11 @@ run:
 # Fast iteration run (deterministic committee, truncated window) — no LLM calls
 run-fast:
 	python3 -m saas.reporting.annual_report --fast --end-year 2020 --save-json /tmp/run_output_fast.json --output /tmp/ANNUAL_REPORT_fast.md
+
+# Full 2016-2025 segment model run — generates SEGMENT_REPORT.md + saves JSON
+run-segments:
+	python3 -m saas.reporting.segment_report --save-json docs/reports/run_output_segments_latest.json
+
+# Regenerate segment report from saved JSON (fast, no simulation re-run)
+segment-report:
+	python3 -m saas.reporting.segment_report --from-json docs/reports/run_output_segments_latest.json

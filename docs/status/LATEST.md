@@ -8,14 +8,20 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-20T09:02:06Z
+Last updated: 2026-06-20T09:12:49Z
 
-**Phase 10a LIVE (2026-06-20)**: 517 tests passing. Segment customer model committed (05372e9).
+**Phase 10b LIVE (2026-06-20)**: 543 tests passing. Segment portfolio report committed.
+- `saas/reporting/segment_report.py`: standalone segment P&L report generator
+  - Per-segment unit economics: headcount trajectory, net/customer, smart-meter migration
+  - `make segment-report` regenerates from saved JSON; `make run-segments` runs full simulation
+- 26 new tests covering extract_segment_data(), generate_segment_report(), table helpers
+- Full 2016-2025 segment simulation still in progress (background, at 2017-09, treasury £531k)
+
+**Phase 10a (2026-06-20)**: Segment customer model live.
 - `simulation/segments.py`: 5 customer segments (resi_standard 150 customers, resi_smart 20, sme_standard 40, sme_smart 5, gas_resi 80)
 - `simulation/run_segments.py`: simulation loop with annual headcount evolution (churn, smart upgrades, acquisition)
 - Non→Smart flow: UK smart meter rollout modelled — Standard customers upgrade to Smart at 3-10%/yr
 - Speed: O(segments×periods) same as before, economically credible at realistic headcounts
-- Full 9.5yr segment run in progress; named-customer model (run_phase2b) preserved for comparison
 
 **Phase 9a bill structure results (2016–2025)** — latest named-customer run (git 34d9cb2):
 - Customer bills (all-in): £168,067 | VAT remitted: (£13,907) | Revenue (ex-VAT): £154,161
