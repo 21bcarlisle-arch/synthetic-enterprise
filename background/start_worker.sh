@@ -54,7 +54,7 @@ _start_session "autonomous-runner" \
 
 echo ""
 echo "Stack startup complete. Running health check..."
-python3 background/health_check.py --always
+python3 background/health_check.py --quiet
 echo ""
 echo "Attach to any session: tmux attach -t <session-name>"
 echo "Sessions: background-worker, session-watchdog, staging-watcher,"
