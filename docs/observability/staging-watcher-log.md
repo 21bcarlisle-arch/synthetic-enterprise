@@ -15,3 +15,84 @@
 - [2026-06-14 19:01 UTC] Notified: Phase5c_instruction.md
 - [2026-06-15 04:20 UTC] Notified: HOLD_PHASE6A.md
 - [2026-06-15 04:54 UTC] Notified: Openquestions.md
+- [2026-06-17 06:33 UTC] Notified: Phase instructions.md
+- [2026-06-17 11:32 UTC] Notified: Company_layer_foundation.md
+- [2026-06-18 04:59 UTC] Notified: from_rich_20260618_045923.md
+- [2026-06-18 05:26 UTC] Notified: run_pending_20260618T052611Z.md
+- [2026-06-18 05:37 UTC] Notified: from_rich_20260618_053657.md
+- [2026-06-18 05:43 UTC] Notified: run_complete_20260618T052611Z.md
+- [2026-06-18 05:48 UTC] Notified: Intelligent_dislatcher.md
+- [2026-06-18 05:58 UTC] Notified: Bill_instructions_and_discovery.md
+- [2026-06-18 06:00 UTC] Notified: from_rich_20260618_060002.md
+- [2026-06-18 06:05 UTC] Notified: from_rich_20260618_060549.md
+- [2026-06-18 06:39 UTC] Notified: from_rich_20260618_063921.md
+- [2026-06-18 19:14 UTC] Notified: from_rich_20260618_191427.md
+- [2026-06-18 20:01 UTC] Notified: from_rich_20260618_200132.md
+- [2026-06-18 20:28 UTC] Notified: from_rich_20260618_202738.md
+- [2026-06-19 04:48 UTC] Notified: from_rich_20260619_044738.md
+- [2026-06-19 06:09 UTC] Notified: from_rich_20260619_060917.md
+- [2026-06-19 06:39 UTC] Notified: from_rich_20260619_063928.md
+- [2026-06-19 06:47 UTC] Notified: from_rich_20260619_064716.md
+- [2026-06-19 06:47 UTC] Notified: from_rich_20260619_064737.md
+- [2026-06-19 07:10 UTC] Notified: from_rich_20260619_070942.md
+- [2026-06-19 07:41 UTC] Notified: from_rich_20260619_074119.md
+- [2026-06-19 08:06 UTC] Notified: from_rich_20260619_080544.md
+- [2026-06-19 15:05 UTC] Notified: from_rich_20260619_150454.md
+- [2026-06-19 18:06 UTC] Notified: from_rich_20260619_180603.md
+- [2026-06-19 21:04 UTC] Notified: run_complete_20260619T204723Z.md
+- [2026-06-19 21:22 UTC] Notified: run_complete_20260619T210514Z.md
+- [2026-06-19 21:39 UTC] Notified: run_complete_20260619T212258Z.md
+- [2026-06-19 21:57 UTC] Notified: run_complete_20260619T214033Z.md
+- [2026-06-19 22:14 UTC] Notified: run_complete_20260619T215812Z.md
+- [2026-06-19 22:32 UTC] Notified: run_complete_20260619T221547Z.md
+- [2026-06-19 22:50 UTC] Notified: run_complete_20260619T223326Z.md
+- [2026-06-19 23:07 UTC] Notified: run_complete_20260619T225100Z.md
+- [2026-06-19 23:25 UTC] Notified: run_complete_20260619T230840Z.md
+- [2026-06-19 23:42 UTC] Notified: run_complete_20260619T232611Z.md
+- [2026-06-20 00:00 UTC] Notified: run_complete_20260619T234345Z.md
+- [2026-06-20 00:18 UTC] Notified: run_complete_20260620T000121Z.md
+- [2026-06-20 00:36 UTC] Notified: run_complete_20260620T001938Z.md
+- [2026-06-20 00:53 UTC] Notified: run_complete_20260620T003710Z.md
+- [2026-06-20 01:11 UTC] Notified: run_complete_20260620T005444Z.md
+- [2026-06-20 01:28 UTC] Notified: run_complete_20260620T011220Z.md
+- [2026-06-20 01:46 UTC] Notified: run_complete_20260620T012951Z.md
+- [2026-06-20 02:03 UTC] Notified: run_complete_20260620T014720Z.md
+- [2026-06-20 02:21 UTC] Notified: run_complete_20260620T020456Z.md
+- [2026-06-20 02:38 UTC] Notified: run_complete_20260620T022219Z.md
+- [2026-06-20 02:56 UTC] Notified: run_complete_20260620T023952Z.md
+- [2026-06-20 03:14 UTC] Notified: run_complete_20260620T025727Z.md
+- [2026-06-20 03:31 UTC] Notified: run_complete_20260620T031458Z.md
+- [2026-06-20 03:49 UTC] Notified: run_complete_20260620T033230Z.md
+- [2026-06-20 04:06 UTC] Notified: run_complete_20260620T035008Z.md
+- [2026-06-20 04:24 UTC] Notified: run_complete_20260620T040739Z.md
+- [2026-06-20 04:41 UTC] Notified: run_complete_20260620T042516Z.md
+- [2026-06-20 04:59 UTC] Notified: run_complete_20260620T044249Z.md
+- [2026-06-20 05:17 UTC] Notified: run_complete_20260620T050021Z.md
+- [2026-06-20 05:34 UTC] Notified: run_complete_20260620T051745Z.md
+- [2026-06-20 05:52 UTC] Notified: run_complete_20260620T053511Z.md
+- [2026-06-20 05:59 UTC] Notified: from_rich_20260620_055918.md
+- [2026-06-20 06:01 UTC] Notified: from_rich_20260620_060040.md
+- [2026-06-20 06:03 UTC] Notified: from_rich_20260620_060323.md
+- [2026-06-20 06:09 UTC] Notified: run_complete_20260620T055247Z.md
+- [2026-06-20 06:28 UTC] Notified: run_complete_20260620T061023Z.md
+- [2026-06-20 06:45 UTC] Notified: run_complete_20260620T062844Z.md
+- [2026-06-20 07:03 UTC] Notified: run_complete_20260620T064621Z.md
+- [2026-06-20 07:21 UTC] Notified: from_rich_20260620_072118.md
+- [2026-06-20 07:21 UTC] Notified: run_complete_20260620T070353Z.md
+- [2026-06-20 07:32 UTC] Notified: from_rich_20260620_073208.md
+- [2026-06-20 07:39 UTC] Notified: run_complete_20260620T072210Z.md
+- [2026-06-20 07:41 UTC] Staging watcher started — resuming from saved state
+- [2026-06-20 07:56 UTC] Silently registered sim run marker: run_complete_20260620T073943Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 08:14 UTC] Silently registered sim run marker: run_complete_20260620T075718Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 08:45 UTC] Silently registered sim run marker: run_complete_20260620T082833Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 09:07 UTC] Silently registered sim run marker: run_complete_20260620T084617Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 09:30 UTC] Silently registered sim run marker: run_complete_20260620T090827Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 09:34 UTC] Silently registered NTFY-originated file: from_rich_20260620_093359.md (no staging notification)
+- [2026-06-20 09:48 UTC] Silently registered sim run marker: run_complete_20260620T093142Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 09:50 UTC] Notified: Boundary.md
+- [2026-06-20 10:05 UTC] Silently registered sim run marker: run_complete_20260620T094911Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 10:23 UTC] Silently registered sim run marker: run_complete_20260620T100642Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 10:40 UTC] Silently registered sim run marker: run_complete_20260620T102414Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 10:58 UTC] Silently registered sim run marker: run_complete_20260620T104146Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 11:15 UTC] Silently registered sim run marker: run_complete_20260620T105923Z.md (Claude polls staging, no notification needed)
+- [2026-06-20 11:33 UTC] Silently registered sim run marker: run_complete_20260620T111648Z.md (Claude polls staging, no notification needed)

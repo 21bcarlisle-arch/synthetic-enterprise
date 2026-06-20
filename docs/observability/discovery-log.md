@@ -14,3 +14,73 @@
 - [2026-06-19 06:08 UTC] Discovery cycle complete: 10 assumptions reviewed, 0 critical, 0 warnings
 - [2026-06-19 06:08 UTC] Discovery: 10 OK, 0 warnings, 0 critical
 - [2026-06-19 06:08 UTC] Next cycle in 6h — sleeping
+- [2026-06-19 12:08 UTC] Discovery cycle started — 25 assumptions to review
+- [2026-06-19 12:08 UTC] OK: Non-commodity cost — electricity (resi)
+- [2026-06-19 12:08 UTC] OK: Non-commodity cost — electricity (SME)
+- [2026-06-19 12:08 UTC] OK: Non-commodity cost — gas (resi)
+- [2026-06-19 12:08 UTC] OK: Non-commodity cost — gas (SME)
+- [2026-06-19 12:08 UTC] OK: Non-commodity as % of all-in bill
+- [2026-06-19 12:08 UTC] OK: Standing charge — electricity (resi)
+- [2026-06-19 12:09 UTC] OK: Standing charge — electricity (SME)
+- [2026-06-19 12:09 UTC] OK: Standing charge — gas (resi)
+- [2026-06-19 12:09 UTC] OK: Standing charge — gas (SME)
+- [2026-06-19 12:09 UTC] OK: VAT — residential
+- [2026-06-19 12:09 UTC] Discovery cycle complete: 10 assumptions reviewed, 0 critical, 0 warnings
+- [2026-06-19 12:09 UTC] Discovery: 10 OK, 0 warnings, 0 critical
+- [2026-06-19 12:09 UTC] Next cycle in 6h — sleeping
+- [2026-06-19 18:09 UTC] Discovery cycle started — 25 assumptions to review
+- [2026-06-19 18:09 UTC] OK: Non-commodity cost — electricity (resi)
+- [2026-06-19 18:09 UTC] OK: Non-commodity cost — electricity (SME)
+- [2026-06-19 18:09 UTC] OK: Non-commodity cost — gas (resi)
+- [2026-06-19 18:09 UTC] OK: Non-commodity cost — gas (SME)
+- [2026-06-19 18:09 UTC] OK: Non-commodity as % of all-in bill
+- [2026-06-19 18:09 UTC] OK: Standing charge — electricity (resi)
+- [2026-06-19 18:09 UTC] OK: Standing charge — electricity (SME)
+- [2026-06-19 18:10 UTC] OK: Standing charge — gas (resi)
+- [2026-06-19 18:10 UTC] OK: Standing charge — gas (SME)
+- [2026-06-19 18:10 UTC] OK: VAT — residential
+- [2026-06-19 18:10 UTC] Discovery cycle complete: 10 assumptions reviewed, 0 critical, 0 warnings
+- [2026-06-19 18:10 UTC] Discovery: 10 OK, 0 warnings, 0 critical
+- [2026-06-19 18:10 UTC] Next cycle in 6h — sleeping
+- [2026-06-20 00:10 UTC] Discovery cycle started — 25 assumptions to review
+- [2026-06-20 00:10 UTC] OK: Non-commodity cost — electricity (resi)
+- [2026-06-20 00:10 UTC] OK: Non-commodity cost — electricity (SME)
+- [2026-06-20 00:10 UTC] OK: Non-commodity cost — gas (resi)
+- [2026-06-20 00:10 UTC] OK: Non-commodity cost — gas (SME)
+- [2026-06-20 00:10 UTC] OK: Non-commodity as % of all-in bill
+- [2026-06-20 00:11 UTC] OK: Standing charge — electricity (resi)
+- [2026-06-20 00:11 UTC] OK: Standing charge — electricity (SME)
+- [2026-06-20 00:11 UTC] OK: Standing charge — gas (resi)
+- [2026-06-20 00:11 UTC] OK: Standing charge — gas (SME)
+- [2026-06-20 00:11 UTC] OK: VAT — residential
+- [2026-06-20 00:11 UTC] Discovery cycle complete: 10 assumptions reviewed, 0 critical, 0 warnings
+- [2026-06-20 00:11 UTC] Discovery: 10 OK, 0 warnings, 0 critical
+- [2026-06-20 00:11 UTC] Next cycle in 6h — sleeping
+- [2026-06-20 06:11 UTC] Discovery cycle started — 25 assumptions to review
+- [2026-06-20 06:11 UTC] OK: Non-commodity cost — electricity (resi)
+- [2026-06-20 06:12 UTC] OK: Non-commodity cost — electricity (SME)
+- [2026-06-20 06:12 UTC] OK: Non-commodity cost — gas (resi)
+- [2026-06-20 06:12 UTC] OK: Non-commodity cost — gas (SME)
+- [2026-06-20 06:12 UTC] OK: Non-commodity as % of all-in bill
+- [2026-06-20 06:12 UTC] OK: Standing charge — electricity (resi)
+- [2026-06-20 06:12 UTC] OK: Standing charge — electricity (SME)
+- [2026-06-20 06:13 UTC] OK: Standing charge — gas (resi)
+- [2026-06-20 06:13 UTC] OK: Standing charge — gas (SME)
+- [2026-06-20 06:13 UTC] OK: VAT — residential
+- [2026-06-20 06:13 UTC] Discovery cycle complete: 10 assumptions reviewed, 0 critical, 0 warnings
+- [2026-06-20 06:13 UTC] Discovery: 10 OK, 0 warnings, 0 critical
+- [2026-06-20 06:13 UTC] Next cycle in 6h — sleeping
+- [2026-06-20 07:11 UTC] Discovery agent started (date: 2026-06-20, daemon=False)
+- [2026-06-20 07:11 UTC] Discovery cycle started — 25 assumptions to review
+- [2026-06-20 07:11 UTC] OK: Non-commodity cost — electricity (resi)
+- [2026-06-20 07:11 UTC] OK: Non-commodity cost — electricity (SME)
+- [2026-06-20 07:11 UTC] OK: Non-commodity cost — gas (resi)
+- [2026-06-20 07:11 UTC] OK: Non-commodity cost — gas (SME)
+- [2026-06-20 07:11 UTC] OK: Non-commodity as % of all-in bill
+- [2026-06-20 07:12 UTC] OK: Standing charge — electricity (resi)
+- [2026-06-20 07:12 UTC] OK: Standing charge — electricity (SME)
+- [2026-06-20 07:12 UTC] OK: Standing charge — gas (resi)
+- [2026-06-20 07:12 UTC] OK: Standing charge — gas (SME)
+- [2026-06-20 07:12 UTC] OK: VAT — residential
+- [2026-06-20 07:12 UTC] Discovery cycle complete: 10 assumptions reviewed, 0 critical, 0 warnings
+- [2026-06-20 07:12 UTC] Discovery: 10 OK, 0 warnings, 0 critical

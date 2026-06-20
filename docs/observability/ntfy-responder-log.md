@@ -7,3 +7,40 @@
 - [2026-06-15 18:27 UTC] Acked inbound message 'BAM90HE3hliL' ('Agreed on both phases. Proceed with Phase A after the 6c re-')
 - [2026-06-16 00:00 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Read timed out. (read timeout=10)
 - [2026-06-16 04:37 UTC] Acked inbound message 'XXQFWN06P43r' ("I'm getting hundreds of milestone reached and autoloop cap r")
+- [2026-06-16 11:59 UTC] Acked inbound message 'wvWMyRmT41Af' ('The annual report on GitHub Pages is still showing old figur')
+- [2026-06-16 12:29 UTC] Acked inbound message 'ssJh8XRyaX8w' ("I got this message 7 minutes ago. Are you sure it's stopped.")
+- [2026-06-16 12:43 UTC] Acked inbound message 'SJL6tWtt2E4W' ('I just got this message. Claude Code autoloop cap reached (6')
+- [2026-06-16 16:28 UTC] Acked inbound message 'S7COJcIcU5RV' ('Pages is still showing 12.6%/£23,678 — the old figures. You ')
+- [2026-06-17 05:47 UTC] Acked inbound message 'hokSW1MC6x1I' ("Don't hold on Phase 7b — let it proceed. On the revenue drop")
+- [2026-06-17 06:14 UTC] Acked inbound message 'Xd2mpjrT7Bfj' ('Start the full 2016-2025 run when GPU is free. While it runs')
+- [2026-06-17 06:21 UTC] NTFY responder started
+- [2026-06-17 06:24 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1781677378 (Caused by NewConnectionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to establish a new connection: [Errno 101] Network is unreachable"))
+- [2026-06-17 08:18 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1781677995 (Caused by NewConnectionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to establish a new connection: [Errno 101] Network is unreachable"))
+- [2026-06-18 04:59 UTC] Acked inbound message 'g3kKEftcjWGw' ('Are you and the GPU busy or idle? Please keep both busy prog') — staged as from_rich_20260618_045923.md
+- [2026-06-18 05:36 UTC] Acked inbound message 'aC6iQZ91LQLf' ('Before Phase 8a calibration — urgent question. Gross margin ') — staged as from_rich_20260618_053657.md
+- [2026-06-18 06:00 UTC] Acked inbound message 'a2CsXITHL1lj' ('Phase 8a calibration answers: (1) MANDATE=flat confirmed. (2') — staged as from_rich_20260618_060002.md
+- [2026-06-18 06:05 UTC] Acked inbound message 'CmXUG5siUFft' ('Communications fix: suppress the staging watcher notificatio') — staged as from_rich_20260618_060549.md
+- [2026-06-18 06:39 UTC] Acked inbound message 'YKVvZY7n7rr9' ('Review the published ANNUAL_REPORT.md yourself. Check for in') — staged as from_rich_20260618_063921.md
+- [2026-06-18 19:14 UTC] Acked inbound message 'rj4xmi2JzeKM' ('Please tell me you are not idle? I have had no ntfy messages') — staged as from_rich_20260618_191427.md
+- [2026-06-18 20:00 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1781812825 (Caused by NewConnectionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to establish a new connection: [Errno 101] Network is unreachable"))
+- [2026-06-18 20:01 UTC] Acked inbound message 'mpj0MBWozGgw' ('The last NTFY looks like a stale replay — it shows 3.5% net ') — staged as from_rich_20260618_200132.md
+- [2026-06-18 20:03 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Read timed out. (read timeout=10)
+- [2026-06-18 20:04 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Read timed out. (read timeout=10)
+- [2026-06-18 20:27 UTC] Acked inbound message 'WmU7FdnRxT55' ('Two unresolved inconsistencies in the report: (1) Hedging ma') — staged as from_rich_20260618_202738.md
+- [2026-06-19 04:47 UTC] Acked inbound message 'hdk67ipbGHp8' ('Are you doing things or idle again? Did you get my message a') — staged as from_rich_20260619_044738.md
+- [2026-06-19 06:09 UTC] Acked inbound message 'vp8kHvpHcT0n' ('Background task DONE: stack-health-check — 0s, P=0/E=0 local') — staged as from_rich_20260619_060917.md
+- [2026-06-19 06:39 UTC] Acked inbound message 'TwxJruhi4yw2' ('Background task DONE: gpu-utilisation-monitor — 84s, P=159/E') — staged as from_rich_20260619_063928.md
+- [2026-06-19 06:47 UTC] Acked inbound message 'LgNuTz8tcaxy' ('You said new task in staging twice just now. But firstly you') — staged as from_rich_20260619_064716.md
+- [2026-06-19 06:47 UTC] Acked inbound message 'eAhTo4E69F3o' ('The last message was URGENT') — staged as from_rich_20260619_064737.md
+- [2026-06-19 07:09 UTC] Acked inbound message 'kzuN3OKT3dnn' ('Background task DONE: token-efficiency-tracking — 30s, P=163') — staged as from_rich_20260619_070942.md
+- [2026-06-19 07:41 UTC] Acked inbound message '5Juuz2MsYf89' ('Background task DONE: customer-archetype-data-enrichment — 8') — staged as from_rich_20260619_074119.md
+- [2026-06-19 08:05 UTC] Acked inbound message 'E2RJ6Wl9v4mR' ('I am still getting spurious new file alerts from_rich when I') — staged as from_rich_20260619_080544.md
+- [2026-06-19 15:04 UTC] Acked inbound message 'j9p8HZveEV3K' ("I've heard nothing from you for 7 hours. Are you idle again?") — staged as from_rich_20260619_150454.md
+- [2026-06-19 18:06 UTC] Acked inbound message 'pfp1096s7vNr' ("It's been three hours. Did you get my URGENT message about r") — staged as from_rich_20260619_180603.md
+- [2026-06-20 05:59 UTC] Acked inbound message 'xt16lFM80Nbh' ('Please review which messages you need to send. I have gone f') — staged as from_rich_20260620_055918.md
+- [2026-06-20 06:00 UTC] Acked inbound message 'nFrq9eOs8fsT' ('URGENT. Two issues to address: (1) ntfy.sh is replaying old ') — staged as from_rich_20260620_060040.md
+- [2026-06-20 06:03 UTC] Acked inbound message 'ySLhFprvIHiF' ('Net margin is 9.1% of revenue against a 2-5% benchmark. Befo') — staged as from_rich_20260620_060323.md
+- [2026-06-20 07:19 UTC] NTFY responder started
+- [2026-06-20 07:21 UTC] Acked inbound message '9i39FwlFubNe' ('Maybe we treat customers as segments not individuals. And ma') — staged as from_rich_20260620_072118.md
+- [2026-06-20 07:32 UTC] Acked inbound message 'mbqALHsE53Fs' ('Lets keep smart customers as separate. But maybe what we hav') — staged as from_rich_20260620_073208.md
+- [2026-06-20 09:33 UTC] Acked inbound message 'yIwEVXJZ5Apl' ('Also: publish the assumption library (docs/market_research/A') — staged as from_rich_20260620_093359.md

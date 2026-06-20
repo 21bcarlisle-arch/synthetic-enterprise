@@ -35,3 +35,341 @@
 - [2026-06-19 21:29 UTC] Previous autonomous turn still running — skipping this cycle
 - [2026-06-19 21:29 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-156/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
 - [2026-06-19 21:29 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-19 21:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 21:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 22:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-19 23:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 00:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 01:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 02:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 03:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 04:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 05:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:27 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:29 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:31 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:33 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:35 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:37 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:39 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:41 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:43 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:45 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:47 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:49 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:51 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:53 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:55 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:57 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 06:59 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:01 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:03 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:05 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:07 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:09 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:09 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-20 07:09 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-20 07:09 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-157/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-20 07:09 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-20 07:10 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-20 07:10 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-20 07:10 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-159/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-20 07:10 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-20 07:11 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:13 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:15 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:17 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:19 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:21 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:23 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:25 UTC] Runner error: cannot access local variable '_active_proc' where it is not associated with a value
+- [2026-06-20 07:25 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-20 07:25 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-20 07:25 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-160/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-20 07:25 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-20 07:25 UTC] Autonomous runner started
+- [2026-06-20 08:28 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-20 08:28 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-20 08:28 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-161/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-20 08:28 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-20 08:29 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-20 08:29 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-20 08:29 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-162/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-20 08:29 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-20 08:43 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-20 08:43 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-20 08:43 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-163/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-20 08:43 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-20 08:59 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-20 08:59 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-20 08:59 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-164/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-20 08:59 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-20 09:10 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-20 09:10 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-20 09:10 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-165/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-20 09:10 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-06-20 11:35 UTC] Session idle 30min — launching autonomous turn
+- [2026-06-20 11:35 UTC] Launching autonomous turn (claude -p)
+- [2026-06-20 11:35 UTC] Autonomous turn launched (pid=201962)
+- [2026-06-20 11:37 UTC] Rate cap (2/hour) — skipping turn
+- [2026-06-20 11:37 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-06-20 11:37 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-166/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-06-20 11:37 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
