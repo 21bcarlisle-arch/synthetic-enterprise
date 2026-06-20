@@ -196,6 +196,31 @@ obligation first, active position second" — matching how real suppliers
 
 ---
 
+## Architectural Laws
+
+### Epistemic Honesty — The Company Cannot See Inside the SIM
+
+The company layer operates under the same information constraints as a
+real energy supplier. It cannot see simulation internals — churn model
+parameters, forward curve construction, weather engine outputs, VaR
+model internals. It discovers the world through observable interfaces:
+market data feeds, meter reads, customer interactions, its own bills
+and payments, regulatory publications.
+
+The company's models (churn, demand, forward curve) are approximations
+built from observed outcomes — not reads from simulation ground truth.
+Those approximations will be imperfect. That imperfection is the point.
+
+Before writing any company-layer code, ask: "Could a real UK energy
+supplier know this?" If the answer requires reading simulation internals,
+it is a violation of this principle.
+
+The SIM/company seam (`company/interfaces/sim_interface.py`) enforces
+this boundary. It exposes observables and outcomes. It never exposes
+parameters or internals.
+
+---
+
 ## Sequencing principles
 
 **Two-way-door filter:** don't build something that depends on an unresolved
