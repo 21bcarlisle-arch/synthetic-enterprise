@@ -22,7 +22,9 @@ intentional: Phase 6b turns existing *risk scores* into actual *events*, and
 the models that compute those scores already live in `saas/`.
 """
 import random as _random
+from datetime import date
 
+from company.crm.churn_model import estimate_churn_probability
 from saas.churn_model import build_churn_risk
 from saas.customer_reaction import _billing_account_id
 from saas.home_move_win_rate import build_home_move_win_rates
@@ -37,6 +39,8 @@ def roll_lifecycle_event(
     records_so_far: list[dict],
     customers: list[dict],
     price_differential_pct: float = PRICE_DIFFERENTIAL_PCT,
+    old_rate_gbp_per_mwh: float | None = None,
+    new_rate_gbp_per_mwh: float | None = None,
 ) -> dict | None:
     """Compute and roll the churn/renewal event for a billing account at a
     renewal point.
@@ -81,6 +85,24 @@ def roll_lifecycle_event(
         win_roll = _random.Random(f"win_{billing_account}_{term_start_str}").random()
         home_move_won = win_roll <= renewal_data["win_probability"]
 
+    # Phase 11b: company's observable-data churn estimate
+    company_churn_estimate: float | None = None
+    churn_estimate_error_pct: float | None = None
+    if old_rate_gbp_per_mwh is not None and new_rate_gbp_per_mwh is not None:
+        acq_date = next(
+            (c["acquisition_date"] for c in customers if c["customer_id"] == billing_account),
+            term_start_str,
+        )
+        tenure_years = (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date)).days / 365.25
+        company_churn_estimate = round(
+            estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years), 4
+        )
+        sim_prob = renewal_data["churn_probability"]
+        if sim_prob:
+            churn_estimate_error_pct = round(
+                (company_churn_estimate - sim_prob) / sim_prob, 4
+            )
+
     return {
         "customer_id": billing_account,
         "event_date": term_start_str,
@@ -91,4 +113,6 @@ def roll_lifecycle_event(
         "effective_retention_probability": round(renewal_data["effective_retention_probability"], 4),
         "random_roll": round(roll, 4),
         "home_move_won": home_move_won,
+        "company_churn_estimate": company_churn_estimate,
+        "churn_estimate_error_pct": churn_estimate_error_pct,
     }

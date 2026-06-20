@@ -1139,6 +1139,72 @@ def _customer_lifecycle_events_section(data: dict) -> str:
     return "\n".join(lines)
 
 
+
+def _churn_basis_risk_section(data: dict) -> str:
+    """Churn Prediction Basis Risk — Phase 11b.
+
+    At each renewal the company estimated churn probability from observable
+    signals (rate change %, tenure). The SIM computed it from bill-shock
+    history. The gap between them is epistemic basis risk: the company
+    systematically under-estimates churn when prices spike, because it
+    sees rate change % while the SIM sees the actual bill impact on a
+    specific household.
+    """
+    cbr = data.get("churn_basis_risk", [])
+    if not cbr:
+        return f"## Churn Prediction Basis Risk\n\n{NOT_AVAILABLE}\n"
+
+    errors = [r["churn_estimate_error_pct"] for r in cbr if r["churn_estimate_error_pct"] is not None]
+    if not errors:
+        return f"## Churn Prediction Basis Risk\n\n{NOT_AVAILABLE}\n"
+
+    avg_abs_error = sum(abs(e) for e in errors) / len(errors)
+    avg_signed_error = sum(errors) / len(errors)
+
+    # Group by year for trend
+    by_year: dict[str, list[float]] = {}
+    for r in cbr:
+        if r["churn_estimate_error_pct"] is None:
+            continue
+        year = r["term_start"][:4]
+        by_year.setdefault(year, []).append(r["churn_estimate_error_pct"])
+
+    lines = [
+        "## Churn Prediction Basis Risk",
+        "",
+        "At each renewal the company estimated churn risk from observable signals "
+        "(rate change %, customer tenure). The SIM used its bill-shock model "
+        "(actual bill amount relative to customer-specific thresholds). The gap "
+        "is epistemic: in crisis years the company sees a rate % while the SIM sees "
+        "the household-level financial shock — the same failure mode that surprised "
+        "real suppliers in 2021-22.",
+        "",
+        f"- **Average absolute error:** {avg_abs_error:.1%}",
+        f"- **Average signed error:** {avg_signed_error:+.1%} "
+        f"({'over-estimates' if avg_signed_error > 0 else 'under-estimates'} vs SIM)",
+        f"- **Renewal events with estimates:** {len(cbr)}",
+        "",
+        "| Year | Renewals | Avg error (signed) | Avg abs error |",
+        "|------|----------|--------------------|---------------|",
+    ]
+
+    for year in sorted(by_year):
+        yr_errors = by_year[year]
+        yr_signed = sum(yr_errors) / len(yr_errors)
+        yr_abs = sum(abs(e) for e in yr_errors) / len(yr_errors)
+        lines.append(
+            f"| {year} | {len(yr_errors)} | {yr_signed:+.1%} | {yr_abs:.1%} |"
+        )
+
+    lines += [
+        "",
+        "Positive error = company over-estimated churn vs SIM. "
+        "Negative error = company under-estimated (more dangerous — "
+        "expected retentions that were actually at risk).",
+        "",
+    ]
+    return "\n".join(lines)
+
 def _clv_trajectory_section(data: dict) -> str:
     """Whole-run CLV trajectory table — Point-in-Time CLV per billing account
     at each year end, showing how estimates evolved as renewal data accumulated.
@@ -1363,6 +1429,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_hedge_effectiveness_summary_section(data))
     sections.append(_segment_margin_trend_section(data))
     sections.append(_customer_lifecycle_events_section(data))
+    sections.append(_churn_basis_risk_section(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
     sections.append(_ledger_summary_section(data))

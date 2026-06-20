@@ -14,6 +14,7 @@ replaced with real implementations that call the simulation layer.
 
 from typing import Any
 
+from company.crm.churn_model import estimate_churn_probability
 from company.pricing.tariff_engine import CompanyTariffEngine
 
 
@@ -66,6 +67,20 @@ class SimInterface:
         """
         raise NotImplementedError
 
+    def get_churn_estimate(
+        self,
+        account_id: str,
+        old_rate_gbp_per_mwh: float,
+        new_rate_gbp_per_mwh: float,
+        tenure_years: float,
+    ) -> float:
+        """Company observable-data churn probability estimate for a renewal.
+
+        Does not read SIM churn model internals. Uses rate change % and tenure.
+        Returns: estimated churn probability in [0.0, 0.95]
+        """
+        raise NotImplementedError
+
 
 class StubSimInterface(SimInterface):
     """Stub implementation for testing and development.
@@ -102,6 +117,15 @@ class StubSimInterface(SimInterface):
     def notify_acquisition(self, account_id: str, event_date: str) -> None:
         self._acquisition_notifications.append({"account_id": account_id, "event_date": event_date})
         self._customer_statuses[account_id] = "active"
+
+    def get_churn_estimate(
+        self,
+        account_id: str,
+        old_rate_gbp_per_mwh: float,
+        new_rate_gbp_per_mwh: float,
+        tenure_years: float,
+    ) -> float:
+        return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years)
 
     @property
     def churn_notifications(self) -> list[dict]:
@@ -161,6 +185,15 @@ class LiveSimInterface(SimInterface):
 
     def notify_acquisition(self, account_id: str, event_date: str) -> None:
         pass
+
+    def get_churn_estimate(
+        self,
+        account_id: str,
+        old_rate_gbp_per_mwh: float,
+        new_rate_gbp_per_mwh: float,
+        tenure_years: float,
+    ) -> float:
+        return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years)
 
 
 def build_sim_interface(live: bool = False) -> SimInterface:

@@ -379,6 +379,8 @@ def main(report_end: str | None = None):
 
     # Phase 11a: basis risk tracking — company_fwd vs sim_fwd per term
     basis_risk_terms: list[dict] = []
+    # Phase 11b: track previous electricity unit rate per customer for churn estimate
+    prev_elec_unit_rates: dict[str, float] = {}
 
     current_year_str = REPORT_START[:4]
     ytd_gross = ytd_net = ytd_capital = 0.0
@@ -420,11 +422,18 @@ def main(report_end: str | None = None):
             "tariff_error_pct": (company_fwd - forward_price) / forward_price if forward_price else 0.0,
         })
 
+        # Phase 11b: capture previous rate before updating (old_rate for company churn estimate)
+        old_elec_rate = prev_elec_unit_rates.get(cid) if commodity == "electricity" else None
+        if commodity == "electricity":
+            prev_elec_unit_rates[cid] = unit_rate
+
         # Phase 6b+7e: roll churn/renewal event at each renewal point (electricity legs drive billing).
         # Pass _ALL_KNOWN_CUSTOMERS so successors are found by build_churn_risk.
         if term_index >= 1 and commodity == "electricity":
             event = roll_lifecycle_event(
-                cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS
+                cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
+                old_rate_gbp_per_mwh=old_elec_rate,
+                new_rate_gbp_per_mwh=unit_rate,
             )
             if event is not None:
                 customer_events_log.append(event)
@@ -783,6 +792,18 @@ def main(report_end: str | None = None):
         "growth_mandate": MANDATE,
         # Phase 11a: basis risk — company estimate vs sim ground truth per term
         "basis_risk_terms": basis_risk_terms,
+        # Phase 11b: churn basis risk — company churn estimate vs sim ground truth per renewal
+        "churn_basis_risk": [
+            {
+                "customer_id": e["customer_id"],
+                "term_start": e["event_date"],
+                "sim_churn_probability": e["churn_probability"],
+                "company_churn_estimate": e["company_churn_estimate"],
+                "churn_estimate_error_pct": e["churn_estimate_error_pct"],
+            }
+            for e in customer_events_log
+            if e.get("company_churn_estimate") is not None
+        ],
     }
 
 
