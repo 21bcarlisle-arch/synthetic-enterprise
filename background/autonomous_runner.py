@@ -159,7 +159,6 @@ def launch_turn() -> None:
 
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     log(f"Launching autonomous turn (claude -p)")
-    send_ntfy(f"[AUTO] Starting autonomous Claude turn — session idle 30+ min ({ts})")
 
     TURN_OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(TURN_OUTPUT_FILE, "a") as out:
