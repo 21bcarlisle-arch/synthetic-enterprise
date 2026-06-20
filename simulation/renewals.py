@@ -14,10 +14,13 @@ increment.
 
 from datetime import date, timedelta
 
+from company.pricing.tariff_engine import CompanyTariffEngine
 from saas.tariff_pricing import price_fixed_tariff
 from sim.forward_curve import generate_forward_price
 from sim.hedging_strategy import MIN_HEDGE_FLOOR
 from simulation.settlement import CONTRACT_LENGTH_DAYS
+
+_COMPANY_ENGINE = CompanyTariffEngine()
 
 
 def build_renewal_schedule(
@@ -61,15 +64,24 @@ def build_renewal_schedule(
     while term_start <= report_end:
         term_start_str = term_start.isoformat()
         lookback_temps = lookback_temps_fn(term_start_str) if lookback_temps_fn else None
-        forward_price = generate_forward_price(
+        # sim_fwd: SIM's sophisticated estimate (used for hedging, risk assessment, weather adj)
+        sim_fwd = generate_forward_price(
             term_start_str, price_records, lookback_daily_mean_temps_c=lookback_temps
         )
-        unit_rate = price_fixed_tariff(forward_price, eac_kwh, term_start_str, naked_fraction=1 - MIN_HEDGE_FLOOR)
+        # company_fwd: company's observable-data estimate (used for tariff/unit rate).
+        # Differs from sim_fwd — no seasonal adjustment, longer lookback, fixed % premium.
+        # The gap between them is basis risk, visible in P&L for the first time (Phase 11a).
+        try:
+            company_fwd = _COMPANY_ENGINE.get_forward_price("electricity", term_start_str, price_records)
+        except ValueError:
+            company_fwd = sim_fwd  # fallback: insufficient prior data for first term
+        unit_rate = price_fixed_tariff(company_fwd, eac_kwh, term_start_str, naked_fraction=1 - MIN_HEDGE_FLOOR)
         terms.append({
             "customer_id": customer_id,
             "acquisition_date": term_start_str,
             "unit_rate_gbp_per_mwh": unit_rate,
-            "forward_price_gbp_per_mwh": forward_price
+            "forward_price_gbp_per_mwh": sim_fwd,
+            "company_forward_price_gbp_per_mwh": company_fwd,
         })
         term_start += timedelta(days=CONTRACT_LENGTH_DAYS)
 

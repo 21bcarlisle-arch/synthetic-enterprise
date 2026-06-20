@@ -69,6 +69,7 @@ def test_build_sim_interface_returns_stub():
     assert isinstance(iface, StubSimInterface)
 
 
-def test_build_sim_interface_live_raises():
-    with pytest.raises(NotImplementedError, match="Live SimInterface"):
-        build_sim_interface(live=True)
+def test_build_sim_interface_live_returns_live_interface():
+    from company.interfaces.sim_interface import LiveSimInterface
+    iface = build_sim_interface(live=True)
+    assert isinstance(iface, LiveSimInterface)

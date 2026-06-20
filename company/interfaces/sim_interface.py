@@ -14,6 +14,8 @@ replaced with real implementations that call the simulation layer.
 
 from typing import Any
 
+from company.pricing.tariff_engine import CompanyTariffEngine
+
 
 class SimInterface:
     """Formal interface between the company layer and the simulation.
@@ -110,11 +112,59 @@ class StubSimInterface(SimInterface):
         return list(self._acquisition_notifications)
 
 
+class LiveSimInterface(SimInterface):
+    """Live SimInterface — Phase 11a: company uses observable-data forward price model.
+
+    get_forward_price() calls CompanyTariffEngine, which reads only public
+    spot price history (Elexon SSP / TTF proxy) — never reads sim internals.
+    Other methods remain stubs until the ledger/CRM seam is fully wired.
+    """
+
+    def __init__(self):
+        self._engine = CompanyTariffEngine()
+        self._price_cache: dict[str, list[dict]] = {}
+
+    def _load_price_records(self, fuel: str) -> list[dict]:
+        if fuel not in self._price_cache:
+            if fuel == "electricity":
+                from sim.cache_store import get_cached_prices
+                from sim.system_prices_history import get_system_prices_range
+                records = get_cached_prices("2015-11-07", "2025-06-07")
+                if records is None:
+                    records = get_system_prices_range("2015-11-07", "2025-06-07")
+                self._price_cache[fuel] = records
+            elif fuel == "gas":
+                from sim.gas_prices_history import load_nbp_history
+                self._price_cache[fuel] = load_nbp_history()
+            else:
+                raise ValueError(f"Unknown fuel: {fuel}")
+        return self._price_cache[fuel]
+
+    def get_forward_price(self, fuel: str, delivery_date: str) -> float:
+        records = self._load_price_records(fuel)
+        return self._engine.get_forward_price(fuel, delivery_date, records)
+
+    def get_settlement_data(self, mpan: str, period: str) -> dict[str, Any]:
+        return {
+            "mpan": mpan,
+            "period": period,
+            "consumption_kwh": 0.0,
+            "unit_rate_gbp_per_mwh": 0.0,
+            "_stub": True,
+        }
+
+    def get_customer_status(self, account_id: str) -> str:
+        return "active"
+
+    def notify_churn(self, account_id: str, event_date: str) -> None:
+        pass
+
+    def notify_acquisition(self, account_id: str, event_date: str) -> None:
+        pass
+
+
 def build_sim_interface(live: bool = False) -> SimInterface:
-    """Factory function. Returns StubSimInterface until functional separation is built."""
+    """Factory function. Returns LiveSimInterface when live=True (Phase 11a+)."""
     if live:
-        raise NotImplementedError(
-            "Live SimInterface not implemented yet — functional SIM/company separation "
-            "is a later-phase deliverable. Use StubSimInterface for now."
-        )
+        return LiveSimInterface()
     return StubSimInterface()

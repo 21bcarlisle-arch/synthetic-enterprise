@@ -8,9 +8,22 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-20T11:38:41Z
+Last updated: 2026-06-20T12:02:59Z
 
-**Phase 10b LIVE (2026-06-20)**: 543 tests passing. Segment portfolio report committed.
+**Phase 11a LIVE (2026-06-20)**: 559 tests passing. Company pricing autonomy implemented.
+- `company/pricing/tariff_engine.py`: `CompanyTariffEngine` — observable-data forward price model
+  - 120-day rolling mean of daily spot prices + 15% risk premium
+  - No seasonal adjustment (company hasn't built that model yet)
+  - Systematically differs from SIM's model — difference is basis risk, now visible in P&L
+- `company/interfaces/sim_interface.py`: `LiveSimInterface` implemented — `build_sim_interface(live=True)` now works
+- `simulation/renewals.py` / `run_phase2b.py`: unit rates now derived from company's estimate, not SIM internals
+  - `forward_price_gbp_per_mwh` = SIM's sophisticated estimate (used for hedging, risk)
+  - `company_forward_price_gbp_per_mwh` = company's observable estimate (drives tariff)
+  - `basis_risk_terms` now returned from `main()` — per-term company vs sim error %
+- Hollow gap 3 (SIM/company barrier structural not functional): now **CLOSED** — company makes consequential tariff decisions using only observable information
+- 16 new tests: `tests/company/pricing/` (tariff engine + LiveSimInterface)
+
+**Phase 10b (2026-06-20)**: Segment portfolio report committed.
 - `saas/reporting/segment_report.py`: standalone segment P&L report generator
   - Per-segment unit economics: headcount trajectory, net/customer, smart-meter migration
   - `make segment-report` regenerates from saved JSON; `make run-segments` runs full simulation
@@ -23,18 +36,18 @@ Last updated: 2026-06-20T11:38:41Z
 - Non→Smart flow: UK smart meter rollout modelled — Standard customers upgrade to Smart at 3-10%/yr
 - Speed: O(segments×periods) same as before, economically credible at realistic headcounts
 
-**Phase 9a bill structure results (2016–2025)** — latest named-customer run (git 34d9cb2):
-- Customer bills (all-in): £168,067 | VAT remitted: (£13,907) | Revenue (ex-VAT): £154,161
-- Non-commodity pass-through: (£42,887) | Wholesale: (£96,087)
-- Gross margin: £15,186 | Capital: £1,228 | Net margin: £13,958 (9.1% of ex-VAT revenue)
-- Operating net margin (after fixed overhead £5,700 + acquisition £1,250): **£+7,008** (profitable!)
-- Treasury: £29,846 → £33,407 | 2,238,162 ledger events | 160 committee interventions
-- Enterprise value: £-1,635 | Cost-to-serve: £6,460 | Net after CTS: £+7,498
+**Latest simulation results (2016–2025)** — run git d7d3185 (pre-Phase 11a baseline):
+- Net margin: £13,958.21 (9.1% of revenue) | Gross: £15,186 | Capital: £1,228
+- Capital cost ratio: 8.1% of gross margin
+- Treasury: £29,846 → £33,407 | 160 committee interventions | 1117 bills issued
+- Enterprise value: £-1,635.32 | Cost-to-serve: £6,460 | Net after CTS: £+7,498
+- 2021 (crisis): net margin £-343.62 | 2022 (crisis): net margin £361.19
+- *Note: Phase 11a changes tariff pricing — next run will show basis risk impact on P&L*
 
 **Five hollow gaps status (as of 2026-06-20)**:
 1. ~~No customer events firing~~ — CLOSED (Phase 6b/7e): churn events, replacement onboarding
 2. ~~No ledger~~ — CLOSED (Phase 7a/7b): transaction log, cash waterfall, bad-debt events
-3. SIM/company barrier structural not functional — Company layer foundation built (Phase 9a)
+3. ~~SIM/company barrier~~ — CLOSED (Phase 11a): company makes tariff decisions from observable data only; basis risk now visible
 4. ~~HH data path~~ — CLOSED (Phase 6a): C7-C9 on real HH consumption
 5. ~~Reporting~~ — CLOSED (Phase 5a/5b): ANNUAL_REPORT.md, full pipeline
 

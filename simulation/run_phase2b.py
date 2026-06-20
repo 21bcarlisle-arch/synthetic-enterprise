@@ -49,6 +49,7 @@ from sim.forward_curve import (
     WINTER_MULTIPLIER,
     generate_forward_price,
 )
+from company.pricing.tariff_engine import CompanyTariffEngine
 from sim.gas_prices_history import load_nbp_history
 from sim.hedging_strategy import MIN_HEDGE_FLOOR, evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape
@@ -215,23 +216,29 @@ def _build_gas_renewal_schedule(
     schedule = []
     term_start = acq_date
 
+    _company_engine = CompanyTariffEngine()
     while term_start <= report_end:
         term_end = _clamp_term_end(term_start, end_date=report_end)
         lookback_temps = lookback_temps_fn(term_start) if lookback_temps_fn else None
         try:
-            fwd = generate_forward_price(term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps)
+            sim_fwd = generate_forward_price(term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps)
         except ValueError:
             if not schedule:
-                fwd = _bootstrap_first_term_forward_price(
+                sim_fwd = _bootstrap_first_term_forward_price(
                     term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps
                 )
             else:
                 break
-        unit_rate = price_fixed_tariff(fwd, aq_kwh, term_start, naked_fraction=1 - MIN_HEDGE_FLOOR)
+        try:
+            company_fwd = _company_engine.get_forward_price("gas", term_start, gas_records)
+        except ValueError:
+            company_fwd = sim_fwd  # fallback: insufficient prior data for first term
+        unit_rate = price_fixed_tariff(company_fwd, aq_kwh, term_start, naked_fraction=1 - MIN_HEDGE_FLOOR)
         schedule.append({
             "acquisition_date": term_start,
             "term_end": term_end,
-            "forward_price_gbp_per_mwh": fwd,
+            "forward_price_gbp_per_mwh": sim_fwd,
+            "company_forward_price_gbp_per_mwh": company_fwd,
             "unit_rate_gbp_per_mwh": unit_rate,
         })
         term_start = term_end  # next term starts where this ends
@@ -370,6 +377,9 @@ def main(report_end: str | None = None):
     _acquisition_counter: dict[str, int] = {}  # base_id -> next fresh-acquisition suffix
     _fixed_cost_emitted: set[str] = set()  # months already charged (dedup across customers)
 
+    # Phase 11a: basis risk tracking — company_fwd vs sim_fwd per term
+    basis_risk_terms: list[dict] = []
+
     current_year_str = REPORT_START[:4]
     ytd_gross = ytd_net = ytd_capital = 0.0
 
@@ -394,10 +404,21 @@ def main(report_end: str | None = None):
                 continue
 
         term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
-        forward_price = term["forward_price_gbp_per_mwh"]
+        forward_price = term["forward_price_gbp_per_mwh"]        # sim's sophisticated estimate
+        company_fwd = term.get("company_forward_price_gbp_per_mwh", forward_price)
         unit_rate = term["unit_rate_gbp_per_mwh"]
         term_index = term_indices[cid]
         term_indices[cid] += 1
+
+        # Phase 11a: record basis risk (company estimate vs sim ground truth)
+        basis_risk_terms.append({
+            "customer_id": cid,
+            "commodity": commodity,
+            "term_start": term_start_str,
+            "company_fwd_gbp_per_mwh": company_fwd,
+            "sim_fwd_gbp_per_mwh": forward_price,
+            "tariff_error_pct": (company_fwd - forward_price) / forward_price if forward_price else 0.0,
+        })
 
         # Phase 6b+7e: roll churn/renewal event at each renewal point (electricity legs drive billing).
         # Pass _ALL_KNOWN_CUSTOMERS so successors are found by build_churn_risk.
@@ -760,6 +781,8 @@ def main(report_end: str | None = None):
         "fixed_cost_events": fixed_cost_events,
         "acquired_customers": [c["customer_id"] for c in ACQUIRED_CUSTOMERS],
         "growth_mandate": MANDATE,
+        # Phase 11a: basis risk — company estimate vs sim ground truth per term
+        "basis_risk_terms": basis_risk_terms,
     }
 
 
