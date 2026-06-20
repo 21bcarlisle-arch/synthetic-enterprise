@@ -1,94 +1,109 @@
-# Phase 11b: Company Churn Model — Deepen SIM/Company Separation
+# Phase 12a: Event-Driven Customer Lifecycle — Customers Actually Leave
 
 ## What this phase closes
 
-Continues closing **hollow gap 3** (SIM/company barrier functional, not structural) by applying
-the same pattern as Phase 11a to a second consequential decision: **when to intervene on
-churn risk**.
+**Hollow Gap 1: No customer events actually firing.**
 
-Currently the company reads churn probabilities that are derived from the SIM's internal churn
-model parameters (`saas/customer_reaction.py` — bill shock model, etc.). A real energy supplier
-never sees its churn model's internal parameters. It sees bill amounts, customer tenure, complaint
-rates, payment history — and builds its own estimate from those observables.
+Currently `roll_lifecycle_event()` returns an event dict and sets a flag in
+`churned_billing_accounts`, but the customer remains in the simulation in a
+weird limbo: their electricity settlement continues to be skipped via the
+`billing_account in churned_billing_accounts` guard, but:
+- No churn date is recorded anywhere permanent
+- The customer's record in the system is unchanged
+- There is no observable "customer left on this date" artefact
+- No acquisition event fires for the incoming customer
+- The company has no CRM record of the churn event
 
-After this phase: the company has its own churn probability estimator built from observable
-signals only. It decides whether to offer a retention discount (not yet implemented) or mark the
-account as at-risk — without reading the SIM's churn model parameters.
+This is the difference between a risk score and an event.
 
 ## Epistemic contract
 
-The company IS allowed to observe:
-- The customer's bill history (bill amounts, frequency of large increases)
-- The customer's tenure (how long they've been on supply)
-- Market prices at the time of renewal (observable from public sources)
-- Its own unit rate change (old rate → new rate at renewal)
-
-The company is NOT allowed to see:
-- `saas/customer_reaction.py` bill-shock parameters (alpha, beta, thresholds)
-- The SIM's computed `churn_probability` directly
-- Random roll outcomes from the SIM's churn roll
+After this phase, when a customer churns:
+1. A `ChurnEvent` is recorded with `customer_id`, `churn_date`, `reason: "non-renewal"`,
+   `sim_churn_probability`, and `company_churn_estimate`.
+2. The company's CRM updates the account status to `inactive` via
+   `sim_interface.notify_churn()` — which already exists but does nothing in the live interface.
+3. An `AcquisitionEvent` fires for any home-mover win (also currently a flag, not an event).
+4. The company's CRM records the new acquisition with an `acquisition_date`.
 
 ## Deliverables
 
-### 1. `company/crm/churn_model.py`
+### 1. `company/crm/event_log.py`
 
-Observable-signal churn risk estimator:
-- Input: observable bill history and renewal context
-- Algorithm:
-  - `rate_increase_pct` = (new_unit_rate - old_unit_rate) / old_unit_rate
-  - `tenure_years` = years since first acquisition_date
-  - `company_churn_estimate` = base_rate + rate_sensitivity × rate_increase_pct - tenure_discount × min(tenure_years, 5)
-  - Base rate: 0.10 (10% annual churn base)
-  - Rate sensitivity: 0.8 (each 10% rate increase adds 8% to churn probability)
-  - Tenure discount: 0.01 per year (loyal customers less likely to leave)
-  - Clamp to [0.0, 0.95]
+Simple append-only event log for the company layer:
+```python
+@dataclass
+class ChurnEvent:
+    customer_id: str
+    event_date: str
+    reason: str  # "non-renewal", "home-move", "debt" (future)
+    sim_churn_probability: float
+    company_churn_estimate: float | None
 
-This will systematically differ from the SIM's bill-shock model:
-- The SIM uses the ACTUAL bill amount relative to a threshold
-- The company uses the rate change % (observable) rather than the bill amount relative to threshold
-- For moderate rate changes: similar estimates
-- For large rate increases on high-consumption customers: company may under-estimate churn vs SIM
+@dataclass
+class AcquisitionEvent:
+    customer_id: str
+    event_date: str
+    channel: str  # "home-move-win", "market-acquisition"
+    predecessor_id: str | None
 
-### 2. `company/interfaces/sim_interface.py` additions
+class CompanyEventLog:
+    def record_churn(self, event: ChurnEvent) -> None: ...
+    def record_acquisition(self, event: AcquisitionEvent) -> None: ...
+    def all_events(self) -> list[ChurnEvent | AcquisitionEvent]: ...
+    def active_accounts(self, as_of_date: str) -> set[str]: ...
+```
 
-Add to `LiveSimInterface`:
-- `get_churn_estimate(account_id, old_rate, new_rate, tenure_years)` → calls `company/crm/churn_model.py`
-- Returns company's observable-data estimate (0.0–1.0)
+### 2. Wire `notify_churn` / `notify_acquisition` in `LiveSimInterface`
 
-### 3. `simulation/customer_events.py` modification
+These methods already exist but are `pass` stubs. Wire them to a
+`CompanyEventLog` instance so churn events are recorded when `run_phase2b`
+calls `notify_churn` (it doesn't yet — that's step 3).
 
-At each renewal point (when `roll_lifecycle_event` is called), record:
-- `sim_churn_probability` (current — SIM's ground truth)
-- `company_churn_estimate` (new — company's observable estimate)
-- `churn_estimate_error_pct` = (company_est - sim_est) / sim_est
+### 3. Emit `notify_churn` from `simulation/run_phase2b.py`
 
-Store in the customer event log. The ACTUAL churn outcome still uses the SIM's roll
-(ground truth determines reality — the company's estimate is what it THINKS will happen,
-not what determines the outcome).
+When a churn event fires (`event["event_type"] == "churned"`), call:
+```python
+sim_interface.notify_churn(billing_account, term_start_str)
+```
+Similarly emit `notify_acquisition` when a home-move win or fresh acquisition activates.
 
-### 4. Churn basis risk reporting
+### 4. `run_phase2b` output: `company_event_log`
 
-New JSON output field: `churn_basis_risk` — per-renewal:
-- `customer_id`, `term_start`, `sim_churn_probability`, `company_churn_estimate`, `error_pct`
+Add the company's event log to the simulation output JSON so the annual
+report can inspect it. Key insight to surface: does the company's record
+of who churned match the SIM's ground truth? (It should — but later, when
+the company has its own churn estimator deciding whether to attempt
+retention, the records will diverge.)
 
-New annual report section: "Churn Prediction Basis Risk" — average absolute error by year.
-Key insight: if the company systematically under-estimates churn in crisis years (when bills
-spike), it will be surprised by losses — the same epistemic failure that makes real suppliers
-lose customers when prices spike.
+### 5. Annual report section: "Company CRM vs SIM Ground Truth"
+
+Table comparing:
+- SIM churned billing accounts (ground truth)
+- Company CRM active accounts on each year-end date
+- Any discrepancy (should be zero in Phase 12a — the company learns the
+  same outcome the SIM produced; divergence becomes possible in Phase 12b
+  when the company acts on its own churn estimate to attempt retention)
 
 ## Test scope
 
-- `tests/company/crm/test_churn_model.py` — unit tests for observable churn estimator
-- `tests/company/interfaces/test_churn_via_live_interface.py` — integration
-- `tests/simulation/test_customer_events_basis_risk.py` — check both estimates appear in output
+- `tests/company/crm/test_event_log.py` — unit tests for CompanyEventLog
+- `tests/company/interfaces/test_notify_churn_live.py` — verify notify_churn
+  populates the event log
+- `tests/simulation/test_run_phase2b_event_log.py` — integration test confirming
+  churn events in SIM output match company event log
 
 ## What this unlocks
 
-- The company now has TWO consequential observable-data models: pricing (Phase 11a) and churn (Phase 11b)
-- Foundation for retention intervention: the company could offer discounts to high-risk customers
-  (observable: if company_churn_estimate > threshold, flag for intervention)
-- The SIM/company barrier is now functional for the two most financially significant decisions
+- Customers actually leave on a specific date. That date is an artefact.
+- The company CRM knows which customers are active at any point in time.
+- Foundation for Phase 12b: if the company's churn estimate exceeds a threshold,
+  it can attempt a retention offer BEFORE the churn roll — and the SIM can
+  reduce churn probability based on the offer. The company acts on its imperfect
+  estimate; the outcome depends on the SIM's ground truth.
+- Foundation for a real ledger: final settlement on the last bill of a churned
+  account is a distinct transaction type.
 
 ## Commit message
 
-"Phase 11b: company churn model — deepen SIM/company separation beyond tariff pricing"
+"Phase 12a: event-driven customer lifecycle — customers actually leave"

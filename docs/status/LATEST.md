@@ -8,7 +8,19 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-20T12:02:59Z
+Last updated: 2026-06-20T18:08:19Z
+
+**Phase 11b LIVE (2026-06-20)**: 577 tests passing. Company churn model implemented.
+- `company/crm/churn_model.py`: `estimate_churn_probability()` — observable-data churn estimator
+  - Inputs: rate change %, customer tenure (observable). No SIM bill-shock parameters.
+  - Formula: base_rate(10%) + rate_sensitivity(0.8) × rate_increase_pct − tenure_discount × min(tenure, 5yr)
+  - Systematically under-estimates churn when prices spike (company sees % change, not household bill shock)
+- `company/interfaces/sim_interface.py`: `get_churn_estimate()` on all SimInterface classes
+- `simulation/customer_events.py`: lifecycle events now carry `company_churn_estimate` + `churn_estimate_error_pct`
+- `simulation/run_phase2b.py`: `churn_basis_risk` in output — per-renewal company vs SIM error
+- `saas/reporting/annual_report.py`: "Churn Prediction Basis Risk" section with year-by-year error table
+- Hollow gap 3 (SIM/company barrier): now **DEEPER** — two consequential decisions (tariff + churn) use observable-only data
+- 21 new tests (577 total passing)
 
 **Phase 11a LIVE (2026-06-20)**: 559 tests passing. Company pricing autonomy implemented.
 - `company/pricing/tariff_engine.py`: `CompanyTariffEngine` — observable-data forward price model
@@ -47,7 +59,7 @@ Last updated: 2026-06-20T12:02:59Z
 **Five hollow gaps status (as of 2026-06-20)**:
 1. ~~No customer events firing~~ — CLOSED (Phase 6b/7e): churn events, replacement onboarding
 2. ~~No ledger~~ — CLOSED (Phase 7a/7b): transaction log, cash waterfall, bad-debt events
-3. ~~SIM/company barrier~~ — CLOSED (Phase 11a): company makes tariff decisions from observable data only; basis risk now visible
+3. ~~SIM/company barrier~~ — DEEPENED (Phase 11a+11b): tariff pricing AND churn estimation now use observable-data models only; pricing basis risk + churn basis risk both visible in annual report
 4. ~~HH data path~~ — CLOSED (Phase 6a): C7-C9 on real HH consumption
 5. ~~Reporting~~ — CLOSED (Phase 5a/5b): ANNUAL_REPORT.md, full pipeline
 
