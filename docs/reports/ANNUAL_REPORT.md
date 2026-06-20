@@ -146,6 +146,10 @@ Accounts lost before end of window: C1, C2, C3, C4, C5, C6
 
 Not available in current run output (see REPORTING_BACKLOG.md)
 
+## Company CRM — Event Log
+
+No events recorded in current run.
+
 ## CLV Trajectory
 
 Point-in-Time Customer Lifetime Value per billing account at each year-end.
