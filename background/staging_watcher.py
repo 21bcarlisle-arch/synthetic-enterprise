@@ -77,6 +77,8 @@ def check_once(seen: set[str]) -> set[str]:
     for name in new_files:
         if name.startswith("from_rich_") and name.endswith(".md"):
             log(f"Silently registered NTFY-originated file: {name} (no staging notification)")
+        elif name.startswith("run_complete_") and name.endswith(".md"):
+            log(f"Silently registered sim run marker: {name} (Claude polls staging, no notification needed)")
         else:
             msg = f"New staged instruction: {name} — pending explicit staging review"
             ntfy(msg)
