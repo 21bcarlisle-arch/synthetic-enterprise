@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-20T19:09:46Z
+Last updated: 2026-06-20T19:18:34Z
 
 **Phase 11b LIVE (2026-06-20)**: 577 tests passing. Company churn model implemented.
 - `company/crm/churn_model.py`: `estimate_churn_probability()` — observable-data churn estimator
@@ -49,12 +49,12 @@ Last updated: 2026-06-20T19:09:46Z
 - Speed: O(segments×periods) same as before, economically credible at realistic headcounts
 
 **Latest simulation results (2016–2025)** — run git 0e49860 (Phase 11a+11b: company pricing + churn basis risk):
-- Net margin: £-18,715.01 | Gross: £-17,487.38 | Capital: £1,228 (Phase 11a basis risk fully visible)
+- Net margin: £-8,317.21 | Gross: £-7,089.58 | Capital: £1,228 (ledger-based, includes standing charges)
 - Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
-- Enterprise value: £-20,661.90 | Cost-to-serve: £6,082 | Net after CTS: £-23,569
+- Enterprise value: £-20,661.90 | Net after CTS: £-14,399 | Bad debt: £2,821
 - 2021 (crisis): net margin £-3,069.53 | 2022 (crisis): net margin £-5,582.79 (worst year)
 - 6 churned customers (C3/C1/C5/C2/C6/C4), 1 home-move win (C2→1 successor)
-- *Negative P&L is Phase 11a basis risk: company’s 120-day-rolling+15% tariff systematically differs from SIM*
+- *Phase 11a basis risk: company’s 120-day-rolling+15% tariff underprices SIM forward curve — commodity-only gross £-17,487*
 
 **Five hollow gaps status (as of 2026-06-20)**:
 1. ~~No customer events firing~~ — CLOSED (Phase 6b/7e): churn events, replacement onboarding
