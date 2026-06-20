@@ -178,6 +178,7 @@ def launch_turn() -> None:
 
 
 def main() -> None:
+    global _active_proc
     log("Autonomous runner started")
 
     while True:
