@@ -1,104 +1,94 @@
-# Phase 11a: Company Pricing Autonomy — Close the SIM/Company Functional Gap
+# Phase 11b: Company Churn Model — Deepen SIM/Company Separation
 
 ## What this phase closes
 
-**Hollow gap 3**: "SIM/company barrier is structural, not functional."
+Continues closing **hollow gap 3** (SIM/company barrier functional, not structural) by applying
+the same pattern as Phase 11a to a second consequential decision: **when to intervene on
+churn risk**.
 
-Currently the company's tariffs are derived directly from the SIM's internal
-forward curve (`sim/forward_curve.py`). A real energy supplier never sees its
-forward curve's internal parameters — it sees published spot prices, broker
-indices, and its own historical purchase data, then builds its own estimate.
+Currently the company reads churn probabilities that are derived from the SIM's internal churn
+model parameters (`saas/customer_reaction.py` — bill shock model, etc.). A real energy supplier
+never sees its churn model's internal parameters. It sees bill amounts, customer tenure, complaint
+rates, payment history — and builds its own estimate from those observables.
 
-After this phase: the company sets tariffs from its own observable-data forward
-price model. The SIM runs against those tariffs. The difference between the
-company's estimate and the SIM's ground truth is **basis risk** — visible in
-the P&L for the first time.
+After this phase: the company has its own churn probability estimator built from observable
+signals only. It decides whether to offer a retention discount (not yet implemented) or mark the
+account as at-risk — without reading the SIM's churn model parameters.
 
 ## Epistemic contract
 
-The company is allowed to observe:
-- Historical spot electricity prices (already in `sim/system_prices_history.py`)
-- Historical gas prices (already in `sim/gas_prices_history.py`)
-- Its own past bills and wholesale settlement costs (from ledger events)
+The company IS allowed to observe:
+- The customer's bill history (bill amounts, frequency of large increases)
+- The customer's tenure (how long they've been on supply)
+- Market prices at the time of renewal (observable from public sources)
+- Its own unit rate change (old rate → new rate at renewal)
 
 The company is NOT allowed to see:
-- `sim/forward_curve.py` internals
-- The SIM's volatility parameters or seasonal multipliers
-- The weather engine's forward demand forecasts
+- `saas/customer_reaction.py` bill-shock parameters (alpha, beta, thresholds)
+- The SIM's computed `churn_probability` directly
+- Random roll outcomes from the SIM's churn roll
 
 ## Deliverables
 
-### 1. `company/pricing/tariff_engine.py`
+### 1. `company/crm/churn_model.py`
 
-Observable-data forward price estimator. Algorithm:
-- For each contract term start, look back at the last 4 quarters of spot
-  prices (observable market data the company could access)
-- Compute rolling mean + standard deviation of recent spot prices
-- Apply a company risk premium (a fixed markup, e.g. 15% above rolling mean)
-- Return the company's forward price estimate
+Observable-signal churn risk estimator:
+- Input: observable bill history and renewal context
+- Algorithm:
+  - `rate_increase_pct` = (new_unit_rate - old_unit_rate) / old_unit_rate
+  - `tenure_years` = years since first acquisition_date
+  - `company_churn_estimate` = base_rate + rate_sensitivity × rate_increase_pct - tenure_discount × min(tenure_years, 5)
+  - Base rate: 0.10 (10% annual churn base)
+  - Rate sensitivity: 0.8 (each 10% rate increase adds 8% to churn probability)
+  - Tenure discount: 0.01 per year (loyal customers less likely to leave)
+  - Clamp to [0.0, 0.95]
 
-This will systematically differ from `sim/forward_curve.py` — sometimes
-higher (company over-estimates → too expensive → profitable per unit),
-sometimes lower (company under-estimates → margin squeeze). The 2021-2022
-crisis should show the company's estimate lagging badly as prices spike —
-the same failure mode that killed real suppliers.
+This will systematically differ from the SIM's bill-shock model:
+- The SIM uses the ACTUAL bill amount relative to a threshold
+- The company uses the rate change % (observable) rather than the bill amount relative to threshold
+- For moderate rate changes: similar estimates
+- For large rate increases on high-consumption customers: company may under-estimate churn vs SIM
 
-### 2. `company/interfaces/sim_interface.py` — `LiveSimInterface`
+### 2. `company/interfaces/sim_interface.py` additions
 
-Implement the live class:
-- `get_forward_price(fuel, delivery_date)` → calls `company/pricing/tariff_engine.py`
-  (reads spot history, NOT forward_curve.py internals)
-- `get_settlement_data(mpan, period)` → reads from ledger events
-- `get_customer_status(account_id)` → reads from CRM registry
-- `notify_churn()` / `notify_acquisition()` → updates CRM registry
+Add to `LiveSimInterface`:
+- `get_churn_estimate(account_id, old_rate, new_rate, tenure_years)` → calls `company/crm/churn_model.py`
+- Returns company's observable-data estimate (0.0–1.0)
 
-`build_sim_interface(live=True)` now works.
+### 3. `simulation/customer_events.py` modification
 
-### 3. `simulation/run_phase2b.py` modification
+At each renewal point (when `roll_lifecycle_event` is called), record:
+- `sim_churn_probability` (current — SIM's ground truth)
+- `company_churn_estimate` (new — company's observable estimate)
+- `churn_estimate_error_pct` = (company_est - sim_est) / sim_est
 
-At each contract pricing step, instead of:
-```python
-fwd = generate_forward_price(term_start, elec_records, ...)
-unit_rate = price_fixed_tariff(fwd, ...)
-```
+Store in the customer event log. The ACTUAL churn outcome still uses the SIM's roll
+(ground truth determines reality — the company's estimate is what it THINKS will happen,
+not what determines the outcome).
 
-Use:
-```python
-iface = build_sim_interface(live=True)
-company_fwd = iface.get_forward_price('electricity', term_start)
-unit_rate = price_fixed_tariff(company_fwd, ...)
-# store both: company_fwd (what company used) and sim_true_fwd (ground truth)
-```
+### 4. Churn basis risk reporting
 
-The `sim_true_fwd` is still computed (for P&L reconciliation and risk
-committee analysis) but the company's tariff is what actually gets charged.
+New JSON output field: `churn_basis_risk` — per-renewal:
+- `customer_id`, `term_start`, `sim_churn_probability`, `company_churn_estimate`, `error_pct`
 
-### 4. Basis risk reporting
-
-New JSON output fields:
-- `company_fwd_gbp_per_mwh` and `sim_fwd_gbp_per_mwh` per contract term
-- `tariff_error_pct` = (company_fwd - sim_fwd) / sim_fwd per term
-
-New annual report section: "Tariff Basis Risk" — table by year showing
-company forecast error, direction (over/under), and margin impact in £.
+New annual report section: "Churn Prediction Basis Risk" — average absolute error by year.
+Key insight: if the company systematically under-estimates churn in crisis years (when bills
+spike), it will be surprised by losses — the same epistemic failure that makes real suppliers
+lose customers when prices spike.
 
 ## Test scope
 
-- `tests/test_company_tariff_engine.py` — unit tests for the observable
-  forward price model (output is plausible, differs from sim ground truth)
-- `tests/test_live_sim_interface.py` — LiveSimInterface integration
-- Existing financial figures will shift slightly (company tariffs ≠ SIM
-  ground truth tariffs); update assertions accordingly
+- `tests/company/crm/test_churn_model.py` — unit tests for observable churn estimator
+- `tests/company/interfaces/test_churn_via_live_interface.py` — integration
+- `tests/simulation/test_customer_events_basis_risk.py` — check both estimates appear in output
 
 ## What this unlocks
 
-- The company now makes a consequential decision (tariff pricing) using only
-  information it's allowed to see
-- The simulation shows the financial consequences of imperfect company
-  forecasting — the same mechanism that caused real supplier failures in 2021-22
-- Foundation for company's own churn model (Phase 11b) — same pattern: company
-  estimates from observables, results differ from SIM ground truth
+- The company now has TWO consequential observable-data models: pricing (Phase 11a) and churn (Phase 11b)
+- Foundation for retention intervention: the company could offer discounts to high-risk customers
+  (observable: if company_churn_estimate > threshold, flag for intervention)
+- The SIM/company barrier is now functional for the two most financially significant decisions
 
 ## Commit message
 
-"Phase 11a: company pricing autonomy — close SIM/company functional gap"
+"Phase 11b: company churn model — deepen SIM/company separation beyond tariff pricing"
