@@ -65,7 +65,6 @@ def run_simulation() -> bool:
 
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     log(f"Starting run — git={head}, json={out_json.name}")
-    send_ntfy(f"[SIM] Run started — git={head} {ts}")
 
     t0 = time.monotonic()
     result = subprocess.run(
@@ -109,10 +108,6 @@ def run_simulation() -> bool:
         f"4. NTFY Rich with headline net margin, gross margin, enterprise value.\n"
     )
 
-    send_ntfy(
-        f"[SIM] Run complete {ts} — {elapsed:.0f}s, {size_kb:.0f}KB. "
-        f"Staged run_complete_{ts}.md for Claude to process."
-    )
     return True
 
 

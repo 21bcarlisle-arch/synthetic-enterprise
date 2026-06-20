@@ -26,6 +26,7 @@ Logs to docs/observability/ntfy-responder-log.md.
 Persists its watermark to background/.ntfy_responder_since.json.
 """
 
+import hashlib
 import json
 import re
 import subprocess
@@ -39,7 +40,13 @@ import requests
 PROJECT_DIR = Path("/home/rich/synthetic-enterprise")
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "ntfy-responder-log.md"
 STATE_FILE = PROJECT_DIR / "background" / ".ntfy_responder_since.json"
+SEEN_HASHES_FILE = PROJECT_DIR / "background" / ".ntfy_responder_seen_hashes.json"
 OBSERVABILITY_DIR = PROJECT_DIR / "docs" / "observability"
+
+# ntfy.sh can replay old messages with new timestamps on network blips.
+# We keep a rolling set of content hashes (last MAX_SEEN_HASHES messages)
+# so replayed identical content is silently dropped regardless of timestamp.
+MAX_SEEN_HASHES = 500
 
 POLL_INTERVAL_SECONDS = 20
 RUN_LOG_GLOB = "*_run.log"
@@ -79,6 +86,24 @@ def _load_since() -> float:
 def _save_since(since: float) -> None:
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps({"since": since}))
+
+
+def _content_hash(message: str) -> str:
+    return hashlib.md5(message.encode()).hexdigest()
+
+
+def _load_seen_hashes() -> list[str]:
+    if SEEN_HASHES_FILE.exists():
+        try:
+            return json.loads(SEEN_HASHES_FILE.read_text())
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return []
+
+
+def _save_seen_hashes(hashes: list[str]) -> None:
+    SEEN_HASHES_FILE.parent.mkdir(parents=True, exist_ok=True)
+    SEEN_HASHES_FILE.write_text(json.dumps(hashes[-MAX_SEEN_HASHES:]))
 
 
 def _latest_run_log() -> Path | None:
@@ -170,17 +195,23 @@ def build_status_reply(staged_path: Path | None = None) -> str:
     )
 
 
-def check_once(since: float) -> float:
+def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
     """Poll once for messages posted after `since`, not sent by us. For each,
-    send an instant status ack. Returns the new watermark."""
+    send an instant status ack. Returns (new watermark, updated seen_hashes).
+
+    Content-hash dedup: ntfy.sh replays old messages with new timestamps on
+    network blips. We maintain a rolling list of MD5 hashes of processed
+    message bodies so identical content is dropped regardless of timestamp.
+    """
     try:
         response = requests.get(
             NTFY_POLL_URL, params={"poll": "1", "since": int(since)}, timeout=10,
         )
     except requests.RequestException as e:
         log(f"Poll error: {e}")
-        return since
+        return since, seen_hashes
 
+    seen_set = set(seen_hashes)
     latest = since
     for line in response.text.splitlines():
         if not line.strip():
@@ -204,24 +235,34 @@ def check_once(since: float) -> float:
         if not message:
             continue
 
+        h = _content_hash(message)
+        if h in seen_set:
+            log(f"Duplicate content ignored (hash={h[:8]}, id={record.get('id')!r}): {message[:60]!r}")
+            continue
+
+        seen_hashes.append(h)
+        seen_set.add(h)
+
         staged_path = _write_to_staging(message)
         reply = build_status_reply(staged_path)
         send_ntfy(reply, headers={"X-Priority": "3", "X-Tags": "satellite_antenna"})
         log(f"Acked inbound message {record.get('id')!r} ({message[:60]!r})"
             + (f" — staged as {staged_path.name}" if staged_path else ""))
 
-    return latest
+    return latest, seen_hashes
 
 
 def main() -> None:
     since = _load_since()
+    seen_hashes = _load_seen_hashes()
     log("NTFY responder started")
     while True:
         try:
-            new_since = check_once(since)
+            new_since, seen_hashes = check_once(since, seen_hashes)
             if new_since != since:
                 since = new_since
                 _save_since(since)
+            _save_seen_hashes(seen_hashes)
         except Exception as e:
             log(f"Responder error: {e}")
         time.sleep(POLL_INTERVAL_SECONDS)

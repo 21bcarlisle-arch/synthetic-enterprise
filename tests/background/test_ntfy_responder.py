@@ -60,7 +60,7 @@ def test_check_once_skips_own_messages_and_advances_watermark(tmp_path, monkeypa
 
     monkeypatch.setattr(responder.requests, "get", lambda *a, **k: FakeResponse())
 
-    new_since = responder.check_once(500)
+    new_since, _ = responder.check_once(500, [])
     assert new_since == 1000
     assert sent == []
 
@@ -79,7 +79,7 @@ def test_check_once_acks_messages_not_sent_by_us(tmp_path, monkeypatch):
 
     monkeypatch.setattr(responder.requests, "get", lambda *a, **k: FakeResponse())
 
-    new_since = responder.check_once(500)
+    new_since, _ = responder.check_once(500, [])
     assert new_since == 1000
     assert len(sent) == 1
     # Short message ("Hello Rich" < 25 chars) → [status ping] classification, no staging file
@@ -105,7 +105,7 @@ def test_check_once_stages_substantive_messages(tmp_path, monkeypatch):
 
     monkeypatch.setattr(responder.requests, "get", lambda *a, **k: FakeResponse())
 
-    responder.check_once(500)
+    responder.check_once(500, [])
 
     staging_dir = tmp_path / "docs" / "staging"
     staged_files = list(staging_dir.glob("from_rich_*.md"))
@@ -129,6 +129,35 @@ def test_check_once_ignores_messages_at_or_before_watermark(tmp_path, monkeypatc
 
     monkeypatch.setattr(responder.requests, "get", lambda *a, **k: FakeResponse())
 
-    new_since = responder.check_once(1000)
+    new_since, _ = responder.check_once(1000, [])
     assert new_since == 1000
     assert sent == []
+
+
+def test_check_once_drops_duplicate_content(tmp_path, monkeypatch):
+    """Messages with identical content are dropped even with a new timestamp."""
+    monkeypatch.setattr(responder, "STATE_FILE", tmp_path / "since.json")
+    monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
+    monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
+    monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+
+    sent = []
+    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+
+    message = "Phase 7b complete — ledger events wired."
+
+    # Pre-populate seen_hashes with this message's hash
+    existing_hash = responder._content_hash(message)
+
+    class FakeResponse:
+        text = json.dumps({"event": "message", "id": "new-id", "time": 9999, "message": message})
+
+    monkeypatch.setattr(responder.requests, "get", lambda *a, **k: FakeResponse())
+
+    new_since, hashes = responder.check_once(500, [existing_hash])
+    # Watermark advances (time > since) but message is not processed
+    assert new_since == 9999
+    assert sent == []
+    # Hash still in hashes list
+    assert existing_hash in hashes
