@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T16:15:44Z
+Last updated: 2026-06-21T16:17:01Z
 
 **Phase 19a LIVE (2026-06-21)**: Extend margin feedback (16c) and portfolio premium (17a) to gas. 775 tests passing (5 new).
 - `simulation/run_phase2b.py`: gas CIDs (C1g, C2g, etc.) now get per-customer surcharge + portfolio premium at renewal
@@ -149,11 +149,11 @@ Last updated: 2026-06-21T16:15:44Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — auto-processed (2183s / 36 min):
-- Net margin: £-5,741.86 | Gross: £-4,514.23 | Capital: £1,228
-- Treasury: £29,846 → £13,707 | 317 committee interventions | 1117 bills issued
-- Enterprise value: £-18,277.46 | Net after CTS: £-21,041
-- Retention: 14 offers, 10/14 retained | 2 no-offer churns | 6 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (1118s / 19 min):
+- Net margin: £5,207.26 | Gross: £6,434.89 | Capital: £1,228
+- Treasury: £29,846 → £24,656 | 181 committee interventions | 1117 bills issued
+- Enterprise value: £-8,944.68 | Net after CTS: £-10,276
+- Retention: 22 offers, 18/22 retained | 2 no-offer churns | 6 total churned accounts
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
