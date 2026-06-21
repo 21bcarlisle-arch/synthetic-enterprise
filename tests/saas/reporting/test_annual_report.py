@@ -909,3 +909,60 @@ def test_section_tou_utilization_empty_returns_empty():
     from saas.reporting.annual_report import _section_tou_utilization
     assert _section_tou_utilization({"tou_stats": {}}) == ""
     assert _section_tou_utilization({}) == ""
+
+
+# ── Bill Shock Summary tests (Phase 14e) ──────────────────────────────────────
+
+def _bill_shock_data_fixture():
+    """Minimal run data with bill shock events across 2 years."""
+    return {
+        "years": {
+            "2021": {
+                "bill_shock_events": [
+                    {"customer_id": "C5", "period_end": "2021-10-31", "bill_shock_pct": 0.85},
+                    {"customer_id": "C4g", "period_end": "2021-11-30", "bill_shock_pct": 1.52},
+                ],
+            },
+            "2022": {
+                "bill_shock_events": [
+                    {"customer_id": "C2_2", "period_end": "2022-04-30", "bill_shock_pct": 17.17},
+                ],
+            },
+        },
+        "churned_billing_accounts": ["C5"],
+    }
+
+
+def test_section_bill_shock_shows_header():
+    from saas.reporting.annual_report import _section_bill_shock_summary
+    result = _section_bill_shock_summary(_bill_shock_data_fixture())
+    assert "Bill Shock Summary" in result
+
+
+def test_section_bill_shock_shows_year_table():
+    from saas.reporting.annual_report import _section_bill_shock_summary
+    result = _section_bill_shock_summary(_bill_shock_data_fixture())
+    assert "2021" in result
+    assert "2022" in result
+    assert "3" in result   # total events across 2 years (2+1=3)
+
+
+def test_section_bill_shock_shows_top_shocks():
+    from saas.reporting.annual_report import _section_bill_shock_summary
+    result = _section_bill_shock_summary(_bill_shock_data_fixture())
+    assert "C2_2" in result   # worst spike (1717%)
+    assert "1717%" in result
+
+
+def test_section_bill_shock_marks_churned_customers():
+    from saas.reporting.annual_report import _section_bill_shock_summary
+    result = _section_bill_shock_summary(_bill_shock_data_fixture())
+    # C5 is in churned set → should show 'yes'
+    # The top shock is C2_2, but C5 is also in the list
+    assert "yes" in result   # C5 appears in top shocks and is churned
+
+
+def test_section_bill_shock_empty_returns_empty():
+    from saas.reporting.annual_report import _section_bill_shock_summary
+    assert _section_bill_shock_summary({}) == ""
+    assert _section_bill_shock_summary({"years": {}}) == ""

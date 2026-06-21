@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T14:22:23Z
+Last updated: 2026-06-21T14:30:16Z
+
+**Phase 14e LIVE (2026-06-21)**: Bill shock portfolio summary in annual report. 705 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_bill_shock_summary()` — aggregates all bill_shock_events across years
+- Year-by-year table: count + worst spike; top-10 worst spikes with churn status
+- 274 total events in 61e5b3f run; worst: C2_2 2022-04-30 +1717%
 
 **Phase 14d LIVE (2026-06-21)**: ToU revenue premium analysis in annual report. 700 tests passing (4 new).
 - `saas/reporting/annual_report.py`: `_tou_revenue_premium()` — derives flat-equivalent revenue from avg_peak_rate / 1.5×
@@ -42,7 +47,7 @@ Last updated: 2026-06-21T14:22:23Z
 **Phase 13c LIVE (2026-06-21)**: Bill burden signal in company churn model. 674 tests passing (8 new).
 - `company/crm/churn_model.py`: `annual_consumption_kwh` param + `BILL_STRESS_SENSITIVITY=0.25`, `BILL_STRESS_THRESHOLD_GBP=£3,000`
 - Bill stress term = 0.25 × max(0, prev_annual_bill/£3,000 − 1); activates for high-spend SME customers
-- C6 2024 failure mode fixed: falling rate (−40%) + 45,000 kWh/year at £250/MWh → company now estimates 42% churn (was 0%)
+- C6 2024 failure mode fixed: falling rate (−40%) + 45,000 kWh/year at £250/MWh → company now estimates 14% churn (was 0%; below 0.30 offer threshold, but C6 churns anyway via high roll)
 - Rate-only model had 3 "below threshold" misses all at company_p=0.0; bill burden makes the large-SME case detectable
 - Small resi (2,800 kWh at £60/MWh → £168 bill) unaffected — signal only fires above £3,000 annual bill
 

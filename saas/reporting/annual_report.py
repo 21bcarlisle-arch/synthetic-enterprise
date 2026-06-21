@@ -1665,6 +1665,71 @@ def _section_tou_utilization(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_bill_shock_summary(data: dict) -> str:
+    """Bill shock summary across all years — Phase 14e.
+
+    Bill shocks (month-on-month billing increase ≥20%) are a primary churn driver
+    in the SIM model. This section aggregates the per-year event lists from
+    data['years'][year]['bill_shock_events'] into a portfolio view.
+    """
+    years_data = data.get("years", {})
+    churned = set(data.get("churned_billing_accounts", []))
+    all_shocks = []
+    for yr, yd in years_data.items():
+        for ev in yd.get("bill_shock_events", []):
+            all_shocks.append({
+                "year": yr,
+                "customer_id": ev["customer_id"],
+                "period_end": ev["period_end"],
+                "pct": ev["bill_shock_pct"],
+            })
+    if not all_shocks:
+        return ""
+
+    lines = [
+        "## Bill Shock Summary (2016-2025)",
+        "",
+        "Month-on-month billing increase ≥20%. Bill shocks elevate SIM churn probability",
+        "via the bill-shock history model. Crisis years (2021-22) see the largest spikes.",
+        "",
+    ]
+
+    # Year-by-year table
+    from collections import defaultdict
+    by_year: dict[str, list] = defaultdict(list)
+    for s in all_shocks:
+        by_year[s["year"]].append(s)
+
+    lines += [
+        "| Year | Events | Max Spike | Worst Customer |",
+        "|------|--------|-----------|----------------|",
+    ]
+    for yr in sorted(by_year.keys()):
+        evs = by_year[yr]
+        worst = max(evs, key=lambda x: x["pct"])
+        lines.append(
+            f"| {yr} | {len(evs)} | {worst['pct']:.0%} | {worst['customer_id']} ({worst['period_end']}) |"
+        )
+
+    lines.append(f"\nTotal: **{len(all_shocks)}** bill shock events across {len(by_year)} years\n")
+
+    # Top-10 worst spikes
+    top10 = sorted(all_shocks, key=lambda x: x["pct"], reverse=True)[:10]
+    lines += [
+        "**Top 10 worst single-period bill spikes:**",
+        "",
+        "| Date | Customer | Spike | Eventually Churned? |",
+        "|------|----------|-------|---------------------|",
+    ]
+    for s in top10:
+        churned_str = "yes" if s["customer_id"] in churned else "no"
+        lines.append(
+            f"| {s['period_end']} | {s['customer_id']} | +{s['pct']:.0%} | {churned_str} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_retention_strategy(data: dict) -> str:
     """Retention Strategy -- Phase 12c: ROI analysis and missed opportunities."""
     from collections import defaultdict
@@ -1828,6 +1893,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_company_divergence(data))
     sections.append(_section_company_crm(data))
     sections.append(_section_tou_utilization(data))
+    sections.append(_section_bill_shock_summary(data))
     sections.append(_section_retention_strategy(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))

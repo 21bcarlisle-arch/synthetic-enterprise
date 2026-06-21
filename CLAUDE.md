@@ -123,6 +123,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 14e COMPLETE (2026-06-21)**: Bill shock summary section in annual report. 705 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_bill_shock_summary()` — aggregates per-year bill_shock_events into portfolio view
+- Year-by-year table: event count + worst spike per year; total across all years
+- Top-10 worst single-period spikes with date, customer, severity %, and whether they eventually churned
+- 274 total bill shock events across 10 years in 61e5b3f run; worst: C2_2 2022-04-30 +1717%
+
 **Phase 14d COMPLETE (2026-06-21)**: ToU revenue premium analysis in annual report. 700 tests passing (4 new).
 - `saas/reporting/annual_report.py`: `_tou_revenue_premium()` helper computes flat-equivalent revenue from avg_peak_rate / 1.5×
 - Adds "ToU Premium" column to utilization table; summary line showing total HH revenue vs flat equivalent
