@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T14:36:30Z
+Last updated: 2026-06-21T14:41:39Z
+
+**Phase 15a LIVE (2026-06-21)**: Gas renewal pressure section in annual report. 717 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_gas_renewal_pressure()` — consumes company_gas_churn_log
+- Year-by-year gas est table; elevated risk flagged (>20%); top-5 worst renewals with rate change direction
+- Silent on pre-Phase-14b runs; will populate in next sim run at HEAD a761cc1+
 
 **Phase 14b LIVE (2026-06-21)**: Gas-specific churn sensitivity. 712 tests passing (7 new).
 - `company/crm/churn_model.py`: `fuel` param → gas uses BASE_CHURN_RATE=0.08, RATE_SENSITIVITY=0.6

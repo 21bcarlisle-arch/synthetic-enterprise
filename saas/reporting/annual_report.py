@@ -1730,6 +1730,68 @@ def _section_bill_shock_summary(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_gas_renewal_pressure(data: dict) -> str:
+    """Gas Renewal Pressure -- Phase 15a: dual-fuel gas rate change monitoring.
+
+    Consumes company_gas_churn_log from run_phase2b (Phase 14b).
+    Shows year-by-year gas company churn estimate distribution and flags
+    years with elevated gas price pressure on the dual-fuel portfolio.
+    """
+    log = data.get("company_gas_churn_log", [])
+    if not log:
+        return ""
+
+    from collections import defaultdict
+    by_year: dict[str, list[dict]] = defaultdict(list)
+    for entry in log:
+        yr = entry["term_start"][:4]
+        by_year[yr].append(entry)
+
+    HIGH_PRESSURE_THRESHOLD = 0.20  # gas company_est > 20% = elevated risk
+
+    lines = [
+        "## Gas Renewal Pressure (Dual-Fuel Portfolio)",
+        "",
+        "Company gas churn estimates at each gas leg renewal (Phase 14b).",
+        f"Threshold for elevated risk: >{HIGH_PRESSURE_THRESHOLD:.0%} company gas churn estimate.",
+        "",
+        "| Year | Renewals | Mean Est | Max Est | Elevated Risk |",
+        "|------|----------|----------|---------|---------------|",
+    ]
+    for yr in sorted(by_year.keys()):
+        evs = by_year[yr]
+        ests = [e["company_gas_churn_estimate"] for e in evs]
+        mean_est = sum(ests) / len(ests)
+        max_est = max(ests)
+        elevated = sum(1 for e in ests if e > HIGH_PRESSURE_THRESHOLD)
+        flag = " ⚠" if elevated > 0 else ""
+        lines.append(
+            f"| {yr} | {len(evs)} | {mean_est:.0%} | {max_est:.0%} | {elevated}{flag} |"
+        )
+
+    # Most elevated renewals
+    high = [e for e in log if e["company_gas_churn_estimate"] > HIGH_PRESSURE_THRESHOLD]
+    if high:
+        top = sorted(high, key=lambda x: -x["company_gas_churn_estimate"])[:5]
+        lines += [
+            "",
+            f"**Top elevated gas renewals (>{HIGH_PRESSURE_THRESHOLD:.0%} estimated churn):**",
+            "",
+            "| Date | Customer | Old Rate (£/MWh) | New Rate (£/MWh) | Est Churn |",
+            "|------|----------|-----------------|-----------------|-----------|",
+        ]
+        for e in top:
+            change_pct = (e["new_gas_rate"] - e["old_gas_rate"]) / e["old_gas_rate"] if e["old_gas_rate"] else 0.0
+            direction = f"+{change_pct:.0%}" if change_pct >= 0 else f"{change_pct:.0%}"
+            lines.append(
+                f"| {e['term_start']} | {e['customer_id']} "
+                f"| £{e['old_gas_rate']:.1f} | £{e['new_gas_rate']:.1f} ({direction}) "
+                f"| {e['company_gas_churn_estimate']:.0%} |"
+            )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_retention_strategy(data: dict) -> str:
     """Retention Strategy -- Phase 12c: ROI analysis and missed opportunities."""
     from collections import defaultdict
@@ -1894,6 +1956,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_company_crm(data))
     sections.append(_section_tou_utilization(data))
     sections.append(_section_bill_shock_summary(data))
+    sections.append(_section_gas_renewal_pressure(data))
     sections.append(_section_retention_strategy(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))

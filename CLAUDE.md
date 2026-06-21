@@ -123,6 +123,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 15a COMPLETE (2026-06-21)**: Gas renewal pressure section in annual report. 717 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_gas_renewal_pressure()` — consumes company_gas_churn_log from Phase 14b
+- Year-by-year table: renewal count, mean/max gas company estimate, elevated risk count (>20% threshold)
+- Top-5 most elevated renewals with rate change direction and estimated churn %; flags crisis years with ⚠
+- Section is silent when company_gas_churn_log is absent (pre-Phase-14b runs)
+
 **Phase 14b COMPLETE (2026-06-21)**: Gas-specific churn sensitivity. 712 tests passing (7 new).
 - `company/crm/churn_model.py`: `fuel: str = "electricity"` param to `estimate_churn_probability()`
 - `GAS_BASE_CHURN_RATE = 0.08`, `GAS_RATE_SENSITIVITY = 0.6` — stickier dual-fuel gas legs, fewer alternatives

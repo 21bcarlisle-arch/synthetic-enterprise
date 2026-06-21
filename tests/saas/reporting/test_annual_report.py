@@ -966,3 +966,54 @@ def test_section_bill_shock_empty_returns_empty():
     from saas.reporting.annual_report import _section_bill_shock_summary
     assert _section_bill_shock_summary({}) == ""
     assert _section_bill_shock_summary({"years": {}}) == ""
+
+
+# ── Gas Renewal Pressure tests (Phase 15a) ────────────────────────────────────
+
+def _gas_churn_log_fixture():
+    return {
+        "company_gas_churn_log": [
+            {"customer_id": "C1g", "billing_account": "C1", "term_start": "2021-10-01",
+             "old_gas_rate": 40.0, "new_gas_rate": 80.0, "company_gas_churn_estimate": 0.32},
+            {"customer_id": "C2g", "billing_account": "C2", "term_start": "2021-10-01",
+             "old_gas_rate": 38.0, "new_gas_rate": 90.0, "company_gas_churn_estimate": 0.41},
+            {"customer_id": "C1g", "billing_account": "C1", "term_start": "2019-10-01",
+             "old_gas_rate": 35.0, "new_gas_rate": 37.0, "company_gas_churn_estimate": 0.09},
+        ],
+    }
+
+
+def test_section_gas_renewal_shows_header():
+    from saas.reporting.annual_report import _section_gas_renewal_pressure
+    result = _section_gas_renewal_pressure(_gas_churn_log_fixture())
+    assert "Gas Renewal Pressure" in result
+
+
+def test_section_gas_renewal_shows_year_table():
+    from saas.reporting.annual_report import _section_gas_renewal_pressure
+    result = _section_gas_renewal_pressure(_gas_churn_log_fixture())
+    assert "2021" in result
+    assert "2019" in result
+
+
+def test_section_gas_renewal_flags_elevated_years():
+    from saas.reporting.annual_report import _section_gas_renewal_pressure
+    result = _section_gas_renewal_pressure(_gas_churn_log_fixture())
+    # 2021 has 2 entries above 20% threshold → should show warning flag
+    assert "⚠" in result
+    # 2019 has 1 entry at 9% → no flag expected (below threshold)
+    # Check 2021 row has elevated count
+    assert "2 ⚠" in result
+
+
+def test_section_gas_renewal_shows_top_elevated_entries():
+    from saas.reporting.annual_report import _section_gas_renewal_pressure
+    result = _section_gas_renewal_pressure(_gas_churn_log_fixture())
+    assert "C2g" in result   # highest estimate (41%)
+    assert "41%" in result
+
+
+def test_section_gas_renewal_empty_on_missing_log():
+    from saas.reporting.annual_report import _section_gas_renewal_pressure
+    assert _section_gas_renewal_pressure({}) == ""
+    assert _section_gas_renewal_pressure({"company_gas_churn_log": []}) == ""
