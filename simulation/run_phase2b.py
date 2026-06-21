@@ -323,12 +323,14 @@ def _build_company_event_log(
 def _compute_company_divergence(
     basis_risk_terms: list[dict],
     churn_basis_risk: list[dict],
+    demand_estimation_log: list[dict] | None = None,
 ) -> dict:
-    """Aggregate company-model divergence from SIM ground truth, by year -- Phase 12e.
+    """Aggregate company-model divergence from SIM ground truth, by year -- Phase 12e/23a.
 
     basis_risk_terms: per-term tariff pricing error (tariff_error_pct = signed)
     churn_basis_risk: per-renewal churn estimate error (churn_estimate_error_pct = signed, may be None)
-    Returns: {tariff_error_by_year, churn_error_by_year} each mapping year to {n, mean_abs_error_pct, max_abs_error_pct}
+    demand_estimation_log: per-renewal EAC estimation error (Phase 23a)
+    Returns: {tariff_error_by_year, churn_error_by_year, demand_error_by_year}
     """
     by_year_tariff: dict[str, list[float]] = defaultdict(list)
     for b in basis_risk_terms:
@@ -338,6 +340,10 @@ def _compute_company_divergence(
     for c in churn_basis_risk:
         if c.get("churn_estimate_error_pct") is not None:
             by_year_churn[c["term_start"][:4]].append(abs(c["churn_estimate_error_pct"]))
+
+    by_year_demand: dict[str, list[float]] = defaultdict(list)
+    for d in (demand_estimation_log or []):
+        by_year_demand[d["term_start"][:4]].append(abs(d["error_pct"]))
 
     def _summarize(by_year: dict) -> dict:
         return {
@@ -352,8 +358,30 @@ def _compute_company_divergence(
     return {
         "tariff_error_by_year": _summarize(by_year_tariff),
         "churn_error_by_year": _summarize(by_year_churn),
+        "demand_error_by_year": _summarize(by_year_demand),
     }
 
+
+
+
+def _company_eac_estimate(cid: str, term_start_str: str, all_records: list[dict]) -> float:
+    """Estimate customer annual consumption from observable prior-year billing records.
+
+    Phase 23a: replaces SIM-internal EFFECTIVE_EAC_KWH lookup in company-layer decisions.
+    The company observes kWh billed in the 12 months before the renewal date.
+    Falls back to EFFECTIVE_EAC_KWH on the first term (no prior billing yet).
+    """
+    from datetime import date as _date
+    term_start = _date.fromisoformat(term_start_str)
+    year_ago = term_start.replace(year=term_start.year - 1)
+    estimated = sum(
+        r["consumption_kwh"]
+        for r in all_records
+        if r.get("customer_id") == cid
+        and r.get("consumption_kwh") is not None
+        and year_ago <= _date.fromisoformat(r["settlement_date"]) < term_start
+    )
+    return estimated if estimated > 0 else EFFECTIVE_EAC_KWH.get(cid, 0.0)
 
 
 def main(report_end: str | None = None, sim_interface=None):
@@ -495,6 +523,9 @@ def main(report_end: str | None = None, sim_interface=None):
     total_periods_processed = 0
     PROGRESS_EVERY_PERIODS = 100
 
+    # Phase 23a: demand estimation divergence tracking
+    demand_estimation_log: list[dict] = []
+
     # Phase 8a: growth mandate tracking
     acquisition_spend_events: list[dict] = []
     fixed_cost_events: list[dict] = []
@@ -617,16 +648,29 @@ def main(report_end: str | None = None, sim_interface=None):
                 # experienced stable prices, making them less rate-sensitive at renewal.
                 prev_hf = current_hf.get(cid, 0.0)
                 hangover_periods = hangover_remaining.get(cid, 0)
+                # Phase 23a: company estimates EAC from observable prior-year billing
+                company_eac = _company_eac_estimate(cid, term_start_str, all_records)
+                true_eac = EFFECTIVE_EAC_KWH.get(cid, 0.0)
+                if true_eac > 0:
+                    eac_err_pct = (company_eac - true_eac) / true_eac * 100.0
+                    demand_estimation_log.append({
+                        "customer_id": cid,
+                        "term_start": term_start_str,
+                        "company_eac_kwh": round(company_eac),
+                        "true_eac_kwh": round(true_eac),
+                        "error_pct": round(eac_err_pct, 2),
+                        "source": "prior_billing" if company_eac != true_eac else "fallback",
+                    })
                 company_est_pre = round(_est_churn(
                     old_elec_rate, unit_rate, tenure_for_est,
-                    EFFECTIVE_EAC_KWH.get(cid, 0.0),
+                    company_eac,
                     hedge_fraction=prev_hf,
                     hangover_periods_remaining=hangover_periods,
                 ), 4)
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
                 if company_est_pre > RETENTION_THRESHOLD:
-                    eac_for_ret = EFFECTIVE_EAC_KWH.get(cid, 0.0)
+                    eac_for_ret = company_eac  # Phase 23a: use company estimate
                     discount_pct = _retention_discount_for_risk(company_est_pre)
                     ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
@@ -674,7 +718,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 if event["event_type"] == "churned":
                     if retention_modifier_val is None:
                         # No offer was made — record as missed retention opportunity
-                        eac_missed = EFFECTIVE_EAC_KWH.get(cid, 0.0)
+                        eac_missed = company_eac  # Phase 23a: use company estimate
                         no_offer_churn_log.append({
                             "customer_id": billing_account,
                             "event_date": term_start_str,
@@ -1148,7 +1192,9 @@ def main(report_end: str | None = None, sim_interface=None):
                 for e in customer_events_log
                 if e.get("company_churn_estimate") is not None
             ],
+            demand_estimation_log=demand_estimation_log,  # Phase 23a
         ),
+        "demand_estimation_log": demand_estimation_log,  # Phase 23a: full log for report
     }
 
 

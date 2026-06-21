@@ -535,6 +535,7 @@ def extract_report_data(run_output: dict) -> dict:
         "company_gas_churn_log": phase2b.get("company_gas_churn_log", []),
         "margin_feedback_log": phase2b.get("margin_feedback_log", []),
         "dynamic_pricing_log": phase2b.get("dynamic_pricing_log", []),
+        "demand_estimation_log": phase2b.get("demand_estimation_log", []),  # Phase 23a
         # Phase 17c/17d: pre-aggregated per-customer P&L (all_records not persisted)
         "per_cid_pnl": per_cid_pnl,
         "per_cid_comm_pnl": per_cid_comm_pnl,
@@ -1466,6 +1467,56 @@ def _section_company_divergence(data: dict) -> str:
         lines.append("")
 
     return "\n".join(lines)
+
+
+
+def _section_demand_estimation(data: dict) -> str:
+    """Demand Estimation Accuracy -- Phase 23a.
+
+    Company estimates customer annual consumption from observable prior-year
+    billing records rather than reading the SIM's oracle EAC. Closes an
+    epistemic honesty violation: real suppliers don't know forward consumption.
+    """
+    log = data.get("demand_estimation_log", [])
+    if not log:
+        return ""
+
+    # Aggregate by year
+    by_year: dict[str, list[float]] = {}
+    for entry in log:
+        yr = entry["term_start"][:4]
+        by_year.setdefault(yr, []).append(abs(entry["error_pct"]))
+
+    if not by_year:
+        return ""
+
+    lines = [
+        "## Demand Estimation Accuracy (Phase 23a)",
+        "",
+        "Company EAC estimate (from prior-year billing records) vs SIM oracle EAC.",
+        "Fallback renewals (no prior billing) use SIM oracle — shown as 0% error.",
+        "Prior-billing estimates introduce realistic demand uncertainty into company",
+        "churn estimates and retention economics.",
+        "",
+        "| Year | Renewals | Mean Abs Error | Max Abs Error |",
+        "|------|----------|----------------|--------------|",
+    ]
+    for yr, errs in sorted(by_year.items()):
+        n = len(errs)
+        mean_e = sum(errs) / n if n else 0.0
+        max_e = max(errs) if errs else 0.0
+        lines.append(f"| {yr} | {n} | {mean_e:.1f}% | {max_e:.1f}% |")
+
+    total_n = len(log)
+    prior_billing = sum(1 for e in log if e.get("source") == "prior_billing")
+    fallback = total_n - prior_billing
+    lines += [
+        "",
+        f"**{prior_billing}** of **{total_n}** renewals used prior billing records; "
+        f"**{fallback}** used SIM oracle fallback (first term, no billing history).",
+    ]
+
+    return "\n".join(lines) + "\n"
 
 
 def _section_enterprise_value_analysis(data: dict) -> str:
@@ -2678,6 +2729,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_customer_lifecycle_events_section(data))
     sections.append(_churn_basis_risk_section(data))
     sections.append(_section_company_divergence(data))
+    sections.append(_section_demand_estimation(data))
     sections.append(_section_company_crm(data))
     sections.append(_section_policy_costs(data))
     sections.append(_section_tou_utilization(data))

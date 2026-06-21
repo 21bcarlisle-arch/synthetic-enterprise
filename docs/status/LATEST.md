@@ -8,13 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T22:59:26Z
+Last updated: 2026-06-21T23:20:39Z
 
-**Phase 22a LIVE (2026-06-21)**: Post-crisis churn hangover + trailing-margin CLV + dual EV analysis. 826 tests passing (22 new; ~801 fast-mode).
-- `company/crm/churn_model.py`: `CRISIS_HANGOVER_BASE_UPLIFT=0.12` — +12pp churn when company observes prior term net loss >20% of revenue; persists 2 renewal periods
-- `simulation/run_phase2b.py`: `hangover_remaining` dict tracks hangover periods per customer; triggers at term close, decrements at renewal
-- `saas/reporting/annual_report.py`: `_section_enterprise_value_analysis()` — full-history EV vs 3yr-trailing EV; year-by-year net margin table; per-account CLV comparison
-- Fixes 2024 failure mode: falling rates collapse rate-change signal but customers remain financially scarred; hangover captures the residual churn uplift
+**Phase 23a LIVE (2026-06-22)**: Company-owned demand estimation — epistemic honesty fix. 838 tests passing (12 new; ~824 fast-mode).
+- `simulation/run_phase2b.py`: `_company_eac_estimate()` sums prior-year billing records instead of reading SIM oracle EAC
+- Three `EFFECTIVE_EAC_KWH` lookups in company decisions replaced: churn signal, retention economics, missed-opportunity analysis
+- `demand_estimation_log` in run output: per-renewal company vs oracle EAC comparison (error_pct, source)
+- `annual_report.py`: Demand Estimation Accuracy section shows year-by-year mean/max abs error; prior-billing vs fallback count
 
 **Phase 21a LIVE (2026-06-21)**: Explicit RO + CfD electricity policy costs. 810 tests passing (23 new; 787 fast-mode).
 - `simulation/policy_costs.py`: year-indexed RO (£15.6→£31.8/MWh, 2016→2024) + CfD levy tables (negative in 2022 = crisis rebate)

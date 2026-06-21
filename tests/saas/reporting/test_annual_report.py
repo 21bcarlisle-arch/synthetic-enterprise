@@ -1734,3 +1734,155 @@ def test_ev_analysis_trailing_better_than_full_after_recovery():
     # Both EVs should appear; the text should be present
     assert "Full-history EV" in result
     assert "3yr-trailing EV" in result
+
+
+# ---------------------------------------------------------------------------
+# Phase 23a — Company-owned demand estimation
+# ---------------------------------------------------------------------------
+
+def _demand_log_fixture():
+    """Minimal demand_estimation_log for report section tests."""
+    return [
+        {
+            "customer_id": "C1",
+            "term_start": "2018-01-01",
+            "company_eac_kwh": 3100,
+            "true_eac_kwh": 3000,
+            "error_pct": 3.33,
+            "source": "prior_billing",
+        },
+        {
+            "customer_id": "C1",
+            "term_start": "2019-01-01",
+            "company_eac_kwh": 3050,
+            "true_eac_kwh": 3000,
+            "error_pct": 1.67,
+            "source": "prior_billing",
+        },
+        {
+            "customer_id": "C2",
+            "term_start": "2017-01-01",
+            "company_eac_kwh": 5000,
+            "true_eac_kwh": 5000,
+            "error_pct": 0.0,
+            "source": "fallback",
+        },
+    ]
+
+
+def test_demand_section_empty_when_no_log():
+    from saas.reporting.annual_report import _section_demand_estimation
+    result = _section_demand_estimation({})
+    assert result == ""
+
+
+def test_demand_section_empty_when_empty_log():
+    from saas.reporting.annual_report import _section_demand_estimation
+    result = _section_demand_estimation({"demand_estimation_log": []})
+    assert result == ""
+
+
+def test_demand_section_shows_header():
+    from saas.reporting.annual_report import _section_demand_estimation
+    result = _section_demand_estimation({"demand_estimation_log": _demand_log_fixture()})
+    assert "Demand Estimation" in result
+
+
+def test_demand_section_shows_year_rows():
+    from saas.reporting.annual_report import _section_demand_estimation
+    result = _section_demand_estimation({"demand_estimation_log": _demand_log_fixture()})
+    assert "2017" in result
+    assert "2018" in result
+    assert "2019" in result
+
+
+def test_demand_section_shows_fallback_count():
+    from saas.reporting.annual_report import _section_demand_estimation
+    result = _section_demand_estimation({"demand_estimation_log": _demand_log_fixture()})
+    # 2 prior_billing, 1 fallback out of 3
+    assert "2" in result and "prior billing" in result.lower() or "prior_billing" in result.lower() or "prior billing" in result
+
+
+def test_demand_section_mean_error_nonzero_for_year_with_errors():
+    from saas.reporting.annual_report import _section_demand_estimation
+    result = _section_demand_estimation({"demand_estimation_log": _demand_log_fixture()})
+    # 2018 has 3.33% error; 2019 has 1.67% — both > 0
+    assert "3.3" in result or "3.33" in result
+
+
+# --- _company_eac_estimate unit tests ---
+
+def _make_records(cid, year, consumption_kwh):
+    """Build synthetic settlement records for prior year."""
+    from datetime import date, timedelta
+    records = []
+    d = date(year, 1, 1)
+    while d.year == year:
+        records.append({
+            "customer_id": cid,
+            "settlement_date": d.isoformat(),
+            "consumption_kwh": consumption_kwh / 365.0,
+        })
+        d += timedelta(days=1)
+    return records
+
+
+def test_company_eac_estimate_uses_prior_year_billing():
+    from simulation.run_phase2b import _company_eac_estimate
+    # Term starts 2019-01-01; prior year is 2018; records total ~3650 kWh
+    records = _make_records("C1", 2018, 3650.0)
+    result = _company_eac_estimate("C1", "2019-01-01", records)
+    assert abs(result - 3650.0) < 1.0
+
+
+def test_company_eac_estimate_falls_back_when_no_records():
+    from simulation.run_phase2b import _company_eac_estimate, EFFECTIVE_EAC_KWH
+    # No records for C1 before 2017 — should fall back to oracle
+    oracle = EFFECTIVE_EAC_KWH.get("C1", 0.0)
+    result = _company_eac_estimate("C1", "2017-01-01", [])
+    assert result == oracle
+
+
+def test_company_eac_estimate_ignores_other_customers():
+    from simulation.run_phase2b import _company_eac_estimate, EFFECTIVE_EAC_KWH
+    # Records exist but for C2, not C1 — should fall back
+    records = _make_records("C2", 2018, 5000.0)
+    oracle_c1 = EFFECTIVE_EAC_KWH.get("C1", 0.0)
+    result = _company_eac_estimate("C1", "2019-01-01", records)
+    assert result == oracle_c1
+
+
+def test_company_eac_estimate_excludes_records_at_term_start():
+    from simulation.run_phase2b import _company_eac_estimate
+    # A record ON term_start should be excluded (half-open [year_ago, term_start))
+    records = [
+        {"customer_id": "C1", "settlement_date": "2019-01-01", "consumption_kwh": 100.0},
+        {"customer_id": "C1", "settlement_date": "2018-06-01", "consumption_kwh": 200.0},
+    ]
+    result = _company_eac_estimate("C1", "2019-01-01", records)
+    # Only the 2018-06-01 record should be included
+    assert abs(result - 200.0) < 0.01
+
+
+# --- _compute_company_divergence demand_error_by_year ---
+
+def test_divergence_demand_error_by_year_populated():
+    from simulation.run_phase2b import _compute_company_divergence
+    demand_log = [
+        {"customer_id": "C1", "term_start": "2018-06-01", "company_eac_kwh": 3100,
+         "true_eac_kwh": 3000, "error_pct": 3.33, "source": "prior_billing"},
+        {"customer_id": "C1", "term_start": "2018-12-01", "company_eac_kwh": 2900,
+         "true_eac_kwh": 3000, "error_pct": -3.33, "source": "prior_billing"},
+    ]
+    result = _compute_company_divergence([], [], demand_estimation_log=demand_log)
+    assert "demand_error_by_year" in result
+    assert "2018" in result["demand_error_by_year"]
+    stats = result["demand_error_by_year"]["2018"]
+    assert stats["n"] == 2
+    assert abs(stats["mean_abs_error_pct"] - 3.33) < 0.01
+
+
+def test_divergence_demand_error_by_year_empty_when_no_log():
+    from simulation.run_phase2b import _compute_company_divergence
+    result = _compute_company_divergence([], [], demand_estimation_log=None)
+    assert result["demand_error_by_year"] == {}

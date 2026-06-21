@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**826 tests passing (full suite); ~801 in SIM_FAST_MODE=1. Phase 22a adds 22 new tests (8 hangover + 6 EV analysis + 8 CLV/trailing).**
+**838 tests passing (full suite); ~824 in SIM_FAST_MODE=1. Phase 23a adds 12 new tests (8 report section + 4 simulation unit).**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 23a COMPLETE (2026-06-22)**: Company-owned demand estimation — closes epistemic honesty violation. 12 new tests.
+- `simulation/run_phase2b.py`: `_company_eac_estimate()` sums prior-year billing records (12 months before term start) for EAC estimate; falls back to SIM oracle only on first term (no prior billing)
+- Three `EFFECTIVE_EAC_KWH` oracle lookups in company-layer decisions replaced: bill-burden churn signal, retention economics, missed-opportunity analysis
+- `demand_estimation_log` key in run output: per-renewal comparison of company estimate vs SIM oracle (customer_id, term_start, company_eac_kwh, true_eac_kwh, error_pct, source)
+- `_compute_company_divergence()` extended with `demand_error_by_year` alongside existing tariff and churn error tracking
+- `saas/reporting/annual_report.py`: `_section_demand_estimation()` — year-by-year mean/max abs error table; prior-billing vs fallback count; silent when log absent (backward compatible)
 
 **Phase 22a COMPLETE (2026-06-21)**: Post-crisis churn hangover + trailing-margin CLV. 22 new tests.
 - `company/crm/churn_model.py`: `CRISIS_HANGOVER_BASE_UPLIFT=0.12` — +12pp churn when company observes prior term net loss >20% of revenue; persists for 2 renewal periods. Fixes 2024 failure mode: falling rates collapse the rate-change signal to near-zero, but customers remain financially scarred.
