@@ -73,8 +73,8 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 | Bad debt rates by payment method | DD customers: ~1% of bills. Standard credit: ~6%. Total sector debt stock: £4.43bn (June 2025, +71% since 2023). Write-off: ~1/3 of stock. | H | Are any of our sim customers on standard credit vs DD? If so, bad debt should be 6× higher | Segment sim customers by payment method; differentiate bad debt provision |
 | PPM and collections | 4.3M PPM customers. 3.2M self-disconnect per year. PPM warrants now require vulnerability checks; 2023 scandal cost British Gas £20m + £70m debt write-off. | H | PPM not modeled in sim — all customers implicitly on DD | — |
 | IFRS 9 debt provision matrix | 0-30d DD: 0.3-0.5%; 61-90d DD: 5-8%; 91-180d DD: 15-25%; >365d DD: 70-85%. SC rates ~6× higher. | M | This is an indicative matrix — not officially published by Ofgem | Does Ofgem or industry body publish a recommended provision matrix? |
-| Treasury and hedge governance | Research in progress (2026-06-21 18:38) | — | — | — |
-| Customer comms and renewal lifecycle | Research in progress (2026-06-21 18:38) | — | — | — |
+| Treasury and hedge governance | Layered ladder hedge strategy (1/5 per quarter × 5 quarters). Target: 70-90% at 12m, 85-95% at 6m, 90-100% at 3m. Good Energy publicly >90% hedged Oct 2021. 22/26 failed suppliers underfunded. Exchange IM: 4-15% normal, 60-80% crisis peak. RCF size for 5k-50k customers: £5-50m. Capital floor £57.50/domestic (cf £130/dual-fuel from reg docs — same rule, different framing). | H | No hedge ratio waterfall in our board reporting; no collateral buffer in treasury | Add hedge ratio by tenor to LATEST.md; model BSC/exchange credit cover as reserved cash |
+| Customer comms and renewal lifecycle | Domestic: 42-49 day statutory notice (SLC 22A). Exit fee banned in that window. Cannot auto-rollover to new fixed — must default to cheapest SVT. SME: 60-120 day notice. Tariff change: 30 days. Missed payment (monthly): contact after 2nd consecutive miss. ~35% actively renew to new fixed; ~65% roll to SVT. Win-back: 30d + 90d post-churn; ~5-15% conversion. PSR: ~10-15% of base; mandatory proxy/nominee, priority routing, proactive identification. Cost per contact: phone £5-12, webchat £2-5, self-serve £0.10-0.50. | H | Our sim doesn't model the 42-day notice period; no active-renewer vs SVT-roller distinction; no win-back | Add 49-day renewal flag to company CRM; model passive SVT rollover proportion |
 
 ---
 
@@ -109,5 +109,28 @@ Ranked by likely simulation impact:
 3. **Acquisition cost per channel** — PCW, direct, broker; needed to model acquisition economics properly
 4. **Historical SME churn rates** — our churn model parameters are estimated, not calibrated to real data
 5. **EPC property-type breakdown at NEED 2026 level** — we have 2019 data; 2026 version may have been published
+
+---
+
+## Domain: Market Switching and Customer Flows
+
+| Topic | What we know | Conf | Key gaps | Next question |
+|-------|-------------|------|---------|---------------|
+| UK household switching volumes | 3.21 million switches in 2024 (up 38% vs 2023, ElectraLink). Crashed to near zero in 2022 when all fixed deals withdrew. | H | Annual switching rates by year 2016-2024 for calibrating sim churn model | Can ElectraLink data be accessed? Or does Ofgem retail market indicators have this? |
+| Active vs passive renewal | ~35% of customers actively renew to a new fixed deal; ~65% roll to SVT by default | M | Is this split consistent across residential and SME? | — |
+| Win-back conversion | ~5-15% on first outreach wave (cross-sector benchmark; no UK energy-specific figure) | L | UK energy-specific win-back rate | Does any supplier publish this? |
+
+---
+
+## Priority Gap List (ranked by simulation impact)
+
+1. **Historical RO + CfD + network charge levels 2016-2024** — needed for Phase 21a cost calibration across full sim period (research agent in progress)
+2. **Hedge ratio waterfall by forward tenor in LATEST.md** — critical board KPI missing from our reporting
+3. **42-day renewal notice CRM flag** — regulatory obligation not currently modeled; affects renewal campaign timing
+4. **Active renewer vs SVT roller distinction** — ~35/65 split changes churn dynamics significantly
+5. **Debt lifecycle staging** — debt should have states (current → overdue → plan → write-off), not just a flat bad debt %
+6. **Bad debt by payment method** — DD 1% vs SC 6% of revenue; if any sim customers are on standard credit, bad debt estimate is 6× wrong
+7. **Per-customer net assets tracker** — Ofgem solvency signal missing from LATEST.md
+8. **RO cost as explicit P&L line** — ~£31.80/MWh on electricity; currently embedded in commodity cost with no visibility
 
 Last updated: 2026-06-21
