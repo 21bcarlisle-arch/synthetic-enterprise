@@ -8,7 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:50:27Z
+Last updated: 2026-06-21T15:56:41Z
+
+**Phase 18a LIVE (2026-06-21)**: Regime detection premium in company tariff engine. 768 tests passing (9 new).
+- `company/pricing/tariff_engine.py`: `_compute_regime_premium()` — 60d vs 180d spot price mean ratio
+- Upward trend (ratio > 1.10) → premium up to +15%; downward trend (ratio < 0.90) → discount to -5%
+- Wired into `get_forward_price()` as `regime_detect` param (default True; backward compat via False)
+- Complements Phase 14c: 14c reacts to volatility, 18a reacts to trend direction
+- Expected: 2021-22 upward crisis trend → 5-10% premium → reduced tariff under-pricing error
 
 **Phase 17d LIVE (2026-06-21)**: Dual-fuel account combined P&L in annual report. 760 tests passing (4 new).
 - `saas/reporting/annual_report.py`: `_section_dual_fuel_pnl()` — pairs electricity+gas legs, shows combined lifetime margin

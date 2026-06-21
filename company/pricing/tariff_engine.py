@@ -69,6 +69,20 @@ PORTFOLIO_PREMIUM_HALF_LIFE = 0.50    # fraction of gap to close per pricing cyc
 PORTFOLIO_PREMIUM_MIN = -0.05         # max tariff reduction if over-earning (5%)
 PORTFOLIO_PREMIUM_MAX = 0.15          # max tariff surcharge if under-earning (15%)
 
+# Phase 18a: Regime detection — compare short-term price trend vs longer baseline.
+# If prices are in an upswing (short mean > long mean by THRESHOLD), apply a crisis premium
+# to the forward estimate. If in a downswing, apply a discount.
+# Complementary to Phase 14c (adaptive lookback handles volatility; this handles trend direction).
+REGIME_DETECT_ENABLED = True
+REGIME_SHORT_WINDOW = 60     # days for the "recent" regime mean
+REGIME_LONG_WINDOW = 180     # days for the "baseline" regime mean
+REGIME_UPWARD_THRESHOLD = 1.10   # short/long ratio above this → upward regime
+REGIME_DOWNWARD_THRESHOLD = 0.90 # short/long ratio below this → downward regime
+REGIME_PREMIUM_FACTOR = 0.50     # fraction of excess ratio to apply as premium
+REGIME_PREMIUM_MAX = 0.15        # cap upward premium at +15%
+REGIME_PREMIUM_MIN = -0.05       # cap downward discount at -5%
+REGIME_MIN_RECORDS = 20          # minimum records in each window to compute ratio
+
 
 def _daily_means_for_window(
     price_records: list[dict],
@@ -120,6 +134,44 @@ def _compute_adaptive_lookback(
     return max(ADAPTIVE_LOOKBACK_MIN, min(ADAPTIVE_LOOKBACK_MAX, adaptive))
 
 
+def _compute_regime_premium(
+    delivery_date: str,
+    price_records: list[dict],
+) -> float:
+    """Compute a regime premium from the short-term vs long-term price trend.
+
+    If spot prices have been trending upward (short mean > long mean × THRESHOLD),
+    the company charges a premium above its baseline estimate to compensate for
+    the likelihood of continued price rises. Downward trend yields a small discount.
+
+    Returns a premium fraction in [REGIME_PREMIUM_MIN, REGIME_PREMIUM_MAX].
+    Returns 0.0 if there are insufficient records in either window.
+    """
+    if not REGIME_DETECT_ENABLED:
+        return 0.0
+    end_date = date.fromisoformat(delivery_date) - timedelta(days=1)
+    short_start = end_date - timedelta(days=REGIME_SHORT_WINDOW - 1)
+    long_start = end_date - timedelta(days=REGIME_LONG_WINDOW - 1)
+
+    short_means = _daily_means_for_window(price_records, short_start, end_date)
+    long_means = _daily_means_for_window(price_records, long_start, end_date)
+
+    if len(short_means) < REGIME_MIN_RECORDS or len(long_means) < REGIME_MIN_RECORDS:
+        return 0.0
+    if (long_mean := statistics.mean(long_means)) <= 0:
+        return 0.0
+
+    ratio = statistics.mean(short_means) / long_mean
+
+    if ratio >= REGIME_UPWARD_THRESHOLD:
+        excess = ratio - REGIME_UPWARD_THRESHOLD
+        return min(REGIME_PREMIUM_MAX, excess * REGIME_PREMIUM_FACTOR)
+    if ratio <= REGIME_DOWNWARD_THRESHOLD:
+        deficit = REGIME_DOWNWARD_THRESHOLD - ratio
+        return max(REGIME_PREMIUM_MIN, -deficit * REGIME_PREMIUM_FACTOR)
+    return 0.0
+
+
 class CompanyTariffEngine:
     """Company-observable forward price estimator.
 
@@ -137,6 +189,7 @@ class CompanyTariffEngine:
         risk_premium: float = COMPANY_RISK_PREMIUM_FRACTION,
         seasonal: bool = SEASONAL_UPLIFT_ENABLED,
         adaptive_lookback: bool = ADAPTIVE_LOOKBACK_ENABLED,
+        regime_detect: bool = REGIME_DETECT_ENABLED,
     ) -> float:
         """Estimate forward price from observable spot history.
 
@@ -151,6 +204,8 @@ class CompanyTariffEngine:
             Pass False to use the flat-mean-plus-premium formula.
         adaptive_lookback: adjust lookback window based on recent vs baseline
             volatility (Phase 14c). Pass False for deterministic tests.
+        regime_detect: apply regime premium when short-term price trend diverges
+            from long-term baseline (Phase 18a). Pass False for deterministic tests.
 
         Returns: forward price estimate in £/MWh.
 
@@ -189,6 +244,11 @@ class CompanyTariffEngine:
                 base *= (1.0 + WINTER_SEASONAL_UPLIFT) if is_winter else (1.0 - SUMMER_SEASONAL_DISCOUNT)
             elif fuel == "gas":
                 base *= (1.0 + GAS_WINTER_SEASONAL_UPLIFT) if is_winter else (1.0 - GAS_SUMMER_SEASONAL_DISCOUNT)
+
+        # Phase 18a: apply regime premium before final risk premium
+        if regime_detect:
+            regime_prem = _compute_regime_premium(delivery_date, price_records)
+            base *= (1.0 + regime_prem)
 
         return base * (1.0 + risk_premium)
 

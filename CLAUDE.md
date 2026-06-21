@@ -123,6 +123,14 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 18a COMPLETE (2026-06-21)**: Regime detection premium in company tariff engine. 768 tests passing (9 new).
+- `company/pricing/tariff_engine.py`: `_compute_regime_premium()` — compares 60d mean vs 180d baseline mean of spot prices
+- If short/long ratio > 1.10 (upward trend): apply premium = (ratio - 1.10) × 0.50, capped at +15%
+- If short/long ratio < 0.90 (downward trend): apply discount, capped at -5%
+- Wired into `get_forward_price()` as a new `regime_detect: bool` param (default True, backward-compat off)
+- Complementary to Phase 14c (adaptive lookback reacts to volatility; regime detector reacts to trend direction)
+- Expected: 2021-22 crisis upward price trend → 5-10% premium applied at pricing → reduced tariff error
+
 **Phase 17d COMPLETE (2026-06-21)**: Dual-fuel account combined P&L in annual report. 760 tests passing (4 new).
 - `saas/reporting/annual_report.py`: `_section_dual_fuel_pnl()` — pairs electricity+gas legs (C1+C1g, C2+C2g, etc.) and shows combined lifetime margin
 - Flags whether gas leg was accretive (positive net margin) or dilutive to each dual-fuel account

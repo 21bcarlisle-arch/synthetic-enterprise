@@ -41,11 +41,14 @@ class TestCompanyTariffEngine:
         assert fwd == pytest.approx(100.0 * (1 + COMPANY_RISK_PREMIUM_FRACTION))
 
     def test_uses_lookback_window_only(self):
-        # Records before the lookback window should not affect result
+        # Records before the lookback window should not affect result.
+        # regime_detect=False: this test isolates the lookback-window logic, not regime detection.
         early = _price_records("2014-01-01", "2015-08-31", price=200.0)
         recent = _price_records("2015-09-01", "2016-01-15", price=100.0)
         records = early + recent
-        fwd = self.engine.get_forward_price("electricity", "2016-01-01", records, seasonal=False)
+        fwd = self.engine.get_forward_price(
+            "electricity", "2016-01-01", records, seasonal=False, regime_detect=False
+        )
         # Should only use records in the 120-day window before 2016-01-01
         # window: 2015-09-03 to 2015-12-31, which are all 100.0
         assert fwd == pytest.approx(100.0 * (1 + COMPANY_RISK_PREMIUM_FRACTION))
