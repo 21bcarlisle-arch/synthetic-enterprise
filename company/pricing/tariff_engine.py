@@ -5,14 +5,22 @@ seasonal multipliers, risk_factor). It builds its own forward price estimate
 from the same observable market data a real UK supplier could access:
 published spot electricity prices (Elexon SSP) and gas prices (NBP/TTF proxy).
 
-Algorithm: rolling mean of daily means over the lookback window, plus a
-fixed risk premium. No seasonal adjustment (company hasn't built that model
-yet). This will systematically differ from the SIM's model — that difference
-is basis risk, visible in the P&L for the first time after Phase 11a.
+Base algorithm: rolling mean of daily means over the lookback window, plus a
+fixed risk premium.
 
-The 2021-22 crisis will show the company's estimate lagging badly as spot
-prices spike beyond the lookback window — the same failure mode that killed
-real suppliers under price caps.
+Phase 13d adds a seasonal adjustment for electricity (observable from
+historical Elexon spot price patterns — any pricing team would know this):
+- Winter delivery (Oct-Mar): +8% above the rolling mean (higher demand)
+- Summer delivery (Apr-Sep): -4% below the rolling mean (lower demand)
+
+The previous no-seasonal version systematically under-priced winter contracts
+because the 120-day lookback for an autumn renewal captures summer spot prices,
+which are structurally lower than winter spot prices. That lag contributed
+to the company underpricing in crisis years when winter prices spiked.
+
+The 2021-22 crisis is genuine market adversity (no seasonal model fixes that),
+but the seasonal adjustment reduces the structural component of basis risk
+that exists even in normal years.
 """
 
 import statistics
@@ -21,6 +29,11 @@ from datetime import date, timedelta
 COMPANY_LOOKBACK_DAYS = 120
 COMPANY_RISK_PREMIUM_FRACTION = 0.15
 MIN_RECORDS_FOR_ESTIMATE = 30
+
+SEASONAL_UPLIFT_ENABLED = True
+WINTER_MONTHS = frozenset({10, 11, 12, 1, 2, 3})
+WINTER_SEASONAL_UPLIFT = 0.08
+SUMMER_SEASONAL_DISCOUNT = 0.04
 
 
 class CompanyTariffEngine:
@@ -38,15 +51,20 @@ class CompanyTariffEngine:
         price_records: list[dict],
         lookback_days: int = COMPANY_LOOKBACK_DAYS,
         risk_premium: float = COMPANY_RISK_PREMIUM_FRACTION,
+        seasonal: bool = SEASONAL_UPLIFT_ENABLED,
     ) -> float:
         """Estimate forward price from observable spot history.
 
-        fuel: 'electricity' or 'gas' (determines logging only — same algo).
+        fuel: 'electricity' or 'gas' (seasonal adjustment applies to
+            electricity only; gas uses same formula without seasonal).
         delivery_date: ISO date string for the contract start (Point-in-Time:
             only records BEFORE this date are used).
         price_records: list of {'settlementDate': str, 'systemSellPrice': float}.
         lookback_days: how many days back from delivery_date to look (default 120).
         risk_premium: fraction above rolling mean to charge (default 15%).
+        seasonal: apply winter/summer adjustment for electricity (default True).
+            Pass False to use the flat-mean-plus-premium formula (useful in
+            tests that check exact arithmetic).
 
         Returns: forward price estimate in £/MWh.
 
@@ -74,4 +92,12 @@ class CompanyTariffEngine:
         daily_means = [statistics.mean(v) for v in daily.values()]
 
         base = statistics.mean(daily_means)
+
+        if seasonal and fuel == "electricity":
+            delivery_month = start_date.month
+            if delivery_month in WINTER_MONTHS:
+                base *= (1.0 + WINTER_SEASONAL_UPLIFT)
+            else:
+                base *= (1.0 - SUMMER_SEASONAL_DISCOUNT)
+
         return base * (1.0 + risk_premium)

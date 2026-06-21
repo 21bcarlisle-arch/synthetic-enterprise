@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T13:15:41Z
+Last updated: 2026-06-21T13:23:03Z
+
+**Phase 13d LIVE (2026-06-21)**: Seasonal forward price awareness in company tariff engine. 683 tests passing (9 new).
+- `company/pricing/tariff_engine.py`: `seasonal: bool = True` param + winter/summer adjustment for electricity
+- Winter delivery (Oct-Mar): +8% uplift; summer delivery (Apr-Sep): -4% discount. Gas unaffected.
+- Fixes structural basis risk: 120-day lookback for Oct-renewal captured summer prices, underestimating winter costs
+- Effect in next sim run: company forward estimates better-calibrated for autumn/winter contracts; expected reduction in tariff basis risk for normal years (crisis years still negative — genuine market adversity)
 
 **Phase 13c LIVE (2026-06-21)**: Bill burden signal in company churn model. 674 tests passing (8 new).
 - `company/crm/churn_model.py`: `annual_consumption_kwh` param + `BILL_STRESS_SENSITIVITY=0.25`, `BILL_STRESS_THRESHOLD_GBP=£3,000`
