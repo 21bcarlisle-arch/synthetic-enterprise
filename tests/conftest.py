@@ -27,3 +27,17 @@ def sample_ssp_series():
 @pytest.fixture
 def sample_date_range():
     return ("2016-01-01", "2016-03-31")
+
+@pytest.fixture(autouse=True, scope="session")
+def fast_mode():
+    """Set SIM_FAST_MODE=1 for all tests by default (session-level).
+
+    Session scope ensures this is set before any module-scoped fixtures
+    (like sim_result_2017) run and call the simulation.
+    Tests that need the real Ollama-backed risk committee use:
+      monkeypatch.delenv("SIM_FAST_MODE", raising=False)
+    """
+    import os
+    os.environ["SIM_FAST_MODE"] = "1"
+    yield
+    os.environ.pop("SIM_FAST_MODE", None)
