@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T09:58:14Z
+Last updated: 2026-06-21T10:01:00Z
 
 **Token proxy LIVE (2026-06-21)**: localhost:8801 intercepts all Anthropic API calls, tracks per-session usage.
 - Handles gzip-compressed responses (decompresses before parsing SSE/JSON)
@@ -25,6 +25,18 @@ Last updated: 2026-06-21T09:58:14Z
 - Pure Python (billing/settlement/hedging): ~40s
 - SIM_FAST_MODE=1 (deterministic +0.10, no Ollama): ~2 min for full sim, 16s for full test suite
 - Keep LLM mode for production runs (it's the agentic part); use SIM_FAST_MODE=1 for tests
+
+**Phase 12c LIVE (2026-06-21)**: 634 tests passing. Retention ROI analysis — no-offer churn tracking + expected margin in each offer.
+- `no_offer_churn_log` tracks missed opportunities (company estimate <30%, no offer made, customer churned)
+- `expected_term_margin_gbp` added to all retention_log entries
+- Annual report: ROI = margin_saved − total_offer_cost visible; 21 offers, net ROI £-1,263.14 (19 retained, 2 churned despite)
+- 17 new tests (634 total)
+
+**Latest simulation results (2016–2025)** — Phase 12c run (4509s / 75 min):
+- Net margin: £-8,317.21 | Gross: £-7,089.58 | Capital: £1,228
+- Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
+- Enterprise value: £-20,661.90 | Net after CTS: £-23,569 | Retention ROI: £-1,263 (21 offers)
+- 6 churned customers (C1–C6), 1 home-move win (C2→1 successor), 3 no-offer churns
 
 **Phase 12b LIVE (2026-06-21)**: 617 tests passing. Company retention offers — first company decision affecting SIM outcome.
 - `company/crm/event_log.py`: `RetentionEvent` dataclass + `record_retention()` + `retention_events()` — dated retention artefacts
@@ -84,15 +96,7 @@ Last updated: 2026-06-21T09:58:14Z
 - Non→Smart flow: UK smart meter rollout modelled — Standard customers upgrade to Smart at 3-10%/yr
 - Speed: O(segments×periods) same as before, economically credible at realistic headcounts
 
-**Latest simulation results (2016–2025)** — run git d641601 (Phase 12b live, 2301s / 38 min):
-- Net margin: £-8,317.21 | Gross: £-7,089.58 | Capital: £1,228 (ledger-based, includes standing charges)
-- Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
-- Enterprise value: £-20,661.90 | Net after CTS: £-14,399 | Bad debt: £2,821
-- 2021 (crisis): net margin £-3,069.53 | 2022 (crisis): net margin £-5,582.79 (worst year)
-- 6 churned customers (C3/C1/C5/C2/C6/C4), 1 home-move win (C2→1 successor)
-- *Phase 11a basis risk: company’s 120-day-rolling+15% tariff underprices SIM forward curve — commodity-only gross £-17,487*
-
-**Five hollow gaps status (as of 2026-06-20)**:
+**Five hollow gaps status (as of 2026-06-21)**:
 1. ~~No customer events firing~~ — CLOSED (Phase 6b/7e): churn events, replacement onboarding
 2. ~~No ledger~~ — CLOSED (Phase 7a/7b): transaction log, cash waterfall, bad-debt events
 3. ~~SIM/company barrier~~ — DEEPENED (Phase 11a+11b): tariff pricing AND churn estimation now use observable-data models only; pricing basis risk + churn basis risk both visible in annual report
