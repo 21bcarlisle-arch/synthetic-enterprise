@@ -1614,6 +1614,84 @@ def _section_churn_avoidability(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_dual_fuel_pnl(data: dict) -> str:
+    """Phase 17d: combined P&L for dual-fuel accounts (electricity + gas legs).
+
+    Pairs electricity customers with their gas counterparts (e.g., C1 + C1g)
+    and shows the combined lifetime margin. Answers: 'Did gas add value to the
+    dual-fuel relationship, or was it a drag?'
+    """
+    records = data.get("all_records", [])
+    if not records:
+        return ""
+
+    from collections import defaultdict
+
+    # Collect records by customer_id and commodity
+    by_cid_comm: dict[str, dict[str, float]] = defaultdict(
+        lambda: {"net": 0.0, "gross": 0.0, "revenue": 0.0}
+    )
+    for r in records:
+        cid = r["customer_id"]
+        comm = r.get("commodity", "electricity")
+        by_cid_comm[(cid, comm)]["net"] += r.get("net_margin_gbp", 0.0)
+        by_cid_comm[(cid, comm)]["gross"] += r.get("margin_gbp", 0.0)
+        by_cid_comm[(cid, comm)]["revenue"] += r.get("revenue_gbp", 0.0)
+
+    # Find dual-fuel pairs: a customer Cxg paired with Cx
+    gas_cids = {k[0] for k in by_cid_comm if k[1] == "gas"}
+    pairs = []
+    for gas_cid in sorted(gas_cids):
+        # Convention: gas leg is "C1g" → elec leg is "C1"
+        if gas_cid.endswith("g"):
+            elec_cid = gas_cid[:-1]
+        else:
+            continue
+        if (elec_cid, "electricity") in by_cid_comm:
+            elec = by_cid_comm[(elec_cid, "electricity")]
+            gas = by_cid_comm[(gas_cid, "gas")]
+            pairs.append({
+                "elec_id": elec_cid,
+                "gas_id": gas_cid,
+                "elec_net": elec["net"],
+                "gas_net": gas["net"],
+                "combined_net": elec["net"] + gas["net"],
+                "elec_revenue": elec["revenue"],
+                "gas_revenue": gas["revenue"],
+            })
+
+    if not pairs:
+        return ""
+
+    lines = [
+        "## Dual-Fuel Account P&L (Phase 17d)",
+        "",
+        f"{len(pairs)} dual-fuel account pair(s): electricity leg + gas leg combined.",
+        "",
+        "| Account | Elec net | Gas net | Combined net | Gas accretive? |",
+        "|---------|----------|---------|-------------|---------------|",
+    ]
+    for p in sorted(pairs, key=lambda x: x["combined_net"], reverse=True):
+        accretive = "Yes" if p["gas_net"] >= 0 else "No"
+        lines.append(
+            f"| {p['elec_id']}+{p['gas_id']} "
+            f"| {_fmt_gbp(p['elec_net'])} "
+            f"| {_fmt_gbp(p['gas_net'])} "
+            f"| {_fmt_gbp(p['combined_net'])} "
+            f"| {accretive} |"
+        )
+
+    gas_accretive = sum(1 for p in pairs if p["gas_net"] >= 0)
+    total_gas_net = sum(p["gas_net"] for p in pairs)
+    lines += [
+        "",
+        f"Gas accretive in {gas_accretive}/{len(pairs)} dual-fuel accounts. "
+        f"Total gas net margin: {_fmt_gbp(total_gas_net)}.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _section_customer_pnl_ranking(data: dict) -> str:
     """Phase 17c: per-customer lifetime P&L ranking across the full simulation window.
 
@@ -2402,6 +2480,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_margin_feedback(data))
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
+    sections.append(_section_dual_fuel_pnl(data))
     sections.append(_section_customer_pnl_ranking(data))
     sections.append(_ledger_summary_section(data))
     sections.append(_growth_acquisition_section(data))

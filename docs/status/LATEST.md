@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:48:01Z
+Last updated: 2026-06-21T15:50:27Z
+
+**Phase 17d LIVE (2026-06-21)**: Dual-fuel account combined P&L in annual report. 760 tests passing (4 new).
+- `saas/reporting/annual_report.py`: `_section_dual_fuel_pnl()` — pairs electricity+gas legs, shows combined lifetime margin
+- Flags gas accretive/dilutive per dual-fuel account; total gas net margin summary
+- Answers: "Did our gas offering add value, or was it a drag on each dual-fuel account?"
 
 **Phase 17c LIVE (2026-06-21)**: Per-customer lifetime P&L ranking in annual report. 756 tests passing (4 new).
 - `saas/reporting/annual_report.py`: `_section_customer_pnl_ranking()` — ranks all billing accounts by lifetime net margin

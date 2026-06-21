@@ -1423,3 +1423,63 @@ def test_pnl_ranking_empty_when_no_records():
     from saas.reporting.annual_report import _section_customer_pnl_ranking
     assert _section_customer_pnl_ranking({}) == ""
     assert _section_customer_pnl_ranking({"all_records": []}) == ""
+
+
+# ---- Phase 17d: dual-fuel P&L tests ----
+
+def _dual_fuel_fixture():
+    return {
+        "all_records": [
+            {"customer_id": "C1", "settlement_date": "2022-01-15",
+             "commodity": "electricity",
+             "margin_gbp": 300.0, "capital_cost_gbp": 30.0,
+             "net_margin_gbp": 270.0, "revenue_gbp": 3000.0},
+            {"customer_id": "C1g", "settlement_date": "2022-01-15",
+             "commodity": "gas",
+             "margin_gbp": 50.0, "capital_cost_gbp": 5.0,
+             "net_margin_gbp": 45.0, "revenue_gbp": 500.0},
+            {"customer_id": "C2", "settlement_date": "2022-01-15",
+             "commodity": "electricity",
+             "margin_gbp": -200.0, "capital_cost_gbp": 20.0,
+             "net_margin_gbp": -220.0, "revenue_gbp": 2000.0},
+            {"customer_id": "C2g", "settlement_date": "2022-01-15",
+             "commodity": "gas",
+             "margin_gbp": -80.0, "capital_cost_gbp": 8.0,
+             "net_margin_gbp": -88.0, "revenue_gbp": 800.0},
+        ]
+    }
+
+
+def test_dual_fuel_shows_header():
+    from saas.reporting.annual_report import _section_dual_fuel_pnl
+    result = _section_dual_fuel_pnl(_dual_fuel_fixture())
+    assert "Dual-Fuel" in result
+
+
+def test_dual_fuel_c1_gas_accretive():
+    """C1 gas leg has positive net margin → accretive."""
+    from saas.reporting.annual_report import _section_dual_fuel_pnl
+    result = _section_dual_fuel_pnl(_dual_fuel_fixture())
+    # The section should mention C1+C1g pair
+    assert "C1" in result
+    assert "C1g" in result
+
+
+def test_dual_fuel_shows_accretive_count():
+    from saas.reporting.annual_report import _section_dual_fuel_pnl
+    result = _section_dual_fuel_pnl(_dual_fuel_fixture())
+    # C1g accretive, C2g not → 1/2
+    assert "1/2" in result
+
+
+def test_dual_fuel_empty_when_no_gas_records():
+    from saas.reporting.annual_report import _section_dual_fuel_pnl
+    # Only electricity records → no pairs
+    data = {"all_records": [
+        {"customer_id": "C1", "settlement_date": "2022-01-15",
+         "commodity": "electricity",
+         "margin_gbp": 300.0, "capital_cost_gbp": 30.0,
+         "net_margin_gbp": 270.0, "revenue_gbp": 3000.0},
+    ]}
+    assert _section_dual_fuel_pnl(data) == ""
+    assert _section_dual_fuel_pnl({}) == ""

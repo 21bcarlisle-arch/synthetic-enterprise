@@ -123,6 +123,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 17d COMPLETE (2026-06-21)**: Dual-fuel account combined P&L in annual report. 760 tests passing (4 new).
+- `saas/reporting/annual_report.py`: `_section_dual_fuel_pnl()` — pairs electricity+gas legs (C1+C1g, C2+C2g, etc.) and shows combined lifetime margin
+- Flags whether gas leg was accretive (positive net margin) or dilutive to each dual-fuel account
+- Summary: how many dual-fuel accounts had gas net positive? Total gas net margin.
+- Answers: "Did our gas offering add value to the dual-fuel customer relationship?"
+- 4 new tests; fully backward-compatible
+
 **Phase 17c COMPLETE (2026-06-21)**: Per-customer lifetime P&L ranking in annual report. 756 tests passing (4 new).
 - `saas/reporting/annual_report.py`: `_section_customer_pnl_ranking()` — aggregates all_records by customer, sorts by net margin
 - Shows: revenue, gross margin, capital cost, net margin, net margin % for each billing account
