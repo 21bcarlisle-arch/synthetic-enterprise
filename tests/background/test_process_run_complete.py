@@ -1,0 +1,162 @@
+"""Tests for background/process_run_complete.py."""
+
+import json
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+import background.process_run_complete as prc
+
+
+def make_marker(tmp_path, git_hash="abc1234", elapsed_s=1870.0, json_data=None):
+    """Write a realistic run_complete marker and its JSON to tmp_path."""
+    if json_data is None:
+        json_data = {
+            "total_net_gbp": -8317.21,
+            "total_gross_gbp": -7089.58,
+            "total_capital_gbp": 1228.0,
+            "starting_treasury_gbp": 29846.0,
+            "final_treasury_gbp": 11131.0,
+            "committee_wake_ups_total": 323,
+            "bills_total": 1117,
+            "enterprise_value_gbp": -20661.90,
+            "net_margin_after_cost_to_serve_gbp": -23569.0,
+            "retention_log": [
+                {"outcome": "retained"},
+                {"outcome": "retained"},
+            ],
+            "no_offer_churn_log": [{"reason": "below_threshold"}] * 3,
+            "churned_billing_accounts": ["C1", "C2", "C3"],
+            "administration_event": None,
+        }
+
+    reports_dir = tmp_path / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    ts = "20260621T104002Z"
+    json_path = reports_dir / f"run_output_{git_hash}_{ts}.json"
+    json_path.write_text(json.dumps(json_data))
+
+    marker_text = (
+        f"Simulation Run Complete\n\n"
+        f"Git: {git_hash}\n"
+        f"JSON: {json_path}\n"
+        f"Duration: {elapsed_s:.0f}s | Size: 263 KB\n"
+    )
+    marker = tmp_path / "staging" / f"run_complete_{ts}.md"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(marker_text)
+    return marker, json_data
+
+
+def test_parse_marker_extracts_git_hash_elapsed_json_path(tmp_path):
+    marker, _ = make_marker(tmp_path, git_hash="def5678", elapsed_s=2100.0)
+    fields = prc.parse_marker(marker)
+    assert fields["git_hash"] == "def5678"
+    assert fields["elapsed_s"] == 2100.0
+    assert "run_output_def5678" in str(fields["json_path"])
+
+
+def test_update_latest_md_replaces_block(tmp_path, monkeypatch):
+    latest = tmp_path / "LATEST.md"
+    latest.write_text(
+        "Last updated: 2026-01-01T00:00:00Z\n\n"
+        "**Latest simulation results (2016-2025)** - auto-processed (0s / 0 min):\n"
+        "- Net margin: old data\n"
+        "\n"
+        "**Some other section** here\n"
+    )
+    monkeypatch.setattr(prc, "LATEST_MD", latest)
+
+    json_data = {
+        "total_net_gbp": -8317.21,
+        "total_gross_gbp": -7089.58,
+        "total_capital_gbp": 1228.0,
+        "starting_treasury_gbp": 29846.0,
+        "final_treasury_gbp": 11131.0,
+        "committee_wake_ups_total": 323,
+        "bills_total": 1117,
+        "enterprise_value_gbp": -20661.90,
+        "net_margin_after_cost_to_serve_gbp": -23569.0,
+        "retention_log": [{"outcome": "retained"}, {"outcome": "retained"}],
+        "no_offer_churn_log": [{}] * 3,
+        "churned_billing_accounts": ["C1", "C2"],
+    }
+    prc.update_latest_md(json_data, elapsed_s=1870.0)
+
+    text = latest.read_text()
+    assert "£-8,317.21" in text
+    assert "323 committee interventions" in text
+    assert "**Some other section**" in text
+
+
+def test_main_success_flow(tmp_path, monkeypatch):
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+
+    latest_md = tmp_path / "LATEST.md"
+    latest_md.write_text(
+        "Last updated: 2026-01-01T00:00:00Z\n\n"
+        "**Latest simulation results (2016-2025)** - auto-processed (0s / 0 min):\n"
+        "- Net margin: old\n"
+        "\n"
+        "**Next section**\n"
+    )
+    monkeypatch.setattr(prc, "LATEST_MD", latest_md)
+
+    marker, json_data = make_marker(tmp_path)
+
+    def fake_run(cmd, **kwargs):
+        m = MagicMock()
+        m.returncode = 0
+        return m
+
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    rc = prc.main(str(marker))
+    assert rc == 0
+    assert not marker.exists()
+    assert (tmp_path / "staging" / "done" / marker.name).exists()
+
+
+def test_main_returns_1_for_missing_marker(tmp_path, monkeypatch):
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    rc = prc.main(str(tmp_path / "nonexistent.md"))
+    assert rc == 1
+
+
+def test_main_returns_1_when_tests_fail(tmp_path, monkeypatch):
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+
+    latest_md = tmp_path / "LATEST.md"
+    latest_md.write_text(
+        "Last updated: 2026-01-01T00:00:00Z\n\n"
+        "**Latest simulation results (2016-2025)** - auto-processed (0s / 0 min):\n"
+        "- Net margin: old\n"
+        "\n"
+    )
+    monkeypatch.setattr(prc, "LATEST_MD", latest_md)
+
+    marker, _ = make_marker(tmp_path)
+
+    call_count = [0]
+
+    def fake_run(cmd, **kwargs):
+        m = MagicMock()
+        call_count[0] += 1
+        if "pytest" in " ".join(str(a) for a in cmd):
+            m.returncode = 1
+        else:
+            m.returncode = 0
+        return m
+
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    rc = prc.main(str(marker))
+    assert rc == 1
+    assert marker.exists()
