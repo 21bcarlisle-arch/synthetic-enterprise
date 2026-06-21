@@ -32,7 +32,7 @@ Full 2016–2025 simulation results (Phase 12d run, 1870s):
 4. HH data path — CLOSED (Phase 6a): C7-C9 on real HH consumption
 5. Reporting — CLOSED (Phase 5a/5b): ANNUAL_REPORT.md, full pipeline, GitHub Pages
 
-637 tests passing (SIM_FAST_MODE=1 suite, 16s).
+642 tests passing (SIM_FAST_MODE=1 suite, 16s).
 
 Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 Status: https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md

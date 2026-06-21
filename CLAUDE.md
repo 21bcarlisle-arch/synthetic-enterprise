@@ -109,7 +109,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed
 
-**637 tests passing (SIM_FAST_MODE=1 suite, 16s).**
+**642 tests passing (SIM_FAST_MODE=1 suite, 16s).**
 
 **Key financial position (Phase 11a run, company observable pricing):**
 - Treasury: £29,846 → £11,131 (Phase 11a basis risk consumes treasury)
