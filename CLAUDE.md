@@ -109,7 +109,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed
 
-**642 tests passing (SIM_FAST_MODE=1 suite, 16s).**
+**649 tests passing (SIM_FAST_MODE=1 suite, 17s).**
 
 **Key financial position (Phase 11a run, company observable pricing):**
 - Treasury: £29,846 → £11,131 (Phase 11a basis risk consumes treasury)
@@ -119,6 +119,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Enterprise value: £-20,661
 - 2021 net margin: £-3,069 | 2022: £-5,582 (worst year, crisis + basis risk)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 12e COMPLETE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
+- `simulation/run_phase2b.py`: `_compute_company_divergence()` aggregates `basis_risk_terms` and `churn_basis_risk` by year; `company_divergence` key in run output with `tariff_error_by_year` and `churn_error_by_year`
+- `saas/reporting/annual_report.py`: `_section_company_divergence()` renders year-by-year mean/max abs error tables for both models; added to report sections
+- Hollow gap #3 (SIM/company barrier): company-model divergence from SIM ground truth now formally measured — not just described
+- Next full sim run will show tariff pricing error by year (company 120-day rolling mean vs SIM forward curve) and churn estimate error by year
 
 **Phase 12d COMPLETE (2026-06-21)**: Margin-aware retention guard. 637 tests passing (3 new).
 - `simulation/run_phase2b.py`: guard condition added — retention offer only made when `expected_margin > ret_cost` (i.e. gross margin rate > 5% discount). Crisis-year offers blocked when commodity margins collapse below the discount floor.
@@ -167,13 +173,14 @@ an operating company. Status as of 21 June 2026:
    charges, VAT remittance, bad debt, acquisition spend. P&L is now the sum
    of transactions, not a formula.
 
-3. **SIM/company barrier — DEEPENED, not yet closed.** Company now has its
+3. **SIM/company barrier — DIVERGENCE NOW MEASURED (Phase 12e).** Company now has its
    own tariff engine (observable forward prices only) and churn estimator
    (observable rate change + tenure). Both make consequential decisions using
-   only what a real supplier could see. But the company still has implicit
-   visibility into SIM internals through shared code paths. Full operational
-   independence (company running blind on its own models) is the long-horizon
-   goal.
+   only what a real supplier could see. Phase 12e adds formal divergence tracking:
+   `company_divergence` key in run output, year-by-year tariff and churn error tables
+   in annual report. The company still shares code paths with SIM (not yet fully
+   independent), but divergence from SIM ground truth is now measured, not assumed.
+   Full operational independence is the long-horizon goal.
 
 4. **HH smart meter data path — CLOSED.** `simulation/hh_consumption.py`
    provides real HH consumption data. C7-C9 run on HH shapes instead of
@@ -307,11 +314,10 @@ pricing model must account for cost-to-serve at the customer level.
 - gemma4:12b at 7.6GB (smaller) but slower inference on this hardware (RTX 3060 12GB)
 - Switching to gemma4 would make the sim ~3 hrs, not 38 min. Stick with qwen3:14b.
 
-**Immediate (Phase 12e candidates):**
-- SIM performance: consider switching background sim_runner to SIM_FAST_MODE=1 for dev runs (16s tests; 23x faster sim). Reserve full LLM mode for staged milestone runs.
-- Run_complete processing mechanization: autonomous runner frontier tokens spent on processing staging markers. Could be a pure shell script (`make report && git commit && git push`) to save 1 frontier turn per sim run.
-- Retention threshold tuning: Phase 12d guard eliminates uneconomical offers. Next: threshold at 30% — is it too low? Would a higher threshold reduce false positives (offers where customer would renew anyway)?
-- OR: SIM/company full operational independence (company runs on its own models end-to-end)
+**Immediate (Phase 13 candidates):**
+- SIM/company full operational independence: company runs end-to-end on its own models with no shared code paths to SIM internals; divergence accumulates and is measured by the existing `company_divergence` machinery
+- ToU tariffs for HH customers (C7-C9 eligible now)
+- Retention threshold tuning: is 30% too low? Would a higher threshold reduce false positives?
 
 **Then:**
 - SIM/company full operational independence: company runs on its own models

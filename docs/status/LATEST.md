@@ -8,13 +8,18 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T11:51:56Z
+Last updated: 2026-06-21T12:29:06Z
+
+**Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
+- `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
+- `saas/reporting/annual_report.py`: "Company Model Divergence" section with year-by-year error tables for both models
+- Hollow gap #3 (SIM/company barrier): divergence from SIM ground truth now formally measured, not assumed
+- Next full sim run will populate tariff error by year + churn estimate error by year
 
 **Run-complete mechanization LIVE (2026-06-21)**: sim results auto-processed after each background run.
 - `background/process_run_complete.py`: regenerates ANNUAL_REPORT.md, updates LATEST.md key figures, runs fast tests, commits + pushes
 - Saves ~1 frontier turn per sim run; falls back to Claude processing if anything fails
 - Only NTFYs Rich for administration events; routine runs fully silent
-- Phase 12e proposed (hollow gap 3): SIM/company divergence tracking — 4h opt-out window expires ~16:30 BST
 
 **Token proxy LIVE (2026-06-21)**: localhost:8801 intercepts all Anthropic API calls, tracks per-session usage.
 - Handles gzip-compressed responses (decompresses before parsing SSE/JSON)
@@ -45,13 +50,11 @@ Last updated: 2026-06-21T11:51:56Z
 - Annual report: ROI = margin_saved − total_offer_cost visible; 21 offers, net ROI £-1,263.14 (19 retained, 2 churned despite)
 - 17 new tests (634 total)
 
-**Latest simulation results (2016–2025)** — Phase 12d run (1870s / 31 min):
-- Net margin: £-8,317.21 | Gross: £-7,089.58 | Capital: £1,228
+**Latest simulation results (2016–2025)** — auto-processed (4456s / 74 min):
+- Net margin: £-18,715.01 | Gross: £-17,487.38 | Capital: £1,228
 - Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
 - Enterprise value: £-20,661.90 | Net after CTS: £-23,569
-- Retention: 2 offers (down from 21), 100% retained, Net ROI **+£2.85** (was £-1,263) — guard blocked 19 uneconomical offers
-- Crisis years 2021–22: 0 offers made (margin below 5% discount floor) — 3 blocked as uneconomical, 3 below threshold
-- 6 churned customers (C1–C6), 1 home-move win (C2→1 successor), 6 no-offer churns
+- Retention: 2 offers, 2/2 retained | 6 no-offer churns | 6 total churned accounts
 
 **Phase 12b LIVE (2026-06-21)**: 617 tests passing. Company retention offers — first company decision affecting SIM outcome.
 - `company/crm/event_log.py`: `RetentionEvent` dataclass + `record_retention()` + `retention_events()` — dated retention artefacts

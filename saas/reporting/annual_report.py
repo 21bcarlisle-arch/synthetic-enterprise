@@ -455,6 +455,7 @@ def extract_report_data(run_output: dict) -> dict:
         "churn_basis_risk": phase2b.get("churn_basis_risk", []),
         "retention_log": phase2b.get("retention_log", []),
         "no_offer_churn_log": phase2b.get("no_offer_churn_log", []),
+        "company_divergence": phase2b.get("company_divergence", {}),
         "won_successor_activations": won_successor_activations,
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),
@@ -1210,6 +1211,60 @@ def _churn_basis_risk_section(data: dict) -> str:
     ]
     return "\n".join(lines)
 
+
+def _section_company_divergence(data: dict) -> str:
+    """Company Model Divergence -- Phase 12e.
+
+    Year-by-year mean/max absolute error for the two consequential company
+    models: tariff pricing and churn estimation.
+    """
+    div = data.get("company_divergence", {})
+    tariff_by_year = div.get("tariff_error_by_year", {})
+    churn_by_year = div.get("churn_error_by_year", {})
+
+    if not tariff_by_year and not churn_by_year:
+        return f"## Company Model Divergence\n\n{NOT_AVAILABLE}\n"
+
+    lines = [
+        "## Company Model Divergence",
+        "",
+        "Year-by-year gap between company observable-data models and SIM ground truth.",
+        "A well-calibrated company model narrows divergence over time as the company",
+        "accumulates experience. Divergence in crisis years reveals epistemic risk.",
+        "",
+    ]
+
+    if tariff_by_year:
+        lines += [
+            "### Tariff Pricing Error",
+            "",
+            "Company forward price (120-day rolling mean + 15% risk premium) vs SIM forward curve.",
+            "",
+            "| Year | Terms | Mean Abs Error | Max Abs Error |",
+            "|------|-------|---------------|--------------|",
+        ]
+        for yr, s in sorted(tariff_by_year.items()):
+            n, mean_pct, max_pct = s["n"], s["mean_abs_error_pct"] * 100, s["max_abs_error_pct"] * 100
+            lines.append(f"| {yr} | {n} | {mean_pct:.1f}% | {max_pct:.1f}% |")
+        lines.append("")
+
+    if churn_by_year:
+        lines += [
+            "### Churn Estimate Error",
+            "",
+            "Company observable-data churn estimate vs SIM bill-shock model.",
+            "",
+            "| Year | Renewals | Mean Abs Error | Max Abs Error |",
+            "|------|----------|---------------|--------------|",
+        ]
+        for yr, s in sorted(churn_by_year.items()):
+            n, mean_pct, max_pct = s["n"], s["mean_abs_error_pct"] * 100, s["max_abs_error_pct"] * 100
+            lines.append(f"| {yr} | {n} | {mean_pct:.1f}% | {max_pct:.1f}% |")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def _clv_trajectory_section(data: dict) -> str:
     """Whole-run CLV trajectory table — Point-in-Time CLV per billing account
     at each year end, showing how estimates evolved as renewal data accumulated.
@@ -1662,6 +1717,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_segment_margin_trend_section(data))
     sections.append(_customer_lifecycle_events_section(data))
     sections.append(_churn_basis_risk_section(data))
+    sections.append(_section_company_divergence(data))
     sections.append(_section_company_crm(data))
     sections.append(_section_retention_strategy(data))
     sections.append(_clv_trajectory_section(data))

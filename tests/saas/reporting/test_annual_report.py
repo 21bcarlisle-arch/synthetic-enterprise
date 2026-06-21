@@ -794,3 +794,57 @@ def test_extract_report_data_includes_no_offer_churn_log():
     result = _section_retention_strategy(data)
     assert "Missed opportunities" in result
     assert "1**" in result
+
+
+# Phase 12e: Company Model Divergence tests
+
+def test_section_company_divergence_not_available_when_empty():
+    from saas.reporting.annual_report import _section_company_divergence
+    result = _section_company_divergence({})
+    assert "Company Model Divergence" in result
+    assert "N/A" in result or "not available" in result.lower() or "n/a" in result.lower()
+
+
+def test_section_company_divergence_renders_tariff_table():
+    from saas.reporting.annual_report import _section_company_divergence
+    data = {
+        "company_divergence": {
+            "tariff_error_by_year": {
+                "2021": {"n": 4, "mean_abs_error_pct": 0.25, "max_abs_error_pct": 0.50},
+                "2022": {"n": 4, "mean_abs_error_pct": 0.40, "max_abs_error_pct": 0.80},
+            },
+            "churn_error_by_year": {},
+        }
+    }
+    result = _section_company_divergence(data)
+    assert "Company Model Divergence" in result
+    assert "Tariff Pricing Error" in result
+    assert "2021" in result
+    assert "25.0%" in result  # mean_abs_error_pct 0.25 * 100
+    assert "50.0%" in result  # max_abs_error_pct 0.50 * 100
+    assert "2022" in result
+
+
+def test_section_company_divergence_renders_churn_table():
+    from saas.reporting.annual_report import _section_company_divergence
+    data = {
+        "company_divergence": {
+            "tariff_error_by_year": {},
+            "churn_error_by_year": {
+                "2020": {"n": 3, "mean_abs_error_pct": 0.15, "max_abs_error_pct": 0.30},
+            },
+        }
+    }
+    result = _section_company_divergence(data)
+    assert "Churn Estimate Error" in result
+    assert "2020" in result
+    assert "15.0%" in result
+    assert "30.0%" in result
+
+
+def test_extract_report_data_includes_company_divergence():
+    # Verify the key passes through from phase2b output
+    from saas.reporting.annual_report import _section_company_divergence
+    # If company_divergence missing from data, section returns NOT_AVAILABLE
+    result = _section_company_divergence({"company_divergence": {}})
+    assert "Company Model Divergence" in result

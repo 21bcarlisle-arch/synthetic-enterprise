@@ -300,6 +300,42 @@ def _build_company_event_log(
     return sorted(result, key=lambda e: e["event_date"])
 
 
+def _compute_company_divergence(
+    basis_risk_terms: list[dict],
+    churn_basis_risk: list[dict],
+) -> dict:
+    """Aggregate company-model divergence from SIM ground truth, by year -- Phase 12e.
+
+    basis_risk_terms: per-term tariff pricing error (tariff_error_pct = signed)
+    churn_basis_risk: per-renewal churn estimate error (churn_estimate_error_pct = signed, may be None)
+    Returns: {tariff_error_by_year, churn_error_by_year} each mapping year to {n, mean_abs_error_pct, max_abs_error_pct}
+    """
+    by_year_tariff: dict[str, list[float]] = defaultdict(list)
+    for b in basis_risk_terms:
+        by_year_tariff[b["term_start"][:4]].append(abs(b["tariff_error_pct"]))
+
+    by_year_churn: dict[str, list[float]] = defaultdict(list)
+    for c in churn_basis_risk:
+        if c.get("churn_estimate_error_pct") is not None:
+            by_year_churn[c["term_start"][:4]].append(abs(c["churn_estimate_error_pct"]))
+
+    def _summarize(by_year: dict) -> dict:
+        return {
+            yr: {
+                "n": len(errs),
+                "mean_abs_error_pct": round(sum(errs) / len(errs), 4),
+                "max_abs_error_pct": round(max(errs), 4),
+            }
+            for yr, errs in sorted(by_year.items())
+        }
+
+    return {
+        "tariff_error_by_year": _summarize(by_year_tariff),
+        "churn_error_by_year": _summarize(by_year_churn),
+    }
+
+
+
 def main(report_end: str | None = None, sim_interface=None):
     """Run the full Phase 2b + 4c settlement simulation.
 
@@ -956,6 +992,18 @@ def main(report_end: str | None = None, sim_interface=None):
         "retention_log": retention_log,
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,
+        # Phase 12e: aggregated company-model divergence by year
+        "company_divergence": _compute_company_divergence(
+            basis_risk_terms,
+            [
+                {
+                    "term_start": e["event_date"],
+                    "churn_estimate_error_pct": e["churn_estimate_error_pct"],
+                }
+                for e in customer_events_log
+                if e.get("company_churn_estimate") is not None
+            ],
+        ),
     }
 
 

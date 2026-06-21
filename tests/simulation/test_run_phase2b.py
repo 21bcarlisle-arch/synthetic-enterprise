@@ -94,3 +94,54 @@ def test_build_gas_renewal_schedule_truncates_on_report_end():
     # Full-window schedule should have more terms
     full_schedule = _build_gas_renewal_schedule(customer, records)
     assert len(full_schedule) > len(schedule)
+
+
+# Phase 12e: _compute_company_divergence tests
+
+def test_compute_company_divergence_groups_by_year():
+    from simulation.run_phase2b import _compute_company_divergence
+    basis_risk = [
+        {"term_start": "2021-01-01", "tariff_error_pct": 0.20},
+        {"term_start": "2021-07-01", "tariff_error_pct": -0.30},
+        {"term_start": "2022-01-01", "tariff_error_pct": 0.50},
+    ]
+    churn_risk = [
+        {"term_start": "2021-01-01", "churn_estimate_error_pct": 0.10},
+        {"term_start": "2022-01-01", "churn_estimate_error_pct": -0.40},
+    ]
+    result = _compute_company_divergence(basis_risk, churn_risk)
+    tariff = result["tariff_error_by_year"]
+    churn = result["churn_error_by_year"]
+
+    assert "2021" in tariff
+    assert "2022" in tariff
+    assert tariff["2021"]["n"] == 2
+    # mean abs error for 2021: (0.20 + 0.30) / 2 = 0.25
+    assert abs(tariff["2021"]["mean_abs_error_pct"] - 0.25) < 0.001
+    assert tariff["2021"]["max_abs_error_pct"] == 0.30
+    assert tariff["2022"]["n"] == 1
+    assert tariff["2022"]["mean_abs_error_pct"] == 0.50
+
+    assert "2021" in churn
+    assert "2022" in churn
+    assert churn["2021"]["n"] == 1
+    assert abs(churn["2021"]["mean_abs_error_pct"] - 0.10) < 0.001
+
+
+def test_compute_company_divergence_skips_none_churn_errors():
+    from simulation.run_phase2b import _compute_company_divergence
+    churn_risk = [
+        {"term_start": "2020-01-01", "churn_estimate_error_pct": None},
+        {"term_start": "2020-07-01", "churn_estimate_error_pct": 0.15},
+    ]
+    result = _compute_company_divergence([], churn_risk)
+    churn = result["churn_error_by_year"]
+    assert "2020" in churn
+    assert churn["2020"]["n"] == 1  # None entry skipped
+
+
+def test_compute_company_divergence_empty_inputs():
+    from simulation.run_phase2b import _compute_company_divergence
+    result = _compute_company_divergence([], [])
+    assert result["tariff_error_by_year"] == {}
+    assert result["churn_error_by_year"] == {}

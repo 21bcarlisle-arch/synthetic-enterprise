@@ -165,6 +165,10 @@ At each renewal the company estimated churn risk from observable signals (rate c
 
 Positive error = company over-estimated churn vs SIM. Negative error = company under-estimated (more dangerous — expected retentions that were actually at risk).
 
+## Company Model Divergence
+
+Not available in current run output (see REPORTING_BACKLOG.md)
+
 ## Company CRM — Event Log
 
 Dated artefacts of customer lifecycle events as seen by the company layer.
