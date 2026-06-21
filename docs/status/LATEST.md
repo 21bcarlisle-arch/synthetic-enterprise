@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T14:30:16Z
+Last updated: 2026-06-21T14:35:49Z
+
+**Phase 14b LIVE (2026-06-21)**: Gas-specific churn sensitivity. 712 tests passing (7 new).
+- `company/crm/churn_model.py`: `fuel` param → gas uses BASE_CHURN_RATE=0.08, RATE_SENSITIVITY=0.6
+- Gas contracts stickier (fewer alternatives) than electricity; dual-fuel gas legs rarely churn independently
+- `simulation/run_phase2b.py`: tracks gas renewal rates; `company_gas_churn_log` in run output
+- Next sim: gas rate pressure visible per-renewal in run JSON; no change to electricity retention logic
 
 **Phase 14e LIVE (2026-06-21)**: Bill shock portfolio summary in annual report. 705 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_bill_shock_summary()` — aggregates all bill_shock_events across years

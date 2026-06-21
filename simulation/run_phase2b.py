@@ -486,6 +486,8 @@ def main(report_end: str | None = None, sim_interface=None):
     basis_risk_terms: list[dict] = []
     # Phase 11b: track previous electricity unit rate per customer for churn estimate
     prev_elec_unit_rates: dict[str, float] = {}
+    # Phase 14b: track previous gas unit rate for gas company churn estimate
+    prev_gas_unit_rates: dict[str, float] = {}
     # Phase 12a: fresh acquisition wins for company_event_log
     fresh_acquisitions: list[dict] = []
     # Phase 12b: retention cost events and log
@@ -493,6 +495,8 @@ def main(report_end: str | None = None, sim_interface=None):
     retention_log: list[dict] = []
     # Phase 12c: churns where no offer was made (missed opportunities)
     no_offer_churn_log: list[dict] = []
+    # Phase 14b: gas renewal rate pressure log for dual-fuel monitoring
+    company_gas_churn_log: list[dict] = []
 
     current_year_str = REPORT_START[:4]
     ytd_gross = ytd_net = ytd_capital = 0.0
@@ -534,10 +538,13 @@ def main(report_end: str | None = None, sim_interface=None):
             "tariff_error_pct": (company_fwd - forward_price) / forward_price if forward_price else 0.0,
         })
 
-        # Phase 11b: capture previous rate before updating (old_rate for company churn estimate)
+        # Phase 11b + 14b: capture previous rates before updating
         old_elec_rate = prev_elec_unit_rates.get(cid) if commodity == "electricity" else None
+        old_gas_rate = prev_gas_unit_rates.get(cid) if commodity == "gas" else None
         if commodity == "electricity":
             prev_elec_unit_rates[cid] = unit_rate
+        elif commodity == "gas":
+            prev_gas_unit_rates[cid] = unit_rate
 
         if term_index >= 1 and commodity == "electricity":
             company_est_pre = None
@@ -677,6 +684,29 @@ def main(report_end: str | None = None, sim_interface=None):
                         billing_account, term_start_str, company_est_pre,
                         retention_log[-1]["discount_pct"], outcome="retained"
                     )
+
+        # Phase 14b: compute gas company churn estimate for dual-fuel monitoring.
+        # Gas legs don't drive churn decisions (those live at electricity billing-account
+        # level), but the company tracks gas renewal rate changes separately to spot
+        # early-warning pressure on dual-fuel portfolios.
+        if term_index >= 1 and commodity == "gas" and old_gas_rate is not None:
+            from company.crm.churn_model import estimate_churn_probability as _est_churn
+            gas_customer_data = next(
+                (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account),
+                None,
+            )
+            if gas_customer_data is not None:
+                acq_date_gas = gas_customer_data.get("acquisition_date", term_start_str)
+                tenure_gas = (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_gas)).days / 365.25
+                gas_company_est = round(_est_churn(old_gas_rate, unit_rate, tenure_gas, fuel="gas"), 4)
+                company_gas_churn_log.append({
+                    "customer_id": cid,
+                    "billing_account": billing_account,
+                    "term_start": term_start_str,
+                    "old_gas_rate": round(old_gas_rate, 4),
+                    "new_gas_rate": round(unit_rate, 4),
+                    "company_gas_churn_estimate": gas_company_est,
+                })
 
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)
@@ -1015,6 +1045,7 @@ def main(report_end: str | None = None, sim_interface=None):
         "retention_log": retention_log,
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,
+        "company_gas_churn_log": company_gas_churn_log,
         # Phase 12e: aggregated company-model divergence by year
         "company_divergence": _compute_company_divergence(
             basis_risk_terms,

@@ -123,6 +123,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 14b COMPLETE (2026-06-21)**: Gas-specific churn sensitivity. 712 tests passing (7 new).
+- `company/crm/churn_model.py`: `fuel: str = "electricity"` param to `estimate_churn_probability()`
+- `GAS_BASE_CHURN_RATE = 0.08`, `GAS_RATE_SENSITIVITY = 0.6` — stickier dual-fuel gas legs, fewer alternatives
+- `simulation/run_phase2b.py`: tracks prev_gas_unit_rates; computes gas company churn estimate per renewal
+- `company_gas_churn_log` in run output: informational gas rate pressure monitoring for dual-fuel portfolio
+
 **Phase 14e COMPLETE (2026-06-21)**: Bill shock summary section in annual report. 705 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_bill_shock_summary()` — aggregates per-year bill_shock_events into portfolio view
 - Year-by-year table: event count + worst spike per year; total across all years

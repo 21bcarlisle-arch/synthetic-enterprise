@@ -5,6 +5,8 @@ from company.crm.churn_model import (
     BASE_CHURN_RATE,
     BILL_STRESS_SENSITIVITY,
     BILL_STRESS_THRESHOLD_GBP,
+    GAS_BASE_CHURN_RATE,
+    GAS_RATE_SENSITIVITY,
     MAX_CHURN_PROBABILITY,
     RATE_SENSITIVITY,
     TENURE_DISCOUNT_PER_YEAR,
@@ -142,3 +144,49 @@ def test_bill_stress_caps_at_max_churn_probability():
     """Extreme bill burden doesn't push probability above MAX_CHURN_PROBABILITY."""
     p = estimate_churn_probability(1000.0, 1000.0, tenure_years=0.0, annual_consumption_kwh=100000.0)
     assert p == MAX_CHURN_PROBABILITY
+
+
+# ── Gas fuel tests (Phase 14b) ───────────────────────────────────────────────
+
+def test_gas_flat_rate_returns_gas_base_minus_tenure():
+    """Gas with no rate change returns GAS_BASE_CHURN_RATE minus tenure discount."""
+    p = estimate_churn_probability(50.0, 50.0, tenure_years=0.0, fuel="gas")
+    assert p == pytest.approx(GAS_BASE_CHURN_RATE)
+
+
+def test_gas_base_rate_lower_than_electricity():
+    """GAS_BASE_CHURN_RATE is lower than BASE_CHURN_RATE (stickier contracts)."""
+    assert GAS_BASE_CHURN_RATE < BASE_CHURN_RATE
+
+
+def test_gas_rate_sensitivity_lower_than_electricity():
+    """GAS_RATE_SENSITIVITY is lower than RATE_SENSITIVITY (fewer alternatives)."""
+    assert GAS_RATE_SENSITIVITY < RATE_SENSITIVITY
+
+
+def test_gas_rate_increase_uses_gas_sensitivity():
+    """A 50% gas rate increase uses GAS_RATE_SENSITIVITY, not RATE_SENSITIVITY."""
+    p_gas = estimate_churn_probability(40.0, 60.0, tenure_years=0.0, fuel="gas")
+    p_elec = estimate_churn_probability(40.0, 60.0, tenure_years=0.0, fuel="electricity")
+    # Gas should be lower because sensitivity is lower
+    assert p_gas < p_elec
+
+
+def test_gas_estimate_quantified():
+    """Gas churn estimate at +50% rate = GAS_BASE + GAS_SENSITIVITY × 0.5."""
+    p = estimate_churn_probability(40.0, 60.0, tenure_years=0.0, fuel="gas")
+    expected = GAS_BASE_CHURN_RATE + GAS_RATE_SENSITIVITY * 0.5
+    assert p == pytest.approx(expected)
+
+
+def test_gas_default_fuel_is_electricity():
+    """Omitting fuel= gives same result as fuel='electricity'."""
+    p_default = estimate_churn_probability(50.0, 75.0, tenure_years=1.0)
+    p_explicit = estimate_churn_probability(50.0, 75.0, tenure_years=1.0, fuel="electricity")
+    assert p_default == pytest.approx(p_explicit)
+
+
+def test_gas_probability_never_below_zero():
+    """Gas churn probability is clamped to >= 0 even for large rate decreases."""
+    p = estimate_churn_probability(200.0, 50.0, tenure_years=5.0, fuel="gas")
+    assert p >= 0.0
