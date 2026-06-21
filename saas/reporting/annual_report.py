@@ -342,6 +342,16 @@ def extract_report_data(run_output: dict) -> dict:
             "fixed_cost_gbp": sum(
                 -e["amount_gbp"] for e in fixed_cost_events if e["timestamp"][:4] == year
             ),
+            # Phase 21a: electricity policy costs (RO + CfD) — deducted from net_margin_gbp
+            "ro_levy_gbp": sum(
+                r.get("ro_levy_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
+            ),
+            "cfd_levy_gbp": sum(
+                r.get("cfd_levy_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
+            ),
+            "policy_cost_gbp": sum(
+                r.get("policy_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
+            ),
         }
 
     per_customer_lifetime = {}
@@ -2156,6 +2166,61 @@ def _section_bill_shock_summary(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_policy_costs(data: dict) -> str:
+    """Phase 21a: Electricity Policy Costs (RO + CfD) — year-by-year breakdown.
+
+    Shows the RO and CfD levies collected from customers (via tariff pass-through)
+    and paid to Ofgem/LCCC. Net effect on margin is near-zero when pass-through
+    matches actual levy. Key signal: 2022 negative CfD levy (crisis rebate) appears
+    as a net positive contribution to margin in that year.
+    """
+    years = data.get("years", {})
+    # Only show section when policy costs are non-zero (i.e. Phase 21a data present)
+    has_policy = any(
+        yd.get("policy_cost_gbp", 0.0) != 0.0 or yd.get("ro_levy_gbp", 0.0) != 0.0
+        for yd in years.values()
+    )
+    if not has_policy:
+        return ""
+
+    lines = [
+        "## Policy Costs — RO + CfD Levies (Phase 21a)",
+        "",
+        "Electricity policy costs deducted from net_margin_gbp each year. ",
+        "CfD levy was NEGATIVE in 2022 (crisis rebate from LCCC) — this appears ",
+        "as a positive contribution to that year's margin.",
+        "",
+        "| Year | RO levy £ | CfD levy £ | Total policy cost £ | Note |",
+        "|------|-----------|------------|---------------------|------|",
+    ]
+    for year in sorted(years):
+        yd = years[year]
+        ro = yd.get("ro_levy_gbp", 0.0)
+        cfd = yd.get("cfd_levy_gbp", 0.0)
+        total = yd.get("policy_cost_gbp", ro + cfd)
+        note = "⬇ CfD REBATE" if cfd < 0 else ""
+        lines.append(
+            f"| {year} | {ro:,.0f} | {cfd:,.0f} | {total:,.0f} | {note} |"
+        )
+
+    total_ro = sum(yd.get("ro_levy_gbp", 0.0) for yd in years.values())
+    total_cfd = sum(yd.get("cfd_levy_gbp", 0.0) for yd in years.values())
+    total_policy = sum(yd.get("policy_cost_gbp", 0.0) for yd in years.values())
+    lines.append(
+        f"| **Total** | **{total_ro:,.0f}** | **{total_cfd:,.0f}** | "
+        f"**{total_policy:,.0f}** | |"
+    )
+    lines.append("")
+    lines.append(
+        f"Total policy cost: £{total_policy:,.0f} across all years. "
+        f"Net margin is after deducting this. Revenue side: "
+        f"tariff pass-through at term-start year's levy rate — basis risk arises "
+        f"when cross-year terms meet a different actual levy (notably 2022 CfD rebate)."
+    )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_gas_renewal_pressure(data: dict) -> str:
     """Gas Renewal Pressure -- Phase 15a: dual-fuel gas rate change monitoring.
 
@@ -2506,6 +2571,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_churn_basis_risk_section(data))
     sections.append(_section_company_divergence(data))
     sections.append(_section_company_crm(data))
+    sections.append(_section_policy_costs(data))
     sections.append(_section_tou_utilization(data))
     sections.append(_section_bill_shock_summary(data))
     sections.append(_section_gas_renewal_pressure(data))

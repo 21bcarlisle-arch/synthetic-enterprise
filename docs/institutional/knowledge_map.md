@@ -100,15 +100,36 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 
 ---
 
+## Domain: Novel/Unseen Scenario Generation
+
+| Topic | What we know | Conf | Key gaps | Next question |
+|-------|-------------|------|---------|---------------|
+| 2021-22 crisis non-linearity | Five feedback loops: storage-hedging failure, hedging-asset contamination, SOLR mutualization, regulatory capital void, cap-lag mechanism. Commodity price shock (no physical shortage), killed 28 suppliers. | H | Precise hedge ratios at each failing supplier | Could we simulate each failure trigger individually? |
+| Negative price regime | 29 (2022) → 107 (2023) → 149 (2024) → projected ~1,000/yr peak 2027. CfD-backed generators are price-insensitive (key amplifier). Post-2027: merchant capacity grows, negative-price frequency declines. Regime change. | H | Post-2027 trajectory after merchant capacity reaches critical mass | What percentage of new capacity post-2027 will be merchant vs CfD-backed? |
+| Bimodal price distribution | At 70%+ renewable penetration: very low/negative during surplus; very high during wind/solar droughts. Mean compressed; variance exploding. "Price cannibalization" — wind capture price diverges from baseload. | M | When does GB grid cross the 70% threshold? (UK 2030 target is 100% clean power) | How quickly does the bimodal pattern emerge post-70%? |
+| Dunkelflaute + interconnector loss | January 2026 UK cold snap: demand 47.3 GW (7yr high), wind 2 GW, wholesale £1,040/MWh. Interconnectors reversed simultaneously. If UK+EU experience correlated dunkelflaute: no rescue. | H | Duration modelling — how long can a multi-country dunkelflaute last? | Wood Mackenzie study — what's their estimate of worst-case correlated dunkelflaute duration? |
+| ERCOT February 2021 analogue | $9,000/MWh for 77 hours. $26.5bn damage. UK analogue: sustained cold snap + Norwegian import failure + 3+ days wind < 5 GW. UK price cap shields retail consumers but cascades into unhedged supplier insolvencies. | H | Whether UK Capacity Market provides adequate protection | At what wholesale price level do UK suppliers start failing even with hedges? |
+| Electrification feedback loops | Heat pump adoption: −90% gas demand but +61% electricity demand. Winter evening peak +100%+ at full penetration. Gas network death spiral (£3–4bn stranded assets). 5.7M HPs → £40.7bn network reinforcement. | H | Rate of gas network death spiral vs policy intervention timeline | What triggers the government's 2026 decision on gas grid future? |
+| EV smart charging bifurcation | 1M EVs dumb-charging 6–10pm: +7 GW peak. With smart charging: <1 GW overnight. V2G: 51 GW flex by 2050 (NESO FES 2025). Behavioral: same fleet count, radically different grid stress (7× difference). | H | Smart tariff participation rate forecasts | What percentage of EV owners in UK engage with smart tariffs currently? |
+| BESS market saturation | 20–30 GW target (2030). FCR revenues 7× decline 2021→2024. At 20–30 GW: price spread compression. £32M/GW/yr arbitrage at current spreads → falls as scale increases. "Race to charge" synchronisation risk. | H | Revenue stack modelling at 23+ GW | What's the post-saturation equilibrium annual revenue per GW for BESS? |
+| Interconnector as amplifier | At moments of UK stress, all interconnectors reverse simultaneously — AMPLIFYING spikes rather than dampening them. EU structural high-price scenario (high EU ETS) pulls UK generation east, tightening UK supply. | H | How to model this in our price simulation | — |
+| Gas geopolitical disruption | Norwegian supply ~45–50 bcm (~50% of UK supply). UK statutory margin fell from 127 to 83 mcm/day. UK LNG imports projected to reach 46% of supply by 2035. Strait of Hormuz 2026: gas prices doubled in 48 hours. | H | Precise probability estimates for scenarios (none publicly available from Ofgem) | Are DESNZ/Ofgem confidential scenario parameters ever published in Freedom of Information responses? |
+
+**Sources:** NESO FES 2025; SQ Energy; Modo Energy; NextEnergy Capital; UCL Bartlett; Wood Mackenzie; RAP; ICIS; Statutory Security of Supply Report 2025  
+**Files:** `docs/market_research/energy_market_complexity_june2026.md`, `docs/market_research/energy_stress_scenarios_june2026.md`
+
+---
+
 ## What we don't know (priority gap list)
 
 Ranked by likely simulation impact:
 
-1. **Historical RO + network charge levels by year (2016-2024)** — needed to accurately model Phase 21a across the full sim period, not just from 2025
+1. **Historical RO + network charge levels by year (2016-2024)** — ~~DONE~~ (see Phase 21a completed)
 2. **Small supplier opex structure** — how does our 9-customer company compare on cost-to-serve? What's realistic for our scale?
 3. **Acquisition cost per channel** — PCW, direct, broker; needed to model acquisition economics properly
 4. **Historical SME churn rates** — our churn model parameters are estimated, not calibrated to real data
 5. **EPC property-type breakdown at NEED 2026 level** — we have 2019 data; 2026 version may have been published
+6. **Novel scenario distribution parameters** — at 70%+ renewables, what parameters define the bimodal price distribution? When does UK grid cross 70%? Negative price frequency trajectory post-2027?
 
 ---
 
@@ -124,13 +145,14 @@ Ranked by likely simulation impact:
 
 ## Priority Gap List (ranked by simulation impact)
 
-1. ~~**Historical RO + CfD + network charge levels 2016-2024**~~ — **DONE** (see `historical_policy_costs_2016_2024.md`). RO: £15.6 → £31.8/MWh (2016→2024). CfD: £0 → £11/MWh, **negative in 2022** (crisis rebate). Network: ~£32–46/MWh. All-in non-wholesale: ~£72 (2016) → ~£115 (2024)/MWh. Phase 21a can now be implemented with year-indexed lookup tables.
-2. **Hedge ratio waterfall by forward tenor in LATEST.md** — critical board KPI missing from our reporting
-3. **42-day renewal notice CRM flag** — regulatory obligation not currently modeled; affects renewal campaign timing
-4. **Active renewer vs SVT roller distinction** — ~35/65 split changes churn dynamics significantly
-5. **Debt lifecycle staging** — debt should have states (current → overdue → plan → write-off), not just a flat bad debt %
-6. **Bad debt by payment method** — DD 1% vs SC 6% of revenue; if any sim customers are on standard credit, bad debt estimate is 6× wrong
-7. **Per-customer net assets tracker** — Ofgem solvency signal missing from LATEST.md
-8. **RO cost as explicit P&L line** — ~£31.80/MWh on electricity; currently embedded in commodity cost with no visibility
+1. ~~**Historical RO + CfD + network charge levels 2016-2024**~~ — **DONE** (see `historical_policy_costs_2016_2024.md`). RO: £15.6 → £31.8/MWh (2016→2024). CfD: £0 → £11/MWh, **negative in 2022** (crisis rebate). Network: ~£32–46/MWh. All-in non-wholesale: ~£72 (2016) → ~£115 (2024)/MWh.
+2. ~~**RO cost as explicit P&L line**~~ — **DONE Phase 21a** (2026-06-21). `simulation/policy_costs.py` with year-indexed lookup tables; `ro_levy_gbp`, `cfd_levy_gbp`, `policy_cost_gbp` now in every electricity settlement record. `net_margin_gbp = margin_gbp - policy_cost_gbp - capital_cost_gbp`. 19 new tests.
+3. **Phase 21b: Per-customer net assets tracker** — Ofgem solvency signal (£130/dual-fuel customer floor) missing from LATEST.md
+4. **Phase 21c: Consumption recalibration** — C1 electricity 2,800 → 2,500 kWh/yr; C5 SME 15,000 → 10,000 kWh/yr
+5. **Novel scenario distribution** — at 70%+ renewables, bimodal price distribution parameters unknown. Negative price frequency trajectory post-2027 (projected regime change). Key research area for forward scenario generation.
+6. **Hedge ratio waterfall by forward tenor in LATEST.md** — critical board KPI missing from our reporting
+7. **42-day renewal notice CRM flag** — regulatory obligation not currently modeled; affects renewal campaign timing
+8. **Active renewer vs SVT roller distinction** — ~35/65 split changes churn dynamics significantly
+9. **Debt lifecycle staging** — debt should have states (current → overdue → plan → write-off), not just a flat bad debt %
 
 Last updated: 2026-06-21

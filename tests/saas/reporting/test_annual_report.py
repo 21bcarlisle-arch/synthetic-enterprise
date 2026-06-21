@@ -11,6 +11,7 @@ from saas.reporting.annual_report import (
     _lifetime_pricing_section,
     _mandate_comparison_section,
     _pricing_action,
+    _section_policy_costs,
     _segment_margin_trend_section,
     _send_run_complete_ntfy,
     extract_report_data,
@@ -1627,3 +1628,48 @@ def test_dual_fuel_uses_per_cid_comm_pnl_when_present():
     assert "C1" in result
     assert "C1g" in result
     assert "1/2" in result
+
+
+# ---- Phase 21a: Policy costs section ----
+
+def test_policy_costs_section_hidden_when_all_zero():
+    """Pre-Phase-21a data (no policy costs) produces empty section."""
+    data = {"years": {
+        "2016": {"ro_levy_gbp": 0.0, "cfd_levy_gbp": 0.0, "policy_cost_gbp": 0.0},
+        "2017": {"ro_levy_gbp": 0.0, "cfd_levy_gbp": 0.0, "policy_cost_gbp": 0.0},
+    }}
+    assert _section_policy_costs(data) == ""
+
+
+def test_policy_costs_section_empty_years():
+    """Empty years dict → no section."""
+    assert _section_policy_costs({"years": {}}) == ""
+    assert _section_policy_costs({}) == ""
+
+
+def test_policy_costs_section_shows_ro_and_cfd():
+    """Section renders year-by-year RO + CfD table when costs present."""
+    data = {"years": {
+        "2021": {"ro_levy_gbp": 1000.0, "cfd_levy_gbp": 100.0, "policy_cost_gbp": 1100.0},
+        "2022": {"ro_levy_gbp": 1200.0, "cfd_levy_gbp": -500.0, "policy_cost_gbp": 700.0},
+    }}
+    result = _section_policy_costs(data)
+    assert "Policy Costs" in result
+    assert "2021" in result
+    assert "2022" in result
+    assert "1,000" in result   # RO 2021
+    assert "-500" in result    # CfD 2022 negative (rebate)
+    assert "REBATE" in result  # 2022 CfD negative label
+
+
+def test_policy_costs_section_totals():
+    """Section shows correct column totals."""
+    data = {"years": {
+        "2021": {"ro_levy_gbp": 1000.0, "cfd_levy_gbp": 100.0, "policy_cost_gbp": 1100.0},
+        "2022": {"ro_levy_gbp": 1200.0, "cfd_levy_gbp": -500.0, "policy_cost_gbp": 700.0},
+    }}
+    result = _section_policy_costs(data)
+    # Total RO = 2200, total CfD = -400, total policy = 1800
+    assert "2,200" in result
+    assert "-400" in result
+    assert "1,800" in result

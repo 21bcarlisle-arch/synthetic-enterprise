@@ -112,7 +112,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**696 tests passing (SIM_FAST_MODE=1 suite, ~17s).**
+**787 tests passing (SIM_FAST_MODE=1 suite; Phase 21a adds 23 new tests: 19 policy costs + 4 annual report).**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -122,6 +122,16 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 21a COMPLETE (2026-06-21)**: Explicit RO + CfD electricity policy costs. 787 tests passing (23 new).
+- `simulation/policy_costs.py`: year-indexed lookup tables for RO (£15.6→£31.8/MWh 2016→2024) and CfD levy (negative in 2022 = crisis rebate)
+- `saas/tariff_pricing.py`: `price_fixed_tariff()` gains `policy_cost_per_mwh` param — passes through levy in unit rate
+- `simulation/renewals.py`: calls `get_electricity_policy_cost_per_mwh(term_start_str)` at schedule build; electricity unit rates now realistic
+- `simulation/hedged_settlement.py`: records `ro_levy_gbp`, `cfd_levy_gbp`, `policy_cost_gbp` per period; `net_margin_gbp = margin_gbp - policy_cost_gbp - capital_cost_gbp`
+- Settlement uses SETTLEMENT DATE year for the levy; tariff uses TERM START year → creates authentic basis risk when cross-year terms meet 2022 CfD rebate
+- Annual report: `_section_policy_costs()` shows year-by-year RO + CfD breakdown; flags 2022 negative CfD
+- R&D: 2 scenario research agents completed; findings in `docs/market_research/energy_market_complexity_june2026.md` + `energy_stress_scenarios_june2026.md`
+- Knowledge map updated with full Novel/Unseen Scenario domain
 
 **Phase 18a COMPLETE (2026-06-21)**: Regime detection premium in company tariff engine. 768 tests passing (9 new).
 - `company/pricing/tariff_engine.py`: `_compute_regime_premium()` — compares 60d mean vs 180d baseline mean of spot prices

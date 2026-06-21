@@ -41,6 +41,7 @@ from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
 from sim.risk_engine import compute_net_margin
+from simulation.policy_costs import get_cfd_levy_per_mwh, get_ro_cost_per_mwh
 from simulation.tou_periods import is_peak_period
 
 
@@ -92,9 +93,15 @@ def run_hedged_term(
       {customer_id, settlement_date, settlement_period, consumption_kwh,
        unit_rate_gbp_per_mwh, hedge_price_gbp_per_mwh, hedge_fraction,
        hedged_volume_kwh, unhedged_volume_kwh, revenue_gbp,
-       wholesale_cost_gbp, margin_gbp, capital_cost_gbp, net_margin_gbp}
-    where capital_cost_gbp = monthly_cost_of_capital_gbp / (periods in that
-    calendar month for this term) and net_margin_gbp = margin_gbp - capital_cost_gbp.
+       wholesale_cost_gbp, margin_gbp, ro_levy_gbp, cfd_levy_gbp,
+       policy_cost_gbp, capital_cost_gbp, net_margin_gbp}
+    where:
+      capital_cost_gbp = monthly_cost_of_capital_gbp / (periods in that
+        calendar month for this term)
+      ro_levy_gbp / cfd_levy_gbp = RO + CfD levies for the settlement date
+        year (Phase 21a); cfd_levy_gbp is negative in 2022 (crisis rebate)
+      policy_cost_gbp = ro_levy_gbp + cfd_levy_gbp
+      net_margin_gbp = margin_gbp - policy_cost_gbp - capital_cost_gbp
     """
     start = date.fromisoformat(term_start_date)
     end = date.fromisoformat(term_end_date)
@@ -129,6 +136,14 @@ def run_hedged_term(
                 spot_price,
             )
 
+            # Phase 21a: RO + CfD levy for this settlement date's year.
+            # Uses actual settlement year, not term-start year, so cross-year
+            # terms (e.g. July 2021–June 2022) naturally reflect the 2022
+            # negative CfD rebate on H1 2022 settlement periods.
+            consumption_mwh = consumption_kwh / 1000.0
+            ro_levy = get_ro_cost_per_mwh(date_str) * consumption_mwh
+            cfd_levy = get_cfd_levy_per_mwh(date_str) * consumption_mwh
+
             records.append({
                 "customer_id": customer_id,
                 "settlement_date": date_str,
@@ -142,6 +157,9 @@ def run_hedged_term(
                 "revenue_gbp": settled["revenue_gbp"],
                 "wholesale_cost_gbp": settled["wholesale_cost_gbp"],
                 "margin_gbp": settled["margin_gbp"],
+                "ro_levy_gbp": ro_levy,
+                "cfd_levy_gbp": cfd_levy,
+                "policy_cost_gbp": ro_levy + cfd_levy,
             })
 
         current_date += timedelta(days=1)
@@ -160,6 +178,12 @@ def run_hedged_term(
         capital_cost_per_period_gbp = monthly_cost_of_capital_gbp / len(month_records)
         for record in month_records:
             record["capital_cost_gbp"] = capital_cost_per_period_gbp
-            record["net_margin_gbp"] = compute_net_margin(record["margin_gbp"], capital_cost_per_period_gbp)
+            # net_margin deducts both policy costs (RO/CfD levies paid to Ofgem/LCCC)
+            # and the cost of capital. Phase 21a: policy_cost_gbp can be negative in 2022
+            # (CfD rebate exceeds RO), which boosts net_margin by that amount.
+            record["net_margin_gbp"] = compute_net_margin(
+                record["margin_gbp"] - record["policy_cost_gbp"],
+                capital_cost_per_period_gbp,
+            )
 
     return records

@@ -98,7 +98,9 @@ Report in ~[N] words with specific numbers and sources — not generic principle
 | Date | Topic(s) | Agents | Key output | Methodology notes |
 |------|----------|--------|------------|-------------------|
 | 2026-06-21 | EPC, ONS consumption, Ofgem regulation, supplier financials | 4 parallel | `docs/market_research/` (4 files + synthesis) | First R&D session; parallel agent pattern validated |
-| 2026-06-21 | Commercial strategy, debt mgmt, treasury/risk, customer comms | 4 parallel | `docs/market_research/` (pending) | Company behaviour focus; same pattern |
+| 2026-06-21 | Commercial strategy, debt mgmt, treasury/risk, customer comms | 4 parallel | `docs/market_research/company_*.md` | Company behaviour focus; same pattern |
+| 2026-06-21 | Historical policy costs 2016-2024 | 1 (targeted) | `docs/market_research/historical_policy_costs_2016_2024.md` | Single agent on narrow topic with precise source anchors worked well; yielded the 2022 negative CfD finding |
+| 2026-06-21 | Energy market complexity + international stress scenarios | 2 parallel | `docs/market_research/energy_market_complexity_june2026.md` + `energy_stress_scenarios_june2026.md` | Background agents run during Phase 21a implementation; results captured on completion |
 
 ---
 

@@ -1,0 +1,93 @@
+"""Phase 21a: Electricity policy cost pass-through.
+
+Renewable Obligation (RO) and Contract for Difference (CfD) levies are
+mandatory per-MWh costs on all UK electricity supply. They are not embedded
+in Elexon SSP spot prices — a supplier pays them separately to Ofgem/LCCC.
+
+These lookup tables are derived from official Ofgem and EMR Settlement sources
+(see docs/market_research/historical_policy_costs_2016_2024.md).
+
+The supplier passes these costs through in the tariff: the policy cost is
+added to the unit rate at contract pricing time, and deducted from gross margin
+at settlement time. Net effect on margin is approximately zero when the tariff
+pass-through exactly matches the levy — but diverges when the actual levy
+differs from the estimate at pricing (e.g. the 2022 CfD rebate was unexpected).
+
+Gas customers: RO and CfD levies are electricity-only. Domestic gas is also
+exempt from Climate Change Levy (CCL). This module returns 0.0 for gas.
+"""
+
+# RO effective cost floor (£/MWh) by obligation year start.
+# Key = calendar year of April start of obligation year (Apr-Mar).
+# Formula: obligation_level_ROCs_per_MWh × buy_out_price_per_ROC.
+# Source: REF.org.uk obligation levels; Ofgem buy-out price publications.
+_RO_COST_BY_OY_START: dict[int, float] = {
+    2016: 15.6,   # OY 2016-17: 0.348 ROCs/MWh × £44.77
+    2017: 18.6,   # OY 2017-18: 0.409 × £45.58
+    2018: 22.1,   # OY 2018-19: 0.468 × £47.22
+    2019: 23.6,   # OY 2019-20: 0.484 × £48.78
+    2020: 23.6,   # OY 2020-21: 0.471 × £50.05
+    2021: 25.0,   # OY 2021-22: 0.492 × £50.80
+    2022: 26.0,   # OY 2022-23: 0.491 × £52.88
+    2023: 27.7,   # OY 2023-24: 0.469 × £59.01
+    2024: 31.8,   # OY 2024-25: 0.491 × £64.73
+}
+
+# CfD Interim Levy Rate annual average (£/MWh) by calendar year.
+# Negative in 2022: wholesale prices exceeded CfD strike prices, so LCCC
+# rebated suppliers. Source: EMR Settlement Ltd quarterly announcements.
+_CFD_LEVY_BY_YEAR: dict[int, float] = {
+    2016: 0.1,
+    2017: 1.3,
+    2018: 3.2,
+    2019: 4.0,
+    2020: 3.5,
+    2021: 1.5,
+    2022: -5.0,   # negative: crisis rebate to suppliers
+    2023: 6.5,
+    2024: 11.0,
+}
+
+# The RO obligation year runs Apr-Mar. For a contract starting in Jan-Mar,
+# the applicable OY start is the prior year (e.g. Jan 2021 → OY 2020-21 → key 2020).
+def _ro_oy_start_year(date_str: str) -> int:
+    """Return the April-start year of the obligation year containing date_str."""
+    year = int(date_str[:4])
+    month = int(date_str[5:7])
+    return year if month >= 4 else year - 1
+
+
+def get_ro_cost_per_mwh(date_str: str) -> float:
+    """Renewables Obligation effective cost (£/MWh) for the given date.
+
+    Uses the obligation year that covers date_str. Falls back to the nearest
+    known year for dates outside 2016-2024.
+    """
+    oy_year = _ro_oy_start_year(date_str)
+    if oy_year in _RO_COST_BY_OY_START:
+        return _RO_COST_BY_OY_START[oy_year]
+    # Clamp to known range
+    if oy_year < min(_RO_COST_BY_OY_START):
+        return _RO_COST_BY_OY_START[min(_RO_COST_BY_OY_START)]
+    return _RO_COST_BY_OY_START[max(_RO_COST_BY_OY_START)]
+
+
+def get_cfd_levy_per_mwh(date_str: str) -> float:
+    """CfD Interim Levy Rate (£/MWh) for the given date.
+
+    Negative in 2022 (crisis rebate). Falls back to nearest year outside range.
+    """
+    year = int(date_str[:4])
+    if year in _CFD_LEVY_BY_YEAR:
+        return _CFD_LEVY_BY_YEAR[year]
+    if year < min(_CFD_LEVY_BY_YEAR):
+        return _CFD_LEVY_BY_YEAR[min(_CFD_LEVY_BY_YEAR)]
+    return _CFD_LEVY_BY_YEAR[max(_CFD_LEVY_BY_YEAR)]
+
+
+def get_electricity_policy_cost_per_mwh(date_str: str) -> float:
+    """Total electricity policy cost (£/MWh): RO + CfD levy.
+
+    For electricity customers only. Returns 0.0 for any other fuel.
+    """
+    return get_ro_cost_per_mwh(date_str) + get_cfd_levy_per_mwh(date_str)
