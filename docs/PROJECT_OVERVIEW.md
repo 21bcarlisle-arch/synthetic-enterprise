@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-21. 306 commits. 810 tests (787 in SIM_FAST_MODE=1). Codebase: ~16,000 lines across 177 Python modules.*
+*Last updated: 2026-06-21. 308 commits. 814 tests (787 in SIM_FAST_MODE=1). Codebase: ~16,000 lines across 177 Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -553,7 +553,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 177 Python modules, ~16,000 lines
 - 306 git commits
-- 810 tests (all green); 787 in SIM_FAST_MODE=1 (16s); 810 in full suite (2h17m with Ollama)
+- 814 tests (all green); 787 in SIM_FAST_MODE=1 (16s); 814 in full suite (~2h50m with Ollama)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
