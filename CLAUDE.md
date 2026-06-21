@@ -86,7 +86,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 
 ---
 
-## Current state (as of 21 June 2026)
+## Current state (as of 21 June 2026 — 10:15 UTC)
 
 **What's built:**
 - Phase 0+1: agentic loop, Elexon data ingestion, profile-class billing,
@@ -119,6 +119,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Enterprise value: £-20,661
 - 2021 net margin: £-3,069 | 2022: £-5,582 (worst year, crisis + basis risk)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 12c COMPLETE (2026-06-21)**: Retention ROI analysis live. 634 tests passing (17 new).
+- `simulation/run_phase2b.py`: `no_offer_churn_log` — churns where company churn estimate was below 30% threshold (missed opportunities); `expected_term_margin_gbp` on all retention_log entries
+- Bug fix: Phase 12b left retention outcomes as "pending" when offer made but no lifecycle event fired (customer renewed normally). Fixed: `elif` block now marks as "retained" and fires notify_retention_attempt
+- `saas/reporting/annual_report.py`: "Retention Strategy P&L" extended with ROI summary (net_roi = margin_saved − total_cost), missed opportunity count + per-year breakdown
+- **Test speedup**: `SIM_FAST_MODE=1` runs full test suite in 16s (vs 2,301s full simulation). All 634 tests pass in fast mode. Risk committee tests that mock `_call_local` now explicitly unset `SIM_FAST_MODE`.
+- Model evaluation: gemma4:12b pulled (7.6GB) and being evaluated vs qwen3:14b on dispatcher/discovery/risk committee tasks
 
 **Phase 12b COMPLETE (2026-06-21)**: Company retention offers live.
 - `RetentionEvent` in `company/crm/event_log.py` + `notify_retention_attempt()` on all SimInterface classes
@@ -288,9 +295,16 @@ pricing model must account for cost-to-serve at the customer level.
 
 ## Roadmap from here
 
-**Immediate (Phase 12c proposed):**
-- Measure whether the company's retention strategy is net-positive over 2016-2025
-- Churn basis risk + retention ROI: does discounting under-estimated churners save more margin than the discount costs?
+**Model evaluation complete (2026-06-21)**: gemma4:12b vs qwen3:14b — **keep qwen3:14b**.
+- Same accuracy on all 3 tasks (dispatcher 10/10, discovery 5/5, risk committee valid)
+- qwen3:14b 4x faster: 4.5s/call vs 20.9s/call (dispatcher), 11s vs 34.6s (risk committee)
+- gemma4:12b at 7.6GB (smaller) but slower inference on this hardware (RTX 3060 12GB)
+- Switching to gemma4 would make the sim ~3 hrs, not 38 min. Stick with qwen3:14b.
+
+**Immediate (Phase 12d proposed):**
+- SIM performance: consider switching background sim_runner to SIM_FAST_MODE=1 for dev runs (16s tests; 23x faster sim). Reserve full LLM mode for staged milestone runs.
+- Run_complete processing mechanization: autonomous runner frontier tokens spent on processing staging markers. Could be a pure shell script (`make report && git commit && git push`) to save 1 frontier turn per sim run.
+- Retention ROI analysis: Phase 12c complete — net ROI calculated, missed opportunities tracked. Next: does the 30% threshold need tuning? ROI analysis may reveal whether discounting is net-positive.
 - OR: SIM/company full operational independence (company runs on its own models end-to-end)
 
 **Then:**

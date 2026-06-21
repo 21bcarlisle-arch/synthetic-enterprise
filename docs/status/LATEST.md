@@ -8,11 +8,17 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T09:04:49Z
+Last updated: 2026-06-21T09:33:25Z
 
-**Model evaluation in progress (2026-06-21)**: Pulling gemma4:12b to evaluate against qwen3:14b on dispatcher, discovery, and risk committee tasks. Will report back which model wins each.
+**Model evaluation COMPLETE (2026-06-21)**: gemma4:12b vs qwen3:14b — **keep qwen3:14b everywhere**.
+- Accuracy: identical (dispatcher 10/10, discovery 5/5, risk committee valid — both models)
+- Speed: qwen3:14b 4x faster (4.5s vs 20.9s/call dispatcher; 11s vs 34.6s risk committee)
+- gemma4:12b would triple the SIM runtime (~3hrs vs 38min). Not worth switching.
 
-**SIM performance review in progress**: Reviewing bottlenecks in the 38-min simulation runtime (2301s for Phase 12b run at git d641601).
+**SIM bottleneck (2026-06-21)**: 95% of the 38-min runtime is 323 risk committee Ollama calls (~7s each).
+- Pure Python (billing/settlement/hedging): ~40s
+- SIM_FAST_MODE=1 (deterministic +0.10, no Ollama): ~2 min for full sim, 16s for full test suite
+- Keep LLM mode for production runs (it's the agentic part); use SIM_FAST_MODE=1 for tests
 
 **Phase 12b LIVE (2026-06-21)**: 617 tests passing. Company retention offers — first company decision affecting SIM outcome.
 - `company/crm/event_log.py`: `RetentionEvent` dataclass + `record_retention()` + `retention_events()` — dated retention artefacts

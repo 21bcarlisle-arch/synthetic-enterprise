@@ -30,7 +30,7 @@ def _call(model: str, system: str, user: str, max_tokens: int = 200, think: bool
     }).encode()
     t0 = time.monotonic()
     req = urllib.request.Request(OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=120) as resp:
+    with urllib.request.urlopen(req, timeout=300) as resp:  # 5min to allow model swap
         result = json.loads(resp.read())
     elapsed = time.monotonic() - t0
     return result["message"]["content"].strip(), elapsed
