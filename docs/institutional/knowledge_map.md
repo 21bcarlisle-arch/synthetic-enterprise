@@ -60,14 +60,21 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 
 ---
 
-## Domain: Company Operations (Pending — Round 2 Research)
+## Domain: Company Operations
 
 | Topic | What we know | Conf | Key gaps | Next question |
 |-------|-------------|------|---------|---------------|
-| Commercial strategy (product mix, acquisition) | Research in progress | — | — | See agents launched 2026-06-21 18:38 |
-| Debt management and collections | Research in progress | — | — | See agents launched 2026-06-21 18:38 |
-| Treasury and hedge governance | Research in progress | — | — | See agents launched 2026-06-21 18:38 |
-| Customer comms and renewal lifecycle | Research in progress | — | — | See agents launched 2026-06-21 18:38 |
+| Fixed vs SVT product mix | Pre-crisis ~45% fixed; crisis trough ~15-20%; July 2025 ~33%. Suppliers withdraw fixed deals when they can't hedge. | H | Our sim doesn't model the fixed/SVT decision — all customers are on fixed annual terms | Should we model an SVT fallback product? |
+| PCW acquisition channel | ~67% of switches via PCW; top-2 PCWs = 75% share. Commission: £30-60/dual-fuel customer. Direct/referral cuts blended cost by ~31% (Octopus) | H | PCW listing is a prerequisite for growth — our sim doesn't model acquisition channel | Add acquisition channel to company strategy layer |
+| SME vs residential trade-offs | SME: higher volume/account, stickier (1-3yr contracts), 42% use TPI/broker (2-4% commission). Resi: simpler ops, PCW channel, price cap floor. | H | SME TPI dynamics not modeled; all our SMEs acquired identically to resi | — |
+| Minimum viable scale | ~250k-500k dual-fuel customers for self-sustaining balance sheet. Below that: opex/compliance fixed costs exceed EBIT margin. 73 entrants 2010-22; 65 exited. | H | Our sim has 9 customers — a pre-viable micro-supplier. Capital from Rich (starting treasury) is the analogue of parent backing | — |
+| 49-day renewal window | Statement of Renewal Terms issued 42-49 days before expiry; exit fee waiver in final 49 days. This is the primary commercial trigger for renewal campaigns. | H | Our sim renews annually but doesn't model the 49-day advance notice obligation | Add renewal notice lead time to company CRM |
+| Debt lifecycle | 5-10 week minimum from missed bill to formal disconnection notice. 6-year statute of limitations. CCJs rising as PPM warrant replacement. | H | Our sim's bad debt is modeled as a flat % — not as an aged debt lifecycle | Add debt stages to customer record (current → overdue → plan → write-off) |
+| Bad debt rates by payment method | DD customers: ~1% of bills. Standard credit: ~6%. Total sector debt stock: £4.43bn (June 2025, +71% since 2023). Write-off: ~1/3 of stock. | H | Are any of our sim customers on standard credit vs DD? If so, bad debt should be 6× higher | Segment sim customers by payment method; differentiate bad debt provision |
+| PPM and collections | 4.3M PPM customers. 3.2M self-disconnect per year. PPM warrants now require vulnerability checks; 2023 scandal cost British Gas £20m + £70m debt write-off. | H | PPM not modeled in sim — all customers implicitly on DD | — |
+| IFRS 9 debt provision matrix | 0-30d DD: 0.3-0.5%; 61-90d DD: 5-8%; 91-180d DD: 15-25%; >365d DD: 70-85%. SC rates ~6× higher. | M | This is an indicative matrix — not officially published by Ofgem | Does Ofgem or industry body publish a recommended provision matrix? |
+| Treasury and hedge governance | Research in progress (2026-06-21 18:38) | — | — | — |
+| Customer comms and renewal lifecycle | Research in progress (2026-06-21 18:38) | — | — | — |
 
 ---
 
