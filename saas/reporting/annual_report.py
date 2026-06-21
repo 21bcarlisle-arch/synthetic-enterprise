@@ -1533,6 +1533,87 @@ def _section_dynamic_pricing(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_churn_avoidability(data: dict) -> str:
+    """Phase 17b: classify no-offer churns as blind misses vs deliberate passes.
+
+    Joins no_offer_churn_log (company's perspective) with company_event_log
+    (which carries sim_churn_probability ground truth) to answer:
+    - How many churns were 'blind' (company underestimated)?
+    - Of the blind misses, how many were actually 'detectable' (SIM p >= 30%)?
+    - What margin was lost to each category?
+    """
+    no_offer_log = data.get("no_offer_churn_log", [])
+    if not no_offer_log:
+        return ""
+
+    # Build lookup: (customer_id, event_date) → sim_churn_probability
+    cel = data.get("company_event_log", [])
+    sim_p_lookup: dict[tuple, float | None] = {}
+    for ev in cel:
+        if ev.get("event_type") == "churn":
+            key = (ev["customer_id"], ev["event_date"])
+            sim_p_lookup[key] = ev.get("sim_churn_probability")
+
+    RETENTION_THRESHOLD = 0.30  # must match sim runner constant
+
+    # Annotate each no-offer churn
+    annotated = []
+    for e in no_offer_log:
+        key = (e["customer_id"], e["event_date"])
+        sim_p = sim_p_lookup.get(key)
+        detectable = sim_p is not None and sim_p >= RETENTION_THRESHOLD
+        annotated.append({
+            **e,
+            "sim_churn_probability": sim_p,
+            "detectable_by_better_model": detectable,
+        })
+
+    blind = [a for a in annotated if a["no_offer_reason"] == "below_threshold"]
+    uneconomical = [a for a in annotated if a["no_offer_reason"] == "uneconomical"]
+    detectable_blind = [a for a in blind if a["detectable_by_better_model"]]
+
+    total_margin_lost = sum(a["expected_term_margin_gbp"] for a in annotated)
+    blind_margin = sum(a["expected_term_margin_gbp"] for a in blind)
+    uneconomical_margin = sum(a["expected_term_margin_gbp"] for a in uneconomical)
+
+    lines = [
+        "## Churn Avoidability Analysis (Phase 17b)",
+        "",
+        f"Total no-offer churns: **{len(annotated)}** | "
+        f"Blind misses: **{len(blind)}** | "
+        f"Deliberate passes (uneconomical): **{len(uneconomical)}**",
+        "",
+        f"- Blind misses: company estimated churn < {RETENTION_THRESHOLD:.0%} → no offer made. "
+        f"Of these, {len(detectable_blind)} had SIM p ≥ {RETENTION_THRESHOLD:.0%} (detectable with a better model).",
+        f"- Deliberate passes: company estimated churn ≥ {RETENTION_THRESHOLD:.0%} but the "
+        f"retention offer was uneconomical (margin + acq cost < offer cost).",
+        "",
+        f"**Estimated margin at stake** — blind: {_fmt_gbp(blind_margin)} | "
+        f"deliberate: {_fmt_gbp(uneconomical_margin)} | "
+        f"total: {_fmt_gbp(total_margin_lost)}",
+        "",
+    ]
+
+    if annotated:
+        lines += [
+            "| Customer | Date | Reason | Co. est | SIM p | Detectable? | Margin at stake |",
+            "|----------|------|--------|---------|-------|-------------|----------------|",
+        ]
+        for a in sorted(annotated, key=lambda x: x["event_date"]):
+            sim_str = f"{a['sim_churn_probability']:.2f}" if a["sim_churn_probability"] is not None else "n/a"
+            det_str = "Yes" if a["detectable_by_better_model"] else "No"
+            co_str = f"{a['company_churn_estimate']:.2f}" if a.get("company_churn_estimate") is not None else "n/a"
+            reason_str = "Blind miss" if a["no_offer_reason"] == "below_threshold" else "Uneconomical"
+            lines.append(
+                f"| {a['customer_id']} | {a['event_date']} "
+                f"| {reason_str} | {co_str} | {sim_str} "
+                f"| {det_str} | {_fmt_gbp(a['expected_term_margin_gbp'])} |"
+            )
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def _ledger_summary_section(data: dict) -> str:
     """Transaction log summary — Phase 7a/7b/9a. Shows event counts, cash-flow
     waterfall, and verification that ledger P&L agrees with the simulation."""
@@ -2270,6 +2351,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_repricing_impact(data))
     sections.append(_section_margin_feedback(data))
     sections.append(_section_dynamic_pricing(data))
+    sections.append(_section_churn_avoidability(data))
     sections.append(_ledger_summary_section(data))
     sections.append(_growth_acquisition_section(data))
 

@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:41:40Z
+Last updated: 2026-06-21T15:45:21Z
+
+**Phase 17b LIVE (2026-06-21)**: Churn avoidability analysis in annual report. 752 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_churn_avoidability()` — classifies no-offer churns as blind misses vs deliberate passes
+- Flags "detectable" blind misses (SIM p ≥ 30% but company said < 30%) — shows churn model's blind-spot cost
+- Shows margin at stake per category; answers "how much did our churn model's false negatives cost us?"
 
 **Phase 17a LIVE (2026-06-21)**: Portfolio learning premium — company adjusts tariffs from recent portfolio-wide margin rates. 747 tests passing (9 new).
 - `company/pricing/tariff_engine.py`: `compute_portfolio_premium()` — mean recent electricity margins below 8% target → surcharge up to +15%; over-earning → discount up to -5%

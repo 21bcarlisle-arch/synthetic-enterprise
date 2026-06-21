@@ -123,6 +123,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 17b COMPLETE (2026-06-21)**: Churn avoidability analysis in annual report. 752 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_churn_avoidability()` — joins `no_offer_churn_log` with `company_event_log` (SIM ground truth)
+- Classifies each no-offer churn as: blind miss (company_est < 30%) or deliberate pass (uneconomical offer)
+- Of blind misses, flags how many were "detectable" by a better model (SIM p ≥ 30% while company said < 30%)
+- Shows total margin at stake per category; patient-zero question: "how much did our churn model's blind spots cost us?"
+- 5 new tests; fully backward-compatible (returns "" if no no_offer_churn_log)
+
 **Phase 17a COMPLETE (2026-06-21)**: Portfolio learning premium — company adjusts tariffs from recent portfolio-wide margin rates. 747 tests passing (9 new).
 - `company/pricing/tariff_engine.py`: `compute_portfolio_premium()` — if mean recent electricity margin rates below 8% target, apply uplift at renewal (capped at +15%); over-earning triggers up to -5% discount
 - `simulation/run_phase2b.py`: tracks `portfolio_elec_margin_rates` list; applies premium BEFORE Phase 16c surcharge at each electricity renewal

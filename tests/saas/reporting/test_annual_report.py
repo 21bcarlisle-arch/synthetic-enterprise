@@ -1307,3 +1307,73 @@ def test_dynamic_pricing_empty_when_no_log():
     from saas.reporting.annual_report import _section_dynamic_pricing
     assert _section_dynamic_pricing({}) == ""
     assert _section_dynamic_pricing({"dynamic_pricing_log": []}) == ""
+
+
+# ---- Phase 17b: churn avoidability section tests ----
+
+def _churn_avoidability_fixture():
+    return {
+        "no_offer_churn_log": [
+            {
+                "customer_id": "C_blind",
+                "event_date": "2021-12-31",
+                "company_churn_estimate": 0.15,
+                "expected_term_margin_gbp": -800.0,
+                "no_offer_reason": "below_threshold",
+            },
+            {
+                "customer_id": "C_uneconomical",
+                "event_date": "2022-06-01",
+                "company_churn_estimate": 0.50,
+                "expected_term_margin_gbp": -300.0,
+                "no_offer_reason": "uneconomical",
+            },
+        ],
+        "company_event_log": [
+            {
+                "event_type": "churn",
+                "customer_id": "C_blind",
+                "event_date": "2021-12-31",
+                "sim_churn_probability": 0.60,   # SIM said 60% → detectable
+            },
+            {
+                "event_type": "churn",
+                "customer_id": "C_uneconomical",
+                "event_date": "2022-06-01",
+                "sim_churn_probability": 0.55,
+            },
+        ],
+    }
+
+
+def test_churn_avoidability_shows_header():
+    from saas.reporting.annual_report import _section_churn_avoidability
+    result = _section_churn_avoidability(_churn_avoidability_fixture())
+    assert "Churn Avoidability" in result
+
+
+def test_churn_avoidability_counts_blind_vs_uneconomical():
+    from saas.reporting.annual_report import _section_churn_avoidability
+    result = _section_churn_avoidability(_churn_avoidability_fixture())
+    assert "Blind misses: **1**" in result
+    assert "Deliberate passes (uneconomical): **1**" in result
+
+
+def test_churn_avoidability_detectable_blind_miss():
+    """C_blind had SIM p=0.60 >= 0.30 → should be flagged as detectable."""
+    from saas.reporting.annual_report import _section_churn_avoidability
+    result = _section_churn_avoidability(_churn_avoidability_fixture())
+    assert "detectable with a better model" in result.lower() or "Detectable" in result
+
+
+def test_churn_avoidability_shows_customer_ids():
+    from saas.reporting.annual_report import _section_churn_avoidability
+    result = _section_churn_avoidability(_churn_avoidability_fixture())
+    assert "C_blind" in result
+    assert "C_uneconomical" in result
+
+
+def test_churn_avoidability_empty_when_no_log():
+    from saas.reporting.annual_report import _section_churn_avoidability
+    assert _section_churn_avoidability({}) == ""
+    assert _section_churn_avoidability({"no_offer_churn_log": []}) == ""
