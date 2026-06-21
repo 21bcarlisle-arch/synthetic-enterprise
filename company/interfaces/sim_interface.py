@@ -93,10 +93,12 @@ class SimInterface:
         old_rate_gbp_per_mwh: float,
         new_rate_gbp_per_mwh: float,
         tenure_years: float,
+        annual_consumption_kwh: float = 0.0,
     ) -> float:
         """Company observable-data churn probability estimate for a renewal.
 
-        Does not read SIM churn model internals. Uses rate change % and tenure.
+        Does not read SIM churn model internals. Uses rate change %, tenure,
+        and absolute bill burden (old_rate × annual_consumption_kwh / 1000).
         Returns: estimated churn probability in [0.0, 0.95]
         """
         raise NotImplementedError
@@ -155,9 +157,9 @@ class StubSimInterface(SimInterface):
         old_rate_gbp_per_mwh: float,
         new_rate_gbp_per_mwh: float,
         tenure_years: float,
+        annual_consumption_kwh: float = 0.0,
     ) -> float:
-        return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years)
-
+        return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years, annual_consumption_kwh)
 
     def notify_retention_attempt(self, account_id, event_date, company_churn_estimate, discount_pct, outcome='pending'):
         self._retention_notifications.append({
@@ -299,8 +301,9 @@ class LiveSimInterface(SimInterface):
         old_rate_gbp_per_mwh: float,
         new_rate_gbp_per_mwh: float,
         tenure_years: float,
+        annual_consumption_kwh: float = 0.0,
     ) -> float:
-        return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years)
+        return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years, annual_consumption_kwh)
 
 
 def build_sim_interface(live: bool = False) -> SimInterface:

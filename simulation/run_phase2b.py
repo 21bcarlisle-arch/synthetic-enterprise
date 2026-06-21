@@ -535,7 +535,7 @@ def main(report_end: str | None = None, sim_interface=None):
                     term_start_str,
                 )
                 tenure_for_est = (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_for_est)).days / 365.25
-                company_est_pre = round(_est_churn(old_elec_rate, unit_rate, tenure_for_est), 4)
+                company_est_pre = round(_est_churn(old_elec_rate, unit_rate, tenure_for_est, EFFECTIVE_EAC_KWH.get(cid, 0.0)), 4)
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = EFFECTIVE_EAC_KWH.get(cid, 0.0)
                     ret_cost = unit_rate * RETENTION_DISCOUNT_PCT * eac_for_ret / 1000.0

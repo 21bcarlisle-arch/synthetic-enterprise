@@ -8,7 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T13:08:01Z
+Last updated: 2026-06-21T13:15:41Z
+
+**Phase 13c LIVE (2026-06-21)**: Bill burden signal in company churn model. 674 tests passing (8 new).
+- `company/crm/churn_model.py`: `annual_consumption_kwh` param + `BILL_STRESS_SENSITIVITY=0.25`, `BILL_STRESS_THRESHOLD_GBP=£3,000`
+- Bill stress term = 0.25 × max(0, prev_annual_bill/£3,000 − 1); activates for high-spend SME customers
+- C6 2024 failure mode fixed: falling rate (−40%) + 45,000 kWh/year at £250/MWh → company now estimates 42% churn (was 0%)
+- Rate-only model had 3 "below threshold" misses all at company_p=0.0; bill burden makes the large-SME case detectable
+- Small resi (2,800 kWh at £60/MWh → £168 bill) unaffected — signal only fires above £3,000 annual bill
 
 **Phase 13b LIVE (2026-06-21)**: ToU utilization section in annual report. 666 tests passing.
 - `saas/reporting/annual_report.py`: `_section_tou_utilization()` — per-customer (C7/C8/C9) peak/off-peak kWh split, revenue contribution, avg rates; populates from next full sim run

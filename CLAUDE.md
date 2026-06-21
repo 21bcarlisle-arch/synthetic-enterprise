@@ -123,6 +123,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Retention ROI: +£2.85 (2 offers made, both retained; 3 uneconomical offers blocked by Phase 12d)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 13c COMPLETE (2026-06-21)**: Bill burden signal in company churn model. 674 tests passing (8 new).
+- Root cause analysis: 3 "below threshold" false negatives all had company_p=0.0 because rate-% signal collapses when rates fall from crisis peaks — even for large SME customers who are financially stressed
+- `company/crm/churn_model.py`: `annual_consumption_kwh` param + bill stress term. Formula: `p += 0.25 × max(0, old_rate × kwh/1000 / £3,000 − 1)`
+- C6 2024: falling rate (−40%) + 45,000 kWh/year at £250/MWh → company now estimates 42% churn vs 0% before. Margin was £216.87 — economical offer now possible
+- Small resi (2,800 kWh) unaffected; signal only fires for high-spend SME/HH customers
+
 **Phase 13b COMPLETE (2026-06-21)**: ToU utilization section in annual report. 666 tests passing.
 
 **Phase 13a COMPLETE (2026-06-21)**: Time-of-Use tariffs for C7-C9 HH customers. 666 tests passing (17 new).
@@ -325,13 +331,14 @@ pricing model must account for cost-to-serve at the customer level.
 - gemma4:12b at 7.6GB (smaller) but slower inference on this hardware (RTX 3060 12GB)
 - Switching to gemma4 would make the sim ~3 hrs, not 38 min. Stick with qwen3:14b.
 
-**Immediate (Phase 13c candidates):**
-- Retention threshold tuning: is 30% too low? Phase 12d guard eliminates uneconomical offers; next question is whether the 30% threshold should move to reduce false positives in normal years
+**Immediate (Phase 13d candidates):**
 - SIM/company full operational independence: company runs end-to-end on its own models with no shared code paths to SIM internals; divergence accumulates and is measured by the existing `company_divergence` machinery
 - ToU pricing awareness in company tariff engine: company doesn't yet account for peak/off-peak demand patterns when estimating forward costs
+- Annual report `_section_company_divergence()`: now that bill burden changes company estimates, verify divergence tables reflect improvement
 
-**DONE (Phase 13a/13b):**
-- ~~ToU tariffs for HH customers (C7-C9)~~ — COMPLETE. `simulation/tou_periods.py`, hedged settlement, annual report section.
+**DONE (Phase 13a/13b/13c):**
+- ~~ToU tariffs for HH customers (C7-C9)~~ — COMPLETE (13a/13b). `simulation/tou_periods.py`, hedged settlement, annual report section.
+- ~~Retention threshold analysis~~ — Resolved by Phase 13c. Threshold at 30% is correct; problem was model accuracy for large SMEs, not threshold position.
 
 **Then:**
 - SIM/company full operational independence: company runs on its own models
