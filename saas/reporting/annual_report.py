@@ -38,6 +38,7 @@ from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
 from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
+from simulation.tou_periods import is_peak_period
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -418,6 +419,31 @@ def extract_report_data(run_output: dict) -> dict:
         _build_clv_snapshots(all_records, churn_risk, years) if churn_risk else None
     )
 
+    # Phase 13a: ToU utilization stats for HH customers (C7-C9).
+    # Computed here while all_records is in scope; stored as tou_stats in output.
+    _HH_CUSTOMERS = {"C7", "C8", "C9"}
+    tou_stats: dict[str, dict] = {}
+    for cid in _HH_CUSTOMERS:
+        hh_recs = [r for r in all_records if r.get("customer_id") == cid and r.get("commodity") == "electricity"]
+        if not hh_recs:
+            continue
+        peak_recs = [r for r in hh_recs if is_peak_period(r["settlement_date"], r["settlement_period"])]
+        offpeak_recs = [r for r in hh_recs if not is_peak_period(r["settlement_date"], r["settlement_period"])]
+        total_kwh = sum(r["consumption_kwh"] for r in hh_recs)
+        peak_kwh = sum(r["consumption_kwh"] for r in peak_recs)
+        peak_revenue = sum(r["revenue_gbp"] for r in peak_recs)
+        offpeak_revenue = sum(r["revenue_gbp"] for r in offpeak_recs)
+        tou_stats[cid] = {
+            "total_kwh": round(total_kwh, 1),
+            "peak_kwh": round(peak_kwh, 1),
+            "offpeak_kwh": round(total_kwh - peak_kwh, 1),
+            "peak_pct": round(peak_kwh / total_kwh * 100, 1) if total_kwh else 0.0,
+            "peak_revenue_gbp": round(peak_revenue, 2),
+            "offpeak_revenue_gbp": round(offpeak_revenue, 2),
+            "avg_peak_rate": round(peak_revenue / (peak_kwh / 1000), 2) if peak_kwh else 0.0,
+            "avg_offpeak_rate": round(offpeak_revenue / ((total_kwh - peak_kwh) / 1000), 2) if (total_kwh - peak_kwh) else 0.0,
+        }
+
     return {
         "starting_treasury_gbp": phase2b["starting_treasury"],
         "final_treasury_gbp": phase2b["final_treasury"],
@@ -469,6 +495,8 @@ def extract_report_data(run_output: dict) -> dict:
         "acquired_customers": acquired_customer_ids,
         # Phase 9a: ledger-authoritative headline figures (when non-commodity/VAT events present)
         "_ledger_headline": _build_ledger_headline(run_output.get("ledger_pnl")),
+        # Phase 13a: ToU utilization breakdown for HH customers
+        "tou_stats": tou_stats,
     }
 
 
@@ -1560,6 +1588,30 @@ def _section_company_crm(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_tou_utilization(data: dict) -> str:
+    """Time-of-Use utilization breakdown for HH smart meter customers."""
+    tou = data.get("tou_stats", {})
+    if not tou:
+        return ""
+    lines = [
+        "## Time-of-Use Tariff Utilization (C7-C9 HH Customers)",
+        "",
+        "Peak windows: 07:00–11:00 and 16:00–20:00 weekdays (periods 15-22, 33-40).",
+        "Peak rate = 1.5× flat; off-peak = 0.786× flat (revenue-neutral at 30/70 split).",
+        "",
+        "| Customer | Total kWh | Peak kWh | Peak % | Peak Revenue | Off-peak Revenue | Avg Peak Rate | Avg Off-peak Rate |",
+        "|----------|-----------|----------|--------|-------------|-----------------|--------------|------------------|",
+    ]
+    for cid, s in sorted(tou.items()):
+        lines.append(
+            f"| {cid} | {s['total_kwh']:,.0f} | {s['peak_kwh']:,.0f} | {s['peak_pct']:.1f}%"
+            f" | \xa3{s['peak_revenue_gbp']:,.2f} | \xa3{s['offpeak_revenue_gbp']:,.2f}"
+            f" | \xa3{s['avg_peak_rate']:,.2f}/MWh | \xa3{s['avg_offpeak_rate']:,.2f}/MWh |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_retention_strategy(data: dict) -> str:
     """Retention Strategy -- Phase 12c: ROI analysis and missed opportunities."""
     from collections import defaultdict
@@ -1719,6 +1771,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_churn_basis_risk_section(data))
     sections.append(_section_company_divergence(data))
     sections.append(_section_company_crm(data))
+    sections.append(_section_tou_utilization(data))
     sections.append(_section_retention_strategy(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))

@@ -199,6 +199,7 @@ Total events: **7** (6 churn, 1 acquisition)
 | 2024-12-31 | 6 accounts | 1 active | yes |
 | 2025-12-31 | 6 accounts | 1 active | yes |
 
+
 ## Retention Strategy P&L
 
 ### Aggregate (2016-2025)
