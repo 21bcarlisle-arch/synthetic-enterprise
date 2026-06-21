@@ -149,16 +149,6 @@ class StubSimInterface(SimInterface):
         self._customer_statuses[account_id] = "active"
 
 
-    def notify_retention_attempt(self, account_id, event_date, company_churn_estimate, discount_pct, outcome='pending'):
-        from company.crm.event_log import RetentionEvent
-        self._event_log.record_retention(RetentionEvent(
-            customer_id=account_id,
-            event_date=event_date,
-            company_churn_estimate=company_churn_estimate,
-            discount_pct=discount_pct,
-            outcome=outcome,
-        ))
-
     def get_churn_estimate(
         self,
         account_id: str,
