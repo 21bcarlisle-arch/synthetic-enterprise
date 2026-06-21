@@ -18,10 +18,9 @@ CLI: python3 -m saas.reporting.segment_report
 
 import argparse
 import json
-from datetime import date
 from pathlib import Path
 
-from simulation.segments import SEGMENT_BY_ID, SEGMENTS, ELEC_SEGMENTS
+from simulation.segments import SEGMENT_BY_ID, SEGMENTS
 
 DEFAULT_REPORT_PATH = Path("docs/reports/SEGMENT_REPORT.md")
 DEFAULT_JSON_PATH = Path("docs/reports/run_output_segments_latest.json")

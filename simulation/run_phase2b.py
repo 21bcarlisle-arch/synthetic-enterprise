@@ -20,6 +20,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
+from company.pricing.tariff_engine import CompanyTariffEngine
 from saas.customer_reaction import _billing_account_id
 from saas.customers import (
     ACQUIRED_CUSTOMERS,
@@ -34,7 +35,11 @@ from saas.growth_mandate import (
     MANDATE,
     roll_acquisition,
 )
-from saas.ledger import make_acquisition_spend_event, make_fixed_cost_event, make_retention_cost_event
+from saas.ledger import (
+    make_acquisition_spend_event,
+    make_fixed_cost_event,
+    make_retention_cost_event,
+)
 from saas.property_model import (
     DEFAULT_ASSETS,
     DEFAULT_HEATING_SYSTEM,
@@ -49,7 +54,6 @@ from sim.forward_curve import (
     WINTER_MULTIPLIER,
     generate_forward_price,
 )
-from company.pricing.tariff_engine import CompanyTariffEngine
 from sim.gas_prices_history import load_nbp_history
 from sim.hedging_strategy import MIN_HEDGE_FLOOR, evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape

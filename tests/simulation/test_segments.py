@@ -1,6 +1,7 @@
 """Tests for Phase 10a segment customer model."""
 
 import pytest
+
 from simulation.segments import (
     ELEC_SEGMENTS,
     GAS_SEGMENTS,
@@ -9,7 +10,6 @@ from simulation.segments import (
     CustomerSegment,
     apply_annual_headcount_changes,
 )
-
 
 # ---- Dataclass / property tests ----
 

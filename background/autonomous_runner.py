@@ -70,7 +70,6 @@ AUTONOMOUS_PROMPT = (
 )
 
 sys.path.insert(0, str(PROJECT_DIR))
-from background.ntfy_utils import send_ntfy  # noqa: E402
 
 _turn_times: deque = deque()
 _active_proc = None
@@ -159,7 +158,7 @@ def launch_turn() -> None:
         return
 
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    log(f"Launching autonomous turn (claude -p)")
+    log("Launching autonomous turn (claude -p)")
 
     TURN_OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(TURN_OUTPUT_FILE, "a") as out:

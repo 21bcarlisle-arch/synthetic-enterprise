@@ -1,8 +1,9 @@
 """Tests for company.crm.customer_registry."""
 
-import pytest
-from pathlib import Path
 import tempfile
+from pathlib import Path
+
+import pytest
 
 from company.crm.customer_registry import (
     account_count,

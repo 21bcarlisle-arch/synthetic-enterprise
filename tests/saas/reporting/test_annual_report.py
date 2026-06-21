@@ -786,9 +786,6 @@ def test_section_retention_strategy_with_missed():
 
 
 def test_extract_report_data_includes_no_offer_churn_log():
-    from saas.reporting.annual_report import extract_report_data
-    run_output = {"phase2b": {"no_offer_churn_log": [{"customer_id": "C1", "event_date": "2021-01-01", "expected_term_margin_gbp": 100.0}]}}
-    # extract_report_data expects more fields; check no_offer_churn_log passes through
     # Use minimal approach: just check the key passes through when provided
     from saas.reporting.annual_report import _section_retention_strategy
     data = dict(retention_log=[], no_offer_churn_log=[dict(

@@ -66,8 +66,6 @@ def test_launch_turn_skips_when_rate_capped(monkeypatch):
     for _ in range(autonomous_runner.MAX_TURNS_PER_HOUR):
         autonomous_runner._turn_times.append(now - 10)
 
-    launched = []
-    monkeypatch.setattr(autonomous_runner, "send_ntfy", lambda *a, **k: None)
 
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
         autonomous_runner.launch_turn()
@@ -80,7 +78,6 @@ def test_launch_turn_skips_when_proc_still_running(monkeypatch):
     proc.poll.return_value = None  # still running
     autonomous_runner._active_proc = proc
 
-    monkeypatch.setattr(autonomous_runner, "send_ntfy", lambda *a, **k: None)
 
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
         autonomous_runner.launch_turn()
@@ -93,7 +90,6 @@ def test_launch_turn_skips_when_binary_missing(tmp_path, monkeypatch):
     autonomous_runner._active_proc = None
     autonomous_runner._turn_times.clear()
     monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", tmp_path / "no_such_claude")
-    monkeypatch.setattr(autonomous_runner, "send_ntfy", lambda *a, **k: None)
 
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
         autonomous_runner.launch_turn()
@@ -124,7 +120,6 @@ def test_launch_turn_skips_during_usage_limit(monkeypatch):
         autonomous_runner, "_pane_content",
         lambda: "Claude.ai usage limit reached."
     )
-    monkeypatch.setattr(autonomous_runner, "send_ntfy", lambda *a, **k: None)
 
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
         autonomous_runner.launch_turn()

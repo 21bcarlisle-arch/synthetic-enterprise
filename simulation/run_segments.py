@@ -16,13 +16,16 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
-from saas.tariff_pricing import price_fixed_tariff
 from saas.growth_mandate import FIXED_COST_MONTHLY, MANDATE
 from saas.ledger import make_fixed_cost_event
 from saas.property_model import DEFAULT_ASSETS, DEFAULT_HEATING_SYSTEM, DEFAULT_OCCUPANCY_PATTERN
+from saas.tariff_pricing import price_fixed_tariff
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
-    SUMMER_MULTIPLIER, WINTER_MONTHS, WINTER_MULTIPLIER, generate_forward_price,
+    SUMMER_MULTIPLIER,
+    WINTER_MONTHS,
+    WINTER_MULTIPLIER,
+    generate_forward_price,
 )
 from sim.gas_prices_history import load_nbp_history
 from sim.hedging_strategy import MIN_HEDGE_FLOOR, evolve_hedge_fraction
