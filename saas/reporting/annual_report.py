@@ -1733,8 +1733,8 @@ def _section_retention_strategy(data: dict) -> str:
     lines += [
         "### Per-Offer Detail",
         "",
-        "| Date | Customer | Est. churn | Offer Cost | Expected Margin | Net | Outcome |",
-        "|------|----------|-----------|-----------|----------------|-----|---------|",
+        "| Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Net | Outcome |",
+        "|------|----------|-----------|---------|-----------|----------------|-----|---------|",
     ]
     for r in sorted(rl, key=lambda x: x["event_date"]):
         exp_m = r.get("expected_term_margin_gbp", 0.0)
@@ -1743,9 +1743,11 @@ def _section_retention_strategy(data: dict) -> str:
         ed = r["event_date"]
         cid = r["customer_id"]
         ce = r["company_churn_estimate"]
+        disc = r.get("discount_pct", 0.05)
         oc = r["outcome"]
         row = (
             "| " + ed + " | " + cid + " | " + "%.2f" % ce
+            + " | " + "%.0f%%" % (disc * 100)
             + " | \xa3" + "%.2f" % cost
             + " | \xa3" + "%.2f" % exp_m
             + " | \xa3" + "%.2f" % net

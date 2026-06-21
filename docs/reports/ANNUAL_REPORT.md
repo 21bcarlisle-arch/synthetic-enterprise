@@ -283,10 +283,10 @@ Missed opportunities (churns with no offer): **6** (£398.24 expected margin los
 
 ### Per-Offer Detail
 
-| Date | Customer | Est. churn | Offer Cost | Expected Margin | Net | Outcome |
-|------|----------|-----------|-----------|----------------|-----|---------|
-| 2025-03-30 | C2_2 | 0.45 | £21.31 | £21.96 | £0.65 | retained |
-| 2025-03-30 | C8 | 0.45 | £72.03 | £74.23 | £2.20 | retained |
+| Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Net | Outcome |
+|------|----------|-----------|---------|-----------|----------------|-----|---------|
+| 2025-03-30 | C2_2 | 0.45 | 5% | £21.31 | £21.96 | £0.65 | retained |
+| 2025-03-30 | C8 | 0.45 | 5% | £72.03 | £74.23 | £2.20 | retained |
 
 ## CLV Trajectory
 
