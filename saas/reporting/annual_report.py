@@ -1856,7 +1856,7 @@ def _section_retention_strategy(data: dict) -> str:
     if missed_uneconomical:
         unecon_margin = sum(r.get("expected_term_margin_gbp", 0.0) for r in missed_uneconomical)
         lines.append(
-            "- **Blocked — uneconomical** (churn estimate above threshold but margin < discount cost): "
+            "- **Blocked — uneconomical** (churn estimate above threshold but margin + acq_cost < discount cost): "
             + str(len(missed_uneconomical)) + " (\xa3" + f"{unecon_margin:,.2f}" + " margin foregone)"
         )
     if missed_below_threshold:
@@ -1903,30 +1903,49 @@ def _section_retention_strategy(data: dict) -> str:
             lines.append(row)
         lines.append("")
 
-    lines += [
-        "### Per-Offer Detail",
-        "",
-        "| Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Net | Outcome |",
-        "|------|----------|-----------|---------|-----------|----------------|-----|---------|",
-    ]
-    for r in sorted(rl, key=lambda x: x["event_date"]):
-        exp_m = r.get("expected_term_margin_gbp", 0.0)
-        cost = r.get("retention_cost_gbp", 0.0)
-        net = (exp_m - cost) if r["outcome"] == "retained" else -cost
-        ed = r["event_date"]
-        cid = r["customer_id"]
-        ce = r["company_churn_estimate"]
-        disc = r.get("discount_pct", 0.05)
-        oc = r["outcome"]
-        row = (
-            "| " + ed + " | " + cid + " | " + "%.2f" % ce
-            + " | " + "%.0f%%" % (disc * 100)
-            + " | \xa3" + "%.2f" % cost
-            + " | \xa3" + "%.2f" % exp_m
-            + " | \xa3" + "%.2f" % net
-            + " | " + oc + " |"
-        )
-        lines.append(row)
+    has_acq_col = any("acq_cost_saved_gbp" in r for r in rl)
+    if has_acq_col:
+        lines += [
+            "### Per-Offer Detail",
+            "",
+            "| Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Acq Saved | Net | Outcome |",
+            "|------|----------|-----------|---------|-----------|----------------|-----------|-----|---------|",
+        ]
+        for r in sorted(rl, key=lambda x: x["event_date"]):
+            exp_m = r.get("expected_term_margin_gbp", 0.0)
+            cost = r.get("retention_cost_gbp", 0.0)
+            acq = r.get("acq_cost_saved_gbp", 0.0)
+            net = (exp_m - cost) if r["outcome"] == "retained" else -cost
+            row = (
+                "| " + r["event_date"] + " | " + r["customer_id"] + " | " + "%.2f" % r["company_churn_estimate"]
+                + " | " + "%.0f%%" % (r.get("discount_pct", 0.05) * 100)
+                + " | \xa3" + "%.2f" % cost
+                + " | \xa3" + "%.2f" % exp_m
+                + " | \xa3" + "%.0f" % acq
+                + " | \xa3" + "%.2f" % net
+                + " | " + r["outcome"] + " |"
+            )
+            lines.append(row)
+    else:
+        lines += [
+            "### Per-Offer Detail",
+            "",
+            "| Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Net | Outcome |",
+            "|------|----------|-----------|---------|-----------|----------------|-----|---------|",
+        ]
+        for r in sorted(rl, key=lambda x: x["event_date"]):
+            exp_m = r.get("expected_term_margin_gbp", 0.0)
+            cost = r.get("retention_cost_gbp", 0.0)
+            net = (exp_m - cost) if r["outcome"] == "retained" else -cost
+            row = (
+                "| " + r["event_date"] + " | " + r["customer_id"] + " | " + "%.2f" % r["company_churn_estimate"]
+                + " | " + "%.0f%%" % (r.get("discount_pct", 0.05) * 100)
+                + " | \xa3" + "%.2f" % cost
+                + " | \xa3" + "%.2f" % exp_m
+                + " | \xa3" + "%.2f" % net
+                + " | " + r["outcome"] + " |"
+            )
+            lines.append(row)
     lines.append("")
     return "\n".join(lines)
 
