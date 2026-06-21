@@ -180,12 +180,43 @@ class StubSimInterface(SimInterface):
 
 
 class LiveSimInterface(SimInterface):
-    """Live SimInterface — Phase 11a: company uses observable-data forward price model.
+    """Live SimInterface — company makes all decisions from observable data only.
 
-    get_forward_price() calls CompanyTariffEngine, which reads only public
-    spot price history (Elexon SSP / TTF proxy) — never reads sim internals.
-    Phase 12a: event_log wired — notify_churn/notify_acquisition now record
-    dated company CRM artefacts instead of silently discarding events.
+    Observability audit (Phase 12e) — every value the company receives:
+
+    get_forward_price(fuel, delivery_date)
+        OBSERVABLE. Calls CompanyTariffEngine which reads Elexon spot price
+        history and NBP TTF proxy — both available to any market participant.
+        Uses a 120-day rolling mean + 15% risk premium. No SIM forward curve
+        internals accessed.
+
+    get_settlement_data(mpan, period)
+        STUB — returns zeros. In production would be observable (meter reads).
+
+    get_customer_status(account_id)
+        STUB — hardcoded "active". In production would be observable (CRM).
+
+    notify_churn(..., sim_churn_probability, company_churn_estimate)
+        sim_churn_probability: SIM INTERNAL — passed in for divergence audit
+        only. The company stores but does NOT use this value to make decisions.
+        company_churn_estimate: OBSERVABLE — derived from rate change % and
+        tenure, both known to the company.
+
+    notify_acquisition(..., channel, predecessor_id)
+        OBSERVABLE — company records its own customer onboarding events.
+
+    notify_retention_attempt(..., company_churn_estimate, discount_pct)
+        OBSERVABLE — company records its own retention decisions.
+
+    get_churn_estimate(account_id, old_rate, new_rate, tenure_years)
+        OBSERVABLE — estimate_churn_probability() uses only rate change % and
+        customer tenure. No SIM bill-shock model parameters accessed.
+
+    _load_price_records(fuel)
+        Uses sim.cache_store / sim.system_prices_history as a data access
+        layer for Elexon/NBP data. The UNDERLYING DATA is observable (public
+        market data); the access path goes through SIM modules as an
+        infrastructure convenience, not for SIM internals.
     """
 
     def __init__(self):
