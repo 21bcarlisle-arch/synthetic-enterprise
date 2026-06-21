@@ -1,9 +1,17 @@
 # Project Status
 
-Last updated: 2026-06-21T12:00:00Z
-Current phase: **Phase 12d COMPLETE** (2026-06-21). Margin-aware retention guard. 637 tests passing.
+Last updated: 2026-06-21T12:05:46Z
+Current phase: **Phase 12d COMPLETE + quick wins** (2026-06-21). 637 tests passing (now runs in 16s by default).
 
 ## Current state
+
+**Session 2026-06-21 quick wins (between Phase 12d and 12e):**
+- Run-complete mechanization: `background/process_run_complete.py` auto-handles run_complete_*.md markers — regenerates report, updates LATEST.md, runs fast tests, commits+pushes. Saves ~1 frontier turn per sim run.
+- Fix: removed duplicate `notify_retention_attempt` from `StubSimInterface` (Phase 12b copy-paste artifact)
+- LiveSimInterface observability audit docstring (Phase 12e prep): every value classified as OBSERVABLE, STUB, or SIM INTERNAL (audit-only)
+- Fix: session-scoped `SIM_FAST_MODE=1` in conftest.py — tests now run in 16s by default without CLI env var; module-scoped simulation fixtures no longer block on Ollama
+- Retention threshold analysis: 30% threshold is correctly set; the 3 "below_threshold" churns had 0% company estimates (price decrease → model predicts stable, SIM has hidden factors). Root cause is company model divergence, not threshold level.
+- Phase 12e proposed (SIM/company divergence tracking — hollow gap 3)
 
 **Build summary (Phase 12d, 21 June 2026):**
 Phase 12d added a margin-aware guard to the retention offer engine: offers are only made when
