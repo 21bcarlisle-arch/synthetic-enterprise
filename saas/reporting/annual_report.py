@@ -1604,6 +1604,26 @@ def _section_company_crm(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _tou_revenue_premium(s: dict) -> tuple[float, float]:
+    """Return (flat_equiv_revenue_gbp, premium_pct) for a tou_stats entry.
+
+    Derives the flat rate from avg_peak_rate / TOU_PEAK_MULTIPLIER (1.5), then
+    computes what total revenue would have been at that flat rate across all kWh.
+    Premium > 0 means actual ToU revenue exceeded flat equivalent (occurs when
+    actual peak % > 30% design assumption).
+    """
+    from saas.tariff_pricing import TOU_PEAK_MULTIPLIER
+    avg_peak = s.get("avg_peak_rate", 0.0)
+    if not avg_peak:
+        return 0.0, 0.0
+    flat_rate = avg_peak / TOU_PEAK_MULTIPLIER
+    total_kwh = s.get("peak_kwh", 0.0) + s.get("offpeak_kwh", 0.0)
+    flat_equiv = total_kwh * flat_rate / 1000.0
+    actual = s.get("peak_revenue_gbp", 0.0) + s.get("offpeak_revenue_gbp", 0.0)
+    premium_pct = (actual - flat_equiv) / flat_equiv * 100.0 if flat_equiv else 0.0
+    return flat_equiv, premium_pct
+
+
 def _section_tou_utilization(data: dict) -> str:
     """Time-of-Use utilization breakdown for HH smart meter customers."""
     tou = data.get("tou_stats", {})
@@ -1614,15 +1634,32 @@ def _section_tou_utilization(data: dict) -> str:
         "",
         "Peak windows: 07:00–11:00 and 16:00–20:00 weekdays (periods 15-22, 33-40).",
         "Peak rate = 1.5× flat; off-peak = 0.786× flat (revenue-neutral at 30/70 split).",
+        "ToU Premium: actual revenue vs flat-rate equivalent — positive when actual peak % > 30% design.",
         "",
-        "| Customer | Total kWh | Peak kWh | Peak % | Peak Revenue | Off-peak Revenue | Avg Peak Rate | Avg Off-peak Rate |",
-        "|----------|-----------|----------|--------|-------------|-----------------|--------------|------------------|",
+        "| Customer | Total kWh | Peak kWh | Peak % | Peak Revenue | Off-peak Revenue | Avg Peak Rate | Avg Off-peak Rate | ToU Premium |",
+        "|----------|-----------|----------|--------|-------------|-----------------|--------------|------------------|-------------|",
     ]
+    total_actual = 0.0
+    total_flat_equiv = 0.0
     for cid, s in sorted(tou.items()):
+        flat_equiv, premium_pct = _tou_revenue_premium(s)
+        actual = s["peak_revenue_gbp"] + s["offpeak_revenue_gbp"]
+        total_actual += actual
+        total_flat_equiv += flat_equiv
+        sign = "+" if premium_pct >= 0 else ""
         lines.append(
             f"| {cid} | {s['total_kwh']:,.0f} | {s['peak_kwh']:,.0f} | {s['peak_pct']:.1f}%"
             f" | \xa3{s['peak_revenue_gbp']:,.2f} | \xa3{s['offpeak_revenue_gbp']:,.2f}"
-            f" | \xa3{s['avg_peak_rate']:,.2f}/MWh | \xa3{s['avg_offpeak_rate']:,.2f}/MWh |"
+            f" | \xa3{s['avg_peak_rate']:,.2f}/MWh | \xa3{s['avg_offpeak_rate']:,.2f}/MWh"
+            f" | {sign}{premium_pct:.1f}% |"
+        )
+    if total_flat_equiv:
+        total_premium_pct = (total_actual - total_flat_equiv) / total_flat_equiv * 100.0
+        sign = "+" if total_premium_pct >= 0 else ""
+        lines.append("")
+        lines.append(
+            f"Total HH revenue: \xa3{total_actual:,.2f} vs flat equivalent \xa3{total_flat_equiv:,.2f}"
+            f" ({sign}{total_premium_pct:.1f}% ToU premium)"
         )
     lines.append("")
     return "\n".join(lines)

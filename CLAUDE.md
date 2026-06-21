@@ -123,6 +123,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 14d COMPLETE (2026-06-21)**: ToU revenue premium analysis in annual report. 700 tests passing (4 new).
+- `saas/reporting/annual_report.py`: `_tou_revenue_premium()` helper computes flat-equivalent revenue from avg_peak_rate / 1.5×
+- Adds "ToU Premium" column to utilization table; summary line showing total HH revenue vs flat equivalent
+- C8 (43.8% peak) earns ~+10% vs flat; C9 (42.2%) ~+9%; C7 (33.6%) ~+3% (design split is 30% breakeven)
+- Test: confirms premium > 0 for above-design utilization; ≈ 0% at exactly 30/70 split
+
 **Phase 14c COMPLETE (2026-06-21)**: Adaptive lookback window in company tariff engine. 696 tests passing (7 new).
 - `company/pricing/tariff_engine.py`: `_compute_adaptive_lookback()` — compares recent 30d price std vs prior 90d baseline
 - High vol_ratio (crisis onset): shorten lookback (30d floor) so mean tracks current-regime prices, not stale pre-crisis data

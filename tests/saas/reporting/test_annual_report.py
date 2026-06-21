@@ -848,3 +848,64 @@ def test_extract_report_data_includes_company_divergence():
     # If company_divergence missing from data, section returns NOT_AVAILABLE
     result = _section_company_divergence({"company_divergence": {}})
     assert "Company Model Divergence" in result
+
+
+# ── ToU utilization section tests (Phase 14d) ─────────────────────────────────
+
+def _tou_stats_fixture():
+    """Synthetic tou_stats: C8-like customer with 43.8% peak vs 30% design."""
+    return {
+        "C8": {
+            "total_kwh": 10000.0,
+            "peak_kwh": 4376.0,
+            "offpeak_kwh": 5624.0,
+            "peak_pct": 43.76,
+            "peak_revenue_gbp": 622.6,
+            "offpeak_revenue_gbp": 420.0,
+            "avg_peak_rate": 142.3,
+            "avg_offpeak_rate": 74.7,
+        },
+    }
+
+
+def test_tou_revenue_premium_above_zero_for_high_peak_utilization():
+    from saas.reporting.annual_report import _tou_revenue_premium
+    s = _tou_stats_fixture()["C8"]
+    flat_equiv, premium_pct = _tou_revenue_premium(s)
+    # C8 uses 43.8% peak > 30% design → ToU earns more than flat rate
+    assert premium_pct > 0.0
+
+
+def test_tou_revenue_premium_zero_at_design_split():
+    from saas.reporting.annual_report import _tou_revenue_premium
+    from saas.tariff_pricing import TOU_PEAK_MULTIPLIER, TOU_OFFPEAK_MULTIPLIER
+    flat_rate = 100.0
+    total_kwh = 10000.0
+    peak_kwh = 3000.0   # exactly 30% design split
+    offpeak_kwh = 7000.0
+    s = {
+        "peak_kwh": peak_kwh,
+        "offpeak_kwh": offpeak_kwh,
+        "peak_revenue_gbp": peak_kwh * flat_rate * TOU_PEAK_MULTIPLIER / 1000.0,
+        "offpeak_revenue_gbp": offpeak_kwh * flat_rate * TOU_OFFPEAK_MULTIPLIER / 1000.0,
+        "avg_peak_rate": flat_rate * TOU_PEAK_MULTIPLIER,
+        "avg_offpeak_rate": flat_rate * TOU_OFFPEAK_MULTIPLIER,
+    }
+    _, premium_pct = _tou_revenue_premium(s)
+    # At design split, revenue neutral → premium ≈ 0%
+    assert abs(premium_pct) < 0.01
+
+
+def test_section_tou_utilization_shows_premium_column():
+    from saas.reporting.annual_report import _section_tou_utilization
+    data = {"tou_stats": _tou_stats_fixture()}
+    result = _section_tou_utilization(data)
+    assert "ToU Premium" in result
+    assert "%" in result
+    assert "Total HH revenue" in result
+
+
+def test_section_tou_utilization_empty_returns_empty():
+    from saas.reporting.annual_report import _section_tou_utilization
+    assert _section_tou_utilization({"tou_stats": {}}) == ""
+    assert _section_tou_utilization({}) == ""

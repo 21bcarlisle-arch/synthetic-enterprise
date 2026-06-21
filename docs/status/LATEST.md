@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T14:13:56Z
+Last updated: 2026-06-21T14:22:23Z
+
+**Phase 14d LIVE (2026-06-21)**: ToU revenue premium analysis in annual report. 700 tests passing (4 new).
+- `saas/reporting/annual_report.py`: `_tou_revenue_premium()` — derives flat-equivalent revenue from avg_peak_rate / 1.5×
+- "ToU Premium" column added to utilization table + summary line (total actual vs flat equivalent)
+- C8 (43.8% peak) earns ~+10% vs flat equivalent; C9 (42.2%) ~+9%; C7 (33.6%) ~+3%
+- Revenue-neutral design is at 30% peak — anything above earns a surplus vs flat rate
 
 **Phase 14c LIVE (2026-06-21)**: Adaptive lookback window in company tariff engine. 696 tests passing (7 new).
 - `company/pricing/tariff_engine.py`: `_compute_adaptive_lookback()` — recent 30d std vs prior 90d baseline std
