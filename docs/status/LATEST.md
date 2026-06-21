@@ -8,7 +8,11 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T04:24:20Z
+Last updated: 2026-06-21T09:04:49Z
+
+**Model evaluation in progress (2026-06-21)**: Pulling gemma4:12b to evaluate against qwen3:14b on dispatcher, discovery, and risk committee tasks. Will report back which model wins each.
+
+**SIM performance review in progress**: Reviewing bottlenecks in the 38-min simulation runtime (2301s for Phase 12b run at git d641601).
 
 **Phase 12b LIVE (2026-06-21)**: 617 tests passing. Company retention offers — first company decision affecting SIM outcome.
 - `company/crm/event_log.py`: `RetentionEvent` dataclass + `record_retention()` + `retention_events()` — dated retention artefacts
@@ -68,7 +72,7 @@ Last updated: 2026-06-21T04:24:20Z
 - Non→Smart flow: UK smart meter rollout modelled — Standard customers upgrade to Smart at 3-10%/yr
 - Speed: O(segments×periods) same as before, economically credible at realistic headcounts
 
-**Latest simulation results (2016–2025)** — run git 30dea36 (Phase 12a: company CRM event log):
+**Latest simulation results (2016–2025)** — run git d641601 (Phase 12b live, 2301s / 38 min):
 - Net margin: £-8,317.21 | Gross: £-7,089.58 | Capital: £1,228 (ledger-based, includes standing charges)
 - Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
 - Enterprise value: £-20,661.90 | Net after CTS: £-14,399 | Bad debt: £2,821

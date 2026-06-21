@@ -144,7 +144,26 @@ Accounts lost before end of window: C1, C2, C3, C4, C5, C6
 
 ## Churn Prediction Basis Risk
 
-Not available in current run output (see REPORTING_BACKLOG.md)
+At each renewal the company estimated churn risk from observable signals (rate change %, customer tenure). The SIM used its bill-shock model (actual bill amount relative to customer-specific thresholds). The gap is epistemic: in crisis years the company sees a rate % while the SIM sees the household-level financial shock — the same failure mode that surprised real suppliers in 2021-22.
+
+- **Average absolute error:** 154.8%
+- **Average signed error:** +53.5% (over-estimates vs SIM)
+- **Renewal events with estimates:** 49
+
+| Year | Renewals | Avg error (signed) | Avg abs error |
+|------|----------|--------------------|---------------|
+| 2016 | 3 | +146.4% | 153.4% |
+| 2017 | 3 | -54.5% | 54.5% |
+| 2018 | 3 | +14.6% | 54.9% |
+| 2019 | 3 | -100.0% | 100.0% |
+| 2020 | 9 | -76.5% | 76.5% |
+| 2021 | 8 | +405.9% | 405.9% |
+| 2022 | 6 | +197.6% | 224.0% |
+| 2023 | 6 | -100.0% | 100.0% |
+| 2024 | 6 | -96.7% | 96.7% |
+| 2025 | 2 | +19.2% | 19.2% |
+
+Positive error = company over-estimated churn vs SIM. Negative error = company under-estimated (more dangerous — expected retentions that were actually at risk).
 
 ## Company CRM — Event Log
 
@@ -176,9 +195,59 @@ Total events: **7** (6 churn, 1 acquisition)
 | 2024-12-31 | 6 accounts | 1 active | yes |
 | 2025-12-31 | 6 accounts | 1 active | yes |
 
-## Retention Strategy
+## Retention Strategy P&L
 
-No retention offers made in this run (threshold: 30% company churn estimate).
+### Aggregate (2016-2025)
+
+| Metric | Value |
+|--------|-------|
+| Offers made | 21 |
+| Retained | 12 (57%) |
+| Churned despite offer | 3 |
+| Total offer cost (foregone margin) | £2,012.04 |
+| Margin saved (retained customers' terms) | £748.90 |
+| Wasted offer cost (churned anyway) | £348.27 |
+| **Net ROI of retention strategy** | **£-1,263.14** |
+
+Missed opportunities (churns with no offer): **3** (£251.51 expected margin lost without offer)
+
+### Year-by-Year Breakdown
+
+| Year | Offers | Retained | Offer Cost | Margin Saved | Net ROI | Missed Margin |
+|------|--------|----------|-----------|-------------|---------|---------------|
+| 2017 | 3 | 0 | £167.74 | £0.00 | £-167.74 | £0.00 |
+| 2018 | 3 | 0 | £67.94 | £0.00 | £-67.94 | £0.00 |
+| 2020 | 0 | 0 | £0.00 | £0.00 | £0.00 | £7.57 |
+| 2021 | 8 | 6 | £757.62 | £289.74 | £-467.88 | £0.00 |
+| 2022 | 5 | 4 | £925.40 | £362.96 | £-562.44 | £0.00 |
+| 2024 | 0 | 0 | £0.00 | £0.00 | £0.00 | £243.94 |
+| 2025 | 2 | 2 | £93.34 | £96.20 | £2.85 | £0.00 |
+
+### Per-Offer Detail
+
+| Date | Customer | Est. churn | Offer Cost | Expected Margin | Net | Outcome |
+|------|----------|-----------|-----------|----------------|-----|---------|
+| 2017-04-01 | C2 | 0.30 | £9.73 | £9.29 | £-9.73 | pending |
+| 2017-04-01 | C6 | 0.30 | £125.12 | £119.40 | £-125.12 | pending |
+| 2017-04-01 | C8 | 0.30 | £32.89 | £31.39 | £-32.89 | pending |
+| 2018-07-01 | C3 | 0.32 | £10.07 | £8.78 | £-10.07 | pending |
+| 2018-07-01 | C9 | 0.32 | £38.95 | £33.93 | £-38.95 | pending |
+| 2018-10-01 | C4 | 0.42 | £18.92 | £15.48 | £-18.92 | pending |
+| 2021-03-31 | C2 | 0.67 | £12.85 | £10.05 | £-2.80 | retained |
+| 2021-03-31 | C6 | 0.67 | £165.24 | £129.18 | £-36.06 | retained |
+| 2021-03-31 | C8 | 0.67 | £43.44 | £33.96 | £-9.48 | retained |
+| 2021-06-30 | C9 | 0.95 | £51.42 | £36.97 | £-14.45 | retained |
+| 2021-09-30 | C4 | 0.95 | £37.03 | £19.89 | £-17.14 | retained |
+| 2021-12-30 | C1 | 0.95 | £30.87 | £13.06 | £-30.87 | churned_despite_offer |
+| 2021-12-30 | C5 | 0.95 | £275.63 | £116.57 | £-275.63 | churned_despite_offer |
+| 2021-12-30 | C7 | 0.95 | £141.14 | £59.69 | £-81.45 | retained |
+| 2022-03-31 | C2 | 0.95 | £41.77 | £17.10 | £-41.77 | churned_despite_offer |
+| 2022-03-31 | C6 | 0.95 | £537.02 | £219.80 | £-317.22 | retained |
+| 2022-03-31 | C8 | 0.95 | £141.17 | £57.78 | £-83.39 | retained |
+| 2022-06-30 | C9 | 0.95 | £125.03 | £54.92 | £-70.12 | retained |
+| 2022-09-30 | C4 | 0.95 | £80.41 | £30.47 | £-49.95 | retained |
+| 2025-03-30 | C2_2 | 0.45 | £21.31 | £21.96 | £0.65 | retained |
+| 2025-03-30 | C8 | 0.45 | £72.03 | £74.23 | £2.20 | retained |
 
 ## CLV Trajectory
 
@@ -333,7 +402,7 @@ _Cash reconciliation: of £143,671.95 billed, bad debt of £2,820.74 was written
   - 2016-08-15: treasury £29,686.36, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
   - 2016-09-14: treasury £29,672.73, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
   - 2016-10-14: treasury £29,656.22, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-11-13: treasury £29,628.90, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
+  - 2016-11-13: treasury £29,628.90, C1->1.00, C5->1.00, VaR (current £664.48 / stressed £204.14) ratio 3.25
   - 2016-12-13: treasury £29,598.07, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
   - 2016-01-13: treasury £29,575.12, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
   - 2016-02-12: treasury £29,557.22, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25

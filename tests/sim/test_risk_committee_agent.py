@@ -36,6 +36,7 @@ def test_invoke_enforces_minimum_adjustment(tmp_path, monkeypatch):
     log_file = tmp_path / "risk-committee-log.md"
     monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
     monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.delenv("SIM_FAST_MODE", raising=False)
 
     # agent proposes a tiny +0.02 bump — below the +0.10 floor
     monkeypatch.setattr(agent, "_call_local", lambda context: {
@@ -54,6 +55,7 @@ def test_invoke_enforces_maximum_adjustment(tmp_path, monkeypatch):
     log_file = tmp_path / "risk-committee-log.md"
     monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
     monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.delenv("SIM_FAST_MODE", raising=False)
 
     # agent proposes a huge +0.60 jump — above the +0.30 ceiling
     monkeypatch.setattr(agent, "_call_local", lambda context: {
@@ -72,6 +74,7 @@ def test_invoke_never_decreases_hedge_fraction(tmp_path, monkeypatch):
     log_file = tmp_path / "risk-committee-log.md"
     monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
     monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.delenv("SIM_FAST_MODE", raising=False)
 
     # agent tries to decrease — silently held at current value, no adjustment returned
     monkeypatch.setattr(agent, "_call_local", lambda context: {
@@ -124,6 +127,7 @@ def test_invoke_logs_decision(tmp_path, monkeypatch):
     log_file = tmp_path / "risk-committee-log.md"
     monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
     monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.delenv("SIM_FAST_MODE", raising=False)
 
     monkeypatch.setattr(agent, "_call_local", lambda context: {
         "reasoning": "elevated VaR, bump hedge",

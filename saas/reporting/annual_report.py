@@ -453,6 +453,7 @@ def extract_report_data(run_output: dict) -> dict:
         "company_event_log": phase2b.get("company_event_log", []),
         "churn_basis_risk": phase2b.get("churn_basis_risk", []),
         "retention_log": phase2b.get("retention_log", []),
+        "no_offer_churn_log": phase2b.get("no_offer_churn_log", []),
         "won_successor_activations": won_successor_activations,
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),
@@ -1504,38 +1505,125 @@ def _section_company_crm(data: dict) -> str:
 
 
 def _section_retention_strategy(data: dict) -> str:
-    """Retention Strategy P&L -- Phase 12b."""
-    rl = data.get('retention_log', [])
-    if not rl:
+    """Retention Strategy -- Phase 12c: ROI analysis and missed opportunities."""
+    from collections import defaultdict
+
+    rl = data.get("retention_log", [])
+    no_offer = data.get("no_offer_churn_log", [])
+
+    if not rl and not no_offer:
         return "\n".join([
             "## Retention Strategy",
             "",
-            "No retention offers made in this run (threshold: 30% company churn estimate).",
+            "No retention offers made and no tracked churns in this run.",
             "",
         ])
 
     offered = len(rl)
-    retained_count = sum(1 for r in rl if r['outcome'] == 'retained')
-    churned_despite = sum(1 for r in rl if r['outcome'] == 'churned_despite_offer')
-    total_cost = sum(r.get('retention_cost_gbp', 0.0) for r in rl)
+    retained_count = sum(1 for r in rl if r["outcome"] == "retained")
+    churned_despite = sum(1 for r in rl if r["outcome"] == "churned_despite_offer")
+    total_offer_cost = sum(r.get("retention_cost_gbp", 0.0) for r in rl)
+    margin_saved = sum(
+        r.get("expected_term_margin_gbp", 0.0)
+        for r in rl if r["outcome"] == "retained"
+    )
+    wasted_cost = sum(
+        r.get("retention_cost_gbp", 0.0)
+        for r in rl if r["outcome"] == "churned_despite_offer"
+    )
+    net_roi = margin_saved - total_offer_cost
+    missed_count = len(no_offer)
+    missed_margin = sum(r.get("expected_term_margin_gbp", 0.0) for r in no_offer)
+    success_pct = (retained_count / offered * 100) if offered else 0.0
+
+    offered_str = str(offered)
+    retained_str = str(retained_count) + " (" + str(round(success_pct)) + "%)"
+    churned_despite_str = str(churned_despite)
+    cost_str = "\xa3" + f"{total_offer_cost:,.2f}"
+    saved_str = "\xa3" + f"{margin_saved:,.2f}"
+    wasted_str = "\xa3" + "%.2f" % wasted_cost
+    roi_str = "\xa3" + f"{net_roi:,.2f}"
+    missed_str = "\xa3" + f"{missed_margin:,.2f}"
 
     lines = [
         "## Retention Strategy P&L",
         "",
-        f"Offers made: **{offered}** | Retained: **{retained_count}** | Churned despite offer: **{churned_despite}**",
-        f"Total retention cost (foregone margin): **\xa3{total_cost:,.2f}**",
+        "### Aggregate (2016-2025)",
         "",
-        "| Date | Customer | Est. churn | Discount | Cost | Outcome |",
-        "|------|----------|-----------|---------|------|---------|",
+        "| Metric | Value |",
+        "|--------|-------|",
+        "| Offers made | " + offered_str + " |",
+        "| Retained | " + retained_str + " |",
+        "| Churned despite offer | " + churned_despite_str + " |",
+        "| Total offer cost (foregone margin) | " + cost_str + " |",
+        "| Margin saved (retained customers' terms) | " + saved_str + " |",
+        "| Wasted offer cost (churned anyway) | " + wasted_str + " |",
+        "| **Net ROI of retention strategy** | **" + roi_str + "** |",
+        "",
+        "Missed opportunities (churns with no offer): **" + str(missed_count) + "**"
+        " (" + missed_str + " expected margin lost without offer)",
+        "",
     ]
-    for r in sorted(rl, key=lambda x: x['event_date']):
-        lines.append(
-            f"| {r['event_date']} | {r['customer_id']} | {r['company_churn_estimate']:.2f}"
-            f" | {r['discount_pct']*100:.0f}% | \xa3{r.get('retention_cost_gbp', 0):.2f} | {r['outcome']} |"
+
+    by_year = defaultdict(lambda: {"offered": 0, "retained": 0, "cost": 0.0, "saved": 0.0})
+    for r in rl:
+        yr = r["event_date"][:4]
+        by_year[yr]["offered"] += 1
+        by_year[yr]["cost"] += r.get("retention_cost_gbp", 0.0)
+        if r["outcome"] == "retained":
+            by_year[yr]["retained"] += 1
+            by_year[yr]["saved"] += r.get("expected_term_margin_gbp", 0.0)
+
+    missed_by_year = defaultdict(float)
+    for r in no_offer:
+        missed_by_year[r["event_date"][:4]] += r.get("expected_term_margin_gbp", 0.0)
+
+    all_years = sorted(set(list(by_year.keys()) + list(missed_by_year.keys())))
+    if all_years:
+        lines += [
+            "### Year-by-Year Breakdown",
+            "",
+            "| Year | Offers | Retained | Offer Cost | Margin Saved | Net ROI | Missed Margin |",
+            "|------|--------|----------|-----------|-------------|---------|---------------|",
+        ]
+        for yr in all_years:
+            yd = by_year[yr]
+            yr_net = yd["saved"] - yd["cost"]
+            missed_m = missed_by_year.get(yr, 0.0)
+            row = (
+                "| " + yr + " | " + str(yd["offered"]) + " | " + str(yd["retained"])
+                + " | \xa3" + "%.2f" % yd["cost"]
+                + " | \xa3" + "%.2f" % yd["saved"]
+                + " | \xa3" + "%.2f" % yr_net
+                + " | \xa3" + "%.2f" % missed_m + " |"
+            )
+            lines.append(row)
+        lines.append("")
+
+    lines += [
+        "### Per-Offer Detail",
+        "",
+        "| Date | Customer | Est. churn | Offer Cost | Expected Margin | Net | Outcome |",
+        "|------|----------|-----------|-----------|----------------|-----|---------|",
+    ]
+    for r in sorted(rl, key=lambda x: x["event_date"]):
+        exp_m = r.get("expected_term_margin_gbp", 0.0)
+        cost = r.get("retention_cost_gbp", 0.0)
+        net = (exp_m - cost) if r["outcome"] == "retained" else -cost
+        ed = r["event_date"]
+        cid = r["customer_id"]
+        ce = r["company_churn_estimate"]
+        oc = r["outcome"]
+        row = (
+            "| " + ed + " | " + cid + " | " + "%.2f" % ce
+            + " | \xa3" + "%.2f" % cost
+            + " | \xa3" + "%.2f" % exp_m
+            + " | \xa3" + "%.2f" % net
+            + " | " + oc + " |"
         )
+        lines.append(row)
     lines.append("")
     return "\n".join(lines)
-
 
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,

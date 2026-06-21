@@ -436,6 +436,8 @@ def main(report_end: str | None = None, sim_interface=None):
     # Phase 12b: retention cost events and log
     retention_cost_events: list[dict] = []
     retention_log: list[dict] = []
+    # Phase 12c: churns where no offer was made (missed opportunities)
+    no_offer_churn_log: list[dict] = []
 
     current_year_str = REPORT_START[:4]
     ytd_gross = ytd_net = ytd_capital = 0.0
@@ -500,12 +502,14 @@ def main(report_end: str | None = None, sim_interface=None):
                     retention_cost_events.append(
                         make_retention_cost_event(billing_account, term_start_str, ret_cost, company_est_pre)
                     )
+                    expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
                     retention_log.append({
                         "customer_id": billing_account,
                         "event_date": term_start_str,
                         "company_churn_estimate": company_est_pre,
                         "discount_pct": RETENTION_DISCOUNT_PCT,
                         "retention_cost_gbp": ret_cost,
+                        "expected_term_margin_gbp": expected_margin,
                         "outcome": "pending",
                     })
             event = roll_lifecycle_event(
@@ -526,6 +530,15 @@ def main(report_end: str | None = None, sim_interface=None):
                             RETENTION_DISCOUNT_PCT, outcome=outcome_str
                         )
                 if event["event_type"] == "churned":
+                    if retention_modifier_val is None:
+                        # No offer was made — record as missed retention opportunity
+                        eac_missed = EFFECTIVE_EAC_KWH.get(cid, 0.0)
+                        no_offer_churn_log.append({
+                            "customer_id": billing_account,
+                            "event_date": term_start_str,
+                            "company_churn_estimate": company_est_pre,
+                            "expected_term_margin_gbp": (unit_rate - company_fwd) * eac_missed / 1000.0,
+                        })
                     churned_billing_accounts.add(billing_account)
                     print(
                         f"  [CHURN] {billing_account} at {term_start_str} — "
@@ -593,6 +606,14 @@ def main(report_end: str | None = None, sim_interface=None):
                                 f"(£{acq_cost:.0f}, {segment})"
                             )
                     continue
+            elif retention_modifier_val is not None and retention_log:
+                # No lifecycle event — offer made, customer just renewed normally
+                retention_log[-1]["outcome"] = "retained"
+                if sim_interface is not None:
+                    sim_interface.notify_retention_attempt(
+                        billing_account, term_start_str, company_est_pre,
+                        RETENTION_DISCOUNT_PCT, outcome="retained"
+                    )
 
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)
@@ -923,6 +944,7 @@ def main(report_end: str | None = None, sim_interface=None):
         ),
         "retention_log": retention_log,
         "retention_cost_events": retention_cost_events,
+        "no_offer_churn_log": no_offer_churn_log,
     }
 
 
