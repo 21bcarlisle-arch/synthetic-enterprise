@@ -14,15 +14,17 @@ def test_run_simulation_creates_staging_marker(tmp_path, monkeypatch):
     monkeypatch.setattr(sim_runner, "send_ntfy", lambda *a, **k: None)
     monkeypatch.setattr(sim_runner, "_git_head", lambda: "abc1234")
 
-    # Simulate a successful subprocess run + output file creation
+    # Simulate a successful subprocess run + output file creation.
+    # Only write output files for the simulation cmd; other calls just get rc=0.
     def fake_run(cmd, **kwargs):
-        out_json = next((Path(a) for a in cmd if a.endswith(".json")), None)
-        if out_json:
-            out_json.parent.mkdir(parents=True, exist_ok=True)
-            out_json.write_text('{"test": true}')
-        out_md = next((Path(a) for a in cmd if a.endswith(".md")), None)
-        if out_md:
-            out_md.write_text("# Report")
+        if "annual_report" in " ".join(str(a) for a in cmd):
+            out_json = next((Path(a) for a in cmd if a.endswith(".json")), None)
+            if out_json:
+                out_json.parent.mkdir(parents=True, exist_ok=True)
+                out_json.write_text('{"test": true}')
+            out_md = next((Path(a) for a in cmd if a.endswith(".md")), None)
+            if out_md:
+                out_md.write_text("# Report")
         m = MagicMock()
         m.returncode = 0
         return m

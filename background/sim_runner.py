@@ -102,6 +102,17 @@ def run_simulation() -> bool:
         f"4. NTFY Rich with headline net margin, gross margin, enterprise value.\n"
     )
 
+    processor = Path(__file__).parent / 'process_run_complete.py'
+    proc_result = subprocess.run(
+        [sys.executable, str(processor), str(marker)],
+        cwd=str(PROJECT_DIR),
+        timeout=300,
+    )
+    if proc_result.returncode == 0:
+        log('Auto-processed run complete marker')
+    else:
+        log('Auto-process failed (rc={}) -- marker left for Claude'.format(proc_result.returncode))
+
     return True
 
 
