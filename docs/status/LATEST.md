@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T10:01:00Z
+Last updated: 2026-06-21T10:30:34Z
 
 **Token proxy LIVE (2026-06-21)**: localhost:8801 intercepts all Anthropic API calls, tracks per-session usage.
 - Handles gzip-compressed responses (decompresses before parsing SSE/JSON)
@@ -25,6 +25,13 @@ Last updated: 2026-06-21T10:01:00Z
 - Pure Python (billing/settlement/hedging): ~40s
 - SIM_FAST_MODE=1 (deterministic +0.10, no Ollama): ~2 min for full sim, 16s for full test suite
 - Keep LLM mode for production runs (it's the agentic part); use SIM_FAST_MODE=1 for tests
+
+**Phase 12d LIVE (2026-06-21)**: 637 tests passing. Margin-aware retention guard.
+- Guard: only make retention offer when `expected_margin > retention_cost` (gross margin rate > 5% discount)
+- Crisis years (2021-22): forward prices spike, margins collapse below 5% → offers blocked automatically
+- `no_offer_churn_log` entries carry `no_offer_reason`: "below_threshold" or "uneconomical"
+- Annual report shows missed-opportunity breakdown by reason
+- Effect visible in next full sim run: crisis-year offers gone, ROI expected positive in normal years
 
 **Phase 12c LIVE (2026-06-21)**: 634 tests passing. Retention ROI analysis — no-offer churn tracking + expected margin in each offer.
 - `no_offer_churn_log` tracks missed opportunities (company estimate <30%, no offer made, customer churned)

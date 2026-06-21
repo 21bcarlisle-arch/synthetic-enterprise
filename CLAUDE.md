@@ -86,7 +86,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 
 ---
 
-## Current state (as of 21 June 2026 — 10:15 UTC)
+## Current state (as of 21 June 2026 — 10:45 UTC)
 
 **What's built:**
 - Phase 0+1: agentic loop, Elexon data ingestion, profile-class billing,
@@ -109,7 +109,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed
 
-**617 tests passing (602 fast-suite + integration tests running).**
+**637 tests passing (SIM_FAST_MODE=1 suite, 16s).**
 
 **Key financial position (Phase 11a run, company observable pricing):**
 - Treasury: £29,846 → £11,131 (Phase 11a basis risk consumes treasury)
@@ -119,6 +119,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Enterprise value: £-20,661
 - 2021 net margin: £-3,069 | 2022: £-5,582 (worst year, crisis + basis risk)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 12d COMPLETE (2026-06-21)**: Margin-aware retention guard. 637 tests passing (3 new).
+- `simulation/run_phase2b.py`: guard condition added — retention offer only made when `expected_margin > ret_cost` (i.e. gross margin rate > 5% discount). Crisis-year offers blocked when commodity margins collapse below the discount floor.
+- `no_offer_churn_log` entries now carry `no_offer_reason`: "below_threshold" or "uneconomical" (high churn estimate but margin < discount cost)
+- `saas/reporting/annual_report.py`: missed-opportunity breakdown shows count + margin by reason
+- Effect visible in next full sim run: crisis-year offers eliminated; ROI expected to turn positive in normal years
 
 **Phase 12c COMPLETE (2026-06-21)**: Retention ROI analysis live. 634 tests passing (17 new).
 - `simulation/run_phase2b.py`: `no_offer_churn_log` — churns where company churn estimate was below 30% threshold (missed opportunities); `expected_term_margin_gbp` on all retention_log entries
@@ -301,10 +307,10 @@ pricing model must account for cost-to-serve at the customer level.
 - gemma4:12b at 7.6GB (smaller) but slower inference on this hardware (RTX 3060 12GB)
 - Switching to gemma4 would make the sim ~3 hrs, not 38 min. Stick with qwen3:14b.
 
-**Immediate (Phase 12d proposed):**
+**Immediate (Phase 12e candidates):**
 - SIM performance: consider switching background sim_runner to SIM_FAST_MODE=1 for dev runs (16s tests; 23x faster sim). Reserve full LLM mode for staged milestone runs.
 - Run_complete processing mechanization: autonomous runner frontier tokens spent on processing staging markers. Could be a pure shell script (`make report && git commit && git push`) to save 1 frontier turn per sim run.
-- Retention ROI analysis: Phase 12c complete — net ROI calculated, missed opportunities tracked. Next: does the 30% threshold need tuning? ROI analysis may reveal whether discounting is net-positive.
+- Retention threshold tuning: Phase 12d guard eliminates uneconomical offers. Next: threshold at 30% — is it too low? Would a higher threshold reduce false positives (offers where customer would renew anyway)?
 - OR: SIM/company full operational independence (company runs on its own models end-to-end)
 
 **Then:**
