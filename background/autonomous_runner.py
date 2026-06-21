@@ -29,6 +29,7 @@ Turn output appended to docs/observability/autonomous-turn-output.md.
 """
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -165,12 +166,15 @@ def launch_turn() -> None:
         out.write(f"\n\n---\n# Autonomous turn — {ts}\n\n")
 
     outfile = open(TURN_OUTPUT_FILE, "a")
+    env = os.environ.copy()
+    env["ANTHROPIC_BASE_URL"] = "http://localhost:8801"  # token-proxy
     _active_proc = subprocess.Popen(
         [str(CLAUDE_BIN), "-p", AUTONOMOUS_PROMPT],
         cwd=str(PROJECT_DIR),
         stdout=outfile,
         stderr=outfile,
         text=True,
+        env=env,
     )
     _turn_times.append(time.time())
     log(f"Autonomous turn launched (pid={_active_proc.pid})")
