@@ -46,7 +46,7 @@ from saas.property_model import (
     DEFAULT_OCCUPANCY_PATTERN,
     build_properties,
 )
-from saas.tariff_pricing import price_fixed_tariff
+from saas.tariff_pricing import TOU_OFFPEAK_MULTIPLIER, TOU_PEAK_MULTIPLIER, price_fixed_tariff
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
     SUMMER_MULTIPLIER,
@@ -685,9 +685,16 @@ def main(report_end: str | None = None, sim_interface=None):
             counterfactual_risk = assess_term_risk(term_start_str, float(eac_kwh), forward_price, elec_records)
             current_risk[cid] = risk
 
+            # HH (smart meter) customers get ToU pricing — flat unit_rate is the
+            # base; peak/off-peak rates are derived from it via the ToU multipliers.
+            tou_rates = None
+            if is_hh_customer(customer):
+                tou_rates = (unit_rate * TOU_PEAK_MULTIPLIER, unit_rate * TOU_OFFPEAK_MULTIPLIER)
+
             term_records = run_hedged_term(
                 cid, term_start_str, term_end_str, unit_rate, forward_price, hf,
                 risk["monthly_cost_of_capital_gbp"], shape_fn, elec_records,
+                tou_rates=tou_rates,
             )
             for rec in term_records:
                 rec["data_regime"] = "historical"

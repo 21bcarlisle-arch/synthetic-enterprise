@@ -41,6 +41,7 @@ from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
 from sim.risk_engine import compute_net_margin
+from simulation.tou_periods import is_peak_period
 
 
 def run_hedged_term(
@@ -53,6 +54,7 @@ def run_hedged_term(
     monthly_cost_of_capital_gbp: float,
     consumption_shape,
     system_price_records: list[dict],
+    tou_rates: tuple[float, float] | None = None,
 ) -> list[dict]:
     """Settle one customer's one contract term, hedge-aware, for every
     calendar date in [term_start_date, term_end_date) and every settlement
@@ -114,9 +116,14 @@ def run_hedged_term(
                 continue
 
             consumption_kwh = shape[period - 1]
+            if tou_rates is not None:
+                peak_rate, offpeak_rate = tou_rates
+                period_rate = peak_rate if is_peak_period(date_str, period) else offpeak_rate
+            else:
+                period_rate = fixed_tariff_rate_gbp_per_mwh
             settled = settle_hedged_period(
                 consumption_kwh,
-                fixed_tariff_rate_gbp_per_mwh,
+                period_rate,
                 hedge_price_gbp_per_mwh,
                 hedge_fraction,
                 spot_price,
@@ -127,7 +134,7 @@ def run_hedged_term(
                 "settlement_date": date_str,
                 "settlement_period": period,
                 "consumption_kwh": consumption_kwh,
-                "unit_rate_gbp_per_mwh": fixed_tariff_rate_gbp_per_mwh,
+                "unit_rate_gbp_per_mwh": period_rate,
                 "hedge_price_gbp_per_mwh": hedge_price_gbp_per_mwh,
                 "hedge_fraction": hedge_fraction,
                 "hedged_volume_kwh": settled["hedged_volume_kwh"],

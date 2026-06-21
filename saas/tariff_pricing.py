@@ -79,3 +79,27 @@ def price_fixed_tariff(
     expected_capital_cost_per_mwh = (var_stressed * WACC) / eac_mwh
 
     return forward_price + expected_capital_cost_per_mwh + TARGET_MARGIN_GBP_PER_MWH
+
+
+# ToU multipliers applied on top of the flat rate calculated above.
+# Peak covers ~30% of residential consumption; multipliers chosen so that
+# a 30/70 peak/off-peak consumption split is revenue-neutral vs the flat rate.
+TOU_PEAK_MULTIPLIER = 1.50
+TOU_OFFPEAK_MULTIPLIER = (1.0 - 0.30 * TOU_PEAK_MULTIPLIER) / 0.70  # ≈ 0.786
+
+
+def price_tou_tariff(
+    forward_price: float, eac_kwh: int, term_start: str,
+    naked_fraction: float = DEFAULT_NAKED_FRACTION,
+) -> tuple[float, float]:
+    """Price a Time-of-Use tariff for HH (smart meter) customers.
+
+    Returns (peak_rate_gbp_per_mwh, offpeak_rate_gbp_per_mwh).
+
+    The flat rate from price_fixed_tariff() is computed first, then split
+    into peak and off-peak tiers using TOU_PEAK_MULTIPLIER / TOU_OFFPEAK_MULTIPLIER.
+    Revenue-neutral at the 30/70 peak/off-peak consumption split assumption;
+    actual revenue impact emerges from real HH consumption data.
+    """
+    flat = price_fixed_tariff(forward_price, eac_kwh, term_start, naked_fraction)
+    return flat * TOU_PEAK_MULTIPLIER, flat * TOU_OFFPEAK_MULTIPLIER
