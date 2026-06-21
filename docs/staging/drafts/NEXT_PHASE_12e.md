@@ -48,21 +48,34 @@ What's still shared/leaky:
 - Unlocks I&C and VPP/DER: both require a company that can independently value contracts
   (without reading SIM forward curve internals).
 
-## Deliverables
 
-1. `company/interfaces/sim_interface.py`: audit + fix any SIM-internal leaks; add docstring
-   listing every value exposed and its observability classification.
-2. `simulation/run_phase2b.py`: `company_divergence` dict in output (per-year, per-decision).
-3. `saas/reporting/annual_report.py`: `_section_company_divergence()` — divergence table + trend.
-4. Tests: divergence tracking (values populated, structure correct); interface audit (no forbidden keys).
+## Prep work completed (2026-06-21 before 4h window)
+
+Deliverable 1 (interface audit) is DONE:
+- LiveSimInterface observability audit docstring added (f9c50bb, c908927)
+- All values classified OBSERVABLE, STUB, or SIM INTERNAL (audit-only)
+- Only sim_churn_probability in notify_churn() is SIM internal; stored for audit, not used in decisions
+- basis_risk_terms missing from annual_report.py JSON extraction fixed (581851e) -- now included
+
+Retention threshold analysis done: 30% threshold correctly calibrated.
+- 3 "below_threshold" churns had 0.0% company estimates (price decrease -> stable prediction)
+- Company model divergence is the root cause, not threshold miscalibration
+
+## Remaining deliverables
+
+2. simulation/run_phase2b.py: company_divergence dict in output (per-year, per-decision)
+   - Aggregate basis_risk_terms (tariff) and churn_basis_risk (churn) by year
+   - Keys: tariff_error_by_year, churn_error_by_year with n, mean_error_pct, max_error_pct
+3. saas/reporting/annual_report.py: _section_company_divergence() -- year-by-year error table
+   - Add company_divergence to data extraction
+4. Tests: divergence tracking structure + values
 
 ## Acceptance criteria
 
-- `company_divergence` key in run output with non-empty data for all 3 decision types
-- Annual report includes "Company Model Divergence" section with year-by-year error table
-- `LiveSimInterface` docstring lists every exposed value with observability classification
-- 637+ tests passing (net-new tests for divergence tracking)
+- company_divergence key in run output with tariff + churn data by year
+- Annual report includes "Company Model Divergence" year-by-year table
+- 642+ tests passing (net-new tests for divergence tracking)
 
 ## Commit message
 
-"Phase 12e: SIM/company divergence tracking — close hollow gap 3"
+"Phase 12e: SIM/company divergence tracking -- close hollow gap 3"
