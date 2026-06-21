@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T11:28:25Z
+Last updated: 2026-06-21T11:51:56Z
+
+**Run-complete mechanization LIVE (2026-06-21)**: sim results auto-processed after each background run.
+- `background/process_run_complete.py`: regenerates ANNUAL_REPORT.md, updates LATEST.md key figures, runs fast tests, commits + pushes
+- Saves ~1 frontier turn per sim run; falls back to Claude processing if anything fails
+- Only NTFYs Rich for administration events; routine runs fully silent
+- Phase 12e proposed (hollow gap 3): SIM/company divergence tracking — 4h opt-out window expires ~16:30 BST
 
 **Token proxy LIVE (2026-06-21)**: localhost:8801 intercepts all Anthropic API calls, tracks per-session usage.
 - Handles gzip-compressed responses (decompresses before parsing SSE/JSON)
