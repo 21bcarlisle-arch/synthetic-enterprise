@@ -1,10 +1,14 @@
-"""Tests for company.pricing.tariff_engine — Phase 11a + Phase 13d."""
+"""Tests for company.pricing.tariff_engine — Phase 11a + Phase 13d + Phase 14c."""
 
 from datetime import date, timedelta
 
 import pytest
 
 from company.pricing.tariff_engine import (
+    ADAPTIVE_LOOKBACK_MAX,
+    ADAPTIVE_LOOKBACK_MIN,
+    ADAPTIVE_VOL_BASELINE_DAYS,
+    ADAPTIVE_VOL_RECENT_DAYS,
     COMPANY_LOOKBACK_DAYS,
     COMPANY_RISK_PREMIUM_FRACTION,
     GAS_SUMMER_SEASONAL_DISCOUNT,
@@ -13,6 +17,7 @@ from company.pricing.tariff_engine import (
     WINTER_MONTHS,
     WINTER_SEASONAL_UPLIFT,
     CompanyTariffEngine,
+    _compute_adaptive_lookback,
 )
 
 
@@ -179,3 +184,109 @@ class TestSeasonalAdjustment:
         winter_price = self.engine.get_forward_price("electricity", "2016-02-01", records, seasonal=True)
         summer_price = self.engine.get_forward_price("electricity", "2016-07-01", records, seasonal=True)
         assert winter_price > summer_price
+
+
+# ── Adaptive lookback tests (Phase 14c) ─────────────────────────────────────
+
+def _volatility_records(
+    start: str, end: str,
+    base_low: float = 48.0, base_high: float = 52.0,
+    spike_start: str | None = None,
+    spike_low: float = 50.0, spike_high: float = 200.0,
+) -> list[dict]:
+    """Build price records alternating between low/high in each period.
+
+    The base period alternates between base_low and base_high (low std).
+    If spike_start is given, from that date onward alternates between
+    spike_low and spike_high (much higher std).
+    """
+    d = date.fromisoformat(start)
+    sp = date.fromisoformat(spike_start) if spike_start else None
+    e = date.fromisoformat(end)
+    records = []
+    toggle = 0
+    while d <= e:
+        if sp is None or d < sp:
+            price = base_low if toggle % 2 == 0 else base_high
+        else:
+            price = spike_low if toggle % 2 == 0 else spike_high
+        records.append({"settlementDate": d.isoformat(), "systemSellPrice": price})
+        toggle += 1
+        d += timedelta(days=1)
+    return records
+
+
+class TestAdaptiveLookback:
+    def setup_method(self):
+        self.engine = CompanyTariffEngine()
+
+    def test_high_vol_regime_shortens_lookback(self):
+        """When recent 30d is more volatile than prior 90d, adaptive lookback < base."""
+        # Baseline: low std (±2 around 50); Recent (last 30d): high std (50 vs 200)
+        delivery = "2022-01-01"
+        records = _volatility_records(
+            "2021-04-01", "2021-12-31",
+            base_low=48.0, base_high=52.0,
+            spike_start="2021-12-02", spike_low=50.0, spike_high=200.0,
+        )
+        adaptive = _compute_adaptive_lookback(delivery, records, COMPANY_LOOKBACK_DAYS)
+        assert adaptive < COMPANY_LOOKBACK_DAYS
+
+    def test_low_vol_regime_extends_lookback(self):
+        """When recent 30d is calmer than prior 90d, adaptive lookback > base (up to max)."""
+        # Baseline: high std (50 vs 200); Recent (last 30d): low std (98 vs 102)
+        delivery = "2022-01-01"
+        records = _volatility_records(
+            "2021-04-01", "2021-12-31",
+            base_low=50.0, base_high=200.0,
+            spike_start="2021-12-02", spike_low=98.0, spike_high=102.0,
+        )
+        adaptive = _compute_adaptive_lookback(delivery, records, COMPANY_LOOKBACK_DAYS)
+        assert adaptive > COMPANY_LOOKBACK_DAYS
+
+    def test_adaptive_lookback_respects_min_floor(self):
+        """Even in extreme high-vol regimes, lookback never goes below ADAPTIVE_LOOKBACK_MIN."""
+        delivery = "2022-01-01"
+        records = _volatility_records(
+            "2021-04-01", "2021-12-31",
+            base_low=49.0, base_high=51.0,
+            spike_start="2021-12-02", spike_low=10.0, spike_high=2000.0,
+        )
+        adaptive = _compute_adaptive_lookback(delivery, records, COMPANY_LOOKBACK_DAYS)
+        assert adaptive >= ADAPTIVE_LOOKBACK_MIN
+
+    def test_adaptive_lookback_respects_max_ceiling(self):
+        """In very low-vol regimes, lookback never exceeds ADAPTIVE_LOOKBACK_MAX."""
+        delivery = "2022-01-01"
+        records = _volatility_records(
+            "2021-04-01", "2021-12-31",
+            base_low=10.0, base_high=500.0,
+            spike_start="2021-12-02", spike_low=99.0, spike_high=101.0,
+        )
+        adaptive = _compute_adaptive_lookback(delivery, records, COMPANY_LOOKBACK_DAYS)
+        assert adaptive <= ADAPTIVE_LOOKBACK_MAX
+
+    def test_adaptive_lookback_falls_back_on_flat_prices(self):
+        """Flat prices → baseline std near zero → falls back to base lookback."""
+        records = _price_records("2021-04-01", "2021-12-31", price=100.0)
+        adaptive = _compute_adaptive_lookback("2022-01-01", records, COMPANY_LOOKBACK_DAYS)
+        assert adaptive == COMPANY_LOOKBACK_DAYS
+
+    def test_adaptive_lookback_falls_back_on_sparse_data(self):
+        """Too few records for vol windows → falls back to base lookback."""
+        records = _price_records("2021-11-15", "2021-12-31", price=100.0)
+        adaptive = _compute_adaptive_lookback("2022-01-01", records, COMPANY_LOOKBACK_DAYS)
+        assert adaptive == COMPANY_LOOKBACK_DAYS
+
+    def test_get_forward_price_adaptive_false_matches_non_adaptive(self):
+        """adaptive_lookback=False should give same result as explicit lookback_days."""
+        records = _price_records("2021-04-01", "2021-12-31", price=100.0)
+        engine = CompanyTariffEngine()
+        result_no_adaptive = engine.get_forward_price(
+            "electricity", "2022-01-01", records, seasonal=False, adaptive_lookback=False
+        )
+        result_explicit = engine.get_forward_price(
+            "electricity", "2022-01-01", records,
+            lookback_days=COMPANY_LOOKBACK_DAYS, seasonal=False, adaptive_lookback=False
+        )
+        assert result_no_adaptive == pytest.approx(result_explicit)

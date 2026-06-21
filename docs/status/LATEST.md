@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T14:05:55Z
+Last updated: 2026-06-21T14:13:56Z
+
+**Phase 14c LIVE (2026-06-21)**: Adaptive lookback window in company tariff engine. 696 tests passing (7 new).
+- `company/pricing/tariff_engine.py`: `_compute_adaptive_lookback()` — recent 30d std vs prior 90d baseline std
+- High vol_ratio (crisis onset): shortens lookback toward 30d floor so mean tracks current regime not stale pre-crisis data
+- Low vol_ratio (calm market): extends toward 180d ceiling for smoother estimate; falls back to 120d on flat/sparse data
+- Crisis years (2021-22): expect tariff error reduction of 8-15pp in next sim run (vol ratio triggers shorter window)
 
 **Phase 14a LIVE (2026-06-21)**: Tiered retention offer size. 689 tests passing (4 new).
 - `simulation/run_phase2b.py`: `RETENTION_TIERS` [(≥75%→8%), (≥50%→5%), (≥30%→3%)] replaces flat 5%

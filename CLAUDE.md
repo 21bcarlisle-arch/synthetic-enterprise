@@ -112,16 +112,24 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**689 tests passing (SIM_FAST_MODE=1 suite, ~16s).**
+**696 tests passing (SIM_FAST_MODE=1 suite, ~17s).**
 
-**Key financial position (latest 10-year run, 70646db, Phase 12d guard active):**
-- Treasury: £29,846 → £11,131 (£-18,715 net change)
-- Gross margin: £-7,090 | Net margin: £-8,317
-- Risk committee interventions: 323
-- Enterprise value: £-20,662
-- 2021 net margin: £-3,070 | 2022: £-5,583 (crisis years)
-- Retention ROI: +£2.85 (2 offers made, both retained; 3 uneconomical offers blocked by Phase 12d)
+**Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
+- Treasury: £29,846 → £15,683 (£-14,163 net change)
+- Gross margin: £-2,538 | Net margin: £-3,766 (ledger)
+- Enterprise value: £-16,445
+- Retention ROI: +£0.75 (2 offers made, both retained; 6 no-offer churns)
+- 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
+- C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 14c COMPLETE (2026-06-21)**: Adaptive lookback window in company tariff engine. 696 tests passing (7 new).
+- `company/pricing/tariff_engine.py`: `_compute_adaptive_lookback()` — compares recent 30d price std vs prior 90d baseline
+- High vol_ratio (crisis onset): shorten lookback (30d floor) so mean tracks current-regime prices, not stale pre-crisis data
+- Low vol_ratio (calm period): extend lookback up to 180d ceiling for smoother estimates
+- Falls back to base 120d when baseline std < 0.5 £/MWh (stable/sparse data)
+- Crisis years (2021-22): ~40d adaptive lookback expected to reduce tariff error by 8-15 percentage points
+- `adaptive_lookback: bool = True` param to `get_forward_price()` for deterministic test overrides
 
 **Phase 14a COMPLETE (2026-06-21)**: Tiered retention offer size. 689 tests passing (4 new).
 - `simulation/run_phase2b.py`: `RETENTION_TIERS` replaces flat `RETENTION_DISCOUNT_PCT=0.05`
