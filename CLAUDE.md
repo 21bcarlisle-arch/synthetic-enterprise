@@ -84,6 +84,11 @@ LATEST.md. Don't sit idle.
 **Always update and commit LATEST.md before sending NTFY**, not after.
 If LATEST.md is stale, investigate and fix the root cause.
 
+**At every phase close, update PROJECT_OVERVIEW.md:**
+- Update test count, latest run figures in Section 10
+- Add a build history entry in Section 4 (Phase N)
+- PROJECT_OVERVIEW.md is a project state document — it must be updated at phase close, not at run complete. The run-complete pipeline (which updates ANNUAL_REPORT.md and LATEST.md) does NOT update PROJECT_OVERVIEW.md.
+
 ---
 
 ## Current state (as of 21 June 2026 — 14:00 UTC)

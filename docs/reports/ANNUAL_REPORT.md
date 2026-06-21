@@ -250,6 +250,7 @@ Total events: **7** (6 churn, 1 acquisition)
 | 2024-12-31 | 6 accounts | 1 active | yes |
 | 2025-12-31 | 6 accounts | 1 active | yes |
 
+
 ## Time-of-Use Tariff Utilization (C7-C9 HH Customers)
 
 Peak windows: 07:00–11:00 and 16:00–20:00 weekdays (periods 15-22, 33-40).
