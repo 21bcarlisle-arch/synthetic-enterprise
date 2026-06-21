@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T16:17:01Z
+Last updated: 2026-06-21T16:23:31Z
+
+**Phase 20a LIVE (2026-06-21)**: Separate gas risk premium (20%) vs electricity (15%). 777 tests passing (2 new).
+- `company/pricing/tariff_engine.py`: `GAS_RISK_PREMIUM_FRACTION = 0.20`; `get_forward_price()` auto-selects by fuel
+- Gas NBP basis risk is structurally higher: more volatile spot, less liquid forward market
+- Explicit `risk_premium=` param still overrides; backward-compat for tests
+- Expected: 2023 resi gas losses (£-701 in cd34da7 run) reduce with better-buffered gas pricing
 
 **Phase 19a LIVE (2026-06-21)**: Extend margin feedback (16c) and portfolio premium (17a) to gas. 775 tests passing (5 new).
 - `simulation/run_phase2b.py`: gas CIDs (C1g, C2g, etc.) now get per-customer surcharge + portfolio premium at renewal
