@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T13:56:44Z
+Last updated: 2026-06-21T14:05:55Z
 
 **Phase 14a LIVE (2026-06-21)**: Tiered retention offer size. 689 tests passing (4 new).
 - `simulation/run_phase2b.py`: `RETENTION_TIERS` [(≥75%→8%), (≥50%→5%), (≥30%→3%)] replaces flat 5%
@@ -45,14 +45,11 @@ Last updated: 2026-06-21T13:56:44Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — run at c7aa449 (Phase 13a+13b — ToU live, first real HH peak data):
-- Net margin: £-6,281 | Gross: £-5,053 | Capital: £1,228
-- Treasury: £29,846 → £13,168 | 307 committee interventions | 1117 bills issued
-- Enterprise value: £-19,056 | Net after CTS: £-12,403
-- Retention ROI: +£2.85 (2 offers made, both retained; 3 blocked — uneconomical)
-- 6 total churned accounts | 6 no-offer churns (3 below threshold, 3 uneconomical)
-- ToU utilization (first run): C7 33.6% peak / C8 43.8% peak / C9 42.2% peak — C8/C9 above 30/70 design split
-- Phase 13c-13e (bill burden + seasonal) run in progress (61e5b3f, started 13:33 UTC)
+**Latest simulation results (2016–2025)** — auto-processed (1711s / 29 min):
+- Net margin: £-3,765.60 | Gross: £-2,537.97 | Capital: £1,228
+- Treasury: £29,846 → £15,683 | 287 committee interventions | 1117 bills issued
+- Enterprise value: £-16,445.26 | Net after CTS: £-19,097
+- Retention: 2 offers, 2/2 retained | 6 no-offer churns | 6 total churned accounts
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
