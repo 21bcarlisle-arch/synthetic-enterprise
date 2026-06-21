@@ -54,8 +54,9 @@ def update_latest_md(data, elapsed_s):
     ts_now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     text = re.sub(r"Last updated: \S+", "Last updated: {}".format(ts_now), text)
 
-    net = data.get("total_net_gbp", 0)
-    gross = data.get("total_gross_gbp", 0)
+    ledger = data.get("_ledger_headline", {})
+    net = ledger.get("net_margin_gbp", data.get("total_net_gbp", 0))
+    gross = ledger.get("gross_margin_gbp", data.get("total_gross_gbp", 0))
     capital = data.get("total_capital_gbp", 0)
     t_start = data.get("starting_treasury_gbp", 0)
     t_end = data.get("final_treasury_gbp", 0)
