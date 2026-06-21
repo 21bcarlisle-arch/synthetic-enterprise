@@ -35,6 +35,7 @@ from datetime import date, timedelta
 
 COMPANY_LOOKBACK_DAYS = 120
 COMPANY_RISK_PREMIUM_FRACTION = 0.15
+GAS_RISK_PREMIUM_FRACTION = 0.20    # Phase 20a: gas has higher basis risk than electricity
 MIN_RECORDS_FOR_ESTIMATE = 30
 
 SEASONAL_UPLIFT_ENABLED = True
@@ -186,7 +187,7 @@ class CompanyTariffEngine:
         delivery_date: str,
         price_records: list[dict],
         lookback_days: int = COMPANY_LOOKBACK_DAYS,
-        risk_premium: float = COMPANY_RISK_PREMIUM_FRACTION,
+        risk_premium: float | None = None,
         seasonal: bool = SEASONAL_UPLIFT_ENABLED,
         adaptive_lookback: bool = ADAPTIVE_LOOKBACK_ENABLED,
         regime_detect: bool = REGIME_DETECT_ENABLED,
@@ -199,7 +200,9 @@ class CompanyTariffEngine:
         price_records: list of {'settlementDate': str, 'systemSellPrice': float}.
         lookback_days: base days back from delivery_date to look (default 120).
             Overridden by adaptive_lookback when enabled.
-        risk_premium: fraction above rolling mean to charge (default 15%).
+        risk_premium: fraction above rolling mean to charge. Defaults to
+            GAS_RISK_PREMIUM_FRACTION (20%) for gas, COMPANY_RISK_PREMIUM_FRACTION
+            (15%) for electricity (Phase 20a: gas basis risk is higher).
         seasonal: apply winter/summer adjustment (default True).
             Pass False to use the flat-mean-plus-premium formula.
         adaptive_lookback: adjust lookback window based on recent vs baseline
@@ -212,6 +215,8 @@ class CompanyTariffEngine:
         Raises ValueError if no records found in lookback window and no
         fallback window is available (caller should handle bootstrap cases).
         """
+        if risk_premium is None:
+            risk_premium = GAS_RISK_PREMIUM_FRACTION if fuel == "gas" else COMPANY_RISK_PREMIUM_FRACTION
         if adaptive_lookback:
             lookback_days = _compute_adaptive_lookback(delivery_date, price_records, lookback_days)
 

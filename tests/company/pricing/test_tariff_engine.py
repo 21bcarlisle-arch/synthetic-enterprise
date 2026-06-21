@@ -11,6 +11,7 @@ from company.pricing.tariff_engine import (
     ADAPTIVE_VOL_RECENT_DAYS,
     COMPANY_LOOKBACK_DAYS,
     COMPANY_RISK_PREMIUM_FRACTION,
+    GAS_RISK_PREMIUM_FRACTION,
     GAS_SUMMER_SEASONAL_DISCOUNT,
     GAS_WINTER_SEASONAL_UPLIFT,
     SUMMER_SEASONAL_DISCOUNT,
@@ -66,9 +67,24 @@ class TestCompanyTariffEngine:
             self.engine.get_forward_price("electricity", "2016-01-01", records)
 
     def test_works_for_gas_fuel(self):
+        """Phase 20a: gas defaults to GAS_RISK_PREMIUM_FRACTION (20%), not the electricity 15%."""
         records = _price_records("2015-09-01", "2016-01-15", price=45.0)
         fwd = self.engine.get_forward_price("gas", "2016-01-01", records, seasonal=False)
-        assert fwd == pytest.approx(45.0 * (1 + COMPANY_RISK_PREMIUM_FRACTION))
+        assert fwd == pytest.approx(45.0 * (1 + GAS_RISK_PREMIUM_FRACTION))
+
+    def test_gas_risk_premium_higher_than_electricity(self):
+        """Phase 20a: same spot price → gas forward > electricity forward due to higher risk premium."""
+        records = _price_records("2015-09-01", "2016-01-15", price=100.0)
+        elec = self.engine.get_forward_price("electricity", "2016-01-01", records, seasonal=False)
+        gas = self.engine.get_forward_price("gas", "2016-01-01", records, seasonal=False)
+        assert gas > elec
+        assert gas == pytest.approx(100.0 * (1 + GAS_RISK_PREMIUM_FRACTION))
+
+    def test_explicit_risk_premium_overrides_fuel_default(self):
+        """Passing risk_premium explicitly overrides the fuel-based default."""
+        records = _price_records("2015-09-01", "2016-01-15", price=100.0)
+        fwd = self.engine.get_forward_price("gas", "2016-01-01", records, risk_premium=0.10, seasonal=False)
+        assert fwd == pytest.approx(100.0 * 1.10)
 
     def test_custom_risk_premium(self):
         records = _price_records("2015-09-01", "2016-01-15", price=100.0)
@@ -162,17 +178,17 @@ class TestSeasonalAdjustment:
         assert gas_seasonal > gas_no_seasonal
 
     def test_gas_winter_uplift_quantified(self):
-        """Gas winter uplift = base × (1 + GAS_WINTER_SEASONAL_UPLIFT) × (1 + risk_premium)."""
+        """Gas winter uplift = base × (1 + GAS_WINTER_SEASONAL_UPLIFT) × (1 + GAS_RISK_PREMIUM_FRACTION)."""
         records = _price_records("2015-09-01", "2016-01-15", price=100.0)
         fwd = self.engine.get_forward_price("gas", "2016-01-15", records, seasonal=True)
-        expected = 100.0 * (1.0 + GAS_WINTER_SEASONAL_UPLIFT) * (1.0 + COMPANY_RISK_PREMIUM_FRACTION)
+        expected = 100.0 * (1.0 + GAS_WINTER_SEASONAL_UPLIFT) * (1.0 + GAS_RISK_PREMIUM_FRACTION)
         assert fwd == pytest.approx(expected)
 
     def test_gas_summer_discount_applied(self):
-        """Gas gets summer discount in non-winter months."""
+        """Gas gets summer discount in non-winter months (Phase 20a: uses GAS_RISK_PREMIUM_FRACTION)."""
         records = _price_records("2016-03-01", "2016-07-15", price=100.0)
         fwd = self.engine.get_forward_price("gas", "2016-07-15", records, seasonal=True)
-        expected = 100.0 * (1.0 - GAS_SUMMER_SEASONAL_DISCOUNT) * (1.0 + COMPANY_RISK_PREMIUM_FRACTION)
+        expected = 100.0 * (1.0 - GAS_SUMMER_SEASONAL_DISCOUNT) * (1.0 + GAS_RISK_PREMIUM_FRACTION)
         assert fwd == pytest.approx(expected)
 
     def test_seasonal_false_matches_original_formula(self):
