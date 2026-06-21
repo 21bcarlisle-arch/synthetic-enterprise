@@ -1501,26 +1501,28 @@ def _clv_trajectory_section(data: dict) -> str:
 
 
 def _section_margin_feedback(data: dict) -> str:
-    """Phase 16c: realized-margin recovery surcharges applied during the run."""
+    """Phase 16c + 19a: realized-margin recovery surcharges applied during the run."""
     log = data.get("margin_feedback_log", [])
     if not log:
         return ""
 
     total_surcharge_events = len(log)
     avg_surcharge = sum(e["surcharge_pct"] for e in log) / total_surcharge_events
+    gas_events = [e for e in log if e.get("commodity") == "gas"]
 
     lines = [
-        "## Margin Recovery Surcharges (Phase 16c)",
+        "## Margin Recovery Surcharges (Phase 16c + 19a)",
         "",
-        f"Company applied {total_surcharge_events} recovery surcharge(s) at renewal based on prior-term losses. "
-        f"Avg surcharge: {avg_surcharge:.1f}%.",
+        f"Company applied {total_surcharge_events} recovery surcharge(s) at renewal based on prior-term losses "
+        f"({len(gas_events)} gas). Avg surcharge: {avg_surcharge:.1f}%.",
         "",
-        "| Customer | Term start | Prior margin | Prior revenue | Surcharge | Rate before | Rate after |",
-        "|----------|------------|-------------|--------------|-----------|------------|-----------|",
+        "| Customer | Commodity | Term start | Prior margin | Prior revenue | Surcharge | Rate before | Rate after |",
+        "|----------|-----------|------------|-------------|--------------|-----------|------------|-----------|",
     ]
     for e in sorted(log, key=lambda x: x["term_start"]):
+        comm = e.get("commodity", "electricity")
         lines.append(
-            f"| {e['customer_id']} | {e['term_start']} "
+            f"| {e['customer_id']} | {comm} | {e['term_start']} "
             f"| {_fmt_gbp(e['prev_margin_gbp'])} "
             f"| {_fmt_gbp(e['prev_revenue_gbp'])} "
             f"| +{e['surcharge_pct']:.1f}% "
@@ -1532,7 +1534,7 @@ def _section_margin_feedback(data: dict) -> str:
 
 
 def _section_dynamic_pricing(data: dict) -> str:
-    """Phase 17a: portfolio learning premium events applied during the run."""
+    """Phase 17a + 19a: portfolio learning premium events applied during the run."""
     log = data.get("dynamic_pricing_log", [])
     if not log:
         return ""
@@ -1540,21 +1542,23 @@ def _section_dynamic_pricing(data: dict) -> str:
     total_events = len(log)
     pos_events = [e for e in log if e["portfolio_premium_pct"] > 0]
     neg_events = [e for e in log if e["portfolio_premium_pct"] < 0]
+    gas_events = [e for e in log if e.get("commodity") == "gas"]
 
     lines = [
-        "## Portfolio Learning Premium (Phase 17a)",
+        "## Portfolio Learning Premium (Phase 17a + 19a)",
         "",
-        f"Company applied portfolio premium adjustments at {total_events} electricity renewal(s) "
-        f"based on recent portfolio-wide margin rates: "
+        f"Company applied portfolio premium adjustments at {total_events} renewal(s) "
+        f"({len(gas_events)} gas) based on recent portfolio-wide margin rates: "
         f"{len(pos_events)} surcharge(s), {len(neg_events)} discount(s).",
         "",
-        "| Customer | Term start | Mean recent margin | Portfolio premium | Rate before | Rate after |",
-        "|----------|------------|-------------------|-------------------|------------|-----------|",
+        "| Customer | Commodity | Term start | Mean recent margin | Portfolio premium | Rate before | Rate after |",
+        "|----------|-----------|------------|-------------------|-------------------|------------|-----------|",
     ]
     for e in sorted(log, key=lambda x: x["term_start"]):
         sign = "+" if e["portfolio_premium_pct"] >= 0 else ""
+        comm = e.get("commodity", "electricity")
         lines.append(
-            f"| {e['customer_id']} | {e['term_start']} "
+            f"| {e['customer_id']} | {comm} | {e['term_start']} "
             f"| {e['mean_recent_margin_rate'] * 100:.1f}% "
             f"| {sign}{e['portfolio_premium_pct']:.1f}% "
             f"| £{e['unit_rate_before']:.2f}/MWh "

@@ -470,13 +470,15 @@ def main(report_end: str | None = None, sim_interface=None):
     current_risk: dict[str, dict] = {}
     current_hf: dict[str, float] = {cid: RESET_HEDGE_FRACTION for cid in all_customers_ids}
 
-    # Phase 16c: track prior-term realized margin + revenue for feedback surcharge
+    # Phase 16c + 19a: track prior-term realized margin + revenue per customer (all commodities)
+    # Gas customers use separate CIDs (C1g, C2g, etc.) so this dict works for both.
     prev_term_margin: dict[str, float] = {}
     prev_term_revenue: dict[str, float] = {}
     margin_feedback_log: list[dict] = []
 
-    # Phase 17a: rolling portfolio-wide electricity margin rates for learning premium
+    # Phase 17a + 19a: rolling portfolio-wide margin rates for learning premium
     portfolio_elec_margin_rates: list[float] = []
+    portfolio_gas_margin_rates: list[float] = []  # Phase 19a: separate gas tracking
     dynamic_pricing_log: list[dict] = []
 
     all_records: list[dict] = []
@@ -542,15 +544,19 @@ def main(report_end: str | None = None, sim_interface=None):
         term_index = term_indices[cid]
         term_indices[cid] += 1
 
-        # Phase 17a: portfolio learning premium — adjust unit_rate based on recent margin rates
-        if term_index >= 1 and commodity == "electricity" and len(portfolio_elec_margin_rates) >= 1:
-            lookback = portfolio_elec_margin_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]
+        # Phase 17a + 19a: portfolio learning premium (electricity and gas)
+        _portfolio_rates = (
+            portfolio_elec_margin_rates if commodity == "electricity" else portfolio_gas_margin_rates
+        )
+        if term_index >= 1 and len(_portfolio_rates) >= 1:
+            lookback = _portfolio_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]
             portfolio_prem = compute_portfolio_premium(lookback)
             if abs(portfolio_prem) > 1e-6:
                 rate_before = unit_rate
                 unit_rate *= (1.0 + portfolio_prem)
                 dynamic_pricing_log.append({
                     "customer_id": cid,
+                    "commodity": commodity,
                     "term_start": term_start_str,
                     "recent_margin_rates": [round(r, 4) for r in lookback],
                     "mean_recent_margin_rate": round(sum(lookback) / len(lookback), 4),
@@ -559,13 +565,14 @@ def main(report_end: str | None = None, sim_interface=None):
                     "unit_rate_after": round(unit_rate, 4),
                 })
 
-        # Phase 16c: apply realized-margin recovery surcharge at electricity renewal (term ≥ 1)
-        if term_index >= 1 and commodity == "electricity" and cid in prev_term_margin:
+        # Phase 16c + 19a: apply realized-margin recovery surcharge at renewal (all commodities)
+        if term_index >= 1 and cid in prev_term_margin:
             surcharge = compute_margin_surcharge(prev_term_margin[cid], prev_term_revenue.get(cid, 0.0))
             if surcharge > 0:
                 unit_rate *= (1.0 + surcharge)
                 margin_feedback_log.append({
                     "customer_id": cid,
+                    "commodity": commodity,
                     "term_start": term_start_str,
                     "prev_margin_gbp": round(prev_term_margin[cid], 4),
                     "prev_revenue_gbp": round(prev_term_revenue.get(cid, 0.0), 4),
@@ -958,14 +965,15 @@ def main(report_end: str | None = None, sim_interface=None):
             )
             naked_net = naked_gross - naked_capital
 
-        # Phase 16c + 17a: record term margin + revenue for feedback/learning at next renewal
-        if commodity == "electricity":
-            prev_term_margin[cid] = actual_net
-            term_revenue = sum(r["revenue_gbp"] for r in settled_this_term)
-            prev_term_revenue[cid] = term_revenue
-            # Phase 17a: accumulate portfolio-wide margin rates for learning premium
-            if term_revenue > 0:
+        # Phase 16c + 17a + 19a: record term margin + revenue for all commodities
+        prev_term_margin[cid] = actual_net
+        term_revenue = sum(r["revenue_gbp"] for r in settled_this_term)
+        prev_term_revenue[cid] = term_revenue
+        if term_revenue > 0:
+            if commodity == "electricity":
                 portfolio_elec_margin_rates.append(actual_net / term_revenue)
+            else:
+                portfolio_gas_margin_rates.append(actual_net / term_revenue)  # Phase 19a
 
         new_hf, reason = evolve_hedge_fraction(hf, naked_net, actual_net)
         next_hf[cid] = new_hf

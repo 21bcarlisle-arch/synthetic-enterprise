@@ -1309,6 +1309,106 @@ def test_dynamic_pricing_empty_when_no_log():
     assert _section_dynamic_pricing({"dynamic_pricing_log": []}) == ""
 
 
+# ---- Phase 19a: gas feedback extension tests ----
+
+def _gas_feedback_fixture():
+    """Fixtures with both electricity and gas events for Phase 19a tests."""
+    return {
+        "dynamic_pricing_log": [
+            {
+                "customer_id": "C1",
+                "commodity": "electricity",
+                "term_start": "2022-01-01",
+                "recent_margin_rates": [-0.30, -0.20],
+                "mean_recent_margin_rate": -0.25,
+                "portfolio_premium_pct": 15.0,
+                "unit_rate_before": 200.0,
+                "unit_rate_after": 230.0,
+            },
+            {
+                "customer_id": "C1g",
+                "commodity": "gas",
+                "term_start": "2022-01-01",
+                "recent_margin_rates": [-0.40, -0.35],
+                "mean_recent_margin_rate": -0.375,
+                "portfolio_premium_pct": 14.4,
+                "unit_rate_before": 80.0,
+                "unit_rate_after": 91.5,
+            },
+        ],
+        "margin_feedback_log": [
+            {
+                "customer_id": "C1",
+                "commodity": "electricity",
+                "term_start": "2023-01-01",
+                "prev_margin_gbp": -500.0,
+                "prev_revenue_gbp": 5000.0,
+                "surcharge_pct": 5.0,
+                "unit_rate_before": 180.0,
+                "unit_rate_after": 189.0,
+            },
+            {
+                "customer_id": "C1g",
+                "commodity": "gas",
+                "term_start": "2023-01-01",
+                "prev_margin_gbp": -120.0,
+                "prev_revenue_gbp": 1200.0,
+                "surcharge_pct": 5.0,
+                "unit_rate_before": 70.0,
+                "unit_rate_after": 73.5,
+            },
+        ],
+    }
+
+
+def test_dynamic_pricing_shows_gas_events():
+    """Phase 19a: gas renewals should appear in the portfolio premium section."""
+    from saas.reporting.annual_report import _section_dynamic_pricing
+    result = _section_dynamic_pricing(_gas_feedback_fixture())
+    assert "C1g" in result
+    assert "gas" in result
+
+
+def test_dynamic_pricing_counts_gas_in_summary():
+    """Phase 19a: summary line should mention gas event count."""
+    from saas.reporting.annual_report import _section_dynamic_pricing
+    result = _section_dynamic_pricing(_gas_feedback_fixture())
+    assert "1 gas" in result
+
+
+def test_margin_feedback_shows_gas_events():
+    """Phase 19a: gas surcharges should appear in the margin feedback section."""
+    from saas.reporting.annual_report import _section_margin_feedback
+    result = _section_margin_feedback(_gas_feedback_fixture())
+    assert "C1g" in result
+    assert "gas" in result
+
+
+def test_margin_feedback_counts_gas_in_summary():
+    """Phase 19a: margin feedback summary should mention gas count."""
+    from saas.reporting.annual_report import _section_margin_feedback
+    result = _section_margin_feedback(_gas_feedback_fixture())
+    assert "1 gas" in result
+
+
+def test_margin_feedback_backward_compat_no_commodity_field():
+    """Legacy log entries without 'commodity' field should still render."""
+    from saas.reporting.annual_report import _section_margin_feedback
+    data = {"margin_feedback_log": [{
+        "customer_id": "C1",
+        # no "commodity" field (pre-Phase-19a)
+        "term_start": "2022-01-01",
+        "prev_margin_gbp": -500.0,
+        "prev_revenue_gbp": 5000.0,
+        "surcharge_pct": 5.0,
+        "unit_rate_before": 180.0,
+        "unit_rate_after": 189.0,
+    }]}
+    result = _section_margin_feedback(data)
+    assert "C1" in result
+    assert "Margin Recovery" in result
+
+
 # ---- Phase 17b: churn avoidability section tests ----
 
 def _churn_avoidability_fixture():
