@@ -157,3 +157,43 @@ def test_uneconomical_no_offer_entries_had_high_churn_estimate(sim_result_2017):
             assert est is not None and est > RETENTION_THRESHOLD, (
                 f"{entry['customer_id']}: reason=uneconomical but estimate={est}"
             )
+
+
+# ── Phase 14a: tiered retention offer size ────────────────────────────────────
+
+def test_retention_discount_function_tiers():
+    """_retention_discount_for_risk returns correct tier for each risk band."""
+    from simulation.run_phase2b import _retention_discount_for_risk
+    assert _retention_discount_for_risk(0.80) == 0.08   # high risk
+    assert _retention_discount_for_risk(0.75) == 0.08   # exactly at high-risk threshold
+    assert _retention_discount_for_risk(0.60) == 0.05   # medium risk
+    assert _retention_discount_for_risk(0.50) == 0.05   # exactly at medium threshold
+    assert _retention_discount_for_risk(0.40) == 0.03   # low-risk-above-threshold
+    assert _retention_discount_for_risk(0.30) == 0.03   # exactly at retention threshold
+    assert _retention_discount_for_risk(0.20) == 0.00   # below threshold — no offer
+
+
+def test_retention_tiers_cover_threshold():
+    """RETENTION_TIERS lower bound matches RETENTION_THRESHOLD."""
+    from simulation.run_phase2b import RETENTION_TIERS, RETENTION_THRESHOLD
+    min_tier_threshold = min(t for t, _ in RETENTION_TIERS)
+    assert min_tier_threshold == RETENTION_THRESHOLD
+
+
+def test_retention_log_discount_pct_is_in_valid_tier(sim_result_2017):
+    """discount_pct in each retention log entry must correspond to a valid tier value."""
+    from simulation.run_phase2b import RETENTION_TIERS
+    valid_discounts = {d for _, d in RETENTION_TIERS}
+    result, _ = sim_result_2017
+    for entry in result["retention_log"]:
+        assert entry["discount_pct"] in valid_discounts, (
+            f"{entry['customer_id']}: unexpected discount_pct {entry['discount_pct']}"
+        )
+
+
+def test_tiered_discount_high_risk_bigger_than_low_risk():
+    """High churn risk gets a larger discount than low-risk-above-threshold."""
+    from simulation.run_phase2b import _retention_discount_for_risk
+    high_risk = _retention_discount_for_risk(0.80)
+    low_risk = _retention_discount_for_risk(0.32)
+    assert high_risk > low_risk

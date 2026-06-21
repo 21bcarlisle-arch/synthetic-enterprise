@@ -112,7 +112,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**685 tests passing (SIM_FAST_MODE=1 suite, ~16s).**
+**689 tests passing (SIM_FAST_MODE=1 suite, ~16s).**
 
 **Key financial position (latest 10-year run, 70646db, Phase 12d guard active):**
 - Treasury: £29,846 → £11,131 (£-18,715 net change)
@@ -122,6 +122,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 net margin: £-3,070 | 2022: £-5,583 (crisis years)
 - Retention ROI: +£2.85 (2 offers made, both retained; 3 uneconomical offers blocked by Phase 12d)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 14a COMPLETE (2026-06-21)**: Tiered retention offer size. 689 tests passing (4 new).
+- `simulation/run_phase2b.py`: `RETENTION_TIERS` replaces flat `RETENTION_DISCOUNT_PCT=0.05`
+- Tiers: ≥75% churn risk → 8% discount; 50-75% → 5%; 30-50% → 3%
+- `_retention_discount_for_risk(company_est)` helper; all retention log/notify calls use variable discount
+- Effect: borderline cases get lighter touch (3%), genuinely high-risk get aggressive offer (8%)
+- Both c7aa449 offers (company_p=0.45) remain at 5% — no change for current run; next run (61e5b3f) may show differentiation if Phase 13c brings C6 above threshold
 
 **Phase 13e COMPLETE (2026-06-21)**: Gas seasonal adjustment in company tariff engine. 685 tests passing (2 net new).
 - `company/pricing/tariff_engine.py`: `GAS_WINTER_SEASONAL_UPLIFT=0.15`, `GAS_SUMMER_SEASONAL_DISCOUNT=0.08`

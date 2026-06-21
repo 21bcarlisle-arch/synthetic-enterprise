@@ -124,8 +124,23 @@ STARTING_TREASURY_GBP = 3250.0 * (EFFECTIVE_EAC / ORIGINAL_4_CUSTOMER_EAC_KWH)
 RESET_HEDGE_FRACTION = MIN_HEDGE_FLOOR
 
 RETENTION_THRESHOLD = 0.30
-RETENTION_DISCOUNT_PCT = 0.05
 RETENTION_EFFECTIVENESS = 0.20
+
+# Phase 14a: tiered discount — risk-proportional rather than flat 5%
+# Higher churn risk warrants a larger offer; borderline cases get a lighter touch.
+RETENTION_TIERS: list[tuple[float, float]] = [
+    (0.75, 0.08),  # high risk (≥75%): 8% discount
+    (0.50, 0.05),  # medium risk (50-75%): 5% discount
+    (0.30, 0.03),  # low-risk-above-threshold (30-50%): 3% discount
+]
+
+
+def _retention_discount_for_risk(company_est: float) -> float:
+    """Return the retention discount fraction appropriate for the churn estimate."""
+    for threshold, discount in RETENTION_TIERS:
+        if company_est >= threshold:
+            return discount
+    return 0.0
 
 EARLIEST_SSP_DATE = "2015-11-07"
 COMMITTEE_COOLDOWN_PERIODS = 1440
@@ -538,10 +553,11 @@ def main(report_end: str | None = None, sim_interface=None):
                 company_est_pre = round(_est_churn(old_elec_rate, unit_rate, tenure_for_est, EFFECTIVE_EAC_KWH.get(cid, 0.0)), 4)
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = EFFECTIVE_EAC_KWH.get(cid, 0.0)
-                    ret_cost = unit_rate * RETENTION_DISCOUNT_PCT * eac_for_ret / 1000.0
+                    discount_pct = _retention_discount_for_risk(company_est_pre)
+                    ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
                     # Only offer if the discount is economically rational: margin covers its cost.
-                    # During crisis years margins collapse below the 5% discount — don't offer then.
+                    # During crisis years margins collapse below the discount cost — don't offer then.
                     if expected_margin > ret_cost:
                         retention_modifier_val = RETENTION_EFFECTIVENESS
                         retention_cost_events.append(
@@ -551,7 +567,7 @@ def main(report_end: str | None = None, sim_interface=None):
                             "customer_id": billing_account,
                             "event_date": term_start_str,
                             "company_churn_estimate": company_est_pre,
-                            "discount_pct": RETENTION_DISCOUNT_PCT,
+                            "discount_pct": discount_pct,
                             "retention_cost_gbp": ret_cost,
                             "expected_term_margin_gbp": expected_margin,
                             "outcome": "pending",
@@ -573,7 +589,7 @@ def main(report_end: str | None = None, sim_interface=None):
                     if sim_interface is not None:
                         sim_interface.notify_retention_attempt(
                             billing_account, term_start_str, company_est_pre,
-                            RETENTION_DISCOUNT_PCT, outcome=outcome_str
+                            discount_pct, outcome=outcome_str
                         )
                 if event["event_type"] == "churned":
                     if retention_modifier_val is None:
@@ -659,7 +675,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 if sim_interface is not None:
                     sim_interface.notify_retention_attempt(
                         billing_account, term_start_str, company_est_pre,
-                        RETENTION_DISCOUNT_PCT, outcome="retained"
+                        retention_log[-1]["discount_pct"], outcome="retained"
                     )
 
         if cid in pending_committee_overrides:

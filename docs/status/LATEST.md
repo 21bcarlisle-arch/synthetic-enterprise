@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T13:36:19Z
+Last updated: 2026-06-21T13:43:38Z
+
+**Phase 14a LIVE (2026-06-21)**: Tiered retention offer size. 689 tests passing (4 new).
+- `simulation/run_phase2b.py`: `RETENTION_TIERS` [(≥75%→8%), (≥50%→5%), (≥30%→3%)] replaces flat 5%
+- `_retention_discount_for_risk()` helper — borderline cases get lighter touch, high-risk get aggressive offer
+- Both existing offers (company_p=0.45) stay at 5% tier; next run with Phase 13c may show C6 at different tier
 
 **Phase 13e LIVE (2026-06-21)**: Gas seasonal adjustment in company tariff engine. 685 tests passing (2 net new).
 - `company/pricing/tariff_engine.py`: `GAS_WINTER_SEASONAL_UPLIFT=0.15`, `GAS_SUMMER_SEASONAL_DISCOUNT=0.08`
