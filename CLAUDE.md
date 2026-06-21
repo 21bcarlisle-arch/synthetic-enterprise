@@ -123,6 +123,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 16c COMPLETE (2026-06-21)**: Realized-margin feedback into renewal tariff. 748 tests passing (8 new).
+- `company/pricing/margin_feedback.py`: `compute_margin_surcharge()` — if prior term lost >5% of revenue, apply recovery surcharge (capped at 20%) at next renewal
+- `simulation/run_phase2b.py`: tracks `prev_term_margin` and `prev_term_revenue` per customer; applies surcharge before settlement
+- `saas/reporting/annual_report.py`: `_section_margin_feedback()` — shows all recovery surcharge events in the run
+- Closes the tariff feedback loop: company observes its own losses and corrects pricing at renewal
+- `margin_feedback_log` in run output: customer, term, prior margin, surcharge %, before/after rates
+
 **Phase 16b COMPLETE (2026-06-21)**: Retention durability analysis in annual report. 740 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_retention_durability()` — post-retention survival per customer cohort
 - First retention date per customer → months survived until churn or window end

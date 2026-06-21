@@ -55,6 +55,7 @@ from sim.forward_curve import (
     generate_forward_price,
 )
 from sim.gas_prices_history import load_nbp_history
+from company.pricing.margin_feedback import compute_margin_surcharge
 from sim.hedging_strategy import MIN_HEDGE_FLOOR, evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape
 from sim.profile_class_3 import load_pc3_shape
@@ -465,6 +466,11 @@ def main(report_end: str | None = None, sim_interface=None):
     current_risk: dict[str, dict] = {}
     current_hf: dict[str, float] = {cid: RESET_HEDGE_FRACTION for cid in all_customers_ids}
 
+    # Phase 16c: track prior-term realized margin + revenue for feedback surcharge
+    prev_term_margin: dict[str, float] = {}
+    prev_term_revenue: dict[str, float] = {}
+    margin_feedback_log: list[dict] = []
+
     all_records: list[dict] = []
     evolution_logs: dict[str, list] = {cid: [] for cid in all_customers_ids}
     term_indices: dict[str, int] = {cid: 0 for cid in all_customers_ids}
@@ -527,6 +533,21 @@ def main(report_end: str | None = None, sim_interface=None):
         unit_rate = term["unit_rate_gbp_per_mwh"]
         term_index = term_indices[cid]
         term_indices[cid] += 1
+
+        # Phase 16c: apply realized-margin recovery surcharge at electricity renewal (term ≥ 1)
+        if term_index >= 1 and commodity == "electricity" and cid in prev_term_margin:
+            surcharge = compute_margin_surcharge(prev_term_margin[cid], prev_term_revenue.get(cid, 0.0))
+            if surcharge > 0:
+                unit_rate *= (1.0 + surcharge)
+                margin_feedback_log.append({
+                    "customer_id": cid,
+                    "term_start": term_start_str,
+                    "prev_margin_gbp": round(prev_term_margin[cid], 4),
+                    "prev_revenue_gbp": round(prev_term_revenue.get(cid, 0.0), 4),
+                    "surcharge_pct": round(surcharge * 100, 2),
+                    "unit_rate_before": round(term["unit_rate_gbp_per_mwh"], 4),
+                    "unit_rate_after": round(unit_rate, 4),
+                })
 
         # Phase 11a: record basis risk (company estimate vs sim ground truth)
         basis_risk_terms.append({
@@ -912,6 +933,11 @@ def main(report_end: str | None = None, sim_interface=None):
             )
             naked_net = naked_gross - naked_capital
 
+        # Phase 16c: record term margin + revenue for margin feedback at next renewal
+        if commodity == "electricity":
+            prev_term_margin[cid] = actual_net
+            prev_term_revenue[cid] = sum(r["revenue_gbp"] for r in settled_this_term)
+
         new_hf, reason = evolve_hedge_fraction(hf, naked_net, actual_net)
         next_hf[cid] = new_hf
         evolution_logs[cid].append({
@@ -1055,6 +1081,7 @@ def main(report_end: str | None = None, sim_interface=None):
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,
         "company_gas_churn_log": company_gas_churn_log,
+        "margin_feedback_log": margin_feedback_log,
         # Phase 12e: aggregated company-model divergence by year
         "company_divergence": _compute_company_divergence(
             basis_risk_terms,

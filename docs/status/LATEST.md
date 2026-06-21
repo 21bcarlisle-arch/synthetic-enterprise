@@ -8,7 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:21:22Z
+Last updated: 2026-06-21T15:28:07Z
+
+**Phase 16c LIVE (2026-06-21)**: Realized-margin feedback into renewal tariff. 748 tests passing (8 new).
+- `company/pricing/margin_feedback.py`: recovery surcharge when prior term loss >5% of revenue (capped 20%)
+- `simulation/run_phase2b.py`: tracks prev_term_margin/revenue per customer; applies surcharge at each renewal
+- Closes the tariff feedback loop: company reacts to its own observed losses at each contract renewal
+- Annual report: `_section_margin_feedback()` shows all surcharge events; `margin_feedback_log` in run JSON
+- Expected impact: reduced structural losses in 2022-23 renewals (crisis aftermath recovery pricing)
 
 **Phase 16b LIVE (2026-06-21)**: Retention durability analysis in annual report. 740 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_retention_durability()` — post-retention survival months per customer

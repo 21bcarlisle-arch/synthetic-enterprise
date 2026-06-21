@@ -1469,6 +1469,37 @@ def _clv_trajectory_section(data: dict) -> str:
     ])
 
 
+def _section_margin_feedback(data: dict) -> str:
+    """Phase 16c: realized-margin recovery surcharges applied during the run."""
+    log = data.get("margin_feedback_log", [])
+    if not log:
+        return ""
+
+    total_surcharge_events = len(log)
+    avg_surcharge = sum(e["surcharge_pct"] for e in log) / total_surcharge_events
+
+    lines = [
+        "## Margin Recovery Surcharges (Phase 16c)",
+        "",
+        f"Company applied {total_surcharge_events} recovery surcharge(s) at renewal based on prior-term losses. "
+        f"Avg surcharge: {avg_surcharge:.1f}%.",
+        "",
+        "| Customer | Term start | Prior margin | Prior revenue | Surcharge | Rate before | Rate after |",
+        "|----------|------------|-------------|--------------|-----------|------------|-----------|",
+    ]
+    for e in sorted(log, key=lambda x: x["term_start"]):
+        lines.append(
+            f"| {e['customer_id']} | {e['term_start']} "
+            f"| {_fmt_gbp(e['prev_margin_gbp'])} "
+            f"| {_fmt_gbp(e['prev_revenue_gbp'])} "
+            f"| +{e['surcharge_pct']:.1f}% "
+            f"| £{e['unit_rate_before']:.2f}/MWh "
+            f"| £{e['unit_rate_after']:.2f}/MWh |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _ledger_summary_section(data: dict) -> str:
     """Transaction log summary — Phase 7a/7b/9a. Shows event counts, cash-flow
     waterfall, and verification that ledger P&L agrees with the simulation."""
@@ -2204,6 +2235,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
     sections.append(_section_repricing_impact(data))
+    sections.append(_section_margin_feedback(data))
     sections.append(_ledger_summary_section(data))
     sections.append(_growth_acquisition_section(data))
 
