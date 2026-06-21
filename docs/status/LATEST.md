@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T12:29:06Z
+Last updated: 2026-06-21T12:53:53Z
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
@@ -36,6 +36,12 @@ Last updated: 2026-06-21T12:29:06Z
 - Pure Python (billing/settlement/hedging): ~40s
 - SIM_FAST_MODE=1 (deterministic +0.10, no Ollama): ~2 min for full sim, 16s for full test suite
 - Keep LLM mode for production runs (it's the agentic part); use SIM_FAST_MODE=1 for tests
+
+**Phase 13a LIVE (2026-06-21)**: 666 tests passing. ToU tariffs for C7-C9 HH smart meter customers.
+- `simulation/tou_periods.py`: is_peak_period() — morning (07:00-11:00) + evening (16:00-20:00) weekday peaks
+- `saas/tariff_pricing.py`: price_tou_tariff() — peak rate 1.5× flat, off-peak 0.786× flat, revenue-neutral at 30/70 split
+- `simulation/hedged_settlement.py`: per-period unit_rate now reflects actual ToU tier; flat rate retained for churn/retention calculations
+- Effect in next run: C7-C9 settlement records show real peak/off-peak rate split; revenue impact from actual HH load profile
 
 **Phase 12d LIVE (2026-06-21)**: 637 tests passing. Margin-aware retention guard.
 - Guard: only make retention offer when `expected_margin > retention_cost` (gross margin rate > 5% discount)
