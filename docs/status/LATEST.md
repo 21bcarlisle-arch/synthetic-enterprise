@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T13:30:00Z
+Last updated: 2026-06-21T13:36:19Z
 
 **Phase 13e LIVE (2026-06-21)**: Gas seasonal adjustment in company tariff engine. 685 tests passing (2 net new).
 - `company/pricing/tariff_engine.py`: `GAS_WINTER_SEASONAL_UPLIFT=0.15`, `GAS_SUMMER_SEASONAL_DISCOUNT=0.08`
@@ -40,12 +40,14 @@ Last updated: 2026-06-21T13:30:00Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — run at 70646db (Phase 12d guard active):
-- Net margin: £-8,317 | Gross: £-7,090 | Capital: £1,228
-- Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
-- Enterprise value: £-20,662 | Net after CTS: £-14,399
-- Retention ROI: +£2.85 (2 offers made, both retained; 3 blocked — uneconomical by Phase 12d guard)
+**Latest simulation results (2016–2025)** — run at c7aa449 (Phase 13a+13b — ToU live, first real HH peak data):
+- Net margin: £-6,281 | Gross: £-5,053 | Capital: £1,228
+- Treasury: £29,846 → £13,168 | 307 committee interventions | 1117 bills issued
+- Enterprise value: £-19,056 | Net after CTS: £-12,403
+- Retention ROI: +£2.85 (2 offers made, both retained; 3 blocked — uneconomical)
 - 6 total churned accounts | 6 no-offer churns (3 below threshold, 3 uneconomical)
+- ToU utilization (first run): C7 33.6% peak / C8 43.8% peak / C9 42.2% peak — C8/C9 above 30/70 design split
+- Phase 13c-13e (bill burden + seasonal) run in progress (61e5b3f, started 13:33 UTC)
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
