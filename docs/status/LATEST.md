@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T16:09:28Z
+Last updated: 2026-06-21T16:15:44Z
+
+**Phase 19a LIVE (2026-06-21)**: Extend margin feedback (16c) and portfolio premium (17a) to gas. 775 tests passing (5 new).
+- `simulation/run_phase2b.py`: gas CIDs (C1g, C2g, etc.) now get per-customer surcharge + portfolio premium at renewal
+- Separate `portfolio_gas_margin_rates` tracking; `"commodity"` field added to both log dicts
+- Backward-compatible: pre-19a log entries without commodity default to electricity
+- Expected: 2023 gas losses (resi gas -£1,014 in last run) should improve as gas portfolio premium fires
 
 **Phase 17c/17d/16c/17a/14b report fix (2026-06-21)**: Five keys missing from extract_report_data() → sections always empty in auto-processed reports. Fixed (faed334). 770 tests passing (2 new).
 - `margin_feedback_log`, `dynamic_pricing_log`, `company_gas_churn_log` now pass through to saved JSON
