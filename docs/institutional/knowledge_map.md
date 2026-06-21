@@ -31,8 +31,8 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 | Cap formula | Bottom-up: wholesale (~40%) + network (~23%) + policy (~13%) + opex (~17%) + EBIT (~2%) + VAT (5%). Resets quarterly. Wholesale allowance ~3.5 months stale | H | Exact wholesale reference period mechanism | What are the precise forward price observation windows Ofgem uses? |
 | Capital floor | £0 net assets per customer = licence breach | H | How Ofgem monitors this in practice | What triggers the Ofgem inspection process for capital adequacy? |
 | Capital target | £130 net assets per dual-fuel customer | H | Whether this is adjusted for risk profile | Does Ofgem allow risk-based capital requirements? |
-| Renewables Obligation | 0.491 ROCs/MWh electricity; buy-out £64.73/ROC (2024-25) → ~£31.80/MWh effective | H | Historical RO obligation levels for sim years 2016-2024 | What were RO obligation and buy-out price levels by year 2016–2024? |
-| CfD levy | Operational costs levy: £9.257/MWh from April 2025; main levy variable quarterly (can go negative at high prices) | H | CfD levy levels for sim years 2016-2024 | What were CfD levy levels by year 2016–2024? |
+| Renewables Obligation | 0.491 ROCs/MWh electricity; buy-out £64.73/ROC (2024-25) → ~£31.80/MWh effective. Historical: £15.6/MWh (2016-17) rising steadily to £31.8/MWh (2024-25). | H | None — full 2016-2024 series now known | — |
+| CfD levy | 2016: ~£0/MWh. 2017-20: £1-5/MWh growing. 2021: cut to £0 Oct 2021. **2022: NEGATIVE (−£3 to −£8/MWh) — wholesale > strike prices, LCCC rebated suppliers**. 2023-24: £5-12/MWh. From April 2025: £9.257/MWh operational costs levy. | H | Sub-quarterly precision for 2021-22 rebate | — |
 | BSC credit cover | CAP = £350/MWh × 29-day settlement lag; for our sim: ~£10k–20k cash tied up | M | Exact current CAP level; how it changes | How often does Elexon revise the Credit Assessment Price? |
 | Network charges (electricity) | ~23% of bill; split TNUoS (transmission) + DUoS (distribution) | M | Actual £/MWh figures by year 2016-2024 | What were network charge levels for residential/SME by year? |
 | 2021-22 failure wave | 28 suppliers failed; driven by hedge ratio + cap lag; £2.6bn SOLR cost | H | Individual supplier hedge ratios at failure | Could we simulate each failure trigger? |
@@ -124,7 +124,7 @@ Ranked by likely simulation impact:
 
 ## Priority Gap List (ranked by simulation impact)
 
-1. **Historical RO + CfD + network charge levels 2016-2024** — needed for Phase 21a cost calibration across full sim period (research agent in progress)
+1. ~~**Historical RO + CfD + network charge levels 2016-2024**~~ — **DONE** (see `historical_policy_costs_2016_2024.md`). RO: £15.6 → £31.8/MWh (2016→2024). CfD: £0 → £11/MWh, **negative in 2022** (crisis rebate). Network: ~£32–46/MWh. All-in non-wholesale: ~£72 (2016) → ~£115 (2024)/MWh. Phase 21a can now be implemented with year-indexed lookup tables.
 2. **Hedge ratio waterfall by forward tenor in LATEST.md** — critical board KPI missing from our reporting
 3. **42-day renewal notice CRM flag** — regulatory obligation not currently modeled; affects renewal campaign timing
 4. **Active renewer vs SVT roller distinction** — ~35/65 split changes churn dynamics significantly
