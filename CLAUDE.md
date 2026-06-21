@@ -86,7 +86,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 
 ---
 
-## Current state (as of 21 June 2026 — 13:30 UTC)
+## Current state (as of 21 June 2026 — 14:00 UTC)
 
 **What's built:**
 - Phase 0+1: agentic loop, Elexon data ingestion, profile-class billing,
@@ -112,7 +112,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**666 tests passing (SIM_FAST_MODE=1 suite, 16s).**
+**685 tests passing (SIM_FAST_MODE=1 suite, ~16s).**
 
 **Key financial position (latest 10-year run, 70646db, Phase 12d guard active):**
 - Treasury: £29,846 → £11,131 (£-18,715 net change)
@@ -122,6 +122,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 net margin: £-3,070 | 2022: £-5,583 (crisis years)
 - Retention ROI: +£2.85 (2 offers made, both retained; 3 uneconomical offers blocked by Phase 12d)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 13e COMPLETE (2026-06-21)**: Gas seasonal adjustment in company tariff engine. 685 tests passing (2 net new).
+- `company/pricing/tariff_engine.py`: `GAS_WINTER_SEASONAL_UPLIFT=0.15`, `GAS_SUMMER_SEASONAL_DISCOUNT=0.08`
+- Gas pricing now fuel-aware: winter +15%, summer -8% (vs electricity +8%/-4%)
+- UK NBP spot has more pronounced heating-demand seasonality than electricity — real pricing teams would apply this shape
+- `test_seasonal_does_not_apply_to_gas` replaced with 3 quantified gas seasonal tests
 
 **Phase 13d COMPLETE (2026-06-21)**: Seasonal forward price awareness in company tariff engine. 683 tests passing (9 new).
 - `company/pricing/tariff_engine.py`: `seasonal: bool = True` + `WINTER_SEASONAL_UPLIFT=0.08`, `SUMMER_SEASONAL_DISCOUNT=0.04`

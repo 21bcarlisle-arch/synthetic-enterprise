@@ -8,13 +8,19 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T13:23:03Z
+Last updated: 2026-06-21T13:30:00Z
+
+**Phase 13e LIVE (2026-06-21)**: Gas seasonal adjustment in company tariff engine. 685 tests passing (2 net new).
+- `company/pricing/tariff_engine.py`: `GAS_WINTER_SEASONAL_UPLIFT=0.15`, `GAS_SUMMER_SEASONAL_DISCOUNT=0.08`
+- Gas pricing now fuel-aware in seasonal logic: winter +15%, summer -8% (electricity: +8%/-4%)
+- UK NBP heating-demand seasonality is more pronounced than electricity — this is standard in real supplier pricing
+- `test_seasonal_does_not_apply_to_gas` replaced with 3 quantified gas seasonal tests
 
 **Phase 13d LIVE (2026-06-21)**: Seasonal forward price awareness in company tariff engine. 683 tests passing (9 new).
 - `company/pricing/tariff_engine.py`: `seasonal: bool = True` param + winter/summer adjustment for electricity
-- Winter delivery (Oct-Mar): +8% uplift; summer delivery (Apr-Sep): -4% discount. Gas unaffected.
+- Winter delivery (Oct-Mar): +8% uplift; summer delivery (Apr-Sep): -4% discount.
 - Fixes structural basis risk: 120-day lookback for Oct-renewal captured summer prices, underestimating winter costs
-- Effect in next sim run: company forward estimates better-calibrated for autumn/winter contracts; expected reduction in tariff basis risk for normal years (crisis years still negative — genuine market adversity)
+- Effect in next sim run: company forward estimates better-calibrated for autumn/winter contracts
 
 **Phase 13c LIVE (2026-06-21)**: Bill burden signal in company churn model. 674 tests passing (8 new).
 - `company/crm/churn_model.py`: `annual_consumption_kwh` param + `BILL_STRESS_SENSITIVITY=0.25`, `BILL_STRESS_THRESHOLD_GBP=£3,000`

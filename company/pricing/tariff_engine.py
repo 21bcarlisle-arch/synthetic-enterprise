@@ -32,8 +32,17 @@ MIN_RECORDS_FOR_ESTIMATE = 30
 
 SEASONAL_UPLIFT_ENABLED = True
 WINTER_MONTHS = frozenset({10, 11, 12, 1, 2, 3})
+
+# Electricity seasonal parameters (Phase 13d)
 WINTER_SEASONAL_UPLIFT = 0.08
 SUMMER_SEASONAL_DISCOUNT = 0.04
+
+# Gas seasonal parameters (Phase 13e): more pronounced than electricity
+# UK NBP spot prices are structurally higher in winter (heating demand)
+# and lower in summer (injection season). Real supplier pricing teams
+# would apply a seasonal shape to NBP-based contract pricing.
+GAS_WINTER_SEASONAL_UPLIFT = 0.15
+GAS_SUMMER_SEASONAL_DISCOUNT = 0.08
 
 
 class CompanyTariffEngine:
@@ -93,11 +102,12 @@ class CompanyTariffEngine:
 
         base = statistics.mean(daily_means)
 
-        if seasonal and fuel == "electricity":
+        if seasonal:
             delivery_month = start_date.month
-            if delivery_month in WINTER_MONTHS:
-                base *= (1.0 + WINTER_SEASONAL_UPLIFT)
-            else:
-                base *= (1.0 - SUMMER_SEASONAL_DISCOUNT)
+            is_winter = delivery_month in WINTER_MONTHS
+            if fuel == "electricity":
+                base *= (1.0 + WINTER_SEASONAL_UPLIFT) if is_winter else (1.0 - SUMMER_SEASONAL_DISCOUNT)
+            elif fuel == "gas":
+                base *= (1.0 + GAS_WINTER_SEASONAL_UPLIFT) if is_winter else (1.0 - GAS_SUMMER_SEASONAL_DISCOUNT)
 
         return base * (1.0 + risk_premium)

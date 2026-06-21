@@ -7,6 +7,8 @@ import pytest
 from company.pricing.tariff_engine import (
     COMPANY_LOOKBACK_DAYS,
     COMPANY_RISK_PREMIUM_FRACTION,
+    GAS_SUMMER_SEASONAL_DISCOUNT,
+    GAS_WINTER_SEASONAL_UPLIFT,
     SUMMER_SEASONAL_DISCOUNT,
     WINTER_MONTHS,
     WINTER_SEASONAL_UPLIFT,
@@ -144,12 +146,26 @@ class TestSeasonalAdjustment:
             with_s = self.engine.get_forward_price("electricity", delivery, base_records, seasonal=True)
             assert with_s < no_s, f"Month {month} should get summer discount"
 
-    def test_seasonal_does_not_apply_to_gas(self):
-        """Gas fuel bypasses seasonal adjustment — uses flat mean + premium only."""
+    def test_gas_seasonal_applies_winter_uplift(self):
+        """Gas gets its own seasonal uplift in winter (Phase 13e)."""
         records = _price_records("2015-09-01", "2016-01-15", price=100.0)
-        gas_seasonal = self.engine.get_forward_price("gas", "2016-01-01", records, seasonal=True)
-        gas_no_seasonal = self.engine.get_forward_price("gas", "2016-01-01", records, seasonal=False)
-        assert gas_seasonal == pytest.approx(gas_no_seasonal)
+        gas_seasonal = self.engine.get_forward_price("gas", "2016-01-15", records, seasonal=True)
+        gas_no_seasonal = self.engine.get_forward_price("gas", "2016-01-15", records, seasonal=False)
+        assert gas_seasonal > gas_no_seasonal
+
+    def test_gas_winter_uplift_quantified(self):
+        """Gas winter uplift = base × (1 + GAS_WINTER_SEASONAL_UPLIFT) × (1 + risk_premium)."""
+        records = _price_records("2015-09-01", "2016-01-15", price=100.0)
+        fwd = self.engine.get_forward_price("gas", "2016-01-15", records, seasonal=True)
+        expected = 100.0 * (1.0 + GAS_WINTER_SEASONAL_UPLIFT) * (1.0 + COMPANY_RISK_PREMIUM_FRACTION)
+        assert fwd == pytest.approx(expected)
+
+    def test_gas_summer_discount_applied(self):
+        """Gas gets summer discount in non-winter months."""
+        records = _price_records("2016-03-01", "2016-07-15", price=100.0)
+        fwd = self.engine.get_forward_price("gas", "2016-07-15", records, seasonal=True)
+        expected = 100.0 * (1.0 - GAS_SUMMER_SEASONAL_DISCOUNT) * (1.0 + COMPANY_RISK_PREMIUM_FRACTION)
+        assert fwd == pytest.approx(expected)
 
     def test_seasonal_false_matches_original_formula(self):
         """seasonal=False should reproduce the original rolling-mean + premium formula exactly."""
