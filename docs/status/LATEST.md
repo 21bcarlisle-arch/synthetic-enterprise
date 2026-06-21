@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T17:04:01Z
+Last updated: 2026-06-21T17:04:29Z
 
 **Phase 20a LIVE (2026-06-21)**: Separate gas risk premium (20%) vs electricity (15%). 777 tests passing (2 new).
 - `company/pricing/tariff_engine.py`: `GAS_RISK_PREMIUM_FRACTION = 0.20`; `get_forward_price()` auto-selects by fuel
@@ -155,10 +155,10 @@ Last updated: 2026-06-21T17:04:01Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — auto-processed (1081s / 18 min):
-- Net margin: £6,161.38 | Gross: £7,389.01 | Capital: £1,228
-- Treasury: £29,846 → £25,610 | 172 committee interventions | 1117 bills issued
-- Enterprise value: £-8,173.22 | Net after CTS: £-9,341
+**Latest simulation results (2016–2025)** — auto-processed (1029s / 17 min):
+- Net margin: £6,384.16 | Gross: £7,611.79 | Capital: £1,228
+- Treasury: £29,846 → £25,833 | 163 committee interventions | 1117 bills issued
+- Enterprise value: £-7,978.70 | Net after CTS: £-9,122
 - Retention: 22 offers, 18/22 retained | 2 no-offer churns | 6 total churned accounts
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
