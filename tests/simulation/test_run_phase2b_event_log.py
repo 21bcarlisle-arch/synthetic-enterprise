@@ -124,3 +124,36 @@ def test_no_offer_churn_log_customers_are_churned(sim_result_2017):
     for entry in result["no_offer_churn_log"]:
         cid = entry["customer_id"]
         assert cid in churned, cid + " in no_offer_churn_log but not in churned_billing_accounts"
+
+
+# ── Phase 12d: margin-aware retention guard ───────────────────────────────────
+
+def test_no_offer_churn_log_entries_have_reason(sim_result_2017):
+    result, _ = sim_result_2017
+    for entry in result["no_offer_churn_log"]:
+        assert "no_offer_reason" in entry, f"no_offer_reason missing from {entry}"
+        assert entry["no_offer_reason"] in ("below_threshold", "uneconomical")
+
+
+def test_retention_log_offers_are_economically_rational(sim_result_2017):
+    """Every offer in the retention_log must have expected_margin > retention_cost."""
+    result, _ = sim_result_2017
+    for entry in result["retention_log"]:
+        exp_m = entry.get("expected_term_margin_gbp", 0.0)
+        cost = entry.get("retention_cost_gbp", 0.0)
+        assert exp_m > cost, (
+            f"{entry['customer_id']} {entry['event_date']}: "
+            f"offer made with margin £{exp_m:.2f} < cost £{cost:.2f}"
+        )
+
+
+def test_uneconomical_no_offer_entries_had_high_churn_estimate(sim_result_2017):
+    """Entries blocked as uneconomical must have had churn estimate above the threshold."""
+    from simulation.run_phase2b import RETENTION_THRESHOLD
+    result, _ = sim_result_2017
+    for entry in result["no_offer_churn_log"]:
+        if entry.get("no_offer_reason") == "uneconomical":
+            est = entry.get("company_churn_estimate")
+            assert est is not None and est > RETENTION_THRESHOLD, (
+                f"{entry['customer_id']}: reason=uneconomical but estimate={est}"
+            )

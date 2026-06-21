@@ -1534,6 +1534,8 @@ def _section_retention_strategy(data: dict) -> str:
     net_roi = margin_saved - total_offer_cost
     missed_count = len(no_offer)
     missed_margin = sum(r.get("expected_term_margin_gbp", 0.0) for r in no_offer)
+    missed_uneconomical = [r for r in no_offer if r.get("no_offer_reason") == "uneconomical"]
+    missed_below_threshold = [r for r in no_offer if r.get("no_offer_reason") != "uneconomical"]
     success_pct = (retained_count / offered * 100) if offered else 0.0
 
     offered_str = str(offered)
@@ -1562,8 +1564,20 @@ def _section_retention_strategy(data: dict) -> str:
         "",
         "Missed opportunities (churns with no offer): **" + str(missed_count) + "**"
         " (" + missed_str + " expected margin lost without offer)",
-        "",
     ]
+    if missed_uneconomical:
+        unecon_margin = sum(r.get("expected_term_margin_gbp", 0.0) for r in missed_uneconomical)
+        lines.append(
+            "- **Blocked — uneconomical** (churn estimate above threshold but margin < discount cost): "
+            + str(len(missed_uneconomical)) + " (\xa3" + f"{unecon_margin:,.2f}" + " margin foregone)"
+        )
+    if missed_below_threshold:
+        below_margin = sum(r.get("expected_term_margin_gbp", 0.0) for r in missed_below_threshold)
+        lines.append(
+            "- **Below threshold** (churn estimate under 30%): "
+            + str(len(missed_below_threshold)) + " (\xa3" + f"{below_margin:,.2f}" + " margin lost)"
+        )
+    lines.append("")
 
     by_year = defaultdict(lambda: {"offered": 0, "retained": 0, "cost": 0.0, "saved": 0.0})
     for r in rl:

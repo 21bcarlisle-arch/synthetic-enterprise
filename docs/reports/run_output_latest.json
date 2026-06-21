@@ -1570,7 +1570,7 @@
           "treasury_gbp": 28880.326439337354,
           "adjustments": {
             "C1": 0.95,
-            "C5": 1.0,
+            "C5": 0.95,
             "C7": 0.95
           },
           "portfolio_var_current_gbp": 2018.1329664880716,
@@ -8732,7 +8732,7 @@
       "discount_pct": 0.05,
       "retention_cost_gbp": 9.731236355016767,
       "expected_term_margin_gbp": 9.286609031672125,
-      "outcome": "pending"
+      "outcome": "retained"
     },
     {
       "customer_id": "C6",
@@ -8741,7 +8741,7 @@
       "discount_pct": 0.05,
       "retention_cost_gbp": 125.1158959930727,
       "expected_term_margin_gbp": 119.39925897864161,
-      "outcome": "pending"
+      "outcome": "retained"
     },
     {
       "customer_id": "C8",
@@ -8750,7 +8750,7 @@
       "discount_pct": 0.05,
       "retention_cost_gbp": 32.89031525989638,
       "expected_term_margin_gbp": 31.38753264271845,
-      "outcome": "pending"
+      "outcome": "retained"
     },
     {
       "customer_id": "C3",
@@ -8759,7 +8759,7 @@
       "discount_pct": 0.05,
       "retention_cost_gbp": 10.074688151055419,
       "expected_term_margin_gbp": 8.77763522666396,
-      "outcome": "pending"
+      "outcome": "retained"
     },
     {
       "customer_id": "C9",
@@ -8768,7 +8768,7 @@
       "discount_pct": 0.05,
       "retention_cost_gbp": 38.946571496026884,
       "expected_term_margin_gbp": 33.93244463705798,
-      "outcome": "pending"
+      "outcome": "retained"
     },
     {
       "customer_id": "C4",
@@ -8777,7 +8777,7 @@
       "discount_pct": 0.05,
       "retention_cost_gbp": 18.91805151357768,
       "expected_term_margin_gbp": 15.47708072749976,
-      "outcome": "pending"
+      "outcome": "retained"
     },
     {
       "customer_id": "C2",

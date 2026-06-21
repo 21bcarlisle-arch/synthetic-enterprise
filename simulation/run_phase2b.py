@@ -487,6 +487,7 @@ def main(report_end: str | None = None, sim_interface=None):
         if term_index >= 1 and commodity == "electricity":
             company_est_pre = None
             retention_modifier_val = None
+            _no_offer_reason = "below_threshold"
             if old_elec_rate is not None:
                 from company.crm.churn_model import estimate_churn_probability as _est_churn
                 acq_date_for_est = next(
@@ -496,22 +497,27 @@ def main(report_end: str | None = None, sim_interface=None):
                 tenure_for_est = (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_for_est)).days / 365.25
                 company_est_pre = round(_est_churn(old_elec_rate, unit_rate, tenure_for_est), 4)
                 if company_est_pre > RETENTION_THRESHOLD:
-                    retention_modifier_val = RETENTION_EFFECTIVENESS
                     eac_for_ret = EFFECTIVE_EAC_KWH.get(cid, 0.0)
                     ret_cost = unit_rate * RETENTION_DISCOUNT_PCT * eac_for_ret / 1000.0
-                    retention_cost_events.append(
-                        make_retention_cost_event(billing_account, term_start_str, ret_cost, company_est_pre)
-                    )
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
-                    retention_log.append({
-                        "customer_id": billing_account,
-                        "event_date": term_start_str,
-                        "company_churn_estimate": company_est_pre,
-                        "discount_pct": RETENTION_DISCOUNT_PCT,
-                        "retention_cost_gbp": ret_cost,
-                        "expected_term_margin_gbp": expected_margin,
-                        "outcome": "pending",
-                    })
+                    # Only offer if the discount is economically rational: margin covers its cost.
+                    # During crisis years margins collapse below the 5% discount — don't offer then.
+                    if expected_margin > ret_cost:
+                        retention_modifier_val = RETENTION_EFFECTIVENESS
+                        retention_cost_events.append(
+                            make_retention_cost_event(billing_account, term_start_str, ret_cost, company_est_pre)
+                        )
+                        retention_log.append({
+                            "customer_id": billing_account,
+                            "event_date": term_start_str,
+                            "company_churn_estimate": company_est_pre,
+                            "discount_pct": RETENTION_DISCOUNT_PCT,
+                            "retention_cost_gbp": ret_cost,
+                            "expected_term_margin_gbp": expected_margin,
+                            "outcome": "pending",
+                        })
+                    else:
+                        _no_offer_reason = "uneconomical"
             event = roll_lifecycle_event(
                 cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
                 old_rate_gbp_per_mwh=old_elec_rate,
@@ -538,6 +544,7 @@ def main(report_end: str | None = None, sim_interface=None):
                             "event_date": term_start_str,
                             "company_churn_estimate": company_est_pre,
                             "expected_term_margin_gbp": (unit_rate - company_fwd) * eac_missed / 1000.0,
+                            "no_offer_reason": _no_offer_reason,
                         })
                     churned_billing_accounts.add(billing_account)
                     print(

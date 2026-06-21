@@ -202,21 +202,22 @@ Total events: **7** (6 churn, 1 acquisition)
 | Metric | Value |
 |--------|-------|
 | Offers made | 21 |
-| Retained | 12 (57%) |
+| Retained | 18 (86%) |
 | Churned despite offer | 3 |
 | Total offer cost (foregone margin) | £2,012.04 |
-| Margin saved (retained customers' terms) | £748.90 |
+| Margin saved (retained customers' terms) | £967.16 |
 | Wasted offer cost (churned anyway) | £348.27 |
-| **Net ROI of retention strategy** | **£-1,263.14** |
+| **Net ROI of retention strategy** | **£-1,044.88** |
 
 Missed opportunities (churns with no offer): **3** (£251.51 expected margin lost without offer)
+- **Below threshold** (churn estimate under 30%): 3 (£251.51 margin lost)
 
 ### Year-by-Year Breakdown
 
 | Year | Offers | Retained | Offer Cost | Margin Saved | Net ROI | Missed Margin |
 |------|--------|----------|-----------|-------------|---------|---------------|
-| 2017 | 3 | 0 | £167.74 | £0.00 | £-167.74 | £0.00 |
-| 2018 | 3 | 0 | £67.94 | £0.00 | £-67.94 | £0.00 |
+| 2017 | 3 | 3 | £167.74 | £160.07 | £-7.66 | £0.00 |
+| 2018 | 3 | 3 | £67.94 | £58.19 | £-9.75 | £0.00 |
 | 2020 | 0 | 0 | £0.00 | £0.00 | £0.00 | £7.57 |
 | 2021 | 8 | 6 | £757.62 | £289.74 | £-467.88 | £0.00 |
 | 2022 | 5 | 4 | £925.40 | £362.96 | £-562.44 | £0.00 |
@@ -227,12 +228,12 @@ Missed opportunities (churns with no offer): **3** (£251.51 expected margin los
 
 | Date | Customer | Est. churn | Offer Cost | Expected Margin | Net | Outcome |
 |------|----------|-----------|-----------|----------------|-----|---------|
-| 2017-04-01 | C2 | 0.30 | £9.73 | £9.29 | £-9.73 | pending |
-| 2017-04-01 | C6 | 0.30 | £125.12 | £119.40 | £-125.12 | pending |
-| 2017-04-01 | C8 | 0.30 | £32.89 | £31.39 | £-32.89 | pending |
-| 2018-07-01 | C3 | 0.32 | £10.07 | £8.78 | £-10.07 | pending |
-| 2018-07-01 | C9 | 0.32 | £38.95 | £33.93 | £-38.95 | pending |
-| 2018-10-01 | C4 | 0.42 | £18.92 | £15.48 | £-18.92 | pending |
+| 2017-04-01 | C2 | 0.30 | £9.73 | £9.29 | £-0.44 | retained |
+| 2017-04-01 | C6 | 0.30 | £125.12 | £119.40 | £-5.72 | retained |
+| 2017-04-01 | C8 | 0.30 | £32.89 | £31.39 | £-1.50 | retained |
+| 2018-07-01 | C3 | 0.32 | £10.07 | £8.78 | £-1.30 | retained |
+| 2018-07-01 | C9 | 0.32 | £38.95 | £33.93 | £-5.01 | retained |
+| 2018-10-01 | C4 | 0.42 | £18.92 | £15.48 | £-3.44 | retained |
 | 2021-03-31 | C2 | 0.67 | £12.85 | £10.05 | £-2.80 | retained |
 | 2021-03-31 | C6 | 0.67 | £165.24 | £129.18 | £-36.06 | retained |
 | 2021-03-31 | C8 | 0.67 | £43.44 | £33.96 | £-9.48 | retained |
@@ -540,7 +541,7 @@ _Cash reconciliation: of £143,671.95 billed, bad debt of £2,820.74 was written
   - 2017-01-12: treasury £28,889.17, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-02-11: treasury £28,885.38, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-03-13: treasury £28,882.45, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2017-04-12: treasury £28,880.33, C1->0.95, C5->1.00, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
+  - 2017-04-12: treasury £28,880.33, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-05-12: treasury £28,878.01, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-06-11: treasury £28,875.71, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-01-29: treasury £28,853.28, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
