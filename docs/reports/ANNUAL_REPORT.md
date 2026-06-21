@@ -146,22 +146,22 @@ Accounts lost before end of window: C1, C2, C3, C4, C5, C6
 
 At each renewal the company estimated churn risk from observable signals (rate change %, customer tenure). The SIM used its bill-shock model (actual bill amount relative to customer-specific thresholds). The gap is epistemic: in crisis years the company sees a rate % while the SIM sees the household-level financial shock — the same failure mode that surprised real suppliers in 2021-22.
 
-- **Average absolute error:** 131.6%
-- **Average signed error:** +33.5% (over-estimates vs SIM)
+- **Average absolute error:** 126.3%
+- **Average signed error:** +21.8% (over-estimates vs SIM)
 - **Renewal events with estimates:** 49
 
 | Year | Renewals | Avg error (signed) | Avg abs error |
 |------|----------|--------------------|---------------|
-| 2016 | 3 | +58.0% | 110.3% |
-| 2017 | 3 | -11.4% | 53.2% |
-| 2018 | 3 | +14.9% | 55.0% |
+| 2016 | 3 | +31.7% | 97.5% |
+| 2017 | 3 | -30.0% | 49.1% |
+| 2018 | 3 | -14.6% | 49.4% |
 | 2019 | 3 | -100.0% | 100.0% |
-| 2020 | 9 | -77.2% | 77.2% |
-| 2021 | 8 | +316.1% | 316.1% |
-| 2022 | 6 | +150.2% | 175.5% |
-| 2023 | 6 | -63.3% | 103.3% |
-| 2024 | 6 | -90.2% | 90.2% |
-| 2025 | 2 | -28.1% | 28.1% |
+| 2020 | 9 | -82.3% | 82.3% |
+| 2021 | 8 | +284.6% | 284.6% |
+| 2022 | 6 | +137.5% | 174.0% |
+| 2023 | 6 | -59.5% | 107.2% |
+| 2024 | 6 | -83.6% | 83.6% |
+| 2025 | 2 | -48.1% | 48.1% |
 
 Positive error = company over-estimated churn vs SIM. Negative error = company under-estimated (more dangerous — expected retentions that were actually at risk).
 
@@ -209,16 +209,16 @@ well-hedged and therefore not experiencing bill shocks during their last contrac
 
 | Year | Renewals | Mean Abs Error (×SIM) | Max Abs Error (×SIM) |
 |------|----------|-----------------------|---------------------|
-| 2016 | 3 | 1.10× | 2.52× |
-| 2017 | 3 | 0.53× | 0.63× |
-| 2018 | 3 | 0.55× | 1.05× |
+| 2016 | 3 | 0.97× | 1.94× |
+| 2017 | 3 | 0.49× | 0.63× |
+| 2018 | 3 | 0.49× | 0.52× |
 | 2019 | 3 | 1.00× | 1.00× |
-| 2020 | 9 | 0.77× | 1.00× |
-| 2021 | 8 | 3.16× ⚠ | 10.88× |
-| 2022 | 6 | 1.76× | 4.59× |
-| 2023 | 6 | 1.03× | 1.20× |
-| 2024 | 6 | 0.90× | 1.00× |
-| 2025 | 2 | 0.28× | 0.28× |
+| 2020 | 9 | 0.82× | 1.00× |
+| 2021 | 8 | 2.85× ⚠ | 10.88× |
+| 2022 | 6 | 1.74× | 4.59× |
+| 2023 | 6 | 1.07× | 1.43× |
+| 2024 | 6 | 0.84× | 1.00× |
+| 2025 | 2 | 0.48× | 0.48× |
 
 ## Company CRM — Event Log
 
@@ -232,7 +232,7 @@ Total events: **7** (6 churn, 1 acquisition)
 | 2021-12-30 | CHURN | C5 | SIM p=0.35, company est=0.95 |
 | 2022-03-31 | CHURN | C2 | SIM p=0.17, company est=0.95 |
 | 2022-03-31 | ACQUISITION | C2_2 | home-move-win (predecessor: C2) |
-| 2024-03-30 | CHURN | C6 | SIM p=0.38, company est=0.14 |
+| 2024-03-30 | CHURN | C6 | SIM p=0.38, company est=0.31 |
 | 2024-09-29 | CHURN | C4 | SIM p=0.23, company est=0.00 |
 
 **SIM ground truth vs company CRM reconciliation (year-end snapshots):**
@@ -306,39 +306,48 @@ Total: **275** bill shock events across 10 years
 
 | Metric | Value |
 |--------|-------|
-| Offers made | 6 |
-| Retained | 6 (100%) |
-| Churned despite offer | 0 |
-| Total offer cost (foregone margin) | £145.92 |
-| Margin saved (retained customers' terms) | £220.10 |
-| Wasted offer cost (churned anyway) | £0.00 |
-| **Net ROI of retention strategy** | **£74.17** |
+| Offers made | 14 |
+| Retained | 10 (71%) |
+| Churned despite offer | 4 |
+| Total offer cost (foregone margin) | £1,717.24 |
+| Margin saved (retained customers' terms) | £855.52 |
+| Wasted offer cost (churned anyway) | £672.70 |
+| **Net ROI of retention strategy** | **£-861.72** |
+| Acquisition cost avoided (retained customers) | £2,250.00 |
+| **Full economic ROI (margin + acq savings)** | **£1,388.28** |
 
-Missed opportunities (churns with no offer): **6** (£422.52 expected margin lost without offer)
-- **Blocked — uneconomical** (churn estimate above threshold but margin + acq_cost < discount cost): 3 (£144.09 margin foregone)
-- **Below threshold** (churn estimate under 30%): 3 (£278.43 margin lost) — Phase 13c bill burden signal reduces this for high-spend SME customers
+Missed opportunities (churns with no offer): **2** (£33.70 expected margin lost without offer)
+- **Below threshold** (churn estimate under 30%): 2 (£33.70 margin lost) — Phase 13c bill burden signal reduces this for high-spend SME customers
 
 ### Year-by-Year Breakdown
 
 | Year | Offers | Retained | Offer Cost | Margin Saved | Net ROI | Missed Margin |
 |------|--------|----------|-----------|-------------|---------|---------------|
 | 2017 | 3 | 3 | £104.58 | £161.67 | £57.09 | £0.00 |
-| 2018 | 3 | 3 | £41.34 | £58.42 | £17.08 | £0.00 |
 | 2020 | 0 | 0 | £0.00 | £0.00 | £0.00 | £7.58 |
-| 2021 | 0 | 0 | £0.00 | £0.00 | £0.00 | £126.69 |
-| 2022 | 0 | 0 | £0.00 | £0.00 | £0.00 | £17.40 |
-| 2024 | 0 | 0 | £0.00 | £0.00 | £0.00 | £270.85 |
+| 2021 | 7 | 5 | £764.70 | £231.79 | £-532.91 | £0.00 |
+| 2022 | 2 | 1 | £265.75 | £54.44 | £-211.31 | £0.00 |
+| 2023 | 1 | 1 | £449.45 | £407.62 | £-41.83 | £0.00 |
+| 2024 | 1 | 0 | £132.76 | £0.00 | £-132.76 | £26.12 |
 
 ### Per-Offer Detail
 
-| Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Net | Outcome |
-|------|----------|-----------|---------|-----------|----------------|-----|---------|
-| 2017-04-01 | C2 | 0.41 | 3% | £6.07 | £9.38 | £3.31 | retained |
-| 2017-04-01 | C6 | 0.41 | 3% | £78.01 | £120.59 | £42.58 | retained |
-| 2017-04-01 | C8 | 0.41 | 3% | £20.51 | £31.70 | £11.19 | retained |
-| 2018-07-01 | C3 | 0.31 | 3% | £5.98 | £8.75 | £2.77 | retained |
-| 2018-07-01 | C9 | 0.31 | 3% | £23.13 | £33.83 | £10.71 | retained |
-| 2018-10-01 | C4 | 0.38 | 3% | £12.23 | £15.84 | £3.60 | retained |
+| Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Acq Saved | Net | Outcome |
+|------|----------|-----------|---------|-----------|----------------|-----------|-----|---------|
+| 2017-04-01 | C2 | 0.30 | 3% | £6.07 | £9.38 | £150 | £3.31 | retained |
+| 2017-04-01 | C6 | 0.30 | 3% | £78.01 | £120.59 | £400 | £42.58 | retained |
+| 2017-04-01 | C8 | 0.30 | 3% | £20.51 | £31.70 | £150 | £11.19 | retained |
+| 2021-03-31 | C2 | 0.44 | 3% | £7.44 | £9.94 | £150 | £2.50 | retained |
+| 2021-03-31 | C6 | 0.44 | 3% | £95.69 | £127.78 | £400 | £32.09 | retained |
+| 2021-03-31 | C8 | 0.44 | 3% | £25.15 | £33.59 | £150 | £8.44 | retained |
+| 2021-06-30 | C9 | 0.78 | 8% | £77.59 | £36.26 | £150 | £-41.33 | retained |
+| 2021-09-30 | C4 | 0.95 | 8% | £87.73 | £24.23 | £150 | £-63.50 | retained |
+| 2021-12-30 | C1 | 0.95 | 8% | £47.45 | £12.76 | £150 | £-47.45 | churned_despite_offer |
+| 2021-12-30 | C5 | 0.95 | 8% | £423.66 | £113.93 | £400 | £-423.66 | churned_despite_offer |
+| 2022-03-31 | C2 | 0.95 | 8% | £68.83 | £17.40 | £150 | £-68.83 | churned_despite_offer |
+| 2022-06-30 | C9 | 0.79 | 8% | £196.91 | £54.44 | £150 | £-142.47 | retained |
+| 2023-03-31 | C6 | 0.63 | 5% | £449.45 | £407.62 | £400 | £-41.83 | retained |
+| 2024-03-30 | C6 | 0.31 | 3% | £132.76 | £244.73 | £400 | £-132.76 | churned_despite_offer |
 
 ## Retention Durability
 
@@ -349,12 +358,13 @@ Post-retention survival: how long did retained customers stay before churning or
 | C2 | 2017-04-01 | 2022-03-31 | 60 | churned |
 | C6 | 2017-04-01 | 2024-03-30 | 84 | churned |
 | C8 | 2017-04-01 | (window end) | 105 | active |
-| C3 | 2018-07-01 | 2020-06-30 | 24 | churned |
-| C9 | 2018-07-01 | (window end) | 90 | active |
-| C4 | 2018-10-01 | 2024-09-29 | 72 | churned |
+| C9 | 2021-06-30 | (window end) | 54 | active |
+| C4 | 2021-09-30 | 2024-09-29 | 36 | churned |
+| C1 | 2021-12-30 | 2021-12-30 | 0 | churned |
+| C5 | 2021-12-30 | 2021-12-30 | 0 | churned |
 
-**Eventually churned (4/6)**: C2, C6, C3, C4 — avg 60 months post-retention before final churn.
-**Still active (2/6)**: C8, C9 — survived to simulation end.
+**Eventually churned (5/7)**: C2, C6, C4, C1, C5 — avg 36 months post-retention before final churn.
+**Still active (2/7)**: C8, C9 — survived to simulation end.
 
 ## CLV Trajectory
 
@@ -431,6 +441,24 @@ Active = current opportunity; churned = retrospective counterfactual.
 
 **Repriceable now (6)**: C2g, C9, C2_2, C8, C7, C4g — break-even churn risk below 40%. Uplift advised.
 **Missed repricing window (5 churned)**: C5, C6, C1, C4, C3 — break-even price would not have triggered high churn. Earlier repricing might have changed economics.
+
+
+
+## Churn Avoidability Analysis (Phase 17b)
+
+Total no-offer churns: **2** | Blind misses: **2** | Deliberate passes (uneconomical): **0**
+
+- Blind misses: company estimated churn < 30% → no offer made. Of these, 0 had SIM p ≥ 30% (detectable with a better model).
+- Deliberate passes: company estimated churn ≥ 30% but the retention offer was uneconomical (margin + acq cost < offer cost).
+
+**Estimated margin at stake** — blind: £33.70 | deliberate: £0.00 | total: £33.70
+
+| Customer | Date | Reason | Co. est | SIM p | Detectable? | Margin at stake |
+|----------|------|--------|---------|-------|-------------|----------------|
+| C3 | 2020-06-30 | Blind miss | 0.00 | 0.14 | No | £7.58 |
+| C4 | 2024-09-29 | Blind miss | 0.00 | 0.23 | No | £26.12 |
+
+
 
 ## Transaction Log
 
@@ -516,7 +544,7 @@ _Cash reconciliation: of £146,434.14 billed, bad debt of £2,870.61 was written
   - 2016-04-30: treasury £29,836.08, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-05-30: treasury £29,834.25, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-06-29: treasury £29,832.18, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-07-29: treasury £29,830.28, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
+  - 2016-07-29: treasury £29,830.28, (none), VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-08-28: treasury £29,828.47, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-09-27: treasury £29,826.18, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
   - 2016-10-27: treasury £29,823.65, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25

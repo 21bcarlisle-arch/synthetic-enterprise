@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:56:41Z
+Last updated: 2026-06-21T15:57:24Z
 
 **Phase 18a LIVE (2026-06-21)**: Regime detection premium in company tariff engine. 768 tests passing (9 new).
 - `company/pricing/tariff_engine.py`: `_compute_regime_premium()` — 60d vs 180d spot price mean ratio
@@ -138,11 +138,11 @@ Last updated: 2026-06-21T15:56:41Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — auto-processed (2710s / 45 min):
+**Latest simulation results (2016–2025)** — auto-processed (2183s / 36 min):
 - Net margin: £-5,741.86 | Gross: £-4,514.23 | Capital: £1,228
 - Treasury: £29,846 → £13,707 | 317 committee interventions | 1117 bills issued
 - Enterprise value: £-18,277.46 | Net after CTS: £-21,041
-- Retention: 6 offers, 6/6 retained | 6 no-offer churns | 6 total churned accounts
+- Retention: 14 offers, 10/14 retained | 2 no-offer churns | 6 total churned accounts
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
