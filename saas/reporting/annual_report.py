@@ -451,6 +451,7 @@ def extract_report_data(run_output: dict) -> dict:
         "customer_events": phase2b.get("customer_events", []),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
         "company_event_log": phase2b.get("company_event_log", []),
+        "basis_risk_terms": phase2b.get("basis_risk_terms", []),
         "churn_basis_risk": phase2b.get("churn_basis_risk", []),
         "retention_log": phase2b.get("retention_log", []),
         "no_offer_churn_log": phase2b.get("no_offer_churn_log", []),
