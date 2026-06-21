@@ -254,12 +254,50 @@ Total events: **7** (6 churn, 1 acquisition)
 
 Peak windows: 07:00–11:00 and 16:00–20:00 weekdays (periods 15-22, 33-40).
 Peak rate = 1.5× flat; off-peak = 0.786× flat (revenue-neutral at 30/70 split).
+ToU Premium: actual revenue vs flat-rate equivalent — positive when actual peak % > 30% design.
 
-| Customer | Total kWh | Peak kWh | Peak % | Peak Revenue | Off-peak Revenue | Avg Peak Rate | Avg Off-peak Rate |
-|----------|-----------|----------|--------|-------------|-----------------|--------------|------------------|
-| C7 | 120,842 | 40,643 | 33.6% | £6,417.17 | £6,688.00 | £157.89/MWh | £83.39/MWh |
-| C8 | 106,723 | 46,761 | 43.8% | £6,980.97 | £4,705.76 | £149.29/MWh | £78.48/MWh |
-| C9 | 109,388 | 46,156 | 42.2% | £5,223.29 | £3,751.31 | £113.17/MWh | £59.33/MWh |
+| Customer | Total kWh | Peak kWh | Peak % | Peak Revenue | Off-peak Revenue | Avg Peak Rate | Avg Off-peak Rate | ToU Premium |
+|----------|-----------|----------|--------|-------------|-----------------|--------------|------------------|-------------|
+| C7 | 120,842 | 40,643 | 33.6% | £6,417.17 | £6,688.00 | £157.89/MWh | £83.39/MWh | +3.0% |
+| C8 | 106,723 | 46,761 | 43.8% | £6,980.97 | £4,705.76 | £149.29/MWh | £78.48/MWh | +10.0% |
+| C9 | 109,388 | 46,156 | 42.2% | £5,223.29 | £3,751.31 | £113.17/MWh | £59.33/MWh | +8.7% |
+
+Total HH revenue: £33,766.50 vs flat equivalent £31,594.62 (+6.9% ToU premium)
+
+## Bill Shock Summary (2016-2025)
+
+Month-on-month billing increase ≥20%. Bill shocks elevate SIM churn probability
+via the bill-shock history model. Crisis years (2021-22) see the largest spikes.
+
+| Year | Events | Max Spike | Worst Customer |
+|------|--------|-----------|----------------|
+| 2016 | 19 | 102% | C8 (2016-10-31) |
+| 2017 | 24 | 82% | C8 (2017-11-30) |
+| 2018 | 32 | 54% | C8 (2018-10-31) |
+| 2019 | 33 | 83% | C8 (2019-10-31) |
+| 2020 | 28 | 63% | C8 (2020-10-31) |
+| 2021 | 30 | 152% | C4g (2021-10-31) |
+| 2022 | 37 | 1717% | C2_2 (2022-04-30) |
+| 2023 | 29 | 100% | C8 (2023-10-31) |
+| 2024 | 25 | 73% | C8 (2024-09-30) |
+| 2025 | 17 | 80% | C7 (2025-06-07) |
+
+Total: **274** bill shock events across 10 years
+
+**Top 10 worst single-period bill spikes:**
+
+| Date | Customer | Spike | Eventually Churned? |
+|------|----------|-------|---------------------|
+| 2022-04-30 | C2_2 | +1717% | no |
+| 2022-01-31 | C7 | +186% | no |
+| 2022-10-31 | C4g | +174% | no |
+| 2021-10-31 | C4g | +152% | no |
+| 2016-10-31 | C8 | +102% | no |
+| 2023-10-31 | C8 | +100% | no |
+| 2023-10-31 | C2_2 | +95% | no |
+| 2021-10-31 | C4 | +87% | yes |
+| 2022-04-30 | C6 | +85% | yes |
+| 2022-09-30 | C8 | +84% | no |
 
 ## Retention Strategy P&L
 
@@ -267,13 +305,13 @@ Peak rate = 1.5× flat; off-peak = 0.786× flat (revenue-neutral at 30/70 split)
 
 | Metric | Value |
 |--------|-------|
-| Offers made | 2 |
-| Retained | 2 (100%) |
+| Offers made | 8 |
+| Retained | 8 (100%) |
 | Churned despite offer | 0 |
-| Total offer cost (foregone margin) | £100.69 |
-| Margin saved (retained customers' terms) | £101.44 |
+| Total offer cost (foregone margin) | £197.68 |
+| Margin saved (retained customers' terms) | £318.02 |
 | Wasted offer cost (churned anyway) | £0.00 |
-| **Net ROI of retention strategy** | **£0.75** |
+| **Net ROI of retention strategy** | **£120.34** |
 
 Missed opportunities (churns with no offer): **6** (£414.43 expected margin lost without offer)
 - **Blocked — uneconomical** (churn estimate above threshold but margin < discount cost): 3 (£153.45 margin foregone)
@@ -283,18 +321,26 @@ Missed opportunities (churns with no offer): **6** (£414.43 expected margin los
 
 | Year | Offers | Retained | Offer Cost | Margin Saved | Net ROI | Missed Margin |
 |------|--------|----------|-----------|-------------|---------|---------------|
+| 2017 | 3 | 3 | £96.76 | £158.50 | £61.74 | £0.00 |
+| 2018 | 3 | 3 | £40.51 | £58.08 | £17.58 | £0.00 |
 | 2020 | 0 | 0 | £0.00 | £0.00 | £0.00 | £7.53 |
 | 2021 | 0 | 0 | £0.00 | £0.00 | £0.00 | £135.55 |
 | 2022 | 0 | 0 | £0.00 | £0.00 | £0.00 | £17.90 |
 | 2024 | 0 | 0 | £0.00 | £0.00 | £0.00 | £253.45 |
-| 2025 | 2 | 2 | £100.69 | £101.44 | £0.75 | £0.00 |
+| 2025 | 2 | 2 | £60.41 | £101.44 | £41.03 | £0.00 |
 
 ### Per-Offer Detail
 
 | Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Net | Outcome |
 |------|----------|-----------|---------|-----------|----------------|-----|---------|
-| 2025-03-30 | C2_2 | 0.45 | 5% | £22.99 | £23.16 | £0.17 | retained |
-| 2025-03-30 | C8 | 0.45 | 5% | £77.70 | £78.28 | £0.58 | retained |
+| 2017-04-01 | C2 | 0.30 | 3% | £5.61 | £9.20 | £3.58 | retained |
+| 2017-04-01 | C6 | 0.30 | 3% | £72.17 | £118.22 | £46.05 | retained |
+| 2017-04-01 | C8 | 0.30 | 3% | £18.97 | £31.08 | £12.11 | retained |
+| 2018-07-01 | C3 | 0.32 | 3% | £5.81 | £8.68 | £2.87 | retained |
+| 2018-07-01 | C9 | 0.32 | 3% | £22.46 | £33.56 | £11.10 | retained |
+| 2018-10-01 | C4 | 0.43 | 3% | £12.23 | £15.84 | £3.60 | retained |
+| 2025-03-30 | C2_2 | 0.45 | 3% | £13.79 | £23.16 | £9.37 | retained |
+| 2025-03-30 | C8 | 0.45 | 3% | £46.62 | £78.28 | £31.66 | retained |
 
 ## CLV Trajectory
 

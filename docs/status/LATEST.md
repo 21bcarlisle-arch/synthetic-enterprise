@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T14:35:49Z
+Last updated: 2026-06-21T14:36:30Z
 
 **Phase 14b LIVE (2026-06-21)**: Gas-specific churn sensitivity. 712 tests passing (7 new).
 - `company/crm/churn_model.py`: `fuel` param → gas uses BASE_CHURN_RATE=0.08, RATE_SENSITIVITY=0.6
@@ -68,11 +68,11 @@ Last updated: 2026-06-21T14:35:49Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — auto-processed (1711s / 29 min):
+**Latest simulation results (2016–2025)** — auto-processed (1720s / 29 min):
 - Net margin: £-3,765.60 | Gross: £-2,537.97 | Capital: £1,228
 - Treasury: £29,846 → £15,683 | 287 committee interventions | 1117 bills issued
 - Enterprise value: £-16,445.26 | Net after CTS: £-19,097
-- Retention: 2 offers, 2/2 retained | 6 no-offer churns | 6 total churned accounts
+- Retention: 8 offers, 8/8 retained | 6 no-offer churns | 6 total churned accounts
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
