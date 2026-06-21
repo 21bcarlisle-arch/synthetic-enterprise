@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-21. 308 commits. 814 tests (787 in SIM_FAST_MODE=1). Codebase: ~16,000 lines across 177 Python modules.*
+*Last updated: 2026-06-22. 310+ commits. 838 tests (~824 in SIM_FAST_MODE=1). Codebase: ~17,000 lines across 180+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -340,6 +340,29 @@ Net after CTS:               £7,498
 
 **R&D (Phase 21a):** Two scenario research agents documented energy market complexity and international stress scenarios. Key findings in `docs/market_research/`: negative price regime change (29→149→~1,000 hours/year peak 2027), bimodal price distribution at 70%+ renewables, UK January 2026 cold snap (£1,040/MWh), Dunkelflaute cross-border correlation, BESS market saturation. Institutional knowledge map updated with "Novel/Unseen Scenario Generation" domain.
 
+### Phase 22 — Post-Crisis Churn Hangover + Trailing-Margin CLV
+**Files:** `company/crm/churn_model.py`, `saas/clv_model.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`
+
+**What was built:**
+- **Crisis churn hangover** (`CRISIS_HANGOVER_BASE_UPLIFT=0.12`): +12pp churn when company observes prior-term net loss >20% of revenue; persists 2 renewal periods via `hangover_remaining` dict
+- **Trailing-margin CLV** (`override_avg_margin_by_account` param): enables CLV variants using recent observed margin without rerunning settlement
+- **EV analysis section** (`_section_enterprise_value_analysis()`): full-history EV vs 3yr-trailing EV; year-by-year net margin; per-account CLV comparison
+
+**What this fixed:** 2024 failure mode — falling post-crisis rates collapse the rate-change signal to near-zero even for financially-stressed large-SME customers. Hangover mechanism fires on *observed losses* rather than rate change, catching customers the rate-only model misses. 22 new tests (826 total).
+
+### Phase 23 — Company-Owned Demand Estimation
+**Files:** `simulation/run_phase2b.py` (`_company_eac_estimate()`), `saas/reporting/annual_report.py` (`_section_demand_estimation()`)
+
+**What was built:**
+- **`_company_eac_estimate()`**: sums prior-year billing records (12 months before term start) for EAC estimate; falls back to SIM oracle only on first term (no prior billing)
+- **Three `EFFECTIVE_EAC_KWH` oracle reads eliminated**: bill-burden churn signal, retention economics, missed-opportunity analysis — all now use company-observed billing history
+- **`demand_estimation_log`** in run output: per-renewal company estimate vs SIM oracle (error_pct, source — "billing_history" or "oracle_fallback")
+- **`_compute_company_divergence()`** extended with `demand_error_by_year` alongside tariff and churn error tracking
+- **`_section_demand_estimation()`** in annual report: year-by-year mean/max abs error; prior-billing vs oracle fallback count; backward-compatible (silent when log absent)
+
+**What this closed:** epistemic honesty violation — the company was reading SIM oracle EAC for three consequential decisions instead of observing its own billing records. Company demand estimation is now fully observable-data only. 12 new tests (838 total).
+
+
 ---
 
 ## 4b. Institutional Knowledge System
@@ -529,13 +552,13 @@ These were identified early as the things that make the simulation feel like a *
 Current C1 residential electricity EAC is 2,800 kWh/yr; Ofgem TDCV medium is 2,500 kWh/yr. SME C5 is 15,000 kWh/yr vs real 8,500–25,000 kWh/yr microbiz range. Recalibration planned (Phase 21c).
 
 ### Policy costs still use settlement-date lookup only
-Phase 21a adds RO + CfD. Network charges (DUoS ~£15–20/MWh, TNUoS ~£5–8/MWh) still modeled as flat pass-through in `non_commodity.py` rather than year-indexed actuals. Phase 23a target.
+Phase 21a adds RO + CfD. Network charges (DUoS ~£15–20/MWh, TNUoS ~£5–8/MWh) still modeled as flat pass-through in `non_commodity.py` rather than year-indexed actuals. Future phase target.
 
 ### BSC credit cover not modeled as working capital
-Real suppliers hold BSC credit cover as a working capital requirement (~£8–15/MWh × peak exposure). Not yet in treasury model. Phase 22b target.
+Real suppliers hold BSC credit cover as a working capital requirement (~£8–15/MWh × peak exposure). Not yet in treasury model. Future phase target.
 
 ### Solvency / per-customer net assets
-Ofgem licence requires positive net assets per customer (floor: £0; target: £130/dual-fuel customer). Not yet computed or tracked in reporting. Phase 21b target.
+Ofgem licence requires positive net assets per customer (floor: £0; target: £130/dual-fuel customer). Not yet computed or tracked in reporting. Future phase target.
 
 ### Company layer full operational independence
 The `company/` layer has own models (tariff engine, churn model, event log, retention decisions, margin feedback). But it still shares code-execution paths with SIM — it is not a fully independent runtime. True operational independence (company runs its own end-to-end simulation against observable market data only) is the long-horizon goal.
@@ -544,7 +567,7 @@ The `company/` layer has own models (tariff engine, churn model, event log, rete
 C7–C9 named customers have synthetic HH data. The segment model's "smart" segments (resi_smart, sme_smart) still use PC1/PC3 shapes. True half-hourly shapes for smart segments are deferred.
 
 ### EPC-calibrated consumption distributions
-29.2M EPC records available via GOV.UK (requires One Login for bulk). Would calibrate consumption to actual property stock distribution. Phase 22a target.
+29.2M EPC records available via GOV.UK (requires One Login for bulk). Would calibrate consumption to actual property stock distribution. Future phase target.
 
 ---
 
@@ -553,7 +576,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 177 Python modules, ~16,000 lines
 - 306 git commits
-- 814 tests (all green); 787 in SIM_FAST_MODE=1 (16s); 814 in full suite (~2h50m with Ollama)
+- 838 tests (all green); ~824 in SIM_FAST_MODE=1 (16s); 838 in full suite (~38 min with Ollama)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
