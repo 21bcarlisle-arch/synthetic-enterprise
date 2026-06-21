@@ -8,7 +8,17 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-20T23:42:10Z
+Last updated: 2026-06-21T04:24:20Z
+
+**Phase 12b LIVE (2026-06-21)**: 617 tests passing. Company retention offers — first company decision affecting SIM outcome.
+- `company/crm/event_log.py`: `RetentionEvent` dataclass + `record_retention()` + `retention_events()` — dated retention artefacts
+- `company/interfaces/sim_interface.py`: `notify_retention_attempt()` on all SimInterface classes — StubSimInterface stores notifications
+- `simulation/customer_events.py`: `roll_lifecycle_event()` accepts `retention_modifier` param — reduces churn probability by 20% when offer is made
+- `simulation/run_phase2b.py`: pre-roll retention check: if company estimate > 30%, offer made before SIM rolls churn dice; outcome recorded
+- `saas/ledger.py`: `make_retention_cost_event()` — foregone margin recorded as cash-out event
+- `saas/reporting/annual_report.py`: "Retention Strategy P&L" section (offers/retained/churned-despite/cost table)
+- Hollow gap 1 (customer events): **DEEPER** — company now acts on its churn estimate before SIM rolls; retention outcome is first company decision affecting simulation outcome
+- 20 new tests (617 total)
 
 **Phase 12a LIVE (2026-06-20)**: 597 tests passing. Company CRM event log — customers actually leave as dated artefacts.
 - `company/crm/event_log.py`: `CompanyEventLog` with `ChurnEvent` / `AcquisitionEvent` dataclasses
@@ -58,7 +68,7 @@ Last updated: 2026-06-20T23:42:10Z
 - Non→Smart flow: UK smart meter rollout modelled — Standard customers upgrade to Smart at 3-10%/yr
 - Speed: O(segments×periods) same as before, economically credible at realistic headcounts
 
-**Latest simulation results (2016–2025)** — run git 0e49860 (Phase 11a+11b: company pricing + churn basis risk):
+**Latest simulation results (2016–2025)** — run git 30dea36 (Phase 12a: company CRM event log):
 - Net margin: £-8,317.21 | Gross: £-7,089.58 | Capital: £1,228 (ledger-based, includes standing charges)
 - Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
 - Enterprise value: £-20,661.90 | Net after CTS: £-14,399 | Bad debt: £2,821

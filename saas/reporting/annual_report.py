@@ -451,6 +451,8 @@ def extract_report_data(run_output: dict) -> dict:
         "customer_events": phase2b.get("customer_events", []),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
         "company_event_log": phase2b.get("company_event_log", []),
+        "churn_basis_risk": phase2b.get("churn_basis_risk", []),
+        "retention_log": phase2b.get("retention_log", []),
         "won_successor_activations": won_successor_activations,
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),
@@ -1501,6 +1503,40 @@ def _section_company_crm(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_retention_strategy(data: dict) -> str:
+    """Retention Strategy P&L -- Phase 12b."""
+    rl = data.get('retention_log', [])
+    if not rl:
+        return "\n".join([
+            "## Retention Strategy",
+            "",
+            "No retention offers made in this run (threshold: 30% company churn estimate).",
+            "",
+        ])
+
+    offered = len(rl)
+    retained_count = sum(1 for r in rl if r['outcome'] == 'retained')
+    churned_despite = sum(1 for r in rl if r['outcome'] == 'churned_despite_offer')
+    total_cost = sum(r.get('retention_cost_gbp', 0.0) for r in rl)
+
+    lines = [
+        "## Retention Strategy P&L",
+        "",
+        f"Offers made: **{offered}** | Retained: **{retained_count}** | Churned despite offer: **{churned_despite}**",
+        f"Total retention cost (foregone margin): **\xa3{total_cost:,.2f}**",
+        "",
+        "| Date | Customer | Est. churn | Discount | Cost | Outcome |",
+        "|------|----------|-----------|---------|------|---------|",
+    ]
+    for r in sorted(rl, key=lambda x: x['event_date']):
+        lines.append(
+            f"| {r['event_date']} | {r['customer_id']} | {r['company_churn_estimate']:.2f}"
+            f" | {r['discount_pct']*100:.0f}% | \xa3{r.get('retention_cost_gbp', 0):.2f} | {r['outcome']} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -1524,6 +1560,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_customer_lifecycle_events_section(data))
     sections.append(_churn_basis_risk_section(data))
     sections.append(_section_company_crm(data))
+    sections.append(_section_retention_strategy(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
     sections.append(_ledger_summary_section(data))

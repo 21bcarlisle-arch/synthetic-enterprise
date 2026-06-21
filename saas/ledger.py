@@ -159,6 +159,22 @@ def make_acquisition_spend_event(
     }
 
 
+
+def make_retention_cost_event(
+    billing_account: str,
+    event_date: str,
+    cost_gbp: float,
+    company_churn_estimate: float,
+) -> dict[str, Any]:
+    return {
+        'transaction_id': _tid('retention_cost', billing_account, event_date),
+        'event_type': 'retention_cost_event',
+        'timestamp': event_date,
+        'billing_account': billing_account,
+        'company_churn_estimate': company_churn_estimate,
+        'amount_gbp': -cost_gbp,
+    }
+
 def make_fixed_cost_event(month: str, amount_gbp: float) -> dict[str, Any]:
     """Cash out: monthly operating overhead (metering admin, licensing, ops)."""
     return {

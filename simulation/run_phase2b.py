@@ -34,7 +34,7 @@ from saas.growth_mandate import (
     MANDATE,
     roll_acquisition,
 )
-from saas.ledger import make_acquisition_spend_event, make_fixed_cost_event
+from saas.ledger import make_acquisition_spend_event, make_fixed_cost_event, make_retention_cost_event
 from saas.property_model import (
     DEFAULT_ASSETS,
     DEFAULT_HEATING_SYSTEM,
@@ -118,6 +118,11 @@ STARTING_TREASURY_GBP = 3250.0 * (EFFECTIVE_EAC / ORIGINAL_4_CUSTOMER_EAC_KWH)
 # Phase 5c minimum hedge mandate: every term starts at the mandate floor
 # (sim.hedging_strategy.MIN_HEDGE_FLOOR), not a neutral 50/50 guess.
 RESET_HEDGE_FRACTION = MIN_HEDGE_FLOOR
+
+RETENTION_THRESHOLD = 0.30
+RETENTION_DISCOUNT_PCT = 0.05
+RETENTION_EFFECTIVENESS = 0.20
+
 EARLIEST_SSP_DATE = "2015-11-07"
 COMMITTEE_COOLDOWN_PERIODS = 1440
 
@@ -428,6 +433,9 @@ def main(report_end: str | None = None, sim_interface=None):
     prev_elec_unit_rates: dict[str, float] = {}
     # Phase 12a: fresh acquisition wins for company_event_log
     fresh_acquisitions: list[dict] = []
+    # Phase 12b: retention cost events and log
+    retention_cost_events: list[dict] = []
+    retention_log: list[dict] = []
 
     current_year_str = REPORT_START[:4]
     ytd_gross = ytd_net = ytd_capital = 0.0
@@ -474,16 +482,49 @@ def main(report_end: str | None = None, sim_interface=None):
         if commodity == "electricity":
             prev_elec_unit_rates[cid] = unit_rate
 
-        # Phase 6b+7e: roll churn/renewal event at each renewal point (electricity legs drive billing).
-        # Pass _ALL_KNOWN_CUSTOMERS so successors are found by build_churn_risk.
         if term_index >= 1 and commodity == "electricity":
+            company_est_pre = None
+            retention_modifier_val = None
+            if old_elec_rate is not None:
+                from company.crm.churn_model import estimate_churn_probability as _est_churn
+                acq_date_for_est = next(
+                    (c["acquisition_date"] for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account),
+                    term_start_str,
+                )
+                tenure_for_est = (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_for_est)).days / 365.25
+                company_est_pre = round(_est_churn(old_elec_rate, unit_rate, tenure_for_est), 4)
+                if company_est_pre > RETENTION_THRESHOLD:
+                    retention_modifier_val = RETENTION_EFFECTIVENESS
+                    eac_for_ret = EFFECTIVE_EAC_KWH.get(cid, 0.0)
+                    ret_cost = unit_rate * RETENTION_DISCOUNT_PCT * eac_for_ret / 1000.0
+                    retention_cost_events.append(
+                        make_retention_cost_event(billing_account, term_start_str, ret_cost, company_est_pre)
+                    )
+                    retention_log.append({
+                        "customer_id": billing_account,
+                        "event_date": term_start_str,
+                        "company_churn_estimate": company_est_pre,
+                        "discount_pct": RETENTION_DISCOUNT_PCT,
+                        "retention_cost_gbp": ret_cost,
+                        "outcome": "pending",
+                    })
             event = roll_lifecycle_event(
                 cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
                 old_rate_gbp_per_mwh=old_elec_rate,
                 new_rate_gbp_per_mwh=unit_rate,
+                retention_modifier=retention_modifier_val,
+                precomputed_company_estimate=company_est_pre,
             )
             if event is not None:
                 customer_events_log.append(event)
+                if retention_modifier_val is not None and retention_log:
+                    outcome_str = "churned_despite_offer" if event["event_type"] == "churned" else "retained"
+                    retention_log[-1]["outcome"] = outcome_str
+                    if sim_interface is not None:
+                        sim_interface.notify_retention_attempt(
+                            billing_account, term_start_str, company_est_pre,
+                            RETENTION_DISCOUNT_PCT, outcome=outcome_str
+                        )
                 if event["event_type"] == "churned":
                     churned_billing_accounts.add(billing_account)
                     print(
@@ -880,6 +921,8 @@ def main(report_end: str | None = None, sim_interface=None):
         "company_event_log": _build_company_event_log(
             customer_events_log, won_successor_activations, fresh_acquisitions, SUCCESSOR_MAP
         ),
+        "retention_log": retention_log,
+        "retention_cost_events": retention_cost_events,
     }
 
 

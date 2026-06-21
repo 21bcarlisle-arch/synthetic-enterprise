@@ -8273,6 +8273,63 @@
     "C5",
     "C6"
   ],
+  "company_event_log": [
+    {
+      "event_type": "churn",
+      "customer_id": "C3",
+      "event_date": "2020-06-30",
+      "reason": "non-renewal",
+      "sim_churn_probability": 0.14,
+      "company_churn_estimate": 0.0
+    },
+    {
+      "event_type": "churn",
+      "customer_id": "C1",
+      "event_date": "2021-12-30",
+      "reason": "non-renewal",
+      "sim_churn_probability": 0.14,
+      "company_churn_estimate": 0.95
+    },
+    {
+      "event_type": "churn",
+      "customer_id": "C5",
+      "event_date": "2021-12-30",
+      "reason": "non-renewal",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.95
+    },
+    {
+      "event_type": "churn",
+      "customer_id": "C2",
+      "event_date": "2022-03-31",
+      "reason": "non-renewal",
+      "sim_churn_probability": 0.17,
+      "company_churn_estimate": 0.95
+    },
+    {
+      "event_type": "acquisition",
+      "customer_id": "C2_2",
+      "event_date": "2022-03-31",
+      "channel": "home-move-win",
+      "predecessor_id": "C2"
+    },
+    {
+      "event_type": "churn",
+      "customer_id": "C6",
+      "event_date": "2024-03-30",
+      "reason": "non-renewal",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.0
+    },
+    {
+      "event_type": "churn",
+      "customer_id": "C4",
+      "event_date": "2024-09-29",
+      "reason": "non-renewal",
+      "sim_churn_probability": 0.23,
+      "company_churn_estimate": 0.0
+    }
+  ],
   "won_successor_activations": {
     "C2_2": "2022-03-31"
   },

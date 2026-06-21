@@ -549,3 +549,33 @@ def test_derive_pnl_phase9a_backward_compatible_with_pre9a_bills():
     assert abs(pnl["net_margin_gbp"] - 3.5) < 1e-9
     assert "total_billed_gbp" not in pnl
     assert "vat_remittance_gbp" not in pnl
+
+
+def test_make_retention_cost_event_structure():
+    from saas.ledger import make_retention_cost_event
+    ev = make_retention_cost_event("C1", "2021-06-30", 12.50, 0.45)
+    assert ev["event_type"] == "retention_cost_event"
+    assert ev["billing_account"] == "C1"
+    assert ev["timestamp"] == "2021-06-30"
+    assert abs(ev["company_churn_estimate"] - 0.45) < 1e-6
+    assert abs(ev["amount_gbp"] - (-12.50)) < 1e-6
+
+
+def test_make_retention_cost_event_amount_is_negative():
+    from saas.ledger import make_retention_cost_event
+    ev = make_retention_cost_event("C2", "2022-01-01", 50.0, 0.35)
+    assert ev["amount_gbp"] < 0
+
+
+def test_make_retention_cost_event_transaction_id_deterministic():
+    from saas.ledger import make_retention_cost_event
+    ev1 = make_retention_cost_event("C3", "2020-06-30", 25.0, 0.4)
+    ev2 = make_retention_cost_event("C3", "2020-06-30", 25.0, 0.4)
+    assert ev1["transaction_id"] == ev2["transaction_id"]
+
+
+def test_make_retention_cost_event_different_customers_different_ids():
+    from saas.ledger import make_retention_cost_event
+    ev1 = make_retention_cost_event("C1", "2021-01-01", 10.0, 0.3)
+    ev2 = make_retention_cost_event("C2", "2021-01-01", 10.0, 0.3)
+    assert ev1["transaction_id"] != ev2["transaction_id"]

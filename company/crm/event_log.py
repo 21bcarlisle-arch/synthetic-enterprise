@@ -23,6 +23,16 @@ class ChurnEvent:
     company_churn_estimate: object = None
 
 
+
+@dataclass
+class RetentionEvent:
+    customer_id: str
+    event_date: str
+    company_churn_estimate: float
+    discount_pct: float
+    outcome: str
+
+
 @dataclass
 class AcquisitionEvent:
     customer_id: str
@@ -41,6 +51,9 @@ class CompanyEventLog:
         self._events.append(event)
 
     def record_acquisition(self, event):
+        self._events.append(event)
+
+    def record_retention(self, event):
         self._events.append(event)
 
     def all_events(self):
@@ -68,6 +81,9 @@ class CompanyEventLog:
     def acquisition_events(self):
         return [e for e in self._events if isinstance(e, AcquisitionEvent)]
 
+    def retention_events(self):
+        return [e for e in self._events if isinstance(e, RetentionEvent)]
+
     def as_dicts(self):
         result = []
         for ev in self._events:
@@ -79,6 +95,15 @@ class CompanyEventLog:
                     "reason": ev.reason,
                     "sim_churn_probability": ev.sim_churn_probability,
                     "company_churn_estimate": ev.company_churn_estimate,
+                })
+            elif isinstance(ev, RetentionEvent):
+                result.append({
+                    "event_type": "retention",
+                    "customer_id": ev.customer_id,
+                    "event_date": ev.event_date,
+                    "company_churn_estimate": ev.company_churn_estimate,
+                    "discount_pct": ev.discount_pct,
+                    "outcome": ev.outcome,
                 })
             else:
                 result.append({

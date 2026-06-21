@@ -141,3 +141,66 @@ def test_multiple_churn_notifications_all_recorded():
     log.record_churn(ChurnEvent(customer_id="C2", event_date="2019-01-01"))
     log.record_churn(ChurnEvent(customer_id="C3", event_date="2020-01-01"))
     assert len(log.churn_events()) == 3
+
+
+def test_record_retention_stores_event():
+    from company.crm.event_log import RetentionEvent
+    log = CompanyEventLog()
+    ev = RetentionEvent(
+        customer_id="C1",
+        event_date="2021-01-01",
+        company_churn_estimate=0.45,
+        discount_pct=0.05,
+        outcome="retained",
+    )
+    log.record_retention(ev)
+    assert len(log.retention_events()) == 1
+    assert log.retention_events()[0].customer_id == "C1"
+    assert log.retention_events()[0].outcome == "retained"
+
+
+def test_retention_events_filter_excludes_churn_and_acquisition():
+    from company.crm.event_log import RetentionEvent
+    log = CompanyEventLog()
+    log.record_churn(ChurnEvent(customer_id="C2", event_date="2019-01-01"))
+    log.record_acquisition(AcquisitionEvent(customer_id="C3", event_date="2020-01-01"))
+    log.record_retention(RetentionEvent(
+        customer_id="C2", event_date="2018-01-01",
+        company_churn_estimate=0.4, discount_pct=0.05, outcome="churned_despite_offer",
+    ))
+    assert len(log.retention_events()) == 1
+    assert len(log.churn_events()) == 1
+    assert len(log.acquisition_events()) == 1
+
+
+def test_as_dicts_includes_retention_event():
+    from company.crm.event_log import RetentionEvent
+    log = CompanyEventLog()
+    log.record_retention(RetentionEvent(
+        customer_id="C4",
+        event_date="2022-06-30",
+        company_churn_estimate=0.55,
+        discount_pct=0.05,
+        outcome="churned_despite_offer",
+    ))
+    dicts = log.as_dicts()
+    assert len(dicts) == 1
+    d = dicts[0]
+    assert d["event_type"] == "retention"
+    assert d["customer_id"] == "C4"
+    assert d["event_date"] == "2022-06-30"
+    assert abs(d["company_churn_estimate"] - 0.55) < 1e-6
+    assert abs(d["discount_pct"] - 0.05) < 1e-6
+    assert d["outcome"] == "churned_despite_offer"
+
+
+def test_retention_event_not_in_active_accounts():
+    from company.crm.event_log import RetentionEvent
+    log = CompanyEventLog()
+    log.record_acquisition(AcquisitionEvent(customer_id="C1", event_date="2016-01-01"))
+    log.record_retention(RetentionEvent(
+        customer_id="C1", event_date="2017-01-01",
+        company_churn_estimate=0.35, discount_pct=0.05, outcome="retained",
+    ))
+    active = log.active_accounts("2020-12-31")
+    assert "C1" in active

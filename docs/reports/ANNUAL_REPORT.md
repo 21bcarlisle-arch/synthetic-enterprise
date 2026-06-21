@@ -148,7 +148,37 @@ Not available in current run output (see REPORTING_BACKLOG.md)
 
 ## Company CRM — Event Log
 
-No events recorded in current run.
+Dated artefacts of customer lifecycle events as seen by the company layer.
+Total events: **7** (6 churn, 1 acquisition)
+
+| Date | Event | Customer | Detail |
+|------|-------|----------|--------|
+| 2020-06-30 | CHURN | C3 | SIM p=0.14, company est=0.00 |
+| 2021-12-30 | CHURN | C1 | SIM p=0.14, company est=0.95 |
+| 2021-12-30 | CHURN | C5 | SIM p=0.35, company est=0.95 |
+| 2022-03-31 | CHURN | C2 | SIM p=0.17, company est=0.95 |
+| 2022-03-31 | ACQUISITION | C2_2 | home-move-win (predecessor: C2) |
+| 2024-03-30 | CHURN | C6 | SIM p=0.38, company est=0.00 |
+| 2024-09-29 | CHURN | C4 | SIM p=0.23, company est=0.00 |
+
+**SIM ground truth vs company CRM reconciliation (year-end snapshots):**
+
+| Year-end | SIM churned (cumulative) | CRM active | Match |
+|----------|--------------------------|------------|-------|
+| 2016-12-31 | 0 accounts | 0 active | yes |
+| 2017-12-31 | 0 accounts | 0 active | yes |
+| 2018-12-31 | 0 accounts | 0 active | yes |
+| 2019-12-31 | 0 accounts | 0 active | yes |
+| 2020-12-31 | 1 accounts | 0 active | yes |
+| 2021-12-31 | 3 accounts | 0 active | yes |
+| 2022-12-31 | 4 accounts | 1 active | yes |
+| 2023-12-31 | 4 accounts | 1 active | yes |
+| 2024-12-31 | 6 accounts | 1 active | yes |
+| 2025-12-31 | 6 accounts | 1 active | yes |
+
+## Retention Strategy
+
+No retention offers made in this run (threshold: 30% company churn estimate).
 
 ## CLV Trajectory
 

@@ -223,3 +223,61 @@ def test_home_move_won_is_bool_not_float():
     result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
     assert result is not None
     assert isinstance(result["home_move_won"], bool)
+
+
+def test_roll_lifecycle_event_retention_offered_field_false_without_modifier():
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result is not None
+    assert result["retention_offered"] is False
+
+
+def test_roll_lifecycle_event_retention_offered_field_true_with_modifier():
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", records, customers,
+        retention_modifier=0.20,
+    )
+    assert result is not None
+    assert result["retention_offered"] is True
+
+
+def test_roll_lifecycle_event_precomputed_estimate_used():
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", records, customers,
+        old_rate_gbp_per_mwh=100.0, new_rate_gbp_per_mwh=150.0,
+        precomputed_company_estimate=0.99,
+    )
+    assert result is not None
+    assert abs(result["company_churn_estimate"] - 0.99) < 1e-6
+
+
+def test_roll_lifecycle_event_retention_modifier_increases_retention_probability():
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result_no_mod = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    result_with_mod = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", records, customers,
+        retention_modifier=0.50,
+    )
+    assert result_no_mod is not None and result_with_mod is not None
+    p_no = result_no_mod["effective_retention_probability"]
+    p_with = result_with_mod["effective_retention_probability"]
+    assert p_with >= p_no
+
+
+def test_roll_lifecycle_event_modifier_zero_leaves_probability_unchanged():
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result_no_mod = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    result_zero_mod = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", records, customers,
+        retention_modifier=0.0,
+    )
+    assert result_no_mod is not None and result_zero_mod is not None
+    assert abs(result_no_mod["effective_retention_probability"] - result_zero_mod["effective_retention_probability"]) < 1e-9
+    assert result_no_mod["event_type"] == result_zero_mod["event_type"]

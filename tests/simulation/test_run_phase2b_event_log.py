@@ -54,3 +54,44 @@ def test_sim_interface_none_still_works():
     """run_phase2b works fine when sim_interface is None (default)."""
     result = run_phase2b(report_end="2017-12-31", sim_interface=None)
     assert "company_event_log" in result
+
+
+def test_retention_log_key_present(sim_result_2017):
+    result, _ = sim_result_2017
+    assert "retention_log" in result
+    assert isinstance(result["retention_log"], list)
+
+
+def test_retention_cost_events_key_present(sim_result_2017):
+    result, _ = sim_result_2017
+    assert "retention_cost_events" in result
+    assert isinstance(result["retention_cost_events"], list)
+
+
+def test_retention_log_entries_have_required_fields(sim_result_2017):
+    result, _ = sim_result_2017
+    for entry in result["retention_log"]:
+        assert "customer_id" in entry
+        assert "event_date" in entry
+        assert "company_churn_estimate" in entry
+        assert "discount_pct" in entry
+        assert "outcome" in entry
+        assert entry["outcome"] in ("retained", "churned_despite_offer")
+
+
+def test_retention_cost_events_are_negative_amounts(sim_result_2017):
+    result, _ = sim_result_2017
+    for ev in result["retention_cost_events"]:
+        assert ev["amount_gbp"] < 0
+
+
+def test_retention_log_entries_above_threshold(sim_result_2017):
+    from simulation.run_phase2b import RETENTION_THRESHOLD
+    result, _ = sim_result_2017
+    for entry in result["retention_log"]:
+        assert entry["company_churn_estimate"] > RETENTION_THRESHOLD
+
+
+def test_stub_retention_notifications_count_matches_log(sim_result_2017):
+    result, stub = sim_result_2017
+    assert len(stub.retention_notifications) == len(result["retention_log"])

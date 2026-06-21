@@ -41,6 +41,8 @@ def roll_lifecycle_event(
     price_differential_pct: float = PRICE_DIFFERENTIAL_PCT,
     old_rate_gbp_per_mwh: float | None = None,
     new_rate_gbp_per_mwh: float | None = None,
+    retention_modifier: float | None = None,
+    precomputed_company_estimate: float | None = None,
 ) -> dict | None:
     """Compute and roll the churn/renewal event for a billing account at a
     renewal point.
@@ -76,7 +78,11 @@ def roll_lifecycle_event(
         return None
 
     roll = _random.Random(f"{billing_account}_{term_start_str}").random()
-    retained = roll <= renewal_data["effective_retention_probability"]
+    effective_p_retain = renewal_data["effective_retention_probability"]
+    if retention_modifier is not None:
+        p_churn_base = 1.0 - effective_p_retain
+        effective_p_retain = 1.0 - p_churn_base * (1.0 - retention_modifier)
+    retained = roll <= effective_p_retain
 
     # Phase 7e: when an account churns, roll whether we win the home-mover's
     # business. Separate seed so it never interferes with the churn roll.
@@ -86,9 +92,9 @@ def roll_lifecycle_event(
         home_move_won = win_roll <= renewal_data["win_probability"]
 
     # Phase 11b: company's observable-data churn estimate
-    company_churn_estimate: float | None = None
+    company_churn_estimate: float | None = precomputed_company_estimate
     churn_estimate_error_pct: float | None = None
-    if old_rate_gbp_per_mwh is not None and new_rate_gbp_per_mwh is not None:
+    if company_churn_estimate is None and old_rate_gbp_per_mwh is not None and new_rate_gbp_per_mwh is not None:
         acq_date = next(
             (c["acquisition_date"] for c in customers if c["customer_id"] == billing_account),
             term_start_str,
@@ -97,6 +103,7 @@ def roll_lifecycle_event(
         company_churn_estimate = round(
             estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years), 4
         )
+    if company_churn_estimate is not None:
         sim_prob = renewal_data["churn_probability"]
         if sim_prob:
             churn_estimate_error_pct = round(
@@ -115,4 +122,5 @@ def roll_lifecycle_event(
         "home_move_won": home_move_won,
         "company_churn_estimate": company_churn_estimate,
         "churn_estimate_error_pct": churn_estimate_error_pct,
+        "retention_offered": retention_modifier is not None,
     }
