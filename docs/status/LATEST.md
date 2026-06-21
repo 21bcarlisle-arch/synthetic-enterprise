@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T09:33:25Z
+Last updated: 2026-06-21T09:58:14Z
+
+**Token proxy LIVE (2026-06-21)**: localhost:8801 intercepts all Anthropic API calls, tracks per-session usage.
+- Handles gzip-compressed responses (decompresses before parsing SSE/JSON)
+- Logs to docs/observability/token-usage-log.jsonl (one JSONL line per call)
+- autonomous_runner.py sets ANTHROPIC_BASE_URL=http://localhost:8801 so all autonomous turns tracked
+- Query: `python3 -m background.token_proxy --query` | Pricing: Sonnet 4.6 input $3/MTok, output $15/MTok
 
 **Model evaluation COMPLETE (2026-06-21)**: gemma4:12b vs qwen3:14b — **keep qwen3:14b everywhere**.
 - Accuracy: identical (dispatcher 10/10, discovery 5/5, risk committee valid — both models)
