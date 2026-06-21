@@ -838,8 +838,8 @@ def test_section_company_divergence_renders_churn_table():
     result = _section_company_divergence(data)
     assert "Churn Estimate Error" in result
     assert "2020" in result
-    assert "15.0%" in result
-    assert "30.0%" in result
+    assert "0.15×" in result   # shown as ×SIM multiplier (Phase 14a annotation)
+    assert "0.30×" in result
 
 
 def test_extract_report_data_includes_company_divergence():

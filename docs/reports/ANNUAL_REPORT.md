@@ -199,18 +199,26 @@ that captures high-spend SME customers under financial stress even when
 their renewal rate is falling — the failure mode that caused company_p=0%
 for C6 in 2024 despite SIM showing 38% churn risk.
 
-| Year | Renewals | Mean Abs Error | Max Abs Error |
-|------|----------|---------------|--------------|
-| 2016 | 3 | 153.4% | 449.6% |
-| 2017 | 3 | 55.2% | 76.7% |
-| 2018 | 3 | 54.9% | 104.4% |
-| 2019 | 3 | 100.0% | 100.0% |
-| 2020 | 9 | 76.5% | 100.0% |
-| 2021 | 8 | 408.6% | 1800.0% |
-| 2022 | 6 | 224.0% | 458.8% |
-| 2023 | 6 | 100.0% | 100.0% |
-| 2024 | 6 | 97.0% | 100.0% |
-| 2025 | 2 | 19.2% | 19.2% |
+**Structural limitation**: the company model uses rate-change % as a churn proxy.
+The SIM uses bill-shock history (whether the customer experienced billing spikes
+during their contract). In crisis years (2021-22), rate increases were extreme
+but hedged customers had few bill shocks — the company systematically over-estimates
+churn (company_p→0.95) for customers the SIM correctly sees as low-risk (sim_p=5-14%).
+The 2021 max error reflects this: the company cannot observe that a customer was
+well-hedged and therefore not experiencing bill shocks during their last contract.
+
+| Year | Renewals | Mean Abs Error (×SIM) | Max Abs Error (×SIM) |
+|------|----------|-----------------------|---------------------|
+| 2016 | 3 | 1.53× | 4.50× |
+| 2017 | 3 | 0.55× | 0.77× |
+| 2018 | 3 | 0.55× | 1.04× |
+| 2019 | 3 | 1.00× | 1.00× |
+| 2020 | 9 | 0.76× | 1.00× |
+| 2021 | 8 | 4.09× ⚠ | 18.00× |
+| 2022 | 6 | 2.24× ⚠ | 4.59× |
+| 2023 | 6 | 1.00× | 1.00× |
+| 2024 | 6 | 0.97× | 1.00× |
+| 2025 | 2 | 0.19× | 0.19× |
 
 ## Company CRM — Event Log
 

@@ -1289,12 +1289,21 @@ def _section_company_divergence(data: dict) -> str:
             "their renewal rate is falling — the failure mode that caused company_p=0%",
             "for C6 in 2024 despite SIM showing 38% churn risk.",
             "",
-            "| Year | Renewals | Mean Abs Error | Max Abs Error |",
-            "|------|----------|---------------|--------------|",
+            "**Structural limitation**: the company model uses rate-change % as a churn proxy.",
+            "The SIM uses bill-shock history (whether the customer experienced billing spikes",
+            "during their contract). In crisis years (2021-22), rate increases were extreme",
+            "but hedged customers had few bill shocks — the company systematically over-estimates",
+            "churn (company_p→0.95) for customers the SIM correctly sees as low-risk (sim_p=5-14%).",
+            "The 2021 max error reflects this: the company cannot observe that a customer was",
+            "well-hedged and therefore not experiencing bill shocks during their last contract.",
+            "",
+            "| Year | Renewals | Mean Abs Error (×SIM) | Max Abs Error (×SIM) |",
+            "|------|----------|-----------------------|---------------------|",
         ]
         for yr, s in sorted(churn_by_year.items()):
-            n, mean_pct, max_pct = s["n"], s["mean_abs_error_pct"] * 100, s["max_abs_error_pct"] * 100
-            lines.append(f"| {yr} | {n} | {mean_pct:.1f}% | {max_pct:.1f}% |")
+            n, mean_raw, max_raw = s["n"], s["mean_abs_error_pct"], s["max_abs_error_pct"]
+            flag = " ⚠" if mean_raw > 2.0 else ""  # flag when company over-estimates by >2× on average
+            lines.append(f"| {yr} | {n} | {mean_raw:.2f}×{flag} | {max_raw:.2f}× |")
         lines.append("")
 
     return "\n".join(lines)
