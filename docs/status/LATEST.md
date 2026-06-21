@@ -8,9 +8,9 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T18:58:34Z
+Last updated: 2026-06-21T21:16:40Z
 
-**Phase 21a LIVE (2026-06-21)**: Explicit RO + CfD electricity policy costs. 787+ tests passing (23 new).
+**Phase 21a LIVE (2026-06-21)**: Explicit RO + CfD electricity policy costs. 810 tests passing (23 new; 787 fast-mode).
 - `simulation/policy_costs.py`: year-indexed RO (£15.6→£31.8/MWh, 2016→2024) + CfD levy tables (negative in 2022 = crisis rebate)
 - `simulation/hedged_settlement.py`: records `ro_levy_gbp`, `cfd_levy_gbp`, `policy_cost_gbp` per period; `net_margin = margin - policy_cost - capital_cost`
 - Basis risk: tariff uses term_start year; settlement uses actual settlement_date year → 2022 CfD rebate creates windfall on cross-year terms
