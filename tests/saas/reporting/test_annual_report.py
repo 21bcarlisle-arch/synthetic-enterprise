@@ -1377,3 +1377,49 @@ def test_churn_avoidability_empty_when_no_log():
     from saas.reporting.annual_report import _section_churn_avoidability
     assert _section_churn_avoidability({}) == ""
     assert _section_churn_avoidability({"no_offer_churn_log": []}) == ""
+
+
+# ---- Phase 17c: customer P&L ranking tests ----
+
+def _pnl_ranking_fixture():
+    return {
+        "all_records": [
+            {"customer_id": "C_profit", "settlement_date": "2022-01-15",
+             "margin_gbp": 500.0, "capital_cost_gbp": 50.0,
+             "net_margin_gbp": 450.0, "revenue_gbp": 5000.0},
+            {"customer_id": "C_profit", "settlement_date": "2022-02-15",
+             "margin_gbp": 600.0, "capital_cost_gbp": 60.0,
+             "net_margin_gbp": 540.0, "revenue_gbp": 6000.0},
+            {"customer_id": "C_loss", "settlement_date": "2022-01-15",
+             "margin_gbp": -200.0, "capital_cost_gbp": 20.0,
+             "net_margin_gbp": -220.0, "revenue_gbp": 2000.0},
+        ]
+    }
+
+
+def test_pnl_ranking_shows_header():
+    from saas.reporting.annual_report import _section_customer_pnl_ranking
+    result = _section_customer_pnl_ranking(_pnl_ranking_fixture())
+    assert "Customer P&L Ranking" in result
+
+
+def test_pnl_ranking_profitable_customer_first():
+    """C_profit (net £990) should rank above C_loss (net -£220)."""
+    from saas.reporting.annual_report import _section_customer_pnl_ranking
+    result = _section_customer_pnl_ranking(_pnl_ranking_fixture())
+    pos_profit = result.find("C_profit")
+    pos_loss = result.find("C_loss")
+    assert pos_profit < pos_loss
+
+
+def test_pnl_ranking_shows_net_margin_pct():
+    """Section should include percentage column."""
+    from saas.reporting.annual_report import _section_customer_pnl_ranking
+    result = _section_customer_pnl_ranking(_pnl_ranking_fixture())
+    assert "%" in result
+
+
+def test_pnl_ranking_empty_when_no_records():
+    from saas.reporting.annual_report import _section_customer_pnl_ranking
+    assert _section_customer_pnl_ranking({}) == ""
+    assert _section_customer_pnl_ranking({"all_records": []}) == ""

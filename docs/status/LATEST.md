@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:45:21Z
+Last updated: 2026-06-21T15:48:01Z
+
+**Phase 17c LIVE (2026-06-21)**: Per-customer lifetime P&L ranking in annual report. 756 tests passing (4 new).
+- `saas/reporting/annual_report.py`: `_section_customer_pnl_ranking()` — ranks all billing accounts by lifetime net margin
+- Aggregates all_records per customer: revenue, gross margin, capital, net margin, net margin %
+- Answers: "which customers created vs destroyed value over their lifetime?"
 
 **Phase 17b LIVE (2026-06-21)**: Churn avoidability analysis in annual report. 752 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_churn_avoidability()` — classifies no-offer churns as blind misses vs deliberate passes

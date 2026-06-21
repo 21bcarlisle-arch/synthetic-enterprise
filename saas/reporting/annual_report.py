@@ -1614,6 +1614,56 @@ def _section_churn_avoidability(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_customer_pnl_ranking(data: dict) -> str:
+    """Phase 17c: per-customer lifetime P&L ranking across the full simulation window.
+
+    Ranks all billing accounts (including successors) by net margin (best to worst).
+    Shows gross margin, capital cost, net margin, and revenue.
+    Surfaces the answer to: 'which customers created value vs destroyed it?'
+    """
+    records = data.get("all_records", [])
+    if not records:
+        return ""
+
+    from collections import defaultdict
+    by_cid: dict[str, dict[str, float]] = defaultdict(
+        lambda: {"gross": 0.0, "capital": 0.0, "net": 0.0, "revenue": 0.0}
+    )
+    for r in records:
+        cid = r["customer_id"]
+        by_cid[cid]["gross"] += r.get("margin_gbp", 0.0)
+        by_cid[cid]["capital"] += r.get("capital_cost_gbp", 0.0)
+        by_cid[cid]["net"] += r.get("net_margin_gbp", 0.0)
+        by_cid[cid]["revenue"] += r.get("revenue_gbp", 0.0)
+
+    ranked = sorted(by_cid.items(), key=lambda x: x[1]["net"], reverse=True)
+
+    total_net = sum(v["net"] for _, v in ranked)
+    total_revenue = sum(v["revenue"] for _, v in ranked)
+
+    lines = [
+        "## Customer P&L Ranking (Phase 17c)",
+        "",
+        f"Lifetime net margin: {_fmt_gbp(total_net)} across {len(ranked)} billing accounts. "
+        f"Revenue: {_fmt_gbp(total_revenue)}.",
+        "",
+        "| # | Customer | Revenue | Gross margin | Capital | Net margin | Net margin % |",
+        "|---|----------|---------|-------------|---------|------------|-------------|",
+    ]
+    for rank, (cid, v) in enumerate(ranked, 1):
+        net_pct = f"{v['net'] / v['revenue'] * 100:.1f}%" if v["revenue"] > 0 else "n/a"
+        lines.append(
+            f"| {rank} | {cid} "
+            f"| {_fmt_gbp(v['revenue'])} "
+            f"| {_fmt_gbp(v['gross'])} "
+            f"| {_fmt_gbp(v['capital'])} "
+            f"| {_fmt_gbp(v['net'])} "
+            f"| {net_pct} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _ledger_summary_section(data: dict) -> str:
     """Transaction log summary — Phase 7a/7b/9a. Shows event counts, cash-flow
     waterfall, and verification that ledger P&L agrees with the simulation."""
@@ -2352,6 +2402,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_margin_feedback(data))
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
+    sections.append(_section_customer_pnl_ranking(data))
     sections.append(_ledger_summary_section(data))
     sections.append(_growth_acquisition_section(data))
 

@@ -123,6 +123,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 17c COMPLETE (2026-06-21)**: Per-customer lifetime P&L ranking in annual report. 756 tests passing (4 new).
+- `saas/reporting/annual_report.py`: `_section_customer_pnl_ranking()` — aggregates all_records by customer, sorts by net margin
+- Shows: revenue, gross margin, capital cost, net margin, net margin % for each billing account
+- Surfaces which customers created vs destroyed value over their lifetime — actionable for pricing and renewal strategy
+- 4 new tests; fully backward-compatible (returns "" if no all_records)
+
 **Phase 17b COMPLETE (2026-06-21)**: Churn avoidability analysis in annual report. 752 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_churn_avoidability()` — joins `no_offer_churn_log` with `company_event_log` (SIM ground truth)
 - Classifies each no-offer churn as: blind miss (company_est < 30%) or deliberate pass (uneconomical offer)
