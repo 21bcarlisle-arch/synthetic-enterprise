@@ -21,6 +21,13 @@ window is shortened so the rolling mean reflects current-regime prices rather
 than diluting them with stale pre-crisis data. This reduces the systematic
 under-pricing error during the 2021-22 price spike (where a 120-day mean
 included several months of pre-spike calm prices that anchored estimates too low).
+
+Phase 17a adds a portfolio learning premium: the company observes its own
+completed electricity term margin rates (actual margin / revenue) and adjusts
+future tariffs upward when recent margins are below a target rate. This is a
+slower-acting, portfolio-wide signal complementing Phase 16c's per-customer
+emergency surcharge. Expected impact: sustained under-pricing in 2021-22
+triggers a portfolio-wide premium lift that carries into 2023-24.
 """
 
 import statistics
@@ -54,6 +61,13 @@ ADAPTIVE_VOL_BASELINE_DAYS = 90     # baseline window (ends RECENT_DAYS before d
 ADAPTIVE_LOOKBACK_MIN = 30          # floor (days)
 ADAPTIVE_LOOKBACK_MAX = 180         # ceiling (days)
 ADAPTIVE_VOL_MIN_BASELINE_STD = 0.5 # £/MWh; below this, vol ratio is undefined — keep base
+
+# Phase 17a: Portfolio learning premium — adjust tariff based on recent margin outcomes
+PORTFOLIO_TARGET_MARGIN_RATE = 0.08   # company targets 8% net margin on electricity revenue
+PORTFOLIO_PREMIUM_LOOKBACK = 4        # look at last N completed electricity terms (portfolio-wide)
+PORTFOLIO_PREMIUM_HALF_LIFE = 0.50    # fraction of gap to close per pricing cycle (50%)
+PORTFOLIO_PREMIUM_MIN = -0.05         # max tariff reduction if over-earning (5%)
+PORTFOLIO_PREMIUM_MAX = 0.15          # max tariff surcharge if under-earning (15%)
 
 
 def _daily_means_for_window(
@@ -177,3 +191,29 @@ class CompanyTariffEngine:
                 base *= (1.0 + GAS_WINTER_SEASONAL_UPLIFT) if is_winter else (1.0 - GAS_SUMMER_SEASONAL_DISCOUNT)
 
         return base * (1.0 + risk_premium)
+
+
+def compute_portfolio_premium(
+    recent_margin_rates: list[float],
+    target: float = PORTFOLIO_TARGET_MARGIN_RATE,
+    half_life: float = PORTFOLIO_PREMIUM_HALF_LIFE,
+    premium_min: float = PORTFOLIO_PREMIUM_MIN,
+    premium_max: float = PORTFOLIO_PREMIUM_MAX,
+) -> float:
+    """Compute a tariff adjustment premium from recent portfolio-wide electricity margin rates.
+
+    recent_margin_rates: list of (actual_margin / revenue) floats from completed electricity
+        terms across all customers. The company observes these from its own P&L — no SIM
+        internals required.
+
+    Returns a premium fraction to multiply onto unit_rate: positive = surcharge,
+    negative = discount, clamped to [premium_min, premium_max].
+
+    If no history is available (first N terms), returns 0.0 (no adjustment).
+    """
+    if not recent_margin_rates:
+        return 0.0
+    mean_margin = statistics.mean(recent_margin_rates)
+    shortfall = target - mean_margin   # positive when below target → raise rates
+    raw_premium = shortfall * half_life
+    return max(premium_min, min(premium_max, raw_premium))

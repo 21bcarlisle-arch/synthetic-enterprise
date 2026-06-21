@@ -123,6 +123,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 17a COMPLETE (2026-06-21)**: Portfolio learning premium — company adjusts tariffs from recent portfolio-wide margin rates. 747 tests passing (9 new).
+- `company/pricing/tariff_engine.py`: `compute_portfolio_premium()` — if mean recent electricity margin rates below 8% target, apply uplift at renewal (capped at +15%); over-earning triggers up to -5% discount
+- `simulation/run_phase2b.py`: tracks `portfolio_elec_margin_rates` list; applies premium BEFORE Phase 16c surcharge at each electricity renewal
+- `saas/reporting/annual_report.py`: `_section_dynamic_pricing()` — shows all premium/discount events
+- Slower-acting than Phase 16c (portfolio-wide, 4-term lookback vs per-customer 1-term); together they form two-speed feedback system
+- Expected: sustained 2021-22 crisis losses accumulate in rolling window → 2022-23 premiums of 10-15% on all renewals
+
 **Phase 16c COMPLETE (2026-06-21)**: Realized-margin feedback into renewal tariff. 748 tests passing (8 new).
 - `company/pricing/margin_feedback.py`: `compute_margin_surcharge()` — if prior term lost >5% of revenue, apply recovery surcharge (capped at 20%) at next renewal
 - `simulation/run_phase2b.py`: tracks `prev_term_margin` and `prev_term_revenue` per customer; applies surcharge before settlement

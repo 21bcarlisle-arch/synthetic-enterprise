@@ -20,7 +20,11 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
-from company.pricing.tariff_engine import CompanyTariffEngine
+from company.pricing.tariff_engine import (
+    PORTFOLIO_PREMIUM_LOOKBACK,
+    CompanyTariffEngine,
+    compute_portfolio_premium,
+)
 from saas.customer_reaction import _billing_account_id
 from saas.customers import (
     ACQUIRED_CUSTOMERS,
@@ -471,6 +475,10 @@ def main(report_end: str | None = None, sim_interface=None):
     prev_term_revenue: dict[str, float] = {}
     margin_feedback_log: list[dict] = []
 
+    # Phase 17a: rolling portfolio-wide electricity margin rates for learning premium
+    portfolio_elec_margin_rates: list[float] = []
+    dynamic_pricing_log: list[dict] = []
+
     all_records: list[dict] = []
     evolution_logs: dict[str, list] = {cid: [] for cid in all_customers_ids}
     term_indices: dict[str, int] = {cid: 0 for cid in all_customers_ids}
@@ -533,6 +541,23 @@ def main(report_end: str | None = None, sim_interface=None):
         unit_rate = term["unit_rate_gbp_per_mwh"]
         term_index = term_indices[cid]
         term_indices[cid] += 1
+
+        # Phase 17a: portfolio learning premium — adjust unit_rate based on recent margin rates
+        if term_index >= 1 and commodity == "electricity" and len(portfolio_elec_margin_rates) >= 1:
+            lookback = portfolio_elec_margin_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]
+            portfolio_prem = compute_portfolio_premium(lookback)
+            if abs(portfolio_prem) > 1e-6:
+                rate_before = unit_rate
+                unit_rate *= (1.0 + portfolio_prem)
+                dynamic_pricing_log.append({
+                    "customer_id": cid,
+                    "term_start": term_start_str,
+                    "recent_margin_rates": [round(r, 4) for r in lookback],
+                    "mean_recent_margin_rate": round(sum(lookback) / len(lookback), 4),
+                    "portfolio_premium_pct": round(portfolio_prem * 100, 2),
+                    "unit_rate_before": round(rate_before, 4),
+                    "unit_rate_after": round(unit_rate, 4),
+                })
 
         # Phase 16c: apply realized-margin recovery surcharge at electricity renewal (term ≥ 1)
         if term_index >= 1 and commodity == "electricity" and cid in prev_term_margin:
@@ -933,10 +958,14 @@ def main(report_end: str | None = None, sim_interface=None):
             )
             naked_net = naked_gross - naked_capital
 
-        # Phase 16c: record term margin + revenue for margin feedback at next renewal
+        # Phase 16c + 17a: record term margin + revenue for feedback/learning at next renewal
         if commodity == "electricity":
             prev_term_margin[cid] = actual_net
-            prev_term_revenue[cid] = sum(r["revenue_gbp"] for r in settled_this_term)
+            term_revenue = sum(r["revenue_gbp"] for r in settled_this_term)
+            prev_term_revenue[cid] = term_revenue
+            # Phase 17a: accumulate portfolio-wide margin rates for learning premium
+            if term_revenue > 0:
+                portfolio_elec_margin_rates.append(actual_net / term_revenue)
 
         new_hf, reason = evolve_hedge_fraction(hf, naked_net, actual_net)
         next_hf[cid] = new_hf
@@ -1082,6 +1111,7 @@ def main(report_end: str | None = None, sim_interface=None):
         "no_offer_churn_log": no_offer_churn_log,
         "company_gas_churn_log": company_gas_churn_log,
         "margin_feedback_log": margin_feedback_log,
+        "dynamic_pricing_log": dynamic_pricing_log,
         # Phase 12e: aggregated company-model divergence by year
         "company_divergence": _compute_company_divergence(
             basis_risk_terms,

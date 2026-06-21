@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:28:07Z
+Last updated: 2026-06-21T15:41:40Z
+
+**Phase 17a LIVE (2026-06-21)**: Portfolio learning premium — company adjusts tariffs from recent portfolio-wide margin rates. 747 tests passing (9 new).
+- `company/pricing/tariff_engine.py`: `compute_portfolio_premium()` — mean recent electricity margins below 8% target → surcharge up to +15%; over-earning → discount up to -5%
+- `simulation/run_phase2b.py`: tracks `portfolio_elec_margin_rates`; applies before Phase 16c surcharge at each electricity renewal
+- Two-speed feedback now live: Phase 17a (portfolio-wide, 4-term) + Phase 16c (per-customer, 1-term emergency)
+- Expected: 2021-22 losses accumulate in rolling window → systematic 10-15% premium on 2022-23 renewals
 
 **Phase 16c LIVE (2026-06-21)**: Realized-margin feedback into renewal tariff. 748 tests passing (8 new).
 - `company/pricing/margin_feedback.py`: recovery surcharge when prior term loss >5% of revenue (capped 20%)

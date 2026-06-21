@@ -1500,6 +1500,39 @@ def _section_margin_feedback(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_dynamic_pricing(data: dict) -> str:
+    """Phase 17a: portfolio learning premium events applied during the run."""
+    log = data.get("dynamic_pricing_log", [])
+    if not log:
+        return ""
+
+    total_events = len(log)
+    pos_events = [e for e in log if e["portfolio_premium_pct"] > 0]
+    neg_events = [e for e in log if e["portfolio_premium_pct"] < 0]
+
+    lines = [
+        "## Portfolio Learning Premium (Phase 17a)",
+        "",
+        f"Company applied portfolio premium adjustments at {total_events} electricity renewal(s) "
+        f"based on recent portfolio-wide margin rates: "
+        f"{len(pos_events)} surcharge(s), {len(neg_events)} discount(s).",
+        "",
+        "| Customer | Term start | Mean recent margin | Portfolio premium | Rate before | Rate after |",
+        "|----------|------------|-------------------|-------------------|------------|-----------|",
+    ]
+    for e in sorted(log, key=lambda x: x["term_start"]):
+        sign = "+" if e["portfolio_premium_pct"] >= 0 else ""
+        lines.append(
+            f"| {e['customer_id']} | {e['term_start']} "
+            f"| {e['mean_recent_margin_rate'] * 100:.1f}% "
+            f"| {sign}{e['portfolio_premium_pct']:.1f}% "
+            f"| £{e['unit_rate_before']:.2f}/MWh "
+            f"| £{e['unit_rate_after']:.2f}/MWh |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _ledger_summary_section(data: dict) -> str:
     """Transaction log summary — Phase 7a/7b/9a. Shows event counts, cash-flow
     waterfall, and verification that ledger P&L agrees with the simulation."""
@@ -2236,6 +2269,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_lifetime_pricing_section(data))
     sections.append(_section_repricing_impact(data))
     sections.append(_section_margin_feedback(data))
+    sections.append(_section_dynamic_pricing(data))
     sections.append(_ledger_summary_section(data))
     sections.append(_growth_acquisition_section(data))
 

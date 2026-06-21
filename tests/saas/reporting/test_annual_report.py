@@ -1254,3 +1254,56 @@ def test_retention_durability_empty_when_no_log():
     """No retention log → empty string."""
     from saas.reporting.annual_report import _section_retention_durability
     assert _section_retention_durability({"retention_log": [], "company_event_log": [], "churned_billing_accounts": []}) == ""
+
+
+# ---- Phase 17a: dynamic pricing section tests ----
+
+def _dynamic_pricing_fixture():
+    return {
+        "dynamic_pricing_log": [
+            {
+                "customer_id": "C1",
+                "term_start": "2022-01-01",
+                "recent_margin_rates": [-0.30, -0.20],
+                "mean_recent_margin_rate": -0.25,
+                "portfolio_premium_pct": 15.0,
+                "unit_rate_before": 200.00,
+                "unit_rate_after": 230.00,
+            },
+            {
+                "customer_id": "C2",
+                "term_start": "2022-06-01",
+                "recent_margin_rates": [0.20, 0.15],
+                "mean_recent_margin_rate": 0.175,
+                "portfolio_premium_pct": -5.0,
+                "unit_rate_before": 180.00,
+                "unit_rate_after": 171.00,
+            },
+        ]
+    }
+
+
+def test_dynamic_pricing_shows_header():
+    from saas.reporting.annual_report import _section_dynamic_pricing
+    result = _section_dynamic_pricing(_dynamic_pricing_fixture())
+    assert "Portfolio Learning Premium" in result
+
+
+def test_dynamic_pricing_shows_surcharge_count():
+    from saas.reporting.annual_report import _section_dynamic_pricing
+    result = _section_dynamic_pricing(_dynamic_pricing_fixture())
+    assert "1 surcharge" in result
+    assert "1 discount" in result
+
+
+def test_dynamic_pricing_shows_customer_id():
+    from saas.reporting.annual_report import _section_dynamic_pricing
+    result = _section_dynamic_pricing(_dynamic_pricing_fixture())
+    assert "C1" in result
+    assert "C2" in result
+
+
+def test_dynamic_pricing_empty_when_no_log():
+    from saas.reporting.annual_report import _section_dynamic_pricing
+    assert _section_dynamic_pricing({}) == ""
+    assert _section_dynamic_pricing({"dynamic_pricing_log": []}) == ""
