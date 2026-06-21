@@ -86,7 +86,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 
 ---
 
-## Current state (as of 20 June 2026)
+## Current state (as of 21 June 2026)
 
 **What's built:**
 - Phase 0+1: agentic loop, Elexon data ingestion, profile-class billing,
@@ -109,7 +109,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed
 
-**597 tests passing.**
+**617 tests passing (602 fast-suite + integration tests running).**
 
 **Key financial position (Phase 11a run, company observable pricing):**
 - Treasury: £29,846 → £11,131 (Phase 11a basis risk consumes treasury)
@@ -119,6 +119,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Enterprise value: £-20,661
 - 2021 net margin: £-3,069 | 2022: £-5,582 (worst year, crisis + basis risk)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 12b COMPLETE (2026-06-21)**: Company retention offers live.
+- `RetentionEvent` in `company/crm/event_log.py` + `notify_retention_attempt()` on all SimInterface classes
+- Pre-roll retention check in `run_phase2b.py`: if company estimate > 30% threshold, offer made before SIM rolls
+- `make_retention_cost_event()` in ledger: foregone margin recorded as cash-out
+- Annual report: "Retention Strategy P&L" section with offer/retained/churned table
+- 617 tests passing (23 new)
 
 **Phase 12a COMPLETE (2026-06-20)**: Company CRM event log live.
 - `CompanyEventLog` with dated `ChurnEvent` / `AcquisitionEvent` artefacts
@@ -132,16 +139,16 @@ If LATEST.md is stale, investigate and fix the root cause.
 ## The five hollow gaps
 
 These are the things that make the simulation feel like a model rather than
-an operating company. Status as of 20 June 2026:
+an operating company. Status as of 21 June 2026:
 
-1. **Customer events firing — DEEPENED (Phase 12a).** Six customers have
+1. **Customer events firing — DEEPENED (Phase 12b).** Six customers have
    actually churned with specific dates (C3/C1/C5/C2/C6/C4). Replacement
-   customers activate via home-move wins. Company CRM now has a `CompanyEventLog`
-   with dated `ChurnEvent` / `AcquisitionEvent` artefacts — churn is no longer
-   just a flag in a set. Year-end reconciliation table (company CRM vs SIM ground
-   truth) shows zero discrepancy in Phase 12a. Phase 12b: company acts on its own
-   churn estimate before the SIM rolls — retention offers — first case of company
-   decision affecting simulation outcome.
+   customers activate via home-move wins. Company CRM has `CompanyEventLog`
+   with dated `ChurnEvent` / `AcquisitionEvent` / `RetentionEvent` artefacts.
+   Phase 12b complete: company's churn estimate (>30%) triggers a pre-roll
+   retention offer that reduces SIM churn probability by 20%. Outcome recorded
+   as "retained" or "churned_despite_offer". This is the first company decision
+   that changes simulation outcome. Retention cost in ledger; ROI analysis next.
 
 2. **Ledger — CLOSED.** 2.2M ledger events: billing, settlement, capital
    charges, VAT remittance, bad debt, acquisition spend. P&L is now the sum
@@ -281,16 +288,10 @@ pricing model must account for cost-to-serve at the customer level.
 
 ## Roadmap from here
 
-**Immediate (Phase 12b):**
-- Company acts on its own churn estimate before the SIM rolls
-- Retention offer reduces churn probability; outcome depends on SIM ground truth
-- First case of company decision affecting simulation outcome
-- Company's imperfect churn estimate drives a real business decision
-
-**Next:**
-- Phase 12b: company acts on its own churn estimate before the SIM roll —
-  retention offer reduces churn probability; outcome depends on SIM ground
-  truth. First case of company decision affecting simulation outcome.
+**Immediate (Phase 12c proposed):**
+- Measure whether the company's retention strategy is net-positive over 2016-2025
+- Churn basis risk + retention ROI: does discounting under-estimated churners save more margin than the discount costs?
+- OR: SIM/company full operational independence (company runs on its own models end-to-end)
 
 **Then:**
 - SIM/company full operational independence: company runs on its own models
