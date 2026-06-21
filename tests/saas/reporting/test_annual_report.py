@@ -1483,3 +1483,47 @@ def test_dual_fuel_empty_when_no_gas_records():
     ]}
     assert _section_dual_fuel_pnl(data) == ""
     assert _section_dual_fuel_pnl({}) == ""
+
+
+# ---- Phase 17c/17d: pre-aggregated JSON path (per_cid_pnl / per_cid_comm_pnl) ----
+
+def _pnl_ranking_fixture_pre_aggregated():
+    """Simulates data loaded from saved JSON (no all_records, uses per_cid_pnl)."""
+    return {
+        "per_cid_pnl": {
+            "C_profit": {"gross": 1100.0, "capital": 110.0, "net": 990.0, "revenue": 11000.0},
+            "C_loss": {"gross": -200.0, "capital": 20.0, "net": -220.0, "revenue": 2000.0},
+        }
+    }
+
+
+def test_pnl_ranking_uses_per_cid_pnl_when_present():
+    """per_cid_pnl (saved JSON path) should produce the same ranking as all_records."""
+    from saas.reporting.annual_report import _section_customer_pnl_ranking
+    result = _section_customer_pnl_ranking(_pnl_ranking_fixture_pre_aggregated())
+    assert "Customer P&L Ranking" in result
+    pos_profit = result.find("C_profit")
+    pos_loss = result.find("C_loss")
+    assert pos_profit < pos_loss
+
+
+def _dual_fuel_fixture_pre_aggregated():
+    """Simulates data loaded from saved JSON (per_cid_comm_pnl, no all_records)."""
+    return {
+        "per_cid_comm_pnl": {
+            "C1": {"electricity": {"gross": 300.0, "capital": 30.0, "net": 270.0, "revenue": 3000.0}},
+            "C1g": {"gas": {"gross": 50.0, "capital": 5.0, "net": 45.0, "revenue": 500.0}},
+            "C2": {"electricity": {"gross": -200.0, "capital": 20.0, "net": -220.0, "revenue": 2000.0}},
+            "C2g": {"gas": {"gross": -80.0, "capital": 8.0, "net": -88.0, "revenue": 800.0}},
+        }
+    }
+
+
+def test_dual_fuel_uses_per_cid_comm_pnl_when_present():
+    """per_cid_comm_pnl (saved JSON path) should produce the same output as all_records."""
+    from saas.reporting.annual_report import _section_dual_fuel_pnl
+    result = _section_dual_fuel_pnl(_dual_fuel_fixture_pre_aggregated())
+    assert "Dual-Fuel" in result
+    assert "C1" in result
+    assert "C1g" in result
+    assert "1/2" in result

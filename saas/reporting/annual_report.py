@@ -444,6 +444,30 @@ def extract_report_data(run_output: dict) -> dict:
             "avg_offpeak_rate": round(offpeak_revenue / ((total_kwh - peak_kwh) / 1000), 2) if (total_kwh - peak_kwh) else 0.0,
         }
 
+    # Phase 17c/17d: pre-aggregate per-customer and per-customer/commodity P&L
+    # while all_records is in scope. all_records is never persisted to JSON
+    # (~1M rows), so these small aggregates are the only way these report sections
+    # can populate when generate_annual_report() runs from the saved JSON.
+    per_cid_pnl: dict = {}
+    per_cid_comm_pnl: dict = {}
+    for _r in all_records:
+        _cid = _r["customer_id"]
+        _comm = _r.get("commodity", "electricity")
+        if _cid not in per_cid_pnl:
+            per_cid_pnl[_cid] = {"gross": 0.0, "capital": 0.0, "net": 0.0, "revenue": 0.0}
+        per_cid_pnl[_cid]["gross"] += _r.get("margin_gbp", 0.0)
+        per_cid_pnl[_cid]["capital"] += _r.get("capital_cost_gbp", 0.0)
+        per_cid_pnl[_cid]["net"] += _r.get("net_margin_gbp", 0.0)
+        per_cid_pnl[_cid]["revenue"] += _r.get("revenue_gbp", 0.0)
+        if _cid not in per_cid_comm_pnl:
+            per_cid_comm_pnl[_cid] = {}
+        if _comm not in per_cid_comm_pnl[_cid]:
+            per_cid_comm_pnl[_cid][_comm] = {"gross": 0.0, "capital": 0.0, "net": 0.0, "revenue": 0.0}
+        per_cid_comm_pnl[_cid][_comm]["gross"] += _r.get("margin_gbp", 0.0)
+        per_cid_comm_pnl[_cid][_comm]["capital"] += _r.get("capital_cost_gbp", 0.0)
+        per_cid_comm_pnl[_cid][_comm]["net"] += _r.get("net_margin_gbp", 0.0)
+        per_cid_comm_pnl[_cid][_comm]["revenue"] += _r.get("revenue_gbp", 0.0)
+
     return {
         "starting_treasury_gbp": phase2b["starting_treasury"],
         "final_treasury_gbp": phase2b["final_treasury"],
@@ -497,6 +521,13 @@ def extract_report_data(run_output: dict) -> dict:
         "_ledger_headline": _build_ledger_headline(run_output.get("ledger_pnl")),
         # Phase 13a: ToU utilization breakdown for HH customers
         "tou_stats": tou_stats,
+        # Phase 14b/16c/17a: feedback logs (must be explicit — not auto-forwarded from phase2b)
+        "company_gas_churn_log": phase2b.get("company_gas_churn_log", []),
+        "margin_feedback_log": phase2b.get("margin_feedback_log", []),
+        "dynamic_pricing_log": phase2b.get("dynamic_pricing_log", []),
+        # Phase 17c/17d: pre-aggregated per-customer P&L (all_records not persisted)
+        "per_cid_pnl": per_cid_pnl,
+        "per_cid_comm_pnl": per_cid_comm_pnl,
     }
 
 
@@ -1621,25 +1652,27 @@ def _section_dual_fuel_pnl(data: dict) -> str:
     and shows the combined lifetime margin. Answers: 'Did gas add value to the
     dual-fuel relationship, or was it a drag?'
     """
-    records = data.get("all_records", [])
-    if not records:
-        return ""
+    # per_cid_comm_pnl: {cid: {commodity: {gross, capital, net, revenue}}}
+    by_cid_comm: dict = data.get("per_cid_comm_pnl") or {}
+    if not by_cid_comm:
+        # fallback: aggregate from all_records if present (legacy test fixtures)
+        records = data.get("all_records", [])
+        if not records:
+            return ""
+        for r in records:
+            cid = r["customer_id"]
+            comm = r.get("commodity", "electricity")
+            if cid not in by_cid_comm:
+                by_cid_comm[cid] = {}
+            if comm not in by_cid_comm[cid]:
+                by_cid_comm[cid][comm] = {"net": 0.0, "gross": 0.0, "capital": 0.0, "revenue": 0.0}
+            by_cid_comm[cid][comm]["net"] += r.get("net_margin_gbp", 0.0)
+            by_cid_comm[cid][comm]["gross"] += r.get("margin_gbp", 0.0)
+            by_cid_comm[cid][comm]["capital"] += r.get("capital_cost_gbp", 0.0)
+            by_cid_comm[cid][comm]["revenue"] += r.get("revenue_gbp", 0.0)
 
-    from collections import defaultdict
-
-    # Collect records by customer_id and commodity
-    by_cid_comm: dict[str, dict[str, float]] = defaultdict(
-        lambda: {"net": 0.0, "gross": 0.0, "revenue": 0.0}
-    )
-    for r in records:
-        cid = r["customer_id"]
-        comm = r.get("commodity", "electricity")
-        by_cid_comm[(cid, comm)]["net"] += r.get("net_margin_gbp", 0.0)
-        by_cid_comm[(cid, comm)]["gross"] += r.get("margin_gbp", 0.0)
-        by_cid_comm[(cid, comm)]["revenue"] += r.get("revenue_gbp", 0.0)
-
-    # Find dual-fuel pairs: a customer Cxg paired with Cx
-    gas_cids = {k[0] for k in by_cid_comm if k[1] == "gas"}
+    # Find dual-fuel pairs: gas leg "C1g" paired with elec leg "C1"
+    gas_cids = {cid for cid, commodities in by_cid_comm.items() if "gas" in commodities}
     pairs = []
     for gas_cid in sorted(gas_cids):
         # Convention: gas leg is "C1g" → elec leg is "C1"
@@ -1647,9 +1680,9 @@ def _section_dual_fuel_pnl(data: dict) -> str:
             elec_cid = gas_cid[:-1]
         else:
             continue
-        if (elec_cid, "electricity") in by_cid_comm:
-            elec = by_cid_comm[(elec_cid, "electricity")]
-            gas = by_cid_comm[(gas_cid, "gas")]
+        if elec_cid in by_cid_comm and "electricity" in by_cid_comm.get(elec_cid, {}):
+            elec = by_cid_comm[elec_cid]["electricity"]
+            gas = by_cid_comm[gas_cid]["gas"]
             pairs.append({
                 "elec_id": elec_cid,
                 "gas_id": gas_cid,
@@ -1699,20 +1732,20 @@ def _section_customer_pnl_ranking(data: dict) -> str:
     Shows gross margin, capital cost, net margin, and revenue.
     Surfaces the answer to: 'which customers created value vs destroyed it?'
     """
-    records = data.get("all_records", [])
-    if not records:
-        return ""
-
-    from collections import defaultdict
-    by_cid: dict[str, dict[str, float]] = defaultdict(
-        lambda: {"gross": 0.0, "capital": 0.0, "net": 0.0, "revenue": 0.0}
-    )
-    for r in records:
-        cid = r["customer_id"]
-        by_cid[cid]["gross"] += r.get("margin_gbp", 0.0)
-        by_cid[cid]["capital"] += r.get("capital_cost_gbp", 0.0)
-        by_cid[cid]["net"] += r.get("net_margin_gbp", 0.0)
-        by_cid[cid]["revenue"] += r.get("revenue_gbp", 0.0)
+    by_cid = data.get("per_cid_pnl") or {}
+    if not by_cid:
+        # fallback: aggregate from all_records if present (legacy test fixtures)
+        records = data.get("all_records", [])
+        if not records:
+            return ""
+        for r in records:
+            cid = r["customer_id"]
+            if cid not in by_cid:
+                by_cid[cid] = {"gross": 0.0, "capital": 0.0, "net": 0.0, "revenue": 0.0}
+            by_cid[cid]["gross"] += r.get("margin_gbp", 0.0)
+            by_cid[cid]["capital"] += r.get("capital_cost_gbp", 0.0)
+            by_cid[cid]["net"] += r.get("net_margin_gbp", 0.0)
+            by_cid[cid]["revenue"] += r.get("revenue_gbp", 0.0)
 
     ranked = sorted(by_cid.items(), key=lambda x: x[1]["net"], reverse=True)
 
