@@ -1820,6 +1820,14 @@ def _section_retention_strategy(data: dict) -> str:
         for r in rl if r["outcome"] == "churned_despite_offer"
     )
     net_roi = margin_saved - total_offer_cost
+    # Phase 15c: include acquisition cost savings in full economic ROI.
+    # When we retain a customer we avoid spending acq_cost on a replacement.
+    # acq_cost_saved_gbp is only present in Phase 15b+ runs.
+    acq_cost_saved_total = sum(
+        r.get("acq_cost_saved_gbp", 0.0)
+        for r in rl if r["outcome"] == "retained"
+    )
+    full_roi = net_roi + acq_cost_saved_total
     missed_count = len(no_offer)
     missed_margin = sum(r.get("expected_term_margin_gbp", 0.0) for r in no_offer)
     missed_uneconomical = [r for r in no_offer if r.get("no_offer_reason") == "uneconomical"]
@@ -1833,6 +1841,7 @@ def _section_retention_strategy(data: dict) -> str:
     saved_str = "\xa3" + f"{margin_saved:,.2f}"
     wasted_str = "\xa3" + "%.2f" % wasted_cost
     roi_str = "\xa3" + f"{net_roi:,.2f}"
+    full_roi_str = "\xa3" + f"{full_roi:,.2f}"
     missed_str = "\xa3" + f"{missed_margin:,.2f}"
 
     lines = [
@@ -1849,6 +1858,15 @@ def _section_retention_strategy(data: dict) -> str:
         "| Margin saved (retained customers' terms) | " + saved_str + " |",
         "| Wasted offer cost (churned anyway) | " + wasted_str + " |",
         "| **Net ROI of retention strategy** | **" + roi_str + "** |",
+    ]
+    if acq_cost_saved_total > 0:
+        lines.append(
+            "| Acquisition cost avoided (retained customers) | \xa3" + f"{acq_cost_saved_total:,.2f}" + " |"
+        )
+        lines.append(
+            "| **Full economic ROI (margin + acq savings)** | **" + full_roi_str + "** |"
+        )
+    lines += [
         "",
         "Missed opportunities (churns with no offer): **" + str(missed_count) + "**"
         " (" + missed_str + " expected margin lost without offer)",

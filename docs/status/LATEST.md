@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T14:48:41Z
+Last updated: 2026-06-21T14:52:18Z
+
+**Phase 15c LIVE (2026-06-21)**: Full economic ROI in retention section. 724 tests passing (3 new).
+- `saas/reporting/annual_report.py`: "Acquisition cost avoided" + "Full economic ROI" rows in retention table
+- Full ROI = (margin saved - offer cost) + acq_cost_avoided; backwards-compatible (hidden for old-format logs)
+- Surfaces the true economic case for retention (acq cost is a sunk cost either way if you don't retain)
 
 **Phase 15b LIVE (2026-06-21)**: Acquisition-aware retention offer guard. 721 tests passing (4 new).
 - `simulation/run_phase2b.py`: retention guard now `expected_margin + acq_cost_saved > ret_cost`

@@ -123,6 +123,11 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 15c COMPLETE (2026-06-21)**: Full economic ROI in retention section. 724 tests passing (3 new).
+- `saas/reporting/annual_report.py`: adds "Acquisition cost avoided" + "Full economic ROI" rows to retention table
+- Full ROI = (margin saved - offer cost) + acq_cost_saved (only shown when Phase 15b acq_cost data present)
+- Example: Phase 15b run with C1+C5 2021 retained → acq saved £550, full ROI includes that vs offers-only net
+
 **Phase 15b COMPLETE (2026-06-21)**: Acquisition-aware retention offer guard. 721 tests passing (4 new).
 - `simulation/run_phase2b.py`: retention guard now `expected_margin + acq_cost_saved > ret_cost` (Phase 15b)
 - Previously blocked crisis-year offers where margin < discount cost even when acq_cost_saved made offer rational

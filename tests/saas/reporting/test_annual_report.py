@@ -1017,3 +1017,69 @@ def test_section_gas_renewal_empty_on_missing_log():
     from saas.reporting.annual_report import _section_gas_renewal_pressure
     assert _section_gas_renewal_pressure({}) == ""
     assert _section_gas_renewal_pressure({"company_gas_churn_log": []}) == ""
+
+
+# ── Full economic ROI tests (Phase 15c) ─────────────────────────────────────
+
+def _retention_with_acq_data():
+    """Retention log with acq_cost_saved_gbp (Phase 15b+ format)."""
+    return {
+        "retention_log": [
+            {
+                "customer_id": "C1",
+                "event_date": "2021-12-30",
+                "company_churn_estimate": 0.95,
+                "discount_pct": 0.08,
+                "retention_cost_gbp": 67.20,
+                "expected_term_margin_gbp": 13.65,
+                "acq_cost_saved_gbp": 150.0,
+                "outcome": "retained",
+            },
+            {
+                "customer_id": "C5",
+                "event_date": "2021-12-30",
+                "company_churn_estimate": 0.95,
+                "discount_pct": 0.08,
+                "retention_cost_gbp": 160.0,
+                "expected_term_margin_gbp": 121.89,
+                "acq_cost_saved_gbp": 400.0,
+                "outcome": "retained",
+            },
+        ],
+        "no_offer_churn_log": [],
+    }
+
+
+def test_section_retention_shows_acq_cost_row():
+    from saas.reporting.annual_report import _section_retention_strategy
+    result = _section_retention_strategy(_retention_with_acq_data())
+    assert "Acquisition cost avoided" in result
+
+
+def test_section_retention_shows_full_economic_roi():
+    from saas.reporting.annual_report import _section_retention_strategy
+    result = _section_retention_strategy(_retention_with_acq_data())
+    assert "Full economic ROI" in result
+    # acq_cost_saved = £150 + £400 = £550
+    # net_roi = (13.65 + 121.89) - (67.20 + 160.0) = 135.54 - 227.20 = -91.66
+    # full_roi = -91.66 + 550 = 458.34
+    assert "£458" in result or "458" in result
+
+
+def test_section_retention_omits_acq_rows_without_acq_data():
+    """Old-format retention logs (no acq_cost_saved_gbp) don't show acq rows."""
+    from saas.reporting.annual_report import _section_retention_strategy
+    old_log = [
+        {
+            "customer_id": "C2",
+            "event_date": "2017-04-01",
+            "company_churn_estimate": 0.30,
+            "discount_pct": 0.03,
+            "retention_cost_gbp": 5.61,
+            "expected_term_margin_gbp": 9.19,
+            "outcome": "retained",
+        },
+    ]
+    result = _section_retention_strategy({"retention_log": old_log, "no_offer_churn_log": []})
+    assert "Acquisition cost avoided" not in result
+    assert "Full economic ROI" not in result
