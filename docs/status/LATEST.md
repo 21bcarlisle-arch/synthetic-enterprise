@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:13:56Z
+Last updated: 2026-06-21T15:18:23Z
+
+**Phase 16b LIVE (2026-06-21)**: Retention durability analysis in annual report. 740 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_retention_durability()` — post-retention survival months per customer
+- 4/7 retained customers eventually churned: avg 60 months post-retention; 2017 cohort survived 60-84mo before churning
+- 3 still active at simulation end (C8, C9, C2_2) — retention in 2017 gave C8 105+ months of active tenure
+- Shows whether retention efforts are durable or merely delay churn
 
 **Phase 16a LIVE (2026-06-21)**: Tariff repricing impact assessment in annual report. 735 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_repricing_impact()` — churn risk at break-even tariff for each NET_NEGATIVE customer

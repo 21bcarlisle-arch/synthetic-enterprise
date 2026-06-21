@@ -123,6 +123,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 16b COMPLETE (2026-06-21)**: Retention durability analysis in annual report. 740 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_retention_durability()` — post-retention survival per customer cohort
+- First retention date per customer → months survived until churn or window end
+- Real data: 4/7 retained customers eventually churned, avg 60 months post-retention; 3 still active
+- 2017 cohort: C2 (60mo), C6 (84mo), C8 (105mo active); 2018 cohort: C3 (24mo), C9 (90mo active), C4 (72mo)
+- Shows whether retention efforts produced durable outcomes or merely delayed inevitable churn
+
 **Phase 16a COMPLETE (2026-06-21)**: Tariff repricing impact assessment in annual report. 735 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_repricing_impact()` — for each NET_NEGATIVE customer, estimates churn risk if tariff raised to break-even
 - Uses churn model rate sensitivity: uplift % = rate_increase_pct → churn_est = base + sensitivity × uplift - tenure_discount

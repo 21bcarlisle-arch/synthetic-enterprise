@@ -1179,3 +1179,78 @@ def test_repricing_empty_when_no_net_negative():
         "churned_billing_accounts": [],
     }
     assert _section_repricing_impact(data) == ""
+
+
+# ── Retention Durability tests (Phase 16b) ─────────────────────────────────────
+
+def _durability_fixture():
+    """Retention log with two cohorts: one churned, one active."""
+    return {
+        "retention_log": [
+            {
+                "customer_id": "C_long",
+                "event_date": "2017-04-01",
+                "company_churn_estimate": 0.30,
+                "discount_pct": 0.03,
+                "retention_cost_gbp": 5.0,
+                "expected_term_margin_gbp": 10.0,
+                "outcome": "retained",
+            },
+            {
+                "customer_id": "C_short",
+                "event_date": "2018-07-01",
+                "company_churn_estimate": 0.32,
+                "discount_pct": 0.03,
+                "retention_cost_gbp": 3.0,
+                "expected_term_margin_gbp": 8.0,
+                "outcome": "retained",
+            },
+        ],
+        "company_event_log": [
+            {
+                "event_type": "churn",
+                "customer_id": "C_short",
+                "event_date": "2020-07-01",
+                "reason": "non-renewal",
+                "sim_churn_probability": 0.20,
+                "company_churn_estimate": 0.10,
+            }
+        ],
+        "churned_billing_accounts": ["C_short"],
+    }
+
+
+def test_retention_durability_shows_header():
+    from saas.reporting.annual_report import _section_retention_durability
+    result = _section_retention_durability(_durability_fixture())
+    assert "Retention Durability" in result
+
+
+def test_retention_durability_churned_shows_end_date():
+    """Churned customer shows the actual churn date."""
+    from saas.reporting.annual_report import _section_retention_durability
+    result = _section_retention_durability(_durability_fixture())
+    assert "2020-07-01" in result
+    assert "C_short" in result
+
+
+def test_retention_durability_active_shows_window_end():
+    """Active customer shows '(window end)'."""
+    from saas.reporting.annual_report import _section_retention_durability
+    result = _section_retention_durability(_durability_fixture())
+    assert "(window end)" in result
+    assert "C_long" in result
+
+
+def test_retention_durability_summary_avg_months():
+    """Summary line shows avg months for churned cohort.
+    C_short: 2020-07-01 - 2018-07-01 = 24 months."""
+    from saas.reporting.annual_report import _section_retention_durability
+    result = _section_retention_durability(_durability_fixture())
+    assert "24 months" in result
+
+
+def test_retention_durability_empty_when_no_log():
+    """No retention log → empty string."""
+    from saas.reporting.annual_report import _section_retention_durability
+    assert _section_retention_durability({"retention_log": [], "company_event_log": [], "churned_billing_accounts": []}) == ""

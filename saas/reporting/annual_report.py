@@ -2083,6 +2083,95 @@ def _section_retention_strategy(data: dict) -> str:
     lines.append("")
     return "\n".join(lines)
 
+def _section_retention_durability(data: dict) -> str:
+    """Phase 16b: retention durability — post-retention survival analysis.
+
+    For each retained customer, tracks how long they stayed post-retention
+    until either churning or reaching the simulation end. Shows whether
+    retention offers produced durable outcomes or merely delayed churn.
+    """
+    from datetime import date as _date
+
+    rl = data.get("retention_log", [])
+    cel = data.get("company_event_log", [])
+    churned_set = set(data.get("churned_billing_accounts", []))
+
+    if not rl:
+        return ""
+
+    # Build churn date per customer from company event log
+    churn_dates: dict[str, str] = {
+        e["customer_id"]: e["event_date"]
+        for e in cel
+        if e.get("event_type") == "churn"
+    }
+
+    # First retention date per customer (for cohort analysis)
+    first_retention: dict[str, str] = {}
+    for r in sorted(rl, key=lambda x: x["event_date"]):
+        cid = r["customer_id"]
+        if cid not in first_retention:
+            first_retention[cid] = r["event_date"]
+
+    SIM_END = "2025-12-31"
+
+    rows = []
+    for cid, ret_date in sorted(first_retention.items(), key=lambda x: x[1]):
+        if cid in churn_dates:
+            end_date = churn_dates[cid]
+            status = "churned"
+        else:
+            end_date = SIM_END
+            status = "active"
+        try:
+            months = (
+                (_date.fromisoformat(end_date) - _date.fromisoformat(ret_date)).days / 30.44
+            )
+        except (ValueError, TypeError):
+            months = 0.0
+        rows.append({
+            "cid": cid,
+            "retained": ret_date,
+            "end_date": end_date if status == "churned" else "(window end)",
+            "months": months,
+            "status": status,
+        })
+
+    if not rows:
+        return ""
+
+    eventually_churned = [r for r in rows if r["status"] == "churned"]
+    still_active = [r for r in rows if r["status"] == "active"]
+
+    lines = [
+        "## Retention Durability",
+        "",
+        "Post-retention survival: how long did retained customers stay before churning or reaching the simulation end?",
+        "",
+        "| Customer | First retained | End of tenure | Post-retention months | Outcome |",
+        "|----------|---------------|--------------|----------------------|---------|",
+    ]
+    for r in rows:
+        lines.append(
+            f"| {r['cid']} | {r['retained']} | {r['end_date']} | {r['months']:.0f} | {r['status']} |"
+        )
+
+    lines.append("")
+    if eventually_churned:
+        avg_survival = sum(r["months"] for r in eventually_churned) / len(eventually_churned)
+        names = ", ".join(r["cid"] for r in eventually_churned)
+        lines.append(
+            f"**Eventually churned ({len(eventually_churned)}/{len(rows)})**: {names} — "
+            f"avg {avg_survival:.0f} months post-retention before final churn."
+        )
+    if still_active:
+        names = ", ".join(r["cid"] for r in still_active)
+        lines.append(f"**Still active ({len(still_active)}/{len(rows)})**: {names} — survived to simulation end.")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -2111,6 +2200,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_bill_shock_summary(data))
     sections.append(_section_gas_renewal_pressure(data))
     sections.append(_section_retention_strategy(data))
+    sections.append(_section_retention_durability(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
     sections.append(_section_repricing_impact(data))
