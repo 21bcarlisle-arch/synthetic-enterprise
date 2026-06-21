@@ -167,7 +167,43 @@ Positive error = company over-estimated churn vs SIM. Negative error = company u
 
 ## Company Model Divergence
 
-Not available in current run output (see REPORTING_BACKLOG.md)
+Year-by-year gap between company observable-data models and SIM ground truth.
+A well-calibrated company model narrows divergence over time as the company
+accumulates experience. Divergence in crisis years reveals epistemic risk.
+
+### Tariff Pricing Error
+
+Company forward price (120-day rolling mean + 15% risk premium) vs SIM forward curve.
+
+| Year | Terms | Mean Abs Error | Max Abs Error |
+|------|-------|---------------|--------------|
+| 2016 | 17 | 21.2% | 39.0% |
+| 2017 | 13 | 16.9% | 30.8% |
+| 2018 | 13 | 14.7% | 39.0% |
+| 2019 | 13 | 13.5% | 18.9% |
+| 2020 | 12 | 22.7% | 29.4% |
+| 2021 | 10 | 30.3% | 48.3% |
+| 2022 | 8 | 26.9% | 32.6% |
+| 2023 | 7 | 7.4% | 23.3% |
+| 2024 | 6 | 21.1% | 22.6% |
+| 2025 | 2 | 45.7% | 45.7% |
+
+### Churn Estimate Error
+
+Company observable-data churn estimate vs SIM bill-shock model.
+
+| Year | Renewals | Mean Abs Error | Max Abs Error |
+|------|----------|---------------|--------------|
+| 2016 | 3 | 153.4% | 449.6% |
+| 2017 | 3 | 54.5% | 74.7% |
+| 2018 | 3 | 54.9% | 104.4% |
+| 2019 | 3 | 100.0% | 100.0% |
+| 2020 | 9 | 76.5% | 100.0% |
+| 2021 | 8 | 405.9% | 1800.0% |
+| 2022 | 6 | 224.0% | 458.8% |
+| 2023 | 6 | 100.0% | 100.0% |
+| 2024 | 6 | 96.7% | 100.0% |
+| 2025 | 2 | 19.2% | 19.2% |
 
 ## Company CRM — Event Log
 

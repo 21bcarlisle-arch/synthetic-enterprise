@@ -8379,6 +8379,816 @@
       "company_churn_estimate": 0.0
     }
   ],
+  "basis_risk_terms": [
+    {
+      "customer_id": "C1",
+      "commodity": "electricity",
+      "term_start": "2016-01-01",
+      "company_fwd_gbp_per_mwh": 44.69749573825757,
+      "sim_fwd_gbp_per_mwh": 59.52049277209927,
+      "tariff_error_pct": -0.24904022704580328
+    },
+    {
+      "customer_id": "C1g",
+      "commodity": "gas",
+      "term_start": "2016-01-01",
+      "company_fwd_gbp_per_mwh": 14.458285328037697,
+      "sim_fwd_gbp_per_mwh": 14.458285328037697,
+      "tariff_error_pct": 0.0
+    },
+    {
+      "customer_id": "C5",
+      "commodity": "electricity",
+      "term_start": "2016-01-01",
+      "company_fwd_gbp_per_mwh": 44.69749573825757,
+      "sim_fwd_gbp_per_mwh": 59.52049277209927,
+      "tariff_error_pct": -0.24904022704580328
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2016-01-01",
+      "company_fwd_gbp_per_mwh": 44.69749573825757,
+      "sim_fwd_gbp_per_mwh": 59.52049277209927,
+      "tariff_error_pct": -0.24904022704580328
+    },
+    {
+      "customer_id": "C2",
+      "commodity": "electricity",
+      "term_start": "2016-04-01",
+      "company_fwd_gbp_per_mwh": 41.493706047017206,
+      "sim_fwd_gbp_per_mwh": 56.32153484973503,
+      "tariff_error_pct": -0.2632710355333575
+    },
+    {
+      "customer_id": "C2g",
+      "commodity": "gas",
+      "term_start": "2016-04-01",
+      "company_fwd_gbp_per_mwh": 14.266503186813186,
+      "sim_fwd_gbp_per_mwh": 15.876172115641355,
+      "tariff_error_pct": -0.10138898199789029
+    },
+    {
+      "customer_id": "C6",
+      "commodity": "electricity",
+      "term_start": "2016-04-01",
+      "company_fwd_gbp_per_mwh": 41.493706047017206,
+      "sim_fwd_gbp_per_mwh": 56.32153484973503,
+      "tariff_error_pct": -0.2632710355333575
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2016-04-01",
+      "company_fwd_gbp_per_mwh": 41.493706047017206,
+      "sim_fwd_gbp_per_mwh": 56.32153484973503,
+      "tariff_error_pct": -0.2632710355333575
+    },
+    {
+      "customer_id": "C3",
+      "commodity": "electricity",
+      "term_start": "2016-07-01",
+      "company_fwd_gbp_per_mwh": 39.76206260338541,
+      "sim_fwd_gbp_per_mwh": 48.81891805192875,
+      "tariff_error_pct": -0.18551938080457966
+    },
+    {
+      "customer_id": "C3g",
+      "commodity": "gas",
+      "term_start": "2016-07-01",
+      "company_fwd_gbp_per_mwh": 12.367161333333332,
+      "sim_fwd_gbp_per_mwh": 11.311486127770108,
+      "tariff_error_pct": 0.0933277195974721
+    },
+    {
+      "customer_id": "C9",
+      "commodity": "electricity",
+      "term_start": "2016-07-01",
+      "company_fwd_gbp_per_mwh": 39.76206260338541,
+      "sim_fwd_gbp_per_mwh": 48.81891805192875,
+      "tariff_error_pct": -0.18551938080457966
+    },
+    {
+      "customer_id": "C4",
+      "commodity": "electricity",
+      "term_start": "2016-10-01",
+      "company_fwd_gbp_per_mwh": 41.1813198313368,
+      "sim_fwd_gbp_per_mwh": 53.411289226550835,
+      "tariff_error_pct": -0.22897723631682154
+    },
+    {
+      "customer_id": "C4g",
+      "commodity": "gas",
+      "term_start": "2016-10-01",
+      "company_fwd_gbp_per_mwh": 12.695960708333333,
+      "sim_fwd_gbp_per_mwh": 12.172525599434817,
+      "tariff_error_pct": 0.04300135617893625
+    },
+    {
+      "customer_id": "C1",
+      "commodity": "electricity",
+      "term_start": "2016-12-31",
+      "company_fwd_gbp_per_mwh": 55.477714650319434,
+      "sim_fwd_gbp_per_mwh": 90.99329797419504,
+      "tariff_error_pct": -0.3903098812172688
+    },
+    {
+      "customer_id": "C1g",
+      "commodity": "gas",
+      "term_start": "2016-12-31",
+      "company_fwd_gbp_per_mwh": 13.54359025,
+      "sim_fwd_gbp_per_mwh": 14.370085039430354,
+      "tariff_error_pct": -0.05751495465493205
+    },
+    {
+      "customer_id": "C5",
+      "commodity": "electricity",
+      "term_start": "2016-12-31",
+      "company_fwd_gbp_per_mwh": 55.477714650319434,
+      "sim_fwd_gbp_per_mwh": 90.99329797419504,
+      "tariff_error_pct": -0.3903098812172688
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2016-12-31",
+      "company_fwd_gbp_per_mwh": 55.477714650319434,
+      "sim_fwd_gbp_per_mwh": 90.99329797419504,
+      "tariff_error_pct": -0.3903098812172688
+    },
+    {
+      "customer_id": "C2",
+      "commodity": "electricity",
+      "term_start": "2017-04-01",
+      "company_fwd_gbp_per_mwh": 52.953748019618054,
+      "sim_fwd_gbp_per_mwh": 70.5462465882486,
+      "tariff_error_pct": -0.2493754015193921
+    },
+    {
+      "customer_id": "C2g",
+      "commodity": "gas",
+      "term_start": "2017-04-01",
+      "company_fwd_gbp_per_mwh": 17.206371875,
+      "sim_fwd_gbp_per_mwh": 19.95417666683206,
+      "tariff_error_pct": -0.13770574640643912
+    },
+    {
+      "customer_id": "C6",
+      "commodity": "electricity",
+      "term_start": "2017-04-01",
+      "company_fwd_gbp_per_mwh": 52.953748019618054,
+      "sim_fwd_gbp_per_mwh": 70.5462465882486,
+      "tariff_error_pct": -0.2493754015193921
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2017-04-01",
+      "company_fwd_gbp_per_mwh": 52.953748019618054,
+      "sim_fwd_gbp_per_mwh": 70.5462465882486,
+      "tariff_error_pct": -0.2493754015193921
+    },
+    {
+      "customer_id": "C3",
+      "commodity": "electricity",
+      "term_start": "2017-07-01",
+      "company_fwd_gbp_per_mwh": 45.8895368063368,
+      "sim_fwd_gbp_per_mwh": 66.2798124102336,
+      "tariff_error_pct": -0.3076393076928586
+    },
+    {
+      "customer_id": "C3g",
+      "commodity": "gas",
+      "term_start": "2017-07-01",
+      "company_fwd_gbp_per_mwh": 15.36294775,
+      "sim_fwd_gbp_per_mwh": 14.215316514789203,
+      "tariff_error_pct": 0.08073202126852644
+    },
+    {
+      "customer_id": "C9",
+      "commodity": "electricity",
+      "term_start": "2017-07-01",
+      "company_fwd_gbp_per_mwh": 45.8895368063368,
+      "sim_fwd_gbp_per_mwh": 66.2798124102336,
+      "tariff_error_pct": -0.3076393076928586
+    },
+    {
+      "customer_id": "C4",
+      "commodity": "electricity",
+      "term_start": "2017-10-01",
+      "company_fwd_gbp_per_mwh": 45.52704444340277,
+      "sim_fwd_gbp_per_mwh": 54.58320582415384,
+      "tariff_error_pct": -0.16591479456019037
+    },
+    {
+      "customer_id": "C4g",
+      "commodity": "gas",
+      "term_start": "2017-10-01",
+      "company_fwd_gbp_per_mwh": 16.61455025,
+      "sim_fwd_gbp_per_mwh": 16.855294762164732,
+      "tariff_error_pct": -0.014283019998269817
+    },
+    {
+      "customer_id": "C1",
+      "commodity": "electricity",
+      "term_start": "2017-12-31",
+      "company_fwd_gbp_per_mwh": 56.09483381895138,
+      "sim_fwd_gbp_per_mwh": 64.98575343072046,
+      "tariff_error_pct": -0.13681336512082531
+    },
+    {
+      "customer_id": "C1g",
+      "commodity": "gas",
+      "term_start": "2017-12-31",
+      "company_fwd_gbp_per_mwh": 19.828369958333333,
+      "sim_fwd_gbp_per_mwh": 20.336892758145503,
+      "tariff_error_pct": -0.02500494081665901
+    },
+    {
+      "customer_id": "C5",
+      "commodity": "electricity",
+      "term_start": "2017-12-31",
+      "company_fwd_gbp_per_mwh": 56.09483381895138,
+      "sim_fwd_gbp_per_mwh": 64.98575343072046,
+      "tariff_error_pct": -0.13681336512082531
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2017-12-31",
+      "company_fwd_gbp_per_mwh": 56.09483381895138,
+      "sim_fwd_gbp_per_mwh": 64.98575343072046,
+      "tariff_error_pct": -0.13681336512082531
+    },
+    {
+      "customer_id": "C2",
+      "commodity": "electricity",
+      "term_start": "2018-04-01",
+      "company_fwd_gbp_per_mwh": 65.8385805984375,
+      "sim_fwd_gbp_per_mwh": 107.90514645611431,
+      "tariff_error_pct": -0.3898476322886558
+    },
+    {
+      "customer_id": "C2g",
+      "commodity": "gas",
+      "term_start": "2018-04-01",
+      "company_fwd_gbp_per_mwh": 23.159850958333333,
+      "sim_fwd_gbp_per_mwh": 26.54060444352463,
+      "tariff_error_pct": -0.12738042543021777
+    },
+    {
+      "customer_id": "C6",
+      "commodity": "electricity",
+      "term_start": "2018-04-01",
+      "company_fwd_gbp_per_mwh": 65.8385805984375,
+      "sim_fwd_gbp_per_mwh": 107.90514645611431,
+      "tariff_error_pct": -0.3898476322886558
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2018-04-01",
+      "company_fwd_gbp_per_mwh": 65.8385805984375,
+      "sim_fwd_gbp_per_mwh": 107.90514645611431,
+      "tariff_error_pct": -0.3898476322886558
+    },
+    {
+      "customer_id": "C3",
+      "commodity": "electricity",
+      "term_start": "2018-07-01",
+      "company_fwd_gbp_per_mwh": 60.22378993576389,
+      "sim_fwd_gbp_per_mwh": 64.69295069398581,
+      "tariff_error_pct": -0.069082654451212
+    },
+    {
+      "customer_id": "C3g",
+      "commodity": "gas",
+      "term_start": "2018-07-01",
+      "company_fwd_gbp_per_mwh": 23.398685833333328,
+      "sim_fwd_gbp_per_mwh": 21.224783369250016,
+      "tariff_error_pct": 0.10242283401736918
+    },
+    {
+      "customer_id": "C9",
+      "commodity": "electricity",
+      "term_start": "2018-07-01",
+      "company_fwd_gbp_per_mwh": 60.22378993576389,
+      "sim_fwd_gbp_per_mwh": 64.69295069398581,
+      "tariff_error_pct": -0.069082654451212
+    },
+    {
+      "customer_id": "C4",
+      "commodity": "electricity",
+      "term_start": "2018-10-01",
+      "company_fwd_gbp_per_mwh": 65.97889991710069,
+      "sim_fwd_gbp_per_mwh": 73.59129851455434,
+      "tariff_error_pct": -0.10344155832429189
+    },
+    {
+      "customer_id": "C4g",
+      "commodity": "gas",
+      "term_start": "2018-10-01",
+      "company_fwd_gbp_per_mwh": 25.116790625,
+      "sim_fwd_gbp_per_mwh": 26.260427241048642,
+      "tariff_error_pct": -0.043549809968856164
+    },
+    {
+      "customer_id": "C1",
+      "commodity": "electricity",
+      "term_start": "2018-12-31",
+      "company_fwd_gbp_per_mwh": 71.77988260684441,
+      "sim_fwd_gbp_per_mwh": 75.04297014218545,
+      "tariff_error_pct": -0.043482920907293575
+    },
+    {
+      "customer_id": "C1g",
+      "commodity": "gas",
+      "term_start": "2018-12-31",
+      "company_fwd_gbp_per_mwh": 26.196737416666664,
+      "sim_fwd_gbp_per_mwh": 24.005162240925358,
+      "tariff_error_pct": 0.0912959951591156
+    },
+    {
+      "customer_id": "C5",
+      "commodity": "electricity",
+      "term_start": "2018-12-31",
+      "company_fwd_gbp_per_mwh": 71.77988260684441,
+      "sim_fwd_gbp_per_mwh": 75.04297014218545,
+      "tariff_error_pct": -0.043482920907293575
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2018-12-31",
+      "company_fwd_gbp_per_mwh": 71.77988260684441,
+      "sim_fwd_gbp_per_mwh": 75.04297014218545,
+      "tariff_error_pct": -0.043482920907293575
+    },
+    {
+      "customer_id": "C2",
+      "commodity": "electricity",
+      "term_start": "2019-04-01",
+      "company_fwd_gbp_per_mwh": 61.15853423905511,
+      "sim_fwd_gbp_per_mwh": 74.5093189653303,
+      "tariff_error_pct": -0.17918275071722772
+    },
+    {
+      "customer_id": "C2g",
+      "commodity": "gas",
+      "term_start": "2019-04-01",
+      "company_fwd_gbp_per_mwh": 20.118376,
+      "sim_fwd_gbp_per_mwh": 21.869709363569623,
+      "tariff_error_pct": -0.0800803218028575
+    },
+    {
+      "customer_id": "C6",
+      "commodity": "electricity",
+      "term_start": "2019-04-01",
+      "company_fwd_gbp_per_mwh": 61.15853423905511,
+      "sim_fwd_gbp_per_mwh": 74.5093189653303,
+      "tariff_error_pct": -0.17918275071722772
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2019-04-01",
+      "company_fwd_gbp_per_mwh": 61.15853423905511,
+      "sim_fwd_gbp_per_mwh": 74.5093189653303,
+      "tariff_error_pct": -0.17918275071722772
+    },
+    {
+      "customer_id": "C3",
+      "commodity": "electricity",
+      "term_start": "2019-07-01",
+      "company_fwd_gbp_per_mwh": 47.86307674895833,
+      "sim_fwd_gbp_per_mwh": 56.14582658106653,
+      "tariff_error_pct": -0.1475220926732479
+    },
+    {
+      "customer_id": "C3g",
+      "commodity": "gas",
+      "term_start": "2019-07-01",
+      "company_fwd_gbp_per_mwh": 13.768985458333333,
+      "sim_fwd_gbp_per_mwh": 13.934790797915431,
+      "tariff_error_pct": -0.011898660122468561
+    },
+    {
+      "customer_id": "C9",
+      "commodity": "electricity",
+      "term_start": "2019-07-01",
+      "company_fwd_gbp_per_mwh": 47.86307674895833,
+      "sim_fwd_gbp_per_mwh": 56.14582658106653,
+      "tariff_error_pct": -0.1475220926732479
+    },
+    {
+      "customer_id": "C4",
+      "commodity": "electricity",
+      "term_start": "2019-10-01",
+      "company_fwd_gbp_per_mwh": 43.27346977777593,
+      "sim_fwd_gbp_per_mwh": 48.74499182967678,
+      "tariff_error_pct": -0.11224788119811917
+    },
+    {
+      "customer_id": "C4g",
+      "commodity": "gas",
+      "term_start": "2019-10-01",
+      "company_fwd_gbp_per_mwh": 10.294805749999998,
+      "sim_fwd_gbp_per_mwh": 9.976490392254785,
+      "tariff_error_pct": 0.03190654681453271
+    },
+    {
+      "customer_id": "C1",
+      "commodity": "electricity",
+      "term_start": "2019-12-31",
+      "company_fwd_gbp_per_mwh": 43.73499266675421,
+      "sim_fwd_gbp_per_mwh": 53.9201097914428,
+      "tariff_error_pct": -0.18889273712689994
+    },
+    {
+      "customer_id": "C1g",
+      "commodity": "gas",
+      "term_start": "2019-12-31",
+      "company_fwd_gbp_per_mwh": 11.848213291666665,
+      "sim_fwd_gbp_per_mwh": 13.533547879592016,
+      "tariff_error_pct": -0.12453013821059881
+    },
+    {
+      "customer_id": "C5",
+      "commodity": "electricity",
+      "term_start": "2019-12-31",
+      "company_fwd_gbp_per_mwh": 43.73499266675421,
+      "sim_fwd_gbp_per_mwh": 53.9201097914428,
+      "tariff_error_pct": -0.18889273712689994
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2019-12-31",
+      "company_fwd_gbp_per_mwh": 43.73499266675421,
+      "sim_fwd_gbp_per_mwh": 53.9201097914428,
+      "tariff_error_pct": -0.18889273712689994
+    },
+    {
+      "customer_id": "C2",
+      "commodity": "electricity",
+      "term_start": "2020-03-31",
+      "company_fwd_gbp_per_mwh": 38.87010152152778,
+      "sim_fwd_gbp_per_mwh": 54.8573466983438,
+      "tariff_error_pct": -0.29143307394593126
+    },
+    {
+      "customer_id": "C2g",
+      "commodity": "gas",
+      "term_start": "2020-03-31",
+      "company_fwd_gbp_per_mwh": 10.481430624999998,
+      "sim_fwd_gbp_per_mwh": 11.007967577280866,
+      "tariff_error_pct": -0.04783234948543791
+    },
+    {
+      "customer_id": "C6",
+      "commodity": "electricity",
+      "term_start": "2020-03-31",
+      "company_fwd_gbp_per_mwh": 38.87010152152778,
+      "sim_fwd_gbp_per_mwh": 54.8573466983438,
+      "tariff_error_pct": -0.29143307394593126
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2020-03-31",
+      "company_fwd_gbp_per_mwh": 38.87010152152778,
+      "sim_fwd_gbp_per_mwh": 54.8573466983438,
+      "tariff_error_pct": -0.29143307394593126
+    },
+    {
+      "customer_id": "C3",
+      "commodity": "electricity",
+      "term_start": "2020-06-30",
+      "company_fwd_gbp_per_mwh": 29.74505107048611,
+      "sim_fwd_gbp_per_mwh": 38.24058404306519,
+      "tariff_error_pct": -0.2221601260852008
+    },
+    {
+      "customer_id": "C9",
+      "commodity": "electricity",
+      "term_start": "2020-06-30",
+      "company_fwd_gbp_per_mwh": 29.74505107048611,
+      "sim_fwd_gbp_per_mwh": 38.24058404306519,
+      "tariff_error_pct": -0.2221601260852008
+    },
+    {
+      "customer_id": "C4",
+      "commodity": "electricity",
+      "term_start": "2020-09-30",
+      "company_fwd_gbp_per_mwh": 38.12035718463541,
+      "sim_fwd_gbp_per_mwh": 52.51502621692814,
+      "tariff_error_pct": -0.27410571924369775
+    },
+    {
+      "customer_id": "C4g",
+      "commodity": "gas",
+      "term_start": "2020-09-30",
+      "company_fwd_gbp_per_mwh": 7.44410525,
+      "sim_fwd_gbp_per_mwh": 10.541739754404267,
+      "tariff_error_pct": -0.2938447141146789
+    },
+    {
+      "customer_id": "C1",
+      "commodity": "electricity",
+      "term_start": "2020-12-30",
+      "company_fwd_gbp_per_mwh": 52.84354466367361,
+      "sim_fwd_gbp_per_mwh": 69.46013046361982,
+      "tariff_error_pct": -0.23922479973816416
+    },
+    {
+      "customer_id": "C1g",
+      "commodity": "gas",
+      "term_start": "2020-12-30",
+      "company_fwd_gbp_per_mwh": 14.751027958333333,
+      "sim_fwd_gbp_per_mwh": 15.977944289121687,
+      "tariff_error_pct": -0.07678812171248334
+    },
+    {
+      "customer_id": "C5",
+      "commodity": "electricity",
+      "term_start": "2020-12-30",
+      "company_fwd_gbp_per_mwh": 52.84354466367361,
+      "sim_fwd_gbp_per_mwh": 69.46013046361982,
+      "tariff_error_pct": -0.23922479973816416
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2020-12-30",
+      "company_fwd_gbp_per_mwh": 52.84354466367361,
+      "sim_fwd_gbp_per_mwh": 69.46013046361982,
+      "tariff_error_pct": -0.23922479973816416
+    },
+    {
+      "customer_id": "C2",
+      "commodity": "electricity",
+      "term_start": "2021-03-31",
+      "company_fwd_gbp_per_mwh": 70.56856542218897,
+      "sim_fwd_gbp_per_mwh": 117.41892471317969,
+      "tariff_error_pct": -0.3990017742491897
+    },
+    {
+      "customer_id": "C2g",
+      "commodity": "gas",
+      "term_start": "2021-03-31",
+      "company_fwd_gbp_per_mwh": 19.56954808333333,
+      "sim_fwd_gbp_per_mwh": 22.19623381788817,
+      "tariff_error_pct": -0.11833925323123815
+    },
+    {
+      "customer_id": "C6",
+      "commodity": "electricity",
+      "term_start": "2021-03-31",
+      "company_fwd_gbp_per_mwh": 70.56856542218897,
+      "sim_fwd_gbp_per_mwh": 117.41892471317969,
+      "tariff_error_pct": -0.3990017742491897
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2021-03-31",
+      "company_fwd_gbp_per_mwh": 70.56856542218897,
+      "sim_fwd_gbp_per_mwh": 117.41892471317969,
+      "tariff_error_pct": -0.3990017742491897
+    },
+    {
+      "customer_id": "C9",
+      "commodity": "electricity",
+      "term_start": "2021-06-30",
+      "company_fwd_gbp_per_mwh": 80.14697890425346,
+      "sim_fwd_gbp_per_mwh": 113.64877576636601,
+      "tariff_error_pct": -0.2947836141322281
+    },
+    {
+      "customer_id": "C4",
+      "commodity": "electricity",
+      "term_start": "2021-09-30",
+      "company_fwd_gbp_per_mwh": 131.04212192552083,
+      "sim_fwd_gbp_per_mwh": 253.59969836365354,
+      "tariff_error_pct": -0.48327177527786025
+    },
+    {
+      "customer_id": "C4g",
+      "commodity": "gas",
+      "term_start": "2021-09-30",
+      "company_fwd_gbp_per_mwh": 46.13877529166666,
+      "sim_fwd_gbp_per_mwh": 60.05449357850628,
+      "tariff_error_pct": -0.231718185561723
+    },
+    {
+      "customer_id": "C1",
+      "commodity": "electricity",
+      "term_start": "2021-12-30",
+      "company_fwd_gbp_per_mwh": 215.84076830980553,
+      "sim_fwd_gbp_per_mwh": 281.95503154443185,
+      "tariff_error_pct": -0.2344851335777908
+    },
+    {
+      "customer_id": "C5",
+      "commodity": "electricity",
+      "term_start": "2021-12-30",
+      "company_fwd_gbp_per_mwh": 215.84076830980553,
+      "sim_fwd_gbp_per_mwh": 281.95503154443185,
+      "tariff_error_pct": -0.2344851335777908
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2021-12-30",
+      "company_fwd_gbp_per_mwh": 215.84076830980553,
+      "sim_fwd_gbp_per_mwh": 281.95503154443185,
+      "tariff_error_pct": -0.2344851335777908
+    },
+    {
+      "customer_id": "C2",
+      "commodity": "electricity",
+      "term_start": "2022-03-31",
+      "company_fwd_gbp_per_mwh": 233.79006254661456,
+      "sim_fwd_gbp_per_mwh": 347.12094612308516,
+      "tariff_error_pct": -0.32648817319218976
+    },
+    {
+      "customer_id": "C2_2",
+      "commodity": "electricity",
+      "term_start": "2022-03-31",
+      "company_fwd_gbp_per_mwh": 233.79006254661456,
+      "sim_fwd_gbp_per_mwh": 347.12094612308516,
+      "tariff_error_pct": -0.32648817319218976
+    },
+    {
+      "customer_id": "C6",
+      "commodity": "electricity",
+      "term_start": "2022-03-31",
+      "company_fwd_gbp_per_mwh": 233.79006254661456,
+      "sim_fwd_gbp_per_mwh": 347.12094612308516,
+      "tariff_error_pct": -0.32648817319218976
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2022-03-31",
+      "company_fwd_gbp_per_mwh": 233.79006254661456,
+      "sim_fwd_gbp_per_mwh": 347.12094612308516,
+      "tariff_error_pct": -0.32648817319218976
+    },
+    {
+      "customer_id": "C9",
+      "commodity": "electricity",
+      "term_start": "2022-06-30",
+      "company_fwd_gbp_per_mwh": 197.7097181171007,
+      "sim_fwd_gbp_per_mwh": 216.1767212952789,
+      "tariff_error_pct": -0.0854254938622825
+    },
+    {
+      "customer_id": "C4",
+      "commodity": "electricity",
+      "term_start": "2022-09-30",
+      "company_fwd_gbp_per_mwh": 286.8656661253472,
+      "sim_fwd_gbp_per_mwh": 404.4922889020944,
+      "tariff_error_pct": -0.2908006555477704
+    },
+    {
+      "customer_id": "C4g",
+      "commodity": "gas",
+      "term_start": "2022-09-30",
+      "company_fwd_gbp_per_mwh": 161.18650508333334,
+      "sim_fwd_gbp_per_mwh": 192.39764768406505,
+      "tariff_error_pct": -0.1622220592425502
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2022-12-30",
+      "company_fwd_gbp_per_mwh": 223.5630074206597,
+      "sim_fwd_gbp_per_mwh": 323.4658440752348,
+      "tariff_error_pct": -0.3088512697227432
+    },
+    {
+      "customer_id": "C2_2",
+      "commodity": "electricity",
+      "term_start": "2023-03-31",
+      "company_fwd_gbp_per_mwh": 191.85947707186514,
+      "sim_fwd_gbp_per_mwh": 195.6586898258599,
+      "tariff_error_pct": -0.01941755184692354
+    },
+    {
+      "customer_id": "C6",
+      "commodity": "electricity",
+      "term_start": "2023-03-31",
+      "company_fwd_gbp_per_mwh": 191.85947707186514,
+      "sim_fwd_gbp_per_mwh": 195.6586898258599,
+      "tariff_error_pct": -0.01941755184692354
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2023-03-31",
+      "company_fwd_gbp_per_mwh": 191.85947707186514,
+      "sim_fwd_gbp_per_mwh": 195.6586898258599,
+      "tariff_error_pct": -0.01941755184692354
+    },
+    {
+      "customer_id": "C9",
+      "commodity": "electricity",
+      "term_start": "2023-06-30",
+      "company_fwd_gbp_per_mwh": 112.30619041675347,
+      "sim_fwd_gbp_per_mwh": 121.67128647163794,
+      "tariff_error_pct": -0.0769704695862447
+    },
+    {
+      "customer_id": "C4",
+      "commodity": "electricity",
+      "term_start": "2023-09-30",
+      "company_fwd_gbp_per_mwh": 90.93855598359374,
+      "sim_fwd_gbp_per_mwh": 106.84547912073145,
+      "tariff_error_pct": -0.14887783056467435
+    },
+    {
+      "customer_id": "C4g",
+      "commodity": "gas",
+      "term_start": "2023-09-30",
+      "company_fwd_gbp_per_mwh": 32.19225475,
+      "sim_fwd_gbp_per_mwh": 32.100182351394785,
+      "tariff_error_pct": 0.002868282728032863
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2023-12-30",
+      "company_fwd_gbp_per_mwh": 95.66296946025,
+      "sim_fwd_gbp_per_mwh": 124.66151940481288,
+      "tariff_error_pct": -0.23261829378475646
+    },
+    {
+      "customer_id": "C2_2",
+      "commodity": "electricity",
+      "term_start": "2024-03-30",
+      "company_fwd_gbp_per_mwh": 76.17507227350228,
+      "sim_fwd_gbp_per_mwh": 97.01372756167578,
+      "tariff_error_pct": -0.21480109889526175
+    },
+    {
+      "customer_id": "C6",
+      "commodity": "electricity",
+      "term_start": "2024-03-30",
+      "company_fwd_gbp_per_mwh": 76.17507227350228,
+      "sim_fwd_gbp_per_mwh": 97.01372756167578,
+      "tariff_error_pct": -0.21480109889526175
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2024-03-30",
+      "company_fwd_gbp_per_mwh": 76.17507227350228,
+      "sim_fwd_gbp_per_mwh": 97.01372756167578,
+      "tariff_error_pct": -0.21480109889526175
+    },
+    {
+      "customer_id": "C9",
+      "commodity": "electricity",
+      "term_start": "2024-06-29",
+      "company_fwd_gbp_per_mwh": 73.1201849273357,
+      "sim_fwd_gbp_per_mwh": 94.41133624991438,
+      "tariff_error_pct": -0.22551477574916742
+    },
+    {
+      "customer_id": "C4",
+      "commodity": "electricity",
+      "term_start": "2024-09-29",
+      "company_fwd_gbp_per_mwh": 78.91598858418924,
+      "sim_fwd_gbp_per_mwh": 98.69661784841205,
+      "tariff_error_pct": -0.20041851175289352
+    },
+    {
+      "customer_id": "C7",
+      "commodity": "electricity",
+      "term_start": "2024-12-29",
+      "company_fwd_gbp_per_mwh": 97.92502055108082,
+      "sim_fwd_gbp_per_mwh": 121.9645393943288,
+      "tariff_error_pct": -0.19710252637879255
+    },
+    {
+      "customer_id": "C2_2",
+      "commodity": "electricity",
+      "term_start": "2025-03-30",
+      "company_fwd_gbp_per_mwh": 115.50699166771254,
+      "sim_fwd_gbp_per_mwh": 212.63949561446407,
+      "tariff_error_pct": -0.4567942736417233
+    },
+    {
+      "customer_id": "C8",
+      "commodity": "electricity",
+      "term_start": "2025-03-30",
+      "company_fwd_gbp_per_mwh": 115.50699166771254,
+      "sim_fwd_gbp_per_mwh": 212.63949561446407,
+      "tariff_error_pct": -0.4567942736417233
+    }
+  ],
   "churn_basis_risk": [
     {
       "customer_id": "C1",
@@ -8788,6 +9598,112 @@
       "no_offer_reason": "below_threshold"
     }
   ],
+  "company_divergence": {
+    "tariff_error_by_year": {
+      "2016": {
+        "n": 17,
+        "mean_abs_error_pct": 0.2119,
+        "max_abs_error_pct": 0.3903
+      },
+      "2017": {
+        "n": 13,
+        "mean_abs_error_pct": 0.169,
+        "max_abs_error_pct": 0.3076
+      },
+      "2018": {
+        "n": 13,
+        "mean_abs_error_pct": 0.1466,
+        "max_abs_error_pct": 0.3898
+      },
+      "2019": {
+        "n": 13,
+        "mean_abs_error_pct": 0.1354,
+        "max_abs_error_pct": 0.1889
+      },
+      "2020": {
+        "n": 12,
+        "mean_abs_error_pct": 0.2274,
+        "max_abs_error_pct": 0.2938
+      },
+      "2021": {
+        "n": 10,
+        "mean_abs_error_pct": 0.3029,
+        "max_abs_error_pct": 0.4833
+      },
+      "2022": {
+        "n": 8,
+        "mean_abs_error_pct": 0.2692,
+        "max_abs_error_pct": 0.3265
+      },
+      "2023": {
+        "n": 7,
+        "mean_abs_error_pct": 0.0742,
+        "max_abs_error_pct": 0.2326
+      },
+      "2024": {
+        "n": 6,
+        "mean_abs_error_pct": 0.2112,
+        "max_abs_error_pct": 0.2255
+      },
+      "2025": {
+        "n": 2,
+        "mean_abs_error_pct": 0.4568,
+        "max_abs_error_pct": 0.4568
+      }
+    },
+    "churn_error_by_year": {
+      "2016": {
+        "n": 3,
+        "mean_abs_error_pct": 1.5336,
+        "max_abs_error_pct": 4.496
+      },
+      "2017": {
+        "n": 3,
+        "mean_abs_error_pct": 0.5453,
+        "max_abs_error_pct": 0.7469
+      },
+      "2018": {
+        "n": 3,
+        "mean_abs_error_pct": 0.5493,
+        "max_abs_error_pct": 1.0436
+      },
+      "2019": {
+        "n": 3,
+        "mean_abs_error_pct": 1.0,
+        "max_abs_error_pct": 1.0
+      },
+      "2020": {
+        "n": 9,
+        "mean_abs_error_pct": 0.7649,
+        "max_abs_error_pct": 1.0
+      },
+      "2021": {
+        "n": 8,
+        "mean_abs_error_pct": 4.0588,
+        "max_abs_error_pct": 18.0
+      },
+      "2022": {
+        "n": 6,
+        "mean_abs_error_pct": 2.2401,
+        "max_abs_error_pct": 4.5882
+      },
+      "2023": {
+        "n": 6,
+        "mean_abs_error_pct": 1.0,
+        "max_abs_error_pct": 1.0
+      },
+      "2024": {
+        "n": 6,
+        "mean_abs_error_pct": 0.9674,
+        "max_abs_error_pct": 1.0
+      },
+      "2025": {
+        "n": 2,
+        "mean_abs_error_pct": 0.1918,
+        "max_abs_error_pct": 0.1918
+      }
+    }
+  },
   "won_successor_activations": {
     "C2_2": "2022-03-31"
   },

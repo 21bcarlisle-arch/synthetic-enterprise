@@ -8,7 +8,25 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T12:53:53Z
+Last updated: 2026-06-21T13:08:01Z
+
+**Phase 13b LIVE (2026-06-21)**: ToU utilization section in annual report. 666 tests passing.
+- `saas/reporting/annual_report.py`: `_section_tou_utilization()` — per-customer (C7/C8/C9) peak/off-peak kWh split, revenue contribution, avg rates; populates from next full sim run
+- Report now shows C7-C9 peak utilization % and revenue breakdown after each sim run
+
+**Phase 13a LIVE (2026-06-21)**: 666 tests passing. ToU tariffs for C7-C9 HH smart meter customers.
+- `simulation/tou_periods.py`: is_peak_period() — morning (07:00-11:00) + evening (16:00-20:00) weekday peaks (SP 15-22, 33-40)
+- `saas/tariff_pricing.py`: price_tou_tariff() — peak rate 1.5× flat, off-peak 0.786× flat, revenue-neutral at 30/70 split
+- `simulation/hedged_settlement.py`: per-period unit_rate now reflects actual ToU tier; flat rate retained for churn/retention calculations
+- `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
+- Next sim run (currently in progress): ToU stats will appear in report
+
+**Latest simulation results (2016–2025)** — run at 70646db (Phase 12d guard active):
+- Net margin: £-8,317 | Gross: £-7,090 | Capital: £1,228
+- Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
+- Enterprise value: £-20,662 | Net after CTS: £-14,399
+- Retention ROI: +£2.85 (2 offers made, both retained; 3 blocked — uneconomical by Phase 12d guard)
+- 6 total churned accounts | 6 no-offer churns (3 below threshold, 3 uneconomical)
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
@@ -56,11 +74,6 @@ Last updated: 2026-06-21T12:53:53Z
 - Annual report: ROI = margin_saved − total_offer_cost visible; 21 offers, net ROI £-1,263.14 (19 retained, 2 churned despite)
 - 17 new tests (634 total)
 
-**Latest simulation results (2016–2025)** — auto-processed (4456s / 74 min):
-- Net margin: £-18,715.01 | Gross: £-17,487.38 | Capital: £1,228
-- Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
-- Enterprise value: £-20,661.90 | Net after CTS: £-23,569
-- Retention: 2 offers, 2/2 retained | 6 no-offer churns | 6 total churned accounts
 
 **Phase 12b LIVE (2026-06-21)**: 617 tests passing. Company retention offers — first company decision affecting SIM outcome.
 - `company/crm/event_log.py`: `RetentionEvent` dataclass + `record_retention()` + `retention_events()` — dated retention artefacts

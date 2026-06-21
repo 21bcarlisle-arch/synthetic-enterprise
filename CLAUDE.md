@@ -86,7 +86,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 
 ---
 
-## Current state (as of 21 June 2026 — 10:45 UTC)
+## Current state (as of 21 June 2026 — 13:30 UTC)
 
 **What's built:**
 - Phase 0+1: agentic loop, Elexon data ingestion, profile-class billing,
@@ -106,19 +106,30 @@ If LATEST.md is stale, investigate and fix the root cause.
 - SIM/company separation deepened (Phase 11a+11b): company tariff engine
   (observable-data only) + company churn estimator; pricing and churn
   basis risk both visible in annual report
+- ToU tariffs (Phase 13a): C7-C9 HH customers on time-of-use pricing;
+  peak 1.5× / off-peak ~0.786×, revenue-neutral at 30/70 split; ToU
+  utilization section in annual report (Phase 13b)
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
-  File API, GitHub Pages status; NTFY spam fixed
+  File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**649 tests passing (SIM_FAST_MODE=1 suite, 17s).**
+**666 tests passing (SIM_FAST_MODE=1 suite, 16s).**
 
-**Key financial position (Phase 11a run, company observable pricing):**
-- Treasury: £29,846 → £11,131 (Phase 11a basis risk consumes treasury)
-- Net margin: £-18,715 (company tariff underprices SIM forward curve)
-- Gross margin: £-17,487
-- Risk committee interventions: 323 (higher — price volatility 2021-2022)
-- Enterprise value: £-20,661
-- 2021 net margin: £-3,069 | 2022: £-5,582 (worst year, crisis + basis risk)
+**Key financial position (latest 10-year run, 70646db, Phase 12d guard active):**
+- Treasury: £29,846 → £11,131 (£-18,715 net change)
+- Gross margin: £-7,090 | Net margin: £-8,317
+- Risk committee interventions: 323
+- Enterprise value: £-20,662
+- 2021 net margin: £-3,070 | 2022: £-5,583 (crisis years)
+- Retention ROI: +£2.85 (2 offers made, both retained; 3 uneconomical offers blocked by Phase 12d)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 13b COMPLETE (2026-06-21)**: ToU utilization section in annual report. 666 tests passing.
+
+**Phase 13a COMPLETE (2026-06-21)**: Time-of-Use tariffs for C7-C9 HH customers. 666 tests passing (17 new).
+- `simulation/tou_periods.py`: `is_peak_period()` and `period_start_time()` — peak = 07:00-11:00 and 16:00-20:00 weekdays (SP 15-22, 33-40)
+- `saas/tariff_pricing.py`: `TOU_PEAK_MULTIPLIER=1.50`, `TOU_OFFPEAK_MULTIPLIER≈0.786`, `price_tou_tariff()`
+- `simulation/hedged_settlement.py`: `tou_rates` param on `run_hedged_term()` — per-period rate in settlement records
+- `simulation/run_phase2b.py`: `is_hh_customer()` check wires ToU rates for C7-C9
 
 **Phase 12e COMPLETE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `_compute_company_divergence()` aggregates `basis_risk_terms` and `churn_basis_risk` by year; `company_divergence` key in run output with `tariff_error_by_year` and `churn_error_by_year`
@@ -314,15 +325,17 @@ pricing model must account for cost-to-serve at the customer level.
 - gemma4:12b at 7.6GB (smaller) but slower inference on this hardware (RTX 3060 12GB)
 - Switching to gemma4 would make the sim ~3 hrs, not 38 min. Stick with qwen3:14b.
 
-**Immediate (Phase 13 candidates):**
+**Immediate (Phase 13c candidates):**
+- Retention threshold tuning: is 30% too low? Phase 12d guard eliminates uneconomical offers; next question is whether the 30% threshold should move to reduce false positives in normal years
 - SIM/company full operational independence: company runs end-to-end on its own models with no shared code paths to SIM internals; divergence accumulates and is measured by the existing `company_divergence` machinery
-- ToU tariffs for HH customers (C7-C9 eligible now)
-- Retention threshold tuning: is 30% too low? Would a higher threshold reduce false positives?
+- ToU pricing awareness in company tariff engine: company doesn't yet account for peak/off-peak demand patterns when estimating forward costs
+
+**DONE (Phase 13a/13b):**
+- ~~ToU tariffs for HH customers (C7-C9)~~ — COMPLETE. `simulation/tou_periods.py`, hedged settlement, annual report section.
 
 **Then:**
 - SIM/company full operational independence: company runs on its own models
   end-to-end; divergence from SIM ground truth accumulates and is measured
-- ToU tariffs for HH customers (C7-C9 eligible now)
 - I&C accounts (when HH data path and event lifecycle are solid)
 
 **Later:**
