@@ -7933,7 +7933,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.6709,
       "churn_estimate_error_pct": 2.3545,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C6",
@@ -7947,7 +7947,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.6709,
       "churn_estimate_error_pct": 0.7655,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C8",
@@ -7961,7 +7961,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.6709,
       "churn_estimate_error_pct": 0.6363,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C9",
@@ -7975,7 +7975,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 1.7143,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C4",
@@ -7989,7 +7989,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 18.0,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C1",
@@ -8003,7 +8003,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 5.7857,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C5",
@@ -8017,7 +8017,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 1.7143,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C7",
@@ -8031,7 +8031,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 1.5,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C2",
@@ -8045,7 +8045,7 @@
       "home_move_won": true,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 4.5882,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C6",
@@ -8059,7 +8059,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 1.7143,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C8",
@@ -8073,7 +8073,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 1.7143,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C9",
@@ -8087,7 +8087,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 1.5,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C4",
@@ -8101,7 +8101,7 @@
       "home_move_won": false,
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 3.1304,
-      "retention_offered": true
+      "retention_offered": false
     },
     {
       "customer_id": "C7",
@@ -8726,177 +8726,6 @@
   ],
   "retention_log": [
     {
-      "customer_id": "C2",
-      "event_date": "2017-04-01",
-      "company_churn_estimate": 0.3009,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 9.731236355016767,
-      "expected_term_margin_gbp": 9.286609031672125,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C6",
-      "event_date": "2017-04-01",
-      "company_churn_estimate": 0.3009,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 125.1158959930727,
-      "expected_term_margin_gbp": 119.39925897864161,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C8",
-      "event_date": "2017-04-01",
-      "company_churn_estimate": 0.3009,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 32.89031525989638,
-      "expected_term_margin_gbp": 31.38753264271845,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C3",
-      "event_date": "2018-07-01",
-      "company_churn_estimate": 0.3196,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 10.074688151055419,
-      "expected_term_margin_gbp": 8.77763522666396,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C9",
-      "event_date": "2018-07-01",
-      "company_churn_estimate": 0.3196,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 38.946571496026884,
-      "expected_term_margin_gbp": 33.93244463705798,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C4",
-      "event_date": "2018-10-01",
-      "company_churn_estimate": 0.4244,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 18.91805151357768,
-      "expected_term_margin_gbp": 15.47708072749976,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C2",
-      "event_date": "2021-03-31",
-      "company_churn_estimate": 0.6709,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 12.851860892164916,
-      "expected_term_margin_gbp": 10.0472388656369,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C6",
-      "event_date": "2021-03-31",
-      "company_churn_estimate": 0.6709,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 165.23821147069177,
-      "expected_term_margin_gbp": 129.17878541533156,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C8",
-      "event_date": "2021-03-31",
-      "company_churn_estimate": 0.6709,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 43.437620976261755,
-      "expected_term_margin_gbp": 33.958362712248814,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C9",
-      "event_date": "2021-06-30",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 51.42160675862623,
-      "expected_term_margin_gbp": 36.97314494801797,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C4",
-      "event_date": "2021-09-30",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 37.03118487881366,
-      "expected_term_margin_gbp": 19.892026985908572,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C1",
-      "event_date": "2021-12-30",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 30.870518530435884,
-      "expected_term_margin_gbp": 13.056219341262226,
-      "outcome": "churned_despite_offer"
-    },
-    {
-      "customer_id": "C5",
-      "event_date": "2021-12-30",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 275.62962973603464,
-      "expected_term_margin_gbp": 116.5733869755556,
-      "outcome": "churned_despite_offer"
-    },
-    {
-      "customer_id": "C7",
-      "event_date": "2021-12-30",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 141.13986320195758,
-      "expected_term_margin_gbp": 59.69297243723636,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C2",
-      "event_date": "2022-03-31",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 41.76802830257459,
-      "expected_term_margin_gbp": 17.09534713834097,
-      "outcome": "churned_despite_offer"
-    },
-    {
-      "customer_id": "C6",
-      "event_date": "2022-03-31",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 537.0175067473876,
-      "expected_term_margin_gbp": 219.79732035009818,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C8",
-      "event_date": "2022-03-31",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 141.17051200259195,
-      "expected_term_margin_gbp": 57.78005346335391,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C9",
-      "event_date": "2022-06-30",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 125.03428591192885,
-      "expected_term_margin_gbp": 54.91570716770992,
-      "outcome": "retained"
-    },
-    {
-      "customer_id": "C4",
-      "event_date": "2022-09-30",
-      "company_churn_estimate": 0.95,
-      "discount_pct": 0.05,
-      "retention_cost_gbp": 80.4113396023214,
-      "expected_term_margin_gbp": 30.465628357018208,
-      "outcome": "retained"
-    },
-    {
       "customer_id": "C2_2",
       "event_date": "2025-03-30",
       "company_churn_estimate": 0.4529,
@@ -8920,19 +8749,43 @@
       "customer_id": "C3",
       "event_date": "2020-06-30",
       "company_churn_estimate": 0.0,
-      "expected_term_margin_gbp": 7.574334616262797
+      "expected_term_margin_gbp": 7.574334616262797,
+      "no_offer_reason": "below_threshold"
+    },
+    {
+      "customer_id": "C1",
+      "event_date": "2021-12-30",
+      "company_churn_estimate": 0.95,
+      "expected_term_margin_gbp": 13.056219341262226,
+      "no_offer_reason": "uneconomical"
+    },
+    {
+      "customer_id": "C5",
+      "event_date": "2021-12-30",
+      "company_churn_estimate": 0.95,
+      "expected_term_margin_gbp": 116.5733869755556,
+      "no_offer_reason": "uneconomical"
+    },
+    {
+      "customer_id": "C2",
+      "event_date": "2022-03-31",
+      "company_churn_estimate": 0.95,
+      "expected_term_margin_gbp": 17.09534713834097,
+      "no_offer_reason": "uneconomical"
     },
     {
       "customer_id": "C6",
       "event_date": "2024-03-30",
       "company_churn_estimate": 0.0,
-      "expected_term_margin_gbp": 216.8743438135354
+      "expected_term_margin_gbp": 216.8743438135354,
+      "no_offer_reason": "below_threshold"
     },
     {
       "customer_id": "C4",
       "event_date": "2024-09-29",
       "company_churn_estimate": 0.0,
-      "expected_term_margin_gbp": 27.06482915109772
+      "expected_term_margin_gbp": 27.06482915109772,
+      "no_offer_reason": "below_threshold"
     }
   ],
   "won_successor_activations": {

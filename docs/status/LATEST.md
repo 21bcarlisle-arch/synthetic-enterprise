@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T10:30:34Z
+Last updated: 2026-06-21T11:28:25Z
 
 **Token proxy LIVE (2026-06-21)**: localhost:8801 intercepts all Anthropic API calls, tracks per-session usage.
 - Handles gzip-compressed responses (decompresses before parsing SSE/JSON)
@@ -39,11 +39,13 @@ Last updated: 2026-06-21T10:30:34Z
 - Annual report: ROI = margin_saved − total_offer_cost visible; 21 offers, net ROI £-1,263.14 (19 retained, 2 churned despite)
 - 17 new tests (634 total)
 
-**Latest simulation results (2016–2025)** — Phase 12c run (4509s / 75 min):
+**Latest simulation results (2016–2025)** — Phase 12d run (1870s / 31 min):
 - Net margin: £-8,317.21 | Gross: £-7,089.58 | Capital: £1,228
 - Treasury: £29,846 → £11,131 | 323 committee interventions | 1117 bills issued
-- Enterprise value: £-20,661.90 | Net after CTS: £-23,569 | Retention ROI: £-1,263 (21 offers)
-- 6 churned customers (C1–C6), 1 home-move win (C2→1 successor), 3 no-offer churns
+- Enterprise value: £-20,661.90 | Net after CTS: £-23,569
+- Retention: 2 offers (down from 21), 100% retained, Net ROI **+£2.85** (was £-1,263) — guard blocked 19 uneconomical offers
+- Crisis years 2021–22: 0 offers made (margin below 5% discount floor) — 3 blocked as uneconomical, 3 below threshold
+- 6 churned customers (C1–C6), 1 home-move win (C2→1 successor), 6 no-offer churns
 
 **Phase 12b LIVE (2026-06-21)**: 617 tests passing. Company retention offers — first company decision affecting SIM outcome.
 - `company/crm/event_log.py`: `RetentionEvent` dataclass + `record_retention()` + `retention_events()` — dated retention artefacts
