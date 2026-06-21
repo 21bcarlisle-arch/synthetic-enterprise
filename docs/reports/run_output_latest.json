@@ -1570,7 +1570,7 @@
           "treasury_gbp": 28880.326439337354,
           "adjustments": {
             "C1": 0.95,
-            "C5": 0.95,
+            "C5": 1.0,
             "C7": 0.95
           },
           "portfolio_var_current_gbp": 2018.1329664880716,
@@ -7638,7 +7638,8 @@
       "random_roll": 0.1646,
       "home_move_won": false,
       "company_churn_estimate": 0.2748,
-      "churn_estimate_error_pct": 4.496
+      "churn_estimate_error_pct": 4.496,
+      "retention_offered": false
     },
     {
       "customer_id": "C5",
@@ -7651,7 +7652,8 @@
       "random_roll": 0.2812,
       "home_move_won": false,
       "company_churn_estimate": 0.2748,
-      "churn_estimate_error_pct": -0.0524
+      "churn_estimate_error_pct": -0.0524,
+      "retention_offered": false
     },
     {
       "customer_id": "C7",
@@ -7664,7 +7666,8 @@
       "random_roll": 0.105,
       "home_move_won": false,
       "company_churn_estimate": 0.2748,
-      "churn_estimate_error_pct": -0.0524
+      "churn_estimate_error_pct": -0.0524,
+      "retention_offered": false
     },
     {
       "customer_id": "C1",
@@ -7677,7 +7680,8 @@
       "random_roll": 0.6188,
       "home_move_won": false,
       "company_churn_estimate": 0.0886,
-      "churn_estimate_error_pct": -0.1945
+      "churn_estimate_error_pct": -0.1945,
+      "retention_offered": false
     },
     {
       "customer_id": "C5",
@@ -7690,7 +7694,8 @@
       "random_roll": 0.4449,
       "home_move_won": false,
       "company_churn_estimate": 0.0886,
-      "churn_estimate_error_pct": -0.6945
+      "churn_estimate_error_pct": -0.6945,
+      "retention_offered": false
     },
     {
       "customer_id": "C7",
@@ -7703,7 +7708,8 @@
       "random_roll": 0.8255,
       "home_move_won": false,
       "company_churn_estimate": 0.0886,
-      "churn_estimate_error_pct": -0.7469
+      "churn_estimate_error_pct": -0.7469,
+      "retention_offered": false
     },
     {
       "customer_id": "C1",
@@ -7716,7 +7722,8 @@
       "random_roll": 0.048,
       "home_move_won": false,
       "company_churn_estimate": 0.2861,
-      "churn_estimate_error_pct": 1.0436
+      "churn_estimate_error_pct": 1.0436,
+      "retention_offered": false
     },
     {
       "customer_id": "C5",
@@ -7729,7 +7736,8 @@
       "random_roll": 0.3096,
       "home_move_won": false,
       "company_churn_estimate": 0.2861,
-      "churn_estimate_error_pct": -0.3022
+      "churn_estimate_error_pct": -0.3022,
+      "retention_offered": false
     },
     {
       "customer_id": "C7",
@@ -7742,7 +7750,8 @@
       "random_roll": 0.6312,
       "home_move_won": false,
       "company_churn_estimate": 0.2861,
-      "churn_estimate_error_pct": -0.3022
+      "churn_estimate_error_pct": -0.3022,
+      "retention_offered": false
     },
     {
       "customer_id": "C1",
@@ -7755,7 +7764,8 @@
       "random_roll": 0.2972,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C5",
@@ -7768,7 +7778,8 @@
       "random_roll": 0.4302,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C7",
@@ -7781,7 +7792,8 @@
       "random_roll": 0.767,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C2",
@@ -7794,7 +7806,8 @@
       "random_roll": 0.8936,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C6",
@@ -7807,7 +7820,8 @@
       "random_roll": 0.4643,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C8",
@@ -7820,7 +7834,8 @@
       "random_roll": 0.1066,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C3",
@@ -7833,7 +7848,8 @@
       "random_roll": 0.9704,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C9",
@@ -7846,7 +7862,8 @@
       "random_roll": 0.5378,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C4",
@@ -7859,7 +7876,8 @@
       "random_roll": 0.2845,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C1",
@@ -7872,7 +7890,8 @@
       "random_roll": 0.8047,
       "home_move_won": false,
       "company_churn_estimate": 0.2094,
-      "churn_estimate_error_pct": -0.0896
+      "churn_estimate_error_pct": -0.0896,
+      "retention_offered": false
     },
     {
       "customer_id": "C5",
@@ -7885,7 +7904,8 @@
       "random_roll": 0.748,
       "home_move_won": false,
       "company_churn_estimate": 0.2094,
-      "churn_estimate_error_pct": -0.4489
+      "churn_estimate_error_pct": -0.4489,
+      "retention_offered": false
     },
     {
       "customer_id": "C7",
@@ -7898,7 +7918,8 @@
       "random_roll": 0.4829,
       "home_move_won": false,
       "company_churn_estimate": 0.2094,
-      "churn_estimate_error_pct": -0.3456
+      "churn_estimate_error_pct": -0.3456,
+      "retention_offered": false
     },
     {
       "customer_id": "C2",
@@ -7911,7 +7932,8 @@
       "random_roll": 0.6102,
       "home_move_won": false,
       "company_churn_estimate": 0.6709,
-      "churn_estimate_error_pct": 2.3545
+      "churn_estimate_error_pct": 2.3545,
+      "retention_offered": true
     },
     {
       "customer_id": "C6",
@@ -7924,7 +7946,8 @@
       "random_roll": 0.5431,
       "home_move_won": false,
       "company_churn_estimate": 0.6709,
-      "churn_estimate_error_pct": 0.7655
+      "churn_estimate_error_pct": 0.7655,
+      "retention_offered": true
     },
     {
       "customer_id": "C8",
@@ -7937,7 +7960,8 @@
       "random_roll": 0.4901,
       "home_move_won": false,
       "company_churn_estimate": 0.6709,
-      "churn_estimate_error_pct": 0.6363
+      "churn_estimate_error_pct": 0.6363,
+      "retention_offered": true
     },
     {
       "customer_id": "C9",
@@ -7950,7 +7974,8 @@
       "random_roll": 0.5305,
       "home_move_won": false,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 1.7143
+      "churn_estimate_error_pct": 1.7143,
+      "retention_offered": true
     },
     {
       "customer_id": "C4",
@@ -7963,7 +7988,8 @@
       "random_roll": 0.4564,
       "home_move_won": false,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 18.0
+      "churn_estimate_error_pct": 18.0,
+      "retention_offered": true
     },
     {
       "customer_id": "C1",
@@ -7976,7 +8002,8 @@
       "random_roll": 0.9691,
       "home_move_won": false,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 5.7857
+      "churn_estimate_error_pct": 5.7857,
+      "retention_offered": true
     },
     {
       "customer_id": "C5",
@@ -7989,7 +8016,8 @@
       "random_roll": 0.8247,
       "home_move_won": false,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 1.7143
+      "churn_estimate_error_pct": 1.7143,
+      "retention_offered": true
     },
     {
       "customer_id": "C7",
@@ -8002,7 +8030,8 @@
       "random_roll": 0.1963,
       "home_move_won": false,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 1.5
+      "churn_estimate_error_pct": 1.5,
+      "retention_offered": true
     },
     {
       "customer_id": "C2",
@@ -8015,7 +8044,8 @@
       "random_roll": 0.9547,
       "home_move_won": true,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 4.5882
+      "churn_estimate_error_pct": 4.5882,
+      "retention_offered": true
     },
     {
       "customer_id": "C6",
@@ -8028,7 +8058,8 @@
       "random_roll": 0.1058,
       "home_move_won": false,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 1.7143
+      "churn_estimate_error_pct": 1.7143,
+      "retention_offered": true
     },
     {
       "customer_id": "C8",
@@ -8041,7 +8072,8 @@
       "random_roll": 0.5712,
       "home_move_won": false,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 1.7143
+      "churn_estimate_error_pct": 1.7143,
+      "retention_offered": true
     },
     {
       "customer_id": "C9",
@@ -8054,7 +8086,8 @@
       "random_roll": 0.5875,
       "home_move_won": false,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 1.5
+      "churn_estimate_error_pct": 1.5,
+      "retention_offered": true
     },
     {
       "customer_id": "C4",
@@ -8067,7 +8100,8 @@
       "random_roll": 0.8552,
       "home_move_won": false,
       "company_churn_estimate": 0.95,
-      "churn_estimate_error_pct": 3.1304
+      "churn_estimate_error_pct": 3.1304,
+      "retention_offered": true
     },
     {
       "customer_id": "C7",
@@ -8080,7 +8114,8 @@
       "random_roll": 0.0637,
       "home_move_won": false,
       "company_churn_estimate": 0.0784,
-      "churn_estimate_error_pct": -0.7937
+      "churn_estimate_error_pct": -0.7937,
+      "retention_offered": false
     },
     {
       "customer_id": "C2_2",
@@ -8093,7 +8128,8 @@
       "random_roll": 0.0093,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C6",
@@ -8106,7 +8142,8 @@
       "random_roll": 0.5155,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C8",
@@ -8119,7 +8156,8 @@
       "random_roll": 0.3785,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C9",
@@ -8132,7 +8170,8 @@
       "random_roll": 0.0307,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C4",
@@ -8145,7 +8184,8 @@
       "random_roll": 0.6095,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C7",
@@ -8158,7 +8198,8 @@
       "random_roll": 0.1905,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C2_2",
@@ -8171,7 +8212,8 @@
       "random_roll": 0.6064,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C6",
@@ -8184,7 +8226,8 @@
       "random_roll": 0.9632,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C8",
@@ -8197,7 +8240,8 @@
       "random_roll": 0.0592,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C9",
@@ -8210,7 +8254,8 @@
       "random_roll": 0.0025,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C4",
@@ -8223,7 +8268,8 @@
       "random_roll": 0.9018,
       "home_move_won": false,
       "company_churn_estimate": 0.0,
-      "churn_estimate_error_pct": -1.0
+      "churn_estimate_error_pct": -1.0,
+      "retention_offered": false
     },
     {
       "customer_id": "C7",
@@ -8236,7 +8282,8 @@
       "random_roll": 0.4099,
       "home_move_won": false,
       "company_churn_estimate": 0.0685,
-      "churn_estimate_error_pct": -0.8043
+      "churn_estimate_error_pct": -0.8043,
+      "retention_offered": false
     },
     {
       "customer_id": "C2_2",
@@ -8249,7 +8296,8 @@
       "random_roll": 0.4434,
       "home_move_won": false,
       "company_churn_estimate": 0.4529,
-      "churn_estimate_error_pct": 0.1918
+      "churn_estimate_error_pct": 0.1918,
+      "retention_offered": true
     },
     {
       "customer_id": "C8",
@@ -8262,7 +8310,8 @@
       "random_roll": 0.4808,
       "home_move_won": false,
       "company_churn_estimate": 0.4529,
-      "churn_estimate_error_pct": 0.1918
+      "churn_estimate_error_pct": 0.1918,
+      "retention_offered": true
     }
   ],
   "churned_billing_accounts": [
@@ -8328,6 +8377,562 @@
       "reason": "non-renewal",
       "sim_churn_probability": 0.23,
       "company_churn_estimate": 0.0
+    }
+  ],
+  "churn_basis_risk": [
+    {
+      "customer_id": "C1",
+      "term_start": "2016-12-31",
+      "sim_churn_probability": 0.05,
+      "company_churn_estimate": 0.2748,
+      "churn_estimate_error_pct": 4.496
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2016-12-31",
+      "sim_churn_probability": 0.29,
+      "company_churn_estimate": 0.2748,
+      "churn_estimate_error_pct": -0.0524
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2016-12-31",
+      "sim_churn_probability": 0.29,
+      "company_churn_estimate": 0.2748,
+      "churn_estimate_error_pct": -0.0524
+    },
+    {
+      "customer_id": "C1",
+      "term_start": "2017-12-31",
+      "sim_churn_probability": 0.11,
+      "company_churn_estimate": 0.0886,
+      "churn_estimate_error_pct": -0.1945
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2017-12-31",
+      "sim_churn_probability": 0.29,
+      "company_churn_estimate": 0.0886,
+      "churn_estimate_error_pct": -0.6945
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2017-12-31",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.0886,
+      "churn_estimate_error_pct": -0.7469
+    },
+    {
+      "customer_id": "C1",
+      "term_start": "2018-12-31",
+      "sim_churn_probability": 0.14,
+      "company_churn_estimate": 0.2861,
+      "churn_estimate_error_pct": 1.0436
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2018-12-31",
+      "sim_churn_probability": 0.41,
+      "company_churn_estimate": 0.2861,
+      "churn_estimate_error_pct": -0.3022
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2018-12-31",
+      "sim_churn_probability": 0.41,
+      "company_churn_estimate": 0.2861,
+      "churn_estimate_error_pct": -0.3022
+    },
+    {
+      "customer_id": "C1",
+      "term_start": "2019-12-31",
+      "sim_churn_probability": 0.14,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2019-12-31",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2019-12-31",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C2",
+      "term_start": "2020-03-31",
+      "sim_churn_probability": 0.11,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2020-03-31",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2020-03-31",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C3",
+      "term_start": "2020-06-30",
+      "sim_churn_probability": 0.14,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2020-06-30",
+      "sim_churn_probability": 0.41,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2020-09-30",
+      "sim_churn_probability": 0.2,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C1",
+      "term_start": "2020-12-30",
+      "sim_churn_probability": 0.23,
+      "company_churn_estimate": 0.2094,
+      "churn_estimate_error_pct": -0.0896
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2020-12-30",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.2094,
+      "churn_estimate_error_pct": -0.4489
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2020-12-30",
+      "sim_churn_probability": 0.32,
+      "company_churn_estimate": 0.2094,
+      "churn_estimate_error_pct": -0.3456
+    },
+    {
+      "customer_id": "C2",
+      "term_start": "2021-03-31",
+      "sim_churn_probability": 0.2,
+      "company_churn_estimate": 0.6709,
+      "churn_estimate_error_pct": 2.3545
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2021-03-31",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.6709,
+      "churn_estimate_error_pct": 0.7655
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2021-03-31",
+      "sim_churn_probability": 0.41,
+      "company_churn_estimate": 0.6709,
+      "churn_estimate_error_pct": 0.6363
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2021-06-30",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 1.7143
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2021-09-30",
+      "sim_churn_probability": 0.05,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 18.0
+    },
+    {
+      "customer_id": "C1",
+      "term_start": "2021-12-30",
+      "sim_churn_probability": 0.14,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 5.7857
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2021-12-30",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 1.7143
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2021-12-30",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 1.5
+    },
+    {
+      "customer_id": "C2",
+      "term_start": "2022-03-31",
+      "sim_churn_probability": 0.17,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 4.5882
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2022-03-31",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 1.7143
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2022-03-31",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 1.7143
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2022-06-30",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 1.5
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2022-09-30",
+      "sim_churn_probability": 0.23,
+      "company_churn_estimate": 0.95,
+      "churn_estimate_error_pct": 3.1304
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2022-12-30",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.0784,
+      "churn_estimate_error_pct": -0.7937
+    },
+    {
+      "customer_id": "C2_2",
+      "term_start": "2023-03-31",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2023-03-31",
+      "sim_churn_probability": 0.26,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2023-03-31",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2023-06-30",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2023-09-30",
+      "sim_churn_probability": 0.2,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2023-12-30",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C2_2",
+      "term_start": "2024-03-30",
+      "sim_churn_probability": 0.41,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2024-03-30",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2024-03-30",
+      "sim_churn_probability": 0.41,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2024-06-29",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2024-09-29",
+      "sim_churn_probability": 0.23,
+      "company_churn_estimate": 0.0,
+      "churn_estimate_error_pct": -1.0
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2024-12-29",
+      "sim_churn_probability": 0.35,
+      "company_churn_estimate": 0.0685,
+      "churn_estimate_error_pct": -0.8043
+    },
+    {
+      "customer_id": "C2_2",
+      "term_start": "2025-03-30",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.4529,
+      "churn_estimate_error_pct": 0.1918
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2025-03-30",
+      "sim_churn_probability": 0.38,
+      "company_churn_estimate": 0.4529,
+      "churn_estimate_error_pct": 0.1918
+    }
+  ],
+  "retention_log": [
+    {
+      "customer_id": "C2",
+      "event_date": "2017-04-01",
+      "company_churn_estimate": 0.3009,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 9.731236355016767,
+      "expected_term_margin_gbp": 9.286609031672125,
+      "outcome": "pending"
+    },
+    {
+      "customer_id": "C6",
+      "event_date": "2017-04-01",
+      "company_churn_estimate": 0.3009,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 125.1158959930727,
+      "expected_term_margin_gbp": 119.39925897864161,
+      "outcome": "pending"
+    },
+    {
+      "customer_id": "C8",
+      "event_date": "2017-04-01",
+      "company_churn_estimate": 0.3009,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 32.89031525989638,
+      "expected_term_margin_gbp": 31.38753264271845,
+      "outcome": "pending"
+    },
+    {
+      "customer_id": "C3",
+      "event_date": "2018-07-01",
+      "company_churn_estimate": 0.3196,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 10.074688151055419,
+      "expected_term_margin_gbp": 8.77763522666396,
+      "outcome": "pending"
+    },
+    {
+      "customer_id": "C9",
+      "event_date": "2018-07-01",
+      "company_churn_estimate": 0.3196,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 38.946571496026884,
+      "expected_term_margin_gbp": 33.93244463705798,
+      "outcome": "pending"
+    },
+    {
+      "customer_id": "C4",
+      "event_date": "2018-10-01",
+      "company_churn_estimate": 0.4244,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 18.91805151357768,
+      "expected_term_margin_gbp": 15.47708072749976,
+      "outcome": "pending"
+    },
+    {
+      "customer_id": "C2",
+      "event_date": "2021-03-31",
+      "company_churn_estimate": 0.6709,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 12.851860892164916,
+      "expected_term_margin_gbp": 10.0472388656369,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C6",
+      "event_date": "2021-03-31",
+      "company_churn_estimate": 0.6709,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 165.23821147069177,
+      "expected_term_margin_gbp": 129.17878541533156,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C8",
+      "event_date": "2021-03-31",
+      "company_churn_estimate": 0.6709,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 43.437620976261755,
+      "expected_term_margin_gbp": 33.958362712248814,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C9",
+      "event_date": "2021-06-30",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 51.42160675862623,
+      "expected_term_margin_gbp": 36.97314494801797,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C4",
+      "event_date": "2021-09-30",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 37.03118487881366,
+      "expected_term_margin_gbp": 19.892026985908572,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C1",
+      "event_date": "2021-12-30",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 30.870518530435884,
+      "expected_term_margin_gbp": 13.056219341262226,
+      "outcome": "churned_despite_offer"
+    },
+    {
+      "customer_id": "C5",
+      "event_date": "2021-12-30",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 275.62962973603464,
+      "expected_term_margin_gbp": 116.5733869755556,
+      "outcome": "churned_despite_offer"
+    },
+    {
+      "customer_id": "C7",
+      "event_date": "2021-12-30",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 141.13986320195758,
+      "expected_term_margin_gbp": 59.69297243723636,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C2",
+      "event_date": "2022-03-31",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 41.76802830257459,
+      "expected_term_margin_gbp": 17.09534713834097,
+      "outcome": "churned_despite_offer"
+    },
+    {
+      "customer_id": "C6",
+      "event_date": "2022-03-31",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 537.0175067473876,
+      "expected_term_margin_gbp": 219.79732035009818,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C8",
+      "event_date": "2022-03-31",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 141.17051200259195,
+      "expected_term_margin_gbp": 57.78005346335391,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C9",
+      "event_date": "2022-06-30",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 125.03428591192885,
+      "expected_term_margin_gbp": 54.91570716770992,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C4",
+      "event_date": "2022-09-30",
+      "company_churn_estimate": 0.95,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 80.4113396023214,
+      "expected_term_margin_gbp": 30.465628357018208,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C2_2",
+      "event_date": "2025-03-30",
+      "company_churn_estimate": 0.4529,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 21.311883984442407,
+      "expected_term_margin_gbp": 21.963208851854226,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C8",
+      "event_date": "2025-03-30",
+      "company_churn_estimate": 0.4529,
+      "discount_pct": 0.05,
+      "retention_cost_gbp": 72.03140047762614,
+      "expected_term_margin_gbp": 74.23279395367103,
+      "outcome": "retained"
+    }
+  ],
+  "no_offer_churn_log": [
+    {
+      "customer_id": "C3",
+      "event_date": "2020-06-30",
+      "company_churn_estimate": 0.0,
+      "expected_term_margin_gbp": 7.574334616262797
+    },
+    {
+      "customer_id": "C6",
+      "event_date": "2024-03-30",
+      "company_churn_estimate": 0.0,
+      "expected_term_margin_gbp": 216.8743438135354
+    },
+    {
+      "customer_id": "C4",
+      "event_date": "2024-09-29",
+      "company_churn_estimate": 0.0,
+      "expected_term_margin_gbp": 27.06482915109772
     }
   ],
   "won_successor_activations": {

@@ -402,7 +402,7 @@ _Cash reconciliation: of £143,671.95 billed, bad debt of £2,820.74 was written
   - 2016-08-15: treasury £29,686.36, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
   - 2016-09-14: treasury £29,672.73, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
   - 2016-10-14: treasury £29,656.22, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-11-13: treasury £29,628.90, C1->1.00, C5->1.00, VaR (current £664.48 / stressed £204.14) ratio 3.25
+  - 2016-11-13: treasury £29,628.90, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
   - 2016-12-13: treasury £29,598.07, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
   - 2016-01-13: treasury £29,575.12, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
   - 2016-02-12: treasury £29,557.22, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
@@ -540,7 +540,7 @@ _Cash reconciliation: of £143,671.95 billed, bad debt of £2,820.74 was written
   - 2017-01-12: treasury £28,889.17, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-02-11: treasury £28,885.38, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-03-13: treasury £28,882.45, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2017-04-12: treasury £28,880.33, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
+  - 2017-04-12: treasury £28,880.33, C1->0.95, C5->1.00, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-05-12: treasury £28,878.01, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-06-11: treasury £28,875.71, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2017-01-29: treasury £28,853.28, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
