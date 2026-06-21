@@ -1281,6 +1281,10 @@ def _section_company_divergence(data: dict) -> str:
             "### Churn Estimate Error",
             "",
             "Company observable-data churn estimate vs SIM bill-shock model.",
+            "Phase 13c adds a bill burden signal (prev_annual_bill / £3,000 threshold)",
+            "that captures high-spend SME customers under financial stress even when",
+            "their renewal rate is falling — the failure mode that caused company_p=0%",
+            "for C6 in 2024 despite SIM showing 38% churn risk.",
             "",
             "| Year | Renewals | Mean Abs Error | Max Abs Error |",
             "|------|----------|---------------|--------------|",
@@ -1684,6 +1688,7 @@ def _section_retention_strategy(data: dict) -> str:
         lines.append(
             "- **Below threshold** (churn estimate under 30%): "
             + str(len(missed_below_threshold)) + " (\xa3" + f"{below_margin:,.2f}" + " margin lost)"
+            + " — Phase 13c bill burden signal reduces this for high-spend SME customers"
         )
     lines.append("")
 
