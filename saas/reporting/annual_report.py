@@ -1266,7 +1266,10 @@ def _section_company_divergence(data: dict) -> str:
         lines += [
             "### Tariff Pricing Error",
             "",
-            "Company forward price (120-day rolling mean + 15% risk premium) vs SIM forward curve.",
+            "Company forward price (120-day rolling mean + 15% risk premium + Phase 13d seasonal",
+            "adjustment: winter Oct-Mar +8%, summer Apr-Sep -4%) vs SIM forward curve.",
+            "Seasonal adjustment reduces structural under-pricing of winter contracts.",
+            "Crisis years (2021-22) remain negative — genuine market adversity, not model error.",
             "",
             "| Year | Terms | Mean Abs Error | Max Abs Error |",
             "|------|-------|---------------|--------------|",
