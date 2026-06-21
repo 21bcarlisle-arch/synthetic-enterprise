@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:57:24Z
+Last updated: 2026-06-21T16:09:28Z
+
+**Phase 17c/17d/16c/17a/14b report fix (2026-06-21)**: Five keys missing from extract_report_data() → sections always empty in auto-processed reports. Fixed (faed334). 770 tests passing (2 new).
+- `margin_feedback_log`, `dynamic_pricing_log`, `company_gas_churn_log` now pass through to saved JSON
+- `per_cid_pnl` and `per_cid_comm_pnl` pre-aggregated from `all_records` before JSON save (can't persist ~1M rows)
+- Phase 17c customer P&L ranking and 17d dual-fuel P&L now populate in all auto-processed reports
 
 **Phase 18a LIVE (2026-06-21)**: Regime detection premium in company tariff engine. 768 tests passing (9 new).
 - `company/pricing/tariff_engine.py`: `_compute_regime_premium()` — 60d vs 180d spot price mean ratio
