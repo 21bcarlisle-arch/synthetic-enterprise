@@ -123,6 +123,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 15b COMPLETE (2026-06-21)**: Acquisition-aware retention offer guard. 721 tests passing (4 new).
+- `simulation/run_phase2b.py`: retention guard now `expected_margin + acq_cost_saved > ret_cost` (Phase 15b)
+- Previously blocked crisis-year offers where margin < discount cost even when acq_cost_saved made offer rational
+- C5 2021 (SME, £122 margin, £160 ret_cost, £400 acq): now offered. C1 2021 (resi, £14 margin): also offered
+- `retention_log` entries now include `acq_cost_saved_gbp` for traceability
+
 **Phase 15a COMPLETE (2026-06-21)**: Gas renewal pressure section in annual report. 717 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_gas_renewal_pressure()` — consumes company_gas_churn_log from Phase 14b
 - Year-by-year table: renewal count, mean/max gas company estimate, elevated risk count (>20% threshold)

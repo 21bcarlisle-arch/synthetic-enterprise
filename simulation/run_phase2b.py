@@ -563,9 +563,14 @@ def main(report_end: str | None = None, sim_interface=None):
                     discount_pct = _retention_discount_for_risk(company_est_pre)
                     ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
-                    # Only offer if the discount is economically rational: margin covers its cost.
-                    # During crisis years margins collapse below the discount cost — don't offer then.
-                    if expected_margin > ret_cost:
+                    # Phase 15b: include acquisition cost savings in the offer guard.
+                    # If the customer churns, the company spends acq_cost on a replacement
+                    # attempt (whether it wins or not). So the true value protected by
+                    # retaining = expected_margin + acq_cost_saved.
+                    cust_data_ret = get_customer(billing_account)
+                    seg_ret = cust_data_ret["segment"] if cust_data_ret else "resi"
+                    acq_cost_saved = COST_PER_ACQUISITION.get(seg_ret, 150.0)
+                    if expected_margin + acq_cost_saved > ret_cost:
                         retention_modifier_val = RETENTION_EFFECTIVENESS
                         retention_cost_events.append(
                             make_retention_cost_event(billing_account, term_start_str, ret_cost, company_est_pre)
@@ -577,6 +582,7 @@ def main(report_end: str | None = None, sim_interface=None):
                             "discount_pct": discount_pct,
                             "retention_cost_gbp": ret_cost,
                             "expected_term_margin_gbp": expected_margin,
+                            "acq_cost_saved_gbp": round(acq_cost_saved, 2),
                             "outcome": "pending",
                         })
                     else:

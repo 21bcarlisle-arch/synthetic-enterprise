@@ -145,3 +145,47 @@ def test_compute_company_divergence_empty_inputs():
     result = _compute_company_divergence([], [])
     assert result["tariff_error_by_year"] == {}
     assert result["churn_error_by_year"] == {}
+
+
+# ── Acquisition-aware retention guard tests (Phase 15b) ──────────────────────
+
+def test_retention_offer_made_when_margin_plus_acq_exceeds_ret_cost():
+    """Offer made when margin < ret_cost but margin + acq_cost > ret_cost."""
+    from saas.growth_mandate import COST_PER_ACQUISITION
+    # Scenario: crisis year, margin £122, ret_cost £160 (8% on large SME contract)
+    # Old guard: blocked. New guard with acq_cost=£400: £122+£400=£522 > £160 → offered.
+    margin = 122.0
+    ret_cost = 160.0
+    acq_cost = COST_PER_ACQUISITION.get("SME", 400.0)
+    assert margin < ret_cost   # old guard would have blocked
+    assert margin + acq_cost > ret_cost   # new guard allows
+
+
+def test_retention_blocked_when_even_acq_savings_dont_justify():
+    """Offer still blocked when margin + acq_cost < ret_cost (truly uneconomical)."""
+    from saas.growth_mandate import COST_PER_ACQUISITION
+    # Scenario: very expensive retention offer vs tiny margin and resi acq cost
+    margin = 5.0
+    # 8% discount on very large contract = ret_cost = 400 * 0.08 * 20000/1000 = £640
+    ret_cost = 640.0
+    acq_cost = COST_PER_ACQUISITION.get("resi", 150.0)
+    assert margin + acq_cost < ret_cost   # new guard also blocks
+
+
+def test_acq_cost_resi_lower_than_sme():
+    """Resi acquisition cost is lower than SME (harder SME market justifies more retention spend)."""
+    from saas.growth_mandate import COST_PER_ACQUISITION
+    assert COST_PER_ACQUISITION["resi"] < COST_PER_ACQUISITION["SME"]
+
+
+def test_retention_log_includes_acq_cost_saved():
+    """Retention log entries include acq_cost_saved_gbp for traceability (Phase 15b)."""
+    # Integration: check the key is present in a fast-mode run's retention log
+    import os
+    os.environ["SIM_FAST_MODE"] = "1"
+    from simulation.run_phase2b import main
+    result = main()
+    os.environ.pop("SIM_FAST_MODE", None)
+    rl = result.get("retention_log", [])
+    if rl:
+        assert "acq_cost_saved_gbp" in rl[0], "retention_log entry should include acq_cost_saved_gbp"

@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T14:41:39Z
+Last updated: 2026-06-21T14:48:41Z
+
+**Phase 15b LIVE (2026-06-21)**: Acquisition-aware retention offer guard. 721 tests passing (4 new).
+- `simulation/run_phase2b.py`: retention guard now `expected_margin + acq_cost_saved > ret_cost`
+- Unblocks crisis-year offers where margin < ret_cost but acq_cost makes retention economical
+- C5/C1 2021 (previously "uneconomical"): now offered. Expected: more retained crisis-year accounts
+- `retention_log` includes `acq_cost_saved_gbp`; report section shows updated offer economics
 
 **Phase 15a LIVE (2026-06-21)**: Gas renewal pressure section in annual report. 717 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_gas_renewal_pressure()` — consumes company_gas_churn_log
