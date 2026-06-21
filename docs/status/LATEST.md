@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:18:23Z
+Last updated: 2026-06-21T15:21:22Z
 
 **Phase 16b LIVE (2026-06-21)**: Retention durability analysis in annual report. 740 tests passing (5 new).
 - `saas/reporting/annual_report.py`: `_section_retention_durability()` — post-retention survival months per customer
@@ -103,11 +103,11 @@ Last updated: 2026-06-21T15:18:23Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — auto-processed (1720s / 29 min):
-- Net margin: £-3,765.60 | Gross: £-2,537.97 | Capital: £1,228
-- Treasury: £29,846 → £15,683 | 287 committee interventions | 1117 bills issued
-- Enterprise value: £-16,445.26 | Net after CTS: £-19,097
-- Retention: 8 offers, 8/8 retained | 6 no-offer churns | 6 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (2710s / 45 min):
+- Net margin: £-5,741.86 | Gross: £-4,514.23 | Capital: £1,228
+- Treasury: £29,846 → £13,707 | 317 committee interventions | 1117 bills issued
+- Enterprise value: £-18,277.46 | Net after CTS: £-21,041
+- Retention: 6 offers, 6/6 retained | 6 no-offer churns | 6 total churned accounts
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
