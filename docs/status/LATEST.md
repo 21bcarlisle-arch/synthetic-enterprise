@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T21:16:40Z
+Last updated: 2026-06-21T22:59:26Z
+
+**Phase 22a LIVE (2026-06-21)**: Post-crisis churn hangover + trailing-margin CLV + dual EV analysis. 826 tests passing (22 new; ~801 fast-mode).
+- `company/crm/churn_model.py`: `CRISIS_HANGOVER_BASE_UPLIFT=0.12` — +12pp churn when company observes prior term net loss >20% of revenue; persists 2 renewal periods
+- `simulation/run_phase2b.py`: `hangover_remaining` dict tracks hangover periods per customer; triggers at term close, decrements at renewal
+- `saas/reporting/annual_report.py`: `_section_enterprise_value_analysis()` — full-history EV vs 3yr-trailing EV; year-by-year net margin table; per-account CLV comparison
+- Fixes 2024 failure mode: falling rates collapse rate-change signal but customers remain financially scarred; hangover captures the residual churn uplift
 
 **Phase 21a LIVE (2026-06-21)**: Explicit RO + CfD electricity policy costs. 810 tests passing (23 new; 787 fast-mode).
 - `simulation/policy_costs.py`: year-indexed RO (£15.6→£31.8/MWh, 2016→2024) + CfD levy tables (negative in 2022 = crisis rebate)
@@ -162,11 +168,11 @@ Last updated: 2026-06-21T21:16:40Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — auto-processed (1029s / 17 min):
-- Net margin: £6,384.16 | Gross: £7,611.79 | Capital: £1,228
-- Treasury: £29,846 → £25,833 | 163 committee interventions | 1117 bills issued
-- Enterprise value: £-7,978.70 | Net after CTS: £-9,122
-- Retention: 22 offers, 18/22 retained | 2 no-offer churns | 6 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (4956s / 83 min):
+- Net margin: £26,654.64 | Gross: £29,002.78 | Capital: £2,348
+- Treasury: £29,846 → £26,051 | 214 committee interventions | 1117 bills issued
+- Enterprise value: £9,888.92 | Net after CTS: £11,925
+- Retention: 20 offers, 16/20 retained | 2 no-offer churns | 6 total churned accounts
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
