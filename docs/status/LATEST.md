@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T15:00:04Z
+Last updated: 2026-06-21T15:13:56Z
+
+**Phase 16a LIVE (2026-06-21)**: Tariff repricing impact assessment in annual report. 735 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_repricing_impact()` — churn risk at break-even tariff for each NET_NEGATIVE customer
+- Active customers: repricing opportunity; churned: counterfactual (could B/E pricing have changed outcomes?)
+- All 6 active loss-making customers repriceable with <25% churn risk — uplift is viable
+- C3/C4/C2 churned facing "Partial" territory (40-44% at B/E) — incremental uplift over full repricing
 
 **Phase 15d LIVE (2026-06-21)**: Hedge fraction signal in company churn model. 730 tests passing (6 new).
 - `company/crm/churn_model.py`: `hedge_fraction` param + `HEDGE_SENSITIVITY_REDUCTION=0.4`

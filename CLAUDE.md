@@ -123,6 +123,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 16a COMPLETE (2026-06-21)**: Tariff repricing impact assessment in annual report. 735 tests passing (5 new).
+- `saas/reporting/annual_report.py`: `_section_repricing_impact()` — for each NET_NEGATIVE customer, estimates churn risk if tariff raised to break-even
+- Uses churn model rate sensitivity: uplift % = rate_increase_pct → churn_est = base + sensitivity × uplift - tenure_discount
+- Active customers: repricing opportunity; churned customers: retrospective counterfactual
+- Thresholds: <40% churn est → "Raise"; 40-65% → "Partial"; >65% → "Hold"
+- Real data: all 6 active loss-making customers can be repriced to B/E with <25% churn risk
+
 **Phase 15d COMPLETE (2026-06-21)**: Hedge fraction signal in company churn model. 730 tests passing (6 new).
 - `company/crm/churn_model.py`: `hedge_fraction` param + `HEDGE_SENSITIVITY_REDUCTION=0.4` constant
 - `effective_rate_sensitivity = rate_sensitivity × (1 - hf × 0.4)`: hf=1.0 → 40% sensitivity reduction

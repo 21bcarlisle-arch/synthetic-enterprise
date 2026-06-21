@@ -732,6 +732,122 @@ def _pricing_margin_section(yd: dict) -> str:
     return "\n".join(lines)
 
 
+REPRICING_MANAGEABLE_THRESHOLD = 0.40   # post-uplift churn < 40% → raise
+REPRICING_RISKY_THRESHOLD = 0.65        # post-uplift churn > 65% → hold
+
+
+def _section_repricing_impact(data: dict) -> str:
+    """Phase 16a: tariff repricing impact assessment.
+
+    For each loss-making customer, estimates the churn consequence of raising
+    the tariff to the break-even level using the company churn model. Shows
+    active customers (repricing opportunity) and churned customers
+    (retrospective counterfactual — could earlier repricing have helped?).
+    """
+    from datetime import date as _date
+    from company.crm.churn_model import estimate_churn_probability
+
+    per_customer = data.get("per_customer_lifetime", {})
+    basis_risk = data.get("basis_risk_terms", [])
+    churned_set = set(data.get("churned_billing_accounts", []))
+
+    # Last known company forward rate per customer (most recent basis_risk entry)
+    last_company_rate: dict[str, float] = {}
+    for t in basis_risk:
+        last_company_rate[t["customer_id"]] = t["company_fwd_gbp_per_mwh"]
+
+    candidates = []
+    for cid, cdata in sorted(per_customer.items()):
+        pa = cdata.get("pricing_action", {})
+        if pa.get("flag") != "NET_NEGATIVE":
+            continue
+        uplift_pct = pa.get("recommended_uplift_pct")
+        if uplift_pct is None or uplift_pct <= 0 or cid not in last_company_rate:
+            continue
+
+        old_rate = last_company_rate[cid]
+        new_rate = old_rate * (1 + uplift_pct / 100)
+
+        acq_str = cdata.get("acquisition_date", "2016-01-01")
+        try:
+            acq_date = _date.fromisoformat(acq_str)
+        except (ValueError, TypeError):
+            acq_date = _date(2016, 1, 1)
+        tenure_years = (_date(2025, 12, 31) - acq_date).days / 365.25
+
+        fuel = "gas" if cdata.get("commodity") == "gas" else "electricity"
+        post_uplift_est = estimate_churn_probability(old_rate, new_rate, tenure_years, fuel=fuel)
+
+        if post_uplift_est < REPRICING_MANAGEABLE_THRESHOLD:
+            decision = "Raise — churn risk manageable"
+        elif post_uplift_est < REPRICING_RISKY_THRESHOLD:
+            decision = "Partial — incremental uplift advised"
+        else:
+            decision = "Hold — uplift likely to accelerate churn"
+
+        net_loss = -cdata.get("net_margin_after_cost_to_serve_gbp", 0.0)
+        status = "churned" if cid in churned_set else "active"
+
+        candidates.append({
+            "cid": cid,
+            "fuel": fuel[:4],
+            "segment": cdata.get("segment", "?"),
+            "status": status,
+            "uplift_pct": uplift_pct,
+            "net_loss_gbp": net_loss,
+            "post_uplift_est": post_uplift_est,
+            "decision": decision,
+        })
+
+    if not candidates:
+        return ""
+
+    candidates.sort(key=lambda c: c["uplift_pct"])
+
+    lines = [
+        "## Tariff Repricing Impact Assessment",
+        "",
+        "Estimated churn risk at the break-even tariff level for each loss-making customer.",
+        "Active = current opportunity; churned = retrospective counterfactual.",
+        "",
+        "| Customer | Fuel | Seg | Status | Uplift needed | Total loss | Churn @ B/E | Decision |",
+        "|----------|------|-----|--------|--------------|-----------|-------------|----------|",
+    ]
+    for c in candidates:
+        lines.append(
+            f"| {c['cid']} | {c['fuel']} | {c['segment']} | {c['status']} "
+            f"| +{c['uplift_pct']:.1f}% | {_fmt_gbp(c['net_loss_gbp'])} "
+            f"| {c['post_uplift_est']:.0%} | {c['decision']} |"
+        )
+
+    active_raise = [c for c in candidates if c["status"] == "active" and c["decision"].startswith("Raise")]
+    churned_raise = [c for c in candidates if c["status"] == "churned" and c["decision"].startswith("Raise")]
+    hold = [c for c in candidates if c["decision"].startswith("Hold")]
+
+    lines.append("")
+    if active_raise:
+        names = ", ".join(c["cid"] for c in active_raise)
+        lines.append(
+            f"**Repriceable now ({len(active_raise)})**: {names} — "
+            f"break-even churn risk below {REPRICING_MANAGEABLE_THRESHOLD:.0%}. Uplift advised."
+        )
+    if churned_raise:
+        names = ", ".join(c["cid"] for c in churned_raise)
+        lines.append(
+            f"**Missed repricing window ({len(churned_raise)} churned)**: {names} — "
+            f"break-even price would not have triggered high churn. Earlier repricing might have changed economics."
+        )
+    if hold:
+        names = ", ".join(c["cid"] for c in hold)
+        lines.append(
+            f"**Price-sensitive ({len(hold)})**: {names} — break-even rate would have elevated churn risk above "
+            f"{REPRICING_RISKY_THRESHOLD:.0%}. Retention strategy needed before any major uplift."
+        )
+    lines.append("")
+
+    return "\n".join(lines)
+
+
 def _lifetime_pricing_section(data: dict) -> str:
     """Whole-window cost-to-serve breakdown and activity-based pricing flags.
     Appears once at the top level (not repeated per year)."""
@@ -1997,6 +2113,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_retention_strategy(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
+    sections.append(_section_repricing_impact(data))
     sections.append(_ledger_summary_section(data))
     sections.append(_growth_acquisition_section(data))
 

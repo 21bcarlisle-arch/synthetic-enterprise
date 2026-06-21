@@ -1083,3 +1083,99 @@ def test_section_retention_omits_acq_rows_without_acq_data():
     result = _section_retention_strategy({"retention_log": old_log, "no_offer_churn_log": []})
     assert "Acquisition cost avoided" not in result
     assert "Full economic ROI" not in result
+
+
+# ── Tariff Repricing Impact tests (Phase 16a) ─────────────────────────────────
+
+def _repricing_fixture():
+    """Minimal data for Phase 16a repricing impact tests."""
+    return {
+        "per_customer_lifetime": {
+            "C_raise": {
+                "commodity": "electricity",
+                "segment": "SME",
+                "acquisition_date": "2016-01-01",
+                "net_margin_after_cost_to_serve_gbp": -800.0,
+                "pricing_action": {"flag": "NET_NEGATIVE", "recommended_uplift_pct": 20.0},
+            },
+            "C_hold": {
+                "commodity": "electricity",
+                "segment": "resi",
+                "acquisition_date": "2022-01-01",
+                "net_margin_after_cost_to_serve_gbp": -500.0,
+                "pricing_action": {"flag": "NET_NEGATIVE", "recommended_uplift_pct": 75.0},
+            },
+            "C_ok": {
+                "commodity": "electricity",
+                "segment": "resi",
+                "acquisition_date": "2016-01-01",
+                "net_margin_after_cost_to_serve_gbp": 200.0,
+                "pricing_action": {"flag": "OK"},
+            },
+        },
+        "basis_risk_terms": [
+            {
+                "customer_id": "C_raise",
+                "company_fwd_gbp_per_mwh": 100.0,
+                "term_start": "2024-01-01",
+                "sim_fwd_gbp_per_mwh": 100.0,
+                "tariff_error_pct": 0.0,
+            },
+            {
+                "customer_id": "C_hold",
+                "company_fwd_gbp_per_mwh": 100.0,
+                "term_start": "2024-01-01",
+                "sim_fwd_gbp_per_mwh": 100.0,
+                "tariff_error_pct": 0.0,
+            },
+        ],
+        "churned_billing_accounts": ["C_hold"],
+    }
+
+
+def test_repricing_section_shows_header():
+    from saas.reporting.annual_report import _section_repricing_impact
+    result = _section_repricing_impact(_repricing_fixture())
+    assert "Tariff Repricing Impact Assessment" in result
+
+
+def test_repricing_manageable_shows_raise():
+    """Low uplift → 'Raise' recommendation."""
+    from saas.reporting.annual_report import _section_repricing_impact
+    result = _section_repricing_impact(_repricing_fixture())
+    assert "C_raise" in result
+    assert "Raise" in result
+
+
+def test_repricing_risky_shows_hold():
+    """High uplift (+75%) → 'Hold' recommendation."""
+    from saas.reporting.annual_report import _section_repricing_impact
+    result = _section_repricing_impact(_repricing_fixture())
+    assert "C_hold" in result
+    assert "Hold" in result
+
+
+def test_repricing_ok_customers_excluded():
+    """Customers with OK pricing action not shown in table."""
+    from saas.reporting.annual_report import _section_repricing_impact
+    result = _section_repricing_impact(_repricing_fixture())
+    assert "C_ok" not in result
+
+
+def test_repricing_empty_when_no_net_negative():
+    """No NET_NEGATIVE customers → empty string."""
+    from saas.reporting.annual_report import _section_repricing_impact
+    data = {
+        "per_customer_lifetime": {
+            "C_ok": {
+                "commodity": "electricity",
+                "segment": "resi",
+                "acquisition_date": "2016-01-01",
+                "net_margin_after_cost_to_serve_gbp": 200.0,
+                "pricing_action": {"flag": "OK"},
+            },
+        },
+        "basis_risk_terms": [],
+        "churned_billing_accounts": [],
+    }
+    assert _section_repricing_impact(data) == ""
