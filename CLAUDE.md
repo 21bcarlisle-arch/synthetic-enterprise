@@ -123,6 +123,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 15d COMPLETE (2026-06-21)**: Hedge fraction signal in company churn model. 730 tests passing (6 new).
+- `company/crm/churn_model.py`: `hedge_fraction` param + `HEDGE_SENSITIVITY_REDUCTION=0.4` constant
+- `effective_rate_sensitivity = rate_sensitivity × (1 - hf × 0.4)`: hf=1.0 → 40% sensitivity reduction
+- `simulation/run_phase2b.py`: passes `prev_hf = current_hf.get(cid, 0.0)` at electricity renewal time
+- Reduces structural over-estimation in 2021-22: hedged customers had stable bills despite headline rate spikes
+- 6 new tests (31 total in test_churn_model.py): zero/full/partial hedge quantified; crisis scenario caps verified
+
 **Phase 15c COMPLETE (2026-06-21)**: Full economic ROI in retention section. 724 tests passing (3 new).
 - `saas/reporting/annual_report.py`: adds "Acquisition cost avoided" + "Full economic ROI" rows to retention table
 - Full ROI = (margin saved - offer cost) + acq_cost_saved (only shown when Phase 15b acq_cost data present)

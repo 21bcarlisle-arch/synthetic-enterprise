@@ -1,14 +1,25 @@
 """Company churn risk estimator -- observable-data only.
 
 The company estimates churn probability from signals it can legitimately
-observe: rate change percentage, customer tenure, and absolute bill burden.
-It cannot read saas/customer_reaction.py parameters (alpha, beta,
-bill-shock thresholds) or the SIM computed churn_probability.
+observe: rate change percentage, customer tenure, absolute bill burden,
+and hedge fraction from the company's own hedging records.
 
-Algorithm: base_rate + rate_sensitivity × rate_increase_pct
+Algorithm: base_rate
+           + effective_rate_sensitivity × rate_increase_pct
            - tenure_discount × min(tenure_years, 5)
            + bill_stress_sensitivity × max(0, prev_annual_bill / threshold - 1)
            clamped to [0.0, 0.95].
+
+Where effective_rate_sensitivity = rate_sensitivity × (1 - hedge_fraction × HEDGE_SENSITIVITY_REDUCTION)
+
+Hedge fraction signal (Phase 15d):
+  The company knows the hedge fraction it applied to each customer contract.
+  A fully hedged customer (hf=1.0) experienced near-fixed prices regardless
+  of market moves; they are less sensitive to the headline rate increase at
+  renewal because their last contract felt stable. HEDGE_SENSITIVITY_REDUCTION=0.4:
+  hf=1.0 → 40% rate sensitivity reduction; hf=0.5 → 20% reduction; hf=0.0 → no change.
+  This reduces the structural over-estimation of churn in crisis years (2021-22)
+  where rate increases were extreme but hedged customers had stable bills.
 
 Gas fuel uses separate constants (Phase 14b):
   GAS_RATE_SENSITIVITY = 0.6: gas contracts have fewer alternative suppliers
@@ -38,6 +49,7 @@ TENURE_DISCOUNT_PER_YEAR = 0.01
 MAX_TENURE_DISCOUNT_YEARS = 5
 BILL_STRESS_SENSITIVITY = 0.25
 BILL_STRESS_THRESHOLD_GBP = 3000.0
+HEDGE_SENSITIVITY_REDUCTION = 0.4
 MAX_CHURN_PROBABILITY = 0.95
 
 
@@ -47,6 +59,7 @@ def estimate_churn_probability(
     tenure_years: float,
     annual_consumption_kwh: float = 0.0,
     fuel: str = "electricity",
+    hedge_fraction: float = 0.0,
 ) -> float:
     """Estimate churn probability from observable renewal signals.
 
@@ -59,11 +72,20 @@ def estimate_churn_probability(
     fuel: "electricity" (default) or "gas" — selects fuel-specific constants.
         Gas uses lower base rate (0.08) and lower rate sensitivity (0.6)
         to reflect stickier dual-fuel gas contracts with fewer alternatives.
+    hedge_fraction: fraction of the previous term that was hedged (0.0-1.0).
+        The company knows this from its own hedging records. A well-hedged
+        customer experienced stable prices; their rate sensitivity is reduced
+        by HEDGE_SENSITIVITY_REDUCTION proportionally to the hedge fraction.
+        Defaults to 0.0 (no hedge adjustment) for backwards compatibility.
 
     Returns: churn probability estimate in [0.0, 0.95]
     """
     base_rate = GAS_BASE_CHURN_RATE if fuel == "gas" else BASE_CHURN_RATE
     rate_sensitivity = GAS_RATE_SENSITIVITY if fuel == "gas" else RATE_SENSITIVITY
+
+    # Phase 15d: hedge-adjusted rate sensitivity. Well-hedged customers experienced
+    # stable prices during their last contract → less reactive to headline rate changes.
+    effective_rate_sensitivity = rate_sensitivity * (1.0 - hedge_fraction * HEDGE_SENSITIVITY_REDUCTION)
 
     if old_rate_gbp_per_mwh > 0:
         rate_increase_pct = (new_rate_gbp_per_mwh - old_rate_gbp_per_mwh) / old_rate_gbp_per_mwh
@@ -75,5 +97,5 @@ def estimate_churn_probability(
     prev_annual_bill_gbp = old_rate_gbp_per_mwh * annual_consumption_kwh / 1000.0
     bill_stress = BILL_STRESS_SENSITIVITY * max(0.0, prev_annual_bill_gbp / BILL_STRESS_THRESHOLD_GBP - 1.0)
 
-    p = base_rate + rate_sensitivity * rate_increase_pct - tenure_discount + bill_stress
+    p = base_rate + effective_rate_sensitivity * rate_increase_pct - tenure_discount + bill_stress
     return max(0.0, min(MAX_CHURN_PROBABILITY, p))

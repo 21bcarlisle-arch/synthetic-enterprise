@@ -8,7 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-21T14:52:18Z
+Last updated: 2026-06-21T15:00:04Z
+
+**Phase 15d LIVE (2026-06-21)**: Hedge fraction signal in company churn model. 730 tests passing (6 new).
+- `company/crm/churn_model.py`: `hedge_fraction` param + `HEDGE_SENSITIVITY_REDUCTION=0.4`
+- `effective_rate_sensitivity = rate_sensitivity × (1 - hf × 0.4)` — well-hedged customers less reactive at renewal
+- `simulation/run_phase2b.py`: passes previous term's hedge fraction into company estimate at electricity renewal
+- Reduces structural 2021-22 over-estimation: hedged customers had stable bills despite headline rate spikes
+- Next run: company_est 2021-22 expected to be lower for high-hf customers (prev divergence 2.79× → ?×)
 
 **Phase 15c LIVE (2026-06-21)**: Full economic ROI in retention section. 724 tests passing (3 new).
 - `saas/reporting/annual_report.py`: "Acquisition cost avoided" + "Full economic ROI" rows in retention table

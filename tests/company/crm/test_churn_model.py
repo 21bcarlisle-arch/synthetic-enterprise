@@ -7,6 +7,7 @@ from company.crm.churn_model import (
     BILL_STRESS_THRESHOLD_GBP,
     GAS_BASE_CHURN_RATE,
     GAS_RATE_SENSITIVITY,
+    HEDGE_SENSITIVITY_REDUCTION,
     MAX_CHURN_PROBABILITY,
     RATE_SENSITIVITY,
     TENURE_DISCOUNT_PER_YEAR,
@@ -190,3 +191,56 @@ def test_gas_probability_never_below_zero():
     """Gas churn probability is clamped to >= 0 even for large rate decreases."""
     p = estimate_churn_probability(200.0, 50.0, tenure_years=5.0, fuel="gas")
     assert p >= 0.0
+
+
+# ── Hedge fraction signal tests (Phase 15d) ──────────────────────────────────
+
+def test_hedge_fraction_zero_matches_default():
+    """hedge_fraction=0.0 gives same result as omitting the parameter."""
+    p_default = estimate_churn_probability(50.0, 80.0, tenure_years=1.0)
+    p_explicit = estimate_churn_probability(50.0, 80.0, tenure_years=1.0, hedge_fraction=0.0)
+    assert p_default == pytest.approx(p_explicit)
+
+
+def test_full_hedge_reduces_estimated_churn():
+    """A fully hedged customer (hf=1.0) has lower estimated churn than unhedged at same rate increase.
+    Use a moderate increase (100%) where hedge moves result below cap."""
+    p_unhedged = estimate_churn_probability(50.0, 100.0, tenure_years=1.0, hedge_fraction=0.0)
+    p_hedged = estimate_churn_probability(50.0, 100.0, tenure_years=1.0, hedge_fraction=1.0)
+    assert p_hedged < p_unhedged
+
+
+def test_hedge_sensitivity_quantified():
+    """Full hedge: effective_rate_sensitivity = RATE_SENSITIVITY × (1 - HEDGE_SENSITIVITY_REDUCTION)."""
+    rate_increase_pct = (100.0 - 50.0) / 50.0  # +100%
+    expected_unhedged = BASE_CHURN_RATE + RATE_SENSITIVITY * rate_increase_pct - TENURE_DISCOUNT_PER_YEAR
+    effective_sens = RATE_SENSITIVITY * (1.0 - 1.0 * HEDGE_SENSITIVITY_REDUCTION)
+    expected_hedged = BASE_CHURN_RATE + effective_sens * rate_increase_pct - TENURE_DISCOUNT_PER_YEAR
+    p_unhedged = estimate_churn_probability(50.0, 100.0, tenure_years=1.0, hedge_fraction=0.0)
+    p_hedged = estimate_churn_probability(50.0, 100.0, tenure_years=1.0, hedge_fraction=1.0)
+    assert p_unhedged == pytest.approx(min(MAX_CHURN_PROBABILITY, max(0.0, expected_unhedged)))
+    assert p_hedged == pytest.approx(min(MAX_CHURN_PROBABILITY, max(0.0, expected_hedged)))
+
+
+def test_partial_hedge_intermediate_churn():
+    """A partial hedge (hf=0.5) gives a result between no-hedge and full-hedge."""
+    p_none = estimate_churn_probability(50.0, 100.0, tenure_years=1.0, hedge_fraction=0.0)
+    p_half = estimate_churn_probability(50.0, 100.0, tenure_years=1.0, hedge_fraction=0.5)
+    p_full = estimate_churn_probability(50.0, 100.0, tenure_years=1.0, hedge_fraction=1.0)
+    assert p_full < p_half < p_none
+
+
+def test_hedge_does_not_reduce_below_zero():
+    """Even with full hedge and rate decrease, result stays >= 0."""
+    p = estimate_churn_probability(200.0, 50.0, tenure_years=5.0, hedge_fraction=1.0)
+    assert p >= 0.0
+
+
+def test_hedge_crisis_scenario_reduces_estimate():
+    """Crisis year: 160% rate increase — no-hedge hits cap, well-hedged customer stays below cap."""
+    # old=£50, new=£130 (+160%): no-hedge → capped at 0.95; hf=0.95 → stays below cap
+    p = estimate_churn_probability(50.0, 130.0, tenure_years=3.0, hedge_fraction=0.95)
+    p_no_hedge = estimate_churn_probability(50.0, 130.0, tenure_years=3.0, hedge_fraction=0.0)
+    assert p_no_hedge == pytest.approx(MAX_CHURN_PROBABILITY)   # capped
+    assert p < MAX_CHURN_PROBABILITY   # hedge keeps it below cap
+    assert p < p_no_hedge   # strictly lower
