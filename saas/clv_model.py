@@ -156,7 +156,8 @@ def _annuity_factor(periods: float, rate: float) -> float:
 
 
 def build_clv(
-    churn_risk: dict, cost_to_serve: dict, n_draws: int = 500, random_seed: int = 42
+    churn_risk: dict, cost_to_serve: dict, n_draws: int = 500, random_seed: int = 42,
+    override_avg_margin_by_account: dict | None = None,
 ) -> dict:
     """Project customer lifetime value (CLV) for every billing account with
     at least one renewal point.
@@ -178,12 +179,19 @@ def build_clv(
     future years of net margin at this account's historical average,
     discounted at `DISCOUNT_RATE_ANNUAL` per year.
     """
-    net_margin_by_account: dict[str, float] = {}
-    for customer_id, entry in cost_to_serve["by_customer"].items():
-        account_id = _billing_account_id(customer_id)
-        net_margin_by_account[account_id] = (
-            net_margin_by_account.get(account_id, 0.0) + entry["net_margin_gbp"]
-        )
+    if override_avg_margin_by_account is not None:
+        net_margin_by_account = override_avg_margin_by_account
+        # override already contains avg-per-year margins; set periods=1 so the
+        # division below is a no-op (we use the override directly as avg_annual).
+        _margin_is_avg = True
+    else:
+        net_margin_by_account = {}
+        for customer_id, entry in cost_to_serve["by_customer"].items():
+            account_id = _billing_account_id(customer_id)
+            net_margin_by_account[account_id] = (
+                net_margin_by_account.get(account_id, 0.0) + entry["net_margin_gbp"]
+            )
+        _margin_is_avg = False
 
     # Only include accounts that have both renewal history and cost_to_serve data.
     # Per-year snapshots may have churn data for an account that churned before
@@ -202,7 +210,10 @@ def build_clv(
     result = {}
     for account_id in accounts:
         periods = len(churn_risk[account_id])
-        avg_annual_net_margin = net_margin_by_account[account_id] / periods
+        if _margin_is_avg:
+            avg_annual_net_margin = net_margin_by_account[account_id]
+        else:
+            avg_annual_net_margin = net_margin_by_account[account_id] / periods
         lifetime = lifetimes[account_id]
         result[account_id] = {
             "alpha": alpha,

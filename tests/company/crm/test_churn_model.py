@@ -5,6 +5,8 @@ from company.crm.churn_model import (
     BASE_CHURN_RATE,
     BILL_STRESS_SENSITIVITY,
     BILL_STRESS_THRESHOLD_GBP,
+    CRISIS_HANGOVER_BASE_UPLIFT,
+    CRISIS_HANGOVER_WINDOW_PERIODS,
     GAS_BASE_CHURN_RATE,
     GAS_RATE_SENSITIVITY,
     HEDGE_SENSITIVITY_REDUCTION,
@@ -244,3 +246,59 @@ def test_hedge_crisis_scenario_reduces_estimate():
     assert p_no_hedge == pytest.approx(MAX_CHURN_PROBABILITY)   # capped
     assert p < MAX_CHURN_PROBABILITY   # hedge keeps it below cap
     assert p < p_no_hedge   # strictly lower
+
+
+# --- Phase 22a: crisis hangover uplift ---
+
+def test_hangover_zero_no_effect():
+    """hangover_periods_remaining=0 produces same result as default."""
+    p_default = estimate_churn_probability(200.0, 150.0, tenure_years=2.0)
+    p_zero = estimate_churn_probability(200.0, 150.0, tenure_years=2.0, hangover_periods_remaining=0)
+    assert p_default == pytest.approx(p_zero)
+
+
+def test_hangover_one_adds_uplift():
+    """hangover_periods_remaining=1 adds CRISIS_HANGOVER_BASE_UPLIFT to churn probability.
+    Use flat rate + zero tenure so base probability is not clamped, allowing exact diff check.
+    """
+    p_no_hangover = estimate_churn_probability(100.0, 100.0, tenure_years=0.0)
+    p_hangover = estimate_churn_probability(100.0, 100.0, tenure_years=0.0, hangover_periods_remaining=1)
+    assert abs(p_hangover - p_no_hangover - CRISIS_HANGOVER_BASE_UPLIFT) < 1e-9
+
+
+def test_hangover_two_same_as_one():
+    """Any positive hangover_periods_remaining adds exactly one CRISIS_HANGOVER_BASE_UPLIFT."""
+    p_1 = estimate_churn_probability(200.0, 150.0, tenure_years=2.0, hangover_periods_remaining=1)
+    p_2 = estimate_churn_probability(200.0, 150.0, tenure_years=2.0, hangover_periods_remaining=2)
+    assert p_1 == pytest.approx(p_2)
+
+
+def test_hangover_capped_at_max():
+    """Hangover cannot push probability above MAX_CHURN_PROBABILITY."""
+    p = estimate_churn_probability(100.0, 300.0, tenure_years=0.0, hangover_periods_remaining=1)
+    assert p <= MAX_CHURN_PROBABILITY
+
+
+def test_hangover_post_crisis_rate_fall():
+    """Post-crisis scenario: rate falls, rate-change signal collapses, but hangover fires.
+
+    This is the 2024 failure mode: rates fell from crisis peaks, rate_increase_pct is negative,
+    so the model would estimate near-zero or zero churn without hangover.
+    With hangover: company gets a meaningful uplift above the floor.
+    """
+    # old=£200 (post-crisis), new=£195 (small fall, tenure=0 so no tenure discount)
+    # rate_increase_pct = -0.025 → base_only = 0.10 - 0.8*0.025 = 0.08
+    p_no_hangover = estimate_churn_probability(200.0, 195.0, tenure_years=0.0)
+    p_hangover = estimate_churn_probability(200.0, 195.0, tenure_years=0.0, hangover_periods_remaining=1)
+    assert p_hangover > p_no_hangover
+    assert abs(p_hangover - p_no_hangover - CRISIS_HANGOVER_BASE_UPLIFT) < 1e-9
+
+
+def test_hangover_window_periods_constant():
+    """CRISIS_HANGOVER_WINDOW_PERIODS is 2 (two renewals of elevated churn post-crisis)."""
+    assert CRISIS_HANGOVER_WINDOW_PERIODS == 2
+
+
+def test_hangover_uplift_constant():
+    """CRISIS_HANGOVER_BASE_UPLIFT is 0.12 (12pp of extra churn during hangover)."""
+    assert CRISIS_HANGOVER_BASE_UPLIFT == pytest.approx(0.12)

@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**814 tests passing (full suite); 787 in SIM_FAST_MODE=1 (16s). Phase 21a added 23 new tests: 19 policy costs + 4 annual report.**
+**836 tests passing (full suite est.); 801 in SIM_FAST_MODE=1. Phase 22a adds 22 new tests (8 hangover + 6 EV analysis + 8 CLV/trailing).**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 22a COMPLETE (2026-06-21)**: Post-crisis churn hangover + trailing-margin CLV. 22 new tests.
+- `company/crm/churn_model.py`: `CRISIS_HANGOVER_BASE_UPLIFT=0.12` — +12pp churn when company observes prior term net loss >20% of revenue; persists for 2 renewal periods. Fixes 2024 failure mode: falling rates collapse the rate-change signal to near-zero, but customers remain financially scarred.
+- `simulation/run_phase2b.py`: `hangover_remaining` dict tracks remaining hangover periods per customer; triggers at term close, decrements at renewal; passed as `hangover_periods_remaining` to `estimate_churn_probability`.
+- `saas/clv_model.py`: `override_avg_margin_by_account` param bypasses cost_to_serve lookup; enables trailing-margin CLV variants without rerunning settlement.
+- `saas/reporting/annual_report.py`: `_section_enterprise_value_analysis()` — Full-history EV vs 3yr-trailing EV; year-by-year net margin table; per-account CLV comparison. Answers: "is negative EV a history problem or a current problem?"
 
 **Phase 21a COMPLETE (2026-06-21)**: Explicit RO + CfD electricity policy costs. 787 tests passing (23 new).
 - `simulation/policy_costs.py`: year-indexed lookup tables for RO (£15.6→£31.8/MWh 2016→2024) and CfD levy (negative in 2022 = crisis rebate)

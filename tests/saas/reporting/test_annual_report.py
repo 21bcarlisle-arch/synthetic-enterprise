@@ -11,6 +11,7 @@ from saas.reporting.annual_report import (
     _lifetime_pricing_section,
     _mandate_comparison_section,
     _pricing_action,
+    _section_enterprise_value_analysis,
     _section_policy_costs,
     _segment_margin_trend_section,
     _send_run_complete_ntfy,
@@ -1673,3 +1674,63 @@ def test_policy_costs_section_totals():
     assert "2,200" in result
     assert "-400" in result
     assert "1,800" in result
+
+
+# --- Phase 22a: enterprise value analysis section ---
+
+def _make_ev_data(years_margins: dict[str, float], ev_full: float = -7978.0) -> dict:
+    """Build minimal data dict for _section_enterprise_value_analysis."""
+    return {
+        "enterprise_value_gbp": ev_full,
+        "churn_risk": {
+            "C1": [{"churn_probability": 0.15, "renewal_period": f"{yr}-01-01"}
+                   for yr in years_margins],
+        },
+        "years": {
+            yr: {"net_gbp": net, "per_customer": {"C1": {"net_gbp": net, "commodity": "electricity",
+                                                          "gross_gbp": net + 50, "capital_gbp": 50}}}
+            for yr, net in years_margins.items()
+        },
+        "by_billing_account": {"C1": {"clv_gbp": -500.0}},
+        "clv_snapshots": None,
+    }
+
+
+def test_ev_analysis_hidden_when_no_churn_risk():
+    data = {"enterprise_value_gbp": -1000.0, "churn_risk": {}, "years": {}}
+    assert _section_enterprise_value_analysis(data) == ""
+
+
+def test_ev_analysis_shows_full_history_ev():
+    data = _make_ev_data({"2022": -800.0, "2023": -200.0, "2024": 400.0})
+    result = _section_enterprise_value_analysis(data)
+    assert "Full-history EV" in result
+    assert "-7,978" in result  # ev_full passed in
+
+
+def test_ev_analysis_shows_trailing_ev():
+    data = _make_ev_data({"2022": -800.0, "2023": -200.0, "2024": 400.0})
+    result = _section_enterprise_value_analysis(data)
+    assert "3yr-trailing EV" in result
+
+
+def test_ev_analysis_shows_year_table():
+    data = _make_ev_data({"2022": -800.0, "2023": -200.0, "2024": 400.0})
+    result = _section_enterprise_value_analysis(data)
+    assert "2022" in result
+    assert "2024" in result
+    assert "trailing" in result
+
+
+def test_ev_analysis_trailing_better_than_full_after_recovery():
+    """When recent years profitable and history dragged by losses, trailing EV > full EV."""
+    # Deep losses in early years; recent 3 years profitable
+    data = _make_ev_data({
+        "2016": -2000.0, "2017": -1500.0, "2018": -1000.0,
+        "2019": 200.0, "2020": 300.0, "2021": -3000.0,
+        "2022": -500.0, "2023": 400.0, "2024": 800.0,
+    }, ev_full=-7000.0)
+    result = _section_enterprise_value_analysis(data)
+    # Both EVs should appear; the text should be present
+    assert "Full-history EV" in result
+    assert "3yr-trailing EV" in result

@@ -538,6 +538,8 @@ def extract_report_data(run_output: dict) -> dict:
         # Phase 17c/17d: pre-aggregated per-customer P&L (all_records not persisted)
         "per_cid_pnl": per_cid_pnl,
         "per_cid_comm_pnl": per_cid_comm_pnl,
+        # Phase 22a: churn_risk kept in data so trailing-CLV section can recompute EV
+        "churn_risk": churn_risk,
     }
 
 
@@ -1463,6 +1465,112 @@ def _section_company_divergence(data: dict) -> str:
             lines.append(f"| {yr} | {n} | {mean_raw:.2f}×{flag} | {max_raw:.2f}× |")
         lines.append("")
 
+    return "\n".join(lines)
+
+
+def _section_enterprise_value_analysis(data: dict) -> str:
+    """Phase 22a: dual enterprise value — full-history vs 3yr-trailing margin.
+
+    The full-history EV anchors avg_annual_margin to all simulation years,
+    including deep crisis losses. The trailing variant uses only the last 3
+    completed years, reflecting the company's current earning power rather
+    than its cumulative history. Both are valid; showing both makes the
+    methodology choice explicit.
+    """
+    from saas.clv_model import build_clv, _annuity_factor, fit_theta_prior_from_churn_probabilities, DISCOUNT_RATE_ANNUAL
+    from saas.cost_to_serve import build_cost_to_serve
+
+    churn_risk = data.get("churn_risk", {})
+    yearly = data.get("years", {})
+    ev_full = data.get("enterprise_value_gbp")
+
+    if not churn_risk or not yearly or ev_full is None:
+        return ""
+
+    sorted_years = sorted(yearly.keys())
+    trailing_years = sorted_years[-3:] if len(sorted_years) >= 3 else sorted_years
+
+    # Build per-customer trailing net margin from yearly per_customer dicts
+    trailing_margin_by_cid: dict[str, list[float]] = {}
+    for yr in trailing_years:
+        yd = yearly[yr]
+        for cid, pc in yd.get("per_customer", {}).items():
+            trailing_margin_by_cid.setdefault(cid, []).append(pc["net_gbp"])
+
+    # Map CID → billing account ID (electricity CIDs map to themselves for named customers)
+    from saas.customer_reaction import _billing_account_id
+    trailing_avg_by_account: dict[str, float] = {}
+    for cid, margins in trailing_margin_by_cid.items():
+        account_id = _billing_account_id(cid)
+        existing = trailing_avg_by_account.get(account_id, 0.0)
+        trailing_avg_by_account[account_id] = existing + sum(margins) / len(margins)
+
+    # Compute trailing CLV using override margins (same lifetime, different margin basis)
+    # Only include accounts that have churn_risk renewal data
+    accounts_with_risk = {aid for aid, renewals in churn_risk.items() if renewals}
+    trailing_avg_filtered = {k: v for k, v in trailing_avg_by_account.items() if k in accounts_with_risk}
+    if not trailing_avg_filtered:
+        return ""
+
+    # Get expected lifetimes from existing CLV snapshots (most recent year's snapshot)
+    snapshots = data.get("clv_snapshots") or {}
+    latest_snap = snapshots.get(sorted_years[-1], {}) if snapshots else {}
+
+    # Compute alpha/beta from churn risk for annuity factor
+    alpha, beta = fit_theta_prior_from_churn_probabilities(churn_risk)
+    theta_mean = alpha / (alpha + beta) if (alpha + beta) > 0 else 0.10
+    # Expected geometric lifetime = 1/theta (simplified; consistent with SBG projection)
+    base_lifetime = min(1.0 / theta_mean, 50.0) if theta_mean > 0 else 10.0
+    annuity = _annuity_factor(base_lifetime, DISCOUNT_RATE_ANNUAL)
+
+    trailing_clv_by_account = {
+        account_id: avg_margin * annuity
+        for account_id, avg_margin in trailing_avg_filtered.items()
+    }
+    trailing_ev = sum(trailing_clv_by_account.values())
+
+    # Year-by-year portfolio net margin table
+    yr_rows = []
+    for yr in sorted_years:
+        yd = yearly[yr]
+        net = yd.get("net_gbp", 0.0)
+        marker = " ← trailing" if yr in trailing_years else ""
+        yr_rows.append(f"| {yr} | {_fmt_gbp(net)} |{marker}")
+
+    # Per-account comparison
+    acct_rows = []
+    all_accts = sorted(set(trailing_avg_by_account) | {k for k in data.get("by_billing_account", {})})
+    full_by_acct = data.get("by_billing_account", {})
+    for acct in all_accts:
+        full_clv = (full_by_acct.get(acct) or {}).get("clv_gbp")
+        trail_clv = trailing_clv_by_account.get(acct)
+        full_str = _fmt_gbp(full_clv) if full_clv is not None else "—"
+        trail_str = _fmt_gbp(trail_clv) if trail_clv is not None else "—"
+        acct_rows.append(f"| {acct} | {full_str} | {trail_str} |")
+
+    lines = [
+        "## Enterprise Value Analysis (Phase 22a)",
+        "",
+        f"**Full-history EV:** {_fmt_gbp(ev_full)} — anchored to all {len(sorted_years)} years including crisis losses",
+        f"**3yr-trailing EV:** {_fmt_gbp(trailing_ev)} — based on last {len(trailing_years)} years ({', '.join(trailing_years)}), reflecting current earning power",
+        "",
+        "The gap between the two is the weight of unrecovered crisis losses in the CLV anchor.",
+        "When trailing EV > full-history EV, the company's recent performance is better than its",
+        "cumulative history suggests — a recovery signal.",
+        "",
+        "**Portfolio net margin by year:**",
+        "",
+        "| Year | Net margin |",
+        "|------|----------:|",
+        *yr_rows,
+        "",
+        "**CLV by billing account:**",
+        "",
+        "| Account | Full-history CLV | 3yr-trailing CLV |",
+        "|---------|----------------:|----------------:|",
+        *acct_rows,
+        "",
+    ]
     return "\n".join(lines)
 
 
@@ -2577,6 +2685,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_gas_renewal_pressure(data))
     sections.append(_section_retention_strategy(data))
     sections.append(_section_retention_durability(data))
+    sections.append(_section_enterprise_value_analysis(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
     sections.append(_section_repricing_impact(data))

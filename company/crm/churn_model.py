@@ -51,6 +51,13 @@ BILL_STRESS_SENSITIVITY = 0.25
 BILL_STRESS_THRESHOLD_GBP = 3000.0
 HEDGE_SENSITIVITY_REDUCTION = 0.4
 MAX_CHURN_PROBABILITY = 0.95
+# Phase 22a: post-crisis churn hangover. When the company observes that a
+# customer's prior term had a large net loss (>20% of revenue), customers
+# who survived crisis prices remain financially anxious even after rates fall.
+# The rate-change signal collapses to near-zero when rates improve (negative
+# rate_increase_pct), but actual churn stays elevated for 2 renewal periods.
+CRISIS_HANGOVER_BASE_UPLIFT = 0.12   # added to churn probability during hangover
+CRISIS_HANGOVER_WINDOW_PERIODS = 2   # hangover persists for this many renewals
 
 
 def estimate_churn_probability(
@@ -60,6 +67,7 @@ def estimate_churn_probability(
     annual_consumption_kwh: float = 0.0,
     fuel: str = "electricity",
     hedge_fraction: float = 0.0,
+    hangover_periods_remaining: int = 0,
 ) -> float:
     """Estimate churn probability from observable renewal signals.
 
@@ -97,5 +105,6 @@ def estimate_churn_probability(
     prev_annual_bill_gbp = old_rate_gbp_per_mwh * annual_consumption_kwh / 1000.0
     bill_stress = BILL_STRESS_SENSITIVITY * max(0.0, prev_annual_bill_gbp / BILL_STRESS_THRESHOLD_GBP - 1.0)
 
-    p = base_rate + effective_rate_sensitivity * rate_increase_pct - tenure_discount + bill_stress
+    hangover_uplift = CRISIS_HANGOVER_BASE_UPLIFT if hangover_periods_remaining > 0 else 0.0
+    p = base_rate + effective_rate_sensitivity * rate_increase_pct - tenure_discount + bill_stress + hangover_uplift
     return max(0.0, min(MAX_CHURN_PROBABILITY, p))

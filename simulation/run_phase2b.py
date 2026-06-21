@@ -475,6 +475,9 @@ def main(report_end: str | None = None, sim_interface=None):
     prev_term_margin: dict[str, float] = {}
     prev_term_revenue: dict[str, float] = {}
     margin_feedback_log: list[dict] = []
+    # Phase 22a: post-crisis hangover — how many more renewals get the +12% churn uplift
+    hangover_remaining: dict[str, int] = {}
+    CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
 
     # Phase 17a + 19a: rolling portfolio-wide margin rates for learning premium
     portfolio_elec_margin_rates: list[float] = []
@@ -613,7 +616,15 @@ def main(report_end: str | None = None, sim_interface=None):
                 # Phase 15d: pass previous-term hedge fraction — well-hedged customers
                 # experienced stable prices, making them less rate-sensitive at renewal.
                 prev_hf = current_hf.get(cid, 0.0)
-                company_est_pre = round(_est_churn(old_elec_rate, unit_rate, tenure_for_est, EFFECTIVE_EAC_KWH.get(cid, 0.0), hedge_fraction=prev_hf), 4)
+                hangover_periods = hangover_remaining.get(cid, 0)
+                company_est_pre = round(_est_churn(
+                    old_elec_rate, unit_rate, tenure_for_est,
+                    EFFECTIVE_EAC_KWH.get(cid, 0.0),
+                    hedge_fraction=prev_hf,
+                    hangover_periods_remaining=hangover_periods,
+                ), 4)
+                if hangover_periods > 0:
+                    hangover_remaining[cid] = hangover_periods - 1
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = EFFECTIVE_EAC_KWH.get(cid, 0.0)
                     discount_pct = _retention_discount_for_risk(company_est_pre)
@@ -969,6 +980,12 @@ def main(report_end: str | None = None, sim_interface=None):
         prev_term_margin[cid] = actual_net
         term_revenue = sum(r["revenue_gbp"] for r in settled_this_term)
         prev_term_revenue[cid] = term_revenue
+        # Phase 22a: trigger post-crisis hangover when electricity term suffers >20% net loss.
+        # Company observes this from its own P&L — customers scarred by crisis prices stay anxious
+        # even when rates improve, so churn stays elevated for 2 renewal periods.
+        if commodity == "electricity" and term_revenue > 0 and actual_net / term_revenue < -CRISIS_HANGOVER_LOSS_THRESHOLD:
+            from company.crm.churn_model import CRISIS_HANGOVER_WINDOW_PERIODS
+            hangover_remaining[cid] = CRISIS_HANGOVER_WINDOW_PERIODS
         if term_revenue > 0:
             if commodity == "electricity":
                 portfolio_elec_margin_rates.append(actual_net / term_revenue)
