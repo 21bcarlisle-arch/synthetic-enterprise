@@ -8,11 +8,16 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T06:40:24Z
+Last updated: 2026-06-22T06:59:39Z
 
-**Phase 28b IN PROGRESS (2026-06-22 07:14 UTC)**: Full sim run with complete I&C stack. ETA ~09:00 UTC.
-- First run with CCL, volume tolerance, Triad, I&C churn all active simultaneously
-- Running at HEAD 99e0b33 (886 non-integration tests passing in 7.8s)
+**Phase 29a LIVE (2026-06-22)**: Network charges (DUoS + TNUoS) in settlement P&L and tariff. 907 non-integration tests passing in 7.87s.
+- `simulation/policy_costs.py`: year-indexed tables for resi/SME (£35-46/MWh combined) and I&C (£11-14/MWh DUoS only)
+- `simulation/hedged_settlement.py`: `network_cost_gbp` field per period; deducted from `net_margin_gbp` alongside policy costs
+- `saas/tariff_pricing.py`: `network_cost_per_mwh` param — pass-through in unit rate at pricing time
+- `simulation/renewals.py` + `run_phase2b.py`: segment-aware network cost at each renewal
+- `saas/reporting/annual_report.py`: `_section_network_costs()` with year-by-year table (backward compatible)
+- R&D: Ofgem Annex 9 data in `docs/market_research/network_charges_uk_2016_2024.md`; TCR 2023 reform noted; calibration TBD
+- Phase 29a sim run pending (first run showing realistic £/MWh cost stack including network)
 
 **Phase 28a LIVE (2026-06-22)**: I&C portfolio summary section in annual report. 936 tests total (886 non-integration pass in 7.8s).
 - `_section_ic_portfolio()`: lifetime P&L, CCL/MWh, TNUoS exposure, volume tolerance summary, segment comparison by year

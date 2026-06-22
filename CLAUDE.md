@@ -128,6 +128,16 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 29a COMPLETE (2026-06-22)**: Network charges (DUoS + TNUoS) in settlement P&L and tariff stack. 15 new tests.
+- `simulation/policy_costs.py`: `_NETWORK_COST_RESI_SME_BY_YEAR` (£35-46/MWh, 2016-2024) + `_DUOS_IC_BY_YEAR` (£11-14/MWh); `get_electricity_network_cost_per_mwh(date_str, segment="resi")`
+- `simulation/hedged_settlement.py`: `network_cost_gbp` field per settlement period; `net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp`
+- `saas/tariff_pricing.py`: `network_cost_per_mwh` param on `price_fixed_tariff()` — pass-through in unit rate
+- `simulation/renewals.py`: `segment` param on `build_renewal_schedule()`; I&C uses DUoS-only rate (Triad TNUoS tracked separately in triad.py to avoid double-count)
+- `simulation/run_phase2b.py`: passes `segment=c.get("segment", "resi")` at both build_renewal_schedule call sites
+- `saas/reporting/annual_report.py`: `network_cost_gbp` in yearly aggregation; `_section_network_costs()` backward-compatible section
+- Network cost is now the largest single non-commodity cost component in the P&L stack
+- 907 non-integration tests passing in 7.87s
+
 **Phase 28a COMPLETE (2026-06-22)**: I&C portfolio summary section in annual report. 6 new tests.
 - `saas/reporting/annual_report.py`: `_section_ic_portfolio()` — lifetime P&L, CCL/MWh, TNUoS Triad exposure, volume tolerance summary, and year-by-year segment comparison (I&C vs SME vs Resi)
 - Identifies I&C customers from CUSTOMERS module (`segment == "I&C"`); not CCL proxy (fixed: CCL proxy also matched C5 SME)
