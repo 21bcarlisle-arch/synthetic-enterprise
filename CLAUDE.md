@@ -130,7 +130,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 
 **Phase 28a COMPLETE (2026-06-22)**: I&C portfolio summary section in annual report. 6 new tests.
 - `saas/reporting/annual_report.py`: `_section_ic_portfolio()` — lifetime P&L, CCL/MWh, TNUoS Triad exposure, volume tolerance summary, and year-by-year segment comparison (I&C vs SME vs Resi)
-- Identifies I&C customers from settlement records via `ccl_gbp > 0` (resi is exempt)
+- Identifies I&C customers from CUSTOMERS module (`segment == "I&C"`); not CCL proxy (fixed: CCL proxy also matched C5 SME)
 - Pulls from `triad_log`, `volume_tolerance_log`, `segment_split` per year — no new run keys required
 - Backward compatible: silent if no I&C settlement records (pre-Phase-24a runs)
 
