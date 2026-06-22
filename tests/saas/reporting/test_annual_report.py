@@ -14,6 +14,7 @@ from saas.reporting.annual_report import (
     _section_enterprise_value_analysis,
     _section_ic_portfolio,
     _section_policy_costs,
+    _section_scenario_metadata,
     _section_solvency_signal,
     _section_volume_tolerance,
     _section_triad_exposure,
@@ -2439,3 +2440,54 @@ def test_section_active_passive_passive_estimate_lower():
     # Active estimate: 20.0%, passive estimate: 5.0%
     assert "20.0%" in result or "20%" in result
     assert "5.0%" in result or "5%" in result
+
+
+# Phase 37a: Forward scenario metadata section
+
+
+def test_section_scenario_metadata_empty_when_no_scenario():
+    assert _section_scenario_metadata({}) == ""
+    assert _section_scenario_metadata({"scenario_name": None}) == ""
+
+
+def test_section_scenario_metadata_shows_scenario_name():
+    data = {"scenario_name": "central_2027", "scenario_year_range": [2026, 2029]}
+    result = _section_scenario_metadata(data)
+    assert "central_2027" in result
+
+
+def test_section_scenario_metadata_shows_year_range():
+    data = {"scenario_name": "central_2027", "scenario_year_range": [2026, 2029]}
+    result = _section_scenario_metadata(data)
+    assert "2026" in result
+    assert "2029" in result
+
+
+def test_section_scenario_metadata_shows_forward_scenario_warning():
+    data = {"scenario_name": "stress_dunkelflaute_2027", "scenario_year_range": [2026, 2030]}
+    result = _section_scenario_metadata(data)
+    assert "FORWARD SCENARIO" in result or "forward scenario" in result.lower()
+
+
+def test_section_scenario_metadata_shows_distribution_params():
+    data = {"scenario_name": "central_2027", "scenario_year_range": [2026, 2028]}
+    result = _section_scenario_metadata(data)
+    # Should show upper and lower mode means from the preset
+    assert "120" in result or "£120" in result  # upper_mode_mean for central_2027
+    assert "38" in result or "£38" in result    # lower_mode_mean for central_2027
+
+
+def test_section_scenario_metadata_works_with_unknown_scenario_name():
+    """Unknown scenario name should still render without crashing (no params shown)."""
+    data = {"scenario_name": "custom_scenario", "scenario_year_range": [2026, 2027]}
+    result = _section_scenario_metadata(data)
+    assert "custom_scenario" in result
+
+
+def test_section_scenario_metadata_is_first_after_title():
+    """Scenario metadata appears before the executive summary (within first 300 chars of output)."""
+    data = {"scenario_name": "low_renewables_2027", "scenario_year_range": [2026, 2028]}
+    result = _section_scenario_metadata(data)
+    # The section heading should be near the top
+    idx = result.find("Forward Scenario Run")
+    assert idx < 100, f"Heading not near top: found at index {idx}"

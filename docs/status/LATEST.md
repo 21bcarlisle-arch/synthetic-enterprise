@@ -8,7 +8,10 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T14:38:53Z
+Last updated: 2026-06-22T14:43:12Z
+
+**Phase 37a LIVE (2026-06-22)**: Forward scenario metadata banner in annual report. 7 new tests (1,097 passing).
+- `_section_scenario_metadata(data)`: shown when `scenario_name` present — FORWARD SCENARIO warning, year range, price mode parameters. Silent for historical runs.
 
 **Phase 36a LIVE (2026-06-22)**: Scenario integration runner. 9 new tests (1,090 passing).
 - `simulation/run_scenario.py`: `run_forward_scenario(scenario, year_from, year_to)` — runs full 2016-year_to sim with historical + synthetic prices. CLI: `python -m simulation.run_scenario --scenario central_2027 --year-from 2026 --year-to 2029`.

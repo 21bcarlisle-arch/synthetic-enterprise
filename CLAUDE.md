@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,090+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 36a adds 9 new tests, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
+**1,097+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,11 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 37a COMPLETE (2026-06-22)**: Forward scenario metadata banner in annual report. 7 new tests.
+- `saas/reporting/annual_report.py`: `_section_scenario_metadata(data)` — prominent banner when `scenario_name` is set. Shows scenario preset name, synthetic year range, FORWARD SCENARIO warning, and key price distribution parameters (upper/lower mode, negative day frequency, dunkelflaute). Silent for standard historical runs.
+- Wired into `generate_annual_report()` before executive summary.
+- 1,097 non-integration tests passing
 
 **Phase 36a COMPLETE (2026-06-22)**: Scenario integration runner. 9 new tests.
 - `simulation/run_scenario.py`: `run_forward_scenario(scenario, year_from, year_to, seed)` — runs full 2016-year_to sim using historical + synthetic scenario prices.
