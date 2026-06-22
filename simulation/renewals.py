@@ -38,7 +38,7 @@ NOTICE_DAYS = 42
 def build_renewal_schedule(
     customer_id: str, original_acquisition_date: str, report_end_date: str,
     price_records: list[dict], eac_kwh: int, lookback_temps_fn=None,
-    segment: str = "resi",
+    segment: str = "resi", tariff_type: str = "fixed",
 ) -> list[dict]:
     """Build a chronological sequence of contiguous 1-year contract terms
     for one customer, covering [original_acquisition_date, report_end_date].
@@ -98,11 +98,19 @@ def build_renewal_schedule(
             + get_fit_levy_per_mwh(term_start_str)
         )
         network_cost = get_electricity_network_cost_per_mwh(term_start_str, segment)
+        # Phase 40a: pass-through tariffs lock only wholesale+margin; network and policy
+        # are billed at actual rates at settlement (not locked at pricing time).
+        if tariff_type == "pass_through":
+            locked_policy = 0.0
+            locked_network = 0.0
+        else:
+            locked_policy = policy_cost
+            locked_network = network_cost
         unit_rate = price_fixed_tariff(
             company_fwd, eac_kwh, term_start_str,
             naked_fraction=1 - MIN_HEDGE_FLOOR,
-            policy_cost_per_mwh=policy_cost,
-            network_cost_per_mwh=network_cost,
+            policy_cost_per_mwh=locked_policy,
+            network_cost_per_mwh=locked_network,
         )
         terms.append({
             "customer_id": customer_id,
@@ -111,6 +119,7 @@ def build_renewal_schedule(
             "unit_rate_gbp_per_mwh": unit_rate,
             "forward_price_gbp_per_mwh": sim_fwd,
             "company_forward_price_gbp_per_mwh": company_fwd,
+            "tariff_type": tariff_type,
         })
         term_start += timedelta(days=CONTRACT_LENGTH_DAYS)
 

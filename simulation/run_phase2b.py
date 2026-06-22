@@ -558,6 +558,7 @@ def main(report_end: str | None = None, sim_interface=None):
             elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]],
             lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
             segment=c.get("segment", "resi"),
+            tariff_type=c.get("tariff_type", "fixed"),
         )
 
     # Phase 7e: pre-generate successor schedules (gated until activation).
@@ -685,6 +686,7 @@ def main(report_end: str | None = None, sim_interface=None):
         forward_price = term["forward_price_gbp_per_mwh"]        # sim's sophisticated estimate
         company_fwd = term.get("company_forward_price_gbp_per_mwh", forward_price)
         unit_rate = term["unit_rate_gbp_per_mwh"]
+        term_tariff_type = term.get("tariff_type", "fixed")
         term_index = term_indices[cid]
         term_indices[cid] += 1
 
@@ -1005,6 +1007,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 cid, term_start_str, term_end_str, unit_rate, forward_price, hf,
                 risk["monthly_cost_of_capital_gbp"], shape_fn, elec_records,
                 tou_rates=tou_rates, segment=cust_segment,
+                pass_through=(term_tariff_type == "pass_through"),
             )
             for rec in term_records:
                 rec["data_regime"] = "historical"

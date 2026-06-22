@@ -121,7 +121,7 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,127+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 39a adds 18 (10 SVT rates + 8 annual report), Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
+**1,163+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 40a adds 9 (excl. fast_run integration test), fixes 2 stale CCL/CM tests. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -131,6 +131,14 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 40a COMPLETE (2026-06-22)**: I&C pass-through tariff. 9 new tests + 2 stale test fixes.
+- `saas/customers.py`: `C_IC3` — 4 GWh chemical plant, Teesside, `tariff_type: "pass_through"`.
+- `sim/hh_data/C_IC3.csv`: continuous-process HH profile (flat 24/7, 4.005 GWh/year, 3,446 rows).
+- `simulation/renewals.py`: `build_renewal_schedule()` gets `tariff_type` param. Pass-through: `unit_rate = wholesale + margin` only (no locked policy/network). Term dict stores `tariff_type`.
+- `simulation/hedged_settlement.py`: `run_hedged_term()` gets `pass_through=False` param. When True: `revenue_gbp` includes actual policy + network costs passed through. `net_margin_gbp` unchanged by cancellation — company bears only wholesale spread risk.
+- `simulation/run_phase2b.py`: reads `tariff_type` from customer, passes to `build_renewal_schedule()` and `run_hedged_term()`.
+- Fixed stale `test_ccl_included_in_policy_cost` and `test_cm_levy_included_in_policy_cost` — both missed FiT levy added in Phase 31a.
 
 **Phase 39a COMPLETE (2026-06-22)**: SVT comparative pricing for passive renewers. 18 new tests.
 - `simulation/svt_rates.py`: Ofgem Default Tariff Cap electricity rates 2016–2029 (£/MWh). `get_svt_elec_rate_gbp_per_mwh(date_str)` looks up the applicable quarterly period.
@@ -355,20 +363,26 @@ pricing model must account for cost-to-serve at the customer level.
 - gemma4:12b at 7.6GB (smaller) but slower inference on this hardware (RTX 3060 12GB)
 - Switching to gemma4 would make the sim ~3 hrs, not 38 min. Stick with qwen3:14b.
 
-**Immediate (Phase 13e candidates):**
-- SIM/company full operational independence: company runs end-to-end on its own models with no shared code paths to SIM internals; divergence accumulates and is measured by the existing `company_divergence` machinery
-- Gas seasonal adjustment in company tariff engine: electricity done (Phase 13d), gas also highly seasonal but parameters differ (higher winter/summer amplitude for gas)
-- I&C accounts: HH data path solid, event lifecycle solid — now feasible
+**Immediate (Phase 40b):**
+- Deemed rate: out-of-contract I&C customers move to day-ahead spot + 20% premium. Requires contract-gap logic.
+- Pass-through gas leg: C_IC3g (industrial gas, 5 GWh, pass-through) + gas pass-through settlement mechanics.
+- I&C tariff type in annual report customer section: show tariff_type column in customer P&L ranking.
+
+**Immediate (Phase 41a):**
+- Flex/trading tariff: reference price mechanism (day-ahead index); customer calls volumes in tranches. Requires trading desk lifecycle.
+
+**DONE (Phase 40a):**
+- ~~I&C pass-through tariff~~ — COMPLETE (40a). C_IC3 added; mechanics in renewals + settlement.
 
 **DONE (Phase 13a–13d):**
 - ~~ToU tariffs for HH customers (C7-C9)~~ — COMPLETE (13a/13b).
-- ~~Retention threshold analysis~~ — Resolved by Phase 13c (model accuracy was the issue, not threshold).
+- ~~Retention threshold analysis~~ — Resolved by Phase 13c.
 - ~~Seasonal tariff engine~~ — COMPLETE (13d). Winter +8%, Summer -4% for electricity.
 
 **Then:**
 - SIM/company full operational independence: company runs on its own models
   end-to-end; divergence from SIM ground truth accumulates and is measured
-- I&C accounts (when HH data path and event lifecycle are solid)
+- Fresh full sim run to get updated 10-year figures with all Phase 34a–40a changes active
 
 **Later:**
 - VPP/DER

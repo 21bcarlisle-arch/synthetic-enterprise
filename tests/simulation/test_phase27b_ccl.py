@@ -110,5 +110,8 @@ def test_ccl_included_in_policy_cost():
         segment="I&C",
     )
     rec = records[0]
-    expected_policy = rec["ro_levy_gbp"] + rec["cfd_levy_gbp"] + rec["ccl_gbp"]
+    expected_policy = (
+        rec["ro_levy_gbp"] + rec["cfd_levy_gbp"] + rec["ccl_gbp"]
+        + rec.get("cm_levy_gbp", 0.0) + rec.get("fit_levy_gbp", 0.0)
+    )
     assert rec["policy_cost_gbp"] == pytest.approx(expected_policy)

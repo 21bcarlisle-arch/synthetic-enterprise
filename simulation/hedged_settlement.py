@@ -64,6 +64,7 @@ def run_hedged_term(
     system_price_records: list[dict],
     tou_rates: tuple[float, float] | None = None,
     segment: str = "resi",
+    pass_through: bool = False,
 ) -> list[dict]:
     """Settle one customer's one contract term, hedge-aware, for every
     calendar date in [term_start_date, term_end_date) and every settlement
@@ -170,6 +171,19 @@ def run_hedged_term(
             # I&C: DUoS only (Triad TNUoS is an annual lump, tracked in triad.py).
             network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
 
+            # Phase 40a: for pass-through tariffs, revenue includes actual policy + network
+            # costs (passed through to customer). These cancel out in net_margin so the
+            # company's margin is purely from the wholesale spread. For fixed tariffs,
+            # policy/network are baked into the locked unit_rate; any divergence from
+            # actual costs accrues to the company (policy cost risk).
+            policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy
+            if pass_through:
+                revenue_gbp = settled["revenue_gbp"] + policy_total + network_cost
+                margin_gbp = revenue_gbp - settled["wholesale_cost_gbp"]
+            else:
+                revenue_gbp = settled["revenue_gbp"]
+                margin_gbp = settled["margin_gbp"]
+
             records.append({
                 "customer_id": customer_id,
                 "settlement_date": date_str,
@@ -180,15 +194,15 @@ def run_hedged_term(
                 "hedge_fraction": hedge_fraction,
                 "hedged_volume_kwh": settled["hedged_volume_kwh"],
                 "unhedged_volume_kwh": settled["unhedged_volume_kwh"],
-                "revenue_gbp": settled["revenue_gbp"],
+                "revenue_gbp": revenue_gbp,
                 "wholesale_cost_gbp": settled["wholesale_cost_gbp"],
-                "margin_gbp": settled["margin_gbp"],
+                "margin_gbp": margin_gbp,
                 "ro_levy_gbp": ro_levy,
                 "cfd_levy_gbp": cfd_levy,
                 "ccl_gbp": ccl,
                 "cm_levy_gbp": cm_levy,
                 "fit_levy_gbp": fit_levy,
-                "policy_cost_gbp": ro_levy + cfd_levy + ccl + cm_levy + fit_levy,
+                "policy_cost_gbp": policy_total,
                 "network_cost_gbp": network_cost,
             })
 

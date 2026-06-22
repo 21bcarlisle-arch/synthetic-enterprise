@@ -178,6 +178,24 @@ CUSTOMERS = [
         "contract_type": "fixed_1yr",
         "segment": "I&C",
     },
+    # Phase 40a: I&C pass-through electricity customer — 4 GWh/year continuous-process
+    # chemical plant, Teesside. Pass-through tariff: wholesale+margin locked at term start;
+    # network and policy costs billed at actual rates each settlement period.
+    # eac_kwh=None because settlement reads sim/hh_data/C_IC3.csv (~4 GWh/year).
+    {
+        "customer_id": "C_IC3",
+        "acquisition_date": "2019-01-01",
+        "location": {"lat": 54.5973, "lon": -1.1049, "region": "Teesside"},
+        "home_type": "chemical_plant",
+        "bedrooms": None,
+        "epc_rating": "E",
+        "eac_kwh": None,
+        "metering": "HH",
+        "commodity": "electricity",
+        "contract_type": "fixed_1yr",
+        "segment": "I&C",
+        "tariff_type": "pass_through",
+    },
     # Phase 2b: gas dual-fuel records for C1-C4 resi customers
     {
         "customer_id": "C1g",
