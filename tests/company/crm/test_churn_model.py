@@ -342,3 +342,47 @@ def test_resi_segment_same_as_default():
     p_default = estimate_churn_probability(100.0, 110.0, 2.0)
     p_resi = estimate_churn_probability(100.0, 110.0, 2.0, segment="resi")
     assert p_default == pytest.approx(p_resi)
+
+
+# ── Phase 33: active/passive renewal split ────────────────────────────────────
+
+def test_estimate_passive_churn_flat_rate_returns_low_base():
+    from company.crm.churn_model import estimate_passive_churn_probability, PASSIVE_BASE_CHURN_RATE
+    p = estimate_passive_churn_probability(100.0, 100.0, tenure_years=0.0)
+    assert p == pytest.approx(PASSIVE_BASE_CHURN_RATE)
+
+
+def test_estimate_passive_churn_large_increase_capped():
+    from company.crm.churn_model import estimate_passive_churn_probability, PASSIVE_CHURN_CAP
+    p = estimate_passive_churn_probability(100.0, 500.0, tenure_years=0.0)
+    assert p == pytest.approx(PASSIVE_CHURN_CAP)
+
+
+def test_estimate_passive_churn_lower_than_active_same_inputs():
+    from company.crm.churn_model import estimate_passive_churn_probability
+    p_active = estimate_churn_probability(100.0, 150.0, tenure_years=0.0)
+    p_passive = estimate_passive_churn_probability(100.0, 150.0, tenure_years=0.0)
+    assert p_passive < p_active
+
+
+def test_is_active_renewal_crisis_year_always_passive():
+    from company.crm.churn_model import is_active_renewal, CRISIS_PASSIVE_YEARS
+    for yr in CRISIS_PASSIVE_YEARS:
+        assert is_active_renewal(f"{yr}-04-01", f"C1_{yr}") is False
+
+
+def test_is_active_renewal_non_crisis_probabilistic():
+    from company.crm.churn_model import is_active_renewal, PASSIVE_RENEWAL_RATE
+    # With a large sample, active rate should be close to PASSIVE_RENEWAL_RATE
+    seeds = [f"C{i}_1" for i in range(200)]
+    active_count = sum(1 for s in seeds if is_active_renewal("2020-01-01", s))
+    # Should be roughly 200 * 0.35 ± noise; accept a wide band [30, 100]
+    assert 30 <= active_count <= 100
+
+
+def test_is_active_renewal_deterministic():
+    """Same seed always gives same result."""
+    from company.crm.churn_model import is_active_renewal
+    r1 = is_active_renewal("2020-01-01", "C1_2")
+    r2 = is_active_renewal("2020-01-01", "C1_2")
+    assert r1 == r2

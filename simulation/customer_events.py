@@ -43,6 +43,7 @@ def roll_lifecycle_event(
     new_rate_gbp_per_mwh: float | None = None,
     retention_modifier: float | None = None,
     precomputed_company_estimate: float | None = None,
+    passive_churn_cap: float | None = None,
 ) -> dict | None:
     """Compute and roll the churn/renewal event for a billing account at a
     renewal point.
@@ -79,6 +80,11 @@ def roll_lifecycle_event(
 
     roll = _random.Random(f"{billing_account}_{term_start_str}").random()
     effective_p_retain = renewal_data["effective_retention_probability"]
+    # Phase 33: passive renewers have lower SIM ground-truth churn — cap the
+    # churn probability at passive_churn_cap before applying any retention modifier.
+    if passive_churn_cap is not None:
+        p_churn_raw = 1.0 - effective_p_retain
+        effective_p_retain = 1.0 - min(p_churn_raw, passive_churn_cap)
     if retention_modifier is not None:
         p_churn_base = 1.0 - effective_p_retain
         effective_p_retain = 1.0 - p_churn_base * (1.0 - retention_modifier)

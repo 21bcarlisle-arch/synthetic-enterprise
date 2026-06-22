@@ -716,8 +716,18 @@ def main(report_end: str | None = None, sim_interface=None):
             company_est_pre = None
             retention_modifier_val = None
             _no_offer_reason = "below_threshold"
+            # Phase 33: active/passive renewal split. Default True until we know the rate.
+            active_renewal = True
+            passive_cap = None
             if old_elec_rate is not None:
-                from company.crm.churn_model import estimate_churn_probability as _est_churn
+                from company.crm.churn_model import (
+                    estimate_churn_probability as _est_churn,
+                    is_active_renewal as _is_active_renewal,
+                    estimate_passive_churn_probability as _est_passive_churn,
+                    PASSIVE_CHURN_CAP as _PASSIVE_CHURN_CAP,
+                )
+                active_renewal = _is_active_renewal(term_start_str, f"{billing_account}_{term_index}")
+                passive_cap = None if active_renewal else _PASSIVE_CHURN_CAP
                 acq_date_for_est = next(
                     (c["acquisition_date"] for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account),
                     term_start_str,
@@ -748,13 +758,20 @@ def main(report_end: str | None = None, sim_interface=None):
                     (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None
                 )
                 segment_for_churn = cust_for_churn.get("segment", "resi") if cust_for_churn else "resi"
-                company_est_pre = round(_est_churn(
-                    old_elec_rate, unit_rate, tenure_for_est,
-                    company_eac,
-                    hedge_fraction=prev_hf,
-                    hangover_periods_remaining=hangover_periods,
-                    segment=segment_for_churn,
-                ), 4)
+                # Phase 33: passive renewers use SVT-inertia constants; active use full model.
+                # I&C customers are always active (brokers shop every renewal — no passive roll).
+                if not active_renewal and segment_for_churn != "I&C":
+                    company_est_pre = round(_est_passive_churn(
+                        old_elec_rate, unit_rate, tenure_for_est,
+                    ), 4)
+                else:
+                    company_est_pre = round(_est_churn(
+                        old_elec_rate, unit_rate, tenure_for_est,
+                        company_eac,
+                        hedge_fraction=prev_hf,
+                        hangover_periods_remaining=hangover_periods,
+                        segment=segment_for_churn,
+                    ), 4)
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
                 if company_est_pre > RETENTION_THRESHOLD:
@@ -792,8 +809,10 @@ def main(report_end: str | None = None, sim_interface=None):
                 new_rate_gbp_per_mwh=unit_rate,
                 retention_modifier=retention_modifier_val,
                 precomputed_company_estimate=company_est_pre,
+                passive_churn_cap=passive_cap,
             )
             if event is not None:
+                event["is_active_renewal"] = active_renewal
                 customer_events_log.append(event)
                 if retention_modifier_val is not None and retention_log:
                     outcome_str = "churned_despite_offer" if event["event_type"] == "churned" else "retained"
@@ -1313,6 +1332,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 "sim_churn_probability": e["churn_probability"],
                 "company_churn_estimate": e["company_churn_estimate"],
                 "churn_estimate_error_pct": e["churn_estimate_error_pct"],
+                "is_active_renewal": e.get("is_active_renewal", True),
             }
             for e in customer_events_log
             if e.get("company_churn_estimate") is not None

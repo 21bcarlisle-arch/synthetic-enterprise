@@ -156,7 +156,7 @@ Ranked by likely simulation impact:
 5. **Novel scenario distribution** — at 70%+ renewables, bimodal price distribution parameters unknown. Negative price frequency trajectory post-2027 (projected regime change). Key research area for forward scenario generation.
 6. **Hedge ratio waterfall by forward tenor in LATEST.md** — critical board KPI missing from our reporting
 7. **42-day renewal notice CRM flag** — regulatory obligation not currently modeled; affects renewal campaign timing
-8. **Active renewer vs SVT roller distinction** — ~35/65 split changes churn dynamics significantly. Research DONE (`svt_rates_active_passive_2016_2025.md`). Phase 33 candidate: `is_active_renewal` flag; SVT-roller churn ~10%/yr vs fixed-at-expiry ~35% active switch rate. Crisis (2022) had no fixed deals — all renewal was passive by default.
+8. ~~**Active renewer vs SVT roller distinction**~~ — **DONE Phase 33a**. `is_active_renewal()` in churn_model: 35% active, 65% passive, 2022 forced passive. `passive_churn_cap` in `roll_lifecycle_event`. `run_phase2b.py` draws active/passive at each renewal. `churn_basis_risk` includes `is_active_renewal` field.
 9. **Debt lifecycle staging** — debt should have states (current → overdue → plan → write-off), not just a flat bad debt %
 
 Last updated: 2026-06-22

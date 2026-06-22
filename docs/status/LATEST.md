@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T13:42:13Z
+Last updated: 2026-06-22T13:54:22Z
+
+**Phase 33a LIVE (2026-06-22)**: Active/passive renewal split. 10 new tests (1,041 non-integration passing).
+- `company/crm/churn_model.py`: `is_active_renewal()` — 35% active; 65% passive (SVT rollover); 2022 forced passive (crisis: no fixed deals). `estimate_passive_churn_probability()` uses SVT-inertia constants (5% base, 0.1 rate sensitivity, 10% cap).
+- `simulation/customer_events.py`: `passive_churn_cap` on `roll_lifecycle_event()` — caps SIM ground-truth churn for passive renewers.
+- `simulation/run_phase2b.py`: draws active/passive at each renewal; I&C always active (brokers). `is_active_renewal` in `churn_basis_risk` output.
+- Effect: passive renewers estimated at ~5% churn (not 10-40%); SIM churn capped at 10% for passive. Crisis 2022: all-passive matches real-world dynamics.
 
 **Phase 32a LIVE (2026-06-22)**: Gas book year-by-year P&L section in annual report. 11 new tests (1,031 non-integration passing).
 - `saas/reporting/annual_report.py`: `_section_gas_pl(data)` — 8-column table: Year | Revenue | Wholesale | Gross | Policy | Network | Capital | Net | Net%. Silent when no gas records.

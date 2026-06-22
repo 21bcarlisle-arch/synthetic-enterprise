@@ -68,6 +68,51 @@ IC_BILL_STRESS_SENSITIVITY = 0.10   # proportional sensitivity on large bills
 # rate_increase_pct), but actual churn stays elevated for 2 renewal periods.
 CRISIS_HANGOVER_BASE_UPLIFT = 0.12   # added to churn probability during hangover
 CRISIS_HANGOVER_WINDOW_PERIODS = 2   # hangover persists for this many renewals
+# Phase 33: active/passive renewal split.
+# ~65% of domestic/SME customers roll to SVT by inaction at term end (passive).
+# Passive rollers are inert: low base churn, very low rate sensitivity.
+# Active renewers (35%) explicitly choose a new fixed deal — full churn model applies.
+# SVT inertia data: Ofgem Consumer Engagement Surveys 2018-2019; CMA 2016 investigation.
+PASSIVE_RENEWAL_RATE = 0.35         # probability a renewal is "active" (picks a new fix)
+PASSIVE_BASE_CHURN_RATE = 0.05      # ~10%/year; SVT leavers are the most inert segment
+PASSIVE_RATE_SENSITIVITY = 0.1      # rate changes don't drive passive customers to switch
+PASSIVE_CHURN_CAP = 0.10            # SIM ground-truth cap for passive churn rolls
+# Crisis years (2022 in UK): no fixed deals available — ALL renewals are forced passive.
+CRISIS_PASSIVE_YEARS = frozenset({"2022"})
+
+
+def is_active_renewal(term_start_str: str, seed: str) -> bool:
+    """Return True if this renewal is an 'active' choice (35%), False if passive SVT roll (65%).
+
+    Crisis years (CRISIS_PASSIVE_YEARS) force all renewals passive — no fixed deals were
+    available to switch to (UK 2022: suppliers withdrew fixed tariffs as wholesale costs
+    exceeded the Ofgem price cap).
+    """
+    import random as _rnd
+    year = term_start_str[:4]
+    if year in CRISIS_PASSIVE_YEARS:
+        return False
+    return _rnd.Random(f"active_renewal_{seed}").random() < PASSIVE_RENEWAL_RATE
+
+
+def estimate_passive_churn_probability(
+    old_rate_gbp_per_mwh: float,
+    new_rate_gbp_per_mwh: float,
+    tenure_years: float,
+) -> float:
+    """Churn estimate for a passive SVT-roller.
+
+    Uses SVT-inertia constants: low base rate, very low rate sensitivity.
+    These customers don't actively respond to rate changes — their churn
+    is driven mainly by life events (house moves), not price signals.
+    """
+    if old_rate_gbp_per_mwh > 0:
+        rate_increase_pct = (new_rate_gbp_per_mwh - old_rate_gbp_per_mwh) / old_rate_gbp_per_mwh
+    else:
+        rate_increase_pct = 0.0
+    tenure_discount = TENURE_DISCOUNT_PER_YEAR * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
+    p = PASSIVE_BASE_CHURN_RATE + PASSIVE_RATE_SENSITIVITY * rate_increase_pct - tenure_discount
+    return max(0.0, min(PASSIVE_CHURN_CAP, p))
 
 
 def estimate_churn_probability(

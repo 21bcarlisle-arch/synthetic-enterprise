@@ -282,3 +282,46 @@ def test_roll_lifecycle_event_modifier_zero_leaves_probability_unchanged():
     assert result_no_mod is not None and result_zero_mod is not None
     assert abs(result_no_mod["effective_retention_probability"] - result_zero_mod["effective_retention_probability"]) < 1e-9
     assert result_no_mod["event_type"] == result_zero_mod["event_type"]
+
+
+# ── Phase 33: passive_churn_cap ──────────────────────────────────────────────
+
+def test_passive_churn_cap_raises_retention_probability():
+    """passive_churn_cap reduces effective churn → higher retention probability."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result_active = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    result_passive = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", records, customers,
+        passive_churn_cap=0.01,  # very low cap → customer almost never churns
+    )
+    assert result_active is not None and result_passive is not None
+    assert result_passive["effective_retention_probability"] >= result_active["effective_retention_probability"]
+
+
+def test_passive_churn_cap_zero_means_customer_never_churns():
+    """passive_churn_cap=0.0 caps SIM churn at 0 → customer always renews."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", records, customers,
+        passive_churn_cap=0.0,
+    )
+    assert result is not None
+    # effective_p_retain is clamped to 1.0 internally; the roll must be <= 1.0
+    assert result["event_type"] == "renewed"
+
+
+def test_passive_churn_cap_none_leaves_behavior_unchanged():
+    """passive_churn_cap=None is identical to not passing it."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result_default = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    result_none = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", records, customers,
+        passive_churn_cap=None,
+    )
+    assert result_default is not None and result_none is not None
+    assert result_default["effective_retention_probability"] == pytest.approx(
+        result_none["effective_retention_probability"]
+    )
