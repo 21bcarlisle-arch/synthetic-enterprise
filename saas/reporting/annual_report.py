@@ -2452,7 +2452,7 @@ def _section_network_costs(data: dict) -> str:
         net = yd.get("network_cost_gbp", 0.0)
         if net == 0.0:
             continue
-        note = "step-up RIIO-ED2" if year == "2022" else ""
+        note = "BSUoS 100% demand-side from Apr 2022" if year == "2022" else ("RIIO-ED2 from Apr 2023" if year == "2023" else "")
         lines.append(f"| {year} | {net:,.0f} | {note} |")
     total_net = sum(yd.get("network_cost_gbp", 0.0) for yd in years.values())
     lines.append(f"| **Total** | **{total_net:,.0f}** | |")

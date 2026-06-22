@@ -165,7 +165,7 @@ def test_network_costs_section_renders_table():
     assert "Network Charges" in result
     assert "12,346" in result  # £12,345.6 rounds to 12,346
     assert "18,000" in result
-    assert "step-up RIIO-ED2" in result  # 2022 note
+    assert "BSUoS" in result  # 2022 note explains BSUoS demand-side shift
 
 
 def test_network_costs_section_silent_for_pre29a_data():
