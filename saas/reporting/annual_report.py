@@ -2590,16 +2590,20 @@ def _section_ic_portfolio(data: dict) -> str:
                 # I&C customers are present this year
                 pass
 
-    # Aggregate by customer from all_records
+    # Build I&C customer set from customers module
+    from saas.customers import CUSTOMERS as _CUST_LIST, SUCCESSOR_CUSTOMERS as _SUCC_LIST, ACQUIRED_CUSTOMERS as _ACQ_LIST
+    _all_customers = _CUST_LIST + _SUCC_LIST + list(_ACQ_LIST)
+    _ic_cust_ids = {c["customer_id"] for c in _all_customers if c.get("segment") == "I&C"}
+
+    # Aggregate by customer from all_records — I&C customers only
     cust_stats: dict[str, dict] = {}
     for rec in all_records:
         if rec.get("commodity") != "electricity":
             continue
         cid = rec.get("customer_id", "")
-        # Check if I&C from the data we have — use customers module
+        if cid not in _ic_cust_ids:
+            continue
         ccl = rec.get("ccl_gbp", 0.0)
-        if ccl == 0.0:
-            continue  # only I&C (and SME) pay CCL; skip resi
         if cid not in cust_stats:
             cust_stats[cid] = {
                 "revenue_gbp": 0.0, "net_margin_gbp": 0.0, "ccl_gbp": 0.0,
