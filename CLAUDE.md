@@ -128,6 +128,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 29b COMPLETE (2026-06-22)**: Network charge table calibration from Ofgem Annex 9 v1.10. 0 new tests (test values updated).
+- `simulation/policy_costs.py`: `_NETWORK_COST_RESI_SME_BY_YEAR` updated from Phase 29a mid-range estimates to Ofgem Annex 9 authoritative figures
+- Key change: 2022 £43→£66/MWh (+35%) — BSUoS moved 100% to demand side from April 2022 (previously 50/50 demand/generator)
+- 2023: £75/MWh (RIIO-ED2 commenced); 2024: £69/MWh; earlier years also corrected upward (2016: £35→£43/MWh)
+- Source: Ofgem Annex 9 v1.10 June 2026, `docs/market_research/network_charges_uk_2016_2024.md`
+- I&C DUoS table unchanged; 907 non-integration tests passing
+
 **Phase 29a COMPLETE (2026-06-22)**: Network charges (DUoS + TNUoS) in settlement P&L and tariff stack. 15 new tests.
 - `simulation/policy_costs.py`: `_NETWORK_COST_RESI_SME_BY_YEAR` (£35-46/MWh, 2016-2024) + `_DUOS_IC_BY_YEAR` (£11-14/MWh); `get_electricity_network_cost_per_mwh(date_str, segment="resi")`
 - `simulation/hedged_settlement.py`: `network_cost_gbp` field per settlement period; `net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp`

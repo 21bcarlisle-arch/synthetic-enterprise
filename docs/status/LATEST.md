@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T06:59:39Z
+Last updated: 2026-06-22T07:05:13Z
+
+**Phase 29b LIVE (2026-06-22)**: Network charge calibration from Ofgem Annex 9. 907 tests passing in 7.74s.
+- Replaces Phase 29a mid-range estimates with authoritative Ofgem Annex 9 v1.10 figures
+- Key change: 2022 £43→£66/MWh (+35%) — BSUoS moved 100% to demand side from April 2022
+- Full calibrated series: 2016: £43, 2017: £44, 2018: £42, 2019: £45, 2020: £46, 2021: £49, 2022: £66, 2023: £75, 2024: £69 (£/MWh resi/SME)
+- Source: Ofgem Annex 9 v1.10 June 2026; I&C DUoS table unchanged
 
 **Phase 29a LIVE (2026-06-22)**: Network charges (DUoS + TNUoS) in settlement P&L and tariff. 907 non-integration tests passing in 7.87s.
 - `simulation/policy_costs.py`: year-indexed tables for resi/SME (£35-46/MWh combined) and I&C (£11-14/MWh DUoS only)
