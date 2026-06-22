@@ -8,7 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T00:57:17Z
+Last updated: 2026-06-22T01:42:24Z
+
+**Phase 24a LIVE (2026-06-22)**: First I&C customer — C_IC1 (2 GWh/year, HH metered, Birmingham). 846 tests passing (8 new).
+- `saas/customers.py`: C_IC1 added (segment="SME", eac_kwh=None, metering="HH", acquisition 2017-01-01)
+- `sim/hh_data/C_IC1.csv`: C7 HH shape scaled to 1,999,935 kWh/year (~2 GWh industrial)
+- `EFFECTIVE_EAC_KWH["C_IC1"]` ≈ 2,000,000 kWh; starting treasury scales to £463k (TOTAL_ELEC_EAC now ~2.12 GWh)
+- Bill stress at 2 GWh saturates churn model at MAX_CHURN_PROBABILITY=0.95 — expected behaviour documented
+- `tests/simulation/test_phase24a_ic_customer.py`: 8 tests covering HH data path, EAC estimation, bill stress, retention scale, demand log, annual report, settlement records
+- Phase 25a proposed: calibrate EFFECTIVE_EAC_KWH from settlement data + wire solar irradiance to shape function
 
 **Phase 23a LIVE (2026-06-22)**: Company-owned demand estimation — epistemic honesty fix. 838 tests passing (12 new; ~824 fast-mode).
 - `simulation/run_phase2b.py`: `_company_eac_estimate()` sums prior-year billing records instead of reading SIM oracle EAC
@@ -168,7 +176,7 @@ Last updated: 2026-06-22T00:57:17Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — auto-processed (1348s / 22 min):
+**Latest simulation results (2016–2025)** — auto-processed (1526s / 25 min):
 - Net margin: £26,654.64 | Gross: £29,002.78 | Capital: £2,348
 - Treasury: £29,846 → £26,051 | 214 committee interventions | 1117 bills issued
 - Enterprise value: £9,888.92 | Net after CTS: £11,925

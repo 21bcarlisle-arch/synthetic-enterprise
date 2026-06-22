@@ -1,7 +1,7 @@
 # Project Status
 
 Last updated: 2026-06-22T00:44:00Z
-Current phase: **Phase 23a COMPLETE** (2026-06-22). 838 tests passing.
+Current phase: **Phase 24a COMPLETE** (2026-06-22). 846 tests passing.
 
 ## Current state
 
@@ -25,7 +25,7 @@ Current phase: **Phase 23a COMPLETE** (2026-06-22). 838 tests passing.
 4. HH data path - CLOSED (Phase 6a): C7-C9 on real HH consumption; ToU tariffs live (Phase 13a)
 5. Reporting - CLOSED (Phase 5a/5b): ANNUAL_REPORT.md, full pipeline, GitHub Pages
 
-838 tests passing (SIM_FAST_MODE=1 suite, ~16s).
+846 tests passing (SIM_FAST_MODE=1 suite, ~16s).
 
 Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 Status: https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md

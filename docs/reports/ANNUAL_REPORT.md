@@ -870,7 +870,7 @@ _Cash reconciliation: of £182,148.04 billed, bad debt of £3,565.05 was written
   - 2016-10-14: treasury £28,992.02, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2016-11-13: treasury £28,988.31, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
   - 2016-12-13: treasury £28,984.13, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2016-07-03: treasury £28,991.42, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
+  - 2016-07-03: treasury £28,991.42, C1->0.95, C5->1.00, C7->1.00, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
   - 2016-08-02: treasury £28,988.78, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
   - 2016-09-01: treasury £28,986.40, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
   - 2016-10-01: treasury £28,983.27, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
@@ -1261,10 +1261,10 @@ _Cash reconciliation: of £182,148.04 billed, bad debt of £3,565.05 was written
 - Hedge fraction at first renewal this year (avg across year's terms): C2 0.85 (avg 0.85), C2g 0.95 (avg 0.95), C4 0.85 (avg 0.85), C4g 0.95 (avg 0.95), C6 0.85 (avg 0.85), C7 0.95 (avg 0.95), C8 0.85 (avg 0.85), C9 0.95 (avg 0.95)
 - Risk committee (Context Handshake) interventions: 28
   - 2021-03-31: treasury £28,659.91, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
-  - 2021-04-30: treasury £28,594.86, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
+  - 2021-04-30: treasury £28,594.86, C2->0.95, C6->1.00, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-05-30: treasury £28,553.31, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-06-29: treasury £28,521.75, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
-  - 2021-07-29: treasury £28,488.80, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
+  - 2021-07-29: treasury £28,488.80, C2->0.95, C6->1.00, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-08-28: treasury £28,454.68, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-09-27: treasury £28,405.73, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-10-27: treasury £28,351.57, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52

@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**838 tests passing (full suite); ~824 in SIM_FAST_MODE=1. Phase 23a adds 12 new tests (8 report section + 4 simulation unit).**
+**846 tests passing (full suite); ~832 in SIM_FAST_MODE=1. Phase 24a adds 8 new tests (I&C customer C_IC1).**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,17 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 24a COMPLETE (2026-06-22)**: I&C customer C_IC1 — first industrial account. 8 new tests.
+- `saas/customers.py`: C_IC1 added — 2 GWh/year, HH metered, Birmingham, acquisition 2017-01-01, segment SME
+- `sim/hh_data/C_IC1.csv`: C7 shape scaled by 156× to give ~2 GWh/year; 3446 days of data
+- `EFFECTIVE_EAC_KWH["C_IC1"]` auto-derived from HH data (1,999,935 kWh/year ≈ 2 GWh)
+- Bill-stress churn model: C_IC1 saturates at MAX_CHURN_PROBABILITY=0.95 from 2nd term onwards
+- Retention offer: 5% discount on 2 GWh at £150/MWh = £15,000 cost per offer (guard condition scale-invariant)
+- Starting treasury scales with EFFECTIVE_EAC: £29,846 → £463,166 (adds working capital for I&C volume)
+- Demand estimation log includes C_IC1 from 2nd term (2018-01-01) with ~2-4% error (HH accuracy)
+- All existing report sections (P&L ranking, retention durability, churn avoidability) data-driven; include C_IC1 automatically
+- Expected 2021-22: C_IC1 shows large crisis losses (2 GWh × £400/MWh spot vs £150/MWh tariff)
 
 **Phase 23a COMPLETE (2026-06-22)**: Company-owned demand estimation — closes epistemic honesty violation. 12 new tests.
 - `simulation/run_phase2b.py`: `_company_eac_estimate()` sums prior-year billing records (12 months before term start) for EAC estimate; falls back to SIM oracle only on first term (no prior billing)

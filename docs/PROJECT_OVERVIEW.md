@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-22. 310+ commits. 838 tests (~824 in SIM_FAST_MODE=1). Codebase: ~17,000 lines across 180+ Python modules.*
+*Last updated: 2026-06-22. 315+ commits. 846 tests (~832 in SIM_FAST_MODE=1). Codebase: ~17,100 lines across 182+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -362,6 +362,18 @@ Net after CTS:               £7,498
 
 **What this closed:** epistemic honesty violation — the company was reading SIM oracle EAC for three consequential decisions instead of observing its own billing records. Company demand estimation is now fully observable-data only. 12 new tests (838 total).
 
+### Phase 24 — I&C Customer (First Industrial Account)
+**Files:** `saas/customers.py` (C_IC1 customer record), `sim/hh_data/C_IC1.csv` (2 GWh HH data), `tests/simulation/test_phase24a_ic_customer.py`
+
+**What was built:**
+- **C_IC1**: 2 GWh/year I&C electricity customer, HH metered, Birmingham, acquired 2017-01-01
+- **HH data**: `sim/hh_data/C_IC1.csv` — C7's shape scaled by 156× to ~2 GWh/year (3,446 days)
+- **EAC derivation**: `EFFECTIVE_EAC_KWH["C_IC1"]` auto-computed from HH data via `estimate_annual_kwh()`
+- **Churn saturation**: bill-stress term immediately saturates at `MAX_CHURN_PROBABILITY=0.95` for any plausible rate (£300k/year bill >> £3k threshold). Retention offer always made if margin > cost.
+- **Scale-invariant economics**: starting treasury scales to £463k (from £30k) — adequate for I&C working capital. Retention cost proportionally large (5% = £15k per offer).
+
+**What this proved:** the HH path, company tariff engine, retention system, and demand estimation all scale correctly to I&C volumes without code changes. 2021-22 crisis will show C_IC1 with large crisis losses (£400/MWh spot × 2 GWh unhedged exposure). 8 new tests (846 total).
+
 
 ---
 
@@ -576,12 +588,12 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 177 Python modules, ~16,000 lines
 - 306 git commits
-- 838 tests (all green); ~824 in SIM_FAST_MODE=1 (16s); 838 in full suite (~38 min with Ollama)
+- 846 tests (all green); ~832 in SIM_FAST_MODE=1; 846 in full suite (~40 min with Ollama, C_IC1 adds ~150k records)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
-- 3 HH synthetic smart meter profiles (C7–C9)
+- 4 HH smart meter profiles (C7–C9 residential, C_IC1 I&C at 2 GWh/year)
 
 **Latest named-customer run (git 685cbe3, 9 customers, 2016–2025):**
 - Revenue £159,699 | Gross margin £7,612 (4.8%) | Net margin £6,384 (4.4%)

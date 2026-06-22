@@ -144,6 +144,22 @@ CUSTOMERS = [
         "contract_type": "fixed_1yr",
         "segment": "resi",
     },
+    # Phase 24a: I&C electricity customer — 2 GWh/year, HH metered.
+    # Large commercial site (Birmingham industrial estate). eac_kwh=None because
+    # settlement reads sim/hh_data/C_IC1.csv (C7 shape scaled to ~2 GWh/year).
+    {
+        "customer_id": "C_IC1",
+        "acquisition_date": "2017-01-01",
+        "location": {"lat": 52.4862, "lon": -1.8904, "region": "Birmingham"},
+        "home_type": "warehouse_unit",
+        "bedrooms": None,
+        "epc_rating": "C",
+        "eac_kwh": None,
+        "metering": "HH",
+        "commodity": "electricity",
+        "contract_type": "fixed_1yr",
+        "segment": "SME",
+    },
     # Phase 2b: gas dual-fuel records for C1-C4 resi customers
     {
         "customer_id": "C1g",
