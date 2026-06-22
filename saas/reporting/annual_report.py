@@ -2035,9 +2035,11 @@ def _section_customer_pnl_ranking(data: dict) -> str:
     """Phase 17c: per-customer lifetime P&L ranking across the full simulation window.
 
     Ranks all billing accounts (including successors) by net margin (best to worst).
-    Shows gross margin, capital cost, net margin, and revenue.
-    Surfaces the answer to: 'which customers created value vs destroyed it?'
+    Phase 40b: shows tariff_type column for I&C customers.
     """
+    from saas.customers import CUSTOMERS
+    tariff_by_cid = {c["customer_id"]: c.get("tariff_type", "fixed") for c in CUSTOMERS}
+
     by_cid = data.get("per_cid_pnl") or {}
     if not by_cid:
         # fallback: aggregate from all_records if present (legacy test fixtures)
@@ -2064,13 +2066,15 @@ def _section_customer_pnl_ranking(data: dict) -> str:
         f"Lifetime net margin: {_fmt_gbp(total_net)} across {len(ranked)} billing accounts. "
         f"Revenue: {_fmt_gbp(total_revenue)}.",
         "",
-        "| # | Customer | Revenue | Gross margin | Capital | Net margin | Net margin % |",
-        "|---|----------|---------|-------------|---------|------------|-------------|",
+        "| # | Customer | Tariff | Revenue | Gross margin | Capital | Net margin | Net margin % |",
+        "|---|----------|--------|---------|-------------|---------|------------|-------------|",
     ]
     for rank, (cid, v) in enumerate(ranked, 1):
         net_pct = f"{v['net'] / v['revenue'] * 100:.1f}%" if v["revenue"] > 0 else "n/a"
+        tariff = tariff_by_cid.get(cid, "fixed")
         lines.append(
             f"| {rank} | {cid} "
+            f"| {tariff} "
             f"| {_fmt_gbp(v['revenue'])} "
             f"| {_fmt_gbp(v['gross'])} "
             f"| {_fmt_gbp(v['capital'])} "

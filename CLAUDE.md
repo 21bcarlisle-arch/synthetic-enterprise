@@ -121,7 +121,7 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,163+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 40a adds 9 (excl. fast_run integration test), fixes 2 stale CCL/CM tests. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
+**1,179+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 40b adds 7 (excl. fast_run), Phase 40a adds 9, fixes 2 stale CCL/CM tests. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -131,6 +131,12 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 40b COMPLETE (2026-06-22)**: Gas pass-through leg + tariff type in annual report. 7 new tests.
+- `saas/customers.py`: `C_IC3g` — 5 GWh industrial gas, Teesside, `tariff_type: "pass_through"`.
+- `simulation/run_phase2b.py`: `_build_gas_renewal_schedule()` gets `tariff_type` param. Pass-through: locked unit_rate = wholesale+margin only. Term dict stores `tariff_type`.
+- `simulation/gas_settlement.py`: `run_gas_term()` gets `pass_through=False` param. When True: `revenue_gbp` includes actual gas_policy + gas_network costs passed through. Net margin = wholesale spread only.
+- `saas/reporting/annual_report.py`: `_section_customer_pnl_ranking()` now shows a Tariff column, looking up `tariff_type` from customer definitions.
 
 **Phase 40a COMPLETE (2026-06-22)**: I&C pass-through tariff. 9 new tests + 2 stale test fixes.
 - `saas/customers.py`: `C_IC3` — 4 GWh chemical plant, Teesside, `tariff_type: "pass_through"`.
@@ -363,13 +369,14 @@ pricing model must account for cost-to-serve at the customer level.
 - gemma4:12b at 7.6GB (smaller) but slower inference on this hardware (RTX 3060 12GB)
 - Switching to gemma4 would make the sim ~3 hrs, not 38 min. Stick with qwen3:14b.
 
-**Immediate (Phase 40b):**
-- Deemed rate: out-of-contract I&C customers move to day-ahead spot + 20% premium. Requires contract-gap logic.
-- Pass-through gas leg: C_IC3g (industrial gas, 5 GWh, pass-through) + gas pass-through settlement mechanics.
-- I&C tariff type in annual report customer section: show tariff_type column in customer P&L ranking.
+**Immediate (Phase 40c):**
+- Deemed rate: out-of-contract I&C customers move to day-ahead spot + 20% premium. Requires contract-gap detection in renewal schedule (term expires, customer hasn't signed new deal → deemed until new term starts).
 
 **Immediate (Phase 41a):**
-- Flex/trading tariff: reference price mechanism (day-ahead index); customer calls volumes in tranches. Requires trading desk lifecycle.
+- Flex/trading tariff: reference price mechanism (day-ahead index); customer calls volumes in tranches. Requires a trading desk lifecycle.
+
+**DONE (Phase 40b):**
+- ~~Gas pass-through leg~~ — COMPLETE (40b). C_IC3g added; tariff type in annual report.
 
 **DONE (Phase 40a):**
 - ~~I&C pass-through tariff~~ — COMPLETE (40a). C_IC3 added; mechanics in renewals + settlement.

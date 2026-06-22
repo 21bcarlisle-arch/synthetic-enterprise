@@ -263,7 +263,7 @@ def _bootstrap_first_term_forward_price(
 
 def _build_gas_renewal_schedule(
     customer: dict, gas_records: list[dict], lookback_temps_fn=None,
-    report_end: str = REPORT_END,
+    report_end: str = REPORT_END, tariff_type: str = "fixed",
 ) -> list[dict]:
     """Build renewal schedule for a gas customer using NBP forward prices.
 
@@ -304,11 +304,18 @@ def _build_gas_renewal_schedule(
             + get_ggl_per_mwh(term_start, aq_kwh)
         )
         gas_network = get_gas_network_cost_per_mwh(term_start)
+        # Phase 40b: pass-through tariffs lock only wholesale+margin at term start.
+        if tariff_type == "pass_through":
+            locked_gas_policy = 0.0
+            locked_gas_network = 0.0
+        else:
+            locked_gas_policy = gas_policy
+            locked_gas_network = gas_network
         unit_rate = price_fixed_tariff(
             company_fwd, aq_kwh, term_start,
             naked_fraction=1 - MIN_HEDGE_FLOOR,
-            policy_cost_per_mwh=gas_policy,
-            network_cost_per_mwh=gas_network,
+            policy_cost_per_mwh=locked_gas_policy,
+            network_cost_per_mwh=locked_gas_network,
         )
         schedule.append({
             "acquisition_date": term_start,
@@ -317,6 +324,7 @@ def _build_gas_renewal_schedule(
             "forward_price_gbp_per_mwh": sim_fwd,
             "company_forward_price_gbp_per_mwh": company_fwd,
             "unit_rate_gbp_per_mwh": unit_rate,
+            "tariff_type": tariff_type,
         })
         term_start = term_end  # next term starts where this ends
 
@@ -577,7 +585,7 @@ def main(report_end: str | None = None, sim_interface=None):
     for c in GAS_CUSTOMERS:
         gas_schedules[c["customer_id"]] = _build_gas_renewal_schedule(
             c, gas_records, lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
-            report_end=effective_end,
+            report_end=effective_end, tariff_type=c.get("tariff_type", "fixed"),
         )
 
     # ---- Interleave all terms chronologically ----
@@ -1049,6 +1057,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 unit_rate, hf, forward_price,
                 risk["monthly_cost_of_capital_gbp"], gas_records,
                 segment=cust_segment,
+                pass_through=(term_tariff_type == "pass_through"),
             )
             for rec in term_records:
                 rec["data_regime"] = "historical"

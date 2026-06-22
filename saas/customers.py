@@ -196,6 +196,20 @@ CUSTOMERS = [
         "segment": "I&C",
         "tariff_type": "pass_through",
     },
+    # Phase 40b: C_IC3 gas leg — 5 GWh industrial gas, Teesside, pass-through.
+    # I&C gas: pays gas CCL (not resi-exempt); GGL applies from Nov 2021.
+    {
+        "customer_id": "C_IC3g",
+        "acquisition_date": "2019-01-01",
+        "location": {"lat": 54.5973, "lon": -1.1049, "region": "Teesside"},
+        "home_type": "chemical_plant",
+        "bedrooms": None,
+        "epc_rating": "E",
+        "aq_kwh": 5_000_000,
+        "commodity": "gas",
+        "segment": "I&C",
+        "tariff_type": "pass_through",
+    },
     # Phase 2b: gas dual-fuel records for C1-C4 resi customers
     {
         "customer_id": "C1g",

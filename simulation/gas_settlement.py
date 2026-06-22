@@ -50,6 +50,7 @@ def run_gas_term(
     monthly_cost_of_capital_gbp: float,
     gas_price_records: list[dict],
     segment: str = "resi",
+    pass_through: bool = False,
 ) -> list[dict]:
     """Settle one gas contract term, returning one record per gas day.
 
@@ -82,13 +83,21 @@ def run_gas_term(
 
             billed_gbp = daily_mwh * unit_rate_gbp_mwh
             cost_gbp = hedged_mwh * forward_price + unhedged_mwh * spot_price
-            margin_gbp = billed_gbp - cost_gbp
 
             # Phase 30b: gas-side policy costs per settlement day.
             gas_ccl = get_gas_ccl_per_mwh(d, segment) * daily_mwh
             gas_network_cost = get_gas_network_cost_per_mwh(d) * daily_mwh
             ggl = get_ggl_per_mwh(d, aq_kwh) * daily_mwh
             gas_policy_cost = gas_ccl + ggl
+
+            # Phase 40b: pass-through gas — actual policy+network added to revenue
+            # (passed to customer); they cancel in net_margin so company bears
+            # only wholesale spread risk, not gas policy/network cost risk.
+            if pass_through:
+                revenue_gbp = billed_gbp + gas_policy_cost + gas_network_cost
+            else:
+                revenue_gbp = billed_gbp
+            margin_gbp = revenue_gbp - cost_gbp
 
             records.append({
                 "customer_id": customer_id,
@@ -102,7 +111,7 @@ def run_gas_term(
                 "hedge_fraction": hedge_fraction,
                 "hedged_mwh": round(hedged_mwh, 6),
                 "unhedged_mwh": round(unhedged_mwh, 6),
-                "revenue_gbp": round(billed_gbp, 6),
+                "revenue_gbp": round(revenue_gbp, 6),
                 "wholesale_cost_gbp": round(cost_gbp, 6),
                 "margin_gbp": round(margin_gbp, 6),
                 "consumption_kwh": round(daily_kwh, 4),
