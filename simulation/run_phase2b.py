@@ -79,7 +79,7 @@ from simulation.hh_consumption import (
 )
 from simulation.renewals import build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
-from simulation.weather_inputs import lookback_mean_temps, weather_means_for_customer
+from simulation.weather_inputs import cloud_cover_for_customer, lookback_mean_temps, weather_means_for_customer
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"
@@ -162,19 +162,40 @@ DEFAULT_PROPERTY = {
 }
 
 
-def _weather_adjusted_shape_fn(base_shape_fn, weather_means: dict[str, float], property_record: dict):
+def _weather_adjusted_shape_fn(
+    base_shape_fn,
+    weather_means: dict[str, float],
+    property_record: dict,
+    cloud_cover_means: dict[str, float] | None = None,
+    latitude_deg: float | None = None,
+):
     """Wrap a SHAPE_LOADERS[...] base-shape function with 4c-2's
     weather/occupancy/asset demand adjustment (`build_demand_shape`).
 
     Falls back to the unadjusted base shape on dates with no weather data
-    (e.g. outside sim/weather_data's 2016-01-01..2025-06-07 coverage)."""
+    (e.g. outside sim/weather_data's 2016-01-01..2025-06-07 coverage).
+
+    Phase 25a: cloud_cover_means + latitude_deg enable solar irradiance
+    reduction for customers with assets.solar=True (currently C4).
+    """
+    from datetime import date as _date
+    from sim.weather_engine import half_hourly_solar_irradiance
 
     def shape_fn(date_str):
         base_shape = base_shape_fn(date_str)
         mean_temp = weather_means.get(date_str)
         if mean_temp is None:
             return base_shape
-        return build_demand_shape(base_shape, mean_temp, "electricity", property_record)
+        irradiance = None
+        if cloud_cover_means is not None and latitude_deg is not None:
+            cloud_pct = cloud_cover_means.get(date_str)
+            if cloud_pct is not None:
+                day_of_year = _date.fromisoformat(date_str).timetuple().tm_yday
+                irradiance = [
+                    half_hourly_solar_irradiance(day_of_year, p, latitude_deg, cloud_pct)
+                    for p in range(1, 49)
+                ]
+        return build_demand_shape(base_shape, mean_temp, "electricity", property_record, irradiance)
 
     return shape_fn
 
@@ -364,6 +385,28 @@ def _compute_company_divergence(
 
 
 
+def _derive_eac_from_settlement(cid: str, all_records: list[dict]) -> float:
+    """Mean actual annual consumption from all available settlement records.
+
+    Phase 25a: used as SIM oracle for the demand_estimation_log, replacing
+    the declared EAC (EFFECTIVE_EAC_KWH) which mismatches actual consumption
+    for EV customers (C2/C4: declared 3500/5500 kWh, actual ~6820 kWh with EV).
+    Falls back to EFFECTIVE_EAC_KWH when fewer than 180 days of records exist.
+    """
+    from datetime import date as _date
+    recs = [
+        r for r in all_records
+        if r.get("customer_id") == cid and r.get("consumption_kwh") is not None
+    ]
+    if not recs:
+        return EFFECTIVE_EAC_KWH.get(cid, 0.0)
+    dates = [r["settlement_date"] for r in recs]
+    total_days = (_date.fromisoformat(max(dates)) - _date.fromisoformat(min(dates))).days + 1
+    if total_days < 180:
+        return EFFECTIVE_EAC_KWH.get(cid, 0.0)
+    return sum(r["consumption_kwh"] for r in recs) / total_days * 365.25
+
+
 def _company_eac_estimate(cid: str, term_start_str: str, all_records: list[dict]) -> float:
     """Estimate customer annual consumption from observable prior-year billing records.
 
@@ -434,6 +477,12 @@ def main(report_end: str | None = None, sim_interface=None):
     weather_by_customer = {
         c["customer_id"]: weather_means_for_customer(c)
         for c in ELEC_CUSTOMERS + GAS_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
+    }
+    # Phase 25a: cloud cover for solar customers (C4 has assets.solar=True).
+    cloud_cover_by_customer = {
+        c["customer_id"]: cloud_cover_for_customer(c)
+        for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
+        if properties.get(c["customer_id"], {}).get("assets", {}).get("solar")
     }
 
     # Phase 6a: per-customer HH consumption for HH (smart meter) customers.
@@ -650,7 +699,10 @@ def main(report_end: str | None = None, sim_interface=None):
                 hangover_periods = hangover_remaining.get(cid, 0)
                 # Phase 23a: company estimates EAC from observable prior-year billing
                 company_eac = _company_eac_estimate(cid, term_start_str, all_records)
-                true_eac = EFFECTIVE_EAC_KWH.get(cid, 0.0)
+                # Phase 25a: true_eac is mean annual settled consumption (actual, not declared).
+                # Fixes misleading ~100% error for EV customers (C2/C4 declared 3500/5500
+                # kWh but actually consume ~6820 kWh/year with EV charging).
+                true_eac = _derive_eac_from_settlement(cid, all_records) or EFFECTIVE_EAC_KWH.get(cid, 0.0)
                 if true_eac > 0:
                     eac_err_pct = (company_eac - true_eac) / true_eac * 100.0
                     demand_estimation_log.append({
@@ -833,14 +885,21 @@ def main(report_end: str | None = None, sim_interface=None):
 
         if commodity == "electricity":
             customer = get_customer(cid)
-            eac_kwh = EFFECTIVE_EAC_KWH[cid]
+            # Phase 25a: use calibrated EAC from prior billing records; falls back
+            # to declared EAC on first term (no billing history yet).
+            eac_kwh = _company_eac_estimate(cid, term_start_str, all_records)
             if is_hh_customer(customer):
                 shape_fn = hh_shape_fn(hh_consumption_by_customer[cid])
             else:
                 profile_class = customer.get("profile_class", 1)
                 property_record = properties.get(cid, DEFAULT_PROPERTY)
+                # Phase 25a: pass cloud cover + latitude for solar customers (C4).
+                has_solar = property_record.get("assets", {}).get("solar", False)
+                cloud_cover = cloud_cover_by_customer.get(cid) if has_solar else None
+                latitude = customer.get("location", {}).get("lat") if has_solar else None
                 shape_fn = _weather_adjusted_shape_fn(
-                    SHAPE_LOADERS[profile_class], weather_by_customer[cid], property_record
+                    SHAPE_LOADERS[profile_class], weather_by_customer[cid], property_record,
+                    cloud_cover_means=cloud_cover, latitude_deg=latitude,
                 )
 
             naked_kwh = eac_kwh * (1.0 - hf)
@@ -936,9 +995,10 @@ def main(report_end: str | None = None, sim_interface=None):
             portfolio_var_stressed = sum(
                 current_risk[c["customer_id"]]["var_stressed_gbp"] for c in active_elec
             )
-            total_eac_active = sum(EFFECTIVE_EAC_KWH[c["customer_id"]] for c in active_elec)
+            _eac = {c["customer_id"]: _company_eac_estimate(c["customer_id"], rec["settlement_date"], all_records) for c in active_elec}
+            total_eac_active = sum(_eac.values())
             sigma_weighted = sum(
-                current_risk[c["customer_id"]]["sigma_recent"] * EFFECTIVE_EAC_KWH[c["customer_id"]] / total_eac_active
+                current_risk[c["customer_id"]]["sigma_recent"] * _eac[c["customer_id"]] / total_eac_active
                 for c in active_elec
             )
 
@@ -947,7 +1007,7 @@ def main(report_end: str | None = None, sim_interface=None):
                     {
                         "customer_id": c["customer_id"],
                         "hedge_fraction": current_hf[c["customer_id"]],
-                        "eac_kwh": EFFECTIVE_EAC_KWH[c["customer_id"]],
+                        "eac_kwh": _eac[c["customer_id"]],
                         "active_collateral_gbp": current_risk[c["customer_id"]]["active_collateral_gbp"],
                         "monthly_cost_of_capital_gbp": current_risk[c["customer_id"]]["monthly_cost_of_capital_gbp"],
                         "var_current_gbp": current_risk[c["customer_id"]]["var_current_gbp"],

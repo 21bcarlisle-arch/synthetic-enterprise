@@ -1491,12 +1491,13 @@ def _section_demand_estimation(data: dict) -> str:
         return ""
 
     lines = [
-        "## Demand Estimation Accuracy (Phase 23a)",
+        "## Demand Estimation Accuracy (Phase 23a/25a)",
         "",
-        "Company EAC estimate (from prior-year billing records) vs SIM oracle EAC.",
-        "Fallback renewals (no prior billing) use SIM oracle — shown as 0% error.",
-        "Prior-billing estimates introduce realistic demand uncertainty into company",
-        "churn estimates and retention economics.",
+        "Company EAC estimate (from prior-year billing records) vs actual settled kWh.",
+        "Phase 25a: true_eac_kwh uses mean annual settled consumption (not declared EAC),",
+        "fixing the misleading ~100% error for EV customers (C2/C4: declared 3500/5500 kWh,",
+        "actual ~6820 kWh/year with EV charging). Near-zero error after first term confirms",
+        "company billing estimation correctly tracks actual consumption.",
         "",
         "| Year | Renewals | Mean Abs Error | Max Abs Error |",
         "|------|----------|----------------|--------------|",

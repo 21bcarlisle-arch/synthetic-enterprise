@@ -8,7 +8,22 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T01:42:24Z
+Last updated: 2026-06-22T03:51:39Z
+
+**Phase 26a LIVE (2026-06-22)**: Industrial HH demand profile for C_IC1 + risk committee EAC consistency. 860 tests passing (6 new).
+- `sim/hh_data/C_IC1.csv`: replaced scaled residential C7 shape with deterministic industrial warehouse profile (Mon-Fri 08:00-18:00 core at 273 kWh/period, overnight standby 14 kWh/period, Sat 40%, Sun 15%)
+- Annual total: ~2 GWh/year, weekday:Sunday ratio 6.7× — fidelity fix, not a volume change
+- `simulation/run_phase2b.py` (risk committee block): EAC now from `_company_eac_estimate()` for all active electricity customers including C_IC1 — consistent with Phase 25a hedging calibration
+- Phase 27a proposed: second I&C customer C_IC2 (commercial office, 1 GWh/year), diversifying the I&C portfolio
+
+**Phase 25a LIVE (2026-06-22)**: EAC calibration from settlement + solar irradiance wiring. 854 tests passing (8 new).
+- `_derive_eac_from_settlement()`: mean annual kWh from all settlement records — fixes ~100% demand error for EV customers (C2/C4: declared 3500/5500 kWh, actual ~6820 kWh with EV)
+- `_company_eac_estimate()` now also drives hedging `eac_kwh` — C2/C4 hedging volume doubles after first billing term (85% of ~6820 vs ~3500 kWh)
+- `true_eac_kwh` in `demand_estimation_log` uses actual settled consumption (not declared EAC) — error_pct converges to near-zero
+- `load_weather_cloud_cover()` + `cloud_cover_for_customer()` in `simulation/weather_inputs.py`
+- `_weather_adjusted_shape_fn`: cloud cover + latitude → 48-period irradiance → solar generation subtracted for C4 (`assets.solar=True`)
+- C4 solar reduction: ~1,571 kWh/year (22% of baseline; 3.5 kWp × 449 kWh/kWp at lat 51.83°N)
+- Phase 27a proposed: second I&C customer C_IC2 (commercial office, 1 GWh/year)
 
 **Phase 24a LIVE (2026-06-22)**: First I&C customer — C_IC1 (2 GWh/year, HH metered, Birmingham). 846 tests passing (8 new).
 - `saas/customers.py`: C_IC1 added (segment="SME", eac_kwh=None, metering="HH", acquisition 2017-01-01)
@@ -176,11 +191,11 @@ Last updated: 2026-06-22T01:42:24Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — auto-processed (1526s / 25 min):
-- Net margin: £26,654.64 | Gross: £29,002.78 | Capital: £2,348
-- Treasury: £29,846 → £26,051 | 214 committee interventions | 1117 bills issued
-- Enterprise value: £9,888.92 | Net after CTS: £11,925
-- Retention: 19 offers, 16/19 retained | 3 no-offer churns | 6 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (6099s / 102 min):
+- Net margin: £225,920.14 | Gross: £235,160.09 | Capital: £9,240
+- Treasury: £463,166 → £465,105 | 236 committee interventions | 1165 bills issued
+- Enterprise value: £309,282.17 | Net after CTS: £209,224
+- Retention: 23 offers, 19/23 retained | 3 no-offer churns | 7 total churned accounts
 
 **Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
 - `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation

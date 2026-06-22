@@ -47,10 +47,28 @@ def load_weather_means(customer_id: str) -> dict[str, float]:
         return {}
 
 
+def load_weather_cloud_cover(customer_id: str) -> dict[str, float]:
+    """Load `sim/weather_data/{customer_id}.csv` into {date: cloud_cover_pct}.
+
+    Returns an empty dict if no weather file exists for customer_id."""
+    path = f"{WEATHER_DATA_DIR}/{customer_id}.csv"
+    try:
+        with open(path, newline="") as f:
+            return {row["date"]: float(row["cloud_cover_pct"]) for row in csv.DictReader(f)}
+    except FileNotFoundError:
+        return {}
+
+
 def weather_means_for_customer(customer: dict) -> dict[str, float]:
     """{date: temperature_mean_c} for `customer`'s location, resolved via
     `_weather_source_customer_id` to an existing C1-C4 weather file."""
     return load_weather_means(_weather_source_customer_id(customer))
+
+
+def cloud_cover_for_customer(customer: dict) -> dict[str, float]:
+    """{date: cloud_cover_pct} for `customer`'s location, resolved via
+    `_weather_source_customer_id` to an existing C1-C4 weather file."""
+    return load_weather_cloud_cover(_weather_source_customer_id(customer))
 
 
 def lookback_mean_temps(
