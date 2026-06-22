@@ -231,3 +231,90 @@ def run_hedged_term(
             )
 
     return records
+
+
+def run_deemed_term(
+    customer_id: str,
+    term_start_date: str,
+    term_end_date: str,
+    deemed_premium: float,
+    consumption_shape,
+    system_price_records: list[dict],
+    segment: str = "resi",
+) -> list[dict]:
+    """Phase 40c: settle an out-of-contract deemed period.
+
+    The customer has no fixed-term contract. They are billed at spot price
+    × (1 + deemed_premium) each settlement period. The company buys at spot
+    (no forward hedge commitment). Capital cost is zero for deemed periods
+    (no collateral is sized — buying is fully spot-indexed).
+
+    Revenue = spot × (1 + premium) × consumption
+    Wholesale cost = spot × consumption
+    Gross margin = spot × premium × consumption
+    Net margin = gross margin − policy cost − network cost
+    """
+    start = date.fromisoformat(term_start_date)
+    end = date.fromisoformat(term_end_date)
+
+    price_lookup = {
+        (record["settlementDate"], record["settlementPeriod"]): record["systemSellPrice"]
+        for record in system_price_records
+    }
+
+    records = []
+    current_date = start
+    while current_date < end:
+        date_str = current_date.isoformat()
+        shape = consumption_shape(date_str)
+
+        for period in range(1, 49):
+            spot_price = price_lookup.get((date_str, period))
+            if spot_price is None:
+                continue
+
+            consumption_kwh = shape[period - 1]
+            consumption_mwh = consumption_kwh / 1000.0
+
+            revenue_gbp = spot_price * (1.0 + deemed_premium) * consumption_mwh
+            wholesale_cost_gbp = spot_price * consumption_mwh
+            margin_gbp = revenue_gbp - wholesale_cost_gbp
+
+            ro_levy = get_ro_cost_per_mwh(date_str) * consumption_mwh
+            cfd_levy = get_cfd_levy_per_mwh(date_str) * consumption_mwh
+            ccl = get_ccl_per_mwh(date_str, segment) * consumption_mwh
+            cm_levy = get_cm_levy_per_mwh(date_str) * consumption_mwh
+            fit_levy = get_fit_levy_per_mwh(date_str) * consumption_mwh
+            network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
+            policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy
+
+            records.append({
+                "customer_id": customer_id,
+                "settlement_date": date_str,
+                "settlement_period": period,
+                "consumption_kwh": consumption_kwh,
+                "unit_rate_gbp_per_mwh": spot_price * (1.0 + deemed_premium),
+                "hedge_price_gbp_per_mwh": None,
+                "hedge_fraction": 0.0,
+                "hedged_volume_kwh": 0.0,
+                "unhedged_volume_kwh": consumption_kwh,
+                "revenue_gbp": revenue_gbp,
+                "wholesale_cost_gbp": wholesale_cost_gbp,
+                "margin_gbp": margin_gbp,
+                "ro_levy_gbp": ro_levy,
+                "cfd_levy_gbp": cfd_levy,
+                "ccl_gbp": ccl,
+                "cm_levy_gbp": cm_levy,
+                "fit_levy_gbp": fit_levy,
+                "policy_cost_gbp": policy_total,
+                "network_cost_gbp": network_cost,
+                "capital_cost_gbp": 0.0,  # no forward hedge commitment in deemed periods
+                "net_margin_gbp": compute_net_margin(
+                    margin_gbp - policy_total - network_cost, 0.0
+                ),
+                "tariff_type": "deemed",
+            })
+
+        current_date += timedelta(days=1)
+
+    return records

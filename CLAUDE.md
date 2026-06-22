@@ -121,7 +121,7 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,179+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 40b adds 7 (excl. fast_run), Phase 40a adds 9, fixes 2 stale CCL/CM tests. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
+**1,195+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 40c adds 8 (excl. fast_run), Phase 40b adds 7, Phase 40a adds 9, fixes 2 stale CCL/CM tests. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -131,6 +131,12 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 40c COMPLETE (2026-06-22)**: Deemed rate for out-of-contract I&C customers. 8 new tests.
+- `saas/customers.py`: `C_IC1` and `C_IC2` get `deemed_gap_days: 30` — 30-day out-of-contract window on each renewal.
+- `simulation/renewals.py`: `build_renewal_schedule()` gets `deemed_gap_days` param. Inserts `tariff_type: "deemed"` gap terms between fixed terms. Gap terms carry `deemed_premium: 0.20`, no locked unit_rate. Added `DEEMED_PREMIUM = 0.20` constant.
+- `simulation/hedged_settlement.py`: `run_deemed_term()` — settles out-of-contract periods at spot × (1 + premium). No hedge fraction, no capital cost.
+- `simulation/run_phase2b.py`: dispatches to `run_deemed_term()` for deemed terms. Skips risk assessment and churn estimation for deemed periods.
 
 **Phase 40b COMPLETE (2026-06-22)**: Gas pass-through leg + tariff type in annual report. 7 new tests.
 - `saas/customers.py`: `C_IC3g` — 5 GWh industrial gas, Teesside, `tariff_type: "pass_through"`.
@@ -369,8 +375,8 @@ pricing model must account for cost-to-serve at the customer level.
 - gemma4:12b at 7.6GB (smaller) but slower inference on this hardware (RTX 3060 12GB)
 - Switching to gemma4 would make the sim ~3 hrs, not 38 min. Stick with qwen3:14b.
 
-**Immediate (Phase 40c):**
-- Deemed rate: out-of-contract I&C customers move to day-ahead spot + 20% premium. Requires contract-gap detection in renewal schedule (term expires, customer hasn't signed new deal → deemed until new term starts).
+**DONE (Phase 40c):**
+- ~~Deemed rate~~ — COMPLETE (40c). C_IC1/C_IC2 have 30-day deemed gaps on renewal.
 
 **Immediate (Phase 41a):**
 - Flex/trading tariff: reference price mechanism (day-ahead index); customer calls volumes in tranches. Requires a trading desk lifecycle.

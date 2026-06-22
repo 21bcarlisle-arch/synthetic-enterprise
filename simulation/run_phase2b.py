@@ -73,7 +73,7 @@ from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.customer_events import roll_lifecycle_event
 from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
-from simulation.hedged_settlement import run_hedged_term
+from simulation.hedged_settlement import run_deemed_term, run_hedged_term
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -567,6 +567,7 @@ def main(report_end: str | None = None, sim_interface=None):
             lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
             segment=c.get("segment", "resi"),
             tariff_type=c.get("tariff_type", "fixed"),
+            deemed_gap_days=c.get("deemed_gap_days", 0),
         )
 
     # Phase 7e: pre-generate successor schedules (gated until activation).
@@ -745,15 +746,16 @@ def main(report_end: str | None = None, sim_interface=None):
             "tariff_error_pct": (company_fwd - forward_price) / forward_price if forward_price else 0.0,
         })
 
-        # Phase 11b + 14b: capture previous rates before updating
+        # Phase 11b + 14b: capture previous rates before updating.
+        # Phase 40c: skip for deemed terms (no fixed unit_rate to record or compare).
         old_elec_rate = prev_elec_unit_rates.get(cid) if commodity == "electricity" else None
         old_gas_rate = prev_gas_unit_rates.get(cid) if commodity == "gas" else None
-        if commodity == "electricity":
+        if commodity == "electricity" and term_tariff_type != "deemed":
             prev_elec_unit_rates[cid] = unit_rate
-        elif commodity == "gas":
+        elif commodity == "gas" and term_tariff_type != "deemed":
             prev_gas_unit_rates[cid] = unit_rate
 
-        if term_index >= 1 and commodity == "electricity":
+        if term_index >= 1 and commodity == "electricity" and term_tariff_type != "deemed":
             company_est_pre = None
             retention_modifier_val = None
             _no_offer_reason = "below_threshold"
@@ -999,24 +1001,33 @@ def main(report_end: str | None = None, sim_interface=None):
                     cloud_cover_means=cloud_cover, latitude_deg=latitude,
                 )
 
-            naked_kwh = eac_kwh * (1.0 - hf)
-            risk = assess_term_risk(term_start_str, naked_kwh, forward_price, elec_records)
-            counterfactual_risk = assess_term_risk(term_start_str, float(eac_kwh), forward_price, elec_records)
-            current_risk[cid] = risk
-
-            # HH (smart meter) customers get ToU pricing — flat unit_rate is the
-            # base; peak/off-peak rates are derived from it via the ToU multipliers.
-            tou_rates = None
-            if is_hh_customer(customer):
-                tou_rates = (unit_rate * TOU_PEAK_MULTIPLIER, unit_rate * TOU_OFFPEAK_MULTIPLIER)
-
             cust_segment = customer.get("segment", "resi") if customer else "resi"
-            term_records = run_hedged_term(
-                cid, term_start_str, term_end_str, unit_rate, forward_price, hf,
-                risk["monthly_cost_of_capital_gbp"], shape_fn, elec_records,
-                tou_rates=tou_rates, segment=cust_segment,
-                pass_through=(term_tariff_type == "pass_through"),
-            )
+            if term_tariff_type == "deemed":
+                # Phase 40c: out-of-contract period — spot + deemed_premium, no forward hedge.
+                # No risk assessment or capital cost sizing (no forward commitment).
+                deemed_premium = term.get("deemed_premium", 0.20)
+                term_records = run_deemed_term(
+                    cid, term_start_str, term_end_str, deemed_premium,
+                    shape_fn, elec_records, segment=cust_segment,
+                )
+            else:
+                naked_kwh = eac_kwh * (1.0 - hf)
+                risk = assess_term_risk(term_start_str, naked_kwh, forward_price, elec_records)
+                counterfactual_risk = assess_term_risk(term_start_str, float(eac_kwh), forward_price, elec_records)
+                current_risk[cid] = risk
+
+                # HH (smart meter) customers get ToU pricing — flat unit_rate is the
+                # base; peak/off-peak rates are derived from it via the ToU multipliers.
+                tou_rates = None
+                if is_hh_customer(customer):
+                    tou_rates = (unit_rate * TOU_PEAK_MULTIPLIER, unit_rate * TOU_OFFPEAK_MULTIPLIER)
+
+                term_records = run_hedged_term(
+                    cid, term_start_str, term_end_str, unit_rate, forward_price, hf,
+                    risk["monthly_cost_of_capital_gbp"], shape_fn, elec_records,
+                    tou_rates=tou_rates, segment=cust_segment,
+                    pass_through=(term_tariff_type == "pass_through"),
+                )
             for rec in term_records:
                 rec["data_regime"] = "historical"
                 rec["commodity"] = "electricity"

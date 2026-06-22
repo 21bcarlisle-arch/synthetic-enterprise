@@ -35,10 +35,14 @@ _COMPANY_ENGINE = CompanyTariffEngine()
 NOTICE_DAYS = 42
 
 
+DEEMED_PREMIUM = 0.20  # 20% above spot — UK industry standard for out-of-contract rate
+
+
 def build_renewal_schedule(
     customer_id: str, original_acquisition_date: str, report_end_date: str,
     price_records: list[dict], eac_kwh: int, lookback_temps_fn=None,
     segment: str = "resi", tariff_type: str = "fixed",
+    deemed_gap_days: int = 0,
 ) -> list[dict]:
     """Build a chronological sequence of contiguous 1-year contract terms
     for one customer, covering [original_acquisition_date, report_end_date].
@@ -73,8 +77,31 @@ def build_renewal_schedule(
     term_start = date.fromisoformat(original_acquisition_date)
     report_end = date.fromisoformat(report_end_date)
     terms = []
+    first_term = True
 
     while term_start <= report_end:
+        # Phase 40c: insert a deemed gap term before each renewal (except the first).
+        # During the gap, the customer is out-of-contract and billed at spot + DEEMED_PREMIUM.
+        if deemed_gap_days > 0 and not first_term:
+            gap_end = term_start + timedelta(days=deemed_gap_days)
+            if gap_end > report_end:
+                gap_end = report_end
+            terms.append({
+                "customer_id": customer_id,
+                "acquisition_date": term_start.isoformat(),
+                "notice_date": term_start.isoformat(),
+                "unit_rate_gbp_per_mwh": None,  # spot-indexed; computed at settlement
+                "forward_price_gbp_per_mwh": None,
+                "company_forward_price_gbp_per_mwh": None,
+                "tariff_type": "deemed",
+                "deemed_premium": DEEMED_PREMIUM,
+                "term_end": gap_end.isoformat(),
+            })
+            term_start = gap_end
+            if term_start >= report_end:
+                break
+
+        first_term = False
         term_start_str = term_start.isoformat()
         # Phase 34a: company prices 42 days before term start; observable data lags by NOTICE_DAYS.
         notice_date = term_start - timedelta(days=NOTICE_DAYS)
@@ -112,6 +139,7 @@ def build_renewal_schedule(
             policy_cost_per_mwh=locked_policy,
             network_cost_per_mwh=locked_network,
         )
+        next_start = term_start + timedelta(days=CONTRACT_LENGTH_DAYS)
         terms.append({
             "customer_id": customer_id,
             "acquisition_date": term_start_str,
@@ -120,7 +148,8 @@ def build_renewal_schedule(
             "forward_price_gbp_per_mwh": sim_fwd,
             "company_forward_price_gbp_per_mwh": company_fwd,
             "tariff_type": tariff_type,
+            "term_end": min(next_start, report_end + timedelta(days=1)).isoformat(),
         })
-        term_start += timedelta(days=CONTRACT_LENGTH_DAYS)
+        term_start = next_start
 
     return terms

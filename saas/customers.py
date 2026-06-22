@@ -147,6 +147,7 @@ CUSTOMERS = [
     # Phase 24a: I&C electricity customer — 2 GWh/year, HH metered.
     # Phase 26a: industrial warehouse HH profile (Mon-Fri core hours, low weekends,
     # temperature-insensitive). Replaces C7 residential shape used in Phase 24a.
+    # Phase 40c: deemed_gap_days=30 — 30-day out-of-contract window each renewal.
     # eac_kwh=None because settlement reads sim/hh_data/C_IC1.csv (~2 GWh/year).
     {
         "customer_id": "C_IC1",
@@ -160,11 +161,12 @@ CUSTOMERS = [
         "commodity": "electricity",
         "contract_type": "fixed_1yr",
         "segment": "I&C",
+        "deemed_gap_days": 30,
     },
     # Phase 27a: second I&C customer — commercial office building, 1 GWh/year.
     # Temperature-sensitive: summer A/C peak (+15% Jun-Aug), business-hours load
     # (08:00-18:00 Mon-Fri), graduated Saturday (30%), minimal Sunday (8%).
-    # Seasonal diversification vs C_IC1 warehouse (inverse summer/winter pattern).
+    # Phase 40c: deemed_gap_days=30 — 30-day out-of-contract window each renewal.
     {
         "customer_id": "C_IC2",
         "acquisition_date": "2018-01-01",
@@ -177,6 +179,7 @@ CUSTOMERS = [
         "commodity": "electricity",
         "contract_type": "fixed_1yr",
         "segment": "I&C",
+        "deemed_gap_days": 30,
     },
     # Phase 40a: I&C pass-through electricity customer — 4 GWh/year continuous-process
     # chemical plant, Teesside. Pass-through tariff: wholesale+margin locked at term start;
