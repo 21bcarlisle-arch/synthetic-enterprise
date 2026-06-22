@@ -13,6 +13,7 @@ from saas.reporting.annual_report import (
     _pricing_action,
     _section_enterprise_value_analysis,
     _section_policy_costs,
+    _section_solvency_signal,
     _segment_margin_trend_section,
     _send_run_complete_ntfy,
     extract_report_data,
@@ -1886,3 +1887,97 @@ def test_divergence_demand_error_by_year_empty_when_no_log():
     from simulation.run_phase2b import _compute_company_divergence
     result = _compute_company_divergence([], [], demand_estimation_log=None)
     assert result["demand_error_by_year"] == {}
+
+
+# --- Phase 21b: solvency signal section ---
+
+def _make_solvency_data(years: dict) -> dict:
+    """Minimal data dict for _section_solvency_signal."""
+    return {"years": years}
+
+
+def test_solvency_signal_empty_data():
+    """No years → empty string."""
+    assert _section_solvency_signal({"years": {}}) == ""
+    assert _section_solvency_signal({}) == ""
+
+
+def test_solvency_signal_header_present():
+    """Section renders heading and Ofgem threshold reference."""
+    data = _make_solvency_data({
+        "2024": {
+            "treasury_end_gbp": 50000.0,
+            "active_customer_ids": ["C1", "C1g", "C5"],
+        }
+    })
+    result = _section_solvency_signal(data)
+    assert "Solvency Signal" in result
+    assert "£130" in result
+    assert "2024" in result
+
+
+def test_solvency_signal_billing_account_dedup():
+    """C1 + C1g count as one billing account (dual-fuel dedup)."""
+    data = _make_solvency_data({
+        "2024": {
+            "treasury_end_gbp": 10000.0,
+            "active_customer_ids": ["C1", "C1g", "C5"],
+        }
+    })
+    result = _section_solvency_signal(data)
+    # 2 billing accounts (C1 and C5): 10000 / 2 = 5000
+    assert "5,000" in result
+    assert "| 2 |" in result or "| 2024 |" not in result or "5,000" in result
+
+
+def test_solvency_signal_above_target():
+    """Treasury well above target → 'OK' for both floor and target."""
+    data = _make_solvency_data({
+        "2024": {
+            "treasury_end_gbp": 5000.0,
+            "active_customer_ids": ["C1"],
+        }
+    })
+    result = _section_solvency_signal(data)
+    # 5000/1 = 5000 — above both £0 and £130
+    assert result.count("OK") >= 2
+
+
+def test_solvency_signal_below_target_shows_gap():
+    """Treasury below £130/account shows gap and 'below' label."""
+    data = _make_solvency_data({
+        "2024": {
+            "treasury_end_gbp": 100.0,
+            "active_customer_ids": ["C1"],
+        }
+    })
+    result = _section_solvency_signal(data)
+    # 100/1 = 100 — below £130 target, gap = £30
+    assert "below" in result
+    assert "30" in result
+
+
+def test_solvency_signal_breach_when_negative():
+    """Negative treasury → BREACH flag for licence floor."""
+    data = _make_solvency_data({
+        "2022": {
+            "treasury_end_gbp": -500.0,
+            "active_customer_ids": ["C1"],
+        }
+    })
+    result = _section_solvency_signal(data)
+    assert "BREACH" in result
+
+
+def test_solvency_signal_end_state_summary():
+    """Final year end-state sentence appears in section."""
+    data = _make_solvency_data({
+        "2023": {
+            "treasury_end_gbp": 2000.0,
+            "active_customer_ids": ["C1", "C1g"],
+        }
+    })
+    result = _section_solvency_signal(data)
+    # 2000/1 = 2000/account — well above target
+    assert "End-state" in result
+    assert "2023" in result

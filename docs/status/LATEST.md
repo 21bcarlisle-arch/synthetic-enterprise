@@ -8,7 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T03:51:39Z
+Last updated: 2026-06-22T05:07:13Z
+
+**Phase 21b LIVE (2026-06-22)**: Per-customer net assets solvency signal. 867 tests passing (7 new).
+- `saas/reporting/annual_report.py`: `_section_solvency_signal()` — treasury ÷ active billing accounts each year-end
+- Ofgem licence floor: £0/account (breach triggers regulatory action); capital adequacy target: £130/dual-fuel account
+- C1g/C1 counted as one billing account (dual-fuel dedup via `_billing_account_id`); C_IC1 counts separately as I&C
+- End-state: shows whether company holds sufficient buffer vs Ofgem thresholds per year
+- Phase 21c next: consumption recalibration (C1 2,800→2,500 kWh/yr, C5 15,000→10,000 kWh/yr)
 
 **Phase 26a LIVE (2026-06-22)**: Industrial HH demand profile for C_IC1 + risk committee EAC consistency. 860 tests passing (6 new).
 - `sim/hh_data/C_IC1.csv`: replaced scaled residential C7 shape with deterministic industrial warehouse profile (Mon-Fri 08:00-18:00 core at 273 kWh/period, overnight standby 14 kWh/period, Sat 40%, Sun 15%)

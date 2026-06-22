@@ -128,6 +128,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 21b COMPLETE (2026-06-22)**: Per-customer net assets solvency signal. 7 new tests.
+- `saas/reporting/annual_report.py`: `_section_solvency_signal()` — treasury ÷ active billing accounts each year-end
+- Ofgem licence floor: £0/account (positive net assets required); capital adequacy target: £130/dual-fuel account
+- `_billing_account_id` dedup: C1g + C1 = one billing account; I&C C_IC1 counted separately
+- Table shows per-year signal with BREACH flag when treasury negative; "below (gap: £N)" when below £130
+- End-state summary: final year net-assets-per-account vs both thresholds
+
 **Phase 24a COMPLETE (2026-06-22)**: I&C customer C_IC1 — first industrial account. 8 new tests.
 - `saas/customers.py`: C_IC1 added — 2 GWh/year, HH metered, Birmingham, acquisition 2017-01-01, segment SME
 - `sim/hh_data/C_IC1.csv`: C7 shape scaled by 156× to give ~2 GWh/year; 3446 days of data

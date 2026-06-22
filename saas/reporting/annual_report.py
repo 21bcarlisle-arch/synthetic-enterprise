@@ -2381,6 +2381,71 @@ def _section_policy_costs(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_solvency_signal(data: dict) -> str:
+    """Phase 21b: Per-customer net assets solvency signal.
+
+    Ofgem licence conditions require positive net assets (floor: £0/customer).
+    Industry capital adequacy guidance targets £130/dual-fuel billing account.
+    Treasury divided by active billing accounts each year gives the signal.
+    """
+    years = data.get("years", {})
+    if not years:
+        return ""
+
+    FLOOR_GBP = 0.0
+    TARGET_GBP = 130.0
+
+    lines = [
+        "## Solvency Signal — Net Assets per Customer (Phase 21b)",
+        "",
+        "Treasury balance ÷ active billing accounts at each year-end.",
+        "Ofgem licence floor: £0/account (positive net assets required to hold a supply licence).",
+        "Capital adequacy target: £130/dual-fuel billing account.",
+        "",
+        "| Year | Treasury £ | Billing Accounts | Net Assets/Account £ | vs Floor | vs £130 Target |",
+        "|------|-----------|-----------------|----------------------|----------|----------------|",
+    ]
+
+    for year in sorted(years):
+        yd = years[year]
+        treasury = yd.get("treasury_end_gbp", 0.0)
+        active_cids = yd.get("active_customer_ids", [])
+        billing_accounts = {_billing_account_id(cid) for cid in active_cids}
+        n_accounts = len(billing_accounts) or 1
+        net_per_account = treasury / n_accounts
+
+        floor_flag = "OK" if net_per_account >= FLOOR_GBP else "**BREACH**"
+        if net_per_account >= TARGET_GBP:
+            target_flag = "OK"
+        else:
+            target_flag = f"below (gap: £{TARGET_GBP - net_per_account:,.0f})"
+
+        lines.append(
+            f"| {year} | {treasury:,.0f} | {n_accounts} | {net_per_account:,.0f} "
+            f"| {floor_flag} | {target_flag} |"
+        )
+
+    # End-state summary
+    final_year = sorted(years)[-1]
+    final_yd = years[final_year]
+    final_treasury = final_yd.get("treasury_end_gbp", 0.0)
+    final_cids = final_yd.get("active_customer_ids", [])
+    final_accounts = {_billing_account_id(cid) for cid in final_cids}
+    final_n = len(final_accounts) or 1
+    final_per = final_treasury / final_n
+
+    lines.append("")
+    if final_per >= TARGET_GBP:
+        status = f"above Ofgem £{TARGET_GBP:.0f} target"
+    else:
+        status = f"£{TARGET_GBP - final_per:,.0f} below Ofgem £{TARGET_GBP:.0f} target"
+    lines.append(
+        f"End-state ({final_year}): **£{final_per:,.0f}/account** across {final_n} billing accounts — {status}."
+    )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_gas_renewal_pressure(data: dict) -> str:
     """Gas Renewal Pressure -- Phase 15a: dual-fuel gas rate change monitoring.
 
@@ -2733,6 +2798,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_demand_estimation(data))
     sections.append(_section_company_crm(data))
     sections.append(_section_policy_costs(data))
+    sections.append(_section_solvency_signal(data))
     sections.append(_section_tou_utilization(data))
     sections.append(_section_bill_shock_summary(data))
     sections.append(_section_gas_renewal_pressure(data))
