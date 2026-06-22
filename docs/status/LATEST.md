@@ -8,7 +8,10 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T14:43:12Z
+Last updated: 2026-06-22T14:45:58Z
+
+**Phase 38a LIVE (2026-06-22)**: Scenario comparison runner. 12 new tests (1,109 passing).
+- `simulation/scenario_comparison.py`: runs all 5 scenarios, returns comparison sorted by net margin. `format_comparison_table()` → markdown summary + year-by-year net margin table.
 
 **Phase 37a LIVE (2026-06-22)**: Forward scenario metadata banner in annual report. 7 new tests (1,097 passing).
 - `_section_scenario_metadata(data)`: shown when `scenario_name` present — FORWARD SCENARIO warning, year range, price mode parameters. Silent for historical runs.
