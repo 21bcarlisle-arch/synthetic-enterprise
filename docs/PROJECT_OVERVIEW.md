@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-22. 315+ commits. 846 tests (~832 in SIM_FAST_MODE=1). Codebase: ~17,100 lines across 182+ Python modules.*
+*Last updated: 2026-06-22. 320+ commits. 860 tests (~846 in SIM_FAST_MODE=1). Codebase: ~17,400 lines across 184+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -373,6 +373,26 @@ Net after CTS:               £7,498
 - **Scale-invariant economics**: starting treasury scales to £463k (from £30k) — adequate for I&C working capital. Retention cost proportionally large (5% = £15k per offer).
 
 **What this proved:** the HH path, company tariff engine, retention system, and demand estimation all scale correctly to I&C volumes without code changes. 2021-22 crisis will show C_IC1 with large crisis losses (£400/MWh spot × 2 GWh unhedged exposure). 8 new tests (846 total).
+### Phase 25 — EAC Calibration from Settlement + Solar Irradiance Wiring
+**Files:** `simulation/run_phase2b.py` (`_derive_eac_from_settlement()`), `simulation/weather_inputs.py`, `tests/simulation/test_phase25a_eac_solar.py`
+
+**What was built:**
+- **`_derive_eac_from_settlement()`**: computes mean annual kWh from prior-year settlement records; 180-day minimum coverage guard; falls back to `EFFECTIVE_EAC_KWH` when insufficient data
+- **`true_eac_kwh` in demand_estimation_log**: now reflects actual settled consumption (not declared EAC), closing the oracle read in Phase 23a's per-renewal comparison
+- **Hedging block**: EAC now from `_company_eac_estimate()` (settlement-derived on renewal 2+), so hedging quantities calibrate from observed consumption not declared capacity
+- **`load_weather_cloud_cover()` + `cloud_cover_for_customer()`** in `weather_inputs.py`: load half-hourly cloud cover data; C4 (solar rooftop) irradiance wired via `_weather_adjusted_shape_fn cloud_cover_means`
+
+**What this closed:** the hedging model was still reading declared EAC rather than calibrating from actual settlement records — underestimating demand for growing customers. Solar irradiance now reduces C4 consumption on high-sun days. 8 new tests (854 total).
+
+### Phase 26 — Industrial HH Demand Profile + Risk Committee EAC Consistency
+**Files:** `sim/hh_data/C_IC1.csv`, `saas/customers.py`, `simulation/run_phase2b.py` (risk committee block), `tests/simulation/test_phase26a_industrial_profile.py`
+
+**What was built:**
+- **Industrial warehouse HH profile** for C_IC1: replaced scaled residential C7 shape with deterministic warehouse profile — Mon-Fri 08:00-18:00 core hours at 273 kWh/period, overnight standby 14 kWh/period, Saturday 40%, Sunday 15% of weekday; no seasonal variation; annual total ~2 GWh/year
+- **Weekday:Sunday ratio** 6.7× (vs near-flat residential before) — correctly models large-site industrial demand
+- **Risk committee block**: EAC now from `_company_eac_estimate()` for all active electricity customers including C_IC1 — consistent with Phase 25a settlement-derived EAC; eliminates last `EFFECTIVE_EAC_KWH` oracle read from risk committee path
+
+**What this fixed:** C_IC1 was modelled with a residential demand shape scaled to I&C volume — flat evenings and weekends. Industrial warehouses have strong weekday/weekend structure. Fidelity fix ensures risk committee sees the correct demand pattern for hedging decisions. 6 new tests (860 total).
 
 
 ---
@@ -588,23 +608,23 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 177 Python modules, ~16,000 lines
 - 306 git commits
-- 846 tests (all green); ~832 in SIM_FAST_MODE=1; 846 in full suite (~40 min with Ollama, C_IC1 adds ~150k records)
+- 860 tests (all green); ~846 in SIM_FAST_MODE=1; 860 in full suite (~40 min with Ollama)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 4 HH smart meter profiles (C7–C9 residential, C_IC1 I&C at 2 GWh/year)
 
-**Latest named-customer run (git 685cbe3, 9 customers, 2016–2025):**
-- Revenue £159,699 | Gross margin £7,612 (4.8%) | Net margin £6,384 (4.4%)
-- After overhead + cost-to-serve: net after CTS £48 (near-breakeven — in real supplier territory)
-- Treasury £29,846 → £25,833 | 163 risk committee interventions | 1,117 bills
-- Enterprise value: £-7,979 | 22 retention offers / 18 retained | 6 accounts ever churned
+**Latest named-customer run (git 2f380ac, 10 customers incl C_IC1, 2016–2025):**
+- Revenue undisclosed in run_output_latest.json aggregate | Net margin £225,920 (ledger)
+- Gross margin £235,160 | Capital charges £9,240
+- Treasury £463,166 → £465,105 | 236 risk committee interventions | 1,165 bills
+- Enterprise value: £309,282 | 23 retention offers / 19 retained | 7 accounts ever churned
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
 - 323 risk committee Ollama calls per run (each ~7s) — 95% of 38-min runtime
-- Full test suite: 787 tests, 16s with SIM_FAST_MODE=1
+- Full test suite: 860 tests, ~16s with SIM_FAST_MODE=1
 
 ---
 
