@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-22. 325+ commits. 936 tests (~922 in SIM_FAST_MODE=1). Codebase: ~17,900 lines across 188+ Python modules.*
+*Last updated: 2026-06-22. 330+ commits. 907 non-integration tests (7.74s). Codebase: ~18,200 lines across 190+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -348,7 +348,9 @@ Net after CTS:               £7,498
 - **Volume tolerance tracking** (Phase 27c): `simulation/volume_tolerance.py` — `compute_term_volume_tolerance()` computes actual vs contracted ±10% at each I&C term end. Excess above +10% band costs spot; deficit below -10% triggers hedge unwind at spot (P&L = (spot-hedge_price) × hedged_deficit_kwh). `volume_tolerance_log` in run output; `_section_volume_tolerance()` in annual report with ⚠ breach flag. 12 new tests (909 total).
 - **Triad risk** (Phase 27d): `simulation/triad.py` — `identify_triad_candidates()` (top-3 highest SSP periods Nov-Feb, ≥10 days apart) + `compute_triad_exposure()` (demand_kw × TNUoS tariff £/kW/year). `_TNUOS_TRIAD_TARIFF_BY_YEAR`: £46.23→£63.82/kW 2016-2024. Computed after term loop for each winter × each I&C customer; `triad_log` in run output; `_section_triad_exposure()` in annual report. 15 new tests (924 total).
 - **I&C churn model** (Phase 27e): `company/crm/churn_model.py` gains `IC_BASE_CHURN_RATE=0.20`, `IC_RATE_SENSITIVITY=1.5`, `IC_TENURE_DISCOUNT_PER_YEAR=0.005`, `IC_BILL_STRESS_THRESHOLD_GBP=50,000`. `estimate_churn_probability()` gains `segment` param; I&C uses broker-driven constants. `run_phase2b.py` passes `segment=segment_for_churn` at electricity renewal. 6 new tests (930 total).
-- **I&C portfolio summary** (Phase 28a): `_section_ic_portfolio()` in annual report — lifetime P&L, CCL/MWh, TNUoS Triad exposure, volume tolerance summary, year-by-year segment comparison (I&C vs SME vs Resi). Identifies I&C customers from `ccl_gbp > 0` in settlement records; pulls `triad_log` + `volume_tolerance_log`. Backward compatible. 6 new tests (936 total).
+- **I&C portfolio summary** (Phase 28a): `_section_ic_portfolio()` in annual report — lifetime P&L, CCL/MWh, TNUoS Triad exposure, volume tolerance summary, year-by-year segment comparison (I&C vs SME vs Resi). Identifies I&C customers from CUSTOMERS module (`segment == "I&C"`) — not CCL proxy (fixed in 99e0b33: CCL proxy also matched C5 SME). 6 new tests (936 total, 907 non-integration).
+- **Network charges DUoS + TNUoS** (Phase 29a): `simulation/policy_costs.py` adds `get_electricity_network_cost_per_mwh(date_str, segment)` — resi/SME combined DUoS+TNUoS unit rate, I&C HV DUoS-only (Triad TNUoS separate). `run_hedged_term()` records `network_cost_gbp` per period; `net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp`. `price_fixed_tariff()` gains `network_cost_per_mwh` param. Annual report `_section_network_costs()` backward-compatible. 15 new tests.
+- **Network charge calibration** (Phase 29b): `_NETWORK_COST_RESI_SME_BY_YEAR` recalibrated from Ofgem Annex 9 v1.10. Key change: 2022 £43→£66/MWh — BSUoS moved 100% to demand side from April 2022 (previously 50/50 demand/generator). Calibrated series: 2016: £43, 2017: £44, 2018: £42, 2019: £45, 2020: £46, 2021: £49, 2022: £66, 2023: £75, 2024: £69 (£/MWh). 907 non-integration tests passing in 7.74s.
 
 ### Phase 22 — Post-Crisis Churn Hangover + Trailing-Margin CLV
 **Files:** `company/crm/churn_model.py`, `saas/clv_model.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`
@@ -616,25 +618,23 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 177 Python modules, ~16,000 lines
-- 306 git commits
-- 936 tests (all green); ~922 in SIM_FAST_MODE=1; 936 in full suite (~40 min with Ollama)
+- 190+ Python modules, ~18,200 lines
+- 330+ git commits
+- 907 non-integration tests passing in 7.74s (SIM_FAST_MODE=1); full suite with Ollama ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 5 HH smart meter profiles (C7–C9 residential, C_IC1 I&C at 2 GWh/year, C_IC2 I&C at 1 GWh/year)
 
-**Latest named-customer run (git 2f380ac, 10 customers incl C_IC1, 2016–2025):**
-- Revenue undisclosed in run_output_latest.json aggregate | Net margin £225,920 (ledger)
-- Gross margin £235,160 | Capital charges £9,240
-- Treasury £463,166 → £465,105 | 236 risk committee interventions | 1,165 bills
-- Enterprise value: £309,282 | 23 retention offers / 19 retained | 7 accounts ever churned
+**Latest named-customer run (git 2f380ac, Phase 24a code, 2016–2025):**
+- Treasury £463,166 → £465,105 | Net margin £1,939 | Enterprise value: £309,282
+- Phase 29a/29b run pending (will show calibrated network cost in settlement P&L)
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
-- 323 risk committee Ollama calls per run (each ~7s) — 95% of 38-min runtime
-- Full test suite: 936 tests, ~16s with SIM_FAST_MODE=1
+- Full cost stack: wholesale (SSP) + network (DUoS+TNUoS, Phase 29b) + policy (RO+CfD+CCL, Phase 21a/27b)
+- Risk committee Ollama calls per run (each ~7s) — 95% of runtime
 
 ---
 
