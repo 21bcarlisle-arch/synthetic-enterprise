@@ -8,7 +8,10 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T13:54:22Z
+Last updated: 2026-06-22T13:57:55Z
+
+**Phase 33b LIVE (2026-06-22)**: Active/passive split in annual report. 6 new tests (1,047 non-integration passing).
+- `saas/reporting/annual_report.py`: `_section_active_passive_renewal()` — total active/passive counts, mean estimates, abs errors, year-by-year table. Silent on pre-Phase-33a run JSON (backward compatible).
 
 **Phase 33a LIVE (2026-06-22)**: Active/passive renewal split. 10 new tests (1,041 non-integration passing).
 - `company/crm/churn_model.py`: `is_active_renewal()` — 35% active; 65% passive (SVT rollover); 2022 forced passive (crisis: no fixed deals). `estimate_passive_churn_probability()` uses SVT-inertia constants (5% base, 0.1 rate sensitivity, 10% cap).

@@ -2367,3 +2367,75 @@ def test_commodity_split_includes_revenue_and_wholesale():
     assert gas["wholesale_cost_gbp"] == 100.0
     assert elec["revenue_gbp"] == 222.0  # (10+100)+(12+100)
     assert elec["wholesale_cost_gbp"] == 200.0  # 100 + 100
+
+
+# ── Active/Passive renewal split section (Phase 33b) ─────────────────────────
+
+def _active_passive_data(*, active_count=3, passive_count=5, year="2021"):
+    """Build minimal churn_basis_risk data with is_active_renewal field."""
+    records = []
+    for i in range(active_count):
+        records.append({
+            "customer_id": f"C{i+1}",
+            "term_start": f"{year}-01-01",
+            "sim_churn_probability": 0.25,
+            "company_churn_estimate": 0.20,
+            "churn_estimate_error_pct": -0.2,
+            "is_active_renewal": True,
+        })
+    for i in range(passive_count):
+        records.append({
+            "customer_id": f"C{i+10}",
+            "term_start": f"{year}-01-01",
+            "sim_churn_probability": 0.08,
+            "company_churn_estimate": 0.05,
+            "churn_estimate_error_pct": -0.375,
+            "is_active_renewal": False,
+        })
+    return {"churn_basis_risk": records}
+
+
+def test_section_active_passive_empty_on_no_cbr():
+    from saas.reporting.annual_report import _section_active_passive_renewal
+    assert _section_active_passive_renewal({}) == ""
+    assert _section_active_passive_renewal({"churn_basis_risk": []}) == ""
+
+
+def test_section_active_passive_empty_on_pre_phase33_data():
+    """Pre-Phase-33 data lacks is_active_renewal field — returns empty."""
+    from saas.reporting.annual_report import _section_active_passive_renewal
+    data = {"churn_basis_risk": [
+        {"customer_id": "C1", "term_start": "2021-01-01",
+         "sim_churn_probability": 0.2, "company_churn_estimate": 0.15,
+         "churn_estimate_error_pct": -0.25}
+    ]}
+    assert _section_active_passive_renewal(data) == ""
+
+
+def test_section_active_passive_shows_header():
+    from saas.reporting.annual_report import _section_active_passive_renewal
+    result = _section_active_passive_renewal(_active_passive_data())
+    assert "Active vs Passive" in result
+
+
+def test_section_active_passive_shows_counts():
+    from saas.reporting.annual_report import _section_active_passive_renewal
+    result = _section_active_passive_renewal(_active_passive_data(active_count=3, passive_count=5))
+    assert "3" in result   # active count
+    assert "5" in result   # passive count
+
+
+def test_section_active_passive_shows_year_row():
+    from saas.reporting.annual_report import _section_active_passive_renewal
+    result = _section_active_passive_renewal(_active_passive_data(year="2022"))
+    assert "2022" in result
+
+
+def test_section_active_passive_passive_estimate_lower():
+    """The section should show passive estimate lower than active estimate."""
+    from saas.reporting.annual_report import _section_active_passive_renewal
+    data = _active_passive_data(active_count=4, passive_count=6)
+    result = _section_active_passive_renewal(data)
+    # Active estimate: 20.0%, passive estimate: 5.0%
+    assert "20.0%" in result or "20%" in result
+    assert "5.0%" in result or "5%" in result

@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,041+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 33a adds 10 new tests.**
+**1,047+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 33b adds 6 new tests.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,10 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 33b COMPLETE (2026-06-22)**: Active/passive split in annual report. 6 new tests.
+- `saas/reporting/annual_report.py`: `_section_active_passive_renewal(data)` — shows total active/passive counts, mean company estimates and abs errors for each type, year-by-year table. Silent when `churn_basis_risk` lacks `is_active_renewal` (pre-Phase-33a runs). Backward compatible.
+- 1,047 non-integration tests passing
 
 **Phase 33a COMPLETE (2026-06-22)**: Active/passive renewal split — company's churn model now distinguishes SVT-rollers (65%, passive) from active fixed-term choosers (35%). 10 new tests.
 - `company/crm/churn_model.py`: `PASSIVE_BASE_CHURN_RATE=0.05`, `PASSIVE_RATE_SENSITIVITY=0.1`, `PASSIVE_CHURN_CAP=0.10`. `estimate_passive_churn_probability()` — very low sensitivity to rate changes; capped at 10%. `is_active_renewal(term_start_str, seed)` — 35% active, 65% passive; 2022 forced passive (no fixed deals available in UK crisis). `CRISIS_PASSIVE_YEARS={"2022"}`.

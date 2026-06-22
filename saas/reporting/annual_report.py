@@ -1463,6 +1463,75 @@ def _churn_basis_risk_section(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_active_passive_renewal(data: dict) -> str:
+    """Phase 33b: Active vs passive renewal split analysis.
+
+    Active renewers (35%) explicitly choose a new fixed deal at term end.
+    Passive renewers (65%) roll to SVT by inaction — low rate sensitivity,
+    low ongoing churn. Crisis years (2022) force all renewals passive.
+    Silent when churn_basis_risk lacks is_active_renewal (pre-Phase-33a runs).
+    """
+    cbr = data.get("churn_basis_risk", [])
+    if not cbr or not any("is_active_renewal" in r for r in cbr):
+        return ""
+
+    active = [r for r in cbr if r.get("is_active_renewal", True)]
+    passive = [r for r in cbr if not r.get("is_active_renewal", True)]
+    total = len(cbr)
+
+    if total == 0:
+        return ""
+
+    def _mean_est(recs):
+        ests = [r["company_churn_estimate"] for r in recs if r.get("company_churn_estimate") is not None]
+        return sum(ests) / len(ests) if ests else 0.0
+
+    def _mean_abs_err(recs):
+        errs = [abs(r["churn_estimate_error_pct"]) for r in recs if r.get("churn_estimate_error_pct") is not None]
+        return sum(errs) / len(errs) if errs else 0.0
+
+    lines = [
+        "## Active vs Passive Renewal Split (Phase 33a)",
+        "",
+        "~35% of domestic/SME customers actively choose a new fixed deal at term end. "
+        "~65% roll to SVT by inaction — they are inert: low rate sensitivity, ~5% churn base. "
+        "Crisis years (2022) force all renewals passive (no fixed deals available).",
+        "",
+        f"- **Total renewal events:** {total}",
+        f"- **Active renewers:** {len(active)} ({len(active)/total:.0%}) — "
+        f"mean company estimate {_mean_est(active):.1%}, abs error {_mean_abs_err(active):.1%}",
+        f"- **Passive SVT-rollers:** {len(passive)} ({len(passive)/total:.0%}) — "
+        f"mean company estimate {_mean_est(passive):.1%}, abs error {_mean_abs_err(passive):.1%}",
+        "",
+        "| Year | Active | Passive | Active est | Passive est | Active abs err | Passive abs err |",
+        "|------|--------|---------|-----------|------------|---------------|----------------|",
+    ]
+
+    by_year: dict[str, dict] = {}
+    for r in cbr:
+        year = r["term_start"][:4]
+        yd = by_year.setdefault(year, {"active": [], "passive": []})
+        key = "active" if r.get("is_active_renewal", True) else "passive"
+        yd[key].append(r)
+
+    for year in sorted(by_year):
+        yd = by_year[year]
+        a, p = yd["active"], yd["passive"]
+        lines.append(
+            f"| {year} | {len(a)} | {len(p)} "
+            f"| {_mean_est(a):.1%} | {_mean_est(p):.1%} "
+            f"| {_mean_abs_err(a):.1%} | {_mean_abs_err(p):.1%} |"
+        )
+
+    lines += [
+        "",
+        "Passive renewers should show lower company estimates and lower SIM churn — "
+        "high abs error for passive renewers indicates the passive model needs recalibration.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _section_company_divergence(data: dict) -> str:
     """Company Model Divergence -- Phase 12e.
 
@@ -3340,6 +3409,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_segment_margin_trend_section(data))
     sections.append(_customer_lifecycle_events_section(data))
     sections.append(_churn_basis_risk_section(data))
+    sections.append(_section_active_passive_renewal(data))
     sections.append(_section_company_divergence(data))
     sections.append(_section_demand_estimation(data))
     sections.append(_section_company_crm(data))
