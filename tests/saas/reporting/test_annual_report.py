@@ -14,6 +14,8 @@ from saas.reporting.annual_report import (
     _section_enterprise_value_analysis,
     _section_policy_costs,
     _section_solvency_signal,
+    _section_volume_tolerance,
+    _section_triad_exposure,
     _segment_margin_trend_section,
     _send_run_complete_ntfy,
     extract_report_data,
@@ -1981,3 +1983,157 @@ def test_solvency_signal_end_state_summary():
     # 2000/1 = 2000/account — well above target
     assert "End-state" in result
     assert "2023" in result
+
+
+# --- Phase 27c: _section_volume_tolerance tests ---
+
+def test_volume_tolerance_empty_returns_empty():
+    assert _section_volume_tolerance({}) == ""
+    assert _section_volume_tolerance({"volume_tolerance_log": []}) == ""
+
+
+def test_volume_tolerance_within_band_shows_no_breach():
+    data = {
+        "volume_tolerance_log": [
+            {
+                "customer_id": "C_IC1",
+                "term_start": "2020-01-01",
+                "term_end": "2021-01-01",
+                "contracted_kwh": 2_000_000.0,
+                "actual_kwh": 2_050_000.0,
+                "variance_pct": 2.5,
+                "band_high_kwh": 2_200_000.0,
+                "band_low_kwh": 1_800_000.0,
+                "excess_kwh": 0.0,
+                "deficit_kwh": 0.0,
+                "excess_spot_cost_gbp": 0.0,
+                "deficit_unwind_gbp": 0.0,
+                "within_band": True,
+            }
+        ]
+    }
+    result = _section_volume_tolerance(data)
+    assert "27c" in result or "Volume Tolerance" in result
+    assert "no spot over-run" in result
+    assert "⚠" not in result
+
+
+def test_volume_tolerance_breach_shows_warning():
+    data = {
+        "volume_tolerance_log": [
+            {
+                "customer_id": "C_IC1",
+                "term_start": "2022-01-01",
+                "term_end": "2023-01-01",
+                "contracted_kwh": 2_000_000.0,
+                "actual_kwh": 2_400_000.0,
+                "variance_pct": 20.0,
+                "band_high_kwh": 2_200_000.0,
+                "band_low_kwh": 1_800_000.0,
+                "excess_kwh": 200_000.0,
+                "deficit_kwh": 0.0,
+                "excess_spot_cost_gbp": 20_000.0,
+                "deficit_unwind_gbp": 0.0,
+                "within_band": False,
+            }
+        ]
+    }
+    result = _section_volume_tolerance(data)
+    assert "⚠" in result
+    assert "1 tolerance breach" in result
+    assert "20,000" in result
+
+
+def test_volume_tolerance_multiple_terms_both_shown():
+    data = {
+        "volume_tolerance_log": [
+            {
+                "customer_id": "C_IC1",
+                "term_start": "2020-01-01",
+                "term_end": "2021-01-01",
+                "contracted_kwh": 2_000_000.0,
+                "actual_kwh": 2_000_000.0,
+                "variance_pct": 0.0,
+                "band_high_kwh": 2_200_000.0,
+                "band_low_kwh": 1_800_000.0,
+                "excess_kwh": 0.0,
+                "deficit_kwh": 0.0,
+                "excess_spot_cost_gbp": 0.0,
+                "deficit_unwind_gbp": 0.0,
+                "within_band": True,
+            },
+            {
+                "customer_id": "C_IC2",
+                "term_start": "2020-01-01",
+                "term_end": "2021-01-01",
+                "contracted_kwh": 1_000_000.0,
+                "actual_kwh": 1_000_000.0,
+                "variance_pct": 0.0,
+                "band_high_kwh": 1_100_000.0,
+                "band_low_kwh": 900_000.0,
+                "excess_kwh": 0.0,
+                "deficit_kwh": 0.0,
+                "excess_spot_cost_gbp": 0.0,
+                "deficit_unwind_gbp": 0.0,
+                "within_band": True,
+            },
+        ]
+    }
+    result = _section_volume_tolerance(data)
+    assert "C_IC1" in result
+    assert "C_IC2" in result
+    assert "Terms tracked: 2" in result
+
+
+# --- Phase 27d: _section_triad_exposure tests ---
+
+def test_triad_exposure_empty_returns_empty():
+    assert _section_triad_exposure({}) == ""
+    assert _section_triad_exposure({"triad_log": []}) == ""
+
+
+def test_triad_exposure_shows_customer_and_winter():
+    data = {
+        "triad_log": [
+            {
+                "customer_id": "C_IC1",
+                "triad_year": 2021,
+                "triad_periods": [],
+                "avg_triad_kw": 250.0,
+                "tnuos_tariff_gbp_per_kw": 56.41,
+                "estimated_tnuos_gbp": 14102.5,
+            }
+        ]
+    }
+    result = _section_triad_exposure(data)
+    assert "C_IC1" in result
+    assert "2021/22" in result
+    assert "14,102" in result
+
+
+def test_triad_exposure_totals_across_customers():
+    data = {
+        "triad_log": [
+            {
+                "customer_id": "C_IC1",
+                "triad_year": 2021,
+                "triad_periods": [],
+                "avg_triad_kw": 200.0,
+                "tnuos_tariff_gbp_per_kw": 56.41,
+                "estimated_tnuos_gbp": 11282.0,
+            },
+            {
+                "customer_id": "C_IC2",
+                "triad_year": 2021,
+                "triad_periods": [],
+                "avg_triad_kw": 100.0,
+                "tnuos_tariff_gbp_per_kw": 56.41,
+                "estimated_tnuos_gbp": 5641.0,
+            },
+        ]
+    }
+    result = _section_triad_exposure(data)
+    # Total = 11282 + 5641 = 16923
+    assert "16,923" in result
+    assert "C_IC1" in result
+    assert "C_IC2" in result

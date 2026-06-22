@@ -8,7 +8,31 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T05:23:46Z
+Last updated: 2026-06-22T06:06:27Z
+
+**Phase 27e LIVE (2026-06-22)**: I&C churn model — broker-driven, price-sensitive. 6 new tests.
+- `company/crm/churn_model.py`: `IC_BASE_CHURN_RATE=0.20` (vs 0.10 resi), `IC_RATE_SENSITIVITY=1.5` (vs 0.8), `IC_BILL_STRESS_THRESHOLD_GBP=£50k`
+- `estimate_churn_probability()` gains `segment` param — I&C uses broker-driven constants automatically
+- Company now knows I&C base churn is 20% vs 10% resi — much more proactive on retention/pricing decisions
+- Next: send Phase 27a-e completion NTFY and move Reorient.md to done/
+
+**Phase 27d LIVE (2026-06-22)**: Triad risk for I&C electricity customers. 15 new tests.
+- `simulation/triad.py`: SSP-proxy Triad identification + TNUoS exposure computation per winter
+- `_TNUOS_TRIAD_TARIFF_BY_YEAR`: £46.23→£63.82/kW/year 2016-2024; C_IC1 (2 GWh) expected ~£10-15k/year exposure
+- `triad_log` in run output; `_section_triad_exposure()` in annual report with per-customer cumulative totals
+
+**Phase 27c LIVE (2026-06-22)**: Volume tolerance tracking for I&C contracts. 12 new tests.
+- `simulation/volume_tolerance.py`: `compute_term_volume_tolerance()` — actual vs contracted ±10%
+- Excess spot cost and deficit unwind P&L computed per term; `volume_tolerance_log` in run output
+- `_section_volume_tolerance()` in annual report with ⚠ breach flag
+
+**Phase 27b LIVE (2026-06-22)**: CCL (Climate Change Levy) for business electricity customers. 9 new tests.
+- `simulation/policy_costs.py`: `get_ccl_per_mwh()` — 0 for resi (domestic exempt), main rate for SME/I&C (£5.44→£7.35/MWh 2016→2024); CCL year Apr-Mar (same as RO)
+- `simulation/hedged_settlement.py`: `segment` param on `run_hedged_term()`; `ccl_gbp` field in settlement records; CCL included in `policy_cost_gbp`
+- `simulation/run_phase2b.py`: passes `segment=cust_segment` at settlement time — I&C customers pay CCL automatically
+- `saas/reporting/annual_report.py`: `ccl_gbp` in yearly dict; `_section_policy_costs()` shows CCL column when non-zero (backward compatible)
+- April 2020 step-change: electricity CCL raised from £6.11→£7.17/MWh as gas CCL was frozen (HMRC policy)
+- Resi customers (C1-C6, C1_2, C5_2) remain exempt; C_IC1, C_IC2, C5 SME pay main rate
 
 **Phase 27a LIVE (2026-06-22)**: Second I&C customer C_IC2 — commercial office building, 1 GWh/year. 888 tests passing (9 new).
 - `saas/customers.py`: C_IC2 office_building, Birmingham, acquisition 2018-01-01, segment "I&C", HH metered

@@ -10,6 +10,8 @@ from company.crm.churn_model import (
     GAS_BASE_CHURN_RATE,
     GAS_RATE_SENSITIVITY,
     HEDGE_SENSITIVITY_REDUCTION,
+    IC_BASE_CHURN_RATE,
+    IC_RATE_SENSITIVITY,
     MAX_CHURN_PROBABILITY,
     RATE_SENSITIVITY,
     TENURE_DISCOUNT_PER_YEAR,
@@ -302,3 +304,41 @@ def test_hangover_window_periods_constant():
 def test_hangover_uplift_constant():
     """CRISIS_HANGOVER_BASE_UPLIFT is 0.12 (12pp of extra churn during hangover)."""
     assert CRISIS_HANGOVER_BASE_UPLIFT == pytest.approx(0.12)
+
+
+# --- Phase 27e: I&C churn model tests ---
+
+def test_ic_base_churn_rate_higher_than_resi():
+    """I&C base churn rate is higher than residential (broker-driven)."""
+    assert IC_BASE_CHURN_RATE > BASE_CHURN_RATE
+
+
+def test_ic_rate_sensitivity_higher_than_resi():
+    """I&C rate sensitivity is higher than residential (price-sophisticated buyers)."""
+    assert IC_RATE_SENSITIVITY > RATE_SENSITIVITY
+
+
+def test_ic_churn_flat_rate_returns_base_minus_tenure():
+    """No rate change at year 0: I&C returns IC_BASE_CHURN_RATE."""
+    p = estimate_churn_probability(100.0, 100.0, 0.0, segment="I&C")
+    assert p == pytest.approx(IC_BASE_CHURN_RATE)
+
+
+def test_ic_churn_higher_than_resi_at_same_rate_increase():
+    """At the same 10% rate increase, I&C churns more than residential."""
+    p_resi = estimate_churn_probability(100.0, 110.0, 2.0)
+    p_ic = estimate_churn_probability(100.0, 110.0, 2.0, segment="I&C")
+    assert p_ic > p_resi
+
+
+def test_ic_churn_capped_at_max():
+    """I&C churn caps at MAX_CHURN_PROBABILITY even with extreme rate increase."""
+    p = estimate_churn_probability(100.0, 500.0, 0.0, segment="I&C")
+    assert p == pytest.approx(MAX_CHURN_PROBABILITY)
+
+
+def test_resi_segment_same_as_default():
+    """segment='resi' gives same result as default (no segment param)."""
+    p_default = estimate_churn_probability(100.0, 110.0, 2.0)
+    p_resi = estimate_churn_probability(100.0, 110.0, 2.0, segment="resi")
+    assert p_default == pytest.approx(p_resi)

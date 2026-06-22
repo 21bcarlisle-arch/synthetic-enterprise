@@ -41,7 +41,7 @@ from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
 from sim.risk_engine import compute_net_margin
-from simulation.policy_costs import get_cfd_levy_per_mwh, get_ro_cost_per_mwh
+from simulation.policy_costs import get_ccl_per_mwh, get_cfd_levy_per_mwh, get_ro_cost_per_mwh
 from simulation.tou_periods import is_peak_period
 
 
@@ -56,6 +56,7 @@ def run_hedged_term(
     consumption_shape,
     system_price_records: list[dict],
     tou_rates: tuple[float, float] | None = None,
+    segment: str = "resi",
 ) -> list[dict]:
     """Settle one customer's one contract term, hedge-aware, for every
     calendar date in [term_start_date, term_end_date) and every settlement
@@ -100,7 +101,9 @@ def run_hedged_term(
         calendar month for this term)
       ro_levy_gbp / cfd_levy_gbp = RO + CfD levies for the settlement date
         year (Phase 21a); cfd_levy_gbp is negative in 2022 (crisis rebate)
-      policy_cost_gbp = ro_levy_gbp + cfd_levy_gbp
+      ccl_gbp = CCL for this period (Phase 27b); 0.0 for resi (exempt),
+        main CCL rate for SME/I&C business customers (remitted to HMRC)
+      policy_cost_gbp = ro_levy_gbp + cfd_levy_gbp + ccl_gbp
       net_margin_gbp = margin_gbp - policy_cost_gbp - capital_cost_gbp
     """
     start = date.fromisoformat(term_start_date)
@@ -140,9 +143,12 @@ def run_hedged_term(
             # Uses actual settlement year, not term-start year, so cross-year
             # terms (e.g. July 2021–June 2022) naturally reflect the 2022
             # negative CfD rebate on H1 2022 settlement periods.
+            # Phase 27b: CCL (Climate Change Levy) — 0 for resi (domestic exempt),
+            # main CCL rate for business (SME/I&C) customers, remitted to HMRC.
             consumption_mwh = consumption_kwh / 1000.0
             ro_levy = get_ro_cost_per_mwh(date_str) * consumption_mwh
             cfd_levy = get_cfd_levy_per_mwh(date_str) * consumption_mwh
+            ccl = get_ccl_per_mwh(date_str, segment) * consumption_mwh
 
             records.append({
                 "customer_id": customer_id,
@@ -159,7 +165,8 @@ def run_hedged_term(
                 "margin_gbp": settled["margin_gbp"],
                 "ro_levy_gbp": ro_levy,
                 "cfd_levy_gbp": cfd_levy,
-                "policy_cost_gbp": ro_levy + cfd_levy,
+                "ccl_gbp": ccl,
+                "policy_cost_gbp": ro_levy + cfd_levy + ccl,
             })
 
         current_date += timedelta(days=1)

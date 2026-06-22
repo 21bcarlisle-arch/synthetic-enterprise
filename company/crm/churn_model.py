@@ -51,6 +51,16 @@ BILL_STRESS_SENSITIVITY = 0.25
 BILL_STRESS_THRESHOLD_GBP = 3000.0
 HEDGE_SENSITIVITY_REDUCTION = 0.4
 MAX_CHURN_PROBABILITY = 0.95
+# Phase 27e: I&C-specific churn constants.
+# I&C customers shop via brokers at every renewal — base churn is higher and
+# rate sensitivity is stronger than residential/SME. Tenure loyalty is lower
+# (brokers switch regardless of relationship). Bill stress threshold is much
+# higher (I&C bills are £50k-£500k/year, not £2-3k).
+IC_BASE_CHURN_RATE = 0.20       # brokers shop every renewal regardless
+IC_RATE_SENSITIVITY = 1.5       # highly price-sensitive — 10% rate rise → +15% churn
+IC_TENURE_DISCOUNT_PER_YEAR = 0.005  # less loyalty benefit per year
+IC_BILL_STRESS_THRESHOLD_GBP = 50_000.0  # I&C bill threshold (vs £3k resi)
+IC_BILL_STRESS_SENSITIVITY = 0.10   # proportional sensitivity on large bills
 # Phase 22a: post-crisis churn hangover. When the company observes that a
 # customer's prior term had a large net loss (>20% of revenue), customers
 # who survived crisis prices remain financially anxious even after rates fall.
@@ -68,6 +78,7 @@ def estimate_churn_probability(
     fuel: str = "electricity",
     hedge_fraction: float = 0.0,
     hangover_periods_remaining: int = 0,
+    segment: str = "resi",
 ) -> float:
     """Estimate churn probability from observable renewal signals.
 
@@ -85,11 +96,30 @@ def estimate_churn_probability(
         customer experienced stable prices; their rate sensitivity is reduced
         by HEDGE_SENSITIVITY_REDUCTION proportionally to the hedge fraction.
         Defaults to 0.0 (no hedge adjustment) for backwards compatibility.
+    segment: "resi" (default), "SME", or "I&C". I&C uses broker-driven
+        constants (higher base churn, higher rate sensitivity, less tenure
+        loyalty) reflecting that sophisticated buyers shop at every renewal.
 
     Returns: churn probability estimate in [0.0, 0.95]
     """
-    base_rate = GAS_BASE_CHURN_RATE if fuel == "gas" else BASE_CHURN_RATE
-    rate_sensitivity = GAS_RATE_SENSITIVITY if fuel == "gas" else RATE_SENSITIVITY
+    if segment == "I&C":
+        base_rate = IC_BASE_CHURN_RATE
+        rate_sensitivity = IC_RATE_SENSITIVITY
+        tenure_discount_per_year = IC_TENURE_DISCOUNT_PER_YEAR
+        bill_stress_threshold = IC_BILL_STRESS_THRESHOLD_GBP
+        bill_stress_sens = IC_BILL_STRESS_SENSITIVITY
+    elif fuel == "gas":
+        base_rate = GAS_BASE_CHURN_RATE
+        rate_sensitivity = GAS_RATE_SENSITIVITY
+        tenure_discount_per_year = TENURE_DISCOUNT_PER_YEAR
+        bill_stress_threshold = BILL_STRESS_THRESHOLD_GBP
+        bill_stress_sens = BILL_STRESS_SENSITIVITY
+    else:
+        base_rate = BASE_CHURN_RATE
+        rate_sensitivity = RATE_SENSITIVITY
+        tenure_discount_per_year = TENURE_DISCOUNT_PER_YEAR
+        bill_stress_threshold = BILL_STRESS_THRESHOLD_GBP
+        bill_stress_sens = BILL_STRESS_SENSITIVITY
 
     # Phase 15d: hedge-adjusted rate sensitivity. Well-hedged customers experienced
     # stable prices during their last contract → less reactive to headline rate changes.
@@ -100,10 +130,10 @@ def estimate_churn_probability(
     else:
         rate_increase_pct = 0.0
 
-    tenure_discount = TENURE_DISCOUNT_PER_YEAR * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
+    tenure_discount = tenure_discount_per_year * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
 
     prev_annual_bill_gbp = old_rate_gbp_per_mwh * annual_consumption_kwh / 1000.0
-    bill_stress = BILL_STRESS_SENSITIVITY * max(0.0, prev_annual_bill_gbp / BILL_STRESS_THRESHOLD_GBP - 1.0)
+    bill_stress = bill_stress_sens * max(0.0, prev_annual_bill_gbp / bill_stress_threshold - 1.0)
 
     hangover_uplift = CRISIS_HANGOVER_BASE_UPLIFT if hangover_periods_remaining > 0 else 0.0
     p = base_rate + effective_rate_sensitivity * rate_increase_pct - tenure_discount + bill_stress + hangover_uplift

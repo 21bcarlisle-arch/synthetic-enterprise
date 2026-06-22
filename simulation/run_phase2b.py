@@ -74,6 +74,8 @@ from simulation.customer_events import roll_lifecycle_event
 from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_hedged_term
+from simulation.volume_tolerance import compute_term_volume_tolerance
+from simulation.triad import identify_triad_candidates, compute_triad_exposure, _triad_year
 from simulation.hh_consumption import (
     estimate_annual_kwh,
     hh_shape_fn,
@@ -599,6 +601,8 @@ def main(report_end: str | None = None, sim_interface=None):
     no_offer_churn_log: list[dict] = []
     # Phase 14b: gas renewal rate pressure log for dual-fuel monitoring
     company_gas_churn_log: list[dict] = []
+    # Phase 27c: volume tolerance tracking for I&C customers
+    volume_tolerance_log: list[dict] = []
 
     current_year_str = REPORT_START[:4]
     ytd_gross = ytd_net = ytd_capital = 0.0
@@ -716,11 +720,17 @@ def main(report_end: str | None = None, sim_interface=None):
                         "error_pct": round(eac_err_pct, 2),
                         "source": "prior_billing" if company_eac != true_eac else "fallback",
                     })
+                # Phase 27e: I&C segment uses broker-driven churn model
+                cust_for_churn = next(
+                    (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None
+                )
+                segment_for_churn = cust_for_churn.get("segment", "resi") if cust_for_churn else "resi"
                 company_est_pre = round(_est_churn(
                     old_elec_rate, unit_rate, tenure_for_est,
                     company_eac,
                     hedge_fraction=prev_hf,
                     hangover_periods_remaining=hangover_periods,
+                    segment=segment_for_churn,
                 ), 4)
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
@@ -916,14 +926,37 @@ def main(report_end: str | None = None, sim_interface=None):
             if is_hh_customer(customer):
                 tou_rates = (unit_rate * TOU_PEAK_MULTIPLIER, unit_rate * TOU_OFFPEAK_MULTIPLIER)
 
+            cust_segment = customer.get("segment", "resi") if customer else "resi"
             term_records = run_hedged_term(
                 cid, term_start_str, term_end_str, unit_rate, forward_price, hf,
                 risk["monthly_cost_of_capital_gbp"], shape_fn, elec_records,
-                tou_rates=tou_rates,
+                tou_rates=tou_rates, segment=cust_segment,
             )
             for rec in term_records:
                 rec["data_regime"] = "historical"
                 rec["commodity"] = "electricity"
+
+            # Phase 27c: volume tolerance for I&C customers.
+            if cust_segment == "I&C" and term_records:
+                term_days = (
+                    date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
+                ).days
+                contracted_term_kwh = eac_kwh * term_days / 365.25
+                actual_term_kwh = sum(r["consumption_kwh"] for r in term_records)
+                avg_spot = (
+                    sum(r.get("wholesale_cost_gbp", 0) for r in term_records)
+                    / (sum(r["consumption_kwh"] for r in term_records) / 1000.0)
+                    if actual_term_kwh > 0 else 0.0
+                )
+                vt = compute_term_volume_tolerance(
+                    actual_term_kwh, contracted_term_kwh, avg_spot, forward_price, hf
+                )
+                volume_tolerance_log.append({
+                    "customer_id": cid,
+                    "term_start": term_start_str,
+                    "term_end": term_end_str,
+                    **vt,
+                })
 
         else:  # gas
             gas_customer = get_customer(cid)
@@ -1189,6 +1222,32 @@ def main(report_end: str | None = None, sim_interface=None):
     total_net = sum(r["net_margin_gbp"] for r in all_records)
     final_treasury = all_records[-1]["treasury_cash_balance_gbp"] if all_records else STARTING_TREASURY_GBP
 
+    # Phase 27d: Triad risk for I&C customers.
+    # Identify Triad periods for each winter in the run window, then compute
+    # each I&C customer's TNUoS exposure. Uses SSP as a demand proxy.
+    ic_customer_ids = [
+        c["customer_id"]
+        for c in _ALL_KNOWN_CUSTOMERS
+        if c.get("segment") == "I&C"
+    ]
+    triad_log: list[dict] = []
+    if ic_customer_ids:
+        triad_winters = set()
+        for rec in elec_records:
+            d = date.fromisoformat(rec["settlementDate"])
+            if d.month in {11, 12, 1, 2}:
+                triad_winters.add(_triad_year(rec["settlementDate"]))
+        for winter_year in sorted(triad_winters):
+            triad_periods = identify_triad_candidates(elec_records, winter_year)
+            if not triad_periods:
+                continue
+            for cid in ic_customer_ids:
+                cid_records = [r for r in all_records if r.get("customer_id") == cid]
+                if not cid_records:
+                    continue
+                exposure = compute_triad_exposure(cid, triad_periods, cid_records, winter_year)
+                triad_log.append(exposure)
+
     print("\n=== Full-window portfolio summary ===")
     print(f"Gross margin:      £{total_gross:>12.2f}")
     print(f"Capital costs:     £{total_capital:>12.2f}")
@@ -1242,6 +1301,8 @@ def main(report_end: str | None = None, sim_interface=None):
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,
         "company_gas_churn_log": company_gas_churn_log,
+        "volume_tolerance_log": volume_tolerance_log,
+        "triad_log": triad_log,
         "margin_feedback_log": margin_feedback_log,
         "dynamic_pricing_log": dynamic_pricing_log,
         # Phase 12e: aggregated company-model divergence by year

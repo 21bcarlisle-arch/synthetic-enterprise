@@ -349,6 +349,10 @@ def extract_report_data(run_output: dict) -> dict:
             "cfd_levy_gbp": sum(
                 r.get("cfd_levy_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
             ),
+            # Phase 27b: CCL for business electricity customers (resi exempt)
+            "ccl_gbp": sum(
+                r.get("ccl_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
+            ),
             "policy_cost_gbp": sum(
                 r.get("policy_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
             ),
@@ -2327,12 +2331,14 @@ def _section_bill_shock_summary(data: dict) -> str:
 
 
 def _section_policy_costs(data: dict) -> str:
-    """Phase 21a: Electricity Policy Costs (RO + CfD) — year-by-year breakdown.
+    """Phase 21a/27b: Electricity Policy Costs (RO + CfD + CCL) — year-by-year breakdown.
 
     Shows the RO and CfD levies collected from customers (via tariff pass-through)
     and paid to Ofgem/LCCC. Net effect on margin is near-zero when pass-through
     matches actual levy. Key signal: 2022 negative CfD levy (crisis rebate) appears
     as a net positive contribution to margin in that year.
+    Phase 27b: CCL (Climate Change Levy) for business (SME/I&C) customers.
+    Domestic resi customers are exempt from CCL.
     """
     years = data.get("years", {})
     # Only show section when policy costs are non-zero (i.e. Phase 21a data present)
@@ -2343,36 +2349,68 @@ def _section_policy_costs(data: dict) -> str:
     if not has_policy:
         return ""
 
-    lines = [
-        "## Policy Costs — RO + CfD Levies (Phase 21a)",
-        "",
-        "Electricity policy costs deducted from net_margin_gbp each year. ",
-        "CfD levy was NEGATIVE in 2022 (crisis rebate from LCCC) — this appears ",
-        "as a positive contribution to that year's margin.",
-        "",
-        "| Year | RO levy £ | CfD levy £ | Total policy cost £ | Note |",
-        "|------|-----------|------------|---------------------|------|",
-    ]
-    for year in sorted(years):
-        yd = years[year]
-        ro = yd.get("ro_levy_gbp", 0.0)
-        cfd = yd.get("cfd_levy_gbp", 0.0)
-        total = yd.get("policy_cost_gbp", ro + cfd)
-        note = "⬇ CfD REBATE" if cfd < 0 else ""
+    has_ccl = any(yd.get("ccl_gbp", 0.0) != 0.0 for yd in years.values())
+
+    if has_ccl:
+        lines = [
+            "## Policy Costs — RO + CfD + CCL (Phase 21a/27b)",
+            "",
+            "Electricity policy costs deducted from net_margin_gbp each year. ",
+            "CfD levy was NEGATIVE in 2022 (crisis rebate from LCCC). ",
+            "CCL (Climate Change Levy) applies to business (SME/I&C) customers only — resi exempt.",
+            "",
+            "| Year | RO levy £ | CfD levy £ | CCL £ | Total policy cost £ | Note |",
+            "|------|-----------|------------|-------|---------------------|------|",
+        ]
+        for year in sorted(years):
+            yd = years[year]
+            ro = yd.get("ro_levy_gbp", 0.0)
+            cfd = yd.get("cfd_levy_gbp", 0.0)
+            ccl = yd.get("ccl_gbp", 0.0)
+            total = yd.get("policy_cost_gbp", ro + cfd + ccl)
+            note = "⬇ CfD REBATE" if cfd < 0 else ""
+            lines.append(
+                f"| {year} | {ro:,.0f} | {cfd:,.0f} | {ccl:,.0f} | {total:,.0f} | {note} |"
+            )
+        total_ro = sum(yd.get("ro_levy_gbp", 0.0) for yd in years.values())
+        total_cfd = sum(yd.get("cfd_levy_gbp", 0.0) for yd in years.values())
+        total_ccl = sum(yd.get("ccl_gbp", 0.0) for yd in years.values())
+        total_policy = sum(yd.get("policy_cost_gbp", 0.0) for yd in years.values())
         lines.append(
-            f"| {year} | {ro:,.0f} | {cfd:,.0f} | {total:,.0f} | {note} |"
+            f"| **Total** | **{total_ro:,.0f}** | **{total_cfd:,.0f}** | "
+            f"**{total_ccl:,.0f}** | **{total_policy:,.0f}** | |"
+        )
+    else:
+        lines = [
+            "## Policy Costs — RO + CfD Levies (Phase 21a)",
+            "",
+            "Electricity policy costs deducted from net_margin_gbp each year. ",
+            "CfD levy was NEGATIVE in 2022 (crisis rebate from LCCC) — this appears ",
+            "as a positive contribution to that year's margin.",
+            "",
+            "| Year | RO levy £ | CfD levy £ | Total policy cost £ | Note |",
+            "|------|-----------|------------|---------------------|------|",
+        ]
+        for year in sorted(years):
+            yd = years[year]
+            ro = yd.get("ro_levy_gbp", 0.0)
+            cfd = yd.get("cfd_levy_gbp", 0.0)
+            total = yd.get("policy_cost_gbp", ro + cfd)
+            note = "⬇ CfD REBATE" if cfd < 0 else ""
+            lines.append(
+                f"| {year} | {ro:,.0f} | {cfd:,.0f} | {total:,.0f} | {note} |"
+            )
+        total_ro = sum(yd.get("ro_levy_gbp", 0.0) for yd in years.values())
+        total_cfd = sum(yd.get("cfd_levy_gbp", 0.0) for yd in years.values())
+        total_policy = sum(yd.get("policy_cost_gbp", 0.0) for yd in years.values())
+        lines.append(
+            f"| **Total** | **{total_ro:,.0f}** | **{total_cfd:,.0f}** | "
+            f"**{total_policy:,.0f}** | |"
         )
 
-    total_ro = sum(yd.get("ro_levy_gbp", 0.0) for yd in years.values())
-    total_cfd = sum(yd.get("cfd_levy_gbp", 0.0) for yd in years.values())
-    total_policy = sum(yd.get("policy_cost_gbp", 0.0) for yd in years.values())
-    lines.append(
-        f"| **Total** | **{total_ro:,.0f}** | **{total_cfd:,.0f}** | "
-        f"**{total_policy:,.0f}** | |"
-    )
     lines.append("")
     lines.append(
-        f"Total policy cost: £{total_policy:,.0f} across all years. "
+        f"Total policy cost: £{sum(yd.get('policy_cost_gbp', 0.0) for yd in years.values()):,.0f} across all years. "
         f"Net margin is after deducting this. Revenue side: "
         f"tariff pass-through at term-start year's levy rate — basis risk arises "
         f"when cross-year terms meet a different actual levy (notably 2022 CfD rebate)."
@@ -2442,6 +2480,93 @@ def _section_solvency_signal(data: dict) -> str:
     lines.append(
         f"End-state ({final_year}): **£{final_per:,.0f}/account** across {final_n} billing accounts — {status}."
     )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _section_volume_tolerance(data: dict) -> str:
+    """Phase 27c: Volume tolerance tracking for I&C contracts."""
+    log = data.get("volume_tolerance_log", [])
+    if not log:
+        return ""
+
+    total_excess_kwh = sum(e["excess_kwh"] for e in log)
+    total_excess_cost = sum(e["excess_spot_cost_gbp"] for e in log)
+    total_deficit_kwh = sum(e["deficit_kwh"] for e in log)
+    breach_terms = [e for e in log if not e["within_band"]]
+
+    lines = [
+        "## I&C Volume Tolerance (Phase 27c)",
+        "",
+        "I&C contracts include ±10% volume tolerance. Consumption above +10% of contracted"
+        " settles at spot. Under-delivery below -10% triggers an over-hedge unwind at spot.",
+        "",
+        f"Terms tracked: {len(log)} | Tolerance breaches: {len(breach_terms)} "
+        f"| Total excess: {total_excess_kwh:,.0f} kWh | Excess spot cost: £{total_excess_cost:,.0f}",
+        "",
+        "| Customer | Term Start | Contracted kWh | Actual kWh | Variance % | "
+        "Excess kWh | Deficit kWh | Excess Spot Cost £ |",
+        "|----------|-----------|---------------|-----------|-----------|----------|----------|-------------------|",
+    ]
+
+    for e in sorted(log, key=lambda x: (x["customer_id"], x["term_start"])):
+        flag = "" if e["within_band"] else " ⚠"
+        lines.append(
+            f"| {e['customer_id']} | {e['term_start']} | {e['contracted_kwh']:,.0f} "
+            f"| {e['actual_kwh']:,.0f} | {e['variance_pct']:+.1f}%{flag} "
+            f"| {e['excess_kwh']:,.0f} | {e['deficit_kwh']:,.0f} "
+            f"| £{e['excess_spot_cost_gbp']:,.0f} |"
+        )
+
+    lines.append("")
+    if not breach_terms:
+        lines.append(
+            "All I&C terms settled within ±10% volume tolerance — no spot over-run costs."
+        )
+    else:
+        lines.append(
+            f"**{len(breach_terms)} tolerance breach(es)** across the run. "
+            f"Total excess spot cost: £{total_excess_cost:,.0f}. "
+            f"Total deficit volume: {total_deficit_kwh:,.0f} kWh."
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _section_triad_exposure(data: dict) -> str:
+    """Phase 27d: Triad risk for I&C electricity customers."""
+    log = data.get("triad_log", [])
+    if not log:
+        return ""
+
+    total_tnuos = sum(e["estimated_tnuos_gbp"] for e in log)
+    customers = sorted({e["customer_id"] for e in log})
+
+    lines = [
+        "## I&C Triad Exposure (Phase 27d)",
+        "",
+        "TNUoS Triad charges are determined by I&C customer demand at the 3 highest"
+        " national demand settlement periods each winter (Nov-Feb). Periods identified"
+        " using SSP as a demand proxy; minimum 10-day separation enforced.",
+        "",
+        f"Total estimated TNUoS across all winters and I&C customers: **£{total_tnuos:,.0f}**",
+        "",
+        "| Customer | Winter | Avg Triad Demand kW | TNUoS Rate £/kW | Est. TNUoS £ |",
+        "|----------|--------|--------------------|--------------------|-------------|",
+    ]
+
+    for e in sorted(log, key=lambda x: (x["customer_id"], x["triad_year"])):
+        winter = f"{e['triad_year']}/{str(e['triad_year']+1)[-2:]}"
+        lines.append(
+            f"| {e['customer_id']} | {winter} | {e['avg_triad_kw']:,.1f} "
+            f"| £{e['tnuos_tariff_gbp_per_kw']:.2f} | £{e['estimated_tnuos_gbp']:,.0f} |"
+        )
+
+    lines.append("")
+    if len(customers) > 1:
+        by_cust = {cid: sum(e["estimated_tnuos_gbp"] for e in log if e["customer_id"] == cid) for cid in customers}
+        for cid, total in sorted(by_cust.items()):
+            lines.append(f"- {cid}: cumulative Triad exposure £{total:,.0f}")
     lines.append("")
     return "\n".join(lines)
 
@@ -2799,6 +2924,8 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_company_crm(data))
     sections.append(_section_policy_costs(data))
     sections.append(_section_solvency_signal(data))
+    sections.append(_section_volume_tolerance(data))
+    sections.append(_section_triad_exposure(data))
     sections.append(_section_tou_utilization(data))
     sections.append(_section_bill_shock_summary(data))
     sections.append(_section_gas_renewal_pressure(data))

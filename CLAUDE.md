@@ -128,6 +128,31 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 27e COMPLETE (2026-06-22)**: I&C churn model — broker-driven, price-sensitive. 6 new tests.
+- `company/crm/churn_model.py`: `IC_BASE_CHURN_RATE=0.20` (vs 0.10 resi), `IC_RATE_SENSITIVITY=1.5` (vs 0.8), `IC_TENURE_DISCOUNT_PER_YEAR=0.005`, `IC_BILL_STRESS_THRESHOLD_GBP=50,000` (vs £3k)
+- `estimate_churn_probability()` gains `segment="I&C"` param — I&C uses broker-driven constants
+- `simulation/run_phase2b.py`: passes `segment=segment_for_churn` at electricity renewal — I&C customers now get correct churn estimates
+- I&C base churn 20% (vs 10% resi) reflects broker-driven market — company must be proactive on I&C retention
+
+**Phase 27d COMPLETE (2026-06-22)**: Triad risk for I&C electricity customers. 15 new tests.
+- `simulation/triad.py`: `identify_triad_candidates()` — top-3 SSP periods (≥10 days apart, Nov-Feb Triad window) as demand proxy; `compute_triad_exposure()` — I&C demand_kw × TNUoS tariff
+- `_TNUOS_TRIAD_TARIFF_BY_YEAR`: £46.23→£63.82/kW/year 2016-2024 (Zone 14 London HV connected)
+- `simulation/run_phase2b.py`: after term loop, computes Triad for each winter × each I&C customer; `triad_log` in run output
+- `saas/reporting/annual_report.py`: `_section_triad_exposure()` — per-winter table; cumulative exposure per I&C customer
+
+**Phase 27c COMPLETE (2026-06-22)**: Volume tolerance tracking for I&C contracts. 12 new tests.
+- `simulation/volume_tolerance.py`: `compute_term_volume_tolerance()` — actual vs contracted ±10%; excess at spot, deficit unwind P&L
+- `simulation/run_phase2b.py`: I&C terms after settlement compute tolerance; `volume_tolerance_log` in run output
+- `saas/reporting/annual_report.py`: `_section_volume_tolerance()` — per-term table with ⚠ flag on breach
+
+**Phase 27b COMPLETE (2026-06-22)**: CCL (Climate Change Levy) for business electricity customers. 9 new tests.
+- `simulation/policy_costs.py`: `get_ccl_per_mwh()` — 0 for resi (domestic exempt), main CCL rate for SME/I&C; CCL year Apr-Mar (same as RO obligation year)
+- `_CCL_ELECTRICITY_RATE_BY_YEAR`: £5.44→£7.35/MWh 2016→2024; April 2020 step-change: electricity CCL raised as gas CCL frozen
+- `simulation/hedged_settlement.py`: `segment` param on `run_hedged_term()`; `ccl_gbp` per settlement period; CCL in `policy_cost_gbp`
+- `simulation/run_phase2b.py`: passes `segment=cust_segment` — I&C customers automatically pay CCL from first settlement
+- `saas/reporting/annual_report.py`: `ccl_gbp` in yearly aggregation; `_section_policy_costs()` adds CCL column when non-zero (backward compatible with pre-27b runs)
+- Policy cost stack now: RO levy + CfD levy + CCL = `policy_cost_gbp`; resi domestic exempt from CCL
+
 **Phase 27a COMPLETE (2026-06-22)**: Second I&C customer C_IC2 — commercial office building, 1 GWh/year. 9 new tests.
 - `saas/customers.py`: C_IC2 (office_building, Birmingham, acquisition 2018-01-01, segment "I&C", HH metered)
 - `sim/hh_data/C_IC2.csv`: 3,446-day commercial office profile — Mon-Fri 08:00-18:00 peak at 135 kWh/period, +15% Jun-Aug summer cooling, 30% Saturday, 8% Sunday; ~1,004,285 kWh/year

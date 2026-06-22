@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-22. 325+ commits. 888 tests (~874 in SIM_FAST_MODE=1). Codebase: ~17,550 lines across 185+ Python modules.*
+*Last updated: 2026-06-22. 325+ commits. 930 tests (~916 in SIM_FAST_MODE=1). Codebase: ~17,800 lines across 188+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -344,6 +344,10 @@ Net after CTS:               £7,498
 - **Consumption recalibration** (Phase 21c): C1 resi 2,800→2,500 kWh/yr (Ofgem TDCV domestic medium); C5 SME small_office 25,000→15,000 kWh/yr (midrange 8,500–25,000 kWh real range). Both successors (C1_2, C5_2) updated. First-term tariff pricing and hedging now calibrated; subsequent terms self-correct via settlement-derived EAC (Phase 25a). 4 new tests (871 total).
 - **Company hedging ownership** (Phase 22b): `company/risk/hedge_policy.py` — `company_evolve_hedge_fraction()` moves the hedging policy from `sim/hedging_strategy.py` to the company layer. `run_phase2b.py` now imports from `company.risk.hedge_policy`. Level 2 (decision boundary) separation CLOSED for hedging. `sim/hedging_strategy.py` preserved for historical runners. 8 new tests (879 total).
 - **Second I&C customer** (Phase 27a): C_IC2 commercial office building — 1 GWh/year, Birmingham, acquisition 2018-01-01, "I&C" segment. `sim/hh_data/C_IC2.csv`: peak 135 kWh/period (08:00-18:00 Mon-Fri), +15% summer cooling (Jun-Aug), 30% Saturday, 8% Sunday. C_IC1 segment corrected "SME"→"I&C". Total ELEC EAC ~3.1 GWh; starting treasury £678k. 9 new tests (888 total).
+- **CCL for business electricity** (Phase 27b): `simulation/policy_costs.py` adds `get_ccl_per_mwh()` — CCL exempt for resi domestic, main rate (£5.44→£7.35/MWh 2016-2024) for SME/I&C. April 2020 step-change correctly applied. CCL year Apr-Mar (same as RO obligation year). `run_hedged_term()` gains `segment` param; `ccl_gbp` recorded per settlement period; `policy_cost_gbp = ro + cfd + ccl`. Annual report `_section_policy_costs()` adds CCL column when non-zero (backward compatible). 9 new tests (897 total).
+- **Volume tolerance tracking** (Phase 27c): `simulation/volume_tolerance.py` — `compute_term_volume_tolerance()` computes actual vs contracted ±10% at each I&C term end. Excess above +10% band costs spot; deficit below -10% triggers hedge unwind at spot (P&L = (spot-hedge_price) × hedged_deficit_kwh). `volume_tolerance_log` in run output; `_section_volume_tolerance()` in annual report with ⚠ breach flag. 12 new tests (909 total).
+- **Triad risk** (Phase 27d): `simulation/triad.py` — `identify_triad_candidates()` (top-3 highest SSP periods Nov-Feb, ≥10 days apart) + `compute_triad_exposure()` (demand_kw × TNUoS tariff £/kW/year). `_TNUOS_TRIAD_TARIFF_BY_YEAR`: £46.23→£63.82/kW 2016-2024. Computed after term loop for each winter × each I&C customer; `triad_log` in run output; `_section_triad_exposure()` in annual report. 15 new tests (924 total).
+- **I&C churn model** (Phase 27e): `company/crm/churn_model.py` gains `IC_BASE_CHURN_RATE=0.20`, `IC_RATE_SENSITIVITY=1.5`, `IC_TENURE_DISCOUNT_PER_YEAR=0.005`, `IC_BILL_STRESS_THRESHOLD_GBP=50,000`. `estimate_churn_probability()` gains `segment` param; I&C uses broker-driven constants. `run_phase2b.py` passes `segment=segment_for_churn` at electricity renewal. 6 new tests (930 total).
 
 ### Phase 22 — Post-Crisis Churn Hangover + Trailing-Margin CLV
 **Files:** `company/crm/churn_model.py`, `saas/clv_model.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`
@@ -613,12 +617,12 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 177 Python modules, ~16,000 lines
 - 306 git commits
-- 888 tests (all green); ~874 in SIM_FAST_MODE=1; 888 in full suite (~40 min with Ollama)
+- 930 tests (all green); ~916 in SIM_FAST_MODE=1; 930 in full suite (~40 min with Ollama)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
-- 4 HH smart meter profiles (C7–C9 residential, C_IC1 I&C at 2 GWh/year)
+- 5 HH smart meter profiles (C7–C9 residential, C_IC1 I&C at 2 GWh/year, C_IC2 I&C at 1 GWh/year)
 
 **Latest named-customer run (git 2f380ac, 10 customers incl C_IC1, 2016–2025):**
 - Revenue undisclosed in run_output_latest.json aggregate | Net margin £225,920 (ledger)
@@ -629,7 +633,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
 - 323 risk committee Ollama calls per run (each ~7s) — 95% of 38-min runtime
-- Full test suite: 888 tests, ~16s with SIM_FAST_MODE=1
+- Full test suite: 930 tests, ~16s with SIM_FAST_MODE=1
 
 ---
 
