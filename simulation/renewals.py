@@ -15,6 +15,7 @@ increment.
 from datetime import date, timedelta
 
 from company.pricing.tariff_engine import CompanyTariffEngine
+
 from saas.tariff_pricing import price_fixed_tariff
 from sim.forward_curve import generate_forward_price
 from sim.hedging_strategy import MIN_HEDGE_FLOOR
@@ -27,6 +28,11 @@ from simulation.policy_costs import (
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 _COMPANY_ENGINE = CompanyTariffEngine()
+
+# Phase 34a: company prices the tariff 42 days before term start (statutory notice period).
+# The company's forward estimate uses market data observable at notice_date, not at term_start.
+# SIM's sim_fwd still uses data up to term_start — it "knows" the real forward.
+NOTICE_DAYS = 42
 
 
 def build_renewal_schedule(
@@ -70,16 +76,19 @@ def build_renewal_schedule(
 
     while term_start <= report_end:
         term_start_str = term_start.isoformat()
+        # Phase 34a: company prices 42 days before term start; observable data lags by NOTICE_DAYS.
+        notice_date = term_start - timedelta(days=NOTICE_DAYS)
+        notice_date_str = notice_date.isoformat()
         lookback_temps = lookback_temps_fn(term_start_str) if lookback_temps_fn else None
         # sim_fwd: SIM's sophisticated estimate (used for hedging, risk assessment, weather adj)
         sim_fwd = generate_forward_price(
             term_start_str, price_records, lookback_daily_mean_temps_c=lookback_temps
         )
         # company_fwd: company's observable-data estimate (used for tariff/unit rate).
-        # Differs from sim_fwd — no seasonal adjustment, longer lookback, fixed % premium.
-        # The gap between them is basis risk, visible in P&L for the first time (Phase 11a).
+        # Phase 34a: uses notice_date so the lookback window is anchored 42 days before term start.
+        # In a crisis, this means the company priced using pre-spike data — amplifying basis risk.
         try:
-            company_fwd = _COMPANY_ENGINE.get_forward_price("electricity", term_start_str, price_records)
+            company_fwd = _COMPANY_ENGINE.get_forward_price("electricity", notice_date_str, price_records)
         except ValueError:
             company_fwd = sim_fwd  # fallback: insufficient prior data for first term
         # Phase 30a/31a: CM + FiT levies included in policy_cost pass-through (apply to all segments).
@@ -98,6 +107,7 @@ def build_renewal_schedule(
         terms.append({
             "customer_id": customer_id,
             "acquisition_date": term_start_str,
+            "notice_date": notice_date_str,
             "unit_rate_gbp_per_mwh": unit_rate,
             "forward_price_gbp_per_mwh": sim_fwd,
             "company_forward_price_gbp_per_mwh": company_fwd,

@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,047+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 33b adds 6 new tests.**
+**1,081+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 35b adds 9 new tests, Phase 35a adds 16 new tests, Phase 34a adds 9 new tests.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,22 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 35b COMPLETE (2026-06-22)**: Gas forward scenario generator. 9 new tests.
+- `sim/scenario/gas_scenario_generator.py`: `generate_gas_scenario_prices(year_from, year_to, scenario, seed)` — regime-conditioned gas NBP prices, correlated with electricity scenario.
+- 5 matching scenario presets: `baseline_2025`, `central_2027`, `stress_dunkelflaute_2027`, `low_renewables_2027`, `battery_saturation_2029`.
+- Upper regime (gas-marginal): £28-38/MWh. Lower regime (renewable-rich): £18-26/MWh. Dunkelflaute: 1.3-2.0× gas price premium. Floor: £5/MWh (gas doesn't go negative).
+- 1,081 non-integration tests passing
+
+**Phase 35a COMPLETE (2026-06-22)**: Bimodal electricity forward scenario price generator. 16 new tests.
+- `sim/scenario/bimodal_generator.py`: `generate_scenario_prices(year_from, year_to, scenario, seed)` — drop-in replacement for historical price feed, produces synthetic 2026-2030 records.
+- 5 named scenario presets: `baseline_2025`, `central_2027`, `stress_dunkelflaute_2027`, `low_renewables_2027`, `battery_saturation_2029`.
+- Two-regime Markov model: lower mode £38-60/MWh (renewable-rich) ↔ upper mode £100-130/MWh (gas-marginal). Negative price injection (7-28 days/year, floor −£75). Dunkelflaute overlays (2-10 events/year, 1-3+ days, 1.6-2.5× price premium). Calibrated to R&D findings.
+
+**Phase 34a COMPLETE (2026-06-22)**: 42-day renewal notice period. 9 new tests.
+- `simulation/renewals.py`: `NOTICE_DAYS = 42`. `company_fwd` now uses `notice_date = term_start - 42 days` as delivery_date for `get_forward_price`. `notice_date` stored in term dict.
+- `simulation/run_phase2b.py`: Gas schedules apply same notice period. `gas_notice_date` stored in schedule dict.
+- Effect in crisis: company priced tariff using pre-spike data → amplified basis risk. SIM sim_fwd unchanged (knows real market at term_start).
 
 **Phase 33b COMPLETE (2026-06-22)**: Active/passive split in annual report. 6 new tests.
 - `saas/reporting/annual_report.py`: `_section_active_passive_renewal(data)` — shows total active/passive counts, mean company estimates and abs errors for each type, year-by-year table. Silent when `churn_basis_risk` lacks `is_active_renewal` (pre-Phase-33a runs). Backward compatible.

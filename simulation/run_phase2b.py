@@ -87,7 +87,7 @@ from simulation.hh_consumption import (
     is_hh_customer,
     load_hh_consumption,
 )
-from simulation.renewals import build_renewal_schedule
+from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.weather_inputs import cloud_cover_for_customer, lookback_mean_temps, weather_means_for_customer
 
@@ -291,8 +291,10 @@ def _build_gas_renewal_schedule(
                 )
             else:
                 break
+        # Phase 34a: gas tariffs also priced NOTICE_DAYS before term start.
+        gas_notice_date = (date.fromisoformat(term_start) - timedelta(days=NOTICE_DAYS)).isoformat()
         try:
-            company_fwd = _company_engine.get_forward_price("gas", term_start, gas_records)
+            company_fwd = _company_engine.get_forward_price("gas", gas_notice_date, gas_records)
         except ValueError:
             company_fwd = sim_fwd  # fallback: insufficient prior data for first term
         # Phase 30b: gas policy cost (CCL + GGL) and network charges pass-through.
@@ -310,6 +312,7 @@ def _build_gas_renewal_schedule(
         )
         schedule.append({
             "acquisition_date": term_start,
+            "notice_date": gas_notice_date,
             "term_end": term_end,
             "forward_price_gbp_per_mwh": sim_fwd,
             "company_forward_price_gbp_per_mwh": company_fwd,

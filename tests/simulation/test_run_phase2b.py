@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from sim.weather_price_sensitivity import COLD_SPELL_PRICE_MULTIPLIER
+from simulation.renewals import NOTICE_DAYS
 from simulation.run_phase2b import (
     DEFAULT_PROPERTY,
     REPORT_END,
@@ -94,6 +95,26 @@ def test_build_gas_renewal_schedule_truncates_on_report_end():
     # Full-window schedule should have more terms
     full_schedule = _build_gas_renewal_schedule(customer, records)
     assert len(full_schedule) > len(schedule)
+
+
+# Phase 34a: 42-day notice period for gas schedule
+
+
+def test_gas_schedule_notice_date_present():
+    records = _flat_gas_price_records("2015-10-01", "2017-06-30")
+    customer = {"aq_kwh": 12000, "acquisition_date": "2016-01-01"}
+    schedule = _build_gas_renewal_schedule(customer, records)
+    assert "notice_date" in schedule[0]
+
+
+def test_gas_schedule_notice_date_is_42_days_before_term_start():
+    records = _flat_gas_price_records("2015-01-01", "2020-12-31")
+    customer = {"aq_kwh": 12000, "acquisition_date": "2016-06-01"}
+    schedule = _build_gas_renewal_schedule(customer, records)
+    for term in schedule:
+        term_start = date.fromisoformat(term["acquisition_date"])
+        notice_date = date.fromisoformat(term["notice_date"])
+        assert (term_start - notice_date).days == NOTICE_DAYS
 
 
 # Phase 12e: _compute_company_divergence tests

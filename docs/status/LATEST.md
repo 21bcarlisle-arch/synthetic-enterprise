@@ -8,7 +8,19 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T13:57:55Z
+Last updated: 2026-06-22T14:29:02Z
+
+**Phase 35b LIVE (2026-06-22)**: Gas forward scenario generator. 9 new tests (1,081 passing).
+- `sim/scenario/gas_scenario_generator.py`: 5 matching scenarios. Upper regime £28-38/MWh, lower regime £18-26/MWh. Dunkelflaute: 1.3-2.0× gas premium. Floor £5/MWh.
+
+**Phase 35a LIVE (2026-06-22)**: Bimodal electricity forward scenario price generator. 16 new tests.
+- `sim/scenario/bimodal_generator.py`: 5 named scenarios — `baseline_2025`, `central_2027`, `stress_dunkelflaute_2027`, `low_renewables_2027`, `battery_saturation_2029`.
+- Two-regime Markov: lower mode (renewable-rich, £38-60/MWh) ↔ upper mode (gas-marginal, £100-130/MWh). Negative price injection (7-28 days/year, floor −£75). Dunkelflaute overlays (2-10 events/year, 1.6-2.5× premium). Calibrated to R&D findings.
+
+**Phase 34a LIVE (2026-06-22)**: 42-day renewal notice period. 9 new tests.
+- `simulation/renewals.py` + `run_phase2b.py`: `NOTICE_DAYS = 42`. Company prices tariff using market data from 42 days before term start. Amplifies basis risk in crisis periods.
+
+**R&D COMPLETE (novel scenario distribution)**: Bimodal distribution quantified. £60 (gas <20%) vs £130 (gas >50%) /MWh. Negative hours: 7 (2021) → 155-179 (2024) → ~1,000/year by 2027. Soft floor −£75/MWh. Dunkelflaute: 2-10/year, 12-72h. Report: `docs/market_research/price_distribution_high_renewables_2027.md`.
 
 **Phase 33b LIVE (2026-06-22)**: Active/passive split in annual report. 6 new tests (1,047 non-integration passing).
 - `saas/reporting/annual_report.py`: `_section_active_passive_renewal()` — total active/passive counts, mean estimates, abs errors, year-by-year table. Silent on pre-Phase-33a run JSON (backward compatible).
