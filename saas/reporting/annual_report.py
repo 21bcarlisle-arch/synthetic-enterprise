@@ -55,6 +55,11 @@ CRISIS_YEARS = {"2021", "2022"}
 
 NOT_AVAILABLE = "Not available in current run output (see REPORTING_BACKLOG.md)"
 
+# Phase 21b: Ofgem regulatory capital floor per customer (dual-fuel basis).
+# Licence condition: £0 net assets/customer triggers regulatory review;
+# £130/customer is the industry working-capital target.
+REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP = 130.0
+
 
 def _year(date_str: str) -> str:
     return date_str[:4]
@@ -586,6 +591,23 @@ def _fmt_pct(value: float | None) -> str:
     return f"{value:.1%}" if value is not None else "n/a"
 
 
+def _solvency_summary_line(data: dict) -> str:
+    """Phase 21b: per-customer net assets for the final year of the run."""
+    years = sorted(data["years"])
+    if not years:
+        return NOT_AVAILABLE
+    final_yd = data["years"][years[-1]]
+    active = final_yd.get("active_customer_ids", [])
+    unique = {cid[:-1] if cid.endswith("g") else cid for cid in active}
+    n_cust = max(len(unique), 1)
+    per_cust = final_yd.get("treasury_end_gbp", 0.0) / n_cust
+    flag = "⚠ BELOW FLOOR" if per_cust < REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP else "OK"
+    return (
+        f"£{per_cust:,.0f}/customer ({n_cust} customers, {flag}; "
+        f"Ofgem floor £{REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP:.0f}/customer)"
+    )
+
+
 def _executive_summary(data: dict) -> str:
     years = sorted(data["years"])
     outcome = (
@@ -664,6 +686,7 @@ the last partial). The business {outcome}.
 - Starting treasury: {_fmt_gbp(data['starting_treasury_gbp'])}
 - Final treasury: {_fmt_gbp(data['final_treasury_gbp'])}
   ({_fmt_gbp(data['final_treasury_gbp'] - data['starting_treasury_gbp'])} net change)
+- Solvency signal (final year): {_solvency_summary_line(data)}
 {revenue_line}
 {gross_line}
 {capital_line}
@@ -1059,7 +1082,22 @@ def _portfolio_health_section(year: str, yd: dict, data: dict) -> str:
         )
     else:
         lines.append("- Bills issued: none")
-    lines.append(f"- Regulatory threshold breaches: {NOT_AVAILABLE}")
+    # Phase 21b: Per-customer net assets — Ofgem solvency signal.
+    # "C1g" pairs with "C1" → strip 'g' suffix to count unique customers.
+    active = yd.get("active_customer_ids", [])
+    unique_customers = {cid[:-1] if cid.endswith("g") else cid for cid in active}
+    n_cust = max(len(unique_customers), 1)
+    per_cust = yd.get("treasury_end_gbp", 0.0) / n_cust
+    if per_cust < REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP:
+        lines.append(
+            f"- ⚠ Solvency signal: £{per_cust:,.0f}/customer ({n_cust} customers) — "
+            f"BELOW Ofgem floor £{REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP:.0f}/customer"
+        )
+    else:
+        lines.append(
+            f"- Solvency signal: £{per_cust:,.0f}/customer ({n_cust} customers) — "
+            f"OK (Ofgem floor £{REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP:.0f}/customer)"
+        )
     return "\n".join(lines)
 
 
