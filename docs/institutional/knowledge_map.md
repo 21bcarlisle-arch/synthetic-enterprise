@@ -34,7 +34,7 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 | Renewables Obligation | 0.491 ROCs/MWh electricity; buy-out £64.73/ROC (2024-25) → ~£31.80/MWh effective. Historical: £15.6/MWh (2016-17) rising steadily to £31.8/MWh (2024-25). | H | None — full 2016-2024 series now known | — |
 | CfD levy | 2016: ~£0/MWh. 2017-20: £1-5/MWh growing. 2021: cut to £0 Oct 2021. **2022: NEGATIVE (−£3 to −£8/MWh) — wholesale > strike prices, LCCC rebated suppliers**. 2023-24: £5-12/MWh. From April 2025: £9.257/MWh operational costs levy. | H | Sub-quarterly precision for 2021-22 rebate | — |
 | BSC credit cover | CAP = £350/MWh × 29-day settlement lag; for our sim: ~£10k–20k cash tied up | M | Exact current CAP level; how it changes | How often does Elexon revise the Credit Assessment Price? |
-| Network charges (electricity) | ~23% of bill; split TNUoS (transmission) + DUoS (distribution) | M | Actual £/MWh figures by year 2016-2024 | What were network charge levels for residential/SME by year? |
+| Network charges (electricity) | ~23% of bill; resi/SME combined DUoS+TNUoS: £35-46/MWh (2016-2024). I&C HV: DUoS only £11-14/MWh (Triad-based TNUoS separate). Ofgem Annex 9 suggests higher combined figures (2022/23: £52.9/MWh London resi) — calibration in next phase. TCR April 2023: TNUoS residual moved from unit rate to banded standing charge (~£106/yr Band 4). | M | Precise year-by-year figures from Ofgem Annex 9 differ from our lookup table by £5-10/MWh. TCR 2023 structural shift not fully modelled (standing charge vs unit rate for post-2023) | Calibrate lookup tables from Ofgem Annex 9 data in network_charges_uk_2016_2024.md; model TCR 2023 discontinuity |
 | 2021-22 failure wave | 28 suppliers failed; driven by hedge ratio + cap lag; £2.6bn SOLR cost | H | Individual supplier hedge ratios at failure | Could we simulate each failure trigger? |
 
 **Sources:** Ofgem website, Elexon BSC docs, Watt-Logic, HoC BEIS Committee  
@@ -93,7 +93,7 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 
 | Topic | What we know | Conf | Key gaps | Next question |
 |-------|-------------|------|---------|---------------|
-| Elexon SSP as cost proxy | SSP = commodity-only. Real supply cost = SSP + network (~£20-25/MWh) + policy (~£40-50/MWh) | H | Historical network charge data for 2016-2024 | Can we get TNUOS/DUoS historical series from NESO? |
+| Elexon SSP as cost proxy | SSP = commodity-only. Real supply cost = SSP + network (~£35-46/MWh resi/SME, £11-14/MWh I&C DUoS) + policy (~£20-45/MWh). Both now modelled in Phase 21a+29a. | H | Network rates ~£5-10/MWh below Ofgem Annex 9 — calibration needed | Refine lookup tables in simulation/policy_costs.py against Annex 9 data in docs/market_research/network_charges_uk_2016_2024.md |
 | Administration trigger | Current: treasury ≤ 0. Regulatory: £0 net assets/customer. These diverge as customer count grows. | H | — | Implement Phase 21b (per-customer net assets) |
 | Phase 21a (policy costs) | Adds ~£40-50/MWh to both cost and revenue — should leave margin% roughly unchanged but makes absolute numbers realistic | M | Whether adding RO/CfD changes the 2021-22 crisis dynamics | Model the 2021-22 period with explicit RO costs — does this worsen or improve the simulated outcomes? |
 | Hedge ratio adequacy | Board flags if <50% coverage for >3 months forward | H | Our current hedge ratio is tracked but not surfaced as a board KPI | Add hedge adequacy warning to LATEST.md |
@@ -124,7 +124,7 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 
 Ranked by likely simulation impact:
 
-1. **Historical RO + network charge levels by year (2016-2024)** — ~~DONE~~ (see Phase 21a completed)
+1. **Historical RO + network charge levels by year (2016-2024)** — ~~DONE~~ (RO/CfD: Phase 21a; Network charges: Phase 29a; Ofgem Annex 9 calibration TBD)
 2. **Small supplier opex structure** — how does our 9-customer company compare on cost-to-serve? What's realistic for our scale?
 3. **Acquisition cost per channel** — PCW, direct, broker; needed to model acquisition economics properly
 4. **Historical SME churn rates** — our churn model parameters are estimated, not calibrated to real data

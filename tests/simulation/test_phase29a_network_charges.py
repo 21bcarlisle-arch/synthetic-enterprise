@@ -9,13 +9,13 @@ from simulation.policy_costs import (
 
 
 def test_resi_network_cost_2020():
-    """Resi/SME combined DUoS+TNUoS rate for 2020."""
-    assert get_electricity_network_cost_per_mwh("2020-06-01", segment="resi") == pytest.approx(38.0)
+    """Resi/SME combined DUoS+TNUoS rate for 2020 (Ofgem Annex 9: £45.89/MWh → rounded to £46)."""
+    assert get_electricity_network_cost_per_mwh("2020-06-01", segment="resi") == pytest.approx(46.0)
 
 
 def test_ic_network_cost_2020():
     """I&C DUoS-only rate for 2020 — lower because Triad TNUoS is separate."""
-    assert get_electricity_network_cost_per_mwh("2020-06-01", segment="I&C") == pytest.approx(12.0)
+    assert get_electricity_network_cost_per_mwh("2020-06-01", segment="I&C") == pytest.approx(12.0)  # DUoS only, unchanged
 
 
 def test_ic_rate_lower_than_resi():
@@ -28,10 +28,10 @@ def test_ic_rate_lower_than_resi():
 
 
 def test_2022_step_up():
-    """2022 sees a step-up in resi rates (RIIO-ED2 transition)."""
+    """2022 sees a large step-up in resi rates — BSUoS moved 100% to demand side Apr 2022."""
     rate_2021 = get_electricity_network_cost_per_mwh("2021-06-01", segment="resi")
     rate_2022 = get_electricity_network_cost_per_mwh("2022-06-01", segment="resi")
-    assert rate_2022 > rate_2021
+    assert rate_2022 > rate_2021 * 1.3  # >30% step-up (49 → 66 = 35% increase)
 
 
 def test_all_resi_years_defined():
@@ -100,8 +100,8 @@ def test_settlement_record_has_network_cost_field():
     )
     assert len(records) == 48
     assert "network_cost_gbp" in records[0]
-    # resi 2021: £38/MWh, 1 kWh = 0.001 MWh per period
-    expected_per_period = 38.0 * (1.0 / 1000)
+    # resi 2021: £49/MWh (Ofgem Annex 9), 1 kWh = 0.001 MWh per period
+    expected_per_period = 49.0 * (1.0 / 1000)
     assert records[0]["network_cost_gbp"] == pytest.approx(expected_per_period)
 
 
@@ -141,9 +141,9 @@ def test_ic_settlement_uses_duos_only():
         system_price_records=price_records,
         segment="resi",
     )
-    # I&C: £12/MWh; resi: £38/MWh for 2021
+    # I&C: £12/MWh DUoS-only; resi: £49/MWh combined (Ofgem Annex 9 2021/22)
     assert records_ic[0]["network_cost_gbp"] == pytest.approx(12.0)
-    assert records_resi[0]["network_cost_gbp"] == pytest.approx(38.0)
+    assert records_resi[0]["network_cost_gbp"] == pytest.approx(49.0)
     assert records_ic[0]["network_cost_gbp"] < records_resi[0]["network_cost_gbp"]
 
 

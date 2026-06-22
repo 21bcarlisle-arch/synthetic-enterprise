@@ -134,15 +134,18 @@ _CCL_ELECTRICITY_RATE_BY_YEAR: dict[int, float] = {
 # Source: docs/market_research/historical_policy_costs_2016_2024.md Section 3
 # and Ofgem Price Cap Annex 3 (post-2019).
 _NETWORK_COST_RESI_SME_BY_YEAR: dict[int, float] = {
-    2016: 35.0,  # TNUoS ~£13/MWh + DUoS ~£22/MWh (mid-range estimate)
-    2017: 36.0,
-    2018: 37.0,
-    2019: 38.0,
-    2020: 38.0,
-    2021: 38.0,
-    2022: 43.0,  # step-up: RIIO-ED2 transition + TCR reforms
-    2023: 44.0,
-    2024: 46.0,
+    # Phase 29b: calibrated from Ofgem Annex 9 v1.10 (June 2026) "NC" row (£/customer/yr ÷ 3.1 MWh).
+    # Includes DUoS + TNUoS + BSUoS + metering — the full network cost component as Ofgem models it.
+    # Apr-Mar years mapped to calendar year of Q1 (the year the obligation year starts).
+    2016: 43.0,   # 2016/17 est. (~£42-44/MWh based on Annex 9 trend)
+    2017: 44.0,   # 2017/18: £43.67/MWh
+    2018: 42.0,   # 2018/19: £42.41/MWh
+    2019: 45.0,   # 2019/20: £44.96/MWh
+    2020: 46.0,   # 2020/21: £45.89/MWh
+    2021: 49.0,   # 2021/22: £49.42/MWh
+    2022: 66.0,   # 2022/23: £66.24/MWh — BSUoS moved 100% to demand side Apr 2022
+    2023: 75.0,   # 2023/24: £74.56/MWh — RIIO-ED2 commenced Apr 2023
+    2024: 69.0,   # 2024/25: £68.95/MWh
 }
 
 # I&C HV DUoS only (TNUoS tracked separately via Triad mechanism)
