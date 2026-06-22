@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys — Simulation Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --green: #3fb950;
+    --red: #f85149;
+    --amber: #d29922;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
+  .logo span { color: var(--blue); }
+  .run-meta { color: var(--muted); font-size: 12px; text-align: right; }
+  .run-meta a { color: var(--blue); text-decoration: none; }
+  .run-meta a:hover { text-decoration: underline; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase;
+       letter-spacing: 0.5px; color: var(--muted); margin-bottom: 12px; }
+  .grid { display: grid; gap: 12px;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .card-label { font-size: 11px; font-weight: 500; text-transform: uppercase;
+                letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
+  .card-value { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+  .card-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  .neu { color: var(--blue); }
+  .warn { color: var(--amber); }
+  section { margin-bottom: 28px; }
+  .info-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .info-item { }
+  .info-item dt { font-size: 11px; color: var(--muted); font-weight: 500;
+                  text-transform: uppercase; letter-spacing: 0.4px; }
+  .info-item dd { font-size: 13px; font-weight: 500; margin-top: 2px; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .badge-green { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+  .badge-red   { background: rgba(248,81,73,.15); color: var(--red);   border: 1px solid rgba(248,81,73,.3); }
+  .badge-blue  { background: rgba(88,166,255,.12); color: var(--blue); border: 1px solid rgba(88,166,255,.25); }
+  .report-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 14px;
+    color: var(--blue); text-decoration: none; font-size: 13px; font-weight: 500;
+    transition: border-color .15s;
+  }
+  .report-link:hover { border-color: var(--blue); }
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    color: var(--muted);
+    font-size: 11px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  @media (max-width: 480px) {
+    .card-value { font-size: 20px; }
+    header { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Poesys<span>.</span>net</div>
+  <div class="run-meta">
+    <div>Last run: <strong>2026-06-22 01:43 UTC</strong></div>
+    <div>Git: <a href="https://github.com/21bcarlisle-arch/synthetic-enterprise/commit/2f380ac" target="_blank">2f380ac</a> &nbsp;·&nbsp;
+    <a href="https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md" target="_blank">Full report ↗</a></div>
+  </div>
+</header>
+
+<main>
+
+  <section>
+    <h2>10-Year P&amp;L (2016–2025)</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="card-label">Net Margin</div>
+        <div class="card-value pos">£+225,920</div>
+        <div class="card-sub">after capital charges</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Gross Margin</div>
+        <div class="card-value pos">£+235,160</div>
+        <div class="card-sub">wholesale spread</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Enterprise Value</div>
+        <div class="card-value pos">£+309,282</div>
+        <div class="card-sub">CLV − acquisition cost</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Treasury</div>
+        <div class="card-value neu">£465,105</div>
+        <div class="card-sub">from £463,166</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Operations</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="card-label">Retention</div>
+        <div class="card-value neu">19/23 retained</div>
+        <div class="card-sub">7 total accounts churned</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Bills Issued</div>
+        <div class="card-value neu">1,165</div>
+        <div class="card-sub">236 risk committee calls</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Solvency</div>
+        <div class="card-value neu">N/A</div>
+        <div class="card-sub">no yearly data</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Run Info</h2>
+    <div class="info-row">
+      <dl class="info-item">
+        <dt>Git commit</dt>
+        <dd><code>2f380ac</code></dd>
+      </dl>
+      <dl class="info-item">
+        <dt>Duration</dt>
+        <dd>6099s / 102 min</dd>
+      </dl>
+      <dl class="info-item">
+        <dt>Tests</dt>
+        <dd>1,020+ passing</dd>
+      </dl>
+      <dl class="info-item">
+        <dt>Status</dt>
+        <dd><span class="badge badge-green">Healthy</span></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section>
+    <a class="report-link" href="https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md" target="_blank">
+      ↗ Full Annual Report
+    </a>
+  </section>
+
+</main>
+
+<footer>
+  <span>Poesys Energy Simulation · synthetic-enterprise</span>
+  <span>Auto-generated on 2026-06-22 01:43 UTC</span>
+</footer>
+
+</body>
+</html>

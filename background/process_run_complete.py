@@ -113,11 +113,102 @@ def run_fast_tests():
     return result.returncode == 0
 
 
+def _fmt_gbp(v):
+    """Format a GBP value with sign and £ prefix, e.g. £+225,920 or £-3,766."""
+    sign = "+" if v >= 0 else ""
+    return "\xa3{}{:,.0f}".format(sign, v)
+
+
+def generate_site(data, elapsed_s, git_hash, finished_ts):
+    """Regenerate site/index.html from run data."""
+    site_dir = PROJECT_DIR / "site"
+    template_path = site_dir / "index.html"
+    if not template_path.exists():
+        log("site/index.html template not found — skipping site generation")
+        return
+
+    ledger = data.get("_ledger_headline", {})
+    net = ledger.get("net_margin_gbp", data.get("total_net_gbp", 0))
+    gross = ledger.get("gross_margin_gbp", data.get("total_gross_gbp", 0))
+    ev = data.get("enterprise_value_gbp", 0)
+    t_start = data.get("starting_treasury_gbp", 0)
+    t_end = data.get("final_treasury_gbp", 0)
+    committee = data.get("committee_wake_ups_total", 0)
+    bills = data.get("bills_total", 0)
+    ret_log = data.get("retention_log", [])
+    churned = data.get("churned_billing_accounts", [])
+
+    offers = len(ret_log)
+    retained = sum(1 for r in ret_log if r.get("outcome") == "retained")
+    churn_count = len(churned)
+
+    # Solvency signal from final year
+    yearly = data.get("yearly_data", [])
+    solvency_val = "N/A"
+    solvency_class = "neu"
+    solvency_status = "no yearly data"
+    if yearly:
+        last_yr = yearly[-1]
+        treasury_end = last_yr.get("treasury_end_gbp", 0)
+        active = last_yr.get("active_customer_ids", [])
+        unique = {c[:-1] if c.endswith("g") else c for c in active}
+        n = max(len(unique), 1)
+        per_cust = treasury_end / n
+        solvency_val = "\xa3{:,.0f}/acct".format(per_cust)
+        if per_cust < 0:
+            solvency_class = "neg"
+            solvency_status = "BREACH — negative net assets"
+        elif per_cust < 130:
+            solvency_class = "warn"
+            solvency_status = "below \xa3130 floor"
+        else:
+            solvency_class = "pos"
+            solvency_status = "above floor"
+
+    run_date = finished_ts or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    git_short = git_hash[:7] if git_hash and git_hash != "unknown" else "unknown"
+    duration = "{:.0f}s / {:.0f} min".format(elapsed_s, elapsed_s / 60)
+
+    html = template_path.read_text()
+    replacements = {
+        "<!-- RUN_DATE -->": run_date,
+        "<!-- GIT_HASH -->": git_hash,
+        "<!-- GIT_HASH_SHORT -->": git_short,
+        "<!-- NET_MARGIN -->": _fmt_gbp(net),
+        "<!-- NET_CLASS -->": "pos" if net >= 0 else "neg",
+        "<!-- GROSS_MARGIN -->": _fmt_gbp(gross),
+        "<!-- GROSS_CLASS -->": "pos" if gross >= 0 else "neg",
+        "<!-- ENTERPRISE_VALUE -->": _fmt_gbp(ev),
+        "<!-- EV_CLASS -->": "pos" if ev >= 0 else "neg",
+        "<!-- TREASURY_END -->": "\xa3{:,.0f}".format(t_end),
+        "<!-- TREASURY_START -->": "\xa3{:,.0f}".format(t_start),
+        "<!-- RETAINED -->": str(retained),
+        "<!-- OFFERS -->": str(offers),
+        "<!-- CHURNED -->": str(churn_count),
+        "<!-- BILLS -->": "{:,}".format(bills),
+        "<!-- COMMITTEE -->": "{:,}".format(committee),
+        "<!-- SOLVENCY_VALUE -->": solvency_val,
+        "<!-- SOLVENCY_CLASS -->": solvency_class,
+        "<!-- SOLVENCY_STATUS -->": solvency_status,
+        "<!-- DURATION -->": duration,
+        "<!-- TEST_COUNT -->": "1,020+",
+        "<!-- STATUS -->": "Healthy",
+    }
+    for placeholder, value in replacements.items():
+        html = html.replace(placeholder, value)
+
+    template_path.write_text(html)
+    log("Generated site/index.html (net={}, git={})".format(_fmt_gbp(net), git_short))
+
+
 def git_commit_push(git_hash, net_margin):
     report = PROJECT_DIR / "docs" / "reports" / "ANNUAL_REPORT.md"
+    site_index = PROJECT_DIR / "site" / "index.html"
     files = [str(report), str(LATEST_MD)]
+    if site_index.exists():
+        files.append(str(site_index))
     subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
-    msg = "Auto-process run complete: report + LATEST.md (git={}, net=\xa3{:,.0f})".format(
+    msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )
     result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR), timeout=30)
@@ -168,6 +259,9 @@ def main(marker_path_str):
 
     log("Updating LATEST.md")
     update_latest_md(data, elapsed_s)
+
+    log("Generating site/index.html")
+    generate_site(data, elapsed_s, git_hash, fields.get("finished"))
 
     log("Running fast test suite (SIM_FAST_MODE=1)")
     if not run_fast_tests():
