@@ -8,7 +8,16 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T07:45:07Z
+Last updated: 2026-06-22T08:21:27Z
+
+**Phase 31a LIVE (2026-06-22)**: Feed-in Tariff (FiT) levy in policy cost stack. 20 new tests (943 non-integration passing).
+- `simulation/policy_costs.py`: `_FIT_LEVY_BY_YEAR` (£4.10–8.47/MWh, 2016–2024) + `get_fit_levy_per_mwh(date_str)`
+- Source: npower reconciled supplier rates 2021-2024 (high confidence); Ofgem FiT Annual Reports 2019-2020; triangulated 2016-2018
+- `simulation/hedged_settlement.py`: `fit_levy_gbp` per period; `policy_cost_gbp = RO + CfD + CCL + CM + FiT`
+- `simulation/renewals.py`: FiT included in tariff unit rate pass-through alongside CM
+- `saas/reporting/annual_report.py`: 6-column policy costs table (RO + CfD + CCL + CM + FiT + Total); backward compatible
+- FiT applies to ALL demand (no domestic exemption); rising trend with dip in 2021/22 (£6.01/MWh, lower tariffs on newer installs)
+- Research: `docs/market_research/fit_levy_2016_2024.md`
 
 **Phase 30a LIVE (2026-06-22)**: Capacity Market (CM) levy in policy cost stack. 16 new tests (923 non-integration passing).
 - `simulation/policy_costs.py`: `_CM_LEVY_BY_YEAR` (£0.5–7.27/MWh, 2016–2024) + `get_cm_levy_per_mwh(date_str)` — April-start OY convention, same as RO

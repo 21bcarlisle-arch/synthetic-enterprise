@@ -357,6 +357,10 @@ def extract_report_data(run_output: dict) -> dict:
             "cm_levy_gbp": sum(
                 r.get("cm_levy_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
             ),
+            # Phase 31a: FiT levy for all electricity demand customers (no domestic exemption)
+            "fit_levy_gbp": sum(
+                r.get("fit_levy_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
+            ),
             "policy_cost_gbp": sum(
                 r.get("policy_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
             ),
@@ -2339,13 +2343,14 @@ def _section_bill_shock_summary(data: dict) -> str:
 
 
 def _section_policy_costs(data: dict) -> str:
-    """Phase 21a/27b/30a: Electricity Policy Costs (RO + CfD + CCL + CM) — year-by-year breakdown.
+    """Phase 21a/27b/30a/31a: Electricity Policy Costs — year-by-year breakdown.
 
     Shows levies collected from customers (via tariff pass-through) and paid to Ofgem/LCCC/HMRC.
     Net effect on margin is near-zero when pass-through matches actual levy. Key signal: 2022
     negative CfD levy (crisis rebate) appears as a net positive contribution to that year's margin.
     Phase 27b: CCL for business (SME/I&C) customers; domestic resi exempt.
     Phase 30a: CM levy for ALL demand customers — no domestic exemption.
+    Phase 31a: FiT levy for ALL demand customers — no domestic exemption.
     """
     years = data.get("years", {})
     has_policy = any(
@@ -2357,8 +2362,43 @@ def _section_policy_costs(data: dict) -> str:
 
     has_ccl = any(yd.get("ccl_gbp", 0.0) != 0.0 for yd in years.values())
     has_cm = any(yd.get("cm_levy_gbp", 0.0) != 0.0 for yd in years.values())
+    has_fit = any(yd.get("fit_levy_gbp", 0.0) != 0.0 for yd in years.values())
 
-    if has_cm:
+    if has_fit:
+        lines = [
+            "## Policy Costs — RO + CfD + CCL + CM + FiT (Phase 21a/27b/30a/31a)",
+            "",
+            "Electricity policy costs deducted from net_margin_gbp each year. ",
+            "CfD levy was NEGATIVE in 2022 (crisis rebate from LCCC). ",
+            "CCL applies to business (SME/I&C) only — resi exempt. ",
+            "CM (Capacity Market) and FiT (Feed-in Tariff) levies apply to ALL demand including domestic.",
+            "",
+            "| Year | RO levy £ | CfD levy £ | CCL £ | CM levy £ | FiT levy £ | Total policy cost £ | Note |",
+            "|------|-----------|------------|-------|-----------|------------|---------------------|------|",
+        ]
+        for year in sorted(years):
+            yd = years[year]
+            ro = yd.get("ro_levy_gbp", 0.0)
+            cfd = yd.get("cfd_levy_gbp", 0.0)
+            ccl = yd.get("ccl_gbp", 0.0)
+            cm = yd.get("cm_levy_gbp", 0.0)
+            fit = yd.get("fit_levy_gbp", 0.0)
+            total = yd.get("policy_cost_gbp", ro + cfd + ccl + cm + fit)
+            note = "⬇ CfD REBATE" if cfd < 0 else ""
+            lines.append(
+                f"| {year} | {ro:,.0f} | {cfd:,.0f} | {ccl:,.0f} | {cm:,.0f} | {fit:,.0f} | {total:,.0f} | {note} |"
+            )
+        total_ro = sum(yd.get("ro_levy_gbp", 0.0) for yd in years.values())
+        total_cfd = sum(yd.get("cfd_levy_gbp", 0.0) for yd in years.values())
+        total_ccl = sum(yd.get("ccl_gbp", 0.0) for yd in years.values())
+        total_cm = sum(yd.get("cm_levy_gbp", 0.0) for yd in years.values())
+        total_fit = sum(yd.get("fit_levy_gbp", 0.0) for yd in years.values())
+        total_policy = sum(yd.get("policy_cost_gbp", 0.0) for yd in years.values())
+        lines.append(
+            f"| **Total** | **{total_ro:,.0f}** | **{total_cfd:,.0f}** | "
+            f"**{total_ccl:,.0f}** | **{total_cm:,.0f}** | **{total_fit:,.0f}** | **{total_policy:,.0f}** | |"
+        )
+    elif has_cm:
         lines = [
             "## Policy Costs — RO + CfD + CCL + CM (Phase 21a/27b/30a)",
             "",

@@ -95,13 +95,15 @@ class TestPolicyInSettlementRecords:
         assert "cfd_levy_gbp" in rec
         assert "ccl_gbp" in rec
         assert "cm_levy_gbp" in rec
+        assert "fit_levy_gbp" in rec
         assert "policy_cost_gbp" in rec
         # In 2022, CfD is negative so cfd_levy_gbp < 0
         assert rec["cfd_levy_gbp"] < 0.0
-        # Phase 30a: policy_cost_gbp = ro + cfd + ccl + cm
+        # Phase 31a: policy_cost_gbp = ro + cfd + ccl + cm + fit
         expected_policy = (
             rec["ro_levy_gbp"] + rec["cfd_levy_gbp"]
             + rec.get("ccl_gbp", 0.0) + rec.get("cm_levy_gbp", 0.0)
+            + rec.get("fit_levy_gbp", 0.0)
         )
         assert abs(rec["policy_cost_gbp"] - expected_policy) < 1e-9
 
@@ -129,10 +131,12 @@ class TestPolicyInSettlementRecords:
             )
             assert abs(rec["net_margin_gbp"] - expected_net) < 1e-9
 
-    def test_2022_cfd_rebate_boosts_net_margin(self):
-        """2022 negative CfD means less deducted from margin than RO alone."""
+    def test_2022_cfd_rebate_reduces_policy_cost(self):
+        """2022 negative CfD levy means policy_cost_gbp is reduced vs no-rebate total."""
         from simulation.hedged_settlement import run_hedged_term
-        from simulation.policy_costs import get_ro_cost_per_mwh
+        from simulation.policy_costs import (
+            get_ro_cost_per_mwh, get_cm_levy_per_mwh, get_fit_levy_per_mwh,
+        )
 
         date_str = "2022-06-01"
         records_stub = [
@@ -148,10 +152,18 @@ class TestPolicyInSettlementRecords:
         )
 
         rec = result[0]
-        # 2022 total policy cost is less than RO alone (CfD is a rebate)
         consumption_mwh = rec["consumption_kwh"] / 1000.0
-        ro_only = get_ro_cost_per_mwh(date_str) * consumption_mwh
-        assert rec["policy_cost_gbp"] < ro_only
+        # 2022 CfD is a negative rebate — verify it reduces total vs RO+CM+FiT
+        ro_cm_fit = (
+            get_ro_cost_per_mwh(date_str)
+            + get_cm_levy_per_mwh(date_str)
+            + get_fit_levy_per_mwh(date_str)
+        ) * consumption_mwh
+        assert rec["policy_cost_gbp"] < ro_cm_fit, (
+            "2022 negative CfD should reduce policy_cost below RO+CM+FiT subtotal"
+        )
+        # Verify CfD is actually negative
+        assert rec["cfd_levy_gbp"] < 0
 
 
 class TestTariffIncludesPolicyCost:

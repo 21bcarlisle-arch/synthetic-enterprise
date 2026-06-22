@@ -124,7 +124,7 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 
 Ranked by likely simulation impact:
 
-1. **Historical RO + network charge levels by year (2016-2024)** — ~~DONE~~ (RO/CfD: Phase 21a; Network: Phase 29a; Annex 9 calibration: Phase 29b; CM levy: Phase 30a)
+1. **Historical RO + network charge levels by year (2016-2024)** — ~~DONE~~ (RO/CfD: Phase 21a; Network: Phase 29a; Annex 9 calibration: Phase 29b; CM levy: Phase 30a; FiT levy: Phase 31a)
 2. **Small supplier opex structure** — how does our 9-customer company compare on cost-to-serve? What's realistic for our scale?
 3. **Acquisition cost per channel** — PCW, direct, broker; needed to model acquisition economics properly
 4. **Historical SME churn rates** — our churn model parameters are estimated, not calibrated to real data

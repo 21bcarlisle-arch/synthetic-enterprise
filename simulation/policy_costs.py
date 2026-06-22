@@ -1,4 +1,4 @@
-"""Phase 21a/27b/29a/30a: Electricity policy cost pass-through.
+"""Phase 21a/27b/29a/30a/31a: Electricity policy cost pass-through.
 
 Renewable Obligation (RO) and Contract for Difference (CfD) levies are
 mandatory per-MWh costs on all UK electricity supply. They are not embedded
@@ -233,3 +233,49 @@ def get_cm_levy_per_mwh(date_str: str) -> float:
     if oy_year < min(_CM_LEVY_BY_YEAR):
         return _CM_LEVY_BY_YEAR[min(_CM_LEVY_BY_YEAR)]
     return _CM_LEVY_BY_YEAR[max(_CM_LEVY_BY_YEAR)]
+
+
+# Phase 31a: Feed-in Tariff (FiT) levelisation levy for all electricity demand customers.
+# FiT is collected from all licensed suppliers proportional to their share of total GB
+# electricity supply — no domestic exemption, no I&C exemption. All segments pay the same
+# £/MWh rate. Obligation year runs Apr-Mar (same as RO).
+#
+# Two source streams cross-checked:
+#   - 2021–2024: npower Business Solutions supplier pass-through schedule (authoritative)
+#     "reconciled" rates are final settled figures; 2024 is initial billing (TBC Nov 2026)
+#   - 2016–2020: total scheme cost (Ofgem FiT Annual Reports) ÷ ~245 TWh supply basis
+#     245 TWh backed out from known 2023/24 reconciliation: £1,858m ÷ 0.763 p/kWh = 243 TWh
+#
+# Key pattern: rising 2016→2020 as fleet matured; dip 2021/22 (lower tariff rates on newer
+# installs entering scheme); rising again 2022-2025 as RPI indexation exceeds generation decline.
+# Contrast with CM: FiT less volatile (range £4-9/MWh vs CM £0.5-7.3/MWh).
+#
+# See docs/market_research/fit_levy_2016_2024.md for full derivation.
+_FIT_LEVY_BY_YEAR: dict[int, float] = {
+    2016: 4.10,   # 2016/17: ~£1.05bn ÷ ~245 TWh. Triangulated from cumulative total (£18.23bn through SY15).
+    2017: 5.00,   # 2017/18: ~£1.25bn. Scheme growing; pre-2016 tariff cuts limiting new capacity additions.
+    2018: 5.80,   # 2018/19: ~£1.45bn. FiT closed to new large sites Oct 2019; all applicants Jan 2020.
+    2019: 6.40,   # 2019/20: £1.60bn — SY11 report states SY11 was £159m above SY10 → SY10 = £1.60bn.
+    2020: 7.10,   # 2020/21: £1.76bn direct from Ofgem SY11 Annual Report.
+    2021: 6.01,   # 2021/22: npower reconciled 0.601 p/kWh. Dip: lower generation tariffs on post-2016 installs.
+    2022: 7.25,   # 2022/23: npower reconciled 0.725 p/kWh.
+    2023: 7.63,   # 2023/24: npower reconciled 0.763 p/kWh. Ofgem SY14 confirms £1.858bn total.
+    2024: 8.47,   # 2024/25: npower initial billing 0.847 p/kWh (reconciliation due Nov 2026).
+}
+
+
+def get_fit_levy_per_mwh(date_str: str) -> float:
+    """Feed-in Tariff (FiT) levelisation levy (£/MWh) for electricity demand.
+
+    Applies to all segments (resi, SME, I&C) — no domestic exemption.
+    Obligation year runs Apr-Mar, same as RO. Falls back to nearest known year.
+    Source: npower reconciled rates 2021-2024 (high confidence);
+            Ofgem FiT Annual Reports 2019-2020 (medium confidence);
+            triangulated from cumulative totals for 2016-2018 (low-medium confidence).
+    """
+    oy_year = _ro_oy_start_year(date_str)
+    if oy_year in _FIT_LEVY_BY_YEAR:
+        return _FIT_LEVY_BY_YEAR[oy_year]
+    if oy_year < min(_FIT_LEVY_BY_YEAR):
+        return _FIT_LEVY_BY_YEAR[min(_FIT_LEVY_BY_YEAR)]
+    return _FIT_LEVY_BY_YEAR[max(_FIT_LEVY_BY_YEAR)]

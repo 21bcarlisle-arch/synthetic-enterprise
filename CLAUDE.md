@@ -128,6 +128,16 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 31a COMPLETE (2026-06-22)**: Feed-in Tariff (FiT) levy in policy cost stack. 20 new tests.
+- `simulation/policy_costs.py`: `_FIT_LEVY_BY_YEAR` (£4.10–8.47/MWh, 2016–2024) + `get_fit_levy_per_mwh()` — Apr-Mar OY, same as RO/CM
+- Source: npower reconciled rates 2021-2024 (high confidence); Ofgem FiT Annual Reports 2019-2020 (medium); triangulated 2016-2018 (low-medium)
+- `simulation/hedged_settlement.py`: `fit_levy_gbp` per period; `policy_cost_gbp = RO + CfD + CCL + CM + FiT`
+- `simulation/renewals.py`: FiT included in tariff unit rate pass-through — no double-count risk
+- `saas/reporting/annual_report.py`: 6-column policy costs table when FiT present; `elif has_cm` for 5-col backward compat
+- FiT applies to ALL demand (no domestic exemption) — unlike CCL; key 2021 dip: £6.01/MWh (lower tariffs on newer post-2016 installs)
+- Research: `docs/market_research/fit_levy_2016_2024.md`
+- 943 non-integration tests passing
+
 **Phase 30a COMPLETE (2026-06-22)**: Capacity Market (CM) levy in policy cost stack. 16 new tests.
 - `simulation/policy_costs.py`: `_CM_LEVY_BY_YEAR` (£0.5–7.27/MWh, 2016–2024) + `get_cm_levy_per_mwh()` — Ofgem Annex 9 v1.8 authoritative for 2017-2024
 - `simulation/hedged_settlement.py`: `cm_levy_gbp` per period; `policy_cost_gbp = RO + CfD + CCL + CM` (Phase 30a adds CM)

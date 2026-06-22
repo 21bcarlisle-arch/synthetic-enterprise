@@ -45,6 +45,7 @@ from simulation.policy_costs import (
     get_ccl_per_mwh,
     get_cfd_levy_per_mwh,
     get_cm_levy_per_mwh,
+    get_fit_levy_per_mwh,
     get_electricity_network_cost_per_mwh,
     get_ro_cost_per_mwh,
 )
@@ -109,9 +110,11 @@ def run_hedged_term(
         year (Phase 21a); cfd_levy_gbp is negative in 2022 (crisis rebate)
       ccl_gbp = CCL for this period (Phase 27b); 0.0 for resi (exempt),
         main CCL rate for SME/I&C business customers (remitted to HMRC)
-      policy_cost_gbp = ro_levy_gbp + cfd_levy_gbp + ccl_gbp + cm_levy_gbp
+      policy_cost_gbp = ro_levy_gbp + cfd_levy_gbp + ccl_gbp + cm_levy_gbp + fit_levy_gbp
       cm_levy_gbp = Capacity Market levy (Phase 30a) — applies to all segments
         including domestic (no exemption); highly variable £0.5–7.3/MWh by year
+      fit_levy_gbp = Feed-in Tariff levelisation levy (Phase 31a) — applies to all
+        segments (no domestic exemption); rising trend £4.1–8.5/MWh 2016–2024
       network_cost_gbp = DUoS + TNUoS for resi/SME; DUoS only for I&C
         (Phase 29a — I&C Triad TNUoS tracked separately in triad.py)
       net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp
@@ -161,6 +164,8 @@ def run_hedged_term(
             ccl = get_ccl_per_mwh(date_str, segment) * consumption_mwh
             # Phase 30a: CM levy applies to all segments — no domestic exemption.
             cm_levy = get_cm_levy_per_mwh(date_str) * consumption_mwh
+            # Phase 31a: FiT levy applies to all segments — no domestic exemption.
+            fit_levy = get_fit_levy_per_mwh(date_str) * consumption_mwh
             # Phase 29a: network charges. Resi/SME: DUoS + TNUoS unit rate.
             # I&C: DUoS only (Triad TNUoS is an annual lump, tracked in triad.py).
             network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
@@ -182,7 +187,8 @@ def run_hedged_term(
                 "cfd_levy_gbp": cfd_levy,
                 "ccl_gbp": ccl,
                 "cm_levy_gbp": cm_levy,
-                "policy_cost_gbp": ro_levy + cfd_levy + ccl + cm_levy,
+                "fit_levy_gbp": fit_levy,
+                "policy_cost_gbp": ro_levy + cfd_levy + ccl + cm_levy + fit_levy,
                 "network_cost_gbp": network_cost,
             })
 
