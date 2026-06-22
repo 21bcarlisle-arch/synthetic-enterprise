@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T14:45:58Z
+Last updated: 2026-06-22T17:08:46Z
+
+**Phase 39a LIVE (2026-06-22)**: SVT comparative pricing for passive renewers. 18 new tests (1,127 passing).
+- `simulation/svt_rates.py`: Ofgem Default Tariff Cap electricity rates 2016–2029 (£/MWh). `get_svt_elec_rate_gbp_per_mwh(date_str)` looks up applicable quarterly period.
+- `simulation/run_phase2b.py`: `_build_churn_basis_risk()` helper; adds `unit_rate_gbp_per_mwh`, `svt_rate_gbp_per_mwh`, `rate_vs_svt_pct` to every `churn_basis_risk` record.
+- `saas/reporting/annual_report.py`: `_section_svt_comparison()` — per-year table of passive renewers' fixed rate vs SVT; flags at-risk (above SVT) and protected (below SVT) cohorts.
 
 **Phase 38a LIVE (2026-06-22)**: Scenario comparison runner. 12 new tests (1,109 passing).
 - `simulation/scenario_comparison.py`: runs all 5 scenarios, returns comparison sorted by net margin. `format_comparison_table()` → markdown summary + year-by-year net margin table.
