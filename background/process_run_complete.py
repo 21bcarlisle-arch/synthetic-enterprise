@@ -103,7 +103,9 @@ def run_fast_tests():
     full_env["SIM_FAST_MODE"] = "1"
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/", "-x", "-q", "--tb=short",
-         "--ignore=tests/simulation/test_run_phase2b.py"],
+         "--ignore=tests/simulation/test_run_phase2b.py",
+         "--ignore=tests/simulation/test_run_phase2b_event_log.py",
+         "--ignore=tests/simulation/test_run_phase4c_on_phase2b.py"],
         cwd=str(PROJECT_DIR),
         env=full_env,
         timeout=180,
