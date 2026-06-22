@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl -s * data.elexon.co.uk*)"
+      "Bash(curl -s * data.elexon.co.uk*)",
+      "Bash(systemctl --user status *)",
+      "Bash(systemctl --user is-active *)",
+      "Bash(journalctl --user-unit * *)",
+      "Bash(make test)",
+      "Bash(make lint)"
     ]
   }
 }

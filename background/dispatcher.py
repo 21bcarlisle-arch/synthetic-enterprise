@@ -31,7 +31,6 @@ State file: background/.dispatcher_seen.json
 """
 
 import json
-import re
 import subprocess
 import sys
 import time

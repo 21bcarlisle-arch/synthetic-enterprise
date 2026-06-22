@@ -1,7 +1,7 @@
 """Tests for LiveSimInterface.notify_churn and notify_acquisition - Phase 12a."""
 
+from company.crm.event_log import AcquisitionEvent, ChurnEvent
 from company.interfaces.sim_interface import LiveSimInterface
-from company.crm.event_log import ChurnEvent, AcquisitionEvent
 
 
 def test_notify_churn_populates_event_log():

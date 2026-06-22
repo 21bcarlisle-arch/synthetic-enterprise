@@ -185,7 +185,8 @@ Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never de
 
 def _validate_adjustments(raw: str, context_hfs: dict) -> dict:
     """Parse and validate risk committee response."""
-    import re, json as _json
+    import json as _json
+    import re
     cleaned = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL)
     cleaned = re.sub(r"```[a-z]*\n?", "", cleaned).strip()
     try:

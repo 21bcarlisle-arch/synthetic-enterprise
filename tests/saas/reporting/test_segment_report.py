@@ -1,11 +1,12 @@
 """Tests for Phase 10b segment portfolio annual report generator."""
 
 import pytest
+
 from saas.reporting.segment_report import (
-    extract_segment_data,
-    generate_segment_report,
     _headcount_table,
     _per_segment_pnl_table,
+    extract_segment_data,
+    generate_segment_report,
 )
 
 

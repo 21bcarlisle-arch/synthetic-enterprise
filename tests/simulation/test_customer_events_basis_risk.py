@@ -1,9 +1,10 @@
 """Tests for Phase 11b: company churn estimate in roll_lifecycle_event output."""
-import pytest
 from datetime import date, timedelta
-from simulation.settlement import CONTRACT_LENGTH_DAYS
-from simulation.customer_events import roll_lifecycle_event
 
+import pytest
+
+from simulation.customer_events import roll_lifecycle_event
+from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 ACQ_DATE = "2016-01-01"
 FIRST_RENEWAL = (

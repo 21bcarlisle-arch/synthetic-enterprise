@@ -187,8 +187,8 @@ def _find_first_queued_task():
 
 def _run_script(script_line: str, task_name: str) -> tuple[str, float]:
     """Run a Python script task. Returns (stdout, wall_time_seconds)."""
-    import time
     import shlex
+    import time
     _log(f"Script task starting: {task_name} — {script_line}")
     t0 = time.monotonic()
     parts = shlex.split(script_line)

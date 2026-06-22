@@ -1,5 +1,6 @@
 """Tests for get_churn_estimate on SimInterface implementations."""
 import pytest
+
 from company.crm.churn_model import estimate_churn_probability
 from company.interfaces.sim_interface import LiveSimInterface, StubSimInterface
 

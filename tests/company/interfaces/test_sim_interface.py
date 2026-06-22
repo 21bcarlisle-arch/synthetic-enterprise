@@ -103,8 +103,8 @@ def test_stub_interface_retention_notifications_returns_copy():
 
 
 def test_live_interface_notify_retention_records_to_event_log():
-    from company.interfaces.sim_interface import LiveSimInterface
     from company.crm.event_log import RetentionEvent
+    from company.interfaces.sim_interface import LiveSimInterface
     iface = LiveSimInterface()
     iface.notify_retention_attempt("C3", "2021-12-30", 0.48, 0.05, outcome="churned_despite_offer")
     ret_events = iface.event_log.retention_events()

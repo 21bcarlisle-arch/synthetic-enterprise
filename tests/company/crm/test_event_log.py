@@ -1,6 +1,7 @@
 """Tests for company.crm.event_log - Phase 12a."""
 
 import pytest
+
 from company.crm.event_log import AcquisitionEvent, ChurnEvent, CompanyEventLog
 
 

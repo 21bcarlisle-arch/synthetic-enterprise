@@ -25,9 +25,7 @@ import gzip
 import json
 import os
 import ssl
-import sys
 import threading
-import time
 import urllib.request
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -271,7 +269,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
             _log_proxy(f"  usage: in={usage.get('input_tokens',0)} out={usage.get('output_tokens',0)} "
                        f"cr={usage.get('cache_read_input_tokens',0)} cost=${_cost(usage):.4f}")
         else:
-            _log_proxy(f"  no usage extracted from response")
+            _log_proxy("  no usage extracted from response")
 
         self.send_response(status)
         skip_headers = {"transfer-encoding", "content-length", "connection", "keep-alive"}

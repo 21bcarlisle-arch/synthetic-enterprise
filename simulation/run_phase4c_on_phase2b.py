@@ -273,6 +273,7 @@ if __name__ == "__main__":
 
     except Exception as exc:
         import traceback
+
         from background.ntfy_utils import send_ntfy
         err_summary = f"{type(exc).__name__}: {exc}"
         send_ntfy(

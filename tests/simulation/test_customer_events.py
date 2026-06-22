@@ -1,5 +1,6 @@
 """Tests for simulation/customer_events.py — Phase 6b / Phase 7e lifecycle event rolling."""
 import pytest
+
 from simulation.customer_events import PRICE_DIFFERENTIAL_PCT, roll_lifecycle_event
 
 
