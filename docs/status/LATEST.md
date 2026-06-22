@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T00:08:44Z
+Last updated: 2026-06-22T00:33:24Z
 
 **Phase 23a LIVE (2026-06-22)**: Company-owned demand estimation — epistemic honesty fix. 838 tests passing (12 new; ~824 fast-mode).
 - `simulation/run_phase2b.py`: `_company_eac_estimate()` sums prior-year billing records instead of reading SIM oracle EAC
@@ -168,7 +168,7 @@ Last updated: 2026-06-22T00:08:44Z
 - `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
 - Next sim run (currently in progress): ToU stats will appear in report
 
-**Latest simulation results (2016–2025)** — auto-processed (2336s / 39 min):
+**Latest simulation results (2016–2025)** — auto-processed (1395s / 23 min):
 - Net margin: £26,654.64 | Gross: £29,002.78 | Capital: £2,348
 - Treasury: £29,846 → £26,051 | 214 committee interventions | 1117 bills issued
 - Enterprise value: £9,888.92 | Net after CTS: £11,925

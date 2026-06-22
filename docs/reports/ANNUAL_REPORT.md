@@ -1267,7 +1267,7 @@ _Cash reconciliation: of £182,148.04 billed, bad debt of £3,565.05 was written
   - 2021-07-29: treasury £28,488.80, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-08-28: treasury £28,454.68, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-09-27: treasury £28,405.73, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
-  - 2021-10-27: treasury £28,351.57, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
+  - 2021-10-27: treasury £28,351.57, C2->0.95, C6->1.00, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-11-26: treasury £28,273.95, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-12-26: treasury £28,165.05, C2->0.95, C6->0.95, VaR (current £3,147.30 / stressed £1,246.77) ratio 2.52
   - 2021-04-25: treasury £27,880.04, C2->0.95, C6->0.95, C8->0.95, VaR (current £3,529.95 / stressed £1,338.07) ratio 2.64
