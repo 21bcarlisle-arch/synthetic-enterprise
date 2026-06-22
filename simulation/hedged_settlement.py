@@ -318,3 +318,136 @@ def run_deemed_term(
         current_date += timedelta(days=1)
 
     return records
+
+
+# ---------------------------------------------------------------------------
+# Phase 41a — Flex/trading tariff settlement
+# ---------------------------------------------------------------------------
+
+FLEX_REFERENCE_WINDOW_DAYS: int = 7
+
+
+def run_flex_term(
+    customer_id: str,
+    term_start_date: str,
+    term_end_date: str,
+    flex_markup_per_mwh: float,
+    consumption_shape,
+    system_price_records: list[dict],
+    segment: str = "I&C",
+    reference_window_days: int = FLEX_REFERENCE_WINDOW_DAYS,
+) -> list[dict]:
+    """Phase 41a: settle a flex/trading tariff term.
+
+    The customer holds a flex contract: no locked unit rate. They call volumes
+    weekly at the day-ahead reference price (7-day rolling average of daily
+    spot). The supplier earns a fixed trading desk markup on each unit sold.
+
+    Revenue = (ref_price + markup) × consumption
+    Wholesale cost = ref_price × consumption   (supplier hedges at reference)
+    Gross margin = markup × consumption         (pure trading margin)
+    Net margin = gross margin − policy cost − network cost
+    Capital cost = 0 (no naked exposure; position hedged weekly at reference)
+    Hedge fraction = 1.0 (fully covered at reference price)
+
+    The reference price for each period is computed as the arithmetic mean of
+    daily mean spot over the prior `reference_window_days` days — a backward-
+    looking proxy for the week-ahead index price at time of calling, preserving
+    the Point-in-Time Blindfold: no future prices are ever used.
+    """
+    start = date.fromisoformat(term_start_date)
+    end = date.fromisoformat(term_end_date)
+
+    # Build daily mean spot lookup from system_price_records
+    daily_means: dict[str, float] = {}
+    daily_buckets: dict[str, list[float]] = {}
+    for r in system_price_records:
+        daily_buckets.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
+    for d_str, prices in daily_buckets.items():
+        import statistics as _stats
+        daily_means[d_str] = _stats.mean(prices)
+
+    # Ordered list of dates for rolling window computation
+    sorted_dates = sorted(daily_means.keys())
+
+    def _ref_price(period_date_str: str) -> float:
+        """7-day rolling mean of daily spot prior to period_date (PIT safe)."""
+        period_d = date.fromisoformat(period_date_str)
+        window_end = period_d - timedelta(days=1)
+        window_start = period_d - timedelta(days=reference_window_days)
+        window_prices = [
+            daily_means[d] for d in sorted_dates
+            if window_start <= date.fromisoformat(d) <= window_end and d in daily_means
+        ]
+        if not window_prices:
+            # Fallback: use most recent available daily mean
+            available = [daily_means[d] for d in sorted_dates if d < period_date_str]
+            return available[-1] if available else 50.0
+        import statistics as _stats
+        return _stats.mean(window_prices)
+
+    price_lookup = {
+        (r["settlementDate"], r["settlementPeriod"]): r["systemSellPrice"]
+        for r in system_price_records
+    }
+
+    records = []
+    current_date = start
+    while current_date < end:
+        date_str = current_date.isoformat()
+        shape = consumption_shape(date_str)
+        ref_price = _ref_price(date_str)
+
+        for period in range(1, 49):
+            spot_price = price_lookup.get((date_str, period))
+            if spot_price is None:
+                continue
+
+            consumption_kwh = shape[period - 1]
+            consumption_mwh = consumption_kwh / 1000.0
+
+            revenue_gbp = (ref_price + flex_markup_per_mwh) * consumption_mwh
+            wholesale_cost_gbp = ref_price * consumption_mwh
+            margin_gbp = flex_markup_per_mwh * consumption_mwh
+
+            ro_levy = get_ro_cost_per_mwh(date_str) * consumption_mwh
+            cfd_levy = get_cfd_levy_per_mwh(date_str) * consumption_mwh
+            ccl = get_ccl_per_mwh(date_str, segment) * consumption_mwh
+            cm_levy = get_cm_levy_per_mwh(date_str) * consumption_mwh
+            fit_levy = get_fit_levy_per_mwh(date_str) * consumption_mwh
+            network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
+            policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy
+
+            records.append({
+                "customer_id": customer_id,
+                "settlement_date": date_str,
+                "settlement_period": period,
+                "consumption_kwh": consumption_kwh,
+                "unit_rate_gbp_per_mwh": ref_price + flex_markup_per_mwh,
+                "flex_reference_price_gbp_per_mwh": ref_price,
+                "flex_markup_per_mwh": flex_markup_per_mwh,
+                "hedge_price_gbp_per_mwh": ref_price,
+                "hedge_fraction": 1.0,
+                "hedged_volume_kwh": consumption_kwh,
+                "unhedged_volume_kwh": 0.0,
+                "revenue_gbp": revenue_gbp,
+                "wholesale_cost_gbp": wholesale_cost_gbp,
+                "margin_gbp": margin_gbp,
+                "ro_levy_gbp": ro_levy,
+                "cfd_levy_gbp": cfd_levy,
+                "ccl_gbp": ccl,
+                "cm_levy_gbp": cm_levy,
+                "fit_levy_gbp": fit_levy,
+                "policy_cost_gbp": policy_total,
+                "network_cost_gbp": network_cost,
+                "capital_cost_gbp": 0.0,
+                "net_margin_gbp": compute_net_margin(
+                    margin_gbp - policy_total - network_cost, 0.0
+                ),
+                "tariff_type": "flex",
+                "commodity": "electricity",
+            })
+
+        current_date += timedelta(days=1)
+
+    return records

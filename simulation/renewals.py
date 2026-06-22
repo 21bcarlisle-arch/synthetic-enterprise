@@ -36,6 +36,7 @@ NOTICE_DAYS = 42
 
 
 DEEMED_PREMIUM = 0.20  # 20% above spot — UK industry standard for out-of-contract rate
+FLEX_MARKUP_PER_MWH = 2.0  # £2/MWh trading desk markup for flex contracts
 
 
 def build_renewal_schedule(
@@ -127,20 +128,28 @@ def build_renewal_schedule(
         network_cost = get_electricity_network_cost_per_mwh(term_start_str, segment)
         # Phase 40a: pass-through tariffs lock only wholesale+margin; network and policy
         # are billed at actual rates at settlement (not locked at pricing time).
-        if tariff_type == "pass_through":
+        # Phase 41a: flex tariffs have no locked unit rate — only the markup is agreed at signing.
+        if tariff_type == "flex":
+            locked_policy = 0.0
+            locked_network = 0.0
+        elif tariff_type == "pass_through":
             locked_policy = 0.0
             locked_network = 0.0
         else:
             locked_policy = policy_cost
             locked_network = network_cost
-        unit_rate = price_fixed_tariff(
-            company_fwd, eac_kwh, term_start_str,
-            naked_fraction=1 - MIN_HEDGE_FLOOR,
-            policy_cost_per_mwh=locked_policy,
-            network_cost_per_mwh=locked_network,
-        )
+        if tariff_type == "flex":
+            # Flex: no locked unit rate. Only markup committed at term start.
+            unit_rate = None
+        else:
+            unit_rate = price_fixed_tariff(
+                company_fwd, eac_kwh, term_start_str,
+                naked_fraction=1 - MIN_HEDGE_FLOOR,
+                policy_cost_per_mwh=locked_policy,
+                network_cost_per_mwh=locked_network,
+            )
         next_start = term_start + timedelta(days=CONTRACT_LENGTH_DAYS)
-        terms.append({
+        term_dict = {
             "customer_id": customer_id,
             "acquisition_date": term_start_str,
             "notice_date": notice_date_str,
@@ -149,7 +158,10 @@ def build_renewal_schedule(
             "company_forward_price_gbp_per_mwh": company_fwd,
             "tariff_type": tariff_type,
             "term_end": min(next_start, report_end + timedelta(days=1)).isoformat(),
-        })
+        }
+        if tariff_type == "flex":
+            term_dict["flex_markup_per_mwh"] = FLEX_MARKUP_PER_MWH
+        terms.append(term_dict)
         term_start = next_start
 
     return terms

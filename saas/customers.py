@@ -199,6 +199,25 @@ CUSTOMERS = [
         "segment": "I&C",
         "tariff_type": "pass_through",
     },
+    # Phase 41a: flex/trading tariff — supermarket chain, 3 GWh/year electricity.
+    # Flex: no locked unit rate. Customer calls volume weekly at day-ahead reference
+    # price (7-day rolling spot average). Supplier earns a fixed trading markup only.
+    # No capital cost (supplier hedges weekly at reference price).
+    # eac_kwh=None because settlement reads sim/hh_data/C_IC4.csv (~3 GWh/year).
+    {
+        "customer_id": "C_IC4",
+        "acquisition_date": "2020-01-01",
+        "location": {"lat": 53.4808, "lon": -2.2426, "region": "Manchester"},
+        "home_type": "supermarket",
+        "bedrooms": None,
+        "epc_rating": "C",
+        "eac_kwh": None,
+        "metering": "HH",
+        "commodity": "electricity",
+        "contract_type": "fixed_1yr",
+        "segment": "I&C",
+        "tariff_type": "flex",
+    },
     # Phase 40b: C_IC3 gas leg — 5 GWh industrial gas, Teesside, pass-through.
     # I&C gas: pays gas CCL (not resi-exempt); GGL applies from Nov 2021.
     {

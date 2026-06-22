@@ -78,7 +78,7 @@ from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.customer_events import roll_lifecycle_event
 from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
-from simulation.hedged_settlement import run_deemed_term, run_hedged_term
+from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -706,10 +706,11 @@ def main(report_end: str | None = None, sim_interface=None):
         term_indices[cid] += 1
 
         # Phase 17a + 19a: portfolio learning premium (electricity and gas)
+        # Phase 41a: skip for flex/deemed — no locked unit rate to adjust.
         _portfolio_rates = (
             portfolio_elec_margin_rates if commodity == "electricity" else portfolio_gas_margin_rates
         )
-        if term_index >= 1 and len(_portfolio_rates) >= 1:
+        if unit_rate is not None and term_index >= 1 and len(_portfolio_rates) >= 1:
             lookback = _portfolio_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]
             portfolio_prem = compute_portfolio_premium(lookback)
             if abs(portfolio_prem) > 1e-6:
@@ -727,7 +728,8 @@ def main(report_end: str | None = None, sim_interface=None):
                 })
 
         # Phase 16c + 19a: apply realized-margin recovery surcharge at renewal (all commodities)
-        if term_index >= 1 and cid in prev_term_margin:
+        # Phase 41a: skip for flex/deemed — no locked unit rate to adjust.
+        if unit_rate is not None and term_index >= 1 and cid in prev_term_margin:
             surcharge = compute_margin_surcharge(prev_term_margin[cid], prev_term_revenue.get(cid, 0.0))
             if surcharge > 0:
                 unit_rate *= (1.0 + surcharge)
@@ -738,7 +740,7 @@ def main(report_end: str | None = None, sim_interface=None):
                     "prev_margin_gbp": round(prev_term_margin[cid], 4),
                     "prev_revenue_gbp": round(prev_term_revenue.get(cid, 0.0), 4),
                     "surcharge_pct": round(surcharge * 100, 2),
-                    "unit_rate_before": round(term["unit_rate_gbp_per_mwh"], 4),
+                    "unit_rate_before": round(term["unit_rate_gbp_per_mwh"] or 0.0, 4),
                     "unit_rate_after": round(unit_rate, 4),
                 })
 
@@ -756,12 +758,13 @@ def main(report_end: str | None = None, sim_interface=None):
         # Phase 40c: skip for deemed terms (no fixed unit_rate to record or compare).
         old_elec_rate = prev_elec_unit_rates.get(cid) if commodity == "electricity" else None
         old_gas_rate = prev_gas_unit_rates.get(cid) if commodity == "gas" else None
-        if commodity == "electricity" and term_tariff_type != "deemed":
+        _indexed_tariff = term_tariff_type in ("deemed", "flex")
+        if commodity == "electricity" and not _indexed_tariff:
             prev_elec_unit_rates[cid] = unit_rate
-        elif commodity == "gas" and term_tariff_type != "deemed":
+        elif commodity == "gas" and not _indexed_tariff:
             prev_gas_unit_rates[cid] = unit_rate
 
-        if term_index >= 1 and commodity == "electricity" and term_tariff_type != "deemed":
+        if term_index >= 1 and commodity == "electricity" and not _indexed_tariff:
             company_est_pre = None
             retention_modifier_val = None
             _no_offer_reason = "below_threshold"
@@ -1010,10 +1013,17 @@ def main(report_end: str | None = None, sim_interface=None):
             cust_segment = customer.get("segment", "resi") if customer else "resi"
             if term_tariff_type == "deemed":
                 # Phase 40c: out-of-contract period — spot + deemed_premium, no forward hedge.
-                # No risk assessment or capital cost sizing (no forward commitment).
                 deemed_premium = term.get("deemed_premium", 0.20)
                 term_records = run_deemed_term(
                     cid, term_start_str, term_end_str, deemed_premium,
+                    shape_fn, elec_records, segment=cust_segment,
+                )
+            elif term_tariff_type == "flex":
+                # Phase 41a: flex/trading tariff — reference price (7-day rolling spot) + markup.
+                # No capital cost (hedged weekly at reference). Fully hedged at reference price.
+                flex_markup = term.get("flex_markup_per_mwh", 2.0)
+                term_records = run_flex_term(
+                    cid, term_start_str, term_end_str, flex_markup,
                     shape_fn, elec_records, segment=cust_segment,
                 )
             else:

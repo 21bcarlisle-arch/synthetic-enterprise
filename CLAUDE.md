@@ -121,7 +121,7 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,210+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 41-prep adds 10 (forward curve reform). Phase 40c adds 8 (excl. fast_run), Phase 40b adds 7, Phase 40a adds 9, fixes 2 stale. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
+**1,220+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 41a adds 8 (excl. fast_run), Phase 41-prep adds 10 (forward curve reform). Phase 40c adds 8, Phase 40b adds 7, Phase 40a adds 9, fixes 2 stale. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -131,6 +131,14 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 41a COMPLETE (2026-06-22)**: Flex/trading tariff. 8 new tests (excl. fast_run integration test).
+- `saas/customers.py`: `C_IC4` — 3 GWh supermarket, Manchester, `tariff_type: "flex"`.
+- `sim/hh_data/C_IC4.csv`: supermarket HH profile (opening-hours peak, base refrigeration 24/7, 3 GWh/year, 3,652 rows).
+- `simulation/renewals.py`: `FLEX_MARKUP_PER_MWH = 2.0`. Flex terms store `flex_markup_per_mwh`, no locked `unit_rate_gbp_per_mwh`.
+- `simulation/hedged_settlement.py`: `run_flex_term()` — reference price = 7-day rolling spot average (PIT safe); `revenue = (ref + markup) × consumption`; `margin = markup × consumption`; `capital_cost = 0`; `hedge_fraction = 1.0`.
+- `simulation/run_phase2b.py`: dispatches to `run_flex_term()`. Skips portfolio premium / surcharge / churn estimation for flex (indexed tariff guard). Skips risk assessment for flex (no naked exposure).
+- All 4 UK I&C tariff types now implemented: Fixed, Pass-through (40a/40b), Deemed (40c), Flex (41a).
 
 **Phase 41-prep COMPLETE (2026-06-22)**: Forward curve reform — EWMA + term structure model. 10 new tests (15 total in test_forward_curve.py, up from 5 meaningful structural tests).
 - `sim/forward_curve.py`: replaced `base + pstdev × risk_factor` with `spot_ewma × seasonal_shape × (1 + term_premium)`. EWMA half-life 30 days (vs 90-day SMA). Monthly seasonal multipliers (vs binary winter/summer). Term premium = BASE × sqrt(tenor_years) × (risk_factor/1.2) — 6% for 1-year electricity.
@@ -384,8 +392,8 @@ pricing model must account for cost-to-serve at the customer level.
 **DONE (Phase 40c):**
 - ~~Deemed rate~~ — COMPLETE (40c). C_IC1/C_IC2 have 30-day deemed gaps on renewal.
 
-**Immediate (Phase 41a):**
-- Flex/trading tariff: reference price mechanism (day-ahead index); customer calls volumes in tranches. Requires a trading desk lifecycle.
+**DONE (Phase 41a):**
+- ~~Flex/trading tariff~~ — COMPLETE (41a). C_IC4 supermarket on flex (£2/MWh markup, 7-day rolling reference, zero capital cost).
 
 **DONE (Phase 40b):**
 - ~~Gas pass-through leg~~ — COMPLETE (40b). C_IC3g added; tariff type in annual report.
