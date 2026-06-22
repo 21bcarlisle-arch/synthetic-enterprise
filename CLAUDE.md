@@ -128,6 +128,14 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 27a COMPLETE (2026-06-22)**: Second I&C customer C_IC2 — commercial office building, 1 GWh/year. 9 new tests.
+- `saas/customers.py`: C_IC2 (office_building, Birmingham, acquisition 2018-01-01, segment "I&C", HH metered)
+- `sim/hh_data/C_IC2.csv`: 3,446-day commercial office profile — Mon-Fri 08:00-18:00 peak at 135 kWh/period, +15% Jun-Aug summer cooling, 30% Saturday, 8% Sunday; ~1,004,285 kWh/year
+- C_IC1 segment corrected from "SME" → "I&C" — both I&C customers now share correct segment
+- EFFECTIVE_EAC_KWH auto-derived from CSV: C_IC2 ≈ 1,003,306 kWh; TOTAL_ELEC_EAC now ~3.1 GWh
+- Starting treasury: £678k (up from £463k — scales with I&C portfolio growth)
+- I&C portfolio now: 3 GWh (2 GWh warehouse + 1 GWh office), seasonal diversification (office summer peak vs warehouse temperature-insensitive)
+
 **Phase 22b COMPLETE (2026-06-22)**: Company takes ownership of hedging decisions. 8 new tests.
 - `company/risk/hedge_policy.py`: `company_evolve_hedge_fraction()` — same algorithm as sim.hedging_strategy, now in the company layer
 - `COMPANY_MIN_HEDGE_FLOOR=0.85`, `COMPANY_EVOLUTION_STEP=0.1`, `COMPANY_MARGIN_TOLERANCE_GBP=5.0`

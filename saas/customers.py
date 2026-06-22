@@ -159,7 +159,24 @@ CUSTOMERS = [
         "metering": "HH",
         "commodity": "electricity",
         "contract_type": "fixed_1yr",
-        "segment": "SME",
+        "segment": "I&C",
+    },
+    # Phase 27a: second I&C customer — commercial office building, 1 GWh/year.
+    # Temperature-sensitive: summer A/C peak (+15% Jun-Aug), business-hours load
+    # (08:00-18:00 Mon-Fri), graduated Saturday (30%), minimal Sunday (8%).
+    # Seasonal diversification vs C_IC1 warehouse (inverse summer/winter pattern).
+    {
+        "customer_id": "C_IC2",
+        "acquisition_date": "2018-01-01",
+        "location": {"lat": 52.4862, "lon": -1.8904, "region": "Birmingham"},
+        "home_type": "office_building",
+        "bedrooms": None,
+        "epc_rating": "C",
+        "eac_kwh": None,
+        "metering": "HH",
+        "commodity": "electricity",
+        "contract_type": "fixed_1yr",
+        "segment": "I&C",
     },
     # Phase 2b: gas dual-fuel records for C1-C4 resi customers
     {

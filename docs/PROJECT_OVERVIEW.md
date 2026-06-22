@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-22. 320+ commits. 879 tests (~865 in SIM_FAST_MODE=1). Codebase: ~17,500 lines across 185+ Python modules.*
+*Last updated: 2026-06-22. 325+ commits. 888 tests (~874 in SIM_FAST_MODE=1). Codebase: ~17,550 lines across 185+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -343,6 +343,7 @@ Net after CTS:               £7,498
 - **Per-customer net assets solvency signal** (Phase 21b): `_section_solvency_signal()` in annual report — treasury ÷ active billing accounts each year-end. Ofgem licence floor: £0/account; capital adequacy target: £130/dual-fuel billing account. `_billing_account_id` dedup: C1g + C1 = one billing account. BREACH flag when negative; "below (gap)" when below target. 7 new tests (867 total).
 - **Consumption recalibration** (Phase 21c): C1 resi 2,800→2,500 kWh/yr (Ofgem TDCV domestic medium); C5 SME small_office 25,000→15,000 kWh/yr (midrange 8,500–25,000 kWh real range). Both successors (C1_2, C5_2) updated. First-term tariff pricing and hedging now calibrated; subsequent terms self-correct via settlement-derived EAC (Phase 25a). 4 new tests (871 total).
 - **Company hedging ownership** (Phase 22b): `company/risk/hedge_policy.py` — `company_evolve_hedge_fraction()` moves the hedging policy from `sim/hedging_strategy.py` to the company layer. `run_phase2b.py` now imports from `company.risk.hedge_policy`. Level 2 (decision boundary) separation CLOSED for hedging. `sim/hedging_strategy.py` preserved for historical runners. 8 new tests (879 total).
+- **Second I&C customer** (Phase 27a): C_IC2 commercial office building — 1 GWh/year, Birmingham, acquisition 2018-01-01, "I&C" segment. `sim/hh_data/C_IC2.csv`: peak 135 kWh/period (08:00-18:00 Mon-Fri), +15% summer cooling (Jun-Aug), 30% Saturday, 8% Sunday. C_IC1 segment corrected "SME"→"I&C". Total ELEC EAC ~3.1 GWh; starting treasury £678k. 9 new tests (888 total).
 
 ### Phase 22 — Post-Crisis Churn Hangover + Trailing-Margin CLV
 **Files:** `company/crm/churn_model.py`, `saas/clv_model.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`
@@ -612,7 +613,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 177 Python modules, ~16,000 lines
 - 306 git commits
-- 879 tests (all green); ~865 in SIM_FAST_MODE=1; 879 in full suite (~40 min with Ollama)
+- 888 tests (all green); ~874 in SIM_FAST_MODE=1; 888 in full suite (~40 min with Ollama)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -628,7 +629,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
 - 323 risk committee Ollama calls per run (each ~7s) — 95% of 38-min runtime
-- Full test suite: 879 tests, ~16s with SIM_FAST_MODE=1
+- Full test suite: 888 tests, ~16s with SIM_FAST_MODE=1
 
 ---
 

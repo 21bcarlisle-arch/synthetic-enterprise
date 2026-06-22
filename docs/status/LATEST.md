@@ -8,7 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T05:18:26Z
+Last updated: 2026-06-22T05:23:46Z
+
+**Phase 27a LIVE (2026-06-22)**: Second I&C customer C_IC2 — commercial office building, 1 GWh/year. 888 tests passing (9 new).
+- `saas/customers.py`: C_IC2 office_building, Birmingham, acquisition 2018-01-01, segment "I&C", HH metered
+- `sim/hh_data/C_IC2.csv`: office demand — Mon-Fri peak 135 kWh/period, +15% summer cooling Jun-Aug, 30% Saturday, 8% Sunday; ~1 GWh/year
+- C_IC1 segment corrected "SME" → "I&C"; both I&C customers now show correctly in segment breakdown
+- I&C portfolio: 3 GWh (2 GWh warehouse + 1 GWh office); treasury £678k; seasonal diversification
+- Next: Phase 28a proposed — C_IC1/C_IC2 I&C portfolio section in annual report
 
 **Phase 22b LIVE (2026-06-22)**: Company takes ownership of hedging decisions — Level 2 separation closed. 879 tests passing (8 new).
 - `company/risk/hedge_policy.py`: `company_evolve_hedge_fraction()` — hedging policy in the company layer where it belongs
