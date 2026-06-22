@@ -2228,3 +2228,142 @@ def test_ic_portfolio_includes_triad_when_present():
     ]
     result = _section_ic_portfolio(data)
     assert "TNUoS" in result or "Triad" in result
+
+
+# ── Gas Book P&L section (Phase 32a) ─────────────────────────────────────────
+
+def _gas_pl_data(*, rev=1000.0, whl=600.0, gross=400.0, cap=50.0, net=200.0,
+                 policy=80.0, network=70.0, year="2021"):
+    """Minimal data dict for _section_gas_pl with a single gas-active year."""
+    return {
+        "years": {
+            year: {
+                "commodity_split": {
+                    "gas": {
+                        "revenue_gbp": rev,
+                        "wholesale_cost_gbp": whl,
+                        "gross_gbp": gross,
+                        "capital_gbp": cap,
+                        "net_gbp": net,
+                    }
+                },
+                "gas_policy_cost_gbp": policy,
+                "gas_network_cost_gbp": network,
+            }
+        }
+    }
+
+
+def test_section_gas_pl_empty_on_no_years():
+    from saas.reporting.annual_report import _section_gas_pl
+    assert _section_gas_pl({}) == ""
+    assert _section_gas_pl({"years": {}}) == ""
+
+
+def test_section_gas_pl_empty_on_zero_gas_revenue():
+    from saas.reporting.annual_report import _section_gas_pl
+    data = _gas_pl_data(rev=0.0, whl=0.0, gross=0.0, cap=0.0, net=0.0)
+    assert _section_gas_pl(data) == ""
+
+
+def test_section_gas_pl_shows_header():
+    from saas.reporting.annual_report import _section_gas_pl
+    result = _section_gas_pl(_gas_pl_data())
+    assert "Gas Book P&L" in result
+
+
+def test_section_gas_pl_shows_year_row():
+    from saas.reporting.annual_report import _section_gas_pl
+    result = _section_gas_pl(_gas_pl_data())
+    assert "2021" in result
+    assert "1,000" in result   # revenue
+    assert "600" in result     # wholesale
+    assert "400" in result     # gross
+    assert "80" in result      # policy
+    assert "70" in result      # network
+    assert "50" in result      # capital
+    assert "200" in result     # net
+
+
+def test_section_gas_pl_shows_total_row():
+    from saas.reporting.annual_report import _section_gas_pl
+    result = _section_gas_pl(_gas_pl_data())
+    assert "Total" in result
+
+
+def test_section_gas_pl_net_percent():
+    from saas.reporting.annual_report import _section_gas_pl
+    # net=200, rev=1000 → 20.0%
+    result = _section_gas_pl(_gas_pl_data(rev=1000.0, net=200.0))
+    assert "+20.0%" in result
+
+
+def test_section_gas_pl_negative_net_sign():
+    from saas.reporting.annual_report import _section_gas_pl
+    result = _section_gas_pl(_gas_pl_data(net=-50.0))
+    assert "negative" in result
+
+
+def test_section_gas_pl_positive_net_sign():
+    from saas.reporting.annual_report import _section_gas_pl
+    result = _section_gas_pl(_gas_pl_data(net=200.0))
+    assert "positive" in result
+
+
+def test_section_gas_pl_skips_zero_revenue_years():
+    from saas.reporting.annual_report import _section_gas_pl
+    data = {
+        "years": {
+            "2019": {
+                "commodity_split": {"gas": {"revenue_gbp": 0.0, "wholesale_cost_gbp": 0.0,
+                                            "gross_gbp": 0.0, "capital_gbp": 0.0, "net_gbp": 0.0}},
+                "gas_policy_cost_gbp": 0.0, "gas_network_cost_gbp": 0.0,
+            },
+            "2021": {
+                "commodity_split": {"gas": {"revenue_gbp": 800.0, "wholesale_cost_gbp": 500.0,
+                                            "gross_gbp": 300.0, "capital_gbp": 40.0, "net_gbp": 150.0}},
+                "gas_policy_cost_gbp": 60.0, "gas_network_cost_gbp": 50.0,
+            },
+        }
+    }
+    result = _section_gas_pl(data)
+    assert "2021" in result
+    assert "2019" not in result
+
+
+def test_section_gas_pl_multi_year_totals():
+    from saas.reporting.annual_report import _section_gas_pl
+    data = {
+        "years": {
+            "2020": {
+                "commodity_split": {"gas": {"revenue_gbp": 500.0, "wholesale_cost_gbp": 300.0,
+                                            "gross_gbp": 200.0, "capital_gbp": 20.0, "net_gbp": 100.0}},
+                "gas_policy_cost_gbp": 40.0, "gas_network_cost_gbp": 40.0,
+            },
+            "2021": {
+                "commodity_split": {"gas": {"revenue_gbp": 700.0, "wholesale_cost_gbp": 450.0,
+                                            "gross_gbp": 250.0, "capital_gbp": 30.0, "net_gbp": 120.0}},
+                "gas_policy_cost_gbp": 60.0, "gas_network_cost_gbp": 40.0,
+            },
+        }
+    }
+    result = _section_gas_pl(data)
+    # Total revenue: 1200, total net: 220
+    assert "1,200" in result
+    assert "220" in result
+
+
+# ── commodity_split revenue/wholesale (Phase 32a) ─────────────────────────────
+
+def test_commodity_split_includes_revenue_and_wholesale():
+    """extract_report_data now populates revenue_gbp and wholesale_cost_gbp
+    in commodity_split for both electricity and gas legs."""
+    data = extract_report_data(_run_output())
+    y2016 = data["years"]["2016"]
+    gas = y2016["commodity_split"]["gas"]
+    elec = y2016["commodity_split"]["electricity"]
+    # _record sets wholesale_cost_gbp=100.0 and revenue_gbp=margin+100
+    assert gas["revenue_gbp"] == 105.0   # 5.0 margin + 100.0 wholesale
+    assert gas["wholesale_cost_gbp"] == 100.0
+    assert elec["revenue_gbp"] == 222.0  # (10+100)+(12+100)
+    assert elec["wholesale_cost_gbp"] == 200.0  # 100 + 100

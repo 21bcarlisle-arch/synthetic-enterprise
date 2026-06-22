@@ -141,7 +141,8 @@ Ranked by likely simulation impact:
 | Topic | What we know | Conf | Key gaps | Next question |
 |-------|-------------|------|---------|---------------|
 | UK household switching volumes | 3.21 million switches in 2024 (up 38% vs 2023, ElectraLink). Crashed to near zero in 2022 when all fixed deals withdrew. | H | Annual switching rates by year 2016-2024 for calibrating sim churn model | Can ElectraLink data be accessed? Or does Ofgem retail market indicators have this? |
-| Active vs passive renewal | ~35% of customers actively renew to a new fixed deal; ~65% roll to SVT by default | M | Is this split consistent across residential and SME? | — |
+| Active vs passive renewal | ~35% actively renew to fixed; ~65% roll to SVT. Pre-crisis steady state (2016–2020). Inferred from inverse of 57–65% SVT share (CMA 2016, Ofgem Sep 2017). Crisis (2022): ~90% on SVT — fixed deals withdrawn, customers had no alternative. Recovery: ~33% on FTC by Jul 2025. SVT churn ~10–15%/yr; fixed-at-expiry churn ~30–50%/yr. Research: `docs/market_research/svt_rates_active_passive_2016_2025.md` | H (direction) / M (35/65 specific split) | SME vs resi split not published; SVT vs fixed churn rates inferred | — |
+| SVT unit rates 2016–2025 | Pre-cap (2016–18): elec ~13.5–16p/kWh, gas ~2.1–4.2p/kWh (±15%). Post-cap (2019–2025): Ofgem quarterly data, H confidence. Crisis peak: elec ~67p (Jan 2023 cap ceiling, EPG capped consumer bill at £2,500). Post-crisis normalisation: elec ~24–27p, gas ~6–7p by 2024–25. Full table in `docs/market_research/svt_rates_active_passive_2016_2025.md` | H (post-2019) / M (pre-2019) | Pre-2019 back-derived; direct Ofgem SVT league table data not fully digitised | — |
 | Win-back conversion | ~5-15% on first outreach wave (cross-sector benchmark; no UK energy-specific figure) | L | UK energy-specific win-back rate | Does any supplier publish this? |
 
 ---
@@ -155,7 +156,7 @@ Ranked by likely simulation impact:
 5. **Novel scenario distribution** — at 70%+ renewables, bimodal price distribution parameters unknown. Negative price frequency trajectory post-2027 (projected regime change). Key research area for forward scenario generation.
 6. **Hedge ratio waterfall by forward tenor in LATEST.md** — critical board KPI missing from our reporting
 7. **42-day renewal notice CRM flag** — regulatory obligation not currently modeled; affects renewal campaign timing
-8. **Active renewer vs SVT roller distinction** — ~35/65 split changes churn dynamics significantly
+8. **Active renewer vs SVT roller distinction** — ~35/65 split changes churn dynamics significantly. Research DONE (`svt_rates_active_passive_2016_2025.md`). Phase 33 candidate: `is_active_renewal` flag; SVT-roller churn ~10%/yr vs fixed-at-expiry ~35% active switch rate. Crisis (2022) had no fixed deals — all renewal was passive by default.
 9. **Debt lifecycle staging** — debt should have states (current → overdue → plan → write-off), not just a flat bad debt %
 
 Last updated: 2026-06-22

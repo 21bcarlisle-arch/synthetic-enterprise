@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**981+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 30b adds 33 new tests.**
+**1,031+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 32a adds 11 new tests.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 32a COMPLETE (2026-06-22)**: Gas book year-by-year P&L section in annual report. 11 new tests.
+- `saas/reporting/annual_report.py`: `_section_gas_pl(data)` — 8-column markdown table: Year | Revenue | Wholesale | Gross | Policy | Network | Capital | Net | Net%. Silent when no gas records. Shows totals row + net-sign summary line.
+- `commodity_split` loop now includes `revenue_gbp` and `wholesale_cost_gbp` per commodity (electricity + gas) in addition to existing gross/capital/net fields.
+- Research: `docs/market_research/svt_rates_active_passive_2016_2025.md` — SVT unit rates 2016–2025, active/passive renewal split (~35/65), crisis period dynamics. Phase 33 candidate identified.
+- 1,031 non-integration tests passing
 
 **Phase 30b COMPLETE (2026-06-22)**: Gas-side policy costs — gas CCL, gas network charges, Green Gas Levy (GGL). 33 new tests.
 - `simulation/policy_costs.py`: `_GAS_CCL_RATE_BY_YEAR` (£1.95–7.75/MWh, 2016–2024); resi exempt; 2019 jump from Budget 2016 rebalancing. `_GAS_NETWORK_COST_BY_YEAR` (£9.0–17.6/MWh, all segments). `_GGL_RATE_GBP_PER_METER_YEAR` (per-MPRN, normalised to £/MWh via AQ; 0 before Nov 2021)

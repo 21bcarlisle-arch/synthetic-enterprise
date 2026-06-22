@@ -193,6 +193,8 @@ def extract_report_data(run_output: dict) -> dict:
         for commodity in ("electricity", "gas"):
             recs = [r for r in yr_records if r.get("commodity") == commodity]
             commodity_split[commodity] = {
+                "revenue_gbp": sum(r["revenue_gbp"] for r in recs),
+                "wholesale_cost_gbp": sum(r["wholesale_cost_gbp"] for r in recs),
                 "gross_gbp": sum(r["margin_gbp"] for r in recs),
                 "capital_gbp": sum(r["capital_cost_gbp"] for r in recs),
                 "net_gbp": sum(r["net_margin_gbp"] for r in recs),
@@ -2632,6 +2634,76 @@ def _section_gas_policy_costs(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_gas_pl(data: dict) -> str:
+    """Phase 32a: Year-by-year gas book P&L — revenue, wholesale, gross margin,
+    policy + network costs, capital charges, net margin.
+
+    Mirrors the electricity settlement section but for the gas book.
+    Silent (returns "") when no gas settlement records exist.
+    """
+    years = data.get("years", {})
+    has_gas = any(
+        yd.get("commodity_split", {}).get("gas", {}).get("revenue_gbp", 0.0) != 0.0
+        for yd in years.values()
+    )
+    if not has_gas:
+        return ""
+
+    lines = [
+        "## Gas Book P&L — Year by Year (Phase 32a)",
+        "",
+        "Revenue = billing at fixed tariff unit rate. Wholesale = hedged + unhedged NBP cost.",
+        "Policy = gas CCL + GGL. Network = GDN + NTS. Net = gross − policy − network − capital.",
+        "",
+        "| Year | Revenue £ | Wholesale £ | Gross £ | Policy £ | Network £ | Capital £ | Net £ | Net % |",
+        "|------|-----------|-------------|---------|----------|-----------|-----------|-------|-------|",
+    ]
+
+    total_rev = total_whl = total_gross = total_policy = total_network = total_cap = total_net = 0.0
+    for year in sorted(years):
+        yd = years[year]
+        cs = yd.get("commodity_split", {}).get("gas", {})
+        rev = cs.get("revenue_gbp", 0.0)
+        if rev == 0.0:
+            continue
+        whl = cs.get("wholesale_cost_gbp", 0.0)
+        gross = cs.get("gross_gbp", 0.0)
+        cap = cs.get("capital_gbp", 0.0)
+        net = cs.get("net_gbp", 0.0)
+        policy = yd.get("gas_policy_cost_gbp", 0.0)
+        network = yd.get("gas_network_cost_gbp", 0.0)
+        net_pct = net / rev * 100 if rev else 0.0
+
+        total_rev += rev
+        total_whl += whl
+        total_gross += gross
+        total_policy += policy
+        total_network += network
+        total_cap += cap
+        total_net += net
+
+        lines.append(
+            f"| {year} | {rev:,.0f} | {whl:,.0f} | {gross:,.0f} "
+            f"| {policy:,.0f} | {network:,.0f} | {cap:,.0f} "
+            f"| {net:,.0f} | {net_pct:+.1f}% |"
+        )
+
+    total_net_pct = total_net / total_rev * 100 if total_rev else 0.0
+    lines.append(
+        f"| **Total** | **{total_rev:,.0f}** | **{total_whl:,.0f}** | **{total_gross:,.0f}** "
+        f"| **{total_policy:,.0f}** | **{total_network:,.0f}** | **{total_cap:,.0f}** "
+        f"| **{total_net:,.0f}** | **{total_net_pct:+.1f}%** |"
+    )
+    lines.append("")
+    net_sign = "positive" if total_net >= 0 else "negative"
+    lines.append(
+        f"Gas book net margin {net_sign} over the simulation period. "
+        f"Network charges (GDN + NTS, £9–18/MWh) dominate the gas non-commodity cost stack."
+    )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_solvency_signal(data: dict) -> str:
     """Phase 21b: Per-customer net assets solvency signal.
 
@@ -3274,6 +3346,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_policy_costs(data))
     sections.append(_section_network_costs(data))
     sections.append(_section_gas_policy_costs(data))
+    sections.append(_section_gas_pl(data))
     sections.append(_section_solvency_signal(data))
     sections.append(_section_volume_tolerance(data))
     sections.append(_section_triad_exposure(data))

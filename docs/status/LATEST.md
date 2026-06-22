@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T09:10:00Z
+Last updated: 2026-06-22T13:42:13Z
+
+**Phase 32a LIVE (2026-06-22)**: Gas book year-by-year P&L section in annual report. 11 new tests (1,031 non-integration passing).
+- `saas/reporting/annual_report.py`: `_section_gas_pl(data)` — 8-column table: Year | Revenue | Wholesale | Gross | Policy | Network | Capital | Net | Net%. Silent when no gas records.
+- `commodity_split` in yearly data now includes `revenue_gbp` and `wholesale_cost_gbp` per commodity (electricity + gas).
+- R&D: SVT unit rates 2016–2025 and active/passive renewal split researched (`docs/market_research/svt_rates_active_passive_2016_2025.md`). ~35% actively renew to fixed; ~65% roll to SVT. Phase 33 candidate: `is_active_renewal` flag with differentiated churn rates.
 
 **Phase 30b LIVE (2026-06-22)**: Gas-side policy costs — gas CCL, gas network charges, and Green Gas Levy (GGL). 33 new tests (981 non-integration passing).
 - `simulation/policy_costs.py`: `_GAS_CCL_RATE_BY_YEAR` (£1.95–7.75/MWh, 2016–2024, HMRC Table 1); resi exempt; 2019 step-change from Budget 2016 rebalancing
