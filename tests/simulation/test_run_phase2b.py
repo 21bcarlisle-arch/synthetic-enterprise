@@ -180,12 +180,9 @@ def test_acq_cost_resi_lower_than_sme():
 
 def test_retention_log_includes_acq_cost_saved():
     """Retention log entries include acq_cost_saved_gbp for traceability (Phase 15b)."""
-    # Integration: check the key is present in a fast-mode run's retention log
-    import os
-    os.environ["SIM_FAST_MODE"] = "1"
+    # conftest autouse fixture already sets SIM_FAST_MODE=1 for all tests
     from simulation.run_phase2b import main
     result = main()
-    os.environ.pop("SIM_FAST_MODE", None)
     rl = result.get("retention_log", [])
     if rl:
         assert "acq_cost_saved_gbp" in rl[0], "retention_log entry should include acq_cost_saved_gbp"
