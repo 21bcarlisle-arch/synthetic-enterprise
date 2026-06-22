@@ -116,8 +116,11 @@ class TestPolicyInSettlementRecords:
         )
 
         for rec in result:
-            # net_margin_gbp = margin_gbp - policy_cost_gbp - capital_cost_gbp
-            expected_net = rec["margin_gbp"] - rec["policy_cost_gbp"] - rec["capital_cost_gbp"]
+            # Phase 29a: net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp
+            expected_net = (
+                rec["margin_gbp"] - rec["policy_cost_gbp"]
+                - rec["network_cost_gbp"] - rec["capital_cost_gbp"]
+            )
             assert abs(rec["net_margin_gbp"] - expected_net) < 1e-9
 
     def test_2022_cfd_rebate_boosts_net_margin(self):

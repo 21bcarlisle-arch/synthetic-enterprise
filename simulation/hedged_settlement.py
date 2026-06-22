@@ -41,7 +41,12 @@ from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
 from sim.risk_engine import compute_net_margin
-from simulation.policy_costs import get_ccl_per_mwh, get_cfd_levy_per_mwh, get_ro_cost_per_mwh
+from simulation.policy_costs import (
+    get_ccl_per_mwh,
+    get_cfd_levy_per_mwh,
+    get_electricity_network_cost_per_mwh,
+    get_ro_cost_per_mwh,
+)
 from simulation.tou_periods import is_peak_period
 
 
@@ -104,7 +109,9 @@ def run_hedged_term(
       ccl_gbp = CCL for this period (Phase 27b); 0.0 for resi (exempt),
         main CCL rate for SME/I&C business customers (remitted to HMRC)
       policy_cost_gbp = ro_levy_gbp + cfd_levy_gbp + ccl_gbp
-      net_margin_gbp = margin_gbp - policy_cost_gbp - capital_cost_gbp
+      network_cost_gbp = DUoS + TNUoS for resi/SME; DUoS only for I&C
+        (Phase 29a — I&C Triad TNUoS tracked separately in triad.py)
+      net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp
     """
     start = date.fromisoformat(term_start_date)
     end = date.fromisoformat(term_end_date)
@@ -149,6 +156,9 @@ def run_hedged_term(
             ro_levy = get_ro_cost_per_mwh(date_str) * consumption_mwh
             cfd_levy = get_cfd_levy_per_mwh(date_str) * consumption_mwh
             ccl = get_ccl_per_mwh(date_str, segment) * consumption_mwh
+            # Phase 29a: network charges. Resi/SME: DUoS + TNUoS unit rate.
+            # I&C: DUoS only (Triad TNUoS is an annual lump, tracked in triad.py).
+            network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
 
             records.append({
                 "customer_id": customer_id,
@@ -167,6 +177,7 @@ def run_hedged_term(
                 "cfd_levy_gbp": cfd_levy,
                 "ccl_gbp": ccl,
                 "policy_cost_gbp": ro_levy + cfd_levy + ccl,
+                "network_cost_gbp": network_cost,
             })
 
         current_date += timedelta(days=1)
@@ -189,7 +200,7 @@ def run_hedged_term(
             # and the cost of capital. Phase 21a: policy_cost_gbp can be negative in 2022
             # (CfD rebate exceeds RO), which boosts net_margin by that amount.
             record["net_margin_gbp"] = compute_net_margin(
-                record["margin_gbp"] - record["policy_cost_gbp"],
+                record["margin_gbp"] - record["policy_cost_gbp"] - record["network_cost_gbp"],
                 capital_cost_per_period_gbp,
             )
 

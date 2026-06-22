@@ -505,7 +505,9 @@ def main(report_end: str | None = None, sim_interface=None):
     for c in ELEC_CUSTOMERS:
         elec_schedules[c["customer_id"]] = build_renewal_schedule(
             c["customer_id"], c["acquisition_date"], effective_end,
-            elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]], lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
+            elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]],
+            lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
+            segment=c.get("segment", "resi"),
         )
 
     # Phase 7e: pre-generate successor schedules (gated until activation).
@@ -514,7 +516,9 @@ def main(report_end: str | None = None, sim_interface=None):
     for c in SUCCESSOR_ELEC_CUSTOMERS:
         elec_schedules[c["customer_id"]] = build_renewal_schedule(
             c["customer_id"], c["acquisition_date"], effective_end,
-            elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]], lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
+            elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]],
+            lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
+            segment=c.get("segment", "resi"),
         )
 
     # ---- Build gas schedules ----

@@ -356,6 +356,10 @@ def extract_report_data(run_output: dict) -> dict:
             "policy_cost_gbp": sum(
                 r.get("policy_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
             ),
+            # Phase 29a: DUoS + TNUoS network charges deducted from net_margin_gbp
+            "network_cost_gbp": sum(
+                r.get("network_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
+            ),
         }
 
     per_customer_lifetime = {}
@@ -2419,6 +2423,49 @@ def _section_policy_costs(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_network_costs(data: dict) -> str:
+    """Phase 29a: Network charges (DUoS + TNUoS) — year-by-year breakdown.
+
+    DUoS (Distribution Use of System) + TNUoS (Transmission Use of System) are
+    the largest non-commodity cost component for electricity supply. Passed through
+    in the tariff unit rate and deducted from net_margin_gbp at settlement.
+    Resi/SME: combined DUoS + TNUoS unit rate (£35-46/MWh, 2016-2024).
+    I&C HV: DUoS only (£11-14/MWh) — TNUoS is Triad-based, tracked separately.
+    """
+    years = data.get("years", {})
+    has_network = any(yd.get("network_cost_gbp", 0.0) != 0.0 for yd in years.values())
+    if not has_network:
+        return ""
+
+    lines = [
+        "## Network Charges — DUoS + TNUoS (Phase 29a)",
+        "",
+        "Electricity network charges deducted from net_margin_gbp each year. ",
+        "Resi/SME: combined DUoS + TNUoS unit rate (largest single non-commodity cost). ",
+        "I&C HV: DUoS only (Triad TNUoS is an annual lump tracked in the Triad section).",
+        "",
+        "| Year | Network cost £ | Note |",
+        "|------|----------------|------|",
+    ]
+    for year in sorted(years):
+        yd = years[year]
+        net = yd.get("network_cost_gbp", 0.0)
+        if net == 0.0:
+            continue
+        note = "step-up RIIO-ED2" if year == "2022" else ""
+        lines.append(f"| {year} | {net:,.0f} | {note} |")
+    total_net = sum(yd.get("network_cost_gbp", 0.0) for yd in years.values())
+    lines.append(f"| **Total** | **{total_net:,.0f}** | |")
+    lines.append("")
+    lines.append(
+        f"Total network cost: £{total_net:,.0f} across all years. "
+        f"Pass-through: tariff unit rate includes network cost at term-start year's rate; "
+        f"settlement deducts it — basis risk near-zero for annual contracts."
+    )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_solvency_signal(data: dict) -> str:
     """Phase 21b: Per-customer net assets solvency signal.
 
@@ -3059,6 +3106,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_demand_estimation(data))
     sections.append(_section_company_crm(data))
     sections.append(_section_policy_costs(data))
+    sections.append(_section_network_costs(data))
     sections.append(_section_solvency_signal(data))
     sections.append(_section_volume_tolerance(data))
     sections.append(_section_triad_exposure(data))

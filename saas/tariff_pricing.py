@@ -42,6 +42,7 @@ def price_fixed_tariff(
     forward_price: float, eac_kwh: int, term_start: str,
     naked_fraction: float = DEFAULT_NAKED_FRACTION,
     policy_cost_per_mwh: float = 0.0,
+    network_cost_per_mwh: float = 0.0,
 ) -> float:
     """Price a fixed unit rate (£/MWh) covering wholesale cost + capital cost + margin.
 
@@ -59,8 +60,11 @@ def price_fixed_tariff(
     policy_cost_per_mwh: RO + CfD levy pass-through (£/MWh). Zero for gas
         (RO/CfD are electricity-only obligations). Callers supply this from
         simulation.policy_costs.get_electricity_policy_cost_per_mwh().
+    network_cost_per_mwh: DUoS + TNUoS pass-through (£/MWh). Phase 29a.
+        Zero for gas. Callers supply from
+        simulation.policy_costs.get_electricity_network_cost_per_mwh().
 
-    Four additive components:
+    Five additive components:
       1. forward_price — expected wholesale cost per MWh.
       2. expected_capital_cost_per_mwh — cost of holding VaR collateral against
          the stressed *naked* position over the term, spread across all of
@@ -74,6 +78,7 @@ def price_fixed_tariff(
          actually at risk under the hedging mandate.
       3. TARGET_MARGIN_GBP_PER_MWH — flat £2/MWh target margin.
       4. policy_cost_per_mwh — RO + CfD levy pass-through (Phase 21a).
+      5. network_cost_per_mwh — DUoS + TNUoS pass-through (Phase 29a).
 
     Returns the priced unit rate as a float (£/MWh).
     """
@@ -83,7 +88,13 @@ def price_fixed_tariff(
     var_stressed = Z_SCORE * sigma_stressed * naked_mwh * forward_price
     expected_capital_cost_per_mwh = (var_stressed * WACC) / eac_mwh
 
-    return forward_price + expected_capital_cost_per_mwh + TARGET_MARGIN_GBP_PER_MWH + policy_cost_per_mwh
+    return (
+        forward_price
+        + expected_capital_cost_per_mwh
+        + TARGET_MARGIN_GBP_PER_MWH
+        + policy_cost_per_mwh
+        + network_cost_per_mwh
+    )
 
 
 # ToU multipliers applied on top of the flat rate calculated above.

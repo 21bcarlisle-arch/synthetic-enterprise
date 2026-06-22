@@ -1,4 +1,4 @@
-"""Phase 21a/27b: Electricity policy cost pass-through.
+"""Phase 21a/27b/29a: Electricity policy cost pass-through.
 
 Renewable Obligation (RO) and Contract for Difference (CfD) levies are
 mandatory per-MWh costs on all UK electricity supply. They are not embedded
@@ -115,6 +115,67 @@ _CCL_ELECTRICITY_RATE_BY_YEAR: dict[int, float] = {
     2023: 7.26,
     2024: 7.35,
 }
+
+
+# Phase 29a: Network charges (DUoS + TNUoS) for electricity customers.
+# DUoS (Distribution Use of System) + TNUoS (Transmission Use of System)
+# represent the single largest non-commodity cost component (~£32-46/MWh
+# for residential/SME, 2016-2024). These are passed through in the tariff
+# unit rate and recovered from the supplier's settlement payment.
+#
+# For residential/SME (LV connected): combined DUoS + TNUoS unit rate.
+# Post-TCR (April 2023) TNUoS residual moved to fixed standing charge; the
+# table retains the unit-rate equivalent for consistency.
+#
+# For I&C HV connected (C_IC1, C_IC2): DUoS only — TNUoS is Triad-based
+# (tracked separately in simulation/triad.py as an annual lump exposure;
+# NOT included here to avoid double-counting).
+#
+# Source: docs/market_research/historical_policy_costs_2016_2024.md Section 3
+# and Ofgem Price Cap Annex 3 (post-2019).
+_NETWORK_COST_RESI_SME_BY_YEAR: dict[int, float] = {
+    2016: 35.0,  # TNUoS ~£13/MWh + DUoS ~£22/MWh (mid-range estimate)
+    2017: 36.0,
+    2018: 37.0,
+    2019: 38.0,
+    2020: 38.0,
+    2021: 38.0,
+    2022: 43.0,  # step-up: RIIO-ED2 transition + TCR reforms
+    2023: 44.0,
+    2024: 46.0,
+}
+
+# I&C HV DUoS only (TNUoS tracked separately via Triad mechanism)
+_DUOS_IC_BY_YEAR: dict[int, float] = {
+    2016: 11.0,
+    2017: 11.0,
+    2018: 11.5,
+    2019: 12.0,
+    2020: 12.0,
+    2021: 12.0,
+    2022: 13.0,
+    2023: 13.5,
+    2024: 14.0,
+}
+
+
+def get_electricity_network_cost_per_mwh(date_str: str, segment: str = "resi") -> float:
+    """Network charge (DUoS + TNUoS) for electricity by year and customer segment.
+
+    Residential/SME: combined DUoS + TNUoS unit rate (£32-46/MWh, 2016-2024).
+    I&C HV: DUoS only (£11-14/MWh) — TNUoS is Triad-based, tracked in triad.py.
+    Gas customers: returns 0.0 (gas network charges modelled separately or not at all).
+    """
+    year = int(date_str[:4])
+    if segment == "I&C":
+        table = _DUOS_IC_BY_YEAR
+    else:
+        table = _NETWORK_COST_RESI_SME_BY_YEAR
+    if year in table:
+        return table[year]
+    if year < min(table):
+        return table[min(table)]
+    return table[max(table)]
 
 
 def get_ccl_per_mwh(date_str: str, segment: str = "resi") -> float:

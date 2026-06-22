@@ -18,7 +18,7 @@ from company.pricing.tariff_engine import CompanyTariffEngine
 from saas.tariff_pricing import price_fixed_tariff
 from sim.forward_curve import generate_forward_price
 from sim.hedging_strategy import MIN_HEDGE_FLOOR
-from simulation.policy_costs import get_electricity_policy_cost_per_mwh
+from simulation.policy_costs import get_electricity_network_cost_per_mwh, get_electricity_policy_cost_per_mwh
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 _COMPANY_ENGINE = CompanyTariffEngine()
@@ -27,6 +27,7 @@ _COMPANY_ENGINE = CompanyTariffEngine()
 def build_renewal_schedule(
     customer_id: str, original_acquisition_date: str, report_end_date: str,
     price_records: list[dict], eac_kwh: int, lookback_temps_fn=None,
+    segment: str = "resi",
 ) -> list[dict]:
     """Build a chronological sequence of contiguous 1-year contract terms
     for one customer, covering [original_acquisition_date, report_end_date].
@@ -77,10 +78,12 @@ def build_renewal_schedule(
         except ValueError:
             company_fwd = sim_fwd  # fallback: insufficient prior data for first term
         policy_cost = get_electricity_policy_cost_per_mwh(term_start_str)
+        network_cost = get_electricity_network_cost_per_mwh(term_start_str, segment)
         unit_rate = price_fixed_tariff(
             company_fwd, eac_kwh, term_start_str,
             naked_fraction=1 - MIN_HEDGE_FLOOR,
             policy_cost_per_mwh=policy_cost,
+            network_cost_per_mwh=network_cost,
         )
         terms.append({
             "customer_id": customer_id,
