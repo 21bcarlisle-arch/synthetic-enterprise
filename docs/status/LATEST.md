@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T05:07:13Z
+Last updated: 2026-06-22T05:13:08Z
+
+**Phase 21c LIVE (2026-06-22)**: Consumption recalibration — C1 and C5 EAC corrected. 871 tests passing (4 new).
+- `saas/customers.py`: C1 resi 2,800→2,500 kWh/yr (Ofgem TDCV domestic medium); C5 SME small_office 25,000→15,000 kWh/yr (midrange 8,500–25,000 real range)
+- Successors C1_2, C5_2 updated to match; first-term tariff + hedging now calibrated
+- Post-Phase-25a: subsequent terms auto-correct via settlement-derived EAC anyway
+- Phase 22b next: company takes ownership of hedging decisions (move `evolve_hedge_fraction()` to company layer — closes Level 2 separation)
 
 **Phase 21b LIVE (2026-06-22)**: Per-customer net assets solvency signal. 867 tests passing (7 new).
 - `saas/reporting/annual_report.py`: `_section_solvency_signal()` — treasury ÷ active billing accounts each year-end

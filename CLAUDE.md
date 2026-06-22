@@ -128,6 +128,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 21c COMPLETE (2026-06-22)**: Consumption recalibration — C1 and C5 EAC corrected. 4 new tests.
+- `saas/customers.py`: C1 resi eac_kwh 2800→2500 (Ofgem TDCV domestic medium); C5 SME small_office 25000→15000 (midrange 8,500–25,000 kWh/yr)
+- Both successors (C1_2, C5_2) updated to match
+- Impact: first-term tariff pricing and hedging more accurate; subsequent terms auto-correct via settlement-derived EAC (Phase 25a)
+- Starting treasury barely changes (~0.5% total EAC shift — dominated by C_IC1 at 2 GWh)
+
 **Phase 21b COMPLETE (2026-06-22)**: Per-customer net assets solvency signal. 7 new tests.
 - `saas/reporting/annual_report.py`: `_section_solvency_signal()` — treasury ÷ active billing accounts each year-end
 - Ofgem licence floor: £0/account (positive net assets required); capital adequacy target: £130/dual-fuel account

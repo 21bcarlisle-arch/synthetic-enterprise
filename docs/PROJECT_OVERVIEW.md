@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-22. 320+ commits. 867 tests (~853 in SIM_FAST_MODE=1). Codebase: ~17,450 lines across 184+ Python modules.*
+*Last updated: 2026-06-22. 320+ commits. 871 tests (~857 in SIM_FAST_MODE=1). Codebase: ~17,450 lines across 184+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -341,6 +341,7 @@ Net after CTS:               £7,498
 **R&D (Phase 21a):** Two scenario research agents documented energy market complexity and international stress scenarios. Key findings in `docs/market_research/`: negative price regime change (29→149→~1,000 hours/year peak 2027), bimodal price distribution at 70%+ renewables, UK January 2026 cold snap (£1,040/MWh), Dunkelflaute cross-border correlation, BESS market saturation. Institutional knowledge map updated with "Novel/Unseen Scenario Generation" domain.
 
 - **Per-customer net assets solvency signal** (Phase 21b): `_section_solvency_signal()` in annual report — treasury ÷ active billing accounts each year-end. Ofgem licence floor: £0/account; capital adequacy target: £130/dual-fuel billing account. `_billing_account_id` dedup: C1g + C1 = one billing account. BREACH flag when negative; "below (gap)" when below target. 7 new tests (867 total).
+- **Consumption recalibration** (Phase 21c): C1 resi 2,800→2,500 kWh/yr (Ofgem TDCV domestic medium); C5 SME small_office 25,000→15,000 kWh/yr (midrange 8,500–25,000 kWh real range). Both successors (C1_2, C5_2) updated. First-term tariff pricing and hedging now calibrated; subsequent terms self-correct via settlement-derived EAC (Phase 25a). 4 new tests (871 total).
 
 ### Phase 22 — Post-Crisis Churn Hangover + Trailing-Margin CLV
 **Files:** `company/crm/churn_model.py`, `saas/clv_model.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`
@@ -610,7 +611,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 177 Python modules, ~16,000 lines
 - 306 git commits
-- 867 tests (all green); ~853 in SIM_FAST_MODE=1; 867 in full suite (~40 min with Ollama)
+- 871 tests (all green); ~857 in SIM_FAST_MODE=1; 871 in full suite (~40 min with Ollama)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -626,7 +627,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
 - 323 risk committee Ollama calls per run (each ~7s) — 95% of 38-min runtime
-- Full test suite: 867 tests, ~16s with SIM_FAST_MODE=1
+- Full test suite: 871 tests, ~16s with SIM_FAST_MODE=1
 
 ---
 
