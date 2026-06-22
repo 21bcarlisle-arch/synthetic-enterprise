@@ -121,7 +121,7 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,195+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 40c adds 8 (excl. fast_run), Phase 40b adds 7, Phase 40a adds 9, fixes 2 stale CCL/CM tests. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
+**1,210+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 41-prep adds 10 (forward curve reform). Phase 40c adds 8 (excl. fast_run), Phase 40b adds 7, Phase 40a adds 9, fixes 2 stale. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -131,6 +131,12 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 41-prep COMPLETE (2026-06-22)**: Forward curve reform — EWMA + term structure model. 10 new tests (15 total in test_forward_curve.py, up from 5 meaningful structural tests).
+- `sim/forward_curve.py`: replaced `base + pstdev × risk_factor` with `spot_ewma × seasonal_shape × (1 + term_premium)`. EWMA half-life 30 days (vs 90-day SMA). Monthly seasonal multipliers (vs binary winter/summer). Term premium = BASE × sqrt(tenor_years) × (risk_factor/1.2) — 6% for 1-year electricity.
+- `simulation/run_phase2b.py`, `simulation/run_segments.py`: bootstrap functions updated to same formula.
+- `tests/sim/test_forward_curve.py`: rewritten with structural property tests + new `_ewma` / `_seasonal_shape` unit tests.
+- Research: `docs/market_research/uk_power_forward_curves_2016_2025.md` — UK forward market structure, contango/backwardation patterns, seasonal shape calibration, term premium calibration.
 
 **Phase 40c COMPLETE (2026-06-22)**: Deemed rate for out-of-contract I&C customers. 8 new tests.
 - `saas/customers.py`: `C_IC1` and `C_IC2` get `deemed_gap_days: 30` — 30-day out-of-contract window on each renewal.

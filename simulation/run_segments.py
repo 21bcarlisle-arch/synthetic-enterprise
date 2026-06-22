@@ -22,9 +22,14 @@ from saas.property_model import DEFAULT_ASSETS, DEFAULT_HEATING_SYSTEM, DEFAULT_
 from saas.tariff_pricing import price_fixed_tariff
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
+    BASE_TERM_PREMIUM,
+    DEFAULT_RISK_FACTOR,
+    EWMA_HALF_LIFE_DAYS,
     SUMMER_MULTIPLIER,
     WINTER_MONTHS,
     WINTER_MULTIPLIER,
+    _ewma,
+    _seasonal_shape,
     generate_forward_price,
 )
 from sim.gas_prices_history import load_nbp_history
@@ -89,15 +94,16 @@ def _bootstrap_gas_price(
         r for r in gas_records
         if start_date <= date.fromisoformat(r["settlementDate"]) <= window_end
     ]
-    base = statistics.mean(r["systemSellPrice"] for r in filtered)
-    vol = statistics.pstdev(r["systemSellPrice"] for r in filtered) * risk_factor
-    fwd = base + vol
-    start_month = start_date.month
-    seasonal = statistics.mean(
-        WINTER_MULTIPLIER if ((start_month - 1 + i) % 12 + 1) in WINTER_MONTHS else SUMMER_MULTIPLIER
-        for i in range(12)
-    )
-    fwd *= seasonal
+    daily_buckets: dict[str, list[float]] = {}
+    for r in filtered:
+        daily_buckets.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
+    daily_means = [statistics.mean(v) for _, v in sorted(daily_buckets.items())]
+    effective_hl = min(EWMA_HALF_LIFE_DAYS, len(daily_means)) if daily_means else 1
+    spot_ewma = _ewma(daily_means, effective_hl) if daily_means else 0.0
+    seasonal = _seasonal_shape(start_date.month, 12)
+    tenor_years = 12 / 12.0
+    term_premium = BASE_TERM_PREMIUM * (tenor_years ** 0.5) * (risk_factor / DEFAULT_RISK_FACTOR)
+    fwd = spot_ewma * seasonal * (1.0 + term_premium)
     if lookback_daily_mean_temps_c:
         fwd *= weather_sensitivity_multiplier(lookback_daily_mean_temps_c)
     return fwd

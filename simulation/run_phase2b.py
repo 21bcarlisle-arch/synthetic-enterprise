@@ -53,9 +53,14 @@ from saas.property_model import (
 from saas.tariff_pricing import TOU_OFFPEAK_MULTIPLIER, TOU_PEAK_MULTIPLIER, price_fixed_tariff
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
+    BASE_TERM_PREMIUM,
+    DEFAULT_RISK_FACTOR,
+    EWMA_HALF_LIFE_DAYS,
     SUMMER_MULTIPLIER,
     WINTER_MONTHS,
     WINTER_MULTIPLIER,
+    _ewma,
+    _seasonal_shape,
     generate_forward_price,
 )
 from sim.gas_prices_history import load_nbp_history
@@ -241,19 +246,20 @@ def _bootstrap_first_term_forward_price(
         if start_date <= date.fromisoformat(record["settlementDate"]) <= window_end
     ]
 
-    base_price = statistics.mean(record["systemSellPrice"] for record in filtered_records)
-    volatility_premium = statistics.pstdev(
-        record["systemSellPrice"] for record in filtered_records
-    ) * risk_factor
-    forward_base = base_price + volatility_premium
-
-    start_month = start_date.month
-    seasonal_multipliers = [
-        WINTER_MULTIPLIER if ((start_month - 1 + offset) % 12 + 1) in WINTER_MONTHS else SUMMER_MULTIPLIER
-        for offset in range(contract_length_months)
+    # Use EWMA + term-structure formula (mirrors generate_forward_price reform)
+    daily_buckets: dict[str, list[float]] = {}
+    for r in filtered_records:
+        daily_buckets.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
+    daily_means = [
+        statistics.mean(prices)
+        for _d, prices in sorted(daily_buckets.items())
     ]
-    seasonal_multiplier = statistics.mean(seasonal_multipliers)
-    forward_price = forward_base * seasonal_multiplier
+    effective_hl = min(EWMA_HALF_LIFE_DAYS, len(daily_means)) if daily_means else 1
+    spot_ewma = _ewma(daily_means, effective_hl) if daily_means else 0.0
+    seasonal = _seasonal_shape(start_date.month, contract_length_months)
+    tenor_years = contract_length_months / 12.0
+    term_premium = BASE_TERM_PREMIUM * (tenor_years ** 0.5) * (risk_factor / DEFAULT_RISK_FACTOR)
+    forward_price = spot_ewma * seasonal * (1.0 + term_premium)
 
     if lookback_daily_mean_temps_c is not None:
         forward_price *= weather_sensitivity_multiplier(lookback_daily_mean_temps_c)
