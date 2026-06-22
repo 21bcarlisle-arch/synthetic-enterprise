@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-22. 325+ commits. 930 tests (~916 in SIM_FAST_MODE=1). Codebase: ~17,800 lines across 188+ Python modules.*
+*Last updated: 2026-06-22. 325+ commits. 936 tests (~922 in SIM_FAST_MODE=1). Codebase: ~17,900 lines across 188+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -348,6 +348,7 @@ Net after CTS:               £7,498
 - **Volume tolerance tracking** (Phase 27c): `simulation/volume_tolerance.py` — `compute_term_volume_tolerance()` computes actual vs contracted ±10% at each I&C term end. Excess above +10% band costs spot; deficit below -10% triggers hedge unwind at spot (P&L = (spot-hedge_price) × hedged_deficit_kwh). `volume_tolerance_log` in run output; `_section_volume_tolerance()` in annual report with ⚠ breach flag. 12 new tests (909 total).
 - **Triad risk** (Phase 27d): `simulation/triad.py` — `identify_triad_candidates()` (top-3 highest SSP periods Nov-Feb, ≥10 days apart) + `compute_triad_exposure()` (demand_kw × TNUoS tariff £/kW/year). `_TNUOS_TRIAD_TARIFF_BY_YEAR`: £46.23→£63.82/kW 2016-2024. Computed after term loop for each winter × each I&C customer; `triad_log` in run output; `_section_triad_exposure()` in annual report. 15 new tests (924 total).
 - **I&C churn model** (Phase 27e): `company/crm/churn_model.py` gains `IC_BASE_CHURN_RATE=0.20`, `IC_RATE_SENSITIVITY=1.5`, `IC_TENURE_DISCOUNT_PER_YEAR=0.005`, `IC_BILL_STRESS_THRESHOLD_GBP=50,000`. `estimate_churn_probability()` gains `segment` param; I&C uses broker-driven constants. `run_phase2b.py` passes `segment=segment_for_churn` at electricity renewal. 6 new tests (930 total).
+- **I&C portfolio summary** (Phase 28a): `_section_ic_portfolio()` in annual report — lifetime P&L, CCL/MWh, TNUoS Triad exposure, volume tolerance summary, year-by-year segment comparison (I&C vs SME vs Resi). Identifies I&C customers from `ccl_gbp > 0` in settlement records; pulls `triad_log` + `volume_tolerance_log`. Backward compatible. 6 new tests (936 total).
 
 ### Phase 22 — Post-Crisis Churn Hangover + Trailing-Margin CLV
 **Files:** `company/crm/churn_model.py`, `saas/clv_model.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`
@@ -617,7 +618,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 177 Python modules, ~16,000 lines
 - 306 git commits
-- 930 tests (all green); ~916 in SIM_FAST_MODE=1; 930 in full suite (~40 min with Ollama)
+- 936 tests (all green); ~922 in SIM_FAST_MODE=1; 936 in full suite (~40 min with Ollama)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -633,7 +634,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
 - 323 risk committee Ollama calls per run (each ~7s) — 95% of 38-min runtime
-- Full test suite: 930 tests, ~16s with SIM_FAST_MODE=1
+- Full test suite: 936 tests, ~16s with SIM_FAST_MODE=1
 
 ---
 

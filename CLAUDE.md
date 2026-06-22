@@ -128,6 +128,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 28a COMPLETE (2026-06-22)**: I&C portfolio summary section in annual report. 6 new tests.
+- `saas/reporting/annual_report.py`: `_section_ic_portfolio()` — lifetime P&L, CCL/MWh, TNUoS Triad exposure, volume tolerance summary, and year-by-year segment comparison (I&C vs SME vs Resi)
+- Identifies I&C customers from settlement records via `ccl_gbp > 0` (resi is exempt)
+- Pulls from `triad_log`, `volume_tolerance_log`, `segment_split` per year — no new run keys required
+- Backward compatible: silent if no I&C settlement records (pre-Phase-24a runs)
+
 **Phase 27e COMPLETE (2026-06-22)**: I&C churn model — broker-driven, price-sensitive. 6 new tests.
 - `company/crm/churn_model.py`: `IC_BASE_CHURN_RATE=0.20` (vs 0.10 resi), `IC_RATE_SENSITIVITY=1.5` (vs 0.8), `IC_TENURE_DISCOUNT_PER_YEAR=0.005`, `IC_BILL_STRESS_THRESHOLD_GBP=50,000` (vs £3k)
 - `estimate_churn_probability()` gains `segment="I&C"` param — I&C uses broker-driven constants

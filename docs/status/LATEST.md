@@ -8,7 +8,11 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T06:06:27Z
+Last updated: 2026-06-22T06:12:36Z
+
+**Phase 28a LIVE (2026-06-22)**: I&C portfolio summary section in annual report. 6 new tests.
+- `_section_ic_portfolio()`: lifetime P&L, CCL/MWh, TNUoS exposure, volume tolerance summary, segment comparison by year
+- Identifies I&C from settlement CCL records; pulls triad_log + volume_tolerance_log; backward compatible
 
 **Phase 27e LIVE (2026-06-22)**: I&C churn model — broker-driven, price-sensitive. 6 new tests.
 - `company/crm/churn_model.py`: `IC_BASE_CHURN_RATE=0.20` (vs 0.10 resi), `IC_RATE_SENSITIVITY=1.5` (vs 0.8), `IC_BILL_STRESS_THRESHOLD_GBP=£50k`

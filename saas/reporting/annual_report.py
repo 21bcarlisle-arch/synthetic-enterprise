@@ -2571,6 +2571,138 @@ def _section_triad_exposure(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_ic_portfolio(data: dict) -> str:
+    """Phase 28a: I&C portfolio — segment comparison, CCL, Triad, volume tolerance."""
+    all_records = data.get("all_records", [])
+    if not all_records:
+        return ""
+
+    # Identify I&C customers from segment_split keys or all_records
+    ic_records = [r for r in all_records if r.get("commodity") == "electricity"
+                  and any(k for k in r if k == "customer_id")]
+    # Build CCL totals and revenue by customer from settlement records
+    ic_customers = set()
+    years = data.get("years", {})
+    for year, yd in years.items():
+        seg_split = yd.get("segment_split", {})
+        for seg_key in seg_split:
+            if seg_key.startswith("I&C"):
+                # I&C customers are present this year
+                pass
+
+    # Aggregate by customer from all_records
+    cust_stats: dict[str, dict] = {}
+    for rec in all_records:
+        if rec.get("commodity") != "electricity":
+            continue
+        cid = rec.get("customer_id", "")
+        # Check if I&C from the data we have — use customers module
+        ccl = rec.get("ccl_gbp", 0.0)
+        if ccl == 0.0:
+            continue  # only I&C (and SME) pay CCL; skip resi
+        if cid not in cust_stats:
+            cust_stats[cid] = {
+                "revenue_gbp": 0.0, "net_margin_gbp": 0.0, "ccl_gbp": 0.0,
+                "consumption_kwh": 0.0, "n_records": 0,
+            }
+        cust_stats[cid]["revenue_gbp"] += rec.get("revenue_gbp", 0.0)
+        cust_stats[cid]["net_margin_gbp"] += rec.get("net_margin_gbp", 0.0)
+        cust_stats[cid]["ccl_gbp"] += ccl
+        cust_stats[cid]["consumption_kwh"] += rec.get("consumption_kwh", 0.0)
+        cust_stats[cid]["n_records"] += 1
+
+    if not cust_stats:
+        return ""
+
+    triad_log = data.get("triad_log", [])
+    vol_log = data.get("volume_tolerance_log", [])
+
+    lines = [
+        "## I&C Portfolio Summary (Phase 28a)",
+        "",
+        "I&C customers (business electricity, HH metered): lifetime P&L, policy costs, and risk metrics.",
+        "",
+        "| Customer | Revenue £ | Net Margin £ | Net Margin % | CCL £ | MWh Settled | CCL £/MWh |",
+        "|----------|----------|-------------|-------------|-------|-------------|-----------|",
+    ]
+
+    totals = {"revenue": 0.0, "net": 0.0, "ccl": 0.0, "mwh": 0.0}
+    for cid in sorted(cust_stats):
+        s = cust_stats[cid]
+        mwh = s["consumption_kwh"] / 1000.0
+        net_pct = s["net_margin_gbp"] / s["revenue_gbp"] * 100.0 if s["revenue_gbp"] > 0 else 0.0
+        ccl_per_mwh = s["ccl_gbp"] / mwh if mwh > 0 else 0.0
+        totals["revenue"] += s["revenue_gbp"]
+        totals["net"] += s["net_margin_gbp"]
+        totals["ccl"] += s["ccl_gbp"]
+        totals["mwh"] += mwh
+        lines.append(
+            f"| {cid} | {s['revenue_gbp']:,.0f} | {s['net_margin_gbp']:,.0f} "
+            f"| {net_pct:.1f}% | {s['ccl_gbp']:,.0f} | {mwh:,.0f} | {ccl_per_mwh:.2f} |"
+        )
+
+    if len(cust_stats) > 1:
+        total_pct = totals["net"] / totals["revenue"] * 100.0 if totals["revenue"] > 0 else 0.0
+        total_ccl_mwh = totals["ccl"] / totals["mwh"] if totals["mwh"] > 0 else 0.0
+        lines.append(
+            f"| **Total** | **{totals['revenue']:,.0f}** | **{totals['net']:,.0f}** "
+            f"| **{total_pct:.1f}%** | **{totals['ccl']:,.0f}** | **{totals['mwh']:,.0f}** "
+            f"| {total_ccl_mwh:.2f} |"
+        )
+
+    lines.append("")
+
+    # Triad summary
+    if triad_log:
+        total_tnuos = sum(e["estimated_tnuos_gbp"] for e in triad_log)
+        ic_tnuos = {e["customer_id"]: 0.0 for e in triad_log}
+        for e in triad_log:
+            ic_tnuos[e["customer_id"]] = ic_tnuos.get(e["customer_id"], 0.0) + e["estimated_tnuos_gbp"]
+        lines.append(f"**TNUoS Triad exposure (cumulative):** £{total_tnuos:,.0f} across all winters.")
+        for cid, total in sorted(ic_tnuos.items()):
+            lines.append(f"- {cid}: £{total:,.0f}")
+        lines.append("")
+
+    # Volume tolerance summary
+    if vol_log:
+        breach_count = sum(1 for e in vol_log if not e["within_band"])
+        total_excess = sum(e["excess_kwh"] for e in vol_log)
+        total_excess_cost = sum(e["excess_spot_cost_gbp"] for e in vol_log)
+        lines.append(
+            f"**Volume tolerance:** {len(vol_log)} I&C terms tracked; "
+            f"{breach_count} breach(es); total excess {total_excess:,.0f} kWh "
+            f"at spot cost £{total_excess_cost:,.0f}."
+        )
+        lines.append("")
+
+    # Segment margin comparison from yearly data
+    ic_net_by_year: dict[str, float] = {}
+    resi_net_by_year: dict[str, float] = {}
+    sme_net_by_year: dict[str, float] = {}
+    for year, yd in sorted(years.items()):
+        seg = yd.get("segment_split", {})
+        ic_net_by_year[year] = sum(v.get("net_gbp", 0.0) for k, v in seg.items() if k.startswith("I&C"))
+        resi_net_by_year[year] = sum(v.get("net_gbp", 0.0) for k, v in seg.items() if k.startswith("resi"))
+        sme_net_by_year[year] = sum(v.get("net_gbp", 0.0) for k, v in seg.items() if k.startswith("SME"))
+
+    ic_years = {y for y, v in ic_net_by_year.items() if v != 0.0}
+    if ic_years:
+        lines.append("**Net margin by segment and year (£):**")
+        lines.append("")
+        lines.append("| Year | I&C | SME | Resi |")
+        lines.append("|------|-----|-----|------|")
+        for year in sorted(ic_net_by_year):
+            if year in ic_years or sme_net_by_year.get(year) or resi_net_by_year.get(year):
+                lines.append(
+                    f"| {year} | {ic_net_by_year.get(year, 0):,.0f} "
+                    f"| {sme_net_by_year.get(year, 0):,.0f} "
+                    f"| {resi_net_by_year.get(year, 0):,.0f} |"
+                )
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def _section_gas_renewal_pressure(data: dict) -> str:
     """Gas Renewal Pressure -- Phase 15a: dual-fuel gas rate change monitoring.
 
@@ -2926,6 +3058,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_solvency_signal(data))
     sections.append(_section_volume_tolerance(data))
     sections.append(_section_triad_exposure(data))
+    sections.append(_section_ic_portfolio(data))
     sections.append(_section_tou_utilization(data))
     sections.append(_section_bill_shock_summary(data))
     sections.append(_section_gas_renewal_pressure(data))

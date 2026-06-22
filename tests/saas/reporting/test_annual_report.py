@@ -12,6 +12,7 @@ from saas.reporting.annual_report import (
     _mandate_comparison_section,
     _pricing_action,
     _section_enterprise_value_analysis,
+    _section_ic_portfolio,
     _section_policy_costs,
     _section_solvency_signal,
     _section_volume_tolerance,
@@ -2137,3 +2138,93 @@ def test_triad_exposure_totals_across_customers():
     assert "16,923" in result
     assert "C_IC1" in result
     assert "C_IC2" in result
+
+
+# --- Phase 28a: _section_ic_portfolio tests ---
+
+def _make_ic_portfolio_data():
+    """Minimal data for _section_ic_portfolio with two I&C customers."""
+    return {
+        "all_records": [
+            {
+                "customer_id": "C_IC1",
+                "commodity": "electricity",
+                "revenue_gbp": 300_000.0,
+                "net_margin_gbp": 15_000.0,
+                "ccl_gbp": 14_340.0,
+                "consumption_kwh": 2_000_000.0,
+            },
+            {
+                "customer_id": "C_IC2",
+                "commodity": "electricity",
+                "revenue_gbp": 150_000.0,
+                "net_margin_gbp": 7_500.0,
+                "ccl_gbp": 7_170.0,
+                "consumption_kwh": 1_000_000.0,
+            },
+        ],
+        "years": {
+            "2021": {
+                "segment_split": {
+                    "I&C electricity": {"net_gbp": 22_500.0},
+                    "SME electricity": {"net_gbp": 5_000.0},
+                    "resi electricity": {"net_gbp": -2_000.0},
+                }
+            }
+        },
+        "triad_log": [],
+        "volume_tolerance_log": [],
+    }
+
+
+def test_ic_portfolio_empty_returns_empty():
+    assert _section_ic_portfolio({}) == ""
+    assert _section_ic_portfolio({"all_records": []}) == ""
+
+
+def test_ic_portfolio_no_ccl_returns_empty():
+    """Without CCL records, I&C can't be identified — returns empty."""
+    data = {
+        "all_records": [
+            {"customer_id": "C1", "commodity": "electricity",
+             "revenue_gbp": 1000.0, "net_margin_gbp": 50.0,
+             "ccl_gbp": 0.0, "consumption_kwh": 10000.0},
+        ],
+        "years": {},
+    }
+    assert _section_ic_portfolio(data) == ""
+
+
+def test_ic_portfolio_shows_customer_summary():
+    data = _make_ic_portfolio_data()
+    result = _section_ic_portfolio(data)
+    assert "C_IC1" in result
+    assert "C_IC2" in result
+    assert "I&C Portfolio" in result
+
+
+def test_ic_portfolio_shows_ccl_totals():
+    data = _make_ic_portfolio_data()
+    result = _section_ic_portfolio(data)
+    # CCL totals: 14340 + 7170 = 21510
+    assert "14,340" in result
+    assert "7,170" in result
+
+
+def test_ic_portfolio_shows_segment_comparison():
+    data = _make_ic_portfolio_data()
+    result = _section_ic_portfolio(data)
+    # Segment table should include 2021 row
+    assert "2021" in result
+    assert "22,500" in result  # I&C net
+
+
+def test_ic_portfolio_includes_triad_when_present():
+    data = _make_ic_portfolio_data()
+    data["triad_log"] = [
+        {"customer_id": "C_IC1", "triad_year": 2021,
+         "avg_triad_kw": 250.0, "tnuos_tariff_gbp_per_kw": 56.41,
+         "estimated_tnuos_gbp": 14_102.5, "triad_periods": []},
+    ]
+    result = _section_ic_portfolio(data)
+    assert "TNUoS" in result or "Triad" in result
