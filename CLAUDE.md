@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,081+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 35b adds 9 new tests, Phase 35a adds 16 new tests, Phase 34a adds 9 new tests.**
+**1,090+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 36a adds 9 new tests, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 36a COMPLETE (2026-06-22)**: Scenario integration runner. 9 new tests.
+- `simulation/run_scenario.py`: `run_forward_scenario(scenario, year_from, year_to, seed)` — runs full 2016-year_to sim using historical + synthetic scenario prices.
+- `build_extended_price_feeds()`: appends scenario electricity (expanded to half-hourly) + gas records to historical feeds.
+- Monkey-patches `get_cached_prices` and `load_nbp_history` so `main()` sees the extended records transparently.
+- 1,090 non-integration tests passing
 
 **Phase 35b COMPLETE (2026-06-22)**: Gas forward scenario generator. 9 new tests.
 - `sim/scenario/gas_scenario_generator.py`: `generate_gas_scenario_prices(year_from, year_to, scenario, seed)` — regime-conditioned gas NBP prices, correlated with electricity scenario.
