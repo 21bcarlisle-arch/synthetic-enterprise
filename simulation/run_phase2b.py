@@ -323,6 +323,34 @@ def _build_gas_renewal_schedule(
     return schedule
 
 
+def _build_churn_basis_risk(customer_events_log: list) -> list[dict]:
+    """Phase 11b + 39a: Build churn basis risk records with SVT comparison."""
+    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+
+    records = []
+    for e in customer_events_log:
+        if e.get("company_churn_estimate") is None:
+            continue
+        unit_rate = e.get("unit_rate_gbp_per_mwh")
+        term_start = e["event_date"]
+        svt_rate = get_svt_elec_rate_gbp_per_mwh(term_start)
+        rate_vs_svt_pct = None
+        if unit_rate is not None and svt_rate is not None and svt_rate > 0:
+            rate_vs_svt_pct = round((unit_rate - svt_rate) / svt_rate * 100.0, 2)
+        records.append({
+            "customer_id": e["customer_id"],
+            "term_start": term_start,
+            "sim_churn_probability": e["churn_probability"],
+            "company_churn_estimate": e["company_churn_estimate"],
+            "churn_estimate_error_pct": e["churn_estimate_error_pct"],
+            "is_active_renewal": e.get("is_active_renewal", True),
+            "unit_rate_gbp_per_mwh": unit_rate,
+            "svt_rate_gbp_per_mwh": svt_rate,
+            "rate_vs_svt_pct": rate_vs_svt_pct,
+        })
+    return records
+
+
 def _build_company_event_log(
     customer_events_log: list,
     won_successor_activations: dict,
@@ -816,6 +844,7 @@ def main(report_end: str | None = None, sim_interface=None):
             )
             if event is not None:
                 event["is_active_renewal"] = active_renewal
+                event["unit_rate_gbp_per_mwh"] = unit_rate
                 customer_events_log.append(event)
                 if retention_modifier_val is not None and retention_log:
                     outcome_str = "churned_despite_offer" if event["event_type"] == "churned" else "retained"
@@ -1328,18 +1357,8 @@ def main(report_end: str | None = None, sim_interface=None):
         # Phase 11a: basis risk — company estimate vs sim ground truth per term
         "basis_risk_terms": basis_risk_terms,
         # Phase 11b: churn basis risk — company churn estimate vs sim ground truth per renewal
-        "churn_basis_risk": [
-            {
-                "customer_id": e["customer_id"],
-                "term_start": e["event_date"],
-                "sim_churn_probability": e["churn_probability"],
-                "company_churn_estimate": e["company_churn_estimate"],
-                "churn_estimate_error_pct": e["churn_estimate_error_pct"],
-                "is_active_renewal": e.get("is_active_renewal", True),
-            }
-            for e in customer_events_log
-            if e.get("company_churn_estimate") is not None
-        ],
+        # Phase 39a: extended with SVT comparison fields
+        "churn_basis_risk": _build_churn_basis_risk(customer_events_log),
         # Phase 12a: company CRM event log — dated artefacts of churn and acquisition
         "company_event_log": _build_company_event_log(
             customer_events_log, won_successor_activations, fresh_acquisitions, SUCCESSOR_MAP

@@ -2491,3 +2491,86 @@ def test_section_scenario_metadata_is_first_after_title():
     # The section heading should be near the top
     idx = result.find("Forward Scenario Run")
     assert idx < 100, f"Heading not near top: found at index {idx}"
+
+
+# ── Phase 39a: SVT comparative pricing ────────────────────────────────────────
+
+def _make_cbr_with_svt(
+    is_active=False,
+    unit_rate=200.0,
+    svt_rate=250.0,
+    term_start="2024-01-01",
+):
+    pct = round((unit_rate - svt_rate) / svt_rate * 100.0, 2) if svt_rate else None
+    return {
+        "customer_id": "C1",
+        "term_start": term_start,
+        "sim_churn_probability": 0.1,
+        "company_churn_estimate": 0.12,
+        "churn_estimate_error_pct": 0.02,
+        "is_active_renewal": is_active,
+        "unit_rate_gbp_per_mwh": unit_rate,
+        "svt_rate_gbp_per_mwh": svt_rate,
+        "rate_vs_svt_pct": pct,
+    }
+
+
+def test_section_svt_comparison_silent_without_passive():
+    from saas.reporting.annual_report import _section_svt_comparison
+    data = {"churn_basis_risk": [_make_cbr_with_svt(is_active=True)]}
+    assert _section_svt_comparison(data) == ""
+
+
+def test_section_svt_comparison_silent_when_no_cbr():
+    from saas.reporting.annual_report import _section_svt_comparison
+    assert _section_svt_comparison({}) == ""
+
+
+def test_section_svt_comparison_has_heading():
+    from saas.reporting.annual_report import _section_svt_comparison
+    data = {"churn_basis_risk": [_make_cbr_with_svt(is_active=False)]}
+    result = _section_svt_comparison(data)
+    assert "SVT" in result
+    assert "Phase 39a" in result or "39a" in result
+
+
+def test_section_svt_comparison_below_svt_shown():
+    from saas.reporting.annual_report import _section_svt_comparison
+    # unit_rate < svt_rate → below SVT, premium is negative
+    data = {"churn_basis_risk": [_make_cbr_with_svt(is_active=False, unit_rate=200.0, svt_rate=250.0)]}
+    result = _section_svt_comparison(data)
+    assert "Protected" in result or "below" in result.lower() or "-" in result
+
+
+def test_section_svt_comparison_above_svt_shown():
+    from saas.reporting.annual_report import _section_svt_comparison
+    # unit_rate > svt_rate → above SVT, at-risk
+    data = {"churn_basis_risk": [_make_cbr_with_svt(is_active=False, unit_rate=300.0, svt_rate=250.0)]}
+    result = _section_svt_comparison(data)
+    assert "1" in result  # 1 above SVT
+
+
+def test_section_svt_comparison_year_breakdown():
+    from saas.reporting.annual_report import _section_svt_comparison
+    recs = [
+        _make_cbr_with_svt(is_active=False, term_start="2023-06-01"),
+        _make_cbr_with_svt(is_active=False, term_start="2024-06-01"),
+    ]
+    data = {"churn_basis_risk": recs}
+    result = _section_svt_comparison(data)
+    assert "2023" in result
+    assert "2024" in result
+
+
+def test_section_svt_comparison_silent_without_svt_data():
+    from saas.reporting.annual_report import _section_svt_comparison
+    # Pre-39a record: no svt_rate_gbp_per_mwh
+    rec = {
+        "customer_id": "C1",
+        "term_start": "2024-01-01",
+        "sim_churn_probability": 0.1,
+        "company_churn_estimate": 0.12,
+        "churn_estimate_error_pct": 0.02,
+        "is_active_renewal": False,
+    }
+    assert _section_svt_comparison({"churn_basis_risk": [rec]}) == ""

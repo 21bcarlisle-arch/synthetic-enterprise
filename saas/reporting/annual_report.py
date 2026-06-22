@@ -3387,6 +3387,75 @@ def _section_retention_durability(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_svt_comparison(data: dict) -> str:
+    """Phase 39a: SVT comparative pricing — fixed rate vs Standard Variable Tariff.
+
+    For passive renewers (who rolled to a fixed deal when they could have stayed
+    on SVT), shows whether the company's fixed rate was cheaper or more expensive
+    than the contemporaneous Ofgem cap SVT rate. A rate above SVT is a risk signal:
+    passive renewers will eventually notice and churn.
+
+    Silent if churn_basis_risk lacks SVT data (pre-Phase-39a runs).
+    """
+    cbr = data.get("churn_basis_risk", [])
+    passive = [r for r in cbr if not r.get("is_active_renewal", True) and r.get("svt_rate_gbp_per_mwh") is not None]
+    if not passive:
+        return ""
+
+    def _mean(vals):
+        return sum(vals) / len(vals) if vals else 0.0
+
+    premium_pcts = [r["rate_vs_svt_pct"] for r in passive if r.get("rate_vs_svt_pct") is not None]
+    above_svt = [r for r in passive if (r.get("rate_vs_svt_pct") or 0) > 0]
+    below_svt = [r for r in passive if (r.get("rate_vs_svt_pct") or 0) <= 0]
+
+    avg_premium = _mean(premium_pcts)
+    pct_above = len(above_svt) / len(passive) if passive else 0.0
+
+    lines = [
+        "## SVT Comparative Pricing — Passive Renewers (Phase 39a)",
+        "",
+        "Passive renewers roll to a new fixed deal by inaction. A rate above SVT creates "
+        "latent churn risk: once the customer notices they're paying more than the cap, "
+        "they switch. A rate below SVT signals loyalty value — the company is rewarding inertia.",
+        "",
+        f"- **Passive renewal events with SVT data:** {len(passive)}",
+        f"- **Above SVT (at-risk):** {len(above_svt)} ({pct_above:.0%})",
+        f"- **Below/at SVT (protected):** {len(below_svt)} ({1-pct_above:.0%})",
+        f"- **Mean rate vs SVT premium:** {avg_premium:+.1f}%",
+        "",
+        "| Year | Passive Renewals | Above SVT | Avg Premium | Avg Fixed Rate (£/MWh) | Avg SVT (£/MWh) |",
+        "|------|-----------------|-----------|-------------|----------------------|----------------|",
+    ]
+
+    by_year: dict[str, list] = {}
+    for r in passive:
+        year = r["term_start"][:4]
+        by_year.setdefault(year, []).append(r)
+
+    for year in sorted(by_year):
+        recs = by_year[year]
+        above = sum(1 for r in recs if (r.get("rate_vs_svt_pct") or 0) > 0)
+        pcts = [r["rate_vs_svt_pct"] for r in recs if r.get("rate_vs_svt_pct") is not None]
+        avg_p = _mean(pcts)
+        avg_fixed = _mean([r["unit_rate_gbp_per_mwh"] for r in recs if r.get("unit_rate_gbp_per_mwh") is not None])
+        avg_svt = _mean([r["svt_rate_gbp_per_mwh"] for r in recs if r.get("svt_rate_gbp_per_mwh") is not None])
+        lines.append(
+            f"| {year} | {len(recs)} | {above} ({above/len(recs):.0%}) "
+            f"| {avg_p:+.1f}% | {avg_fixed:.1f} | {avg_svt:.1f} |"
+        )
+
+    lines += [
+        "",
+        "**Interpretation:** Premium > 0% means the company is charging passive renewers "
+        "above the SVT rate — a regulatory and reputational risk. Premium < 0% means "
+        "passive renewers are getting a better-than-SVT deal — the company is leaving "
+        "margin on the table but building loyalty.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _section_scenario_metadata(data: dict) -> str:
     """Phase 37a: Forward scenario metadata banner.
 
@@ -3463,6 +3532,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_customer_lifecycle_events_section(data))
     sections.append(_churn_basis_risk_section(data))
     sections.append(_section_active_passive_renewal(data))
+    sections.append(_section_svt_comparison(data))      # Phase 39a
     sections.append(_section_company_divergence(data))
     sections.append(_section_demand_estimation(data))
     sections.append(_section_company_crm(data))

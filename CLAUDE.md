@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,109+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
+**1,127+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 39a adds 18 (10 SVT rates + 8 annual report), Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,12 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 39a COMPLETE (2026-06-22)**: SVT comparative pricing for passive renewers. 18 new tests.
+- `simulation/svt_rates.py`: Ofgem Default Tariff Cap electricity rates 2016–2029 (£/MWh). `get_svt_elec_rate_gbp_per_mwh(date_str)` looks up the applicable quarterly period.
+- `simulation/run_phase2b.py`: `_build_churn_basis_risk()` helper; adds `unit_rate_gbp_per_mwh`, `svt_rate_gbp_per_mwh`, `rate_vs_svt_pct` to every `churn_basis_risk` record.
+- `saas/reporting/annual_report.py`: `_section_svt_comparison()` — per-year table of passive renewers' fixed rate vs SVT; flags at-risk (above SVT) and protected (below SVT) cohorts.
+- 1,127 non-integration tests passing
 
 **Phase 38a COMPLETE (2026-06-22)**: Scenario comparison runner. 12 new tests.
 - `simulation/scenario_comparison.py`: `run_scenario_comparison(scenarios, year_from, year_to, seed)` — runs all 5 (or selected) scenarios sequentially, returns sorted KPI list.
