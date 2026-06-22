@@ -74,6 +74,11 @@ from simulation.customer_events import roll_lifecycle_event
 from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_hedged_term
+from simulation.policy_costs import (
+    get_gas_ccl_per_mwh,
+    get_gas_network_cost_per_mwh,
+    get_ggl_per_mwh,
+)
 from simulation.volume_tolerance import compute_term_volume_tolerance
 from simulation.triad import identify_triad_candidates, compute_triad_exposure, _triad_year
 from simulation.hh_consumption import (
@@ -265,9 +270,11 @@ def _build_gas_renewal_schedule(
     lookback_temps_fn (Phase 4c-3, optional): see
     `simulation.renewals.build_renewal_schedule` — same callable, threaded
     through to `generate_forward_price`'s `lookback_daily_mean_temps_c`.
+    Phase 30b: gas CCL + GGL (policy) and gas network cost passed through in unit rate.
     """
     aq_kwh = customer["aq_kwh"]
     acq_date = customer["acquisition_date"]
+    cust_segment = customer.get("segment", "resi")
     schedule = []
     term_start = acq_date
 
@@ -288,7 +295,19 @@ def _build_gas_renewal_schedule(
             company_fwd = _company_engine.get_forward_price("gas", term_start, gas_records)
         except ValueError:
             company_fwd = sim_fwd  # fallback: insufficient prior data for first term
-        unit_rate = price_fixed_tariff(company_fwd, aq_kwh, term_start, naked_fraction=1 - MIN_HEDGE_FLOOR)
+        # Phase 30b: gas policy cost (CCL + GGL) and network charges pass-through.
+        # CCL: domestic gas exempt; GGL applies from Nov 2021.
+        gas_policy = (
+            get_gas_ccl_per_mwh(term_start, cust_segment)
+            + get_ggl_per_mwh(term_start, aq_kwh)
+        )
+        gas_network = get_gas_network_cost_per_mwh(term_start)
+        unit_rate = price_fixed_tariff(
+            company_fwd, aq_kwh, term_start,
+            naked_fraction=1 - MIN_HEDGE_FLOOR,
+            policy_cost_per_mwh=gas_policy,
+            network_cost_per_mwh=gas_network,
+        )
         schedule.append({
             "acquisition_date": term_start,
             "term_end": term_end,
@@ -975,6 +994,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 cid, term_start_str, term_end_str, aq_kwh,
                 unit_rate, hf, forward_price,
                 risk["monthly_cost_of_capital_gbp"], gas_records,
+                segment=cust_segment,
             )
             for rec in term_records:
                 rec["data_regime"] = "historical"

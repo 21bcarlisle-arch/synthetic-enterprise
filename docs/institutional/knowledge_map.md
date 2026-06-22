@@ -35,6 +35,9 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 | CfD levy | 2016: ~£0/MWh. 2017-20: £1-5/MWh growing. 2021: cut to £0 Oct 2021. **2022: NEGATIVE (−£3 to −£8/MWh) — wholesale > strike prices, LCCC rebated suppliers**. 2023-24: £5-12/MWh. From April 2025: £9.257/MWh operational costs levy. | H | Sub-quarterly precision for 2021-22 rebate | — |
 | BSC credit cover | CAP = £350/MWh × 29-day settlement lag; for our sim: ~£10k–20k cash tied up | M | Exact current CAP level; how it changes | How often does Elexon revise the Credit Assessment Price? |
 | Network charges (electricity) | ~23% of bill; resi/SME combined DUoS+TNUoS: £35-46/MWh (2016-2024). I&C HV: DUoS only £11-14/MWh (Triad-based TNUoS separate). Ofgem Annex 9 suggests higher combined figures (2022/23: £52.9/MWh London resi) — calibration in next phase. TCR April 2023: TNUoS residual moved from unit rate to banded standing charge (~£106/yr Band 4). | M | Precise year-by-year figures from Ofgem Annex 9 differ from our lookup table by £5-10/MWh. TCR 2023 structural shift not fully modelled (standing charge vs unit rate for post-2023) | Calibrate lookup tables from Ofgem Annex 9 data in network_charges_uk_2016_2024.md; model TCR 2023 discontinuity |
+| Gas CCL | Non-domestic only (resi exempt). £1.95/MWh (2016) → £7.75/MWh (2024). Large step in 2019 (Budget 2016 rebalancing policy). Parity with electricity CCL achieved April 2024. HMRC Table 1 source. | H | None — full 2016-2024 series known | — |
+| Gas network charges | GDN + NTS combined unit rate. All segments (no exemptions). £9.0–17.6/MWh (2016–2024). 2023 peak = RIIO-GD2 + SOLR cost socialisation. | M | Exact Ofgem Annex 9 figures (gas network annex is Excel-only); current figures derived from cap unit rates × network % share | Obtain gas network annex from Ofgem for authoritative year-by-year figures |
+| Green Gas Levy (GGL) | Per-meter (MPRN) per day. Started 30 Nov 2021. All segments. 2022: £2.10/yr/meter; 2023: £0.45; 2024: £0.38. Normalised to £/MWh via customer AQ. DESNZ GOV.UK source. | H | Post-2025 levy rates not yet published | — |
 | 2021-22 failure wave | 28 suppliers failed; driven by hedge ratio + cap lag; £2.6bn SOLR cost | H | Individual supplier hedge ratios at failure | Could we simulate each failure trigger? |
 
 **Sources:** Ofgem website, Elexon BSC docs, Watt-Logic, HoC BEIS Committee  
@@ -124,7 +127,7 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 
 Ranked by likely simulation impact:
 
-1. **Historical RO + network charge levels by year (2016-2024)** — ~~DONE~~ (RO/CfD: Phase 21a; Network: Phase 29a; Annex 9 calibration: Phase 29b; CM levy: Phase 30a; FiT levy: Phase 31a)
+1. **Historical RO + network charge levels by year (2016-2024)** — ~~DONE~~ (RO/CfD: Phase 21a; Network: Phase 29a; Annex 9 calibration: Phase 29b; CM levy: Phase 30a; FiT levy: Phase 31a; Gas CCL/network/GGL: Phase 30b)
 2. **Small supplier opex structure** — how does our 9-customer company compare on cost-to-serve? What's realistic for our scale?
 3. **Acquisition cost per channel** — PCW, direct, broker; needed to model acquisition economics properly
 4. **Historical SME churn rates** — our churn model parameters are estimated, not calibrated to real data
@@ -155,4 +158,4 @@ Ranked by likely simulation impact:
 8. **Active renewer vs SVT roller distinction** — ~35/65 split changes churn dynamics significantly
 9. **Debt lifecycle staging** — debt should have states (current → overdue → plan → write-off), not just a flat bad debt %
 
-Last updated: 2026-06-21
+Last updated: 2026-06-22

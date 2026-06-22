@@ -9,6 +9,13 @@ The hedging mechanic mirrors electricity: a fixed fraction of consumption is
 settled at the forward price (locked in at contract signing), the remainder at
 the daily spot (NBP SAP).
 
+Phase 30b adds gas-side policy costs per settlement day:
+  gas_ccl_gbp      = CCL for non-domestic gas (resi exempt; SME/I&C pay)
+  gas_network_cost_gbp = GDN + NTS charges (all segments)
+  ggl_gbp          = Green Gas Levy (all segments, from Nov 2021)
+  gas_policy_cost_gbp = gas_ccl + ggl (network kept separate like electricity)
+  net_margin_gbp deducts gas_policy_cost + gas_network_cost + capital cost.
+
 Capital cost allocation mirrors hedged_settlement.py: monthly_cost_of_capital_gbp
 is divided evenly across all settled days in each calendar month, producing
 capital_cost_gbp and net_margin_gbp per record.
@@ -20,6 +27,11 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from sim.risk_engine import compute_net_margin
+from simulation.policy_costs import (
+    get_gas_ccl_per_mwh,
+    get_gas_network_cost_per_mwh,
+    get_ggl_per_mwh,
+)
 
 
 def _daily_consumption_kwh(aq_kwh: int) -> float:
@@ -37,6 +49,7 @@ def run_gas_term(
     forward_price: float,
     monthly_cost_of_capital_gbp: float,
     gas_price_records: list[dict],
+    segment: str = "resi",
 ) -> list[dict]:
     """Settle one gas contract term, returning one record per gas day.
 
@@ -50,6 +63,7 @@ def run_gas_term(
     forward_price : forward NBP price locked at contract signing (£/MWh)
     monthly_cost_of_capital_gbp : capital cost per calendar month for this term
     gas_price_records : list of {settlementDate, systemSellPrice} daily records
+    segment : customer segment for CCL exemption ('resi' → CCL exempt)
     """
     spot_index = {r["settlementDate"]: r["systemSellPrice"] for r in gas_price_records}
     daily_kwh = _daily_consumption_kwh(aq_kwh)
@@ -70,6 +84,12 @@ def run_gas_term(
             cost_gbp = hedged_mwh * forward_price + unhedged_mwh * spot_price
             margin_gbp = billed_gbp - cost_gbp
 
+            # Phase 30b: gas-side policy costs per settlement day.
+            gas_ccl = get_gas_ccl_per_mwh(d, segment) * daily_mwh
+            gas_network_cost = get_gas_network_cost_per_mwh(d) * daily_mwh
+            ggl = get_ggl_per_mwh(d, aq_kwh) * daily_mwh
+            gas_policy_cost = gas_ccl + ggl
+
             records.append({
                 "customer_id": customer_id,
                 "settlement_date": d,
@@ -86,6 +106,10 @@ def run_gas_term(
                 "wholesale_cost_gbp": round(cost_gbp, 6),
                 "margin_gbp": round(margin_gbp, 6),
                 "consumption_kwh": round(daily_kwh, 4),
+                "gas_ccl_gbp": round(gas_ccl, 8),
+                "ggl_gbp": round(ggl, 8),
+                "gas_policy_cost_gbp": round(gas_policy_cost, 8),
+                "gas_network_cost_gbp": round(gas_network_cost, 8),
             })
         current += timedelta(days=1)
 
@@ -98,6 +122,16 @@ def run_gas_term(
         cap_per_day = monthly_cost_of_capital_gbp / len(month_recs)
         for rec in month_recs:
             rec["capital_cost_gbp"] = round(cap_per_day, 8)
-            rec["net_margin_gbp"] = round(compute_net_margin(rec["margin_gbp"], cap_per_day), 8)
+            # Phase 30b: deduct gas policy cost (CCL + GGL) and network charges
+            # from the gross margin before computing net_margin, mirroring electricity.
+            rec["net_margin_gbp"] = round(
+                compute_net_margin(
+                    rec["margin_gbp"]
+                    - rec["gas_policy_cost_gbp"]
+                    - rec["gas_network_cost_gbp"],
+                    cap_per_day,
+                ),
+                8,
+            )
 
     return records

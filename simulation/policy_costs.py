@@ -1,4 +1,4 @@
-"""Phase 21a/27b/29a/30a/31a: Electricity policy cost pass-through.
+"""Phase 21a/27b/29a/30a/31a/30b: Electricity and gas policy cost pass-through.
 
 Renewable Obligation (RO) and Contract for Difference (CfD) levies are
 mandatory per-MWh costs on all UK electricity supply. They are not embedded
@@ -22,8 +22,9 @@ at settlement time. Net effect on margin is approximately zero when the tariff
 pass-through exactly matches the levy — but diverges when the actual levy
 differs from the estimate at pricing (e.g. the 2022 CfD rebate was unexpected).
 
-Gas customers: RO and CfD levies are electricity-only. Domestic gas is also
-exempt from CCL. This module returns 0.0 for gas.
+Gas customers: RO, CfD, CM, and FiT levies are electricity-only. Domestic gas
+is also exempt from electricity CCL. Phase 30b adds gas-side costs: gas CCL
+(for non-domestic gas), gas network charges (GDN + NTS), and Green Gas Levy.
 """
 
 # RO effective cost floor (£/MWh) by obligation year start.
@@ -279,3 +280,108 @@ def get_fit_levy_per_mwh(date_str: str) -> float:
     if oy_year < min(_FIT_LEVY_BY_YEAR):
         return _FIT_LEVY_BY_YEAR[min(_FIT_LEVY_BY_YEAR)]
     return _FIT_LEVY_BY_YEAR[max(_FIT_LEVY_BY_YEAR)]
+
+
+# --- Phase 30b: Gas-side policy costs ---
+
+# Gas CCL (Climate Change Levy) rates by obligation year start (April-March).
+# Source: HMRC Environmental Taxes Bulletin historical rates (H confidence).
+# Key: domestic (resi) gas is EXEMPT — only I&C and SME pay gas CCL.
+# Pattern: frozen at £2.03/MWh 2016-2018, then rose sharply from 2019 as
+# government rebalanced gas/electricity CCL toward parity (reached April 2024).
+_GAS_CCL_RATE_BY_YEAR: dict[int, float] = {
+    2016: 1.95,   # 0.195 p/kWh — HMRC Table 1
+    2017: 1.98,   # 0.198 p/kWh
+    2018: 2.03,   # 0.203 p/kWh
+    2019: 3.39,   # 0.339 p/kWh — Budget 2016 rebalancing policy started
+    2020: 4.06,   # 0.406 p/kWh
+    2021: 4.65,   # 0.465 p/kWh
+    2022: 5.68,   # 0.568 p/kWh
+    2023: 6.72,   # 0.672 p/kWh
+    2024: 7.75,   # 0.775 p/kWh — parity with electricity CCL from April 2024
+}
+
+
+def get_gas_ccl_per_mwh(date_str: str, segment: str = "resi") -> float:
+    """Gas CCL (£/MWh) for non-domestic gas consumption.
+
+    Domestic gas is exempt (zero CCL). I&C and SME pay the main gas CCL rate.
+    CCL year runs April-March, same as electricity CCL and RO.
+    Falls back to nearest known year for out-of-range dates.
+    """
+    if segment == "resi":
+        return 0.0
+    year = _ro_oy_start_year(date_str)
+    if year in _GAS_CCL_RATE_BY_YEAR:
+        return _GAS_CCL_RATE_BY_YEAR[year]
+    if year < min(_GAS_CCL_RATE_BY_YEAR):
+        return _GAS_CCL_RATE_BY_YEAR[min(_GAS_CCL_RATE_BY_YEAR)]
+    return _GAS_CCL_RATE_BY_YEAR[max(_GAS_CCL_RATE_BY_YEAR)]
+
+
+# Gas network charges (GDN distribution + NTS transmission), £/MWh, all on unit rate.
+# Confidence: M — derived from Ofgem price cap network cost % share × cap unit rates.
+# Gas network costs sit entirely in the unit rate (no standing charge component for
+# network, unlike electricity where standing charge carries network costs).
+# Post-2021: RIIO-GD2 price control began Apr 2021; SOLR costs socialised from 2021/22.
+# 2023/24 step-up reflects RIIO-GD2 allowed revenue increases + SOLR cost recovery.
+_GAS_NETWORK_COST_BY_YEAR: dict[int, float] = {
+    2016: 9.9,    # ~26% × 3.8 p/kWh pre-cap market rate
+    2017: 9.9,    # similar pre-cap regime
+    2018: 9.6,    # ~26% × 3.7 p/kWh
+    2019: 10.0,   # ~27% × 3.7 p/kWh; stable RIIO-GD1
+    2020: 9.0,    # ~28% × 3.2 p/kWh; RIIO-GD1 final year
+    2021: 10.3,   # ~25% × 4.1 p/kWh; RIIO-GD2 started Apr 2021
+    2022: 11.0,   # network fixed while wholesale spiked; crisis year
+    2023: 17.6,   # RIIO-GD2 + SOLR cost socialisation; ~22% × £8.0/kWh avg cap rate
+    2024: 14.3,   # ~22% × £6.5/kWh avg; post-crisis normalisation
+}
+
+
+def get_gas_network_cost_per_mwh(date_str: str) -> float:
+    """Gas network charges (GDN + NTS, £/MWh) — applies to all gas customers.
+
+    Gas network costs are entirely on the unit rate (no standing charge component).
+    No segment exemptions — resi, SME, and I&C all pay the same unit-rate charge.
+    Falls back to nearest known year.
+    """
+    year = _ro_oy_start_year(date_str)
+    if year in _GAS_NETWORK_COST_BY_YEAR:
+        return _GAS_NETWORK_COST_BY_YEAR[year]
+    if year < min(_GAS_NETWORK_COST_BY_YEAR):
+        return _GAS_NETWORK_COST_BY_YEAR[min(_GAS_NETWORK_COST_BY_YEAR)]
+    return _GAS_NETWORK_COST_BY_YEAR[max(_GAS_NETWORK_COST_BY_YEAR)]
+
+
+# Green Gas Levy (GGL) — annual rate per meter point (MPRN), £/meter/year.
+# Introduced 30 Nov 2021 to fund the Green Gas Support Scheme (biomethane).
+# Charged per active meter (not per kWh) — normalised to £/MWh via customer AQ.
+# Source: DESNZ GOV.UK GGL rates publications (H confidence).
+# Rate structure: Year 1/2 (Nov 2021–Mar 2023) same rate; then fell sharply as
+# scheme attracted fewer biomethane projects than modelled.
+_GGL_RATE_GBP_PER_METER_YEAR: dict[int, float] = {
+    # OY key = Apr-start year; GGL started mid-OY-2021 (Nov 2021)
+    2021: 0.576 * 365 / 100,   # Nov 2021 – Mar 2022: 0.576 p/meter/day = £2.10/yr
+    2022: 0.576 * 365 / 100,   # Apr 2022 – Mar 2023: same rate (Year 2)
+    2023: 0.122 * 365 / 100,   # Apr 2023 – Mar 2024: 0.122 p/meter/day = £0.45/yr
+    2024: 0.105 * 365 / 100,   # Apr 2024 – Mar 2025: 0.105 p/meter/day = £0.38/yr
+}
+
+
+def get_ggl_per_mwh(date_str: str, aq_kwh: float) -> float:
+    """Green Gas Levy (£/MWh), normalised to the customer's annual quantity.
+
+    GGL is a per-MPRN daily charge (not per kWh). Converting to £/MWh using the
+    customer's AQ preserves the settlement convention: ggl_per_mwh × daily_mwh =
+    annual_rate / 365 (the correct per-day charge regardless of consumption shape).
+    Returns 0 for dates before 30 Nov 2021 (GGL did not exist).
+    Applies to all gas customer segments (no exemptions).
+    """
+    if date_str < "2021-11-30":
+        return 0.0
+    year = _ro_oy_start_year(date_str)
+    if year not in _GGL_RATE_GBP_PER_METER_YEAR:
+        return 0.0
+    if aq_kwh <= 0:
+        return 0.0
+    return _GGL_RATE_GBP_PER_METER_YEAR[year] / (aq_kwh / 1000.0)

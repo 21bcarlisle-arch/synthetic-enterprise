@@ -8,7 +8,17 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T08:21:27Z
+Last updated: 2026-06-22T09:10:00Z
+
+**Phase 30b LIVE (2026-06-22)**: Gas-side policy costs — gas CCL, gas network charges, and Green Gas Levy (GGL). 33 new tests (981 non-integration passing).
+- `simulation/policy_costs.py`: `_GAS_CCL_RATE_BY_YEAR` (£1.95–7.75/MWh, 2016–2024, HMRC Table 1); resi exempt; 2019 step-change from Budget 2016 rebalancing
+- `simulation/policy_costs.py`: `_GAS_NETWORK_COST_BY_YEAR` (£9.0–17.6/MWh, 2016–2024); applies to all segments; 2023 peak = RIIO-GD2 + SOLR
+- `simulation/policy_costs.py`: `_GGL_RATE_GBP_PER_METER_YEAR` (per-MPRN-per-day, normalised to £/MWh via customer AQ); 0 before 30 Nov 2021; all segments; £2.10/yr peak (2022), fell to £0.38/yr by 2024
+- `simulation/gas_settlement.py`: adds `gas_ccl_gbp`, `ggl_gbp`, `gas_policy_cost_gbp`, `gas_network_cost_gbp` per record; `net_margin_gbp` deducts policy + network from gross margin
+- `simulation/run_phase2b.py`: gas tariff pass-through now includes gas CCL + GGL (policy) + gas network at each renewal
+- `saas/reporting/annual_report.py`: `_section_gas_policy_costs()` shows year-by-year gas policy cost breakdown; included when gas cost data present
+- Research: `docs/market_research/gas_policy_costs_2016_2024.md`
+- All current gas customers (C1g–C4g) are resi → gas CCL = 0; network and GGL apply from their respective start dates
 
 **Phase 31a LIVE (2026-06-22)**: Feed-in Tariff (FiT) levy in policy cost stack. 20 new tests (943 non-integration passing).
 - `simulation/policy_costs.py`: `_FIT_LEVY_BY_YEAR` (£4.10–8.47/MWh, 2016–2024) + `get_fit_levy_per_mwh(date_str)`

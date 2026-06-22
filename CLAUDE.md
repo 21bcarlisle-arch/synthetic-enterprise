@@ -91,7 +91,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 
 ---
 
-## Current state (as of 21 June 2026 — 14:00 UTC)
+## Current state (as of 22 June 2026 — 10:00 UTC)
 
 **What's built:**
 - Phase 0+1: agentic loop, Elexon data ingestion, profile-class billing,
@@ -117,7 +117,7 @@ If LATEST.md is stale, investigate and fix the root cause.
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**846 tests passing (full suite); ~832 in SIM_FAST_MODE=1. Phase 24a adds 8 new tests (I&C customer C_IC1).**
+**981+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 30b adds 33 new tests.**
 
 **Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
 - Treasury: £29,846 → £15,683 (£-14,163 net change)
@@ -127,6 +127,15 @@ If LATEST.md is stale, investigate and fix the root cause.
 - 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+
+**Phase 30b COMPLETE (2026-06-22)**: Gas-side policy costs — gas CCL, gas network charges, Green Gas Levy (GGL). 33 new tests.
+- `simulation/policy_costs.py`: `_GAS_CCL_RATE_BY_YEAR` (£1.95–7.75/MWh, 2016–2024); resi exempt; 2019 jump from Budget 2016 rebalancing. `_GAS_NETWORK_COST_BY_YEAR` (£9.0–17.6/MWh, all segments). `_GGL_RATE_GBP_PER_METER_YEAR` (per-MPRN, normalised to £/MWh via AQ; 0 before Nov 2021)
+- `simulation/gas_settlement.py`: `gas_ccl_gbp`, `ggl_gbp`, `gas_policy_cost_gbp`, `gas_network_cost_gbp` per settlement record; `net_margin_gbp` deducts policy + network from gross margin
+- `simulation/run_phase2b.py`: gas renewal tariff now includes CCL + GGL (policy) + gas network pass-through
+- `saas/reporting/annual_report.py`: `_section_gas_policy_costs()` — year-by-year gas policy cost breakdown (backward compatible)
+- Research: `docs/market_research/gas_policy_costs_2016_2024.md`
+- All current gas customers (C1g–C4g) are resi → gas CCL = 0; gas network (£9-18/MWh) and GGL (tiny, £0.03-0.18/MWh) apply
+- 981 non-integration tests passing
 
 **Phase 31a COMPLETE (2026-06-22)**: Feed-in Tariff (FiT) levy in policy cost stack. 20 new tests.
 - `simulation/policy_costs.py`: `_FIT_LEVY_BY_YEAR` (£4.10–8.47/MWh, 2016–2024) + `get_fit_levy_per_mwh()` — Apr-Mar OY, same as RO/CM

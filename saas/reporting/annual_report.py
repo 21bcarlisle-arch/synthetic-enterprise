@@ -373,6 +373,13 @@ def extract_report_data(run_output: dict) -> dict:
             "network_cost_gbp": sum(
                 r.get("network_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
             ),
+            # Phase 30b: gas-side policy costs (CCL + GGL) and network charges
+            "gas_policy_cost_gbp": sum(
+                r.get("gas_policy_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "gas"
+            ),
+            "gas_network_cost_gbp": sum(
+                r.get("gas_network_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "gas"
+            ),
         }
 
     per_customer_lifetime = {}
@@ -2579,6 +2586,52 @@ def _section_network_costs(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_gas_policy_costs(data: dict) -> str:
+    """Phase 30b: Gas policy costs (CCL + GGL) and gas network charges by year.
+
+    Gas CCL: applies to non-domestic gas only (domestic/resi exempt).
+    GGL (Green Gas Levy): per-meter charge from Nov 2021 — tiny (£0.03–0.18/MWh).
+    Gas network: GDN distribution + NTS transmission, all on unit rate.
+    """
+    years = data.get("years", {})
+    has_gas_costs = any(
+        yd.get("gas_policy_cost_gbp", 0.0) != 0.0 or yd.get("gas_network_cost_gbp", 0.0) != 0.0
+        for yd in years.values()
+    )
+    if not has_gas_costs:
+        return ""
+
+    lines = [
+        "## Gas Policy Costs and Network Charges (Phase 30b)",
+        "",
+        "Gas CCL: non-domestic only (domestic gas exempt). Gas network (GDN + NTS): all on unit rate.",
+        "GGL (Green Gas Levy): per-meter, from Nov 2021; tiny in £/MWh terms.",
+        "",
+        "| Year | Gas Policy (CCL + GGL) £ | Gas Network £ | Total Gas Non-Commodity £ |",
+        "|------|--------------------------|---------------|--------------------------|",
+    ]
+    total_policy = total_network = 0.0
+    for year in sorted(years):
+        yd = years[year]
+        policy = yd.get("gas_policy_cost_gbp", 0.0)
+        network = yd.get("gas_network_cost_gbp", 0.0)
+        if policy == 0.0 and network == 0.0:
+            continue
+        total_policy += policy
+        total_network += network
+        lines.append(f"| {year} | {policy:,.0f} | {network:,.0f} | {policy + network:,.0f} |")
+    lines.append(
+        f"| **Total** | **{total_policy:,.0f}** | **{total_network:,.0f}** | **{total_policy + total_network:,.0f}** |"
+    )
+    lines.append("")
+    lines.append(
+        f"Gas policy pass-through in tariff unit rate (CCL + GGL at term start); "
+        f"gas network pass-through likewise. Net basis risk near-zero for annual contracts."
+    )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_solvency_signal(data: dict) -> str:
     """Phase 21b: Per-customer net assets solvency signal.
 
@@ -3220,6 +3273,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_company_crm(data))
     sections.append(_section_policy_costs(data))
     sections.append(_section_network_costs(data))
+    sections.append(_section_gas_policy_costs(data))
     sections.append(_section_solvency_signal(data))
     sections.append(_section_volume_tolerance(data))
     sections.append(_section_triad_exposure(data))
