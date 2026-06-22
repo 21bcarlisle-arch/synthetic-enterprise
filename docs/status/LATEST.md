@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T05:13:08Z
+Last updated: 2026-06-22T05:18:26Z
+
+**Phase 22b LIVE (2026-06-22)**: Company takes ownership of hedging decisions — Level 2 separation closed. 879 tests passing (8 new).
+- `company/risk/hedge_policy.py`: `company_evolve_hedge_fraction()` — hedging policy in the company layer where it belongs
+- `simulation/run_phase2b.py`: imports hedge policy from company layer (not sim.hedging_strategy)
+- `sim/hedging_strategy.py` preserved for historical runners (Phase 1d-2a); Phase 2b+ uses company layer
+- Closes Level 2 (decision boundary) for hedging: company now observes its own P&L + market prices, decides next hedge fraction
 
 **Phase 21c LIVE (2026-06-22)**: Consumption recalibration — C1 and C5 EAC corrected. 871 tests passing (4 new).
 - `saas/customers.py`: C1 resi 2,800→2,500 kWh/yr (Ofgem TDCV domestic medium); C5 SME small_office 25,000→15,000 kWh/yr (midrange 8,500–25,000 real range)

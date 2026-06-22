@@ -60,7 +60,10 @@ from sim.forward_curve import (
 )
 from sim.gas_prices_history import load_nbp_history
 from company.pricing.margin_feedback import compute_margin_surcharge
-from sim.hedging_strategy import MIN_HEDGE_FLOOR, evolve_hedge_fraction
+from company.risk.hedge_policy import (
+    COMPANY_MIN_HEDGE_FLOOR as MIN_HEDGE_FLOOR,
+    company_evolve_hedge_fraction as evolve_hedge_fraction,
+)
 from sim.profile_class_1 import load_pc1_shape
 from sim.profile_class_3 import load_pc3_shape
 from sim.risk_committee import RiskCommitteeMonitor

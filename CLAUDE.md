@@ -128,6 +128,13 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 22b COMPLETE (2026-06-22)**: Company takes ownership of hedging decisions. 8 new tests.
+- `company/risk/hedge_policy.py`: `company_evolve_hedge_fraction()` — same algorithm as sim.hedging_strategy, now in the company layer
+- `COMPANY_MIN_HEDGE_FLOOR=0.85`, `COMPANY_EVOLUTION_STEP=0.1`, `COMPANY_MARGIN_TOLERANCE_GBP=5.0`
+- `simulation/run_phase2b.py`: imports `company_evolve_hedge_fraction as evolve_hedge_fraction` + `COMPANY_MIN_HEDGE_FLOOR as MIN_HEDGE_FLOOR` from company layer
+- `sim/hedging_strategy.py` preserved unchanged for historical runners (run_phase1d, 1e, 2a, run_segments)
+- Closes Level 2 (decision boundary) separation for hedging — company now owns this decision
+
 **Phase 21c COMPLETE (2026-06-22)**: Consumption recalibration — C1 and C5 EAC corrected. 4 new tests.
 - `saas/customers.py`: C1 resi eac_kwh 2800→2500 (Ofgem TDCV domestic medium); C5 SME small_office 25000→15000 (midrange 8,500–25,000 kWh/yr)
 - Both successors (C1_2, C5_2) updated to match
