@@ -18,7 +18,11 @@ from company.pricing.tariff_engine import CompanyTariffEngine
 from saas.tariff_pricing import price_fixed_tariff
 from sim.forward_curve import generate_forward_price
 from sim.hedging_strategy import MIN_HEDGE_FLOOR
-from simulation.policy_costs import get_electricity_network_cost_per_mwh, get_electricity_policy_cost_per_mwh
+from simulation.policy_costs import (
+    get_cm_levy_per_mwh,
+    get_electricity_network_cost_per_mwh,
+    get_electricity_policy_cost_per_mwh,
+)
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 _COMPANY_ENGINE = CompanyTariffEngine()
@@ -77,7 +81,8 @@ def build_renewal_schedule(
             company_fwd = _COMPANY_ENGINE.get_forward_price("electricity", term_start_str, price_records)
         except ValueError:
             company_fwd = sim_fwd  # fallback: insufficient prior data for first term
-        policy_cost = get_electricity_policy_cost_per_mwh(term_start_str)
+        # Phase 30a: CM levy included in policy_cost pass-through (applies to all segments).
+        policy_cost = get_electricity_policy_cost_per_mwh(term_start_str) + get_cm_levy_per_mwh(term_start_str)
         network_cost = get_electricity_network_cost_per_mwh(term_start_str, segment)
         unit_rate = price_fixed_tariff(
             company_fwd, eac_kwh, term_start_str,

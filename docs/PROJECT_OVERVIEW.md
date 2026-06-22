@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-22. 330+ commits. 907 non-integration tests (7.74s). Codebase: ~18,200 lines across 190+ Python modules.*
+*Last updated: 2026-06-22. 335+ commits. 923 non-integration tests (8.2s). Codebase: ~18,400 lines across 190+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -351,6 +351,7 @@ Net after CTS:               £7,498
 - **I&C portfolio summary** (Phase 28a): `_section_ic_portfolio()` in annual report — lifetime P&L, CCL/MWh, TNUoS Triad exposure, volume tolerance summary, year-by-year segment comparison (I&C vs SME vs Resi). Identifies I&C customers from CUSTOMERS module (`segment == "I&C"`) — not CCL proxy (fixed in 99e0b33: CCL proxy also matched C5 SME). 6 new tests (936 total, 907 non-integration).
 - **Network charges DUoS + TNUoS** (Phase 29a): `simulation/policy_costs.py` adds `get_electricity_network_cost_per_mwh(date_str, segment)` — resi/SME combined DUoS+TNUoS unit rate, I&C HV DUoS-only (Triad TNUoS separate). `run_hedged_term()` records `network_cost_gbp` per period; `net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp`. `price_fixed_tariff()` gains `network_cost_per_mwh` param. Annual report `_section_network_costs()` backward-compatible. 15 new tests.
 - **Network charge calibration** (Phase 29b): `_NETWORK_COST_RESI_SME_BY_YEAR` recalibrated from Ofgem Annex 9 v1.10. Key change: 2022 £43→£66/MWh — BSUoS moved 100% to demand side from April 2022 (previously 50/50 demand/generator). Calibrated series: 2016: £43, 2017: £44, 2018: £42, 2019: £45, 2020: £46, 2021: £49, 2022: £66, 2023: £75, 2024: £69 (£/MWh). 907 non-integration tests passing in 7.74s.
+- **Capacity Market (CM) levy** (Phase 30a): `simulation/policy_costs.py` adds `_CM_LEVY_BY_YEAR` (£0.5–7.27/MWh, 2016–2024, Ofgem Annex 9 v1.8) and `get_cm_levy_per_mwh()`. CM applies to ALL demand segments — no domestic exemption unlike CCL. `policy_cost_gbp = RO + CfD + CCL + CM`. Tariff pass-through in `renewals.py`. Annual report `_section_policy_costs()` adds CM column (backward compatible). Key: 2021 cheapest (£4.67/MWh — cheap 2017 T-4 auction at only £8.40/kW); 2024 £7.27/MWh and rising. Research: `docs/market_research/capacity_market_levy_2016_2024.md`. 16 new tests (923 non-integration passing).
 
 ### Phase 22 — Post-Crisis Churn Hangover + Trailing-Margin CLV
 **Files:** `company/crm/churn_model.py`, `saas/clv_model.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`
@@ -633,7 +634,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
-- Full cost stack: wholesale (SSP) + network (DUoS+TNUoS, Phase 29b) + policy (RO+CfD+CCL, Phase 21a/27b)
+- Full cost stack: wholesale (SSP) + network (DUoS+TNUoS, Phase 29b) + policy (RO+CfD+CCL+CM, Phase 21a/27b/30a)
 - Risk committee Ollama calls per run (each ~7s) — 95% of runtime
 
 ---

@@ -1,4 +1,4 @@
-"""Phase 21a/27b/29a: Electricity policy cost pass-through.
+"""Phase 21a/27b/29a/30a: Electricity policy cost pass-through.
 
 Renewable Obligation (RO) and Contract for Difference (CfD) levies are
 mandatory per-MWh costs on all UK electricity supply. They are not embedded
@@ -8,6 +8,10 @@ Phase 27b adds Climate Change Levy (CCL) for business electricity customers.
 Domestic tariffs are exempt from CCL; business (SME/I&C) customers pay the
 main CCL rate on every kWh consumed. CCL is passed through in the business
 unit rate and deducted at settlement — the supplier remits it to HMRC.
+
+Phase 30a adds Capacity Market (CM) levy. Unlike CCL, CM applies to all demand
+segments including domestic. Rate is highly variable (£0.5–7.3/MWh, 2016–2024)
+reflecting auction clearing prices from 1–4 years prior.
 
 These lookup tables are derived from official Ofgem, EMR Settlement, and
 HMRC sources (see docs/market_research/).
@@ -197,3 +201,35 @@ def get_ccl_per_mwh(date_str: str, segment: str = "resi") -> float:
     if year < min(_CCL_ELECTRICITY_RATE_BY_YEAR):
         return _CCL_ELECTRICITY_RATE_BY_YEAR[min(_CCL_ELECTRICITY_RATE_BY_YEAR)]
     return _CCL_ELECTRICITY_RATE_BY_YEAR[max(_CCL_ELECTRICITY_RATE_BY_YEAR)]
+
+
+# Phase 30a: Capacity Market (CM) levy for all electricity demand customers.
+# CM applies universally — domestic (resi), SME, and I&C all pay. No exemption.
+# Rate varies year-to-year based on auction clearing prices from 1-4 years prior.
+# Source: Ofgem Annex 9 v1.8 (November 2025), CM row, £/customer/year ÷ 3.1 MWh benchmark.
+# See docs/market_research/capacity_market_levy_2016_2024.md for full derivation.
+_CM_LEVY_BY_YEAR: dict[int, float] = {
+    2016: 0.5,   # 2016/17: TA auctions only, tiny volume. Pre-Annex 9 estimate.
+    2017: 1.10,  # 2017/18: £3.41/cust/yr ÷ 3.1 MWh. First year in Annex 9.
+    2018: 3.67,  # 2018/19: £11.36/cust/yr. First full T-4 delivery year.
+    2019: 4.79,  # 2019/20: £14.85/cust/yr. T-4 at £18.00/kW.
+    2020: 5.86,  # 2020/21: £18.18/cust/yr. T-4 at £22.50/kW.
+    2021: 4.67,  # 2021/22: £14.49/cust/yr. Cheapest year — T-4 only £8.40/kW (2017 auction).
+    2022: 3.37,  # 2022/23: £10.44/cust/yr. T-4 suspended; T-3 + small T-1 at £75/kW cap.
+    2023: 5.68,  # 2023/24: £17.61/cust/yr. T-4 £15.97/kW + T-1 £60/kW.
+    2024: 7.27,  # 2024/25: £22.54/cust/yr (H1 only). T-4 + T-1 at £35.79/kW.
+}
+
+
+def get_cm_levy_per_mwh(date_str: str) -> float:
+    """Capacity Market levy (£/MWh) for any electricity demand customer.
+
+    Applies to all segments (resi, SME, I&C) — no domestic exemption.
+    Obligation year runs Apr-Mar, same as RO. Falls back to nearest known year.
+    """
+    oy_year = _ro_oy_start_year(date_str)
+    if oy_year in _CM_LEVY_BY_YEAR:
+        return _CM_LEVY_BY_YEAR[oy_year]
+    if oy_year < min(_CM_LEVY_BY_YEAR):
+        return _CM_LEVY_BY_YEAR[min(_CM_LEVY_BY_YEAR)]
+    return _CM_LEVY_BY_YEAR[max(_CM_LEVY_BY_YEAR)]

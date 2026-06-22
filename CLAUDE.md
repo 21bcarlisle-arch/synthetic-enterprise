@@ -128,6 +128,15 @@ If LATEST.md is stale, investigate and fix the root cause.
 - C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
 - *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
 
+**Phase 30a COMPLETE (2026-06-22)**: Capacity Market (CM) levy in policy cost stack. 16 new tests.
+- `simulation/policy_costs.py`: `_CM_LEVY_BY_YEAR` (£0.5–7.27/MWh, 2016–2024) + `get_cm_levy_per_mwh()` — Ofgem Annex 9 v1.8 authoritative for 2017-2024
+- `simulation/hedged_settlement.py`: `cm_levy_gbp` per period; `policy_cost_gbp = RO + CfD + CCL + CM` (Phase 30a adds CM)
+- `simulation/renewals.py`: CM levy included in tariff unit rate pass-through — no double-count risk
+- `saas/reporting/annual_report.py`: `_section_policy_costs()` shows 5-column table when CM data present (backward compatible)
+- CM applies to ALL demand (no domestic exemption); key data: 2021 £4.67/MWh (cheap 2017 T-4 auction), 2024 £7.27/MWh
+- Research: `docs/market_research/capacity_market_levy_2016_2024.md`
+- 923 non-integration tests passing
+
 **Phase 29b COMPLETE (2026-06-22)**: Network charge table calibration from Ofgem Annex 9 v1.10. 0 new tests (test values updated).
 - `simulation/policy_costs.py`: `_NETWORK_COST_RESI_SME_BY_YEAR` updated from Phase 29a mid-range estimates to Ofgem Annex 9 authoritative figures
 - Key change: 2022 £43→£66/MWh (+35%) — BSUoS moved 100% to demand side from April 2022 (previously 50/50 demand/generator)

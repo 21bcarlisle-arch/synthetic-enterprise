@@ -93,11 +93,17 @@ class TestPolicyInSettlementRecords:
         rec = result[0]
         assert "ro_levy_gbp" in rec
         assert "cfd_levy_gbp" in rec
+        assert "ccl_gbp" in rec
+        assert "cm_levy_gbp" in rec
         assert "policy_cost_gbp" in rec
         # In 2022, CfD is negative so cfd_levy_gbp < 0
         assert rec["cfd_levy_gbp"] < 0.0
-        # policy_cost_gbp = ro_levy_gbp + cfd_levy_gbp
-        assert abs(rec["policy_cost_gbp"] - (rec["ro_levy_gbp"] + rec["cfd_levy_gbp"])) < 1e-9
+        # Phase 30a: policy_cost_gbp = ro + cfd + ccl + cm
+        expected_policy = (
+            rec["ro_levy_gbp"] + rec["cfd_levy_gbp"]
+            + rec.get("ccl_gbp", 0.0) + rec.get("cm_levy_gbp", 0.0)
+        )
+        assert abs(rec["policy_cost_gbp"] - expected_policy) < 1e-9
 
     def test_net_margin_deducts_policy_cost(self):
         from simulation.hedged_settlement import run_hedged_term

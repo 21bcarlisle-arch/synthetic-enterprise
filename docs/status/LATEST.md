@@ -8,7 +8,16 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T07:05:13Z
+Last updated: 2026-06-22T07:45:07Z
+
+**Phase 30a LIVE (2026-06-22)**: Capacity Market (CM) levy in policy cost stack. 16 new tests (923 non-integration passing).
+- `simulation/policy_costs.py`: `_CM_LEVY_BY_YEAR` (£0.5–7.27/MWh, 2016–2024) + `get_cm_levy_per_mwh(date_str)` — April-start OY convention, same as RO
+- `simulation/hedged_settlement.py`: `cm_levy_gbp` per settlement period; `policy_cost_gbp = RO + CfD + CCL + CM`
+- `simulation/renewals.py`: CM levy included in tariff unit rate pass-through at each renewal
+- `saas/reporting/annual_report.py`: `cm_levy_gbp` yearly aggregation; `_section_policy_costs()` now shows 5-column table (RO + CfD + CCL + CM + Total) when CM data present; backward compatible
+- Source: Ofgem Annex 9 v1.8 (November 2025), CM row — authoritative 2017–2024; 2016 pre-Annex 9 estimate
+- Key: CM levy applies to ALL demand (no domestic exemption unlike CCL); highly variable by year (2021: £4.67, 2022: £3.37 — T-4 suspended; 2024: £7.27 and rising)
+- Research: `docs/market_research/capacity_market_levy_2016_2024.md`
 
 **Phase 29b LIVE (2026-06-22)**: Network charge calibration from Ofgem Annex 9. 907 tests passing in 7.74s.
 - Replaces Phase 29a mid-range estimates with authoritative Ofgem Annex 9 v1.10 figures
