@@ -402,6 +402,19 @@ Net after CTS:               £7,498
 
 **What this closed:** the hedging model was still reading declared EAC rather than calibrating from actual settlement records — underestimating demand for growing customers. Solar irradiance now reduces C4 consumption on high-sun days. 8 new tests (854 total).
 
+### Phase 42 — Gas Forward Curve Seasonal Calibration (2026-06-22)
+**Files:** `sim/forward_curve.py`, `simulation/run_phase2b.py`, `simulation/run_segments.py`, `tests/sim/test_forward_curve.py`
+
+**What was built:**
+- Gas-specific seasonal multiplier table (`GAS_MONTH_SEASONAL_MULTIPLIER`): Q1 peak 1.22×, Q3 trough 0.80× — vs electricity Q1 1.12×, Q3 0.88×. UK space-heating demand creates 2-3× steeper winter/summer spread for NBP vs N2EX.
+- `fuel` parameter on `generate_forward_price()` and `_seasonal_shape()`. Backward-compatible — electricity remains the default.
+- `GAS_BASE_TERM_PREMIUM = 0.05` (vs electricity 0.06) — gas NBP forward market is more liquid.
+- Weather adjustment (Phase 4c-3) correctly guarded to electricity only.
+- Gas bootstrap and gas path in `run_segments.py` all use `fuel="gas"`. 8 new tests (23 total in test_forward_curve.py).
+
+**What this fixed:** Gas forward prices were being calculated with electricity seasonal multipliers. Gas customers (C1g-C4g, C_IC3g) were systematically mispriced — winter gas terms underpriced, summer terms overpriced — because electricity's winter demand shape is much flatter than gas space-heating demand.
+
+
 ### Phase 26 — Industrial HH Demand Profile + Risk Committee EAC Consistency
 **Files:** `sim/hh_data/C_IC1.csv`, `saas/customers.py`, `simulation/run_phase2b.py` (risk committee block), `tests/simulation/test_phase26a_industrial_profile.py`
 
@@ -624,18 +637,19 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 190+ Python modules, ~18,200 lines
-- 330+ git commits
-- 907 non-integration tests passing in 7.74s (SIM_FAST_MODE=1); full suite with Ollama ~40 min
+- 200+ Python modules, ~22,000 lines
+- 370+ git commits
+- 1,228+ non-integration tests passing (SIM_FAST_MODE=1); full suite with Ollama ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
-- 5 HH smart meter profiles (C7–C9 residential, C_IC1 I&C at 2 GWh/year, C_IC2 I&C at 1 GWh/year)
+- 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest named-customer run (git 2f380ac, Phase 24a code, 2016–2025):**
-- Treasury £463,166 → £465,105 | Net margin £1,939 | Enterprise value: £309,282
-- Phase 29a/29b run pending (will show calibrated network cost in settlement P&L)
+**Latest full run (Phases 34a-42 active, in progress 2026-06-22):**
+- Full 2016-2025 run with all I&C tariff types active: Fixed, Pass-through, Deemed, Flex.
+- Previous run (Phase 13a-13e, git 61e5b3f): Net margin £-3,766 | Treasury £29,846 → £15,683
+- Updated figures will be committed on run completion.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

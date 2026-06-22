@@ -255,12 +255,16 @@ def extract_customers(data):
             "outcome": r.get("outcome", ""),
         })
 
-    # Lifetime per customer
+    # Lifetime per customer — pull tariff_type from CUSTOMERS master list
+    from saas.customers import CUSTOMERS as _CUSTS
+    _tariff_by_cid = {c["customer_id"]: c.get("tariff_type", "fixed") for c in _CUSTS}
+
     lifetime = {}
     for cid, cdata in data.get("per_customer_lifetime", {}).items():
         lifetime[cid] = {
             "segment": cdata.get("segment", ""),
             "commodity": cdata.get("commodity", "electricity"),
+            "tariff_type": _tariff_by_cid.get(cid, "fixed"),
             "acquisition_date": cdata.get("acquisition_date", ""),
             "revenue_gbp": _fmt(cdata.get("revenue_gbp", 0)),
             "gross_gbp": _fmt(cdata.get("gross_gbp", 0)),
@@ -300,29 +304,55 @@ def extract_market(data):
             row[key + "_net"] = _fmt(sdata.get("net_gbp", 0))
         segment_annual.append(row)
 
-    # Forward premium: company vs sim per term, aggregated by year
-    premium_by_year = defaultdict(list)
+    # Company vs SIM forward price error: company pricing error relative to SIM ground truth
+    company_error_by_year = defaultdict(list)
     for t in data.get("basis_risk_terms", []):
         yr = (t.get("term_start", "0000") or "0000")[:4]
         if yr.isdigit():
             company = float(t.get("company_fwd_gbp_per_mwh", 0) or 0)
             sim = float(t.get("sim_fwd_gbp_per_mwh", 0) or 0)
             if sim > 0:
-                premium_by_year[yr].append(company - sim)
+                company_error_by_year[yr].append(company - sim)
 
     forward_premium_annual = []
-    for yr in sorted(premium_by_year):
-        vals = premium_by_year[yr]
+    for yr in sorted(company_error_by_year):
+        vals = company_error_by_year[yr]
         forward_premium_annual.append({
             "year": int(yr),
             "mean_error_gbp_per_mwh": round(statistics.mean(vals), 2),
             "count": len(vals),
         })
 
+    # Contango/backwardation: sim_fwd vs actual spot price in that month
+    # Positive = contango (forward > spot), negative = backwardation (crisis: spot > forward)
+    spot_by_month = {r["month"]: r["mean"] for r in spot_monthly} if spot_monthly else {}
+    contango_by_month = defaultdict(list)
+    for t in data.get("basis_risk_terms", []):
+        term_start = t.get("term_start", "")
+        month = term_start[:7]
+        sim_fwd = float(t.get("sim_fwd_gbp_per_mwh", 0) or 0)
+        spot = spot_by_month.get(month)
+        if sim_fwd > 0 and spot and spot > 0:
+            contango_by_month[month].append(sim_fwd - spot)
+
+    contango_monthly = []
+    for month in sorted(contango_by_month):
+        vals = contango_by_month[month]
+        spot = spot_by_month.get(month, 0)
+        mean_fwd = spot + statistics.mean(vals)
+        contango_monthly.append({
+            "month": month,
+            "spot": round(spot, 2),
+            "forward": round(mean_fwd, 2),
+            "premium_gbp": round(statistics.mean(vals), 2),
+            "premium_pct": round(statistics.mean(vals) / spot * 100, 1) if spot > 0 else 0,
+        })
+
     return {
         "segment_annual": segment_annual,
         "segments": sorted(segments_seen),
         "forward_premium_annual": forward_premium_annual,
+        "contango_monthly": contango_monthly,
     }
 
 

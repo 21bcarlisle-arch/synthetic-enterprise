@@ -8,367 +8,78 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T17:08:46Z
+Last updated: 2026-06-22T22:11:04Z
+
+**Phase 41a LIVE (2026-06-22)**: Flex/trading tariff for I&C customers. 8 new tests (1,220+ passing).
+- `C_IC4`: Manchester supermarket, 3 GWh/year, `tariff_type: "flex"`. HH metered.
+- `simulation/hedged_settlement.py`: `run_flex_term()` — revenue = (7-day rolling spot average + £2/MWh markup) × consumption. Gross margin = markup × consumption (predictable). Capital cost = 0, hedge fraction = 1.0.
+- `simulation/renewals.py`: flex terms carry no locked unit rate; only markup agreed at signing.
+- All 4 UK I&C tariff types now complete: Fixed (C_IC1/C_IC2), Pass-through (C_IC3/C_IC3g), Deemed (C_IC1/C_IC2 out-of-contract), Flex (C_IC4).
+
+**Phase 41-prep LIVE (2026-06-22)**: Forward curve reform — EWMA + term structure model. 10 new tests.
+- `sim/forward_curve.py` rewritten: `forward = spot_EWMA × seasonal_shape × (1 + term_premium)`.
+- EWMA half-life 30 days (vs old 90-day SMA) — faster regime adaptation.
+- Term premium: 6% for 1-year electricity (sqrt-tenor scaling); calibrated to UK N2EX historical data.
+- Monthly seasonal multipliers: Q1/Q4 premium (1.12×), Q2/Q3 discount (0.88×).
+- Research: `docs/market_research/uk_power_forward_curves_2016_2025.md` — ICE/N2EX structure, crisis backwardation analysis.
+
+**Phase 40c LIVE (2026-06-22)**: Deemed rate for out-of-contract I&C customers. 8 new tests.
+- `build_renewal_schedule()`: `deemed_gap_days` param inserts an out-of-contract period between terms.
+- `run_deemed_term()` in `hedged_settlement.py`: billed at (7-day rolling spot + 20% premium). Capital cost = 0.
+- Industry-standard UK out-of-contract pricing. Triggers when I&C customer doesn't renew on time.
+
+**Phase 40b LIVE (2026-06-22)**: Gas pass-through leg + tariff type in annual report. 7 new tests.
+- `C_IC3g`: Teesside industrial gas, 5 GWh/year, `tariff_type: "pass_through"`.
+- `simulation/gas_settlement.py`: `pass_through=True` — actual gas network + CCL + GGL billed at settlement (not locked at pricing time). Company bears only wholesale spread risk.
+- `saas/reporting/annual_report.py` `_section_customer_pnl_ranking()`: tariff type column added.
+
+**Phase 40a LIVE (2026-06-22)**: I&C pass-through tariff. 9 new tests + 2 stale fixes.
+- `C_IC3`: Teesside chemical plant, 4 GWh/year, `tariff_type: "pass_through"`.
+- `simulation/hedged_settlement.py` `run_hedged_term()`: `pass_through=True` — actual policy + network passed through to revenue; company bears only wholesale spread risk.
 
 **Phase 39a LIVE (2026-06-22)**: SVT comparative pricing for passive renewers. 18 new tests (1,127 passing).
-- `simulation/svt_rates.py`: Ofgem Default Tariff Cap electricity rates 2016–2029 (£/MWh). `get_svt_elec_rate_gbp_per_mwh(date_str)` looks up applicable quarterly period.
-- `simulation/run_phase2b.py`: `_build_churn_basis_risk()` helper; adds `unit_rate_gbp_per_mwh`, `svt_rate_gbp_per_mwh`, `rate_vs_svt_pct` to every `churn_basis_risk` record.
-- `saas/reporting/annual_report.py`: `_section_svt_comparison()` — per-year table of passive renewers' fixed rate vs SVT; flags at-risk (above SVT) and protected (below SVT) cohorts.
+- `simulation/svt_rates.py`: Ofgem Default Tariff Cap electricity rates 2016–2029 (£/MWh).
+- SVT comparison table in annual report: flags at-risk (above SVT) and protected (below SVT) cohorts.
 
-**Phase 38a LIVE (2026-06-22)**: Scenario comparison runner. 12 new tests (1,109 passing).
-- `simulation/scenario_comparison.py`: runs all 5 scenarios, returns comparison sorted by net margin. `format_comparison_table()` → markdown summary + year-by-year net margin table.
+**Phase 38a LIVE (2026-06-22)**: Scenario comparison runner. 12 new tests.
+- `simulation/scenario_comparison.py`: runs all 5 scenarios, returns sorted KPI comparison.
+- `format_comparison_table()`: markdown table — all scenarios side-by-side.
 
-**Phase 37a LIVE (2026-06-22)**: Forward scenario metadata banner in annual report. 7 new tests (1,097 passing).
-- `_section_scenario_metadata(data)`: shown when `scenario_name` present — FORWARD SCENARIO warning, year range, price mode parameters. Silent for historical runs.
-
-**Phase 36a LIVE (2026-06-22)**: Scenario integration runner. 9 new tests (1,090 passing).
-- `simulation/run_scenario.py`: `run_forward_scenario(scenario, year_from, year_to)` — runs full 2016-year_to sim with historical + synthetic prices. CLI: `python -m simulation.run_scenario --scenario central_2027 --year-from 2026 --year-to 2029`.
-
-**Phase 35b LIVE (2026-06-22)**: Gas forward scenario generator. 9 new tests (1,081 passing).
-- `sim/scenario/gas_scenario_generator.py`: 5 matching scenarios. Upper regime £28-38/MWh, lower regime £18-26/MWh. Dunkelflaute: 1.3-2.0× gas premium. Floor £5/MWh.
-
-**Phase 35a LIVE (2026-06-22)**: Bimodal electricity forward scenario price generator. 16 new tests.
-- `sim/scenario/bimodal_generator.py`: 5 named scenarios — `baseline_2025`, `central_2027`, `stress_dunkelflaute_2027`, `low_renewables_2027`, `battery_saturation_2029`.
-- Two-regime Markov: lower mode (renewable-rich, £38-60/MWh) ↔ upper mode (gas-marginal, £100-130/MWh). Negative price injection (7-28 days/year, floor −£75). Dunkelflaute overlays (2-10 events/year, 1.6-2.5× premium). Calibrated to R&D findings.
+**Phase 35a-37a LIVE (2026-06-22)**: Forward scenario infrastructure.
+- Bimodal electricity price generator (5 named scenarios), gas scenario generator, scenario integration runner, scenario metadata banner in annual report.
+- Scenarios: `baseline_2025`, `central_2027`, `stress_dunkelflaute_2027`, `low_renewables_2027`, `battery_saturation_2029`.
 
 **Phase 34a LIVE (2026-06-22)**: 42-day renewal notice period. 9 new tests.
-- `simulation/renewals.py` + `run_phase2b.py`: `NOTICE_DAYS = 42`. Company prices tariff using market data from 42 days before term start. Amplifies basis risk in crisis periods.
+- Company prices tariff using data from 42 days before term start (statutory notice). Amplifies basis risk in crisis: company priced pre-spike, SIM hedged at term_start.
 
-**R&D COMPLETE (novel scenario distribution)**: Bimodal distribution quantified. £60 (gas <20%) vs £130 (gas >50%) /MWh. Negative hours: 7 (2021) → 155-179 (2024) → ~1,000/year by 2027. Soft floor −£75/MWh. Dunkelflaute: 2-10/year, 12-72h. Report: `docs/market_research/price_distribution_high_renewables_2027.md`.
+**Phase 33a/33b LIVE (2026-06-22)**: Active/passive renewal split. 16 new tests.
+- 65% passive (SVT rollers): 5% base churn, 10% cap, low rate sensitivity.
+- 35% active (fixed-term choosers): standard churn model.
+- 2022 crisis: all renewals forced passive (no fixed deals available in UK market).
 
-**Phase 33b LIVE (2026-06-22)**: Active/passive split in annual report. 6 new tests (1,047 non-integration passing).
-- `saas/reporting/annual_report.py`: `_section_active_passive_renewal()` — total active/passive counts, mean estimates, abs errors, year-by-year table. Silent on pre-Phase-33a run JSON (backward compatible).
+**Phase 30a-32a LIVE (2026-06-22)**: Full policy cost stack + gas P&L.
+- RO, CfD, CCL, CM (Capacity Market), FiT (Feed-in Tariff) all in settlement P&L.
+- Gas book P&L section: gas CCL, GGL, network charges; year-by-year gas gross/net margin.
+- Full electricity policy cost stack: £15–45/MWh (RO+CfD+CCL+CM+FiT).
 
-**Phase 33a LIVE (2026-06-22)**: Active/passive renewal split. 10 new tests (1,041 non-integration passing).
-- `company/crm/churn_model.py`: `is_active_renewal()` — 35% active; 65% passive (SVT rollover); 2022 forced passive (crisis: no fixed deals). `estimate_passive_churn_probability()` uses SVT-inertia constants (5% base, 0.1 rate sensitivity, 10% cap).
-- `simulation/customer_events.py`: `passive_churn_cap` on `roll_lifecycle_event()` — caps SIM ground-truth churn for passive renewers.
-- `simulation/run_phase2b.py`: draws active/passive at each renewal; I&C always active (brokers). `is_active_renewal` in `churn_basis_risk` output.
-- Effect: passive renewers estimated at ~5% churn (not 10-40%); SIM churn capped at 10% for passive. Crisis 2022: all-passive matches real-world dynamics.
+**Phase 27a-29b LIVE (2026-06-22)**: I&C expansion + full cost stack.
+- C_IC1 (2 GWh warehouse), C_IC2 (1 GWh office), C_IC3 (4 GWh chemical pass-through), C_IC4 (3 GWh supermarket flex).
+- Triad risk (TNUoS), volume tolerance, CCL for I&C.
+- Network charges (DUoS + TNUoS) calibrated to Ofgem Annex 9 v1.10.
 
-**Phase 32a LIVE (2026-06-22)**: Gas book year-by-year P&L section in annual report. 11 new tests (1,031 non-integration passing).
-- `saas/reporting/annual_report.py`: `_section_gas_pl(data)` — 8-column table: Year | Revenue | Wholesale | Gross | Policy | Network | Capital | Net | Net%. Silent when no gas records.
-- `commodity_split` in yearly data now includes `revenue_gbp` and `wholesale_cost_gbp` per commodity (electricity + gas).
-- R&D: SVT unit rates 2016–2025 and active/passive renewal split researched (`docs/market_research/svt_rates_active_passive_2016_2025.md`). ~35% actively renew to fixed; ~65% roll to SVT. Phase 33 candidate: `is_active_renewal` flag with differentiated churn rates.
+**Dashboard LIVE (2026-06-22)**: poesys.net — 5-tab intranet dashboard (auto-deploys from main).
+- Tabs: Overview, Financial, Trading, Customers, Market.
+- Trading: spot vs forward price chart, extreme events, risk committee interventions, crisis visible.
+- Market: spot vs 1-year forward contango/backwardation chart (2021 crisis backwardation visible).
+- Customers: book size, net margin heatmap by customer/year, retention offers, lifecycle events.
 
-**Phase 30b LIVE (2026-06-22)**: Gas-side policy costs — gas CCL, gas network charges, and Green Gas Levy (GGL). 33 new tests (981 non-integration passing).
-- `simulation/policy_costs.py`: `_GAS_CCL_RATE_BY_YEAR` (£1.95–7.75/MWh, 2016–2024, HMRC Table 1); resi exempt; 2019 step-change from Budget 2016 rebalancing
-- `simulation/policy_costs.py`: `_GAS_NETWORK_COST_BY_YEAR` (£9.0–17.6/MWh, 2016–2024); applies to all segments; 2023 peak = RIIO-GD2 + SOLR
-- `simulation/policy_costs.py`: `_GGL_RATE_GBP_PER_METER_YEAR` (per-MPRN-per-day, normalised to £/MWh via customer AQ); 0 before 30 Nov 2021; all segments; £2.10/yr peak (2022), fell to £0.38/yr by 2024
-- `simulation/gas_settlement.py`: adds `gas_ccl_gbp`, `ggl_gbp`, `gas_policy_cost_gbp`, `gas_network_cost_gbp` per record; `net_margin_gbp` deducts policy + network from gross margin
-- `simulation/run_phase2b.py`: gas tariff pass-through now includes gas CCL + GGL (policy) + gas network at each renewal
-- `saas/reporting/annual_report.py`: `_section_gas_policy_costs()` shows year-by-year gas policy cost breakdown; included when gas cost data present
-- Research: `docs/market_research/gas_policy_costs_2016_2024.md`
-- All current gas customers (C1g–C4g) are resi → gas CCL = 0; network and GGL apply from their respective start dates
+**Latest simulation results** — full 2016–2025 run in progress (started 2026-06-22 21:39 UTC). Results will update poesys.net on completion.
 
-**Phase 31a LIVE (2026-06-22)**: Feed-in Tariff (FiT) levy in policy cost stack. 20 new tests (943 non-integration passing).
-- `simulation/policy_costs.py`: `_FIT_LEVY_BY_YEAR` (£4.10–8.47/MWh, 2016–2024) + `get_fit_levy_per_mwh(date_str)`
-- Source: npower reconciled supplier rates 2021-2024 (high confidence); Ofgem FiT Annual Reports 2019-2020; triangulated 2016-2018
-- `simulation/hedged_settlement.py`: `fit_levy_gbp` per period; `policy_cost_gbp = RO + CfD + CCL + CM + FiT`
-- `simulation/renewals.py`: FiT included in tariff unit rate pass-through alongside CM
-- `saas/reporting/annual_report.py`: 6-column policy costs table (RO + CfD + CCL + CM + FiT + Total); backward compatible
-- FiT applies to ALL demand (no domestic exemption); rising trend with dip in 2021/22 (£6.01/MWh, lower tariffs on newer installs)
-- Research: `docs/market_research/fit_levy_2016_2024.md`
+Previous run figures (Phases 13a-13e, commit 61e5b3f — pre-I&C expansion):
+- Net margin: £225,920 | Gross: £235,160 | Capital: £9,240
+- Treasury: £463,166 → £465,105 | Enterprise value: £309,282
+- 23 retention offers, 19/23 retained | 3 no-offer churns
 
-**Phase 30a LIVE (2026-06-22)**: Capacity Market (CM) levy in policy cost stack. 16 new tests (923 non-integration passing).
-- `simulation/policy_costs.py`: `_CM_LEVY_BY_YEAR` (£0.5–7.27/MWh, 2016–2024) + `get_cm_levy_per_mwh(date_str)` — April-start OY convention, same as RO
-- `simulation/hedged_settlement.py`: `cm_levy_gbp` per settlement period; `policy_cost_gbp = RO + CfD + CCL + CM`
-- `simulation/renewals.py`: CM levy included in tariff unit rate pass-through at each renewal
-- `saas/reporting/annual_report.py`: `cm_levy_gbp` yearly aggregation; `_section_policy_costs()` now shows 5-column table (RO + CfD + CCL + CM + Total) when CM data present; backward compatible
-- Source: Ofgem Annex 9 v1.8 (November 2025), CM row — authoritative 2017–2024; 2016 pre-Annex 9 estimate
-- Key: CM levy applies to ALL demand (no domestic exemption unlike CCL); highly variable by year (2021: £4.67, 2022: £3.37 — T-4 suspended; 2024: £7.27 and rising)
-- Research: `docs/market_research/capacity_market_levy_2016_2024.md`
-
-**Phase 29b LIVE (2026-06-22)**: Network charge calibration from Ofgem Annex 9. 907 tests passing in 7.74s.
-- Replaces Phase 29a mid-range estimates with authoritative Ofgem Annex 9 v1.10 figures
-- Key change: 2022 £43→£66/MWh (+35%) — BSUoS moved 100% to demand side from April 2022
-- Full calibrated series: 2016: £43, 2017: £44, 2018: £42, 2019: £45, 2020: £46, 2021: £49, 2022: £66, 2023: £75, 2024: £69 (£/MWh resi/SME)
-- Source: Ofgem Annex 9 v1.10 June 2026; I&C DUoS table unchanged
-
-**Phase 29a LIVE (2026-06-22)**: Network charges (DUoS + TNUoS) in settlement P&L and tariff. 907 non-integration tests passing in 7.87s.
-- `simulation/policy_costs.py`: year-indexed tables for resi/SME (£35-46/MWh combined) and I&C (£11-14/MWh DUoS only)
-- `simulation/hedged_settlement.py`: `network_cost_gbp` field per period; deducted from `net_margin_gbp` alongside policy costs
-- `saas/tariff_pricing.py`: `network_cost_per_mwh` param — pass-through in unit rate at pricing time
-- `simulation/renewals.py` + `run_phase2b.py`: segment-aware network cost at each renewal
-- `saas/reporting/annual_report.py`: `_section_network_costs()` with year-by-year table (backward compatible)
-- R&D: Ofgem Annex 9 data in `docs/market_research/network_charges_uk_2016_2024.md`; TCR 2023 reform noted; calibration TBD
-- Phase 29a sim run pending (first run showing realistic £/MWh cost stack including network)
-
-**Phase 28a LIVE (2026-06-22)**: I&C portfolio summary section in annual report. 936 tests total (886 non-integration pass in 7.8s).
-- `_section_ic_portfolio()`: lifetime P&L, CCL/MWh, TNUoS exposure, volume tolerance summary, segment comparison by year
-- Identifies I&C from CUSTOMERS module (segment == "I&C") — not CCL proxy; pulls triad_log + volume_tolerance_log; backward compatible
-
-**Phase 27e LIVE (2026-06-22)**: I&C churn model — broker-driven, price-sensitive. 6 new tests.
-- `company/crm/churn_model.py`: `IC_BASE_CHURN_RATE=0.20` (vs 0.10 resi), `IC_RATE_SENSITIVITY=1.5` (vs 0.8), `IC_BILL_STRESS_THRESHOLD_GBP=£50k`
-- `estimate_churn_probability()` gains `segment` param — I&C uses broker-driven constants automatically
-- Company now knows I&C base churn is 20% vs 10% resi — much more proactive on retention/pricing decisions
-- Next: send Phase 27a-e completion NTFY and move Reorient.md to done/
-
-**Phase 27d LIVE (2026-06-22)**: Triad risk for I&C electricity customers. 15 new tests.
-- `simulation/triad.py`: SSP-proxy Triad identification + TNUoS exposure computation per winter
-- `_TNUOS_TRIAD_TARIFF_BY_YEAR`: £46.23→£63.82/kW/year 2016-2024; C_IC1 (2 GWh) expected ~£10-15k/year exposure
-- `triad_log` in run output; `_section_triad_exposure()` in annual report with per-customer cumulative totals
-
-**Phase 27c LIVE (2026-06-22)**: Volume tolerance tracking for I&C contracts. 12 new tests.
-- `simulation/volume_tolerance.py`: `compute_term_volume_tolerance()` — actual vs contracted ±10%
-- Excess spot cost and deficit unwind P&L computed per term; `volume_tolerance_log` in run output
-- `_section_volume_tolerance()` in annual report with ⚠ breach flag
-
-**Phase 27b LIVE (2026-06-22)**: CCL (Climate Change Levy) for business electricity customers. 9 new tests.
-- `simulation/policy_costs.py`: `get_ccl_per_mwh()` — 0 for resi (domestic exempt), main rate for SME/I&C (£5.44→£7.35/MWh 2016→2024); CCL year Apr-Mar (same as RO)
-- `simulation/hedged_settlement.py`: `segment` param on `run_hedged_term()`; `ccl_gbp` field in settlement records; CCL included in `policy_cost_gbp`
-- `simulation/run_phase2b.py`: passes `segment=cust_segment` at settlement time — I&C customers pay CCL automatically
-- `saas/reporting/annual_report.py`: `ccl_gbp` in yearly dict; `_section_policy_costs()` shows CCL column when non-zero (backward compatible)
-- April 2020 step-change: electricity CCL raised from £6.11→£7.17/MWh as gas CCL was frozen (HMRC policy)
-- Resi customers (C1-C6, C1_2, C5_2) remain exempt; C_IC1, C_IC2, C5 SME pay main rate
-
-**Phase 27a LIVE (2026-06-22)**: Second I&C customer C_IC2 — commercial office building, 1 GWh/year. 888 tests passing (9 new).
-- `saas/customers.py`: C_IC2 office_building, Birmingham, acquisition 2018-01-01, segment "I&C", HH metered
-- `sim/hh_data/C_IC2.csv`: office demand — Mon-Fri peak 135 kWh/period, +15% summer cooling Jun-Aug, 30% Saturday, 8% Sunday; ~1 GWh/year
-- C_IC1 segment corrected "SME" → "I&C"; both I&C customers now show correctly in segment breakdown
-- I&C portfolio: 3 GWh (2 GWh warehouse + 1 GWh office); treasury £678k; seasonal diversification
-- Next: Phase 28a proposed — C_IC1/C_IC2 I&C portfolio section in annual report
-
-**Phase 22b LIVE (2026-06-22)**: Company takes ownership of hedging decisions — Level 2 separation closed. 879 tests passing (8 new).
-- `company/risk/hedge_policy.py`: `company_evolve_hedge_fraction()` — hedging policy in the company layer where it belongs
-- `simulation/run_phase2b.py`: imports hedge policy from company layer (not sim.hedging_strategy)
-- `sim/hedging_strategy.py` preserved for historical runners (Phase 1d-2a); Phase 2b+ uses company layer
-- Closes Level 2 (decision boundary) for hedging: company now observes its own P&L + market prices, decides next hedge fraction
-
-**Phase 21c LIVE (2026-06-22)**: Consumption recalibration — C1 and C5 EAC corrected. 871 tests passing (4 new).
-- `saas/customers.py`: C1 resi 2,800→2,500 kWh/yr (Ofgem TDCV domestic medium); C5 SME small_office 25,000→15,000 kWh/yr (midrange 8,500–25,000 real range)
-- Successors C1_2, C5_2 updated to match; first-term tariff + hedging now calibrated
-- Post-Phase-25a: subsequent terms auto-correct via settlement-derived EAC anyway
-- Phase 22b next: company takes ownership of hedging decisions (move `evolve_hedge_fraction()` to company layer — closes Level 2 separation)
-
-**Phase 21b LIVE (2026-06-22)**: Per-customer net assets solvency signal. 867 tests passing (7 new).
-- `saas/reporting/annual_report.py`: `_section_solvency_signal()` — treasury ÷ active billing accounts each year-end
-- Ofgem licence floor: £0/account (breach triggers regulatory action); capital adequacy target: £130/dual-fuel account
-- C1g/C1 counted as one billing account (dual-fuel dedup via `_billing_account_id`); C_IC1 counts separately as I&C
-- End-state: shows whether company holds sufficient buffer vs Ofgem thresholds per year
-- Phase 21c next: consumption recalibration (C1 2,800→2,500 kWh/yr, C5 15,000→10,000 kWh/yr)
-
-**Phase 26a LIVE (2026-06-22)**: Industrial HH demand profile for C_IC1 + risk committee EAC consistency. 860 tests passing (6 new).
-- `sim/hh_data/C_IC1.csv`: replaced scaled residential C7 shape with deterministic industrial warehouse profile (Mon-Fri 08:00-18:00 core at 273 kWh/period, overnight standby 14 kWh/period, Sat 40%, Sun 15%)
-- Annual total: ~2 GWh/year, weekday:Sunday ratio 6.7× — fidelity fix, not a volume change
-- `simulation/run_phase2b.py` (risk committee block): EAC now from `_company_eac_estimate()` for all active electricity customers including C_IC1 — consistent with Phase 25a hedging calibration
-- Phase 27a proposed: second I&C customer C_IC2 (commercial office, 1 GWh/year), diversifying the I&C portfolio
-
-**Phase 25a LIVE (2026-06-22)**: EAC calibration from settlement + solar irradiance wiring. 854 tests passing (8 new).
-- `_derive_eac_from_settlement()`: mean annual kWh from all settlement records — fixes ~100% demand error for EV customers (C2/C4: declared 3500/5500 kWh, actual ~6820 kWh with EV)
-- `_company_eac_estimate()` now also drives hedging `eac_kwh` — C2/C4 hedging volume doubles after first billing term (85% of ~6820 vs ~3500 kWh)
-- `true_eac_kwh` in `demand_estimation_log` uses actual settled consumption (not declared EAC) — error_pct converges to near-zero
-- `load_weather_cloud_cover()` + `cloud_cover_for_customer()` in `simulation/weather_inputs.py`
-- `_weather_adjusted_shape_fn`: cloud cover + latitude → 48-period irradiance → solar generation subtracted for C4 (`assets.solar=True`)
-- C4 solar reduction: ~1,571 kWh/year (22% of baseline; 3.5 kWp × 449 kWh/kWp at lat 51.83°N)
-- Phase 27a proposed: second I&C customer C_IC2 (commercial office, 1 GWh/year)
-
-**Phase 24a LIVE (2026-06-22)**: First I&C customer — C_IC1 (2 GWh/year, HH metered, Birmingham). 846 tests passing (8 new).
-- `saas/customers.py`: C_IC1 added (segment="SME", eac_kwh=None, metering="HH", acquisition 2017-01-01)
-- `sim/hh_data/C_IC1.csv`: C7 HH shape scaled to 1,999,935 kWh/year (~2 GWh industrial)
-- `EFFECTIVE_EAC_KWH["C_IC1"]` ≈ 2,000,000 kWh; starting treasury scales to £463k (TOTAL_ELEC_EAC now ~2.12 GWh)
-- Bill stress at 2 GWh saturates churn model at MAX_CHURN_PROBABILITY=0.95 — expected behaviour documented
-- `tests/simulation/test_phase24a_ic_customer.py`: 8 tests covering HH data path, EAC estimation, bill stress, retention scale, demand log, annual report, settlement records
-- Phase 25a proposed: calibrate EFFECTIVE_EAC_KWH from settlement data + wire solar irradiance to shape function
-
-**Phase 23a LIVE (2026-06-22)**: Company-owned demand estimation — epistemic honesty fix. 838 tests passing (12 new; ~824 fast-mode).
-- `simulation/run_phase2b.py`: `_company_eac_estimate()` sums prior-year billing records instead of reading SIM oracle EAC
-- Three `EFFECTIVE_EAC_KWH` lookups in company decisions replaced: churn signal, retention economics, missed-opportunity analysis
-- `demand_estimation_log` in run output: per-renewal company vs oracle EAC comparison (error_pct, source)
-- `annual_report.py`: Demand Estimation Accuracy section shows year-by-year mean/max abs error; prior-billing vs fallback count
-
-**Phase 21a LIVE (2026-06-21)**: Explicit RO + CfD electricity policy costs. 810 tests passing (23 new; 787 fast-mode).
-- `simulation/policy_costs.py`: year-indexed RO (£15.6→£31.8/MWh, 2016→2024) + CfD levy tables (negative in 2022 = crisis rebate)
-- `simulation/hedged_settlement.py`: records `ro_levy_gbp`, `cfd_levy_gbp`, `policy_cost_gbp` per period; `net_margin = margin - policy_cost - capital_cost`
-- Basis risk: tariff uses term_start year; settlement uses actual settlement_date year → 2022 CfD rebate creates windfall on cross-year terms
-- Annual report: `_section_policy_costs()` shows year-by-year RO + CfD with 2022 ⬇ CfD REBATE flag
-- R&D complete: negative price regime change 2027, bimodal distribution at 70%+ renewables, UK Jan 2026 cold snap £1,040/MWh
-
-**Phase 20a LIVE (2026-06-21)**: Separate gas risk premium (20%) vs electricity (15%). 777 tests passing (2 new).
-- `company/pricing/tariff_engine.py`: `GAS_RISK_PREMIUM_FRACTION = 0.20`; `get_forward_price()` auto-selects by fuel
-- Gas NBP basis risk is structurally higher: more volatile spot, less liquid forward market
-- Explicit `risk_premium=` param still overrides; backward-compat for tests
-- Expected: 2023 resi gas losses (£-701 in cd34da7 run) reduce with better-buffered gas pricing
-
-**Phase 19a LIVE (2026-06-21)**: Extend margin feedback (16c) and portfolio premium (17a) to gas. 775 tests passing (5 new).
-- `simulation/run_phase2b.py`: gas CIDs (C1g, C2g, etc.) now get per-customer surcharge + portfolio premium at renewal
-- Separate `portfolio_gas_margin_rates` tracking; `"commodity"` field added to both log dicts
-- Backward-compatible: pre-19a log entries without commodity default to electricity
-- Expected: 2023 gas losses (resi gas -£1,014 in last run) should improve as gas portfolio premium fires
-
-**Phase 17c/17d/16c/17a/14b report fix (2026-06-21)**: Five keys missing from extract_report_data() → sections always empty in auto-processed reports. Fixed (faed334). 770 tests passing (2 new).
-- `margin_feedback_log`, `dynamic_pricing_log`, `company_gas_churn_log` now pass through to saved JSON
-- `per_cid_pnl` and `per_cid_comm_pnl` pre-aggregated from `all_records` before JSON save (can't persist ~1M rows)
-- Phase 17c customer P&L ranking and 17d dual-fuel P&L now populate in all auto-processed reports
-
-**Phase 18a LIVE (2026-06-21)**: Regime detection premium in company tariff engine. 768 tests passing (9 new).
-- `company/pricing/tariff_engine.py`: `_compute_regime_premium()` — 60d vs 180d spot price mean ratio
-- Upward trend (ratio > 1.10) → premium up to +15%; downward trend (ratio < 0.90) → discount to -5%
-- Wired into `get_forward_price()` as `regime_detect` param (default True; backward compat via False)
-- Complements Phase 14c: 14c reacts to volatility, 18a reacts to trend direction
-- Expected: 2021-22 upward crisis trend → 5-10% premium → reduced tariff under-pricing error
-
-**Phase 17d LIVE (2026-06-21)**: Dual-fuel account combined P&L in annual report. 760 tests passing (4 new).
-- `saas/reporting/annual_report.py`: `_section_dual_fuel_pnl()` — pairs electricity+gas legs, shows combined lifetime margin
-- Flags gas accretive/dilutive per dual-fuel account; total gas net margin summary
-- Answers: "Did our gas offering add value, or was it a drag on each dual-fuel account?"
-
-**Phase 17c LIVE (2026-06-21)**: Per-customer lifetime P&L ranking in annual report. 756 tests passing (4 new).
-- `saas/reporting/annual_report.py`: `_section_customer_pnl_ranking()` — ranks all billing accounts by lifetime net margin
-- Aggregates all_records per customer: revenue, gross margin, capital, net margin, net margin %
-- Answers: "which customers created vs destroyed value over their lifetime?"
-
-**Phase 17b LIVE (2026-06-21)**: Churn avoidability analysis in annual report. 752 tests passing (5 new).
-- `saas/reporting/annual_report.py`: `_section_churn_avoidability()` — classifies no-offer churns as blind misses vs deliberate passes
-- Flags "detectable" blind misses (SIM p ≥ 30% but company said < 30%) — shows churn model's blind-spot cost
-- Shows margin at stake per category; answers "how much did our churn model's false negatives cost us?"
-
-**Phase 17a LIVE (2026-06-21)**: Portfolio learning premium — company adjusts tariffs from recent portfolio-wide margin rates. 747 tests passing (9 new).
-- `company/pricing/tariff_engine.py`: `compute_portfolio_premium()` — mean recent electricity margins below 8% target → surcharge up to +15%; over-earning → discount up to -5%
-- `simulation/run_phase2b.py`: tracks `portfolio_elec_margin_rates`; applies before Phase 16c surcharge at each electricity renewal
-- Two-speed feedback now live: Phase 17a (portfolio-wide, 4-term) + Phase 16c (per-customer, 1-term emergency)
-- Expected: 2021-22 losses accumulate in rolling window → systematic 10-15% premium on 2022-23 renewals
-
-**Phase 16c LIVE (2026-06-21)**: Realized-margin feedback into renewal tariff. 748 tests passing (8 new).
-- `company/pricing/margin_feedback.py`: recovery surcharge when prior term loss >5% of revenue (capped 20%)
-- `simulation/run_phase2b.py`: tracks prev_term_margin/revenue per customer; applies surcharge at each renewal
-- Closes the tariff feedback loop: company reacts to its own observed losses at each contract renewal
-- Annual report: `_section_margin_feedback()` shows all surcharge events; `margin_feedback_log` in run JSON
-- Expected impact: reduced structural losses in 2022-23 renewals (crisis aftermath recovery pricing)
-
-**Phase 16b LIVE (2026-06-21)**: Retention durability analysis in annual report. 740 tests passing (5 new).
-- `saas/reporting/annual_report.py`: `_section_retention_durability()` — post-retention survival months per customer
-- 4/7 retained customers eventually churned: avg 60 months post-retention; 2017 cohort survived 60-84mo before churning
-- 3 still active at simulation end (C8, C9, C2_2) — retention in 2017 gave C8 105+ months of active tenure
-- Shows whether retention efforts are durable or merely delay churn
-
-**Phase 16a LIVE (2026-06-21)**: Tariff repricing impact assessment in annual report. 735 tests passing (5 new).
-- `saas/reporting/annual_report.py`: `_section_repricing_impact()` — churn risk at break-even tariff for each NET_NEGATIVE customer
-- Active customers: repricing opportunity; churned: counterfactual (could B/E pricing have changed outcomes?)
-- All 6 active loss-making customers repriceable with <25% churn risk — uplift is viable
-- C3/C4/C2 churned facing "Partial" territory (40-44% at B/E) — incremental uplift over full repricing
-
-**Phase 15d LIVE (2026-06-21)**: Hedge fraction signal in company churn model. 730 tests passing (6 new).
-- `company/crm/churn_model.py`: `hedge_fraction` param + `HEDGE_SENSITIVITY_REDUCTION=0.4`
-- `effective_rate_sensitivity = rate_sensitivity × (1 - hf × 0.4)` — well-hedged customers less reactive at renewal
-- `simulation/run_phase2b.py`: passes previous term's hedge fraction into company estimate at electricity renewal
-- Reduces structural 2021-22 over-estimation: hedged customers had stable bills despite headline rate spikes
-- Next run: company_est 2021-22 expected to be lower for high-hf customers (prev divergence 2.79× → ?×)
-
-**Phase 15c LIVE (2026-06-21)**: Full economic ROI in retention section. 724 tests passing (3 new).
-- `saas/reporting/annual_report.py`: "Acquisition cost avoided" + "Full economic ROI" rows in retention table
-- Full ROI = (margin saved - offer cost) + acq_cost_avoided; backwards-compatible (hidden for old-format logs)
-- Surfaces the true economic case for retention (acq cost is a sunk cost either way if you don't retain)
-
-**Phase 15b LIVE (2026-06-21)**: Acquisition-aware retention offer guard. 721 tests passing (4 new).
-- `simulation/run_phase2b.py`: retention guard now `expected_margin + acq_cost_saved > ret_cost`
-- Unblocks crisis-year offers where margin < ret_cost but acq_cost makes retention economical
-- C5/C1 2021 (previously "uneconomical"): now offered. Expected: more retained crisis-year accounts
-- `retention_log` includes `acq_cost_saved_gbp`; report section shows updated offer economics
-
-**Phase 15a LIVE (2026-06-21)**: Gas renewal pressure section in annual report. 717 tests passing (5 new).
-- `saas/reporting/annual_report.py`: `_section_gas_renewal_pressure()` — consumes company_gas_churn_log
-- Year-by-year gas est table; elevated risk flagged (>20%); top-5 worst renewals with rate change direction
-- Silent on pre-Phase-14b runs; will populate in next sim run at HEAD a761cc1+
-
-**Phase 14b LIVE (2026-06-21)**: Gas-specific churn sensitivity. 712 tests passing (7 new).
-- `company/crm/churn_model.py`: `fuel` param → gas uses BASE_CHURN_RATE=0.08, RATE_SENSITIVITY=0.6
-- Gas contracts stickier (fewer alternatives) than electricity; dual-fuel gas legs rarely churn independently
-- `simulation/run_phase2b.py`: tracks gas renewal rates; `company_gas_churn_log` in run output
-- Next sim: gas rate pressure visible per-renewal in run JSON; no change to electricity retention logic
-
-**Phase 14e LIVE (2026-06-21)**: Bill shock portfolio summary in annual report. 705 tests passing (5 new).
-- `saas/reporting/annual_report.py`: `_section_bill_shock_summary()` — aggregates all bill_shock_events across years
-- Year-by-year table: count + worst spike; top-10 worst spikes with churn status
-- 274 total events in 61e5b3f run; worst: C2_2 2022-04-30 +1717%
-
-**Phase 14d LIVE (2026-06-21)**: ToU revenue premium analysis in annual report. 700 tests passing (4 new).
-- `saas/reporting/annual_report.py`: `_tou_revenue_premium()` — derives flat-equivalent revenue from avg_peak_rate / 1.5×
-- "ToU Premium" column added to utilization table + summary line (total actual vs flat equivalent)
-- C8 (43.8% peak) earns ~+10% vs flat equivalent; C9 (42.2%) ~+9%; C7 (33.6%) ~+3%
-- Revenue-neutral design is at 30% peak — anything above earns a surplus vs flat rate
-
-**Phase 14c LIVE (2026-06-21)**: Adaptive lookback window in company tariff engine. 696 tests passing (7 new).
-- `company/pricing/tariff_engine.py`: `_compute_adaptive_lookback()` — recent 30d std vs prior 90d baseline std
-- High vol_ratio (crisis onset): shortens lookback toward 30d floor so mean tracks current regime not stale pre-crisis data
-- Low vol_ratio (calm market): extends toward 180d ceiling for smoother estimate; falls back to 120d on flat/sparse data
-- Crisis years (2021-22): expect tariff error reduction of 8-15pp in next sim run (vol ratio triggers shorter window)
-
-**Phase 14a LIVE (2026-06-21)**: Tiered retention offer size. 689 tests passing (4 new).
-- `simulation/run_phase2b.py`: `RETENTION_TIERS` [(≥75%→8%), (≥50%→5%), (≥30%→3%)] replaces flat 5%
-- `_retention_discount_for_risk()` helper — borderline cases get lighter touch, high-risk get aggressive offer
-- Both existing offers (company_p=0.45) stay at 5% tier; next run with Phase 13c may show C6 at different tier
-
-**Phase 13e LIVE (2026-06-21)**: Gas seasonal adjustment in company tariff engine. 685 tests passing (2 net new).
-- `company/pricing/tariff_engine.py`: `GAS_WINTER_SEASONAL_UPLIFT=0.15`, `GAS_SUMMER_SEASONAL_DISCOUNT=0.08`
-- Gas pricing now fuel-aware in seasonal logic: winter +15%, summer -8% (electricity: +8%/-4%)
-- UK NBP heating-demand seasonality is more pronounced than electricity — this is standard in real supplier pricing
-- `test_seasonal_does_not_apply_to_gas` replaced with 3 quantified gas seasonal tests
-
-**Phase 13d LIVE (2026-06-21)**: Seasonal forward price awareness in company tariff engine. 683 tests passing (9 new).
-- `company/pricing/tariff_engine.py`: `seasonal: bool = True` param + winter/summer adjustment for electricity
-- Winter delivery (Oct-Mar): +8% uplift; summer delivery (Apr-Sep): -4% discount.
-- Fixes structural basis risk: 120-day lookback for Oct-renewal captured summer prices, underestimating winter costs
-- Effect in next sim run: company forward estimates better-calibrated for autumn/winter contracts
-
-**Phase 13c LIVE (2026-06-21)**: Bill burden signal in company churn model. 674 tests passing (8 new).
-- `company/crm/churn_model.py`: `annual_consumption_kwh` param + `BILL_STRESS_SENSITIVITY=0.25`, `BILL_STRESS_THRESHOLD_GBP=£3,000`
-- Bill stress term = 0.25 × max(0, prev_annual_bill/£3,000 − 1); activates for high-spend SME customers
-- C6 2024 failure mode fixed: falling rate (−40%) + 45,000 kWh/year at £250/MWh → company now estimates 14% churn (was 0%; below 0.30 offer threshold, but C6 churns anyway via high roll)
-- Rate-only model had 3 "below threshold" misses all at company_p=0.0; bill burden makes the large-SME case detectable
-- Small resi (2,800 kWh at £60/MWh → £168 bill) unaffected — signal only fires above £3,000 annual bill
-
-**Phase 13b LIVE (2026-06-21)**: ToU utilization section in annual report. 666 tests passing.
-- `saas/reporting/annual_report.py`: `_section_tou_utilization()` — per-customer (C7/C8/C9) peak/off-peak kWh split, revenue contribution, avg rates; populates from next full sim run
-- Report now shows C7-C9 peak utilization % and revenue breakdown after each sim run
-
-**Phase 13a LIVE (2026-06-21)**: 666 tests passing. ToU tariffs for C7-C9 HH smart meter customers.
-- `simulation/tou_periods.py`: is_peak_period() — morning (07:00-11:00) + evening (16:00-20:00) weekday peaks (SP 15-22, 33-40)
-- `saas/tariff_pricing.py`: price_tou_tariff() — peak rate 1.5× flat, off-peak 0.786× flat, revenue-neutral at 30/70 split
-- `simulation/hedged_settlement.py`: per-period unit_rate now reflects actual ToU tier; flat rate retained for churn/retention calculations
-- `simulation/run_phase2b.py`: is_hh_customer() check wires ToU rates for C7-C9
-- Next sim run (currently in progress): ToU stats will appear in report
-
-**Latest simulation results (2016–2025)** — auto-processed (6099s / 102 min):
-- Net margin: £225,920.14 | Gross: £235,160.09 | Capital: £9,240
-- Treasury: £463,166 → £465,105 | 236 committee interventions | 1165 bills issued
-- Enterprise value: £309,282.17 | Net after CTS: £209,224
-- Retention: 23 offers, 19/23 retained | 3 no-offer churns | 7 total churned accounts
-
-**Phase 12e LIVE (2026-06-21)**: SIM/company divergence tracking. 649 tests passing (7 new).
-- `simulation/run_phase2b.py`: `company_divergence` key in run output — year-by-year mean/max abs error for tariff pricing and churn estimation
-- `saas/reporting/annual_report.py`: "Company Model Divergence" section with year-by-year error tables for both models
-- Hollow gap #3 (SIM/company barrier): divergence from SIM ground truth now formally measured, not assumed
-- Next full sim run will populate tariff error by year + churn estimate error by year
-
-**Run-complete mechanization LIVE (2026-06-21)**: sim results auto-processed after each background run.
-- `background/process_run_complete.py`: regenerates ANNUAL_REPORT.md, updates LATEST.md key figures, runs fast tests, commits + pushes
-- Saves ~1 frontier turn per sim run; falls back to Claude processing if anything fails
-- Only NTFYs Rich for administration events; routine runs fully silent
-
-**Token proxy LIVE (2026-06-21)**: localhost:8801 intercepts all Anthropic API calls, tracks per-session usage.
-- Handles gzip-compressed responses (decompresses before parsing SSE/JSON)
-- Logs to docs/observability/token-usage-log.jsonl (one JSONL line per call)
-- autonomous_runner.py sets ANTHROPIC_BASE_URL=http://localhost:8801 so all autonomous turns tracked
-- Query: `python3 -m background.token_proxy --query` | Pricing: Sonnet 4.6 input $3/MTok, output $15/MTok
-
-**Model evaluation COMPLETE (2026-06-21)**: gemma4:12b vs qwen3:14b — **keep qwen3:14b everywhere**.
-- Accuracy: identical (dispatcher 10/10, discovery 5/5, risk committee valid — both models)
-- Speed: qwen3:14b 4x faster (4.5s vs 20.9s/call dispatcher; 11s vs 34.6s risk committee)
-- gemma4:12b would triple the SIM runtime (~3hrs vs 38min). Not worth switching.
-
-**SIM bottleneck (2026-06-21)**: 95% of the 38-min runtime is 323 risk committee Ollama calls (~7s each).
-- Pure Python (billing/settlement/hedging): ~40s
-- SIM_FAST_MODE=1 (deterministic +0.10, no Ollama): ~2 min for full sim, 16s for full test suite
-- Keep LLM mode for production runs (it's the agentic part); use SIM_FAST_MODE=1 for tests
-
-**Phase 12a-12e LIVE (2026-06-20/21)**: Company CRM event log, retention offers, ROI analysis, margin-aware guard, SIM/company divergence tracking. Full history in ANNUAL_REPORT.md and git log.
-
-**Five hollow gaps status (as of 2026-06-21)**:
-1. ~~No customer events firing~~ — CLOSED (Phase 6b/7e): churn events, replacement onboarding
-2. ~~No ledger~~ — CLOSED (Phase 7a/7b): transaction log, cash waterfall, bad-debt events
-3. ~~SIM/company barrier~~ — DEEPENED (Phase 11a+11b): tariff pricing AND churn estimation now use observable-data models only; pricing basis risk + churn basis risk both visible in annual report
-4. ~~HH data path~~ — CLOSED (Phase 6a): C7-C9 on real HH consumption
-5. ~~Reporting~~ — CLOSED (Phase 5a/5b): ANNUAL_REPORT.md, full pipeline
-
-**Autonomous stack status**: sim_runner, autonomous_runner, health_check, staging_watcher, ntfy_responder — all operational. NTFY spam fixed (all 3 sources). Cron self-healing installed every 30min.
+**Autonomous stack**: sim_runner, autonomous_runner, health_check, staging_watcher, ntfy_responder — all operational.
 Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
+Dashboard: https://poesys.net

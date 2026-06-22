@@ -14,6 +14,8 @@ from sim.forward_curve import (
     BASE_TERM_PREMIUM,
     DEFAULT_RISK_FACTOR,
     EWMA_HALF_LIFE_DAYS,
+    GAS_BASE_TERM_PREMIUM,
+    GAS_MONTH_SEASONAL_MULTIPLIER,
     MONTH_SEASONAL_MULTIPLIER,
     SUMMER_MULTIPLIER,
     WINTER_MULTIPLIER,
@@ -237,3 +239,90 @@ def test_no_records_raises_value_error():
 def test_month_seasonal_multiplier_all_12_months_defined():
     """All 12 calendar months have a seasonal multiplier defined."""
     assert set(MONTH_SEASONAL_MULTIPLIER.keys()) == set(range(1, 13))
+
+
+# ---------------------------------------------------------------------------
+# Phase 42: gas-specific seasonal calibration
+# ---------------------------------------------------------------------------
+
+def test_gas_month_seasonal_multiplier_all_12_months_defined():
+    """All 12 calendar months have a gas seasonal multiplier defined."""
+    assert set(GAS_MONTH_SEASONAL_MULTIPLIER.keys()) == set(range(1, 13))
+
+
+def test_gas_seasonal_shape_annual_contract_near_flat():
+    """Gas 12-month seasonal shape ≈ 1.0 regardless of start month."""
+    for start_month in range(1, 13):
+        shape = _seasonal_shape(start_month, 12, "gas")
+        assert abs(shape - 1.0) < 0.05, f"Month {start_month}: gas seasonal={shape:.4f}"
+
+
+def test_gas_winter_premium_steeper_than_electricity():
+    """Gas Q1 delivery carries a larger seasonal premium than electricity Q1."""
+    elec_winter = _seasonal_shape(1, 3)      # electricity Jan-Mar
+    gas_winter = _seasonal_shape(1, 3, "gas")  # gas Jan-Mar
+    assert gas_winter > elec_winter, (
+        f"Gas Q1 premium ({gas_winter:.3f}) should exceed electricity ({elec_winter:.3f})"
+    )
+
+
+def test_gas_summer_discount_steeper_than_electricity():
+    """Gas Q3 delivery carries a larger seasonal discount than electricity Q3."""
+    elec_summer = _seasonal_shape(7, 3)       # electricity Jul-Sep
+    gas_summer = _seasonal_shape(7, 3, "gas")  # gas Jul-Sep
+    assert gas_summer < elec_summer, (
+        f"Gas Q3 discount ({gas_summer:.3f}) should be deeper than electricity ({elec_summer:.3f})"
+    )
+
+
+def test_gas_forward_price_lower_than_electricity_in_summer():
+    """Gas forward in summer delivery has deeper discount than electricity (steeper seasonality)."""
+    acquisition_date = "2023-07-01"
+    start_lb = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()
+    end_lb = (date.fromisoformat(acquisition_date) - timedelta(days=1)).isoformat()
+    records = _records(start_lb, end_lb, price_pattern=[50.0])
+
+    fwd_elec = generate_forward_price(acquisition_date, records, contract_length_months=3)
+    fwd_gas = generate_forward_price(acquisition_date, records, contract_length_months=3, fuel="gas")
+
+    assert fwd_gas < fwd_elec, (
+        f"Gas summer forward ({fwd_gas:.2f}) should be lower than electricity ({fwd_elec:.2f})"
+    )
+
+
+def test_gas_forward_price_higher_than_electricity_in_winter():
+    """Gas forward in winter delivery has larger premium than electricity."""
+    acquisition_date = "2023-01-15"
+    start_lb = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()
+    end_lb = (date.fromisoformat(acquisition_date) - timedelta(days=1)).isoformat()
+    records = _records(start_lb, end_lb, price_pattern=[50.0])
+
+    fwd_elec = generate_forward_price(acquisition_date, records, contract_length_months=3)
+    fwd_gas = generate_forward_price(acquisition_date, records, contract_length_months=3, fuel="gas")
+
+    assert fwd_gas > fwd_elec, (
+        f"Gas winter forward ({fwd_gas:.2f}) should exceed electricity ({fwd_elec:.2f})"
+    )
+
+
+def test_gas_base_term_premium_lower_than_electricity():
+    """Gas base term premium is lower than electricity (more liquid forward market)."""
+    assert GAS_BASE_TERM_PREMIUM < BASE_TERM_PREMIUM
+
+
+def test_weather_premium_not_applied_to_gas():
+    """Cold-spell weather premium does not apply to gas (fuel != 'electricity')."""
+    acquisition_date = "2023-01-15"
+    start_lb = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()
+    end_lb = (date.fromisoformat(acquisition_date) - timedelta(days=1)).isoformat()
+    records = _records(start_lb, end_lb, price_pattern=[50.0])
+
+    gas_no_weather = generate_forward_price(acquisition_date, records, contract_length_months=12, fuel="gas")
+    gas_with_temps = generate_forward_price(
+        acquisition_date, records, contract_length_months=12, fuel="gas",
+        lookback_daily_mean_temps_c=[0.0] * 90,
+    )
+
+    assert gas_no_weather == pytest.approx(gas_with_temps), (
+        "Weather adjustment must not apply to gas forwards"
+    )

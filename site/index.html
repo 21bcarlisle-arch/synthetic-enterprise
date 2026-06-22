@@ -519,9 +519,10 @@ function renderCustomers() {
     <div class="tbl-box">
       <div class="tbl-title">Lifetime P&amp;L by Customer</div>
       <table>
-        <tr><th>Customer</th><th>Segment</th><th>Revenue</th><th>Gross</th><th>Net</th></tr>
+        <tr><th>Customer</th><th>Segment</th><th>Tariff</th><th>Revenue</th><th>Gross</th><th>Net</th></tr>
         ${Object.entries(cu.lifetime).sort((a,b)=>b[1].net_gbp-a[1].net_gbp).map(([cid,c])=>`
           <tr><td>${cid}</td><td style="color:var(--muted)">${c.segment}</td>
+          <td style="color:var(--muted)">${c.tariff_type||'fixed'}</td>
           <td>${gbp(c.revenue_gbp)}</td>
           <td class="${cls(c.gross_gbp)}">${gbp(c.gross_gbp)}</td>
           <td class="${cls(c.net_gbp)}">${gbp(c.net_gbp)}</td></tr>`).join('')}
@@ -589,20 +590,21 @@ function renderMarket() {
   const sa = mk.segment_annual;
   const yrs = sa.map(r=>r.year);
   const segs = mk.segments;
+  const cm = mk.contango_monthly || [];
 
   const segColors = {
     'resi electricity':'rgba(88,166,255,.7)', 'resi gas':'rgba(188,140,255,.7)',
-    'sme electricity':'rgba(63,185,80,.7)', 'i&c electricity':'rgba(210,153,34,.7)',
-    'SME electricity':'rgba(63,185,80,.7)', 'I&C electricity':'rgba(210,153,34,.7)',
+    'sme electricity':'rgba(63,185,80,.7)', 'sme gas':'rgba(152,100,220,.7)',
+    'i&c electricity':'rgba(210,153,34,.7)', 'i&c gas':'rgba(240,120,60,.7)',
   };
 
   const netDatasets = segs.map((seg, i) => {
-    const key = seg.toLowerCase().replace(' ','_') + '_net';
-    const col = segColors[seg] || `hsl(${i*60},60%,55%)`;
+    const key = seg.toLowerCase().replace(/ /g,'_') + '_net';
+    const col = segColors[seg.toLowerCase()] || `hsl(${i*60},60%,55%)`;
     return {
       label: seg,
       data: sa.map(r => r[key] ?? 0),
-      backgroundColor: col.replace('.7', '.6'),
+      backgroundColor: col,
       borderRadius: 2
     };
   });
@@ -611,11 +613,15 @@ function renderMarket() {
 
   el('tab-market').innerHTML = `
     <div class="chart-box">
+      <div class="chart-title">Spot vs 1-Year Forward — Contango &amp; Backwardation 2016–2025</div>
+      <div class="chart-wrap tall"><canvas id="ch-contango"></canvas></div>
+    </div>
+    <div class="chart-box">
       <div class="chart-title">Net Margin by Segment by Year</div>
       <div class="chart-wrap tall"><canvas id="ch-seg-net"></canvas></div>
     </div>
     <div class="chart-box">
-      <div class="chart-title">Company Forward Price Error vs SIM (£/MWh) — mean per year</div>
+      <div class="chart-title">Basis Risk — Company Forward Price Error vs SIM (£/MWh per year)</div>
       <div class="chart-wrap"><canvas id="ch-fwd-err"></canvas></div>
     </div>
     <div class="tbl-box">
@@ -623,14 +629,14 @@ function renderMarket() {
       <table>
         <tr><th>Year</th>${segs.map(s=>`<th>${s}</th>`).join('')}</tr>
         ${sa.map(r=>`<tr><td>${r.year}</td>${segs.map(seg=>{
-          const key=seg.toLowerCase().replace(' ','_')+'_net';
+          const key=seg.toLowerCase().replace(/ /g,'_')+'_net';
           const v=r[key]??0;
           return `<td class="${cls(v)}">${gbp(v)}</td>`;
         }).join('')}</tr>`).join('')}
       </table>
     </div>
     <div class="tbl-box">
-      <div class="tbl-title">Forward Pricing Error (Company vs SIM)</div>
+      <div class="tbl-title">Basis Risk — Company vs SIM Pricing Error</div>
       <table>
         <tr><th>Year</th><th>Mean Error (£/MWh)</th><th>Terms</th></tr>
         ${fpa.map(r=>`<tr><td>${r.year}</td>
@@ -638,6 +644,51 @@ function renderMarket() {
           <td style="color:var(--muted)">${r.count}</td></tr>`).join('')}
       </table>
     </div>`;
+
+  // Contango/backwardation: spot vs 1-yr forward over time
+  if (cm.length > 0) {
+    mkChart('ch-contango', {
+      type: 'line',
+      data: {
+        labels: cm.map(r=>r.month),
+        datasets: [
+          {
+            label: 'Spot (£/MWh)', data: cm.map(r=>Math.min(r.spot, 700)),
+            borderColor: C.blue, fill: false, tension: 0.2,
+            pointRadius: 0, borderWidth: 2
+          },
+          {
+            label: '1-yr Forward (£/MWh)', data: cm.map(r=>Math.min(r.forward, 700)),
+            borderColor: C.amber, fill: false, tension: 0.2,
+            pointRadius: 0, borderWidth: 2, borderDash:[4,3]
+          },
+          {
+            label: 'Premium (£/MWh)', data: cm.map(r=>r.premium_gbp),
+            borderColor: C.green, yAxisID:'y1',
+            backgroundColor: cm.map(r=>r.premium_gbp>=0?'rgba(63,185,80,.15)':'rgba(248,81,73,.15)'),
+            fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5
+          },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
+          tooltip: { mode: 'index', intersect: false,
+            callbacks: { label: ctx => `${ctx.dataset.label}: £${ctx.parsed.y.toFixed(1)}/MWh` } }
+        },
+        scales: {
+          x: { grid:{color:'rgba(48,54,61,.4)'}, ticks:{maxTicksLimit:18, maxRotation:45} },
+          y: { grid:{color:'rgba(48,54,61,.4)'},
+            ticks:{callback: v=>'£'+v},
+            title:{display:true, text:'£/MWh (spot & forward)', color:C.muted, font:{size:10}} },
+          y1: { grid:{drawOnChartArea:false}, position:'right',
+            ticks:{callback: v=>(v>=0?'+':'')+v},
+            title:{display:true, text:'Premium (£/MWh)', color:C.muted, font:{size:10}} }
+        }
+      }
+    });
+  }
 
   mkChart('ch-seg-net', {
     type: 'bar',

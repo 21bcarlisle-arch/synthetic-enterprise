@@ -121,16 +121,16 @@ PROJECT_OVERVIEW.md is a project state document — it must be updated at phase 
 - Infrastructure: session-watchdog, staging-watcher, NTFY responder,
   File API, GitHub Pages status; NTFY spam fixed; token usage proxy
 
-**1,220+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 41a adds 8 (excl. fast_run), Phase 41-prep adds 10 (forward curve reform). Phase 40c adds 8, Phase 40b adds 7, Phase 40a adds 9, fixes 2 stale. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
+**1,228+ tests passing (non-integration, SIM_FAST_MODE=1). Phase 42 adds 8 (gas forward curve). Phase 41a adds 8 (excl. fast_run), Phase 41-prep adds 10 (forward curve reform). Phase 40c adds 8, Phase 40b adds 7, Phase 40a adds 9, fixes 2 stale. Phase 39a adds 18, Phase 38a adds 12, Phase 37a adds 7, Phase 36a adds 9, Phase 35b adds 9, Phase 35a adds 16, Phase 34a adds 9.**
 
-**Key financial position (latest 10-year run, 61e5b3f, Phase 13a-13e active):**
-- Treasury: £29,846 → £15,683 (£-14,163 net change)
-- Gross margin: £-2,538 | Net margin: £-3,766 (ledger)
-- Enterprise value: £-16,445
-- Retention ROI: +£0.75 (2 offers made, both retained; 6 no-offer churns)
-- 2021 churn divergence: 2.79× mean (down from 4.09× in c7aa449)
-- C6 2024 company_est: 0.14 (Phase 13c: up from 0.00; below 0.30 threshold → no offer)
-- *Pre-Phase-11a baseline (d7d3185): net margin +£13,958 with SIM-internal pricing*
+**Key financial position**: full 2016-2025 run in progress (Phases 34a-42 all active). Previous figures (Phase 13a-13e, commit 61e5b3f) now stale — update on run completion.
+
+**Phase 42 COMPLETE (2026-06-22)**: Gas-specific seasonal calibration for forward curve. 8 new tests.
+- `sim/forward_curve.py`: `GAS_MONTH_SEASONAL_MULTIPLIER` — steeper winter premium (Jan: 1.22) and deeper summer discount (Jul: 0.80) vs electricity (Jan: 1.12, Jul: 0.88). UK gas heating-demand seasonality is 2-3× more extreme than electricity. `GAS_BASE_TERM_PREMIUM = 0.05` (vs electricity 0.06, gas forward market more liquid).
+- `generate_forward_price()`: `fuel` param added (`"electricity"` default backward-compat). Gas path uses `GAS_MONTH_SEASONAL_MULTIPLIER` and `GAS_BASE_TERM_PREMIUM`. Weather adjustment not applied to gas.
+- `_seasonal_shape()`: `fuel` param added — selects correct multiplier table.
+- `simulation/run_phase2b.py`, `simulation/run_segments.py`: gas forward price calls pass `fuel="gas"`. Bootstrap functions accept `fuel` param.
+- `tests/sim/test_forward_curve.py`: 23 total tests (8 new). Tests verify gas winter > electricity winter, gas summer < electricity summer, weather not applied to gas.
 
 **Phase 41a COMPLETE (2026-06-22)**: Flex/trading tariff. 8 new tests (excl. fast_run integration test).
 - `saas/customers.py`: `C_IC4` — 3 GWh supermarket, Manchester, `tariff_type: "flex"`.
@@ -389,6 +389,9 @@ pricing model must account for cost-to-serve at the customer level.
 - gemma4:12b at 7.6GB (smaller) but slower inference on this hardware (RTX 3060 12GB)
 - Switching to gemma4 would make the sim ~3 hrs, not 38 min. Stick with qwen3:14b.
 
+**DONE (Phase 42):**
+- ~~Gas forward curve seasonal calibration~~ — COMPLETE (42). Steeper winter/summer spread for NBP vs N2EX. `fuel` param on `generate_forward_price()`.
+
 **DONE (Phase 40c):**
 - ~~Deemed rate~~ — COMPLETE (40c). C_IC1/C_IC2 have 30-day deemed gaps on renewal.
 
@@ -406,15 +409,20 @@ pricing model must account for cost-to-serve at the customer level.
 - ~~Retention threshold analysis~~ — Resolved by Phase 13c.
 - ~~Seasonal tariff engine~~ — COMPLETE (13d). Winter +8%, Summer -4% for electricity.
 
-**Then:**
-- SIM/company full operational independence: company runs on its own models
-  end-to-end; divergence from SIM ground truth accumulates and is measured
-- Fresh full sim run to get updated 10-year figures with all Phase 34a–40a changes active
+**Now: Fresh full sim run in progress (2026-06-22 22:39 BST)**
+- Phases 34a-42 all active. Includes all I&C tariff types + gas seasonal calibration.
+- On completion: regenerate dashboard.json, update LATEST.md, commit, push, NTFY.
+
+**Next (Phase 43a): Company trading desk — forward position lifecycle**
+- Proposal: `docs/staging/drafts/PHASE_43_PROPOSAL.md`
+- Company trading desk decides hedge fraction; results in separate trading P&L.
+- Moves hedge fraction from SIM agent → company layer. First SIM/company full independence.
+- Opt-out: will proceed in 4 hours unless Rich redirects.
 
 **Later:**
 - VPP/DER
 - Complaint, debt, disconnection as events
-- Real forward hedging (company decides hedge fraction, not SIM agent)
+- Adaptive trading desk (VaR-constrained optimisation, bid-ask simulation)
 
 Investor thesis and long-horizon vision: see [CLAUDE_HISTORY.md](CLAUDE_HISTORY.md).
 

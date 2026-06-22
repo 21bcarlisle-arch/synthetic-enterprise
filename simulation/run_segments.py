@@ -25,6 +25,7 @@ from sim.forward_curve import (
     BASE_TERM_PREMIUM,
     DEFAULT_RISK_FACTOR,
     EWMA_HALF_LIFE_DAYS,
+    GAS_BASE_TERM_PREMIUM,
     SUMMER_MULTIPLIER,
     WINTER_MONTHS,
     WINTER_MULTIPLIER,
@@ -100,12 +101,10 @@ def _bootstrap_gas_price(
     daily_means = [statistics.mean(v) for _, v in sorted(daily_buckets.items())]
     effective_hl = min(EWMA_HALF_LIFE_DAYS, len(daily_means)) if daily_means else 1
     spot_ewma = _ewma(daily_means, effective_hl) if daily_means else 0.0
-    seasonal = _seasonal_shape(start_date.month, 12)
+    seasonal = _seasonal_shape(start_date.month, 12, "gas")
     tenor_years = 12 / 12.0
-    term_premium = BASE_TERM_PREMIUM * (tenor_years ** 0.5) * (risk_factor / DEFAULT_RISK_FACTOR)
+    term_premium = GAS_BASE_TERM_PREMIUM * (tenor_years ** 0.5) * (risk_factor / DEFAULT_RISK_FACTOR)
     fwd = spot_ewma * seasonal * (1.0 + term_premium)
-    if lookback_daily_mean_temps_c:
-        fwd *= weather_sensitivity_multiplier(lookback_daily_mean_temps_c)
     return fwd
 
 
@@ -174,7 +173,7 @@ def _build_gas_term_data(
     current_aq = int(headcount * seg.avg_kwh_per_customer)
     try:
         fwd = generate_forward_price(
-            term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps
+            term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps, fuel="gas"
         )
     except ValueError:
         if term_start == seg.acquisition_date:

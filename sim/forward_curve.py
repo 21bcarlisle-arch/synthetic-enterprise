@@ -11,7 +11,7 @@ PHASE 41-PREP REFORM: replaced the old (base + pstdev × risk_factor) formula
 with a proper term-structure model matching how UK baseload forwards actually
 behave:
 
-    forward = spot_ewma × seasonal_shape(delivery_months) × (1 + term_premium)
+    forward = spot_ewma × seasonal_shape(delivery_months, fuel) × (1 + term_premium)
 
 Components:
   1. spot_ewma — exponentially weighted moving average of daily mean System
@@ -19,23 +19,21 @@ Components:
      EWMA half-life = 30 days (faster regime adaptation than the old 90-day SMA;
      still strictly backward-looking → PIT safe).
   2. seasonal_shape — arithmetic mean of monthly multipliers across every
-     calendar month in the delivery window. Calibrated to UK N2EX historical
-     baseload seasonal spreads (Q4/Q1 premium, Q2/Q3 discount). For a 12-month
-     contract, this averages to ≈ 1.00 regardless of start month.
+     calendar month in the delivery window. Separate tables for electricity
+     (N2EX baseload) and gas (NBP). For a 12-month contract, each averages
+     to ≈ 1.00 regardless of start month.
   3. term_premium — BASE_TERM_PREMIUM × sqrt(tenor_years) × (risk_factor / 1.2).
      Captures: liquidity premium (thin far-forward book), cost of carry
      (collateral on forward positions), and uncertainty growing as sqrt(time).
-     Calibrated to UK electricity: ≈ 6% for 1-year baseload in normal markets
-     (2016-2020 range: 8-19%; crisis/post-crisis reversion toward 6-12%).
+     Electricity: ≈ 6% for 1-year baseload (2016-2020 range: 8-19%).
+     Gas: ≈ 5% for 1-year NBP (more liquid forward market → lower liquidity premium).
 
-Old formula: base + pstdev × risk_factor. During 2021-22 crisis this loaded a
-£50-100/MWh volatility premium onto an already-spiked base → chronic
-over-pricing. See docs/market_research/uk_power_forward_curves_2016_2025.md.
-
-The EWMA + term-premium model is still imperfect — it does not capture the
-backwardation real Year+1 forwards exhibited in Dec 2021 (real: Year+1 ≈
-£250/MWh vs DA ≈ £400/MWh). That requires real ICE/N2EX data; a future phase
-will calibrate to settlement prices.
+PHASE 42 ADDITION: fuel-specific seasonal multipliers.
+  Gas has much more extreme winter/summer seasonality than electricity:
+  - Q1 (Jan-Mar): space heating peak — up to 3-4× summer demand in UK.
+  - Q2-Q3 (Apr-Sep): minimal heating, industrial only — summer trough.
+  - Q4 (Oct-Dec): winter onset, storage injection season ends.
+  Calibrated to UK NBP seasonal price spreads 2016-2025.
 
 Phase 4c-3 weather sensitivity multiplier is preserved unchanged.
 """
@@ -46,7 +44,7 @@ from datetime import date, timedelta
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 
 # Monthly seasonal multipliers (1=Jan … 12=Dec).
-# Calibrated to UK N2EX historical baseload seasonality 2016-2025:
+# ELECTRICITY: calibrated to UK N2EX historical baseload seasonality 2016-2025.
 #   Q4/Q1: peak demand, low renewable output → premium
 #   Q2/Q3: mild demand, high solar/wind surplus → discount
 # Annual arithmetic mean = 1.002 — 12-month contracts are near-flat on seasonal.
@@ -55,6 +53,17 @@ MONTH_SEASONAL_MULTIPLIER: dict[int, float] = {
     4: 0.95, 5: 0.92, 6: 0.88,
     7: 0.88, 8: 0.90, 9: 0.95,
     10: 1.02, 11: 1.08, 12: 1.12,
+}
+
+# GAS (NBP): much steeper winter premium reflecting UK space-heating demand.
+# Q1 peak: up to 3-4× July demand in UK (National Grid gas consumption data).
+# Monthly spreads calibrated to NBP seasonal price structure 2016-2025.
+# Annual arithmetic mean ≈ 0.99 — 12-month contracts are near-flat.
+GAS_MONTH_SEASONAL_MULTIPLIER: dict[int, float] = {
+    1: 1.22, 2: 1.17, 3: 1.06,
+    4: 0.92, 5: 0.87, 6: 0.82,
+    7: 0.80, 8: 0.82, 9: 0.90,
+    10: 1.00, 11: 1.10, 12: 1.20,
 }
 
 # Aggregate winter/summer values — kept for backward-compat (callers and tests).
@@ -66,9 +75,10 @@ SUMMER_MULTIPLIER: float = statistics.mean(
     v for m, v in MONTH_SEASONAL_MULTIPLIER.items() if m not in WINTER_MONTHS
 )
 
-# Term risk premium — base value for a 1-year electricity contract.
+# Term risk premiums — base value for a 1-year contract.
 # Scaled by sqrt(tenor_years) and by (risk_factor / DEFAULT_RISK_FACTOR).
-BASE_TERM_PREMIUM: float = 0.06
+BASE_TERM_PREMIUM: float = 0.06       # electricity (N2EX baseload)
+GAS_BASE_TERM_PREMIUM: float = 0.05  # gas NBP (more liquid forward market → lower premium)
 DEFAULT_RISK_FACTOR: float = 1.2
 
 # EWMA half-life for spot expectation smoothing (days).
@@ -92,10 +102,14 @@ def _ewma(daily_means: list[float], half_life: int) -> float:
     return numerator / denominator
 
 
-def _seasonal_shape(start_month: int, contract_length_months: int) -> float:
-    """Arithmetic mean of monthly multipliers over the delivery period."""
+def _seasonal_shape(start_month: int, contract_length_months: int, fuel: str = "electricity") -> float:
+    """Arithmetic mean of monthly multipliers over the delivery period.
+
+    fuel: "electricity" uses N2EX baseload table; "gas" uses NBP heating-demand table.
+    """
+    table = GAS_MONTH_SEASONAL_MULTIPLIER if fuel == "gas" else MONTH_SEASONAL_MULTIPLIER
     return statistics.mean(
-        MONTH_SEASONAL_MULTIPLIER[(start_month - 1 + offset) % 12 + 1]
+        table[(start_month - 1 + offset) % 12 + 1]
         for offset in range(max(1, contract_length_months))
     )
 
@@ -107,19 +121,22 @@ def generate_forward_price(
     lookback_days: int = 90,
     risk_factor: float = 1.2,
     lookback_daily_mean_temps_c: list[float] | None = None,
+    fuel: str = "electricity",
 ) -> float:
     """Synthetic forward price using a term-structure model.
 
     acquisition_date: ISO date string — contract start / delivery date.
         Only records strictly before this date are used (PIT safe).
-    system_price_records: half-hourly Elexon SSP records
-        {'settlementDate': 'YYYY-MM-DD', 'systemSellPrice': float}.
+    system_price_records: half-hourly Elexon SSP records (electricity) or
+        daily NBP records (gas): {'settlementDate': 'YYYY-MM-DD', 'systemSellPrice': float}.
     contract_length_months: delivery window (default 12).
     lookback_days: backward window for spot_ewma (default 90).
-    risk_factor: scales the term premium (1.2 → calibrated 6% for 1-year).
+    risk_factor: scales the term premium (1.2 → calibrated base premium for fuel type).
         Monotone: higher risk_factor → higher forward price.
     lookback_daily_mean_temps_c: optional list of lookback-window daily mean
-        temperatures for the Phase 4c-3 cold-spell weather premium.
+        temperatures for the Phase 4c-3 cold-spell weather premium (electricity only).
+    fuel: "electricity" (default) or "gas". Selects seasonal multiplier table and
+        base term premium (electricity: 6%, gas: 5%).
 
     Returns: forward price in £/MWh.
     Raises ValueError if no records fall within the lookback window.
@@ -153,17 +170,19 @@ def generate_forward_price(
     effective_half_life = min(EWMA_HALF_LIFE_DAYS, len(daily_means))
     spot_ewma = _ewma(daily_means, effective_half_life)
 
-    # 2. Seasonal shape over delivery period
-    seasonal = _seasonal_shape(start_date.month, contract_length_months)
+    # 2. Seasonal shape over delivery period (fuel-specific table)
+    seasonal = _seasonal_shape(start_date.month, contract_length_months, fuel)
 
-    # 3. Term risk premium: grows with sqrt(tenor) and scales with risk_factor
+    # 3. Term risk premium: grows with sqrt(tenor) and scales with risk_factor.
+    # Gas has a slightly lower base premium (more liquid forward market).
     tenor_years = contract_length_months / 12.0
-    term_premium = BASE_TERM_PREMIUM * (tenor_years ** 0.5) * (risk_factor / DEFAULT_RISK_FACTOR)
+    base_premium = GAS_BASE_TERM_PREMIUM if fuel == "gas" else BASE_TERM_PREMIUM
+    term_premium = base_premium * (tenor_years ** 0.5) * (risk_factor / DEFAULT_RISK_FACTOR)
 
     forward_price = spot_ewma * seasonal * (1.0 + term_premium)
 
-    # Phase 4c-3: optional cold-spell weather premium
-    if lookback_daily_mean_temps_c is not None:
+    # Phase 4c-3: optional cold-spell weather premium (electricity only)
+    if lookback_daily_mean_temps_c is not None and fuel == "electricity":
         forward_price *= weather_sensitivity_multiplier(lookback_daily_mean_temps_c)
 
     return forward_price

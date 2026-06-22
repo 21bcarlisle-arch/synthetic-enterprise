@@ -56,6 +56,7 @@ from sim.forward_curve import (
     BASE_TERM_PREMIUM,
     DEFAULT_RISK_FACTOR,
     EWMA_HALF_LIFE_DAYS,
+    GAS_BASE_TERM_PREMIUM,
     SUMMER_MULTIPLIER,
     WINTER_MONTHS,
     WINTER_MULTIPLIER,
@@ -226,17 +227,15 @@ def _bootstrap_first_term_forward_price(
     term_start: str, gas_records: list[dict],
     contract_length_months: int = 12, lookback_days: int = 90, risk_factor: float = 1.2,
     lookback_daily_mean_temps_c: list[float] | None = None,
+    fuel: str = "electricity",
 ) -> float:
     """Forward price for a customer's first gas term when NBP history begins
     on (not before) term_start — the standard 90-day-prior lookback in
     generate_forward_price() finds nothing and raises ValueError.
 
-    Mirrors generate_forward_price()'s base + volatility-premium + seasonal
-    formula exactly, but draws its window from the first lookback_days of
-    *available* records starting at term_start, since no prior data exists.
-    This is a one-time bootstrap for the very first term only — every
-    subsequent renewal has a full prior-history window and uses
-    generate_forward_price() unchanged.
+    Mirrors generate_forward_price() exactly but draws its window from the
+    first lookback_days of *available* records (forward-looking bootstrap).
+    One-time use for the very first term only.
     """
     start_date = date.fromisoformat(term_start)
     window_end = start_date + timedelta(days=lookback_days - 1)
@@ -256,12 +255,13 @@ def _bootstrap_first_term_forward_price(
     ]
     effective_hl = min(EWMA_HALF_LIFE_DAYS, len(daily_means)) if daily_means else 1
     spot_ewma = _ewma(daily_means, effective_hl) if daily_means else 0.0
-    seasonal = _seasonal_shape(start_date.month, contract_length_months)
+    seasonal = _seasonal_shape(start_date.month, contract_length_months, fuel)
     tenor_years = contract_length_months / 12.0
-    term_premium = BASE_TERM_PREMIUM * (tenor_years ** 0.5) * (risk_factor / DEFAULT_RISK_FACTOR)
+    base_premium = GAS_BASE_TERM_PREMIUM if fuel == "gas" else BASE_TERM_PREMIUM
+    term_premium = base_premium * (tenor_years ** 0.5) * (risk_factor / DEFAULT_RISK_FACTOR)
     forward_price = spot_ewma * seasonal * (1.0 + term_premium)
 
-    if lookback_daily_mean_temps_c is not None:
+    if lookback_daily_mean_temps_c is not None and fuel == "electricity":
         forward_price *= weather_sensitivity_multiplier(lookback_daily_mean_temps_c)
 
     return forward_price
@@ -289,11 +289,11 @@ def _build_gas_renewal_schedule(
         term_end = _clamp_term_end(term_start, end_date=report_end)
         lookback_temps = lookback_temps_fn(term_start) if lookback_temps_fn else None
         try:
-            sim_fwd = generate_forward_price(term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps)
+            sim_fwd = generate_forward_price(term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps, fuel="gas")
         except ValueError:
             if not schedule:
                 sim_fwd = _bootstrap_first_term_forward_price(
-                    term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps
+                    term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps, fuel="gas"
                 )
             else:
                 break
