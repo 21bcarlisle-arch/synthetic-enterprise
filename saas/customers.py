@@ -145,8 +145,9 @@ CUSTOMERS = [
         "segment": "resi",
     },
     # Phase 24a: I&C electricity customer — 2 GWh/year, HH metered.
-    # Large commercial site (Birmingham industrial estate). eac_kwh=None because
-    # settlement reads sim/hh_data/C_IC1.csv (C7 shape scaled to ~2 GWh/year).
+    # Phase 26a: industrial warehouse HH profile (Mon-Fri core hours, low weekends,
+    # temperature-insensitive). Replaces C7 residential shape used in Phase 24a.
+    # eac_kwh=None because settlement reads sim/hh_data/C_IC1.csv (~2 GWh/year).
     {
         "customer_id": "C_IC1",
         "acquisition_date": "2017-01-01",
