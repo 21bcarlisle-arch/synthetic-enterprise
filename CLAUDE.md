@@ -54,10 +54,12 @@ real UK energy supplier works."
 
 1. Update test count + latest run figures in PROJECT_OVERVIEW.md Section 10.
 2. Add build history entry in PROJECT_OVERVIEW.md Section 4.
-3. **`wc -c CLAUDE.md` — hard limit 35,000 chars / 200 lines.** If over: move phase details to
+3. **Run epistemic verifier:** `python3 -m tools.epistemic_verifier` — must PASS before committing.
+   If FAIL: fix violations before committing any phase-close output.
+4. **`wc -c CLAUDE.md` — hard limit 35,000 chars / 200 lines.** If over: move phase details to
    `docs/claude/phase-history.md`. Never accumulate phase details in CLAUDE.md.
-4. Add one-line phase completion entry to CLAUDE.md "Current state".
-5. Commit and push.
+5. Add one-line phase completion entry to CLAUDE.md "Current state".
+6. Commit and push.
 
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 
@@ -71,8 +73,12 @@ term signing, company opens a forward contract (agreed_price = company_fwd, noti
 `settle_period()` decomposes hedge P&L from supply margin each half-hour. `trading_book.summary()`
 in run output (contract_count, total_hedged_mwh, hedge_pnl_gbp). Net margin unchanged.
 
-**Next:** Architecture Stage 2 (discovery agent formalisation) — awaiting "proceed stage 2" from Rich.
-Or Phase 43b (adaptive trading desk, VaR-constrained). Proposal in `docs/staging/drafts/`.
+**Architecture Stages 2-4 COMPLETE (2026-06-23):** All four stages done.
+- Stage 2: `.claude/agents/discovery-agent.md` — validated assumption-to-finding pipeline.
+- Stage 3: `.claude/agents/epistemic-verifier.md` + `tools/epistemic_verifier.py` — planted/detected violation, now gated in phase-close checklist.
+- Stage 4: `background/agent_protocol.py` — `AgentMessage` + `IntentType`, 18 tests, live in sim_runner.
+
+**Next:** Phase 43b (adaptive trading desk, VaR-constrained). Proposal in `docs/staging/drafts/`.
 
 **Tests:** 1,228+ passing (non-integration, `SIM_FAST_MODE=1`).
 

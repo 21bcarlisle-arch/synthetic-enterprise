@@ -30,6 +30,7 @@ BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
 sys.path.insert(0, str(PROJECT_DIR))
 from background.ntfy_utils import send_ntfy  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
+from background.agent_protocol import AgentMessage  # noqa: E402
 
 
 def log(msg: str) -> None:
@@ -95,6 +96,14 @@ def run_simulation() -> bool:
     size_kb = out_json.stat().st_size / 1024
     log(f"Run complete — {elapsed:.0f}s, {size_kb:.0f} KB ({out_json.name})")
     update_agent_status("sim-runner", status="idle", last_action=f"Run complete in {elapsed:.0f}s — {size_kb:.0f} KB ({out_json.name})")
+    # Stage 4: emit structured AgentMessage for run_complete (first live usage of protocol)
+    _msg = AgentMessage(
+        sender="sim-runner",
+        receiver="broadcast",
+        intent="run_complete",
+        payload={"elapsed_s": round(elapsed), "size_kb": round(size_kb), "json": out_json.name},
+    )
+    log(f"[protocol] run_complete message: {_msg.to_json()}")
 
     # Update latest pointer so Claude always has fresh data
     latest_json = REPORTS_DIR / "run_output_latest.json"
