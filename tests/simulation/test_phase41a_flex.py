@@ -185,7 +185,7 @@ def test_flex_customer_in_fast_run():
     finally:
         del os.environ["SIM_FAST_MODE"]
 
-    all_records = result.get("all_settlement_records", [])
+    all_records = result.get("all_records", [])
     flex_recs = [r for r in all_records if r.get("customer_id") == "C_IC4"]
     assert len(flex_recs) > 0, "C_IC4 should have flex settlement records"
     assert all(r.get("tariff_type") == "flex" for r in flex_recs)

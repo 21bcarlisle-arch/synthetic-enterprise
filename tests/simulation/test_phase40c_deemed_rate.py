@@ -210,7 +210,7 @@ def test_deemed_customer_in_fast_run():
     finally:
         del os.environ["SIM_FAST_MODE"]
 
-    all_records = result.get("all_settlement_records", [])
+    all_records = result.get("all_records", [])
     deemed_recs = [
         r for r in all_records
         if r.get("customer_id") == "C_IC1" and r.get("tariff_type") == "deemed"

@@ -167,7 +167,7 @@ def test_gas_pass_through_customer_in_fast_run():
     finally:
         del os.environ["SIM_FAST_MODE"]
 
-    all_records = result.get("all_settlement_records", [])
+    all_records = result.get("all_records", [])
     ic3g_records = [r for r in all_records if r.get("customer_id") == "C_IC3g"]
     assert len(ic3g_records) > 0, "C_IC3g should have gas settlement records in fast mode"
     assert all(r.get("commodity") == "gas" for r in ic3g_records)
