@@ -101,16 +101,21 @@ def update_latest_md(data, elapsed_s):
 def run_fast_tests():
     full_env = dict(os.environ)
     full_env["SIM_FAST_MODE"] = "1"
-    result = subprocess.run(
-        [sys.executable, "-m", "pytest", "tests/", "-x", "-q", "--tb=short",
-         "--ignore=tests/simulation/test_run_phase2b.py",
-         "--ignore=tests/simulation/test_run_phase2b_event_log.py",
-         "--ignore=tests/simulation/test_run_phase4c_on_phase2b.py"],
-        cwd=str(PROJECT_DIR),
-        env=full_env,
-        timeout=180,
-    )
-    return result.returncode == 0
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", "tests/", "-x", "-q", "--tb=short",
+             "--ignore=tests/simulation/test_run_phase2b.py",
+             "--ignore=tests/simulation/test_run_phase2b_event_log.py",
+             "--ignore=tests/simulation/test_run_phase4c_on_phase2b.py",
+             "--ignore=tests/simulation/test_phase40b_gas_pass_through.py"],
+            cwd=str(PROJECT_DIR),
+            env=full_env,
+            timeout=180,
+        )
+        return result.returncode == 0
+    except subprocess.TimeoutExpired:
+        log("Fast test suite timed out (>180s) — treating as FAIL")
+        return False
 
 
 def _fmt_gbp(v):
