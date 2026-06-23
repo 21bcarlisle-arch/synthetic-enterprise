@@ -64,10 +64,10 @@ Last seeded: 2026-06-23 from current codebase.
 |---|---|---|
 | Annual variation in non-commodity rates (RO, FiT, CfD, CM change each year) | Medium — distorts year-by-year margin comparisons | MEDIUM |
 | De minimis VAT threshold for small SME | Low — few customers near threshold | LOW |
-| Climate Change Levy (CCL) for SME | Medium — adds ~£5/MWh to SME gas bills | MEDIUM |
+| ~~CCL for SME gas~~ | ~~Medium~~ | ALREADY IMPLEMENTED — Phase 30b (`get_gas_ccl_per_mwh()`, segment-aware) |
 | HH smart meter customers | High — blocks ToU tariffs, VPP, DER | HIGH |
 | Fixed overhead not scaled to portfolio size | Low — £50/month is underscaled for a real business | LOW |
-| Pricing actions not implemented (tariff uplift for NET_NEGATIVE customers) | High — report recommends but simulator doesn't apply | HIGH |
+| ~~Pricing actions not implemented~~ | ~~High~~ | CLOSED Phase 44a — £3/MWh uplift at renewal for net-negative accounts |
 
 ---
 
