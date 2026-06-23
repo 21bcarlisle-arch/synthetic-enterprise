@@ -33,7 +33,7 @@ Last seeded: 2026-06-23 from current codebase.
 | Gross margin as % of revenue (Phase 9a) | 9.8% | 8–15% (varies by year) | Ofgem | 2026-06-18 | ✓ OK |
 | Capital cost ratio (Phase 9a, % of gross) | 8.1% | 5–20% (hedging cost varies) | Industry | 2026-06-18 | ✓ OK |
 | Company elec forward risk premium (Phase 45c) | 8% above 120-day mean | 5–8% above NAP/baseload (I&C competitive) | Broker intelligence; Phase 45c sanity check | 2026-06-23 | ✓ OK |
-| Company gas forward risk premium (Phase 45c) | 10% above 120-day mean | 8–15% (gas higher basis risk; pass-through now bills at spot) | NBP market; Phase 45c sanity check | 2026-06-23 | ✓ OK |
+| Company gas forward risk premium (Phase 46a) | 5% above 120-day mean | Near-zero in stable markets; UK resi gas suppliers earn ~1-2% in normal years (Cornwall Insight 2020) | NBP market; Phase 46a analysis | 2026-06-23 | ✓ OK |
 
 ## Hedging & Risk
 
