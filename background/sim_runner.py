@@ -61,15 +61,21 @@ def run_simulation() -> bool:
     log(f"Starting run — git={head}, json={out_json.name}")
 
     t0 = time.monotonic()
-    result = subprocess.run(
-        [
-            sys.executable, "-m", "saas.reporting.annual_report",
-            "--save-json", str(out_json),
-            "--output", str(out_md),
-        ],
-        cwd=str(PROJECT_DIR),
-        timeout=7200,
-    )
+    try:
+        result = subprocess.run(
+            [
+                sys.executable, "-m", "saas.reporting.annual_report",
+                "--save-json", str(out_json),
+                "--output", str(out_md),
+            ],
+            cwd=str(PROJECT_DIR),
+            timeout=7200,
+        )
+    except subprocess.TimeoutExpired:
+        elapsed = time.monotonic() - t0
+        log(f"Run TIMED OUT after {elapsed:.0f}s — killing subprocess and retrying")
+        send_ntfy(f"[SIM] Run timed out after {elapsed:.0f}s — check sim-runner-log.md")
+        return False
     elapsed = time.monotonic() - t0
 
     if result.returncode != 0 or not out_json.exists():
@@ -119,7 +125,12 @@ def run_simulation() -> bool:
 def main() -> None:
     log("Simulation runner started")
     while True:
-        success = run_simulation()
+        try:
+            success = run_simulation()
+        except Exception as exc:
+            log(f"Unexpected error in run_simulation: {type(exc).__name__}: {exc}")
+            send_ntfy(f"[SIM] Unexpected crash: {type(exc).__name__}: {exc}")
+            success = False
         wait = BETWEEN_RUN_PAUSE_SECONDS if success else 300
         log(f"Waiting {wait}s before next run...")
         time.sleep(wait)

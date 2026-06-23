@@ -39,7 +39,8 @@ def _flat_gas_price_records(start_date: str, end_date: str, price: float = 50.0)
     return records
 
 
-def test_build_gas_renewal_schedule_cold_spell_raises_forward_price():
+def test_build_gas_renewal_schedule_cold_spell_does_not_affect_gas_price():
+    # Phase 42: weather adjustment is electricity-only. Gas uses seasonal calibration instead.
     records = _flat_gas_price_records("2015-10-01", "2017-06-30")
     customer = {"aq_kwh": 12000, "acquisition_date": "2016-01-01"}
 
@@ -58,7 +59,8 @@ def test_build_gas_renewal_schedule_cold_spell_raises_forward_price():
         with_cold_weather[0]["forward_price_gbp_per_mwh"]
         / no_weather[0]["forward_price_gbp_per_mwh"]
     )
-    assert ratio == COLD_SPELL_PRICE_MULTIPLIER
+    # Weather does not affect gas forward pricing — ratio must be 1.0
+    assert ratio == 1.0
 
 
 def test_clamp_term_end_uses_default_report_end():
