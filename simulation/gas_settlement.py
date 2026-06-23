@@ -33,6 +33,12 @@ from simulation.policy_costs import (
     get_ggl_per_mwh,
 )
 
+# Phase 45b: gas pass-through contracts bill at actual daily spot + this service fee.
+# The 20% risk premium in company_fwd is not appropriate for pass-through — the customer
+# takes all commodity price risk; the company earns only a thin handling margin.
+# Calibrated at £2/MWh to match the fixed tariff TARGET_MARGIN (saas/tariff_pricing.py).
+GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH = 2.0
+
 
 def _daily_consumption_kwh(aq_kwh: int) -> float:
     """Flat daily consumption: AQ / 365."""
@@ -90,11 +96,13 @@ def run_gas_term(
             ggl = get_ggl_per_mwh(d, aq_kwh) * daily_mwh
             gas_policy_cost = gas_ccl + ggl
 
-            # Phase 40b: pass-through gas — actual policy+network added to revenue
-            # (passed to customer); they cancel in net_margin so company bears
-            # only wholesale spread risk, not gas policy/network cost risk.
+            # Phase 40b: pass-through gas — actual policy+network added to revenue.
+            # Phase 45b: pass-through bills at actual daily spot + service fee (not
+            # locked company forward with 20% risk premium). Customer takes commodity
+            # price risk; company earns only GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH.
             if pass_through:
-                revenue_gbp = billed_gbp + gas_policy_cost + gas_network_cost
+                pt_billed = daily_mwh * (spot_price + GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH)
+                revenue_gbp = pt_billed + gas_policy_cost + gas_network_cost
             else:
                 revenue_gbp = billed_gbp
             margin_gbp = revenue_gbp - cost_gbp
