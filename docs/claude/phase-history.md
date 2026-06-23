@@ -1,4 +1,4 @@
-# Phase History — Phases 30a–42
+# Phase History — Phases 30a–43a
 
 Phase completion details. Earlier phases (1–29) in CLAUDE_HISTORY.md.
 
@@ -47,6 +47,22 @@ second" — matching how real suppliers (e.g. EDF) actually operate.
 - Old reactive model preserved as `docs/reports/run_output_old_reactive_model_pre5c.json`.
 
 ---
+
+## Phase 43a COMPLETE (2026-06-23) — Company Trading Book
+
+14 new tests (1,242+ total). First SIM/company full independence for hedging decisions.
+- `company/trading/forward_book.py`: `ForwardContract(customer_id, term_start, term_end, notional_mwh,
+  agreed_price_gbp_per_mwh, hedge_fraction)` — frozen dataclass; `TradingBook.open_hedge()` registers
+  at tariff signing; `TradingBook.settle_period()` computes hedge P&L per half-hour period.
+- Epistemic compliance: `agreed_price = company_fwd` (company's own tariff engine output only; uses
+  published forward market data — no SIM internals).
+- `simulation/run_phase2b.py`: for each fixed/pass-through electricity term, opens a `ForwardContract`
+  and calls `settle_period()` for each record, adding `hedge_pnl_gbp` field. `trading_book.summary()`
+  added to run output (contract_count, total_hedged_mwh, total_hedge_pnl_gbp).
+- 1-year fast run: 93 contracts, 44,196 MWh hedged, £406k hedge P&L. Net margin unchanged —
+  hedge P&L is now decomposed from supply margin, not added to it.
+- Fixed stale test: `test_pass_through_customer_in_fast_run` used wrong key `all_settlement_records`
+  (correct: `all_records`).
 
 ## Phase 42 COMPLETE (2026-06-22) — Gas-specific seasonal forward curve
 

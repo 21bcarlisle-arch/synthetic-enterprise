@@ -80,6 +80,7 @@ from simulation.customer_events import roll_lifecycle_event
 from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
+from company.trading.forward_book import ForwardContract, TradingBook
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -652,6 +653,9 @@ def main(report_end: str | None = None, sim_interface=None):
     # Phase 23a: demand estimation divergence tracking
     demand_estimation_log: list[dict] = []
 
+    # Phase 43a: company trading book — forward position lifecycle
+    trading_book = TradingBook()
+
     # Phase 8a: growth mandate tracking
     acquisition_spend_events: list[dict] = []
     fixed_cost_events: list[dict] = []
@@ -1046,6 +1050,23 @@ def main(report_end: str | None = None, sim_interface=None):
                     tou_rates=tou_rates, segment=cust_segment,
                     pass_through=(term_tariff_type == "pass_through"),
                 )
+                # Phase 43a: open a forward contract in the company trading book.
+                # agreed_price = company_fwd (the price the company locked at tariff signing).
+                # notional_mwh = hedged portion of EAC estimate.
+                if company_fwd and hf > 0:
+                    trading_book.open_hedge(ForwardContract(
+                        customer_id=cid,
+                        term_start=term_start_str,
+                        term_end=term_end_str,
+                        notional_mwh=(eac_kwh / 1000.0) * hf,
+                        agreed_price_gbp_per_mwh=company_fwd,
+                        hedge_fraction=hf,
+                    ))
+                    # Add hedge_pnl_gbp per settlement record (decomposed from supply margin).
+                    for rec in term_records:
+                        spot = rec.get("wholesale_cost_gbp", 0.0) / (rec["consumption_kwh"] / 1000.0) if rec["consumption_kwh"] > 0 else 0.0
+                        hedge = trading_book.settle_period(cid, term_start_str, rec["consumption_kwh"], spot)
+                        rec["hedge_pnl_gbp"] = round(hedge.pnl_gbp, 6)
             for rec in term_records:
                 rec["data_regime"] = "historical"
                 rec["commodity"] = "electricity"
@@ -1432,6 +1453,8 @@ def main(report_end: str | None = None, sim_interface=None):
             demand_estimation_log=demand_estimation_log,  # Phase 23a
         ),
         "demand_estimation_log": demand_estimation_log,  # Phase 23a: full log for report
+        # Phase 43a: company trading book — forward position lifecycle
+        "trading_book": trading_book.summary(),
     }
 
 

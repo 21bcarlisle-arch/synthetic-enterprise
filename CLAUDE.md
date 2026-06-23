@@ -65,9 +65,14 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
-**Next:** Phase 43a — Company trading desk (forward position lifecycle).
-Proposal: `docs/staging/drafts/PHASE_43_PROPOSAL.md`.
-Architecture Stage 2 (discovery agent formalisation) — awaiting "proceed stage 2" from Rich.
+**Phase 43a COMPLETE (2026-06-23):** Company trading book — 14 new tests (1,242+ passing).
+`company/trading/forward_book.py`: `ForwardContract` + `TradingBook`. On each fixed/pass-through
+term signing, company opens a forward contract (agreed_price = company_fwd, notional = EAC × hf).
+`settle_period()` decomposes hedge P&L from supply margin each half-hour. `trading_book.summary()`
+in run output (contract_count, total_hedged_mwh, hedge_pnl_gbp). Net margin unchanged.
+
+**Next:** Architecture Stage 2 (discovery agent formalisation) — awaiting "proceed stage 2" from Rich.
+Or Phase 43b (adaptive trading desk, VaR-constrained). Proposal in `docs/staging/drafts/`.
 
 **Tests:** 1,228+ passing (non-integration, `SIM_FAST_MODE=1`).
 

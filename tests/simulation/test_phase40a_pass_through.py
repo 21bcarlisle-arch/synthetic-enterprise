@@ -233,7 +233,7 @@ def test_pass_through_customer_in_fast_run():
     finally:
         del os.environ["SIM_FAST_MODE"]
 
-    all_records = result.get("all_settlement_records", [])
+    all_records = result.get("all_records", [])
     ic3_records = [r for r in all_records if r.get("customer_id") == "C_IC3"]
     assert len(ic3_records) > 0, "C_IC3 should have settlement records in fast mode"
 
