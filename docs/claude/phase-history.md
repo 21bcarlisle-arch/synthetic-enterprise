@@ -1,4 +1,4 @@
-# Phase History — Phases 30a–43a
+# Phase History — Phases 30a–45a
 
 Phase completion details. Earlier phases (1–29) in CLAUDE_HISTORY.md.
 
@@ -47,6 +47,20 @@ second" — matching how real suppliers (e.g. EDF) actually operate.
 - Old reactive model preserved as `docs/reports/run_output_old_reactive_model_pre5c.json`.
 
 ---
+
+## Phase 45a COMPLETE (2026-06-23) — Revenue & Margin Sanity Check
+
+0 new tests (1,290+ total). Standing post-run calibration guard.
+- `tools/revenue_sanity_check.py`: P&L waterfall (supply revenue → wholesale → gross → policy+network → capital → net)
+  + per-segment net% vs Ofgem/CMA benchmarks (resi 2–5%, SME 3–8%, I&C 3–15%). Exits 1 on anomaly.
+- `saas/reporting/annual_report.py`: `_section_revenue_sanity()` after Customer P&L Ranking — embedded in every report.
+- `background/process_run_complete.py`: sanity check logged post-dashboard on every run_complete.
+- `site/snapshots/DASHBOARD_*.json`: standalone companion JSON for strategy advisor (no JavaScript needed).
+- Ledger clarification: `_ledger_headline.net_margin_gbp` = gross − capital only (policy/network cancel as
+  billed to customer ≈ paid by company). True economic net = record-sum `net_margin_gbp` (deducts all costs).
+- Anomalies flagged: I&C/gas 19.9% (bench 2–6%), resi/elec 12.2% (bench 2–5%), resi/gas 11.8% (bench 2–4%).
+  Root cause: company_fwd overestimates actual forward on pass-through customers; resi CCL-exempt. Calibration
+  investigation deferred to Phase 45b or discovery agent.
 
 ## Phase 44a COMPLETE (2026-06-23) — Customer Profitability Feedback
 

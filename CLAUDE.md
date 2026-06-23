@@ -67,6 +67,11 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 45a COMPLETE (2026-06-23):** Revenue & margin sanity check — 0 new tests (1,290+ passing).
+`tools/revenue_sanity_check.py`: P&L waterfall + per-segment net% vs Ofgem/CMA benchmarks. Runs
+post-run and in annual report. Snapshot JSON companion for strategy advisor (no-JS fetch). Anomalies
+detected: I&C/gas 19.9% (gas forward bias), resi 12.2%/11.8% (CCL-exempt + forward bias).
+
 **Phase 43a COMPLETE (2026-06-23):** Company trading book — 14 new tests (1,242+ passing).
 `company/trading/forward_book.py`: `ForwardContract` + `TradingBook`. On each fixed/pass-through
 term signing, company opens a forward contract (agreed_price = company_fwd, notional = EAC × hf).

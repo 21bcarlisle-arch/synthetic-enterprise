@@ -415,6 +415,20 @@ Net after CTS:               £7,498
 
 **14 new tests (1,242+ total).**
 
+### Phase 45a — Revenue & Margin Sanity Check (2026-06-23)
+**Files:** `tools/revenue_sanity_check.py` (new), `saas/reporting/annual_report.py`, `background/process_run_complete.py`, `site/snapshots/DASHBOARD_20260623_120151.json` (new)
+
+**What was built:**
+- `tools/revenue_sanity_check.py`: post-run P&L waterfall + per-segment net margin vs Ofgem/CMA benchmarks (resi 2–5%, SME 3–8%, I&C 3–15%). Flags anomalies; exits 1 on fail.
+- `saas/reporting/annual_report.py`: `_section_revenue_sanity()` wired in after Customer P&L Ranking. Runs every annual report, silent if tool unavailable.
+- `background/process_run_complete.py`: sanity check logged after dashboard generation on every run_complete pipeline execution.
+- Snapshot JSON companion: standalone `DASHBOARD_*.json` at same URL as HTML snapshot — strategy advisor fetches without JS.
+- Anomalies detected: I&C/gas 19.9% (bench 2–6%, root cause: company_fwd overestimates actual NBP forward on gas pass-through), resi 12.2%/11.8% (CCL-exempt + forward bias).
+
+**Fidelity delta:** Every full run now auto-checks margin realism against UK industry benchmarks.
+
+**0 new tests (1,290+ total).**
+
 ### Phase 44a — Customer Profitability Feedback into Renewal Pricing (2026-06-23)
 **Files:** `company/crm/customer_profitability.py` (new), `saas/tariff_pricing.py`, `simulation/run_phase2b.py`, `tests/company/test_customer_profitability.py` (new)
 
@@ -695,10 +709,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 43b active, 2026-06-23, commit ffb7ecc, 445s):**
-- Net margin £1,158,439 | Gross £5,980,190 | Treasury £3,625,075 | SURVIVED
-- Stable across 20+ consecutive runs. 38 committee interventions (~monthly). 93 trading book contracts.
-- Phase 43b 1-year fast check: 93 contracts, 46,345 MWh hedged, £463k hedge P&L, £35k bid-ask cost.
+**Latest full run (Phases 44b + 45a, 2026-06-23, commit 41d152f, 463s):**
+- Net margin £1,310,317 | Gross £6,100,025 | Treasury £3,776,953 | SURVIVED
+- Stable across 25+ consecutive post-bugfix runs. Sanity check: I&C/gas 19.9% flagged (gas forward bias).
+- sim_runner restart needed to activate Phase 43b trading book in live runs.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
