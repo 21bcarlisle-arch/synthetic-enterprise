@@ -62,7 +62,7 @@ Last seeded: 2026-06-23 from current codebase.
 
 | Gap | Impact | Priority |
 |---|---|---|
-| Annual variation in non-commodity rates (RO, FiT, CfD, CM change each year) | Medium — distorts year-by-year margin comparisons | MEDIUM |
+| ~~Annual variation in non-commodity rates~~ | ~~Medium~~ | ALREADY IMPLEMENTED — Phase 21a/27b/30a: _RO_COST_BY_OY_START, _CFD_LEVY_BY_YEAR, _CCL_ELECTRICITY_RATE_BY_YEAR, _NETWORK_COST_BY_YEAR (2016-2024) |
 | De minimis VAT threshold for small SME | Low — few customers near threshold | LOW |
 | ~~CCL for SME gas~~ | ~~Medium~~ | ALREADY IMPLEMENTED — Phase 30b (`get_gas_ccl_per_mwh()`, segment-aware) |
 | HH smart meter customers | High — blocks ToU tariffs, VPP, DER | HIGH |

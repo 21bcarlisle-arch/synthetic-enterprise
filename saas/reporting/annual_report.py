@@ -1835,6 +1835,31 @@ def _section_margin_feedback(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_profitability_uplift(data: dict) -> str:
+    """Phase 44a: customer profitability uplift events — net-negative accounts repriced."""
+    log = data.get("profitability_uplift_log", [])
+    if not log:
+        return ""
+
+    lines = [
+        "## Activity-Based Profitability Uplift (Phase 44a)",
+        "",
+        f"Company identified {len(log)} net-negative customer-term(s) and applied a £{log[0]['uplift_gbp_per_mwh']:.0f}/MWh uplift at renewal.",
+        "Churn model handles the outcome: higher rate → higher churn probability → unprofitable customers naturally filter out.",
+        "",
+        "| Customer | Term start | Uplift £/MWh | Rate after uplift |",
+        "|----------|------------|-------------|------------------|",
+    ]
+    for e in sorted(log, key=lambda x: x["term_start"]):
+        lines.append(
+            f"| {e['customer_id']} | {e['term_start']} "
+            f"| +£{e['uplift_gbp_per_mwh']:.2f}/MWh "
+            f"| £{e['unit_rate_after']:.2f}/MWh |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_dynamic_pricing(data: dict) -> str:
     """Phase 17a + 19a: portfolio learning premium events applied during the run."""
     log = data.get("dynamic_pricing_log", [])
@@ -3622,6 +3647,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_lifetime_pricing_section(data))
     sections.append(_section_repricing_impact(data))
     sections.append(_section_margin_feedback(data))
+    sections.append(_section_profitability_uplift(data))
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
     sections.append(_section_dual_fuel_pnl(data))
