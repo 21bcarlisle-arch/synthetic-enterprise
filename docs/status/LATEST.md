@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-23T10:36:54Z
+Last updated: 2026-06-23T11:02:24Z
 
 **Full Ollama run complete (2026-06-23, commit ffb7ecc, 445s — 20 consecutive runs stable):**
 - **Net margin: £1,158,439 | Gross: £5,980,190 | Treasury: £3,625,075 | SURVIVED**
@@ -90,7 +90,7 @@ Last updated: 2026-06-23T10:36:54Z
 - Market: spot vs 1-year forward contango/backwardation chart (2021 crisis backwardation visible).
 - Customers: book size, net margin heatmap by customer/year, retention offers, lifecycle events.
 
-**Latest simulation results (2016–2025)** — auto-processed (445s / 7 min):
+**Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
 - Net margin: £5,898,358.97 | Gross: £5,994,248.78 | Capital: £95,890
 - Treasury: £2,466,636 → £3,625,075 | 38 committee interventions | 1569 bills issued
 - Enterprise value: £6,535,890.41 | Net after CTS: £5,890,084
