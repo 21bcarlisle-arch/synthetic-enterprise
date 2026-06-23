@@ -8,10 +8,10 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-23T12:29:25Z
+Last updated: 2026-06-23T13:03:19Z
 
 **Full Ollama run complete (2026-06-23, commit c0a8e2a, 478s — stable):**
-- **Net margin: £1,310,317 | Gross: £6,100,025 | Treasury: £3,776,953 | SURVIVED**
+- **Net margin: £678,588 | Gross: £5,468,296 | Treasury: £3,145,224 | SURVIVED**
 - All I&C tariff types active. Gas seasonal calibration. No admin event.
 
 **Phase 43b COMPLETE (2026-06-23)**: VaR-constrained trading desk.
