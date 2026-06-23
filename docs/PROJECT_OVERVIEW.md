@@ -415,6 +415,21 @@ Net after CTS:               £7,498
 
 **14 new tests (1,242+ total).**
 
+### Phase 46a — Gas Risk Premium Further Reduced (2026-06-23)
+**Files:** `company/pricing/tariff_engine.py`, `tests/company/pricing/test_phase45c_risk_premium.py`, `tests/company/pricing/test_tariff_engine.py`
+
+**What was built:**
+- `GAS_RISK_PREMIUM_FRACTION`: 10% → 5%. UK resi gas fixed tariffs: suppliers price at NBP + thin service margin only. Pass-through gas already bills at spot + £2/MWh (Phase 45b), so this premium applies only to fixed-term gas customers.
+- With 5% premium in stable markets (120-day mean ≈ EWMA): company_fwd ≈ SIM_fwd → near-zero gas margin. Positive margins emerge when 120-day mean > EWMA (falling markets), where the company's lagged pricing gives it an advantage.
+- Electricity (8%) now higher than gas (5%) — justified because I&C electricity contracts have more competitive pricing pressure and higher spot volatility exposure in the SIM.
+- Updated tests: `test_gas_risk_premium_higher_than_electricity` renamed and semantics corrected; Phase 45c gas test updated.
+
+**Fidelity delta:** UK resi gas suppliers earn near-zero margins in stable years (confirmed by Cornwall Insight 2020 analysis showing resi gas at ~1-2% in that period). Phase 46a brings the SIM into line.
+
+**0 new tests (1,250+ total, tests updated for new constants).**
+
+---
+
 ### Phase 45c — Forward Curve Risk Premium Recalibration (2026-06-23)
 **Files:** `company/pricing/tariff_engine.py`, `tests/company/pricing/test_phase45c_risk_premium.py` (new)
 

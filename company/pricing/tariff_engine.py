@@ -34,12 +34,12 @@ import statistics
 from datetime import date, timedelta
 
 COMPANY_LOOKBACK_DAYS = 120
-# Phase 45c: recalibrated from 15% to 8% (electricity) and 20% to 10% (gas).
-# UK I&C competitive market: brokers price at 5-8% above NAP/NBP for electricity;
-# gas market more volatile but pass-through now handles gas directly at spot.
-# Original 15%/20% created systematic C_IC1/C_IC2 overpricing (~33% net vs 3-8% benchmark).
+# Phase 45c: elec 15%→8% (UK I&C competitive: 5-8% above NAP). Gas 20%→10%.
+# Phase 46a: gas further 10%→5%. UK resi fixed gas: NBP + ~5% covers thin service margin.
+# Pass-through gas already bills at spot + £2/MWh service fee (Phase 45b), so gas premium
+# only affects fixed-term gas tariffs where company takes wholesale price risk.
 COMPANY_RISK_PREMIUM_FRACTION = 0.08
-GAS_RISK_PREMIUM_FRACTION = 0.10    # Phase 20a: gas higher basis risk; Phase 45c: 20%→10%
+GAS_RISK_PREMIUM_FRACTION = 0.05    # Phase 20a: gas higher basis risk; 45c: 20%→10%; 46a: 10%→5%
 MIN_RECORDS_FOR_ESTIMATE = 30
 
 SEASONAL_UPLIFT_ENABLED = True

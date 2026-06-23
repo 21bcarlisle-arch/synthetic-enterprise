@@ -1,4 +1,4 @@
-# Phase History — Phases 30a–45c
+# Phase History — Phases 30a–46a
 
 Phase completion details. Earlier phases (1–29) in CLAUDE_HISTORY.md.
 
@@ -45,6 +45,20 @@ second" — matching how real suppliers (e.g. EDF) actually operate.
 - Capital cost charged only on unhedged (naked) portion — raising the floor to 0.85 caps naked
   exposure at 15% by construction.
 - Old reactive model preserved as `docs/reports/run_output_old_reactive_model_pre5c.json`.
+
+---
+
+## Phase 46a COMPLETE (2026-06-23) — Gas Risk Premium Further Reduced 10%→5%
+
+0 new tests (1,250+, existing tests updated). Constants change only.
+- `company/pricing/tariff_engine.py`: `GAS_RISK_PREMIUM_FRACTION` 10% → 5%.
+- With 5% gas and 8% electricity premiums: in stable markets, company_fwd (gas) ≈ SIM_fwd (gas) → near-zero margin.
+  UK resi gas suppliers DO report near-zero/thin margins in stable years (Cornwall Insight 2020: ~1-2%).
+  Margins emerge when 120-day mean lags below falling EWMA (company advantages from lagged pricing).
+- Electricity premium stays at 8% (higher spot volatility exposure + I&C competitive pricing pressure).
+- Sanity check expectation: resi/gas ~0-2% net in stable markets, potentially negative in 2021-22 crisis years.
+  9-year cumulative should fall within -5% to +5% range.
+- Tests updated: `test_gas_risk_premium_higher_than_electricity` renamed since elec > gas now.
 
 ---
 

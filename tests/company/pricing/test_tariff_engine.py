@@ -72,13 +72,15 @@ class TestCompanyTariffEngine:
         fwd = self.engine.get_forward_price("gas", "2016-01-01", records, seasonal=False)
         assert fwd == pytest.approx(45.0 * (1 + GAS_RISK_PREMIUM_FRACTION))
 
-    def test_gas_risk_premium_higher_than_electricity(self):
-        """Phase 20a: same spot price → gas forward > electricity forward due to higher risk premium."""
+    def test_gas_uses_gas_risk_premium_fraction(self):
+        """Phase 20a: gas uses GAS_RISK_PREMIUM_FRACTION, electricity uses COMPANY_RISK_PREMIUM_FRACTION.
+        Phase 46a: gas premium reduced to 5% (vs elec 8%) — pass-through now at spot, fixed gas
+        competitive pressure means thin margins are realistic for UK resi gas."""
         records = _price_records("2015-09-01", "2016-01-15", price=100.0)
         elec = self.engine.get_forward_price("electricity", "2016-01-01", records, seasonal=False)
         gas = self.engine.get_forward_price("gas", "2016-01-01", records, seasonal=False)
-        assert gas > elec
         assert gas == pytest.approx(100.0 * (1 + GAS_RISK_PREMIUM_FRACTION))
+        assert elec == pytest.approx(100.0 * (1 + COMPANY_RISK_PREMIUM_FRACTION))
 
     def test_explicit_risk_premium_overrides_fuel_default(self):
         """Passing risk_premium explicitly overrides the fuel-based default."""

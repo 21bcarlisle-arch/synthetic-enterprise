@@ -23,16 +23,15 @@ class TestRiskPremiumConstants:
         from company.pricing.tariff_engine import COMPANY_RISK_PREMIUM_FRACTION
         assert COMPANY_RISK_PREMIUM_FRACTION == pytest.approx(0.08)
 
-    def test_gas_premium_is_10_percent(self):
+    def test_gas_premium_is_5_percent(self):
+        """Phase 46a: gas further reduced 10%→5%. Pass-through gas now bills at spot,
+        so gas premium only covers fixed-term risk. UK resi gas margins near-zero in
+        stable markets (realistic for competitive gas market)."""
         from company.pricing.tariff_engine import GAS_RISK_PREMIUM_FRACTION
-        assert GAS_RISK_PREMIUM_FRACTION == pytest.approx(0.10)
-
-    def test_gas_still_higher_than_electricity(self):
-        from company.pricing.tariff_engine import COMPANY_RISK_PREMIUM_FRACTION, GAS_RISK_PREMIUM_FRACTION
-        assert GAS_RISK_PREMIUM_FRACTION > COMPANY_RISK_PREMIUM_FRACTION
+        assert GAS_RISK_PREMIUM_FRACTION == pytest.approx(0.05)
 
     def test_premiums_reduced_from_prior_levels(self):
-        """Both new values are below prior levels (15% elec, 20% gas)."""
+        """Both values below prior levels (15% elec, 20% gas)."""
         from company.pricing.tariff_engine import COMPANY_RISK_PREMIUM_FRACTION, GAS_RISK_PREMIUM_FRACTION
         assert COMPANY_RISK_PREMIUM_FRACTION < 0.15
         assert GAS_RISK_PREMIUM_FRACTION < 0.20
@@ -51,7 +50,7 @@ class TestForwardPriceWithNewPremiums:
         )
         assert fwd == pytest.approx(50.0 * (1 + COMPANY_RISK_PREMIUM_FRACTION))
 
-    def test_gas_forward_uses_10pct_premium(self):
+    def test_gas_forward_uses_5pct_premium(self):
         from company.pricing.tariff_engine import GAS_RISK_PREMIUM_FRACTION
         records = _records(2017, price=40.0)
         fwd = self.engine.get_forward_price(
@@ -73,4 +72,4 @@ class TestForwardPriceWithNewPremiums:
             "gas", "2017-05-01", records, seasonal=False
         )
         assert fwd < 50.0 * 1.20   # below old 20% premium
-        assert fwd > 50.0 * 1.05   # but still above spot
+        assert fwd > 50.0 * 1.00   # above raw spot (has some premium)

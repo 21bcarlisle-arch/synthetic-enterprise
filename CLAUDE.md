@@ -64,6 +64,10 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 46a COMPLETE (2026-06-23):** Gas risk premium further reduced 10%→5% — 0 new tests (1,250+ passing).
+`company/pricing/tariff_engine.py`: `GAS_RISK_PREMIUM_FRACTION` 10%→5%. UK resi gas margins near-zero in stable
+markets (competitive market dynamics; pass-through already at spot). Elec (8%) now higher than gas (5%).
+
 **Phase 45c COMPLETE (2026-06-23):** Forward curve risk premium recalibration — 8 new tests (1,250+ passing).
 `company/pricing/tariff_engine.py`: `COMPANY_RISK_PREMIUM_FRACTION` 15%→8%, `GAS_RISK_PREMIUM_FRACTION` 20%→10%.
 UK I&C market benchmarks: 5-8% above NAP for electricity; original 15%/20% drove C_IC1/C_IC2 to 33% net vs 3-8%
