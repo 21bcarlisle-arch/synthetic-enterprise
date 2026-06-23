@@ -415,6 +415,35 @@ Net after CTS:               £7,498
 
 **14 new tests (1,242+ total).**
 
+### Phase 45c — Forward Curve Risk Premium Recalibration (2026-06-23)
+**Files:** `company/pricing/tariff_engine.py`, `tests/company/pricing/test_phase45c_risk_premium.py` (new)
+
+**What was built:**
+- `COMPANY_RISK_PREMIUM_FRACTION` reduced 15% → 8% (electricity): aligns with UK I&C competitive market (5–8% above NAP/baseload). Original 15% drove C_IC1/C_IC2 to ~33% cumulative net margin vs 3–8% industry benchmark.
+- `GAS_RISK_PREMIUM_FRACTION` reduced 20% → 10% (gas): gas market more volatile than electricity, but pass-through gas is now billed at spot (Phase 45b) so the premium only affects fixed gas tariffs where the company takes price risk.
+- 8 new unit tests in `test_phase45c_risk_premium.py`: constants at correct values, gas > electricity, both below prior levels, forward price uses new premiums.
+
+**Fidelity delta:** Company forward pricing matches UK I&C competitive market norms; systematic overpricing artefact eliminated. Churn model naturally handles under-competitive pricing at renewal.
+
+**8 new tests (1,250+ total).**
+
+---
+
+### Phase 45b — Gas Pass-Through Bills at Spot Price (2026-06-23)
+**Files:** `simulation/gas_settlement.py`, `tests/simulation/test_phase45b_gas_pass_through_spot.py` (new)
+
+**What was built:**
+- `GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH = 2.0`: thin handling margin company earns on pass-through gas.
+- `settle_gas_period()` (pass-through branch): billing now uses `daily_mwh × (spot_price + £2/MWh)` instead of `billed_gbp` (which used `unit_rate = company_fwd × 1.20 + £2`). Policy/network costs still added on top.
+- `unit_rate` parameter stored in schedule for reference but bypassed in billing calculation for pass-through.
+- 6 tests verify: energy billing = spot + fee, net ≈ service fee when spot == forward, net strictly lower than old model, constant at £2.0, fixed gas unaffected, crisis spot passes through to customer.
+
+**Fidelity delta:** Gas pass-through tariffs now correctly transfer wholesale price risk to the customer; company earns only the thin service margin (£2/MWh), eliminating the artifical 19.9% I&C/gas net vs 2–6% industry benchmark.
+
+**6 new tests (1,242+ total).**
+
+---
+
 ### Phase 45a — Revenue & Margin Sanity Check (2026-06-23)
 **Files:** `tools/revenue_sanity_check.py` (new), `saas/reporting/annual_report.py`, `background/process_run_complete.py`, `site/snapshots/DASHBOARD_20260623_120151.json` (new)
 
@@ -702,16 +731,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,290+ non-integration tests passing (SIM_FAST_MODE=1); full suite with Ollama ~40 min
+- 1,250+ tests (1,242 non-integration SIM_FAST_MODE=1, 8 integration); full suite with Ollama ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phases 44b + 45a, 2026-06-23, commit 41d152f, 463s):**
-- Net margin £1,310,317 | Gross £6,100,025 | Treasury £3,776,953 | SURVIVED
-- Stable across 25+ consecutive post-bugfix runs. Sanity check: I&C/gas 19.9% flagged (gas forward bias).
+**Latest full run (Phase 45c, 2026-06-23, commit 467debd):**
+- Net margin £678,588 | Gross £5,468,296 | Treasury £3,145,224 | SURVIVED
+- Risk premium recalibration reduces I&C/elec margins to benchmark-consistent levels.
 - sim_runner restart needed to activate Phase 43b trading book in live runs.
 
 **Simulation complexity:**

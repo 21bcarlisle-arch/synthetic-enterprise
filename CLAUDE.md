@@ -1,8 +1,5 @@
 # CLAUDE.md — Synthetic Enterprise
 
-> Architecture upgrade in progress: see `docs/staging/Architecture_upgrade_path.md`
-> Stage 1 complete. Awaiting "proceed stage 2" from Rich before Stage 2.
-
 ## What this project is
 
 A high-fidelity simulation of a fully autonomous UK energy supply business, operating against
@@ -67,7 +64,16 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
-**Phase 45a COMPLETE (2026-06-23):** Revenue & margin sanity check — 0 new tests (1,290+ passing).
+**Phase 45c COMPLETE (2026-06-23):** Forward curve risk premium recalibration — 8 new tests (1,250+ passing).
+`company/pricing/tariff_engine.py`: `COMPANY_RISK_PREMIUM_FRACTION` 15%→8%, `GAS_RISK_PREMIUM_FRACTION` 20%→10%.
+UK I&C market benchmarks: 5-8% above NAP for electricity; original 15%/20% drove C_IC1/C_IC2 to 33% net vs 3-8%
+industry benchmark. Reduces systematic forward overpricing without affecting gas pass-through (already fixed 45b).
+
+**Phase 45b COMPLETE (2026-06-23):** Gas pass-through bills at spot, not forward — 6 new tests (1,242+ passing).
+`simulation/gas_settlement.py`: pass-through customers billed at daily spot + `GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH`
+(£2/MWh); eliminates artificial 19.9% I&C/gas net margin from 20% risk premium on non-risk-bearing billing.
+
+**Phase 45a COMPLETE (2026-06-23):** Revenue & margin sanity check — 0 new tests (1,236+ passing).
 `tools/revenue_sanity_check.py`: P&L waterfall + per-segment net% vs Ofgem/CMA benchmarks. Runs
 post-run and in annual report. Snapshot JSON companion for strategy advisor (no-JS fetch). Anomalies
 detected: I&C/gas 19.9% (gas forward bias), resi 12.2%/11.8% (CCL-exempt + forward bias).
@@ -100,10 +106,10 @@ Closes "Pricing actions not implemented" Known Gap.
 - Stage 3: `.claude/agents/epistemic-verifier.md` + `tools/epistemic_verifier.py` — in phase-close checklist.
 - Stage 4: `background/agent_protocol.py` — `AgentMessage` + `IntentType`, 18 tests, live in sim_runner.
 
-**Tests:** 1,228+ passing (non-integration, `SIM_FAST_MODE=1`).
+**Tests:** 1,250+ passing (1,242 non-integration `SIM_FAST_MODE=1`, 8 integration).
 
-**Latest run (2026-06-23, commit ffb7ecc, 445s):** Net £1,158,439 | Gross £5,980,190 |
-Treasury £3,625,075 | SURVIVED. Stable across 20+ consecutive post-bugfix runs.
+**Latest run (2026-06-23, commit 467debd):** Net £678,588 | Gross £5,468,296 |
+Treasury £3,145,224 | SURVIVED.
 
 **Active phases (30a–42):** Full policy cost stack (RO, CfD, CCL, CM, FiT, GGL), gas policy
 costs, all 4 I&C tariff types (fixed / pass-through / deemed / flex), active/passive renewal

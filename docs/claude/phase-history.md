@@ -1,4 +1,4 @@
-# Phase History — Phases 30a–45a
+# Phase History — Phases 30a–45c
 
 Phase completion details. Earlier phases (1–29) in CLAUDE_HISTORY.md.
 
@@ -45,6 +45,30 @@ second" — matching how real suppliers (e.g. EDF) actually operate.
 - Capital cost charged only on unhedged (naked) portion — raising the floor to 0.85 caps naked
   exposure at 15% by construction.
 - Old reactive model preserved as `docs/reports/run_output_old_reactive_model_pre5c.json`.
+
+---
+
+## Phase 45c COMPLETE (2026-06-23) — Forward Curve Risk Premium Recalibration
+
+8 new tests (1,250+ total). Calibration fix, no interface change.
+- `company/pricing/tariff_engine.py`: `COMPANY_RISK_PREMIUM_FRACTION` 15% → 8%, `GAS_RISK_PREMIUM_FRACTION` 20% → 10%.
+- Root cause: original 15%/20% created systematic overpricing vs SIM's EWMA-based forward. C_IC1/C_IC2 showed
+  33% cumulative net margin over 9 years (industry I&C benchmark: 3–8%). Gas pass-through already fixed in Phase 45b;
+  this fixes fixed-tariff electricity and gas.
+- UK I&C competitive market: brokers price at 5–8% above NAP/baseload. Gas has higher basis risk so premium > elec.
+- 8 unit tests confirm constants, forward price calculation, and that gas > elec premium still holds.
+
+---
+
+## Phase 45b COMPLETE (2026-06-23) — Gas Pass-Through Bills at Spot Price
+
+6 new tests (1,242+ total). Settlement change for pass-through gas.
+- `simulation/gas_settlement.py`: `GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH = 2.0`.
+  Pass-through customers now billed at `daily_mwh × (spot + £2/MWh)` instead of `unit_rate = company_fwd × 1.20 + £2`.
+- Prior model applied a 20% risk premium (gas_risk_premium_fraction) to a 120-day rolling mean even for pass-through
+  customers, creating 15–20% net margin on gas where industry benchmark is 2–6% (pass-through ≈ 0%).
+- Fixed tariffs unaffected. Policy + network costs still added on top of spot billing.
+- Discovered from Phase 45a sanity check: I&C/gas segment showing 19.9% net (bench 2–6%).
 
 ---
 

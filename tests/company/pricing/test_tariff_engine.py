@@ -67,7 +67,7 @@ class TestCompanyTariffEngine:
             self.engine.get_forward_price("electricity", "2016-01-01", records)
 
     def test_works_for_gas_fuel(self):
-        """Phase 20a: gas defaults to GAS_RISK_PREMIUM_FRACTION (20%), not the electricity 15%."""
+        """Phase 20a: gas defaults to GAS_RISK_PREMIUM_FRACTION, not electricity rate. Phase 45c: 10% vs 8%."""
         records = _price_records("2015-09-01", "2016-01-15", price=45.0)
         fwd = self.engine.get_forward_price("gas", "2016-01-01", records, seasonal=False)
         assert fwd == pytest.approx(45.0 * (1 + GAS_RISK_PREMIUM_FRACTION))

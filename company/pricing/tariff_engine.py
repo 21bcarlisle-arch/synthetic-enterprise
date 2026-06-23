@@ -34,8 +34,12 @@ import statistics
 from datetime import date, timedelta
 
 COMPANY_LOOKBACK_DAYS = 120
-COMPANY_RISK_PREMIUM_FRACTION = 0.15
-GAS_RISK_PREMIUM_FRACTION = 0.20    # Phase 20a: gas has higher basis risk than electricity
+# Phase 45c: recalibrated from 15% to 8% (electricity) and 20% to 10% (gas).
+# UK I&C competitive market: brokers price at 5-8% above NAP/NBP for electricity;
+# gas market more volatile but pass-through now handles gas directly at spot.
+# Original 15%/20% created systematic C_IC1/C_IC2 overpricing (~33% net vs 3-8% benchmark).
+COMPANY_RISK_PREMIUM_FRACTION = 0.08
+GAS_RISK_PREMIUM_FRACTION = 0.10    # Phase 20a: gas higher basis risk; Phase 45c: 20%→10%
 MIN_RECORDS_FOR_ESTIMATE = 30
 
 SEASONAL_UPLIFT_ENABLED = True
