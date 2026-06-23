@@ -73,6 +73,12 @@ term signing, company opens a forward contract (agreed_price = company_fwd, noti
 `settle_period()` decomposes hedge P&L from supply margin each half-hour. `trading_book.summary()`
 in run output (contract_count, total_hedged_mwh, hedge_pnl_gbp). Net margin unchanged.
 
+**Phase 44a COMPLETE (2026-06-23):** Customer profitability feedback into renewal pricing — 13 new tests (1,290+ passing).
+`company/crm/customer_profitability.py`: `estimate_prior_term_net_margin()` + `compute_profitability_uplift()`.
+Net-negative electricity customers receive £3/MWh uplift at renewal. Churn model handles consequence.
+`saas/tariff_pricing.py`: `profitability_uplift_per_mwh` param. Run output: `profitability_uplift_log`.
+Closes "Pricing actions not implemented" Known Gap.
+
 **Phase 43b COMPLETE (2026-06-23):** VaR-constrained trading desk — 15 new tests (1,275+ passing).
 `company/trading/hedge_decision.py`: `estimate_price_volatility()` (EWMA, 90-day lookback),
 `decide_hedge_fraction()` (95% VaR ≤ 15% of term revenue), `compute_bid_ask_cost()` (0.5-1.5%).

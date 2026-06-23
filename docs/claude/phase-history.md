@@ -48,6 +48,19 @@ second" — matching how real suppliers (e.g. EDF) actually operate.
 
 ---
 
+## Phase 44a COMPLETE (2026-06-23) — Customer Profitability Feedback
+
+13 new tests (1,290+ total). Closes "Pricing actions not implemented" Known Gap in ASSUMPTIONS.md.
+- `company/crm/customer_profitability.py`: `estimate_prior_term_net_margin()` — reads company's own
+  net_margin_gbp fields from prior billing records, returns total £ for most recent prior term.
+  `compute_profitability_uplift()` — returns £3/MWh (NET_NEGATIVE_UPLIFT) if net < 0, else 0.
+  Minimum 48 records required before making judgement (first term always gets base pricing).
+- `saas/tariff_pricing.py`: `profitability_uplift_per_mwh` parameter (default 0.0, backward compatible).
+- `simulation/run_phase2b.py`: uplift applied for electricity fixed/pass-through terms at term_index >= 1.
+  Logged in `profitability_uplift_log`. Churn model handles outcome naturally (higher rate → higher churn).
+- Epistemic compliance: company uses only its own billing records — observable accounting data only.
+- Uplift doesn't fire in 1-year test (no prior-term history); fires from year 2+ as expected.
+
 ## Phase 43b COMPLETE (2026-06-23) — Adaptive Trading Desk, VaR-Constrained
 
 15 new tests (1,257+ total). Per-term VaR-constrained hedge decision replaces static RESET_HEDGE_FRACTION.

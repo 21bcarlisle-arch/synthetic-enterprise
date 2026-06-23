@@ -43,6 +43,7 @@ def price_fixed_tariff(
     naked_fraction: float = DEFAULT_NAKED_FRACTION,
     policy_cost_per_mwh: float = 0.0,
     network_cost_per_mwh: float = 0.0,
+    profitability_uplift_per_mwh: float = 0.0,
 ) -> float:
     """Price a fixed unit rate (£/MWh) covering wholesale cost + capital cost + margin.
 
@@ -64,7 +65,12 @@ def price_fixed_tariff(
         Zero for gas. Callers supply from
         simulation.policy_costs.get_electricity_network_cost_per_mwh().
 
-    Five additive components:
+    profitability_uplift_per_mwh: additional margin applied when the company
+        identifies a customer as net-negative in their prior term (Phase 44a).
+        Computed by company.crm.customer_profitability.compute_profitability_uplift().
+        Defaults to 0.0 (backward compatible with all existing callers).
+
+    Six additive components:
       1. forward_price — expected wholesale cost per MWh.
       2. expected_capital_cost_per_mwh — cost of holding VaR collateral against
          the stressed *naked* position over the term, spread across all of
@@ -79,6 +85,7 @@ def price_fixed_tariff(
       3. TARGET_MARGIN_GBP_PER_MWH — flat £2/MWh target margin.
       4. policy_cost_per_mwh — RO + CfD levy pass-through (Phase 21a).
       5. network_cost_per_mwh — DUoS + TNUoS pass-through (Phase 29a).
+      6. profitability_uplift_per_mwh — activity-based repricing for net-negative accounts (Phase 44a).
 
     Returns the priced unit rate as a float (£/MWh).
     """
@@ -94,6 +101,7 @@ def price_fixed_tariff(
         + TARGET_MARGIN_GBP_PER_MWH
         + policy_cost_per_mwh
         + network_cost_per_mwh
+        + profitability_uplift_per_mwh
     )
 
 

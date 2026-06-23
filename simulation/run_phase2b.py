@@ -82,6 +82,7 @@ from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from company.trading.forward_book import ForwardContract, TradingBook
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost
+from company.crm.customer_profitability import compute_profitability_uplift
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -630,6 +631,7 @@ def main(report_end: str | None = None, sim_interface=None):
     prev_term_margin: dict[str, float] = {}
     prev_term_revenue: dict[str, float] = {}
     margin_feedback_log: list[dict] = []
+    profitability_uplift_log: list[dict] = []
     # Phase 22a: post-crisis hangover — how many more renewals get the +12% churn uplift
     hangover_remaining: dict[str, int] = {}
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
@@ -748,6 +750,22 @@ def main(report_end: str | None = None, sim_interface=None):
                     "prev_revenue_gbp": round(prev_term_revenue.get(cid, 0.0), 4),
                     "surcharge_pct": round(surcharge * 100, 2),
                     "unit_rate_before": round(term["unit_rate_gbp_per_mwh"] or 0.0, 4),
+                    "unit_rate_after": round(unit_rate, 4),
+                })
+
+        # Phase 44a: activity-based profitability uplift for net-negative customers.
+        # Electricity fixed/pass-through only — deemed/flex have no locked rate to adjust.
+        if (unit_rate is not None and term_index >= 1
+                and commodity == "electricity"
+                and term_tariff_type in ("fixed", "pass_through")):
+            pnl_uplift = compute_profitability_uplift(billing_account, term_start_str, all_records)
+            if pnl_uplift > 0:
+                unit_rate += pnl_uplift
+                profitability_uplift_log.append({
+                    "customer_id": billing_account,
+                    "commodity": commodity,
+                    "term_start": term_start_str,
+                    "uplift_gbp_per_mwh": round(pnl_uplift, 4),
                     "unit_rate_after": round(unit_rate, 4),
                 })
 
@@ -1457,6 +1475,7 @@ def main(report_end: str | None = None, sim_interface=None):
         "volume_tolerance_log": volume_tolerance_log,
         "triad_log": triad_log,
         "margin_feedback_log": margin_feedback_log,
+        "profitability_uplift_log": profitability_uplift_log,
         "dynamic_pricing_log": dynamic_pricing_log,
         # Phase 12e: aggregated company-model divergence by year
         "company_divergence": _compute_company_divergence(

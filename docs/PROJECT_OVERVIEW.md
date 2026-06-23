@@ -415,6 +415,22 @@ Net after CTS:               £7,498
 
 **14 new tests (1,242+ total).**
 
+### Phase 44a — Customer Profitability Feedback into Renewal Pricing (2026-06-23)
+**Files:** `company/crm/customer_profitability.py` (new), `saas/tariff_pricing.py`, `simulation/run_phase2b.py`, `tests/company/test_customer_profitability.py` (new)
+
+**What was built:**
+- `estimate_prior_term_net_margin()`: reads company's own billing records (net_margin_gbp) for a customer's most recent completed term. Returns total net margin in £, or None if insufficient history (< 48 records = 1 month of HH data).
+- `compute_profitability_uplift()`: returns £3/MWh if prior term was net-negative, 0.0 otherwise.
+- `saas/tariff_pricing.py`: `profitability_uplift_per_mwh` parameter (additive, default 0.0 — backward compatible).
+- `simulation/run_phase2b.py`: uplift applied at renewal for electricity fixed/pass-through terms only. Logged in `profitability_uplift_log` in run output. Churn model handles consequence naturally (higher rate → higher churn probability → unprofitable customers tend to leave).
+- Epistemic compliance: company only uses its own billing records — observable accounting data, not simulation parameters.
+
+**Fidelity delta:** The company now acts like a real supplier: identifies loss-making accounts at renewal and quotes them higher. Regime where this matters most is post-crisis (2021+) when some customers' consumption patterns made them net-negative despite "on-target" margin.
+
+**Closes:** "Pricing actions not implemented (tariff uplift for NET_NEGATIVE customers)" from ASSUMPTIONS.md Known Gaps.
+
+**13 new tests (1,290+ total).**
+
 ### Phase 43b — Adaptive Trading Desk, VaR-Constrained (2026-06-23)
 **Files:** `company/trading/hedge_decision.py` (new), `company/trading/forward_book.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`, `tests/company/test_hedge_decision.py` (new)
 
@@ -672,7 +688,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,275+ non-integration tests passing (SIM_FAST_MODE=1); full suite with Ollama ~40 min
+- 1,290+ non-integration tests passing (SIM_FAST_MODE=1); full suite with Ollama ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
