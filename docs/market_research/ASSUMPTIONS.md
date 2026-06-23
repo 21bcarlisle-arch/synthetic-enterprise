@@ -65,6 +65,7 @@ Last seeded: 2026-06-23 from current codebase.
 
 | Gap | Impact | Priority |
 |---|---|---|
+| **Ofgem Domestic Price Cap (2019–present)** | **CRITICAL — domestic supply was loss-making 2021-2023 under the cap; our resi/elec 10.2% margin is impossible post-2019. Cap sets SVT unit_rate ceiling; suppliers absorbed cost overruns.** | **HIGH — Phase needed** |
 | ~~Annual variation in non-commodity rates~~ | ~~Medium~~ | ALREADY IMPLEMENTED — Phase 21a/27b/30a: _RO_COST_BY_OY_START, _CFD_LEVY_BY_YEAR, _CCL_ELECTRICITY_RATE_BY_YEAR, _NETWORK_COST_BY_YEAR (2016-2024) |
 | De minimis VAT threshold for small SME | Low — few customers near threshold | LOW |
 | ~~CCL for SME gas~~ | ~~Medium~~ | ALREADY IMPLEMENTED — Phase 30b (`get_gas_ccl_per_mwh()`, segment-aware) |

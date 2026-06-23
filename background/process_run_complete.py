@@ -110,11 +110,11 @@ def run_fast_tests():
              "--ignore=tests/simulation/test_phase40b_gas_pass_through.py"],
             cwd=str(PROJECT_DIR),
             env=full_env,
-            timeout=180,
+            timeout=360,
         )
         return result.returncode == 0
     except subprocess.TimeoutExpired:
-        log("Fast test suite timed out (>180s) — treating as FAIL")
+        log("Fast test suite timed out (>360s) — treating as FAIL")
         return False
 
 

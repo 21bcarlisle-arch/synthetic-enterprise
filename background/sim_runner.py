@@ -131,7 +131,7 @@ def run_simulation() -> bool:
     proc_result = subprocess.run(
         [sys.executable, str(processor), str(marker)],
         cwd=str(PROJECT_DIR),
-        timeout=300,
+        timeout=600,
     )
     if proc_result.returncode == 0:
         log('Auto-processed run complete marker')
