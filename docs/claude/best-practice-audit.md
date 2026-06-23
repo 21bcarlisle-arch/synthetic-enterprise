@@ -247,9 +247,50 @@ The priority is Stage 3's verifier before Stage 4's message schema.
 
 ---
 
-## Completion Note
+## Completion Note — Stage 0
 
 Stage 0 prerequisite (observability log schema + poesys.net system health
 panel) implemented as of commit f498b17. This audit is the Stage 0 gate
-artefact. NTFY Rich with findings; waiting for explicit "proceed stage 1"
-before implementing CLAUDE.md restructure.
+artefact.
+
+---
+
+## Implementation Notes — Stages 1-4 (2026-06-23, commit f74e1f7)
+
+### What was implemented
+
+**Stage 1 — CLAUDE.md restructure:**
+- 494 lines → 151 lines. 33,677 chars → 7,618 chars.
+- All phase build history moved to `docs/claude/phase-history.md`.
+- Epistemic verifier added to phase-close checklist.
+
+**Stage 2 — Discovery Agent:**
+- `.claude/agents/discovery-agent.md` created with scoped tools (Read, Bash read-only, Write to market_research/ only).
+- Structured finding schema enforced: domain, assumption, benchmark, confidence, source, date.
+- Epistemic constraint explicit: never reads sim/ or simulation/ code.
+
+**Stage 3 — Epistemic Verifier:**
+- `.claude/agents/epistemic-verifier.md` + `tools/epistemic_verifier.py` (standalone CLI).
+- Validation test: planted `from sim.hedging_strategy import MIN_HEDGE_FLOOR` in `company/risk/hedge_policy.py` → FAIL detected (line 72) → removed → PASS confirmed.
+- Added to phase-close checklist as step 3.
+- Exit code 0 = PASS, 1 = FAIL.
+
+**Stage 4 — Inter-Agent Message Schema:**
+- `background/agent_protocol.py`: `AgentMessage` dataclass + `IntentType` enum (9 intents).
+- 18 tests passing. Serialisation round-trip, unknown intent rejection, missing field validation.
+- Live usage: `background/sim_runner.py` emits `AgentMessage(intent="run_complete")` on each successful run.
+
+### What differed from audit findings
+
+- Stage order recommendation was Stage 3 > Stage 1 > Stage 2 > Stage 4 by risk reduction.
+  Actual order followed the original document (1 → 2 → 3 → 4). Outcome was the same.
+- `.claude/agents/` confirmed functional (from Stage 0 audit finding). Stage 2 proceeded as planned.
+- `background/` inventory gap: not yet addressed. A `background/README.md` would close this.
+
+### What remains genuinely deferred
+
+- Stage 5 (parallel settlement) — explicitly deferred pending design conversation with Rich.
+- `background/README.md` — inventory gap from audit, quick win, not yet done.
+- Discovery agent: the definition exists but has not been invoked to validate a real assumption.
+  First real use will complete the Stage 2 functional verification.
+

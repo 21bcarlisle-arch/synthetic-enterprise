@@ -402,6 +402,24 @@ Net after CTS:               £7,498
 
 **What this closed:** the hedging model was still reading declared EAC rather than calibrating from actual settlement records — underestimating demand for growing customers. Solar irradiance now reduces C4 consumption on high-sun days. 8 new tests (854 total).
 
+### Phase 43a — Company Trading Book (2026-06-23)
+**Files:** `company/trading/forward_book.py`, `simulation/run_phase2b.py`, `tests/company/test_forward_book.py`
+
+**What was built:**
+- `ForwardContract` (frozen dataclass): customer_id, term_start, term_end, notional_mwh, agreed_price_gbp_per_mwh, hedge_fraction.
+- `TradingBook`: `open_hedge()` at tariff signing; `settle_period()` computes hedge P&L per half-hour; `summary()` in run output.
+- `simulation/run_phase2b.py`: for each fixed/pass-through electricity term, opens a ForwardContract (agreed_price = company_fwd — the company's own tariff engine output) and calls `settle_period()` per record, adding `hedge_pnl_gbp` field.
+- Epistemic compliance: agreed_price comes from the company's own forward price calculation (published market data only — no SIM internals).
+
+**Fidelity delta:** The company now runs a trading book. Hedge gain/loss is decomposed from supply margin per settlement period. 1-year fast run: 93 contracts, 44,196 MWh hedged, £406k hedge P&L.
+
+**14 new tests (1,242+ total).**
+
+### Architecture Stages 0-4 (2026-06-23)
+**Files:** `docs/claude/best-practice-audit.md`, `background/agent_status.py`, `site/index.html` (System tab), `.claude/agents/discovery-agent.md`, `.claude/agents/epistemic-verifier.md`, `background/agent_protocol.py`, `tools/epistemic_verifier.py`, `CLAUDE.md` (restructured)
+
+**What was built:** See Section 12 (Agent Architecture). CLAUDE.md reduced from 494 lines to 151 lines. Epistemic verifier added to phase-close checklist. 18 new protocol tests.
+
 ### Phase 42 — Gas Forward Curve Seasonal Calibration (2026-06-22)
 **Files:** `sim/forward_curve.py`, `simulation/run_phase2b.py`, `simulation/run_segments.py`, `tests/sim/test_forward_curve.py`
 
@@ -639,17 +657,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,228+ non-integration tests passing (SIM_FAST_MODE=1); full suite with Ollama ~40 min
+- 1,260+ non-integration tests passing (SIM_FAST_MODE=1); full suite with Ollama ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phases 34a-42 active, in progress 2026-06-22):**
-- Full 2016-2025 run with all I&C tariff types active: Fixed, Pass-through, Deemed, Flex.
-- Previous run (Phase 13a-13e, git 61e5b3f): Net margin £-3,766 | Treasury £29,846 → £15,683
-- Updated figures will be committed on run completion.
+**Latest full run (Phases 43a active, 2026-06-23, commit ffb7ecc, 445s):**
+- Net margin £1,158,439 | Gross £5,980,190 | Treasury £3,625,075 | SURVIVED
+- Stable across 20+ consecutive runs. 38 committee interventions (~monthly). 93 trading book contracts.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
@@ -682,3 +699,67 @@ This document is a **project state document** — it describes architecture, bui
 - PROJECT_OVERVIEW.md: updated manually at phase close by the orchestrator (correct)
 
 This distinction also applies to CLAUDE.md's "Current state" section, which serves a similar function for the agent itself.
+
+---
+
+## 12. Agent Architecture (as of 2026-06-23)
+
+The project runs a multi-layer agent architecture. This section describes it as it now exists after Architecture Stages 0-4.
+
+### Layer 1 — Orchestrator
+
+**Claude Code (Sonnet 4.6)** is the lead orchestrator. It reads staged instructions, designs solutions, delegates implementation to Qwen, reviews outputs, runs tests, and manages the build. All frontier token spend goes here — reasoning, design, review, and delegation.
+
+### Layer 2 — Code-Domain Subagents (.claude/agents/)
+
+Defined in `.claude/agents/`. These are Claude Code subagents with scoped tools and domain-specific instructions.
+
+| Agent | Definition | Scope |
+|---|---|---|
+| `sim-engineer` | `.claude/agents/sim-engineer.md` | `sim/` — historical data, forward curves |
+| `saas-engineer` | `.claude/agents/saas-engineer.md` | `saas/` — billing, CLV, churn, CRM |
+| `interface-steward` | `.claude/agents/interface-steward.md` | `company/interfaces/` — SIM/company seam |
+| `discovery-agent` | `.claude/agents/discovery-agent.md` | `docs/market_research/` — assumption validation |
+| `epistemic-verifier` | `.claude/agents/epistemic-verifier.md` | Read-only — scans diffs for barrier violations |
+
+### Layer 3 — Background Daemons (background/)
+
+Long-running systemd user processes. All emit structured status to `docs/observability/agent_status.json` (schema v1) and appear on the poesys.net System health panel.
+
+| Daemon | Role | Produces |
+|---|---|---|
+| `sim_runner` | Continuously re-runs full simulation | `run_complete_*.md` staging markers |
+| `autonomous_runner` | Runs Claude `--print` turns | Published reports, LATEST.md updates |
+| `ntfy_responder` | Receives Rich's NTFY messages | `from_rich_*.md` staging files |
+| `staging_watcher` | Monitors `docs/staging/` | Alerts when new instructions arrive |
+| `session_watchdog` | Detects Claude usage-limit pauses | Session resume signals |
+| `dispatcher` | Routes NTFY by urgency | Urgent → wake session, normal → queue |
+| `discovery_agent` | Background market research | ASSUMPTIONS.md updates |
+| `background_worker` | General background task queue | Varies |
+
+### Layer 4 — Execution Engine
+
+**qwen3:14b via Ollama** handles all code generation. Receives edits, specs, and file content from the orchestrator; returns implementations. No frontier token spend.
+
+**Risk committee agent** runs during simulation via Ollama. Local only — no frontier API spend in simulation runs.
+
+### Observability Layer
+
+`docs/observability/agent_status.json`: structured JSON updated by all 8 daemons (schema v1).
+Fields per agent: `name`, `role`, `status`, `last_heartbeat`, `last_action`, `last_action_ts`, `anomaly`, `produces`.
+
+`site/data/agent_status.json`: mirrored to Cloudflare Pages, rendered on poesys.net System tab.
+Green = heartbeat <1h, Amber = 1-6h, Red = >6h or status=error.
+
+### Inter-Agent Message Protocol
+
+`background/agent_protocol.py`: `AgentMessage` dataclass with `IntentType` enum (9 known intents).
+Additive — does not replace NTFY or staging file formats. Used for new structured communication going forward.
+First live usage: `sim_runner.py` emits `AgentMessage(intent="run_complete")` on each successful run.
+
+### Epistemic Barrier
+
+`company/interfaces/sim_interface.py` is the only approved crossing point between company layer and simulation.
+`tools/epistemic_verifier.py` scans company/ code for barrier violations at phase close.
+Any direct import from `sim/` or `simulation/` in company code is a violation.
+
