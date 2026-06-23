@@ -70,8 +70,10 @@ def load_spot_monthly():
 
 def extract_portfolio(data):
     ledger = data.get("_ledger_headline", {}) or data.get("ledger_pnl", {})
-    net = _fmt(ledger.get("net_margin_gbp", data.get("total_net_gbp", 0)))
-    gross = _fmt(ledger.get("gross_margin_gbp", data.get("total_gross_gbp", 0)))
+    # Prefer total_net_gbp (final P&L after all costs including capital) over
+    # _ledger_headline.net_margin_gbp (which is a ledger subtotal, not final net).
+    net = _fmt(data.get("total_net_gbp") or ledger.get("net_margin_gbp", 0))
+    gross = _fmt(data.get("total_gross_gbp") or ledger.get("gross_margin_gbp", 0))
     ret_log = data.get("retention_log", [])
     churned = data.get("churned_billing_accounts", [])
     return {

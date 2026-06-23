@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys — Synthetic Enterprise Dashboard</title>
+<meta name="description" content="Live dashboard for the Synthetic Enterprise autonomous energy simulation">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://poesys.net/">
+<meta property="og:title" content="Poesys Dashboard">
+<meta property="og:url" content="https://poesys.net">
+<meta property="og:description" content="Synthetic Enterprise autonomous energy simulation dashboard">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
+  --border: #30363d; --text: #e6edf3; --muted: #7d8590;
+  --green: #3fb950; --red: #f85149; --amber: #d29922;
+  --blue: #58a6ff; --purple: #bc8cff; --teal: #39d353;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+/* ── Header ── */
+header { position: sticky; top: 0; z-index: 100; background: var(--bg);
+  border-bottom: 1px solid var(--border); padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; }
+.logo span { color: var(--blue); }
+.run-meta { font-size: 11px; color: var(--muted); text-align: right; line-height: 1.4; }
+.run-meta a { color: var(--blue); text-decoration: none; }
+.badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.badge-green { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+
+/* ── Tab nav ── */
+.tab-nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none; position: sticky; top: 53px; z-index: 99; }
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn { flex: 1; min-width: 70px; padding: 10px 6px; background: none; border: none;
+  color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer;
+  border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s; }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--blue); }
+.tab-btn:hover { color: var(--text); }
+
+/* ── Main content ── */
+main { padding: 16px; max-width: 960px; margin: 0 auto; padding-bottom: 32px; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── Sections ── */
+.section { margin-bottom: 24px; }
+.section-title { font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--muted); margin-bottom: 10px; }
+
+/* ── Metric cards ── */
+.cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-bottom: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 14px 10px; }
+.card-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 5px; }
+.card-value { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
+.card-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.pos { color: var(--green); } .neg { color: var(--red); }
+.neu { color: var(--blue); } .warn { color: var(--amber); }
+
+/* ── Chart containers ── */
+.chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.chart-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 12px; }
+.chart-wrap { position: relative; height: 240px; }
+.chart-wrap.tall { height: 300px; }
+
+/* ── Tables ── */
+.tbl-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+.tbl-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); padding: 12px 14px 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { padding: 6px 10px; text-align: right; color: var(--muted); font-weight: 500; font-size: 10px;
+     text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid var(--border); }
+th:first-child { text-align: left; }
+td { padding: 5px 10px; text-align: right; border-bottom: 1px solid rgba(48,54,61,.5); }
+td:first-child { text-align: left; font-weight: 500; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+
+/* ── Heatmap ── */
+.heatmap-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.heatmap { display: grid; gap: 2px; width: max-content; padding: 2px; }
+.hm-row { display: contents; }
+.hm-cell { padding: 4px 6px; font-size: 10px; border-radius: 3px; text-align: center; min-width: 44px; cursor: default; }
+.hm-label { background: none; color: var(--muted); font-weight: 600; text-align: left; min-width: 56px; }
+.hm-year-hdr { background: none; color: var(--muted); font-size: 10px; font-weight: 600; }
+.hm-great { background: #1a5c28; color: #aaffbb; }
+.hm-good  { background: #1a3d1e; color: #7edd8a; }
+.hm-ok    { background: #14301a; color: #5aad65; }
+.hm-nil   { background: #21262d; color: var(--muted); }
+.hm-warn  { background: #3d2a0a; color: #e0a830; }
+.hm-poor  { background: #3d1a10; color: #e07060; }
+.hm-bad   { background: #4a0e0a; color: #f85149; }
+
+/* ── Event list ── */
+.event-list { list-style: none; display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; }
+.ev-item { display: flex; align-items: baseline; gap: 8px; font-size: 12px; padding: 4px 0;
+  border-bottom: 1px solid rgba(48,54,61,.4); }
+.ev-item:last-child { border-bottom: none; }
+.ev-date { color: var(--muted); font-size: 11px; min-width: 82px; }
+.ev-tag { padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+.tag-churned   { background: rgba(248,81,73,.2); color: var(--red); }
+.tag-renewed   { background: rgba(63,185,80,.12); color: var(--green); }
+.tag-retention { background: rgba(210,153,34,.2); color: var(--amber); }
+.tag-acquired  { background: rgba(88,166,255,.15); color: var(--blue); }
+
+/* ── Loading ── */
+#loading { padding: 40px; text-align: center; color: var(--muted); }
+
+/* ── System health panel ── */
+.agent-grid { display: flex; flex-direction: column; gap: 8px; }
+.agent-row { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: start; }
+.agent-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.dot-green  { background: var(--green); box-shadow: 0 0 4px var(--green); }
+.dot-amber  { background: var(--amber); box-shadow: 0 0 4px var(--amber); }
+.dot-red    { background: var(--red);   box-shadow: 0 0 4px var(--red); }
+.dot-grey   { background: var(--muted); }
+.agent-body {}
+.agent-name { font-weight: 600; font-size: 13px; }
+.agent-role { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.agent-action { font-size: 11px; color: var(--text); margin-top: 5px; }
+.agent-anomaly { font-size: 11px; color: var(--red); margin-top: 3px; }
+.agent-ts { font-size: 10px; color: var(--muted); white-space: nowrap; padding-top: 3px; }
+.status-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-left: 6px; }
+.sb-running { background: rgba(63,185,80,.15); color: var(--green); }
+.sb-idle    { background: rgba(125,133,144,.12); color: var(--muted); }
+.sb-working { background: rgba(88,166,255,.15); color: var(--blue); }
+.sb-error   { background: rgba(248,81,73,.15); color: var(--red); }
+
+@media (min-width: 600px) {
+  .cards { grid-template-columns: repeat(4, 1fr); }
+  .chart-wrap { height: 260px; }
+  .chart-wrap.tall { height: 340px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Poesys<span>.</span>net</div>
+  <div class="run-meta" id="run-meta">Loading…</div>
+</header>
+
+<nav class="tab-nav" id="tab-nav">
+  <button class="tab-btn active" data-tab="overview"  onclick="switchTab('overview')">Overview</button>
+  <button class="tab-btn"        data-tab="financial" onclick="switchTab('financial')">Financial</button>
+  <button class="tab-btn"        data-tab="trading"   onclick="switchTab('trading')">Trading</button>
+  <button class="tab-btn"        data-tab="customers" onclick="switchTab('customers')">Customers</button>
+  <button class="tab-btn"        data-tab="market"    onclick="switchTab('market')">Market</button>
+  <button class="tab-btn"        data-tab="system"    onclick="switchTab('system')">System</button>
+</nav>
+
+<main>
+  <div id="loading">Loading dashboard data…</div>
+
+  <div id="tab-overview"  class="view active"></div>
+  <div id="tab-financial" class="view"></div>
+  <div id="tab-trading"   class="view"></div>
+  <div id="tab-customers" class="view"></div>
+  <div id="tab-market"    class="view"></div>
+  <div id="tab-system"   class="view"></div>
+</main>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const C = {
+  bg:'#0d1117', surface:'#161b22', border:'#30363d', text:'#e6edf3',
+  muted:'#7d8590', green:'#3fb950', red:'#f85149', amber:'#d29922',
+  blue:'#58a6ff', purple:'#bc8cff', teal:'#39d353'
+};
+
+Chart.defaults.color = C.muted;
+Chart.defaults.borderColor = C.border;
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+Chart.defaults.font.size = 11;
+
+// ── State ───────────────────────────────────────────────────────────────────
+let D = null;
+const rendered = {};
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+const gbp = (v, d=0) => {
+  const n = Math.abs(v);
+  const s = n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(0)+'k' : n.toFixed(d);
+  return (v < 0 ? '-' : '') + '£' + s;
+};
+const pct = (v, d=1) => (v >= 0 ? '+' : '') + v.toFixed(d) + '%';
+const cls = v => v > 0 ? 'pos' : v < 0 ? 'neg' : 'neu';
+const el = id => document.getElementById(id);
+const mkChart = (id, cfg) => new Chart(document.getElementById(id), cfg);
+
+function card(label, value, sub='', klass='neu') {
+  return `<div class="card"><div class="card-label">${label}</div>
+    <div class="card-value ${klass}">${value}</div>
+    ${sub ? `<div class="card-sub">${sub}</div>` : ''}</div>`;
+}
+
+function baseLineOpts(title) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
+               title: { display: false }, tooltip: { mode: 'index', intersect: false } },
+    scales: {
+      x: { grid: { color: 'rgba(48,54,61,.4)' }, ticks: { maxRotation: 45 } },
+      y: { grid: { color: 'rgba(48,54,61,.4)' } }
+    }
+  };
+}
+
+// ── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el('tab-' + name).classList.add('active');
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  if (!rendered[name]) { renderTab(name); rendered[name] = true; }
+}
+
+let SYS = null;
+
+function renderTab(name) {
+  if (!D) return;
+  if (name === 'overview')  renderOverview();
+  if (name === 'financial') renderFinancial();
+  if (name === 'trading')   renderTrading();
+  if (name === 'customers') renderCustomers();
+  if (name === 'market')    renderMarket();
+  if (name === 'system')    renderSystem();
+}
+
+function ageLabel(ts) {
+  if (!ts) return 'unknown';
+  const secs = (Date.now() - new Date(ts).getTime()) / 1000;
+  if (secs < 120)   return Math.round(secs) + 's ago';
+  if (secs < 3600)  return Math.round(secs/60) + 'm ago';
+  if (secs < 86400) return (secs/3600).toFixed(1) + 'h ago';
+  return (secs/86400).toFixed(1) + 'd ago';
+}
+
+function ageDot(ts, status) {
+  if (!ts) return 'dot-grey';
+  const hours = (Date.now() - new Date(ts).getTime()) / 3600000;
+  if (status === 'error') return 'dot-red';
+  if (hours > 6) return 'dot-red';
+  if (hours > 1) return 'dot-amber';
+  return 'dot-green';
+}
+
+function renderSystem() {
+  const container = el('tab-system');
+  if (!SYS) {
+    container.innerHTML = `<div class="section"><div class="section-title">System Health</div>
+      <p style="color:var(--muted);font-size:12px">Loading agent status…</p></div>`;
+    fetch('./data/agent_status.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(data => { SYS = data; renderSystem(); })
+      .catch(() => {
+        container.innerHTML = `<div class="section"><div class="section-title">System Health</div>
+          <p style="color:var(--red);font-size:12px">Could not load agent_status.json</p></div>`;
+      });
+    return;
+  }
+
+  const updated = SYS.last_updated ? ageLabel(SYS.last_updated) : 'unknown';
+  const rows = (SYS.agents || []).map(a => {
+    const dotCls = ageDot(a.last_heartbeat, a.status);
+    const sbCls = { running:'sb-running', idle:'sb-idle', working:'sb-working', error:'sb-error' }[a.status] || 'sb-idle';
+    return `
+    <div class="agent-row">
+      <div class="agent-dot ${dotCls}"></div>
+      <div class="agent-body">
+        <div class="agent-name">${a.name}<span class="status-badge ${sbCls}">${a.status}</span></div>
+        <div class="agent-role">${a.role || ''}</div>
+        <div class="agent-action">↳ ${a.last_action || '—'}</div>
+        ${a.anomaly ? `<div class="agent-anomaly">⚠ ${a.anomaly}</div>` : ''}
+        ${a.produces ? `<div class="agent-role" style="margin-top:3px">→ ${a.produces}</div>` : ''}
+      </div>
+      <div class="agent-ts">${ageLabel(a.last_heartbeat)}</div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="section">
+      <div class="section-title">System Health <span style="font-weight:400;color:var(--muted);text-transform:none">— status updated ${updated}</span></div>
+      <div class="agent-grid">${rows}</div>
+    </div>`;
+}
+
+// ── Header ───────────────────────────────────────────────────────────────────
+function updateHeader() {
+  const m = D.meta;
+  const p = D.portfolio;
+  const netCls = p.net_margin_gbp >= 0 ? 'color:' + C.green : 'color:' + C.red;
+  el('run-meta').innerHTML =
+    `<span style="${netCls};font-weight:700">${gbp(p.net_margin_gbp)} net</span> &nbsp;·&nbsp; ` +
+    `git <a href="https://github.com/21bcarlisle-arch/synthetic-enterprise/commit/${m.git_commit}" target="_blank">${m.git_commit.slice(0,7)}</a> &nbsp;·&nbsp; ` +
+    `<span class="badge badge-green">Live</span>`;
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+function renderOverview() {
+  const p = D.portfolio;
+  const fa = D.financial.annual;
+
+  el('tab-overview').innerHTML = `
+    <div class="cards">
+      ${card('Net Margin', gbp(p.net_margin_gbp), '10-year total', cls(p.net_margin_gbp))}
+      ${card('Gross Margin', gbp(p.gross_margin_gbp), 'wholesale spread', cls(p.gross_margin_gbp))}
+      ${card('Enterprise Value', gbp(p.enterprise_value_gbp), 'CLV − acq cost', cls(p.enterprise_value_gbp))}
+      ${card('Treasury', gbp(p.treasury_end_gbp), `from ${gbp(p.treasury_start_gbp)}`, 'neu')}
+      ${card('Retention', `${p.retention_retained}/${p.retention_offers}`, `${p.churn_count} accounts churned`, 'neu')}
+      ${card('Committee', p.committee_interventions_total.toLocaleString(), `${p.bills_total.toLocaleString()} bills`, 'neu')}
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Treasury 2016–2025</div>
+      <div class="chart-wrap"><canvas id="ch-treasury"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Net Margin by Year</div>
+      <div class="chart-wrap"><canvas id="ch-overview-net"></canvas></div>
+    </div>`;
+
+  const yrs = fa.map(r => r.year);
+
+  mkChart('ch-treasury', {
+    type: 'line',
+    data: {
+      labels: yrs,
+      datasets: [{
+        label: 'Treasury (£)', data: fa.map(r => r.treasury_end_gbp),
+        borderColor: C.blue, backgroundColor: 'rgba(88,166,255,.08)',
+        fill: true, tension: 0.3, pointRadius: 3
+      }]
+    },
+    options: { ...baseLineOpts(), scales: { x: { grid:{color:'rgba(48,54,61,.4)'} },
+      y: { grid:{color:'rgba(48,54,61,.4)'}, ticks:{callback:v=>gbp(v)} } } }
+  });
+
+  mkChart('ch-overview-net', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [{
+        label: 'Net Margin (£)',
+        data: fa.map(r => r.net_gbp),
+        backgroundColor: fa.map(r => r.net_gbp >= 0 ? 'rgba(63,185,80,.7)' : 'rgba(248,81,73,.7)'),
+        borderRadius: 3
+      }]
+    },
+    options: { ...baseLineOpts(), scales: { x:{grid:{color:'rgba(48,54,61,.4)'}},
+      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)},
+         plugins:{legend:{display:false}}} } }
+  });
+}
+
+// ── FINANCIAL ────────────────────────────────────────────────────────────────
+function renderFinancial() {
+  const fa = D.financial.annual;
+  const ld = D.financial.ledger;
+  const yrs = fa.map(r => r.year);
+
+  el('tab-financial').innerHTML = `
+    <div class="chart-box">
+      <div class="chart-title">Annual P&amp;L Components</div>
+      <div class="chart-wrap tall"><canvas id="ch-pnl-stack"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Electricity vs Gas Gross Margin</div>
+      <div class="chart-wrap"><canvas id="ch-commodity"></canvas></div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">10-Year Ledger Summary</div>
+      <table>
+        <tr><th>Item</th><th>£</th></tr>
+        <tr><td>Revenue billed</td><td>${gbp(ld.revenue_gbp)}</td></tr>
+        <tr><td>Wholesale cost</td><td class="neg">${gbp(ld.wholesale_cost_gbp)}</td></tr>
+        <tr><td>Gross margin</td><td class="${cls(ld.gross_margin_gbp)}">${gbp(ld.gross_margin_gbp)}</td></tr>
+        <tr><td>Capital charges</td><td class="neg">${gbp(ld.capital_cost_gbp)}</td></tr>
+        <tr><td>Non-commodity costs</td><td class="neg">${gbp(ld.non_commodity_cost_gbp)}</td></tr>
+        <tr><td>Bad debt</td><td class="neg">${gbp(ld.bad_debt_gbp)}</td></tr>
+        <tr><td>VAT remittance</td><td class="neg">${gbp(ld.vat_remittance_gbp)}</td></tr>
+        <tr><td>Acquisition spend</td><td class="neg">${gbp(ld.acquisition_spend_gbp)}</td></tr>
+        <tr><td>Fixed costs</td><td class="neg">${gbp(ld.fixed_cost_gbp)}</td></tr>
+        <tr><td><strong>Net margin</strong></td><td class="${cls(ld.net_margin_gbp)}"><strong>${gbp(ld.net_margin_gbp)}</strong></td></tr>
+      </table>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Annual P&amp;L</div>
+      <table>
+        <tr><th>Year</th><th>Revenue</th><th>Gross</th><th>Capital</th><th>Net</th><th>Treasury</th></tr>
+        ${fa.map(r=>`<tr>
+          <td>${r.year}</td>
+          <td>${gbp(r.revenue_gbp)}</td>
+          <td class="${cls(r.gross_gbp)}">${gbp(r.gross_gbp)}</td>
+          <td class="neg">${gbp(r.capital_gbp)}</td>
+          <td class="${cls(r.net_gbp)}">${gbp(r.net_gbp)}</td>
+          <td>${gbp(r.treasury_end_gbp)}</td>
+        </tr>`).join('')}
+      </table>
+    </div>`;
+
+  mkChart('ch-pnl-stack', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [
+        { label: 'Revenue', data: fa.map(r=>r.revenue_gbp), backgroundColor:'rgba(88,166,255,.6)', stack:'a' },
+        { label: 'Wholesale cost', data: fa.map(r=>-Math.abs(r.revenue_gbp - r.gross_gbp)), backgroundColor:'rgba(248,81,73,.5)', stack:'b' },
+        { label: 'Gross margin', data: fa.map(r=>r.gross_gbp), backgroundColor:'rgba(63,185,80,.6)', stack:'c' },
+        { label: 'Net margin', data: fa.map(r=>r.net_gbp), backgroundColor: fa.map(r=>r.net_gbp>=0?'rgba(63,185,80,.9)':'rgba(248,81,73,.9)'), type:'bar', stack:'d' },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(48,54,61,.4)'}},
+      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)}} } }
+  });
+
+  mkChart('ch-commodity', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [
+        { label: 'Electricity gross', data: fa.map(r=>r.elec_gross_gbp), backgroundColor:'rgba(88,166,255,.7)', borderRadius:2 },
+        { label: 'Gas gross', data: fa.map(r=>r.gas_gross_gbp), backgroundColor:'rgba(188,140,255,.7)', borderRadius:2 },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(48,54,61,.4)'}},
+      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)}} } }
+  });
+}
+
+// ── TRADING ──────────────────────────────────────────────────────────────────
+function renderTrading() {
+  const sm = D.trading.spot_monthly;
+  const ha = D.trading.hedge_annual;
+
+  const months = sm.map(r=>r.month);
+  const means  = sm.map(r=>r.mean);
+  const p95s   = sm.map(r=>r.p95);
+  const above  = sm.map(r=>r.above_500);
+  const cmte   = sm.map(r=>r.committee_count);
+
+  // Find peak crisis month for annotation
+  const maxMean = Math.max(...means);
+  const peakMonth = sm[means.indexOf(maxMean)];
+
+  el('tab-trading').innerHTML = `
+    <div class="chart-box">
+      <div class="chart-title">Wholesale Spot Price (£/MWh) — Monthly 2016–2025</div>
+      <div class="chart-wrap tall"><canvas id="ch-spot"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Extreme Spot Events (&gt;£500/MWh half-hours per month) + Risk Committee Interventions</div>
+      <div class="chart-wrap"><canvas id="ch-crisis"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Portfolio Avg Hedge Fraction by Year</div>
+      <div class="chart-wrap"><canvas id="ch-hedge"></canvas></div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Hedge Fraction by Year</div>
+      <table>
+        <tr><th>Year</th><th>Avg HF</th><th>Min HF</th><th>Max HF</th></tr>
+        ${ha.map(r=>`<tr><td>${r.year}</td><td>${(r.avg_hf*100).toFixed(1)}%</td>
+          <td>${(r.min_hf*100).toFixed(1)}%</td><td>${(r.max_hf*100).toFixed(1)}%</td></tr>`).join('')}
+      </table>
+    </div>`;
+
+  // Spot price chart — cap y at 600, show p95 fill
+  mkChart('ch-spot', {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'Mean (£/MWh)', data: means,
+          borderColor: C.blue, backgroundColor: 'rgba(88,166,255,.08)',
+          fill: false, tension: 0.2, pointRadius: 0, borderWidth: 2
+        },
+        {
+          label: 'P95 (£/MWh)', data: p95s,
+          borderColor: C.amber, backgroundColor: 'rgba(210,153,34,.12)',
+          fill: '-1', tension: 0.2, pointRadius: 0, borderWidth: 1.5, borderDash: [4,3]
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
+        tooltip: { mode: 'index', intersect: false,
+          callbacks: { label: ctx => `${ctx.dataset.label}: £${ctx.parsed.y.toFixed(0)}/MWh` } }
+      },
+      scales: {
+        x: { grid:{color:'rgba(48,54,61,.4)'}, ticks:{ maxTicksLimit: 18, maxRotation: 45 } },
+        y: { grid:{color:'rgba(48,54,61,.4)'}, max: 600,
+          ticks:{ callback: v => '£'+v },
+          title:{ display: true, text:'£/MWh (capped at £600)', color: C.muted, font:{size:10} } }
+      }
+    }
+  });
+
+  // Crisis + committee chart
+  mkChart('ch-crisis', {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        { label: '>£500 half-hours', data: above, backgroundColor:'rgba(248,81,73,.6)', yAxisID:'y', borderRadius:1 },
+        { label: 'Committee calls', data: cmte, backgroundColor:'rgba(210,153,34,.6)', yAxisID:'y1', borderRadius:1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:true,position:'bottom',labels:{boxWidth:10,padding:12}},
+        tooltip:{mode:'index',intersect:false} },
+      scales: {
+        x: { grid:{color:'rgba(48,54,61,.4)'}, ticks:{maxTicksLimit:18,maxRotation:45} },
+        y:  { grid:{color:'rgba(48,54,61,.4)'}, title:{display:true,text:'Extreme periods',color:C.muted,font:{size:10}}, position:'left' },
+        y1: { grid:{drawOnChartArea:false}, title:{display:true,text:'Committee calls',color:C.muted,font:{size:10}}, position:'right' }
+      }
+    }
+  });
+
+  mkChart('ch-hedge', {
+    type: 'bar',
+    data: {
+      labels: ha.map(r=>r.year),
+      datasets: [
+        { label: 'Avg hedge fraction', data: ha.map(r=>r.avg_hf*100),
+          backgroundColor:'rgba(63,185,80,.6)', borderRadius:3 },
+        { label: 'Min hedge fraction', data: ha.map(r=>r.min_hf*100),
+          backgroundColor:'rgba(248,81,73,.4)', borderRadius:3 },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(48,54,61,.4)'}},
+      y:{grid:{color:'rgba(48,54,61,.4)'},min:70,max:105,ticks:{callback:v=>v+'%'},
+         title:{display:true,text:'Hedge fraction (%)',color:C.muted,font:{size:10}}} } }
+  });
+}
+
+// ── CUSTOMERS ────────────────────────────────────────────────────────────────
+function renderCustomers() {
+  const cu = D.customers;
+  const ba = cu.book_annual;
+  const yrs = ba.map(r=>r.year);
+
+  // Build heatmap
+  const allCids = Object.keys(cu.per_year_net).sort();
+  const allYears = [...new Set(ba.map(r=>String(r.year)))].sort();
+
+  function hmColor(v) {
+    if (v === null || v === undefined) return 'hm-nil';
+    if (v >  2000) return 'hm-great';
+    if (v >   200) return 'hm-good';
+    if (v >     0) return 'hm-ok';
+    if (v > -200)  return 'hm-warn';
+    if (v > -2000) return 'hm-poor';
+    return 'hm-bad';
+  }
+
+  const hmCols = allCids.length + 1;
+  let hmHtml = `<div class="heatmap-wrap"><div class="heatmap" style="grid-template-columns:56px repeat(${allYears.length},44px)">`;
+
+  // Header row
+  hmHtml += `<div class="hm-cell hm-label">Cust</div>`;
+  allYears.forEach(yr => { hmHtml += `<div class="hm-cell hm-year-hdr">${yr.slice(2)}</div>`; });
+
+  // Data rows
+  allCids.forEach(cid => {
+    hmHtml += `<div class="hm-cell hm-label">${cid}</div>`;
+    allYears.forEach(yr => {
+      const v = cu.per_year_net[cid]?.[yr];
+      const lbl = v !== undefined ? (Math.abs(v) >= 1000 ? gbp(v,0) : (v < 0 ? '-£'+Math.abs(Math.round(v)) : '£'+Math.round(v))) : '—';
+      hmHtml += `<div class="hm-cell ${hmColor(v)}" title="${cid} ${yr}: ${v !== undefined ? gbp(v,0) : 'n/a'}">${lbl}</div>`;
+    });
+  });
+  hmHtml += '</div></div>';
+
+  // Events list (last 40 most recent)
+  const events = [...cu.events].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 40);
+  function evTag(type, retention) {
+    if (type === 'churned') return '<span class="ev-tag tag-churned">churned</span>';
+    if (retention) return '<span class="ev-tag tag-retention">offered</span>';
+    return '<span class="ev-tag tag-renewed">renewed</span>';
+  }
+
+  el('tab-customers').innerHTML = `
+    <div class="chart-box">
+      <div class="chart-title">Customer Book Size by Year</div>
+      <div class="chart-wrap"><canvas id="ch-book"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Bill Shock Events by Year</div>
+      <div class="chart-wrap"><canvas id="ch-shock"></canvas></div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Net Margin per Customer per Year (£) — heatmap</div>
+      ${hmHtml}
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Lifetime P&amp;L by Customer</div>
+      <table>
+        <tr><th>Customer</th><th>Segment</th><th>Tariff</th><th>Revenue</th><th>Gross</th><th>Net</th></tr>
+        ${Object.entries(cu.lifetime).sort((a,b)=>b[1].net_gbp-a[1].net_gbp).map(([cid,c])=>`
+          <tr><td>${cid}</td><td style="color:var(--muted)">${c.segment}</td>
+          <td style="color:var(--muted)">${c.tariff_type||'fixed'}</td>
+          <td>${gbp(c.revenue_gbp)}</td>
+          <td class="${cls(c.gross_gbp)}">${gbp(c.gross_gbp)}</td>
+          <td class="${cls(c.net_gbp)}">${gbp(c.net_gbp)}</td></tr>`).join('')}
+      </table>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Recent Lifecycle Events</div>
+      <ul class="event-list">
+        ${events.map(e=>`<li class="ev-item">
+          <span class="ev-date">${e.date}</span>
+          <strong>${e.customer_id}</strong>
+          ${evTag(e.type, e.retention_offered)}
+          <span style="color:var(--muted);font-size:11px">sim ${(e.sim_churn_p*100).toFixed(0)}% co ${(e.company_est*100).toFixed(0)}%</span>
+        </li>`).join('')}
+      </ul>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Retention Offers &amp; Outcomes</div>
+      <table>
+        <tr><th>Customer</th><th>Date</th><th>Est %</th><th>Discount</th><th>Cost</th><th>Outcome</th></tr>
+        ${cu.retention.map(r=>`<tr>
+          <td>${r.customer_id}</td><td>${r.date}</td>
+          <td>${(r.company_est*100).toFixed(0)}%</td>
+          <td>${(r.discount_pct*100).toFixed(1)}%</td>
+          <td>${gbp(r.cost_gbp)}</td>
+          <td class="${r.outcome==='retained'?'pos':'neg'}">${r.outcome}</td>
+        </tr>`).join('')}
+      </table>
+    </div>`;
+
+  mkChart('ch-book', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [
+        { label: 'Electricity accounts', data: ba.map(r=>r.active_elec),
+          backgroundColor:'rgba(88,166,255,.7)', borderRadius:2, stack:'a' },
+        { label: 'Gas accounts', data: ba.map(r=>r.active_gas),
+          backgroundColor:'rgba(188,140,255,.6)', borderRadius:2, stack:'a' },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(48,54,61,.4)'},stacked:true},
+      y:{grid:{color:'rgba(48,54,61,.4)'},stacked:true,ticks:{stepSize:1}} } }
+  });
+
+  mkChart('ch-shock', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [
+        { label: 'Bill shock events', data: ba.map(r=>r.bill_shock_count),
+          backgroundColor:'rgba(248,81,73,.6)', borderRadius:2 },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(48,54,61,.4)'}},
+      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{stepSize:5}} } }
+  });
+}
+
+// ── MARKET ────────────────────────────────────────────────────────────────────
+function renderMarket() {
+  const mk = D.market;
+  const sa = mk.segment_annual;
+  const yrs = sa.map(r=>r.year);
+  const segs = mk.segments;
+  const cm = mk.contango_monthly || [];
+
+  const segColors = {
+    'resi electricity':'rgba(88,166,255,.7)', 'resi gas':'rgba(188,140,255,.7)',
+    'sme electricity':'rgba(63,185,80,.7)', 'sme gas':'rgba(152,100,220,.7)',
+    'i&c electricity':'rgba(210,153,34,.7)', 'i&c gas':'rgba(240,120,60,.7)',
+  };
+
+  const netDatasets = segs.map((seg, i) => {
+    const key = seg.toLowerCase().replace(/ /g,'_') + '_net';
+    const col = segColors[seg.toLowerCase()] || `hsl(${i*60},60%,55%)`;
+    return {
+      label: seg,
+      data: sa.map(r => r[key] ?? 0),
+      backgroundColor: col,
+      borderRadius: 2
+    };
+  });
+
+  const fpa = mk.forward_premium_annual;
+
+  el('tab-market').innerHTML = `
+    <div class="chart-box">
+      <div class="chart-title">Spot vs 1-Year Forward — Contango &amp; Backwardation 2016–2025</div>
+      <div class="chart-wrap tall"><canvas id="ch-contango"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Net Margin by Segment by Year</div>
+      <div class="chart-wrap tall"><canvas id="ch-seg-net"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Basis Risk — Company Forward Price Error vs SIM (£/MWh per year)</div>
+      <div class="chart-wrap"><canvas id="ch-fwd-err"></canvas></div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Segment Net Margin by Year</div>
+      <table>
+        <tr><th>Year</th>${segs.map(s=>`<th>${s}</th>`).join('')}</tr>
+        ${sa.map(r=>`<tr><td>${r.year}</td>${segs.map(seg=>{
+          const key=seg.toLowerCase().replace(/ /g,'_')+'_net';
+          const v=r[key]??0;
+          return `<td class="${cls(v)}">${gbp(v)}</td>`;
+        }).join('')}</tr>`).join('')}
+      </table>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Basis Risk — Company vs SIM Pricing Error</div>
+      <table>
+        <tr><th>Year</th><th>Mean Error (£/MWh)</th><th>Terms</th></tr>
+        ${fpa.map(r=>`<tr><td>${r.year}</td>
+          <td class="${cls(-r.mean_error_gbp_per_mwh)}">${r.mean_error_gbp_per_mwh >= 0 ? '+' : ''}£${r.mean_error_gbp_per_mwh.toFixed(2)}</td>
+          <td style="color:var(--muted)">${r.count}</td></tr>`).join('')}
+      </table>
+    </div>`;
+
+  // Contango/backwardation: spot vs 1-yr forward over time
+  if (cm.length > 0) {
+    mkChart('ch-contango', {
+      type: 'line',
+      data: {
+        labels: cm.map(r=>r.month),
+        datasets: [
+          {
+            label: 'Spot (£/MWh)', data: cm.map(r=>Math.min(r.spot, 700)),
+            borderColor: C.blue, fill: false, tension: 0.2,
+            pointRadius: 0, borderWidth: 2
+          },
+          {
+            label: '1-yr Forward (£/MWh)', data: cm.map(r=>Math.min(r.forward, 700)),
+            borderColor: C.amber, fill: false, tension: 0.2,
+            pointRadius: 0, borderWidth: 2, borderDash:[4,3]
+          },
+          {
+            label: 'Premium (£/MWh)', data: cm.map(r=>r.premium_gbp),
+            borderColor: C.green, yAxisID:'y1',
+            backgroundColor: cm.map(r=>r.premium_gbp>=0?'rgba(63,185,80,.15)':'rgba(248,81,73,.15)'),
+            fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5
+          },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
+          tooltip: { mode: 'index', intersect: false,
+            callbacks: { label: ctx => `${ctx.dataset.label}: £${ctx.parsed.y.toFixed(1)}/MWh` } }
+        },
+        scales: {
+          x: { grid:{color:'rgba(48,54,61,.4)'}, ticks:{maxTicksLimit:18, maxRotation:45} },
+          y: { grid:{color:'rgba(48,54,61,.4)'},
+            ticks:{callback: v=>'£'+v},
+            title:{display:true, text:'£/MWh (spot & forward)', color:C.muted, font:{size:10}} },
+          y1: { grid:{drawOnChartArea:false}, position:'right',
+            ticks:{callback: v=>(v>=0?'+':'')+v},
+            title:{display:true, text:'Premium (£/MWh)', color:C.muted, font:{size:10}} }
+        }
+      }
+    });
+  }
+
+  mkChart('ch-seg-net', {
+    type: 'bar',
+    data: { labels: yrs, datasets: netDatasets },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(48,54,61,.4)'}},
+      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)}} } }
+  });
+
+  mkChart('ch-fwd-err', {
+    type: 'bar',
+    data: {
+      labels: fpa.map(r=>r.year),
+      datasets: [{
+        label: 'Mean forward price error (£/MWh)',
+        data: fpa.map(r=>r.mean_error_gbp_per_mwh),
+        backgroundColor: fpa.map(r => r.mean_error_gbp_per_mwh < 0 ? 'rgba(248,81,73,.7)' : 'rgba(63,185,80,.7)'),
+        borderRadius: 3
+      }]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(48,54,61,.4)'}},
+      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>(v>=0?'+':'')+v+'£'},
+         title:{display:true,text:'Negative = under-priced',color:C.muted,font:{size:10}}} } }
+  });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const res = await fetch('./data/dashboard.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    D = await res.json();
+    el('loading')?.remove();
+    updateHeader();
+    rendered['overview'] = true;
+    renderOverview();
+  } catch(e) {
+    const loadEl = el('loading');
+    if (loadEl) loadEl.textContent = 'Failed to load data: ' + e.message;
+    console.error(e);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
