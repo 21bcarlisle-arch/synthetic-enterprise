@@ -10,50 +10,78 @@ jobs:
       - name: Get zone ID for poesys.net
         id: zone
         run: |
-          ZONE=$(curl -s "https://api.cloudflare.com/client/v4/zones?name=poesys.net" \
+          # List all zones accessible with this token
+          ZONE=$(curl -s "https://api.cloudflare.com/client/v4/zones?per_page=50" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}")
-          ZONE_ID=$(echo "$ZONE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['result'][0]['id'] if d['result'] else '')")
+          echo "All zones available to this token:"
+          echo "$ZONE" | python3 -c "import sys,json; d=json.load(sys.stdin); [print(r['name'], r['id']) for r in d.get('result') or []]" || echo "(no zones or error)"
+          echo "Full response snippet: $(echo $ZONE | head -c 500)"
+
+          ZONE_ID=$(echo "$ZONE" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          results = d.get('result') or []
+          match = [r for r in results if 'poesys' in r['name'].lower()]
+          print(match[0]['id'] if match else '')
+          " 2>/dev/null || echo "")
           echo "zone_id=$ZONE_ID" >> $GITHUB_OUTPUT
-          echo "Zone ID: $ZONE_ID"
+          echo "Zone ID: '$ZONE_ID'"
 
       - name: Find root CNAME/A record
+        if: steps.zone.outputs.zone_id != ''
         id: record
         run: |
-          RECORDS=$(curl -s "https://api.cloudflare.com/client/v4/zones/${{ steps.zone.outputs.zone_id }}/dns_records" \
+          RECORDS=$(curl -s "https://api.cloudflare.com/client/v4/zones/${{ steps.zone.outputs.zone_id }}/dns_records?per_page=100" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}")
-          echo "All records:"
-          echo "$RECORDS" | python3 -c "import sys,json; [print(r['id'], r['type'], r['name'], r.get('ttl'), r.get('proxied')) for r in json.load(sys.stdin)['result']]"
+          echo "All DNS records:"
+          echo "$RECORDS" | python3 -c "import sys,json; d=json.load(sys.stdin); [print(r['id'], r['type'], r['name'], 'ttl='+str(r.get('ttl')), 'proxied='+str(r.get('proxied'))) for r in (d.get('result') or [])]"
+
+          python3 - <<'EOF'
+          import json, os
+          with open(os.environ.get('GITHUB_OUTPUT','') or '/dev/stdout', 'a') as gout:
+              import subprocess
+              r = subprocess.run(['cat'], input=os.environ.get('RECORDS',''), capture_output=True, text=True)
+          EOF
+
           RECORD_ID=$(echo "$RECORDS" | python3 -c "
-          import sys,json
-          d=json.load(sys.stdin)
-          root = [r for r in d['result'] if r['name'] in ('poesys.net','@')]
+          import sys, json
+          d = json.load(sys.stdin)
+          root = [r for r in (d.get('result') or []) if r['name'] in ('poesys.net', '@')]
           print(root[0]['id'] if root else '')
-          ")
-          RECORD_TYPE=$(echo "$RECORDS" | python3 -c "
-          import sys,json
-          d=json.load(sys.stdin)
-          root = [r for r in d['result'] if r['name'] in ('poesys.net','@')]
-          print(root[0]['type'] if root else '')
-          ")
+          " 2>/dev/null || echo "")
           RECORD_CONTENT=$(echo "$RECORDS" | python3 -c "
-          import sys,json
-          d=json.load(sys.stdin)
-          root = [r for r in d['result'] if r['name'] in ('poesys.net','@')]
+          import sys, json
+          d = json.load(sys.stdin)
+          root = [r for r in (d.get('result') or []) if r['name'] in ('poesys.net', '@')]
           print(root[0].get('content','') if root else '')
-          ")
+          " 2>/dev/null || echo "")
           echo "record_id=$RECORD_ID" >> $GITHUB_OUTPUT
-          echo "record_type=$RECORD_TYPE" >> $GITHUB_OUTPUT
           echo "record_content=$RECORD_CONTENT" >> $GITHUB_OUTPUT
-          echo "Record ID: $RECORD_ID, Type: $RECORD_TYPE"
+          echo "Root record ID: '$RECORD_ID', content: '$RECORD_CONTENT'"
 
       - name: Set TTL to 60 seconds
-        if: steps.record.outputs.record_id != ''
+        if: steps.zone.outputs.zone_id != '' && steps.record.outputs.record_id != ''
         run: |
           RESULT=$(curl -s -X PATCH \
             "https://api.cloudflare.com/client/v4/zones/${{ steps.zone.outputs.zone_id }}/dns_records/${{ steps.record.outputs.record_id }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data "{\"ttl\": 60}")
+            --data '{"ttl": 60}')
           echo "Update result:"
-          echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print('success:', d['success']); [print('error:', e) for e in d.get('errors',[])]"
-          echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('result',{}); print('New TTL:', r.get('ttl'))"
+          echo "$RESULT" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          print('success:', d.get('success'))
+          r = d.get('result', {})
+          print('New TTL:', r.get('ttl'))
+          for e in d.get('errors', []):
+              print('Error:', e)
+          "
+
+      - name: Report if zone not found
+        if: steps.zone.outputs.zone_id == ''
+        run: |
+          echo "Zone 'poesys.net' not found with this API token."
+          echo "The CLOUDFLARE_API_TOKEN may only have Pages permissions, not DNS Zone access."
+          echo "To fix: create a new API token with Zone.DNS.Edit permission for poesys.net."
+          exit 1
