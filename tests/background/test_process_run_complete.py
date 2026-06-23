@@ -95,6 +95,9 @@ def test_main_success_flow(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    # generate_dashboard_json writes to the REAL site/data/dashboard.json (hardcoded path
+    # inside generate_dashboard_data.py) — mock it to avoid corrupting the live dashboard
+    monkeypatch.setattr(prc, "generate_dashboard_json", lambda p: None)
 
     latest_md = tmp_path / "LATEST.md"
     latest_md.write_text(
@@ -132,6 +135,7 @@ def test_main_returns_1_when_tests_fail(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "generate_dashboard_json", lambda p: None)
 
     latest_md = tmp_path / "LATEST.md"
     latest_md.write_text(
