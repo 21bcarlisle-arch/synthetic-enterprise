@@ -8,11 +8,11 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-23T06:43:14Z
+Last updated: 2026-06-23T10:36:54Z
 
-**Full Ollama run complete (2026-06-23, commit 0d4003b, 446s):**
-- **Net margin: £1,149,015 | Gross: £5,977,194 | Treasury: £3,615,651 | SURVIVED**
-- All I&C tariff types active (fixed, pass-through, deemed, flex). Gas seasonal calibration. 38 committee calls (correct — ~monthly).
+**Full Ollama run complete (2026-06-23, commit ffb7ecc, 445s — 20 consecutive runs stable):**
+- **Net margin: £1,158,439 | Gross: £5,980,190 | Treasury: £3,625,075 | SURVIVED**
+- All I&C tariff types active (fixed, pass-through, deemed, flex). Gas seasonal calibration. 38 committee calls (~monthly). Figures consistent across all post-bugfix runs.
 
 **Architecture Stage 0 (2026-06-23)**: Observability + system health panel live.
 - `background/agent_status.py`: all 8 daemons now emit structured status (last_heartbeat, last_action, anomaly)
@@ -90,10 +90,10 @@ Last updated: 2026-06-23T06:43:14Z
 - Market: spot vs 1-year forward contango/backwardation chart (2021 crisis backwardation visible).
 - Customers: book size, net margin heatmap by customer/year, retention offers, lifecycle events.
 
-**Latest simulation results (2016–2025)** — auto-processed (446s / 7 min):
-- Net margin: £5,888,934.80 | Gross: £5,991,253.01 | Capital: £102,318
-- Treasury: £2,466,636 → £3,615,651 | 38 committee interventions | 1569 bills issued
-- Enterprise value: £6,533,907.87 | Net after CTS: £5,887,081
+**Latest simulation results (2016–2025)** — auto-processed (445s / 7 min):
+- Net margin: £5,898,358.97 | Gross: £5,994,248.78 | Capital: £95,890
+- Treasury: £2,466,636 → £3,625,075 | 38 committee interventions | 1569 bills issued
+- Enterprise value: £6,535,890.41 | Net after CTS: £5,890,084
 - Retention: 19 offers, 18/19 retained | 4 no-offer churns | 5 total churned accounts
 
 Previous run figures (Phases 13a-13e, commit 61e5b3f — pre-I&C expansion):
