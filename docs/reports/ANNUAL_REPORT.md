@@ -998,7 +998,7 @@ _Cash reconciliation: of £17,932,788.12 billed, bad debt of £358,630.60 was wr
 - Treasury at year end: £2,466,899.24
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.91 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.90 (avg 0.90), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.91 (avg 0.92), C6 0.91 (avg 0.91), C7 0.91 (avg 0.92), C8 0.91 (avg 0.91), C9 0.90 (avg 0.90)
 - Risk committee (Context Handshake) interventions: 13
-  - 2016-01-01: treasury £2,466,636.22, (none), VaR (current £23.72 / stressed £7.29) ratio 3.25
+  - 2016-01-01: treasury £2,466,636.22, C1->1.00, VaR (current £23.72 / stressed £7.29) ratio 3.25
   - 2016-01-31: treasury £2,466,639.08, C1->1.00, VaR (current £23.72 / stressed £7.29) ratio 3.25
   - 2016-03-01: treasury £2,466,642.02, C1->1.00, VaR (current £23.72 / stressed £7.29) ratio 3.25
   - 2016-03-31: treasury £2,466,644.78, C1->1.00, VaR (current £23.72 / stressed £7.29) ratio 3.25
