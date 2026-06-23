@@ -29,6 +29,7 @@ BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
 
 sys.path.insert(0, str(PROJECT_DIR))
 from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.agent_status import update_agent_status  # noqa: E402
 
 
 def log(msg: str) -> None:
@@ -59,6 +60,12 @@ def run_simulation() -> bool:
 
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     log(f"Starting run — git={head}, json={out_json.name}")
+    update_agent_status(
+        "sim-runner", status="running",
+        last_action=f"Sim started — git={head}",
+        role="Runs full 10-year simulation in a loop; writes run_complete markers",
+        produces="docs/reports/run_output_*.json, docs/staging/run_complete_*.md",
+    )
 
     t0 = time.monotonic()
     try:
@@ -75,16 +82,19 @@ def run_simulation() -> bool:
         elapsed = time.monotonic() - t0
         log(f"Run TIMED OUT after {elapsed:.0f}s — killing subprocess and retrying")
         send_ntfy(f"[SIM] Run timed out after {elapsed:.0f}s — check sim-runner-log.md")
+        update_agent_status("sim-runner", status="error", last_action=f"Run timed out after {elapsed:.0f}s", anomaly=f"TimeoutExpired after {elapsed:.0f}s")
         return False
     elapsed = time.monotonic() - t0
 
     if result.returncode != 0 or not out_json.exists():
         log(f"Run FAILED (rc={result.returncode}) after {elapsed:.0f}s")
         send_ntfy(f"[SIM] Run FAILED after {elapsed:.0f}s — check sim-runner-log.md")
+        update_agent_status("sim-runner", status="error", last_action=f"Run FAILED (rc={result.returncode}) after {elapsed:.0f}s", anomaly=f"Exit code {result.returncode}")
         return False
 
     size_kb = out_json.stat().st_size / 1024
     log(f"Run complete — {elapsed:.0f}s, {size_kb:.0f} KB ({out_json.name})")
+    update_agent_status("sim-runner", status="idle", last_action=f"Run complete in {elapsed:.0f}s — {size_kb:.0f} KB ({out_json.name})")
 
     # Update latest pointer so Claude always has fresh data
     latest_json = REPORTS_DIR / "run_output_latest.json"

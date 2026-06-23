@@ -50,6 +50,7 @@ OLLAMA_MODEL = "qwen3:14b"
 
 sys.path.insert(0, str(PROJECT_DIR))
 from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.agent_status import update_agent_status  # noqa: E402
 
 # Files the dispatcher has already classified. Persisted across restarts.
 # Value: classification ("urgent"|"normal"|"fyi")
@@ -219,6 +220,12 @@ def check_once(seen: dict[str, str]) -> dict[str, str]:
         classification = classify_message(message_text)
         seen[path.name] = classification
         route_message(path, message_text, classification)
+        update_agent_status(
+            "dispatcher", status="idle",
+            last_action=f"Classified {path.name} as {classification.upper()}",
+            role="Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
+            produces="docs/observability/dispatcher-log.md, routes to staging/",
+        )
 
     if files:
         _save_seen(seen)

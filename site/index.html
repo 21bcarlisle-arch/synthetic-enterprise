@@ -106,6 +106,28 @@ tr:hover td { background: var(--surface2); }
 /* ── Loading ── */
 #loading { padding: 40px; text-align: center; color: var(--muted); }
 
+/* ── System health panel ── */
+.agent-grid { display: flex; flex-direction: column; gap: 8px; }
+.agent-row { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: start; }
+.agent-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.dot-green  { background: var(--green); box-shadow: 0 0 4px var(--green); }
+.dot-amber  { background: var(--amber); box-shadow: 0 0 4px var(--amber); }
+.dot-red    { background: var(--red);   box-shadow: 0 0 4px var(--red); }
+.dot-grey   { background: var(--muted); }
+.agent-body {}
+.agent-name { font-weight: 600; font-size: 13px; }
+.agent-role { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.agent-action { font-size: 11px; color: var(--text); margin-top: 5px; }
+.agent-anomaly { font-size: 11px; color: var(--red); margin-top: 3px; }
+.agent-ts { font-size: 10px; color: var(--muted); white-space: nowrap; padding-top: 3px; }
+.status-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-left: 6px; }
+.sb-running { background: rgba(63,185,80,.15); color: var(--green); }
+.sb-idle    { background: rgba(125,133,144,.12); color: var(--muted); }
+.sb-working { background: rgba(88,166,255,.15); color: var(--blue); }
+.sb-error   { background: rgba(248,81,73,.15); color: var(--red); }
+
 @media (min-width: 600px) {
   .cards { grid-template-columns: repeat(4, 1fr); }
   .chart-wrap { height: 260px; }
@@ -126,6 +148,7 @@ tr:hover td { background: var(--surface2); }
   <button class="tab-btn"        data-tab="trading"   onclick="switchTab('trading')">Trading</button>
   <button class="tab-btn"        data-tab="customers" onclick="switchTab('customers')">Customers</button>
   <button class="tab-btn"        data-tab="market"    onclick="switchTab('market')">Market</button>
+  <button class="tab-btn"        data-tab="system"    onclick="switchTab('system')">System</button>
 </nav>
 
 <main>
@@ -136,6 +159,7 @@ tr:hover td { background: var(--surface2); }
   <div id="tab-trading"   class="view"></div>
   <div id="tab-customers" class="view"></div>
   <div id="tab-market"    class="view"></div>
+  <div id="tab-system"   class="view"></div>
 </main>
 
 <script>
@@ -193,6 +217,8 @@ function switchTab(name) {
   if (!rendered[name]) { renderTab(name); rendered[name] = true; }
 }
 
+let SYS = null;
+
 function renderTab(name) {
   if (!D) return;
   if (name === 'overview')  renderOverview();
@@ -200,6 +226,65 @@ function renderTab(name) {
   if (name === 'trading')   renderTrading();
   if (name === 'customers') renderCustomers();
   if (name === 'market')    renderMarket();
+  if (name === 'system')    renderSystem();
+}
+
+function ageLabel(ts) {
+  if (!ts) return 'unknown';
+  const secs = (Date.now() - new Date(ts).getTime()) / 1000;
+  if (secs < 120)   return Math.round(secs) + 's ago';
+  if (secs < 3600)  return Math.round(secs/60) + 'm ago';
+  if (secs < 86400) return (secs/3600).toFixed(1) + 'h ago';
+  return (secs/86400).toFixed(1) + 'd ago';
+}
+
+function ageDot(ts, status) {
+  if (!ts) return 'dot-grey';
+  const hours = (Date.now() - new Date(ts).getTime()) / 3600000;
+  if (status === 'error') return 'dot-red';
+  if (hours > 6) return 'dot-red';
+  if (hours > 1) return 'dot-amber';
+  return 'dot-green';
+}
+
+function renderSystem() {
+  const container = el('tab-system');
+  if (!SYS) {
+    container.innerHTML = `<div class="section"><div class="section-title">System Health</div>
+      <p style="color:var(--muted);font-size:12px">Loading agent status…</p></div>`;
+    fetch('./data/agent_status.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(data => { SYS = data; renderSystem(); })
+      .catch(() => {
+        container.innerHTML = `<div class="section"><div class="section-title">System Health</div>
+          <p style="color:var(--red);font-size:12px">Could not load agent_status.json</p></div>`;
+      });
+    return;
+  }
+
+  const updated = SYS.last_updated ? ageLabel(SYS.last_updated) : 'unknown';
+  const rows = (SYS.agents || []).map(a => {
+    const dotCls = ageDot(a.last_heartbeat, a.status);
+    const sbCls = { running:'sb-running', idle:'sb-idle', working:'sb-working', error:'sb-error' }[a.status] || 'sb-idle';
+    return `
+    <div class="agent-row">
+      <div class="agent-dot ${dotCls}"></div>
+      <div class="agent-body">
+        <div class="agent-name">${a.name}<span class="status-badge ${sbCls}">${a.status}</span></div>
+        <div class="agent-role">${a.role || ''}</div>
+        <div class="agent-action">↳ ${a.last_action || '—'}</div>
+        ${a.anomaly ? `<div class="agent-anomaly">⚠ ${a.anomaly}</div>` : ''}
+        ${a.produces ? `<div class="agent-role" style="margin-top:3px">→ ${a.produces}</div>` : ''}
+      </div>
+      <div class="agent-ts">${ageLabel(a.last_heartbeat)}</div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="section">
+      <div class="section-title">System Health <span style="font-weight:400;color:var(--muted);text-transform:none">— status updated ${updated}</span></div>
+      <div class="agent-grid">${rows}</div>
+    </div>`;
 }
 
 // ── Header ───────────────────────────────────────────────────────────────────

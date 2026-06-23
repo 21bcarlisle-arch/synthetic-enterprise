@@ -61,6 +61,7 @@ PROGRESS_RE = re.compile(
 # import ...` works regardless of how it's invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background.ntfy_utils import NTFY_TOPIC, send_ntfy, was_sent_by_us  # noqa: E402
+from background.agent_status import update_agent_status  # noqa: E402
 
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
 
@@ -248,6 +249,12 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
         send_ntfy(reply, headers={"X-Priority": "3", "X-Tags": "satellite_antenna"})
         log(f"Acked inbound message {record.get('id')!r} ({message[:60]!r})"
             + (f" — staged as {staged_path.name}" if staged_path else ""))
+        update_agent_status(
+            "ntfy-responder", status="idle",
+            last_action=f"Acked message: {message[:80]!r}",
+            role="Receives NTFY messages from Rich; writes from_rich_*.md to staging",
+            produces="docs/staging/from_rich_*.md",
+        )
 
     return latest, seen_hashes
 
