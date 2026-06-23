@@ -1,0 +1,5 @@
+# favicon.ico -> favicon.svg
+/favicon.ico /favicon.svg 301
+
+# www -> canonical root
+https://www.poesys.net/* https://poesys.net/:splat 301
