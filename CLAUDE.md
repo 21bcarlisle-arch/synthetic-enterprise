@@ -73,6 +73,11 @@ term signing, company opens a forward contract (agreed_price = company_fwd, noti
 `settle_period()` decomposes hedge P&L from supply margin each half-hour. `trading_book.summary()`
 in run output (contract_count, total_hedged_mwh, hedge_pnl_gbp). Net margin unchanged.
 
+**Phase 44b COMPLETE (2026-06-23):** VaR-constrained hedging extended to gas fixed terms — no new tests needed.
+`simulation/run_phase2b.py`: gas else-branch now calls `decide_hedge_fraction()` for fixed gas terms.
+Same VaR model (EWMA vol, 95% VaR ≤ 15% term revenue) using gas price records. Pass-through skipped.
+Committee overrides still take precedence.
+
 **Phase 44a COMPLETE (2026-06-23):** Customer profitability feedback into renewal pricing — 13 new tests (1,290+ passing).
 `company/crm/customer_profitability.py`: `estimate_prior_term_net_margin()` + `compute_profitability_uplift()`.
 Net-negative electricity customers receive £3/MWh uplift at renewal. Churn model handles consequence.

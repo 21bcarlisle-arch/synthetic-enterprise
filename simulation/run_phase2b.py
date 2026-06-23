@@ -1135,6 +1135,20 @@ def main(report_end: str | None = None, sim_interface=None):
             gas_customer = get_customer(cid)
             aq_kwh = gas_customer["aq_kwh"]
 
+            # Phase 44b: VaR-constrained hedge decision for gas fixed terms (mirrors electricity 43b).
+            # Pass-through gas doesn't use a locked forward hedge — skip for pass_through.
+            if unit_rate and company_fwd and aq_kwh > 0 and term_tariff_type != "pass_through":
+                _gas_term_days = (
+                    date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
+                ).days
+                if _gas_term_days > 0:
+                    _gas_var_hf = decide_hedge_fraction(
+                        aq_kwh, company_fwd, unit_rate, gas_records, _gas_term_days
+                    )
+                    if cid not in pending_committee_overrides:
+                        hf = _gas_var_hf
+                        current_hf[cid] = hf
+
             naked_kwh = aq_kwh * (1.0 - hf)
             risk = assess_term_risk(term_start_str, naked_kwh, forward_price, gas_records)
             counterfactual_risk = assess_term_risk(term_start_str, float(aq_kwh), forward_price, gas_records)
