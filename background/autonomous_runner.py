@@ -70,6 +70,7 @@ AUTONOMOUS_PROMPT = (
 )
 
 sys.path.insert(0, str(PROJECT_DIR))
+from background.agent_status import update_agent_status  # noqa: E402
 
 _turn_times: deque = deque()
 _active_proc = None
@@ -182,6 +183,12 @@ def launch_turn() -> None:
 def main() -> None:
     global _active_proc
     log("Autonomous runner started")
+    update_agent_status(
+        "autonomous-runner", status="idle",
+        last_action="Runner started",
+        role="Runs scheduled Claude Code sessions for background work when session is idle",
+        produces="CC session activity, phase completions",
+    )
 
     while True:
         time.sleep(POLL_INTERVAL_SECONDS)
@@ -191,6 +198,7 @@ def main() -> None:
             if _active_proc is not None and _active_proc.poll() is not None:
                 rc = _active_proc.returncode
                 log(f"Autonomous turn completed (pid={_active_proc.pid}, rc={rc})")
+                update_agent_status("autonomous-runner", status="idle", last_action=f"Turn completed (rc={rc})")
                 _active_proc = None
 
             idle = idle_seconds()

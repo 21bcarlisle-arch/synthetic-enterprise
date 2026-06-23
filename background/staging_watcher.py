@@ -33,6 +33,7 @@ IGNORED_NAMES = {".gitkeep"}
 # import ...` works regardless of how it's invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.agent_status import update_agent_status  # noqa: E402
 
 
 def log(msg: str) -> None:
@@ -100,11 +101,20 @@ def main() -> None:
     else:
         log("Staging watcher started — resuming from saved state")
 
+    update_agent_status(
+        "staging-watcher", status="idle",
+        last_action="Watcher started",
+        role="Monitors docs/staging/ for new files; sends NTFY to alert CC",
+        produces="NTFY notifications on new staging files",
+    )
+
     while True:
         try:
             seen = check_once(seen)
+            update_agent_status("staging-watcher", status="idle", last_action=f"Poll complete — {len(seen)} files tracked")
         except Exception as e:
             log(f"Watcher error: {e}")
+            update_agent_status("staging-watcher", status="error", last_action=f"Error: {e}", anomaly=str(e))
         time.sleep(POLL_INTERVAL_SECONDS)
 
 

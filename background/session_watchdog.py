@@ -100,6 +100,7 @@ import requests
 # it's invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background.ntfy_utils import send_ntfy, was_sent_by_us  # noqa: E402
+from background.agent_status import update_agent_status  # noqa: E402
 
 SESSION_NAME = "claude"
 PROJECT_DIR = "/home/rich/synthetic-enterprise"
@@ -944,6 +945,12 @@ def main() -> None:
         f"(idle {AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS}s -> continue, "
         "REVIEW_GATE/permission prompts pause for Rich)")
     ntfy(f"Session watchdog started — autoloop active, crash restarts need YES (max {MAX_RESTARTS_PER_HOUR}/hr).")
+    update_agent_status(
+        "session-watchdog", status="running",
+        last_action="Watchdog started",
+        role="Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
+        produces="docs/observability/session-watchdog-log.md, tmux autoloop pings",
+    )
     consecutive_down = 0
     command_since = _load_command_since()
 
@@ -959,6 +966,7 @@ def main() -> None:
                 continue
 
             consecutive_down = 0
+            update_agent_status("session-watchdog", status="idle", last_action="Session alive check passed")
             pane_text = capture_pane()
 
             new_command_since = check_inbound_commands(pane_text, command_since)

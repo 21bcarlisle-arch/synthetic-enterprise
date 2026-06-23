@@ -25,6 +25,7 @@ ASSUMPTIONS_FILE = PROJECT_DIR / "docs" / "market_research" / "ASSUMPTIONS.md"
 
 sys.path.insert(0, str(PROJECT_DIR))
 from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.agent_status import update_agent_status  # noqa: E402
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "qwen3:14b"
@@ -215,6 +216,9 @@ def main() -> None:
 
     while True:
         today = date.today().isoformat()
+        update_agent_status("discovery-daemon", status="working", last_action="Discovery cycle running",
+                            role="Validates simulation assumptions against real UK market benchmarks",
+                            produces="docs/observability/discovery-log.md, docs/market_research/")
         findings = run_discovery_cycle()
         _update_last_checked(ASSUMPTIONS_FILE, today)
         ok = sum(1 for f in findings if f["severity"] == "ok")
@@ -223,6 +227,8 @@ def main() -> None:
         summary = f"Discovery: {ok} OK, {warn} warnings, {crit} critical"
         log(summary)
         print(f"\n{summary}")
+        update_agent_status("discovery-daemon", status="idle", last_action=summary,
+                            anomaly=f"{crit} critical finding(s)" if crit else None)
         if not daemon:
             break
         log(f"Next cycle in {interval_hours}h — sleeping")
