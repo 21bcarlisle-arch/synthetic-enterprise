@@ -204,6 +204,14 @@ def main(marker_path_str):
     generate_dashboard_json(json_path)
     generate_site(data, elapsed_s, git_hash, fields.get("finished"))
 
+    try:
+        from tools.revenue_sanity_check import run_check
+        _ok, sanity_report = run_check(data)
+        status = "PASS" if _ok else "ANOMALIES"
+        log("Revenue sanity: {} — see annual report".format(status))
+    except Exception as exc:
+        log("Revenue sanity check skipped: {}".format(exc))
+
     log("Running fast test suite (SIM_FAST_MODE=1)")
     if not run_fast_tests():
         log("Tests FAILED - not committing")

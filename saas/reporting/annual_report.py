@@ -2056,6 +2056,20 @@ def _section_dual_fuel_pnl(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_revenue_sanity(data: dict) -> str:
+    """Phase 45a: revenue and margin sanity check against industry benchmarks.
+
+    Delegates to tools.revenue_sanity_check for computation, embeds output inline.
+    Silent if that module is unavailable.
+    """
+    try:
+        from tools.revenue_sanity_check import run_check
+        _passed, report = run_check(data)
+        return report
+    except Exception:
+        return ""
+
+
 def _section_customer_pnl_ranking(data: dict) -> str:
     """Phase 17c: per-customer lifetime P&L ranking across the full simulation window.
 
@@ -3652,6 +3666,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_avoidability(data))
     sections.append(_section_dual_fuel_pnl(data))
     sections.append(_section_customer_pnl_ranking(data))
+    sections.append(_section_revenue_sanity(data))
     sections.append(_ledger_summary_section(data))
     sections.append(_growth_acquisition_section(data))
 

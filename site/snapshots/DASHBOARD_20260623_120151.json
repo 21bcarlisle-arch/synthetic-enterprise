@@ -1,0 +1,1180 @@
+{
+  "meta": {
+    "generated_at": "2026-06-23T12:16:05Z",
+    "git_commit": "c0a8e2a",
+    "source_file": "run_output_c0a8e2a_20260623T120340Z.json",
+    "spot_monthly_count": 114
+  },
+  "portfolio": {
+    "net_margin_gbp": 1314446.33,
+    "gross_margin_gbp": 6104073.85,
+    "enterprise_value_gbp": 6640302.64,
+    "treasury_start_gbp": 2466636.22,
+    "treasury_end_gbp": 3781082.55,
+    "bills_total": 1569,
+    "committee_interventions_total": 38,
+    "retention_offers": 20,
+    "retention_retained": 19,
+    "churn_count": 5,
+    "cost_to_serve_gbp": 90497.65,
+    "net_after_cts_gbp": 6013576.2
+  },
+  "customers": {
+    "book_annual": [
+      {
+        "year": 2016,
+        "active_elec": 9,
+        "active_gas": 4,
+        "acquisitions": 13,
+        "bill_shock_count": 21,
+        "worst_shock_pct": 110.0
+      },
+      {
+        "year": 2017,
+        "active_elec": 10,
+        "active_gas": 4,
+        "acquisitions": 1,
+        "bill_shock_count": 27,
+        "worst_shock_pct": 85.3
+      },
+      {
+        "year": 2018,
+        "active_elec": 11,
+        "active_gas": 4,
+        "acquisitions": 1,
+        "bill_shock_count": 34,
+        "worst_shock_pct": 56.7
+      },
+      {
+        "year": 2019,
+        "active_elec": 12,
+        "active_gas": 5,
+        "acquisitions": 2,
+        "bill_shock_count": 36,
+        "worst_shock_pct": 127.8
+      },
+      {
+        "year": 2020,
+        "active_elec": 13,
+        "active_gas": 5,
+        "acquisitions": 1,
+        "bill_shock_count": 34,
+        "worst_shock_pct": 136.5
+      },
+      {
+        "year": 2021,
+        "active_elec": 12,
+        "active_gas": 4,
+        "acquisitions": 0,
+        "bill_shock_count": 36,
+        "worst_shock_pct": 158.2
+      },
+      {
+        "year": 2022,
+        "active_elec": 10,
+        "active_gas": 3,
+        "acquisitions": 0,
+        "bill_shock_count": 44,
+        "worst_shock_pct": 172.5
+      },
+      {
+        "year": 2023,
+        "active_elec": 10,
+        "active_gas": 3,
+        "acquisitions": 0,
+        "bill_shock_count": 31,
+        "worst_shock_pct": 136.5
+      },
+      {
+        "year": 2024,
+        "active_elec": 10,
+        "active_gas": 3,
+        "acquisitions": 0,
+        "bill_shock_count": 27,
+        "worst_shock_pct": 123.8
+      },
+      {
+        "year": 2025,
+        "active_elec": 8,
+        "active_gas": 2,
+        "acquisitions": 0,
+        "bill_shock_count": 20,
+        "worst_shock_pct": 80.9
+      }
+    ],
+    "per_year_net": {
+      "C1": {
+        "2016": 39.67,
+        "2017": 55.36,
+        "2018": -26.75,
+        "2019": 40.22,
+        "2020": 10.92,
+        "2021": -25.93
+      },
+      "C1g": {
+        "2016": 25.18,
+        "2017": 32.76,
+        "2018": 60.31,
+        "2019": 128.12,
+        "2020": 36.39,
+        "2021": -57.2
+      },
+      "C2": {
+        "2016": 49.13,
+        "2017": 64.73,
+        "2018": 30.55,
+        "2019": 130.29,
+        "2020": 215.17,
+        "2021": 196.14,
+        "2022": 308.8,
+        "2023": 698.19,
+        "2024": 478.45,
+        "2025": 129.89
+      },
+      "C2g": {
+        "2016": 93.51,
+        "2017": 83.76,
+        "2018": 78.39,
+        "2019": 160.68,
+        "2020": 127.39,
+        "2021": 42.8,
+        "2022": 129.55,
+        "2023": 853.06,
+        "2024": 473.51,
+        "2025": 92.39
+      },
+      "C3": {
+        "2016": 3.05,
+        "2017": 10.43,
+        "2018": 30.26,
+        "2019": 19.6,
+        "2020": 5.3
+      },
+      "C3g": {
+        "2016": 27.05,
+        "2017": 45.03,
+        "2018": 36.63,
+        "2019": 75.44,
+        "2020": 56.03
+      },
+      "C4": {
+        "2016": 0.37,
+        "2017": -13.97,
+        "2018": -10.17,
+        "2019": 6.7,
+        "2020": 9.84,
+        "2021": -119.71,
+        "2022": -191.35,
+        "2023": -184.42,
+        "2024": 118.16
+      },
+      "C4g": {
+        "2016": 14.92,
+        "2017": 40.56,
+        "2018": 0.65,
+        "2019": 37.18,
+        "2020": 64.17,
+        "2021": -103.13,
+        "2022": -120.35,
+        "2023": -296.39,
+        "2024": 152.34
+      },
+      "C5": {
+        "2016": 90.42,
+        "2017": 181.32,
+        "2018": -164.58,
+        "2019": 120.53,
+        "2020": -24.54,
+        "2021": -179.0
+      },
+      "C6": {
+        "2016": 23.34,
+        "2017": 53.84,
+        "2018": -16.06,
+        "2019": 176.13,
+        "2020": 402.8,
+        "2021": 349.43,
+        "2022": 476.17,
+        "2023": 1248.25,
+        "2024": 577.34
+      },
+      "C7": {
+        "2016": 182.18,
+        "2017": 226.3,
+        "2018": 67.39,
+        "2019": 187.95,
+        "2020": 121.0,
+        "2021": 64.01,
+        "2022": -718.06,
+        "2023": 853.06,
+        "2024": 176.91,
+        "2025": 125.13
+      },
+      "C8": {
+        "2016": 141.57,
+        "2017": 241.31,
+        "2018": 188.73,
+        "2019": 263.74,
+        "2020": 424.38,
+        "2021": 469.61,
+        "2022": 545.62,
+        "2023": 1108.36,
+        "2024": 1053.58,
+        "2025": 410.58
+      },
+      "C9": {
+        "2016": 47.01,
+        "2017": 131.77,
+        "2018": 246.55,
+        "2019": 286.15,
+        "2020": 205.4,
+        "2021": 19.32,
+        "2022": 283.81,
+        "2023": 965.66,
+        "2024": 1011.35,
+        "2025": 300.83
+      },
+      "C_IC1": {
+        "2017": 46798.37,
+        "2018": 87478.97,
+        "2019": 140858.73,
+        "2020": 79304.37,
+        "2021": 63010.5,
+        "2022": 183054.63,
+        "2023": 264783.06,
+        "2024": 206845.99,
+        "2025": 59716.92
+      },
+      "C_IC2": {
+        "2018": 732.56,
+        "2019": 77594.32,
+        "2020": 57707.01,
+        "2021": 52765.63,
+        "2022": 84262.42,
+        "2023": 112914.96,
+        "2024": 90659.35,
+        "2025": 33660.79
+      },
+      "C_IC3": {
+        "2019": 32726.89,
+        "2020": 22394.33,
+        "2021": -9969.67,
+        "2022": -172504.35,
+        "2023": 233406.57,
+        "2024": 65880.55,
+        "2025": -2689.56
+      },
+      "C_IC3g": {
+        "2019": 57747.81,
+        "2020": 14088.34,
+        "2021": -16907.9,
+        "2022": -791.55,
+        "2023": 375814.39,
+        "2024": 48112.21,
+        "2025": 12443.6
+      },
+      "C_IC4": {
+        "2020": -169980.21,
+        "2021": -163559.27,
+        "2022": -148506.58,
+        "2023": -195275.98,
+        "2024": -229378.26,
+        "2025": -98169.84
+      }
+    },
+    "events": [
+      {
+        "customer_id": "C1",
+        "date": "2016-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.08,
+        "company_est": 0.06,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C5",
+        "date": "2016-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.29,
+        "company_est": 0.06,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C7",
+        "date": "2016-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.29,
+        "company_est": 0.059,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C1",
+        "date": "2017-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.14,
+        "company_est": 0.021,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C5",
+        "date": "2017-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.32,
+        "company_est": 0.023,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C7",
+        "date": "2017-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.027,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C_IC1",
+        "date": "2018-01-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.05,
+        "company_est": 0.95,
+        "retention_offered": true
+      },
+      {
+        "customer_id": "C1",
+        "date": "2018-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.11,
+        "company_est": 0.205,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C5",
+        "date": "2018-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.045,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C7",
+        "date": "2018-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.41,
+        "company_est": 0.162,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C_IC2",
+        "date": "2019-01-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.05,
+        "company_est": 0.95,
+        "retention_offered": true
+      },
+      {
+        "customer_id": "C1",
+        "date": "2019-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.17,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C5",
+        "date": "2019-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C7",
+        "date": "2019-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.35,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C2",
+        "date": "2020-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.05,
+        "company_est": 0.005,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C6",
+        "date": "2020-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.32,
+        "company_est": 0.006,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C8",
+        "date": "2020-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.046,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C3",
+        "date": "2020-06-30",
+        "type": "churned",
+        "commodity": "electricity",
+        "sim_churn_p": 0.08,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C9",
+        "date": "2020-06-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.41,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C4",
+        "date": "2020-09-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.14,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C1",
+        "date": "2020-12-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.26,
+        "company_est": 0.091,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C5",
+        "date": "2020-12-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.35,
+        "company_est": 0.01,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C7",
+        "date": "2020-12-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.11,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C_IC3",
+        "date": "2020-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.17,
+        "company_est": 0.636,
+        "retention_offered": true
+      },
+      {
+        "customer_id": "C2",
+        "date": "2021-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.14,
+        "company_est": 0.021,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C6",
+        "date": "2021-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.35,
+        "company_est": 0.021,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C8",
+        "date": "2021-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.41,
+        "company_est": 0.026,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C9",
+        "date": "2021-06-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.35,
+        "company_est": 0.038,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C4",
+        "date": "2021-09-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.14,
+        "company_est": 0.1,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C1",
+        "date": "2021-12-30",
+        "type": "churned",
+        "commodity": "electricity",
+        "sim_churn_p": 0.17,
+        "company_est": 0.084,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C5",
+        "date": "2021-12-30",
+        "type": "churned",
+        "commodity": "electricity",
+        "sim_churn_p": 0.35,
+        "company_est": 0.463,
+        "retention_offered": true
+      },
+      {
+        "customer_id": "C7",
+        "date": "2021-12-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.35,
+        "company_est": 0.418,
+        "retention_offered": true
+      },
+      {
+        "customer_id": "C_IC3",
+        "date": "2021-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.05,
+        "company_est": 0.95,
+        "retention_offered": true
+      },
+      {
+        "customer_id": "C2",
+        "date": "2022-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.05,
+        "company_est": 0.1,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C6",
+        "date": "2022-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.29,
+        "company_est": 0.1,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C8",
+        "date": "2022-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.097,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C9",
+        "date": "2022-06-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.41,
+        "company_est": 0.095,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C4",
+        "date": "2022-09-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.2,
+        "company_est": 0.055,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C7",
+        "date": "2022-12-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.35,
+        "company_est": 0.052,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C_IC3",
+        "date": "2022-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.2,
+        "company_est": 0.95,
+        "retention_offered": true
+      },
+      {
+        "customer_id": "C2",
+        "date": "2023-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.2,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C6",
+        "date": "2023-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.29,
+        "company_est": 0.372,
+        "retention_offered": true
+      },
+      {
+        "customer_id": "C8",
+        "date": "2023-03-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C9",
+        "date": "2023-06-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.41,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C4",
+        "date": "2023-09-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.17,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C7",
+        "date": "2023-12-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C_IC3",
+        "date": "2023-12-31",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.2,
+        "company_est": 0.95,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C2",
+        "date": "2024-03-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.05,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C6",
+        "date": "2024-03-30",
+        "type": "churned",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.202,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C8",
+        "date": "2024-03-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.41,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C9",
+        "date": "2024-06-29",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C4",
+        "date": "2024-09-29",
+        "type": "churned",
+        "commodity": "electricity",
+        "sim_churn_p": 0.23,
+        "company_est": 0.0,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C7",
+        "date": "2024-12-29",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.41,
+        "company_est": 0.008,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C_IC3",
+        "date": "2024-12-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.23,
+        "company_est": 0.855,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C2",
+        "date": "2025-03-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.2,
+        "company_est": 0.111,
+        "retention_offered": false
+      },
+      {
+        "customer_id": "C8",
+        "date": "2025-03-30",
+        "type": "renewed",
+        "commodity": "electricity",
+        "sim_churn_p": 0.38,
+        "company_est": 0.016,
+        "retention_offered": false
+      }
+    ],
+    "retention": [
+      {
+        "customer_id": "C_IC1",
+        "date": "2018-01-31",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 22372.83,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC2",
+        "date": "2019-01-31",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 14513.38,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC1",
+        "date": "2019-03-02",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 27882.53,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC3",
+        "date": "2020-01-01",
+        "company_est": 0.385,
+        "discount_pct": 0.03,
+        "cost_gbp": 5972.37,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC2",
+        "date": "2020-03-01",
+        "company_est": 0.348,
+        "discount_pct": 0.03,
+        "cost_gbp": 4215.62,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC1",
+        "date": "2020-03-31",
+        "company_est": 0.574,
+        "discount_pct": 0.05,
+        "cost_gbp": 11678.17,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC3",
+        "date": "2020-12-31",
+        "company_est": 0.636,
+        "discount_pct": 0.05,
+        "cost_gbp": 11567.71,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC2",
+        "date": "2021-03-31",
+        "company_est": 0.64,
+        "discount_pct": 0.05,
+        "cost_gbp": 8124.21,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC1",
+        "date": "2021-04-30",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 24101.55,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C5",
+        "date": "2021-12-30",
+        "company_est": 0.463,
+        "discount_pct": 0.03,
+        "cost_gbp": 148.0,
+        "outcome": "churned_despite_offer"
+      },
+      {
+        "customer_id": "C7",
+        "date": "2021-12-30",
+        "company_est": 0.418,
+        "discount_pct": 0.03,
+        "cost_gbp": 102.54,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC3",
+        "date": "2021-12-31",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 58601.4,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC2",
+        "date": "2022-04-30",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 25059.51,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC1",
+        "date": "2022-05-30",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 50058.09,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC3",
+        "date": "2022-12-31",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 88849.59,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C6",
+        "date": "2023-03-31",
+        "company_est": 0.372,
+        "discount_pct": 0.03,
+        "cost_gbp": 204.86,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC2",
+        "date": "2023-05-30",
+        "company_est": 0.677,
+        "discount_pct": 0.05,
+        "cost_gbp": 13376.09,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC1",
+        "date": "2023-06-29",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 46610.33,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC2",
+        "date": "2024-06-28",
+        "company_est": 0.512,
+        "discount_pct": 0.05,
+        "cost_gbp": 10438.12,
+        "outcome": "retained"
+      },
+      {
+        "customer_id": "C_IC1",
+        "date": "2024-07-28",
+        "company_est": 0.95,
+        "discount_pct": 0.08,
+        "cost_gbp": 32661.31,
+        "outcome": "retained"
+      }
+    ],
+    "lifetime": {
+      "C1": {
+        "segment": "resi",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-01-01",
+        "revenue_gbp": 3041.2,
+        "gross_gbp": 1847.72,
+        "capital_gbp": 14.94,
+        "net_gbp": 93.5,
+        "cost_to_serve_gbp": 390.76,
+        "net_after_cts_gbp": 1456.97
+      },
+      "C2": {
+        "segment": "resi",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-04-01",
+        "revenue_gbp": 14129.07,
+        "gross_gbp": 8442.64,
+        "capital_gbp": 94.04,
+        "net_gbp": 2301.34,
+        "cost_to_serve_gbp": 788.01,
+        "net_after_cts_gbp": 7654.63
+      },
+      "C3": {
+        "segment": "resi",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-07-01",
+        "revenue_gbp": 2231.24,
+        "gross_gbp": 1429.63,
+        "capital_gbp": 9.05,
+        "net_gbp": 68.64,
+        "cost_to_serve_gbp": 264.57,
+        "net_after_cts_gbp": 1165.05
+      },
+      "C4": {
+        "segment": "resi",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-10-01",
+        "revenue_gbp": 7918.9,
+        "gross_gbp": 3719.67,
+        "capital_gbp": 61.2,
+        "net_gbp": -384.55,
+        "cost_to_serve_gbp": 598.27,
+        "net_after_cts_gbp": 3121.4
+      },
+      "C5": {
+        "segment": "SME",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-01-01",
+        "revenue_gbp": 15011.95,
+        "gross_gbp": 9193.05,
+        "capital_gbp": 75.99,
+        "net_gbp": 24.15,
+        "cost_to_serve_gbp": 869.97,
+        "net_after_cts_gbp": 8323.08
+      },
+      "C6": {
+        "segment": "SME",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-04-01",
+        "revenue_gbp": 30800.28,
+        "gross_gbp": 17565.14,
+        "capital_gbp": 206.39,
+        "net_gbp": 3291.24,
+        "cost_to_serve_gbp": 1267.78,
+        "net_after_cts_gbp": 16297.37
+      },
+      "C7": {
+        "segment": "resi",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-01-01",
+        "revenue_gbp": 23456.2,
+        "gross_gbp": 12431.45,
+        "capital_gbp": 159.0,
+        "net_gbp": 1285.87,
+        "cost_to_serve_gbp": 988.26,
+        "net_after_cts_gbp": 11443.19
+      },
+      "C8": {
+        "segment": "resi",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-04-01",
+        "revenue_gbp": 24079.1,
+        "gross_gbp": 14822.77,
+        "capital_gbp": 152.26,
+        "net_gbp": 4847.49,
+        "cost_to_serve_gbp": 987.01,
+        "net_after_cts_gbp": 13835.75
+      },
+      "C9": {
+        "segment": "resi",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-07-01",
+        "revenue_gbp": 21329.45,
+        "gross_gbp": 13768.43,
+        "capital_gbp": 122.31,
+        "net_gbp": 3497.83,
+        "cost_to_serve_gbp": 918.31,
+        "net_after_cts_gbp": 12850.12
+      },
+      "C_IC1": {
+        "segment": "I&C",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2017-01-01",
+        "revenue_gbp": 3406651.16,
+        "gross_gbp": 2138582.74,
+        "capital_gbp": 17776.29,
+        "net_gbp": 1131851.53,
+        "cost_to_serve_gbp": 21251.38,
+        "net_after_cts_gbp": 2117331.36
+      },
+      "C_IC2": {
+        "segment": "I&C",
+        "commodity": "electricity",
+        "tariff_type": "fixed",
+        "acquisition_date": "2018-01-01",
+        "revenue_gbp": 1599583.01,
+        "gross_gbp": 973535.36,
+        "capital_gbp": 8370.98,
+        "net_gbp": 510297.05,
+        "cost_to_serve_gbp": 11716.09,
+        "net_after_cts_gbp": 961819.27
+      },
+      "C_IC3": {
+        "segment": "I&C",
+        "commodity": "electricity",
+        "tariff_type": "pass_through",
+        "acquisition_date": "2019-01-01",
+        "revenue_gbp": 4644074.89,
+        "gross_gbp": 1806352.69,
+        "capital_gbp": 22203.74,
+        "net_gbp": 169244.75,
+        "cost_to_serve_gbp": 26438.7,
+        "net_after_cts_gbp": 1779913.99
+      },
+      "C_IC4": {
+        "segment": "I&C",
+        "commodity": "electricity",
+        "tariff_type": "flex",
+        "acquisition_date": "2020-01-01",
+        "revenue_gbp": 1690722.42,
+        "gross_gbp": 32523.85,
+        "capital_gbp": 0.0,
+        "net_gbp": -1004870.14,
+        "cost_to_serve_gbp": 11172.13,
+        "net_after_cts_gbp": 21351.71
+      },
+      "C_IC3g": {
+        "segment": "I&C",
+        "commodity": "gas",
+        "tariff_type": "pass_through",
+        "acquisition_date": "2019-01-01",
+        "revenue_gbp": 2468313.97,
+        "gross_gbp": 1062536.49,
+        "capital_gbp": 14381.28,
+        "net_gbp": 490506.91,
+        "cost_to_serve_gbp": 12408.64,
+        "net_after_cts_gbp": 1050127.85
+      },
+      "C1g": {
+        "segment": "resi",
+        "commodity": "gas",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-01-01",
+        "revenue_gbp": 2099.68,
+        "gross_gbp": 943.82,
+        "capital_gbp": 14.9,
+        "net_gbp": 225.56,
+        "cost_to_serve_gbp": 48.87,
+        "net_after_cts_gbp": 894.95
+      },
+      "C2g": {
+        "segment": "resi",
+        "commodity": "gas",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-04-01",
+        "revenue_gbp": 7805.59,
+        "gross_gbp": 3775.19,
+        "capital_gbp": 71.43,
+        "net_gbp": 2135.03,
+        "cost_to_serve_gbp": 166.64,
+        "net_after_cts_gbp": 3608.55
+      },
+      "C3g": {
+        "segment": "resi",
+        "commodity": "gas",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-07-01",
+        "revenue_gbp": 1592.0,
+        "gross_gbp": 798.45,
+        "capital_gbp": 9.77,
+        "net_gbp": 240.18,
+        "cost_to_serve_gbp": 36.42,
+        "net_after_cts_gbp": 762.02
+      },
+      "C4g": {
+        "segment": "resi",
+        "commodity": "gas",
+        "tariff_type": "fixed",
+        "acquisition_date": "2016-10-01",
+        "revenue_gbp": 8833.68,
+        "gross_gbp": 1804.78,
+        "capital_gbp": 42.31,
+        "net_gbp": -210.05,
+        "cost_to_serve_gbp": 185.84,
+        "net_after_cts_gbp": 1618.93
+      }
+    }
+  },
+  "revenue_breakdown": {},
+  "margin_by_segment": {},
+  "_snapshot_info": {
+    "note": "Strategy advisor snapshot \u2014 fetch this JSON directly for all figures.",
+    "snapshot_html": "https://poesys.net/snapshots/DASHBOARD_20260623_120151.html",
+    "companion_json": "https://poesys.net/snapshots/DASHBOARD_20260623_120151.json",
+    "generated": "2026-06-23T12:15:00Z"
+  }
+}
