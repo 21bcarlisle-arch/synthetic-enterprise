@@ -1,14 +1,14 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-06-23T06:36:40.521972+00:00",
+  "last_updated": "2026-06-23T06:45:14.051929+00:00",
   "agents": [
     {
       "name": "sim-runner",
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
-      "status": "idle",
-      "last_heartbeat": "2026-06-23T06:36:40.521972+00:00",
-      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260623T063640Z.json)",
-      "last_action_ts": "2026-06-23T06:36:40.521972+00:00",
+      "status": "running",
+      "last_heartbeat": "2026-06-23T06:45:14.051929+00:00",
+      "last_action": "Full Ollama run in progress \u2014 commit 3e12f15",
+      "last_action_ts": "2026-06-23T06:45:14.051929+00:00",
       "anomaly": null,
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
     },
