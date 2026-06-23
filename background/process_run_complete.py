@@ -87,14 +87,14 @@ def update_latest_md(data, elapsed_s):
     start_marker = "**Latest simulation results"
     try:
         start_idx = text.index(start_marker)
+        end_idx = text.find("\n\n", start_idx)
+        if end_idx == -1:
+            end_idx = len(text)
+        text = text[:start_idx] + new_block + text[end_idx:]
     except ValueError:
-        log("WARNING: Latest simulation results block not found in LATEST.md - skipping update")
-        return
-
-    end_idx = text.find("\n\n", start_idx)
-    if end_idx == -1:
-        end_idx = len(text)
-    text = text[:start_idx] + new_block + text[end_idx:]
+        # Block not yet present — append to end on first auto-process
+        text = text.rstrip() + "\n\n" + new_block + "\n"
+        log("Created 'Latest simulation results' block in LATEST.md")
     LATEST_MD.write_text(text)
 
 
