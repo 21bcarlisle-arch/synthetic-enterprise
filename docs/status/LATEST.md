@@ -8,14 +8,22 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-23T06:21:42Z
+Last updated: 2026-06-23T06:43:14Z
 
-**Bugfixes (2026-06-23)**: 3 production bugs fixed after sim crash investigation.
-- `simulation/run_phase2b.py`: committee cooldown was record-count based → now date-based (30-day calendar cooldown). With 18+ customers, old code fired 10× too often, causing 10-hour runs instead of 38 minutes.
-- `simulation/run_phase2b.py`: volume tolerance crash on deemed/flex terms (forward_price=None). Guard added.
-- `saas/cost_to_serve.py`: missing I&C segment → KeyError. Added I&C overheads (£500/yr, 0.5% bad debt).
-- `simulation/run_phase4c_on_phase2b.py`: C_IC3g missing contract_type → default fallback added.
-- **Fast-mode 10-year run: completed in 5.2 min. Net margin £1,162,529. Treasury £3,629,165. SURVIVED.**
+**Full Ollama run complete (2026-06-23, commit 0d4003b, 446s):**
+- **Net margin: £1,149,015 | Gross: £5,977,194 | Treasury: £3,615,651 | SURVIVED**
+- All I&C tariff types active (fixed, pass-through, deemed, flex). Gas seasonal calibration. 38 committee calls (correct — ~monthly).
+
+**Architecture Stage 0 (2026-06-23)**: Observability + system health panel live.
+- `background/agent_status.py`: all 8 daemons now emit structured status (last_heartbeat, last_action, anomaly)
+- System tab added to poesys.net dashboard — green/amber/red per heartbeat age
+- Best-practice audit at `docs/claude/best-practice-audit.md` — STOP gate reached, awaiting Rich's "proceed stage 1"
+
+**Bugfixes (2026-06-23)**: 4 production bugs fixed after overnight crash.
+- Committee cooldown: record-count → date-based (30-day calendar). Was firing 10× too often with I&C customers.
+- Volume tolerance crash on deemed/flex (forward_price=None) — guard added.
+- `cost_to_serve.py` missing I&C segment → KeyError — added.
+- `C_IC3g` missing contract_type key — default fallback added.
 
 **Phase 42 LIVE (2026-06-22)**: Gas-specific seasonal forward curve. 8 new tests (1,228+ passing).
 
@@ -82,7 +90,11 @@ Last updated: 2026-06-23T06:21:42Z
 - Market: spot vs 1-year forward contango/backwardation chart (2021 crisis backwardation visible).
 - Customers: book size, net margin heatmap by customer/year, retention offers, lifecycle events.
 
-**Latest simulation results** — full 2016–2025 run in progress (started 2026-06-22 21:39 UTC). Results will update poesys.net on completion.
+**Latest simulation results (2016–2025)** — auto-processed (446s / 7 min):
+- Net margin: £5,888,934.80 | Gross: £5,991,253.01 | Capital: £102,318
+- Treasury: £2,466,636 → £3,615,651 | 38 committee interventions | 1569 bills issued
+- Enterprise value: £6,533,907.87 | Net after CTS: £5,887,081
+- Retention: 19 offers, 18/19 retained | 4 no-offer churns | 5 total churned accounts
 
 Previous run figures (Phases 13a-13e, commit 61e5b3f — pre-I&C expansion):
 - Net margin: £225,920 | Gross: £235,160 | Capital: £9,240

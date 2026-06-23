@@ -283,7 +283,7 @@ def extract_customers(data):
     }
 
 
-def extract_market(data):
+def extract_market(data, spot_monthly=None):
     # Segment margins per year from segment_split
     segment_annual = []
     segments_seen = set()
@@ -392,7 +392,7 @@ def generate(run_json_path=None):
         "financial": extract_financial(data),
         "trading": extract_trading(data, spot_monthly),
         "customers": extract_customers(data),
-        "market": extract_market(data),
+        "market": extract_market(data, spot_monthly),
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

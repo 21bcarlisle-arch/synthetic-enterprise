@@ -1,14 +1,14 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-06-23T06:34:27.632601+00:00",
+  "last_updated": "2026-06-23T06:36:40.521972+00:00",
   "agents": [
     {
       "name": "sim-runner",
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
-      "status": "running",
-      "last_heartbeat": "2026-06-23T06:34:27.632601+00:00",
-      "last_action": "Runner restarted with bugfix \u2014 TimeoutExpired now caught",
-      "last_action_ts": "2026-06-23T06:34:27.632601+00:00",
+      "status": "idle",
+      "last_heartbeat": "2026-06-23T06:36:40.521972+00:00",
+      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260623T063640Z.json)",
+      "last_action_ts": "2026-06-23T06:36:40.521972+00:00",
       "anomaly": null,
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
     },
@@ -16,9 +16,9 @@
       "name": "ntfy-responder",
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "status": "idle",
-      "last_heartbeat": "2026-06-23T06:31:55.287605+00:00",
-      "last_action": "Processed 3 messages (token audit, orchestration audit, DNS fix)",
-      "last_action_ts": "2026-06-23T06:31:55.287605+00:00",
+      "last_heartbeat": "2026-06-23T06:36:39.732108+00:00",
+      "last_action": "Acked message: 'Start the full 2016-2025 run when GPU is free.'",
+      "last_action_ts": "2026-06-23T06:36:39.732108+00:00",
       "anomaly": null,
       "produces": "docs/staging/from_rich_*.md"
     },
@@ -26,9 +26,9 @@
       "name": "dispatcher",
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen",
       "status": "idle",
-      "last_heartbeat": "2026-06-23T06:31:55.287605+00:00",
-      "last_action": "Classified from_rich_20260623_052332.md as URGENT",
-      "last_action_ts": "2026-06-23T06:31:55.287605+00:00",
+      "last_heartbeat": "2026-06-23T06:36:39.252629+00:00",
+      "last_action": "Classified from_rich_005.md as NORMAL",
+      "last_action_ts": "2026-06-23T06:36:39.252629+00:00",
       "anomaly": null,
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
     },

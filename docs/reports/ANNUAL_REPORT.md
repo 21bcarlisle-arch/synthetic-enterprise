@@ -1,47 +1,49 @@
 # Annual Report — The Synthetic Enterprise
 
+
 ## Executive Summary
 
 This report covers 2016–2025 (10 calendar years,
 the last partial). The business survived the full window.
 
-- Starting treasury: £463,165.53
-- Final treasury: £465,105.22
-  (£1,939.69 net change)
-- Customer bills (all-in): £1,493,274.83
-  VAT remitted to HMRC: (£233,639.11) | Revenue (ex-VAT): £1,259,635.72
-  Non-commodity pass-through: (£377,164.78)
-- Gross margin: £235,160.09
-- Capital costs: £9,239.95
-- Net margin: £225,920.14
-- Capital cost ratio: 3.9% of gross
-- Net margin as % of revenue: 17.9%
+- Starting treasury: £2,466,636.22
+- Final treasury: £3,615,650.74
+  (£1,149,014.52 net change)
+- Solvency signal (final year): £450,374/customer (8 customers, OK; Ofgem floor £130/customer)
+- Customer bills (all-in): £18,829,740.53
+  VAT remitted to HMRC: (£905,150.01) | Revenue (ex-VAT): £17,924,590.52
+  Non-commodity pass-through: (£4,015,486.66)
+- Gross margin: £5,991,253.01
+- Capital costs: £102,318.21
+- Net margin: £5,888,934.80
+- Capital cost ratio: 1.7% of gross
+- Net margin as % of revenue: 32.9%
   (industry benchmark for a retail energy supplier: 2-5%)
-- Risk committee (Context Handshake) interventions: 236
-- Bills issued: 1165, average clarity 0.866,
-  service quality score 0.917
-- Enterprise value (CLV sum across 11 billing accounts): £309,282.17
-- Cost to serve (whole portfolio): £14,734.93, net margin after cost to serve: £211,185.20
-- Hedge effectiveness (whole window): hedging cost £311,373.61 vs. a fully unhedged book (commodity-only: actual net £1,939.69 vs. naked net £313,313.30)
+- Risk committee (Context Handshake) interventions: 38
+- Bills issued: 1569, average clarity 0.867,
+  service quality score 0.922
+- Enterprise value (CLV sum across 13 billing accounts): £6,533,907.87
+- Cost to serve (whole portfolio): £90,113.32, net margin after cost to serve: £5,798,821.48
+- Hedge effectiveness (whole window): hedging cost £3,857,373.00 vs. a fully unhedged book (commodity-only: actual net £1,149,014.52 vs. naked net £5,006,387.52)
 
-- **2021** (crisis year): net margin £-1,534.25, 0 risk committee wake-up(s).
-- **2022** (crisis year): net margin £-1,473.03, 0 risk committee wake-up(s).
+- **2021** (crisis year): net margin £-122,961.27, 0 risk committee wake-up(s).
+- **2022** (crisis year): net margin £-48,367.53, 9 risk committee wake-up(s).
 
 ## Hedging Mandate — Before/After Phase 5c
 
 Phase 5c replaced the old reactive hedging model (start at 50/50, risk committee reacts upward from there with no floor) with a minimum hedge mandate: every term starts at least 85% hedged (`MIN_HEDGE_FLOOR` in `sim/hedging_strategy.py`), modelling a real supplier's supply-obligation-first behaviour rather than a speculative book with a safety valve. Because capital cost is charged on the unhedged (active) position only, raising the floor to 85% caps that active position at 15% of volume by construction.
 
-The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (Phase 9a): gross £235,160.09, capital £9,239.95, net £225,920.14. Old-model run (commodity-only, pre-Phase-9a): gross £45,417.31, capital £18,637.75, net £26,779.56.
+The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (Phase 9a): gross £5,991,253.01, capital £102,318.21, net £5,888,934.80. Old-model run (commodity-only, pre-Phase-9a): gross £45,417.31, capital £18,637.75, net £26,779.56.
 
-- **Capital cost as % of gross margin**: 4.1% (commodity basis, comparable to old model) / 3.9% (Phase 9a all-in gross) under the new mandate vs. 41.0% (commodity-only) under the old reactive model.
-- **2021 net margin**: £-1,534.25 under the new mandate vs. £-1,096.43 under the old reactive model.
-- **Net margin as % of revenue**: this run 17.9%; old-model run Not available in current run output (see REPORTING_BACKLOG.md) (revenue wasn't captured in that snapshot).
+- **Capital cost as % of gross margin**: 1.7% (commodity basis, comparable to old model) / 1.7% (Phase 9a all-in gross) under the new mandate vs. 41.0% (commodity-only) under the old reactive model.
+- **2021 net margin**: £-122,961.27 under the new mandate vs. £-1,096.43 under the old reactive model.
+- **Net margin as % of revenue**: this run 32.9%; old-model run Not available in current run output (see REPORTING_BACKLOG.md) (revenue wasn't captured in that snapshot).
 
 **Whole-run net margin, three ways:**
 
-- Mandate-hedged (actual, this run, Phase 9a): £225,920.14
+- Mandate-hedged (actual, this run, Phase 9a): £5,888,934.80
 - Old reactive model (actual, commodity-only): £26,779.56
-- Fully naked (this run's counterfactual, commodity-only): £313,313.30
+- Fully naked (this run's counterfactual, commodity-only): £5,006,387.52
 - Fully naked (old run's counterfactual, commodity-only): £33,476.19
 
 Comparing the two naked counterfactuals shows what changed in the underlying weather/price data between runs (LLM non-determinism in risk-committee responses also shifts these slightly run-to-run); comparing each model's actual to its own naked figure isolates what that model's hedging behaviour itself contributed.
@@ -57,114 +59,167 @@ This is the most strategically interesting question in the whole
 simulation: did the risk committee's hedging interventions actually make
 money, or just reduce variance?
 
-- hedging cost £311,373.61 vs. a fully unhedged book (commodity-only: actual net £1,939.69 vs. naked net £313,313.30)
-- **Best hedging decision of the run**: C6, term starting
-  2021-03-31 (hedge fraction 0.85) -- hedging
-  protected £1,663.57 vs. going naked.
-- **Worst hedging decision of the run**: C_IC1, term
-  starting 2019-01-01 (hedge fraction 1.00) --
-  over-hedging cost £99,883.50 vs. going
+- hedging cost £3,857,373.00 vs. a fully unhedged book (commodity-only: actual net £1,149,014.52 vs. naked net £5,006,387.52)
+- **Best hedging decision of the run**: C_IC1, term starting
+  2021-04-30 (hedge fraction 0.85) -- hedging
+  protected £105,686.21 vs. going naked.
+- **Worst hedging decision of the run**: C_IC3, term
+  starting 2022-12-31 (hedge fraction 1.00) --
+  over-hedging cost £619,092.76 vs. going
   naked.
 
 ## Segment Margin Trend
 
 Net margin (£) by segment, by year:
 
-| Year | SME electricity | resi electricity | resi gas | Total |
-|---|---|---|---|---|
-| 2016 | £-419.73 | £-333.14 | £80.49 | £-672.38 |
-| 2017 | £-51,951.79 | £-353.25 | £138.51 | £-52,166.53 |
-| 2018 | £33,736.11 | £35.85 | £179.58 | £33,951.53 |
-| 2019 | £17,956.28 | £325.75 | £248.49 | £18,530.53 |
-| 2020 | £5,165.52 | £92.13 | £147.92 | £5,405.56 |
-| 2021 | £-797.34 | £-655.37 | £-81.54 | £-1,534.25 |
-| 2022 | £-548.18 | £-757.21 | £-167.64 | £-1,473.03 |
-| 2023 | £-36.35 | £-573.21 | £-259.78 | £-869.33 |
-| 2024 | £115.98 | £720.14 | £119.01 | £955.12 |
-| 2025 | £0.00 | £-187.54 | £0.00 | £-187.54 |
+| Year | I&C electricity | I&C gas | SME electricity | resi electricity | resi gas | Total |
+|---|---|---|---|---|---|---|
+| 2016 | £0.00 | £0.00 | £73.89 | £429.07 | £160.66 | £663.62 |
+| 2017 | £45,804.23 | £0.00 | £225.02 | £685.53 | £202.10 | £46,916.87 |
+| 2018 | £80,352.48 | £0.00 | £-184.90 | £403.56 | £175.98 | £80,747.13 |
+| 2019 | £251,110.33 | £57,747.81 | £285.09 | £855.79 | £401.43 | £310,400.45 |
+| 2020 | £-19,767.44 | £14,088.34 | £386.92 | £969.17 | £283.98 | £-4,039.03 |
+| 2021 | £-106,354.20 | £-16,907.90 | £-10.96 | £429.32 | £-117.53 | £-122,961.27 |
+| 2022 | £-48,111.69 | £-791.55 | £361.80 | £164.72 | £9.20 | £-48,367.53 |
+| 2023 | £342,074.16 | £375,814.39 | £1,254.82 | £3,435.53 | £556.68 | £723,135.57 |
+| 2024 | £119,609.78 | £48,112.21 | £617.47 | £2,825.64 | £625.85 | £171,790.95 |
+| 2025 | £-22,733.36 | £12,443.60 | £0.00 | £925.12 | £92.39 | £-9,272.25 |
 
 ## Customer Lifecycle Events
 
 Renewal decisions rolled at each annual renewal point across the simulation window.
-Retained: **43** renewals.  Lost (churned): **7** accounts.
+Retained: **51** renewals.  Lost (churned): **5** accounts.
 
-Accounts lost before end of window: C1, C2, C3, C4, C5, C6, C_IC1
+Accounts lost before end of window: C1, C3, C4, C5, C6
 
 | Account | Date | Outcome | p(churn) | p(win-back) | p(retain) | Roll |
 |---------|------|---------|----------|-------------|-----------|------|
 | C1 | 2016-12-31 | renewed | 0.0800 | 0.5500 | 0.9640 | 0.1646 |
 | C5 | 2016-12-31 | renewed | 0.2900 | 0.3500 | 0.8115 | 0.2812 |
 | C7 | 2016-12-31 | renewed | 0.2900 | 0.5500 | 0.8695 | 0.1050 |
-| C1 | 2017-12-31 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.6188 |
+| C1 | 2017-12-31 | renewed | 0.1400 | 0.5500 | 0.9370 | 0.6188 |
 | C5 | 2017-12-31 | renewed | 0.3200 | 0.3500 | 0.7920 | 0.4449 |
-| C7 | 2017-12-31 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.8255 |
-| C1 | 2018-12-31 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.0480 |
+| C7 | 2017-12-31 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.8255 |
+| C_IC1 | 2018-01-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.3902 |
+| C1 | 2018-12-31 | renewed | 0.1100 | 0.5500 | 0.9505 | 0.0480 |
 | C5 | 2018-12-31 | renewed | 0.4100 | 0.3500 | 0.7335 | 0.3096 |
 | C7 | 2018-12-31 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.6312 |
-| C1 | 2019-12-31 | renewed | 0.1400 | 0.5500 | 0.9370 | 0.2972 |
+| C_IC2 | 2019-01-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.3710 |
+| C1 | 2019-12-31 | renewed | 0.1700 | 0.5500 | 0.9235 | 0.2972 |
 | C5 | 2019-12-31 | renewed | 0.3800 | 0.3500 | 0.7530 | 0.4302 |
-| C7 | 2019-12-31 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.7670 |
+| C7 | 2019-12-31 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.7670 |
 | C2 | 2020-03-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.8936 |
 | C6 | 2020-03-31 | renewed | 0.3200 | 0.3500 | 0.7920 | 0.4643 |
 | C8 | 2020-03-31 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.1066 |
-| C3 | 2020-06-30 | churned **CHURNED** | 0.1400 | 0.5500 | 0.9370 | 0.9704 |
+| C3 | 2020-06-30 | churned **CHURNED** | 0.0800 | 0.5500 | 0.9640 | 0.9704 |
 | C9 | 2020-06-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.5378 |
-| C4 | 2020-09-30 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.2845 |
+| C4 | 2020-09-30 | renewed | 0.1400 | 0.5500 | 0.9370 | 0.2845 |
 | C1 | 2020-12-30 | renewed | 0.2600 | 0.5500 | 0.8830 | 0.8047 |
 | C5 | 2020-12-30 | renewed | 0.3500 | 0.3500 | 0.7725 | 0.7480 |
-| C7 | 2020-12-30 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.4829 |
-| C_IC1 | 2020-12-31 | churned **CHURNED** | 0.3500 | 0.3500 | 0.7725 | 0.9643 |
-| C2 | 2021-03-31 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.6102 |
-| C6 | 2021-03-31 | renewed | 0.3800 | 0.3500 | 0.7530 | 0.5431 |
+| C7 | 2020-12-30 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.4829 |
+| C_IC3 | 2020-12-31 | renewed | 0.1700 | 0.5500 | 0.9235 | 0.5941 |
+| C2 | 2021-03-31 | renewed | 0.1400 | 0.5500 | 0.9370 | 0.6102 |
+| C6 | 2021-03-31 | renewed | 0.3500 | 0.3500 | 0.7725 | 0.5431 |
 | C8 | 2021-03-31 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.4901 |
 | C9 | 2021-06-30 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.5305 |
-| C4 | 2021-09-30 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.4564 |
+| C4 | 2021-09-30 | renewed | 0.1400 | 0.5500 | 0.9370 | 0.4564 |
 | C1 | 2021-12-30 | churned **CHURNED** | 0.1700 | 0.5500 | 0.9235 | 0.9691 |
 | C5 | 2021-12-30 | churned **CHURNED** | 0.3500 | 0.3500 | 0.7725 | 0.8247 |
 | C7 | 2021-12-30 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.1963 |
-| C2 | 2022-03-31 | churned **CHURNED** | 0.1700 | 0.5500 | 0.9235 | 0.9547 |
-| C6 | 2022-03-31 | renewed | 0.3200 | 0.3500 | 0.7920 | 0.1058 |
-| C8 | 2022-03-31 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.5712 |
-| C9 | 2022-06-30 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.5875 |
-| C4 | 2022-09-30 | renewed | 0.2300 | 0.5500 | 0.8965 | 0.8552 |
+| C_IC3 | 2021-12-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.5838 |
+| C2 | 2022-03-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.9547 |
+| C6 | 2022-03-31 | renewed | 0.2900 | 0.3500 | 0.8115 | 0.1058 |
+| C8 | 2022-03-31 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.5712 |
+| C9 | 2022-06-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.5875 |
+| C4 | 2022-09-30 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.8552 |
 | C7 | 2022-12-30 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.0637 |
-| C2_2 | 2023-03-31 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.0093 |
-| C6 | 2023-03-31 | renewed | 0.2600 | 0.3500 | 0.8310 | 0.5155 |
-| C8 | 2023-03-31 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.3785 |
+| C_IC3 | 2022-12-31 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.8723 |
+| C2 | 2023-03-31 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.6357 |
+| C6 | 2023-03-31 | renewed | 0.2900 | 0.3500 | 0.8115 | 0.5155 |
+| C8 | 2023-03-31 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.3785 |
 | C9 | 2023-06-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.0307 |
 | C4 | 2023-09-30 | renewed | 0.1700 | 0.5500 | 0.9235 | 0.6095 |
 | C7 | 2023-12-30 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.1905 |
-| C2_2 | 2024-03-30 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.6064 |
-| C6 | 2024-03-30 | churned **CHURNED** | 0.3800 | 0.3500 | 0.7530 | 0.9632 |
+| C_IC3 | 2023-12-31 | renewed | 0.1700 | 0.5500 | 0.9235 | 0.7019 |
+| C2 | 2024-03-30 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.8119 |
+| C6 | 2024-03-30 | churned **CHURNED** | 0.4100 | 0.3500 | 0.7335 | 0.9632 |
 | C8 | 2024-03-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.0592 |
 | C9 | 2024-06-29 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.0025 |
 | C4 | 2024-09-29 | churned **CHURNED** | 0.2300 | 0.5500 | 0.8965 | 0.9018 |
-| C7 | 2024-12-29 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.4099 |
-| C2_2 | 2025-03-30 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.4434 |
+| C7 | 2024-12-29 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.4099 |
+| C_IC3 | 2024-12-30 | renewed | 0.2300 | 0.5500 | 0.8965 | 0.3751 |
+| C2 | 2025-03-30 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.1514 |
 | C8 | 2025-03-30 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.4808 |
 
 ## Churn Prediction Basis Risk
 
 At each renewal the company estimated churn risk from observable signals (rate change %, customer tenure). The SIM used its bill-shock model (actual bill amount relative to customer-specific thresholds). The gap is epistemic: in crisis years the company sees a rate % while the SIM sees the household-level financial shock — the same failure mode that surprised real suppliers in 2021-22.
 
-- **Average absolute error:** 132.7%
-- **Average signed error:** +31.2% (over-estimates vs SIM)
-- **Renewal events with estimates:** 50
+- **Average absolute error:** 192.0%
+- **Average signed error:** +59.4% (over-estimates vs SIM)
+- **Renewal events with estimates:** 56
 
 | Year | Renewals | Avg error (signed) | Avg abs error |
 |------|----------|--------------------|---------------|
-| 2016 | 3 | +87.9% | 91.8% |
-| 2017 | 3 | -55.2% | 55.2% |
-| 2018 | 3 | -68.2% | 68.2% |
-| 2019 | 3 | -100.0% | 100.0% |
-| 2020 | 10 | -54.1% | 88.4% |
-| 2021 | 8 | +343.7% | 349.0% |
-| 2022 | 6 | +120.5% | 167.9% |
-| 2023 | 6 | -63.4% | 70.1% |
-| 2024 | 6 | -84.6% | 84.6% |
-| 2025 | 2 | -39.6% | 39.6% |
+| 2016 | 3 | -61.1% | 61.1% |
+| 2017 | 3 | -90.3% | 90.3% |
+| 2018 | 4 | +426.4% | 500.7% |
+| 2019 | 4 | +375.0% | 525.0% |
+| 2020 | 10 | -52.6% | 110.0% |
+| 2021 | 9 | +160.4% | 256.5% |
+| 2022 | 7 | +14.3% | 121.4% |
+| 2023 | 7 | -1.7% | 141.1% |
+| 2024 | 7 | -41.7% | 115.7% |
+| 2025 | 2 | -69.3% | 69.3% |
 
 Positive error = company over-estimated churn vs SIM. Negative error = company under-estimated (more dangerous — expected retentions that were actually at risk).
+
+## Active vs Passive Renewal Split (Phase 33a)
+
+~35% of domestic/SME customers actively choose a new fixed deal at term end. ~65% roll to SVT by inaction — they are inert: low rate sensitivity, ~5% churn base. Crisis years (2022) force all renewals passive (no fixed deals available).
+
+- **Total renewal events:** 56
+- **Active renewers:** 17 (30%) — mean company estimate 33.2%, abs error 294.7%
+- **Passive SVT-rollers:** 39 (70%) — mean company estimate 10.2%, abs error 147.2%
+
+| Year | Active | Passive | Active est | Passive est | Active abs err | Passive abs err |
+|------|--------|---------|-----------|------------|---------------|----------------|
+| 2016 | 0 | 3 | 0.0% | 6.0% | 0.0% | 61.1% |
+| 2017 | 0 | 3 | 0.0% | 2.3% | 0.0% | 90.3% |
+| 2018 | 2 | 2 | 18.2% | 49.0% | 68.4% | 933.0% |
+| 2019 | 2 | 2 | 47.5% | 0.0% | 950.0% | 100.0% |
+| 2020 | 5 | 5 | 18.0% | 0.4% | 122.7% | 97.3% |
+| 2021 | 3 | 6 | 63.9% | 5.1% | 625.4% | 72.1% |
+| 2022 | 0 | 7 | 0.0% | 20.7% | 0.0% | 121.4% |
+| 2023 | 1 | 6 | 37.4% | 15.8% | 28.9% | 159.8% |
+| 2024 | 3 | 4 | 34.0% | 0.2% | 137.2% | 99.6% |
+| 2025 | 1 | 1 | 11.5% | 1.5% | 42.6% | 96.0% |
+
+Passive renewers should show lower company estimates and lower SIM churn — high abs error for passive renewers indicates the passive model needs recalibration.
+
+## SVT Comparative Pricing — Passive Renewers (Phase 39a)
+
+Passive renewers roll to a new fixed deal by inaction. A rate above SVT creates latent churn risk: once the customer notices they're paying more than the cap, they switch. A rate below SVT signals loyalty value — the company is rewarding inertia.
+
+- **Passive renewal events with SVT data:** 39
+- **Above SVT (at-risk):** 12 (31%)
+- **Below/at SVT (protected):** 27 (69%)
+- **Mean rate vs SVT premium:** -3.2%
+
+| Year | Passive Renewals | Above SVT | Avg Premium | Avg Fixed Rate (£/MWh) | Avg SVT (£/MWh) |
+|------|-----------------|-----------|-------------|----------------------|----------------|
+| 2016 | 3 | 0 (0%) | -1.5% | 137.8 | 140.0 |
+| 2017 | 3 | 0 (0%) | -8.2% | 128.5 | 140.0 |
+| 2018 | 2 | 1 (50%) | -3.3% | 147.5 | 152.5 |
+| 2019 | 2 | 0 (0%) | -24.8% | 134.2 | 178.5 |
+| 2020 | 5 | 0 (0%) | -22.9% | 136.2 | 176.9 |
+| 2021 | 6 | 5 (83%) | +10.4% | 203.7 | 183.8 |
+| 2022 | 7 | 5 (71%) | +30.0% | 351.8 | 318.4 |
+| 2023 | 6 | 0 (0%) | -32.1% | 269.0 | 415.0 |
+| 2024 | 4 | 0 (0%) | -5.4% | 233.3 | 246.9 |
+| 2025 | 1 | 1 (100%) | +14.9% | 285.7 | 248.6 |
+
+**Interpretation:** Premium > 0% means the company is charging passive renewers above the SVT rate — a regulatory and reputational risk. Premium < 0% means passive renewers are getting a better-than-SVT deal — the company is leaving margin on the table but building loyalty.
 
 ## Company Model Divergence
 
@@ -181,16 +236,16 @@ Crisis years (2021-22) remain negative — genuine market adversity, not model e
 
 | Year | Terms | Mean Abs Error | Max Abs Error |
 |------|-------|---------------|--------------|
-| 2016 | 17 | 21.9% | 35.6% |
-| 2017 | 14 | 17.1% | 35.5% |
-| 2018 | 14 | 15.4% | 40.4% |
-| 2019 | 14 | 12.9% | 23.3% |
-| 2020 | 14 | 18.4% | 32.0% |
-| 2021 | 10 | 25.9% | 42.0% |
-| 2022 | 8 | 27.8% | 32.8% |
-| 2023 | 7 | 7.4% | 19.9% |
-| 2024 | 6 | 13.5% | 26.2% |
-| 2025 | 2 | 43.9% | 43.9% |
+| 2016 | 17 | 17.5% | 49.4% |
+| 2017 | 14 | 15.0% | 30.6% |
+| 2018 | 16 | 11.8% | 35.0% |
+| 2019 | 19 | 24.1% | 67.6% |
+| 2020 | 22 | 19.9% | 65.5% |
+| 2021 | 17 | 17.0% | 34.9% |
+| 2022 | 15 | 16.5% | 74.2% |
+| 2023 | 15 | 41.4% | 164.9% |
+| 2024 | 14 | 13.1% | 71.7% |
+| 2025 | 3 | 13.4% | 27.4% |
 
 ### Churn Estimate Error
 
@@ -210,16 +265,16 @@ well-hedged and therefore not experiencing bill shocks during their last contrac
 
 | Year | Renewals | Mean Abs Error (×SIM) | Max Abs Error (×SIM) |
 |------|----------|-----------------------|---------------------|
-| 2016 | 3 | 0.92× | 2.63× |
-| 2017 | 3 | 0.55× | 0.67× |
-| 2018 | 3 | 0.68× | 0.78× |
-| 2019 | 3 | 1.00× | 1.00× |
-| 2020 | 10 | 0.88× | 1.71× |
-| 2021 | 8 | 3.49× ⚠ | 18.00× |
-| 2022 | 6 | 1.68× | 4.59× |
-| 2023 | 6 | 0.70× | 1.00× |
-| 2024 | 6 | 0.85× | 1.00× |
-| 2025 | 2 | 0.40× | 0.41× |
+| 2016 | 3 | 0.61× | 0.80× |
+| 2017 | 3 | 0.90× | 0.93× |
+| 2018 | 4 | 5.01× ⚠ | 17.76× |
+| 2019 | 4 | 5.25× ⚠ | 18.00× |
+| 2020 | 10 | 1.10× | 2.87× |
+| 2021 | 9 | 2.57× ⚠ | 18.00× |
+| 2022 | 7 | 1.21× | 3.75× |
+| 2023 | 7 | 1.41× | 4.59× |
+| 2024 | 7 | 1.16× | 2.59× |
+| 2025 | 2 | 0.69× | 0.96× |
 
 ## Demand Estimation Accuracy (Phase 23a/25a)
 
@@ -231,34 +286,31 @@ company billing estimation correctly tracks actual consumption.
 
 | Year | Renewals | Mean Abs Error | Max Abs Error |
 |------|----------|----------------|--------------|
-| 2016 | 3 | 21.0% | 34.3% |
-| 2017 | 9 | 33.0% | 103.8% |
-| 2018 | 10 | 30.2% | 103.8% |
-| 2019 | 10 | 30.3% | 104.3% |
-| 2020 | 11 | 28.0% | 104.9% |
-| 2021 | 8 | 32.8% | 104.3% |
-| 2022 | 6 | 34.3% | 103.8% |
-| 2023 | 6 | 48.5% | 190.1% |
-| 2024 | 6 | 48.2% | 186.8% |
-| 2025 | 2 | 99.7% | 197.5% |
+| 2016 | 3 | 0.1% | 0.1% |
+| 2017 | 9 | 0.4% | 1.7% |
+| 2018 | 10 | 0.6% | 3.2% |
+| 2019 | 11 | 1.0% | 5.1% |
+| 2020 | 13 | 0.7% | 3.5% |
+| 2021 | 11 | 1.0% | 4.2% |
+| 2022 | 9 | 1.9% | 7.5% |
+| 2023 | 9 | 1.5% | 4.5% |
+| 2024 | 9 | 1.6% | 4.4% |
+| 2025 | 2 | 0.4% | 0.8% |
 
-**71** of **71** renewals used prior billing records; **0** used SIM oracle fallback (first term, no billing history).
+**86** of **86** renewals used prior billing records; **0** used SIM oracle fallback (first term, no billing history).
 
 ## Company CRM — Event Log
 
 Dated artefacts of customer lifecycle events as seen by the company layer.
-Total events: **8** (7 churn, 1 acquisition)
+Total events: **5** (5 churn, 0 acquisition)
 
 | Date | Event | Customer | Detail |
 |------|-------|----------|--------|
-| 2020-06-30 | CHURN | C3 | SIM p=0.14, company est=0.00 |
-| 2020-12-31 | CHURN | C_IC1 | SIM p=0.35, company est=0.95 |
-| 2021-12-30 | CHURN | C1 | SIM p=0.17, company est=0.95 |
-| 2021-12-30 | CHURN | C5 | SIM p=0.35, company est=0.95 |
-| 2022-03-31 | CHURN | C2 | SIM p=0.17, company est=0.95 |
-| 2022-03-31 | ACQUISITION | C2_2 | home-move-win (predecessor: C2) |
-| 2024-03-30 | CHURN | C6 | SIM p=0.38, company est=0.00 |
-| 2024-09-29 | CHURN | C4 | SIM p=0.23, company est=0.11 |
+| 2020-06-30 | CHURN | C3 | SIM p=0.08, company est=0.00 |
+| 2021-12-30 | CHURN | C1 | SIM p=0.17, company est=0.10 |
+| 2021-12-30 | CHURN | C5 | SIM p=0.35, company est=0.53 |
+| 2024-03-30 | CHURN | C6 | SIM p=0.41, company est=0.19 |
+| 2024-09-29 | CHURN | C4 | SIM p=0.23, company est=0.00 |
 
 **SIM ground truth vs company CRM reconciliation (year-end snapshots):**
 
@@ -268,34 +320,123 @@ Total events: **8** (7 churn, 1 acquisition)
 | 2017-12-31 | 0 accounts | 0 active | yes |
 | 2018-12-31 | 0 accounts | 0 active | yes |
 | 2019-12-31 | 0 accounts | 0 active | yes |
-| 2020-12-31 | 2 accounts | 0 active | yes |
-| 2021-12-31 | 4 accounts | 0 active | yes |
-| 2022-12-31 | 5 accounts | 1 active | yes |
-| 2023-12-31 | 5 accounts | 1 active | yes |
-| 2024-12-31 | 7 accounts | 1 active | yes |
-| 2025-12-31 | 7 accounts | 1 active | yes |
+| 2020-12-31 | 1 accounts | 0 active | yes |
+| 2021-12-31 | 3 accounts | 0 active | yes |
+| 2022-12-31 | 3 accounts | 0 active | yes |
+| 2023-12-31 | 3 accounts | 0 active | yes |
+| 2024-12-31 | 5 accounts | 0 active | yes |
+| 2025-12-31 | 5 accounts | 0 active | yes |
 
-## Policy Costs — RO + CfD Levies (Phase 21a)
+## Policy Costs — RO + CfD + CCL + CM + FiT (Phase 21a/27b/30a/31a)
 
 Electricity policy costs deducted from net_margin_gbp each year. 
-CfD levy was NEGATIVE in 2022 (crisis rebate from LCCC) — this appears 
-as a positive contribution to that year's margin.
+CfD levy was NEGATIVE in 2022 (crisis rebate from LCCC). 
+CCL applies to business (SME/I&C) only — resi exempt. 
+CM (Capacity Market) and FiT (Feed-in Tariff) levies apply to ALL demand including domestic.
 
-| Year | RO levy £ | CfD levy £ | Total policy cost £ | Note |
-|------|-----------|------------|---------------------|------|
-| 2016 | 1,108 | 7 | 1,115 |  |
-| 2017 | 36,556 | 2,713 | 39,269 |  |
-| 2018 | 43,779 | 6,757 | 50,536 |  |
-| 2019 | 48,966 | 8,491 | 57,457 |  |
-| 2020 | 47,717 | 7,077 | 54,794 |  |
-| 2021 | 2,286 | 140 | 2,426 |  |
-| 2022 | 1,768 | -344 | 1,424 | ⬇ CfD REBATE |
-| 2023 | 1,931 | 463 | 2,394 |  |
-| 2024 | 1,707 | 626 | 2,333 |  |
-| 2025 | 767 | 265 | 1,032 |  |
-| **Total** | **186,585** | **26,195** | **212,780** | |
+| Year | RO levy £ | CfD levy £ | CCL £ | CM levy £ | FiT levy £ | Total policy cost £ | Note |
+|------|-----------|------------|-------|-----------|------------|---------------------|------|
+| 2016 | 1,104 | 7 | 172 | 35 | 290 | 1,608 |  |
+| 2017 | 37,269 | 2,715 | 11,202 | 1,981 | 9,969 | 63,137 |  |
+| 2018 | 65,812 | 9,922 | 17,517 | 9,388 | 17,364 | 120,002 |  |
+| 2019 | 164,971 | 28,414 | 42,552 | 32,030 | 44,393 | 312,360 |  |
+| 2020 | 239,072 | 35,456 | 69,576 | 56,656 | 70,153 | 470,913 |  |
+| 2021 | 248,969 | 15,148 | 72,020 | 50,135 | 63,418 | 449,690 |  |
+| 2022 | 259,194 | -50,324 | 71,821 | 37,156 | 69,881 | 387,728 | ⬇ CfD REBATE |
+| 2023 | 274,436 | 65,395 | 72,466 | 51,376 | 75,814 | 539,487 |  |
+| 2024 | 310,557 | 111,001 | 73,601 | 69,353 | 83,353 | 647,864 |  |
+| 2025 | 137,626 | 47,607 | 31,649 | 31,464 | 36,657 | 285,003 |  |
+| **Total** | **1,739,010** | **265,340** | **462,576** | **339,574** | **471,293** | **3,277,793** | |
 
-Total policy cost: £212,780 across all years. Net margin is after deducting this. Revenue side: tariff pass-through at term-start year's levy rate — basis risk arises when cross-year terms meet a different actual levy (notably 2022 CfD rebate).
+Total policy cost: £3,277,793 across all years. Net margin is after deducting this. Revenue side: tariff pass-through at term-start year's levy rate — basis risk arises when cross-year terms meet a different actual levy (notably 2022 CfD rebate).
+
+## Network Charges — DUoS + TNUoS (Phase 29a)
+
+Electricity network charges deducted from net_margin_gbp each year. 
+Resi/SME: combined DUoS + TNUoS unit rate (largest single non-commodity cost). 
+I&C HV: DUoS only (Triad TNUoS is an annual lump tracked in the Triad section).
+
+| Year | Network cost £ | Note |
+|------|----------------|------|
+| 2016 | 3,043 |  |
+| 2017 | 26,092 |  |
+| 2018 | 38,575 |  |
+| 2019 | 88,411 |  |
+| 2020 | 124,685 |  |
+| 2021 | 124,577 |  |
+| 2022 | 134,357 | BSUoS 100% demand-side from Apr 2022 |
+| 2023 | 139,924 | RIIO-ED2 from Apr 2023 |
+| 2024 | 144,172 |  |
+| 2025 | 61,791 |  |
+| **Total** | **885,627** | |
+
+Total network cost: £885,627 across all years. Pass-through: tariff unit rate includes network cost at term-start year's rate; settlement deducts it — basis risk near-zero for annual contracts.
+
+## Gas Policy Costs and Network Charges (Phase 30b)
+
+Gas CCL: non-domestic only (domestic gas exempt). Gas network (GDN + NTS): all on unit rate.
+GGL (Green Gas Levy): per-meter, from Nov 2021; tiny in £/MWh terms.
+
+| Year | Gas Policy (CCL + GGL) £ | Gas Network £ | Total Gas Non-Commodity £ |
+|------|--------------------------|---------------|--------------------------|
+| 2016 | 0 | 356 | 356 |
+| 2017 | 0 | 624 | 624 |
+| 2018 | 0 | 609 | 609 |
+| 2019 | 15,273 | 50,131 | 65,404 |
+| 2020 | 19,520 | 46,890 | 66,411 |
+| 2021 | 22,523 | 50,386 | 72,909 |
+| 2022 | 27,136 | 54,538 | 81,674 |
+| 2023 | 32,320 | 80,454 | 112,774 |
+| 2024 | 37,573 | 76,290 | 113,863 |
+| 2025 | 16,774 | 31,044 | 47,818 |
+| **Total** | **171,121** | **391,320** | **562,441** |
+
+Gas policy pass-through in tariff unit rate (CCL + GGL at term start); gas network pass-through likewise. Net basis risk near-zero for annual contracts.
+
+## Gas Book P&L — Year by Year (Phase 32a)
+
+Revenue = billing at fixed tariff unit rate. Wholesale = hedged + unhedged NBP cost.
+Policy = gas CCL + GGL. Network = GDN + NTS. Net = gross − policy − network − capital.
+
+| Year | Revenue £ | Wholesale £ | Gross £ | Policy £ | Network £ | Capital £ | Net £ | Net % |
+|------|-----------|-------------|---------|----------|-----------|-----------|-------|-------|
+| 2016 | 948 | 426 | 522 | 0 | 356 | 5 | 161 | +16.9% |
+| 2017 | 1,684 | 848 | 836 | 0 | 624 | 10 | 202 | +12.0% |
+| 2018 | 2,001 | 1,201 | 800 | 0 | 609 | 15 | 176 | +8.8% |
+| 2019 | 230,080 | 105,132 | 124,949 | 15,273 | 50,131 | 1,395 | 58,149 | +25.3% |
+| 2020 | 138,989 | 57,391 | 81,597 | 19,520 | 46,890 | 814 | 14,372 | +10.3% |
+| 2021 | 154,286 | 97,270 | 57,016 | 22,523 | 50,386 | 1,133 | -17,025 | -11.0% |
+| 2022 | 551,440 | 468,094 | 83,346 | 27,136 | 54,538 | 2,454 | -782 | -0.1% |
+| 2023 | 927,645 | 438,122 | 489,523 | 32,320 | 80,454 | 377 | 376,371 | +40.6% |
+| 2024 | 336,617 | 169,205 | 167,413 | 37,573 | 76,290 | 4,812 | 48,738 | +14.5% |
+| 2025 | 144,954 | 81,097 | 63,857 | 16,774 | 31,044 | 3,504 | 12,536 | +8.6% |
+| **Total** | **2,488,645** | **1,418,786** | **1,069,859** | **171,121** | **391,320** | **14,520** | **492,898** | **+19.8%** |
+
+Gas book net margin positive over the simulation period. Network charges (GDN + NTS, £9–18/MWh) dominate the gas non-commodity cost stack.
+
+## Solvency Signal — Net Assets per Customer (Phase 21b)
+
+Treasury balance ÷ active billing accounts at each year-end.
+Ofgem licence floor: £0/account (positive net assets required to hold a supply licence).
+Capital adequacy target: £130/dual-fuel billing account.
+
+| Year | Treasury £ | Billing Accounts | Net Assets/Account £ | vs Floor | vs £130 Target |
+|------|-----------|-----------------|----------------------|----------|----------------|
+| 2016 | 2,466,991 | 9 | 274,110 | OK | OK |
+| 2017 | 2,513,799 | 10 | 251,380 | OK | OK |
+| 2018 | 2,508,404 | 11 | 228,037 | OK | OK |
+| 2019 | 2,640,295 | 12 | 220,025 | OK | OK |
+| 2020 | 2,848,364 | 13 | 219,105 | OK | OK |
+| 2021 | 2,705,464 | 12 | 225,455 | OK | OK |
+| 2022 | 2,513,694 | 10 | 251,369 | OK | OK |
+| 2023 | 3,217,185 | 10 | 321,718 | OK | OK |
+| 2024 | 3,547,864 | 10 | 354,786 | OK | OK |
+| 2025 | 3,602,995 | 8 | 450,374 | OK | OK |
+
+End-state (2025): **£450,374/account** across 8 billing accounts — above Ofgem £130 target.
+
+
+
 
 ## Time-of-Use Tariff Utilization (C7-C9 HH Customers)
 
@@ -305,11 +446,11 @@ ToU Premium: actual revenue vs flat-rate equivalent — positive when actual pea
 
 | Customer | Total kWh | Peak kWh | Peak % | Peak Revenue | Off-peak Revenue | Avg Peak Rate | Avg Off-peak Rate | ToU Premium |
 |----------|-----------|----------|--------|-------------|-----------------|--------------|------------------|-------------|
-| C7 | 120,842 | 40,643 | 33.6% | £8,560.13 | £8,914.34 | £210.62/MWh | £111.15/MWh | +3.0% |
-| C8 | 106,723 | 46,761 | 43.8% | £9,697.47 | £6,532.69 | £207.38/MWh | £108.95/MWh | +10.0% |
-| C9 | 109,388 | 46,156 | 42.2% | £7,722.53 | £5,546.12 | £167.31/MWh | £87.71/MWh | +8.7% |
+| C7 | 120,842 | 40,643 | 33.6% | £11,486.46 | £11,916.05 | £282.62/MWh | £148.58/MWh | +2.8% |
+| C8 | 106,723 | 46,761 | 43.8% | £14,375.47 | £9,677.61 | £307.42/MWh | £161.40/MWh | +10.0% |
+| C9 | 109,388 | 46,156 | 42.2% | £12,466.53 | £8,942.99 | £270.10/MWh | £141.43/MWh | +8.7% |
 
-Total HH revenue: £46,973.28 vs flat equivalent £43,923.85 (+6.9% ToU premium)
+Total HH revenue: £68,865.11 vs flat equivalent £64,338.00 (+7.0% ToU premium)
 
 ## Bill Shock Summary (2016-2025)
 
@@ -318,33 +459,33 @@ via the bill-shock history model. Crisis years (2021-22) see the largest spikes.
 
 | Year | Events | Max Spike | Worst Customer |
 |------|--------|-----------|----------------|
-| 2016 | 20 | 104% | C8 (2016-10-31) |
-| 2017 | 33 | 84% | C8 (2017-11-30) |
-| 2018 | 41 | 55% | C8 (2018-10-31) |
-| 2019 | 40 | 86% | C8 (2019-10-31) |
-| 2020 | 34 | 66% | C_IC1 (2020-10-31) |
-| 2021 | 30 | 203% | C4g (2021-10-31) |
-| 2022 | 36 | 1717% | C2_2 (2022-04-30) |
-| 2023 | 28 | 100% | C8 (2023-10-31) |
-| 2024 | 24 | 77% | C8 (2024-09-30) |
-| 2025 | 18 | 80% | C7 (2025-06-07) |
+| 2016 | 21 | 110% | C8 (2016-10-31) |
+| 2017 | 26 | 85% | C8 (2017-11-30) |
+| 2018 | 34 | 57% | C8 (2018-10-31) |
+| 2019 | 35 | 125% | C_IC1 (2019-03-31) |
+| 2020 | 34 | 133% | C_IC2 (2020-03-31) |
+| 2021 | 36 | 158% | C4g (2021-10-31) |
+| 2022 | 44 | 173% | C_IC3g (2022-01-31) |
+| 2023 | 31 | 134% | C_IC2 (2023-06-30) |
+| 2024 | 27 | 121% | C_IC2 (2024-07-31) |
+| 2025 | 20 | 81% | C_IC4 (2025-06-07) |
 
-Total: **304** bill shock events across 10 years
+Total: **308** bill shock events across 10 years
 
 **Top 10 worst single-period bill spikes:**
 
 | Date | Customer | Spike | Eventually Churned? |
 |------|----------|-------|---------------------|
-| 2022-04-30 | C2_2 | +1717% | no |
-| 2021-10-31 | C4g | +203% | no |
-| 2022-01-31 | C7 | +161% | no |
-| 2022-10-31 | C4g | +154% | no |
-| 2021-10-31 | C4 | +139% | yes |
-| 2016-10-31 | C8 | +104% | no |
-| 2023-10-31 | C8 | +100% | no |
-| 2023-10-31 | C2_2 | +96% | no |
-| 2019-10-31 | C8 | +86% | no |
-| 2022-09-30 | C8 | +86% | no |
+| 2022-01-31 | C_IC3g | +173% | no |
+| 2021-10-31 | C4g | +158% | no |
+| 2022-04-30 | C2g | +150% | no |
+| 2023-06-30 | C_IC2 | +134% | no |
+| 2020-03-31 | C_IC2 | +133% | no |
+| 2019-03-31 | C_IC1 | +125% | no |
+| 2024-07-31 | C_IC2 | +121% | no |
+| 2022-10-31 | C4g | +120% | no |
+| 2016-10-31 | C8 | +110% | no |
+| 2023-07-31 | C_IC1 | +106% | no |
 
 ## Gas Renewal Pressure (Dual-Fuel Portfolio)
 
@@ -353,24 +494,26 @@ Threshold for elevated risk: >20% company gas churn estimate.
 
 | Year | Renewals | Mean Est | Max Est | Elevated Risk |
 |------|----------|----------|---------|---------------|
-| 2016 | 1 | 11% | 11% | 0 |
-| 2017 | 4 | 20% | 31% | 2 ⚠ |
-| 2018 | 4 | 32% | 42% | 4 ⚠ |
-| 2019 | 4 | 0% | 0% | 0 |
-| 2020 | 3 | 5% | 14% | 0 |
-| 2021 | 2 | 72% | 95% | 2 ⚠ |
-| 2022 | 1 | 95% | 95% | 1 ⚠ |
-| 2023 | 1 | 0% | 0% | 0 |
+| 2016 | 1 | 12% | 12% | 0 |
+| 2017 | 4 | 14% | 24% | 1 ⚠ |
+| 2018 | 4 | 20% | 22% | 2 ⚠ |
+| 2019 | 4 | 1% | 4% | 0 |
+| 2020 | 5 | 3% | 13% | 0 |
+| 2021 | 3 | 73% | 95% | 3 ⚠ |
+| 2022 | 3 | 79% | 95% | 3 ⚠ |
+| 2023 | 3 | 2% | 7% | 0 |
+| 2024 | 2 | 2% | 4% | 0 |
+| 2025 | 1 | 9% | 9% | 0 |
 
 **Top elevated gas renewals (>20% estimated churn):**
 
 | Date | Customer | Old Rate (£/MWh) | New Rate (£/MWh) | Est Churn |
 |------|----------|-----------------|-----------------|-----------|
-| 2021-09-30 | C4g | £9.1 | £58.8 (+548%) | 95% |
-| 2022-09-30 | C4g | £58.8 | £174.4 (+197%) | 95% |
-| 2021-03-31 | C2g | £14.2 | £25.1 (+76%) | 49% |
-| 2018-04-01 | C2g | £16.7 | £26.7 (+59%) | 42% |
-| 2018-10-01 | C4g | £21.5 | £30.8 (+43%) | 32% |
+| 2021-09-30 | C4g | £15.5 | £64.0 (+313%) | 95% |
+| 2021-12-31 | C_IC3g | £15.9 | £93.2 (+486%) | 95% |
+| 2022-03-31 | C2g | £35.0 | £123.1 (+251%) | 95% |
+| 2022-09-30 | C4g | £64.0 | £158.9 (+148%) | 92% |
+| 2022-12-31 | C_IC3g | £93.2 | £162.4 (+74%) | 49% |
 
 ## Retention Strategy P&L
 
@@ -378,60 +521,54 @@ Threshold for elevated risk: >20% company gas churn estimate.
 
 | Metric | Value |
 |--------|-------|
-| Offers made | 23 |
-| Retained | 19 (83%) |
-| Churned despite offer | 4 |
-| Total offer cost (foregone margin) | £64,954.86 |
-| Margin saved (retained customers' terms) | £217,755.72 |
-| Wasted offer cost (churned anyway) | £15979.33 |
-| **Net ROI of retention strategy** | **£152,800.85** |
-| Acquisition cost avoided (retained customers) | £4,850.00 |
-| **Full economic ROI (margin + acq savings)** | **£157,650.85** |
+| Offers made | 19 |
+| Retained | 18 (95%) |
+| Churned despite offer | 1 |
+| Total offer cost (foregone margin) | £366,983.66 |
+| Margin saved (retained customers' terms) | £2,120,691.28 |
+| Wasted offer cost (churned anyway) | £257.94 |
+| **Net ROI of retention strategy** | **£1,753,707.63** |
+| Acquisition cost avoided (retained customers) | £2,950.00 |
+| **Full economic ROI (margin + acq savings)** | **£1,756,657.63** |
 
-Missed opportunities (churns with no offer): **3** (£1,419.55 expected margin lost without offer)
-- **Below threshold** (churn estimate under 30%): 3 (£1,419.55 margin lost) — Phase 13c bill burden signal reduces this for high-spend SME customers
+Missed opportunities (churns with no offer): **4** (£4,403.41 expected margin lost without offer)
+- **Below threshold** (churn estimate under 30%): 4 (£4,403.41 margin lost) — Phase 13c bill burden signal reduces this for high-spend SME customers
 
 ### Year-by-Year Breakdown
 
 | Year | Offers | Retained | Offer Cost | Margin Saved | Net ROI | Missed Margin |
 |------|--------|----------|-----------|-------------|---------|---------------|
-| 2016 | 1 | 1 | £52.36 | £656.81 | £604.45 | £0.00 |
-| 2017 | 4 | 4 | £186.74 | £1983.78 | £1797.04 | £0.00 |
-| 2018 | 2 | 2 | £16490.83 | £81421.88 | £64931.04 | £0.00 |
-| 2019 | 1 | 1 | £17358.30 | £61216.30 | £43858.00 | £0.00 |
-| 2020 | 2 | 1 | £28314.36 | £63755.95 | £35441.59 | £162.71 |
-| 2021 | 8 | 6 | £1245.36 | £3814.69 | £2569.33 | £0.00 |
-| 2022 | 4 | 3 | £1169.58 | £3778.83 | £2609.25 | £0.00 |
-| 2023 | 1 | 1 | £137.33 | £1127.48 | £990.16 | £0.00 |
-| 2024 | 0 | 0 | £0.00 | £0.00 | £0.00 | £1256.84 |
+| 2018 | 1 | 1 | £21970.79 | £153252.38 | £131281.59 | £0.00 |
+| 2019 | 2 | 2 | £41643.84 | £290854.59 | £249210.75 | £0.00 |
+| 2020 | 4 | 4 | £33174.81 | £268047.40 | £234872.59 | £372.36 |
+| 2021 | 5 | 4 | £93650.80 | £347355.43 | £253704.63 | £397.74 |
+| 2022 | 2 | 2 | £74519.94 | £259739.12 | £185219.18 | £0.00 |
+| 2023 | 3 | 3 | £59556.08 | £401812.98 | £342256.91 | £0.00 |
+| 2024 | 2 | 2 | £42467.40 | £399629.37 | £357161.98 | £3633.30 |
 
 ### Per-Offer Detail
 
 | Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Acq Saved | Net | Outcome |
 |------|----------|-----------|---------|-----------|----------------|-----------|-----|---------|
-| 2016-12-31 | C5 | 0.31 | 3% | £52.36 | £656.81 | £400 | £604.45 | retained |
-| 2017-04-01 | C2 | 0.66 | 5% | £37.55 | £364.36 | £150 | £326.81 | retained |
-| 2017-04-01 | C6 | 0.63 | 5% | £97.30 | £910.11 | £400 | £812.82 | retained |
-| 2017-04-01 | C8 | 0.42 | 3% | £33.45 | £462.01 | £150 | £428.55 | retained |
-| 2017-10-01 | C4 | 0.31 | 3% | £18.44 | £247.30 | £150 | £228.86 | retained |
-| 2018-01-01 | C_IC1 | 0.95 | 8% | £16448.30 | £80776.33 | £400 | £64328.04 | retained |
-| 2018-07-01 | C9 | 0.35 | 3% | £42.53 | £645.54 | £150 | £603.01 | retained |
-| 2019-01-01 | C_IC1 | 0.95 | 8% | £17358.30 | £61216.30 | £400 | £43858.00 | retained |
-| 2020-01-01 | C_IC1 | 0.95 | 8% | £13084.30 | £63755.95 | £400 | £50671.65 | retained |
-| 2020-12-31 | C_IC1 | 0.95 | 8% | £15230.07 | £70556.17 | £400 | £-15230.07 | churned_despite_offer |
-| 2021-03-31 | C2 | 0.41 | 3% | £24.73 | £337.68 | £150 | £312.95 | retained |
-| 2021-03-31 | C6 | 0.44 | 3% | £69.85 | £1029.45 | £400 | £959.60 | retained |
-| 2021-03-31 | C8 | 0.32 | 3% | £39.31 | £494.42 | £150 | £455.11 | retained |
-| 2021-06-30 | C9 | 0.52 | 5% | £79.31 | £591.82 | £150 | £512.51 | retained |
-| 2021-09-30 | C4 | 0.95 | 8% | £168.12 | £497.74 | £150 | £329.62 | retained |
-| 2021-12-30 | C1 | 0.95 | 8% | £90.37 | £273.86 | £150 | £-90.37 | churned_despite_offer |
-| 2021-12-30 | C5 | 0.95 | 8% | £461.89 | £1513.94 | £400 | £-461.89 | churned_despite_offer |
-| 2021-12-30 | C7 | 0.95 | 8% | £311.79 | £863.58 | £150 | £551.79 | retained |
-| 2022-03-31 | C2 | 0.95 | 8% | £197.00 | £744.64 | £150 | £-197.00 | churned_despite_offer |
-| 2022-03-31 | C6 | 0.95 | 8% | £517.10 | £1970.30 | £400 | £1453.20 | retained |
-| 2022-03-31 | C8 | 0.95 | 8% | £319.79 | £1216.26 | £150 | £896.47 | retained |
-| 2022-06-30 | C9 | 0.52 | 5% | £135.69 | £592.28 | £150 | £456.59 | retained |
-| 2023-03-31 | C6 | 0.31 | 3% | £137.33 | £1127.48 | £400 | £990.16 | retained |
+| 2018-01-31 | C_IC1 | 0.94 | 8% | £21970.79 | £153252.38 | £150 | £131281.59 | retained |
+| 2019-01-31 | C_IC2 | 0.95 | 8% | £14272.18 | £99910.94 | £150 | £85638.75 | retained |
+| 2019-03-02 | C_IC1 | 0.95 | 8% | £27371.66 | £190943.66 | £150 | £163572.00 | retained |
+| 2020-01-01 | C_IC3 | 0.36 | 3% | £5979.22 | £14486.70 | £150 | £8507.47 | retained |
+| 2020-03-01 | C_IC2 | 0.34 | 3% | £4125.10 | £91029.58 | £150 | £86904.47 | retained |
+| 2020-03-31 | C_IC1 | 0.56 | 5% | £11378.09 | £133712.83 | £150 | £122334.74 | retained |
+| 2020-12-31 | C_IC3 | 0.66 | 5% | £11692.39 | £28818.30 | £150 | £17125.91 | retained |
+| 2021-03-31 | C_IC2 | 0.65 | 5% | £8072.74 | £88600.36 | £150 | £80527.62 | retained |
+| 2021-04-30 | C_IC1 | 0.95 | 8% | £23981.36 | £164528.02 | £150 | £140546.66 | retained |
+| 2021-12-30 | C5 | 0.53 | 5% | £257.94 | £2020.03 | £400 | £-257.94 | churned_despite_offer |
+| 2021-12-30 | C7 | 0.44 | 3% | £104.62 | £1251.93 | £150 | £1147.31 | retained |
+| 2021-12-31 | C_IC3 | 0.95 | 8% | £61234.15 | £92975.12 | £150 | £31740.97 | retained |
+| 2022-04-30 | C_IC2 | 0.95 | 8% | £24859.40 | £70420.09 | £150 | £45560.69 | retained |
+| 2022-05-30 | C_IC1 | 0.95 | 8% | £49660.54 | £189319.03 | £150 | £139658.49 | retained |
+| 2023-03-31 | C6 | 0.37 | 3% | £205.96 | £2683.97 | £400 | £2478.00 | retained |
+| 2023-05-30 | C_IC2 | 0.67 | 5% | £13199.86 | £132016.54 | £150 | £118816.69 | retained |
+| 2023-06-29 | C_IC1 | 0.95 | 8% | £46150.26 | £267112.47 | £150 | £220962.22 | retained |
+| 2024-06-28 | C_IC2 | 0.50 | 5% | £10286.80 | £134487.47 | £150 | £124200.67 | retained |
+| 2024-07-28 | C_IC1 | 0.95 | 8% | £32180.60 | £265141.90 | £150 | £232961.30 | retained |
 
 ## Retention Durability
 
@@ -439,23 +576,20 @@ Post-retention survival: how long did retained customers stay before churning or
 
 | Customer | First retained | End of tenure | Post-retention months | Outcome |
 |----------|---------------|--------------|----------------------|---------|
-| C5 | 2016-12-31 | 2021-12-30 | 60 | churned |
-| C2 | 2017-04-01 | 2022-03-31 | 60 | churned |
-| C6 | 2017-04-01 | 2024-03-30 | 84 | churned |
-| C8 | 2017-04-01 | (window end) | 105 | active |
-| C4 | 2017-10-01 | 2024-09-29 | 84 | churned |
-| C_IC1 | 2018-01-01 | 2020-12-31 | 36 | churned |
-| C9 | 2018-07-01 | (window end) | 90 | active |
-| C1 | 2021-12-30 | 2021-12-30 | 0 | churned |
+| C_IC1 | 2018-01-31 | (window end) | 95 | active |
+| C_IC2 | 2019-01-31 | (window end) | 83 | active |
+| C_IC3 | 2020-01-01 | (window end) | 72 | active |
+| C5 | 2021-12-30 | 2021-12-30 | 0 | churned |
 | C7 | 2021-12-30 | (window end) | 48 | active |
+| C6 | 2023-03-31 | 2024-03-30 | 12 | churned |
 
-**Eventually churned (6/9)**: C5, C2, C6, C4, C_IC1, C1 — avg 54 months post-retention before final churn.
-**Still active (3/9)**: C8, C9, C7 — survived to simulation end.
+**Eventually churned (2/6)**: C5, C6 — avg 6 months post-retention before final churn.
+**Still active (4/6)**: C_IC1, C_IC2, C_IC3, C7 — survived to simulation end.
 
 ## Enterprise Value Analysis (Phase 22a)
 
-**Full-history EV:** £309,282.17 — anchored to all 10 years including crisis losses
-**3yr-trailing EV:** £-323.16 — based on last 3 years (2023, 2024, 2025), reflecting current earning power
+**Full-history EV:** £6,533,907.87 — anchored to all 10 years including crisis losses
+**3yr-trailing EV:** £953,603.09 — based on last 3 years (2023, 2024, 2025), reflecting current earning power
 
 The gap between the two is the weight of unrecovered crisis losses in the CLV anchor.
 When trailing EV > full-history EV, the company's recent performance is better than its
@@ -465,314 +599,327 @@ cumulative history suggests — a recovery signal.
 
 | Year | Net margin |
 |------|----------:|
-| 2016 | £-672.38 |
-| 2017 | £-52,166.53 |
-| 2018 | £33,951.53 |
-| 2019 | £18,530.53 |
-| 2020 | £5,405.56 |
-| 2021 | £-1,534.25 |
-| 2022 | £-1,473.03 |
-| 2023 | £-869.33 | ← trailing
-| 2024 | £955.12 | ← trailing
-| 2025 | £-187.54 | ← trailing
+| 2016 | £663.62 |
+| 2017 | £46,916.87 |
+| 2018 | £80,747.13 |
+| 2019 | £310,400.45 |
+| 2020 | £-4,039.03 |
+| 2021 | £-122,961.27 |
+| 2022 | £-48,367.53 |
+| 2023 | £723,135.57 | ← trailing
+| 2024 | £171,790.95 | ← trailing
+| 2025 | £-9,272.25 | ← trailing
 
 **CLV by billing account:**
 
 | Account | Full-history CLV | 3yr-trailing CLV |
 |---------|----------------:|----------------:|
-| C1 | £349.49 | — |
-| C2 | £92.72 | — |
-| C2_2 | — | £277.55 |
-| C3 | £432.88 | — |
-| C4 | £436.93 | £-787.45 |
-| C5 | £1,714.10 | — |
-| C6 | £1,237.03 | £117.01 |
-| C7 | £1,379.32 | £-511.88 |
-| C8 | £1,689.50 | £486.25 |
-| C9 | £1,847.05 | £95.36 |
-| C_IC1 | £299,679.59 | — |
+| C1 | £2,797.23 | — |
+| C2 | £9,257.75 | £2,965.53 |
+| C3 | £3,058.86 | — |
+| C4 | £4,181.95 | £-371.33 |
+| C5 | £9,342.30 | — |
+| C6 | £14,791.58 | £3,021.10 |
+| C7 | £8,772.26 | £1,123.28 |
+| C8 | £10,034.74 | £2,766.72 |
+| C9 | £10,970.48 | £2,493.94 |
+| C_IC1 | £1,824,424.69 | £552,227.09 |
+| C_IC2 | £1,028,818.94 | £244,230.61 |
+| C_IC3 | £3,578,256.38 | £707,560.72 |
+| C_IC4 | £29,200.70 | £-562,414.58 |
 
 ## CLV Trajectory
 
 Point-in-Time Customer Lifetime Value per billing account at each year-end.
 CLV is computed from churn renewal history and net margins accumulated up to that date only (Point-in-Time Blindfold). '—' = no renewal points yet.
 
-| Year | C1 | C2 | C2_2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C_IC1 |
-|------|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|
-| 2016 | £5.47 | — | — | — | — | £156.86 | — | £356.03 | — | — | — |
-| 2017 | £-54.61 | £407.20 | — | £109.81 | £967.90 | £-18.73 | £1,140.90 | £111.10 | £1,003.76 | £690.16 | — |
-| 2018 | £182.02 | £-84.80 | — | £261.74 | £1,038.95 | £727.51 | £336.41 | £618.90 | £577.67 | £948.50 | £301,583.53 |
-| 2019 | £327.90 | £76.07 | — | £346.33 | £1,059.10 | £1,015.62 | £561.42 | £867.33 | £677.42 | £1,323.40 | £297,869.50 |
-| 2020 | £304.60 | £211.86 | — | £257.98 | £883.65 | £1,194.23 | £708.23 | £945.18 | £864.75 | £1,277.44 | £229,563.64 |
-| 2021 | £253.52 | £118.97 | — | £279.44 | £909.97 | £1,031.96 | £519.90 | £995.82 | £638.86 | £1,020.64 | £219,289.02 |
-| 2022 | £223.82 | £63.10 | £-333.55 | £288.92 | £560.69 | £1,154.14 | £303.87 | £901.60 | £581.22 | £1,193.72 | £202,146.10 |
-| 2023 | £237.78 | £60.28 | £-35.99 | £262.71 | £147.41 | £1,004.26 | £683.91 | £524.66 | £937.98 | £1,171.40 | £188,171.60 |
-| 2024 | £201.59 | £54.84 | £249.98 | £229.21 | £260.96 | £1,023.76 | £803.86 | £760.83 | £1,098.72 | £1,223.24 | £178,372.75 |
-| 2025 | £215.28 | £53.27 | £234.68 | £229.13 | £258.85 | £947.01 | £717.88 | £858.48 | £1,042.34 | £1,143.16 | £172,922.14 |
+| Year | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C_IC1 | C_IC2 | C_IC3 | C_IC4 |
+|------|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|
+| 2016 | £1,776.99 | — | — | — | £5,214.13 | — | £4,338.78 | — | — | — | — | — | — |
+| 2017 | £2,017.63 | £6,078.77 | £2,745.55 | £3,662.17 | £7,099.52 | £10,732.23 | £4,683.04 | £8,157.89 | £6,073.63 | — | — | — | — |
+| 2018 | £2,137.07 | £5,510.91 | £2,667.33 | £3,240.02 | £5,932.97 | £8,513.17 | £4,270.70 | £6,064.24 | £5,975.57 | £1,571,475.87 | — | — | — |
+| 2019 | £1,840.77 | £5,055.52 | £2,658.96 | £3,145.06 | £7,296.86 | £8,089.54 | £5,234.16 | £5,606.17 | £6,712.65 | £1,174,946.92 | £962,776.40 | — | — |
+| 2020 | £2,054.41 | £5,111.67 | £2,193.29 | £2,858.13 | £7,142.49 | £8,755.78 | £4,744.83 | £6,032.49 | £5,906.82 | £874,542.22 | £526,508.19 | £1,907,014.82 | £24,743.29 |
+| 2021 | £1,939.86 | £5,536.23 | £2,170.85 | £2,665.83 | £6,270.68 | £8,528.58 | £5,173.45 | £5,151.58 | £5,000.64 | £824,449.03 | £469,331.38 | £1,516,385.23 | £20,928.04 |
+| 2022 | £1,805.20 | £5,061.19 | £2,100.61 | £2,453.46 | £6,417.18 | £9,032.49 | £4,265.24 | £6,529.34 | £4,558.64 | £843,776.34 | £464,627.08 | £1,339,821.91 | £16,779.09 |
+| 2023 | £1,724.57 | £5,455.04 | £2,177.19 | £2,186.84 | £5,794.84 | £9,800.87 | £5,044.38 | £6,500.94 | £6,326.50 | £955,854.46 | £478,520.73 | £1,736,784.55 | £17,589.86 |
+| 2024 | £1,778.45 | £6,232.46 | £2,205.97 | £2,621.37 | £6,115.73 | £9,025.53 | £5,147.06 | £7,274.83 | £6,388.28 | £1,062,604.15 | £517,115.10 | £2,010,047.26 | £17,930.06 |
+| 2025 | £1,782.84 | £5,670.06 | £2,057.00 | £2,467.82 | £5,742.16 | £8,935.91 | £5,594.22 | £6,940.45 | £6,536.53 | £1,260,060.63 | £578,379.83 | £2,018,494.80 | £16,805.04 |
 
 ## Cost to Serve & Pricing Actions
 
-Whole-run totals (cumulative across all settlement periods). Average: £982.33, range £24.32–£8,055.78.
+Whole-run totals (cumulative across all settlement periods). Average: £5,006.30, range £36.42–£26,343.73.
 
-- C1: cost to serve £370.95, net margin after CTS £126.03
-- C1g: cost to serve £37.18, net margin after CTS £208.04
-- C2: cost to serve £407.39, net margin after CTS £59.99 — MARGIN_SQUEEZE (below 2% benchmark)
-- C2_2: cost to serve £321.73, net margin after CTS £614.77
-- C2g: cost to serve £42.95, net margin after CTS £29.30 — MARGIN_SQUEEZE (below 2% benchmark)
-- C3: cost to serve £248.72, net margin after CTS £142.91
-- C3g: cost to serve £24.32, net margin after CTS £114.73
-- C4: cost to serve £607.59, net margin after CTS £703.53
-- C4g: cost to serve £169.85, net margin after CTS £-153.31 — **NET_NEGATIVE** (tariff uplift needed: +1.9%)
-- C5: cost to serve £818.75, net margin after CTS £1,501.87
-- C6: cost to serve £1,173.96, net margin after CTS £1,552.64
-- C7: cost to serve £868.62, net margin after CTS £2,017.76
-- C8: cost to serve £830.04, net margin after CTS £2,389.31
-- C9: cost to serve £757.09, net margin after CTS £2,652.44
-- C_IC1: cost to serve £8,055.78, net margin after CTS £197,264.32
+- C1: cost to serve £390.58, net margin after CTS £1,438.55
+- C1g: cost to serve £48.87, net margin after CTS £894.95
+- C2: cost to serve £788.44, net margin after CTS £7,698.11
+- C2g: cost to serve £166.64, net margin after CTS £3,608.55
+- C3: cost to serve £264.10, net margin after CTS £1,139.02
+- C3g: cost to serve £36.42, net margin after CTS £762.02
+- C4: cost to serve £597.43, net margin after CTS £3,065.89
+- C4g: cost to serve £185.84, net margin after CTS £1,618.93
+- C5: cost to serve £869.59, net margin after CTS £8,235.12
+- C6: cost to serve £1,267.35, net margin after CTS £16,245.56
+- C7: cost to serve £987.18, net margin after CTS £11,364.77
+- C8: cost to serve £986.49, net margin after CTS £13,771.05
+- C9: cost to serve £919.91, net margin after CTS £12,813.07
+- C_IC1: cost to serve £21,055.02, net margin after CTS £2,062,287.25
+- C_IC2: cost to serve £11,624.94, net margin after CTS £937,132.41
+- C_IC3: cost to serve £26,343.73, net margin after CTS £1,733,526.23
+- C_IC3g: cost to serve £12,408.64, net margin after CTS £1,050,127.85
+- C_IC4: cost to serve £11,172.13, net margin after CTS £21,351.71 — MARGIN_SQUEEZE (below 2% benchmark)
 
 **Activity-Based Pricing Actions**
 
-The following 1 customer(s) are loss-making after cost-to-serve and require immediate tariff review:
-  - C4g: net margin after CTS £-153.31 on revenue £8,034.33 — raise tariff by ≥1.9% to break even
-The following 2 customer(s) are profitable but below the 2% net-margin benchmark (MARGIN_SQUEEZE): C2, C2g
+The following 1 customer(s) are profitable but below the 2% net-margin benchmark (MARGIN_SQUEEZE): C_IC4
 
-## Tariff Repricing Impact Assessment
-
-Estimated churn risk at the break-even tariff level for each loss-making customer.
-Active = current opportunity; churned = retrospective counterfactual.
-
-| Customer | Fuel | Seg | Status | Uplift needed | Total loss | Churn @ B/E | Decision |
-|----------|------|-----|--------|--------------|-----------|-------------|----------|
-| C4g | gas | resi | active | +1.9% | £153.31 | 4% | Raise — churn risk manageable |
-
-**Repriceable now (1)**: C4g — break-even churn risk below 40%. Uplift advised.
 
 ## Margin Recovery Surcharges (Phase 16c + 19a)
 
-Company applied 37 recovery surcharge(s) at renewal based on prior-term losses (4 gas). Avg surcharge: 11.6%.
+Company applied 27 recovery surcharge(s) at renewal based on prior-term losses (3 gas). Avg surcharge: 13.0%.
 
 | Customer | Commodity | Term start | Prior margin | Prior revenue | Surcharge | Rate before | Rate after |
 |----------|-----------|------------|-------------|--------------|-----------|------------|-----------|
-| C1 | electricity | 2016-12-31 | £-30.74 | £250.29 | +7.3% | £77.06/MWh | £91.87/MWh |
-| C5 | electricity | 2016-12-31 | £-181.59 | £1,235.71 | +9.7% | £77.06/MWh | £94.02/MWh |
-| C7 | electricity | 2016-12-31 | £-85.94 | £904.73 | +4.5% | £77.06/MWh | £89.63/MWh |
-| C2 | electricity | 2017-04-01 | £-100.01 | £405.78 | +19.6% | £76.79/MWh | £105.31/MWh |
-| C6 | electricity | 2017-04-01 | £-351.72 | £1,086.93 | +20.0% | £76.79/MWh | £101.86/MWh |
-| C8 | electricity | 2017-04-01 | £-130.81 | £753.39 | +12.4% | £76.79/MWh | £92.57/MWh |
-| C3 | electricity | 2017-07-01 | £-39.80 | £257.84 | +10.4% | £68.26/MWh | £78.17/MWh |
-| C9 | electricity | 2017-07-01 | £-60.30 | £758.21 | +3.0% | £68.26/MWh | £71.10/MWh |
-| C4 | electricity | 2017-10-01 | £-70.60 | £436.00 | +11.2% | £74.02/MWh | £86.16/MWh |
-| C1 | electricity | 2017-12-31 | £-62.87 | £345.32 | +13.2% | £85.23/MWh | £101.02/MWh |
-| C5 | electricity | 2017-12-31 | £-274.07 | £1,704.47 | +11.1% | £85.23/MWh | £98.98/MWh |
-| C7 | electricity | 2017-12-31 | £-214.68 | £1,171.56 | +13.3% | £85.23/MWh | £98.30/MWh |
-| C_IC1 | electricity | 2018-01-01 | £-51,699.07 | £159,800.80 | +20.0% | £87.27/MWh | £103.26/MWh |
-| C2g | gas | 2018-04-01 | £-44.36 | £251.00 | +12.7% | £23.77/MWh | £26.69/MWh |
-| C3 | electricity | 2018-07-01 | £-42.44 | £350.49 | +7.1% | £87.62/MWh | £107.83/MWh |
-| C9 | electricity | 2018-07-01 | £-136.95 | £1,003.35 | +8.7% | £87.62/MWh | £109.39/MWh |
-| C2 | electricity | 2019-04-01 | £-307.24 | £646.92 | +20.0% | £87.45/MWh | £105.87/MWh |
-| C6 | electricity | 2019-04-01 | £-666.86 | £1,793.11 | +20.0% | £87.45/MWh | £105.79/MWh |
-| C8 | electricity | 2019-04-01 | £-234.84 | £1,273.13 | +13.4% | £87.45/MWh | £99.69/MWh |
-| C3 | electricity | 2020-06-30 | £-24.36 | £344.40 | +2.1% | £59.11/MWh | £65.63/MWh |
-| C2 | electricity | 2021-03-31 | £-83.59 | £489.98 | +12.1% | £95.98/MWh | £115.26/MWh |
-| C6 | electricity | 2021-03-31 | £-263.34 | £1,338.87 | +14.7% | £95.98/MWh | £121.97/MWh |
-| C4g | gas | 2021-09-30 | £-82.13 | £199.63 | +20.0% | £45.77/MWh | £58.76/MWh |
-| C1 | electricity | 2021-12-30 | £-30.93 | £364.37 | +3.5% | £259.05/MWh | £300.63/MWh |
-| C5 | electricity | 2021-12-30 | £-201.63 | £1,790.04 | +6.3% | £259.05/MWh | £308.69/MWh |
-| C7 | electricity | 2021-12-30 | £-75.47 | £1,320.11 | +0.7% | £259.05/MWh | £292.57/MWh |
-| C2 | electricity | 2022-03-31 | £-239.23 | £822.01 | +20.0% | £265.84/MWh | £345.27/MWh |
-| C6 | electricity | 2022-03-31 | £-743.91 | £2,275.35 | +20.0% | £265.84/MWh | £346.48/MWh |
-| C8 | electricity | 2022-03-31 | £-418.49 | £1,386.21 | +20.0% | £265.84/MWh | £346.20/MWh |
-| C9 | electricity | 2022-06-30 | £-125.27 | £1,501.61 | +3.3% | £210.77/MWh | £237.27/MWh |
-| C4g | gas | 2022-09-30 | £-81.16 | £1,292.63 | +1.3% | £155.84/MWh | £174.40/MWh |
-| C2_2 | electricity | 2023-03-31 | £-896.84 | £2,699.32 | +20.0% | £228.40/MWh | £298.25/MWh |
-| C6 | electricity | 2023-03-31 | £-488.47 | £6,393.11 | +2.6% | £228.40/MWh | £248.09/MWh |
-| C4 | electricity | 2023-09-30 | £-538.66 | £2,298.71 | +18.4% | £124.97/MWh | £143.61/MWh |
-| C4g | gas | 2023-09-30 | £-395.92 | £3,836.83 | +5.3% | £35.28/MWh | £39.62/MWh |
-| C7 | electricity | 2023-12-30 | £-786.24 | £3,350.75 | +18.5% | £147.77/MWh | £175.75/MWh |
-| C2_2 | electricity | 2025-03-30 | £-92.10 | £1,385.30 | +1.6% | £168.56/MWh | £179.24/MWh |
+| C_IC1 | electricity | 2018-01-31 | £-5,694.56 | £10,901.23 | +20.0% | £102.83/MWh | £137.30/MWh |
+| C1 | electricity | 2018-12-31 | £-25.77 | £473.83 | +0.4% | £152.73/MWh | £155.85/MWh |
+| C5 | electricity | 2018-12-31 | £-163.02 | £2,355.95 | +1.9% | £152.73/MWh | £157.76/MWh |
+| C_IC2 | electricity | 2019-01-31 | £-3,300.82 | £6,376.41 | +20.0% | £128.64/MWh | £177.52/MWh |
+| C_IC1 | electricity | 2019-03-02 | £-7,218.30 | £10,243.03 | +20.0% | £126.12/MWh | £171.11/MWh |
+| C_IC2 | electricity | 2020-03-01 | £-3,904.90 | £3,444.18 | +20.0% | £99.07/MWh | £136.71/MWh |
+| C_IC1 | electricity | 2020-03-31 | £-8,041.06 | £6,326.95 | +20.0% | £99.78/MWh | £113.75/MWh |
+| C_IC2 | electricity | 2021-03-31 | £-3,729.85 | £5,726.15 | +20.0% | £125.43/MWh | £160.62/MWh |
+| C_IC1 | electricity | 2021-04-30 | £-7,006.00 | £14,511.74 | +20.0% | £119.64/MWh | £149.89/MWh |
+| C4 | electricity | 2021-09-30 | £-115.57 | £630.56 | +13.3% | £187.73/MWh | £224.74/MWh |
+| C4g | gas | 2021-09-30 | £-119.43 | £341.04 | +20.0% | £47.60/MWh | £63.98/MWh |
+| C1 | electricity | 2021-12-30 | £-49.77 | £522.12 | +4.5% | £258.06/MWh | £273.66/MWh |
+| C5 | electricity | 2021-12-30 | £-280.00 | £2,704.13 | +5.3% | £258.06/MWh | £275.81/MWh |
+| C_IC3 | electricity | 2021-12-31 | £-36,960.01 | £449,948.08 | +3.2% | £172.01/MWh | £191.16/MWh |
+| C_IC3g | gas | 2021-12-31 | £-16,771.17 | £151,810.99 | +6.0% | £81.39/MWh | £93.15/MWh |
+| C_IC2 | electricity | 2022-04-30 | £-1,292.09 | £17,661.75 | +2.3% | £288.61/MWh | £309.09/MWh |
+| C_IC1 | electricity | 2022-05-30 | £-4,406.97 | £22,384.38 | +14.7% | £265.62/MWh | £311.26/MWh |
+| C9 | electricity | 2022-06-30 | £-196.25 | £2,024.29 | +4.7% | £308.80/MWh | £321.33/MWh |
+| C4 | electricity | 2022-09-30 | £-185.45 | £1,254.06 | +9.8% | £335.38/MWh | £352.66/MWh |
+| C7 | electricity | 2022-12-30 | £-719.77 | £3,282.12 | +16.9% | £346.58/MWh | £385.41/MWh |
+| C_IC3 | electricity | 2022-12-31 | £-143,006.91 | £939,918.92 | +10.2% | £248.91/MWh | £264.86/MWh |
+| C_IC2 | electricity | 2023-05-30 | £-4,193.41 | £7,055.33 | +20.0% | £199.16/MWh | £262.62/MWh |
+| C_IC1 | electricity | 2023-06-29 | £-8,414.36 | £17,979.18 | +20.0% | £223.62/MWh | £288.44/MWh |
+| C4 | electricity | 2023-09-30 | £-280.68 | £1,967.81 | +9.3% | £222.86/MWh | £231.33/MWh |
+| C4g | gas | 2023-09-30 | £-419.43 | £3,494.81 | +7.0% | £54.57/MWh | £55.47/MWh |
+| C_IC2 | electricity | 2024-06-28 | £-5,916.03 | £7,659.10 | +20.0% | £147.78/MWh | £203.93/MWh |
+| C_IC1 | electricity | 2024-07-28 | £-10,612.90 | £14,454.77 | +20.0% | £145.53/MWh | £200.83/MWh |
 
 ## Portfolio Learning Premium (Phase 17a + 19a)
 
-Company applied portfolio premium adjustments at 91 renewal(s) (20 gas) based on recent portfolio-wide margin rates: 71 surcharge(s), 20 discount(s).
+Company applied portfolio premium adjustments at 116 renewal(s) (30 gas) based on recent portfolio-wide margin rates: 71 surcharge(s), 45 discount(s).
 
 | Customer | Commodity | Term start | Mean recent margin | Portfolio premium | Rate before | Rate after |
 |----------|-----------|------------|-------------------|-------------------|------------|-----------|
-| C1 | electricity | 2016-12-31 | -14.2% | +11.1% | £77.06/MWh | £85.63/MWh |
-| C1g | gas | 2016-12-31 | 15.2% | -3.6% | £18.35/MWh | £17.69/MWh |
-| C5 | electricity | 2016-12-31 | -14.4% | +11.2% | £77.06/MWh | £85.71/MWh |
-| C7 | electricity | 2016-12-31 | -14.6% | +11.3% | £77.06/MWh | £85.77/MWh |
-| C2 | electricity | 2017-04-01 | -21.2% | +14.6% | £76.79/MWh | £88.01/MWh |
-| C2g | gas | 2017-04-01 | 15.8% | -3.9% | £17.41/MWh | £16.73/MWh |
-| C6 | electricity | 2017-04-01 | -13.1% | +10.5% | £76.79/MWh | £84.88/MWh |
-| C8 | electricity | 2017-04-01 | -6.6% | +7.3% | £76.79/MWh | £82.39/MWh |
-| C3 | electricity | 2017-07-01 | 0.6% | +3.7% | £68.26/MWh | £70.78/MWh |
-| C3g | gas | 2017-07-01 | 10.9% | -1.4% | £16.93/MWh | £16.69/MWh |
-| C9 | electricity | 2017-07-01 | 5.7% | +1.2% | £68.26/MWh | £69.06/MWh |
-| C4 | electricity | 2017-10-01 | -1.4% | +4.7% | £74.02/MWh | £77.48/MWh |
-| C4g | gas | 2017-10-01 | 10.1% | -1.0% | £21.73/MWh | £21.51/MWh |
-| C1 | electricity | 2017-12-31 | -1.4% | +4.7% | £85.23/MWh | £89.23/MWh |
-| C1g | gas | 2017-12-31 | 8.3% | -0.1% | £25.19/MWh | £25.16/MWh |
-| C5 | electricity | 2017-12-31 | -1.1% | +4.5% | £85.23/MWh | £89.11/MWh |
-| C7 | electricity | 2017-12-31 | 4.4% | +1.8% | £85.23/MWh | £86.74/MWh |
-| C_IC1 | electricity | 2018-01-01 | 10.8% | -1.4% | £87.27/MWh | £86.05/MWh |
-| C2 | electricity | 2018-04-01 | 12.3% | -2.2% | £92.46/MWh | £90.46/MWh |
-| C2g | gas | 2018-04-01 | 8.7% | -0.4% | £23.77/MWh | £23.68/MWh |
-| C6 | electricity | 2018-04-01 | -2.5% | +5.2% | £92.46/MWh | £97.29/MWh |
-| C8 | electricity | 2018-04-01 | -14.3% | +11.1% | £92.46/MWh | £102.76/MWh |
-| C3 | electricity | 2018-07-01 | -21.8% | +14.9% | £87.62/MWh | £100.67/MWh |
-| C3g | gas | 2018-07-01 | 13.9% | -2.9% | £24.38/MWh | £23.66/MWh |
-| C9 | electricity | 2018-07-01 | -21.8% | +14.9% | £87.62/MWh | £100.68/MWh |
-| C4 | electricity | 2018-10-01 | -4.0% | +6.0% | £99.52/MWh | £105.52/MWh |
-| C4g | gas | 2018-10-01 | 13.1% | -2.6% | £31.63/MWh | £30.82/MWh |
-| C1 | electricity | 2018-12-31 | 6.5% | +0.7% | £105.79/MWh | £106.58/MWh |
-| C1g | gas | 2018-12-31 | 11.7% | -1.8% | £33.03/MWh | £32.42/MWh |
-| C5 | electricity | 2018-12-31 | 12.7% | -2.4% | £105.79/MWh | £103.30/MWh |
-| C7 | electricity | 2018-12-31 | 9.5% | -0.7% | £105.79/MWh | £105.01/MWh |
-| C_IC1 | electricity | 2019-01-01 | 5.5% | +1.3% | £106.39/MWh | £107.72/MWh |
-| C2 | electricity | 2019-04-01 | 6.2% | +0.9% | £87.45/MWh | £88.22/MWh |
-| C2g | gas | 2019-04-01 | 13.5% | -2.8% | £22.30/MWh | £21.68/MWh |
-| C6 | electricity | 2019-04-01 | 6.4% | +0.8% | £87.45/MWh | £88.16/MWh |
-| C8 | electricity | 2019-04-01 | 7.0% | +0.5% | £87.45/MWh | £87.88/MWh |
-| C3 | electricity | 2019-07-01 | 7.5% | +0.2% | £76.18/MWh | £76.37/MWh |
-| C3g | gas | 2019-07-01 | 14.3% | -3.1% | £16.65/MWh | £16.13/MWh |
-| C9 | electricity | 2019-07-01 | 3.7% | +2.1% | £76.18/MWh | £77.81/MWh |
-| C4 | electricity | 2019-10-01 | 2.8% | +2.6% | £76.50/MWh | £78.50/MWh |
-| C4g | gas | 2019-10-01 | 15.8% | -3.9% | £14.15/MWh | £13.59/MWh |
-| C1 | electricity | 2019-12-31 | 2.6% | +2.7% | £79.28/MWh | £81.41/MWh |
-| C1g | gas | 2019-12-31 | 19.1% | -5.0% | £16.63/MWh | £15.80/MWh |
-| C5 | electricity | 2019-12-31 | 0.8% | +3.6% | £79.28/MWh | £82.12/MWh |
-| C7 | electricity | 2019-12-31 | 3.2% | +2.4% | £79.28/MWh | £81.18/MWh |
-| C_IC1 | electricity | 2020-01-01 | 3.5% | +2.2% | £78.99/MWh | £80.76/MWh |
-| C2 | electricity | 2020-03-31 | 3.1% | +2.4% | £66.88/MWh | £68.51/MWh |
-| C2g | gas | 2020-03-31 | 16.8% | -4.4% | £14.87/MWh | £14.22/MWh |
-| C6 | electricity | 2020-03-31 | -1.7% | +4.9% | £66.88/MWh | £70.14/MWh |
-| C8 | electricity | 2020-03-31 | -7.3% | +7.6% | £66.88/MWh | £71.99/MWh |
-| C3 | electricity | 2020-06-30 | -9.6% | +8.8% | £59.11/MWh | £64.30/MWh |
-| C9 | electricity | 2020-06-30 | -9.6% | +8.8% | £59.11/MWh | £64.30/MWh |
-| C4 | electricity | 2020-09-30 | -10.4% | +9.2% | £76.20/MWh | £83.20/MWh |
-| C4g | gas | 2020-09-30 | 20.7% | -5.0% | £9.55/MWh | £9.07/MWh |
-| C1 | electricity | 2020-12-30 | -6.0% | +7.0% | £90.60/MWh | £96.97/MWh |
-| C1g | gas | 2020-12-30 | 6.3% | +0.9% | £18.42/MWh | £18.58/MWh |
-| C5 | electricity | 2020-12-30 | -3.3% | +5.6% | £90.60/MWh | £95.70/MWh |
-| C7 | electricity | 2020-12-30 | -4.9% | +6.4% | £90.60/MWh | £96.43/MWh |
-| C_IC1 | electricity | 2020-12-31 | -6.3% | +7.2% | £91.73/MWh | £98.30/MWh |
-| C2 | electricity | 2021-03-31 | -6.3% | +7.2% | £95.98/MWh | £102.85/MWh |
-| C2g | gas | 2021-03-31 | -2.7% | +5.3% | £23.81/MWh | £25.08/MWh |
-| C6 | electricity | 2021-03-31 | -13.6% | +10.8% | £95.98/MWh | £106.37/MWh |
-| C8 | electricity | 2021-03-31 | -19.7% | +13.8% | £95.98/MWh | £109.27/MWh |
-| C9 | electricity | 2021-06-30 | -24.4% | +15.0% | £105.48/MWh | £121.30/MWh |
-| C4 | electricity | 2021-09-30 | -25.1% | +15.0% | £255.49/MWh | £293.81/MWh |
-| C4g | gas | 2021-09-30 | -6.0% | +7.0% | £45.77/MWh | £48.96/MWh |
-| C1 | electricity | 2021-12-30 | -16.3% | +12.1% | £259.05/MWh | £290.49/MWh |
-| C5 | electricity | 2021-12-30 | -16.3% | +12.1% | £259.05/MWh | £290.49/MWh |
-| C7 | electricity | 2021-12-30 | -16.3% | +12.1% | £259.05/MWh | £290.49/MWh |
-| C2 | electricity | 2022-03-31 | -8.5% | +8.2% | £265.84/MWh | £287.73/MWh |
-| C6 | electricity | 2022-03-31 | -9.2% | +8.6% | £265.84/MWh | £288.74/MWh |
-| C8 | electricity | 2022-03-31 | -9.0% | +8.5% | £265.84/MWh | £288.50/MWh |
-| C9 | electricity | 2022-06-30 | -9.9% | +8.9% | £210.77/MWh | £229.60/MWh |
-| C4 | electricity | 2022-09-30 | -8.1% | +8.1% | £298.27/MWh | £322.32/MWh |
-| C4g | gas | 2022-09-30 | -13.0% | +10.5% | £155.84/MWh | £172.20/MWh |
-| C7 | electricity | 2022-12-30 | -5.7% | +6.8% | £245.49/MWh | £262.29/MWh |
-| C2_2 | electricity | 2023-03-31 | -9.6% | +8.8% | £228.40/MWh | £248.54/MWh |
-| C6 | electricity | 2023-03-31 | -3.6% | +5.8% | £228.40/MWh | £241.70/MWh |
-| C8 | electricity | 2023-03-31 | -3.6% | +5.8% | £228.40/MWh | £241.62/MWh |
-| C9 | electricity | 2023-06-30 | 6.2% | +0.9% | £156.02/MWh | £157.43/MWh |
-| C4 | electricity | 2023-09-30 | 13.9% | -3.0% | £124.97/MWh | £121.26/MWh |
-| C4g | gas | 2023-09-30 | -5.3% | +6.7% | £35.28/MWh | £37.62/MWh |
-| C7 | electricity | 2023-12-30 | 7.2% | +0.4% | £147.77/MWh | £148.36/MWh |
-| C2_2 | electricity | 2024-03-30 | 7.9% | +0.1% | £132.98/MWh | £133.05/MWh |
-| C6 | electricity | 2024-03-30 | 2.3% | +2.8% | £132.98/MWh | £136.75/MWh |
-| C8 | electricity | 2024-03-30 | 2.3% | +2.8% | £132.98/MWh | £136.75/MWh |
-| C9 | electricity | 2024-06-29 | 1.4% | +3.3% | £117.04/MWh | £120.90/MWh |
-| C4 | electricity | 2024-09-29 | -0.6% | +4.3% | £121.81/MWh | £127.05/MWh |
-| C7 | electricity | 2024-12-29 | -0.6% | +4.3% | £164.53/MWh | £171.61/MWh |
-| C2_2 | electricity | 2025-03-30 | -1.2% | +4.6% | £168.56/MWh | £176.34/MWh |
-| C8 | electricity | 2025-03-30 | -8.4% | +8.2% | £168.56/MWh | £182.37/MWh |
+| C1 | electricity | 2016-12-31 | 3.8% | +2.1% | £135.18/MWh | £138.03/MWh |
+| C1g | gas | 2016-12-31 | 14.9% | -3.5% | £27.40/MWh | £26.45/MWh |
+| C5 | electricity | 2016-12-31 | 3.1% | +2.5% | £135.18/MWh | £138.49/MWh |
+| C7 | electricity | 2016-12-31 | 5.3% | +1.3% | £135.18/MWh | £136.99/MWh |
+| C2 | electricity | 2017-04-01 | 12.8% | -2.4% | £133.08/MWh | £129.92/MWh |
+| C2g | gas | 2017-04-01 | 15.4% | -3.7% | £31.27/MWh | £30.12/MWh |
+| C6 | electricity | 2017-04-01 | 11.7% | -1.9% | £133.08/MWh | £130.61/MWh |
+| C8 | electricity | 2017-04-01 | 10.4% | -1.2% | £133.08/MWh | £131.45/MWh |
+| C3 | electricity | 2017-07-01 | 11.1% | -1.6% | £119.89/MWh | £118.03/MWh |
+| C3g | gas | 2017-07-01 | 12.6% | -2.3% | £27.98/MWh | £27.34/MWh |
+| C9 | electricity | 2017-07-01 | 6.7% | +0.7% | £119.89/MWh | £120.70/MWh |
+| C4 | electricity | 2017-10-01 | 7.7% | +0.1% | £116.00/MWh | £116.16/MWh |
+| C4g | gas | 2017-10-01 | 11.6% | -1.8% | £27.18/MWh | £26.69/MWh |
+| C1 | electricity | 2017-12-31 | 6.0% | +1.0% | £124.66/MWh | £125.88/MWh |
+| C1g | gas | 2017-12-31 | 9.2% | -0.6% | £34.54/MWh | £34.33/MWh |
+| C5 | electricity | 2017-12-31 | 0.8% | +3.6% | £124.66/MWh | £129.14/MWh |
+| C7 | electricity | 2017-12-31 | -1.3% | +4.7% | £124.66/MWh | £130.46/MWh |
+| C_IC1 | electricity | 2018-01-31 | -14.5% | +11.3% | £102.83/MWh | £114.42/MWh |
+| C2 | electricity | 2018-04-01 | -5.2% | +6.6% | £139.96/MWh | £149.22/MWh |
+| C2g | gas | 2018-04-01 | 10.3% | -1.1% | £38.10/MWh | £37.66/MWh |
+| C6 | electricity | 2018-04-01 | -5.1% | +6.5% | £139.96/MWh | £149.10/MWh |
+| C8 | electricity | 2018-04-01 | 7.3% | +0.3% | £139.96/MWh | £140.44/MWh |
+| C3 | electricity | 2018-07-01 | 8.4% | -0.2% | £139.77/MWh | £139.50/MWh |
+| C3g | gas | 2018-07-01 | 10.2% | -1.1% | £33.69/MWh | £33.32/MWh |
+| C9 | electricity | 2018-07-01 | 1.7% | +3.1% | £139.77/MWh | £144.17/MWh |
+| C4 | electricity | 2018-10-01 | 4.6% | +1.7% | £138.46/MWh | £140.81/MWh |
+| C4g | gas | 2018-10-01 | 10.0% | -1.0% | £34.20/MWh | £33.85/MWh |
+| C1 | electricity | 2018-12-31 | 4.8% | +1.6% | £152.73/MWh | £155.17/MWh |
+| C1g | gas | 2018-12-31 | 10.4% | -1.2% | £42.21/MWh | £41.71/MWh |
+| C5 | electricity | 2018-12-31 | 5.3% | +1.4% | £152.73/MWh | £154.79/MWh |
+| C7 | electricity | 2018-12-31 | 5.3% | +1.4% | £152.73/MWh | £154.82/MWh |
+| C_IC2 | electricity | 2019-01-31 | -26.5% | +15.0% | £128.64/MWh | £147.93/MWh |
+| C_IC1 | electricity | 2019-03-02 | -18.1% | +13.1% | £126.12/MWh | £142.59/MWh |
+| C2 | electricity | 2019-04-01 | 5.3% | +1.3% | £160.26/MWh | £162.39/MWh |
+| C2g | gas | 2019-04-01 | 15.6% | -3.8% | £38.81/MWh | £37.33/MWh |
+| C6 | electricity | 2019-04-01 | 7.4% | +0.3% | £160.26/MWh | £160.75/MWh |
+| C8 | electricity | 2019-04-01 | 27.8% | -5.0% | £160.26/MWh | £152.25/MWh |
+| C3 | electricity | 2019-07-01 | 21.9% | -5.0% | £136.52/MWh | £129.69/MWh |
+| C3g | gas | 2019-07-01 | 21.5% | -5.0% | £29.44/MWh | £27.96/MWh |
+| C9 | electricity | 2019-07-01 | 11.8% | -1.9% | £136.52/MWh | £133.89/MWh |
+| C4 | electricity | 2019-10-01 | 11.0% | -1.5% | £130.78/MWh | £128.80/MWh |
+| C4g | gas | 2019-10-01 | 27.7% | -5.0% | £24.19/MWh | £22.98/MWh |
+| C1 | electricity | 2019-12-31 | 9.6% | -0.8% | £132.50/MWh | £131.41/MWh |
+| C1g | gas | 2019-12-31 | 26.3% | -5.0% | £25.02/MWh | £23.77/MWh |
+| C5 | electricity | 2019-12-31 | 5.7% | +1.1% | £132.50/MWh | £133.99/MWh |
+| C7 | electricity | 2019-12-31 | 5.1% | +1.5% | £132.50/MWh | £134.45/MWh |
+| C_IC3 | electricity | 2020-01-01 | 3.7% | +2.1% | £48.73/MWh | £49.78/MWh |
+| C_IC3g | gas | 2020-01-01 | 23.2% | -5.0% | £15.06/MWh | £14.30/MWh |
+| C_IC2 | electricity | 2020-03-01 | -97.2% | +15.0% | £99.07/MWh | £113.93/MWh |
+| C2 | electricity | 2020-03-31 | -89.1% | +15.0% | £133.78/MWh | £153.85/MWh |
+| C2g | gas | 2020-03-31 | 17.6% | -4.8% | £25.80/MWh | £24.57/MWh |
+| C6 | electricity | 2020-03-31 | -45.7% | +15.0% | £133.78/MWh | £153.85/MWh |
+| C8 | electricity | 2020-03-31 | -13.9% | +10.9% | £133.78/MWh | £148.40/MWh |
+| C_IC1 | electricity | 2020-03-31 | 23.6% | -5.0% | £99.78/MWh | £94.79/MWh |
+| C3 | electricity | 2020-06-30 | 20.7% | -5.0% | £122.32/MWh | £116.20/MWh |
+| C9 | electricity | 2020-06-30 | 20.7% | -5.0% | £122.32/MWh | £116.20/MWh |
+| C4 | electricity | 2020-09-30 | 17.2% | -4.6% | £118.09/MWh | £112.67/MWh |
+| C4g | gas | 2020-09-30 | 17.8% | -4.9% | £16.30/MWh | £15.50/MWh |
+| C1 | electricity | 2020-12-30 | 9.1% | -0.6% | £139.74/MWh | £138.95/MWh |
+| C1g | gas | 2020-12-30 | 4.0% | +2.0% | £23.90/MWh | £24.38/MWh |
+| C5 | electricity | 2020-12-30 | 1.1% | +3.5% | £139.74/MWh | £144.58/MWh |
+| C7 | electricity | 2020-12-30 | -8.2% | +8.1% | £139.74/MWh | £151.06/MWh |
+| C_IC3 | electricity | 2020-12-31 | -8.9% | +8.5% | £53.68/MWh | £58.22/MWh |
+| C_IC3g | gas | 2020-12-31 | -4.1% | +6.1% | £14.98/MWh | £15.88/MWh |
+| C2 | electricity | 2021-03-31 | -29.5% | +15.0% | £162.43/MWh | £186.79/MWh |
+| C2g | gas | 2021-03-31 | -9.4% | +8.7% | £32.22/MWh | £35.03/MWh |
+| C6 | electricity | 2021-03-31 | -27.8% | +15.0% | £162.43/MWh | £186.79/MWh |
+| C8 | electricity | 2021-03-31 | -25.0% | +15.0% | £162.43/MWh | £186.79/MWh |
+| C_IC2 | electricity | 2021-03-31 | -5.4% | +6.7% | £125.43/MWh | £133.85/MWh |
+| C_IC1 | electricity | 2021-04-30 | -0.8% | +4.4% | £119.64/MWh | £124.91/MWh |
+| C9 | electricity | 2021-06-30 | 2.7% | +2.6% | £159.32/MWh | £163.52/MWh |
+| C4 | electricity | 2021-09-30 | -3.3% | +5.6% | £187.73/MWh | £198.31/MWh |
+| C4g | gas | 2021-09-30 | -16.0% | +12.0% | £47.60/MWh | £53.32/MWh |
+| C1 | electricity | 2021-12-30 | 5.1% | +1.4% | £258.06/MWh | £261.79/MWh |
+| C5 | electricity | 2021-12-30 | 5.1% | +1.4% | £258.06/MWh | £261.79/MWh |
+| C7 | electricity | 2021-12-30 | 5.1% | +1.4% | £258.06/MWh | £261.79/MWh |
+| C_IC3 | electricity | 2021-12-31 | -7.3% | +7.7% | £172.01/MWh | £185.21/MWh |
+| C_IC3g | gas | 2021-12-31 | -7.8% | +7.9% | £81.39/MWh | £87.84/MWh |
+| C2 | electricity | 2022-03-31 | -19.1% | +13.6% | £344.78/MWh | £391.49/MWh |
+| C2g | gas | 2022-03-31 | -3.0% | +5.5% | £116.62/MWh | £123.05/MWh |
+| C6 | electricity | 2022-03-31 | -12.2% | +10.1% | £344.78/MWh | £379.66/MWh |
+| C8 | electricity | 2022-03-31 | -4.9% | +6.4% | £344.78/MWh | £367.01/MWh |
+| C_IC2 | electricity | 2022-04-30 | -1.3% | +4.7% | £288.61/MWh | £302.09/MWh |
+| C_IC1 | electricity | 2022-05-30 | 3.6% | +2.2% | £265.62/MWh | £271.40/MWh |
+| C9 | electricity | 2022-06-30 | 9.2% | -0.6% | £308.80/MWh | £306.92/MWh |
+| C4 | electricity | 2022-09-30 | 16.4% | -4.2% | £335.38/MWh | £321.22/MWh |
+| C4g | gas | 2022-09-30 | 2.4% | +2.8% | £154.55/MWh | £158.85/MWh |
+| C7 | electricity | 2022-12-30 | 17.8% | -4.9% | £346.58/MWh | £329.61/MWh |
+| C_IC3 | electricity | 2022-12-31 | 14.9% | -3.5% | £248.91/MWh | £240.31/MWh |
+| C_IC3g | gas | 2022-12-31 | -1.0% | +4.5% | £155.47/MWh | £162.45/MWh |
+| C2 | electricity | 2023-03-31 | -13.1% | +10.5% | £355.13/MWh | £392.58/MWh |
+| C2g | gas | 2023-03-31 | 9.8% | -0.9% | £132.22/MWh | £131.03/MWh |
+| C6 | electricity | 2023-03-31 | -1.6% | +4.8% | £355.13/MWh | £372.09/MWh |
+| C8 | electricity | 2023-03-31 | 0.9% | +3.5% | £355.13/MWh | £367.65/MWh |
+| C_IC2 | electricity | 2023-05-30 | -11.8% | +9.9% | £199.16/MWh | £218.85/MWh |
+| C_IC1 | electricity | 2023-06-29 | -7.0% | +7.5% | £223.62/MWh | £240.36/MWh |
+| C9 | electricity | 2023-06-30 | -3.1% | +5.5% | £285.09/MWh | £300.91/MWh |
+| C4 | electricity | 2023-09-30 | 20.2% | -5.0% | £222.86/MWh | £211.72/MWh |
+| C4g | gas | 2023-09-30 | 23.4% | -5.0% | £54.57/MWh | £51.84/MWh |
+| C7 | electricity | 2023-12-30 | 34.4% | -5.0% | £230.30/MWh | £218.78/MWh |
+| C_IC3 | electricity | 2023-12-31 | 24.7% | -5.0% | £108.31/MWh | £102.90/MWh |
+| C_IC3g | gas | 2023-12-31 | 24.5% | -5.0% | £46.43/MWh | £44.11/MWh |
+| C2 | electricity | 2024-03-30 | -19.9% | +14.0% | £219.64/MWh | £250.31/MWh |
+| C2g | gas | 2024-03-30 | 31.1% | -5.0% | £61.85/MWh | £58.76/MWh |
+| C6 | electricity | 2024-03-30 | -18.0% | +13.0% | £219.64/MWh | £248.22/MWh |
+| C8 | electricity | 2024-03-30 | -18.0% | +13.0% | £219.64/MWh | £248.22/MWh |
+| C_IC2 | electricity | 2024-06-28 | -27.3% | +15.0% | £147.78/MWh | £169.95/MWh |
+| C9 | electricity | 2024-06-29 | -23.8% | +15.0% | £202.67/MWh | £233.08/MWh |
+| C_IC1 | electricity | 2024-07-28 | -25.1% | +15.0% | £145.53/MWh | £167.36/MWh |
+| C4 | electricity | 2024-09-29 | 1.4% | +3.3% | £208.53/MWh | £215.44/MWh |
+| C7 | electricity | 2024-12-29 | 1.4% | +3.3% | £226.90/MWh | £234.42/MWh |
+| C_IC3 | electricity | 2024-12-30 | 21.4% | -5.0% | £99.76/MWh | £94.77/MWh |
+| C_IC3g | gas | 2024-12-30 | 28.7% | -5.0% | £47.09/MWh | £44.74/MWh |
+| C2 | electricity | 2025-03-30 | -13.3% | +10.7% | £253.94/MWh | £281.02/MWh |
+| C2g | gas | 2025-03-30 | 17.3% | -4.7% | £67.68/MWh | £64.53/MWh |
+| C8 | electricity | 2025-03-30 | -17.0% | +12.5% | £253.94/MWh | £285.67/MWh |
 
 ## Churn Avoidability Analysis (Phase 17b)
 
-Total no-offer churns: **3** | Blind misses: **3** | Deliberate passes (uneconomical): **0**
+Total no-offer churns: **4** | Blind misses: **4** | Deliberate passes (uneconomical): **0**
 
 - Blind misses: company estimated churn < 30% → no offer made. Of these, 1 had SIM p ≥ 30% (detectable with a better model).
 - Deliberate passes: company estimated churn ≥ 30% but the retention offer was uneconomical (margin + acq cost < offer cost).
 
-**Estimated margin at stake** — blind: £1,419.55 | deliberate: £0.00 | total: £1,419.55
+**Estimated margin at stake** — blind: £4,403.41 | deliberate: £0.00 | total: £4,403.41
 
 | Customer | Date | Reason | Co. est | SIM p | Detectable? | Margin at stake |
 |----------|------|--------|---------|-------|-------------|----------------|
-| C3 | 2020-06-30 | Blind miss | 0.00 | 0.14 | No | £162.71 |
-| C6 | 2024-03-30 | Blind miss | 0.00 | 0.38 | Yes | £878.25 |
-| C4 | 2024-09-29 | Blind miss | 0.11 | 0.23 | No | £378.59 |
+| C3 | 2020-06-30 | Blind miss | 0.00 | 0.08 | No | £372.36 |
+| C1 | 2021-12-30 | Blind miss | 0.10 | 0.17 | No | £397.74 |
+| C6 | 2024-03-30 | Blind miss | 0.19 | 0.41 | Yes | £2,850.59 |
+| C4 | 2024-09-29 | Blind miss | 0.00 | 0.23 | No | £782.71 |
 
 ## Dual-Fuel Account P&L (Phase 17d)
 
-4 dual-fuel account pair(s): electricity leg + gas leg combined.
+5 dual-fuel account pair(s): electricity leg + gas leg combined.
 
 | Account | Elec net | Gas net | Combined net | Gas accretive? |
 |---------|----------|---------|-------------|---------------|
-| C1+C1g | £-47.23 | £235.68 | £188.45 | Yes |
-| C3+C3g | £-29.58 | £134.68 | £105.09 | Yes |
-| C4+C4g | £-354.85 | £-18.29 | £-373.14 | No |
-| C2+C2g | £-568.75 | £52.97 | £-515.78 | Yes |
+| C_IC3+C_IC3g | £106,086.89 | £490,506.91 | £596,593.80 | Yes |
+| C2+C2g | £2,295.35 | £2,135.03 | £4,430.39 | Yes |
+| C1+C1g | £68.28 | £225.56 | £293.84 | Yes |
+| C3+C3g | £36.58 | £240.18 | £276.76 | Yes |
+| C4+C4g | £-470.35 | £-210.05 | £-680.40 | No |
 
-Gas accretive in 3/4 dual-fuel accounts. Total gas net margin: £405.04.
+Gas accretive in 4/5 dual-fuel accounts. Total gas net margin: £492,897.63.
 
 ## Customer P&L Ranking (Phase 17c)
 
-Lifetime net margin: £1,939.69 across 15 billing accounts. Revenue: £871,270.14.
+Lifetime net margin: £1,149,014.52 across 18 billing accounts. Revenue: £13,895,045.21.
 
-| # | Customer | Revenue | Gross margin | Capital | Net margin | Net margin % |
-|---|----------|---------|-------------|---------|------------|-------------|
-| 1 | C_IC1 | £757,588.65 | £205,320.10 | £7,036.05 | £5,556.58 | 0.7% |
-| 2 | C9 | £13,268.65 | £3,409.53 | £144.47 | £250.13 | 1.9% |
-| 3 | C1g | £1,515.34 | £245.22 | £9.54 | £235.68 | 15.6% |
-| 4 | C3g | £986.94 | £139.05 | £4.38 | £134.68 | 13.6% |
-| 5 | C2g | £1,803.99 | £72.25 | £19.28 | £52.97 | 2.9% |
-| 6 | C8 | £16,230.16 | £3,219.35 | £315.43 | £-4.96 | -0.0% |
-| 7 | C4g | £8,034.33 | £16.55 | £34.84 | £-18.29 | -0.2% |
-| 8 | C3 | £1,438.29 | £391.63 | £7.60 | £-29.58 | -2.1% |
-| 9 | C1 | £2,051.13 | £496.98 | £18.97 | £-47.23 | -2.3% |
-| 10 | C2_2 | £7,311.61 | £936.50 | £87.06 | £-271.04 | -3.7% |
-| 11 | C4 | £8,384.90 | £1,311.12 | £146.36 | £-354.85 | -4.2% |
-| 12 | C5 | £9,889.93 | £2,320.62 | £169.36 | £-385.28 | -3.9% |
-| 13 | C2 | £3,873.01 | £467.39 | £30.80 | £-568.75 | -14.7% |
-| 14 | C7 | £17,474.47 | £2,886.39 | £309.03 | £-659.56 | -3.8% |
-| 15 | C6 | £21,418.74 | £2,726.61 | £906.79 | £-1,950.80 | -9.1% |
+| # | Customer | Tariff | Revenue | Gross margin | Capital | Net margin | Net margin % |
+|---|----------|--------|---------|-------------|---------|------------|-------------|
+| 1 | C_IC1 | fixed | £3,367,379.60 | £2,083,342.27 | £32,354.47 | £1,062,032.88 | 31.5% |
+| 2 | C_IC3g | pass_through | £2,468,313.97 | £1,062,536.49 | £14,381.28 | £490,506.91 | 19.9% |
+| 3 | C_IC2 | fixed | £1,581,352.58 | £948,757.35 | £15,155.36 | £478,734.66 | 30.3% |
+| 4 | C_IC3 | pass_through | £4,625,081.13 | £1,759,869.95 | £38,878.87 | £106,086.89 | 2.3% |
+| 5 | C8 | fixed | £24,053.08 | £14,757.55 | £240.80 | £4,693.73 | 19.5% |
+| 6 | C9 | fixed | £21,409.52 | £13,732.98 | £183.70 | £3,401.00 | 15.9% |
+| 7 | C6 | fixed | £30,757.49 | £17,512.91 | £339.64 | £3,105.75 | 10.1% |
+| 8 | C2 | fixed | £14,150.20 | £8,486.55 | £143.94 | £2,295.35 | 16.2% |
+| 9 | C2g | fixed | £7,805.59 | £3,775.19 | £71.43 | £2,135.03 | 27.4% |
+| 10 | C7 | fixed | £23,402.51 | £12,351.96 | £266.52 | £1,098.86 | 4.7% |
+| 11 | C3g | fixed | £1,592.00 | £798.45 | £9.77 | £240.18 | 15.1% |
+| 12 | C1g | fixed | £2,099.68 | £943.82 | £14.90 | £225.56 | 10.7% |
+| 13 | C1 | fixed | £3,032.41 | £1,829.13 | £21.57 | £68.28 | 2.3% |
+| 14 | C3 | fixed | £2,207.73 | £1,403.12 | £14.61 | £36.58 | 1.7% |
+| 15 | C5 | fixed | £14,974.53 | £9,104.71 | £108.40 | £-96.60 | -0.6% |
+| 16 | C4g | fixed | £8,833.68 | £1,804.78 | £42.31 | £-210.05 | -2.4% |
+| 17 | C4 | fixed | £7,877.08 | £3,663.32 | £90.65 | £-470.35 | -6.0% |
+| 18 | C_IC4 | flex | £1,690,722.42 | £32,523.85 | £0.00 | £-1,004,870.14 | -59.4% |
 
 ## Transaction Log
 
-Total events: 2,378,525
+Total events: 3,281,572
 
 | Event type | Count |
 |------------|-------|
-| acquisition_spend_event | 6 |
-| bad_debt_event | 1,165 |
-| billing_event | 1,165 |
-| capital_charge_event | 1,089,235 |
+| acquisition_spend_event | 5 |
+| bad_debt_event | 1,569 |
+| billing_event | 1,569 |
+| capital_charge_event | 1,570,697 |
 | fixed_cost_event | 114 |
-| non_commodity_cost_event | 1,165 |
-| payment_received_event | 1,165 |
-| settlement_event | 1,283,345 |
-| vat_remittance_event | 1,165 |
+| non_commodity_cost_event | 1,569 |
+| payment_received_event | 1,569 |
+| settlement_event | 1,702,911 |
+| vat_remittance_event | 1,569 |
 
 **Cash-flow waterfall (from ledger)**
 
 | Flow | Amount |
 |------|--------|
-| Customer bills (all-in) | £1,493,274.83 |
-|   Less: VAT remitted to HMRC | (£233,639.11) |
-| = Revenue (ex-VAT) | £1,259,635.72 |
-| Less: non-commodity pass-through | (£377,164.78) |
-| Wholesale cost (settlement events) | (£647,310.86) |
-| Gross margin | £235,160.09 |
-| Capital charges | (£9,239.95) |
-| Net margin | £225,920.14 |
+| Customer bills (all-in) | £18,829,740.53 |
+|   Less: VAT remitted to HMRC | (£905,150.01) |
+| = Revenue (ex-VAT) | £17,924,590.52 |
+| Less: non-commodity pass-through | (£4,015,486.66) |
+| Wholesale cost (settlement events) | (£7,917,850.85) |
+| Gross margin | £5,991,253.01 |
+| Capital charges | (£102,318.21) |
+| Net margin | £5,888,934.80 |
 
-_Cash reconciliation: of £1,493,274.83 billed, bad debt of £29,788.06 was written off, leaving £1,463,486.77 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £429,771.18._
+_Cash reconciliation: of £18,829,740.53 billed, bad debt of £376,569.18 was written off, leaving £18,453,171.34 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £6,417,515.62._
 
-| Acquisition spend | (£1,650.00) |
+| Acquisition spend | (£1,250.00) |
 | Fixed overhead | (£5,700.00) |
-| Operating net margin | £218,570.14 |
+| Operating net margin | £5,881,984.80 |
 
 ## Growth & Acquisition
 
@@ -782,11 +929,11 @@ _Cash reconciliation: of £1,493,274.83 billed, bad debt of £29,788.06 was writ
 
 | Year | Attempts | Wins | Win Rate | Spend |
 |------|----------|------|----------|-------|
-| 2020 | 2 | 0 | 0% | £550.00 |
+| 2020 | 1 | 0 | 0% | £150.00 |
 | 2021 | 2 | 0 | 0% | £550.00 |
 | 2024 | 2 | 0 | 0% | £550.00 |
 
-**Total:** 6 attempts, 0 wins (0% win rate), £1,650.00 total spend
+**Total:** 5 attempts, 0 wins (0% win rate), £1,250.00 total spend
 
 **Operating overhead**
 
@@ -804,101 +951,33 @@ _Cash reconciliation: of £1,493,274.83 billed, bad debt of £29,788.06 was writ
 | 2025 | (£300.00) |
 
 **Total fixed cost:** £5,700.00 over simulation window
-**Operating net margin** (energy margin less acquisition spend & fixed costs): £218,570.14
+**Operating net margin** (energy margin less acquisition spend & fixed costs): £5,881,984.80
 
 ## 2016
 
 **Trading & Risk**
 
-- Net margin: £-672.38 (gross £636.67, capital £193.74)
-  - Electricity: gross £549.85, capital £187.42, net £-752.87
-  - Gas: gross £86.81, capital £6.32, net £80.49
-- Treasury at year end: £462,826.29
+- Net margin: £663.62 (gross £5,789.96, capital £119.37)
+  - Electricity: gross £5,268.11, capital £113.95, net £502.97
+  - Gas: gross £521.85, capital £5.42, net £160.66
+- Treasury at year end: £2,466,991.33
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.85 (avg 0.90), C1g 0.85 (avg 0.85), C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C3 0.85 (avg 0.85), C3g 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 0.85 (avg 0.85), C5 0.85 (avg 0.90), C6 0.85 (avg 0.85), C7 0.85 (avg 0.90), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85)
-- Risk committee (Context Handshake) interventions: 81
-  - 2016-01-01: treasury £463,165.53, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-01-31: treasury £463,162.81, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-03-01: treasury £463,160.19, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-03-31: treasury £463,157.52, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-04-30: treasury £463,155.42, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-05-30: treasury £463,153.59, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-06-29: treasury £463,151.52, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-07-29: treasury £463,149.62, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-08-28: treasury £463,147.81, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-09-27: treasury £463,145.52, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-10-27: treasury £463,142.99, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-11-26: treasury £463,138.50, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-12-26: treasury £463,135.42, C1->0.95, VaR (current £66.93 / stressed £20.56) ratio 3.25
-  - 2016-01-18: treasury £463,153.39, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-02-17: treasury £463,135.79, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-03-18: treasury £463,117.14, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-04-17: treasury £463,103.22, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-05-17: treasury £463,090.29, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-06-16: treasury £463,080.10, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-07-16: treasury £463,070.55, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-08-15: treasury £463,061.55, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-09-14: treasury £463,051.08, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-10-14: treasury £463,038.63, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-11-13: treasury £463,017.27, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-12-13: treasury £462,993.76, C1->0.95, C5->0.95, VaR (current £664.48 / stressed £204.14) ratio 3.25
-  - 2016-01-13: treasury £462,980.19, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-02-12: treasury £462,975.90, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-03-13: treasury £462,969.69, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-04-12: treasury £462,965.41, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-05-12: treasury £462,958.51, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-06-11: treasury £462,952.05, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-07-11: treasury £462,943.80, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-08-10: treasury £462,936.32, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-09-09: treasury £462,928.37, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-10-09: treasury £462,919.78, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-11-08: treasury £462,911.15, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-12-08: treasury £462,900.01, C1->0.95, C5->0.95, C7->0.95, VaR (current £970.47 / stressed £298.15) ratio 3.25
-  - 2016-04-08: treasury £462,894.66, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-05-08: treasury £462,887.44, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-06-07: treasury £462,880.88, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-07-07: treasury £462,873.98, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-08-06: treasury £462,867.38, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-09-05: treasury £462,860.90, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-10-05: treasury £462,853.54, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-11-04: treasury £462,845.26, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-12-04: treasury £462,834.57, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-08-05: treasury £462,799.20, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2016-04-26: treasury £462,777.23, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2016-05-26: treasury £462,753.63, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2016-06-25: treasury £462,734.75, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2016-07-25: treasury £462,716.63, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2016-08-24: treasury £462,700.32, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2016-09-23: treasury £462,681.52, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2016-10-23: treasury £462,656.89, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2016-11-22: treasury £462,615.43, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2016-12-22: treasury £462,578.35, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2016-04-21: treasury £462,442.20, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2016-05-21: treasury £462,433.38, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2016-06-20: treasury £462,427.51, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2016-07-20: treasury £462,422.24, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2016-08-19: treasury £462,417.60, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2016-09-18: treasury £462,411.72, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2016-10-18: treasury £462,402.94, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2016-11-17: treasury £462,389.03, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2016-12-17: treasury £462,371.70, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2016-07-16: treasury £462,317.79, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2016-08-15: treasury £462,316.00, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2016-09-14: treasury £462,313.82, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2016-10-14: treasury £462,311.36, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2016-11-13: treasury £462,307.65, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2016-12-13: treasury £462,303.47, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2016-07-03: treasury £462,310.77, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2016-08-02: treasury £462,308.12, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2016-09-01: treasury £462,305.74, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2016-10-01: treasury £462,302.61, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2016-10-31: treasury £462,298.19, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2016-11-30: treasury £462,289.49, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2016-12-30: treasury £462,286.61, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2016-10-28: treasury £462,247.44, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2016-11-27: treasury £462,240.77, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2016-12-27: treasury £462,235.93, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.03
-- Worst single period: C8 on 2016-11-20 period 36, net margin £-0.53
+- Risk committee (Context Handshake) interventions: 13
+  - 2016-01-01: treasury £2,466,636.22, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-01-31: treasury £2,466,640.00, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-03-01: treasury £2,466,643.92, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-03-31: treasury £2,466,647.56, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-04-30: treasury £2,466,650.59, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-05-30: treasury £2,466,653.64, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-06-29: treasury £2,466,656.21, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-07-29: treasury £2,466,658.96, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-08-28: treasury £2,466,661.77, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-09-27: treasury £2,466,664.56, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-10-27: treasury £2,466,667.26, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-11-26: treasury £2,466,669.16, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-12-26: treasury £2,466,672.60, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.25
+- Worst single period: C8 on 2016-11-20 period 36, net margin £-0.50
 
 **Customer Book**
 
@@ -907,758 +986,696 @@ _Cash reconciliation: of £1,493,274.83 billed, bad debt of £29,788.06 was writ
 - New acquisitions this year: C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9
 - Losses (churn) during year: none
   - Renewals (retained): 3 accounts
-- Average CLV (Point-in-Time, year-end 2016): £172.79
-  - By billing account: C1 £5.47, C5 £156.86, C7 £356.03
-- Bill shock events (>=20%): 20 -- C5 2016-05-31 (27%); C5 2016-06-30 (20%); C5 2016-10-31 (41%); C5 2016-11-30 (43%); C7 2016-04-30 (21%); C7 2016-05-31 (37%); C7 2016-06-30 (30%); C7 2016-10-31 (79%); C7 2016-11-30 (52%); C6 2016-05-31 (25%); C6 2016-06-30 (23%); C6 2016-10-31 (40%); C6 2016-11-30 (45%); C8 2016-05-31 (40%); C8 2016-06-30 (41%); C8 2016-09-30 (23%); C8 2016-10-31 (104%); C8 2016-11-30 (69%); C9 2016-10-31 (77%); C9 2016-11-30 (59%)
+- Average CLV (Point-in-Time, year-end 2016): £3,776.63
+  - By billing account: C1 £1,776.99, C5 £5,214.13, C7 £4,338.78
+- Bill shock events (>=20%): 21 -- C5 2016-05-31 (28%); C5 2016-06-30 (21%); C5 2016-10-31 (43%); C5 2016-11-30 (45%); C7 2016-04-30 (22%); C7 2016-05-31 (38%); C7 2016-06-30 (31%); C7 2016-10-31 (83%); C7 2016-11-30 (54%); C6 2016-05-31 (26%); C6 2016-06-30 (23%); C6 2016-10-31 (42%); C6 2016-11-30 (47%); C8 2016-05-31 (41%); C8 2016-06-30 (43%); C8 2016-09-30 (25%); C8 2016-10-31 (110%); C8 2016-11-30 (72%); C9 2016-09-30 (20%); C9 2016-10-31 (80%); C9 2016-11-30 (61%)
 - Churn risk (accounts renewing in 2016): 2 at risk (≥20% churn prob): C5 29%, C7 29%
 
 **Pricing & Margin**
 
-- C1 (electricity): tariff £66.57-£91.87/MWh, net margin £-31.10 -- **net-negative**
-- C1g (gas): tariff £16.64-£17.69/MWh, net margin £29.08
-- C2 (electricity): tariff £56.89/MWh, net margin £-70.11 -- **net-negative**
-- C2g (gas): tariff £15.86/MWh, net margin £5.36
-- C3 (electricity): tariff £57.51/MWh, net margin £-17.19 -- **net-negative**
-- C3g (gas): tariff £14.02/MWh, net margin £17.77
-- C4 (electricity): tariff £61.12/MWh, net margin £-15.95 -- **net-negative**
-- C4g (gas): tariff £17.42/MWh, net margin £28.28
-- C5 (electricity): tariff £66.57-£94.02/MWh, net margin £-184.06 -- **net-negative**
-- C6 (electricity): tariff £56.89/MWh, net margin £-235.67 -- **net-negative**
-- C7 (electricity): tariff £52.30-£99.85/MWh, net margin £-88.61 -- **net-negative**
-- C8 (electricity): tariff £44.70-£85.34/MWh, net margin £-84.81 -- **net-negative**
-- C9 (electricity): tariff £45.19-£86.27/MWh, net margin £-25.36 -- **net-negative**
+- C1 (electricity): tariff £114.71-£138.03/MWh, net margin £36.92
+- C1g (gas): tariff £24.34-£26.45/MWh, net margin £25.18
+- C2 (electricity): tariff £113.91/MWh, net margin £48.20
+- C2g (gas): tariff £30.45/MWh, net margin £93.51
+- C3 (electricity): tariff £103.82/MWh, net margin £1.41
+- C3g (gas): tariff £25.09/MWh, net margin £27.05
+- C4 (electricity): tariff £102.93/MWh, net margin £-0.87 -- **net-negative**
+- C4g (gas): tariff £24.19/MWh, net margin £14.92
+- C5 (electricity): tariff £114.71-£138.49/MWh, net margin £73.66
+- C6 (electricity): tariff £113.91/MWh, net margin £0.23
+- C7 (electricity): tariff £90.13-£172.06/MWh, net margin £170.38
+- C8 (electricity): tariff £89.50-£170.87/MWh, net margin £132.38
+- C9 (electricity): tariff £81.57-£155.73/MWh, net margin £40.66
 
 **Portfolio Health**
 
-- Capital cost ratio: 30.4% of gross
+- Capital cost ratio: 2.1% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 108, average clarity 0.892, average bill shock 13.4%, bad debt provision £226.67, avg complaint probability 3.5%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Bills issued: 108, average clarity 0.890, average bill shock 14.0%, bad debt provision £319.28, avg complaint probability 3.6%
+- Solvency signal: £274,110/customer (9 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £-1,394.49 vs. naked (unhedged) net margin: £862.95
-- hedging cost £2,257.44 vs. a fully unhedged book (commodity-only: actual net £-1,394.49 vs. naked net £862.95)
-  - C1: actual £-93.62 vs. naked £148.85 -- hedging cost £242.47
-  - C1g: actual £65.00 vs. naked £59.59 -- hedging added £5.41
-  - C2: actual £-100.01 vs. naked £72.07 -- hedging cost £172.08
-  - C2g: actual £4.87 vs. naked £33.40 -- hedging cost £28.54
-  - C3: actual £-39.80 vs. naked £21.01 -- hedging cost £60.81
-  - C3g: actual £32.39 vs. naked £1.14 -- hedging added £31.25
-  - C4: actual £-70.60 vs. naked £71.91 -- hedging cost £142.50
-  - C4g: actual £106.39 vs. naked £54.72 -- hedging added £51.67
-  - C5: actual £-455.66 vs. naked £304.76 -- hedging cost £760.42
-  - C6: actual £-351.72 vs. naked £-357.75 -- hedging added £6.03
-  - C7: actual £-300.62 vs. naked £423.24 -- hedging cost £723.86
-  - C8: actual £-130.81 vs. naked £-1.30 -- hedging cost £129.51
-  - C9: actual £-60.30 vs. naked £31.31 -- hedging cost £91.61
+- Actual (hedged) net margin: £1,358.08 vs. naked (unhedged) net margin: £9,130.10
+- hedging cost £7,772.02 vs. a fully unhedged book (commodity-only: actual net £1,358.08 vs. naked net £9,130.10)
+  - C1: actual £94.84 vs. naked £532.56 -- hedging cost £437.72
+  - C1g: actual £58.00 vs. naked £260.42 -- hedging cost £202.43
+  - C2: actual £60.16 vs. naked £489.38 -- hedging cost £429.21
+  - C2g: actual £121.87 vs. naked £256.57 -- hedging cost £134.70
+  - C3: actual £-6.00 vs. naked £234.88 -- hedging cost £240.88
+  - C3g: actual £50.80 vs. naked £156.35 -- hedging cost £105.55
+  - C4: actual £-19.30 vs. naked £296.92 -- hedging cost £316.22
+  - C4g: actual £53.38 vs. naked £205.16 -- hedging cost £151.78
+  - C5: actual £264.17 vs. naked £2,513.14 -- hedging cost £2,248.97
+  - C6: actual £-11.39 vs. naked £868.36 -- hedging cost £879.75
+  - C7: actual £401.44 vs. naked £1,860.66 -- hedging cost £1,459.22
+  - C8: actual £209.52 vs. naked £789.69 -- hedging cost £580.17
+  - C9: actual £80.59 vs. naked £666.00 -- hedging cost £585.41
 
-**Year narrative:** 2016 produced a net loss of £-672.38 across 13 accounts. The risk committee intervened 81 time(s), raising hedge fractions in response to elevated VaR. 20 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2016 produced a net gain of £663.62 across 13 accounts. The risk committee intervened 13 time(s), raising hedge fractions in response to elevated VaR. 21 customer(s) experienced a bill shock of >=20%.
 
 ## 2017
 
 **Trading & Risk**
 
-- Net margin: £-52,166.53 (gross £-7,451.92, capital £5,445.64)
-  - Electricity: gross £-7,600.40, capital £5,435.68, net £-52,305.04
-  - Gas: gross £148.47, capital £9.96, net £138.51
-- Treasury at year end: £410,071.97
-- Hedge fraction at first renewal this year (avg across year's terms): C1 1.00 (avg 1.00), C1g 0.95 (avg 0.95), C2 0.95 (avg 0.95), C2g 0.85 (avg 0.85), C3 0.95 (avg 0.95), C3g 0.95 (avg 0.95), C4 0.95 (avg 0.95), C4g 0.95 (avg 0.95), C5 1.00 (avg 1.00), C6 0.95 (avg 0.95), C7 1.00 (avg 1.00), C8 0.95 (avg 0.95), C9 0.95 (avg 0.95), C_IC1 0.85 (avg 0.85)
-- Risk committee (Context Handshake) interventions: 87
-  - 2017-01-03: treasury £462,825.42, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2017-02-02: treasury £462,814.72, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2017-03-04: treasury £462,804.69, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,028.87 / stressed £322.47) ratio 3.19
-  - 2017-01-21: treasury £462,537.54, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2017-02-20: treasury £462,494.48, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2017-03-22: treasury £462,460.00, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,779.68 / stressed £635.16) ratio 2.80
-  - 2017-01-16: treasury £462,355.12, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2017-02-15: treasury £462,335.83, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2017-03-17: treasury £462,324.23, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,977.06 / stressed £717.36) ratio 2.76
-  - 2017-01-12: treasury £462,300.03, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2017-02-11: treasury £462,295.54, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2017-03-13: treasury £462,291.90, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2017-04-12: treasury £462,288.76, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2017-05-12: treasury £462,284.86, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2017-06-11: treasury £462,281.10, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,018.13 / stressed £736.64) ratio 2.74
-  - 2017-01-29: treasury £462,277.92, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2017-02-28: treasury £462,272.73, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2017-03-30: treasury £462,269.59, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2017-04-29: treasury £462,262.86, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2017-05-29: treasury £462,255.58, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2017-06-28: treasury £462,251.07, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,176.93 / stressed £811.14) ratio 2.68
-  - 2017-01-26: treasury £462,229.67, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2017-02-25: treasury £462,223.62, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2017-03-27: treasury £462,218.27, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2017-04-26: treasury £462,212.61, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2017-05-26: treasury £462,205.78, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2017-06-25: treasury £462,200.07, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2017-07-25: treasury £462,194.46, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2017-08-24: treasury £462,188.68, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2017-09-23: treasury £462,182.10, C1->0.95, C5->0.95, C7->0.95, VaR (current £2,252.15 / stressed £847.39) ratio 2.66
-  - 2017-01-15: treasury £462,283.92, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-02-14: treasury £462,278.45, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-03-16: treasury £462,273.25, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-04-15: treasury £462,268.47, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-05-15: treasury £462,263.51, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-06-14: treasury £462,259.02, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-07-14: treasury £462,254.57, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-08-13: treasury £462,250.18, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-09-12: treasury £462,245.58, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-10-12: treasury £462,240.43, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-11-11: treasury £462,234.81, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-12-11: treasury £462,228.31, C5->0.95, C7->0.95, VaR (current £2,210.07 / stressed £837.30) ratio 2.64
-  - 2017-12-02: treasury £416,525.27, C1->1.00, C2->0.95, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,882.82 / stressed £23,160.83) ratio 2.37
-  - 2017-04-01: treasury £410,072.15, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-05-01: treasury £410,081.21, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-05-31: treasury £410,089.68, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-06-30: treasury £410,098.29, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-07-30: treasury £410,106.82, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-08-29: treasury £410,115.29, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-09-28: treasury £410,124.10, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-10-28: treasury £410,133.16, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-11-27: treasury £410,143.38, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-12-27: treasury £410,153.29, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2017-04-18: treasury £410,147.30, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2017-05-18: treasury £410,163.05, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2017-06-17: treasury £410,173.71, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2017-07-17: treasury £410,183.21, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2017-08-16: treasury £410,192.71, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2017-09-15: treasury £410,203.48, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2017-10-15: treasury £410,215.22, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2017-11-14: treasury £410,233.37, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2017-12-14: treasury £410,257.17, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2017-04-13: treasury £410,337.03, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2017-05-13: treasury £410,348.97, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2017-06-12: treasury £410,352.16, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2017-07-12: treasury £410,354.53, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2017-08-11: treasury £410,356.63, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2017-09-10: treasury £410,358.11, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2017-10-10: treasury £410,364.90, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2017-11-09: treasury £410,376.13, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2017-12-09: treasury £410,391.99, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2017-07-08: treasury £410,461.46, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2017-08-07: treasury £410,459.24, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2017-09-06: treasury £410,456.95, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2017-10-06: treasury £410,454.32, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2017-11-05: treasury £410,451.59, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2017-12-05: treasury £410,448.30, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2017-11-19: treasury £410,432.42, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2017-07-26: treasury £410,445.36, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2017-08-25: treasury £410,438.97, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2017-09-24: treasury £410,431.74, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2017-10-24: treasury £410,423.94, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2017-11-23: treasury £410,413.16, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2017-12-23: treasury £410,400.14, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2017-10-21: treasury £410,318.35, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2017-11-20: treasury £410,325.82, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2017-12-20: treasury £410,333.09, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.54
-- Worst single period: C_IC1 on 2017-01-21 period 19, net margin £-27.85
+- Net margin: £46,916.87 (gross £140,005.64, capital £3,236.73)
+  - Electricity: gross £139,169.41, capital £3,226.30, net £46,714.78
+  - Gas: gross £836.23, capital £10.43, net £202.10
+- Treasury at year end: £2,513,798.52
+- Hedge fraction at first renewal this year (avg across year's terms): C1 0.85 (avg 0.85), C1g 0.85 (avg 0.85), C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C3 0.85 (avg 0.85), C3g 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 0.85 (avg 0.85), C5 0.85 (avg 0.85), C6 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85), C_IC1 0.85 (avg 0.85)
+- Risk committee (Context Handshake) interventions: 12
+  - 2017-01-25: treasury £2,466,994.22, C1->0.95, C5->0.95, C7->0.95, VaR (current £527.44 / stressed £166.68) ratio 3.16
+  - 2017-02-24: treasury £2,466,997.98, C1->0.95, C5->0.95, C7->0.95, VaR (current £527.44 / stressed £166.68) ratio 3.16
+  - 2017-03-26: treasury £2,467,002.46, C1->0.95, C5->0.95, C7->0.95, VaR (current £527.44 / stressed £166.68) ratio 3.16
+  - 2017-04-25: treasury £2,467,321.35, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,248.15 / stressed £468.50) ratio 2.66
+  - 2017-05-25: treasury £2,467,319.09, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,248.15 / stressed £468.50) ratio 2.66
+  - 2017-06-24: treasury £2,467,317.57, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,248.15 / stressed £468.50) ratio 2.66
+  - 2017-07-24: treasury £2,467,435.37, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,424.09 / stressed £551.72) ratio 2.58
+  - 2017-08-23: treasury £2,467,433.12, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,424.09 / stressed £551.72) ratio 2.58
+  - 2017-09-22: treasury £2,467,430.30, C1->0.95, C5->0.95, C7->0.95, VaR (current £1,424.09 / stressed £551.72) ratio 2.58
+  - 2017-10-22: treasury £2,467,529.17, C5->0.95, C7->0.95, VaR (current £1,403.73 / stressed £547.72) ratio 2.56
+  - 2017-11-21: treasury £2,467,534.15, C5->0.95, C7->0.95, VaR (current £1,403.73 / stressed £547.72) ratio 2.56
+  - 2017-12-21: treasury £2,467,539.11, C5->0.95, C7->0.95, VaR (current £1,403.73 / stressed £547.72) ratio 2.56
+- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.74
+- Worst single period: C_IC1 on 2017-05-17 period 32, net margin £-54.35
 
 **Customer Book**
 
 - Active accounts: 14 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9, C_IC1)
-  - Resi electricity: 7, SME electricity: 3, gas (dual-fuel): 4
+  - Resi electricity: 7, SME electricity: 2, gas (dual-fuel): 4
 - New acquisitions this year: C_IC1
 - Losses (churn) during year: none
   - Renewals (retained): 3 accounts
-- Average CLV (Point-in-Time, year-end 2017): £484.17
-  - By billing account: C1 £-54.61, C2 £407.20, C3 £109.81, C4 £967.90, C5 £-18.73, C6 £1,140.90, C7 £111.10, C8 £1,003.76, C9 £690.16
-- Bill shock events (>=20%): 33 -- C5 2017-01-31 (42%); C5 2017-02-28 (23%); C5 2017-06-30 (21%); C5 2017-11-30 (56%); C7 2017-01-31 (45%); C7 2017-02-28 (28%); C7 2017-05-31 (31%); C7 2017-06-30 (32%); C7 2017-09-30 (27%); C7 2017-10-31 (22%); C7 2017-11-30 (77%); C2 2017-04-30 (21%); C6 2017-04-30 (21%); C6 2017-05-31 (22%); C6 2017-11-30 (50%); C8 2017-05-31 (40%); C8 2017-06-30 (36%); C8 2017-09-30 (46%); C8 2017-10-31 (22%); C8 2017-11-30 (84%); C8 2017-12-31 (22%); C9 2017-05-31 (33%); C9 2017-06-30 (26%); C9 2017-09-30 (30%); C9 2017-10-31 (22%); C9 2017-11-30 (70%); C4 2017-10-31 (26%); C_IC1 2017-02-28 (29%); C_IC1 2017-05-31 (33%); C_IC1 2017-06-30 (34%); C_IC1 2017-09-30 (30%); C_IC1 2017-10-31 (24%); C_IC1 2017-11-30 (82%)
-- Churn risk (accounts renewing in 2017): 6 at risk (≥20% churn prob): C1 20%, C5 32%, C6 35%, C7 35%, C8 35%, C9 32%
+- Average CLV (Point-in-Time, year-end 2017): £5,694.49
+  - By billing account: C1 £2,017.63, C2 £6,078.77, C3 £2,745.55, C4 £3,662.17, C5 £7,099.52, C6 £10,732.23, C7 £4,683.04, C8 £8,157.89, C9 £6,073.63
+- Bill shock events (>=20%): 26 -- C5 2017-01-31 (32%); C5 2017-02-28 (23%); C5 2017-05-31 (20%); C5 2017-06-30 (22%); C5 2017-11-30 (58%); C7 2017-01-31 (39%); C7 2017-02-28 (29%); C7 2017-05-31 (32%); C7 2017-06-30 (33%); C7 2017-09-30 (28%); C7 2017-10-31 (23%); C7 2017-11-30 (79%); C6 2017-05-31 (22%); C6 2017-06-30 (20%); C6 2017-11-30 (51%); C8 2017-05-31 (40%); C8 2017-06-30 (37%); C8 2017-09-30 (48%); C8 2017-10-31 (23%); C8 2017-11-30 (85%); C8 2017-12-31 (22%); C9 2017-05-31 (33%); C9 2017-06-30 (27%); C9 2017-09-30 (31%); C9 2017-10-31 (22%); C9 2017-11-30 (72%)
+- Churn risk (accounts renewing in 2017): 5 at risk (≥20% churn prob): C5 32%, C6 35%, C7 38%, C8 35%, C9 32%
 
 **Pricing & Margin**
 
-- C1 (electricity): tariff £91.87-£101.02/MWh, net margin £-62.31 -- **net-negative**
-- C1g (gas): tariff £17.69-£25.16/MWh, net margin £36.00
-- C2 (electricity): tariff £56.89-£105.31/MWh, net margin £52.90
-- C2g (gas): tariff £15.86-£16.73/MWh, net margin £-31.75 -- **net-negative**
-- C3 (electricity): tariff £57.51-£78.17/MWh, net margin £-39.36 -- **net-negative**
-- C3g (gas): tariff £14.02-£16.69/MWh, net margin £30.95
-- C4 (electricity): tariff £61.12-£86.16/MWh, net margin £-32.44 -- **net-negative**
-- C4g (gas): tariff £17.42-£21.51/MWh, net margin £103.31
-- C5 (electricity): tariff £94.02-£98.98/MWh, net margin £-271.07 -- **net-negative**
-- C6 (electricity): tariff £56.89-£101.86/MWh, net margin £18.34
-- C7 (electricity): tariff £70.43-£134.45/MWh, net margin £-212.31 -- **net-negative**
-- C8 (electricity): tariff £44.70-£138.86/MWh, net margin £29.87
-- C9 (electricity): tariff £45.19-£106.64/MWh, net margin £-89.60 -- **net-negative**
-- C_IC1 (electricity): tariff £61.54-£117.48/MWh, net margin £-51,699.07 -- **net-negative**
+- C1 (electricity): tariff £125.88-£138.03/MWh, net margin £57.64
+- C1g (gas): tariff £26.45-£34.33/MWh, net margin £32.76
+- C2 (electricity): tariff £113.91-£129.92/MWh, net margin £62.20
+- C2g (gas): tariff £30.12-£30.45/MWh, net margin £83.76
+- C3 (electricity): tariff £103.82-£118.03/MWh, net margin £1.27
+- C3g (gas): tariff £25.09-£27.34/MWh, net margin £45.03
+- C4 (electricity): tariff £102.93-£116.16/MWh, net margin £-20.58 -- **net-negative**
+- C4g (gas): tariff £24.19-£26.69/MWh, net margin £40.56
+- C5 (electricity): tariff £129.14-£138.49/MWh, net margin £189.10
+- C6 (electricity): tariff £113.91-£130.61/MWh, net margin £35.91
+- C7 (electricity): tariff £102.50-£205.48/MWh, net margin £229.26
+- C8 (electricity): tariff £89.50-£197.18/MWh, net margin £231.64
+- C9 (electricity): tariff £81.57-£181.05/MWh, net margin £124.09
+- C_IC1 (electricity): tariff £82.61-£157.70/MWh, net margin £45,804.23
 
 **Portfolio Health**
 
-- Capital cost ratio: -73.1% of gross
-- Treasury drawdown events (>=10% threshold): 1 -- £462,826.27 -> £410,071.97 (11.4%)
-- Bills issued: 168, average clarity 0.886, average bill shock 12.8%, bad debt provision £6,216.53, avg complaint probability 3.7%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Capital cost ratio: 2.3% of gross
+- Treasury drawdown events (>=10% threshold): none
+- Bills issued: 168, average clarity 0.884, average bill shock 11.4%, bad debt provision £7,751.89, avg complaint probability 3.5%
+- Solvency signal: £251,380/customer (10 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £-50,865.76 vs. naked (unhedged) net margin: £29,005.98
-- hedging cost £79,871.74 vs. a fully unhedged book (commodity-only: actual net £-50,865.76 vs. naked net £29,005.98)
-  - C1: actual £44.23 vs. naked £128.87 -- hedging cost £84.64
-  - C1g: actual £56.29 vs. naked £27.00 -- hedging added £29.29
-  - C2: actual £108.40 vs. naked £369.55 -- hedging cost £261.15
-  - C2g: actual £-44.36 vs. naked £-22.00 -- hedging cost £22.37
-  - C3: actual £-42.44 vs. naked £77.75 -- hedging cost £120.19
-  - C3g: actual £31.08 vs. naked £-36.08 -- hedging added £67.15
-  - C4: actual £59.61 vs. naked £181.17 -- hedging cost £121.56
-  - C4g: actual £97.32 vs. naked £2.41 -- hedging added £94.92
-  - C5: actual £182.03 vs. naked £474.98 -- hedging cost £292.95
-  - C6: actual £194.98 vs. naked £350.94 -- hedging cost £155.95
-  - C7: actual £152.07 vs. naked £416.53 -- hedging cost £264.47
-  - C8: actual £131.04 vs. naked £412.01 -- hedging cost £280.97
-  - C9: actual £-136.95 vs. naked £119.81 -- hedging cost £256.76
-  - C_IC1: actual £-51,699.07 vs. naked £26,503.03 -- hedging cost £78,202.10
+- Actual (hedged) net margin: £46,391.08 vs. naked (unhedged) net margin: £126,468.33
+- hedging cost £80,077.25 vs. a fully unhedged book (commodity-only: actual net £46,391.08 vs. naked net £126,468.33)
+  - C1: actual £-25.77 vs. naked £218.79 -- hedging cost £244.55
+  - C1g: actual £60.20 vs. naked £138.42 -- hedging cost £78.21
+  - C2: actual £65.07 vs. naked £525.22 -- hedging cost £460.15
+  - C2g: actual £70.65 vs. naked £184.80 -- hedging cost £114.15
+  - C3: actual £8.07 vs. naked £260.89 -- hedging cost £252.82
+  - C3g: actual £39.28 vs. naked £113.37 -- hedging cost £74.08
+  - C4: actual £-27.31 vs. naked £309.06 -- hedging cost £336.36
+  - C4g: actual £3.71 vs. naked £118.14 -- hedging cost £114.43
+  - C5: actual £-163.02 vs. naked £1,100.80 -- hedging cost £1,263.82
+  - C6: actual £64.23 vs. naked £1,313.74 -- hedging cost £1,249.51
+  - C7: actual £22.19 vs. naked £855.24 -- hedging cost £833.05
+  - C8: actual £276.25 vs. naked £981.38 -- hedging cost £705.13
+  - C9: actual £193.30 vs. naked £878.55 -- hedging cost £685.25
+  - C_IC1: actual £45,804.23 vs. naked £119,469.95 -- hedging cost £73,665.72
 
-**Year narrative:** 2017 produced a net loss of £-52,166.53 across 14 accounts. The risk committee intervened 87 time(s), raising hedge fractions in response to elevated VaR. 33 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2017 produced a net gain of £46,916.87 across 14 accounts. The risk committee intervened 12 time(s), raising hedge fractions in response to elevated VaR. 26 customer(s) experienced a bill shock of >=20%.
 
 ## 2018
 
 **Trading & Risk**
 
-- Net margin: £33,951.53 (gross £85,265.72, capital £778.15)
-  - Electricity: gross £85,078.98, capital £770.99, net £33,771.96
-  - Gas: gross £186.74, capital £7.16, net £179.58
-- Treasury at year end: £444,836.43
-- Hedge fraction at first renewal this year (avg across year's terms): C1 0.90 (avg 0.90), C1g 1.00 (avg 1.00), C2 1.00 (avg 1.00), C2g 0.85 (avg 0.85), C3 1.00 (avg 1.00), C3g 1.00 (avg 1.00), C4 1.00 (avg 1.00), C4g 1.00 (avg 1.00), C5 0.90 (avg 0.90), C6 1.00 (avg 1.00), C7 0.90 (avg 0.90), C8 1.00 (avg 1.00), C9 1.00 (avg 1.00), C_IC1 0.95 (avg 0.95)
-- Risk committee (Context Handshake) interventions: 68
-  - 2018-01-26: treasury £410,162.27, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2018-02-25: treasury £410,171.16, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2018-03-27: treasury £410,179.27, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->0.95, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,847.02 / stressed £23,146.66) ratio 2.37
-  - 2018-01-13: treasury £410,279.62, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2018-02-12: treasury £410,300.66, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2018-03-14: treasury £410,319.95, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->0.95, C9->0.95, C_IC1->0.95, VaR (current £54,386.64 / stressed £22,964.53) ratio 2.37
-  - 2018-01-08: treasury £410,411.79, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2018-02-07: treasury £410,432.01, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2018-03-09: treasury £410,452.43, C1->1.00, C2->1.00, C3->0.95, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,265.62 / stressed £22,916.65) ratio 2.37
-  - 2018-01-04: treasury £410,444.77, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2018-02-03: treasury £410,440.61, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2018-03-05: treasury £410,436.08, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2018-04-04: treasury £410,432.03, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2018-05-04: treasury £410,427.54, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2018-06-03: treasury £410,423.32, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->0.95, C_IC1->0.95, VaR (current £54,244.68 / stressed £22,906.10) ratio 2.37
-  - 2018-01-22: treasury £410,383.78, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2018-02-21: treasury £410,370.22, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2018-03-23: treasury £410,353.07, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2018-04-22: treasury £410,337.21, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2018-05-22: treasury £410,325.02, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2018-06-21: treasury £410,316.69, C1->1.00, C2->1.00, C3->1.00, C4->0.95, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,163.75 / stressed £22,865.31) ratio 2.37
-  - 2018-01-19: treasury £410,339.77, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2018-02-18: treasury £410,346.03, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2018-03-20: treasury £410,351.61, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2018-04-19: treasury £410,355.87, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2018-05-19: treasury £410,359.39, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2018-06-18: treasury £410,362.56, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2018-07-18: treasury £410,365.65, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2018-08-17: treasury £410,368.74, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2018-09-16: treasury £410,371.86, C1->1.00, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,115.13 / stressed £22,841.41) ratio 2.37
-  - 2018-01-07: treasury £410,472.04, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-02-06: treasury £410,477.22, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-03-08: treasury £410,482.41, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-04-07: treasury £410,486.85, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-05-07: treasury £410,489.91, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-06-06: treasury £410,492.70, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-07-06: treasury £410,495.46, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-08-05: treasury £410,498.27, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-09-04: treasury £410,501.02, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-10-04: treasury £410,504.15, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-11-03: treasury £410,507.45, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-12-03: treasury £410,511.37, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-05-20: treasury £410,536.84, C2->1.00, C3->1.00, C4->1.00, C5->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £54,090.28 / stressed £22,830.93) ratio 2.37
-  - 2018-01-25: treasury £410,592.77, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-02-24: treasury £410,620.51, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-03-26: treasury £410,647.84, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-04-25: treasury £410,662.35, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-05-25: treasury £410,673.40, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-06-24: treasury £410,681.15, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-07-24: treasury £410,688.72, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-08-23: treasury £410,696.17, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-09-22: treasury £410,704.48, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-10-22: treasury £410,715.04, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-11-21: treasury £410,730.50, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-12-21: treasury £410,747.79, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,868.47 / stressed £22,737.38) ratio 2.37
-  - 2018-01-20: treasury £410,772.71, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-02-19: treasury £410,801.18, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-03-21: treasury £410,834.91, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-04-20: treasury £410,851.06, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-05-20: treasury £410,858.48, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-06-19: treasury £410,858.59, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-07-19: treasury £410,858.32, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-08-18: treasury £410,857.87, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-09-17: treasury £410,858.11, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-10-17: treasury £410,861.90, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-11-16: treasury £410,876.24, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-12-16: treasury £410,895.63, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->0.95, VaR (current £53,754.88 / stressed £22,689.48) ratio 2.37
-  - 2018-01-16: treasury £413,856.04, C2->1.00, C3->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, VaR (current £8,035.39 / stressed £5,575.39) ratio 1.44
-- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.36
-- Worst single period: C_IC1 on 2018-03-01 period 43, net margin £-16.31
+- Net margin: £80,747.13 (gross £242,918.38, capital £2,984.09)
+  - Electricity: gross £242,118.15, capital £2,969.29, net £80,571.15
+  - Gas: gross £800.24, capital £14.80, net £175.98
+- Treasury at year end: £2,508,403.94
+- Hedge fraction at first renewal this year (avg across year's terms): C1 0.85 (avg 0.85), C1g 0.85 (avg 0.85), C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C3 0.85 (avg 0.85), C3g 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 0.85 (avg 0.85), C5 0.85 (avg 0.85), C6 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85), C_IC1 0.85 (avg 0.85), C_IC2 0.85 (avg 0.85)
+- Risk committee (Context Handshake) interventions: 0
+- VaR ratio (current vs stressed floor): no risk committee wake-up this year
+- Worst single period: C_IC1 on 2018-03-01 period 27, net margin £-36.25
 
 **Customer Book**
 
-- Active accounts: 14 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9, C_IC1)
-  - Resi electricity: 7, SME electricity: 3, gas (dual-fuel): 4
-- New acquisitions this year: none
+- Active accounts: 15 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9, C_IC1, C_IC2)
+  - Resi electricity: 7, SME electricity: 2, gas (dual-fuel): 4
+- New acquisitions this year: C_IC2
 - Losses (churn) during year: none
-  - Renewals (retained): 3 accounts
-- Average CLV (Point-in-Time, year-end 2018): £30,619.04
-  - By billing account: C1 £182.02, C2 £-84.80, C3 £261.74, C4 £1,038.95, C5 £727.51, C6 £336.41, C7 £618.90, C8 £577.67, C9 £948.50, C_IC1 £301,583.53
-- Bill shock events (>=20%): 41 -- C1g 2018-01-31 (20%); C5 2018-04-30 (32%); C5 2018-06-30 (21%); C5 2018-10-31 (32%); C5 2018-11-30 (27%); C7 2018-04-30 (39%); C7 2018-05-31 (29%); C7 2018-06-30 (31%); C7 2018-09-30 (30%); C7 2018-10-31 (47%); C7 2018-11-30 (33%); C2 2018-04-30 (20%); C2g 2018-04-30 (26%); C6 2018-04-30 (31%); C6 2018-05-31 (21%); C6 2018-06-30 (22%); C6 2018-10-31 (30%); C6 2018-11-30 (21%); C8 2018-04-30 (34%); C8 2018-05-31 (38%); C8 2018-06-30 (43%); C8 2018-08-31 (25%); C8 2018-09-30 (53%); C8 2018-10-31 (55%); C8 2018-11-30 (30%); C3 2018-07-31 (22%); C3g 2018-07-31 (25%); C9 2018-04-30 (32%); C9 2018-05-31 (34%); C9 2018-06-30 (34%); C9 2018-08-31 (43%); C9 2018-09-30 (45%); C9 2018-10-31 (40%); C9 2018-12-31 (20%); C4g 2018-10-31 (30%); C_IC1 2018-04-30 (40%); C_IC1 2018-05-31 (30%); C_IC1 2018-06-30 (33%); C_IC1 2018-09-30 (33%); C_IC1 2018-10-31 (51%); C_IC1 2018-11-30 (35%)
-- Churn risk (accounts renewing in 2018): 8 at risk (≥20% churn prob): C1 20%, C3 23%, C5 41%, C6 32%, C7 41%, C8 38%, C9 38%, C_IC1 38%
+  - Renewals (retained): 4 accounts
+- Average CLV (Point-in-Time, year-end 2018): £161,578.78
+  - By billing account: C1 £2,137.07, C2 £5,510.91, C3 £2,667.33, C4 £3,240.02, C5 £5,932.97, C6 £8,513.17, C7 £4,270.70, C8 £6,064.24, C9 £5,975.57, C_IC1 £1,571,475.87
+- Bill shock events (>=20%): 34 -- C5 2018-04-30 (33%); C5 2018-06-30 (21%); C5 2018-10-31 (32%); C5 2018-11-30 (28%); C7 2018-04-30 (39%); C7 2018-05-31 (29%); C7 2018-06-30 (32%); C7 2018-09-30 (30%); C7 2018-10-31 (48%); C7 2018-11-30 (33%); C6 2018-04-30 (22%); C6 2018-05-31 (22%); C6 2018-06-30 (22%); C6 2018-10-31 (31%); C6 2018-11-30 (22%); C8 2018-04-30 (36%); C8 2018-05-31 (38%); C8 2018-06-30 (44%); C8 2018-08-31 (26%); C8 2018-09-30 (55%); C8 2018-10-31 (57%); C8 2018-11-30 (30%); C9 2018-04-30 (32%); C9 2018-05-31 (35%); C9 2018-06-30 (35%); C9 2018-08-31 (44%); C9 2018-09-30 (46%); C9 2018-10-31 (41%); C9 2018-12-31 (20%); C4 2018-10-31 (26%); C4g 2018-10-31 (21%); C_IC1 2018-01-31 (24%); C_IC1 2018-02-28 (49%); C_IC2 2018-09-30 (20%)
+- Churn risk (accounts renewing in 2018): 6 at risk (≥20% churn prob): C4 20%, C5 41%, C6 32%, C7 41%, C8 35%, C9 38%
 
 **Pricing & Margin**
 
-- C1 (electricity): tariff £101.02-£106.58/MWh, net margin £43.98
-- C1g (gas): tariff £25.16-£32.42/MWh, net margin £56.49
-- C2 (electricity): tariff £90.46-£105.31/MWh, net margin £-197.03 -- **net-negative**
-- C2g (gas): tariff £16.73-£26.69/MWh, net margin £-6.28 -- **net-negative**
-- C3 (electricity): tariff £78.17-£107.83/MWh, net margin £14.06
-- C3g (gas): tariff £16.69-£23.66/MWh, net margin £31.95
-- C4 (electricity): tariff £86.16-£105.52/MWh, net margin £50.08
-- C4g (gas): tariff £21.51-£30.82/MWh, net margin £97.41
-- C5 (electricity): tariff £98.98-£103.30/MWh, net margin £180.55
-- C6 (electricity): tariff £97.29-£101.86/MWh, net margin £-375.59 -- **net-negative**
-- C7 (electricity): tariff £77.24-£157.52/MWh, net margin £152.86
-- C8 (electricity): tariff £72.74-£154.14/MWh, net margin £-92.19 -- **net-negative**
-- C9 (electricity): tariff £55.86-£164.08/MWh, net margin £64.07
-- C_IC1 (electricity): tariff £81.14-£154.90/MWh, net margin £33,931.15
+- C1 (electricity): tariff £125.88-£155.85/MWh, net margin £-25.56 -- **net-negative**
+- C1g (gas): tariff £34.33-£41.71/MWh, net margin £60.31
+- C2 (electricity): tariff £129.92-£149.22/MWh, net margin £34.09
+- C2g (gas): tariff £30.12-£37.66/MWh, net margin £78.39
+- C3 (electricity): tariff £118.03-£139.50/MWh, net margin £13.70
+- C3g (gas): tariff £27.34-£33.32/MWh, net margin £36.63
+- C4 (electricity): tariff £116.16-£140.81/MWh, net margin £-26.12 -- **net-negative**
+- C4g (gas): tariff £26.69-£33.85/MWh, net margin £0.65
+- C5 (electricity): tariff £129.14-£157.76/MWh, net margin £-162.03 -- **net-negative**
+- C6 (electricity): tariff £130.61-£149.10/MWh, net margin £-22.87 -- **net-negative**
+- C7 (electricity): tariff £102.50-£232.23/MWh, net margin £25.04
+- C8 (electricity): tariff £103.28-£210.66/MWh, net margin £160.61
+- C9 (electricity): tariff £94.84-£216.26/MWh, net margin £221.80
+- C_IC1 (electricity): tariff £-82.12-£226.14/MWh, net margin £80,639.36
+- C_IC2 (electricity): tariff £73.69-£140.68/MWh, net margin £-286.87 -- **net-negative**
 
 **Portfolio Health**
 
-- Capital cost ratio: 0.9% of gross
+- Capital cost ratio: 1.2% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 168, average clarity 0.888, average bill shock 12.1%, bad debt provision £7,569.48, avg complaint probability 3.6%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Bills issued: 180, average clarity 0.872, average bill shock 11.3%, bad debt provision £12,446.14, avg complaint probability 3.6%
+- Solvency signal: £228,037/customer (11 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £33,613.24 vs. naked (unhedged) net margin: £81,136.17
-- hedging cost £47,522.94 vs. a fully unhedged book (commodity-only: actual net £33,613.24 vs. naked net £81,136.17)
-  - C1: actual £25.66 vs. naked £210.47 -- hedging cost £184.81
-  - C1g: actual £100.96 vs. naked £220.80 -- hedging cost £119.84
-  - C2: actual £-307.24 vs. naked £207.07 -- hedging cost £514.31
-  - C2g: actual £11.82 vs. naked £66.36 -- hedging cost £54.54
-  - C3: actual £77.02 vs. naked £215.27 -- hedging cost £138.26
-  - C3g: actual £34.13 vs. naked £54.35 -- hedging cost £20.22
-  - C4: actual £38.28 vs. naked £378.63 -- hedging cost £340.36
-  - C4g: actual £100.33 vs. naked £308.91 -- hedging cost £208.58
-  - C5: actual £54.56 vs. naked £849.96 -- hedging cost £795.41
-  - C6: actual £-666.86 vs. naked £76.20 -- hedging cost £743.06
-  - C7: actual £106.78 vs. naked £710.51 -- hedging cost £603.72
-  - C8: actual £-234.84 vs. naked £423.57 -- hedging cost £658.40
-  - C9: actual £341.51 vs. naked £656.08 -- hedging cost £314.58
-  - C_IC1: actual £33,931.15 vs. naked £76,757.99 -- hedging cost £42,826.85
+- Actual (hedged) net margin: £88,665.55 vs. naked (unhedged) net margin: £223,946.01
+- hedging cost £135,280.46 vs. a fully unhedged book (commodity-only: actual net £88,665.55 vs. naked net £223,946.01)
+  - C1: actual £35.82 vs. naked £393.22 -- hedging cost £357.41
+  - C1g: actual £128.25 vs. naked £333.97 -- hedging cost £205.72
+  - C2: actual £20.94 vs. naked £612.35 -- hedging cost £591.41
+  - C2g: actual £86.55 vs. naked £236.17 -- hedging cost £149.62
+  - C3: actual £22.13 vs. naked £354.26 -- hedging cost £332.13
+  - C3g: actual £44.21 vs. naked £190.31 -- hedging cost £146.10
+  - C4: actual £-15.45 vs. naked £487.92 -- hedging cost £503.37
+  - C4g: actual £15.88 vs. naked £378.82 -- hedging cost £362.95
+  - C5: actual £96.91 vs. naked £1,914.22 -- hedging cost £1,817.30
+  - C6: actual £-74.98 vs. naked £1,479.38 -- hedging cost £1,554.36
+  - C7: actual £171.34 vs. naked £1,386.29 -- hedging cost £1,214.95
+  - C8: actual £70.93 vs. naked £944.27 -- hedging cost £873.34
+  - C9: actual £259.09 vs. naked £1,126.62 -- hedging cost £867.53
+  - C_IC1: actual £88,090.79 vs. naked £174,100.69 -- hedging cost £86,009.89
+  - C_IC2: actual £-286.87 vs. naked £40,007.53 -- hedging cost £40,294.40
 
-**Year narrative:** 2018 produced a net gain of £33,951.53 across 14 accounts. The risk committee intervened 68 time(s), raising hedge fractions in response to elevated VaR. 41 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2018 produced a net gain of £80,747.13 across 15 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 34 customer(s) experienced a bill shock of >=20%.
 
 ## 2019
 
 **Trading & Risk**
 
-- Net margin: £18,530.53 (gross £76,054.19, capital £66.53)
-  - Electricity: gross £75,800.08, capital £60.90, net £18,282.04
-  - Gas: gross £254.12, capital £5.63, net £248.49
-- Treasury at year end: £462,584.39
-- Hedge fraction at first renewal this year (avg across year's terms): C1 0.85 (avg 0.85), C1g 0.90 (avg 0.90), C2 0.90 (avg 0.90), C2g 0.85 (avg 0.85), C3 0.90 (avg 0.90), C3g 0.90 (avg 0.90), C4 0.90 (avg 0.90), C4g 0.90 (avg 0.90), C5 0.85 (avg 0.85), C6 0.90 (avg 0.90), C7 0.85 (avg 0.85), C8 0.90 (avg 0.90), C9 0.90 (avg 0.90), C_IC1 1.00 (avg 1.00)
+- Net margin: £310,400.45 (gross £783,606.64, capital £7,031.30)
+  - Electricity: gross £658,658.01, capital £5,635.84, net £252,251.22
+  - Gas: gross £124,948.63, capital £1,395.46, net £58,149.24
+- Treasury at year end: £2,640,294.52
+- Hedge fraction at first renewal this year (avg across year's terms): C1 0.85 (avg 0.85), C1g 0.85 (avg 0.85), C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C3 0.85 (avg 0.85), C3g 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 0.85 (avg 0.85), C5 0.85 (avg 0.85), C6 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85), C_IC1 0.85 (avg 0.85), C_IC2 0.85 (avg 0.85), C_IC3 0.85 (avg 0.85), C_IC3g 0.85 (avg 0.85)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: C_IC1 on 2019-01-31 period 41, net margin £-8.51
+- Worst single period: C_IC1 on 2019-02-04 period 35, net margin £-14.60
 
 **Customer Book**
 
-- Active accounts: 14 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9, C_IC1)
-  - Resi electricity: 7, SME electricity: 3, gas (dual-fuel): 4
-- New acquisitions this year: none
+- Active accounts: 17 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9, C_IC1, C_IC2, C_IC3, C_IC3g)
+  - Resi electricity: 7, SME electricity: 2, gas (dual-fuel): 5
+- New acquisitions this year: C_IC3, C_IC3g
 - Losses (churn) during year: none
-  - Renewals (retained): 3 accounts
-- Average CLV (Point-in-Time, year-end 2019): £30,412.41
-  - By billing account: C1 £327.90, C2 £76.07, C3 £346.33, C4 £1,059.10, C5 £1,015.62, C6 £561.42, C7 £867.33, C8 £677.42, C9 £1,323.40, C_IC1 £297,869.50
-- Bill shock events (>=20%): 40 -- C1 2019-04-30 (21%); C5 2019-01-31 (22%); C5 2019-02-28 (21%); C5 2019-06-30 (26%); C5 2019-10-31 (43%); C5 2019-11-30 (35%); C7 2019-01-31 (32%); C7 2019-02-28 (26%); C7 2019-05-31 (24%); C7 2019-06-30 (35%); C7 2019-10-31 (71%); C7 2019-11-30 (45%); C6 2019-02-28 (21%); C6 2019-06-30 (24%); C6 2019-10-31 (42%); C6 2019-11-30 (26%); C8 2019-01-31 (26%); C8 2019-02-28 (28%); C8 2019-04-30 (26%); C8 2019-06-30 (39%); C8 2019-07-31 (35%); C8 2019-09-30 (59%); C8 2019-10-31 (86%); C8 2019-11-30 (37%); C3 2019-04-30 (20%); C9 2019-02-28 (27%); C9 2019-04-30 (23%); C9 2019-06-30 (36%); C9 2019-07-31 (44%); C9 2019-09-30 (50%); C9 2019-10-31 (74%); C9 2019-11-30 (37%); C4g 2019-10-31 (36%); C_IC1 2019-01-31 (32%); C_IC1 2019-02-28 (27%); C_IC1 2019-05-31 (25%); C_IC1 2019-06-30 (37%); C_IC1 2019-09-30 (21%); C_IC1 2019-10-31 (78%); C_IC1 2019-11-30 (48%)
-- Churn risk (accounts renewing in 2019): 7 at risk (≥20% churn prob): C3 23%, C5 38%, C6 32%, C7 38%, C8 38%, C9 35%, C_IC1 41%
+  - Renewals (retained): 4 accounts
+- Average CLV (Point-in-Time, year-end 2019): £198,487.55
+  - By billing account: C1 £1,840.77, C2 £5,055.52, C3 £2,658.96, C4 £3,145.06, C5 £7,296.86, C6 £8,089.54, C7 £5,234.16, C8 £5,606.17, C9 £6,712.65, C_IC1 £1,174,946.92, C_IC2 £962,776.40
+- Bill shock events (>=20%): 35 -- C1 2019-04-30 (22%); C5 2019-01-31 (38%); C5 2019-02-28 (22%); C5 2019-06-30 (26%); C5 2019-10-31 (44%); C5 2019-11-30 (36%); C7 2019-01-31 (44%); C7 2019-02-28 (27%); C7 2019-05-31 (24%); C7 2019-06-30 (36%); C7 2019-10-31 (73%); C7 2019-11-30 (46%); C6 2019-02-28 (21%); C6 2019-06-30 (25%); C6 2019-10-31 (42%); C6 2019-11-30 (27%); C8 2019-01-31 (27%); C8 2019-02-28 (28%); C8 2019-06-30 (40%); C8 2019-07-31 (36%); C8 2019-09-30 (62%); C8 2019-10-31 (89%); C8 2019-11-30 (38%); C3 2019-04-30 (21%); C9 2019-02-28 (27%); C9 2019-04-30 (23%); C9 2019-06-30 (37%); C9 2019-07-31 (36%); C9 2019-09-30 (53%); C9 2019-10-31 (76%); C9 2019-11-30 (38%); C4g 2019-10-31 (20%); C_IC1 2019-02-28 (51%); C_IC1 2019-03-31 (125%); C_IC2 2019-02-28 (64%)
+- Churn risk (accounts renewing in 2019): 7 at risk (≥20% churn prob): C4 20%, C5 38%, C6 29%, C7 35%, C8 38%, C9 32%, C_IC1 20%
 
 **Pricing & Margin**
 
-- C1 (electricity): tariff £81.41-£106.58/MWh, net margin £25.56
-- C1g (gas): tariff £15.80-£32.42/MWh, net margin £100.66
-- C2 (electricity): tariff £90.46-£105.87/MWh, net margin £-47.53 -- **net-negative**
-- C2g (gas): tariff £21.68-£26.69/MWh, net margin £19.30
-- C3 (electricity): tariff £76.37-£107.83/MWh, net margin £23.62
-- C3g (gas): tariff £16.13-£23.66/MWh, net margin £34.43
-- C4 (electricity): tariff £78.50-£105.52/MWh, net margin £31.02
-- C4g (gas): tariff £13.59-£30.82/MWh, net margin £94.10
-- C5 (electricity): tariff £82.12-£103.30/MWh, net margin £54.23
-- C6 (electricity): tariff £97.29-£105.79/MWh, net margin £-163.82 -- **net-negative**
-- C7 (electricity): tariff £63.78-£157.52/MWh, net margin £106.37
-- C8 (electricity): tariff £78.33-£154.14/MWh, net margin £-16.12 -- **net-negative**
-- C9 (electricity): tariff £61.13-£164.08/MWh, net margin £202.83
-- C_IC1 (electricity): tariff £84.64-£161.59/MWh, net margin £18,065.87
+- C1 (electricity): tariff £131.41-£155.85/MWh, net margin £35.78
+- C1g (gas): tariff £23.77-£41.71/MWh, net margin £128.12
+- C2 (electricity): tariff £149.22-£162.39/MWh, net margin £137.26
+- C2g (gas): tariff £37.33-£37.66/MWh, net margin £160.68
+- C3 (electricity): tariff £129.69-£139.50/MWh, net margin £13.83
+- C3g (gas): tariff £27.96-£33.32/MWh, net margin £75.44
+- C4 (electricity): tariff £128.80-£140.81/MWh, net margin £-2.41 -- **net-negative**
+- C4g (gas): tariff £22.98-£33.85/MWh, net margin £37.18
+- C5 (electricity): tariff £133.99-£157.76/MWh, net margin £96.66
+- C6 (electricity): tariff £149.10-£160.75/MWh, net margin £188.43
+- C7 (electricity): tariff £105.64-£232.23/MWh, net margin £171.40
+- C8 (electricity): tariff £110.35-£228.37/MWh, net margin £254.85
+- C9 (electricity): tariff £105.20-£216.26/MWh, net margin £245.09
+- C_IC1 (electricity): tariff £0.00-£256.67/MWh, net margin £135,258.44
+- C_IC2 (electricity): tariff £-60.00-£266.28/MWh, net margin £75,307.47
+- C_IC3 (electricity): tariff £59.64-£113.86/MWh, net margin £40,544.42
+- C_IC3g (gas): tariff £32.63/MWh, net margin £57,747.81
 
 **Portfolio Health**
 
-- Capital cost ratio: 0.1% of gross
-- Treasury drawdown events (>=10% threshold): none
-- Bills issued: 168, average clarity 0.885, average bill shock 13.5%, bad debt provision £7,868.43, avg complaint probability 3.8%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Capital cost ratio: 0.9% of gross
+- Treasury drawdown events (>=10% threshold): 1267 -- £2,939,253.53 -> £2,602,312.55 (11.5%); £2,939,253.63 -> £2,602,312.55 (11.5%); £2,939,253.81 -> £2,602,312.55 (11.5%); £2,939,253.99 -> £2,602,312.55 (11.5%); £2,939,254.17 -> £2,602,312.56 (11.5%); £2,939,254.35 -> £2,602,312.56 (11.5%); £2,939,254.53 -> £2,602,312.56 (11.5%); £2,939,254.55 -> £2,602,312.56 (11.5%); £2,939,254.56 -> £2,602,312.56 (11.5%); £2,939,254.73 -> £2,602,312.57 (11.5%); £2,939,254.92 -> £2,602,312.57 (11.5%); £2,939,255.10 -> £2,602,312.57 (11.5%); £2,939,255.28 -> £2,602,312.57 (11.5%); £2,939,255.46 -> £2,602,312.57 (11.5%); £2,939,255.63 -> £2,602,312.57 (11.5%); £2,939,255.80 -> £2,602,312.57 (11.5%); £2,939,255.95 -> £2,602,312.59 (11.5%); £2,939,256.16 -> £2,602,312.59 (11.5%); £2,939,256.37 -> £2,602,312.59 (11.5%); £2,939,256.57 -> £2,602,312.59 (11.5%); £2,939,256.77 -> £2,602,312.59 (11.5%); £2,939,256.79 -> £2,602,312.59 (11.5%); £2,939,256.80 -> £2,602,312.59 (11.5%); £2,939,257.00 -> £2,602,312.60 (11.5%); £2,939,257.20 -> £2,602,312.60 (11.5%); £2,939,257.41 -> £2,602,312.60 (11.5%); £2,939,257.62 -> £2,602,312.60 (11.5%); £2,939,257.83 -> £2,602,312.60 (11.5%); £2,939,258.03 -> £2,602,312.61 (11.5%); £2,939,258.24 -> £2,602,312.61 (11.5%); £2,939,258.49 -> £2,602,312.62 (11.5%); £2,939,258.75 -> £2,602,312.62 (11.5%); £2,939,259.00 -> £2,602,312.62 (11.5%); £2,939,259.25 -> £2,602,312.62 (11.5%); £2,939,259.50 -> £2,602,312.62 (11.5%); £2,939,259.52 -> £2,602,312.62 (11.5%); £2,939,259.53 -> £2,602,312.62 (11.5%); £2,939,259.75 -> £2,602,312.62 (11.5%); £2,939,260.00 -> £2,602,312.62 (11.5%); £2,939,260.26 -> £2,602,312.62 (11.5%); £2,939,260.52 -> £2,602,312.62 (11.5%); £2,939,260.76 -> £2,602,312.62 (11.5%); £2,939,261.00 -> £2,602,312.62 (11.5%); £2,939,261.25 -> £2,602,312.62 (11.5%); £2,939,261.33 -> £2,602,312.63 (11.5%); £2,939,261.55 -> £2,602,312.63 (11.5%); £2,939,261.77 -> £2,602,312.63 (11.5%); £2,939,261.99 -> £2,602,312.63 (11.5%); £2,939,262.21 -> £2,602,312.63 (11.5%); £2,939,262.22 -> £2,602,312.63 (11.5%); £2,939,262.24 -> £2,602,312.63 (11.5%); £2,939,262.44 -> £2,602,312.63 (11.5%); £2,939,262.67 -> £2,602,312.64 (11.5%); £2,939,262.91 -> £2,602,312.64 (11.5%); £2,939,263.13 -> £2,602,312.64 (11.5%); £2,939,263.34 -> £2,602,312.64 (11.5%); £2,939,263.56 -> £2,602,312.64 (11.5%); £2,939,263.78 -> £2,602,312.63 (11.5%); £2,939,263.81 -> £2,602,312.64 (11.5%); £2,939,263.97 -> £2,602,312.64 (11.5%); £2,939,264.12 -> £2,602,312.64 (11.5%); £2,939,264.27 -> £2,602,312.65 (11.5%); £2,939,264.43 -> £2,602,312.65 (11.5%); £2,939,264.45 -> £2,602,312.65 (11.5%); £2,939,264.46 -> £2,602,312.65 (11.5%); £2,939,264.60 -> £2,602,312.65 (11.5%); £2,939,264.76 -> £2,602,312.65 (11.5%); £2,939,264.91 -> £2,602,312.65 (11.5%); £2,939,265.07 -> £2,602,312.65 (11.5%); £2,939,265.22 -> £2,602,312.65 (11.5%); £2,939,265.37 -> £2,602,312.65 (11.5%); £2,939,265.52 -> £2,602,312.65 (11.5%); £2,939,265.60 -> £2,602,312.68 (11.5%); £2,939,265.77 -> £2,602,312.68 (11.5%); £2,939,265.93 -> £2,602,312.69 (11.5%); £2,939,266.10 -> £2,602,312.69 (11.5%); £2,939,266.26 -> £2,602,312.69 (11.5%); £2,939,266.28 -> £2,602,312.69 (11.5%); £2,939,266.29 -> £2,602,312.69 (11.5%); £2,939,266.45 -> £2,602,312.70 (11.5%); £2,939,266.63 -> £2,602,312.70 (11.5%); £2,939,266.80 -> £2,602,312.70 (11.5%); £2,939,266.98 -> £2,602,312.70 (11.5%); £2,939,267.14 -> £2,602,312.70 (11.5%); £2,939,267.31 -> £2,602,312.71 (11.5%); £2,939,267.48 -> £2,602,312.71 (11.5%); £2,939,267.64 -> £2,602,312.72 (11.5%); £2,939,267.83 -> £2,602,312.71 (11.5%); £2,939,268.02 -> £2,602,312.71 (11.5%); £2,939,268.21 -> £2,602,312.71 (11.5%); £2,939,268.40 -> £2,602,312.71 (11.5%); £2,939,268.42 -> £2,602,312.71 (11.5%); £2,939,268.43 -> £2,602,312.71 (11.5%); £2,939,268.63 -> £2,602,312.72 (11.5%); £2,939,268.84 -> £2,602,312.73 (11.5%); £2,939,269.05 -> £2,602,312.73 (11.5%); £2,939,269.26 -> £2,602,312.73 (11.5%); £2,939,269.47 -> £2,602,312.73 (11.5%); £2,939,269.68 -> £2,602,312.73 (11.5%); £2,939,269.87 -> £2,602,312.73 (11.5%); £2,939,270.02 -> £2,602,312.74 (11.5%); £2,939,270.22 -> £2,602,312.74 (11.5%); £2,939,270.44 -> £2,602,312.74 (11.5%); £2,939,270.66 -> £2,602,312.74 (11.5%); £2,939,270.88 -> £2,602,312.74 (11.5%); £2,939,270.90 -> £2,602,312.74 (11.5%); £2,939,270.91 -> £2,602,312.74 (11.5%); £2,939,271.12 -> £2,602,312.75 (11.5%); £2,939,271.34 -> £2,602,312.76 (11.5%); £2,939,271.56 -> £2,602,312.76 (11.5%); £2,939,271.79 -> £2,602,312.76 (11.5%); £2,939,272.01 -> £2,602,312.76 (11.5%); £2,939,272.22 -> £2,602,312.76 (11.5%); £2,939,272.44 -> £2,602,312.76 (11.5%); £2,939,272.56 -> £2,602,312.77 (11.5%); £2,939,272.77 -> £2,602,312.77 (11.5%); £2,939,272.98 -> £2,602,312.77 (11.5%); £2,939,273.18 -> £2,602,312.77 (11.5%); £2,939,273.39 -> £2,602,312.77 (11.5%); £2,939,273.41 -> £2,602,312.77 (11.5%); £2,939,273.42 -> £2,602,312.77 (11.5%); £2,939,273.61 -> £2,602,312.78 (11.5%); £2,939,273.82 -> £2,602,312.78 (11.5%); £2,939,274.03 -> £2,602,312.78 (11.5%); £2,939,274.24 -> £2,602,312.78 (11.5%); £2,939,274.43 -> £2,602,312.78 (11.5%); £2,939,274.64 -> £2,602,312.78 (11.5%); £2,939,274.85 -> £2,602,312.78 (11.5%); £2,939,274.88 -> £2,602,312.89 (11.5%); £2,939,275.04 -> £2,602,312.89 (11.5%); £2,939,275.07 -> £2,602,312.89 (11.5%); £2,939,275.20 -> £2,602,312.89 (11.5%); £2,939,275.33 -> £2,602,312.89 (11.5%); £2,939,275.45 -> £2,602,312.89 (11.5%); £2,939,275.58 -> £2,602,312.89 (11.5%); £2,939,275.59 -> £2,602,312.89 (11.5%); £2,939,275.61 -> £2,602,312.89 (11.5%); £2,939,275.73 -> £2,602,312.90 (11.5%); £2,939,275.87 -> £2,602,312.90 (11.5%); £2,939,276.01 -> £2,602,312.90 (11.5%); £2,939,276.15 -> £2,602,312.90 (11.5%); £2,939,276.28 -> £2,602,312.90 (11.5%); £2,939,276.42 -> £2,602,312.90 (11.5%); £2,939,276.56 -> £2,602,312.90 (11.5%); £2,939,276.65 -> £2,602,312.90 (11.5%); £2,939,276.74 -> £2,602,312.90 (11.5%); £2,939,276.83 -> £2,602,312.90 (11.5%); £2,939,276.92 -> £2,602,312.90 (11.5%); £2,939,276.93 -> £2,602,312.90 (11.5%); £2,939,276.95 -> £2,602,312.90 (11.5%); £2,939,277.04 -> £2,602,312.91 (11.5%); £2,939,277.15 -> £2,602,312.91 (11.5%); £2,939,277.25 -> £2,602,312.91 (11.5%); £2,939,277.35 -> £2,602,312.91 (11.5%); £2,939,277.46 -> £2,602,312.91 (11.5%); £2,939,277.56 -> £2,602,312.91 (11.5%); £2,939,277.67 -> £2,602,312.91 (11.5%); £2,939,277.74 -> £2,602,312.92 (11.5%); £2,939,277.81 -> £2,602,312.92 (11.5%); £2,939,277.88 -> £2,602,312.92 (11.5%); £2,939,277.96 -> £2,602,312.92 (11.5%); £2,939,277.97 -> £2,602,312.92 (11.5%); £2,939,277.99 -> £2,602,312.92 (11.5%); £2,939,278.06 -> £2,602,312.93 (11.5%); £2,939,278.14 -> £2,602,312.93 (11.5%); £2,939,278.22 -> £2,602,312.93 (11.5%); £2,939,278.31 -> £2,602,312.93 (11.5%); £2,939,278.39 -> £2,602,312.92 (11.5%); £2,939,278.47 -> £2,602,312.92 (11.5%); £2,939,278.56 -> £2,602,312.92 (11.5%); £2,939,278.56 -> £2,602,312.93 (11.5%); £2,939,278.60 -> £2,602,312.93 (11.5%); £2,939,278.63 -> £2,602,312.93 (11.5%); £2,939,278.65 -> £2,602,312.93 (11.5%); £2,939,278.66 -> £2,602,312.93 (11.5%); £2,939,278.70 -> £2,602,312.95 (11.5%); £2,939,278.75 -> £2,602,312.95 (11.5%); £2,939,278.80 -> £2,602,312.95 (11.5%); £2,939,278.85 -> £2,602,312.95 (11.5%); £2,939,278.90 -> £2,602,312.95 (11.5%); £2,939,278.94 -> £2,602,312.95 (11.5%); £2,939,278.99 -> £2,602,312.95 (11.5%); £2,939,279.00 -> £2,602,313.08 (11.5%); £2,939,279.01 -> £2,602,313.08 (11.5%); £2,939,279.04 -> £2,602,313.08 (11.5%); £2,939,279.09 -> £2,602,313.08 (11.5%); £2,939,279.14 -> £2,602,313.08 (11.5%); £2,939,279.18 -> £2,602,313.08 (11.5%); £2,939,279.23 -> £2,602,313.08 (11.5%); £2,939,279.28 -> £2,602,313.08 (11.5%); £2,939,279.32 -> £2,602,313.09 (11.5%); £2,939,279.38 -> £2,602,313.10 (11.5%); £2,939,279.46 -> £2,602,313.10 (11.5%); £2,939,279.54 -> £2,602,313.10 (11.5%); £2,939,279.62 -> £2,602,313.10 (11.5%); £2,939,279.69 -> £2,602,313.10 (11.5%); £2,939,279.71 -> £2,602,313.10 (11.5%); £2,939,279.72 -> £2,602,313.10 (11.5%); £2,939,279.79 -> £2,602,313.11 (11.5%); £2,939,279.88 -> £2,602,313.11 (11.5%); £2,939,279.97 -> £2,602,313.11 (11.5%); £2,939,280.06 -> £2,602,313.11 (11.5%); £2,939,280.14 -> £2,602,313.11 (11.5%); £2,939,280.23 -> £2,602,313.11 (11.5%); £2,939,280.32 -> £2,602,313.11 (11.5%); £2,939,280.39 -> £2,602,313.12 (11.5%); £2,939,280.51 -> £2,602,313.12 (11.5%); £2,939,280.63 -> £2,602,313.12 (11.5%); £2,939,280.75 -> £2,602,313.12 (11.5%); £2,939,280.87 -> £2,602,313.12 (11.5%); £2,939,280.89 -> £2,602,313.12 (11.5%); £2,939,280.90 -> £2,602,313.12 (11.5%); £2,939,281.02 -> £2,602,313.14 (11.5%); £2,939,281.15 -> £2,602,313.14 (11.5%); £2,939,281.27 -> £2,602,313.14 (11.5%); £2,939,281.40 -> £2,602,313.14 (11.5%); £2,939,281.53 -> £2,602,313.14 (11.5%); £2,939,281.66 -> £2,602,313.14 (11.5%); £2,939,281.78 -> £2,602,313.14 (11.5%); £2,939,281.88 -> £2,602,313.16 (11.5%); £2,939,282.02 -> £2,602,313.16 (11.5%); £2,939,282.16 -> £2,602,313.16 (11.5%); £2,939,282.30 -> £2,602,313.16 (11.5%); £2,939,282.44 -> £2,602,313.16 (11.5%); £2,939,282.46 -> £2,602,313.16 (11.5%); £2,939,282.47 -> £2,602,313.17 (11.5%); £2,939,282.61 -> £2,602,313.18 (11.5%); £2,939,282.76 -> £2,602,313.19 (11.5%); £2,939,282.90 -> £2,602,313.19 (11.5%); £2,939,283.05 -> £2,602,313.19 (11.5%); £2,939,283.19 -> £2,602,313.19 (11.5%); £2,939,283.34 -> £2,602,313.19 (11.5%); £2,939,283.49 -> £2,602,313.19 (11.5%); £2,939,283.49 -> £2,602,313.27 (11.5%); £2,939,283.61 -> £2,602,313.27 (11.5%); £2,939,283.63 -> £2,602,313.28 (11.5%); £2,939,283.73 -> £2,602,313.28 (11.5%); £2,939,283.83 -> £2,602,313.28 (11.5%); £2,939,283.93 -> £2,602,313.28 (11.5%); £2,939,284.02 -> £2,602,313.28 (11.5%); £2,939,284.04 -> £2,602,313.28 (11.5%); £2,939,284.05 -> £2,602,313.29 (11.5%); £2,939,284.15 -> £2,602,313.30 (11.5%); £2,939,284.26 -> £2,602,313.29 (11.5%); £2,939,284.36 -> £2,602,313.30 (11.5%); £2,939,284.47 -> £2,602,313.30 (11.5%); £2,939,284.58 -> £2,602,313.29 (11.5%); £2,939,284.68 -> £2,602,313.29 (11.5%); £2,939,284.78 -> £2,602,313.29 (11.5%); £2,939,284.84 -> £2,602,313.31 (11.5%); £2,939,284.96 -> £2,602,313.31 (11.5%); £2,939,285.07 -> £2,602,313.31 (11.5%); £2,939,285.18 -> £2,602,313.31 (11.5%); £2,939,285.29 -> £2,602,313.31 (11.5%); £2,939,285.31 -> £2,602,313.31 (11.5%); £2,939,285.32 -> £2,602,313.32 (11.5%); £2,939,285.42 -> £2,602,313.32 (11.5%); £2,939,285.53 -> £2,602,313.32 (11.5%); £2,939,285.64 -> £2,602,313.32 (11.5%); £2,939,285.76 -> £2,602,313.32 (11.5%); £2,939,285.87 -> £2,602,313.32 (11.5%); £2,939,285.98 -> £2,602,313.32 (11.5%); £2,939,286.09 -> £2,602,313.32 (11.5%); £2,939,286.20 -> £2,602,313.34 (11.5%); £2,939,286.34 -> £2,602,313.34 (11.5%); £2,939,286.48 -> £2,602,313.34 (11.5%); £2,939,286.62 -> £2,602,313.34 (11.5%); £2,939,286.76 -> £2,602,313.34 (11.5%); £2,939,286.77 -> £2,602,313.34 (11.5%); £2,939,286.79 -> £2,602,313.34 (11.5%); £2,939,286.90 -> £2,602,313.34 (11.5%); £2,939,287.05 -> £2,602,313.34 (11.5%); £2,939,287.18 -> £2,602,313.34 (11.5%); £2,939,287.32 -> £2,602,313.34 (11.5%); £2,939,287.46 -> £2,602,313.34 (11.5%); £2,939,287.60 -> £2,602,313.34 (11.5%); £2,939,287.74 -> £2,602,313.34 (11.5%); £2,939,287.83 -> £2,602,313.35 (11.5%); £2,939,287.98 -> £2,602,313.35 (11.5%); £2,939,288.12 -> £2,602,313.35 (11.5%); £2,939,288.26 -> £2,602,313.35 (11.5%); £2,939,288.41 -> £2,602,313.35 (11.5%); £2,939,288.42 -> £2,602,313.35 (11.5%); £2,939,288.43 -> £2,602,313.34 (11.5%); £2,939,288.57 -> £2,602,313.35 (11.5%); £2,939,288.73 -> £2,602,313.35 (11.5%); £2,939,288.89 -> £2,602,313.35 (11.5%); £2,939,289.05 -> £2,602,313.35 (11.5%); £2,939,289.20 -> £2,602,313.35 (11.5%); £2,939,289.35 -> £2,602,313.35 (11.5%); £2,939,289.51 -> £2,602,313.35 (11.5%); £2,939,289.52 -> £2,602,313.46 (11.5%); £2,939,289.69 -> £2,602,313.46 (11.5%); £2,939,289.87 -> £2,602,313.46 (11.5%); £2,939,290.05 -> £2,602,313.46 (11.5%); £2,939,290.21 -> £2,602,313.46 (11.5%); £2,939,290.29 -> £2,602,313.47 (11.5%); £2,939,290.45 -> £2,602,313.47 (11.5%); £2,939,290.62 -> £2,602,313.48 (11.5%); £2,939,290.78 -> £2,602,313.48 (11.5%); £2,939,290.95 -> £2,602,313.48 (11.5%); £2,939,290.96 -> £2,602,313.48 (11.5%); £2,939,290.98 -> £2,602,313.48 (11.5%); £2,939,291.12 -> £2,602,313.49 (11.5%); £2,939,291.28 -> £2,602,313.49 (11.5%); £2,939,291.44 -> £2,602,313.48 (11.5%); £2,939,291.59 -> £2,602,313.48 (11.5%); £2,939,291.75 -> £2,602,313.48 (11.5%); £2,939,291.90 -> £2,602,313.48 (11.5%); £2,939,292.06 -> £2,602,313.48 (11.5%); £2,939,292.13 -> £2,602,313.49 (11.5%); £2,939,292.29 -> £2,602,313.49 (11.5%); £2,939,292.44 -> £2,602,313.49 (11.5%); £2,939,292.59 -> £2,602,313.49 (11.5%); £2,939,292.75 -> £2,602,313.49 (11.5%); £2,939,292.76 -> £2,602,313.49 (11.5%); £2,939,292.78 -> £2,602,313.49 (11.5%); £2,939,292.93 -> £2,602,313.49 (11.5%); £2,939,293.10 -> £2,602,313.49 (11.5%); £2,939,293.27 -> £2,602,313.50 (11.5%); £2,939,293.44 -> £2,602,313.49 (11.5%); £2,939,293.60 -> £2,602,313.49 (11.5%); £2,939,293.76 -> £2,602,313.49 (11.5%); £2,939,293.92 -> £2,602,313.49 (11.5%); £2,939,294.00 -> £2,602,313.50 (11.5%); £2,939,294.16 -> £2,602,313.50 (11.5%); £2,939,294.32 -> £2,602,313.50 (11.5%); £2,939,294.47 -> £2,602,313.50 (11.5%); £2,939,294.62 -> £2,602,313.49 (11.5%); £2,939,294.64 -> £2,602,313.49 (11.5%); £2,939,294.65 -> £2,602,313.48 (11.5%); £2,939,294.77 -> £2,602,313.47 (11.5%); £2,939,294.91 -> £2,602,313.47 (11.5%); £2,939,295.07 -> £2,602,313.47 (11.5%); £2,939,295.22 -> £2,602,313.46 (11.5%); £2,939,295.36 -> £2,602,313.46 (11.5%); £2,939,295.50 -> £2,602,313.46 (11.5%); £2,939,295.64 -> £2,602,313.45 (11.5%); £2,939,295.73 -> £2,602,313.46 (11.5%); £2,939,295.89 -> £2,602,313.46 (11.5%); £2,939,296.05 -> £2,602,313.46 (11.5%); £2,939,296.20 -> £2,602,313.46 (11.5%); £2,939,296.35 -> £2,602,313.46 (11.5%); £2,939,296.37 -> £2,602,313.46 (11.5%); £2,939,296.38 -> £2,602,313.46 (11.5%); £2,939,296.53 -> £2,602,313.47 (11.5%); £2,939,296.70 -> £2,602,313.47 (11.5%); £2,939,296.86 -> £2,602,313.47 (11.5%); £2,939,297.01 -> £2,602,313.46 (11.5%); £2,939,297.17 -> £2,602,313.46 (11.5%); £2,939,297.32 -> £2,602,313.46 (11.5%); £2,939,297.48 -> £2,602,313.46 (11.5%); £2,939,297.48 -> £2,602,313.57 (11.5%); £2,939,297.50 -> £2,602,313.57 (11.5%); £2,939,297.56 -> £2,602,313.58 (11.5%); £2,939,297.63 -> £2,602,313.58 (11.5%); £2,939,297.70 -> £2,602,313.59 (11.5%); £2,939,297.77 -> £2,602,313.58 (11.5%); £2,939,297.84 -> £2,602,313.59 (11.5%); £2,939,297.90 -> £2,602,313.58 (11.5%); £2,939,297.96 -> £2,602,313.58 (11.5%); £2,939,297.97 -> £2,602,313.60 (11.5%); £2,939,298.02 -> £2,602,313.60 (11.5%); £2,939,298.07 -> £2,602,313.60 (11.5%); £2,939,298.12 -> £2,602,313.60 (11.5%); £2,939,298.17 -> £2,602,313.60 (11.5%); £2,939,298.18 -> £2,602,313.60 (11.5%); £2,939,298.20 -> £2,602,313.60 (11.5%); £2,939,298.25 -> £2,602,313.61 (11.5%); £2,939,298.31 -> £2,602,313.61 (11.5%); £2,939,298.37 -> £2,602,313.61 (11.5%); £2,939,298.44 -> £2,602,313.62 (11.5%); £2,939,298.50 -> £2,602,313.62 (11.5%); £2,939,298.56 -> £2,602,313.62 (11.5%); £2,939,298.62 -> £2,602,313.62 (11.5%); £2,939,298.70 -> £2,602,313.64 (11.5%); £2,939,298.79 -> £2,602,313.64 (11.5%); £2,939,298.89 -> £2,602,313.64 (11.5%); £2,939,298.98 -> £2,602,313.64 (11.5%); £2,939,299.07 -> £2,602,313.64 (11.5%); £2,939,299.08 -> £2,602,313.64 (11.5%); £2,939,299.10 -> £2,602,313.64 (11.5%); £2,939,299.19 -> £2,602,313.66 (11.5%); £2,939,299.29 -> £2,602,313.66 (11.5%); £2,939,299.40 -> £2,602,313.66 (11.5%); £2,939,299.50 -> £2,602,313.66 (11.5%); £2,939,299.60 -> £2,602,313.66 (11.5%); £2,939,299.70 -> £2,602,313.66 (11.5%); £2,939,299.80 -> £2,602,313.66 (11.5%); £2,939,299.83 -> £2,602,313.68 (11.5%); £2,939,299.91 -> £2,602,313.68 (11.5%); £2,939,299.98 -> £2,602,313.68 (11.5%); £2,939,300.06 -> £2,602,313.68 (11.5%); £2,939,300.13 -> £2,602,313.68 (11.5%); £2,939,300.14 -> £2,602,313.68 (11.5%); £2,939,300.16 -> £2,602,313.68 (11.5%); £2,939,300.23 -> £2,602,313.69 (11.5%); £2,939,300.32 -> £2,602,313.69 (11.5%); £2,939,300.40 -> £2,602,313.69 (11.5%); £2,939,300.49 -> £2,602,313.69 (11.5%); £2,939,300.57 -> £2,602,313.69 (11.5%); £2,939,300.65 -> £2,602,313.69 (11.5%); £2,939,300.73 -> £2,602,313.69 (11.5%); £2,939,300.78 -> £2,602,313.73 (11.5%); £2,939,300.88 -> £2,602,313.72 (11.5%); £2,939,300.97 -> £2,602,313.73 (11.5%); £2,939,301.01 -> £2,602,313.73 (11.5%); £2,939,301.11 -> £2,602,313.74 (11.5%); £2,939,301.21 -> £2,602,313.74 (11.5%); £2,939,301.31 -> £2,602,313.74 (11.5%); £2,939,301.41 -> £2,602,313.74 (11.5%); £2,939,301.42 -> £2,602,313.74 (11.5%); £2,939,301.44 -> £2,602,313.74 (11.5%); £2,939,301.54 -> £2,602,313.75 (11.5%); £2,939,301.65 -> £2,602,313.75 (11.5%); £2,939,301.75 -> £2,602,313.75 (11.5%); £2,939,301.86 -> £2,602,313.75 (11.5%); £2,939,301.96 -> £2,602,313.75 (11.5%); £2,939,302.06 -> £2,602,313.75 (11.5%); £2,939,302.16 -> £2,602,313.75 (11.5%); £2,939,302.18 -> £2,602,313.76 (11.5%); £2,939,302.27 -> £2,602,313.76 (11.5%); £2,939,302.37 -> £2,602,313.76 (11.5%); £2,939,302.45 -> £2,602,313.76 (11.5%); £2,939,302.55 -> £2,602,313.76 (11.5%); £2,939,302.56 -> £2,602,313.76 (11.5%); £2,939,302.58 -> £2,602,313.77 (11.5%); £2,939,302.67 -> £2,602,313.78 (11.5%); £2,939,302.77 -> £2,602,313.78 (11.5%); £2,939,302.88 -> £2,602,313.78 (11.5%); £2,939,302.98 -> £2,602,313.78 (11.5%); £2,939,303.08 -> £2,602,313.78 (11.5%); £2,939,303.18 -> £2,602,313.78 (11.5%); £2,939,303.28 -> £2,602,313.78 (11.5%); £2,939,303.29 -> £2,602,313.79 (11.5%); £2,939,303.36 -> £2,602,313.79 (11.5%); £2,939,303.44 -> £2,602,313.79 (11.5%); £2,939,303.51 -> £2,602,313.79 (11.5%); £2,939,303.59 -> £2,602,313.79 (11.5%); £2,939,303.60 -> £2,602,313.80 (11.5%); £2,939,303.62 -> £2,602,313.80 (11.5%); £2,939,303.70 -> £2,602,313.81 (11.5%); £2,939,303.79 -> £2,602,313.81 (11.5%); £2,939,303.87 -> £2,602,313.81 (11.5%); £2,939,303.96 -> £2,602,313.82 (11.5%); £2,939,304.05 -> £2,602,313.82 (11.5%); £2,939,304.13 -> £2,602,313.82 (11.5%); £2,939,304.22 -> £2,602,313.82 (11.5%); £2,939,304.26 -> £2,602,313.84 (11.5%); £2,939,304.34 -> £2,602,313.84 (11.5%); £2,939,304.41 -> £2,602,313.84 (11.5%); £2,939,304.49 -> £2,602,313.84 (11.5%); £2,939,304.56 -> £2,602,313.84 (11.5%); £2,939,304.58 -> £2,602,313.84 (11.5%); £2,939,304.59 -> £2,602,313.84 (11.5%); £2,939,304.67 -> £2,602,313.85 (11.5%); £2,939,304.75 -> £2,602,313.85 (11.5%); £2,939,304.83 -> £2,602,313.85 (11.5%); £2,939,304.92 -> £2,602,313.85 (11.5%); £2,939,305.00 -> £2,602,313.85 (11.5%); £2,939,305.08 -> £2,602,313.85 (11.5%); £2,939,305.16 -> £2,602,313.85 (11.5%); £2,939,305.16 -> £2,602,314.04 (11.5%); £2,939,305.18 -> £2,602,314.04 (11.5%); £2,939,305.26 -> £2,602,314.04 (11.5%); £2,939,305.37 -> £2,602,314.04 (11.5%); £2,939,305.46 -> £2,602,314.04 (11.5%); £2,939,305.56 -> £2,602,314.04 (11.5%); £2,939,305.65 -> £2,602,314.04 (11.5%); £2,939,305.75 -> £2,602,314.04 (11.5%); £2,939,305.84 -> £2,602,314.04 (11.5%); £2,939,305.92 -> £2,602,314.06 (11.5%); £2,939,306.03 -> £2,602,314.06 (11.5%); £2,939,306.14 -> £2,602,314.06 (11.5%); £2,939,306.24 -> £2,602,314.06 (11.5%); £2,939,306.35 -> £2,602,314.06 (11.5%); £2,939,306.36 -> £2,602,314.06 (11.5%); £2,939,306.38 -> £2,602,314.06 (11.5%); £2,939,306.48 -> £2,602,314.07 (11.5%); £2,939,306.60 -> £2,602,314.07 (11.5%); £2,939,306.71 -> £2,602,314.07 (11.5%); £2,939,306.83 -> £2,602,314.07 (11.5%); £2,939,306.94 -> £2,602,314.07 (11.5%); £2,939,307.05 -> £2,602,314.08 (11.5%); £2,939,307.17 -> £2,602,314.08 (11.5%); £2,939,307.27 -> £2,602,314.09 (11.5%); £2,939,307.39 -> £2,602,314.09 (11.5%); £2,939,307.51 -> £2,602,314.09 (11.5%); £2,939,307.64 -> £2,602,314.09 (11.5%); £2,939,307.76 -> £2,602,314.09 (11.5%); £2,939,307.78 -> £2,602,314.10 (11.5%); £2,939,307.79 -> £2,602,314.10 (11.5%); £2,939,307.90 -> £2,602,314.10 (11.5%); £2,939,308.03 -> £2,602,314.10 (11.5%); £2,939,308.16 -> £2,602,314.10 (11.5%); £2,939,308.28 -> £2,602,314.10 (11.5%); £2,939,308.41 -> £2,602,314.10 (11.5%); £2,939,308.54 -> £2,602,314.11 (11.5%); £2,939,308.67 -> £2,602,314.11 (11.5%); £2,939,308.68 -> £2,602,314.13 (11.5%); £2,939,308.69 -> £2,602,314.13 (11.5%); £2,939,308.72 -> £2,602,314.14 (11.5%); £2,939,308.75 -> £2,602,314.14 (11.5%); £2,939,308.79 -> £2,602,314.14 (11.5%); £2,939,308.82 -> £2,602,314.14 (11.5%); £2,939,308.85 -> £2,602,314.14 (11.5%); £2,939,308.88 -> £2,602,314.14 (11.5%); £2,939,308.91 -> £2,602,314.14 (11.5%); £2,939,308.93 -> £2,602,314.15 (11.5%); £2,939,308.95 -> £2,602,314.15 (11.5%); £2,939,308.97 -> £2,602,314.15 (11.5%); £2,939,308.98 -> £2,602,314.15 (11.5%); £2,939,309.00 -> £2,602,314.15 (11.5%); £2,939,309.02 -> £2,602,314.16 (11.5%); £2,939,309.05 -> £2,602,314.17 (11.5%); £2,939,309.09 -> £2,602,314.17 (11.5%); £2,939,309.12 -> £2,602,314.17 (11.5%); £2,939,309.16 -> £2,602,314.17 (11.5%); £2,939,309.19 -> £2,602,314.17 (11.5%); £2,939,309.22 -> £2,602,314.17 (11.5%); £2,939,309.27 -> £2,602,314.25 (11.5%); £2,939,309.33 -> £2,602,314.25 (11.5%); £2,939,309.39 -> £2,602,314.25 (11.5%); £2,939,309.45 -> £2,602,314.25 (11.5%); £2,939,309.51 -> £2,602,314.25 (11.5%); £2,939,309.53 -> £2,602,314.26 (11.5%); £2,939,309.59 -> £2,602,314.26 (11.5%); £2,939,309.66 -> £2,602,314.26 (11.5%); £2,939,309.73 -> £2,602,314.26 (11.5%); £2,939,309.80 -> £2,602,314.26 (11.5%); £2,939,309.81 -> £2,602,314.26 (11.5%); £2,939,309.83 -> £2,602,314.26 (11.5%); £2,939,309.88 -> £2,602,314.26 (11.5%); £2,939,309.95 -> £2,602,314.26 (11.5%); £2,939,310.02 -> £2,602,314.26 (11.5%); £2,939,310.10 -> £2,602,314.25 (11.5%); £2,939,310.17 -> £2,602,314.26 (11.5%); £2,939,310.25 -> £2,602,314.26 (11.5%); £2,939,310.33 -> £2,602,314.26 (11.5%); £2,939,310.40 -> £2,602,314.28 (11.5%); £2,939,310.49 -> £2,602,314.28 (11.5%); £2,939,310.57 -> £2,602,314.28 (11.5%); £2,939,310.66 -> £2,602,314.28 (11.5%); £2,939,310.74 -> £2,602,314.28 (11.5%); £2,939,310.76 -> £2,602,314.28 (11.5%); £2,939,310.77 -> £2,602,314.28 (11.5%); £2,939,310.85 -> £2,602,314.29 (11.5%); £2,939,310.95 -> £2,602,314.29 (11.5%); £2,939,311.04 -> £2,602,314.29 (11.5%); £2,939,311.13 -> £2,602,314.29 (11.5%); £2,939,311.22 -> £2,602,314.29 (11.5%); £2,939,311.31 -> £2,602,314.29 (11.5%); £2,939,311.41 -> £2,602,314.30 (11.5%); £2,939,311.47 -> £2,602,314.31 (11.5%); £2,939,311.56 -> £2,602,314.31 (11.5%); £2,939,311.65 -> £2,602,314.31 (11.5%); £2,939,311.73 -> £2,602,314.32 (11.5%); £2,939,311.82 -> £2,602,314.32 (11.5%); £2,939,311.83 -> £2,602,314.32 (11.5%); £2,939,311.85 -> £2,602,314.31 (11.5%); £2,939,311.93 -> £2,602,314.32 (11.5%); £2,939,312.03 -> £2,602,314.32 (11.5%); £2,939,312.13 -> £2,602,314.32 (11.5%); £2,939,312.24 -> £2,602,314.33 (11.5%); £2,939,312.33 -> £2,602,314.33 (11.5%); £2,939,312.43 -> £2,602,314.33 (11.5%); £2,939,312.52 -> £2,602,314.33 (11.5%); £2,939,312.55 -> £2,602,314.33 (11.5%); £2,939,312.63 -> £2,602,314.33 (11.5%); £2,939,312.71 -> £2,602,314.33 (11.5%); £2,939,312.79 -> £2,602,314.33 (11.5%); £2,939,312.87 -> £2,602,314.33 (11.5%); £2,939,312.89 -> £2,602,314.33 (11.5%); £2,939,312.90 -> £2,602,314.34 (11.5%); £2,939,312.98 -> £2,602,314.34 (11.5%); £2,939,313.08 -> £2,602,314.34 (11.5%); £2,939,313.17 -> £2,602,314.34 (11.5%); £2,939,313.26 -> £2,602,314.34 (11.5%); £2,939,313.35 -> £2,602,314.35 (11.5%); £2,939,313.44 -> £2,602,314.35 (11.5%); £2,939,313.53 -> £2,602,314.35 (11.5%); £2,939,313.58 -> £2,602,314.39 (11.5%); £2,939,313.68 -> £2,602,314.39 (11.5%); £2,939,313.74 -> £2,602,314.40 (11.5%); £2,939,313.86 -> £2,602,314.40 (11.5%); £2,939,313.97 -> £2,602,314.40 (11.5%); £2,939,314.08 -> £2,602,314.40 (11.5%); £2,939,314.19 -> £2,602,314.40 (11.5%); £2,939,314.21 -> £2,602,314.40 (11.5%); £2,939,314.22 -> £2,602,314.39 (11.5%); £2,939,314.32 -> £2,602,314.39 (11.5%); £2,939,314.44 -> £2,602,314.39 (11.5%); £2,939,314.56 -> £2,602,314.39 (11.5%); £2,939,314.68 -> £2,602,314.39 (11.5%); £2,939,314.79 -> £2,602,314.39 (11.5%); £2,939,314.91 -> £2,602,314.39 (11.5%); £2,939,315.03 -> £2,602,314.39 (11.5%); £2,939,315.05 -> £2,602,314.41 (11.5%); £2,939,315.14 -> £2,602,314.41 (11.5%); £2,939,315.22 -> £2,602,314.41 (11.5%); £2,939,315.30 -> £2,602,314.41 (11.5%); £2,939,315.38 -> £2,602,314.41 (11.5%); £2,939,315.39 -> £2,602,314.41 (11.5%); £2,939,315.41 -> £2,602,314.41 (11.5%); £2,939,315.48 -> £2,602,314.41 (11.5%); £2,939,315.57 -> £2,602,314.41 (11.5%); £2,939,315.66 -> £2,602,314.41 (11.5%); £2,939,315.75 -> £2,602,314.41 (11.5%); £2,939,315.84 -> £2,602,314.41 (11.5%); £2,939,315.92 -> £2,602,314.42 (11.5%); £2,939,316.01 -> £2,602,314.42 (11.5%); £2,939,316.06 -> £2,602,314.42 (11.5%); £2,939,316.15 -> £2,602,314.42 (11.5%); £2,939,316.25 -> £2,602,314.42 (11.5%); £2,939,316.34 -> £2,602,314.42 (11.5%); £2,939,316.44 -> £2,602,314.42 (11.5%); £2,939,316.45 -> £2,602,314.42 (11.5%); £2,939,316.47 -> £2,602,314.42 (11.5%); £2,939,316.56 -> £2,602,314.43 (11.5%); £2,939,316.67 -> £2,602,314.43 (11.5%); £2,939,316.77 -> £2,602,314.43 (11.5%); £2,939,316.87 -> £2,602,314.43 (11.5%); £2,939,316.97 -> £2,602,314.43 (11.5%); £2,939,317.07 -> £2,602,314.43 (11.5%); £2,939,317.17 -> £2,602,314.43 (11.5%); £2,939,317.17 -> £2,602,314.43 (11.5%); £2,939,317.25 -> £2,602,314.43 (11.5%); £2,939,317.33 -> £2,602,314.43 (11.5%); £2,939,317.42 -> £2,602,314.43 (11.5%); £2,939,317.50 -> £2,602,314.43 (11.5%); £2,939,317.52 -> £2,602,314.43 (11.5%); £2,939,317.53 -> £2,602,314.44 (11.5%); £2,939,317.62 -> £2,602,314.45 (11.5%); £2,939,317.71 -> £2,602,314.45 (11.5%); £2,939,317.80 -> £2,602,314.45 (11.5%); £2,939,317.90 -> £2,602,314.45 (11.5%); £2,939,317.99 -> £2,602,314.45 (11.5%); £2,939,318.08 -> £2,602,314.45 (11.5%); £2,939,318.17 -> £2,602,314.45 (11.5%); £2,939,318.19 -> £2,602,314.57 (11.5%); £2,939,318.24 -> £2,602,314.57 (11.5%); £2,939,318.28 -> £2,602,314.57 (11.5%); £2,939,318.33 -> £2,602,314.57 (11.5%); £2,939,318.38 -> £2,602,314.57 (11.5%); £2,939,318.43 -> £2,602,314.57 (11.5%); £2,939,318.47 -> £2,602,314.57 (11.5%); £2,939,318.49 -> £2,602,314.58 (11.5%); £2,939,318.53 -> £2,602,314.58 (11.5%); £2,939,318.56 -> £2,602,314.58 (11.5%); £2,939,318.59 -> £2,602,314.58 (11.5%); £2,939,318.60 -> £2,602,314.58 (11.5%); £2,939,318.62 -> £2,602,314.58 (11.5%); £2,939,318.64 -> £2,602,314.58 (11.5%); £2,939,318.69 -> £2,602,314.58 (11.5%); £2,939,318.73 -> £2,602,314.58 (11.5%); £2,939,318.78 -> £2,602,314.58 (11.5%); £2,939,318.82 -> £2,602,314.58 (11.5%); £2,939,318.87 -> £2,602,314.58 (11.5%); £2,939,318.91 -> £2,602,314.58 (11.5%); £2,939,318.96 -> £2,602,314.60 (11.5%); £2,939,319.04 -> £2,602,314.60 (11.5%); £2,939,319.12 -> £2,602,314.60 (11.5%); £2,939,319.19 -> £2,602,314.60 (11.5%); £2,939,319.26 -> £2,602,314.60 (11.5%); £2,939,319.28 -> £2,602,314.60 (11.5%); £2,939,319.29 -> £2,602,314.60 (11.5%); £2,939,319.36 -> £2,602,314.60 (11.5%); £2,939,319.44 -> £2,602,314.60 (11.5%); £2,939,319.52 -> £2,602,314.60 (11.5%); £2,939,319.60 -> £2,602,314.60 (11.5%); £2,939,319.68 -> £2,602,314.60 (11.5%); £2,939,319.77 -> £2,602,314.60 (11.5%); £2,939,319.85 -> £2,602,314.61 (11.5%); £2,939,319.88 -> £2,602,314.62 (11.5%); £2,939,319.95 -> £2,602,314.62 (11.5%); £2,939,320.02 -> £2,602,314.62 (11.5%); £2,939,320.10 -> £2,602,314.62 (11.5%); £2,939,320.17 -> £2,602,314.63 (11.5%); £2,939,320.18 -> £2,602,314.63 (11.5%); £2,939,320.19 -> £2,602,314.63 (11.5%); £2,939,320.26 -> £2,602,314.64 (11.5%); £2,939,320.35 -> £2,602,314.64 (11.5%); £2,939,320.43 -> £2,602,314.64 (11.5%); £2,939,320.51 -> £2,602,314.64 (11.5%); £2,939,320.59 -> £2,602,314.64 (11.5%); £2,939,320.67 -> £2,602,314.64 (11.5%); £2,939,320.74 -> £2,602,314.64 (11.5%); £2,939,320.76 -> £2,602,314.71 (11.5%); £2,939,320.79 -> £2,602,314.71 (11.5%); £2,939,320.83 -> £2,602,314.71 (11.5%); £2,939,320.86 -> £2,602,314.71 (11.5%); £2,939,320.89 -> £2,602,314.71 (11.5%); £2,939,320.91 -> £2,602,314.72 (11.5%); £2,939,320.94 -> £2,602,314.72 (11.5%); £2,939,320.97 -> £2,602,314.72 (11.5%); £2,939,320.99 -> £2,602,314.72 (11.5%); £2,939,321.01 -> £2,602,314.72 (11.5%); £2,939,321.02 -> £2,602,314.72 (11.5%); £2,939,321.05 -> £2,602,314.73 (11.5%); £2,939,321.10 -> £2,602,314.73 (11.5%); £2,939,321.14 -> £2,602,314.73 (11.5%); £2,939,321.19 -> £2,602,314.73 (11.5%); £2,939,321.23 -> £2,602,314.74 (11.5%); £2,939,321.27 -> £2,602,314.74 (11.5%); £2,939,321.31 -> £2,602,314.74 (11.5%); £2,939,321.32 -> £2,602,314.75 (11.5%); £2,939,321.34 -> £2,602,314.75 (11.5%); £2,939,321.36 -> £2,602,314.76 (11.5%); £2,939,321.38 -> £2,602,314.76 (11.5%); £2,939,321.39 -> £2,602,314.76 (11.5%); £2,939,321.41 -> £2,602,314.77 (11.5%); £2,939,321.45 -> £2,602,314.77 (11.5%); £2,939,321.49 -> £2,602,314.77 (11.5%); £2,939,321.52 -> £2,602,314.77 (11.5%); £2,939,321.55 -> £2,602,314.77 (11.5%); £2,939,321.59 -> £2,602,314.77 (11.5%); £2,939,321.62 -> £2,602,314.78 (11.5%); £2,939,321.62 -> £2,602,314.80 (11.5%); £2,939,321.64 -> £2,602,314.80 (11.5%); £2,939,321.66 -> £2,602,314.80 (11.5%); £2,939,321.68 -> £2,602,314.80 (11.5%); £2,939,321.70 -> £2,602,314.80 (11.5%); £2,939,321.71 -> £2,602,314.80 (11.5%); £2,939,321.74 -> £2,602,314.82 (11.5%); £2,939,321.77 -> £2,602,314.82 (11.5%); £2,939,321.81 -> £2,602,314.82 (11.5%); £2,939,321.84 -> £2,602,314.82 (11.5%); £2,939,321.87 -> £2,602,314.82 (11.5%); £2,939,321.90 -> £2,602,314.82 (11.5%); £2,939,321.93 -> £2,602,314.82 (11.5%); £2,939,737.32 -> £2,602,607.10 (11.5%); £2,939,737.35 -> £2,602,607.10 (11.5%); £2,939,737.40 -> £2,602,607.10 (11.5%); £2,939,737.44 -> £2,602,607.10 (11.5%); £2,939,737.48 -> £2,602,607.10 (11.5%); £2,939,737.52 -> £2,602,607.10 (11.5%); £2,939,737.53 -> £2,602,607.10 (11.5%); £2,939,737.55 -> £2,602,607.10 (11.5%); £2,939,737.56 -> £2,602,607.10 (11.5%); £2,939,737.60 -> £2,602,607.10 (11.5%); £2,939,737.64 -> £2,602,607.09 (11.5%); £2,939,737.68 -> £2,602,607.09 (11.5%); £2,939,737.72 -> £2,602,607.09 (11.5%); £2,939,737.75 -> £2,602,607.09 (11.5%); £2,939,737.79 -> £2,602,607.05 (11.5%); £2,939,737.82 -> £2,602,607.05 (11.5%); £2,939,737.88 -> £2,602,607.05 (11.5%); £2,939,737.93 -> £2,602,607.05 (11.5%); £2,939,737.99 -> £2,602,607.05 (11.5%); £2,939,738.00 -> £2,602,607.05 (11.5%); £2,939,738.02 -> £2,602,607.05 (11.5%); £2,939,738.04 -> £2,602,607.05 (11.5%); £2,939,738.09 -> £2,602,607.05 (11.5%); £2,939,738.14 -> £2,602,607.04 (11.5%); £2,939,738.19 -> £2,602,607.04 (11.5%); £2,939,738.24 -> £2,602,607.04 (11.5%); £2,939,738.29 -> £2,602,607.04 (11.5%); £2,939,738.33 -> £2,602,607.01 (11.5%); £2,939,738.36 -> £2,602,607.01 (11.5%); £2,939,738.41 -> £2,602,607.01 (11.5%); £2,939,738.47 -> £2,602,607.00 (11.5%); £2,939,738.53 -> £2,602,607.00 (11.5%); £2,939,738.54 -> £2,602,607.00 (11.5%); £2,939,738.56 -> £2,602,607.00 (11.5%); £2,939,738.58 -> £2,602,607.00 (11.5%); £2,939,738.63 -> £2,602,607.00 (11.5%); £2,939,738.68 -> £2,602,607.00 (11.5%); £2,939,738.73 -> £2,602,607.00 (11.5%); £2,939,738.78 -> £2,602,607.00 (11.5%); £2,939,738.83 -> £2,602,607.00 (11.5%); £2,939,738.88 -> £2,602,606.98 (11.5%); £2,939,738.92 -> £2,602,606.98 (11.5%); £2,939,738.98 -> £2,602,606.98 (11.5%); £2,939,739.03 -> £2,602,606.98 (11.5%); £2,939,739.09 -> £2,602,606.98 (11.5%); £2,939,739.11 -> £2,602,606.98 (11.5%); £2,939,739.12 -> £2,602,606.98 (11.5%); £2,939,739.14 -> £2,602,606.98 (11.5%); £2,939,739.20 -> £2,602,606.98 (11.5%); £2,939,739.25 -> £2,602,606.97 (11.5%); £2,939,739.30 -> £2,602,606.97 (11.5%); £2,939,739.35 -> £2,602,606.97 (11.5%); £2,939,739.40 -> £2,602,606.97 (11.5%); £2,939,739.45 -> £2,602,606.94 (11.5%); £2,939,739.47 -> £2,602,606.94 (11.5%); £2,939,739.50 -> £2,602,606.94 (11.5%); £2,939,739.52 -> £2,602,606.94 (11.5%); £2,939,739.53 -> £2,602,606.94 (11.5%); £2,939,739.57 -> £2,602,606.94 (11.5%); £2,939,739.60 -> £2,602,606.94 (11.5%); £2,939,739.63 -> £2,602,606.94 (11.5%); £2,939,739.67 -> £2,602,606.94 (11.5%); £2,939,739.70 -> £2,602,606.93 (11.5%); £2,939,739.73 -> £2,602,606.75 (11.5%); £2,939,739.76 -> £2,602,606.75 (11.5%); £2,939,739.79 -> £2,602,606.74 (11.5%); £2,939,739.82 -> £2,602,606.74 (11.5%); £2,939,739.86 -> £2,602,606.70 (11.5%); £2,939,739.87 -> £2,602,606.70 (11.5%); £2,939,739.88 -> £2,602,606.70 (11.5%); £2,939,739.90 -> £2,602,606.70 (11.5%); £2,939,739.92 -> £2,602,606.70 (11.5%); £2,939,739.94 -> £2,602,606.70 (11.5%); £2,939,739.96 -> £2,602,606.69 (11.5%); £2,939,739.98 -> £2,602,606.69 (11.5%); £2,939,740.00 -> £2,602,606.63 (11.5%); £2,939,740.00 -> £2,602,606.63 (11.5%); £2,939,740.02 -> £2,602,606.63 (11.5%); £2,939,740.04 -> £2,602,606.62 (11.5%); £2,939,740.05 -> £2,602,606.62 (11.5%); £2,939,740.07 -> £2,602,606.62 (11.5%); £2,939,740.09 -> £2,602,606.62 (11.5%); £2,939,740.11 -> £2,602,606.62 (11.5%); £2,939,740.13 -> £2,602,606.62 (11.5%); £2,939,740.15 -> £2,602,606.56 (11.5%); £2,939,740.17 -> £2,602,606.56 (11.5%); £2,939,740.18 -> £2,602,606.55 (11.5%); £2,939,740.19 -> £2,602,606.55 (11.5%); £2,939,740.22 -> £2,602,606.55 (11.5%); £2,939,740.24 -> £2,602,606.55 (11.5%); £2,939,740.26 -> £2,602,606.55 (11.5%); £2,939,740.28 -> £2,602,606.55 (11.5%); £2,939,740.30 -> £2,602,606.22 (11.5%); £2,939,740.31 -> £2,602,606.22 (11.5%); £2,939,740.35 -> £2,602,606.22 (11.5%); £2,939,740.38 -> £2,602,606.22 (11.5%); £2,939,740.40 -> £2,602,606.22 (11.5%); £2,939,740.42 -> £2,602,606.22 (11.5%); £2,939,740.42 -> £2,602,606.22 (11.5%); £2,939,740.46 -> £2,602,606.22 (11.5%); £2,939,740.50 -> £2,602,606.22 (11.5%); £2,939,740.54 -> £2,602,606.22 (11.5%); £2,939,740.58 -> £2,602,606.21 (11.5%); £2,939,740.62 -> £2,602,606.21 (11.5%); £2,939,740.65 -> £2,602,606.17 (11.5%); £2,939,740.66 -> £2,602,606.17 (11.5%); £2,939,740.69 -> £2,602,606.17 (11.5%); £2,939,740.71 -> £2,602,606.17 (11.5%); £2,939,740.72 -> £2,602,606.16 (11.5%); £2,939,740.74 -> £2,602,606.16 (11.5%); £2,939,740.77 -> £2,602,606.16 (11.5%); £2,939,740.80 -> £2,602,606.16 (11.5%); £2,939,740.83 -> £2,602,606.16 (11.5%); £2,939,740.85 -> £2,602,606.15 (11.5%); £2,939,740.88 -> £2,602,605.84 (11.5%); £2,939,740.88 -> £2,602,605.84 (11.5%); £2,939,740.90 -> £2,602,605.79 (11.5%); £2,939,740.90 -> £2,602,605.79 (11.5%); £2,939,740.91 -> £2,602,605.79 (11.5%); £2,939,740.93 -> £2,602,605.79 (11.5%); £2,939,740.94 -> £2,602,605.79 (11.5%); £2,939,740.96 -> £2,602,605.79 (11.5%); £2,939,740.98 -> £2,602,605.78 (11.5%); £2,939,741.00 -> £2,602,605.78 (11.5%); £2,939,741.02 -> £2,602,605.48 (11.5%); £2,939,741.04 -> £2,602,605.48 (11.5%); £2,939,741.06 -> £2,602,605.48 (11.5%); £2,939,741.08 -> £2,602,605.47 (11.5%); £2,939,741.10 -> £2,602,605.47 (11.5%); £2,939,741.12 -> £2,602,605.43 (11.5%); £2,939,741.13 -> £2,602,605.43 (11.5%); £2,939,741.15 -> £2,602,605.43 (11.5%); £2,939,741.15 -> £2,602,605.42 (11.5%); £2,939,741.17 -> £2,602,605.42 (11.5%); £2,939,741.19 -> £2,602,605.42 (11.5%); £2,939,741.21 -> £2,602,605.42 (11.5%); £2,939,741.23 -> £2,602,605.41 (11.5%); £2,939,741.25 -> £2,602,605.20 (11.5%); £2,939,741.27 -> £2,602,605.20 (11.5%); £2,939,741.30 -> £2,602,605.19 (11.5%); £2,939,741.32 -> £2,602,605.19 (11.5%); £2,939,741.35 -> £2,602,605.19 (11.5%); £2,939,741.37 -> £2,602,605.14 (11.5%); £2,939,741.37 -> £2,602,605.14 (11.5%); £2,939,741.39 -> £2,602,605.14 (11.5%); £2,939,741.39 -> £2,602,605.13 (11.5%); £2,939,741.41 -> £2,602,605.13 (11.5%); £2,939,741.43 -> £2,602,605.13 (11.5%); £2,939,741.45 -> £2,602,605.13 (11.5%); £2,939,741.47 -> £2,602,605.13 (11.5%); £2,939,741.49 -> £2,602,605.07 (11.5%); £2,939,741.50 -> £2,602,605.07 (11.5%); £2,939,741.51 -> £2,602,605.06 (11.5%); £2,939,741.52 -> £2,602,605.06 (11.5%); £2,939,741.54 -> £2,602,605.06 (11.5%); £2,939,741.56 -> £2,602,605.06 (11.5%); £2,939,741.58 -> £2,602,605.05 (11.5%); £2,939,741.60 -> £2,602,605.05 (11.5%); £2,939,741.62 -> £2,602,604.89 (11.5%); £2,939,741.67 -> £2,602,604.89 (11.5%); £2,939,741.72 -> £2,602,604.85 (11.5%); £2,939,741.75 -> £2,602,604.85 (11.5%); £2,939,741.81 -> £2,602,604.85 (11.5%); £2,939,741.88 -> £2,602,604.85 (11.5%); £2,939,741.95 -> £2,602,604.85 (11.5%); £2,939,741.96 -> £2,602,604.85 (11.5%); £2,939,741.98 -> £2,602,604.85 (11.5%); £2,939,742.01 -> £2,602,604.85 (11.5%); £2,939,742.08 -> £2,602,604.85 (11.5%); £2,939,742.14 -> £2,602,604.85 (11.5%); £2,939,742.20 -> £2,602,604.84 (11.5%); £2,939,742.26 -> £2,602,604.84 (11.5%); £2,939,742.32 -> £2,602,604.84 (11.5%); £2,939,742.37 -> £2,602,604.78 (11.5%); £2,939,742.41 -> £2,602,604.78 (11.5%); £2,939,742.47 -> £2,602,604.78 (11.5%); £2,939,742.52 -> £2,602,604.78 (11.5%); £2,939,742.54 -> £2,602,604.78 (11.5%); £2,939,742.55 -> £2,602,604.78 (11.5%); £2,939,742.57 -> £2,602,604.78 (11.5%); £2,939,742.62 -> £2,602,604.78 (11.5%); £2,939,742.67 -> £2,602,604.77 (11.5%); £2,939,742.72 -> £2,602,604.77 (11.5%); £2,939,742.76 -> £2,602,604.77 (11.5%); £2,939,742.81 -> £2,602,604.77 (11.5%); £2,939,742.85 -> £2,602,604.75 (11.5%); £2,939,742.86 -> £2,602,604.75 (11.5%); £2,939,742.90 -> £2,602,604.75 (11.5%); £2,939,742.93 -> £2,602,604.75 (11.5%); £2,939,742.95 -> £2,602,604.75 (11.5%); £2,939,742.97 -> £2,602,604.75 (11.5%); £2,939,742.98 -> £2,602,604.75 (11.5%); £2,939,743.01 -> £2,602,604.74 (11.5%); £2,939,743.04 -> £2,602,604.74 (11.5%); £2,939,743.08 -> £2,602,604.74 (11.5%); £2,939,743.11 -> £2,602,604.74 (11.5%); £2,939,743.14 -> £2,602,604.74 (11.5%); £2,939,743.18 -> £2,602,604.69 (11.5%); £2,939,743.18 -> £2,602,604.69 (11.5%); £2,939,743.19 -> £2,602,604.69 (11.5%); £2,939,743.20 -> £2,602,604.68 (11.5%); £2,939,743.22 -> £2,602,604.68 (11.5%); £2,939,743.24 -> £2,602,604.68 (11.5%); £2,939,743.26 -> £2,602,604.68 (11.5%); £2,939,743.28 -> £2,602,604.68 (11.5%); £2,939,743.30 -> £2,602,604.56 (11.5%); £2,939,743.30 -> £2,602,604.56 (11.5%); £2,939,743.35 -> £2,602,604.56 (11.5%); £2,939,743.39 -> £2,602,604.56 (11.5%); £2,939,743.44 -> £2,602,604.56 (11.5%); £2,939,743.48 -> £2,602,604.56 (11.5%); £2,939,743.53 -> £2,602,604.55 (11.5%); £2,939,743.57 -> £2,602,604.50 (11.5%); £2,939,743.58 -> £2,602,604.50 (11.5%); £2,939,743.61 -> £2,602,604.50 (11.5%); £2,939,743.65 -> £2,602,604.50 (11.5%); £2,939,743.67 -> £2,602,604.50 (11.5%); £2,939,743.69 -> £2,602,604.50 (11.5%); £2,939,743.69 -> £2,602,604.49 (11.5%); £2,939,743.73 -> £2,602,604.49 (11.5%); £2,939,743.77 -> £2,602,604.49 (11.5%); £2,939,743.81 -> £2,602,604.49 (11.5%); £2,939,743.84 -> £2,602,604.49 (11.5%); £2,939,743.88 -> £2,602,604.49 (11.5%); £2,939,743.91 -> £2,602,604.43 (11.5%); £2,939,743.93 -> £2,602,604.43 (11.5%); £2,939,743.96 -> £2,602,604.43 (11.5%); £2,939,743.98 -> £2,602,604.43 (11.5%); £2,939,743.99 -> £2,602,604.42 (11.5%); £2,939,744.02 -> £2,602,604.42 (11.5%); £2,939,744.05 -> £2,602,604.42 (11.5%); £2,939,744.08 -> £2,602,604.42 (11.5%); £2,939,744.11 -> £2,602,604.42 (11.5%); £2,939,744.14 -> £2,602,604.42 (11.5%); £2,939,744.17 -> £2,602,604.39 (11.5%); £2,939,744.18 -> £2,602,604.39 (11.5%); £2,939,744.20 -> £2,602,604.39 (11.5%); £2,939,744.22 -> £2,602,604.39 (11.5%); £2,939,744.24 -> £2,602,604.38 (11.5%); £2,939,744.26 -> £2,602,604.38 (11.5%); £2,939,744.28 -> £2,602,604.38 (11.5%); £2,939,744.30 -> £2,602,604.38 (11.5%); £2,939,744.32 -> £2,602,604.10 (11.5%); £2,939,744.35 -> £2,602,604.10 (11.5%); £2,939,744.38 -> £2,602,604.10 (11.5%); £2,939,744.41 -> £2,602,604.10 (11.5%); £2,939,744.43 -> £2,602,604.08 (11.5%); £2,939,744.44 -> £2,602,604.08 (11.5%); £2,939,744.48 -> £2,602,604.08 (11.5%); £2,939,744.51 -> £2,602,604.08 (11.5%); £2,939,744.55 -> £2,602,604.08 (11.5%); £2,939,744.57 -> £2,602,604.08 (11.5%); £2,939,744.59 -> £2,602,604.08 (11.5%); £2,939,744.60 -> £2,602,604.07 (11.5%); £2,939,744.63 -> £2,602,604.07 (11.5%); £2,939,744.67 -> £2,602,604.07 (11.5%); £2,939,744.71 -> £2,602,604.07 (11.5%); £2,939,744.75 -> £2,602,604.07 (11.5%); £2,939,744.78 -> £2,602,604.07 (11.5%); £2,939,744.82 -> £2,602,604.06 (11.5%); £2,939,744.84 -> £2,602,604.08 (11.5%); £2,939,744.86 -> £2,602,604.08 (11.5%); £2,939,744.88 -> £2,602,604.08 (11.5%); £2,939,744.90 -> £2,602,604.07 (11.5%); £2,939,744.92 -> £2,602,604.07 (11.5%); £2,939,744.95 -> £2,602,604.07 (11.5%); £2,939,744.97 -> £2,602,604.06 (11.5%); £2,939,745.00 -> £2,602,604.06 (11.5%); £2,939,745.02 -> £2,602,604.06 (11.5%); £2,939,745.04 -> £2,602,603.96 (11.5%); £2,939,745.06 -> £2,602,603.97 (11.5%); £2,939,745.09 -> £2,602,603.97 (11.5%); £2,939,745.11 -> £2,602,603.97 (11.5%); £2,939,745.13 -> £2,602,603.96 (11.5%); £2,939,745.13 -> £2,602,603.96 (11.5%); £2,939,745.16 -> £2,602,603.96 (11.5%); £2,939,745.19 -> £2,602,603.96 (11.5%); £2,939,745.23 -> £2,602,603.95 (11.5%); £2,939,745.26 -> £2,602,603.95 (11.5%); £2,939,745.30 -> £2,602,603.95 (11.5%); £2,939,745.33 -> £2,602,603.88 (11.5%); £2,939,745.39 -> £2,602,603.88 (11.5%); £2,939,745.46 -> £2,602,603.88 (11.5%); £2,939,745.53 -> £2,602,603.88 (11.5%); £2,939,745.60 -> £2,602,603.88 (11.5%); £2,939,745.61 -> £2,602,603.88 (11.5%); £2,939,745.63 -> £2,602,603.88 (11.5%); £2,939,745.67 -> £2,602,603.88 (11.5%); £2,939,745.74 -> £2,602,603.88 (11.5%); £2,939,745.80 -> £2,602,603.87 (11.5%); £2,939,745.87 -> £2,602,603.87 (11.5%); £2,939,745.94 -> £2,602,603.87 (11.5%); £2,939,746.00 -> £2,602,603.87 (11.5%); £2,939,746.07 -> £2,602,603.85 (11.5%); £2,939,746.13 -> £2,602,603.85 (11.5%); £2,939,746.22 -> £2,602,603.85 (11.5%); £2,939,746.29 -> £2,602,603.85 (11.5%); £2,939,746.38 -> £2,602,603.85 (11.5%); £2,939,746.39 -> £2,602,603.85 (11.5%); £2,939,746.41 -> £2,602,603.84 (11.5%); £2,939,746.46 -> £2,602,603.84 (11.5%); £2,939,746.53 -> £2,602,603.84 (11.5%); £2,939,746.60 -> £2,602,603.84 (11.5%); £2,939,746.67 -> £2,602,603.84 (11.5%); £2,939,746.74 -> £2,602,603.84 (11.5%); £2,939,746.82 -> £2,602,603.84 (11.5%); £2,939,746.89 -> £2,602,603.83 (11.5%); £2,939,746.92 -> £2,602,603.83 (11.5%); £2,939,746.98 -> £2,602,603.83 (11.5%); £2,939,747.04 -> £2,602,603.83 (11.5%); £2,939,747.10 -> £2,602,603.83 (11.5%); £2,939,747.12 -> £2,602,603.83 (11.5%); £2,939,747.14 -> £2,602,603.82 (11.5%); £2,939,747.18 -> £2,602,603.82 (11.5%); £2,939,747.24 -> £2,602,603.82 (11.5%); £2,939,747.30 -> £2,602,603.82 (11.5%); £2,939,747.36 -> £2,602,603.82 (11.5%); £2,939,747.41 -> £2,602,603.81 (11.5%); £2,939,747.47 -> £2,602,603.81 (11.5%); £2,939,747.53 -> £2,602,603.66 (11.5%); £2,939,747.58 -> £2,602,603.66 (11.5%); £2,939,747.64 -> £2,602,603.65 (11.5%); £2,939,747.67 -> £2,602,603.72 (11.5%); £2,939,747.71 -> £2,602,603.72 (11.5%); £2,939,747.74 -> £2,602,603.72 (11.5%); £2,939,747.76 -> £2,602,603.72 (11.5%); £2,939,747.78 -> £2,602,603.72 (11.5%); £2,939,747.79 -> £2,602,603.72 (11.5%); £2,939,747.83 -> £2,602,603.72 (11.5%); £2,939,747.87 -> £2,602,603.71 (11.5%); £2,939,747.90 -> £2,602,603.71 (11.5%); £2,939,747.94 -> £2,602,603.71 (11.5%); £2,939,747.98 -> £2,602,603.70 (11.5%); £2,939,748.02 -> £2,602,603.69 (11.5%); £2,939,748.07 -> £2,602,603.69 (11.5%); £2,939,748.13 -> £2,602,603.69 (11.5%); £2,939,748.19 -> £2,602,603.68 (11.5%); £2,939,748.24 -> £2,602,603.68 (11.5%); £2,939,748.26 -> £2,602,603.68 (11.5%); £2,939,748.28 -> £2,602,603.68 (11.5%); £2,939,748.31 -> £2,602,603.68 (11.5%); £2,939,748.36 -> £2,602,603.68 (11.5%); £2,939,748.41 -> £2,602,603.68 (11.5%); £2,939,748.47 -> £2,602,603.67 (11.5%); £2,939,748.52 -> £2,602,603.67 (11.5%); £2,939,748.58 -> £2,602,603.67 (11.5%); £2,939,748.63 -> £2,602,603.62 (11.5%); £2,939,748.69 -> £2,602,603.62 (11.5%); £2,939,748.77 -> £2,602,603.62 (11.5%); £2,939,748.84 -> £2,602,603.62 (11.5%); £2,939,748.91 -> £2,602,603.62 (11.5%); £2,939,748.93 -> £2,602,603.62 (11.5%); £2,939,748.95 -> £2,602,603.61 (11.5%); £2,939,748.98 -> £2,602,603.61 (11.5%); £2,939,749.05 -> £2,602,603.61 (11.5%); £2,939,749.11 -> £2,602,603.61 (11.5%); £2,939,749.18 -> £2,602,603.61 (11.5%); £2,939,749.25 -> £2,602,603.61 (11.5%); £2,939,749.32 -> £2,602,603.60 (11.5%); £2,939,749.39 -> £2,602,603.42 (11.5%); £2,939,749.46 -> £2,602,603.41 (11.5%); £2,939,749.46 -> £2,602,603.41 (11.5%); £2,939,749.55 -> £2,602,603.41 (11.5%); £2,939,749.65 -> £2,602,603.41 (11.5%); £2,939,749.74 -> £2,602,603.41 (11.5%); £2,939,749.83 -> £2,602,603.41 (11.5%); £2,939,749.85 -> £2,602,603.41 (11.5%); £2,939,749.87 -> £2,602,603.41 (11.5%); £2,939,749.93 -> £2,602,603.41 (11.5%); £2,939,750.01 -> £2,602,603.40 (11.5%); £2,939,750.09 -> £2,602,603.40 (11.5%); £2,939,750.16 -> £2,602,603.40 (11.5%); £2,939,750.24 -> £2,602,603.40 (11.5%); £2,939,750.33 -> £2,602,603.39 (11.5%); £2,939,750.40 -> £2,602,603.34 (11.5%); £2,939,750.45 -> £2,602,603.34 (11.5%); £2,939,750.51 -> £2,602,603.34 (11.5%); £2,939,750.58 -> £2,602,603.34 (11.5%); £2,939,750.60 -> £2,602,603.34 (11.5%); £2,939,750.61 -> £2,602,603.33 (11.5%); £2,939,750.64 -> £2,602,603.33 (11.5%); £2,939,750.71 -> £2,602,603.33 (11.5%); £2,939,750.76 -> £2,602,603.33 (11.5%); £2,939,750.83 -> £2,602,603.33 (11.5%); £2,939,750.90 -> £2,602,603.32 (11.5%); £2,939,750.96 -> £2,602,603.32 (11.5%); £2,939,751.02 -> £2,602,603.27 (11.5%); £2,939,751.02 -> £2,602,603.27 (11.5%); £2,939,751.08 -> £2,602,603.27 (11.5%); £2,939,751.13 -> £2,602,603.27 (11.5%); £2,939,751.19 -> £2,602,603.27 (11.5%); £2,939,751.20 -> £2,602,603.27 (11.5%); £2,939,751.22 -> £2,602,603.27 (11.5%); £2,939,751.25 -> £2,602,603.27 (11.5%); £2,939,751.30 -> £2,602,603.27 (11.5%); £2,939,751.35 -> £2,602,603.26 (11.5%); £2,939,751.41 -> £2,602,603.26 (11.5%); £2,939,751.46 -> £2,602,603.26 (11.5%); £2,939,751.52 -> £2,602,603.26 (11.5%); £2,939,751.58 -> £2,602,603.23 (11.5%); £2,939,751.62 -> £2,602,603.23 (11.5%); £2,939,751.66 -> £2,602,603.23 (11.5%); £2,939,751.70 -> £2,602,603.23 (11.5%); £2,939,751.72 -> £2,602,603.23 (11.5%); £2,939,751.74 -> £2,602,603.23 (11.5%); £2,939,751.75 -> £2,602,603.23 (11.5%); £2,939,751.79 -> £2,602,603.22 (11.5%); £2,939,751.84 -> £2,602,603.22 (11.5%); £2,939,751.88 -> £2,602,603.22 (11.5%); £2,939,751.93 -> £2,602,603.22 (11.5%); £2,939,751.98 -> £2,602,603.22 (11.5%); £2,939,752.03 -> £2,602,602.94 (11.5%); £2,939,752.05 -> £2,602,602.94 (11.5%); £2,939,752.08 -> £2,602,602.93 (11.5%); £2,939,752.11 -> £2,602,602.93 (11.5%); £2,939,752.15 -> £2,602,602.93 (11.5%); £2,939,752.19 -> £2,602,602.93 (11.5%); £2,939,752.22 -> £2,602,602.91 (11.5%); £2,939,752.26 -> £2,602,602.91 (11.5%); £2,939,752.31 -> £2,602,602.91 (11.5%); £2,939,752.36 -> £2,602,602.91 (11.5%); £2,939,752.41 -> £2,602,602.91 (11.5%); £2,939,752.43 -> £2,602,602.91 (11.5%); £2,939,752.44 -> £2,602,602.91 (11.5%); £2,939,752.47 -> £2,602,602.91 (11.5%); £2,939,752.52 -> £2,602,602.90 (11.5%); £2,939,752.57 -> £2,602,602.90 (11.5%); £2,939,752.62 -> £2,602,602.90 (11.5%); £2,939,752.67 -> £2,602,602.90 (11.5%); £2,939,752.72 -> £2,602,602.89 (11.5%); £2,939,752.77 -> £2,602,602.88 (11.5%); £2,939,752.79 -> £2,602,602.88 (11.5%); £2,939,752.87 -> £2,602,602.88 (11.5%); £2,939,752.96 -> £2,602,602.88 (11.5%); £2,939,753.04 -> £2,602,602.88 (11.5%); £2,939,753.13 -> £2,602,602.88 (11.5%); £2,939,753.14 -> £2,602,602.88 (11.5%); £2,939,753.16 -> £2,602,602.87 (11.5%); £2,939,753.20 -> £2,602,602.87 (11.5%); £2,939,753.28 -> £2,602,602.87 (11.5%); £2,939,753.35 -> £2,602,602.87 (11.5%); £2,939,753.43 -> £2,602,602.87 (11.5%); £2,939,753.50 -> £2,602,602.86 (11.5%); £2,939,753.58 -> £2,602,602.86 (11.5%); £2,939,753.65 -> £2,602,602.73 (11.5%); £2,940,005.66 -> £2,602,645.03 (11.5%); £2,940,005.90 -> £2,602,645.12 (11.5%); £2,940,006.14 -> £2,602,645.22 (11.5%); £2,940,006.38 -> £2,602,645.30 (11.5%); £2,940,006.61 -> £2,602,645.36 (11.5%); £2,940,006.85 -> £2,602,645.45 (11.5%); £2,940,007.09 -> £2,602,645.56 (11.5%); £2,940,007.33 -> £2,602,645.64 (11.5%); £2,940,007.57 -> £2,602,645.75 (11.5%); £2,940,007.81 -> £2,602,645.84 (11.5%); £2,940,008.05 -> £2,602,645.94 (11.5%); £2,940,008.29 -> £2,602,646.03 (11.5%); £2,940,008.53 -> £2,602,646.13 (11.5%); £2,940,008.77 -> £2,602,646.23 (11.5%); £2,940,009.01 -> £2,602,646.29 (11.5%); £2,940,009.25 -> £2,602,646.37 (11.5%); £2,940,009.49 -> £2,602,646.44 (11.5%); £2,940,009.73 -> £2,602,646.52 (11.5%); £2,940,009.97 -> £2,602,646.61 (11.5%); £2,940,010.21 -> £2,602,646.72 (11.5%); £2,940,010.45 -> £2,602,646.83 (11.5%); £2,940,010.69 -> £2,602,646.93 (11.5%); £2,940,010.93 -> £2,602,647.02 (11.5%); £2,940,011.17 -> £2,602,647.11 (11.5%); £2,940,011.41 -> £2,602,647.18 (11.5%); £2,940,011.65 -> £2,602,647.27 (11.5%); £2,940,011.89 -> £2,602,647.36 (11.5%); £2,940,012.13 -> £2,602,647.49 (11.5%); £2,940,012.37 -> £2,602,647.62 (11.5%); £2,940,012.61 -> £2,602,647.76 (11.5%); £2,940,012.85 -> £2,602,647.88 (11.5%); £2,940,013.06 -> £2,602,648.01 (11.5%); £2,940,013.26 -> £2,602,648.13 (11.5%); £2,940,013.47 -> £2,602,648.23 (11.5%); £2,940,013.67 -> £2,602,648.35 (11.5%); £2,940,013.88 -> £2,602,648.49 (11.5%); £2,940,014.08 -> £2,602,648.61 (11.5%); £2,940,014.29 -> £2,602,648.68 (11.5%); £2,940,014.49 -> £2,602,648.80 (11.5%); £2,940,014.70 -> £2,602,648.90 (11.5%); £2,940,014.90 -> £2,602,649.01 (11.5%); £2,940,015.11 -> £2,602,649.14 (11.5%); £2,940,015.31 -> £2,602,649.25 (11.5%); £2,940,015.51 -> £2,602,649.35 (11.5%); £2,940,015.72 -> £2,602,649.45 (11.5%); £2,940,015.92 -> £2,602,649.55 (11.5%); £2,940,016.13 -> £2,602,649.65 (11.5%); £2,940,016.33 -> £2,602,649.74 (11.5%); £2,940,016.54 -> £2,602,649.82 (11.5%); £2,940,016.74 -> £2,602,649.91 (11.5%); £2,940,016.95 -> £2,602,650.01 (11.5%); £2,940,017.15 -> £2,602,650.11 (11.5%); £2,940,017.36 -> £2,602,650.20 (11.5%); £2,940,017.56 -> £2,602,650.29 (11.5%); £2,940,017.77 -> £2,602,650.38 (11.5%); £2,940,017.97 -> £2,602,650.47 (11.5%); £2,940,018.18 -> £2,602,650.56 (11.5%); £2,940,018.38 -> £2,602,650.68 (11.5%); £2,940,018.59 -> £2,602,650.78 (11.5%); £2,940,018.79 -> £2,602,650.87 (11.5%); £2,940,019.00 -> £2,602,650.96 (11.5%); £2,940,019.22 -> £2,602,651.06 (11.5%); £2,940,019.43 -> £2,602,651.16 (11.5%); £2,940,019.65 -> £2,602,651.25 (11.5%); £2,940,019.87 -> £2,602,651.34 (11.5%); £2,940,020.09 -> £2,602,651.43 (11.5%); £2,940,020.31 -> £2,602,651.53 (11.5%); £2,940,020.52 -> £2,602,651.65 (11.5%); £2,940,020.74 -> £2,602,651.80 (11.5%); £2,940,020.96 -> £2,602,651.95 (11.5%); £2,940,021.18 -> £2,602,652.03 (11.5%); £2,940,021.40 -> £2,602,652.13 (11.5%); £2,940,021.62 -> £2,602,652.22 (11.5%); £2,940,021.83 -> £2,602,652.32 (11.5%); £2,940,022.05 -> £2,602,652.42 (11.5%); £2,940,022.27 -> £2,602,652.53 (11.5%); £2,940,022.49 -> £2,602,652.66 (11.5%); £2,940,022.71 -> £2,602,652.76 (11.5%); £2,940,022.92 -> £2,602,652.86 (11.5%); £2,940,023.14 -> £2,602,652.97 (11.5%); £2,940,023.36 -> £2,602,653.10 (11.5%); £2,940,023.58 -> £2,602,653.21 (11.5%); £2,940,023.80 -> £2,602,653.34 (11.5%); £2,940,024.01 -> £2,602,653.45 (11.5%); £2,940,024.23 -> £2,602,653.56 (11.5%); £2,940,024.45 -> £2,602,653.70 (11.5%); £2,940,024.67 -> £2,602,653.83 (11.5%); £2,940,024.89 -> £2,602,653.96 (11.5%); £2,940,025.10 -> £2,602,654.06 (11.5%); £2,940,025.32 -> £2,602,654.17 (11.5%); £2,940,025.54 -> £2,602,654.29 (11.5%); £2,940,157.21 -> £2,640,107.31 (10.2%)
+- Bills issued: 204, average clarity 0.878, average bill shock 12.2%, bad debt provision £36,902.97, avg complaint probability 3.7%
+- Solvency signal: £220,025/customer (12 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £18,648.35 vs. naked (unhedged) net margin: £122,756.88
-- hedging cost £104,108.52 vs. a fully unhedged book (commodity-only: actual net £18,648.35 vs. naked net £122,756.88)
-  - C1: actual £7.42 vs. naked £143.78 -- hedging cost £136.35
-  - C1g: actual £31.84 vs. naked £73.75 -- hedging cost £41.92
-  - C2: actual £52.92 vs. naked £474.97 -- hedging cost £422.05
-  - C2g: actual £20.10 vs. naked £149.81 -- hedging cost £129.71
-  - C3: actual £-24.36 vs. naked £169.00 -- hedging cost £193.36
-  - C3g: actual £37.09 vs. naked £94.66 -- hedging cost £57.58
-  - C4: actual £27.17 vs. naked £304.45 -- hedging cost £277.28
-  - C4g: actual £82.61 vs. naked £109.87 -- hedging cost £27.25
-  - C5: actual £35.42 vs. naked £606.48 -- hedging cost £571.06
-  - C6: actual £108.69 vs. naked £951.55 -- hedging cost £842.85
-  - C7: actual £44.77 vs. naked £478.58 -- hedging cost £433.81
-  - C8: actual £126.12 vs. naked £730.37 -- hedging cost £604.25
-  - C9: actual £32.69 vs. naked £520.24 -- hedging cost £487.55
-  - C_IC1: actual £18,065.87 vs. naked £117,949.37 -- hedging cost £99,883.50
+- Actual (hedged) net margin: £337,216.02 vs. naked (unhedged) net margin: £942,255.74
+- hedging cost £605,039.72 vs. a fully unhedged book (commodity-only: actual net £337,216.02 vs. naked net £942,255.74)
+  - C1: actual £13.16 vs. naked £332.19 -- hedging cost £319.03
+  - C1g: actual £36.47 vs. naked £171.22 -- hedging cost £134.75
+  - C2: actual £186.73 vs. naked £868.75 -- hedging cost £682.02
+  - C2g: actual £183.29 vs. naked £391.94 -- hedging cost £208.65
+  - C3: actual £12.38 vs. naked £408.31 -- hedging cost £395.93
+  - C3g: actual £105.89 vs. naked £263.86 -- hedging cost £157.97
+  - C4: actual £39.08 vs. naked £517.42 -- hedging cost £478.34
+  - C4g: actual £102.18 vs. naked £318.38 -- hedging cost £216.20
+  - C5: actual £-14.66 vs. naked £1,582.24 -- hedging cost £1,596.91
+  - C6: actual £335.22 vs. naked £2,190.20 -- hedging cost £1,854.97
+  - C7: actual £124.38 vs. naked £1,165.60 -- hedging cost £1,041.23
+  - C8: actual £365.52 vs. naked £1,443.54 -- hedging cost £1,078.02
+  - C9: actual £229.02 vs. naked £1,285.74 -- hedging cost £1,056.72
+  - C_IC1: actual £154,847.17 vs. naked £291,773.12 -- hedging cost £136,925.95
+  - C_IC2: actual £82,357.98 vs. naked £156,020.91 -- hedging cost £73,662.93
+  - C_IC3: actual £40,544.42 vs. naked £324,084.64 -- hedging cost £283,540.22
+  - C_IC3g: actual £57,747.81 vs. naked £159,437.67 -- hedging cost £101,689.86
 
-**Year narrative:** 2019 produced a net gain of £18,530.53 across 14 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 40 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2019 produced a net gain of £310,400.45 across 17 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 35 customer(s) experienced a bill shock of >=20%.
 
 ## 2020
 
 **Trading & Risk**
 
-- Net margin: £5,405.56 (gross £61,279.55, capital £1,080.35)
-  - Electricity: gross £61,124.28, capital £1,073.00, net £5,257.65
-  - Gas: gross £155.27, capital £7.35, net £147.92
-- Treasury at year end: £468,367.19
-- Hedge fraction at first renewal this year (avg across year's terms): C1 0.85 (avg 0.85), C1g 0.85 (avg 0.85), C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 0.85 (avg 0.85), C5 0.85 (avg 0.85), C6 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85), C_IC1 0.90 (avg 0.90)
+- Net margin: £-4,039.03 (gross £663,368.14, capital £5,399.22)
+  - Electricity: gross £581,770.98, capital £4,585.05, net £-18,411.36
+  - Gas: gross £81,597.16, capital £814.17, net £14,372.33
+- Treasury at year end: £2,848,364.05
+- Hedge fraction at first renewal this year (avg across year's terms): C1 0.85 (avg 0.85), C1g 0.85 (avg 0.85), C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 0.85 (avg 0.85), C5 0.85 (avg 0.85), C6 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85), C_IC1 0.85 (avg 0.85), C_IC2 0.85 (avg 0.85), C_IC3 0.85 (avg 0.85), C_IC3g 0.85 (avg 0.85), C_IC4 0.85 (avg 0.85)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: C_IC1 on 2020-03-04 period 37, net margin £-70.85
+- Worst single period: C_IC3 on 2020-03-04 period 37, net margin £-71.67
 
 **Customer Book**
 
-- Active accounts: 14 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9, C_IC1)
-  - Resi electricity: 7, SME electricity: 3, gas (dual-fuel): 4
-- New acquisitions this year: none
-- Losses (churn) during year: C3, C_IC1
-  - Renewals (retained): 8 accounts
-- Average CLV (Point-in-Time, year-end 2020): £23,621.16
-  - By billing account: C1 £304.60, C2 £211.86, C3 £257.98, C4 £883.65, C5 £1,194.23, C6 £708.23, C7 £945.18, C8 £864.75, C9 £1,277.44, C_IC1 £229,563.64
-- Bill shock events (>=20%): 34 -- C1g 2020-01-31 (33%); C5 2020-04-30 (29%); C5 2020-10-31 (37%); C5 2020-12-31 (26%); C7 2020-04-30 (35%); C7 2020-05-31 (21%); C7 2020-06-30 (27%); C7 2020-10-31 (60%); C7 2020-11-30 (23%); C7 2020-12-31 (35%); C2 2020-04-30 (32%); C2g 2020-04-30 (22%); C6 2020-04-30 (43%); C6 2020-10-31 (33%); C6 2020-12-31 (26%); C8 2020-04-30 (47%); C8 2020-05-31 (25%); C8 2020-06-30 (32%); C8 2020-09-30 (53%); C8 2020-10-31 (65%); C8 2020-12-31 (42%); C9 2020-04-30 (28%); C9 2020-05-31 (25%); C9 2020-06-30 (35%); C9 2020-09-30 (44%); C9 2020-10-31 (50%); C9 2020-12-31 (36%); C_IC1 2020-01-31 (20%); C_IC1 2020-04-30 (36%); C_IC1 2020-05-31 (23%); C_IC1 2020-06-30 (29%); C_IC1 2020-10-31 (66%); C_IC1 2020-11-30 (25%); C_IC1 2020-12-30 (29%)
-- Churn risk (accounts renewing in 2020): 8 at risk (≥20% churn prob): C1 26%, C4 20%, C5 35%, C6 32%, C7 35%, C8 38%, C9 41%, C_IC1 35%
+- Active accounts: 18 (C1, C1g, C2, C2g, C3, C3g, C4, C4g, C5, C6, C7, C8, C9, C_IC1, C_IC2, C_IC3, C_IC3g, C_IC4)
+  - Resi electricity: 7, SME electricity: 2, gas (dual-fuel): 5
+- New acquisitions this year: C_IC4
+- Losses (churn) during year: C3
+  - Renewals (retained): 9 accounts
+- Average CLV (Point-in-Time, year-end 2020): £259,816.03
+  - By billing account: C1 £2,054.41, C2 £5,111.67, C3 £2,193.29, C4 £2,858.13, C5 £7,142.49, C6 £8,755.78, C7 £4,744.83, C8 £6,032.49, C9 £5,906.82, C_IC1 £874,542.22, C_IC2 £526,508.19, C_IC3 £1,907,014.82, C_IC4 £24,743.29
+- Bill shock events (>=20%): 34 -- C1 2020-04-30 (21%); C1g 2020-01-31 (30%); C5 2020-04-30 (29%); C5 2020-10-31 (39%); C5 2020-12-31 (26%); C7 2020-04-30 (35%); C7 2020-05-31 (22%); C7 2020-06-30 (28%); C7 2020-10-31 (63%); C7 2020-11-30 (24%); C7 2020-12-31 (36%); C2g 2020-04-30 (26%); C6 2020-04-30 (30%); C6 2020-09-30 (21%); C6 2020-10-31 (34%); C6 2020-12-31 (26%); C8 2020-04-30 (37%); C8 2020-05-31 (26%); C8 2020-06-30 (33%); C8 2020-09-30 (57%); C8 2020-10-31 (68%); C8 2020-12-31 (44%); C9 2020-04-30 (28%); C9 2020-05-31 (26%); C9 2020-06-30 (36%); C9 2020-09-30 (47%); C9 2020-10-31 (52%); C9 2020-12-31 (37%); C_IC1 2020-03-31 (57%); C_IC1 2020-04-30 (86%); C_IC2 2020-02-29 (65%); C_IC2 2020-03-31 (133%); C_IC3g 2020-01-31 (33%); C_IC4 2020-12-31 (21%)
+- Churn risk (accounts renewing in 2020): 7 at risk (≥20% churn prob): C1 26%, C5 35%, C6 32%, C7 38%, C8 38%, C9 41%, C_IC4 23%
 
 **Pricing & Margin**
 
-- C1 (electricity): tariff £81.41-£96.97/MWh, net margin £7.07
-- C1g (gas): tariff £15.80-£18.58/MWh, net margin £31.85
-- C2 (electricity): tariff £68.51-£105.87/MWh, net margin £-42.47 -- **net-negative**
-- C2g (gas): tariff £14.22-£21.68/MWh, net margin £44.76
-- C3 (electricity): tariff £76.37/MWh, net margin £-10.71 -- **net-negative**
-- C3g (gas): tariff £16.13/MWh, net margin £19.58
-- C4 (electricity): tariff £78.50-£83.20/MWh, net margin £28.41
-- C4g (gas): tariff £9.07-£13.59/MWh, net margin £51.73
-- C5 (electricity): tariff £82.12-£95.70/MWh, net margin £32.27
-- C6 (electricity): tariff £70.14-£105.79/MWh, net margin £-125.38 -- **net-negative**
-- C7 (electricity): tariff £63.78-£144.65/MWh, net margin £45.08
-- C8 (electricity): tariff £56.56-£149.54/MWh, net margin £33.22
-- C9 (electricity): tariff £50.52-£116.71/MWh, net margin £31.53
-- C_IC1 (electricity): tariff £63.45-£121.14/MWh, net margin £5,258.63
+- C1 (electricity): tariff £131.41-£138.95/MWh, net margin £12.67
+- C1g (gas): tariff £23.77-£24.38/MWh, net margin £36.39
+- C2 (electricity): tariff £153.85-£162.39/MWh, net margin £216.57
+- C2g (gas): tariff £24.57-£37.33/MWh, net margin £127.39
+- C3 (electricity): tariff £129.69/MWh, net margin £6.38
+- C3g (gas): tariff £27.96/MWh, net margin £56.03
+- C4 (electricity): tariff £112.67-£128.80/MWh, net margin £-0.21 -- **net-negative**
+- C4g (gas): tariff £15.50-£22.98/MWh, net margin £64.17
+- C5 (electricity): tariff £133.99-£144.58/MWh, net margin £-17.48 -- **net-negative**
+- C6 (electricity): tariff £153.85-£160.75/MWh, net margin £404.40
+- C7 (electricity): tariff £105.64-£226.59/MWh, net margin £127.04
+- C8 (electricity): tariff £116.60-£228.37/MWh, net margin £427.24
+- C9 (electricity): tariff £91.30-£200.84/MWh, net margin £179.48
+- C_IC1 (electricity): tariff £-73.45-£2690.77/MWh, net margin £72,122.71
+- C_IC2 (electricity): tariff £-79.50-£266.28/MWh, net margin £54,371.90
+- C_IC3 (electricity): tariff £39.11-£87.33/MWh, net margin £23,718.16
+- C_IC3g (gas): tariff £14.30-£15.88/MWh, net margin £14,088.34
+- C_IC4 (electricity): tariff £18.53-£73.19/MWh, net margin £-169,980.21 -- **net-negative**
 
 **Portfolio Health**
 
-- Capital cost ratio: 1.8% of gross
+- Capital cost ratio: 0.8% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 156, average clarity 0.881, average bill shock 12.5%, bad debt provision £6,109.17, avg complaint probability 3.7%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Bills issued: 204, average clarity 0.877, average bill shock 11.6%, bad debt provision £36,065.14, avg complaint probability 3.6%
+- Solvency signal: £219,105/customer (13 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £4,505.96 vs. naked (unhedged) net margin: £72,225.33
-- hedging cost £67,719.37 vs. a fully unhedged book (commodity-only: actual net £4,505.96 vs. naked net £72,225.33)
-  - C1: actual £-30.93 vs. naked £-138.15 -- hedging added £107.22
-  - C1g: actual £-18.42 vs. naked £-299.71 -- hedging added £281.29
-  - C2: actual £-83.59 vs. naked £155.96 -- hedging cost £239.55
-  - C2g: actual £46.64 vs. naked £37.94 -- hedging added £8.69
-  - C4: actual £1.17 vs. naked £17.30 -- hedging cost £16.14
-  - C4g: actual £-82.13 vs. naked £-364.57 -- hedging added £282.44
-  - C5: actual £-201.63 vs. naked £-880.87 -- hedging added £679.24
-  - C6: actual £-263.34 vs. naked £-46.22 -- hedging cost £217.12
-  - C7: actual £-75.47 vs. naked £-432.25 -- hedging added £356.79
-  - C8: actual £-45.84 vs. naked £149.65 -- hedging cost £195.48
-  - C9: actual £0.88 vs. naked £-53.74 -- hedging added £54.63
-  - C_IC1: actual £5,258.63 vs. naked £74,080.00 -- hedging cost £68,821.37
+- Actual (hedged) net margin: £-231,192.57 vs. naked (unhedged) net margin: £494,449.03
+- hedging cost £725,641.60 vs. a fully unhedged book (commodity-only: actual net £-231,192.57 vs. naked net £494,449.03)
+  - C1: actual £-49.77 vs. naked £17.86 -- hedging cost £67.64
+  - C1g: actual £-57.36 vs. naked £-228.97 -- hedging added £171.61
+  - C2: actual £216.30 vs. naked £757.37 -- hedging cost £541.08
+  - C2g: actual £102.69 vs. naked £196.85 -- hedging cost £94.16
+  - C4: actual £-115.57 vs. naked £191.07 -- hedging cost £306.64
+  - C4g: actual £-119.43 vs. naked £-219.70 -- hedging added £100.27
+  - C5: actual £-280.00 vs. naked £177.98 -- hedging cost £457.98
+  - C6: actual £407.45 vs. naked £1,809.98 -- hedging cost £1,402.52
+  - C7: actual £51.16 vs. naked £357.26 -- hedging cost £306.10
+  - C8: actual £443.47 vs. naked £1,189.26 -- hedging cost £745.79
+  - C9: actual £88.94 vs. naked £708.68 -- hedging cost £619.74
+  - C_IC1: actual £60,683.16 vs. naked £152,118.71 -- hedging cost £91,435.55
+  - C_IC2: actual £55,936.93 vs. naked £107,190.59 -- hedging cost £51,253.66
+  - C_IC3: actual £-12,801.65 vs. naked £223,432.05 -- hedging cost £236,233.70
+  - C_IC3g: actual £-2,618.02 vs. naked £23,426.88 -- hedging cost £26,044.90
+  - C_IC4: actual £-333,080.86 vs. naked £-16,676.84 -- hedging cost £316,404.02
 
-**Year narrative:** 2020 produced a net gain of £5,405.56 across 14 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 34 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2020 produced a net loss of £-4,039.03 across 18 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 34 customer(s) experienced a bill shock of >=20%.
 
 ## 2021
 
 **Trading & Risk**
 
-- Net margin: £-1,534.25 (gross £1,246.85, capital £355.42)
-  - Electricity: gross £1,320.31, capital £347.34, net £-1,452.71
-  - Gas: gross £-73.46, capital £8.08, net £-81.54
-- Treasury at year end: £467,501.55
-- Hedge fraction at first renewal this year (avg across year's terms): C2 0.85 (avg 0.85), C2g 0.95 (avg 0.95), C4 0.85 (avg 0.85), C4g 0.95 (avg 0.95), C6 0.85 (avg 0.85), C7 0.95 (avg 0.95), C8 0.85 (avg 0.85), C9 0.95 (avg 0.95)
+- Net margin: £-122,961.27 (gross £538,023.25, capital £13,808.22)
+  - Electricity: gross £481,006.81, capital £12,675.26, net £-105,935.84
+  - Gas: gross £57,016.44, capital £1,132.96, net £-17,025.43
+- Treasury at year end: £2,705,463.99
+- Hedge fraction at first renewal this year (avg across year's terms): C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 0.95 (avg 0.95), C6 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85), C_IC1 0.85 (avg 0.85), C_IC2 0.85 (avg 0.85), C_IC3 0.95 (avg 0.95), C_IC3g 0.95 (avg 0.95), C_IC4 0.85 (avg 0.85)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: C5 on 2021-01-08 period 39, net margin £-2.12
+- Worst single period: C_IC3g on 2021-12-31 period 1, net margin £-201.53
 
 **Customer Book**
 
-- Active accounts: 11 (C1, C1g, C2, C2g, C4, C4g, C5, C6, C7, C8, C9)
-  - Resi electricity: 6, SME electricity: 2, gas (dual-fuel): 3
+- Active accounts: 16 (C1, C1g, C2, C2g, C4, C4g, C5, C6, C7, C8, C9, C_IC1, C_IC2, C_IC3, C_IC3g, C_IC4)
+  - Resi electricity: 6, SME electricity: 2, gas (dual-fuel): 4
 - New acquisitions this year: none
 - Losses (churn) during year: C1, C5
-  - Renewals (retained): 6 accounts
-- Average CLV (Point-in-Time, year-end 2021): £22,505.81
-  - By billing account: C1 £253.52, C2 £118.97, C3 £279.44, C4 £909.97, C5 £1,031.96, C6 £519.90, C7 £995.82, C8 £638.86, C9 £1,020.64, C_IC1 £219,289.02
-- Bill shock events (>=20%): 30 -- C5 2021-05-31 (22%); C5 2021-06-30 (32%); C5 2021-10-31 (29%); C5 2021-11-30 (50%); C7 2021-01-31 (22%); C7 2021-05-31 (30%); C7 2021-06-30 (47%); C7 2021-10-31 (55%); C7 2021-11-30 (65%); C2g 2021-04-30 (30%); C6 2021-04-30 (29%); C6 2021-06-30 (35%); C6 2021-10-31 (27%); C6 2021-11-30 (49%); C8 2021-04-30 (22%); C8 2021-05-31 (28%); C8 2021-06-30 (61%); C8 2021-09-30 (24%); C8 2021-10-31 (67%); C8 2021-11-30 (82%); C9 2021-02-28 (22%); C9 2021-05-31 (24%); C9 2021-06-30 (50%); C9 2021-08-31 (21%); C9 2021-09-30 (22%); C9 2021-10-31 (62%); C9 2021-11-30 (49%); C9 2021-12-31 (24%); C4 2021-10-31 (139%); C4g 2021-10-31 (203%)
-- Churn risk (accounts renewing in 2021): 6 at risk (≥20% churn prob): C2 20%, C5 35%, C6 38%, C7 35%, C8 41%, C9 35%
+  - Renewals (retained): 7 accounts
+- Average CLV (Point-in-Time, year-end 2021): £221,040.87
+  - By billing account: C1 £1,939.86, C2 £5,536.23, C3 £2,170.85, C4 £2,665.83, C5 £6,270.68, C6 £8,528.58, C7 £5,173.45, C8 £5,151.58, C9 £5,000.64, C_IC1 £824,449.03, C_IC2 £469,331.38, C_IC3 £1,516,385.23, C_IC4 £20,928.04
+- Bill shock events (>=20%): 36 -- C1 2021-04-30 (20%); C5 2021-05-31 (23%); C5 2021-06-30 (32%); C5 2021-10-31 (30%); C5 2021-11-30 (51%); C7 2021-05-31 (31%); C7 2021-06-30 (48%); C7 2021-10-31 (56%); C7 2021-11-30 (67%); C2g 2021-04-30 (21%); C6 2021-06-30 (36%); C6 2021-10-31 (28%); C6 2021-11-30 (50%); C8 2021-05-31 (29%); C8 2021-06-30 (62%); C8 2021-09-30 (26%); C8 2021-10-31 (69%); C8 2021-11-30 (85%); C9 2021-02-28 (21%); C9 2021-05-31 (25%); C9 2021-06-30 (52%); C9 2021-08-31 (22%); C9 2021-09-30 (23%); C9 2021-10-31 (63%); C9 2021-11-30 (50%); C9 2021-12-31 (24%); C4 2021-10-31 (75%); C4g 2021-10-31 (158%); C_IC1 2021-04-30 (22%); C_IC1 2021-05-31 (50%); C_IC2 2021-03-31 (30%); C_IC2 2021-04-30 (77%); C_IC4 2021-02-28 (28%); C_IC4 2021-07-31 (22%); C_IC4 2021-09-30 (40%); C_IC4 2021-12-31 (29%)
+- Churn risk (accounts renewing in 2021): 8 at risk (≥20% churn prob): C5 35%, C6 35%, C7 35%, C8 41%, C9 35%, C_IC1 20%, C_IC2 23%, C_IC4 32%
 
 **Pricing & Margin**
 
-- C1 (electricity): tariff £96.97/MWh, net margin £-30.44 -- **net-negative**
-- C1g (gas): tariff £18.58/MWh, net margin £-18.40 -- **net-negative**
-- C2 (electricity): tariff £68.51-£115.26/MWh, net margin £-196.56 -- **net-negative**
-- C2g (gas): tariff £14.22-£25.08/MWh, net margin £23.05
-- C4 (electricity): tariff £83.20-£293.81/MWh, net margin £22.78
-- C4g (gas): tariff £9.07-£58.76/MWh, net margin £-86.19 -- **net-negative**
-- C5 (electricity): tariff £95.70/MWh, net margin £-197.21 -- **net-negative**
-- C6 (electricity): tariff £70.14-£121.97/MWh, net margin £-600.12 -- **net-negative**
-- C7 (electricity): tariff £75.77-£438.86/MWh, net margin £-78.24 -- **net-negative**
-- C8 (electricity): tariff £56.56-£163.91/MWh, net margin £-290.23 -- **net-negative**
-- C9 (electricity): tariff £50.52-£181.95/MWh, net margin £-82.68 -- **net-negative**
+- C1 (electricity): tariff £138.95/MWh, net margin £-49.17 -- **net-negative**
+- C1g (gas): tariff £24.38/MWh, net margin £-57.20 -- **net-negative**
+- C2 (electricity): tariff £153.85-£186.79/MWh, net margin £170.34
+- C2g (gas): tariff £24.57-£35.03/MWh, net margin £42.80
+- C4 (electricity): tariff £112.67-£224.74/MWh, net margin £-127.58 -- **net-negative**
+- C4g (gas): tariff £15.50-£63.98/MWh, net margin £-103.13 -- **net-negative**
+- C5 (electricity): tariff £144.58/MWh, net margin £-276.52 -- **net-negative**
+- C6 (electricity): tariff £153.85-£186.79/MWh, net margin £265.56
+- C7 (electricity): tariff £118.69-£392.69/MWh, net margin £39.14
+- C8 (electricity): tariff £116.60-£280.19/MWh, net margin £417.18
+- C9 (electricity): tariff £91.30-£245.28/MWh, net margin £-20.58 -- **net-negative**
+- C_IC1 (electricity): tariff £-54.00-£2365.91/MWh, net margin £49,027.60
+- C_IC2 (electricity): tariff £-73.20-£1080.00/MWh, net margin £45,652.87
+- C_IC3 (electricity): tariff £45.75-£286.74/MWh, net margin £-37,475.39 -- **net-negative**
+- C_IC3g (gas): tariff £15.88-£93.15/MWh, net margin £-16,907.90 -- **net-negative**
+- C_IC4 (electricity): tariff £42.47-£336.77/MWh, net margin £-163,559.27 -- **net-negative**
 
 **Portfolio Health**
 
-- Capital cost ratio: 28.5% of gross
+- Capital cost ratio: 2.6% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 132, average clarity 0.877, average bill shock 15.5%, bad debt provision £340.61, avg complaint probability 4.0%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Bills issued: 192, average clarity 0.871, average bill shock 12.9%, bad debt provision £43,067.27, avg complaint probability 3.8%
+- Solvency signal: £225,455/customer (12 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £-1,519.76 vs. naked (unhedged) net margin: £-6,083.12
-- hedging added £4,563.36 vs. a fully unhedged book (commodity-only: actual net £-1,519.76 vs. naked net £-6,083.12)
-  - C2: actual £-239.23 vs. naked £-330.49 -- hedging added £91.26
-  - C2g: actual £13.92 vs. naked £-542.89 -- hedging added £556.81
-  - C4: actual £128.87 vs. naked £289.78 -- hedging cost £160.91
-  - C4g: actual £-81.16 vs. naked £-1,080.31 -- hedging added £999.15
-  - C6: actual £-743.91 vs. naked £-2,407.48 -- hedging added £1,663.57
-  - C7: actual £-54.50 vs. naked £174.54 -- hedging cost £229.03
-  - C8: actual £-418.49 vs. naked £-1,106.61 -- hedging added £688.13
-  - C9: actual £-125.27 vs. naked £-1,079.66 -- hedging added £954.39
+- Actual (hedged) net margin: £-195,663.51 vs. naked (unhedged) net margin: £-176,198.90
+- hedging cost £19,464.61 vs. a fully unhedged book (commodity-only: actual net £-195,663.51 vs. naked net £-176,198.90)
+  - C2: actual £125.68 vs. naked £164.56 -- hedging cost £38.88
+  - C2g: actual £8.60 vs. naked £-387.47 -- hedging added £396.07
+  - C4: actual £-185.45 vs. naked £-70.74 -- hedging cost £114.72
+  - C4g: actual £-33.08 vs. naked £-948.63 -- hedging added £915.55
+  - C6: actual £100.78 vs. naked £-123.97 -- hedging added £224.75
+  - C7: actual £-719.77 vs. naked £-53.79 -- hedging cost £665.98
+  - C8: actual £338.13 vs. naked £37.77 -- hedging added £300.36
+  - C9: actual £-196.25 vs. naked £-475.87 -- hedging added £279.63
+  - C_IC1: actual £50,658.20 vs. naked £-45,635.53 -- hedging added £96,293.73
+  - C_IC2: actual £47,866.52 vs. naked £3,132.33 -- hedging added £44,734.19
+  - C_IC3: actual £-143,006.91 vs. naked £-64,733.68 -- hedging cost £78,273.22
+  - C_IC3g: actual £-2,026.11 vs. naked £-7,320.07 -- hedging added £5,293.96
+  - C_IC4: actual £-148,593.86 vs. naked £-59,783.81 -- hedging cost £88,810.05
 
-**Year narrative:** 2021 (flagged crisis year) produced a net loss of £-1,534.25 across 11 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 30 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2021 (flagged crisis year) produced a net loss of £-122,961.27 across 16 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 36 customer(s) experienced a bill shock of >=20%.
 
 ## 2022
 
 **Trading & Risk**
 
-- Net margin: £-1,473.03 (gross £309.73, capital £359.05)
-  - Electricity: gross £472.72, capital £354.40, net £-1,305.39
-  - Gas: gross £-162.99, capital £4.65, net £-167.64
-- Treasury at year end: £465,598.71
-- Hedge fraction at first renewal this year (avg across year's terms): C2_2 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 1.00 (avg 1.00), C6 0.95 (avg 0.95), C7 0.85 (avg 0.85), C8 0.95 (avg 0.95), C9 1.00 (avg 1.00)
-- Risk committee (Context Handshake) interventions: 0
-- VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: C6 on 2022-01-24 period 34, net margin £-2.57
+- Net margin: £-48,367.53 (gross £575,913.38, capital £20,521.22)
+  - Electricity: gross £492,567.71, capital £18,067.25, net £-47,585.18
+  - Gas: gross £83,345.67, capital £2,453.97, net £-782.35
+- Treasury at year end: £2,513,693.52
+- Hedge fraction at first renewal this year (avg across year's terms): C2 0.95 (avg 0.95), C2g 0.95 (avg 0.95), C4 0.95 (avg 0.95), C4g 1.00 (avg 1.00), C6 0.95 (avg 0.95), C7 0.95 (avg 0.95), C8 0.95 (avg 0.95), C9 0.95 (avg 0.95), C_IC1 1.00 (avg 0.95), C_IC2 1.00 (avg 0.95), C_IC3 1.00 (avg 1.00), C_IC3g 1.00 (avg 1.00), C_IC4 0.85 (avg 0.85)
+- Risk committee (Context Handshake) interventions: 9
+  - 2022-04-29: treasury £2,807,888.17, C2->0.95, C6->0.95, C8->0.95, C_IC1->0.95, C_IC2->0.95, VaR (current £130,983.38 / stressed £51,528.85) ratio 2.54
+  - 2022-05-29: treasury £2,807,991.47, C2->0.95, C6->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, VaR (current £131,256.46 / stressed £51,619.88) ratio 2.54
+  - 2022-06-28: treasury £2,807,976.53, C2->0.95, C6->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, VaR (current £131,256.46 / stressed £51,619.88) ratio 2.54
+  - 2022-07-28: treasury £2,807,833.68, C2->0.95, C4->0.95, C6->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, VaR (current £131,533.88 / stressed £51,695.61) ratio 2.54
+  - 2022-08-27: treasury £2,807,812.20, C2->0.95, C4->0.95, C6->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, VaR (current £131,533.88 / stressed £51,695.61) ratio 2.54
+  - 2022-09-26: treasury £2,807,792.69, C2->0.95, C4->0.95, C6->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, VaR (current £131,533.88 / stressed £51,695.61) ratio 2.54
+  - 2022-10-26: treasury £2,807,192.58, C2->0.95, C4->0.95, C6->0.95, C7->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, VaR (current £132,318.88 / stressed £51,976.18) ratio 2.55
+  - 2022-11-25: treasury £2,807,149.95, C2->0.95, C4->0.95, C6->0.95, C7->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, VaR (current £132,318.88 / stressed £51,976.18) ratio 2.55
+  - 2022-12-25: treasury £2,807,042.63, C2->0.95, C4->0.95, C6->0.95, C7->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, VaR (current £132,318.88 / stressed £51,976.18) ratio 2.55
+- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.54
+- Worst single period: C_IC1 on 2022-01-24 period 26, net margin £-151.80
 
 **Customer Book**
 
-- Active accounts: 9 (C2, C2_2, C2g, C4, C4g, C6, C7, C8, C9)
-  - Resi electricity: 6, SME electricity: 1, gas (dual-fuel): 2
-- New acquisitions this year: C2_2
-- Losses (churn) during year: C2
-  - Renewals (retained): 5 accounts
-- Average CLV (Point-in-Time, year-end 2022): £18,825.78
-  - By billing account: C1 £223.82, C2 £63.10, C2_2 £-333.55, C3 £288.92, C4 £560.69, C5 £1,154.14, C6 £303.87, C7 £901.60, C8 £581.22, C9 £1,193.72, C_IC1 £202,146.10
-- Bill shock events (>=20%): 36 -- C7 2022-01-31 (161%); C7 2022-02-28 (27%); C7 2022-04-30 (23%); C7 2022-05-31 (37%); C7 2022-06-30 (28%); C7 2022-09-30 (36%); C7 2022-11-30 (66%); C7 2022-12-31 (54%); C6 2022-04-30 (79%); C6 2022-05-31 (23%); C6 2022-09-30 (25%); C6 2022-11-30 (43%); C6 2022-12-31 (34%); C8 2022-02-28 (22%); C8 2022-04-30 (77%); C8 2022-05-31 (39%); C8 2022-06-30 (35%); C8 2022-07-31 (22%); C8 2022-09-30 (86%); C8 2022-11-30 (73%); C8 2022-12-31 (58%); C9 2022-04-30 (21%); C9 2022-05-31 (30%); C9 2022-06-30 (30%); C9 2022-07-31 (23%); C9 2022-09-30 (50%); C9 2022-10-31 (31%); C9 2022-11-30 (46%); C9 2022-12-31 (53%); C4g 2022-10-31 (154%); C2_2 2022-04-30 (1717%); C2_2 2022-05-31 (39%); C2_2 2022-06-30 (33%); C2_2 2022-09-30 (77%); C2_2 2022-11-30 (65%); C2_2 2022-12-31 (57%)
-- Churn risk (accounts renewing in 2022): 5 at risk (≥20% churn prob): C4 23%, C6 32%, C7 35%, C8 35%, C9 38%
+- Active accounts: 13 (C2, C2g, C4, C4g, C6, C7, C8, C9, C_IC1, C_IC2, C_IC3, C_IC3g, C_IC4)
+  - Resi electricity: 5, SME electricity: 1, gas (dual-fuel): 3
+- New acquisitions this year: none
+- Losses (churn) during year: none
+  - Renewals (retained): 7 accounts
+- Average CLV (Point-in-Time, year-end 2022): £208,248.29
+  - By billing account: C1 £1,805.20, C2 £5,061.19, C3 £2,100.61, C4 £2,453.46, C5 £6,417.18, C6 £9,032.49, C7 £4,265.24, C8 £6,529.34, C9 £4,558.64, C_IC1 £843,776.34, C_IC2 £464,627.08, C_IC3 £1,339,821.91, C_IC4 £16,779.09
+- Bill shock events (>=20%): 44 -- C7 2022-01-31 (80%); C7 2022-02-28 (27%); C7 2022-04-30 (23%); C7 2022-05-31 (37%); C7 2022-06-30 (28%); C7 2022-09-30 (35%); C7 2022-11-30 (66%); C7 2022-12-31 (56%); C2 2022-04-30 (51%); C2g 2022-04-30 (150%); C6 2022-04-30 (44%); C6 2022-05-31 (23%); C6 2022-09-30 (25%); C6 2022-11-30 (44%); C6 2022-12-31 (34%); C8 2022-02-28 (22%); C8 2022-04-30 (31%); C8 2022-05-31 (39%); C8 2022-06-30 (35%); C8 2022-07-31 (22%); C8 2022-09-30 (86%); C8 2022-11-30 (73%); C8 2022-12-31 (58%); C9 2022-04-30 (21%); C9 2022-05-31 (30%); C9 2022-06-30 (30%); C9 2022-07-31 (27%); C9 2022-09-30 (51%); C9 2022-10-31 (31%); C9 2022-11-30 (46%); C9 2022-12-31 (53%); C4 2022-10-31 (57%); C4g 2022-10-31 (120%); C_IC1 2022-06-30 (87%); C_IC2 2022-05-31 (59%); C_IC3 2022-01-31 (67%); C_IC3g 2022-01-31 (173%); C_IC4 2022-02-28 (21%); C_IC4 2022-03-31 (44%); C_IC4 2022-05-31 (21%); C_IC4 2022-07-31 (38%); C_IC4 2022-08-31 (41%); C_IC4 2022-10-31 (39%); C_IC4 2022-12-31 (102%)
+- Churn risk (accounts renewing in 2022): 8 at risk (≥20% churn prob): C4 20%, C6 29%, C7 35%, C8 38%, C9 41%, C_IC1 20%, C_IC3 20%, C_IC4 38%
 
 **Pricing & Margin**
 
-- C2 (electricity): tariff £115.26/MWh, net margin £-67.94 -- **net-negative**
-- C2_2 (electricity): tariff £265.84/MWh, net margin £-554.35 -- **net-negative**
-- C2g (gas): tariff £25.08/MWh, net margin £-1.48 -- **net-negative**
-- C4 (electricity): tariff £293.81-£322.32/MWh, net margin £-43.67 -- **net-negative**
-- C4g (gas): tariff £58.76-£174.40/MWh, net margin £-166.16 -- **net-negative**
-- C6 (electricity): tariff £121.97-£346.48/MWh, net margin £-548.18 -- **net-negative**
-- C7 (electricity): tariff £206.08-£438.86/MWh, net margin £-62.21 -- **net-negative**
-- C8 (electricity): tariff £85.86-£519.31/MWh, net margin £-81.05 -- **net-negative**
-- C9 (electricity): tariff £95.31-£355.90/MWh, net margin £52.02
+- C2 (electricity): tariff £186.79-£391.49/MWh, net margin £288.88
+- C2g (gas): tariff £35.03-£123.05/MWh, net margin £129.55
+- C4 (electricity): tariff £224.74-£352.66/MWh, net margin £-206.51 -- **net-negative**
+- C4g (gas): tariff £63.98-£158.85/MWh, net margin £-120.35 -- **net-negative**
+- C6 (electricity): tariff £186.79-£379.66/MWh, net margin £361.80
+- C7 (electricity): tariff £205.70-£578.11/MWh, net margin £-707.62 -- **net-negative**
+- C8 (electricity): tariff £146.77-£550.51/MWh, net margin £497.87
+- C9 (electricity): tariff £128.48-£482.00/MWh, net margin £292.08
+- C_IC1 (electricity): tariff £-83.39-£466.89/MWh, net margin £165,826.82
+- C_IC2 (electricity): tariff £-80.56-£593.08/MWh, net margin £76,651.00
+- C_IC3 (electricity): tariff £150.20-£286.74/MWh, net margin £-142,082.93 -- **net-negative**
+- C_IC3g (gas): tariff £93.15-£162.45/MWh, net margin £-791.55 -- **net-negative**
+- C_IC4 (electricity): tariff £71.50-£469.98/MWh, net margin £-148,506.58 -- **net-negative**
 
 **Portfolio Health**
 
-- Capital cost ratio: 115.9% of gross
-- Treasury drawdown events (>=10% threshold): none
-- Bills issued: 88, average clarity 0.808, average bill shock 43.8%, bad debt provision £494.56, avg complaint probability 5.6%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Capital cost ratio: 3.6% of gross
+- Treasury drawdown events (>=10% threshold): 946 -- £2,808,111.87 -> £2,513,410.57 (10.5%); £2,808,113.61 -> £2,513,440.20 (10.5%); £2,808,135.06 -> £2,513,440.22 (10.5%); £2,808,150.98 -> £2,513,440.24 (10.5%); £2,808,162.68 -> £2,513,440.26 (10.5%); £2,808,171.16 -> £2,513,440.28 (10.5%); £2,808,177.45 -> £2,509,139.31 (10.6%); £2,862,853.36 -> £2,513,502.63 (12.2%); £2,862,853.45 -> £2,513,503.06 (12.2%); £2,862,853.56 -> £2,513,503.07 (12.2%); £2,862,853.66 -> £2,513,503.08 (12.2%); £2,862,853.69 -> £2,513,503.09 (12.2%); £2,862,853.71 -> £2,513,503.09 (12.2%); £2,862,853.76 -> £2,513,503.25 (12.2%); £2,862,853.87 -> £2,513,503.26 (12.2%); £2,862,853.96 -> £2,513,503.28 (12.2%); £2,862,854.06 -> £2,513,503.30 (12.2%); £2,862,854.16 -> £2,513,503.32 (12.2%); £2,862,854.18 -> £2,513,503.94 (12.2%); £2,862,854.34 -> £2,513,503.95 (12.2%); £2,862,854.49 -> £2,513,503.96 (12.2%); £2,862,854.65 -> £2,513,503.97 (12.2%); £2,862,854.80 -> £2,513,503.98 (12.2%); £2,862,854.85 -> £2,513,503.98 (12.2%); £2,862,854.90 -> £2,513,503.99 (12.2%); £2,862,854.92 -> £2,513,504.09 (12.2%); £2,862,855.07 -> £2,513,504.11 (12.2%); £2,862,855.21 -> £2,513,504.13 (12.2%); £2,862,855.36 -> £2,513,504.15 (12.2%); £2,862,855.50 -> £2,513,504.17 (12.2%); £2,862,855.64 -> £2,513,504.19 (12.2%); £2,862,855.78 -> £2,513,504.20 (12.2%); £2,862,855.91 -> £2,513,504.22 (12.2%); £2,862,856.07 -> £2,513,506.91 (12.2%); £2,862,856.26 -> £2,513,506.92 (12.2%); £2,862,856.45 -> £2,513,506.93 (12.2%); £2,862,856.63 -> £2,513,506.94 (12.2%); £2,862,856.68 -> £2,513,506.95 (12.2%); £2,862,856.72 -> £2,513,506.96 (12.2%); £2,862,856.76 -> £2,513,507.06 (12.2%); £2,862,856.93 -> £2,513,507.09 (12.2%); £2,862,857.10 -> £2,513,507.11 (12.2%); £2,862,857.26 -> £2,513,507.13 (12.2%); £2,862,857.43 -> £2,513,507.15 (12.2%); £2,862,857.59 -> £2,513,507.17 (12.2%); £2,862,857.76 -> £2,513,507.19 (12.2%); £2,862,857.91 -> £2,513,507.21 (12.2%); £2,862,857.98 -> £2,513,507.85 (12.2%); £2,862,858.11 -> £2,513,507.86 (12.2%); £2,862,858.24 -> £2,513,507.87 (12.2%); £2,862,858.36 -> £2,513,507.88 (12.2%); £2,862,858.49 -> £2,513,507.90 (12.2%); £2,862,858.62 -> £2,513,507.90 (12.2%); £2,862,858.67 -> £2,513,507.91 (12.2%); £2,862,858.71 -> £2,513,507.92 (12.2%); £2,862,858.73 -> £2,513,508.01 (12.2%); £2,862,858.85 -> £2,513,508.02 (12.2%); £2,862,858.97 -> £2,513,508.04 (12.2%); £2,862,859.09 -> £2,513,508.06 (12.2%); £2,862,859.21 -> £2,513,508.08 (12.2%); £2,862,859.33 -> £2,513,508.09 (12.2%); £2,862,859.44 -> £2,513,508.11 (12.2%); £2,862,859.56 -> £2,513,508.12 (12.2%); £2,862,859.56 -> £2,513,508.73 (12.2%); £2,862,859.65 -> £2,513,508.74 (12.2%); £2,862,859.75 -> £2,513,508.75 (12.2%); £2,862,859.85 -> £2,513,508.76 (12.2%); £2,862,859.94 -> £2,513,508.77 (12.2%); £2,862,860.04 -> £2,513,508.78 (12.2%); £2,862,860.09 -> £2,513,508.79 (12.2%); £2,862,860.14 -> £2,513,508.80 (12.2%); £2,862,860.17 -> £2,513,508.90 (12.2%); £2,862,860.26 -> £2,513,508.92 (12.2%); £2,862,860.37 -> £2,513,508.94 (12.2%); £2,862,860.47 -> £2,513,508.96 (12.2%); £2,862,860.57 -> £2,513,508.98 (12.2%); £2,862,860.67 -> £2,513,509.00 (12.2%); £2,862,860.77 -> £2,513,509.02 (12.2%); £2,862,860.86 -> £2,513,509.03 (12.2%); £2,862,860.91 -> £2,513,509.70 (12.2%); £2,862,860.96 -> £2,513,509.71 (12.2%); £2,862,861.01 -> £2,513,509.72 (12.2%); £2,862,861.05 -> £2,513,509.73 (12.2%); £2,862,861.10 -> £2,513,509.74 (12.2%); £2,862,861.15 -> £2,513,509.74 (12.2%); £2,862,861.20 -> £2,513,509.75 (12.2%); £2,862,861.23 -> £2,513,509.85 (12.2%); £2,862,861.29 -> £2,513,509.88 (12.2%); £2,862,861.36 -> £2,513,509.89 (12.2%); £2,862,861.43 -> £2,513,509.91 (12.2%); £2,862,861.49 -> £2,513,509.93 (12.2%); £2,862,861.55 -> £2,513,509.95 (12.2%); £2,862,861.61 -> £2,513,509.96 (12.2%); £2,862,861.66 -> £2,513,509.98 (12.2%); £2,862,861.69 -> £2,513,510.60 (12.2%); £2,862,861.78 -> £2,513,510.61 (12.2%); £2,862,861.88 -> £2,513,510.62 (12.2%); £2,862,861.97 -> £2,513,510.63 (12.2%); £2,862,862.06 -> £2,513,510.65 (12.2%); £2,862,862.15 -> £2,513,510.65 (12.2%); £2,862,862.20 -> £2,513,510.66 (12.2%); £2,862,862.25 -> £2,513,510.67 (12.2%); £2,862,862.28 -> £2,513,510.77 (12.2%); £2,862,862.38 -> £2,513,510.79 (12.2%); £2,862,862.48 -> £2,513,510.81 (12.2%); £2,862,862.57 -> £2,513,510.82 (12.2%); £2,862,862.67 -> £2,513,510.84 (12.2%); £2,862,862.76 -> £2,513,510.86 (12.2%); £2,862,862.85 -> £2,513,510.87 (12.2%); £2,862,862.94 -> £2,513,510.89 (12.2%); £2,862,862.97 -> £2,513,513.54 (12.2%); £2,862,862.98 -> £2,513,513.62 (12.2%); £2,862,863.04 -> £2,513,513.64 (12.2%); £2,862,863.11 -> £2,513,513.66 (12.2%); £2,862,863.17 -> £2,513,513.67 (12.2%); £2,862,863.23 -> £2,513,513.69 (12.2%); £2,862,863.29 -> £2,513,513.71 (12.2%); £2,862,863.35 -> £2,513,513.72 (12.2%); £2,862,863.40 -> £2,513,513.73 (12.2%); £2,862,863.43 -> £2,513,514.35 (12.2%); £2,862,863.48 -> £2,513,514.36 (12.2%); £2,862,863.53 -> £2,513,514.37 (12.2%); £2,862,863.58 -> £2,513,514.38 (12.2%); £2,862,863.62 -> £2,513,514.39 (12.2%); £2,862,863.67 -> £2,513,514.39 (12.2%); £2,862,863.72 -> £2,513,514.40 (12.2%); £2,862,863.72 -> £2,513,514.48 (12.2%); £2,862,863.78 -> £2,513,514.49 (12.2%); £2,862,863.84 -> £2,513,514.51 (12.2%); £2,862,863.90 -> £2,513,514.52 (12.2%); £2,862,863.96 -> £2,513,514.54 (12.2%); £2,862,864.02 -> £2,513,514.55 (12.2%); £2,862,864.08 -> £2,513,514.56 (12.2%); £2,862,864.13 -> £2,513,514.58 (12.2%); £2,862,864.17 -> £2,513,515.16 (12.2%); £2,862,864.29 -> £2,513,515.18 (12.2%); £2,862,864.41 -> £2,513,515.18 (12.2%); £2,862,864.53 -> £2,513,515.19 (12.2%); £2,862,864.64 -> £2,513,515.20 (12.2%); £2,862,864.76 -> £2,513,515.21 (12.2%); £2,862,864.81 -> £2,513,515.22 (12.2%); £2,862,864.86 -> £2,513,515.23 (12.2%); £2,862,864.89 -> £2,513,515.33 (12.2%); £2,862,865.00 -> £2,513,515.35 (12.2%); £2,862,865.12 -> £2,513,515.37 (12.2%); £2,862,865.24 -> £2,513,515.39 (12.2%); £2,862,865.36 -> £2,513,515.41 (12.2%); £2,862,865.47 -> £2,513,515.43 (12.2%); £2,862,865.59 -> £2,513,515.45 (12.2%); £2,862,865.70 -> £2,513,515.46 (12.2%); £2,862,865.74 -> £2,513,516.07 (12.2%); £2,862,865.88 -> £2,513,516.09 (12.2%); £2,862,866.01 -> £2,513,516.10 (12.2%); £2,862,866.14 -> £2,513,516.11 (12.2%); £2,862,866.27 -> £2,513,516.12 (12.2%); £2,862,866.40 -> £2,513,516.13 (12.2%); £2,862,866.45 -> £2,513,516.14 (12.2%); £2,862,866.50 -> £2,513,516.15 (12.2%); £2,862,866.53 -> £2,513,516.25 (12.2%); £2,862,866.65 -> £2,513,516.27 (12.2%); £2,862,866.78 -> £2,513,516.29 (12.2%); £2,862,866.91 -> £2,513,516.31 (12.2%); £2,862,867.03 -> £2,513,516.33 (12.2%); £2,862,867.16 -> £2,513,516.35 (12.2%); £2,862,867.28 -> £2,513,516.37 (12.2%); £2,862,867.39 -> £2,513,516.39 (12.2%); £2,862,867.45 -> £2,513,517.05 (12.2%); £2,862,867.51 -> £2,513,517.06 (12.2%); £2,862,867.58 -> £2,513,517.07 (12.2%); £2,862,867.64 -> £2,513,517.08 (12.2%); £2,862,867.70 -> £2,513,517.09 (12.2%); £2,862,867.75 -> £2,513,517.10 (12.2%); £2,862,867.80 -> £2,513,517.11 (12.2%); £2,862,867.83 -> £2,513,517.21 (12.2%); £2,862,867.90 -> £2,513,517.23 (12.2%); £2,862,867.98 -> £2,513,517.25 (12.2%); £2,862,868.06 -> £2,513,517.27 (12.2%); £2,862,868.13 -> £2,513,517.29 (12.2%); £2,862,868.21 -> £2,513,517.31 (12.2%); £2,862,868.28 -> £2,513,517.33 (12.2%); £2,862,868.35 -> £2,513,517.35 (12.2%); £2,862,868.36 -> £2,513,520.11 (12.2%); £2,862,868.41 -> £2,513,520.12 (12.2%); £2,862,868.46 -> £2,513,520.13 (12.2%); £2,862,868.47 -> £2,513,520.28 (12.2%); £2,862,868.53 -> £2,513,520.30 (12.2%); £2,862,868.59 -> £2,513,520.32 (12.2%); £2,862,868.65 -> £2,513,520.34 (12.2%); £2,862,868.72 -> £2,513,520.35 (12.2%); £2,862,868.77 -> £2,513,520.36 (12.2%); £2,862,868.83 -> £2,513,520.38 (12.2%); £2,862,868.88 -> £2,513,520.40 (12.2%); £2,862,868.90 -> £2,513,520.96 (12.2%); £2,862,868.95 -> £2,513,520.98 (12.2%); £2,862,869.00 -> £2,513,520.99 (12.2%); £2,862,869.04 -> £2,513,520.99 (12.2%); £2,862,869.09 -> £2,513,521.00 (12.2%); £2,862,869.14 -> £2,513,521.01 (12.2%); £2,862,869.18 -> £2,513,521.01 (12.2%); £2,862,869.18 -> £2,513,521.17 (12.2%); £2,862,869.24 -> £2,513,521.21 (12.2%); £2,862,869.31 -> £2,513,521.23 (12.2%); £2,862,869.37 -> £2,513,521.24 (12.2%); £2,862,869.43 -> £2,513,521.25 (12.2%); £2,862,869.48 -> £2,513,521.26 (12.2%); £2,862,869.53 -> £2,513,521.27 (12.2%); £2,862,869.58 -> £2,513,521.28 (12.2%); £2,862,869.61 -> £2,513,521.92 (12.2%); £2,862,869.67 -> £2,513,521.93 (12.2%); £2,862,869.72 -> £2,513,521.94 (12.2%); £2,862,869.77 -> £2,513,521.96 (12.2%); £2,862,869.81 -> £2,513,521.96 (12.2%); £2,862,869.86 -> £2,513,521.97 (12.2%); £2,862,869.91 -> £2,513,521.98 (12.2%); £2,862,869.94 -> £2,513,522.08 (12.2%); £2,862,870.00 -> £2,513,522.10 (12.2%); £2,862,870.07 -> £2,513,522.12 (12.2%); £2,862,870.13 -> £2,513,522.14 (12.2%); £2,862,870.20 -> £2,513,522.16 (12.2%); £2,862,870.26 -> £2,513,522.18 (12.2%); £2,862,870.32 -> £2,513,522.20 (12.2%); £2,862,870.38 -> £2,513,522.22 (12.2%); £2,862,870.38 -> £2,513,522.87 (12.2%); £2,862,870.43 -> £2,513,522.89 (12.2%); £2,862,870.49 -> £2,513,522.90 (12.2%); £2,862,870.54 -> £2,513,522.91 (12.2%); £2,862,870.58 -> £2,513,522.92 (12.2%); £2,862,870.63 -> £2,513,522.93 (12.2%); £2,862,870.68 -> £2,513,522.94 (12.2%); £2,862,870.72 -> £2,513,522.95 (12.2%); £2,862,870.74 -> £2,513,523.04 (12.2%); £2,862,870.81 -> £2,513,523.06 (12.2%); £2,862,870.87 -> £2,513,523.08 (12.2%); £2,862,870.94 -> £2,513,523.10 (12.2%); £2,862,871.01 -> £2,513,523.13 (12.2%); £2,862,871.07 -> £2,513,523.15 (12.2%); £2,862,871.13 -> £2,513,523.16 (12.2%); £2,862,871.19 -> £2,513,523.18 (12.2%); £2,862,871.20 -> £2,513,523.82 (12.2%); £2,862,871.27 -> £2,513,523.84 (12.2%); £2,862,871.34 -> £2,513,523.85 (12.2%); £2,862,871.41 -> £2,513,523.86 (12.2%); £2,862,871.47 -> £2,513,523.87 (12.2%); £2,862,871.53 -> £2,513,523.88 (12.2%); £2,862,871.58 -> £2,513,523.88 (12.2%); £2,862,871.63 -> £2,513,523.89 (12.2%); £2,862,871.65 -> £2,513,523.98 (12.2%); £2,862,871.73 -> £2,513,524.00 (12.2%); £2,862,871.80 -> £2,513,524.02 (12.2%); £2,862,871.88 -> £2,513,524.04 (12.2%); £2,862,871.95 -> £2,513,524.05 (12.2%); £2,862,872.03 -> £2,513,524.07 (12.2%); £2,862,872.10 -> £2,513,524.08 (12.2%); £2,862,872.17 -> £2,513,524.10 (12.2%); £2,862,872.17 -> £2,513,526.56 (12.2%); £2,862,872.19 -> £2,513,526.66 (12.2%); £2,862,872.25 -> £2,513,526.68 (12.2%); £2,862,872.31 -> £2,513,526.70 (12.2%); £2,862,872.37 -> £2,513,526.72 (12.2%); £2,862,872.43 -> £2,513,526.74 (12.2%); £2,862,872.49 -> £2,513,526.75 (12.2%); £2,862,872.55 -> £2,513,526.77 (12.2%); £2,862,872.61 -> £2,513,526.79 (12.2%); £2,862,872.67 -> £2,513,527.44 (12.2%); £2,862,872.81 -> £2,513,527.45 (12.2%); £2,862,872.95 -> £2,513,527.46 (12.2%); £2,862,873.08 -> £2,513,527.47 (12.2%); £2,862,873.20 -> £2,513,527.48 (12.2%); £2,862,873.33 -> £2,513,527.48 (12.2%); £2,862,873.38 -> £2,513,527.49 (12.2%); £2,862,873.43 -> £2,513,527.50 (12.2%); £2,862,873.46 -> £2,513,527.60 (12.2%); £2,862,873.58 -> £2,513,527.62 (12.2%); £2,862,873.71 -> £2,513,527.64 (12.2%); £2,862,873.83 -> £2,513,527.66 (12.2%); £2,862,873.96 -> £2,513,527.68 (12.2%); £2,862,874.08 -> £2,513,527.69 (12.2%); £2,862,874.20 -> £2,513,527.70 (12.2%); £2,862,874.31 -> £2,513,527.72 (12.2%); £2,862,874.37 -> £2,513,528.34 (12.2%); £2,862,874.51 -> £2,513,528.35 (12.2%); £2,862,874.66 -> £2,513,528.36 (12.2%); £2,862,874.81 -> £2,513,528.37 (12.2%); £2,862,874.95 -> £2,513,528.38 (12.2%); £2,862,875.09 -> £2,513,528.39 (12.2%); £2,862,875.14 -> £2,513,528.40 (12.2%); £2,862,875.20 -> £2,513,528.41 (12.2%); £2,862,875.22 -> £2,513,528.50 (12.2%); £2,862,875.35 -> £2,513,528.52 (12.2%); £2,862,875.49 -> £2,513,528.54 (12.2%); £2,862,875.62 -> £2,513,528.56 (12.2%); £2,862,875.76 -> £2,513,528.58 (12.2%); £2,862,875.89 -> £2,513,528.60 (12.2%); £2,862,876.02 -> £2,513,528.62 (12.2%); £2,862,876.15 -> £2,513,528.64 (12.2%); £2,862,876.18 -> £2,513,529.26 (12.2%); £2,862,876.30 -> £2,513,529.27 (12.2%); £2,862,876.41 -> £2,513,529.28 (12.2%); £2,862,876.53 -> £2,513,529.29 (12.2%); £2,862,876.65 -> £2,513,529.31 (12.2%); £2,862,876.77 -> £2,513,529.31 (12.2%); £2,862,876.82 -> £2,513,529.32 (12.2%); £2,862,876.87 -> £2,513,529.33 (12.2%); £2,862,876.90 -> £2,513,529.43 (12.2%); £2,862,877.01 -> £2,513,529.45 (12.2%); £2,862,877.12 -> £2,513,529.47 (12.2%); £2,862,877.24 -> £2,513,529.49 (12.2%); £2,862,877.35 -> £2,513,529.51 (12.2%); £2,862,877.47 -> £2,513,529.52 (12.2%); £2,862,877.58 -> £2,513,529.54 (12.2%); £2,862,877.68 -> £2,513,529.56 (12.2%); £2,862,877.72 -> £2,513,530.16 (12.2%); £2,862,877.76 -> £2,513,530.17 (12.2%); £2,862,877.81 -> £2,513,530.18 (12.2%); £2,862,877.85 -> £2,513,530.18 (12.2%); £2,862,877.90 -> £2,513,530.19 (12.2%); £2,862,877.95 -> £2,513,530.20 (12.2%); £2,862,877.97 -> £2,513,530.29 (12.2%); £2,862,878.03 -> £2,513,530.30 (12.2%); £2,862,878.09 -> £2,513,530.32 (12.2%); £2,862,878.15 -> £2,513,530.34 (12.2%); £2,862,878.20 -> £2,513,530.35 (12.2%); £2,862,878.26 -> £2,513,530.36 (12.2%); £2,862,878.32 -> £2,513,530.38 (12.2%); £2,862,878.37 -> £2,513,530.39 (12.2%); £2,862,878.45 -> £2,513,532.82 (12.2%); £2,862,878.56 -> £2,513,532.83 (12.2%); £2,862,878.61 -> £2,513,532.84 (12.2%); £2,862,878.66 -> £2,513,532.85 (12.2%); £2,862,878.69 -> £2,513,532.95 (12.2%); £2,862,878.80 -> £2,513,532.97 (12.2%); £2,862,878.91 -> £2,513,532.99 (12.2%); £2,862,879.01 -> £2,513,533.00 (12.2%); £2,862,879.12 -> £2,513,533.02 (12.2%); £2,862,879.22 -> £2,513,533.03 (12.2%); £2,862,879.32 -> £2,513,533.05 (12.2%); £2,862,879.41 -> £2,513,533.06 (12.2%); £2,862,879.43 -> £2,513,533.71 (12.2%); £2,862,879.47 -> £2,513,533.72 (12.2%); £2,862,879.52 -> £2,513,533.73 (12.2%); £2,862,879.57 -> £2,513,533.74 (12.2%); £2,862,879.62 -> £2,513,533.75 (12.2%); £2,862,879.67 -> £2,513,533.76 (12.2%); £2,862,879.72 -> £2,513,533.76 (12.2%); £2,862,879.74 -> £2,513,533.86 (12.2%); £2,862,879.80 -> £2,513,533.88 (12.2%); £2,862,879.87 -> £2,513,533.90 (12.2%); £2,862,879.93 -> £2,513,533.92 (12.2%); £2,862,879.99 -> £2,513,533.94 (12.2%); £2,862,880.05 -> £2,513,533.96 (12.2%); £2,862,880.11 -> £2,513,533.97 (12.2%); £2,862,880.16 -> £2,513,533.99 (12.2%); £2,862,880.19 -> £2,513,534.60 (12.2%); £2,862,880.25 -> £2,513,534.61 (12.2%); £2,862,880.30 -> £2,513,534.62 (12.2%); £2,862,880.35 -> £2,513,534.63 (12.2%); £2,862,880.40 -> £2,513,534.64 (12.2%); £2,862,880.45 -> £2,513,534.65 (12.2%); £2,862,880.50 -> £2,513,534.65 (12.2%); £2,862,880.52 -> £2,513,534.74 (12.2%); £2,862,880.58 -> £2,513,534.76 (12.2%); £2,862,880.64 -> £2,513,534.77 (12.2%); £2,862,880.70 -> £2,513,534.79 (12.2%); £2,862,880.76 -> £2,513,534.80 (12.2%); £2,862,880.82 -> £2,513,534.81 (12.2%); £2,862,880.88 -> £2,513,534.82 (12.2%); £2,862,880.93 -> £2,513,534.84 (12.2%); £2,862,880.98 -> £2,513,535.43 (12.2%); £2,862,881.13 -> £2,513,535.44 (12.2%); £2,862,881.28 -> £2,513,535.45 (12.2%); £2,862,881.43 -> £2,513,535.46 (12.2%); £2,862,881.59 -> £2,513,535.47 (12.2%); £2,862,881.74 -> £2,513,535.48 (12.2%); £2,862,881.79 -> £2,513,535.49 (12.2%); £2,862,881.84 -> £2,513,535.49 (12.2%); £2,862,881.87 -> £2,513,535.59 (12.2%); £2,862,882.01 -> £2,513,535.61 (12.2%); £2,862,882.14 -> £2,513,535.63 (12.2%); £2,862,882.28 -> £2,513,535.65 (12.2%); £2,862,882.42 -> £2,513,535.66 (12.2%); £2,862,882.56 -> £2,513,535.68 (12.2%); £2,862,882.69 -> £2,513,535.69 (12.2%); £2,862,882.82 -> £2,513,535.71 (12.2%); £2,862,882.89 -> £2,513,536.33 (12.2%); £2,862,883.08 -> £2,513,536.35 (12.2%); £2,862,883.28 -> £2,513,536.36 (12.2%); £2,862,883.47 -> £2,513,536.37 (12.2%); £2,862,883.67 -> £2,513,536.38 (12.2%); £2,862,883.87 -> £2,513,536.39 (12.2%); £2,862,883.93 -> £2,513,536.40 (12.2%); £2,862,883.98 -> £2,513,536.41 (12.2%); £2,862,884.00 -> £2,513,536.50 (12.2%); £2,862,884.17 -> £2,513,536.53 (12.2%); £2,862,884.35 -> £2,513,536.55 (12.2%); £2,862,884.52 -> £2,513,536.56 (12.2%); £2,862,884.69 -> £2,513,536.58 (12.2%); £2,862,884.86 -> £2,513,536.60 (12.2%); £2,862,885.02 -> £2,513,536.61 (12.2%); £2,862,885.18 -> £2,513,536.63 (12.2%); £2,862,885.23 -> £2,513,539.35 (12.2%); £2,862,885.29 -> £2,513,539.36 (12.2%); £2,862,885.35 -> £2,513,539.38 (12.2%); £2,862,885.40 -> £2,513,539.39 (12.2%); £2,862,885.46 -> £2,513,539.41 (12.2%); £2,862,885.52 -> £2,513,539.43 (12.2%); £2,862,885.57 -> £2,513,539.44 (12.2%); £2,862,885.59 -> £2,513,540.06 (12.2%); £2,862,885.64 -> £2,513,540.07 (12.2%); £2,862,885.69 -> £2,513,540.08 (12.2%); £2,862,885.73 -> £2,513,540.09 (12.2%); £2,862,885.78 -> £2,513,540.10 (12.2%); £2,862,885.83 -> £2,513,540.11 (12.2%); £2,862,885.88 -> £2,513,540.12 (12.2%); £2,862,885.91 -> £2,513,540.22 (12.2%); £2,862,885.97 -> £2,513,540.24 (12.2%); £2,862,886.03 -> £2,513,540.25 (12.2%); £2,862,886.09 -> £2,513,540.27 (12.2%); £2,862,886.15 -> £2,513,540.28 (12.2%); £2,862,886.21 -> £2,513,540.30 (12.2%); £2,862,886.26 -> £2,513,540.31 (12.2%); £2,862,886.31 -> £2,513,540.33 (12.2%); £2,862,886.33 -> £2,513,540.94 (12.2%); £2,862,886.38 -> £2,513,540.95 (12.2%); £2,862,886.43 -> £2,513,540.96 (12.2%); £2,862,886.47 -> £2,513,540.97 (12.2%); £2,862,886.52 -> £2,513,540.98 (12.2%); £2,862,886.57 -> £2,513,540.99 (12.2%); £2,862,886.62 -> £2,513,541.00 (12.2%); £2,862,886.64 -> £2,513,541.09 (12.2%); £2,862,886.70 -> £2,513,541.10 (12.2%); £2,862,886.76 -> £2,513,541.12 (12.2%); £2,862,886.82 -> £2,513,541.13 (12.2%); £2,862,886.88 -> £2,513,541.15 (12.2%); £2,862,886.93 -> £2,513,541.16 (12.2%); £2,862,886.99 -> £2,513,541.17 (12.2%); £2,862,887.04 -> £2,513,541.19 (12.2%); £2,862,887.08 -> £2,513,541.77 (12.2%); £2,862,887.13 -> £2,513,541.77 (12.2%); £2,862,887.18 -> £2,513,541.78 (12.2%); £2,862,887.22 -> £2,513,541.79 (12.2%); £2,862,887.27 -> £2,513,541.80 (12.2%); £2,862,887.32 -> £2,513,541.80 (12.2%); £2,862,887.33 -> £2,513,541.89 (12.2%); £2,862,887.38 -> £2,513,541.91 (12.2%); £2,862,887.45 -> £2,513,541.92 (12.2%); £2,862,887.50 -> £2,513,541.93 (12.2%); £2,862,887.56 -> £2,513,541.94 (12.2%); £2,862,887.61 -> £2,513,541.95 (12.2%); £2,862,887.66 -> £2,513,541.96 (12.2%); £2,862,887.71 -> £2,513,541.98 (12.2%); £2,862,887.75 -> £2,513,542.53 (12.2%); £2,862,887.79 -> £2,513,542.54 (12.2%); £2,862,887.84 -> £2,513,542.55 (12.2%); £2,862,887.89 -> £2,513,542.56 (12.2%); £2,862,887.94 -> £2,513,542.56 (12.2%); £2,862,887.99 -> £2,513,542.57 (12.2%); £2,862,888.01 -> £2,513,542.68 (12.2%); £2,862,888.07 -> £2,513,542.70 (12.2%); £2,862,888.13 -> £2,513,542.72 (12.2%); £2,862,888.19 -> £2,513,542.74 (12.2%); £2,862,888.25 -> £2,513,542.75 (12.2%); £2,862,888.31 -> £2,513,542.77 (12.2%); £2,862,888.36 -> £2,513,542.78 (12.2%); £2,862,888.41 -> £2,513,542.80 (12.2%); £2,862,888.45 -> £2,513,545.24 (12.2%); £2,862,888.51 -> £2,513,545.25 (12.2%); £2,862,888.56 -> £2,513,545.27 (12.2%); £2,862,888.62 -> £2,513,545.28 (12.2%); £2,862,888.67 -> £2,513,545.30 (12.2%); £2,862,888.68 -> £2,513,545.85 (12.2%); £2,862,888.73 -> £2,513,545.86 (12.2%); £2,862,888.79 -> £2,513,545.87 (12.2%); £2,862,888.84 -> £2,513,545.88 (12.2%); £2,862,888.90 -> £2,513,545.88 (12.2%); £2,862,888.94 -> £2,513,545.89 (12.2%); £2,862,888.99 -> £2,513,545.90 (12.2%); £2,862,889.05 -> £2,513,545.98 (12.2%); £2,862,889.11 -> £2,513,545.99 (12.2%); £2,862,889.17 -> £2,513,546.01 (12.2%); £2,862,889.23 -> £2,513,546.02 (12.2%); £2,862,889.29 -> £2,513,546.03 (12.2%); £2,862,889.35 -> £2,513,546.04 (12.2%); £2,862,889.41 -> £2,513,546.05 (12.2%); £2,862,889.45 -> £2,513,546.67 (12.2%); £2,862,889.57 -> £2,513,546.68 (12.2%); £2,862,889.70 -> £2,513,546.69 (12.2%); £2,862,889.82 -> £2,513,546.70 (12.2%); £2,862,889.94 -> £2,513,546.71 (12.2%); £2,862,890.06 -> £2,513,546.72 (12.2%); £2,862,890.11 -> £2,513,546.72 (12.2%); £2,862,890.16 -> £2,513,546.73 (12.2%); £2,862,890.25 -> £2,513,546.81 (12.2%); £2,862,890.36 -> £2,513,546.82 (12.2%); £2,862,890.47 -> £2,513,546.83 (12.2%); £2,862,890.57 -> £2,513,546.85 (12.2%); £2,862,890.68 -> £2,513,546.86 (12.2%); £2,862,890.79 -> £2,513,546.88 (12.2%); £2,862,890.90 -> £2,513,546.89 (12.2%); £2,862,890.94 -> £2,513,547.42 (12.2%); £2,862,890.99 -> £2,513,547.43 (12.2%); £2,862,891.04 -> £2,513,547.44 (12.2%); £2,862,891.10 -> £2,513,547.44 (12.2%); £2,862,891.15 -> £2,513,547.45 (12.2%); £2,862,891.19 -> £2,513,547.46 (12.2%); £2,862,891.21 -> £2,513,547.55 (12.2%); £2,862,891.28 -> £2,513,547.57 (12.2%); £2,862,891.34 -> £2,513,547.58 (12.2%); £2,862,891.41 -> £2,513,547.60 (12.2%); £2,862,891.48 -> £2,513,547.62 (12.2%); £2,862,891.54 -> £2,513,547.64 (12.2%); £2,862,891.61 -> £2,513,547.65 (12.2%); £2,862,891.67 -> £2,513,547.67 (12.2%); £2,862,891.69 -> £2,513,548.24 (12.2%); £2,862,891.81 -> £2,513,548.25 (12.2%); £2,862,891.93 -> £2,513,548.26 (12.2%); £2,862,892.05 -> £2,513,548.26 (12.2%); £2,862,892.17 -> £2,513,548.28 (12.2%); £2,862,892.30 -> £2,513,548.28 (12.2%); £2,862,892.35 -> £2,513,548.29 (12.2%); £2,862,892.40 -> £2,513,548.30 (12.2%); £2,862,892.42 -> £2,513,548.39 (12.2%); £2,862,892.54 -> £2,513,548.41 (12.2%); £2,862,892.66 -> £2,513,548.43 (12.2%); £2,862,892.78 -> £2,513,548.45 (12.2%); £2,862,892.90 -> £2,513,548.46 (12.2%); £2,862,893.02 -> £2,513,548.48 (12.2%); £2,862,893.13 -> £2,513,548.50 (12.2%); £2,862,893.25 -> £2,513,548.51 (12.2%); £2,862,893.32 -> £2,513,550.75 (12.2%); £2,862,893.37 -> £2,513,550.76 (12.2%); £2,862,893.42 -> £2,513,550.77 (12.2%); £2,862,893.43 -> £2,513,550.85 (12.2%); £2,862,893.54 -> £2,513,550.87 (12.2%); £2,862,893.66 -> £2,513,550.89 (12.2%); £2,862,893.78 -> £2,513,550.90 (12.2%); £2,862,893.90 -> £2,513,550.92 (12.2%); £2,862,894.02 -> £2,513,550.93 (12.2%); £2,862,894.12 -> £2,513,550.95 (12.2%); £2,862,894.23 -> £2,513,550.96 (12.2%); £2,862,894.26 -> £2,513,551.52 (12.2%); £2,862,894.30 -> £2,513,551.53 (12.2%); £2,862,894.35 -> £2,513,551.53 (12.2%); £2,862,894.39 -> £2,513,551.54 (12.2%); £2,862,894.44 -> £2,513,551.55 (12.2%); £2,862,894.49 -> £2,513,551.55 (12.2%); £2,862,894.52 -> £2,513,551.63 (12.2%); £2,862,894.59 -> £2,513,551.65 (12.2%); £2,862,894.64 -> £2,513,551.66 (12.2%); £2,862,894.70 -> £2,513,551.67 (12.2%); £2,862,894.75 -> £2,513,551.68 (12.2%); £2,862,894.80 -> £2,513,551.68 (12.2%); £2,862,894.85 -> £2,513,551.69 (12.2%); £2,862,894.86 -> £2,513,552.15 (12.2%); £2,862,894.91 -> £2,513,552.16 (12.2%); £2,862,894.95 -> £2,513,552.17 (12.2%); £2,862,894.99 -> £2,513,552.17 (12.2%); £2,862,895.04 -> £2,513,552.18 (12.2%); £2,862,895.09 -> £2,513,552.19 (12.2%); £2,862,895.10 -> £2,513,552.27 (12.2%); £2,862,895.15 -> £2,513,552.29 (12.2%); £2,862,895.22 -> £2,513,552.30 (12.2%); £2,862,895.27 -> £2,513,552.31 (12.2%); £2,862,895.32 -> £2,513,552.32 (12.2%); £2,862,895.38 -> £2,513,552.33 (12.2%); £2,862,895.43 -> £2,513,552.34 (12.2%); £2,862,895.48 -> £2,513,552.35 (12.2%); £2,862,895.51 -> £2,513,552.86 (12.2%); £2,862,895.60 -> £2,513,552.87 (12.2%); £2,862,895.69 -> £2,513,552.88 (12.2%); £2,862,895.79 -> £2,513,552.89 (12.2%); £2,862,895.89 -> £2,513,552.89 (12.2%); £2,862,895.93 -> £2,513,552.89 (12.2%); £2,862,895.97 -> £2,513,552.90 (12.2%); £2,862,896.04 -> £2,513,552.97 (12.2%); £2,862,896.14 -> £2,513,552.99 (12.2%); £2,862,896.24 -> £2,513,553.01 (12.2%); £2,862,896.34 -> £2,513,553.03 (12.2%); £2,862,896.43 -> £2,513,553.04 (12.2%); £2,862,896.53 -> £2,513,553.06 (12.2%); £2,862,896.62 -> £2,513,553.07 (12.2%); £2,862,896.70 -> £2,513,553.54 (12.2%); £2,862,896.81 -> £2,513,553.55 (12.2%); £2,862,896.92 -> £2,513,553.56 (12.2%); £2,862,897.04 -> £2,513,553.57 (12.2%); £2,862,897.16 -> £2,513,553.57 (12.2%); £2,862,897.21 -> £2,513,553.58 (12.2%); £2,862,897.26 -> £2,513,553.58 (12.2%); £2,862,897.34 -> £2,513,553.66 (12.2%); £2,862,897.45 -> £2,513,553.67 (12.2%); £2,862,897.56 -> £2,513,553.69 (12.2%); £2,862,897.67 -> £2,513,553.70 (12.2%); £2,862,897.79 -> £2,513,553.71 (12.2%); £2,862,897.89 -> £2,513,553.73 (12.2%); £2,862,897.99 -> £2,513,553.74 (12.2%); £2,862,898.03 -> £2,513,555.99 (12.2%); £2,862,898.09 -> £2,513,556.00 (12.2%); £2,862,898.11 -> £2,513,556.59 (12.2%); £2,862,898.22 -> £2,513,556.60 (12.2%); £2,862,898.33 -> £2,513,556.61 (12.2%); £2,862,898.44 -> £2,513,556.62 (12.2%); £2,862,898.55 -> £2,513,556.63 (12.2%); £2,862,898.66 -> £2,513,556.64 (12.2%); £2,862,898.70 -> £2,513,556.65 (12.2%); £2,862,898.75 -> £2,513,556.65 (12.2%); £2,862,898.77 -> £2,513,556.74 (12.2%); £2,862,898.87 -> £2,513,556.76 (12.2%); £2,862,898.98 -> £2,513,556.77 (12.2%); £2,862,899.08 -> £2,513,556.79 (12.2%); £2,862,899.18 -> £2,513,556.80 (12.2%); £2,862,899.29 -> £2,513,556.82 (12.2%); £2,862,899.39 -> £2,513,556.84 (12.2%); £2,862,899.49 -> £2,513,556.85 (12.2%); £2,862,899.57 -> £2,513,557.46 (12.2%); £2,862,899.74 -> £2,513,557.47 (12.2%); £2,862,899.91 -> £2,513,557.48 (12.2%); £2,862,900.08 -> £2,513,557.49 (12.2%); £2,862,900.27 -> £2,513,557.50 (12.2%); £2,862,900.45 -> £2,513,557.51 (12.2%); £2,862,900.50 -> £2,513,557.52 (12.2%); £2,862,900.56 -> £2,513,557.52 (12.2%); £2,862,900.58 -> £2,513,557.62 (12.2%); £2,862,900.73 -> £2,513,557.63 (12.2%); £2,862,900.88 -> £2,513,557.64 (12.2%); £2,862,901.03 -> £2,513,557.66 (12.2%); £2,862,901.19 -> £2,513,557.68 (12.2%); £2,862,901.35 -> £2,513,557.69 (12.2%); £2,862,901.49 -> £2,513,557.71 (12.2%); £2,862,901.65 -> £2,513,557.73 (12.2%); £2,862,901.73 -> £2,513,558.39 (12.2%); £2,862,901.87 -> £2,513,558.40 (12.2%); £2,862,902.02 -> £2,513,558.41 (12.2%); £2,862,902.16 -> £2,513,558.41 (12.2%); £2,862,902.30 -> £2,513,558.42 (12.2%); £2,862,902.43 -> £2,513,558.43 (12.2%); £2,862,902.48 -> £2,513,558.44 (12.2%); £2,862,902.53 -> £2,513,558.44 (12.2%); £2,862,902.54 -> £2,513,558.52 (12.2%); £2,862,902.66 -> £2,513,558.53 (12.2%); £2,862,902.78 -> £2,513,558.55 (12.2%); £2,862,902.90 -> £2,513,558.56 (12.2%); £2,862,903.02 -> £2,513,558.57 (12.2%); £2,862,903.14 -> £2,513,558.58 (12.2%); £2,862,903.26 -> £2,513,558.59 (12.2%); £2,862,903.38 -> £2,513,558.61 (12.2%); £2,862,903.40 -> £2,513,559.13 (12.2%); £2,862,903.47 -> £2,513,559.14 (12.2%); £2,862,903.55 -> £2,513,559.15 (12.2%); £2,862,903.62 -> £2,513,559.15 (12.2%); £2,862,903.69 -> £2,513,559.16 (12.2%); £2,862,903.74 -> £2,513,559.16 (12.2%); £2,862,903.79 -> £2,513,559.17 (12.2%); £2,862,903.79 -> £2,513,559.25 (12.2%); £2,862,903.87 -> £2,513,559.27 (12.2%); £2,862,903.95 -> £2,513,559.29 (12.2%); £2,862,904.04 -> £2,513,559.30 (12.2%); £2,862,904.12 -> £2,513,559.32 (12.2%); £2,862,904.20 -> £2,513,559.34 (12.2%); £2,862,904.28 -> £2,513,559.36 (12.2%); £2,862,904.36 -> £2,513,559.38 (12.2%); £2,862,904.39 -> £2,513,561.87 (12.2%); £2,862,904.40 -> £2,513,561.95 (12.2%); £2,862,904.46 -> £2,513,561.97 (12.2%); £2,862,904.53 -> £2,513,562.00 (12.2%); £2,862,904.60 -> £2,513,562.02 (12.2%); £2,862,904.68 -> £2,513,562.05 (12.2%); £2,862,904.76 -> £2,513,562.07 (12.2%); £2,862,904.84 -> £2,513,562.09 (12.2%); £2,862,904.92 -> £2,513,562.10 (12.2%); £2,862,904.95 -> £2,513,562.75 (12.2%); £2,862,905.01 -> £2,513,562.76 (12.2%); £2,862,905.06 -> £2,513,562.77 (12.2%); £2,862,905.11 -> £2,513,562.78 (12.2%); £2,862,905.16 -> £2,513,562.79 (12.2%); £2,862,905.22 -> £2,513,562.80 (12.2%); £2,862,905.27 -> £2,513,562.81 (12.2%); £2,862,905.30 -> £2,513,562.91 (12.2%); £2,862,905.37 -> £2,513,562.94 (12.2%); £2,862,905.44 -> £2,513,562.95 (12.2%); £2,862,905.51 -> £2,513,562.97 (12.2%); £2,862,905.58 -> £2,513,563.00 (12.2%); £2,862,905.66 -> £2,513,563.02 (12.2%); £2,862,905.74 -> £2,513,563.04 (12.2%); £2,862,905.82 -> £2,513,563.06 (12.2%); £2,862,905.88 -> £2,513,563.73 (12.2%); £2,862,905.94 -> £2,513,563.75 (12.2%); £2,862,905.99 -> £2,513,563.76 (12.2%); £2,862,906.05 -> £2,513,563.78 (12.2%); £2,862,906.10 -> £2,513,563.79 (12.2%); £2,862,906.15 -> £2,513,563.79 (12.2%); £2,862,906.20 -> £2,513,563.80 (12.2%); £2,862,906.24 -> £2,513,563.92 (12.2%); £2,862,906.31 -> £2,513,563.94 (12.2%); £2,862,906.39 -> £2,513,563.97 (12.2%); £2,862,906.46 -> £2,513,563.99 (12.2%); £2,862,906.54 -> £2,513,564.00 (12.2%); £2,862,906.61 -> £2,513,564.02 (12.2%); £2,862,906.69 -> £2,513,564.04 (12.2%); £2,862,906.76 -> £2,513,564.06 (12.2%); £2,862,906.81 -> £2,513,564.69 (12.2%); £2,862,906.87 -> £2,513,564.70 (12.2%); £2,862,906.93 -> £2,513,564.71 (12.2%); £2,862,906.99 -> £2,513,564.72 (12.2%); £2,862,907.05 -> £2,513,564.73 (12.2%); £2,862,907.10 -> £2,513,564.73 (12.2%); £2,862,907.15 -> £2,513,564.74 (12.2%); £2,862,907.17 -> £2,513,564.84 (12.2%); £2,862,907.24 -> £2,513,564.86 (12.2%); £2,862,907.32 -> £2,513,564.89 (12.2%); £2,862,907.40 -> £2,513,564.91 (12.2%); £2,862,907.49 -> £2,513,564.94 (12.2%); £2,862,907.58 -> £2,513,564.97 (12.2%); £2,862,907.67 -> £2,513,564.99 (12.2%); £2,862,907.75 -> £2,513,565.01 (12.2%); £2,862,907.76 -> £2,513,565.65 (12.2%); £2,862,907.84 -> £2,513,565.66 (12.2%); £2,862,907.93 -> £2,513,565.67 (12.2%); £2,862,908.00 -> £2,513,565.68 (12.2%); £2,862,908.08 -> £2,513,565.69 (12.2%); £2,862,908.16 -> £2,513,565.70 (12.2%); £2,862,908.21 -> £2,513,565.71 (12.2%); £2,862,908.26 -> £2,513,565.72 (12.2%); £2,862,908.29 -> £2,513,565.82 (12.2%); £2,862,908.38 -> £2,513,565.84 (12.2%); £2,862,908.47 -> £2,513,565.87 (12.2%); £2,862,908.56 -> £2,513,565.89 (12.2%); £2,862,908.66 -> £2,513,565.91 (12.2%); £2,862,908.76 -> £2,513,565.94 (12.2%); £2,862,908.86 -> £2,513,565.96 (12.2%); £2,862,908.96 -> £2,513,565.98 (12.2%); £2,862,908.99 -> £2,513,568.62 (12.2%); £2,862,909.03 -> £2,513,568.63 (12.2%); £2,862,909.05 -> £2,513,568.72 (12.2%); £2,862,909.15 -> £2,513,568.74 (12.2%); £2,862,909.25 -> £2,513,568.75 (12.2%); £2,862,909.35 -> £2,513,568.77 (12.2%); £2,862,909.46 -> £2,513,568.79 (12.2%); £2,862,909.57 -> £2,513,568.82 (12.2%); £2,862,909.69 -> £2,513,568.84 (12.2%); £2,862,909.81 -> £2,513,568.86 (12.2%); £2,862,909.88 -> £2,513,569.50 (12.2%); £2,862,910.04 -> £2,513,569.51 (12.2%); £2,862,910.22 -> £2,513,569.52 (12.2%); £2,862,910.38 -> £2,513,569.54 (12.2%); £2,862,910.55 -> £2,513,569.55 (12.2%); £2,862,910.71 -> £2,513,569.56 (12.2%); £2,862,910.76 -> £2,513,569.57 (12.2%); £2,862,910.81 -> £2,513,569.57 (12.2%); £2,862,910.83 -> £2,513,569.67 (12.2%); £2,862,910.98 -> £2,513,569.69 (12.2%); £2,862,911.14 -> £2,513,569.71 (12.2%); £2,862,911.28 -> £2,513,569.73 (12.2%); £2,862,911.44 -> £2,513,569.75 (12.2%); £2,862,911.59 -> £2,513,569.77 (12.2%); £2,862,911.75 -> £2,513,569.80 (12.2%); £2,862,911.92 -> £2,513,569.82 (12.2%); £2,862,911.99 -> £2,513,570.45 (12.2%); £2,862,912.19 -> £2,513,570.46 (12.2%); £2,862,912.38 -> £2,513,570.47 (12.2%); £2,862,912.57 -> £2,513,570.47 (12.2%); £2,862,912.75 -> £2,513,570.48 (12.2%); £2,862,912.94 -> £2,513,570.49 (12.2%); £2,862,912.99 -> £2,513,570.50 (12.2%); £2,862,913.03 -> £2,513,570.50 (12.2%); £2,862,913.05 -> £2,513,570.59 (12.2%); £2,862,913.21 -> £2,513,570.61 (12.2%); £2,862,913.38 -> £2,513,570.62 (12.2%); £2,862,913.55 -> £2,513,570.64 (12.2%); £2,862,913.73 -> £2,513,570.66 (12.2%); £2,862,913.90 -> £2,513,570.68 (12.2%); £2,862,914.10 -> £2,513,570.70 (12.2%); £2,862,914.28 -> £2,513,570.73 (12.2%); £2,862,914.42 -> £2,513,571.34 (12.2%); £2,862,914.69 -> £2,513,571.35 (12.2%); £2,862,914.95 -> £2,513,571.36 (12.2%); £2,862,915.21 -> £2,513,571.37 (12.2%); £2,862,915.46 -> £2,513,571.38 (12.2%); £2,862,915.72 -> £2,513,571.39 (12.2%); £2,862,915.78 -> £2,513,571.40 (12.2%); £2,862,915.83 -> £2,513,571.40 (12.2%); £2,862,915.85 -> £2,513,571.50 (12.2%); £2,862,916.08 -> £2,513,571.52 (12.2%); £2,862,916.30 -> £2,513,571.54 (12.2%); £2,862,916.52 -> £2,513,571.56 (12.2%); £2,862,916.75 -> £2,513,571.59 (12.2%); £2,862,916.99 -> £2,513,571.61 (12.2%); £2,862,917.23 -> £2,513,571.64 (12.2%); £2,862,917.47 -> £2,513,571.66 (12.2%); £2,862,917.66 -> £2,513,572.33 (12.2%); £2,862,917.98 -> £2,513,572.34 (12.2%); £2,862,918.31 -> £2,513,572.35 (12.2%); £2,862,918.64 -> £2,513,572.36 (12.2%); £2,862,918.98 -> £2,513,572.37 (12.2%); £2,862,919.31 -> £2,513,572.38 (12.2%); £2,862,919.36 -> £2,513,572.39 (12.2%); £2,862,919.42 -> £2,513,572.40 (12.2%); £2,862,919.45 -> £2,513,572.51 (12.2%); £2,862,919.72 -> £2,513,572.53 (12.2%); £2,862,920.01 -> £2,513,572.56 (12.2%); £2,862,920.29 -> £2,513,572.58 (12.2%); £2,862,920.57 -> £2,513,572.60 (12.2%); £2,862,920.85 -> £2,513,572.63 (12.2%); £2,862,921.14 -> £2,513,572.65 (12.2%); £2,862,921.42 -> £2,513,572.68 (12.2%); £2,862,921.42 -> £2,513,575.54 (12.2%); £2,862,921.67 -> £2,513,575.56 (12.2%); £2,862,921.91 -> £2,513,575.57 (12.2%); £2,862,922.14 -> £2,513,575.58 (12.2%); £2,862,922.36 -> £2,513,575.59 (12.2%); £2,862,922.41 -> £2,513,575.59 (12.2%); £2,862,922.46 -> £2,513,575.60 (12.2%); £2,862,922.48 -> £2,513,575.70 (12.2%); £2,862,922.68 -> £2,513,575.72 (12.2%); £2,862,922.87 -> £2,513,575.74 (12.2%); £2,862,923.07 -> £2,513,575.76 (12.2%); £2,862,923.27 -> £2,513,575.78 (12.2%); £2,862,923.47 -> £2,513,575.80 (12.2%); £2,862,923.69 -> £2,513,575.83 (12.2%); £2,862,923.91 -> £2,513,575.86 (12.2%); £2,862,923.98 -> £2,513,576.55 (12.2%); £2,862,924.14 -> £2,513,576.56 (12.2%); £2,862,924.30 -> £2,513,576.57 (12.2%); £2,862,924.44 -> £2,513,576.58 (12.2%); £2,862,924.59 -> £2,513,576.59 (12.2%); £2,862,924.73 -> £2,513,576.60 (12.2%); £2,862,924.78 -> £2,513,576.61 (12.2%); £2,862,924.83 -> £2,513,576.62 (12.2%); £2,862,924.86 -> £2,513,576.72 (12.2%); £2,862,925.00 -> £2,513,576.75 (12.2%); £2,862,925.15 -> £2,513,576.76 (12.2%); £2,862,925.29 -> £2,513,576.79 (12.2%); £2,862,925.44 -> £2,513,576.81 (12.2%); £2,862,925.59 -> £2,513,576.84 (12.2%); £2,862,925.74 -> £2,513,576.86 (12.2%); £2,862,925.90 -> £2,513,576.89 (12.2%); £2,862,925.95 -> £2,513,577.56 (12.2%); £2,862,926.06 -> £2,513,577.57 (12.2%); £2,862,926.17 -> £2,513,577.58 (12.2%); £2,862,926.28 -> £2,513,577.59 (12.2%); £2,862,926.38 -> £2,513,577.60 (12.2%); £2,862,926.49 -> £2,513,577.61 (12.2%); £2,862,926.54 -> £2,513,577.61 (12.2%); £2,862,926.59 -> £2,513,577.62 (12.2%); £2,862,926.62 -> £2,513,577.73 (12.2%); £2,862,926.73 -> £2,513,577.75 (12.2%); £2,862,926.85 -> £2,513,577.77 (12.2%); £2,862,926.96 -> £2,513,577.79 (12.2%); £2,862,927.07 -> £2,513,577.81 (12.2%); £2,862,927.19 -> £2,513,577.83 (12.2%); £2,862,927.31 -> £2,513,577.85 (12.2%); £2,862,927.43 -> £2,513,577.88 (12.2%); £2,862,927.47 -> £2,513,578.52 (12.2%); £2,862,927.60 -> £2,513,578.53 (12.2%); £2,862,927.73 -> £2,513,578.55 (12.2%); £2,862,927.85 -> £2,513,578.56 (12.2%); £2,862,927.97 -> £2,513,578.57 (12.2%); £2,862,928.09 -> £2,513,578.58 (12.2%); £2,862,928.14 -> £2,513,578.58 (12.2%); £2,862,928.19 -> £2,513,578.59 (12.2%); £2,862,928.20 -> £2,513,578.68 (12.2%); £2,862,928.32 -> £2,513,578.69 (12.2%); £2,862,928.43 -> £2,513,578.71 (12.2%); £2,862,928.55 -> £2,513,578.72 (12.2%); £2,862,928.66 -> £2,513,578.74 (12.2%); £2,862,928.79 -> £2,513,578.76 (12.2%); £2,862,928.91 -> £2,513,578.77 (12.2%); £2,862,929.03 -> £2,513,578.79 (12.2%); £2,862,929.16 -> £2,513,579.36 (12.2%); £2,862,929.41 -> £2,513,579.37 (12.2%); £2,862,929.67 -> £2,513,579.38 (12.2%); £2,862,929.92 -> £2,513,579.39 (12.2%); £2,862,930.16 -> £2,513,579.40 (12.2%); £2,862,930.41 -> £2,513,579.41 (12.2%); £2,862,930.46 -> £2,513,579.41 (12.2%); £2,862,930.51 -> £2,513,579.42 (12.2%); £2,862,930.54 -> £2,513,579.53 (12.2%); £2,862,930.76 -> £2,513,579.55 (12.2%); £2,862,930.99 -> £2,513,579.57 (12.2%); £2,862,931.22 -> £2,513,579.60 (12.2%); £2,862,931.46 -> £2,513,579.63 (12.2%); £2,862,931.70 -> £2,513,579.65 (12.2%); £2,862,931.93 -> £2,513,579.68 (12.2%); £2,862,932.17 -> £2,513,579.70 (12.2%); £2,862,932.44 -> £2,513,582.57 (12.2%); £2,862,932.74 -> £2,513,582.58 (12.2%); £2,862,933.03 -> £2,513,582.59 (12.2%); £2,862,933.33 -> £2,513,582.60 (12.2%); £2,862,933.38 -> £2,513,582.61 (12.2%); £2,862,933.43 -> £2,513,582.62 (12.2%); £2,862,933.47 -> £2,513,582.73 (12.2%); £2,862,933.72 -> £2,513,582.75 (12.2%); £2,862,933.97 -> £2,513,582.77 (12.2%); £2,862,934.22 -> £2,513,582.79 (12.2%); £2,862,934.48 -> £2,513,582.81 (12.2%); £2,862,934.74 -> £2,513,582.84 (12.2%); £2,862,935.00 -> £2,513,582.86 (12.2%); £2,862,935.25 -> £2,513,582.89 (12.2%); £2,862,935.52 -> £2,513,583.56 (12.2%); £2,862,935.89 -> £2,513,583.57 (12.2%); £2,862,936.25 -> £2,513,583.58 (12.2%); £2,862,936.61 -> £2,513,583.59 (12.2%); £2,862,936.95 -> £2,513,583.61 (12.2%); £2,862,937.30 -> £2,513,583.61 (12.2%); £2,862,937.35 -> £2,513,583.62 (12.2%); £2,862,937.40 -> £2,513,583.63 (12.2%); £2,862,937.42 -> £2,513,583.72 (12.2%); £2,862,937.70 -> £2,513,583.74 (12.2%); £2,862,937.99 -> £2,513,583.76 (12.2%); £2,862,938.26 -> £2,513,583.78 (12.2%); £2,862,938.54 -> £2,513,583.80 (12.2%); £2,862,938.83 -> £2,513,583.82 (12.2%); £2,862,939.12 -> £2,513,583.84 (12.2%); £2,862,939.41 -> £2,513,583.87 (12.2%); £2,862,939.54 -> £2,513,584.50 (12.2%); £2,862,939.82 -> £2,513,584.51 (12.2%); £2,862,940.13 -> £2,513,584.53 (12.2%); £2,862,940.45 -> £2,513,584.54 (12.2%); £2,862,940.76 -> £2,513,584.55 (12.2%); £2,862,941.07 -> £2,513,584.56 (12.2%); £2,862,941.12 -> £2,513,584.56 (12.2%); £2,862,941.17 -> £2,513,584.57 (12.2%); £2,862,941.20 -> £2,513,584.67 (12.2%); £2,862,941.46 -> £2,513,584.70 (12.2%); £2,862,941.73 -> £2,513,584.71 (12.2%); £2,862,941.97 -> £2,513,584.73 (12.2%); £2,862,942.22 -> £2,513,584.75 (12.2%); £2,862,942.46 -> £2,513,584.76 (12.2%); £2,862,942.72 -> £2,513,584.78 (12.2%); £2,862,942.97 -> £2,513,584.80 (12.2%); £2,862,943.06 -> £2,513,585.47 (12.2%); £2,862,943.27 -> £2,513,585.49 (12.2%); £2,862,943.48 -> £2,513,585.50 (12.2%); £2,862,943.69 -> £2,513,585.51 (12.2%); £2,862,943.89 -> £2,513,585.52 (12.2%); £2,862,944.10 -> £2,513,585.53 (12.2%); £2,862,944.15 -> £2,513,585.53 (12.2%); £2,862,944.20 -> £2,513,585.54 (12.2%); £2,862,944.23 -> £2,513,585.64 (12.2%); £2,862,944.41 -> £2,513,585.66 (12.2%); £2,862,944.61 -> £2,513,585.69 (12.2%); £2,862,944.80 -> £2,513,585.71 (12.2%); £2,862,944.99 -> £2,513,585.74 (12.2%); £2,862,945.19 -> £2,513,585.76 (12.2%); £2,862,945.39 -> £2,513,585.79 (12.2%); £2,862,945.59 -> £2,513,585.81 (12.2%); £2,863,736.66 -> £2,513,410.86 (12.2%); £3,411,687.75 -> £2,513,692.44 (26.3%)
+- Bills issued: 156, average clarity 0.838, average bill shock 18.8%, bad debt provision £75,106.99, avg complaint probability 4.7%
+- Solvency signal: £251,369/customer (10 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £-2,816.66 vs. naked (unhedged) net margin: £6,712.83
-- hedging cost £9,529.50 vs. a fully unhedged book (commodity-only: actual net £-2,816.66 vs. naked net £6,712.83)
-  - C2_2: actual £-896.84 vs. naked £418.88 -- hedging cost £1,315.73
-  - C4: actual £-538.66 vs. naked £1,164.21 -- hedging cost £1,702.86
-  - C4g: actual £-395.92 vs. naked £2,469.04 -- hedging cost £2,864.96
-  - C6: actual £-488.47 vs. naked £-380.12 -- hedging cost £108.35
-  - C7: actual £-786.24 vs. naked £1,411.58 -- hedging cost £2,197.82
-  - C8: actual £125.44 vs. naked £1,203.77 -- hedging cost £1,078.33
-  - C9: actual £164.03 vs. naked £425.47 -- hedging cost £261.44
+- Actual (hedged) net margin: £703,126.81 vs. naked (unhedged) net margin: £1,873,478.58
+- hedging cost £1,170,351.77 vs. a fully unhedged book (commodity-only: actual net £703,126.81 vs. naked net £1,873,478.58)
+  - C2: actual £353.50 vs. naked £1,182.88 -- hedging cost £829.38
+  - C2g: actual £199.41 vs. naked £360.33 -- hedging cost £160.92
+  - C4: actual £-280.68 vs. naked £1,077.25 -- hedging cost £1,357.92
+  - C4g: actual £-419.43 vs. naked £2,183.53 -- hedging cost £2,602.95
+  - C6: actual £520.52 vs. naked £2,484.09 -- hedging cost £1,963.57
+  - C7: actual £780.55 vs. naked £3,182.12 -- hedging cost £2,401.57
+  - C8: actual £647.92 vs. naked £1,732.95 -- hedging cost £1,085.03
+  - C9: actual £883.33 vs. naked £1,638.71 -- hedging cost £755.39
+  - C_IC1: actual £251,688.48 vs. naked £270,710.61 -- hedging cost £19,022.13
+  - C_IC2: actual £96,032.69 vs. naked £124,228.57 -- hedging cost £28,195.87
+  - C_IC3: actual £170,821.84 vs. naked £789,914.60 -- hedging cost £619,092.76
+  - C_IC3g: actual £377,054.16 vs. naked £713,272.25 -- hedging cost £336,218.09
+  - C_IC4: actual £-195,155.50 vs. naked £-38,489.32 -- hedging cost £156,666.18
 
-**Year narrative:** 2022 (flagged crisis year) produced a net loss of £-1,473.03 across 9 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 36 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2022 (flagged crisis year) produced a net loss of £-48,367.53 across 13 accounts. The risk committee intervened 9 time(s), raising hedge fractions in response to elevated VaR. 44 customer(s) experienced a bill shock of >=20%.
 
 ## 2023
 
 **Trading & Risk**
 
-- Net margin: £-869.33 (gross £2,089.04, capital £564.43)
-  - Electricity: gross £2,343.01, capital £558.62, net £-609.55
-  - Gas: gross £-253.97, capital £5.81, net £-259.78
-- Treasury at year end: £463,831.53
-- Hedge fraction at first renewal this year (avg across year's terms): C2_2 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 0.90 (avg 0.90), C6 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.90 (avg 0.90)
-- Risk committee (Context Handshake) interventions: 0
-- VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: C4g on 2023-01-01 period 1, net margin £-1.08
+- Net margin: £723,135.57 (gross £1,526,298.17, capital £10,976.73)
+  - Electricity: gross £1,036,775.64, capital £10,599.63, net £346,764.51
+  - Gas: gross £489,522.53, capital £377.10, net £376,371.06
+- Treasury at year end: £3,217,184.88
+- Hedge fraction at first renewal this year (avg across year's terms): C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C4 0.85 (avg 0.85), C4g 0.90 (avg 0.90), C6 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85), C_IC1 0.85 (avg 0.85), C_IC2 0.85 (avg 0.85), C_IC3 0.90 (avg 0.90), C_IC3g 0.90 (avg 0.90), C_IC4 0.85 (avg 0.85)
+- Risk committee (Context Handshake) interventions: 4
+  - 2023-01-24: treasury £2,513,712.16, C4->0.95, C6->0.95, C7->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, C_IC3->1.00, VaR (current £170,112.72 / stressed £60,690.77) ratio 2.80
+  - 2023-02-23: treasury £2,513,735.96, C4->0.95, C6->0.95, C7->0.95, C8->0.95, C9->0.95, C_IC1->0.95, C_IC2->0.95, C_IC3->1.00, VaR (current £170,112.72 / stressed £60,690.77) ratio 2.80
+  - 2023-03-25: treasury £2,513,760.03, C4->0.95, C6->0.95, C7->0.95, C8->0.95, C9->0.95, C_IC1->1.00, C_IC2->1.00, C_IC3->1.00, VaR (current £170,112.72 / stressed £60,690.77) ratio 2.80
+  - 2023-04-24: treasury £2,604,968.71, C4->0.95, C7->0.95, C9->0.95, C_IC3->1.00, VaR (current £182,269.01 / stressed £69,710.68) ratio 2.61
+- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.76
+- Worst single period: C_IC3g on 2023-12-31 period 1, net margin £-206.75
 
 **Customer Book**
 
-- Active accounts: 7 (C2_2, C4, C4g, C6, C7, C8, C9)
-  - Resi electricity: 5, SME electricity: 1, gas (dual-fuel): 1
+- Active accounts: 13 (C2, C2g, C4, C4g, C6, C7, C8, C9, C_IC1, C_IC2, C_IC3, C_IC3g, C_IC4)
+  - Resi electricity: 5, SME electricity: 1, gas (dual-fuel): 3
 - New acquisitions this year: none
 - Losses (churn) during year: none
-  - Renewals (retained): 6 accounts
-- Average CLV (Point-in-Time, year-end 2023): £17,560.54
-  - By billing account: C1 £237.78, C2 £60.28, C2_2 £-35.99, C3 £262.71, C4 £147.41, C5 £1,004.26, C6 £683.91, C7 £524.66, C8 £937.98, C9 £1,171.40, C_IC1 £188,171.60
-- Bill shock events (>=20%): 28 -- C7 2023-05-31 (32%); C7 2023-06-30 (37%); C7 2023-10-31 (57%); C7 2023-11-30 (73%); C6 2023-04-30 (39%); C6 2023-05-31 (23%); C6 2023-06-30 (23%); C6 2023-10-31 (39%); C6 2023-11-30 (44%); C8 2023-04-30 (42%); C8 2023-05-31 (41%); C8 2023-06-30 (44%); C8 2023-10-31 (100%); C8 2023-11-30 (70%); C9 2023-02-28 (21%); C9 2023-03-31 (21%); C9 2023-04-30 (27%); C9 2023-05-31 (33%); C9 2023-06-30 (46%); C9 2023-09-30 (22%); C9 2023-10-31 (75%); C9 2023-11-30 (54%); C4 2023-10-31 (42%); C4g 2023-10-31 (70%); C2_2 2023-05-31 (42%); C2_2 2023-06-30 (42%); C2_2 2023-10-31 (96%); C2_2 2023-11-30 (67%)
-- Churn risk (accounts renewing in 2023): 5 at risk (≥20% churn prob): C2_2 35%, C6 26%, C7 38%, C8 35%, C9 41%
+  - Renewals (retained): 7 accounts
+- Average CLV (Point-in-Time, year-end 2023): £248,750.83
+  - By billing account: C1 £1,724.57, C2 £5,455.04, C3 £2,177.19, C4 £2,186.84, C5 £5,794.84, C6 £9,800.87, C7 £5,044.38, C8 £6,500.94, C9 £6,326.50, C_IC1 £955,854.46, C_IC2 £478,520.73, C_IC3 £1,736,784.55, C_IC4 £17,589.86
+- Bill shock events (>=20%): 31 -- C7 2023-01-31 (30%); C7 2023-05-31 (33%); C7 2023-06-30 (38%); C7 2023-10-31 (58%); C7 2023-11-30 (74%); C6 2023-04-30 (21%); C6 2023-05-31 (24%); C6 2023-06-30 (23%); C6 2023-10-31 (39%); C6 2023-11-30 (44%); C8 2023-04-30 (23%); C8 2023-05-31 (41%); C8 2023-06-30 (45%); C8 2023-10-31 (103%); C8 2023-11-30 (71%); C9 2023-02-28 (21%); C9 2023-03-31 (21%); C9 2023-04-30 (27%); C9 2023-05-31 (33%); C9 2023-06-30 (46%); C9 2023-09-30 (23%); C9 2023-10-31 (77%); C9 2023-11-30 (55%); C4g 2023-10-31 (58%); C_IC1 2023-06-30 (55%); C_IC1 2023-07-31 (106%); C_IC2 2023-05-31 (55%); C_IC2 2023-06-30 (134%); C_IC3 2023-01-31 (27%); C_IC3g 2023-01-31 (55%); C_IC4 2023-01-31 (46%)
+- Churn risk (accounts renewing in 2023): 6 at risk (≥20% churn prob): C2 20%, C6 29%, C7 38%, C8 38%, C9 41%, C_IC4 32%
 
 **Pricing & Margin**
 
-- C2_2 (electricity): tariff £265.84-£298.25/MWh, net margin £152.64
-- C4 (electricity): tariff £143.61-£322.32/MWh, net margin £-388.71 -- **net-negative**
-- C4g (gas): tariff £39.62-£174.40/MWh, net margin £-259.78 -- **net-negative**
-- C6 (electricity): tariff £248.09-£346.48/MWh, net margin £-36.35 -- **net-negative**
-- C7 (electricity): tariff £138.09-£393.43/MWh, net margin £-781.78 -- **net-negative**
-- C8 (electricity): tariff £189.85-£519.31/MWh, net margin £313.91
-- C9 (electricity): tariff £123.70-£355.90/MWh, net margin £130.74
+- C2 (electricity): tariff £391.49-£392.58/MWh, net margin £718.06
+- C2g (gas): tariff £123.05-£131.03/MWh, net margin £853.06
+- C4 (electricity): tariff £231.33-£352.66/MWh, net margin £-180.45 -- **net-negative**
+- C4g (gas): tariff £55.47-£158.85/MWh, net margin £-296.39 -- **net-negative**
+- C6 (electricity): tariff £372.09-£379.66/MWh, net margin £1,254.82
+- C7 (electricity): tariff £171.90-£578.11/MWh, net margin £771.16
+- C8 (electricity): tariff £288.36-£551.47/MWh, net margin £1,111.41
+- C9 (electricity): tariff £236.43-£482.00/MWh, net margin £1,015.35
+- C_IC1 (electricity): tariff £-60.00-£466.89/MWh, net margin £258,009.43
+- C_IC2 (electricity): tariff £-186.24-£463.63/MWh, net margin £109,114.29
+- C_IC3 (electricity): tariff £80.85-£397.29/MWh, net margin £170,226.42
+- C_IC3g (gas): tariff £44.11-£162.45/MWh, net margin £375,814.39
+- C_IC4 (electricity): tariff £36.40-£169.32/MWh, net margin £-195,275.98 -- **net-negative**
 
 **Portfolio Health**
 
-- Capital cost ratio: 27.0% of gross
-- Treasury drawdown events (>=10% threshold): none
-- Bills issued: 84, average clarity 0.815, average bill shock 19.9%, bad debt provision £551.30, avg complaint probability 5.1%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Capital cost ratio: 0.7% of gross
+- Treasury drawdown events (>=10% threshold): 4153 -- £3,411,315.15 -> £2,513,693.61 (26.3%); £3,663,122.76 -> £2,863,155.09 (21.8%); £3,663,122.94 -> £2,863,521.19 (21.8%); £3,663,123.14 -> £2,863,521.19 (21.8%); £3,663,123.36 -> £2,863,521.19 (21.8%); £3,663,123.58 -> £2,863,521.19 (21.8%); £3,663,123.80 -> £2,863,521.19 (21.8%); £3,663,123.86 -> £2,863,521.19 (21.8%); £3,663,123.91 -> £2,863,521.19 (21.8%); £3,663,123.91 -> £2,863,521.19 (21.8%); £3,663,123.92 -> £2,863,521.19 (21.8%); £3,663,123.93 -> £2,863,521.19 (21.8%); £3,663,123.93 -> £2,863,521.19 (21.8%); £3,663,123.94 -> £2,863,521.19 (21.8%); £3,663,123.94 -> £2,863,521.19 (21.8%); £3,663,123.95 -> £2,863,521.19 (21.8%); £3,663,123.95 -> £2,863,521.19 (21.8%); £3,663,123.96 -> £2,863,521.19 (21.8%); £3,663,123.96 -> £2,863,521.19 (21.8%); £3,663,124.03 -> £2,863,521.18 (21.8%); £3,663,124.21 -> £2,863,521.18 (21.8%); £3,663,124.39 -> £2,863,521.18 (21.8%); £3,663,124.58 -> £2,863,521.18 (21.8%); £3,663,124.76 -> £2,863,521.17 (21.8%); £3,663,124.95 -> £2,863,521.15 (21.8%); £3,663,125.13 -> £2,863,521.13 (21.8%); £3,663,125.30 -> £2,863,521.11 (21.8%); £3,663,125.31 -> £2,863,521.09 (21.8%); £3,663,125.32 -> £2,863,521.07 (21.8%); £3,663,125.33 -> £2,863,521.05 (21.8%); £3,663,125.34 -> £2,863,521.04 (21.8%); £3,663,125.34 -> £2,863,521.03 (21.8%); £3,663,125.35 -> £2,863,521.02 (21.8%); £3,663,125.36 -> £2,863,521.01 (21.8%); £3,663,125.36 -> £2,863,153.74 (21.8%); £3,663,125.36 -> £2,863,520.89 (21.8%); £3,663,125.36 -> £2,863,520.84 (21.8%); £3,663,125.37 -> £2,863,520.78 (21.8%); £3,663,125.37 -> £2,863,520.72 (21.8%); £3,663,125.37 -> £2,863,520.67 (21.8%); £3,663,125.37 -> £2,863,520.61 (21.8%); £3,663,125.37 -> £2,863,520.56 (21.8%); £3,663,125.37 -> £2,863,520.56 (21.8%); £3,663,125.37 -> £2,863,520.55 (21.8%); £3,663,125.37 -> £2,863,520.55 (21.8%); £3,663,125.37 -> £2,863,520.55 (21.8%); £3,663,125.38 -> £2,863,520.55 (21.8%); £3,663,125.40 -> £2,863,520.55 (21.8%); £3,663,125.55 -> £2,863,520.55 (21.8%); £3,663,125.70 -> £2,863,520.55 (21.8%); £3,663,125.87 -> £2,863,520.55 (21.8%); £3,663,126.03 -> £2,863,520.55 (21.8%); £3,663,126.19 -> £2,863,520.55 (21.8%); £3,663,126.35 -> £2,863,520.55 (21.8%); £3,663,126.41 -> £2,863,520.55 (21.8%); £3,663,126.46 -> £2,863,520.55 (21.8%); £3,663,126.46 -> £2,863,520.55 (21.8%); £3,663,126.46 -> £2,863,520.54 (21.8%); £3,663,126.46 -> £2,863,520.54 (21.8%); £3,663,126.46 -> £2,863,520.54 (21.8%); £3,663,126.47 -> £2,863,520.54 (21.8%); £3,663,126.47 -> £2,863,520.54 (21.8%); £3,663,126.47 -> £2,863,520.54 (21.8%); £3,663,126.53 -> £2,863,520.54 (21.8%); £3,663,126.68 -> £2,863,520.54 (21.8%); £3,663,126.83 -> £2,863,520.53 (21.8%); £3,663,126.97 -> £2,863,520.52 (21.8%); £3,663,127.11 -> £2,863,520.50 (21.8%); £3,663,127.24 -> £2,863,520.49 (21.8%); £3,663,127.37 -> £2,863,520.47 (21.8%); £3,663,127.51 -> £2,863,520.45 (21.8%); £3,663,127.52 -> £2,863,520.43 (21.8%); £3,663,127.52 -> £2,863,520.41 (21.8%); £3,663,127.54 -> £2,863,520.38 (21.8%); £3,663,127.54 -> £2,863,520.37 (21.8%); £3,663,127.55 -> £2,863,520.36 (21.8%); £3,663,127.55 -> £2,863,520.35 (21.8%); £3,663,127.56 -> £2,863,520.34 (21.8%); £3,663,127.56 -> £2,863,152.39 (21.8%); £3,663,127.56 -> £2,863,520.22 (21.8%); £3,663,127.57 -> £2,863,520.16 (21.8%); £3,663,127.57 -> £2,863,520.10 (21.8%); £3,663,127.57 -> £2,863,520.04 (21.8%); £3,663,127.57 -> £2,863,519.98 (21.8%); £3,663,127.57 -> £2,863,519.92 (21.8%); £3,663,127.57 -> £2,863,519.87 (21.8%); £3,663,127.57 -> £2,863,519.87 (21.8%); £3,663,127.57 -> £2,863,519.87 (21.8%); £3,663,127.57 -> £2,863,519.87 (21.8%); £3,663,127.57 -> £2,863,519.87 (21.8%); £3,663,127.58 -> £2,863,519.87 (21.8%); £3,663,127.59 -> £2,863,519.87 (21.8%); £3,663,127.61 -> £2,863,519.86 (21.8%); £3,663,127.79 -> £2,863,519.86 (21.8%); £3,663,127.98 -> £2,863,519.86 (21.8%); £3,663,128.17 -> £2,863,519.86 (21.8%); £3,663,128.35 -> £2,863,519.86 (21.8%); £3,663,128.53 -> £2,863,519.86 (21.8%); £3,663,128.71 -> £2,863,519.86 (21.8%); £3,663,128.76 -> £2,863,519.86 (21.8%); £3,663,128.81 -> £2,863,519.86 (21.8%); £3,663,128.81 -> £2,863,519.86 (21.8%); £3,663,128.81 -> £2,863,519.86 (21.8%); £3,663,128.82 -> £2,863,519.86 (21.8%); £3,663,128.82 -> £2,863,519.86 (21.8%); £3,663,128.82 -> £2,863,519.86 (21.8%); £3,663,128.82 -> £2,863,519.86 (21.8%); £3,663,128.83 -> £2,863,519.86 (21.8%); £3,663,128.83 -> £2,863,519.86 (21.8%); £3,663,128.83 -> £2,863,519.86 (21.8%); £3,663,128.84 -> £2,863,519.85 (21.8%); £3,663,128.90 -> £2,863,519.85 (21.8%); £3,663,129.05 -> £2,863,519.85 (21.8%); £3,663,129.22 -> £2,863,519.85 (21.8%); £3,663,129.38 -> £2,863,519.85 (21.8%); £3,663,129.54 -> £2,863,519.84 (21.8%); £3,663,129.70 -> £2,863,519.82 (21.8%); £3,663,129.85 -> £2,863,519.80 (21.8%); £3,663,130.00 -> £2,863,519.78 (21.8%); £3,663,130.01 -> £2,863,519.76 (21.8%); £3,663,130.03 -> £2,863,519.75 (21.8%); £3,663,130.04 -> £2,863,519.72 (21.8%); £3,663,130.06 -> £2,863,519.71 (21.8%); £3,663,130.06 -> £2,863,519.70 (21.8%); £3,663,130.07 -> £2,863,519.69 (21.8%); £3,663,130.07 -> £2,863,519.68 (21.8%); £3,663,130.07 -> £2,863,151.05 (21.8%); £3,663,130.07 -> £2,863,519.49 (21.8%); £3,663,130.07 -> £2,863,519.43 (21.8%); £3,663,130.07 -> £2,863,519.37 (21.8%); £3,663,130.07 -> £2,863,519.18 (21.8%); £3,663,130.07 -> £2,863,519.18 (21.8%); £3,663,130.07 -> £2,863,519.18 (21.8%); £3,663,130.08 -> £2,863,519.18 (21.8%); £3,663,130.09 -> £2,863,519.18 (21.8%); £3,663,130.25 -> £2,863,519.18 (21.8%); £3,663,130.42 -> £2,863,519.18 (21.8%); £3,663,130.58 -> £2,863,519.18 (21.8%); £3,663,130.74 -> £2,863,519.18 (21.8%); £3,663,130.89 -> £2,863,519.18 (21.8%); £3,663,131.05 -> £2,863,519.18 (21.8%); £3,663,131.11 -> £2,863,519.18 (21.8%); £3,663,131.16 -> £2,863,519.17 (21.8%); £3,663,131.16 -> £2,863,519.17 (21.8%); £3,663,131.16 -> £2,863,519.17 (21.8%); £3,663,131.16 -> £2,863,519.17 (21.8%); £3,663,131.17 -> £2,863,519.17 (21.8%); £3,663,131.17 -> £2,863,519.17 (21.8%); £3,663,131.17 -> £2,863,519.17 (21.8%); £3,663,131.17 -> £2,863,519.17 (21.8%); £3,663,131.18 -> £2,863,519.17 (21.8%); £3,663,131.18 -> £2,863,519.17 (21.8%); £3,663,131.18 -> £2,863,519.17 (21.8%); £3,663,131.25 -> £2,863,519.17 (21.8%); £3,663,131.39 -> £2,863,519.17 (21.8%); £3,663,131.55 -> £2,863,519.16 (21.8%); £3,663,131.70 -> £2,863,519.15 (21.8%); £3,663,131.84 -> £2,863,519.14 (21.8%); £3,663,131.98 -> £2,863,519.12 (21.8%); £3,663,132.12 -> £2,863,519.11 (21.8%); £3,663,132.27 -> £2,863,519.09 (21.8%); £3,663,132.28 -> £2,863,519.07 (21.8%); £3,663,132.30 -> £2,863,519.05 (21.8%); £3,663,132.31 -> £2,863,519.03 (21.8%); £3,663,132.33 -> £2,863,519.02 (21.8%); £3,663,132.34 -> £2,863,519.01 (21.8%); £3,663,132.35 -> £2,863,519.00 (21.8%); £3,663,132.35 -> £2,863,518.99 (21.8%); £3,663,132.36 -> £2,863,149.70 (21.8%); £3,663,132.36 -> £2,863,518.87 (21.8%); £3,663,132.36 -> £2,863,518.81 (21.8%); £3,663,132.36 -> £2,863,518.75 (21.8%); £3,663,132.36 -> £2,863,518.69 (21.8%); £3,663,132.36 -> £2,863,518.63 (21.8%); £3,663,132.36 -> £2,863,518.57 (21.8%); £3,663,132.36 -> £2,863,518.51 (21.8%); £3,663,132.36 -> £2,863,518.51 (21.8%); £3,663,132.36 -> £2,863,518.51 (21.8%); £3,663,132.36 -> £2,863,518.51 (21.8%); £3,663,132.36 -> £2,863,518.50 (21.8%); £3,663,132.37 -> £2,863,518.50 (21.8%); £3,663,132.37 -> £2,863,518.50 (21.8%); £3,663,132.37 -> £2,863,518.50 (21.8%); £3,663,132.43 -> £2,863,518.50 (21.8%); £3,663,132.49 -> £2,863,518.50 (21.8%); £3,663,132.54 -> £2,863,518.50 (21.8%); £3,663,132.59 -> £2,863,518.50 (21.8%); £3,663,132.64 -> £2,863,518.50 (21.8%); £3,663,132.69 -> £2,863,518.50 (21.8%); £3,663,132.75 -> £2,863,518.50 (21.8%); £3,663,132.80 -> £2,863,518.50 (21.8%); £3,663,132.81 -> £2,863,518.50 (21.8%); £3,663,132.81 -> £2,863,518.50 (21.8%); £3,663,132.82 -> £2,863,518.50 (21.8%); £3,663,132.82 -> £2,863,518.50 (21.8%); £3,663,132.82 -> £2,863,518.50 (21.8%); £3,663,132.83 -> £2,863,518.50 (21.8%); £3,663,132.83 -> £2,863,518.49 (21.8%); £3,663,132.84 -> £2,863,518.49 (21.8%); £3,663,132.84 -> £2,863,518.49 (21.8%); £3,663,132.85 -> £2,863,518.49 (21.8%); £3,663,132.91 -> £2,863,518.49 (21.8%); £3,663,132.97 -> £2,863,518.49 (21.8%); £3,663,133.05 -> £2,863,518.49 (21.8%); £3,663,133.12 -> £2,863,518.49 (21.8%); £3,663,133.19 -> £2,863,518.48 (21.8%); £3,663,133.25 -> £2,863,518.47 (21.8%); £3,663,133.31 -> £2,863,518.45 (21.8%); £3,663,133.37 -> £2,863,518.43 (21.8%); £3,663,133.38 -> £2,863,518.41 (21.8%); £3,663,133.38 -> £2,863,518.39 (21.8%); £3,663,133.38 -> £2,863,518.36 (21.8%); £3,663,133.38 -> £2,863,518.35 (21.8%); £3,663,133.39 -> £2,863,518.34 (21.8%); £3,663,133.39 -> £2,863,518.33 (21.8%); £3,663,133.39 -> £2,863,518.32 (21.8%); £3,663,133.39 -> £2,863,148.36 (21.8%); £3,663,133.39 -> £2,863,518.19 (21.8%); £3,663,133.40 -> £2,863,518.14 (21.8%); £3,663,133.40 -> £2,863,518.08 (21.8%); £3,663,133.40 -> £2,863,517.96 (21.8%); £3,663,133.40 -> £2,863,517.91 (21.8%); £3,663,133.40 -> £2,863,517.86 (21.8%); £3,663,133.41 -> £2,863,517.86 (21.8%); £3,663,133.41 -> £2,863,517.86 (21.8%); £3,663,133.41 -> £2,863,517.85 (21.8%); £3,663,133.41 -> £2,863,517.85 (21.8%); £3,663,133.41 -> £2,863,517.85 (21.8%); £3,663,133.41 -> £2,863,517.85 (21.8%); £3,663,133.42 -> £2,863,517.85 (21.8%); £3,663,133.42 -> £2,863,517.85 (21.8%); £3,663,133.42 -> £2,863,517.85 (21.8%); £3,663,133.42 -> £2,863,517.85 (21.8%); £3,663,133.43 -> £2,863,517.85 (21.8%); £3,663,133.43 -> £2,863,517.85 (21.8%); £3,663,133.43 -> £2,863,517.85 (21.8%); £3,663,133.43 -> £2,863,517.85 (21.8%); £3,663,133.44 -> £2,863,517.85 (21.8%); £3,663,133.44 -> £2,863,517.85 (21.8%); £3,663,133.44 -> £2,863,517.85 (21.8%); £3,663,133.44 -> £2,863,517.84 (21.8%); £3,663,133.44 -> £2,863,517.84 (21.8%); £3,663,133.45 -> £2,863,517.84 (21.8%); £3,663,133.45 -> £2,863,517.84 (21.8%); £3,663,133.45 -> £2,863,517.84 (21.8%); £3,663,133.45 -> £2,863,517.84 (21.8%); £3,663,133.45 -> £2,863,517.84 (21.8%); £3,663,133.46 -> £2,863,517.84 (21.8%); £3,663,133.46 -> £2,863,517.83 (21.8%); £3,663,133.46 -> £2,863,517.82 (21.8%); £3,663,133.46 -> £2,863,517.80 (21.8%); £3,663,133.47 -> £2,863,517.78 (21.8%); £3,663,133.47 -> £2,863,517.76 (21.8%); £3,663,133.47 -> £2,863,517.74 (21.8%); £3,663,133.47 -> £2,863,517.73 (21.8%); £3,663,133.48 -> £2,863,517.70 (21.8%); £3,663,133.48 -> £2,863,517.69 (21.8%); £3,663,133.48 -> £2,863,517.68 (21.8%); £3,663,133.48 -> £2,863,517.67 (21.8%); £3,663,133.48 -> £2,863,517.66 (21.8%); £3,663,133.48 -> £2,863,147.01 (21.8%); £3,663,133.49 -> £2,863,517.46 (21.8%); £3,663,133.49 -> £2,863,517.40 (21.8%); £3,663,133.49 -> £2,863,517.34 (21.8%); £3,663,133.49 -> £2,863,517.16 (21.8%); £3,663,133.49 -> £2,863,517.16 (21.8%); £3,663,133.49 -> £2,863,517.16 (21.8%); £3,663,133.49 -> £2,863,517.16 (21.8%); £3,663,133.49 -> £2,863,517.16 (21.8%); £3,663,133.49 -> £2,863,517.15 (21.8%); £3,663,133.49 -> £2,863,517.15 (21.8%); £3,663,133.49 -> £2,863,517.15 (21.8%); £3,663,133.50 -> £2,863,517.15 (21.8%); £3,663,133.50 -> £2,863,517.15 (21.8%); £3,663,133.50 -> £2,863,517.15 (21.8%); £3,663,133.51 -> £2,863,517.15 (21.8%); £3,663,133.51 -> £2,863,517.15 (21.8%); £3,663,133.51 -> £2,863,517.15 (21.8%); £3,663,133.52 -> £2,863,517.15 (21.8%); £3,663,133.53 -> £2,863,517.15 (21.8%); £3,663,133.53 -> £2,863,517.15 (21.8%); £3,663,133.54 -> £2,863,517.15 (21.8%); £3,663,133.54 -> £2,863,517.15 (21.8%); £3,663,133.55 -> £2,863,517.15 (21.8%); £3,663,133.55 -> £2,863,517.15 (21.8%); £3,663,133.56 -> £2,863,517.15 (21.8%); £3,663,133.56 -> £2,863,517.15 (21.8%); £3,663,133.56 -> £2,863,517.14 (21.8%); £3,663,133.56 -> £2,863,517.14 (21.8%); £3,663,133.57 -> £2,863,517.14 (21.8%); £3,663,133.57 -> £2,863,517.13 (21.8%); £3,663,133.57 -> £2,863,517.12 (21.8%); £3,663,133.58 -> £2,863,517.10 (21.8%); £3,663,133.58 -> £2,863,517.09 (21.8%); £3,663,133.59 -> £2,863,517.07 (21.8%); £3,663,133.59 -> £2,863,517.05 (21.8%); £3,663,133.59 -> £2,863,517.03 (21.8%); £3,663,133.59 -> £2,863,517.00 (21.8%); £3,663,133.60 -> £2,863,516.99 (21.8%); £3,663,133.60 -> £2,863,516.98 (21.8%); £3,663,133.60 -> £2,863,516.97 (21.8%); £3,663,133.60 -> £2,863,516.96 (21.8%); £3,663,133.60 -> £2,863,145.66 (21.8%); £3,663,133.60 -> £2,863,516.83 (21.8%); £3,663,133.60 -> £2,863,516.65 (21.8%); £3,663,133.60 -> £2,863,516.59 (21.8%); £3,663,133.60 -> £2,863,516.53 (21.8%); £3,663,133.61 -> £2,863,516.47 (21.8%); £3,663,133.61 -> £2,863,516.47 (21.8%); £3,663,133.61 -> £2,863,516.47 (21.8%); £3,663,133.61 -> £2,863,516.47 (21.8%); £3,663,133.61 -> £2,863,516.47 (21.8%); £3,663,133.61 -> £2,863,516.47 (21.8%); £3,663,133.68 -> £2,863,516.47 (21.8%); £3,663,133.75 -> £2,863,516.47 (21.8%); £3,663,133.82 -> £2,863,516.47 (21.8%); £3,663,133.89 -> £2,863,516.47 (21.8%); £3,663,133.96 -> £2,863,516.46 (21.8%); £3,663,134.03 -> £2,863,516.46 (21.8%); £3,663,134.08 -> £2,863,516.46 (21.8%); £3,663,134.13 -> £2,863,516.46 (21.8%); £3,663,134.13 -> £2,863,516.46 (21.8%); £3,663,134.14 -> £2,863,516.46 (21.8%); £3,663,134.14 -> £2,863,516.46 (21.8%); £3,663,134.14 -> £2,863,516.46 (21.8%); £3,663,134.14 -> £2,863,516.46 (21.8%); £3,663,134.15 -> £2,863,516.46 (21.8%); £3,663,134.15 -> £2,863,516.46 (21.8%); £3,663,134.15 -> £2,863,516.46 (21.8%); £3,663,134.16 -> £2,863,516.46 (21.8%); £3,663,134.16 -> £2,863,516.46 (21.8%); £3,663,134.22 -> £2,863,516.46 (21.8%); £3,663,134.30 -> £2,863,516.45 (21.8%); £3,663,134.38 -> £2,863,516.45 (21.8%); £3,663,134.47 -> £2,863,516.44 (21.8%); £3,663,134.54 -> £2,863,516.43 (21.8%); £3,663,134.63 -> £2,863,516.41 (21.8%); £3,663,134.70 -> £2,863,516.39 (21.8%); £3,663,134.78 -> £2,863,516.37 (21.8%); £3,663,134.79 -> £2,863,516.36 (21.8%); £3,663,134.79 -> £2,863,516.33 (21.8%); £3,663,134.80 -> £2,863,516.31 (21.8%); £3,663,134.80 -> £2,863,516.30 (21.8%); £3,663,134.81 -> £2,863,516.29 (21.8%); £3,663,134.81 -> £2,863,516.28 (21.8%); £3,663,134.82 -> £2,863,516.27 (21.8%); £3,663,134.82 -> £2,863,144.32 (21.8%); £3,663,134.82 -> £2,863,516.15 (21.8%); £3,663,134.82 -> £2,863,516.09 (21.8%); £3,663,134.82 -> £2,863,516.03 (21.8%); £3,663,134.82 -> £2,863,515.77 (21.8%); £3,663,134.82 -> £2,863,515.77 (21.8%); £3,663,134.82 -> £2,863,515.77 (21.8%); £3,663,134.83 -> £2,863,515.77 (21.8%); £3,663,134.83 -> £2,863,515.77 (21.8%); £3,663,134.91 -> £2,863,515.77 (21.8%); £3,663,134.99 -> £2,863,515.77 (21.8%); £3,663,135.08 -> £2,863,515.77 (21.8%); £3,663,135.16 -> £2,863,515.77 (21.8%); £3,663,135.24 -> £2,863,515.77 (21.8%); £3,663,135.32 -> £2,863,515.77 (21.8%); £3,663,135.38 -> £2,863,515.77 (21.8%); £3,663,135.43 -> £2,863,515.77 (21.8%); £3,663,135.43 -> £2,863,515.77 (21.8%); £3,663,135.43 -> £2,863,515.77 (21.8%); £3,663,135.43 -> £2,863,515.77 (21.8%); £3,663,135.44 -> £2,863,515.77 (21.8%); £3,663,135.44 -> £2,863,515.76 (21.8%); £3,663,135.44 -> £2,863,515.76 (21.8%); £3,663,135.45 -> £2,863,515.76 (21.8%); £3,663,135.45 -> £2,863,515.76 (21.8%); £3,663,135.45 -> £2,863,515.76 (21.8%); £3,663,135.45 -> £2,863,515.76 (21.8%); £3,663,135.52 -> £2,863,515.76 (21.8%); £3,663,135.60 -> £2,863,515.76 (21.8%); £3,663,135.70 -> £2,863,515.75 (21.8%); £3,663,135.79 -> £2,863,515.74 (21.8%); £3,663,135.87 -> £2,863,515.73 (21.8%); £3,663,135.96 -> £2,863,515.71 (21.8%); £3,663,136.04 -> £2,863,515.69 (21.8%); £3,663,136.12 -> £2,863,515.67 (21.8%); £3,663,136.12 -> £2,863,515.65 (21.8%); £3,663,136.12 -> £2,863,515.63 (21.8%); £3,663,136.13 -> £2,863,515.61 (21.8%); £3,663,136.13 -> £2,863,515.59 (21.8%); £3,663,136.14 -> £2,863,515.58 (21.8%); £3,663,136.14 -> £2,863,515.57 (21.8%); £3,663,136.14 -> £2,863,515.56 (21.8%); £3,663,136.15 -> £2,863,142.97 (21.8%); £3,663,136.15 -> £2,863,515.44 (21.8%); £3,663,136.15 -> £2,863,515.13 (21.8%); £3,663,136.15 -> £2,863,515.07 (21.8%); £3,663,136.15 -> £2,863,515.07 (21.8%); £3,663,136.15 -> £2,863,515.07 (21.8%); £3,663,136.15 -> £2,863,515.07 (21.8%); £3,663,136.15 -> £2,863,515.07 (21.8%); £3,663,136.15 -> £2,863,515.07 (21.8%); £3,663,136.15 -> £2,863,515.07 (21.8%); £3,663,136.15 -> £2,863,515.07 (21.8%); £3,663,136.24 -> £2,863,515.07 (21.8%); £3,663,136.34 -> £2,863,515.07 (21.8%); £3,663,136.43 -> £2,863,515.07 (21.8%); £3,663,136.53 -> £2,863,515.07 (21.8%); £3,663,136.62 -> £2,863,515.07 (21.8%); £3,663,136.71 -> £2,863,515.07 (21.8%); £3,663,136.76 -> £2,863,515.07 (21.8%); £3,663,136.81 -> £2,863,515.07 (21.8%); £3,663,136.82 -> £2,863,515.07 (21.8%); £3,663,136.82 -> £2,863,515.06 (21.8%); £3,663,136.83 -> £2,863,515.06 (21.8%); £3,663,136.83 -> £2,863,515.06 (21.8%); £3,663,136.83 -> £2,863,515.06 (21.8%); £3,663,136.84 -> £2,863,515.06 (21.8%); £3,663,136.84 -> £2,863,515.06 (21.8%); £3,663,136.84 -> £2,863,515.06 (21.8%); £3,663,136.85 -> £2,863,515.06 (21.8%); £3,663,136.85 -> £2,863,515.06 (21.8%); £3,663,136.91 -> £2,863,515.06 (21.8%); £3,663,137.01 -> £2,863,515.06 (21.8%); £3,663,137.12 -> £2,863,515.06 (21.8%); £3,663,137.22 -> £2,863,515.05 (21.8%); £3,663,137.32 -> £2,863,515.04 (21.8%); £3,663,137.42 -> £2,863,515.03 (21.8%); £3,663,137.51 -> £2,863,515.01 (21.8%); £3,663,137.60 -> £2,863,514.99 (21.8%); £3,663,137.60 -> £2,863,514.97 (21.8%); £3,663,137.61 -> £2,863,514.95 (21.8%); £3,663,137.61 -> £2,863,514.92 (21.8%); £3,663,137.62 -> £2,863,514.91 (21.8%); £3,663,137.62 -> £2,863,514.90 (21.8%); £3,663,137.63 -> £2,863,514.89 (21.8%); £3,663,137.63 -> £2,863,514.88 (21.8%); £3,663,137.63 -> £2,863,141.62 (21.8%); £3,663,137.63 -> £2,863,514.76 (21.8%); £3,663,137.64 -> £2,863,514.70 (21.8%); £3,663,137.64 -> £2,863,514.64 (21.8%); £3,663,137.64 -> £2,863,514.58 (21.8%); £3,663,137.64 -> £2,863,514.52 (21.8%); £3,663,137.64 -> £2,863,514.47 (21.8%); £3,663,137.64 -> £2,863,514.41 (21.8%); £3,663,137.64 -> £2,863,514.41 (21.8%); £3,663,137.64 -> £2,863,514.41 (21.8%); £3,663,137.64 -> £2,863,514.41 (21.8%); £3,663,137.64 -> £2,863,514.41 (21.8%); £3,663,137.65 -> £2,863,514.41 (21.8%); £3,663,137.66 -> £2,863,514.41 (21.8%); £3,663,137.66 -> £2,863,514.41 (21.8%); £3,663,137.80 -> £2,863,514.40 (21.8%); £3,663,137.93 -> £2,863,514.40 (21.8%); £3,663,138.07 -> £2,863,514.40 (21.8%); £3,663,138.20 -> £2,863,514.40 (21.8%); £3,663,138.34 -> £2,863,514.40 (21.8%); £3,663,138.47 -> £2,863,514.40 (21.8%); £3,663,138.52 -> £2,863,514.40 (21.8%); £3,663,138.57 -> £2,863,514.40 (21.8%); £3,663,138.58 -> £2,863,514.40 (21.8%); £3,663,138.58 -> £2,863,514.40 (21.8%); £3,663,138.58 -> £2,863,514.40 (21.8%); £3,663,138.59 -> £2,863,514.40 (21.8%); £3,663,138.59 -> £2,863,514.40 (21.8%); £3,663,138.59 -> £2,863,514.40 (21.8%); £3,663,138.60 -> £2,863,514.40 (21.8%); £3,663,138.60 -> £2,863,514.40 (21.8%); £3,663,138.61 -> £2,863,514.40 (21.8%); £3,663,138.61 -> £2,863,514.39 (21.8%); £3,663,138.67 -> £2,863,514.39 (21.8%); £3,663,138.80 -> £2,863,514.39 (21.8%); £3,663,138.93 -> £2,863,514.39 (21.8%); £3,663,139.07 -> £2,863,514.38 (21.8%); £3,663,139.20 -> £2,863,514.37 (21.8%); £3,663,139.33 -> £2,863,514.36 (21.8%); £3,663,139.45 -> £2,863,514.34 (21.8%); £3,663,139.58 -> £2,863,514.32 (21.8%); £3,663,139.58 -> £2,863,514.30 (21.8%); £3,663,139.59 -> £2,863,514.28 (21.8%); £3,663,139.60 -> £2,863,514.26 (21.8%); £3,663,139.62 -> £2,863,514.24 (21.8%); £3,663,139.62 -> £2,863,514.23 (21.8%); £3,663,139.63 -> £2,863,514.22 (21.8%); £3,663,139.63 -> £2,863,514.21 (21.8%); £3,663,139.63 -> £2,863,140.28 (21.8%); £3,663,139.64 -> £2,863,514.09 (21.8%); £3,663,139.64 -> £2,863,514.04 (21.8%); £3,663,139.64 -> £2,863,513.98 (21.8%); £3,663,139.64 -> £2,863,513.92 (21.8%); £3,663,139.64 -> £2,863,513.86 (21.8%); £3,663,139.64 -> £2,863,513.74 (21.8%); £3,663,139.64 -> £2,863,513.74 (21.8%); £3,663,139.64 -> £2,863,513.73 (21.8%); £3,663,139.65 -> £2,863,513.73 (21.8%); £3,663,139.65 -> £2,863,513.73 (21.8%); £3,663,139.74 -> £2,863,513.73 (21.8%); £3,663,139.84 -> £2,863,513.73 (21.8%); £3,663,139.93 -> £2,863,513.73 (21.8%); £3,663,140.03 -> £2,863,513.73 (21.8%); £3,663,140.12 -> £2,863,513.73 (21.8%); £3,663,140.20 -> £2,863,513.73 (21.8%); £3,663,140.25 -> £2,863,513.73 (21.8%); £3,663,140.30 -> £2,863,513.73 (21.8%); £3,663,140.30 -> £2,863,513.73 (21.8%); £3,663,140.31 -> £2,863,513.73 (21.8%); £3,663,140.31 -> £2,863,513.73 (21.8%); £3,663,140.31 -> £2,863,513.73 (21.8%); £3,663,140.31 -> £2,863,513.73 (21.8%); £3,663,140.31 -> £2,863,513.73 (21.8%); £3,663,140.32 -> £2,863,513.73 (21.8%); £3,663,140.32 -> £2,863,513.72 (21.8%); £3,663,140.32 -> £2,863,513.72 (21.8%); £3,663,140.33 -> £2,863,513.72 (21.8%); £3,663,140.39 -> £2,863,513.72 (21.8%); £3,663,140.48 -> £2,863,513.72 (21.8%); £3,663,140.58 -> £2,863,513.71 (21.8%); £3,663,140.68 -> £2,863,513.70 (21.8%); £3,663,140.78 -> £2,863,513.69 (21.8%); £3,663,140.88 -> £2,863,513.67 (21.8%); £3,663,140.97 -> £2,863,513.65 (21.8%); £3,663,141.06 -> £2,863,513.63 (21.8%); £3,663,141.07 -> £2,863,513.61 (21.8%); £3,663,141.07 -> £2,863,513.60 (21.8%); £3,663,141.08 -> £2,863,513.57 (21.8%); £3,663,141.09 -> £2,863,513.56 (21.8%); £3,663,141.10 -> £2,863,513.55 (21.8%); £3,663,141.10 -> £2,863,513.54 (21.8%); £3,663,141.11 -> £2,863,513.53 (21.8%); £3,663,141.11 -> £2,863,138.93 (21.8%); £3,663,141.12 -> £2,863,513.42 (21.8%); £3,663,141.12 -> £2,863,513.36 (21.8%); £3,663,141.12 -> £2,863,513.30 (21.8%); £3,663,141.13 -> £2,863,513.25 (21.8%); £3,663,141.13 -> £2,863,513.19 (21.8%); £3,663,141.13 -> £2,863,513.14 (21.8%); £3,663,141.13 -> £2,863,513.08 (21.8%); £3,663,141.13 -> £2,863,513.08 (21.8%); £3,663,141.13 -> £2,863,513.08 (21.8%); £3,663,141.13 -> £2,863,513.08 (21.8%); £3,663,141.13 -> £2,863,513.08 (21.8%); £3,663,141.13 -> £2,863,513.08 (21.8%); £3,663,141.13 -> £2,863,513.08 (21.8%); £3,663,141.14 -> £2,863,513.08 (21.8%); £3,663,141.14 -> £2,863,513.08 (21.8%); £3,663,141.14 -> £2,863,513.08 (21.8%); £3,663,141.15 -> £2,863,513.08 (21.8%); £3,663,141.16 -> £2,863,513.08 (21.8%); £3,663,141.16 -> £2,863,513.08 (21.8%); £3,663,141.17 -> £2,863,513.08 (21.8%); £3,663,141.18 -> £2,863,513.07 (21.8%); £3,663,141.18 -> £2,863,513.07 (21.8%); £3,663,141.19 -> £2,863,513.07 (21.8%); £3,663,141.19 -> £2,863,513.07 (21.8%); £3,663,141.19 -> £2,863,513.07 (21.8%); £3,663,141.20 -> £2,863,513.07 (21.8%); £3,663,141.21 -> £2,863,513.07 (21.8%); £3,663,141.21 -> £2,863,513.07 (21.8%); £3,663,141.22 -> £2,863,513.07 (21.8%); £3,663,141.23 -> £2,863,513.07 (21.8%); £3,663,141.23 -> £2,863,513.07 (21.8%); £3,663,141.24 -> £2,863,513.07 (21.8%); £3,663,141.25 -> £2,863,513.07 (21.8%); £3,663,141.26 -> £2,863,513.07 (21.8%); £3,663,141.26 -> £2,863,513.06 (21.8%); £3,663,141.27 -> £2,863,513.05 (21.8%); £3,663,141.27 -> £2,863,513.04 (21.8%); £3,663,141.27 -> £2,863,513.02 (21.8%); £3,663,141.28 -> £2,863,513.00 (21.8%); £3,663,141.28 -> £2,863,512.98 (21.8%); £3,663,141.28 -> £2,863,512.97 (21.8%); £3,663,141.28 -> £2,863,512.95 (21.8%); £3,663,141.29 -> £2,863,512.93 (21.8%); £3,663,141.29 -> £2,863,512.92 (21.8%); £3,663,141.30 -> £2,863,512.90 (21.8%); £3,663,141.31 -> £2,863,512.89 (21.8%); £3,663,141.31 -> £2,863,512.88 (21.8%); £3,663,141.31 -> £2,863,137.59 (21.8%); £3,663,141.31 -> £2,863,512.76 (21.8%); £3,663,141.32 -> £2,863,512.69 (21.8%); £3,663,141.32 -> £2,863,512.64 (21.8%); £3,663,141.32 -> £2,863,512.58 (21.8%); £3,663,141.32 -> £2,863,512.53 (21.8%); £3,663,141.32 -> £2,863,512.47 (21.8%); £3,663,141.32 -> £2,863,512.41 (21.8%); £3,663,141.32 -> £2,863,512.41 (21.8%); £3,663,141.33 -> £2,863,512.41 (21.8%); £3,663,141.33 -> £2,863,512.41 (21.8%); £3,663,141.33 -> £2,863,512.41 (21.8%); £3,663,141.33 -> £2,863,512.40 (21.8%); £3,663,141.34 -> £2,863,512.40 (21.8%); £3,663,141.36 -> £2,863,512.40 (21.8%); £3,663,141.37 -> £2,863,512.40 (21.8%); £3,663,141.38 -> £2,863,512.40 (21.8%); £3,663,141.40 -> £2,863,512.40 (21.8%); £3,663,141.41 -> £2,863,512.40 (21.8%); £3,663,141.43 -> £2,863,512.40 (21.8%); £3,663,141.45 -> £2,863,512.40 (21.8%); £3,663,141.46 -> £2,863,512.40 (21.8%); £3,663,141.47 -> £2,863,512.40 (21.8%); £3,663,141.48 -> £2,863,512.40 (21.8%); £3,663,141.49 -> £2,863,512.40 (21.8%); £3,663,141.51 -> £2,863,512.40 (21.8%); £3,663,141.52 -> £2,863,512.40 (21.8%); £3,663,141.53 -> £2,863,512.40 (21.8%); £3,663,141.54 -> £2,863,512.40 (21.8%); £3,663,141.55 -> £2,863,512.40 (21.8%); £3,663,141.56 -> £2,863,512.39 (21.8%); £3,663,141.57 -> £2,863,512.39 (21.8%); £3,663,141.57 -> £2,863,512.39 (21.8%); £3,663,141.57 -> £2,863,512.39 (21.8%); £3,663,141.58 -> £2,863,512.39 (21.8%); £3,663,141.59 -> £2,863,512.39 (21.8%); £3,663,141.61 -> £2,863,512.38 (21.8%); £3,663,141.62 -> £2,863,512.37 (21.8%); £3,663,141.63 -> £2,863,512.35 (21.8%); £3,663,141.64 -> £2,863,512.34 (21.8%); £3,663,141.65 -> £2,863,512.32 (21.8%); £3,663,141.65 -> £2,863,512.30 (21.8%); £3,663,141.66 -> £2,863,512.28 (21.8%); £3,663,141.67 -> £2,863,512.25 (21.8%); £3,663,141.67 -> £2,863,512.24 (21.8%); £3,663,141.68 -> £2,863,512.23 (21.8%); £3,663,141.68 -> £2,863,512.22 (21.8%); £3,663,141.69 -> £2,863,512.21 (21.8%); £3,663,141.69 -> £2,863,136.24 (21.8%); £3,663,141.69 -> £2,863,512.09 (21.8%); £3,663,141.70 -> £2,863,512.03 (21.8%); £3,663,141.70 -> £2,863,511.97 (21.8%); £3,663,141.70 -> £2,863,511.92 (21.8%); £3,663,141.70 -> £2,863,511.86 (21.8%); £3,663,141.70 -> £2,863,511.80 (21.8%); £3,663,141.70 -> £2,863,511.74 (21.8%); £3,663,141.70 -> £2,863,511.74 (21.8%); £3,663,141.72 -> £2,863,511.74 (21.8%); £3,663,141.73 -> £2,863,511.74 (21.8%); £3,663,141.89 -> £2,863,511.74 (21.8%); £3,663,142.06 -> £2,863,511.74 (21.8%); £3,663,142.22 -> £2,863,511.74 (21.8%); £3,663,142.38 -> £2,863,511.74 (21.8%); £3,663,142.54 -> £2,863,511.74 (21.8%); £3,663,142.70 -> £2,863,511.74 (21.8%); £3,663,142.76 -> £2,863,511.74 (21.8%); £3,663,142.81 -> £2,863,511.73 (21.8%); £3,663,142.81 -> £2,863,511.73 (21.8%); £3,663,142.82 -> £2,863,511.73 (21.8%); £3,663,142.82 -> £2,863,511.73 (21.8%); £3,663,142.83 -> £2,863,511.73 (21.8%); £3,663,142.83 -> £2,863,511.73 (21.8%); £3,663,142.84 -> £2,863,511.73 (21.8%); £3,663,142.85 -> £2,863,511.73 (21.8%); £3,663,142.86 -> £2,863,511.73 (21.8%); £3,663,142.87 -> £2,863,511.73 (21.8%); £3,663,142.87 -> £2,863,511.73 (21.8%); £3,663,142.93 -> £2,863,511.73 (21.8%); £3,663,143.08 -> £2,863,511.73 (21.8%); £3,663,143.23 -> £2,863,511.72 (21.8%); £3,663,143.39 -> £2,863,511.71 (21.8%); £3,663,143.53 -> £2,863,511.70 (21.8%); £3,663,143.68 -> £2,863,511.69 (21.8%); £3,663,143.82 -> £2,863,511.67 (21.8%); £3,663,143.96 -> £2,863,511.65 (21.8%); £3,663,143.97 -> £2,863,511.63 (21.8%); £3,663,143.98 -> £2,863,511.61 (21.8%); £3,663,143.99 -> £2,863,511.59 (21.8%); £3,663,144.00 -> £2,863,511.57 (21.8%); £3,663,144.00 -> £2,863,511.56 (21.8%); £3,663,144.01 -> £2,863,511.55 (21.8%); £3,663,144.01 -> £2,863,511.54 (21.8%); £3,663,144.01 -> £2,863,134.89 (21.8%); £3,663,144.02 -> £2,863,511.42 (21.8%); £3,663,144.02 -> £2,863,511.37 (21.8%); £3,663,144.02 -> £2,863,511.31 (21.8%); £3,663,144.02 -> £2,863,511.25 (21.8%); £3,663,144.02 -> £2,863,511.19 (21.8%); £3,663,144.02 -> £2,863,511.06 (21.8%); £3,663,144.02 -> £2,863,511.06 (21.8%); £3,663,144.04 -> £2,863,511.06 (21.8%); £3,663,144.06 -> £2,863,511.06 (21.8%); £3,663,144.23 -> £2,863,511.06 (21.8%); £3,663,144.40 -> £2,863,511.06 (21.8%); £3,663,144.57 -> £2,863,511.06 (21.8%); £3,663,144.75 -> £2,863,511.06 (21.8%); £3,663,144.92 -> £2,863,511.06 (21.8%); £3,663,145.09 -> £2,863,511.06 (21.8%); £3,663,145.14 -> £2,863,511.06 (21.8%); £3,663,145.19 -> £2,863,511.06 (21.8%); £3,663,145.20 -> £2,863,511.06 (21.8%); £3,663,145.20 -> £2,863,511.06 (21.8%); £3,663,145.20 -> £2,863,511.06 (21.8%); £3,663,145.20 -> £2,863,511.06 (21.8%); £3,663,145.21 -> £2,863,511.06 (21.8%); £3,663,145.21 -> £2,863,511.06 (21.8%); £3,663,145.21 -> £2,863,511.05 (21.8%); £3,663,145.22 -> £2,863,511.05 (21.8%); £3,663,145.22 -> £2,863,511.05 (21.8%); £3,663,145.22 -> £2,863,511.05 (21.8%); £3,663,145.29 -> £2,863,511.05 (21.8%); £3,663,145.44 -> £2,863,511.05 (21.8%); £3,663,145.60 -> £2,863,511.04 (21.8%); £3,663,145.76 -> £2,863,511.03 (21.8%); £3,663,145.90 -> £2,863,511.01 (21.8%); £3,663,146.04 -> £2,863,510.99 (21.8%); £3,663,146.17 -> £2,863,510.97 (21.8%); £3,663,146.31 -> £2,863,510.95 (21.8%); £3,663,146.31 -> £2,863,510.93 (21.8%); £3,663,146.31 -> £2,863,510.91 (21.8%); £3,663,146.32 -> £2,863,510.89 (21.8%); £3,663,146.34 -> £2,863,510.87 (21.8%); £3,663,146.34 -> £2,863,510.86 (21.8%); £3,663,146.35 -> £2,863,510.85 (21.8%); £3,663,146.35 -> £2,863,510.84 (21.8%); £3,663,146.35 -> £2,863,133.55 (21.8%); £3,663,146.35 -> £2,863,510.47 (21.8%); £3,663,146.35 -> £2,863,510.41 (21.8%); £3,663,146.35 -> £2,863,510.35 (21.8%); £3,663,146.35 -> £2,863,510.35 (21.8%); £3,663,146.35 -> £2,863,510.35 (21.8%); £3,663,146.35 -> £2,863,510.35 (21.8%); £3,663,146.36 -> £2,863,510.35 (21.8%); £3,663,146.36 -> £2,863,510.35 (21.8%); £3,663,146.49 -> £2,863,510.35 (21.8%); £3,663,146.62 -> £2,863,510.35 (21.8%); £3,663,146.75 -> £2,863,510.35 (21.8%); £3,663,146.88 -> £2,863,510.35 (21.8%); £3,663,147.01 -> £2,863,510.34 (21.8%); £3,663,147.13 -> £2,863,510.34 (21.8%); £3,663,147.19 -> £2,863,510.34 (21.8%); £3,663,147.24 -> £2,863,510.34 (21.8%); £3,663,147.24 -> £2,863,510.34 (21.8%); £3,663,147.24 -> £2,863,510.34 (21.8%); £3,663,147.25 -> £2,863,510.34 (21.8%); £3,663,147.25 -> £2,863,510.34 (21.8%); £3,663,147.26 -> £2,863,510.34 (21.8%); £3,663,147.26 -> £2,863,510.34 (21.8%); £3,663,147.26 -> £2,863,510.34 (21.8%); £3,663,147.26 -> £2,863,510.34 (21.8%); £3,663,147.27 -> £2,863,510.34 (21.8%); £3,663,147.27 -> £2,863,510.34 (21.8%); £3,663,147.33 -> £2,863,510.34 (21.8%); £3,663,147.45 -> £2,863,510.34 (21.8%); £3,663,147.58 -> £2,863,510.33 (21.8%); £3,663,147.71 -> £2,863,510.32 (21.8%); £3,663,147.84 -> £2,863,510.31 (21.8%); £3,663,147.96 -> £2,863,510.30 (21.8%); £3,663,148.07 -> £2,863,510.28 (21.8%); £3,663,148.19 -> £2,863,510.26 (21.8%); £3,663,148.20 -> £2,863,510.24 (21.8%); £3,663,148.20 -> £2,863,510.22 (21.8%); £3,663,148.21 -> £2,863,510.20 (21.8%); £3,663,148.22 -> £2,863,510.18 (21.8%); £3,663,148.23 -> £2,863,510.17 (21.8%); £3,663,148.24 -> £2,863,510.16 (21.8%); £3,663,148.24 -> £2,863,510.15 (21.8%); £3,663,148.24 -> £2,863,132.20 (21.8%); £3,663,148.24 -> £2,863,510.03 (21.8%); £3,663,148.24 -> £2,863,509.97 (21.8%); £3,663,148.25 -> £2,863,509.91 (21.8%); £3,663,148.25 -> £2,863,509.86 (21.8%); £3,663,148.25 -> £2,863,509.74 (21.8%); £3,663,148.25 -> £2,863,509.68 (21.8%); £3,663,148.25 -> £2,863,509.68 (21.8%); £3,663,148.25 -> £2,863,509.68 (21.8%); £3,663,148.26 -> £2,863,509.68 (21.8%); £3,663,148.27 -> £2,863,509.68 (21.8%); £3,663,148.42 -> £2,863,509.68 (21.8%); £3,663,148.58 -> £2,863,509.68 (21.8%); £3,663,148.75 -> £2,863,509.68 (21.8%); £3,663,148.90 -> £2,863,509.68 (21.8%); £3,663,149.06 -> £2,863,509.68 (21.8%); £3,663,149.22 -> £2,863,509.68 (21.8%); £3,663,149.28 -> £2,863,509.67 (21.8%); £3,663,149.33 -> £2,863,509.67 (21.8%); £3,663,149.33 -> £2,863,509.67 (21.8%); £3,663,149.33 -> £2,863,509.67 (21.8%); £3,663,149.33 -> £2,863,509.67 (21.8%); £3,663,149.33 -> £2,863,509.67 (21.8%); £3,663,149.34 -> £2,863,509.67 (21.8%); £3,663,149.34 -> £2,863,509.67 (21.8%); £3,663,149.34 -> £2,863,509.67 (21.8%); £3,663,149.34 -> £2,863,509.67 (21.8%); £3,663,149.34 -> £2,863,509.67 (21.8%); £3,663,149.34 -> £2,863,509.67 (21.8%); £3,663,149.40 -> £2,863,509.67 (21.8%); £3,663,149.55 -> £2,863,509.67 (21.8%); £3,663,149.70 -> £2,863,509.67 (21.8%); £3,663,149.84 -> £2,863,509.66 (21.8%); £3,663,149.99 -> £2,863,509.65 (21.8%); £3,663,150.13 -> £2,863,509.63 (21.8%); £3,663,150.26 -> £2,863,509.61 (21.8%); £3,663,150.40 -> £2,863,509.59 (21.8%); £3,663,150.41 -> £2,863,509.57 (21.8%); £3,663,150.42 -> £2,863,509.55 (21.8%); £3,663,150.43 -> £2,863,509.53 (21.8%); £3,663,150.44 -> £2,863,509.52 (21.8%); £3,663,150.44 -> £2,863,509.50 (21.8%); £3,663,150.45 -> £2,863,509.49 (21.8%); £3,663,150.45 -> £2,863,509.48 (21.8%); £3,663,150.45 -> £2,863,130.85 (21.8%); £3,663,150.45 -> £2,863,509.36 (21.8%); £3,663,150.46 -> £2,863,509.24 (21.8%); £3,663,150.46 -> £2,863,509.18 (21.8%); £3,663,150.46 -> £2,863,509.12 (21.8%); £3,663,150.46 -> £2,863,509.06 (21.8%); £3,663,150.46 -> £2,863,509.00 (21.8%); £3,663,150.46 -> £2,863,509.00 (21.8%); £3,663,150.46 -> £2,863,509.00 (21.8%); £3,663,150.46 -> £2,863,509.00 (21.8%); £3,663,150.46 -> £2,863,509.00 (21.8%); £3,663,150.46 -> £2,863,509.00 (21.8%); £3,663,150.47 -> £2,863,509.00 (21.8%); £3,663,150.48 -> £2,863,509.00 (21.8%); £3,663,150.59 -> £2,863,509.00 (21.8%); £3,663,150.70 -> £2,863,509.00 (21.8%); £3,663,150.82 -> £2,863,508.99 (21.8%); £3,663,150.94 -> £2,863,508.99 (21.8%); £3,663,151.05 -> £2,863,508.99 (21.8%); £3,663,151.16 -> £2,863,508.99 (21.8%); £3,663,151.22 -> £2,863,508.99 (21.8%); £3,663,151.27 -> £2,863,508.99 (21.8%); £3,663,151.27 -> £2,863,508.99 (21.8%); £3,663,151.27 -> £2,863,508.99 (21.8%); £3,663,151.28 -> £2,863,508.99 (21.8%); £3,663,151.28 -> £2,863,508.99 (21.8%); £3,663,151.28 -> £2,863,508.99 (21.8%); £3,663,151.29 -> £2,863,508.99 (21.8%); £3,663,151.29 -> £2,863,508.99 (21.8%); £3,663,151.29 -> £2,863,508.99 (21.8%); £3,663,151.30 -> £2,863,508.99 (21.8%); £3,663,151.30 -> £2,863,508.99 (21.8%); £3,663,151.36 -> £2,863,508.99 (21.8%); £3,663,151.47 -> £2,863,508.98 (21.8%); £3,663,151.59 -> £2,863,508.98 (21.8%); £3,663,151.71 -> £2,863,508.97 (21.8%); £3,663,151.82 -> £2,863,508.95 (21.8%); £3,663,151.93 -> £2,863,508.94 (21.8%); £3,663,152.04 -> £2,863,508.92 (21.8%); £3,663,152.14 -> £2,863,508.90 (21.8%); £3,663,152.15 -> £2,863,508.88 (21.8%); £3,663,152.16 -> £2,863,508.86 (21.8%); £3,663,152.17 -> £2,863,508.84 (21.8%); £3,663,152.17 -> £2,863,508.83 (21.8%); £3,663,152.18 -> £2,863,508.81 (21.8%); £3,663,152.18 -> £2,863,508.80 (21.8%); £3,663,152.19 -> £2,863,508.79 (21.8%); £3,663,152.19 -> £2,863,129.51 (21.8%); £3,663,152.19 -> £2,863,508.67 (21.8%); £3,663,152.19 -> £2,863,508.61 (21.8%); £3,663,152.20 -> £2,863,508.55 (21.8%); £3,663,152.20 -> £2,863,508.49 (21.8%); £3,663,152.20 -> £2,863,508.44 (21.8%); £3,663,152.20 -> £2,863,508.38 (21.8%); £3,663,152.20 -> £2,863,508.32 (21.8%); £3,663,152.20 -> £2,863,508.32 (21.8%); £3,663,152.20 -> £2,863,508.31 (21.8%); £3,663,152.20 -> £2,863,508.31 (21.8%); £3,663,152.20 -> £2,863,508.31 (21.8%); £3,663,152.22 -> £2,863,508.31 (21.8%); £3,663,152.23 -> £2,863,508.31 (21.8%); £3,663,152.24 -> £2,863,508.31 (21.8%); £3,663,152.25 -> £2,863,508.31 (21.8%); £3,663,152.26 -> £2,863,508.31 (21.8%); £3,663,152.27 -> £2,863,508.31 (21.8%); £3,663,152.28 -> £2,863,508.31 (21.8%); £3,663,152.30 -> £2,863,508.31 (21.8%); £3,663,152.30 -> £2,863,508.31 (21.8%); £3,663,152.30 -> £2,863,508.31 (21.8%); £3,663,152.30 -> £2,863,508.31 (21.8%); £3,663,152.31 -> £2,863,508.31 (21.8%); £3,663,152.31 -> £2,863,508.31 (21.8%); £3,663,152.31 -> £2,863,508.31 (21.8%); £3,663,152.31 -> £2,863,508.31 (21.8%); £3,663,152.32 -> £2,863,508.30 (21.8%); £3,663,152.32 -> £2,863,508.30 (21.8%); £3,663,152.33 -> £2,863,508.30 (21.8%); £3,663,152.33 -> £2,863,508.30 (21.8%); £3,663,152.34 -> £2,863,508.30 (21.8%); £3,663,152.34 -> £2,863,508.30 (21.8%); £3,663,152.36 -> £2,863,508.30 (21.8%); £3,663,152.37 -> £2,863,508.29 (21.8%); £3,663,152.38 -> £2,863,508.28 (21.8%); £3,663,152.40 -> £2,863,508.27 (21.8%); £3,663,152.41 -> £2,863,508.25 (21.8%); £3,663,152.42 -> £2,863,508.23 (21.8%); £3,663,152.43 -> £2,863,508.21 (21.8%); £3,663,152.44 -> £2,863,508.20 (21.8%); £3,663,152.45 -> £2,863,508.17 (21.8%); £3,663,152.45 -> £2,863,508.16 (21.8%); £3,663,152.47 -> £2,863,508.14 (21.8%); £3,663,152.48 -> £2,863,508.13 (21.8%); £3,663,152.48 -> £2,863,508.12 (21.8%); £3,663,152.48 -> £2,863,508.11 (21.8%); £3,663,152.49 -> £2,863,128.16 (21.8%); £3,663,152.49 -> £2,863,507.99 (21.8%); £3,663,152.50 -> £2,863,507.94 (21.8%); £3,663,152.50 -> £2,863,507.88 (21.8%); £3,663,152.50 -> £2,863,507.82 (21.8%); £3,663,152.50 -> £2,863,507.77 (21.8%); £3,663,152.50 -> £2,863,507.71 (21.8%); £3,663,152.51 -> £2,863,507.66 (21.8%); £3,663,152.51 -> £2,863,507.66 (21.8%); £3,663,152.51 -> £2,863,507.66 (21.8%); £3,663,152.51 -> £2,863,507.65 (21.8%); £3,663,152.52 -> £2,863,507.65 (21.8%); £3,663,152.52 -> £2,863,507.65 (21.8%); £3,663,152.53 -> £2,863,507.65 (21.8%); £3,663,152.55 -> £2,863,507.65 (21.8%); £3,663,152.57 -> £2,863,507.65 (21.8%); £3,663,152.58 -> £2,863,507.65 (21.8%); £3,663,152.60 -> £2,863,507.65 (21.8%); £3,663,152.62 -> £2,863,507.65 (21.8%); £3,663,152.64 -> £2,863,507.65 (21.8%); £3,663,152.65 -> £2,863,507.65 (21.8%); £3,663,152.66 -> £2,863,507.65 (21.8%); £3,663,152.67 -> £2,863,507.65 (21.8%); £3,663,152.68 -> £2,863,507.65 (21.8%); £3,663,152.69 -> £2,863,507.65 (21.8%); £3,663,152.70 -> £2,863,507.65 (21.8%); £3,663,152.71 -> £2,863,507.65 (21.8%); £3,663,152.72 -> £2,863,507.65 (21.8%); £3,663,152.73 -> £2,863,507.64 (21.8%); £3,663,152.74 -> £2,863,507.64 (21.8%); £3,663,152.74 -> £2,863,507.64 (21.8%); £3,663,152.75 -> £2,863,507.64 (21.8%); £3,663,152.75 -> £2,863,507.64 (21.8%); £3,663,152.75 -> £2,863,507.64 (21.8%); £3,663,152.76 -> £2,863,507.64 (21.8%); £3,663,152.78 -> £2,863,507.64 (21.8%); £3,663,152.78 -> £2,863,507.63 (21.8%); £3,663,152.79 -> £2,863,507.62 (21.8%); £3,663,152.80 -> £2,863,507.60 (21.8%); £3,663,152.81 -> £2,863,507.58 (21.8%); £3,663,152.82 -> £2,863,507.56 (21.8%); £3,663,152.83 -> £2,863,507.54 (21.8%); £3,663,152.84 -> £2,863,507.52 (21.8%); £3,663,152.85 -> £2,863,507.50 (21.8%); £3,663,152.86 -> £2,863,507.49 (21.8%); £3,663,152.87 -> £2,863,507.48 (21.8%); £3,663,152.87 -> £2,863,507.47 (21.8%); £3,663,152.88 -> £2,863,507.46 (21.8%); £3,663,152.88 -> £2,863,126.82 (21.8%); £3,663,152.89 -> £2,863,507.34 (21.8%); £3,663,152.89 -> £2,863,507.28 (21.8%); £3,663,152.89 -> £2,863,507.22 (21.8%); £3,663,152.89 -> £2,863,506.98 (21.8%); £3,663,152.89 -> £2,863,506.97 (21.8%); £3,663,152.89 -> £2,863,506.97 (21.8%); £3,663,152.89 -> £2,863,506.97 (21.8%); £3,663,152.90 -> £2,863,506.97 (21.8%); £3,663,152.91 -> £2,863,506.97 (21.8%); £3,663,153.11 -> £2,863,506.97 (21.8%); £3,663,153.31 -> £2,863,506.97 (21.8%); £3,663,153.51 -> £2,863,506.97 (21.8%); £3,663,153.71 -> £2,863,506.97 (21.8%); £3,663,153.91 -> £2,863,506.97 (21.8%); £3,663,154.12 -> £2,863,506.97 (21.8%); £3,663,154.17 -> £2,863,506.97 (21.8%); £3,663,154.22 -> £2,863,506.97 (21.8%); £3,663,154.22 -> £2,863,506.97 (21.8%); £3,663,154.23 -> £2,863,506.96 (21.8%); £3,663,154.23 -> £2,863,506.96 (21.8%); £3,663,154.23 -> £2,863,506.96 (21.8%); £3,663,154.23 -> £2,863,506.96 (21.8%); £3,663,154.23 -> £2,863,506.96 (21.8%); £3,663,154.23 -> £2,863,506.96 (21.8%); £3,663,154.24 -> £2,863,506.96 (21.8%); £3,663,154.24 -> £2,863,506.96 (21.8%); £3,663,154.24 -> £2,863,506.96 (21.8%); £3,663,154.30 -> £2,863,506.96 (21.8%); £3,663,154.47 -> £2,863,506.96 (21.8%); £3,663,154.65 -> £2,863,506.95 (21.8%); £3,663,154.83 -> £2,863,506.94 (21.8%); £3,663,155.00 -> £2,863,506.92 (21.8%); £3,663,155.18 -> £2,863,506.91 (21.8%); £3,663,155.35 -> £2,863,506.89 (21.8%); £3,663,155.52 -> £2,863,506.87 (21.8%); £3,663,155.52 -> £2,863,506.85 (21.8%); £3,663,155.53 -> £2,863,506.82 (21.8%); £3,663,155.55 -> £2,863,506.80 (21.8%); £3,663,155.56 -> £2,863,506.79 (21.8%); £3,663,155.56 -> £2,863,506.77 (21.8%); £3,663,155.57 -> £2,863,506.76 (21.8%); £3,663,155.57 -> £2,863,506.76 (21.8%); £3,663,155.57 -> £2,863,125.47 (21.8%); £3,663,155.57 -> £2,863,506.63 (21.8%); £3,663,155.57 -> £2,863,506.57 (21.8%); £3,663,155.57 -> £2,863,506.51 (21.8%); £3,663,155.57 -> £2,863,506.45 (21.8%); £3,663,155.58 -> £2,863,506.39 (21.8%); £3,663,155.58 -> £2,863,506.33 (21.8%); £3,663,155.58 -> £2,863,506.28 (21.8%); £3,663,155.58 -> £2,863,506.27 (21.8%); £3,663,155.58 -> £2,863,506.27 (21.8%); £3,663,155.58 -> £2,863,506.27 (21.8%); £3,663,155.58 -> £2,863,506.27 (21.8%); £3,663,155.58 -> £2,863,506.27 (21.8%); £3,663,155.59 -> £2,863,506.27 (21.8%); £3,663,155.60 -> £2,863,506.27 (21.8%); £3,663,155.74 -> £2,863,506.27 (21.8%); £3,663,155.87 -> £2,863,506.27 (21.8%); £3,663,156.01 -> £2,863,506.27 (21.8%); £3,663,156.15 -> £2,863,506.27 (21.8%); £3,663,156.29 -> £2,863,506.27 (21.8%); £3,663,156.42 -> £2,863,506.27 (21.8%); £3,663,156.48 -> £2,863,506.27 (21.8%); £3,663,156.53 -> £2,863,506.26 (21.8%); £3,663,156.53 -> £2,863,506.26 (21.8%); £3,663,156.53 -> £2,863,506.26 (21.8%); £3,663,156.54 -> £2,863,506.26 (21.8%); £3,663,156.54 -> £2,863,506.26 (21.8%); £3,663,156.54 -> £2,863,506.26 (21.8%); £3,663,156.54 -> £2,863,506.26 (21.8%); £3,663,156.55 -> £2,863,506.26 (21.8%); £3,663,156.55 -> £2,863,506.26 (21.8%); £3,663,156.55 -> £2,863,506.26 (21.8%); £3,663,156.56 -> £2,863,506.26 (21.8%); £3,663,156.61 -> £2,863,506.26 (21.8%); £3,663,156.74 -> £2,863,506.26 (21.8%); £3,663,156.88 -> £2,863,506.25 (21.8%); £3,663,157.01 -> £2,863,506.25 (21.8%); £3,663,157.13 -> £2,863,506.23 (21.8%); £3,663,157.26 -> £2,863,506.22 (21.8%); £3,663,157.38 -> £2,863,506.20 (21.8%); £3,663,157.50 -> £2,863,506.18 (21.8%); £3,663,157.51 -> £2,863,506.16 (21.8%); £3,663,157.52 -> £2,863,506.13 (21.8%); £3,663,157.53 -> £2,863,506.11 (21.8%); £3,663,157.53 -> £2,863,506.10 (21.8%); £3,663,157.54 -> £2,863,506.09 (21.8%); £3,663,157.54 -> £2,863,506.08 (21.8%); £3,663,157.55 -> £2,863,506.07 (21.8%); £3,663,157.55 -> £2,863,124.12 (21.8%); £3,663,157.55 -> £2,863,505.94 (21.8%); £3,663,157.55 -> £2,863,505.88 (21.8%); £3,663,157.55 -> £2,863,505.82 (21.8%); £3,663,157.55 -> £2,863,505.76 (21.8%); £3,663,157.55 -> £2,863,505.70 (21.8%); £3,663,157.55 -> £2,863,505.64 (21.8%); £3,663,157.55 -> £2,863,505.58 (21.8%); £3,663,157.55 -> £2,863,505.58 (21.8%); £3,663,157.55 -> £2,863,505.58 (21.8%); £3,663,157.55 -> £2,863,505.58 (21.8%); £3,663,157.55 -> £2,863,505.58 (21.8%); £3,663,157.55 -> £2,863,505.57 (21.8%); £3,663,157.56 -> £2,863,505.57 (21.8%); £3,663,157.56 -> £2,863,505.57 (21.8%); £3,663,157.61 -> £2,863,505.57 (21.8%); £3,663,157.67 -> £2,863,505.57 (21.8%); £3,663,157.73 -> £2,863,505.57 (21.8%); £3,663,157.79 -> £2,863,505.57 (21.8%); £3,663,157.85 -> £2,863,505.57 (21.8%); £3,663,157.91 -> £2,863,505.57 (21.8%); £3,663,157.97 -> £2,863,505.57 (21.8%); £3,663,158.02 -> £2,863,505.57 (21.8%); £3,663,158.03 -> £2,863,505.57 (21.8%); £3,663,158.03 -> £2,863,505.57 (21.8%); £3,663,158.03 -> £2,863,505.57 (21.8%); £3,663,158.04 -> £2,863,505.57 (21.8%); £3,663,158.04 -> £2,863,505.57 (21.8%); £3,663,158.04 -> £2,863,505.57 (21.8%); £3,663,158.05 -> £2,863,505.57 (21.8%); £3,663,158.05 -> £2,863,505.56 (21.8%); £3,663,158.05 -> £2,863,505.56 (21.8%); £3,663,158.05 -> £2,863,505.56 (21.8%); £3,663,158.11 -> £2,863,505.56 (21.8%); £3,663,158.18 -> £2,863,505.56 (21.8%); £3,663,158.25 -> £2,863,505.55 (21.8%); £3,663,158.33 -> £2,863,505.54 (21.8%); £3,663,158.40 -> £2,863,505.53 (21.8%); £3,663,158.47 -> £2,863,505.51 (21.8%); £3,663,158.54 -> £2,863,505.49 (21.8%); £3,663,158.60 -> £2,863,505.47 (21.8%); £3,663,158.61 -> £2,863,505.45 (21.8%); £3,663,158.61 -> £2,863,505.43 (21.8%); £3,663,158.61 -> £2,863,505.41 (21.8%); £3,663,158.62 -> £2,863,505.39 (21.8%); £3,663,158.62 -> £2,863,505.38 (21.8%); £3,663,158.62 -> £2,863,505.37 (21.8%); £3,663,158.63 -> £2,863,505.36 (21.8%); £3,663,158.63 -> £2,863,122.78 (21.8%); £3,663,158.63 -> £2,863,505.24 (21.8%); £3,663,158.63 -> £2,863,505.18 (21.8%); £3,663,158.63 -> £2,863,505.12 (21.8%); £3,663,158.63 -> £2,863,505.06 (21.8%); £3,663,158.63 -> £2,863,505.00 (21.8%); £3,663,158.63 -> £2,863,504.94 (21.8%); £3,663,158.64 -> £2,863,504.88 (21.8%); £3,663,158.64 -> £2,863,504.88 (21.8%); £3,663,158.64 -> £2,863,504.88 (21.8%); £3,663,158.64 -> £2,863,504.88 (21.8%); £3,663,158.64 -> £2,863,504.88 (21.8%); £3,663,158.64 -> £2,863,504.88 (21.8%); £3,663,158.64 -> £2,863,504.88 (21.8%); £3,663,158.64 -> £2,863,504.88 (21.8%); £3,663,158.69 -> £2,863,504.88 (21.8%); £3,663,158.73 -> £2,863,504.88 (21.8%); £3,663,158.78 -> £2,863,504.87 (21.8%); £3,663,158.83 -> £2,863,504.87 (21.8%); £3,663,158.88 -> £2,863,504.87 (21.8%); £3,663,158.93 -> £2,863,504.87 (21.8%); £3,663,158.98 -> £2,863,504.87 (21.8%); £3,663,159.04 -> £2,863,504.87 (21.8%); £3,663,159.04 -> £2,863,504.87 (21.8%); £3,663,159.04 -> £2,863,504.87 (21.8%); £3,663,159.05 -> £2,863,504.87 (21.8%); £3,663,159.05 -> £2,863,504.87 (21.8%); £3,663,159.06 -> £2,863,504.87 (21.8%); £3,663,159.06 -> £2,863,504.87 (21.8%); £3,663,159.06 -> £2,863,504.87 (21.8%); £3,663,159.06 -> £2,863,504.87 (21.8%); £3,663,159.07 -> £2,863,504.87 (21.8%); £3,663,159.07 -> £2,863,504.87 (21.8%); £3,663,159.13 -> £2,863,504.87 (21.8%); £3,663,159.19 -> £2,863,504.86 (21.8%); £3,663,159.25 -> £2,863,504.86 (21.8%); £3,663,159.32 -> £2,863,504.84 (21.8%); £3,663,159.38 -> £2,863,504.83 (21.8%); £3,663,159.44 -> £2,863,504.81 (21.8%); £3,663,159.50 -> £2,863,504.79 (21.8%); £3,663,159.56 -> £2,863,504.78 (21.8%); £3,663,159.57 -> £2,863,504.76 (21.8%); £3,663,159.57 -> £2,863,504.73 (21.8%); £3,663,159.57 -> £2,863,504.71 (21.8%); £3,663,159.58 -> £2,863,504.70 (21.8%); £3,663,159.58 -> £2,863,504.69 (21.8%); £3,663,159.58 -> £2,863,504.67 (21.8%); £3,663,159.59 -> £2,863,504.67 (21.8%); £3,663,159.59 -> £2,863,121.43 (21.8%); £3,663,159.59 -> £2,863,504.55 (21.8%); £3,663,159.59 -> £2,863,504.48 (21.8%); £3,663,159.59 -> £2,863,504.42 (21.8%); £3,663,159.59 -> £2,863,504.36 (21.8%); £3,663,159.59 -> £2,863,504.30 (21.8%); £3,663,159.59 -> £2,863,504.24 (21.8%); £3,663,159.60 -> £2,863,504.18 (21.8%); £3,663,159.60 -> £2,863,504.18 (21.8%); £3,663,159.60 -> £2,863,504.18 (21.8%); £3,663,159.60 -> £2,863,504.18 (21.8%); £3,663,159.60 -> £2,863,504.18 (21.8%); £3,663,159.60 -> £2,863,504.18 (21.8%); £3,663,159.60 -> £2,863,504.18 (21.8%); £3,663,159.60 -> £2,863,504.18 (21.8%); £3,663,159.65 -> £2,863,504.18 (21.8%); £3,663,159.70 -> £2,863,504.18 (21.8%); £3,663,159.75 -> £2,863,504.18 (21.8%); £3,663,159.80 -> £2,863,504.17 (21.8%); £3,663,159.84 -> £2,863,504.17 (21.8%); £3,663,159.89 -> £2,863,504.17 (21.8%); £3,663,159.94 -> £2,863,504.17 (21.8%); £3,663,160.00 -> £2,863,504.17 (21.8%); £3,663,160.00 -> £2,863,504.17 (21.8%); £3,663,160.00 -> £2,863,504.17 (21.8%); £3,663,160.00 -> £2,863,504.17 (21.8%); £3,663,160.00 -> £2,863,504.17 (21.8%); £3,663,160.01 -> £2,863,504.17 (21.8%); £3,663,160.01 -> £2,863,504.17 (21.8%); £3,663,160.02 -> £2,863,504.17 (21.8%); £3,663,160.02 -> £2,863,504.17 (21.8%); £3,663,160.03 -> £2,863,504.17 (21.8%); £3,663,160.03 -> £2,863,504.17 (21.8%); £3,663,160.09 -> £2,863,504.17 (21.8%); £3,663,160.15 -> £2,863,504.16 (21.8%); £3,663,160.22 -> £2,863,504.15 (21.8%); £3,663,160.29 -> £2,863,504.14 (21.8%); £3,663,160.35 -> £2,863,504.13 (21.8%); £3,663,160.41 -> £2,863,504.11 (21.8%); £3,663,160.47 -> £2,863,504.09 (21.8%); £3,663,160.53 -> £2,863,504.07 (21.8%); £3,663,160.53 -> £2,863,504.05 (21.8%); £3,663,160.54 -> £2,863,504.03 (21.8%); £3,663,160.54 -> £2,863,504.00 (21.8%); £3,663,160.54 -> £2,863,503.99 (21.8%); £3,663,160.55 -> £2,863,503.98 (21.8%); £3,663,160.55 -> £2,863,503.97 (21.8%); £3,663,160.56 -> £2,863,503.96 (21.8%); £3,663,160.56 -> £2,863,120.08 (21.8%); £3,663,160.56 -> £2,863,503.84 (21.8%); £3,663,160.57 -> £2,863,503.78 (21.8%); £3,663,160.57 -> £2,863,503.72 (21.8%); £3,663,160.57 -> £2,863,503.66 (21.8%); £3,663,160.57 -> £2,863,503.60 (21.8%); £3,663,160.57 -> £2,863,503.54 (21.8%); £3,663,160.57 -> £2,863,503.48 (21.8%); £3,663,160.57 -> £2,863,503.47 (21.8%); £3,663,160.57 -> £2,863,503.47 (21.8%); £3,663,160.57 -> £2,863,503.47 (21.8%); £3,663,160.57 -> £2,863,503.47 (21.8%); £3,663,160.57 -> £2,863,503.47 (21.8%); £3,663,160.58 -> £2,863,503.47 (21.8%); £3,663,160.58 -> £2,863,503.47 (21.8%); £3,663,160.59 -> £2,863,503.47 (21.8%); £3,663,160.59 -> £2,863,503.47 (21.8%); £3,663,160.60 -> £2,863,503.47 (21.8%); £3,663,160.61 -> £2,863,503.47 (21.8%); £3,663,160.62 -> £2,863,503.47 (21.8%); £3,663,160.62 -> £2,863,503.47 (21.8%); £3,663,160.63 -> £2,863,503.47 (21.8%); £3,663,160.63 -> £2,863,503.46 (21.8%); £3,663,160.63 -> £2,863,503.46 (21.8%); £3,663,160.64 -> £2,863,503.46 (21.8%); £3,663,160.64 -> £2,863,503.46 (21.8%); £3,663,160.65 -> £2,863,503.46 (21.8%); £3,663,160.65 -> £2,863,503.46 (21.8%); £3,663,160.66 -> £2,863,503.46 (21.8%); £3,663,160.66 -> £2,863,503.46 (21.8%); £3,663,160.67 -> £2,863,503.46 (21.8%); £3,663,160.67 -> £2,863,503.46 (21.8%); £3,663,160.68 -> £2,863,503.46 (21.8%); £3,663,160.68 -> £2,863,503.46 (21.8%); £3,663,160.69 -> £2,863,503.46 (21.8%); £3,663,160.70 -> £2,863,503.45 (21.8%); £3,663,160.71 -> £2,863,503.45 (21.8%); £3,663,160.72 -> £2,863,503.43 (21.8%); £3,663,160.72 -> £2,863,503.42 (21.8%); £3,663,160.73 -> £2,863,503.40 (21.8%); £3,663,160.74 -> £2,863,503.38 (21.8%); £3,663,160.75 -> £2,863,503.36 (21.8%); £3,663,160.76 -> £2,863,503.34 (21.8%); £3,663,160.76 -> £2,863,503.32 (21.8%); £3,663,160.77 -> £2,863,503.31 (21.8%); £3,663,160.77 -> £2,863,503.30 (21.8%); £3,663,160.77 -> £2,863,503.29 (21.8%); £3,663,160.78 -> £2,863,503.28 (21.8%); £3,663,160.78 -> £2,863,118.74 (21.8%); £3,663,160.78 -> £2,863,503.15 (21.8%); £3,663,160.79 -> £2,863,503.09 (21.8%); £3,663,160.79 -> £2,863,503.03 (21.8%); £3,663,160.79 -> £2,863,502.97 (21.8%); £3,663,160.79 -> £2,863,502.91 (21.8%); £3,663,160.79 -> £2,863,502.85 (21.8%); £3,663,160.79 -> £2,863,502.79 (21.8%); £3,663,160.79 -> £2,863,502.79 (21.8%); £3,663,160.79 -> £2,863,502.78 (21.8%); £3,663,160.79 -> £2,863,502.78 (21.8%); £3,663,160.79 -> £2,863,502.78 (21.8%); £3,663,160.79 -> £2,863,502.78 (21.8%); £3,663,160.80 -> £2,863,502.78 (21.8%); £3,663,160.81 -> £2,863,502.78 (21.8%); £3,663,160.81 -> £2,863,502.78 (21.8%); £3,663,160.82 -> £2,863,502.78 (21.8%); £3,663,160.83 -> £2,863,502.78 (21.8%); £3,663,160.85 -> £2,863,502.78 (21.8%); £3,663,160.86 -> £2,863,502.78 (21.8%); £3,663,160.87 -> £2,863,502.78 (21.8%); £3,663,160.88 -> £2,863,502.78 (21.8%); £3,663,160.89 -> £2,863,502.78 (21.8%); £3,663,160.90 -> £2,863,502.78 (21.8%); £3,663,160.90 -> £2,863,502.78 (21.8%); £3,663,160.91 -> £2,863,502.78 (21.8%); £3,663,160.92 -> £2,863,502.78 (21.8%); £3,663,160.93 -> £2,863,502.77 (21.8%); £3,663,160.94 -> £2,863,502.77 (21.8%); £3,663,160.94 -> £2,863,502.77 (21.8%); £3,663,160.95 -> £2,863,502.77 (21.8%); £3,663,160.95 -> £2,863,502.77 (21.8%); £3,663,160.96 -> £2,863,502.77 (21.8%); £3,663,160.96 -> £2,863,502.77 (21.8%); £3,663,160.96 -> £2,863,502.77 (21.8%); £3,663,160.97 -> £2,863,502.76 (21.8%); £3,663,160.97 -> £2,863,502.75 (21.8%); £3,663,160.98 -> £2,863,502.74 (21.8%); £3,663,160.98 -> £2,863,502.72 (21.8%); £3,663,160.99 -> £2,863,502.71 (21.8%); £3,663,161.00 -> £2,863,502.69 (21.8%); £3,663,161.01 -> £2,863,502.66 (21.8%); £3,663,161.01 -> £2,863,502.64 (21.8%); £3,663,161.02 -> £2,863,502.62 (21.8%); £3,663,161.03 -> £2,863,502.61 (21.8%); £3,663,161.03 -> £2,863,502.60 (21.8%); £3,663,161.04 -> £2,863,502.59 (21.8%); £3,663,161.04 -> £2,863,502.58 (21.8%); £3,663,161.05 -> £2,863,117.39 (21.8%); £3,663,161.05 -> £2,863,502.46 (21.8%); £3,663,161.05 -> £2,863,502.40 (21.8%); £3,663,161.05 -> £2,863,502.35 (21.8%); £3,663,161.06 -> £2,863,502.29 (21.8%); £3,663,161.06 -> £2,863,502.23 (21.8%); £3,663,161.06 -> £2,863,502.17 (21.8%); £3,663,161.06 -> £2,863,502.11 (21.8%); £3,663,161.06 -> £2,863,502.11 (21.8%); £3,663,161.06 -> £2,863,502.11 (21.8%); £3,663,161.06 -> £2,863,502.11 (21.8%); £3,663,161.06 -> £2,863,502.11 (21.8%); £3,663,161.06 -> £2,863,502.11 (21.8%); £3,663,161.07 -> £2,863,502.11 (21.8%); £3,663,161.07 -> £2,863,502.11 (21.8%); £3,663,161.16 -> £2,863,502.10 (21.8%); £3,663,161.24 -> £2,863,502.10 (21.8%); £3,663,161.33 -> £2,863,502.10 (21.8%); £3,663,161.42 -> £2,863,502.10 (21.8%); £3,663,161.50 -> £2,863,502.10 (21.8%); £3,663,161.58 -> £2,863,502.10 (21.8%); £3,663,161.63 -> £2,863,502.10 (21.8%); £3,663,161.68 -> £2,863,502.10 (21.8%); £3,663,161.68 -> £2,863,502.10 (21.8%); £3,663,161.69 -> £2,863,502.10 (21.8%); £3,663,161.69 -> £2,863,502.10 (21.8%); £3,663,161.69 -> £2,863,502.10 (21.8%); £3,663,161.69 -> £2,863,502.10 (21.8%); £3,663,161.69 -> £2,863,502.10 (21.8%); £3,663,161.69 -> £2,863,502.10 (21.8%); £3,663,161.70 -> £2,863,502.10 (21.8%); £3,663,161.70 -> £2,863,502.10 (21.8%); £3,663,161.71 -> £2,863,502.10 (21.8%); £3,663,161.77 -> £2,863,502.09 (21.8%); £3,663,161.86 -> £2,863,502.09 (21.8%); £3,663,161.95 -> £2,863,502.08 (21.8%); £3,663,162.05 -> £2,863,502.07 (21.8%); £3,663,162.13 -> £2,863,502.06 (21.8%); £3,663,162.22 -> £2,863,502.04 (21.8%); £3,663,162.31 -> £2,863,502.02 (21.8%); £3,663,162.40 -> £2,863,502.00 (21.8%); £3,663,162.40 -> £2,863,501.98 (21.8%); £3,663,162.41 -> £2,863,501.96 (21.8%); £3,663,162.42 -> £2,863,501.94 (21.8%); £3,663,162.42 -> £2,863,501.92 (21.8%); £3,663,162.43 -> £2,863,501.91 (21.8%); £3,663,162.43 -> £2,863,501.90 (21.8%); £3,663,162.44 -> £2,863,501.90 (21.8%); £3,663,162.44 -> £2,863,116.04 (21.8%); £3,663,162.45 -> £2,863,501.77 (21.8%); £3,663,162.45 -> £2,863,501.71 (21.8%); £3,663,162.45 -> £2,863,501.65 (21.8%); £3,663,162.45 -> £2,863,501.60 (21.8%); £3,663,162.45 -> £2,863,501.54 (21.8%); £3,663,162.45 -> £2,863,501.48 (21.8%); £3,663,162.45 -> £2,863,501.42 (21.8%); £3,663,162.45 -> £2,863,501.42 (21.8%); £3,663,162.45 -> £2,863,501.42 (21.8%); £3,663,162.46 -> £2,863,501.42 (21.8%); £3,663,162.46 -> £2,863,501.42 (21.8%); £3,663,162.46 -> £2,863,501.42 (21.8%); £3,663,162.47 -> £2,863,501.42 (21.8%); £3,663,162.47 -> £2,863,501.41 (21.8%); £3,663,162.57 -> £2,863,501.41 (21.8%); £3,663,162.67 -> £2,863,501.41 (21.8%); £3,663,162.78 -> £2,863,501.41 (21.8%); £3,663,162.89 -> £2,863,501.41 (21.8%); £3,663,163.00 -> £2,863,501.41 (21.8%); £3,663,163.11 -> £2,863,501.41 (21.8%); £3,663,163.16 -> £2,863,501.41 (21.8%); £3,663,163.22 -> £2,863,501.41 (21.8%); £3,663,163.22 -> £2,863,501.41 (21.8%); £3,663,163.22 -> £2,863,501.41 (21.8%); £3,663,163.23 -> £2,863,501.41 (21.8%); £3,663,163.23 -> £2,863,501.41 (21.8%); £3,663,163.24 -> £2,863,501.41 (21.8%); £3,663,163.24 -> £2,863,501.41 (21.8%); £3,663,163.25 -> £2,863,501.41 (21.8%); £3,663,163.25 -> £2,863,501.41 (21.8%); £3,663,163.25 -> £2,863,501.41 (21.8%); £3,663,163.26 -> £2,863,501.40 (21.8%); £3,663,163.31 -> £2,863,501.40 (21.8%); £3,663,163.41 -> £2,863,501.40 (21.8%); £3,663,163.52 -> £2,863,501.39 (21.8%); £3,663,163.62 -> £2,863,501.38 (21.8%); £3,663,163.72 -> £2,863,501.37 (21.8%); £3,663,163.82 -> £2,863,501.35 (21.8%); £3,663,163.92 -> £2,863,501.33 (21.8%); £3,663,164.01 -> £2,863,501.31 (21.8%); £3,663,164.02 -> £2,863,501.29 (21.8%); £3,663,164.02 -> £2,863,501.27 (21.8%); £3,663,164.03 -> £2,863,501.24 (21.8%); £3,663,164.04 -> £2,863,501.23 (21.8%); £3,663,164.05 -> £2,863,501.22 (21.8%); £3,663,164.05 -> £2,863,501.21 (21.8%); £3,663,164.05 -> £2,863,501.20 (21.8%); £3,663,164.06 -> £2,863,114.70 (21.8%); £3,663,164.06 -> £2,863,501.08 (21.8%); £3,663,164.06 -> £2,863,501.02 (21.8%); £3,663,164.06 -> £2,863,500.96 (21.8%); £3,663,164.06 -> £2,863,500.90 (21.8%); £3,663,164.06 -> £2,863,500.84 (21.8%); £3,663,164.06 -> £2,863,500.78 (21.8%); £3,663,164.06 -> £2,863,500.73 (21.8%); £3,663,164.07 -> £2,863,500.72 (21.8%); £3,663,164.07 -> £2,863,500.72 (21.8%); £3,663,164.07 -> £2,863,500.72 (21.8%); £3,663,164.07 -> £2,863,500.72 (21.8%); £3,663,164.07 -> £2,863,500.72 (21.8%); £3,663,164.07 -> £2,863,500.72 (21.8%); £3,663,164.08 -> £2,863,500.72 (21.8%); £3,663,164.16 -> £2,863,500.72 (21.8%); £3,663,164.24 -> £2,863,500.72 (21.8%); £3,663,164.33 -> £2,863,500.72 (21.8%); £3,663,164.42 -> £2,863,500.72 (21.8%); £3,663,164.51 -> £2,863,500.72 (21.8%); £3,663,164.59 -> £2,863,500.72 (21.8%); £3,663,164.65 -> £2,863,500.72 (21.8%); £3,663,164.70 -> £2,863,500.71 (21.8%); £3,663,164.71 -> £2,863,500.71 (21.8%); £3,663,164.71 -> £2,863,500.71 (21.8%); £3,663,164.71 -> £2,863,500.71 (21.8%); £3,663,164.71 -> £2,863,500.71 (21.8%); £3,663,164.72 -> £2,863,500.71 (21.8%); £3,663,164.72 -> £2,863,500.71 (21.8%); £3,663,164.73 -> £2,863,500.71 (21.8%); £3,663,164.73 -> £2,863,500.71 (21.8%); £3,663,164.73 -> £2,863,500.71 (21.8%); £3,663,164.73 -> £2,863,500.71 (21.8%); £3,663,164.79 -> £2,863,500.71 (21.8%); £3,663,164.87 -> £2,863,500.70 (21.8%); £3,663,164.96 -> £2,863,500.70 (21.8%); £3,663,165.05 -> £2,863,500.69 (21.8%); £3,663,165.15 -> £2,863,500.67 (21.8%); £3,663,165.23 -> £2,863,500.65 (21.8%); £3,663,165.32 -> £2,863,500.63 (21.8%); £3,663,165.40 -> £2,863,500.61 (21.8%); £3,663,165.41 -> £2,863,500.59 (21.8%); £3,663,165.42 -> £2,863,500.57 (21.8%); £3,663,165.42 -> £2,863,500.55 (21.8%); £3,663,165.43 -> £2,863,500.54 (21.8%); £3,663,165.44 -> £2,863,500.53 (21.8%); £3,663,165.44 -> £2,863,500.52 (21.8%); £3,663,165.45 -> £2,863,500.51 (21.8%); £3,663,165.45 -> £2,863,113.35 (21.8%); £3,663,165.45 -> £2,863,500.39 (21.8%); £3,663,165.45 -> £2,863,500.32 (21.8%); £3,663,165.45 -> £2,863,500.26 (21.8%); £3,663,165.45 -> £2,863,500.01 (21.8%); £3,663,165.46 -> £2,863,500.01 (21.8%); £3,663,165.46 -> £2,863,500.01 (21.8%); £3,663,165.47 -> £2,863,500.01 (21.8%); £3,663,165.54 -> £2,863,500.01 (21.8%); £3,663,165.62 -> £2,863,500.01 (21.8%); £3,663,165.70 -> £2,863,500.01 (21.8%); £3,663,165.78 -> £2,863,500.01 (21.8%); £3,663,165.86 -> £2,863,500.01 (21.8%); £3,663,165.94 -> £2,863,500.00 (21.8%); £3,663,165.99 -> £2,863,500.00 (21.8%); £3,663,166.05 -> £2,863,500.00 (21.8%); £3,663,166.05 -> £2,863,500.00 (21.8%); £3,663,166.05 -> £2,863,500.00 (21.8%); £3,663,166.05 -> £2,863,500.00 (21.8%); £3,663,166.06 -> £2,863,500.00 (21.8%); £3,663,166.06 -> £2,863,500.00 (21.8%); £3,663,166.06 -> £2,863,500.00 (21.8%); £3,663,166.06 -> £2,863,500.00 (21.8%); £3,663,166.06 -> £2,863,500.00 (21.8%); £3,663,166.06 -> £2,863,500.00 (21.8%); £3,663,166.06 -> £2,863,500.00 (21.8%); £3,663,166.12 -> £2,863,500.00 (21.8%); £3,663,166.21 -> £2,863,500.00 (21.8%); £3,663,166.30 -> £2,863,499.99 (21.8%); £3,663,166.38 -> £2,863,499.98 (21.8%); £3,663,166.47 -> £2,863,499.96 (21.8%); £3,663,166.55 -> £2,863,499.95 (21.8%); £3,663,166.63 -> £2,863,499.93 (21.8%); £3,663,166.71 -> £2,863,499.91 (21.8%); £3,663,166.71 -> £2,863,499.89 (21.8%); £3,663,166.72 -> £2,863,499.86 (21.8%); £3,663,166.72 -> £2,863,499.84 (21.8%); £3,663,166.73 -> £2,863,499.83 (21.8%); £3,663,166.74 -> £2,863,499.82 (21.8%); £3,663,166.75 -> £2,863,499.81 (21.8%); £3,663,166.75 -> £2,863,499.80 (21.8%); £3,663,166.75 -> £2,863,112.01 (21.8%); £3,663,166.75 -> £2,863,499.68 (21.8%); £3,663,166.75 -> £2,863,499.62 (21.8%); £3,663,166.75 -> £2,863,499.56 (21.8%); £3,663,166.76 -> £2,863,499.50 (21.8%); £3,663,166.76 -> £2,863,499.44 (21.8%); £3,663,166.76 -> £2,863,499.38 (21.8%); £3,663,166.76 -> £2,863,499.32 (21.8%); £3,663,166.76 -> £2,863,499.32 (21.8%); £3,663,166.76 -> £2,863,499.32 (21.8%); £3,663,166.76 -> £2,863,499.32 (21.8%); £3,663,166.76 -> £2,863,499.32 (21.8%); £3,663,166.76 -> £2,863,499.31 (21.8%); £3,663,166.77 -> £2,863,499.31 (21.8%); £3,663,166.78 -> £2,863,499.31 (21.8%); £3,663,166.92 -> £2,863,499.31 (21.8%); £3,663,167.05 -> £2,863,499.31 (21.8%); £3,663,167.19 -> £2,863,499.31 (21.8%); £3,663,167.33 -> £2,863,499.31 (21.8%); £3,663,167.47 -> £2,863,499.31 (21.8%); £3,663,167.61 -> £2,863,499.31 (21.8%); £3,663,167.66 -> £2,863,499.31 (21.8%); £3,663,167.72 -> £2,863,499.31 (21.8%); £3,663,167.72 -> £2,863,499.31 (21.8%); £3,663,167.73 -> £2,863,499.31 (21.8%); £3,663,167.73 -> £2,863,499.31 (21.8%); £3,663,167.74 -> £2,863,499.31 (21.8%); £3,663,167.74 -> £2,863,499.31 (21.8%); £3,663,167.74 -> £2,863,499.31 (21.8%); £3,663,167.74 -> £2,863,499.31 (21.8%); £3,663,167.75 -> £2,863,499.30 (21.8%); £3,663,167.75 -> £2,863,499.30 (21.8%); £3,663,167.75 -> £2,863,499.30 (21.8%); £3,663,167.81 -> £2,863,499.30 (21.8%); £3,663,167.94 -> £2,863,499.30 (21.8%); £3,663,168.07 -> £2,863,499.29 (21.8%); £3,663,168.19 -> £2,863,499.27 (21.8%); £3,663,168.32 -> £2,863,499.26 (21.8%); £3,663,168.44 -> £2,863,499.24 (21.8%); £3,663,168.57 -> £2,863,499.22 (21.8%); £3,663,168.69 -> £2,863,499.20 (21.8%); £3,663,168.70 -> £2,863,499.18 (21.8%); £3,663,168.70 -> £2,863,499.15 (21.8%); £3,663,168.71 -> £2,863,499.13 (21.8%); £3,663,168.72 -> £2,863,499.12 (21.8%); £3,663,168.72 -> £2,863,499.11 (21.8%); £3,663,168.72 -> £2,863,499.10 (21.8%); £3,663,168.73 -> £2,863,499.09 (21.8%); £3,663,168.73 -> £2,863,110.66 (21.8%); £3,663,168.73 -> £2,863,498.96 (21.8%); £3,663,168.73 -> £2,863,498.90 (21.8%); £3,663,168.73 -> £2,863,498.84 (21.8%); £3,663,168.73 -> £2,863,498.71 (21.8%); £3,663,168.73 -> £2,863,498.66 (21.8%); £3,663,168.73 -> £2,863,498.60 (21.8%); £3,663,168.73 -> £2,863,498.59 (21.8%); £3,663,168.74 -> £2,863,498.59 (21.8%); £3,663,168.74 -> £2,863,498.59 (21.8%); £3,663,168.74 -> £2,863,498.59 (21.8%); £3,663,168.74 -> £2,863,498.59 (21.8%); £3,663,168.76 -> £2,863,498.59 (21.8%); £3,663,168.77 -> £2,863,498.59 (21.8%); £3,663,168.79 -> £2,863,498.59 (21.8%); £3,663,168.81 -> £2,863,498.59 (21.8%); £3,663,168.83 -> £2,863,498.59 (21.8%); £3,663,168.85 -> £2,863,498.59 (21.8%); £3,663,168.87 -> £2,863,498.58 (21.8%); £3,663,168.89 -> £2,863,498.58 (21.8%); £3,663,168.89 -> £2,863,498.58 (21.8%); £3,663,168.90 -> £2,863,498.58 (21.8%); £3,663,168.90 -> £2,863,498.58 (21.8%); £3,663,168.91 -> £2,863,498.58 (21.8%); £3,663,168.91 -> £2,863,498.58 (21.8%); £3,663,168.92 -> £2,863,498.58 (21.8%); £3,663,168.92 -> £2,863,498.58 (21.8%); £3,663,168.93 -> £2,863,498.58 (21.8%); £3,663,168.93 -> £2,863,498.58 (21.8%); £3,663,168.94 -> £2,863,498.58 (21.8%); £3,663,168.94 -> £2,863,498.58 (21.8%); £3,663,168.94 -> £2,863,498.58 (21.8%); £3,663,168.95 -> £2,863,498.58 (21.8%); £3,663,168.97 -> £2,863,498.57 (21.8%); £3,663,168.98 -> £2,863,498.56 (21.8%); £3,663,169.00 -> £2,863,498.55 (21.8%); £3,663,169.02 -> £2,863,498.54 (21.8%); £3,663,169.03 -> £2,863,498.52 (21.8%); £3,663,169.05 -> £2,863,498.50 (21.8%); £3,663,169.06 -> £2,863,498.48 (21.8%); £3,663,169.07 -> £2,863,498.46 (21.8%); £3,663,169.08 -> £2,863,498.44 (21.8%); £3,663,169.09 -> £2,863,498.42 (21.8%); £3,663,169.10 -> £2,863,498.41 (21.8%); £3,663,169.11 -> £2,863,498.40 (21.8%); £3,663,169.11 -> £2,863,498.39 (21.8%); £3,663,169.12 -> £2,863,498.38 (21.8%); £3,663,169.12 -> £2,863,109.31 (21.8%); £3,663,169.12 -> £2,863,498.26 (21.8%); £3,663,169.13 -> £2,863,498.20 (21.8%); £3,663,169.13 -> £2,863,498.13 (21.8%); £3,663,169.13 -> £2,863,498.07 (21.8%); £3,663,169.13 -> £2,863,498.02 (21.8%); £3,663,169.13 -> £2,863,497.96 (21.8%); £3,663,169.13 -> £2,863,497.90 (21.8%); £3,663,169.13 -> £2,863,497.89 (21.8%); £3,663,169.13 -> £2,863,497.89 (21.8%); £3,663,169.15 -> £2,863,497.89 (21.8%); £3,663,169.16 -> £2,863,497.89 (21.8%); £3,663,169.17 -> £2,863,497.89 (21.8%); £3,663,169.19 -> £2,863,497.89 (21.8%); £3,663,169.20 -> £2,863,497.89 (21.8%); £3,663,169.21 -> £2,863,497.89 (21.8%); £3,663,169.22 -> £2,863,497.89 (21.8%); £3,663,169.24 -> £2,863,497.89 (21.8%); £3,663,169.24 -> £2,863,497.89 (21.8%); £3,663,169.24 -> £2,863,497.89 (21.8%); £3,663,169.25 -> £2,863,497.88 (21.8%); £3,663,169.25 -> £2,863,497.88 (21.8%); £3,663,169.26 -> £2,863,497.88 (21.8%); £3,663,169.26 -> £2,863,497.88 (21.8%); £3,663,169.26 -> £2,863,497.88 (21.8%); £3,663,169.27 -> £2,863,497.88 (21.8%); £3,663,169.27 -> £2,863,497.88 (21.8%); £3,663,169.27 -> £2,863,497.88 (21.8%); £3,663,169.28 -> £2,863,497.88 (21.8%); £3,663,169.28 -> £2,863,497.88 (21.8%); £3,663,169.28 -> £2,863,497.88 (21.8%); £3,663,169.29 -> £2,863,497.88 (21.8%); £3,663,169.30 -> £2,863,497.87 (21.8%); £3,663,169.32 -> £2,863,497.87 (21.8%); £3,663,169.33 -> £2,863,497.85 (21.8%); £3,663,169.35 -> £2,863,497.83 (21.8%); £3,663,169.37 -> £2,863,497.81 (21.8%); £3,663,169.38 -> £2,863,497.80 (21.8%); £3,663,169.39 -> £2,863,497.77 (21.8%); £3,663,169.40 -> £2,863,497.75 (21.8%); £3,663,169.41 -> £2,863,497.73 (21.8%); £3,663,169.42 -> £2,863,497.72 (21.8%); £3,663,169.42 -> £2,863,497.71 (21.8%); £3,663,169.43 -> £2,863,497.70 (21.8%); £3,663,169.44 -> £2,863,497.69 (21.8%); £3,663,169.44 -> £2,863,107.97 (21.8%); £3,663,169.44 -> £2,863,497.57 (21.8%); £3,663,169.44 -> £2,863,497.51 (21.8%); £3,663,169.45 -> £2,863,497.45 (21.8%); £3,663,169.45 -> £2,863,497.40 (21.8%); £3,663,169.45 -> £2,863,497.34 (21.8%); £3,663,169.45 -> £2,863,497.28 (21.8%); £3,663,169.45 -> £2,863,497.22 (21.8%); £3,663,169.45 -> £2,863,497.22 (21.8%); £3,663,169.45 -> £2,863,497.22 (21.8%); £3,663,169.45 -> £2,863,497.22 (21.8%); £3,663,169.46 -> £2,863,497.22 (21.8%); £3,663,169.46 -> £2,863,497.22 (21.8%); £3,663,169.47 -> £2,863,497.22 (21.8%); £3,663,169.48 -> £2,863,497.22 (21.8%); £3,663,169.64 -> £2,863,497.22 (21.8%); £3,663,169.81 -> £2,863,497.21 (21.8%); £3,663,169.98 -> £2,863,497.21 (21.8%); £3,663,170.16 -> £2,863,497.21 (21.8%); £3,663,170.33 -> £2,863,497.21 (21.8%); £3,663,170.51 -> £2,863,497.21 (21.8%); £3,663,170.56 -> £2,863,497.21 (21.8%); £3,663,170.61 -> £2,863,497.21 (21.8%); £3,663,170.62 -> £2,863,497.21 (21.8%); £3,663,170.62 -> £2,863,497.21 (21.8%); £3,663,170.63 -> £2,863,497.21 (21.8%); £3,663,170.63 -> £2,863,497.21 (21.8%); £3,663,170.64 -> £2,863,497.21 (21.8%); £3,663,170.64 -> £2,863,497.21 (21.8%); £3,663,170.64 -> £2,863,497.21 (21.8%); £3,663,170.65 -> £2,863,497.21 (21.8%); £3,663,170.65 -> £2,863,497.21 (21.8%); £3,663,170.65 -> £2,863,497.21 (21.8%); £3,663,170.71 -> £2,863,497.20 (21.8%); £3,663,170.87 -> £2,863,497.20 (21.8%); £3,663,171.03 -> £2,863,497.19 (21.8%); £3,663,171.19 -> £2,863,497.18 (21.8%); £3,663,171.35 -> £2,863,497.17 (21.8%); £3,663,171.50 -> £2,863,497.15 (21.8%); £3,663,171.66 -> £2,863,497.13 (21.8%); £3,663,171.80 -> £2,863,497.11 (21.8%); £3,663,171.81 -> £2,863,497.09 (21.8%); £3,663,171.82 -> £2,863,497.07 (21.8%); £3,663,171.84 -> £2,863,497.05 (21.8%); £3,663,171.85 -> £2,863,497.03 (21.8%); £3,663,171.86 -> £2,863,497.02 (21.8%); £3,663,171.86 -> £2,863,497.01 (21.8%); £3,663,171.87 -> £2,863,497.00 (21.8%); £3,663,171.87 -> £2,863,106.62 (21.8%); £3,663,171.87 -> £2,863,496.89 (21.8%); £3,663,171.87 -> £2,863,496.83 (21.8%); £3,663,171.87 -> £2,863,496.77 (21.8%); £3,663,171.88 -> £2,863,496.71 (21.8%); £3,663,171.88 -> £2,863,496.66 (21.8%); £3,663,171.88 -> £2,863,496.60 (21.8%); £3,663,171.88 -> £2,863,496.54 (21.8%); £3,663,171.88 -> £2,863,496.54 (21.8%); £3,663,171.88 -> £2,863,496.53 (21.8%); £3,663,171.88 -> £2,863,496.53 (21.8%); £3,663,171.88 -> £2,863,496.53 (21.8%); £3,663,171.89 -> £2,863,496.53 (21.8%); £3,663,171.90 -> £2,863,496.53 (21.8%); £3,663,171.91 -> £2,863,496.53 (21.8%); £3,663,172.07 -> £2,863,496.53 (21.8%); £3,663,172.23 -> £2,863,496.53 (21.8%); £3,663,172.40 -> £2,863,496.53 (21.8%); £3,663,172.58 -> £2,863,496.53 (21.8%); £3,663,172.75 -> £2,863,496.53 (21.8%); £3,663,172.92 -> £2,863,496.53 (21.8%); £3,663,172.98 -> £2,863,496.53 (21.8%); £3,663,173.03 -> £2,863,496.53 (21.8%); £3,663,173.04 -> £2,863,496.53 (21.8%); £3,663,173.04 -> £2,863,496.53 (21.8%); £3,663,173.04 -> £2,863,496.53 (21.8%); £3,663,173.04 -> £2,863,496.52 (21.8%); £3,663,173.05 -> £2,863,496.52 (21.8%); £3,663,173.05 -> £2,863,496.52 (21.8%); £3,663,173.05 -> £2,863,496.52 (21.8%); £3,663,173.06 -> £2,863,496.52 (21.8%); £3,663,173.06 -> £2,863,496.52 (21.8%); £3,663,173.06 -> £2,863,496.52 (21.8%); £3,663,173.12 -> £2,863,496.52 (21.8%); £3,663,173.28 -> £2,863,496.51 (21.8%); £3,663,173.43 -> £2,863,496.50 (21.8%); £3,663,173.58 -> £2,863,496.49 (21.8%); £3,663,173.73 -> £2,863,496.47 (21.8%); £3,663,173.88 -> £2,863,496.46 (21.8%); £3,663,174.02 -> £2,863,496.44 (21.8%); £3,663,174.17 -> £2,863,496.42 (21.8%); £3,663,174.17 -> £2,863,496.40 (21.8%); £3,663,174.18 -> £2,863,496.37 (21.8%); £3,663,174.19 -> £2,863,496.35 (21.8%); £3,663,174.21 -> £2,863,496.34 (21.8%); £3,663,174.21 -> £2,863,496.33 (21.8%); £3,663,174.22 -> £2,863,496.32 (21.8%); £3,663,174.22 -> £2,863,496.31 (21.8%); £3,663,174.22 -> £2,863,105.27 (21.8%); £3,663,174.23 -> £2,863,496.19 (21.8%); £3,663,174.23 -> £2,863,496.13 (21.8%); £3,663,174.23 -> £2,863,496.07 (21.8%); £3,663,174.23 -> £2,863,496.01 (21.8%); £3,663,174.23 -> £2,863,495.95 (21.8%); £3,663,174.23 -> £2,863,495.90 (21.8%); £3,663,174.23 -> £2,863,495.84 (21.8%); £3,663,174.23 -> £2,863,495.83 (21.8%); £3,663,174.24 -> £2,863,495.83 (21.8%); £3,663,174.24 -> £2,863,495.83 (21.8%); £3,663,174.24 -> £2,863,495.83 (21.8%); £3,663,174.24 -> £2,863,495.83 (21.8%); £3,663,174.25 -> £2,863,495.83 (21.8%); £3,663,174.26 -> £2,863,495.83 (21.8%); £3,663,174.40 -> £2,863,495.83 (21.8%); £3,663,174.53 -> £2,863,495.83 (21.8%); £3,663,174.67 -> £2,863,495.83 (21.8%); £3,663,174.81 -> £2,863,495.83 (21.8%); £3,663,174.95 -> £2,863,495.83 (21.8%); £3,663,175.09 -> £2,863,495.83 (21.8%); £3,663,175.15 -> £2,863,495.82 (21.8%); £3,663,175.20 -> £2,863,495.82 (21.8%); £3,663,175.21 -> £2,863,495.82 (21.8%); £3,663,175.21 -> £2,863,495.82 (21.8%); £3,663,175.21 -> £2,863,495.82 (21.8%); £3,663,175.22 -> £2,863,495.82 (21.8%); £3,663,175.22 -> £2,863,495.82 (21.8%); £3,663,175.23 -> £2,863,495.82 (21.8%); £3,663,175.23 -> £2,863,495.82 (21.8%); £3,663,175.23 -> £2,863,495.82 (21.8%); £3,663,175.24 -> £2,863,495.82 (21.8%); £3,663,175.24 -> £2,863,495.82 (21.8%); £3,663,175.30 -> £2,863,495.82 (21.8%); £3,663,175.43 -> £2,863,495.82 (21.8%); £3,663,175.56 -> £2,863,495.81 (21.8%); £3,663,175.70 -> £2,863,495.80 (21.8%); £3,663,175.82 -> £2,863,495.78 (21.8%); £3,663,175.94 -> £2,863,495.76 (21.8%); £3,663,176.06 -> £2,863,495.74 (21.8%); £3,663,176.18 -> £2,863,495.72 (21.8%); £3,663,176.19 -> £2,863,495.70 (21.8%); £3,663,176.19 -> £2,863,495.68 (21.8%); £3,663,176.20 -> £2,863,495.65 (21.8%); £3,663,176.21 -> £2,863,495.64 (21.8%); £3,663,176.21 -> £2,863,495.63 (21.8%); £3,663,176.21 -> £2,863,495.62 (21.8%); £3,663,176.21 -> £2,863,495.61 (21.8%); £3,663,176.21 -> £2,863,103.93 (21.8%); £3,663,176.22 -> £2,863,495.49 (21.8%); £3,663,176.22 -> £2,863,495.42 (21.8%); £3,663,176.22 -> £2,863,495.37 (21.8%); £3,663,176.22 -> £2,863,495.31 (21.8%); £3,663,176.22 -> £2,863,495.25 (21.8%); £3,663,176.22 -> £2,863,495.19 (21.8%); £3,663,176.22 -> £2,863,495.13 (21.8%); £3,663,176.22 -> £2,863,495.13 (21.8%); £3,663,176.22 -> £2,863,495.12 (21.8%); £3,663,176.22 -> £2,863,495.12 (21.8%); £3,663,176.22 -> £2,863,495.12 (21.8%); £3,663,176.23 -> £2,863,495.12 (21.8%); £3,663,176.23 -> £2,863,495.12 (21.8%); £3,663,176.23 -> £2,863,495.12 (21.8%); £3,663,176.27 -> £2,863,495.12 (21.8%); £3,663,176.32 -> £2,863,495.12 (21.8%); £3,663,176.37 -> £2,863,495.12 (21.8%); £3,663,176.42 -> £2,863,495.12 (21.8%); £3,663,176.47 -> £2,863,495.12 (21.8%); £3,663,176.52 -> £2,863,495.12 (21.8%); £3,663,176.57 -> £2,863,495.12 (21.8%); £3,663,176.62 -> £2,863,495.12 (21.8%); £3,663,176.63 -> £2,863,495.12 (21.8%); £3,663,176.63 -> £2,863,495.12 (21.8%); £3,663,176.63 -> £2,863,495.12 (21.8%); £3,663,176.64 -> £2,863,495.12 (21.8%); £3,663,176.64 -> £2,863,495.11 (21.8%); £3,663,176.65 -> £2,863,495.11 (21.8%); £3,663,176.65 -> £2,863,495.11 (21.8%); £3,663,176.65 -> £2,863,495.11 (21.8%); £3,663,176.65 -> £2,863,495.11 (21.8%); £3,663,176.65 -> £2,863,495.11 (21.8%); £3,663,176.71 -> £2,863,495.11 (21.8%); £3,663,176.77 -> £2,863,495.11 (21.8%); £3,663,176.84 -> £2,863,495.11 (21.8%); £3,663,176.90 -> £2,863,495.09 (21.8%); £3,663,176.97 -> £2,863,495.08 (21.8%); £3,663,177.03 -> £2,863,495.06 (21.8%); £3,663,177.09 -> £2,863,495.04 (21.8%); £3,663,177.14 -> £2,863,495.02 (21.8%); £3,663,177.14 -> £2,863,495.00 (21.8%); £3,663,177.15 -> £2,863,494.97 (21.8%); £3,663,177.15 -> £2,863,494.95 (21.8%); £3,663,177.15 -> £2,863,494.94 (21.8%); £3,663,177.15 -> £2,863,494.92 (21.8%); £3,663,177.16 -> £2,863,494.91 (21.8%); £3,663,177.16 -> £2,863,494.91 (21.8%); £3,663,177.16 -> £2,863,102.58 (21.8%); £3,663,177.16 -> £2,863,494.78 (21.8%); £3,663,177.16 -> £2,863,494.72 (21.8%); £3,663,177.16 -> £2,863,494.66 (21.8%); £3,663,177.16 -> £2,863,494.60 (21.8%); £3,663,177.16 -> £2,863,494.54 (21.8%); £3,663,177.16 -> £2,863,494.48 (21.8%); £3,663,177.16 -> £2,863,494.42 (21.8%); £3,663,177.17 -> £2,863,494.42 (21.8%); £3,663,177.17 -> £2,863,494.41 (21.8%); £3,663,177.17 -> £2,863,494.41 (21.8%); £3,663,177.17 -> £2,863,494.41 (21.8%); £3,663,177.17 -> £2,863,494.41 (21.8%); £3,663,177.22 -> £2,863,494.41 (21.8%); £3,663,177.27 -> £2,863,494.41 (21.8%); £3,663,177.32 -> £2,863,494.41 (21.8%); £3,663,177.37 -> £2,863,494.41 (21.8%); £3,663,177.42 -> £2,863,494.41 (21.8%); £3,663,177.47 -> £2,863,494.41 (21.8%); £3,663,177.53 -> £2,863,494.41 (21.8%); £3,663,177.58 -> £2,863,494.41 (21.8%); £3,663,177.59 -> £2,863,494.41 (21.8%); £3,663,177.60 -> £2,863,494.41 (21.8%); £3,663,177.60 -> £2,863,494.41 (21.8%); £3,663,177.61 -> £2,863,494.41 (21.8%); £3,663,177.62 -> £2,863,494.41 (21.8%); £3,663,177.63 -> £2,863,494.41 (21.8%); £3,663,177.63 -> £2,863,494.40 (21.8%); £3,663,177.63 -> £2,863,494.40 (21.8%); £3,663,177.64 -> £2,863,494.40 (21.8%); £3,663,177.64 -> £2,863,494.40 (21.8%); £3,663,177.70 -> £2,863,494.40 (21.8%); £3,663,177.77 -> £2,863,494.40 (21.8%); £3,663,177.84 -> £2,863,494.39 (21.8%); £3,663,177.90 -> £2,863,494.37 (21.8%); £3,663,177.96 -> £2,863,494.35 (21.8%); £3,663,178.03 -> £2,863,494.33 (21.8%); £3,663,178.08 -> £2,863,494.31 (21.8%); £3,663,178.14 -> £2,863,494.29 (21.8%); £3,663,178.14 -> £2,863,494.27 (21.8%); £3,663,178.14 -> £2,863,494.25 (21.8%); £3,663,178.15 -> £2,863,494.23 (21.8%); £3,663,178.15 -> £2,863,494.21 (21.8%); £3,663,178.15 -> £2,863,494.20 (21.8%); £3,663,178.16 -> £2,863,494.19 (21.8%); £3,663,178.16 -> £2,863,494.18 (21.8%); £3,663,178.16 -> £2,863,101.24 (21.8%); £3,663,178.17 -> £2,863,494.06 (21.8%); £3,663,178.17 -> £2,863,494.00 (21.8%); £3,663,178.17 -> £2,863,493.93 (21.8%); £3,663,178.17 -> £2,863,493.87 (21.8%); £3,663,178.17 -> £2,863,493.81 (21.8%); £3,663,178.17 -> £2,863,493.75 (21.8%); £3,663,178.17 -> £2,863,493.69 (21.8%); £3,663,178.17 -> £2,863,493.68 (21.8%); £3,663,178.17 -> £2,863,493.68 (21.8%); £3,663,178.17 -> £2,863,493.68 (21.8%); £3,663,178.17 -> £2,863,493.68 (21.8%); £3,663,178.17 -> £2,863,493.68 (21.8%); £3,663,178.17 -> £2,863,493.68 (21.8%); £3,663,178.18 -> £2,863,493.68 (21.8%); £3,663,178.18 -> £2,863,493.68 (21.8%); £3,663,178.18 -> £2,863,493.67 (21.8%); £3,663,178.18 -> £2,863,493.67 (21.8%); £3,663,178.19 -> £2,863,493.67 (21.8%); £3,663,178.19 -> £2,863,493.67 (21.8%); £3,663,178.19 -> £2,863,493.67 (21.8%); £3,663,178.20 -> £2,863,493.67 (21.8%); £3,663,178.21 -> £2,863,493.67 (21.8%); £3,663,178.21 -> £2,863,493.67 (21.8%); £3,663,178.22 -> £2,863,493.67 (21.8%); £3,663,178.23 -> £2,863,493.67 (21.8%); £3,663,178.23 -> £2,863,493.67 (21.8%); £3,663,178.23 -> £2,863,493.67 (21.8%); £3,663,178.23 -> £2,863,493.67 (21.8%); £3,663,178.24 -> £2,863,493.67 (21.8%); £3,663,178.25 -> £2,863,493.66 (21.8%); £3,663,178.25 -> £2,863,493.66 (21.8%); £3,663,178.26 -> £2,863,493.64 (21.8%); £3,663,178.27 -> £2,863,493.63 (21.8%); £3,663,178.27 -> £2,863,493.61 (21.8%); £3,663,178.27 -> £2,863,493.59 (21.8%); £3,663,178.28 -> £2,863,493.57 (21.8%); £3,663,178.28 -> £2,863,493.55 (21.8%); £3,663,178.28 -> £2,863,493.53 (21.8%); £3,663,178.29 -> £2,863,493.51 (21.8%); £3,663,178.29 -> £2,863,493.50 (21.8%); £3,663,178.29 -> £2,863,493.49 (21.8%); £3,663,178.30 -> £2,863,493.48 (21.8%); £3,663,178.30 -> £2,863,493.47 (21.8%); £3,663,178.30 -> £2,863,099.89 (21.8%); £3,663,178.30 -> £2,863,493.34 (21.8%); £3,663,178.31 -> £2,863,493.28 (21.8%); £3,663,178.31 -> £2,863,493.22 (21.8%); £3,663,178.31 -> £2,863,493.16 (21.8%); £3,663,178.31 -> £2,863,493.11 (21.8%); £3,663,178.31 -> £2,863,493.05 (21.8%); £3,663,178.31 -> £2,863,492.99 (21.8%); £3,663,178.31 -> £2,863,492.98 (21.8%); £3,663,178.31 -> £2,863,492.98 (21.8%); £3,663,178.31 -> £2,863,492.98 (21.8%); £3,663,178.31 -> £2,863,492.98 (21.8%); £3,663,178.32 -> £2,863,492.98 (21.8%); £3,663,178.32 -> £2,863,492.97 (21.8%); £3,663,178.32 -> £2,863,492.97 (21.8%); £3,663,178.32 -> £2,863,492.97 (21.8%); £3,663,178.32 -> £2,863,492.97 (21.8%); £3,663,178.33 -> £2,863,492.97 (21.8%); £3,663,178.33 -> £2,863,492.97 (21.8%); £3,663,178.33 -> £2,863,492.97 (21.8%); £3,663,178.34 -> £2,863,492.97 (21.8%); £3,663,178.34 -> £2,863,492.97 (21.8%); £3,663,178.34 -> £2,863,492.97 (21.8%); £3,663,178.35 -> £2,863,492.97 (21.8%); £3,663,178.35 -> £2,863,492.97 (21.8%); £3,663,178.36 -> £2,863,492.97 (21.8%); £3,663,178.37 -> £2,863,492.97 (21.8%); £3,663,178.38 -> £2,863,492.97 (21.8%); £3,663,178.38 -> £2,863,492.97 (21.8%); £3,663,178.39 -> £2,863,492.97 (21.8%); £3,663,178.39 -> £2,863,492.97 (21.8%); £3,663,178.40 -> £2,863,492.96 (21.8%); £3,663,178.40 -> £2,863,492.96 (21.8%); £3,663,178.40 -> £2,863,492.96 (21.8%); £3,663,178.41 -> £2,863,492.96 (21.8%); £3,663,178.41 -> £2,863,492.95 (21.8%); £3,663,178.42 -> £2,863,492.93 (21.8%); £3,663,178.43 -> £2,863,492.92 (21.8%); £3,663,178.43 -> £2,863,492.90 (21.8%); £3,663,178.43 -> £2,863,492.88 (21.8%); £3,663,178.44 -> £2,863,492.86 (21.8%); £3,663,178.44 -> £2,863,492.84 (21.8%); £3,663,178.44 -> £2,863,492.81 (21.8%); £3,663,178.45 -> £2,863,492.79 (21.8%); £3,663,178.45 -> £2,863,492.78 (21.8%); £3,663,178.45 -> £2,863,492.77 (21.8%); £3,663,178.46 -> £2,863,492.76 (21.8%); £3,663,178.46 -> £2,863,492.75 (21.8%); £3,663,178.46 -> £2,863,098.54 (21.8%); £3,663,178.46 -> £2,863,492.62 (21.8%); £3,663,178.46 -> £2,863,492.56 (21.8%); £3,663,178.46 -> £2,863,492.44 (21.8%); £3,663,178.46 -> £2,863,492.24 (21.8%); £3,663,178.46 -> £2,863,492.24 (21.8%); £3,663,178.46 -> £2,863,492.24 (21.8%); £3,663,178.46 -> £2,863,492.24 (21.8%); £3,663,178.47 -> £2,863,492.24 (21.8%); £3,663,178.51 -> £2,863,492.24 (21.8%); £3,663,178.56 -> £2,863,492.24 (21.8%); £3,663,178.61 -> £2,863,492.24 (21.8%); £3,663,178.66 -> £2,863,492.24 (21.8%); £3,663,178.71 -> £2,863,492.24 (21.8%); £3,663,178.76 -> £2,863,492.24 (21.8%); £3,663,178.81 -> £2,863,492.24 (21.8%); £3,663,178.87 -> £2,863,492.24 (21.8%); £3,663,178.87 -> £2,863,492.24 (21.8%); £3,663,178.87 -> £2,863,492.24 (21.8%); £3,663,178.87 -> £2,863,492.24 (21.8%); £3,663,178.87 -> £2,863,492.24 (21.8%); £3,663,178.88 -> £2,863,492.24 (21.8%); £3,663,178.88 -> £2,863,492.23 (21.8%); £3,663,178.88 -> £2,863,492.23 (21.8%); £3,663,178.89 -> £2,863,492.23 (21.8%); £3,663,178.89 -> £2,863,492.23 (21.8%); £3,663,178.90 -> £2,863,492.23 (21.8%); £3,663,178.95 -> £2,863,492.23 (21.8%); £3,663,179.02 -> £2,863,492.23 (21.8%); £3,663,179.09 -> £2,863,492.22 (21.8%); £3,663,179.15 -> £2,863,492.20 (21.8%); £3,663,179.21 -> £2,863,492.18 (21.8%); £3,663,179.28 -> £2,863,492.16 (21.8%); £3,663,179.33 -> £2,863,492.14 (21.8%); £3,663,179.39 -> £2,863,492.12 (21.8%); £3,663,179.39 -> £2,863,492.10 (21.8%); £3,663,179.40 -> £2,863,492.08 (21.8%); £3,663,179.40 -> £2,863,492.06 (21.8%); £3,663,179.40 -> £2,863,492.05 (21.8%); £3,663,179.41 -> £2,863,492.03 (21.8%); £3,663,179.41 -> £2,863,492.02 (21.8%); £3,663,179.41 -> £2,863,492.01 (21.8%); £3,663,179.42 -> £2,863,097.20 (21.8%); £3,663,179.42 -> £2,863,491.89 (21.8%); £3,663,179.42 -> £2,863,491.83 (21.8%); £3,663,179.42 -> £2,863,491.77 (21.8%); £3,663,179.42 -> £2,863,491.65 (21.8%); £3,663,179.42 -> £2,863,491.59 (21.8%); £3,663,179.42 -> £2,863,491.53 (21.8%); £3,663,179.42 -> £2,863,491.52 (21.8%); £3,663,179.42 -> £2,863,491.52 (21.8%); £3,663,179.42 -> £2,863,491.52 (21.8%); £3,663,179.42 -> £2,863,491.52 (21.8%); £3,663,179.42 -> £2,863,491.52 (21.8%); £3,663,179.42 -> £2,863,491.52 (21.8%); £3,663,179.42 -> £2,863,491.52 (21.8%); £3,663,179.47 -> £2,863,491.52 (21.8%); £3,663,179.52 -> £2,863,491.52 (21.8%); £3,663,179.57 -> £2,863,491.52 (21.8%); £3,663,179.62 -> £2,863,491.52 (21.8%); £3,663,179.67 -> £2,863,491.51 (21.8%); £3,663,179.72 -> £2,863,491.51 (21.8%); £3,663,179.78 -> £2,863,491.51 (21.8%); £3,663,179.83 -> £2,863,491.51 (21.8%); £3,663,179.84 -> £2,863,491.51 (21.8%); £3,663,179.84 -> £2,863,491.51 (21.8%); £3,663,179.84 -> £2,863,491.51 (21.8%); £3,663,179.85 -> £2,863,491.51 (21.8%); £3,663,179.85 -> £2,863,491.51 (21.8%); £3,663,179.85 -> £2,863,491.51 (21.8%); £3,663,179.85 -> £2,863,491.51 (21.8%); £3,663,179.85 -> £2,863,491.51 (21.8%); £3,663,179.85 -> £2,863,491.51 (21.8%); £3,663,179.86 -> £2,863,491.51 (21.8%); £3,663,179.91 -> £2,863,491.51 (21.8%); £3,663,179.98 -> £2,863,491.51 (21.8%); £3,663,180.04 -> £2,863,491.50 (21.8%); £3,663,180.11 -> £2,863,491.49 (21.8%); £3,663,180.17 -> £2,863,491.47 (21.8%); £3,663,180.23 -> £2,863,491.45 (21.8%); £3,663,180.29 -> £2,863,491.43 (21.8%); £3,663,180.34 -> £2,863,491.41 (21.8%); £3,663,180.35 -> £2,863,491.39 (21.8%); £3,663,180.35 -> £2,863,491.36 (21.8%); £3,663,180.35 -> £2,863,491.34 (21.8%); £3,663,180.36 -> £2,863,491.33 (21.8%); £3,663,180.36 -> £2,863,491.32 (21.8%); £3,663,180.37 -> £2,863,491.31 (21.8%); £3,663,180.37 -> £2,863,491.30 (21.8%); £3,663,180.37 -> £2,863,095.85 (21.8%); £3,663,180.37 -> £2,863,491.17 (21.8%); £3,663,180.37 -> £2,863,491.11 (21.8%); £3,663,180.37 -> £2,863,491.05 (21.8%); £3,663,180.37 -> £2,863,490.99 (21.8%); £3,663,180.37 -> £2,863,490.93 (21.8%); £3,663,180.38 -> £2,863,490.87 (21.8%); £3,663,180.38 -> £2,863,490.81 (21.8%); £3,663,180.38 -> £2,863,490.81 (21.8%); £3,663,180.38 -> £2,863,490.81 (21.8%); £3,663,180.38 -> £2,863,490.81 (21.8%); £3,663,180.38 -> £2,863,490.81 (21.8%); £3,663,180.38 -> £2,863,490.80 (21.8%); £3,663,180.38 -> £2,863,490.80 (21.8%); £3,663,180.39 -> £2,863,490.80 (21.8%); £3,663,180.47 -> £2,863,490.80 (21.8%); £3,663,180.55 -> £2,863,490.80 (21.8%); £3,663,180.64 -> £2,863,490.80 (21.8%); £3,663,180.72 -> £2,863,490.80 (21.8%); £3,663,180.81 -> £2,863,490.80 (21.8%); £3,663,180.89 -> £2,863,490.80 (21.8%); £3,663,180.95 -> £2,863,490.80 (21.8%); £3,663,181.00 -> £2,863,490.80 (21.8%); £3,663,181.01 -> £2,863,490.80 (21.8%); £3,663,181.01 -> £2,863,490.80 (21.8%); £3,663,181.01 -> £2,863,490.80 (21.8%); £3,663,181.01 -> £2,863,490.80 (21.8%); £3,663,181.02 -> £2,863,490.80 (21.8%); £3,663,181.02 -> £2,863,490.80 (21.8%); £3,663,181.02 -> £2,863,490.80 (21.8%); £3,663,181.03 -> £2,863,490.79 (21.8%); £3,663,181.03 -> £2,863,490.79 (21.8%); £3,663,181.03 -> £2,863,490.79 (21.8%); £3,663,181.09 -> £2,863,490.79 (21.8%); £3,663,181.18 -> £2,863,490.79 (21.8%); £3,663,181.27 -> £2,863,490.78 (21.8%); £3,663,181.36 -> £2,863,490.77 (21.8%); £3,663,181.45 -> £2,863,490.75 (21.8%); £3,663,181.54 -> £2,863,490.73 (21.8%); £3,663,181.62 -> £2,863,490.71 (21.8%); £3,663,181.70 -> £2,863,490.69 (21.8%); £3,663,181.70 -> £2,863,490.67 (21.8%); £3,663,181.71 -> £2,863,490.65 (21.8%); £3,663,181.71 -> £2,863,490.62 (21.8%); £3,663,181.72 -> £2,863,490.61 (21.8%); £3,663,181.73 -> £2,863,490.60 (21.8%); £3,663,181.73 -> £2,863,490.59 (21.8%); £3,663,181.74 -> £2,863,490.58 (21.8%); £3,663,181.74 -> £2,863,094.50 (21.8%); £3,663,181.74 -> £2,863,490.46 (21.8%); £3,663,181.74 -> £2,863,490.40 (21.8%); £3,663,181.74 -> £2,863,490.34 (21.8%); £3,663,181.74 -> £2,863,490.28 (21.8%); £3,663,181.75 -> £2,863,490.22 (21.8%); £3,663,181.75 -> £2,863,490.16 (21.8%); £3,663,181.75 -> £2,863,490.10 (21.8%); £3,663,181.75 -> £2,863,490.10 (21.8%); £3,663,181.75 -> £2,863,490.10 (21.8%); £3,663,181.75 -> £2,863,490.10 (21.8%); £3,663,181.75 -> £2,863,490.10 (21.8%); £3,663,181.75 -> £2,863,490.09 (21.8%); £3,663,181.75 -> £2,863,490.09 (21.8%); £3,663,181.75 -> £2,863,490.09 (21.8%); £3,663,181.80 -> £2,863,490.09 (21.8%); £3,663,181.85 -> £2,863,490.09 (21.8%); £3,663,181.90 -> £2,863,490.09 (21.8%); £3,663,181.95 -> £2,863,490.09 (21.8%); £3,663,182.00 -> £2,863,490.09 (21.8%); £3,663,182.05 -> £2,863,490.09 (21.8%); £3,663,182.10 -> £2,863,490.09 (21.8%); £3,663,182.16 -> £2,863,490.09 (21.8%); £3,663,182.16 -> £2,863,490.09 (21.8%); £3,663,182.16 -> £2,863,490.09 (21.8%); £3,663,182.16 -> £2,863,490.09 (21.8%); £3,663,182.17 -> £2,863,490.09 (21.8%); £3,663,182.17 -> £2,863,490.09 (21.8%); £3,663,182.17 -> £2,863,490.09 (21.8%); £3,663,182.18 -> £2,863,490.09 (21.8%); £3,663,182.18 -> £2,863,490.08 (21.8%); £3,663,182.18 -> £2,863,490.08 (21.8%); £3,663,182.19 -> £2,863,490.08 (21.8%); £3,663,182.25 -> £2,863,490.08 (21.8%); £3,663,182.31 -> £2,863,490.08 (21.8%); £3,663,182.38 -> £2,863,490.07 (21.8%); £3,663,182.45 -> £2,863,490.06 (21.8%); £3,663,182.51 -> £2,863,490.04 (21.8%); £3,663,182.57 -> £2,863,490.02 (21.8%); £3,663,182.64 -> £2,863,490.00 (21.8%); £3,663,182.69 -> £2,863,489.98 (21.8%); £3,663,182.70 -> £2,863,489.96 (21.8%); £3,663,182.70 -> £2,863,489.94 (21.8%); £3,663,182.71 -> £2,863,489.92 (21.8%); £3,663,182.72 -> £2,863,489.91 (21.8%); £3,663,182.72 -> £2,863,489.90 (21.8%); £3,663,182.73 -> £2,863,489.89 (21.8%); £3,663,182.73 -> £2,863,489.88 (21.8%); £3,663,182.73 -> £2,863,093.16 (21.8%); £3,663,182.73 -> £2,863,489.76 (21.8%); £3,663,182.74 -> £2,863,489.70 (21.8%); £3,663,182.74 -> £2,863,489.64 (21.8%); £3,663,182.74 -> £2,863,489.58 (21.8%); £3,663,182.74 -> £2,863,489.53 (21.8%); £3,663,182.74 -> £2,863,489.47 (21.8%); £3,663,182.75 -> £2,863,489.42 (21.8%); £3,663,182.75 -> £2,863,489.41 (21.8%); £3,663,182.75 -> £2,863,489.41 (21.8%); £3,663,182.75 -> £2,863,489.41 (21.8%); £3,663,182.75 -> £2,863,489.40 (21.8%); £3,663,182.75 -> £2,863,489.40 (21.8%); £3,663,182.75 -> £2,863,489.40 (21.8%); £3,663,182.80 -> £2,863,489.40 (21.8%); £3,663,182.84 -> £2,863,489.40 (21.8%); £3,663,182.89 -> £2,863,489.40 (21.8%); £3,663,182.94 -> £2,863,489.40 (21.8%); £3,663,182.99 -> £2,863,489.40 (21.8%); £3,663,183.04 -> £2,863,489.40 (21.8%); £3,663,183.10 -> £2,863,489.40 (21.8%); £3,663,183.15 -> £2,863,489.40 (21.8%); £3,663,183.15 -> £2,863,489.40 (21.8%); £3,663,183.16 -> £2,863,489.40 (21.8%); £3,663,183.16 -> £2,863,489.40 (21.8%); £3,663,183.16 -> £2,863,489.40 (21.8%); £3,663,183.17 -> £2,863,489.40 (21.8%); £3,663,183.17 -> £2,863,489.40 (21.8%); £3,663,183.17 -> £2,863,489.40 (21.8%); £3,663,183.18 -> £2,863,489.39 (21.8%); £3,663,183.18 -> £2,863,489.39 (21.8%); £3,663,183.19 -> £2,863,489.39 (21.8%); £3,663,183.25 -> £2,863,489.39 (21.8%); £3,663,183.32 -> £2,863,489.38 (21.8%); £3,663,183.39 -> £2,863,489.37 (21.8%); £3,663,183.46 -> £2,863,489.35 (21.8%); £3,663,183.52 -> £2,863,489.33 (21.8%); £3,663,183.59 -> £2,863,489.31 (21.8%); £3,663,183.64 -> £2,863,489.29 (21.8%); £3,663,183.70 -> £2,863,489.28 (21.8%); £3,663,183.70 -> £2,863,489.25 (21.8%); £3,663,183.71 -> £2,863,489.23 (21.8%); £3,663,183.71 -> £2,863,489.21 (21.8%); £3,663,183.72 -> £2,863,489.20 (21.8%); £3,663,183.73 -> £2,863,489.19 (21.8%); £3,663,183.73 -> £2,863,489.18 (21.8%); £3,663,183.73 -> £2,863,489.17 (21.8%); £3,663,183.73 -> £2,863,091.81 (21.8%); £3,663,183.74 -> £2,863,489.04 (21.8%); £3,663,183.74 -> £2,863,488.98 (21.8%); £3,663,183.74 -> £2,863,488.92 (21.8%); £3,663,183.74 -> £2,863,488.86 (21.8%); £3,663,183.74 -> £2,863,488.80 (21.8%); £3,663,183.74 -> £2,863,488.74 (21.8%); £3,663,183.74 -> £2,863,488.69 (21.8%); £3,663,183.74 -> £2,863,488.68 (21.8%); £3,663,183.75 -> £2,863,488.68 (21.8%); £3,663,183.75 -> £2,863,488.68 (21.8%); £3,663,183.75 -> £2,863,488.68 (21.8%); £3,663,183.75 -> £2,863,488.68 (21.8%); £3,663,183.75 -> £2,863,488.68 (21.8%); £3,663,183.76 -> £2,863,488.67 (21.8%); £3,663,183.76 -> £2,863,488.67 (21.8%); £3,663,183.77 -> £2,863,488.67 (21.8%); £3,663,183.78 -> £2,863,488.67 (21.8%); £3,663,183.78 -> £2,863,488.67 (21.8%); £3,663,183.79 -> £2,863,488.67 (21.8%); £3,663,183.80 -> £2,863,488.67 (21.8%); £3,663,183.81 -> £2,863,488.67 (21.8%); £3,663,183.81 -> £2,863,488.67 (21.8%); £3,663,183.82 -> £2,863,488.67 (21.8%); £3,663,183.83 -> £2,863,488.67 (21.8%); £3,663,183.83 -> £2,863,488.67 (21.8%); £3,663,183.84 -> £2,863,488.67 (21.8%); £3,663,183.84 -> £2,863,488.67 (21.8%); £3,663,183.84 -> £2,863,488.67 (21.8%); £3,663,183.85 -> £2,863,488.67 (21.8%); £3,663,183.85 -> £2,863,488.67 (21.8%); £3,663,183.86 -> £2,863,488.67 (21.8%); £3,663,183.86 -> £2,863,488.66 (21.8%); £3,663,183.87 -> £2,863,488.66 (21.8%); £3,663,183.87 -> £2,863,488.66 (21.8%); £3,663,183.88 -> £2,863,488.65 (21.8%); £3,663,183.88 -> £2,863,488.64 (21.8%); £3,663,183.89 -> £2,863,488.62 (21.8%); £3,663,183.89 -> £2,863,488.60 (21.8%); £3,663,183.89 -> £2,863,488.58 (21.8%); £3,663,183.89 -> £2,863,488.56 (21.8%); £3,663,183.89 -> £2,863,488.54 (21.8%); £3,663,183.90 -> £2,863,488.52 (21.8%); £3,663,183.90 -> £2,863,488.50 (21.8%); £3,663,183.90 -> £2,863,488.49 (21.8%); £3,663,183.91 -> £2,863,488.48 (21.8%); £3,663,183.91 -> £2,863,488.47 (21.8%); £3,663,183.91 -> £2,863,488.46 (21.8%); £3,663,183.91 -> £2,863,090.47 (21.8%); £3,663,183.92 -> £2,863,488.33 (21.8%); £3,663,183.92 -> £2,863,488.27 (21.8%); £3,663,183.92 -> £2,863,488.21 (21.8%); £3,663,183.92 -> £2,863,488.15 (21.8%); £3,663,183.92 -> £2,863,488.09 (21.8%); £3,663,183.92 -> £2,863,487.96 (21.8%); £3,663,183.92 -> £2,863,487.96 (21.8%); £3,663,183.92 -> £2,863,487.95 (21.8%); £3,663,183.92 -> £2,863,487.95 (21.8%); £3,663,183.93 -> £2,863,487.95 (21.8%); £3,663,183.93 -> £2,863,487.95 (21.8%); £3,663,183.93 -> £2,863,487.95 (21.8%); £3,663,183.94 -> £2,863,487.95 (21.8%); £3,663,183.94 -> £2,863,487.95 (21.8%); £3,663,183.94 -> £2,863,487.95 (21.8%); £3,663,183.95 -> £2,863,487.95 (21.8%); £3,663,183.95 -> £2,863,487.95 (21.8%); £3,663,183.95 -> £2,863,487.95 (21.8%); £3,663,183.96 -> £2,863,487.95 (21.8%); £3,663,183.97 -> £2,863,487.95 (21.8%); £3,663,183.98 -> £2,863,487.95 (21.8%); £3,663,183.99 -> £2,863,487.94 (21.8%); £3,663,184.00 -> £2,863,487.94 (21.8%); £3,663,184.00 -> £2,863,487.94 (21.8%); £3,663,184.00 -> £2,863,487.94 (21.8%); £3,663,184.01 -> £2,863,487.94 (21.8%); £3,663,184.02 -> £2,863,487.94 (21.8%); £3,663,184.03 -> £2,863,487.93 (21.8%); £3,663,184.03 -> £2,863,487.91 (21.8%); £3,663,184.03 -> £2,863,487.90 (21.8%); £3,663,184.04 -> £2,863,487.88 (21.8%); £3,663,184.04 -> £2,863,487.86 (21.8%); £3,663,184.04 -> £2,863,487.84 (21.8%); £3,663,184.04 -> £2,863,487.81 (21.8%); £3,663,184.04 -> £2,863,487.79 (21.8%); £3,663,184.05 -> £2,863,487.77 (21.8%); £3,663,184.05 -> £2,863,487.76 (21.8%); £3,663,184.05 -> £2,863,487.75 (21.8%); £3,663,184.06 -> £2,863,487.74 (21.8%); £3,663,184.06 -> £2,863,487.73 (21.8%); £3,663,184.06 -> £2,863,089.12 (21.8%); £3,663,184.06 -> £2,863,487.60 (21.8%); £3,663,184.06 -> £2,863,487.54 (21.8%); £3,663,184.07 -> £2,863,487.42 (21.8%); £3,663,184.07 -> £2,863,487.36 (21.8%); £3,663,184.07 -> £2,863,487.30 (21.8%); £3,663,184.07 -> £2,863,487.24 (21.8%); £3,663,184.07 -> £2,863,487.23 (21.8%); £3,663,184.07 -> £2,863,487.23 (21.8%); £3,663,184.07 -> £2,863,487.23 (21.8%); £3,663,184.07 -> £2,863,487.23 (21.8%); £3,663,184.07 -> £2,863,487.23 (21.8%); £3,663,184.07 -> £2,863,487.23 (21.8%); £3,663,184.07 -> £2,863,487.22 (21.8%); £3,663,184.11 -> £2,863,487.22 (21.8%); £3,663,184.16 -> £2,863,487.22 (21.8%); £3,663,184.21 -> £2,863,487.22 (21.8%); £3,663,184.26 -> £2,863,487.22 (21.8%); £3,663,184.31 -> £2,863,487.22 (21.8%); £3,663,184.36 -> £2,863,487.22 (21.8%); £3,663,184.41 -> £2,863,487.22 (21.8%); £3,663,184.46 -> £2,863,487.22 (21.8%); £3,663,184.46 -> £2,863,487.22 (21.8%); £3,663,184.46 -> £2,863,487.22 (21.8%); £3,663,184.47 -> £2,863,487.22 (21.8%); £3,663,184.47 -> £2,863,487.22 (21.8%); £3,663,184.48 -> £2,863,487.22 (21.8%); £3,663,184.48 -> £2,863,487.22 (21.8%); £3,663,184.48 -> £2,863,487.22 (21.8%); £3,663,184.48 -> £2,863,487.22 (21.8%); £3,663,184.49 -> £2,863,487.22 (21.8%); £3,663,184.49 -> £2,863,487.21 (21.8%); £3,663,184.55 -> £2,863,487.21 (21.8%); £3,663,184.61 -> £2,863,487.21 (21.8%); £3,663,184.67 -> £2,863,487.20 (21.8%); £3,663,184.74 -> £2,863,487.18 (21.8%); £3,663,184.80 -> £2,863,487.16 (21.8%); £3,663,184.86 -> £2,863,487.14 (21.8%); £3,663,184.92 -> £2,863,487.12 (21.8%); £3,663,184.98 -> £2,863,487.10 (21.8%); £3,663,184.98 -> £2,863,487.08 (21.8%); £3,663,184.98 -> £2,863,487.06 (21.8%); £3,663,184.99 -> £2,863,487.04 (21.8%); £3,663,184.99 -> £2,863,487.02 (21.8%); £3,663,185.00 -> £2,863,487.01 (21.8%); £3,663,185.01 -> £2,863,487.00 (21.8%); £3,663,185.01 -> £2,863,486.99 (21.8%); £3,663,185.01 -> £2,863,087.77 (21.8%); £3,663,185.01 -> £2,863,486.87 (21.8%); £3,663,185.01 -> £2,863,486.81 (21.8%); £3,663,185.01 -> £2,863,486.49 (21.8%); £3,663,185.01 -> £2,863,486.49 (21.8%); £3,663,185.01 -> £2,863,486.48 (21.8%); £3,663,185.01 -> £2,863,486.48 (21.8%); £3,663,185.06 -> £2,863,486.48 (21.8%); £3,663,185.11 -> £2,863,486.48 (21.8%); £3,663,185.16 -> £2,863,486.48 (21.8%); £3,663,185.21 -> £2,863,486.48 (21.8%); £3,663,185.26 -> £2,863,486.48 (21.8%); £3,663,185.31 -> £2,863,486.48 (21.8%); £3,663,185.36 -> £2,863,486.48 (21.8%); £3,663,185.42 -> £2,863,486.48 (21.8%); £3,663,185.42 -> £2,863,486.48 (21.8%); £3,663,185.42 -> £2,863,486.48 (21.8%); £3,663,185.43 -> £2,863,486.48 (21.8%); £3,663,185.43 -> £2,863,486.48 (21.8%); £3,663,185.44 -> £2,863,486.48 (21.8%); £3,663,185.44 -> £2,863,486.48 (21.8%); £3,663,185.44 -> £2,863,486.47 (21.8%); £3,663,185.44 -> £2,863,486.47 (21.8%); £3,663,185.44 -> £2,863,486.47 (21.8%); £3,663,185.45 -> £2,863,486.47 (21.8%); £3,663,185.50 -> £2,863,486.47 (21.8%); £3,663,185.57 -> £2,863,486.47 (21.8%); £3,663,185.63 -> £2,863,486.45 (21.8%); £3,663,185.70 -> £2,863,486.44 (21.8%); £3,663,185.76 -> £2,863,486.42 (21.8%); £3,663,185.82 -> £2,863,486.40 (21.8%); £3,663,185.88 -> £2,863,486.38 (21.8%); £3,663,185.94 -> £2,863,486.36 (21.8%); £3,663,185.95 -> £2,863,486.34 (21.8%); £3,663,185.95 -> £2,863,486.32 (21.8%); £3,663,185.96 -> £2,863,486.30 (21.8%); £3,663,185.96 -> £2,863,486.29 (21.8%); £3,663,185.97 -> £2,863,486.27 (21.8%); £3,663,185.97 -> £2,863,486.26 (21.8%); £3,663,185.97 -> £2,863,486.25 (21.8%); £3,663,185.98 -> £2,863,086.43 (21.8%); £3,663,185.98 -> £2,863,486.13 (21.8%); £3,663,185.98 -> £2,863,486.07 (21.8%); £3,663,185.98 -> £2,863,486.01 (21.8%); £3,663,185.98 -> £2,863,485.95 (21.8%); £3,663,185.98 -> £2,863,485.89 (21.8%); £3,663,185.98 -> £2,863,485.83 (21.8%); £3,663,185.98 -> £2,863,485.77 (21.8%); £3,663,185.98 -> £2,863,485.76 (21.8%); £3,663,185.98 -> £2,863,485.76 (21.8%); £3,663,185.98 -> £2,863,485.76 (21.8%); £3,663,185.98 -> £2,863,485.76 (21.8%); £3,663,185.98 -> £2,863,485.76 (21.8%); £3,663,185.99 -> £2,863,485.76 (21.8%); £3,663,185.99 -> £2,863,485.76 (21.8%); £3,663,186.10 -> £2,863,485.76 (21.8%); £3,663,186.20 -> £2,863,485.75 (21.8%); £3,663,186.32 -> £2,863,485.75 (21.8%); £3,663,186.43 -> £2,863,485.75 (21.8%); £3,663,186.55 -> £2,863,485.75 (21.8%); £3,663,186.66 -> £2,863,485.75 (21.8%); £3,663,186.72 -> £2,863,485.75 (21.8%); £3,663,186.77 -> £2,863,485.75 (21.8%); £3,663,186.77 -> £2,863,485.75 (21.8%); £3,663,186.78 -> £2,863,485.75 (21.8%); £3,663,186.78 -> £2,863,485.75 (21.8%); £3,663,186.78 -> £2,863,485.75 (21.8%); £3,663,186.79 -> £2,863,485.75 (21.8%); £3,663,186.79 -> £2,863,485.75 (21.8%); £3,663,186.79 -> £2,863,485.75 (21.8%); £3,663,186.80 -> £2,863,485.75 (21.8%); £3,663,186.80 -> £2,863,485.75 (21.8%); £3,663,186.80 -> £2,863,485.75 (21.8%); £3,663,186.86 -> £2,863,485.74 (21.8%); £3,663,186.96 -> £2,863,485.73 (21.8%); £3,663,187.07 -> £2,863,485.72 (21.8%); £3,663,187.18 -> £2,863,485.70 (21.8%); £3,663,187.28 -> £2,863,485.68 (21.8%); £3,663,187.38 -> £2,863,485.66 (21.8%); £3,663,187.49 -> £2,863,485.64 (21.8%); £3,663,187.60 -> £2,863,485.63 (21.8%); £3,663,187.61 -> £2,863,485.61 (21.8%); £3,663,187.61 -> £2,863,485.58 (21.8%); £3,663,187.62 -> £2,863,485.56 (21.8%); £3,663,187.63 -> £2,863,485.55 (21.8%); £3,663,187.63 -> £2,863,485.53 (21.8%); £3,663,187.63 -> £2,863,485.52 (21.8%); £3,663,187.63 -> £2,863,485.51 (21.8%); £3,663,187.64 -> £2,863,085.08 (21.8%); £3,663,187.64 -> £2,863,485.39 (21.8%); £3,663,187.64 -> £2,863,485.33 (21.8%); £3,663,187.64 -> £2,863,485.27 (21.8%); £3,663,187.64 -> £2,863,485.21 (21.8%); £3,663,187.64 -> £2,863,485.15 (21.8%); £3,663,187.64 -> £2,863,485.09 (21.8%); £3,663,187.64 -> £2,863,485.03 (21.8%); £3,663,187.65 -> £2,863,485.03 (21.8%); £3,663,187.65 -> £2,863,485.02 (21.8%); £3,663,187.65 -> £2,863,485.02 (21.8%); £3,663,187.65 -> £2,863,485.02 (21.8%); £3,663,187.65 -> £2,863,485.02 (21.8%); £3,663,187.66 -> £2,863,485.02 (21.8%); £3,663,187.66 -> £2,863,485.02 (21.8%); £3,663,187.77 -> £2,863,485.02 (21.8%); £3,663,187.87 -> £2,863,485.02 (21.8%); £3,663,187.98 -> £2,863,485.02 (21.8%); £3,663,188.09 -> £2,863,485.02 (21.8%); £3,663,188.20 -> £2,863,485.02 (21.8%); £3,663,188.31 -> £2,863,485.02 (21.8%); £3,663,188.36 -> £2,863,485.02 (21.8%); £3,663,188.41 -> £2,863,485.01 (21.8%); £3,663,188.41 -> £2,863,485.01 (21.8%); £3,663,188.41 -> £2,863,485.01 (21.8%); £3,663,188.41 -> £2,863,485.01 (21.8%); £3,663,188.42 -> £2,863,485.01 (21.8%); £3,663,188.42 -> £2,863,485.01 (21.8%); £3,663,188.42 -> £2,863,485.01 (21.8%); £3,663,188.42 -> £2,863,485.01 (21.8%); £3,663,188.42 -> £2,863,485.01 (21.8%); £3,663,188.43 -> £2,863,485.01 (21.8%); £3,663,188.43 -> £2,863,485.01 (21.8%); £3,663,188.49 -> £2,863,485.01 (21.8%); £3,663,188.59 -> £2,863,485.00 (21.8%); £3,663,188.70 -> £2,863,484.98 (21.8%); £3,663,188.80 -> £2,863,484.97 (21.8%); £3,663,188.90 -> £2,863,484.94 (21.8%); £3,663,189.00 -> £2,863,484.92 (21.8%); £3,663,189.10 -> £2,863,484.90 (21.8%); £3,663,189.19 -> £2,863,484.88 (21.8%); £3,663,189.20 -> £2,863,484.86 (21.8%); £3,663,189.21 -> £2,863,484.84 (21.8%); £3,663,189.22 -> £2,863,484.82 (21.8%); £3,663,189.23 -> £2,863,484.81 (21.8%); £3,663,189.23 -> £2,863,484.80 (21.8%); £3,663,189.24 -> £2,863,484.79 (21.8%); £3,663,189.25 -> £2,863,484.78 (21.8%); £3,663,189.25 -> £2,863,083.73 (21.8%); £3,663,189.25 -> £2,863,484.66 (21.8%); £3,663,189.25 -> £2,863,484.60 (21.8%); £3,663,189.25 -> £2,863,484.54 (21.8%); £3,663,189.25 -> £2,863,484.48 (21.8%); £3,663,189.26 -> £2,863,484.42 (21.8%); £3,663,189.26 -> £2,863,484.36 (21.8%); £3,663,189.26 -> £2,863,484.30 (21.8%); £3,663,189.26 -> £2,863,484.29 (21.8%); £3,663,189.26 -> £2,863,484.29 (21.8%); £3,663,189.26 -> £2,863,484.29 (21.8%); £3,663,189.26 -> £2,863,484.29 (21.8%); £3,663,189.26 -> £2,863,484.29 (21.8%); £3,663,189.28 -> £2,863,484.29 (21.8%); £3,663,189.29 -> £2,863,484.28 (21.8%); £3,663,189.47 -> £2,863,484.28 (21.8%); £3,663,189.65 -> £2,863,484.28 (21.8%); £3,663,189.83 -> £2,863,484.28 (21.8%); £3,663,190.01 -> £2,863,484.28 (21.8%); £3,663,190.18 -> £2,863,484.28 (21.8%); £3,663,190.36 -> £2,863,484.28 (21.8%); £3,663,190.42 -> £2,863,484.28 (21.8%); £3,663,190.47 -> £2,863,484.28 (21.8%); £3,663,190.47 -> £2,863,484.28 (21.8%); £3,663,190.47 -> £2,863,484.28 (21.8%); £3,663,190.48 -> £2,863,484.28 (21.8%); £3,663,190.48 -> £2,863,484.28 (21.8%); £3,663,190.48 -> £2,863,484.28 (21.8%); £3,663,190.49 -> £2,863,484.28 (21.8%); £3,663,190.49 -> £2,863,484.28 (21.8%); £3,663,190.49 -> £2,863,484.28 (21.8%); £3,663,190.50 -> £2,863,484.27 (21.8%); £3,663,190.50 -> £2,863,484.27 (21.8%); £3,663,190.56 -> £2,863,484.27 (21.8%); £3,663,190.72 -> £2,863,484.26 (21.8%); £3,663,190.88 -> £2,863,484.25 (21.8%); £3,663,191.04 -> £2,863,484.24 (21.8%); £3,663,191.20 -> £2,863,484.22 (21.8%); £3,663,191.35 -> £2,863,484.20 (21.8%); £3,663,191.51 -> £2,863,484.18 (21.8%); £3,663,191.66 -> £2,863,484.16 (21.8%); £3,663,191.67 -> £2,863,484.14 (21.8%); £3,663,191.68 -> £2,863,484.11 (21.8%); £3,663,191.69 -> £2,863,484.09 (21.8%); £3,663,191.71 -> £2,863,484.08 (21.8%); £3,663,191.72 -> £2,863,484.07 (21.8%); £3,663,191.72 -> £2,863,484.06 (21.8%); £3,663,191.72 -> £2,863,484.05 (21.8%); £3,663,191.73 -> £2,863,082.39 (21.8%); £3,663,191.73 -> £2,863,483.93 (21.8%); £3,663,191.73 -> £2,863,483.87 (21.8%); £3,663,191.73 -> £2,863,483.81 (21.8%); £3,663,191.73 -> £2,863,483.75 (21.8%); £3,663,191.73 -> £2,863,483.69 (21.8%); £3,663,191.74 -> £2,863,483.63 (21.8%); £3,663,191.74 -> £2,863,483.57 (21.8%); £3,663,191.74 -> £2,863,483.56 (21.8%); £3,663,191.74 -> £2,863,483.56 (21.8%); £3,663,191.74 -> £2,863,483.56 (21.8%); £3,663,191.74 -> £2,863,483.56 (21.8%); £3,663,191.74 -> £2,863,483.56 (21.8%); £3,663,191.75 -> £2,863,483.55 (21.8%); £3,663,191.77 -> £2,863,483.55 (21.8%); £3,663,191.78 -> £2,863,483.55 (21.8%); £3,663,191.80 -> £2,863,483.55 (21.8%); £3,663,191.81 -> £2,863,483.55 (21.8%); £3,663,191.83 -> £2,863,483.55 (21.8%); £3,663,191.85 -> £2,863,483.55 (21.8%); £3,663,191.87 -> £2,863,483.55 (21.8%); £3,663,191.87 -> £2,863,483.55 (21.8%); £3,663,191.87 -> £2,863,483.55 (21.8%); £3,663,191.88 -> £2,863,483.55 (21.8%); £3,663,191.88 -> £2,863,483.55 (21.8%); £3,663,191.89 -> £2,863,483.55 (21.8%); £3,663,191.89 -> £2,863,483.55 (21.8%); £3,663,191.89 -> £2,863,483.55 (21.8%); £3,663,191.90 -> £2,863,483.55 (21.8%); £3,663,191.90 -> £2,863,483.55 (21.8%); £3,663,191.90 -> £2,863,483.55 (21.8%); £3,663,191.91 -> £2,863,483.54 (21.8%); £3,663,191.91 -> £2,863,483.54 (21.8%); £3,663,191.91 -> £2,863,483.54 (21.8%); £3,663,191.93 -> £2,863,483.54 (21.8%); £3,663,191.94 -> £2,863,483.53 (21.8%); £3,663,191.96 -> £2,863,483.51 (21.8%); £3,663,191.97 -> £2,863,483.49 (21.8%); £3,663,191.98 -> £2,863,483.48 (21.8%); £3,663,192.00 -> £2,863,483.46 (21.8%); £3,663,192.01 -> £2,863,483.44 (21.8%); £3,663,192.02 -> £2,863,483.42 (21.8%); £3,663,192.03 -> £2,863,483.40 (21.8%); £3,663,192.04 -> £2,863,483.38 (21.8%); £3,663,192.06 -> £2,863,483.37 (21.8%); £3,663,192.06 -> £2,863,483.35 (21.8%); £3,663,192.06 -> £2,863,483.34 (21.8%); £3,663,192.07 -> £2,863,483.33 (21.8%); £3,663,192.07 -> £2,863,081.04 (21.8%); £3,663,192.07 -> £2,863,483.21 (21.8%); £3,663,192.07 -> £2,863,483.15 (21.8%); £3,663,192.08 -> £2,863,483.09 (21.8%); £3,663,192.08 -> £2,863,483.03 (21.8%); £3,663,192.08 -> £2,863,482.97 (21.8%); £3,663,192.08 -> £2,863,482.91 (21.8%); £3,663,192.08 -> £2,863,482.85 (21.8%); £3,663,192.08 -> £2,863,482.85 (21.8%); £3,663,192.08 -> £2,863,482.84 (21.8%); £3,663,192.08 -> £2,863,482.84 (21.8%); £3,663,192.08 -> £2,863,482.84 (21.8%); £3,663,192.08 -> £2,863,482.84 (21.8%); £3,663,192.09 -> £2,863,482.84 (21.8%); £3,663,192.10 -> £2,863,482.84 (21.8%); £3,663,192.11 -> £2,863,482.84 (21.8%); £3,663,192.12 -> £2,863,482.83 (21.8%); £3,663,192.14 -> £2,863,482.83 (21.8%); £3,663,192.15 -> £2,863,482.83 (21.8%); £3,663,192.16 -> £2,863,482.83 (21.8%); £3,663,192.18 -> £2,863,482.83 (21.8%); £3,663,192.18 -> £2,863,482.83 (21.8%); £3,663,192.19 -> £2,863,482.83 (21.8%); £3,663,192.19 -> £2,863,482.83 (21.8%); £3,663,192.20 -> £2,863,482.83 (21.8%); £3,663,192.20 -> £2,863,482.83 (21.8%); £3,663,192.21 -> £2,863,482.83 (21.8%); £3,663,192.21 -> £2,863,482.83 (21.8%); £3,663,192.22 -> £2,863,482.83 (21.8%); £3,663,192.22 -> £2,863,482.83 (21.8%); £3,663,192.23 -> £2,863,482.83 (21.8%); £3,663,192.23 -> £2,863,482.83 (21.8%); £3,663,192.24 -> £2,863,482.83 (21.8%); £3,663,192.24 -> £2,863,482.82 (21.8%); £3,663,192.25 -> £2,863,482.82 (21.8%); £3,663,192.26 -> £2,863,482.81 (21.8%); £3,663,192.27 -> £2,863,482.79 (21.8%); £3,663,192.28 -> £2,863,482.77 (21.8%); £3,663,192.29 -> £2,863,482.75 (21.8%); £3,663,192.31 -> £2,863,482.73 (21.8%); £3,663,192.32 -> £2,863,482.71 (21.8%); £3,663,192.33 -> £2,863,482.69 (21.8%); £3,663,192.34 -> £2,863,482.67 (21.8%); £3,663,192.35 -> £2,863,482.65 (21.8%); £3,663,192.36 -> £2,863,482.64 (21.8%); £3,663,192.37 -> £2,863,482.63 (21.8%); £3,663,192.37 -> £2,863,482.62 (21.8%); £3,663,192.37 -> £2,863,482.61 (21.8%); £3,663,192.38 -> £2,863,079.70 (21.8%); £3,663,192.38 -> £2,863,482.49 (21.8%); £3,663,192.38 -> £2,863,482.43 (21.8%); £3,663,192.38 -> £2,863,482.37 (21.8%); £3,663,192.38 -> £2,863,482.31 (21.8%); £3,663,192.38 -> £2,863,482.25 (21.8%); £3,663,192.38 -> £2,863,482.19 (21.8%); £3,663,192.38 -> £2,863,482.13 (21.8%); £3,663,192.38 -> £2,863,482.12 (21.8%); £3,663,192.38 -> £2,863,482.12 (21.8%); £3,663,192.39 -> £2,863,482.12 (21.8%); £3,663,192.39 -> £2,863,482.12 (21.8%); £3,663,192.41 -> £2,863,482.12 (21.8%); £3,663,192.56 -> £2,863,482.11 (21.8%); £3,663,192.72 -> £2,863,482.11 (21.8%); £3,663,192.88 -> £2,863,482.11 (21.8%); £3,663,193.04 -> £2,863,482.11 (21.8%); £3,663,193.20 -> £2,863,482.11 (21.8%); £3,663,193.36 -> £2,863,482.11 (21.8%); £3,663,193.41 -> £2,863,482.11 (21.8%); £3,663,193.46 -> £2,863,482.11 (21.8%); £3,663,193.46 -> £2,863,482.11 (21.8%); £3,663,193.47 -> £2,863,482.11 (21.8%); £3,663,193.47 -> £2,863,482.11 (21.8%); £3,663,193.47 -> £2,863,482.11 (21.8%); £3,663,193.47 -> £2,863,482.11 (21.8%); £3,663,193.47 -> £2,863,482.11 (21.8%); £3,663,193.47 -> £2,863,482.11 (21.8%); £3,663,193.48 -> £2,863,482.11 (21.8%); £3,663,193.48 -> £2,863,482.11 (21.8%); £3,663,193.48 -> £2,863,482.10 (21.8%); £3,663,193.54 -> £2,863,482.10 (21.8%); £3,663,193.69 -> £2,863,482.09 (21.8%); £3,663,193.83 -> £2,863,482.08 (21.8%); £3,663,193.98 -> £2,863,482.06 (21.8%); £3,663,194.12 -> £2,863,482.04 (21.8%); £3,663,194.26 -> £2,863,482.02 (21.8%); £3,663,194.40 -> £2,863,482.00 (21.8%); £3,663,194.54 -> £2,863,481.98 (21.8%); £3,663,194.54 -> £2,863,481.96 (21.8%); £3,663,194.55 -> £2,863,481.94 (21.8%); £3,663,194.56 -> £2,863,481.92 (21.8%); £3,663,194.57 -> £2,863,481.90 (21.8%); £3,663,194.58 -> £2,863,481.89 (21.8%); £3,663,194.58 -> £2,863,481.88 (21.8%); £3,663,194.59 -> £2,863,481.87 (21.8%); £3,663,194.59 -> £2,863,078.35 (21.8%); £3,663,194.59 -> £2,863,481.75 (21.8%); £3,663,194.59 -> £2,863,481.69 (21.8%); £3,663,194.60 -> £2,863,481.63 (21.8%); £3,663,194.60 -> £2,863,481.57 (21.8%); £3,663,194.60 -> £2,863,481.51 (21.8%); £3,663,194.60 -> £2,863,481.45 (21.8%); £3,663,194.60 -> £2,863,481.39 (21.8%); £3,663,194.60 -> £2,863,481.39 (21.8%); £3,663,194.60 -> £2,863,481.38 (21.8%); £3,663,194.60 -> £2,863,481.38 (21.8%); £3,663,194.60 -> £2,863,481.38 (21.8%); £3,663,194.60 -> £2,863,481.38 (21.8%); £3,663,194.61 -> £2,863,481.38 (21.8%); £3,663,194.62 -> £2,863,481.38 (21.8%); £3,663,194.77 -> £2,863,481.37 (21.8%); £3,663,194.92 -> £2,863,481.37 (21.8%); £3,663,195.07 -> £2,863,481.37 (21.8%); £3,663,195.23 -> £2,863,481.37 (21.8%); £3,663,195.38 -> £2,863,481.37 (21.8%); £3,663,195.53 -> £2,863,481.37 (21.8%); £3,663,195.58 -> £2,863,481.37 (21.8%); £3,663,195.64 -> £2,863,481.37 (21.8%); £3,663,195.64 -> £2,863,481.37 (21.8%); £3,663,195.64 -> £2,863,481.37 (21.8%); £3,663,195.65 -> £2,863,481.37 (21.8%); £3,663,195.65 -> £2,863,481.37 (21.8%); £3,663,195.65 -> £2,863,481.37 (21.8%); £3,663,195.65 -> £2,863,481.37 (21.8%); £3,663,195.66 -> £2,863,481.37 (21.8%); £3,663,195.66 -> £2,863,481.37 (21.8%); £3,663,195.67 -> £2,863,481.37 (21.8%); £3,663,195.67 -> £2,863,481.37 (21.8%); £3,663,195.73 -> £2,863,481.36 (21.8%); £3,663,195.88 -> £2,863,481.35 (21.8%); £3,663,196.02 -> £2,863,481.34 (21.8%); £3,663,196.17 -> £2,863,481.32 (21.8%); £3,663,196.31 -> £2,863,481.30 (21.8%); £3,663,196.46 -> £2,863,481.28 (21.8%); £3,663,196.60 -> £2,863,481.26 (21.8%); £3,663,196.73 -> £2,863,481.24 (21.8%); £3,663,196.74 -> £2,863,481.22 (21.8%); £3,663,196.75 -> £2,863,481.20 (21.8%); £3,663,196.76 -> £2,863,481.18 (21.8%); £3,663,196.78 -> £2,863,481.17 (21.8%); £3,663,196.78 -> £2,863,481.16 (21.8%); £3,663,196.79 -> £2,863,481.14 (21.8%); £3,663,196.79 -> £2,863,481.14 (21.8%); £3,663,196.79 -> £2,863,077.00 (21.8%); £3,663,196.79 -> £2,863,481.01 (21.8%); £3,663,196.79 -> £2,863,480.96 (21.8%); £3,663,196.80 -> £2,863,480.83 (21.8%); £3,663,196.80 -> £2,863,480.77 (21.8%); £3,663,196.80 -> £2,863,480.72 (21.8%); £3,663,196.80 -> £2,863,480.66 (21.8%); £3,663,196.80 -> £2,863,480.65 (21.8%); £3,663,196.80 -> £2,863,480.65 (21.8%); £3,663,196.80 -> £2,863,480.64 (21.8%); £3,663,196.80 -> £2,863,480.64 (21.8%); £3,663,196.80 -> £2,863,480.64 (21.8%); £3,663,196.81 -> £2,863,480.64 (21.8%); £3,663,196.83 -> £2,863,480.64 (21.8%); £3,663,197.02 -> £2,863,480.64 (21.8%); £3,663,197.21 -> £2,863,480.64 (21.8%); £3,663,197.41 -> £2,863,480.64 (21.8%); £3,663,197.60 -> £2,863,480.64 (21.8%); £3,663,197.79 -> £2,863,480.64 (21.8%); £3,663,197.97 -> £2,863,480.64 (21.8%); £3,663,198.03 -> £2,863,480.64 (21.8%); £3,663,198.08 -> £2,863,480.64 (21.8%); £3,663,198.09 -> £2,863,480.64 (21.8%); £3,663,198.09 -> £2,863,480.64 (21.8%); £3,663,198.09 -> £2,863,480.64 (21.8%); £3,663,198.10 -> £2,863,480.64 (21.8%); £3,663,198.10 -> £2,863,480.63 (21.8%); £3,663,198.10 -> £2,863,480.63 (21.8%); £3,663,198.10 -> £2,863,480.63 (21.8%); £3,663,198.10 -> £2,863,480.63 (21.8%); £3,663,198.11 -> £2,863,480.63 (21.8%); £3,663,198.11 -> £2,863,480.63 (21.8%); £3,663,198.17 -> £2,863,480.63 (21.8%); £3,663,198.34 -> £2,863,480.62 (21.8%); £3,663,198.51 -> £2,863,480.61 (21.8%); £3,663,198.68 -> £2,863,480.59 (21.8%); £3,663,198.84 -> £2,863,480.57 (21.8%); £3,663,199.01 -> £2,863,480.55 (21.8%); £3,663,199.18 -> £2,863,480.53 (21.8%); £3,663,199.34 -> £2,863,480.51 (21.8%); £3,663,199.36 -> £2,863,480.49 (21.8%); £3,663,199.37 -> £2,863,480.47 (21.8%); £3,663,199.38 -> £2,863,480.45 (21.8%); £3,663,199.40 -> £2,863,480.43 (21.8%); £3,663,199.40 -> £2,863,480.42 (21.8%); £3,663,199.40 -> £2,863,480.41 (21.8%); £3,663,199.40 -> £2,863,480.40 (21.8%); £3,663,199.41 -> £2,863,075.66 (21.8%); £3,663,199.41 -> £2,863,480.27 (21.8%); £3,663,199.41 -> £2,863,480.21 (21.8%); £3,663,199.41 -> £2,863,480.15 (21.8%); £3,663,199.41 -> £2,863,480.09 (21.8%); £3,663,199.41 -> £2,863,480.03 (21.8%); £3,663,199.41 -> £2,863,479.98 (21.8%); £3,663,199.41 -> £2,863,479.92 (21.8%); £3,663,199.41 -> £2,863,479.91 (21.8%); £3,663,199.41 -> £2,863,479.91 (21.8%); £3,663,199.41 -> £2,863,479.90 (21.8%); £3,663,199.41 -> £2,863,479.90 (21.8%); £3,663,199.42 -> £2,863,479.90 (21.8%); £3,663,199.43 -> £2,863,479.90 (21.8%); £3,663,199.44 -> £2,863,479.90 (21.8%); £3,663,199.60 -> £2,863,479.90 (21.8%); £3,663,199.76 -> £2,863,479.90 (21.8%); £3,663,199.93 -> £2,863,479.90 (21.8%); £3,663,200.09 -> £2,863,479.90 (21.8%); £3,663,200.26 -> £2,863,479.90 (21.8%); £3,663,200.42 -> £2,863,479.90 (21.8%); £3,663,200.48 -> £2,863,479.90 (21.8%); £3,663,200.53 -> £2,863,479.90 (21.8%); £3,663,200.54 -> £2,863,479.90 (21.8%); £3,663,200.54 -> £2,863,479.90 (21.8%); £3,663,200.55 -> £2,863,479.89 (21.8%); £3,663,200.55 -> £2,863,479.89 (21.8%); £3,663,200.55 -> £2,863,479.89 (21.8%); £3,663,200.56 -> £2,863,479.89 (21.8%); £3,663,200.56 -> £2,863,479.89 (21.8%); £3,663,200.56 -> £2,863,479.89 (21.8%); £3,663,200.56 -> £2,863,479.89 (21.8%); £3,663,200.57 -> £2,863,479.89 (21.8%); £3,663,200.62 -> £2,863,479.88 (21.8%); £3,663,200.76 -> £2,863,479.87 (21.8%); £3,663,200.91 -> £2,863,479.85 (21.8%); £3,663,201.05 -> £2,863,479.84 (21.8%); £3,663,201.20 -> £2,863,479.81 (21.8%); £3,663,201.34 -> £2,863,479.79 (21.8%); £3,663,201.48 -> £2,863,479.78 (21.8%); £3,663,201.62 -> £2,863,479.76 (21.8%); £3,663,201.63 -> £2,863,479.74 (21.8%); £3,663,201.64 -> £2,863,479.71 (21.8%); £3,663,201.65 -> £2,863,479.69 (21.8%); £3,663,201.66 -> £2,863,479.68 (21.8%); £3,663,201.66 -> £2,863,479.67 (21.8%); £3,663,201.67 -> £2,863,479.66 (21.8%); £3,663,201.67 -> £2,863,479.65 (21.8%); £3,663,201.67 -> £2,863,074.31 (21.8%); £3,663,201.67 -> £2,863,479.52 (21.8%); £3,663,201.67 -> £2,863,479.14 (21.8%); £3,663,201.67 -> £2,863,479.13 (21.8%); £3,663,201.68 -> £2,863,479.13 (21.8%); £3,663,201.68 -> £2,863,479.13 (21.8%); £3,663,201.69 -> £2,863,479.13 (21.8%); £3,663,201.81 -> £2,863,479.13 (21.8%); £3,663,201.94 -> £2,863,479.13 (21.8%); £3,663,202.06 -> £2,863,479.13 (21.8%); £3,663,202.19 -> £2,863,479.13 (21.8%); £3,663,202.32 -> £2,863,479.13 (21.8%); £3,663,202.44 -> £2,863,479.12 (21.8%); £3,663,202.49 -> £2,863,479.12 (21.8%); £3,663,202.55 -> £2,863,479.12 (21.8%); £3,663,202.55 -> £2,863,479.12 (21.8%); £3,663,202.55 -> £2,863,479.12 (21.8%); £3,663,202.55 -> £2,863,479.12 (21.8%); £3,663,202.56 -> £2,863,479.12 (21.8%); £3,663,202.56 -> £2,863,479.12 (21.8%); £3,663,202.56 -> £2,863,479.12 (21.8%); £3,663,202.57 -> £2,863,479.12 (21.8%); £3,663,202.57 -> £2,863,479.12 (21.8%); £3,663,202.57 -> £2,863,479.12 (21.8%); £3,663,202.58 -> £2,863,479.12 (21.8%); £3,663,202.63 -> £2,863,479.11 (21.8%); £3,663,202.76 -> £2,863,479.10 (21.8%); £3,663,202.88 -> £2,863,479.08 (21.8%); £3,663,203.00 -> £2,863,479.06 (21.8%); £3,663,203.12 -> £2,863,479.04 (21.8%); £3,663,203.23 -> £2,863,479.02 (21.8%); £3,663,203.35 -> £2,863,479.00 (21.8%); £3,663,203.46 -> £2,863,478.98 (21.8%); £3,663,203.47 -> £2,863,478.96 (21.8%); £3,663,203.47 -> £2,863,478.94 (21.8%); £3,663,203.48 -> £2,863,478.92 (21.8%); £3,663,203.49 -> £2,863,478.90 (21.8%); £3,663,203.50 -> £2,863,478.89 (21.8%); £3,663,203.50 -> £2,863,478.88 (21.8%); £3,663,203.50 -> £2,863,478.87 (21.8%); £3,663,203.50 -> £2,863,072.96 (21.8%); £3,663,203.51 -> £2,863,478.75 (21.8%); £3,663,203.51 -> £2,863,478.69 (21.8%); £3,663,203.51 -> £2,863,478.63 (21.8%); £3,663,203.51 -> £2,863,478.57 (21.8%); £3,663,203.51 -> £2,863,478.51 (21.8%); £3,663,203.51 -> £2,863,478.45 (21.8%); £3,663,203.51 -> £2,863,478.39 (21.8%); £3,663,203.51 -> £2,863,478.38 (21.8%); £3,663,203.52 -> £2,863,478.38 (21.8%); £3,663,203.53 -> £2,863,478.38 (21.8%); £3,663,203.53 -> £2,863,478.38 (21.8%); £3,663,203.53 -> £2,863,478.37 (21.8%); £3,663,203.54 -> £2,863,478.37 (21.8%); £3,663,203.55 -> £2,863,478.37 (21.8%); £3,663,203.56 -> £2,863,478.37 (21.8%); £3,663,203.57 -> £2,863,478.37 (21.8%); £3,663,203.57 -> £2,863,478.37 (21.8%); £3,663,203.58 -> £2,863,478.37 (21.8%); £3,663,203.58 -> £2,863,478.37 (21.8%); £3,663,203.58 -> £2,863,478.37 (21.8%); £3,663,203.59 -> £2,863,478.37 (21.8%); £3,663,203.59 -> £2,863,478.37 (21.8%); £3,663,203.60 -> £2,863,478.37 (21.8%); £3,663,203.60 -> £2,863,478.37 (21.8%); £3,663,203.61 -> £2,863,478.37 (21.8%); £3,663,203.61 -> £2,863,478.37 (21.8%); £3,663,203.62 -> £2,863,478.37 (21.8%); £3,663,203.62 -> £2,863,478.37 (21.8%); £3,663,203.63 -> £2,863,478.36 (21.8%); £3,663,203.63 -> £2,863,478.35 (21.8%); £3,663,203.64 -> £2,863,478.34 (21.8%); £3,663,203.65 -> £2,863,478.32 (21.8%); £3,663,203.65 -> £2,863,478.30 (21.8%); £3,663,203.66 -> £2,863,478.28 (21.8%); £3,663,203.66 -> £2,863,478.26 (21.8%); £3,663,203.67 -> £2,863,478.24 (21.8%); £3,663,203.67 -> £2,863,478.22 (21.8%); £3,663,203.68 -> £2,863,478.20 (21.8%); £3,663,203.68 -> £2,863,478.18 (21.8%); £3,663,203.70 -> £2,863,478.17 (21.8%); £3,663,203.70 -> £2,863,478.16 (21.8%); £3,663,203.71 -> £2,863,478.15 (21.8%); £3,663,203.71 -> £2,863,478.14 (21.8%); £3,663,203.71 -> £2,863,071.62 (21.8%); £3,663,203.71 -> £2,863,478.01 (21.8%); £3,663,203.71 -> £2,863,477.95 (21.8%); £3,663,203.72 -> £2,863,477.89 (21.8%); £3,663,203.72 -> £2,863,477.83 (21.8%); £3,663,203.72 -> £2,863,477.77 (21.8%); £3,663,203.72 -> £2,863,477.71 (21.8%); £3,663,203.72 -> £2,863,477.65 (21.8%); £3,663,203.72 -> £2,863,477.65 (21.8%); £3,663,203.72 -> £2,863,477.64 (21.8%); £3,663,203.72 -> £2,863,477.64 (21.8%); £3,663,203.72 -> £2,863,477.64 (21.8%); £3,663,203.72 -> £2,863,477.64 (21.8%); £3,663,203.72 -> £2,863,477.64 (21.8%); £3,663,203.73 -> £2,863,477.64 (21.8%); £3,663,203.73 -> £2,863,477.63 (21.8%); £3,663,203.73 -> £2,863,477.63 (21.8%); £3,663,203.73 -> £2,863,477.63 (21.8%); £3,663,203.74 -> £2,863,477.63 (21.8%); £3,663,203.74 -> £2,863,477.63 (21.8%); £3,663,203.74 -> £2,863,477.63 (21.8%); £3,663,203.75 -> £2,863,477.63 (21.8%); £3,663,203.75 -> £2,863,477.63 (21.8%); £3,663,203.76 -> £2,863,477.63 (21.8%); £3,663,203.76 -> £2,863,477.63 (21.8%); £3,663,203.76 -> £2,863,477.63 (21.8%); £3,663,203.77 -> £2,863,477.63 (21.8%); £3,663,203.78 -> £2,863,477.63 (21.8%); £3,663,203.79 -> £2,863,477.63 (21.8%); £3,663,203.80 -> £2,863,477.63 (21.8%); £3,663,203.81 -> £2,863,477.63 (21.8%); £3,663,203.81 -> £2,863,477.63 (21.8%); £3,663,203.82 -> £2,863,477.62 (21.8%); £3,663,203.82 -> £2,863,477.62 (21.8%); £3,663,203.83 -> £2,863,477.61 (21.8%); £3,663,203.83 -> £2,863,477.60 (21.8%); £3,663,203.84 -> £2,863,477.58 (21.8%); £3,663,203.84 -> £2,863,477.56 (21.8%); £3,663,203.85 -> £2,863,477.54 (21.8%); £3,663,203.85 -> £2,863,477.52 (21.8%); £3,663,203.85 -> £2,863,477.50 (21.8%); £3,663,203.85 -> £2,863,477.48 (21.8%); £3,663,203.86 -> £2,863,477.46 (21.8%); £3,663,203.86 -> £2,863,477.44 (21.8%); £3,663,203.86 -> £2,863,477.43 (21.8%); £3,663,203.86 -> £2,863,477.41 (21.8%); £3,663,203.87 -> £2,863,477.40 (21.8%); £3,663,203.87 -> £2,863,477.39 (21.8%); £3,663,203.88 -> £2,863,070.27 (21.8%); £3,663,203.88 -> £2,863,477.27 (21.8%); £3,663,203.88 -> £2,863,477.21 (21.8%); £3,663,203.88 -> £2,863,477.15 (21.8%); £3,663,203.88 -> £2,863,477.09 (21.8%); £3,663,203.88 -> £2,863,477.04 (21.8%); £3,663,203.88 -> £2,863,476.98 (21.8%); £3,663,203.88 -> £2,863,476.92 (21.8%); £3,663,203.88 -> £2,863,476.91 (21.8%); £3,663,203.88 -> £2,863,476.91 (21.8%); £3,663,203.88 -> £2,863,476.90 (21.8%); £3,663,203.88 -> £2,863,476.90 (21.8%); £3,663,203.89 -> £2,863,476.90 (21.8%); £3,663,203.89 -> £2,863,476.90 (21.8%); £3,663,203.89 -> £2,863,476.90 (21.8%); £3,663,203.94 -> £2,863,476.90 (21.8%); £3,663,204.00 -> £2,863,476.90 (21.8%); £3,663,204.07 -> £2,863,476.90 (21.8%); £3,663,204.12 -> £2,863,476.90 (21.8%); £3,663,204.18 -> £2,863,476.90 (21.8%); £3,663,204.23 -> £2,863,476.90 (21.8%); £3,663,204.28 -> £2,863,476.90 (21.8%); £3,663,204.34 -> £2,863,476.90 (21.8%); £3,663,204.34 -> £2,863,476.89 (21.8%); £3,663,204.35 -> £2,863,476.89 (21.8%); £3,663,204.35 -> £2,863,476.89 (21.8%); £3,663,204.35 -> £2,863,476.89 (21.8%); £3,663,204.36 -> £2,863,476.89 (21.8%); £3,663,204.36 -> £2,863,476.89 (21.8%); £3,663,204.36 -> £2,863,476.89 (21.8%); £3,663,204.37 -> £2,863,476.89 (21.8%); £3,663,204.37 -> £2,863,476.89 (21.8%); £3,663,204.37 -> £2,863,476.89 (21.8%); £3,663,204.44 -> £2,863,476.89 (21.8%); £3,663,204.51 -> £2,863,476.88 (21.8%); £3,663,204.58 -> £2,863,476.86 (21.8%); £3,663,204.66 -> £2,863,476.83 (21.8%); £3,663,204.74 -> £2,863,476.80 (21.8%); £3,663,204.82 -> £2,863,476.78 (21.8%); £3,663,204.91 -> £2,863,476.75 (21.8%); £3,663,204.99 -> £2,863,476.72 (21.8%); £3,663,205.00 -> £2,863,476.69 (21.8%); £3,663,205.00 -> £2,863,476.67 (21.8%); £3,663,205.01 -> £2,863,476.64 (21.8%); £3,663,205.01 -> £2,863,476.63 (21.8%); £3,663,205.02 -> £2,863,476.62 (21.8%); £3,663,205.02 -> £2,863,476.61 (21.8%); £3,663,205.02 -> £2,863,476.60 (21.8%); £3,663,205.03 -> £2,863,068.92 (21.8%); £3,663,205.03 -> £2,863,476.48 (21.8%); £3,663,205.03 -> £2,863,476.42 (21.8%); £3,663,205.03 -> £2,863,476.36 (21.8%); £3,663,205.03 -> £2,863,476.30 (21.8%); £3,663,205.03 -> £2,863,476.24 (21.8%); £3,663,205.03 -> £2,863,476.18 (21.8%); £3,663,205.04 -> £2,863,476.11 (21.8%); £3,663,205.04 -> £2,863,476.11 (21.8%); £3,663,205.04 -> £2,863,476.11 (21.8%); £3,663,205.04 -> £2,863,476.11 (21.8%); £3,663,205.04 -> £2,863,476.10 (21.8%); £3,663,205.04 -> £2,863,476.10 (21.8%); £3,663,205.10 -> £2,863,476.10 (21.8%); £3,663,205.16 -> £2,863,476.10 (21.8%); £3,663,205.23 -> £2,863,476.10 (21.8%); £3,663,205.29 -> £2,863,476.10 (21.8%); £3,663,205.35 -> £2,863,476.10 (21.8%); £3,663,205.40 -> £2,863,476.10 (21.8%); £3,663,205.46 -> £2,863,476.10 (21.8%); £3,663,205.52 -> £2,863,476.10 (21.8%); £3,663,205.52 -> £2,863,476.10 (21.8%); £3,663,205.52 -> £2,863,476.10 (21.8%); £3,663,205.53 -> £2,863,476.10 (21.8%); £3,663,205.53 -> £2,863,476.10 (21.8%); £3,663,205.54 -> £2,863,476.10 (21.8%); £3,663,205.54 -> £2,863,476.10 (21.8%); £3,663,205.54 -> £2,863,476.10 (21.8%); £3,663,205.55 -> £2,863,476.09 (21.8%); £3,663,205.55 -> £2,863,476.09 (21.8%); £3,663,205.55 -> £2,863,476.09 (21.8%); £3,663,205.62 -> £2,863,476.09 (21.8%); £3,663,205.69 -> £2,863,476.08 (21.8%); £3,663,205.77 -> £2,863,476.06 (21.8%); £3,663,205.85 -> £2,863,476.04 (21.8%); £3,663,205.93 -> £2,863,476.01 (21.8%); £3,663,206.02 -> £2,863,475.98 (21.8%); £3,663,206.11 -> £2,863,475.95 (21.8%); £3,663,206.19 -> £2,863,475.92 (21.8%); £3,663,206.20 -> £2,863,475.90 (21.8%); £3,663,206.20 -> £2,863,475.87 (21.8%); £3,663,206.21 -> £2,863,475.85 (21.8%); £3,663,206.22 -> £2,863,475.83 (21.8%); £3,663,206.22 -> £2,863,475.82 (21.8%); £3,663,206.23 -> £2,863,475.81 (21.8%); £3,663,206.23 -> £2,863,475.80 (21.8%); £3,663,206.23 -> £2,863,067.58 (21.8%); £3,663,206.23 -> £2,863,475.61 (21.8%); £3,663,206.23 -> £2,863,475.55 (21.8%); £3,663,206.23 -> £2,863,475.49 (21.8%); £3,663,206.23 -> £2,863,475.43 (21.8%); £3,663,206.23 -> £2,863,475.37 (21.8%); £3,663,206.23 -> £2,863,475.32 (21.8%); £3,663,206.23 -> £2,863,475.31 (21.8%); £3,663,206.23 -> £2,863,475.31 (21.8%); £3,663,206.23 -> £2,863,475.30 (21.8%); £3,663,206.23 -> £2,863,475.30 (21.8%); £3,663,206.24 -> £2,863,475.30 (21.8%); £3,663,206.24 -> £2,863,475.30 (21.8%); £3,663,206.24 -> £2,863,475.30 (21.8%); £3,663,206.29 -> £2,863,475.30 (21.8%); £3,663,206.35 -> £2,863,475.30 (21.8%); £3,663,206.42 -> £2,863,475.30 (21.8%); £3,663,206.47 -> £2,863,475.30 (21.8%); £3,663,206.53 -> £2,863,475.30 (21.8%); £3,663,206.58 -> £2,863,475.29 (21.8%); £3,663,206.63 -> £2,863,475.29 (21.8%); £3,663,206.69 -> £2,863,475.29 (21.8%); £3,663,206.69 -> £2,863,475.29 (21.8%); £3,663,206.70 -> £2,863,475.29 (21.8%); £3,663,206.70 -> £2,863,475.29 (21.8%); £3,663,206.70 -> £2,863,475.29 (21.8%); £3,663,206.71 -> £2,863,475.29 (21.8%); £3,663,206.71 -> £2,863,475.29 (21.8%); £3,663,206.71 -> £2,863,475.29 (21.8%); £3,663,206.71 -> £2,863,475.29 (21.8%); £3,663,206.72 -> £2,863,475.29 (21.8%); £3,663,206.72 -> £2,863,475.29 (21.8%); £3,663,206.78 -> £2,863,475.28 (21.8%); £3,663,206.85 -> £2,863,475.27 (21.8%); £3,663,206.93 -> £2,863,475.24 (21.8%); £3,663,207.00 -> £2,863,475.22 (21.8%); £3,663,207.08 -> £2,863,475.19 (21.8%); £3,663,207.16 -> £2,863,475.16 (21.8%); £3,663,207.25 -> £2,863,475.13 (21.8%); £3,663,207.33 -> £2,863,475.11 (21.8%); £3,663,207.34 -> £2,863,475.08 (21.8%); £3,663,207.34 -> £2,863,475.05 (21.8%); £3,663,207.35 -> £2,863,475.03 (21.8%); £3,663,207.35 -> £2,863,475.01 (21.8%); £3,663,207.36 -> £2,863,475.00 (21.8%); £3,663,207.37 -> £2,863,474.99 (21.8%); £3,663,207.37 -> £2,863,474.98 (21.8%); £3,663,207.37 -> £2,863,066.23 (21.8%); £3,663,207.37 -> £2,863,474.86 (21.8%); £3,663,207.38 -> £2,863,474.80 (21.8%); £3,663,207.38 -> £2,863,474.74 (21.8%); £3,663,207.38 -> £2,863,474.48 (21.8%); £3,663,207.38 -> £2,863,474.48 (21.8%); £3,663,207.38 -> £2,863,474.48 (21.8%); £3,663,207.38 -> £2,863,474.48 (21.8%); £3,663,207.38 -> £2,863,474.47 (21.8%); £3,663,207.44 -> £2,863,474.47 (21.8%); £3,663,207.50 -> £2,863,474.47 (21.8%); £3,663,207.56 -> £2,863,474.47 (21.8%); £3,663,207.62 -> £2,863,474.47 (21.8%); £3,663,207.67 -> £2,863,474.47 (21.8%); £3,663,207.72 -> £2,863,474.47 (21.8%); £3,663,207.77 -> £2,863,474.47 (21.8%); £3,663,207.83 -> £2,863,474.47 (21.8%); £3,663,207.83 -> £2,863,474.47 (21.8%); £3,663,207.84 -> £2,863,474.47 (21.8%); £3,663,207.84 -> £2,863,474.47 (21.8%); £3,663,207.84 -> £2,863,474.47 (21.8%); £3,663,207.85 -> £2,863,474.47 (21.8%); £3,663,207.85 -> £2,863,474.47 (21.8%); £3,663,207.85 -> £2,863,474.47 (21.8%); £3,663,207.86 -> £2,863,474.47 (21.8%); £3,663,207.86 -> £2,863,474.46 (21.8%); £3,663,207.86 -> £2,863,474.46 (21.8%); £3,663,207.92 -> £2,863,474.45 (21.8%); £3,663,207.99 -> £2,863,474.43 (21.8%); £3,663,208.07 -> £2,863,474.41 (21.8%); £3,663,208.15 -> £2,863,474.39 (21.8%); £3,663,208.23 -> £2,863,474.36 (21.8%); £3,663,208.31 -> £2,863,474.33 (21.8%); £3,663,208.40 -> £2,863,474.31 (21.8%); £3,663,208.49 -> £2,863,474.28 (21.8%); £3,663,208.49 -> £2,863,474.25 (21.8%); £3,663,208.50 -> £2,863,474.23 (21.8%); £3,663,208.51 -> £2,863,474.20 (21.8%); £3,663,208.51 -> £2,863,474.19 (21.8%); £3,663,208.51 -> £2,863,474.17 (21.8%); £3,663,208.52 -> £2,863,474.16 (21.8%); £3,663,208.52 -> £2,863,474.15 (21.8%); £3,663,208.52 -> £2,863,064.89 (21.8%); £3,663,208.52 -> £2,863,474.03 (21.8%); £3,663,208.52 -> £2,863,473.97 (21.8%); £3,663,208.52 -> £2,863,473.91 (21.8%); £3,663,208.52 -> £2,863,473.79 (21.8%); £3,663,208.52 -> £2,863,473.73 (21.8%); £3,663,208.52 -> £2,863,473.66 (21.8%); £3,663,208.52 -> £2,863,473.65 (21.8%); £3,663,208.52 -> £2,863,473.65 (21.8%); £3,663,208.52 -> £2,863,473.65 (21.8%); £3,663,208.52 -> £2,863,473.65 (21.8%); £3,663,208.53 -> £2,863,473.65 (21.8%); £3,663,208.58 -> £2,863,473.65 (21.8%); £3,663,208.64 -> £2,863,473.65 (21.8%); £3,663,208.70 -> £2,863,473.65 (21.8%); £3,663,208.75 -> £2,863,473.65 (21.8%); £3,663,208.80 -> £2,863,473.65 (21.8%); £3,663,208.85 -> £2,863,473.65 (21.8%); £3,663,208.91 -> £2,863,473.65 (21.8%); £3,663,208.96 -> £2,863,473.65 (21.8%); £3,663,208.96 -> £2,863,473.65 (21.8%); £3,663,208.97 -> £2,863,473.65 (21.8%); £3,663,208.97 -> £2,863,473.64 (21.8%); £3,663,208.98 -> £2,863,473.64 (21.8%); £3,663,208.98 -> £2,863,473.64 (21.8%); £3,663,208.98 -> £2,863,473.64 (21.8%); £3,663,208.99 -> £2,863,473.64 (21.8%); £3,663,208.99 -> £2,863,473.64 (21.8%); £3,663,208.99 -> £2,863,473.64 (21.8%); £3,663,209.06 -> £2,863,473.63 (21.8%); £3,663,209.13 -> £2,863,473.61 (21.8%); £3,663,209.20 -> £2,863,473.58 (21.8%); £3,663,209.27 -> £2,863,473.55 (21.8%); £3,663,209.35 -> £2,863,473.53 (21.8%); £3,663,209.43 -> £2,863,473.50 (21.8%); £3,663,209.51 -> £2,863,473.47 (21.8%); £3,663,209.59 -> £2,863,473.44 (21.8%); £3,663,209.60 -> £2,863,473.41 (21.8%); £3,663,209.60 -> £2,863,473.38 (21.8%); £3,663,209.60 -> £2,863,473.36 (21.8%); £3,663,209.61 -> £2,863,473.34 (21.8%); £3,663,209.61 -> £2,863,473.33 (21.8%); £3,663,209.62 -> £2,863,473.32 (21.8%); £3,663,209.62 -> £2,863,473.31 (21.8%); £3,663,209.62 -> £2,863,063.54 (21.8%); £3,663,209.62 -> £2,863,473.18 (21.8%); £3,663,209.62 -> £2,863,472.87 (21.8%); £3,663,209.62 -> £2,863,472.81 (21.8%); £3,663,209.62 -> £2,863,472.81 (21.8%); £3,663,209.62 -> £2,863,472.80 (21.8%); £3,663,209.62 -> £2,863,472.80 (21.8%); £3,663,209.62 -> £2,863,472.80 (21.8%); £3,663,209.63 -> £2,863,472.80 (21.8%); £3,663,209.63 -> £2,863,472.79 (21.8%); £3,663,209.63 -> £2,863,472.79 (21.8%); £3,663,209.63 -> £2,863,472.79 (21.8%); £3,663,209.63 -> £2,863,472.79 (21.8%); £3,663,209.63 -> £2,863,472.79 (21.8%); £3,663,209.64 -> £2,863,472.79 (21.8%); £3,663,209.64 -> £2,863,472.79 (21.8%); £3,663,209.64 -> £2,863,472.79 (21.8%); £3,663,209.65 -> £2,863,472.79 (21.8%); £3,663,209.65 -> £2,863,472.79 (21.8%); £3,663,209.66 -> £2,863,472.79 (21.8%); £3,663,209.66 -> £2,863,472.79 (21.8%); £3,663,209.67 -> £2,863,472.79 (21.8%); £3,663,209.67 -> £2,863,472.79 (21.8%); £3,663,209.67 -> £2,863,472.79 (21.8%); £3,663,209.68 -> £2,863,472.79 (21.8%); £3,663,209.68 -> £2,863,472.78 (21.8%); £3,663,209.68 -> £2,863,472.78 (21.8%); £3,663,209.69 -> £2,863,472.78 (21.8%); £3,663,209.69 -> £2,863,472.77 (21.8%); £3,663,209.70 -> £2,863,472.75 (21.8%); £3,663,209.70 -> £2,863,472.72 (21.8%); £3,663,209.70 -> £2,863,472.69 (21.8%); £3,663,209.70 -> £2,863,472.66 (21.8%); £3,663,209.71 -> £2,863,472.63 (21.8%); £3,663,209.71 -> £2,863,472.61 (21.8%); £3,663,209.71 -> £2,863,472.58 (21.8%); £3,663,209.72 -> £2,863,472.55 (21.8%); £3,663,209.72 -> £2,863,472.53 (21.8%); £3,663,209.72 -> £2,863,472.52 (21.8%); £3,663,209.73 -> £2,863,472.50 (21.8%); £3,663,209.73 -> £2,863,472.49 (21.8%); £3,663,209.74 -> £2,863,472.48 (21.8%); £3,663,209.74 -> £2,863,062.19 (21.8%); £3,663,209.74 -> £2,863,472.36 (21.8%); £3,663,209.75 -> £2,863,472.30 (21.8%); £3,663,209.75 -> £2,863,472.24 (21.8%); £3,663,209.75 -> £2,863,472.18 (21.8%); £3,663,209.75 -> £2,863,472.12 (21.8%); £3,663,209.75 -> £2,863,472.06 (21.8%); £3,663,209.75 -> £2,863,472.00 (21.8%); £3,663,209.75 -> £2,863,471.99 (21.8%); £3,663,209.75 -> £2,863,471.99 (21.8%); £3,663,209.75 -> £2,863,471.98 (21.8%); £3,663,209.75 -> £2,863,471.98 (21.8%); £3,663,209.75 -> £2,863,471.98 (21.8%); £3,663,209.75 -> £2,863,471.98 (21.8%); £3,663,209.75 -> £2,863,471.98 (21.8%); £3,663,209.75 -> £2,863,471.98 (21.8%); £3,663,209.76 -> £2,863,471.98 (21.8%); £3,663,209.76 -> £2,863,471.98 (21.8%); £3,663,209.76 -> £2,863,471.98 (21.8%); £3,663,209.77 -> £2,863,471.98 (21.8%); £3,663,209.77 -> £2,863,471.98 (21.8%); £3,663,209.77 -> £2,863,471.98 (21.8%); £3,663,209.77 -> £2,863,471.97 (21.8%); £3,663,209.78 -> £2,863,471.97 (21.8%); £3,663,209.78 -> £2,863,471.97 (21.8%); £3,663,209.78 -> £2,863,471.97 (21.8%); £3,663,209.79 -> £2,863,471.97 (21.8%); £3,663,209.79 -> £2,863,471.97 (21.8%); £3,663,209.79 -> £2,863,471.97 (21.8%); £3,663,209.80 -> £2,863,471.97 (21.8%); £3,663,209.80 -> £2,863,471.97 (21.8%); £3,663,209.80 -> £2,863,471.97 (21.8%); £3,663,209.81 -> £2,863,471.97 (21.8%); £3,663,209.81 -> £2,863,471.96 (21.8%); £3,663,209.81 -> £2,863,471.95 (21.8%); £3,663,209.82 -> £2,863,471.93 (21.8%); £3,663,209.83 -> £2,863,471.90 (21.8%); £3,663,209.83 -> £2,863,471.88 (21.8%); £3,663,209.84 -> £2,863,471.85 (21.8%); £3,663,209.85 -> £2,863,471.82 (21.8%); £3,663,209.85 -> £2,863,471.79 (21.8%); £3,663,209.85 -> £2,863,471.77 (21.8%); £3,663,209.86 -> £2,863,471.74 (21.8%); £3,663,209.86 -> £2,863,471.72 (21.8%); £3,663,209.86 -> £2,863,471.70 (21.8%); £3,663,209.87 -> £2,863,471.69 (21.8%); £3,663,209.88 -> £2,863,471.68 (21.8%); £3,663,209.88 -> £2,863,471.67 (21.8%); £3,663,209.88 -> £2,863,060.85 (21.8%); £3,663,209.88 -> £2,863,471.42 (21.8%); £3,663,209.88 -> £2,863,471.36 (21.8%); £3,663,209.88 -> £2,863,471.30 (21.8%); £3,663,209.88 -> £2,863,471.24 (21.8%); £3,663,209.88 -> £2,863,471.18 (21.8%); £3,663,209.88 -> £2,863,471.18 (21.8%); £3,663,209.88 -> £2,863,471.17 (21.8%); £3,663,209.88 -> £2,863,471.17 (21.8%); £3,663,209.88 -> £2,863,471.16 (21.8%); £3,663,209.88 -> £2,863,471.16 (21.8%); £3,663,209.88 -> £2,863,471.16 (21.8%); £3,663,209.89 -> £2,863,471.16 (21.8%); £3,663,209.94 -> £2,863,471.16 (21.8%); £3,663,210.00 -> £2,863,471.16 (21.8%); £3,663,210.06 -> £2,863,471.16 (21.8%); £3,663,210.12 -> £2,863,471.16 (21.8%); £3,663,210.17 -> £2,863,471.16 (21.8%); £3,663,210.23 -> £2,863,471.16 (21.8%); £3,663,210.28 -> £2,863,471.16 (21.8%); £3,663,210.34 -> £2,863,471.16 (21.8%); £3,663,210.34 -> £2,863,471.16 (21.8%); £3,663,210.34 -> £2,863,471.16 (21.8%); £3,663,210.34 -> £2,863,471.16 (21.8%); £3,663,210.34 -> £2,863,471.16 (21.8%); £3,663,210.34 -> £2,863,471.15 (21.8%); £3,663,210.34 -> £2,863,471.15 (21.8%); £3,663,210.34 -> £2,863,471.15 (21.8%); £3,663,210.35 -> £2,863,471.15 (21.8%); £3,663,210.35 -> £2,863,471.15 (21.8%); £3,663,210.35 -> £2,863,471.15 (21.8%); £3,663,210.41 -> £2,863,471.14 (21.8%); £3,663,210.48 -> £2,863,471.12 (21.8%); £3,663,210.56 -> £2,863,471.10 (21.8%); £3,663,210.64 -> £2,863,471.08 (21.8%); £3,663,210.72 -> £2,863,471.05 (21.8%); £3,663,210.80 -> £2,863,471.02 (21.8%); £3,663,210.89 -> £2,863,470.99 (21.8%); £3,663,210.97 -> £2,863,470.97 (21.8%); £3,663,210.98 -> £2,863,470.94 (21.8%); £3,663,210.99 -> £2,863,470.92 (21.8%); £3,663,210.99 -> £2,863,470.89 (21.8%); £3,663,211.00 -> £2,863,470.88 (21.8%); £3,663,211.01 -> £2,863,470.87 (21.8%); £3,663,211.01 -> £2,863,470.86 (21.8%); £3,663,211.02 -> £2,863,470.85 (21.8%); £3,663,211.02 -> £2,863,059.50 (21.8%); £3,663,211.02 -> £2,863,470.72 (21.8%); £3,663,211.02 -> £2,863,470.66 (21.8%); £3,663,211.02 -> £2,863,470.60 (21.8%); £3,663,211.02 -> £2,863,470.55 (21.8%); £3,663,211.02 -> £2,863,470.49 (21.8%); £3,663,211.02 -> £2,863,470.43 (21.8%); £3,663,211.02 -> £2,863,470.37 (21.8%); £3,663,211.02 -> £2,863,470.36 (21.8%); £3,663,211.03 -> £2,863,470.35 (21.8%); £3,663,211.03 -> £2,863,470.35 (21.8%); £3,663,211.04 -> £2,863,470.34 (21.8%); £3,663,211.24 -> £2,863,470.34 (21.8%); £3,663,211.44 -> £2,863,470.34 (21.8%); £3,663,211.65 -> £2,863,470.34 (21.8%); £3,663,211.86 -> £2,863,470.34 (21.8%); £3,663,212.06 -> £2,863,470.34 (21.8%); £3,663,212.26 -> £2,863,470.34 (21.8%); £3,663,212.32 -> £2,863,470.34 (21.8%); £3,663,212.37 -> £2,863,470.34 (21.8%); £3,663,212.38 -> £2,863,470.34 (21.8%); £3,663,212.38 -> £2,863,470.34 (21.8%); £3,663,212.38 -> £2,863,470.34 (21.8%); £3,663,212.39 -> £2,863,470.34 (21.8%); £3,663,212.39 -> £2,863,470.34 (21.8%); £3,663,212.39 -> £2,863,470.34 (21.8%); £3,663,212.40 -> £2,863,470.34 (21.8%); £3,663,212.40 -> £2,863,470.33 (21.8%); £3,663,212.40 -> £2,863,470.33 (21.8%); £3,663,212.41 -> £2,863,470.33 (21.8%); £3,663,212.47 -> £2,863,470.32 (21.8%); £3,663,212.65 -> £2,863,470.30 (21.8%); £3,663,212.84 -> £2,863,470.28 (21.8%); £3,663,213.02 -> £2,863,470.25 (21.8%); £3,663,213.21 -> £2,863,470.23 (21.8%); £3,663,213.41 -> £2,863,470.20 (21.8%); £3,663,213.60 -> £2,863,470.17 (21.8%); £3,663,213.80 -> £2,863,470.15 (21.8%); £3,663,213.82 -> £2,863,470.12 (21.8%); £3,663,213.84 -> £2,863,470.09 (21.8%); £3,663,213.86 -> £2,863,470.07 (21.8%); £3,663,213.87 -> £2,863,470.06 (21.8%); £3,663,213.88 -> £2,863,470.04 (21.8%); £3,663,213.88 -> £2,863,470.03 (21.8%); £3,663,213.89 -> £2,863,470.02 (21.8%); £3,663,213.89 -> £2,863,058.15 (21.8%); £3,663,213.89 -> £2,863,469.90 (21.8%); £3,663,213.89 -> £2,863,469.84 (21.8%); £3,663,213.89 -> £2,863,469.78 (21.8%); £3,663,213.89 -> £2,863,469.72 (21.8%); £3,663,213.89 -> £2,863,469.67 (21.8%); £3,663,213.89 -> £2,863,469.61 (21.8%); £3,663,213.89 -> £2,863,469.54 (21.8%); £3,663,213.89 -> £2,863,469.54 (21.8%); £3,663,213.90 -> £2,863,469.53 (21.8%); £3,663,213.90 -> £2,863,469.53 (21.8%); £3,663,213.90 -> £2,863,469.53 (21.8%); £3,663,213.92 -> £2,863,469.53 (21.8%); £3,663,213.94 -> £2,863,469.53 (21.8%); £3,663,214.21 -> £2,863,469.53 (21.8%); £3,663,214.48 -> £2,863,469.53 (21.8%); £3,663,214.76 -> £2,863,469.52 (21.8%); £3,663,215.03 -> £2,863,469.52 (21.8%); £3,663,215.29 -> £2,863,469.52 (21.8%); £3,663,215.56 -> £2,863,469.52 (21.8%); £3,663,215.62 -> £2,863,469.52 (21.8%); £3,663,215.67 -> £2,863,469.52 (21.8%); £3,663,215.68 -> £2,863,469.52 (21.8%); £3,663,215.68 -> £2,863,469.52 (21.8%); £3,663,215.68 -> £2,863,469.52 (21.8%); £3,663,215.68 -> £2,863,469.52 (21.8%); £3,663,215.68 -> £2,863,469.52 (21.8%); £3,663,215.69 -> £2,863,469.52 (21.8%); £3,663,215.69 -> £2,863,469.52 (21.8%); £3,663,215.69 -> £2,863,469.52 (21.8%); £3,663,215.69 -> £2,863,469.52 (21.8%); £3,663,215.69 -> £2,863,469.52 (21.8%); £3,663,215.76 -> £2,863,469.51 (21.8%); £3,663,215.98 -> £2,863,469.49 (21.8%); £3,663,216.21 -> £2,863,469.47 (21.8%); £3,663,216.44 -> £2,863,469.44 (21.8%); £3,663,216.68 -> £2,863,469.42 (21.8%); £3,663,216.92 -> £2,863,469.39 (21.8%); £3,663,217.16 -> £2,863,469.36 (21.8%); £3,663,217.39 -> £2,863,469.33 (21.8%); £3,663,217.40 -> £2,863,469.31 (21.8%); £3,663,217.43 -> £2,863,469.28 (21.8%); £3,663,217.45 -> £2,863,469.26 (21.8%); £3,663,217.48 -> £2,863,469.24 (21.8%); £3,663,217.48 -> £2,863,469.23 (21.8%); £3,663,217.49 -> £2,863,469.22 (21.8%); £3,663,217.49 -> £2,863,469.21 (21.8%); £3,663,217.49 -> £2,863,056.81 (21.8%); £3,663,217.50 -> £2,863,469.09 (21.8%); £3,663,217.50 -> £2,863,469.03 (21.8%); £3,663,217.50 -> £2,863,468.97 (21.8%); £3,663,217.50 -> £2,863,468.91 (21.8%); £3,663,217.50 -> £2,863,468.85 (21.8%); £3,663,217.50 -> £2,863,468.80 (21.8%); £3,663,217.50 -> £2,863,468.74 (21.8%); £3,663,217.50 -> £2,863,468.73 (21.8%); £3,663,217.50 -> £2,863,468.73 (21.8%); £3,663,217.50 -> £2,863,468.72 (21.8%); £3,663,217.50 -> £2,863,468.72 (21.8%); £3,663,217.50 -> £2,863,468.72 (21.8%); £3,663,217.51 -> £2,863,468.71 (21.8%); £3,663,217.52 -> £2,863,468.71 (21.8%); £3,663,217.68 -> £2,863,468.71 (21.8%); £3,663,217.85 -> £2,863,468.71 (21.8%); £3,663,218.02 -> £2,863,468.71 (21.8%); £3,663,218.18 -> £2,863,468.71 (21.8%); £3,663,218.34 -> £2,863,468.71 (21.8%); £3,663,218.50 -> £2,863,468.71 (21.8%); £3,663,218.56 -> £2,863,468.71 (21.8%); £3,663,218.61 -> £2,863,468.71 (21.8%); £3,663,218.62 -> £2,863,468.71 (21.8%); £3,663,218.62 -> £2,863,468.71 (21.8%); £3,663,218.63 -> £2,863,468.71 (21.8%); £3,663,218.63 -> £2,863,468.71 (21.8%); £3,663,218.63 -> £2,863,468.71 (21.8%); £3,663,218.64 -> £2,863,468.70 (21.8%); £3,663,218.64 -> £2,863,468.70 (21.8%); £3,663,218.64 -> £2,863,468.70 (21.8%); £3,663,218.65 -> £2,863,468.70 (21.8%); £3,663,218.65 -> £2,863,468.70 (21.8%); £3,663,218.71 -> £2,863,468.69 (21.8%); £3,663,218.86 -> £2,863,468.67 (21.8%); £3,663,219.02 -> £2,863,468.65 (21.8%); £3,663,219.17 -> £2,863,468.63 (21.8%); £3,663,219.34 -> £2,863,468.60 (21.8%); £3,663,219.50 -> £2,863,468.57 (21.8%); £3,663,219.66 -> £2,863,468.54 (21.8%); £3,663,219.82 -> £2,863,468.51 (21.8%); £3,663,219.83 -> £2,863,468.49 (21.8%); £3,663,219.84 -> £2,863,468.46 (21.8%); £3,663,219.85 -> £2,863,468.43 (21.8%); £3,663,219.86 -> £2,863,468.42 (21.8%); £3,663,219.87 -> £2,863,468.41 (21.8%); £3,663,219.87 -> £2,863,468.40 (21.8%); £3,663,219.88 -> £2,863,468.39 (21.8%); £3,663,219.88 -> £2,863,055.46 (21.8%); £3,663,219.88 -> £2,863,468.26 (21.8%); £3,663,219.88 -> £2,863,468.02 (21.8%); £3,663,219.88 -> £2,863,467.96 (21.8%); £3,663,219.88 -> £2,863,467.90 (21.8%); £3,663,219.88 -> £2,863,467.89 (21.8%); £3,663,219.88 -> £2,863,467.88 (21.8%); £3,663,219.88 -> £2,863,467.88 (21.8%); £3,663,219.88 -> £2,863,467.88 (21.8%); £3,663,219.89 -> £2,863,467.88 (21.8%); £3,663,219.91 -> £2,863,467.88 (21.8%); £3,663,220.16 -> £2,863,467.88 (21.8%); £3,663,220.41 -> £2,863,467.88 (21.8%); £3,663,220.67 -> £2,863,467.88 (21.8%); £3,663,220.92 -> £2,863,467.87 (21.8%); £3,663,221.17 -> £2,863,467.87 (21.8%); £3,663,221.41 -> £2,863,467.87 (21.8%); £3,663,221.47 -> £2,863,467.87 (21.8%); £3,663,221.52 -> £2,863,467.87 (21.8%); £3,663,221.52 -> £2,863,467.87 (21.8%); £3,663,221.53 -> £2,863,467.87 (21.8%); £3,663,221.53 -> £2,863,467.87 (21.8%); £3,663,221.54 -> £2,863,467.87 (21.8%); £3,663,221.54 -> £2,863,467.87 (21.8%); £3,663,221.54 -> £2,863,467.87 (21.8%); £3,663,221.55 -> £2,863,467.87 (21.8%); £3,663,221.55 -> £2,863,467.87 (21.8%); £3,663,221.55 -> £2,863,467.87 (21.8%); £3,663,221.55 -> £2,863,467.87 (21.8%); £3,663,221.62 -> £2,863,467.86 (21.8%); £3,663,221.83 -> £2,863,467.84 (21.8%); £3,663,222.04 -> £2,863,467.81 (21.8%); £3,663,222.26 -> £2,863,467.79 (21.8%); £3,663,222.48 -> £2,863,467.76 (21.8%); £3,663,222.71 -> £2,863,467.73 (21.8%); £3,663,222.94 -> £2,863,467.70 (21.8%); £3,663,223.17 -> £2,863,467.68 (21.8%); £3,663,223.19 -> £2,863,467.65 (21.8%); £3,663,223.21 -> £2,863,467.62 (21.8%); £3,663,223.22 -> £2,863,467.60 (21.8%); £3,663,223.24 -> £2,863,467.59 (21.8%); £3,663,223.24 -> £2,863,467.57 (21.8%); £3,663,223.25 -> £2,863,467.56 (21.8%); £3,663,223.25 -> £2,863,467.55 (21.8%); £3,663,223.25 -> £2,863,054.12 (21.8%); £3,663,223.26 -> £2,863,467.43 (21.8%); £3,663,223.26 -> £2,863,467.37 (21.8%); £3,663,223.26 -> £2,863,467.31 (21.8%); £3,663,223.26 -> £2,863,467.25 (21.8%); £3,663,223.26 -> £2,863,467.19 (21.8%); £3,663,223.26 -> £2,863,467.13 (21.8%); £3,663,223.26 -> £2,863,467.08 (21.8%); £3,663,223.26 -> £2,863,467.07 (21.8%); £3,663,223.27 -> £2,863,467.07 (21.8%); £3,663,223.27 -> £2,863,467.06 (21.8%); £3,663,223.27 -> £2,863,467.06 (21.8%); £3,663,223.27 -> £2,863,467.06 (21.8%); £3,663,223.28 -> £2,863,467.05 (21.8%); £3,663,223.30 -> £2,863,467.05 (21.8%); £3,663,223.32 -> £2,863,467.05 (21.8%); £3,663,223.35 -> £2,863,467.05 (21.8%); £3,663,223.38 -> £2,863,467.05 (21.8%); £3,663,223.41 -> £2,863,467.05 (21.8%); £3,663,223.44 -> £2,863,467.05 (21.8%); £3,663,223.46 -> £2,863,467.05 (21.8%); £3,663,223.46 -> £2,863,467.05 (21.8%); £3,663,223.47 -> £2,863,467.05 (21.8%); £3,663,223.47 -> £2,863,467.05 (21.8%); £3,663,223.47 -> £2,863,467.05 (21.8%); £3,663,223.47 -> £2,863,467.05 (21.8%); £3,663,223.48 -> £2,863,467.05 (21.8%); £3,663,223.48 -> £2,863,467.05 (21.8%); £3,663,223.48 -> £2,863,467.05 (21.8%); £3,663,223.48 -> £2,863,467.05 (21.8%); £3,663,223.49 -> £2,863,467.04 (21.8%); £3,663,223.49 -> £2,863,467.04 (21.8%); £3,663,223.49 -> £2,863,467.04 (21.8%); £3,663,223.49 -> £2,863,467.03 (21.8%); £3,663,223.51 -> £2,863,467.01 (21.8%); £3,663,223.52 -> £2,863,466.99 (21.8%); £3,663,223.53 -> £2,863,466.97 (21.8%); £3,663,223.54 -> £2,863,466.94 (21.8%); £3,663,223.56 -> £2,863,466.91 (21.8%); £3,663,223.58 -> £2,863,466.88 (21.8%); £3,663,223.60 -> £2,863,466.86 (21.8%); £3,663,223.63 -> £2,863,466.83 (21.8%); £3,663,223.65 -> £2,863,466.81 (21.8%); £3,663,223.66 -> £2,863,466.78 (21.8%); £3,663,223.68 -> £2,863,466.77 (21.8%); £3,663,223.68 -> £2,863,466.76 (21.8%); £3,663,223.68 -> £2,863,466.75 (21.8%); £3,663,223.69 -> £2,863,466.74 (21.8%); £3,663,223.69 -> £2,863,052.77 (21.8%); £3,663,223.70 -> £2,863,466.62 (21.8%); £3,663,223.70 -> £2,863,466.56 (21.8%); £3,663,223.70 -> £2,863,466.50 (21.8%); £3,663,223.70 -> £2,863,466.44 (21.8%); £3,663,223.71 -> £2,863,466.38 (21.8%); £3,663,223.71 -> £2,863,466.33 (21.8%); £3,663,223.71 -> £2,863,466.27 (21.8%); £3,663,223.71 -> £2,863,466.26 (21.8%); £3,663,223.71 -> £2,863,466.26 (21.8%); £3,663,223.71 -> £2,863,466.25 (21.8%); £3,663,223.71 -> £2,863,466.25 (21.8%); £3,663,223.71 -> £2,863,466.25 (21.8%); £3,663,223.73 -> £2,863,466.25 (21.8%); £3,663,223.74 -> £2,863,466.24 (21.8%); £3,663,223.76 -> £2,863,466.24 (21.8%); £3,663,223.78 -> £2,863,466.24 (21.8%); £3,663,223.80 -> £2,863,466.24 (21.8%); £3,663,223.82 -> £2,863,466.24 (21.8%); £3,663,223.83 -> £2,863,466.24 (21.8%); £3,663,223.85 -> £2,863,466.24 (21.8%); £3,663,223.85 -> £2,863,466.24 (21.8%); £3,663,223.85 -> £2,863,466.24 (21.8%); £3,663,223.86 -> £2,863,466.24 (21.8%); £3,663,223.86 -> £2,863,466.24 (21.8%); £3,663,223.86 -> £2,863,466.24 (21.8%); £3,663,223.86 -> £2,863,466.24 (21.8%); £3,663,223.87 -> £2,863,466.24 (21.8%); £3,663,223.87 -> £2,863,466.24 (21.8%); £3,663,223.87 -> £2,863,466.24 (21.8%); £3,663,223.88 -> £2,863,466.24 (21.8%); £3,663,223.88 -> £2,863,466.23 (21.8%); £3,663,223.88 -> £2,863,466.23 (21.8%); £3,663,223.88 -> £2,863,466.22 (21.8%); £3,663,223.89 -> £2,863,466.20 (21.8%); £3,663,223.89 -> £2,863,466.18 (21.8%); £3,663,223.90 -> £2,863,466.15 (21.8%); £3,663,223.91 -> £2,863,466.13 (21.8%); £3,663,223.92 -> £2,863,466.10 (21.8%); £3,663,223.93 -> £2,863,466.07 (21.8%); £3,663,223.94 -> £2,863,466.04 (21.8%); £3,663,223.95 -> £2,863,466.02 (21.8%); £3,663,223.96 -> £2,863,465.99 (21.8%); £3,663,223.97 -> £2,863,465.96 (21.8%); £3,663,223.99 -> £2,863,465.95 (21.8%); £3,663,223.99 -> £2,863,465.94 (21.8%); £3,663,224.00 -> £2,863,465.93 (21.8%); £3,663,224.00 -> £2,863,465.92 (21.8%); £3,663,224.01 -> £2,863,051.42 (21.8%); £3,663,224.01 -> £2,863,465.80 (21.8%); £3,663,224.01 -> £2,863,465.55 (21.8%); £3,663,224.01 -> £2,863,465.49 (21.8%); £3,663,224.01 -> £2,863,465.43 (21.8%); £3,663,224.01 -> £2,863,465.41 (21.8%); £3,663,224.01 -> £2,863,465.41 (21.8%); £3,663,224.03 -> £2,863,465.41 (21.8%); £3,663,224.04 -> £2,863,465.41 (21.8%); £3,663,224.23 -> £2,863,465.41 (21.8%); £3,663,224.44 -> £2,863,465.41 (21.8%); £3,663,224.65 -> £2,863,465.41 (21.8%); £3,663,224.86 -> £2,863,465.41 (21.8%); £3,663,225.06 -> £2,863,465.41 (21.8%); £3,663,225.25 -> £2,863,465.41 (21.8%); £3,663,225.31 -> £2,863,465.41 (21.8%); £3,663,225.36 -> £2,863,465.41 (21.8%); £3,663,225.36 -> £2,863,465.40 (21.8%); £3,663,225.36 -> £2,863,465.40 (21.8%); £3,663,225.37 -> £2,863,465.40 (21.8%); £3,663,225.37 -> £2,863,465.40 (21.8%); £3,663,225.37 -> £2,863,465.40 (21.8%); £3,663,225.38 -> £2,863,465.40 (21.8%); £3,663,225.39 -> £2,863,465.40 (21.8%); £3,663,225.39 -> £2,863,465.40 (21.8%); £3,663,225.40 -> £2,863,465.40 (21.8%); £3,663,225.40 -> £2,863,465.40 (21.8%); £3,663,225.47 -> £2,863,465.39 (21.8%); £3,663,225.65 -> £2,863,465.37 (21.8%); £3,663,225.83 -> £2,863,465.34 (21.8%); £3,663,226.00 -> £2,863,465.32 (21.8%); £3,663,226.19 -> £2,863,465.29 (21.8%); £3,663,226.37 -> £2,863,465.26 (21.8%); £3,663,226.56 -> £2,863,465.23 (21.8%); £3,663,226.74 -> £2,863,465.21 (21.8%); £3,663,226.75 -> £2,863,465.18 (21.8%); £3,663,226.76 -> £2,863,465.15 (21.8%); £3,663,226.78 -> £2,863,465.13 (21.8%); £3,663,226.81 -> £2,863,465.12 (21.8%); £3,663,226.82 -> £2,863,465.10 (21.8%); £3,663,226.82 -> £2,863,465.10 (21.8%); £3,663,226.83 -> £2,863,465.09 (21.8%); £3,663,226.83 -> £2,863,050.08 (21.8%); £3,663,226.84 -> £2,863,464.97 (21.8%); £3,663,226.84 -> £2,863,464.91 (21.8%); £3,663,226.84 -> £2,863,464.85 (21.8%); £3,663,226.84 -> £2,863,464.80 (21.8%); £3,663,226.84 -> £2,863,464.74 (21.8%); £3,663,226.85 -> £2,863,464.69 (21.8%); £3,663,226.85 -> £2,863,464.63 (21.8%); £3,663,226.85 -> £2,863,464.63 (21.8%); £3,663,226.85 -> £2,863,464.61 (21.8%); £3,663,226.87 -> £2,863,464.61 (21.8%); £3,663,226.88 -> £2,863,464.60 (21.8%); £3,663,227.13 -> £2,863,464.60 (21.8%); £3,663,227.36 -> £2,863,464.60 (21.8%); £3,663,227.61 -> £2,863,464.60 (21.8%); £3,663,227.84 -> £2,863,464.60 (21.8%); £3,663,228.07 -> £2,863,464.60 (21.8%); £3,663,228.30 -> £2,863,464.60 (21.8%); £3,663,228.35 -> £2,863,464.60 (21.8%); £3,663,228.40 -> £2,863,464.60 (21.8%); £3,663,228.41 -> £2,863,464.60 (21.8%); £3,663,228.41 -> £2,863,464.60 (21.8%); £3,663,228.41 -> £2,863,464.60 (21.8%); £3,663,228.41 -> £2,863,464.60 (21.8%); £3,663,228.41 -> £2,863,464.59 (21.8%); £3,663,228.41 -> £2,863,464.59 (21.8%); £3,663,228.42 -> £2,863,464.59 (21.8%); £3,663,228.42 -> £2,863,464.59 (21.8%); £3,663,228.43 -> £2,863,464.59 (21.8%); £3,663,228.43 -> £2,863,464.59 (21.8%); £3,663,228.50 -> £2,863,464.58 (21.8%); £3,663,228.71 -> £2,863,464.56 (21.8%); £3,663,228.93 -> £2,863,464.54 (21.8%); £3,663,229.15 -> £2,863,464.51 (21.8%); £3,663,229.36 -> £2,863,464.48 (21.8%); £3,663,229.57 -> £2,863,464.45 (21.8%); £3,663,229.78 -> £2,863,464.43 (21.8%); £3,663,229.99 -> £2,863,464.40 (21.8%); £3,663,230.01 -> £2,863,464.37 (21.8%); £3,663,230.03 -> £2,863,464.35 (21.8%); £3,663,230.06 -> £2,863,464.33 (21.8%); £3,663,230.10 -> £2,863,464.31 (21.8%); £3,663,230.11 -> £2,863,464.30 (21.8%); £3,663,230.13 -> £2,863,464.30 (21.8%); £3,663,230.14 -> £2,863,464.29 (21.8%); £3,663,230.14 -> £2,863,048.73 (21.8%); £3,663,230.14 -> £2,863,464.17 (21.8%); £3,663,230.15 -> £2,863,464.11 (21.8%); £3,663,230.15 -> £2,863,464.05 (21.8%); £3,663,230.15 -> £2,863,464.00 (21.8%); £3,663,230.15 -> £2,863,463.94 (21.8%); £3,663,230.15 -> £2,863,463.89 (21.8%); £3,663,230.16 -> £2,863,463.84 (21.8%); £3,663,230.16 -> £2,863,463.83 (21.8%); £3,663,230.16 -> £2,863,463.83 (21.8%); £3,663,230.16 -> £2,863,463.83 (21.8%); £3,663,230.17 -> £2,863,463.82 (21.8%); £3,663,230.17 -> £2,863,463.82 (21.8%); £3,663,230.17 -> £2,863,463.81 (21.8%); £3,663,230.18 -> £2,863,463.81 (21.8%); £3,663,230.29 -> £2,863,463.81 (21.8%); £3,663,230.41 -> £2,863,463.81 (21.8%); £3,663,230.54 -> £2,863,463.81 (21.8%); £3,663,230.65 -> £2,863,463.81 (21.8%); £3,663,230.76 -> £2,863,463.81 (21.8%); £3,663,230.86 -> £2,863,463.81 (21.8%); £3,663,230.92 -> £2,863,463.80 (21.8%); £3,663,230.97 -> £2,863,463.80 (21.8%); £3,663,230.97 -> £2,863,463.80 (21.8%); £3,663,230.97 -> £2,863,463.80 (21.8%); £3,663,230.98 -> £2,863,463.80 (21.8%); £3,663,230.98 -> £2,863,463.80 (21.8%); £3,663,230.98 -> £2,863,463.80 (21.8%); £3,663,230.98 -> £2,863,463.80 (21.8%); £3,663,230.99 -> £2,863,463.80 (21.8%); £3,663,230.99 -> £2,863,463.80 (21.8%); £3,663,230.99 -> £2,863,463.80 (21.8%); £3,663,230.99 -> £2,863,463.80 (21.8%); £3,663,231.06 -> £2,863,463.78 (21.8%); £3,663,231.17 -> £2,863,463.76 (21.8%); £3,663,231.29 -> £2,863,463.74 (21.8%); £3,663,231.41 -> £2,863,463.71 (21.8%); £3,663,231.54 -> £2,863,463.69 (21.8%); £3,663,231.66 -> £2,863,463.66 (21.8%); £3,663,231.79 -> £2,863,463.63 (21.8%); £3,663,231.92 -> £2,863,463.60 (21.8%); £3,663,231.92 -> £2,863,463.58 (21.8%); £3,663,231.93 -> £2,863,463.55 (21.8%); £3,663,231.94 -> £2,863,463.52 (21.8%); £3,663,231.95 -> £2,863,463.51 (21.8%); £3,663,231.95 -> £2,863,463.50 (21.8%); £3,663,231.95 -> £2,863,463.48 (21.8%); £3,663,231.95 -> £2,863,463.48 (21.8%); £3,663,231.96 -> £2,863,047.38 (21.8%); £3,663,231.96 -> £2,863,463.36 (21.8%); £3,663,231.96 -> £2,863,463.30 (21.8%); £3,663,231.97 -> £2,863,463.25 (21.8%); £3,663,231.97 -> £2,863,463.19 (21.8%); £3,663,231.97 -> £2,863,463.14 (21.8%); £3,663,231.97 -> £2,863,463.08 (21.8%); £3,663,231.97 -> £2,863,463.03 (21.8%); £3,663,231.97 -> £2,863,463.02 (21.8%); £3,663,231.98 -> £2,863,463.02 (21.8%); £3,663,231.98 -> £2,863,463.01 (21.8%); £3,663,231.98 -> £2,863,463.01 (21.8%); £3,663,231.98 -> £2,863,463.00 (21.8%); £3,663,232.00 -> £2,863,463.00 (21.8%); £3,663,232.02 -> £2,863,463.00 (21.8%); £3,663,232.31 -> £2,863,463.00 (21.8%); £3,663,232.59 -> £2,863,463.00 (21.8%); £3,663,232.89 -> £2,863,463.00 (21.8%); £3,663,233.18 -> £2,863,463.00 (21.8%); £3,663,233.47 -> £2,863,463.00 (21.8%); £3,663,233.75 -> £2,863,463.00 (21.8%); £3,663,233.81 -> £2,863,463.00 (21.8%); £3,663,233.87 -> £2,863,463.00 (21.8%); £3,663,233.87 -> £2,863,463.00 (21.8%); £3,663,233.88 -> £2,863,463.00 (21.8%); £3,663,233.88 -> £2,863,463.00 (21.8%); £3,663,233.88 -> £2,863,463.00 (21.8%); £3,663,233.88 -> £2,863,463.00 (21.8%); £3,663,233.89 -> £2,863,463.00 (21.8%); £3,663,233.89 -> £2,863,462.99 (21.8%); £3,663,233.89 -> £2,863,462.99 (21.8%); £3,663,233.89 -> £2,863,462.99 (21.8%); £3,663,233.89 -> £2,863,462.99 (21.8%); £3,663,233.95 -> £2,863,462.98 (21.8%); £3,663,234.18 -> £2,863,462.96 (21.8%); £3,663,234.41 -> £2,863,462.94 (21.8%); £3,663,234.65 -> £2,863,462.91 (21.8%); £3,663,234.89 -> £2,863,462.88 (21.8%); £3,663,235.14 -> £2,863,462.86 (21.8%); £3,663,235.40 -> £2,863,462.83 (21.8%); £3,663,235.64 -> £2,863,462.80 (21.8%); £3,663,235.67 -> £2,863,462.78 (21.8%); £3,663,235.70 -> £2,863,462.75 (21.8%); £3,663,235.72 -> £2,863,462.73 (21.8%); £3,663,235.75 -> £2,863,462.71 (21.8%); £3,663,235.76 -> £2,863,462.70 (21.8%); £3,663,235.77 -> £2,863,462.69 (21.8%); £3,663,235.77 -> £2,863,462.68 (21.8%); £3,663,235.77 -> £2,863,046.04 (21.8%); £3,663,235.77 -> £2,863,462.50 (21.8%); £3,663,235.77 -> £2,863,462.44 (21.8%); £3,663,235.77 -> £2,863,462.38 (21.8%); £3,663,235.77 -> £2,863,462.32 (21.8%); £3,663,235.77 -> £2,863,462.26 (21.8%); £3,663,235.77 -> £2,863,462.20 (21.8%); £3,663,235.77 -> £2,863,462.19 (21.8%); £3,663,235.77 -> £2,863,462.19 (21.8%); £3,663,235.77 -> £2,863,462.18 (21.8%); £3,663,235.78 -> £2,863,462.18 (21.8%); £3,663,235.80 -> £2,863,462.18 (21.8%); £3,663,235.82 -> £2,863,462.18 (21.8%); £3,663,236.07 -> £2,863,462.18 (21.8%); £3,663,236.33 -> £2,863,462.18 (21.8%); £3,663,236.60 -> £2,863,462.18 (21.8%); £3,663,236.86 -> £2,863,462.18 (21.8%); £3,663,237.11 -> £2,863,462.18 (21.8%); £3,663,237.37 -> £2,863,462.17 (21.8%); £3,663,237.42 -> £2,863,462.17 (21.8%); £3,663,237.48 -> £2,863,462.17 (21.8%); £3,663,237.48 -> £2,863,462.17 (21.8%); £3,663,237.49 -> £2,863,462.17 (21.8%); £3,663,237.49 -> £2,863,462.17 (21.8%); £3,663,237.50 -> £2,863,462.17 (21.8%); £3,663,237.50 -> £2,863,462.17 (21.8%); £3,663,237.50 -> £2,863,462.17 (21.8%); £3,663,237.51 -> £2,863,462.17 (21.8%); £3,663,237.51 -> £2,863,462.17 (21.8%); £3,663,237.52 -> £2,863,462.17 (21.8%); £3,663,237.52 -> £2,863,462.17 (21.8%); £3,663,237.58 -> £2,863,462.16 (21.8%); £3,663,237.80 -> £2,863,462.14 (21.8%); £3,663,238.02 -> £2,863,462.11 (21.8%); £3,663,238.25 -> £2,863,462.09 (21.8%); £3,663,238.49 -> £2,863,462.06 (21.8%); £3,663,238.74 -> £2,863,462.04 (21.8%); £3,663,238.98 -> £2,863,462.01 (21.8%); £3,663,239.23 -> £2,863,461.98 (21.8%); £3,663,239.26 -> £2,863,461.96 (21.8%); £3,663,239.29 -> £2,863,461.93 (21.8%); £3,663,239.30 -> £2,863,461.91 (21.8%); £3,663,239.31 -> £2,863,461.89 (21.8%); £3,663,239.32 -> £2,863,461.88 (21.8%); £3,663,239.32 -> £2,863,461.87 (21.8%); £3,663,239.32 -> £2,863,461.86 (21.8%); £3,663,239.32 -> £2,863,044.69 (21.8%); £3,663,239.33 -> £2,863,461.74 (21.8%); £3,663,239.33 -> £2,863,461.68 (21.8%); £3,663,239.33 -> £2,863,461.62 (21.8%); £3,663,239.33 -> £2,863,461.50 (21.8%); £3,663,239.33 -> £2,863,461.44 (21.8%); £3,663,239.33 -> £2,863,461.38 (21.8%); £3,663,239.33 -> £2,863,461.38 (21.8%); £3,663,239.34 -> £2,863,461.37 (21.8%); £3,663,239.34 -> £2,863,461.36 (21.8%); £3,663,239.35 -> £2,863,461.36 (21.8%); £3,663,239.37 -> £2,863,461.36 (21.8%); £3,663,239.41 -> £2,863,461.36 (21.8%); £3,663,239.42 -> £2,863,461.36 (21.8%); £3,663,239.44 -> £2,863,461.35 (21.8%); £3,663,239.46 -> £2,863,461.35 (21.8%); £3,663,239.48 -> £2,863,461.35 (21.8%); £3,663,239.49 -> £2,863,461.35 (21.8%); £3,663,239.50 -> £2,863,461.35 (21.8%); £3,663,239.50 -> £2,863,461.35 (21.8%); £3,663,239.51 -> £2,863,461.35 (21.8%); £3,663,239.51 -> £2,863,461.35 (21.8%); £3,663,239.51 -> £2,863,461.35 (21.8%); £3,663,239.51 -> £2,863,461.35 (21.8%); £3,663,239.52 -> £2,863,461.35 (21.8%); £3,663,239.52 -> £2,863,461.35 (21.8%); £3,663,239.52 -> £2,863,461.35 (21.8%); £3,663,239.53 -> £2,863,461.35 (21.8%); £3,663,239.53 -> £2,863,461.35 (21.8%); £3,663,239.54 -> £2,863,461.35 (21.8%); £3,663,239.54 -> £2,863,461.34 (21.8%); £3,663,239.57 -> £2,863,461.32 (21.8%); £3,663,239.59 -> £2,863,461.29 (21.8%); £3,663,239.61 -> £2,863,461.27 (21.8%); £3,663,239.64 -> £2,863,461.24 (21.8%); £3,663,239.66 -> £2,863,461.21 (21.8%); £3,663,239.68 -> £2,863,461.19 (21.8%); £3,663,239.71 -> £2,863,461.16 (21.8%); £3,663,239.74 -> £2,863,461.14 (21.8%); £3,663,239.77 -> £2,863,461.11 (21.8%); £3,663,239.80 -> £2,863,461.09 (21.8%); £3,663,239.83 -> £2,863,461.08 (21.8%); £3,663,239.83 -> £2,863,461.07 (21.8%); £3,663,239.84 -> £2,863,461.05 (21.8%); £3,663,239.85 -> £2,863,461.05 (21.8%); £3,663,239.85 -> £2,863,043.35 (21.8%); £3,663,239.86 -> £2,863,460.93 (21.8%); £3,663,239.86 -> £2,863,460.87 (21.8%); £3,663,239.87 -> £2,863,460.82 (21.8%); £3,663,239.87 -> £2,863,460.77 (21.8%); £3,663,239.87 -> £2,863,460.71 (21.8%); £3,663,239.87 -> £2,863,460.66 (21.8%); £3,663,239.88 -> £2,863,460.61 (21.8%); £3,663,239.88 -> £2,863,460.60 (21.8%); £3,663,239.88 -> £2,863,460.60 (21.8%); £3,663,239.88 -> £2,863,460.59 (21.8%); £3,663,239.88 -> £2,863,460.59 (21.8%); £3,663,239.89 -> £2,863,460.58 (21.8%); £3,663,239.89 -> £2,863,460.58 (21.8%); £3,663,239.89 -> £2,863,460.58 (21.8%); £3,663,239.89 -> £2,863,460.58 (21.8%); £3,663,239.90 -> £2,863,460.58 (21.8%); £3,663,239.90 -> £2,863,460.58 (21.8%); £3,663,239.91 -> £2,863,460.58 (21.8%); £3,663,239.92 -> £2,863,460.58 (21.8%); £3,663,239.92 -> £2,863,460.58 (21.8%); £3,663,239.93 -> £2,863,460.58 (21.8%); £3,663,239.94 -> £2,863,460.58 (21.8%); £3,663,239.95 -> £2,863,460.58 (21.8%); £3,663,239.97 -> £2,863,460.58 (21.8%); £3,663,239.98 -> £2,863,460.58 (21.8%); £3,663,239.99 -> £2,863,460.57 (21.8%); £3,663,240.00 -> £2,863,460.57 (21.8%); £3,663,240.01 -> £2,863,460.57 (21.8%); £3,663,240.02 -> £2,863,460.57 (21.8%); £3,663,240.03 -> £2,863,460.57 (21.8%); £3,663,240.04 -> £2,863,460.57 (21.8%); £3,663,240.05 -> £2,863,460.57 (21.8%); £3,663,240.06 -> £2,863,460.56 (21.8%); £3,663,240.06 -> £2,863,460.54 (21.8%); £3,663,240.06 -> £2,863,460.51 (21.8%); £3,663,240.07 -> £2,863,460.49 (21.8%); £3,663,240.08 -> £2,863,460.46 (21.8%); £3,663,240.08 -> £2,863,460.43 (21.8%); £3,663,240.09 -> £2,863,460.41 (21.8%); £3,663,240.10 -> £2,863,460.38 (21.8%); £3,663,240.11 -> £2,863,460.36 (21.8%); £3,663,240.11 -> £2,863,460.33 (21.8%); £3,663,240.12 -> £2,863,460.31 (21.8%); £3,663,240.13 -> £2,863,460.30 (21.8%); £3,663,240.14 -> £2,863,460.28 (21.8%); £3,663,240.15 -> £2,863,460.28 (21.8%); £3,663,240.16 -> £2,863,460.27 (21.8%); £3,663,240.16 -> £2,863,042.00 (21.8%); £3,663,240.17 -> £2,863,460.16 (21.8%); £3,663,240.17 -> £2,863,460.11 (21.8%); £3,663,240.17 -> £2,863,460.06 (21.8%); £3,663,240.18 -> £2,863,460.01 (21.8%); £3,663,240.18 -> £2,863,459.95 (21.8%); £3,663,240.18 -> £2,863,459.90 (21.8%); £3,663,240.19 -> £2,863,459.85 (21.8%); £3,663,240.19 -> £2,863,459.85 (21.8%); £3,663,240.19 -> £2,863,459.84 (21.8%); £3,663,240.19 -> £2,863,459.84 (21.8%); £3,663,240.20 -> £2,863,459.84 (21.8%); £3,663,240.20 -> £2,863,459.83 (21.8%); £3,663,240.21 -> £2,863,459.83 (21.8%); £3,663,240.22 -> £2,863,459.82 (21.8%); £3,663,240.32 -> £2,863,459.82 (21.8%); £3,663,240.43 -> £2,863,459.82 (21.8%); £3,663,240.54 -> £2,863,459.82 (21.8%); £3,663,240.64 -> £2,863,459.82 (21.8%); £3,663,240.75 -> £2,863,459.82 (21.8%); £3,663,240.85 -> £2,863,459.82 (21.8%); £3,663,240.91 -> £2,863,459.82 (21.8%); £3,663,240.97 -> £2,863,459.82 (21.8%); £3,663,240.98 -> £2,863,459.82 (21.8%); £3,663,240.99 -> £2,863,459.82 (21.8%); £3,663,240.99 -> £2,863,459.82 (21.8%); £3,663,241.00 -> £2,863,459.82 (21.8%); £3,663,241.00 -> £2,863,459.82 (21.8%); £3,663,241.01 -> £2,863,459.82 (21.8%); £3,663,241.02 -> £2,863,459.82 (21.8%); £3,663,241.02 -> £2,863,459.82 (21.8%); £3,663,241.02 -> £2,863,459.81 (21.8%); £3,663,241.03 -> £2,863,459.81 (21.8%); £3,663,241.09 -> £2,863,459.80 (21.8%); £3,663,241.19 -> £2,863,459.78 (21.8%); £3,663,241.30 -> £2,863,459.75 (21.8%); £3,663,241.41 -> £2,863,459.73 (21.8%); £3,663,241.53 -> £2,863,459.70 (21.8%); £3,663,241.64 -> £2,863,459.67 (21.8%); £3,663,241.77 -> £2,863,459.64 (21.8%); £3,663,241.88 -> £2,863,459.61 (21.8%); £3,663,241.89 -> £2,863,459.59 (21.8%); £3,663,241.90 -> £2,863,459.56 (21.8%); £3,663,241.91 -> £2,863,459.54 (21.8%); £3,663,241.93 -> £2,863,459.52 (21.8%); £3,663,241.93 -> £2,863,459.51 (21.8%); £3,663,241.93 -> £2,863,459.50 (21.8%); £3,663,241.93 -> £2,863,459.49 (21.8%); £3,663,241.94 -> £2,863,040.65 (21.8%); £3,663,241.94 -> £2,863,459.36 (21.8%); £3,663,241.94 -> £2,863,459.31 (21.8%); £3,663,241.94 -> £2,863,459.25 (21.8%); £3,663,241.94 -> £2,863,459.19 (21.8%); £3,663,241.94 -> £2,863,459.01 (21.8%); £3,663,241.94 -> £2,863,459.01 (21.8%); £3,663,241.94 -> £2,863,459.00 (21.8%); £3,663,241.94 -> £2,863,458.98 (21.8%); £3,663,241.96 -> £2,863,458.98 (21.8%); £3,663,241.97 -> £2,863,458.98 (21.8%); £3,663,242.12 -> £2,863,458.98 (21.8%); £3,663,242.27 -> £2,863,458.98 (21.8%); £3,663,242.42 -> £2,863,458.97 (21.8%); £3,663,242.57 -> £2,863,458.97 (21.8%); £3,663,242.71 -> £2,863,458.97 (21.8%); £3,663,242.85 -> £2,863,458.97 (21.8%); £3,663,242.91 -> £2,863,458.97 (21.8%); £3,663,242.96 -> £2,863,458.97 (21.8%); £3,663,242.97 -> £2,863,458.97 (21.8%); £3,663,242.97 -> £2,863,458.97 (21.8%); £3,663,242.98 -> £2,863,458.97 (21.8%); £3,663,242.98 -> £2,863,458.97 (21.8%); £3,663,242.99 -> £2,863,458.97 (21.8%); £3,663,243.00 -> £2,863,458.97 (21.8%); £3,663,243.00 -> £2,863,458.97 (21.8%); £3,663,243.00 -> £2,863,458.97 (21.8%); £3,663,243.00 -> £2,863,458.97 (21.8%); £3,663,243.00 -> £2,863,458.97 (21.8%); £3,663,243.06 -> £2,863,458.95 (21.8%); £3,663,243.20 -> £2,863,458.93 (21.8%); £3,663,243.34 -> £2,863,458.90 (21.8%); £3,663,243.48 -> £2,863,458.87 (21.8%); £3,663,243.62 -> £2,863,458.85 (21.8%); £3,663,243.77 -> £2,863,458.82 (21.8%); £3,663,243.92 -> £2,863,458.79 (21.8%); £3,663,244.07 -> £2,863,458.76 (21.8%); £3,663,244.07 -> £2,863,458.73 (21.8%); £3,663,244.08 -> £2,863,458.71 (21.8%); £3,663,244.09 -> £2,863,458.68 (21.8%); £3,663,244.09 -> £2,863,458.66 (21.8%); £3,663,244.10 -> £2,863,458.65 (21.8%); £3,663,244.10 -> £2,863,458.64 (21.8%); £3,663,244.10 -> £2,863,458.63 (21.8%); £3,663,244.10 -> £2,863,039.31 (21.8%); £3,663,244.12 -> £2,863,458.09 (21.8%); £3,663,244.15 -> £2,863,458.09 (21.8%); £3,663,244.38 -> £2,863,458.09 (21.8%); £3,663,244.61 -> £2,863,458.09 (21.8%); £3,663,244.85 -> £2,863,458.09 (21.8%); £3,663,245.07 -> £2,863,458.09 (21.8%); £3,663,245.29 -> £2,863,458.08 (21.8%); £3,663,245.51 -> £2,863,458.08 (21.8%); £3,663,245.57 -> £2,863,458.08 (21.8%); £3,663,245.62 -> £2,863,458.08 (21.8%); £3,663,245.62 -> £2,863,458.08 (21.8%); £3,663,245.62 -> £2,863,458.08 (21.8%); £3,663,245.62 -> £2,863,458.08 (21.8%); £3,663,245.62 -> £2,863,458.08 (21.8%); £3,663,245.63 -> £2,863,458.08 (21.8%); £3,663,245.63 -> £2,863,458.08 (21.8%); £3,663,245.63 -> £2,863,458.08 (21.8%); £3,663,245.63 -> £2,863,458.08 (21.8%); £3,663,245.64 -> £2,863,458.08 (21.8%); £3,663,245.64 -> £2,863,458.08 (21.8%); £3,663,245.70 -> £2,863,458.06 (21.8%); £3,663,245.90 -> £2,863,458.04 (21.8%); £3,663,246.10 -> £2,863,458.01 (21.8%); £3,663,246.30 -> £2,863,457.99 (21.8%); £3,663,246.52 -> £2,863,457.96 (21.8%); £3,663,246.73 -> £2,863,457.93 (21.8%); £3,663,246.95 -> £2,863,457.91 (21.8%); £3,663,247.17 -> £2,863,457.88 (21.8%); £3,663,247.19 -> £2,863,457.86 (21.8%); £3,663,247.21 -> £2,863,457.83 (21.8%); £3,663,247.24 -> £2,863,457.81 (21.8%); £3,663,247.27 -> £2,863,457.80 (21.8%); £3,663,247.28 -> £2,863,457.78 (21.8%); £3,663,247.29 -> £2,863,457.77 (21.8%); £3,663,247.29 -> £2,863,457.77 (21.8%); £3,663,247.30 -> £2,863,037.96 (21.8%); £3,663,247.30 -> £2,863,457.66 (21.8%); £3,663,247.31 -> £2,863,457.26 (21.8%); £3,663,247.31 -> £2,863,457.26 (21.8%); £3,663,247.32 -> £2,863,457.25 (21.8%); £3,663,247.33 -> £2,863,457.25 (21.8%); £3,663,247.45 -> £2,863,457.24 (21.8%); £3,663,247.57 -> £2,863,457.24 (21.8%); £3,663,247.69 -> £2,863,457.24 (21.8%); £3,663,247.81 -> £2,863,457.24 (21.8%); £3,663,247.93 -> £2,863,457.24 (21.8%); £3,663,248.04 -> £2,863,457.24 (21.8%); £3,663,248.09 -> £2,863,457.24 (21.8%); £3,663,248.14 -> £2,863,457.24 (21.8%); £3,663,248.15 -> £2,863,457.24 (21.8%); £3,663,248.15 -> £2,863,457.24 (21.8%); £3,663,248.15 -> £2,863,457.24 (21.8%); £3,663,248.15 -> £2,863,457.24 (21.8%); £3,663,248.15 -> £2,863,457.24 (21.8%); £3,663,248.16 -> £2,863,457.23 (21.8%); £3,663,248.16 -> £2,863,457.23 (21.8%); £3,663,248.16 -> £2,863,457.23 (21.8%); £3,663,248.16 -> £2,863,457.23 (21.8%); £3,663,248.16 -> £2,863,457.23 (21.8%); £3,663,248.22 -> £2,863,457.21 (21.8%); £3,663,248.33 -> £2,863,457.19 (21.8%); £3,663,248.45 -> £2,863,457.16 (21.8%); £3,663,248.57 -> £2,863,457.14 (21.8%); £3,663,248.70 -> £2,863,457.11 (21.8%); £3,663,248.83 -> £2,863,457.08 (21.8%); £3,663,248.96 -> £2,863,457.05 (21.8%); £3,663,249.08 -> £2,863,457.02 (21.8%); £3,663,249.09 -> £2,863,457.00 (21.8%); £3,663,249.10 -> £2,863,456.97 (21.8%); £3,663,249.11 -> £2,863,456.95 (21.8%); £3,663,249.11 -> £2,863,456.93 (21.8%); £3,663,249.12 -> £2,863,456.92 (21.8%); £3,663,249.13 -> £2,863,456.91 (21.8%); £3,663,249.13 -> £2,863,456.90 (21.8%); £3,663,249.13 -> £2,863,036.61 (21.8%); £3,663,249.13 -> £2,863,456.37 (21.8%); £3,663,249.14 -> £2,863,456.37 (21.8%); £3,663,249.15 -> £2,863,456.37 (21.8%); £3,663,249.35 -> £2,863,456.37 (21.8%); £3,663,249.54 -> £2,863,456.37 (21.8%); £3,663,249.74 -> £2,863,456.37 (21.8%); £3,663,249.93 -> £2,863,456.37 (21.8%); £3,663,250.11 -> £2,863,456.37 (21.8%); £3,663,250.28 -> £2,863,456.37 (21.8%); £3,663,250.34 -> £2,863,456.36 (21.8%); £3,663,250.39 -> £2,863,456.36 (21.8%); £3,663,250.39 -> £2,863,456.36 (21.8%); £3,663,250.39 -> £2,863,456.36 (21.8%); £3,663,250.40 -> £2,863,456.36 (21.8%); £3,663,250.40 -> £2,863,456.36 (21.8%); £3,663,250.41 -> £2,863,456.36 (21.8%); £3,663,250.41 -> £2,863,456.36 (21.8%); £3,663,250.42 -> £2,863,456.36 (21.8%); £3,663,250.43 -> £2,863,456.36 (21.8%); £3,663,250.43 -> £2,863,456.36 (21.8%); £3,663,250.44 -> £2,863,456.36 (21.8%); £3,663,250.50 -> £2,863,456.34 (21.8%); £3,663,250.66 -> £2,863,456.32 (21.8%); £3,663,250.83 -> £2,863,456.30 (21.8%); £3,663,250.99 -> £2,863,456.27 (21.8%); £3,663,251.17 -> £2,863,456.24 (21.8%); £3,663,251.34 -> £2,863,456.21 (21.8%); £3,663,251.52 -> £2,863,456.19 (21.8%); £3,663,251.70 -> £2,863,456.16 (21.8%); £3,663,251.72 -> £2,863,456.14 (21.8%); £3,663,251.74 -> £2,863,456.11 (21.8%); £3,663,251.77 -> £2,863,456.09 (21.8%); £3,663,251.78 -> £2,863,456.07 (21.8%); £3,663,251.78 -> £2,863,456.06 (21.8%); £3,663,251.79 -> £2,863,456.05 (21.8%); £3,663,251.79 -> £2,863,456.04 (21.8%); £3,663,251.79 -> £2,863,575.43 (21.8%); £3,664,582.62 -> £2,863,574.77 (21.9%); £3,664,583.00 -> £2,863,574.23 (21.9%); £3,664,583.37 -> £2,863,574.00 (21.9%); £3,664,583.75 -> £2,863,574.76 (21.9%); £3,664,584.12 -> £2,863,575.83 (21.9%); £3,664,584.50 -> £2,863,577.51 (21.9%); £3,664,584.87 -> £2,863,578.77 (21.9%); £3,664,585.25 -> £2,863,579.23 (21.9%); £3,664,585.62 -> £2,863,578.67 (21.9%); £3,664,586.00 -> £2,863,578.43 (21.9%); £3,664,586.37 -> £2,863,579.14 (21.9%); £3,664,586.75 -> £2,863,579.91 (21.9%); £3,664,587.12 -> £2,863,580.59 (21.9%); £3,664,587.50 -> £2,863,581.59 (21.9%); £3,664,587.87 -> £2,863,581.56 (21.9%); £3,664,588.25 -> £2,863,580.14 (21.9%); £3,664,588.62 -> £2,863,579.79 (21.9%); £3,664,589.00 -> £2,863,584.73 (21.9%); £3,664,589.37 -> £2,863,587.56 (21.9%); £3,664,589.75 -> £2,863,589.75 (21.9%); £3,664,590.12 -> £2,863,590.48 (21.9%); £3,664,590.50 -> £2,863,591.29 (21.9%); £3,664,590.87 -> £2,863,590.09 (21.9%); £3,664,591.25 -> £2,863,589.79 (21.9%); £3,664,591.62 -> £2,863,592.90 (21.9%); £3,664,592.00 -> £2,863,596.41 (21.9%); £3,664,592.37 -> £2,863,599.94 (21.9%); £3,664,592.75 -> £2,863,602.94 (21.9%); £3,664,593.12 -> £2,863,605.93 (21.9%); £3,664,593.50 -> £2,863,604.84 (21.9%); £3,664,593.87 -> £2,863,604.57 (21.9%); £3,664,594.24 -> £2,863,608.07 (21.9%); £3,664,594.61 -> £2,863,612.22 (21.9%); £3,664,594.98 -> £2,863,615.18 (21.9%); £3,664,595.35 -> £2,863,619.06 (21.9%); £3,664,595.72 -> £2,863,622.39 (21.9%); £3,664,596.09 -> £2,863,621.12 (21.9%); £3,664,596.45 -> £2,863,620.82 (21.9%); £3,664,596.82 -> £2,863,625.45 (21.9%); £3,664,597.19 -> £2,863,630.64 (21.9%); £3,664,597.56 -> £2,863,634.98 (21.9%); £3,664,597.93 -> £2,863,640.10 (21.9%); £3,664,598.29 -> £2,863,644.78 (21.9%); £3,664,598.66 -> £2,863,643.28 (21.9%); £3,664,599.03 -> £2,863,642.98 (21.9%); £3,664,599.40 -> £2,863,645.92 (21.9%); £3,664,599.77 -> £2,863,649.70 (21.9%); £3,664,600.14 -> £2,863,654.39 (21.9%); £3,664,600.50 -> £2,863,660.70 (21.9%); £3,664,600.87 -> £2,863,666.23 (21.9%); £3,664,601.24 -> £2,863,665.27 (21.9%); £3,664,601.61 -> £2,863,664.96 (21.9%); £3,664,601.98 -> £2,863,669.04 (21.9%); £3,664,602.34 -> £2,863,673.40 (21.9%); £3,664,602.71 -> £2,863,679.18 (21.9%); £3,664,603.08 -> £2,863,683.06 (21.9%); £3,664,603.45 -> £2,863,687.05 (21.9%); £3,664,603.82 -> £2,863,685.22 (21.9%); £3,664,604.19 -> £2,863,684.89 (21.9%); £3,664,604.55 -> £2,863,690.06 (21.9%); £3,664,604.92 -> £2,863,697.39 (21.9%); £3,664,605.29 -> £2,863,706.01 (21.9%); £3,664,605.70 -> £2,863,715.21 (21.9%); £3,664,606.11 -> £2,863,722.35 (21.9%); £3,664,606.52 -> £2,863,720.58 (21.9%); £3,664,606.92 -> £2,863,720.24 (21.9%); £3,664,607.33 -> £2,863,726.21 (21.9%); £3,664,607.74 -> £2,863,732.72 (21.9%); £3,664,608.15 -> £2,863,740.77 (21.9%); £3,664,608.56 -> £2,863,746.81 (21.9%); £3,664,608.97 -> £2,863,751.20 (21.9%); £3,664,609.38 -> £2,863,749.94 (21.9%); £3,664,609.78 -> £2,863,749.61 (21.9%); £3,664,610.19 -> £2,863,754.51 (21.9%); £3,664,610.60 -> £2,863,758.96 (21.9%); £3,664,611.01 -> £2,863,764.57 (21.9%); £3,664,611.42 -> £2,863,771.56 (21.9%); £3,664,611.83 -> £2,863,777.50 (21.9%); £3,664,612.23 -> £2,863,776.26 (21.9%); £3,664,612.64 -> £2,863,775.96 (21.9%); £3,664,613.05 -> £2,863,780.16 (21.9%); £3,664,613.46 -> £2,863,784.19 (21.9%); £3,664,613.87 -> £2,863,789.67 (21.9%); £3,664,614.28 -> £2,863,793.22 (21.9%); £3,664,614.69 -> £2,863,796.54 (21.9%); £3,664,615.09 -> £2,863,795.73 (21.9%); £3,664,615.50 -> £2,863,795.49 (21.9%); £3,664,615.91 -> £2,863,798.35 (21.9%); £3,664,616.32 -> £2,863,804.01 (21.9%); £3,664,616.73 -> £2,863,808.20 (21.9%); £3,664,617.14 -> £2,863,812.03 (21.9%); £3,664,770.23 -> £3,034,639.01 (17.2%); £3,776,169.15 -> £3,217,182.21 (14.8%)
+- Bills issued: 156, average clarity 0.855, average bill shock 14.3%, bad debt provision £85,352.20, avg complaint probability 4.1%
+- Solvency signal: £321,718/customer (10 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £2,019.10 vs. naked (unhedged) net margin: £5,891.39
-- hedging cost £3,872.28 vs. a fully unhedged book (commodity-only: actual net £2,019.10 vs. naked net £5,891.39)
-  - C2_2: actual £802.62 vs. naked £1,926.45 -- hedging cost £1,123.84
-  - C4: actual £-0.68 vs. naked £381.83 -- hedging cost £382.51
-  - C4g: actual £154.27 vs. naked £53.35 -- hedging added £100.92
-  - C6: actual £259.83 vs. naked £648.38 -- hedging cost £388.54
-  - C7: actual £184.03 vs. naked £821.69 -- hedging cost £637.66
-  - C8: actual £463.25 vs. naked £1,364.23 -- hedging cost £900.98
-  - C9: actual £155.78 vs. naked £695.46 -- hedging cost £539.67
+- Actual (hedged) net margin: £331,084.10 vs. naked (unhedged) net margin: £1,093,139.39
+- hedging cost £762,055.29 vs. a fully unhedged book (commodity-only: actual net £331,084.10 vs. naked net £1,093,139.39)
+  - C2: actual £895.31 vs. naked £1,979.48 -- hedging cost £1,084.17
+  - C2g: actual £1,057.30 vs. naked £1,356.82 -- hedging cost £299.53
+  - C4: actual £134.33 vs. naked £794.77 -- hedging cost £660.44
+  - C4g: actual £186.74 vs. naked £412.19 -- hedging cost £225.44
+  - C6: actual £1,763.91 vs. naked £4,533.53 -- hedging cost £2,769.62
+  - C7: actual £158.67 vs. naked £1,505.30 -- hedging cost £1,346.63
+  - C8: actual £1,500.41 vs. naked £3,071.88 -- hedging cost £1,571.47
+  - C9: actual £1,326.40 vs. naked £2,689.18 -- hedging cost £1,362.78
+  - C_IC1: actual £309,183.09 vs. naked £448,388.56 -- hedging cost £139,205.47
+  - C_IC2: actual £132,185.14 vs. naked £198,337.70 -- hedging cost £66,152.56
+  - C_IC3: actual £62,955.66 vs. naked £334,213.02 -- hedging cost £271,257.37
+  - C_IC3g: actual £48,291.73 vs. naked £143,059.81 -- hedging cost £94,768.08
+  - C_IC4: actual £-228,554.58 vs. naked £-47,202.85 -- hedging cost £181,351.73
 
-**Year narrative:** 2023 produced a net loss of £-869.33 across 7 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 28 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2023 produced a net gain of £723,135.57 across 13 accounts. The risk committee intervened 4 time(s), raising hedge fractions in response to elevated VaR. 31 customer(s) experienced a bill shock of >=20%.
 
 ## 2024
 
 **Trading & Risk**
 
-- Net margin: £955.12 (gross £3,580.34, capital £292.14)
-  - Electricity: gross £3,448.26, capital £279.08, net £836.12
-  - Gas: gross £132.08, capital £13.07, net £119.01
-- Treasury at year end: £465,311.92
-- Hedge fraction at first renewal this year (avg across year's terms): C2_2 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85)
+- Net margin: £171,790.95 (gross £1,101,192.04, capital £23,502.08)
+  - Electricity: gross £933,779.28, capital £18,690.23, net £123,052.89
+  - Gas: gross £167,412.76, capital £4,811.86, net £48,738.06
+- Treasury at year end: £3,547,864.25
+- Hedge fraction at first renewal this year (avg across year's terms): C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C7 0.85 (avg 0.85), C8 0.85 (avg 0.85), C9 0.85 (avg 0.85), C_IC1 0.85 (avg 0.85), C_IC2 0.85 (avg 0.85), C_IC3 0.85 (avg 0.85), C_IC3g 0.85 (avg 0.85), C_IC4 0.85 (avg 0.85)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: C9 on 2024-12-12 period 41, net margin £-0.19
+- Worst single period: C_IC3g on 2024-12-30 period 1, net margin £-193.14
 
 **Customer Book**
 
-- Active accounts: 7 (C2_2, C4, C4g, C6, C7, C8, C9)
-  - Resi electricity: 5, SME electricity: 1, gas (dual-fuel): 1
+- Active accounts: 13 (C2, C2g, C4, C4g, C6, C7, C8, C9, C_IC1, C_IC2, C_IC3, C_IC3g, C_IC4)
+  - Resi electricity: 5, SME electricity: 1, gas (dual-fuel): 3
 - New acquisitions this year: none
 - Losses (churn) during year: C6, C4
-  - Renewals (retained): 4 accounts
-- Average CLV (Point-in-Time, year-end 2024): £16,752.70
-  - By billing account: C1 £201.59, C2 £54.84, C2_2 £249.98, C3 £229.21, C4 £260.96, C5 £1,023.76, C6 £803.86, C7 £760.83, C8 £1,098.72, C9 £1,223.24, C_IC1 £178,372.75
-- Bill shock events (>=20%): 24 -- C7 2024-02-29 (27%); C7 2024-05-31 (38%); C7 2024-09-30 (36%); C7 2024-10-31 (39%); C7 2024-11-30 (50%); C8 2024-02-29 (23%); C8 2024-04-30 (48%); C8 2024-05-31 (50%); C8 2024-07-31 (27%); C8 2024-09-30 (77%); C8 2024-10-31 (36%); C8 2024-11-30 (63%); C9 2024-05-31 (50%); C9 2024-07-31 (35%); C9 2024-09-30 (57%); C9 2024-10-31 (23%); C9 2024-11-30 (48%); C2_2 2024-02-29 (23%); C2_2 2024-04-30 (57%); C2_2 2024-05-31 (49%); C2_2 2024-07-31 (26%); C2_2 2024-09-30 (68%); C2_2 2024-10-31 (36%); C2_2 2024-11-30 (59%)
-- Churn risk (accounts renewing in 2024): 6 at risk (≥20% churn prob): C2_2 38%, C4 23%, C6 38%, C7 35%, C8 41%, C9 38%
+  - Renewals (retained): 5 accounts
+- Average CLV (Point-in-Time, year-end 2024): £281,114.33
+  - By billing account: C1 £1,778.45, C2 £6,232.46, C3 £2,205.97, C4 £2,621.37, C5 £6,115.73, C6 £9,025.53, C7 £5,147.06, C8 £7,274.83, C9 £6,388.28, C_IC1 £1,062,604.15, C_IC2 £517,115.10, C_IC3 £2,010,047.26, C_IC4 £17,930.06
+- Bill shock events (>=20%): 27 -- C7 2024-01-31 (23%); C7 2024-02-29 (27%); C7 2024-05-31 (38%); C7 2024-09-30 (37%); C7 2024-10-31 (39%); C7 2024-11-30 (51%); C2 2024-04-30 (41%); C2g 2024-04-30 (49%); C8 2024-02-29 (23%); C8 2024-04-30 (43%); C8 2024-05-31 (51%); C8 2024-07-31 (28%); C8 2024-09-30 (82%); C8 2024-10-31 (37%); C8 2024-11-30 (65%); C9 2024-05-31 (50%); C9 2024-07-31 (37%); C9 2024-09-30 (60%); C9 2024-10-31 (23%); C9 2024-11-30 (50%); C_IC1 2024-07-31 (50%); C_IC1 2024-08-31 (68%); C_IC2 2024-06-30 (56%); C_IC2 2024-07-31 (121%); C_IC3 2024-01-31 (38%); C_IC3g 2024-01-31 (59%); C_IC4 2024-05-31 (25%)
+- Churn risk (accounts renewing in 2024): 7 at risk (≥20% churn prob): C4 23%, C6 41%, C7 41%, C8 41%, C9 38%, C_IC3 23%, C_IC4 26%
 
 **Pricing & Margin**
 
-- C2_2 (electricity): tariff £133.05-£298.25/MWh, net margin £263.90
-- C4 (electricity): tariff £143.61/MWh, net margin £-6.38 -- **net-negative**
-- C4g (gas): tariff £39.62/MWh, net margin £119.01
-- C6 (electricity): tariff £248.09/MWh, net margin £115.98
-- C7 (electricity): tariff £134.83-£263.63/MWh, net margin £187.12
-- C8 (electricity): tariff £107.45-£362.43/MWh, net margin £244.00
-- C9 (electricity): tariff £94.99-£236.15/MWh, net margin £31.50
+- C2 (electricity): tariff £250.31-£392.58/MWh, net margin £490.58
+- C2g (gas): tariff £58.76-£131.03/MWh, net margin £473.51
+- C4 (electricity): tariff £231.33/MWh, net margin £94.38
+- C4g (gas): tariff £55.47/MWh, net margin £152.34
+- C6 (electricity): tariff £372.09/MWh, net margin £617.47
+- C7 (electricity): tariff £171.90-£351.63/MWh, net margin £163.35
+- C8 (electricity): tariff £195.03-£551.47/MWh, net margin £1,066.58
+- C9 (electricity): tariff £183.13-£451.37/MWh, net margin £1,010.76
+- C_IC1 (electricity): tariff £-98.58-£432.65/MWh, net margin £199,812.70
+- C_IC2 (electricity): tariff £-106.92-£393.92/MWh, net margin £86,538.33
+- C_IC3 (electricity): tariff £74.46-£154.34/MWh, net margin £62,637.01
+- C_IC3g (gas): tariff £44.11-£44.74/MWh, net margin £48,112.21
+- C_IC4 (electricity): tariff £23.97-£113.12/MWh, net margin £-229,378.26 -- **net-negative**
 
 **Portfolio Health**
 
-- Capital cost ratio: 8.2% of gross
-- Treasury drawdown events (>=10% threshold): none
-- Bills issued: 69, average clarity 0.807, average bill shock 20.0%, bad debt provision £301.34, avg complaint probability 5.2%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Capital cost ratio: 2.1% of gross
+- Treasury drawdown events (>=10% threshold): 1 -- £3,775,675.73 -> £3,217,185.17 (14.8%)
+- Bills issued: 141, average clarity 0.855, average bill shock 13.8%, bad debt provision £55,996.96, avg complaint probability 4.0%
+- Solvency signal: £354,786/customer (10 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £-78.10 vs. naked (unhedged) net margin: £764.79
-- hedging cost £842.89 vs. a fully unhedged book (commodity-only: actual net £-78.10 vs. naked net £764.79)
-  - C2_2: actual £-92.10 vs. naked £228.90 -- hedging cost £321.01
-  - C7: actual £69.62 vs. naked £246.25 -- hedging cost £176.64
-  - C8: actual £66.62 vs. naked £249.77 -- hedging cost £183.15
-  - C9: actual £-122.24 vs. naked £39.87 -- hedging cost £162.11
+- Actual (hedged) net margin: £67,855.10 vs. naked (unhedged) net margin: £419,235.14
+- hedging cost £351,380.03 vs. a fully unhedged book (commodity-only: actual net £67,855.10 vs. naked net £419,235.14)
+  - C2: actual £321.87 vs. naked £1,074.40 -- hedging cost £752.52
+  - C2g: actual £275.93 vs. naked £295.25 -- hedging cost £19.32
+  - C7: actual £108.90 vs. naked £733.67 -- hedging cost £624.77
+  - C8: actual £746.25 vs. naked £1,757.55 -- hedging cost £1,011.30
+  - C9: actual £536.58 vs. naked £1,524.38 -- hedging cost £987.80
+  - C_IC1: actual £101,077.77 vs. naked £194,104.45 -- hedging cost £93,026.68
+  - C_IC2: actual £64,642.28 vs. naked £114,938.31 -- hedging cost £50,296.03
+  - C_IC3: actual £-12,426.46 vs. naked £89,363.49 -- hedging cost £101,789.95
+  - C_IC3g: actual £12,057.33 vs. naked £41,910.44 -- hedging cost £29,853.11
+  - C_IC4: actual £-99,485.34 vs. naked £-26,466.80 -- hedging cost £73,018.54
 
-**Year narrative:** 2024 produced a net gain of £955.12 across 7 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 24 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2024 produced a net gain of £171,790.95 across 13 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 27 customer(s) experienced a bill shock of >=20%.
 
 ## 2025
 
 **Trading & Risk**
 
-- Net margin: £-187.54 (gross £949.13, capital £104.49)
-  - Electricity: gross £949.13, capital £104.49, net £-187.54
-- Treasury at year end: £465,207.79
-- Hedge fraction at first renewal this year (avg across year's terms): C2_2 0.85 (avg 0.85), C8 0.85 (avg 0.85)
+- Net margin: £-9,272.25 (gross £400,078.77, capital £14,739.24)
+  - Electricity: gross £336,221.55, capital £11,235.72, net £-21,808.24
+  - Gas: gross £63,857.21, capital £3,503.52, net £12,535.99
+- Treasury at year end: £3,602,995.19
+- Hedge fraction at first renewal this year (avg across year's terms): C2 0.85 (avg 0.85), C2g 0.85 (avg 0.85), C8 0.85 (avg 0.85)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: C2_2 on 2025-01-08 period 36, net margin £-1.53
+- Worst single period: C_IC1 on 2025-01-08 period 31, net margin £-115.58
 
 **Customer Book**
 
-- Active accounts: 4 (C2_2, C7, C8, C9)
-  - Resi electricity: 4, SME electricity: 0, gas (dual-fuel): 0
+- Active accounts: 10 (C2, C2g, C7, C8, C9, C_IC1, C_IC2, C_IC3, C_IC3g, C_IC4)
+  - Resi electricity: 4, SME electricity: 0, gas (dual-fuel): 2
 - New acquisitions this year: none
 - Losses (churn) during year: none
   - Renewals (retained): 2 accounts
-- Average CLV (Point-in-Time, year-end 2025): £16,238.38
-  - By billing account: C1 £215.28, C2 £53.27, C2_2 £234.68, C3 £229.13, C4 £258.85, C5 £947.01, C6 £717.88, C7 £858.48, C8 £1,042.34, C9 £1,143.16, C_IC1 £172,922.14
-- Bill shock events (>=20%): 18 -- C7 2025-01-31 (25%); C7 2025-04-30 (37%); C7 2025-05-31 (23%); C7 2025-06-07 (80%); C8 2025-01-31 (39%); C8 2025-02-28 (24%); C8 2025-04-30 (24%); C8 2025-05-31 (38%); C8 2025-06-07 (73%); C9 2025-01-31 (22%); C9 2025-04-30 (25%); C9 2025-05-31 (33%); C9 2025-06-07 (72%); C2_2 2025-01-31 (38%); C2_2 2025-02-28 (24%); C2_2 2025-04-30 (24%); C2_2 2025-05-31 (37%); C2_2 2025-06-07 (73%)
-- Churn risk (accounts renewing in 2025): 3 at risk (≥20% churn prob): C2_2 38%, C8 38%, C9 38%
+- Average CLV (Point-in-Time, year-end 2025): £301,497.48
+  - By billing account: C1 £1,782.84, C2 £5,670.06, C3 £2,057.00, C4 £2,467.82, C5 £5,742.16, C6 £8,935.91, C7 £5,594.22, C8 £6,940.45, C9 £6,536.53, C_IC1 £1,260,060.63, C_IC2 £578,379.83, C_IC3 £2,018,494.80, C_IC4 £16,805.04
+- Bill shock events (>=20%): 20 -- C7 2025-01-31 (34%); C7 2025-04-30 (38%); C7 2025-05-31 (24%); C7 2025-06-07 (80%); C2 2025-06-07 (78%); C2g 2025-06-07 (77%); C8 2025-01-31 (40%); C8 2025-02-28 (24%); C8 2025-04-30 (31%); C8 2025-05-31 (39%); C8 2025-06-07 (73%); C9 2025-01-31 (22%); C9 2025-04-30 (25%); C9 2025-05-31 (34%); C9 2025-06-07 (71%); C_IC1 2025-06-07 (77%); C_IC2 2025-06-07 (75%); C_IC3 2025-06-07 (78%); C_IC3g 2025-06-07 (77%); C_IC4 2025-06-07 (81%)
+- Churn risk (accounts renewing in 2025): 3 at risk (≥20% churn prob): C2 20%, C8 38%, C9 38%
 
 **Pricing & Margin**
 
-- C2_2 (electricity): tariff £133.05-£179.24/MWh, net margin £-133.23 -- **net-negative**
-- C7 (electricity): tariff £134.83-£257.41/MWh, net margin £72.15
-- C8 (electricity): tariff £107.45-£273.55/MWh, net margin £-61.57 -- **net-negative**
-- C9 (electricity): tariff £94.99-£181.35/MWh, net margin £-64.90 -- **net-negative**
+- C2 (electricity): tariff £250.31-£281.02/MWh, net margin £129.18
+- C2g (gas): tariff £58.76-£64.53/MWh, net margin £92.39
+- C7 (electricity): tariff £184.19-£351.63/MWh, net margin £109.69
+- C8 (electricity): tariff £195.03-£428.51/MWh, net margin £393.97
+- C9 (electricity): tariff £183.13-£349.61/MWh, net margin £292.28
+- C_IC1 (electricity): tariff £157.80-£301.25/MWh, net margin £55,531.61
+- C_IC2 (electricity): tariff £160.23-£305.90/MWh, net margin £31,385.66
+- C_IC3 (electricity): tariff £74.46-£142.16/MWh, net margin £-11,480.79 -- **net-negative**
+- C_IC3g (gas): tariff £44.74/MWh, net margin £12,443.60
+- C_IC4 (electricity): tariff £43.11-£193.69/MWh, net margin £-98,169.84 -- **net-negative**
 
 **Portfolio Health**
 
-- Capital cost ratio: 11.0% of gross
+- Capital cost ratio: 3.7% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 24, average clarity 0.724, average bill shock 32.6%, bad debt provision £109.97, avg complaint probability 7.4%
-- Regulatory threshold breaches: Not available in current run output (see REPORTING_BACKLOG.md)
+- Bills issued: 60, average clarity 0.803, average bill shock 22.9%, bad debt provision £23,560.34, avg complaint probability 5.6%
+- Solvency signal: £450,374/customer (8 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £-172.19 vs. naked (unhedged) net margin: £40.10
-- hedging cost £212.29 vs. a fully unhedged book (commodity-only: actual net £-172.19 vs. naked net £40.10)
-  - C2_2: actual £-84.72 vs. naked £71.23 -- hedging cost £155.95
-  - C8: actual £-87.47 vs. naked £-31.13 -- hedging cost £56.34
+- Actual (hedged) net margin: £173.87 vs. naked (unhedged) net margin: £484.11
+- hedging cost £310.24 vs. a fully unhedged book (commodity-only: actual net £173.87 vs. naked net £484.11)
+  - C2: actual £49.79 vs. naked £200.49 -- hedging cost £150.70
+  - C2g: actual £28.75 vs. naked £47.84 -- hedging cost £19.08
+  - C8: actual £95.33 vs. naked £235.78 -- hedging cost £140.45
 
-**Year narrative:** 2025 produced a net loss of £-187.54 across 4 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 18 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2025 produced a net loss of £-9,272.25 across 10 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 20 customer(s) experienced a bill shock of >=20%.
