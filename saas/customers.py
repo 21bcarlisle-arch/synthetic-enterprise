@@ -231,6 +231,7 @@ CUSTOMERS = [
         "commodity": "gas",
         "segment": "I&C",
         "tariff_type": "pass_through",
+        "contract_type": "fixed_1yr",
     },
     # Phase 2b: gas dual-fuel records for C1-C4 resi customers
     {

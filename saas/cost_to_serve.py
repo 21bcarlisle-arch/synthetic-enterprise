@@ -35,6 +35,7 @@ SETTLEMENT_PERIODS_PER_YEAR = 17_520  # 48 periods/day * 365 days
 FIXED_OVERHEAD_GBP_PER_YEAR = {
     "resi": 55.00,
     "SME": 120.00,
+    "I&C": 500.00,  # dedicated account management, complex settlement, credit facility
 }
 
 # Bad debt provision as a fraction of revenue, by segment. SME accounts
@@ -43,6 +44,7 @@ FIXED_OVERHEAD_GBP_PER_YEAR = {
 BAD_DEBT_RATE = {
     "resi": 0.02,
     "SME": 0.01,
+    "I&C": 0.005,  # I&C customers credit-checked at acquisition; lower default rate
 }
 
 FIXED_OVERHEAD_GBP_PER_PERIOD = {

@@ -165,6 +165,7 @@ def _retention_discount_for_risk(company_est: float) -> float:
 
 EARLIEST_SSP_DATE = "2015-11-07"
 COMMITTEE_COOLDOWN_PERIODS = 1440
+COMMITTEE_COOLDOWN_DAYS = 30  # calendar-day cooldown; replaces record-count approach
 
 SHAPE_LOADERS = {1: load_pc1_shape, 3: load_pc3_shape}
 
@@ -644,6 +645,7 @@ def main(report_end: str | None = None, sim_interface=None):
     churned_billing_accounts: set[str] = set()
     administration_event = None
     periods_since_committee = COMMITTEE_COOLDOWN_PERIODS
+    last_committee_date: date = date.fromisoformat(REPORT_START) - timedelta(days=COMMITTEE_COOLDOWN_DAYS)
     total_periods_processed = 0
     PROGRESS_EVERY_PERIODS = 100
 
@@ -1049,7 +1051,8 @@ def main(report_end: str | None = None, sim_interface=None):
                 rec["commodity"] = "electricity"
 
             # Phase 27c: volume tolerance for I&C customers.
-            if cust_segment == "I&C" and term_records:
+            # Skip for deemed/flex — no locked hedge price to unwind against.
+            if cust_segment == "I&C" and term_records and forward_price is not None:
                 term_days = (
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days
@@ -1131,7 +1134,8 @@ def main(report_end: str | None = None, sim_interface=None):
                 break
 
             periods_since_committee += 1
-            if periods_since_committee < COMMITTEE_COOLDOWN_PERIODS:
+            _rec_date = date.fromisoformat(rec["settlement_date"])
+            if (_rec_date - last_committee_date).days < COMMITTEE_COOLDOWN_DAYS:
                 continue
 
             # Risk committee check (electricity customers only for VaR aggregation)
@@ -1178,6 +1182,9 @@ def main(report_end: str | None = None, sim_interface=None):
                 portfolio_var_current, portfolio_var_stressed,
                 portfolio_state, elec_records,
             )
+            # Always update last_committee_date — prevents re-checking on every record
+            # when conditions aren't met (old record-count cooldown had this bug too).
+            last_committee_date = _rec_date
             if triggered:
                 periods_since_committee = 0
                 print(
@@ -1254,10 +1261,11 @@ def main(report_end: str | None = None, sim_interface=None):
             "naked_net": naked_net, "next_hf": new_hf,
         })
 
+        _rate_str = f"£{unit_rate:.2f}/MWh" if unit_rate is not None else "flex/deemed"
         print(
             f"  {cid} ({commodity[:4]}) term {term_index:2d} ({term_start_str}→{term_end_str[:10]}): "
             f"hf={hf:.2f}→{new_hf:.2f}  "
-            f"unit_rate=£{unit_rate:.2f}/MWh  "
+            f"unit_rate={_rate_str}  "
             f"actual_net=£{actual_net:8.2f}  naked_net=£{naked_net:8.2f}"
         )
 

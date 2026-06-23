@@ -8,7 +8,16 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-22T22:11:04Z
+Last updated: 2026-06-23T06:21:42Z
+
+**Bugfixes (2026-06-23)**: 3 production bugs fixed after sim crash investigation.
+- `simulation/run_phase2b.py`: committee cooldown was record-count based → now date-based (30-day calendar cooldown). With 18+ customers, old code fired 10× too often, causing 10-hour runs instead of 38 minutes.
+- `simulation/run_phase2b.py`: volume tolerance crash on deemed/flex terms (forward_price=None). Guard added.
+- `saas/cost_to_serve.py`: missing I&C segment → KeyError. Added I&C overheads (£500/yr, 0.5% bad debt).
+- `simulation/run_phase4c_on_phase2b.py`: C_IC3g missing contract_type → default fallback added.
+- **Fast-mode 10-year run: completed in 5.2 min. Net margin £1,162,529. Treasury £3,629,165. SURVIVED.**
+
+**Phase 42 LIVE (2026-06-22)**: Gas-specific seasonal forward curve. 8 new tests (1,228+ passing).
 
 **Phase 41a LIVE (2026-06-22)**: Flex/trading tariff for I&C customers. 8 new tests (1,220+ passing).
 - `C_IC4`: Manchester supermarket, 3 GWh/year, `tariff_type: "flex"`. HH metered.
