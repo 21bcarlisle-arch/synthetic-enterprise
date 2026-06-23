@@ -415,6 +415,21 @@ Net after CTS:               £7,498
 
 **14 new tests (1,242+ total).**
 
+### Phase 43b — Adaptive Trading Desk, VaR-Constrained (2026-06-23)
+**Files:** `company/trading/hedge_decision.py` (new), `company/trading/forward_book.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`, `tests/company/test_hedge_decision.py` (new)
+
+**What was built:**
+- `estimate_price_volatility()`: 90-day EWMA realized vol from observable spot prices (Elexon SSP). λ=0.94, annualized.
+- `decide_hedge_fraction()`: 95% VaR constraint — max unhedged position = 15% of term revenue at risk. High-vol regimes force higher hedge fractions automatically.
+- `compute_bid_ask_cost()`: OTC execution cost model — 0.5% + 0.2%/year tenor, capped 1.5% (N2EX calibrated).
+- `ForwardContract` extended with `bid_ask_cost_gbp`; `TradingBook.summary()` now includes bid-ask total.
+- `_section_trading_pnl()` in annual report: year-by-year hedge P&L vs gross margin with direction signal.
+- Epistemic compliance: all inputs observable (published spot prices, company's own demand/price estimates).
+
+**Fidelity delta:** The trading desk now adapts hedge fractions to market conditions. In calm 2016-2020 regime, VaR allows low hedges; in crisis it forces higher coverage — modelling the regime-change blindness trap that killed real UK suppliers.
+
+**15 new tests (1,257+ total).**
+
 ### Architecture Stages 0-4 (2026-06-23)
 **Files:** `docs/claude/best-practice-audit.md`, `background/agent_status.py`, `site/index.html` (System tab), `.claude/agents/discovery-agent.md`, `.claude/agents/epistemic-verifier.md`, `background/agent_protocol.py`, `tools/epistemic_verifier.py`, `CLAUDE.md` (restructured)
 
@@ -657,16 +672,17 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,260+ non-integration tests passing (SIM_FAST_MODE=1); full suite with Ollama ~40 min
+- 1,275+ non-integration tests passing (SIM_FAST_MODE=1); full suite with Ollama ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phases 43a active, 2026-06-23, commit ffb7ecc, 445s):**
+**Latest full run (Phase 43b active, 2026-06-23, commit ffb7ecc, 445s):**
 - Net margin £1,158,439 | Gross £5,980,190 | Treasury £3,625,075 | SURVIVED
 - Stable across 20+ consecutive runs. 38 committee interventions (~monthly). 93 trading book contracts.
+- Phase 43b 1-year fast check: 93 contracts, 46,345 MWh hedged, £463k hedge P&L, £35k bid-ask cost.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

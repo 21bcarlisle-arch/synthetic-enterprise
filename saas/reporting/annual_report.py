@@ -2707,6 +2707,69 @@ def _section_gas_policy_costs(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_trading_pnl(data: dict) -> str:
+    """Phase 43b: Company trading desk P&L — year-by-year hedge gain/loss and bid-ask costs.
+
+    Decomposes the hedge P&L from supply margin, showing what the trading desk
+    contributed separately from the core supply business.
+
+    Silent (returns "") when no hedge_pnl_gbp fields exist (pre-Phase-43a runs).
+    """
+    records = data.get("all_records", [])
+    hedge_records = [r for r in records if "hedge_pnl_gbp" in r]
+    if not hedge_records:
+        return ""
+
+    trading_book = data.get("trading_book", {})
+    total_bid_ask = trading_book.get("total_bid_ask_cost_gbp", 0.0)
+    contract_count = trading_book.get("contract_count", 0)
+    total_hedged_mwh = trading_book.get("total_hedged_mwh", 0.0)
+
+    from collections import defaultdict
+    by_year: dict[str, float] = defaultdict(float)
+    for r in hedge_records:
+        year = r["settlement_date"][:4]
+        by_year[year] += r.get("hedge_pnl_gbp", 0.0)
+
+    years = sorted(by_year.keys())
+    total_pnl = sum(by_year.values())
+
+    lines = [
+        "## Trading Desk P&L",
+        "",
+        f"**Contracts opened:** {contract_count}  |  "
+        f"**Total hedged volume:** {total_hedged_mwh:,.1f} MWh  |  "
+        f"**Total hedge P&L:** £{total_pnl:,.0f}  |  "
+        f"**Bid-ask execution cost:** £{total_bid_ask:,.0f}",
+        "",
+        "Hedge P&L = (agreed_price − actual_spot) × hedged_MWh. Positive when the forward",
+        "price locked at tariff signing exceeded actual spot at delivery (hedge paid off).",
+        "Bid-ask cost = transaction cost of executing OTC forward hedges at ask price.",
+        "",
+        "| Year | Hedge P&L £ | vs Gross Margin % | Direction |",
+        "|------|------------|-------------------|-----------|",
+    ]
+
+    # Get gross margin by year for context
+    gross_by_year: dict[str, float] = defaultdict(float)
+    for r in records:
+        year = r["settlement_date"][:4]
+        gross_by_year[year] += r.get("gross_margin_gbp", 0.0)
+
+    for year in years:
+        pnl = by_year[year]
+        gross = gross_by_year.get(year, 0.0)
+        pct = (pnl / gross * 100) if gross != 0 else 0.0
+        direction = "↑ paid off" if pnl > 0 else "↓ opportunity cost" if pnl < -1 else "≈ neutral"
+        lines.append(f"| {year} | £{pnl:>12,.0f} | {pct:>+6.1f}% | {direction} |")
+
+    lines += [
+        f"| **Total** | **£{total_pnl:>10,.0f}** | | |",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _section_gas_pl(data: dict) -> str:
     """Phase 32a: Year-by-year gas book P&L — revenue, wholesale, gross margin,
     policy + network costs, capital charges, net margin.
@@ -3543,6 +3606,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_policy_costs(data))
     sections.append(_section_network_costs(data))
     sections.append(_section_gas_policy_costs(data))
+    sections.append(_section_trading_pnl(data))
     sections.append(_section_gas_pl(data))
     sections.append(_section_solvency_signal(data))
     sections.append(_section_volume_tolerance(data))

@@ -73,12 +73,16 @@ term signing, company opens a forward contract (agreed_price = company_fwd, noti
 `settle_period()` decomposes hedge P&L from supply margin each half-hour. `trading_book.summary()`
 in run output (contract_count, total_hedged_mwh, hedge_pnl_gbp). Net margin unchanged.
 
-**Architecture Stages 2-4 COMPLETE (2026-06-23):** All four stages done.
-- Stage 2: `.claude/agents/discovery-agent.md` — validated assumption-to-finding pipeline.
-- Stage 3: `.claude/agents/epistemic-verifier.md` + `tools/epistemic_verifier.py` — planted/detected violation, now gated in phase-close checklist.
-- Stage 4: `background/agent_protocol.py` — `AgentMessage` + `IntentType`, 18 tests, live in sim_runner.
+**Phase 43b COMPLETE (2026-06-23):** VaR-constrained trading desk — 15 new tests (1,275+ passing).
+`company/trading/hedge_decision.py`: `estimate_price_volatility()` (EWMA, 90-day lookback),
+`decide_hedge_fraction()` (95% VaR ≤ 15% of term revenue), `compute_bid_ask_cost()` (0.5-1.5%).
+`simulation/run_phase2b.py`: per-term VaR hedge decision replaces static RESET_HEDGE_FRACTION.
+`saas/reporting/annual_report.py`: `_section_trading_pnl()` — hedge P&L year-by-year with bid-ask.
 
-**Next:** Phase 43b (adaptive trading desk, VaR-constrained). Proposal in `docs/staging/drafts/`.
+**Architecture Stages 2-4 COMPLETE (2026-06-23):** All four stages done.
+- Stage 2: `.claude/agents/discovery-agent.md` — scoped to market_research/, structured findings.
+- Stage 3: `.claude/agents/epistemic-verifier.md` + `tools/epistemic_verifier.py` — in phase-close checklist.
+- Stage 4: `background/agent_protocol.py` — `AgentMessage` + `IntentType`, 18 tests, live in sim_runner.
 
 **Tests:** 1,228+ passing (non-integration, `SIM_FAST_MODE=1`).
 

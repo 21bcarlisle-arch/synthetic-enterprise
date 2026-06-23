@@ -48,6 +48,21 @@ second" — matching how real suppliers (e.g. EDF) actually operate.
 
 ---
 
+## Phase 43b COMPLETE (2026-06-23) — Adaptive Trading Desk, VaR-Constrained
+
+15 new tests (1,257+ total). Per-term VaR-constrained hedge decision replaces static RESET_HEDGE_FRACTION.
+- `company/trading/hedge_decision.py`: `estimate_price_volatility()` — 90-day EWMA (λ=0.94) of
+  squared log returns, annualized × √252, floored at 10% / capped at 250%.
+  `decide_hedge_fraction()` — solves `hf = 1 − max_var / (fwd × eac_mwh_term × vol_term × 1.6449)`,
+  clamped to `[COMPANY_MIN_HEDGE_FLOOR, 1.0]`. High vol → VaR constraint binds → higher hf.
+  `compute_bid_ask_cost()` — 0.5% + 0.2%/year of tenor, capped at 1.5% (N2EX OTC calibration).
+- `company/trading/forward_book.py`: `bid_ask_cost_gbp` field; `total_bid_ask_cost_gbp` property;
+  `summary()` now includes bid-ask cost.
+- `simulation/run_phase2b.py`: per-term VaR decision before `naked_kwh =` in else-branch (fixed/pass-through);
+  `compute_bid_ask_cost()` wired into ForwardContract opening.
+- `saas/reporting/annual_report.py`: `_section_trading_pnl()` — year-by-year hedge P&L vs gross margin %.
+- Integration result: 93 contracts, 46,345 MWh hedged, £463k hedge P&L, £35k bid-ask cost.
+
 ## Phase 43a COMPLETE (2026-06-23) — Company Trading Book
 
 14 new tests (1,242+ total). First SIM/company full independence for hedging decisions.

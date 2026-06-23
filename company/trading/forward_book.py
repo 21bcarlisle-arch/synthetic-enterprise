@@ -24,6 +24,8 @@ class ForwardContract:
         was priced (observable: from company's own tariff engine, which uses
         published forward market data only).
     notional_mwh: hedged volume — EAC × hedge_fraction / 1000.
+    bid_ask_cost_gbp: total execution cost paid at signing (bid-ask spread × notional).
+        Defaults to 0.0 for backward compatibility.
     """
 
     customer_id: str
@@ -32,6 +34,7 @@ class ForwardContract:
     notional_mwh: float
     agreed_price_gbp_per_mwh: float
     hedge_fraction: float
+    bid_ask_cost_gbp: float = 0.0  # Phase 43b: execution cost of hedging
 
 
 class HedgePnL(NamedTuple):
@@ -50,10 +53,12 @@ class TradingBook:
         self._contracts: list[ForwardContract] = []
         self._total_pnl_gbp: float = 0.0
         self._total_hedged_mwh: float = 0.0
+        self._total_bid_ask_cost_gbp: float = 0.0
 
     def open_hedge(self, contract: ForwardContract) -> None:
         """Register a new forward contract when a supply term is signed."""
         self._contracts.append(contract)
+        self._total_bid_ask_cost_gbp += contract.bid_ask_cost_gbp
 
     def settle_period(
         self,
@@ -90,6 +95,10 @@ class TradingBook:
         return self._total_hedged_mwh
 
     @property
+    def total_bid_ask_cost_gbp(self) -> float:
+        return self._total_bid_ask_cost_gbp
+
+    @property
     def contract_count(self) -> int:
         return len(self._contracts)
 
@@ -101,4 +110,5 @@ class TradingBook:
             "contract_count": self.contract_count,
             "total_hedged_mwh": round(self._total_hedged_mwh, 3),
             "total_hedge_pnl_gbp": round(self._total_pnl_gbp, 2),
+            "total_bid_ask_cost_gbp": round(self._total_bid_ask_cost_gbp, 2),
         }

@@ -393,6 +393,7 @@ GGL (Green Gas Levy): per-meter, from Nov 2021; tiny in £/MWh terms.
 
 Gas policy pass-through in tariff unit rate (CCL + GGL at term start); gas network pass-through likewise. Net basis risk near-zero for annual contracts.
 
+
 ## Gas Book P&L — Year by Year (Phase 32a)
 
 Revenue = billing at fixed tariff unit rate. Wholesale = hedged + unhedged NBP cost.
@@ -965,15 +966,15 @@ _Cash reconciliation: of £18,828,356.97 billed, bad debt of £376,541.53 was wr
 - Risk committee (Context Handshake) interventions: 13
   - 2016-01-01: treasury £2,466,636.22, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
   - 2016-01-31: treasury £2,466,640.00, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
-  - 2016-03-01: treasury £2,466,643.92, (none), VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-03-01: treasury £2,466,643.92, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
   - 2016-03-31: treasury £2,466,647.56, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
   - 2016-04-30: treasury £2,466,650.59, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
   - 2016-05-30: treasury £2,466,653.64, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
   - 2016-06-29: treasury £2,466,656.21, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
   - 2016-07-29: treasury £2,466,658.96, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
-  - 2016-08-28: treasury £2,466,661.77, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-08-28: treasury £2,466,661.77, C1->1.00, VaR (current £40.02 / stressed £12.29) ratio 3.25
   - 2016-09-27: treasury £2,466,664.56, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
-  - 2016-10-27: treasury £2,466,667.26, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
+  - 2016-10-27: treasury £2,466,667.26, C1->1.00, VaR (current £40.02 / stressed £12.29) ratio 3.25
   - 2016-11-26: treasury £2,466,669.16, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
   - 2016-12-26: treasury £2,466,672.60, C1->0.95, VaR (current £40.02 / stressed £12.29) ratio 3.25
 - VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.25

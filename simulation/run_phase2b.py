@@ -81,6 +81,7 @@ from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from company.trading.forward_book import ForwardContract, TradingBook
+from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -1033,6 +1034,21 @@ def main(report_end: str | None = None, sim_interface=None):
                     shape_fn, elec_records, segment=cust_segment,
                 )
             else:
+                # Phase 43b: VaR-constrained hedge decision replaces static hf for fixed/pass-through
+                # electricity terms. The trading desk decides hedge fraction based on current market
+                # conditions (observable price volatility, term duration, forward price).
+                # Committee overrides still take precedence (already applied via pending_committee_overrides).
+                term_days_count = (
+                    date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
+                ).days
+                if unit_rate and company_fwd and eac_kwh > 0 and term_days_count > 0:
+                    _var_hf = decide_hedge_fraction(
+                        eac_kwh, company_fwd, unit_rate, elec_records, term_days_count
+                    )
+                    if cid not in pending_committee_overrides:
+                        hf = _var_hf
+                        current_hf[cid] = hf
+
                 naked_kwh = eac_kwh * (1.0 - hf)
                 risk = assess_term_risk(term_start_str, naked_kwh, forward_price, elec_records)
                 counterfactual_risk = assess_term_risk(term_start_str, float(eac_kwh), forward_price, elec_records)
@@ -1054,6 +1070,8 @@ def main(report_end: str | None = None, sim_interface=None):
                 # agreed_price = company_fwd (the price the company locked at tariff signing).
                 # notional_mwh = hedged portion of EAC estimate.
                 if company_fwd and hf > 0:
+                    _tenor_years = term_days_count / 365.25
+                    _bid_ask = compute_bid_ask_cost(company_fwd, _tenor_years) * (eac_kwh / 1000.0) * hf
                     trading_book.open_hedge(ForwardContract(
                         customer_id=cid,
                         term_start=term_start_str,
@@ -1061,6 +1079,7 @@ def main(report_end: str | None = None, sim_interface=None):
                         notional_mwh=(eac_kwh / 1000.0) * hf,
                         agreed_price_gbp_per_mwh=company_fwd,
                         hedge_fraction=hf,
+                        bid_ask_cost_gbp=round(_bid_ask, 4),
                     ))
                     # Add hedge_pnl_gbp per settlement record (decomposed from supply margin).
                     for rec in term_records:
