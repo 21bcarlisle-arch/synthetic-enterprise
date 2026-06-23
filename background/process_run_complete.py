@@ -104,17 +104,22 @@ def run_fast_tests():
     try:
         result = subprocess.run(
             [sys.executable, "-m", "pytest", "tests/", "-x", "-q", "--tb=short",
+             # Full-simulation integration tests (150-480s each) — excluded from auto-process gate
              "--ignore=tests/simulation/test_run_phase2b.py",
              "--ignore=tests/simulation/test_run_phase2b_event_log.py",
              "--ignore=tests/simulation/test_run_phase4c_on_phase2b.py",
-             "--ignore=tests/simulation/test_phase40b_gas_pass_through.py"],
+             "--ignore=tests/simulation/test_phase40b_gas_pass_through.py",
+             "--ignore=tests/simulation/test_phase24a_ic_customer.py",
+             "--ignore=tests/simulation/test_phase40a_pass_through.py",
+             "--ignore=tests/simulation/test_phase40c_deemed_rate.py",
+             "--ignore=tests/simulation/test_phase41a_flex.py"],
             cwd=str(PROJECT_DIR),
             env=full_env,
-            timeout=360,
+            timeout=180,
         )
         return result.returncode == 0
     except subprocess.TimeoutExpired:
-        log("Fast test suite timed out (>360s) — treating as FAIL")
+        log("Fast test suite timed out (>180s) — treating as FAIL")
         return False
 
 

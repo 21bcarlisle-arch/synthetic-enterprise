@@ -34,6 +34,12 @@ Last seeded: 2026-06-23 from current codebase.
 | Capital cost ratio (Phase 9a, % of gross) | 8.1% | 5–20% (hedging cost varies) | Industry | 2026-06-18 | ✓ OK |
 | Company elec forward risk premium (Phase 45c) | 8% above 120-day mean | 5–8% above NAP/baseload (I&C competitive) | Broker intelligence; Phase 45c sanity check | 2026-06-23 | ✓ OK |
 | Company gas forward risk premium (Phase 46a) | 5% above 120-day mean | Near-zero in stable markets; UK resi gas suppliers earn ~1-2% in normal years (Cornwall Insight 2020) | NBP market; Phase 46a analysis | 2026-06-23 | ✓ OK |
+| **EBIT% — dom electricity (CSS pre-cap 2016-2018)** | **NOT MODELLED separately** | **~2–5%** | **EDF/BG CSS 2023-2024 PDFs + CMA 2016 + Ofgem sector data** | **2026-06-23** | **✓ OK (pre-2019 sim range plausible)** |
+| **EBIT% — dom electricity (CSS post-cap 2019-2022)** | **NOT MODELLED (no price cap)** | **Negative: approx -4% to -10% per year; sector -£4bn cumulative** | **Ofgem published aggregate + EDF CSS 2023-2024** | **2026-06-23** | **⚠ CRITICAL GAP — no price cap in sim** |
+| **EBIT% — dom electricity (CSS recovery 2023)** | **NOT MODELLED** | **4.2% (EDF); 7.8% (British Gas) — above-normal post-crisis** | **EDF CSS 2023 PDF; British Gas CSS 2023 PDF** | **2026-06-23** | **⚠ Context: 2023 exceptional due to hedge gains** |
+| **EBIT% — dom electricity (CSS 2024, normalising)** | **NOT MODELLED** | **5.4% (EDF); Ofgem EBIT allowance in cap = 1.9%** | **EDF CSS 2024 PDF** | **2026-06-23** | **⚠ Long-run normal should be ~1.9-3%** |
+| **EBIT% — dom gas (CSS 2023-2024)** | **NOT MODELLED** | **-6.1% (EDF 2023); -5.4% (EDF 2024) — persistently loss-making** | **EDF CSS 2023 + 2024 PDFs** | **2026-06-23** | **⚠ CRITICAL — domestic gas structurally loss-making under cap** |
+| **EBIT% — non-dom electricity (CSS 2023-2024)** | **2.9% overall net (Phase 45c)** | **4.5% (EDF 2023); 1.7% (EDF 2024); 3.8% (BG 2023)** | **EDF CSS 2023-2024 PDFs; British Gas CSS 2023 PDF** | **2026-06-23** | **✓ SIM within normal range for I&C segment** |
 
 ## Hedging & Risk
 
@@ -65,7 +71,7 @@ Last seeded: 2026-06-23 from current codebase.
 
 | Gap | Impact | Priority |
 |---|---|---|
-| **Ofgem Domestic Price Cap (2019–present)** | **CRITICAL — domestic supply was loss-making 2021-2023 under the cap; our resi/elec 10.2% margin is impossible post-2019. Cap sets SVT unit_rate ceiling; suppliers absorbed cost overruns.** | **HIGH — Phase needed** |
+| **Ofgem Domestic Price Cap (2019–present)** | **CRITICAL — domestic supply was loss-making 2021-2023 under the cap; our resi/elec 10.2% margin is impossible post-2019. Cap sets SVT unit_rate ceiling; suppliers absorbed cost overruns. CSS data confirms: EDF dom elec -6.1% gas EBIT 2023 even in recovery year.** | **HIGH — Phase needed** |
 | ~~Annual variation in non-commodity rates~~ | ~~Medium~~ | ALREADY IMPLEMENTED — Phase 21a/27b/30a: _RO_COST_BY_OY_START, _CFD_LEVY_BY_YEAR, _CCL_ELECTRICITY_RATE_BY_YEAR, _NETWORK_COST_BY_YEAR (2016-2024) |
 | De minimis VAT threshold for small SME | Low — few customers near threshold | LOW |
 | ~~CCL for SME gas~~ | ~~Medium~~ | ALREADY IMPLEMENTED — Phase 30b (`get_gas_ccl_per_mwh()`, segment-aware) |
