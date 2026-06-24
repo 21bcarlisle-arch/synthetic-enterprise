@@ -105,18 +105,20 @@ class TestCompanyTariffEngine:
         assert sim_fwd > 0
         assert company_fwd != sim_fwd
 
-    def test_varying_prices_uses_mean(self):
+    def test_varying_prices_base_within_range(self):
+        # Phase 49: base is EWMA not simple mean; for a stationary cycling series
+        # [50, 100, 150] the EWMA should be between min and max × (1 + risk_prem).
         records = []
         prices = [50.0, 100.0, 150.0]
-        base = date(2015, 9, 1)
+        base_date = date(2015, 9, 1)
         for i in range(90):
             records.append({
-                "settlementDate": (base + timedelta(days=i)).isoformat(),
+                "settlementDate": (base_date + timedelta(days=i)).isoformat(),
                 "systemSellPrice": prices[i % 3],
             })
         fwd = self.engine.get_forward_price("electricity", "2015-12-01", records, seasonal=False)
-        expected_mean = 100.0
-        assert fwd == pytest.approx(expected_mean * (1 + COMPANY_RISK_PREMIUM_FRACTION), rel=1e-6)
+        assert fwd > 50.0 * (1 + COMPANY_RISK_PREMIUM_FRACTION)
+        assert fwd < 150.0 * (1 + COMPANY_RISK_PREMIUM_FRACTION)
 
 
 # ── Seasonal adjustment tests (Phase 13d) ────────────────────────────────────
