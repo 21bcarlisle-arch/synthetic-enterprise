@@ -415,6 +415,20 @@ Net after CTS:               £7,498
 
 **14 new tests (1,242+ total).**
 
+### Phase 47a — Ofgem Domestic Price Cap (2026-06-24)
+**Files:** `company/pricing/ofgem_price_cap.py` (new), `simulation/run_phase2b.py`, `tests/company/pricing/test_phase47a_ofgem_cap.py` (new)
+
+**What was built:**
+- `company/pricing/ofgem_price_cap.py`: `get_cap_unit_rate_gbp_per_mwh(fuel, year)` — annual lookup table, £/MWh, electricity and gas. Pre-2019: returns None (no cap). 2019: elec £165, gas £26. 2022 crisis peak: elec £305, gas £95 (EPG). 2024 normalisation: elec £210, gas £55.
+- `simulation/run_phase2b.py`: After all uplifts (portfolio premium, margin surcharge, profitability uplift), clamp `unit_rate = min(unit_rate, cap)` for resi fixed-term customers when `year >= 2019`. Applied to both electricity and gas. I&C and SME customers are unaffected.
+- `_RESI_CUSTOMER_IDS` frozenset at module level for O(1) segment lookup.
+
+**Fidelity delta:** Domestic supply was loss-making sector-wide 2019-2022 (CSS data: EDF dom elec -6.1% gas EBIT 2023, -5.4% 2024; resi sector -4% to -10% 2021-2022). The SIM resi margin of 10.2% was impossible post-2019 under the cap. The cap now compresses resi margins in crisis years (2021-2023) matching real-world supplier experience. Closes "CRITICAL GAP" flagged in ASSUMPTIONS.md.
+
+**10 new tests (1,260+ total).**
+
+---
+
 ### Phase 46a — Gas Risk Premium Further Reduced (2026-06-23)
 **Files:** `company/pricing/tariff_engine.py`, `tests/company/pricing/test_phase45c_risk_premium.py`, `tests/company/pricing/test_tariff_engine.py`
 
@@ -746,7 +760,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,250+ tests (1,242 non-integration SIM_FAST_MODE=1, 8 integration); full suite with Ollama ~40 min
+- 1,260+ tests (1,252 non-integration SIM_FAST_MODE=1, 8 integration); full suite with Ollama ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

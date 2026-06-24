@@ -64,6 +64,11 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 47a COMPLETE (2026-06-24):** Ofgem domestic price cap — 10 new tests (1,260+ passing).
+`company/pricing/ofgem_price_cap.py` (new): `get_cap_unit_rate_gbp_per_mwh(fuel, year)` annual lookup. Applied in
+`simulation/run_phase2b.py` after all uplifts for resi fixed-term customers. Cap bites 2021+ in crisis years;
+resi margins now compress under cap. Closes CRITICAL GAP in ASSUMPTIONS.md (resi 10.2% was impossible post-2019).
+
 **Phase 46a COMPLETE (2026-06-23):** Gas risk premium further reduced 10%→5% — 0 new tests (1,250+ passing).
 `company/pricing/tariff_engine.py`: `GAS_RISK_PREMIUM_FRACTION` 10%→5%. UK resi gas margins near-zero in stable
 markets (competitive market dynamics; pass-through already at spot). Elec (8%) now higher than gas (5%).

@@ -44,3 +44,43 @@
 - [2026-06-20 07:21 UTC] Acked inbound message '9i39FwlFubNe' ('Maybe we treat customers as segments not individuals. And ma') — staged as from_rich_20260620_072118.md
 - [2026-06-20 07:32 UTC] Acked inbound message 'mbqALHsE53Fs' ('Lets keep smart customers as separate. But maybe what we hav') — staged as from_rich_20260620_073208.md
 - [2026-06-20 09:33 UTC] Acked inbound message 'yIwEVXJZ5Apl' ('Also: publish the assumption library (docs/market_research/A') — staged as from_rich_20260620_093359.md
+- [2026-06-20 16:28 UTC] Acked inbound message 'IEbAqXcZj4SC' ('I am still getting a lot of ntfy SPAM. URGENT. Only give me ') — staged as from_rich_20260620_162839.md
+- [2026-06-21 04:56 UTC] Acked inbound message 'qpEOz7wnZD80' ('Check if gamma 4 12b model now available and worth using for') — staged as from_rich_20260621_045635.md
+- [2026-06-21 04:57 UTC] Acked inbound message 'xyTjOhAPU7BD' ('Review what regular processes you are running and spending t') — staged as from_rich_20260621_045756.md
+- [2026-06-21 08:19 UTC] Acked inbound message 'I0pLt6qb9ss0' ('Pull gemma4:12b via Ollama and evaluate it against qwen3:14b') — staged as from_rich_20260621_081928.md
+- [2026-06-21 09:00 UTC] Acked inbound message 'ENOQXvedKPZo' ('Monitor your own token consumption per session — a local pro') — staged as from_rich_20260621_090002.md
+- [2026-06-21 10:21 UTC] Acked inbound message 'hyHvpafKllJJ' ("Ok, what's next. Looks like we need to amend the level of di") — staged as from_rich_20260621_102132.md
+- [2026-06-21 10:43 UTC] Acked inbound message 'CRzZfQFLHhgi' ('LATEST.md is stale — still showing Phase 10b and 543 tests. ') — staged as from_rich_20260621_104352.md
+- [2026-06-21 12:49 UTC] Acked inbound message 'ReZ5oVpkYWrM' ('Share a link to the latest claude.md here') — staged as from_rich_20260621_124940.md
+- [2026-06-21 18:46 UTC] Acked inbound message '95Tm2hrmXF8g' ('PROJECT_OVERVIEW.md is dated 20 Jun with 543 tests. We are n') — staged as from_rich_20260621_184603.md
+- [2026-06-21 19:08 UTC] Acked inbound message 'THMFMs2sEXXD' ('PROJECT_OVERVIEW.md on GitHub Pages is still showing 20 Jun ') — staged as from_rich_20260621_190825.md
+- [2026-06-21 19:43 UTC] Acked inbound message 'lEmdomf0jnMW' ("The strategy advisor's web_fetch caches URLs within a conver") — staged as from_rich_20260621_194357.md
+- [2026-06-21 20:05 UTC] Acked inbound message 'IWkXJo5wTfGY' ('Enterprise value is -£7,978 but treasury is positive and 202') — staged as from_rich_20260621_200516.md
+- [2026-06-22 09:19 UTC] Acked inbound message 'CQA6B7Umqos5' ('Yes I can')
+- [2026-06-22 13:25 UTC] Acked inbound message 'uIXj31RAL9mw' ("I've had no ntfy since 28b. Is that right?") — staged as from_rich_20260622_132550.md
+- [2026-06-22 13:49 UTC] Acked inbound message 'aLho1nSAn3VM' ("I still can't see anything on posts.net could something be w") — staged as from_rich_20260622_134934.md
+- [2026-06-22 14:14 UTC] Acked inbound message 'HTIPd8EMEKgY' ("The dev page works but the .net doesn't") — staged as from_rich_20260622_141402.md
+- [2026-06-22 14:28 UTC] Acked inbound message 'pC06JgXI8tGY' ('poesys.net DNS still not resolving after 2 hours — DNS_PROBE') — staged as from_rich_20260622_142836.md
+- [2026-06-22 15:30 UTC] NTFY responder started
+- [2026-06-22 16:14 UTC] Acked inbound message '0OZuuctDYbxJ' ('Yes')
+- [2026-06-22 16:14 UTC] Acked inbound message 'fqiNyYVonoaZ' ('YES')
+- [2026-06-22 16:16 UTC] Duplicate content ignored (hash=7469a286, id='lZ209NEm2BJs'): 'YES'
+- [2026-06-22 16:50 UTC] Acked inbound message 'aKPL2Nek4IiJ' ('Thank you, message received') — staged as from_rich_20260622_165000.md
+- [2026-06-22 20:33 UTC] Acked inbound message 'hauOTKgUOSeg' ('Check current state: are session_watchdog, staging_watcher, ') — staged as from_rich_20260622_203304.md
+- [2026-06-22 20:51 UTC] Acked inbound message 'saNVrtBYxIPV' ('Fundamental pricing architecture issue identified. The compa') — staged as from_rich_20260622_205101.md
+- [2026-06-23 04:47 UTC] Acked inbound message 'YUy0I4BIHSMU' ('Did SIM crash? Were you idle the whole time? What can you le') — staged as from_rich_20260623_044718.md
+- [2026-06-23 05:20 UTC] Acked inbound message 'daBSrDdCDn99' ("We're on track for weekly token budget. Keep the current Qwe") — staged as from_rich_20260623_052009.md
+- [2026-06-23 05:21 UTC] Acked inbound message '3B6gSuAgFAgN' ('Audit the orchestration stack. For each running daemon (sess') — staged as from_rich_20260623_052110.md
+- [2026-06-23 05:23 UTC] Acked inbound message 'EW9HlTu4f1xt' ("poesys.net keeps requiring DNS cache flushes on Rich's phone") — staged as from_rich_20260623_052332.md
+- [2026-06-23 10:55 UTC] Acked inbound message 'D9QPnOmwMLt0' ('Proceed to stage 2')
+- [2026-06-23 11:14 UTC] Acked inbound message 'FPoEykWD5Yhk' ('www.poesys.net is live but has robots.txt blocking automated') — staged as from_rich_20260623_111414.md
+- [2026-06-23 11:16 UTC] Acked inbound message '8mmr63i43uzR' ('Is the system page on the website working and fresh?') — staged as from_rich_20260623_111657.md
+- [2026-06-23 11:16 UTC] Acked inbound message 'U7ux1qIoTv6m' ('triggered')
+- [2026-06-23 11:50 UTC] Acked inbound message 'vHBd9ScpV9s8' ('Generate a fresh timestamped snapshot of the dashboard at si') — staged as from_rich_20260623_115006.md
+- [2026-06-23 12:13 UTC] Acked inbound message 'r8wmylTfWcci' ('Dashboard snapshot URL works but shows "Loading dashboard da') — staged as from_rich_20260623_121348.md
+- [2026-06-23 12:15 UTC] Acked inbound message '9mqub6XWOUyU' ('Two things: (1) Explain the £5.97M vs £1.24M net margin corr') — staged as from_rich_20260623_121509.md
+- [2026-06-23 12:44 UTC] Acked inbound message '1WHjBI7zn5Bx' ("I&C elef margin looks high too doesn't it?") — staged as from_rich_20260623_124435.md
+- [2026-06-23 13:11 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782219832 (Caused by NameResolutionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to resolve 'ntfy.sh' ([Errno -3] Temporary failure in name resolution)"))
+- [2026-06-23 15:17 UTC] Acked inbound message 'adHRQgenvOVS' ('Major discovery task for the discovery agent. The strategy a') — staged as from_rich_20260623_151755.md
+- [2026-06-23 15:43 UTC] Acked inbound message '6wZx9JyT5Ygc' ("On margins and benchmarking. I'm not after perfect year on o") — staged as from_rich_20260623_154337.md
+- [2026-06-24 04:32 UTC] Acked inbound message 'HNzrdM3hWTDh' ('Proceed with Phase 47a. Also flag: zero acquisitions 2021-20') — staged as from_rich_20260624_043220.md

@@ -1,14 +1,14 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-06-23T11:59:44.077414+00:00",
+  "last_updated": "2026-06-24T04:37:37.950620+00:00",
   "agents": [
     {
       "name": "sim-runner",
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "status": "idle",
-      "last_heartbeat": "2026-06-23T11:59:44.077414+00:00",
-      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260623T115944Z.json)",
-      "last_action_ts": "2026-06-23T11:59:44.077414+00:00",
+      "last_heartbeat": "2026-06-24T04:37:37.950620+00:00",
+      "last_action": "Run complete in 430s \u2014 494 KB (run_output_8a9083c_20260624T043027Z.json)",
+      "last_action_ts": "2026-06-24T04:37:37.950620+00:00",
       "anomaly": null,
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
     },
@@ -16,9 +16,9 @@
       "name": "ntfy-responder",
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "status": "idle",
-      "last_heartbeat": "2026-06-23T11:59:43.243260+00:00",
+      "last_heartbeat": "2026-06-24T04:36:02.482754+00:00",
       "last_action": "Acked message: 'Start the full 2016-2025 run when GPU is free.'",
-      "last_action_ts": "2026-06-23T11:59:43.243260+00:00",
+      "last_action_ts": "2026-06-24T04:36:02.482754+00:00",
       "anomaly": null,
       "produces": "docs/staging/from_rich_*.md"
     },
@@ -26,9 +26,9 @@
       "name": "dispatcher",
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen",
       "status": "idle",
-      "last_heartbeat": "2026-06-23T11:59:42.791867+00:00",
+      "last_heartbeat": "2026-06-24T04:36:02.302427+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-06-23T11:59:42.791867+00:00",
+      "last_action_ts": "2026-06-24T04:36:02.302427+00:00",
       "anomaly": null,
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
     },
@@ -63,6 +63,16 @@
       "produces": "CC session activity, phase completions"
     },
     {
+      "name": "discovery-agent",
+      "role": "Validates simulation assumptions against real UK market benchmarks",
+      "status": "idle",
+      "last_heartbeat": "2026-06-23T17:30:00.000000+00:00",
+      "last_action": "Verified EDF + British Gas CSS EBIT% 2023-2024 from official PDFs \u2014 H confidence; built CSS_BENCHMARKS.md; updated ASSUMPTIONS.md Supplier Margin section with CSS-derived rows",
+      "last_action_ts": "2026-06-23T17:30:00.000000+00:00",
+      "anomaly": null,
+      "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
+    },
+    {
       "name": "discovery-daemon",
       "role": "Periodic research: validates simulation assumptions against real UK market benchmarks",
       "status": "idle",
@@ -85,9 +95,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-06-23T11:59:21.161524+00:00",
+      "last_heartbeat": "2026-06-24T04:35:10.129445+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-06-23T11:59:21.161524+00:00",
+      "last_action_ts": "2026-06-24T04:35:10.129445+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"

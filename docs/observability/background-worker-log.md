@@ -899,3 +899,360 @@ Structured performance entries are added after each task completes.
 - [2026-06-20 10:41 UTC] run_queued_tasks: no parseable QUEUED task found
 - [2026-06-20 11:11 UTC] Found queued tasks — beginning execution
 - [2026-06-20 11:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 11:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 11:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 12:11 UTC] Found queued tasks — beginning execution
+- [2026-06-20 12:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 12:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 12:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 13:11 UTC] Found queued tasks — beginning execution
+- [2026-06-20 13:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 13:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 13:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 14:11 UTC] Found queued tasks — beginning execution
+- [2026-06-20 14:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 14:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 14:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 15:11 UTC] Found queued tasks — beginning execution
+- [2026-06-20 15:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 15:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 15:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 16:11 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:11 UTC
+- [2026-06-20 16:26 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:26 UTC
+- [2026-06-20 16:41 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:41 UTC
+- [2026-06-20 16:56 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:56 UTC
+- [2026-06-20 17:11 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:11 UTC
+- [2026-06-20 17:26 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:26 UTC
+- [2026-06-20 17:41 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:41 UTC
+- [2026-06-20 17:56 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:56 UTC
+- [2026-06-20 18:11 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:11 UTC
+- [2026-06-20 18:26 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:26 UTC
+- [2026-06-20 18:41 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:41 UTC
+- [2026-06-20 18:56 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:56 UTC
+- [2026-06-20 19:11 UTC] Found queued tasks — beginning execution
+- [2026-06-20 19:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 19:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 19:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 20:11 UTC] Found queued tasks — beginning execution
+- [2026-06-20 20:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 20:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 20:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 21:11 UTC] Found queued tasks — beginning execution
+- [2026-06-20 21:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 21:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 21:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 22:11 UTC] Found queued tasks — beginning execution
+- [2026-06-20 22:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 22:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 22:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 23:11 UTC] Found queued tasks — beginning execution
+- [2026-06-20 23:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-20 23:41 UTC] Found queued tasks — beginning execution
+- [2026-06-20 23:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 00:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 00:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 00:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 00:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 01:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 01:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 01:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 01:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 02:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 02:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 02:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 02:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 03:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 03:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 03:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 03:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 04:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 04:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 04:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 04:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 05:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 05:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 05:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 05:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 06:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 06:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 06:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 06:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 07:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 07:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 07:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 07:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 08:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 08:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 08:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 08:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 09:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 09:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 09:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 09:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 10:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 10:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 10:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 10:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 11:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 11:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 11:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 11:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 12:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 12:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 12:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 12:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 13:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 13:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 13:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 13:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 14:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 14:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 14:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 14:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 15:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 15:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 15:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 15:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 16:11 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:11 UTC
+- [2026-06-21 16:26 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:26 UTC
+- [2026-06-21 16:41 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:41 UTC
+- [2026-06-21 16:56 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:56 UTC
+- [2026-06-21 17:11 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:11 UTC
+- [2026-06-21 17:26 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:26 UTC
+- [2026-06-21 17:41 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:41 UTC
+- [2026-06-21 17:56 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:56 UTC
+- [2026-06-21 18:11 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:11 UTC
+- [2026-06-21 18:26 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:26 UTC
+- [2026-06-21 18:41 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:41 UTC
+- [2026-06-21 18:56 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:56 UTC
+- [2026-06-21 19:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 19:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 19:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 19:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 20:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 20:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 20:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 20:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 21:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 21:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 21:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 21:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 22:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 22:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 22:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 22:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 23:11 UTC] Found queued tasks — beginning execution
+- [2026-06-21 23:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-21 23:41 UTC] Found queued tasks — beginning execution
+- [2026-06-21 23:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 00:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 00:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 00:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 00:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 01:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 01:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 01:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 01:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 02:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 02:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 02:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 02:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 03:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 03:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 03:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 03:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 04:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 04:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 04:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 04:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 05:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 05:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 05:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 05:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 06:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 06:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 06:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 06:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 07:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 07:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 07:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 07:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 08:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 08:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 08:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 08:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 09:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 09:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 09:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 09:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 10:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 10:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 10:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 10:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 11:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 11:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 11:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 11:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 12:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 12:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 12:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 12:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 13:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 13:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 13:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 13:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 14:11 UTC] Found queued tasks — beginning execution
+- [2026-06-22 14:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 14:41 UTC] Found queued tasks — beginning execution
+- [2026-06-22 14:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 15:30 UTC] Background worker started
+- [2026-06-22 15:30 UTC] Found queued tasks — beginning execution
+- [2026-06-22 15:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 16:00 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:00 UTC
+- [2026-06-22 16:15 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:15 UTC
+- [2026-06-22 16:30 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:30 UTC
+- [2026-06-22 16:45 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:45 UTC
+- [2026-06-22 17:00 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:00 UTC
+- [2026-06-22 17:15 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:15 UTC
+- [2026-06-22 17:30 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:30 UTC
+- [2026-06-22 17:45 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:45 UTC
+- [2026-06-22 18:00 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:00 UTC
+- [2026-06-22 18:15 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:15 UTC
+- [2026-06-22 18:30 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:30 UTC
+- [2026-06-22 18:45 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:45 UTC
+- [2026-06-22 19:00 UTC] Found queued tasks — beginning execution
+- [2026-06-22 19:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 19:30 UTC] Found queued tasks — beginning execution
+- [2026-06-22 19:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 20:00 UTC] Found queued tasks — beginning execution
+- [2026-06-22 20:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 20:30 UTC] Found queued tasks — beginning execution
+- [2026-06-22 20:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 21:00 UTC] Found queued tasks — beginning execution
+- [2026-06-22 21:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 21:30 UTC] Found queued tasks — beginning execution
+- [2026-06-22 21:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 22:00 UTC] Found queued tasks — beginning execution
+- [2026-06-22 22:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 22:30 UTC] Found queued tasks — beginning execution
+- [2026-06-22 22:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 23:00 UTC] Found queued tasks — beginning execution
+- [2026-06-22 23:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-22 23:30 UTC] Found queued tasks — beginning execution
+- [2026-06-22 23:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 00:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 00:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 00:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 00:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 01:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 01:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 01:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 01:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 02:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 02:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 02:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 02:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 03:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 03:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 03:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 03:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 04:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 04:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 04:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 04:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 05:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 05:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 05:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 05:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 06:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 06:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 06:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 06:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 07:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 07:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 07:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 07:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 08:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 08:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 08:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 08:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 09:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 09:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 09:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 09:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 10:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 10:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 10:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 10:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 11:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 11:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 11:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 11:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 12:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 12:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 12:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 12:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 13:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 13:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 13:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 13:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 14:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 14:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 14:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 14:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 15:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 15:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 15:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 15:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 16:00 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:00 UTC
+- [2026-06-23 16:15 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:15 UTC
+- [2026-06-23 16:30 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:30 UTC
+- [2026-06-23 16:45 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:45 UTC
+- [2026-06-23 17:00 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:00 UTC
+- [2026-06-23 17:15 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:15 UTC
+- [2026-06-23 17:30 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:30 UTC
+- [2026-06-23 17:45 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:45 UTC
+- [2026-06-23 18:00 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:00 UTC
+- [2026-06-23 18:15 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:15 UTC
+- [2026-06-23 18:30 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:30 UTC
+- [2026-06-23 18:45 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:45 UTC
+- [2026-06-23 19:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 19:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 19:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 19:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 20:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 20:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 20:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 20:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 21:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 21:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 21:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 21:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 22:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 22:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 22:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 22:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 23:00 UTC] Found queued tasks — beginning execution
+- [2026-06-23 23:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-23 23:30 UTC] Found queued tasks — beginning execution
+- [2026-06-23 23:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 00:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 00:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 00:30 UTC] Found queued tasks — beginning execution
+- [2026-06-24 00:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 01:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 01:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 01:30 UTC] Found queued tasks — beginning execution
+- [2026-06-24 01:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 02:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 02:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 02:30 UTC] Found queued tasks — beginning execution
+- [2026-06-24 02:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 03:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 03:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 03:30 UTC] Found queued tasks — beginning execution
+- [2026-06-24 03:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 04:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 04:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 04:30 UTC] Found queued tasks — beginning execution
+- [2026-06-24 04:30 UTC] run_queued_tasks: no parseable QUEUED task found

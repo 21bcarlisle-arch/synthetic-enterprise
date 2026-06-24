@@ -40,7 +40,13 @@
       "Bash(curl -sL --max-time 25 \"https://dap.ceda.ac.uk/edc/d1/5af8ae29-86a7-4e8c-9fe4-1e2d99d9fb96/data/version_0/data/ProfileClass1.csv\" -o /tmp/phase0b/ProfileClass1.csv -w \"HTTP %{http_code}\\\\n\")",
       "Bash(curl -s --max-time 20 \"https://dap.ceda.ac.uk/edc/d1/5af8ae29-86a7-4e8c-9fe4-1e2d99d9fb96/00README\")",
       "WebFetch(domain:bscdocs.elexon.co.uk)",
-      "WebFetch(domain:www.google.com)"
+      "WebFetch(domain:www.google.com)",
+      "Bash(dig poesys.net A +short)",
+      "Bash(dig poesys.net CNAME +short)",
+      "Bash(dig www.poesys.net A +short)",
+      "Bash(dig poesys-net.pages.dev A +short)",
+      "Bash(nslookup poesys.net)",
+      "Bash(nslookup poesys-net.pages.dev)"
     ]
   }
 }

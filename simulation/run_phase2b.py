@@ -66,6 +66,7 @@ from sim.forward_curve import (
 )
 from sim.gas_prices_history import load_nbp_history
 from company.pricing.margin_feedback import compute_margin_surcharge
+from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
 from company.risk.hedge_policy import (
     COMPANY_MIN_HEDGE_FLOOR as MIN_HEDGE_FLOOR,
     company_evolve_hedge_fraction as evolve_hedge_fraction,
@@ -108,6 +109,10 @@ CRISIS_YEARS = {"2021", "2022"}
 # Base: £3,250 per 15,000 kWh of electricity EAC
 ELEC_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "electricity"]
 GAS_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "gas"]
+# Phase 47a: segment lookup for Ofgem cap — resi customers subject to price cap
+_RESI_CUSTOMER_IDS: frozenset[str] = frozenset(
+    c["customer_id"] for c in CUSTOMERS if c.get("segment") == "resi"
+)
 # Phase 7e: successor electricity customers (activated on home-move win).
 # Separate from ELEC_CUSTOMERS so they don't inflate the starting treasury.
 SUCCESSOR_ELEC_CUSTOMERS = [c for c in SUCCESSOR_CUSTOMERS if c["commodity"] == "electricity"]
@@ -768,6 +773,15 @@ def main(report_end: str | None = None, sim_interface=None):
                     "uplift_gbp_per_mwh": round(pnl_uplift, 4),
                     "unit_rate_after": round(unit_rate, 4),
                 })
+
+        # Phase 47a: Ofgem domestic price cap — final ceiling for resi fixed-term customers.
+        # Cap applies post-2019; sourced from company.pricing.ofgem_price_cap annual lookup.
+        if (unit_rate is not None
+                and cid in _RESI_CUSTOMER_IDS
+                and term_tariff_type == "fixed"):
+            _cap = get_cap_unit_rate_gbp_per_mwh(commodity, int(term_start_str[:4]))
+            if _cap is not None:
+                unit_rate = min(unit_rate, _cap)
 
         # Phase 11a: record basis risk (company estimate vs sim ground truth)
         basis_risk_terms.append({
