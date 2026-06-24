@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-22. 346+ commits. 1,047 non-integration tests (8.5s). Codebase: ~19,000 lines across 193+ Python modules.*
+*Last updated: 2026-06-24. 375+ commits. 1,262 non-integration tests. Codebase: ~22,000 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -429,6 +429,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 47b — Cap-Aware Acquisition Gate (2026-06-24)
+**Files:** `saas/growth_mandate.py`, `simulation/run_phase2b.py`, `tests/simulation/test_phase47b_acquisition_gate.py` (new)
+
+**What was built:**
+- `should_attempt_acquisition(segment, commodity, company_fwd_gbp_per_mwh, date_str)` in `saas/growth_mandate.py`: returns `(bool, reason | None)`. Gate fires for resi electricity when Ofgem cap < company_fwd (company would sell below wholesale cost). Non-resi and gas always proceed.
+- `simulation/run_phase2b.py`: gate check before `roll_acquisition()` in churn block. Gate logs `acquisition_gate_event` to `acquisition_spend_events` with `gate_reason` field (£0 cost, no roll). Gate passes → existing roll logic unchanged.
+
+**Fidelity delta:** Crisis-year domestic acquisition pause (2021-2023) now emerges as a rational company decision from observable economics, not a hard-coded rule. Real suppliers (Octopus, EDF, BG) paused domestic acquisition 2021-2023 when the EPG/cap made every new resi customer loss-making. The SIM company now makes the same rational choice: if the cap forces us to price below cost, don't try to acquire.
+
+**10 new tests (1,270+ total).**
+
+---
+
 ### Phase 46a — Gas Risk Premium Further Reduced (2026-06-23)
 **Files:** `company/pricing/tariff_engine.py`, `tests/company/pricing/test_phase45c_risk_premium.py`, `tests/company/pricing/test_tariff_engine.py`
 
@@ -760,7 +773,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,260+ tests (1,252 non-integration SIM_FAST_MODE=1, 8 integration); full suite with Ollama ~40 min
+- 1,270+ tests (1,262 non-integration SIM_FAST_MODE=1, 8 integration); full suite with Ollama ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

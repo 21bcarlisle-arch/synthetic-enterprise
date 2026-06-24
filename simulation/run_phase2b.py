@@ -38,6 +38,7 @@ from saas.growth_mandate import (
     FIXED_COST_MONTHLY,
     MANDATE,
     roll_acquisition,
+    should_attempt_acquisition,
 )
 from saas.ledger import (
     make_acquisition_spend_event,
@@ -956,6 +957,28 @@ def main(report_end: str | None = None, sim_interface=None):
                         segment = customer_data["segment"] if customer_data else "resi"
                         acq_cost = COST_PER_ACQUISITION.get(segment, 150.0)
                         acq_seed = f"acquire_{billing_account}_{term_start_str}"
+
+                        # Phase 47b: cap-aware acquisition gate — company won't attempt
+                        # acquisition when cap forces resi electricity below wholesale cost.
+                        _acq_ok, _gate_reason = should_attempt_acquisition(
+                            segment, commodity, company_fwd, term_start_str
+                        )
+                        if not _acq_ok:
+                            acquisition_spend_events.append({
+                                "event_type": "acquisition_gate_event",
+                                "timestamp": term_start_str,
+                                "billing_account": billing_account,
+                                "segment": segment,
+                                "amount_gbp": 0.0,
+                                "acquisition_won": False,
+                                "gate_reason": _gate_reason,
+                            })
+                            print(
+                                f"  [GATE] Acquisition suppressed: {billing_account} at {term_start_str}"
+                                f" — {_gate_reason}"
+                            )
+                            continue
+
                         acq_won = roll_acquisition(segment, acq_seed)
 
                         acquisition_spend_events.append(

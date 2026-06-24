@@ -64,6 +64,9 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 47b COMPLETE (2026-06-24):** Cap-aware acquisition gate — 10 new tests (1,270+ passing).
+`saas/growth_mandate.py`: `should_attempt_acquisition()` — gate fires when Ofgem cap < company_fwd (selling below wholesale cost). Applied in `simulation/run_phase2b.py` before `roll_acquisition()`. Crisis-year pause emerges from economics, not hard-coded years.
+
 **Phase 47a COMPLETE (2026-06-24):** Ofgem domestic price cap — 10 new tests (1,260+ passing).
 `company/pricing/ofgem_price_cap.py` (new): `get_cap_unit_rate_gbp_per_mwh(fuel, year)` annual lookup. Applied in
 `simulation/run_phase2b.py` after all uplifts for resi fixed-term customers. Cap bites 2021+ in crisis years;

@@ -79,6 +79,39 @@ def acquisition_budget_gbp(
     return total
 
 
+def should_attempt_acquisition(
+    segment: str,
+    commodity: str,
+    company_fwd_gbp_per_mwh: float,
+    date_str: str,
+) -> tuple[bool, str | None]:
+    """Return (should_attempt, gate_reason).
+
+    Gate fires for resi electricity when the Ofgem domestic price cap falls
+    below the company's forward cost — meaning any fixed-term deal would be
+    sold below wholesale cost. Non-resi and gas always proceed.
+
+    gate_reason is None when the attempt should proceed.
+    """
+    if segment != "resi" or commodity != "electricity":
+        return True, None
+
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+
+    year = int(date_str[:4])
+    cap = get_cap_unit_rate_gbp_per_mwh("electricity", year)
+    if cap is None:
+        return True, None
+
+    if cap < company_fwd_gbp_per_mwh:
+        reason = (
+            f"cap_constrained (cap={cap:.0f} < fwd={company_fwd_gbp_per_mwh:.0f} GBP/MWh)"
+        )
+        return False, reason
+
+    return True, None
+
+
 def roll_acquisition(segment: str, rng_seed: str) -> bool:
     """Deterministic acquisition win roll.
 
