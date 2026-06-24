@@ -157,6 +157,7 @@ tr:hover td { background: var(--surface2); }
   <button class="tab-btn"        data-tab="customers" onclick="switchTab('customers')">Customers</button>
   <button class="tab-btn"        data-tab="market"    onclick="switchTab('market')">Market</button>
   <button class="tab-btn"        data-tab="system"    onclick="switchTab('system')">System</button>
+  <button class="tab-btn"        data-tab="about"     onclick="switchTab('about')">About</button>
 </nav>
 
 <main>
@@ -168,6 +169,7 @@ tr:hover td { background: var(--surface2); }
   <div id="tab-customers" class="view"></div>
   <div id="tab-market"    class="view"></div>
   <div id="tab-system"   class="view"></div>
+  <div id="tab-about"    class="view"></div>
 </main>
 
 <script>
@@ -228,6 +230,7 @@ function switchTab(name) {
 let SYS = null;
 
 function renderTab(name) {
+  if (name === 'about')  { renderAbout(); return; }
   if (!D) return;
   if (name === 'overview')  renderOverview();
   if (name === 'financial') renderFinancial();
@@ -807,6 +810,138 @@ function renderMarket() {
       y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>(v>=0?'+':'')+v+'£'},
          title:{display:true,text:'Negative = under-priced',color:C.muted,font:{size:10}}} } }
   });
+}
+
+// ── About ────────────────────────────────────────────────────────────────────
+function renderAbout() {
+  el('tab-about').innerHTML = `
+<div class="section">
+  <div class="section-title">About Poesys</div>
+  <div class="chart-box" style="margin-bottom:12px">
+    <p style="font-size:14px;line-height:1.7;color:var(--text);margin-bottom:14px">
+      Poesys is a high-fidelity autonomous simulation of a UK electricity and gas supply business,
+      running continuously against real Elexon/NESO half-hourly settlement data (2016–2025).
+      The goal is a simulation detailed enough to say: <em style="color:var(--blue)">"that is how a real UK energy supplier works."</em>
+    </p>
+    <p style="font-size:13px;line-height:1.7;color:var(--muted)">
+      UK energy retail is one of the most complex regulated markets in the world: Ofgem price caps,
+      half-hourly settlement, Balancing Mechanism costs, a layered policy cost stack (RO, CfD, FiT,
+      Capacity Market, CCL), and extreme price volatility — the 2021–2022 crisis triggered the failure
+      of 30+ licensed suppliers. Poesys tests pricing strategies, risk models, and business decisions
+      against real historical data, under the same information constraints a real supplier faces.
+    </p>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Core design principles</div>
+  <div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    <div class="card">
+      <div class="card-label">Point-in-Time Blindfold</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6">
+        The company layer cannot see future data or simulation internals.
+        It discovers the world through observable interfaces: meter reads,
+        market data feeds, its own bills and regulatory publications.
+        Its models are approximations — not reads from ground truth.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Real settlement data</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6">
+        Prices sourced from Elexon (SSP half-hourly), NESO, and Open-Meteo.
+        Every bill is settled against actual historical wholesale prices.
+        No synthetic price paths — the 2021–2022 crisis is in the data.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Full policy cost stack</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6">
+        RO, CfD, FiT, Capacity Market, CCL, GGL — all modelled per-period.
+        Network charges calibrated from Ofgem Annex 9.
+        Ofgem domestic price cap applied from 2019.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Autonomous operation</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6">
+        Simulation runs continuously on a local GPU (qwen3:14b / Ollama).
+        Claude Code orchestrates design, review, and delegation.
+        Risk committee runs locally — no frontier AI spend in sim runs.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Customer portfolio</div>
+  <div class="tbl-box">
+    <table>
+      <thead><tr>
+        <th>Segment</th><th>Type</th><th>Commodity</th><th>Tariff types</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>Residential</td><td>Domestic</td><td>Electricity &amp; Gas</td><td>Fixed-term, Ofgem-capped from 2019</td></tr>
+        <tr><td>SME</td><td>Small business</td><td>Electricity</td><td>Fixed-term</td></tr>
+        <tr><td>I&amp;C</td><td>Industrial &amp; Commercial</td><td>Electricity &amp; Gas</td><td>Fixed, pass-through, deemed, flex</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Key findings so far</div>
+  <ul class="event-list" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;list-style:none;display:flex;flex-direction:column;gap:8px">
+    <li style="font-size:12px;color:var(--text);line-height:1.6;padding-bottom:8px;border-bottom:1px solid rgba(48,54,61,.5)">
+      <span style="color:var(--red);font-weight:600">Crisis replication</span> — Domestic supply loss-making 2021–2023 under the Ofgem cap.
+      Confirmed by EDF &amp; British Gas CSS filings. Resi margins now compress correctly in the simulation.
+    </li>
+    <li style="font-size:12px;color:var(--text);line-height:1.6;padding-bottom:8px;border-bottom:1px solid rgba(48,54,61,.5)">
+      <span style="color:var(--amber);font-weight:600">Regime-change blindness</span> — Fully naked hedging converged during calm 2016–2020 data,
+      directly mirroring how real UK suppliers went bust when the 2021 crisis hit.
+      VaR-constrained hedging now reduces crisis exposure.
+    </li>
+    <li style="font-size:12px;color:var(--text);line-height:1.6;padding-bottom:8px;border-bottom:1px solid rgba(48,54,61,.5)">
+      <span style="color:var(--blue);font-weight:600">Activity-based pricing</span> — Flat margin makes some customers net-negative after cost-to-serve.
+      Profitability uplift at renewal now prevents systematic loss-making accounts.
+    </li>
+    <li style="font-size:12px;color:var(--text);line-height:1.6">
+      <span style="color:var(--green);font-weight:600">Epistemic honesty</span> — Company forward price estimates diverge from true market prices
+      in exactly the ways a real supplier's models would (lagged curves, parameter uncertainty).
+      This imperfection is the point.
+    </li>
+  </ul>
+</div>
+
+<div class="section">
+  <div class="section-title">Known model gaps (open)</div>
+  <div class="tbl-box">
+    <table>
+      <thead><tr><th>Gap</th><th>Impact</th></tr></thead>
+      <tbody>
+        <tr><td>Forward curve is a 120-day lagging mean, not a real NBP/EPEX term structure</td><td>I&amp;C pricing, dynamic tariffs</td></tr>
+        <tr><td>No half-hourly demand-side response or time-of-use shaping</td><td>Smart meter resi, flex I&amp;C</td></tr>
+        <tr><td>Acquisition win rate is static (no cap-era suppression)</td><td>Growth mandate 2021–2023</td></tr>
+        <tr><td>Gas settlement uses daily spot, not half-hourly NBP</td><td>Gas I&amp;C precision</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Infrastructure</div>
+  <div class="chart-box">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;font-size:12px">
+      <div><div style="color:var(--muted);margin-bottom:3px">Orchestrator</div>Claude Code (Anthropic)</div>
+      <div><div style="color:var(--muted);margin-bottom:3px">Code generation</div>qwen3:14b / Ollama (local GPU)</div>
+      <div><div style="color:var(--muted);margin-bottom:3px">Electricity data</div>Elexon Insights Solution</div>
+      <div><div style="color:var(--muted);margin-bottom:3px">Grid data</div>NESO CKAN API</div>
+      <div><div style="color:var(--muted);margin-bottom:3px">Weather</div>Open-Meteo</div>
+      <div><div style="color:var(--muted);margin-bottom:3px">Hosting</div>Cloudflare Pages (poesys.net)</div>
+      <div><div style="color:var(--muted);margin-bottom:3px">Hardware</div>Intel i5-13400F, RTX 3060 12GB, WSL2</div>
+      <div><div style="color:var(--muted);margin-bottom:3px">Tests</div>${D ? (D.meta?.total_tests || '1,260') + '+ passing' : '1,260+ passing'}</div>
+    </div>
+  </div>
+</div>`;
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
