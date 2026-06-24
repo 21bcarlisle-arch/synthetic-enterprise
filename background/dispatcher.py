@@ -219,6 +219,9 @@ def check_once(seen: dict[str, str]) -> dict[str, str]:
 
         classification = classify_message(message_text)
         seen[path.name] = classification
+        # Save before routing so a crash during send_ntfy/tmux doesn't cause
+        # the file to be re-processed (and re-notified) on the next restart.
+        _save_seen(seen)
         route_message(path, message_text, classification)
         update_agent_status(
             "dispatcher", status="idle",
@@ -226,9 +229,6 @@ def check_once(seen: dict[str, str]) -> dict[str, str]:
             role="Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
             produces="docs/observability/dispatcher-log.md, routes to staging/",
         )
-
-    if files:
-        _save_seen(seen)
 
     return seen
 
