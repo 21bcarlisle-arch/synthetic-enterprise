@@ -951,27 +951,17 @@ def check_autoloop(pane_text: str) -> None:
 
 
 def handle_session_ended() -> None:
-    alert_time = time.time()
-    log("Claude Code session ended — sending restart-confirmation request")
-    ntfy("Claude Code session ended — reply YES to this notification to restart.", needs_input=True)
-
-    confirmed = wait_for_restart_confirmation(alert_time)
-    if not confirmed:
-        log("Confirmation window expired (4h) — no restart. Resuming monitoring.")
-        ntfy("Session watchdog: no restart confirmation received within 4 hours — "
-              "session left stopped.", needs_input=True)
-        return
-
-    log("Restart confirmation ('YES') received")
+    log("Claude Code session ended — auto-restarting")
+    ntfy("Claude Code session ended — restarting automatically.")
     restart_claude()
 
 
 def main() -> None:
-    log("Session watchdog started (gated mode — restarts require NTFY YES "
-        "confirmation, except usage-limit auto-resume); autoloop active "
+    log("Session watchdog started (auto-restart mode — no YES gate, max "
+        f"{MAX_RESTARTS_PER_HOUR}/hr); autoloop active "
         f"(idle {AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS}s -> continue, "
         "REVIEW_GATE/permission prompts pause for Rich)")
-    ntfy(f"Session watchdog started — autoloop active, crash restarts need YES (max {MAX_RESTARTS_PER_HOUR}/hr).")
+    ntfy(f"Session watchdog started — autoloop active, crashes auto-restart (max {MAX_RESTARTS_PER_HOUR}/hr).")
     update_agent_status(
         "session-watchdog", status="running",
         last_action="Watchdog started",
