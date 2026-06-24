@@ -36,10 +36,9 @@ real UK energy supplier works."
 
 **At every REVIEW_GATE:**
 1. Complete phase and commit all outputs.
-2. NTFY Rich with results.
-3. Write proposed next step as `docs/staging/drafts/NEXT_PHASE.md`.
-4. NTFY: "Proposed next step in docs/staging/drafts/ — will proceed in 4 hours unless redirected."
-5. Action the draft after 4 hours if no redirect arrives.
+2. NTFY Rich with what was done and what's next.
+3. Proceed immediately to the next phase — do not hold for confirmation.
+4. Rich redirects via NTFY if he wants a different direction.
 
 **Always update and commit LATEST.md before sending NTFY.** If stale, fix the root cause.
 

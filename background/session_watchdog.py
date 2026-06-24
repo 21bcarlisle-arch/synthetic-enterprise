@@ -231,12 +231,29 @@ USAGE_LIMIT_PATTERN = re.compile(
 )
 
 RESUME_INSTRUCTION = (
-    "Read CLAUDE.md and STATUS.md. Continue from where the last session ended. "
-    "Per the Staging Directory Protocol, first check docs/staging/ for any "
-    "file not yet in docs/staging/done/ -- staging is pre-approval, action it "
-    "now without waiting for confirmation. Only once docs/staging/ is empty, "
-    "check docs/instructions/MASTER_BACKLOG.md for the current phase. Proceed "
-    "autonomously."
+    "Session resuming after crash or usage-limit reset. Run this recovery "
+    "checklist in order before doing anything else:\n\n"
+    "1. GIT STATUS: run `git status` and `git diff --stat HEAD`. If there are "
+    "uncommitted changes, determine which phase they belong to and whether the "
+    "work is complete or mid-flight.\n\n"
+    "2. COMPLETE CHECKS on any in-progress work: run "
+    "`python3 -m tools.epistemic_verifier` (must PASS before any commit). "
+    "Run `SIM_FAST_MODE=1 python3 -m pytest tests/ -x -q --tb=short "
+    "--ignore=tests/simulation/test_run_phase2b.py "
+    "--ignore=tests/simulation/test_run_phase2b_event_log.py "
+    "--ignore=tests/simulation/test_run_phase4c_on_phase2b.py` "
+    "to confirm tests pass.\n\n"
+    "3. FIX ROOT CAUSES: if the verifier or tests fail, fix the violations "
+    "before committing — do not advance the project until checks pass.\n\n"
+    "4. COMMIT any completed in-progress work with a clear message.\n\n"
+    "5. CHECK docs/staging/ for any file not yet in docs/staging/done/ — "
+    "staging is pre-approval, action immediately without waiting for "
+    "confirmation.\n\n"
+    "6. ADVANCE THE PROJECT: once staging is clear and all checks pass, "
+    "check docs/instructions/MASTER_BACKLOG.md for the next incomplete phase "
+    "and proceed autonomously. Proceed immediately — do not wait for "
+    "confirmation before starting. NTFY Rich with what you are doing so he "
+    "can redirect if needed."
 )
 
 # --- Autonomous main loop (between-task continuation) ---
@@ -302,10 +319,11 @@ AUTOLOOP_INSTRUCTION = (
     "now without waiting for confirmation, following its own Gate/NTFY "
     "instructions, then move it to docs/staging/done/. Repeat until "
     "docs/staging/ is empty. Only then check docs/instructions/MASTER_BACKLOG.md "
-    "for the next incomplete phase or sub-phase and proceed autonomously "
-    "following the established REVIEW_GATE/NTFY pattern. If you hit a "
-    "REVIEW_GATE or a genuine blocker, stop and state it clearly so Rich can "
-    "review."
+    "for the next incomplete phase or sub-phase and proceed autonomously. "
+    "Proceed immediately — do not hold for confirmation before starting. "
+    "NTFY Rich with what you are doing so he can redirect via NTFY if needed. "
+    "If you hit a genuine blocker or a REVIEW_GATE that needs Rich's input, "
+    "stop and state it clearly."
 )
 
 DOWNTIME_TASKS_FILE = Path(f"{PROJECT_DIR}/docs/instructions/background-tasks.md")
