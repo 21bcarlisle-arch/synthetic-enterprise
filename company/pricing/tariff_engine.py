@@ -79,6 +79,22 @@ PORTFOLIO_PREMIUM_MAX = 0.15          # max tariff surcharge if under-earning (1
 # If prices are in an upswing (short mean > long mean by THRESHOLD), apply a crisis premium
 # to the forward estimate. If in a downswing, apply a discount.
 # Complementary to Phase 14c (adaptive lookback handles volatility; this handles trend direction).
+# Phase 49: EWMA base estimate — replaces simple rolling mean for faster regime adaptation.
+# Half-life 30 days: price from 30d ago contributes 50% weight vs today's price.
+# Strictly backward-looking (PIT safe); observable from Elexon SSP history.
+EWMA_HALF_LIFE_DAYS = 30
+
+# Phase 49: Dynamic term structure slope — contango/backwardation from observable spot data.
+# Compare short-term EWMA (recent market) vs long-term EWMA (medium-term baseline).
+# Positive slope = contango (rising market) → longer tenors price higher.
+# Negative slope = backwardation (falling market) → longer tenors price lower.
+TERM_SLOPE_SHORT_DAYS = 30
+TERM_SLOPE_LONG_DAYS = 90
+# Annualised slope caps: limit the slope impact even in extreme regimes.
+TERM_SLOPE_CAP = 0.15     # max +15%/year (contango)
+TERM_SLOPE_FLOOR = -0.08  # max -8%/year (backwardation — asymmetric: floored higher to protect margin)
+TERM_SLOPE_MIN_RECORDS = 15
+
 REGIME_DETECT_ENABLED = True
 REGIME_SHORT_WINDOW = 60     # days for the "recent" regime mean
 REGIME_LONG_WINDOW = 180     # days for the "baseline" regime mean
@@ -101,6 +117,70 @@ def _daily_means_for_window(
         if window_start <= d <= window_end:
             daily.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
     return [statistics.mean(v) for v in daily.values()]
+
+
+def _compute_ewma(daily_means: list[float], half_life_days: int = EWMA_HALF_LIFE_DAYS) -> float:
+    """Exponentially weighted mean of daily means (chronological order, oldest first).
+
+    alpha = 1 - 0.5^(1/half_life): a price from half_life_days ago contributes
+    50% of the weight of today's price. Faster regime adaptation than simple mean.
+    """
+    if not daily_means:
+        return 0.0
+    alpha = 1.0 - 0.5 ** (1.0 / half_life_days)
+    ewma = daily_means[0]
+    for v in daily_means[1:]:
+        ewma = alpha * v + (1.0 - alpha) * ewma
+    return ewma
+
+
+def _estimate_term_structure_slope(
+    delivery_date: str,
+    price_records: list[dict],
+) -> float:
+    """Estimate annualised contango/backwardation slope from observable spot data.
+
+    Compares short-term EWMA (TERM_SLOPE_SHORT_DAYS) with long-term EWMA
+    (TERM_SLOPE_LONG_DAYS). The ratio, annualised over the gap between the two
+    windows, gives the implied slope of the forward curve.
+
+    A real pricing team would observe that if spot has risen 10% over the past
+    60 days, the forward curve is in contango and longer-dated contracts should
+    be priced higher to reflect the market's implied direction.
+
+    Returns annualised slope fraction capped to [TERM_SLOPE_FLOOR, TERM_SLOPE_CAP].
+    Returns 0.0 when insufficient data.
+    """
+    end_date = date.fromisoformat(delivery_date) - timedelta(days=1)
+    short_start = end_date - timedelta(days=TERM_SLOPE_SHORT_DAYS - 1)
+    long_start = end_date - timedelta(days=TERM_SLOPE_LONG_DAYS - 1)
+    long_end = short_start - timedelta(days=1)
+
+    def _chronological_means(window_start: date, window_end: date) -> list[float]:
+        daily: dict[str, list[float]] = {}
+        for r in price_records:
+            d = date.fromisoformat(r["settlementDate"])
+            if window_start <= d <= window_end:
+                daily.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
+        return [statistics.mean(v) for v in dict(sorted(daily.items())).values()]
+
+    short_means = _chronological_means(short_start, end_date)
+    long_means = _chronological_means(long_start, long_end)
+
+    if len(short_means) < TERM_SLOPE_MIN_RECORDS or len(long_means) < TERM_SLOPE_MIN_RECORDS:
+        return 0.0
+
+    short_ewma = _compute_ewma(short_means)
+    long_ewma = _compute_ewma(long_means)
+
+    if long_ewma <= 0:
+        return 0.0
+
+    # Price change from long-term to short-term window, annualised over the gap
+    gap_years = (TERM_SLOPE_LONG_DAYS - TERM_SLOPE_SHORT_DAYS) / 365.0
+    raw_slope = (short_ewma - long_ewma) / long_ewma / gap_years
+
+    return max(TERM_SLOPE_FLOOR, min(TERM_SLOPE_CAP, raw_slope))
 
 
 def _compute_adaptive_lookback(
@@ -206,11 +286,10 @@ class CompanyTariffEngine:
         price_records: list of {'settlementDate': str, 'systemSellPrice': float}.
         lookback_days: base days back from delivery_date to look (default 120).
             Overridden by adaptive_lookback when enabled.
-        risk_premium: fraction above rolling mean to charge. Defaults to
-            GAS_RISK_PREMIUM_FRACTION (20%) for gas, COMPANY_RISK_PREMIUM_FRACTION
-            (15%) for electricity (Phase 20a: gas basis risk is higher).
+        risk_premium: fraction above EWMA base to charge. Defaults to
+            GAS_RISK_PREMIUM_FRACTION for gas, COMPANY_RISK_PREMIUM_FRACTION
+            for electricity.
         seasonal: apply winter/summer adjustment (default True).
-            Pass False to use the flat-mean-plus-premium formula.
         adaptive_lookback: adjust lookback window based on recent vs baseline
             volatility (Phase 14c). Pass False for deterministic tests.
         regime_detect: apply regime premium when short-term price trend diverges
@@ -244,9 +323,11 @@ class CompanyTariffEngine:
         daily: dict[str, list[float]] = {}
         for r in filtered:
             daily.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
-        daily_means = [statistics.mean(v) for v in daily.values()]
+        # Phase 49: sort chronologically so EWMA weights recent prices higher.
+        daily_means = [statistics.mean(v) for v in dict(sorted(daily.items())).values()]
 
-        base = statistics.mean(daily_means)
+        # Phase 49: EWMA base (replaces simple mean) — faster regime adaptation.
+        base = _compute_ewma(daily_means)
 
         if seasonal:
             delivery_month = start_date.month
@@ -261,10 +342,17 @@ class CompanyTariffEngine:
             regime_prem = _compute_regime_premium(delivery_date, price_records)
             base *= (1.0 + regime_prem)
 
-        # Phase 48a: forward curve term structure — longer contracts command a premium.
+        # Phase 48a: structural term-length premium — longer contracts command higher margin.
         # A 2-year deal exposes the company to 2 years of price risk; CAL+2 trades above CAL+1.
-        term_premium = max(0.0, (term_months / 12.0) - 1.0) * TERM_LENGTH_PREMIUM_PCT_PER_YEAR
-        return base * (1.0 + risk_premium + term_premium)
+        structural_term_premium = max(0.0, (term_months / 12.0) - 1.0) * TERM_LENGTH_PREMIUM_PCT_PER_YEAR
+
+        # Phase 49: dynamic term structure slope — contango adds premium per tenor year,
+        # backwardation reduces it. Observed from short vs long EWMA of spot prices.
+        slope = _estimate_term_structure_slope(delivery_date, price_records)
+        tenor_years = term_months / 12.0
+        dynamic_slope_premium = slope * tenor_years
+
+        return base * (1.0 + risk_premium + structural_term_premium + dynamic_slope_premium)
 
 
 def compute_portfolio_premium(

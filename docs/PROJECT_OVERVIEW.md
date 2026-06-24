@@ -442,6 +442,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 49 — EWMA Base + Dynamic Term Structure Slope (2026-06-24)
+**Files:** `company/pricing/tariff_engine.py`, `tests/company/pricing/test_phase49_term_structure.py` (new)
+
+**What was built:**
+- `_compute_ewma(daily_means, half_life_days=30)`: exponentially weighted mean with 30-day half-life, replaces simple rolling mean as the base price estimate in `get_forward_price()`. Faster regime adaptation — recent prices weighted more than older prices.
+- `_estimate_term_structure_slope(delivery_date, price_records)`: compares 30-day EWMA vs 90-day EWMA to derive an annualised contango/backwardation slope. Positive in rising markets (contango), negative in falling markets (backwardation). Capped to `[TERM_SLOPE_FLOOR=-8%, TERM_SLOPE_CAP=+15%]` per year.
+- `get_forward_price()` applies `slope × tenor_years` as a dynamic premium on top of the Phase 48a structural term premium. In the 2021-22 crisis (strongly rising spot), long-dated I&C contracts now price higher; in falling markets they price lower.
+
+**Fidelity delta:** The company's forward price now reflects observable market direction. In a contango market a 2-year contract is priced above a 1-year contract by more than the fixed structural premium alone — matching how N2EX/NBP markets actually behave. The EWMA base (vs 120-day simple mean) adapts faster to regime changes, reducing the systematic underpricing lag during the 2021-22 price spike.
+
+**15 new tests (1,291 total).**
+
+---
+
 ### Phase 48a — Forward Curve Term-Length Premium (2026-06-24)
 **Files:** `company/pricing/tariff_engine.py`, `company/interfaces/sim_interface.py`, `tests/company/pricing/test_phase48a_term_premium.py` (new)
 
@@ -788,7 +802,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,276 tests (1,268 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
+- 1,291 tests (1,283 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

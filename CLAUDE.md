@@ -63,6 +63,9 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 49 COMPLETE (2026-06-24):** EWMA base + dynamic term structure slope — 15 new tests (1,291 passing).
+`company/pricing/tariff_engine.py`: `_compute_ewma()` (30-day half-life) replaces simple rolling mean as base estimate. `_estimate_term_structure_slope()` derives contango/backwardation from 30d vs 90d EWMA comparison, capped ±[8%,15%]/yr. Applied as `slope × tenor_years` premium in `get_forward_price()`. Flat-market behavior unchanged. Crisis periods (2021-22 rising spot) now price long-dated I&C contracts higher.
+
 **Phase 48a COMPLETE (2026-06-24):** Forward curve term-length premium — 7 new tests (1,276 passing).
 `company/pricing/tariff_engine.py`: `TERM_LENGTH_PREMIUM_PCT_PER_YEAR = 0.02`; `get_forward_price()` gains `term_months: int = 12`. Term premium = `max(0, term_months/12 - 1) × 2%` added to risk premium. Sub-12-month → 0. All existing callers default to 12 months (no sim output change). `SimInterface` and `LiveSimInterface` updated. Infrastructure ready for multi-year I&C contracts.
 
