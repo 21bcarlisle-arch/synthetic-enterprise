@@ -128,15 +128,18 @@ def run_simulation() -> bool:
     )
 
     processor = Path(__file__).parent / 'process_run_complete.py'
-    proc_result = subprocess.run(
-        [sys.executable, str(processor), str(marker)],
-        cwd=str(PROJECT_DIR),
-        timeout=600,
-    )
-    if proc_result.returncode == 0:
-        log('Auto-processed run complete marker')
-    else:
-        log('Auto-process failed (rc={}) -- marker left for Claude'.format(proc_result.returncode))
+    try:
+        proc_result = subprocess.run(
+            [sys.executable, str(processor), str(marker)],
+            cwd=str(PROJECT_DIR),
+            timeout=1200,  # process_run_complete has a 600s test timeout internally; give it room
+        )
+        if proc_result.returncode == 0:
+            log('Auto-processed run complete marker')
+        else:
+            log('Auto-process failed (rc={}) -- marker left for background_worker'.format(proc_result.returncode))
+    except subprocess.TimeoutExpired:
+        log('Auto-process timed out after 1200s -- marker left for background_worker')
 
     return True
 
