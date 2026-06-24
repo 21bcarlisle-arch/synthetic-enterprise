@@ -404,7 +404,14 @@ def make_acquired_customer(
 ) -> dict:
     """Build a fresh-market acquisition customer record cloned from a predecessor's
     property profile. Electricity only (no gas leg in Phase 8a).
+
+    Phase 50: stamps smart_meter based on rollout penetration at acquisition year.
     """
+    from saas.property_model import get_smart_meter_status
+    import random as _random
+    acq_year = int(acquisition_date[:4])
+    segment = predecessor.get("segment", "resi")
+    has_smart_meter = get_smart_meter_status(customer_id, acq_year, segment)
     return {
         "customer_id": customer_id,
         "successor_of": predecessor["customer_id"],
@@ -417,7 +424,8 @@ def make_acquired_customer(
         "eac_kwh": predecessor.get("eac_kwh", 3200),
         "commodity": "electricity",
         "contract_type": predecessor.get("contract_type", "fixed_1yr"),
-        "segment": predecessor["segment"],
+        "segment": segment,
+        "smart_meter": has_smart_meter,
         **({"profile_class": predecessor["profile_class"]} if "profile_class" in predecessor else {}),
     }
 

@@ -8,29 +8,27 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-24T19:47:21Z
+Last updated: 2026-06-24T19:50:30Z
 
-**Full Ollama run complete (2026-06-23, commit da36b38, 478s — stable):**
-- **Net margin: £382,598 | Gross: £5,173,555 | Treasury: £2,849,234 | SURVIVED**
-- All I&C tariff types active. Gas seasonal calibration. No admin event.
+**Phase 51 COMPLETE (2026-06-24):** ToU eligibility gate — 9 new tests (1,330 total).
+- `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
+- `simulation/run_phase2b.py`: ToU gate upgraded from `is_hh_customer` to `is_tou_eligible`
+- Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Phase 43b COMPLETE (2026-06-23)**: VaR-constrained trading desk.
-- `company/trading/hedge_decision.py`: EWMA vol estimate → 95% VaR constraint → hedge fraction
-- Per-term hedge fractions now adapt to market conditions (high vol → higher hedge mandate)
-- Bid-ask spread cost model (0.5-1.5%, N2EX calibrated). 15 new tests. 1,275+ total.
-- Integration: 93 contracts, 46,345 MWh hedged, £463k hedge P&L, £35k bid-ask cost.
+**Phase 50 COMPLETE (2026-06-24):** Smart meter rollout model — 30 new tests (1,321 total).
+- `saas/smart_meter_rollout.py` (new): UK rollout 2016-2025 (resi 10%→75%, SME 5%→57%, I&C 100%)
+- `saas/property_model.py`: `get_smart_meter_status(customer_id, year, segment)` — time-aware flag
+- `saas/customers.py`: `make_acquired_customer()` stamps `smart_meter` at acquisition year
 
-**Architecture Stages 2-4 COMPLETE (2026-06-23):**
-- Stage 2: discovery-agent.md — structured assumption-finding pipeline
-- Stage 3: epistemic-verifier.py — company/ barrier scan, gated in phase-close checklist
-- Stage 4: agent_protocol.py — AgentMessage + IntentType, 18 tests, live in sim-runner
+**Full Ollama run complete (2026-06-24, commit 5eb3b07, 520s):**
+- **Net margin: £5,163,503 | Gross: £5,229,257 | Treasury: £2,889,212 | SURVIVED**
+- 2020: -3.8% net | 2021: +3.2% net | 2022: +7.3% net (crisis profitable)
+- Cap-aware acquisition gate firing 2021-22. Ofgem cap compressing resi margins.
 
-**Website (poesys.net):**
-- robots.txt: Allow: / (permissive — all crawlers welcome)
-- System page: agent_status.json last updated 2026-06-23T11:34:41Z
-
-**Latest simulation results (2016–2025)** — auto-processed (520s / 9 min):
+**Latest simulation results (2016–2025):**
 - Net margin: £5,163,503.16 | Gross: £5,229,257.26 | Capital: £65,754
 - Treasury: £2,466,636 → £2,889,212 | 50 committee interventions | 1549 bills issued
 - Enterprise value: £5,666,754.67 | Net after CTS: £5,129,437
 - Retention: 18 offers, 17/18 retained | 4 no-offer churns | 5 total churned accounts
+
+**Test suite: 1,330 total (694 saas+company confirmed passing, simulation+background running)**

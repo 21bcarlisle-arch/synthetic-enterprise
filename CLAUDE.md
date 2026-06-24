@@ -63,6 +63,12 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 51 COMPLETE (2026-06-24):** ToU eligibility gate broadened to smart-meter customers — 9 new tests (1,330 passing).
+`saas/smart_meter_rollout.py`: `is_tou_eligible(customer)` — True if `metering=="HH"` OR `smart_meter==True`. `simulation/run_phase2b.py`: ToU gate upgraded from `is_hh_customer()` to `is_tou_eligible()`. Acquired customers with smart meters now receive peak/off-peak ToU pricing (profile-class consumption shape). Phase 5 smart tariff stack: pricing infrastructure complete.
+
+**Phase 50 COMPLETE (2026-06-24):** Smart meter rollout model — 30 new tests (1,321 passing).
+`saas/smart_meter_rollout.py` (new): `get_penetration(year, segment)`, `get_new_install_probability()`, `should_upgrade_to_hh()`. Resi 10%→75% (2016-2025), SME 5%→57%, I&C 100% (BSC P272 mandate). `saas/property_model.py`: `get_smart_meter_status(customer_id, year, segment)` — time-aware flag (static for known customers, rollout-probabilistic for acquired). `saas/customers.py`: `make_acquired_customer()` stamps `smart_meter` at acquisition year. Gates Phase 51 ToU tariff eligibility.
+
 **Phase 49 COMPLETE (2026-06-24):** EWMA base + dynamic term structure slope — 15 new tests (1,291 passing).
 `company/pricing/tariff_engine.py`: `_compute_ewma()` (30-day half-life) replaces simple rolling mean as base estimate. `_estimate_term_structure_slope()` derives contango/backwardation from 30d vs 90d EWMA comparison, capped ±[8%,15%]/yr. Applied as `slope × tenor_years` premium in `get_forward_price()`. Flat-market behavior unchanged. Crisis periods (2021-22 rising spot) now price long-dated I&C contracts higher.
 
@@ -111,12 +117,6 @@ Committee overrides still take precedence.
 Net-negative electricity customers receive £3/MWh uplift at renewal. Churn model handles consequence.
 `saas/tariff_pricing.py`: `profitability_uplift_per_mwh` param. Run output: `profitability_uplift_log`.
 Closes "Pricing actions not implemented" Known Gap.
-
-**Phase 43b COMPLETE (2026-06-23):** VaR-constrained trading desk — 15 new tests (1,275+ passing).
-`company/trading/hedge_decision.py`: `estimate_price_volatility()` (EWMA, 90-day lookback),
-`decide_hedge_fraction()` (95% VaR ≤ 15% of term revenue), `compute_bid_ask_cost()` (0.5-1.5%).
-`simulation/run_phase2b.py`: per-term VaR hedge decision replaces static RESET_HEDGE_FRACTION.
-`saas/reporting/annual_report.py`: `_section_trading_pnl()` — hedge P&L year-by-year with bid-ask.
 
 **Architecture Stages 2-4 COMPLETE (2026-06-23):** All four stages done.
 - Stage 2: `.claude/agents/discovery-agent.md` — scoped to market_research/, structured findings.

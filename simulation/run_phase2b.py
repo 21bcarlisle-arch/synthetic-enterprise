@@ -51,6 +51,7 @@ from saas.property_model import (
     DEFAULT_OCCUPANCY_PATTERN,
     build_properties,
 )
+from saas.smart_meter_rollout import is_tou_eligible
 from saas.tariff_pricing import TOU_OFFPEAK_MULTIPLIER, TOU_PEAK_MULTIPLIER, price_fixed_tariff
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
@@ -1109,10 +1110,12 @@ def main(report_end: str | None = None, sim_interface=None):
                 counterfactual_risk = assess_term_risk(term_start_str, float(eac_kwh), forward_price, elec_records)
                 current_risk[cid] = risk
 
-                # HH (smart meter) customers get ToU pricing — flat unit_rate is the
+                # HH or smart-meter customers get ToU pricing — flat unit_rate is the
                 # base; peak/off-peak rates are derived from it via the ToU multipliers.
+                # Phase 51: is_tou_eligible() broadens the gate to acquired customers
+                # with smart_meter=True (stamped at acquisition by Phase 50 rollout model).
                 tou_rates = None
-                if is_hh_customer(customer):
+                if is_tou_eligible(customer):
                     tou_rates = (unit_rate * TOU_PEAK_MULTIPLIER, unit_rate * TOU_OFFPEAK_MULTIPLIER)
 
                 term_records = run_hedged_term(

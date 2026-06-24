@@ -23,6 +23,7 @@ Seeded from the existing `saas/customers.py` roster:
 
 This module is pure: plain dicts in, plain dicts out. No imports from `sim/`.
 """
+import random as _random
 
 PROPERTY_TYPE_BY_HOME_TYPE = {
     "urban_flat": "flat",
@@ -98,3 +99,26 @@ def build_properties(customers: list[dict]) -> dict:
             "assets": dict(ASSET_PROFILE_BY_CUSTOMER.get(cid, DEFAULT_ASSETS)),
         }
     return properties
+
+
+def get_smart_meter_status(customer_id: str, year: int, segment: str = "resi") -> bool:
+    """Return True if customer has a smart meter by year-end.
+
+    For known static customers, uses ASSET_PROFILE_BY_CUSTOMER directly
+    (their initial status is authoritative).
+
+    For acquired customers (not in the profile table), uses the smart meter
+    rollout penetration rate for the segment and year with a deterministic
+    RNG seeded by customer_id. The penetration rate is monotonically increasing,
+    so once a customer crosses the threshold they keep their smart meter in all
+    subsequent years.
+
+    Phase 50: enables ToU eligibility gate in Phase 51 without changing billing.
+    """
+    if customer_id in ASSET_PROFILE_BY_CUSTOMER:
+        return ASSET_PROFILE_BY_CUSTOMER[customer_id]["smart_meter"]
+
+    from saas.smart_meter_rollout import get_penetration
+    rng_roll = _random.Random(f"smart_meter_{customer_id}").random()
+    penetration = get_penetration(year, segment)
+    return rng_roll < penetration

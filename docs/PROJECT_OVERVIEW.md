@@ -442,6 +442,33 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 51 — ToU Eligibility Gate Broadened (2026-06-24)
+**Files:** `saas/smart_meter_rollout.py`, `simulation/run_phase2b.py`, `tests/saas/test_phase51_tou_eligibility.py` (new)
+
+**What was built:**
+- `is_tou_eligible(customer: dict)` added to `saas/smart_meter_rollout.py`: returns True if `customer.get("metering") == "HH"` (original HH-metered customers) OR `customer.get("smart_meter", False) is True` (acquired customers with Phase 50 rollout-stamped smart meter).
+- `simulation/run_phase2b.py`: ToU pricing gate at line 1115 upgraded from `is_hh_customer(customer)` to `is_tou_eligible(customer)`. The HH consumption shape path (line 1061) remains gated on `is_hh_customer` — HH reads only apply to customers with actual HH data files.
+
+**Fidelity delta:** Smart-meter acquired customers now receive peak/off-peak Time-of-Use pricing on their electricity contract. In 2024, ~72% of acquired resi customers have smart meters and pay ToU rates. This is how UK suppliers run Agile/Economy 7 tariffs in practice: smart meter enables ToU pricing even before true HH settlement is available. The Phase 5 smart tariff infrastructure is now complete for resi customers.
+
+**9 new tests (1,330 total).**
+
+---
+
+### Phase 50 — Smart Meter Rollout Model (2026-06-24)
+**Files:** `saas/smart_meter_rollout.py` (new), `saas/property_model.py`, `saas/customers.py`, `tests/saas/test_smart_meter_rollout.py` (new), `tests/saas/test_phase50_smart_meter_integration.py` (new)
+
+**What was built:**
+- `saas/smart_meter_rollout.py`: `get_penetration(year, segment)` — UK smart meter stock penetration by segment (resi 10%→75% 2016-2025, SME 5%→57%, I&C 100% per BSC P272/P322 mandate). `get_new_install_probability(year, segment)` — annual probability a NHH customer gets a smart meter (derived from penetration delta / remaining NHH base). `should_upgrade_to_hh(year, segment, rng_value)` — deterministic Boolean roll. `is_hh_eligible(metering)` — ToU gate.
+- `saas/property_model.py`: `get_smart_meter_status(customer_id, year, segment)` — time-aware flag. Static profile for known customers (ASSET_PROFILE_BY_CUSTOMER); for acquired customers, uses `get_penetration()` with deterministic RNG seeded by `customer_id`. Same customer always gets the same answer for a given year; monotonic (if True in year Y, True in Y+1).
+- `saas/customers.py`: `make_acquired_customer()` stamps `smart_meter: bool` based on rollout penetration at acquisition year. Earlier acquisitions have lower probability; I&C always True.
+
+**Fidelity delta:** The simulation now tracks smart meter adoption over the 2016-2025 UK rollout. Acquired customers in 2016 have ~10% probability of a smart meter; by 2024 that's ~72%. This gates Phase 51 (Time-of-Use tariffs): only HH-metered/smart-meter customers are eligible. The company can observe its own smart meter penetration and know what fraction of its portfolio can be offered ToU products.
+
+**30 new tests (1,321 total).**
+
+---
+
 ### Phase 49 — EWMA Base + Dynamic Term Structure Slope (2026-06-24)
 **Files:** `company/pricing/tariff_engine.py`, `tests/company/pricing/test_phase49_term_structure.py` (new)
 
@@ -802,7 +829,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,291 tests (1,283 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
+- 1,330 tests (1,322 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
