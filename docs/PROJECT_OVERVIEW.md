@@ -442,6 +442,21 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 48a — Forward Curve Term-Length Premium (2026-06-24)
+**Files:** `company/pricing/tariff_engine.py`, `company/interfaces/sim_interface.py`, `tests/company/pricing/test_phase48a_term_premium.py` (new)
+
+**What was built:**
+- `TERM_LENGTH_PREMIUM_PCT_PER_YEAR = 0.02` in `tariff_engine.py`: 2% per year of contract duration beyond 12 months.
+- `get_forward_price()` gains `term_months: int = 12` parameter. `term_premium = max(0, (term_months/12 - 1)) × 0.02` added to the risk premium in the final price: `base × (1 + risk_premium + term_premium)`.
+- Applied additively: a 2-year contract gets +2% on the base, a 3-year gets +4%. Sub-12-month terms get no premium (floor at 0). All existing callers default to 12 months — no change to current simulation outputs.
+- `SimInterface.get_forward_price()` and `LiveSimInterface.get_forward_price()` updated with `term_months` parameter.
+
+**Fidelity delta:** UK forward markets (NBP/EPEX) price CAL+2 1–4% above CAL+1 (Bloomberg/Refinitiv). Real I&C contracts reflect this term structure: a 2-year fixed deal commands a premium over a 1-year deal because the supplier locks in more price risk. The SIM forward curve now models this term structure, making multi-year I&C pricing realistic.
+
+**7 new tests (1,283+ total).**
+
+---
+
 ### Phase 46a — Gas Risk Premium Further Reduced (2026-06-23)
 **Files:** `company/pricing/tariff_engine.py`, `tests/company/pricing/test_phase45c_risk_premium.py`, `tests/company/pricing/test_tariff_engine.py`
 
@@ -773,7 +788,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,270+ tests (1,262 non-integration SIM_FAST_MODE=1, 8 integration); full suite with Ollama ~40 min
+- 1,283+ tests (1,275 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -404,12 +404,18 @@ def session_exists() -> bool:
 
 
 def claude_is_running() -> bool:
+    # Primary check: is `claude` or `node` the foreground command in the tmux pane?
     result = subprocess.run(
         ["tmux", "list-panes", "-t", SESSION_NAME, "-F", "#{pane_current_command}"],
         capture_output=True, text=True,
     )
     output = result.stdout.lower()
-    return "claude" in output or "node" in output
+    if "claude" in output or "node" in output:
+        return True
+    # Fallback: a live `claude` process running outside the tmux pane (e.g. desktop/web app).
+    # pgrep -x matches the process name exactly to avoid false positives from scripts.
+    pgrep = subprocess.run(["pgrep", "-x", "claude"], capture_output=True)
+    return pgrep.returncode == 0
 
 
 def capture_pane() -> str:
@@ -628,9 +634,12 @@ def restart_claude(resume: bool = False) -> None:
     """
     if restarts_in_last_hour() >= MAX_RESTARTS_PER_HOUR:
         msg = (f"Session watchdog: restart cap reached "
-               f"({MAX_RESTARTS_PER_HOUR}/hour) — manual intervention needed.")
+               f"({MAX_RESTARTS_PER_HOUR}/hour) — pausing 60 min before resuming.")
         log(msg)
         ntfy(msg, needs_input=True)
+        # Sleep before returning so the main loop doesn't immediately re-trigger
+        # and spam NTFY with repeated "session ended" messages.
+        time.sleep(3600)
         return
 
     log(f"Restarting Claude Code (normal permissions, no skip flag, resume={resume})")

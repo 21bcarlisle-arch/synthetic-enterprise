@@ -35,11 +35,12 @@ class SimInterface:
         """
         raise NotImplementedError
 
-    def get_forward_price(self, fuel: str, delivery_date: str) -> float:
+    def get_forward_price(self, fuel: str, delivery_date: str, term_months: int = 12) -> float:
         """What is the forward price for this fuel on the delivery date?
 
         fuel: 'electricity' or 'gas'
         delivery_date: ISO date string
+        term_months: contract duration (default 12); longer terms command a term-structure premium
         Returns: forward price in £/MWh
         """
         raise NotImplementedError
@@ -126,7 +127,7 @@ class StubSimInterface(SimInterface):
             "_stub": True,
         }
 
-    def get_forward_price(self, fuel: str, delivery_date: str) -> float:
+    def get_forward_price(self, fuel: str, delivery_date: str, term_months: int = 12) -> float:
         defaults = {"electricity": 120.0, "gas": 50.0}
         return defaults.get(fuel, 100.0)
 
@@ -186,11 +187,11 @@ class LiveSimInterface(SimInterface):
 
     Observability audit (Phase 12e) — every value the company receives:
 
-    get_forward_price(fuel, delivery_date)
+    get_forward_price(fuel, delivery_date, term_months=12)
         OBSERVABLE. Calls CompanyTariffEngine which reads Elexon spot price
         history and NBP TTF proxy — both available to any market participant.
-        Uses a 120-day rolling mean + 15% risk premium. No SIM forward curve
-        internals accessed.
+        Uses a 120-day rolling mean + risk premium + term-length premium (Phase 48a).
+        No SIM forward curve internals accessed.
 
     get_settlement_data(mpan, period)
         STUB — returns zeros. In production would be observable (meter reads).
@@ -247,9 +248,9 @@ class LiveSimInterface(SimInterface):
                 raise ValueError(f"Unknown fuel: {fuel}")
         return self._price_cache[fuel]
 
-    def get_forward_price(self, fuel: str, delivery_date: str) -> float:
+    def get_forward_price(self, fuel: str, delivery_date: str, term_months: int = 12) -> float:
         records = self._load_price_records(fuel)
-        return self._engine.get_forward_price(fuel, delivery_date, records)
+        return self._engine.get_forward_price(fuel, delivery_date, records, term_months=term_months)
 
     def get_settlement_data(self, mpan: str, period: str) -> dict[str, Any]:
         return {

@@ -64,6 +64,9 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 48a COMPLETE (2026-06-24):** Forward curve term-length premium — 7 new tests (1,283+ passing).
+`company/pricing/tariff_engine.py`: `TERM_LENGTH_PREMIUM_PCT_PER_YEAR = 0.02`; `get_forward_price()` gains `term_months: int = 12`. Term premium = `max(0, term_months/12 - 1) × 2%` added to risk premium. Sub-12-month → 0. All existing callers default to 12 months (no sim output change). `SimInterface` and `LiveSimInterface` updated. Infrastructure ready for multi-year I&C contracts.
+
 **Phase 47b COMPLETE (2026-06-24):** Cap-aware acquisition gate — 10 new tests (1,270+ passing).
 `saas/growth_mandate.py`: `should_attempt_acquisition()` — gate fires when Ofgem cap < company_fwd (selling below wholesale cost). Applied in `simulation/run_phase2b.py` before `roll_acquisition()`. Crisis-year pause emerges from economics, not hard-coded years.
 
@@ -117,11 +120,6 @@ Closes "Pricing actions not implemented" Known Gap.
 - Stage 2: `.claude/agents/discovery-agent.md` — scoped to market_research/, structured findings.
 - Stage 3: `.claude/agents/epistemic-verifier.md` + `tools/epistemic_verifier.py` — in phase-close checklist.
 - Stage 4: `background/agent_protocol.py` — `AgentMessage` + `IntentType`, 18 tests, live in sim_runner.
-
-**Tests:** 1,250+ passing (1,242 non-integration `SIM_FAST_MODE=1`, 8 integration).
-
-**Latest run (2026-06-23, commit 467debd):** Net £678,588 | Gross £5,468,296 |
-Treasury £3,145,224 | SURVIVED.
 
 **Active phases (30a–42):** Full policy cost stack (RO, CfD, CCL, CM, FiT, GGL), gas policy
 costs, all 4 I&C tariff types (fixed / pass-through / deemed / flex), active/passive renewal

@@ -40,6 +40,7 @@ COMPANY_LOOKBACK_DAYS = 120
 # only affects fixed-term gas tariffs where company takes wholesale price risk.
 COMPANY_RISK_PREMIUM_FRACTION = 0.08
 GAS_RISK_PREMIUM_FRACTION = 0.05    # Phase 20a: gas higher basis risk; 45c: 20%→10%; 46a: 10%→5%
+TERM_LENGTH_PREMIUM_PCT_PER_YEAR = 0.02  # Phase 48a: 2% per year beyond 12m (forward curve term structure)
 MIN_RECORDS_FOR_ESTIMATE = 30
 
 SEASONAL_UPLIFT_ENABLED = True
@@ -195,6 +196,7 @@ class CompanyTariffEngine:
         seasonal: bool = SEASONAL_UPLIFT_ENABLED,
         adaptive_lookback: bool = ADAPTIVE_LOOKBACK_ENABLED,
         regime_detect: bool = REGIME_DETECT_ENABLED,
+        term_months: int = 12,
     ) -> float:
         """Estimate forward price from observable spot history.
 
@@ -259,7 +261,10 @@ class CompanyTariffEngine:
             regime_prem = _compute_regime_premium(delivery_date, price_records)
             base *= (1.0 + regime_prem)
 
-        return base * (1.0 + risk_premium)
+        # Phase 48a: forward curve term structure — longer contracts command a premium.
+        # A 2-year deal exposes the company to 2 years of price risk; CAL+2 trades above CAL+1.
+        term_premium = max(0.0, (term_months / 12.0) - 1.0) * TERM_LENGTH_PREMIUM_PCT_PER_YEAR
+        return base * (1.0 + risk_premium + term_premium)
 
 
 def compute_portfolio_premium(
