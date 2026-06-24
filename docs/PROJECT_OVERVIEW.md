@@ -453,7 +453,7 @@ Net after CTS:               £7,498
 
 **Fidelity delta:** UK forward markets (NBP/EPEX) price CAL+2 1–4% above CAL+1 (Bloomberg/Refinitiv). Real I&C contracts reflect this term structure: a 2-year fixed deal commands a premium over a 1-year deal because the supplier locks in more price risk. The SIM forward curve now models this term structure, making multi-year I&C pricing realistic.
 
-**7 new tests (1,283+ total).**
+**7 new tests (1,276 total).**
 
 ---
 
@@ -788,7 +788,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,283+ tests (1,275 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
+- 1,276 tests (1,268 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

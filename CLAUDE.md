@@ -64,7 +64,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
-**Phase 48a COMPLETE (2026-06-24):** Forward curve term-length premium — 7 new tests (1,283+ passing).
+**Phase 48a COMPLETE (2026-06-24):** Forward curve term-length premium — 7 new tests (1,276 passing).
 `company/pricing/tariff_engine.py`: `TERM_LENGTH_PREMIUM_PCT_PER_YEAR = 0.02`; `get_forward_price()` gains `term_months: int = 12`. Term premium = `max(0, term_months/12 - 1) × 2%` added to risk premium. Sub-12-month → 0. All existing callers default to 12 months (no sim output change). `SimInterface` and `LiveSimInterface` updated. Infrastructure ready for multi-year I&C contracts.
 
 **Phase 47b COMPLETE (2026-06-24):** Cap-aware acquisition gate — 10 new tests (1,270+ passing).
