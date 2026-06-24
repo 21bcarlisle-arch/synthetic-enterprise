@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-24T01:57:42Z
+Last updated: 2026-06-24T02:06:05Z
 
 **Full Ollama run complete (2026-06-23, commit da36b38, 478s — stable):**
 - **Net margin: £382,598 | Gross: £5,173,555 | Treasury: £2,849,234 | SURVIVED**
@@ -29,7 +29,7 @@ Last updated: 2026-06-24T01:57:42Z
 - robots.txt: Allow: / (permissive — all crawlers welcome)
 - System page: agent_status.json last updated 2026-06-23T11:34:41Z
 
-**Latest simulation results (2016–2025)** — auto-processed (425s / 7 min):
+**Latest simulation results (2016–2025)** — auto-processed (428s / 7 min):
 - Net margin: £5,122,073.96 | Gross: £5,187,169.23 | Capital: £65,095
 - Treasury: £2,466,636 → £2,848,790 | 38 committee interventions | 1569 bills issued
 - Enterprise value: £5,500,787.15 | Net after CTS: £5,087,309
