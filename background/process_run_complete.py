@@ -12,6 +12,7 @@ STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 DONE_DIR = STAGING_DIR / "done"
 LATEST_MD = PROJECT_DIR / "docs" / "status" / "LATEST.md"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
+LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_hash"
 sys.path.insert(0, str(PROJECT_DIR))
 
 
@@ -98,8 +99,13 @@ def update_latest_md(data, elapsed_s):
     LATEST_MD.write_text(text)
 
 
-def run_fast_tests():
-    """Returns (passed: bool, timed_out: bool)."""
+def run_fast_tests(git_hash: str):
+    """Returns (passed: bool, timed_out: bool). Skips if git_hash already tested."""
+    if LAST_TESTED_HASH_FILE.exists():
+        if LAST_TESTED_HASH_FILE.read_text().strip() == git_hash:
+            log("Tests skipped — already passed for git={}".format(git_hash))
+            return True, False
+
     full_env = dict(os.environ)
     full_env["SIM_FAST_MODE"] = "1"
     try:
@@ -118,6 +124,8 @@ def run_fast_tests():
             env=full_env,
             timeout=600,
         )
+        if result.returncode == 0:
+            LAST_TESTED_HASH_FILE.write_text(git_hash)
         return result.returncode == 0, False
     except subprocess.TimeoutExpired:
         # Timeout is a resource constraint, not a test failure — warn but don't block commit
@@ -225,7 +233,7 @@ def main(marker_path_str):
         log("Revenue sanity check skipped: {}".format(exc))
 
     log("Running fast test suite (SIM_FAST_MODE=1)")
-    tests_ok, timed_out = run_fast_tests()
+    tests_ok, timed_out = run_fast_tests(git_hash)
     if not tests_ok:
         log("Tests FAILED - not committing")
         return 1
