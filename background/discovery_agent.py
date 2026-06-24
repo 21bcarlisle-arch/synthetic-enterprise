@@ -232,7 +232,15 @@ def main() -> None:
         if not daemon:
             break
         log(f"Next cycle in {interval_hours}h — sleeping")
-        time.sleep(interval_hours * 3600)
+        _sleep_remaining = int(interval_hours * 3600)
+        _heartbeat_interval = 300  # heartbeat every 5 minutes during long sleep
+        while _sleep_remaining > 0:
+            _chunk = min(_heartbeat_interval, _sleep_remaining)
+            time.sleep(_chunk)
+            _sleep_remaining -= _chunk
+            if _sleep_remaining > 0:
+                update_agent_status("discovery-daemon", status="idle",
+                                    last_action=f"Waiting for next cycle ({_sleep_remaining//3600}h {(_sleep_remaining%3600)//60}m remaining)")
 
 
 if __name__ == "__main__":

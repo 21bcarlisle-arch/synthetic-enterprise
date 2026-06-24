@@ -62,6 +62,7 @@ def main():
         if is_peak_hours():
             now = datetime.now(timezone.utc)
             log(f"Peak hours (16:00-19:00 GMT) — pausing. Current time: {now.strftime('%H:%M UTC')}")
+            update_agent_status("background-worker", status="idle", last_action=f"Peak hours pause — {now.strftime('%H:%M UTC')}")
             time.sleep(60 * 15)  # check every 15min during peak
             continue
 

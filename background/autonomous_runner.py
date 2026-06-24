@@ -200,6 +200,10 @@ def main() -> None:
                 log(f"Autonomous turn completed (pid={_active_proc.pid}, rc={rc})")
                 update_agent_status("autonomous-runner", status="idle", last_action=f"Turn completed (rc={rc})")
                 _active_proc = None
+            elif _active_proc is not None:
+                update_agent_status("autonomous-runner", status="working", last_action="Autonomous turn running")
+            else:
+                update_agent_status("autonomous-runner", status="idle", last_action="Polling — idle")
 
             idle = idle_seconds()
 

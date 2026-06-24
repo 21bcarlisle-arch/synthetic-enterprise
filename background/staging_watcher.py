@@ -109,12 +109,15 @@ def main() -> None:
     )
 
     while True:
+        # Heartbeat at top of every cycle — independent of check_once success/failure
+        try:
+            update_agent_status("staging-watcher", status="idle", last_action=f"Heartbeat — {len(seen)} files tracked")
+        except Exception:
+            pass
         try:
             seen = check_once(seen)
-            update_agent_status("staging-watcher", status="idle", last_action=f"Poll complete — {len(seen)} files tracked")
         except Exception as e:
             log(f"Watcher error: {e}")
-            update_agent_status("staging-watcher", status="error", last_action=f"Error: {e}", anomaly=str(e))
         time.sleep(POLL_INTERVAL_SECONDS)
 
 

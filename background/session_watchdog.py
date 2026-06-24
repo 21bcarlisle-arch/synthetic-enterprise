@@ -960,6 +960,8 @@ def main() -> None:
             if not session_exists() or not claude_is_running():
                 consecutive_down += 1
                 log(f"Claude Code not detected (check {consecutive_down}/2)")
+                update_agent_status("session-watchdog", status="idle",
+                                    last_action=f"CC not detected (check {consecutive_down}/2)")
                 if consecutive_down >= 2:
                     handle_session_ended()
                     consecutive_down = 0
