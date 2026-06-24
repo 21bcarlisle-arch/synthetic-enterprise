@@ -47,6 +47,29 @@ def run_ollama_task(prompt: str, task_name: str) -> str:
     log(f"Task complete: {task_name}")
     return result.stdout
 
+STAGING_DIR = Path("docs/staging")
+DONE_DIR = STAGING_DIR / "done"
+
+
+def process_leftover_run_markers():
+    """Process any run_complete_*.md markers that process_run_complete.py left behind."""
+    markers = sorted(STAGING_DIR.glob("run_complete_*.md"))
+    if not markers:
+        return
+    log(f"Found {len(markers)} leftover run_complete marker(s) — processing")
+    processor = Path(__file__).parent / "process_run_complete.py"
+    for marker in markers:
+        result = subprocess.run(
+            [sys.executable, str(processor), str(marker)],
+            cwd=str(Path(__file__).resolve().parent.parent),
+            timeout=900,
+        )
+        if result.returncode == 0:
+            log(f"Processed {marker.name}")
+        else:
+            log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next cycle")
+
+
 def main():
     from background.agent_status import update_agent_status
     log("Background worker started")
@@ -59,6 +82,12 @@ def main():
     )
 
     while True:
+        # Always check for leftover run_complete markers first, regardless of peak hours
+        try:
+            process_leftover_run_markers()
+        except Exception as exc:
+            log(f"process_leftover_run_markers error: {exc}")
+
         if is_peak_hours():
             now = datetime.now(timezone.utc)
             log(f"Peak hours (16:00-19:00 GMT) — pausing. Current time: {now.strftime('%H:%M UTC')}")
