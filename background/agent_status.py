@@ -28,6 +28,41 @@ def _load() -> dict:
     return {"_schema_version": "1", "last_updated": _now_iso(), "agents": []}
 
 
+
+def update_sim_metrics(
+    *,
+    phase: int,
+    tests_passing: int,
+    treasury_gbp: float = 0.0,
+    net_margin_gbp: float = 0.0,
+    enterprise_value_gbp: float = 0.0,
+) -> None:
+    """Update top-level simulation metrics in agent_status.json."""
+    STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(STATUS_FILE, "a+") as lockfile:
+        fcntl.flock(lockfile, fcntl.LOCK_EX)
+        try:
+            data = _load()
+            if phase:
+                data["phase"] = phase
+            if tests_passing:
+                data["tests_passing"] = tests_passing
+            if treasury_gbp:
+                data["treasury_gbp"] = treasury_gbp
+            if net_margin_gbp:
+                data["net_margin_gbp"] = net_margin_gbp
+            if enterprise_value_gbp:
+                data["enterprise_value_gbp"] = enterprise_value_gbp
+            data["last_updated"] = _now_iso()
+
+            payload = json.dumps(data, indent=2)
+            STATUS_FILE.write_text(payload)
+            SITE_STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
+            SITE_STATUS_FILE.write_text(payload)
+        finally:
+            fcntl.flock(lockfile, fcntl.LOCK_UN)
+
 def update_agent_status(
     name: str,
     *,

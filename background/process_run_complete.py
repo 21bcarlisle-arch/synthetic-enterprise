@@ -248,6 +248,21 @@ def main(marker_path_str):
     marker.rename(DONE_DIR / marker.name)
     log("Moved {} to done/".format(marker.name))
 
+    # Keep agent_status.json financial metrics current (phase/tests preserved by phase-close)
+    try:
+        import json as _json
+        from background.agent_status import update_sim_metrics, STATUS_FILE
+        _existing = _json.loads(STATUS_FILE.read_text()) if STATUS_FILE.exists() else {}
+        update_sim_metrics(
+            phase=_existing.get("phase", 0),
+            tests_passing=_existing.get("tests_passing", 0),
+            treasury_gbp=data.get("final_treasury_gbp", 0),
+            net_margin_gbp=data.get("total_net_gbp", 0),
+            enterprise_value_gbp=data.get("enterprise_value_gbp", 0),
+        )
+    except Exception as exc:
+        log("agent_status metrics update skipped: {}".format(exc))
+
     maybe_ntfy(data, net_margin)
     log("Done")
     return 0
