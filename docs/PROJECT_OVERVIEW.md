@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-24. 375+ commits. 1,262 non-integration tests. Codebase: ~22,000 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 390+ commits. 1,403 tests (1,395 non-simulation, 8 integration). Codebase: ~22,000 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -894,8 +894,8 @@ Phase 21a adds RO + CfD. Network charges (DUoS ~£15–20/MWh, TNUoS ~£5–8/MW
 ### ~~BSC credit cover not modeled as working capital~~ — CLOSED Phase 53
 `saas/capital/bsc_credit.py` computes peak daily wholesale × 1.2 buffer; 2022 crisis shows 363× increase vs 2016.
 
-### Solvency / per-customer net assets
-Ofgem licence requires positive net assets per customer (floor: £0; target: £130/dual-fuel customer). Not yet computed or tracked in reporting. Future phase target.
+### ~~Solvency / per-customer net assets~~ — CLOSED Phase 55
+`saas/capital/solvency.py`: `compute_solvency_signal(treasury, customers)` → OK/Watch/STRESS. MCR floor £130/dual-fuel account; Watch < 2×, STRESS < 1×. MCR ratio column in annual report.
 
 ### Company layer full operational independence
 The `company/` layer has own models (tariff engine, churn model, event log, retention decisions, margin feedback). But it still shares code-execution paths with SIM — it is not a fully independent runtime. True operational independence (company runs its own end-to-end simulation against observable market data only) is the long-horizon goal.
@@ -912,17 +912,17 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
-- 370+ git commits
-- 1,403 tests (1,395 non-simulation SIM_FAST_MODE=1, 8 integration); full suite ~40 min
+- 390+ git commits
+- 1,403 tests; full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 57, 2026-06-25, commit f40ed0d):**
-- Net P&L £326,682 | Gross £5,119,568 | Treasury £2,793,319 | SURVIVED
-- Mutualization levy compresses net margins in 2021-2022 crisis years.
+**Latest full run (Phase 57, 2026-06-25, commit e2941ac):**
+- Net P&L £326,072 | Gross £5,449,340 | Treasury £2,792,708 | SURVIVED
+- Bad debt (year-varying) + mutualization levy compress net margins in 2021-2022 crisis years.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
