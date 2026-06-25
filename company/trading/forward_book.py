@@ -105,6 +105,55 @@ class TradingBook:
     def open_contracts(self) -> list[ForwardContract]:
         return list(self._contracts)
 
+
+    def mark_to_market(self, contract: ForwardContract, current_price_gbp_per_mwh: float) -> dict:
+        """MTM value of one contract at current market price.
+
+        MTM P&L = (current_market_price - agreed_price) x notional_mwh.
+        Positive = contract in-the-money (locked in below current market).
+        Negative = contract out-of-the-money (locked in above current market).
+        """
+        mtm_pnl = (current_price_gbp_per_mwh - contract.agreed_price_gbp_per_mwh) * contract.notional_mwh
+        return {
+            "customer_id": contract.customer_id,
+            "term_start": contract.term_start,
+            "notional_mwh": round(contract.notional_mwh, 3),
+            "agreed_price": round(contract.agreed_price_gbp_per_mwh, 4),
+            "market_price": round(current_price_gbp_per_mwh, 4),
+            "mtm_pnl_gbp": round(mtm_pnl, 2),
+            "in_the_money": mtm_pnl > 0,
+        }
+
+    def portfolio_mtm(self, current_prices: dict[str, float]) -> dict:
+        """Portfolio-level MTM valuation.
+
+        current_prices: {customer_id: current_forward_price_gbp_per_mwh}
+        Uses the contract's customer_id to look up the current price.
+        Returns {total_mtm_pnl_gbp, positions_in_the_money, positions_out_of_money, positions}.
+        """
+        positions = []
+        total = 0.0
+        in_money = 0
+        out_money = 0
+        for c in self._contracts:
+            price = current_prices.get(c.customer_id)
+            if price is None:
+                continue
+            pos = self.mark_to_market(c, price)
+            positions.append(pos)
+            total += pos["mtm_pnl_gbp"]
+            if pos["in_the_money"]:
+                in_money += 1
+            else:
+                out_money += 1
+        return {
+            "total_mtm_pnl_gbp": round(total, 2),
+            "positions_priced": len(positions),
+            "positions_in_the_money": in_money,
+            "positions_out_of_money": out_money,
+            "positions": positions,
+        }
+
     def summary(self) -> dict:
         return {
             "contract_count": self.contract_count,

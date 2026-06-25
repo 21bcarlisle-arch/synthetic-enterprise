@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T22:11:08Z
+Last updated: 2026-06-25T22:13:31Z
+
+**Phase 71 COMPLETE (2026-06-25):** T3 Mark-to-Market -- 10 new tests (1,572 total).
+- `company/trading/forward_book.py`: mark_to_market() + portfolio_mtm() methods added to TradingBook
+- MTM = (market_price - agreed_price) x notional_mwh per contract; portfolio rollup
+- T3 closed -- trading book now has daily valuation capability
 
 **Phase 70 COMPLETE (2026-06-25):** FI3 Treasury Management -- 12 new tests (1,562 total).
 - `company/finance/treasury.py` (new): working capital, cash trend, project_treasury(), treasury_health()
@@ -102,7 +107,7 @@ Last updated: 2026-06-25T22:11:08Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,562 total (all saas/company/tools passing)**
+**Test suite: 1,572 total (all saas/company/tools passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

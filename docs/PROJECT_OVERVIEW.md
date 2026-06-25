@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,562 tests (1,554 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,572 tests (1,564 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 71 -- T3 Mark-to-Market Valuation (2026-06-25)
+**Files:** `company/trading/forward_book.py` (extended), `tests/company/trading/test_mtm.py` (new)
+
+**What was built:**
+- `TradingBook.mark_to_market(contract, current_price)`: MTM value of one contract. MTM P&L = (market_price - agreed_price) x notional_mwh. Returns {customer_id, term_start, notional_mwh, agreed_price, market_price, mtm_pnl_gbp, in_the_money}.
+- `TradingBook.portfolio_mtm(current_prices_by_customer)`: portfolio rollup. Accepts {customer_id: price} dict; skips contracts with no price. Returns {total_mtm_pnl_gbp, positions_priced, positions_in_the_money, positions_out_of_money, positions[]}.
+- Current market prices injected as a parameter (company's observable forward price from tariff engine -- no SIM internals).
+
+**Fidelity delta:** The trading book now has daily valuation. Pre-crisis 2021 Q4: forwards agreed at £50-70/MWh, market now £150+, portfolio deeply in-the-money. Post-crisis 2023: some short-duration hedges locked in at peak; deeply out-of-the-money. The MTM signal is the risk committee's most important daily number. T3 closed.
+
+**10 new tests (1,572 total).**
+
+---
 ### Phase 70 -- FI3 Treasury Management (2026-06-25)
 **Files:** `company/finance/treasury.py` (new), `tests/company/finance/test_treasury.py` (new)
 
@@ -1092,9 +1105,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 70, 2026-06-25):**
+**Latest full run (Phase 71, 2026-06-25):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 12 new tests: FI3 Treasury management (MCR headroom + 3-yr cash projection). FI3 closed.
+- 10 new tests: T3 Mark-to-Market (portfolio MTM valuation). T3 closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
