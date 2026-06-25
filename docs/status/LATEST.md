@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T13:32:10Z
+Last updated: 2026-06-25T13:52:23Z
+
+**Phase 57 COMPLETE (2026-06-25):** Year-varying bad debt (crisis surge) — 9 new tests (1,403 total).
+- `saas/cost_to_serve.py`: `get_bad_debt_rate(year, segment)` — 2021 resi 4%, 2022 resi 8% (Ofgem 2.4M in arrears), 2023 5%
+- `simulation/run_phase2b.py`: bad_debt_gbp deducted from net_margin_gbp + treasury each settlement record
+- Solvency dedup fix: MCR ratio now uses billing-account count (C1+C1g = 1, not 2)
 
 **Phase 56 COMPLETE (2026-06-25):** Gas pass-through hedge zero-lock — 5 new tests (1,394 total).
 - `simulation/run_phase2b.py`: gas pass-through customers now `hf=0.0` (was 0.85 from RESET default)
@@ -43,9 +48,9 @@ Last updated: 2026-06-25T13:32:10Z
 - **Net P&L: £326,072 | Net margin: £5,226,219 (30.5%) | EV: £5,986,958 | Treasury: £2,792,708 | SURVIVED**
 - 2022 BSC credit cover requirement: £10,198 (363× higher than 2016 due to SSP crisis)
 
-**Test suite: 1,394 total (all saas/company/tools passing)**
+**Test suite: 1,403 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (488s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (540s / 9 min):
 - Net margin: £5,226,219.80 | Gross: £5,463,238.96 | Capital: £237,019
 - Treasury: £2,466,636 → £2,792,708 | 43 committee interventions | 1549 bills issued
 - Enterprise value: £5,986,958.27 | Net after CTS: £5,363,256
