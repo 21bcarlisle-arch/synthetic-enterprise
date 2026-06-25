@@ -40,7 +40,7 @@ from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 from simulation.tou_periods import is_peak_period
 from saas.capital.bsc_credit import compute_bsc_credit_by_year
-from saas.capital.solvency import compute_solvency_by_year
+from saas.capital.solvency import compute_solvency_by_year, compute_solvency_signal
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -2909,8 +2909,6 @@ def _section_solvency_signal(data: dict) -> str:
     if not years:
         return ""
 
-    solvency = compute_solvency_by_year(years)
-
     lines = [
         "## Solvency Signal — Net Assets per Customer (Phase 21b/55)",
         "",
@@ -2927,10 +2925,10 @@ def _section_solvency_signal(data: dict) -> str:
         active_cids = yd.get("active_customer_ids", [])
         billing_accounts = {_billing_account_id(cid) for cid in active_cids}
         n_accounts = len(billing_accounts) or 1
-        sol = solvency.get(year, {})
-        per_acct = sol.get("per_customer_net_assets_gbp", treasury / n_accounts)
-        ratio = sol.get("solvency_ratio", 0.0)
-        status = sol.get("status", "—")
+        sol = compute_solvency_signal(treasury, n_accounts)
+        per_acct = sol["per_customer_net_assets_gbp"]
+        ratio = sol["solvency_ratio"]
+        status = sol["status"]
         status_fmt = f"**{status}**" if status in ("STRESS", "Watch") else status
 
         lines.append(
@@ -2940,11 +2938,12 @@ def _section_solvency_signal(data: dict) -> str:
 
     # End-state summary
     final_year = sorted(years)[-1]
-    final_sol = solvency.get(final_year, {})
-    final_per = final_sol.get("per_customer_net_assets_gbp", 0.0)
-    final_status = final_sol.get("status", "—")
     final_cids = years[final_year].get("active_customer_ids", [])
     final_n = len({_billing_account_id(cid) for cid in final_cids}) or 1
+    final_treasury = years[final_year].get("treasury_end_gbp", 0.0)
+    final_sol = compute_solvency_signal(final_treasury, final_n)
+    final_per = final_sol["per_customer_net_assets_gbp"]
+    final_status = final_sol["status"]
 
     lines.append("")
     lines.append(

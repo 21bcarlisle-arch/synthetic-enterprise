@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T13:18:09Z
+Last updated: 2026-06-25T13:32:10Z
 
 **Phase 56 COMPLETE (2026-06-25):** Gas pass-through hedge zero-lock — 5 new tests (1,394 total).
 - `simulation/run_phase2b.py`: gas pass-through customers now `hf=0.0` (was 0.85 from RESET default)
@@ -39,13 +39,13 @@ Last updated: 2026-06-25T13:18:09Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Latest simulation run (2026-06-25, commit f40ed0d, 481s):**
+**Latest simulation run (2026-06-25, commit e2941ac, 488s):**
 - **Net P&L: £326,072 | Net margin: £5,226,219 (30.5%) | EV: £5,986,958 | Treasury: £2,792,708 | SURVIVED**
 - 2022 BSC credit cover requirement: £10,198 (363× higher than 2016 due to SSP crisis)
 
 **Test suite: 1,394 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (488s / 8 min):
 - Net margin: £5,226,219.80 | Gross: £5,463,238.96 | Capital: £237,019
 - Treasury: £2,466,636 → £2,792,708 | 43 committee interventions | 1549 bills issued
 - Enterprise value: £5,986,958.27 | Net after CTS: £5,363,256

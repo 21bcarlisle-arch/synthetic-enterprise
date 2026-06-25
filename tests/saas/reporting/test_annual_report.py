@@ -1962,7 +1962,7 @@ def test_solvency_signal_below_target_shows_gap():
 
 
 def test_solvency_signal_breach_when_negative():
-    """Negative treasury → BREACH flag for licence floor."""
+    """Negative treasury → STRESS flag (Phase 55: MCR ratio < 1×)."""
     data = _make_solvency_data({
         "2022": {
             "treasury_end_gbp": -500.0,
@@ -1970,7 +1970,7 @@ def test_solvency_signal_breach_when_negative():
         }
     })
     result = _section_solvency_signal(data)
-    assert "BREACH" in result
+    assert "STRESS" in result
 
 
 def test_solvency_signal_end_state_summary():
