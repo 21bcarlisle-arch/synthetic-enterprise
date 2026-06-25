@@ -42,6 +42,7 @@ from simulation.tou_periods import is_peak_period
 from saas.capital.bsc_credit import compute_bsc_credit_by_year
 from saas.capital.solvency import compute_solvency_by_year, compute_solvency_signal
 from company.finance import management_accounts as _ma
+from company.finance import budget as _budget
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -647,6 +648,40 @@ def _section_management_accounts(data):
         f"| A = L + E | {eq_mark} |", "",
     ]
     return chr(10).join(rows)
+
+
+
+def _section_budget_vs_actual(data: dict) -> str:
+    ma = data.get("management_accounts")
+    if not ma:
+        return "## Budget vs Actual\n\n_Not available: management accounts required._\n"
+
+    header = [
+        "## Budget vs Actual",
+        "",
+        "Annual plan compared to management account actuals. "
+        "RAG: GREEN <5%, AMBER 5-15%, RED >=15% variance (either direction).",
+        "",
+        "| Year | Bud Revenue | Act Revenue | Rev% | Bud Net | Act Net | Net% | RAG |",
+        "|------|-------------|-------------|------|---------|---------|------|-----|",
+    ]
+    rows = list(header)
+    for year in sorted(ma.keys()):
+        vr = _budget.variance_report(ma, year)
+        if not vr:
+            continue
+        rev = vr["revenue"]
+        net = vr["net"]
+        rag = _budget.traffic_light(net["variance_pct"])
+        rows.append(
+            f"| {year} | {_fmt_gbp(rev['budget'])} | {_fmt_gbp(rev['actual'])} "
+            f"| {rev['variance_pct']:+.1f}% "
+            f"| {_fmt_gbp(net['budget'])} | {_fmt_gbp(net['actual'])} "
+            f"| {net['variance_pct']:+.1f}% | {rag} |"
+        )
+    rows.append("")
+    return "\n".join(rows)
+
 
 
 def _build_ledger_headline(pnl: dict | None) -> dict | None:
@@ -3788,6 +3823,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_revenue_sanity(data))
     sections.append(_ledger_summary_section(data))
     sections.append(_section_management_accounts(data))
+    sections.append(_section_budget_vs_actual(data))   # Phase 65
     sections.append(_growth_acquisition_section(data))
 
     for year in sorted(data["years"]):

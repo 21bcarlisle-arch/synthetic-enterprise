@@ -8,7 +8,11 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T21:29:45Z
+Last updated: 2026-06-25T21:40:09Z
+
+**Phase 65 COMPLETE (2026-06-25):** FI2 Budget vs Actual -- 12 new tests (1,505 total).
+- `company/finance/budget.py` (new): budget constants (2016-2025, prior-year actuals * growth factors), variance_report(), traffic_light()
+- Annual report: 10-year RAG variance table; 2021 AMBER (-13.7% net miss), 2022 RED (+18.3% crisis outperformance), 2023 RED (-21.1% post-crisis); FI2 closed
 
 **Phase 64 COMPLETE (2026-06-25):** FI1 Management Accounts from double-entry journal -- 13 new tests (1,493 total).
 - company/finance/management_accounts.py (new): build_monthly_accounts(), annual_management_pack(), cross_check()
@@ -79,7 +83,7 @@ Last updated: 2026-06-25T21:29:45Z
 
 **Test suite: 1,493 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (464s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351

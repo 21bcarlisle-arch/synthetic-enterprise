@@ -497,6 +497,34 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 64 — FI1 Management Accounts from Double-Entry Journal (2026-06-25)
+**Files:** `company/finance/management_accounts.py` (new), `tests/company/finance/test_management_accounts.py` (new), `saas/reporting/annual_report.py` (extended)
+
+**What was built:**
+- `company/finance/management_accounts.py`: `build_monthly_accounts()`, `annual_management_pack()`, `cross_check()` (journal vs sim net, <=5%).
+- Annual report: 10-year P&L table + final-year balance sheet + cross-check vs simulation net.
+- P&L and balance sheet emerge from double-entry account codes (4xxx=revenue, 5xxx=COGS, 6xxx=opex) not formulas.
+
+**Fidelity delta:** Management accounts from double-entry journal. Foundation for FI2 budget vs actual.
+
+**13 new tests (1,493 total).**
+
+---
+
+### Phase 65 — FI2 Budget vs Actual (2026-06-25)
+**Files:** `company/finance/budget.py` (new), `tests/company/finance/test_budget_vs_actual.py` (new), `saas/reporting/annual_report.py` (extended)
+
+**What was built:**
+- `company/finance/budget.py`: `_BUDGET_BY_YEAR` (2016-2025 static constants from prior-year actuals * growth factors: revenue * 1.10, opex * 1.05), `variance_report()`, `monthly_variance()`, `traffic_light()' (GREEN <5%, AMBER 5-15%, RED >=15%).
+- Annual report: 10-year variance table (Budget Revenue, Actual Revenue, Rev%, Budget Net, Actual Net, Net%, RAG).
+- 2021: AMBER (-13.7% net miss); 2022: RED (+18.3% crisis outperformance); 2023: RED (-21.1% post-crisis miss).
+
+**Fidelity delta:** Company now has a budget model. Management reporting moves from observation to control. FI2 closed.
+
+**12 new tests (1,505 total).**
+
+---
+
 ### Phase 62 — Standing Charges: Electricity and Gas (2026-06-25)
 **Files:** `simulation/policy_costs.py` (extended), `simulation/hedged_settlement.py` (updated), `simulation/gas_settlement.py` (updated), `tests/simulation/test_phase62_standing_charges.py` (new)
 
@@ -1001,9 +1029,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 64, 2026-06-25):**
-- Net margin £6,322,836 | Gross £6,559,771 | Treasury £3,796,762 | SURVIVED
-- Phase 62 standing charges: resi/SME now earn ~100-200 GBP/yr per customer SC revenue.
+**Latest full run (Phase 65, 2026-06-25):**
+- Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
+- 12 new tests: FI2 Budget vs Actual. RAG-rated variance table in annual report.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
