@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T21:10:53Z
+Last updated: 2026-06-25T21:29:45Z
 
 **Phase 64 COMPLETE (2026-06-25):** FI1 Management Accounts from double-entry journal -- 13 new tests (1,493 total).
 - company/finance/management_accounts.py (new): build_monthly_accounts(), annual_management_pack(), cross_check()
@@ -79,8 +79,8 @@ Last updated: 2026-06-25T21:10:53Z
 
 **Test suite: 1,493 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (478s / 8 min):
-- Net margin: £1,330,126 | Gross: £6,546,003 | Revenue: £14,215,256
+**Latest simulation results (2016–2025)** — auto-processed (464s / 8 min):
+- Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £6,124,101 | Net after CTS: £6,454,351
+- Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
