@@ -322,3 +322,12 @@ No new tests. `simulation/run_phase2b.py`: gas fixed terms now call `decide_hedg
 10 new tests (1,270+ total).
 - `saas/growth_mandate.py`: `should_attempt_acquisition()` — gate fires when Ofgem cap < company_fwd.
 - Applied before `roll_acquisition()`. Crisis-year pause emerges from economics, not hard-coded years.
+
+
+## Phase 62 COMPLETE (2026-06-25) -- Standing charges (electricity + gas, resi/SME)
+
+12 new tests (1,456 total).
+- simulation/policy_costs.py: get_electricity_standing_charge_per_day() and get_gas_standing_charge_per_day() -- year-indexed tables (2016-2024) from Ofgem quarterly tariff tracker. Resi elec 24p/day (2016) to 61p/day (2024); gas 22p to 31p. SME 1.5x resi multiplier. I&C = 0.0 (capacity charges in BSC settlement).
+- simulation/hedged_settlement.py: SC prorated per half-hour period (daily/48). Added to revenue_gbp and margin_gbp; standing_charge_gbp field in every electricity record.
+- simulation/gas_settlement.py: daily gas SC added to revenue_gbp; gas_standing_charge_gbp field in every gas record.
+- Prior model: no standing charge. Fixed-rate customers implicitly underpriced vs real market where SC adds ~100-200 GBP/yr additional supplier income.

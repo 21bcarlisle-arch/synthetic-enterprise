@@ -48,6 +48,7 @@ from simulation.policy_costs import (
     get_fit_levy_per_mwh,
     get_mutualization_levy_per_mwh,
     get_electricity_network_cost_per_mwh,
+    get_electricity_standing_charge_per_day,
     get_ro_cost_per_mwh,
 )
 from simulation.tou_periods import is_peak_period
@@ -173,6 +174,9 @@ def run_hedged_term(
             # Phase 29a: network charges. Resi/SME: DUoS + TNUoS unit rate.
             # I&C: DUoS only (Triad TNUoS is an annual lump, tracked in triad.py).
             network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
+            # Phase 62: standing charge -- fixed daily charge prorated across 48 periods.
+            # Only resi/SME; I&C uses capacity-based tariffs via BSC settlement (SC=0).
+            sc_per_period = get_electricity_standing_charge_per_day(date_str, segment) / 48.0
 
             # Phase 40a: for pass-through tariffs, revenue includes actual policy + network
             # costs (passed through to customer). These cancel out in net_margin so the
@@ -181,11 +185,11 @@ def run_hedged_term(
             # actual costs accrues to the company (policy cost risk).
             policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy + mutualization_levy
             if pass_through:
-                revenue_gbp = settled["revenue_gbp"] + policy_total + network_cost
+                revenue_gbp = settled["revenue_gbp"] + policy_total + network_cost + sc_per_period
                 margin_gbp = revenue_gbp - settled["wholesale_cost_gbp"]
             else:
-                revenue_gbp = settled["revenue_gbp"]
-                margin_gbp = settled["margin_gbp"]
+                revenue_gbp = settled["revenue_gbp"] + sc_per_period
+                margin_gbp = settled["margin_gbp"] + sc_per_period
 
             records.append({
                 "customer_id": customer_id,
@@ -208,6 +212,7 @@ def run_hedged_term(
                 "mutualization_levy_gbp": mutualization_levy,
                 "policy_cost_gbp": policy_total,
                 "network_cost_gbp": network_cost,
+                "standing_charge_gbp": sc_per_period,
             })
 
         current_date += timedelta(days=1)

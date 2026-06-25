@@ -434,3 +434,83 @@ def get_ggl_per_mwh(date_str: str, aq_kwh: float) -> float:
     if aq_kwh <= 0:
         return 0.0
     return _GGL_RATE_GBP_PER_METER_YEAR[year] / (aq_kwh / 1000.0)
+
+
+# ─── Standing Charges (Phase 62) ─────────────────────────────────────────────
+# Daily standing charge (£/day) for domestic and SME electricity customers.
+# Covers metering costs, network fixed capacity charges, and supplier admin margin.
+# Source: Ofgem quarterly tariff tracker; EPG/price-cap publications Oct 2022+.
+# Pre-2022: typical market averages across standard fixed-rate tariff offers.
+# I&C customers have separate capacity and utilisation charges via BSC settlement;
+# standing charge = 0 for I&C (their fixed meter costs are in the capacity tariff).
+_ELEC_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
+    2016: 24.0,   # ~£88/yr; typical pre-crisis fixed-rate market average
+    2017: 25.0,
+    2018: 26.0,
+    2019: 27.0,
+    2020: 27.0,   # COVID: network investment paused; SC held flat
+    2021: 29.0,
+    2022: 46.0,   # Ofgem EPG default tariff Q4 2022 cap (46p/day)
+    2023: 53.0,   # Q1 2023 Ofgem cap; SC rose as network cost recovery increased
+    2024: 61.0,   # 2024 cap; many suppliers at ceiling
+}
+
+# Daily gas standing charge (£/day) for resi/SME gas customers.
+# Source: Ofgem quarterly tariff tracker; EPG publications.
+_GAS_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
+    2016: 22.0,   # ~£80/yr; typical pre-crisis fixed-rate market average
+    2017: 23.0,
+    2018: 24.0,
+    2019: 25.0,
+    2020: 25.0,
+    2021: 26.0,
+    2022: 28.0,   # Ofgem EPG Q4 2022 default tariff cap
+    2023: 29.0,
+    2024: 31.0,
+}
+
+# SME meter capacity standing charge multiplier vs resi (larger meters, higher capacity).
+_SME_SC_MULTIPLIER: float = 1.5
+
+
+def get_electricity_standing_charge_per_day(date_str: str, segment: str = "resi") -> float:
+    """Daily electricity standing charge (£/day) by year and segment.
+
+    Resi/SME: covers metering costs, network fixed capacity, and supplier admin.
+    SME pays 1.5x the resi rate (larger meter, higher capacity charge).
+    I&C: returns 0.0 -- capacity charges handled via BSC settlement mechanism.
+    Falls back to nearest known year.
+    """
+    if segment == "I&C":
+        return 0.0
+    year = int(date_str[:4])
+    if year in _ELEC_SC_PENCE_PER_DAY_BY_YEAR:
+        pence = _ELEC_SC_PENCE_PER_DAY_BY_YEAR[year]
+    elif year < min(_ELEC_SC_PENCE_PER_DAY_BY_YEAR):
+        pence = _ELEC_SC_PENCE_PER_DAY_BY_YEAR[min(_ELEC_SC_PENCE_PER_DAY_BY_YEAR)]
+    else:
+        pence = _ELEC_SC_PENCE_PER_DAY_BY_YEAR[max(_ELEC_SC_PENCE_PER_DAY_BY_YEAR)]
+    sc = pence / 100.0
+    return sc * _SME_SC_MULTIPLIER if segment == "SME" else sc
+
+
+def get_gas_standing_charge_per_day(date_str: str, segment: str = "resi") -> float:
+    """Daily gas standing charge (£/day) by year and segment.
+
+    Resi/SME: covers gas meter fixed charges (metering + network fixed component).
+    SME pays 1.5x the resi rate.
+    I&C: returns 0.0 -- transportation tariffs handled separately.
+    Falls back to nearest known year.
+    """
+    if segment == "I&C":
+        return 0.0
+    year = int(date_str[:4])
+    if year in _GAS_SC_PENCE_PER_DAY_BY_YEAR:
+        pence = _GAS_SC_PENCE_PER_DAY_BY_YEAR[year]
+    elif year < min(_GAS_SC_PENCE_PER_DAY_BY_YEAR):
+        pence = _GAS_SC_PENCE_PER_DAY_BY_YEAR[min(_GAS_SC_PENCE_PER_DAY_BY_YEAR)]
+    else:
+        pence = _GAS_SC_PENCE_PER_DAY_BY_YEAR[max(_GAS_SC_PENCE_PER_DAY_BY_YEAR)]
+    sc = pence / 100.0
+    return sc * _SME_SC_MULTIPLIER if segment == "SME" else sc
+

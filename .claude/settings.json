@@ -6,7 +6,8 @@
       "Bash(systemctl --user is-active *)",
       "Bash(journalctl --user-unit * *)",
       "Bash(make test)",
-      "Bash(make lint)"
+      "Bash(make lint)",
+      "Bash(python3 -m tools.epistemic_verifier)"
     ]
   }
 }

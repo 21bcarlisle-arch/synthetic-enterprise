@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,444 tests (1,436 non-simulation, 8 integration). Codebase: ~22,500 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,480 tests (1,472 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -480,6 +480,34 @@ Net after CTS:               £7,498
 **Fidelity delta:** Removes a systematic wrong-way risk from the gas settlement. C_IC3g (5 GWh I&C spot-indexed gas, chemical plant, Teesside) was being hedged at 85% despite billing at daily spot price — this created a £125k windfall in 2021 (spot > forward) and a -86% net gas margin in 2023 (spot < expensive 2022 forward lock). A real supplier on a spot-indexed I&C gas contract would NOT hedge that book with a fixed forward — the customer bears the price risk. Now margin ≈ service_fee + network + policy per MWh, stable across spot regimes.
 
 **5 new tests (1,394 total).**
+
+---
+
+### Phase 63 — F1 Double-Entry Ledger (2026-06-25)
+**Files:** `company/finance/double_entry.py` (new), `tests/company/finance/test_double_entry.py` (new)
+
+**What was built:**
+- `company/finance/double_entry.py`: Chart of accounts (ACCOUNTS dict, 13 codes across 1xxx–6xxx ranges), `to_journal_entry()` translating all 9 existing ledger event types to DR/CR pairs, `build_journal()` with opening treasury entry, `account_balances()`, `trial_balance()` (DR == CR verification), `income_statement()` and `balance_sheet()` emerging from accounts.
+- Every financial event now posts as a proper DR/CR pair: billing (DR Trade Receivables / CR Revenue), settlement (DR Wholesale / CR Cash), payment (DR Cash / CR Receivables), VAT remittance (DR Revenue / CR Cash), bad debt (DR Bad Debt Expense / CR Receivables), etc.
+- `balance_sheet()` verifies Assets = Liabilities + Equity at period end. `income_statement()` cross-verified against existing `saas.ledger.derive_pnl()` — revenue, wholesale, gross margin agree.
+
+**Fidelity delta:** The company now has a real double-entry accounting system. Previously: margin tracker with event log. Now: P&L and balance sheet emerge from account balances, trial balance reconciles, Assets = Liabilities + Equity holds for any valid journal. This is the foundational F1 item from Destinationvision.md — all subsequent financial infrastructure (FI1 management accounts, C1 invoice documents, FI2 budget vs actual) builds on this.
+
+**24 new tests (1,480 total).**
+
+---
+
+### Phase 62 — Standing Charges: Electricity and Gas (2026-06-25)
+**Files:** `simulation/policy_costs.py` (extended), `simulation/hedged_settlement.py` (updated), `simulation/gas_settlement.py` (updated), `tests/simulation/test_phase62_standing_charges.py` (new)
+
+**What was built:**
+- `simulation/policy_costs.py`: `get_electricity_standing_charge_per_day()` and `get_gas_standing_charge_per_day()`, year-indexed from Ofgem tariff tracker data 2016–2024. Resi electricity: 24p/day (2016) → 61p/day (2024); gas: 22p → 31p/day. SME: 1.5× multiplier. I&C: 0.0 (capacity charges via BSC settlement).
+- `simulation/hedged_settlement.py`: SC prorated per half-hour period, added to customer revenue and supplier margin; `standing_charge_gbp` field in settlement records.
+- `simulation/gas_settlement.py`: daily SC added as `gas_standing_charge_gbp` field.
+
+**Fidelity delta:** Standing charges were missing from all tariffs. Resi customers pay ~£350/yr (electricity) + £120/yr (gas) in standing charges; this is a real fixed-revenue stream for the supplier. Post-2022, the Ofgem price cap applies ceiling values to standing charges just as it does to unit rates.
+
+**12 new tests (1,456 total).**
 
 ---
 
@@ -966,16 +994,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,444 tests (fast gate ~10 min, full suite ~40 min)
+- 1,456 tests (fast gate ~10 min, full suite ~40 min)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 61, 2026-06-25, commit f5d86ec):**
-- Ledger net £5,260,449 | Gross £5,483,801 | Treasury £2,740,858 | SURVIVED
-- Phase 61 flex pass-through fix: C_IC4 no longer showing artificial £175k/yr policy losses.
+**Latest full run (Phase 62, 2026-06-25):**
+- Net margin £6,322,836 | Gross £6,559,771 | Treasury £3,796,762 | SURVIVED
+- Phase 62 standing charges: resi/SME now earn ~100-200 GBP/yr per customer SC revenue.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

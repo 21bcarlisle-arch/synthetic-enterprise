@@ -30,6 +30,7 @@ from sim.risk_engine import compute_net_margin
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
+    get_gas_standing_charge_per_day,
     get_ggl_per_mwh,
 )
 
@@ -130,6 +131,10 @@ def run_gas_term(
                 revenue_gbp = pt_billed + gas_policy_cost + gas_network_cost
             else:
                 revenue_gbp = billed_gbp
+            # Phase 62: gas standing charge -- fixed daily charge for resi/SME meters.
+            # I&C industrial gas (e.g. C_IC3g) uses transportation tariffs; SC=0.
+            gas_sc_gbp = get_gas_standing_charge_per_day(d, segment)
+            revenue_gbp += gas_sc_gbp
             margin_gbp = revenue_gbp - cost_gbp
 
             records.append({
@@ -152,6 +157,7 @@ def run_gas_term(
                 "ggl_gbp": round(ggl, 8),
                 "gas_policy_cost_gbp": round(gas_policy_cost, 8),
                 "gas_network_cost_gbp": round(gas_network_cost, 8),
+                "gas_standing_charge_gbp": round(gas_sc_gbp, 8),
                 "weather_factor": round(weather_factor, 4),
                 "seasonal_factor": round(seasonal, 4),
             })
