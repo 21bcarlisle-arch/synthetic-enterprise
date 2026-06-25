@@ -1,51 +1,35 @@
-# Phase 65 Proposal: FI2 -- Budget vs Actual
+# Phase 78 Proposal: Year-indexed non-commodity rates for customer bills
 
-**The gap:** Destinationvision.md FI2: Annual budget set at start of year. Monthly variance
-reported. Drives management decisions. Currently: no budget model.
+**The gap:** `saas/non_commodity.py` uses flat 2019 baseline rates for electricity non-commodity
+(GBP55/MWh resi, GBP42/MWh SME). The simulation settlement layer (Phase 29b) already has
+year-indexed network+policy charges. Customer bills therefore show wrong non-commodity
+figures: in 2022 the actual network charge jumped to ~GBP73/MWh but invoices still show GBP55/MWh.
+This means customers are under-billed for non-commodity by ~GBP18/MWh in the crisis year.
 
-FI1 (management accounts) is now complete (Phase 64). The double-entry income statement
-per year/month is available via company.finance.management_accounts. Budget vs actual
-is the next layer: a planned budget against which actuals are compared.
+PROJECT_OVERVIEW.md Section 9 explicitly flags this: "Network charges still modeled as flat
+pass-through in non_commodity.py rather than year-indexed actuals."
 
 **What to build:**
 
-1. company/finance/budget.py (new):
-   - BUDGET_BY_YEAR: {year: {revenue, wholesale, gross, opex, net}} -- static budget
-     constants derived from: prior year actuals + expected growth/cost assumptions.
-   - get_annual_budget(year): returns budget dict for that year.
-   - variance_report(management_accounts_pack, year): compares budget to actual.
-     Returns {revenue: {budget, actual, variance_gbp, variance_pct},
-              gross: {...}, net: {...}} for each line.
-   - monthly_variance(management_accounts_pack, year, budget=None): same at monthly level.
-   - traffic_light(variance_pct): "GREEN" if <5%, "AMBER" if <15%, "RED" if >=15%.
+1. saas/non_commodity.py:
+   - Add _NON_COMMODITY_ELEC_BY_YEAR indexed 2016-2024 (resi/SME rates matching Phase 29b).
+   - Add _NON_COMMODITY_GAS_BY_YEAR 2016-2024 (GDN + NTS + metering).
+   - Update non_commodity_rate(commodity, segment, year=None) to use year-indexed lookup.
 
-2. saas/reporting/annual_report.py:
-   - _section_budget_vs_actual(data): renders annual variance table (10 years).
-     Columns: Year | Budget Revenue | Actual Revenue | Var | Budget Net | Actual Net | Var | RAG.
-   - Only rendered if management_accounts is available in data.
+2. saas/bill_generator.py:
+   - Extract billing year from dates[0] (already available).
+   - Pass year=billing_year to non_commodity_rate.
 
-3. Tests (~12 new):
-   - test_budget_constants_present_2016_2025 -- all 10 years have budget entries
-   - test_variance_report_structure -- all required keys present
-   - test_variance_zero_when_actual_equals_budget -- perfect budget gives 0% var
-   - test_traffic_light_green_under_5pct -- green within tolerance
-   - test_traffic_light_amber_5_to_15pct -- amber range
-   - test_traffic_light_red_over_15pct -- red when badly off
-   - test_variance_positive_when_actual_beats_budget -- outperformance tracked
-   - test_variance_negative_when_actual_misses -- shortfall tracked
-   - test_monthly_variance_returns_12_months -- monthly breakdown
-   - test_budget_vs_actual_section_in_report -- section heading present
-   - test_2022_crisis_year_shows_red_net -- energy crisis year has unfavourable net variance
-   - test_budget_tolerates_missing_year -- graceful degradation
+3. Tests (~10 new in tests/saas/test_non_commodity_year_indexed.py).
 
-**Budget methodology:** Derive 2016 budget from first year actual (baseline). Each subsequent
-year: revenue = prior budget * 1.10 (10% growth target); opex = prior budget * 1.05;
-net = revenue - estimated cogs (85% pass-through) - opex. This gives a static but
-meaningful comparison that shows real deviations (2022 crisis year will show big red variance).
+**Rate calibration (GBP/MWh):**
+Elec resi: 2016=52, 2017=54, 2018=53, 2019=55, 2020=57, 2021=62, 2022=73, 2023=80, 2024=74.
+SME multiplier: 0.77. Gas resi: 2016=9, 2017=9.5, 2018=10, 2019=11, 2020=11,
+2021=12, 2022=15, 2023=16, 2024=14. SME multiplier: 0.80.
 
-**Expected impact:** Company now has a budget model and monthly variance tracking. Management
-reporting moves from observation to control: actuals compared to plan, deviations flagged.
-FI2 closed.
+**Expected impact:** 2022 invoice non-commodity GBP18/MWh higher than flat baseline.
+Restores billing-layer consistency with settlement layer. Portal tariff-compare shows
+correct year-indexed costs.
 
-**Files changed:** company/finance/budget.py (new), saas/reporting/annual_report.py,
-tests/company/finance/test_budget_vs_actual.py (new). ~12 new tests.
+**Files changed:** saas/non_commodity.py, saas/bill_generator.py,
+tests/saas/test_non_commodity_year_indexed.py (new). ~10 new tests.
