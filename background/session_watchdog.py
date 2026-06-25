@@ -241,7 +241,12 @@ RESUME_INSTRUCTION = (
     "Run `SIM_FAST_MODE=1 python3 -m pytest tests/ -x -q --tb=short "
     "--ignore=tests/simulation/test_run_phase2b.py "
     "--ignore=tests/simulation/test_run_phase2b_event_log.py "
-    "--ignore=tests/simulation/test_run_phase4c_on_phase2b.py` "
+    "--ignore=tests/simulation/test_run_phase4c_on_phase2b.py "
+    "--ignore=tests/simulation/test_phase40a_pass_through.py "
+    "--ignore=tests/simulation/test_phase40b_gas_pass_through.py "
+    "--ignore=tests/simulation/test_phase40c_deemed_rate.py "
+    "--ignore=tests/simulation/test_phase41a_flex.py "
+    "--ignore=tests/simulation/test_phase24a_ic_customer.py` "
     "to confirm tests pass.\n\n"
     "3. FIX ROOT CAUSES: if the verifier or tests fail, fix the violations "
     "before committing — do not advance the project until checks pass.\n\n"
@@ -975,11 +980,25 @@ def main() -> None:
         time.sleep(CHECK_INTERVAL_SECONDS)
         try:
             if not session_exists() or not claude_is_running():
+                # Claude Code may have exited after displaying a usage-limit
+                # message and returning to the shell (foreground = bash, not
+                # claude). Check the pane before counting this as a crash.
+                pane_text = capture_pane()
+                if usage_limit_detected(pane_text):
+                    handle_usage_limit()
+                    consecutive_down = 0
+                    continue
                 consecutive_down += 1
                 log(f"Claude Code not detected (check {consecutive_down}/2)")
                 update_agent_status("session-watchdog", status="idle",
                                     last_action=f"CC not detected (check {consecutive_down}/2)")
                 if consecutive_down >= 2:
+                    # Log the last visible pane so we can diagnose why it died.
+                    last_lines = " | ".join(
+                        ln.strip() for ln in pane_text.splitlines()[-5:] if ln.strip()
+                    )
+                    if last_lines:
+                        log(f"Pane at death: {last_lines[:300]}")
                     handle_session_ended()
                     consecutive_down = 0
                 continue

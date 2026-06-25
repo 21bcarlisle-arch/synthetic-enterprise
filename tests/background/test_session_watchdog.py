@@ -745,5 +745,41 @@ def test_load_command_since_defaults_to_now_when_missing(tmp_path, monkeypatch):
     since_file = tmp_path / ".ntfy_command_since.json"
     monkeypatch.setattr(watchdog, "NTFY_COMMAND_SINCE_FILE", since_file)
     monkeypatch.setattr(watchdog.time, "time", lambda: 99999.0)
-
     assert watchdog._load_command_since() == 99999.0
+
+
+def test_usage_limit_detected_when_claude_not_running_prevents_restart(monkeypatch):
+    """Claude exits after showing a usage-limit message (foreground=bash, not
+    claude/node). The watchdog must detect the limit from the pane and call
+    handle_usage_limit rather than restarting into the same limit."""
+    monkeypatch.setattr(watchdog, "session_exists", lambda: True)
+    monkeypatch.setattr(watchdog, "claude_is_running", lambda: False)
+    monkeypatch.setattr(watchdog, "capture_pane", lambda: "usage limit reached")
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "_load_command_since", lambda: 0.0)
+    monkeypatch.setattr(watchdog, "_save_command_since", lambda v: None)
+
+    handle_usage_limit_calls = []
+    handle_session_ended_calls = []
+    monkeypatch.setattr(watchdog, "handle_usage_limit", lambda: handle_usage_limit_calls.append(1))
+    monkeypatch.setattr(watchdog, "handle_session_ended", lambda: handle_session_ended_calls.append(1))
+
+    # Run two loop iterations then stop via exception
+    call_count = [0]
+    original_sleep = watchdog.time.sleep
+
+    def stop_after_two(s):
+        call_count[0] += 1
+        if call_count[0] >= 2:
+            raise StopIteration
+
+    monkeypatch.setattr(watchdog.time, "sleep", stop_after_two)
+
+    try:
+        watchdog.main()
+    except StopIteration:
+        pass
+
+    assert handle_usage_limit_calls, "handle_usage_limit should have been called"
+    assert not handle_session_ended_calls, "handle_session_ended must NOT be called when pane shows usage limit"
