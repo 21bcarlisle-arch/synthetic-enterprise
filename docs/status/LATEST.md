@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T12:30:21Z
+Last updated: 2026-06-25T13:18:09Z
+
+**Phase 56 COMPLETE (2026-06-25):** Gas pass-through hedge zero-lock — 5 new tests (1,394 total).
+- `simulation/run_phase2b.py`: gas pass-through customers now `hf=0.0` (was 0.85 from RESET default)
+- Wrong-way risk eliminated: C_IC3g showed +42% gas margin in 2021 (hedge windfall) and -86% in 2023 (loss on reversion)
+- Margin now = service_fee + network + policy only; no forward price exposure for spot-indexed contracts
 
 **Phase 55 COMPLETE (2026-06-25):** Ofgem MCR solvency signal — 12 new tests (1,389 total).
 - `saas/capital/solvency.py` (new): `compute_solvency_signal()` → Watch < 2×, STRESS < 1× (below £130/account floor)
@@ -34,8 +39,14 @@ Last updated: 2026-06-25T12:30:21Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Latest simulation run (2026-06-25, commit 06a77b6, 525s):**
-- **Net P&L: £326,682 | Gross margin: £5,119,568 | Treasury: £2,793,319 | SURVIVED**
+**Latest simulation run (2026-06-25, commit f40ed0d, 481s):**
+- **Net P&L: £326,072 | Net margin: £5,226,219 (30.5%) | EV: £5,986,958 | Treasury: £2,792,708 | SURVIVED**
 - 2022 BSC credit cover requirement: £10,198 (363× higher than 2016 due to SSP crisis)
 
-**Test suite: 1,369 total (all saas/company/tools passing)**
+**Test suite: 1,394 total (all saas/company/tools passing)**
+
+**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
+- Net margin: £5,226,219.80 | Gross: £5,463,238.96 | Capital: £237,019
+- Treasury: £2,466,636 → £2,792,708 | 43 committee interventions | 1549 bills issued
+- Enterprise value: £5,986,958.27 | Net after CTS: £5,363,256
+- Retention: 18 offers, 17/18 retained | 4 no-offer churns | 5 total churned accounts
