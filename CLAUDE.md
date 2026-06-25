@@ -82,56 +82,10 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 **Phases 48a/49 COMPLETE (2026-06-24):** Forward curve reform — 22 new tests. `tariff_engine.py`: EWMA (30-day half-life) base, dynamic term structure slope (contango/backwardation ±[8%,15%]/yr), term-length premium (2%/yr above 12 months). Rising-market I&C crisis pricing now higher for long-dated contracts.
 
-**Phase 47b COMPLETE (2026-06-24):** Cap-aware acquisition gate — 10 new tests (1,270+ passing).
-`saas/growth_mandate.py`: `should_attempt_acquisition()` — gate fires when Ofgem cap < company_fwd (selling below wholesale cost). Applied in `simulation/run_phase2b.py` before `roll_acquisition()`. Crisis-year pause emerges from economics, not hard-coded years.
-
-**Phase 47a COMPLETE (2026-06-24):** Ofgem domestic price cap — 10 new tests. `company/pricing/ofgem_price_cap.py`: `get_cap_unit_rate_gbp_per_mwh(fuel, year)` (elec+gas annual lookup). Applied in `run_phase2b.py` after all uplifts for resi fixed customers. Cap bites 2021+, resi margins compress.
-
-**Phase 46a COMPLETE (2026-06-23):** Gas risk premium further reduced 10%→5% — 0 new tests (1,250+ passing).
-`company/pricing/tariff_engine.py`: `GAS_RISK_PREMIUM_FRACTION` 10%→5%. UK resi gas margins near-zero in stable
-markets (competitive market dynamics; pass-through already at spot). Elec (8%) now higher than gas (5%).
-
-**Phase 45c COMPLETE (2026-06-23):** Forward curve risk premium recalibration — 8 new tests (1,250+ passing).
-`company/pricing/tariff_engine.py`: `COMPANY_RISK_PREMIUM_FRACTION` 15%→8%, `GAS_RISK_PREMIUM_FRACTION` 20%→10%.
-UK I&C market benchmarks: 5-8% above NAP for electricity; original 15%/20% drove C_IC1/C_IC2 to 33% net vs 3-8%
-industry benchmark. Reduces systematic forward overpricing without affecting gas pass-through (already fixed 45b).
-
-**Phase 45b COMPLETE (2026-06-23):** Gas pass-through bills at spot, not forward — 6 new tests (1,242+ passing).
-`simulation/gas_settlement.py`: pass-through customers billed at daily spot + `GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH`
-(£2/MWh); eliminates artificial 19.9% I&C/gas net margin from 20% risk premium on non-risk-bearing billing.
-
-**Phase 45a COMPLETE (2026-06-23):** Revenue & margin sanity check — 0 new tests (1,236+ passing).
-`tools/revenue_sanity_check.py`: P&L waterfall + per-segment net% vs Ofgem/CMA benchmarks. Runs
-post-run and in annual report. Snapshot JSON companion for strategy advisor (no-JS fetch). Anomalies
-detected: I&C/gas 19.9% (gas forward bias), resi 12.2%/11.8% (CCL-exempt + forward bias).
-
-**Phase 43a COMPLETE (2026-06-23):** Company trading book — 14 new tests (1,242+ passing).
-`company/trading/forward_book.py`: `ForwardContract` + `TradingBook`. On each fixed/pass-through
-term signing, company opens a forward contract (agreed_price = company_fwd, notional = EAC × hf).
-`settle_period()` decomposes hedge P&L from supply margin each half-hour. `trading_book.summary()`
-in run output (contract_count, total_hedged_mwh, hedge_pnl_gbp). Net margin unchanged.
-
-**Phase 44b COMPLETE (2026-06-23):** VaR-constrained hedging extended to gas fixed terms — no new tests needed.
-`simulation/run_phase2b.py`: gas else-branch now calls `decide_hedge_fraction()` for fixed gas terms.
-Same VaR model (EWMA vol, 95% VaR ≤ 15% term revenue) using gas price records. Pass-through skipped.
-Committee overrides still take precedence.
-
-**Phase 44a COMPLETE (2026-06-23):** Customer profitability feedback into renewal pricing — 13 new tests (1,290+ passing).
-`company/crm/customer_profitability.py`: `estimate_prior_term_net_margin()` + `compute_profitability_uplift()`.
-Net-negative electricity customers receive £3/MWh uplift at renewal. Churn model handles consequence.
-`saas/tariff_pricing.py`: `profitability_uplift_per_mwh` param. Run output: `profitability_uplift_log`.
-Closes "Pricing actions not implemented" Known Gap.
-
-**Architecture Stages 2-4 COMPLETE (2026-06-23):** All four stages done.
-- Stage 2: `.claude/agents/discovery-agent.md` — scoped to market_research/, structured findings.
-- Stage 3: `.claude/agents/epistemic-verifier.md` + `tools/epistemic_verifier.py` — in phase-close checklist.
-- Stage 4: `background/agent_protocol.py` — `AgentMessage` + `IntentType`, 18 tests, live in sim_runner.
-
-**Active phases (30a–42):** Full policy cost stack (RO/CfD/CCL/CM/FiT/GGL), gas costs, all 4 I&C types (fixed/pass-through/deemed/flex), active/passive renewal, SVT comparison, forward presets (5 named), 42-day notice, forward curve reform, gas seasonal calibration.
-→ Phase completion details (30a–42): `docs/claude/phase-history.md`
+**Active phases (43a–47b):** Company trading book (43a), customer profitability/renewal pricing (44a), VaR gas hedging (44b), revenue & margin sanity benchmarks (45a), gas spot billing (45b), risk premium recalibration elec 8%/gas 5% (45c/46a), Ofgem domestic price cap (47a), cap-aware acquisition gate (47b). Architecture Stages 2-4: discovery agent, epistemic verifier, agent protocol.
+**Active phases (30a–42):** Full policy cost stack (RO/CfD/CCL/CM/FiT/GGL), gas costs, all 4 I&C types, active/passive renewal, SVT comparison, forward presets, 42-day notice, forward curve reform, gas seasonal calibration.
+→ Phase completion details (30a–47b): `docs/claude/phase-history.md`
 → Earlier phase history (Phases 1–29): `CLAUDE_HISTORY.md`
-→ Roadmap and backlog: `MASTER_BACKLOG.md`
-→ Calibration notes (hedge mandate, design decisions): `docs/claude/phase-history.md`
 
 ---
 
