@@ -252,12 +252,7 @@ def extract_report_data(run_output: dict) -> dict:
             if b["bill_shock_pct"] >= 0.20
         ]
 
-        bad_debt_gbp = sum(
-            r["bad_debt_provision_gbp"]
-            for records in payment_behaviour.values()
-            for r in records
-            if _year(r["period_end"]) == year
-        )
+        bad_debt_gbp = sum(r.get("bad_debt_gbp", 0.0) for r in yr_records)
 
         complaint_probs = [
             e["complaint_probability"]
@@ -305,6 +300,7 @@ def extract_report_data(run_output: dict) -> dict:
             "revenue_gbp": sum(r["revenue_gbp"] for r in yr_records),
             "gross_gbp": sum(r["margin_gbp"] for r in yr_records),
             "capital_gbp": sum(r["capital_cost_gbp"] for r in yr_records),
+            "bad_debt_gbp": sum(r.get("bad_debt_gbp", 0.0) for r in yr_records),
             "net_gbp": sum(r["net_margin_gbp"] for r in yr_records),
             "treasury_end_gbp": treasury_end,
             "bsc_credit_required_gbp": bsc_credit_by_yr.get(year, {}).get("credit_cover_required_gbp", 0.0),
@@ -525,6 +521,7 @@ def extract_report_data(run_output: dict) -> dict:
         "total_revenue_gbp": sum(r["revenue_gbp"] for r in all_records),
         "total_gross_gbp": phase2b["total_gross"],
         "total_capital_gbp": phase2b["total_capital"],
+        "total_bad_debt_gbp": phase2b.get("total_bad_debt", 0.0),
         "total_net_gbp": phase2b["total_net"],
         "administration_event": phase2b["administration_event"],
         "committee_wake_ups_total": len(committee_wake_ups),

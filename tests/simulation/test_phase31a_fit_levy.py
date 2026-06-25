@@ -158,6 +158,7 @@ def test_fit_included_in_policy_cost():
             + rec.get("ccl_gbp", 0.0)
             + rec.get("cm_levy_gbp", 0.0)
             + rec.get("fit_levy_gbp", 0.0)
+            + rec.get("mutualization_levy_gbp", 0.0)
         )
         assert abs(rec["policy_cost_gbp"] - expected) < 1e-9, (
             f"policy_cost_gbp={rec['policy_cost_gbp']:.9f} != expected={expected:.9f}"

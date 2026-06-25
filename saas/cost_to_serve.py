@@ -53,6 +53,27 @@ FIXED_OVERHEAD_GBP_PER_PERIOD = {
 }
 
 
+_BAD_DEBT_RATE_BY_YEAR: dict[int, dict[str, float]] = {
+    2016: {"resi": 0.02, "SME": 0.01, "I&C": 0.005},
+    2017: {"resi": 0.02, "SME": 0.01, "I&C": 0.005},
+    2018: {"resi": 0.02, "SME": 0.01, "I&C": 0.005},
+    2019: {"resi": 0.02, "SME": 0.01, "I&C": 0.005},
+    2020: {"resi": 0.02, "SME": 0.01, "I&C": 0.005},
+    2021: {"resi": 0.04, "SME": 0.015, "I&C": 0.005},
+    2022: {"resi": 0.08, "SME": 0.03, "I&C": 0.01},
+    2023: {"resi": 0.05, "SME": 0.02, "I&C": 0.005},
+    2024: {"resi": 0.03, "SME": 0.012, "I&C": 0.005},
+}
+
+def get_bad_debt_rate(year: int, segment: str) -> float:
+    """Return the bad debt rate (fraction of revenue) for a given year and segment.
+
+    Phase 57: year-varying rates reflect the 2021-2022 UK energy crisis payment
+    default surge. Years outside 2016-2024 fall back to the segment baseline.
+    """
+    year_rates = _BAD_DEBT_RATE_BY_YEAR.get(year, BAD_DEBT_RATE)
+    return year_rates.get(segment, BAD_DEBT_RATE.get(segment, 0.02))
+
 def cost_to_serve_for_period(segment: str, revenue_gbp: float) -> float:
     """Return the cost-to-serve (£) for one settlement period for one account.
 

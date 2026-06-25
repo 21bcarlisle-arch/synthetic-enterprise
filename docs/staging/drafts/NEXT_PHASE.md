@@ -1,42 +1,29 @@
-# Phase 52 Proposal: ToU Demand Response Model
+# Phase 57 Proposal: Year-varying bad debt (payment default surge in 2021-2022)
 
-**The gap:** ToU pricing infrastructure is complete (Phases 49-51) — we know who is eligible,
-we have the peak/off-peak rate structure. But ToU customers currently consume at the same
-PC1/PC4 profile shape as standard tariff customers. There is no load-shifting. The distinctive
-economics of ToU (peak shedding, off-peak uplift, supplier hedging benefit) are entirely absent.
+**The gap:** `saas/cost_to_serve.py` has flat static bad debt rates (resi 2%, SME 1%, I&C 0.5%)
+with no year dimension. In reality, UK domestic payment defaults surged 5-10x during the 2021-2022
+energy crisis -- Ofgem data showed 2.4M households in arrears by Q4 2022. Bad debt is also a
+reporting overlay only; it does NOT affect the company's cash flow or treasury.
 
 **What to build:**
 
-1. `saas/demand_response.py` — `DemandResponseModel` class:
-   - `compute_shift_fraction(customer, year)`: returns fraction of peak-window consumption
-     that shifts to off-peak. Basis: UK smart charging / Octopus Go study data (~10-20% typical,
-     higher for EV owners). Parameters: `base_shift_pct` (15%), `ev_boost_pct` (+12% for EVs),
-     `heat_pump_boost_pct` (+8% for heat pumps), year-varying as smart meter penetration grows.
-   - `apply_demand_shift(hh_profile, peak_windows, shift_fraction)`: redistributes kWh from
-     peak windows (16:00-19:00) to off-peak (23:00-07:00), conserving total consumption.
-     Returns modified half-hourly profile.
+1. `saas/cost_to_serve.py`: add `get_bad_debt_rate(year: int, segment: str) -> float` with a
+   year-segment lookup table:
+   - 2016-2020: resi 0.020, SME 0.010, I&C 0.005 (baseline)
+   - 2021: resi 0.040, SME 0.015, I&C 0.005 (surge begins as bills rise)
+   - 2022: resi 0.080, SME 0.030, I&C 0.010 (peak -- 2.4M UK households in arrears)
+   - 2023: resi 0.050, SME 0.020, I&C 0.005 (partial recovery)
+   - 2024: resi 0.030, SME 0.012, I&C 0.005 (normalising)
+   Fallback to segment default for unrecognised years.
 
-2. Integration in `simulation/run_phase2b.py`: for ToU-eligible customers in each settlement
-   half-hour, pass the HH profile through `DemandResponseModel.apply_demand_shift()` before
-   calculating tariff revenue and wholesale cost. Non-ToU customers unaffected.
+2. `simulation/run_phase2b.py`: deduct bad debt from treasury as a real cost.
+   - At each settlement period: bad_debt_gbp = revenue_gbp * get_bad_debt_rate(year, segment)
+   - Deduct from net_gbp and treasury (same mechanism as capital_cost_gbp)
+   - Emit bad_debt_gbp field in settlement records for per-year reporting
 
-3. New per-customer settlement field: `demand_shifted_kwh` (total kWh moved peak→off-peak
-   in the period), and `demand_response_benefit_gbp` (saving on wholesale cost from
-   buying more off-peak volume at lower spot prices).
+3. `saas/reporting/annual_report.py`: add bad debt row to per-year P&L table.
 
-4. Tests (~12 new): shift conserves total consumption; non-ToU customers unaffected;
-   shift fraction bounded [0, 1]; EV/heat pump boost applies only when asset present;
-   year-varying penetration increases shift over time; demand_response_benefit_gbp positive
-   in normal markets, negative or zero when off-peak spot exceeds peak.
+4. Tests (~8 new): year-varying rates; crisis years higher; bad_debt_gbp in records;
+   treasury reduced; I&C stable; out-of-range year fallback.
 
-**Business signal this unlocks:** Are ToU customers more or less profitable than
-standard fixed-tariff customers after demand response? Is the supplier's hedging book
-helped or hurt by peak-shifting (they bought forward at a peak-weighted average — if
-customers shift load off-peak, actual delivery cost falls). This is the core Phase 5
-thesis: smart tariffs + demand response = better margin for the supplier.
-
-**Scope:** saas/ only (demand_response.py) + integration touch in simulation/run_phase2b.py.
-No interface seam changes. Epistemic verifier compatible (company observes shifted meter reads,
-does not see simulation internals).
-
-**Estimated tests:** ~12 new (total → ~1,342 passing)
+**Expected impact:** 2021-2022 net margin more negative, treasury takes real hit in crisis years.

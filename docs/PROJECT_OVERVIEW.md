@@ -470,6 +470,34 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 56 — Gas Pass-Through Hedge Zero-Lock (2026-06-25)
+**Files:** `simulation/run_phase2b.py`, `tests/simulation/test_gas_pass_through_hedge.py` (new)
+
+**What was built:**
+- `simulation/run_phase2b.py`: gas pass-through customers now force `hf = 0.0` at every term renewal, overriding the 0.85 RESET_HEDGE_FRACTION default. VaR decision block only runs for fixed-rate gas customers. `current_hf[cid]` is set to 0.0 before `run_gas_term()`.
+- `tests/simulation/test_gas_pass_through_hedge.py`: 5 tests verifying zero-hedge margin stability vs non-zero-hedge wrong-way risk (windfall on spot spike, loss on spot reversion).
+
+**Fidelity delta:** Removes a systematic wrong-way risk from the gas settlement. C_IC3g (5 GWh I&C spot-indexed gas, chemical plant, Teesside) was being hedged at 85% despite billing at daily spot price — this created a £125k windfall in 2021 (spot > forward) and a -86% net gas margin in 2023 (spot < expensive 2022 forward lock). A real supplier on a spot-indexed I&C gas contract would NOT hedge that book with a fixed forward — the customer bears the price risk. Now margin ≈ service_fee + network + policy per MWh, stable across spot regimes.
+
+**5 new tests (1,394 total).**
+
+---
+
+### Phase 57 — Year-Varying Bad Debt (2026-06-25)
+**Files:** `saas/cost_to_serve.py`, `simulation/run_phase2b.py`, `saas/reporting/annual_report.py`, `tests/saas/test_bad_debt.py` (new)
+
+**What was built:**
+- `saas/cost_to_serve.py`: `get_bad_debt_rate(year, segment)` — year-varying lookup replacing flat `BAD_DEBT_RATE`. Resi: 2.0% (stable), 4.0% (2021), 8.0% (2022 peak — Ofgem 2.4M households in arrears), 5.0% (2023), 3.0% (2024). SME: 1.0%→3.0%→2.0%. I&C: 0.5% (stable through crisis — long-term contracts, direct debit mandates).
+- `simulation/run_phase2b.py`: `bad_debt_gbp` computed each settlement record and deducted from `net_margin_gbp` + treasury. Previously `bad_debt_provision_gbp` existed in reporting but was not deducted. `total_bad_debt` added to run output.
+- `saas/reporting/annual_report.py`: `bad_debt_gbp` now sourced from per-record data (not `payment_behaviour`). Also fixed solvency dedup bug: `_section_solvency_signal()` now uses billing-account-deduped count (C1+C1g = 1, not 2).
+- Fixed 2 pre-existing Phase 54 test failures in `test_phase27b_ccl.py` and `test_phase31a_fit_levy.py` — expected policy cost was missing `mutualization_levy_gbp`.
+
+**Fidelity delta:** Bad debt was a paper provision that didn't touch the treasury. Now the crisis years bite: 2022 resi customers default at 8% of revenue — mirroring the Ofgem 2.4M-households-in-arrears figure. Crisis-year treasury depletion is more realistic. Solvency MCR ratio also corrected for dual-fuel account deduplication.
+
+**9 new tests (1,403 total).**
+
+---
+
 ### Phase 55 — Ofgem MCR Solvency Signal (2026-06-25)
 **Files:** `saas/capital/solvency.py` (new), `saas/reporting/annual_report.py`, `tests/saas/capital/test_solvency.py` (new)
 
@@ -885,14 +913,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,389 tests (1,381 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
+- 1,403 tests (1,395 non-simulation SIM_FAST_MODE=1, 8 integration); full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 54, 2026-06-25, commit 60cb1c2):**
+**Latest full run (Phase 57, 2026-06-25, commit f40ed0d):**
 - Net P&L £326,682 | Gross £5,119,568 | Treasury £2,793,319 | SURVIVED
 - Mutualization levy compresses net margins in 2021-2022 crisis years.
 

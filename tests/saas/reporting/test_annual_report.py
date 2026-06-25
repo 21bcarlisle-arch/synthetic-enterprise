@@ -25,7 +25,7 @@ from saas.reporting.annual_report import (
 )
 
 
-def _record(cid, commodity, settlement_date, period, margin, capital, net, rate, treasury):
+def _record(cid, commodity, settlement_date, period, margin, capital, net, rate, treasury, bad_debt=0.0):
     return {
         "customer_id": cid,
         "settlement_date": settlement_date,
@@ -37,6 +37,7 @@ def _record(cid, commodity, settlement_date, period, margin, capital, net, rate,
         "margin_gbp": margin,
         "capital_cost_gbp": capital,
         "net_margin_gbp": net,
+        "bad_debt_gbp": bad_debt,
         "commodity": commodity,
         "data_regime": "historical",
         "treasury_cash_balance_gbp": treasury,
@@ -48,7 +49,7 @@ def _run_output():
         _record("C1", "electricity", "2016-01-01", 1, 10.0, 2.0, 8.0, 50.0, 1008.0),
         _record("C1", "electricity", "2016-06-01", 1, 12.0, 3.0, 9.0, 52.0, 1017.0),
         _record("C1g", "gas", "2016-03-01", 1, 5.0, 1.0, 4.0, 30.0, 1021.0),
-        _record("C1", "electricity", "2017-01-01", 1, -5.0, 1.0, -6.0, 60.0, 1015.0),
+        _record("C1", "electricity", "2017-01-01", 1, -5.0, 1.0, -6.0, 60.0, 1015.0, bad_debt=4.0),
     ]
 
     phase2b = {

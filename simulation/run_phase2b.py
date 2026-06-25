@@ -81,6 +81,7 @@ from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.customer_events import roll_lifecycle_event
+from saas.cost_to_serve import get_bad_debt_rate
 from simulation.demand_model import build_demand_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
@@ -1193,8 +1194,12 @@ def main(report_end: str | None = None, sim_interface=None):
             aq_kwh = gas_customer["aq_kwh"]
 
             # Phase 44b: VaR-constrained hedge decision for gas fixed terms (mirrors electricity 43b).
-            # Pass-through gas doesn't use a locked forward hedge — skip for pass_through.
-            if unit_rate and company_fwd and aq_kwh > 0 and term_tariff_type != "pass_through":
+            # Phase 56: Pass-through gas customers must not hedge — they bill at spot, so a forward
+            # hedge creates wrong-way risk (windfall gain 2021, catastrophic loss 2023 on reversion).
+            if term_tariff_type == "pass_through":
+                hf = 0.0
+                current_hf[cid] = 0.0
+            elif unit_rate and company_fwd and aq_kwh > 0:
                 _gas_term_days = (
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days
@@ -1238,6 +1243,10 @@ def main(report_end: str | None = None, sim_interface=None):
                 fixed_cost_events.append(make_fixed_cost_event(rec_month, FIXED_COST_MONTHLY))
                 _fixed_cost_emitted.add(rec_month)
 
+            _bd_rate = get_bad_debt_rate(int(rec_year), cust_segment)
+            _bad_debt = round(rec.get("revenue_gbp", 0.0) * _bd_rate, 6)
+            rec["bad_debt_gbp"] = _bad_debt
+            rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - _bad_debt, 6)
             treasury += rec["net_margin_gbp"]
             rec["treasury_cash_balance_gbp"] = treasury
             ytd_gross += rec["margin_gbp"]
@@ -1470,6 +1479,7 @@ def main(report_end: str | None = None, sim_interface=None):
 
     total_gross = sum(r["margin_gbp"] for r in all_records)
     total_capital = sum(r["capital_cost_gbp"] for r in all_records)
+    total_bad_debt = sum(r.get("bad_debt_gbp", 0.0) for r in all_records)
     total_net = sum(r["net_margin_gbp"] for r in all_records)
     final_treasury = all_records[-1]["treasury_cash_balance_gbp"] if all_records else STARTING_TREASURY_GBP
 
@@ -1502,6 +1512,7 @@ def main(report_end: str | None = None, sim_interface=None):
     print("\n=== Full-window portfolio summary ===")
     print(f"Gross margin:      £{total_gross:>12.2f}")
     print(f"Capital costs:     £{total_capital:>12.2f}")
+    print(f"Bad debt:          £{total_bad_debt:>12.2f}")
     print(f"Net margin:        £{total_net:>12.2f}")
     print(f"Starting treasury: £{STARTING_TREASURY_GBP:>12.2f}")
     print(f"Final treasury:    £{final_treasury:>12.2f}")
@@ -1522,6 +1533,7 @@ def main(report_end: str | None = None, sim_interface=None):
         "hedge_evolution": evolution_logs,
         "total_gross": total_gross,
         "total_capital": total_capital,
+        "total_bad_debt": total_bad_debt,
         "total_net": total_net,
         "final_treasury": final_treasury,
         "starting_treasury": STARTING_TREASURY_GBP,
