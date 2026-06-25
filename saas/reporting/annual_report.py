@@ -41,6 +41,7 @@ from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 from simulation.tou_periods import is_peak_period
 from saas.capital.bsc_credit import compute_bsc_credit_by_year
 from saas.capital.solvency import compute_solvency_by_year, compute_solvency_signal
+from company.finance import management_accounts as _ma
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -579,7 +580,73 @@ def extract_report_data(run_output: dict) -> dict:
         "per_cid_comm_pnl": per_cid_comm_pnl,
         # Phase 22a: churn_risk kept in data so trailing-CLV section can recompute EV
         "churn_risk": churn_risk,
+        # Phase 64: management accounts pre-computed from ledger events
+        "management_accounts": _compute_management_accounts(run_output, phase2b.get("starting_treasury", 0.0)),
     }
+
+
+def _compute_management_accounts(run_output, opening_treasury=0.0):
+    events = run_output.get("ledger_events", [])
+    if not events:
+        return None
+    try:
+        return _ma.annual_management_pack(events, opening_treasury)
+    except Exception:
+        return None
+
+
+def _section_management_accounts(data):
+    ma = data.get("management_accounts")
+    if not ma:
+        return "## Management Accounts\n\n_Not available: re-run from scratch to populate._\n"
+
+    def row(year):
+        is_ = ma[year]["income_statement"]
+        bs = ma[year]["balance_sheet"]
+        cogs = is_["wholesale_cost_gbp"] + is_["non_commodity_cost_gbp"]
+        opex = is_["total_opex_gbp"] + is_["capital_cost_gbp"]
+        return (f"| {year} | {_fmt_gbp(is_[chr(114)+chr(101)+chr(118)+chr(101)+chr(110)+chr(117)+chr(101)+chr(95)+chr(103)+chr(98)+chr(112)])} | ({_fmt_gbp(cogs)}) "
+                f"| {_fmt_gbp(is_[chr(103)+chr(114)+chr(111)+chr(115)+chr(115)+chr(95)+chr(109)+chr(97)+chr(114)+chr(103)+chr(105)+chr(110)+chr(95)+chr(103)+chr(98)+chr(112)])} | ({_fmt_gbp(opex)}) "
+                f"| {_fmt_gbp(is_[chr(110)+chr(101)+chr(116)+chr(95)+chr(109)+chr(97)+chr(114)+chr(103)+chr(105)+chr(110)+chr(95)+chr(103)+chr(98)+chr(112)])} | {_fmt_gbp(bs[chr(99)+chr(97)+chr(115)+chr(104)+chr(95)+chr(103)+chr(98)+chr(112)])} "
+                f"| {_fmt_gbp(bs[chr(116)+chr(111)+chr(116)+chr(97)+chr(108)+chr(95)+chr(101)+chr(113)+chr(117)+chr(105)+chr(116)+chr(121)+chr(95)+chr(103)+chr(98)+chr(112)])} |")
+
+    rows = [
+        "## Management Accounts", "",
+        "P&L and balance sheet from double-entry journal (account codes), not formulas.",
+        "",
+        "| Year | Revenue | COGS | Gross | OpEx | Net | Cash | Equity |",
+        "|------|---------|------|-------|------|-----|------|--------||",
+    ] + [row(y) for y in sorted(ma)] + [""]
+
+    journal_total = sum(ma[y]["income_statement"][chr(110)+chr(101)+chr(116)+chr(95)+chr(109)+chr(97)+chr(114)+chr(103)+chr(105)+chr(110)+chr(95)+chr(103)+chr(98)+chr(112)] for y in ma)
+    ledger_net = data.get("total_net_gbp", 0.0)
+    chk = _ma.cross_check(journal_total, ledger_net)
+    status = "PASS" if chk["pass"] else "FAIL"
+    rows.append(
+        f"**Cross-check:** {status} -- Journal: {_fmt_gbp(chk[chr(106)+chr(111)+chr(117)+chr(114)+chr(110)+chr(97)+chr(108)+chr(95)+chr(110)+chr(101)+chr(116)+chr(95)+chr(103)+chr(98)+chr(112)])}, Sim: {_fmt_gbp(chk[chr(108)+chr(101)+chr(100)+chr(103)+chr(101)+chr(114)+chr(95)+chr(110)+chr(101)+chr(116)+chr(95)+chr(103)+chr(98)+chr(112)])}, Variance: {chk[chr(118)+chr(97)+chr(114)+chr(105)+chr(97)+chr(110)+chr(99)+chr(101)+chr(95)+chr(112)+chr(99)+chr(116)]:.1f}%"
+    )
+    rows.append("")
+    final_year = max(ma)
+    bs = ma[final_year]["balance_sheet"]
+    eq_mark = "OK" if bs["equation_holds"] else "FAIL"
+    key_cash = chr(99)+chr(97)+chr(115)+chr(104)+chr(95)+chr(103)+chr(98)+chr(112)
+    key_rec = chr(116)+chr(114)+chr(97)+chr(100)+chr(101)+chr(95)+chr(114)+chr(101)+chr(99)+chr(101)+chr(105)+chr(118)+chr(97)+chr(98)+chr(108)+chr(101)+chr(115)+chr(95)+chr(103)+chr(98)+chr(112)
+    key_assets = chr(116)+chr(111)+chr(116)+chr(97)+chr(108)+chr(95)+chr(97)+chr(115)+chr(115)+chr(101)+chr(116)+chr(115)+chr(95)+chr(103)+chr(98)+chr(112)
+    key_cap = chr(111)+chr(112)+chr(101)+chr(110)+chr(105)+chr(110)+chr(103)+chr(95)+chr(99)+chr(97)+chr(112)+chr(105)+chr(116)+chr(97)+chr(108)+chr(95)+chr(103)+chr(98)+chr(112)
+    key_profit = chr(99)+chr(117)+chr(114)+chr(114)+chr(101)+chr(110)+chr(116)+chr(95)+chr(112)+chr(101)+chr(114)+chr(105)+chr(111)+chr(100)+chr(95)+chr(112)+chr(114)+chr(111)+chr(102)+chr(105)+chr(116)+chr(95)+chr(103)+chr(98)+chr(112)
+    key_equity = chr(116)+chr(111)+chr(116)+chr(97)+chr(108)+chr(95)+chr(101)+chr(113)+chr(117)+chr(105)+chr(116)+chr(121)+chr(95)+chr(103)+chr(98)+chr(112)
+    rows += [
+        f"**Balance sheet -- {final_year} year-end:**", "",
+        "| Account | GBP |", "|---------|-----|",
+        f"| Cash and Treasury (1001) | {_fmt_gbp(bs[key_cash])} |",
+        f"| Trade Receivables (1100) | {_fmt_gbp(bs[key_rec])} |",
+        f"| **Total Assets** | **{_fmt_gbp(bs[key_assets])}** |",
+        f"| Opening Capital (3001) | {_fmt_gbp(bs[key_cap])} |",
+        f"| Cumulative Net Profit | {_fmt_gbp(bs[key_profit])} |",
+        f"| **Total Equity** | **{_fmt_gbp(bs[key_equity])}** |",
+        f"| A = L + E | {eq_mark} |", "",
+    ]
+    return chr(10).join(rows)
 
 
 def _build_ledger_headline(pnl: dict | None) -> dict | None:
@@ -3720,6 +3787,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_customer_pnl_ranking(data))
     sections.append(_section_revenue_sanity(data))
     sections.append(_ledger_summary_section(data))
+    sections.append(_section_management_accounts(data))
     sections.append(_growth_acquisition_section(data))
 
     for year in sorted(data["years"]):

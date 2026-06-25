@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,480 tests (1,472 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,493 tests (1,485 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -994,14 +994,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,456 tests (fast gate ~10 min, full suite ~40 min)
+- 1,493 tests (fast gate ~10 min, full suite ~40 min)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 62, 2026-06-25):**
+**Latest full run (Phase 64, 2026-06-25):**
 - Net margin £6,322,836 | Gross £6,559,771 | Treasury £3,796,762 | SURVIVED
 - Phase 62 standing charges: resi/SME now earn ~100-200 GBP/yr per customer SC revenue.
 

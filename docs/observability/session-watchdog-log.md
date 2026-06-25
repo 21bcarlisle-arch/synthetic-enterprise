@@ -1799,3 +1799,11 @@
 - [2026-06-25 19:23 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-25 19:25 UTC] Inbound NTFY command from Rich: 'I keep getting session watchdog ntfys. Such as Session watchdog started — autoloop active, crashes auto-restart (max 3/hr).\nThu Jun 25 20:20:19 GMT+01:00 2026. Are they necessary if not please stop or reduce. Also how is it going with ledger etc.' — relaying to session
 - [2026-06-25 19:33 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-25 19:59 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-25 20:10 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-25 20:20 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-25 20:28 UTC] Inbound NTFY command from Rich: "Three best-practice improvements to evaluate: (1) Git worktrees for high-risk phases — build major company infrastructure in isolation, merge only when tests pass. (2) Are we using native /loop? What's its relationship to the custom watchdog? (3) /schedule — cloud-based recurring tasks that run even when Skynet is offline or the network drops. This is directly relevant to last night's 13hr outage caused by WSL2 losing network. If /schedule can keep the autonomous loop alive cloud-side during Skynet network failures, it solves the overnight reliability problem. Research all three and propose adoption plan." — relaying to session
+- [2026-06-25 20:31 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-25 20:32 UTC] Inbound NTFY command from Rich: 'Start Phase 64 now — do not wait 4 hours. Phase 63 is confirmed complete. Opt-out means proceed immediately, not wait for confirmation.' — relaying to session
+- [2026-06-25 20:41 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-25 20:51 UTC] Session idle — sending autoloop continuation instruction

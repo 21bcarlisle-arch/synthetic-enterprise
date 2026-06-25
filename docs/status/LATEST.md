@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T20:51:49Z
+Last updated: 2026-06-25T20:58:59Z
+
+**Phase 64 COMPLETE (2026-06-25):** FI1 Management Accounts from double-entry journal -- 13 new tests (1,493 total).
+- company/finance/management_accounts.py (new): build_monthly_accounts(), annual_management_pack(), cross_check()
+- P&L now emerges from account codes (4001=revenue, 5001+5100=COGS, 5200=capital, 6xxx=opex) not formulas; FI1 closed
+- Annual report: 10-year management accounts table + final-year balance sheet + cross-check vs simulation net
 
 **Phase 63 COMPLETE (2026-06-25):** F1 Double-entry ledger — 24 new tests (1,480 total).
 - `company/finance/double_entry.py` (new): 13 account codes (1xxx–6xxx), `to_journal_entry()` for all 9 ledger event types
@@ -72,7 +77,7 @@ Last updated: 2026-06-25T20:51:49Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,480 total (all saas/company/tools passing)**
+**Test suite: 1,493 total (all saas/company/tools passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (491s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

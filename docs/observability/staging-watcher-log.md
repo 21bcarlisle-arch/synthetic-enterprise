@@ -439,3 +439,8 @@
 - [2026-06-25 19:25 UTC] Silently registered NTFY-originated file: from_rich_20260625_192533.md (no staging notification)
 - [2026-06-25 19:25 UTC] Silently registered sim run marker: run_complete_20260625T191751Z.md (Claude polls staging, no notification needed)
 - [2026-06-25 19:44 UTC] Silently registered sim run marker: run_complete_20260625T193648Z.md (Claude polls staging, no notification needed)
+- [2026-06-25 20:03 UTC] Silently registered sim run marker: run_complete_20260625T195549Z.md (Claude polls staging, no notification needed)
+- [2026-06-25 20:22 UTC] Silently registered sim run marker: run_complete_20260625T201447Z.md (Claude polls staging, no notification needed)
+- [2026-06-25 20:28 UTC] Silently registered NTFY-originated file: from_rich_20260625_202811.md (no staging notification)
+- [2026-06-25 20:31 UTC] Silently registered NTFY-originated file: from_rich_20260625_203134.md (no staging notification)
+- [2026-06-25 20:41 UTC] Silently registered sim run marker: run_complete_20260625T203332Z.md (Claude polls staging, no notification needed)
