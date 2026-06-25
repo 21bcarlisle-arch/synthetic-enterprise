@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,538 tests (1,530 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,550 tests (1,542 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,18 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 69 -- C4 CRM Service Interaction Log (2026-06-25)
+**Files:** `company/crm/service_log.py` (new), `tests/company/crm/test_service_log.py` (new)
+
+**What was built:**
+- `company/crm/service_log.py`: `ServiceEvent` dataclass (customer_id, event_date, channel, contact_reason, outcome, agent_type, complaint_flag, vulnerability_flag, notes). `VulnerabilityFlag` dataclass (customer, flagged_date, flag_type, active, resolved_date). `ServiceLog`: `record_contact()`, `contacts_for_customer()`, `complaints()`, `complaint_rate()`, `complaint_stats(year)`, `vulnerability_register()`, `resolve_vulnerability()`, `as_dicts()`.
+- Complaint stats filterable by year. Vulnerability flags auto-created on contact; resolvable with a dated closure. Independent from lifecycle event log (`CompanyEventLog`).
+
+**Fidelity delta:** CRM now has two tracks: lifecycle events (churn/retention/acquisition, existing) and service interactions (contacts, complaints, vulnerabilities — new). Complaint rate and vulnerability register are the two most scrutinised customer service KPIs in UK energy retail (Ofgem CRM requirements). C4 closed.
+
+**12 new tests (1,550 total).**
+
+---
 ### Phase 68 -- C2 Customer Portal MVP (2026-06-25)
 **Files:** `company/portal/app.py` (new), `company/portal/templates/` (3 HTML templates), `tests/company/portal/test_portal.py` (new)
 
@@ -1068,9 +1080,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 68, 2026-06-25):**
+**Latest full run (Phase 69, 2026-06-25):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 14 new tests: C2 Customer Portal. Rich can log in as C1 and see profile/bills.
+- 12 new tests: C4 CRM service interaction log (complaint/vulnerability tracking). C4 closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
