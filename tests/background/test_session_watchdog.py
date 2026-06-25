@@ -88,7 +88,7 @@ def test_usage_limit_detected_ignores_discussion_of_the_pattern():
     )
 
 
-def test_restart_claude_resume_uses_continue_flag(monkeypatch):
+def test_restart_claude_always_uses_continue_flag_and_resume_instruction(monkeypatch):
     watchdog.restart_times.clear()
     calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
@@ -96,12 +96,13 @@ def test_restart_claude_resume_uses_continue_flag(monkeypatch):
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
 
-    watchdog.restart_claude(resume=True)
+    watchdog.restart_claude()
 
     send_keys_calls = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    # Always uses claude -c (resume last conversation)
     assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, "claude -c", "Enter"] in send_keys_calls
-    # resume=True should NOT also send RESUME_INSTRUCTION
-    assert not any(watchdog.RESUME_INSTRUCTION in c for c in send_keys_calls)
+    # Always sends RESUME_INSTRUCTION so in-progress work is checked on resume
+    assert any(watchdog.RESUME_INSTRUCTION in c for c in send_keys_calls)
     watchdog.restart_times.clear()
 
 

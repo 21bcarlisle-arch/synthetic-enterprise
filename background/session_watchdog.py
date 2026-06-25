@@ -645,14 +645,14 @@ def _handle_usage_command() -> None:
     send_ntfy(f"Usage: {pct}% of current session window used, resets {reset_time} {tz_name}.")
 
 
-def restart_claude(resume: bool = False) -> None:
+def restart_claude(resume: bool = True) -> None:
     """Restart the 'claude' tmux session.
 
-    resume=False (default, crash path): fresh `claude` + RESUME_INSTRUCTION
-    (the prior conversation may be in an unknown state).
-    resume=True (usage-limit path): `claude -c` to continue the same
-    conversation — the session was paused by the limit, not crashed, so
-    there's nothing to "resume from CLAUDE.md/STATUS.md" about. Either way,
+    Always uses `claude -c` (resume last conversation) — keeps context
+    intact across crashes and connectivity blips, so the autoloop
+    instruction lands in a familiar session rather than a cold start that
+    can stall. RESUME_INSTRUCTION is still sent so in-progress work is
+    checked before advancing.
     --dangerously-skip-permissions is never used.
     """
     if restarts_in_last_hour() >= MAX_RESTARTS_PER_HOUR:
@@ -665,7 +665,7 @@ def restart_claude(resume: bool = False) -> None:
         time.sleep(3600)
         return
 
-    log(f"Restarting Claude Code (normal permissions, no skip flag, resume={resume})")
+    log("Restarting Claude Code (normal permissions, no skip flag, claude -c resume)")
     subprocess.run(["tmux", "kill-session", "-t", SESSION_NAME], capture_output=True)
     time.sleep(5)
 
@@ -676,19 +676,19 @@ def restart_claude(resume: bool = False) -> None:
 
     subprocess.run([
         "tmux", "send-keys", "-t", SESSION_NAME,
-        "claude -c" if resume else "claude", "Enter"
+        "claude -c", "Enter"
     ])
     time.sleep(15)
 
-    if not resume:
-        subprocess.run([
-            "tmux", "send-keys", "-t", SESSION_NAME,
-            RESUME_INSTRUCTION, "Enter"
-        ])
+    # Always send RESUME_INSTRUCTION so in-progress work is checked.
+    subprocess.run([
+        "tmux", "send-keys", "-t", SESSION_NAME,
+        RESUME_INSTRUCTION, "Enter"
+    ])
 
     restart_times.append(time.time())
     count = restarts_in_last_hour()
-    log(f"Claude Code restarted ({count}/{MAX_RESTARTS_PER_HOUR} this hour, resume={resume})")
+    log(f"Claude Code restarted ({count}/{MAX_RESTARTS_PER_HOUR} this hour, claude -c resume)")
     ntfy("Claude Code resumed after usage limit." if resume else "Claude Code restarted — session running.")
 
 
