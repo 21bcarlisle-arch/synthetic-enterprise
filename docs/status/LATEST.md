@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T15:07:04Z
+Last updated: 2026-06-25T15:08:26Z
 
 **Phase 60 COMPLETE (2026-06-25):** I&C gas flat seasonal profile — 8 new tests (1,436 total).
 - `GAS_IC_CONSUMPTION_MONTHLY_PROFILE`: Jan=1.075, Jul=0.913, 1.18× ratio vs resi 5.3×
@@ -58,9 +58,9 @@ Last updated: 2026-06-25T15:07:04Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Latest simulation run (2026-06-25, commit cb88fe1, 489s):**
-- **Net margin: £5,269,031 | Gross: £5,506,328 | EV: £6,024,926 | Treasury: £2,749,581 | SURVIVED**
-- Bad debt: £85,939 total (2022 8% crisis peak); admin event: None
+**Latest simulation run (2026-06-25, commit 1eb80f6 [Phase 58], 551s):**
+- **Net margin: £5,267,545 | Gross: £5,504,886 | EV: £6,001,324 | Treasury: £2,747,567 | SURVIVED**
+- Weather HDD active (Phase 58): resi gas demand varies with actual UK temps; bad debt: £85,978
 
 **Test suite: 1,436 total (all saas/company/tools passing)**
 
