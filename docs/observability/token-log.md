@@ -1759,3 +1759,33 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
 ---
 
 - [2026-06-25T22:21:48Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:23:22Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:24:10Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:24:42Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:25:16Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:26:37Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:27:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:28:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:28:46Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:29:57Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:30:06Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:31:03Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:31:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:32:16Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:32:59Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:33:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:35:07Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:35:47Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:36:27Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:52:37Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:11:48Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:14:56Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:17:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:20:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:23:25Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:26:13Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:28:49Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:30:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:31:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:50:04Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T23:51:06Z] autonomous-turn: staging check + run_complete processing + agent_status infrastructure (update_sim_metrics) — ~30k input tokens / ~5k output / frontier
