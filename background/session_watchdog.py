@@ -1033,7 +1033,7 @@ def main() -> None:
         f"{MAX_RESTARTS_PER_HOUR}/hr); autoloop active "
         f"(idle {AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS}s -> continue, "
         "REVIEW_GATE/permission prompts pause for Rich)")
-    ntfy(f"Session watchdog started — autoloop active, crashes auto-restart (max {MAX_RESTARTS_PER_HOUR}/hr).")
+    # Startup NTFY suppressed — logged locally; Rich flagged this as noise (2026-06-25).
     update_agent_status(
         "session-watchdog", status="running",
         last_action="Watchdog started",
