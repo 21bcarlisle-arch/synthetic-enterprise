@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,572 tests (1,564 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,582 tests (1,574 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,22 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 72 -- T2 Position Management (2026-06-25)
+**Files:** `company/trading/forward_book.py` (extended), `tests/company/trading/test_position_management.py` (new)
+
+**What was built:**
+- `HedgeAmendment` dataclass: customer_id, term_start, amendment_date, old/new hedge fraction, reason. Immutable audit record.
+- `PositionClosure` dataclass: customer_id, term_start, close_date, close_price, realised_pnl_gbp.
+- `TradingBook.amend_hedge()`: records fraction change with sequential old-fraction tracking (so two amendments correctly chain old->new->newer).
+- `TradingBook.close_position()`: computes realised P&L = (close_price - agreed) x notional; removes from open book.
+- `open_contracts()` now filters out closed positions; `portfolio_mtm()` likewise.
+- `amendments()`, `closures()`, `closed_contracts()` accessors.
+
+**Fidelity delta:** The trading book now has a full lifecycle: open (Phase 43a), mark-to-market (Phase 71), amend, close. The audit trail means every position change is dated and attributed. This is the structure a real energy supplier's trading desk uses for mandate compliance review. T2 closed.
+
+**10 new tests (1,582 total).**
+
+---
 ### Phase 71 -- T3 Mark-to-Market Valuation (2026-06-25)
 **Files:** `company/trading/forward_book.py` (extended), `tests/company/trading/test_mtm.py` (new)
 
@@ -1105,9 +1121,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 71, 2026-06-25):**
+**Latest full run (Phase 72, 2026-06-25):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 10 new tests: T3 Mark-to-Market (portfolio MTM valuation). T3 closed.
+- 10 new tests: T2 Position management (amend/close lifecycle + audit trail). T2 closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

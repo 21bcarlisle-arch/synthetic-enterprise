@@ -42,6 +42,27 @@ class HedgePnL(NamedTuple):
     pnl_gbp: float           # positive = hedge won (forward > spot), negative = hedge lost
 
 
+@dataclass(frozen=True)
+class HedgeAmendment:
+    customer_id: str
+    term_start: str
+    amendment_date: str
+    old_hedge_fraction: float
+    new_hedge_fraction: float
+    reason: str = ""
+
+
+@dataclass(frozen=True)
+class PositionClosure:
+    customer_id: str
+    term_start: str
+    close_date: str
+    close_price_gbp_per_mwh: float
+    realised_pnl_gbp: float
+
+
+
+
 class TradingBook:
     """Tracks all open forward contracts and cumulative P&L.
 
@@ -54,6 +75,10 @@ class TradingBook:
         self._total_pnl_gbp: float = 0.0
         self._total_hedged_mwh: float = 0.0
         self._total_bid_ask_cost_gbp: float = 0.0
+        self._closed_keys: set[tuple[str, str]] = set()
+        self._amendments: list[HedgeAmendment] = []
+        self._closures: list[PositionClosure] = []
+        self._hedge_overrides: dict[tuple[str, str], float] = {}
 
     def open_hedge(self, contract: ForwardContract) -> None:
         """Register a new forward contract when a supply term is signed."""
@@ -103,8 +128,72 @@ class TradingBook:
         return len(self._contracts)
 
     def open_contracts(self) -> list[ForwardContract]:
-        return list(self._contracts)
+        return [c for c in self._contracts
+                if (c.customer_id, c.term_start) not in self._closed_keys]
 
+    def closed_contracts(self) -> list[ForwardContract]:
+        return [c for c in self._contracts
+                if (c.customer_id, c.term_start) in self._closed_keys]
+
+
+    def amend_hedge(
+        self,
+        customer_id: str,
+        term_start: str,
+        new_hedge_fraction: float,
+        amendment_date: str,
+        reason: str = '',
+    ) -> HedgeAmendment:
+        key = (customer_id, term_start)
+        old_fraction = self._hedge_overrides.get(key)
+        if old_fraction is None:
+            for c in self._contracts:
+                if c.customer_id == customer_id and c.term_start == term_start:
+                    old_fraction = c.hedge_fraction
+                    break
+        amendment = HedgeAmendment(
+            customer_id=customer_id,
+            term_start=term_start,
+            amendment_date=amendment_date,
+            old_hedge_fraction=old_fraction or 0.0,
+            new_hedge_fraction=new_hedge_fraction,
+            reason=reason,
+        )
+        self._amendments.append(amendment)
+        self._hedge_overrides[key] = new_hedge_fraction
+        return amendment
+
+    def close_position(
+        self,
+        customer_id: str,
+        term_start: str,
+        close_date: str,
+        close_price_gbp_per_mwh: float,
+    ) -> PositionClosure:
+        notional = 0.0
+        agreed = 0.0
+        for c in self._contracts:
+            if c.customer_id == customer_id and c.term_start == term_start:
+                notional = c.notional_mwh
+                agreed = c.agreed_price_gbp_per_mwh
+                break
+        realised_pnl = round((close_price_gbp_per_mwh - agreed) * notional, 2)
+        closure = PositionClosure(
+            customer_id=customer_id,
+            term_start=term_start,
+            close_date=close_date,
+            close_price_gbp_per_mwh=close_price_gbp_per_mwh,
+            realised_pnl_gbp=realised_pnl,
+        )
+        self._closures.append(closure)
+        self._closed_keys.add((customer_id, term_start))
+        return closure
+
+    def amendments(self) -> list[HedgeAmendment]:
+        return list(self._amendments)
+
+    def closures(self) -> list[PositionClosure]:
+        return list(self._closures)
 
     def mark_to_market(self, contract: ForwardContract, current_price_gbp_per_mwh: float) -> dict:
         """MTM value of one contract at current market price.
@@ -135,7 +224,7 @@ class TradingBook:
         total = 0.0
         in_money = 0
         out_money = 0
-        for c in self._contracts:
+        for c in self.open_contracts():
             price = current_prices.get(c.customer_id)
             if price is None:
                 continue
