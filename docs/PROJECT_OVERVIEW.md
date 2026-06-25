@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,493 tests (1,485 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,524 tests (1,516 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,18 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 67 -- C3 Payment Processing and Debt Aging (2026-06-25)
+**Files:** `company/billing/payments.py` (new), `tests/company/billing/test_payments.py` (new)
+
+**What was built:**
+- `company/billing/payments.py`: `reconcile_payment()` -- matches `payment_received_event` to invoice by customer_id + billing_period_end; returns new status (paid/partially_paid/no_match). `reconcile_payments()` -- batch reconciliation with outcome counts. `age_debt()` -- flags invoices unpaid >90 days as bad_debt. `debt_aging_summary()` -- current/late/overdue/bad_debt aging buckets.
+- Reconciliation uses 0.1% tolerance (total * 0.999) to absorb rounding; idempotent on already-paid invoices.
+
+**Fidelity delta:** Billing lifecycle complete: bill -> invoice artefact -> payment -> reconciliation -> bad debt. Invoices age through four buckets: current/late/overdue/bad_debt. Foundation for DSO metric. C3 closed.
+
+**10 new tests (1,524 total).**
+
+---
 ### Phase 65 — FI2 Budget vs Actual (2026-06-25)
 **Files:** `company/finance/budget.py` (new), `tests/company/finance/test_budget_vs_actual.py` (new), `saas/reporting/annual_report.py` (extended)
 
@@ -1043,9 +1055,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 66, 2026-06-25):**
+**Latest full run (Phase 67, 2026-06-25):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 9 new tests: C1 invoice line items + text format. Invoice documents now show full breakdown.
+- 10 new tests: C3 payment reconciliation + debt aging. Billing lifecycle complete: invoice -> payment -> bad debt.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

@@ -8,7 +8,9 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T21:46:45Z
+Last updated: 2026-06-25T22:00:44Z
+
+**Phase 67 COMPLETE (2026-06-25):** C3 Payment Processing + Debt Aging -- 10 new tests (1,524 total).
 
 **Phase 66 COMPLETE (2026-06-25):** C1 Invoice Line Items + Text Format -- 9 new tests (1,514 total).
 - `company/billing/invoice.py`: schema extended with commodity/non-commodity columns; create_invoice() stores full line items; format_invoice_text() renders structured text invoice
@@ -85,9 +87,9 @@ Last updated: 2026-06-25T21:46:45Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,493 total (all saas/company/tools passing)**
+**Test suite: 1,524 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351

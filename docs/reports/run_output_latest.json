@@ -9894,15 +9894,15 @@
     "net_margin_gbp": 6322835.706049453
   },
   "tou_stats": {
-    "C9": {
-      "total_kwh": 109386.6,
-      "peak_kwh": 43689.1,
-      "offpeak_kwh": 65697.5,
-      "peak_pct": 39.9,
-      "peak_revenue_gbp": 10949.86,
-      "offpeak_revenue_gbp": 9323.63,
-      "avg_peak_rate": 250.63,
-      "avg_offpeak_rate": 141.92
+    "C8": {
+      "total_kwh": 106721.8,
+      "peak_kwh": 43948.0,
+      "offpeak_kwh": 62773.8,
+      "peak_pct": 41.2,
+      "peak_revenue_gbp": 11998.79,
+      "offpeak_revenue_gbp": 9712.48,
+      "avg_peak_rate": 273.02,
+      "avg_offpeak_rate": 154.72
     },
     "C7": {
       "total_kwh": 120839.4,
@@ -9914,15 +9914,15 @@
       "avg_peak_rate": 262.8,
       "avg_offpeak_rate": 145.03
     },
-    "C8": {
-      "total_kwh": 106721.8,
-      "peak_kwh": 43948.0,
-      "offpeak_kwh": 62773.8,
-      "peak_pct": 41.2,
-      "peak_revenue_gbp": 11998.79,
-      "offpeak_revenue_gbp": 9712.48,
-      "avg_peak_rate": 273.02,
-      "avg_offpeak_rate": 154.72
+    "C9": {
+      "total_kwh": 109386.6,
+      "peak_kwh": 43689.1,
+      "offpeak_kwh": 65697.5,
+      "peak_pct": 39.9,
+      "peak_revenue_gbp": 10949.86,
+      "offpeak_revenue_gbp": 9323.63,
+      "avg_peak_rate": 250.63,
+      "avg_offpeak_rate": 141.92
     }
   },
   "company_gas_churn_log": [
@@ -13598,5 +13598,287 @@
         "churn_probability": 0.37999999999999995
       }
     ]
+  },
+  "management_accounts": {
+    "2016": {
+      "income_statement": {
+        "revenue_gbp": 14671.694839230222,
+        "wholesale_cost_gbp": 3319.8548176805866,
+        "non_commodity_cost_gbp": 3862.1146208389814,
+        "gross_margin_gbp": 7489.725400710653,
+        "capital_cost_gbp": 75.61811874895709,
+        "bad_debt_gbp": 221.11676473481728,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 600.0,
+        "acquisition_spend_gbp": 0.0,
+        "total_opex_gbp": 821.1167647348173,
+        "net_margin_gbp": 6592.990517226878
+      },
+      "balance_sheet": {
+        "cash_gbp": 2470503.5887923194,
+        "trade_receivables_gbp": 2725.6223161235466,
+        "total_assets_gbp": 2473229.211108443,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 6592.990517226878,
+        "total_equity_gbp": 2473229.211108444,
+        "total_liabilities_and_equity_gbp": 2473229.211108444,
+        "equation_holds": true
+      }
+    },
+    "2017": {
+      "income_statement": {
+        "revenue_gbp": 351476.1363001236,
+        "wholesale_cost_gbp": 111450.78933703926,
+        "non_commodity_cost_gbp": 115142.18229385372,
+        "gross_margin_gbp": 124883.16466923061,
+        "capital_cost_gbp": 1265.3301697691197,
+        "bad_debt_gbp": 6268.742679260261,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 600.0,
+        "acquisition_spend_gbp": 0.0,
+        "total_opex_gbp": 6868.742679260261,
+        "net_margin_gbp": 116749.09182020123
+      },
+      "balance_sheet": {
+        "cash_gbp": 2557883.0130455806,
+        "trade_receivables_gbp": 32095.289883606078,
+        "total_assets_gbp": 2589978.3029291867,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 123342.08233742855,
+        "total_equity_gbp": 2589978.302928645,
+        "total_liabilities_and_equity_gbp": 2589978.302928645,
+        "equation_holds": true
+      }
+    },
+    "2018": {
+      "income_statement": {
+        "revenue_gbp": 614410.8615882751,
+        "wholesale_cost_gbp": 173740.2978393366,
+        "non_commodity_cost_gbp": 170760.21501302774,
+        "gross_margin_gbp": 269910.3487359107,
+        "capital_cost_gbp": 1543.5731105200769,
+        "bad_debt_gbp": 12007.229742316014,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 600.0,
+        "acquisition_spend_gbp": 0.0,
+        "total_opex_gbp": 12607.229742316014,
+        "net_margin_gbp": 255759.54588307464
+      },
+      "balance_sheet": {
+        "cash_gbp": 2789903.8510055337,
+        "trade_receivables_gbp": 55833.997806427535,
+        "total_assets_gbp": 2845737.8488119612,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 379101.62822050735,
+        "total_equity_gbp": 2845737.848811724,
+        "total_liabilities_and_equity_gbp": 2845737.848811724,
+        "equation_holds": true
+      }
+    },
+    "2019": {
+      "income_statement": {
+        "revenue_gbp": 1651481.8522569307,
+        "wholesale_cost_gbp": 497776.92754496663,
+        "non_commodity_cost_gbp": 440930.5013377293,
+        "gross_margin_gbp": 712774.4233742348,
+        "capital_cost_gbp": 11318.087031065344,
+        "bad_debt_gbp": 30889.11923473545,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 600.0,
+        "acquisition_spend_gbp": 0.0,
+        "total_opex_gbp": 31489.11923473545,
+        "net_margin_gbp": 669967.217108434
+      },
+      "balance_sheet": {
+        "cash_gbp": 3358819.901779036,
+        "trade_receivables_gbp": 156885.16414291132,
+        "total_assets_gbp": 3515705.0659219474,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 1049068.8453289564,
+        "total_equity_gbp": 3515705.065920173,
+        "total_liabilities_and_equity_gbp": 3515705.065920173,
+        "equation_holds": true
+      }
+    },
+    "2020": {
+      "income_statement": {
+        "revenue_gbp": 1844502.202155567,
+        "wholesale_cost_gbp": 432985.9451862409,
+        "non_commodity_cost_gbp": 607517.8833701435,
+        "gross_margin_gbp": 803998.3735991827,
+        "capital_cost_gbp": 7378.153049708494,
+        "bad_debt_gbp": 38007.293546723646,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 600.0,
+        "acquisition_spend_gbp": 150.0,
+        "total_opex_gbp": 38757.293546723646,
+        "net_margin_gbp": 757862.9270027506
+      },
+      "balance_sheet": {
+        "cash_gbp": 4092592.8646337194,
+        "trade_receivables_gbp": 180975.12828537356,
+        "total_assets_gbp": 4273567.992919093,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 1806931.7723317647,
+        "total_equity_gbp": 4273567.992922981,
+        "total_liabilities_and_equity_gbp": 4273567.992922981,
+        "equation_holds": true
+      }
+    },
+    "2021": {
+      "income_statement": {
+        "revenue_gbp": 2370556.25023951,
+        "wholesale_cost_gbp": 983138.3012668614,
+        "non_commodity_cost_gbp": 605461.6911878241,
+        "gross_margin_gbp": 781956.2577848246,
+        "capital_cost_gbp": 15938.67539756118,
+        "bad_debt_gbp": 45985.238372128326,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 600.0,
+        "acquisition_spend_gbp": 400.0,
+        "total_opex_gbp": 46985.238372128326,
+        "net_margin_gbp": 719032.3440151351
+      },
+      "balance_sheet": {
+        "cash_gbp": 4702165.3543057265,
+        "trade_receivables_gbp": 290434.98263347894,
+        "total_assets_gbp": 4992600.336939205,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 2525964.116346922,
+        "total_equity_gbp": 4992600.336938139,
+        "total_liabilities_and_equity_gbp": 4992600.336938139,
+        "equation_holds": true
+      }
+    },
+    "2022": {
+      "income_statement": {
+        "revenue_gbp": 4098558.7917480636,
+        "wholesale_cost_gbp": 2411532.787962576,
+        "non_commodity_cost_gbp": 603679.7420240393,
+        "gross_margin_gbp": 1083346.2617614483,
+        "capital_cost_gbp": 65376.23245177228,
+        "bad_debt_gbp": 81405.48588917631,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 600.0,
+        "acquisition_spend_gbp": 0.0,
+        "total_opex_gbp": 82005.48588917631,
+        "net_margin_gbp": 935964.5434204997
+      },
+      "balance_sheet": {
+        "cash_gbp": 5508626.25377814,
+        "trade_receivables_gbp": 419938.626583986,
+        "total_assets_gbp": 5928564.880362126,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 3461928.6597675374,
+        "total_equity_gbp": 5928564.880358754,
+        "total_liabilities_and_equity_gbp": 5928564.880358754,
+        "equation_holds": true
+      }
+    },
+    "2023": {
+      "income_statement": {
+        "revenue_gbp": 3193494.8999039643,
+        "wholesale_cost_gbp": 1656990.8217903941,
+        "non_commodity_cost_gbp": 603513.7662539101,
+        "gross_margin_gbp": 932990.31185966,
+        "capital_cost_gbp": 49257.406516345734,
+        "bad_debt_gbp": 71218.58416453394,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 600.0,
+        "acquisition_spend_gbp": 0.0,
+        "total_opex_gbp": 71818.58416453394,
+        "net_margin_gbp": 811914.3211787804
+      },
+      "balance_sheet": {
+        "cash_gbp": 6459474.715467922,
+        "trade_receivables_gbp": 281004.4860391561,
+        "total_assets_gbp": 6740479.2015070785,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 4273842.980946208,
+        "total_equity_gbp": 6740479.201537425,
+        "total_liabilities_and_equity_gbp": 6740479.201537425,
+        "equation_holds": true
+      }
+    },
+    "2024": {
+      "income_statement": {
+        "revenue_gbp": 2859414.9227273837,
+        "wholesale_cost_gbp": 940907.5501600335,
+        "non_commodity_cost_gbp": 605422.8291793461,
+        "gross_margin_gbp": 1313084.543388004,
+        "capital_cost_gbp": 55798.81706048527,
+        "bad_debt_gbp": 60544.52138955074,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 600.0,
+        "acquisition_spend_gbp": 550.0,
+        "total_opex_gbp": 61694.52138955074,
+        "net_margin_gbp": 1195591.204937968
+      },
+      "balance_sheet": {
+        "cash_gbp": 7662691.983164642,
+        "trade_receivables_gbp": 273378.42326806113,
+        "total_assets_gbp": 7936070.406432703,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 5469434.185884024,
+        "total_equity_gbp": 7936070.40647524,
+        "total_liabilities_and_equity_gbp": 7936070.40647524,
+        "equation_holds": true
+      }
+    },
+    "2025": {
+      "income_statement": {
+        "revenue_gbp": 1247151.3726718957,
+        "wholesale_cost_gbp": 458725.03692075965,
+        "non_commodity_cost_gbp": 260405.04169314157,
+        "gross_margin_gbp": 528021.2940579945,
+        "capital_cost_gbp": 28983.0934686441,
+        "bad_debt_gbp": 36766.75303570671,
+        "cost_to_serve_gbp": 0.0,
+        "fixed_cost_gbp": 300.0,
+        "acquisition_spend_gbp": 0.0,
+        "total_opex_gbp": 37066.75303570671,
+        "net_margin_gbp": 461971.4475536437
+      },
+      "balance_sheet": {
+        "cash_gbp": 8398041.853981575,
+        "trade_receivables_gbp": -7.450580596923828e-09,
+        "total_assets_gbp": 8398041.853981568,
+        "vat_payable_gbp": 0.0,
+        "total_liabilities_gbp": 0.0,
+        "opening_capital_gbp": 2466636.220591217,
+        "retained_earnings_gbp": 0.0,
+        "current_period_profit_gbp": 5931405.633437442,
+        "total_equity_gbp": 8398041.854028659,
+        "total_liabilities_and_equity_gbp": 8398041.854028659,
+        "equation_holds": true
+      }
+    }
   }
 }
