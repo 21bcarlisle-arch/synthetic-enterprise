@@ -18,6 +18,10 @@ from fastapi.templating import Jinja2Templates
 import json
 
 from company.billing.invoice import invoices_for_account
+from company.pricing.tariff_comparison import compare_tariffs
+from company.interfaces.sim_interface import LiveSimInterface
+
+_SIM_INTERFACE = LiveSimInterface()
 from saas.customers import CUSTOMERS
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -126,4 +130,47 @@ async def trading_desk(request: Request):
     return templates.TemplateResponse(
         request, "trading.html",
         {"data": data},
+    )
+
+
+@app.get("/account/{account_id}/tariff-compare", response_class=HTMLResponse)
+async def tariff_compare(request: Request, account_id: str):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    import json as _json
+    _as_of = "2025-01-01"
+    if _RUN_OUTPUT.exists():
+        _d = _json.loads(_RUN_OUTPUT.read_text())
+        _yrs = sorted(_d.get("years", {}).keys())
+        if _yrs:
+            _as_of = f"{_yrs[-1]}-06-01"
+    options = compare_tariffs(
+        eac_kwh=customer["eac_kwh"],
+        sim_interface=_SIM_INTERFACE,
+        as_of_date=_as_of,
+        segment=customer.get("segment", "resi"),
+    )
+    return templates.TemplateResponse(
+        request, "tariff_compare.html",
+        {"customer": customer, "options": options},
+    )
+
+
+@app.post("/account/{account_id}/switch-tariff", response_class=HTMLResponse)
+async def switch_tariff(
+    request: Request,
+    account_id: str,
+    tariff_name: str = Form(...),
+    term_months: int = Form(...),
+):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    from datetime import date
+    import hashlib
+    ref = "SW-" + hashlib.sha1(f"{account_id}{tariff_name}{date.today()}".encode()).hexdigest()[:8].upper()
+    return templates.TemplateResponse(
+        request, "tariff_switch_confirm.html",
+        {"customer": customer, "tariff_name": tariff_name, "term_months": term_months, "ref": ref},
     )

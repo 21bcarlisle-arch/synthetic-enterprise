@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T22:27:17Z
+Last updated: 2026-06-25T22:36:17Z
+
+**Phase 77 COMPLETE (2026-06-26):** Portal Phase 2: Tariff Comparison -- 17 new tests (1,639 total).
+- `company/pricing/tariff_comparison.py` (new): compare_tariffs() returns Fixed 1yr/2yr/Variable sorted by annual cost
+- Portal: GET tariff-compare + POST switch-tariff (generates SW- reference, renders confirmation)
+- Rich can now log in as C1 and request a tariff switch via the portal
 
 **Phase 76 COMPLETE (2026-06-26):** M3 Market Data Feed -- 10 new tests (1,622 total).
 - `company/market/price_feed.py` (new): PriceFeed reads published JSON feed, is_stale(), summary()
@@ -130,7 +135,7 @@ Last updated: 2026-06-25T22:27:17Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,622 total (all saas/company/tools passing)**
+**Test suite: 1,639 total (all saas/company/tools passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

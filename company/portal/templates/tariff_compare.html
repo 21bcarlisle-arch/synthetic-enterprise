@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tariff Comparison — {{ customer.customer_id }}</title>
+  <style>body{font-family:sans-serif;max-width:700px;margin:40px auto;padding:0 16px}
+    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
+    th{background:#ebf8ff}.best{background:#f0fff4;font-weight:bold}
+    .switch-btn{background:#2b6cb0;color:#fff;border:none;padding:8px 16px;cursor:pointer;margin-top:8px;border-radius:4px}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a> | <a href="/account/{{ customer.customer_id }}/bills">Bills</a></nav>
+  <h1>Tariff Comparison — {{ customer.customer_id }}</h1>
+  <p>Based on your annual consumption of <strong>{{ customer.eac_kwh }} kWh</strong>.</p>
+  <table>
+    <tr>
+      <th>Tariff</th>
+      <th>Unit Rate (p/kWh)</th>
+      <th>Standing Charge (p/day)</th>
+      <th>Est. Annual Cost</th>
+      <th></th>
+    </tr>
+    {% for opt in options %}
+    <tr {% if loop.first %}class="best"{% endif %}>
+      <td>{{ opt.name }}</td>
+      <td>{{ "%.2f"|format(opt.unit_rate_p_per_kwh) }}</td>
+      <td>{{ "%.1f"|format(opt.standing_charge_p_per_day) }}</td>
+      <td>£{{ "%.2f"|format(opt.estimated_annual_cost_gbp) }}</td>
+      <td>
+        <form method="post" action="/account/{{ customer.customer_id }}/switch-tariff">
+          <input type="hidden" name="tariff_name" value="{{ opt.name }}">
+          <input type="hidden" name="term_months" value="{{ opt.term_months }}">
+          <button class="switch-btn" type="submit">Request Switch</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p><small>Prices include VAT. Estimates based on current forward market prices and your EAC.</small></p>
+</body>
+</html>

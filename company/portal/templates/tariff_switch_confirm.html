@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Switch Request Received — {{ customer.customer_id }}</title>
+  <style>body{font-family:sans-serif;max-width:700px;margin:40px auto;padding:0 16px}
+    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}.box{background:#f0fff4;padding:20px;border-radius:8px;margin-top:20px}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a></nav>
+  <h1>Switch Request Received</h1>
+  <div class="box">
+    <p>Your request to switch to <strong>{{ tariff_name }}</strong> has been logged.</p>
+    <p>A member of our team will process this at your next renewal date.</p>
+    <p>Reference: {{ ref }}</p>
+  </div>
+  <p><a href="/account/{{ customer.customer_id }}">Return to dashboard</a></p>
+</body>
+</html>

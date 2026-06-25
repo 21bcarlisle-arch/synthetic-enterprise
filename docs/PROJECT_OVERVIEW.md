@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,622 tests (1,614 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,639 tests (1,631 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,21 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 77 -- Portal Phase 2: Tariff Comparison (2026-06-26)
+**Files:** `company/pricing/tariff_comparison.py` (new), `company/portal/app.py` (extended), `company/portal/templates/tariff_compare.html` (new), `company/portal/templates/tariff_switch_confirm.html` (new), `tests/company/pricing/test_tariff_comparison.py` (new), `tests/company/portal/test_tariff_compare.py` (new)
+
+**What was built:**
+- `unit_rate_from_forward(forward_gbp_mwh, markup_pct, vat_rate)`: converts observable forward price to customer unit rate in p/kWh (inc VAT).
+- `annual_cost_gbp(unit_rate_p, sc_p, eac_kwh)`: estimated annual cost from unit rate + standing charge.
+- `compare_tariffs(eac_kwh, sim_interface, as_of_date, segment)`: returns 3 options (Fixed 1yr, Fixed 2yr, Variable SVT) sorted cheapest first. Segment-aware: I&C has no standing charge, domestic uses published Ofgem rate.
+- Portal GET `/account/{id}/tariff-compare`: renders comparison table with switch buttons.
+- Portal POST `/account/{id}/switch-tariff`: logs request, generates SW- reference, renders confirmation.
+
+**Fidelity delta:** Rich can now log in as C1 and see competing tariff options with estimated annual costs, then request a tariff switch. The portal now completes the customer journey from bill review to renewal decision. This is the most user-visible demonstration that the company is real.
+
+**17 new tests (1,639 total).**
+
+---
 ### Phase 76 -- M3 Market Data Feed (2026-06-26)
 **Files:** `company/market/price_feed.py` (new), `tests/company/market/test_price_feed.py` (new)
 
@@ -1183,9 +1198,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 76, 2026-06-26):**
+**Latest full run (Phase 77, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 10 new tests: M3 Market data feed (published JSON, staleness detection). M3 closed. All Destinationvision gaps closed.
+- 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
