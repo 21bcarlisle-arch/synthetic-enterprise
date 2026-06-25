@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T14:35:56Z
+Last updated: 2026-06-25T14:55:14Z
+
+**Phase 58 COMPLETE (2026-06-25):** Weather-adjusted gas consumption (HDD model) — 15 new tests (1,418 total).
+- `sim/weather_hdd.py` (new): HDD = max(0, 15.5°C - mean_temp); UK 1991-2020 climate normals; `get_weather_factor()` [0.3, 2.0]
+- `simulation/gas_settlement.py`: `weather_factor` param scales daily_kwh; resi/SME only — I&C process gas unchanged
+- 2019-2020 warm winter reduces resi gas demand; Jan 2021 cold snap increases it
 
 **Phase 57 COMPLETE (2026-06-25):** Year-varying bad debt (crisis surge) — 9 new tests (1,403 total).
 - `saas/cost_to_serve.py`: `get_bad_debt_rate(year, segment)` — 2021 resi 4%, 2022 resi 8% (Ofgem 2.4M in arrears), 2023 5%
@@ -48,9 +53,9 @@ Last updated: 2026-06-25T14:35:56Z
 - **Net margin: £5,269,031 | Gross: £5,506,328 | EV: £6,024,926 | Treasury: £2,749,581 | SURVIVED**
 - Bad debt: £85,939 total (2022 8% crisis peak); admin event: None
 
-**Test suite: 1,403 total (all saas/company/tools passing)**
+**Test suite: 1,418 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
 - Net margin: £5,269,031.32 | Gross: £5,506,327.73 | Capital: £237,296
 - Treasury: £2,466,636 → £2,749,581 | 43 committee interventions | 1549 bills issued
 - Enterprise value: £6,024,925.91 | Net after CTS: £5,406,118
