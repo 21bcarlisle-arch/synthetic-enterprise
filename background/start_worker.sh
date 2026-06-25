@@ -52,6 +52,10 @@ _start_session "autonomous-runner" \
   "python3 background/autonomous_runner.py" \
   "Fires claude -p turn after 30min idle — replaces broken tmux keystrokes autoloop"
 
+_start_session "token-proxy" \
+  "python3 -m background.token_proxy" \
+  "Local HTTP proxy on :8801 — tracks token usage for autonomous turns"
+
 echo ""
 echo "Stack startup complete. Running health check..."
 python3 background/health_check.py --quiet
