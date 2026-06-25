@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T22:20:28Z
+Last updated: 2026-06-25T22:23:25Z
+
+**Phase 74 COMPLETE (2026-06-26):** M2 Regulatory Reporting -- 13 new tests (1,602 total).
+- `company/regulatory/compliance.py` (new): price cap compliance, smart meter COMPLIANT/AT_RISK/BREACH, CSS annual return
+- Ofgem SLC37 complaint resolution tracking; annual turnover fee computation
+- M2 closed
 
 **Phase 73 COMPLETE (2026-06-26):** T1 Trading Desk Interface -- 7 new tests (1,589 total).
 - Portal: GET /trading route shows hedge portfolio summary, best/worst decisions, P&L by year
@@ -116,7 +121,7 @@ Last updated: 2026-06-25T22:20:28Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,589 total (all saas/company/tools passing)**
+**Test suite: 1,602 total (all saas/company/tools passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

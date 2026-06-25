@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,589 tests (1,581 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,602 tests (1,594 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,21 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 74 -- M2 Regulatory Reporting (2026-06-26)
+**Files:** `company/regulatory/compliance.py` (new), `tests/company/regulatory/test_compliance.py` (new)
+
+**What was built:**
+- `smart_meter_target(year, segment)`: Ofgem SMETS2 targets 2019-2025 (resi: 53%-86%; SME: 75% of resi; I&C: 100% always).
+- `smart_meter_compliance_status(actual, year, segment)`: COMPLIANT / AT_RISK (>5pp gap) / BREACH (>10pp gap).
+- `check_price_cap_compliance(records, cap_unit, cap_sc)`: flags any tariff record exceeding Ofgem domestic cap on unit rate or standing charge.
+- `generate_css_filing(service_log_data, year)`: annual CSS return -- total contacts, complaints, resolved count, resolution rate, vulnerable customers. `resolution_target_met` flag (Ofgem SLC37: 80% within 56 days).
+- `annual_turnover_fee(revenue_gbp)`: Ofgem annual fee at 0.07% of turnover.
+
+**Fidelity delta:** The company can now self-assess against Ofgem licence conditions before the regulator does. Smart meter compliance status, price cap breach detection, and CSS filing are the three most common regulatory enforcement triggers in UK energy retail. M2 closed.
+
+**13 new tests (1,602 total).**
+
+---
 ### Phase 73 -- T1 Trading Desk Interface (2026-06-26)
 **Files:** `company/portal/app.py` (extended), `company/portal/templates/trading.html` (new), `tests/company/portal/test_trading_route.py` (new)
 
@@ -1134,9 +1149,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 73, 2026-06-26):**
+**Latest full run (Phase 74, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 7 new tests: T1 Trading desk portal view (hedge P&L by year). T1 closed.
+- 13 new tests: M2 Regulatory reporting (price cap, smart meter, CSS filing). M2 closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
