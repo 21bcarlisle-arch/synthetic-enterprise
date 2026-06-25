@@ -19,7 +19,7 @@ the last partial). The business survived the full window.
 - Capital cost ratio: 3.6% of gross
 - Net margin as % of revenue: 34.7%
   (industry benchmark for a retail energy supplier: 2-5%)
-- Risk committee (Context Handshake) interventions: 37
+- Risk committee (Context Handshake) interventions: 38
 - Bills issued: 1531, average clarity 0.846,
   service quality score 0.911
 - Enterprise value (CLV sum across 14 billing accounts): £6,124,100.98
@@ -1006,11 +1006,11 @@ _Cash reconciliation: of £19,167,073.09 billed, bad debt of £383,314.08 was wr
   - Gas: gross £684.14, capital £5.42, net £279.81
 - Treasury at year end: £2,467,407.51
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89)
-- Risk committee (Context Handshake) interventions: 12
+- Risk committee (Context Handshake) interventions: 13
   - 2016-01-01: treasury £2,466,636.23, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-01-31: treasury £2,466,647.33, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-03-01: treasury £2,466,658.53, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
-  - 2016-03-31: treasury £2,466,669.50, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
+  - 2016-03-31: treasury £2,466,669.50, (none), VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-04-30: treasury £2,466,679.77, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-05-30: treasury £2,466,689.97, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-06-29: treasury £2,466,699.83, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
@@ -1019,6 +1019,7 @@ _Cash reconciliation: of £19,167,073.09 billed, bad debt of £383,314.08 was wr
   - 2016-09-27: treasury £2,466,729.91, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-10-27: treasury £2,466,740.03, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-11-26: treasury £2,466,750.06, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
+  - 2016-12-26: treasury £2,466,761.00, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
 - VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.25
 - Worst single period: C9 on 2016-11-20 period 36, net margin £-0.31
 
@@ -1075,7 +1076,7 @@ _Cash reconciliation: of £19,167,073.09 billed, bad debt of £383,314.08 was wr
   - C8: actual £174.46 vs. naked £784.20 -- hedging cost £609.75
   - C9: actual £60.52 vs. naked £673.81 -- hedging cost £613.29
 
-**Year narrative:** 2016 produced a net gain of £1,177.50 across 13 accounts. The risk committee intervened 12 time(s), raising hedge fractions in response to elevated VaR. 33 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2016 produced a net gain of £1,177.50 across 13 accounts. The risk committee intervened 13 time(s), raising hedge fractions in response to elevated VaR. 33 customer(s) experienced a bill shock of >=20%.
 
 ## 2017
 
