@@ -134,9 +134,17 @@ def _usage_limit_active() -> bool:
     threshold) but firing claude -p would immediately fail with the same
     limit. session_watchdog handles the wait/resume — we must stay out of
     the way.
+
+    Lines containing |[]` are skipped — they indicate code/source context
+    where these phrases appear as literals, not live UI messages.
     """
-    content = _pane_content()
-    return any(phrase.lower() in content.lower() for phrase in _USAGE_LIMIT_PHRASES)
+    for line in _pane_content().splitlines():
+        if any(ch in line for ch in "|[]`"):
+            continue
+        line_lower = line.lower()
+        if any(phrase.lower() in line_lower for phrase in _USAGE_LIMIT_PHRASES):
+            return True
+    return False
 
 
 def launch_turn() -> None:
