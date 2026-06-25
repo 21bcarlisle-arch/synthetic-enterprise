@@ -1,55 +1,51 @@
-# Phase 58 Proposal: Weather-adjusted gas consumption (heating degree days)
+# Phase 65 Proposal: FI2 -- Budget vs Actual
 
-**The gap:** Gas consumption in the simulation uses a fixed seasonal multiplier
-(`GAS_MONTH_SEASONAL_MULTIPLIER` in `sim/forward_curve.py`) that is the same every year.
-In reality, UK gas demand is tightly correlated with heating degree days (HDD): a warm
-winter reduces residential gas consumption by 15-25% vs the seasonal average; a cold
-snap increases it. We have per-customer daily weather data in `sim/weather_data/` from
-2016-2025 (Phase 1b). This is unused.
+**The gap:** Destinationvision.md FI2: Annual budget set at start of year. Monthly variance
+reported. Drives management decisions. Currently: no budget model.
 
-Key real-world data points:
-- UK winter 2019-2020: warmest on record (HDD ~30% below average) → gas demand -20%
-- UK Jan 2021: cold snap (HDD well above seasonal avg) → gas demand spike
-- 2022: overall mild winter → gas consumption lower than price-implied crisis severity
-- Gas consumption drives: customer bills, wholesale cost, gas policy costs, gas network costs
+FI1 (management accounts) is now complete (Phase 64). The double-entry income statement
+per year/month is available via company.finance.management_accounts. Budget vs actual
+is the next layer: a planned budget against which actuals are compared.
 
 **What to build:**
 
-1. `sim/weather.py` (new): `get_hdd(date_str, customer_id)` — heating degree days for one day
-   at one customer's location. HDD = max(0, HDD_BASE_TEMP - mean_temp). Standard UK base 15.5°C.
-   `get_monthly_hdd(year, month, customer_id)` — sum over month.
-   `get_reference_monthly_hdd(month)` — 30-year UK climate normal (2001-2020 baseline) per month,
-   used to compute weather_factor = actual_hdd / reference_hdd.
+1. company/finance/budget.py (new):
+   - BUDGET_BY_YEAR: {year: {revenue, wholesale, gross, opex, net}} -- static budget
+     constants derived from: prior year actuals + expected growth/cost assumptions.
+   - get_annual_budget(year): returns budget dict for that year.
+   - variance_report(management_accounts_pack, year): compares budget to actual.
+     Returns {revenue: {budget, actual, variance_gbp, variance_pct},
+              gross: {...}, net: {...}} for each line.
+   - monthly_variance(management_accounts_pack, year, budget=None): same at monthly level.
+   - traffic_light(variance_pct): "GREEN" if <5%, "AMBER" if <15%, "RED" if >=15%.
 
-2. `simulation/gas_settlement.py`: add `weather_factor` param to `run_gas_term()`.
-   Residential/SME gas consumption per period = base_consumption × weather_factor.
-   I&C pass-through gas: weather adjustment also applies (process heat not temperature-sensitive for
-   large industrial, but resi-equivalent I&C gas is heating-dominated — use customer segment to gate).
-   Gate: weather adjustment only for resi and SME; I&C process gas unchanged.
+2. saas/reporting/annual_report.py:
+   - _section_budget_vs_actual(data): renders annual variance table (10 years).
+     Columns: Year | Budget Revenue | Actual Revenue | Var | Budget Net | Actual Net | Var | RAG.
+   - Only rendered if management_accounts is available in data.
 
-3. `simulation/run_phase2b.py`: compute `weather_factor` per customer per gas term from
-   `sim/weather.py`; pass into `run_gas_term()`.
+3. Tests (~12 new):
+   - test_budget_constants_present_2016_2025 -- all 10 years have budget entries
+   - test_variance_report_structure -- all required keys present
+   - test_variance_zero_when_actual_equals_budget -- perfect budget gives 0% var
+   - test_traffic_light_green_under_5pct -- green within tolerance
+   - test_traffic_light_amber_5_to_15pct -- amber range
+   - test_traffic_light_red_over_15pct -- red when badly off
+   - test_variance_positive_when_actual_beats_budget -- outperformance tracked
+   - test_variance_negative_when_actual_misses -- shortfall tracked
+   - test_monthly_variance_returns_12_months -- monthly breakdown
+   - test_budget_vs_actual_section_in_report -- section heading present
+   - test_2022_crisis_year_shows_red_net -- energy crisis year has unfavourable net variance
+   - test_budget_tolerates_missing_year -- graceful degradation
 
-4. Annual report: add weather_factor column (or % deviation from seasonal baseline) to gas P&L table.
+**Budget methodology:** Derive 2016 budget from first year actual (baseline). Each subsequent
+year: revenue = prior budget * 1.10 (10% growth target); opex = prior budget * 1.05;
+net = revenue - estimated cogs (85% pass-through) - opex. This gives a static but
+meaningful comparison that shows real deviations (2022 crisis year will show big red variance).
 
-5. Tests (~10 new):
-   - `test_hdd_is_zero_above_base_temp` — warm day → HDD=0
-   - `test_hdd_positive_below_base_temp` — cold day → correct HDD
-   - `test_monthly_hdd_sums_days` — sum check
-   - `test_weather_factor_warm_winter_below_1` — 2019-2020 London factor < 1.0
-   - `test_weather_factor_cold_snap_above_1` — Jan 2021 factor > 1.0
-   - `test_ic_segment_not_adjusted` — I&C process gas unchanged
-   - `test_gas_term_consumption_scales_with_weather` — warm year → less gas consumed
-   - `test_reference_hdd_all_months_positive` — climate normals are sensible
-   - `test_weather_factor_clipped_to_sane_range` — no factor > 2.0 or < 0.3
-   - `test_gas_consumption_2020_below_2018` — warm 2019-2020 winter suppresses demand
+**Expected impact:** Company now has a budget model and monthly variance tracking. Management
+reporting moves from observation to control: actuals compared to plan, deviations flagged.
+FI2 closed.
 
-**Expected impact:** Year-to-year gas consumption now varies with actual UK weather. The
-2019-2020 warm winter reduces gas costs and bills; the Jan 2021 cold snap increases them.
-Resi gas customers see weather-driven bill variance. Margin on fixed-rate gas is higher in
-warm years (supplier locked in price, consumption lower = lower cost but revenue same).
-Adds the "weather is a real business driver" dimension that was always in the backlog.
-
-**Files changed:** `sim/weather.py` (new), `simulation/gas_settlement.py`,
-`simulation/run_phase2b.py`, `saas/reporting/annual_report.py`,
-`tests/sim/test_weather_hdd.py` (new), ~10 tests.
+**Files changed:** company/finance/budget.py (new), saas/reporting/annual_report.py,
+tests/company/finance/test_budget_vs_actual.py (new). ~12 new tests.
