@@ -99,9 +99,9 @@ def test_run_flex_term_margin_equals_markup_times_consumption():
     assert len(records) == 48
     for r in records:
         consumption_mwh = r["consumption_kwh"] / 1000.0
-        expected_margin = markup * consumption_mwh
-        assert abs(r["margin_gbp"] - expected_margin) < 1e-9, (
-            f"margin {r['margin_gbp']:.6f} ≠ markup×consumption {expected_margin:.6f}"
+        expected_net = markup * consumption_mwh
+        assert abs(r["net_margin_gbp"] - expected_net) < 1e-9, (
+            f"margin {r['net_margin_gbp']:.6f} ≠ markup×consumption {expected_net:.6f}"
         )
 
 
@@ -171,8 +171,10 @@ def test_run_flex_term_revenue_equals_ref_plus_markup():
 
     for r in records:
         mwh = r["consumption_kwh"] / 1000.0
-        expected_revenue = (r["flex_reference_price_gbp_per_mwh"] + 2.0) * mwh
-        assert abs(r["revenue_gbp"] - expected_revenue) < 1e-9
+        ref = r["flex_reference_price_gbp_per_mwh"]
+        passthrough = r["policy_cost_gbp"] + r["network_cost_gbp"]
+        expected_revenue = (ref + 2.0) * mwh + passthrough
+        assert abs(r["revenue_gbp"] - expected_revenue) < 1e-6
 
 
 def test_flex_customer_in_fast_run():

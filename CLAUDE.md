@@ -63,6 +63,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 61 COMPLETE (2026-06-25):** Flex tariff policy pass-through fix — 8 new tests (1,444 passing). `run_flex_term()` in `hedged_settlement.py`: revenue now includes policy+network recovery (pass-through to customer). Prior: supplier absorbed all policy costs, creating £175k/yr artificial losses for C_IC4. Net = markup x volume only; C_IC4 total net swings from -£1.06M to +£33k.
 **Phase 60 COMPLETE (2026-06-25):** I&C gas flat seasonal profile — 8 new tests (1,436 passing). `GAS_IC_CONSUMPTION_MONTHLY_PROFILE` in `gas_settlement.py`: Jan=1.075, Jul=0.913, 1.18× ratio. `run_gas_term()` selects resi vs I&C profile by `segment`. Prior: resi 5.3× swing on 5M kWh I&C = £1k/day distortion.
 **Phase 59 COMPLETE (2026-06-25):** Monthly gas consumption seasonality — 10 new tests (1,428 passing).. `simulation/gas_settlement.py`: `GAS_CONSUMPTION_MONTHLY_PROFILE` (Jan=1.884, Jul=0.353, 5.3× ratio). Per-day `daily_kwh = AQ/365 × seasonal × weather`. Prior model: flat AQ/365 every day.
 **Phase 58 COMPLETE (2026-06-25):** Weather-adjusted gas consumption (HDD model) — 15 new tests (1,418 passing). `sim/weather_hdd.py` (new): `get_weather_factor(year, month, cid)` — actual/reference HDD ratio [0.3, 2.0]; UK 1991–2020 climate normals. `gas_settlement.py`: `weather_factor` param scales `daily_kwh`; field in every record. `run_phase2b.py`: resi/SME gas gets term-averaged factor; I&C process gas unchanged.

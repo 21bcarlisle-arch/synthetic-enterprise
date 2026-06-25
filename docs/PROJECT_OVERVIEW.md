@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 390+ commits. 1,436 tests (1,428 non-simulation, 8 integration). Codebase: ~22,400 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,444 tests (1,436 non-simulation, 8 integration). Codebase: ~22,500 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -483,6 +483,18 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 61 — Flex Tariff Policy Pass-Through Fix (2026-06-25)
+**Files:** `simulation/hedged_settlement.py`, `tests/simulation/test_phase41a_flex.py` (updated), `tests/simulation/test_phase61_flex_passthrough.py` (new)
+
+**What was built:**
+- `simulation/hedged_settlement.py` `run_flex_term()`: Fixed revenue calculation to include policy and network costs as pass-through (matching `run_hedged_term` pass-through logic). Revenue = (ref_price + markup + policy + network) × consumption; net = markup × consumption. Previously: revenue = (ref + markup) × consumption; net = markup - policy - network (supplier absorbed all policy/network costs).
+- `tests/simulation/test_phase41a_flex.py`: Updated 3 test assertions — margin and revenue tests now verify pass-through semantics; `net_margin_gbp` rather than `margin_gbp` is the key invariant.
+- `tests/simulation/test_phase61_flex_passthrough.py` (new): 8 tests for pass-through correctness (net = markup, revenue includes passthrough, policy non-zero but doesn't reduce net, unit_rate reflects full customer bill, net stable across 2018 vs 2022 policy levels).
+
+**Fidelity delta:** C_IC4 (3 GWh/year supermarket chain, flex tariff) was showing ~£175k annual losses and -£1.06M total — an artefact of incorrectly charging the supplier for policy and network costs that the customer actually pays. In a real UK I&C flex contract (spot-indexed, week-ahead calling), policy costs (RO, CfD, CCL, CM, FiT, mutualization levy) and network charges are billed to the customer as pass-through items. The supplier's margin is the trading markup only (£2/MWh). After the fix: C_IC4 net margin ≈ £6k/year (markup × volume), and total business net margin improves by ~£1.1M from previously incorrect losses.
+
+**8 new tests (1,444 total).**
+
 ### Phase 60 — I&C Gas Flat Seasonal Profile (2026-06-25)
 **Files:** `simulation/gas_settlement.py`, `tests/sim/test_ic_gas_profile.py` (new), `tests/sim/test_gas_seasonality.py` (updated)
 
@@ -952,18 +964,18 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 200+ Python modules, ~22,000 lines
-- 390+ git commits
-- 1,403 tests; full suite ~40 min
+- 200+ Python modules, ~22,500 lines
+- 400+ git commits
+- 1,444 tests (fast gate ~10 min, full suite ~40 min)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 57, 2026-06-25, commit e2941ac):**
-- Net P&L £326,072 | Gross £5,449,340 | Treasury £2,792,708 | SURVIVED
-- Bad debt (year-varying) + mutualization levy compress net margins in 2021-2022 crisis years.
+**Latest full run (Phase 61, 2026-06-25, commit f5d86ec):**
+- Ledger net £5,260,449 | Gross £5,483,801 | Treasury £2,740,858 | SURVIVED
+- Phase 61 flex pass-through fix: C_IC4 no longer showing artificial £175k/yr policy losses.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

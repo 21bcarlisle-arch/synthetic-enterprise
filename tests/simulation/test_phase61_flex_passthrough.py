@@ -1,0 +1,93 @@
+"""Phase 61: Flex tariff policy and network pass-through fix.
+
+Bug: run_flex_term() was deducting policy+network from supplier net margin,
+making C_IC4 show ~175k annual losses. In a real flex contract, policy and
+network costs are passed through to the customer; supplier earns markup only.
+
+Fix: revenue includes policy+network recovery; net = markup x consumption.
+"""
+from datetime import date, timedelta
+
+
+def _make_records(spot=80.0, date_str="2022-01-01", markup=2.0, shape=None):
+    from simulation.hedged_settlement import run_flex_term
+    prior = []
+    for i in range(1, 9):
+        d = (date.fromisoformat(date_str) - timedelta(days=i)).isoformat()
+        for sp in range(1, 49):
+            prior.append({"settlementDate": d, "settlementPeriod": sp, "systemSellPrice": spot})
+    for sp in range(1, 49):
+        prior.append({"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": spot})
+    consumption = shape or (lambda _: [1000.0] * 48)
+    return run_flex_term("C_IC4", date_str, "2022-01-02", markup, consumption, prior, "I&C")
+
+
+def test_flex_net_margin_equals_markup_only():
+    """Net margin = markup x consumption (policy+network do not reduce supplier margin)."""
+    markup = 2.0
+    records = _make_records(markup=markup)
+    for r in records:
+        expected = markup * (r["consumption_kwh"] / 1000.0)
+        assert abs(r["net_margin_gbp"] - expected) < 1e-6
+
+
+def test_flex_net_positive_in_high_policy_cost_year():
+    """Net margin is positive even in 2022 when policy costs were high."""
+    records = _make_records(spot=250.0, date_str="2022-08-15", markup=2.0)
+    for r in records:
+        assert r["net_margin_gbp"] > 0
+
+
+def test_flex_revenue_includes_policy_and_network():
+    """Revenue = (ref + markup) x consumption + policy_cost + network_cost."""
+    records = _make_records(date_str="2022-03-01")
+    for r in records:
+        mwh = r["consumption_kwh"] / 1000.0
+        ref = r["flex_reference_price_gbp_per_mwh"]
+        expected = (ref + r["flex_markup_per_mwh"]) * mwh + r["policy_cost_gbp"] + r["network_cost_gbp"]
+        assert abs(r["revenue_gbp"] - expected) < 1e-6
+
+
+def test_flex_policy_cost_does_not_reduce_net():
+    """Policy cost is non-zero but cancels in net (recovered from customer in revenue)."""
+    records = _make_records(date_str="2021-09-01")
+    for r in records:
+        assert r["policy_cost_gbp"] > 0
+        expected_net = r["flex_markup_per_mwh"] * (r["consumption_kwh"] / 1000.0)
+        assert abs(r["net_margin_gbp"] - expected_net) < 1e-6
+
+
+def test_flex_wholesale_cost_equals_ref_times_consumption():
+    """Wholesale cost = ref_price x consumption (supplier hedges at reference)."""
+    records = _make_records()
+    for r in records:
+        expected = r["flex_reference_price_gbp_per_mwh"] * (r["consumption_kwh"] / 1000.0)
+        assert abs(r["wholesale_cost_gbp"] - expected) < 1e-6
+
+
+def test_flex_unit_rate_reflects_full_customer_bill():
+    """unit_rate_gbp_per_mwh = revenue / consumption (what customer actually pays)."""
+    records = _make_records(date_str="2021-01-15")
+    for r in records:
+        mwh = r["consumption_kwh"] / 1000.0
+        if mwh > 0:
+            expected = r["revenue_gbp"] / mwh
+            assert abs(r["unit_rate_gbp_per_mwh"] - expected) < 1e-6
+
+
+def test_flex_margin_equals_net_plus_passthrough():
+    """margin_gbp = net_margin + policy_cost + network_cost."""
+    records = _make_records(date_str="2022-08-01")
+    for r in records:
+        expected_margin = r["net_margin_gbp"] + r["policy_cost_gbp"] + r["network_cost_gbp"]
+        assert abs(r["margin_gbp"] - expected_margin) < 1e-6
+
+
+def test_flex_net_stable_across_high_low_policy_years():
+    """Net per MWh = markup regardless of policy year (2018 vs 2022)."""
+    markup = 2.0
+    recs_2018 = _make_records(spot=60.0, date_str="2018-06-01", markup=markup)
+    recs_2022 = _make_records(spot=300.0, date_str="2022-07-01", markup=markup)
+    for r in recs_2018 + recs_2022:
+        expected = markup * (r["consumption_kwh"] / 1000.0)
+        assert abs(r["net_margin_gbp"] - expected) < 1e-6

@@ -413,10 +413,6 @@ def run_flex_term(
             consumption_kwh = shape[period - 1]
             consumption_mwh = consumption_kwh / 1000.0
 
-            revenue_gbp = (ref_price + flex_markup_per_mwh) * consumption_mwh
-            wholesale_cost_gbp = ref_price * consumption_mwh
-            margin_gbp = flex_markup_per_mwh * consumption_mwh
-
             ro_levy = get_ro_cost_per_mwh(date_str) * consumption_mwh
             cfd_levy = get_cfd_levy_per_mwh(date_str) * consumption_mwh
             ccl = get_ccl_per_mwh(date_str, segment) * consumption_mwh
@@ -427,12 +423,23 @@ def run_flex_term(
             network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
             policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy + mutualization_levy
 
+            # Phase 61: policy and network are passed through to customer (same as pass-through
+            # tariffs in run_hedged_term). Revenue includes policy+network so they cancel in net.
+            # Supplier earns only the flex markup; no policy cost risk accrues.
+            wholesale_cost_gbp = ref_price * consumption_mwh
+            revenue_gbp = (ref_price + flex_markup_per_mwh) * consumption_mwh + policy_total + network_cost
+            margin_gbp = revenue_gbp - wholesale_cost_gbp  # markup + policy + network recovery
+            effective_unit_rate = (
+                (revenue_gbp / consumption_mwh) if consumption_mwh > 0
+                else ref_price + flex_markup_per_mwh
+            )
+
             records.append({
                 "customer_id": customer_id,
                 "settlement_date": date_str,
                 "settlement_period": period,
                 "consumption_kwh": consumption_kwh,
-                "unit_rate_gbp_per_mwh": ref_price + flex_markup_per_mwh,
+                "unit_rate_gbp_per_mwh": effective_unit_rate,
                 "flex_reference_price_gbp_per_mwh": ref_price,
                 "flex_markup_per_mwh": flex_markup_per_mwh,
                 "hedge_price_gbp_per_mwh": ref_price,
