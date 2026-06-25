@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,612 tests (1,604 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,622 tests (1,614 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,25 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 76 -- M3 Market Data Feed (2026-06-26)
+**Files:** `company/market/price_feed.py` (new), `tests/company/market/test_price_feed.py` (new)
+
+**What was built:**
+- `SpotPrice` frozen dataclass: fuel, period, price_gbp_per_mwh.
+- `PriceFeed(feed_path)`: reads from published JSON feed file only — zero SIM module imports.
+  - `is_available()`: checks feed file exists.
+  - `spot_prices(fuel)`: returns list of SpotPrice from feed.
+  - `get_latest_spot(fuel)`: most recent spot price by period sort.
+  - `get_forward_price_estimate(fuel, lookback_periods=48, premium_pct=5%)`: mean of recent spots + risk premium.
+  - `is_stale(max_age_hours=24)`: compares published_at to now.
+  - `summary()`: structured dict for reporting.
+- `publish_feed(prices, output_path, published_at)`: SIM pipeline calls this after each run to write the feed file.
+
+**Fidelity delta:** The company now reads market prices from a published data file rather than calling SIM functions. This closes the last architectural gap: the market data seam is now properly defined. Swapping to live Elexon/ICE data requires only pointing `PriceFeed` at a different feed file — no company code changes needed. **All Destinationvision gaps (C1-C4, FI1-FI3, T1-T3, M1-M3) are now CLOSED.**
+
+**10 new tests (1,622 total).**
+
+---
 ### Phase 75 -- M1 Elexon Settlement Interface (2026-06-26)
 **Files:** `company/market/settlement_reconciler.py` (new), `tests/company/market/test_settlement_reconciler.py` (new)
 
@@ -1164,9 +1183,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 75, 2026-06-26):**
+**Latest full run (Phase 76, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 10 new tests: M1 Elexon settlement reconciliation (imbalance flagging). M1 closed.
+- 10 new tests: M3 Market data feed (published JSON, staleness detection). M3 closed. All Destinationvision gaps closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
