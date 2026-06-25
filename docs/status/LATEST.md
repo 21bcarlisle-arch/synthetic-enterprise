@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T13:52:23Z
+Last updated: 2026-06-25T14:16:41Z
 
 **Phase 57 COMPLETE (2026-06-25):** Year-varying bad debt (crisis surge) — 9 new tests (1,403 total).
 - `saas/cost_to_serve.py`: `get_bad_debt_rate(year, segment)` — 2021 resi 4%, 2022 resi 8% (Ofgem 2.4M in arrears), 2023 5%
@@ -44,14 +44,14 @@ Last updated: 2026-06-25T13:52:23Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Latest simulation run (2026-06-25, commit e2941ac, 488s):**
-- **Net P&L: £326,072 | Net margin: £5,226,219 (30.5%) | EV: £5,986,958 | Treasury: £2,792,708 | SURVIVED**
-- 2022 BSC credit cover requirement: £10,198 (363× higher than 2016 due to SSP crisis)
+**Latest simulation run (2026-06-25, commit 385659b, 484s):**
+- **Net margin: £5,269,031 | Gross: £5,506,328 | EV: £6,024,926 | Treasury: £2,749,581 | SURVIVED**
+- Bad debt (Phase 57): £85,939 total (2022 resi rate 8% crisis peak); admin event: None
 
 **Test suite: 1,403 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (540s / 9 min):
-- Net margin: £5,226,219.80 | Gross: £5,463,238.96 | Capital: £237,019
-- Treasury: £2,466,636 → £2,792,708 | 43 committee interventions | 1549 bills issued
-- Enterprise value: £5,986,958.27 | Net after CTS: £5,363,256
-- Retention: 18 offers, 17/18 retained | 4 no-offer churns | 5 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (484s / 8 min):
+- Net margin: £5,269,031.32 | Gross: £5,506,327.73 | Capital: £237,296
+- Treasury: £2,466,636 → £2,749,581 | 43 committee interventions | 1549 bills issued
+- Enterprise value: £6,024,925.91 | Net after CTS: £5,406,118
+- Retention: 19 offers, 18/19 retained | 4 no-offer churns | 5 total churned accounts
