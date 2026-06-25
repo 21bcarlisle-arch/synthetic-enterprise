@@ -1004,7 +1004,7 @@ _Cash reconciliation: of £17,976,936.99 billed, bad debt of £359,495.29 was wr
   - 2016-04-30: treasury £2,466,654.76, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-05-30: treasury £2,466,658.54, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-06-29: treasury £2,466,661.95, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
-  - 2016-07-29: treasury £2,466,665.46, (none), VaR (current £22.23 / stressed £6.83) ratio 3.25
+  - 2016-07-29: treasury £2,466,665.46, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-08-28: treasury £2,466,668.99, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-09-27: treasury £2,466,672.72, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-10-27: treasury £2,466,676.47, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
