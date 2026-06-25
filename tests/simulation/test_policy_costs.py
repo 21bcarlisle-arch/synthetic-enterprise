@@ -99,11 +99,12 @@ class TestPolicyInSettlementRecords:
         assert "policy_cost_gbp" in rec
         # In 2022, CfD is negative so cfd_levy_gbp < 0
         assert rec["cfd_levy_gbp"] < 0.0
-        # Phase 31a: policy_cost_gbp = ro + cfd + ccl + cm + fit
+        # Phase 54: policy_cost_gbp = ro + cfd + ccl + cm + fit + mutualization
         expected_policy = (
             rec["ro_levy_gbp"] + rec["cfd_levy_gbp"]
             + rec.get("ccl_gbp", 0.0) + rec.get("cm_levy_gbp", 0.0)
             + rec.get("fit_levy_gbp", 0.0)
+            + rec.get("mutualization_levy_gbp", 0.0)
         )
         assert abs(rec["policy_cost_gbp"] - expected_policy) < 1e-9
 
@@ -154,13 +155,16 @@ class TestPolicyInSettlementRecords:
         rec = result[0]
         consumption_mwh = rec["consumption_kwh"] / 1000.0
         # 2022 CfD is a negative rebate — verify it reduces total vs RO+CM+FiT
-        ro_cm_fit = (
+        from simulation.policy_costs import get_mutualization_levy_per_mwh
+        # Phase 54: compare against all components except CfD (CfD is negative in 2022)
+        ro_cm_fit_mut = (
             get_ro_cost_per_mwh(date_str)
             + get_cm_levy_per_mwh(date_str)
             + get_fit_levy_per_mwh(date_str)
+            + get_mutualization_levy_per_mwh(date_str)
         ) * consumption_mwh
-        assert rec["policy_cost_gbp"] < ro_cm_fit, (
-            "2022 negative CfD should reduce policy_cost below RO+CM+FiT subtotal"
+        assert rec["policy_cost_gbp"] < ro_cm_fit_mut, (
+            "2022 negative CfD should reduce policy_cost below RO+CM+FiT+Mutualization subtotal"
         )
         # Verify CfD is actually negative
         assert rec["cfd_levy_gbp"] < 0

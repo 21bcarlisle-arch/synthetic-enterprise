@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T12:02:18Z
+Last updated: 2026-06-25T12:19:57Z
+
+**Phase 54 COMPLETE (2026-06-25):** Supplier mutualization levy — 8 new tests (1,377 total).
+- `simulation/policy_costs.py`: `_MUTUALIZATION_LEVY_BY_YEAR` + `get_mutualization_levy_per_mwh()`
+- 2021: £4.14/MWh (17 SoLR events); 2022: £10.00/MWh (Bulb SAR + BSC shortfall recovery)
+- Applied in all 3 electricity settlement paths; annual report policy table extended
 
 **Phase 53 COMPLETE (2026-06-25):** BSC credit cover — 14 new tests (1,369 total).
 - `saas/capital/bsc_credit.py` (new): peak daily electricity wholesale cost × 1.2 buffer

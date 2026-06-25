@@ -456,6 +456,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 54 — Supplier Mutualization Levy (2021-2022 failure wave) (2026-06-25)
+**Files:** `simulation/policy_costs.py`, `simulation/hedged_settlement.py`, `saas/reporting/annual_report.py`, `tests/simulation/test_mutualization_levy.py` (new)
+
+**What was built:**
+- `simulation/policy_costs.py`: `_MUTUALIZATION_LEVY_BY_YEAR` dict (2016–2024, £/MWh) + `get_mutualization_levy_per_mwh(date_str)`. Crisis values: 2021 £4.14/MWh (17 SoLR events, ~£1.2bn mutualized), 2022 £10.00/MWh (Bulb Special Administration Regime + BSC shortfall recovery, ~£2.9bn), 2023 £1.38/MWh (residual SAR wind-down). Pre/post-crisis years: £0.00/MWh.
+- `simulation/hedged_settlement.py`: mutualization levy applied in all 3 electricity settlement paths (fixed/pass-through hedged, deemed, flex/trading). Added to `policy_cost_gbp` total and recorded as `mutualization_levy_gbp` per record.
+- `saas/reporting/annual_report.py`: `extract_report_data()` aggregates `mutualization_levy_gbp` per year. `_section_policy_costs()` updated to include Mutualization column in the policy table (conditionally shown when non-zero).
+
+**Fidelity delta:** When a licensed electricity supplier fails in the UK, their Renewable Obligation shortfalls, CfD underpayments, and BSC clearing obligations are mutualized across surviving suppliers pro-rata to metered volume. The 2021-2022 crisis triggered ~180 supplier SoLR events, creating a retroactive £10+/MWh levy in 2022 — a hidden cost that devastated margins for suppliers who hadn't priced it in. The simulation now tracks this as a real policy cost that spikes in crisis years, materially compressing net margins in 2021-2022.
+
+**8 new tests (1,377 total).**
+
+---
+
 ### Phase 52 — ToU Demand Response Model (2026-06-25)
 **Files:** `saas/demand_response.py` (new), `simulation/run_phase2b.py`, `tests/saas/test_phase52_demand_response.py` (new), `tests/background/test_session_watchdog.py`, `background/session_watchdog.py`
 
@@ -857,7 +871,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,369 tests (1,361 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
+- 1,377 tests (1,369 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

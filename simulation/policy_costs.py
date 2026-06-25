@@ -282,6 +282,55 @@ def get_fit_levy_per_mwh(date_str: str) -> float:
     return _FIT_LEVY_BY_YEAR[max(_FIT_LEVY_BY_YEAR)]
 
 
+
+# --- Phase 54: Supplier mutualization levy (2021-2022 failure wave) ---
+
+# When a UK electricity supplier fails, Ofgem appoints a Supplier of Last Resort (SoLR).
+# Shortfalls in the failed supplier's Renewable Obligation (RO) certificates, CfD levies,
+# and BSC charges are recovered from remaining suppliers pro-rata to their electricity volumes.
+#
+# Industry mutualization costs (calendar year basis, Ofgem/Elexon published figures):
+#   2021: ~£1.2bn recovered across 17 major SoLR events (Peoples Energy, PfP Energy, etc.)
+#         GB electricity demand ~290TWh → ~£4.14/MWh average across all suppliers
+#   2022: ~£2.9bn (major events: Bulb SoLR scheme, Elexon BSC shortfall recovery)
+#         GB electricity demand ~290TWh → ~£10.00/MWh
+#   2023: ~£0.4bn (residual Bulb/SoLR cleanup; Special Administration Regime wind-down)
+#         GB electricity demand ~290TWh → ~£1.38/MWh
+# All other years 2016-2020: negligible mutualization (no material supplier failures).
+# 2024 onward: normalising as crisis period passes; no major events.
+#
+# Source: Ofgem Compliance and Enforcement Bulletins; Elexon BSC Audit Committee reports;
+#         NAO "Energy supplier failures" report Nov 2022; Ofgem SoLR cost publications.
+_MUTUALIZATION_LEVY_BY_YEAR: dict[int, float] = {
+    2016: 0.00,
+    2017: 0.00,
+    2018: 0.00,
+    2019: 0.00,
+    2020: 0.00,
+    2021: 4.14,   # £/MWh — 17 SoLR events; RO shortfall dominated
+    2022: 10.00,  # £/MWh — Bulb Special Administration + BSC clearing shortfalls
+    2023: 1.38,   # £/MWh — residual SAR wind-down; Bulb sale to Octopus April 2023
+    2024: 0.20,   # £/MWh — minimal residual (normalising post-crisis)
+}
+
+
+def get_mutualization_levy_per_mwh(date_str: str) -> float:
+    """Supplier mutualization levy (£/MWh) for electricity demand.
+
+    Pro-rata recovery of failed supplier obligations levied on remaining
+    licensed electricity suppliers based on their metered volumes.
+    Applies to all electricity demand segments (resi, SME, I&C).
+    Only electricity — gas SoLR costs are recovered separately via Xoserve/Ofgem.
+    Falls back to nearest known year for out-of-range dates.
+    """
+    year = int(date_str[:4])
+    if year in _MUTUALIZATION_LEVY_BY_YEAR:
+        return _MUTUALIZATION_LEVY_BY_YEAR[year]
+    if year < min(_MUTUALIZATION_LEVY_BY_YEAR):
+        return _MUTUALIZATION_LEVY_BY_YEAR[min(_MUTUALIZATION_LEVY_BY_YEAR)]
+    return _MUTUALIZATION_LEVY_BY_YEAR[max(_MUTUALIZATION_LEVY_BY_YEAR)]
+
+
 # --- Phase 30b: Gas-side policy costs ---
 
 # Gas CCL (Climate Change Levy) rates by obligation year start (April-March).

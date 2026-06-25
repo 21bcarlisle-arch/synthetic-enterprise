@@ -63,6 +63,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 54 COMPLETE (2026-06-25):** Supplier mutualization levy — 8 new tests (1,377 passing). `simulation/policy_costs.py`: `_MUTUALIZATION_LEVY_BY_YEAR` + `get_mutualization_levy_per_mwh()`. 2021 £4.14/MWh, 2022 £10.00/MWh (Bulb SAR + BSC shortfall recovery). Applied in all 3 electricity settlement paths; policy costs table extended in annual report.
+
 **Phase 53 COMPLETE (2026-06-25):** BSC credit cover — 14 new tests (1,369 passing). `saas/capital/bsc_credit.py` (new): `compute_daily_wholesale_exposure()`, `compute_bsc_credit_requirement()`, `compute_bsc_credit_by_year()`. Peak daily electricity wholesale cost × 1.2 buffer over 28-day window = credit cover required. Annual report section: per-year peak/cover/treasury/ratio table (2022 crisis shows £10k cover vs £28 in 2016). `extract_report_data()` pre-computes per year from all_records.
 
 **Phase 52 COMPLETE (2026-06-25):** ToU demand response — 20 new tests (1,355 passing). `saas/demand_response.py`: peak→off-peak load shift (base 15% + EV +12% + heat_pump +8%); `make_shifted_shape_fn()` wraps shape for ToU-eligible customers; `demand_response_log` per term in run output. Watchdog: API exponential backoff (1m/2m/5m/10m), NTFY on failure. SSH auto-attach via `~/.bashrc`.
@@ -73,11 +75,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase 50 COMPLETE (2026-06-24):** Smart meter rollout model — 30 new tests (1,321 passing).
 `saas/smart_meter_rollout.py` (new): `get_penetration(year, segment)`, `get_new_install_probability()`, `should_upgrade_to_hh()`. Resi 10%→75% (2016-2025), SME 5%→57%, I&C 100% (BSC P272 mandate). `saas/property_model.py`: `get_smart_meter_status(customer_id, year, segment)` — time-aware flag (static for known customers, rollout-probabilistic for acquired). `saas/customers.py`: `make_acquired_customer()` stamps `smart_meter` at acquisition year. Gates Phase 51 ToU tariff eligibility.
 
-**Phase 49 COMPLETE (2026-06-24):** EWMA base + dynamic term structure slope — 15 new tests (1,291 passing).
-`company/pricing/tariff_engine.py`: `_compute_ewma()` (30-day half-life) replaces simple rolling mean as base estimate. `_estimate_term_structure_slope()` derives contango/backwardation from 30d vs 90d EWMA comparison, capped ±[8%,15%]/yr. Applied as `slope × tenor_years` premium in `get_forward_price()`. Flat-market behavior unchanged. Crisis periods (2021-22 rising spot) now price long-dated I&C contracts higher.
-
-**Phase 48a COMPLETE (2026-06-24):** Forward curve term-length premium — 7 new tests (1,276 passing).
-`company/pricing/tariff_engine.py`: `TERM_LENGTH_PREMIUM_PCT_PER_YEAR = 0.02`; `get_forward_price()` gains `term_months: int = 12`. Term premium = `max(0, term_months/12 - 1) × 2%` added to risk premium. Sub-12-month → 0. All existing callers default to 12 months (no sim output change). `SimInterface` and `LiveSimInterface` updated. Infrastructure ready for multi-year I&C contracts.
+**Phases 48a/49 COMPLETE (2026-06-24):** Forward curve reform — 22 new tests. `tariff_engine.py`: EWMA (30-day half-life) base, dynamic term structure slope (contango/backwardation ±[8%,15%]/yr), term-length premium (2%/yr above 12 months). Rising-market I&C crisis pricing now higher for long-dated contracts.
 
 **Phase 47b COMPLETE (2026-06-24):** Cap-aware acquisition gate — 10 new tests (1,270+ passing).
 `saas/growth_mandate.py`: `should_attempt_acquisition()` — gate fires when Ofgem cap < company_fwd (selling below wholesale cost). Applied in `simulation/run_phase2b.py` before `roll_acquisition()`. Crisis-year pause emerges from economics, not hard-coded years.

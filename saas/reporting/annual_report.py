@@ -374,6 +374,10 @@ def extract_report_data(run_output: dict) -> dict:
             "fit_levy_gbp": sum(
                 r.get("fit_levy_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
             ),
+            # Phase 54: SoLR mutualization levy (2021-2022 supplier failure wave recovery)
+            "mutualization_levy_gbp": sum(
+                r.get("mutualization_levy_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
+            ),
             "policy_cost_gbp": sum(
                 r.get("policy_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "electricity"
             ),
@@ -2529,17 +2533,20 @@ def _section_policy_costs(data: dict) -> str:
     has_cm = any(yd.get("cm_levy_gbp", 0.0) != 0.0 for yd in years.values())
     has_fit = any(yd.get("fit_levy_gbp", 0.0) != 0.0 for yd in years.values())
 
+    has_mutualization = any(yd.get("mutualization_levy_gbp", 0.0) != 0.0 for yd in years.values())
+
     if has_fit:
+        title_suffix = " + Mutualization (Phase 21a/27b/30a/31a/54)" if has_mutualization else " (Phase 21a/27b/30a/31a)"
         lines = [
-            "## Policy Costs — RO + CfD + CCL + CM + FiT (Phase 21a/27b/30a/31a)",
+            f"## Policy Costs — RO + CfD + CCL + CM + FiT{title_suffix}",
             "",
             "Electricity policy costs deducted from net_margin_gbp each year. ",
             "CfD levy was NEGATIVE in 2022 (crisis rebate from LCCC). ",
             "CCL applies to business (SME/I&C) only — resi exempt. ",
             "CM (Capacity Market) and FiT (Feed-in Tariff) levies apply to ALL demand including domestic.",
             "",
-            "| Year | RO levy £ | CfD levy £ | CCL £ | CM levy £ | FiT levy £ | Total policy cost £ | Note |",
-            "|------|-----------|------------|-------|-----------|------------|---------------------|------|",
+            "| Year | RO levy £ | CfD levy £ | CCL £ | CM levy £ | FiT levy £ | Mutualization £ | Total policy cost £ | Note |",
+            "|------|-----------|------------|-------|-----------|-----------------|---------------------|------|---------------------|",
         ]
         for year in sorted(years):
             yd = years[year]
@@ -2548,20 +2555,24 @@ def _section_policy_costs(data: dict) -> str:
             ccl = yd.get("ccl_gbp", 0.0)
             cm = yd.get("cm_levy_gbp", 0.0)
             fit = yd.get("fit_levy_gbp", 0.0)
-            total = yd.get("policy_cost_gbp", ro + cfd + ccl + cm + fit)
+            mut = yd.get("mutualization_levy_gbp", 0.0)
+            total = yd.get("policy_cost_gbp", ro + cfd + ccl + cm + fit + mut)
             note = "⬇ CfD REBATE" if cfd < 0 else ""
+            mut_str = f"{mut:,.0f}" if has_mutualization else "—"
             lines.append(
-                f"| {year} | {ro:,.0f} | {cfd:,.0f} | {ccl:,.0f} | {cm:,.0f} | {fit:,.0f} | {total:,.0f} | {note} |"
+                f"| {year} | {ro:,.0f} | {cfd:,.0f} | {ccl:,.0f} | {cm:,.0f} | {fit:,.0f} | {mut_str} | {total:,.0f} | {note} |"
             )
         total_ro = sum(yd.get("ro_levy_gbp", 0.0) for yd in years.values())
         total_cfd = sum(yd.get("cfd_levy_gbp", 0.0) for yd in years.values())
         total_ccl = sum(yd.get("ccl_gbp", 0.0) for yd in years.values())
         total_cm = sum(yd.get("cm_levy_gbp", 0.0) for yd in years.values())
         total_fit = sum(yd.get("fit_levy_gbp", 0.0) for yd in years.values())
+        total_mut = sum(yd.get("mutualization_levy_gbp", 0.0) for yd in years.values())
         total_policy = sum(yd.get("policy_cost_gbp", 0.0) for yd in years.values())
+        total_mut_str = f"**{total_mut:,.0f}**" if has_mutualization else "—"
         lines.append(
             f"| **Total** | **{total_ro:,.0f}** | **{total_cfd:,.0f}** | "
-            f"**{total_ccl:,.0f}** | **{total_cm:,.0f}** | **{total_fit:,.0f}** | **{total_policy:,.0f}** | |"
+            f"**{total_ccl:,.0f}** | **{total_cm:,.0f}** | **{total_fit:,.0f}** | {total_mut_str} | **{total_policy:,.0f}** | |"
         )
     elif has_cm:
         lines = [

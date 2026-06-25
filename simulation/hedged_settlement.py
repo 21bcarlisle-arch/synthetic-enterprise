@@ -46,6 +46,7 @@ from simulation.policy_costs import (
     get_cfd_levy_per_mwh,
     get_cm_levy_per_mwh,
     get_fit_levy_per_mwh,
+    get_mutualization_levy_per_mwh,
     get_electricity_network_cost_per_mwh,
     get_ro_cost_per_mwh,
 )
@@ -167,6 +168,8 @@ def run_hedged_term(
             cm_levy = get_cm_levy_per_mwh(date_str) * consumption_mwh
             # Phase 31a: FiT levy applies to all segments — no domestic exemption.
             fit_levy = get_fit_levy_per_mwh(date_str) * consumption_mwh
+            # Phase 54: SoLR mutualization levy (2021-2022 supplier failure recovery)
+            mutualization_levy = get_mutualization_levy_per_mwh(date_str) * consumption_mwh
             # Phase 29a: network charges. Resi/SME: DUoS + TNUoS unit rate.
             # I&C: DUoS only (Triad TNUoS is an annual lump, tracked in triad.py).
             network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
@@ -176,7 +179,7 @@ def run_hedged_term(
             # company's margin is purely from the wholesale spread. For fixed tariffs,
             # policy/network are baked into the locked unit_rate; any divergence from
             # actual costs accrues to the company (policy cost risk).
-            policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy
+            policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy + mutualization_levy
             if pass_through:
                 revenue_gbp = settled["revenue_gbp"] + policy_total + network_cost
                 margin_gbp = revenue_gbp - settled["wholesale_cost_gbp"]
@@ -202,6 +205,7 @@ def run_hedged_term(
                 "ccl_gbp": ccl,
                 "cm_levy_gbp": cm_levy,
                 "fit_levy_gbp": fit_levy,
+                "mutualization_levy_gbp": mutualization_levy,
                 "policy_cost_gbp": policy_total,
                 "network_cost_gbp": network_cost,
             })
@@ -285,8 +289,10 @@ def run_deemed_term(
             ccl = get_ccl_per_mwh(date_str, segment) * consumption_mwh
             cm_levy = get_cm_levy_per_mwh(date_str) * consumption_mwh
             fit_levy = get_fit_levy_per_mwh(date_str) * consumption_mwh
+            # Phase 54: SoLR mutualization levy
+            mutualization_levy = get_mutualization_levy_per_mwh(date_str) * consumption_mwh
             network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
-            policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy
+            policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy + mutualization_levy
 
             records.append({
                 "customer_id": customer_id,
@@ -306,6 +312,7 @@ def run_deemed_term(
                 "ccl_gbp": ccl,
                 "cm_levy_gbp": cm_levy,
                 "fit_levy_gbp": fit_levy,
+                "mutualization_levy_gbp": mutualization_levy,
                 "policy_cost_gbp": policy_total,
                 "network_cost_gbp": network_cost,
                 "capital_cost_gbp": 0.0,  # no forward hedge commitment in deemed periods
@@ -415,8 +422,10 @@ def run_flex_term(
             ccl = get_ccl_per_mwh(date_str, segment) * consumption_mwh
             cm_levy = get_cm_levy_per_mwh(date_str) * consumption_mwh
             fit_levy = get_fit_levy_per_mwh(date_str) * consumption_mwh
+            # Phase 54: SoLR mutualization levy
+            mutualization_levy = get_mutualization_levy_per_mwh(date_str) * consumption_mwh
             network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
-            policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy
+            policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy + mutualization_levy
 
             records.append({
                 "customer_id": customer_id,
@@ -438,6 +447,7 @@ def run_flex_term(
                 "ccl_gbp": ccl,
                 "cm_levy_gbp": cm_levy,
                 "fit_levy_gbp": fit_levy,
+                "mutualization_levy_gbp": mutualization_levy,
                 "policy_cost_gbp": policy_total,
                 "network_cost_gbp": network_cost,
                 "capital_cost_gbp": 0.0,
