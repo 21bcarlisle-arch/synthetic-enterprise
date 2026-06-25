@@ -442,6 +442,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 52 — ToU Demand Response Model (2026-06-25)
+**Files:** `saas/demand_response.py` (new), `simulation/run_phase2b.py`, `tests/saas/test_phase52_demand_response.py` (new), `tests/background/test_session_watchdog.py`, `background/session_watchdog.py`
+
+**What was built:**
+- `saas/demand_response.py`: `PEAK_PERIODS` = SP 32-38 (16:00-18:30 UK); `OFFPEAK_PERIODS` = SP 1-14 + SP 47-48. `compute_shift_fraction(assets)` — base 15% peak-to-offpeak shift + EV +12% + heat_pump +8%, capped at 100%. `apply_demand_shift(hh_profile, shift_fraction)` — redistributes shifted_kwh uniformly across offpeak periods; energy conserved. `make_shifted_shape_fn(base_shape_fn, shift_fraction)` — wraps existing shape callable for use in `run_hedged_term()`.
+- `simulation/run_phase2b.py`: ToU-eligible customers use `make_shifted_shape_fn()` to produce a modified consumption shape; passed to `run_hedged_term()` as `effective_shape_fn`. `demand_response_log` per term written to run output (customer_id, shift_fraction, has_ev, has_heat_pump).
+- `background/session_watchdog.py`: API connectivity check (`check_api_reachable()`), exponential backoff on failure (1m/2m/5m then 10min indefinitely), NTFY Rich on first failure and every hour while still down. Pre-start curl check before each restart.
+
+**Fidelity delta:** ToU-eligible customers (smart-meter or HH-metered) now shift peak consumption in response to price signals. A customer with an EV and heat pump shifts 35% of their 16:00-18:30 load to overnight/early morning periods. This changes actual settlement-period consumption fed into `run_hedged_term()`, affecting imbalance exposure and hedge effectiveness. The pattern mirrors how UK Agile and Economy 7 customers respond to price differentials in practice.
+
+**24 new tests (1,355 total).**
+
+---
+
 ### Phase 51 — ToU Eligibility Gate Broadened (2026-06-24)
 **Files:** `saas/smart_meter_rollout.py`, `simulation/run_phase2b.py`, `tests/saas/test_phase51_tou_eligibility.py` (new)
 
@@ -829,7 +843,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,330 tests (1,322 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
+- 1,355 tests (1,347 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -95,6 +95,7 @@ def test_restart_claude_always_uses_continue_flag_and_resume_instruction(monkeyp
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: None)
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)  # avoid real HTTP
 
     watchdog.restart_claude()
 
@@ -784,3 +785,53 @@ def test_usage_limit_detected_when_claude_not_running_prevents_restart(monkeypat
 
     assert handle_usage_limit_calls, "handle_usage_limit should have been called"
     assert not handle_session_ended_calls, "handle_session_ended must NOT be called when pane shows usage limit"
+
+
+# --- Phase 52 (watchdog): API connectivity backoff ---
+
+def test_check_api_reachable_returns_true_on_any_http_response(monkeypatch):
+    """Any HTTP response (including 404) means the API is reachable."""
+    class FakeResp:
+        status_code = 404
+    monkeypatch.setattr(watchdog.requests, "get", lambda *a, **k: FakeResp())
+    assert watchdog.check_api_reachable() is True
+
+
+def test_check_api_reachable_returns_false_on_connection_error(monkeypatch):
+    import requests as req
+    monkeypatch.setattr(watchdog.requests, "get", lambda *a, **k: (_ for _ in ()).throw(req.ConnectionError("refused")))
+    assert watchdog.check_api_reachable() is False
+
+
+def test_wait_for_api_connectivity_returns_immediately_when_reachable(monkeypatch):
+    monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)
+    monkeypatch.setattr(watchdog, "ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(watchdog, "log", lambda *a, **k: None)
+    # Should return without sleeping
+    slept = []
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: slept.append(s))
+    watchdog.wait_for_api_connectivity()
+    assert slept == []
+
+
+def test_wait_for_api_connectivity_ntfys_on_first_failure_then_recovers(monkeypatch):
+    call_count = [0]
+    def reachable():
+        call_count[0] += 1
+        return call_count[0] >= 2   # first call: unreachable; second: recovered
+
+    ntfy_msgs = []
+    monkeypatch.setattr(watchdog, "check_api_reachable", reachable)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_msgs.append(msg))
+    monkeypatch.setattr(watchdog, "log", lambda msg, **k: None)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+
+    watchdog.wait_for_api_connectivity()
+
+    assert call_count[0] >= 2, "Should have retried until reachable"
+    assert any("unreachable" in m.lower() or "down" in m.lower() for m in ntfy_msgs), (
+        f"Expected NTFY about API being down, got: {ntfy_msgs}"
+    )
+    assert any("restored" in m.lower() for m in ntfy_msgs), (
+        f"Expected NTFY about connectivity restored, got: {ntfy_msgs}"
+    )

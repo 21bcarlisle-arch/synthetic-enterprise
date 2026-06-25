@@ -8,27 +8,26 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T11:27:27Z
+Last updated: 2026-06-25T11:46:30Z
+
+**Phase 52 COMPLETE (2026-06-25):** ToU demand response — 24 new tests (1,355 total).
+- `saas/demand_response.py` (new): peak→off-peak load shift (base 15% + EV +12% + heat_pump +8%)
+- `make_shifted_shape_fn()` wraps consumption shape for ToU-eligible customers
+- `demand_response_log` per term in run output (shift_fraction, has_ev, has_heat_pump)
+- Watchdog: exponential API backoff (1m/2m/5m/10m), NTFY on failure + hourly while down
+- SSH auto-attach via ~/.bashrc — SSHing into Skynet attaches to claude tmux session
 
 **Phase 51 COMPLETE (2026-06-24):** ToU eligibility gate — 9 new tests (1,330 total).
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - `simulation/run_phase2b.py`: ToU gate upgraded from `is_hh_customer` to `is_tou_eligible`
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Phase 50 COMPLETE (2026-06-24):** Smart meter rollout model — 30 new tests (1,321 total).
-- `saas/smart_meter_rollout.py` (new): UK rollout 2016-2025 (resi 10%→75%, SME 5%→57%, I&C 100%)
-- `saas/property_model.py`: `get_smart_meter_status(customer_id, year, segment)` — time-aware flag
-- `saas/customers.py`: `make_acquired_customer()` stamps `smart_meter` at acquisition year
+**Latest simulation run (2026-06-25, commit 06a77b6, 525s):**
+- **Net P&L: £326,682 | Gross margin: £5,119,568 | Treasury: £2,793,319 | SURVIVED**
+- Net/Gross: 6.4% — realistic UK energy retail after all policy/network/capital costs
 
-**Full Ollama run complete (2026-06-24, commit 5eb3b07, 520s):**
-- **Net margin: £5,163,503 | Gross: £5,229,257 | Treasury: £2,889,212 | SURVIVED**
-- 2020: -3.8% net | 2021: +3.2% net | 2022: +7.3% net (crisis profitable)
+**Previous Ollama run (2026-06-24, commit 5eb3b07, 520s):**
+- Net margin: £5,163,503 | Gross: £5,229,257 | Treasury: £2,889,212 | SURVIVED
 - Cap-aware acquisition gate firing 2021-22. Ofgem cap compressing resi margins.
 
-**Latest simulation results (2016–2025)** — auto-processed (517s / 9 min):
-- Net margin: £5,067,590.52 | Gross: £5,133,466.75 | Capital: £65,876
-- Treasury: £2,466,636 → £2,793,319 | 50 committee interventions | 1549 bills issued
-- Enterprise value: £5,575,256.39 | Net after CTS: £5,034,155
-- Retention: 18 offers, 17/18 retained | 4 no-offer churns | 5 total churned accounts
-
-**Test suite: 1,330 total (694 saas+company confirmed passing, simulation+background running)**
+**Test suite: 1,355 total (all saas/company/tools passing; 24 new Phase 52 + watchdog tests)**

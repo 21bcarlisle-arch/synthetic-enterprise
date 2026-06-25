@@ -63,6 +63,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 52 COMPLETE (2026-06-25):** ToU demand response — 20 new tests (1,355 passing). `saas/demand_response.py`: peak→off-peak load shift (base 15% + EV +12% + heat_pump +8%); `make_shifted_shape_fn()` wraps shape for ToU-eligible customers; `demand_response_log` per term in run output. Watchdog: API exponential backoff (1m/2m/5m/10m), NTFY on failure. SSH auto-attach via `~/.bashrc`.
+
 **Phase 51 COMPLETE (2026-06-24):** ToU eligibility gate broadened to smart-meter customers — 9 new tests (1,330 passing).
 `saas/smart_meter_rollout.py`: `is_tou_eligible(customer)` — True if `metering=="HH"` OR `smart_meter==True`. `simulation/run_phase2b.py`: ToU gate upgraded from `is_hh_customer()` to `is_tou_eligible()`. Acquired customers with smart meters now receive peak/off-peak ToU pricing (profile-class consumption shape). Phase 5 smart tariff stack: pricing infrastructure complete.
 
@@ -123,10 +125,8 @@ Closes "Pricing actions not implemented" Known Gap.
 - Stage 3: `.claude/agents/epistemic-verifier.md` + `tools/epistemic_verifier.py` — in phase-close checklist.
 - Stage 4: `background/agent_protocol.py` — `AgentMessage` + `IntentType`, 18 tests, live in sim_runner.
 
-**Active phases (30a–42):** Full policy cost stack (RO, CfD, CCL, CM, FiT, GGL), gas policy
-costs, all 4 I&C tariff types (fixed / pass-through / deemed / flex), active/passive renewal
-split, SVT comparison, forward scenario infrastructure (5 named presets), 42-day notice period,
-forward curve reform (EWMA + term structure), gas seasonal calibration.
+**Active phases (30a–42):** Full policy cost stack (RO, CfD, CCL, CM, FiT, GGL), gas policy costs, all 4 I&C tariff types (fixed/pass-through/deemed/flex), active/passive renewal,
+SVT comparison, forward scenario presets (5 named), 42-day notice, forward curve reform (EWMA + term structure), gas seasonal calibration.
 
 → Phase completion details (30a–42): `docs/claude/phase-history.md`
 → Earlier phase history (Phases 1–29): `CLAUDE_HISTORY.md`

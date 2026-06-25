@@ -52,6 +52,7 @@ from saas.property_model import (
     build_properties,
 )
 from saas.smart_meter_rollout import is_tou_eligible
+from saas.demand_response import compute_shift_fraction, make_shifted_shape_fn
 from saas.tariff_pricing import TOU_OFFPEAK_MULTIPLIER, TOU_PEAK_MULTIPLIER, price_fixed_tariff
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
@@ -639,6 +640,7 @@ def main(report_end: str | None = None, sim_interface=None):
     prev_term_revenue: dict[str, float] = {}
     margin_feedback_log: list[dict] = []
     profitability_uplift_log: list[dict] = []
+    demand_response_log: list[dict] = []   # Phase 52: per-term DR shift records
     # Phase 22a: post-crisis hangover — how many more renewals get the +12% churn uplift
     hangover_remaining: dict[str, int] = {}
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
@@ -1117,10 +1119,25 @@ def main(report_end: str | None = None, sim_interface=None):
                 tou_rates = None
                 if is_tou_eligible(customer):
                     tou_rates = (unit_rate * TOU_PEAK_MULTIPLIER, unit_rate * TOU_OFFPEAK_MULTIPLIER)
+                    # Phase 52: demand response — ToU-eligible customers shift a fraction
+                    # of peak consumption to off-peak (base 15%, +12% EV, +8% heat pump).
+                    _assets = properties.get(cid, DEFAULT_PROPERTY).get("assets")
+                    _dr_shift = compute_shift_fraction(_assets)
+                    effective_shape_fn = make_shifted_shape_fn(shape_fn, _dr_shift)
+                    demand_response_log.append({
+                        "customer_id": cid,
+                        "term_start": term_start_str,
+                        "term_end": term_end_str,
+                        "shift_fraction": round(_dr_shift, 4),
+                        "has_ev": bool((_assets or {}).get("ev")),
+                        "has_heat_pump": bool((_assets or {}).get("heat_pump")),
+                    })
+                else:
+                    effective_shape_fn = shape_fn
 
                 term_records = run_hedged_term(
                     cid, term_start_str, term_end_str, unit_rate, forward_price, hf,
-                    risk["monthly_cost_of_capital_gbp"], shape_fn, elec_records,
+                    risk["monthly_cost_of_capital_gbp"], effective_shape_fn, elec_records,
                     tou_rates=tou_rates, segment=cust_segment,
                     pass_through=(term_tariff_type == "pass_through"),
                 )
@@ -1530,6 +1547,7 @@ def main(report_end: str | None = None, sim_interface=None):
         "triad_log": triad_log,
         "margin_feedback_log": margin_feedback_log,
         "profitability_uplift_log": profitability_uplift_log,
+        "demand_response_log": demand_response_log,   # Phase 52
         "dynamic_pricing_log": dynamic_pricing_log,
         # Phase 12e: aggregated company-model divergence by year
         "company_divergence": _compute_company_divergence(
