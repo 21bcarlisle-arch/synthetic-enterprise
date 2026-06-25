@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T14:16:41Z
+Last updated: 2026-06-25T14:35:56Z
 
 **Phase 57 COMPLETE (2026-06-25):** Year-varying bad debt (crisis surge) — 9 new tests (1,403 total).
 - `saas/cost_to_serve.py`: `get_bad_debt_rate(year, segment)` — 2021 resi 4%, 2022 resi 8% (Ofgem 2.4M in arrears), 2023 5%
@@ -44,13 +44,13 @@ Last updated: 2026-06-25T14:16:41Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Latest simulation run (2026-06-25, commit 385659b, 484s):**
+**Latest simulation run (2026-06-25, commit cb88fe1, 489s):**
 - **Net margin: £5,269,031 | Gross: £5,506,328 | EV: £6,024,926 | Treasury: £2,749,581 | SURVIVED**
-- Bad debt (Phase 57): £85,939 total (2022 resi rate 8% crisis peak); admin event: None
+- Bad debt: £85,939 total (2022 8% crisis peak); admin event: None
 
 **Test suite: 1,403 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (484s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £5,269,031.32 | Gross: £5,506,327.73 | Capital: £237,296
 - Treasury: £2,466,636 → £2,749,581 | 43 committee interventions | 1549 bills issued
 - Enterprise value: £6,024,925.91 | Net after CTS: £5,406,118
