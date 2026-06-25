@@ -1712,3 +1712,50 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
     - Researched RemoteTrigger (cloud agents API), CronCreate (session-local), git worktrees. Sent assessment to Rich via NTFY.
     - Proposed Phase 65 (FI2 Budget vs Actual) with 4h opt-out.
 - **Notes:** Security filter blocked heredoc/f-string patterns; worked around with Python list construction. /schedule uses RemoteTrigger API (confirmed no existing cloud triggers). Background process_run_complete had already committed run_complete before session actioned it.
+
+- [2026-06-25T21:11:59Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T21:30:49Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T21:49:59Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:06:16Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:08:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:08:59Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:09:13Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:11:22Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:12:30Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:12:40Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:15:57Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:16:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:16:39Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:16:44Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:20:06Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:20:31Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-25T22:20:49Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+
+---
+
+## 2026-06-26 -- Phases 67-73 -- C/FI/T series closed + Destinationvision gaps eliminated
+
+- **Frontier tokens:** Not computed precisely this session (resumed from context summary). Qualitatively: heavy multi-phase session, roughly 8-10 frontier context loads given session continuation from prior compaction. All phases written in-context without local model delegation.
+- **Local model calls:** 0 -- all phases implemented directly by Claude Sonnet 4.6 in-context.
+- **Produced:**
+  - Files created: `company/billing/payments.py`, `tests/company/billing/test_payments.py`, `company/portal/app.py`, `company/portal/templates/login.html`, `company/portal/templates/dashboard.html`, `company/portal/templates/bills.html`, `company/portal/templates/trading.html`, `tests/company/portal/test_portal.py`, `tests/company/portal/test_trading_route.py`, `company/crm/service_log.py`, `tests/company/crm/test_service_log.py`, `company/finance/treasury.py`, `tests/company/finance/test_treasury.py`, `tests/company/trading/test_mtm.py`, `tests/company/trading/test_position_management.py`
+  - Files modified: `company/trading/forward_book.py` (MTM + position management), `company/billing/invoice.py` (line items), `saas/reporting/annual_report.py` (budget section), `docs/PROJECT_OVERVIEW.md`, `CLAUDE.md`, `docs/status/LATEST.md`
+  - Lines: +2,616 / -37 across 35 files (git diff b09a44d..ad8adcc)
+  - Features shipped:
+    - **Phase 67**: C3 Payment reconciliation + debt aging -- reconcile_payment() by customer+period, age_debt() 90-day bad-debt trigger, debt_aging_summary() 4 aging buckets. C3 closed.
+    - **Phase 68**: C2 Customer Portal MVP -- FastAPI app with login/dashboard/bills routes. Rich can log in as C1 and see account profile, billing summary, invoice history. C2 closed.
+    - **Phase 69**: C4 CRM service interaction log -- ServiceEvent dataclass, ServiceLog with complaint/vulnerability tracking, complaint_stats(year), vulnerability_register(). C4 closed.
+    - **Phase 70**: FI3 Treasury management -- working_capital(), project_treasury() (3-yr forward), treasury_health() with MCR headroom + OK/WATCH/CRITICAL. FI3 closed.
+    - **Phase 71**: T3 Mark-to-market -- mark_to_market() + portfolio_mtm() added to TradingBook. MTM = (market-agreed) x notional. T3 closed.
+    - **Phase 72**: T2 Position management -- HedgeAmendment + PositionClosure dataclasses; amend_hedge(), close_position() with audit trail; open_contracts() excludes closed. T2 closed.
+    - **Phase 73**: T1 Trading desk interface -- portal GET /trading showing hedge portfolio summary, best/worst decisions, P&L by year. T1 closed.
+  - **Test count:** 1,524 (start of session) -> 1,589 (+65 tests, 7 phases)
+- **Notes:**
+  - Session continued from prior context compaction (Phases 65-66 were in prior session). The context summary included pending Phase 67 work (payments.py written but not committed); resumed cleanly.
+  - Starlette 1.3.0 API change: TemplateResponse(request, name, context) -- old positional form (name, context_dict_with_request) caused unhashable-dict errors with Python 3.14. Fixed by switching to new signature.
+  - All C-series (C1-C4), FI-series (FI1-FI3), and T-series (T1-T3) items from Destinationvision.md now closed. Remaining: M1/M2/M3 (Market Infrastructure).
+  - Zero local model calls this session -- all implementation done directly in Claude Sonnet 4.6 context. Fast iteration but higher frontier token cost per line.
+
+---
+
+- [2026-06-25T22:21:48Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
