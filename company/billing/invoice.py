@@ -43,6 +43,8 @@ def create_schema(db_path: Path = DEFAULT_DB_PATH) -> None:
                 billing_period_end   TEXT NOT NULL,
                 consumption_kwh  REAL NOT NULL,
                 unit_rate_p_per_kwh REAL NOT NULL,
+                commodity_amount_gbp REAL NOT NULL DEFAULT 0.0,
+                non_commodity_amount_gbp REAL NOT NULL DEFAULT 0.0,
                 standing_charge_gbp  REAL NOT NULL DEFAULT 0.0,
                 subtotal_gbp    REAL NOT NULL,
                 vat_gbp         REAL NOT NULL,
@@ -56,6 +58,11 @@ def create_schema(db_path: Path = DEFAULT_DB_PATH) -> None:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_account ON invoices(account_id)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON invoices(payment_status)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_period ON invoices(billing_period_start)")
+        for col, defval in (("commodity_amount_gbp", "0.0"), ("non_commodity_amount_gbp", "0.0")):
+            try:
+                conn.execute(f"ALTER TABLE invoices ADD COLUMN {col} REAL NOT NULL DEFAULT {defval}")
+            except Exception:
+                pass
 
 
 def _unit_rate_from_bill(bill: dict) -> float:
@@ -68,35 +75,54 @@ def _unit_rate_from_bill(bill: dict) -> float:
 
 
 def create_invoice(bill: dict, db_path: Path = DEFAULT_DB_PATH) -> int:
-    """Create an invoice from a simulation bill dict. Returns invoice_number."""
+    """Create an invoice from a simulation bill dict. Returns invoice_number.
+
+    Uses line-item breakdown if available (bills from Phase 9a+ bill_generator):
+    commodity_amount_gbp, non_commodity_amount_gbp, standing_charge_gbp, vat_gbp.
+    Falls back to total_amount_gbp as pre-tax subtotal for legacy/test bills.
+    """
     create_schema(db_path)
     kwh = bill.get("total_consumption_kwh", 0.0)
-    subtotal = bill.get("total_amount_gbp", 0.0)
-    vat = round(subtotal * VAT_RATE, 2)
-    total = round(subtotal + vat, 2)
     period_end = bill.get("period_end", bill.get("period_start", ""))
-    issue_date = period_end  # issued at period end
+    issue_date = period_end
     due_date = (
         date.fromisoformat(issue_date) + timedelta(days=PAYMENT_TERMS_DAYS)
     ).isoformat() if issue_date else ""
     unit_rate_p = _unit_rate_from_bill(bill)
     commodity = bill.get("commodity", "electricity")
 
+    commodity_gbp = bill.get("commodity_amount_gbp", 0.0)
+    non_comm_gbp = bill.get("non_commodity_amount_gbp", 0.0)
+    sc_gbp = bill.get("standing_charge_gbp", 0.0)
+
+    if commodity_gbp or non_comm_gbp or sc_gbp:
+        subtotal = round(commodity_gbp + non_comm_gbp + sc_gbp, 2)
+        vat = round(bill.get("vat_gbp", subtotal * VAT_RATE), 2)
+    else:
+        subtotal = bill.get("total_amount_gbp", 0.0)
+        vat = round(subtotal * VAT_RATE, 2)
+        commodity_gbp = subtotal
+
+    total = round(subtotal + vat, 2)
+
     with _conn(db_path) as conn:
         cursor = conn.execute("""
             INSERT INTO invoices
                 (account_id, billing_period_start, billing_period_end,
-                 consumption_kwh, unit_rate_p_per_kwh, standing_charge_gbp,
-                 subtotal_gbp, vat_gbp, total_gbp,
+                 consumption_kwh, unit_rate_p_per_kwh,
+                 commodity_amount_gbp, non_commodity_amount_gbp,
+                 standing_charge_gbp, subtotal_gbp, vat_gbp, total_gbp,
                  issue_date, due_date, payment_status, commodity)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             bill["customer_id"],
             bill.get("period_start", ""),
             period_end,
             kwh,
             round(unit_rate_p, 4),
-            0.0,
+            round(commodity_gbp, 2),
+            round(non_comm_gbp, 2),
+            round(sc_gbp, 2),
             round(subtotal, 2),
             vat,
             total,
@@ -165,3 +191,51 @@ def invoice_summary(db_path: Path = DEFAULT_DB_PATH) -> dict:
             FROM invoices
         """).fetchone()
         return dict(row) if row else {}
+
+
+def format_invoice_text(invoice: dict) -> str:
+    """Render a structured text invoice from a stored invoice record."""
+    lines = [
+        'INVOICE',
+        '=======',
+        f'Invoice No: {invoice.get("invoice_number", "")}',
+        f'Issue Date: {invoice.get("issue_date", "")}',
+        f'Due Date:   {invoice.get("due_date", "")}',
+        '',
+        f'Account:        {invoice.get("account_id", "")}',
+        f'Commodity:      {invoice.get("commodity", "electricity").capitalize()}',
+        '',
+        f'Billing Period: {invoice.get("billing_period_start", "")} to {invoice.get("billing_period_end", "")}',
+        '',
+        'LINE ITEMS',
+        '----------',
+    ]
+    kwh = invoice.get('consumption_kwh', 0.0)
+    rate_p = invoice.get('unit_rate_p_per_kwh', 0.0)
+    commodity_gbp = invoice.get('commodity_amount_gbp', 0.0)
+    non_comm_gbp = invoice.get('non_commodity_amount_gbp', 0.0)
+    sc_gbp = invoice.get('standing_charge_gbp', 0.0)
+    subtotal = invoice.get('subtotal_gbp', 0.0)
+    vat = invoice.get('vat_gbp', 0.0)
+    total = invoice.get('total_gbp', 0.0)
+
+    lines += [
+        f'  Consumption:          {kwh:>10,.2f} kWh',
+        f'  Unit Rate:            {rate_p:>10.4f} p/kWh',
+        f'  Energy Charge:          {commodity_gbp:>8,.2f}',
+    ]
+    if sc_gbp:
+        lines.append(f'  Standing Charge:        {sc_gbp:>8,.2f}')
+    if non_comm_gbp:
+        lines.append(f'  Network & Levies:       {non_comm_gbp:>8,.2f}')
+    lines += [
+        '',
+        f'Subtotal                  {subtotal:>8,.2f}',
+        f'VAT                       {vat:>8,.2f}',
+        '-' * 38,
+        f'TOTAL DUE                 {total:>8,.2f}',
+        '',
+        f'Payment Status: {invoice.get("payment_status", "unpaid").upper()}',
+    ]
+    return chr(10).join(lines)
+

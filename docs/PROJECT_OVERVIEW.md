@@ -511,6 +511,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 66 -- C1 Invoice Line Items and Text Format (2026-06-25)
+**Files:** `company/billing/invoice.py` (extended), `tests/company/billing/test_invoice.py` (extended)
+
+**What was built:**
+- Schema extended: `commodity_amount_gbp`, `non_commodity_amount_gbp` columns added (with ALTER TABLE migration for existing DBs).
+- `create_invoice()` fixed: reads `standing_charge_gbp`, `non_commodity_amount_gbp`, `vat_gbp` from bill when available (Phase 9a+ bills); falls back to total_amount_gbp for legacy bills.
+- `format_invoice_text(invoice)`: renders structured text invoice with energy charge, standing charge, network & levies, VAT, total, period, account, payment status.
+
+**Fidelity delta:** Invoice documents now contain full line-item breakdown (energy, standing charge, network/levies, VAT). Previously: only total stored, standing charge hardcoded to 0. C1 real invoice documents now operational.
+
+**9 new tests (1,514 total).**
+
+---
+
 ### Phase 65 — FI2 Budget vs Actual (2026-06-25)
 **Files:** `company/finance/budget.py` (new), `tests/company/finance/test_budget_vs_actual.py` (new), `saas/reporting/annual_report.py` (extended)
 
@@ -1029,9 +1043,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 65, 2026-06-25):**
+**Latest full run (Phase 66, 2026-06-25):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 12 new tests: FI2 Budget vs Actual. RAG-rated variance table in annual report.
+- 9 new tests: C1 invoice line items + text format. Invoice documents now show full breakdown.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

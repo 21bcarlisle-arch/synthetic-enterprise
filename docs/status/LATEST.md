@@ -8,7 +8,11 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T21:40:09Z
+Last updated: 2026-06-25T21:46:45Z
+
+**Phase 66 COMPLETE (2026-06-25):** C1 Invoice Line Items + Text Format -- 9 new tests (1,514 total).
+- `company/billing/invoice.py`: schema extended with commodity/non-commodity columns; create_invoice() stores full line items; format_invoice_text() renders structured text invoice
+- C1 invoice documents now show energy charge, network & levies, standing charge, VAT breakdown
 
 **Phase 65 COMPLETE (2026-06-25):** FI2 Budget vs Actual -- 12 new tests (1,505 total).
 - `company/finance/budget.py` (new): budget constants (2016-2025, prior-year actuals * growth factors), variance_report(), traffic_light()
