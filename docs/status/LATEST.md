@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T04:50:08Z
+Last updated: 2026-06-25T05:09:52Z
 
 **Phase 51 COMPLETE (2026-06-24):** ToU eligibility gate — 9 new tests (1,330 total).
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
@@ -25,7 +25,7 @@ Last updated: 2026-06-25T04:50:08Z
 - 2020: -3.8% net | 2021: +3.2% net | 2022: +7.3% net (crisis profitable)
 - Cap-aware acquisition gate firing 2021-22. Ofgem cap compressing resi margins.
 
-**Latest simulation results (2016–2025)** — auto-processed (526s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (516s / 9 min):
 - Net margin: £5,163,503.16 | Gross: £5,229,257.26 | Capital: £65,754
 - Treasury: £2,466,636 → £2,889,212 | 50 committee interventions | 1549 bills issued
 - Enterprise value: £5,666,754.67 | Net after CTS: £5,129,437
