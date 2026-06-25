@@ -111,6 +111,19 @@ MAX_RESTARTS_PER_HOUR = 3
 USAGE_LIMIT_POLL_INTERVAL_SECONDS = 15 * 60  # 15 minutes
 USAGE_LIMIT_MAX_WAIT_SECONDS = 6 * 3600  # 6 hours — covers the 5h session limit with margin
 NTFY_TOPIC = "skynet-synthetic"
+
+# API connectivity check — run before any CC restart attempt.
+# WSL2 can silently lose its virtual network adapter (Windows power events,
+# driver updates), dropping the outbound route to api.anthropic.com without
+# killing the tmux session. Without this check, the watchdog loops at its
+# MAX_RESTARTS_PER_HOUR cap indefinitely — pausing an hour between batches of
+# 3 failed restarts rather than waiting for the network to come back.
+API_HEALTH_CHECK_URL = "https://api.anthropic.com"
+# Exponential backoff delays before each successive connectivity retry.
+# After the sequence is exhausted, retries continue every API_DOWN_STEADY_INTERVAL_SECONDS.
+API_DOWN_BACKOFF_SECONDS = [60, 120, 300]   # 1min, 2min, 5min
+API_DOWN_STEADY_INTERVAL_SECONDS = 600       # 10min indefinitely
+API_DOWN_NTFY_INTERVAL_SECONDS = 3600        # NTFY every hour while still down
 NTFY_PUBLISH_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
 LOG_FILE = Path(f"{PROJECT_DIR}/docs/observability/session-watchdog-log.md")
@@ -645,6 +658,58 @@ def _handle_usage_command() -> None:
     send_ntfy(f"Usage: {pct}% of current session window used, resets {reset_time} {tz_name}.")
 
 
+def check_api_reachable() -> bool:
+    """Return True if api.anthropic.com responds to an HTTP request (any status
+    code), False if the connection is refused or times out."""
+    try:
+        requests.get(API_HEALTH_CHECK_URL, timeout=10)
+        return True
+    except requests.RequestException:
+        return False
+
+
+def wait_for_api_connectivity() -> None:
+    """Block until api.anthropic.com is reachable, using exponential backoff.
+
+    Sequence: 1min → 2min → 5min → then every 10min indefinitely.
+    NTFYs Rich on first failure and every hour it stays down.
+    Never gives up — returns only when the API is reachable again.
+    """
+    if check_api_reachable():
+        return  # common path — no delays
+
+    down_since = datetime.now(timezone.utc)
+    down_since_str = down_since.strftime("%H:%M UTC")
+    msg = f"CC down — API unreachable since {down_since_str}, retrying with backoff (1m/2m/5m/10m)"
+    log(msg)
+    ntfy(msg, needs_input=True)
+    last_ntfy_time = time.time()
+    attempt = 0
+
+    while True:
+        if attempt < len(API_DOWN_BACKOFF_SECONDS):
+            sleep_secs = API_DOWN_BACKOFF_SECONDS[attempt]
+        else:
+            sleep_secs = API_DOWN_STEADY_INTERVAL_SECONDS
+        attempt += 1
+        log(f"API unreachable — waiting {sleep_secs}s before retry #{attempt}")
+        time.sleep(sleep_secs)
+
+        if check_api_reachable():
+            elapsed_min = int((time.time() - down_since.timestamp()) / 60)
+            log(f"API connectivity restored after {elapsed_min}min — proceeding")
+            ntfy(f"API connectivity restored after {elapsed_min}min — restarting Claude Code.")
+            return
+
+        if time.time() - last_ntfy_time >= API_DOWN_NTFY_INTERVAL_SECONDS:
+            elapsed_min = int((time.time() - down_since.timestamp()) / 60)
+            msg = (f"CC still down — API unreachable for {elapsed_min}min "
+                   f"(since {down_since_str}), retrying every 10min")
+            log(msg)
+            ntfy(msg, needs_input=True)
+            last_ntfy_time = time.time()
+
+
 def restart_claude(resume: bool = True) -> None:
     """Restart the 'claude' tmux session.
 
@@ -655,6 +720,8 @@ def restart_claude(resume: bool = True) -> None:
     checked before advancing.
     --dangerously-skip-permissions is never used.
     """
+    wait_for_api_connectivity()
+
     if restarts_in_last_hour() >= MAX_RESTARTS_PER_HOUR:
         msg = (f"Session watchdog: restart cap reached "
                f"({MAX_RESTARTS_PER_HOUR}/hour) — pausing 60 min before resuming.")
