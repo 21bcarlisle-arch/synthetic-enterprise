@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T16:49:54Z
+Last updated: 2026-06-25T17:09:03Z
 
 **Phase 60 COMPLETE (2026-06-25):** I&C gas flat seasonal profile — 8 new tests (1,436 total).
 - `GAS_IC_CONSUMPTION_MONTHLY_PROFILE`: Jan=1.075, Jul=0.913, 1.18× ratio vs resi 5.3×
@@ -64,7 +64,7 @@ Last updated: 2026-06-25T16:49:54Z
 
 **Test suite: 1,436 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £5,260,448.87 | Gross: £5,497,568.79 | Capital: £237,120
 - Treasury: £2,466,636 → £2,740,858 | 43 committee interventions | 1531 bills issued
 - Enterprise value: £4,924,325.56 | Net after CTS: £5,397,566
