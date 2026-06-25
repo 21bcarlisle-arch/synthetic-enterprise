@@ -63,6 +63,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 58 COMPLETE (2026-06-25):** Weather-adjusted gas consumption (HDD model) — 15 new tests (1,418 passing). `sim/weather_hdd.py` (new): `get_weather_factor(year, month, cid)` — actual/reference HDD ratio [0.3, 2.0]; UK 1991–2020 climate normals. `gas_settlement.py`: `weather_factor` param scales `daily_kwh`; field in every record. `run_phase2b.py`: resi/SME gas gets term-averaged factor; I&C process gas unchanged.
 **Phase 57 COMPLETE (2026-06-25):** Year-varying bad debt (crisis surge) — 9 new tests (1,403 passing). `saas/cost_to_serve.py`: `get_bad_debt_rate(year, segment)` — 2021 resi 4%, 2022 8% (Ofgem 2.4M arrears), 2023 5%. `run_phase2b.py`: bad_debt_gbp deducted from net_margin_gbp + treasury each settlement period.
 **Phase 56 COMPLETE (2026-06-25):** Gas pass-through hedge zero-locked — 5 new tests (1,394 passing). `simulation/run_phase2b.py`: pass-through gas `hf` forced to 0.0 (was 0.85). Wrong-way risk eliminated: C_IC3g had +42% gas margin 2021 (hedge windfall) and -86% 2023 (hedge loss on reversion). Cost now = spot × vol; margin = service_fee + network + policy only.
 

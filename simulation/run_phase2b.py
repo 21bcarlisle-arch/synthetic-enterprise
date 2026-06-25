@@ -104,6 +104,7 @@ from simulation.hh_consumption import (
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.weather_inputs import cloud_cover_for_customer, lookback_mean_temps, weather_means_for_customer
+from sim.weather_hdd import weather_factor_for_term
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"
@@ -1216,12 +1217,19 @@ def main(report_end: str | None = None, sim_interface=None):
             counterfactual_risk = assess_term_risk(term_start_str, float(aq_kwh), forward_price, gas_records)
             current_risk[cid] = risk
 
+            # Phase 58: HDD weather adjustment for resi/SME gas only.
+            # I&C process gas (C_IC3g) is industrial; space-heating HDD model does not apply.
+            _gas_weather_factor = 1.0
+            if cust_segment in ("resi", "sme"):
+                _gas_weather_factor = weather_factor_for_term(term_start_str, term_end_str, cid)
+
             term_records = run_gas_term(
                 cid, term_start_str, term_end_str, aq_kwh,
                 unit_rate, hf, forward_price,
                 risk["monthly_cost_of_capital_gbp"], gas_records,
                 segment=cust_segment,
                 pass_through=(term_tariff_type == "pass_through"),
+                weather_factor=_gas_weather_factor,
             )
             for rec in term_records:
                 rec["data_regime"] = "historical"

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 390+ commits. 1,403 tests (1,395 non-simulation, 8 integration). Codebase: ~22,000 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 390+ commits. 1,418 tests (1,410 non-simulation, 8 integration). Codebase: ~22,300 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -480,6 +480,20 @@ Net after CTS:               £7,498
 **Fidelity delta:** Removes a systematic wrong-way risk from the gas settlement. C_IC3g (5 GWh I&C spot-indexed gas, chemical plant, Teesside) was being hedged at 85% despite billing at daily spot price — this created a £125k windfall in 2021 (spot > forward) and a -86% net gas margin in 2023 (spot < expensive 2022 forward lock). A real supplier on a spot-indexed I&C gas contract would NOT hedge that book with a fixed forward — the customer bears the price risk. Now margin ≈ service_fee + network + policy per MWh, stable across spot regimes.
 
 **5 new tests (1,394 total).**
+
+---
+
+### Phase 58 — Weather-Adjusted Gas Consumption: HDD Model (2026-06-25)
+**Files:** `sim/weather_hdd.py` (new), `simulation/gas_settlement.py`, `simulation/run_phase2b.py`, `tests/sim/test_weather_hdd.py` (new)
+
+**What was built:**
+- `sim/weather_hdd.py`: `get_hdd(date_str, customer_id)` — HDD = max(0, 15.5°C − mean_temp). `get_monthly_hdd()`, `get_weather_factor(year, month, customer_id)` — actual/reference HDD ratio, clipped [0.3, 2.0]. `weather_factor_for_term()` — day-weighted average over a contract term. `REFERENCE_MONTHLY_HDD`: UK Met Office 1991–2020 climate normals (Jan 350 HDD → Jul 5 HDD).
+- `simulation/gas_settlement.py`: `weather_factor: float = 1.0` param on `run_gas_term()`. `daily_kwh = AQ/365 × weather_factor`. Factor appears in every settlement record.
+- `simulation/run_phase2b.py`: for each resi/SME gas term, compute `weather_factor_for_term(term_start, term_end, cid)` and pass to `run_gas_term()`. I&C process gas (`C_IC3g`) unchanged (industrial load, not space-heating-dominated).
+
+**Fidelity delta:** Gas consumption now varies with actual UK weather. The 2019–2020 warm winter (warmest on record) reduces resi gas consumption and cost; a January cold snap increases demand. Resi gas customers see weather-driven bill variance. Fixed-rate supplier margin improves in warm years (billed at fixed tariff, less gas actually consumed = lower wholesale cost).
+
+**15 new tests (1,418 total).**
 
 ---
 

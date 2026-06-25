@@ -57,6 +57,7 @@ def run_gas_term(
     gas_price_records: list[dict],
     segment: str = "resi",
     pass_through: bool = False,
+    weather_factor: float = 1.0,
 ) -> list[dict]:
     """Settle one gas contract term, returning one record per gas day.
 
@@ -70,10 +71,11 @@ def run_gas_term(
     forward_price : forward NBP price locked at contract signing (£/MWh)
     monthly_cost_of_capital_gbp : capital cost per calendar month for this term
     gas_price_records : list of {settlementDate, systemSellPrice} daily records
-    segment : customer segment for CCL exemption ('resi' → CCL exempt)
+    segment : customer segment for CCL exemption ('resi' -> CCL exempt)
+    weather_factor : HDD-based scaling for resi/SME gas consumption (1.0 = average)
     """
     spot_index = {r["settlementDate"]: r["systemSellPrice"] for r in gas_price_records}
-    daily_kwh = _daily_consumption_kwh(aq_kwh)
+    daily_kwh = _daily_consumption_kwh(aq_kwh) * weather_factor
 
     records = []
     current = date.fromisoformat(term_start)
@@ -127,6 +129,7 @@ def run_gas_term(
                 "ggl_gbp": round(ggl, 8),
                 "gas_policy_cost_gbp": round(gas_policy_cost, 8),
                 "gas_network_cost_gbp": round(gas_network_cost, 8),
+                "weather_factor": round(weather_factor, 4),
             })
         current += timedelta(days=1)
 
