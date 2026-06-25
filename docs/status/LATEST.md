@@ -8,7 +8,11 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T22:23:25Z
+Last updated: 2026-06-25T22:25:35Z
+
+**Phase 75 COMPLETE (2026-06-26):** M1 Elexon Settlement Interface -- 10 new tests (1,612 total).
+- `company/market/settlement_reconciler.py` (new): SettlementStatement, reconcile_against_bill(), batch reconciliation
+- Imbalance flagged if >5% of settlement cost or >£10; M1 closed
 
 **Phase 74 COMPLETE (2026-06-26):** M2 Regulatory Reporting -- 13 new tests (1,602 total).
 - `company/regulatory/compliance.py` (new): price cap compliance, smart meter COMPLIANT/AT_RISK/BREACH, CSS annual return
@@ -121,7 +125,7 @@ Last updated: 2026-06-25T22:23:25Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,602 total (all saas/company/tools passing)**
+**Test suite: 1,612 total (all saas/company/tools passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

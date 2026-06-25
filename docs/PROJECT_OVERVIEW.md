@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,602 tests (1,594 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,612 tests (1,604 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,21 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 75 -- M1 Elexon Settlement Interface (2026-06-26)
+**Files:** `company/market/settlement_reconciler.py` (new), `tests/company/market/test_settlement_reconciler.py` (new)
+
+**What was built:**
+- `SettlementStatement` dataclass: period, customer_id, volume_kwh, ssp_gbp_per_mwh, net_settlement_cost_gbp, hedge_pnl_gbp.
+- `receive_settlement()`: pure constructor for settlement receipts.
+- `reconcile_against_bill(statement, billed_revenue, threshold_pct=5%)`: imbalance = billed - settled. Flagged when >5% of settlement cost OR >£10 absolute.
+- `reconcile_period_batch(statements, revenues)`: batch reconciliation with total imbalance, flagged count, checked count.
+- `imbalance_summary(batch_result)`: favourable/unfavourable counts, net_position (favourable/unfavourable).
+
+**Fidelity delta:** The company can now receive Elexon settlement statements and reconcile them against its own billing records. An imbalance flagging system catches cases where billed tariff revenue diverges significantly from wholesale settlement cost -- a key operational risk in energy retail (BSC imbalance charges). M1 closed -- full market infrastructure stack complete.
+
+**10 new tests (1,612 total).**
+
+---
 ### Phase 74 -- M2 Regulatory Reporting (2026-06-26)
 **Files:** `company/regulatory/compliance.py` (new), `tests/company/regulatory/test_compliance.py` (new)
 
@@ -1149,9 +1164,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 74, 2026-06-26):**
+**Latest full run (Phase 75, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 13 new tests: M2 Regulatory reporting (price cap, smart meter, CSS filing). M2 closed.
+- 10 new tests: M1 Elexon settlement reconciliation (imbalance flagging). M1 closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
