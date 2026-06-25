@@ -40,6 +40,7 @@ from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 from simulation.tou_periods import is_peak_period
 from saas.capital.bsc_credit import compute_bsc_credit_by_year
+from saas.capital.solvency import compute_solvency_by_year
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -2897,28 +2898,27 @@ def _section_gas_pl(data: dict) -> str:
 
 
 def _section_solvency_signal(data: dict) -> str:
-    """Phase 21b: Per-customer net assets solvency signal.
+    """Phase 21b/55: Per-customer solvency — Ofgem MCR compliance signal.
 
-    Ofgem licence conditions require positive net assets (floor: £0/customer).
-    Industry capital adequacy guidance targets £130/dual-fuel billing account.
-    Treasury divided by active billing accounts each year gives the signal.
+    Ofgem licence Standard Condition 27 requires positive net assets per customer.
+    MCR target: £130/dual-fuel account. Phase 55: formal Watch/STRESS status from
+    saas/capital/solvency.py; solvency_ratio = per_customer_net_assets / £130 floor.
+    Watch < 2×, STRESS < 1×.
     """
     years = data.get("years", {})
     if not years:
         return ""
 
-    FLOOR_GBP = 0.0
-    TARGET_GBP = 130.0
+    solvency = compute_solvency_by_year(years)
 
     lines = [
-        "## Solvency Signal — Net Assets per Customer (Phase 21b)",
+        "## Solvency Signal — Net Assets per Customer (Phase 21b/55)",
         "",
-        "Treasury balance ÷ active billing accounts at each year-end.",
-        "Ofgem licence floor: £0/account (positive net assets required to hold a supply licence).",
-        "Capital adequacy target: £130/dual-fuel billing account.",
+        "Treasury ÷ active accounts. Ofgem MCR floor: £130/dual-fuel account.",
+        "Watch < 2×, STRESS < 1× (account balance below regulatory floor).",
         "",
-        "| Year | Treasury £ | Billing Accounts | Net Assets/Account £ | vs Floor | vs £130 Target |",
-        "|------|-----------|-----------------|----------------------|----------|----------------|",
+        "| Year | Treasury £ | Accounts | Net Assets/Account £ | Solvency Ratio | Status |",
+        "|------|-----------|----------|----------------------|----------------|--------|",
     ]
 
     for year in sorted(years):
@@ -2927,35 +2927,28 @@ def _section_solvency_signal(data: dict) -> str:
         active_cids = yd.get("active_customer_ids", [])
         billing_accounts = {_billing_account_id(cid) for cid in active_cids}
         n_accounts = len(billing_accounts) or 1
-        net_per_account = treasury / n_accounts
-
-        floor_flag = "OK" if net_per_account >= FLOOR_GBP else "**BREACH**"
-        if net_per_account >= TARGET_GBP:
-            target_flag = "OK"
-        else:
-            target_flag = f"below (gap: £{TARGET_GBP - net_per_account:,.0f})"
+        sol = solvency.get(year, {})
+        per_acct = sol.get("per_customer_net_assets_gbp", treasury / n_accounts)
+        ratio = sol.get("solvency_ratio", 0.0)
+        status = sol.get("status", "—")
+        status_fmt = f"**{status}**" if status in ("STRESS", "Watch") else status
 
         lines.append(
-            f"| {year} | {treasury:,.0f} | {n_accounts} | {net_per_account:,.0f} "
-            f"| {floor_flag} | {target_flag} |"
+            f"| {year} | {treasury:,.0f} | {n_accounts} | {per_acct:,.0f} "
+            f"| {ratio:.2f}× | {status_fmt} |"
         )
 
     # End-state summary
     final_year = sorted(years)[-1]
-    final_yd = years[final_year]
-    final_treasury = final_yd.get("treasury_end_gbp", 0.0)
-    final_cids = final_yd.get("active_customer_ids", [])
-    final_accounts = {_billing_account_id(cid) for cid in final_cids}
-    final_n = len(final_accounts) or 1
-    final_per = final_treasury / final_n
+    final_sol = solvency.get(final_year, {})
+    final_per = final_sol.get("per_customer_net_assets_gbp", 0.0)
+    final_status = final_sol.get("status", "—")
+    final_cids = years[final_year].get("active_customer_ids", [])
+    final_n = len({_billing_account_id(cid) for cid in final_cids}) or 1
 
     lines.append("")
-    if final_per >= TARGET_GBP:
-        status = f"above Ofgem £{TARGET_GBP:.0f} target"
-    else:
-        status = f"£{TARGET_GBP - final_per:,.0f} below Ofgem £{TARGET_GBP:.0f} target"
     lines.append(
-        f"End-state ({final_year}): **£{final_per:,.0f}/account** across {final_n} billing accounts — {status}."
+        f"End-state ({final_year}): **£{final_per:,.0f}/account** across {final_n} billing accounts — {final_status}."
     )
     lines.append("")
     return "\n".join(lines)

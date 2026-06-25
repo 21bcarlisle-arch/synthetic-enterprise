@@ -470,6 +470,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 55 — Ofgem MCR Solvency Signal (2026-06-25)
+**Files:** `saas/capital/solvency.py` (new), `saas/reporting/annual_report.py`, `tests/saas/capital/test_solvency.py` (new)
+
+**What was built:**
+- `saas/capital/solvency.py`: `compute_solvency_signal(treasury_gbp, active_customer_count)` → `{per_customer_net_assets_gbp, mcr_floor_gbp, solvency_ratio, status}`. `MCR_FLOOR_GBP_PER_CUSTOMER = 130.0` (Ofgem MCR target for dual-fuel); `Watch < 2×`, `STRESS < 1×` (account below floor). `compute_solvency_by_year(years_data)` aggregates per report year.
+- `saas/reporting/annual_report.py`: `_section_solvency_signal()` updated (Phase 21b/55) to use `compute_solvency_by_year`; table now shows Solvency Ratio and Status columns. Import added for `compute_solvency_by_year`.
+- `docs/market_research/ASSUMPTIONS.md`: Rows 38 and 41 updated — gas and electricity price cap rows were falsely marked "NOT MODELLED"; Phase 47a applies both.
+
+**Fidelity delta:** Ofgem's supply licence Standard Condition 27 requires licensed suppliers to maintain sufficient net assets per customer. The MCR (Minimum Capital Requirement) target is approximately £130/dual-fuel account. When treasury per account falls below the floor (ratio < 1×), the supplier is in regulatory breach — this is how Ofgem triggered Special Administration Regime for Bulb (when its per-customer net assets turned negative). The simulation now tracks this per year and flags Watch/STRESS conditions.
+
+**12 new tests (1,389 total).**
+
+---
+
 ### Phase 52 — ToU Demand Response Model (2026-06-25)
 **Files:** `saas/demand_response.py` (new), `simulation/run_phase2b.py`, `tests/saas/test_phase52_demand_response.py` (new), `tests/background/test_session_watchdog.py`, `background/session_watchdog.py`
 
@@ -849,8 +863,8 @@ These were identified early as the things that make the simulation feel like a *
 ### Policy costs still use settlement-date lookup only
 Phase 21a adds RO + CfD. Network charges (DUoS ~£15–20/MWh, TNUoS ~£5–8/MWh) still modeled as flat pass-through in `non_commodity.py` rather than year-indexed actuals. Future phase target.
 
-### BSC credit cover not modeled as working capital
-Real suppliers hold BSC credit cover as a working capital requirement (~£8–15/MWh × peak exposure). Not yet in treasury model. Future phase target.
+### ~~BSC credit cover not modeled as working capital~~ — CLOSED Phase 53
+`saas/capital/bsc_credit.py` computes peak daily wholesale × 1.2 buffer; 2022 crisis shows 363× increase vs 2016.
 
 ### Solvency / per-customer net assets
 Ofgem licence requires positive net assets per customer (floor: £0; target: £130/dual-fuel customer). Not yet computed or tracked in reporting. Future phase target.
@@ -871,21 +885,20 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,377 tests (1,369 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
+- 1,389 tests (1,381 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 45c, 2026-06-23, commit 467debd):**
-- Net margin £678,588 | Gross £5,468,296 | Treasury £3,145,224 | SURVIVED
-- Risk premium recalibration reduces I&C/elec margins to benchmark-consistent levels.
-- sim_runner restart needed to activate Phase 43b trading book in live runs.
+**Latest full run (Phase 54, 2026-06-25, commit 60cb1c2):**
+- Net P&L £326,682 | Gross £5,119,568 | Treasury £2,793,319 | SURVIVED
+- Mutualization levy compresses net margins in 2021-2022 crisis years.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
-- Full cost stack: wholesale (SSP) + network (DUoS+TNUoS, Phase 29b) + policy (RO+CfD+CCL+CM, Phase 21a/27b/30a)
+- Full cost stack: wholesale (SSP) + network (DUoS+TNUoS, Phase 29b) + policy (RO+CfD+CCL+CM+FiT+Mutualization, Phase 21a/27b/30a/31a/54) + Ofgem cap (resi, Phase 47a)
 - Risk committee Ollama calls per run (each ~7s) — 95% of runtime
 
 ---

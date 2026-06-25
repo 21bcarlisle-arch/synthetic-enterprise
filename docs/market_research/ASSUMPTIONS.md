@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-06-24 from current codebase.
+Last seeded: 2026-06-25 from current codebase.
 
 ---
 
@@ -35,10 +35,10 @@ Last seeded: 2026-06-24 from current codebase.
 | Company elec forward risk premium (Phase 45c) | 8% above 120-day mean | 5–8% above NAP/baseload (I&C competitive) | Broker intelligence; Phase 45c sanity check | 2026-06-23 | ✓ OK |
 | Company gas forward risk premium (Phase 46a) | 5% above 120-day mean | Near-zero in stable markets; UK resi gas suppliers earn ~1-2% in normal years (Cornwall Insight 2020) | NBP market; Phase 46a analysis | 2026-06-23 | ✓ OK |
 | **EBIT% — dom electricity (CSS pre-cap 2016-2018)** | **NOT MODELLED separately** | **~2–5%** | **EDF/BG CSS 2023-2024 PDFs + CMA 2016 + Ofgem sector data** | **2026-06-23** | **✓ OK (pre-2019 sim range plausible)** |
-| **EBIT% — dom electricity (CSS post-cap 2019-2022)** | **NOT MODELLED (no price cap)** | **Negative: approx -4% to -10% per year; sector -£4bn cumulative** | **Ofgem published aggregate + EDF CSS 2023-2024** | **2026-06-23** | **⚠ CRITICAL GAP — no price cap in sim** |
+| **EBIT% — dom electricity (CSS post-cap 2019-2022)** | **Cap applied Phase 47a. Sim 2021=-6.6%, 2022=+6.7%** | **Negative: approx -4% to -10% per year; sector -£4bn cumulative** | **Ofgem published aggregate + EDF CSS 2023-2024** | **2026-06-25** | **⚠ 2022 still positive in sim — cap biting but mutualization/wholesale partially offsetting** |
 | **EBIT% — dom electricity (CSS recovery 2023)** | **NOT MODELLED** | **4.2% (EDF); 7.8% (British Gas) — above-normal post-crisis** | **EDF CSS 2023 PDF; British Gas CSS 2023 PDF** | **2026-06-23** | **⚠ Context: 2023 exceptional due to hedge gains** |
 | **EBIT% — dom electricity (CSS 2024, normalising)** | **NOT MODELLED** | **5.4% (EDF); Ofgem EBIT allowance in cap = 1.9%** | **EDF CSS 2024 PDF** | **2026-06-23** | **⚠ Long-run normal should be ~1.9-3%** |
-| **EBIT% — dom gas (CSS 2023-2024)** | **NOT MODELLED** | **-6.1% (EDF 2023); -5.4% (EDF 2024) — persistently loss-making** | **EDF CSS 2023 + 2024 PDFs** | **2026-06-23** | **⚠ CRITICAL — domestic gas structurally loss-making under cap** |
+| **EBIT% — dom gas (CSS 2023-2024)** | **Gas cap applied Phase 47a. Sim 2023=-86.1%, 2024=-6.3%** | **-6.1% (EDF 2023); -5.4% (EDF 2024) — persistently loss-making** | **EDF CSS 2023 + 2024 PDFs** | **2026-06-25** | **⚠ 2023 extreme (-86%) vs benchmark (-6%); 2024 close to benchmark** |
 | **EBIT% — non-dom electricity (CSS 2023-2024)** | **2.9% overall net (Phase 45c)** | **4.5% (EDF 2023); 1.7% (EDF 2024); 3.8% (BG 2023)** | **EDF CSS 2023-2024 PDFs; British Gas CSS 2023 PDF** | **2026-06-23** | **✓ SIM within normal range for I&C segment** |
 
 ## Hedging & Risk

@@ -63,6 +63,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 55 COMPLETE (2026-06-25):** Ofgem MCR solvency signal — 12 new tests (1,389 passing). `saas/capital/solvency.py` (new): `compute_solvency_signal(treasury, customers)` → status OK/Watch/STRESS. MCR floor £130/dual-fuel account; Watch < 2×, STRESS < 1×. `_section_solvency_signal()` updated; formal ratio column in annual report.
+
 **Phase 54 COMPLETE (2026-06-25):** Supplier mutualization levy — 8 new tests (1,377 passing). `simulation/policy_costs.py`: `_MUTUALIZATION_LEVY_BY_YEAR` + `get_mutualization_levy_per_mwh()`. 2021 £4.14/MWh, 2022 £10.00/MWh (Bulb SAR + BSC shortfall recovery). Applied in all 3 electricity settlement paths; policy costs table extended in annual report.
 
 **Phase 53 COMPLETE (2026-06-25):** BSC credit cover — 14 new tests (1,369 passing). `saas/capital/bsc_credit.py` (new): `compute_daily_wholesale_exposure()`, `compute_bsc_credit_requirement()`, `compute_bsc_credit_by_year()`. Peak daily electricity wholesale cost × 1.2 buffer over 28-day window = credit cover required. Annual report section: per-year peak/cover/treasury/ratio table (2022 crisis shows £10k cover vs £28 in 2016). `extract_report_data()` pre-computes per year from all_records.
@@ -80,10 +82,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase 47b COMPLETE (2026-06-24):** Cap-aware acquisition gate — 10 new tests (1,270+ passing).
 `saas/growth_mandate.py`: `should_attempt_acquisition()` — gate fires when Ofgem cap < company_fwd (selling below wholesale cost). Applied in `simulation/run_phase2b.py` before `roll_acquisition()`. Crisis-year pause emerges from economics, not hard-coded years.
 
-**Phase 47a COMPLETE (2026-06-24):** Ofgem domestic price cap — 10 new tests (1,260+ passing).
-`company/pricing/ofgem_price_cap.py` (new): `get_cap_unit_rate_gbp_per_mwh(fuel, year)` annual lookup. Applied in
-`simulation/run_phase2b.py` after all uplifts for resi fixed-term customers. Cap bites 2021+ in crisis years;
-resi margins now compress under cap. Closes CRITICAL GAP in ASSUMPTIONS.md (resi 10.2% was impossible post-2019).
+**Phase 47a COMPLETE (2026-06-24):** Ofgem domestic price cap — 10 new tests. `company/pricing/ofgem_price_cap.py`: `get_cap_unit_rate_gbp_per_mwh(fuel, year)` (elec+gas annual lookup). Applied in `run_phase2b.py` after all uplifts for resi fixed customers. Cap bites 2021+, resi margins compress.
 
 **Phase 46a COMPLETE (2026-06-23):** Gas risk premium further reduced 10%→5% — 0 new tests (1,250+ passing).
 `company/pricing/tariff_engine.py`: `GAS_RISK_PREMIUM_FRACTION` 10%→5%. UK resi gas margins near-zero in stable
