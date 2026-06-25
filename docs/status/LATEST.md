@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T19:06:52Z
+Last updated: 2026-06-25T19:35:47Z
+
+**Phase 63 COMPLETE (2026-06-25):** F1 Double-entry ledger — 24 new tests (1,480 total).
+- `company/finance/double_entry.py` (new): 13 account codes (1xxx–6xxx), `to_journal_entry()` for all 9 ledger event types
+- `trial_balance()`, `income_statement()`, `balance_sheet()` — Assets = Liabilities + Equity verified
+- Foundation for FI1 management accounts and C1 customer invoices (Destinationvision.md F1)
 
 **Phase 62 COMPLETE (2026-06-25):** Standing charges (electricity + gas, resi/SME) -- 12 new tests (1,456 total).
 - `simulation/policy_costs.py`: Ofgem tariff tracker year-indexed SC tables; resi elec 24p/day (2016) -> 61p/day (2024), gas 22p->31p; SME 1.5x; I&C=0
