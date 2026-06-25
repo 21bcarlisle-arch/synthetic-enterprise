@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,524 tests (1,516 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,538 tests (1,530 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 68 -- C2 Customer Portal MVP (2026-06-25)
+**Files:** `company/portal/app.py` (new), `company/portal/templates/` (3 HTML templates), `tests/company/portal/test_portal.py` (new)
+
+**What was built:**
+- `company/portal/app.py`: FastAPI app with 4 routes: `GET /` (login page), `POST /login` (account-number auth, case-insensitive), `GET /account/{id}` (dashboard: profile + billing summary), `GET /account/{id}/bills` (invoice list from SQLite).
+- Jinja2 templates: `login.html`, `dashboard.html`, `bills.html`. Reads company layer only: `saas/customers.py` for profile, `company/billing/invoice.py` for invoices. No simulation internals.
+- `_invoice_summary()`: aggregates billed/paid/outstanding from invoice DB for dashboard display.
+
+**Fidelity delta:** Rich can now log in as C1 and see account profile (segment, contract, EAC), billing summary (total billed, paid, outstanding), and invoice history with payment status. The customer experience is real. C2 closed.
+
+**14 new tests (1,538 total).**
+
+---
 ### Phase 67 -- C3 Payment Processing and Debt Aging (2026-06-25)
 **Files:** `company/billing/payments.py` (new), `tests/company/billing/test_payments.py` (new)
 
@@ -1055,9 +1068,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 67, 2026-06-25):**
+**Latest full run (Phase 68, 2026-06-25):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 10 new tests: C3 payment reconciliation + debt aging. Billing lifecycle complete: invoice -> payment -> bad debt.
+- 14 new tests: C2 Customer Portal. Rich can log in as C1 and see profile/bills.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

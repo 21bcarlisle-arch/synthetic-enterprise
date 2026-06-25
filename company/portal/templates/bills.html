@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bills — {{ customer.customer_id }}</title>
+  <style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 16px}
+    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
+    th{background:#ebf8ff}
+    .paid{color:#276749}.unpaid{color:#c53030}.partially_paid{color:#c05621}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a></nav>
+  <h1>Invoices — {{ customer.customer_id }}</h1>
+  {% if invoices %}
+  <table>
+    <tr><th>Invoice</th><th>Period</th><th>Commodity</th><th>Total</th><th>Due</th><th>Status</th></tr>
+    {% for inv in invoices %}
+    <tr>
+      <td>{{ inv.invoice_number }}</td>
+      <td>{{ inv.billing_period_start }} &ndash; {{ inv.billing_period_end }}</td>
+      <td>{{ inv.commodity }}</td>
+      <td>£{{ "%.2f"|format(inv.total_gbp) }}</td>
+      <td>{{ inv.due_date }}</td>
+      <td class="{{ inv.payment_status }}">{{ inv.payment_status.replace("_", " ").title() }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p><em>No invoices on record.</em></p>
+  {% endif %}
+</body>
+</html>

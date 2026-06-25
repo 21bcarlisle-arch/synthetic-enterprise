@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T22:00:44Z
+Last updated: 2026-06-25T22:06:48Z
+
+**Phase 68 COMPLETE (2026-06-25):** C2 Customer Portal MVP -- 14 new tests (1,538 total).
+- `company/portal/app.py` (new): FastAPI app, 4 routes (login + dashboard + bills)
+- Jinja2 HTML templates; account number auth; reads company layer only
+- Rich can log in as C1 and view profile, billing summary, invoice history; C2 closed
 
 **Phase 67 COMPLETE (2026-06-25):** C3 Payment Processing + Debt Aging -- 10 new tests (1,524 total).
 
@@ -87,7 +92,7 @@ Last updated: 2026-06-25T22:00:44Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,524 total (all saas/company/tools passing)**
+**Test suite: 1,538 total (all saas/company/tools passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

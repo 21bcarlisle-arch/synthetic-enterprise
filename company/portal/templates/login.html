@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Portal — Login</title>
+  <style>body{font-family:sans-serif;max-width:400px;margin:80px auto;padding:0 16px}
+    h1{font-size:1.4rem;color:#1a365d}
+    input{width:100%;padding:8px;margin:8px 0;box-sizing:border-box}
+    button{width:100%;padding:10px;background:#2b6cb0;color:#fff;border:none;cursor:pointer}
+    .error{color:#c53030;background:#fff5f5;padding:8px;border-radius:4px;margin-bottom:12px}
+  </style>
+</head>
+<body>
+  <h1>Customer Portal</h1>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post" action="/login">
+    <label>Account Number</label>
+    <input type="text" name="account_id" placeholder="e.g. C1" required autofocus />
+    <button type="submit">Sign in</button>
+  </form>
+</body>
+</html>
