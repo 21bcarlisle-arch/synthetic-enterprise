@@ -43,10 +43,18 @@ GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH = 2.0
 # Derived from UK DUKES Table 4.3 residential gas monthly shares (2016-2020 avg).
 # Daily factor = monthly_pct * 365 / days_in_month, normalised so annual avg = 1.0.
 # Jan:Jul ratio ≈ 5.3x (matches UK peak/trough for residential heating demand).
-# I&C process gas uses uniform 1.0 (not space-heating-dominated).
 GAS_CONSUMPTION_MONTHLY_PROFILE: dict[int, float] = {
     1: 1.8839, 2: 1.8250, 3: 1.2952, 4: 0.8517, 5: 0.5887, 6: 0.3650,
     7: 0.3532, 8: 0.3532, 9: 0.4867, 10: 0.8242, 11: 1.4600, 12: 1.7661,
+}
+
+# Phase 60: I&C gas is process-heat-dominated; much flatter seasonal shape.
+# Source: UK industrial gas consumption (DUKES Table 4.3) — process heat near-flat,
+# slight winter uplift from building heating. Jan:Jul ratio ≈ 1.18x vs 5.3x for resi.
+# Monthly pct: Jan/Dec 9.1%, Feb/Nov 8.4%, others 7.9-8.0%.
+GAS_IC_CONSUMPTION_MONTHLY_PROFILE: dict[int, float] = {
+    1: 1.0746, 2: 1.1258, 3: 1.0168, 4: 0.9910, 5: 0.9590, 6: 0.9432,
+    7: 0.9128, 8: 0.9128, 9: 0.9910, 10: 0.9590, 11: 1.0507, 12: 1.0746,
 }
 
 
@@ -95,8 +103,10 @@ def run_gas_term(
         d = current.isoformat()
         spot_price = spot_index.get(d)
         if spot_price is not None:
-            # Phase 59: per-day seasonal profile × Phase 58 weather factor.
-            seasonal = GAS_CONSUMPTION_MONTHLY_PROFILE.get(current.month, 1.0)
+            # Phase 59/60: per-day seasonal profile × Phase 58 weather factor.
+            # Phase 60: I&C gas uses near-flat process-heat profile (1.18x ratio vs 5.3x resi).
+            _profile = GAS_IC_CONSUMPTION_MONTHLY_PROFILE if segment == "I&C" else GAS_CONSUMPTION_MONTHLY_PROFILE
+            seasonal = _profile.get(current.month, 1.0)
             daily_kwh = base_daily_kwh * seasonal * weather_factor
             daily_mwh = daily_kwh / 1000.0
             hedged_mwh = daily_mwh * hedge_fraction

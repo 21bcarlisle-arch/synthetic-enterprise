@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 390+ commits. 1,428 tests (1,420 non-simulation, 8 integration). Codebase: ~22,400 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 390+ commits. 1,436 tests (1,428 non-simulation, 8 integration). Codebase: ~22,400 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -483,6 +483,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 60 — I&C Gas Flat Seasonal Profile (2026-06-25)
+**Files:** `simulation/gas_settlement.py`, `tests/sim/test_ic_gas_profile.py` (new), `tests/sim/test_gas_seasonality.py` (updated)
+
+**What was built:**
+- `simulation/gas_settlement.py`: `GAS_IC_CONSUMPTION_MONTHLY_PROFILE` — I&C process gas monthly factors. Jan=1.075, Jul=0.913, 1.18× ratio (vs 5.3× resi). Source: UK DUKES industrial gas monthly shares, normalised.
+- `run_gas_term()`: selects profile by `segment` — `"I&C"` → IC profile, all others → resi profile. Prior Phase 59 applied the residential 5.3× seasonal swing to C_IC3g (AQ=5M kWh), creating £1,048/day Jan-Jul billing delta — incorrect for process-heat-dominated industrial demand.
+
+**Fidelity delta:** I&C gas consumption is now near-flat across months (~1.18× Jan:Jul), matching UK industrial gas demand patterns. Resi gas retains the 5.3× seasonal heating demand swing. C_IC3g annual billing distribution is now physically realistic.
+
+**8 new tests (1,436 total).**
+
+---
+
 ### Phase 59 — Monthly Gas Consumption Seasonality (2026-06-25)
 **Files:** `simulation/gas_settlement.py`, `tests/sim/test_gas_seasonality.py` (new)
 
@@ -493,7 +506,7 @@ Net after CTS:               £7,498
 
 **Fidelity delta:** Residential gas billing now reflects the real winter/summer consumption ratio (~5:1). January bills are ~5× higher than July (as in reality), not flat. Combined with Phase 58 weather factor, gas P&L now has both within-year seasonal shape AND year-to-year weather deviation. Prior model was flat AQ/365 per day — unrealistic for heating-dominated demand.
 
-**10 new tests (1,428 total).**
+**10 new tests (1,436 total).**
 
 ---
 

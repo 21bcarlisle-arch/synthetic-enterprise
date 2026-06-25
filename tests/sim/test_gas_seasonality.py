@@ -116,8 +116,9 @@ class TestSeasonalSettlement:
         assert kwh_warm < kwh_normal, "Warm weather should reduce Jan consumption"
         assert abs(kwh_warm / kwh_normal - 0.8) < 0.001, "Weather factor 0.8 gives 80% consumption"
 
-    def test_ic_gas_also_gets_seasonal_profile(self):
-        """I&C gas gets the seasonal profile applied (even though weather_factor stays 1.0)."""
+    def test_ic_gas_uses_flat_profile(self):
+        """Phase 60: I&C gas uses a near-flat seasonal profile (process heat), not resi 5.3x."""
+        from simulation.gas_settlement import GAS_IC_CONSUMPTION_MONTHLY_PROFILE
         gas_records = _fake_gas_records("2019-12-01", "2020-12-31")
         jan_ic = run_gas_term(
             "C_IC3g", "2020-01-01", "2020-02-01",
@@ -125,6 +126,7 @@ class TestSeasonalSettlement:
             hedge_fraction=0.0, forward_price=30.0,
             monthly_cost_of_capital_gbp=1.0,
             gas_price_records=gas_records,
+            segment="I&C",
         )
         jul_ic = run_gas_term(
             "C_IC3g", "2020-07-01", "2020-08-01",
@@ -132,8 +134,12 @@ class TestSeasonalSettlement:
             hedge_fraction=0.0, forward_price=30.0,
             monthly_cost_of_capital_gbp=1.0,
             gas_price_records=gas_records,
+            segment="I&C",
         )
-        # Seasonal profile applied to all segments (incl I&C) for simplicity;
-        # run_phase2b only withholds weather_factor=1.0 for I&C.
-        assert jan_ic[0]["seasonal_factor"] == jul_ic[0]["seasonal_factor"] or True
-        assert jan_ic[0]["daily_kwh"] != jul_ic[0]["daily_kwh"] or True
+        jan_kwh = jan_ic[0]["daily_kwh"]
+        jul_kwh = jul_ic[0]["daily_kwh"]
+        ratio = jan_kwh / jul_kwh
+        assert ratio < 2.0, f"I&C Jan:Jul ratio should be < 2x (process heat), got {ratio:.2f}x"
+        assert ratio > 1.0, "I&C still has slight winter heating component"
+        # Verify the actual seasonal factors are from the I&C profile not resi profile
+        assert jan_ic[0]["seasonal_factor"] < 1.5, "I&C Jan factor should be ~1.07, not resi 1.88"

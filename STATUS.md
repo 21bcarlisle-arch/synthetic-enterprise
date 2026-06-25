@@ -1,9 +1,13 @@
 # Project Status
 
 Last updated: 2026-06-25T15:45:00Z
-Current phase: **Phase 59 COMPLETE** (2026-06-25). 1,428 tests passing.
+Current phase: **Phase 60 COMPLETE** (2026-06-25). 1,436 tests passing.
 
 ## Current state
+
+**Phase 60 (2026-06-25): I&C gas flat seasonal profile**
+- `GAS_IC_CONSUMPTION_MONTHLY_PROFILE` in `gas_settlement.py`: 1.18× Jan:Jul (not resi 5.3×)
+- `run_gas_term()` selects resi vs I&C profile by segment; 8 new tests (1,436 total)
 
 **Phase 59 (2026-06-25): Monthly gas consumption seasonality**
 - `GAS_CONSUMPTION_MONTHLY_PROFILE` in `gas_settlement.py`: Jan=1.884, Jul=0.353, 5.3× ratio (UK DUKES)
@@ -28,7 +32,7 @@ Current phase: **Phase 59 COMPLETE** (2026-06-25). 1,428 tests passing.
 4. HH data path - CLOSED (Phase 6a): C7-C9 on real HH consumption; ToU tariffs live (Phase 13a)
 5. Reporting - CLOSED (Phase 5a/5b): ANNUAL_REPORT.md, full pipeline, GitHub Pages
 
-1,428 tests passing.
+1,436 tests passing.
 
 Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 Status: https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
