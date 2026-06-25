@@ -1256,3 +1256,195 @@ Structured performance entries are added after each task completes.
 - [2026-06-24 04:00 UTC] run_queued_tasks: no parseable QUEUED task found
 - [2026-06-24 04:30 UTC] Found queued tasks — beginning execution
 - [2026-06-24 04:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 05:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 05:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 05:30 UTC] Found queued tasks — beginning execution
+- [2026-06-24 05:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 06:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 06:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 06:30 UTC] Found queued tasks — beginning execution
+- [2026-06-24 06:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 07:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 07:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 07:30 UTC] Found queued tasks — beginning execution
+- [2026-06-24 07:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 08:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 08:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 11:14 UTC] Background worker started
+- [2026-06-24 11:14 UTC] Found queued tasks — beginning execution
+- [2026-06-24 11:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 11:44 UTC] Found queued tasks — beginning execution
+- [2026-06-24 11:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 12:14 UTC] Found queued tasks — beginning execution
+- [2026-06-24 12:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 12:44 UTC] Found queued tasks — beginning execution
+- [2026-06-24 12:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 13:14 UTC] Found queued tasks — beginning execution
+- [2026-06-24 13:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 13:44 UTC] Found queued tasks — beginning execution
+- [2026-06-24 13:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 14:14 UTC] Found queued tasks — beginning execution
+- [2026-06-24 14:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 14:44 UTC] Found queued tasks — beginning execution
+- [2026-06-24 14:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 15:14 UTC] Found queued tasks — beginning execution
+- [2026-06-24 15:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 15:44 UTC] Found queued tasks — beginning execution
+- [2026-06-24 15:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 16:14 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:14 UTC
+- [2026-06-24 16:29 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:29 UTC
+- [2026-06-24 16:44 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:44 UTC
+- [2026-06-24 16:59 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:59 UTC
+- [2026-06-24 17:14 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:14 UTC
+- [2026-06-24 17:29 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:29 UTC
+- [2026-06-24 17:44 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:44 UTC
+- [2026-06-24 17:59 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:59 UTC
+- [2026-06-24 18:14 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:14 UTC
+- [2026-06-24 18:19 UTC] Background worker started
+- [2026-06-24 18:19 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-24 18:29 UTC] Processed run_complete_20260624T180312Z.md
+- [2026-06-24 18:29 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:29 UTC
+- [2026-06-24 18:44 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-24 18:54 UTC] Processed run_complete_20260624T182549Z.md
+- [2026-06-24 18:54 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:54 UTC
+- [2026-06-24 19:09 UTC] Found queued tasks — beginning execution
+- [2026-06-24 19:09 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 19:39 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-24 19:49 UTC] Failed to process run_complete_20260624T192835Z.md (rc=1) — will retry next cycle
+- [2026-06-24 19:49 UTC] Found queued tasks — beginning execution
+- [2026-06-24 19:49 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 20:19 UTC] Found queued tasks — beginning execution
+- [2026-06-24 20:19 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 20:49 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-24 20:59 UTC] Failed to process run_complete_20260624T203527Z.md (rc=1) — will retry next cycle
+- [2026-06-24 20:59 UTC] Found queued tasks — beginning execution
+- [2026-06-24 20:59 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 21:29 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-24 21:39 UTC] Failed to process run_complete_20260624T211511Z.md (rc=1) — will retry next cycle
+- [2026-06-24 21:39 UTC] Found queued tasks — beginning execution
+- [2026-06-24 21:39 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 22:09 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-24 22:20 UTC] Failed to process run_complete_20260624T215431Z.md (rc=1) — will retry next cycle
+- [2026-06-24 22:20 UTC] Found queued tasks — beginning execution
+- [2026-06-24 22:20 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 22:50 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-24 23:00 UTC] Failed to process run_complete_20260624T223411Z.md (rc=1) — will retry next cycle
+- [2026-06-24 23:00 UTC] Found queued tasks — beginning execution
+- [2026-06-24 23:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-24 23:30 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-24 23:40 UTC] Failed to process run_complete_20260624T231357Z.md (rc=1) — will retry next cycle
+- [2026-06-24 23:40 UTC] Found queued tasks — beginning execution
+- [2026-06-24 23:40 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 00:10 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 00:20 UTC] Failed to process run_complete_20260624T235349Z.md (rc=1) — will retry next cycle
+- [2026-06-25 00:20 UTC] Found queued tasks — beginning execution
+- [2026-06-25 00:20 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 00:50 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 01:00 UTC] Failed to process run_complete_20260625T003319Z.md (rc=1) — will retry next cycle
+- [2026-06-25 01:00 UTC] Found queued tasks — beginning execution
+- [2026-06-25 01:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 01:30 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 01:40 UTC] Failed to process run_complete_20260625T011256Z.md (rc=1) — will retry next cycle
+- [2026-06-25 01:40 UTC] Found queued tasks — beginning execution
+- [2026-06-25 01:40 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 02:10 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 02:20 UTC] Failed to process run_complete_20260625T015236Z.md (rc=1) — will retry next cycle
+- [2026-06-25 02:20 UTC] Found queued tasks — beginning execution
+- [2026-06-25 02:20 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 02:50 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 03:00 UTC] Failed to process run_complete_20260625T023227Z.md (rc=1) — will retry next cycle
+- [2026-06-25 03:00 UTC] Found queued tasks — beginning execution
+- [2026-06-25 03:00 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 03:30 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 03:40 UTC] Failed to process run_complete_20260625T031202Z.md (rc=1) — will retry next cycle
+- [2026-06-25 03:40 UTC] Found queued tasks — beginning execution
+- [2026-06-25 03:40 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 04:10 UTC] Found queued tasks — beginning execution
+- [2026-06-25 04:10 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 04:40 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 04:50 UTC] Failed to process run_complete_20260625T043116Z.md (rc=1) — will retry next cycle
+- [2026-06-25 04:50 UTC] Found queued tasks — beginning execution
+- [2026-06-25 04:50 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 05:20 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 05:30 UTC] Failed to process run_complete_20260625T051054Z.md (rc=1) — will retry next cycle
+- [2026-06-25 05:30 UTC] Found queued tasks — beginning execution
+- [2026-06-25 05:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 06:00 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 06:10 UTC] Failed to process run_complete_20260625T055100Z.md (rc=1) — will retry next cycle
+- [2026-06-25 06:10 UTC] Found queued tasks — beginning execution
+- [2026-06-25 06:10 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 06:40 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 06:50 UTC] Failed to process run_complete_20260625T063036Z.md (rc=1) — will retry next cycle
+- [2026-06-25 06:50 UTC] Found queued tasks — beginning execution
+- [2026-06-25 06:50 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 07:20 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 07:30 UTC] Failed to process run_complete_20260625T071012Z.md (rc=1) — will retry next cycle
+- [2026-06-25 07:30 UTC] Found queued tasks — beginning execution
+- [2026-06-25 07:30 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 08:00 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 08:10 UTC] Failed to process run_complete_20260625T074953Z.md (rc=1) — will retry next cycle
+- [2026-06-25 08:10 UTC] Found queued tasks — beginning execution
+- [2026-06-25 08:10 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 08:40 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 08:50 UTC] Failed to process run_complete_20260625T082939Z.md (rc=1) — will retry next cycle
+- [2026-06-25 08:50 UTC] Found queued tasks — beginning execution
+- [2026-06-25 08:50 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 09:20 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 09:31 UTC] Failed to process run_complete_20260625T090915Z.md (rc=1) — will retry next cycle
+- [2026-06-25 09:31 UTC] Found queued tasks — beginning execution
+- [2026-06-25 09:31 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 10:01 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 10:11 UTC] Failed to process run_complete_20260625T094902Z.md (rc=1) — will retry next cycle
+- [2026-06-25 10:11 UTC] Found queued tasks — beginning execution
+- [2026-06-25 10:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 10:41 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 10:51 UTC] Failed to process run_complete_20260625T102847Z.md (rc=1) — will retry next cycle
+- [2026-06-25 10:51 UTC] Found queued tasks — beginning execution
+- [2026-06-25 10:51 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 11:21 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 11:31 UTC] Failed to process run_complete_20260625T110844Z.md (rc=1) — will retry next cycle
+- [2026-06-25 11:31 UTC] Found queued tasks — beginning execution
+- [2026-06-25 11:31 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 12:01 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 12:11 UTC] Failed to process run_complete_20260625T114821Z.md (rc=1) — will retry next cycle
+- [2026-06-25 12:11 UTC] Found queued tasks — beginning execution
+- [2026-06-25 12:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 12:41 UTC] Found queued tasks — beginning execution
+- [2026-06-25 12:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 13:11 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 13:21 UTC] Failed to process run_complete_20260625T130001Z.md (rc=1) — will retry next cycle
+- [2026-06-25 13:21 UTC] Found queued tasks — beginning execution
+- [2026-06-25 13:21 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 13:51 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 14:01 UTC] Failed to process run_complete_20260625T133824Z.md (rc=1) — will retry next cycle
+- [2026-06-25 14:01 UTC] Found queued tasks — beginning execution
+- [2026-06-25 14:01 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 14:31 UTC] Found queued tasks — beginning execution
+- [2026-06-25 14:31 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 15:01 UTC] Found queued tasks — beginning execution
+- [2026-06-25 15:01 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 15:31 UTC] Found queued tasks — beginning execution
+- [2026-06-25 15:31 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 16:01 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 16:11 UTC] Failed to process run_complete_20260625T155255Z.md (rc=1) — will retry next cycle
+- [2026-06-25 16:11 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:11 UTC
+- [2026-06-25 16:26 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 16:36 UTC] Failed to process run_complete_20260625T161216Z.md (rc=1) — will retry next cycle
+- [2026-06-25 16:36 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:36 UTC
+- [2026-06-25 16:51 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:51 UTC
+- [2026-06-25 17:06 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 17:16 UTC] Failed to process run_complete_20260625T165055Z.md (rc=1) — will retry next cycle
+- [2026-06-25 17:16 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:16 UTC
+- [2026-06-25 17:31 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:31 UTC
+- [2026-06-25 17:46 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:46 UTC
+- [2026-06-25 18:01 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:01 UTC
+- [2026-06-25 18:16 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 18:26 UTC] Failed to process run_complete_20260625T180001Z.md (rc=1) — will retry next cycle
+- [2026-06-25 18:26 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:26 UTC
+- [2026-06-25 18:41 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:41 UTC
+- [2026-06-25 18:56 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-06-25 19:06 UTC] Failed to process run_complete_20260625T183744Z.md (rc=1) — will retry next cycle
+- [2026-06-25 19:06 UTC] Found queued tasks — beginning execution
+- [2026-06-25 19:06 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-25 19:36 UTC] Found queued tasks — beginning execution
+- [2026-06-25 19:36 UTC] run_queued_tasks: no parseable QUEUED task found

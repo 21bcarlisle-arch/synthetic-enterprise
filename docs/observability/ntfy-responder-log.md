@@ -84,3 +84,43 @@
 - [2026-06-23 15:17 UTC] Acked inbound message 'adHRQgenvOVS' ('Major discovery task for the discovery agent. The strategy a') — staged as from_rich_20260623_151755.md
 - [2026-06-23 15:43 UTC] Acked inbound message '6wZx9JyT5Ygc' ("On margins and benchmarking. I'm not after perfect year on o") — staged as from_rich_20260623_154337.md
 - [2026-06-24 04:32 UTC] Acked inbound message 'HNzrdM3hWTDh' ('Proceed with Phase 47a. Also flag: zero acquisitions 2021-20') — staged as from_rich_20260624_043220.md
+- [2026-06-24 05:36 UTC] Acked inbound message '63kcofYeYQ73' ("Looking at the website, it looks like it's mostly cheaper to") — staged as from_rich_20260624_053615.md
+- [2026-06-24 05:37 UTC] Acked inbound message '9udVJyU2d4V2' ('Can you create an "About" section for the website summarisin') — staged as from_rich_20260624_053716.md
+- [2026-06-24 06:32 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782280234 (Caused by NewConnectionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to establish a new connection: [Errno 101] Network is unreachable"))
+- [2026-06-24 07:12 UTC] Acked inbound message 'mnddLOwopCa4' ("On system health dashboard a number of agents haven't done a") — staged as from_rich_20260624_071223.md
+- [2026-06-24 07:28 UTC] Acked inbound message 'ZTlzFjKEsQLI' ('Good diagnostic — the agent correctly distinguished between ') — staged as from_rich_20260624_072858.md
+- [2026-06-24 07:45 UTC] Acked inbound message 'eQM2p27RsjBx' ('Is a 4hr wait for me to veto too long, or potentially unnece') — staged as from_rich_20260624_074512.md
+- [2026-06-24 08:21 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782288735 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-24 08:23 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782288735 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-24 11:14 UTC] NTFY responder started
+- [2026-06-24 11:17 UTC] Duplicate content ignored (hash=7469a286, id='bjdFH2Fu0jAD'): 'YES'
+- [2026-06-24 11:46 UTC] Duplicate content ignored (hash=7469a286, id='qnEdPispkrmH'): 'YES'
+- [2026-06-24 11:53 UTC] Duplicate content ignored (hash=7469a286, id='dPNRxaTVZmfz'): 'YES'
+- [2026-06-24 17:55 UTC] Duplicate content ignored (hash=93cba074, id='6uNMgnv2lQQH'): 'Yes'
+- [2026-06-24 18:32 UTC] Acked inbound message '4Tubg3Le7wsi' ('Are you working again now?') — staged as from_rich_20260624_183225.md
+- [2026-06-24 18:41 UTC] Acked inbound message 'GxRZdGNssVKI' ('Why need a yes? Just restart? Everything is too slow and flo') — staged as from_rich_20260624_184134.md
+- [2026-06-24 19:05 UTC] Acked inbound message 'f0sY2QOxUUyZ' ('Two questions: (1) After Phase 49 forward curve fix, what do') — staged as from_rich_20260624_190557.md
+- [2026-06-24 19:54 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782330648 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-24 19:56 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782330648 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-24 20:08 UTC] Acked inbound message 'sXXSrTCu9tVa' ('You are spamming me again') — staged as from_rich_20260624_200812.md
+- [2026-06-24 21:13 UTC] Acked inbound message 'nH6aMu7W9stq' ('Still getting ntfy SPAM from you') — staged as from_rich_20260624_211343.md
+- [2026-06-24 21:29 UTC] Acked inbound message 'kzPfc0qNPF0F' ("I don't believe you hit the 5hr or weekly limit. The server ") — staged as from_rich_20260624_212944.md
+- [2026-06-24 23:41 UTC] Duplicate content ignored (hash=4d8529a3, id='qE6s8swI21QT'): 'You are spamming me again'
+- [2026-06-25 00:10 UTC] Poll error: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+- [2026-06-25 07:48 UTC] Acked inbound message 'Q8dF7EiEoo2E' ('Are you making progress or stuck? URGENT') — staged as from_rich_20260625_074847.md
+- [2026-06-25 09:32 UTC] Acked inbound message 'vAl4qDJob7Up' ("Why didn't you respond quicker to my urgent message that you") — staged as from_rich_20260625_093202.md
+- [2026-06-25 09:35 UTC] Acked inbound message 'NrZeUfixgNoX' ('Add to ~/.bashrc on Skynet: when SSHing in, automatically at') — staged as from_rich_20260625_093545.md
+- [2026-06-25 09:53 UTC] Acked inbound message 'XXxEUQwbOBhc' ("Two fixes needed from last night's 13hr outage: (1) Watchdog") — staged as from_rich_20260625_095301.md
+- [2026-06-25 09:55 UTC] Acked inbound message 'KOqQBONmGegm' ('Root cause investigation: CC got ConnectionRefused last nigh') — staged as from_rich_20260625_095524.md
+- [2026-06-25 09:57 UTC] Acked inbound message 'foTmAFyXvgcY' ('URGENT. Ignore my last two messages — they were drafts. Sing') — staged as from_rich_20260625_095706.md
+- [2026-06-25 10:46 UTC] Acked inbound message 'uC6SJjQRelZf' ('Are you busy?')
+- [2026-06-25 12:10 UTC] Acked inbound message '3wITpdHH5bZu' ('You are spamming me. URGENT') — staged as from_rich_20260625_121006.md
+- [2026-06-25 15:30 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782400897 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-25 15:33 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782401442 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-25 17:14 UTC] Acked inbound message 'HWp5kU6cLW14' ('You are spamming me again. Also why 4hrs wait? (Message at 1') — staged as from_rich_20260625_171404.md
+- [2026-06-25 17:19 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782407892 (Caused by SSLError(SSLError(5, '[SSL: UNEXPECTED_EOF_WHILE_READING] unexpected eof while reading (_ssl.c:2711)')))
+- [2026-06-25 18:12 UTC] Acked inbound message '68GcI46Q0XLI' ('Before proposing Phase 61 — have you read and actioned the D') — staged as from_rich_20260625_181232.md
+- [2026-06-25 18:15 UTC] Acked inbound message '45zz0v4c2Zmx' ('Try Destinationvision.md')
+- [2026-06-25 18:16 UTC] Acked inbound message 'k5rmhEs2nfZe' ('URGENT try Destinationvision.md instead') — staged as from_rich_20260625_181637.md
+- [2026-06-25 18:41 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782411568 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-25 19:25 UTC] Acked inbound message 'NSX60jFpDLPS' ('I keep getting session watchdog ntfys. Such as Session watch') — staged as from_rich_20260625_192533.md
