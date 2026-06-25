@@ -19,7 +19,7 @@ the last partial). The business survived the full window.
 - Capital cost ratio: 1.3% of gross
 - Net margin as % of revenue: 30.2%
   (industry benchmark for a retail energy supplier: 2-5%)
-- Risk committee (Context Handshake) interventions: 49
+- Risk committee (Context Handshake) interventions: 50
 - Bills issued: 1549, average clarity 0.859,
   service quality score 0.919
 - Enterprise value (CLV sum across 14 billing accounts): £5,666,754.67
@@ -1531,11 +1531,12 @@ _Cash reconciliation: of £17,976,936.99 billed, bad debt of £359,495.29 was wr
   - Gas: gross £-141,493.14, capital £391.57, net £-254,418.64
 - Treasury at year end: £2,574,791.03
 - Hedge fraction at first renewal this year (avg across year's terms): C2_2 0.93 (avg 0.93), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C6 0.93 (avg 0.93), C7 0.93 (avg 0.93), C8 0.95 (avg 0.95), C9 0.91 (avg 0.91), C_IC1 0.85 (avg 0.88), C_IC2 0.85 (avg 0.88), C_IC3 0.96 (avg 0.96), C_IC3g 0.90 (avg 0.90), C_IC4 0.85 (avg 0.85)
-- Risk committee (Context Handshake) interventions: 3
+- Risk committee (Context Handshake) interventions: 4
+  - 2023-01-24: treasury £2,887,176.54, C2->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, C_IC3->1.00, VaR (current £122,354.04 / stressed £44,330.99) ratio 2.76
   - 2023-02-23: treasury £2,887,186.40, C2->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, C_IC3->1.00, VaR (current £122,354.04 / stressed £44,330.99) ratio 2.76
   - 2023-03-25: treasury £2,887,196.72, C2->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, C_IC3->1.00, VaR (current £122,354.04 / stressed £44,330.99) ratio 2.76
   - 2023-04-24: treasury £2,964,492.58, C2->1.00, C4->1.00, C7->1.00, C9->1.00, C_IC3->1.00, VaR (current £128,310.38 / stressed £48,785.04) ratio 2.63
-- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.72
+- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.73
 - Worst single period: C_IC3g on 2023-07-01 period 1, net margin £-813.88
 
 **Customer Book**
@@ -1589,7 +1590,7 @@ _Cash reconciliation: of £17,976,936.99 billed, bad debt of £359,495.29 was wr
   - C_IC3g: actual £-17,160.47 vs. naked £77,607.60 -- hedging cost £94,768.08
   - C_IC4: actual £-228,554.58 vs. naked £-47,202.85 -- hedging cost £181,351.73
 
-**Year narrative:** 2023 produced a net loss of £-352,984.32 across 12 accounts. The risk committee intervened 3 time(s), raising hedge fractions in response to elevated VaR. 35 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2023 produced a net loss of £-352,984.32 across 12 accounts. The risk committee intervened 4 time(s), raising hedge fractions in response to elevated VaR. 35 customer(s) experienced a bill shock of >=20%.
 
 ## 2024
 
