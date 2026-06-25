@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,582 tests (1,574 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,589 tests (1,581 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 73 -- T1 Trading Desk Interface (2026-06-26)
+**Files:** `company/portal/app.py` (extended), `company/portal/templates/trading.html` (new), `tests/company/portal/test_trading_route.py` (new)
+
+**What was built:**
+- `GET /trading` route in portal: loads `hedge_effectiveness_total` and per-year breakdown from `run_output_latest.json` via `_load_trading_data()`. Renders portfolio summary (actual vs naked vs value-add), best/worst hedging decisions (customer_id, term_start, P&L, HF), and year-by-year P&L table.
+- `trading.html` template: coloured P&L (green/red), graceful fallback when no run data.
+- Reads published run output only -- no simulation internals.
+
+**Fidelity delta:** The trading desk now has a browser view. Rich can navigate to /trading and see the full hedging P&L record: the 2022 energy crisis shows the book deeply negative (hedged at £50-70/MWh, settled at £200+), while 2016-2019 shows hedging as a drag on returns (naked would have won). That tension is the point of the trading book. T1 closed -- all three trading capabilities complete.
+
+**7 new tests (1,589 total).**
+
+---
 ### Phase 72 -- T2 Position Management (2026-06-25)
 **Files:** `company/trading/forward_book.py` (extended), `tests/company/trading/test_position_management.py` (new)
 
@@ -1121,9 +1134,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 72, 2026-06-25):**
+**Latest full run (Phase 73, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 10 new tests: T2 Position management (amend/close lifecycle + audit trail). T2 closed.
+- 7 new tests: T1 Trading desk portal view (hedge P&L by year). T1 closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

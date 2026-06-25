@@ -15,6 +15,8 @@ from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+import json
+
 from company.billing.invoice import invoices_for_account
 from saas.customers import CUSTOMERS
 
@@ -22,6 +24,34 @@ _TEMPLATE_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 
 _DEFAULT_DB = Path("company/data/invoices.db")
+_RUN_OUTPUT = Path("docs/reports/run_output_latest.json")
+
+
+def _load_trading_data() -> dict:
+    if not _RUN_OUTPUT.exists():
+        return {}
+    data = json.loads(_RUN_OUTPUT.read_text())
+    years = data.get("years", {})
+    he_total = data.get("hedge_effectiveness_total", {})
+    by_year = [
+        {
+            "year": yr,
+            "actual_net": round(years[yr].get("hedge_effectiveness", {}).get("actual_net_gbp", 0.0), 2),
+            "naked_net": round(years[yr].get("hedge_effectiveness", {}).get("naked_net_gbp", 0.0), 2),
+            "value_add": round(years[yr].get("hedge_effectiveness", {}).get("hedging_value_add_gbp", 0.0), 2),
+        }
+        for yr in sorted(years.keys())
+        if years[yr].get("hedge_effectiveness")
+    ]
+    return {
+        "by_year": by_year,
+        "total_actual_net": round(he_total.get("actual_net_gbp", 0.0), 2),
+        "total_naked_net": round(he_total.get("naked_net_gbp", 0.0), 2),
+        "total_value_add": round(he_total.get("hedging_value_add_gbp", 0.0), 2),
+        "best": he_total.get("best_decision"),
+        "worst": he_total.get("worst_decision"),
+    }
+
 
 app = FastAPI(title="Customer Portal", docs_url=None, redoc_url=None)
 
@@ -88,4 +118,12 @@ async def bills_page(request: Request, account_id: str):
     return templates.TemplateResponse(
         request, "bills.html",
         {"customer": customer, "invoices": inv_list},
+    )
+
+@app.get("/trading", response_class=HTMLResponse)
+async def trading_desk(request: Request):
+    data = _load_trading_data()
+    return templates.TemplateResponse(
+        request, "trading.html",
+        {"data": data},
     )

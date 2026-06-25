@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trading Desk</title>
+  <style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 16px}
+    h1,h2{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
+    th{background:#ebf8ff}.pos{color:#276749}.neg{color:#c53030}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a></nav>
+  <h1>Trading Desk</h1>
+  {% if data %}
+  <h2>Hedge Portfolio Summary</h2>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Actual Net (hedged)</td><td>GBP{{ "%.0f"|format(data.total_actual_net) }}</td></tr>
+    <tr><td>Naked Counterfactual</td><td>GBP{{ "%.0f"|format(data.total_naked_net) }}</td></tr>
+    <tr><td>Hedge Value-Add</td>
+        <td class="{{ 'pos' if data.total_value_add >= 0 else 'neg' }}">
+          GBP{{ "%.0f"|format(data.total_value_add) }}</td></tr>
+  </table>
+  {% if data.best %}
+  <h2>Best / Worst Decisions</h2>
+  <table>
+    <tr><th></th><th>Customer</th><th>Term Start</th><th>Value-Add</th><th>HF</th></tr>
+    <tr><td>Best</td><td>{{ data.best.customer_id }}</td><td>{{ data.best.term_start }}</td>
+        <td class="pos">GBP{{ "%.0f"|format(data.best.hedging_value_add_gbp) }}</td>
+        <td>{{ "%.0f"|format(data.best.hf_used * 100) }}%</td></tr>
+    <tr><td>Worst</td><td>{{ data.worst.customer_id }}</td><td>{{ data.worst.term_start }}</td>
+        <td class="neg">GBP{{ "%.0f"|format(data.worst.hedging_value_add_gbp) }}</td>
+        <td>{{ "%.0f"|format(data.worst.hf_used * 100) }}%</td></tr>
+  </table>
+  {% endif %}
+  <h2>Hedge P&L by Year</h2>
+  <table>
+    <tr><th>Year</th><th>Actual Net</th><th>Naked</th><th>Value-Add</th></tr>
+    {% for row in data.by_year %}
+    <tr><td>{{ row.year }}</td><td>GBP{{ "%.0f"|format(row.actual_net) }}</td>
+        <td>GBP{{ "%.0f"|format(row.naked_net) }}</td>
+        <td class="{{ 'pos' if row.value_add >= 0 else 'neg' }}">GBP{{ "%.0f"|format(row.value_add) }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p><em>No run data available.</em></p>
+  {% endif %}
+</body>
+</html>
