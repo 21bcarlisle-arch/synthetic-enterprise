@@ -166,8 +166,11 @@ def launch_turn() -> None:
         out.write(f"\n\n---\n# Autonomous turn — {ts}\n\n")
 
     outfile = open(TURN_OUTPUT_FILE, "a")
+    # Go direct to Anthropic — no token-proxy dependency.
+    # The proxy is optional monitoring; routing through it was the single
+    # point of failure that silently killed all overnight autonomous turns.
     env = os.environ.copy()
-    env["ANTHROPIC_BASE_URL"] = "http://localhost:8801"  # token-proxy
+    env.pop("ANTHROPIC_BASE_URL", None)
     _active_proc = subprocess.Popen(
         [str(CLAUDE_BIN), "-p", AUTONOMOUS_PROMPT],
         cwd=str(PROJECT_DIR),
