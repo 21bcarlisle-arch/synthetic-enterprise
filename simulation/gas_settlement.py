@@ -2,7 +2,7 @@
 
 Gas settlement differs from electricity in three ways:
   1. Daily granularity (one period per gas day, not 48 half-hours)
-  2. Flat daily consumption = AQ_kwh / 365 (no profile class, no weather shape)
+  2. Seasonal daily consumption = AQ_kwh / 365 × monthly_profile × weather_factor
   3. Price feed is NBP SAP (sim/gas_data/nbp_sap.csv) not Elexon SSP
 
 The hedging mechanic mirrors electricity: a fixed fraction of consumption is
@@ -38,6 +38,16 @@ from simulation.policy_costs import (
 # takes all commodity price risk; the company earns only a thin handling margin.
 # Calibrated at £2/MWh to match the fixed tariff TARGET_MARGIN (saas/tariff_pricing.py).
 GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH = 2.0
+
+# Phase 59: within-year seasonal consumption profile for resi/SME gas.
+# Derived from UK DUKES Table 4.3 residential gas monthly shares (2016-2020 avg).
+# Daily factor = monthly_pct * 365 / days_in_month, normalised so annual avg = 1.0.
+# Jan:Jul ratio ≈ 5.3x (matches UK peak/trough for residential heating demand).
+# I&C process gas uses uniform 1.0 (not space-heating-dominated).
+GAS_CONSUMPTION_MONTHLY_PROFILE: dict[int, float] = {
+    1: 1.8839, 2: 1.8250, 3: 1.2952, 4: 0.8517, 5: 0.5887, 6: 0.3650,
+    7: 0.3532, 8: 0.3532, 9: 0.4867, 10: 0.8242, 11: 1.4600, 12: 1.7661,
+}
 
 
 def _daily_consumption_kwh(aq_kwh: int) -> float:
@@ -75,7 +85,7 @@ def run_gas_term(
     weather_factor : HDD-based scaling for resi/SME gas consumption (1.0 = average)
     """
     spot_index = {r["settlementDate"]: r["systemSellPrice"] for r in gas_price_records}
-    daily_kwh = _daily_consumption_kwh(aq_kwh) * weather_factor
+    base_daily_kwh = _daily_consumption_kwh(aq_kwh)
 
     records = []
     current = date.fromisoformat(term_start)
@@ -85,6 +95,9 @@ def run_gas_term(
         d = current.isoformat()
         spot_price = spot_index.get(d)
         if spot_price is not None:
+            # Phase 59: per-day seasonal profile × Phase 58 weather factor.
+            seasonal = GAS_CONSUMPTION_MONTHLY_PROFILE.get(current.month, 1.0)
+            daily_kwh = base_daily_kwh * seasonal * weather_factor
             daily_mwh = daily_kwh / 1000.0
             hedged_mwh = daily_mwh * hedge_fraction
             unhedged_mwh = daily_mwh * (1.0 - hedge_fraction)
@@ -130,6 +143,7 @@ def run_gas_term(
                 "gas_policy_cost_gbp": round(gas_policy_cost, 8),
                 "gas_network_cost_gbp": round(gas_network_cost, 8),
                 "weather_factor": round(weather_factor, 4),
+                "seasonal_factor": round(seasonal, 4),
             })
         current += timedelta(days=1)
 

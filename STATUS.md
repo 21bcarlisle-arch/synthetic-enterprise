@@ -1,9 +1,14 @@
 # Project Status
 
 Last updated: 2026-06-25T15:45:00Z
-Current phase: **Phase 58 COMPLETE** (2026-06-25). 1,418 tests passing.
+Current phase: **Phase 59 COMPLETE** (2026-06-25). 1,428 tests passing.
 
 ## Current state
+
+**Phase 59 (2026-06-25): Monthly gas consumption seasonality**
+- `GAS_CONSUMPTION_MONTHLY_PROFILE` in `gas_settlement.py`: Jan=1.884, Jul=0.353, 5.3× ratio (UK DUKES)
+- Per-day `daily_kwh = AQ/365 × seasonal × weather_factor` (composed with Phase 58 HDD factor)
+- 10 new tests (1,428 total)
 
 **Phase 58 (2026-06-25): Weather-adjusted gas consumption (HDD model)**
 - `sim/weather_hdd.py` (new): `get_weather_factor(year, month, cid)` — HDD-based ratio vs UK 1991-2020 climate normals, clipped [0.3, 2.0]
@@ -23,7 +28,7 @@ Current phase: **Phase 58 COMPLETE** (2026-06-25). 1,418 tests passing.
 4. HH data path - CLOSED (Phase 6a): C7-C9 on real HH consumption; ToU tariffs live (Phase 13a)
 5. Reporting - CLOSED (Phase 5a/5b): ANNUAL_REPORT.md, full pipeline, GitHub Pages
 
-1,418 tests passing.
+1,428 tests passing.
 
 Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 Status: https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md

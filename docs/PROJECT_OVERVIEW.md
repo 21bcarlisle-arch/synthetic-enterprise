@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 390+ commits. 1,418 tests (1,410 non-simulation, 8 integration). Codebase: ~22,300 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 390+ commits. 1,428 tests (1,420 non-simulation, 8 integration). Codebase: ~22,400 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -480,6 +480,20 @@ Net after CTS:               £7,498
 **Fidelity delta:** Removes a systematic wrong-way risk from the gas settlement. C_IC3g (5 GWh I&C spot-indexed gas, chemical plant, Teesside) was being hedged at 85% despite billing at daily spot price — this created a £125k windfall in 2021 (spot > forward) and a -86% net gas margin in 2023 (spot < expensive 2022 forward lock). A real supplier on a spot-indexed I&C gas contract would NOT hedge that book with a fixed forward — the customer bears the price risk. Now margin ≈ service_fee + network + policy per MWh, stable across spot regimes.
 
 **5 new tests (1,394 total).**
+
+---
+
+### Phase 59 — Monthly Gas Consumption Seasonality (2026-06-25)
+**Files:** `simulation/gas_settlement.py`, `tests/sim/test_gas_seasonality.py` (new)
+
+**What was built:**
+- `simulation/gas_settlement.py`: `GAS_CONSUMPTION_MONTHLY_PROFILE` — monthly daily-consumption factors from UK DUKES Table 4.3 resi gas monthly shares (2016-2020 avg). Jan=1.884, Jul=0.353, 5.3× ratio. Normalized so a full non-leap year sums to 365 kWh per unit of AQ/365.
+- `run_gas_term()`: `base_daily_kwh = AQ/365`; per-day `daily_kwh = base × GAS_CONSUMPTION_MONTHLY_PROFILE[month] × weather_factor`. Previously flat at AQ/365 every day.
+- Settlement records include `seasonal_factor` field per record.
+
+**Fidelity delta:** Residential gas billing now reflects the real winter/summer consumption ratio (~5:1). January bills are ~5× higher than July (as in reality), not flat. Combined with Phase 58 weather factor, gas P&L now has both within-year seasonal shape AND year-to-year weather deviation. Prior model was flat AQ/365 per day — unrealistic for heating-dominated demand.
+
+**10 new tests (1,428 total).**
 
 ---
 

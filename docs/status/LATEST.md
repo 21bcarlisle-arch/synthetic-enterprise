@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T14:55:14Z
+Last updated: 2026-06-25T15:02:52Z
+
+**Phase 59 COMPLETE (2026-06-25):** Monthly gas consumption seasonality — 10 new tests (1,428 total).
+- `GAS_CONSUMPTION_MONTHLY_PROFILE` in `gas_settlement.py`: Jan=1.884, Jul=0.353, 5.3× winter/summer ratio (DUKES Table 4.3)
+- Per-day `daily_kwh = AQ/365 × seasonal × weather_factor`; prior model was flat AQ/365 every day
+- Combined with Phase 58 HDD factor: resi gas has both within-year shape AND year-to-year deviation
 
 **Phase 58 COMPLETE (2026-06-25):** Weather-adjusted gas consumption (HDD model) — 15 new tests (1,418 total).
 - `sim/weather_hdd.py` (new): HDD = max(0, 15.5°C - mean_temp); UK 1991-2020 climate normals; `get_weather_factor()` [0.3, 2.0]
@@ -53,7 +58,7 @@ Last updated: 2026-06-25T14:55:14Z
 - **Net margin: £5,269,031 | Gross: £5,506,328 | EV: £6,024,926 | Treasury: £2,749,581 | SURVIVED**
 - Bad debt: £85,939 total (2022 8% crisis peak); admin event: None
 
-**Test suite: 1,418 total (all saas/company/tools passing)**
+**Test suite: 1,428 total (all saas/company/tools passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
 - Net margin: £5,269,031.32 | Gross: £5,506,327.73 | Capital: £237,296
