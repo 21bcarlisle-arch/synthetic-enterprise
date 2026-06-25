@@ -39,6 +39,7 @@ from saas.customer_reaction import _billing_account_id
 from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 from simulation.tou_periods import is_peak_period
+from saas.capital.bsc_credit import compute_bsc_credit_by_year
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -185,6 +186,9 @@ def extract_report_data(run_output: dict) -> dict:
     acquired_customer_ids = run_output.get("acquired_customers", [])
     growth_mandate = run_output.get("growth_mandate", "flat")
 
+    # Phase 53: BSC credit cover — computed while all_records is available
+    bsc_credit_by_yr = compute_bsc_credit_by_year(all_records)
+
     yearly = {}
     for year in years:
         yr_records = [r for r in all_records if _year(r["settlement_date"]) == year]
@@ -302,6 +306,8 @@ def extract_report_data(run_output: dict) -> dict:
             "capital_gbp": sum(r["capital_cost_gbp"] for r in yr_records),
             "net_gbp": sum(r["net_margin_gbp"] for r in yr_records),
             "treasury_end_gbp": treasury_end,
+            "bsc_credit_required_gbp": bsc_credit_by_yr.get(year, {}).get("credit_cover_required_gbp", 0.0),
+            "bsc_peak_daily_gbp": bsc_credit_by_yr.get(year, {}).get("peak_daily_wholesale_gbp", 0.0),
             "commodity_split": commodity_split,
             "segment_split": segment_split,
             "per_customer": per_customer,
@@ -2944,6 +2950,51 @@ def _section_solvency_signal(data: dict) -> str:
     return "\n".join(lines)
 
 
+
+
+def _section_bsc_credit(data: dict) -> str:
+    """Phase 53: BSC credit cover as working capital requirement.
+
+    BSC credit = peak daily wholesale charge × 28-day window × 1.2 buffer.
+    Shows treasury vs credit cover each year — stress when ratio < 5:1.
+    In 2021-2022, spiking SSP drove credit demands that exceeded many
+    small suppliers' available capital, directly causing their failure.
+    """
+    years = data.get("years", {})
+    if not years:
+        return ""
+    if not any(y.get("bsc_credit_required_gbp", 0.0) > 0 for y in years.values()):
+        return ""
+
+    lines = [
+        "## BSC Credit Cover — Working Capital Requirement (Phase 53)",
+        "",
+        "Elexon BSC credit cover: max daily electricity wholesale charge × 28-day window × 1.2 buffer.",
+        "Below 5× coverage ratio (treasury / credit cover) flags working capital stress.",
+        "",
+        "| Year | Peak Daily £ | Credit Cover £ | Treasury £ | Coverage Ratio | Status |",
+        "|------|-------------|---------------|-----------|----------------|--------|",
+    ]
+
+    for year in sorted(years):
+        yd = years[year]
+        peak = yd.get("bsc_peak_daily_gbp", 0.0)
+        credit = yd.get("bsc_credit_required_gbp", 0.0)
+        treasury = yd.get("treasury_end_gbp", 0.0)
+        if credit > 0:
+            ratio = treasury / credit
+            status = "OK" if ratio >= 5.0 else ("**STRESS**" if ratio < 2.0 else "Watch")
+        else:
+            ratio = float("inf")
+            status = "n/a"
+        ratio_str = f"{ratio:.1f}×" if ratio != float("inf") else "n/a"
+        lines.append(
+            f"| {year} | {peak:,.0f} | {credit:,.0f} | {treasury:,.0f} | {ratio_str} | {status} |"
+        )
+
+    lines.append("")
+    return "\n".join(lines)
+
 def _section_volume_tolerance(data: dict) -> str:
     """Phase 27c: Volume tolerance tracking for I&C contracts."""
     log = data.get("volume_tolerance_log", [])
@@ -3648,6 +3699,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_trading_pnl(data))
     sections.append(_section_gas_pl(data))
     sections.append(_section_solvency_signal(data))
+    sections.append(_section_bsc_credit(data))        # Phase 53
     sections.append(_section_volume_tolerance(data))
     sections.append(_section_triad_exposure(data))
     sections.append(_section_ic_portfolio(data))

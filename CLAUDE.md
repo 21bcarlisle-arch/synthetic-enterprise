@@ -63,6 +63,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 53 COMPLETE (2026-06-25):** BSC credit cover — 14 new tests (1,369 passing). `saas/capital/bsc_credit.py` (new): `compute_daily_wholesale_exposure()`, `compute_bsc_credit_requirement()`, `compute_bsc_credit_by_year()`. Peak daily electricity wholesale cost × 1.2 buffer over 28-day window = credit cover required. Annual report section: per-year peak/cover/treasury/ratio table (2022 crisis shows £10k cover vs £28 in 2016). `extract_report_data()` pre-computes per year from all_records.
+
 **Phase 52 COMPLETE (2026-06-25):** ToU demand response — 20 new tests (1,355 passing). `saas/demand_response.py`: peak→off-peak load shift (base 15% + EV +12% + heat_pump +8%); `make_shifted_shape_fn()` wraps shape for ToU-eligible customers; `demand_response_log` per term in run output. Watchdog: API exponential backoff (1m/2m/5m/10m), NTFY on failure. SSH auto-attach via `~/.bashrc`.
 
 **Phase 51 COMPLETE (2026-06-24):** ToU eligibility gate broadened to smart-meter customers — 9 new tests (1,330 passing).
@@ -125,9 +127,7 @@ Closes "Pricing actions not implemented" Known Gap.
 - Stage 3: `.claude/agents/epistemic-verifier.md` + `tools/epistemic_verifier.py` — in phase-close checklist.
 - Stage 4: `background/agent_protocol.py` — `AgentMessage` + `IntentType`, 18 tests, live in sim_runner.
 
-**Active phases (30a–42):** Full policy cost stack (RO, CfD, CCL, CM, FiT, GGL), gas policy costs, all 4 I&C tariff types (fixed/pass-through/deemed/flex), active/passive renewal,
-SVT comparison, forward scenario presets (5 named), 42-day notice, forward curve reform (EWMA + term structure), gas seasonal calibration.
-
+**Active phases (30a–42):** Full policy cost stack (RO/CfD/CCL/CM/FiT/GGL), gas costs, all 4 I&C types (fixed/pass-through/deemed/flex), active/passive renewal, SVT comparison, forward presets (5 named), 42-day notice, forward curve reform, gas seasonal calibration.
 → Phase completion details (30a–42): `docs/claude/phase-history.md`
 → Earlier phase history (Phases 1–29): `CLAUDE_HISTORY.md`
 → Roadmap and backlog: `MASTER_BACKLOG.md`

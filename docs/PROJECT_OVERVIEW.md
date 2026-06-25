@@ -442,6 +442,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 53 — BSC Credit Cover as Working Capital Requirement (2026-06-25)
+**Files:** `saas/capital/bsc_credit.py` (new), `saas/reporting/annual_report.py`, `tests/saas/capital/test_bsc_credit.py` (new)
+
+**What was built:**
+- `saas/capital/bsc_credit.py`: `compute_daily_wholesale_exposure(records)` — aggregates electricity wholesale_cost_gbp by settlement date (gas excluded; gas settlement under Xoserve/Gemserv, not BSC). `compute_bsc_credit_requirement(daily_exposure, window_days=28, buffer=1.2)` — rolling peak × buffer. `compute_bsc_credit_by_year(records)` — per-year dict with `peak_daily_wholesale_gbp`, `credit_cover_required_gbp`, `days_with_data`.
+- `annual_report.py` `extract_report_data()`: pre-computes `bsc_credit_by_yr` from `all_records` (while in scope), stores `bsc_credit_required_gbp` and `bsc_peak_daily_gbp` per year in the `years` dict. New `_section_bsc_credit(data)` section in the annual report.
+- Annual report output: per-year table (Peak Daily / Credit Cover / Treasury / Coverage Ratio / Status). Coverage < 5× flagged as "Watch"; < 2× as "STRESS". Crisis signature: 2022 peak daily £8,498 (£10,198 credit cover) vs 2016 £23 (£28) — 363× higher.
+
+**Fidelity delta:** BSC credit cover is a real working capital obligation for every UK licensed supplier. Elexon collects credit cover to protect against default — the requirement spikes when SSP spikes, creating a capital squeeze exactly when margins are compressed. This is why 100+ small suppliers failed in 2021-2022: their BSC credit demands exceeded available capital. The simulation now tracks this per year and signals stress when coverage drops below 5×.
+
+**14 new tests (1,369 total).**
+
+---
+
 ### Phase 52 — ToU Demand Response Model (2026-06-25)
 **Files:** `saas/demand_response.py` (new), `simulation/run_phase2b.py`, `tests/saas/test_phase52_demand_response.py` (new), `tests/background/test_session_watchdog.py`, `background/session_watchdog.py`
 
@@ -843,7 +857,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,000 lines
 - 370+ git commits
-- 1,355 tests (1,347 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
+- 1,369 tests (1,361 non-integration SIM_FAST_MODE=1, 8 integration); full suite ~40 min
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

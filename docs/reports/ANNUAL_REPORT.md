@@ -440,6 +440,7 @@ End-state (2025): **£303,768/account** across 9 billing accounts — above Ofge
 
 
 
+
 ## Time-of-Use Tariff Utilization (C7-C9 HH Customers)
 
 Peak windows: 07:00–11:00 and 16:00–20:00 weekdays (periods 15-22, 33-40).
