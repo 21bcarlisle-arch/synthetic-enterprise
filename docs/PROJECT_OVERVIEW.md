@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,550 tests (1,542 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-25. 400+ commits. 1,562 tests (1,554 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,18 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 70 -- FI3 Treasury Management (2026-06-25)
+**Files:** `company/finance/treasury.py` (new), `tests/company/finance/test_treasury.py` (new)
+
+**What was built:**
+- `company/finance/treasury.py`: `working_capital(balance_sheet)` -- current assets minus current liabilities. `cash_flow_by_year(pack)` -- cash balance per year from management accounts. `annual_cash_changes(pack)` -- year-over-year delta. `project_treasury(pack, base_year, horizon=3)` -- 3-year forward projection using average of last 3 actual cash changes. `treasury_health(pack, year, customer_count)` -- MCR requirement (£130/account), headroom, status (OK >1x / WATCH 0-1x / CRITICAL <0x).
+- All data from management accounts balance sheets; no simulation internals.
+
+**Fidelity delta:** Treasury is now managed, not just tracked. The company has a 3-year cash forecast and a formal MCR headroom signal. Combined with Phase 55 solvency signal and Phase 53 BSC credit cover, the company now has a complete capital adequacy stack: spot check (MCR), credit cover (BSC), and forward view (FI3). FI3 closed -- financial infrastructure complete.
+
+**12 new tests (1,562 total).**
+
+---
 ### Phase 69 -- C4 CRM Service Interaction Log (2026-06-25)
 **Files:** `company/crm/service_log.py` (new), `tests/company/crm/test_service_log.py` (new)
 
@@ -1080,9 +1092,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 69, 2026-06-25):**
+**Latest full run (Phase 70, 2026-06-25):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 12 new tests: C4 CRM service interaction log (complaint/vulnerability tracking). C4 closed.
+- 12 new tests: FI3 Treasury management (MCR headroom + 3-yr cash projection). FI3 closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

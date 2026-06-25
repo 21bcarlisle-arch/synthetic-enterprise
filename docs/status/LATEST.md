@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T22:08:41Z
+Last updated: 2026-06-25T22:11:08Z
+
+**Phase 70 COMPLETE (2026-06-25):** FI3 Treasury Management -- 12 new tests (1,562 total).
+- `company/finance/treasury.py` (new): working capital, cash trend, project_treasury(), treasury_health()
+- MCR headroom (OK/WATCH/CRITICAL), 3-year cash flow projection from management accounts
+- FI3 closed -- financial infrastructure stack complete
 
 **Phase 69 COMPLETE (2026-06-25):** C4 CRM Service Interaction Log -- 12 new tests (1,550 total).
 - `company/crm/service_log.py` (new): ServiceEvent + ServiceLog with complaint/vulnerability tracking
@@ -97,7 +102,7 @@ Last updated: 2026-06-25T22:08:41Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,550 total (all saas/company/tools passing)**
+**Test suite: 1,562 total (all saas/company/tools passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
