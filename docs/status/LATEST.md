@@ -8,7 +8,11 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-25T17:25:37Z
+Last updated: 2026-06-25T18:17:49Z
+
+**Phase 61 COMPLETE (2026-06-25):** Flex tariff policy pass-through fix — 8 new tests (1,444 total).
+- `run_flex_term()` in `hedged_settlement.py`: revenue now includes policy+network recovery (pass-through to customer)
+- C_IC4 total net swings from -£1.06M to +£33k; prior model had supplier absorbing all policy costs
 
 **Phase 60 COMPLETE (2026-06-25):** I&C gas flat seasonal profile — 8 new tests (1,436 total).
 - `GAS_IC_CONSUMPTION_MONTHLY_PROFILE`: Jan=1.075, Jul=0.913, 1.18× ratio vs resi 5.3×
@@ -58,14 +62,10 @@ Last updated: 2026-06-25T17:25:37Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Latest simulation run (2026-06-25, commit 1eb80f6 [Phase 58], 551s):**
-- **Net margin: £5,267,545 | Gross: £5,504,886 | EV: £6,001,324 | Treasury: £2,747,567 | SURVIVED**
-- Weather HDD active (Phase 58): resi gas demand varies with actual UK temps; bad debt: £85,978
+**Test suite: 1,444 total (all saas/company/tools passing)**
 
-**Test suite: 1,436 total (all saas/company/tools passing)**
-
-**Latest simulation results (2016–2025)** — auto-processed (723s / 12 min):
-- Net margin: £5,260,448.87 | Gross: £5,497,568.79 | Capital: £237,120
-- Treasury: £2,466,636 → £2,740,858 | 43 committee interventions | 1531 bills issued
-- Enterprise value: £4,924,325.56 | Net after CTS: £5,397,566
-- Retention: 19 offers, 18/19 retained | 5 no-offer churns | 6 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
+- Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
+- Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
+- Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
+- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
