@@ -197,6 +197,21 @@ def main() -> None:
             # Reap completed turn
             if _active_proc is not None and _active_proc.poll() is not None:
                 rc = _active_proc.returncode
+                # If the turn failed with a connectivity error, remove it from
+                # the rate-cap window so the cap isn't burned on API downtime.
+                if rc != 0:
+                    try:
+                        tail = TURN_OUTPUT_FILE.read_text(encoding="utf-8").rsplit("---\n", 1)[-1]
+                        if "ConnectionRefused" in tail or "Unable to connect" in tail:
+                            if _turn_times:
+                                _turn_times.pop()
+                            log(f"Autonomous turn failed — API unreachable (rc={rc}); rate-cap slot refunded")
+                            _active_proc = None
+                            update_agent_status("autonomous-runner", status="idle",
+                                                last_action="API unreachable — backing off")
+                            continue
+                    except Exception:
+                        pass
                 log(f"Autonomous turn completed (pid={_active_proc.pid}, rc={rc})")
                 update_agent_status("autonomous-runner", status="idle", last_action=f"Turn completed (rc={rc})")
                 _active_proc = None
