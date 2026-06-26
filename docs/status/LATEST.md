@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T17:52:49Z
+Last updated: 2026-06-26T18:13:05Z
 
 ## Latest Simulation Run
 - **Git:** 248ffe4 (run 2026-06-26T16:17)
@@ -11,11 +11,14 @@ Last updated: 2026-06-26T17:52:49Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 269
-- **Tests:** 3,487 passing
-- **Session theme:** /sim/ section, customer portal billing filter, dashboard completion
+- **Current Phase:** 270
+- **Tests:** 3,494 passing
+- **Session theme:** site bug fixes (JS syntax), NL query via local Qwen3/Ollama, process_run_complete race condition fix
 
-## This Session (Phases 261-267)
+## This Session (Phases 261-270)
+- Ph 270: Local NL query via Qwen3/Ollama — POST /query on File API, zero API cost (7 tests)
+- Ph 269: Customer portal billing year filter + spend summary (8 tests)
+- Ph 268: /sim/ Wholesale Price Explorer (10 tests)
 - Ph 267: Dashboard Phase B Complete: Year filter on Financial/Trading/Customers tabs (8 tests)
 - Ph 266: Dashboard Phase D: NL Query interface / "Talk to the Data" (9 tests)
 - Ph 265: NTFY notable-exception digest for run completions (6 tests)
@@ -24,7 +27,7 @@ Last updated: 2026-06-26T17:52:49Z
 - Ph 262: Run History table in Insights tab (6 tests)
 - Ph 261: Year Spotlight (Dashboard Phase B partial) (5 tests)
 
-**Latest simulation results (2016–2025)** — auto-processed (486s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (587s / 10 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
