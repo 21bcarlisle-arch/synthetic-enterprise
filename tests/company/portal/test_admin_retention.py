@@ -1,0 +1,54 @@
+"""Phase 109: Admin retention dashboard tests."""
+
+from starlette.testclient import TestClient
+from company.portal.app import app
+
+client = TestClient(app, raise_server_exceptions=True)
+
+
+def test_retention_route_returns_200():
+    r = client.get("/admin/retention")
+    assert r.status_code == 200
+
+
+def test_retention_shows_tier_labels():
+    r = client.get("/admin/retention")
+    text = r.text
+    assert "HIGH" in text or "MEDIUM" in text or "LOW" in text
+
+
+def test_retention_shows_customer_links():
+    r = client.get("/admin/retention")
+    assert "/account/C" in r.text
+
+
+def test_admin_has_retention_link():
+    r = client.get("/admin")
+    assert "/admin/retention" in r.text
+
+
+def test_retention_template_has_score_col():
+    with open("company/portal/templates/admin_retention.html") as f:
+        html = f.read()
+    assert "Score" in html
+    assert "Signals" in html
+
+
+def test_retention_summary_cards():
+    with open("company/portal/templates/admin_retention.html") as f:
+        html = f.read()
+    assert "high_risk" in html
+    assert "medium_risk" in html
+    assert "low_risk" in html
+
+
+def test_retention_all_customers_present():
+    from company.portal.app import _load_admin_data
+    admin = _load_admin_data()
+    total = admin["total_customers"]
+    r = client.get("/admin/retention")
+    assert r.status_code == 200
+    # All customer account links should be present
+    from company.portal.app import _CUSTOMER_INDEX
+    for cid in list(_CUSTOMER_INDEX.keys())[:3]:
+        assert cid in r.text

@@ -30,6 +30,7 @@ from company.billing.efficiency_advice import efficiency_summary
 from company.billing.collections import get_collections_queue
 from company.billing.consumption_forecast import forecast_annual_cost
 from company.billing.usage_benchmark import usage_benchmark
+from company.crm.retention_risk import portfolio_risk_summary
 from company.market.rate_comparison import market_rate_comparison
 from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH
 from company.pricing.tariff_comparison import compare_tariffs
@@ -631,4 +632,23 @@ async def rate_contact(request: Request, account_id: str):
         request, "contact.html",
         {"customer": customer, "submitted": True, "complaint": False,
          "contact_id": None, "rated": True},
+    )
+
+
+@app.get("/admin/retention", response_class=HTMLResponse)
+async def admin_retention(request: Request):
+    customers = list(_CUSTOMER_INDEX.values())
+    all_invoices = []
+    if _DEFAULT_DB.exists():
+        from company.billing.invoice import invoices_for_account
+        for c in customers:
+            all_invoices.extend(
+                {"customer_id": c["customer_id"], **inv}
+                for inv in invoices_for_account(c["customer_id"], _DEFAULT_DB)
+            )
+    contacts = _SERVICE_LOG.as_dicts()
+    data = portfolio_risk_summary(customers, all_invoices, contacts)
+    return templates.TemplateResponse(
+        request, "admin_retention.html",
+        {"data": data},
     )
