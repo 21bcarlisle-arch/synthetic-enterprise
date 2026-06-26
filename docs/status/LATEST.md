@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T19:53:34Z
+Last updated: 2026-06-26T20:01:52Z
 
 ## Latest Simulation Run
 - **Git:** 559f25f (run 2026-06-26T19:04)
@@ -11,21 +11,18 @@ Last updated: 2026-06-26T19:53:34Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 270
-- **Tests:** 3,494 passing
-- **Session theme:** site bug fixes (JS syntax), NL query via local Qwen3/Ollama, process_run_complete race condition fix
+- **Current Phase:** 276
+- **Tests:** 3,560 passing
+- **Session theme:** Human simulation layer, dashboard expansions, /sim/ BM data, NTFY spam fix
 
-## This Session (Phases 261-270)
-- Ph 270: Local NL query via Qwen3/Ollama — POST /query on File API, zero API cost (7 tests)
-- Ph 269: Customer portal billing year filter + spend summary (8 tests)
-- Ph 268: /sim/ Wholesale Price Explorer (10 tests)
-- Ph 267: Dashboard Phase B Complete: Year filter on Financial/Trading/Customers tabs (8 tests)
-- Ph 266: Dashboard Phase D: NL Query interface / "Talk to the Data" (9 tests)
-- Ph 265: NTFY notable-exception digest for run completions (6 tests)
-- Ph 264: Invoice generation for all 19 customers (9 tests)
-- Ph 263: Four-section site restructure: /customers/, /project/, nav bar (13 tests)
-- Ph 262: Run History table in Insights tab (6 tests)
-- Ph 261: Year Spotlight (Dashboard Phase B partial) (5 tests)
+## This Session (Phases 271-276)
+- Ph 276: BM Settlement tab on /sim/ -- Short%/NIV data from Elexon cache (10 tests)
+- Ph 275: Green Claims Audit test coverage -- REGO/green product compliance (12 tests)
+- Ph 274: Life Event Impact Assessor -- PSR/consumption/vulnerability routing (12 tests)
+- Ph 273: Management Accounts dashboard tab -- P&L waterfall + cost stack chart (10 tests)
+- Ph 272: Physical Home Registry -- customer->property mapping + portfolio stats (12 tests)
+- Ph 271: Weather Engine & HDD tab on /sim/ + NTFY spam fix (10 tests)
+
 
 **Latest simulation results (2016–2025)** — auto-processed (484s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
