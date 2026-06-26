@@ -527,6 +527,26 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 161 -- Property model: premises attributes and consumption estimation (2026-06-26)
+**Files:** `company/crm/property_model.py` (new), `tests/company/crm/test_property_model.py` (new)
+
+**What was built:**
+- `PropertyType` enum: DETACHED / SEMI_DETACHED / TERRACED / FLAT / BUNGALOW / MOBILE_HOME / COMMERCIAL.
+- `TenureType` enum: OWNER_OCCUPIED / PRIVATE_RENTED / SOCIAL_RENTED / SHARED_OWNERSHIP.
+- `EPCRating` enum: A–G.
+- `Property` frozen dataclass: uprn, property_type, tenure, epc_rating, floor_area_m2, bedrooms, occupants, has_gas, has_solar_pv, electric_vehicle.
+  - consumption_multiplier: A=0.60× through G=1.75× (relative to D-baseline).
+  - estimated_annual_elec_kwh: area-scaled, occupant-adjusted, EV uplift +2500 kWh, solar offset −2000 kWh.
+  - estimated_annual_gas_kwh: area-scaled; 0 if no_gas.
+  - is_fuel_poor: EPC F/G + private/social rented tenure.
+  - eco4_eligible: EPC D–G.
+  - psr_priority_property: EPC F/G.
+
+**Fidelity delta:** A real supplier holds property attributes (via EPC register, UPRN lookup) to estimate consumption, identify fuel-poor customers, and target ECO4 measures. Previously customers had no physical property context — consumption was assigned without any structural explanation. Phase 161 opens the premises simulation theme (Rich direction 07:35 UTC): property type and efficiency now drive consumption estimates, fuel poverty flags, and eligibility gates.
+
+**12 new tests (2,530 total).**
+
+---
 ### Phase 160 -- Smart Export Guarantee (SEG) tariff management (2026-06-26)
 **Files:** `company/billing/smart_export.py` (new), `tests/company/billing/test_smart_export.py` (new)
 
@@ -2302,7 +2322,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,518 tests (2,102 fast / ~10s; simulation integration ~8 min per run)
+- 2,530 tests (2,114 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
