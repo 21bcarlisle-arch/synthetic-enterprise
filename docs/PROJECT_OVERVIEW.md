@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 144 -- Gas daily balancing and nomination model (2026-06-26)
+**Files:** `company/market/gas_nominations.py` (new), `tests/company/market/test_gas_nominations.py` (new)
+
+**What was built:**
+- `DailyNomination` dataclass: date, gas_account_id, nominated_kwh, actual_kwh, nbp_spot_gbp_per_therm.
+- `GasNominationBook`: nominate(), imbalance_kwh(), cash_out_cost_gbp() (short pays NBP spot; long receives 0.85x haircut credit), nomination_accuracy_pct() (% days within +-5% tolerance), monthly_cashout_gbp(), annual_cashout_gbp(), worst_imbalance_periods(n=5), balancing_summary().
+- Short position cost: imbalance_kwh / 29.31 * nbp_spot_gbp_per_therm. 2022 crisis: 1,000 kWh short at GBP 3.50/therm = GBP 119 vs GBP 12 in 2016.
+
+**Fidelity delta:** Every UK gas shipper must nominate daily gas quantities to Xoserve under UNC. Imbalance against nomination is settled at within-day NBP spot. This process drove multiple supplier failures in 2021-22 when NBP spot hit GBP 10/therm intraday. The current gas billing model calculates rates but never modeled procurement/balancing. Phase 144 closes this: the company now tracks nomination accuracy as a KPI and computes daily cash-out costs. Explains operationally why under-forecasting demand in a crisis is fatal.
+
+**13 new tests (2,321 total).**
+
+---
 ### Phase 143 -- Green tariff REGO compliance audit (2026-06-26)
 **Files:** `company/compliance/green_claims_audit.py` (new), `tests/test_phase143_green_claims_audit.py` (new)
 
@@ -2067,14 +2080,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,320 tests (1,892 fast / ~10s; simulation integration ~8 min per run)
+- 2,321 tests (1,905 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 141, 2026-06-27):**
+**Latest full run (Phase 143, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
