@@ -1,22 +1,31 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T11:02:23Z
+Last updated: 2026-06-26T11:21:38Z
 
 ## Latest Simulation Run
-- **Git:** c438bdb (run 2026-06-26T09:27)
-- **Net Margin:** £1,330,126
-- **Gross Margin:** £6,546,003
-- **Revenue:** £14,215,256
+- **Git:** 9087d88 (run 2026-06-26T10:44)
+- **Net Margin:** £6,322,836
+- **Gross Margin:** £6,559,771
+- **Revenue:** £19,048,203
 - **Treasury:** £3,796,762
 - **Enterprise Value:** £6,124,101
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 239
-- **Tests:** 3,201 passing
+- **Current Phase:** 246
+- **Tests:** 3,264 passing
 - **Session theme:** Financial layer + regulatory + market ops + CRM maturation
 
-## This Session (Phases 198-239)
+## This Session (Phases 240-246)
+- Ph 246: Gas seasonal storage book (injection/withdrawal seasons; storage_cost_gbp; total_capacity_mwh)
+- Ph 245: Capacity Market participation book (CMUnitType; T4/T1 auctions; clearing prices 2016-2025)
+- Ph 244: Customer contact preferences and channel management (6 channels; 7 purposes; cost_per_contact)
+- Ph 243: Fuel poverty vulnerability index (VulnerabilityBand; FuelPovertyIndicator; HOME_OXYGEN->CRITICAL)
+- Ph 242: Metering services contracts (MOP/DC/DA/MAM; MeterType; service calls; annual_cost)
+- Ph 241: Meter asset register and asset life tracking (AgeGroup; replacement_cohort; asset_life)
+- Ph 240: Direct debit management (DD mandate lifecycle; FAILED/REINSTATED; coverage_pct)
+
+## Previous Session (Phases 198-239)
 - Ph 239: Flexible asset dispatch (BATTERY/PUMP; SoC tracking; 85% roundtrip; cycles/yr)
 - Ph 238: MPAS supply point registry (MPAN/MPRN; objection workflow; total_registered_mwh)
 - Ph 237: BM unit log (OFFER/BID; DISPATCHED/PART_DISPATCHED; BM price crisis >£500/MWh)
@@ -62,7 +71,7 @@ Last updated: 2026-06-26T11:02:23Z
 
 ## Company layer: 177 files | CLAUDE.md: 147/200 lines
 
-**Latest simulation results (2016–2025)** — auto-processed (468s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
