@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 195 -- NPS cohort tracker (2026-06-26)
+**Files:** `company/crm/nps_tracker.py` (new), `tests/company/crm/test_nps_tracker.py` (new)
+
+**What was built:**
+- classify_nps(score) utility: promoter (9-10) / passive (7-8) / detractor (0-6).
+- NPSResponse frozen dataclass: customer_id, score (0-10), surveyed_date, segment, channel, verbatim; category, is_promoter, is_detractor.
+- NPSTracker: record() (raises if score not 0-10), nps_in_period(from_date, to_date, segment=None), monthly_nps(year) → 12-month dict, by_segment(year) → segment-keyed NPS dict, annual_summary(year) with responses/nps/promoter_pct/detractor_pct/by_segment.
+- NPS = (promoters - detractors) / n × 100.
+
+**Fidelity delta:** UK supplier NPS benchmarks: >30 excellent, 0-30 good, <0 poor. 2022 crisis: industry-wide NPS dropped from +25 to -15 in Q4 2022 as bills doubled. detractor_pct doubled from ~15% to ~30%. Tracking monthly NPS trends lets the ops team see emerging service problems before they hit complaints; post_call channel typically shows lowest NPS (customers call when unhappy). Complements conversation_log avg_nps() (Ph171) with cohort-level analytics.
+
+**9 new tests (2,839 total).**
+
+---
 ### Phase 194 -- Customer renewals analytics book (2026-06-26)
 **Files:** `company/crm/renewals_book.py` (new), `tests/company/crm/test_renewals_book.py` (new)
 
@@ -2785,7 +2799,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,830 tests (2,414 fast / ~10s; simulation integration ~8 min per run)
+- 2,839 tests (2,423 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
