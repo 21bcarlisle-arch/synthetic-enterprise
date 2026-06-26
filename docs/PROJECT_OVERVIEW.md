@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 233 -- Settlement imbalance analytics (2026-06-26)
+**Files:** `company/market/imbalance_analytics.py` (new), `tests/company/market/test_imbalance_analytics.py` (new)
+
+**What was built:**
+- ImbalanceDirection: LONG (> +0.01 MWh) / SHORT (< -0.01 MWh) / FLAT (otherwise).
+- ImbalanceRecord frozen: settlement_date, period (1-48), commodity, imbalance_mwh, cash_out_price; direction, cash_out_cost_gbp (abs(mwh) × price).
+- ImbalanceAnalytics: record(), total_cash_out_gbp(year, commodity), net_imbalance_mwh(year), systematic_bias(year), worst_period(year), short_count(year), avg_cash_out_per_mwh(year), imbalance_summary(year).
+
+**Fidelity delta:** Elexon BSC settlement runs (SF, R1, R2, RF) calculate each supplier's net imbalance per settlement period. systematic_bias(year) is the key metric: if a supplier is consistently SHORT (under-nominated), it means their consumption forecasting is biased low — possibly due to not modelling EV demand correctly. During 2022, cash-out prices hit £350-450/MWh (vs. £40-60 in 2016) making short imbalances enormously expensive. worst_period() identifies which market event caused the largest single-period cash-out — often a Triad event or extreme cold snap. avg_cash_out_per_mwh tracks whether imbalance cost is rising (methodology problem) or falling (improving nomination accuracy).
+
+**9 new tests (3,146 total).**
+
+---
 ### Phase 232 -- Counterparty credit rating book (2026-06-26)
 **Files:** `company/trading/credit_rating_book.py` (new), `tests/company/trading/test_credit_rating_book.py` (new)
 
@@ -3345,7 +3358,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,137 tests (2,720 fast / ~10s; simulation integration ~8 min per run)
+- 3,146 tests (2,729 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
