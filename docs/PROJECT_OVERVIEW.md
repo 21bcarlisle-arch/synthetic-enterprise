@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 157 -- Microbusiness customer classification (2026-06-26)
+**Files:** `company/crm/microbusiness.py` (new), `tests/company/crm/test_microbusiness.py` (new)
+
+**What was built:**
+- `MicrobusinessStatus` enum: MICRO / NON_MICRO / UNCLASSIFIED.
+- `MicrobusinessProfile` frozen dataclass: customer_id, annual_elec_kwh, annual_gas_kwh, staff_count, annual_turnover_gbp, as_of_date; `status` property (all criteria must pass); `eligible_protections()` (5 Ofgem rights for micro customers).
+- `classify_customer()`: factory function returning a MicrobusinessProfile.
+- Thresholds: electricity <100 MWh/yr, gas <293 MWh/yr, staff ≤10, turnover ≤£2M. Any single breach → NON_MICRO.
+- Unclassified if no consumption data provided.
+
+**Fidelity delta:** Ofgem grants microbusinesses domestic-equivalent protections: 42-day notice on contract renewals, prohibition on rollover without consent, access to the Energy Ombudsman, and right to exit deemed contracts. Previously all SME customers were treated identically regardless of size. Phase 157 closes this: micro vs non-micro status is computed from observable attributes and drives which protections apply.
+
+**12 new tests (2,483 total).**
+
+---
 ### Phase 156 -- Tariff variation notice management (2026-06-26)
 **Files:** `company/billing/tariff_variation.py` (new), `tests/company/billing/test_tariff_variation.py` (new)
 
@@ -2245,7 +2260,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,471 tests (2,055 fast / ~10s; simulation integration ~8 min per run)
+- 2,483 tests (2,067 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
