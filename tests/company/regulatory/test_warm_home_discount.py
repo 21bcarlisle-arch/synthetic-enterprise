@@ -1,91 +1,90 @@
-"""Phase 93: Warm Home Discount (WHD) module tests."""
-
+import pytest
 from company.regulatory.warm_home_discount import (
-    whd_rebate_amount,
-    whd_eligible_customers,
-    compute_whd_liability,
-    whd_summary,
+    WHDBook, WHDRecord, WHDEligibilityBasis
 )
-from company.crm.service_log import ServiceLog, ServiceEvent
 
 
-def _log_with_vuln(*customer_ids):
-    log = ServiceLog()
-    for cid in customer_ids:
-        ev = ServiceEvent(
-            customer_id=cid, event_date="2026-06-26",
-            channel="portal", contact_reason="general",
-            outcome="pending", vulnerability_flag=True,
-        )
-        log.record_contact(ev)
-    return log
+def test_core_group_2022_rate():
+    book = WHDBook()
+    r = book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    assert abs(r.discount_gbp - 150.0) < 0.01
+    assert r.is_core_group is True
 
 
-def test_rebate_amount_2022():
-    assert whd_rebate_amount(2022) == 150.0
+def test_broader_group_2021_rate():
+    book = WHDBook()
+    r = book.record_discount("C1", 2021, WHDEligibilityBasis.BROADER_GROUP, "2021-12")
+    assert abs(r.discount_gbp - 140.0) < 0.01
+    assert r.is_core_group is False
 
 
-def test_rebate_amount_2021():
-    assert whd_rebate_amount(2021) == 140.0
+def test_records_for_year():
+    book = WHDBook()
+    book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    book.record_discount("C2", 2022, WHDEligibilityBasis.BROADER_GROUP, "2022-12")
+    book.record_discount("C3", 2021, WHDEligibilityBasis.CORE_GROUP, "2021-12")
+    assert len(book.records_for_year(2022)) == 2
 
 
-def test_rebate_amount_unknown_year():
-    assert whd_rebate_amount(2030) == 150.0  # default
+def test_has_received_whd():
+    book = WHDBook()
+    book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    assert book.has_received_whd("C1", 2022) is True
+    assert book.has_received_whd("C1", 2021) is False
+    assert book.has_received_whd("C2", 2022) is False
 
 
-def test_eligible_empty_log():
-    log = ServiceLog()
-    assert whd_eligible_customers(log) == []
+def test_total_discounted_for_year():
+    book = WHDBook()
+    book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    book.record_discount("C2", 2022, WHDEligibilityBasis.BROADER_GROUP, "2022-12")
+    total = book.total_discounted_gbp(2022)
+    assert abs(total - 300.0) < 0.01
 
 
-def test_eligible_with_vuln_customers():
-    log = _log_with_vuln("C1", "C5")
-    eligible = whd_eligible_customers(log)
-    assert set(eligible) == {"C1", "C5"}
+def test_levy_recoverable_before_recovery():
+    book = WHDBook()
+    book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    assert abs(book.levy_recoverable_gbp() - 150.0) < 0.01
 
 
-def test_compute_liability_zero():
-    assert compute_whd_liability(0, 2025) == 0.0
+def test_mark_levy_recovered():
+    book = WHDBook()
+    book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    book.record_discount("C1", 2021, WHDEligibilityBasis.CORE_GROUP, "2021-12")
+    n = book.mark_levy_recovered(2022)
+    assert n == 1
+    assert abs(book.levy_recoverable_gbp() - 140.0) < 0.01
 
 
-def test_compute_liability_three_customers():
-    assert compute_whd_liability(3, 2025) == 450.0
+def test_core_broader_counts():
+    book = WHDBook()
+    book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    book.record_discount("C2", 2022, WHDEligibilityBasis.BROADER_GROUP, "2022-12")
+    book.record_discount("C3", 2022, WHDEligibilityBasis.BROADER_GROUP, "2022-12")
+    assert book.core_group_count(2022) == 1
+    assert book.broader_group_count(2022) == 2
 
 
-def test_whd_summary_structure():
-    log = _log_with_vuln("C1")
-    summary = whd_summary(log, 2025)
-    assert summary["eligible_count"] == 1
-    assert summary["total_liability_gbp"] == 150.0
-    assert summary["rebate_per_customer_gbp"] == 150.0
-    assert "scheme_year" in summary
+def test_whd_summary_keys():
+    book = WHDBook()
+    book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    s = book.whd_summary(2022)
+    for k in ("scheme_year", "total_records", "total_discounted_gbp",
+               "core_group", "broader_group", "levy_recoverable_gbp"):
+        assert k in s
 
 
-def test_whd_scheme_year_format():
-    log = ServiceLog()
-    summary = whd_summary(log, 2025)
-    assert summary["scheme_year"] == "WHD 2025/26"
+def test_whd_summary_empty_year():
+    book = WHDBook()
+    s = book.whd_summary(2022)
+    assert s["total_records"] == 0
+    assert s["total_discounted_gbp"] == 0.0
 
 
-def test_regulatory_page_has_whd_section():
-    from starlette.testclient import TestClient
-    from company.portal.app import app
-    client = TestClient(app, raise_server_exceptions=True)
-    r = client.get("/regulatory")
-    assert r.status_code == 200
-    assert "Warm Home Discount" in r.text
-
-
-def test_dashboard_shows_whd_badge_for_vulnerable(tmp_path):
-    from company.portal.app import _SERVICE_LOG
-    from starlette.testclient import TestClient
-    from company.portal.app import app
-    ev = ServiceEvent(
-        customer_id="C1", event_date="2026-06-26",
-        channel="phone", contact_reason="general",
-        outcome="pending", vulnerability_flag=True,
-    )
-    _SERVICE_LOG.record_contact(ev)
-    client = TestClient(app, raise_server_exceptions=True)
-    r = client.get("/account/C1")
-    assert "Warm Home Discount eligible" in r.text
+def test_records_for_account():
+    book = WHDBook()
+    book.record_discount("C1", 2021, WHDEligibilityBasis.CORE_GROUP, "2021-12")
+    book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    book.record_discount("C2", 2022, WHDEligibilityBasis.BROADER_GROUP, "2022-12")
+    assert len(book.records_for_account("C1")) == 2

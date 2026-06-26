@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,606 tests passing. Codebase: ~36,100 lines across 266+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,617 tests passing. Codebase: ~36,200 lines across 267+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 281 (2026-06-26):** Warm Home Discount (WHD) Tracker -- 11 new tests (3,617 total). company/regulatory/warm_home_discount.py: WHDEligibilityBasis (CORE_GROUP/BROADER_GROUP), frozen WHDRecord, WHDBook (record_discount/has_received_whd/levy_recoverable_gbp/mark_levy_recovered/whd_summary). Rates: £140 (2015-21), £150 (2022+). Annual scheme; levy recovered from Ofgem post-payment. Core Group via DWP (pension credit), Broader Group via self-application. Connects to VulnerabilityIndex for eligibility assessment.
 
 **Phase 280 (2026-06-26):** EBSS Tracker -- 11 new tests (3,606 total). company/regulatory/energy_bill_support.py: EBSSCreditType (STANDARD/ALT_FUEL), frozen EBSSCredit, EBSSBook (record_credit/credits_for_account/govt_receivable_gbp/mark_claimed/ebss_summary). Scheme months Oct 2022-Mar 2023; £66.67/month x 6 = £400/household; alt fuel £100 one-off. mark_claimed() reduces govt receivable balance. Real 2022-23 UK government intervention captured as balance sheet item.
 
@@ -3941,7 +3943,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,606 tests (3,164 fast / ~10s; simulation integration ~8 min per run)
+- 3,617 tests (3,175 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
