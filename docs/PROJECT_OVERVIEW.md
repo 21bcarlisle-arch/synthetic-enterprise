@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 169 -- Customer vulnerability register (2026-06-26)
+**Files:** `company/crm/vulnerability_register.py` (new), `tests/company/crm/test_vulnerability_register.py` (new)
+
+**What was built:**
+- `VulnerabilityFlag` enum: 12 flags (medical_equipment, ppm_self_disconnected, serious_illness, mental_health, fuel_poverty, payment_difficulty, bereavement, elderly, disabled, child_dependent, job_loss, language_barrier).
+- Severity weights: medical_equipment/PPM=5, illness/mental=4, fuel_poverty/payment/bereavement=3, elderly/disabled/child/job_loss=2, language=1.
+- Required actions per flag: PSR, no_disconnect, debt_advice, ECO4/WHD referral, payment plan, bereavement handler, translation service.
+- `VulnerabilityRecord` frozen dataclass: severity_score (sum of weights), required_actions (deduplicated), psr_required, no_disconnect_required.
+- `VulnerabilityRegister`: register(), get(), update_flags(), remove(), psr_customers(), no_disconnect_customers(), high_severity(threshold=5), annual_summary() with flag_counts.
+
+**Fidelity delta:** Ofgem SLC 31B requires suppliers to maintain a vulnerability register and ensure appropriate actions. The register synthesises signals from life events (Ph162), fuel poverty (Ph166), PPM self-disconnection (Ph145), PSR (Ph120/121) into a single per-customer severity score and required-action list. medical_equipment and PPM self-disconnection are the highest severity because disconnection means immediate physical danger or loss of energy in cold conditions.
+
+**11 new tests (2,614 total).**
+
+---
 ### Phase 168 -- Decarbonisation recommendation engine (2026-06-26)
 **Files:** `company/crm/decarb_recommender.py` (new), `tests/company/crm/test_decarb_recommender.py` (new)
 
@@ -2422,7 +2437,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,603 tests (2,187 fast / ~10s; simulation integration ~8 min per run)
+- 2,614 tests (2,198 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
