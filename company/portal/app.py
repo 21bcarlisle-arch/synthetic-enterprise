@@ -29,6 +29,7 @@ from company.pricing.switching_recommendation import switching_recommendation
 from company.billing.efficiency_advice import efficiency_summary
 from company.billing.collections import get_collections_queue
 from company.billing.consumption_forecast import forecast_annual_cost
+from company.billing.usage_benchmark import usage_benchmark
 from company.market.rate_comparison import market_rate_comparison
 from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH
 from company.pricing.tariff_comparison import compare_tariffs

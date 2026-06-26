@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,946 tests (1,518 non-simulation, 428 simulation). Codebase: ~27,800 lines across 222+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,956 tests (1,528 non-simulation, 428 simulation). Codebase: ~28,000 lines across 223+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 107 -- Usage benchmarking (2026-06-26)
+**Files:** `company/billing/usage_benchmark.py` (new), `company/portal/app.py` (extended), `company/portal/templates/consumption.html` (extended), `tests/company/billing/test_usage_benchmark.py` (new)
+
+**What was built:**
+- `_peer_group(customer, all_customers)`: peers = same home_type AND EPC band group (A-C=high, D-E=mid, F-G=low).
+- `compute_percentile(value, peers)`: rank 0-100 (lower = more efficient).
+- `usage_benchmark()`: returns peer_count, customer_eac, peer_median, percentile, rating, plain-text label.
+- Consumption portal: colour-coded comparison widget (green=efficient, amber=heavy, blue=average).
+
+**Fidelity delta:** Customers see how their usage compares to similar homes — the same feature used by major UK suppliers (British Gas Energy Monitor, EDF Smart Usage). Epistemically valid: all data from customer records, no SIM internals.
+
+**10 new tests (1,956 total).**
+
+---
 ### Phase 106 -- CSAT admin reporting (2026-06-26)
 **Files:** `company/portal/app.py` (extended), `company/portal/templates/admin.html` (extended), `tests/company/portal/test_admin_csat.py` (new)
 
@@ -1591,14 +1605,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,946 tests (1,518 fast / ~10s; simulation integration ~8 min per run)
+- 1,956 tests (1,528 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 106, 2026-06-26):**
+**Latest full run (Phase 107, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

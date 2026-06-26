@@ -8,10 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:26:29Z
+Last updated: 2026-06-26T03:28:33Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 107 COMPLETE (2026-06-26):** Usage benchmarking -- 10 new tests (1,956 total).
+- company/billing/usage_benchmark.py: peer group by home_type + EPC band, percentile rank, efficient/average/heavy label
+- Consumption portal: colour-coded benchmark widget vs peer median
+
 **Phase 106 COMPLETE (2026-06-26):** CSAT admin reporting -- 7 new tests (1,946 total).
 - _load_admin_data() adds csat dict from ServiceLog.csat_summary()
 - Admin overview: 5th summary card shows mean CSAT score + rated count
@@ -290,7 +294,7 @@ Last updated: 2026-06-26T03:26:29Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,946 total (all tests passing)**
+**Test suite: 1,956 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

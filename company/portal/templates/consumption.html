@@ -93,6 +93,19 @@
     {% endif %}
   </div>
   {% endif %}
+
+  {% if benchmark and benchmark.peer_count > 0 %}
+  <div style="margin:16px 0;padding:12px;border-radius:6px;font-size:0.9em;
+    border:1px solid {{ '#9ae6b4' if benchmark.rating == 'efficient' else '#fed7aa' if benchmark.rating == 'heavy' else '#bee3f8' }};
+    background:{{ '#f0fff4' if benchmark.rating == 'efficient' else '#fffaf0' if benchmark.rating == 'heavy' else '#ebf8ff' }}">
+    <strong>Usage vs similar homes:</strong>
+    {{ benchmark.label }}
+    Your usage: {{ benchmark.customer_eac }} kWh/yr &mdash;
+    peer median: {{ benchmark.peer_median }} kWh/yr
+    ({{ benchmark.peer_count }} similar properties)
+  </div>
+  {% endif %}
+
   {% if cost_forecast %}
   <div style="margin:20px 0;padding:14px;background:#f0fff4;border:1px solid #276749;border-radius:6px">
     <strong>Estimated annual cost:</strong>
