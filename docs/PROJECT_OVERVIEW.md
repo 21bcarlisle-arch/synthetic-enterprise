@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 164 -- Inbound contact and call centre interaction model (2026-06-26)
+**Files:** `company/crm/contact_log.py` (new), `tests/company/crm/test_contact_log.py` (new)
+
+**What was built:**
+- `ContactChannel` enum: PHONE / WEBCHAT / EMAIL / LETTER / PORTAL.
+- `ContactReason` enum: 12 reasons (billing_query, meter_read, payment_difficulty, complaint, debt_advice, bereavement, etc.).
+- `ContactInteraction` dataclass: interaction_id, customer_id, channel, reason, contact_date, handle_minutes, resolved, escalated, notes.
+- `ContactLog`: record() (auto avg_handle_minutes if not specified), contacts_for_customer(), avg_handle_minutes_for_reason(), annual_summary() with by_reason breakdown.
+- Calibrated handle times: bereavement 25 min, complaint 18 min, debt advice 20 min, meter read 5 min.
+
+**Fidelity delta:** Call centre cost is a major P&L line for UK suppliers — Ofgem regularly reviews cost-to-serve per contact. Previously there was no model of customer contact volume or reason mix. Phase 164 closes this: every inbound interaction is logged with channel, reason, handle time, and escalation flag, enabling cost-to-serve computation at interaction level and feeding into the company's annual reporting.
+
+**9 new tests (2,561 total).**
+
+---
 ### Phase 163 -- Household behaviour profile (2026-06-26)
 **Files:** `company/crm/household_profile.py` (new), `tests/company/crm/test_household_profile.py` (new)
 
@@ -2348,7 +2363,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,552 tests (2,136 fast / ~10s; simulation integration ~8 min per run)
+- 2,561 tests (2,145 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
