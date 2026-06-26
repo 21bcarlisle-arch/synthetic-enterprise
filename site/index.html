@@ -1051,12 +1051,31 @@ function renderInsights() {
       '</div>'
     : '';
 
+  var rh = D.run_history || [];
+  var historyRows = rh.slice().reverse().map(function(r) {
+    var nm = r.net_margin_gbp || 0;
+    var cl = nm >= 1000000 ? 'color:var(--green)' : nm < 0 ? 'color:var(--red)' : '';
+    return '<tr style="border-top:1px solid var(--border)">' +
+      '<td style="padding:3px 6px;font-family:monospace;color:var(--blue)">' + (r.git_hash||'').slice(0,7) + '</td>' +
+      '<td style="text-align:right;padding:3px 6px;font-weight:600;' + cl + '">' + gbp(nm) + '</td>' +
+      '<td style="padding:3px 6px;color:var(--muted)">' + (r.generated_at||'').slice(0,10) + '</td></tr>';
+  }).join('');
+  var historyHtml = rh.length > 1
+    ? '<div class="chart-box" style="margin-top:16px">' +
+      '<div style="font-size:12px;font-weight:600;margin-bottom:10px">Run History (' + rh.length + ' runs)</div>' +
+      '<table style="width:100%;font-size:11px;border-collapse:collapse">' +
+      '<tr><th style="text-align:left;color:var(--muted);padding:3px 6px">Hash</th>' +
+      '<th style="text-align:right;color:var(--muted);padding:3px 6px">Net Margin</th>' +
+      '<th style="color:var(--muted);padding:3px 6px">Date</th></tr>' +
+      historyRows + '</table></div>'
+    : '';
+
   container.innerHTML =
     '<div class="section"><div class="section-title">Run Insights</div>' +
     '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--blue);padding-left:16px">' +
     '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Executive summary &bull; ' + (ins.git_hash || '') + '</div>' +
     '<p style="margin:0;font-size:13px">' + (ins.executive_summary || '') + '</p>' +
-    '</div>' + coherenceHtml + actionsHtml + cards + '</div>';
+    '</div>' + coherenceHtml + actionsHtml + cards + historyHtml + '</div>';
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
