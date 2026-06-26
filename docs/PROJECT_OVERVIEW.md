@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 188 -- Supplier of Last Resort (SoLR) intake (2026-06-26)
+**Files:** `company/crm/solr_intake.py` (new), `tests/company/crm/test_solr_intake.py` (new)
+
+**What was built:**
+- SoLRIntakeStatus enum: NOTIFIED / CONTACTED / ONBOARDED / SWITCHED_AWAY / UNRESPONSIVE.
+- SoLRBatch frozen dataclass: batch_id, failed_supplier, appointment_date, customer_count, deemed_tariff_rate_pct_above_cap; is_priced_above_cap flag.
+- SoLRCustomer mutable dataclass: customer_id, batch_id, mpan, segment, status, contacted_date, onboarded_date, switched_away_date; is_retained (ONBOARDED).
+- SoLRBook: register_batch(), add_customer(), mark_contacted(), mark_onboarded(), mark_switched_away(), customers_in_batch(), retention_rate(batch_id), contact_rate(batch_id), batch_summary().
+
+**Fidelity delta:** 29 UK energy suppliers failed in 2021-22; each triggered a SoLR appointment. The SoLR receives stranded customers at a Ofgem-set "deemed" contract price (often above cap, as SoLRs were compensated). SoLR contact rate target is 85% in 30 days; retention of 50-60% is typical (rest switch to preferred tariff elsewhere). This is a genuinely UK-specific business event that no other retail sector has an equivalent to — and surviving suppliers must model the liability and operational cost of being a potential SoLR appointee.
+
+**8 new tests (2,781 total).**
+
+---
 ### Phase 187 -- CLV cohort analysis book (2026-06-26)
 **Files:** `company/crm/clv_cohort_book.py` (new), `tests/company/crm/test_clv_cohort_book.py` (new)
 
@@ -2688,7 +2702,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,773 tests (2,357 fast / ~10s; simulation integration ~8 min per run)
+- 2,781 tests (2,365 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
