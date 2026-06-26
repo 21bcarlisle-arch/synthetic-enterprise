@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,595 tests passing. Codebase: ~35,950 lines across 265+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,606 tests passing. Codebase: ~36,100 lines across 266+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 280 (2026-06-26):** EBSS Tracker -- 11 new tests (3,606 total). company/regulatory/energy_bill_support.py: EBSSCreditType (STANDARD/ALT_FUEL), frozen EBSSCredit, EBSSBook (record_credit/credits_for_account/govt_receivable_gbp/mark_claimed/ebss_summary). Scheme months Oct 2022-Mar 2023; £66.67/month x 6 = £400/household; alt fuel £100 one-off. mark_claimed() reduces govt receivable balance. Real 2022-23 UK government intervention captured as balance sheet item.
 
 **Phase 279 (2026-06-26):** Decarbonisation Score -- 13 new tests (3,595 total). company/sustainability/ (new directory): DScoreBand (A/B/C/D at 80/60/40/<40), frozen DScoreBreakdown with 4 dimension scores, DecarbScorer computes REGO coverage (25pts)/EPC improvement (25pts)/heat pump adoption (25pts, 20% = full)/carbon reduction (25pts, 20%/yr = full), DScoreBook (annual records, trend, improving flag, summary). Synthesizes HomeRegistry, PropertyImprovementBook, and RegoPortfolio observations into a single ESG scorecard.
 
@@ -3939,7 +3941,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,595 tests (3,153 fast / ~10s; simulation integration ~8 min per run)
+- 3,606 tests (3,164 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
