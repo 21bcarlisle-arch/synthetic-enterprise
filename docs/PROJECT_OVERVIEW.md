@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,653 tests (1,645 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,664 tests (1,236 non-simulation, 428 simulation). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,23 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 79 -- Portal: Consumption history page (2026-06-26)
+**Files:** `company/billing/consumption.py` (new), `company/portal/app.py` (extended),
+`company/portal/templates/consumption.html` (new), `company/portal/templates/dashboard.html`
+(minor: nav link), `tests/company/portal/test_consumption.py` (new)
+
+**What was built:**
+- `consumption_history(account_id, db_path)`: reads per-invoice kWh from invoice DB, returns list with year/month fields.
+- `monthly_totals(records)`: aggregates by (year, month), sorted chronologically.
+- Portal GET `/account/{id}/consumption`: reads consumption history, detects HH customers via `metering=="HH"`, renders table.
+- `consumption.html`: monthly table; HH smart meter banner ("half-hourly resolution available"); nav links to dashboard/bills/tariff-compare.
+- Dashboard nav: added Consumption link.
+
+**Fidelity delta:** The Destinationvision Portal MVP requirement is now complete. C7/C8/C9 customers (HH metered, `metering=="HH"`) see a smart meter banner when viewing their consumption. The customer journey is: login → dashboard → bills → consumption history → tariff comparison → switch tariff. When Rich logs in as C7, the portal now shows all five views.
+
+**11 new tests (1,664 total).**
+
+---
 ### Phase 78 -- Year-indexed non-commodity billing rates (2026-06-26)
 **Files:** `saas/non_commodity.py` (extended), `saas/bill_generator.py` (extended), `tests/saas/test_non_commodity_year_indexed.py` (new)
 
@@ -1206,14 +1223,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,653 tests (1,074 fast / ~10s; simulation integration ~8 min per run)
+- 1,664 tests (1,236 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 78, 2026-06-26):**
+**Latest full run (Phase 79, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

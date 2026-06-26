@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T01:45:05Z
+Last updated: 2026-06-26T01:51:22Z
+
+**Phase 79 COMPLETE (2026-06-26):** Portal: Consumption history page -- 11 new tests (1,664 total).
+- `company/billing/consumption.py` (new): consumption_history() + monthly_totals() reads from invoice DB
+- Portal: GET /account/{id}/consumption; HH customers (C7-C9) see smart meter banner
+- Dashboard nav updated with Consumption link; Portal MVP now complete (all 5 customer views)
 
 **Phase 78 COMPLETE (2026-06-26):** Year-indexed non-commodity billing rates -- 14 new tests (1,653 total).
 - `saas/non_commodity.py`: year-indexed tables 2016-2024 for resi elec (£52→£80/MWh) and gas (£9→£16/MWh)
@@ -141,7 +146,7 @@ Last updated: 2026-06-26T01:45:05Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,653 total (all saas/company/tools passing)**
+**Test suite: 1,664 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

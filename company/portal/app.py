@@ -18,6 +18,7 @@ from fastapi.templating import Jinja2Templates
 import json
 
 from company.billing.invoice import invoices_for_account
+from company.billing.consumption import consumption_history, monthly_totals
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
 
@@ -173,4 +174,18 @@ async def switch_tariff(
     return templates.TemplateResponse(
         request, "tariff_switch_confirm.html",
         {"customer": customer, "tariff_name": tariff_name, "term_months": term_months, "ref": ref},
+    )
+
+@app.get("/account/{account_id}/consumption", response_class=HTMLResponse)
+async def consumption_page(request: Request, account_id: str):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    records = consumption_history(account_id, _DEFAULT_DB)
+    data = monthly_totals(records)
+    is_hh = customer.get("metering") == "HH"
+    total_kwh = sum(r["kwh"] for r in data)
+    return templates.TemplateResponse(
+        request, "consumption.html",
+        {"customer": customer, "monthly_data": data, "is_hh": is_hh, "total_kwh": total_kwh},
     )
