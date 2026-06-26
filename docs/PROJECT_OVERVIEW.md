@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 238 -- MPAS supply point registry (2026-06-26)
+**Files:** `company/market/mpas_registry.py` (new), `tests/company/market/test_mpas_registry.py` (new)
+
+**What was built:**
+- RegistrationStatus: REGISTERED / IN_TRANSFER / OBJECTED / WITHDRAWN / LOST.
+- Commodity: ELECTRICITY / GAS.
+- SupplyPoint mutable: supply_point_id, commodity, customer_id, registration_date, annual_consumption_kwh, status, transfer_effective_date, objection_raised, objection_reason, losing_supplier; is_active, annual_mwh, raise_objection(reason), resolve_objection(allow_transfer), complete_transfer(date).
+- MPASRegistry: register(), get(), active_supply_points(commodity), total_registered_mwh(commodity), objected_points(), registrations_in_period(from, to), mpas_summary().
+
+**Fidelity delta:** MPAS (Meter Point Administration Service) is the central registry where supply points are registered to suppliers. The objection process — introduced to prevent erroneous or "slamming" switches — allows a current supplier to object within 5 business days. Valid objection reasons include customer still in a fixed-term contract, an existing complaint not resolved, or incorrect MPAN. Objections resolved in favour of the gaining supplier → IN_TRANSFER; rejected → WITHDRAWN (customer stays). total_registered_mwh(ELECTRICITY) feeds the hedging_schedule (Ph207) and seasonal_demand_model (Ph234) as the company's actual portfolio volume for forward buying.
+
+**9 new tests (3,192 total).**
+
+---
 ### Phase 237 -- Balancing Mechanism (BM) unit log (2026-06-26)
 **Files:** `company/market/bm_unit_log.py` (new), `tests/company/market/test_bm_unit_log.py` (new)
 
@@ -3415,7 +3429,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,183 tests (2,766 fast / ~10s; simulation integration ~8 min per run)
+- 3,192 tests (2,775 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
