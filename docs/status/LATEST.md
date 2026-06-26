@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T07:13:55Z
+Last updated: 2026-06-26T07:15:46Z
+
+**Phase 153 COMPLETE (2026-06-26):** Fixed-term contract exit fee -- 10 new tests (2,434 total).
+- company/billing/exit_fee.py: ExitFeeWaiveReason (5 types), ExitFeeResult, calculate_exit_fee() (auto-waive within 42-day notice period or after expiry)
+- Fee = days_remaining/365 × annual_kwh × rate_ppm; electricity 1.5p/kWh, gas 1.0p/kWh; manual waive for death/property emergency/supplier breach
+- Fidelity: Ofgem prohibits ETCs in final 42 days; connects to switching (Ph115) + contract countdown (Ph95) -- previously switching treated all exits as cost-free
 
 **Phase 152 COMPLETE (2026-06-26):** Payment plan management -- 12 new tests (2,424 total).
 - company/billing/payment_plan.py: PaymentPlanStatus, PaymentPlan (expected_months/remaining_debt_gbp/is_complete), PaymentPlanBook (create_plan/record_payment/record_missed/defaulted_plans/portfolio_summary)
@@ -511,7 +516,7 @@ Last updated: 2026-06-26T07:13:55Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,424 total (all tests passing)**
+**Test suite: 2,434 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (475s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

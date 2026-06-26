@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 153 -- Fixed-term contract exit fee (2026-06-26)
+**Files:** `company/billing/exit_fee.py` (new), `tests/company/billing/test_exit_fee.py` (new)
+
+**What was built:**
+- `ExitFeeWaiveReason` enum: WITHIN_NOTICE_PERIOD / CONTRACT_EXPIRED / SUPPLIER_BREACH / CUSTOMER_DEATH / PROPERTY_EMERGENCY.
+- `ExitFeeResult` frozen dataclass: customer_id, contract_end_date, exit_date, days_remaining, fee_gbp, waived, waive_reason.
+- `calculate_exit_fee(customer_id, contract_end_date, exit_date, annual_kwh, commodity, waive_reason=None)`: fee = days_remaining/365 × annual_kwh × rate_ppm / 100. Auto-waive within 42 days of end or if expired. Manual waive_reason overrides (death, emergency, breach).
+- Rates: electricity 1.5p/kWh, gas 1.0p/kWh (typical UK market schedule).
+
+**Fidelity delta:** Fixed-term tariff contracts include an Early Termination Charge (ETC) to compensate the supplier for forward-purchased energy that can no longer be recovered. Ofgem prohibits exit fees in the final 42 days (notice period) and after expiry. Previously there was no model for ETCs — switching (Phase 115) treated exits as cost-free. Phase 153 closes this: calculate_exit_fee() computes the ETC before a switch is processed, with auto-waive for the notice-period window.
+
+**10 new tests (2,434 total).**
+
+---
 ### Phase 152 -- Payment plan management (2026-06-26)
 **Files:** `company/billing/payment_plan.py` (new), `tests/company/billing/test_payment_plan.py` (new)
 
@@ -2189,16 +2203,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,424 tests (2,008 fast / ~10s; simulation integration ~8 min per run)
+- 2,434 tests (2,018 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 152, 2026-06-26):**
+**Latest full run (Phase 153, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 12 new tests: Payment plan management — create_plan/record_payment/record_missed/defaulted_plans; 2-miss default threshold; bridges debt referral → PPM lifecycle.
+- 10 new tests: Fixed-term contract exit fee — calculate_exit_fee() auto-waive in 42-day notice; days_remaining/365×annual_kwh×rate; elec 1.5p/gas 1.0p.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
