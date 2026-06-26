@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T16:55:13Z
+Last updated: 2026-06-26T17:14:25Z
 
 ## Latest Simulation Run
 - **Git:** 248ffe4 (run 2026-06-26T16:17)
