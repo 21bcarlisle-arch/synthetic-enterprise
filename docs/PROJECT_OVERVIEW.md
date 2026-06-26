@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 177 -- Customer portfolio energy position (2026-06-26)
+**Files:** `company/market/portfolio_position.py` (new), `tests/company/market/test_portfolio_position.py` (new)
+
+**What was built:**
+- `PositionDirection` enum: SHORT (<95% hedged) / FLAT (95–105%) / LONG (>105%).
+- `EnergyPosition` frozen dataclass: forecast_customer_load_mwh, hedged_mwh, hedge_ratio_pct, net_position_mwh, direction, is_within_policy.
+- `PortfolioEnergyPosition` frozen dataclass: electricity + gas combined; is_fully_hedged (both FLAT), summary() dict.
+- `compute_energy_position()`: factory computing hedge ratio from load/hedged volumes.
+- ±5% flat tolerance — reflects standard 'hedge within 5% of volume' trading policy.
+
+**Fidelity delta:** A real trading desk measures its position every day as (forecasted customer load) vs (hedged volume). Being 20% short when prices spike is exactly how real suppliers went insolvent in 2022. This is the company's observable view: it knows what it has hedged (from trades logged in the trade blotter, Phase 131) and what it forecasts customers will consume (from meter read patterns). It cannot see the simulation's hedge effectiveness calculation.
+
+**9 new tests (2,686 total).**
+
+---
 ### Phase 176 -- Invoice / billing dispute resolution (2026-06-26)
 **Files:** `company/billing/billing_dispute.py` (new), `tests/company/billing/test_billing_dispute.py` (new)
 
@@ -2534,7 +2549,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,677 tests (2,261 fast / ~10s; simulation integration ~8 min per run)
+- 2,686 tests (2,270 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
