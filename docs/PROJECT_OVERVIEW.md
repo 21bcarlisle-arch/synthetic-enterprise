@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 185 -- MPAN supply point register (2026-06-26)
+**Files:** `company/market/mpan_register.py` (new), `tests/company/market/test_mpan_register.py` (new)
+
+**What was built:**
+- MPANStatus enum: REGISTERED / DEREGISTERED / PENDING_REGISTRATION / PENDING_SWITCH / ENERGISED / DE_ENERGISED / OBJECTED.
+- ProfileClass enum: PC1-PC8 with Ofgem standard descriptions (Domestic/Non-Domestic/HH-settled tiers).
+- MPANRecord frozen dataclass: mpan, status, profile_class, measurement_class, registered_date, current_supplier_id, deregistered_date, pending_switch_date; is_active (not DEREGISTERED or DE_ENERGISED), profile_class_description.
+- MPANRegister: register(), initiate_switch() (→ PENDING_SWITCH), complete_switch() (new supplier, new registered_date), object_to_switch() (→ OBJECTED), deregister(), get(mpan), active_mpans(), pending_switches(), by_profile_class(pc), portfolio_summary().
+
+**Fidelity delta:** Every electricity supply point in GB is identified by an MPAN. Suppliers register/de-register supply points with MPAS (Xoserve/DCC equivalent for electricity). The switch flow — initiate → complete OR object — matches real-world ERO (Electricity Registration and Change of Supplier) flow. Objection right lasts 15 working days from switch notification; grounds include active debt. PC1-PC8 classification determines whether a customer is settled as HH (PC5-PC8 P272/P415 mandate) or non-HH (PC1-PC4).
+
+**9 new tests (2,756 total).**
+
+---
 ### Phase 184 -- Third-party intermediary (TPI/broker) book (2026-06-26)
 **Files:** `company/crm/tpi_book.py` (new), `tests/company/crm/test_tpi_book.py` (new)
 
@@ -2646,7 +2660,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,747 tests (2,331 fast / ~10s; simulation integration ~8 min per run)
+- 2,756 tests (2,340 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
