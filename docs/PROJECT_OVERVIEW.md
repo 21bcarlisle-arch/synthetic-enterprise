@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,713 tests passing. Codebase: ~37,100 lines across 274+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,723 tests passing. Codebase: ~37,200 lines across 275+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 288 (2026-06-26):** ECO Obligation Tracker -- 10 new tests (3,723 total). company/regulatory/eco_obligation.py: ECOPhase (ECO2/ECO3/ECO4), MeasureCategory (4), frozen ECODelivery (cost_per_tonne_co2), ECOObligationBook (estimated_annual_obligation_gbp, fuel_poor_delivery_pct, eco_summary). Obligation costs: ECO2 £3.20/MWh, ECO3 £4.50/MWh, ECO4 £6.80/MWh. Connects to PropertyImprovementBook. Models supplier home efficiency delivery obligation.
 
 **Phase 287 (2026-06-26):** Fuel Mix Disclosure (FMD) -- 12 new tests (3,713 total). company/regulatory/fuel_mix_disclosure.py: FuelMixDisclosure (6 fuel source %, rego_covered_mwh, total_retail_mwh; total_pct, rego_coverage_pct, is_100pct_renewable, vs_uk_average()), FuelMixDisclosureBook (file_disclosure, renewable_trend, fmd_summary). Real UK avg fuel mix 2016-2023: coal 9.1%->0.5%, renewables 24.7%->45.3%. Suppliers claiming 100% renewable must have matching REGO coverage.
 
@@ -3955,7 +3957,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,713 tests (3,271 fast / ~10s; simulation integration ~8 min per run)
+- 3,723 tests (3,281 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
