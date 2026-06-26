@@ -79,15 +79,15 @@ function gbp(n) {
 }
 function showLogin(err) {
   document.getElementById("app").innerHTML =
-    "<div class="login-wrap"><div class="login-card">" +
-    "<h1>Customer Portal</h1>" +
-    "<p>Log in with your account number to view your account and bills.</p>" +
-    "<label for="acc">Account number</label>" +
-    "<input type="text" id="acc" placeholder="e.g. C1, C_IC1" autocomplete="off" />" +
-    "<div class="hint">Accounts: C1...C9, C_IC1...C_IC4, C1g...C4g</div>" +
-    (err ? "<div class="error-msg">" + err + "</div>" : "") +
-    "<button class="btn" onclick="doLogin()">Sign in</button>" +
-    "</div></div>";
+    '<div class="login-wrap"><div class="login-card">' +
+    '<h1>Customer Portal</h1>' +
+    '<p>Log in with your account number to view your account and bills.</p>' +
+    '<label for="acc">Account number</label>' +
+    '<input type="text" id="acc" placeholder="e.g. C1, C_IC1" autocomplete="off" />' +
+    '<div class="hint">Accounts: C1...C9, C_IC1...C_IC4, C1g...C4g</div>' +
+    (err ? '<div class="error-msg">' + err + '</div>' : '') +
+    '<button class="btn" onclick="doLogin()">Sign in</button>' +
+    '</div></div>';
   var inp = document.getElementById("acc");
   if (inp) { inp.focus(); inp.onkeydown = function(e) { if (e.key === "Enter") doLogin(); }; }
 }
@@ -126,37 +126,37 @@ function filterBillYear(y) { BILL_YEAR = y; renderBills(); }
 function renderAccount() {
   var d = ACC;
   var seg = d.segment === "I&C"
-    ? "<span class="badge bi">I&amp;C</span>"
-    : "<span class="badge br">Residential</span>";
+    ? '<span class="badge bi">I&amp;C</span>'
+    : '<span class="badge br">Residential</span>';
   var com = d.commodity === "gas"
-    ? "<span class="badge bg">Gas</span>"
-    : "<span class="badge be">Electricity</span>";
+    ? '<span class="badge bg">Gas</span>'
+    : '<span class="badge be">Electricity</span>';
   var net = d.lifetime_net_gbp || 0;
   var nc = net >= 0 ? " green" : " red";
   BILL_YEAR = null;
   document.getElementById("app").innerHTML =
-    "<div class="account-wrap">" +
-    "<div class="account-header"><div>" +
-    "<div class="account-id">" + d.account_id + "</div>" +
-    "<div style="margin-top:6px">" + seg + " " + com + "</div></div>" +
-    "<button class="logout-btn" onclick="doLogout()">Sign out</button></div>" +
-    "<div class="sec-title">Tariff</div>" +
-    "<div class="card">" +
-    "<div class="row"><span class="rl">Tariff</span><span>" + d.tariff_name + "</span></div>" +
-    "<div class="row"><span class="rl">Meter</span><span>" + d.meter_type + "</span></div>" +
-    "<div class="row"><span class="rl">Customer since</span><span>" + d.acquisition_date + "</span></div>" +
-    "<div class="row"><span class="rl">Pricing action</span><span>" + (d.pricing_action || "NONE") + "</span></div>" +
-    "</div>" +
-    "<div class="sec-title">Lifetime Performance</div>" +
-    "<div class="kpi-grid">" +
-    "<div class="kpi"><div class="kpi-label">Revenue</div><div class="kpi-value">" + gbp(d.lifetime_revenue_gbp) + "</div></div>" +
-    "<div class="kpi"><div class="kpi-label">Gross Margin</div><div class="kpi-value">" + gbp(d.lifetime_gross_gbp) + "</div></div>" +
-    "<div class="kpi"><div class="kpi-label">Net Margin</div><div class="kpi-value" + nc + "">" + gbp(net) + "</div></div>" +
-    "<div class="kpi"><div class="kpi-label">Cost to Serve</div><div class="kpi-value">" + gbp(d.cost_to_serve_gbp) + "</div></div>" +
-    "</div>" +
-    "<div class="sec-title">Bills</div>" +
-    "<div id="bills-section"></div>" +
-    "</div>";
+    '<div class="account-wrap">' +
+    '<div class="account-header"><div>' +
+    '<div class="account-id">' + d.account_id + '</div>' +
+    '<div style="margin-top:6px">' + seg + ' ' + com + '</div></div>' +
+    '<button class="logout-btn" onclick="doLogout()">Sign out</button></div>' +
+    '<div class="sec-title">Tariff</div>' +
+    '<div class="card">' +
+    '<div class="row"><span class="rl">Tariff</span><span>' + d.tariff_name + '</span></div>' +
+    '<div class="row"><span class="rl">Meter</span><span>' + d.meter_type + '</span></div>' +
+    '<div class="row"><span class="rl">Customer since</span><span>' + d.acquisition_date + '</span></div>' +
+    '<div class="row"><span class="rl">Pricing action</span><span>' + (d.pricing_action || 'NONE') + '</span></div>' +
+    '</div>' +
+    '<div class="sec-title">Lifetime Performance</div>' +
+    '<div class="kpi-grid">' +
+    '<div class="kpi"><div class="kpi-label">Revenue</div><div class="kpi-value">' + gbp(d.lifetime_revenue_gbp) + '</div></div>' +
+    '<div class="kpi"><div class="kpi-label">Gross Margin</div><div class="kpi-value">' + gbp(d.lifetime_gross_gbp) + '</div></div>' +
+    '<div class="kpi"><div class="kpi-label">Net Margin</div><div class="kpi-value' + nc + '">' + gbp(net) + '</div></div>' +
+    '<div class="kpi"><div class="kpi-label">Cost to Serve</div><div class="kpi-value">' + gbp(d.cost_to_serve_gbp) + '</div></div>' +
+    '</div>' +
+    '<div class="sec-title">Bills</div>' +
+    '<div id="bills-section"></div>' +
+    '</div>';
   renderBills();
 }
 function doLogout() { ACC = null; showLogin(null); }
