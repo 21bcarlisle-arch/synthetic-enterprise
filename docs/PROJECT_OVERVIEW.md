@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 218 -- Complaint register and SLC 27 compliance (2026-06-26)
+**Files:** `company/crm/complaint_register.py` (new), `tests/company/crm/test_complaint_register.py` (new)
+
+**What was built:**
+- ComplaintCategory enum (8): BILLING / METER_READS / SUPPLY_FAILURE / SWITCH / DEBT_COLLECTION / CUSTOMER_SERVICE / SMART_METER / TARIFF.
+- ComplaintStatus: OPEN / UNDER_INVESTIGATION / AWAITING_CUSTOMER / RESOLVED / UPHELD / NOT_UPHELD / OMBUDSMAN_REFERRED.
+- RESOLUTION_DEADLINE_DAYS = 56 (8 calendar weeks, SLC 27).
+- Complaint mutable: deadline(), days_open(as_of), is_overdue(as_of), is_ombudsman_eligible(as_of) (at 56d), resolve(date, upheld, goodwill_gbp), refer_to_ombudsman(date).
+- ComplaintRegister: raise_complaint(), get(), open_complaints(), overdue_complaints(as_of), complaints_per_100_customers(count, year), upheld_rate_pct(year), total_goodwill_gbp(year), complaints_summary(as_of, customer_count).
+
+**Fidelity delta:** Ofgem SLC 27 requires complaints to be resolved or acknowledged within 8 weeks (56 days); after that, the customer may refer to the Energy Ombudsman and the supplier must cooperate. complaints_per_100 feeds licence_health.py (Ph206) WATCH/BREACH check (threshold 3/100). Upheld rate of >50% suggests systematic billing or service quality issues — a trigger for Ofgem review. Goodwill payments are P&L cost: 2022 saw industry-wide surge in billing complaints as suppliers issued large catch-up bills post-freeze.
+
+**9 new tests (3,018 total).**
+
+---
 ### Phase 217 -- Trade finance instrument registry (2026-06-26)
 **Files:** `company/finance/trade_finance.py` (new), `tests/company/finance/test_trade_finance.py` (new)
 
@@ -3120,7 +3135,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,009 tests (2,593 fast / ~10s; simulation integration ~8 min per run)
+- 3,018 tests (2,601 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
