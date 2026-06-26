@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:50:24Z
+Last updated: 2026-06-26T03:51:59Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 123 COMPLETE (2026-06-27):** Customer Acquisition Cost (CAC) model -- 10 new tests (2,119 total).
+- company/crm/acquisition_cost.py: CAC by channel 2016-2025 (PCW GBP 48-72, broker GBP 140-200)
+- clv_vs_cac(): HEALTHY/MARGINAL/LOSS_MAKING at ratio 3.0/1.5 thresholds
+- Fidelity: CAC is the denominator in the CLV/CAC health check
+
 **Phase 122 COMPLETE (2026-06-26):** Network UoS charges -- 10 new tests (2,109 total).
 - company/market/network_charges.py: DUoS + TNUoS rates 2016-2025 (resi/sme/ic segments)
 - network_cost_per_mwh(), annual_network_cost(); resi<ic<sme ordering maintained
@@ -369,7 +374,7 @@ Last updated: 2026-06-26T03:50:24Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,109 total (all tests passing)**
+**Test suite: 2,119 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (474s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,109 tests (1,681 non-simulation, 428 simulation). Codebase: ~30,700 lines across 236+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,119 tests (1,691 non-simulation, 428 simulation). Codebase: ~30,900 lines across 237+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 123 -- Customer Acquisition Cost (CAC) model (2026-06-27)
+**Files:** `company/crm/acquisition_cost.py` (new), `tests/company/crm/test_acquisition_cost.py` (new)
+
+**What was built:**
+- `_CAC_BY_CHANNEL_YEAR` 2016-2025: PCW £45-72, direct £28-33, broker £140-200, referral £15-25, winback £35-42.
+- `get_cac(channel, year)`, `cac_summary(year)` (all channels).
+- `clv_vs_cac(annual_margin, tenure, channel, year)`: CLV = margin × tenure; ratio ≥3.0 = HEALTHY, ≥1.5 = MARGINAL, else LOSS_MAKING.
+
+**Fidelity delta:** PCW fees have been a major source of pressure on small UK suppliers — the CMA found that PCW-acquired customers had shorter tenures and lower margins than direct-acquired customers, making PCW-heavy books structurally less viable.
+
+**10 new tests (2,119 total).**
+
+---
 ### Phase 122 -- Network Use of System (UoS) charges (2026-06-26)
 **Files:** `company/market/network_charges.py` (new), `tests/company/market/test_network_charges.py` (new)
 
@@ -1798,14 +1811,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,109 tests (1,681 fast / ~10s; simulation integration ~8 min per run)
+- 2,119 tests (1,691 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 122, 2026-06-26):**
+**Latest full run (Phase 123, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
