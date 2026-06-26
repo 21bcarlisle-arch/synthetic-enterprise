@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 217 -- Trade finance instrument registry (2026-06-26)
+**Files:** `company/finance/trade_finance.py` (new), `tests/company/finance/test_trade_finance.py` (new)
+
+**What was built:**
+- InstrumentType enum (5): LETTER_OF_CREDIT / BANK_GUARANTEE / PARENT_GUARANTEE / SURETY_BOND / CASH_DEPOSIT.
+- InstrumentStatus enum: ACTIVE / EXPIRING_SOON (<= 30 days) / EXPIRED / CALLED / CANCELLED.
+- CreditInstrument mutable: instrument_id, customer_id, type, issuer, face_value_gbp, issue/expiry_date; days_to_expiry(as_of), refresh_status(as_of), call(date, amount).
+- TradeFinanceLedger: register(), get(), call_instrument(), total_credit_support_gbp(customer, as_of) excludes expired/called, expiring_within(as_of, days), instruments_by_type(as_of), portfolio_summary(as_of).
+
+**Fidelity delta:** I&C customers (industrial and commercial sites) routinely post Letters of Credit (LOC) or bank guarantees instead of cash deposits to meet BSC credit cover and supplier security requirements. A £500k LOC from HSBC covers both BSC margin and supplier credit risk. During the 2022 crisis, LC fees rose ~3x as banks priced in credit deterioration of energy companies. Expiry tracking is mission-critical: an expired LOC leaves the supplier unsecured and the customer in technical default, triggering a right to restrict supply under SLC 22B. Portfolio-level total_coverage_gbp feeds the BSC credit cover model (Ph53).
+
+**8 new tests (3,009 total).**
+
+---
 ### Phase 216 -- Network charge pass-through ledger (2026-06-26) ★ 3,001 TESTS
 **Files:** `company/market/network_charge_ledger.py` (new), `tests/company/market/test_network_charge_ledger.py` (new)
 
@@ -3106,7 +3120,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,001 tests (2,585 fast / ~10s; simulation integration ~8 min per run)
+- 3,009 tests (2,593 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
