@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 158 -- Customer acquisition journey funnel (2026-06-26)
+**Files:** `company/crm/acquisition_journey.py` (new), `tests/company/crm/test_acquisition_journey.py` (new)
+
+**What was built:**
+- `AcquisitionStage` enum: QUOTE_REQUESTED / APPLICATION_SUBMITTED / CREDIT_CHECK / CREDIT_APPROVED / CREDIT_DECLINED / SIGNED_UP / FIRST_BILL_SENT / ONBOARDED. Terminal stages: CREDIT_DECLINED, ONBOARDED.
+- `AcquisitionJourney`: advance(stage, date), current_stage (latest by date), is_complete, converted, days_to_stage(stage).
+- `AcquisitionFunnel`: start_journey(customer_id, channel, quote_date), advance(customer_id, stage, date), conversion_rate(from, to), drop_off_at(stage) (open journeys stalled at that stage), channel_summary() (total/converted/rate by channel).
+
+**Fidelity delta:** A UK supplier tracks where prospects drop out of the acquisition funnel — quote-to-application, credit decline rate, sign-up-to-onboarding gaps all inform CAC and channel ROI. Previously customers appeared instantaneously in the registry at sign-up with no journey model. Phase 158 closes this: the full acquisition funnel is tracked from first quote through credit check, contract sign, and onboarding.
+
+**12 new tests (2,495 total).**
+
+---
 ### Phase 157 -- Microbusiness customer classification (2026-06-26)
 **Files:** `company/crm/microbusiness.py` (new), `tests/company/crm/test_microbusiness.py` (new)
 
@@ -2260,7 +2273,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,483 tests (2,067 fast / ~10s; simulation integration ~8 min per run)
+- 2,495 tests (2,079 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
