@@ -18,6 +18,13 @@
 <body>
   <nav><a href="/">Portal</a> | <a href="/regulatory">Regulatory</a> | <a href="/trading">Trading</a></nav>
   <h1>Admin Overview</h1>
+  <div style="margin:12px 0 24px;display:flex;gap:10px;flex-wrap:wrap">
+    <a href="/admin/complaints" style="padding:6px 14px;background:#2b6cb0;color:#fff;border-radius:4px;text-decoration:none;font-size:0.88em">Complaints</a>
+    <a href="/admin/collections" style="padding:6px 14px;background:#c05621;color:#fff;border-radius:4px;text-decoration:none;font-size:0.88em">Collections</a>
+    <a href="/admin/renewals" style="padding:6px 14px;background:#276749;color:#fff;border-radius:4px;text-decoration:none;font-size:0.88em">Renewals</a>
+    <a href="/regulatory" style="padding:6px 14px;background:#553c9a;color:#fff;border-radius:4px;text-decoration:none;font-size:0.88em">Regulatory</a>
+    <a href="/trading" style="padding:6px 14px;background:#1a365d;color:#fff;border-radius:4px;text-decoration:none;font-size:0.88em">Trading</a>
+  </div>
   <div class="summary">
     <div class="card"><strong>{{ data.total_customers }}</strong><span>Active accounts</span></div>
     <div class="card"><strong>£{{ "%.0f"|format(data.total_billed_gbp) }}</strong><span>Total billed</span></div>
