@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 199 -- Annual regulatory obligations report (2026-06-26)
+**Files:** `company/regulatory/annual_obligations.py` (new), `tests/company/regulatory/test_annual_obligations.py` (new)
+
+**What was built:**
+- ObligationStatus enum: MET / AT_RISK / BREACHED / NOT_APPLICABLE.
+- ObligationLineItem frozen dataclass: name/obligation_value/delivered_value/unit/status/penalty_estimate_gbp; delivery_pct, shortfall properties.
+- AnnualObligationsReport frozen dataclass: year/report_date/obligations tuple; met_count/at_risk_count/breached_count/overall_status (worst wins)/total_penalty_estimate_gbp/get(name)/summary().
+- build_obligations_report(): assembles WHD (£150/customer shortfall), ECO4 (£10/MWh shortfall), GSOP (breach count + payments), Ofgem Annual Return (overdue if submitted=False and past due_date), REGO (£50/MWh shortfall).
+
+**Fidelity delta:** UK energy suppliers face a cascade of statutory obligations each year. Missing WHD rebates triggers Ofgem investigation (£150/customer missed); ECO4 shortfall means buying "traded carbon" credits at premium; GSOP payments are small (£30/SLA breach) but signal service failures; an overdue Ofgem Annual Return is a licence breach. board_kpis.py (Ph182) surfaces the aggregate; this report provides the line-item breakdown behind it. Bridges Ph167 (WHD register), Ph197 (EEP book), Ph143 (REGO audit), Ph190 (Ofgem supply return).
+
+**8 new tests (2,868 total).**
+
+---
 ### Phase 198 -- Revolving credit facility model (2026-06-26)
 **Files:** `company/finance/credit_facility.py` (new), `tests/company/finance/test_credit_facility.py` (new)
 
@@ -2841,7 +2855,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,860 tests (2,444 fast / ~10s; simulation integration ~8 min per run)
+- 2,868 tests (2,452 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
