@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase 303 (2026-06-27):** Stress Test Framework -- 20 new tests (3,870 total). company/risk/stress_test.py: StressScenario (5: MARKET_SPIKE/CREDIT_DEFAULT/DEMAND_SHOCK/LIQUIDITY_CRISIS/COMBINED_CRISIS), StressAssumption (frozen; default_for() loads 2022-calibrated params; COMBINED_CRISIS: elec 5x/gas 4x/margin GBP500k/counterparty GBP1M), StressResult (frozen; drawdown_pct/is_severe <GBP250k/severity_rag GREEN-AMBER-RED/weeks_to_cash_concern Optional[int]), StressTestBook (run_stress/results_for_scenario/worst_case/probability_weighted_loss_gbp/scenarios_survived/scenarios_failed/all_red/stress_summary). Ofgem Financial Resilience Assessment Framework (introduced post-2022): quarterly stress tests mandatory; 28 supplier failures 2021-22 partly from failure to stress-test credit facility adequacy against margin call cascades. Connects to var_monitor (Ph282), margin_call_book (Ph289), credit_limit_book (Ph290), bsuos_ledger (Ph293), imbalance_ledger (Ph297). Closes largest gap in company/risk/ (previously 3 modules/305 lines).
 **Phase 302 (2026-06-27):** GSoP Payments Tracker -- 16 new tests (3,887 total). company/regulatory/gsop_tracker.py: GSoPStandard (10: BILLING_DELAY/COMPLAINT_NO_RESPONSE/COMPLAINT_UNRESOLVED/RECONNECTION_DELAY/APPOINTMENT_MISSED/FINAL_BILL_DELAY/METER_READ_DISPUTE/DIRECT_DEBIT_ERROR/SWITCHING_DELAY/DEBT_QUERY_DELAY), GSoPBreachStatus (4: OPEN/COMPENSATED/WAIVED/DISPUTED), frozen GSoPBreach (breach_id/account_id/standard/breach_date/resolution_date/compensation_gbp=30.0/status/notes; is_open/is_compensated/working_days_open Mon-Fri count), GSoPTracker (record_breach/compensate_breach/waive_breach/open_breaches/breaches_for_standard/total_compensation_paid_gbp/total_compensation_outstanding_gbp/breach_rate_per_100_customers/breaches_by_standard/is_systemic >5 breaches/gsop_summary). UK Electricity/Gas Standards of Performance Regulations 2015: GBP30 auto-compensation; >3 breaches/100 customers triggers Ofgem supervisory action; GBP21.3M paid sector-wide 2022-23. Connects to ET register (Ph301), consumer_duty (Ph283), regulatory_dashboard (Ph300).
 **Phase 301 (2026-06-26):** Erroneous Transfer Register -- 19 new tests (3,871 total). company/market/erroneous_transfer.py: ETStatus (OPEN/INVESTIGATING/RESOLVED_CORRECTED/RESOLVED_ACCEPTED/COMPENSATION_DUE/CLOSED), ETResolutionType (RETURNED_TO_ORIGINAL/CUSTOMER_ACCEPTED_GAIN/WITHDRAWN), frozen ETClaim (working_days_open [Mon-Fri loop]/is_overdue [>20 days]/compensation_gbp [GBP30 if overdue+unresolved]), ErroneousTransferRegister (raise_claim/update_status/resolve_claim/open_claims/overdue_claims/et_rate_pct/compensation_outstanding_gbp/claims_by_status/et_summary). Under Ofgem SLC P14 / REC, ETs must be resolved within 20 working days; GBP30 auto-compensation if overdue. ET rate >0.1% triggers Ofgem compliance review. Connects to cos_process (Ph298) and supply_point_register (Ph299).
 **Phase 300 (2026-06-26):** MILESTONE — Regulatory Compliance Dashboard -- 12 new tests (3,852 total). company/regulatory/regulatory_dashboard.py: FilingStatus (4), ComplianceArea (8: SFR/REMIT/PRICE_CAP/ENVIRONMENTAL/SOCIAL/CONSUMER_DUTY/TRADE_REPORTING/FUEL_MIX), frozen ComplianceObligation (is_breach, needs_attention), RegulatoryDashboard (overall_rag, filed_on_time_rate, area_rag by all 8 areas, dashboard_summary). Aggregates SFR/REMIT/Price Cap/RO/FIT/FMD/ECO/WHD/EBSS/Consumer Duty into single board-level status.
@@ -3983,14 +3984,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,871 tests (fast / ~10s; simulation integration ~8 min per run)
+- 3,870 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 258, 2026-06-26):**
+**Latest full run (Phase 303, 2026-06-27):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 4 new tests: Dashboard Insights tab (extract_insights) — surfaces run_insights.json into poesys.net dashboard.
 
