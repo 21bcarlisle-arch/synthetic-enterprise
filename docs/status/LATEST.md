@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T20:18:34Z
+Last updated: 2026-06-26T20:28:28Z
 
 ## Latest Simulation Run
 - **Git:** 559f25f (run 2026-06-26T19:04)
@@ -11,11 +11,15 @@ Last updated: 2026-06-26T20:18:34Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 276
-- **Tests:** 3,560 passing
-- **Session theme:** Human simulation layer, dashboard expansions, /sim/ BM data, NTFY spam fix
+- **Current Phase:** 280
+- **Tests:** 3,606 passing
+- **Session theme:** Phases 271-280 -- Human sim layer, dashboard expansions, /sim/ tabs, crisis history modules
 
-## This Session (Phases 271-276)
+## This Session (Phases 271-280)
+- Ph 280: Energy Bill Support Scheme Tracker -- EBSS 2022-23 (11 tests)
+- Ph 279: Decarbonisation Score -- D-Score ESG tracker, company/sustainability/ (13 tests)
+- Ph 278: Dashboard Monthly Ops tab -- 103-month bill shock + committee timeline (11 tests)
+- Ph 277: Tariff Smoothing Book -- closes tariff smoothing backlog (11 tests)
 - Ph 276: BM Settlement tab on /sim/ -- Short%/NIV data from Elexon cache (10 tests)
 - Ph 275: Green Claims Audit test coverage -- REGO/green product compliance (12 tests)
 - Ph 274: Life Event Impact Assessor -- PSR/consumption/vulnerability routing (12 tests)
