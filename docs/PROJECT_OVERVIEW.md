@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 234 -- Seasonal demand forecast model (2026-06-26)
+**Files:** `company/market/seasonal_demand.py` (new), `tests/company/market/test_seasonal_demand.py` (new)
+
+**What was built:**
+- Season: WINTER (Nov-Mar) / SUMMER (Apr-Oct).
+- DemandScenario: BASE (1.0x) / HIGH (1.15x) / LOW (0.85x).
+- _SEASONAL_INDEX by month (1-12): Jan 1.35 / Jul-Aug 0.80 / Dec 1.30.
+- MonthlyDemandForecast frozen: year, month, commodity, base_mwh, scenario; season, seasonal_index, forecast_mwh (= base × index × scenario).
+- SeasonalDemandModel: set_monthly_forecast(), get_month(), annual_demand_mwh(year, commodity), seasonal_demand_mwh(year, commodity, season), peak_month(year, commodity), winter_summer_ratio(year, commodity), demand_summary(year).
+
+**Fidelity delta:** Seasonal demand forecasting is the foundation of the forward purchasing calendar. January peak = 35% above annual average; suppliers use this to set the "S1" (Season 1 winter) forward hedge — the largest single trade of the year. winter_summer_ratio (typically 1.6-1.8 for residential gas, 1.2-1.4 for electricity) determines the hedge curve shape. HIGH scenario (15% uplift) is used for cold-year risk; LOW scenario (15% below) for mild-year risk. The difference between seasonal_demand_mwh(base) and actual consumption in Ph144 gas_nominations is the primary imbalance driver. Connects to hedging_schedule (Ph207): forecasts feed the forward contract set.
+
+**10 new tests (3,156 total).**
+
+---
 ### Phase 233 -- Settlement imbalance analytics (2026-06-26)
 **Files:** `company/market/imbalance_analytics.py` (new), `tests/company/market/test_imbalance_analytics.py` (new)
 
@@ -3358,7 +3373,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,146 tests (2,729 fast / ~10s; simulation integration ~8 min per run)
+- 3,156 tests (2,739 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
