@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 210 -- Regulatory reporting calendar (2026-06-26)
+**Files:** `company/regulatory/reporting_calendar.py` (new), `tests/company/regulatory/test_reporting_calendar.py` (new)
+
+**What was built:**
+- ReportingFrequency enum: MONTHLY / QUARTERLY / ANNUAL / AD_HOC.
+- DeadlineStatus enum: PENDING / SUBMITTED / OVERDUE / WAIVED.
+- RegulatoryDeadline frozen: status(as_of), is_submitted, days_until_due(as_of).
+- RegulatoryCalendar: add_deadline(), mark_submitted() (replaces frozen dataclass), overdue(as_of), due_within_days(as_of, days), by_regulator(regulator), calendar_summary(as_of) with due_within_14_days count.
+
+**Fidelity delta:** UK energy suppliers face ~15-20 mandatory regulatory submissions per year: Ofgem Annual Return (April), WHD Core Group (Dec), DESNZ ECO4 quarterly reports, BSC monthly settlement data, MPAS quarterly reconciliation, Elexon half-hourly data, DESNZ SECR (Streamlined Energy and Carbon Reporting), FMD (Fuel Mix Disclosure), capacity market quarterly, RO quarterly, CfD quarterly. Missing a submission is a licence breach (SLC 21). A compliance manager tracks all deadlines on a rolling calendar — overdue detection triggers board escalation. Feeds licence_health.py (Ph206) compliance check.
+
+**8 new tests (2,952 total).**
+
+---
 ### Phase 209 -- Carbon emissions per customer (Scope 2) (2026-06-26)
 **Files:** `company/regulatory/carbon_emissions.py` (new), `tests/company/regulatory/test_carbon_emissions.py` (new)
 
@@ -3006,7 +3020,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,944 tests (2,528 fast / ~10s; simulation integration ~8 min per run)
+- 2,952 tests (2,536 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
