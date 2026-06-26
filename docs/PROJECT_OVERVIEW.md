@@ -527,6 +527,18 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 190 -- Ofgem annual supply data return (2026-06-26)
+**Files:** `company/regulatory/ofgem_supply_return.py` (new), `tests/company/regulatory/test_ofgem_supply_return.py` (new)
+
+**What was built:**
+- OfgemSupplyReturn frozen dataclass: year, submitted_date, residential/SME/IC customer counts, elec/gas supplied (GWh), residential_complaints, average_debt_per_customer_gbp, whd_customers_supported, gsop_payments_gbp, solr_events, bad_debt_written_off_gbp; total_customers, complaints_per_100_customers, is_submitted, whd_penetration_pct, summary().
+- OfgemReturnBook: file_return(), get(year), missing_years(from_year, to_year), all_returns() sorted.
+
+**Fidelity delta:** Every UK licensed supplier must submit an annual supply data return to Ofgem by 31 March each year. The return is a statutory obligation; failure to file is an SLC breach. In 2022, the data was shocking: complaints_per_100 hit 10x normal at some suppliers; avg_debt_per_customer breached £200; WHD coverage dropped below the Ofgem target 70% penetration of eligible customers. missing_years() flags compliance gaps — the exact type of issue that triggers an Ofgem investigation.
+
+**8 new tests (2,798 total).**
+
+---
 ### Phase 189 -- Contact centre performance metrics (2026-06-26)
 **Files:** `company/crm/contact_centre_metrics.py` (new), `tests/company/crm/test_contact_centre_metrics.py` (new)
 
@@ -2714,7 +2726,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,790 tests (2,374 fast / ~10s; simulation integration ~8 min per run)
+- 2,798 tests (2,382 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
