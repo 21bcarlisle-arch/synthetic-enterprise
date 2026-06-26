@@ -648,6 +648,22 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 **6 new tests (3,424 total).**
 
 ---
+**Phase 263 -- Four-Section Site Restructure (poesys.net) (2026-06-26)**
+**Files:** site/customers/index.html (new), site/project/index.html (new), site/data/customers/*.json (new), site/data/phases.json (new), tools/generate_customer_data.py (new), background/process_run_complete.py (modified), site/index.html (modified), site/timeline/index.html (modified), site/staging-status/index.html (modified)
+
+**What was built:**
+- Persistent site-wide navigation bar (Supplier / Customers / Project / SIM-stub) added to all 4 HTML pages.
+- /customers/: static SPA portal -- login by account ID, shows tariff/meter type, acquisition date, lifetime P&L (revenue/gross/net/CTS). 19 per-customer JSON files generated from run output.
+- /project/: investor summary card (fetches live from dashboard.json + phases.json), 4 key discoveries, test+phase velocity charts (Chart.js), roadmap checklist.
+- tools/generate_customer_data.py: generates site/data/customers/{id}.json + _index.json from run_output_latest.json.
+- site/data/phases.json: test progression + phase dates extracted from git log (via timeline HTML) for velocity charts.
+- process_run_complete.py: calls generate_customer_data() after every run; includes site/data/customers/ in auto-commit.
+- Gate passed: nav visible on all pages; /customers/ loads with C1 login; /project/ shows investor summary + velocity charts.
+- 13 new tests: customers/index exists, login form, nav bar, project/index exists, investor KPIs, charts, customer JSON present, C1 valid, phases.json, generate module.
+
+**13 new tests (3,437 total).**
+
+---
 **12 new tests (3,373 total).**
 
 ---
@@ -3819,7 +3835,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,424 tests (2,992 fast / ~10s; simulation integration ~8 min per run)
+- 3,437 tests (3,005 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

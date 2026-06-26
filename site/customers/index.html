@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Customer Portal</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
+  --border: #30363d; --text: #e6edf3; --muted: #7d8590;
+  --green: #3fb950; --red: #f85149; --amber: #d29922;
+  --blue: #58a6ff; --teal: #39d353;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; min-height: 100vh; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.nav-link.dim { opacity: 0.4; cursor: default; pointer-events: none; }
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 48px); }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 40px; width: 380px; max-width: 95vw; }
+.login-card h1 { font-size: 22px; margin-bottom: 8px; }
+.login-card p { color: var(--muted); font-size: 13px; margin-bottom: 28px; line-height: 1.5; }
+.login-card label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+.login-card input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; }
+.login-card input:focus { border-color: var(--blue); }
+.hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.btn { width: 100%; background: var(--blue); color: #000; font-weight: 600; border: none; border-radius: 8px; padding: 11px; font-size: 14px; cursor: pointer; margin-top: 20px; }
+.btn:hover { opacity: 0.85; }
+.error-msg { color: var(--red); font-size: 12px; margin-top: 10px; }
+.account-wrap { max-width: 800px; margin: 0 auto; padding: 32px 20px; }
+.account-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; gap: 16px; flex-wrap: wrap; }
+.account-id { font-size: 28px; font-weight: 700; }
+.logout-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.sec-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.kpi-value { font-size: 18px; font-weight: 700; }
+.green { color: var(--green); } .red { color: var(--red); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.br { background: #1f3a5f; color: var(--blue); }
+.bi { background: #3a2f10; color: var(--amber); }
+.be { background: #122b1e; color: var(--green); }
+.bg { background: #1a1a2e; color: #a0a0ff; }
+.row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.row:last-child { border-bottom: none; }
+.rl { color: var(--muted); }
+.no-inv { color: var(--muted); font-size: 13px; font-style: italic; padding: 12px 0; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="/" class="nav-logo">&#9889; Poesys</a>
+  <a href="/" class="nav-link">Supplier</a>
+  <a href="/customers/" class="nav-link active">Customers</a>
+  <a href="/project/" class="nav-link">Project</a>
+  <a href="/sim/" class="nav-link dim">SIM</a>
+</nav>
+<div id="app"></div>
+<script>
+var ACC = null;
+function gbp(n) {
+  if (n == null) return "-";
+  var s = Math.abs(n).toLocaleString("en-GB", {minimumFractionDigits:0, maximumFractionDigits:0});
+  return (n < 0 ? "-" : "") + String.fromCharCode(163) + s;
+}
+function showLogin(err) {
+  document.getElementById("app").innerHTML =
+    "<div class="login-wrap"><div class="login-card">" +
+    "<h1>Customer Portal</h1>" +
+    "<p>Log in with your account number to view your account and bills.</p>" +
+    "<label for="acc">Account number</label>" +
+    "<input type="text" id="acc" placeholder="e.g. C1, C_IC1" autocomplete="off" />" +
+    "<div class="hint">Accounts: C1...C9, C_IC1...C_IC4, C1g...C4g</div>" +
+    (err ? "<div class="error-msg">" + err + "</div>" : "") +
+    "<button class="btn" onclick="doLogin()">Sign in</button>" +
+    "</div></div>";
+  var inp = document.getElementById("acc");
+  if (inp) { inp.focus(); inp.onkeydown = function(e) { if (e.key === "Enter") doLogin(); }; }
+}
+function doLogin() {
+  var id = (document.getElementById("acc").value || "").trim();
+  if (!id) return;
+  fetch("/data/customers/" + id + ".json")
+    .then(function(r) {
+      if (!r.ok) throw new Error("Account not found: " + id);
+      return r.json();
+    })
+    .then(function(d) { ACC = d; renderAccount(); })
+    .catch(function(e) { showLogin(e.message); });
+}
+function renderAccount() {
+  var d = ACC;
+  var seg = d.segment === "I&C"
+    ? "<span class="badge bi">I&amp;C</span>"
+    : "<span class="badge br">Residential</span>";
+  var com = d.commodity === "gas"
+    ? "<span class="badge bg">Gas</span>"
+    : "<span class="badge be">Electricity</span>";
+  var net = d.lifetime_net_gbp || 0;
+  var nc = net >= 0 ? " green" : " red";
+  var invSection = d.invoices && d.invoices.length
+    ? d.invoices.map(function(inv) {
+        return "<div class="row"><span class="rl">" + inv.date + "</span>" +
+          "<span>" + gbp(inv.amount_gbp) + "</span>" +
+          "<span style="color:var(--muted)">" + inv.status + "</span></div>";
+      }).join("")
+    : "<div class="no-inv">Invoice history not yet populated (Phase 264).</div>";
+  document.getElementById("app").innerHTML =
+    "<div class="account-wrap">" +
+    "<div class="account-header"><div>" +
+    "<div class="account-id">" + d.account_id + "</div>" +
+    "<div style="margin-top:6px">" + seg + " " + com + "</div></div>" +
+    "<button class="logout-btn" onclick="doLogout()">Sign out</button></div>" +
+    "<div class="sec-title">Tariff</div>" +
+    "<div class="card">" +
+    "<div class="row"><span class="rl">Tariff</span><span>" + d.tariff_name + "</span></div>" +
+    "<div class="row"><span class="rl">Meter</span><span>" + d.meter_type + "</span></div>" +
+    "<div class="row"><span class="rl">Customer since</span><span>" + d.acquisition_date + "</span></div>" +
+    "<div class="row"><span class="rl">Pricing action</span><span>" + (d.pricing_action || "NONE") + "</span></div>" +
+    "</div>" +
+    "<div class="sec-title">Lifetime Performance</div>" +
+    "<div class="kpi-grid">" +
+    "<div class="kpi"><div class="kpi-label">Revenue</div><div class="kpi-value">" + gbp(d.lifetime_revenue_gbp) + "</div></div>" +
+    "<div class="kpi"><div class="kpi-label">Gross Margin</div><div class="kpi-value">" + gbp(d.lifetime_gross_gbp) + "</div></div>" +
+    "<div class="kpi"><div class="kpi-label">Net Margin</div><div class="kpi-value" + nc + "">" + gbp(net) + "</div></div>" +
+    "<div class="kpi"><div class="kpi-label">Cost to Serve</div><div class="kpi-value">" + gbp(d.cost_to_serve_gbp) + "</div></div>" +
+    "</div>" +
+    "<div class="sec-title">Bills</div>" +
+    "<div class="card">" + invSection + "</div>" +
+    "</div>";
+}
+function doLogout() { ACC = null; showLogin(null); }
+showLogin(null);
+</script>
+</body>
+</html>

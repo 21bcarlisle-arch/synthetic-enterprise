@@ -151,6 +151,12 @@ def generate_dashboard_json(json_path):
             log("Dashboard data generation returned False — skipping")
     except Exception as exc:
         log("Dashboard data generation failed: {}".format(exc))
+    try:
+        from tools.generate_customer_data import generate as gen_cust
+        gen_cust(json_path)
+        log("Generated site/data/customers/ JSON")
+    except Exception as exc:
+        log("Customer data generation failed: {}".format(exc))
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):
@@ -162,11 +168,14 @@ def git_commit_push(git_hash, net_margin):
     report = PROJECT_DIR / "docs" / "reports" / "ANNUAL_REPORT.md"
     site_index = PROJECT_DIR / "site" / "index.html"
     site_data = PROJECT_DIR / "site" / "data" / "dashboard.json"
+    site_customers = PROJECT_DIR / "site" / "data" / "customers"
     files = [str(report), str(LATEST_MD)]
     if site_index.exists():
         files.append(str(site_index))
     if site_data.exists():
         files.append(str(site_data))
+    if site_customers.exists():
+        files.append(str(site_customers))
     subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin

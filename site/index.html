@@ -14,6 +14,12 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; height: 40px; gap: 4px; }
+.site-nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 12px; font-size: 14px; }
+.site-nav-link { color: var(--muted); text-decoration: none; padding: 4px 10px; border-radius: 5px; font-size: 12px; }
+.site-nav-link:hover { color: var(--text); background: var(--surface2); }
+.site-nav-link.dim { opacity: 0.4; cursor: default; pointer-events: none; }
 :root {
   --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
   --border: #30363d; --text: #e6edf3; --muted: #7d8590;
@@ -153,6 +159,14 @@ tr:hover td { background: var(--surface2); }
 </style>
 </head>
 <body>
+
+<nav class="site-nav">
+  <a href="/" class="site-nav-logo">&#9889; Poesys</a>
+  <a href="/" class="site-nav-link" style="color:var(--text)">Supplier</a>
+  <a href="/customers/" class="site-nav-link">Customers</a>
+  <a href="/project/" class="site-nav-link">Project</a>
+  <a href="/sim/" class="site-nav-link dim">SIM</a>
+</nav>
 
 <header>
   <div class="logo">Poesys<span>.</span>net</div>

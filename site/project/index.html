@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Project</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
+  --border: #30363d; --text: #e6edf3; --muted: #7d8590;
+  --green: #3fb950; --red: #f85149; --amber: #d29922;
+  --blue: #58a6ff; --teal: #39d353;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.nav-link.dim { opacity: 0.4; cursor: default; pointer-events: none; }
+.wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 40px; }
+.sec:first-child { margin-top: 0; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 16px; }
+.inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.kl { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.kv { font-size: 18px; font-weight: 700; }
+.kv.green { color: var(--green); }
+.disc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.disc { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--teal);
+  border-radius: 8px; padding: 16px; }
+.disc h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.disc p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .chart-row { grid-template-columns: 1fr; } .inv-grid { grid-template-columns: 1fr 1fr; } }
+.cb { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.cb canvas { max-height: 200px; }
+.about-text { font-size: 14px; line-height: 1.7; }
+.tl { color: var(--teal); }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="/" class="nav-logo">&#9889; Poesys</a>
+  <a href="/" class="nav-link">Supplier</a>
+  <a href="/customers/" class="nav-link">Customers</a>
+  <a href="/project/" class="nav-link active">Project</a>
+  <a href="/sim/" class="nav-link dim">SIM</a>
+</nav>
+<div class="wrap">
+  <div class="sec">About</div>
+  <div class="card">
+    <p class="about-text">
+      <span class="tl">Poesys</span> is a high-fidelity autonomous simulation of a UK electricity and gas
+      supply business, running continuously against real Elexon/NESO half-hourly settlement data (2016-2025).
+      The goal is a simulation detailed enough to say: <span class="tl">"that is how a real UK energy supplier works"</span>
+      -- and use it to build and prove the software that would run one autonomously.
+      When the software is proven, the market interfaces swap from simulated to real -- and the company transacts.
+    </p>
+  </div>
+
+  <div class="sec">Investor Summary</div>
+  <div class="inv-grid" id="inv-kpis"><div style="color:var(--muted);font-size:12px">Loading...</div></div>
+
+  <div class="sec">Key Discoveries</div>
+  <div class="disc-grid">
+    <div class="disc">
+      <h3>Regime-Change Blindness</h3>
+      <p>Agent converged to near-naked hedging during 2016-2020 calm, directly before the crisis --
+      mirroring how 28 real UK suppliers failed in 2021-22. Discovered in simulation before the fix.</p>
+    </div>
+    <div class="disc">
+      <h3>Activity-Based Pricing Gap</h3>
+      <p>Flat margin pricing makes high-cost-to-serve customers net-negative.
+      Large SME customers destroy value under standard pricing.</p>
+    </div>
+    <div class="disc">
+      <h3>Forward Curve Overpricing</h3>
+      <p>Half-hourly sigma 4.3x too high, causing systematic margin inflation.
+      Real settlement data falsified the synthetic curve directly.</p>
+    </div>
+    <div class="disc">
+      <h3>Crisis Survival</h3>
+      <p>The supplier survived 2021-22 with treasury drawdown, churn spike, and recovery.
+      30+ real suppliers failed. The simulation replicates the conditions faithfully.</p>
+    </div>
+  </div>
+
+  <div class="sec">Build Evidence</div>
+  <div class="chart-row">
+    <div class="cb"><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tests passing over time</div><canvas id="ct"></canvas></div>
+    <div class="cb"><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Phases shipped per day</div><canvas id="cp"></canvas></div>
+  </div>
+
+  <div class="sec">Roadmap</div>
+  <div class="card">
+    <div style="font-size:13px;line-height:2">
+      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Company layer: 260+ modules, 3,400+ tests</div>
+      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Crisis survival: 2021-22 energy crisis replicated and survived</div>
+      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Four-section site live: Supplier, Customers, Project, SIM (stub)</div>
+      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>Invoice history: billing engine integration</div>
+      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>SIM section: wholesale market data, weather, balancing mechanism</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Real market interfaces: N2EX, Elexon API, Met Office live feeds</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Capital raise: when the blueprint is proven</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var D = null, PH = null;
+function gbp(n) {
+  if (n == null) return '-';
+  var s = Math.abs(n).toLocaleString('en-GB', {minimumFractionDigits:0, maximumFractionDigits:0});
+  return (n < 0 ? '-' : '') + String.fromCharCode(163) + s;
+}
+function renderKpis() {
+  if (!D || !PH) return;
+  var fin = D.financial || {};
+  var ann = fin.annual || [];
+  var totalNet = ann.reduce(function(s, r) { return s + (r.net_gbp || 0); }, 0);
+  var treasury = ann.length ? (ann[ann.length-1].treasury_end_gbp || 0) : 0;
+  var tp = PH.test_progression || [];
+  var latestTests = tp.length ? tp[tp.length-1][1] : 0;
+  var rh = D.run_history || [];
+  var kpis = [
+    {l: "Started", v: PH.start_date || "June 2026"},
+    {l: "Phases shipped", v: PH.total_phases || "--"},
+    {l: "Tests passing", v: latestTests.toLocaleString()},
+    {l: "Net margin (all time)", v: gbp(totalNet), g: totalNet >= 0},
+    {l: "Treasury (end 2025)", v: gbp(treasury)},
+    {l: "Crisis survived", v: "2021-22"},
+    {l: "Sim runs", v: rh.length},
+    {l: "Built by", v: "1 human + Claude + Qwen"},
+  ];
+  document.getElementById("inv-kpis").innerHTML = kpis.map(function(k) {
+    return "<div class=\"kpi\"><div class=\"kl\">" + k.l + "</div>" +
+      "<div class=\"kv" + (k.g ? " green" : "") + "\">" + k.v + "</div></div>";
+  }).join("");
+}
+function renderCharts() {
+  if (!PH) return;
+  var tp = PH.test_progression || [];
+  var opts = {responsive:true, plugins:{legend:{display:false}},
+    scales:{x:{ticks:{maxTicksLimit:5,color:"#7d8590"},grid:{color:"#30363d"}},
+            y:{ticks:{color:"#7d8590"},grid:{color:"#30363d"}}}};
+  new Chart(document.getElementById("ct"), {type:"line",
+    data:{labels:tp.map(function(p){return p[0];}),
+          datasets:[{data:tp.map(function(p){return p[1];}),
+            borderColor:"#3fb950",backgroundColor:"rgba(63,185,80,0.1)",fill:true,borderWidth:2,pointRadius:1}]},
+    options:opts});
+  var pd = PH.phase_dates || [];
+  var dm = {};
+  pd.forEach(function(p){ dm[p[0]] = (dm[p[0]] || 0) + 1; });
+  var days = Object.keys(dm).sort();
+  new Chart(document.getElementById("cp"), {type:"bar",
+    data:{labels:days, datasets:[{data:days.map(function(d){ return dm[d]; }), backgroundColor:"rgba(88,166,255,0.6)"}]},
+    options:opts});
+}
+Promise.all([
+  fetch("/data/dashboard.json").then(function(r){ return r.json(); }),
+  fetch("/data/phases.json").then(function(r){ return r.json(); })
+]).then(function(rs){ D = rs[0]; PH = rs[1]; renderKpis(); renderCharts(); })
+  .catch(function(e){ console.error("Load error:", e); });
+</script>
+</body>
+</html>
