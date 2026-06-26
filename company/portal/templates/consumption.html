@@ -77,6 +77,22 @@
   {% endif %}
 
 
+
+  {% if rate_cmp %}
+  <div style="margin:16px 0;padding:12px;border-radius:6px;
+    border:1px solid {{ '#276749' if rate_cmp.protected else '#c53030' if rate_cmp.delta_p and rate_cmp.delta_p > 0.5 else '#bee3f8' }};
+    background:{{ '#f0fff4' if rate_cmp.protected else '#fff5f5' if rate_cmp.delta_p and rate_cmp.delta_p > 0.5 else '#ebf8ff' }};
+    font-size:0.9em">
+    <strong>Market rate comparison:</strong>
+    Forward market {{ rate_cmp.market_p }}p/kWh
+    {% if rate_cmp.contracted_p %}
+    vs your effective rate {{ rate_cmp.contracted_p }}p/kWh
+    — {{ rate_cmp.message }}
+    {% else %}
+    ({{ rate_cmp.message }})
+    {% endif %}
+  </div>
+  {% endif %}
   {% if cost_forecast %}
   <div style="margin:20px 0;padding:14px;background:#f0fff4;border:1px solid #276749;border-radius:6px">
     <strong>Estimated annual cost:</strong>

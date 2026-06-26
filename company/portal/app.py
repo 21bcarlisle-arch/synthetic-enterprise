@@ -27,6 +27,7 @@ from company.billing.direct_debit import set_mandate, get_mandate, cancel_mandat
 from company.billing.contract import renewal_summary, contract_end_date, days_until_renewal
 from company.billing.collections import get_collections_queue
 from company.billing.consumption_forecast import forecast_annual_cost
+from company.market.rate_comparison import market_rate_comparison
 from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
@@ -313,12 +314,13 @@ async def consumption_page(request: Request, account_id: str):
     cost_forecast = forecast_annual_cost(
         account_id, _ELEC_UNIT_P, _ELEC_SC_P, _DEFAULT_DB
     )
+    rate_cmp = market_rate_comparison(account_id, _DEFAULT_DB)
     return templates.TemplateResponse(
         request, "consumption.html",
         {"customer": customer, "monthly_data": data, "is_hh": is_hh,
          "total_kwh": total_kwh, "hh_data": hh_data, "is_tou": is_tou,
          "calibrated_eac": calibrated_eac, "eac_drift": drift,
-         "cost_forecast": cost_forecast},
+         "cost_forecast": cost_forecast, "rate_cmp": rate_cmp},
     )
 
 @app.post("/account/{account_id}/pay", response_class=HTMLResponse)
