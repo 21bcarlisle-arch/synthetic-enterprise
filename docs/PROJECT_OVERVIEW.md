@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 154 -- Meter read dispute management (2026-06-26)
+**Files:** `company/billing/meter_dispute.py` (new), `tests/company/billing/test_meter_dispute.py` (new)
+
+**What was built:**
+- `DisputeType` enum: ESTIMATED_READ / ACTUAL_TOO_HIGH / METER_FAULT / PRIOR_READING_ERROR.
+- `DisputeStatus` enum: OPEN / UNDER_REVIEW / RESOLVED_ACCEPTED / RESOLVED_REJECTED.
+- `MeterDispute` dataclass: dispute_id, customer_id, bill_reference, dispute_type, billed/claimed_read_kwh, opened_date, status, credit_applied_gbp; `disputed_kwh` property; `is_open` covers both OPEN and UNDER_REVIEW.
+- `MeterDisputeBook`: open_dispute() (auto-increment ID), update_status(), resolve() (accepted/rejected, credit, notes), outstanding_disputes(), disputes_for_customer(), annual_summary() (total/accepted/rejected/outstanding/credit_gbp).
+
+**Fidelity delta:** When a customer believes a meter read is wrong (estimated read, meter fault, prior error), UK suppliers must follow a formal dispute process that may result in a rebill and credit. Previously billing had no dispute resolution path — incorrect bills could not be formally contested or corrected. Phase 154 closes this: disputes are tracked from opening through review to resolution with credit application.
+
+**12 new tests (2,446 total).**
+
+---
 ### Phase 153 -- Fixed-term contract exit fee (2026-06-26)
 **Files:** `company/billing/exit_fee.py` (new), `tests/company/billing/test_exit_fee.py` (new)
 
@@ -2203,16 +2217,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,434 tests (2,018 fast / ~10s; simulation integration ~8 min per run)
+- 2,446 tests (2,030 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 153, 2026-06-26):**
+**Latest full run (Phase 154, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 10 new tests: Fixed-term contract exit fee — calculate_exit_fee() auto-waive in 42-day notice; days_remaining/365×annual_kwh×rate; elec 1.5p/gas 1.0p.
+- 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
