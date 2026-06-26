@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 206 -- Supply licence health monitor (2026-06-26)
+**Files:** `company/regulatory/licence_health.py` (new), `tests/company/regulatory/test_licence_health.py` (new)
+
+**What was built:**
+- LicenceCheckStatus enum: PASS / WATCH / BREACH.
+- LicenceCheck frozen: name, description, value, threshold, status, notes; headroom property.
+- LicenceHealthReport frozen: checks tuple; pass/watch/breach_count, overall_status (worst), is_going_concern (zero breaches), get(name), summary().
+- build_licence_health_report(as_of, active_customer_count, net_assets_gbp, treasury_gbp, weeks_cash_runway, bad_debt_ratio_pct, complaints_per_100) -> LicenceHealthReport.
+- 6 checks: customer_count (>=50; watch at <75), net_assets_gbp (>= 0; balance sheet insolvency), treasury_gbp (>=£100k), cash_runway_weeks (>=8w; SoLR at <4w), bad_debt_ratio (PASS<3%/WATCH<5%/BREACH>=5%), complaints_per_100 (PASS<1/WATCH<3/BREACH>=3).
+
+**Fidelity delta:** Ofgem requires SLC 28 net assets to be positive at all times; breach = mandatory board notification within 5 business days. Cash runway < 8 weeks triggers the internal Going Concern escalation protocol; < 4 weeks triggers Ofgem to consider appointing a SoLR. The supplier board is required to self-certify quarterly against all SLC conditions. is_going_concern = False means the auditors would add a "material uncertainty" note — triggering immediate investor scrutiny. This is the "will the business survive?" question that all the other financial modules (company_pl, cash_flow_forecast, credit_facility) ultimately feed.
+
+**7 new tests (2,920 total).**
+
+---
 ### Phase 205 -- Capacity-to-Pay (CtP) affordability assessment (2026-06-26)
 **Files:** `company/billing/capacity_to_pay.py` (new), `tests/company/billing/test_capacity_to_pay.py` (new)
 
@@ -2948,7 +2963,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,913 tests (2,497 fast / ~10s; simulation integration ~8 min per run)
+- 2,920 tests (2,504 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
