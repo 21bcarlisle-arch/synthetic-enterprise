@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 159 -- Economy 7 off-peak tariff billing (2026-06-26)
+**Files:** `company/billing/economy7.py` (new), `tests/company/billing/test_economy7.py` (new)
+
+**What was built:**
+- `TariffRegister` enum: DAY / NIGHT.
+- `e7_unit_rate_ppm(year, register)`: year-indexed rates 2016–2025 for day and night registers.
+- `E7MeterRead` frozen dataclass: customer_id, read_date, day_kwh, night_kwh; total_kwh, night_pct.
+- `E7Bill` frozen dataclass: day_charge_gbp, night_charge_gbp, total_gbp, blended_rate_ppm.
+- `generate_e7_bill(customer_id, period_start, period_end, day_kwh, night_kwh)`: factory using period year for rates.
+
+**Fidelity delta:** Economy 7 is used by ~3 million UK households with storage heaters or immersion tanks. The dual-register meter (day/night) receives separate unit rates — the night rate is substantially cheaper to incentivise overnight use of cheap overnight grid electricity. Previously all billed customers used a single register. Phase 159 closes this: dual-register billing with year-indexed day/night rates, showing the crisis-era spike (34p day / 19p night in 2022 vs 12p / 6.5p in 2016).
+
+**11 new tests (2,506 total).**
+
+---
 ### Phase 158 -- Customer acquisition journey funnel (2026-06-26)
 **Files:** `company/crm/acquisition_journey.py` (new), `tests/company/crm/test_acquisition_journey.py` (new)
 
@@ -2273,7 +2288,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,495 tests (2,079 fast / ~10s; simulation integration ~8 min per run)
+- 2,506 tests (2,090 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
