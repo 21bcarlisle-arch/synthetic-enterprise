@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,723 tests passing. Codebase: ~37,200 lines across 275+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,734 tests passing. Codebase: ~37,350 lines across 276+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 289 (2026-06-26):** Margin Call Book -- 11 new tests (3,734 total). company/finance/margin_call_book.py: MarginCallStatus (RECEIVED/SETTLED/DISPUTED/DEFAULTED), frozen MarginCallEvent (is_stress_event >£500k variation margin), MarginCallBook (credit_facility_gbp, settle_call, total_outstanding, headroom_gbp, is_liquidity_stressed at 80% utilisation, stress_events). Models the 2022 crisis mechanism that triggered administration in 29 UK suppliers when margin calls exceeded credit facility headroom.
 
 **Phase 288 (2026-06-26):** ECO Obligation Tracker -- 10 new tests (3,723 total). company/regulatory/eco_obligation.py: ECOPhase (ECO2/ECO3/ECO4), MeasureCategory (4), frozen ECODelivery (cost_per_tonne_co2), ECOObligationBook (estimated_annual_obligation_gbp, fuel_poor_delivery_pct, eco_summary). Obligation costs: ECO2 £3.20/MWh, ECO3 £4.50/MWh, ECO4 £6.80/MWh. Connects to PropertyImprovementBook. Models supplier home efficiency delivery obligation.
 
@@ -3957,7 +3959,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,723 tests (3,281 fast / ~10s; simulation integration ~8 min per run)
+- 3,734 tests (3,292 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
