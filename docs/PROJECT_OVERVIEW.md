@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 207 -- Commodity hedging schedule (2026-06-26)
+**Files:** `company/market/hedging_schedule.py` (new), `tests/company/market/test_hedging_schedule.py` (new)
+
+**What was built:**
+- HedgeTenor enum: MONTH_AHEAD / QUARTER_AHEAD / SEASON_AHEAD / YEAR_AHEAD.
+- Commodity enum: ELECTRICITY / GAS.
+- ForwardContractDelivery frozen: contract_id, commodity, delivery_month, volume_mwh, contracted_price_gbp_per_mwh, tenor, traded_date; contract_value_gbp property.
+- DeliveryMonthPosition mutable: forecast_mwh, _contracts list; hedged_mwh, open_position_mwh, hedge_ratio_pct, is_over_hedged, avg_contracted_price (VWAP).
+- HedgingSchedule: set_forecast(), add_contract() [raises KeyError if no forecast], get_position(), over_hedged_months(), portfolio_hedge_ratio(), schedule_summary().
+
+**Fidelity delta:** A UK electricity supplier typically hedges 80-95% of forecast consumption 12-18 months out (season-ahead and year-ahead), tapering to month-ahead top-ups. The avg_contracted_price is the VWAP of all forward contracts for a delivery month — this is what the trading desk uses to benchmark whether current spot pricing makes remaining open position buyable or worth deferring. 2022: suppliers who hedged 80% at £80/MWh year-ahead saw avg_contracted_price of £104 at delivery even with 20% bought at £200 spot — survivors. Naked suppliers paid £200 full stop.
+
+**8 new tests (2,928 total).**
+
+---
 ### Phase 206 -- Supply licence health monitor (2026-06-26)
 **Files:** `company/regulatory/licence_health.py` (new), `tests/company/regulatory/test_licence_health.py` (new)
 
@@ -2963,7 +2978,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,920 tests (2,504 fast / ~10s; simulation integration ~8 min per run)
+- 2,928 tests (2,512 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
