@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 173 -- Neighbourhood energy comparison (social proof) (2026-06-26)
+**Files:** `company/crm/neighbourhood_comparison.py` (new), `tests/company/crm/test_neighbourhood_comparison.py` (new)
+
+**What was built:**
+- `ConsumptionRating` enum: MUCH_LOWER (≤-20%) / LOWER (≤-5%) / SIMILAR (≤+10%) / HIGHER (≤+30%) / MUCH_HIGHER (>+30%) — vs neighbourhood median.
+- `NeighbourhoodComparison` frozen dataclass: customer_annual_kwh, neighbour_median_kwh, neighbour_efficient_kwh (top 20% efficiency), vs_median_pct, vs_efficient_pct, consumption_rating, potential_saving_kwh (if above efficient threshold), summary() dict.
+- `build_neighbourhood_comparison()`: takes a list of comparable consumption figures, computes median (n//2 index) and efficient (n//5 index = top 20% quartile).
+
+**Fidelity delta:** Social proof is one of the most cost-effective demand reduction tools. Real UK suppliers (OVO, Octopus) send monthly neighbour comparison reports that have been shown to reduce consumption 1-4%. The potential_saving_kwh is the actionable output: a customer using 40% more than efficient neighbours could save ~800 kWh/yr at £160 savings, which a supplier can use to trigger decarb recommendations (Phase 168) or TOU tariff offers.
+
+**10 new tests (2,651 total).**
+
+---
 ### Phase 172 -- Premises occupancy history register (2026-06-26)
 **Files:** `company/crm/occupancy_register.py` (new), `tests/company/crm/test_occupancy_register.py` (new)
 
@@ -2478,7 +2491,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,641 tests (2,225 fast / ~10s; simulation integration ~8 min per run)
+- 2,651 tests (2,235 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
