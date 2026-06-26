@@ -52,6 +52,12 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .row:last-child { border-bottom: none; }
 .rl { color: var(--muted); }
 .no-inv { color: var(--muted); font-size: 13px; font-style: italic; padding: 12px 0; }
+.year-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.year-btn.yactive { background: var(--blue); color: #000; border-color: var(--blue); font-weight: 600; }
+.year-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.bill-sum { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.bill-kpi { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+.bill-kv { font-size: 16px; font-weight: 700; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -65,6 +71,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 <div id="app"></div>
 <script>
 var ACC = null;
+var BILL_YEAR = null;
 function gbp(n) {
   if (n == null) return "-";
   var s = Math.abs(n).toLocaleString("en-GB", {minimumFractionDigits:0, maximumFractionDigits:0});
@@ -95,6 +102,27 @@ function doLogin() {
     .then(function(d) { ACC = d; renderAccount(); })
     .catch(function(e) { showLogin(e.message); });
 }
+function renderBills() {
+  var d = ACC;
+  var invoices = d.invoices || [];
+  var filtered = BILL_YEAR ? invoices.filter(function(inv) { return inv.date.indexOf(BILL_YEAR) === 0; }) : invoices;
+  var years = [];
+  invoices.forEach(function(inv) { var y = inv.date.slice(0,4); if (years.indexOf(y) < 0) years.push(y); });
+  years.sort();
+  var yearBtns = '<div class="year-btns"><button class="year-btn' + (!BILL_YEAR ? ' yactive' : '') + '" onclick="filterBillYear(null)">All</button>' +
+    years.map(function(y) { return '<button class="year-btn' + (BILL_YEAR === y ? ' yactive' : '') + '" onclick="filterBillYear(\'' + y + '\')">' + y + '</button>'; }).join('') + '</div>';
+  var total = 0; filtered.forEach(function(inv) { total += inv.amount_gbp; });
+  var unpaid = 0; filtered.forEach(function(inv) { if (inv.status === 'UNPAID') unpaid += inv.amount_gbp; });
+  var summary = '<div class="bill-sum"><div class="bill-kpi"><div style="color:var(--muted);font-size:11px">Total (' + filtered.length + ' invoices)</div><div class="bill-kv">' + gbp(total) + '</div></div>' +
+    (unpaid > 0 ? '<div class="bill-kpi"><div style="color:var(--muted);font-size:11px">Outstanding</div><div class="bill-kv red">' + gbp(unpaid) + '</div></div>' : '') + '</div>';
+  var list = filtered.length
+    ? filtered.slice().reverse().map(function(inv) {
+        return '<div class="row"><span class="rl">' + inv.date + '</span><span>' + gbp(inv.amount_gbp) + '</span><span style="color:' + (inv.status === 'UNPAID' ? 'var(--amber)' : 'var(--muted)') + '">' + inv.status + '</span></div>';
+      }).join('')
+    : '<div class="no-inv">No invoices for ' + BILL_YEAR + '.</div>';
+  document.getElementById('bills-section').innerHTML = yearBtns + summary + '<div class="card">' + list + '</div>';
+}
+function filterBillYear(y) { BILL_YEAR = y; renderBills(); }
 function renderAccount() {
   var d = ACC;
   var seg = d.segment === "I&C"
@@ -105,13 +133,7 @@ function renderAccount() {
     : "<span class="badge be">Electricity</span>";
   var net = d.lifetime_net_gbp || 0;
   var nc = net >= 0 ? " green" : " red";
-  var invSection = d.invoices && d.invoices.length
-    ? d.invoices.map(function(inv) {
-        return "<div class="row"><span class="rl">" + inv.date + "</span>" +
-          "<span>" + gbp(inv.amount_gbp) + "</span>" +
-          "<span style="color:var(--muted)">" + inv.status + "</span></div>";
-      }).join("")
-    : "<div class="no-inv">Invoice history not yet populated (Phase 264).</div>";
+  BILL_YEAR = null;
   document.getElementById("app").innerHTML =
     "<div class="account-wrap">" +
     "<div class="account-header"><div>" +
@@ -133,8 +155,9 @@ function renderAccount() {
     "<div class="kpi"><div class="kpi-label">Cost to Serve</div><div class="kpi-value">" + gbp(d.cost_to_serve_gbp) + "</div></div>" +
     "</div>" +
     "<div class="sec-title">Bills</div>" +
-    "<div class="card">" + invSection + "</div>" +
+    "<div id="bills-section"></div>" +
     "</div>";
+  renderBills();
 }
 function doLogout() { ACC = null; showLogin(null); }
 showLogin(null);

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,479 tests passing. Codebase: ~34,700 lines across 257+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,487 tests passing. Codebase: ~34,700 lines across 257+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -733,6 +733,19 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - process_run_complete.py: generate_sim_data called on every run.
 
 **10 new tests (3,479 total).**
+
+---
+**Phase 269 -- Customer Portal Billing Year Filter (2026-06-26)**
+**Files:** site/customers/index.html (modified), tests/tools/test_billing_filter.py (new)
+
+**What was built:**
+- Year filter buttons (2016-2025 + All) above the Bills section in the customer portal. Clicking a year filters invoices to that year.
+- Total spend KPI tile showing sum of filtered invoices, with count.
+- Outstanding (UNPAID) KPI tile showing outstanding balance in amber, only when non-zero.
+- Invoice list shows most-recent-first when filtered. No-results message for years with no invoices.
+- BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
+
+**8 new tests (3,487 total).**
 
 ---
 **12 new tests (3,373 total).**
@@ -3906,7 +3919,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,479 tests (3,037 fast / ~10s; simulation integration ~8 min per run)
+- 3,487 tests (3,045 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
