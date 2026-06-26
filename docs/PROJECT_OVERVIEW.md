@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 255 -- Customer Satisfaction Survey (CSS) tracker (2026-06-26)
+**Files:** `company/crm/css_tracker.py` (new), `tests/company/crm/test_css_tracker.py` (new)
+
+**What was built:**
+- CSSPerformanceBand: TOP (≥7.8) / MID (6.0-7.8) / BOTTOM (<6.0).
+- Historical industry averages: 2016-2025, with 2022 at 5.2/10 (crisis nadir).
+- CSSResponse frozen: 6 dimensions (overall/billing_accuracy/ease_of_contact/value_for_money/meter_accuracy/complaint_handling); composite_score (overall 30%, others 14%); would_recommend (≥7.0); validation (1-10 range).
+- CSSBook mutable: record_response(), annual_responses(), avg_score(year, dimension), performance_band(), vs_industry_avg(), recommend_rate(), css_summary().
+
+**Fidelity delta:** Ofgem publishes annual CSS rankings and uses bottom-quartile performance as an "Enhanced Monitoring" trigger. The 2022 crisis dropped the industry-wide score to 5.2/10 — even suppliers that didn't collapse faced formal monitoring. vs_industry_avg() positions the supplier on the league table: a supplier at 5.5/10 in 2022 is actually +0.3 above average despite crisis conditions, which is meaningful for regulatory risk assessment. recommend_rate() feeds into NPS (Net Promoter Score) tracking — a key board KPI. Connects to ComplaintRegister (Ph218), ContactJourney (Ph244), and NPSTracker for a complete customer experience picture.
+
+**12 new tests (3,373 total).**
+
+---
+
+
+---
 ### Phase 254 -- Ofgem Market Compliance Scorecard (2026-06-26)
 **Files:** `company/regulatory/compliance_scorecard.py` (new), `tests/company/regulatory/test_compliance_scorecard.py` (new)
 
@@ -3692,14 +3709,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,361 tests (2,944 fast / ~10s; simulation integration ~8 min per run)
+- 3,373 tests (2,956 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 254, 2026-06-26):**
+**Latest full run (Phase 255, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
