@@ -141,6 +141,15 @@ tr:hover td { background: var(--surface2); }
   .chart-wrap { height: 260px; }
   .chart-wrap.tall { height: 340px; }
 }
+.year-btns{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 8px}
+.year-btn{background:#161b22;border:1px solid #30363d;color:#7d8590;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit}
+.year-btn:hover{border-color:#58a6ff;color:#e6edf3}
+.year-btn.active{background:#1f3d5c;border-color:#58a6ff;color:#58a6ff;font-weight:600}
+.spotlight{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px;margin-top:12px}
+.sp-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.sp-kpi .val{font-size:16px;font-weight:700;margin-top:2px}
+.sp-kpi .lbl{color:#7d8590;font-size:11px}
 </style>
 </head>
 <body>
@@ -190,6 +199,7 @@ Chart.defaults.font.size = 11;
 // ── State ───────────────────────────────────────────────────────────────────
 let D = null;
 const rendered = {};
+let YEAR_FILTER = null;
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const gbp = (v, d=0) => {
@@ -310,6 +320,41 @@ function updateHeader() {
     `<span style="${netCls};font-weight:700">${gbp(p.net_margin_gbp)} net</span> &nbsp;·&nbsp; ` +
     `git <a href="https://github.com/21bcarlisle-arch/synthetic-enterprise/commit/${m.git_commit}" target="_blank">${m.git_commit.slice(0,7)}</a> &nbsp;·&nbsp; ` +
     `<span class="badge badge-green">Live</span>`;
+}
+
+
+// -- Year Spotlight --
+function selectYear(yr) {
+  YEAR_FILTER = (YEAR_FILTER === yr) ? null : yr;
+  document.querySelectorAll('.year-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.yr) === YEAR_FILTER);
+  });
+  const sp = document.getElementById('year-spotlight');
+  if (sp) renderSpotlight(sp);
+}
+
+function renderSpotlight(container) {
+  if (!YEAR_FILTER) { container.innerHTML = ''; return; }
+  const yr = YEAR_FILTER;
+  const fa = D.financial.annual.find(r => r.year == yr) || {};
+  const ba = (D.customers.book_annual || []).find(r => r.year == yr) || {};
+  const ha = (D.trading.hedge_annual || []).find(r => r.year == yr) || {};
+  const isCrisis = yr === 2021 || yr === 2022;
+  const crBadge = isCrisis ? '<span style="background:#4a1a1a;color:#f85149;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:8px">CRISIS YEAR</span>' : '';
+  const ncls = (fa.net_gbp||0) >= 0 ? 'pos' : 'neg';
+  const kpi = (lbl, val) => '<div class="sp-kpi"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div></div>';
+  container.innerHTML = '<div class="spotlight">' +
+    '<div class="sp-title">' + yr + ' Year Spotlight' + crBadge + '</div>' +
+    '<div class="sp-grid">' +
+    kpi('Net Margin', '<span class="' + ncls + '">' + gbp(fa.net_gbp||0) + '</span>') +
+    kpi('Gross Margin', gbp(fa.gross_gbp||0)) +
+    kpi('Revenue', gbp(fa.revenue_gbp||0)) +
+    kpi('Treasury (end)', gbp(fa.treasury_end_gbp||0)) +
+    kpi('Bill Shocks', '<span style="color:var(--amber)">' + (ba.bill_shock_count||0) + '</span>') +
+    kpi('Worst Shock', '<span style="color:var(--amber)">' + ((ba.worst_shock_pct||0)*100).toFixed(0) + '%</span>') +
+    kpi('Active Elec', ba.active_elec||'-') +
+    kpi('Avg Hedge %', ((ha.avg_hf||0)*100).toFixed(0) + '%') +
+    '</div></div>';
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────────────────
