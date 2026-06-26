@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 179 -- Hedge performance tracker (2026-06-26)
+**Files:** `company/market/hedge_performance.py` (new), `tests/company/market/test_hedge_performance.py` (new)
+
+**What was built:**
+- HedgeOutcome enum: PROFITABLE (hedge price < spot) / NEUTRAL (within 5%) / COSTLY (hedge price > spot).
+- HedgeDelivery frozen dataclass: contracted_price, spot_price_at_delivery, price_differential, pnl_gbp, outcome, hedge_effectiveness_pct.
+- HedgePerformanceBook: record_delivery(), total_pnl_gbp(year), profitable_trades(), costly_trades(), avg_effectiveness_pct(year), annual_summary(year).
+
+**Fidelity delta:** The 2022 crisis separated survivors from victims purely on hedge effectiveness. An electricity forward at GBP80/MWh vs GBP200 spot = GBP120k saved per 1,000 MWh. Suppliers who hedged 70%+ at pre-crisis prices survived; those at <30% (converted to naked exposure by low margins) failed. This tracker is the company's view: it knows what prices it traded at (from trade blotter, Phase 131) and what spot delivered (from market data, observable). It does not need to read simulation internals.
+
+**8 new tests (2,703 total).**
+
+---
 ### Phase 178 -- Customer portfolio load forecast (2026-06-26)
 **Files:** `company/market/load_forecast.py` (new), `tests/company/market/test_load_forecast.py` (new)
 
@@ -2564,7 +2577,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,695 tests (2,279 fast / ~10s; simulation integration ~8 min per run)
+- 2,703 tests (2,287 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
