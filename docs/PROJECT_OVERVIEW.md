@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,743 tests (1,315 non-simulation, 428 simulation). Codebase: ~23,900 lines across 209+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,755 tests (1,327 non-simulation, 428 simulation). Codebase: ~24,100 lines across 210+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 87 -- EAC Calibration from billing history (2026-06-26)
+**Files:** `company/billing/eac_calibration.py` (new), `company/portal/app.py` (extended), `company/portal/templates/consumption.html` (EAC section), `tests/company/billing/test_eac_calibration.py` (new)
+
+**What was built:**
+- `calibrate_eac(account_id, db_path, lookback_years=2)`: sums consumption_kwh from invoices in lookback window, annualises by days covered. Returns None if no data.
+- `calibrate_all_customers()`: batch calibration; `eac_drift()`: drift_pct + direction (up/down/flat, 0.5% deadband).
+- Consumption portal: calibrated EAC vs original shown with colour-coded drift indicator.
+
+**Fidelity delta:** UK suppliers recalibrate EAC annually from meter reads. After 10 years of demand response and weather effects, the portal now shows how far actual consumption drifted from acquisition EAC — the signal a real supplier uses to reprice renewals.
+
+**12 new tests (1,755 total).**
+
+---
 ### Phase 86 -- Account Statement (print-ready) (2026-06-26)
 **Files:** `company/portal/app.py` (extended), `company/portal/templates/statement.html` (new), `company/portal/templates/bills.html` (nav updated), `company/portal/templates/dashboard.html` (nav updated), `tests/company/portal/test_portal_statement.py` (new)
 
@@ -1323,14 +1336,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,743 tests (1,315 fast / ~10s; simulation integration ~8 min per run)
+- 1,755 tests (1,327 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 86, 2026-06-26):**
+**Latest full run (Phase 87, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

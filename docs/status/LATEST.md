@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:32:45Z
+Last updated: 2026-06-26T02:36:08Z
+
+**Phase 87 COMPLETE (2026-06-26):** EAC Calibration from billing history -- 12 new tests (1,755 total).
+- company/billing/eac_calibration.py (new): calibrate_eac() annualises from invoice consumption_kwh (2yr lookback)
+- calibrate_all_customers() batch; eac_drift() returns drift_pct + direction (up/down/flat)
+- Consumption portal: calibrated EAC vs original with drift indicator
 
 **Phase 86 COMPLETE (2026-06-26):** Account Statement -- 11 new tests (1,743 total).
 - GET /account/{id}/statement: full invoice table + balance summary (billed/paid/bad debt/outstanding)
@@ -187,9 +192,9 @@ Last updated: 2026-06-26T02:32:45Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,743 total (all tests passing)**
+**Test suite: 1,755 total (all tests passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (469s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351

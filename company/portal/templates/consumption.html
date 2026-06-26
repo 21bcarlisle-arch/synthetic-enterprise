@@ -52,6 +52,18 @@
   {% endif %}
   {% endif %}
 
+
+  {% if calibrated_eac %}
+  <div style="margin:20px 0;padding:12px;background:#f7fafc;border:1px solid #bee3f8;border-radius:6px">
+    <strong>Calibrated EAC:</strong> {{ calibrated_eac }} kWh/yr
+    (original: {{ customer.eac_kwh }} kWh/yr)
+    {% if eac_drift %}
+    &mdash; <span style="color:{{ '#c53030' if eac_drift.direction == 'down' else ('#276749' if eac_drift.direction == 'up' else '#718096') }}">
+      {{ eac_drift.drift_pct }}% {{ eac_drift.direction }}</span>
+    {% endif %}
+  </div>
+  {% endif %}
+
   {% if monthly_data %}
   <table>
     <thead>

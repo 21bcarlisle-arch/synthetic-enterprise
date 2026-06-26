@@ -22,6 +22,7 @@ from company.billing.payments import reconcile_payment
 from company.market.price_feed import PriceFeed
 from company.billing.consumption import consumption_history, monthly_totals
 from company.billing.hh_consumption import get_hh_consumption, recent_hh_periods, is_feed_available
+from company.billing.eac_calibration import calibrate_eac, eac_drift
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
 from company.regulatory.compliance import (
@@ -270,10 +271,14 @@ async def consumption_page(request: Request, account_id: str):
     if is_hh and is_feed_available(_CONSUMPTION_FEED_PATH):
         all_hh = get_hh_consumption(account_id, _CONSUMPTION_FEED_PATH)
         hh_data = recent_hh_periods(all_hh, n_periods=48)
+    calibrated_eac = calibrate_eac(account_id, _DEFAULT_DB)
+    orig_eac = customer.get("eac_kwh") or 0
+    drift = eac_drift(orig_eac, calibrated_eac) if calibrated_eac and orig_eac else None
     return templates.TemplateResponse(
         request, "consumption.html",
         {"customer": customer, "monthly_data": data, "is_hh": is_hh,
-         "total_kwh": total_kwh, "hh_data": hh_data},
+         "total_kwh": total_kwh, "hh_data": hh_data,
+         "calibrated_eac": calibrated_eac, "eac_drift": drift},
     )
 
 @app.post("/account/{account_id}/pay", response_class=HTMLResponse)
