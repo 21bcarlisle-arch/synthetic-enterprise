@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,469 tests passing. Codebase: ~34,700 lines across 256+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,479 tests passing. Codebase: ~34,700 lines across 257+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -721,6 +721,18 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - All three tabs degrade cleanly to full 10-year view when YEAR_FILTER is null (All).
 
 **8 new tests (3,469 total).**
+
+---
+**Phase 268 -- /sim/ Section: Wholesale Price Explorer (2026-06-26)**
+**Files:** site/sim/index.html (new), tools/generate_sim_data.py (new), site/data/sim_data.json (new), background/process_run_complete.py (+generate_sim_data call), tests/tools/test_sim_section.py (new)
+
+**What was built:**
+- tools/generate_sim_data.py: reads sim/cache/elexon_ssp_full.json (168,026 HH records) and produces site/data/sim_data.json with monthly aggregates (mean/P95/P5/max/min/is_crisis), annual summaries, and top-10 peak records.
+- site/sim/index.html: Wholesale Price Explorer. 6 KPI cards (2022 mean, 2016 mean, all-time peak, peak date, 10yr mean, crisis multiple). Chart.js monthly line chart: mean + P95 fill + red crisis zone overlay for 2021-22. Annual summary table with CRISIS badges. Top-10 peak SSP records (£4,037/MWh peak in Sep 2021). 2022 mean £199.50/MWh vs 2016 £39.41/MWh = 5x crisis multiple.
+- Nav /sim/ link un-dimmed across all 5 existing pages (index, project, timeline, customers, staging-status).
+- process_run_complete.py: generate_sim_data called on every run.
+
+**10 new tests (3,479 total).**
 
 ---
 **12 new tests (3,373 total).**
@@ -3894,7 +3906,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,469 tests (3,027 fast / ~10s; simulation integration ~8 min per run)
+- 3,479 tests (3,037 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

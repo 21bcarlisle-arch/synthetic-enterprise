@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poesys -- SIM: Wholesale Price Explorer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;--text:#e6edf3;--muted:#7d8590;--green:#3fb950;--red:#f85149;--amber:#d29922;--blue:#58a6ff;--teal:#39d353;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,monospace;font-size:14px;line-height:1.5;}
+    .site-nav{display:flex;align-items:center;gap:8px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);}
+    .nav-logo{font-weight:700;font-size:1.1rem;color:var(--text);text-decoration:none;margin-right:12px;}
+    .nav-link{color:var(--muted);text-decoration:none;padding:4px 10px;border-radius:6px;font-size:13px;}
+    .nav-link:hover{color:var(--text);}
+    .nav-link.active{color:var(--blue);font-weight:600;}
+    .container{max-width:1100px;margin:0 auto;padding:32px 24px;}
+    h1{font-size:1.5rem;font-weight:700;margin-bottom:4px;}
+    .subtitle{color:var(--muted);margin-bottom:28px;font-size:13px;}
+    .section-title{font-size:1rem;font-weight:600;margin:32px 0 14px;color:var(--text);}
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:32px;}
+    .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;}
+    .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+    .kpi-value{font-size:1.5rem;font-weight:700;line-height:1.1;}
+    .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+    .color-red{color:var(--red);}
+    .color-green{color:var(--green);}
+    .color-blue{color:var(--blue);}
+    .color-amber{color:var(--amber);}
+    .chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:32px;}
+    .chart-wrap canvas{width:100%!important;}
+    .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:32px;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:var(--surface2);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;text-align:right;border-bottom:1px solid var(--border);}
+    th:first-child{text-align:left;}
+    td{padding:9px 14px;text-align:right;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;}
+    td:first-child{text-align:left;}
+    tr:last-child td{border-bottom:none;}
+    tr.crise td{background:rgba(248,81,73,0.07);}
+    tr:hover td{background:var(--surface2);}
+    .cbadge{display:inline-block;background:rgba(248,81,73,0.2);color:var(--red);border:1px solid rgba(248,81,73,0.35);border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;letter-spacing:.5px;vertical-align:middle;}
+    .ssp-val{color:var(--red);font-weight:700;}
+    .meta-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;color:var(--muted);font-size:12px;margin-top:8px;display:flex;flex-wrap:wrap;gap:16px;}
+  </style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="/" class="nav-logo">&#9889; Poesys</a>
+  <a href="/" class="nav-link">Supplier</a>
+  <a href="/customers/" class="nav-link">Customers</a>
+  <a href="/project/" class="nav-link">Project</a>
+  <a href="/sim/" class="nav-link active">SIM</a>
+</nav>
+<div class="container">
+  <h1>Wholesale Price Explorer</h1>
+  <p class="subtitle">Elexon half-hourly System Sell Price (SSP) &mdash; 2016 to 2025 &mdash; Point-in-Time market data underpinning the simulation</p>
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
+  </div>
+  <div class="section-title">Monthly Mean Price &pound;/MWh &mdash; 2016&ndash;2025</div>
+  <div class="chart-wrap"><canvas id="monthly-chart" height="280"></canvas></div>
+  <div class="section-title">Annual Summary</div>
+  <div class="table-wrap">
+    <table id="annual-table">
+      <thead><tr><th>Year</th><th>Mean &pound;/MWh</th><th>P95 &pound;/MWh</th><th>Peak &pound;/MWh</th><th>Low &pound;/MWh</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="section-title">All-time Peak SSP Records</div>
+  <div class="table-wrap">
+    <table id="peak-table">
+      <thead><tr><th>Date</th><th>Period</th><th>Time (UTC)</th><th>SSP &pound;/MWh</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="meta-bar" id="meta-bar">Loading metadata&hellip;</div>
+</div>
+
+<script>
+(function () {
+  function fmt(n, dp) {
+    if (n == null || isNaN(n)) return '—';
+    return Number(n).toLocaleString('en-GB', {minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0});
+  }
+  function fmtTime(s) {
+    if (!s) return '—';
+    try { return new Date(s).toISOString().slice(11, 16); } catch (e) { return '—'; }
+  }
+  fetch('/data/sim_data.json')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      buildKPIs(data);
+      buildChart(data.monthly || []);
+      buildAnnualTable(data.annual || []);
+      buildPeakTable(data.peak_records || []);
+      buildMeta(data.metadata || {});
+    })
+    .catch(function (e) {
+      document.getElementById('kpi-grid').innerHTML =
+        '<p style="color:var(--red);padding:16px">Failed to load sim_data.json: ' + e + '</p>';
+    });
+  function buildKPIs(data) {
+    var annual = data.annual || [];
+    var peaks = data.peak_records || [];
+    var row2022 = {}, row2016 = {};
+    for (var i = 0; i < annual.length; i++) {
+      if (annual[i].year === '2022') row2022 = annual[i];
+      if (annual[i].year === '2016') row2016 = annual[i];
+    }
+    var totalMean = 0, totalCount = 0;
+    for (var j = 0; j < annual.length; j++) { totalMean += (annual[j].mean || 0); totalCount++; }
+    var allMean = totalCount ? totalMean / totalCount : 0;
+    var bestPeak = peaks[0] || {};
+    var c2022 = row2022.mean || 0;
+    var m2016 = row2016.mean || 1;
+    var mult = m2016 > 0 ? c2022 / m2016 : 0;
+    var kpis = [
+      {label:'2022 Mean', value:'£'+fmt(row2022.mean,1), sub:'Crisis year average', cls:'color-red'},
+      {label:'2016 Mean', value:'£'+fmt(row2016.mean,1), sub:'Baseline year average', cls:'color-green'},
+      {label:'All-time Peak SSP', value:'£'+fmt(bestPeak.ssp,0), sub:bestPeak.date||'—', cls:'color-red'},
+      {label:'Peak Date', value:bestPeak.date||'—', sub:'Period '+(bestPeak.period||'—'), cls:'color-red'},
+      {label:'10-year Mean', value:'£'+fmt(allMean,1), sub:'All years averaged', cls:'color-blue'},
+      {label:'Crisis Multiple', value:fmt(mult,1)+'×', sub:'2022 vs 2016', cls:'color-amber'}
+    ];
+    var html = '';
+    for (var k = 0; k < kpis.length; k++) {
+      var kp = kpis[k];
+      html += '<div class="kpi-card"><div class="kpi-label">'+kp.label+'</div>' +
+              '<div class="kpi-value '+kp.cls+'">'+kp.value+'</div>' +
+              '<div class="kpi-sub">'+kp.sub+'</div></div>';
+    }
+    document.getElementById('kpi-grid').innerHTML = html;
+  }
+  function buildChart(monthly) {
+    var labels=[], means=[], p95s=[], crisisVals=[];
+    for (var i = 0; i < monthly.length; i++) {
+      var r = monthly[i];
+      labels.push(r.month); means.push(r.mean); p95s.push(r.p95);
+      crisisVals.push(r.is_crisis ? 5000 : null);
+    }
+    var ctx = document.getElementById('monthly-chart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {label:'Crisis Zone', data:crisisVals, fill:'origin',
+           backgroundColor:'rgba(248,81,73,0.13)', borderColor:'transparent',
+           pointRadius:0, tension:0, spanGaps:false, order:3},
+          {label:'P95', data:p95s, fill:'origin',
+           backgroundColor:'rgba(210,153,34,0.13)', borderColor:'rgba(210,153,34,0.4)',
+           borderWidth:1, pointRadius:0, tension:0.3, order:2},
+          {label:'Mean Price', data:means, fill:false,
+           borderColor:'#58a6ff', backgroundColor:'#58a6ff',
+           borderWidth:2, pointRadius:0, tension:0.3, order:1}
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: {mode:'index', intersect:false},
+        plugins: {
+          legend: {display:false},
+          tooltip: {
+            callbacks: {
+              label: function(c) {
+                if (c.dataset.label === 'Crisis Zone') return null;
+                var v = c.raw != null ? Number(c.raw).toFixed(1) : '—';
+                return c.dataset.label + ': £' + v + '/MWh';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {ticks:{color:'#7d8590',maxTicksLimit:12,maxRotation:0}, grid:{color:'rgba(48,54,61,0.6)'}},
+          y: {min:0, ticks:{color:'#7d8590', callback:function(v){return '£'+v;}},
+              grid:{color:'rgba(48,54,61,0.6)'}}
+        }
+      }
+    });
+  }
+  function buildAnnualTable(annual) {
+    var tb = document.querySelector('#annual-table tbody');
+    var html = '';
+    for (var i = 0; i < annual.length; i++) {
+      var r = annual[i];
+      var badge = r.is_crisis ? '<span class="cbadge">CRISIS</span>' : '';
+      html += '<tr class="'+(r.is_crisis?'crise':'')+'">'+
+              '<td>'+r.year+badge+'</td>'+
+              '<td>'+fmt(r.mean,1)+'</td>'+
+              '<td>'+fmt(r.p95,1)+'</td>'+
+              '<td>'+fmt(r.max,1)+'</td>'+
+              '<td>'+fmt(r.min,1)+'</td></tr>';
+    }
+    tb.innerHTML = html || '<tr><td colspan="5" style="color:var(--muted)">No data</td></tr>';
+  }
+
+  function buildPeakTable(peaks) {
+    var tb = document.querySelector('#peak-table tbody');
+    var html = '';
+    for (var i = 0; i < peaks.length; i++) {
+      var r = peaks[i];
+      html += '<tr>'+
+              '<td>'+(r.date||'—')+'</td>'+
+              '<td>'+(r.period||'—')+'</td>'+
+              '<td>'+fmtTime(r.start_time)+'</td>'+
+              '<td class="ssp-val">£'+fmt(r.ssp,1)+'</td></tr>';
+    }
+    tb.innerHTML = html || '<tr><td colspan="4" style="color:var(--muted)">No data</td></tr>';
+  }
+  function buildMeta(meta) {
+    var el = document.getElementById('meta-bar');
+    var from = meta.period_from || '—';
+    var to = meta.period_to || '—';
+    var total = meta.total_records ? Number(meta.total_records).toLocaleString('en-GB') : '—';
+    var gen = meta.generated_at ? meta.generated_at.slice(0,19).replace('T',' ')+' UTC' : '—';
+    var crisis = (Array.isArray(meta.crisis_years) && meta.crisis_years.length)
+      ? meta.crisis_years.join(', ') : '—';
+    el.innerHTML =
+      '<span><strong>Source:</strong> Elexon Insights Solution (SSP half-hourly data)</span>'+
+      '<span><strong>Period:</strong> '+from+' – '+to+'</span>'+
+      '<span><strong>Records:</strong> '+total+' settlement periods</span>'+
+      '<span><strong>Crisis years:</strong> '+crisis+'</span>'+
+      '<span><strong>Generated:</strong> '+gen+'</span>';
+  }
+
+}());
+</script>
+</body>
+</html>

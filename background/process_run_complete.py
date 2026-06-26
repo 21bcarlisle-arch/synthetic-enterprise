@@ -163,6 +163,12 @@ def generate_dashboard_json(json_path):
         log("Generated customer invoice JSON")
     except Exception as exc:
         log("Invoice data generation failed: {}".format(exc))
+    try:
+        from tools.generate_sim_data import generate as gen_sim
+        gen_sim()
+        log("Generated site/data/sim_data.json")
+    except Exception as exc:
+        log("Sim data generation failed: {}".format(exc))
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):
