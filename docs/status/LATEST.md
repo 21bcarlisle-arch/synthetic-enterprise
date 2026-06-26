@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T14:15:20Z
+Last updated: 2026-06-26T14:17:40Z
 
 ## Latest Simulation Run
 - **Git:** 9087d88 (run 2026-06-26T10:44)
@@ -12,8 +12,8 @@ Last updated: 2026-06-26T14:15:20Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 261
-- **Tests:** 3,418 passing
+- **Current Phase:** 262
+- **Tests:** 3,424 passing
 - **Session theme:** Financial layer + regulatory + market ops + CRM maturation
 
 ## This Session (Phases 240-246)
@@ -69,7 +69,7 @@ Last updated: 2026-06-26T14:15:20Z
 - Ph 199: Annual regulatory obligations report (WHD/ECO4/GSOP/Ofgem/REGO; penalty estimates)
 - Ph 198: Revolving credit facility (drawdown/repay; limit breach guard; interest accrual)
 
-## Company layer: 194 files | CLAUDE.md: 147/200 lines
+## Company layer: 194 files | CLAUDE.md: 153/200 lines
 
 **Latest simulation results (2016–2025)** — auto-processed (472s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

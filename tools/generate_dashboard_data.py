@@ -16,6 +16,7 @@ SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
 OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
 
 RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
+RUN_HISTORY_PATH = PROJECT / "docs" / "observability" / "run_history.json"
 
 
 # ---------------------------------------------------------------------------
@@ -376,6 +377,18 @@ def extract_market(data, spot_monthly=None):
 # Main
 # ---------------------------------------------------------------------------
 
+def extract_run_history(history_path=None, max_entries=10):
+    """Return last N run history entries, or [] if absent/invalid."""
+    path = history_path or RUN_HISTORY_PATH
+    if not Path(path).exists():
+        return []
+    try:
+        history = json.loads(Path(path).read_text())
+        return history[-max_entries:] if len(history) > max_entries else history
+    except (json.JSONDecodeError, ValueError):
+        return []
+
+
 def generate(run_json_path=None):
     if run_json_path is None:
         run_json_path = _find_latest_run_json()
@@ -410,6 +423,7 @@ def generate(run_json_path=None):
         "customers": extract_customers(data),
         "market": extract_market(data, spot_monthly),
         "insights": extract_insights(),
+        "run_history": extract_run_history(),
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

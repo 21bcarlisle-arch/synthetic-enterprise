@@ -457,6 +457,11 @@ def save_insights(insights: RunInsights, path: Optional[Path] = None) -> None:
 
 
 def append_run_history(insights: RunInsights, history_path: Optional[Path] = None) -> None:
+    import re
+    if not re.fullmatch(r"[0-9a-f]{6,40}", insights.git_hash):
+        return  # skip test/fake hashes
+    if insights.net_margin_gbp <= 0:
+        return  # skip test data with invalid net margin
     hp = history_path or RUN_HISTORY_PATH
     hp.parent.mkdir(parents=True, exist_ok=True)
     history = []

@@ -634,6 +634,20 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 **5 new tests (3,418 total).**
 
 ---
+**Phase 262 -- Run History Table (Dashboard Phase B) (2026-06-26)**
+**Files:** tools/generate_insights.py (modified), tools/generate_dashboard_data.py (modified), site/index.html (modified), tests/tools/test_run_history.py (new)
+
+**What was built:**
+- `append_run_history()` guards: skips non-hex hashes and net_margin_gbp <= 0 (blocks test artifacts from polluting run_history.json).
+- `extract_run_history(history_path, max_entries=10)` in generate_dashboard_data: returns last N run history entries or [].
+- Dashboard JSON now includes `run_history` key.
+- Insights tab: Run History table (hash, net margin, date) rendered below recommended actions.
+- Cleaned test artifact entries from docs/observability/run_history.json.
+- 6 new tests: fake-hash guard, negative-margin guard, real-hash writes, max_entries slice, missing-file empty, dashboard key present.
+
+**6 new tests (3,424 total).**
+
+---
 **12 new tests (3,373 total).**
 
 ---
@@ -3805,7 +3819,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,418 tests (2,986 fast / ~10s; simulation integration ~8 min per run)
+- 3,424 tests (2,992 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

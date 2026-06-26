@@ -161,19 +161,19 @@ def test_save_and_load_insights(tmp_path):
 
 def test_append_run_history_accumulates(tmp_path):
     hp = tmp_path / "history.json"
-    ins1 = generate_insights(_MINIMAL, "hash1")
+    ins1 = generate_insights(_MINIMAL, "a1b2c3d")
     append_run_history(ins1, hp)
-    ins2 = generate_insights(_MINIMAL, "hash2")
+    ins2 = generate_insights(_MINIMAL, "b2c3d4e")
     append_run_history(ins2, hp)
     history = json.loads(hp.read_text())
     assert len(history) == 2
-    assert history[0]["git_hash"] == "hash1"
-    assert history[1]["git_hash"] == "hash2"
+    assert history[0]["git_hash"] == "a1b2c3d"
+    assert history[1]["git_hash"] == "b2c3d4e"
 
 
 def test_append_run_history_deduplicates(tmp_path):
     hp = tmp_path / "history.json"
-    ins = generate_insights(_MINIMAL, "same_hash")
+    ins = generate_insights(_MINIMAL, "deadbeef")
     append_run_history(ins, hp)
     append_run_history(ins, hp)
     history = json.loads(hp.read_text())
