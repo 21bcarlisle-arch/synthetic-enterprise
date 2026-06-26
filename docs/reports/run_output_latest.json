@@ -290,9 +290,7 @@
         {
           "settlement_date": "2016-11-26",
           "treasury_gbp": 2466750.0641312054,
-          "adjustments": {
-            "C1": 1.0
-          },
+          "adjustments": {},
           "portfolio_var_current_gbp": 22.228773965545997,
           "portfolio_var_stressed_gbp": 6.829193415425749
         },
@@ -9909,15 +9907,15 @@
     "net_margin_gbp": 6322835.706049451
   },
   "tou_stats": {
-    "C7": {
-      "total_kwh": 120839.4,
-      "peak_kwh": 36249.2,
-      "offpeak_kwh": 84590.1,
-      "peak_pct": 30.0,
-      "peak_revenue_gbp": 9526.2,
-      "offpeak_revenue_gbp": 12268.14,
-      "avg_peak_rate": 262.8,
-      "avg_offpeak_rate": 145.03
+    "C8": {
+      "total_kwh": 106721.8,
+      "peak_kwh": 43948.0,
+      "offpeak_kwh": 62773.8,
+      "peak_pct": 41.2,
+      "peak_revenue_gbp": 11998.79,
+      "offpeak_revenue_gbp": 9712.48,
+      "avg_peak_rate": 273.02,
+      "avg_offpeak_rate": 154.72
     },
     "C9": {
       "total_kwh": 109386.6,
@@ -9929,15 +9927,15 @@
       "avg_peak_rate": 250.63,
       "avg_offpeak_rate": 141.92
     },
-    "C8": {
-      "total_kwh": 106721.8,
-      "peak_kwh": 43948.0,
-      "offpeak_kwh": 62773.8,
-      "peak_pct": 41.2,
-      "peak_revenue_gbp": 11998.79,
-      "offpeak_revenue_gbp": 9712.48,
-      "avg_peak_rate": 273.02,
-      "avg_offpeak_rate": 154.72
+    "C7": {
+      "total_kwh": 120839.4,
+      "peak_kwh": 36249.2,
+      "offpeak_kwh": 84590.1,
+      "peak_pct": 30.0,
+      "peak_revenue_gbp": 9526.2,
+      "offpeak_revenue_gbp": 12268.14,
+      "avg_peak_rate": 262.8,
+      "avg_offpeak_rate": 145.03
     }
   },
   "company_gas_churn_log": [
