@@ -1198,7 +1198,7 @@ async function submitQuery() {
 
   try {
     var ctx = D && D.query_context ? D.query_context : '';
-    var resp = await fetch('https://skynet-1.taila062fa.ts.net:8765/query', {
+    var resp = await fetch('https://skynet-1.taila062fa.ts.net/query', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ question: question, queryContext: ctx })
