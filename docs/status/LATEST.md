@@ -8,10 +8,16 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T04:12:55Z
+Last updated: 2026-06-26T04:14:01Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 129 COMPLETE (2026-06-27):** Customer notification preferences -- 11 new tests (2,176 total).
+- company/crm/notification_prefs.py: PECR/GDPR channel preferences (email/sms/post/phone/portal)
+- can_contact() defaults: service email always on; marketing requires explicit opt-in
+- paper_bill_customers() roster for paper dispatch
+- Fidelity: SLC 14B requires at least one service comms channel per customer
+
 **Phase 128 COMPLETE (2026-06-27):** Meter asset management -- 9 new tests (2,165 total).
 - company/billing/meter_assets.py: MeterAsset (5 types, cert_due_date, overdue/due_soon)
 - MeterAssetRegister: operational/faulty/cert_overdue tracking, smart_pct summary
@@ -399,7 +405,7 @@ Last updated: 2026-06-26T04:12:55Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,165 total (all tests passing)**
+**Test suite: 2,176 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (440s / 7 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
