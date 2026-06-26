@@ -606,6 +606,19 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 **6 new tests (3,413 total).**
 
 ---
+**Phase 260 -- Strategic Coherence Infrastructure (2026-06-26)**
+**Files:** docs/PRIORITIES.md (new), site/staging-status/index.html (new), site/timeline/index.html (new), docs/status/LATEST.md (updated), CLAUDE.md (updated)
+
+**What was built:**
+- docs/PRIORITIES.md: living priority file with Now/Next/Staged/Backlog/On-hold/Recently-completed sections. Standing rule: updated each session.
+- site/staging-status/index.html: live view of docs/staging/ (staged) and docs/staging/done/ (actioned). Published to poesys.net/staging-status/.
+- site/timeline/index.html: 299-phase git-log-extracted timeline table. Two velocity charts: phases-over-time and tests-over-time (705-3,413 test progression). Investor summary card. Published to poesys.net/timeline/.
+- Coherence_and_velocity.md archived: instruction actioned.
+- PRIORITIES.md standing instruction added to CLAUDE.md checklist.
+
+**0 new tests (3,413 total) -- infrastructure only.**
+
+---
 **12 new tests (3,373 total).**
 
 ---
