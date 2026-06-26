@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 222 -- Interconnector cross-border price exposure (2026-06-26)
+**Files:** `company/market/interconnector_monitor.py` (new), `tests/company/market/test_interconnector_monitor.py` (new)
+
+**What was built:**
+- Interconnector enum (7): IFA1 2000MW / IFA2 1000MW / BritNed 1000MW / NEMO 1000MW / NSL 1400MW / VikingLink 1400MW / ElecLink 1000MW.
+- FlowDirection: IMPORT / EXPORT / CONSTRAINED.
+- _INTERCONNECTOR_CAPACITY_MW: registry by interconnector.
+- InterconnectorObservation frozen: flow_mw, gb/foreign price; price_differential, capacity_mw, utilisation_pct.
+- InterconnectorPriceMonitor: record(), observations_for(), avg_price_differential(), highest_differential(), import_days(), total_import_mwh(interconnector), monitor_summary(date).
+
+**Fidelity delta:** Interconnectors now supply ~10% of GB electricity; during 2022 NordStream disruption, French nuclear outages meant IFA/ElecLink reversed direction from import to export, and GB prices decoupled from European prices. price_differential peaks (£500+/MWh across IFA1, Jan 2022 cold snap) represent arbitrage opportunities for large I&C customers with flexibility. utilisation_pct tracks interconnector constraint risk: at >95%, any outage on the link disrupts the market instantly. monitor_summary feeds the annual market risk report.
+
+**8 new tests (3,051 total).**
+
+---
 ### Phase 221 -- SoLR exposure model (2026-06-26)
 **Files:** `company/regulatory/solr_exposure.py` (new), `tests/company/regulatory/test_solr_exposure.py` (new)
 
@@ -3179,7 +3194,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,043 tests (2,626 fast / ~10s; simulation integration ~8 min per run)
+- 3,051 tests (2,634 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
