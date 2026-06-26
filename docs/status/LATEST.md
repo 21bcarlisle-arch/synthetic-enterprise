@@ -1,6 +1,6 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-26T21:16:39Z
+Last updated: 2026-06-26T21:22:05Z
 
 ## Current state
 
@@ -43,3 +43,9 @@ Last updated: 2026-06-26T21:16:39Z
 - ECO4 obligation rate: £6.80/MWh (up from ECO2 £3.20/MWh)
 - SMIP target 85% by 2025; remote reads save ~£15/meter vs manual
 - Consumer Duty FCA/Ofgem: 4 outcome areas, RED on any = overall RED requiring board-level escalation
+
+**Latest simulation results (2016–2025)** — auto-processed (486s / 8 min):
+- Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
+- Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
+- Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
+- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
