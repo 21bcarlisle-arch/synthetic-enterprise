@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 170 -- Payment deferral / holiday scheme (2026-06-26)
+**Files:** `company/billing/payment_deferral.py` (new), `tests/company/billing/test_payment_deferral.py` (new)
+
+**What was built:**
+- `DeferralReason` enum: FINANCIAL_HARDSHIP / COVID_19 / JOB_LOSS / ILLNESS / BEREAVEMENT / BENEFIT_DELAY.
+- `DeferralStatus` enum: ACTIVE / COMPLETED / DEFAULTED / CANCELLED.
+- `PaymentDeferral` dataclass: deferred_amount, repayment_plan_monthly, outstanding_gbp, deferral_days, is_active; auto-completes when amount_repaid >= deferred_amount.
+- `PaymentDeferralBook`: create(), record_repayment(), mark_defaulted(), cancel(), active_deferrals(), overdue_deferrals(as_of), deferrals_for_customer(), total_deferred_outstanding_gbp(), annual_summary() with by_reason counts.
+
+**Fidelity delta:** Ofgem SLC 27A (Ability to Pay) requires suppliers to offer customers in payment difficulty a repayment plan proportionate to their means. During the 2022 energy crisis, £billions of deferred debt accumulated across UK supplier books — the Covid deferral reason alone covered 2020-21 when Ofgem mandated no-disconnection. Overdue deferrals list exposes credit risk for suppliers that granted holidays without follow-through.
+
+**9 new tests (2,623 total).**
+
+---
 ### Phase 169 -- Customer vulnerability register (2026-06-26)
 **Files:** `company/crm/vulnerability_register.py` (new), `tests/company/crm/test_vulnerability_register.py` (new)
 
@@ -2437,7 +2451,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,614 tests (2,198 fast / ~10s; simulation integration ~8 min per run)
+- 2,623 tests (2,207 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
