@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 226 -- Multisite I&C account management (2026-06-26)
+**Files:** `company/crm/multisite_account.py` (new), `tests/company/crm/test_multisite_account.py` (new)
+
+**What was built:**
+- SiteCategory enum (6): HEAD_OFFICE / MANUFACTURING / WAREHOUSE / RETAIL_UNIT / DATA_CENTRE / REMOTE_OFFICE.
+- BillingFrequency: MONTHLY / QUARTERLY / CONSOLIDATED (single invoice for all sites).
+- SupplyPoint frozen: mpan, site_name, postcode, category, annual_kwh, max_demand_kva, connection_voltage_kv; is_hv (≥ 11kV), annual_mwh.
+- MultisiteAccount mutable: add_site(), remove_site(), site_count, total_annual_kwh/mwh, peak_site, sites_by_category(), hv_sites(), account_summary().
+- MultisitePortfolio: create_account(), get(), total_portfolio_mwh(), accounts_by_manager(), largest_accounts(n=5).
+
+**Fidelity delta:** Large I&C customers (supermarkets, manufacturers, data centres) have 10-500 supply points under a single account. Consolidated billing is mandatory for FTSE 250 customers: one invoice, one credit limit, one account manager. is_hv (≥ 11kV) distinguishes direct DNO connections (no LV distribution charge) from LV-connected sites — HV discount is £5-8/MWh on DUoS charges. Data centres (>1 MW load) have 100% load factor (constant draw) vs warehouses (50-70%), making them the highest-value I&C customer type. largest_accounts() drives the key account management prioritisation.
+
+**9 new tests (3,087 total).**
+
+---
 ### Phase 225 -- Working capital daily cash position (2026-06-26)
 **Files:** `company/finance/working_capital.py` (new), `tests/company/finance/test_working_capital.py` (new)
 
@@ -3238,7 +3253,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,078 tests (2,661 fast / ~10s; simulation integration ~8 min per run)
+- 3,087 tests (2,670 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
