@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 174 -- Arrears escalation workflow (2026-06-26)
+**Files:** `company/billing/arrears_book.py` (new), `tests/company/billing/test_arrears_book.py` (new)
+
+**What was built:**
+- `ArrearsStage` enum: 10 stages — CURRENT → DD_FAILED → FIRST_NOTICE → SECOND_NOTICE → PAYMENT_PLAN_OFFERED → PAYMENT_PLAN_ACCEPTED → PAYMENT_PLAN_DEFAULTED → REFERRED_TO_DEBT → WRITTEN_OFF + RESOLVED.
+- `ArrearsCase` dataclass: arrears_amount, amount_recovered, outstanding_gbp, is_open, days_open; is_vulnerable flag; terminal stage guard (raises if advance attempted after resolution/write-off).
+- `ArrearsBook`: open_case(), advance_stage(), record_recovery(), resolve(), write_off(), open_cases(), cases_for_customer(), cases_at_stage(), total_arrears_outstanding_gbp(), annual_summary() with by_stage counts.
+
+**Fidelity delta:** UK energy debt enforcement has a legally mandated escalation sequence. The 2022 energy crisis saw UK households accumulate ~£3.9bn in arrears — more than double pre-crisis levels. Suppliers must follow SLC 27 (ability to pay) at each stage and cannot disconnect domestic customers (only PPM self-disconnection is indirect). This workflow is the counterpart to Phase 170 (voluntary deferral): involuntary arrears from DD failure escalating through the debt recovery chain.
+
+**9 new tests (2,660 total).**
+
+---
 ### Phase 173 -- Neighbourhood energy comparison (social proof) (2026-06-26)
 **Files:** `company/crm/neighbourhood_comparison.py` (new), `tests/company/crm/test_neighbourhood_comparison.py` (new)
 
@@ -2491,7 +2504,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,651 tests (2,235 fast / ~10s; simulation integration ~8 min per run)
+- 2,660 tests (2,244 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
