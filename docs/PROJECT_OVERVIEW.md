@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 197 -- Energy efficiency programme (EEP) book (2026-06-26)
+**Files:** `company/crm/eep_book.py` (new), `tests/company/crm/test_eep_book.py` (new)
+
+**What was built:**
+- EEPMeasure enum: 8 measures (CAVITY_WALL / SOLID_WALL / LOFT_INSULATION / HEAT_PUMP / SOLAR_PV / SMART_CONTROLS / DOUBLE_GLAZING / BOILER_UPGRADE).
+- EEPScheme enum: ECO4 / BUS / SEG / SELF_FUNDED.
+- EEPInstallation frozen dataclass: customer_id, mpan, measure, scheme, install_date, estimated_annual_saving_gbp, cost_gbp, subsidy_gbp; customer_cost_gbp (cost-subsidy), simple_payback_years.
+- EEPBook: record(), installs_for_customer(), total_subsidy_gbp(scheme=None, year=None), estimated_savings_portfolio_gbp(year=None), annual_summary(year) with by_measure.
+
+**Fidelity delta:** UK suppliers report ECO4 annual obligation delivery to DESNZ and Ofgem. BUS (Boiler Upgrade Scheme) offers £7,500 grant toward heat pump installation, capped per year. ECO4 funding is allocated to obligated suppliers based on market share. A full-subsidy ECO4 loft insulation (zero customer cost) closes the payback question completely. Tracks the actual delivery book versus decarb_recommender.py (Ph168) which is the recommendation engine.
+
+**7 new tests (2,853 total).**
+
+---
 ### Phase 196 -- Digital portal analytics (2026-06-26)
 **Files:** `company/crm/portal_analytics.py` (new), `tests/company/crm/test_portal_analytics.py` (new)
 
@@ -2813,7 +2827,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,846 tests (2,430 fast / ~10s; simulation integration ~8 min per run)
+- 2,853 tests (2,437 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
