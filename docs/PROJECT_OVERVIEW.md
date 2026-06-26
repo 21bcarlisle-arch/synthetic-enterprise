@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,757 tests passing. Codebase: ~37,650 lines across 278+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,767 tests passing. Codebase: ~37,800 lines across 279+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 292 (2026-06-26):** TNUoS Charge Ledger -- 10 new tests (3,767 total). company/market/tnuos_ledger.py: TriadStatus (TRIAD/NEAR_MISS/NORMAL), frozen TNUoSCharge (residual + triad charges), frozen TriadHalfHour, TNUoSLedger (zone_factor, confirmed_triads). North zones pay 40% more (locational signal to shift load south). Triad demand drives capacity charges. Completes 5 of 7 non-commodity cost ledgers.
 
 **Phase 291 (2026-06-26):** DUoS Charge Ledger -- 11 new tests (3,757 total). company/market/duos_ledger.py: DNOArea (14 UK areas), VoltageLevel (HV/LV), frozen DUoSCharge (unit_charge_gbp/total_charge_gbp), DUoSLedger (unit_rate_for_year; charges by account/year; annual_unit_cost_p_per_kwh; hv_customer_count). HV customers pay 60% of LV rate. Real 2016-2025 DUoS rates (1.85-2.75 p/kWh). One of 7 major non-commodity electricity costs alongside CM/CfD/RO/FIT/BSUoS/TNUoS.
 
@@ -3963,7 +3965,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,757 tests (3,315 fast / ~10s; simulation integration ~8 min per run)
+- 3,767 tests (3,325 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
