@@ -27,6 +27,7 @@ class ServiceEvent:
     complaint_flag: bool = False
     vulnerability_flag: bool = False
     notes: str = ""
+    csat_score: int | None = None
 
 
 @dataclass
@@ -49,7 +50,8 @@ _CREATE_EVENTS = """
         agent_type       TEXT NOT NULL DEFAULT 'ai',
         complaint_flag   INTEGER NOT NULL DEFAULT 0,
         vulnerability_flag INTEGER NOT NULL DEFAULT 0,
-        notes            TEXT NOT NULL DEFAULT ''
+        notes            TEXT NOT NULL DEFAULT '',
+        csat_score       INTEGER
     )
 """
 
@@ -66,6 +68,7 @@ _CREATE_VULNS = """
 
 
 def _row_to_event(row) -> ServiceEvent:
+    csat = row["csat_score"] if "csat_score" in row.keys() else None
     return ServiceEvent(
         customer_id=row["customer_id"], event_date=row["event_date"],
         channel=row["channel"], contact_reason=row["contact_reason"],
@@ -73,6 +76,7 @@ def _row_to_event(row) -> ServiceEvent:
         complaint_flag=bool(row["complaint_flag"]),
         vulnerability_flag=bool(row["vulnerability_flag"]),
         notes=row["notes"],
+        csat_score=csat,
     )
 
 
@@ -111,6 +115,10 @@ class ServiceLog:
         self._conn.row_factory = sqlite3.Row
         self._conn.execute(_CREATE_EVENTS)
         self._conn.execute(_CREATE_VULNS)
+        # Migrate: add csat_score column if missing (added Phase 105)
+        cols = [r["name"] for r in self._conn.execute("PRAGMA table_info(service_events)")]
+        if "csat_score" not in cols:
+            self._conn.execute("ALTER TABLE service_events ADD COLUMN csat_score INTEGER")
         self._conn.commit()
 
     def _c(self):
@@ -121,12 +129,12 @@ class ServiceLog:
         c.execute(
             "INSERT INTO service_events"
             " (customer_id, event_date, channel, contact_reason, outcome,"
-            "  agent_type, complaint_flag, vulnerability_flag, notes)"
-            " VALUES (?,?,?,?,?,?,?,?,?)",
+            "  agent_type, complaint_flag, vulnerability_flag, notes, csat_score)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?)",
             (event.customer_id, event.event_date, event.channel,
              event.contact_reason, event.outcome, event.agent_type,
              int(event.complaint_flag), int(event.vulnerability_flag),
-             event.notes),
+             event.notes, event.csat_score),
         )
         if event.vulnerability_flag:
             c.execute(
@@ -234,6 +242,47 @@ class ServiceLog:
 
     def ombudsman_count(self) -> int:
         return len(self.ombudsman_eligible())
+
+
+    def csat_summary(self) -> dict:
+        """Return CSAT score summary across all rated contacts.
+
+        Scores: 1 (very dissatisfied) to 5 (very satisfied).
+        Returns count, mean, and percentage of promoters (4-5 stars).
+        """
+        rated = [
+            e.csat_score for e in self.all_contacts()
+            if e.csat_score is not None
+        ]
+        if not rated:
+            return {"count": 0, "mean": None, "promoter_pct": None}
+        promoters = sum(1 for s in rated if s >= 4)
+        return {
+            "count": len(rated),
+            "mean": round(sum(rated) / len(rated), 2),
+            "promoter_pct": round(promoters / len(rated) * 100, 1),
+        }
+
+    def rate_contact(self, event_id: int, score: int) -> bool:
+        """Record a CSAT score (1-5) for a specific contact by row ID.
+        Returns True if the row was found and updated."""
+        if score not in range(1, 6):
+            raise ValueError(f"CSAT score must be 1-5, got {score}")
+        c = self._c()
+        n = c.execute(
+            "UPDATE service_events SET csat_score=? WHERE id=?",
+            (score, event_id)
+        ).rowcount
+        c.commit()
+        return n > 0
+
+    def latest_contact_id(self, customer_id: str) -> int | None:
+        """Return the row ID of the most recent contact for a customer."""
+        row = self._c().execute(
+            "SELECT id FROM service_events WHERE customer_id=? ORDER BY id DESC LIMIT 1",
+            (customer_id,)
+        ).fetchone()
+        return row["id"] if row else None
 
 
     def as_dicts(self) -> list[dict]:

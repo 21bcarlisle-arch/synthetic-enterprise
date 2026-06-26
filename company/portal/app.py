@@ -526,9 +526,11 @@ async def submit_contact(
         notes=notes.strip(),
     )
     _SERVICE_LOG.record_contact(event)
+    contact_id = _SERVICE_LOG.latest_contact_id(account_id)
     return templates.TemplateResponse(
         request, "contact.html",
-        {"customer": customer, "submitted": True, "complaint": complaint == "yes"},
+        {"customer": customer, "submitted": True, "complaint": complaint == "yes",
+         "contact_id": contact_id},
     )
 
 @app.get("/admin/complaints", response_class=HTMLResponse)
@@ -607,4 +609,23 @@ async def smart_meter_post(request: Request, account_id: str):
     return templates.TemplateResponse(
         request, "smart_meter.html",
         {"customer": customer, "already_hh": False, "submitted": True, "ref": ref},
+    )
+
+
+@app.post("/account/{account_id}/contact/rate", response_class=HTMLResponse)
+async def rate_contact(request: Request, account_id: str):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    form = await request.form()
+    contact_id = int(form.get("contact_id", 0))
+    score_str = form.get("score", "")
+    if score_str and score_str.isdigit():
+        score = int(score_str)
+        if 1 <= score <= 5:
+            _SERVICE_LOG.rate_contact(contact_id, score)
+    return templates.TemplateResponse(
+        request, "contact.html",
+        {"customer": customer, "submitted": True, "complaint": False,
+         "contact_id": None, "rated": True},
     )

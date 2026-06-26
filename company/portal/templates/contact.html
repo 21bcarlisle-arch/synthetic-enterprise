@@ -21,11 +21,25 @@
   {% if submitted %}
   <div class="success">
     &#10003; Your message has been received. We aim to respond within 2 working days.
-    We aim to respond within 2 working days.
     {% if complaint %}
     <p>Your complaint has been logged. You will receive a written response within 8 weeks (Ofgem requirement).</p>
     {% endif %}
   </div>
+  {% if contact_id %}
+  <form method="post" action="/account/{{ customer.customer_id }}/contact/rate" style="margin-top:12px">
+    <input type="hidden" name="contact_id" value="{{ contact_id }}">
+    <p style="font-size:0.9em;margin-bottom:6px"><strong>How would you rate this experience?</strong></p>
+    <div style="font-size:1.6em;letter-spacing:4px">
+      {% for i in [1,2,3,4,5] %}
+      <label title="{{ i }} star{{ 's' if i > 1 }}">
+        <input type="radio" name="score" value="{{ i }}" style="display:none">
+        <span style="cursor:pointer" onclick="this.style.color='#c05621'">&#9733;</span>
+      </label>
+      {% endfor %}
+    </div>
+    <button type="submit" style="margin-top:8px;padding:4px 12px;background:#718096;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.85em">Submit rating</button>
+  </form>
+  {% endif %}
   {% else %}
   <form method="post" action="/account/{{ customer.customer_id }}/contact">
     <label>Reason for contact</label>
