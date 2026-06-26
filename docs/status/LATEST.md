@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T04:59:41Z
+Last updated: 2026-06-26T05:15:41Z
+
+**Phase 143 COMPLETE (2026-06-26):** Green tariff REGO compliance audit -- 13 new tests (2,320 total).
+- company/compliance/green_claims_audit.py: GreenClaimsAuditor bridges TariffCatalogue (Ph 142) + RegoPortfolio (Ph 139)
+- COMPLIANT/AT_RISK/NON_COMPLIANT thresholds at 100%/90%; penalty £50/MWh shortfall
+- Fidelity: Ofgem FMD regulations require REGO coverage equal to green electricity claimed -- company can now audit before publishing claims
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
@@ -468,7 +473,7 @@ Last updated: 2026-06-26T04:59:41Z
 
 **Test suite: 2,287 total (all tests passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (472s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (493s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351

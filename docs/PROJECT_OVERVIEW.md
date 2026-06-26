@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,307 tests (1,879 non-simulation, 428 simulation). Codebase: ~34,700 lines across 256+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,320 tests (1,892 non-simulation, 428 simulation). Codebase: ~34,700 lines across 256+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+
+---
+### Phase 143 -- Green tariff REGO compliance audit (2026-06-26)
+**Files:** `company/compliance/green_claims_audit.py` (new), `tests/test_phase143_green_claims_audit.py` (new)
+
+**What was built:**
+- `GreenClaimsAuditResult` (dataclass): year, obligation_mwh, rego_held_mwh, coverage_pct, status (COMPLIANT / AT_RISK / NON_COMPLIANT), shortfall_mwh, green_products_active, penalty_estimate_gbp.
+- `GreenClaimsAuditor`: `compute_obligation(product_consumption_kwh, date_str)` sums REGO obligations across all active green products with billed consumption; `audit(year, product_consumption_kwh)` runs the full check; `summary_lines()` returns annual report lines. Thresholds: COMPLIANT >=100%, AT_RISK 90-99%, NON_COMPLIANT <90%. Penalty: shortfall x £50/MWh.
+- `portfolio_held_mwh()` includes both available and already-retired REGOs (both count toward compliance).
+
+**Fidelity delta:** Ofgem enforces Fuel Mix Disclosure: suppliers marketing "100% renewable" products must hold REGOs equal to 100% of that supply. Phase 143 is the compliance gate that connects TariffCatalogue (Ph 142) to RegoPortfolio (Ph 139) -- the company can now verify REGO coverage before publishing green claims. Withdrawn products (e.g. IC_GREEN_CERT post-2023) correctly excluded from obligation after withdrawal date.
+
+**13 new tests (2,320 total).**
 
 ---
 ### Phase 142 -- Green tariff product catalogue (2026-06-26)
@@ -2054,7 +2067,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,307 tests (1,879 fast / ~10s; simulation integration ~8 min per run)
+- 2,320 tests (1,892 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
