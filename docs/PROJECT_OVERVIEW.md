@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 254 -- Ofgem Market Compliance Scorecard (2026-06-26)
+**Files:** `company/regulatory/compliance_scorecard.py` (new), `tests/company/regulatory/test_compliance_scorecard.py` (new)
+
+**What was built:**
+- RAGStatus: GREEN / AMBER / RED.
+- ComplianceDomain: 10 domains (GOVERNANCE / BILLING_METERING / PAYMENT_DEBT / INFORMATION_TRANSPARENCY / COMPLAINTS / VULNERABLE_CUSTOMERS / TARIFF_PRICE_CAP / ENVIRONMENTAL / NETWORK_BALANCING / FINANCIAL_RESILIENCE).
+- ComplianceCheck frozen: domain, check_date, status, metric_value, threshold (both optional), notes; slc_reference (maps domain to SLC clusters), is_breach.
+- ComplianceScorecard mutable: record_check(), latest_status(domain), overall_rag(as_of_date), breaches(as_of_date), scorecard_summary(). Temporal logic: excludes future checks from as_of_date assessments.
+
+**Fidelity delta:** A real UK energy supplier's Compliance Director presents exactly this RAG dashboard to the Risk Committee monthly. Ofgem expects every licenced supplier to maintain a live compliance monitoring function (post-crisis 2022 enforcement action). The 10 domains map to SLC obligation clusters — any RED triggers an internal audit and may require notification to Ofgem under the material breach provisions of SLC 0. Integrates across all regulatory modules: SFRBook (Ph250), ComplaintRegister (Ph218), VulnerabilityIndex (Ph243), EEObligationTracker (Ph219), LicenceHealthMonitor (Ph206).
+
+**12 new tests (3,361 total).**
+
+---
+
+
+---
 ### Phase 253 -- Wholesale gas OTC trading book (NBP) (2026-06-26)
 **Files:** `company/market/gas_otc_book.py` (new), `tests/company/market/test_gas_otc_book.py` (new)
 
@@ -3675,14 +3692,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,349 tests (2,932 fast / ~10s; simulation integration ~8 min per run)
+- 3,361 tests (2,944 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 253, 2026-06-26):**
+**Latest full run (Phase 254, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
