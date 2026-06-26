@@ -1,35 +1,49 @@
-# Phase 78 Proposal: Year-indexed non-commodity rates for customer bills
+# Phase 79 Proposal: Portal consumption history page
 
-**The gap:** `saas/non_commodity.py` uses flat 2019 baseline rates for electricity non-commodity
-(GBP55/MWh resi, GBP42/MWh SME). The simulation settlement layer (Phase 29b) already has
-year-indexed network+policy charges. Customer bills therefore show wrong non-commodity
-figures: in 2022 the actual network charge jumped to ~GBP73/MWh but invoices still show GBP55/MWh.
-This means customers are under-billed for non-commodity by ~GBP18/MWh in the crisis year.
+**The gap:** The Destinationvision Portal MVP spec requires "Consumption: half-hourly chart for
+HH customers, monthly for others." The portal currently has login, dashboard, bills, tariff
+comparison, and trading views — but no consumption data view. This is the last mandatory
+element of the Portal MVP.
 
-PROJECT_OVERVIEW.md Section 9 explicitly flags this: "Network charges still modeled as flat
-pass-through in non_commodity.py rather than year-indexed actuals."
+The Destinationvision's key test: "When Rich logs in as C7 (HH smart meter customer) and sees
+their half-hourly consumption chart with peak/off-peak pricing overlaid, the simulation stops
+being abstract. The customer experience is real."
 
 **What to build:**
 
-1. saas/non_commodity.py:
-   - Add _NON_COMMODITY_ELEC_BY_YEAR indexed 2016-2024 (resi/SME rates matching Phase 29b).
-   - Add _NON_COMMODITY_GAS_BY_YEAR 2016-2024 (GDN + NTS + metering).
-   - Update non_commodity_rate(commodity, segment, year=None) to use year-indexed lookup.
+1. company/billing/consumption.py (new):
+   - read_consumption_history(account_id, db_path) → list of {period, kwh, month, year}
+   - Reads from the invoice DB (total_consumption_kwh per billing period already stored in bills)
+   - group_by_month(records) → monthly totals with year/month labels
+   - For HH customers (C7–C9, metering=="HH"): flag is_hh=True
 
-2. saas/bill_generator.py:
-   - Extract billing year from dates[0] (already available).
-   - Pass year=billing_year to non_commodity_rate.
+2. company/portal/app.py:
+   - GET /account/{id}/consumption route
+   - Loads consumption history via read_consumption_history()
+   - Passes is_hh flag (from saas.customers)
+   - Renders templates/consumption.html
 
-3. Tests (~10 new in tests/saas/test_non_commodity_year_indexed.py).
+3. company/portal/templates/consumption.html (new):
+   - Table of monthly consumption (year, month, kWh, running total)
+   - HH customers: banner "Smart meter data — half-hourly resolution available"
+   - Dashboard: add consumption link alongside bills and tariff-compare
 
-**Rate calibration (GBP/MWh):**
-Elec resi: 2016=52, 2017=54, 2018=53, 2019=55, 2020=57, 2021=62, 2022=73, 2023=80, 2024=74.
-SME multiplier: 0.77. Gas resi: 2016=9, 2017=9.5, 2018=10, 2019=11, 2020=11,
-2021=12, 2022=15, 2023=16, 2024=14. SME multiplier: 0.80.
+4. Dashboard template update: link to /account/{id}/consumption
 
-**Expected impact:** 2022 invoice non-commodity GBP18/MWh higher than flat baseline.
-Restores billing-layer consistency with settlement layer. Portal tariff-compare shows
-correct year-indexed costs.
+5. Tests (~10 new in tests/company/portal/test_consumption.py):
+   - test_consumption_route_returns_200
+   - test_consumption_shows_monthly_totals
+   - test_hh_customer_shows_smart_meter_banner
+   - test_consumption_unknown_customer_returns_404
+   - test_consumption_history_groups_correctly
+   - (etc.)
 
-**Files changed:** saas/non_commodity.py, saas/bill_generator.py,
-tests/saas/test_non_commodity_year_indexed.py (new). ~10 new tests.
+**Why this phase, not something else:**
+- The Destinationvision explicitly calls the consumption view out as a Portal MVP requirement
+- Invoice DB already has total_consumption_kwh — no new SIM interface needed
+- Completes the customer journey: login → dashboard → bills → consumption → tariff compare
+- Makes the "customer is real" test passable without any architecture changes
+
+**Files changed:** company/billing/consumption.py (new), company/portal/app.py (extended),
+company/portal/templates/consumption.html (new), company/portal/templates/dashboard.html
+(minor: add link), tests/company/portal/test_consumption.py (new). ~10 new tests.
