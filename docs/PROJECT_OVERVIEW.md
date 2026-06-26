@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 225 -- Working capital daily cash position (2026-06-26)
+**Files:** `company/finance/working_capital.py` (new), `tests/company/finance/test_working_capital.py` (new)
+
+**What was built:**
+- CashFlowType (9): CUSTOMER_COLLECTIONS / WHOLESALE_SETTLEMENT / NETWORK_CHARGES / PAYROLL / VAT_PAYMENT / CREDIT_FACILITY_DRAWDOWN / CREDIT_FACILITY_REPAYMENT / DSR_REVENUE / REGO_PURCHASE.
+- CashFlowDirection: INFLOW / OUTFLOW; signed_amount (positive for inflow, negative for outflow).
+- DailyCashPosition mutable: opening_balance, entries; net_cash_flow, closing_balance, total_inflows, total_outflows.
+- WorkingCapitalMonitor: opening_balance + _minimum_operating_balance (default £50k); post_day(date, [(type, direction, amount, ref)]), current_balance(), is_below_minimum(), headroom_gbp(), positions_in_period(), lowest_balance_in_period(), total_inflows_gbp(), cash_summary().
+
+**Fidelity delta:** Working capital management is existential for energy suppliers. BSC wholesale settlement has a 28-day payment window with daily obligation swings — during Feb 2022, a medium supplier's daily settlement obligation could swing ±£500k. The "death spiral": low cash → miss settlement → BSC suspension → loss of licence. lowest_balance_in_period identifies stress dates when the operator must draw on the credit facility (Ph198) to avoid minimum breach. Connects to bsc_credit.py (Ph53) which sets the minimum credit cover that compounds the cash drain.
+
+**9 new tests (3,078 total).**
+
+---
 ### Phase 224 -- Demand Side Response (DSR) portfolio (2026-06-26)
 **Files:** `company/market/dsr_portfolio.py` (new), `tests/company/market/test_dsr_portfolio.py` (new)
 
@@ -3224,7 +3238,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,069 tests (2,652 fast / ~10s; simulation integration ~8 min per run)
+- 3,078 tests (2,661 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
