@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 215 -- Supply contract lifecycle manager (2026-06-26)
+**Files:** `company/billing/contract_manager.py` (new), `tests/company/billing/test_contract_manager.py` (new)
+
+**What was built:**
+- ContractStatus enum: ACTIVE / IN_NOTICE / EXPIRED / CANCELLED / RENEWED.
+- ContractType enum: FIXED_TERM / VARIABLE / DEEMED / EVERGREEN.
+- _NOTICE_PERIOD_DAYS: FIXED_TERM 42d / VARIABLE 28d / DEEMED 14d / EVERGREEN 90d.
+- SupplyContract mutable: contract_id, customer_id, mpan, type, start/end_date, rates, aq; notice_period_days, term_months, notice_deadline() (end - notice), is_in_notice_window(as_of), days_to_expiry(as_of), annual_cost_estimate_gbp().
+- ContractManager: register(), serve_notice() (sets IN_NOTICE + date), expire_contract(), contracts_for_customer(), active_contracts(), expiring_within(as_of, days), contracts_in_notice_window(as_of), portfolio_summary(as_of).
+
+**Fidelity delta:** UK fixed-price contracts must be notified 42 days before expiry per Ofgem SLC 25B. Failure to notify means the customer auto-rolls to SVT — the most common source of customer complaints. The 90-day evergreen notice is standard for I&C multi-site contracts. is_in_notice_window() feeds renewals_book (Ph194) outreach: only customers in the notice window should be called for renewal. expiring_within() drives the renewal_chase campaign (Ph203): call list generated 50 days before expiry.
+
+**9 new tests (2,993 total).**
+
+---
 ### Phase 214 -- Ancillary product bundle tracker (2026-06-26)
 **Files:** `company/crm/ancillary_products.py` (new), `tests/company/crm/test_ancillary_products.py` (new)
 
@@ -3077,7 +3092,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,984 tests (2,568 fast / ~10s; simulation integration ~8 min per run)
+- 2,993 tests (2,577 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
