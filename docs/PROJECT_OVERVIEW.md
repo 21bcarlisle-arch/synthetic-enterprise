@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 184 -- Third-party intermediary (TPI/broker) book (2026-06-26)
+**Files:** `company/crm/tpi_book.py` (new), `tests/company/crm/test_tpi_book.py` (new)
+
+**What was built:**
+- TPITier enum: PREFERRED / STANDARD / PROBATION / SUSPENDED.
+- TPICommissionBasis enum: FIXED_PER_CUSTOMER / PCT_OF_ANNUAL_REVENUE / PCT_OF_ANNUAL_CONSUMPTION.
+- TPI frozen dataclass: tpi_id, name, tier, commission_basis, commission_rate, registered_date, accredited flag.
+- TPIDeal frozen dataclass: deal_id, tpi_id, customer_id, annual_consumption_mwh, annual_revenue_gbp, deal_date; commission_gbp derived from basis (fixed / % revenue / £ per MWh).
+- TPIBook: register(), suspend() (replaces TPI with SUSPENDED tier), record_deal() (raises if TPI suspended), deals_for_tpi(), total_commission_gbp(tpi_id=None), active_tpis(), annual_summary(year).
+
+**Fidelity delta:** ~40% of UK SME/I&C customers are acquired through brokers/TPIs. Commission is typically 1.5-3% of annual revenue for I&C, or £60-120 fixed for SME. After the 2022 crisis, several brokers were suspended/de-accredited after mis-selling fixed-price contracts that suppliers then refused to honour. The suspension mechanism — blocking future deals from a bad actor — is a real regulatory tool. Complements channel_roi.py (Ph175) and marketing_budget.py (Ph180).
+
+**9 new tests (2,747 total).**
+
+---
 ### Phase 183 -- 13-week rolling cash flow forecast (2026-06-26)
 **Files:** `company/finance/cash_flow_forecast.py` (new), `tests/company/finance/test_cash_flow_forecast.py` (new)
 
@@ -2631,7 +2646,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,738 tests (2,322 fast / ~10s; simulation integration ~8 min per run)
+- 2,747 tests (2,331 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
