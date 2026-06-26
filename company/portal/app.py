@@ -366,3 +366,32 @@ async def admin_overview(request: Request):
         request, "admin.html",
         {"data": data},
     )
+
+@app.get("/account/{account_id}/statement", response_class=HTMLResponse)
+async def account_statement(request: Request, account_id: str):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    inv_list = (
+        invoices_for_account(account_id, _DEFAULT_DB)
+        if _DEFAULT_DB.exists()
+        else []
+    )
+    billed = sum(i["total_gbp"] for i in inv_list)
+    paid = sum(i["total_gbp"] for i in inv_list if i["payment_status"] == "paid")
+    outstanding = sum(
+        i["total_gbp"] for i in inv_list
+        if i["payment_status"] in ("unpaid", "partially_paid")
+    )
+    bad_debt = sum(i["total_gbp"] for i in inv_list if i["payment_status"] == "bad_debt")
+    return templates.TemplateResponse(
+        request, "statement.html",
+        {
+            "customer": customer,
+            "invoices": inv_list,
+            "total_billed_gbp": round(billed, 2),
+            "total_paid_gbp": round(paid, 2),
+            "total_outstanding_gbp": round(outstanding, 2),
+            "total_bad_debt_gbp": round(bad_debt, 2),
+        },
+    )

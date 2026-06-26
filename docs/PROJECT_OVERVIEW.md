@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,732 tests (1,304 non-simulation, 428 simulation). Codebase: ~23,700 lines across 208+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,743 tests (1,315 non-simulation, 428 simulation). Codebase: ~23,900 lines across 209+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 86 -- Account Statement (print-ready) (2026-06-26)
+**Files:** `company/portal/app.py` (extended), `company/portal/templates/statement.html` (new), `company/portal/templates/bills.html` (nav updated), `company/portal/templates/dashboard.html` (nav updated), `tests/company/portal/test_portal_statement.py` (new)
+
+**What was built:**
+- `GET /account/{id}/statement`: renders full invoice history + balance summary (billed, paid, bad debt, outstanding). Print-optimised via `@media print` CSS (hides nav).
+- `statement.html`: invoice table + summary section with account balance breakdown.
+- Dashboard + bills nav: Statement link added.
+- No new modules — reads from existing invoice DB via `invoices_for_account()`.
+
+**Fidelity delta:** A customer or account manager can now open /statement and get a printable snapshot of the full billing relationship — the kind of document a real supplier produces on request.
+
+**11 new tests (1,743 total).**
+
+---
 ### Phase 85 -- Admin Portfolio Overview (2026-06-26)
 **Files:** `company/portal/app.py` (extended), `company/portal/templates/admin.html` (new), `tests/company/portal/test_portal_admin.py` (new)
 
@@ -1309,14 +1323,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,732 tests (1,304 fast / ~10s; simulation integration ~8 min per run)
+- 1,743 tests (1,315 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 85, 2026-06-26):**
+**Latest full run (Phase 86, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
