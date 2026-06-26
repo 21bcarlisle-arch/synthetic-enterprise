@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,078 tests (1,650 non-simulation, 428 simulation). Codebase: ~30,100 lines across 233+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,089 tests (1,661 non-simulation, 428 simulation). Codebase: ~30,300 lines across 234+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 120 -- Wholesale risk limits + position governor (2026-06-26)
+**Files:** `company/trading/risk_limits.py` (new), `tests/company/trading/test_risk_limits.py` (new)
+
+**What was built:**
+- `RiskLimit` dataclass: limit_name, value, unit, effective_year, set_by, notes.
+- `RiskGovernor`: set_limit(), get_limit(), check() (OK/WARNING >80%/BREACH >=100%), check_all(current_values), governance_summary() with overall RAG, new_position_allowed().
+- Standard limits: max_open_position_mwh, max_single_contract_mwh, var_limit_gbp, stop_loss_gbp.
+
+**Fidelity delta:** Real energy trading desks operate under hard position limits set by the risk committee. The stop-loss trigger suspends new buying when MTM losses breach the limit — this is the mechanism that should have triggered earlier at suppliers who accumulated naked positions during 2021. This module provides that governance layer.
+
+**11 new tests (2,089 total).**
+
+---
 ### Phase 119 -- Standard Licence Condition (SLC) monitoring (2026-06-26)
 **Files:** `company/regulatory/licence_monitor.py` (new), `tests/company/regulatory/test_licence_monitor.py` (new)
 
@@ -1759,14 +1772,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,078 tests (1,650 fast / ~10s; simulation integration ~8 min per run)
+- 2,089 tests (1,661 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 119, 2026-06-26):**
+**Latest full run (Phase 120, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
