@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T04:25:27Z
+Last updated: 2026-06-26T04:27:05Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 138 COMPLETE (2026-06-27):** Forward curve anomaly detection -- 9 new tests (2,259 total).
+- company/market/curve_monitor.py: rolling z-score on observable price feed
+- normal/watch/alert/critical at ±2.5/3.5/5.0σ; spike detection works on stable + crisis series
+- Fidelity: market team uses z-score monitoring to detect feed errors and stress events
+
 **Phase 137 COMPLETE (2026-06-27):** Ofgem reporting obligations tracker -- 9 new tests (2,250 total).
 - company/regulatory/ofgem_obligations.py: 6 Ofgem obligations with deadlines and max penalties
 - on_time_rate_pct() and total_potential_penalty_gbp() for compliance posture
@@ -446,7 +451,7 @@ Last updated: 2026-06-26T04:25:27Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,250 total (all tests passing)**
+**Test suite: 2,259 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (479s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
