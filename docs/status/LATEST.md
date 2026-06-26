@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:43:37Z
+Last updated: 2026-06-26T03:44:45Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 118 COMPLETE (2026-06-26):** DTN message log -- 10 new tests (2,068 total).
+- company/market/dtn_log.py: DtnMessage/DtnLog; D-series electricity + gas 806/814/826 flows
+- inbound/outbound/by_flow/rejected/summary(); flow_description from known_flows dict
+- Fidelity: DTN is the operational backbone for all UK market participant comms
+
 **Phase 117 COMPLETE (2026-06-26):** SoLR risk assessment -- 10 new tests (2,058 total).
 - company/regulatory/solr.py: solr_capital_requirement() (levy+bad_debt vs treasury)
 - solr_revenue_upside() (SVT retained book after 12% churn), solr_scenario() (4 scenarios)
@@ -344,7 +349,7 @@ Last updated: 2026-06-26T03:43:37Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,058 total (all tests passing)**
+**Test suite: 2,068 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,058 tests (1,630 non-simulation, 428 simulation). Codebase: ~29,700 lines across 231+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,068 tests (1,640 non-simulation, 428 simulation). Codebase: ~29,900 lines across 232+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 118 -- DTN message log (2026-06-26)
+**Files:** `company/market/dtn_log.py` (new), `tests/company/market/test_dtn_log.py` (new)
+
+**What was built:**
+- `DtnMessage` dataclass: flow_id, direction (inbound/outbound), timestamp, mpan_or_mprn, customer_id, status (received/processed/rejected/pending), flow_description property.
+- `DtnLog`: record(), inbound(), outbound(), by_flow(), for_customer(), rejected(), summary() with by_flow Counter, known_flows().
+- Known flows: D0001 (meter read), D0010 (EAC update), D0150 (registration), D0301Z (switch), D0052/D0055 (aggregation), D0205 (query); gas 806/814/816/826.
+
+**Fidelity delta:** The DTN is the operational communications backbone for all UK energy market participants. Every meter read, switch request, EAC update, and registration arrives as a structured D-series message. This module gives the company observability into its market communications — essential for operational reconciliation.
+
+**10 new tests (2,068 total).**
+
+---
 ### Phase 117 -- Supplier of Last Resort (SoLR) risk assessment (2026-06-26)
 **Files:** `company/regulatory/solr.py` (new), `tests/company/regulatory/test_solr.py` (new)
 
@@ -1733,14 +1746,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,058 tests (1,630 fast / ~10s; simulation integration ~8 min per run)
+- 2,068 tests (1,640 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 117, 2026-06-26):**
+**Latest full run (Phase 118, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
