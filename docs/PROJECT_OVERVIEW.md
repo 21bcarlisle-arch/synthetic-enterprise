@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 171 -- Customer conversation transcript model (2026-06-26)
+**Files:** `company/crm/conversation_log.py` (new), `tests/company/crm/test_conversation_log.py` (new)
+
+**What was built:**
+- `ConversationOutcome` enum: RESOLVED / ESCALATED / PENDING_CALLBACK / ABANDONED / TRANSFERRED.
+- `ConversationTurn` frozen dataclass: speaker (agent/customer), text, timestamp.
+- `CustomerConversation` dataclass: channel, agent_id, started_at, turns list, add_turn(), close() with CSAT (1-5 validated) and NPS (0-10 validated), duration_seconds, is_open.
+- `ConversationLog`: start(), get(), conversations_for_customer(), open_conversations(), avg_csat(), avg_nps(), resolution_rate(), annual_summary() with by_outcome counts.
+
+**Fidelity delta:** Closes the human conversation simulation gap Rich asked about. A real supplier logs every customer interaction at this granularity — call centre recordings are transcribed, NPS surveys sent post-call. Combined with ContactLog (Phase 164) the CRM layer now has: metadata (channel/reason/handle time) AND the actual dialogue transcript with satisfaction scores. Resolution rate and NPS are key Ofgem-reported customer service metrics.
+
+**9 new tests (2,632 total).**
+
+---
 ### Phase 170 -- Payment deferral / holiday scheme (2026-06-26)
 **Files:** `company/billing/payment_deferral.py` (new), `tests/company/billing/test_payment_deferral.py` (new)
 
@@ -2451,7 +2465,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,623 tests (2,207 fast / ~10s; simulation integration ~8 min per run)
+- 2,632 tests (2,216 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
