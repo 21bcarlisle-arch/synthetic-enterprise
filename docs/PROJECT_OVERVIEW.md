@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,788 tests passing. Codebase: ~38,100 lines across 281+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,798 tests passing. Codebase: ~38,300 lines across 282+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 295 (2026-06-26):** Ofgem Price Cap Book -- 10 new tests (3,798 total). company/regulatory/price_cap.py: 26 quarters real data Q1-2019 to Q1-2025; CapStatus (4), frozen CapComplianceCheck (headroom/is_compliant), PriceCapBook (elec/gas cap rates, typical annual bill, breach tracking). Peak Q3-2022: £3,549 vs £1,137 baseline = 3.12x. Connects to TariffSmoothing (Ph277) and CostToServe (Ph294).
 
 **Phase 294 (2026-06-26):** Cost-to-Serve Calculator -- 10 new tests (3,788 total). company/pricing/cost_to_serve.py: CustomerSegment (4), frozen CostToServeBreakdown (all 7 levy components + ops; levy_pct_of_total), CostToServeCalculator (acquisition_cost_gbp, mean_total_cost, high_cost_accounts). Connects all 7 non-commodity cost ledgers into a unified per-unit economics view. Activity-based pricing foundation (CLAUDE.md principle).
 
@@ -3969,7 +3971,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,788 tests (3,346 fast / ~10s; simulation integration ~8 min per run)
+- 3,798 tests (3,356 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
