@@ -527,6 +527,22 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 201 -- Bad debt provisioning model (2026-06-26)
+**Files:** `company/finance/bad_debt_provision.py` (new), `tests/company/finance/test_bad_debt_provision.py` (new)
+
+**What was built:**
+- AgingBucket enum: CURRENT (0-30d) / DAYS_30 (31-60d) / DAYS_60 (61-90d) / DAYS_90 (91-180d) / DAYS_180_PLUS.
+- _PROVISION_RATES: 0.5% / 5% / 20% / 50% / 90% (standard UK ECL approach).
+- classify_age(days_outstanding) -> AgingBucket.
+- ArrearsLedgerItem frozen: customer_id, outstanding_gbp, days_outstanding, is_vulnerable; aging_bucket, provision_rate, provision_gbp properties.
+- BadDebtProvision frozen: items tuple; total_arrears_gbp, total_provision_gbp, provision_coverage_pct, by_bucket() dict, vulnerable_provision_gbp(), summary().
+- build_provision(as_of, items) -> BadDebtProvision.
+
+**Fidelity delta:** Under IFRS 9 (adopted 2018), UK suppliers must hold an "expected credit loss" (ECL) provision against their arrears book, staged by days overdue. A mid-sized supplier with £1M in arrears might hold £200-400k in provision; during the 2022 crisis the provision rate doubled as 180-day balances surged. The CFO uses provision_coverage_pct as a health indicator — below 25% = aggressive; above 60% = stress signal. Bridges arrears_book (Ph174), vulnerability_register (Ph169), company_pl (Ph181), and bad_debt field in BoardKPIDashboard (Ph182).
+
+**8 new tests (2,884 total).**
+
+---
 ### Phase 200 -- Customer lifecycle stage tracker (2026-06-26)
 **Files:** `company/crm/lifecycle_tracker.py` (new), `tests/company/crm/test_lifecycle_tracker.py` (new)
 
@@ -2870,7 +2886,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,876 tests (2,460 fast / ~10s; simulation integration ~8 min per run)
+- 2,884 tests (2,468 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
