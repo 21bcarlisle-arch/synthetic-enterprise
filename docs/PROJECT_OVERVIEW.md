@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,232 tests (1,804 non-simulation, 428 simulation). Codebase: ~33,300 lines across 249+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,241 tests (1,813 non-simulation, 428 simulation). Codebase: ~33,500 lines across 250+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 136 -- Renewal pricing engine (2026-06-27)
+**Files:** `company/billing/renewal_engine.py` (new), `tests/company/billing/test_renewal_engine.py` (new)
+
+**What was built:**
+- `generate_renewal_pack()`: builds a `RenewalPack` with 3 quotes — fixed_1yr, fixed_2yr (+0.5p/kWh term premium), variable_svt (+2.5p/kWh risk premium). Unit rate = spot + segment margin (RESI 2.5p, SME 3.0p, IC 1.8p) + term premium.
+- `RenewalPack`: quotes list, cheapest, recommended (default: fixed_1yr), days_to_expiry, spot_price_p_kwh.
+- `RenewalQuote`: unit_rate, standing_charge, annual_est_cost_gbp, valid_until, recommended flag, term_label (human-readable).
+
+**Fidelity delta:** Renewal offers are sent 42 days before fixed-term expiry (SLC 22A). The company prices from observable market data (price feed, Phase 76) not simulation internals. Customers who don't renew roll onto SVT. The renewal engine feeds the acquisition/churn analytics (Phase 124).
+
+**9 new tests (2,241 total).**
+
+---
 ### Phase 135 -- Customer credit scoring (2026-06-27)
 **Files:** `company/crm/credit_scoring.py` (new), `tests/company/crm/test_credit_scoring.py` (new)
 
@@ -1962,14 +1975,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,232 tests (1,804 fast / ~10s; simulation integration ~8 min per run)
+- 2,241 tests (1,813 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 135, 2026-06-27):**
+**Latest full run (Phase 136, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
