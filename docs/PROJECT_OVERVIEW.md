@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,835 tests (1,407 non-simulation, 428 simulation). Codebase: ~25,600 lines across 214+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,846 tests (1,418 non-simulation, 428 simulation). Codebase: ~25,800 lines across 215+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 95 -- Contract renewal countdown (2026-06-26)
+**Files:** `company/billing/contract.py` (new), `company/portal/app.py` (extended), `company/portal/templates/dashboard.html` (extended), `tests/company/billing/test_contract.py` (new)
+
+**What was built:**
+- `contract.py`: `contract_end_date(customer, as_of)` — advances acquisition date by term-year steps until past `as_of`; `days_until_renewal()`; `is_in_notice_window(window_days=30)`; `renewal_summary()`.
+- `variable`/`svt`/`flex`/`hh` return `None` (rolling contract, no fixed end date).
+- Dashboard: renewal date + days countdown shown for fixed-term customers; within 30-day window: amber alert with link to tariff comparison.
+
+**Fidelity delta:** Customers can now see when their contract ends and take action. Fixed-term customers approaching renewal get a prompt to compare tariffs — mirroring real supplier retention workflows.
+
+**11 new tests (1,846 total).**
+
+---
 ### Phase 94 -- Complaint deadline tracker (2026-06-26)
 **Files:** `company/crm/service_log.py` (extended), `company/portal/app.py` (extended), `company/portal/templates/admin_complaints.html` (new), `tests/company/crm/test_complaint_deadlines.py` (new)
 
@@ -1430,14 +1443,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,835 tests (1,407 fast / ~10s; simulation integration ~8 min per run)
+- 1,846 tests (1,418 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 94, 2026-06-26):**
+**Latest full run (Phase 95, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

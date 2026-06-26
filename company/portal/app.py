@@ -24,6 +24,7 @@ from company.billing.consumption import consumption_history, monthly_totals
 from company.billing.hh_consumption import get_hh_consumption, recent_hh_periods, is_feed_available
 from company.billing.eac_calibration import calibrate_eac, eac_drift
 from company.billing.direct_debit import set_mandate, get_mandate, cancel_mandate, is_dd_customer
+from company.billing.contract import renewal_summary
 from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
@@ -210,9 +211,11 @@ async def dashboard(request: Request, account_id: str):
     whd_eligible = account_id in [
         f.customer_id for f in _SERVICE_LOG.vulnerability_register()
     ]
+    renewal = renewal_summary(customer)
     return templates.TemplateResponse(
         request, "dashboard.html",
-        {"customer": customer, "summary": summary, "whd_eligible": whd_eligible},
+        {"customer": customer, "summary": summary, "whd_eligible": whd_eligible,
+         "renewal": renewal},
     )
 
 
