@@ -243,8 +243,11 @@ def maybe_ntfy(data, net_margin, insights=None):
 
 
 def main(marker_path_str):
-    marker = Path(marker_path_str)
+    marker = Path(marker_path_str).resolve()
     if not marker.exists():
+        if (DONE_DIR / Path(marker_path_str).name).exists():
+            log("Already in done/ (duplicate run): {}".format(Path(marker_path_str).name))
+            return 0
         log("Marker not found: {}".format(marker))
         return 1
 
@@ -322,8 +325,14 @@ def main(marker_path_str):
         log("Commit/push failed (possibly nothing changed)")
 
     DONE_DIR.mkdir(parents=True, exist_ok=True)
-    marker.rename(DONE_DIR / marker.name)
-    log("Moved {} to done/".format(marker.name))
+    try:
+        marker.rename(DONE_DIR / marker.name)
+        log("Moved {} to done/".format(marker.name))
+    except FileNotFoundError:
+        if (DONE_DIR / marker.name).exists():
+            log("{} already in done/ (processed concurrently)".format(marker.name))
+        else:
+            log("WARNING: {} vanished from staging and not in done/".format(marker.name))
 
     # Keep agent_status.json financial metrics current (phase/tests preserved by phase-close)
     try:
