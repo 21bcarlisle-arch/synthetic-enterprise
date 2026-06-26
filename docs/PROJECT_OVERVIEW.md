@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 172 -- Premises occupancy history register (2026-06-26)
+**Files:** `company/crm/occupancy_register.py` (new), `tests/company/crm/test_occupancy_register.py` (new)
+
+**What was built:**
+- `TenancyEndReason` enum: MOVED_OUT / DECEASED / SWITCHED_SUPPLIER / EVICTED / VOID.
+- `OccupancyPeriod` dataclass: mpan, customer_id, move_in_date, move_out_date, end_reason; is_current, duration_days.
+- `PremisesOccupancyRegister`: record_move_in() (raises if MPAN already occupied), record_move_out(), current_occupant(mpan), occupancy_at_date(mpan, as_of) — point-in-time query, void_mpans(), history_for_mpan(), history_for_customer(), portfolio_summary().
+
+**Fidelity delta:** Every meter point in the UK has a chain of occupants. When a customer moves out, the MPAN becomes void until a new customer is registered. Erroneous transfer disputes arise when the wrong customer is associated with an MPAN. The occupancy_at_date() method enables point-in-time attribution — e.g., who was responsible for energy at MPAN X on date Y — which underpins both billing resolution and COT investigation.
+
+**9 new tests (2,641 total).**
+
+---
 ### Phase 171 -- Customer conversation transcript model (2026-06-26)
 **Files:** `company/crm/conversation_log.py` (new), `tests/company/crm/test_conversation_log.py` (new)
 
@@ -2465,7 +2478,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,632 tests (2,216 fast / ~10s; simulation integration ~8 min per run)
+- 2,641 tests (2,225 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
