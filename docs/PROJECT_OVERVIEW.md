@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 176 -- Invoice / billing dispute resolution (2026-06-26)
+**Files:** `company/billing/billing_dispute.py` (new), `tests/company/billing/test_billing_dispute.py` (new)
+
+**What was built:**
+- `BillingDisputeType` enum: 7 types (wrong_tariff_applied, incorrect_unit_rate, missing_discount, duplicate_invoice, direct_debit_error, standing_charge_error, exit_fee_dispute).
+- `BillingDisputeStatus` enum: OPEN / UNDER_REVIEW / RESOLVED_CREDIT / RESOLVED_NO_CHANGE / ESCALATED.
+- `BillingDispute` frozen dataclass: is_open, days_to_resolution, credit_applied_gbp, closed_date.
+- `BillingDisputeBook`: raise_dispute(), update_status(), resolve_with_credit(), resolve_no_change(), open_disputes(), disputes_for_customer(), total_credits_issued_gbp(), annual_summary() with avg_days_to_resolution.
+
+**Fidelity delta:** Billing disputes are distinct from meter disputes (Phase 154). A wrong tariff applied after a switch is a billing error, not a meter read error; an exit fee dispute is contractual. UK suppliers must respond to all billing disputes within 8 weeks (SLC 2.7) or the customer gains automatic Ombudsman eligibility (Phase 155). Average days to resolution is an Ofgem-reported metric.
+
+**8 new tests (2,677 total).**
+
+---
 ### Phase 175 -- Acquisition channel ROI model (2026-06-26)
 **Files:** `company/crm/channel_roi.py` (new), `tests/company/crm/test_channel_roi.py` (new)
 
@@ -2520,7 +2534,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,669 tests (2,253 fast / ~10s; simulation integration ~8 min per run)
+- 2,677 tests (2,261 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
