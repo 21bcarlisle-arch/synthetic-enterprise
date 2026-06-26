@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,655 tests passing. Codebase: ~36,500 lines across 270+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,667 tests passing. Codebase: ~36,650 lines across 271+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 284 (2026-06-26):** Smart Meter Rollout Book -- 12 new tests (3,667 total). company/market/smart_meter_rollout.py: MeterGeneration (SMETS1/SMETS2/TRADITIONAL), RolloutStatus (ON_TRACK/BEHIND/SIGNIFICANTLY_BEHIND), frozen MeterPortfolioSnapshot (smart_penetration_pct/remote_reads_pct/annual_manual_read_cost_gbp), SmartMeterRolloutBook (rollout_status/annual_progress/rollout_summary). Ofgem SMIP annual targets (10% 2016 to 85% 2025). SMETS1: 75% remote read rate; SMETS2: 95%. Manual read cost: £15/visit.
 
 **Phase 283 (2026-06-26):** Consumer Duty Compliance Register -- 12 new tests (3,655 total). company/compliance/consumer_duty.py: DutyOutcome (4 Ofgem-mandated outcomes), OutcomeRAG (GREEN/AMBER/RED), frozen OutcomeAssessment (is_compliant), ConsumerDutyRegister (latest_for_outcome/overall_rag/outcomes_summary). Also fixed: warm_home_discount.py now exports whd_summary() and whd_eligible_customers() module-level functions required by portal/app.py -- resolved 23 test collection errors unblocking 226 previously-hidden tests.
 
@@ -3947,7 +3949,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,655 tests (3,213 fast / ~10s; simulation integration ~8 min per run)
+- 3,667 tests (3,225 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
