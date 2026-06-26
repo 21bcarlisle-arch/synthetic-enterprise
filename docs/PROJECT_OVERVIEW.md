@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,538 tests passing. Codebase: ~35,400 lines across 262+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,550 tests passing. Codebase: ~35,400 lines across 262+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 275 (2026-06-26):** Green Claims Audit test coverage -- 12 new tests (3,550 total). Closed zero-coverage gap in company/compliance/green_claims_audit.py (GreenClaimsAuditor audits REGO coverage vs green product consumption). tests/company/compliance/ directory created. Tests cover COMPLIANT/AT_RISK/NON_COMPLIANT paths, wrong-year REGO exclusion, coverage_pct cap at 100, penalty_estimate_gbp when shortfall, non-green product codes ignored, empty consumption edge case.
 
 **Phase 274 (2026-06-26):** Life Event Impact Assessor -- 12 new tests (3,538 total). company/crm/life_event_impact.py: ImpactSeverity (LOW/MODERATE/HIGH/CRITICAL), LifeEventImpact (frozen dataclass), LifeEventImpactAssessor (assess/batch_assess/urgent_impacts/psr_candidates/summary). Maps all 11 LifeEventTypes to severity + consumption_delta_pct + PSR trigger + vulnerability flag + recommended_actions. Connects life_events + priority_services + vulnerability_index into unified impact assessment layer.
 
@@ -3929,7 +3931,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,538 tests (3,096 fast / ~10s; simulation integration ~8 min per run)
+- 3,550 tests (3,108 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
