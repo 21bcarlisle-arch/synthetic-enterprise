@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 205 -- Capacity-to-Pay (CtP) affordability assessment (2026-06-26)
+**Files:** `company/billing/capacity_to_pay.py` (new), `tests/company/billing/test_capacity_to_pay.py` (new)
+
+**What was built:**
+- AffordabilityOutcome enum: CAN_PAY_IN_FULL / CAN_PAY_PARTIAL / CANNOT_PAY / FUEL_POVERTY.
+- RecommendedAction enum (6): STANDARD_PLAN (12m) / EXTENDED_PLAN (24m) / MINIMUM_PLAN / PPM_CONVERSION / DEBT_ADVICE_REFERRAL / WRITE_OFF_CONSIDERATION.
+- CtPAssessment frozen: monthly_income_gbp, monthly_essential_outgoings_gbp, total_debt_gbp, is_vulnerable; disposable_income_gbp (income-outgoings), energy_share_of_income_pct (debt/(income*12)*100), affordable_monthly_repayment_gbp (10% of disposable), outcome, recommended_action, estimated_plan_months, summary().
+- Logic: fuel_poverty if energy_share >= 10%; cannot_pay if disposable=0; can_pay_in_full if 10%*disposable clears debt in 12m; partial otherwise. Vulnerable+fuel_poverty -> PPM_CONVERSION.
+
+**Fidelity delta:** Ofgem SLC 27A requires suppliers to assess ability to pay before referring to external debt collectors. The 10% of income threshold aligns with the UK government's fuel poverty definition. CtP outputs feed directly into arrears_book (Ph174) stage transitions: PLAN_OFFERED uses affordable_monthly_repayment_gbp; CANNOT_PAY customers must be referred to debt advice (not straight to enforcement). The 2022 crisis: customers on SVT with unaffordable bills after cap removal → mass FUEL_POVERTY outcomes, mass PPM_CONVERSION requests.
+
+**7 new tests (2,913 total).**
+
+---
 ### Phase 204 -- Switching cooling-off and objection management (2026-06-26)
 **Files:** `company/market/switch_governance.py` (new), `tests/company/market/test_switch_governance.py` (new)
 
@@ -2934,7 +2948,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,906 tests (2,490 fast / ~10s; simulation integration ~8 min per run)
+- 2,913 tests (2,497 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
