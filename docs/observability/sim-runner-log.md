@@ -5878,3 +5878,25 @@
 - [2026-06-26 08:38 UTC] [process_run] Publishing HH consumption data feed
 - [2026-06-26 08:38 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
 - [2026-06-26 08:38 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 08:48 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 08:48 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 08:48 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 08:48 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 08:48 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 08:48 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-06-26 08:48 UTC] Waiting 60s before next run...
+- [2026-06-26 08:49 UTC] Starting run — git=d1cd591, json=run_output_d1cd591_20260626T084904Z.json
+- [2026-06-26 08:57 UTC] Run complete — 522s, 392 KB (run_output_d1cd591_20260626T084904Z.json)
+- [2026-06-26 08:57 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 522, "size_kb": 392, "json": "run_output_d1cd591_20260626T084904Z.json"}, "timestamp": "2026-06-26T08:57:46.703604+00:00", "session_id": null}
+- [2026-06-26 08:57 UTC] [process_run] Processing run_complete_20260626T084904Z.md
+- [2026-06-26 08:57 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_d1cd591_20260626T084904Z.json
+- [2026-06-26 08:57 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 08:57 UTC] [process_run] Created 'Latest simulation results' block in LATEST.md
+- [2026-06-26 08:57 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 08:57 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 08:57 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 08:57 UTC] [process_run] Publishing market price feed
+- [2026-06-26 08:57 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 08:57 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 08:57 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 08:57 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)

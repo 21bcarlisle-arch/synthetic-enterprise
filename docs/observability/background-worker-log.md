@@ -1514,3 +1514,5 @@ Structured performance entries are added after each task completes.
 - [2026-06-26 07:47 UTC] run_queued_tasks: no parseable QUEUED task found
 - [2026-06-26 08:17 UTC] Found queued tasks — beginning execution
 - [2026-06-26 08:17 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-26 08:47 UTC] Found queued tasks — beginning execution
+- [2026-06-26 08:47 UTC] run_queued_tasks: no parseable QUEUED task found
