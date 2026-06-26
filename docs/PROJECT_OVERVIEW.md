@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 221 -- SoLR exposure model (2026-06-26)
+**Files:** `company/regulatory/solr_exposure.py` (new), `tests/company/regulatory/test_solr_exposure.py` (new)
+
+**What was built:**
+- _SOLR_LEVY_HISTORY_GBP_PER_MWH (2016-2025): 2016 £0.50 → 2022 £10.00 → 2025 £2.50.
+- get_solr_levy_gbp_per_mwh(year): year-indexed lookup with fallback to most recent.
+- SoLREvent mutable: event_id, failed_supplier, announcement_date, customer_count, avg_annual_kwh, legacy_credit_gbp; total_annual_mwh, levy_cost_gbp(year).
+- SoLRAcquisitionPrice frozen: offered_unit_rate_pence, offered_standing_pence, acquisition_premium_pct, is_above_svt.
+- SoLRBook: record_event(), complete_transfer(appointed_solr), annual_levy_cost_gbp(year), total_legacy_credit_gbp(), events_summary(year).
+
+**Fidelity delta:** From Sep 2021 to Apr 2022, 29 UK energy suppliers failed, including Bulb (1.7m customers) which entered SAR (Special Administration Regime). The SoLR process costs are recovered through the Supplier of Last Resort Levy and the BSC Balancing Mechanism charges — these are already in the mutualization_levy (Ph54) rate table (same £10.0/MWh peak). Legacy credit_gbp is the customer credit balance that was transferred and must be honoured: the SoLR is compensated via a Levy pooled across all remaining suppliers (Ofgem SLC 14A.3). SoLR appointment has strategic value: it delivers a large customer tranche instantly, typically priced above SVT to recover the credit debt.
+
+**8 new tests (3,043 total).**
+
+---
 ### Phase 220 -- Smart meter HH consumption analytics (2026-06-26)
 **Files:** `company/billing/smart_meter_analytics.py` (new), `tests/company/billing/test_smart_meter_analytics.py` (new)
 
@@ -3164,7 +3179,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,035 tests (2,618 fast / ~10s; simulation integration ~8 min per run)
+- 3,043 tests (2,626 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
