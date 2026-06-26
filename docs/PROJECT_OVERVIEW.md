@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 145 -- Prepayment meter (PPM) management (2026-06-26)
+**Files:** `company/billing/prepayment.py` (new), `tests/company/billing/test_prepayment.py` (new)
+
+**What was built:**
+- `PPMAccount` dataclass: customer_id, meter_id, balance_gbp, debt_gbp, emergency_credit_limit_gbp (GBP5 standard / GBP10 vulnerable), debt_recovery_rate (0.50 standard / 0.25 vulnerable), is_vulnerable. Properties: in_emergency_credit, emergency_credit_used_gbp, emergency_credit_remaining_gbp.
+- `PPMBook`: register(), top_up() (debt recovery withheld first; remainder to balance; capped at outstanding debt), consume_daily() (deducts cost; triggers emergency credit draw when balance hits zero), is_friendly_hours() (Ofgem rule: no disconnect 10pm-6am or weekends), is_self_disconnected() (balance < -limit AND not friendly hours), portfolio_summary() (self_disconnected/in_emergency_credit/avg_balance/total_debt counts).
+- `_is_friendly_hours()`: weekday 10pm-6am or weekend -> True.
+
+**Fidelity delta:** ~4M UK residential customers are on prepayment meters. PPM was referenced as a recommended outcome in credit_scoring.py (HIGH_RISK -> PPM) and as a meter type in meter_assets.py, but no operational model existed. Phase 145 closes this: the company now models the full PPM lifecycle -- top-up debt recovery, emergency credit draw-down, and Ofgem-mandated friendly hours protection. The 2022 crisis is captured: at 3x pre-crisis unit rates, emergency credit exhausts in ~2 days vs ~2 weeks, directly modelling the self-disconnection surge that drove Ofgem's 2023 PPM installation rule changes.
+
+**19 new tests (2,340 total).**
+
+---
 ### Phase 144 -- Gas daily balancing and nomination model (2026-06-26)
 **Files:** `company/market/gas_nominations.py` (new), `tests/company/market/test_gas_nominations.py` (new)
 
@@ -2080,14 +2093,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,321 tests (1,905 fast / ~10s; simulation integration ~8 min per run)
+- 2,340 tests (1,924 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 143, 2026-06-26):**
+**Latest full run (Phase 145, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

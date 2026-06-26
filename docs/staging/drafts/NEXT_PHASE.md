@@ -1,29 +1,36 @@
-# Phase 144 -- Gas Daily Balancing and Nomination Model
+Phase 145 -- Prepayment Meter (PPM) Management
 
-**Status:** PROPOSED (2026-06-26)
+Status: PROPOSED (2026-06-26)
 
-Every UK gas shipper must nominate daily gas quantities to Xoserve (UNC obligations).
-If actual demand exceeds nomination, the company is short and buys the difference at
-within-day NBP spot. This drove supplier failures in 2021-22 (NBP hit 10 GBP/therm).
-Completely absent from the current model.
+PPM is referenced by credit_scoring (HIGH_RISK -> PPM recommended) and meter_assets
+(PPM as meter type), but there is no operational model. ~4M UK customers use PPM.
+The 2022 crisis created a wave of self-disconnection when customers could not afford
+to top up. Ofgem tightened PPM installation rules in 2023 as a direct consequence.
 
-## Design: company/market/gas_nominations.py
+Design: company/billing/prepayment.py
 
-DailyNomination(date, gas_account_id, nominated_kwh, actual_kwh, nbp_spot_gbp_per_therm)
+PPMAccount(customer_id, meter_id, balance_gbp, emergency_credit_limit_gbp=5.0,
+           debt_recovery_rate=0.5, is_vulnerable=False)
+- balance_gbp: current credit on meter (can go negative = drawing emergency credit)
+- emergency_credit_limit_gbp: 5 GBP standard, 10 GBP for vulnerable customers
+- debt_recovery_rate: fraction of top-up withheld for debt (default 0.50)
+- debt_gbp: outstanding debt being recovered via top-ups
 
-GasNominationBook:
-- nominate(nom) -> record a days nomination vs actual
-- imbalance_kwh(date, account) -> actual - nominated (negative = short)
-- cash_out_cost_gbp(date, account) -> short pays spot; long gets 0.85x credit
-- nomination_accuracy_pct() -> pct days within +-5% of actual
-- monthly_cashout_gbp(year, month) -> aggregate imbalance cost
-- annual_cashout_gbp(year) -> annual rollup
-- worst_imbalance_periods(n=5) -> top-n cash-out events
-- balancing_summary() -> accuracy, total_cashout, period count
+PPMBook:
+- register(account) -> record in portfolio
+- top_up(account_id, amount_gbp, date) -> if debt: withhold rate*amount for debt,
+  remainder to balance. If debt-free: full amount to balance.
+- consume_daily(account_id, kwh, rate_gbp_per_kwh, sc_gbp_per_day, date) -> deduct
+  from balance; when balance hits zero, draw emergency credit (up to limit)
+- is_friendly_hours(dt) -> bool: Ofgem rule no disconnect 10pm-6am or weekends
+- is_self_disconnected(account_id, dt) -> bool: balance < -emergency_credit_limit
+  AND NOT friendly_hours(dt) -- exhausted emergency credit, customer cut off
+- portfolio_summary() -> total_accounts, self_disconnected, avg_balance_gbp,
+  total_debt_gbp, pct_in_emergency_credit
 
-Short cost: imbalance_kwh / 29.31 * nbp_spot_gbp_per_therm
-Long credit: imbalance_kwh / 29.31 * nbp_spot_gbp_per_therm * 0.85
+2022 dynamic: NBP gas +10x, SSP electricity +3x -> daily deduction rises sharply ->
+emergency credit exhausted in days not weeks -> self-disconnection surge matches Ofgem data.
 
-2022: 1000 kWh short at 3.50 GBP/therm = 119 GBP. 2016 at 0.35 GBP/therm = 12 GBP.
+Vulnerable customers: emergency_credit_limit 10 GBP (vs 5), debt_recovery_rate capped 0.25.
 
-~10 tests. Closes the last major daily operational gap in the company layer.
+~11 tests. Closes the gap between credit_scoring PPM recommendation and actual PPM operations.
