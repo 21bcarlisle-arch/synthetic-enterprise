@@ -527,6 +527,22 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 245 -- Capacity Market participation book (2026-06-26)
+**Files:** `company/market/capacity_market.py` (new), `tests/company/market/test_capacity_market.py` (new)
+
+**What was built:**
+- CMUnitType: CCGT / OCGT / BATTERY / DEMAND_RESPONSE / INTERCONNECTOR / PUMP_STORAGE.
+- AuctionType: T4 (4 years ahead) / T1 (1 year ahead).
+- _CM_CLEARING_PRICE_GBP_PER_KW_PER_YEAR: 2016 £18 → 2020 £6.44 → 2022 £75 (crisis) → 2025 £60.
+- CMUnit frozen: unit_id, unit_type, derated_capacity_kw, registered_date.
+- CMObligation mutable: unit, delivery_year, auction_type, clearing_price; annual_revenue_gbp (derated_kw × price), net_revenue_gbp (after penalties), apply_penalty().
+- CapacityMarketBook: register_unit(), add_obligation(unit, year, type, optional_price), obligations_for_year(), total_revenue_gbp(year), total_derated_kw(year), cm_summary(year).
+
+**Fidelity delta:** The Capacity Market is a government mechanism paying generators (and demand-side assets) to guarantee availability during winter stress events. A 100 MW battery with 2022 CM obligation earned £7.5M/year in CM revenue alone. The 2022 spike from £6.44 to £75/kW (12x increase) reflects the energy security panic following Russian gas supply disruption. T4 auctions are held 4 years in advance for new build; T1 for shorter-term reliability. DSR assets can participate at lower build costs than generation. Connects to FlexibleAsset (Ph239) and DSRPortfolio (Ph224): BM dispatch revenue + CM revenue + Triad avoidance is the "stacked revenue" model for flexible assets.
+
+**9 new tests (3,255 total).**
+
+---
 ### Phase 244 -- Customer contact preferences and channel management (2026-06-26)
 **Files:** `company/crm/contact_journey.py` (new), `tests/company/crm/test_contact_journey.py` (new)
 
@@ -3523,7 +3539,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,246 tests (2,829 fast / ~10s; simulation integration ~8 min per run)
+- 3,255 tests (2,838 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
