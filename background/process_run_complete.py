@@ -213,6 +213,7 @@ def _run_history_max_net():
 
 
 def maybe_ntfy(data, net_margin, insights=None):
+    """Send NTFY for notable exceptions. Returns log message if sent, else None."""
     admin = data.get("administration_event")
     from background.ntfy_utils import send_ntfy
     if admin:
@@ -222,13 +223,12 @@ def maybe_ntfy(data, net_margin, insights=None):
                 date_str, net_margin
             )
         )
-        log("NTFY sent: administration event on {}".format(date_str))
-        return
+        return "NTFY sent: administration event on {}".format(date_str)
     prev_best = _run_history_max_net()
     is_new_high = net_margin > prev_best * 1.01 and prev_best > 0
     is_new_low = net_margin < prev_best * 0.5 and prev_best > 1_000_000
     if not (is_new_high or is_new_low):
-        return
+        return None
     tag = "[NEW HIGH]" if is_new_high else "[NEW LOW]"
     summary = getattr(insights, "executive_summary", "") if insights else ""
     acts = list(getattr(insights, "recommended_actions", ()) if insights else [])
@@ -238,7 +238,7 @@ def maybe_ntfy(data, net_margin, insights=None):
     if acts:
         msg += " | Action: " + str(acts[0])[:80]
     send_ntfy(msg)
-    log("NTFY sent: {} net margin £{:,.0f}".format(tag, net_margin))
+    return "NTFY sent: {} net margin £{:,.0f}".format(tag, net_margin)
 
 
 
@@ -349,7 +349,9 @@ def main(marker_path_str):
     except Exception as exc:
         log("agent_status metrics update skipped: {}".format(exc))
 
-    maybe_ntfy(data, net_margin, run_insights)
+    ntfy_msg = maybe_ntfy(data, net_margin, run_insights)
+    if ntfy_msg:
+        log(ntfy_msg)
     log("Done")
     return 0
 

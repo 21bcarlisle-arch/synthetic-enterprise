@@ -482,6 +482,7 @@ def append_run_history(insights: RunInsights, history_path: Optional[Path] = Non
     }
     history = [h for h in history if h.get("git_hash") != insights.git_hash]
     history.append(entry)
+    history = history[-100:]  # keep most recent 100 runs
     hp.write_text(json.dumps(history, indent=2))
 
 
