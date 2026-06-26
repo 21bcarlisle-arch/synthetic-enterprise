@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 211 -- Customer payment behaviour analytics (2026-06-26)
+**Files:** `company/billing/payment_behaviour.py` (new), `tests/company/billing/test_payment_behaviour.py` (new)
+
+**What was built:**
+- PaymentResult enum: ON_TIME / LATE / DD_FAILED / PARTIAL / MISSED.
+- PaymentBehaviour enum: EXCELLENT (0% failures) / GOOD (<10%) / FAIR (<25%) / POOR (<50%) / CRITICAL (>=50%).
+- PaymentRecord frozen: customer_id, due_date, amount_due/paid, payment_date, result; days_late (None if missed), shortfall_gbp.
+- PaymentBehaviourAnalytics: record(), records_for_customer(), on_time_rate(), dd_failure_rate(), avg_days_late(), behaviour_score(), total_shortfall_gbp(), portfolio_summary() with by_behaviour breakdown.
+
+**Fidelity delta:** UK energy suppliers track payment behaviour at the individual customer level as an operational risk metric. DD failure rate > 20% is a red flag for the credit team; behaviour_score drives arrears escalation priority (CRITICAL customers get immediate outbound call, POOR get SMS, EXCELLENT get digital self-serve). The behaviour score feeds credit_scoring (Ph135) at renewal — repeat DD failures can downgrade a PRIME customer to SUBPRIME, triggering deposit requirement. 2022 crisis: DD_FAILED rates doubled industry-wide as customers hit by energy bill shock cancelled DDs.
+
+**9 new tests (2,961 total).**
+
+---
 ### Phase 210 -- Regulatory reporting calendar (2026-06-26)
 **Files:** `company/regulatory/reporting_calendar.py` (new), `tests/company/regulatory/test_reporting_calendar.py` (new)
 
@@ -3020,7 +3034,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,952 tests (2,536 fast / ~10s; simulation integration ~8 min per run)
+- 2,961 tests (2,545 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
