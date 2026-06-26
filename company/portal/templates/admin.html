@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Overview</title>
+  <style>body{font-family:sans-serif;max-width:1100px;margin:40px auto;padding:0 16px}
+    h1,h2{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{text-align:left;padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:0.9em}
+    th{background:#ebf8ff}
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+    .card{background:#f7fafc;border:1px solid #bee3f8;border-radius:6px;padding:12px}
+    .card strong{display:block;font-size:1.2em;color:#2b6cb0}
+    .card span{font-size:0.8em;color:#718096}
+    .yes{color:#276749;font-weight:600}.no{color:#718096}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Portal</a> | <a href="/regulatory">Regulatory</a> | <a href="/trading">Trading</a></nav>
+  <h1>Admin Overview</h1>
+  <div class="summary">
+    <div class="card"><strong>{{ data.total_customers }}</strong><span>Active accounts</span></div>
+    <div class="card"><strong>£{{ "%.0f"|format(data.total_billed_gbp) }}</strong><span>Total billed</span></div>
+    <div class="card"><strong>£{{ "%.0f"|format(data.total_outstanding_gbp) }}</strong><span>Outstanding</span></div>
+    <div class="card"><strong>£{{ "%.0f"|format(data.total_bad_debt_gbp) }}</strong><span>Bad debt</span></div>
+  </div>
+  <h2>Customer Portfolio</h2>
+  <table>
+    <tr><th>Account</th><th>Segment</th><th>Commodity</th><th>EAC (kWh)</th><th>Smart meter</th><th>Invoices</th><th>Paid (£)</th><th>Outstanding (£)</th></tr>
+    {% for c in data.customers %}
+    <tr>
+      <td><a href="/account/{{ c.customer_id }}">{{ c.customer_id }}</a></td>
+      <td>{{ c.segment }}</td>
+      <td>{{ c.commodity }}</td>
+      <td>{{ c.eac_kwh }}</td>
+      <td class="{{ "yes" if c.smart_meter else "no" }}">{{ "Yes" if c.smart_meter else "No" }}</td>
+      <td>{{ c.invoices }}</td>
+      <td>{{ "%.2f"|format(c.paid_gbp) }}</td>
+      <td>{{ "%.2f"|format(c.outstanding_gbp) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

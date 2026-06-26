@@ -315,3 +315,54 @@ async def regulatory_dashboard(request: Request):
         request, "regulatory.html",
         {"reg": reg},
     )
+
+def _load_admin_data() -> dict:
+    """Aggregate portfolio view for admin dashboard."""
+    customers = list(_CUSTOMER_INDEX.values())
+    db = _DEFAULT_DB
+    rows = []
+    total_billed = total_paid = total_outstanding = total_bad_debt = 0.0
+    for c in sorted(customers, key=lambda x: x["customer_id"]):
+        cid = c["customer_id"]
+        summary = _invoice_summary(cid, db)
+        rows.append({
+            "customer_id": cid,
+            "segment": c.get("segment", ""),
+            "commodity": c.get("commodity", ""),
+            "eac_kwh": c.get("eac_kwh", 0),
+            "smart_meter": c.get("smart_meter", False) or c.get("metering") == "HH",
+            "invoices": summary["count"],
+            "outstanding_gbp": summary["outstanding_gbp"],
+            "paid_gbp": summary["paid_gbp"],
+        })
+        total_billed += summary["billed_gbp"]
+        total_paid += summary["paid_gbp"]
+        total_outstanding += summary["outstanding_gbp"]
+    # bad debt from DB
+    if db.exists():
+        from company.billing.invoice import _conn, create_schema
+        create_schema(db)
+        import sqlite3
+        with _conn(db) as conn:
+            r = conn.execute(
+                "SELECT COALESCE(SUM(total_gbp),0) FROM invoices WHERE payment_status='bad_debt'"
+            ).fetchone()
+            total_bad_debt = r[0] if r else 0.0
+    return {
+        "customers": rows,
+        "total_customers": len(rows),
+        "total_billed_gbp": round(total_billed, 2),
+        "total_paid_gbp": round(total_paid, 2),
+        "total_outstanding_gbp": round(total_outstanding, 2),
+        "total_bad_debt_gbp": round(total_bad_debt, 2),
+    }
+
+
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_overview(request: Request):
+    data = _load_admin_data()
+    return templates.TemplateResponse(
+        request, "admin.html",
+        {"data": data},
+    )

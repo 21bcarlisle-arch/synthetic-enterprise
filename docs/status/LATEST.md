@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:28:51Z
+Last updated: 2026-06-26T02:30:41Z
+
+**Phase 85 COMPLETE (2026-06-26):** Admin Portfolio Overview -- 11 new tests (1,732 total).
+- GET /admin: customer portfolio table — segment, commodity, EAC, smart meter, outstanding, paid
+- Summary cards: active accounts, total billed, outstanding, bad debt
+- Per-customer account links; _load_admin_data() aggregates invoice DB across all accounts
 
 **Phase 84 COMPLETE (2026-06-26):** Regulatory Compliance Dashboard -- 13 new tests (1,721 total).
 - `GET /regulatory`: smart meter penetration vs Ofgem target (COMPLIANT/AT_RISK/BREACH badge)
@@ -177,7 +182,7 @@ Last updated: 2026-06-26T02:28:51Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,721 total (all tests passing)**
+**Test suite: 1,732 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
