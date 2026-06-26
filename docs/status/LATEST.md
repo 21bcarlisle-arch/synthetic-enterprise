@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T20:43:43Z
+Last updated: 2026-06-26T21:02:48Z
 
 ## Latest Simulation Run
 - **Git:** 559f25f (run 2026-06-26T19:04)
@@ -28,7 +28,7 @@ Last updated: 2026-06-26T20:43:43Z
 - Ph 271: Weather Engine & HDD tab on /sim/ + NTFY spam fix (10 tests)
 
 
-**Latest simulation results (2016–2025)** — auto-processed (840s / 14 min):
+**Latest simulation results (2016–2025)** — auto-processed (476s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
