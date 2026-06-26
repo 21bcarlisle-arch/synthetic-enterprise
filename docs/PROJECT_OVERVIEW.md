@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 148 -- Annual Direct Debit Review (ADDR) (2026-06-26)
+**Files:** `company/billing/dd_review.py` (new), `tests/company/billing/test_dd_review.py` (new)
+
+**What was built:**
+- `DDAction` enum: INCREASE / DECREASE / MAINTAIN.
+- `DDReviewResult` frozen dataclass: customer_id, review_date, current_dd_gbp, actual_annual_spend_gbp, recommended_monthly_gbp, variance_pct, action.
+- `review()`: computes ADDR outcome. Variance = (actual - implied_annual) / implied_annual * 100. ±5% threshold triggers action. Recommended monthly = ceiling-rounded annual/12.
+- `DDReviewBook`: run_review() (records result), latest_review(customer_id), overdue_for_review(as_of, last_review_dates, months=12), summary() -> counts by action + avg_variance_pct.
+
+**Fidelity delta:** Ofgem SLC 27B requires suppliers to review all domestic DD amounts at least annually and adjust if the payment materially diverges from expected spend. Persistent underpaying leads to accumulated debt (bad debt risk); overpaying leads to credit positions that must be refunded. Previously DD management (Phase 88/113) tracked mandate status but had no annual review cycle. Phase 148 closes this: the company can now run systematic ADDR across the portfolio and track compliance.
+
+**12 new tests (2,377 total).**
+
+---
 ### Phase 147 -- Guaranteed Standards of Performance (GSOPs) (2026-06-26)
 **Files:** `company/regulatory/gsop.py` (new), `tests/company/regulatory/test_gsop.py` (new)
 
@@ -2121,16 +2135,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,365 tests (1,949 fast / ~10s; simulation integration ~8 min per run)
+- 2,377 tests (1,961 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 147, 2026-06-26):**
+**Latest full run (Phase 148, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 12 new tests: Guaranteed Standards of Performance (GSOPs) — GSOPBook auto-tracks missed appointments/erroneous transfers; working-day payment deadlines; annual_report() for Ofgem compliance filing.
+- 12 new tests: Annual Direct Debit Review (ADDR) — review() ±5% variance threshold; DDReviewBook run_review/overdue_for_review; Ofgem SLC 27B compliance.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

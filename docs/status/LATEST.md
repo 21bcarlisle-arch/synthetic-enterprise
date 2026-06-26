@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T07:03:39Z
+Last updated: 2026-06-26T07:06:13Z
+
+**Phase 148 COMPLETE (2026-06-26):** Annual Direct Debit Review (ADDR) -- 12 new tests (2,377 total).
+- company/billing/dd_review.py: DDAction (INCREASE/DECREASE/MAINTAIN), DDReviewResult, review() (±5% variance threshold), DDReviewBook (run_review/latest_review/overdue_for_review/summary)
+- Variance = (actual_annual - implied_annual_dd) / implied_annual * 100; ceiling-rounds recommended monthly amount
+- Fidelity: Ofgem SLC 27B -- suppliers must review all domestic DD amounts annually; underpaying customers accumulate debt, overpaying builds credit requiring refund
 
 **Phase 147 COMPLETE (2026-06-26):** Guaranteed Standards of Performance (GSOPs) -- 12 new tests (2,365 total).
 - company/regulatory/gsop.py: GSOPType (5 types), GSOPPayment (trigger/due/paid/amount), GSOPBook (record_trigger/pay/overdue/total_liability/annual_report)
@@ -491,7 +496,7 @@ Last updated: 2026-06-26T07:03:39Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,365 total (all tests passing)**
+**Test suite: 2,377 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (480s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
