@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 193 -- Demand-Side Response (DSR) programme book (2026-06-26)
+**Files:** `company/market/dsr_book.py` (new), `tests/company/market/test_dsr_book.py` (new)
+
+**What was built:**
+- DSRStatus enum: ENROLLED / ACTIVE / SUSPENDED / WITHDRAWN.
+- DispatchResult enum: DELIVERED (>=95% of requested) / PARTIAL / NON_DELIVERY / CANCELLED.
+- DSRParticipant frozen dataclass: customer_id, mpan, contracted_mw, enrolled_date, status, payment_per_mwh_gbp.
+- DispatchEvent frozen dataclass: event_id, customer_id, requested_mw, delivered_mw, dispatch_start/end, result, payment_gbp; duration_hours, delivered_mwh, delivery_rate computed.
+- DSRBook: enroll(), dispatch() (raises if not ACTIVE; auto-classifies result; computes payment), events_for_customer(), total_contracted_mw(), total_payments_gbp(year), delivery_rate_year(year), annual_summary(year).
+
+**Fidelity delta:** UK I&C customers can enroll in DSR programmes where they agree to reduce load on instruction from their supplier (who can offer them to NESO Balancing Services). Payment is typically £50-100/MWh delivered; non-delivery incurs reputational penalties. A 2MW I&C customer dispatched for 2 hours = 4 MWh = £240 payment. During the 2021-22 winter stress events, DSR was critical to avoiding demand disconnection.
+
+**7 new tests (2,822 total).**
+
+---
 ### Phase 192 -- Gas MPRN supply point register (2026-06-26)
 **Files:** `company/market/mprn_register.py` (new), `tests/company/market/test_mprn_register.py` (new)
 
@@ -2756,7 +2771,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,815 tests (2,399 fast / ~10s; simulation integration ~8 min per run)
+- 2,822 tests (2,406 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
