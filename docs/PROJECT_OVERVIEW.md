@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 208 -- Staff headcount and payroll model (2026-06-26)
+**Files:** `company/finance/payroll.py` (new), `tests/company/finance/test_payroll.py` (new)
+
+**What was built:**
+- Department enum (8): OPERATIONS / CUSTOMER_SERVICES / TRADING / FINANCE / TECHNOLOGY / REGULATORY / SALES / SENIOR_MANAGEMENT.
+- EmploymentType enum: PERMANENT / CONTRACT / PART_TIME.
+- HeadcountRole frozen: role_id, title, department, employment_type, annual_salary_gbp, headcount, fte; total_annual_salary_gbp, employer_ni_gbp (13.8% on salary above £9,100), pension_cost_gbp (5% of salary), total_employment_cost_gbp.
+- HeadcountPlan: add_role(), total_headcount, total_fte, total_payroll_cost_gbp, cost_by_department(), headcount_by_department(), cost_per_customer_gbp(active_customers), summary().
+
+**Fidelity delta:** A UK energy supplier's opex is 65-75% people costs. A 5,000-customer supplier needs ~30 FTE (18 CS agents, 4 operations, 3 finance, 3 trading, 2 regulatory), costing ~£1.5M/year (£300/customer). A 50,000-customer supplier needs ~120 FTE but achieves scale efficiency at £70-80/customer. During the 2022 crisis, customer_services headcount spiked 40% as call volumes tripled — opex soared before companies could reduce customer base. cost_per_customer_gbp feeds directly into company_pl (Ph181) operating_cost_gbp and activity-based pricing.
+
+**8 new tests (2,936 total).**
+
+---
 ### Phase 207 -- Commodity hedging schedule (2026-06-26)
 **Files:** `company/market/hedging_schedule.py` (new), `tests/company/market/test_hedging_schedule.py` (new)
 
@@ -2978,7 +2992,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,928 tests (2,512 fast / ~10s; simulation integration ~8 min per run)
+- 2,936 tests (2,520 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
