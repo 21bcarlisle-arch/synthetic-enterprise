@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,156 tests (1,728 non-simulation, 428 simulation). Codebase: ~31,700 lines across 241+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,165 tests (1,737 non-simulation, 428 simulation). Codebase: ~31,900 lines across 242+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,18 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 128 -- Meter asset management (2026-06-27)
+**Files:** `company/billing/meter_assets.py` (new), `tests/company/billing/test_meter_assets.py` (new)
+
+**What was built:**
+- `MeterAsset` dataclass: asset_id, customer_id, meter_type (SMETS1/SMETS2/TRAD/PPM/AMR), installed_date, manufacturer, serial_number, status. Computed: cert_due_date (type-specific 7-15yr periods), cert_overdue, cert_due_soon.
+- `MeterAssetRegister`: register(), get(), for_customer(), operational(), faulty(), cert_overdue(), cert_due_soon(), by_type(), summary() with smart_pct.
+
+**Fidelity delta:** UK suppliers must maintain a meter asset register per MOA (Meter Operator Agent) obligations. Certification periods are set by the relevant standards body (BS 5685 for traditional meters). Smart meter percentage is an Ofgem KPI (target 75%+ of domestic customers by 2025).
+
+**9 new tests (2,165 total).**
+
+---
 ### Phase 127 -- HH meter data quality checker (2026-06-27)
 **Files:** `company/market/hh_data_quality.py` (new), `tests/company/market/test_hh_data_quality.py` (new)
 
@@ -1863,14 +1875,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,156 tests (1,728 fast / ~10s; simulation integration ~8 min per run)
+- 2,165 tests (1,737 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 127, 2026-06-27):**
+**Latest full run (Phase 128, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

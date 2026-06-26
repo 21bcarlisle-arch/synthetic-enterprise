@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T04:11:36Z
+Last updated: 2026-06-26T04:12:55Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 128 COMPLETE (2026-06-27):** Meter asset management -- 9 new tests (2,165 total).
+- company/billing/meter_assets.py: MeterAsset (5 types, cert_due_date, overdue/due_soon)
+- MeterAssetRegister: operational/faulty/cert_overdue tracking, smart_pct summary
+- Fidelity: meter asset register is a mandatory compliance record for UK suppliers
+
 **Phase 127 COMPLETE (2026-06-27):** HH data quality checker -- 9 new tests (2,156 total).
 - company/market/hh_data_quality.py: BSCP505-aligned quality flags (negative/zero/high/estimated)
 - check_day() validates 48-period completeness; quality_ok flag gates billing
@@ -394,7 +399,7 @@ Last updated: 2026-06-26T04:11:36Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,156 total (all tests passing)**
+**Test suite: 2,165 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (440s / 7 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
