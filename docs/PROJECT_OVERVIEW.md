@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,690 tests passing. Codebase: ~36,800 lines across 272+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,701 tests passing. Codebase: ~36,950 lines across 273+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 286 (2026-06-26):** Feed-in Tariff (FIT) Book -- 11 new tests (3,701 total). company/regulatory/fit_book.py: FITTechnology (5 types), frozen FITInstallation (is_active), frozen FITPayment (generation/export payments), FITBook (register/record/levelisation_charge_gbp/fit_summary). Real 2012-2019 generation rates (16.0p/kWh 2012 to 3.68p 2019). FIT scheme closed March 2019. Levelisation levy 2016-2019: £8.36-£9.45/MWh passed through to all suppliers.
 
 **Phase 285 (2026-06-26):** Renewable Obligation (RO) Tracker -- 10 new tests (3,690 total). company/regulatory/renewable_obligation.py: ROSettlementMethod (SURRENDER_ROC/BUYOUT/MIXED), frozen ROAnnualReturn (obligation_rocs/shortfall_rocs/buyout_cost_gbp/is_compliant), RenewableObligationBook (compliance_record/non_compliant_years/ro_summary). Real ROC obligation levels and buyout prices 2016-2025. Distinct from REGO (disclosure) -- RO is the financial obligation where suppliers surrender ROCs or pay Ofgem buyout price.
 
@@ -3951,7 +3953,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,690 tests (3,248 fast / ~10s; simulation integration ~8 min per run)
+- 3,701 tests (3,259 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
