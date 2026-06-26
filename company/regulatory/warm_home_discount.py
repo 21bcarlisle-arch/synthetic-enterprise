@@ -117,11 +117,15 @@ def whd_eligible_customers(service_log) -> list[str]:
 def whd_summary(service_log, scheme_year: int) -> dict:
     """Convenience wrapper: WHD summary derived from vulnerability register for a scheme year."""
     eligible = whd_eligible_customers(service_log)
+    rebate = _BROADER_DISCOUNT.get(scheme_year, 150.0)
     return {
         "scheme_year": scheme_year,
         "eligible_customers": len(eligible),
+        "eligible_count": len(eligible),
         "eligible_ids": eligible,
         "core_group_discount_gbp": _CORE_DISCOUNT.get(scheme_year, 150.0),
-        "broader_group_discount_gbp": _BROADER_DISCOUNT.get(scheme_year, 150.0),
-        "estimated_total_outlay_gbp": round(len(eligible) * _BROADER_DISCOUNT.get(scheme_year, 150.0), 2),
+        "broader_group_discount_gbp": rebate,
+        "rebate_per_customer_gbp": rebate,
+        "total_liability_gbp": round(len(eligible) * rebate, 2),
+        "estimated_total_outlay_gbp": round(len(eligible) * rebate, 2),
     }
