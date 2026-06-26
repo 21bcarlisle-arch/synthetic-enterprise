@@ -1,21 +1,28 @@
-"""CRM service interaction log (C4 -- Phase 69).
+"""CRM service interaction log (C4 -- Phase 69, persistent Phase 89).
 
 Records every customer service contact: channel, reason, outcome, agent type,
-complaint/vulnerability flags. Extends CompanyEventLog with service events.
-Provides vulnerability register and complaint statistics for reporting.
+complaint/vulnerability flags. Optional SQLite persistence via db_path.
+
+Usage:
+  ServiceLog()                       -- in-memory (tests, ephemeral)
+  ServiceLog(db_path=DEFAULT_DB_PATH) -- persistent (production)
 """
 
-from dataclasses import dataclass, field
+import sqlite3
+from dataclasses import dataclass
+from pathlib import Path
+
+DEFAULT_DB_PATH = Path("company/data/service_log.db")
 
 
 @dataclass
 class ServiceEvent:
     customer_id: str
     event_date: str
-    channel: str          # phone / email / webchat / letter / portal
-    contact_reason: str   # billing_query / payment / complaint / general / switch_query / smart_meter
-    outcome: str          # resolved / escalated / pending / no_action
-    agent_type: str = "ai"        # ai / human / hybrid
+    channel: str
+    contact_reason: str
+    outcome: str
+    agent_type: str = "ai"
     complaint_flag: bool = False
     vulnerability_flag: bool = False
     notes: str = ""
@@ -25,72 +32,151 @@ class ServiceEvent:
 class VulnerabilityFlag:
     customer_id: str
     flagged_date: str
-    flag_type: str    # financial_difficulty / health / accessibility / elderly
+    flag_type: str
     active: bool = True
     resolved_date: str = ""
 
 
-class ServiceLog:
-    """Append-only service interaction log. Independent from CompanyEventLog
-    lifecycle events so the two concerns stay separate."""
+_CREATE_EVENTS = """
+    CREATE TABLE IF NOT EXISTS service_events (
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id      TEXT NOT NULL,
+        event_date       TEXT NOT NULL,
+        channel          TEXT NOT NULL,
+        contact_reason   TEXT NOT NULL,
+        outcome          TEXT NOT NULL,
+        agent_type       TEXT NOT NULL DEFAULT 'ai',
+        complaint_flag   INTEGER NOT NULL DEFAULT 0,
+        vulnerability_flag INTEGER NOT NULL DEFAULT 0,
+        notes            TEXT NOT NULL DEFAULT ''
+    )
+"""
 
-    def __init__(self):
-        self._events: list[ServiceEvent] = []
-        self._vulnerability_flags: list[VulnerabilityFlag] = []
+_CREATE_VULNS = """
+    CREATE TABLE IF NOT EXISTS vulnerability_flags (
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id      TEXT NOT NULL,
+        flagged_date     TEXT NOT NULL,
+        flag_type        TEXT NOT NULL,
+        active           INTEGER NOT NULL DEFAULT 1,
+        resolved_date    TEXT NOT NULL DEFAULT ''
+    )
+"""
+
+
+def _row_to_event(row) -> ServiceEvent:
+    return ServiceEvent(
+        customer_id=row["customer_id"], event_date=row["event_date"],
+        channel=row["channel"], contact_reason=row["contact_reason"],
+        outcome=row["outcome"], agent_type=row["agent_type"],
+        complaint_flag=bool(row["complaint_flag"]),
+        vulnerability_flag=bool(row["vulnerability_flag"]),
+        notes=row["notes"],
+    )
+
+
+def _row_to_vuln(row) -> VulnerabilityFlag:
+    return VulnerabilityFlag(
+        customer_id=row["customer_id"], flagged_date=row["flagged_date"],
+        flag_type=row["flag_type"], active=bool(row["active"]),
+        resolved_date=row["resolved_date"],
+    )
+
+
+class ServiceLog:
+    """Append-only service interaction log with optional SQLite persistence.
+
+    ServiceLog()              -- in-memory SQLite (ephemeral; each instance is independent)
+    ServiceLog(db_path=path)  -- persistent file-backed SQLite
+    """
+
+    def __init__(self, db_path: Path | None = None):
+        if db_path is not None:
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            self._conn = sqlite3.connect(str(db_path), check_same_thread=False)
+        else:
+            self._conn = sqlite3.connect(":memory:")
+        self._conn.row_factory = sqlite3.Row
+        self._conn.execute(_CREATE_EVENTS)
+        self._conn.execute(_CREATE_VULNS)
+        self._conn.commit()
+
+    def _c(self):
+        return self._conn
 
     def record_contact(self, event: ServiceEvent) -> None:
-        self._events.append(event)
+        c = self._c()
+        c.execute(
+            "INSERT INTO service_events"
+            " (customer_id, event_date, channel, contact_reason, outcome,"
+            "  agent_type, complaint_flag, vulnerability_flag, notes)"
+            " VALUES (?,?,?,?,?,?,?,?,?)",
+            (event.customer_id, event.event_date, event.channel,
+             event.contact_reason, event.outcome, event.agent_type,
+             int(event.complaint_flag), int(event.vulnerability_flag),
+             event.notes),
+        )
         if event.vulnerability_flag:
-            self._vulnerability_flags.append(
-                VulnerabilityFlag(
-                    customer_id=event.customer_id,
-                    flagged_date=event.event_date,
-                    flag_type="financial_difficulty",
-                )
+            c.execute(
+                "INSERT INTO vulnerability_flags (customer_id, flagged_date, flag_type)"
+                " VALUES (?, ?, ?)",
+                (event.customer_id, event.event_date, "financial_difficulty"),
             )
+        c.commit()
 
     def all_contacts(self) -> list[ServiceEvent]:
-        return list(self._events)
+        return [_row_to_event(r) for r in self._c().execute("SELECT * FROM service_events")]
 
     def contacts_for_customer(self, customer_id: str) -> list[ServiceEvent]:
-        return [e for e in self._events if e.customer_id == customer_id]
+        return [_row_to_event(r) for r in self._c().execute(
+            "SELECT * FROM service_events WHERE customer_id = ?", (customer_id,)
+        )]
 
     def complaints(self) -> list[ServiceEvent]:
-        return [e for e in self._events if e.complaint_flag]
+        return [_row_to_event(r) for r in self._c().execute(
+            "SELECT * FROM service_events WHERE complaint_flag = 1"
+        )]
 
     def complaint_rate(self) -> float:
-        """Complaints as a proportion of all contacts. 0.0 if no contacts."""
-        if not self._events:
-            return 0.0
-        return len(self.complaints()) / len(self._events)
+        c = self._c()
+        total = c.execute("SELECT COUNT(*) FROM service_events").fetchone()[0]
+        comp = c.execute("SELECT COUNT(*) FROM service_events WHERE complaint_flag=1").fetchone()[0]
+        return comp / total if total else 0.0
 
     def complaint_stats(self, year: int | None = None) -> dict:
-        """Complaint counts and rate, optionally filtered to a calendar year."""
-        events = self._events
+        c = self._c()
         if year is not None:
             yr = str(year)
-            events = [e for e in events if e.event_date.startswith(yr)]
-        complaints = [e for e in events if e.complaint_flag]
-        rate = len(complaints) / len(events) if events else 0.0
+            total = c.execute(
+                "SELECT COUNT(*) FROM service_events WHERE event_date LIKE ?", (yr + "%",)
+            ).fetchone()[0]
+            comp = c.execute(
+                "SELECT COUNT(*) FROM service_events WHERE complaint_flag=1 AND event_date LIKE ?",
+                (yr + "%",),
+            ).fetchone()[0]
+        else:
+            total = c.execute("SELECT COUNT(*) FROM service_events").fetchone()[0]
+            comp = c.execute("SELECT COUNT(*) FROM service_events WHERE complaint_flag=1").fetchone()[0]
         return {
-            "total_contacts": len(events),
-            "total_complaints": len(complaints),
-            "complaint_rate": round(rate, 4),
+            "total_contacts": total,
+            "total_complaints": comp,
+            "complaint_rate": round(comp / total, 4) if total else 0.0,
         }
 
     def vulnerability_register(self) -> list[VulnerabilityFlag]:
-        """Active vulnerability flags across the customer base."""
-        return [v for v in self._vulnerability_flags if v.active]
+        return [_row_to_vuln(r) for r in self._c().execute(
+            "SELECT * FROM vulnerability_flags WHERE active = 1"
+        )]
 
     def resolve_vulnerability(self, customer_id: str, resolved_date: str) -> int:
-        """Mark vulnerability flags for a customer as resolved. Returns count resolved."""
-        count = 0
-        for v in self._vulnerability_flags:
-            if v.customer_id == customer_id and v.active:
-                v.active = False
-                v.resolved_date = resolved_date
-                count += 1
-        return count
+        c = self._c()
+        n = c.execute(
+            "UPDATE vulnerability_flags SET active=0, resolved_date=?"
+            " WHERE customer_id=? AND active=1",
+            (resolved_date, customer_id),
+        ).rowcount
+        c.commit()
+        return n
 
     def as_dicts(self) -> list[dict]:
         return [
@@ -106,5 +192,5 @@ class ServiceLog:
                 "vulnerability_flag": e.vulnerability_flag,
                 "notes": e.notes,
             }
-            for e in self._events
+            for e in self.all_contacts()
         ]

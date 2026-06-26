@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:39:01Z
+Last updated: 2026-06-26T02:41:43Z
+
+**Phase 89 COMPLETE (2026-06-26):** ServiceLog SQLite persistence -- 8 new tests (1,784 total).
+- ServiceLog() rewritten: in-memory SQLite (:memory:) by default; ServiceLog(db_path=...) for file persistence
+- Events/complaints/vulnerabilities survive reconnect; all 12 prior CRM tests pass unchanged
+- Foundation for CSS filing with real CRM data; DEFAULT_DB_PATH = company/data/service_log.db
 
 **Phase 88 COMPLETE (2026-06-26):** Direct Debit Mandate -- 21 new tests (1,776 total).
 - company/billing/direct_debit.py (new): DDMandate dataclass, SQLite persistence, set/get/cancel/list/is_dd_customer
@@ -197,7 +202,7 @@ Last updated: 2026-06-26T02:39:01Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,776 total (all tests passing)**
+**Test suite: 1,784 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (469s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,776 tests (1,348 non-simulation, 428 simulation). Codebase: ~24,400 lines across 212+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,784 tests (1,356 non-simulation, 428 simulation). Codebase: ~24,600 lines across 212+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 89 -- ServiceLog SQLite persistence (2026-06-26)
+**Files:** `company/crm/service_log.py` (rewritten), `tests/company/crm/test_service_log_persistent.py` (new)
+
+**What was built:**
+- `ServiceLog(db_path=None)`: in-memory SQLite (`:memory:`) — ephemeral, independent per instance, backwards-compatible with all existing tests.
+- `ServiceLog(db_path=Path(...))`: file-backed SQLite — events/complaints/vulnerabilities persist across restarts.
+- Persistent connection held on instance to avoid `:memory:` isolation issue (each `sqlite3.connect(':memory:')` is a fresh empty DB).
+- All 12 prior CRM tests pass unchanged. `DEFAULT_DB_PATH = company/data/service_log.db`.
+
+**Fidelity delta:** CRM data now persists between simulation runs. CSS filing (`generate_css_filing()`) can be passed a persistent ServiceLog with real complaint history rather than empty in-memory data.
+
+**8 new tests (1,784 total).**
+
+---
 ### Phase 88 -- Direct Debit Mandate (2026-06-26)
 **Files:** `company/billing/direct_debit.py` (new), `company/portal/app.py` (extended), `company/portal/templates/direct_debit.html` (new), `company/portal/templates/dashboard.html` (nav), `tests/company/billing/test_direct_debit.py` (new), `tests/company/portal/test_portal_dd.py` (new)
 
@@ -1350,14 +1364,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,776 tests (1,348 fast / ~10s; simulation integration ~8 min per run)
+- 1,784 tests (1,356 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 88, 2026-06-26):**
+**Latest full run (Phase 89, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
