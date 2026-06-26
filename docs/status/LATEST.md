@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T09:19:45Z
+Last updated: 2026-06-26T09:23:43Z
 
 ## Latest Simulation Run
 - **Git:** 6cc92ff (run 2026-06-26T09:08)
@@ -12,11 +12,14 @@ Last updated: 2026-06-26T09:19:45Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 216
-- **Tests:** 3,001 passing
-- **Session theme:** Financial layer + regulatory + market ops + CRM maturation (3k milestone)
+- **Current Phase:** 219
+- **Tests:** 3,026 passing
+- **Session theme:** Financial layer + regulatory + market ops + CRM maturation (3k milestone exceeded)
 
-## This Session (Phases 198-216)
+## This Session (Phases 198-219)
+- Ph 219: EE obligation tracker (ECO4/GBIS/HUG2; 8 measure types; obligation_mwh_delivered)
+- Ph 218: Complaint register (SLC 27; 56d deadline; ombudsman_eligible; upheld_rate_pct)
+- Ph 217: Trade finance registry (LOC/guarantee/surety; EXPIRING_SOON; call_instrument)
 - Ph 216: Network charge ledger (TNUoS/DUoS/BSUoS/CMSUoS; charge_gbp; charges_by_type) ★3k
 - Ph 215: Supply contract lifecycle (FIXED_TERM 42d notice; IN_NOTICE state; expiring_within)
 - Ph 214: Ancillary product bundle tracker (7 products; avg_products_per_customer; annual_revenue)
@@ -37,7 +40,7 @@ Last updated: 2026-06-26T09:19:45Z
 - Ph 199: Annual regulatory obligations report (WHD/ECO4/GSOP/Ofgem/REGO; penalty estimates)
 - Ph 198: Revolving credit facility (drawdown/repay; limit breach guard; interest accrual)
 
-## Company layer: 154 files | CLAUDE.md: 140/200 lines
+## Company layer: 157 files | CLAUDE.md: 143/200 lines
 
 **Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
