@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T04:19:38Z
+Last updated: 2026-06-26T04:20:41Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 134 COMPLETE (2026-06-27):** Tariff change notification (TCN) -- 9 new tests (2,223 total).
+- company/billing/tariff_change_log.py: SLC 22-compliant TCN (30-day SVT/cap, 42-day fixed)
+- is_compliant gate; non_compliant() filter for compliance team escalation
+- Fidelity: Ofgem can fine suppliers for non-compliant TCNs up to 10% of turnover
+
 **Phase 133 COMPLETE (2026-06-27):** DESNZ supplier data returns -- 9 new tests (2,214 total).
 - company/regulatory/desnz_returns.py: monthly SDR, annual fuel poverty declaration (LILEE)
 - CarbonIntensityReturn: CO₂ g/kWh weighted by IPCC lifecycle factors (gas 490, coal 820)
@@ -426,7 +431,7 @@ Last updated: 2026-06-26T04:19:38Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,214 total (all tests passing)**
+**Test suite: 2,223 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (479s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

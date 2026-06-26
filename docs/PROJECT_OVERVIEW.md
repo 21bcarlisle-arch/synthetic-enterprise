@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,214 tests (1,786 non-simulation, 428 simulation). Codebase: ~32,900 lines across 247+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,223 tests (1,795 non-simulation, 428 simulation). Codebase: ~33,100 lines across 248+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,18 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 134 -- Tariff change notification (TCN) management (2026-06-27)
+**Files:** `company/billing/tariff_change_log.py` (new), `tests/company/billing/test_tariff_change_log.py` (new)
+
+**What was built:**
+- `TariffChangeNotice`: notice_id, change_type (svt_price_change/fixed_term_expiry/cap_reset/whd_change/other), notification_date, effective_date. Computed: notice_days, required_notice_days (30 SVT, 42 fixed term), is_compliant, rate_change_pct.
+- `TariffChangeLog`: record(), for_customer(), non_compliant(), pending_effective(), by_change_type(), unacknowledged(), summary() with compliance_rate_pct.
+
+**Fidelity delta:** Ofgem SLC 22 requires minimum notice periods for tariff changes. Non-compliance can result in fines up to 10% of annual turnover. The non_compliant() filter gates the compliance team's pre-change review.
+
+**9 new tests (2,223 total).**
+
+---
 ### Phase 133 -- DESNZ supplier data returns (2026-06-27)
 **Files:** `company/regulatory/desnz_returns.py` (new), `tests/company/regulatory/test_desnz_returns.py` (new)
 
@@ -1938,14 +1950,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,214 tests (1,786 fast / ~10s; simulation integration ~8 min per run)
+- 2,223 tests (1,795 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 133, 2026-06-27):**
+**Latest full run (Phase 134, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
