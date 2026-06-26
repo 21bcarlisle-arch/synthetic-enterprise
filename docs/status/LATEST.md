@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T09:23:43Z
+Last updated: 2026-06-26T09:36:56Z
 
 ## Latest Simulation Run
 - **Git:** 6cc92ff (run 2026-06-26T09:08)
@@ -12,11 +12,20 @@ Last updated: 2026-06-26T09:23:43Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 219
-- **Tests:** 3,026 passing
-- **Session theme:** Financial layer + regulatory + market ops + CRM maturation (3k milestone exceeded)
+- **Current Phase:** 228
+- **Tests:** 3,104 passing
+- **Session theme:** Financial layer + regulatory + market ops + CRM maturation
 
-## This Session (Phases 198-219)
+## This Session (Phases 198-228)
+- Ph 228: Tariff change notifications (42-day SLC 25B; compliance_breaches; is_price_increase)
+- Ph 227: UK ETS allowance registry (UKETS 2021+; £72/t 2022 peak; compliance_position)
+- Ph 226: Multisite I&C accounts (6 site types; HV>=11kV; peak_site; portfolio_total_mwh)
+- Ph 225: Working capital monitor (9 flow types; lowest_balance; headroom_gbp)
+- Ph 224: DSR portfolio (5 event types; COMPLIED>=95%; triad_avoidance; annual_revenue)
+- Ph 223: Period-end reconciliation (variance types; adjusted_margin; annual_gross_margin)
+- Ph 222: Interconnector monitor (7 links IFA-VikingLink; price_differential; utilisation_pct)
+- Ph 221: SoLR exposure (levy history 2016-2025; 2022 £10/MWh; legacy_credit_gbp)
+- Ph 220: Smart meter HH analytics (48 SPs/day; evening peak SPs 33-40; load_factor)
 - Ph 219: EE obligation tracker (ECO4/GBIS/HUG2; 8 measure types; obligation_mwh_delivered)
 - Ph 218: Complaint register (SLC 27; 56d deadline; ombudsman_eligible; upheld_rate_pct)
 - Ph 217: Trade finance registry (LOC/guarantee/surety; EXPIRING_SOON; call_instrument)
@@ -40,9 +49,9 @@ Last updated: 2026-06-26T09:23:43Z
 - Ph 199: Annual regulatory obligations report (WHD/ECO4/GSOP/Ofgem/REGO; penalty estimates)
 - Ph 198: Revolving credit facility (drawdown/repay; limit breach guard; interest accrual)
 
-## Company layer: 157 files | CLAUDE.md: 143/200 lines
+## Company layer: 166 files | CLAUDE.md: 143/200 lines
 
-**Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
