@@ -8,15 +8,22 @@ message sent via `send_ntfy()` has its ntfy-assigned id recorded in
 `SENT_IDS_FILE`; `was_sent_by_us()` checks an incoming message's id against
 that record.
 
+Auth: if the `skynet-synthetic` topic is reserved/protected, set
+NTFY_AUTH_TOKEN=t_... in the environment. Both publish and subscribe calls
+will include `Authorization: Bearer <token>`. Without the env var the scripts
+fall back to unauthenticated access (public topics only).
+
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
 NTFY_TOPIC = "skynet-synthetic"
 NTFY_PUBLISH_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
+NTFY_AUTH_TOKEN: str | None = os.environ.get("NTFY_AUTH_TOKEN")
 
 SENT_IDS_FILE = Path("/home/rich/synthetic-enterprise/docs/observability/.sent_ntfy_ids.json")
 MAX_SENT_IDS = 500
@@ -52,6 +59,8 @@ def send_ntfy(message: str, headers: dict[str, str] | None = None) -> str | None
     inbound-command poller can recognise and skip it), and return the id (or
     None if the request or id-parsing failed)."""
     cmd = ["curl", "-s"]
+    if NTFY_AUTH_TOKEN:
+        cmd += ["-H", f"Authorization: Bearer {NTFY_AUTH_TOKEN}"]
     for key, value in (headers or {}).items():
         cmd += ["-H", f"{key}: {value}"]
     cmd += ["-d", message, NTFY_PUBLISH_URL]

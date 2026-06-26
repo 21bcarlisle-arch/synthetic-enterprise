@@ -99,7 +99,7 @@ import requests
 # root so `from background.ntfy_utils import ...` works regardless of how
 # it's invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from background.ntfy_utils import send_ntfy, was_sent_by_us  # noqa: E402
+from background.ntfy_utils import NTFY_AUTH_TOKEN, send_ntfy, was_sent_by_us  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 
 SESSION_NAME = "claude"
@@ -516,10 +516,12 @@ def _is_yes_reply(record: dict, since: float) -> bool:
 
 def _poll_for_yes_reply(since: float) -> bool:
     """Single poll of the NTFY topic for a "YES" reply posted after `since`."""
+    _auth = {"Authorization": f"Bearer {NTFY_AUTH_TOKEN}"} if NTFY_AUTH_TOKEN else {}
     try:
         response = requests.get(
             NTFY_POLL_URL,
             params={"poll": "1", "since": int(since)},
+            headers=_auth,
             timeout=10,
         )
         for line in response.text.splitlines():
@@ -585,9 +587,11 @@ def check_inbound_commands(pane_text: str, since: float) -> float:
 
     Returns the new watermark to persist via `_save_command_since`.
     """
+    _auth = {"Authorization": f"Bearer {NTFY_AUTH_TOKEN}"} if NTFY_AUTH_TOKEN else {}
     try:
         response = requests.get(
             NTFY_POLL_URL, params={"poll": "1", "since": int(since)}, timeout=10,
+            headers=_auth,
         )
     except requests.RequestException as e:
         log(f"Inbound command poll error: {e}")

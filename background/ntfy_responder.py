@@ -60,7 +60,7 @@ PROGRESS_RE = re.compile(
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it's invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from background.ntfy_utils import NTFY_TOPIC, send_ntfy, was_sent_by_us  # noqa: E402
+from background.ntfy_utils import NTFY_TOPIC, NTFY_AUTH_TOKEN, send_ntfy, was_sent_by_us  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
@@ -204,9 +204,11 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
     network blips. We maintain a rolling list of MD5 hashes of processed
     message bodies so identical content is dropped regardless of timestamp.
     """
+    _headers = {"Authorization": f"Bearer {NTFY_AUTH_TOKEN}"} if NTFY_AUTH_TOKEN else {}
     try:
         response = requests.get(
             NTFY_POLL_URL, params={"poll": "1", "since": int(since)}, timeout=10,
+            headers=_headers,
         )
     except requests.RequestException as e:
         log(f"Poll error: {e}")
