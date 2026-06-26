@@ -57,6 +57,11 @@
     {% endif %}
   </details>
   {% endif %}
+  {% if not customer.smart_meter and customer.metering != "HH" %}
+  <div style="margin:8px 0;padding:8px 12px;background:#f7fafc;border:1px solid #e2e8f0;border-radius:4px;font-size:0.88em">
+    No smart meter on record. <a href="/account/{{ customer.customer_id }}/smart-meter">Request a free upgrade</a>
+  </div>
+  {% endif %}
   <h1>Account {{ customer.customer_id }}</h1>
   <table>
     <tr><th>Field</th><th>Value</th></tr>

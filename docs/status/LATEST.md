@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:13:37Z
+Last updated: 2026-06-26T03:15:08Z
+
+**Phase 103 COMPLETE (2026-06-26):** Smart meter upgrade request flow -- 8 new tests (1,920 total).
+- GET/POST /account/{id}/smart-meter portal flow
+- HH customers: already-active confirmation; non-HH: request form
+- POST records ServiceEvent to CRM (reason=smart_meter, outcome=upgrade_requested)
+- Dashboard: one-click link for non-HH customers
 
 **Phase 102 COMPLETE (2026-06-26):** Admin navigation hub -- 10 new tests (1,912 total).
 - admin.html: coloured quick-link buttons to Complaints/Collections/Renewals/Regulatory/Trading
@@ -267,7 +273,7 @@ Last updated: 2026-06-26T03:13:37Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,912 total (all tests passing)**
+**Test suite: 1,920 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

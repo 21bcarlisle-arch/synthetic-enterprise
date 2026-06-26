@@ -566,3 +566,43 @@ async def admin_renewals(request: Request):
         request, "admin_renewals.html",
         {"upcoming": upcoming, "horizon": horizon},
     )
+
+
+@app.get("/account/{account_id}/smart-meter", response_class=HTMLResponse)
+async def smart_meter_get(request: Request, account_id: str):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    already_hh = customer.get("metering") == "HH" or customer.get("smart_meter") is True
+    return templates.TemplateResponse(
+        request, "smart_meter.html",
+        {"customer": customer, "already_hh": already_hh, "submitted": False, "ref": None},
+    )
+
+
+@app.post("/account/{account_id}/smart-meter", response_class=HTMLResponse)
+async def smart_meter_post(request: Request, account_id: str):
+    from datetime import date as _date
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    form = await request.form()
+    contact_pref = str(form.get("contact_pref", "morning"))
+    notes = str(form.get("notes", ""))
+    today = _date.today().isoformat()
+    ref = today.replace("-", "")
+    _SERVICE_LOG.record_contact(ServiceEvent(
+        customer_id=account_id,
+        event_date=today,
+        channel="portal",
+        contact_reason="smart_meter",
+        outcome="upgrade_requested",
+        agent_type="self_service",
+        complaint_flag=False,
+        vulnerability_flag=False,
+        notes=f"contact_pref={contact_pref}; {notes}".strip("; "),
+    ))
+    return templates.TemplateResponse(
+        request, "smart_meter.html",
+        {"customer": customer, "already_hh": False, "submitted": True, "ref": ref},
+    )
