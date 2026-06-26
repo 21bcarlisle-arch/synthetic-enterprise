@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 235 -- Customer acquisition cohort CLV (2026-06-26)
+**Files:** `company/crm/acquisition_cohort.py` (new), `tests/company/crm/test_acquisition_cohort.py` (new)
+
+**What was built:**
+- AcquisitionChannel (6): PRICE_COMPARISON / DIRECT_ONLINE / REFERRAL / RETENTION / DOOR_TO_DOOR / TPI.
+- CohortCustomer mutable: acquisition_date, acquisition_cost_gbp, annual_revenue_gbp, churn_date; is_active, lifetime_months(as_of), lifetime_revenue_gbp(as_of), net_clv_gbp(as_of).
+- AcquisitionCohort: cohort_id, year, month, channel; add_customer(), churn_customer(), initial_size, active_count(), retention_rate_pct(), total_acquisition_cost_gbp(), avg_net_clv_gbp(as_of), payback_months(as_of), cohort_summary(as_of).
+
+**Fidelity delta:** Cohort CLV analysis is the standard VC/CFO metric for energy supplier unit economics. PCW acquisitions (MoneySupermarket, uSwitch) have CaC of £60-120 but churn in 12-18 months (price-sensitive), giving payback of 8-14 months. Referral acquisitions cost £20-40 and have 40% lower churn, giving payback of 4-6 months. D2D (door-to-door) has the highest CaC (£150-200) but also highest first-year revenue due to customer stickiness. TPI cohorts are I&C only and have 3-5 year tenures. payback_months() feeds the marketing_budget (company/crm/) channel ROI decision: channels with payback > 24 months should be cut unless there are secondary benefits.
+
+**8 new tests (3,164 total).**
+
+---
 ### Phase 234 -- Seasonal demand forecast model (2026-06-26)
 **Files:** `company/market/seasonal_demand.py` (new), `tests/company/market/test_seasonal_demand.py` (new)
 
@@ -3373,7 +3386,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,156 tests (2,739 fast / ~10s; simulation integration ~8 min per run)
+- 3,164 tests (2,747 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
