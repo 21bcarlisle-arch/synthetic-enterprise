@@ -527,6 +527,22 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 175 -- Acquisition channel ROI model (2026-06-26)
+**Files:** `company/crm/channel_roi.py` (new), `tests/company/crm/test_channel_roi.py` (new)
+
+**What was built:**
+- `AcquisitionChannel` enum: 7 channels — PCW (MoneySupermarket/uSwitch), DIRECT_WEB, TELESALES, PARTNER_REFERRAL, SMART_METER_INSTALL, EXISTING_CUSTOMER_REFERRAL, OUTBOUND_RETENTION.
+- `_BASE_CAC_GBP`: £12 (retention) to £90 (telesales); PCW £65.
+- `_CHANNEL_CHURN_FACTOR`: PCW 1.45x (switcher behaviour); smart meter installs 0.70x (captive); referrals 0.65x (loyalty).
+- `compute_channel_roi()`: DCF CLV model (same 10% discount rate as Phase 141), effective_churn = base × churn_factor, tenure = 1/churn, ROI = CLV / CAC.
+- `ChannelROIResult` (frozen): all fields, is_profitable (roi ≥ 1.0).
+- `channel_roi_ranking()`: sorted all-channel comparison.
+
+**Fidelity delta:** PCW acquisition is the dominant source for UK domestic customers but delivers the lowest ROI — compare-site switchers churn at 1.45x average rate because they are by definition price-optimising. Smart meter installs produce the best ROI because the SMETS2 install creates a data relationship that reduces churn. A real CFO uses exactly this matrix to set acquisition budget allocations by channel.
+
+**9 new tests (2,669 total).**
+
+---
 ### Phase 174 -- Arrears escalation workflow (2026-06-26)
 **Files:** `company/billing/arrears_book.py` (new), `tests/company/billing/test_arrears_book.py` (new)
 
@@ -2504,7 +2520,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,660 tests (2,244 fast / ~10s; simulation integration ~8 min per run)
+- 2,669 tests (2,253 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
