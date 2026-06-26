@@ -527,6 +527,22 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 240 -- GDPR privacy consent register (2026-06-26)
+**Files:** `company/regulatory/privacy_register.py` (new), `tests/company/regulatory/test_privacy_register.py` (new)
+
+**What was built:**
+- ConsentPurpose (6): BILLING / MARKETING_EMAIL / MARKETING_SMS / THIRD_PARTY_SHARING / ANALYTICS / SMART_METER_DATA.
+- DSRType: ACCESS / ERASURE / PORTABILITY / RECTIFICATION / RESTRICTION.
+- DSRStatus: RECEIVED / IN_PROGRESS / COMPLETED / EXTENDED / REFUSED.
+- ConsentRecord frozen: customer_id, purpose, granted, consent_date, withdrawal_date; is_active (granted and not withdrawn).
+- DataSubjectRequest mutable: request_id, customer_id, dsr_type, received_date; deadline() = +30 days (standard) or +60 days (extended); is_overdue(as_of); complete(date); extend().
+- PrivacyConsentRegister: record_consent(), has_active_consent(customer_id, purpose), raise_dsr(), get_dsr(), overdue_requests(as_of), customers_without_consent(purpose, list), privacy_summary(as_of).
+
+**Fidelity delta:** UK GDPR (retained after Brexit) requires DSARs completed within 30 calendar days, extensible to 3 months for complex/numerous requests (controller must notify within first 30 days). Energy suppliers must track consent separately for smart meter data (SMIP purposes) vs marketing. Marketing email without an opt-in record is an Ofcom/ICO violation carrying fines up to 4% of global turnover. customers_without_consent(MARKETING_EMAIL) feeds the contact_campaign_tracker (Ph203): campaigns must only target opted-in customers.
+
+**10 new tests (3,211 total).**
+
+---
 ### Phase 239 -- Flexible asset dispatch model (2026-06-26)
 **Files:** `company/market/flexible_asset.py` (new), `tests/company/market/test_flexible_asset.py` (new)
 
@@ -3443,7 +3459,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,201 tests (2,784 fast / ~10s; simulation integration ~8 min per run)
+- 3,211 tests (2,794 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
