@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T01:51:22Z
+Last updated: 2026-06-26T01:56:57Z
+
+**Phase 80 COMPLETE (2026-06-26):** M3 price feed live: publish on every sim run -- 11 new tests (1,675 total).
+- `simulation/publish_market_feed.py` (new): build_feed_prices() reads last 48 SSP HH + 10 NBP daily prices
+- `process_run_complete.py`: calls publish() after report gen; feed auto-updated on every sim run
+- `docs/market_data/price_feed.json` created: 58 records, latest elec spot £100.58/MWh (2025-06-07)
+- PriceFeed.is_available() now True; Phase 76 M3 architectural gap fully closed
 
 **Phase 79 COMPLETE (2026-06-26):** Portal: Consumption history page -- 11 new tests (1,664 total).
 - `company/billing/consumption.py` (new): consumption_history() + monthly_totals() reads from invoice DB
@@ -146,9 +152,9 @@ Last updated: 2026-06-26T01:51:22Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,664 total (all tests passing)**
+**Test suite: 1,675 total (all tests passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351

@@ -232,6 +232,14 @@ def main(marker_path_str):
     except Exception as exc:
         log("Revenue sanity check skipped: {}".format(exc))
 
+    log("Publishing market price feed")
+    try:
+        from simulation.publish_market_feed import publish as _publish_feed
+        _publish_feed()
+        log("Price feed published to docs/market_data/price_feed.json")
+    except Exception as exc:
+        log("Price feed publication skipped: {}".format(exc))
+
     log("Running fast test suite (SIM_FAST_MODE=1)")
     tests_ok, timed_out = run_fast_tests(git_hash)
     if not tests_ok:
