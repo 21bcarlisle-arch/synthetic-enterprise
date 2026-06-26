@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,504 tests passing. Codebase: ~34,950 lines across 260+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,516 tests passing. Codebase: ~35,100 lines across 261+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 272 (2026-06-26): Physical Home Registry -- 12 new tests (3,516 total). company/crm/home_registry.py: HomeRegistry class managing customer->property mappings. register/upgrade_epc/get_profile; portfolio slices: profiles_by_epc, profiles_by_type, eco4_eligible_accounts, fuel_poor_accounts, psr_priority_accounts; aggregates: epc_distribution, fuel_distribution, tenure_distribution, total_estimated_elec/gas_kwh, registry_summary. Wraps existing frozen Property dataclass from property_model.py (no new enums needed).**
 
 **Phase 271 (2026-06-26):** Weather Engine & HDD tab on /sim/ -- 10 new tests (3,504 total). tools/fetch_weather_data.py: fetches London daily temps from Open-Meteo 2016-2025, computes monthly HDD (base 15.5C National Grid). site/sim/index.html: Prices/Weather tabs; Weather tab has 10-yr monthly temp chart, monthly HDD bar chart with avg overlay, annual table with COLD WINTER badge, crisis narrative. process_run_complete.py: weather fetch wired in on every run. Critical NTFY spam fix: generate_insights stored ledger headline gross (~6.3M) in run_history; maybe_ntfy compared total_net (~1.3M) against that; every run triggered NEW LOW. Fixed to use total_net_gbp throughout.
 
@@ -3923,7 +3925,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,504 tests (3,062 fast / ~10s; simulation integration ~8 min per run)
+- 3,516 tests (3,074 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
