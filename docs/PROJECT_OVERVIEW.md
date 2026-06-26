@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 223 -- Period-end financial reconciliation ledger (2026-06-26)
+**Files:** `company/finance/period_reconciliation.py` (new), `tests/company/finance/test_period_reconciliation.py` (new)
+
+**What was built:**
+- ReconciliationStatus: OPEN / RECONCILED / DISPUTED / WRITTEN_OFF.
+- VarianceType (5): REVENUE_SHORTFALL / COST_OVERRUN / SETTLEMENT_DIFFERENCE / ACCRUAL_REVERSAL / METER_READ_ERROR.
+- ReconciliationVariance frozen: period, variance_type, amount_gbp; is_adverse (< 0), abs_amount_gbp.
+- PeriodReconciliation mutable: billed/accrued revenue + wholesale/network/policy/operating cost breakdown; total_revenue, total_cost, gross_margin, total_variance, adjusted_margin (margin + variances); add_variance(), close().
+- ReconciliationLedger: open_period(), get(), open_periods(), annual_gross_margin_gbp(year), variances_by_type(year), reconciliation_summary(year).
+
+**Fidelity delta:** UK energy supplier month-close process: Revenue (billed) booked in arrears; accruals bridge the 42-day billing lag. Settlement differences arise because Elexon runs 3 Settlement Runs (SF, R1, R2) that may revise volumes 28 days later. Accrual reversal is required when a billed quarter is finally settled at a different volume. The ReconciliationLedger is the mechanism by which the CFO signs off P&L each month: adjusted_margin = gross_margin + net_variances is the bottom line they approve. Connects to revenue_accruals (Ph202) and bad_debt_provision (Ph201).
+
+**9 new tests (3,060 total).**
+
+---
 ### Phase 222 -- Interconnector cross-border price exposure (2026-06-26)
 **Files:** `company/market/interconnector_monitor.py` (new), `tests/company/market/test_interconnector_monitor.py` (new)
 
@@ -3194,7 +3209,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,051 tests (2,634 fast / ~10s; simulation integration ~8 min per run)
+- 3,060 tests (2,643 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
