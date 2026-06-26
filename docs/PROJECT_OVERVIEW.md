@@ -527,6 +527,24 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 253 -- Wholesale gas OTC trading book (NBP) (2026-06-26)
+**Files:** `company/market/gas_otc_book.py` (new), `tests/company/market/test_gas_otc_book.py` (new)
+
+**What was built:**
+- GasTenor: WITHIN_DAY / DAY_AHEAD / MONTH_AHEAD / SEASON_AHEAD.
+- GasTradeDirection: BUY / SELL.
+- Season: SUMMER (Apr-Sep) / WINTER (Oct-Mar).
+- GasOTCTrade frozen: trade_date, delivery_date, tenor, direction, volume_therms, price_p_per_therm; volume_mwh (×0.02931), trade_value_gbp (buy=cost, sell=revenue), is_crisis_price (>200p/th), delivery_season.
+- GasOTCBook mutable: record_trade(), trades_by_delivery_month(), net_position_therms(), average_buy_price_p_th() (VWAP), crisis_trades(), seasonal_exposure_therms(), gas_book_summary().
+
+**Fidelity delta:** The NBP gas OTC market is where UK suppliers hedge their gas procurement obligations. A supplier with 1 billion therms of annual supply obligation must buy forward on NBP — typically summer cheap (storage injection) and winter expensive (peak demand). The 2022 crisis: within-day gas hit 600+ p/th vs the 50-70 p/th historical normal. Suppliers who had bought season-ahead winter gas in early 2022 at 200+ p/th locked in losses when they had to sell forward positions; unhedged suppliers faced catastrophic spot costs. seasonal_exposure_therms() shows the net summer/winter position, directly modelling the seasonal risk that destroyed over-leveraged suppliers. Connects to GasStorageBook (Ph246) and GasNominationBook (Ph144).
+
+**13 new tests (3,349 total).**
+
+---
+
+
+---
 ### Phase 252 -- Customer behaviour segmentation model (2026-06-26)
 **Files:** `company/crm/behaviour_segment.py` (new), `tests/company/crm/test_behaviour_segment.py` (new)
 
@@ -3657,14 +3675,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,336 tests (2,919 fast / ~10s; simulation integration ~8 min per run)
+- 3,349 tests (2,932 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 252, 2026-06-26):**
+**Latest full run (Phase 253, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
