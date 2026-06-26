@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 236 -- Smart Export Guarantee (SEG) portfolio (2026-06-26)
+**Files:** `company/billing/seg_portfolio.py` (new), `tests/company/billing/test_seg_portfolio.py` (new)
+
+**What was built:**
+- SEGTariffTier: FIXED / FLEXIBLE.
+- `get_seg_rate(year)`: history 2020-2025 (5.5p, 6p, 12p, 15p, 12p, 10p).
+- SEGCustomer frozen: customer_id, mpan, solar_capacity_kwp, registration_date, tariff_tier, battery_capacity_kwh; has_battery, estimated_annual_export_kwh(year), annual_seg_income_gbp(year). Without battery: 50% self-consumption; with battery: 70% self-consumption.
+- SEGPortfolio: register(), record_export(customer_id, period, kwh), total_export_kwh(year), total_seg_payments_gbp(year), customers_with_battery(), total_solar_capacity_kwp(), seg_summary(year).
+
+**Fidelity delta:** SEG (Smart Export Guarantee) replaced FiT export tariff from Jan 2020 — suppliers with >150k customers are obligated to offer. A 4kWp panel generates ~900 kWh/yr net (UK average), exporting 450 kWh without battery (~£27/yr at 2020 rates, £68/yr at 2023 peak). With a 10kWh home battery, exports drop to 270 kWh (battery charges from midday peak, reduces export) but customer's own bill savings rise. Suppliers pay out but recover via wholesale energy they don't need to procure at that moment. total_seg_payments_gbp() feeds working_capital_monitor (Ph225) as a real outflow. High-solar customers during 2022-2023 crisis received 15p/kWh export — more than SVT import rates in some half-hour periods.
+
+**10 new tests (3,174 total).**
+
+---
 ### Phase 235 -- Customer acquisition cohort CLV (2026-06-26)
 **Files:** `company/crm/acquisition_cohort.py` (new), `tests/company/crm/test_acquisition_cohort.py` (new)
 
@@ -3386,7 +3400,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,164 tests (2,747 fast / ~10s; simulation integration ~8 min per run)
+- 3,174 tests (2,757 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
