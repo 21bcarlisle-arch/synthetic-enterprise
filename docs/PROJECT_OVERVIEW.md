@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,129 tests (1,701 non-simulation, 428 simulation). Codebase: ~31,100 lines across 238+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,138 tests (1,710 non-simulation, 428 simulation). Codebase: ~31,300 lines across 239+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 125 -- Ofgem market benchmark data (2026-06-27)
+**Files:** `company/market/market_report.py` (new), `tests/company/market/test_market_report.py` (new)
+
+**What was built:**
+- `_UK_AVG_ELEC_UNIT_RATE_P_KWH` 2016-2025 (13.6→22.3 p/kWh, crisis peak 34.0 in 2022).
+- `_UK_AVG_GAS_UNIT_RATE_P_KWH` 2016-2025 (3.5→5.2 p/kWh, crisis peak 10.3 in 2022).
+- `_UK_SWITCHING_RATE_PCT` 2016-2025 (17%→2.8% crisis crash→recovery to 13%).
+- `market_benchmark(year)`, `compare_to_market(elec, gas, year)` — positioning (BELOW/AT/ABOVE_MARKET at ±3% threshold).
+
+**Fidelity delta:** Ofgem's quarterly domestic market report is the standard reference for pricing benchmarking. The switching rate collapse in 2022 (2.8%) vs 2016 (17%) directly reflects the crisis — customers couldn't switch because there was nowhere cheaper to go.
+
+**9 new tests (2,138 total).**
+
+---
 ### Phase 124 -- Churn waterfall + reason code analysis (2026-06-27)
 **Files:** `company/crm/churn_analytics.py` (new), `tests/company/crm/test_churn_analytics.py` (new)
 
@@ -1824,14 +1838,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,129 tests (1,701 fast / ~10s; simulation integration ~8 min per run)
+- 2,138 tests (1,710 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 124, 2026-06-27):**
+**Latest full run (Phase 125, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
