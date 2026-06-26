@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,241 tests (1,813 non-simulation, 428 simulation). Codebase: ~33,500 lines across 250+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,250 tests (1,822 non-simulation, 428 simulation). Codebase: ~33,700 lines across 251+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 137 -- Ofgem reporting obligations tracker (2026-06-27)
+**Files:** `company/regulatory/ofgem_obligations.py` (new), `tests/company/regulatory/test_ofgem_obligations.py` (new)
+
+**What was built:**
+- 6 mandatory `ReportingObligation` entries: price_cap_compliance (monthly, SLC 21C, £250k max), billing_accuracy_audit (monthly, SLC 7, £100k), complaint_report (quarterly, SLC 14C, £500k), annual_business_report (annual, SLC 36D, £10M), smart_meter_progress (annual, SLC 22, £1M), debt_difficulty_report (annual, SLC 27, £500k).
+- `ObligationSubmission`: submission vs deadline date, is_on_time, days_late.
+- `OfgemObligationsTracker`: record_submission(), late_submissions(), on_time_rate_pct(), total_potential_penalty_gbp(), summary().
+
+**Fidelity delta:** Ofgem conducts routine compliance monitoring across these SLCs and can issue enforcement orders or impose financial penalties for non-submission or late filing. total_potential_penalty_gbp() surfaces the financial exposure from outstanding late filings.
+
+**9 new tests (2,250 total).**
+
+---
 ### Phase 136 -- Renewal pricing engine (2026-06-27)
 **Files:** `company/billing/renewal_engine.py` (new), `tests/company/billing/test_renewal_engine.py` (new)
 
@@ -1975,14 +1988,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,241 tests (1,813 fast / ~10s; simulation integration ~8 min per run)
+- 2,250 tests (1,822 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 136, 2026-06-27):**
+**Latest full run (Phase 137, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
