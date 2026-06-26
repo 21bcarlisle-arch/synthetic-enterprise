@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 239 -- Flexible asset dispatch model (2026-06-26)
+**Files:** `company/market/flexible_asset.py` (new), `tests/company/market/test_flexible_asset.py` (new)
+
+**What was built:**
+- AssetType: BATTERY_STORAGE / PUMP_STORAGE / FLYWHEEL / DEMAND_RESPONSE.
+- DispatchMode: CHARGE / DISCHARGE / STANDBY.
+- AssetDispatchInterval frozen: settlement_date, period, mode, power_mw, price_achieved; energy_mwh = power × 0.5, revenue_gbp (negative on charge, positive on discharge, 0 on standby), is_evening_peak (SP 33-40).
+- FlexibleAsset mutable: asset_id, type, capacity_mw, storage_mwh, roundtrip_efficiency_pct (default 85%), current_soc_mwh; soc_pct, can_charge, can_discharge; dispatch(date, period, mode, power, price) updates SoC with efficiency loss on charge; total_revenue_gbp(year), cycles_in_year(year), asset_summary(year).
+
+**Fidelity delta:** Battery storage is the fastest-growing flexible asset in GB. A 10MW/20MWh battery with 85% roundtrip efficiency and 300 cycles/year earns arbitrage revenue by charging at ~£50/MWh (overnight/midday solar) and discharging at ~£200/MWh (evening peak) or BM prices. SoC tracking is the key state variable — the battery can't be dispatched if empty, can't charge if full. cycles_in_year() drives battery degradation modelling. Connects to DSR portfolio (Ph224) and BM unit log (Ph237): triad avoidance is the most valuable use case — discharging during the 3 settlement periods that set the Triad saves ~£7.50/kW/yr in TNUoS.
+
+**9 new tests (3,201 total).**
+
+---
 ### Phase 238 -- MPAS supply point registry (2026-06-26)
 **Files:** `company/market/mpas_registry.py` (new), `tests/company/market/test_mpas_registry.py` (new)
 
@@ -3429,7 +3443,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,192 tests (2,775 fast / ~10s; simulation integration ~8 min per run)
+- 3,201 tests (2,784 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
