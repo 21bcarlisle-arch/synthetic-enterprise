@@ -527,6 +527,22 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 168 -- Decarbonisation recommendation engine (2026-06-26)
+**Files:** `company/crm/decarb_recommender.py` (new), `tests/company/crm/test_decarb_recommender.py` (new)
+
+**What was built:**
+- `Measure` enum: 9 measures (cavity/solid-wall/loft insulation, heat pump, solar PV, smart controls, double glazing, LED lighting, battery storage).
+- `FundingScheme` enum: ECO4 / BUS (Boiler Upgrade Scheme, £7,500 grant) / SEG / GHG (Great British Insulation) / SELF_FUNDED.
+- `MeasureRecommendation` frozen dataclass: estimated savings/cost, funding schemes tuple, priority, simple_payback_years.
+- `DecarbonisationPlan` frozen dataclass: ordered recommendations, total_potential_savings_gbp, top_measure, summary().
+- `recommend_measures()`: EPC F/G → insulation (cavity if terraced/semi/detached, solid wall otherwise); ECO4 eligible → zero-cost; EPC D+ + gas/oil boiler → heat pump (BUS); no solar → solar PV (SEG); always → smart controls.
+- Connects to: Property (Ph161), FuelPovertyAssessment (Ph166), WHDRegister (Ph167), ECO4 tracker (Ph130).
+
+**Fidelity delta:** UK net-zero mandates suppliers to help customers decarbonise. This closes the gap between knowing a customer is fuel-poor with an EPC F property (Ph161/166) and generating the actual measures they should receive. BUS, ECO4, GHG, and SEG funding chains are all represented. Payback years gives an advisory view suppliers can show customers.
+
+**11 new tests (2,603 total).**
+
+---
 ### Phase 167 -- Warm Home Discount (WHD) register (2026-06-26)
 **Files:** `company/billing/whd_register.py` (new), `tests/company/billing/test_whd_register.py` (new)
 
@@ -2406,7 +2422,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,592 tests (2,176 fast / ~10s; simulation integration ~8 min per run)
+- 2,603 tests (2,187 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
