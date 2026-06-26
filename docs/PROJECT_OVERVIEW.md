@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 196 -- Digital portal analytics (2026-06-26)
+**Files:** `company/crm/portal_analytics.py` (new), `tests/company/crm/test_portal_analytics.py` (new)
+
+**What was built:**
+- PortalAction enum: 11 actions (LOGIN, VIEW_BILL, DOWNLOAD_BILL, SUBMIT_METER_READ, CHANGE_DIRECT_DEBIT, UPDATE_CONTACT_DETAILS, VIEW_TARIFF, INITIATE_SWITCH, RAISE_COMPLAINT, VIEW_CONSUMPTION, ENROL_PAPERLESS).
+- Self-serve actions: SUBMIT_METER_READ, CHANGE_DIRECT_DEBIT, UPDATE_CONTACT_DETAILS, ENROL_PAPERLESS.
+- PortalEvent frozen dataclass: event_id, customer_id, action, event_datetime, session_id; is_self_serve.
+- PortalAnalytics: record(), events_in_period(from_dt, to_dt, action=None), unique_users(), self_serve_rate(), action_counts(), monthly_summary(year, month).
+
+**Fidelity delta:** UK suppliers track digital self-serve rate as a key cost metric. A 1% increase in portal self-serve reduces inbound call volume by ~800 calls/year per 100k customers. Post-2021 portal investments: meter read submission (reduces estimated billing errors), DD change (reduces call centre costs), paperless billing (reduces paper cost £2/customer/year). INITIATE_SWITCH spiked dramatically in Oct-Nov 2022 as customers tried to escape price cap rises. Tracks with contact_centre_metrics.py (Ph189) to show deflection impact.
+
+**7 new tests (2,846 total).**
+
+---
 ### Phase 195 -- NPS cohort tracker (2026-06-26)
 **Files:** `company/crm/nps_tracker.py` (new), `tests/company/crm/test_nps_tracker.py` (new)
 
@@ -2799,7 +2813,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,839 tests (2,423 fast / ~10s; simulation integration ~8 min per run)
+- 2,846 tests (2,430 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
