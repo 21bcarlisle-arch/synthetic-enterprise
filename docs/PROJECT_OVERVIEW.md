@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 229 -- Customer switching gain/loss report (2026-06-26)
+**Files:** `company/crm/switching_report.py` (new), `tests/company/crm/test_switching_report.py` (new)
+
+**What was built:**
+- SwitchDirection: GAIN / LOSS.
+- SwitchReason (8): PRICE / SERVICE / GREEN_TARIFF / SMART_METER / DEAL / COMPLAINT_DISSATISFACTION / MOVING_HOME / UNKNOWN.
+- SwitchRecord frozen: switch_date, direction, from/to_supplier, annual_kwh, reason; annual_mwh, is_gain.
+- SwitchingReport: record() (auto-sets from/to based on direction), gains(year), losses(year), net_customer_movement(year), net_mwh_movement(year), churn_rate_pct(year, avg_customers), loss_reasons(year), top_gaining_from(year), switching_summary(year, avg_customers).
+
+**Fidelity delta:** Switching data is published weekly by Energy UK and monthly by Ofgem. UK market had 5% monthly switching rate at peak (2019). In 2022, switching collapsed to near zero as all suppliers were on SVT — there was no point switching since everyone had the same Ofgem price cap. top_gaining_from() is the weekly MD question: "which of our competitors are leaking customers most?" It drives acquisition targeting. loss_reasons breakdown feeds the churn_model (Ph~30s) root cause analysis. MOVING_HOME losses are inevitable (COT); PRICE losses are preventable through retention.
+
+**9 new tests (3,113 total).**
+
+---
 ### Phase 228 -- Tariff change notification log (2026-06-26)
 **Files:** `company/crm/tariff_notification.py` (new), `tests/company/crm/test_tariff_notification.py` (new)
 
@@ -3285,7 +3299,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,104 tests (2,687 fast / ~10s; simulation integration ~8 min per run)
+- 3,113 tests (2,696 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
