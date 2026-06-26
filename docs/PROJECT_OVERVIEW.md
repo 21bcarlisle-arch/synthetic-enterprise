@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 183 -- 13-week rolling cash flow forecast (2026-06-26)
+**Files:** `company/finance/cash_flow_forecast.py` (new), `tests/company/finance/test_cash_flow_forecast.py` (new)
+
+**What was built:**
+- WeeklyCashFlow frozen dataclass: week_start, customer_receipts, wholesale_settlements, network_charges, policy_levies, operating_costs, other_outflows; total_inflows/total_outflows/net_cash/is_net_positive.
+- CashFlowForecast frozen dataclass: as_of, opening_cash, weeks (13-week tuple); closing_cash_gbp, minimum_weekly_balance_gbp (minimum running balance), weeks_to_cash_concern (first week balance goes <=0; None if solvent), is_solvent_throughout, summary().
+- build_cash_flow_forecast(): factory for steady-state weekly inputs; optional per-week other_outflows spike support.
+
+**Fidelity delta:** Every UK energy supplier CFO reviews a 13-week rolling cash view weekly. The 2022 crisis: weekly wholesale settlements jumped from £70k to £100k+ while customer receipts stayed flat — no operational breathing room. weeks_to_cash_concern=1 means administration by next Monday without emergency liquidity. minimum_weekly_balance_gbp shows the tightest point, often around the BSC credit cover drawdown week. Complements board_kpis.py (Ph182) and company_pl.py (Ph181).
+
+**9 new tests (2,738 total).**
+
+---
 ### Phase 182 -- Board KPI dashboard (RAG status) (2026-06-26)
 **Files:** `company/finance/board_kpis.py` (new), `tests/company/finance/test_board_kpis.py` (new)
 
@@ -2618,7 +2631,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,729 tests (2,313 fast / ~10s; simulation integration ~8 min per run)
+- 2,738 tests (2,322 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
