@@ -1,9 +1,9 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T09:36:56Z
+Last updated: 2026-06-26T09:40:03Z
 
 ## Latest Simulation Run
-- **Git:** 6cc92ff (run 2026-06-26T09:08)
+- **Git:** c438bdb (run 2026-06-26T09:27)
 - **Net Margin:** £1,330,126
 - **Gross Margin:** £6,546,003
 - **Revenue:** £14,215,256
@@ -12,11 +12,13 @@ Last updated: 2026-06-26T09:36:56Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 228
-- **Tests:** 3,104 passing
+- **Current Phase:** 230
+- **Tests:** 3,121 passing
 - **Session theme:** Financial layer + regulatory + market ops + CRM maturation
 
-## This Session (Phases 198-228)
+## This Session (Phases 198-230)
+- Ph 230: Board KPI dashboard (10 KPIs; GREEN/AMBER/RED; rag_summary; at_risk_metrics)
+- Ph 229: Switching gain/loss report (8 reasons; net_movement; top_gaining_from)
 - Ph 228: Tariff change notifications (42-day SLC 25B; compliance_breaches; is_price_increase)
 - Ph 227: UK ETS allowance registry (UKETS 2021+; £72/t 2022 peak; compliance_position)
 - Ph 226: Multisite I&C accounts (6 site types; HV>=11kV; peak_site; portfolio_total_mwh)
@@ -49,7 +51,7 @@ Last updated: 2026-06-26T09:36:56Z
 - Ph 199: Annual regulatory obligations report (WHD/ECO4/GSOP/Ofgem/REGO; penalty estimates)
 - Ph 198: Revolving credit facility (drawdown/repay; limit breach guard; interest accrual)
 
-## Company layer: 166 files | CLAUDE.md: 143/200 lines
+## Company layer: 168 files | CLAUDE.md: 145/200 lines
 
 **Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
