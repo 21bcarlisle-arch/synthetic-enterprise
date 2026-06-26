@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 192 -- Gas MPRN supply point register (2026-06-26)
+**Files:** `company/market/mprn_register.py` (new), `tests/company/market/test_mprn_register.py` (new)
+
+**What was built:**
+- GasConsumptionBand enum: DOMESTIC (<=73,200 kWh AQ) / SMALL_NON_DOMESTIC (<=293k) / MEDIUM_NON_DOMESTIC (<=732k) / LARGE_NON_DOMESTIC (>732k).
+- classify_gas_band(annual_quantity_kwh) utility.
+- MPRNStatus enum: REGISTERED / DEREGISTERED / PENDING_REGISTRATION / PENDING_SWITCH / DISCONNECTED / OBJECTED.
+- MPRNRecord frozen dataclass: mprn, status, annual_quantity_kwh, registered_date, current_supplier_id, deregistered_date, pending_switch_date; consumption_band, is_active (not DEREGISTERED/DISCONNECTED).
+- MPRNRegister: register(), initiate_switch(), complete_switch(), deregister(), get(mprn), active_mprns(), by_band(band), portfolio_summary() with total_aq_kwh.
+
+**Fidelity delta:** Xoserve manages the gas MPRN equivalent of MPAS. The AQ (Annual Quantity) banding matters commercially: large non-domestic customers have bespoke contracts and transportation charges; domestic have standard commodity charges. total_aq_kwh in portfolio_summary gives the gas-book total load — the CFO's gas supply exposure number, paired with GasNominationBook (Ph144) and hedge portfolio for gas risk.
+
+**9 new tests (2,815 total).**
+
+---
 ### Phase 191 -- Risk appetite framework (2026-06-26)
 **Files:** `company/risk/risk_appetite.py` (new), `tests/company/risk/test_risk_appetite.py` (new)
 
@@ -2741,7 +2756,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,806 tests (2,390 fast / ~10s; simulation integration ~8 min per run)
+- 2,815 tests (2,399 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
