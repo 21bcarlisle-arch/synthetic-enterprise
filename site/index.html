@@ -378,6 +378,11 @@ function renderOverview() {
     <div class="chart-box">
       <div class="chart-title">Net Margin by Year</div>
       <div class="chart-wrap"><canvas id="ch-overview-net"></canvas></div>
+    </div>
+    <div style="margin-top:16px">
+      <div class="section-title">Year Spotlight</div>
+      <div class="year-btns" id="year-btns"></div>
+      <div id="year-spotlight"></div>
     </div>`;
 
   const yrs = fa.map(r => r.year);
@@ -411,6 +416,17 @@ function renderOverview() {
       y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)},
          plugins:{legend:{display:false}}} } }
   });
+
+  var ALL_YRS = [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+  var yb = document.getElementById('year-btns');
+  if (yb) {
+    yb.innerHTML = ALL_YRS.map(function(y) {
+      return '<button class="year-btn' + (YEAR_FILTER===y?' active':'') + '" data-yr="' + y + '" onclick="selectYear(' + y + ')">' + y + '</button>';
+    }).join('') +
+    '<button class="year-btn' + (YEAR_FILTER===null?' active':'') + '" onclick="selectYear(null)">All</button>';
+  }
+  var spEl = document.getElementById('year-spotlight');
+  if (spEl) renderSpotlight(spEl);
 }
 
 // ── FINANCIAL ────────────────────────────────────────────────────────────────

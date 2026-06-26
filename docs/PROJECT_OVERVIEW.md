@@ -619,6 +619,21 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 **0 new tests (3,413 total) -- infrastructure only.**
 
 ---
+**Phase 261 -- Year Spotlight (Dashboard Phase B partial) (2026-06-26)**
+**Files:** site/index.html (modified), tests/tools/test_year_spotlight.py (new)
+
+**What was built:**
+- YEAR_FILTER state variable (null = all years, int = selected year).
+- year-btn / spotlight CSS classes.
+- selectYear(): toggles YEAR_FILTER, updates button active states, re-renders spotlight.
+- renderSpotlight(): builds spotlight card with 8 KPIs from D.financial.annual, D.customers.book_annual, D.trading.hedge_annual. CRISIS YEAR badge for 2021/2022.
+- Overview tab: year selector buttons row (2016-2025 + All) + spotlight container.
+- 5 new tests: all 10 years in financial/hedge annual; crisis years in book_annual; bill_shock_count > 0 in 2022; 2022 shocks >= 2020.
+- Dashboardvision Phase B partial: year drill-down live on poesys.net.
+
+**5 new tests (3,418 total).**
+
+---
 **12 new tests (3,373 total).**
 
 ---
@@ -3790,7 +3805,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,413 tests (2,986 fast / ~10s; simulation integration ~8 min per run)
+- 3,418 tests (2,986 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
