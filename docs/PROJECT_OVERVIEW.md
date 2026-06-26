@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 198 -- Revolving credit facility model (2026-06-26)
+**Files:** `company/finance/credit_facility.py` (new), `tests/company/finance/test_credit_facility.py` (new)
+
+**What was built:**
+- DrawdownReason enum: WHOLESALE_SETTLEMENT / WORKING_CAPITAL / BSC_CREDIT_COVER / SEASONAL_CASHFLOW / EMERGENCY.
+- CreditFacility frozen dataclass: facility_id, lender, limit_gbp, interest_rate_pct, commitment_fee_pct, maturity_date; daily_commitment_fee_gbp.
+- FacilityDrawdown mutable dataclass: drawdown_id, facility_id, amount_gbp, drawdown_date, reason, repaid_date/amount; is_outstanding, interest_accrued_gbp(as_of, rate_pct).
+- CreditFacilityBook: register_facility(), drawdown() [raises if would breach limit], repay(), outstanding_balance(facility_id), total_interest_accrued_gbp(as_of), utilisation_pct(facility_id).
+
+**Fidelity delta:** UK mid-sized energy suppliers maintain a revolving credit facility (RCF) of £5-20M with a clearing bank. The 2022 crisis: wholesale settlement cash calls hit simultaneously with customer receipt delays → RCF drawn to 90% → lender covenant breach → administrator called in. utilis_pct >80% typically triggers a board-level liquidity alert. Interest at SONIA + 200-350bps; commitment fee ~0.5% pa on undrawn portion. Completes the treasury stack: 13w cashflow (Ph183) + RCF (Ph198) + BSC credit cover (Ph53).
+
+**7 new tests (2,860 total).**
+
+---
 ### Phase 197 -- Energy efficiency programme (EEP) book (2026-06-26)
 **Files:** `company/crm/eep_book.py` (new), `tests/company/crm/test_eep_book.py` (new)
 
@@ -2827,7 +2841,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,853 tests (2,437 fast / ~10s; simulation integration ~8 min per run)
+- 2,860 tests (2,444 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
