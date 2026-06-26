@@ -5164,3 +5164,49 @@
 - [2026-06-26 00:46 UTC] Auto-processed run complete marker
 - [2026-06-26 00:46 UTC] Waiting 60s before next run...
 - [2026-06-26 00:47 UTC] Starting run — git=a3b3ad4, json=run_output_a3b3ad4_20260626T004714Z.json
+- [2026-06-26 00:55 UTC] Run complete — 501s, 392 KB (run_output_a3b3ad4_20260626T004714Z.json)
+- [2026-06-26 00:55 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 501, "size_kb": 392, "json": "run_output_a3b3ad4_20260626T004714Z.json"}, "timestamp": "2026-06-26T00:55:36.215282+00:00", "session_id": null}
+- [2026-06-26 00:55 UTC] [process_run] Processing run_complete_20260626T004714Z.md
+- [2026-06-26 00:55 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_a3b3ad4_20260626T004714Z.json
+- [2026-06-26 00:55 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 00:55 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 00:55 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 00:55 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 00:55 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 00:57 UTC] [process_run] Processing run_complete_20260626T004714Z.md
+- [2026-06-26 00:57 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_a3b3ad4_20260626T004714Z.json
+- [2026-06-26 00:57 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 00:57 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 00:57 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 00:57 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 00:57 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 01:05 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 01:05 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 01:05 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 01:05 UTC] [process_run] Moved run_complete_20260626T004714Z.md to done/
+- [2026-06-26 01:05 UTC] [process_run] Done
+- [2026-06-26 01:05 UTC] Auto-processed run complete marker
+- [2026-06-26 01:05 UTC] Waiting 60s before next run...
+- [2026-06-26 01:06 UTC] Starting run — git=c9dff08, json=run_output_c9dff08_20260626T010644Z.json
+- [2026-06-26 01:07 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 01:07 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 01:07 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 01:07 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 01:07 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 01:17 UTC] Run complete — 655s, 389 KB (run_output_c9dff08_20260626T010644Z.json)
+- [2026-06-26 01:17 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 655, "size_kb": 389, "json": "run_output_c9dff08_20260626T010644Z.json"}, "timestamp": "2026-06-26T01:17:39.318506+00:00", "session_id": null}
+- [2026-06-26 01:17 UTC] [process_run] Processing run_complete_20260626T010644Z.md
+- [2026-06-26 01:17 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c9dff08_20260626T010644Z.json
+- [2026-06-26 01:17 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 01:17 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 01:17 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 01:17 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 01:17 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 01:27 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 01:27 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 01:27 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 01:27 UTC] [process_run] Moved run_complete_20260626T010644Z.md to done/
+- [2026-06-26 01:27 UTC] [process_run] Done
+- [2026-06-26 01:27 UTC] Auto-processed run complete marker
+- [2026-06-26 01:27 UTC] Waiting 60s before next run...
+- [2026-06-26 01:28 UTC] Starting run — git=850e353, json=run_output_850e353_20260626T012846Z.json

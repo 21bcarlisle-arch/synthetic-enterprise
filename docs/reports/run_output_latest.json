@@ -7,7 +7,7 @@
   "total_bad_debt_gbp": 92378.156184,
   "total_net_gbp": 1330126.231354,
   "administration_event": null,
-  "committee_wake_ups_total": 38,
+  "committee_wake_ups_total": 29,
   "years": {
     "2016": {
       "revenue_gbp": 9757.440218391237,
@@ -272,9 +272,7 @@
         {
           "settlement_date": "2016-09-27",
           "treasury_gbp": 2466729.9128462095,
-          "adjustments": {
-            "C1": 1.0
-          },
+          "adjustments": {},
           "portfolio_var_current_gbp": 22.228773965545997,
           "portfolio_var_stressed_gbp": 6.829193415425749
         },
@@ -844,102 +842,6 @@
           },
           "portfolio_var_current_gbp": 296.0012170939364,
           "portfolio_var_stressed_gbp": 93.84153501019824
-        },
-        {
-          "settlement_date": "2017-04-25",
-          "treasury_gbp": 2467801.7693431834,
-          "adjustments": {
-            "C1": 1.0,
-            "C5": 1.0,
-            "C7": 1.0
-          },
-          "portfolio_var_current_gbp": 750.8012454526481,
-          "portfolio_var_stressed_gbp": 284.48056153561004
-        },
-        {
-          "settlement_date": "2017-05-25",
-          "treasury_gbp": 2467804.6196531863,
-          "adjustments": {
-            "C1": 1.0,
-            "C5": 1.0,
-            "C7": 1.0
-          },
-          "portfolio_var_current_gbp": 750.8012454526481,
-          "portfolio_var_stressed_gbp": 284.48056153561004
-        },
-        {
-          "settlement_date": "2017-06-24",
-          "treasury_gbp": 2467808.1637301827,
-          "adjustments": {
-            "C1": 1.0,
-            "C5": 1.0,
-            "C7": 1.0
-          },
-          "portfolio_var_current_gbp": 750.8012454526481,
-          "portfolio_var_stressed_gbp": 284.48056153561004
-        },
-        {
-          "settlement_date": "2017-07-24",
-          "treasury_gbp": 2467979.4841731414,
-          "adjustments": {
-            "C1": 1.0,
-            "C5": 1.0,
-            "C7": 1.0
-          },
-          "portfolio_var_current_gbp": 879.9264679253629,
-          "portfolio_var_stressed_gbp": 345.55787712201874
-        },
-        {
-          "settlement_date": "2017-08-23",
-          "treasury_gbp": 2467982.2817501025,
-          "adjustments": {
-            "C1": 1.0,
-            "C5": 1.0,
-            "C7": 1.0
-          },
-          "portfolio_var_current_gbp": 879.9264679253629,
-          "portfolio_var_stressed_gbp": 345.55787712201874
-        },
-        {
-          "settlement_date": "2017-09-22",
-          "treasury_gbp": 2467984.3434361494,
-          "adjustments": {
-            "C1": 1.0,
-            "C5": 1.0,
-            "C7": 1.0
-          },
-          "portfolio_var_current_gbp": 879.9264679253629,
-          "portfolio_var_stressed_gbp": 345.55787712201874
-        },
-        {
-          "settlement_date": "2017-10-22",
-          "treasury_gbp": 2468218.361007168,
-          "adjustments": {
-            "C5": 1.0,
-            "C7": 1.0
-          },
-          "portfolio_var_current_gbp": 886.5751238759585,
-          "portfolio_var_stressed_gbp": 350.90782164409535
-        },
-        {
-          "settlement_date": "2017-11-21",
-          "treasury_gbp": 2468227.520321177,
-          "adjustments": {
-            "C5": 1.0,
-            "C7": 1.0
-          },
-          "portfolio_var_current_gbp": 886.5751238759585,
-          "portfolio_var_stressed_gbp": 350.90782164409535
-        },
-        {
-          "settlement_date": "2017-12-21",
-          "treasury_gbp": 2468236.4127851757,
-          "adjustments": {
-            "C5": 1.0,
-            "C7": 1.0
-          },
-          "portfolio_var_current_gbp": 886.5751238759585,
-          "portfolio_var_stressed_gbp": 350.90782164409535
         }
       ],
       "hedge_fractions": {
@@ -1253,7 +1155,7 @@
       ],
       "avg_complaint_probability": 0.04217350568356565,
       "treasury_drawdown_events": [],
-      "var_ratio": 2.7165948859206144,
+      "var_ratio": 3.154266573556884,
       "hedge_effectiveness": {
         "actual_net_gbp": 30317.045553000004,
         "naked_net_gbp": 112037.6069492685,
