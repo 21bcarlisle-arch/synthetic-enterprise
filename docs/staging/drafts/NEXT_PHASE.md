@@ -1,23 +1,24 @@
-Phase 267 -- Dashboard Phase B Completion: Year/Customer Filters on Financial, Customers, Trading Tabs
+Phase 268 -- /sim/ Section Stub: Wholesale Prices with Real Elexon SSP Data
 
 Status: PROPOSED (2026-06-26)
 
-Phase 261 added the Year Spotlight on the Overview tab. Phase B is not yet
-complete -- the Financial, Trading, and Customers tabs still show all-years
-data with no filtering.
+The nav bar at poesys.net has a /sim/ link marked as "dim" (disabled).
+Phase 268 enables it with a first page: a wholesale electricity price
+explorer using the real Elexon SSP data already in the simulation.
 
-Goal: add year-filter controls to each of these three tabs so Rich can
-isolate a single year across the full dashboard.
+Goal: give the /sim/ section a landing page that showcases the underlying
+market data driving the simulation.
 
 Design:
-- Reuse the existing YEAR_FILTER state variable and selectYear() function.
-- Add year-btn selector to top of Financial, Trading, Customers tabs.
-- When a year is selected, re-render the relevant tab filtered to that year only.
-- Affected charts: P&L bar chart (highlight selected year), hedge chart, spot
-  price chart (zoom to year), customer heatmap (highlight year column).
-- Affected tables: annual P&L table (bold selected year row), customer events
-  (filter to year), retention log (filter to year).
-- "All" resets to full 10-year view.
+- site/sim/index.html (new): Wholesale Price Explorer page.
+- Nav /sim/ link un-dimmed.
+- Loads wholesale price data from site/data/market_data/ (already exists:
+  price_feed.json and consumption_feed.json from background processes).
+- Displays: spot price chart (monthly mean, P95) 2016-2025, crisis period
+  overlay (2021-2022), peak half-hour records, year summary table.
+- tools/generate_sim_data.py (new): extracts wholesale summary from
+  docs/market_data/price_feed.json or run output into site/data/sim_data.json.
+- process_run_complete.py: call generate_sim_data on every run.
 
-Estimated: ~8 tests (year filter state, per-tab rendering with filter applied,
-clear-filter restores all data).
+Estimated: ~7 tests (sim/index.html exists, nav un-dimmed, generate_sim_data
+produces valid JSON, data has crisis years, peak price >£500/MWh in 2022).

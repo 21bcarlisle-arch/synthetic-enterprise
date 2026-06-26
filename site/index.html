@@ -240,12 +240,24 @@ const gbp = (v, d=0) => {
 const pct = (v, d=1) => (v >= 0 ? '+' : '') + v.toFixed(d) + '%';
 const cls = v => v > 0 ? 'pos' : v < 0 ? 'neg' : 'neu';
 const el = id => document.getElementById(id);
-const mkChart = (id, cfg) => new Chart(document.getElementById(id), cfg);
+const mkChart = (id, cfg) => {
+  const existing = Chart.getChart(id);
+  if (existing) existing.destroy();
+  return new Chart(document.getElementById(id), cfg);
+};
 
 function card(label, value, sub='', klass='neu') {
   return `<div class="card"><div class="card-label">${label}</div>
     <div class="card-value ${klass}">${value}</div>
     ${sub ? `<div class="card-sub">${sub}</div>` : ''}</div>`;
+}
+
+function yearBtnsHtml() {
+  const ALL_YRS = [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+  return '<div class="year-btns">' +
+    ALL_YRS.map(function(y) { return '<button class="year-btn' + (YEAR_FILTER===y?' active':'') + '" data-yr="' + y + '" onclick="selectYear(' + y + ')">' + y + '</button>'; }).join('') +
+    '<button class="year-btn' + (YEAR_FILTER===null?' active':'') + '" onclick="selectYear(null)">All</button>' +
+    '</div>';
 }
 
 function baseLineOpts(title) {
@@ -357,11 +369,21 @@ function updateHeader() {
 // -- Year Spotlight --
 function selectYear(yr) {
   YEAR_FILTER = (YEAR_FILTER === yr) ? null : yr;
-  document.querySelectorAll('.year-btn').forEach(b => {
-    b.classList.toggle('active', parseInt(b.dataset.yr) === YEAR_FILTER);
+  document.querySelectorAll('.year-btn').forEach(function(b) {
+    if (b.dataset.yr) {
+      b.classList.toggle('active', parseInt(b.dataset.yr) === YEAR_FILTER);
+    } else {
+      b.classList.toggle('active', YEAR_FILTER === null);
+    }
   });
   const sp = document.getElementById('year-spotlight');
   if (sp) renderSpotlight(sp);
+  ['financial', 'trading', 'customers'].forEach(function(tab) {
+    delete rendered[tab];
+    if (el('tab-' + tab).classList.contains('active')) {
+      renderTab(tab); rendered[tab] = true;
+    }
+  });
 }
 
 function renderSpotlight(container) {
@@ -462,11 +484,12 @@ function renderOverview() {
 
 // ── FINANCIAL ────────────────────────────────────────────────────────────────
 function renderFinancial() {
-  const fa = D.financial.annual;
+  const faAll = D.financial.annual;
+  const fa = YEAR_FILTER ? faAll.filter(r => r.year === YEAR_FILTER) : faAll;
   const ld = D.financial.ledger;
   const yrs = fa.map(r => r.year);
 
-  el('tab-financial').innerHTML = `
+  el('tab-financial').innerHTML = yearBtnsHtml() + `
     <div class="chart-box">
       <div class="chart-title">Annual P&amp;L Components</div>
       <div class="chart-wrap tall"><canvas id="ch-pnl-stack"></canvas></div>
@@ -539,8 +562,10 @@ function renderFinancial() {
 
 // ── TRADING ──────────────────────────────────────────────────────────────────
 function renderTrading() {
-  const sm = D.trading.spot_monthly;
-  const ha = D.trading.hedge_annual;
+  const smAll = D.trading.spot_monthly;
+  const sm = YEAR_FILTER ? smAll.filter(r => r.month.startsWith(String(YEAR_FILTER))) : smAll;
+  const haAll = D.trading.hedge_annual;
+  const ha = YEAR_FILTER ? haAll.filter(r => r.year === YEAR_FILTER) : haAll;
 
   const months = sm.map(r=>r.month);
   const means  = sm.map(r=>r.mean);
@@ -552,7 +577,7 @@ function renderTrading() {
   const maxMean = Math.max(...means);
   const peakMonth = sm[means.indexOf(maxMean)];
 
-  el('tab-trading').innerHTML = `
+  el('tab-trading').innerHTML = yearBtnsHtml() + `
     <div class="chart-box">
       <div class="chart-title">Wholesale Spot Price (£/MWh) — Monthly 2016–2025</div>
       <div class="chart-wrap tall"><canvas id="ch-spot"></canvas></div>
@@ -651,12 +676,15 @@ function renderTrading() {
 // ── CUSTOMERS ────────────────────────────────────────────────────────────────
 function renderCustomers() {
   const cu = D.customers;
-  const ba = cu.book_annual;
+  const baAll = cu.book_annual;
+  const ba = YEAR_FILTER ? baAll.filter(r => r.year === YEAR_FILTER) : baAll;
   const yrs = ba.map(r=>r.year);
 
   // Build heatmap
   const allCids = Object.keys(cu.per_year_net).sort();
-  const allYears = [...new Set(ba.map(r=>String(r.year)))].sort();
+  const allYears = YEAR_FILTER
+    ? [String(YEAR_FILTER)]
+    : [...new Set(baAll.map(r=>String(r.year)))].sort();
 
   function hmColor(v) {
     if (v === null || v === undefined) return 'hm-nil';
@@ -686,15 +714,18 @@ function renderCustomers() {
   });
   hmHtml += '</div></div>';
 
-  // Events list (last 40 most recent)
-  const events = [...cu.events].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 40);
+  // Events list (last 40 most recent, filtered by year if selected)
+  const _sortedEvents = [...cu.events].sort((a,b) => b.date.localeCompare(a.date));
+  const events = (YEAR_FILTER
+    ? _sortedEvents.filter(e => e.date.startsWith(String(YEAR_FILTER)))
+    : _sortedEvents).slice(0, 40);
   function evTag(type, retention) {
     if (type === 'churned') return '<span class="ev-tag tag-churned">churned</span>';
     if (retention) return '<span class="ev-tag tag-retention">offered</span>';
     return '<span class="ev-tag tag-renewed">renewed</span>';
   }
 
-  el('tab-customers').innerHTML = `
+  el('tab-customers').innerHTML = yearBtnsHtml() + `
     <div class="chart-box">
       <div class="chart-title">Customer Book Size by Year</div>
       <div class="chart-wrap"><canvas id="ch-book"></canvas></div>
@@ -734,7 +765,7 @@ function renderCustomers() {
       <div class="tbl-title">Retention Offers &amp; Outcomes</div>
       <table>
         <tr><th>Customer</th><th>Date</th><th>Est %</th><th>Discount</th><th>Cost</th><th>Outcome</th></tr>
-        ${cu.retention.map(r=>`<tr>
+        ${(YEAR_FILTER ? cu.retention.filter(r=>r.date.startsWith(String(YEAR_FILTER))) : cu.retention).map(r=>`<tr>
           <td>${r.customer_id}</td><td>${r.date}</td>
           <td>${(r.company_est*100).toFixed(0)}%</td>
           <td>${(r.discount_pct*100).toFixed(1)}%</td>

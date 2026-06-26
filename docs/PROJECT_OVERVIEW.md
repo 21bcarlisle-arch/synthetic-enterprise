@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,461 tests passing. Codebase: ~34,700 lines across 256+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,469 tests passing. Codebase: ~34,700 lines across 256+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -706,6 +706,21 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - Dashboard now loads query_context from dashboard.json and sends it as context with each question.
 
 **9 new tests (3,461 total).**
+
+---
+**Phase 267 -- Dashboard Phase B Completion: Year Filter on Financial, Trading, Customers Tabs (2026-06-26)**
+**Files:** site/index.html (modified), tests/tools/test_year_filter_tabs.py (new)
+
+**What was built:**
+- `yearBtnsHtml()` helper: generates a reusable year selector bar (2016–2025 + All) using the shared `.year-btn` CSS class and `YEAR_FILTER` state.
+- `mkChart()` updated to call `Chart.getChart(id).destroy()` before re-creating, allowing tabs to be re-rendered without Chart.js instance errors.
+- `selectYear()` extended: after updating YEAR_FILTER and the Overview spotlight, clears the rendered cache for financial/trading/customers and re-renders the currently active tab.
+- **Financial tab**: filters `D.financial.annual` by YEAR_FILTER; P&L stacked chart, commodity chart, and annual P&L table all reflect the selected year.
+- **Trading tab**: filters `spot_monthly` by year prefix (month.startsWith(YEAR_FILTER)), and `hedge_annual` by year; spot price, crisis, and hedge charts zoom to the selected year.
+- **Customers tab**: filters `book_annual` by year; heatmap shows only the selected year's column; lifecycle events and retention offers filtered to the selected year.
+- All three tabs degrade cleanly to full 10-year view when YEAR_FILTER is null (All).
+
+**8 new tests (3,469 total).**
 
 ---
 **12 new tests (3,373 total).**
@@ -3879,7 +3894,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,461 tests (3,020 fast / ~10s; simulation integration ~8 min per run)
+- 3,469 tests (3,027 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
