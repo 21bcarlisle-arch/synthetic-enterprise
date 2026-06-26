@@ -26,6 +26,7 @@ from company.billing.eac_calibration import calibrate_eac, eac_drift
 from company.billing.direct_debit import set_mandate, get_mandate, cancel_mandate, is_dd_customer
 from company.billing.contract import renewal_summary
 from company.billing.collections import get_collections_queue
+from company.billing.consumption_forecast import forecast_annual_cost
 from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
@@ -306,11 +307,18 @@ async def consumption_page(request: Request, account_id: str):
     if hh_data and is_tou:
         for rec in hh_data:
             rec["band"] = _tou_band(str(rec["date"]), float(rec["hour"]))
+    # Typical UK residential rates (company knows its own tariff structure)
+    _ELEC_UNIT_P = 24.5  # p/kWh approximate current rate
+    _ELEC_SC_P = 61.0    # p/day standing charge
+    cost_forecast = forecast_annual_cost(
+        account_id, _ELEC_UNIT_P, _ELEC_SC_P, _DEFAULT_DB
+    )
     return templates.TemplateResponse(
         request, "consumption.html",
         {"customer": customer, "monthly_data": data, "is_hh": is_hh,
          "total_kwh": total_kwh, "hh_data": hh_data, "is_tou": is_tou,
-         "calibrated_eac": calibrated_eac, "eac_drift": drift},
+         "calibrated_eac": calibrated_eac, "eac_drift": drift,
+         "cost_forecast": cost_forecast},
     )
 
 @app.post("/account/{account_id}/pay", response_class=HTMLResponse)

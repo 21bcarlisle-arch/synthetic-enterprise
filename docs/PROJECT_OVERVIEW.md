@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,856 tests (1,428 non-simulation, 428 simulation). Codebase: ~26,000 lines across 216+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,864 tests (1,436 non-simulation, 428 simulation). Codebase: ~26,200 lines across 217+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 97 -- Annual cost forecast (2026-06-26)
+**Files:** `company/billing/consumption_forecast.py` (new), `company/portal/app.py` (extended), `company/portal/templates/consumption.html` (extended), `tests/company/billing/test_consumption_forecast.py` (new)
+
+**What was built:**
+- `forecast_annual_cost(account_id, unit_rate_p, standing_charge_p, db)`: derives EAC from invoice history, projects annual cost = `(EAC × rate / 100) + (SC × 365 / 100)`. UK seasonal quarterly split: Q1=30%, Q2=22%, Q3=18%, Q4=30% (heating profile).
+- Returns `None` if insufficient history (graceful fallback in template).
+- Consumption page: green banner with annual estimate and quarterly breakdown.
+
+**Fidelity delta:** Customers now see a forward-looking annual cost estimate — the key feature of every major UK supplier's online portal.
+
+**8 new tests (1,864 total).**
+
+---
 ### Phase 96 -- Collections queue (2026-06-26)
 **Files:** `company/billing/collections.py` (new), `company/portal/app.py` (extended), `company/portal/templates/admin_collections.html` (new), `tests/company/billing/test_collections.py` (new)
 
@@ -1455,14 +1468,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,856 tests (1,428 fast / ~10s; simulation integration ~8 min per run)
+- 1,864 tests (1,436 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 96, 2026-06-26):**
+**Latest full run (Phase 97, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

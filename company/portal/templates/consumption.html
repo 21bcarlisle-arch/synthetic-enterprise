@@ -76,6 +76,22 @@
   </div>
   {% endif %}
 
+
+  {% if cost_forecast %}
+  <div style="margin:20px 0;padding:14px;background:#f0fff4;border:1px solid #276749;border-radius:6px">
+    <strong>Estimated annual cost:</strong>
+    £{{ "%.0f"|format(cost_forecast.annual_total_gbp) }}
+    (based on {{ cost_forecast.eac_kwh }} kWh/yr at {{ cost_forecast.unit_rate_p_per_kwh }}p/kWh
+    + {{ cost_forecast.standing_charge_p_per_day }}p/day standing charge)
+    <table style="margin-top:10px;font-size:0.88em">
+      <tr><th>Quarter</th><th>Estimated cost</th></tr>
+      {% set qnames = ["Q1 (Jan-Mar)", "Q2 (Apr-Jun)", "Q3 (Jul-Sep)", "Q4 (Oct-Dec)"] %}
+      {% for i in range(4) %}
+      <tr><td>{{ qnames[i] }}</td><td>£{{ "%.2f"|format(cost_forecast.quarterly_total_gbp[i]) }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endif %}
   {% if monthly_data %}
   <table>
     <thead>
