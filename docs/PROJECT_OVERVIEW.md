@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 224 -- Demand Side Response (DSR) portfolio (2026-06-26)
+**Files:** `company/market/dsr_portfolio.py` (new), `tests/company/market/test_dsr_portfolio.py` (new)
+
+**What was built:**
+- DSREventType (5): GRID_STRESS / FREQUENCY_RESPONSE / TRIAD_AVOIDANCE / CAPACITY_MARKET_DISPATCH / VOLUNTARY.
+- CurtailmentStatus: NOTIFIED / COMPLIED / PARTIAL / NON_COMPLIANT / EXEMPTED.
+- DSREvent mutable: start/end_datetime, target_mw_reduction, notice_minutes; duration_hours, target_mwh, is_short_notice (< 30 min).
+- CustomerCurtailment mutable: contracted_reduction_kw, actual_reduction_kw, revenue_gbp; compliance_pct; auto-status (COMPLIED ≥ 95%, PARTIAL > 0, else NON_COMPLIANT).
+- DSRPortfolio: create_event(), record_curtailment(), total_mwh_delivered(event_id), compliance_rate_pct(event_id), annual_revenue_gbp(year), dsr_summary(year).
+
+**Fidelity delta:** Flexibility markets are a major I&C revenue stream: large consumers can earn £50-200/MWh for voluntary curtailment during grid stress events (National Grid ESO EMR auctions). Triad avoidance events (3 peak demand half-hours Nov-Feb 16-19:00) save £15-20/MWh of annual TNUoS charges for HH-settled customers — a significant cost reduction incentive. Capacity Market (CM) participants receive £40-60/kW/year for availability. compliance_rate feeds Ofgem reporting (DSR providers must maintain ≥ 85% compliance or face CM penalties). DSR revenue supplements commodity margin — a hidden differentiator for I&C suppliers.
+
+**9 new tests (3,069 total).**
+
+---
 ### Phase 223 -- Period-end financial reconciliation ledger (2026-06-26)
 **Files:** `company/finance/period_reconciliation.py` (new), `tests/company/finance/test_period_reconciliation.py` (new)
 
@@ -3209,7 +3224,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,060 tests (2,643 fast / ~10s; simulation integration ~8 min per run)
+- 3,069 tests (2,652 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
