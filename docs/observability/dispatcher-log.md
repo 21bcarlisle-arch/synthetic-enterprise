@@ -2702,3 +2702,19 @@
 - [2026-06-26 01:17 UTC] FYI routed: from_rich_002.md → staging/fyi/ (no notification)
 - [2026-06-26 01:17 UTC] NORMAL: from_rich_003.md — left in staging for Claude's next staging-poll
 - [2026-06-26 01:17 UTC] NORMAL: from_rich_005.md — left in staging for Claude's next staging-poll
+- [2026-06-26 01:36 UTC] URGENT routed: from_rich_001.md — relayed to Claude session + high-priority NTFY
+- [2026-06-26 01:36 UTC] FYI routed: from_rich_002.md → staging/fyi/ (no notification)
+- [2026-06-26 01:36 UTC] NORMAL: from_rich_003.md — left in staging for Claude's next staging-poll
+- [2026-06-26 01:36 UTC] NORMAL: from_rich_005.md — left in staging for Claude's next staging-poll
+- [2026-06-26 01:37 UTC] URGENT routed: from_rich_001.md — relayed to Claude session + high-priority NTFY
+- [2026-06-26 01:37 UTC] FYI routed: from_rich_002.md → staging/fyi/ (no notification)
+- [2026-06-26 01:37 UTC] NORMAL: from_rich_003.md — left in staging for Claude's next staging-poll
+- [2026-06-26 01:37 UTC] NORMAL: from_rich_005.md — left in staging for Claude's next staging-poll
+- [2026-06-26 01:38 UTC] URGENT routed: from_rich_001.md — relayed to Claude session + high-priority NTFY
+- [2026-06-26 01:38 UTC] FYI routed: from_rich_002.md → staging/fyi/ (no notification)
+- [2026-06-26 01:38 UTC] NORMAL: from_rich_003.md — left in staging for Claude's next staging-poll
+- [2026-06-26 01:38 UTC] NORMAL: from_rich_005.md — left in staging for Claude's next staging-poll
+- [2026-06-26 01:40 UTC] URGENT routed: from_rich_001.md — relayed to Claude session + high-priority NTFY
+- [2026-06-26 01:40 UTC] FYI routed: from_rich_002.md → staging/fyi/ (no notification)
+- [2026-06-26 01:40 UTC] NORMAL: from_rich_003.md — left in staging for Claude's next staging-poll
+- [2026-06-26 01:40 UTC] NORMAL: from_rich_005.md — left in staging for Claude's next staging-poll

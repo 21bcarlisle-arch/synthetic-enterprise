@@ -65,8 +65,8 @@ def test_generate_bill_phase9a_components():
     bill = generate_bill("C1", records, "fixed_1yr", segment="resi", commodity="electricity")
 
     kwh = 30.0
-    # non-commodity: £55/MWh resi electricity
-    expected_nc = (kwh / 1000) * 55.0
+    # non-commodity: £80/MWh resi electricity (2023 year-indexed rate)
+    expected_nc = (kwh / 1000) * 80.0
     # standing charge: 2 days × £0.27/day
     expected_sc = 2 * 0.27
     expected_subtotal = (kwh / 1000) * 200.0 + expected_nc + expected_sc
@@ -101,7 +101,7 @@ def test_generate_bill_gas_uses_gas_nc_rate():
     gas_bill = generate_bill("C1g", records, "fixed_1yr", segment="resi", commodity="gas")
 
     kwh = 100.0
-    expected_nc = (kwh / 1000) * 10.0  # gas rate
+    expected_nc = (kwh / 1000) * 16.0  # gas rate (2023 year-indexed)
     assert gas_bill["non_commodity_amount_gbp"] == pytest.approx(expected_nc)
 
 

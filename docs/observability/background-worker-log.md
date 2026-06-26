@@ -1476,3 +1476,4 @@ Structured performance entries are added after each task completes.
 - [2026-06-26 01:07 UTC] Failed to process run_complete_20260626T004714Z.md (rc=1) — will retry next cycle
 - [2026-06-26 01:07 UTC] Found queued tasks — beginning execution
 - [2026-06-26 01:07 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-06-26 01:37 UTC] Found 1 leftover run_complete marker(s) — processing

@@ -1,4 +1,4 @@
-"""Non-commodity bill components — Phase 9a.
+"""Non-commodity bill components — Phase 9a / Phase 78.
 
 UK retail energy bills contain two broad categories:
   1. Commodity: wholesale cost + hedging capital + margin (already modelled)
@@ -13,25 +13,53 @@ must appear on customer bills.
 Standing charges (£/day) are pure supplier revenue — they cover metering,
 data services, and admin. They DO contribute to margin.
 
-All rates are approximate UK averages. They vary by year and distribution
-network area, but using period-average constants keeps the model tractable.
-Phase 9a uses flat constants; a future phase can add year-varying rates.
+Phase 78: year-indexed non-commodity rates matching the settlement layer
+(Phase 29b). The 2022 energy crisis drove DUoS/TNUoS up sharply; flat
+2019 constants under-billed customers by ~£18/MWh in the peak crisis year.
 
 Sources: Ofgem Retail Market Monitoring, Cornwall Insight, BEIS energy stats.
 """
 
-# Non-commodity electricity unit rate by segment (£/MWh).
-# Includes: DUoS, TNUoS, BSUoS, Renewables Obligation, FiT levy,
-#           Contract for Difference levy, Capacity Market, Smart Metering.
-# Approximate 2019 values (mid-period, pre-crisis baseline).
-NON_COMMODITY_RATE_GBP_PER_MWH: dict[str, float] = {
-    "resi": 55.0,   # ~5.5p/kWh domestic — accounts for ~40-50% of typical bill
-    "SME": 42.0,    # SME: lower levy burden, higher DUoS in some regions
+# Year-indexed electricity non-commodity rate for resi (£/MWh).
+# Includes: DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM, Smart Metering.
+# Source: Ofgem Retail Market Monitoring / Cornwall Insight network cost data.
+_NON_COMMODITY_ELEC_RESI_BY_YEAR: dict[int, float] = {
+    2016: 52.0,
+    2017: 54.0,
+    2018: 53.0,
+    2019: 55.0,
+    2020: 57.0,
+    2021: 62.0,
+    2022: 73.0,  # DUoS/TNUoS spiked during crisis; levy stack elevated
+    2023: 80.0,  # CM + RO obligations at peak
+    2024: 74.0,
 }
 
-# Non-commodity gas unit rate by segment (£/MWh).
-# Includes: Gas Distribution (GDN), NTS Transportation, metering.
-# Smaller than electricity (fewer environmental levies on gas in the UK).
+# SME elec multiplier vs resi: lower levy burden, some DUoS variation.
+_SME_ELEC_MULTIPLIER = 0.77
+
+# Year-indexed gas non-commodity rate for resi (£/MWh).
+# Includes: GDN transportation, NTS charges, metering.
+_NON_COMMODITY_GAS_RESI_BY_YEAR: dict[int, float] = {
+    2016: 9.0,
+    2017: 9.5,
+    2018: 10.0,
+    2019: 11.0,
+    2020: 11.0,
+    2021: 12.0,
+    2022: 15.0,
+    2023: 16.0,
+    2024: 14.0,
+}
+
+# SME gas multiplier vs resi.
+_SME_GAS_MULTIPLIER = 0.80
+
+# Flat fallback rates (2019 baseline) — used when year is not provided.
+NON_COMMODITY_RATE_GBP_PER_MWH: dict[str, float] = {
+    "resi": 55.0,
+    "SME": 42.0,
+}
 NON_COMMODITY_GAS_RATE_GBP_PER_MWH: dict[str, float] = {
     "resi": 10.0,
     "SME": 8.0,
@@ -52,10 +80,25 @@ VAT_RATE: dict[str, float] = {
 }
 
 
-def non_commodity_rate(commodity: str, segment: str) -> float:
-    """Return the non-commodity pass-through unit rate (£/MWh)."""
+def non_commodity_rate(commodity: str, segment: str, year: int | None = None) -> float:
+    """Return the non-commodity pass-through unit rate (£/MWh).
+
+    When year is provided, returns the year-indexed rate. Falls back to the
+    flat 2019 baseline when year is None or outside the indexed range.
+    """
     if commodity == "gas":
+        if year is not None and year in _NON_COMMODITY_GAS_RESI_BY_YEAR:
+            resi_rate = _NON_COMMODITY_GAS_RESI_BY_YEAR[year]
+            if segment == "SME":
+                return resi_rate * _SME_GAS_MULTIPLIER
+            return resi_rate
         return NON_COMMODITY_GAS_RATE_GBP_PER_MWH.get(segment, NON_COMMODITY_GAS_RATE_GBP_PER_MWH["resi"])
+    # electricity
+    if year is not None and year in _NON_COMMODITY_ELEC_RESI_BY_YEAR:
+        resi_rate = _NON_COMMODITY_ELEC_RESI_BY_YEAR[year]
+        if segment == "SME":
+            return resi_rate * _SME_ELEC_MULTIPLIER
+        return resi_rate
     return NON_COMMODITY_RATE_GBP_PER_MWH.get(segment, NON_COMMODITY_RATE_GBP_PER_MWH["resi"])
 
 

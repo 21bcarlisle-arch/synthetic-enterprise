@@ -102,7 +102,8 @@ def generate_bill(
     commodity_amount_gbp = sum(record["revenue_gbp"] for record in settlement_records)
 
     # Non-commodity pass-through: network charges + environmental levies
-    non_commodity_amount_gbp = total_consumption_kwh / 1000 * non_commodity_rate(commodity, segment)
+    billing_year = int(dates[0][:4])
+    non_commodity_amount_gbp = total_consumption_kwh / 1000 * non_commodity_rate(commodity, segment, year=billing_year)
 
     # Standing charge: pure supplier margin (covers metering, admin, data)
     period_start_date = datetime.date.fromisoformat(dates[0])

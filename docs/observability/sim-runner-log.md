@@ -5210,3 +5210,19 @@
 - [2026-06-26 01:27 UTC] Auto-processed run complete marker
 - [2026-06-26 01:27 UTC] Waiting 60s before next run...
 - [2026-06-26 01:28 UTC] Starting run — git=850e353, json=run_output_850e353_20260626T012846Z.json
+- [2026-06-26 01:36 UTC] Run complete — 477s, 392 KB (run_output_850e353_20260626T012846Z.json)
+- [2026-06-26 01:36 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 477, "size_kb": 392, "json": "run_output_850e353_20260626T012846Z.json"}, "timestamp": "2026-06-26T01:36:44.325138+00:00", "session_id": null}
+- [2026-06-26 01:36 UTC] [process_run] Processing run_complete_20260626T012846Z.md
+- [2026-06-26 01:36 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_850e353_20260626T012846Z.json
+- [2026-06-26 01:36 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 01:36 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 01:36 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 01:36 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 01:36 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 01:37 UTC] [process_run] Processing run_complete_20260626T012846Z.md
+- [2026-06-26 01:37 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_850e353_20260626T012846Z.json
+- [2026-06-26 01:37 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 01:37 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 01:37 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 01:37 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 01:37 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)

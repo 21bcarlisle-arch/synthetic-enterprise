@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-25. 400+ commits. 1,639 tests (1,631 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,653 tests (1,645 non-simulation, 8 integration). Codebase: ~22,800 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,21 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 78 -- Year-indexed non-commodity billing rates (2026-06-26)
+**Files:** `saas/non_commodity.py` (extended), `saas/bill_generator.py` (extended), `tests/saas/test_non_commodity_year_indexed.py` (new)
+
+**What was built:**
+- `_NON_COMMODITY_ELEC_RESI_BY_YEAR`: year-indexed electricity non-commodity rate 2016–2024 (resi), from Ofgem Retail Market Monitoring / Cornwall Insight data.
+- `_NON_COMMODITY_GAS_RESI_BY_YEAR`: year-indexed gas non-commodity rate 2016–2024 (resi).
+- SME multipliers: 0.77 (elec), 0.80 (gas) applied to resi base rate.
+- `non_commodity_rate(commodity, segment, year=None)`: accepts optional `year`; returns year-indexed rate when provided, falls back to flat 2019 baseline for backward compat.
+- `bill_generator.generate_bill()`: extracts billing year from `dates[0]` and passes to `non_commodity_rate`.
+
+**Fidelity delta:** Customer bills now reflect actual UK network charge evolution 2016–2024. In 2022, resi electricity non-commodity rises from the flat £55/MWh baseline to £73/MWh — correctly capturing the DUoS/TNUoS spike during the energy crisis. Gas non-commodity rises from £10 to £15/MWh. This closes the explicit gap flagged in Section 9: "flat pass-through in non_commodity.py rather than year-indexed actuals."
+
+**14 new tests (1,653 total).**
+
+---
 ### Phase 77 -- Portal Phase 2: Tariff Comparison (2026-06-26)
 **Files:** `company/pricing/tariff_comparison.py` (new), `company/portal/app.py` (extended), `company/portal/templates/tariff_compare.html` (new), `company/portal/templates/tariff_switch_confirm.html` (new), `tests/company/pricing/test_tariff_comparison.py` (new), `tests/company/portal/test_tariff_compare.py` (new)
 
@@ -1191,14 +1206,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,639 tests (1,060 fast / ~10s; simulation integration ~8 min per run)
+- 1,653 tests (1,074 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 77, 2026-06-26):**
+**Latest full run (Phase 78, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T01:27:45Z
+Last updated: 2026-06-26T01:45:05Z
+
+**Phase 78 COMPLETE (2026-06-26):** Year-indexed non-commodity billing rates -- 14 new tests (1,653 total).
+- `saas/non_commodity.py`: year-indexed tables 2016-2024 for resi elec (£52→£80/MWh) and gas (£9→£16/MWh)
+- SME multipliers: 0.77 elec / 0.80 gas applied to resi base; backward-compat year=None → 2019 flat baseline
+- `bill_generator.py`: billing year extracted from dates[0], passed to non_commodity_rate
+- 2022 crisis: resi elec non-commodity £55→£73/MWh; closes Section 9 known gap
 
 **Phase 77 COMPLETE (2026-06-26):** Portal Phase 2: Tariff Comparison -- 17 new tests (1,639 total).
 - `company/pricing/tariff_comparison.py` (new): compare_tariffs() returns Fixed 1yr/2yr/Variable sorted by annual cost
@@ -135,10 +141,10 @@ Last updated: 2026-06-26T01:27:45Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,639 total (all saas/company/tools passing)**
+**Test suite: 1,653 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (655s / 11 min):
+**Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
-- Treasury: £2,466,636 → £3,796,762 | 29 committee interventions | 1531 bills issued
+- Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
