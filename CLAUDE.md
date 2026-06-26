@@ -63,20 +63,14 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase 247 COMPLETE (2026-06-26):** Power Purchase Agreement (PPA) book -- 11 new tests (3,275 passing). company/market/ppa_book.py (new): PPATechnology (5: ONSHORE_WIND/OFFSHORE_WIND/SOLAR/HYDRO/BIOMASS), PPAPricingType (FIXED/INDEXED/FLOOR), PPAContract (frozen: capacity_mw/annual_generation_mwh/price_gbp_per_mwh; term_years/annual_cost_gbp/is_active/effective_price/vs_market_gbp), PPABook (add_contract/active_contracts/total_contracted_mwh/total_annual_cost_gbp/total_vs_market_gbp/ppa_summary). FLOOR pricing tracks market when above floor; fixed-price PPAs at £45/MWh were enormously valuable in 2022 (spot £200+/MWh).
+**Phase 246 COMPLETE (2026-06-26):** Gas seasonal storage book -- 9 new tests (3,264 passing). company/market/gas_storage.py (new): StorageFacility (5: ROUGH 3,300 mcm mothballed May 2017 / STUBLACH / HOLFORD / HUMBLY_GROVE / HORNSEA), StorageOperation (INJECT/WITHDRAW), StorageTransaction (frozen: volume_mcm/price_gbp_per_therm/cost_gbp/is_winter_operation), GasStorageBook (inject/withdraw/inventory_mcm/total_injected_mcm/net_storage_cost_gbp/spread_gbp_per_therm/storage_summary). Rough closure cut UK seasonal capacity 70%; key cause of 2021-22 crisis exposure.
 **Phase 245 COMPLETE (2026-06-26):** Capacity Market (CM) participation book -- 9 new tests (3,255 passing). company/market/capacity_market.py (new): CMUnitType (6: CCGT/OCGT/BATTERY/DSR/INTERCONNECTOR/PUMP), AuctionType (T4/T1), _CM_CLEARING_PRICE 2016-2025 (£18-£75 crisis peak), CMUnit (frozen: derated_capacity_kw), CMObligation (mutable: annual_revenue/apply_penalty/net_revenue), CapacityMarketBook (register/add_obligation/total_revenue/total_derated_kw/cm_summary). 2022 crisis: clearing price £75/kW vs £6.44 in 2020.
 **Phase 244 COMPLETE (2026-06-26):** Customer contact preferences and channel management -- 9 new tests (3,246 passing). company/crm/contact_journey.py (new): ContactChannel (6: EMAIL/SMS/POST/PHONE/IN_APP/WEB), ContactPurpose (7: BILL/TARIFF_CHANGE/MARKETING/DEBT_CHASE/RENEWAL/SERVICE_UPDATE/COMPLAINT_UPDATE), ContactOutcome (7), _CHANNEL_COST_PENCE (email 0.2p / SMS 4p / post 80p / phone 350p), CustomerContactPrefs (frozen: paper_free_discount_eligible), ContactAttempt (frozen: was_successful), ContactJourney (log_attempt/delivery_rate_pct/total_contact_cost/opted_out_customers).
 **Phase 243 COMPLETE (2026-06-26):** Fuel poverty vulnerability index -- 9 new tests (3,237 passing). company/crm/vulnerability_index.py (new): VulnerabilityBand (LOW/MEDIUM/HIGH/CRITICAL at 0/15/35/60), FuelPovertyIndicator (6: BENEFITS/DISABILITY/CHILD/ELDERLY_75/CANCER/HOME_OXYGEN; scores 10-60), VulnerabilityAssessment (frozen: indicator_score + arrears_score + fuel_poverty_score + ppm_score = total; band/is_priority_services/disconnection_protected), assess_vulnerability() factory. HOME_OXYGEN=60 → always CRITICAL. Connects to PPMBook (Ph145) and credit_scoring (Ph135).
 **Phase 242 COMPLETE (2026-06-26):** Metering services contracts (MOP/DC) -- 8 new tests (3,228 passing). company/market/metering_contracts.py (new): MeteringServiceType (MOP/DC/DA/MAM), MeterType (CREDIT/PPM/SMART/HH), ServiceCallType (6), _MOP_RATE (£18-£45/meter/yr by type), _DC_RATE (£12-£30/meter/yr), MeteringContract (frozen: annual_cost/is_active/cost_for_period), ServiceCall (frozen), MeteringContractManager (register/log_service_call/active_contracts/annual_contract_cost/service_call_cost/metering_summary). HH meters cost 3× credit for MOP services.
 
-→ Phases 1–242: `docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
-`docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
-`docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
-`docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
-`docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
-`docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
-`docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
-`docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
-
+→ Phases 1–245: `docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
 ---
 
 ## Architectural Laws

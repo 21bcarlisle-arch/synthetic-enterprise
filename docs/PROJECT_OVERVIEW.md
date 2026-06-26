@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 247 -- Power Purchase Agreement (PPA) book (2026-06-26)
+**Files:** `company/market/ppa_book.py` (new), `tests/company/market/test_ppa_book.py` (new)
+
+**What was built:**
+- PPATechnology: ONSHORE_WIND / OFFSHORE_WIND / SOLAR / HYDRO / BIOMASS.
+- PPAPricingType: FIXED / INDEXED / FLOOR (floor = min guaranteed, tracks market above floor).
+- PPAContract frozen: contract_id, generator_id, technology, start/end date, capacity_mw, annual_generation_mwh, price_gbp_per_mwh; term_years, annual_cost_gbp, is_active(date), effective_price(market_price), vs_market_gbp(market_price).
+- PPABook mutable: add_contract(), active_contracts(date), total_contracted_mwh(date), total_annual_cost_gbp(date), total_vs_market_gbp(date, market_price), ppa_summary(date, market_price).
+
+**Fidelity delta:** PPAs are how UK renewable generators secure long-term revenue (typically 10-15 year fixed-price contracts). Suppliers use them to source green electricity below wholesale while providing REGOs for green tariffs. The vs_market_gbp() method quantifies whether the PPA was a good deal in hindsight: in 2022, pre-crisis fixed-price PPAs at £45/MWh were enormously beneficial vs spot at £200+/MWh. Connects to REGOPortfolio (Ph148) for green claims and CommodityHedgeSchedule (Ph207) for overall supply position.
+
+**11 new tests (3,275 total).**
+
+---
+
+
+---
 ### Phase 246 -- Gas seasonal storage book (2026-06-26)
 **Files:** `company/market/gas_storage.py` (new), `tests/company/market/test_gas_storage.py` (new)
 
@@ -3553,15 +3570,15 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,264 tests (2,847 fast / ~10s; simulation integration ~8 min per run)
+- 3,275 tests (2,858 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 154, 2026-06-26):**
-- Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
+**Latest full run (Phase 247, 2026-06-26):**
+- Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
 **Simulation complexity:**
