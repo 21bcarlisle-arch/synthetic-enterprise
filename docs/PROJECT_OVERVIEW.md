@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 180 -- Sales and marketing budget tracker (2026-06-26)
+**Files:** `company/crm/marketing_budget.py` (new), `tests/company/crm/test_marketing_budget.py` (new)
+
+**What was built:**
+- MarketingCategory enum: 7 categories (PCW commission, digital advertising, telesales commission, brand advertising, partner commission, retention outbound, referral reward).
+- MarketingSpend frozen dataclass: cost_per_customer_gbp derived.
+- AnnualMarketingBudget frozen dataclass: total_spent_gbp, budget_utilisation_pct, blended_cac_gbp, total_customers_acquired, summary() with by_category breakdown.
+- MarketingBudgetTracker: set_budget(year), record_spend(), annual_budget(year), total_spend_all_years(), cac_by_category(year).
+
+**Fidelity delta:** Marketing spend is a major cost line for UK suppliers. PCW commission is typically the largest single marketing cost at £50-70 per customer, while brand advertising drives zero directly-measurable acquisitions. Combined with channel_roi.py (Phase 175), a company can now track both the ROI it expects per channel and the actual spend/CAC it achieves. Budget utilisation tracks whether marketing headroom is being used efficiently.
+
+**8 new tests (2,711 total).**
+
+---
 ### Phase 179 -- Hedge performance tracker (2026-06-26)
 **Files:** `company/market/hedge_performance.py` (new), `tests/company/market/test_hedge_performance.py` (new)
 
@@ -2577,7 +2591,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,703 tests (2,287 fast / ~10s; simulation integration ~8 min per run)
+- 2,711 tests (2,295 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
