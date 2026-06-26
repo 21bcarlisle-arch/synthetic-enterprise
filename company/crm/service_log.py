@@ -219,6 +219,23 @@ class ServiceLog:
         return results
 
 
+    def ombudsman_eligible(self) -> list[dict]:
+        """Return complaints eligible for Energy Ombudsman referral.
+
+        A complaint is Ombudsman-eligible when resolve_overdue=True:
+        it has been unresolved for more than 8 weeks.
+        Suppliers are legally required to issue a 'deadlock letter'
+        and signpost the Ombudsman at this point.
+        """
+        return [
+            d for d in self.complaint_deadlines()
+            if d["resolve_overdue"]
+        ]
+
+    def ombudsman_count(self) -> int:
+        return len(self.ombudsman_eligible())
+
+
     def as_dicts(self) -> list[dict]:
         return [
             {

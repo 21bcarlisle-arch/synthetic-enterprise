@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:15:08Z
+Last updated: 2026-06-26T03:19:49Z
+
+**Phase 104 COMPLETE (2026-06-26):** Ombudsman referral tracking -- 10 new tests (1,930 total).
+- ServiceLog.ombudsman_eligible(): complaints unresolved >8 weeks (resolve_overdue=True + not resolved)
+- admin/complaints: red alert box listing each eligible case with deadlock letter prompt
+- regulatory dashboard: Ombudsman section (green if 0; red with count + link if >0)
 
 **Phase 103 COMPLETE (2026-06-26):** Smart meter upgrade request flow -- 8 new tests (1,920 total).
 - GET/POST /account/{id}/smart-meter portal flow
@@ -273,7 +278,7 @@ Last updated: 2026-06-26T03:15:08Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,920 total (all tests passing)**
+**Test suite: 1,930 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

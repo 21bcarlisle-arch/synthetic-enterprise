@@ -156,6 +156,7 @@ def _load_regulatory_data() -> dict:
         "year": latest_year,
         "css": css,
         "whd": whd,
+        "ombudsman_count": _SERVICE_LOG.ombudsman_count(),
     }
 
 app = FastAPI(title="Customer Portal", docs_url=None, redoc_url=None)
@@ -533,9 +534,10 @@ async def submit_contact(
 @app.get("/admin/complaints", response_class=HTMLResponse)
 async def admin_complaints(request: Request):
     deadlines = _SERVICE_LOG.complaint_deadlines()
+    ombudsman = _SERVICE_LOG.ombudsman_eligible()
     return templates.TemplateResponse(
         request, "admin_complaints.html",
-        {"deadlines": deadlines},
+        {"deadlines": deadlines, "ombudsman": ombudsman},
     )
 
 @app.get("/admin/collections", response_class=HTMLResponse)

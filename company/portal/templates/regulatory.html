@@ -71,5 +71,16 @@
     <tr><td>Rebate per customer</td><td>£{{ "%.0f"|format(reg.whd.rebate_per_customer_gbp) }}</td></tr>
     <tr><td>Total WHD liability</td><td>£{{ "%.2f"|format(reg.whd.total_liability_gbp) }}</td></tr>
   </table>
+  {% if reg.ombudsman_count is defined %}
+  <h2>Ombudsman Referrals</h2>
+  <p>Complaints unresolved beyond 8 weeks are eligible for referral to <em>Ombudsman Services: Energy</em>.</p>
+  {% if reg.ombudsman_count > 0 %}
+  <p style="color:#c53030;font-weight:600">&#9888; {{ reg.ombudsman_count }} complaint{{ "s" if ombudsman_count > 1 }} currently Ombudsman-eligible.
+  <a href="/admin/complaints">View in complaint tracker</a></p>
+  {% else %}
+  <p style="color:#276749">&#10003; No complaints currently eligible for Ombudsman referral.</p>
+  {% endif %}
+  {% endif %}
+
 </body>
 </html>

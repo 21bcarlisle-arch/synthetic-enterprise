@@ -15,6 +15,19 @@
   <nav><a href="/">Logout</a> | <a href="/admin">Admin</a></nav>
   <h1>Complaint Deadline Tracker</h1>
   <p><em>Ofgem: acknowledge within 2 working days; resolve within 8 weeks.</em></p>
+  {% if ombudsman %}
+  <div style="background:#fff5f5;border:1px solid #c53030;border-radius:6px;padding:12px;margin:12px 0;font-size:0.9em">
+    <strong>&#9888; {{ ombudsman|length }} complaint{{ "s" if ombudsman|length > 1 }} Ombudsman-eligible</strong>
+    — unresolved beyond 8 weeks. Issue a deadlock letter and signpost <em>Ombudsman Services: Energy</em>.
+    <ul style="margin:6px 0 0;padding-left:18px">
+      {% for d in ombudsman %}
+      <li><a href="/account/{{ d.customer_id }}">{{ d.customer_id }}</a>
+        — complaint from {{ d.contact_date }}, unresolved since {{ d.resolve_by }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
   {% if deadlines %}
   <table>
     <tr><th>Customer</th><th>Contact date</th><th>Reason</th><th>Acknowledge by</th><th>Resolve by</th><th>Status</th></tr>
