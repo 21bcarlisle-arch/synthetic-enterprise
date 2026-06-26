@@ -1,0 +1,68 @@
+"""Phase 101: EPC efficiency advice tests."""
+
+from company.billing.efficiency_advice import epc_advice, available_schemes, efficiency_summary
+
+
+def test_epc_a_high_efficiency():
+    advice = epc_advice("A")
+    assert len(advice) > 0
+    assert any("efficient" in t.lower() for t in advice)
+
+
+def test_epc_g_has_eco4():
+    advice = epc_advice("G")
+    assert any("ECO4" in t for t in advice)
+
+
+def test_epc_case_insensitive():
+    assert epc_advice("d") == epc_advice("D")
+
+
+def test_epc_none_returns_assessment_message():
+    advice = epc_advice(None)
+    assert len(advice) == 1
+    assert "EPC" in advice[0]
+
+
+def test_available_schemes_epc_d():
+    customer = {"epc_rating": "D"}
+    schemes = available_schemes(customer)
+    assert "Great British Insulation Scheme" in schemes
+
+
+def test_available_schemes_epc_e_has_eco4():
+    customer = {"epc_rating": "E"}
+    schemes = available_schemes(customer)
+    assert "ECO4" in schemes
+
+
+def test_efficiency_summary_structure():
+    customer = {"epc_rating": "D"}
+    s = efficiency_summary(customer)
+    assert s["band"] == "D"
+    assert isinstance(s["advice"], list)
+    assert isinstance(s["available_schemes"], list)
+    assert isinstance(s["is_high_efficiency"], bool)
+
+
+def test_high_efficiency_flag_a():
+    assert efficiency_summary({"epc_rating": "A"})["is_high_efficiency"] is True
+
+
+def test_high_efficiency_flag_e():
+    assert efficiency_summary({"epc_rating": "E"})["is_high_efficiency"] is False
+
+
+def test_dashboard_has_efficiency_block():
+    with open("company/portal/templates/dashboard.html") as f:
+        html = f.read()
+    assert "efficiency" in html
+    assert "epc_rating" in html
+
+
+def test_dashboard_route_returns_200():
+    from starlette.testclient import TestClient
+    from company.portal.app import app
+    client = TestClient(app, raise_server_exceptions=True)
+    r = client.get("/account/C1")
+    assert r.status_code == 200

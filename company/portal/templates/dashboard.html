@@ -40,6 +40,23 @@
     {% endif %}
   </div>
   {% endif %}
+  {% if efficiency.epc_rating %}
+  <details style="margin:8px 0;padding:8px 12px;background:#f7fafc;border:1px solid #bee3f8;border-radius:4px;font-size:0.88em">
+    <summary style="cursor:pointer;font-weight:600">
+      Energy efficiency: EPC {{ efficiency.band }}
+      {{ "★ High efficiency" if efficiency.is_high_efficiency else "→ Improvements available" }}
+    </summary>
+    <ul style="margin:8px 0 0;padding-left:18px">
+      {% for tip in efficiency.advice %}
+      <li>{{ tip }}</li>
+      {% endfor %}
+    </ul>
+    {% if efficiency.available_schemes %}
+    <p style="margin:6px 0 0"><strong>Available schemes:</strong>
+      {{ efficiency.available_schemes | join(", ") }}</p>
+    {% endif %}
+  </details>
+  {% endif %}
   <h1>Account {{ customer.customer_id }}</h1>
   <table>
     <tr><th>Field</th><th>Value</th></tr>

@@ -26,6 +26,7 @@ from company.billing.eac_calibration import calibrate_eac, eac_drift
 from company.billing.direct_debit import set_mandate, get_mandate, cancel_mandate, is_dd_customer
 from company.billing.contract import renewal_summary, contract_end_date, days_until_renewal
 from company.pricing.switching_recommendation import switching_recommendation
+from company.billing.efficiency_advice import efficiency_summary
 from company.billing.collections import get_collections_queue
 from company.billing.consumption_forecast import forecast_annual_cost
 from company.market.rate_comparison import market_rate_comparison
@@ -217,10 +218,11 @@ async def dashboard(request: Request, account_id: str):
     ]
     renewal = renewal_summary(customer)
     switch_rec = switching_recommendation(customer)
+    efficiency = efficiency_summary(customer)
     return templates.TemplateResponse(
         request, "dashboard.html",
         {"customer": customer, "summary": summary, "whd_eligible": whd_eligible,
-         "renewal": renewal, "switch_rec": switch_rec},
+         "renewal": renewal, "switch_rec": switch_rec, "efficiency": efficiency},
     )
 
 
