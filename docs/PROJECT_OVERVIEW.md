@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 191 -- Risk appetite framework (2026-06-26)
+**Files:** `company/risk/risk_appetite.py` (new), `tests/company/risk/test_risk_appetite.py` (new)
+
+**What was built:**
+- RiskCategory enum: MARKET / CREDIT / LIQUIDITY / OPERATIONAL / REGULATORY.
+- RiskRAG enum: WITHIN_APPETITE / APPROACHING_LIMIT / LIMIT_BREACH.
+- RiskLimit frozen dataclass: limit_id, category, description, limit_value, unit, warning_threshold_pct (default 80%); warning_value property.
+- RiskMeasurement frozen dataclass: limit_id, measured_value, measured_date, limit ref; utilisation_pct, rag (breach if > limit; approaching if >= 80% of limit; green otherwise), is_breach.
+- RiskAppetiteFramework: approved_date, add_limit(), record_measurement(), latest_measurement(), active_breaches() (latest per limit), risk_dashboard(as_of) with items + breach count.
+
+**Fidelity delta:** Every UK licensed supplier's board must approve a Risk Appetite Framework annually. The CRO (or FD in smaller suppliers) tracks limit utilisation monthly. In 2022: open gas position approaching 5,000 MWh limit as hedging became unaffordable → approaching; bad_debt 5% vs 3% limit → breach; both flagged to the board at the same time the P&L turned negative. This is the governance layer that failed at multiple UK suppliers in 2021-2022.
+
+**8 new tests (2,806 total).**
+
+---
 ### Phase 190 -- Ofgem annual supply data return (2026-06-26)
 **Files:** `company/regulatory/ofgem_supply_return.py` (new), `tests/company/regulatory/test_ofgem_supply_return.py` (new)
 
@@ -2726,7 +2741,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,798 tests (2,382 fast / ~10s; simulation integration ~8 min per run)
+- 2,806 tests (2,390 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
