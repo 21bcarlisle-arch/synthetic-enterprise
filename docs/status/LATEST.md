@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:42:14Z
+Last updated: 2026-06-26T03:43:37Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 117 COMPLETE (2026-06-26):** SoLR risk assessment -- 10 new tests (2,058 total).
+- company/regulatory/solr.py: solr_capital_requirement() (levy+bad_debt vs treasury)
+- solr_revenue_upside() (SVT retained book after 12% churn), solr_scenario() (4 scenarios)
+- Calibrated to 2021-22 crisis (28 failures, ~£85/customer BSC levy)
+
 **Phase 116 COMPLETE (2026-06-26):** Energy theft / loss indicator -- 10 new tests (2,048 total).
 - company/billing/theft_indicator.py: classify_anomaly() (ok/watch/investigate vs EAC), screen_portfolio()
 - Thresholds: <65% of EAC = watch, <40% = investigate + Ofgem reporting duty flagged
@@ -339,7 +344,7 @@ Last updated: 2026-06-26T03:42:14Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,048 total (all tests passing)**
+**Test suite: 2,058 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

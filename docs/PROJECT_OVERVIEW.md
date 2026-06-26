@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,048 tests (1,620 non-simulation, 428 simulation). Codebase: ~29,500 lines across 230+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,058 tests (1,630 non-simulation, 428 simulation). Codebase: ~29,700 lines across 231+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 117 -- Supplier of Last Resort (SoLR) risk assessment (2026-06-26)
+**Files:** `company/regulatory/solr.py` (new), `tests/company/regulatory/test_solr.py` (new)
+
+**What was built:**
+- `solr_capital_requirement(transfer_size, treasury_gbp)`: BSC shortfall levy + bad debt risk vs treasury; SUSTAINABLE/MARGINAL/UNSUSTAINABLE status.
+- `solr_revenue_upside(transfer_size)`: retained book (after 12% 3-month SVT churn) x SVT revenue per customer.
+- `solr_scenario(scenario, treasury_gbp)`: named scenarios (small 5k / medium 50k / large 200k / bulb_scale 1.7M).
+- Calibrated to 2021-22 energy crisis (28 supplier failures, ~£85/customer BSC levy).
+
+**Fidelity delta:** SoLR is a board-level capital risk for UK suppliers. The 2021-22 crisis demonstrated that mid-sized suppliers can be forced to absorb books they cannot capitalise, triggering their own failure. This module quantifies that risk before appointment.
+
+**10 new tests (2,058 total).**
+
+---
 ### Phase 116 -- Energy theft / loss indicator (2026-06-26)
 **Files:** `company/billing/theft_indicator.py` (new), `tests/company/billing/test_theft_indicator.py` (new)
 
@@ -1719,14 +1733,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,048 tests (1,620 fast / ~10s; simulation integration ~8 min per run)
+- 2,058 tests (1,630 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 116, 2026-06-26):**
+**Latest full run (Phase 117, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
