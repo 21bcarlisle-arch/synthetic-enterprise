@@ -1,47 +1,55 @@
-Phase 271 -- /sim/ Section: Weather Engine & Heating Degree Days
+Phase 301 -- Erroneous Transfer Register
 
-Status: PROPOSED (2026-06-26T18:30Z)
-4h opt-out window: expires 2026-06-26T22:30Z
+Status: PROPOSED (2026-06-26T21:30Z)
+4h opt-out window: expires 2026-06-27T01:30Z
 
 Context:
-Phase 270 (Qwen NL query) was an urgent Rich request that superseded the
-original Phase 270 proposal. The Weather Engine remains the highest-priority
-unbuilt /sim/ item. The /sim/ section (Phase 268) shows wholesale prices
-but has no weather data -- yet weather is the primary demand driver for gas
-and the key explanation for why 2021-22 prices spiked.
+Phase 300 (Regulatory Compliance Dashboard) closed the milestone for the regulatory layer.
+The next authentic gap is the Erroneous Transfer (ET) register. Under Ofgem SLC P14 /
+Retail Energy Code (REC) Schedule 19, every UK supplier must track switches where the
+wrong customer supply point was transferred. ET claims must be resolved within 20 working
+days; failure triggers mandatory 30 GBP compensation. Ofgem benchmarks ET rate < 0.1% of
+switches -- suppliers above this trigger compliance review.
+
+ET resolution connects directly to:
+- cos_process.py (Ph298): the switching process that can go wrong
+- supply_point_register.py (Ph299): the MPAN/MPRN register identifies correct supply point
+- regulatory_dashboard.py (Ph300): ET rate is a consumer protection compliance metric
 
 Goal:
-Add a Weather tab to site/sim/index.html showing 10 years of UK temperature and
-Heating Degree Days (HDD) data, wired to process_run_complete so it auto-refreshes.
+Add company/market/erroneous_transfer.py -- a register that tracks ET claims from
+identification through investigation to resolution or compensation.
 
 Design:
-- tools/fetch_weather_data.py (new):
-  Fetches daily mean temps from Open-Meteo historical archive API for 2016-2025 (London).
-  Computes monthly HDD = sum(max(0, 15.5 - daily_mean_temp)) per month.
-  (15.5C is the UK National Grid base temperature for demand forecasting.)
-  Computes monthly mean temp and CDD. Stores to site/data/weather.json.
-  process_run_complete.py: call on every run (guard with try/except for network errors).
+- company/market/erroneous_transfer.py (new):
+  ETStatus (OPEN/INVESTIGATING/RESOLVED_CORRECTED/RESOLVED_ACCEPTED/COMPENSATION_DUE/CLOSED)
+  ETResolutionType (RETURNED_TO_ORIGINAL/CUSTOMER_ACCEPTED_GAIN/WITHDRAWN)
+  frozen ETClaim (claim_id/mpan/affected_account_id/claim_date/original_supplier/
+    gaining_supplier/status/resolution_date/resolution_type;
+    working_days_open/is_overdue [>20 working days]/compensation_gbp [30 GBP if overdue])
+  ErroneousTransferRegister (raise_claim/update_status/resolve_claim/open_claims/
+    overdue_claims/et_rate_pct/compensation_outstanding_gbp/claims_by_status/et_summary)
 
-- site/sim/index.html -- Weather tab:
-  Monthly mean temperature line chart (10-year, 2016-2025), colour-coded by year.
-  Monthly HDD bar chart with 10-year average overlay.
-  6 KPI cards: coldest month, warmest month, highest annual HDD, 2022 vs avg HDD %,
-  2022 peak HDD month, avg UK base temperature.
-  Annual HDD table with COLD WINTER badge for years above 10-yr-average.
-  Narrative card explaining 2021/22 crisis: cold winter + storage depletion.
+- tests/company/market/test_erroneous_transfer.py (~12 tests):
+  - ETClaim is frozen
+  - working_days_open counts Mon-Fri only (skips weekends)
+  - is_overdue True when working_days_open > 20
+  - compensation_gbp = 30.0 when overdue and unresolved, 0.0 when closed on time
+  - raise_claim adds to register, appears in open_claims
+  - update_status transitions correctly
+  - overdue_claims filters to unresolved claims past 20 working days
+  - et_rate_pct = claims / total_switches * 100
+  - compensation_outstanding_gbp sums all overdue unresolved claims
+  - ET rate above 0.1% is flagged in summary
+  - RESOLVED_CORRECTED vs RESOLVED_ACCEPTED distinction tracked
+  - et_summary has all required keys
 
-Tests: tests/tools/test_fetch_weather_data.py (~8 tests)
-  - weather.json written with monthly/annual keys
-  - HDD non-negative, monthly mean temp in plausible range (-5 to 30C)
-  - All months present 2016-2025
-  - 2022 annual HDD reasonable (1500-2500 for London)
-  - Network error falls back gracefully (mock requests)
-  - HDD highest in Dec/Jan/Feb, lowest in Jun/Jul/Aug
-  - process_run_complete integration
+Estimated: ~12 tests, ~140 lines Python
 
-Estimated: ~8 tests, ~150 lines Python, ~100 lines JS
-
-Why this over other items:
-The weather engine closes a genuine fidelity gap -- the /sim/ section explains WHAT
-prices did but not WHY (weather-driven demand). The monthly assessment is housekeeping;
-the weather engine is simulation depth.
+Fidelity delta:
+UK energy suppliers must report ET rates quarterly to Ofgem via the SFR data collection.
+An ET rate above 0.1% triggers a compliance conversation. In 2022/23, several challenger
+suppliers had elevated ET rates due to onboarding system failures. The 30 GBP automatic
+compensation obligation means every overdue ET has a direct financial consequence.
+Closes the switching-governance gap between switch_governance.py and the new
+supply_point_register (Ph299) / cos_process (Ph298) layer.

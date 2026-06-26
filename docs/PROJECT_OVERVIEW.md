@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase 301 (2026-06-26):** Erroneous Transfer Register -- 19 new tests (3,871 total). company/market/erroneous_transfer.py: ETStatus (OPEN/INVESTIGATING/RESOLVED_CORRECTED/RESOLVED_ACCEPTED/COMPENSATION_DUE/CLOSED), ETResolutionType (RETURNED_TO_ORIGINAL/CUSTOMER_ACCEPTED_GAIN/WITHDRAWN), frozen ETClaim (working_days_open [Mon-Fri loop]/is_overdue [>20 days]/compensation_gbp [GBP30 if overdue+unresolved]), ErroneousTransferRegister (raise_claim/update_status/resolve_claim/open_claims/overdue_claims/et_rate_pct/compensation_outstanding_gbp/claims_by_status/et_summary). Under Ofgem SLC P14 / REC, ETs must be resolved within 20 working days; GBP30 auto-compensation if overdue. ET rate >0.1% triggers Ofgem compliance review. Connects to cos_process (Ph298) and supply_point_register (Ph299).
 **Phase 300 (2026-06-26):** MILESTONE — Regulatory Compliance Dashboard -- 12 new tests (3,852 total). company/regulatory/regulatory_dashboard.py: FilingStatus (4), ComplianceArea (8: SFR/REMIT/PRICE_CAP/ENVIRONMENTAL/SOCIAL/CONSUMER_DUTY/TRADE_REPORTING/FUEL_MIX), frozen ComplianceObligation (is_breach, needs_attention), RegulatoryDashboard (overall_rag, filed_on_time_rate, area_rag by all 8 areas, dashboard_summary). Aggregates SFR/REMIT/Price Cap/RO/FIT/FMD/ECO/WHD/EBSS/Consumer Duty into single board-level status.
 
 **Phase 299 (2026-06-26):** Supply Point Register -- 11 new tests (3,840 total). company/crm/supply_point_register.py: ProfileClass (PC1-PC8 settlement classes), frozen SupplyPointRecord (is_hh PC5-8, is_domestic PC1-2, is_active), SupplyPointRegister (deregister via replace, active_points, hh_points, profile_class_breakdown, total_aq_kwh). MPAN/MPRN registry -- the legal foundation of supplier-customer supply point registration.
@@ -3981,7 +3982,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,852 tests (3,410 fast / ~10s; simulation integration ~8 min per run)
+- 3,871 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
