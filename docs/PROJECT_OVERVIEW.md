@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 151 -- Debt advice referral tracking (2026-06-26)
+**Files:** `company/billing/debt_referral.py` (new), `tests/company/billing/test_debt_referral.py` (new)
+
+**What was built:**
+- `DebtAdviceOrg` enum: STEP_CHANGE / CITIZENS_ADVICE / NATIONAL_DEBTLINE / MONEY_ADVICE_SERVICE.
+- `ReferralStatus` enum: REFERRED / ACCEPTED / DECLINED / COMPLETED / NO_RESPONSE.
+- `DebtReferral` dataclass: referral_id, customer_id, total_debt_gbp, referral_date, org, status, response_date, outcome_notes. Property: is_resolved.
+- `DebtReferralBook`: refer() (creates with default StepChange), update_status(), outstanding_referrals(), eligible_for_referral(debt, threshold=£200), referrals_for_customer(), annual_summary(year).
+- `REFERRAL_THRESHOLD_GBP = 200.0` (Ofgem SLC 27A Ability to Pay threshold).
+
+**Fidelity delta:** UK suppliers must refer domestic customers in significant arrears (≥£200) to free debt advice services under Ofgem SLC 27A (Ability to Pay condition). They must also track referral outcomes (accepted/declined/completed/no response) for Ofgem reporting. Previously bad debt was modelled as a percentage write-off but there was no referral process. Phase 151 closes this: the company can now trigger and track debt advice referrals, distinguishing the 2022 crisis surge (elevated referral rates) from normal years.
+
+**11 new tests (2,412 total).**
+
+---
 ### Phase 150 -- Priority Services Register (PSR) (2026-06-26)
 **Files:** `company/crm/priority_services.py` (new), `tests/company/crm/test_priority_services.py` (new)
 
@@ -2160,16 +2175,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,401 tests (1,985 fast / ~10s; simulation integration ~8 min per run)
+- 2,412 tests (1,996 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 150, 2026-06-26):**
+**Latest full run (Phase 151, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 12 new tests: Priority Services Register (PSR) — PSRBook register/due_for_review/medically_dependent_customers; 10 PSRNeed types; distinct from financial vulnerability register.
+- 11 new tests: Debt advice referral tracking — DebtReferralBook refer/update_status/annual_summary; £200 SLC 27A threshold; StepChange/CitizensAdvice/NationalDebtline/MAS orgs.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

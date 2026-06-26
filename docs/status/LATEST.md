@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T07:10:20Z
+Last updated: 2026-06-26T07:12:02Z
+
+**Phase 151 COMPLETE (2026-06-26):** Debt advice referral tracking -- 11 new tests (2,412 total).
+- company/billing/debt_referral.py: DebtAdviceOrg (StepChange/CitizensAdvice/NationalDebtline/MAS), ReferralStatus, DebtReferral (is_resolved), DebtReferralBook
+- eligible_for_referral(debt, threshold=£200) enforces Ofgem SLC 27A Ability to Pay mandate; outstanding_referrals() for compliance monitoring
+- Fidelity: 2022 crisis drove surge in arrears and debt referrals; StepChange referrals spiked industry-wide as customers hit £200+ arrears thresholds
 
 **Phase 150 COMPLETE (2026-06-26):** Priority Services Register (PSR) -- 12 new tests (2,401 total).
 - company/crm/priority_services.py: PSRNeed enum (10 types), PSREntry (needs/added_date/review_due_date/nominee), PSRBook (register/update_needs/due_for_review/medically_dependent_customers/portfolio_summary)
@@ -501,7 +506,7 @@ Last updated: 2026-06-26T07:10:20Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,401 total (all tests passing)**
+**Test suite: 2,412 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (475s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
