@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,269 tests (1,841 non-simulation, 428 simulation). Codebase: ~34,100 lines across 253+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,278 tests (1,850 non-simulation, 428 simulation). Codebase: ~34,300 lines across 254+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 140 -- MOA charge management (2026-06-27)
+**Files:** `company/billing/moa_charges.py` (new), `tests/company/billing/test_moa_charges.py` (new)
+
+**What was built:**
+- `_MOA_ANNUAL_GBP`: rate schedule for 5 meter types (TRAD/PPM/SMETS1/SMETS2/AMR) at 2016/2018/2020/2022/2024 anchor points.
+- `get_moa_annual_charge(meter_type, year)`: interpolated annual rate. `get_moa_daily_charge()`: daily pro-rated equivalent.
+- `calculate_moa_charges(meter_points, year)`: returns `MoaInvoiceLine` per point (daily * days_in_period). `moa_portfolio_cost()` aggregates total.
+
+**Fidelity delta:** MOA charges are a real supplier cost (~0.3-1.5p/kWh equivalent depending on meter type) that appears in every supplier P&L but is rarely modelled in energy market simulations. SMETS2 costs are materially higher than TRAD due to DCC (Data Communications Company) communications overhead.
+
+**9 new tests (2,278 total).**
+
+---
 ### Phase 139 -- REGO procurement and retirement (2026-06-27)
 **Files:** `company/market/rego_portfolio.py` (new), `tests/company/market/test_rego_portfolio.py` (new)
 
@@ -2014,14 +2027,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,269 tests (1,841 fast / ~10s; simulation integration ~8 min per run)
+- 2,278 tests (1,850 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 139, 2026-06-27):**
+**Latest full run (Phase 140, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
