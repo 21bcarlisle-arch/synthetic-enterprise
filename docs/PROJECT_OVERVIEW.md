@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,825 tests (1,397 non-simulation, 428 simulation). Codebase: ~25,400 lines across 214+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,835 tests (1,407 non-simulation, 428 simulation). Codebase: ~25,600 lines across 214+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 94 -- Complaint deadline tracker (2026-06-26)
+**Files:** `company/crm/service_log.py` (extended), `company/portal/app.py` (extended), `company/portal/templates/admin_complaints.html` (new), `tests/company/crm/test_complaint_deadlines.py` (new)
+
+**What was built:**
+- `_add_working_days(start, n)`: module-level helper, skips Sat/Sun.
+- `ServiceLog.complaint_deadlines()`: for every complaint event, computes `acknowledge_by` (contact + 2 working days), `resolve_by` (contact + 8 weeks), `resolved` flag, `ack_overdue` / `resolve_overdue` (vs today).
+- `GET /admin/complaints`: table of all complaints with deadline dates and overdue highlighting.
+
+**Fidelity delta:** Ofgem complaint SLAs now enforced in the portal. Staff can see at a glance which complaints are approaching or past deadline.
+
+**10 new tests (1,835 total).**
+
+---
 ### Phase 93 -- Warm Home Discount (WHD) (2026-06-26)
 **Files:** `company/regulatory/warm_home_discount.py` (new), `company/portal/app.py` (extended), `company/portal/templates/regulatory.html` (extended), `company/portal/templates/dashboard.html` (extended), `tests/company/regulatory/test_warm_home_discount.py` (new)
 
@@ -1417,14 +1430,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,825 tests (1,397 fast / ~10s; simulation integration ~8 min per run)
+- 1,835 tests (1,407 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 93, 2026-06-26):**
+**Latest full run (Phase 94, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

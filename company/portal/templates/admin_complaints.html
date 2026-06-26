@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Complaint Tracker</title>
+  <style>body{font-family:sans-serif;max-width:1000px;margin:40px auto;padding:0 16px}
+    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
+    th{background:#ebf8ff}
+    .ok{color:#276749}.overdue{color:#c53030;font-weight:600}.resolved{color:#718096}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a> | <a href="/admin">Admin</a></nav>
+  <h1>Complaint Deadline Tracker</h1>
+  <p><em>Ofgem: acknowledge within 2 working days; resolve within 8 weeks.</em></p>
+  {% if deadlines %}
+  <table>
+    <tr><th>Customer</th><th>Contact date</th><th>Reason</th><th>Acknowledge by</th><th>Resolve by</th><th>Status</th></tr>
+    {% for d in deadlines %}
+    <tr>
+      <td><a href="/account/{{ d.customer_id }}">{{ d.customer_id }}</a></td>
+      <td>{{ d.contact_date }}</td>
+      <td>{{ d.contact_reason }}</td>
+      <td class="{{ "overdue" if d.ack_overdue else "resolved" if d.resolved else "ok" }}">
+        {{ d.acknowledge_by }}{% if d.ack_overdue %} OVERDUE{% endif %}</td>
+      <td class="{{ "overdue" if d.resolve_overdue else "resolved" if d.resolved else "ok" }}">
+        {{ d.resolve_by }}{% if d.resolve_overdue %} OVERDUE{% endif %}</td>
+      <td class="{{ "resolved" if d.resolved else "ok" }}">
+        {{ "Resolved" if d.resolved else "Open" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p><em>No complaints on record.</em></p>
+  {% endif %}
+</body>
+</html>

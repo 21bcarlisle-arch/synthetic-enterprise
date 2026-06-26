@@ -10,6 +10,7 @@ Usage:
 
 import sqlite3
 from dataclasses import dataclass
+from datetime import date, timedelta
 from pathlib import Path
 
 DEFAULT_DB_PATH = Path("company/data/service_log.db")
@@ -81,6 +82,17 @@ def _row_to_vuln(row) -> VulnerabilityFlag:
         flag_type=row["flag_type"], active=bool(row["active"]),
         resolved_date=row["resolved_date"],
     )
+
+
+def _add_working_days(start: date, n: int) -> date:
+    """Add n working days (Mon-Fri) to start date."""
+    d = start
+    added = 0
+    while added < n:
+        d += timedelta(days=1)
+        if d.weekday() < 5:  # 0=Mon, 4=Fri
+            added += 1
+    return d
 
 
 class ServiceLog:
@@ -177,6 +189,35 @@ class ServiceLog:
         ).rowcount
         c.commit()
         return n
+
+    # --- Complaint deadline tracking ---
+
+    def complaint_deadlines(self) -> list[dict]:
+        """Compute Ofgem complaint deadlines for all complaint events.
+
+        Acknowledgement: 2 working days from contact.
+        Final response: 8 weeks from contact.
+        """
+        results = []
+        for ev in self.complaints():
+            contact = date.fromisoformat(ev.event_date)
+            ack_by = _add_working_days(contact, 2)
+            resolve_by = contact + timedelta(weeks=8)
+            resolved = ev.outcome in ("resolved", "closed")
+            today = date.today()
+            results.append({
+                "customer_id": ev.customer_id,
+                "contact_date": ev.event_date,
+                "contact_reason": ev.contact_reason,
+                "outcome": ev.outcome,
+                "acknowledge_by": ack_by.isoformat(),
+                "resolve_by": resolve_by.isoformat(),
+                "resolved": resolved,
+                "ack_overdue": (not resolved) and today > ack_by,
+                "resolve_overdue": (not resolved) and today > resolve_by,
+            })
+        return results
+
 
     def as_dicts(self) -> list[dict]:
         return [

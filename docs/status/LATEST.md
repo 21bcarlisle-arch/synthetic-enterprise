@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:52:52Z
+Last updated: 2026-06-26T02:56:09Z
+
+**Phase 94 COMPLETE (2026-06-26):** Complaint deadline tracker -- 10 new tests (1,835 total).
+- ServiceLog.complaint_deadlines(): 2-working-day ack deadline, 8-week resolve deadline per complaint
+- _add_working_days() helper skips weekends; overdue flags computed vs today
+- GET /admin/complaints: all open complaints with deadline status; admin_complaints.html
 
 **Phase 93 COMPLETE (2026-06-26):** Warm Home Discount -- 11 new tests (1,825 total).
 - company/regulatory/warm_home_discount.py: rebate amounts 2017-2025, eligibility from vulnerability_register, liability calculation
@@ -223,7 +228,7 @@ Last updated: 2026-06-26T02:52:52Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,825 total (all tests passing)**
+**Test suite: 1,835 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

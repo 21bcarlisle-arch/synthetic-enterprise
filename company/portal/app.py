@@ -511,3 +511,11 @@ async def submit_contact(
         request, "contact.html",
         {"customer": customer, "submitted": True, "complaint": complaint == "yes"},
     )
+
+@app.get("/admin/complaints", response_class=HTMLResponse)
+async def admin_complaints(request: Request):
+    deadlines = _SERVICE_LOG.complaint_deadlines()
+    return templates.TemplateResponse(
+        request, "admin_complaints.html",
+        {"deadlines": deadlines},
+    )
