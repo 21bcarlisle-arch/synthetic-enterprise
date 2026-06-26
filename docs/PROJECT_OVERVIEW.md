@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,683 tests (1,255 non-simulation, 428 simulation). Codebase: ~22,900 lines across 200+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,696 tests (1,268 non-simulation, 428 simulation). Codebase: ~23,100 lines across 200+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,22 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 82 -- HH consumption feed + portal half-hourly view (2026-06-26)
+**Files:** `simulation/publish_consumption_data.py` (new), `company/billing/hh_consumption.py` (new), `company/portal/app.py` (extended), `company/portal/templates/consumption.html` (extended), `background/process_run_complete.py` (extended), `docs/market_data/consumption_feed.json` (created), `tests/company/portal/test_hh_consumption_feed.py` (new)
+
+**What was built:**
+- `read_hh_data(customer_id, n_days=2)`: reads C7/C8/C9 half-hourly profiles from `sim/hh_data/{id}.csv` (48 periods/day × n_days).
+- `publish_consumption(hh_customers, output_path)`: writes `docs/market_data/consumption_feed.json` — 288 records (3 customers × 2 days × 48 periods).
+- `process_run_complete.py`: calls `publish_consumption()` after each sim run.
+- `company/billing/hh_consumption.py`: `get_hh_consumption()` + `recent_hh_periods()` — reads feed, no SIM imports.
+- Portal consumption route: if HH customer + feed available, passes last 48 periods to template.
+- `consumption.html`: HH table (date / period / time / kWh) for C7-C9; graceful if feed absent.
+
+**Fidelity delta:** When Rich logs in as C7 and navigates to Consumption, they now see a half-hourly table showing real consumption patterns (e.g. morning peak at 07:00, evening peak at 18:30). This is the Destinationvision's "key test" — the simulation stops being abstract.
+
+**13 new tests (1,696 total).**
+
+---
 ### Phase 81 -- Trading desk: live spot prices from M3 feed (2026-06-26)
 **Files:** `company/portal/app.py` (extended), `company/portal/templates/trading.html` (extended), `tests/company/portal/test_trading_spot_feed.py` (new)
 
@@ -1250,14 +1266,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,683 tests (1,255 fast / ~10s; simulation integration ~8 min per run)
+- 1,696 tests (1,268 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 81, 2026-06-26):**
+**Latest full run (Phase 82, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

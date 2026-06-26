@@ -32,9 +32,24 @@
 
   {% if is_hh %}
   <div class="hh-banner">
-    &#9889; <strong>Smart meter customer</strong> — half-hourly resolution data available.
-    Consumption below shows monthly aggregates; contact us for half-hourly export.
+    &#9889; <strong>Smart meter customer</strong> — half-hourly resolution available.
   </div>
+  {% if hh_data %}
+  <h2>Half-Hourly Consumption (last 24h)</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Period</th><th>Time</th><th>kWh</th></tr></thead>
+    <tbody>
+      {% for r in hh_data %}
+      <tr>
+        <td>{{ r.date }}</td>
+        <td>{{ r.period }}</td>
+        <td>{{ "%02d:%02d"|format((r.hour)|int, ((r.hour % 1) * 60)|int) }}</td>
+        <td>{{ "%.3f"|format(r.kwh) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
   {% endif %}
 
   {% if monthly_data %}

@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:02:43Z
+Last updated: 2026-06-26T02:09:29Z
+
+**Phase 82 COMPLETE (2026-06-26):** HH consumption feed + portal half-hourly view -- 13 new tests (1,696 total).
+- `simulation/publish_consumption_data.py` (new): reads real HH profiles from sim/hh_data/{C7,C8,C9}.csv; 288-record JSON feed (2 days × 48 periods × 3 customers)
+- `company/billing/hh_consumption.py` (new): get_hh_consumption() + recent_hh_periods() — reads feed, no SIM imports
+- Portal: HH customers (C7-C9) see live half-hourly consumption table (last 24h, 48 periods) on /consumption
+- process_run_complete.py: calls publish_consumption() after each sim run (auto-refreshed)
 
 **Phase 81 COMPLETE (2026-06-26):** Trading desk: live spot prices from M3 feed -- 8 new tests (1,683 total).
 - `company/portal/app.py`: _load_spot_prices() reads PriceFeed → elec/gas spot + forward estimates
@@ -157,7 +163,7 @@ Last updated: 2026-06-26T02:02:43Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,683 total (all tests passing)**
+**Test suite: 1,696 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

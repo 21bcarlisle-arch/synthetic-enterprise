@@ -240,6 +240,14 @@ def main(marker_path_str):
     except Exception as exc:
         log("Price feed publication skipped: {}".format(exc))
 
+    log("Publishing HH consumption data feed")
+    try:
+        from simulation.publish_consumption_data import publish_consumption
+        publish_consumption()
+        log("Consumption feed published to docs/market_data/consumption_feed.json")
+    except Exception as exc:
+        log("Consumption feed publication skipped: {}".format(exc))
+
     log("Running fast test suite (SIM_FAST_MODE=1)")
     tests_ok, timed_out = run_fast_tests(git_hash)
     if not tests_ok:

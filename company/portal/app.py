@@ -20,6 +20,7 @@ import json
 from company.billing.invoice import invoices_for_account
 from company.market.price_feed import PriceFeed
 from company.billing.consumption import consumption_history, monthly_totals
+from company.billing.hh_consumption import get_hh_consumption, recent_hh_periods, is_feed_available
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
 
@@ -32,6 +33,7 @@ templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 _DEFAULT_DB = Path("company/data/invoices.db")
 _RUN_OUTPUT = Path("docs/reports/run_output_latest.json")
 _PRICE_FEED_PATH = Path("docs/market_data/price_feed.json")
+_CONSUMPTION_FEED_PATH = Path("docs/market_data/consumption_feed.json")
 
 
 def _load_trading_data() -> dict:
@@ -206,7 +208,12 @@ async def consumption_page(request: Request, account_id: str):
     data = monthly_totals(records)
     is_hh = customer.get("metering") == "HH"
     total_kwh = sum(r["kwh"] for r in data)
+    hh_data: list[dict] = []
+    if is_hh and is_feed_available(_CONSUMPTION_FEED_PATH):
+        all_hh = get_hh_consumption(account_id, _CONSUMPTION_FEED_PATH)
+        hh_data = recent_hh_periods(all_hh, n_periods=48)
     return templates.TemplateResponse(
         request, "consumption.html",
-        {"customer": customer, "monthly_data": data, "is_hh": is_hh, "total_kwh": total_kwh},
+        {"customer": customer, "monthly_data": data, "is_hh": is_hh,
+         "total_kwh": total_kwh, "hh_data": hh_data},
     )
