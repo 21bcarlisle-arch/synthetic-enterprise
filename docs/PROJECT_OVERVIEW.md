@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,829 tests passing. Codebase: ~38,750 lines across 285+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,840 tests passing. Codebase: ~38,900 lines across 286+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 299 (2026-06-26):** Supply Point Register -- 11 new tests (3,840 total). company/crm/supply_point_register.py: ProfileClass (PC1-PC8 settlement classes), frozen SupplyPointRecord (is_hh PC5-8, is_domestic PC1-2, is_active), SupplyPointRegister (deregister via replace, active_points, hh_points, profile_class_breakdown, total_aq_kwh). MPAN/MPRN registry -- the legal foundation of supplier-customer supply point registration.
 
 **Phase 298 (2026-06-26):** Change of Supplier Process -- 9 new tests (3,829 total). company/crm/cos_process.py: CoSStage (7), ObjectionReason (4), frozen CoSEvent, CoSProcess (stateful pipeline; object_to_switch for debt/contract objections, receive_final_read), CoSRegister (summary with in_progress/completed/objected). Closes the supply transfer loop: retention offer -> declined -> CoS process -> final read -> switch complete.
 
@@ -3977,7 +3979,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,829 tests (3,387 fast / ~10s; simulation integration ~8 min per run)
+- 3,840 tests (3,398 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
