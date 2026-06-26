@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,778 tests passing. Codebase: ~37,950 lines across 280+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,788 tests passing. Codebase: ~38,100 lines across 281+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 294 (2026-06-26):** Cost-to-Serve Calculator -- 10 new tests (3,788 total). company/pricing/cost_to_serve.py: CustomerSegment (4), frozen CostToServeBreakdown (all 7 levy components + ops; levy_pct_of_total), CostToServeCalculator (acquisition_cost_gbp, mean_total_cost, high_cost_accounts). Connects all 7 non-commodity cost ledgers into a unified per-unit economics view. Activity-based pricing foundation (CLAUDE.md principle).
 
 **Phase 293 (2026-06-26):** BSUoS Charge Ledger -- 11 new tests (3,778 total). company/market/bsuos_ledger.py: frozen BSUoSCharge (is_crisis_period 2021-22), BSUoSLedger (rate_for_year, crisis_uplift_multiple=3.26x, annual_rate_trend, bsuos_summary; peak_rate_year=2022 at £6.85/MWh). COMPLETES 7-of-7 major non-commodity electricity cost ledgers alongside CM/CfD/RO/FIT/DUoS/TNUoS.
 
@@ -3967,7 +3969,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,778 tests (3,336 fast / ~10s; simulation integration ~8 min per run)
+- 3,788 tests (3,346 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
