@@ -43,7 +43,7 @@ from company.regulatory.compliance import (
     annual_turnover_fee,
     generate_css_filing,
 )
-from company.regulatory.warm_home_discount import whd_summary
+from company.regulatory.warm_home_discount import whd_summary, whd_eligible_customers
 from saas.capital.solvency import compute_solvency_signal, MCR_FLOOR_GBP_PER_CUSTOMER
 
 _SIM_INTERFACE = LiveSimInterface()
@@ -654,4 +654,21 @@ async def admin_retention(request: Request):
     return templates.TemplateResponse(
         request, "admin_retention.html",
         {"data": data},
+    )
+
+
+@app.get("/admin/vulnerability", response_class=HTMLResponse)
+async def admin_vulnerability(request: Request):
+    all_flags = _SERVICE_LOG.vulnerability_register()
+    # Also include resolved flags for the full register
+    import sqlite3
+    from company.crm.service_log import _row_to_vuln
+    all_flag_rows = [
+        _row_to_vuln(r)
+        for r in _SERVICE_LOG._c().execute("SELECT * FROM vulnerability_flags ORDER BY flagged_date DESC")
+    ]
+    whd_ids = set(whd_eligible_customers(_SERVICE_LOG))
+    return templates.TemplateResponse(
+        request, "admin_vulnerability.html",
+        {"flags": all_flag_rows, "whd_ids": whd_ids},
     )
