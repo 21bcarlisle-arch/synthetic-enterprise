@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 209 -- Carbon emissions per customer (Scope 2) (2026-06-26)
+**Files:** `company/regulatory/carbon_emissions.py` (new), `tests/company/regulatory/test_carbon_emissions.py` (new)
+
+**What was built:**
+- _EMISSION_FACTORS_G_CO2_PER_KWH dict: 8 fuel types (coal 820 / gas 490 / nuclear 12 / wind 11 / solar 41 / hydro 24 / biomass 230 / imports 300). IPCC 2014 lifecycle figures.
+- FuelMixRecord frozen: year + 8 percentage fields; total_pct, renewable_pct (wind+solar+hydro), low_carbon_pct (renewable+nuclear+biomass), emission_intensity_g_per_kwh (VWAP of fuels).
+- CustomerCarbonFootprint frozen: electricity_kwh, gas_kwh, electricity_intensity_g_per_kwh; electricity_co2_kg (intensity*kwh/1000), gas_co2_kg (183g/kWh fixed), total_co2_kg, total_co2_tonnes, summary().
+- build_customer_footprint(customer_id, year, electricity_kwh, gas_kwh, fuel_mix) -> CustomerCarbonFootprint.
+
+**Fidelity delta:** Ofgem mandates Fuel Mix Disclosure for all licensed suppliers (SLC 21). Every customer bill must state the fuel mix and associated CO2 emission rate for their tariff. Green tariff suppliers must match REGOs to their consumption and can report near-zero electricity emissions. A typical 2024 UK household uses 3,000 kWh electricity (140g/kWh → 420 kg CO2) + 11,000 kWh gas (183g → 2,013 kg) = 2.4 tonnes/year. This closes the Scope 2 reporting gap: fuel_mix.py (Ph billing) handles disclosure; this module computes the actual per-customer footprint for ESG reporting.
+
+**8 new tests (2,944 total).**
+
+---
 ### Phase 208 -- Staff headcount and payroll model (2026-06-26)
 **Files:** `company/finance/payroll.py` (new), `tests/company/finance/test_payroll.py` (new)
 
@@ -2992,7 +3006,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,936 tests (2,520 fast / ~10s; simulation integration ~8 min per run)
+- 2,944 tests (2,528 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
