@@ -1854,3 +1854,5 @@
 - [2026-06-26 04:27 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-26 04:37 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-26 04:47 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 04:54 UTC] Inbound NTFY command from Rich: "Generate a fresh timestamped snapshot: docs/snapshots/LATEST_[TIMESTAMP].md and push it. Strategy advisor's fetch cache means it can't read LATEST.md fresh — a new URL it hasn't seen before will work. Include phases 64-141 summary and current test count" — relaying to session
+- [2026-06-26 04:57 UTC] Session idle — sending autoloop continuation instruction

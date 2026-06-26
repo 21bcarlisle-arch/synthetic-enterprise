@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,287 tests (1,859 non-simulation, 428 simulation). Codebase: ~34,500 lines across 255+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,307 tests (1,879 non-simulation, 428 simulation). Codebase: ~34,700 lines across 256+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -524,6 +524,20 @@ Net after CTS:               £7,498
 **9 new tests (1,514 total).**
 
 ---
+
+
+---
+### Phase 142 -- Green tariff product catalogue (2026-06-26)
+**Files:** `company/billing/tariff_products.py` (new), `tests/company/billing/test_tariff_products.py` (new)
+
+**What was built:**
+- `TariffProduct` (frozen dataclass): code, name, commodity, segment, term, is_green, rego_required_pct, unit_rate_premium_pct, launch_date, withdrawal_date.
+- `TariffCatalogue`: 9 realistic UK products spanning 2016-2025 (Standard Fix 1yr/2yr/Variable SVT, Green Fix 1yr/2yr, SME Fixed/Green, I&C Baseload/Green Certified). `active_products(date_str)` (launch/withdrawal window), `products_for_segment(segment)`, `green_products()`, `get_by_code(code)`, `rego_requirement_mwh(consumption_kwh, product_code)`, `summary()`.
+- IC_GREEN_CERT withdrawn 2023-12-31 (REGO prices post-crisis made it uneconomic to offer); correctly excluded from active set.
+
+**Fidelity delta:** UK energy suppliers maintain named tariff products on comparison sites (Ofgem, USwitch, MoneySuperMarket). Green products require REGO backing before making '100% renewable' claims under the Fuel Mix Disclosure Regulations 2005. `rego_requirement_mwh()` is the audit gate that feeds into `RegoPortfolio.coverage_check()` (Phase 139) before publishing marketing claims. Connects to renewal engine (Phase 136) -- product codes give named tariff options in renewal packs.
+
+**20 new tests (2,307 total).**
 
 ### Phase 141 -- Customer lifetime value (CLV) calculator (2026-06-27)
 **Files:** `company/crm/clv_calculator.py` (new), `tests/company/crm/test_clv_calculator.py` (new)
@@ -2040,7 +2054,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,287 tests (1,859 fast / ~10s; simulation integration ~8 min per run)
+- 2,307 tests (1,879 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
