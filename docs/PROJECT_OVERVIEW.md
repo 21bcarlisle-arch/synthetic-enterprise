@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 251 -- Property improvement event tracker (2026-06-26)
+**Files:** `company/crm/property_improvement.py` (new), `tests/company/crm/test_property_improvement.py` (new)
+
+**What was built:**
+- MeasureType: 10 measures (CAVITY_WALL/SOLID_WALL/LOFT/HEAT_PUMP_ASH/HEAT_PUMP_GSH/SOLAR_PV/SMART_METER/BOILER_REPLACEMENT/DOUBLE_GLAZING/DRAUGHT_PROOFING).
+- FundingScheme: ECO4 / BUS / HUG2 / SEG / PRIVATE / GBIS.
+- PropertyImprovement frozen: customer_id, uprn, measure, installation_date, funding_scheme, cost_gbp, epc_before/after; grant_gbp (scheme/measure lookup), customer_cost_gbp, annual_elec/gas_saving_kwh, epc_points_gained, simple_payback_years (at UK avg price £0.28/kWh elec, £0.07/kWh gas).
+- PropertyImprovementBook mutable: record_improvement(), for_customer(), annual_improvements(), total_grant_gbp(), customers_upgraded_epc(rating), improvement_summary().
+
+**Fidelity delta:** Closes the EPC improvement feedback loop Rich asked about. A real supplier tracks every ECO4 referral → installation → EPC certificate upgrade. BUS heat pump installation (£7,500 grant) moves a customer from EPC D to B: ~8,000 kWh gas saving, ~20 EPC points, 5-year payback (if customer pays the £4,500 balance). customers_upgraded_epc() connects to VulnerabilityIndex (Ph243): a customer who upgrades from F to D is no longer fuel-poor — that's a statutory change in their support entitlement. Total grant disbursed also feeds the ECO4 obligation tracker (Ph219).
+
+**12 new tests (3,322 total).**
+
+---
+
+
+---
 ### Phase 250 -- Supplier Financial Resilience (SFR) book (2026-06-26)
 **Files:** `company/regulatory/sfr_book.py` (new), `tests/company/regulatory/test_sfr_book.py` (new)
 
@@ -3621,14 +3638,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,310 tests (2,893 fast / ~10s; simulation integration ~8 min per run)
+- 3,322 tests (2,905 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 250, 2026-06-26):**
+**Latest full run (Phase 251, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
