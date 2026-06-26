@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 155 -- Customer complaint management and Ombudsman escalation (2026-06-26)
+**Files:** `company/crm/complaints.py` (new), `tests/company/crm/test_complaints.py` (new)
+
+**What was built:**
+- `ComplaintCategory` enum: BILLING / METERING / SUPPLY_INTERRUPTION / SWITCHING / CUSTOMER_SERVICE / DEBT_HANDLING / PPM / OTHER.
+- `ComplaintStatus` enum: OPEN / UNDER_INVESTIGATION / RESOLVED / DEADLOCKED / ESCALATED_TO_OMBUDSMAN / OMBUDSMAN_CLOSED.
+- `Complaint` dataclass: days_open(as_of), is_open, eligible_for_ombudsman (>=56 days open, not yet resolved/escalated).
+- `ComplaintBook`: raise_complaint(), update_status(), resolve() (with optional redress_gbp), escalate_to_ombudsman() (gated: only if eligible), overdue_for_ombudsman(as_of), complaints_for_customer(), annual_summary() with by_category breakdown.
+
+**Fidelity delta:** Ofgem SLC 2.7 requires suppliers to have a formal complaints process; any complaint unresolved after 8 weeks becomes eligible for the Energy Ombudsman. Previously complaints had no formal lifecycle. Phase 155 closes this: complaints are raised, investigated, resolved with redress, or escalated to the Ombudsman when the 56-day window expires.
+
+**12 new tests (2,458 total).**
+
+---
 ### Phase 154 -- Meter read dispute management (2026-06-26)
 **Files:** `company/billing/meter_dispute.py` (new), `tests/company/billing/test_meter_dispute.py` (new)
 
@@ -2217,7 +2231,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,446 tests (2,030 fast / ~10s; simulation integration ~8 min per run)
+- 2,458 tests (2,042 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
