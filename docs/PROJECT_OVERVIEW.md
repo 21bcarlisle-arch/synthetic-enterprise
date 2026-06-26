@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,755 tests (1,327 non-simulation, 428 simulation). Codebase: ~24,100 lines across 210+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,776 tests (1,348 non-simulation, 428 simulation). Codebase: ~24,400 lines across 212+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 88 -- Direct Debit Mandate (2026-06-26)
+**Files:** `company/billing/direct_debit.py` (new), `company/portal/app.py` (extended), `company/portal/templates/direct_debit.html` (new), `company/portal/templates/dashboard.html` (nav), `tests/company/billing/test_direct_debit.py` (new), `tests/company/portal/test_portal_dd.py` (new)
+
+**What was built:**
+- `DDMandate` dataclass; SQLite schema at `company/data/direct_debit.db`.
+- `set_mandate()` (UPSERT), `get_mandate()`, `cancel_mandate()` (soft-delete), `is_dd_customer()`, `list_mandates()`. Payment day validated 1-28.
+- Portal: GET `/account/{id}/direct-debit` (shows active mandate or setup form); POST saves mandate; POST `/cancel` deactivates. Success/cancelled banners.
+- Dashboard nav: Direct Debit link added.
+
+**Fidelity delta:** A real UK energy supplier stores DD mandates and uses them to determine collection vs manual payment. The portal now supports the full DD lifecycle: setup, view, cancel.
+
+**21 new tests (1,776 total).**
+
+---
 ### Phase 87 -- EAC Calibration from billing history (2026-06-26)
 **Files:** `company/billing/eac_calibration.py` (new), `company/portal/app.py` (extended), `company/portal/templates/consumption.html` (EAC section), `tests/company/billing/test_eac_calibration.py` (new)
 
@@ -1336,14 +1350,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,755 tests (1,327 fast / ~10s; simulation integration ~8 min per run)
+- 1,776 tests (1,348 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 87, 2026-06-26):**
+**Latest full run (Phase 88, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Direct Debit — {{ customer.customer_id }}</title>
+  <style>body{font-family:sans-serif;max-width:700px;margin:40px auto;padding:0 16px}
+    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    .card{padding:16px;border-radius:6px;margin:16px 0}
+    .active{background:#f0fff4;border:1px solid #276749}
+    .inactive{background:#f7fafc;border:1px solid #bee3f8}
+    .success{background:#f0fff4;border:1px solid #276749;padding:10px;border-radius:4px;margin:12px 0}
+    .cancelled{background:#fffbeb;border:1px solid #c05621;padding:10px;border-radius:4px;margin:12px 0}
+    form label{display:block;margin-top:10px;font-weight:600;font-size:0.9em}
+    form input{width:100%;padding:6px;border:1px solid #cbd5e0;border-radius:4px;font-size:0.9em;box-sizing:border-box}
+    .btn{margin-top:14px;padding:8px 16px;border:none;border-radius:4px;cursor:pointer;font-size:0.9em}
+    .btn-primary{background:#2b6cb0;color:#fff}
+    .btn-danger{background:#c53030;color:#fff}
+    dl{display:grid;grid-template-columns:max-content auto;gap:4px 16px}
+    dt{font-weight:600}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a>
+       | <a href="/account/{{ customer.customer_id }}/bills">Bills</a></nav>
+  <h1>Direct Debit</h1>
+  <p><strong>Account:</strong> {{ customer.customer_id }}</p>
+
+  {% if success %}
+  <div class="success">&#10003; Direct Debit mandate set successfully.</div>
+  {% endif %}
+  {% if cancelled %}
+  <div class="cancelled">Direct Debit mandate cancelled.</div>
+  {% endif %}
+
+  {% if mandate %}
+  <div class="card active">
+    <strong>Active Direct Debit Mandate</strong>
+    <dl>
+      <dt>Sort code</dt><dd>{{ mandate.sort_code }}</dd>
+      <dt>Account number</dt><dd>{{ mandate.account_number }}</dd>
+      <dt>Collection day</dt><dd>{{ mandate.payment_day }}th of each month</dd>
+      <dt>Set up</dt><dd>{{ mandate.created_at[:10] }}</dd>
+    </dl>
+    <form method="post" action="/account/{{ customer.customer_id }}/direct-debit/cancel">
+      <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel mandate?')">Cancel mandate</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="card inactive">
+    <strong>No active Direct Debit mandate</strong>
+    <p>Set up a Direct Debit to have payments collected automatically.</p>
+  </div>
+  <h2>Set Up Direct Debit</h2>
+  <form method="post" action="/account/{{ customer.customer_id }}/direct-debit">
+    <label>Sort code (XX-XX-XX)</label>
+    <input name="sort_code" required pattern="[0-9]{2}-[0-9]{2}-[0-9]{2}" placeholder="20-00-00">
+    <label>Account number (8 digits)</label>
+    <input name="account_number" required pattern="[0-9]{8}" placeholder="12345678">
+    <label>Collection day (1-28)</label>
+    <input name="payment_day" type="number" min="1" max="28" value="1" required>
+    <button type="submit" class="btn btn-primary">Set up Direct Debit</button>
+  </form>
+  {% endif %}
+</body>
+</html>

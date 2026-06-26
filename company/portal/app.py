@@ -23,6 +23,7 @@ from company.market.price_feed import PriceFeed
 from company.billing.consumption import consumption_history, monthly_totals
 from company.billing.hh_consumption import get_hh_consumption, recent_hh_periods, is_feed_available
 from company.billing.eac_calibration import calibrate_eac, eac_drift
+from company.billing.direct_debit import set_mandate, get_mandate, cancel_mandate, is_dd_customer
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
 from company.regulatory.compliance import (
@@ -39,6 +40,7 @@ _TEMPLATE_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 
 _DEFAULT_DB = Path("company/data/invoices.db")
+_DD_DB = Path("company/data/direct_debit.db")
 _RUN_OUTPUT = Path("docs/reports/run_output_latest.json")
 _PRICE_FEED_PATH = Path("docs/market_data/price_feed.json")
 _CONSUMPTION_FEED_PATH = Path("docs/market_data/consumption_feed.json")
@@ -399,4 +401,48 @@ async def account_statement(request: Request, account_id: str):
             "total_outstanding_gbp": round(outstanding, 2),
             "total_bad_debt_gbp": round(bad_debt, 2),
         },
+    )
+
+@app.get("/account/{account_id}/direct-debit", response_class=HTMLResponse)
+async def direct_debit_page(request: Request, account_id: str):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    mandate = get_mandate(account_id, _DD_DB)
+    return templates.TemplateResponse(
+        request, "direct_debit.html",
+        {"customer": customer, "mandate": mandate},
+    )
+
+
+@app.post("/account/{account_id}/direct-debit", response_class=HTMLResponse)
+async def set_direct_debit(
+    request: Request,
+    account_id: str,
+    sort_code: str = Form(...),
+    account_number: str = Form(...),
+    payment_day: int = Form(...),
+):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    try:
+        mandate = set_mandate(account_id, sort_code, account_number, payment_day, _DD_DB)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return templates.TemplateResponse(
+        request, "direct_debit.html",
+        {"customer": customer, "mandate": mandate, "success": True},
+    )
+
+
+@app.post("/account/{account_id}/direct-debit/cancel", response_class=HTMLResponse)
+async def cancel_direct_debit(request: Request, account_id: str):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    cancel_mandate(account_id, _DD_DB)
+    return templates.TemplateResponse(
+        request, "direct_debit.html",
+        {"customer": customer, "mandate": None, "cancelled": True},
     )
