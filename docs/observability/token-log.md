@@ -1858,3 +1858,30 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
     - Maintenance: archived phases 55–65 to phase-history.md; Destinationvision all gaps closed
 - **Notes:** All Destinationvision gaps (F1–F4, C1–C4, T1–T3, FI1–FI3, M1–M3) now closed. Transition Test criteria all met. Session was a continuation from a prior context-limit boundary; no staging files were found pending at any check. Epistemic verifier PASS on every phase. No speculative work discarded.
 
+
+- [2026-06-26T03:23:12Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+
+## 2026-06-26 — Phases 99–110 (continuation from context-limit session) — Portal enhancement + company intelligence
+
+- **Frontier tokens:** not computed from transcript (continuation across context boundary); session covered 12 phase-closes plus run-complete processing. No Qwen delegation — all code written directly by orchestrator.
+- **Local model calls:** 0 — entirely frontier-written.
+- **Produced:**
+  - Commits: ~35 (phases + run-completes + maintenance)
+  - Tests: 1,872 → 1,981 (+109 new tests across 12 phases, all passing)
+  - CLAUDE.md: trimmed phases 66–88 to phase-history.md (189 → 170 lines); currently 177 lines
+  - Features shipped (Phases 99–110):
+    - Phase 99: Market rate comparison widget on consumption page (PriceFeed forward estimate vs effective rate)
+    - Phase 100: Switching recommendation engine (contract + renewal + market rate → switch/stay/consider)
+    - Phase 101: EPC energy efficiency advice (7 bands A–G, UK government scheme mapping, dashboard panel)
+    - Phase 102: Admin navigation hub (coloured quick-link buttons to all 6 admin sub-views)
+    - Phase 103: Smart meter upgrade portal flow (GET/POST, CRM event, dashboard prompt for non-HH)
+    - Phase 104: Ombudsman referral tracking (8-week overdue complaints, admin alert + regulatory section)
+    - Phase 105: CSAT score tracking (1–5 star widget, ServiceLog.rate_contact(), auto-migration for existing DBs)
+    - Phase 106: CSAT admin reporting (csat_summary() in admin overview summary card)
+    - Phase 107: Usage benchmarking (peer group by home_type + EPC band, percentile, efficient/average/heavy label)
+    - Phase 108: Retention risk scoring (rule-based 0–5 score from overdue/complaint/notice/rate exposure)
+    - Phase 109: Admin retention dashboard (tier summary cards + sortable risk table, GET /admin/retention)
+    - Phase 110: Carbon footprint tracking (DESNZ grid intensity 2016–2025, CO2e widget on consumption page)
+    - Maintenance: 2 run-completes processed (net £1,330,126 each, routine); CLAUDE.md line trimming
+- **Notes:** Session focus: customer-facing intelligence features. Portal now has 30+ routes covering the full domestic customer lifecycle. All 1,981 tests passing. Epistemic verifier PASS on every phase. No speculative work discarded.
+
