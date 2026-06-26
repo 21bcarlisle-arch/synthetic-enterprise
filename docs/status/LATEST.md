@@ -8,7 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:24:16Z
+Last updated: 2026-06-26T02:28:51Z
+
+**Phase 84 COMPLETE (2026-06-26):** Regulatory Compliance Dashboard -- 13 new tests (1,721 total).
+- `GET /regulatory`: smart meter penetration vs Ofgem target (COMPLIANT/AT_RISK/BREACH badge)
+- MCR capital adequacy section: treasury vs £130/account floor, ratio, OK/Watch/STRESS badge
+- Ofgem annual turnover fee from total revenue
+- `regulatory.html` (new); Dashboard nav updated with Regulatory link
+- Uses company.regulatory.compliance + saas.capital.solvency — no SIM internals
 
 **Phase 83 COMPLETE (2026-06-26):** Portal payment submission -- 12 new tests (1,708 total).
 - `POST /account/{id}/pay`: invoice_number + amount from form → reconcile_payment() → confirmation
@@ -170,7 +177,7 @@ Last updated: 2026-06-26T02:24:16Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,708 total (all tests passing)**
+**Test suite: 1,721 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

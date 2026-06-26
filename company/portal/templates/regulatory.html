@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Regulatory Compliance</title>
+  <style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 16px}
+    h1,h2{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
+    th{background:#ebf8ff}
+    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:600}
+    .COMPLIANT{background:#f0fff4;color:#276749}.AT_RISK{background:#fffbeb;color:#c05621}
+    .BREACH{background:#fff5f5;color:#c53030}.OK{background:#f0fff4;color:#276749}
+    .Watch{background:#fffbeb;color:#c05621}.STRESS{background:#fff5f5;color:#c53030}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a></nav>
+  <h1>Regulatory Compliance Dashboard</h1>
+  <p><em>Year: {{ reg.year }} | {{ reg.customer_count }} active accounts</em></p>
+
+  <h2>Smart Meter Rollout (Ofgem SMETS2 Mandate)</h2>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Residential customers</td><td>{{ reg.resi_total }}</td></tr>
+    <tr><td>With smart meter / HH metering</td><td>{{ reg.resi_sm_count }}</td></tr>
+    <tr><td>Penetration</td><td>{{ reg.resi_penetration_pct }}%</td></tr>
+    <tr><td>Ofgem target ({{ reg.year }})</td><td>{{ reg.sm_target_pct }}%</td></tr>
+    <tr><td>Compliance status</td>
+        <td><span class="badge {{ reg.sm_status }}">{{ reg.sm_status }}</span></td></tr>
+  </table>
+
+  <h2>Capital Adequacy (Ofgem MCR)</h2>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Treasury (cash)</td><td>£{{ "%.0f"|format(reg.treasury_gbp) }}</td></tr>
+    <tr><td>MCR requirement (£{{ reg.mcr_floor_per_customer }}/account x {{ reg.customer_count }})</td>
+        <td>£{{ "%.0f"|format(reg.mcr_req_gbp) }}</td></tr>
+    <tr><td>MCR headroom</td><td>£{{ "%.0f"|format(reg.mcr_headroom_gbp) }}</td></tr>
+    <tr><td>MCR ratio</td><td>{{ reg.solvency_ratio }}x</td></tr>
+    <tr><td>Status</td>
+        <td><span class="badge {{ reg.solvency_status }}">{{ reg.solvency_status }}</span></td></tr>
+  </table>
+
+  <h2>Annual Fees</h2>
+  <table>
+    <tr><th>Item</th><th>Amount</th></tr>
+    <tr><td>Total revenue (10-year)</td><td>£{{ "%.0f"|format(reg.total_revenue_gbp) }}</td></tr>
+    <tr><td>Ofgem annual turnover fee</td>
+        <td>£{{ "%.0f"|format(reg.annual_turnover_fee_gbp) }}</td></tr>
+  </table>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,708 tests (1,280 non-simulation, 428 simulation). Codebase: ~23,300 lines across 205+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,721 tests (1,293 non-simulation, 428 simulation). Codebase: ~23,500 lines across 207+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,21 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 84 -- Regulatory Compliance Dashboard (2026-06-26)
+**Files:** `company/portal/app.py` (extended), `company/portal/templates/regulatory.html` (new), `company/portal/templates/dashboard.html` (nav link added), `tests/company/portal/test_portal_regulatory.py` (new)
+
+**What was built:**
+- `_load_regulatory_data()`: computes smart meter penetration from customer DB (count smart_meter=True / HH metered resi), MCR solvency from run output treasury + customer count, Ofgem annual turnover fee.
+- `GET /regulatory`: Regulatory Compliance Dashboard route — smart meter compliance (COMPLIANT/AT_RISK/BREACH badge), MCR capital adequacy (OK/Watch/STRESS badge), annual fee table.
+- `regulatory.html`: three sections — Smart Meter Rollout, Capital Adequacy, Annual Fees.
+- Dashboard nav: Regulatory link added.
+- Uses company.regulatory.compliance + saas.capital.solvency; no simulation internals.
+
+**Fidelity delta:** Rich can now click Regulatory from the portal and see compliance status for both smart meter mandate and capital adequacy — the same view an MD would check before a quarterly board report.
+
+**13 new tests (1,721 total).**
+
+---
 ### Phase 83 -- Portal payment submission (2026-06-26)
 **Files:** `company/portal/app.py` (extended), `company/portal/templates/payment_confirm.html` (new), `company/portal/templates/bills.html` (updated), `company/billing/invoice.py` (get_invoice: create_schema added), `tests/company/portal/test_portal_payment.py` (new)
 
@@ -1281,14 +1296,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,708 tests (1,280 fast / ~10s; simulation integration ~8 min per run)
+- 1,721 tests (1,293 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 83, 2026-06-26):**
+**Latest full run (Phase 84, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

@@ -24,6 +24,12 @@ from company.billing.consumption import consumption_history, monthly_totals
 from company.billing.hh_consumption import get_hh_consumption, recent_hh_periods, is_feed_available
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
+from company.regulatory.compliance import (
+    smart_meter_target,
+    smart_meter_compliance_status,
+    annual_turnover_fee,
+)
+from saas.capital.solvency import compute_solvency_signal, MCR_FLOOR_GBP_PER_CUSTOMER
 
 _SIM_INTERFACE = LiveSimInterface()
 from saas.customers import CUSTOMERS
@@ -81,6 +87,57 @@ def _load_spot_prices() -> dict:
         "available": True,
     }
 
+
+
+
+def _load_regulatory_data() -> dict:
+    """Build regulatory compliance summary from observable company data."""
+    customers = list(_CUSTOMER_INDEX.values())
+    resi = [c for c in customers if c.get("segment") == "resi"]
+    resi_with_sm = [c for c in resi if c.get("smart_meter") or c.get("metering") == "HH"]
+    resi_pen = len(resi_with_sm) / len(resi) if resi else 0.0
+
+    latest_year = 2025
+    target = smart_meter_target(latest_year, "resi")
+    sm_status = smart_meter_compliance_status(resi_pen, latest_year, "resi")
+
+    # Solvency from run output (observable: company knows its treasury + customer count)
+    treasury = 0.0
+    n_customers = len(customers)
+    total_revenue = 0.0
+    if _RUN_OUTPUT.exists():
+        run = json.loads(_RUN_OUTPUT.read_text())
+        treasury = run.get("final_treasury_gbp", 0.0)
+        total_revenue = run.get("total_revenue_gbp", 0.0)
+        yrs = run.get("years", {})
+        if yrs:
+            last_yr = sorted(yrs.keys())[-1]
+            ids = yrs[last_yr].get("active_customer_ids", [])
+            if ids:
+                n_customers = len(ids)
+
+    solvency = compute_solvency_signal(treasury, n_customers)
+    mcr_req = n_customers * MCR_FLOOR_GBP_PER_CUSTOMER
+    mcr_headroom = treasury - mcr_req
+    turnover_fee = annual_turnover_fee(total_revenue)
+
+    return {
+        "resi_penetration_pct": round(resi_pen * 100, 1),
+        "resi_sm_count": len(resi_with_sm),
+        "resi_total": len(resi),
+        "sm_target_pct": round(target * 100, 1),
+        "sm_status": sm_status,
+        "solvency_status": solvency["status"],
+        "solvency_ratio": round(solvency["solvency_ratio"], 2),
+        "treasury_gbp": round(treasury, 2),
+        "mcr_req_gbp": round(mcr_req, 2),
+        "mcr_headroom_gbp": round(mcr_headroom, 2),
+        "customer_count": n_customers,
+        "mcr_floor_per_customer": MCR_FLOOR_GBP_PER_CUSTOMER,
+        "total_revenue_gbp": round(total_revenue, 2),
+        "annual_turnover_fee_gbp": round(turnover_fee, 2),
+        "year": latest_year,
+    }
 
 app = FastAPI(title="Customer Portal", docs_url=None, redoc_url=None)
 
@@ -249,4 +306,12 @@ async def submit_payment(
             "amount_gbp": amount_gbp,
             "result": result,
         },
+    )
+
+@app.get("/regulatory", response_class=HTMLResponse)
+async def regulatory_dashboard(request: Request):
+    reg = _load_regulatory_data()
+    return templates.TemplateResponse(
+        request, "regulatory.html",
+        {"reg": reg},
     )
