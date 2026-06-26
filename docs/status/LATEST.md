@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:51:59Z
+Last updated: 2026-06-26T04:04:35Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).

@@ -39,7 +39,7 @@
       <dt>Sort code</dt><dd>{{ mandate.sort_code }}</dd>
       <dt>Account number</dt><dd>{{ mandate.account_number }}</dd>
       <dt>Collection day</dt><dd>{{ mandate.payment_day }}th of each month</dd>
-      <dt>Set up</dt><dd>{{ mandate.created_at[:10] }}</dd>
+      <dt>Set up</dt><dd>{{ mandate.created_date[:10] if mandate.created_date else '' }}</dd>
     </dl>
     <form method="post" action="/account/{{ customer.customer_id }}/direct-debit/cancel">
       <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel mandate?')">Cancel mandate</button>

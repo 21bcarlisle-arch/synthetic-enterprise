@@ -131,3 +131,80 @@ class DirectDebitBook:
 def _add_days(date_str: str, days: int) -> str:
     d = date.fromisoformat(date_str)
     return (d + timedelta(days=days)).isoformat()
+
+
+# ---------------------------------------------------------------------------
+# SQLite-backed portal helpers (used by company/portal/app.py)
+# ---------------------------------------------------------------------------
+
+import sqlite3
+from pathlib import Path
+
+
+def _init_db(db_path):
+    conn = sqlite3.connect(str(db_path))
+    conn.row_factory = sqlite3.Row
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS mandates (
+            customer_id TEXT PRIMARY KEY,
+            sort_code TEXT,
+            account_number TEXT,
+            payment_day INTEGER,
+            monthly_amount_gbp REAL DEFAULT 0.0,
+            status TEXT DEFAULT 'active',
+            created_date TEXT
+        )
+    """)
+    conn.commit()
+    return conn
+
+
+def get_mandate(customer_id, db_path):
+    from pathlib import Path
+    db_path = Path(db_path)
+    if not db_path.exists():
+        return None
+    conn = _init_db(db_path)
+    row = conn.execute("SELECT * FROM mandates WHERE customer_id=?", (customer_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def set_mandate(customer_id, sort_code, account_number, payment_day, db_path):
+    from datetime import date as _date
+    from pathlib import Path
+    db_path = Path(db_path)
+    if payment_day < 1 or payment_day > 28:
+        raise ValueError("Payment day must be between 1 and 28")
+    conn = _init_db(db_path)
+    today = _date.today().isoformat()
+    conn.execute("""
+        INSERT INTO mandates (customer_id, sort_code, account_number, payment_day, status, created_date)
+        VALUES (?, ?, ?, ?, 'active', ?)
+        ON CONFLICT(customer_id) DO UPDATE SET
+            sort_code=excluded.sort_code,
+            account_number=excluded.account_number,
+            payment_day=excluded.payment_day,
+            status='active'
+    """, (customer_id, sort_code, account_number, payment_day, today))
+    conn.commit()
+    row = conn.execute("SELECT * FROM mandates WHERE customer_id=?", (customer_id,)).fetchone()
+    conn.close()
+    return dict(row)
+
+
+def cancel_mandate(customer_id, db_path):
+    from pathlib import Path
+    db_path = Path(db_path)
+    if not db_path.exists():
+        return False
+    conn = _init_db(db_path)
+    conn.execute("UPDATE mandates SET status='cancelled' WHERE customer_id=?", (customer_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def is_dd_customer(customer_id, db_path):
+    mandate = get_mandate(customer_id, db_path)
+    return mandate is not None and mandate.get("status") == "active"
