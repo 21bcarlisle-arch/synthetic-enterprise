@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 216 -- Network charge pass-through ledger (2026-06-26) ★ 3,001 TESTS
+**Files:** `company/market/network_charge_ledger.py` (new), `tests/company/market/test_network_charge_ledger.py` (new)
+
+**What was built:**
+- NetworkChargeType enum (5): TNUOS / DUOS / BSUOS / CMSUOS / METERING.
+- NetworkChargeRate frozen: year, charge_type, commodity, rate_gbp_per_mwh, notes.
+- NetworkChargeRecord frozen: customer_id, mpan, period, charge_type, consumption_mwh, rate; charge_gbp property.
+- NetworkChargeLedger: set_rate(), get_rate(year, type, commodity), post_charge(), total_charges_gbp(customer, period), charges_by_type(year), portfolio_total_gbp(year), annual_summary(year).
+
+**Fidelity delta:** UK electricity bills comprise ~30% network costs (TNUoS + DUoS + BSUoS) at ~£38-50/MWh combined. TNUoS (National Grid transmission) is charged to large suppliers who participate in the settlement; DUoS (distribution) is charged by DNOs regionally and varies significantly (London = £15/MWh, rural Scotland = £40/MWh). BSUoS doubled in 2022 to ~£20/MWh as the GB system had to take exceptional balancing actions during gas supply constraints. These are genuine pass-through costs — suppliers don't profit from them, but tracking misallocation is a significant billing error source. Feeds company_pl (Ph181) network_cost_gbp line.
+
+**★ 3,001 TESTS — project milestone reached.**
+
+---
 ### Phase 215 -- Supply contract lifecycle manager (2026-06-26)
 **Files:** `company/billing/contract_manager.py` (new), `tests/company/billing/test_contract_manager.py` (new)
 
@@ -3092,7 +3106,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,993 tests (2,577 fast / ~10s; simulation integration ~8 min per run)
+- 3,001 tests (2,585 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
