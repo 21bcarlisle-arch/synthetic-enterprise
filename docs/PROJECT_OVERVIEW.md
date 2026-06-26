@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,582 tests passing. Codebase: ~35,800 lines across 263+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,595 tests passing. Codebase: ~35,950 lines across 265+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 279 (2026-06-26):** Decarbonisation Score -- 13 new tests (3,595 total). company/sustainability/ (new directory): DScoreBand (A/B/C/D at 80/60/40/<40), frozen DScoreBreakdown with 4 dimension scores, DecarbScorer computes REGO coverage (25pts)/EPC improvement (25pts)/heat pump adoption (25pts, 20% = full)/carbon reduction (25pts, 20%/yr = full), DScoreBook (annual records, trend, improving flag, summary). Synthesizes HomeRegistry, PropertyImprovementBook, and RegoPortfolio observations into a single ESG scorecard.
 
 **Phase 278 (2026-06-26):** Monthly Ops Dashboard Tab -- 11 new tests (3,582 total). extract_monthly_ops() in generate_dashboard_data.py aggregates bill_shock_events, committee_wake_ups, and retention_log by calendar month into 103-row timeline (2016-2025). Monthly tab on poesys.net: 4 KPI cards, Chart.js bar+line chart (shocks red/blue by crisis, committee overlay), full operational timeline table with CRISIS annotation. Closes Dashboard Phase E.
 
@@ -3937,7 +3939,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,582 tests (3,140 fast / ~10s; simulation integration ~8 min per run)
+- 3,595 tests (3,153 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
