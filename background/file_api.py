@@ -5,6 +5,7 @@ Write scope: docs/staging/ only
 Auth:        X-Api-Key header
 """
 import html
+import httpx
 import json
 import os
 import secrets
@@ -349,3 +350,51 @@ def healthz():
         "staging_writable": _staging_writable(),
         "last_file_received": _last_file_received(),
     }
+
+
+class QueryRequest(BaseModel):
+    question: str
+    queryContext: str = ""
+
+
+OLLAMA_URL = "http://localhost:11434/api/chat"
+OLLAMA_MODEL = "qwen3:14b"
+QUERY_SYSTEM = (
+    "You are a data analyst for a UK energy supply business simulation (2016-2025). "
+    "Answer questions concisely and factually based only on the data provided. "
+    "If the data does not contain the information needed, say so. "
+    "Keep answers under 200 words. Do not use markdown headers."
+)
+
+
+@app.post("/query")
+def query_sim(req: QueryRequest):
+    """Local NL query via Ollama/Qwen3. No auth — only reachable on Tailscale."""
+    if not req.question.strip():
+        raise HTTPException(status_code=400, detail="Missing question")
+
+    system = QUERY_SYSTEM
+    if req.queryContext:
+        system += "\n\nSimulation data:\n" + req.queryContext
+
+    payload = {
+        "model": OLLAMA_MODEL,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": "/no_think " + req.question.strip()},
+        ],
+        "stream": False,
+    }
+
+    try:
+        r = httpx.post(OLLAMA_URL, json=payload, timeout=90)
+        r.raise_for_status()
+        answer = r.json().get("message", {}).get("content", "").strip()
+        if not answer:
+            raise ValueError("Empty response from Ollama")
+        return {"answer": answer}
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="Ollama not reachable — is it running?")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+

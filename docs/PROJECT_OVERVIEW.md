@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,487 tests passing. Codebase: ~34,700 lines across 257+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,494 tests passing. Codebase: ~34,800 lines across 258+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 270 (2026-06-26):** Local NL query via Qwen3/Ollama — 7 new tests (3,494 total). `background/file_api.py`: `POST /query` endpoint calls Ollama qwen3:14b with `/no_think` prefix for fast responses (no API cost, stays local on Tailscale). `site/index.html`: fetch URL changed from Cloudflare Pages Function to `https://skynet-1.taila062fa.ts.net:8765/query` directly. `background/start_worker.sh`: file-api added as managed tmux session. Also fixed JS syntax errors in supplier dashboard (Ph266 onkeydown) and customer portal login (Ph263 double-quote nesting). Also fixed process_run_complete.py race condition + relative path bug.
 
 ---
 **12 new tests (3,373 total).**
@@ -3919,7 +3921,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,487 tests (3,045 fast / ~10s; simulation integration ~8 min per run)
+- 3,494 tests (3,052 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

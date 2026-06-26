@@ -56,6 +56,10 @@ _start_session "token-proxy" \
   "python3 -m background.token_proxy" \
   "Local HTTP proxy on :8801 — tracks token usage for autonomous turns"
 
+_start_session "file-api" \
+  "python3 -m uvicorn background.file_api:app --host 0.0.0.0 --port 8765" \
+  "Authenticated file API + Ollama /query proxy on :8765"
+
 echo ""
 echo "Stack startup complete. Running health check..."
 python3 background/health_check.py --quiet

@@ -205,3 +205,84 @@ def test_write_and_read_roundtrip(tmp_path, monkeypatch):
         headers=HEADERS,
     )
     assert r.status_code == 200
+
+
+# ── /query endpoint tests ──────────────────────────────────────────────────────
+
+class MockHttpxResponse:
+    def __init__(self, data, status_code=200):
+        self._data = data
+        self.status_code = status_code
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise Exception(f"HTTP {self.status_code}")
+    def json(self):
+        return self._data
+
+
+def test_query_empty_question_returns_400():
+    r = client.post("/query", json={"question": "   ", "queryContext": ""})
+    assert r.status_code == 400
+
+
+def test_query_missing_question_returns_422():
+    r = client.post("/query", json={"queryContext": "some context"})
+    assert r.status_code == 422
+
+
+def test_query_ollama_success(monkeypatch):
+    import background.file_api as fa
+    def mock_post(url, json=None, timeout=None):
+        return MockHttpxResponse({"message": {"content": "Net margin was highest in 2024."}})
+    monkeypatch.setattr(fa.httpx, "post", mock_post)
+    r = client.post("/query", json={"question": "When was net margin highest?", "queryContext": "2024 net=GBP337010"})
+    assert r.status_code == 200
+    data = r.json()
+    assert "answer" in data
+    assert "2024" in data["answer"]
+
+
+def test_query_no_context_still_works(monkeypatch):
+    import background.file_api as fa
+    def mock_post(url, json=None, timeout=None):
+        return MockHttpxResponse({"message": {"content": "Answered without context."}})
+    monkeypatch.setattr(fa.httpx, "post", mock_post)
+    r = client.post("/query", json={"question": "What is net margin?"})
+    assert r.status_code == 200
+    assert r.json()["answer"] == "Answered without context."
+
+
+def test_query_ollama_unreachable_returns_503(monkeypatch):
+    import background.file_api as fa
+    import httpx as _httpx
+    def mock_post(url, json=None, timeout=None):
+        raise _httpx.ConnectError("Connection refused")
+    monkeypatch.setattr(fa.httpx, "post", mock_post)
+    r = client.post("/query", json={"question": "Test", "queryContext": ""})
+    assert r.status_code == 503
+    assert "Ollama" in r.json()["detail"]
+
+
+def test_query_includes_no_think_prefix_in_user_message(monkeypatch):
+    import background.file_api as fa
+    captured = {}
+    def mock_post(url, json=None, timeout=None):
+        captured["payload"] = json
+        return MockHttpxResponse({"message": {"content": "Answer."}})
+    monkeypatch.setattr(fa.httpx, "post", mock_post)
+    client.post("/query", json={"question": "What year had highest margin?", "queryContext": ""})
+    user_msg = [m for m in captured["payload"]["messages"] if m["role"] == "user"][0]
+    assert user_msg["content"].startswith("/no_think ")
+
+
+def test_query_passes_context_in_system_message(monkeypatch):
+    import background.file_api as fa
+    captured = {}
+    def mock_post(url, json=None, timeout=None):
+        captured["payload"] = json
+        return MockHttpxResponse({"message": {"content": "Answer."}})
+    monkeypatch.setattr(fa.httpx, "post", mock_post)
+    client.post("/query", json={"question": "Q?", "queryContext": "KEY_DATA_HERE"})
+    sys_msg = [m for m in captured["payload"]["messages"] if m["role"] == "system"][0]
+    assert "KEY_DATA_HERE" in sys_msg["content"]
+
