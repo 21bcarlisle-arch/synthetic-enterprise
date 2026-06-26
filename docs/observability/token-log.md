@@ -1885,3 +1885,27 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
     - Maintenance: 2 run-completes processed (net £1,330,126 each, routine); CLAUDE.md line trimming
 - **Notes:** Session focus: customer-facing intelligence features. Portal now has 30+ routes covering the full domestic customer lifecycle. All 1,981 tests passing. Epistemic verifier PASS on every phase. No speculative work discarded.
 
+
+- [2026-06-26T03:42:05Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T03:51:04Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T04:09:30Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## 2026-06-27 — Phases 127–135 (continuation from context-limit session) — Company operations + regulatory depth
+
+- **Phases completed this session:** 126 (committed at session start), 127–135 (9 phases)
+- **New tests:** 9+9+9+11+10+10+9+9+9 = 85 new tests (1,639→2,232 total from Phase 77 baseline; 2,147→2,232 this session)
+- **Frontier tokens:** not computed from transcript (continuation across context boundary)
+- **Qwen delegation:** None — all code written directly by orchestrator in Claude Sonnet 4.6
+- **CLAUDE.md maintenance:** Archived phases 111-118 and 119-126 in two trim passes (kept ≤162 lines)
+- **Background tasks:** Two run_complete files processed (both archived to done/); second background task expired harmlessly
+
+### Phase summary
+- **126** — Imbalance price risk (BSC SSP/SBP; short=spot×1.18, long=spot×0.95, stress mode)
+- **127** — HH data quality checker (BSCP505 flags: negative/zero/estimated/substituted, 48-period completeness)
+- **128** — Meter asset management (5 types SMETS1/2/TRAD/PPM/AMR, cert_due_date BS 5685, smart_pct)
+- **129** — Customer notification preferences (PECR/GDPR; can_contact() SLC 14B defaults)
+- **130** — ECO4 obligation tracker (exempt/contribution/direct tiers; TWhd obligation + BREACH status)
+- **131** — Wholesale trade blotter (REMIT-aware; unreported_remit() gate, counterparty_exposure)
+- **132** — Counterparty credit limits (GREEN/AMBER/RED/NO_LIMIT; blocks RED trades)
+- **133** — DESNZ supplier data returns (monthly SDR, LILEE fuel poverty, IPCC CO₂ g/kWh)
+- **134** — Tariff change notification (SLC 22; 30-day SVT, 42-day fixed term; non_compliant filter)
+- **135** — Customer credit scoring (PRIME/STANDARD/SUBPRIME/HIGH_RISK; deposit + PPM gate)
