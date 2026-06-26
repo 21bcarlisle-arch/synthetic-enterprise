@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 163 -- Household behaviour profile (2026-06-26)
+**Files:** `company/crm/household_profile.py` (new), `tests/company/crm/test_household_profile.py` (new)
+
+**What was built:**
+- `HouseholdType` enum: 7 types (single/couple/family/retired/student/WFH).
+- `HeatingSystem` enum: 7 heating types including heat pump and storage heater.
+- `HouseholdBehaviourProfile` frozen dataclass: peak_load_factor (family=1.35×, retired=1.20×, student=0.75×); daytime_consumption_pct (retired=72%, student=40%; WFH days boost both); evening_consumption_pct (complement); tou_price_sensitivity (high/medium/low drives ToU tariff uptake); smart_meter_benefit_score (price-sensitive + evening-heavy households gain most); heat_pump_eligible.
+
+**Fidelity delta:** Energy consumption patterns differ dramatically by household type — a retired couple at home all day has a very different half-hourly shape from a working single occupant. ToU tariff uptake and smart meter benefit also vary systematically. Previously all customers used the same profile shape regardless of household type. Phase 163 provides the behavioural layer that connects household demographics to consumption shape, ToU sensitivity, and decarbonisation eligibility.
+
+**11 new tests (2,552 total).**
+
+---
 ### Phase 162 -- Customer life events lifecycle (2026-06-26)
 **Files:** `company/crm/life_events.py` (new), `tests/company/crm/test_life_events.py` (new)
 
@@ -2335,7 +2348,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,541 tests (2,125 fast / ~10s; simulation integration ~8 min per run)
+- 2,552 tests (2,136 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
