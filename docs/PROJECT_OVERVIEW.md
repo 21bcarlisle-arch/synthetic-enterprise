@@ -527,6 +527,22 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 203 -- Outbound contact campaign tracker (2026-06-26)
+**Files:** `company/crm/campaign_tracker.py` (new), `tests/company/crm/test_campaign_tracker.py` (new)
+
+**What was built:**
+- CampaignType enum (7): RENEWAL_CHASE / RETENTION_WINBACK / DEBT_COLLECTION / SMART_METER_INSTALL / EEP_REFERRAL / WHD_OUTREACH / SURVEY.
+- ContactOutcome enum (6): CONVERTED / NO_ANSWER / REFUSED / CALLBACK_ARRANGED / WRONG_NUMBER / UNCONTACTABLE.
+- ContactChannel enum (4): PHONE / EMAIL / SMS / POST.
+- CampaignContact frozen: is_converted (outcome==CONVERTED), is_reached (not NO_ANSWER/WRONG_NUMBER/UNCONTACTABLE).
+- Campaign mutable: target_count, _contacts; is_active (no end_date), contacts_made, conversion_rate (converted/reached*100), contact_rate (reached/total*100), summary().
+- CampaignTracker: create_campaign(), record_contact() (auto-IDs CTT-NNNN), close_campaign(), get(), active_campaigns(), campaigns_by_type().
+
+**Fidelity delta:** UK supplier outbound contact centres run ~6 concurrent campaigns: Oct-Nov renewal chase (fixed tariff expiry), debt collection (arrears > 60d), WHD outreach (Oct-Dec), smart meter install book (rolling), EEP referral (vulnerable customers). Conversion rate differs by channel: phone 15-25%, email 3-8%, SMS 5-12%, post <1% for collections. Outbound lift metric (Ph194 renewals_book) is the aggregate of these campaign conversions minus natural renewal rate.
+
+**8 new tests (2,899 total).**
+
+---
 ### Phase 202 -- Revenue accruals ledger (2026-06-26)
 **Files:** `company/finance/revenue_accruals.py` (new), `tests/company/finance/test_revenue_accruals.py` (new)
 
@@ -2900,7 +2916,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,891 tests (2,475 fast / ~10s; simulation integration ~8 min per run)
+- 2,899 tests (2,483 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
