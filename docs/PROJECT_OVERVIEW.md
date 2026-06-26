@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 165 -- Customer energy profile: 360-degree view (2026-06-26)
+**Files:** `company/crm/energy_profile.py` (new), `tests/company/crm/test_energy_profile.py` (new)
+
+**What was built:**
+- `CustomerEnergyProfile` frozen dataclass: composes a `Property` (Phase 161) with a `HouseholdBehaviourProfile` (Phase 163) into a single observable record per customer.
+- Properties derived from composition: estimated_annual_elec/gas_kwh, is_fuel_poor, eco4_eligible, tou_candidate (medium/high sensitivity), heat_pump_candidate (gas boiler + EPC A–D), decarbonisation_priority_score (0–1 weighted by EPC/heat pump/solar gaps).
+- summary() dict: all key fields for CRM dashboard display.
+
+**Fidelity delta:** A real supplier's CRM "360 view" shows property efficiency, consumption profile, vulnerability flags, eligibility for programmes (ECO4, heat pump grants), and decarbonisation priority — all observable from the company's own data. This synthesises the premises/behaviour theme opened in Phase 161: property (161) + behaviour (163) + life events (162) + contacts (164) + 360 profile (165) form a coherent customer picture that drives product targeting, vulnerability triage, and compliance reporting.
+
+**10 new tests (2,571 total).**
+
+---
 ### Phase 164 -- Inbound contact and call centre interaction model (2026-06-26)
 **Files:** `company/crm/contact_log.py` (new), `tests/company/crm/test_contact_log.py` (new)
 
@@ -2363,7 +2376,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,561 tests (2,145 fast / ~10s; simulation integration ~8 min per run)
+- 2,571 tests (2,155 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
