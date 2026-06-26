@@ -5575,3 +5575,9 @@
 - [2026-06-26 04:36 UTC] [process_run] Publishing HH consumption data feed
 - [2026-06-26 04:36 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
 - [2026-06-26 04:36 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 04:46 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 04:46 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 04:46 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 04:46 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-06-26 04:46 UTC] Waiting 60s before next run...
+- [2026-06-26 04:47 UTC] Starting run — git=49c2327, json=run_output_49c2327_20260626T044750Z.json
