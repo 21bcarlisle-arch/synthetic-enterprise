@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T21:02:48Z
+Last updated: 2026-06-26T21:08:46Z
 
 ## Latest Simulation Run
 - **Git:** 559f25f (run 2026-06-26T19:04)
@@ -11,21 +11,26 @@ Last updated: 2026-06-26T21:02:48Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 280
-- **Tests:** 3,606 passing
-- **Session theme:** Phases 271-280 -- Human sim layer, dashboard expansions, /sim/ tabs, crisis history modules
+- **Current Phase:** 285
+- **Tests:** 3,690 passing (3,619 collected, 23 collection errors fixed in Ph283)
+- **Session theme:** Phases 271-285 -- Human sim layer, dashboard, /sim/ tabs, regulatory/compliance depth
 
-## This Session (Phases 271-280)
-- Ph 280: Energy Bill Support Scheme Tracker -- EBSS 2022-23 (11 tests)
-- Ph 279: Decarbonisation Score -- D-Score ESG tracker, company/sustainability/ (13 tests)
-- Ph 278: Dashboard Monthly Ops tab -- 103-month bill shock + committee timeline (11 tests)
+## This Session (Phases 271-285)
+- Ph 285: Renewable Obligation Tracker -- ROC surrender/buyout, 2016-2025 rates (10 tests)
+- Ph 284: Smart Meter Rollout Book -- SMIP targets, SMETS1/SMETS2 read rates (12 tests)
+- Ph 283: Consumer Duty Register -- 4 Ofgem outcomes + WHD portal fix (12+13 tests fixed)
+- Ph 282: VaR Monitor Book -- breach levels WITHIN/AMBER/RED vs treasury (13 tests)
+- Ph 281: WHD Tracker -- core/broader group, annual levy recovery (11 tests)
+- Ph 280: Energy Bill Support Scheme -- EBSS 2022-23 £66.67/month x 6 (11 tests)
+- Ph 279: Decarbonisation Score -- D-Score ESG tracker (13 tests)
+- Ph 278: Dashboard Monthly Ops tab -- 103-month bill shock timeline (11 tests)
 - Ph 277: Tariff Smoothing Book -- closes tariff smoothing backlog (11 tests)
-- Ph 276: BM Settlement tab on /sim/ -- Short%/NIV data from Elexon cache (10 tests)
-- Ph 275: Green Claims Audit test coverage -- REGO/green product compliance (12 tests)
-- Ph 274: Life Event Impact Assessor -- PSR/consumption/vulnerability routing (12 tests)
-- Ph 273: Management Accounts dashboard tab -- P&L waterfall + cost stack chart (10 tests)
-- Ph 272: Physical Home Registry -- customer->property mapping + portfolio stats (12 tests)
-- Ph 271: Weather Engine & HDD tab on /sim/ + NTFY spam fix (10 tests)
+- Ph 276: BM Settlement tab on /sim/ -- Short%/NIV data (10 tests)
+- Ph 275: Green Claims Audit (12 tests)
+- Ph 274: Life Event Impact Assessor (12 tests)
+- Ph 273: Management Accounts tab (10 tests)
+- Ph 272: Physical Home Registry (12 tests)
+- Ph 271: Weather Engine + NTFY spam fix (10 tests)
 
 
 **Latest simulation results (2016–2025)** — auto-processed (476s / 8 min):
