@@ -106,3 +106,22 @@ class WHDBook:
             "broader_group": sum(1 for r in recs if not r.is_core_group),
             "levy_recoverable_gbp": self.levy_recoverable_gbp(),
         }
+
+
+def whd_eligible_customers(service_log) -> list[str]:
+    """Return customer IDs from the vulnerability register (WHD Broader Group candidates)."""
+    flags = service_log.vulnerability_register()
+    return list({f.customer_id for f in flags})
+
+
+def whd_summary(service_log, scheme_year: int) -> dict:
+    """Convenience wrapper: WHD summary derived from vulnerability register for a scheme year."""
+    eligible = whd_eligible_customers(service_log)
+    return {
+        "scheme_year": scheme_year,
+        "eligible_customers": len(eligible),
+        "eligible_ids": eligible,
+        "core_group_discount_gbp": _CORE_DISCOUNT.get(scheme_year, 150.0),
+        "broader_group_discount_gbp": _BROADER_DISCOUNT.get(scheme_year, 150.0),
+        "estimated_total_outlay_gbp": round(len(eligible) * _BROADER_DISCOUNT.get(scheme_year, 150.0), 2),
+    }

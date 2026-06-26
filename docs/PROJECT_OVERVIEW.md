@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,630 tests passing. Codebase: ~36,350 lines across 268+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,655 tests passing. Codebase: ~36,500 lines across 270+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 283 (2026-06-26):** Consumer Duty Compliance Register -- 12 new tests (3,655 total). company/compliance/consumer_duty.py: DutyOutcome (4 Ofgem-mandated outcomes), OutcomeRAG (GREEN/AMBER/RED), frozen OutcomeAssessment (is_compliant), ConsumerDutyRegister (latest_for_outcome/overall_rag/outcomes_summary). Also fixed: warm_home_discount.py now exports whd_summary() and whd_eligible_customers() module-level functions required by portal/app.py -- resolved 23 test collection errors unblocking 226 previously-hidden tests.
 
 **Phase 282 (2026-06-26):** VaR Monitor Book -- 13 new tests (3,630 total). company/risk/var_monitor.py: VaRBreachLevel (WITHIN_LIMIT/AMBER/RED), frozen VaRObservation (current_var_gbp/stressed_var_gbp/treasury_gbp; var_as_pct_treasury/stress_uplift_pct), VaRMonitorBook (configurable amber/red limits; record_observation/breach_count/peak_var/mean_var_gbp/var_trend/var_summary). Tracks company-observable VaR from risk committee wake-up outputs. Fills key gap in company/risk/ (previously just 2 test files).
 
@@ -3945,7 +3947,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,630 tests (3,188 fast / ~10s; simulation integration ~8 min per run)
+- 3,655 tests (3,213 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
