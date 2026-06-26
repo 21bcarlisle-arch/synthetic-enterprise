@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Collections Queue</title>
+  <style>body{font-family:sans-serif;max-width:1000px;margin:40px auto;padding:0 16px}
+    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
+    th{background:#ebf8ff}
+    .t90{color:#c53030;font-weight:600}.t60{color:#c05621}.t30{color:#d69e2e}.t0{color:#276749}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a> | <a href="/admin">Admin</a></nav>
+  <h1>Collections Queue</h1>
+  <p><em>Customers with unpaid invoices past due date, sorted by severity.</em></p>
+  {% if queue %}
+  <table>
+    <tr><th>Customer</th><th>Overdue invoices</th><th>Total outstanding</th>
+        <th>Oldest due</th><th>Days overdue</th><th>Tier</th></tr>
+    {% for c in queue %}
+    <tr>
+      <td><a href="/account/{{ c.account_id }}">{{ c.account_id }}</a></td>
+      <td>{{ c.overdue_count }}</td>
+      <td>£{{ "%.2f"|format(c.total_overdue_gbp) }}</td>
+      <td>{{ c.oldest_due_date }}</td>
+      <td>{{ c.max_days_overdue }}</td>
+      <td class="{{ "t90" if c.tier == "90+" else "t60" if c.tier == "60-90" else "t30" if c.tier == "30-60" else "t0" }}">
+        {{ c.tier }} days</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p><em>No overdue accounts. Collections queue is clear.</em></p>
+  {% endif %}
+</body>
+</html>

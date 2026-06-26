@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:58:06Z
+Last updated: 2026-06-26T03:00:32Z
+
+**Phase 96 COMPLETE (2026-06-26):** Collections queue -- 10 new tests (1,856 total).
+- company/billing/collections.py: overdue invoice query, per-customer aggregation, 4-tier aging
+- GET /admin/collections: collections queue sorted by severity (worst first)
+- admin_collections.html: tier colour-coded table with account links
 
 **Phase 95 COMPLETE (2026-06-26):** Contract renewal countdown -- 11 new tests (1,846 total).
 - company/billing/contract.py: contract_end_date(), days_until_renewal(), is_in_notice_window(), renewal_summary()
@@ -233,7 +238,7 @@ Last updated: 2026-06-26T02:58:06Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,846 total (all tests passing)**
+**Test suite: 1,856 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

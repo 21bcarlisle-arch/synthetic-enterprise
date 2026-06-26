@@ -25,6 +25,7 @@ from company.billing.hh_consumption import get_hh_consumption, recent_hh_periods
 from company.billing.eac_calibration import calibrate_eac, eac_drift
 from company.billing.direct_debit import set_mandate, get_mandate, cancel_mandate, is_dd_customer
 from company.billing.contract import renewal_summary
+from company.billing.collections import get_collections_queue
 from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
@@ -521,4 +522,12 @@ async def admin_complaints(request: Request):
     return templates.TemplateResponse(
         request, "admin_complaints.html",
         {"deadlines": deadlines},
+    )
+
+@app.get("/admin/collections", response_class=HTMLResponse)
+async def admin_collections(request: Request):
+    queue = get_collections_queue(_DEFAULT_DB) if _DEFAULT_DB.exists() else []
+    return templates.TemplateResponse(
+        request, "admin_collections.html",
+        {"queue": queue},
     )
