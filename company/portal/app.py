@@ -30,6 +30,7 @@ from company.billing.efficiency_advice import efficiency_summary
 from company.billing.collections import get_collections_queue
 from company.billing.consumption_forecast import forecast_annual_cost
 from company.billing.usage_benchmark import usage_benchmark
+from company.billing.carbon_footprint import estimate_carbon
 from company.crm.retention_risk import portfolio_risk_summary
 from company.market.rate_comparison import market_rate_comparison
 from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH

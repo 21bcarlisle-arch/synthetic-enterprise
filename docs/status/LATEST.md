@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:31:32Z
+Last updated: 2026-06-26T03:32:53Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 110 COMPLETE (2026-06-26):** Carbon footprint tracking -- 10 new tests (1,981 total).
+- company/billing/carbon_footprint.py: DESNZ grid intensity 2016-2025 (266→115 gCO2e/kWh), estimate_carbon() for elec+gas
+- Consumption portal: green footprint widget (kg CO2e/yr + tonnes)
+- Grid decarbonisation visible: 2016 EAC 3500kWh = 931kg CO2e; 2025 = 403kg (-57%)
+
 **Phase 109 COMPLETE (2026-06-26):** Admin retention dashboard -- 7 new tests (1,971 total).
 - GET /admin/retention: tier summary cards + sortable customer risk table
 - Admin nav: Retention button links to dashboard
@@ -304,7 +309,7 @@ Last updated: 2026-06-26T03:31:32Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,971 total (all tests passing)**
+**Test suite: 1,981 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

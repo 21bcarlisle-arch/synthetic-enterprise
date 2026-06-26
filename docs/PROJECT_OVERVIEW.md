@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,971 tests (1,543 non-simulation, 428 simulation). Codebase: ~28,300 lines across 224+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,981 tests (1,553 non-simulation, 428 simulation). Codebase: ~28,500 lines across 225+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,20 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 110 -- Carbon footprint tracking (2026-06-26)
+**Files:** `company/billing/carbon_footprint.py` (new), `company/portal/app.py` (extended), `company/portal/templates/consumption.html` (extended), `tests/company/billing/test_carbon_footprint.py` (new)
+
+**What was built:**
+- `electricity_intensity(year)`: DESNZ grid CO2e intensity 2016-2025 (266→115 gCO2e/kWh, -57%).
+- `estimate_carbon(eac_kwh, commodity, year)`: annual CO2e in kg + tonnes for electricity/gas.
+- `carbon_trend(eac_kwh, commodity, years)`: year-series for decarbonisation progress.
+- Consumption portal: green footprint widget showing annual kg/tonnes CO2e + grid intensity.
+
+**Fidelity delta:** UK suppliers must provide fuel mix and CO2 intensity data under Ofgem rules. Customers can now see their annual carbon footprint declining as the grid decarbonises — the same data British Gas, Octopus, and E.ON Next show in their apps.
+
+**10 new tests (1,981 total).**
+
+---
 ### Phase 109 -- Admin retention dashboard (2026-06-26)
 **Files:** `company/portal/app.py` (extended), `company/portal/templates/admin_retention.html` (new), `company/portal/templates/admin.html` (extended), `tests/company/portal/test_admin_retention.py` (new)
 
@@ -1629,14 +1643,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,971 tests (1,543 fast / ~10s; simulation integration ~8 min per run)
+- 1,981 tests (1,553 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 109, 2026-06-26):**
+**Latest full run (Phase 110, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
