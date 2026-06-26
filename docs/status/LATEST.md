@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T06:19:55Z
+Last updated: 2026-06-26T06:41:01Z
+
+**Phase 145 COMPLETE (2026-06-26):** Prepayment meter (PPM) management -- 19 new tests (2,340 total).
+- company/billing/prepayment.py: PPMAccount (balance/debt/emergency_credit_limit/debt_recovery_rate/is_vulnerable), PPMBook (register/top_up/consume_daily/friendly_hours/self_disconnect/portfolio_summary)
+- Debt recovery 50% of top-up (25% vulnerable); emergency credit £5 standard / £10 vulnerable; Ofgem friendly hours 10pm-6am/weekends block disconnect
+- Fidelity: 2022 crisis -- 3× rates exhaust emergency credit in 2 days vs weeks; closes gap between credit_scoring PPM recommendation and operational model
 
 **Phase 144 COMPLETE (2026-06-26):** Gas daily balancing and nomination model -- 13 new tests (2,321 total).
 - company/market/gas_nominations.py: DailyNomination + GasNominationBook (nominate/imbalance/cash_out/accuracy)
@@ -21,7 +26,7 @@ Last updated: 2026-06-26T06:19:55Z
 - Fidelity: Ofgem FMD regulations require REGO coverage equal to green electricity claimed -- company can now audit before publishing claims
 
 
-**Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Sim run 2026-06-26T06:23Z (git=64a65fe):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
 **Phase 141 COMPLETE (2026-06-27):** Customer lifetime value (CLV) -- 9 new tests (2,287 total).
 - company/crm/clv_calculator.py: DCF CLV model (10% WACC, 1/churn tenure)
 - clv_to_cac_ratio() HEALTHY (>=3x) / MARGINAL / BREAK_EVEN / LOSS_MAKING
@@ -478,7 +483,7 @@ Last updated: 2026-06-26T06:19:55Z
 
 **Test suite: 2,287 total (all tests passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (484s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (474s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
