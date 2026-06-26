@@ -558,6 +558,28 @@ timeline is now complete: forwards -> day-ahead -> intraday -> BM. 2022 crisis: 
 **15 new tests (3,388 total).**
 
 ---
+**Phase 257 -- Run Insight Generator / so-what layer (2026-06-26)**
+**Files:** tools/generate_insights.py (new), tests/test_insights.py (new), background/process_run_complete.py (modified)
+
+**What was built:**
+- InsightArea enum: TRADING / CUSTOMERS / RISK / FINANCIAL / OPERATIONS.
+- AreaInsight frozen dataclass: area, headline (one sentence), narrative (2-3 sentences), key_metrics (dict).
+- RunInsights frozen dataclass: git_hash, generated_at, net_margin_gbp, executive_summary, insights tuple.
+- generate_insights(): computes structured "so what" for all 5 areas from run output JSON.
+- save_insights(): writes docs/observability/run_insights.json (current run snapshot).
+- append_run_history(): accumulates docs/observability/run_history.json (one entry per run, deduplicates by git_hash).
+- Integrated into process_run_complete.py: runs automatically after every sim run, before commit.
+
+**Fidelity delta:** After every full sim run, the business generates a structured interpretation of its
+own results. Executive summary from latest run: "Business survived the full 2016-2025 window including
+the 2021-22 crisis. Net margin £6,322,836 (33.2% of revenue -- above 2-5% benchmark). Hedging cost
+£4,044,933 vs going naked. 445 bill shock events (107 in crisis years); 17/18 retention offers accepted."
+Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
+
+**15 new tests (3,403 total).**
+
+
+---
 **12 new tests (3,373 total).**
 
 ---
@@ -3729,14 +3751,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,388 tests (2,971 fast / ~10s; simulation integration ~8 min per run)
+- 3,403 tests (2,986 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 255, 2026-06-26):**
+**Latest full run (Phase 257, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 

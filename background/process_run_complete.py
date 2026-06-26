@@ -232,6 +232,17 @@ def main(marker_path_str):
     except Exception as exc:
         log("Revenue sanity check skipped: {}".format(exc))
 
+
+    log("Generating run insights (so-what layer)")
+    try:
+        from tools.generate_insights import generate_insights, save_insights, append_run_history
+        insights = generate_insights(data, git_hash)
+        save_insights(insights)
+        append_run_history(insights)
+        log("Run insights saved: {}".format(insights.executive_summary[:80]))
+    except Exception as exc:
+        log("Run insights generation skipped: {}".format(exc))
+
     log("Publishing market price feed")
     try:
         from simulation.publish_market_feed import publish as _publish_feed

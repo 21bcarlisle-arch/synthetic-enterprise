@@ -1,0 +1,73 @@
+{
+  "git_hash": "abc1234",
+  "generated_at": "2026-06-26T13:11:08.212525+00:00",
+  "net_margin_gbp": -8317.21,
+  "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin -\u00a38,317 (0.0% of revenue -- below 2-5% benchmark). Hedging added \u00a30 vs going naked (commodity basis). 0 bill shock events (0 in crisis years); 2/2 retention offers accepted.",
+  "insights": [
+    {
+      "area": "trading",
+      "headline": "Hedging added \u00a30 vs going naked (commodity basis)",
+      "narrative": "Whole-run commodity basis: actual net \u00a30 vs naked \u00a30. The 85% minimum hedge mandate added \u00a30 over the 10-year window. Hedging reduces variance (survival objective) at the cost of expected P&L.",
+      "key_metrics": {
+        "whole_run_actual_net_gbp": 0.0,
+        "whole_run_naked_net_gbp": 0.0,
+        "hedging_cost_gbp": 0.0,
+        "worst_year": "",
+        "worst_year_cost_gbp": 0.0
+      }
+    },
+    {
+      "area": "customers",
+      "headline": "0 bill shock events (0 in crisis years); 2/2 retention offers accepted",
+      "narrative": "Bill shocks across 2016-2025: 0 events, 0 extreme (>100%). 2021-22 accounted for 0 shocks as wholesale prices spiked. Retention: 2/2 offers accepted (100%); 3 customers churned without an offer (margin guard blocked). Enterprise value: -\u00a320,662 across 0 accounts.",
+      "key_metrics": {
+        "total_bill_shocks": 0,
+        "crisis_year_shocks": 0,
+        "extreme_shocks_over_100pct": 0,
+        "retention_offers": 2,
+        "retained": 2,
+        "no_offer_churns": 3,
+        "total_churned": 3,
+        "enterprise_value_gbp": -20661.9
+      }
+    },
+    {
+      "area": "risk",
+      "headline": "Risk committee: 323 interventions; SURVIVED full 2016-2025 window",
+      "narrative": "The risk committee (Context Handshake) intervened 323 times over 10 years, with 0 in the 2021-22 crisis. Business survived: No administration event -- Ofgem solvency floor maintained.. The 85% minimum hedge mandate limited worst-case exposure.",
+      "key_metrics": {
+        "committee_interventions_total": 323,
+        "crisis_year_interventions": 0,
+        "survived": true,
+        "administration_event": null
+      }
+    },
+    {
+      "area": "financial",
+      "headline": "Net margin -\u00a38,317 (0.0% of revenue -- below 2-5% benchmark)",
+      "narrative": "Gross margin -\u00a37,090, net -\u00a38,317 (0.0% of revenue). Industry benchmark: 2-5% -- this business sits below that range. I&C customers contribute 0% of net margin (\u00a30); residential 100% (\u00a30). Cost to serve: \u00a30; net after CTS: -\u00a323,569.",
+      "key_metrics": {
+        "net_margin_gbp": -8317.21,
+        "gross_margin_gbp": -7089.58,
+        "revenue_gbp": 0.0,
+        "net_margin_pct": 0.0,
+        "ic_net_margin_gbp": 0,
+        "ic_net_pct_of_total": 0.0,
+        "cost_to_serve_gbp": 0.0,
+        "net_after_cost_to_serve_gbp": -23569.0
+      }
+    },
+    {
+      "area": "operations",
+      "headline": "1117 bills issued; service quality 0.000/1.0, clarity 0.000/1.0",
+      "narrative": "1117 bills issued over 2016-2025 (avg 112/yr). Service quality: 0.000 (below target). Bill clarity: 0.000 (below target). Cost to serve: \u00a30 portfolio total, \u00a30/account/run.",
+      "key_metrics": {
+        "bills_total": 1117,
+        "avg_clarity": 0.0,
+        "service_quality_score": 0.0,
+        "cost_to_serve_gbp": 0.0,
+        "cost_to_serve_per_account_gbp": 0.0
+      }
+    }
+  ]
+}
