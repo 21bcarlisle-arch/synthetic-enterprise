@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,734 tests passing. Codebase: ~37,350 lines across 276+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,746 tests passing. Codebase: ~37,500 lines across 277+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 290 (2026-06-26):** Counterparty Credit Limit Book -- 12 new tests (3,746 total). company/finance/credit_limit_book.py: CounterpartyType (5 types), frozen CreditLimit (is_material>=£1M), frozen ExposureRecord (total_exposure = MTM + PFE; is_stress_exposure when PFE>2xMTM), CreditLimitBook (utilisation_pct, is_breach, breaches, limit_summary with portfolio_utilisation_pct). Connects to MarginCallBook — breach triggers escalation to credit committee.
 
 **Phase 289 (2026-06-26):** Margin Call Book -- 11 new tests (3,734 total). company/finance/margin_call_book.py: MarginCallStatus (RECEIVED/SETTLED/DISPUTED/DEFAULTED), frozen MarginCallEvent (is_stress_event >£500k variation margin), MarginCallBook (credit_facility_gbp, settle_call, total_outstanding, headroom_gbp, is_liquidity_stressed at 80% utilisation, stress_events). Models the 2022 crisis mechanism that triggered administration in 29 UK suppliers when margin calls exceeded credit facility headroom.
 
@@ -3959,7 +3961,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,734 tests (3,292 fast / ~10s; simulation integration ~8 min per run)
+- 3,746 tests (3,304 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
