@@ -1,49 +1,53 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-26T21:32:10Z
+Last updated: 2026-06-26T21:35:22Z
 
 ## Current state
 
-- **Phase:** 293 complete
-- **Tests passing:** 3,778 (all green)
-- **Python modules:** 280+
+- **Phase:** 300 complete — MILESTONE
+- **Tests passing:** 3,852 (all green)
+- **Python modules:** 287+
+- **Company modules:** 219
 - **Net position (latest sim run):** £1,330,126
 
-## Major milestone: 7-of-7 non-commodity cost ledgers complete
+## Phase 300 milestone summary
 
-| # | Cost | Phase | Rate range |
-|---|------|-------|------------|
-| 1 | Capacity Market | Ph245 | £6-75/kW/yr |
-| 2 | CfD Levy | Ph248 | -£12.3 to +£7.5/MWh (crisis: went negative) |
-| 3 | Renewable Obligation | Ph285 | £44-59/ROC buyout |
-| 4 | FIT Levelisation | Ph286 | £8.36-9.45/MWh (ended 2019) |
-| 5 | DUoS | Ph291 | 1.85-2.75 p/kWh |
-| 6 | TNUoS | Ph292 | 0.68-1.32 p/kWh residual |
-| 7 | BSUoS | Ph293 | £2.10-6.85/MWh (3.26x crisis uplift) |
+Starting from Phase 277 in this session, built 24 phases across:
 
-## Recent phases (278–293)
+- **7 non-commodity electricity cost ledgers:** CM, CfD, RO, FIT, DUoS, TNUoS, BSUoS
+- **Cost-to-Serve Calculator:** unified per-unit economics (Ph294)
+- **Ofgem Price Cap Book:** 26 quarters real data Q1-2019 to Q1-2025 (Ph295)
+- **Trading infrastructure:** Margin Calls (Ph289), Counterparty Credit Limits (Ph290), Imbalance Ledger (Ph297)
+- **Regulatory compliance:** REMIT Reporting (Ph296), Regulatory Dashboard (Ph300)
+- **Customer operations:** CoS Process (Ph298), Supply Point Register (Ph299)
+- **ESG/Sustainability:** ECO Obligation (Ph288), Decarbonisation Score (Ph279)
+- **Regulatory protections:** WHD (Ph281), EBSS (Ph280), Consumer Duty (Ph283)
+- **Reporting:** VaR Monitor (Ph282), Smart Meter Rollout (Ph284), FIT/RO/FMD books
 
-| Phase | Title | Tests |
-|-------|-------|-------|
-| 293 | BSUoS Charge Ledger (7/7 non-commodity) | +11 |
-| 292 | TNUoS Charge Ledger | +10 |
-| 291 | DUoS Charge Ledger | +11 |
-| 290 | Counterparty Credit Limit Book | +12 |
-| 289 | Margin Call Book | +11 |
-| 288 | ECO Obligation Tracker | +10 |
-| 287 | Fuel Mix Disclosure Report | +12 |
-| 286 | Feed-in Tariff (FIT) Book | +11 |
-| 285 | Renewable Obligation Tracker | +10 |
-| 284 | Smart Meter Rollout Book | +12 |
-| 283 | Consumer Duty Register | +12 |
-| 282 | VaR Monitor Book | +13 |
-| 281 | Warm Home Discount Book | +11 |
-| 280 | Energy Bill Support Scheme | +11 |
-| 279 | Decarbonisation Score | +13 |
-| 278 | Dashboard Monthly Ops tab | +11 |
+## All company modules (219 total)
 
-**Latest simulation results (2016–2025)** — auto-processed (475s / 8 min):
-- Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
-- Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
-- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
+Finance (19): treasury, credit facility, P&L, double-entry, cash flow, payroll, budget,
+working capital, margin calls, credit limits, management accounts, board KPIs, bad debt,
+revenue accruals, period reconciliation, trade finance, company P&L, board dashboard
+
+Market (22): forwards, day-ahead, intraday, gas OTC, gas storage, CfD levy, PPA,
+capacity market, metering contracts, DUoS, TNUoS, BSUoS, imbalance, smart meter rollout
+
+CRM (57): acquisition, retention, CLV/CAC, churn, CSS, NPS, campaign tracker,
+behaviour segments, contact journey, CoS process, supply point register, vulnerability,
+property improvements, energy profiles, home registry...
+
+Regulatory (18): SFR, compliance scorecard, consumer duty, RO, FIT, FMD, EBSS, WHD,
+ECO obligation, price cap, REMIT, regulatory dashboard
+
+Risk (3): hedge policy, risk appetite, VaR monitor
+
+Sustainability (1): decarbonisation score
+
+Pricing (2): tariff smoothing, cost-to-serve
+
+Compliance (1): consumer duty
+
+Portal (2): app, templates
+
+Interfaces (1): sim_interface
