@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 146 -- Change of Tenancy (COT) management (2026-06-26)
+**Files:** `company/billing/cot.py` (new), `tests/company/billing/test_cot.py` (new)
+
+**What was built:**
+- `COTType` enum: MOVE_OUT / MOVE_IN.
+- `COTEvent` dataclass: customer_id, meter_point, cot_type, date, meter_read_kwh, new_occupant_id.
+- `COTBook`: record_move_out() (triggers void), record_move_in() (clears void), void_properties(), void_days(meter_point, as_of), overdue_for_nomination(as_of) (voids >28 days -> regulatory trigger to place on named SVT), portfolio_summary() (total_voids/avg_void_days/overdue_count), events_for(meter_point).
+- `deemed_rate_gbp_per_kwh(date)`: SVT + 20% uplift, capped at Ofgem domestic price cap. 2022: 28p SVT -> 33.6p deemed (capped at 34p). 2019: 15.5p SVT -> capped at 16p.
+
+**Fidelity delta:** ~3% of UK electricity meter points change occupancy each year. When a customer vacates, the property enters a "void" state -- the supplier must still meter it, bill "The Occupier" at deemed rates, and place it on a named SVT contract within 28 days. There was previously no model for this: customers persisted indefinitely at the same meter point. Phase 146 closes this: the company now tracks meter-point lifecycle from move-out through void period to new-occupant move-in.
+
+**13 new tests (2,353 total).**
+
+---
 ### Phase 145 -- Prepayment meter (PPM) management (2026-06-26)
 **Files:** `company/billing/prepayment.py` (new), `tests/company/billing/test_prepayment.py` (new)
 
@@ -2093,16 +2107,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,340 tests (1,924 fast / ~10s; simulation integration ~8 min per run)
+- 2,353 tests (1,937 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 145, 2026-06-26):**
+**Latest full run (Phase 146, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
+- 13 new tests: Change of Tenancy (COT) management — COTBook move-out/move-in/void tracking, 28-day nomination trigger, deemed rate (SVT+20% capped at Ofgem cap).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

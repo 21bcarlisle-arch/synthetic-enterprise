@@ -1,36 +1,38 @@
-Phase 145 -- Prepayment Meter (PPM) Management
+Phase 146 -- Change of Tenancy (COT) Management
 
 Status: PROPOSED (2026-06-26)
 
-PPM is referenced by credit_scoring (HIGH_RISK -> PPM recommended) and meter_assets
-(PPM as meter type), but there is no operational model. ~4M UK customers use PPM.
-The 2022 crisis created a wave of self-disconnection when customers could not afford
-to top up. Ofgem tightened PPM installation rules in 2023 as a direct consequence.
+UK suppliers handle tens of thousands of COT events per year. When a customer moves
+out of a property, the supplier must:
+1. Accept the move-out notification, take a final meter read, issue a final bill
+2. Hold the property as "void" (no named occupant) and bill "The Occupier" at deemed rates
+3. Accept a move-in from the new occupant, start a new deemed contract
+4. After 28 days void, switch to a named SVT contract (regulatory obligation)
 
-Design: company/billing/prepayment.py
+The current model has no mechanism for this. Customers just persist indefinitely on the
+same metering point. This is a significant fidelity gap: ~3% of UK electricity meter points
+change occupancy each year.
 
-PPMAccount(customer_id, meter_id, balance_gbp, emergency_credit_limit_gbp=5.0,
-           debt_recovery_rate=0.5, is_vulnerable=False)
-- balance_gbp: current credit on meter (can go negative = drawing emergency credit)
-- emergency_credit_limit_gbp: 5 GBP standard, 10 GBP for vulnerable customers
-- debt_recovery_rate: fraction of top-up withheld for debt (default 0.50)
-- debt_gbp: outstanding debt being recovered via top-ups
+Design: company/billing/cot.py
 
-PPMBook:
-- register(account) -> record in portfolio
-- top_up(account_id, amount_gbp, date) -> if debt: withhold rate*amount for debt,
-  remainder to balance. If debt-free: full amount to balance.
-- consume_daily(account_id, kwh, rate_gbp_per_kwh, sc_gbp_per_day, date) -> deduct
-  from balance; when balance hits zero, draw emergency credit (up to limit)
-- is_friendly_hours(dt) -> bool: Ofgem rule no disconnect 10pm-6am or weekends
-- is_self_disconnected(account_id, dt) -> bool: balance < -emergency_credit_limit
-  AND NOT friendly_hours(dt) -- exhausted emergency credit, customer cut off
-- portfolio_summary() -> total_accounts, self_disconnected, avg_balance_gbp,
-  total_debt_gbp, pct_in_emergency_credit
+COTType enum: MOVE_OUT / MOVE_IN / VOID
 
-2022 dynamic: NBP gas +10x, SSP electricity +3x -> daily deduction rises sharply ->
-emergency credit exhausted in days not weeks -> self-disconnection surge matches Ofgem data.
+COTEvent(customer_id, mpan_or_mprn, cot_type, date, meter_read_kwh, new_occupant_id=None)
+- Move-out: triggers final read acknowledgement  
+- Move-in: opens a deemed contract at deemed_rate
+- Void: property with no named occupant
 
-Vulnerable customers: emergency_credit_limit 10 GBP (vs 5), debt_recovery_rate capped 0.25.
+COTBook:
+- record_move_out(customer_id, date, final_read_kwh) -> COTEvent
+- record_move_in(mpan, new_customer_id, date, opening_read_kwh) -> COTEvent
+- void_properties() -> list[str] MPANs/MPRNs with no current occupant
+- void_days(mpan, as_of_date) -> int days since last move-out
+- deemed_rate_gbp_per_kwh(date) -> SVT unit rate + 20% uplift (Ofgem cap-aware for domestic)
+- overdue_for_nomination(as_of_date) -> void properties >28 days (regulatory trigger)
+- portfolio_summary() -> total_voids, avg_void_days, total_deemed_revenue_gbp
 
-~11 tests. Closes the gap between credit_scoring PPM recommendation and actual PPM operations.
+2022 dynamic: spike in property voids as customers fell into arrears and abandoned properties.
+Deemed rate capped at Ofgem price cap for domestic properties.
+
+~11 tests. Closes the metering-point lifecycle gap: property changes hands but company has
+no model for what happens between occupants.
