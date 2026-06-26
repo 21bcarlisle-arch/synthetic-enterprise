@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 246 -- Gas seasonal storage book (2026-06-26)
+**Files:** `company/market/gas_storage.py` (new), `tests/company/market/test_gas_storage.py` (new)
+
+**What was built:**
+- StorageFacility (5): ROUGH (3,300 mcm — mothballed May 2017) / STUBLACH (390 mcm) / HOLFORD (40 mcm) / HUMBLY_GROVE (320 mcm) / HORNSEA (140 mcm).
+- StorageOperation: INJECT / WITHDRAW.
+- StorageTransaction frozen: facility, date, operation, volume_mcm, price_gbp_per_therm; cost_gbp (positive=inject/outflow, negative=withdraw/inflow); therms_per_mcm = 3,412.14; is_winter_operation (Oct-Mar).
+- GasStorageBook mutable: inject(), withdraw() — updates _inventory_mcm dict; inventory_mcm(facility), total_injected_mcm(year), net_storage_cost_gbp(year), spread_gbp_per_therm(facility, year), storage_summary(year).
+
+**Fidelity delta:** The Rough field closure in May 2017 reduced UK seasonal storage capacity by ~70% (from 4.4 BCm to 1.2 BCm). This is widely cited as a reason UK consumers were most exposed to the 2021-22 gas price spike — less buffer stock meant immediate passthrough of NBP spot prices. The storage spread (withdraw price minus inject price) is the P&L of a "buy summer/sell winter" gas trading strategy: 2022 spread of ~£120/therm was the highest on record. spread_gbp_per_therm() connects to GasNominationBook (Ph144) imbalance analysis: well-managed storage reduces nomination error and cashout costs.
+
+**9 new tests (3,264 total).**
+
+---
 ### Phase 245 -- Capacity Market participation book (2026-06-26)
 **Files:** `company/market/capacity_market.py` (new), `tests/company/market/test_capacity_market.py` (new)
 
@@ -3539,7 +3553,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,255 tests (2,838 fast / ~10s; simulation integration ~8 min per run)
+- 3,264 tests (2,847 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
