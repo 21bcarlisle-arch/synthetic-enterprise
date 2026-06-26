@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T04:06:35Z
+Last updated: 2026-06-26T04:07:50Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 125 COMPLETE (2026-06-27):** Ofgem market benchmark data -- 9 new tests (2,138 total).
+- company/market/market_report.py: UK avg elec/gas rates 2016-2025, switching rate
+- market_benchmark(), compare_to_market() with BELOW/AT/ABOVE_MARKET ±3% positioning
+- Fidelity: Ofgem quarterly domestic market report is standard market intelligence input
+
 **Phase 124 COMPLETE (2026-06-27):** Churn waterfall + reason code analysis -- 10 new tests (2,129 total).
 - company/crm/churn_analytics.py: ChurnEvent (8 reason codes), ChurnWaterfall, ChurnAnalytics
 - reason_breakdown() sorted by count, retention_rate(), summary() with churn/growth rate pct
@@ -379,7 +384,7 @@ Last updated: 2026-06-26T04:06:35Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,129 total (all tests passing)**
+**Test suite: 2,138 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (440s / 7 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
