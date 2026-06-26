@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 160 -- Smart Export Guarantee (SEG) tariff management (2026-06-26)
+**Files:** `company/billing/smart_export.py` (new), `tests/company/billing/test_smart_export.py` (new)
+
+**What was built:**
+- `seg_rate_ppm(year)`: year-indexed export rates 2020–2025 (5.5p→7p→15p→12p→8.5p→7p; 2022 crisis peak).
+- `seg_valid_rate(rate)`: enforces Ofgem SEG minimum (>0p, conventionally ≥1p).
+- `SEGAccount`: record_export(year_month, kwh), payment_for_period(), total_export_kwh(), annual_summary().
+- `SEGBook`: register() (rejects sub-minimum rates), record_export(), get_account(), portfolio_summary().
+
+**Fidelity delta:** The Smart Export Guarantee (SEG), effective 1 January 2020, requires UK suppliers with >150k customers to offer export tariffs to solar/battery customers. Smaller suppliers may opt in. Previously all generation was uncompensated — solar PV customers received no export income. Phase 160 closes this: prosumer customers can register for SEG, record monthly export volumes, and receive payment. The 2022 crisis dynamic shows exports more than doubling in value (5.5p→15p/kWh).
+
+**12 new tests (2,518 total).**
+
+---
 ### Phase 159 -- Economy 7 off-peak tariff billing (2026-06-26)
 **Files:** `company/billing/economy7.py` (new), `tests/company/billing/test_economy7.py` (new)
 
@@ -2288,7 +2302,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,506 tests (2,090 fast / ~10s; simulation integration ~8 min per run)
+- 2,518 tests (2,102 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
