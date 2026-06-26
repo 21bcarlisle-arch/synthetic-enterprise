@@ -1824,3 +1824,37 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
 - [2026-06-26T01:11:21Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-06-26T01:11:54Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-06-26T01:28:51Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T01:47:53Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T02:06:41Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T02:26:05Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T02:45:02Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T03:03:53Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## 2026-06-26 — Phases 82–98 (continuation from context-limit session) — Portal completion + company operations
+
+- **Frontier tokens:** not computed from transcript (continuation across context boundary); session covered 17 phase-closes plus maintenance. No Qwen delegation this session — all code written directly by orchestrator.
+- **Local model calls:** 0 — entirely frontier-written.
+- **Produced:**
+  - Commits: 140 (including auto-processed run completions and observability updates)
+  - File changes: +47,082 / -28,767 across 738 file-changes
+  - Tests: 1,622 → 1,872 (250 new tests across 17 phases, all passing)
+  - CLAUDE.md: trimmed phases 55–65 to phase-history.md (190 → 179 lines); currently 184 lines
+  - Features shipped (Phases 82–98):
+    - Phase 83: Portal payment flow (POST /pay, payment_confirm.html, Pay button in bills)
+    - Phase 84: Regulatory compliance portal (smart meter / solvency dashboard page)
+    - Phase 85: Admin portfolio view (all customers, revenue summary)
+    - Phase 86: Account statement (print-optimised statement.html)
+    - Phase 87: EAC calibration from invoice history + drift display on consumption page
+    - Phase 88: Direct Debit mandate setup/cancel (SQLite-backed, soft-delete)
+    - Phase 89: ServiceLog SQLite persistence (persistent connection; all 94 CRM tests unchanged)
+    - Phase 90: Contact Us form → ServiceEvent recorded in persistent CRM
+    - Phase 91: CSS annual filing wired to real ServiceLog; regulatory dashboard CSS section
+    - Phase 92: Peak/off-peak band overlay on HH consumption (Destinationvision C7 test met)
+    - Phase 93: Warm Home Discount module (WHD_REBATE_BY_YEAR 2017–2025, portal badge + regulatory section)
+    - Phase 94: Complaint deadline tracker (2-working-day ack + 8-week resolve; GET /admin/complaints)
+    - Phase 95: Contract renewal countdown (contract_end_date(), notice window CTA on dashboard)
+    - Phase 96: Collections queue (aging tiers 0–30/30–60/60–90/90+; GET /admin/collections)
+    - Phase 97: Annual cost forecast (EAC × rate + SC × 365; quarterly UK heating profile split)
+    - Phase 98: Admin upcoming renewals (90-day horizon; urgency colour-coding)
+    - Maintenance: archived phases 55–65 to phase-history.md; Destinationvision all gaps closed
+- **Notes:** All Destinationvision gaps (F1–F4, C1–C4, T1–T3, FI1–FI3, M1–M3) now closed. Transition Test criteria all met. Session was a continuation from a prior context-limit boundary; no staging files were found pending at any check. Epistemic verifier PASS on every phase. No speculative work discarded.
+
