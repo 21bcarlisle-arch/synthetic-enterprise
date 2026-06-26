@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 156 -- Tariff variation notice management (2026-06-26)
+**Files:** `company/billing/tariff_variation.py` (new), `tests/company/billing/test_tariff_variation.py` (new)
+
+**What was built:**
+- `VariationReason` enum: PRICE_CAP_CHANGE / POLICY_COST_CHANGE / NETWORK_COST_CHANGE / TARIFF_RESTRUCTURE / COMMERCIAL_DECISION.
+- `VariationOutcome` enum: PENDING / ACCEPTED / REJECTED_SWITCHED_AWAY / REJECTED_STAYED.
+- `TariffVariation` dataclass: notice_period_days, is_adequate_notice() (>=30 days), has_no_exit_fee_window(as_of) (notice_sent ≤ as_of ≤ effective_date), rate_change_pct.
+- `TariffVariationBook`: issue_notice(), record_response(), pending_variations(as_of), variations_for_customer(), inadequate_notice_violations() (compliance flag), annual_summary() (total/accepted/switched_away/violations).
+
+**Fidelity delta:** Ofgem SLC 23.1 requires suppliers to give at least 30 days notice before changing a tariff unit rate for an existing customer. During the notice window the customer can switch away without an exit fee. Previously tariff changes were applied without any notice-period model. Phase 156 closes this: variation notices are issued, tracked through the notice window, and compliance violations are flagged.
+
+**13 new tests (2,471 total).**
+
+---
 ### Phase 155 -- Customer complaint management and Ombudsman escalation (2026-06-26)
 **Files:** `company/crm/complaints.py` (new), `tests/company/crm/test_complaints.py` (new)
 
@@ -2231,7 +2245,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,458 tests (2,042 fast / ~10s; simulation integration ~8 min per run)
+- 2,471 tests (2,055 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
