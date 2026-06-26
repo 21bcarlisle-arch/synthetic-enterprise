@@ -538,6 +538,26 @@ Net after CTS:               £7,498
 
 **Fidelity delta:** Ofgem publishes annual CSS rankings and uses bottom-quartile performance as an "Enhanced Monitoring" trigger. The 2022 crisis dropped the industry-wide score to 5.2/10 — even suppliers that didn't collapse faced formal monitoring. vs_industry_avg() positions the supplier on the league table: a supplier at 5.5/10 in 2022 is actually +0.3 above average despite crisis conditions, which is meaningful for regulatory risk assessment. recommend_rate() feeds into NPS (Net Promoter Score) tracking — a key board KPI. Connects to ComplaintRegister (Ph218), ContactJourney (Ph244), and NPSTracker for a complete customer experience picture.
 
+**Phase 256 -- Day-ahead electricity trading book (N2EX/EPEX SPOT UK) (2026-06-26)**
+**Files:** company/market/day_ahead_book.py (new), tests/company/market/test_day_ahead_book.py (new)
+
+**What was built:**
+- DayAheadDirection: BUY / SELL.
+- DayAheadAuction frozen: auction_id/delivery_date/direction/volume_mwh/bid_price_gbp_per_mwh/cleared_price_gbp_per_mwh/auctioned_at.
+  Properties: cost_gbp (BUY=positive/SELL=negative), vs_forward_spread_gbp_per_mwh, is_crisis_price (>300 GBP/MWh).
+- DayAheadBook: submit_auction() (validates volume>0 and auctioned_at before delivery_date), auctions_for_month(),
+  net_position_mwh(), total_volume_mwh(), total_cost_gbp(), average_clearing_price() (volume-weighted),
+  crisis_auctions(), monthly_summary(), day_ahead_summary().
+
+**Fidelity delta:** N2EX day-ahead auction is the largest UK electricity market by volume. Suppliers buy ~60-70% of
+daily energy in a once-daily clearing at ~11:00 CET for the following delivery day. Previously the company had
+forwards (weeks ahead) and intraday (same day) but no day-ahead layer. Phase 256 closes this gap: trading
+timeline is now complete: forwards -> day-ahead -> intraday -> BM. 2022 crisis: under-hedged supplier buying
+100 MWh/day at DA 450/MWh pays 45,000/day vs 4,500 normal. vs_forward_spread tracks the DA premium over hedge.
+
+**15 new tests (3,388 total).**
+
+---
 **12 new tests (3,373 total).**
 
 ---
@@ -3709,7 +3729,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,373 tests (2,956 fast / ~10s; simulation integration ~8 min per run)
+- 3,388 tests (2,971 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
