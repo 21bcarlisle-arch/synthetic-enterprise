@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,278 tests (1,850 non-simulation, 428 simulation). Codebase: ~34,300 lines across 254+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,287 tests (1,859 non-simulation, 428 simulation). Codebase: ~34,500 lines across 255+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 141 -- Customer lifetime value (CLV) calculator (2026-06-27)
+**Files:** `company/crm/clv_calculator.py` (new), `tests/company/crm/test_clv_calculator.py` (new)
+
+**What was built:**
+- `compute_clv()`: DCF model using 10% discount rate and tenure = 1/churn_rate. CLV = annual_net_margin * ((1-(1+r)^-n)/r). Margin tiers: PREMIUM (>=200), STANDARD (50-200), LOW (0-50), NET_NEGATIVE (<0).
+- `clv_to_cac_ratio()`: compares CLV to CAC (Phase 123). HEALTHY (>=3x) / MARGINAL (>=1.5x) / BREAK_EVEN (>=1x) / LOSS_MAKING.
+- `portfolio_clv_summary()`: total/mean CLV, tier distribution.
+
+**Fidelity delta:** CLV:CAC ratio is the primary metric for evaluating whether acquisition spend is justified. A ratio below 1.0 means the company loses money on every customer acquired through that channel. Connects to CAC model (Phase 123) and churn analytics (Phase 124) for a full customer economics picture.
+
+**9 new tests (2,287 total).**
+
+---
 ### Phase 140 -- MOA charge management (2026-06-27)
 **Files:** `company/billing/moa_charges.py` (new), `tests/company/billing/test_moa_charges.py` (new)
 
@@ -2027,14 +2040,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,278 tests (1,850 fast / ~10s; simulation integration ~8 min per run)
+- 2,287 tests (1,859 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 140, 2026-06-27):**
+**Latest full run (Phase 141, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
