@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Confirmation — {{ customer.customer_id }}</title>
+  <style>body{font-family:sans-serif;max-width:600px;margin:40px auto;padding:0 16px}
+    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    .result{padding:16px;border-radius:6px;margin:20px 0}
+    .paid{background:#f0fff4;border:1px solid #276749;color:#276749}
+    .partially_paid{background:#fffbeb;border:1px solid #c05621;color:#c05621}
+    .no_match{background:#fff5f5;border:1px solid #c53030;color:#c53030}
+    dl{display:grid;grid-template-columns:max-content auto;gap:4px 16px}
+    dt{font-weight:600}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a>
+       | <a href="/account/{{ customer.customer_id }}/bills">Bills</a></nav>
+  <h1>Payment Confirmation</h1>
+  <div class="result {{ result }}">
+    {% if result == "paid" %}
+      <strong>Payment recorded — invoice fully settled.</strong>
+    {% elif result == "partially_paid" %}
+      <strong>Partial payment recorded — outstanding balance remains.</strong>
+    {% else %}
+      <strong>Payment could not be matched to an invoice.</strong>
+    {% endif %}
+  </div>
+  <dl>
+    <dt>Account</dt><dd>{{ customer.customer_id }}</dd>
+    <dt>Invoice No.</dt><dd>{{ invoice.invoice_number }}</dd>
+    <dt>Period</dt><dd>{{ invoice.billing_period_start }} &ndash; {{ invoice.billing_period_end }}</dd>
+    <dt>Invoice Total</dt><dd>£{{ "%.2f"|format(invoice.total_gbp) }}</dd>
+    <dt>Amount Paid</dt><dd>£{{ "%.2f"|format(amount_gbp) }}</dd>
+    <dt>Status</dt><dd>{{ result.replace("_", " ").title() }}</dd>
+  </dl>
+  <p><a href="/account/{{ customer.customer_id }}/bills">Return to bills</a></p>
+</body>
+</html>

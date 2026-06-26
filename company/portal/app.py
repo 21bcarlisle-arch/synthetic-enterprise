@@ -17,7 +17,8 @@ from fastapi.templating import Jinja2Templates
 
 import json
 
-from company.billing.invoice import invoices_for_account
+from company.billing.invoice import invoices_for_account, get_invoice
+from company.billing.payments import reconcile_payment
 from company.market.price_feed import PriceFeed
 from company.billing.consumption import consumption_history, monthly_totals
 from company.billing.hh_consumption import get_hh_consumption, recent_hh_periods, is_feed_available
@@ -216,4 +217,36 @@ async def consumption_page(request: Request, account_id: str):
         request, "consumption.html",
         {"customer": customer, "monthly_data": data, "is_hh": is_hh,
          "total_kwh": total_kwh, "hh_data": hh_data},
+    )
+
+@app.post("/account/{account_id}/pay", response_class=HTMLResponse)
+async def submit_payment(
+    request: Request,
+    account_id: str,
+    invoice_number: int = Form(...),
+    amount_gbp: float = Form(...),
+):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    if not _DEFAULT_DB.exists():
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    invoice = get_invoice(invoice_number, _DEFAULT_DB)
+    if invoice is None or invoice["account_id"] != account_id:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    payment_event = {
+        "event_type": "payment_received_event",
+        "customer_id": account_id,
+        "bill_period_end": invoice["billing_period_end"],
+        "amount_gbp": amount_gbp,
+    }
+    result = reconcile_payment(payment_event, _DEFAULT_DB)
+    return templates.TemplateResponse(
+        request, "payment_confirm.html",
+        {
+            "customer": customer,
+            "invoice": invoice,
+            "amount_gbp": amount_gbp,
+            "result": result,
+        },
     )

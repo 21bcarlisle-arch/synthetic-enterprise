@@ -146,6 +146,7 @@ def bulk_create_invoices(bills: list[dict], db_path: Path = DEFAULT_DB_PATH) -> 
 
 def get_invoice(invoice_number: int, db_path: Path = DEFAULT_DB_PATH) -> dict | None:
     """Retrieve a single invoice by number."""
+    create_schema(db_path)
     with _conn(db_path) as conn:
         row = conn.execute(
             "SELECT * FROM invoices WHERE invoice_number = ?", (invoice_number,)

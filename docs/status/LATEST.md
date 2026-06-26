@@ -8,7 +8,14 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:09:29Z
+Last updated: 2026-06-26T02:24:16Z
+
+**Phase 83 COMPLETE (2026-06-26):** Portal payment submission -- 12 new tests (1,708 total).
+- `POST /account/{id}/pay`: invoice_number + amount from form → reconcile_payment() → confirmation
+- `company/portal/templates/payment_confirm.html` (new): shows paid/partially_paid/no_match with detail
+- `bills.html` updated: Pay button on each unpaid/partially_paid invoice row
+- `get_invoice()` now calls create_schema() — no crash on empty DB
+- Customer journey fully closed: login → dashboard → bills → pay → confirmation
 
 **Phase 82 COMPLETE (2026-06-26):** HH consumption feed + portal half-hourly view -- 13 new tests (1,696 total).
 - `simulation/publish_consumption_data.py` (new): reads real HH profiles from sim/hh_data/{C7,C8,C9}.csv; 288-record JSON feed (2 days × 48 periods × 3 customers)
@@ -163,9 +170,9 @@ Last updated: 2026-06-26T02:09:29Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,696 total (all tests passing)**
+**Test suite: 1,708 total (all tests passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351

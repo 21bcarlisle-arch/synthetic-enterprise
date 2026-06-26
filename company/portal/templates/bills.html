@@ -8,7 +8,8 @@
     table{width:100%;border-collapse:collapse;margin-top:12px}
     th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
     th{background:#ebf8ff}
-    .paid{color:#276749}.unpaid{color:#c53030}.partially_paid{color:#c05621}
+    .paid{color:#276749}.unpaid{color:#c53030}.partially_paid{color:#c05621}.bad_debt{color:#718096}
+    .pay-btn{background:#2b6cb0;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.85em}
   </style>
 </head>
 <body>
@@ -16,7 +17,7 @@
   <h1>Invoices — {{ customer.customer_id }}</h1>
   {% if invoices %}
   <table>
-    <tr><th>Invoice</th><th>Period</th><th>Commodity</th><th>Total</th><th>Due</th><th>Status</th></tr>
+    <tr><th>Invoice</th><th>Period</th><th>Commodity</th><th>Total</th><th>Due</th><th>Status</th><th>Action</th></tr>
     {% for inv in invoices %}
     <tr>
       <td>{{ inv.invoice_number }}</td>
@@ -25,6 +26,15 @@
       <td>£{{ "%.2f"|format(inv.total_gbp) }}</td>
       <td>{{ inv.due_date }}</td>
       <td class="{{ inv.payment_status }}">{{ inv.payment_status.replace("_", " ").title() }}</td>
+      <td>
+        {% if inv.payment_status in ("unpaid", "partially_paid") %}
+        <form method="post" action="/account/{{ customer.customer_id }}/pay" style="display:inline">
+          <input type="hidden" name="invoice_number" value="{{ inv.invoice_number }}">
+          <input type="hidden" name="amount_gbp" value="{{ "%.2f"|format(inv.total_gbp) }}">
+          <button type="submit" class="pay-btn">Pay £{{ "%.2f"|format(inv.total_gbp) }}</button>
+        </form>
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </table>
