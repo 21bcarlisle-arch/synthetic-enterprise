@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 219 -- Energy efficiency obligation tracker (2026-06-26)
+**Files:** `company/regulatory/ee_obligation_tracker.py` (new), `tests/company/regulatory/test_ee_obligation_tracker.py` (new)
+
+**What was built:**
+- EEScheme enum (5): ECO4 / GBIS / WHD / BUS / HUG2.
+- MeasureType enum (8): LOFT_INSULATION / CAVITY_WALL / SOLID_WALL / HEAT_PUMP / BOILER_UPGRADE / SOLAR_PV / SMART_HEATING / GLAZING.
+- _TYPICAL_SAVINGS_KWH_PER_YEAR: 600 (loft) to 3000 (heat pump) kWh/year.
+- EEReferral mutable: referral_id, customer_id, scheme, measure_type, referral_date, is_vulnerable; typical_annual_saving_kwh, is_completed, install(date, installer, cost_gbp).
+- EEObligationTracker: refer(), get(), completed_measures(year), total_savings_kwh(year), obligation_mwh_delivered(scheme, year), vulnerable_customer_count(scheme), portfolio_summary(year).
+
+**Fidelity delta:** Suppliers with ≥150k customers have ECO4 obligations set by Ofgem each year (2022-2026). Obligation is denominated in MWh of lifetime energy savings delivered through qualifying measures. Heat pump is highest-value (3,000 kWh/yr) but lowest volume; loft insulation is lowest-value but easiest to deliver. obligation_mwh_delivered(ECO4, year) feeds build_obligations_report() (Ph199) eco4_delivered_mwh argument. GBIS (Great British Insulation Scheme, 2023+) targets EPC D-G properties and fuel poor households. HUG2 (Home Upgrade Grant) is grant-funded for off-gas-grid homes.
+
+**8 new tests (3,026 total).**
+
+---
 ### Phase 218 -- Complaint register and SLC 27 compliance (2026-06-26)
 **Files:** `company/crm/complaint_register.py` (new), `tests/company/crm/test_complaint_register.py` (new)
 
@@ -3135,7 +3150,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,018 tests (2,601 fast / ~10s; simulation integration ~8 min per run)
+- 3,026 tests (2,609 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
