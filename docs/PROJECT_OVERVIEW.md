@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 232 -- Counterparty credit rating book (2026-06-26)
+**Files:** `company/trading/credit_rating_book.py` (new), `tests/company/trading/test_credit_rating_book.py` (new)
+
+**What was built:**
+- CreditRating enum (9): AAA / AA / A / BBB / BB / B / CCC / D / NR.
+- _RATING_SCORE (0-10): AAA=10, BBB=7 (investment grade floor), D=0.
+- _PROBABILITY_OF_DEFAULT_PCT: AAA 0.01% to CCC 22% to D 100%.
+- is_investment_grade(): rating score ≥ 7 (BBB and above).
+- CounterpartyCreditProfile frozen: score, pd_pct, is_investment_grade, exposure_limit_gbp.
+- CreditExposure mutable: counterparty_id, trade_date, exposure_gbp, trade_type.
+- CreditRatingBook: register(), record_exposure(), total_exposure_gbp(), is_within_limit(new_exposure), sub_investment_grade_counterparties(), credit_summary().
+
+**Fidelity delta:** All UK wholesale energy trading is subject to credit limits under the BSC and ISDA Master Agreement framework. Shell, BP, and EDF are typically BBB-AA rated counterparties who trade large volumes. Sub-investment-grade (BB-) counterparties require bilateral credit support annexes (CSA) or LOC posting before trading. is_within_limit() is the pre-trade credit check: a trade that would breach the counterparty's limit must be rejected or collateral increased. During the 2022 crisis, many energy company ratings were downgraded (Centrica was briefly at BB+), reducing their ability to trade on standard credit terms.
+
+**8 new tests (3,137 total).**
+
+---
 ### Phase 231 -- Gas supply interruption risk model (2026-06-26)
 **Files:** `company/market/gas_interruption.py` (new), `tests/company/market/test_gas_interruption.py` (new)
 
@@ -3328,7 +3345,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,129 tests (2,712 fast / ~10s; simulation integration ~8 min per run)
+- 3,137 tests (2,720 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
