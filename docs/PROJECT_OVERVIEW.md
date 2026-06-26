@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 227 -- UK ETS emission allowance registry (2026-06-26)
+**Files:** `company/regulatory/ets_registry.py` (new), `tests/company/regulatory/test_ets_registry.py` (new)
+
+**What was built:**
+- _UKETS_PRICE_GBP_PER_TONNE (2021-2025): £50 → £72 (2022 peak, ~£80+ in March) → £45 (2024).
+- _FREE_ALLOCATION_TONNE_PER_MWH: gas 0.06t/MWh / coal 0 / biomass 0.01.
+- get_ukets_price(year): year-indexed with fallback.
+- AllowanceSource: AUCTION / FREE_ALLOCATION / SECONDARY_MARKET / FORWARD_PURCHASE.
+- AllowancePurchase frozen: purchase_id, year, purchase_date, tonnes_co2, price; total_cost_gbp.
+- ComplianceObligation frozen: generation_mwh, emission_factor_tonne_per_mwh, free_allocation; gross/net_obligation_tonnes (net clamped at 0).
+- ETSRegistry: purchase(), record_obligation(), surrender(year, tonnes), holding_tonnes(year), total_spend_gbp(year), compliance_position(year) → {obligation/holdings/surplus_deficit/is_compliant/spend}.
+
+**Fidelity delta:** UK ETS launched January 2021, replacing EU ETS for UK-based installations. Energy suppliers that own gas-fired generation (e.g., OVO with Luminae, EDF with nuclear + gas mix) must surrender allowances by April 30 each year for prior-year emissions. Gas receives free allocation (0.06t/MWh benchmark), reducing net compliance cost. Forward_purchase of ETS allowances is a hedging strategy: buy at £50 in Jan vs paying £72 at auction in March — exactly the kind of compliance hedging decision that falls within the company layer's permitted information. Net obligation clamped at zero because free allocation can exceed actual emissions during part-load operation.
+
+**9 new tests (3,096 total).**
+
+---
 ### Phase 226 -- Multisite I&C account management (2026-06-26)
 **Files:** `company/crm/multisite_account.py` (new), `tests/company/crm/test_multisite_account.py` (new)
 
@@ -3253,7 +3270,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,087 tests (2,670 fast / ~10s; simulation integration ~8 min per run)
+- 3,096 tests (2,679 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
