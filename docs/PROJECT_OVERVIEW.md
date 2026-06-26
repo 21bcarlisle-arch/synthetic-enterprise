@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 214 -- Ancillary product bundle tracker (2026-06-26)
+**Files:** `company/crm/ancillary_products.py` (new), `tests/company/crm/test_ancillary_products.py` (new)
+
+**What was built:**
+- AncillaryProduct enum (7): BOILER_COVER / EV_TARIFF / SMART_HOME_CONTROLS / HOME_INSURANCE / BROADBAND / CARBON_OFFSET / SOLAR_MONITORING.
+- _MONTHLY_REVENUE_GBP defaults: £18 boiler, £0 EV tariff (margin from commodity), £5 smart controls, £32 insurance, £28 broadband, £3 carbon, £4 solar monitoring.
+- ProductSubscription mutable: customer_id, product, start_date, end_date, monthly_price_gbp (defaults from table); is_active, annual_revenue_gbp(year) (prorated to period within year).
+- AncillaryRevenueTracker: subscribe(), cancel(), active_subscriptions(), products_per_customer(), total_annual_revenue_gbp(), revenue_by_product(), avg_products_per_customer(), portfolio_summary(year).
+
+**Fidelity delta:** Product bundling has become a key differentiation and margin strategy for UK energy retailers. Octopus Energy achieved 2.8 products/customer average in 2024 (energy + EV tariff + smart controls + Intelligent Octopus), generating ~£50/customer/year ancillary revenue. OVO bundled Kaluza smart controls + carbon offset + boiler cover. avg_products_per_customer is the NPS-equivalent metric that predicts churn: multi-product customers churn 60% less than commodity-only. EV_TARIFF earns £0 direct revenue but locks in commodity consumption as EVs represent 1.5-4 MWh/year additional load.
+
+**8 new tests (2,984 total).**
+
+---
 ### Phase 213 -- Meter read validation engine (2026-06-26)
 **Files:** `company/billing/meter_read_validation.py` (new), `tests/company/billing/test_meter_read_validation.py` (new)
 
@@ -3063,7 +3077,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,976 tests (2,560 fast / ~10s; simulation integration ~8 min per run)
+- 2,984 tests (2,568 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
