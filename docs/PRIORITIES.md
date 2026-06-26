@@ -17,7 +17,7 @@ Last updated: 2026-06-26 by Claude Code (Phase 268)
 - Dashboard Phase E: monthly capability assessment standing item
 - /sim/ section: weather (Ph271), balancing mechanism (Ph276) -- DONE
 - Human simulation layer: physical home, life events, behaviour (Rich request)
-- Tariff smoothing: spread 2021-22 wholesale spike across 2020-2023 for resi customers
+- Tariff smoothing: spread 2021-22 wholesale spike -- DONE (Ph277)
 
 ## Recently completed (last 8)
 - Phase 276 (2026-06-26) -- BM Settlement tab on /sim/ (10 tests)
