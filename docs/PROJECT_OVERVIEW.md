@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 202 -- Revenue accruals ledger (2026-06-26)
+**Files:** `company/finance/revenue_accruals.py` (new), `tests/company/finance/test_revenue_accruals.py` (new)
+
+**What was built:**
+- RevenueType enum: COMMODITY / STANDING_CHARGE / EXIT_FEE / LATE_PAYMENT_FEE / RECONNECTION_FEE.
+- RecognitionBasis enum: BILLED / ACCRUED.
+- RevenueEntry frozen dataclass: customer_id, period_start/end, revenue_type, basis, amount_gbp, commodity; period_days and daily_revenue_gbp properties.
+- RevenueAccrualsLedger: post(), entries_in_period(), billed_revenue_gbp(), accrued_revenue_gbp(), total_revenue_gbp(), by_type(), accrual_ratio() (accrued/total*100), monthly_summary(year, month).
+
+**Fidelity delta:** UK energy suppliers recognise revenue under IFRS 15 ("when performance obligation satisfied"). For energy, this means revenue accrues daily as gas/electricity flows — even if the bill hasn't been issued yet. A high accrual_ratio indicates a long billing cycle: the company has supplied energy but not collected cash (receivables risk). During the 2022 crisis, suppliers with quarterly billing had accrual ratios of 60-70% — meaning most "revenue" was a promise, not cash. The ledger bridges company_pl (Ph181) REVENUE line with cash_flow_forecast (Ph183) RECEIPTS line.
+
+**7 new tests (2,891 total).**
+
+---
 ### Phase 201 -- Bad debt provisioning model (2026-06-26)
 **Files:** `company/finance/bad_debt_provision.py` (new), `tests/company/finance/test_bad_debt_provision.py` (new)
 
@@ -2886,7 +2900,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,884 tests (2,468 fast / ~10s; simulation integration ~8 min per run)
+- 2,891 tests (2,475 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
