@@ -91,6 +91,50 @@ def _peak_records(records, n=10):
     ]
 
 
+
+def _bm_monthly_aggregation(records):
+    monthly_ssp = defaultdict(list)
+    monthly_sbp = defaultdict(list)
+    monthly_niv = defaultdict(list)
+    for rec in records:
+        date = rec.get("settlementDate", "")
+        if not (SIM_START <= date <= SIM_END):
+            continue
+        ssp = rec.get("systemSellPrice")
+        sbp = rec.get("systemBuyPrice")
+        niv = rec.get("netImbalanceVolume")
+        month = date[:7]
+        if ssp is not None:
+            monthly_ssp[month].append(float(ssp))
+        if sbp is not None:
+            monthly_sbp[month].append(float(sbp))
+        if niv is not None:
+            monthly_niv[month].append(float(niv))
+
+    result = []
+    for month in sorted(monthly_ssp):
+        ssp_vals = monthly_ssp[month]
+        sbp_vals = monthly_sbp.get(month, [])
+        niv_vals = monthly_niv.get(month, [])
+        mean_ssp = statistics.mean(ssp_vals)
+        mean_sbp = statistics.mean(sbp_vals) if sbp_vals else mean_ssp
+        spread = round(mean_sbp - mean_ssp, 2)
+        mean_niv = round(statistics.mean(niv_vals), 1) if niv_vals else 0.0
+        short_pct = round(100.0 * sum(1 for v in niv_vals if v < 0) / len(niv_vals), 1) if niv_vals else 0.0
+        result.append({
+            "month": month,
+            "mean_ssp": round(mean_ssp, 2),
+            "mean_sbp": round(mean_sbp, 2),
+            "spread_sbp_ssp": spread,
+            "max_ssp": round(max(ssp_vals), 2),
+            "max_sbp": round(max(sbp_vals), 2) if sbp_vals else None,
+            "mean_niv_mwh": mean_niv,
+            "short_pct": short_pct,
+            "is_crisis": month[:4] in CRISIS_YEARS,
+        })
+    return result
+
+
 def generate():
     records = _load_ssp()
     if not records:
@@ -103,12 +147,14 @@ def generate():
     monthly = _monthly_aggregation(records)
     annual = _annual_aggregation(monthly)
     peaks = _peak_records(records)
+    bm = _bm_monthly_aggregation(records)
 
     dates = sorted(r["settlementDate"] for r in records if "settlementDate" in r)
     payload = {
         "monthly": monthly,
         "annual": annual,
         "peak_records": peaks,
+        "bm": bm,
         "metadata": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "total_records": len(records),

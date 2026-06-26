@@ -69,6 +69,7 @@
   <div class="tab-bar">
     <button class="tab-btn active" onclick="showTab('prices',this)">Prices</button>
     <button class="tab-btn" onclick="showTab('weather',this)">Weather &amp; HDD</button>
+  <button class="tab-btn" onclick="showTab('bm',this)">BM Settlement</button>
   </div>
   <div id="tab-prices" class="tab-panel active">
   <div class="kpi-grid" id="kpi-grid">
@@ -118,9 +119,26 @@
   </div>
 </div>
 
+  <div id="tab-bm" class="tab-panel">
+    <div class="kpi-grid" id="bm-kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
+    </div>
+    <div class="section-title">Monthly System Short % &mdash; 2016&ndash;2025</div>
+    <div class="chart-wrap"><canvas id="bm-short-chart" height="260"></canvas></div>
+    <div class="section-title">Monthly SSP vs System Short % (2022 focus)</div>
+    <div class="chart-wrap"><canvas id="bm-price-short-chart" height="260"></canvas></div>
+    <div class="section-title">Annual BM Summary</div>
+    <div class="table-wrap">
+      <table id="bm-annual-table">
+        <thead><tr><th>Year</th><th>Mean SSP &pound;/MWh</th><th>Avg NIV (MWh)</th><th>Short %</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="meta-bar" id="bm-meta-bar">Elexon Settlement Price &amp; Volume (BSC) &mdash; 2016&ndash;2025 &mdash; 168,026 half-hourly records</div>
+  </div>
 <script>
 (function () {
-  var pricesLoaded = false, weatherLoaded = false;
+  var pricesLoaded = false, weatherLoaded = false, bmLoaded = false;
   var monthlyPriceChart = null, wTempChart = null, wHddChart = null;
   var YEAR_PAL = ['#58a6ff','#3fb950','#d29922','#f85149','#39d353','#a371f7','#ffa657','#79c0ff','#56d364','#ff7b72'];
   function showTab(name, btn) {
@@ -132,6 +150,7 @@
     btn.classList.add('active');
     if (name === 'prices' && !pricesLoaded) loadPrices();
     if (name === 'weather' && !weatherLoaded) loadWeather();
+    if (name === 'bm' && !bmLoaded) loadBm();
   }
   window.showTab = showTab;
   function fmt(n, dp) {
@@ -142,6 +161,95 @@
     if (!s) return '—';
     try { return new Date(s).toISOString().slice(11, 16); } catch (e) { return '—'; }
   }
+  function loadBm() {
+    bmLoaded = true;
+    fetch('/data/sim_data.json').then(function(r){return r.json();}).then(function(sd) {
+      var bm = sd.bm || [];
+      buildBmKpis(bm);
+      buildBmShortChart(bm);
+      buildBmPriceShortChart(bm);
+      buildBmAnnualTable(bm);
+    }).catch(function(e){ document.getElementById('bm-meta-bar').textContent='Failed to load BM data: '+e; });
+  }
+  function buildBmKpis(bm) {
+    var short22 = bm.filter(function(m){return m.month.startsWith('2022');});
+    var avgShort22 = short22.length ? (short22.reduce(function(s,m){return s+m.short_pct;},0)/short22.length).toFixed(1) : '--';
+    var maxShort = bm.reduce(function(mx,m){return m.short_pct > mx.short_pct ? m : mx;}, bm[0] || {short_pct:0, month:'--'});
+    var avgShortAll = bm.length ? (bm.reduce(function(s,m){return s+m.short_pct;},0)/bm.length).toFixed(1) : '--';
+    var maxSsp = bm.reduce(function(mx,m){return m.max_ssp > (mx.max_ssp||0) ? m : mx;}, bm[0] || {});
+    var kpis = [
+      {label:'2022 Avg Short%', value:avgShort22+'%', sub:'System under-supplied'},
+      {label:'10yr Avg Short%', value:avgShortAll+'%', sub:'All settlement periods'},
+      {label:'Highest Short%', value:(maxShort.short_pct||0).toFixed(1)+'%', sub:maxShort.month||'--'},
+      {label:'Peak BM Price', value:'£'+(maxSsp.max_ssp||0).toLocaleString('en-GB')+'\/MWh', sub:(maxSsp.month||'--')+' settlement'},
+    ];
+    document.getElementById('bm-kpi-grid').innerHTML = kpis.map(function(k){
+      return '<div class="kpi-card"><div class="kpi-label">'+k.label+'</div><div class="kpi-value">'+k.value+'</div><div class="kpi-sub">'+k.sub+'</div></div>';
+    }).join('');
+  }
+  var bmShortChart = null, bmPriceShortChart = null;
+  function buildBmShortChart(bm) {
+    if (bmShortChart) bmShortChart.destroy();
+    var ctx = document.getElementById('bm-short-chart').getContext('2d');
+    bmShortChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: bm.map(function(m){return m.month;}),
+        datasets: [{
+          label: 'Short %',
+          data: bm.map(function(m){return m.short_pct;}),
+          backgroundColor: bm.map(function(m){return m.is_crisis ? 'rgba(248,81,73,0.7)' : 'rgba(88,166,255,0.6)';}),
+          borderRadius: 2,
+        }]
+      },
+      options: {responsive:true, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed.y.toFixed(1)+'%';}}}},
+        scales:{x:{ticks:{maxRotation:60,font:{size:9}},grid:{color:'rgba(48,54,61,0.4)'}},
+                y:{min:0,max:100,grid:{color:'rgba(48,54,61,0.4)'},ticks:{callback:function(v){return v+'%';}}}}}
+    });
+  }
+  function buildBmPriceShortChart(bm) {
+    if (bmPriceShortChart) bmPriceShortChart.destroy();
+    var ctx = document.getElementById('bm-price-short-chart').getContext('2d');
+    bmPriceShortChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: bm.map(function(m){return m.month;}),
+        datasets: [
+          {label:'SSP £/MWh', data:bm.map(function(m){return m.mean_ssp;}), backgroundColor:'rgba(88,166,255,0.5)', yAxisID:'y'},
+          {label:'Short %', data:bm.map(function(m){return m.short_pct;}), type:'line', borderColor:'rgba(248,81,73,0.9)', borderWidth:2, pointRadius:0, yAxisID:'y2', tension:0.3, fill:false}
+        ]
+      },
+      options: {responsive:true,
+        scales:{
+          x:{ticks:{maxRotation:60,font:{size:9}},grid:{color:'rgba(48,54,61,0.4)'}},
+          y:{position:'left',grid:{color:'rgba(48,54,61,0.4)'},ticks:{callback:function(v){return '£'+v;}}},
+          y2:{position:'right',min:0,max:100,grid:{drawOnChartArea:false},ticks:{callback:function(v){return v+'%';}}}
+        }
+      }
+    });
+  }
+  function buildBmAnnualTable(bm) {
+    var annual = {};
+    bm.forEach(function(m) {
+      var yr = m.month.substr(0,4);
+      if (!annual[yr]) annual[yr] = {ssp:[],niv:[],short:[],crisis:m.is_crisis};
+      annual[yr].ssp.push(m.mean_ssp);
+      annual[yr].niv.push(m.mean_niv_mwh);
+      annual[yr].short.push(m.short_pct);
+    });
+    var tbody = document.querySelector('#bm-annual-table tbody');
+    tbody.innerHTML = Object.keys(annual).sort().map(function(yr) {
+      var d = annual[yr];
+      var mean_ssp = (d.ssp.reduce(function(s,v){return s+v;},0)/d.ssp.length).toFixed(2);
+      var mean_niv = (d.niv.reduce(function(s,v){return s+v;},0)/d.niv.length).toFixed(1);
+      var mean_short = (d.short.reduce(function(s,v){return s+v;},0)/d.short.length).toFixed(1);
+      var badge = d.crisis ? '<span class="badge-crisis"> CRISIS</span>' : '';
+      return '<tr'+(d.crisis?' style="background:rgba(248,81,73,0.08)"':'')+'>'+
+        '<td>'+yr+badge+'</td><td>£'+mean_ssp+'</td><td>'+mean_niv+'</td><td>'+mean_short+'%</td>'+
+        '<td>'+(mean_niv > 0 ? 'NET LONG' : 'NET SHORT')+'</td></tr>';
+    }).join('');
+  }
+
   function loadPrices() {
     pricesLoaded = true;
     fetch('/data/sim_data.json')

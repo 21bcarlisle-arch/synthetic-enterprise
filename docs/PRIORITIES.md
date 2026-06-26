@@ -8,18 +8,22 @@ Last updated: 2026-06-26 by Claude Code (Phase 268)
 
 ## Next (queued, unblocked)
 3. Human simulation layer: physical home, life events, behaviour (Rich request)
-4. /sim/ section expansion: weather engine, balancing mechanism data
+4. /sim/ section expansion: weather done (Ph271), balancing mechanism done (Ph276)
 
 ## Staged (in docs/staging/, awaiting action)
 - None
 
 ## Backlog (agreed)
 - Dashboard Phase E: monthly capability assessment standing item
-- /sim/ section: weather, balancing mechanism
+- /sim/ section: weather (Ph271), balancing mechanism (Ph276) -- DONE
 - Human simulation layer: physical home, life events, behaviour (Rich request)
 - Tariff smoothing: spread 2021-22 wholesale spike across 2020-2023 for resi customers
 
 ## Recently completed (last 8)
+- Phase 276 (2026-06-26) -- BM Settlement tab on /sim/ (10 tests)
+- Phase 275 (2026-06-26) -- Green Claims Audit test coverage (12 tests)
+- Phase 274 (2026-06-26) -- Life Event Impact Assessor (12 tests)
+- Phase 273 (2026-06-26) -- Management Accounts dashboard tab (10 tests)
 - Phase 272 (2026-06-26) -- Physical Home Registry (12 tests)
 - Phase 271 (2026-06-26) -- Weather Engine & HDD tab + NTFY spam fix (10 tests)
 - Phase 268 (2026-06-26) -- /sim/ section: Wholesale Price Explorer (10 tests)
