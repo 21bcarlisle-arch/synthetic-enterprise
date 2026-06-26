@@ -61,5 +61,15 @@
         <td style="font-weight:bold">{{ "Yes" if reg.css.resolution_target_met else "No" }}</td></tr>
     <tr><td>Vulnerable customers contacted</td><td>{{ reg.css.vulnerable_customers_contacted }}</td></tr>
   </table>
+
+  <h2>Warm Home Discount (WHD Scheme)</h2>
+  <p><em>Ofgem mandatory rebate scheme for vulnerable customers.</em></p>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Scheme year</td><td>{{ reg.whd.scheme_year }}</td></tr>
+    <tr><td>Eligible customers (vulnerability register)</td><td>{{ reg.whd.eligible_count }}</td></tr>
+    <tr><td>Rebate per customer</td><td>£{{ "%.0f"|format(reg.whd.rebate_per_customer_gbp) }}</td></tr>
+    <tr><td>Total WHD liability</td><td>£{{ "%.2f"|format(reg.whd.total_liability_gbp) }}</td></tr>
+  </table>
 </body>
 </html>

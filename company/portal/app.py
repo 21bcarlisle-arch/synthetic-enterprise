@@ -33,6 +33,7 @@ from company.regulatory.compliance import (
     annual_turnover_fee,
     generate_css_filing,
 )
+from company.regulatory.warm_home_discount import whd_summary
 from saas.capital.solvency import compute_solvency_signal, MCR_FLOOR_GBP_PER_CUSTOMER
 
 _SIM_INTERFACE = LiveSimInterface()
@@ -130,6 +131,7 @@ def _load_regulatory_data() -> dict:
     from datetime import datetime as _dt
     css_year = _dt.now().year
     css = generate_css_filing(_SERVICE_LOG.as_dicts(), css_year)
+    whd = whd_summary(_SERVICE_LOG, css_year)
     return {
         "resi_penetration_pct": round(resi_pen * 100, 1),
         "resi_sm_count": len(resi_with_sm),
@@ -147,6 +149,7 @@ def _load_regulatory_data() -> dict:
         "annual_turnover_fee_gbp": round(turnover_fee, 2),
         "year": latest_year,
         "css": css,
+        "whd": whd,
     }
 
 app = FastAPI(title="Customer Portal", docs_url=None, redoc_url=None)
@@ -204,9 +207,12 @@ async def dashboard(request: Request, account_id: str):
     if not customer:
         raise HTTPException(status_code=404, detail="Account not found")
     summary = _invoice_summary(account_id, _DEFAULT_DB)
+    whd_eligible = account_id in [
+        f.customer_id for f in _SERVICE_LOG.vulnerability_register()
+    ]
     return templates.TemplateResponse(
         request, "dashboard.html",
-        {"customer": customer, "summary": summary},
+        {"customer": customer, "summary": summary, "whd_eligible": whd_eligible},
     )
 
 

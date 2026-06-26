@@ -12,6 +12,12 @@
 </head>
 <body>
   <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}/bills">Bills</a> | <a href="/account/{{ customer.customer_id }}/consumption">Consumption</a> | <a href="/account/{{ customer.customer_id }}/tariff-compare">Compare Tariffs</a> | <a href="/account/{{ customer.customer_id }}/statement">Statement</a> | <a href="/account/{{ customer.customer_id }}/direct-debit">Direct Debit</a> | <a href="/account/{{ customer.customer_id }}/contact">Contact Us</a> | <a href="/regulatory">Regulatory</a></nav>
+  {% if whd_eligible %}
+  <div style="margin:8px 0;padding:6px 12px;background:#ebf8ff;border:1px solid #2b6cb0;border-radius:4px;font-size:0.88em">
+    &#9679; <strong>Warm Home Discount eligible</strong> — you may be entitled to a £150 annual rebate.
+    <a href="/account/{{ customer.customer_id }}/contact">Contact us</a> to claim.
+  </div>
+  {% endif %}
   <h1>Account {{ customer.customer_id }}</h1>
   <table>
     <tr><th>Field</th><th>Value</th></tr>
