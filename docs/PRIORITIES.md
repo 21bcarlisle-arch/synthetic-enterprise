@@ -3,8 +3,8 @@
 Last updated: 2026-06-26 by Claude Code (Phase 268)
 
 ## Now (active this session)
-1. Customer portal billing history improvements -- month/year filter, total spend display
-2. Dashboard Phase E: monthly capability assessment
+1. Phase 272 design -- Human simulation layer or Dashboard Phase E
+2. Monitor NTFY spam fix effectiveness
 
 ## Next (queued, unblocked)
 3. Human simulation layer: physical home, life events, behaviour (Rich request)
@@ -20,6 +20,7 @@ Last updated: 2026-06-26 by Claude Code (Phase 268)
 - Tariff smoothing: spread 2021-22 wholesale spike across 2020-2023 for resi customers
 
 ## Recently completed (last 8)
+- Phase 271 (2026-06-26) -- Weather Engine & HDD tab + NTFY spam fix (10 tests)
 - Phase 268 (2026-06-26) -- /sim/ section: Wholesale Price Explorer (10 tests)
 - Phase 267 (2026-06-26) -- Dashboard Phase B Complete: Year filter on Financial/Trading/Customers tabs (8 tests)
 - Phase 266 (2026-06-26) -- Dashboard Phase D: NL query tab + Cloudflare Function (9 tests)

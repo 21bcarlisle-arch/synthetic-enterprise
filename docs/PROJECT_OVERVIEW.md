@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,494 tests passing. Codebase: ~34,800 lines across 258+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,504 tests passing. Codebase: ~34,950 lines across 260+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 271 (2026-06-26):** Weather Engine & HDD tab on /sim/ -- 10 new tests (3,504 total). tools/fetch_weather_data.py: fetches London daily temps from Open-Meteo 2016-2025, computes monthly HDD (base 15.5C National Grid). site/sim/index.html: Prices/Weather tabs; Weather tab has 10-yr monthly temp chart, monthly HDD bar chart with avg overlay, annual table with COLD WINTER badge, crisis narrative. process_run_complete.py: weather fetch wired in on every run. Critical NTFY spam fix: generate_insights stored ledger headline gross (~6.3M) in run_history; maybe_ntfy compared total_net (~1.3M) against that; every run triggered NEW LOW. Fixed to use total_net_gbp throughout.
 
 **Phase 270 (2026-06-26):** Local NL query via Qwen3/Ollama — 7 new tests (3,494 total). `background/file_api.py`: `POST /query` endpoint calls Ollama qwen3:14b with `/no_think` prefix for fast responses (no API cost, stays local on Tailscale). `site/index.html`: fetch URL changed from Cloudflare Pages Function to `https://skynet-1.taila062fa.ts.net:8765/query` directly. `background/start_worker.sh`: file-api added as managed tmux session. Also fixed JS syntax errors in supplier dashboard (Ph266 onkeydown) and customer portal login (Ph263 double-quote nesting). Also fixed process_run_complete.py race condition + relative path bug.
 
@@ -3921,7 +3923,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,494 tests (3,052 fast / ~10s; simulation integration ~8 min per run)
+- 3,504 tests (3,062 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
