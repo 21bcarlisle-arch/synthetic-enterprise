@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Poesys -- SIM: Wholesale Price Explorer</title>
+  <title>Poesys -- SIM Explorer</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;--text:#e6edf3;--muted:#7d8590;--green:#3fb950;--red:#f85149;--amber:#d29922;--blue:#58a6ff;--teal:#39d353;}
@@ -41,6 +41,18 @@
     .cbadge{display:inline-block;background:rgba(248,81,73,0.2);color:var(--red);border:1px solid rgba(248,81,73,0.35);border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;letter-spacing:.5px;vertical-align:middle;}
     .ssp-val{color:var(--red);font-weight:700;}
     .meta-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;color:var(--muted);font-size:12px;margin-top:8px;display:flex;flex-wrap:wrap;gap:16px;}
+
+    .tab-bar{display:flex;gap:4px;margin-bottom:28px;border-bottom:1px solid var(--border);padding-bottom:0;}
+    .tab-btn{background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;padding:8px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+    .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+    .tab-btn:hover{color:var(--text);}
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
+    .color-teal{color:var(--teal);}
+    .wbadge{display:inline-block;background:rgba(88,166,255,0.2);color:var(--blue);border:1px solid rgba(88,166,255,0.35);border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;}
+    .cold-winter td{background:rgba(88,166,255,0.05);}
+    .narrative{background:var(--surface);border:1px solid var(--teal);border-radius:10px;padding:20px;margin-bottom:32px;color:var(--muted);font-size:13px;line-height:1.6;}
+    .narrative strong{color:var(--text);}
   </style>
 </head>
 <body>
@@ -52,8 +64,13 @@
   <a href="/sim/" class="nav-link active">SIM</a>
 </nav>
 <div class="container">
-  <h1>Wholesale Price Explorer</h1>
-  <p class="subtitle">Elexon half-hourly System Sell Price (SSP) &mdash; 2016 to 2025 &mdash; Point-in-Time market data underpinning the simulation</p>
+  <h1>SIM Explorer</h1>
+  <p class="subtitle">Point-in-Time market data &amp; UK weather underpinning the simulation &mdash; 2016&ndash;2025</p>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('prices',this)">Prices</button>
+    <button class="tab-btn" onclick="showTab('weather',this)">Weather &amp; HDD</button>
+  </div>
+  <div id="tab-prices" class="tab-panel active">
   <div class="kpi-grid" id="kpi-grid">
     <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
   </div>
@@ -74,10 +91,49 @@
     </table>
   </div>
   <div class="meta-bar" id="meta-bar">Loading metadata&hellip;</div>
+  </div>
+  <div id="tab-weather" class="tab-panel">
+    <div class="kpi-grid" id="w-kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
+    </div>
+    <div class="section-title">Monthly Mean Temperature &mdash; 2016&ndash;2025</div>
+    <div class="chart-wrap"><canvas id="w-temp-chart" height="280"></canvas></div>
+    <div class="section-title">Monthly Heating Degree Days (base 15.5&deg;C)</div>
+    <div class="chart-wrap"><canvas id="w-hdd-chart" height="240"></canvas></div>
+    <div class="section-title">Annual HDD Summary</div>
+    <div class="table-wrap">
+      <table id="w-annual-table">
+        <thead><tr><th>Year</th><th>Annual HDD</th><th>Annual CDD</th><th>Mean Temp &deg;C</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="narrative">
+      <strong>Why weather matters:</strong> Heating Degree Days (HDD) measure cumulative heating demand.
+      The UK National Grid uses a base of 15.5&deg;C &mdash; each degree below that per day adds one HDD unit.
+      Cold winters drive gas demand sharply higher, tighten storage, and push up wholesale prices.
+      The 2021&ndash;22 crisis combined depleted storage (Rough closed 2017) with a cold winter,
+      producing record prices that forced 29 UK suppliers to exit the market.
+    </div>
+    <div class="meta-bar" id="w-meta-bar">Loading weather metadata&hellip;</div>
+  </div>
 </div>
 
 <script>
 (function () {
+  var pricesLoaded = false, weatherLoaded = false;
+  var monthlyPriceChart = null, wTempChart = null, wHddChart = null;
+  var YEAR_PAL = ['#58a6ff','#3fb950','#d29922','#f85149','#39d353','#a371f7','#ffa657','#79c0ff','#56d364','#ff7b72'];
+  function showTab(name, btn) {
+    var panels = document.querySelectorAll('.tab-panel');
+    for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
+    var btns = document.querySelectorAll('.tab-btn');
+    for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'prices' && !pricesLoaded) loadPrices();
+    if (name === 'weather' && !weatherLoaded) loadWeather();
+  }
+  window.showTab = showTab;
   function fmt(n, dp) {
     if (n == null || isNaN(n)) return '—';
     return Number(n).toLocaleString('en-GB', {minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0});
@@ -86,19 +142,22 @@
     if (!s) return '—';
     try { return new Date(s).toISOString().slice(11, 16); } catch (e) { return '—'; }
   }
-  fetch('/data/sim_data.json')
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      buildKPIs(data);
-      buildChart(data.monthly || []);
-      buildAnnualTable(data.annual || []);
-      buildPeakTable(data.peak_records || []);
-      buildMeta(data.metadata || {});
-    })
-    .catch(function (e) {
-      document.getElementById('kpi-grid').innerHTML =
-        '<p style="color:var(--red);padding:16px">Failed to load sim_data.json: ' + e + '</p>';
-    });
+  function loadPrices() {
+    pricesLoaded = true;
+    fetch('/data/sim_data.json')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        buildKPIs(data);
+        buildChart(data.monthly || []);
+        buildAnnualTable(data.annual || []);
+        buildPeakTable(data.peak_records || []);
+        buildMeta(data.metadata || {});
+      })
+      .catch(function (e) {
+        document.getElementById('kpi-grid').innerHTML =
+          '<p style="color:var(--red);padding:16px">Failed: ' + e + '</p>';
+      });
+  }
   function buildKPIs(data) {
     var annual = data.annual || [];
     var peaks = data.peak_records || [];
@@ -139,7 +198,8 @@
       crisisVals.push(r.is_crisis ? 5000 : null);
     }
     var ctx = document.getElementById('monthly-chart').getContext('2d');
-    new Chart(ctx, {
+    if (monthlyPriceChart) monthlyPriceChart.destroy();
+    monthlyPriceChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
@@ -223,6 +283,71 @@
       '<span><strong>Generated:</strong> '+gen+'</span>';
   }
 
+  function loadWeather() {
+    weatherLoaded = true;
+    fetch('/data/weather.json')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        buildWKPIs(d); buildTempChart(d.monthly || []); buildHddChart(d.monthly || [], d.kpis || {});
+        buildWAnnualTable(d.annual || [], d.kpis || {}); buildWMeta(d.metadata || {});
+      })
+      .catch(function(e) {
+        document.getElementById('w-kpi-grid').innerHTML = '<p style="color:var(--muted);padding:16px">Weather data not yet available &mdash; will populate on next sim run.</p>';
+      });
+  }
+  function buildWKPIs(d) {
+    var k = d.kpis || {};
+    var pct = k.hdd_2022_vs_avg_pct, pctStr = pct != null ? (pct > 0 ? '+' : '') + Number(pct).toFixed(1) + '%' : '--';
+    var kpis = [
+      {l:'Coldest Month', v:k.coldest_month||'--', s:k.coldest_temp_c != null ? Number(k.coldest_temp_c).toFixed(1)+'°C mean' : '', c:'color-blue'},
+      {l:'Warmest Month', v:k.warmest_month||'--', s:k.warmest_temp_c != null ? Number(k.warmest_temp_c).toFixed(1)+'°C mean' : '', c:'color-amber'},
+      {l:'Highest HDD Month', v:k.highest_hdd_month||'--', s:k.highest_hdd != null ? Number(k.highest_hdd).toFixed(0)+' HDD' : '', c:'color-blue'},
+      {l:'10-yr Avg Annual HDD', v:k.decadal_avg_annual_hdd != null ? Number(k.decadal_avg_annual_hdd).toFixed(0) : '--', s:'base 15.5°C', c:'color-teal'},
+      {l:'2022 HDD vs Avg', v:pctStr, s:'crisis winter demand', c:pct > 0 ? 'color-red' : 'color-green'},
+      {l:'HDD Base Temp', v:'15.5°C', s:'UK National Grid standard', c:''}
+    ];
+    var h = '';
+    for (var i = 0; i < kpis.length; i++) {
+      var kp = kpis[i];
+      h += '<div class="kpi-card"><div class="kpi-label">' + kp.l + '</div><div class="kpi-value ' + kp.c + '">' + kp.v + '</div><div class="kpi-sub">' + kp.s + '</div></div>';
+    }
+    document.getElementById('w-kpi-grid').innerHTML = h;
+  }
+  function buildTempChart(m) {
+    var byY = {}, yrs = [], ML = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    for (var i = 0; i < m.length; i++) { var yr = m[i].month.slice(0,4); if (!byY[yr]) { byY[yr] = []; yrs.push(yr); } byY[yr].push(m[i].mean_temp_c); }
+    yrs.sort();
+    var ds = [];
+    for (var j = 0; j < yrs.length; j++) { ds.push({label:yrs[j],data:byY[yrs[j]],borderColor:YEAR_PAL[j%10],backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.3}); }
+    var ctx = document.getElementById('w-temp-chart').getContext('2d');
+    if (wTempChart) wTempChart.destroy();
+    wTempChart = new Chart(ctx, {type:'line',data:{labels:ML,datasets:ds},options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#7d8590',font:{size:11},boxWidth:14}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+(c.raw!=null?Number(c.raw).toFixed(1):'--')+'°C';}}}},scales:{x:{ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.6)'}},y:{ticks:{color:'#7d8590',callback:function(v){return v+'°C';}},grid:{color:'rgba(48,54,61,0.6)'}}}}});
+  }
+  function buildHddChart(m, kd) {
+    var lb = [], hv = [], avgM = kd.decadal_avg_annual_hdd ? kd.decadal_avg_annual_hdd / 12 : null;
+    for (var i = 0; i < m.length; i++) { lb.push(m[i].month); hv.push(m[i].hdd); }
+    var avgL = avgM ? lb.map(function() { return avgM; }) : [];
+    var ctx = document.getElementById('w-hdd-chart').getContext('2d');
+    if (wHddChart) wHddChart.destroy();
+    wHddChart = new Chart(ctx, {type:'bar',data:{labels:lb,datasets:[{label:'Monthly HDD',data:hv,backgroundColor:'rgba(88,166,255,0.5)',borderColor:'rgba(88,166,255,0.8)',borderWidth:1,order:2},{label:'10-yr Monthly Avg',data:avgL,type:'line',borderColor:'rgba(210,153,34,0.8)',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0,order:1}]},options:{responsive:true,plugins:{legend:{display:true,labels:{color:'#7d8590',font:{size:11},boxWidth:14}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+Number(c.raw||0).toFixed(1)+' HDD';}}}},scales:{x:{ticks:{color:'#7d8590',maxTicksLimit:12,maxRotation:0},grid:{color:'rgba(48,54,61,0.6)'}},y:{min:0,ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.6)'}}}}});
+  }
+  function buildWAnnualTable(an, kd) {
+    var tb = document.querySelector('#w-annual-table tbody'), h = '';
+    for (var i = 0; i < an.length; i++) {
+      var r = an[i], b = r.is_cold_winter ? '<span class="wbadge">COLD WINTER</span>' : '';
+      h += '<tr class="' + (r.is_cold_winter ? 'cold-winter' : '') + '"><td>' + r.year + b + '</td><td>' + Number(r.annual_hdd).toFixed(0) + '</td><td>' + Number(r.annual_cdd).toFixed(0) + '</td><td>' + Number(r.mean_temp_c).toFixed(1) + '°C</td></tr>';
+    }
+    tb.innerHTML = h || '<tr><td colspan="4" style="color:var(--muted)">No data</td></tr>';
+  }
+  function buildWMeta(m) {
+    var el = document.getElementById('w-meta-bar');
+    el.innerHTML = '<span><strong>Source:</strong> ' + (m.source || 'Open-Meteo Historical Archive API') + '</span>' +
+      '<span><strong>Location:</strong> ' + (m.location || 'London') + '</span>' +
+      '<span><strong>Period:</strong> ' + (m.start_year || 2016) + '–' + (m.end_year || 2025) + '</span>' +
+      '<span><strong>HDD base:</strong> ' + (m.hdd_base_c || 15.5) + '°C (UK National Grid)</span>' +
+      '<span><strong>Months:</strong> ' + (m.months || '--') + '</span>';
+  }
+  loadPrices();
 }());
 </script>
 </body>

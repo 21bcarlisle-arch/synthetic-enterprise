@@ -133,6 +133,11 @@ def run_fast_tests(git_hash: str):
         return True, True
 
 
+def _run_weather_data():
+    from tools.fetch_weather_data import generate_weather_data
+    generate_weather_data()
+
+
 def _fmt_gbp(v):
     """Format a GBP value with sign and £ prefix, e.g. £+225,920 or £-3,766."""
     sign = "+" if v >= 0 else ""
@@ -311,6 +316,13 @@ def main(marker_path_str):
         log("Consumption feed published to docs/market_data/consumption_feed.json")
     except Exception as exc:
         log("Consumption feed publication skipped: {}".format(exc))
+
+    log("Fetching weather data (Open-Meteo)")
+    try:
+        _run_weather_data()
+        log("Weather data written to site/data/weather.json")
+    except Exception as exc:
+        log("Weather data fetch skipped: {}".format(exc))
 
     log("Running fast test suite (SIM_FAST_MODE=1)")
     tests_ok, timed_out = run_fast_tests(git_hash)

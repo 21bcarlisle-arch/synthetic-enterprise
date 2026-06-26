@@ -180,7 +180,7 @@ def _risk_insight(data: dict) -> AreaInsight:
 
 def _financial_insight(data: dict) -> AreaInsight:
     lh = data.get("_ledger_headline", {})
-    net = lh.get("net_margin_gbp", data.get("total_net_gbp", 0.0))
+    net = data.get("total_net_gbp", lh.get("net_margin_gbp", 0.0))
     gross = lh.get("gross_margin_gbp", data.get("total_gross_gbp", 0.0))
     revenue = lh.get("revenue_gbp", data.get("total_revenue_gbp", 0.0))
     net_pct = (net / revenue * 100) if revenue else 0.0
@@ -422,7 +422,7 @@ def generate_insights(data: dict, git_hash: str = "unknown") -> RunInsights:
     summary = _executive_summary(data, insight_list)
     coherence_narrative, recommended_actions = _generate_coherence(insight_list, data)
     lh = data.get("_ledger_headline", {})
-    net = lh.get("net_margin_gbp", data.get("total_net_gbp", 0.0))
+    net = data.get("total_net_gbp", lh.get("net_margin_gbp", 0.0))
     return RunInsights(
         git_hash=git_hash,
         generated_at=datetime.now(timezone.utc).isoformat(),
