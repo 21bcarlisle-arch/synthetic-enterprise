@@ -527,6 +527,25 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 252 -- Customer behaviour segmentation model (2026-06-26)
+**Files:** `company/crm/behaviour_segment.py` (new), `tests/company/crm/test_behaviour_segment.py` (new)
+
+**What was built:**
+- PaymentBehaviour: EXEMPLARY (≥95%) / RELIABLE (80-95%) / OCCASIONAL_MISS (60-80%) / CHRONIC_LATE (<60%).
+- EngagementLevel: HIGHLY_ENGAGED (paper-free or >4 logins/mo) / ENGAGED / PASSIVE / DISENGAGED (0 logins 6m+).
+- SwitchingRisk: HIGH (<12m since switch) / MEDIUM (12-24m) / LOW (none/3y+).
+- CustomerSegment: CHAMPION / LOYAL / AT_RISK / STRUGGLING / DISENGAGED_STABLE / CHURNER + recommended_intervention map.
+- BehaviourProfile frozen: derived from observable data only (on-time rate, portal logins, contact frequency, switching history, paper-free flag).
+- BehaviourSegmentBook mutable: record_profile(), latest_profile(), segment_counts(), at_risk_customers(), segment_summary().
+
+**Fidelity delta:** Real CRM platforms (Salesforce Energy & Utilities, SAP IS-U) segment domestic customers by exactly these observable behavioural signals. A CHAMPION customer (exemplary payer, paper-free, loyal) gets a loyalty reward; a CHURNER (chronic late, recently switched) gets a win-back offer (or write-off). The AT_RISK segment (reliable payer but recently shopped around) is the most commercially valuable: these customers have high creditworthiness AND are actively considering leaving. Targeting them with retention outreach is higher ROI than chasing STRUGGLING accounts. Connects to AcquisitionCohortCLV (Ph235), RetentionRisk (Ph~170), and ContactJourney (Ph244).
+
+**14 new tests (3,336 total).**
+
+---
+
+
+---
 ### Phase 251 -- Property improvement event tracker (2026-06-26)
 **Files:** `company/crm/property_improvement.py` (new), `tests/company/crm/test_property_improvement.py` (new)
 
@@ -3638,14 +3657,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,322 tests (2,905 fast / ~10s; simulation integration ~8 min per run)
+- 3,336 tests (2,919 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 251, 2026-06-26):**
+**Latest full run (Phase 252, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
