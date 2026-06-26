@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 166 -- Fuel poverty income assessment (2026-06-26)
+**Files:** `company/crm/fuel_poverty.py` (new), `tests/company/crm/test_fuel_poverty.py` (new)
+
+**What was built:**
+- `FuelPovertyBand` enum: NOT_FUEL_POOR / BORDERLINE (8–10%) / FUEL_POOR (>10%) / SEVERELY_FUEL_POOR (>20% of income on energy).
+- `LIHCStatus` enum: NOT_LIHC / LIHC / LIHC_SEVERE — Low Income High Cost (post-2012 UK definition: income <60% median AND costs above median).
+- `FuelPovertyAssessment` frozen dataclass: energy_spend_pct, fuel_poverty_band, lihc_status, is_fuel_poor, whd_eligible (LIHC → Warm Home Discount priority), eco4_priority.
+- `assess_fuel_poverty(customer_id, income, energy_cost)`: factory function.
+- Calibrated to UK medians: household income £34,963, energy cost £2,074/yr.
+
+**Fidelity delta:** UK fuel poverty affects 14% of households. Suppliers must identify and prioritise fuel-poor customers for WHD rebates, ECO4 measures, and debt hardship provisions. Previously there was no income-based fuel poverty assessment — only the property-based proxy from Phase 161 (EPC F/G + tenure). Phase 166 closes this: the full UK fuel poverty assessment (both the 10%-of-income criterion and the LIHC criterion) is now computable from observable household data.
+
+**10 new tests (2,581 total).**
+
+---
 ### Phase 165 -- Customer energy profile: 360-degree view (2026-06-26)
 **Files:** `company/crm/energy_profile.py` (new), `tests/company/crm/test_energy_profile.py` (new)
 
@@ -2376,7 +2391,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,571 tests (2,155 fast / ~10s; simulation integration ~8 min per run)
+- 2,581 tests (2,165 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
