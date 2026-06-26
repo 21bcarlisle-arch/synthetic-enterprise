@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T09:47:21Z
+Last updated: 2026-06-26T09:52:34Z
 
 ## Latest Simulation Run
 - **Git:** c438bdb (run 2026-06-26T09:27)
@@ -12,11 +12,15 @@ Last updated: 2026-06-26T09:47:21Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 235
-- **Tests:** 3,164 passing
+- **Current Phase:** 239
+- **Tests:** 3,201 passing
 - **Session theme:** Financial layer + regulatory + market ops + CRM maturation
 
-## This Session (Phases 198-235)
+## This Session (Phases 198-239)
+- Ph 239: Flexible asset dispatch (BATTERY/PUMP; SoC tracking; 85% roundtrip; cycles/yr)
+- Ph 238: MPAS supply point registry (MPAN/MPRN; objection workflow; total_registered_mwh)
+- Ph 237: BM unit log (OFFER/BID; DISPATCHED/PART_DISPATCHED; BM price crisis >£500/MWh)
+- Ph 236: SEG portfolio (Smart Export Guarantee; 2020-2025 rates; battery self-consumption 70%)
 - Ph 235: Acquisition cohort CLV (CaC/payback months; retention_rate; 6 channels)
 - Ph 234: Seasonal demand forecast (WINTER/SUMMER; 12-mo indices; HIGH/BASE/LOW scenarios)
 - Ph 233: Imbalance analytics (LONG/SHORT; cash_out_cost; systematic_bias; worst_period)
@@ -56,7 +60,7 @@ Last updated: 2026-06-26T09:47:21Z
 - Ph 199: Annual regulatory obligations report (WHD/ECO4/GSOP/Ofgem/REGO; penalty estimates)
 - Ph 198: Revolving credit facility (drawdown/repay; limit breach guard; interest accrual)
 
-## Company layer: 173 files | CLAUDE.md: 143/200 lines
+## Company layer: 177 files | CLAUDE.md: 147/200 lines
 
 **Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
