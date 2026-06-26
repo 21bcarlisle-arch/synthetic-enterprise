@@ -1,9 +1,9 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T18:36:36Z
+Last updated: 2026-06-26T18:42:30Z
 
 ## Latest Simulation Run
-- **Git:** 248ffe4 (run 2026-06-26T16:17)
+- **Git:** c554741 (run 2026-06-26T18:14)
 - **Net Margin:** £1,330,126
 - **Gross Margin:** £6,546,003
 - **Revenue:** £14,215,256
