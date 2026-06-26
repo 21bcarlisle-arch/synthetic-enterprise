@@ -527,6 +527,22 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 241 -- Renewables Obligation compliance ledger (2026-06-26)
+**Files:** `company/regulatory/roc_ledger.py` (new), `tests/company/regulatory/test_roc_ledger.py` (new)
+
+**What was built:**
+- ROCTechnology (7): ONSHORE_WIND / OFFSHORE_WIND / SOLAR_PV / HYDRO / ANAEROBIC_DIGESTION / BIOMASS / LANDFILL_GAS.
+- _BUYOUT_PRICE_GBP_PER_ROC: 2016 £44.33 → 2025 £63.80 (indexed by Ofgem annually).
+- _RO_LEVEL_ROC_PER_MWH: 2016 0.341 → 2025 0.223 (declining as renewables capacity increases).
+- ROCPurchase frozen: technology, rocs, price_gbp_per_roc, purchase_date; total_cost_gbp.
+- ROCompliancePeriod: year, supplied_mwh; obligation_rocs (= mwh × RO level), rocs_surrendered, shortfall_rocs, buyout_cost_gbp (= shortfall × buyout price), compliance_pct, is_compliant.
+- ROCLedger: buy_rocs(), open_period(year, mwh), surrender_rocs(year, rocs), get_period(), total_roc_spend_gbp(year), roc_summary(year).
+
+**Fidelity delta:** The Renewables Obligation is the pre-CfD mechanism for larger renewables (pre-2017 commissioned). Suppliers must surrender ROCs for their share of electricity supply or pay the buyout price. The buyout pool is redistributed to suppliers who did surrender ROCs (mutualisation), so "buyout" is a transfer not a loss — but complex to model. The RO level declines each year as more renewables are built, reducing the per-MWh obligation cost over time. A 2016 supplier with 100 GWh owed 34,100 ROCs; by 2025 only 22,300. The gap between roc_spend and buyout_cost reveals the ROC market premium (ROCs trade above buyout in normal years).
+
+**9 new tests (3,220 total).**
+
+---
 ### Phase 240 -- GDPR privacy consent register (2026-06-26)
 **Files:** `company/regulatory/privacy_register.py` (new), `tests/company/regulatory/test_privacy_register.py` (new)
 
@@ -3459,7 +3475,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,211 tests (2,794 fast / ~10s; simulation integration ~8 min per run)
+- 3,220 tests (2,803 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
