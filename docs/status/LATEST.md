@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T07:12:02Z
+Last updated: 2026-06-26T07:13:55Z
+
+**Phase 152 COMPLETE (2026-06-26):** Payment plan management -- 12 new tests (2,424 total).
+- company/billing/payment_plan.py: PaymentPlanStatus, PaymentPlan (expected_months/remaining_debt_gbp/is_complete), PaymentPlanBook (create_plan/record_payment/record_missed/defaulted_plans/portfolio_summary)
+- 2 missed payments → DEFAULTED; record_payment() auto-completes plan when debt cleared; bridges arrears → structured repayment → PPM/write-off
+- Fidelity: Ofgem SLC 27A requires affordable repayment plans; defaulted plans trigger PPM installation or debt collector escalation (2022 crisis: plan defaults spiked)
 
 **Phase 151 COMPLETE (2026-06-26):** Debt advice referral tracking -- 11 new tests (2,412 total).
 - company/billing/debt_referral.py: DebtAdviceOrg (StepChange/CitizensAdvice/NationalDebtline/MAS), ReferralStatus, DebtReferral (is_resolved), DebtReferralBook
@@ -506,7 +511,7 @@ Last updated: 2026-06-26T07:12:02Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,412 total (all tests passing)**
+**Test suite: 2,424 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (475s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

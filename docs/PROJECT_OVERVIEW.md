@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 152 -- Payment plan management (2026-06-26)
+**Files:** `company/billing/payment_plan.py` (new), `tests/company/billing/test_payment_plan.py` (new)
+
+**What was built:**
+- `PaymentPlanStatus` enum: ACTIVE / COMPLETED / DEFAULTED / CANCELLED.
+- `PaymentPlan` dataclass: plan_id, customer_id, original_debt_gbp, installment_gbp, start_date, status, payments_made, total_paid_gbp, missed_payments. Properties: expected_months (ceil), remaining_debt_gbp (max(0, original - paid)), is_complete.
+- `PaymentPlanBook`: create_plan(), record_payment() (applies min(installment, remaining); completes plan when debt cleared), record_missed() (increments counter; defaults at threshold=2), cancel_plan(), active_plans(), defaulted_plans(), plans_for_customer(), portfolio_summary().
+- Default threshold: 2 missed payments → DEFAULTED (industry standard trigger for PPM recommendation or debt sale).
+
+**Fidelity delta:** UK suppliers must offer affordable repayment plans under Ofgem SLC 27A (Ability to Pay). A plan that defaults (≥2 missed payments) triggers escalation: PPM installation (if customer accepts) or referral to debt collector. Previously there was no model for structured repayment between debt incurrence and write-off. Phase 152 closes this: the full debt-management lifecycle is now modelled — arrears → referral (Phase 151) → payment plan (Phase 152) → PPM (Phase 145) or write-off.
+
+**12 new tests (2,424 total).**
+
+---
 ### Phase 151 -- Debt advice referral tracking (2026-06-26)
 **Files:** `company/billing/debt_referral.py` (new), `tests/company/billing/test_debt_referral.py` (new)
 
@@ -2175,16 +2189,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,412 tests (1,996 fast / ~10s; simulation integration ~8 min per run)
+- 2,424 tests (2,008 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 151, 2026-06-26):**
+**Latest full run (Phase 152, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 11 new tests: Debt advice referral tracking — DebtReferralBook refer/update_status/annual_summary; £200 SLC 27A threshold; StepChange/CitizensAdvice/NationalDebtline/MAS orgs.
+- 12 new tests: Payment plan management — create_plan/record_payment/record_missed/defaulted_plans; 2-miss default threshold; bridges debt referral → PPM lifecycle.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
