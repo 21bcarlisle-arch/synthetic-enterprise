@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 243 -- Fuel poverty vulnerability index (2026-06-26)
+**Files:** `company/crm/vulnerability_index.py` (new), `tests/company/crm/test_vulnerability_index.py` (new)
+
+**What was built:**
+- VulnerabilityBand: LOW (0-14) / MEDIUM (15-34) / HIGH (35-59) / CRITICAL (60+).
+- FuelPovertyIndicator (6) with scores: BENEFITS 20, DISABILITY 25, CHILD_HOUSEHOLD 10, ELDERLY_75 20, CANCER_TREATMENT 30, HOME_OXYGEN 60.
+- VulnerabilityAssessment frozen: customer_id, assessment_date, indicator_score, arrears_gbp, has_prepayment_meter, annual_income_band, fuel_spend_pct_income; arrears_score (0/5/10/20 by threshold), fuel_poverty_score (0/10/20), ppm_score (0/10); total_score, band, is_priority_services (HIGH+CRITICAL), disconnection_protected (CRITICAL only).
+- assess_vulnerability() factory taking a list of FuelPovertyIndicator.
+
+**Fidelity delta:** Ofgem requires suppliers to maintain a Priority Services Register (PSR) for vulnerable customers and prohibits disconnection of CRITICAL customers between Oct-Mar or at any time if life-support equipment is present. HOME_OXYGEN = 60 points ensures medical equipment users always reach CRITICAL band regardless of other factors. The vulnerability index feeds PPMBook (Ph145) — a HIGH/CRITICAL customer gets emergency credit of £10 (not £5), and fuel_spend_pct_income ≥10% is the statutory definition of fuel poverty. Arrears >£500 triggers an income-based repayment plan (Ofgem non-disconnection protection).
+
+**9 new tests (3,237 total).**
+
+---
 ### Phase 242 -- Metering services contracts (MOP/DC) (2026-06-26)
 **Files:** `company/market/metering_contracts.py` (new), `tests/company/market/test_metering_contracts.py` (new)
 
@@ -3492,7 +3506,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,228 tests (2,811 fast / ~10s; simulation integration ~8 min per run)
+- 3,237 tests (2,820 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
