@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T01:05:42Z
+Last updated: 2026-06-26T01:27:45Z
 
 **Phase 77 COMPLETE (2026-06-26):** Portal Phase 2: Tariff Comparison -- 17 new tests (1,639 total).
 - `company/pricing/tariff_comparison.py` (new): compare_tariffs() returns Fixed 1yr/2yr/Variable sorted by annual cost
@@ -137,8 +137,8 @@ Last updated: 2026-06-26T01:05:42Z
 
 **Test suite: 1,639 total (all saas/company/tools passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (655s / 11 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
-- Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
+- Treasury: £2,466,636 → £3,796,762 | 29 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
