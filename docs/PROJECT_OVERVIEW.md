@@ -664,6 +664,21 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 **13 new tests (3,437 total).**
 
 ---
+**Phase 264 -- Invoice Generation for Customer Portal (2026-06-26)**
+**Files:** tools/generate_invoice_data.py (new), background/process_run_complete.py (modified), site/data/customers/*.json (updated)
+
+**What was built:**
+- Synthetic monthly invoice records from per-customer lifetime revenue (seasonal weighting).
+- Gas: winter-heavy weights (1.45x Jan, 0.48x Jul); electricity: mild seasonal variation.
+- Standing charge added per invoice: £0.28/day (elec), £0.27/day (gas), £1.20/day (I&C).
+- Last invoice UNPAID, all prior PAID. Invoice ID format: {cid}-{yyyy}-{mm}.
+- 19 customer files updated: C1 = 120 invoices ~£43/month; C_IC1 = 108 invoices ~£35k/month.
+- process_run_complete.py wired to call generate_invoice_data on every run.
+- 9 new tests: month count, invoice count, last UNPAID, rest PAID, revenue sanity, winter>summer gas, I&C>>resi, ID format, write-to-file.
+
+**9 new tests (3,446 total).**
+
+---
 **12 new tests (3,373 total).**
 
 ---
@@ -3835,7 +3850,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,437 tests (3,005 fast / ~10s; simulation integration ~8 min per run)
+- 3,446 tests (3,014 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

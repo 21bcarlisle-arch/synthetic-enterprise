@@ -157,6 +157,12 @@ def generate_dashboard_json(json_path):
         log("Generated site/data/customers/ JSON")
     except Exception as exc:
         log("Customer data generation failed: {}".format(exc))
+    try:
+        from tools.generate_invoice_data import generate as gen_inv
+        gen_inv(json_path)
+        log("Generated customer invoice JSON")
+    except Exception as exc:
+        log("Invoice data generation failed: {}".format(exc))
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):
