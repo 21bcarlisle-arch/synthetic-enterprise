@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T06:41:01Z
+Last updated: 2026-06-26T07:00:09Z
+
+**Phase 146 COMPLETE (2026-06-26):** Change of Tenancy (COT) management -- 13 new tests (2,353 total).
+- company/billing/cot.py: COTEvent (move_out/move_in), COTBook (record_move_out/move_in/void_days/overdue_for_nomination/portfolio_summary)
+- deemed_rate_gbp_per_kwh(): SVT + 20% uplift, capped at Ofgem domestic price cap; 28-day void triggers regulatory nomination to named SVT
+- Fidelity: ~3% of UK meter points change occupancy each year; supplier must track void periods and bill at deemed rates until new occupant signs up
 
 **Phase 145 COMPLETE (2026-06-26):** Prepayment meter (PPM) management -- 19 new tests (2,340 total).
 - company/billing/prepayment.py: PPMAccount (balance/debt/emergency_credit_limit/debt_recovery_rate/is_vulnerable), PPMBook (register/top_up/consume_daily/friendly_hours/self_disconnect/portfolio_summary)
@@ -481,9 +486,9 @@ Last updated: 2026-06-26T06:41:01Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,287 total (all tests passing)**
+**Test suite: 2,353 total (all tests passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (474s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (480s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
