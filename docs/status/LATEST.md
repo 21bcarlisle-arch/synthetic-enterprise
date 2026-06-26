@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T04:14:01Z
+Last updated: 2026-06-26T04:15:28Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 130 COMPLETE (2026-06-27):** ECO4 obligation tracker -- 10 new tests (2,186 total).
+- company/regulatory/eco_tracker.py: ECO4 tiers (exempt/contribution/direct delivery)
+- annual_obligation_twhd scaled to account count; EXEMPT/ON_TRACK/AT_RISK/BREACH status
+- Fidelity: ECO4 non-delivery triggers Ofgem enforcement; material cost for large suppliers
+
 **Phase 129 COMPLETE (2026-06-27):** Customer notification preferences -- 11 new tests (2,176 total).
 - company/crm/notification_prefs.py: PECR/GDPR channel preferences (email/sms/post/phone/portal)
 - can_contact() defaults: service email always on; marketing requires explicit opt-in
@@ -405,7 +410,7 @@ Last updated: 2026-06-26T04:14:01Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,176 total (all tests passing)**
+**Test suite: 2,186 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (440s / 7 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

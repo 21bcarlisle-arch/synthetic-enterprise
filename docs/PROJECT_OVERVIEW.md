@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,176 tests (1,748 non-simulation, 428 simulation). Codebase: ~32,100 lines across 243+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,186 tests (1,758 non-simulation, 428 simulation). Codebase: ~32,300 lines across 244+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 130 -- ECO4 obligation tracker (2026-06-27)
+**Files:** `company/regulatory/eco_tracker.py` (new), `tests/company/regulatory/test_eco_tracker.py` (new)
+
+**What was built:**
+- `EcoTracker(account_count, scheme_year)`: three-tier eligibility — exempt (<150k), contribution fee (150k-250k), direct delivery (>250k).
+- `annual_obligation_twhd`: rate 0.042 TWhd/1k accounts. `record_measure()`, `delivered_twhd()` (verified only), `shortfall_twhd()`, `completion_pct()`, `status()` (EXEMPT/ON_TRACK/AT_RISK/BREACH).
+- `measure_scores()`: catalogue of 9 ECO4 measure types with TWhd scores (cavity wall £95, ASHP £350, solid wall external £290 etc).
+
+**Fidelity delta:** ECO4 (2022-2026) is a material cost obligation for large UK suppliers. Non-delivery triggers Ofgem enforcement action. The simulation's 18-customer book is too small to trigger the obligation, but the module gates correctly on the account count so it would activate as the book grows.
+
+**10 new tests (2,186 total).**
+
+---
 ### Phase 129 -- Customer notification preferences (2026-06-27)
 **Files:** `company/crm/notification_prefs.py` (new), `tests/company/crm/test_notification_prefs.py` (new)
 
@@ -1887,14 +1900,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,176 tests (1,748 fast / ~10s; simulation integration ~8 min per run)
+- 2,186 tests (1,758 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 129, 2026-06-27):**
+**Latest full run (Phase 130, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
