@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 187 -- CLV cohort analysis book (2026-06-26)
+**Files:** `company/crm/clv_cohort_book.py` (new), `tests/company/crm/test_clv_cohort_book.py` (new)
+
+**What was built:**
+- CustomerCLVRecord frozen dataclass: customer_id, acquisition_year, channel, segment, clv_gbp, annual_margin_gbp, tenure_years.
+- CohortSummary frozen dataclass: key, customer_count, avg_clv_gbp, median_clv_gbp, total_clv_gbp, avg_annual_margin_gbp, avg_tenure_years, profitable_pct, is_profitable_cohort.
+- CLVCohortBook: add(), by_acquisition_year(year), by_channel(channel), by_segment(segment), all_cohorts_by_year() dict, best_cohort_by_year() / worst_cohort_by_year(), portfolio_summary().
+- Median uses standard two-element average for even-n lists.
+
+**Fidelity delta:** The board answer that matters: "which acquisition year cohort was most valuable?" PCW-acquired 2022 cohorts are the worst in history — high CAC, negative CLV because customers left the moment prices normalised. Direct-web 2019 cohorts are typically best: low CAC, long tenure, sticky SVT customers. best/worst_cohort_by_year lets the CFO see at a glance that PCW spend in 2021-2022 destroyed value. Extends clv_calculator.py (individual) to portfolio cohort view.
+
+**9 new tests (2,773 total).**
+
+---
 ### Phase 186 -- Supplier switching analytics (2026-06-26)
 **Files:** `company/crm/switch_analytics.py` (new), `tests/company/crm/test_switch_analytics.py` (new)
 
@@ -2674,7 +2688,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,764 tests (2,348 fast / ~10s; simulation integration ~8 min per run)
+- 2,773 tests (2,357 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
