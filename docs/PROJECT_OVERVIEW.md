@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,798 tests passing. Codebase: ~38,300 lines across 282+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,808 tests passing. Codebase: ~38,450 lines across 283+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 296 (2026-06-26):** REMIT Reporting Book -- 10 new tests (3,808 total). company/regulatory/remit_book.py: REMITProductType (6 product types), frozen REMITReport (notional_value_gbp, is_large_trade>=100MWh), REMITReportingBook (submit/acknowledge lifecycle, compliance_rate, pending_reports). T+1 trade reporting obligation to FCA/ACER.
 
 **Phase 295 (2026-06-26):** Ofgem Price Cap Book -- 10 new tests (3,798 total). company/regulatory/price_cap.py: 26 quarters real data Q1-2019 to Q1-2025; CapStatus (4), frozen CapComplianceCheck (headroom/is_compliant), PriceCapBook (elec/gas cap rates, typical annual bill, breach tracking). Peak Q3-2022: £3,549 vs £1,137 baseline = 3.12x. Connects to TariffSmoothing (Ph277) and CostToServe (Ph294).
 
@@ -3971,7 +3973,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,798 tests (3,356 fast / ~10s; simulation integration ~8 min per run)
+- 3,808 tests (3,366 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
