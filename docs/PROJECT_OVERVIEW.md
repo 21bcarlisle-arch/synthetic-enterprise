@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,998 tests (1,570 non-simulation, 428 simulation). Codebase: ~28,800 lines across 226+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,010 tests (1,582 non-simulation, 428 simulation). Codebase: ~28,950 lines across 227+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 113 -- Direct Debit mandate management (2026-06-26)
+**Files:** `company/billing/direct_debit.py` (new), `tests/company/billing/test_direct_debit.py` (new)
+
+**What was built:**
+- `DirectDebitMandate` dataclass: mandate reference, masked bank details, monthly amount, status, next collection date, failed attempts.
+- `DDPaymentAttempt` dataclass: mandate_reference, outcome (collected/failed/cancelled), failure_reason.
+- `DirectDebitBook`: create_mandate (28-day BACS cycle), record_attempt (2-strike suspension rule), cancel_mandate, reinstate_mandate, failed_mandates(), dd_summary().
+
+**Fidelity delta:** UK energy suppliers use BACS Direct Debit as the primary recurring collection mechanism. Failed DDs are the primary upstream trigger of debt escalation. This completes the billing lifecycle: invoice → DD collection → failed DD → debt aging → bad debt.
+
+**12 new tests (2,010 total).** CLAUDE.md trimmed 179→166 lines.
+
+---
 ### Phase 112 -- Vulnerability register admin view (2026-06-26)
 **Files:** `company/portal/app.py` (extended), `company/portal/templates/admin_vulnerability.html` (new), `company/portal/templates/admin.html` (extended), `tests/company/portal/test_admin_vulnerability.py` (new)
 
@@ -1667,14 +1680,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,998 tests (1,570 fast / ~10s; simulation integration ~8 min per run)
+- 2,010 tests (1,582 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 112, 2026-06-26):**
+**Latest full run (Phase 113, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
