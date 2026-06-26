@@ -126,3 +126,4 @@
 - [2026-06-25 19:25 UTC] Acked inbound message 'NSX60jFpDLPS' ('I keep getting session watchdog ntfys. Such as Session watch') — staged as from_rich_20260625_192533.md
 - [2026-06-25 20:28 UTC] Acked inbound message 'h3zRznPuauWi' ('Three best-practice improvements to evaluate: (1) Git worktr') — staged as from_rich_20260625_202811.md
 - [2026-06-25 20:31 UTC] Acked inbound message 'HNpPL4GZTeaH' ('Start Phase 64 now — do not wait 4 hours. Phase 63 is confir') — staged as from_rich_20260625_203134.md
+- [2026-06-25 22:15 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782424861 (Caused by NameResolutionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to resolve 'ntfy.sh' ([Errno -3] Temporary failure in name resolution)"))
