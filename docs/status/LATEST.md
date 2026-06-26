@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:08:31Z
+Last updated: 2026-06-26T03:10:35Z
+
+**Phase 100 COMPLETE (2026-06-26):** Switching recommendation engine -- 11 new tests (1,891 total).
+- company/pricing/switching_recommendation.py: action logic (switch/stay/consider/N-A) based on fixed/variable, renewal window, market rate delta
+- Dashboard: tariff advice widget (red=switch urgently, green=stay, blue=consider)
+- Synthesises Phase 95 (contract), 99 (market rate), 47a (price cap) intelligence
 
 **Phase 99 COMPLETE (2026-06-26):** Market rate comparison widget -- 8 new tests (1,880 total).
 - company/market/rate_comparison.py: forward estimate vs effective invoice rate; delta + protected flag + message
@@ -253,7 +258,7 @@ Last updated: 2026-06-26T03:08:31Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,880 total (all tests passing)**
+**Test suite: 1,891 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

@@ -29,6 +29,17 @@
     {% endif %}
   </div>
   {% endif %}
+  {% if switch_rec and switch_rec.action != "not_applicable" %}
+  <div style="margin:8px 0;padding:8px 12px;border-radius:4px;font-size:0.9em;border:1px solid;
+    {% if switch_rec.action == "switch" %}background:#fff5f5;border-color:#c53030
+    {% elif switch_rec.action == "stay" %}background:#f0fff4;border-color:#276749
+    {% else %}background:#f7fafc;border-color:#bee3f8{% endif %}">
+    <strong>Tariff advice:</strong> {{ switch_rec.reason }}
+    {% if switch_rec.action in ("switch", "consider_switching") %}
+    <a href="/account/{{ customer.customer_id }}/tariff-compare" style="margin-left:8px">Compare tariffs</a>
+    {% endif %}
+  </div>
+  {% endif %}
   <h1>Account {{ customer.customer_id }}</h1>
   <table>
     <tr><th>Field</th><th>Value</th></tr>
