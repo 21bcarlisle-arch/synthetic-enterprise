@@ -8,7 +8,7 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T07:15:46Z
+Last updated: 2026-06-26T07:38:10Z
 
 **Phase 153 COMPLETE (2026-06-26):** Fixed-term contract exit fee -- 10 new tests (2,434 total).
 - company/billing/exit_fee.py: ExitFeeWaiveReason (5 types), ExitFeeResult, calculate_exit_fee() (auto-waive within 42-day notice period or after expiry)
@@ -518,7 +518,7 @@ Last updated: 2026-06-26T07:15:46Z
 
 **Test suite: 2,434 total (all tests passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (475s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (469s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
