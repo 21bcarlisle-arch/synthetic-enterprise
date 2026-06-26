@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 212 -- Wholesale price monitor (2026-06-26)
+**Files:** `company/market/price_monitor.py` (new), `tests/company/market/test_price_monitor.py` (new)
+
+**What was built:**
+- PriceAlertLevel enum: NORMAL / ELEVATED / HIGH / EXTREME.
+- Commodity enum: ELECTRICITY / GAS.
+- PriceObservation frozen: spot/month_ahead/quarter_ahead prices; term_structure_slope (M1-spot), is_backwardation (<-2), is_contango (>+2).
+- PriceTrigger: trigger_id, commodity, level, threshold_gbp_per_mwh, description.
+- WholesalePriceMonitor: add_trigger(), record_observation(), latest_observation(), active_alerts() (sorted by threshold desc), highest_alert_level(), price_history(days), monitor_summary().
+
+**Fidelity delta:** Energy supplier trading desks typically set 4 alert tiers for spot prices. For electricity: ELEVATED >=£80/MWh (2x pre-crisis avg), HIGH >=£200/MWh (4x), EXTREME >=£400/MWh (8x). During August 2022, Day-Ahead electricity hit £900/MWh — every trigger breached simultaneously. is_backwardation (spot > forward) is a key signal: it means the market expects supply relief, so locking in forward buys is advisable; contango (forward > spot) means carry cost of being long. Term structure slope directly feeds hedge_decision.py (existing Ph43a). This module is the company-layer price observatory — it reads from market_data feeds, not SIM internals.
+
+**8 new tests (2,969 total). 150 company/ files milestone.**
+
+---
 ### Phase 211 -- Customer payment behaviour analytics (2026-06-26)
 **Files:** `company/billing/payment_behaviour.py` (new), `tests/company/billing/test_payment_behaviour.py` (new)
 
@@ -3034,7 +3049,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,961 tests (2,545 fast / ~10s; simulation integration ~8 min per run)
+- 2,969 tests (2,553 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
