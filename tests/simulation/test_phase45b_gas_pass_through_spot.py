@@ -34,7 +34,8 @@ class TestPassThroughSpotBilling:
         )
         assert len(recs) == 1
         r = recs[0]
-        daily_mwh = 5_000_000 / 1000 / 365
+        # Use actual daily_mwh from record (accounts for I&C seasonal profile)
+        daily_mwh = r["consumption_kwh"] / 1000
         # billed energy component = spot + service_fee (not high_unit_rate)
         expected_billed = daily_mwh * (spot + GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH)
         # revenue also includes policy + network passthrough
@@ -61,7 +62,8 @@ class TestPassThroughSpotBilling:
         )
         assert len(recs) == 1
         r = recs[0]
-        daily_mwh = 5_000_000 / 1000 / 365
+        # Use actual daily_mwh from record (accounts for I&C seasonal profile)
+        daily_mwh = r["consumption_kwh"] / 1000
         expected_net = GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH * daily_mwh
         # net should equal service_fee × volume (policy+network cancel, no basis)
         assert abs(r["net_margin_gbp"] - expected_net) < 0.5
@@ -119,7 +121,8 @@ class TestPassThroughSpotBilling:
             pass_through=False,
         )
         r = recs[0]
-        daily_mwh = 5_000_000 / 1000 / 365
+        # Use actual daily_mwh from record (accounts for I&C seasonal profile)
+        daily_mwh = r["consumption_kwh"] / 1000
         expected_revenue = unit_rate * daily_mwh
         assert abs(r["revenue_gbp"] - expected_revenue) < 0.01
 
