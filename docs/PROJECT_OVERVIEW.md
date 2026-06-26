@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,526 tests passing. Codebase: ~35,250 lines across 261+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,538 tests passing. Codebase: ~35,400 lines across 262+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 274 (2026-06-26):** Life Event Impact Assessor -- 12 new tests (3,538 total). company/crm/life_event_impact.py: ImpactSeverity (LOW/MODERATE/HIGH/CRITICAL), LifeEventImpact (frozen dataclass), LifeEventImpactAssessor (assess/batch_assess/urgent_impacts/psr_candidates/summary). Maps all 11 LifeEventTypes to severity + consumption_delta_pct + PSR trigger + vulnerability flag + recommended_actions. Connects life_events + priority_services + vulnerability_index into unified impact assessment layer.
 
 **Phase 273 (2026-06-26):** Management Accounts Dashboard Tab -- 10 new tests (3,526 total). tools/generate_dashboard_data.py: extract_management_accounts() extracts 10-year P&L waterfall (revenue/wholesale/non_commodity/gross_margin/capital/bad_debt/cost_to_serve/fixed/acquisition/net_margin + net_margin_pct) from management_accounts key in run output. Wired into generate() as management_accounts key in dashboard.json. site/index.html: Accounts tab with stacked cost-vs-revenue Chart.js bar+line chart and annual P&L waterfall table; 2021/2022 crisis years highlighted amber; net margin % column added.
 
@@ -3927,7 +3929,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,526 tests (3,084 fast / ~10s; simulation integration ~8 min per run)
+- 3,538 tests (3,096 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
