@@ -1881,3 +1881,49 @@
 - [2026-06-26 08:39 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-26 08:49 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-26 08:59 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 09:09 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 09:19 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 09:29 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 09:39 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 09:49 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 09:59 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 10:09 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 10:20 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 10:30 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 10:40 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 10:50 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 11:00 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 11:10 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 11:20 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 11:30 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 11:40 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 11:50 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 12:00 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 12:06 UTC] Inbound NTFY command from Rich: "Important: the strategy advisor cannot read raw.githubusercontent.com URLs and its fetch cache means it can't re-read URLs from earlier in the conversation. Every NTFY that needs the advisor to see current state must include a fresh timestamped snapshot URL at poesys.net/snapshots/LATEST_[TIMESTAMP].md — not the raw GitHub URL. Generate one now so the advisor can read Phase 143's actual current state." — relaying to session
+- [2026-06-26 12:10 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 12:21 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 12:31 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 12:41 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 12:51 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 13:00 UTC] Inbound NTFY command from Rich: 'Which of my staging docs remain unactioned? URGENT' — relaying to session
+- [2026-06-26 13:01 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 13:11 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 13:21 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 13:31 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 13:32 UTC] Inbound NTFY command from Rich: 'What does Phase 257 (Run Insight Generator) produce? Does it generate "so what" narratives per data area and an executive coherence summary as described in DASHBOARD_VISION.md? And is C1 (invoice documents) or C2 (customer portal) in the staged queue or proposed backlog?' — relaying to session
+- [2026-06-26 13:41 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 13:47 UTC] Inbound NTFY command from Rich: "What is the customer portal URL? How does Rich log in as a customer right now? Also send the URL for a sample invoice — ideally C_IC1's most recent term. And please archive INVOICE_AND_PORTAL.md from staging without actioning it — C1 and C2 are already built in Phases 66 and 68." — relaying to session
+- [2026-06-26 13:51 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 14:01 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 14:12 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 14:22 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 14:32 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 14:36 UTC] Inbound NTFY command from Rich: "I can't see a login box in the customers tab? Please advise" — relaying to session
+- [2026-06-26 14:45 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 14:55 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 15:05 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 15:10 UTC] Inbound NTFY command from Rich: 'URGENT please note 91% usage, resets in 50mins. But only 54% this week resets Monday 4am' — relaying to session
+- [2026-06-26 15:15 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 15:25 UTC] Inbound NTFY command from Rich: 'Will you automatically restart at the right time and not wait hours?' — relaying to session
+- [2026-06-26 15:25 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-26 15:36 UTC] Session idle — sending autoloop continuation instruction

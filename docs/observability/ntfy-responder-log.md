@@ -131,3 +131,12 @@
 - [2026-06-26 03:31 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782439379 (Caused by NewConnectionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to establish a new connection: [Errno 101] Network is unreachable"))
 - [2026-06-26 04:53 UTC] Acked inbound message 'tsIzaSfsBqie' ('Generate a fresh timestamped snapshot: docs/snapshots/LATEST') — staged as from_rich_20260626_045326.md
 - [2026-06-26 07:34 UTC] Acked inbound message 'UQAoQtzj1tgt' ('You are making great progress. Are you also maturing reporti') — staged as from_rich_20260626_073456.md
+- [2026-06-26 12:06 UTC] Acked inbound message 'apmq1cvdgCwa' ('Important: the strategy advisor cannot read raw.githubuserco') — staged as from_rich_20260626_120651.md
+- [2026-06-26 13:00 UTC] Acked inbound message 'tlPTvwxWr07w' ('Which of my staging docs remain unactioned? URGENT') — staged as from_rich_20260626_130020.md
+- [2026-06-26 13:32 UTC] Acked inbound message 'Yu1dnv8IqHE9' ('What does Phase 257 (Run Insight Generator) produce? Does it') — staged as from_rich_20260626_133230.md
+- [2026-06-26 13:47 UTC] Acked inbound message 'DfIxkPtqHCiq' ('What is the customer portal URL? How does Rich log in as a c') — staged as from_rich_20260626_134705.md
+- [2026-06-26 14:35 UTC] Acked inbound message 'qqSlOZ6PxXX0' ("I can't see a login box in the customers tab? Please advise") — staged as from_rich_20260626_143531.md
+- [2026-06-26 14:40 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782484617 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-26 14:43 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782484617 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-26 15:10 UTC] Acked inbound message 'eymE3XgNNaFh' ('URGENT please note 91% usage, resets in 50mins. But only 54%') — staged as from_rich_20260626_151018.md
+- [2026-06-26 15:25 UTC] Acked inbound message 'fK3uh5JENX68' ('Will you automatically restart at the right time and not wai') — staged as from_rich_20260626_152553.md
