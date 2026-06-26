@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 200 -- Customer lifecycle stage tracker (2026-06-26)
+**Files:** `company/crm/lifecycle_tracker.py` (new), `tests/company/crm/test_lifecycle_tracker.py` (new)
+
+**What was built:**
+- LifecycleStage enum (10 states): PROSPECT → PENDING_SWITCH → ACTIVE → AT_RISK / IN_ARREARS / IN_DEFERRAL / RENEWAL_DUE → CHURNED / MOVED_OUT / DECEASED.
+- _ON_SUPPLY_STAGES set: PENDING_SWITCH, ACTIVE, AT_RISK, IN_ARREARS, IN_DEFERRAL, RENEWAL_DUE (not CHURNED/MOVED_OUT/DECEASED).
+- LifecycleEvent dataclass: customer_id, from_stage, to_stage, event_date, reason.
+- CustomerLifecycle mutable: stage, acquisition_date, _history; is_on_supply, is_active_customer, transition(), tenure_days(as_of), stage_history().
+- CustomerLifecycleTracker: register(), get(), transition(), customers_in_stage(), active_customers(), on_supply_count(), portfolio_summary(as_of).
+
+**Fidelity delta:** UK supplier CRM systems track each customer's commercial status as a state machine. portfolio_summary() gives the CMO an at-a-glance split: 850 active / 40 at-risk / 12 in-arrears / 6 renewal-due / 28 churned. The tracker is the hub that connects renewals_book (Ph194), arrears_book (Ph174), payment_deferral (Ph170), vulnerability_register (Ph169) — real suppliers segment on exactly these lifecycle states for outbound contact prioritisation.
+
+**8 new tests (2,876 total).**
+
+---
 ### Phase 199 -- Annual regulatory obligations report (2026-06-26)
 **Files:** `company/regulatory/annual_obligations.py` (new), `tests/company/regulatory/test_annual_obligations.py` (new)
 
@@ -2855,7 +2870,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,868 tests (2,452 fast / ~10s; simulation integration ~8 min per run)
+- 2,876 tests (2,460 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
