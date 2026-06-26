@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 213 -- Meter read validation engine (2026-06-26)
+**Files:** `company/billing/meter_read_validation.py` (new), `tests/company/billing/test_meter_read_validation.py` (new)
+
+**What was built:**
+- ReadSource enum: CUSTOMER / ESTIMATED / SMART_METER / ENGINEER_VISIT.
+- ValidationFlag enum: REVERSAL / EXCESSIVE_DAILY_RATE (>3x expected) / LOW_DAILY_RATE (<0.2x expected) / TRANSPOSITION_LIKELY / METER_ADVANCE_ZERO (zero advance > 7 days).
+- ValidationResult enum: ACCEPTED / QUERIED / REJECTED.
+- MeterReadValidation frozen: read_date, read_value, previous_read, previous_read_date, expected_daily_kwh, source; days_elapsed, advance_kwh, implied_daily_kwh, flags (list), result (REVERSAL/EXCESSIVE -> REJECTED; other flags -> QUERIED; else ACCEPTED), _check_transposition() (rotates last digit and checks if closer to expected), summary().
+
+**Fidelity delta:** UK suppliers must validate all customer-submitted reads before billing. A transposed read (12456 entered as 12465) can create a £500 billing error. Industry benchmarks: >5% of reads require query; <0.5% are reversed (meter running backwards = fault). Smart meter reads bypass customer validation but still check for zero-advance (clock error or tamper). Engineer visits are ground truth — they override all other reads. This module feeds meter_dispute.py (Ph154) when a validated read contradicts a customer claim.
+
+**7 new tests (2,976 total).**
+
+---
 ### Phase 212 -- Wholesale price monitor (2026-06-26)
 **Files:** `company/market/price_monitor.py` (new), `tests/company/market/test_price_monitor.py` (new)
 
@@ -3049,7 +3063,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,969 tests (2,553 fast / ~10s; simulation integration ~8 min per run)
+- 2,976 tests (2,560 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
