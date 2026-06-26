@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,147 tests (1,719 non-simulation, 428 simulation). Codebase: ~31,500 lines across 240+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,156 tests (1,728 non-simulation, 428 simulation). Codebase: ~31,700 lines across 241+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 127 -- HH meter data quality checker (2026-06-27)
+**Files:** `company/market/hh_data_quality.py` (new), `tests/company/market/test_hh_data_quality.py` (new)
+
+**What was built:**
+- `HHRecord` dataclass: period_id, kwh, data_type (actual/estimated/substituted), flag.
+- `HHDataQualityChecker.check_record()`: negative consumption (error), zero actual read (warning), implausibly high vs EAC (warning), estimated (info), substituted (warning).
+- `check_day(records)`: validates 48-period completeness; quality_ok=False if any errors; total_kwh, estimated_kwh, errors/warnings/infos counts.
+
+**Fidelity delta:** BSCP505 (BSC Procedure for HH data quality) defines the quality flags that settlement agents must apply. HH data quality failures are the primary upstream cause of billing disputes — a quality_ok gate prevents billing on bad data.
+
+**9 new tests (2,156 total).**
+
+---
 ### Phase 126 -- Imbalance price risk model (2026-06-27)
 **Files:** `company/market/imbalance.py` (new), `tests/company/market/test_imbalance.py` (new)
 
@@ -1850,14 +1863,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,147 tests (1,719 fast / ~10s; simulation integration ~8 min per run)
+- 2,156 tests (1,728 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 126, 2026-06-27):**
+**Latest full run (Phase 127, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
