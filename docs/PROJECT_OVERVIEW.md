@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 242 -- Metering services contracts (MOP/DC) (2026-06-26)
+**Files:** `company/market/metering_contracts.py` (new), `tests/company/market/test_metering_contracts.py` (new)
+
+**What was built:**
+- MeteringServiceType: MOP / DC / DA / MAM.
+- MeterType: CREDIT / PREPAYMENT / SMART (SMETS2) / HH (half-hourly).
+- ServiceCallType (6): METER_READ / METER_INSTALL / METER_EXCHANGE / METER_REMOVAL / FAULT_REPAIR / SMART_COMMISSIONING.
+- _MOP_RATE (£/meter/year): CREDIT £18 / PPM £22 / SMART £28 / HH £45.
+- _DC_RATE (£/meter/year): CREDIT £12 / PPM £14 / SMART £16 / HH £30.
+- MeteringContract frozen: provider_id, service_type, meter_type, start_date, end_date, mpan; annual_cost_gbp, is_active(as_of), cost_for_period_gbp(from, to).
+- MeteringContractManager: register_contract(), log_service_call(), active_contracts(as_of, service_type), annual_contract_cost_gbp(year), service_call_cost_gbp(year), metering_summary(year).
+
+**Fidelity delta:** Every supply point has a MOP and a DC contract — two separate third-party agreements that are a real cost of supply independent of commodity prices. For a domestic credit meter: £18 MOP + £12 DC = £30/year = 2.5p/kWh on a 1,200 kWh/yr user. For a half-hourly I&C meter: £45 + £30 = £75/year. Smart meter commissioning (service_call: SMART_COMMISSIONING) is a one-off £100-£150 cost that the government partially subsidised through the smart meter programme. When suppliers exit (SoLR), MOP/DC contracts transfer to the incoming supplier — they don't terminate, which is a legal and operational guarantee.
+
+**8 new tests (3,228 total).**
+
+---
 ### Phase 241 -- Renewables Obligation compliance ledger (2026-06-26)
 **Files:** `company/regulatory/roc_ledger.py` (new), `tests/company/regulatory/test_roc_ledger.py` (new)
 
@@ -3475,7 +3492,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,220 tests (2,803 fast / ~10s; simulation integration ~8 min per run)
+- 3,228 tests (2,811 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
