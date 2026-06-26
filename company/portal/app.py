@@ -172,6 +172,15 @@ def _invoice_summary(account_id: str, db_path: Path) -> dict:
     }
 
 
+
+def _tou_band(date_str: str, hour: float) -> str:
+    """Determine ToU pricing band from date and hour. Company product definition."""
+    from datetime import date as _d
+    d = _d.fromisoformat(date_str)
+    if d.weekday() >= 5:  # weekends always off-peak
+        return "Off-Peak"
+    return "Peak" if 7 <= hour < 19 else "Off-Peak"
+
 @app.get("/", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse(request, "login.html")
@@ -283,10 +292,14 @@ async def consumption_page(request: Request, account_id: str):
     calibrated_eac = calibrate_eac(account_id, _DEFAULT_DB)
     orig_eac = customer.get("eac_kwh") or 0
     drift = eac_drift(orig_eac, calibrated_eac) if calibrated_eac and orig_eac else None
+    is_tou = bool(customer.get("smart_meter")) or is_hh
+    if hh_data and is_tou:
+        for rec in hh_data:
+            rec["band"] = _tou_band(str(rec["date"]), float(rec["hour"]))
     return templates.TemplateResponse(
         request, "consumption.html",
         {"customer": customer, "monthly_data": data, "is_hh": is_hh,
-         "total_kwh": total_kwh, "hh_data": hh_data,
+         "total_kwh": total_kwh, "hh_data": hh_data, "is_tou": is_tou,
          "calibrated_eac": calibrated_eac, "eac_drift": drift},
     )
 

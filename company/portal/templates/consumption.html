@@ -16,7 +16,12 @@
     tr:last-child td { border-bottom: none; }
     .total-row { font-weight: 600; background: #fafafa; }
     .no-data { color: #666; font-style: italic; padding: 1rem 0; }
-    .month-names { }
+    .peak { background: #fffbeb; }
+    .off-peak { background: #ebf8ff; }
+    .band-peak { color: #c05621; font-weight: 600; }
+    .band-off { color: #2b6cb0; }
+    .legend { margin: 0.5rem 0 1rem; font-size: 0.88em; }
+    .legend span { display: inline-block; padding: 2px 8px; border-radius: 3px; margin-right: 8px; }
   </style>
 </head>
 <body>
@@ -37,14 +42,21 @@
   {% if hh_data %}
   <h2>Half-Hourly Consumption (last 24h)</h2>
   <table>
-    <thead><tr><th>Date</th><th>Period</th><th>Time</th><th>kWh</th></tr></thead>
+    {% if is_tou %}
+    <div class="legend">
+      <span style="background:#fffbeb;color:#c05621;border:1px solid #c05621">&#9650; Peak 07:00-19:00 weekdays</span>
+      <span style="background:#ebf8ff;color:#2b6cb0;border:1px solid #2b6cb0">&#9660; Off-Peak all other times</span>
+    </div>
+    {% endif %}
+    <thead><tr><th>Date</th><th>Period</th><th>Time</th><th>kWh</th>{% if is_tou %}<th>Band</th>{% endif %}</tr></thead>
     <tbody>
       {% for r in hh_data %}
-      <tr>
+      <tr class="{{ 'peak' if r.band == 'Peak' else 'off-peak' if r.band is defined else '' }}">
         <td>{{ r.date }}</td>
         <td>{{ r.period }}</td>
         <td>{{ "%02d:%02d"|format((r.hour)|int, ((r.hour % 1) * 60)|int) }}</td>
         <td>{{ "%.3f"|format(r.kwh) }}</td>
+        {% if is_tou %}<td class="{{ 'band-peak' if r.band == 'Peak' else 'band-off' }}">{{ r.band }}</td>{% endif %}
       </tr>
       {% endfor %}
     </tbody>

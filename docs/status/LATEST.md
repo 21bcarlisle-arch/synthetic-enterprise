@@ -8,7 +8,13 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:45:56Z
+Last updated: 2026-06-26T02:49:46Z
+
+**Phase 92 COMPLETE (2026-06-26):** Peak/off-peak band overlay on HH consumption -- 10 new tests (1,814 total).
+- _tou_band(): weekends off-peak; weekdays peak 07:00-19:00
+- Consumption route: hh_data enriched with band field; is_tou passed to template
+- consumption.html: Band column, amber peak rows, blue off-peak rows, legend
+- Destinationvision test met: C7 (HH smart meter) sees peak/off-peak pricing overlaid
 
 **Phase 91 COMPLETE (2026-06-26):** CSS filing wired to persistent ServiceLog -- 9 new tests (1,804 total).
 - Regulatory dashboard CSS section: total contacts, complaint rate, resolution rate, target met, vulnerable count
@@ -212,7 +218,7 @@ Last updated: 2026-06-26T02:45:56Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,804 total (all tests passing)**
+**Test suite: 1,814 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (469s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

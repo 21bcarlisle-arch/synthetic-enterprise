@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,804 tests (1,376 non-simulation, 428 simulation). Codebase: ~25,000 lines across 213+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,814 tests (1,386 non-simulation, 428 simulation). Codebase: ~25,200 lines across 213+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 92 -- Peak/off-peak band overlay on HH consumption (2026-06-26)
+**Files:** `company/portal/app.py` (extended), `company/portal/templates/consumption.html` (extended), `tests/company/portal/test_tou_band.py` (new)
+
+**What was built:**
+- `_tou_band(date_str, hour)` helper: weekends always Off-Peak; weekdays Peak 07:00-19:00 (product definition, not SIM internals).
+- Consumption route: `is_tou = smart_meter OR metering==HH`; each `hh_data` record enriched with `band` field.
+- `consumption.html`: Band column added to HH table; rows colour-coded (amber=Peak, blue=Off-Peak); peak/off-peak legend above table.
+
+**Fidelity delta:** Destinationvision explicit test now met — C7 (HH smart meter customer) sees their half-hourly consumption with peak/off-peak pricing overlaid. The simulation stops being abstract.
+
+**10 new tests (1,814 total).**
+
+---
 ### Phase 91 -- CSS filing wired to persistent ServiceLog (2026-06-26)
 **Files:** `company/portal/app.py` (extended), `company/portal/templates/regulatory.html` (extended), `tests/company/portal/test_portal_regulatory_css.py` (new)
 
@@ -1391,14 +1404,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,804 tests (1,376 fast / ~10s; simulation integration ~8 min per run)
+- 1,814 tests (1,386 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 91, 2026-06-26):**
+**Latest full run (Phase 92, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
