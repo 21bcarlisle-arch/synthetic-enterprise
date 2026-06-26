@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 244 -- Customer contact preferences and channel management (2026-06-26)
+**Files:** `company/crm/contact_journey.py` (new), `tests/company/crm/test_contact_journey.py` (new)
+
+**What was built:**
+- ContactChannel (6): EMAIL / SMS / POST / PHONE / IN_APP / WEB_PORTAL.
+- ContactPurpose (7): BILL / TARIFF_CHANGE / MARKETING / DEBT_CHASE / RENEWAL_OFFER / SERVICE_UPDATE / COMPLAINT_UPDATE.
+- ContactOutcome: DELIVERED / OPENED / CLICKED / BOUNCED / OPTED_OUT / NO_ANSWER / COMPLETED.
+- _CHANNEL_COST_PENCE: EMAIL 0.2p / SMS 4p / POST 80p / PHONE 350p / IN_APP 0p.
+- CustomerContactPrefs frozen: paper_free_discount_eligible (paper_free=True and not bill_by_post).
+- ContactAttempt frozen: attempt_id, channel, purpose, sent_at, outcome, cost_pence; was_successful (DELIVERED/OPENED/CLICKED/COMPLETED).
+- ContactJourney: set_prefs(), get_prefs(), log_attempt(), delivery_rate_pct(channel, year), total_contact_cost_gbp(year), opted_out_customers(), contact_summary(year).
+
+**Fidelity delta:** Paper-free billing was a major driver of cost reduction for energy suppliers (2016-2022). A customer with 12 paper bills costs £9.60/yr to send; email costs £0.24/yr. With 100,000 domestic customers, moving 80% to paper-free saves ~£750k/yr. total_contact_cost_gbp() is a real operational cost; phone contacts at 350p (£3.50 per call handling) are the most expensive touchpoint. opted_out_customers() feeds the GDPR privacy_register (Ph240): opting out of a contact channel must be reflected in future campaign targeting. Delivery_rate by channel guides the channel selection in outbound_contact_campaign (Ph203).
+
+**9 new tests (3,246 total).**
+
+---
 ### Phase 243 -- Fuel poverty vulnerability index (2026-06-26)
 **Files:** `company/crm/vulnerability_index.py` (new), `tests/company/crm/test_vulnerability_index.py` (new)
 
@@ -3506,7 +3523,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,237 tests (2,820 fast / ~10s; simulation integration ~8 min per run)
+- 3,246 tests (2,829 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
