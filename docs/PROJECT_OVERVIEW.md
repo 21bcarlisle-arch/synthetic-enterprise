@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 228 -- Tariff change notification log (2026-06-26)
+**Files:** `company/crm/tariff_notification.py` (new), `tests/company/crm/test_tariff_notification.py` (new)
+
+**What was built:**
+- ADVANCE_NOTICE_DAYS = 42 (Ofgem SLC 25B requirement).
+- NotificationChannel: EMAIL / POST / SMS / IN_APP.
+- TariffChangeReason: MARKET_PRICE_CHANGE / PRICE_CAP_CHANGE / CONTRACT_RENEWAL / REGULATORY_CHANGE / PRODUCT_RESTRUCTURE.
+- TariffNotification mutable: sent_date, effective_date, old/new unit_rate + standing_charge; notice_days (effective - sent), meets_advance_notice (≥42d), unit_rate_change_pct, is_price_increase.
+- TariffNotificationLog: send(), get(), mark_confirmed(), compliance_breaches(), customer_notifications(), price_increases(year), notification_summary(year).
+
+**Fidelity delta:** Ofgem SLC 25B requires 42 days advance notice for tariff changes to fixed-price contract customers. This is the same 42 days as the contract notice period in Ph215 — both stem from the same regulation. A breach (< 42 days) means the price change is unenforceable and the customer can keep the old rate. Oct 2022 was the largest notification event in UK energy history: ~10 million customers notified simultaneously that prices were rising to the EPG ceiling (£2,500) from 1 Oct 2022, following the mini-Budget cap. Notification compliance is audited by Ofgem annually. IN_APP replaces POST for smart meter customers.
+
+**8 new tests (3,104 total).**
+
+---
 ### Phase 227 -- UK ETS emission allowance registry (2026-06-26)
 **Files:** `company/regulatory/ets_registry.py` (new), `tests/company/regulatory/test_ets_registry.py` (new)
 
@@ -3270,7 +3285,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,096 tests (2,679 fast / ~10s; simulation integration ~8 min per run)
+- 3,104 tests (2,687 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
