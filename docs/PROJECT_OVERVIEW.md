@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,259 tests (1,831 non-simulation, 428 simulation). Codebase: ~33,900 lines across 252+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,269 tests (1,841 non-simulation, 428 simulation). Codebase: ~34,100 lines across 253+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 139 -- REGO procurement and retirement (2026-06-27)
+**Files:** `company/market/rego_portfolio.py` (new), `tests/company/market/test_rego_portfolio.py` (new)
+
+**What was built:**
+- `RegoPurchase`: purchase_id, scheme_year, mwh, price_per_mwh, generator, technology (wind_onshore/offshore/solar/hydro/biomass), retired flag. Computed: cost_gbp.
+- `RegoPortfolio`: buy(), retire(), by_scheme_year(), retired_mwh(), available_mwh(), coverage_check() (shortfall vs consumption), by_technology(), summary().
+- `get_rego_price(year)`: published market price 2016-2025 (2022 peak £6.50/MWh during crisis when renewable demand surged).
+
+**Fidelity delta:** Ofgem's Fuel Mix Disclosure rules require REGOs to back any "100% renewable" claim. Shortfall means the claim cannot be substantiated. The coverage_check() function is the audit gate before publishing marketing claims. The 2022 REGO price spike (£6.50 vs £0.80 in 2016) is a hidden cost that caught some suppliers out during the energy crisis.
+
+**10 new tests (2,269 total).**
+
+---
 ### Phase 138 -- Forward curve anomaly detection (2026-06-27)
 **Files:** `company/market/curve_monitor.py` (new), `tests/company/market/test_curve_monitor.py` (new)
 
@@ -2001,14 +2014,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,259 tests (1,831 fast / ~10s; simulation integration ~8 min per run)
+- 2,269 tests (1,841 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 138, 2026-06-27):**
+**Latest full run (Phase 139, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
