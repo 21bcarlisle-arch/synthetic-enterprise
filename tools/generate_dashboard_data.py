@@ -402,6 +402,46 @@ def extract_management_accounts(data):
 # Main
 # ---------------------------------------------------------------------------
 
+def extract_monthly_ops(data):
+    from collections import defaultdict as _dd
+    shock_m = _dd(list)
+    for yr, yd in data.get("years", {}).items():
+        for e in yd.get("bill_shock_events", []):
+            m = e.get("period_end", "")[:7]
+            if m:
+                shock_m[m].append(float(e.get("bill_shock_pct", 0)))
+    comm_m = _dd(int)
+    for yr, yd in data.get("years", {}).items():
+        for wu in yd.get("committee_wake_ups", []):
+            m = wu.get("settlement_date", "")[:7]
+            if m:
+                comm_m[m] += 1
+    ret_m = _dd(lambda: {"offers": 0, "retained": 0})
+    for r in data.get("retention_log", []):
+        m = r.get("event_date", "")[:7]
+        if m:
+            ret_m[m]["offers"] += 1
+            if r.get("outcome") == "retained":
+                ret_m[m]["retained"] += 1
+    all_months = sorted(set(list(shock_m.keys()) + list(comm_m.keys()) + list(ret_m.keys())))
+    CRISIS = {"2021", "2022"}
+    rows = []
+    for m in all_months:
+        sh = shock_m.get(m, [])
+        rt = ret_m.get(m, {"offers": 0, "retained": 0})
+        rows.append({
+            "month": m,
+            "shock_count": len(sh),
+            "avg_shock_pct": round(statistics.mean(sh) * 100, 1) if sh else 0.0,
+            "max_shock_pct": round(max(sh) * 100, 1) if sh else 0.0,
+            "committee_interventions": comm_m.get(m, 0),
+            "retention_offers": rt["offers"],
+            "retained": rt["retained"],
+            "is_crisis": m[:4] in CRISIS,
+        })
+    return {"monthly": rows}
+
+
 def extract_run_history(history_path=None, max_entries=10):
     """Return last N run history entries, or [] if absent/invalid."""
     path = history_path or RUN_HISTORY_PATH
@@ -505,6 +545,7 @@ def generate(run_json_path=None):
         "run_history": extract_run_history(),
         "query_context": extract_query_context(data),
         "management_accounts": extract_management_accounts(data),
+        "monthly_ops": extract_monthly_ops(data),
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

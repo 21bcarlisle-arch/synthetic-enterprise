@@ -194,6 +194,7 @@ tr:hover td { background: var(--surface2); }
   <button class="tab-btn"        data-tab="trading"   onclick="switchTab('trading')">Trading</button>
   <button class="tab-btn"        data-tab="customers" onclick="switchTab('customers')">Customers</button>
   <button class="tab-btn"        data-tab="insights"  onclick="switchTab('insights')">Insights</button>
+  <button class="tab-btn"        data-tab="monthly"   onclick="switchTab('monthly')">Monthly</button>
   <button class="tab-btn"        data-tab="query"     onclick="switchTab('query')">Query</button>
   <button class="tab-btn"        data-tab="market"    onclick="switchTab('market')">Market</button>
   <button class="tab-btn"        data-tab="system"    onclick="switchTab('system')">System</button>
@@ -209,6 +210,7 @@ tr:hover td { background: var(--surface2); }
   <div id="tab-trading"   class="view"></div>
   <div id="tab-customers" class="view"></div>
   <div id="tab-insights"  class="view"></div>
+  <div id="tab-monthly"   class="view"></div>
   <div id="tab-query"     class="view"></div>
   <div id="tab-market"    class="view"></div>
   <div id="tab-system"   class="view"></div>
@@ -294,6 +296,7 @@ function renderTab(name) {
   if (name === 'trading')   renderTrading();
   if (name === 'customers') renderCustomers();
   if (name === 'insights')  renderInsights();
+  if (name === 'monthly')   renderMonthly();
   if (name === 'query')     renderQuery();
   if (name === 'market')    renderMarket();
   if (name === 'system')    renderSystem();
@@ -1128,6 +1131,63 @@ function renderAbout() {
 
 
 // ── Insights ─────────────────────────────────────────────────────────────────
+function renderMonthly() {
+  var mo = (D.monthly_ops && D.monthly_ops.monthly) ? D.monthly_ops.monthly : [];
+  if (!mo.length) {
+    el('tab-monthly').innerHTML = '<p style="color:var(--muted);padding:1rem">No monthly ops data available.</p>';
+    return;
+  }
+  var totalShocks = mo.reduce(function(s,m){return s+m.shock_count;},0);
+  var totalComm = mo.reduce(function(s,m){return s+m.committee_interventions;},0);
+  var crisisMo = mo.filter(function(m){return m.is_crisis;});
+  var crisisShocks = crisisMo.reduce(function(s,m){return s+m.shock_count;},0);
+  var maxShock = mo.reduce(function(mx,m){return m.max_shock_pct > (mx.max_shock_pct||0) ? m : mx;}, {max_shock_pct:0, month:'--'});
+
+  var trows = mo.map(function(m) {
+    var cr = m.is_crisis ? ' style="background:rgba(248,81,73,0.07)"' : '';
+    var sh = m.shock_count > 0 ? '<span style="color:var(--red)">'+m.shock_count+'</span>' : '0';
+    var ci = m.committee_interventions > 0 ? '<span style="color:var(--amber)">'+m.committee_interventions+'</span>' : '0';
+    return '<tr'+cr+'><td>'+m.month+(m.is_crisis ? ' <span class=\"badge-crisis\">CRISIS</span>' : '')+'</td>'+
+      '<td>'+sh+'</td><td>'+(m.shock_count>0 ? m.avg_shock_pct.toFixed(0)+'%' : '\u2014')+'</td>'+
+      '<td>'+(m.shock_count>0 ? m.max_shock_pct.toFixed(0)+'%' : '\u2014')+'</td>'+
+      '<td>'+ci+'</td><td>'+m.retention_offers+'</td><td>'+m.retained+'</td></tr>';
+  }).join('');
+
+  el('tab-monthly').innerHTML =
+    '<div class="kpi-row" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Total Bill Shocks</div><div class="kpi-value">'+totalShocks+'</div></div>' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Crisis Bill Shocks</div><div class="kpi-value" style="color:var(--red)">'+crisisShocks+'</div><div class="kpi-sub">2021-22</div></div>' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Worst Shock Month</div><div class="kpi-value">'+maxShock.max_shock_pct.toFixed(0)+'%</div><div class="kpi-sub">'+maxShock.month+'</div></div>' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Committee Meetings</div><div class="kpi-value" style="color:var(--amber)">'+totalComm+'</div></div>' +
+    '</div>' +
+    '<div class="chart-box"><div class="chart-title">Monthly Bill Shocks and Risk Committee Interventions (2016-2025)</div>' +
+    '<div class="chart-wrap tall"><canvas id="ch-monthly-ops"></canvas></div></div>' +
+    '<div class="tbl-box"><div class="tbl-title">Monthly Operational Timeline</div>' +
+    '<div style="overflow-x:auto;max-height:400px;overflow-y:auto"><table>' +
+    '<thead><tr><th>Month</th><th>Shocks</th><th>Avg%</th><th>Max%</th><th>Committee</th><th>Retention</th><th>Retained</th></tr></thead>' +
+    '<tbody>' + trows + '</tbody></table></div></div>';
+
+  mkChart('ch-monthly-ops', {
+    type: 'bar',
+    data: {
+      labels: mo.map(function(m){return m.month;}),
+      datasets: [
+        {label:'Bill Shocks', data:mo.map(function(m){return m.shock_count;}),
+          backgroundColor:mo.map(function(m){return m.is_crisis ? 'rgba(248,81,73,0.7)' : 'rgba(88,166,255,0.6)';}),
+          yAxisID:'y'},
+        {label:'Committee', data:mo.map(function(m){return m.committee_interventions;}),
+          type:'line', borderColor:'rgba(210,153,34,0.9)', borderWidth:2, pointRadius:3, tension:0.3,
+          yAxisID:'y2', fill:false}
+      ]
+    },
+    options: {responsive:true, scales:{
+      x:{ticks:{maxRotation:60,font:{size:9}}, grid:{color:'rgba(48,54,61,0.4)'}},
+      y:{grid:{color:'rgba(48,54,61,0.4)'}, ticks:{stepSize:1}, title:{display:true,text:'Shocks'}},
+      y2:{position:'right', grid:{drawOnChartArea:false}, title:{display:true,text:'Committee'}}
+    }}
+  });
+}
+
 function renderInsights() {
   const container = document.getElementById('tab-insights');
   const ins = D && D.insights;

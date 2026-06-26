@@ -14,7 +14,7 @@ Last updated: 2026-06-26 by Claude Code (Phase 268)
 - None
 
 ## Backlog (agreed)
-- Dashboard Phase E: monthly capability assessment standing item
+- Dashboard Phase E: monthly capability assessment -- DONE (Ph278)
 - /sim/ section: weather (Ph271), balancing mechanism (Ph276) -- DONE
 - Human simulation layer: physical home, life events, behaviour (Rich request)
 - Tariff smoothing: spread 2021-22 wholesale spike -- DONE (Ph277)

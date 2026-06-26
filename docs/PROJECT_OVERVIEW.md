@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,571 tests passing. Codebase: ~35,700 lines across 263+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,582 tests passing. Codebase: ~35,800 lines across 263+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 278 (2026-06-26):** Monthly Ops Dashboard Tab -- 11 new tests (3,582 total). extract_monthly_ops() in generate_dashboard_data.py aggregates bill_shock_events, committee_wake_ups, and retention_log by calendar month into 103-row timeline (2016-2025). Monthly tab on poesys.net: 4 KPI cards, Chart.js bar+line chart (shocks red/blue by crisis, committee overlay), full operational timeline table with CRISIS annotation. Closes Dashboard Phase E.
 
 **Phase 277 (2026-06-26):** Tariff Smoothing Book -- 11 new tests (3,571 total). company/pricing/tariff_smoothing.py: SmoothedRateStatus (BELOW_COST/AT_COST/MARGINAL/PROFITABLE), frozen TariffDecision (unit_rate vs wholesale_cost vs smoothing_reserve; gross_margin/is_loss_making/status computed), TariffSmoothingBook (record_decision/decisions_for_commodity/loss_making_years/max_bill_shock_pct/smoothing_summary). Models the pricing decision that spreads wholesale spikes. Crisis 2022 scenario: 30p/kWh rate vs 35p/kWh cost = loss-making. Closes tariff smoothing backlog item.
 
@@ -3935,7 +3937,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,571 tests (3,129 fast / ~10s; simulation integration ~8 min per run)
+- 3,582 tests (3,140 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
