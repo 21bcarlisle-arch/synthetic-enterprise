@@ -1909,3 +1909,5 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
 - **133** — DESNZ supplier data returns (monthly SDR, LILEE fuel poverty, IPCC CO₂ g/kWh)
 - **134** — Tariff change notification (SLC 22; 30-day SVT, 42-day fixed term; non_compliant filter)
 - **135** — Customer credit scoring (PRIME/STANDARD/SUBPRIME/HIGH_RISK; deposit + PPM gate)
+
+- [2026-06-26T04:28:38Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b

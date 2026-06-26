@@ -5226,3 +5226,352 @@
 - [2026-06-26 01:37 UTC] [process_run] Generated site/data/dashboard.json
 - [2026-06-26 01:37 UTC] [process_run] Revenue sanity: PASS — see annual report
 - [2026-06-26 01:37 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 01:46 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 01:46 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 01:46 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 01:46 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 01:46 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 01:46 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-06-26 01:46 UTC] Waiting 60s before next run...
+- [2026-06-26 01:47 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 01:47 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 01:47 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 01:47 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 01:47 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 01:47 UTC] Starting run — git=120f2d6, json=run_output_120f2d6_20260626T014750Z.json
+- [2026-06-26 01:55 UTC] Run complete — 461s, 392 KB (run_output_120f2d6_20260626T014750Z.json)
+- [2026-06-26 01:55 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 461, "size_kb": 392, "json": "run_output_120f2d6_20260626T014750Z.json"}, "timestamp": "2026-06-26T01:55:32.079840+00:00", "session_id": null}
+- [2026-06-26 01:55 UTC] [process_run] Processing run_complete_20260626T014750Z.md
+- [2026-06-26 01:55 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_120f2d6_20260626T014750Z.json
+- [2026-06-26 01:55 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 01:55 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 01:55 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 01:55 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 01:55 UTC] [process_run] Publishing market price feed
+- [2026-06-26 01:55 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 01:55 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 02:05 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 02:05 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 02:05 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 02:05 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-06-26 02:05 UTC] Waiting 60s before next run...
+- [2026-06-26 02:06 UTC] Starting run — git=75e9f62, json=run_output_75e9f62_20260626T020639Z.json
+- [2026-06-26 02:14 UTC] Run complete — 496s, 392 KB (run_output_75e9f62_20260626T020639Z.json)
+- [2026-06-26 02:14 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 496, "size_kb": 392, "json": "run_output_75e9f62_20260626T020639Z.json"}, "timestamp": "2026-06-26T02:14:55.221508+00:00", "session_id": null}
+- [2026-06-26 02:14 UTC] [process_run] Processing run_complete_20260626T020639Z.md
+- [2026-06-26 02:14 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_75e9f62_20260626T020639Z.json
+- [2026-06-26 02:14 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 02:14 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 02:15 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 02:15 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 02:15 UTC] [process_run] Publishing market price feed
+- [2026-06-26 02:15 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 02:15 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 02:15 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 02:15 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 02:17 UTC] [process_run] Processing run_complete_20260626T020639Z.md
+- [2026-06-26 02:17 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_75e9f62_20260626T020639Z.json
+- [2026-06-26 02:17 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 02:17 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 02:17 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 02:17 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 02:17 UTC] [process_run] Publishing market price feed
+- [2026-06-26 02:17 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 02:17 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 02:17 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 02:17 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 02:25 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 02:25 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 02:25 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 02:25 UTC] [process_run] Moved run_complete_20260626T020639Z.md to done/
+- [2026-06-26 02:25 UTC] [process_run] Done
+- [2026-06-26 02:25 UTC] Auto-processed run complete marker
+- [2026-06-26 02:25 UTC] Waiting 60s before next run...
+- [2026-06-26 02:26 UTC] Starting run — git=4689e5d, json=run_output_4689e5d_20260626T022602Z.json
+- [2026-06-26 02:27 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 02:27 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 02:27 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 02:27 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 02:27 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 02:33 UTC] Run complete — 469s, 392 KB (run_output_4689e5d_20260626T022602Z.json)
+- [2026-06-26 02:33 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 469, "size_kb": 392, "json": "run_output_4689e5d_20260626T022602Z.json"}, "timestamp": "2026-06-26T02:33:52.218585+00:00", "session_id": null}
+- [2026-06-26 02:33 UTC] [process_run] Processing run_complete_20260626T022602Z.md
+- [2026-06-26 02:33 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_4689e5d_20260626T022602Z.json
+- [2026-06-26 02:33 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 02:33 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 02:33 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 02:33 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 02:33 UTC] [process_run] Publishing market price feed
+- [2026-06-26 02:33 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 02:33 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 02:33 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 02:33 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 02:43 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 02:43 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 02:43 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 02:44 UTC] [process_run] Moved run_complete_20260626T022602Z.md to done/
+- [2026-06-26 02:44 UTC] [process_run] Done
+- [2026-06-26 02:44 UTC] Auto-processed run complete marker
+- [2026-06-26 02:44 UTC] Waiting 60s before next run...
+- [2026-06-26 02:45 UTC] Starting run — git=29120da, json=run_output_29120da_20260626T024500Z.json
+- [2026-06-26 02:52 UTC] Run complete — 461s, 392 KB (run_output_29120da_20260626T024500Z.json)
+- [2026-06-26 02:52 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 461, "size_kb": 392, "json": "run_output_29120da_20260626T024500Z.json"}, "timestamp": "2026-06-26T02:52:40.804093+00:00", "session_id": null}
+- [2026-06-26 02:52 UTC] [process_run] Processing run_complete_20260626T024500Z.md
+- [2026-06-26 02:52 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_29120da_20260626T024500Z.json
+- [2026-06-26 02:52 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 02:52 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 02:52 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 02:52 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 02:52 UTC] [process_run] Publishing market price feed
+- [2026-06-26 02:52 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 02:52 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 02:52 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 02:52 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 02:57 UTC] [process_run] Processing run_complete_20260626T024500Z.md
+- [2026-06-26 02:57 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_29120da_20260626T024500Z.json
+- [2026-06-26 02:57 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 02:57 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 02:57 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 02:57 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 02:57 UTC] [process_run] Publishing market price feed
+- [2026-06-26 02:57 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 02:57 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 02:57 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 02:57 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 03:02 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 03:02 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 03:02 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 03:02 UTC] [process_run] Moved run_complete_20260626T024500Z.md to done/
+- [2026-06-26 03:02 UTC] [process_run] Done
+- [2026-06-26 03:02 UTC] Auto-processed run complete marker
+- [2026-06-26 03:02 UTC] Waiting 60s before next run...
+- [2026-06-26 03:03 UTC] Starting run — git=453140d, json=run_output_453140d_20260626T030348Z.json
+- [2026-06-26 03:07 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 03:07 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 03:07 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 03:07 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 03:07 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 03:12 UTC] Run complete — 494s, 392 KB (run_output_453140d_20260626T030348Z.json)
+- [2026-06-26 03:12 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 494, "size_kb": 392, "json": "run_output_453140d_20260626T030348Z.json"}, "timestamp": "2026-06-26T03:12:02.806303+00:00", "session_id": null}
+- [2026-06-26 03:12 UTC] [process_run] Processing run_complete_20260626T030348Z.md
+- [2026-06-26 03:12 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_453140d_20260626T030348Z.json
+- [2026-06-26 03:12 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 03:12 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 03:12 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 03:12 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 03:12 UTC] [process_run] Publishing market price feed
+- [2026-06-26 03:12 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 03:12 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 03:12 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 03:12 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 03:20 UTC] [process_run] Processing run_complete_20260626T030348Z.md
+- [2026-06-26 03:20 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_453140d_20260626T030348Z.json
+- [2026-06-26 03:20 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 03:20 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 03:20 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 03:20 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 03:20 UTC] [process_run] Publishing market price feed
+- [2026-06-26 03:20 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 03:20 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 03:20 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 03:20 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 03:22 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 03:22 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 03:22 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 03:22 UTC] [process_run] Moved run_complete_20260626T030348Z.md to done/
+- [2026-06-26 03:22 UTC] [process_run] Done
+- [2026-06-26 03:22 UTC] Auto-processed run complete marker
+- [2026-06-26 03:22 UTC] Waiting 60s before next run...
+- [2026-06-26 03:23 UTC] Starting run — git=181d4a6, json=run_output_181d4a6_20260626T032310Z.json
+- [2026-06-26 03:30 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 03:30 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 03:30 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 03:30 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 03:30 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 03:30 UTC] Run complete — 462s, 392 KB (run_output_181d4a6_20260626T032310Z.json)
+- [2026-06-26 03:30 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 462, "size_kb": 392, "json": "run_output_181d4a6_20260626T032310Z.json"}, "timestamp": "2026-06-26T03:30:52.718172+00:00", "session_id": null}
+- [2026-06-26 03:30 UTC] [process_run] Processing run_complete_20260626T032310Z.md
+- [2026-06-26 03:30 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_181d4a6_20260626T032310Z.json
+- [2026-06-26 03:30 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 03:30 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 03:30 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 03:30 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 03:30 UTC] [process_run] Publishing market price feed
+- [2026-06-26 03:30 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 03:30 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 03:30 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 03:30 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 03:40 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 03:40 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 03:40 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 03:41 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-06-26 03:41 UTC] Waiting 60s before next run...
+- [2026-06-26 03:42 UTC] Starting run — git=7c14d79, json=run_output_7c14d79_20260626T034200Z.json
+- [2026-06-26 03:49 UTC] Run complete — 474s, 392 KB (run_output_7c14d79_20260626T034200Z.json)
+- [2026-06-26 03:49 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 474, "size_kb": 392, "json": "run_output_7c14d79_20260626T034200Z.json"}, "timestamp": "2026-06-26T03:49:55.108488+00:00", "session_id": null}
+- [2026-06-26 03:49 UTC] [process_run] Processing run_complete_20260626T034200Z.md
+- [2026-06-26 03:49 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7c14d79_20260626T034200Z.json
+- [2026-06-26 03:49 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 03:49 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 03:50 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 03:50 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 03:50 UTC] [process_run] Publishing market price feed
+- [2026-06-26 03:50 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 03:50 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 03:50 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 03:50 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 03:50 UTC] [process_run] Tests FAILED - not committing
+- [2026-06-26 03:50 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-06-26 03:50 UTC] Waiting 60s before next run...
+- [2026-06-26 03:51 UTC] Starting run — git=cb3ece5, json=run_output_cb3ece5_20260626T035102Z.json
+- [2026-06-26 03:52 UTC] [process_run] Processing run_complete_20260626T034200Z.md
+- [2026-06-26 03:52 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7c14d79_20260626T034200Z.json
+- [2026-06-26 03:52 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 03:52 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 03:52 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 03:52 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 03:52 UTC] [process_run] Publishing market price feed
+- [2026-06-26 03:52 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 03:52 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 03:52 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 03:52 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 03:52 UTC] [process_run] Tests FAILED - not committing
+- [2026-06-26 03:54 UTC] [process_run] Processing run_complete_20260626T034200Z.md
+- [2026-06-26 03:54 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7c14d79_20260626T034200Z.json
+- [2026-06-26 03:54 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 03:54 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 03:54 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 03:54 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 03:54 UTC] [process_run] Publishing market price feed
+- [2026-06-26 03:54 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 03:54 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 03:54 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 03:54 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 03:57 UTC] [process_run] Processing run_complete_20260626T034200Z.md
+- [2026-06-26 03:57 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7c14d79_20260626T034200Z.json
+- [2026-06-26 03:57 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 03:57 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 03:57 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 03:57 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 03:57 UTC] [process_run] Publishing market price feed
+- [2026-06-26 03:57 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 03:57 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 03:57 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 03:57 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 03:58 UTC] Run complete — 440s, 392 KB (run_output_cb3ece5_20260626T035102Z.json)
+- [2026-06-26 03:58 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 440, "size_kb": 392, "json": "run_output_cb3ece5_20260626T035102Z.json"}, "timestamp": "2026-06-26T03:58:22.194431+00:00", "session_id": null}
+- [2026-06-26 03:58 UTC] [process_run] Processing run_complete_20260626T035102Z.md
+- [2026-06-26 03:58 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_cb3ece5_20260626T035102Z.json
+- [2026-06-26 03:58 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 03:58 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 03:58 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 03:58 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 03:58 UTC] [process_run] Publishing market price feed
+- [2026-06-26 03:58 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 03:58 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 03:58 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 03:58 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 04:01 UTC] [process_run] Processing run_complete_20260626T034200Z.md
+- [2026-06-26 04:01 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7c14d79_20260626T034200Z.json
+- [2026-06-26 04:01 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 04:01 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 04:01 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 04:01 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 04:01 UTC] [process_run] Publishing market price feed
+- [2026-06-26 04:01 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 04:01 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 04:01 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 04:01 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 04:04 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 04:04 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 04:04 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 04:04 UTC] [process_run] Moved run_complete_20260626T034200Z.md to done/
+- [2026-06-26 04:04 UTC] [process_run] Done
+- [2026-06-26 04:04 UTC] [process_run] Processing run_complete_20260626T035102Z.md
+- [2026-06-26 04:04 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_cb3ece5_20260626T035102Z.json
+- [2026-06-26 04:04 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 04:04 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 04:04 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 04:04 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 04:04 UTC] [process_run] Publishing market price feed
+- [2026-06-26 04:04 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 04:04 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 04:04 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 04:04 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 04:07 UTC] [process_run] Processing run_complete_20260626T035102Z.md
+- [2026-06-26 04:07 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_cb3ece5_20260626T035102Z.json
+- [2026-06-26 04:07 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 04:07 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 04:07 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 04:07 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 04:07 UTC] [process_run] Publishing market price feed
+- [2026-06-26 04:07 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 04:07 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 04:07 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 04:07 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 04:07 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 04:07 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 04:07 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 04:08 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 04:08 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 04:08 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 04:08 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 04:08 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 04:08 UTC] [process_run] Moved run_complete_20260626T035102Z.md to done/
+- [2026-06-26 04:08 UTC] [process_run] Done
+- [2026-06-26 04:08 UTC] Auto-processed run complete marker
+- [2026-06-26 04:08 UTC] Waiting 60s before next run...
+- [2026-06-26 04:09 UTC] Starting run — git=8909d21, json=run_output_8909d21_20260626T040927Z.json
+- [2026-06-26 04:11 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 04:11 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 04:11 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 04:11 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 04:11 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 04:15 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 04:15 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 04:15 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 04:15 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 04:15 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 04:17 UTC] Run complete — 479s, 392 KB (run_output_8909d21_20260626T040927Z.json)
+- [2026-06-26 04:17 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 479, "size_kb": 392, "json": "run_output_8909d21_20260626T040927Z.json"}, "timestamp": "2026-06-26T04:17:26.633018+00:00", "session_id": null}
+- [2026-06-26 04:17 UTC] [process_run] Processing run_complete_20260626T040927Z.md
+- [2026-06-26 04:17 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_8909d21_20260626T040927Z.json
+- [2026-06-26 04:17 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 04:17 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 04:17 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 04:17 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 04:17 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 04:17 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 04:17 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 04:17 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 04:17 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 04:17 UTC] [process_run] Publishing market price feed
+- [2026-06-26 04:17 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 04:17 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 04:17 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 04:17 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 04:22 UTC] [process_run] Processing run_complete_20260626T040927Z.md
+- [2026-06-26 04:22 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_8909d21_20260626T040927Z.json
+- [2026-06-26 04:22 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 04:22 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 04:27 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 04:27 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 04:27 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 04:27 UTC] [process_run] Moved run_complete_20260626T040927Z.md to done/
+- [2026-06-26 04:27 UTC] [process_run] Done
+- [2026-06-26 04:27 UTC] Auto-processed run complete marker
+- [2026-06-26 04:27 UTC] Waiting 60s before next run...
+- [2026-06-26 04:28 UTC] Starting run — git=968b413, json=run_output_968b413_20260626T042834Z.json
+- [2026-06-26 04:36 UTC] Run complete — 489s, 392 KB (run_output_968b413_20260626T042834Z.json)
+- [2026-06-26 04:36 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 489, "size_kb": 392, "json": "run_output_968b413_20260626T042834Z.json"}, "timestamp": "2026-06-26T04:36:43.083873+00:00", "session_id": null}
+- [2026-06-26 04:36 UTC] [process_run] Processing run_complete_20260626T042834Z.md
+- [2026-06-26 04:36 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_968b413_20260626T042834Z.json
+- [2026-06-26 04:36 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 04:36 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 04:36 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 04:36 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 04:36 UTC] [process_run] Publishing market price feed
+- [2026-06-26 04:36 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 04:36 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 04:36 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 04:36 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
