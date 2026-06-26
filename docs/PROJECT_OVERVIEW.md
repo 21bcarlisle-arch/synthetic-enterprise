@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 182 -- Board KPI dashboard (RAG status) (2026-06-26)
+**Files:** `company/finance/board_kpis.py` (new), `tests/company/finance/test_board_kpis.py` (new)
+
+**What was built:**
+- KPIStatus enum: GREEN / AMBER / RED.
+- KPIValue frozen dataclass: name, value, unit, target, lower_is_better; vs_target_pct, status (GREEN within -5%, AMBER -5 to -20%, RED below -20%).
+- BoardKPIDashboard frozen dataclass: 7 KPIs, green/amber/red_count, overall_status (worst single KPI determines overall), get_kpi(name), summary() with kpis list.
+- build_board_dashboard(): 7 standard UK energy supplier KPIs: customer_count, gross_margin_pct, ebitda_margin_pct, bad_debt_pct, complaint_resolution_days, csat_score, gsop_compliance_pct.
+
+**Fidelity delta:** Every UK energy supplier board reviews a RAG dashboard quarterly. The 2022 crisis: bad_debt_pct=5% against a 1.5% target triggers RED (>3x overshoot), cascading the overall_status to RED even if all other KPIs are green. This pattern — a single financial risk metric dragging the whole board pack to red — was exactly how Bulb and others reported to their boards before administration. GSOP compliance <100% = Ofgem breach risk, separate from customer satisfaction.
+
+**9 new tests (2,729 total).**
+
+---
 ### Phase 181 -- Company-level P&L income statement (2026-06-26)
 **Files:** `company/finance/company_pl.py` (new), `tests/company/finance/test_company_pl.py` (new)
 
@@ -2604,7 +2618,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,720 tests (2,304 fast / ~10s; simulation integration ~8 min per run)
+- 2,729 tests (2,313 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
