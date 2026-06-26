@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,138 tests (1,710 non-simulation, 428 simulation). Codebase: ~31,300 lines across 239+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,147 tests (1,719 non-simulation, 428 simulation). Codebase: ~31,500 lines across 240+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,18 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 126 -- Imbalance price risk model (2026-06-27)
+**Files:** `company/market/imbalance.py` (new), `tests/company/market/test_imbalance.py` (new)
+
+**What was built:**
+- `compute_imbalance(period_id, metered_mwh, contracted_mwh, spot_price_gbp_mwh, stress)`: short (metered > contracted) charged at SSP = spot × 1.18 (normal) or spot × 2.2 (stress); long (metered < contracted) receives SBP = spot × 0.95; balanced = zero charge.
+- `imbalance_summary(exposures)`: aggregates total charge, short/long/balanced period counts, net MWh per direction, cost/receipt flag.
+
+**Fidelity delta:** Imbalance charges under the BSC (Balancing and Settlement Code) are the most dangerous P&L exposure for unsophisticated UK suppliers. SSP reached £9,999/MWh during 2021 stress events. The stress mode toggle models this tail risk explicitly.
+
+**9 new tests (2,147 total).**
+
+---
 ### Phase 125 -- Ofgem market benchmark data (2026-06-27)
 **Files:** `company/market/market_report.py` (new), `tests/company/market/test_market_report.py` (new)
 
@@ -1838,14 +1850,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,138 tests (1,710 fast / ~10s; simulation integration ~8 min per run)
+- 2,147 tests (1,719 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 125, 2026-06-27):**
+**Latest full run (Phase 126, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
