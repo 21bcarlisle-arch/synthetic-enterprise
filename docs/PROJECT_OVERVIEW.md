@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 178 -- Customer portfolio load forecast (2026-06-26)
+**Files:** `company/market/load_forecast.py` (new), `tests/company/market/test_load_forecast.py` (new)
+
+**What was built:**
+- UK average consumption benchmarks: RESI elec 3,100 kWh, RESI gas 12,000 kWh, SME elec 25,000 kWh, IC elec 500,000 kWh.
+- Seasonal factors: electricity Q1 1.18x, Q3 0.82x; gas Q1 1.55x, Q3 0.55x (gas has a 3:1 winter-to-summer ratio).
+- SegmentLoadForecast frozen dataclass: per-segment quarterly and annual MWh, monthly_avg_mwh.
+- PortfolioLoadForecast frozen dataclass: total_elec_mwh, total_gas_mwh, quarterly_elec/gas_mwh(), summary() dict.
+- build_portfolio_forecast(year, resi_accounts, sme_accounts, ic_accounts, include_gas).
+
+**Fidelity delta:** The trading desk needs to know what it must hedge from the company's own forecast built from account counts and market-standard consumption averages. Combined with Phase 177, a company-layer trading model can now say: "I forecast 5,000 MWh and have hedged 4,200 MWh = 84% covered = SHORT by 16%." Gas seasonality 3:1 winter:summer causes systematic over-hedging in summer and under-hedging in winter if ignored.
+
+**9 new tests (2,695 total).**
+
+---
 ### Phase 177 -- Customer portfolio energy position (2026-06-26)
 **Files:** `company/market/portfolio_position.py` (new), `tests/company/market/test_portfolio_position.py` (new)
 
@@ -2549,7 +2564,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,686 tests (2,270 fast / ~10s; simulation integration ~8 min per run)
+- 2,695 tests (2,279 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
