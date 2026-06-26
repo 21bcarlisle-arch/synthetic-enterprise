@@ -190,6 +190,7 @@ tr:hover td { background: var(--surface2); }
 <nav class="tab-nav" id="tab-nav">
   <button class="tab-btn active" data-tab="overview"  onclick="switchTab('overview')">Overview</button>
   <button class="tab-btn"        data-tab="financial" onclick="switchTab('financial')">Financial</button>
+  <button class="tab-btn"        data-tab="accounts"  onclick="switchTab('accounts')">Accounts</button>
   <button class="tab-btn"        data-tab="trading"   onclick="switchTab('trading')">Trading</button>
   <button class="tab-btn"        data-tab="customers" onclick="switchTab('customers')">Customers</button>
   <button class="tab-btn"        data-tab="insights"  onclick="switchTab('insights')">Insights</button>
@@ -204,6 +205,7 @@ tr:hover td { background: var(--surface2); }
 
   <div id="tab-overview"  class="view active"></div>
   <div id="tab-financial" class="view"></div>
+  <div id="tab-accounts"  class="view"></div>
   <div id="tab-trading"   class="view"></div>
   <div id="tab-customers" class="view"></div>
   <div id="tab-insights"  class="view"></div>
@@ -288,6 +290,7 @@ function renderTab(name) {
   if (!D) return;
   if (name === 'overview')  renderOverview();
   if (name === 'financial') renderFinancial();
+  if (name === 'accounts')  renderAccounts();
   if (name === 'trading')   renderTrading();
   if (name === 'customers') renderCustomers();
   if (name === 'insights')  renderInsights();
@@ -557,6 +560,59 @@ function renderFinancial() {
     options: { ...baseLineOpts(), scales: {
       x:{grid:{color:'rgba(48,54,61,.4)'}},
       y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)}} } }
+  });
+}
+
+
+// -- ACCOUNTS ---------------------------------------------------------------
+function renderAccounts() {
+  var ma = (D.management_accounts && D.management_accounts.annual) ? D.management_accounts.annual : [];
+  if (!ma.length) { el('tab-accounts').innerHTML = '<p style="color:var(--muted);padding:1rem">No management accounts data available.</p>'; return; }
+
+  var rows = ma.map(function(r) {
+    var crisis = (r.year === 2021 || r.year === 2022) ? ' style="background:rgba(210,153,34,.08)"' : '';
+    var netCls = r.net_margin_gbp >= 0 ? 'pos' : 'neg';
+    return '<tr' + crisis + '>' +
+      '<td>' + r.year + (r.year===2022?'<span class="badge-crisis"> CRISIS</span>':'') + '</td>' +
+      '<td>' + gbp(r.revenue_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.wholesale_cost_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.non_commodity_cost_gbp) + '</td>' +
+      '<td>' + gbp(r.gross_margin_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.capital_cost_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.bad_debt_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.cost_to_serve_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.fixed_cost_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.acquisition_spend_gbp) + '</td>' +
+      '<td class="' + netCls + '">' + gbp(r.net_margin_gbp) + '</td>' +
+      '<td class="' + netCls + '">' + r.net_margin_pct.toFixed(1) + '%</td>' +
+      '</tr>';
+  }).join('');
+
+  el('tab-accounts').innerHTML =
+    '<div class="chart-box"><div class="chart-title">Cost Stack vs Revenue (2016-2025)</div>' +
+    '<div class="chart-wrap tall"><canvas id="ch-acct-stack"></canvas></div></div>' +
+    '<div class="tbl-box"><div class="tbl-title">Annual Management Accounts — P&amp;L Waterfall</div>' +
+    '<div style="overflow-x:auto"><table>' +
+    '<tr><th>Year</th><th>Revenue</th><th>Wholesale</th><th>NonComm</th><th>Gross</th>' +
+    '<th>Capital</th><th>Bad Debt</th><th>CTS</th><th>Fixed</th><th>Acq</th><th>Net</th><th>Net%</th></tr>' +
+    rows + '</table></div></div>';
+
+  mkChart('ch-acct-stack', {
+    type: 'bar',
+    data: {
+      labels: ma.map(function(r){return r.year;}),
+      datasets: [
+        { label: 'Wholesale', data: ma.map(function(r){return r.wholesale_cost_gbp;}), backgroundColor:'rgba(248,81,73,.6)', stack:'costs' },
+        { label: 'Non-Commodity', data: ma.map(function(r){return r.non_commodity_cost_gbp;}), backgroundColor:'rgba(210,153,34,.7)', stack:'costs' },
+        { label: 'Capital', data: ma.map(function(r){return r.capital_cost_gbp;}), backgroundColor:'rgba(163,113,247,.6)', stack:'costs' },
+        { label: 'Bad Debt', data: ma.map(function(r){return r.bad_debt_gbp;}), backgroundColor:'rgba(248,140,0,.5)', stack:'costs' },
+        { label: 'CTS+Fixed+Acq', data: ma.map(function(r){return r.cost_to_serve_gbp + r.fixed_cost_gbp + r.acquisition_spend_gbp;}), backgroundColor:'rgba(121,192,255,.5)', stack:'costs' },
+        { label: 'Revenue', data: ma.map(function(r){return r.revenue_gbp;}), type:'line', borderColor:'rgba(63,185,80,.9)', borderWidth:2, pointRadius:3, tension:.3, fill:false, stack:undefined }
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{stacked:true,grid:{color:'rgba(48,54,61,.4)'}},
+      y:{stacked:true,grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:function(v){return gbp(v);}}} } }
   });
 }
 

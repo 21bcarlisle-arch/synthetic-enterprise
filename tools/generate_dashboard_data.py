@@ -373,6 +373,31 @@ def extract_market(data, spot_monthly=None):
     }
 
 
+def extract_management_accounts(data):
+    ma = data.get("management_accounts", {})
+    rows = []
+    for yr in sorted(ma.keys()):
+        stmt = ma[yr].get("income_statement", {})
+        rev = _fmt(stmt.get("revenue_gbp", 0))
+        net = _fmt(stmt.get("net_margin_gbp", 0))
+        rows.append({
+            "year": int(yr),
+            "revenue_gbp": rev,
+            "wholesale_cost_gbp": _fmt(stmt.get("wholesale_cost_gbp", 0)),
+            "non_commodity_cost_gbp": _fmt(stmt.get("non_commodity_cost_gbp", 0)),
+            "gross_margin_gbp": _fmt(stmt.get("gross_margin_gbp", 0)),
+            "capital_cost_gbp": _fmt(stmt.get("capital_cost_gbp", 0)),
+            "bad_debt_gbp": _fmt(stmt.get("bad_debt_gbp", 0)),
+            "cost_to_serve_gbp": _fmt(stmt.get("cost_to_serve_gbp", 0)),
+            "fixed_cost_gbp": _fmt(stmt.get("fixed_cost_gbp", 0)),
+            "acquisition_spend_gbp": _fmt(stmt.get("acquisition_spend_gbp", 0)),
+            "total_opex_gbp": _fmt(stmt.get("total_opex_gbp", 0)),
+            "net_margin_gbp": net,
+            "net_margin_pct": round(net / rev * 100, 2) if rev > 0 else 0.0,
+        })
+    return {"annual": rows}
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -479,6 +504,7 @@ def generate(run_json_path=None):
         "insights": extract_insights(),
         "run_history": extract_run_history(),
         "query_context": extract_query_context(data),
+        "management_accounts": extract_management_accounts(data),
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

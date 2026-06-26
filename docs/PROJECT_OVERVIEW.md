@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,516 tests passing. Codebase: ~35,100 lines across 261+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,526 tests passing. Codebase: ~35,250 lines across 261+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 273 (2026-06-26):** Management Accounts Dashboard Tab -- 10 new tests (3,526 total). tools/generate_dashboard_data.py: extract_management_accounts() extracts 10-year P&L waterfall (revenue/wholesale/non_commodity/gross_margin/capital/bad_debt/cost_to_serve/fixed/acquisition/net_margin + net_margin_pct) from management_accounts key in run output. Wired into generate() as management_accounts key in dashboard.json. site/index.html: Accounts tab with stacked cost-vs-revenue Chart.js bar+line chart and annual P&L waterfall table; 2021/2022 crisis years highlighted amber; net margin % column added.
 
 **Phase 272 (2026-06-26): Physical Home Registry -- 12 new tests (3,516 total). company/crm/home_registry.py: HomeRegistry class managing customer->property mappings. register/upgrade_epc/get_profile; portfolio slices: profiles_by_epc, profiles_by_type, eco4_eligible_accounts, fuel_poor_accounts, psr_priority_accounts; aggregates: epc_distribution, fuel_distribution, tenure_distribution, total_estimated_elec/gas_kwh, registry_summary. Wraps existing frozen Property dataclass from property_model.py (no new enums needed).**
 
@@ -3925,7 +3927,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,516 tests (3,074 fast / ~10s; simulation integration ~8 min per run)
+- 3,526 tests (3,084 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
