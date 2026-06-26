@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 231 -- Gas supply interruption risk model (2026-06-26)
+**Files:** `company/market/gas_interruption.py` (new), `tests/company/market/test_gas_interruption.py` (new)
+
+**What was built:**
+- InterruptClass: FIRM (0% discount) / INTERRUPTIBLE (8%) / EMERGENCY_ONLY (15%).
+- InterruptionReason: SUPPLY_EMERGENCY / NETWORK_CONSTRAINT / PLANNED_MAINTENANCE / NON_PAYMENT / HEALTH_SAFETY.
+- GasInterruption mutable: notice_date, start/expected_end, is_vulnerable; notice_days, expected_duration_days, actual_duration_days, restore().
+- InterruptibilityContract frozen: interrupt_class, max_interruptions_per_year, min_notice_hours; discount_pct.
+- GasInterruptionManager: register_contract(), issue_interruption(), active_interruptions(), interruptions_for_customer(), vulnerable_customers_affected(), interruption_summary(year).
+
+**Fidelity delta:** Gas interruptibility is a formal contractual status (IGEM UP/9). Interruptible customers accept controlled gas reduction during supply emergencies in exchange for a tariff discount (typically 8-15%). Xoserve manages the mprn register and coordinates interruptions via National Gas. During Feb 2022, UK underground gas storage was at 3% of capacity (vs EU average 30%), putting GB within days of a supply emergency. vulnerable_customers_affected() is critical: Ofgem SLC 4A strictly prohibits disconnecting vulnerable gas customers in winter (1 Oct - 31 Mar). Interruptible discounts appear as cost reduction in gas_nominations (Ph144) but the model must track when interruptions are actually invoked.
+
+**8 new tests (3,129 total).**
+
+---
 ### Phase 230 -- Integrated board KPI dashboard (2026-06-26)
 **Files:** `company/finance/board_dashboard.py` (new), `tests/company/finance/test_board_dashboard.py` (new)
 
@@ -3313,7 +3328,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,121 tests (2,704 fast / ~10s; simulation integration ~8 min per run)
+- 3,129 tests (2,712 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
