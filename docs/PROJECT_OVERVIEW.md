@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 186 -- Supplier switching analytics (2026-06-26)
+**Files:** `company/crm/switch_analytics.py` (new), `tests/company/crm/test_switch_analytics.py` (new)
+
+**What was built:**
+- SwitchDirection enum: GAIN / LOSS.
+- SwitchStatus enum: INITIATED / COMPLETED / OBJECTED / CANCELLED / ERRONEOUS.
+- SwitchEvent frozen dataclass: event_id, mpan, customer_id, direction, losing_supplier, gaining_supplier, initiation_date, completion_date, status, erroneous_transfer; days_to_complete, is_completed properties.
+- SwitchAnalytics: record(), complete(), object(), mark_erroneous(), gains_in_year(year), losses_in_year(year), erroneous_transfers_in_year(year), avg_days_to_complete(year), net_customer_change(year), annual_summary(year).
+
+**Fidelity delta:** The 5-day switching guarantee (formerly 21 days) is a key Ofgem target. In 2022, mass exodus from SVT price cap suppliers drove weeks-to-complete from 5 to 15+ days as MPAS was overwhelmed. Erroneous transfers (switching the wrong MPAN) peaked at ~0.4% of all switches nationally. avg_days_to_complete tracks process health. net_customer_change is the single metric the MD watches weekly. Complements MPAN register (Ph185) and TPI book (Ph184) for the full switching picture.
+
+**8 new tests (2,764 total).**
+
+---
 ### Phase 185 -- MPAN supply point register (2026-06-26)
 **Files:** `company/market/mpan_register.py` (new), `tests/company/market/test_mpan_register.py` (new)
 
@@ -2660,7 +2674,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,756 tests (2,340 fast / ~10s; simulation integration ~8 min per run)
+- 2,764 tests (2,348 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
