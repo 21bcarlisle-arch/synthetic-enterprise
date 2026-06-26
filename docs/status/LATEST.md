@@ -8,10 +8,15 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:38:11Z
+Last updated: 2026-06-26T03:39:29Z
 
 
 **Sim run 2026-06-26T03:12Z (git=453140d):** Total net £1,330,126 | Revenue £14.2M | Final treasury £3,796,762 | 10-yr gross margin 46%. 2022 net £276k (crisis peak), 2024 net £337k (recovery).
+**Phase 114 COMPLETE (2026-06-26):** MPAN/MPRN meter point registry -- 17 new tests (2,027 total).
+- company/billing/meter_points.py: MeterPoint dataclass, MeterPointRegistry
+- validate_mpan/validate_mprn, infer_profile_class (PC1-8), registered tracking
+- Fidelity: MPAN/MPRN are the identifiers used in all Elexon/Xoserve flows
+
 **Phase 113 COMPLETE (2026-06-26):** Direct Debit mandate management -- 12 new tests (2,010 total).
 - company/billing/direct_debit.py: DirectDebitBook with BACS 28-day cycle, 2-strike suspension
 - Mandate lifecycle: active/suspended/cancelled; dd_summary() for admin overview
@@ -324,7 +329,7 @@ Last updated: 2026-06-26T03:38:11Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,010 total (all tests passing)**
+**Test suite: 2,027 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
