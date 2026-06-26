@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 248 -- CfD (Contracts for Difference) levy book (2026-06-26)
+**Files:** `company/market/cfd_levy.py` (new), `tests/company/market/test_cfd_levy.py` (new)
+
+**What was built:**
+- LevyDirection: POSITIVE / NEGATIVE / ZERO.
+- CfDLevyCharge frozen: account_id, charge_date, year, quarter, consumption_mwh, rate_gbp_per_mwh; levy_gbp (negative = credit), direction, is_credit.
+- get_levy_rate(year, quarter): historical quarterly CfD levy rates 2016-2025. 2022 Q2-Q4 are negative (crisis peak Q4 2022: -£12.3/MWh).
+- CfDLevyBook mutable: record_charge(), charges_for_account(), annual_levy_gbp(), quarterly_levy_gbp(), total_credit_quarters(), levy_summary().
+
+**Fidelity delta:** The CfD levy is the mechanism that funds UK renewable generators with long-term revenue stability. Suppliers collect the levy from customers as a non-commodity cost and remit to LCCC. The crisis reversal is the most consequential feature: in 2022 Q2-Q4, wholesale electricity prices far exceeded most CfD strike prices (typical offshore wind £50-80/MWh vs market £200-500/MWh), so generators owed the surplus to LCCC, which then distributed it back to suppliers as a credit. This reduced supplier non-commodity bills by £8-12/MWh in Q3-Q4 2022 — a partial offset to the catastrophic commodity cost rise. Connects to NetworkChargeLedger (Ph216) for the non-commodity cost picture and REGOPortfolio (Ph148) for renewable sourcing.
+
+**12 new tests (3,287 total).**
+
+---
+
+
+---
 ### Phase 247 -- Power Purchase Agreement (PPA) book (2026-06-26)
 **Files:** `company/market/ppa_book.py` (new), `tests/company/market/test_ppa_book.py` (new)
 
@@ -3570,14 +3587,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,275 tests (2,858 fast / ~10s; simulation integration ~8 min per run)
+- 3,287 tests (2,870 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 247, 2026-06-26):**
+**Latest full run (Phase 248, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
