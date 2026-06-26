@@ -178,3 +178,53 @@ def test_append_run_history_deduplicates(tmp_path):
     append_run_history(ins, hp)
     history = json.loads(hp.read_text())
     assert len(history) == 1
+
+
+# ── Phase 259: coherence narrative and recommended actions ────────────────────
+
+def test_coherence_narrative_present():
+    ins = generate_insights(_MINIMAL, "abc")
+    assert isinstance(ins.coherence_narrative, str)
+    assert len(ins.coherence_narrative) > 50
+
+
+def test_recommended_actions_always_three():
+    ins = generate_insights(_MINIMAL, "abc")
+    assert len(ins.recommended_actions) == 3
+    for a in ins.recommended_actions:
+        assert isinstance(a, str) and len(a) > 10
+
+
+def test_coherence_narrative_mentions_survival():
+    ins = generate_insights(_MINIMAL, "abc")
+    lower = ins.coherence_narrative.lower()
+    assert "surviv" in lower or "administ" in lower
+
+
+def test_ic_concentration_flagged_in_actions():
+    data = dict(_MINIMAL)
+    data["per_customer_lifetime"] = {
+        "C_IC1": {"net_margin_gbp": 900_000},
+        "C_other": {"net_margin_gbp": 100_000, "segment": "resi"},
+    }
+    ins = generate_insights(data, "abc")
+    action_text = " ".join(ins.recommended_actions).lower()
+    assert "concentration" in action_text or "i&c" in action_text.lower()
+
+
+def test_save_and_reload_preserves_coherence(tmp_path):
+    from tools.generate_insights import save_insights, RunInsights
+    ins = generate_insights(_MINIMAL, "abc")
+    path = tmp_path / "ri.json"
+    save_insights(ins, path)
+    import json
+    loaded = json.loads(path.read_text())
+    assert "coherence_narrative" in loaded
+    assert "recommended_actions" in loaded
+    assert len(loaded["recommended_actions"]) == 3
+
+
+def test_coherence_contains_hedge_info():
+    ins = generate_insights(_MINIMAL, "abc")
+    lower = ins.coherence_narrative.lower()
+    assert "hedge" in lower or "naked" in lower

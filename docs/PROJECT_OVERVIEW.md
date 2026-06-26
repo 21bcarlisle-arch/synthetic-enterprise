@@ -592,6 +592,20 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 **4 new tests (3,407 total).**
 
 ---
+**Phase 259 -- Level 3 Coherence Executive Summary (2026-06-26)**
+**Files:** tools/generate_insights.py (modified), tests/test_insights.py (modified), site/index.html (modified)
+
+**What was built:**
+- RunInsights extended: coherence_narrative (str) + recommended_actions (tuple, always 3).
+- _generate_coherence(): reads 5 area insights, identifies dominant theme (crisis/concentration/hedging/steady-state), generates cross-area narrative paragraph, builds 3 action recommendations.
+- PCL segment fix: uses cv.get("segment") == "I&C" + net_gbp fallback key (real data had different field names than test fixture).
+- Dashboard Insights tab: Level 3 coherence card (teal border, cross-area synthesis) + Recommended Actions card (amber border, numbered list).
+- 6 new tests: coherence present, 3 actions, survival mention, IC flagged, save/reload, hedge mention.
+- Dashboardvision.md Phase C backbone: executive coherence summary live on poesys.net.
+
+**6 new tests (3,413 total).**
+
+---
 **12 new tests (3,373 total).**
 
 ---
@@ -3763,7 +3777,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,407 tests (2,986 fast / ~10s; simulation integration ~8 min per run)
+- 3,413 tests (2,986 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

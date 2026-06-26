@@ -976,12 +976,26 @@ function renderInsights() {
       '</div>';
   }).join('');
 
+  const coherenceHtml = ins.coherence_narrative
+    ? '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--teal);padding-left:16px">' +
+      '<div style="font-size:12px;font-weight:600;color:var(--teal);margin-bottom:6px">Level 3 — Coherence</div>' +
+      '<p style="margin:0;font-size:13px">' + ins.coherence_narrative + '</p>' +
+      '</div>'
+    : '';
+  const actionsHtml = (ins.recommended_actions && ins.recommended_actions.length)
+    ? '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--amber);padding-left:16px">' +
+      '<div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:8px">Recommended Actions</div>' +
+      ins.recommended_actions.map((a, i) => '<div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="color:var(--amber);font-weight:600">' + (i+1) + '.</span> ' + a + '</div>').join('') +
+      '</div>'
+    : '';
+
   container.innerHTML =
     '<div class="section"><div class="section-title">Run Insights</div>' +
-    '<div class="chart-box" style="margin-bottom:20px;border-left:3px solid var(--blue);padding-left:16px">' +
+    '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--blue);padding-left:16px">' +
     '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Executive summary &bull; ' + (ins.git_hash || '') + '</div>' +
     '<p style="margin:0;font-size:13px">' + (ins.executive_summary || '') + '</p>' +
-    '</div>' + cards + '</div>';
+    '</div>' + coherenceHtml + actionsHtml + cards + '</div>';
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────

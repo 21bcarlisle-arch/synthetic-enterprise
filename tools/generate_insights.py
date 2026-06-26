@@ -46,6 +46,8 @@ class RunInsights:
     net_margin_gbp: float
     executive_summary: str
     insights: tuple
+    coherence_narrative: str = ""
+    recommended_actions: tuple = ()
 
 
 def _fmt_gbp(v: float) -> str:
@@ -183,8 +185,12 @@ def _financial_insight(data: dict) -> AreaInsight:
     revenue = lh.get("revenue_gbp", data.get("total_revenue_gbp", 0.0))
     net_pct = (net / revenue * 100) if revenue else 0.0
     pcl = data.get("per_customer_lifetime", {})
-    ic_net = sum(cv.get("net_margin_gbp", 0) for cid, cv in pcl.items() if "IC" in cid)
-    resi_net = sum(cv.get("net_margin_gbp", 0) for cid, cv in pcl.items() if "IC" not in cid)
+    def _pcl_net(cv):
+        return cv.get("net_margin_gbp", cv.get("net_gbp", 0))
+    def _is_ic(cid, cv):
+        return cv.get("segment") == "I&C" or "IC" in cid
+    ic_net = sum(_pcl_net(cv) for cid, cv in pcl.items() if _is_ic(cid, cv))
+    resi_net = sum(_pcl_net(cv) for cid, cv in pcl.items() if not _is_ic(cid, cv))
     total_pcl = ic_net + resi_net
     ic_pct = (ic_net / total_pcl * 100) if total_pcl else 0.0
     cts = data.get("cost_to_serve_portfolio_gbp", 0.0)
@@ -267,12 +273,154 @@ def _executive_summary(data: dict, insights: list) -> str:
     return " ".join(parts)
 
 
+
+def _generate_coherence(insights: list, data: dict) -> tuple:
+    """Return (coherence_narrative, recommended_actions_tuple).
+
+    Produces a Level 3 cross-area narrative: what do the five area findings
+    mean together? Plus 3 action recommendations derived from findings.
+    """
+    by_area = {i.area: i for i in insights}
+    fin = by_area.get(InsightArea.FINANCIAL)
+    trade = by_area.get(InsightArea.TRADING)
+    risk = by_area.get(InsightArea.RISK)
+    cust = by_area.get(InsightArea.CUSTOMERS)
+
+    fin_m = fin.key_metrics if fin else {}
+    trade_m = trade.key_metrics if trade else {}
+    risk_m = risk.key_metrics if risk else {}
+    cust_m = cust.key_metrics if cust else {}
+
+    survived = risk_m.get("survived", True)
+    hedge_cost = trade_m.get("hedging_cost_gbp", 0.0)
+    crisis_shocks = cust_m.get("crisis_year_shocks", 0)
+    ic_pct = fin_m.get("ic_net_pct_of_total", 0.0)
+    net_pct = fin_m.get("net_margin_pct", 0.0)
+    net_gbp = fin_m.get("net_margin_gbp", 0.0)
+    retained = cust_m.get("retained", 0)
+    offers = cust_m.get("retention_offers", 0)
+
+    # Dominant theme
+    if not survived:
+        theme = "administration"
+    elif crisis_shocks > 80:
+        theme = "crisis survival"
+    elif ic_pct >= 80:
+        theme = "I&C concentration"
+    elif hedge_cost < -2_000_000:
+        theme = "hedging cost"
+    else:
+        theme = "steady-state operation"
+
+    # Build narrative
+    survival_line = (
+        "The business survived the full 2016-2025 window" if survived
+        else "The business entered administration"
+    )
+    hedge_line = (
+        "hedging added {} vs going naked" .format(_fmt_gbp(hedge_cost))
+        if hedge_cost >= 0
+        else "the 85% hedge mandate cost {} vs going naked".format(_fmt_gbp(abs(hedge_cost)))
+    )
+    shock_line = (
+        "{} bill shocks in the 2021-22 crisis".format(crisis_shocks)
+        if crisis_shocks > 0 else "minimal crisis-year bill shocks"
+    )
+    margin_line = (
+        "net margin {} ({} of revenue -- {} 2-5% benchmark)".format(
+            _fmt_gbp(net_gbp), _fmt_pct(net_pct),
+            "above" if net_pct > 5 else ("within" if net_pct >= 2 else "below"))
+    )
+    ic_line = (
+        "with I&C customers contributing {} of net margin".format(_fmt_pct(ic_pct, 0))
+    )
+    ret_line = (
+        "{}/{} retention offers accepted".format(retained, offers)
+        if offers > 0 else "no retention offers made"
+    )
+
+    narrative = (
+        "The dominant theme is {theme}. {survival} including the 2021-22 energy crisis, "
+        "with {hedge}, {shocks}, and {ret}. {margin}, {ic}. "
+        "The hedging mandate limited worst-case downside at the cost of expected P&L in calmer years; "
+        "the I&C book was the primary profit engine throughout. "
+        "{cross_subsidy}"
+    ).format(
+        theme=theme,
+        survival=survival_line,
+        hedge=hedge_line,
+        shocks=shock_line,
+        ret=ret_line,
+        margin=margin_line,
+        ic=ic_line,
+        cross_subsidy=(
+            "Without I&C revenue the residential book would be loss-making -- "
+            "concentration risk is the key strategic vulnerability."
+            if ic_pct >= 70
+            else "The book is well-diversified between residential and I&C segments."
+        )
+    )
+
+    # Recommended actions
+    actions = []
+    if ic_pct >= 80:
+        actions.append(
+            "I&C concentration critical ({} of margin): target acquisition of 2 additional "
+            "I&C customers to reduce dependency".format(_fmt_pct(ic_pct, 0))
+        )
+    elif ic_pct >= 70:
+        actions.append(
+            "I&C concentration elevated ({} of margin): monitor and plan diversification".format(
+                _fmt_pct(ic_pct, 0))
+        )
+    else:
+        actions.append(
+            "I&C margin share {}: diversified book -- maintain residential acquisition "
+            "to keep I&C below 70% dependency".format(_fmt_pct(ic_pct, 0))
+        )
+
+    if hedge_cost < -3_000_000:
+        actions.append(
+            "Hedge mandate cost {} vs going naked: review minimum hedge fraction "
+            "for non-crisis years (current 85% floor)".format(_fmt_gbp(abs(hedge_cost)))
+        )
+    elif hedge_cost >= 0:
+        actions.append(
+            "Hedging added {} -- maintain current mandate; the 2022 crisis justifies "
+            "the cost even in calm years".format(_fmt_gbp(hedge_cost))
+        )
+    else:
+        actions.append(
+            "Hedge cost {} over 10 years -- mandate is a survival insurance premium, "
+            "not an expected-value strategy".format(_fmt_gbp(abs(hedge_cost)))
+        )
+
+    if crisis_shocks > 100:
+        actions.append(
+            "{} crisis-year bill shocks: consider tariff smoothing mechanism "
+            "to spread 2021-22 wholesale spike across 2020-2023 for residential customers".format(
+                crisis_shocks)
+        )
+    elif net_pct < 2.0:
+        actions.append(
+            "Net margin {}: below 2% industry floor -- review non-commodity charge "
+            "pass-through and cost-to-serve allocation".format(_fmt_pct(net_pct))
+        )
+    else:
+        actions.append(
+            "Net margin {} ({} of revenue): within or above benchmark -- "
+            "focus on maintaining I&C renewal rates".format(_fmt_gbp(net_gbp), _fmt_pct(net_pct))
+        )
+
+    return narrative, tuple(actions[:3])
+
 def generate_insights(data: dict, git_hash: str = "unknown") -> RunInsights:
     insight_list = [
         _trading_insight(data), _customers_insight(data),
         _risk_insight(data), _financial_insight(data), _operations_insight(data),
     ]
     summary = _executive_summary(data, insight_list)
+    coherence_narrative, recommended_actions = _generate_coherence(insight_list, data)
     lh = data.get("_ledger_headline", {})
     net = lh.get("net_margin_gbp", data.get("total_net_gbp", 0.0))
     return RunInsights(
@@ -281,6 +429,8 @@ def generate_insights(data: dict, git_hash: str = "unknown") -> RunInsights:
         net_margin_gbp=round(net, 2),
         executive_summary=summary,
         insights=tuple(insight_list),
+        coherence_narrative=coherence_narrative,
+        recommended_actions=recommended_actions,
     )
 
 
@@ -295,6 +445,8 @@ def _to_dict(insights: RunInsights) -> dict:
              "narrative": i.narrative, "key_metrics": i.key_metrics}
             for i in insights.insights
         ],
+        "coherence_narrative": insights.coherence_narrative,
+        "recommended_actions": list(insights.recommended_actions),
     }
 
 
