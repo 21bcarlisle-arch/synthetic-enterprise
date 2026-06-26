@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,320 tests (1,892 non-simulation, 428 simulation). Codebase: ~34,700 lines across 256+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,461 tests passing. Codebase: ~34,700 lines across 256+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -693,6 +693,19 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - 6 new tests: admin event NTFY, normal run silent, new-high NTFY, new-low NTFY, summary included, missing history.
 
 **6 new tests (3,452 total).**
+
+---
+**Phase 266 -- Dashboard Phase D: "Talk to the Data" NL Query Interface (2026-06-26)**
+**Files:** tools/generate_dashboard_data.py (modified), functions/api/query.js (new), site/index.html (modified), tests/tools/test_query_interface.py (new)
+
+**What was built:**
+- `extract_query_context(data)`: generates a compact (~2.6k char) text summary of run data for use as Claude API context — portfolio totals, annual performance, customer lifetime margins, retention summary, operations.
+- `query_context` added to dashboard.json output (generated on every run).
+- `functions/api/query.js`: Cloudflare Pages Function that proxies NL questions to Claude Haiku (claude-haiku-4-5-20251001). Reads ANTHROPIC_API_KEY env var. Handles CORS, missing API key, and API errors gracefully.
+- "Query" tab added to poesys.net dashboard with: question input, Ask button, 5 example queries, chat-style answer history (newest on top), loading state, error handling.
+- Dashboard now loads query_context from dashboard.json and sends it as context with each question.
+
+**9 new tests (3,461 total).**
 
 ---
 **12 new tests (3,373 total).**
@@ -3866,7 +3879,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,452 tests (3,020 fast / ~10s; simulation integration ~8 min per run)
+- 3,461 tests (3,020 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -389,6 +389,60 @@ def extract_run_history(history_path=None, max_entries=10):
         return []
 
 
+def extract_query_context(data):
+    """Build compact text summary (~2-4k chars) for NL query API context."""
+    if not data:
+        return ""
+    lines = ["=== UK Energy Supplier Simulation (2016-2025) ===", ""]
+    ledger = data.get("ledger_pnl", {})
+    lines.append("PORTFOLIO 10-YEAR TOTALS:")
+    lines.append("  Revenue: GBP{:,.0f}".format(ledger.get("revenue_gbp", 0)))
+    lines.append("  Gross margin: GBP{:,.0f}".format(ledger.get("gross_margin_gbp", 0)))
+    lines.append("  Net margin: GBP{:,.0f}".format(ledger.get("net_margin_gbp", 0)))
+    lines.append("  Bad debt: GBP{:,.0f}".format(ledger.get("bad_debt_gbp", 0)))
+    lines.append("")
+    lines.append("ANNUAL PERFORMANCE:")
+    for yr in sorted(data.get("years", {}).keys()):
+        ydata = data["years"][yr]
+        net = ydata.get("net_gbp", 0)
+        gross = ydata.get("gross_gbp", 0)
+        rev = ydata.get("revenue_gbp", 0)
+        active = len(ydata.get("active_customer_ids", []))
+        shocks = len(ydata.get("bill_shock_events", []))
+        worst = max((e.get("bill_shock_pct", 0) for e in ydata.get("bill_shock_events", [])), default=0)
+        hf_data = ydata.get("hedge_fractions", {})
+        avgs = [v.get("avg_hf", 0) for v in hf_data.values() if isinstance(v, dict)] if isinstance(hf_data, dict) else []
+        hf_str = "  hedge={:.0f}pct".format(statistics.mean(avgs) * 100) if avgs else ""
+        row = "  {}: net=GBP{:,.0f}  gross=GBP{:,.0f}  rev=GBP{:,.0f}  customers={}  bill_shocks={}".format(
+            yr, net, gross, rev, active, shocks)
+        if worst:
+            row += "  worst_shock={:.0f}pct".format(worst * 100)
+        row += hf_str
+        lines.append(row)
+    lines.append("")
+    lines.append("CUSTOMER LIFETIME NET MARGIN:")
+    for cid, cdata in sorted(data.get("per_customer_lifetime", {}).items()):
+        net = cdata.get("net_gbp", 0)
+        seg = cdata.get("segment", "")
+        comm = cdata.get("commodity", "")
+        rev = cdata.get("revenue_gbp", 0)
+        lines.append("  {} ({}, {}): net=GBP{:,.0f}  revenue=GBP{:,.0f}".format(
+            cid, seg, comm, net, rev))
+    lines.append("")
+    retention = data.get("retention_log", [])
+    retained = sum(1 for r in retention if r.get("outcome") == "retained")
+    churned = data.get("churned_billing_accounts", [])
+    lines.append("CUSTOMER RETENTION:")
+    lines.append("  Retention offers: {}  retained: {}  churned accounts: {}".format(
+        len(retention), retained, len(churned)))
+    lines.append("")
+    bills_total = data.get("bills_total", 0)
+    committee_total = data.get("committee_wake_ups_total", 0)
+    lines.append("OPERATIONS:")
+    lines.append("  Total bills: {}  Risk committee interventions: {}".format(bills_total, committee_total))
+    return chr(10).join(lines)
+
+
 def generate(run_json_path=None):
     if run_json_path is None:
         run_json_path = _find_latest_run_json()
@@ -424,6 +478,7 @@ def generate(run_json_path=None):
         "market": extract_market(data, spot_monthly),
         "insights": extract_insights(),
         "run_history": extract_run_history(),
+        "query_context": extract_query_context(data),
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
