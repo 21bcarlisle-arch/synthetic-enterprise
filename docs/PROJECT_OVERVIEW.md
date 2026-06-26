@@ -527,6 +527,18 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 149 -- Annual Energy Statement (AES) (2026-06-26)
+**Files:** `company/billing/annual_statement.py` (new), `tests/company/billing/test_annual_statement.py` (new)
+
+**What was built:**
+- `AnnualStatement` frozen dataclass: customer_id, year, consumption_kwh, total_cost_gbp, effective_unit_rate_ppm, sc_ppd, tariff_name, tariff_type, prev_year_consumption_kwh, consumption_change_pct, market_avg_cost_gbp, estimated_saving_gbp.
+- `AnnualStatementBook`: generate() (computes consumption_change_pct from prev year; estimated_saving = market_avg - actual; None if no market data), get(customer_id, year), statements_for_customer(), issued_for_year(year), overdue(as_of, all_customer_ids) (missing prior-year statements), summary(year).
+
+**Fidelity delta:** Ofgem SLC 31B requires domestic suppliers to issue an Annual Energy Statement to every customer showing: annual consumption, total cost, effective unit rate, standing charge, comparison to previous year, and estimated saving from switching. This is a mandatory regulatory document that drives informed switching decisions in the UK market. Previously the company had no model for AES generation or compliance tracking. Phase 149 closes this: AnnualStatementBook generates and tracks AES across the portfolio, with overdue() identifying compliance gaps.
+
+**12 new tests (2,389 total).**
+
+---
 ### Phase 148 -- Annual Direct Debit Review (ADDR) (2026-06-26)
 **Files:** `company/billing/dd_review.py` (new), `tests/company/billing/test_dd_review.py` (new)
 
@@ -2135,16 +2147,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,377 tests (1,961 fast / ~10s; simulation integration ~8 min per run)
+- 2,389 tests (1,973 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 148, 2026-06-26):**
+**Latest full run (Phase 149, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 12 new tests: Annual Direct Debit Review (ADDR) — review() ±5% variance threshold; DDReviewBook run_review/overdue_for_review; Ofgem SLC 27B compliance.
+- 12 new tests: Annual Energy Statement (AES) — AnnualStatementBook generate/overdue; consumption_change_pct + estimated_saving_gbp; Ofgem SLC 31B compliance tracking.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
