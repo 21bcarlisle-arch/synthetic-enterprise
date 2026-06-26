@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,746 tests passing. Codebase: ~37,500 lines across 277+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,757 tests passing. Codebase: ~37,650 lines across 278+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 291 (2026-06-26):** DUoS Charge Ledger -- 11 new tests (3,757 total). company/market/duos_ledger.py: DNOArea (14 UK areas), VoltageLevel (HV/LV), frozen DUoSCharge (unit_charge_gbp/total_charge_gbp), DUoSLedger (unit_rate_for_year; charges by account/year; annual_unit_cost_p_per_kwh; hv_customer_count). HV customers pay 60% of LV rate. Real 2016-2025 DUoS rates (1.85-2.75 p/kWh). One of 7 major non-commodity electricity costs alongside CM/CfD/RO/FIT/BSUoS/TNUoS.
 
 **Phase 290 (2026-06-26):** Counterparty Credit Limit Book -- 12 new tests (3,746 total). company/finance/credit_limit_book.py: CounterpartyType (5 types), frozen CreditLimit (is_material>=£1M), frozen ExposureRecord (total_exposure = MTM + PFE; is_stress_exposure when PFE>2xMTM), CreditLimitBook (utilisation_pct, is_breach, breaches, limit_summary with portfolio_utilisation_pct). Connects to MarginCallBook — breach triggers escalation to credit committee.
 
@@ -3961,7 +3963,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,746 tests (3,304 fast / ~10s; simulation integration ~8 min per run)
+- 3,757 tests (3,315 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
