@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 167 -- Warm Home Discount (WHD) register (2026-06-26)
+**Files:** `company/billing/whd_register.py` (new), `tests/company/billing/test_whd_register.py` (new)
+
+**What was built:**
+- `WHDEligibilityReason` enum: CORE_GROUP (pension credit, automatic) / BROADER_GROUP_LIHC / BROADER_GROUP_PSR / INDUSTRY_INITIATIVE.
+- `WHDStatus` enum: ELIGIBLE / APPLIED / REBATED / INELIGIBLE.
+- `WHDApplication` frozen dataclass; status derived from rebated_date.
+- `WHDRegister`: apply() with duplicate-year guard, mark_rebated(), pending_rebates(), total_rebated_gbp(scheme_year), applications_for_customer(), annual_summary() with by_eligibility_reason breakdown.
+- WHD_REBATE_GBP = £150 (Ofgem-mandated constant).
+
+**Fidelity delta:** Every UK energy supplier above a customer threshold must participate in WHD. The £150 rebate appears on electricity bills, and suppliers must file annual returns to Ofgem. Connected to Phase 166 fuel_poverty: LIHC customers qualify for broader group, PSR + low income for broader group PSR track. Industry initiative track covers supplier discretion. Pending rebates list flags regulatory exposure if not paid before scheme deadline.
+
+**11 new tests (2,592 total).**
+
+---
 ### Phase 166 -- Fuel poverty income assessment (2026-06-26)
 **Files:** `company/crm/fuel_poverty.py` (new), `tests/company/crm/test_fuel_poverty.py` (new)
 
@@ -2391,7 +2406,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,581 tests (2,165 fast / ~10s; simulation integration ~8 min per run)
+- 2,592 tests (2,176 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
