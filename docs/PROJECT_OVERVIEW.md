@@ -527,6 +527,21 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 237 -- Balancing Mechanism (BM) unit log (2026-06-26)
+**Files:** `company/market/bm_unit_log.py` (new), `tests/company/market/test_bm_unit_log.py` (new)
+
+**What was built:**
+- BMActionType: OFFER (increase output / decrease demand) / BID (decrease output / increase demand).
+- BMDispatchStatus: SUBMITTED / ACCEPTED / DISPATCHED / PART_DISPATCHED / DECLINED.
+- BMOffer frozen: bmu_id, settlement_date, settlement_period, action_type, offered_mw, price_gbp_per_mwh, submission_time; offered_mwh = mw × 0.5 (one SP), is_expensive (>£500/MWh).
+- BMDispatch mutable: offer, dispatched_mw, dispatch_time; dispatched_mwh, revenue_gbp, utilisation_pct; PART_DISPATCHED if dispatched_mw < 99% of offered.
+- BMUnitLog: bmu_id, capacity_mw; submit_offer(), record_dispatch(), total_revenue_gbp(year), dispatch_count(year), avg_dispatch_price(year), bm_summary(year).
+
+**Fidelity delta:** The Balancing Mechanism is the real-time tool National Grid ESO uses to balance generation and demand second-by-second, via dispatch of accepted offers/bids. Suppliers with flexible demand (DSR customers from Ph224) can submit demand-reduction offers at attractive BM prices. During 2022 crisis, BM clearing prices routinely exceeded £500/MWh (is_expensive=True), giving flexible demand customers 10-20x their normal off-peak rate. BMUnitLog connects to ImbalanceAnalytics (Ph233): a company with well-run BM participation can reduce its imbalance cash-out costs by deliberately taking positions. avg_dispatch_price() feeds the risk reporting dashboard.
+
+**9 new tests (3,183 total).**
+
+---
 ### Phase 236 -- Smart Export Guarantee (SEG) portfolio (2026-06-26)
 **Files:** `company/billing/seg_portfolio.py` (new), `tests/company/billing/test_seg_portfolio.py` (new)
 
@@ -3400,7 +3415,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,174 tests (2,757 fast / ~10s; simulation integration ~8 min per run)
+- 3,183 tests (2,766 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
