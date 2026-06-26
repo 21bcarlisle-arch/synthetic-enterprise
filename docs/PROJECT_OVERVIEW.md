@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,119 tests (1,691 non-simulation, 428 simulation). Codebase: ~30,900 lines across 237+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,129 tests (1,701 non-simulation, 428 simulation). Codebase: ~31,100 lines across 238+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 124 -- Churn waterfall + reason code analysis (2026-06-27)
+**Files:** `company/crm/churn_analytics.py` (new), `tests/company/crm/test_churn_analytics.py` (new)
+
+**What was built:**
+- `ChurnEvent`: customer_id, direction (gain/loss), year, reason (8 codes: price/service/moving_home/switching_broker/auto_renewal/going_green/consolidation/unknown), retention_attempted/succeeded flags.
+- `ChurnWaterfall`: opening_book, gains, losses, closing_book, churn_rate, growth_rate.
+- `ChurnAnalytics`: record(), losses_by_year/gains_by_year(), reason_breakdown() (sorted by count), retention_rate(), waterfall(), summary().
+
+**Fidelity delta:** The churn waterfall is standard management reporting for UK energy suppliers. Reason codes allow the business to distinguish structural churn (price) from preventable churn (service) and lifecycle churn (moving home). Retention rate measures effectiveness of save-a-sale calls — a key KPI for customer management teams.
+
+**10 new tests (2,129 total).**
+
+---
 ### Phase 123 -- Customer Acquisition Cost (CAC) model (2026-06-27)
 **Files:** `company/crm/acquisition_cost.py` (new), `tests/company/crm/test_acquisition_cost.py` (new)
 
@@ -1811,14 +1824,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,119 tests (1,691 fast / ~10s; simulation integration ~8 min per run)
+- 2,129 tests (1,701 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 123, 2026-06-27):**
+**Latest full run (Phase 124, 2026-06-27):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
