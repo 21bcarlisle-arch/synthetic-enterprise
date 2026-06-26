@@ -194,18 +194,46 @@ def git_commit_push(git_hash, net_margin):
     return push.returncode == 0
 
 
-def maybe_ntfy(data, net_margin):
+def _run_history_max_net():
+    hp = PROJECT_DIR / "docs" / "observability" / "run_history.json"
+    if not hp.exists():
+        return 0.0
+    try:
+        import json as _j
+        history = _j.loads(hp.read_text())
+        return max((h.get("net_margin_gbp", 0) for h in history), default=0.0)
+    except Exception:
+        return 0.0
+
+
+def maybe_ntfy(data, net_margin, insights=None):
     admin = data.get("administration_event")
-    if not admin:
-        return
     from background.ntfy_utils import send_ntfy
-    date_str = admin.get("date", "unknown date") if isinstance(admin, dict) else str(admin)
-    send_ntfy(
-        "[SIM] ADMINISTRATION EVENT on {} - net margin \xa3{:,.0f}. Check annual report.".format(
-            date_str, net_margin
+    if admin:
+        date_str = admin.get("date", "unknown date") if isinstance(admin, dict) else str(admin)
+        send_ntfy(
+            "[SIM] ADMINISTRATION EVENT on {} - net margin £{:,.0f}. Check annual report.".format(
+                date_str, net_margin
+            )
         )
-    )
-    log("NTFY sent: administration event on {}".format(date_str))
+        log("NTFY sent: administration event on {}".format(date_str))
+        return
+    prev_best = _run_history_max_net()
+    is_new_high = net_margin > prev_best * 1.01 and prev_best > 0
+    is_new_low = net_margin < prev_best * 0.5 and prev_best > 1_000_000
+    if not (is_new_high or is_new_low):
+        return
+    tag = "[NEW HIGH]" if is_new_high else "[NEW LOW]"
+    summary = getattr(insights, "executive_summary", "") if insights else ""
+    acts = list(getattr(insights, "recommended_actions", ()) if insights else [])
+    msg = "[SIM] {} Net margin £{:,.0f}".format(tag, net_margin)
+    if summary:
+        msg += " -- " + str(summary)[:120]
+    if acts:
+        msg += " | Action: " + str(acts[0])[:80]
+    send_ntfy(msg)
+    log("NTFY sent: {} net margin £{:,.0f}".format(tag, net_margin))
+
 
 
 def main(marker_path_str):
@@ -249,12 +277,13 @@ def main(marker_path_str):
 
 
     log("Generating run insights (so-what layer)")
+    run_insights = None
     try:
         from tools.generate_insights import generate_insights, save_insights, append_run_history
-        insights = generate_insights(data, git_hash)
-        save_insights(insights)
-        append_run_history(insights)
-        log("Run insights saved: {}".format(insights.executive_summary[:80]))
+        run_insights = generate_insights(data, git_hash)
+        save_insights(run_insights)
+        append_run_history(run_insights)
+        log("Run insights saved: {}".format(run_insights.executive_summary[:80]))
     except Exception as exc:
         log("Run insights generation skipped: {}".format(exc))
 
@@ -305,7 +334,7 @@ def main(marker_path_str):
     except Exception as exc:
         log("agent_status metrics update skipped: {}".format(exc))
 
-    maybe_ntfy(data, net_margin)
+    maybe_ntfy(data, net_margin, run_insights)
     log("Done")
     return 0
 

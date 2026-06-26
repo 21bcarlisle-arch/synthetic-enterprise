@@ -679,6 +679,22 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 **9 new tests (3,446 total).**
 
 ---
+**Phase 265 -- NTFY Notable-Exception Digest (2026-06-26)**
+**Files:** background/process_run_complete.py (modified), tests/tools/test_ntfy_digest.py (new)
+
+**What was built:**
+- `_run_history_max_net()`: reads run_history.json to find historical best net margin.
+- `maybe_ntfy(data, net, insights=None)`: now sends NTFY only for:
+  1. Administration events (existing behaviour).
+  2. New all-time-high net margin (>1% above previous best).
+  3. New all-time-low net margin (<50% of previous best, when previous best >£1M).
+- Digest includes executive_summary and first recommended_action from RunInsights.
+- Normal runs remain silent (standing policy from CLAUDE.md).
+- 6 new tests: admin event NTFY, normal run silent, new-high NTFY, new-low NTFY, summary included, missing history.
+
+**6 new tests (3,452 total).**
+
+---
 **12 new tests (3,373 total).**
 
 ---
@@ -3850,7 +3866,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,446 tests (3,014 fast / ~10s; simulation integration ~8 min per run)
+- 3,452 tests (3,020 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
