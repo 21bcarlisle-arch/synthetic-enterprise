@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,038 tests (1,610 non-simulation, 428 simulation). Codebase: ~29,350 lines across 229+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,048 tests (1,620 non-simulation, 428 simulation). Codebase: ~29,500 lines across 230+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 116 -- Energy theft / loss indicator (2026-06-26)
+**Files:** `company/billing/theft_indicator.py` (new), `tests/company/billing/test_theft_indicator.py` (new)
+
+**What was built:**
+- `classify_anomaly(actual_kwh, eac_kwh)`: ok / watch (<65% EAC) / investigate (<40% EAC) / no_data.
+- `screen_portfolio(customers_with_actuals)`: batch classification sorted by ratio, with aggregate counts.
+- Investigate message explicitly flags Ofgem reporting duty.
+
+**Fidelity delta:** Ofgem requires suppliers to report suspected energy theft (meter tampering). Consumption materially below EAC is the primary observable signal — this module provides the first-line screening that would trigger a field investigation.
+
+**10 new tests (2,048 total).**
+
+---
 ### Phase 115 -- Supplier switching request tracking (2026-06-26)
 **Files:** `company/billing/switching.py` (new), `tests/company/billing/test_switching.py` (new)
 
@@ -1706,14 +1719,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,038 tests (1,610 fast / ~10s; simulation integration ~8 min per run)
+- 2,048 tests (1,620 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 115, 2026-06-26):**
+**Latest full run (Phase 116, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
