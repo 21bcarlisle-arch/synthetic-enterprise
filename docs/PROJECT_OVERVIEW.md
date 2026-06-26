@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 162 -- Customer life events lifecycle (2026-06-26)
+**Files:** `company/crm/life_events.py` (new), `tests/company/crm/test_life_events.py` (new)
+
+**What was built:**
+- `LifeEventType` enum: 11 events covering household changes, financial shocks, health events, and property moves.
+- `LifeEvent` dataclass: customer_id, event_type, event_date, notes, occupancy_delta; trigger properties (triggers_vulnerability_review, triggers_occupancy_change, triggers_cot, triggers_psr_review).
+- `LifeEventLog`: record(), events_for_customer(), pending_vulnerability_reviews(since), pending_cot_triggers(since), pending_psr_reviews(since), annual_summary() with by_type breakdown.
+
+**Fidelity delta:** A customer's energy behaviour and risk profile change with life circumstances — job loss increases debt risk; retirement changes occupancy patterns; serious illness may require PSR registration; a move triggers COT. Previously customers were static profiles from first contract. Phase 162 closes this: life events now flow from customer record into the operational modules that need to respond (COT, PSR, vulnerability review, debt management). Opens the human behaviour simulation theme per Rich's direction.
+
+**11 new tests (2,541 total).**
+
+---
 ### Phase 161 -- Property model: premises attributes and consumption estimation (2026-06-26)
 **Files:** `company/crm/property_model.py` (new), `tests/company/crm/test_property_model.py` (new)
 
@@ -2322,7 +2335,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,530 tests (2,114 fast / ~10s; simulation integration ~8 min per run)
+- 2,541 tests (2,125 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
