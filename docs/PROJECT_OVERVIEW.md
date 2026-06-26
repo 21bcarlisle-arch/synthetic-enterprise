@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 3,767 tests passing. Codebase: ~37,800 lines across 279+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 3,778 tests passing. Codebase: ~37,950 lines across 280+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 293 (2026-06-26):** BSUoS Charge Ledger -- 11 new tests (3,778 total). company/market/bsuos_ledger.py: frozen BSUoSCharge (is_crisis_period 2021-22), BSUoSLedger (rate_for_year, crisis_uplift_multiple=3.26x, annual_rate_trend, bsuos_summary; peak_rate_year=2022 at £6.85/MWh). COMPLETES 7-of-7 major non-commodity electricity cost ledgers alongside CM/CfD/RO/FIT/DUoS/TNUoS.
 
 **Phase 292 (2026-06-26):** TNUoS Charge Ledger -- 10 new tests (3,767 total). company/market/tnuos_ledger.py: TriadStatus (TRIAD/NEAR_MISS/NORMAL), frozen TNUoSCharge (residual + triad charges), frozen TriadHalfHour, TNUoSLedger (zone_factor, confirmed_triads). North zones pay 40% more (locational signal to shift load south). Triad demand drives capacity charges. Completes 5 of 7 non-commodity cost ledgers.
 
@@ -3965,7 +3967,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,767 tests (3,325 fast / ~10s; simulation integration ~8 min per run)
+- 3,778 tests (3,336 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
