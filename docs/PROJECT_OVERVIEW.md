@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,068 tests (1,640 non-simulation, 428 simulation). Codebase: ~29,900 lines across 232+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,078 tests (1,650 non-simulation, 428 simulation). Codebase: ~30,100 lines across 233+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 119 -- Standard Licence Condition (SLC) monitoring (2026-06-26)
+**Files:** `company/regulatory/licence_monitor.py` (new), `tests/company/regulatory/test_licence_monitor.py` (new)
+
+**What was built:**
+- `SLCStatus` dataclass: slc_number, description, status (COMPLIANT/MONITOR/BREACH/NOT_ASSESSED), evidence, last_checked.
+- `LicenceMonitor`: set_status(), get(), all_statuses(), breaches(), under_monitor(), catalogue(), compliance_summary() with RAG (GREEN/AMBER/RED).
+- `_SLC_CATALOGUE`: 9 key SLCs (billing SLC 7, complaints SLC 14, price cap SLC 21C, smart meters SLC 22/27/27A, capital SLC 36, PSR SLC 47, SEG SLC 55).
+
+**Fidelity delta:** UK suppliers hold an Ofgem Standard Licence with ~60 conditions. Non-compliance triggers enforcement action and potential licence revocation. This module provides the compliance skeleton — the RAG summary maps directly to what a compliance officer would report to the board.
+
+**10 new tests (2,078 total).** CLAUDE.md trimmed 172→161 lines.
+
+---
 ### Phase 118 -- DTN message log (2026-06-26)
 **Files:** `company/market/dtn_log.py` (new), `tests/company/market/test_dtn_log.py` (new)
 
@@ -1746,14 +1759,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,068 tests (1,640 fast / ~10s; simulation integration ~8 min per run)
+- 2,078 tests (1,650 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 118, 2026-06-26):**
+**Latest full run (Phase 119, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
