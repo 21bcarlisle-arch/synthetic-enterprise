@@ -400,6 +400,7 @@ def _load_admin_data() -> dict:
                 "SELECT COALESCE(SUM(total_gbp),0) FROM invoices WHERE payment_status='bad_debt'"
             ).fetchone()
             total_bad_debt = r[0] if r else 0.0
+    csat = _SERVICE_LOG.csat_summary()
     return {
         "customers": rows,
         "total_customers": len(rows),
@@ -407,6 +408,7 @@ def _load_admin_data() -> dict:
         "total_paid_gbp": round(total_paid, 2),
         "total_outstanding_gbp": round(total_outstanding, 2),
         "total_bad_debt_gbp": round(total_bad_debt, 2),
+        "csat": csat,
     }
 
 

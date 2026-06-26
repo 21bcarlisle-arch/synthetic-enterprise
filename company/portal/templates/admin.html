@@ -30,6 +30,7 @@
     <div class="card"><strong>£{{ "%.0f"|format(data.total_billed_gbp) }}</strong><span>Total billed</span></div>
     <div class="card"><strong>£{{ "%.0f"|format(data.total_outstanding_gbp) }}</strong><span>Outstanding</span></div>
     <div class="card"><strong>£{{ "%.0f"|format(data.total_bad_debt_gbp) }}</strong><span>Bad debt</span></div>
+        <div class="card"><strong>{{ "%.1f"|format(data.csat.mean) if data.csat.mean else "—" }}/5</strong><span>CSAT score ({{ data.csat.count }} rated)</span></div>
   </div>
   <h2>Customer Portfolio</h2>
   <table>
