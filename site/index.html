@@ -155,6 +155,7 @@ tr:hover td { background: var(--surface2); }
   <button class="tab-btn"        data-tab="financial" onclick="switchTab('financial')">Financial</button>
   <button class="tab-btn"        data-tab="trading"   onclick="switchTab('trading')">Trading</button>
   <button class="tab-btn"        data-tab="customers" onclick="switchTab('customers')">Customers</button>
+  <button class="tab-btn"        data-tab="insights"  onclick="switchTab('insights')">Insights</button>
   <button class="tab-btn"        data-tab="market"    onclick="switchTab('market')">Market</button>
   <button class="tab-btn"        data-tab="system"    onclick="switchTab('system')">System</button>
   <button class="tab-btn"        data-tab="about"     onclick="switchTab('about')">About</button>
@@ -167,6 +168,7 @@ tr:hover td { background: var(--surface2); }
   <div id="tab-financial" class="view"></div>
   <div id="tab-trading"   class="view"></div>
   <div id="tab-customers" class="view"></div>
+  <div id="tab-insights"  class="view"></div>
   <div id="tab-market"    class="view"></div>
   <div id="tab-system"   class="view"></div>
   <div id="tab-about"    class="view"></div>
@@ -236,6 +238,7 @@ function renderTab(name) {
   if (name === 'financial') renderFinancial();
   if (name === 'trading')   renderTrading();
   if (name === 'customers') renderCustomers();
+  if (name === 'insights')  renderInsights();
   if (name === 'market')    renderMarket();
   if (name === 'system')    renderSystem();
 }
@@ -942,6 +945,43 @@ function renderAbout() {
     </div>
   </div>
 </div>`;
+}
+
+
+// ── Insights ─────────────────────────────────────────────────────────────────
+function renderInsights() {
+  const container = document.getElementById('tab-insights');
+  const ins = D && D.insights;
+  if (!ins) {
+    container.innerHTML = '<div class="section"><div class="section-title">Run Insights</div>' +
+      '<p style="color:var(--muted);font-size:12px">No insights data available. ' +
+      'Run the simulation to generate insights.</p></div>';
+    return;
+  }
+  const areaIcon = { trading:'📈', customers:'👥', risk:'🛡️', financial:'💷', operations:'⚙️' };
+  const cards = (ins.insights || []).map(i => {
+    const icon = areaIcon[i.area] || '•';
+    const metricsHtml = Object.entries(i.key_metrics || {}).slice(0, 5).map(([k, v]) => {
+      const label = k.replace(/_/g, ' ');
+      const display = typeof v === 'number' ? (Number.isInteger(v) ? v.toLocaleString() : v.toFixed(2)) : String(v);
+      return '<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:3px 0">' +
+        '<span style="color:var(--muted)">' + label + '</span>' +
+        '<span style="font-weight:600">' + display + '</span></div>';
+    }).join('');
+    return '<div class="chart-box" style="margin-bottom:16px">' +
+      '<div style="font-size:14px;font-weight:600;margin-bottom:6px">' + icon + ' ' + i.area.charAt(0).toUpperCase() + i.area.slice(1) + '</div>' +
+      '<div style="font-size:13px;color:var(--blue);margin-bottom:8px">' + i.headline + '</div>' +
+      '<p style="font-size:12px;color:var(--muted);margin:0 0 10px">' + i.narrative + '</p>' +
+      (metricsHtml ? '<div style="font-size:11px">' + metricsHtml + '</div>' : '') +
+      '</div>';
+  }).join('');
+
+  container.innerHTML =
+    '<div class="section"><div class="section-title">Run Insights</div>' +
+    '<div class="chart-box" style="margin-bottom:20px;border-left:3px solid var(--blue);padding-left:16px">' +
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Executive summary &bull; ' + (ins.git_hash || '') + '</div>' +
+    '<p style="margin:0;font-size:13px">' + (ins.executive_summary || '') + '</p>' +
+    '</div>' + cards + '</div>';
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────

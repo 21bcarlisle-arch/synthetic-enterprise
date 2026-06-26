@@ -578,6 +578,18 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **15 new tests (3,403 total).**
 
+---
+**Phase 258 -- Dashboard Insights tab (2026-06-26)**
+**Files:** site/index.html (modified), tools/generate_dashboard_data.py (modified), tests/tools/test_generate_dashboard_insights.py (new)
+
+**What was built:**
+- extract_insights() in generate_dashboard_data.py: loads run_insights.json into dashboard dict as D.insights.
+- Insights tab added to poesys.net dashboard: nav button, view div, renderInsights() JS function.
+- renderInsights() renders executive summary banner + 5 area cards (headline, narrative, key metrics).
+- 4 new tests: absent path returns None, valid JSON returns dict, invalid JSON returns None, all 5 areas present.
+- Direct response to Dashboardvision.md Phase A frontend: Level 2 insight layer now visible on dashboard.
+
+**4 new tests (3,407 total).**
 
 ---
 **12 new tests (3,373 total).**
@@ -3751,16 +3763,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,403 tests (2,986 fast / ~10s; simulation integration ~8 min per run)
+- 3,407 tests (2,986 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 257, 2026-06-26):**
+**Latest full run (Phase 258, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
-- 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
+- 4 new tests: Dashboard Insights tab (extract_insights) — surfaces run_insights.json into poesys.net dashboard.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

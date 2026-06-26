@@ -15,6 +15,8 @@ PROJECT = Path(__file__).resolve().parent.parent
 SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
 OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
 
+RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -285,6 +287,18 @@ def extract_customers(data):
     }
 
 
+
+
+def extract_insights(insights_path=None):
+    """Return run insights dict from run_insights.json, or None if absent/invalid."""
+    path = insights_path or RUN_INSIGHTS_PATH
+    if not Path(path).exists():
+        return None
+    try:
+        return json.loads(Path(path).read_text())
+    except (json.JSONDecodeError, ValueError):
+        return None
+
 def extract_market(data, spot_monthly=None):
     # Segment margins per year from segment_split
     segment_annual = []
@@ -395,6 +409,7 @@ def generate(run_json_path=None):
         "trading": extract_trading(data, spot_monthly),
         "customers": extract_customers(data),
         "market": extract_market(data, spot_monthly),
+        "insights": extract_insights(),
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Status
 
-Last updated: 2026-06-26T13:16:10Z
+Last updated: 2026-06-26T13:31:32Z
 
 ## Latest Simulation Run
 - **Git:** 9087d88 (run 2026-06-26T10:44)
@@ -12,8 +12,8 @@ Last updated: 2026-06-26T13:16:10Z
 - **Administration Event:** No — SURVIVED
 
 ## Build State
-- **Current Phase:** 257
-- **Tests:** 3,403 passing
+- **Current Phase:** 258
+- **Tests:** 3,407 passing
 - **Session theme:** Financial layer + regulatory + market ops + CRM maturation
 
 ## This Session (Phases 240-246)
@@ -71,7 +71,7 @@ Last updated: 2026-06-26T13:16:10Z
 
 ## Company layer: 194 files | CLAUDE.md: 147/200 lines
 
-**Latest simulation results (2016–2025)** — auto-processed (472s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
