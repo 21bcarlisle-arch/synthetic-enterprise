@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 150 -- Priority Services Register (PSR) (2026-06-26)
+**Files:** `company/crm/priority_services.py` (new), `tests/company/crm/test_priority_services.py` (new)
+
+**What was built:**
+- `PSRNeed` enum (10 types): LARGE_PRINT_BILLS, BRAILLE_BILLS, AUDIO_BILLS, ADVANCE_NOTICE, NOMINEE_BILLING, MEDICALLY_DEPENDENT, HEARING_IMPAIRED, VISUALLY_IMPAIRED, CHRONIC_ILLNESS, OTHER.
+- `PSREntry` dataclass: customer_id, needs (list), added_date, review_due_date (365 days after registration), nominee_name, nominee_contact. Methods: is_due_for_review(), is_medically_dependent(), requires_nominee_contact().
+- `PSRBook`: register(), update_needs(), is_registered(), get(), due_for_review(as_of), medically_dependent_customers() (DNO priority for power outages), nominee_contacts(), portfolio_summary() (total/medical_dep/with_nominee/need_breakdown).
+
+**Fidelity delta:** All licensed UK energy suppliers must maintain a Priority Services Register (PSR) of customers with specialist needs. The PSR is distinct from the financial vulnerability register: it tracks service ACCESS needs (alternative bill formats, advance notice, nominee billing). Annual review is mandatory. MEDICALLY_DEPENDENT customers are shared with DNOs for priority restoration in power outages. Previously only financial vulnerability was modelled (ServiceLog Phase 69). Phase 150 closes this: the company now maintains a full PSR with annual review tracking.
+
+**12 new tests (2,401 total).**
+
+---
 ### Phase 149 -- Annual Energy Statement (AES) (2026-06-26)
 **Files:** `company/billing/annual_statement.py` (new), `tests/company/billing/test_annual_statement.py` (new)
 
@@ -2147,16 +2160,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,389 tests (1,973 fast / ~10s; simulation integration ~8 min per run)
+- 2,401 tests (1,985 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 149, 2026-06-26):**
+**Latest full run (Phase 150, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 12 new tests: Annual Energy Statement (AES) — AnnualStatementBook generate/overdue; consumption_change_pct + estimated_saving_gbp; Ofgem SLC 31B compliance tracking.
+- 12 new tests: Priority Services Register (PSR) — PSRBook register/due_for_review/medically_dependent_customers; 10 PSRNeed types; distinct from financial vulnerability register.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

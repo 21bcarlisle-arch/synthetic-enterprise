@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T07:08:15Z
+Last updated: 2026-06-26T07:10:20Z
+
+**Phase 150 COMPLETE (2026-06-26):** Priority Services Register (PSR) -- 12 new tests (2,401 total).
+- company/crm/priority_services.py: PSRNeed enum (10 types), PSREntry (needs/added_date/review_due_date/nominee), PSRBook (register/update_needs/due_for_review/medically_dependent_customers/portfolio_summary)
+- Annual 365-day review cycle; medically_dependent_customers() shared with DNOs for priority outage restoration
+- Fidelity: distinct from financial vulnerability register -- PSR tracks service ACCESS needs (alternative formats, nominee billing, advance notice); mandatory for all UK licensed suppliers
 
 **Phase 149 COMPLETE (2026-06-26):** Annual Energy Statement (AES) -- 12 new tests (2,389 total).
 - company/billing/annual_statement.py: AnnualStatement (frozen dataclass: consumption/cost/unit_rate/sc/prev_year/change_pct/market_avg/saving), AnnualStatementBook
@@ -496,9 +501,9 @@ Last updated: 2026-06-26T07:08:15Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,389 total (all tests passing)**
+**Test suite: 2,401 total (all tests passing)**
 
-**Latest simulation results (2016–2025)** — auto-processed (480s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (475s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
