@@ -18,6 +18,7 @@ from fastapi.templating import Jinja2Templates
 import json
 
 from company.billing.invoice import invoices_for_account
+from company.market.price_feed import PriceFeed
 from company.billing.consumption import consumption_history, monthly_totals
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
@@ -30,6 +31,7 @@ templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 
 _DEFAULT_DB = Path("company/data/invoices.db")
 _RUN_OUTPUT = Path("docs/reports/run_output_latest.json")
+_PRICE_FEED_PATH = Path("docs/market_data/price_feed.json")
 
 
 def _load_trading_data() -> dict:
@@ -55,6 +57,25 @@ def _load_trading_data() -> dict:
         "total_value_add": round(he_total.get("hedging_value_add_gbp", 0.0), 2),
         "best": he_total.get("best_decision"),
         "worst": he_total.get("worst_decision"),
+    }
+
+
+def _load_spot_prices() -> dict:
+    """Return latest spot prices from the M3 price feed."""
+    feed = PriceFeed(_PRICE_FEED_PATH)
+    if not feed.is_available():
+        return {}
+    elec = feed.get_latest_spot("electricity")
+    gas = feed.get_latest_spot("gas")
+    elec_fwd = feed.get_forward_price_estimate("electricity")
+    gas_fwd = feed.get_forward_price_estimate("gas")
+    return {
+        "elec_spot": round(elec, 2) if elec else None,
+        "gas_spot": round(gas, 2) if gas else None,
+        "elec_forward": round(elec_fwd, 2) if elec_fwd else None,
+        "gas_forward": round(gas_fwd, 2) if gas_fwd else None,
+        "stale": feed.is_stale(),
+        "available": True,
     }
 
 
@@ -130,7 +151,7 @@ async def trading_desk(request: Request):
     data = _load_trading_data()
     return templates.TemplateResponse(
         request, "trading.html",
-        {"data": data},
+        {"data": data, "spot": _load_spot_prices()},
     )
 
 

@@ -13,6 +13,19 @@
 <body>
   <nav><a href="/">Logout</a></nav>
   <h1>Trading Desk</h1>
+  {% if spot and spot.available %}
+  <h2>Market Data Feed (M3)</h2>
+  <table>
+    <tr><th>Instrument</th><th>Spot (£/MWh)</th><th>Forward Est. (£/MWh)</th></tr>
+    <tr><td>Electricity</td>
+        <td>{% if spot.elec_spot %}{{ "%.2f"|format(spot.elec_spot) }}{% else %}—{% endif %}</td>
+        <td>{% if spot.elec_forward %}{{ "%.2f"|format(spot.elec_forward) }}{% else %}—{% endif %}</td></tr>
+    <tr><td>Gas</td>
+        <td>{% if spot.gas_spot %}{{ "%.2f"|format(spot.gas_spot) }}{% else %}—{% endif %}</td>
+        <td>{% if spot.gas_forward %}{{ "%.2f"|format(spot.gas_forward) }}{% else %}—{% endif %}</td></tr>
+  </table>
+  {% if spot.stale %}<p style="color:#c53030;font-size:0.85em;">&#9888; Feed may be stale (>24h)</p>{% endif %}
+  {% endif %}
   {% if data %}
   <h2>Hedge Portfolio Summary</h2>
   <table>

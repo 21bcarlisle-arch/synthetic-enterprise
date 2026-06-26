@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T01:56:57Z
+Last updated: 2026-06-26T02:02:43Z
+
+**Phase 81 COMPLETE (2026-06-26):** Trading desk: live spot prices from M3 feed -- 8 new tests (1,683 total).
+- `company/portal/app.py`: _load_spot_prices() reads PriceFeed → elec/gas spot + forward estimates
+- `trading.html`: Market Data Feed section (spot, forward, stale warning); graceful if feed absent
+- M3 end-to-end: SIM writes feed → company reads → trading desk displays £100.58/MWh elec spot
 
 **Phase 80 COMPLETE (2026-06-26):** M3 price feed live: publish on every sim run -- 11 new tests (1,675 total).
 - `simulation/publish_market_feed.py` (new): build_feed_prices() reads last 48 SSP HH + 10 NBP daily prices
@@ -152,7 +157,7 @@ Last updated: 2026-06-26T01:56:57Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,675 total (all tests passing)**
+**Test suite: 1,683 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
