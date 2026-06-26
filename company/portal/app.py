@@ -24,7 +24,7 @@ from company.billing.consumption import consumption_history, monthly_totals
 from company.billing.hh_consumption import get_hh_consumption, recent_hh_periods, is_feed_available
 from company.billing.eac_calibration import calibrate_eac, eac_drift
 from company.billing.direct_debit import set_mandate, get_mandate, cancel_mandate, is_dd_customer
-from company.billing.contract import renewal_summary
+from company.billing.contract import renewal_summary, contract_end_date, days_until_renewal
 from company.billing.collections import get_collections_queue
 from company.billing.consumption_forecast import forecast_annual_cost
 from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH
@@ -538,4 +538,25 @@ async def admin_collections(request: Request):
     return templates.TemplateResponse(
         request, "admin_collections.html",
         {"queue": queue},
+    )
+
+@app.get("/admin/renewals", response_class=HTMLResponse)
+async def admin_renewals(request: Request):
+    from datetime import date
+    horizon = 90  # days ahead
+    upcoming = []
+    for customer in list(_CUSTOMER_INDEX.values()):
+        days = days_until_renewal(customer)
+        if days is not None and days <= horizon:
+            upcoming.append({
+                "account_id": customer["customer_id"],
+                "segment": customer.get("segment", ""),
+                "contract_type": customer.get("contract_type", ""),
+                "end_date": contract_end_date(customer).isoformat(),
+                "days_remaining": days,
+            })
+    upcoming.sort(key=lambda x: x["days_remaining"])
+    return templates.TemplateResponse(
+        request, "admin_renewals.html",
+        {"upcoming": upcoming, "horizon": horizon},
     )

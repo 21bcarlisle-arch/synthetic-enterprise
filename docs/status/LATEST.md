@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T03:03:40Z
+Last updated: 2026-06-26T03:05:01Z
+
+**Phase 98 COMPLETE (2026-06-26):** Admin upcoming renewals -- 8 new tests (1,872 total).
+- GET /admin/renewals: contracts ending in next 90 days, sorted by urgency
+- Colour-coded: ≤14d red (urgent), ≤30d amber (notice window), ≤90d green
+- admin_renewals.html; account links; "no renewals" empty state
 
 **Phase 97 COMPLETE (2026-06-26):** Annual cost forecast -- 8 new tests (1,864 total).
 - company/billing/consumption_forecast.py: forecast_annual_cost() = EAC × rate + 365 × SC; quarterly split by UK heating profile
@@ -243,7 +248,7 @@ Last updated: 2026-06-26T03:03:40Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,864 total (all tests passing)**
+**Test suite: 1,872 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

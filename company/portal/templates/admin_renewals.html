@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upcoming Renewals</title>
+  <style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 16px}
+    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
+    th{background:#ebf8ff}
+    .urgent{color:#c53030;font-weight:600}.soon{color:#c05621}.upcoming{color:#276749}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a> | <a href="/admin">Admin</a></nav>
+  <h1>Upcoming Renewals (next {{ horizon }} days)</h1>
+  {% if upcoming %}
+  <table>
+    <tr><th>Customer</th><th>Segment</th><th>Contract type</th><th>End date</th><th>Days remaining</th></tr>
+    {% for c in upcoming %}
+    <tr>
+      <td><a href="/account/{{ c.account_id }}">{{ c.account_id }}</a></td>
+      <td>{{ c.segment }}</td>
+      <td>{{ c.contract_type }}</td>
+      <td>{{ c.end_date }}</td>
+      <td class="{{ "urgent" if c.days_remaining <= 14 else "soon" if c.days_remaining <= 30 else "upcoming" }}">
+        {{ c.days_remaining }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p><em>No contracts renewing in the next {{ horizon }} days.</em></p>
+  {% endif %}
+</body>
+</html>
