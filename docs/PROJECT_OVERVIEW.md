@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 250 -- Supplier Financial Resilience (SFR) book (2026-06-26)
+**Files:** `company/regulatory/sfr_book.py` (new), `tests/company/regulatory/test_sfr_book.py` (new)
+
+**What was built:**
+- SFRStatus: PASS / WATCH / BREACH / INVESTIGATION.
+- SFRMetric: LIQUIDITY / CREDIT_BALANCE_COVER / HEDGE_RATIO / QUARTERLY_RETURN_FILED.
+- SFRAssessment frozen: quarter_end, liquidity_days, credit_balance_cover_pct, hedge_ratio_pct, return_filed; liquidity_status/hedge_status/credit_cover_status (GREEN/AMBER/RED), overall_status, breach_metrics.
+- SFRBook mutable: record_assessment(), file_return(), latest_assessment(), breach_quarters(), sfr_summary().
+
+**Fidelity delta:** Ofgem's March 2023 SFR Decision Document imposed mandatory liquidity requirements (30-day minimum) and credit balance ringfencing after 29 suppliers failed in 2021-22. Pre-crisis suppliers legally held customer credit balances as working capital, then couldn't return them when the wholesale cost surge hit. The Minimum Liquidity Requirement directly models the lesson: a supplier at 22 days liquidity (BREACH) vs 38 days (WATCH) vs 55 days (PASS) has meaningfully different regulatory standing. breach_quarters() would reveal a supplier running below the MLR — exactly the early-warning signal Ofgem now requires before a licence review. Connects to WorkingCapitalMonitor (Ph225) and CreditFacility (Ph198).
+
+**11 new tests (3,310 total).**
+
+---
+
+
+---
 ### Phase 249 -- Intraday electricity trading book (2026-06-26)
 **Files:** `company/market/intraday_book.py` (new), `tests/company/market/test_intraday_book.py` (new)
 
@@ -3604,14 +3621,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,299 tests (2,882 fast / ~10s; simulation integration ~8 min per run)
+- 3,310 tests (2,893 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 249, 2026-06-26):**
+**Latest full run (Phase 250, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
