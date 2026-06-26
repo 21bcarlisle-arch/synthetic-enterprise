@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 230 -- Integrated board KPI dashboard (2026-06-26)
+**Files:** `company/finance/board_dashboard.py` (new), `tests/company/finance/test_board_dashboard.py` (new)
+
+**What was built:**
+- KPIStatus: GREEN / AMBER (≤10% miss) / RED (>10% miss) / NOT_SET.
+- KPIMetric frozen: name, value, target, unit, lower_is_better; vs_target_pct, status, is_on_target.
+- BoardDashboard: period, customer_count, net_margin/gross_margin/treasury/enterprise_value, churn_rate, complaints_per_100, bad_debt_ratio, cash_runway_weeks, hedge_ratio; kpis(targets) → list of 10 KPIMetric; rag_summary(targets) → {green/amber/red/overall/at_risk_metrics}.
+- 10 KPIs: Customer Count / Net Margin / Gross Margin / Treasury / Enterprise Value / Churn Rate / Complaints/100 / Bad Debt Ratio / Cash Runway / Hedge Ratio.
+
+**Fidelity delta:** UK energy supplier board packs contain exactly these 10 metrics, colour-coded RAG. The board decides whether to raise a credit facility drawdown (Ph198) if treasury goes amber. They trigger risk_appetite review (company/risk/) if hedge_ratio goes RED. complaints/100 > 3 triggers an emergency customer service review. The RAG summary's at_risk_metrics is what the CEO focuses on first: if it's empty, the session is brief; if it has 3+ entries in 2022, they discuss whether to apply for administration. Connects all company-layer modules into a single synthesised view.
+
+**8 new tests (3,121 total).**
+
+---
 ### Phase 229 -- Customer switching gain/loss report (2026-06-26)
 **Files:** `company/crm/switching_report.py` (new), `tests/company/crm/test_switching_report.py` (new)
 
@@ -3299,7 +3313,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,113 tests (2,696 fast / ~10s; simulation integration ~8 min per run)
+- 3,121 tests (2,704 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
