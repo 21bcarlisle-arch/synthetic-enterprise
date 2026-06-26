@@ -31,6 +31,7 @@ from company.regulatory.compliance import (
     smart_meter_target,
     smart_meter_compliance_status,
     annual_turnover_fee,
+    generate_css_filing,
 )
 from saas.capital.solvency import compute_solvency_signal, MCR_FLOOR_GBP_PER_CUSTOMER
 
@@ -126,6 +127,9 @@ def _load_regulatory_data() -> dict:
     mcr_headroom = treasury - mcr_req
     turnover_fee = annual_turnover_fee(total_revenue)
 
+    from datetime import datetime as _dt
+    css_year = _dt.now().year
+    css = generate_css_filing(_SERVICE_LOG.as_dicts(), css_year)
     return {
         "resi_penetration_pct": round(resi_pen * 100, 1),
         "resi_sm_count": len(resi_with_sm),
@@ -142,6 +146,7 @@ def _load_regulatory_data() -> dict:
         "total_revenue_gbp": round(total_revenue, 2),
         "annual_turnover_fee_gbp": round(turnover_fee, 2),
         "year": latest_year,
+        "css": css,
     }
 
 app = FastAPI(title="Customer Portal", docs_url=None, redoc_url=None)

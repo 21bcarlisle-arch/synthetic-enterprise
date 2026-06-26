@@ -49,5 +49,17 @@
     <tr><td>Ofgem annual turnover fee</td>
         <td>£{{ "%.0f"|format(reg.annual_turnover_fee_gbp) }}</td></tr>
   </table>
+
+  <h2>Customer Service Standards (CSS Annual Filing)</h2>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Total contacts ({{ reg.year }})</td><td>{{ reg.css.total_contacts }}</td></tr>
+    <tr><td>Complaints</td><td>{{ reg.css.total_complaints }}</td></tr>
+    <tr><td>Resolved complaints</td><td>{{ reg.css.complaints_resolved }}</td></tr>
+    <tr><td>Resolution rate</td><td>{{ "%.1f"|format(reg.css.complaint_resolution_rate * 100) }}%</td></tr>
+    <tr><td>Resolution target met (80%+)</td>
+        <td style="font-weight:bold">{{ "Yes" if reg.css.resolution_target_met else "No" }}</td></tr>
+    <tr><td>Vulnerable customers contacted</td><td>{{ reg.css.vulnerable_customers_contacted }}</td></tr>
+  </table>
 </body>
 </html>
