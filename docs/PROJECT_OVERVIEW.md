@@ -527,6 +527,19 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 181 -- Company-level P&L income statement (2026-06-26)
+**Files:** `company/finance/company_pl.py` (new), `tests/company/finance/test_company_pl.py` (new)
+
+**What was built:**
+- CompanyPL frozen dataclass: 10 input fields (revenue, wholesale_cost, policy_cost, network_cost, operating_cost, marketing_cost, bad_debt, whd_rebates, gsop_payments).
+- Computed properties: gross_margin_gbp (revenue - wholesale - policy - network), total_operating_cost_gbp (opex + marketing + bad_debt + WHD + GSOP), ebitda_gbp (gross - total_opex), gross_margin_pct, ebitda_margin_pct, bad_debt_as_pct_revenue, is_profitable, summary() dict.
+- build_company_pl(): factory with most fields optional (defaults to 0).
+
+**Fidelity delta:** This is the CFO's income statement. WHD rebates (£150 per eligible customer, Phase 167) and GSOP payments (Phase 147) are mandatory regulatory costs that flow directly into the company P&L. Bad debt write-offs (Phase 174/170) are also expensed here. A UK supplier with 30% bad debt (2022 crisis context) and high WHD obligation can be EBITDA-negative even on healthy gross margins. Ties together: billing revenue, wholesale hedge PnL (Ph179), marketing spend (Ph180), regulatory costs.
+
+**9 new tests (2,720 total).**
+
+---
 ### Phase 180 -- Sales and marketing budget tracker (2026-06-26)
 **Files:** `company/crm/marketing_budget.py` (new), `tests/company/crm/test_marketing_budget.py` (new)
 
@@ -2591,7 +2604,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,711 tests (2,295 fast / ~10s; simulation integration ~8 min per run)
+- 2,720 tests (2,304 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
