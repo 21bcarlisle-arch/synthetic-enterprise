@@ -527,6 +527,24 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 204 -- Switching cooling-off and objection management (2026-06-26)
+**Files:** `company/market/switch_governance.py` (new), `tests/company/market/test_switch_governance.py` (new)
+
+**What was built:**
+- Constants: COOLING_OFF_DAYS=14 (Consumer Contracts Regs 2013), OBJECTION_WINDOW_DAYS=15 (BSC).
+- ObjectionReason enum: DEBT / CONTRACT_IN_TERM / CUSTOMER_REQUEST / IDENTITY_MISMATCH.
+- ObjectionOutcome enum: UPHELD / REJECTED / WITHDRAWN.
+- ErroneousTransferStatus enum: REPORTED / UNDER_INVESTIGATION / CUSTOMER_RETURNED / CLOSED_NO_ACTION.
+- CoolingOffCancellation frozen: days_after_sale, within_cooling_off.
+- SwitchObjection mutable: within_objection_window (<=15 days of switch request), is_resolved.
+- ErroneousTransfer mutable: days_to_report, is_resolved.
+- SwitchGovernanceBook: record_cancellation(), raise_objection(), resolve_objection(), report_et(), resolve_et(), cancellations_in_cooling_off(), open_objections(), open_ets(), annual_summary(year).
+
+**Fidelity delta:** Ofgem monitors supplier performance on: cooling-off rate (>5% suggests mis-selling), erroneous transfer rate (<0.1% of switches), objection uphold rate (debt objections 80% upheld; contract-in-term varies). A losing supplier can raise a debt objection within 15 days to block the switch; the gaining supplier must respond. High ET rates trigger mandatory Ofgem remedial action and customer compensation. This closes the switching governance gap between switch_analytics (Ph186) and MPAN register (Ph185).
+
+**7 new tests (2,906 total).**
+
+---
 ### Phase 203 -- Outbound contact campaign tracker (2026-06-26)
 **Files:** `company/crm/campaign_tracker.py` (new), `tests/company/crm/test_campaign_tracker.py` (new)
 
@@ -2916,7 +2934,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,899 tests (2,483 fast / ~10s; simulation integration ~8 min per run)
+- 2,906 tests (2,490 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
