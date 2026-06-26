@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 220 -- Smart meter HH consumption analytics (2026-06-26)
+**Files:** `company/billing/smart_meter_analytics.py` (new), `tests/company/billing/test_smart_meter_analytics.py` (new)
+
+**What was built:**
+- PERIODS_PER_DAY = 48 / PERIOD_MINUTES = 30 (Ofgem standard HH settlement).
+- HHReading frozen: customer_id, read_datetime, kwh; settlement_period (1-48), is_evening_peak (SP 33-40 = 16:00-20:00), is_morning_peak (SP 15-18 = 07:00-09:00).
+- build_consumption_profile(): aggregates readings into ConsumptionProfile (total_kwh, peak_kwh, off_peak_kwh, avg_daily_kwh, max_demand_kw = peak_kWh × 2, load_factor_pct = avg_kw/max_kw, peak_share_pct, days_covered).
+- SmartMeterAnalytics: ingest(customer_id, datetime, kwh), profile(customer_id), customers_with_data(), evening_peak_customers(threshold_pct=35%), high_demand_customers(threshold_kw).
+
+**Fidelity delta:** HH metered customers (I&C and smart meter resi) submit Actual Metered Data (AMD) in 48 half-hourly periods per Elexon BSC. evening_peak_customers() identifies ToU candidates for peak-shifting incentive (Ph52 demand response). max_demand_kw is used for TNUoS Triad demand assessment (winter peaks 16-19:00 on weekdays Nov-Feb). load_factor is a credit quality signal: low load_factor (< 30%) with high max_demand = large, sporadic consumer — higher credit risk. ConsumptionProfile integrates with billing engine for accurate HH bill calculation vs profile-class estimation.
+
+**9 new tests (3,035 total).**
+
+---
 ### Phase 219 -- Energy efficiency obligation tracker (2026-06-26)
 **Files:** `company/regulatory/ee_obligation_tracker.py` (new), `tests/company/regulatory/test_ee_obligation_tracker.py` (new)
 
@@ -3150,7 +3164,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,026 tests (2,609 fast / ~10s; simulation integration ~8 min per run)
+- 3,035 tests (2,618 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
