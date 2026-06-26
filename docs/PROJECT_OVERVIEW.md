@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,089 tests (1,661 non-simulation, 428 simulation). Codebase: ~30,300 lines across 234+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,099 tests (1,671 non-simulation, 428 simulation). Codebase: ~30,500 lines across 235+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 121 -- Capacity Market obligation management (2026-06-26)
+**Files:** `company/regulatory/capacity_market.py` (new), `tests/company/regulatory/test_capacity_market.py` (new)
+
+**What was built:**
+- `_CM_OBLIGATION_RATE_BY_YEAR` 2016-2025: NESO auction clearing prices (£0.77/kW in 2021 Covid year → £75/kW in 2022 crisis).
+- `compute_cm_obligation(year, total_demand_mwh, firm_capacity_kw)`: derives obligation_kw from peak demand estimate (1.8x average x 0.92 de-rating), annual charge, DELIVERED/PARTIAL/FAILED delivery status, and penalty.
+- `cm_charge_per_mwh(year, demand)`: pass-through cost per MWh.
+
+**Fidelity delta:** The Capacity Market charge is a material and volatile cost for UK suppliers (visible in the 100x swing 2021→2022). Suppliers who failed to manage CM obligations during the crisis incurred significant penalties on top of their wholesale losses.
+
+**10 new tests (2,099 total).**
+
+---
 ### Phase 120 -- Wholesale risk limits + position governor (2026-06-26)
 **Files:** `company/trading/risk_limits.py` (new), `tests/company/trading/test_risk_limits.py` (new)
 
@@ -1772,14 +1785,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,089 tests (1,661 fast / ~10s; simulation integration ~8 min per run)
+- 2,099 tests (1,671 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 120, 2026-06-26):**
+**Latest full run (Phase 121, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
