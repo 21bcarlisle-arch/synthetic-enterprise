@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 2,099 tests (1,671 non-simulation, 428 simulation). Codebase: ~30,500 lines across 235+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 2,109 tests (1,681 non-simulation, 428 simulation). Codebase: ~30,700 lines across 236+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,19 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 122 -- Network Use of System (UoS) charges (2026-06-26)
+**Files:** `company/market/network_charges.py` (new), `tests/company/market/test_network_charges.py` (new)
+
+**What was built:**
+- `_DUOS_PENCE_PER_KWH` 2016-2025: DUoS rates by segment (resi 2.1→3.5, SME 2.8→4.5, I&C 1.4→2.3 p/kWh). I&C lower due to direct connection; SME highest per kWh.
+- `_TNUOS_PENCE_PER_KWH` 2016-2025: TNUoS residual charge (0.45→0.70 p/kWh).
+- `get_duos_rate()`, `get_tnuos_rate()`, `network_cost_per_mwh()` (combined GBP/MWh), `annual_network_cost(year, segment, consumption_mwh)`.
+
+**Fidelity delta:** DUoS/TNUoS are typically the largest non-commodity cost for UK suppliers after wholesale energy. Correct segment differentiation (I&C < resi < SME per kWh) is essential for accurate margin analysis and customer-level profitability.
+
+**10 new tests (2,109 total).**
+
+---
 ### Phase 121 -- Capacity Market obligation management (2026-06-26)
 **Files:** `company/regulatory/capacity_market.py` (new), `tests/company/regulatory/test_capacity_market.py` (new)
 
@@ -1785,14 +1798,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,099 tests (1,671 fast / ~10s; simulation integration ~8 min per run)
+- 2,109 tests (1,681 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 121, 2026-06-26):**
+**Latest full run (Phase 122, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 
