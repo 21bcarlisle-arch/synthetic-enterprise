@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 194 -- Customer renewals analytics book (2026-06-26)
+**Files:** `company/crm/renewals_book.py` (new), `tests/company/crm/test_renewals_book.py` (new)
+
+**What was built:**
+- RenewalOutcome enum: RENEWED / LAPSED / SWITCHED_AWAY / MOVED_OUT / DECEASED.
+- OfferType enum: SAME_TARIFF / BETTER_TARIFF / PRICE_MATCH / LOYALTY_DISCOUNT / AUTO_ROLLOVER.
+- RenewalRecord frozen dataclass: customer_id, segment, term_end_date, outcome, offer_type, offered_rate_ppm, new_term_months, days_notice_given, was_outbound_contact; accepted property.
+- RenewalsBook: add(), renewal_rate(year, segment) [MOVED_OUT/DECEASED excluded from denominator], lapse_rate(), outbound_lift() [uplift in renewal rate from outbound contact], by_offer_type(year) [renewal rate per offer type], annual_summary(year).
+
+**Fidelity delta:** UK supplier renewal rates are the #1 commercial metric. Typical renewal rate: 60-70% on fixed-term. Outbound contact lift is typically 8-15 percentage points — a customer who picks up the phone has 75% chance of renewal vs 65% without contact. LOYALTY_DISCOUNT offer type gets the highest renewal rate (85%+) but worst margin. 2022: many customers lapsed onto SVT (cheaper short-term) or switched away entirely as fixed rates rose above cap.
+
+**8 new tests (2,830 total).**
+
+---
 ### Phase 193 -- Demand-Side Response (DSR) programme book (2026-06-26)
 **Files:** `company/market/dsr_book.py` (new), `tests/company/market/test_dsr_book.py` (new)
 
@@ -2771,7 +2785,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,822 tests (2,406 fast / ~10s; simulation integration ~8 min per run)
+- 2,830 tests (2,414 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
