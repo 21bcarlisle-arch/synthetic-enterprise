@@ -1,6 +1,6 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-26T21:26:54Z
+Last updated: 2026-06-26T21:32:10Z
 
 ## Current state
 
@@ -41,3 +41,9 @@ Last updated: 2026-06-26T21:26:54Z
 | 280 | Energy Bill Support Scheme | +11 |
 | 279 | Decarbonisation Score | +13 |
 | 278 | Dashboard Monthly Ops tab | +11 |
+
+**Latest simulation results (2016–2025)** — auto-processed (475s / 8 min):
+- Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
+- Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
+- Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
+- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
