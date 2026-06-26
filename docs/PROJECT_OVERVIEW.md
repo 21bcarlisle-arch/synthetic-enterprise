@@ -527,6 +527,23 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 249 -- Intraday electricity trading book (2026-06-26)
+**Files:** `company/market/intraday_book.py` (new), `tests/company/market/test_intraday_book.py` (new)
+
+**What was built:**
+- TradeDirection: BUY / SELL.
+- TradeReason: POSITION_BALANCING / DEMAND_FORECAST_REVISION / GENERATION_SHORTFALL / EMERGENCY_COVER / OPTIMISATION.
+- IntradayTrade frozen: trade_id, settlement_date, settlement_period (1-48), direction, volume_mw, price_gbp_per_mwh, traded_at, reason; volume_mwh (×0.5 hours), trade_value_gbp (buy=cost, sell=revenue), is_crisis_price (>£500/MWh).
+- IntradayBook mutable: record_trade() (validates period 1-48), trades_for_date(), net_position_mwh() (by date or period), daily_pnl_gbp(), crisis_trades(), average_buy_price(), intraday_summary().
+
+**Fidelity delta:** After forward hedging, suppliers must balance their position in real-time on the N2EX intraday platform before gate closure (1h before each 30-min settlement period). A supplier with a 50 MW portfolio might execute 50-100 intraday trades per day. Poor intraday management creates residual imbalance that goes to Elexon cashout at punitive prices (£2,000+/MWh in the 2022 crisis). daily_pnl_gbp() measures the spread capture (sell minus buy) — positive means the trader is profiting from balancing activity, negative means they're paying a premium to cover. Connects to ImbalanceAnalytics (Ph233) for any residual position that survives to cashout.
+
+**12 new tests (3,299 total).**
+
+---
+
+
+---
 ### Phase 248 -- CfD (Contracts for Difference) levy book (2026-06-26)
 **Files:** `company/market/cfd_levy.py` (new), `tests/company/market/test_cfd_levy.py` (new)
 
@@ -3587,14 +3604,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,287 tests (2,870 fast / ~10s; simulation integration ~8 min per run)
+- 3,299 tests (2,882 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 248, 2026-06-26):**
+**Latest full run (Phase 249, 2026-06-26):**
 - Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
 - 12 new tests: Meter read dispute management — MeterDisputeBook open/update/resolve; disputed_kwh; annual_summary with credit tracking.
 
