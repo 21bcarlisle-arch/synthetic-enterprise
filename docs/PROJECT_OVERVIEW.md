@@ -527,6 +527,18 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 189 -- Contact centre performance metrics (2026-06-26)
+**Files:** `company/crm/contact_centre_metrics.py` (new), `tests/company/crm/test_contact_centre_metrics.py` (new)
+
+**What was built:**
+- AgentPerformancePeriod frozen dataclass: agent_id, period dates, calls_handled, total_handle_time_seconds, first_contact_resolutions, escalations, complaints_raised, avg_csat; computed: avg_handle_time_seconds, first_contact_resolution_rate, escalation_rate, complaint_rate (all None if zero calls).
+- ContactCentreMetrics frozen dataclass: period dates, total_calls, answered_within_sla_seconds, abandoned_calls, total_handle_time_seconds, agents_on_duty; computed: abandonment_rate (abandoned/offered), sla_answer_rate, avg_handle_time_seconds, calls_per_agent, summary().
+
+**Fidelity delta:** Ofgem monitors contact centre performance through SLC metrics. The 2022 crisis saw UK suppliers' average abandonment rates hit 25-30% (vs Ofgem target of <8%) and SLA answer rates (answering within 60 seconds) drop to 40% nationally. This directly caused complaint volumes to spike. Complements conversation_log.py (Ph171) with aggregate operational metrics that the COO reviews weekly.
+
+**9 new tests (2,790 total).**
+
+---
 ### Phase 188 -- Supplier of Last Resort (SoLR) intake (2026-06-26)
 **Files:** `company/crm/solr_intake.py` (new), `tests/company/crm/test_solr_intake.py` (new)
 
@@ -2702,7 +2714,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,781 tests (2,365 fast / ~10s; simulation integration ~8 min per run)
+- 2,790 tests (2,374 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
