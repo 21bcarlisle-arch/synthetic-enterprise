@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T02:41:43Z
+Last updated: 2026-06-26T02:43:42Z
+
+**Phase 90 COMPLETE (2026-06-26):** Contact Us portal form -- 11 new tests (1,795 total).
+- GET/POST /account/{id}/contact: reason dropdown, notes textarea, formal complaint checkbox
+- ServiceEvent recorded in persistent _SERVICE_LOG on submit; complaint_flag set if formal complaint
+- contact.html (new); dashboard Contact Us link; closes the portal→CRM data flow
 
 **Phase 89 COMPLETE (2026-06-26):** ServiceLog SQLite persistence -- 8 new tests (1,784 total).
 - ServiceLog() rewritten: in-memory SQLite (:memory:) by default; ServiceLog(db_path=...) for file persistence
@@ -202,7 +207,7 @@ Last updated: 2026-06-26T02:41:43Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 1,784 total (all tests passing)**
+**Test suite: 1,795 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (469s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

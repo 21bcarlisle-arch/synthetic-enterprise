@@ -24,6 +24,7 @@ from company.billing.consumption import consumption_history, monthly_totals
 from company.billing.hh_consumption import get_hh_consumption, recent_hh_periods, is_feed_available
 from company.billing.eac_calibration import calibrate_eac, eac_drift
 from company.billing.direct_debit import set_mandate, get_mandate, cancel_mandate, is_dd_customer
+from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH
 from company.pricing.tariff_comparison import compare_tariffs
 from company.interfaces.sim_interface import LiveSimInterface
 from company.regulatory.compliance import (
@@ -41,6 +42,7 @@ templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 
 _DEFAULT_DB = Path("company/data/invoices.db")
 _DD_DB = Path("company/data/direct_debit.db")
+_SERVICE_LOG = ServiceLog(db_path=_SL_DB_PATH)
 _RUN_OUTPUT = Path("docs/reports/run_output_latest.json")
 _PRICE_FEED_PATH = Path("docs/market_data/price_feed.json")
 _CONSUMPTION_FEED_PATH = Path("docs/market_data/consumption_feed.json")
@@ -445,4 +447,43 @@ async def cancel_direct_debit(request: Request, account_id: str):
     return templates.TemplateResponse(
         request, "direct_debit.html",
         {"customer": customer, "mandate": None, "cancelled": True},
+    )
+
+@app.get("/account/{account_id}/contact", response_class=HTMLResponse)
+async def contact_page(request: Request, account_id: str):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    return templates.TemplateResponse(
+        request, "contact.html",
+        {"customer": customer},
+    )
+
+
+@app.post("/account/{account_id}/contact", response_class=HTMLResponse)
+async def submit_contact(
+    request: Request,
+    account_id: str,
+    contact_reason: str = Form(...),
+    notes: str = Form(""),
+    complaint: str = Form(""),
+):
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+    from datetime import date
+    event = ServiceEvent(
+        customer_id=account_id,
+        event_date=date.today().isoformat(),
+        channel="portal",
+        contact_reason=contact_reason,
+        outcome="pending",
+        agent_type="ai",
+        complaint_flag=(complaint == "yes"),
+        notes=notes.strip(),
+    )
+    _SERVICE_LOG.record_contact(event)
+    return templates.TemplateResponse(
+        request, "contact.html",
+        {"customer": customer, "submitted": True, "complaint": complaint == "yes"},
     )

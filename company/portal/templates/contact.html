@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Contact Us — {{ customer.customer_id }}</title>
+  <style>body{font-family:sans-serif;max-width:700px;margin:40px auto;padding:0 16px}
+    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+    .success{background:#f0fff4;border:1px solid #276749;padding:12px;border-radius:4px;margin:16px 0}
+    .complaint-note{background:#fffbeb;border:1px solid #c05621;padding:10px;border-radius:4px;margin:12px 0;font-size:0.9em}
+    form label{display:block;margin-top:12px;font-weight:600;font-size:0.9em}
+    form select, form textarea, form input{width:100%;padding:7px;border:1px solid #cbd5e0;border-radius:4px;font-size:0.9em;box-sizing:border-box}
+    textarea{min-height:80px;resize:vertical}
+    .btn{margin-top:14px;padding:8px 18px;background:#2b6cb0;color:#fff;border:none;border-radius:4px;cursor:pointer}
+  </style>
+</head>
+<body>
+  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a></nav>
+  <h1>Contact Us</h1>
+  <p><strong>Account:</strong> {{ customer.customer_id }}</p>
+
+  {% if submitted %}
+  <div class="success">
+    &#10003; Your message has been received. We aim to respond within 2 working days.
+    We aim to respond within 2 working days.
+    {% if complaint %}
+    <p>Your complaint has been logged. You will receive a written response within 8 weeks (Ofgem requirement).</p>
+    {% endif %}
+  </div>
+  {% else %}
+  <form method="post" action="/account/{{ customer.customer_id }}/contact">
+    <label>Reason for contact</label>
+    <select name="contact_reason" required>
+      <option value="">-- Select --</option>
+      <option value="billing_query">Billing query</option>
+      <option value="payment">Payment</option>
+      <option value="smart_meter">Smart meter</option>
+      <option value="switch_query">Tariff / switch query</option>
+      <option value="complaint">Complaint</option>
+      <option value="general">General enquiry</option>
+    </select>
+    <label>Message</label>
+    <textarea name="notes" placeholder="Please describe your query..."></textarea>
+    <label>
+      <input type="checkbox" name="complaint" value="yes" style="width:auto;margin-right:6px">
+      I wish to register a formal complaint
+    </label>
+    <button type="submit" class="btn">Send message</button>
+  </form>
+  {% endif %}
+</body>
+</html>
