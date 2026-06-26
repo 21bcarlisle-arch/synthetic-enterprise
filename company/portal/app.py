@@ -31,6 +31,7 @@ from company.billing.collections import get_collections_queue
 from company.billing.consumption_forecast import forecast_annual_cost
 from company.billing.usage_benchmark import usage_benchmark
 from company.billing.carbon_footprint import estimate_carbon
+from company.billing.fuel_mix import fuel_mix_summary
 from company.crm.retention_risk import portfolio_risk_summary
 from company.market.rate_comparison import market_rate_comparison
 from company.crm.service_log import ServiceLog, ServiceEvent, DEFAULT_DB_PATH as _SL_DB_PATH
@@ -160,6 +161,7 @@ def _load_regulatory_data() -> dict:
         "css": css,
         "whd": whd,
         "ombudsman_count": _SERVICE_LOG.ombudsman_count(),
+        "fuel_mix": fuel_mix_summary(latest_year),
     }
 
 app = FastAPI(title="Customer Portal", docs_url=None, redoc_url=None)

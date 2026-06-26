@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-26. 400+ commits. 1,981 tests (1,553 non-simulation, 428 simulation). Codebase: ~28,500 lines across 225+ Python modules.*
+*Last updated: 2026-06-26. 400+ commits. 1,990 tests (1,562 non-simulation, 428 simulation). Codebase: ~28,650 lines across 226+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -525,6 +525,18 @@ Net after CTS:               £7,498
 
 ---
 
+### Phase 111 -- Fuel mix disclosure (2026-06-26)
+**Files:** `company/billing/fuel_mix.py` (new), `company/portal/app.py` (extended), `company/portal/templates/regulatory.html` (extended), `tests/company/billing/test_fuel_mix.py` (new)
+
+**What was built:**
+- `fuel_mix.py`: `_FUEL_MIX_BY_YEAR` 2016-2025 (DESNZ Fuel Mix Disclosure); `get_fuel_mix(year)` per-source percentages; `fuel_mix_summary(year)` with derived fields (low_carbon_pct, fossil_pct, renewable_trend, trend_direction).
+- Regulatory dashboard: Fuel Mix Disclosure table with trend arrow.
+
+**Fidelity delta:** UK suppliers are legally required to publish annual fuel mix under Ofgem Standard Licence Conditions (SLC). Regulatory page now meets this disclosure requirement.
+
+**9 new tests (1,990 total).**
+
+---
 ### Phase 110 -- Carbon footprint tracking (2026-06-26)
 **Files:** `company/billing/carbon_footprint.py` (new), `company/portal/app.py` (extended), `company/portal/templates/consumption.html` (extended), `tests/company/billing/test_carbon_footprint.py` (new)
 
@@ -1643,14 +1655,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 1,981 tests (1,553 fast / ~10s; simulation integration ~8 min per run)
+- 1,990 tests (1,562 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 110, 2026-06-26):**
+**Latest full run (Phase 111, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
 - 17 new tests: Portal Phase 2 tariff comparison (3 tariff options sorted by cost, switch request flow).
 

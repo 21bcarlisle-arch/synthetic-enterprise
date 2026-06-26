@@ -82,5 +82,21 @@
   {% endif %}
   {% endif %}
 
+  {% if reg.fuel_mix %}
+  <h2>Fuel Mix Disclosure ({{ reg.fuel_mix.year }})</h2>
+  <p><em>UK average grid fuel mix — disclosed under Ofgem/BEIS licence conditions.</em></p>
+  <table>
+    <tr><th>Source</th><th>% of supply</th></tr>
+    <tr><td>Renewable (wind, solar, hydro, biomass)</td>
+        <td><strong>{{ reg.fuel_mix.renewable_pct }}%</strong>
+        {% if reg.fuel_mix.trend_direction == "up" %}<span style="color:#276749"> &#9650; +{{ reg.fuel_mix.renewable_trend }}% vs prior year</span>{% endif %}</td></tr>
+    <tr><td>Nuclear</td><td>{{ reg.fuel_mix.mix.nuclear }}%</td></tr>
+    <tr><td>Gas</td><td>{{ reg.fuel_mix.mix.gas }}%</td></tr>
+    <tr><td>Coal</td><td>{{ reg.fuel_mix.mix.coal }}%</td></tr>
+    <tr><td>Other</td><td>{{ reg.fuel_mix.mix.other }}%</td></tr>
+    <tr style="font-weight:600"><td>Low carbon (renewable + nuclear)</td><td>{{ reg.fuel_mix.low_carbon_pct }}%</td></tr>
+  </table>
+  {% endif %}
+
 </body>
 </html>
