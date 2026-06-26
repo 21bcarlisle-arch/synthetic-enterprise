@@ -8,7 +8,12 @@ will fetch the live content directly — no copy/paste needed, always
 up to date with the latest push to `main`:
 https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md
 
-Last updated: 2026-06-26T07:00:09Z
+Last updated: 2026-06-26T07:03:39Z
+
+**Phase 147 COMPLETE (2026-06-26):** Guaranteed Standards of Performance (GSOPs) -- 12 new tests (2,365 total).
+- company/regulatory/gsop.py: GSOPType (5 types), GSOPPayment (trigger/due/paid/amount), GSOPBook (record_trigger/pay/overdue/total_liability/annual_report)
+- _add_working_days() for payment deadline calculation; 30-GBP per standard Ofgem GSOP regs
+- Fidelity: mandatory auto-payment obligation for UK suppliers; failure to auto-pay is itself an SLC 2.7 breach; annual_report() for Ofgem GSOP compliance filing
 
 **Phase 146 COMPLETE (2026-06-26):** Change of Tenancy (COT) management -- 13 new tests (2,353 total).
 - company/billing/cot.py: COTEvent (move_out/move_in), COTBook (record_move_out/move_in/void_days/overdue_for_nomination/portfolio_summary)
@@ -486,7 +491,7 @@ Last updated: 2026-06-26T07:00:09Z
 - `is_tou_eligible(customer)` in `saas/smart_meter_rollout.py`: True if HH-metered OR smart_meter=True
 - Acquired customers with smart meters (from Phase 50 rollout model) now get peak/off-peak pricing
 
-**Test suite: 2,353 total (all tests passing)**
+**Test suite: 2,365 total (all tests passing)**
 
 **Latest simulation results (2016–2025)** — auto-processed (480s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935

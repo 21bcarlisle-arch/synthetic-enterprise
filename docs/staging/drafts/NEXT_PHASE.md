@@ -1,38 +1,39 @@
-Phase 146 -- Change of Tenancy (COT) Management
+Phase 147 -- Guaranteed Standards of Performance (GSOPs)
 
 Status: PROPOSED (2026-06-26)
 
-UK suppliers handle tens of thousands of COT events per year. When a customer moves
-out of a property, the supplier must:
-1. Accept the move-out notification, take a final meter read, issue a final bill
-2. Hold the property as "void" (no named occupant) and bill "The Occupier" at deemed rates
-3. Accept a move-in from the new occupant, start a new deemed contract
-4. After 28 days void, switch to a named SVT contract (regulatory obligation)
+Ofgem's GSOP scheme requires UK licensed electricity and gas suppliers to make
+automatic payments to domestic customers when specific service standards are not met.
+These are statutory, not contractual. Failure to auto-pay is itself a breach.
 
-The current model has no mechanism for this. Customers just persist indefinitely on the
-same metering point. This is a significant fidelity gap: ~3% of UK electricity meter points
-change occupancy each year.
+Standards and payment amounts (2016-2025 approximate; updated by Ofgem periodically):
+- Missed appointment: £30 per occurrence
+- Reconnection after wrongful disconnection: £30 per day up to 10 days
+- Erroneous transfer (wrong MPAN switch): £30 compensation within 20 working days
+- Failure to issue final bill within 6 weeks of switch: £30
+- Failure to make refund within 10 working days: £30
 
-Design: company/billing/cot.py
+Annual reporting obligation: suppliers must file GSOP compliance returns to Ofgem.
+Non-automatic payments = additional Ofgem penalty (per SLC 2.7 etc.).
 
-COTType enum: MOVE_OUT / MOVE_IN / VOID
+Design: company/regulatory/gsop.py
 
-COTEvent(customer_id, mpan_or_mprn, cot_type, date, meter_read_kwh, new_occupant_id=None)
-- Move-out: triggers final read acknowledgement  
-- Move-in: opens a deemed contract at deemed_rate
-- Void: property with no named occupant
+GSOPType enum: MISSED_APPOINTMENT / ERRONEOUS_TRANSFER / WRONGFUL_DISCONNECT /
+               FINAL_BILL_DELAY / REFUND_DELAY
 
-COTBook:
-- record_move_out(customer_id, date, final_read_kwh) -> COTEvent
-- record_move_in(mpan, new_customer_id, date, opening_read_kwh) -> COTEvent
-- void_properties() -> list[str] MPANs/MPRNs with no current occupant
-- void_days(mpan, as_of_date) -> int days since last move-out
-- deemed_rate_gbp_per_kwh(date) -> SVT unit rate + 20% uplift (Ofgem cap-aware for domestic)
-- overdue_for_nomination(as_of_date) -> void properties >28 days (regulatory trigger)
-- portfolio_summary() -> total_voids, avg_void_days, total_deemed_revenue_gbp
+GSOPPayment(customer_id, gsop_type, trigger_date, payment_due_date, amount_gbp,
+            paid_date=None)
 
-2022 dynamic: spike in property voids as customers fell into arrears and abandoned properties.
-Deemed rate capped at Ofgem price cap for domestic properties.
+GSOPBook:
+- record_trigger(customer_id, gsop_type, trigger_date) -> GSOPPayment
+  (auto-calculates due_date and amount from type)
+- pay(payment_id, paid_date) -> marks as paid
+- overdue(as_of_date) -> list of unpaid payments past due
+- annual_report(year) -> payments by type, total liability, auto-pay rate pct
+- total_liability_gbp(year=None) -> sum of unpaid + all if no year
 
-~11 tests. Closes the metering-point lifecycle gap: property changes hands but company has
-no model for what happens between occupants.
+2022 dynamic: high switching activity -> more erroneous transfers and missed
+appointments as call centres overwhelmed; total GSOP liability rises.
+
+~11 tests. Adds a mandatory financial liability line and regulatory compliance
+obligation that every UK licensed supplier must track.

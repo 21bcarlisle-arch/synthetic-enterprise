@@ -527,6 +527,20 @@ Net after CTS:               £7,498
 
 
 ---
+### Phase 147 -- Guaranteed Standards of Performance (GSOPs) (2026-06-26)
+**Files:** `company/regulatory/gsop.py` (new), `tests/company/regulatory/test_gsop.py` (new)
+
+**What was built:**
+- `GSOPType` enum: MISSED_APPOINTMENT / ERRONEOUS_TRANSFER / WRONGFUL_DISCONNECT / FINAL_BILL_DELAY / REFUND_DELAY.
+- `GSOPPayment` dataclass: payment_id, customer_id, gsop_type, trigger_date, payment_due_date, amount_gbp, paid_date. Properties: is_paid, is_overdue(as_of).
+- `GSOPBook`: record_trigger() (auto-calculates due_date via _add_working_days()), pay(), overdue(as_of), total_liability_gbp(year=None), annual_report(year) -> triggers/paid/auto_pay_rate_pct/overdue_count/by_type.
+- `_add_working_days()`: advances n working days (Mon-Fri), used for payment deadlines.
+
+**Fidelity delta:** UK suppliers must make automatic GSOP payments to domestic customers when service standards are missed. This is a statutory obligation — failure to auto-pay is itself a breach of SLC 2.7. Previously the company had no model for these mandatory compensation flows. Phase 147 closes this: GSOPBook tracks every trigger event, computes due dates by working-day window (10-20 days by type), and reports annual auto-pay compliance rate for Ofgem filing.
+
+**12 new tests (2,365 total).**
+
+---
 ### Phase 146 -- Change of Tenancy (COT) management (2026-06-26)
 **Files:** `company/billing/cot.py` (new), `tests/company/billing/test_cot.py` (new)
 
@@ -2107,16 +2121,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 2,353 tests (1,937 fast / ~10s; simulation integration ~8 min per run)
+- 2,365 tests (1,949 fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 146, 2026-06-26):**
+**Latest full run (Phase 147, 2026-06-26):**
 - Net margin £1,330,126 | Gross £6,546,003 | Revenue £14,215,256 | Treasury £3,796,762 | SURVIVED
-- 13 new tests: Change of Tenancy (COT) management — COTBook move-out/move-in/void tracking, 28-day nomination trigger, deemed rate (SVT+20% capped at Ofgem cap).
+- 12 new tests: Guaranteed Standards of Performance (GSOPs) — GSOPBook auto-tracks missed appointments/erroneous transfers; working-day payment deadlines; annual_report() for Ofgem compliance filing.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
