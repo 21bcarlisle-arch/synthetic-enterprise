@@ -1,31 +1,35 @@
-Phase 303 -- Stress Test Framework
+Phase 304 -- Climate Change Levy (CCL) Ledger
 
-Status: PROPOSED (2026-06-27T00:30Z)
-4h opt-out window: expires 2026-06-27T04:30Z
+Status: PROPOSED (2026-06-27T00:47 BST)
+4h opt-out window: expires 2026-06-27T04:47 BST
 
 Context:
-company/risk/ has only 3 modules (hedge_policy, risk_appetite, var_monitor = 305 lines total).
-Ofgem Financial Resilience Assessment Framework (introduced 2022) requires quarterly stress
-tests from every licensed supplier. The 28 supplier failures 2021-2022 partly resulted from
-failure to stress-test credit facilities against margin call cascades. Closes largest gap in
-company/risk/.
+CCL (Climate Change Levy) is the UK main carbon tax on business energy consumption,
+collected by energy suppliers and remitted to HMRC quarterly. It applies to SME and I&C
+customers -- residential customers are fully exempt. Suppliers must also handle LECs
+(Levy Exemption Certificates) for customers on 100%% renewable tariffs.
 
-Connects to: var_monitor (Ph282), margin_call_book (Ph289), credit_limit_book (Ph290),
-bsuos_ledger (Ph293), imbalance_ledger (Ph297).
+Currently ZERO CCL is tracked for business customers in the company layer. The
+cost_to_serve (Ph294) has 7 levy components but excludes CCL. This is a material gap:
+CCL is 0.775p/kWh electricity and 0.465p/kWh gas (2022 rates) for business customers.
+
+2019 was a pivotal year: HMRC raised CCL 45%% (elec) and 67%% (gas) to shift UK
+tax policy from NIC (employment) to carbon. This regime change should be captured.
 
 Design:
-- company/risk/stress_test.py (new)
-- StressScenario enum (5): MARKET_SPIKE / CREDIT_DEFAULT / DEMAND_SHOCK / LIQUIDITY_CRISIS / COMBINED_CRISIS
-- StressAssumption (frozen): scenario / price_multiplier_elec / price_multiplier_gas /
-  demand_uplift_pct / margin_call_gbp / counterparty_default_gbp / duration_weeks
-- StressResult (frozen): scenario / starting_treasury_gbp / stressed_treasury_gbp /
-  treasury_drawdown_gbp / peak_var_gbp / margin_calls_triggered_gbp /
-  weeks_to_cash_concern (Optional[int]) / survives / survival_headroom_gbp
-  Properties: drawdown_pct / is_severe / severity_rag (GREEN/AMBER/RED)
-- StressTestBook: run_stress / results_for_scenario / worst_case / probability_weighted_loss_gbp /
-  scenarios_survived / scenarios_failed / all_red / stress_summary
+- company/regulatory/ccl_ledger.py (new)
+- CCLFuel (ELECTRICITY/GAS)
+- CCLExemptReason (RESIDENTIAL/LEC_COVERED)
+- CCLCharge (frozen): account_id/fuel/year/consumption_kwh/rate_p_per_kwh/
+  exempt_reason (Optional); properties: charge_gbp (0 if exempt)/is_exempt
+- CCLQuarterlyReturn (frozen): quarter_end/electricity_kwh/gas_kwh/
+  electricity_due_gbp/gas_due_gbp/total_due_gbp/filed
+- CCLLedger: rate_for_year/record_charge/charges_for_account/charges_for_year/
+  total_due_gbp/quarterly_return/ccl_summary
 
+Real HMRC rates 2016-2025:
+  Electricity: 0.554->0.583 (2016-18), 0.847 (2019 spike), 0.775 (2021-25) p/kWh
+  Gas:         0.195->0.203 (2016-18), 0.339 (2019), 0.465 (2021-25) p/kWh
+
+Connects to: cost_to_serve (Ph294), invoice (billing), desnz_returns (regulatory).
 Estimated: ~14 tests, ~160 lines
-
-Fidelity delta: COMBINED_CRISIS calibrated to 2022 (elec 5x, gas 4x, margin calls
-500k GBP, counterparty default 1M GBP) -- conditions that caused real UK suppliers to fail.
