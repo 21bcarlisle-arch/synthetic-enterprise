@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,195 tests passing. Codebase: ~41,000 lines across 299+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,215 tests passing. Codebase: ~41,130 lines across 300+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase 317 (2026-06-27):** VAT Book -- 20 new tests (4,215 total). company/finance/vat_book.py: VATRateCategory (DOMESTIC_REDUCED 5%/STANDARD 20%/ZERO/EXEMPT), classify_vat_category (residential->5%; SME <=33kWh/day elec or <=145kWh/day gas -> 5%; I&C->20%), VATTransaction (frozen; vat_rate/vat_gbp/gross_amount_gbp), VATQuarterlyReturn (frozen; net_vat_due/is_repayment), VATBook (record_transaction/transactions_for_period/quarterly_return with 8% input VAT estimate/total_output_vat_gbp by year/vat_summary). Real data: UK domestic energy 5% since Finance Act 1994; business 20%; SME qualifying threshold HMRC concession; quarterly HMRC returns within 1m+7d of quarter end; 2022 billing errors caused wrong VAT rate misapplication. Connects to billing/invoice, ccl_ledger (Ph304), company_pl, corporation_tax (Ph316).
 **Phase 316 (2026-06-27):** Corporation Tax Provision Book -- 24 new tests (4,195 total). company/finance/corporation_tax.py: _ct_rate_for_year 2016-2025 (20% 2016, 19% 2017-2022, 25% 2023+), TaxProvision (frozen; taxable_profit=PBT-loss_relief; current_tax_gbp=taxable*rate; profit_after_tax/effective_rate_pct/is_loss_year), CorporationTaxBook (provision_for_year with automatic loss-carry-forward relief; total_tax_paid/loss_years/accumulated_losses_gbp/tax_summary). Real data: UK CT rate rises from 19% to 25% April 2023 (largest rise since 1974, Finance Act 2021); Energy Profits Levy (EPL) applies to producers only, NOT energy suppliers; loss relief: trading losses carried forward indefinitely. For a GBP1M net profit supplier: +GBP60k/yr tax from 2023. Connects to company_pl (Ph?), pnl.py, management_accounts.
 **Phase 315 (2026-06-27):** Payment Plan Adequacy Checker -- 19 new tests (4,171 total). company/billing/payment_plan_adequacy.py: ATPCompliance (AFFORDABLE/BORDERLINE/UNAFFORDABLE/UNKNOWN), PaymentPlanAdequacyCheck (frozen; disposable_income_gbp=income-essentials; plan_as_pct_disposable; compliance: <=15% AFFORDABLE, 15-25% BORDERLINE, >25%/residual<GBP50 UNAFFORDABLE; is_compliant), PaymentPlanAdequacyBook (record_check/latest_for/non_compliant_plans/borderline_plans/vulnerable_non_compliant/total_at_risk_gbp/adequacy_summary). Ofgem SLC 27A Ability to Pay guidance: plan ideally <15% disposable income; 2022-23: energy bills tripled, 40% of plans became unaffordable (Citizens Advice 2023); unaffordable plans -> PPM installation -> self-rationing -> fuel poverty. Connects to payment_plan.py, ppm_debt_loading (Ph313), debt_collection (Ph311), vulnerability_index, warm_home_discount (Ph281).
 **Phase 314 (2026-06-27):** Back-billing Compliance Book -- 16 new tests (4,152 total). company/billing/back_billing.py: BackBillingReason (ESTIMATED_READ_CORRECTED/SMART_METER_INSTALL_REVEALED/BILLING_SYSTEM_ERROR/SUPPLIER_ERROR), BackBillingAssessment (frozen; billing_date/consumption_period_start-end/billed_amount_gbp/is_domestic; cap_applies: domestic+post-2018-05+period_start<12m_ago; capped_amount_gbp pro-rata allowed days; written_off_gbp=billed-capped), BackBillingBook (record/assessments_for/capped_assessments/non_compliant_if_charged_full/total_written_off_gbp/total_billed_gbp/back_billing_summary). Ofgem SLC 31A effective 01 May 2018: domestic only; triggered most after SMETS2 install reveals years of estimated reads; sector wrote off ~GBP90M 2018-2022; non-domestic excluded (commercial terms). Connects to billing/invoice, meter_read_validation, smart_meter_rollout (Ph284), hh_consumption.
@@ -3997,7 +3998,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 4,195 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,215 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
