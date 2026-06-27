@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,434 tests passing. Codebase: ~42,220 lines across 309+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,453 tests passing. Codebase: ~42,340 lines across 310+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 327 (2026-06-27):** Third Party Authority (TPA) Register -- 19 new tests (4,453 total). company/crm/tpa_register.py: TPAScope (VIEW_ONLY/BILLING_MANAGEMENT/FULL_AUTHORITY), TPARelationship (CARER/FAMILY_MEMBER/ENERGY_ADVISOR/DEBT_CHARITY/SOLICITOR/POWER_OF_ATTORNEY/LANDLORD), TPARecord (frozen; is_active/has_billing_access/has_full_authority), TPARegister (grant/revoke/expire/active_tpas_for_account/expiring_soon/power_of_attorney_accounts/tpa_summary). Ofgem Consumer Duty/SLC: must respect designated TPAs; POA legally binding; GDPR Article 6 lawful basis for TPA data sharing. Connects to consumer_duty (Ph283), priority_services, billing.
 
 **Phase 326 (2026-06-27):** DD Indemnity Claim Register -- 23 new tests (4,434 total). company/billing/dd_indemnity.py: DDIndemnityReason (NOT_AUTHORISED/AMOUNT_INCORRECT/TIMING_INCORRECT/DUPLICATE_PAYMENT/FRAUDULENT), DDIndemnityStatus (RECEIVED/INVESTIGATING/UPHELD/REJECTED/WRITTEN_OFF), DDIndemnityClaim (frozen; is_active/creates_debt/is_investigation_overdue 10-WD), DDIndemnityRegister (receive_claim/start_investigation/uphold/reject/write_off/overdue_investigations/total_exposure_gbp/total_upheld_gbp/dd_indemnity_summary). BACS DD Guarantee: bank refunds immediately; supplier investigates within 10 WD; upheld = debt on account; ~2-3% of DD customers raise annually. Connects to direct_debit, billing_dispute, debt_collection (Ph311).
 
