@@ -1,64 +1,65 @@
-Phase 306 -- Gas Shipper Imbalance Ledger
+Phase 311 -- Debt Collection Process Book
 
-Status: PROPOSED (2026-06-27T02:05 UTC)
-4h opt-out window: expires 2026-06-27T06:05 UTC
+Status: PROPOSED (2026-06-27T11:15 UTC)
+4h opt-out window: expires 2026-06-27T15:15 UTC
 
 Context:
-Phase 297 built the electricity Imbalance Ledger -- electricity cashout when
-metered != contracted (SBP/SSP). Gas has a parallel mechanism: UK gas shippers
-must balance their portfolios against their nominations or face Within-Day
-imbalance charges settled at the NBP (National Balancing Point) cash price.
+The company has bad_debt_provision.py (aging buckets, provision rates) but no
+formal debt collection process tracker. In a real UK energy supplier, arrears
+go through defined stages with escalating actions, each governed by Ofgem
+Standards of Performance and vulnerable customer rules.
 
-During 2021-22, NBP spiked from ~40p/therm to >400p/therm (10x). Shippers
-caught short on gas faced ruinous balancing costs -- this killed several suppliers
-(Igloo, People's Energy, etc). The company has no tracking for this exposure.
+UK regulatory framework:
+- SLC P14 / SoP Regulations: suppliers must follow a debt collection process
+  before disconnecting or adding a debt to a prepayment meter
+- Ofgem Smart Meter Prepayment Meter (PPM) Rules: debt can be loaded onto PPM,
+  max £250 (domestic), recovery rate 5% of total spend
+- Debt Assignment Protocol (DAP): debt follows the customer on switch
+- Statute of limitations: 6 years (England/Wales), 5 years (Scotland)
 
-Gas balancing works differently from electricity:
-- Shipper submits nominations (gas_nominations.py already models this)
-- Mismatch between nominated and actual offtake = imbalance
-- Long: surplus sold into system at System Sell Price (SSP)
-- Short: deficit bought from system at System Buy Price (SBP)
-- Daily linepack tolerance: +/-1% before imbalance charges apply
-- NBP Day-Ahead is the reference for SBP/SSP
+Stages modelled:
+1. INITIAL_REMINDER: 7-day payment reminder letter (automated)
+2. WARNING_LETTER: 14 days, advises potential referral
+3. PRE_LEGAL: 28 days, final notice before external agency
+4. DEBT_AGENCY: assigned to external collection agency at ~70p/£ recovery rate
+5. LEGAL_ACTION: county court judgment (CCJ) or small claims
+6. WRITE_OFF: statute-barred or unrecoverable
 
 Design:
-  company/market/gas_imbalance_ledger.py (new)
+  company/finance/debt_collection.py (new)
 
-  GasImbalanceDirection (enum): LONG / SHORT / FLAT
+  DebtStage (enum): INITIAL_REMINDER / WARNING_LETTER / PRE_LEGAL / DEBT_AGENCY /
+    LEGAL_ACTION / WRITE_OFF
 
-  GasImbalanceRecord (frozen dataclass):
-    mprn / trade_date / nominated_mwh / metered_mwh
-    sbp_gbp_per_mwh / ssp_gbp_per_mwh
+  DebtRecord (frozen dataclass):
+    account_id / amount_gbp / stage / stage_date / is_vulnerable_customer
     Computed:
-      imbalance_mwh = metered_mwh - nominated_mwh (+ = long, - = short)
-      direction (LONG/SHORT/FLAT; FLAT if abs(imbalance) < tolerance 1%)
-      imbalance_charge_gbp:
-        LONG: sold at SSP (positive cash in)
-        SHORT: bought at SBP (negative, cash out)
-        FLAT: 0.0
-      is_crisis_price: SBP > 100 GBP/MWh (10p/therm ~ crisis threshold)
-      cashout_spread: sbp - ssp
+      days_in_stage(as_of_date) -- calendar days since stage_date
+      is_statute_barred(as_of_date) -- >6 years from initial
+      recovery_probability -- 0.85 (pre-legal), 0.70 (agency), 0.40 (legal), 0.0 (write-off)
+      expected_recovery_gbp -- amount * recovery_probability
 
-  GasImbalanceLedger:
-    nbp_sbp_for_month(year, month) -- approximate SBP GBP/MWh 2016-2025
-    nbp_ssp_for_month(year, month) -- approximate SSP GBP/MWh (SSP < SBP)
-    record(record: GasImbalanceRecord)
-    records_for_date(date) -> list
-    records_for_mprn(mprn) -> list
-    net_imbalance_cost_gbp(year) -> float
-    crisis_periods() -> list of records where is_crisis_price
-    short_periods() -> list of SHORT records
-    mean_cashout_spread(year) -> float
-    gas_imbalance_summary() -> dict
+  DebtCollectionBook:
+    record_debt(record) -> DebtRecord
+    escalate(account_id, new_stage, stage_date) -> DebtRecord
+    write_off(account_id, write_off_date) -> DebtRecord
+    active_debts() -> list (not WRITE_OFF)
+    debts_by_stage(stage) -> list
+    total_outstanding_gbp() -> float (all active)
+    expected_recovery_gbp() -> float (sum of expected_recovery_gbp)
+    vulnerable_accounts() -> list (is_vulnerable_customer)
+    statute_barred_check(as_of_date) -> list of barred records
+    debt_summary() -> dict
 
-Real NBP price data (approximate annual averages GBP/MWh):
-  2016: 12.0  2017: 16.0  2018: 22.0  2019: 15.0  2020: 9.0
-  2021: 45.0  2022: 180.0  2023: 65.0  2024: 35.0  2025: 30.0
+Real data calibration:
+- Bad debt 2022: UK average £380/customer in arrears (Ofgem Retail State of Market)
+- Write-off rate: ~1.5-2.5% of revenue in crisis years (2022-23)
+- Agency recovery rate: 60-75p in the £ for energy debts
+- Average days-to-legal: 90-120 days from first reminder
+- Vulnerable customers: must not be referred to debt agency without prior welfare checks
 
-SBP/SSP relationship: SBP = NBP + 5%, SSP = NBP - 5% (cash-out spread widens
-in crisis periods). 2022: SBP occasionally > 500 GBP/MWh (is_crisis_price threshold).
+Connects to: bad_debt_provision (Ph?? -- aging buckets), billing (invoices),
+  warm_home_discount (Ph281 -- vulnerable customers), consumer_duty (Ph283),
+  stress_test (Ph303 -- credit default scenario).
 
-Connects to: gas_nominations (nominations vs metered), gas_network_ledger (Ph305),
-  imbalance_ledger (Ph297 -- electricity parallel), cost_to_serve (Ph294).
-
-Estimated: ~15 tests, ~130 lines
+Estimated: ~18 tests, ~150 lines
