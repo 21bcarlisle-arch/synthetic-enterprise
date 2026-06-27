@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,136 tests passing. Codebase: ~40,650 lines across 296+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,152 tests passing. Codebase: ~40,760 lines across 297+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase 314 (2026-06-27):** Back-billing Compliance Book -- 16 new tests (4,152 total). company/billing/back_billing.py: BackBillingReason (ESTIMATED_READ_CORRECTED/SMART_METER_INSTALL_REVEALED/BILLING_SYSTEM_ERROR/SUPPLIER_ERROR), BackBillingAssessment (frozen; billing_date/consumption_period_start-end/billed_amount_gbp/is_domestic; cap_applies: domestic+post-2018-05+period_start<12m_ago; capped_amount_gbp pro-rata allowed days; written_off_gbp=billed-capped), BackBillingBook (record/assessments_for/capped_assessments/non_compliant_if_charged_full/total_written_off_gbp/total_billed_gbp/back_billing_summary). Ofgem SLC 31A effective 01 May 2018: domestic only; triggered most after SMETS2 install reveals years of estimated reads; sector wrote off ~GBP90M 2018-2022; non-domestic excluded (commercial terms). Connects to billing/invoice, meter_read_validation, smart_meter_rollout (Ph284), hh_consumption.
 **Phase 313 (2026-06-27):** PPM Debt Loading Tracker -- 19 new tests (4,136 total). company/billing/ppm_debt_loading.py: PPMDebtLoadStatus (ACTIVE/SUSPENDED/COMPLETED), PPMDebtLoad (frozen; debt_amount_gbp/recovery_rate_pct/is_domestic/is_smart_meter/customer_consented; max_load_gbp GBP250 domestic; is_compliant [>250 fails/rate>5% fails/smart-no-consent fails]; expected_recovery_days(monthly_spend)), PPMDebtLoadingBook (record_load/suspend/complete/active_loads/non_compliant_loads/smart_meter_consents_missing/total_loaded_gbp/loading_summary). Real calibration: Ofgem PPM Rules 2019 max GBP250/fuel domestic; 5% recovery rate cap per top-up; smart PPM requires customer consent (2019); British Gas 2023 forced-fitting scandal: warrants used to install PPMs on vulnerable customers -- Ofgem banned forced-fitting April 2023. Connects to debt_collection (Ph311), account_closure (Ph312), prepayment.py, smart_meter_rollout (Ph284).
 **Phase 312 (2026-06-27):** Account Closure Book -- 23 new tests (4,117 total). company/billing/account_closure.py: ClosureReason (CUSTOMER_SWITCH/VACANT_PROPERTY/CUSTOMER_DECEASED/BUSINESS_CLOSURE), ClosureStatus (INITIATED/FINAL_READ_RECEIVED/FINAL_BILL_ISSUED/DEPOSIT_RETURNED/DEPOSIT_APPLIED/DEBT_REFERRED/CLOSED), AccountClosure (frozen; net_balance_gbp=final_bill+debt-deposit; requires_debt_referral/days_since_closure/is_final_bill_overdue), AccountClosureBook (initiate/receive_final_read/issue_final_bill/return_deposit/apply_deposit_to_debt/refer_to_debt_collection/close/active_closures/overdue_final_bills/deposits_to_return/debt_referrals/requiring_debt_referral/closure_summary). Real calibration: Ofgem SLC 21B 42-day final bill deadline; deposit return within 14 days (SLC 12); ~8-12% closures have net debt balance; 2022 final bill delays were #1 switch complaint category. Connects to cos_process (Ph298), supply_point_register (Ph299), billing/invoice, debt_collection (Ph311).
 **Phase 311 (2026-06-27):** Debt Collection Process Book -- 26 new tests (4,094 total). company/finance/debt_collection.py: DebtStage (INITIAL_REMINDER/WARNING_LETTER/PRE_LEGAL/DEBT_AGENCY/LEGAL_ACTION/WRITE_OFF), DebtRecord (frozen; account_id/amount_gbp/stage/stage_date/initial_date/is_vulnerable_customer; days_in_stage/is_statute_barred >6yr England-Wales/recovery_probability 0.95->0.0 by stage/expected_recovery_gbp), DebtCollectionBook (record_debt/escalate [preserves initial_date+amount]/write_off/active_debts/debts_by_stage/total_outstanding_gbp/expected_recovery_gbp/vulnerable_accounts/statute_barred_check/debt_summary). Real calibration: UK avg arrears 2022 GBP380/customer (Ofgem Retail State of Market); write-off rate 1.5-2.5% revenue in 2022-23 crisis; agency recovery 60-75p/GBP energy debts; avg 90-120 days to legal from first reminder; Ofgem: vulnerable customers must not go to agency without welfare check first. Connects to bad_debt_provision (Ph?? -- aging buckets), billing/debt_referral (SLC 27A referrals), warm_home_discount (Ph281 -- vulnerable flag), consumer_duty (Ph283), stress_test (Ph303 -- credit default scenario).
@@ -3994,7 +3995,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 4,136 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,152 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
