@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,411 tests passing. Codebase: ~42,100 lines across 308+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,434 tests passing. Codebase: ~42,220 lines across 309+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 326 (2026-06-27):** DD Indemnity Claim Register -- 23 new tests (4,434 total). company/billing/dd_indemnity.py: DDIndemnityReason (NOT_AUTHORISED/AMOUNT_INCORRECT/TIMING_INCORRECT/DUPLICATE_PAYMENT/FRAUDULENT), DDIndemnityStatus (RECEIVED/INVESTIGATING/UPHELD/REJECTED/WRITTEN_OFF), DDIndemnityClaim (frozen; is_active/creates_debt/is_investigation_overdue 10-WD), DDIndemnityRegister (receive_claim/start_investigation/uphold/reject/write_off/overdue_investigations/total_exposure_gbp/total_upheld_gbp/dd_indemnity_summary). BACS DD Guarantee: bank refunds immediately; supplier investigates within 10 WD; upheld = debt on account; ~2-3% of DD customers raise annually. Connects to direct_debit, billing_dispute, debt_collection (Ph311).
 
 **Phase 325 (2026-06-27):** Winter Disconnection Moratorium Register -- 25 new tests (4,411 total). company/billing/winter_moratorium.py: MoratoriumType (WINTER_DOMESTIC/VULNERABLE_YEAR_ROUND/DEBT_MORATORIUM), DisconnectionRisk (NO_RISK/PROTECTED/AT_RISK), MoratoriumRecord (frozen; is_active/protection_status), is_winter_period() (Nov-Mar), WinterMoratoriumRegister (register/end_moratorium/is_protected/can_disconnect/vulnerable_protections/winter_protections/moratorium_summary). SLC 27/Gas SoP Regs: domestic Nov-Mar disconnection ban; vulnerable customers year-round; 2022-23 PPM-forcing scandal breached these rules. Connects to debt_collection (Ph311), consumer_duty (Ph283), priority_services.
 
