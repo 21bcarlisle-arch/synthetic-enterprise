@@ -1,13 +1,13 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-27T02:43:57Z
+Last updated: 2026-06-27T03:04:47Z
 
 ## Current state
 
-- **Phase:** 310 complete
-- **Tests passing:** 4,068 (all green)
-- **Python modules:** 290+
-- **Company modules:** 223
+- **Phase:** 311 complete
+- **Tests passing:** 4,094 (all green)
+- **Python modules:** 291+
+- **Company modules:** 224
 - **Net position (latest sim run):** £1,330,126
 
 ## Phase 300 milestone summary
@@ -52,7 +52,7 @@ Portal (2): app, templates
 
 Interfaces (1): sim_interface
 
-**Latest simulation results (2016–2025)** — auto-processed (514s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (478s / 8 min):
 - Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
 - Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351

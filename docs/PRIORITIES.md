@@ -1,36 +1,40 @@
 # Current Priorities
 
-Last updated: 2026-06-26 by Claude Code (Phase 268)
+Last updated: 2026-06-27 by Claude Code (Phase 310)
 
 ## Now (active this session)
-1. Next phase: life events or further human simulation layer
-2. Monitor NTFY spam fix effectiveness (first clean run validates fix)
+1. Phase 311: Debt Collection Process Book (company/finance/debt_collection.py) — proposed, 4h opt-out window
 
 ## Next (queued, unblocked)
-3. Human simulation layer: physical home, life events, behaviour (Rich request)
-4. /sim/ section expansion: weather done (Ph271), balancing mechanism done (Ph276)
+2. Continue regulatory/finance module completeness — see backlog below
+3. Integration: wire debt_collection → bad_debt_provision → billing/arrears_book
 
 ## Staged (in docs/staging/, awaiting action)
-- None
+- docs/staging/drafts/NEXT_PHASE.md: Phase 311 (Debt Collection Process Book) — 4h window
 
 ## Backlog (agreed)
-- Dashboard Phase E: monthly capability assessment -- DONE (Ph278)
-- /sim/ section: weather (Ph271), balancing mechanism (Ph276) -- DONE
-- Human simulation layer: physical home, life events, behaviour (Rich request)
-- Tariff smoothing: spread 2021-22 wholesale spike -- DONE (Ph277)
+- Dashboard Phase F: further KPI coverage (TBD)
+- Integration tests: end-to-end workflow tests across module seams
+- Sim runner: any outstanding data quality issues
 
-## Recently completed (last 8)
-- Phase 276 (2026-06-26) -- BM Settlement tab on /sim/ (10 tests)
-- Phase 275 (2026-06-26) -- Green Claims Audit test coverage (12 tests)
-- Phase 274 (2026-06-26) -- Life Event Impact Assessor (12 tests)
-- Phase 273 (2026-06-26) -- Management Accounts dashboard tab (10 tests)
-- Phase 272 (2026-06-26) -- Physical Home Registry (12 tests)
-- Phase 271 (2026-06-26) -- Weather Engine & HDD tab + NTFY spam fix (10 tests)
-- Phase 268 (2026-06-26) -- /sim/ section: Wholesale Price Explorer (10 tests)
-- Phase 267 (2026-06-26) -- Dashboard Phase B Complete: Year filter on Financial/Trading/Customers tabs (8 tests)
-- Phase 266 (2026-06-26) -- Dashboard Phase D: NL query tab + Cloudflare Function (9 tests)
-- Phase 265 (2026-06-26) -- NTFY notable-exception digest (admin/all-time-high/all-time-low filtering)
-- Phase 264 (2026-06-26) -- Invoice generation: 19 customers with full billing history
-- Phase 263 (2026-06-26) -- Four-section site restructure: /customers/, /project/, nav bar on all pages
-- Phase 262 (2026-06-26) -- Run History table in Insights tab; append_run_history guards
-- Phase 261 (2026-06-26) -- Year Spotlight (Dashboard Phase B partial)
+## Recently completed (last 20)
+- Phase 310 (2026-06-27) -- Smart Export Guarantee (SEG) Book (20 tests; 4,068 total)
+- Phase 309 (2026-06-27) -- Gas Procurement Policy Book (23 tests; 4,048 total)
+- Phase 308 (2026-06-27) -- Coverage Sprint: billing/consumption, hh_consumption, crm/customer_profitability, finance/budget, pricing/ofgem_price_cap (55 tests; 4,025 total)
+- Phase 307 (2026-06-27) -- Trading Book & Hedge Decision Coverage (36 tests; 3,970 total)
+- Phase 306 (2026-06-27) -- Gas Shipper Imbalance Ledger (28 tests; 3,934 total)
+- Phase 305 (2026-06-27) -- Gas Network Charge Ledger (NTS + LDZ + GGL) (20 tests; 3,906 total)
+- Phase 304 (2026-06-27) -- Climate Change Levy (CCL) Ledger (16 tests; 3,886 total)
+- Phase 303 (2026-06-27) -- Stress Test Framework (20 tests; 3,870 total)
+- Phase 302 (2026-06-27) -- GSoP Payments Tracker (16 tests; 3,887 total)
+- Phase 301 (2026-06-26) -- Erroneous Transfer Register (19 tests; 3,871 total)
+- Phase 300 (2026-06-26) -- Regulatory Compliance Dashboard (12 tests; 3,852 total)
+- Phase 299 (2026-06-26) -- Supply Point Register (11 tests; 3,840 total)
+- Phase 298 (2026-06-26) -- Change of Supplier Process (9 tests; 3,829 total)
+- Phase 297 (2026-06-26) -- Imbalance Charge Ledger (12 tests; 3,820 total)
+- Phase 296 (2026-06-26) -- REMIT Reporting Book (10 tests; 3,808 total)
+- Phase 295 (2026-06-26) -- Ofgem Price Cap Book (10 tests; 3,798 total)
+- Phase 294 (2026-06-26) -- Cost-to-Serve Calculator (10 tests; 3,788 total)
+- Phase 293 (2026-06-26) -- BSUoS Charge Ledger (11 tests; 3,778 total)
+- Phase 292 (2026-06-26) -- TNUoS Charge Ledger (10 tests; 3,767 total)
+- Phase 291 (2026-06-26) -- DUoS Charge Ledger (11 tests; 3,757 total)
