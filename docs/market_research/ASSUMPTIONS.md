@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-06-26 from current codebase.
+Last seeded: 2026-06-27 from current codebase.
 
 ---
 
@@ -66,6 +66,22 @@ Last seeded: 2026-06-26 from current codebase.
 | Acquisition cost — SME | £400/customer | £250–600 | Industry | 2026-06-18 | ✓ OK |
 | Fixed overhead | £50/month | n/a (symbolic placeholder) | Phase 8a design | 2026-06-18 | ❌ Underscaled |
 | Growth mandate | flat (no active acquisition) | n/a | Config | 2026-06-18 | ✓ OK |
+
+
+## Household Physical Property Attributes
+
+| Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
+|---|---|---|---|---|---|
+| EPC band distribution (England 2022) | Not yet modelled in household.py | A/B 3.3%, C 44.8%, D 42.6%, E 6.8%, F 2.1%, G 0.5% | EHS 2022-23 Energy Chapter AT1_2 (MHCLG, July 2024) | 2026-06-27 | Gap — household.py not yet built |
+| Property type distribution (England 2022) | Not yet modelled | Terraced 29%, semi-detached 25%, detached 17%, flat 21%, bungalow 8% | EHS 2022-23 AT1_5 (MHCLG, July 2024) | 2026-06-27 | Gap — household.py not yet built |
+| Build era distribution (England 2022) | Not yet modelled | Pre-1919 20%, 1919-44 15%, 1945-64 18%, 1965-80 19%, 1981-90 7%, post-1990 21% | EHS 2022-23 AT1_5 (MHCLG, July 2024) | 2026-06-27 | Gap — household.py not yet built |
+| Heating system: gas boiler % | Not modelled at property level | ~86% of homes gas-fired; heat pump ~0.8% (2022) rising to ~2% (2025) | EHS 2023-24 Low Carbon Tech AT4; EHS 2022-23 AT3_1 | 2026-06-27 | Gap — household.py not yet built |
+| Solar PV penetration | Phase 50 smart_meter model only | 3.0% (2016) → 5.7% (2025) of UK households | DESNZ Solar PV Deployment April 2026, Table 1 cumulative count | 2026-06-27 | Gap — EHS 2023-24 confirms 5.9% (2023-24) |
+| EV adoption (resi) | Not modelled at property level | ~0.3% (2016) → ~7% (2025) of UK households | DfT licensed ULEV data; EHS 2023-24 AT3 (7.4% by 2023-24) | 2026-06-27 | Gap — household.py not yet built |
+| Smart meter penetration (resi elec) | Phase 50: 10% (2016) → 75% (2025) | DESNZ: 10.6% (2016) → 68.9% (2024) → est. 72-75% (2025) | DESNZ Q4 2024 Smart Meters Stats Table 5a | 2026-06-27 | ✓ OK — Phase 50 model well-calibrated |
+| EPC D vs C consumption uplift | Not modelled at property level | Metered: D uses ~20-30% more electricity, ~30-40% more gas than band C (same property type) | EHS 2022-23 AT1_6 (modelled cost: D +44% vs A/B/C avg); adjusted for prebound effect | 2026-06-27 | Gap — household.py not yet built |
+| Loft insulation rate | Not modelled at property level | ~67% of loft-eligible homes insulated (~58% of all homes) | DESNZ HEE Dec 2024; EHS AT_4_10 | 2026-06-27 | Gap — household.py not yet built |
+| Cavity wall insulation rate | Not modelled at property level | ~63% of cavity-eligible homes insulated (~38-40% of all homes) | DESNZ HEE Dec 2024 cumulative ECO installs + pre-ECO stock | 2026-06-27 | Gap — household.py not yet built |
 
 ## Known Gaps (not yet modelled)
 

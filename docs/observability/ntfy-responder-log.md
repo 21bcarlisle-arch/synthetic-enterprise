@@ -140,3 +140,18 @@
 - [2026-06-26 14:43 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782484617 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
 - [2026-06-26 15:10 UTC] Acked inbound message 'eymE3XgNNaFh' ('URGENT please note 91% usage, resets in 50mins. But only 54%') — staged as from_rich_20260626_151018.md
 - [2026-06-26 15:25 UTC] Acked inbound message 'fK3uh5JENX68' ('Will you automatically restart at the right time and not wai') — staged as from_rich_20260626_152553.md
+- [2026-06-26 15:40 UTC] Acked inbound message 'mqzJDQ90HpAx' ("But the session doesn't open for another 21 minutes?") — staged as from_rich_20260626_154007.md
+- [2026-06-26 16:39 UTC] Acked inbound message '5riqaCTWWa4d' ("I can't see the login on the website in the customer tab. Pl") — staged as from_rich_20260626_163922.md
+- [2026-06-26 17:19 UTC] Acked inbound message 'GRCMqYzMYe5U' ('Urgent. On the website only SIM and project tabs are working') — staged as from_rich_20260626_171943.md
+- [2026-06-26 17:29 UTC] Acked inbound message 'yw2wL4MZqnvA' ('When I ask a question in query I get: Error: API not configu') — staged as from_rich_20260626_172954.md
+- [2026-06-26 17:42 UTC] Acked inbound message 'xFBeOzH7mBSR' ('Build the natural language query feature for poesys.net usin') — staged as from_rich_20260626_174227.md
+- [2026-06-26 18:21 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782497928 (Caused by NameResolutionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to resolve 'ntfy.sh' ([Errno -3] Temporary failure in name resolution)"))
+- [2026-06-26 18:58 UTC] Acked inbound message 'wiP091fbJJO3' ('Urgent. You just sent me 6 identical ntfys. Please investiga') — staged as from_rich_20260626_185842.md
+- [2026-06-26 20:06 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782504128 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-26 21:46 UTC] Acked inbound message 'oYQAN48lrOZ8' ('The /ui/stage form is returning 403 — API key rejected. What') — staged as from_rich_20260626_214654.md
+- [2026-06-26 22:05 UTC] Acked inbound message '7yAprCoREI6O' ('Used t_z7Ye4n4Ewu5JPcMOYM4L69p287uht5J7c3W_Ryx2Y but still 4') — staged as from_rich_20260626_220533.md
+- [2026-06-27 00:59 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782518467 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-27 04:41 UTC] Acked inbound message 'LmOyZpb4Rv4g' ('Do we currently separate gas and electricity in customer acc') — staged as from_rich_20260627_044110.md
+- [2026-06-27 05:07 UTC] Acked inbound message 'VKLXNcLHSXlf' ('Yes please. We want to get the fundamentals of billing and p') — staged as from_rich_20260627_050732.md
+- [2026-06-27 05:11 UTC] Acked inbound message 'qlNJ3TAetW5X' ('The /ui/stage form is returning 403 — the File API key is wr') — staged as from_rich_20260627_051156.md
+- [2026-06-27 05:25 UTC] Acked inbound message 'gNdlOzTzbWyE' ('The risk committee is expensive theatre — 160+ Qwen LLM call') — staged as from_rich_20260627_052549.md

@@ -105,6 +105,7 @@ from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.weather_inputs import cloud_cover_for_customer, lookback_mean_temps, weather_means_for_customer
 from sim.weather_hdd import weather_factor_for_term
+from simulation.household_demand import HouseholdDemandRegister
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"
@@ -198,6 +199,8 @@ def _weather_adjusted_shape_fn(
     property_record: dict,
     cloud_cover_means: dict[str, float] | None = None,
     latitude_deg: float | None = None,
+    household_register: "HouseholdDemandRegister | None" = None,
+    customer_id: str | None = None,
 ):
     """Wrap a SHAPE_LOADERS[...] base-shape function with 4c-2's
     weather/occupancy/asset demand adjustment (`build_demand_shape`).
@@ -207,6 +210,8 @@ def _weather_adjusted_shape_fn(
 
     Phase 25a: cloud_cover_means + latitude_deg enable solar irradiance
     reduction for customers with assets.solar=True (currently C4).
+    Phase C: household_register + customer_id enable EPC consumption
+    multiplier and time-varying EV ownership.
     """
     from datetime import date as _date
     from sim.weather_engine import half_hourly_solar_irradiance
@@ -214,18 +219,37 @@ def _weather_adjusted_shape_fn(
     def shape_fn(date_str):
         base_shape = base_shape_fn(date_str)
         mean_temp = weather_means.get(date_str)
+
+        # Phase C: time-varying EV flag from household life events
+        eff_property = property_record
+        if household_register is not None and customer_id is not None:
+            dyn = household_register.dynamic_assets(customer_id, date_str)
+            if dyn:
+                assets = dict(property_record.get("assets") or {})
+                assets["ev"] = dyn.get("ev", assets.get("ev", False))
+                eff_property = dict(property_record)
+                eff_property["assets"] = assets
+
         if mean_temp is None:
-            return base_shape
-        irradiance = None
-        if cloud_cover_means is not None and latitude_deg is not None:
-            cloud_pct = cloud_cover_means.get(date_str)
-            if cloud_pct is not None:
-                day_of_year = _date.fromisoformat(date_str).timetuple().tm_yday
-                irradiance = [
-                    half_hourly_solar_irradiance(day_of_year, p, latitude_deg, cloud_pct)
-                    for p in range(1, 49)
-                ]
-        return build_demand_shape(base_shape, mean_temp, "electricity", property_record, irradiance)
+            shape = list(base_shape)
+        else:
+            irradiance = None
+            if cloud_cover_means is not None and latitude_deg is not None:
+                cloud_pct = cloud_cover_means.get(date_str)
+                if cloud_pct is not None:
+                    day_of_year = _date.fromisoformat(date_str).timetuple().tm_yday
+                    irradiance = [
+                        half_hourly_solar_irradiance(day_of_year, p, latitude_deg, cloud_pct)
+                        for p in range(1, 49)
+                    ]
+            shape = build_demand_shape(base_shape, mean_temp, "electricity", eff_property, irradiance)
+
+        # Phase C: EPC-band consumption multiplier
+        if household_register is not None and customer_id is not None:
+            epc_mult = household_register.epc_multiplier(customer_id, date_str)
+            shape = [v * epc_mult for v in shape]
+
+        return shape
 
     return shape_fn
 
@@ -557,6 +581,8 @@ def main(report_end: str | None = None, sim_interface=None):
 
     # ---- Phase 4c-1/4c-2/4c-3 inputs: per-customer weather + property records ----
     properties = build_properties(CUSTOMERS)
+    # Phase C: household physical model (EPC multipliers, time-varying EV/solar)
+    household_demand_register = HouseholdDemandRegister(CUSTOMERS)
     weather_by_customer = {
         c["customer_id"]: weather_means_for_customer(c)
         for c in ELEC_CUSTOMERS + GAS_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
@@ -1075,6 +1101,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 shape_fn = _weather_adjusted_shape_fn(
                     SHAPE_LOADERS[profile_class], weather_by_customer[cid], property_record,
                     cloud_cover_means=cloud_cover, latitude_deg=latitude,
+                    household_register=household_demand_register, customer_id=cid,
                 )
 
             cust_segment = customer.get("segment", "resi") if customer else "resi"

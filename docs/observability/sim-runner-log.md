@@ -6628,3 +6628,2417 @@
 - [2026-06-26 15:36 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
 - [2026-06-26 15:36 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
 - [2026-06-26 15:36 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 15:38 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 15:38 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 15:38 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 15:38 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 15:38 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 15:38 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-06-26 15:38 UTC] Waiting 60s before next run...
+- [2026-06-26 15:39 UTC] Starting run — git=109fb1f, json=run_output_109fb1f_20260626T153939Z.json
+- [2026-06-26 15:47 UTC] Run complete — 488s, 392 KB (run_output_109fb1f_20260626T153939Z.json)
+- [2026-06-26 15:47 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 488, "size_kb": 392, "json": "run_output_109fb1f_20260626T153939Z.json"}, "timestamp": "2026-06-26T15:47:47.952684+00:00", "session_id": null}
+- [2026-06-26 15:47 UTC] [process_run] Processing run_complete_20260626T153939Z.md
+- [2026-06-26 15:47 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_109fb1f_20260626T153939Z.json
+- [2026-06-26 15:47 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 15:47 UTC] [process_run] Created 'Latest simulation results' block in LATEST.md
+- [2026-06-26 15:47 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 15:47 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 15:47 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 15:47 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 15:47 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 15:47 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 15:47 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 15:47 UTC] [process_run] Publishing market price feed
+- [2026-06-26 15:47 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 15:47 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 15:47 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 15:47 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 15:57 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 15:57 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 15:57 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 15:57 UTC] [process_run] Moved run_complete_20260626T153939Z.md to done/
+- [2026-06-26 15:57 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 15:57 UTC] [process_run] Done
+- [2026-06-26 15:57 UTC] Auto-processed run complete marker
+- [2026-06-26 15:57 UTC] Waiting 60s before next run...
+- [2026-06-26 15:58 UTC] Starting run — git=ac1e65b, json=run_output_ac1e65b_20260626T155857Z.json
+- [2026-06-26 16:06 UTC] Run complete — 469s, 392 KB (run_output_ac1e65b_20260626T155857Z.json)
+- [2026-06-26 16:06 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 469, "size_kb": 392, "json": "run_output_ac1e65b_20260626T155857Z.json"}, "timestamp": "2026-06-26T16:06:45.725769+00:00", "session_id": null}
+- [2026-06-26 16:06 UTC] [process_run] Processing run_complete_20260626T155857Z.md
+- [2026-06-26 16:06 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_ac1e65b_20260626T155857Z.json
+- [2026-06-26 16:06 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 16:06 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 16:06 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 16:06 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 16:06 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 16:06 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 16:06 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 16:06 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 16:06 UTC] [process_run] Publishing market price feed
+- [2026-06-26 16:06 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 16:06 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 16:06 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 16:06 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 16:08 UTC] [process_run] Processing run_complete_20260626T155857Z.md
+- [2026-06-26 16:08 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_ac1e65b_20260626T155857Z.json
+- [2026-06-26 16:08 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 16:08 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 16:08 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 16:08 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 16:08 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 16:08 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 16:08 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 16:08 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 16:08 UTC] [process_run] Publishing market price feed
+- [2026-06-26 16:08 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 16:08 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 16:08 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 16:08 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 16:16 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 16:16 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 16:16 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 16:16 UTC] [process_run] Moved run_complete_20260626T155857Z.md to done/
+- [2026-06-26 16:16 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 16:16 UTC] [process_run] Done
+- [2026-06-26 16:16 UTC] Auto-processed run complete marker
+- [2026-06-26 16:16 UTC] Waiting 60s before next run...
+- [2026-06-26 16:17 UTC] Starting run — git=248ffe4, json=run_output_248ffe4_20260626T161754Z.json
+- [2026-06-26 16:18 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 16:18 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 16:18 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 16:18 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 16:18 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 16:20 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 16:20 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 16:20 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 16:20 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 16:25 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 16:25 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 16:25 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 16:25 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 16:25 UTC] Run complete — 481s, 392 KB (run_output_248ffe4_20260626T161754Z.json)
+- [2026-06-26 16:25 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 481, "size_kb": 392, "json": "run_output_248ffe4_20260626T161754Z.json"}, "timestamp": "2026-06-26T16:25:55.283384+00:00", "session_id": null}
+- [2026-06-26 16:25 UTC] [process_run] Processing run_complete_20260626T161754Z.md
+- [2026-06-26 16:25 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_248ffe4_20260626T161754Z.json
+- [2026-06-26 16:26 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 16:26 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 16:26 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 16:26 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 16:26 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 16:26 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 16:26 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 16:26 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 16:26 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 16:26 UTC] [process_run] Publishing market price feed
+- [2026-06-26 16:26 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 16:26 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 16:26 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 16:26 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 16:29 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 16:29 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 16:29 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 16:29 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 16:36 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 16:36 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 16:36 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 16:36 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 16:36 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 16:36 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-06-26 16:36 UTC] Waiting 60s before next run...
+- [2026-06-26 16:37 UTC] Starting run — git=6c1dc1f, json=run_output_6c1dc1f_20260626T163703Z.json
+- [2026-06-26 16:45 UTC] Run complete — 482s, 392 KB (run_output_6c1dc1f_20260626T163703Z.json)
+- [2026-06-26 16:45 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 482, "size_kb": 392, "json": "run_output_6c1dc1f_20260626T163703Z.json"}, "timestamp": "2026-06-26T16:45:06.139746+00:00", "session_id": null}
+- [2026-06-26 16:45 UTC] [process_run] Processing run_complete_20260626T163703Z.md
+- [2026-06-26 16:45 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_6c1dc1f_20260626T163703Z.json
+- [2026-06-26 16:45 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 16:45 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 16:45 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 16:45 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 16:45 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 16:45 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 16:45 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 16:45 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 16:45 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 16:45 UTC] [process_run] Publishing market price feed
+- [2026-06-26 16:45 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 16:45 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 16:45 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 16:45 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 16:48 UTC] [process_run] Processing run_complete_20260626T163703Z.md
+- [2026-06-26 16:48 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_6c1dc1f_20260626T163703Z.json
+- [2026-06-26 16:48 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 16:48 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 16:48 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 16:48 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 16:48 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 16:48 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 16:48 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 16:48 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 16:48 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 16:48 UTC] [process_run] Publishing market price feed
+- [2026-06-26 16:48 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 16:48 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 16:48 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 16:48 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 16:55 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 16:55 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 16:55 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 16:55 UTC] [process_run] Moved run_complete_20260626T163703Z.md to done/
+- [2026-06-26 16:55 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 16:55 UTC] [process_run] Done
+- [2026-06-26 16:55 UTC] Auto-processed run complete marker
+- [2026-06-26 16:55 UTC] Waiting 60s before next run...
+- [2026-06-26 16:56 UTC] Starting run — git=c6c9caf, json=run_output_c6c9caf_20260626T165615Z.json
+- [2026-06-26 16:58 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 16:58 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 16:58 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 16:58 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 16:58 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 17:04 UTC] Run complete — 482s, 392 KB (run_output_c6c9caf_20260626T165615Z.json)
+- [2026-06-26 17:04 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 482, "size_kb": 392, "json": "run_output_c6c9caf_20260626T165615Z.json"}, "timestamp": "2026-06-26T17:04:17.673368+00:00", "session_id": null}
+- [2026-06-26 17:04 UTC] [process_run] Processing run_complete_20260626T165615Z.md
+- [2026-06-26 17:04 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c6c9caf_20260626T165615Z.json
+- [2026-06-26 17:04 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 17:04 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 17:04 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 17:04 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 17:04 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 17:04 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 17:04 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 17:04 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 17:04 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 17:04 UTC] [process_run] Publishing market price feed
+- [2026-06-26 17:04 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 17:04 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 17:04 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 17:04 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 17:06 UTC] [process_run] Processing run_complete_20260626T165615Z.md
+- [2026-06-26 17:06 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c6c9caf_20260626T165615Z.json
+- [2026-06-26 17:06 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 17:06 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 17:06 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 17:06 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 17:06 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 17:06 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 17:06 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 17:06 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 17:06 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 17:06 UTC] [process_run] Publishing market price feed
+- [2026-06-26 17:06 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 17:06 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 17:06 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 17:06 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 17:13 UTC] [process_run] Processing run_complete_20260626T165615Z.md
+- [2026-06-26 17:13 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c6c9caf_20260626T165615Z.json
+- [2026-06-26 17:13 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 17:13 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 17:13 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 17:13 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 17:13 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 17:13 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 17:13 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 17:13 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 17:13 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 17:13 UTC] [process_run] Publishing market price feed
+- [2026-06-26 17:13 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 17:13 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 17:13 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 17:13 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 17:14 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 17:14 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 17:14 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 17:14 UTC] [process_run] Moved run_complete_20260626T165615Z.md to done/
+- [2026-06-26 17:14 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 17:14 UTC] [process_run] Done
+- [2026-06-26 17:14 UTC] Auto-processed run complete marker
+- [2026-06-26 17:14 UTC] Waiting 60s before next run...
+- [2026-06-26 17:15 UTC] Starting run — git=2e7b6b2, json=run_output_2e7b6b2_20260626T171526Z.json
+- [2026-06-26 17:16 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 17:16 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 17:16 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 17:16 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 17:16 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 17:23 UTC] Run complete — 479s, 392 KB (run_output_2e7b6b2_20260626T171526Z.json)
+- [2026-06-26 17:23 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 479, "size_kb": 392, "json": "run_output_2e7b6b2_20260626T171526Z.json"}, "timestamp": "2026-06-26T17:23:26.493602+00:00", "session_id": null}
+- [2026-06-26 17:23 UTC] [process_run] Processing run_complete_20260626T171526Z.md
+- [2026-06-26 17:23 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_2e7b6b2_20260626T171526Z.json
+- [2026-06-26 17:23 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 17:23 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 17:23 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 17:23 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 17:23 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 17:23 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 17:23 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 17:23 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 17:23 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 17:23 UTC] [process_run] Publishing market price feed
+- [2026-06-26 17:23 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 17:23 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 17:23 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 17:23 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 17:23 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 17:23 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 17:23 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 17:26 UTC] [process_run] Processing run_complete_20260626T171526Z.md
+- [2026-06-26 17:26 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_2e7b6b2_20260626T171526Z.json
+- [2026-06-26 17:26 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 17:26 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 17:26 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 17:26 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 17:26 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 17:26 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 17:26 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 17:26 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 17:26 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 17:26 UTC] [process_run] Publishing market price feed
+- [2026-06-26 17:26 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 17:26 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 17:26 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 17:26 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 17:33 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 17:33 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 17:33 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 17:33 UTC] [process_run] Moved run_complete_20260626T171526Z.md to done/
+- [2026-06-26 17:33 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 17:33 UTC] [process_run] Done
+- [2026-06-26 17:33 UTC] Auto-processed run complete marker
+- [2026-06-26 17:33 UTC] Waiting 60s before next run...
+- [2026-06-26 17:34 UTC] Starting run — git=60a017d, json=run_output_60a017d_20260626T173435Z.json
+- [2026-06-26 17:36 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 17:36 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 17:36 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 17:36 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 17:36 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 17:42 UTC] Run complete — 486s, 392 KB (run_output_60a017d_20260626T173435Z.json)
+- [2026-06-26 17:42 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 486, "size_kb": 392, "json": "run_output_60a017d_20260626T173435Z.json"}, "timestamp": "2026-06-26T17:42:41.492843+00:00", "session_id": null}
+- [2026-06-26 17:42 UTC] [process_run] Processing run_complete_20260626T173435Z.md
+- [2026-06-26 17:42 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_60a017d_20260626T173435Z.json
+- [2026-06-26 17:42 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 17:42 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 17:42 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 17:42 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 17:42 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 17:42 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 17:42 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 17:42 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 17:42 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 17:42 UTC] [process_run] Publishing market price feed
+- [2026-06-26 17:42 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 17:42 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 17:42 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 17:42 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 17:52 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 17:52 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 17:52 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 17:52 UTC] [process_run] Moved run_complete_20260626T173435Z.md to done/
+- [2026-06-26 17:52 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 17:52 UTC] [process_run] Done
+- [2026-06-26 17:52 UTC] Auto-processed run complete marker
+- [2026-06-26 17:52 UTC] Waiting 60s before next run...
+- [2026-06-26 17:53 UTC] Starting run — git=9745466, json=run_output_9745466_20260626T175351Z.json
+- [2026-06-26 18:03 UTC] Run complete — 587s, 392 KB (run_output_9745466_20260626T175351Z.json)
+- [2026-06-26 18:03 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 587, "size_kb": 392, "json": "run_output_9745466_20260626T175351Z.json"}, "timestamp": "2026-06-26T18:03:38.115320+00:00", "session_id": null}
+- [2026-06-26 18:03 UTC] [process_run] Processing run_complete_20260626T175351Z.md
+- [2026-06-26 18:03 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_9745466_20260626T175351Z.json
+- [2026-06-26 18:03 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 18:03 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 18:03 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 18:03 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 18:03 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 18:03 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 18:03 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 18:03 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 18:03 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 18:03 UTC] [process_run] Publishing market price feed
+- [2026-06-26 18:03 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 18:03 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 18:03 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 18:03 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 18:08 UTC] [process_run] Processing run_complete_20260626T175351Z.md
+- [2026-06-26 18:08 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_9745466_20260626T175351Z.json
+- [2026-06-26 18:08 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 18:08 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 18:08 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 18:08 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 18:08 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 18:08 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 18:08 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 18:08 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 18:08 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 18:08 UTC] [process_run] Publishing market price feed
+- [2026-06-26 18:08 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 18:08 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 18:08 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 18:08 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 18:11 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 18:11 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 18:11 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 18:11 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 18:13 UTC] [process_run] Processing run_complete_20260626T175351Z.md
+- [2026-06-26 18:13 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_9745466_20260626T175351Z.json
+- [2026-06-26 18:13 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 18:13 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 18:13 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 18:13 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 18:13 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 18:13 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 18:13 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 18:13 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 18:13 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 18:13 UTC] [process_run] Publishing market price feed
+- [2026-06-26 18:13 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 18:13 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 18:13 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 18:13 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 18:13 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 18:13 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 18:13 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 18:13 UTC] [process_run] Moved run_complete_20260626T175351Z.md to done/
+- [2026-06-26 18:13 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 18:13 UTC] [process_run] Done
+- [2026-06-26 18:13 UTC] Auto-processed run complete marker
+- [2026-06-26 18:13 UTC] Waiting 60s before next run...
+- [2026-06-26 18:14 UTC] Starting run — git=c554741, json=run_output_c554741_20260626T181447Z.json
+- [2026-06-26 18:18 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 18:18 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 18:18 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 18:18 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 18:18 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 18:18 UTC] [process_run] run_complete_20260626T175351Z.md already in done/ (processed concurrently)
+- [2026-06-26 18:18 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 18:18 UTC] [process_run] Done
+- [2026-06-26 18:26 UTC] Run complete — 702s, 392 KB (run_output_c554741_20260626T181447Z.json)
+- [2026-06-26 18:26 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 702, "size_kb": 392, "json": "run_output_c554741_20260626T181447Z.json"}, "timestamp": "2026-06-26T18:26:29.400791+00:00", "session_id": null}
+- [2026-06-26 18:26 UTC] [process_run] Processing run_complete_20260626T181447Z.md
+- [2026-06-26 18:26 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c554741_20260626T181447Z.json
+- [2026-06-26 18:26 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 18:26 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 18:26 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 18:26 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 18:26 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 18:26 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 18:26 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 18:26 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 18:26 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 18:26 UTC] [process_run] Publishing market price feed
+- [2026-06-26 18:26 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 18:26 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 18:26 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 18:26 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 18:32 UTC] [process_run] Processing run_complete_20260626T181447Z.md
+- [2026-06-26 18:32 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c554741_20260626T181447Z.json
+- [2026-06-26 18:32 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 18:32 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 18:32 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 18:32 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 18:32 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 18:32 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 18:32 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 18:32 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 18:32 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 18:32 UTC] [process_run] Publishing market price feed
+- [2026-06-26 18:32 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 18:32 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 18:32 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 18:32 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 18:33 UTC] [process_run] Processing run_complete_20260626T181447Z.md
+- [2026-06-26 18:33 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c554741_20260626T181447Z.json
+- [2026-06-26 18:33 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 18:33 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 18:33 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 18:33 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 18:33 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 18:33 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 18:33 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 18:33 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 18:33 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 18:33 UTC] [process_run] Publishing market price feed
+- [2026-06-26 18:33 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 18:33 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 18:33 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 18:33 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 18:34 UTC] [process_run] Processing run_complete_20260626T181447Z.md
+- [2026-06-26 18:34 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c554741_20260626T181447Z.json
+- [2026-06-26 18:34 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 18:34 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 18:34 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 18:34 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 18:34 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 18:34 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 18:34 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 18:34 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 18:34 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 18:34 UTC] [process_run] Publishing market price feed
+- [2026-06-26 18:34 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 18:34 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 18:34 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 18:34 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 18:36 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 18:36 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 18:36 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 18:36 UTC] [process_run] Moved run_complete_20260626T181447Z.md to done/
+- [2026-06-26 18:36 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 18:36 UTC] [process_run] Done
+- [2026-06-26 18:36 UTC] Auto-processed run complete marker
+- [2026-06-26 18:36 UTC] Waiting 60s before next run...
+- [2026-06-26 18:37 UTC] Starting run — git=587c945, json=run_output_587c945_20260626T183738Z.json
+- [2026-06-26 18:42 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 18:42 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 18:42 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 18:42 UTC] [process_run] run_complete_20260626T181447Z.md already in done/ (processed concurrently)
+- [2026-06-26 18:42 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 18:42 UTC] [process_run] Done
+- [2026-06-26 18:43 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 18:43 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 18:43 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 18:43 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 18:43 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 18:43 UTC] [process_run] run_complete_20260626T181447Z.md already in done/ (processed concurrently)
+- [2026-06-26 18:43 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 18:43 UTC] [process_run] Done
+- [2026-06-26 18:44 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 18:44 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 18:44 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 18:44 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 18:44 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 18:44 UTC] [process_run] run_complete_20260626T181447Z.md already in done/ (processed concurrently)
+- [2026-06-26 18:44 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 18:44 UTC] [process_run] Done
+- [2026-06-26 18:45 UTC] Run complete — 487s, 392 KB (run_output_587c945_20260626T183738Z.json)
+- [2026-06-26 18:45 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 487, "size_kb": 392, "json": "run_output_587c945_20260626T183738Z.json"}, "timestamp": "2026-06-26T18:45:45.522261+00:00", "session_id": null}
+- [2026-06-26 18:45 UTC] [process_run] Processing run_complete_20260626T183738Z.md
+- [2026-06-26 18:45 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_587c945_20260626T183738Z.json
+- [2026-06-26 18:45 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 18:45 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 18:45 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 18:45 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 18:45 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 18:45 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 18:45 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 18:45 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 18:45 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 18:45 UTC] [process_run] Publishing market price feed
+- [2026-06-26 18:45 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 18:45 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 18:45 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 18:45 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 18:49 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 18:49 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 18:49 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 18:49 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 18:51 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 18:51 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 18:51 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 18:51 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 18:53 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 18:53 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 18:53 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 18:53 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 18:55 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 18:55 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 18:55 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 18:55 UTC] [process_run] Moved run_complete_20260626T183738Z.md to done/
+- [2026-06-26 18:55 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,330,126
+- [2026-06-26 18:55 UTC] [process_run] Done
+- [2026-06-26 18:55 UTC] Auto-processed run complete marker
+- [2026-06-26 18:55 UTC] Waiting 60s before next run...
+- [2026-06-26 18:56 UTC] Starting run — git=559f25f, json=run_output_559f25f_20260626T185654Z.json
+- [2026-06-26 19:04 UTC] Run complete — 475s, 392 KB (run_output_559f25f_20260626T185654Z.json)
+- [2026-06-26 19:04 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 475, "size_kb": 392, "json": "run_output_559f25f_20260626T185654Z.json"}, "timestamp": "2026-06-26T19:04:49.987247+00:00", "session_id": null}
+- [2026-06-26 19:04 UTC] [process_run] Processing run_complete_20260626T185654Z.md
+- [2026-06-26 19:04 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_559f25f_20260626T185654Z.json
+- [2026-06-26 19:04 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 19:04 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 19:04 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 19:04 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 19:04 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 19:04 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 19:04 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 19:04 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 19:04 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 19:04 UTC] [process_run] Publishing market price feed
+- [2026-06-26 19:04 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 19:04 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 19:04 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 19:04 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 19:04 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 19:04 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 19:14 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 19:14 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 19:14 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 19:14 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 19:14 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 19:14 UTC] [process_run] run_complete_20260626T185654Z.md already in done/ (processed concurrently)
+- [2026-06-26 19:14 UTC] [process_run] Done
+- [2026-06-26 19:14 UTC] Auto-processed run complete marker
+- [2026-06-26 19:14 UTC] Waiting 60s before next run...
+- [2026-06-26 19:15 UTC] Starting run — git=6905b10, json=run_output_6905b10_20260626T191559Z.json
+- [2026-06-26 19:24 UTC] Run complete — 492s, 392 KB (run_output_6905b10_20260626T191559Z.json)
+- [2026-06-26 19:24 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 492, "size_kb": 392, "json": "run_output_6905b10_20260626T191559Z.json"}, "timestamp": "2026-06-26T19:24:11.258435+00:00", "session_id": null}
+- [2026-06-26 19:24 UTC] [process_run] Processing run_complete_20260626T191559Z.md
+- [2026-06-26 19:24 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_6905b10_20260626T191559Z.json
+- [2026-06-26 19:24 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 19:24 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 19:24 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 19:24 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 19:24 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 19:24 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 19:24 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 19:24 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 19:24 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 19:24 UTC] [process_run] Publishing market price feed
+- [2026-06-26 19:24 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 19:24 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 19:24 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 19:24 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 19:24 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 19:24 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 19:28 UTC] [process_run] Processing run_complete_20260626T191559Z.md
+- [2026-06-26 19:28 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_6905b10_20260626T191559Z.json
+- [2026-06-26 19:28 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 19:28 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 19:28 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 19:28 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 19:28 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 19:28 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 19:28 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 19:28 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 19:28 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 19:28 UTC] [process_run] Publishing market price feed
+- [2026-06-26 19:28 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 19:28 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 19:28 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 19:28 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 19:28 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 19:28 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 19:34 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 19:34 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 19:34 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 19:34 UTC] [process_run] Moved run_complete_20260626T191559Z.md to done/
+- [2026-06-26 19:34 UTC] [process_run] Done
+- [2026-06-26 19:34 UTC] Auto-processed run complete marker
+- [2026-06-26 19:34 UTC] Waiting 60s before next run...
+- [2026-06-26 19:35 UTC] Starting run — git=02067ff, json=run_output_02067ff_20260626T193521Z.json
+- [2026-06-26 19:38 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 19:38 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 19:38 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 19:38 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 19:38 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 19:38 UTC] [process_run] run_complete_20260626T191559Z.md already in done/ (processed concurrently)
+- [2026-06-26 19:38 UTC] [process_run] Done
+- [2026-06-26 19:43 UTC] Run complete — 484s, 392 KB (run_output_02067ff_20260626T193521Z.json)
+- [2026-06-26 19:43 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 484, "size_kb": 392, "json": "run_output_02067ff_20260626T193521Z.json"}, "timestamp": "2026-06-26T19:43:25.897361+00:00", "session_id": null}
+- [2026-06-26 19:43 UTC] [process_run] Processing run_complete_20260626T193521Z.md
+- [2026-06-26 19:43 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_02067ff_20260626T193521Z.json
+- [2026-06-26 19:43 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 19:43 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 19:43 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 19:43 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 19:43 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 19:43 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 19:43 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 19:43 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 19:43 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 19:43 UTC] [process_run] Publishing market price feed
+- [2026-06-26 19:43 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 19:43 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 19:43 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 19:43 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 19:43 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 19:43 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 19:43 UTC] [process_run] Processing run_complete_20260626T193521Z.md
+- [2026-06-26 19:43 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_02067ff_20260626T193521Z.json
+- [2026-06-26 19:43 UTC] [process_run] Processing run_complete_20260626T193521Z.md
+- [2026-06-26 19:43 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_02067ff_20260626T193521Z.json
+- [2026-06-26 19:43 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 19:43 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 19:43 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 19:43 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 19:43 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 19:43 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 19:43 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 19:43 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 19:43 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 19:43 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 19:43 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 19:43 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 19:43 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 19:43 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 19:43 UTC] [process_run] Publishing market price feed
+- [2026-06-26 19:43 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 19:43 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 19:43 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 19:43 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 19:43 UTC] [process_run] Publishing market price feed
+- [2026-06-26 19:43 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 19:43 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 19:43 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 19:43 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 19:43 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 19:43 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 19:43 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 19:43 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 19:43 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 19:43 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 19:43 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 19:43 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 19:53 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 19:53 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 19:53 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 19:53 UTC] [process_run] Moved run_complete_20260626T193521Z.md to done/
+- [2026-06-26 19:53 UTC] [process_run] Done
+- [2026-06-26 19:53 UTC] Auto-processed run complete marker
+- [2026-06-26 19:53 UTC] Waiting 60s before next run...
+- [2026-06-26 19:53 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 19:53 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 19:53 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 19:53 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 19:53 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 19:53 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 19:53 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 19:53 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 19:53 UTC] [process_run] run_complete_20260626T193521Z.md already in done/ (processed concurrently)
+- [2026-06-26 19:53 UTC] [process_run] Done
+- [2026-06-26 19:53 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 19:53 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 19:53 UTC] [process_run] run_complete_20260626T193521Z.md already in done/ (processed concurrently)
+- [2026-06-26 19:53 UTC] [process_run] Done
+- [2026-06-26 19:54 UTC] Starting run — git=1c4d12b, json=run_output_1c4d12b_20260626T195435Z.json
+- [2026-06-26 20:08 UTC] Run complete — 828s, 392 KB (run_output_1c4d12b_20260626T195435Z.json)
+- [2026-06-26 20:08 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 828, "size_kb": 392, "json": "run_output_1c4d12b_20260626T195435Z.json"}, "timestamp": "2026-06-26T20:08:23.314117+00:00", "session_id": null}
+- [2026-06-26 20:08 UTC] [process_run] Processing run_complete_20260626T195435Z.md
+- [2026-06-26 20:08 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_1c4d12b_20260626T195435Z.json
+- [2026-06-26 20:08 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 20:08 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 20:08 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 20:08 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 20:08 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 20:08 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 20:08 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 20:08 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 20:08 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 20:08 UTC] [process_run] Publishing market price feed
+- [2026-06-26 20:08 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 20:08 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 20:08 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 20:08 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 20:08 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 20:08 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 20:08 UTC] [process_run] Processing run_complete_20260626T195435Z.md
+- [2026-06-26 20:08 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_1c4d12b_20260626T195435Z.json
+- [2026-06-26 20:08 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 20:08 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 20:08 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 20:08 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 20:08 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 20:09 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 20:09 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 20:09 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 20:09 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 20:09 UTC] [process_run] Publishing market price feed
+- [2026-06-26 20:09 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 20:09 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 20:09 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 20:09 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 20:09 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 20:09 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 20:18 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 20:18 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 20:18 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 20:18 UTC] [process_run] Moved run_complete_20260626T195435Z.md to done/
+- [2026-06-26 20:18 UTC] [process_run] Done
+- [2026-06-26 20:18 UTC] Auto-processed run complete marker
+- [2026-06-26 20:18 UTC] Waiting 60s before next run...
+- [2026-06-26 20:19 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 20:19 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 20:19 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 20:19 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 20:19 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 20:19 UTC] [process_run] run_complete_20260626T195435Z.md already in done/ (processed concurrently)
+- [2026-06-26 20:19 UTC] [process_run] Done
+- [2026-06-26 20:19 UTC] Starting run — git=ed1a5ee, json=run_output_ed1a5ee_20260626T201935Z.json
+- [2026-06-26 20:26 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 20:26 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 20:26 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 20:26 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 20:28 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 20:28 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 20:28 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 20:28 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 20:33 UTC] [process_run] NTFY sent: administration event on 2021-06-30
+- [2026-06-26 20:33 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 20:33 UTC] [process_run] NTFY sent: [NEW LOW] net margin £1,000,000
+- [2026-06-26 20:33 UTC] [process_run] NTFY sent: [NEW HIGH] net margin £6,500,000
+- [2026-06-26 20:33 UTC] Run complete — 840s, 392 KB (run_output_ed1a5ee_20260626T201935Z.json)
+- [2026-06-26 20:33 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 840, "size_kb": 392, "json": "run_output_ed1a5ee_20260626T201935Z.json"}, "timestamp": "2026-06-26T20:33:36.087934+00:00", "session_id": null}
+- [2026-06-26 20:33 UTC] [process_run] Processing run_complete_20260626T201935Z.md
+- [2026-06-26 20:33 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_ed1a5ee_20260626T201935Z.json
+- [2026-06-26 20:33 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 20:33 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 20:33 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 20:33 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 20:33 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 20:33 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 20:33 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 20:33 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 20:33 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 20:33 UTC] [process_run] Publishing market price feed
+- [2026-06-26 20:33 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 20:33 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 20:33 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 20:33 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 20:33 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 20:33 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 20:43 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 20:43 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 20:43 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 20:43 UTC] [process_run] Moved run_complete_20260626T201935Z.md to done/
+- [2026-06-26 20:43 UTC] [process_run] Done
+- [2026-06-26 20:43 UTC] Auto-processed run complete marker
+- [2026-06-26 20:43 UTC] Waiting 60s before next run...
+- [2026-06-26 20:44 UTC] Starting run — git=7aa87eb, json=run_output_7aa87eb_20260626T204444Z.json
+- [2026-06-26 20:52 UTC] Run complete — 476s, 392 KB (run_output_7aa87eb_20260626T204444Z.json)
+- [2026-06-26 20:52 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 476, "size_kb": 392, "json": "run_output_7aa87eb_20260626T204444Z.json"}, "timestamp": "2026-06-26T20:52:40.802468+00:00", "session_id": null}
+- [2026-06-26 20:52 UTC] [process_run] Processing run_complete_20260626T204444Z.md
+- [2026-06-26 20:52 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7aa87eb_20260626T204444Z.json
+- [2026-06-26 20:52 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 20:52 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 20:52 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 20:52 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 20:52 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 20:52 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 20:52 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 20:52 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 20:52 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 20:52 UTC] [process_run] Publishing market price feed
+- [2026-06-26 20:52 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 20:52 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 20:52 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 20:52 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 20:52 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 20:52 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 20:53 UTC] [process_run] Processing run_complete_20260626T204444Z.md
+- [2026-06-26 20:53 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7aa87eb_20260626T204444Z.json
+- [2026-06-26 20:54 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 20:54 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 20:54 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 20:54 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 20:54 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 20:54 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 20:54 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 20:54 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 20:54 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 20:54 UTC] [process_run] Publishing market price feed
+- [2026-06-26 20:54 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 20:54 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 20:54 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 20:54 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 20:54 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 20:54 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 20:57 UTC] [process_run] Processing run_complete_20260626T204444Z.md
+- [2026-06-26 20:57 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7aa87eb_20260626T204444Z.json
+- [2026-06-26 20:57 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 20:57 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 20:57 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 20:57 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 20:57 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 20:57 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 20:57 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 20:57 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 20:57 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 20:57 UTC] [process_run] Publishing market price feed
+- [2026-06-26 20:58 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 20:58 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 20:58 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 20:58 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 20:58 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 20:58 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 21:02 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 21:02 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 21:02 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 21:02 UTC] [process_run] Moved run_complete_20260626T204444Z.md to done/
+- [2026-06-26 21:02 UTC] [process_run] Done
+- [2026-06-26 21:02 UTC] Auto-processed run complete marker
+- [2026-06-26 21:02 UTC] Waiting 60s before next run...
+- [2026-06-26 21:03 UTC] Starting run — git=1b27a91, json=run_output_1b27a91_20260626T210349Z.json
+- [2026-06-26 21:04 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 21:04 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 21:04 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 21:04 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 21:04 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 21:04 UTC] [process_run] run_complete_20260626T204444Z.md already in done/ (processed concurrently)
+- [2026-06-26 21:04 UTC] [process_run] Done
+- [2026-06-26 21:08 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 21:08 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 21:08 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 21:08 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 21:08 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 21:08 UTC] [process_run] run_complete_20260626T204444Z.md already in done/ (processed concurrently)
+- [2026-06-26 21:08 UTC] [process_run] Done
+- [2026-06-26 21:11 UTC] Run complete — 486s, 392 KB (run_output_1b27a91_20260626T210349Z.json)
+- [2026-06-26 21:11 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 486, "size_kb": 392, "json": "run_output_1b27a91_20260626T210349Z.json"}, "timestamp": "2026-06-26T21:11:55.426304+00:00", "session_id": null}
+- [2026-06-26 21:11 UTC] [process_run] Processing run_complete_20260626T210349Z.md
+- [2026-06-26 21:11 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_1b27a91_20260626T210349Z.json
+- [2026-06-26 21:12 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 21:12 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 21:12 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 21:12 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 21:12 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 21:12 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 21:12 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 21:12 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 21:12 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 21:12 UTC] [process_run] Publishing market price feed
+- [2026-06-26 21:12 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 21:12 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 21:12 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 21:12 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 21:12 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 21:12 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 21:18 UTC] [process_run] Processing run_complete_20260626T210349Z.md
+- [2026-06-26 21:18 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_1b27a91_20260626T210349Z.json
+- [2026-06-26 21:18 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 21:18 UTC] [process_run] Created 'Latest simulation results' block in LATEST.md
+- [2026-06-26 21:18 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 21:18 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 21:18 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 21:18 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 21:18 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 21:18 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 21:18 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 21:18 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 21:18 UTC] [process_run] Publishing market price feed
+- [2026-06-26 21:18 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 21:18 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 21:18 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 21:18 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 21:18 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 21:18 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 21:22 UTC] [process_run] Processing run_complete_20260626T210349Z.md
+- [2026-06-26 21:22 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_1b27a91_20260626T210349Z.json
+- [2026-06-26 21:22 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 21:22 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 21:22 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 21:22 UTC] [process_run] Moved run_complete_20260626T210349Z.md to done/
+- [2026-06-26 21:22 UTC] [process_run] Done
+- [2026-06-26 21:22 UTC] Auto-processed run complete marker
+- [2026-06-26 21:22 UTC] Waiting 60s before next run...
+- [2026-06-26 21:22 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 21:22 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 21:22 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 21:22 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 21:22 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 21:22 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 21:22 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 21:22 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 21:22 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 21:22 UTC] [process_run] Publishing market price feed
+- [2026-06-26 21:22 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 21:22 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 21:22 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 21:22 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 21:22 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 21:22 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 21:23 UTC] Starting run — git=945ebbb, json=run_output_945ebbb_20260626T212306Z.json
+- [2026-06-26 21:28 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 21:28 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 21:28 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 21:28 UTC] [process_run] run_complete_20260626T210349Z.md already in done/ (processed concurrently)
+- [2026-06-26 21:28 UTC] [process_run] Done
+- [2026-06-26 21:31 UTC] Run complete — 475s, 392 KB (run_output_945ebbb_20260626T212306Z.json)
+- [2026-06-26 21:31 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 475, "size_kb": 392, "json": "run_output_945ebbb_20260626T212306Z.json"}, "timestamp": "2026-06-26T21:31:02.020856+00:00", "session_id": null}
+- [2026-06-26 21:31 UTC] [process_run] Processing run_complete_20260626T212306Z.md
+- [2026-06-26 21:31 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_945ebbb_20260626T212306Z.json
+- [2026-06-26 21:31 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 21:31 UTC] [process_run] Created 'Latest simulation results' block in LATEST.md
+- [2026-06-26 21:31 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 21:31 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 21:31 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 21:31 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 21:31 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 21:31 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 21:31 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 21:31 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 21:31 UTC] [process_run] Publishing market price feed
+- [2026-06-26 21:31 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 21:31 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 21:31 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 21:31 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 21:31 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 21:31 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 21:32 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 21:32 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 21:32 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 21:32 UTC] [process_run] run_complete_20260626T210349Z.md already in done/ (processed concurrently)
+- [2026-06-26 21:32 UTC] [process_run] Done
+- [2026-06-26 21:34 UTC] [process_run] Processing run_complete_20260626T212306Z.md
+- [2026-06-26 21:34 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_945ebbb_20260626T212306Z.json
+- [2026-06-26 21:34 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 21:34 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 21:34 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 21:34 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 21:34 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 21:34 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 21:34 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 21:34 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 21:34 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 21:34 UTC] [process_run] Publishing market price feed
+- [2026-06-26 21:34 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 21:34 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 21:34 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 21:34 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 21:34 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 21:34 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 21:41 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 21:41 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 21:41 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 21:41 UTC] [process_run] run_complete_20260626T212306Z.md already in done/ (processed concurrently)
+- [2026-06-26 21:41 UTC] [process_run] Done
+- [2026-06-26 21:41 UTC] Auto-processed run complete marker
+- [2026-06-26 21:41 UTC] Waiting 60s before next run...
+- [2026-06-26 21:42 UTC] Starting run — git=6f5990b, json=run_output_6f5990b_20260626T214213Z.json
+- [2026-06-26 21:44 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 21:44 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 21:44 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 21:44 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 21:44 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 21:44 UTC] [process_run] run_complete_20260626T212306Z.md already in done/ (processed concurrently)
+- [2026-06-26 21:44 UTC] [process_run] Done
+- [2026-06-26 21:50 UTC] Run complete — 474s, 392 KB (run_output_6f5990b_20260626T214213Z.json)
+- [2026-06-26 21:50 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 474, "size_kb": 392, "json": "run_output_6f5990b_20260626T214213Z.json"}, "timestamp": "2026-06-26T21:50:06.884724+00:00", "session_id": null}
+- [2026-06-26 21:50 UTC] [process_run] Processing run_complete_20260626T214213Z.md
+- [2026-06-26 21:50 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_6f5990b_20260626T214213Z.json
+- [2026-06-26 21:50 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 21:50 UTC] [process_run] Created 'Latest simulation results' block in LATEST.md
+- [2026-06-26 21:50 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 21:50 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 21:50 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 21:50 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 21:50 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 21:50 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 21:50 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 21:50 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 21:50 UTC] [process_run] Publishing market price feed
+- [2026-06-26 21:50 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 21:50 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 21:50 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 21:50 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 21:50 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 21:50 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 22:00 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 22:00 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 22:00 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 22:00 UTC] [process_run] Moved run_complete_20260626T214213Z.md to done/
+- [2026-06-26 22:00 UTC] [process_run] Done
+- [2026-06-26 22:00 UTC] Auto-processed run complete marker
+- [2026-06-26 22:00 UTC] Waiting 60s before next run...
+- [2026-06-26 22:01 UTC] Starting run — git=726e712, json=run_output_726e712_20260626T220115Z.json
+- [2026-06-26 22:09 UTC] Run complete — 493s, 392 KB (run_output_726e712_20260626T220115Z.json)
+- [2026-06-26 22:09 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 493, "size_kb": 392, "json": "run_output_726e712_20260626T220115Z.json"}, "timestamp": "2026-06-26T22:09:28.396013+00:00", "session_id": null}
+- [2026-06-26 22:09 UTC] [process_run] Processing run_complete_20260626T220115Z.md
+- [2026-06-26 22:09 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_726e712_20260626T220115Z.json
+- [2026-06-26 22:09 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 22:09 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 22:09 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 22:09 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 22:09 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 22:09 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 22:09 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 22:09 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 22:09 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 22:09 UTC] [process_run] Publishing market price feed
+- [2026-06-26 22:09 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 22:09 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 22:09 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 22:09 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 22:09 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 22:09 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 22:14 UTC] [process_run] Processing run_complete_20260626T220115Z.md
+- [2026-06-26 22:14 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_726e712_20260626T220115Z.json
+- [2026-06-26 22:14 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 22:14 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 22:14 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 22:14 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 22:14 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 22:14 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 22:14 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 22:14 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 22:14 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 22:14 UTC] [process_run] Publishing market price feed
+- [2026-06-26 22:14 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 22:14 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 22:14 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 22:14 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 22:14 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 22:14 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 22:19 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 22:19 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 22:19 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 22:19 UTC] [process_run] Moved run_complete_20260626T220115Z.md to done/
+- [2026-06-26 22:19 UTC] [process_run] Done
+- [2026-06-26 22:19 UTC] Auto-processed run complete marker
+- [2026-06-26 22:19 UTC] Waiting 60s before next run...
+- [2026-06-26 22:20 UTC] Starting run — git=27a8ec7, json=run_output_27a8ec7_20260626T222040Z.json
+- [2026-06-26 22:24 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 22:24 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 22:24 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 22:24 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 22:24 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 22:24 UTC] [process_run] run_complete_20260626T220115Z.md already in done/ (processed concurrently)
+- [2026-06-26 22:24 UTC] [process_run] Done
+- [2026-06-26 22:28 UTC] Run complete — 475s, 392 KB (run_output_27a8ec7_20260626T222040Z.json)
+- [2026-06-26 22:28 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 475, "size_kb": 392, "json": "run_output_27a8ec7_20260626T222040Z.json"}, "timestamp": "2026-06-26T22:28:36.083627+00:00", "session_id": null}
+- [2026-06-26 22:28 UTC] [process_run] Processing run_complete_20260626T222040Z.md
+- [2026-06-26 22:28 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_27a8ec7_20260626T222040Z.json
+- [2026-06-26 22:28 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 22:28 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 22:28 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 22:28 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 22:28 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 22:28 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 22:28 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 22:28 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 22:28 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 22:28 UTC] [process_run] Publishing market price feed
+- [2026-06-26 22:28 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 22:28 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 22:28 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 22:28 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 22:28 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 22:28 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 22:38 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 22:38 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 22:38 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 22:38 UTC] [process_run] Moved run_complete_20260626T222040Z.md to done/
+- [2026-06-26 22:38 UTC] [process_run] Done
+- [2026-06-26 22:38 UTC] Auto-processed run complete marker
+- [2026-06-26 22:38 UTC] Waiting 60s before next run...
+- [2026-06-26 22:39 UTC] Starting run — git=a87f103, json=run_output_a87f103_20260626T223945Z.json
+- [2026-06-26 22:47 UTC] Run complete — 482s, 392 KB (run_output_a87f103_20260626T223945Z.json)
+- [2026-06-26 22:47 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 482, "size_kb": 392, "json": "run_output_a87f103_20260626T223945Z.json"}, "timestamp": "2026-06-26T22:47:47.521307+00:00", "session_id": null}
+- [2026-06-26 22:47 UTC] [process_run] Processing run_complete_20260626T223945Z.md
+- [2026-06-26 22:47 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_a87f103_20260626T223945Z.json
+- [2026-06-26 22:47 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 22:47 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 22:47 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 22:47 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 22:47 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 22:47 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 22:47 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 22:47 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 22:47 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 22:47 UTC] [process_run] Publishing market price feed
+- [2026-06-26 22:47 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 22:47 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 22:47 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 22:47 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 22:47 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 22:47 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 22:54 UTC] [process_run] Processing run_complete_20260626T223945Z.md
+- [2026-06-26 22:54 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_a87f103_20260626T223945Z.json
+- [2026-06-26 22:54 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 22:54 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 22:54 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 22:54 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 22:54 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 22:54 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 22:54 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 22:54 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 22:54 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 22:54 UTC] [process_run] Publishing market price feed
+- [2026-06-26 22:54 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 22:54 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 22:54 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 22:54 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 22:54 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 22:54 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 22:57 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 22:57 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 22:57 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 22:57 UTC] [process_run] Moved run_complete_20260626T223945Z.md to done/
+- [2026-06-26 22:57 UTC] [process_run] Done
+- [2026-06-26 22:57 UTC] Auto-processed run complete marker
+- [2026-06-26 22:57 UTC] Waiting 60s before next run...
+- [2026-06-26 22:58 UTC] Starting run — git=e777065, json=run_output_e777065_20260626T225856Z.json
+- [2026-06-26 23:04 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 23:04 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 23:04 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 23:04 UTC] [process_run] run_complete_20260626T223945Z.md already in done/ (processed concurrently)
+- [2026-06-26 23:04 UTC] [process_run] Done
+- [2026-06-26 23:06 UTC] Run complete — 478s, 392 KB (run_output_e777065_20260626T225856Z.json)
+- [2026-06-26 23:06 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 478, "size_kb": 392, "json": "run_output_e777065_20260626T225856Z.json"}, "timestamp": "2026-06-26T23:06:54.962979+00:00", "session_id": null}
+- [2026-06-26 23:06 UTC] [process_run] Processing run_complete_20260626T225856Z.md
+- [2026-06-26 23:06 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_e777065_20260626T225856Z.json
+- [2026-06-26 23:06 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 23:06 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 23:07 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 23:07 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 23:07 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 23:07 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 23:07 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 23:07 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 23:07 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 23:07 UTC] [process_run] Publishing market price feed
+- [2026-06-26 23:07 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 23:07 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 23:07 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 23:07 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 23:07 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 23:07 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 23:17 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 23:17 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 23:17 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 23:17 UTC] [process_run] Moved run_complete_20260626T225856Z.md to done/
+- [2026-06-26 23:17 UTC] [process_run] Done
+- [2026-06-26 23:17 UTC] Auto-processed run complete marker
+- [2026-06-26 23:17 UTC] Waiting 60s before next run...
+- [2026-06-26 23:18 UTC] Starting run — git=ed6475c, json=run_output_ed6475c_20260626T231805Z.json
+- [2026-06-26 23:26 UTC] Run complete — 477s, 392 KB (run_output_ed6475c_20260626T231805Z.json)
+- [2026-06-26 23:26 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 477, "size_kb": 392, "json": "run_output_ed6475c_20260626T231805Z.json"}, "timestamp": "2026-06-26T23:26:02.420304+00:00", "session_id": null}
+- [2026-06-26 23:26 UTC] [process_run] Processing run_complete_20260626T231805Z.md
+- [2026-06-26 23:26 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_ed6475c_20260626T231805Z.json
+- [2026-06-26 23:26 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 23:26 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 23:26 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 23:26 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 23:26 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 23:26 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 23:26 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 23:26 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 23:26 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 23:26 UTC] [process_run] Publishing market price feed
+- [2026-06-26 23:26 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 23:26 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 23:26 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 23:26 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 23:26 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 23:26 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 23:34 UTC] [process_run] Processing run_complete_20260626T231805Z.md
+- [2026-06-26 23:34 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_ed6475c_20260626T231805Z.json
+- [2026-06-26 23:34 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 23:34 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 23:34 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 23:34 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 23:34 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 23:34 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 23:34 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 23:34 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 23:34 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 23:34 UTC] [process_run] Publishing market price feed
+- [2026-06-26 23:34 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 23:34 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 23:34 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 23:34 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 23:34 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 23:34 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 23:36 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 23:36 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 23:36 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 23:36 UTC] [process_run] Moved run_complete_20260626T231805Z.md to done/
+- [2026-06-26 23:36 UTC] [process_run] Done
+- [2026-06-26 23:36 UTC] Auto-processed run complete marker
+- [2026-06-26 23:36 UTC] Waiting 60s before next run...
+- [2026-06-26 23:37 UTC] Starting run — git=c417c80, json=run_output_c417c80_20260626T233711Z.json
+- [2026-06-26 23:44 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 23:44 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 23:44 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 23:44 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-26 23:44 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-26 23:44 UTC] [process_run] run_complete_20260626T231805Z.md already in done/ (processed concurrently)
+- [2026-06-26 23:44 UTC] [process_run] Done
+- [2026-06-26 23:45 UTC] Run complete — 485s, 392 KB (run_output_c417c80_20260626T233711Z.json)
+- [2026-06-26 23:45 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 485, "size_kb": 392, "json": "run_output_c417c80_20260626T233711Z.json"}, "timestamp": "2026-06-26T23:45:16.938429+00:00", "session_id": null}
+- [2026-06-26 23:45 UTC] [process_run] Processing run_complete_20260626T233711Z.md
+- [2026-06-26 23:45 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c417c80_20260626T233711Z.json
+- [2026-06-26 23:45 UTC] [process_run] Updating LATEST.md
+- [2026-06-26 23:45 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-26 23:45 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-26 23:45 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-26 23:45 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-26 23:45 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-26 23:45 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-26 23:45 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-26 23:45 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-26 23:45 UTC] [process_run] Publishing market price feed
+- [2026-06-26 23:45 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-26 23:45 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-26 23:45 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-26 23:45 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-26 23:45 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-26 23:45 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-26 23:55 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-26 23:55 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-26 23:55 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-26 23:55 UTC] [process_run] Moved run_complete_20260626T233711Z.md to done/
+- [2026-06-26 23:55 UTC] [process_run] Done
+- [2026-06-26 23:55 UTC] Auto-processed run complete marker
+- [2026-06-26 23:55 UTC] Waiting 60s before next run...
+- [2026-06-26 23:56 UTC] Starting run — git=7f4599d, json=run_output_7f4599d_20260626T235627Z.json
+- [2026-06-27 00:04 UTC] Run complete — 472s, 392 KB (run_output_7f4599d_20260626T235627Z.json)
+- [2026-06-27 00:04 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 472, "size_kb": 392, "json": "run_output_7f4599d_20260626T235627Z.json"}, "timestamp": "2026-06-27T00:04:19.208661+00:00", "session_id": null}
+- [2026-06-27 00:04 UTC] [process_run] Processing run_complete_20260626T235627Z.md
+- [2026-06-27 00:04 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7f4599d_20260626T235627Z.json
+- [2026-06-27 00:04 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 00:04 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 00:04 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 00:04 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 00:04 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 00:04 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 00:04 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 00:04 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 00:04 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 00:04 UTC] [process_run] Publishing market price feed
+- [2026-06-27 00:04 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 00:04 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 00:04 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 00:04 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 00:04 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 00:04 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 00:14 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 00:14 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 00:14 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 00:14 UTC] [process_run] Moved run_complete_20260626T235627Z.md to done/
+- [2026-06-27 00:14 UTC] [process_run] Done
+- [2026-06-27 00:14 UTC] Auto-processed run complete marker
+- [2026-06-27 00:14 UTC] Waiting 60s before next run...
+- [2026-06-27 00:15 UTC] Starting run — git=a8aecc5, json=run_output_a8aecc5_20260627T001529Z.json
+- [2026-06-27 00:23 UTC] Run complete — 482s, 392 KB (run_output_a8aecc5_20260627T001529Z.json)
+- [2026-06-27 00:23 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 482, "size_kb": 392, "json": "run_output_a8aecc5_20260627T001529Z.json"}, "timestamp": "2026-06-27T00:23:31.009678+00:00", "session_id": null}
+- [2026-06-27 00:23 UTC] [process_run] Processing run_complete_20260627T001529Z.md
+- [2026-06-27 00:23 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_a8aecc5_20260627T001529Z.json
+- [2026-06-27 00:23 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 00:23 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 00:23 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 00:23 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 00:23 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 00:23 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 00:23 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 00:23 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 00:23 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 00:23 UTC] [process_run] Publishing market price feed
+- [2026-06-27 00:23 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 00:23 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 00:23 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 00:23 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 00:23 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 00:23 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 00:33 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 00:33 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 00:33 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 00:33 UTC] [process_run] Moved run_complete_20260627T001529Z.md to done/
+- [2026-06-27 00:33 UTC] [process_run] Done
+- [2026-06-27 00:33 UTC] Auto-processed run complete marker
+- [2026-06-27 00:33 UTC] Waiting 60s before next run...
+- [2026-06-27 00:34 UTC] Starting run — git=80e4757, json=run_output_80e4757_20260627T003443Z.json
+- [2026-06-27 00:42 UTC] Run complete — 486s, 392 KB (run_output_80e4757_20260627T003443Z.json)
+- [2026-06-27 00:42 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 486, "size_kb": 392, "json": "run_output_80e4757_20260627T003443Z.json"}, "timestamp": "2026-06-27T00:42:49.092803+00:00", "session_id": null}
+- [2026-06-27 00:42 UTC] [process_run] Processing run_complete_20260627T003443Z.md
+- [2026-06-27 00:42 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_80e4757_20260627T003443Z.json
+- [2026-06-27 00:42 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 00:42 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 00:42 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 00:42 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 00:42 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 00:42 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 00:42 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 00:42 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 00:42 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 00:42 UTC] [process_run] Publishing market price feed
+- [2026-06-27 00:42 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 00:42 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 00:42 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 00:42 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 00:42 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 00:42 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 00:44 UTC] [process_run] Processing run_complete_20260627T003443Z.md
+- [2026-06-27 00:44 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_80e4757_20260627T003443Z.json
+- [2026-06-27 00:44 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 00:44 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 00:44 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 00:44 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 00:44 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 00:44 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 00:44 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 00:44 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 00:44 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 00:44 UTC] [process_run] Publishing market price feed
+- [2026-06-27 00:44 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 00:44 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 00:44 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 00:44 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 00:44 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 00:44 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 00:52 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 00:52 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 00:52 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 00:53 UTC] [process_run] Moved run_complete_20260627T003443Z.md to done/
+- [2026-06-27 00:53 UTC] [process_run] Done
+- [2026-06-27 00:53 UTC] Auto-processed run complete marker
+- [2026-06-27 00:53 UTC] Waiting 60s before next run...
+- [2026-06-27 00:54 UTC] Starting run — git=002c09c, json=run_output_002c09c_20260627T005400Z.json
+- [2026-06-27 00:54 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 00:54 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 00:54 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 00:54 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-27 00:54 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-27 00:54 UTC] [process_run] run_complete_20260627T003443Z.md already in done/ (processed concurrently)
+- [2026-06-27 00:54 UTC] [process_run] Done
+- [2026-06-27 01:04 UTC] Run complete — 640s, 391 KB (run_output_002c09c_20260627T005400Z.json)
+- [2026-06-27 01:04 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 640, "size_kb": 391, "json": "run_output_002c09c_20260627T005400Z.json"}, "timestamp": "2026-06-27T01:04:40.494873+00:00", "session_id": null}
+- [2026-06-27 01:04 UTC] [process_run] Processing run_complete_20260627T005400Z.md
+- [2026-06-27 01:04 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_002c09c_20260627T005400Z.json
+- [2026-06-27 01:04 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 01:04 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 01:04 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 01:04 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 01:04 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 01:04 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 01:04 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 01:04 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 01:04 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 01:04 UTC] [process_run] Publishing market price feed
+- [2026-06-27 01:04 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 01:04 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 01:04 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 01:04 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 01:04 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 01:04 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 01:14 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 01:14 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 01:14 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 01:14 UTC] [process_run] Moved run_complete_20260627T005400Z.md to done/
+- [2026-06-27 01:14 UTC] [process_run] Done
+- [2026-06-27 01:14 UTC] Auto-processed run complete marker
+- [2026-06-27 01:14 UTC] Waiting 60s before next run...
+- [2026-06-27 01:15 UTC] Starting run — git=e6019ca, json=run_output_e6019ca_20260627T011551Z.json
+- [2026-06-27 01:24 UTC] Run complete — 496s, 392 KB (run_output_e6019ca_20260627T011551Z.json)
+- [2026-06-27 01:24 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 496, "size_kb": 392, "json": "run_output_e6019ca_20260627T011551Z.json"}, "timestamp": "2026-06-27T01:24:07.411079+00:00", "session_id": null}
+- [2026-06-27 01:24 UTC] [process_run] Processing run_complete_20260627T011551Z.md
+- [2026-06-27 01:24 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_e6019ca_20260627T011551Z.json
+- [2026-06-27 01:24 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 01:24 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 01:24 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 01:24 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 01:24 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 01:24 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 01:24 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 01:24 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 01:24 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 01:24 UTC] [process_run] Publishing market price feed
+- [2026-06-27 01:24 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 01:24 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 01:24 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 01:24 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 01:24 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 01:24 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 01:24 UTC] [process_run] Processing run_complete_20260627T011551Z.md
+- [2026-06-27 01:24 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_e6019ca_20260627T011551Z.json
+- [2026-06-27 01:24 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 01:24 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 01:24 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 01:24 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 01:24 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 01:24 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 01:24 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 01:24 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 01:24 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 01:24 UTC] [process_run] Publishing market price feed
+- [2026-06-27 01:24 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 01:24 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 01:24 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 01:24 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 01:24 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 01:24 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 01:34 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 01:34 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 01:34 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 01:34 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-27 01:34 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-27 01:34 UTC] [process_run] run_complete_20260627T011551Z.md already in done/ (processed concurrently)
+- [2026-06-27 01:34 UTC] [process_run] Done
+- [2026-06-27 01:34 UTC] Auto-processed run complete marker
+- [2026-06-27 01:34 UTC] Waiting 60s before next run...
+- [2026-06-27 01:34 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 01:34 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 01:34 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 01:34 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-27 01:34 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-27 01:34 UTC] [process_run] run_complete_20260627T011551Z.md already in done/ (processed concurrently)
+- [2026-06-27 01:34 UTC] [process_run] Done
+- [2026-06-27 01:35 UTC] Starting run — git=23bb153, json=run_output_23bb153_20260627T013518Z.json
+- [2026-06-27 01:43 UTC] Run complete — 478s, 392 KB (run_output_23bb153_20260627T013518Z.json)
+- [2026-06-27 01:43 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 478, "size_kb": 392, "json": "run_output_23bb153_20260627T013518Z.json"}, "timestamp": "2026-06-27T01:43:16.213915+00:00", "session_id": null}
+- [2026-06-27 01:43 UTC] [process_run] Processing run_complete_20260627T013518Z.md
+- [2026-06-27 01:43 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_23bb153_20260627T013518Z.json
+- [2026-06-27 01:43 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 01:43 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 01:43 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 01:43 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 01:43 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 01:43 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 01:43 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 01:43 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 01:43 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 01:43 UTC] [process_run] Publishing market price feed
+- [2026-06-27 01:43 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 01:43 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 01:43 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 01:43 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 01:43 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 01:43 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 01:53 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 01:53 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 01:53 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 01:53 UTC] [process_run] Moved run_complete_20260627T013518Z.md to done/
+- [2026-06-27 01:53 UTC] [process_run] Done
+- [2026-06-27 01:53 UTC] Auto-processed run complete marker
+- [2026-06-27 01:53 UTC] Waiting 60s before next run...
+- [2026-06-27 01:54 UTC] Starting run — git=11ab592, json=run_output_11ab592_20260627T015426Z.json
+- [2026-06-27 02:02 UTC] Run complete — 476s, 392 KB (run_output_11ab592_20260627T015426Z.json)
+- [2026-06-27 02:02 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 476, "size_kb": 392, "json": "run_output_11ab592_20260627T015426Z.json"}, "timestamp": "2026-06-27T02:02:22.763220+00:00", "session_id": null}
+- [2026-06-27 02:02 UTC] [process_run] Processing run_complete_20260627T015426Z.md
+- [2026-06-27 02:02 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_11ab592_20260627T015426Z.json
+- [2026-06-27 02:02 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 02:02 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 02:02 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 02:02 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 02:02 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 02:02 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 02:02 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 02:02 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 02:02 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 02:02 UTC] [process_run] Publishing market price feed
+- [2026-06-27 02:02 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 02:02 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 02:02 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 02:02 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 02:02 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 02:02 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 02:04 UTC] [process_run] Processing run_complete_20260627T015426Z.md
+- [2026-06-27 02:04 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_11ab592_20260627T015426Z.json
+- [2026-06-27 02:04 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 02:04 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 02:04 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 02:04 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 02:04 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 02:04 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 02:04 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 02:04 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 02:04 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 02:04 UTC] [process_run] Publishing market price feed
+- [2026-06-27 02:04 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 02:04 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 02:04 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 02:04 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 02:04 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 02:04 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 02:12 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 02:12 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 02:12 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 02:12 UTC] [process_run] Moved run_complete_20260627T015426Z.md to done/
+- [2026-06-27 02:12 UTC] [process_run] Done
+- [2026-06-27 02:12 UTC] Auto-processed run complete marker
+- [2026-06-27 02:12 UTC] Waiting 60s before next run...
+- [2026-06-27 02:13 UTC] Starting run — git=11799ad, json=run_output_11799ad_20260627T021333Z.json
+- [2026-06-27 02:14 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 02:14 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 02:14 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 02:14 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-27 02:14 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-27 02:14 UTC] [process_run] run_complete_20260627T015426Z.md already in done/ (processed concurrently)
+- [2026-06-27 02:14 UTC] [process_run] Done
+- [2026-06-27 02:21 UTC] Run complete — 482s, 392 KB (run_output_11799ad_20260627T021333Z.json)
+- [2026-06-27 02:21 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 482, "size_kb": 392, "json": "run_output_11799ad_20260627T021333Z.json"}, "timestamp": "2026-06-27T02:21:35.903545+00:00", "session_id": null}
+- [2026-06-27 02:21 UTC] [process_run] Processing run_complete_20260627T021333Z.md
+- [2026-06-27 02:21 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_11799ad_20260627T021333Z.json
+- [2026-06-27 02:21 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 02:21 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 02:21 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 02:21 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 02:21 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 02:21 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 02:21 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 02:21 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 02:21 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 02:21 UTC] [process_run] Publishing market price feed
+- [2026-06-27 02:21 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 02:21 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 02:21 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 02:21 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 02:21 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 02:21 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 02:31 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 02:31 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 02:31 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 02:31 UTC] [process_run] run_complete_20260627T021333Z.md already in done/ (processed concurrently)
+- [2026-06-27 02:31 UTC] [process_run] Done
+- [2026-06-27 02:31 UTC] Auto-processed run complete marker
+- [2026-06-27 02:31 UTC] Waiting 60s before next run...
+- [2026-06-27 02:32 UTC] Starting run — git=9d6c024, json=run_output_9d6c024_20260627T023247Z.json
+- [2026-06-27 02:41 UTC] Run complete — 514s, 392 KB (run_output_9d6c024_20260627T023247Z.json)
+- [2026-06-27 02:41 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 514, "size_kb": 392, "json": "run_output_9d6c024_20260627T023247Z.json"}, "timestamp": "2026-06-27T02:41:21.920201+00:00", "session_id": null}
+- [2026-06-27 02:41 UTC] [process_run] Processing run_complete_20260627T023247Z.md
+- [2026-06-27 02:41 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_9d6c024_20260627T023247Z.json
+- [2026-06-27 02:41 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 02:41 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 02:41 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 02:41 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 02:41 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 02:41 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 02:41 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 02:41 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 02:41 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 02:41 UTC] [process_run] Publishing market price feed
+- [2026-06-27 02:41 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 02:41 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 02:41 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 02:41 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 02:41 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 02:41 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 02:51 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 02:51 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 02:51 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 02:51 UTC] [process_run] Nothing to commit or commit failed
+- [2026-06-27 02:51 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-06-27 02:51 UTC] [process_run] run_complete_20260627T023247Z.md already in done/ (processed concurrently)
+- [2026-06-27 02:51 UTC] [process_run] Done
+- [2026-06-27 02:51 UTC] Auto-processed run complete marker
+- [2026-06-27 02:51 UTC] Waiting 60s before next run...
+- [2026-06-27 02:52 UTC] Starting run — git=067a643, json=run_output_067a643_20260627T025230Z.json
+- [2026-06-27 03:00 UTC] Run complete — 478s, 392 KB (run_output_067a643_20260627T025230Z.json)
+- [2026-06-27 03:00 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 478, "size_kb": 392, "json": "run_output_067a643_20260627T025230Z.json"}, "timestamp": "2026-06-27T03:00:28.433507+00:00", "session_id": null}
+- [2026-06-27 03:00 UTC] [process_run] Processing run_complete_20260627T025230Z.md
+- [2026-06-27 03:00 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_067a643_20260627T025230Z.json
+- [2026-06-27 03:00 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 03:00 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 03:00 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 03:00 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 03:00 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 03:00 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 03:00 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 03:00 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 03:00 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 03:00 UTC] [process_run] Publishing market price feed
+- [2026-06-27 03:00 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 03:00 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 03:00 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 03:00 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 03:00 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 03:00 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 03:10 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 03:10 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 03:10 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 03:10 UTC] [process_run] run_complete_20260627T025230Z.md already in done/ (processed concurrently)
+- [2026-06-27 03:10 UTC] [process_run] Done
+- [2026-06-27 03:10 UTC] Auto-processed run complete marker
+- [2026-06-27 03:10 UTC] Waiting 60s before next run...
+- [2026-06-27 03:11 UTC] Starting run — git=c78fc20, json=run_output_c78fc20_20260627T031137Z.json
+- [2026-06-27 03:19 UTC] Run complete — 477s, 392 KB (run_output_c78fc20_20260627T031137Z.json)
+- [2026-06-27 03:19 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 477, "size_kb": 392, "json": "run_output_c78fc20_20260627T031137Z.json"}, "timestamp": "2026-06-27T03:19:34.419031+00:00", "session_id": null}
+- [2026-06-27 03:19 UTC] [process_run] Processing run_complete_20260627T031137Z.md
+- [2026-06-27 03:19 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c78fc20_20260627T031137Z.json
+- [2026-06-27 03:19 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 03:19 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 03:19 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 03:19 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 03:19 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 03:19 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 03:19 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 03:19 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 03:19 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 03:19 UTC] [process_run] Publishing market price feed
+- [2026-06-27 03:19 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 03:19 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 03:19 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 03:19 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 03:19 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 03:19 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 03:29 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 03:29 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 03:29 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 03:29 UTC] [process_run] Moved run_complete_20260627T031137Z.md to done/
+- [2026-06-27 03:29 UTC] [process_run] Done
+- [2026-06-27 03:29 UTC] Auto-processed run complete marker
+- [2026-06-27 03:29 UTC] Waiting 60s before next run...
+- [2026-06-27 03:30 UTC] Starting run — git=9728dbe, json=run_output_9728dbe_20260627T033047Z.json
+- [2026-06-27 03:38 UTC] Run complete — 485s, 392 KB (run_output_9728dbe_20260627T033047Z.json)
+- [2026-06-27 03:38 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 485, "size_kb": 392, "json": "run_output_9728dbe_20260627T033047Z.json"}, "timestamp": "2026-06-27T03:38:52.711213+00:00", "session_id": null}
+- [2026-06-27 03:38 UTC] [process_run] Processing run_complete_20260627T033047Z.md
+- [2026-06-27 03:38 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_9728dbe_20260627T033047Z.json
+- [2026-06-27 03:38 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 03:38 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 03:38 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 03:38 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 03:38 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 03:38 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 03:38 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 03:38 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 03:38 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 03:38 UTC] [process_run] Publishing market price feed
+- [2026-06-27 03:38 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 03:38 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 03:38 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 03:38 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 03:39 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 03:39 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 03:49 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 03:49 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 03:49 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 03:49 UTC] [process_run] run_complete_20260627T033047Z.md already in done/ (processed concurrently)
+- [2026-06-27 03:49 UTC] [process_run] Done
+- [2026-06-27 03:49 UTC] Auto-processed run complete marker
+- [2026-06-27 03:49 UTC] Waiting 60s before next run...
+- [2026-06-27 03:50 UTC] Starting run — git=00f8659, json=run_output_00f8659_20260627T035004Z.json
+- [2026-06-27 03:57 UTC] Run complete — 474s, 392 KB (run_output_00f8659_20260627T035004Z.json)
+- [2026-06-27 03:57 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 474, "size_kb": 392, "json": "run_output_00f8659_20260627T035004Z.json"}, "timestamp": "2026-06-27T03:57:58.679370+00:00", "session_id": null}
+- [2026-06-27 03:57 UTC] [process_run] Processing run_complete_20260627T035004Z.md
+- [2026-06-27 03:57 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_00f8659_20260627T035004Z.json
+- [2026-06-27 03:58 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 03:58 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 03:58 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 03:58 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 03:58 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 03:58 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 03:58 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 03:58 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 03:58 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 03:58 UTC] [process_run] Publishing market price feed
+- [2026-06-27 03:58 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 03:58 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 03:58 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 03:58 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 03:58 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 03:58 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 04:08 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 04:08 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 04:08 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 04:08 UTC] [process_run] Moved run_complete_20260627T035004Z.md to done/
+- [2026-06-27 04:08 UTC] [process_run] Done
+- [2026-06-27 04:08 UTC] Auto-processed run complete marker
+- [2026-06-27 04:08 UTC] Waiting 60s before next run...
+- [2026-06-27 04:09 UTC] Starting run — git=925a575, json=run_output_925a575_20260627T040907Z.json
+- [2026-06-27 04:10 UTC] [process_run] Already in done/ (duplicate run): run_complete_20260627T035004Z.md
+- [2026-06-27 04:17 UTC] Run complete — 477s, 392 KB (run_output_925a575_20260627T040907Z.json)
+- [2026-06-27 04:17 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 477, "size_kb": 392, "json": "run_output_925a575_20260627T040907Z.json"}, "timestamp": "2026-06-27T04:17:04.636016+00:00", "session_id": null}
+- [2026-06-27 04:17 UTC] [process_run] Processing run_complete_20260627T040907Z.md
+- [2026-06-27 04:17 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_925a575_20260627T040907Z.json
+- [2026-06-27 04:17 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 04:17 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 04:17 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 04:17 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 04:17 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 04:17 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 04:17 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 04:17 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 04:17 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 04:17 UTC] [process_run] Publishing market price feed
+- [2026-06-27 04:17 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 04:17 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 04:17 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 04:17 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 04:17 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 04:17 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 04:27 UTC] [process_run] Fast test suite timed out (>600s) — committing anyway with warning
+- [2026-06-27 04:27 UTC] [process_run] WARNING: tests timed out — results unverified but committing
+- [2026-06-27 04:27 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 04:27 UTC] [process_run] Moved run_complete_20260627T040907Z.md to done/
+- [2026-06-27 04:27 UTC] [process_run] Done
+- [2026-06-27 04:27 UTC] Auto-processed run complete marker
+- [2026-06-27 04:27 UTC] Waiting 60s before next run...
+- [2026-06-27 04:28 UTC] Starting run — git=88148f3, json=run_output_88148f3_20260627T042814Z.json
+- [2026-06-27 04:36 UTC] Run complete — 510s, 392 KB (run_output_88148f3_20260627T042814Z.json)
+- [2026-06-27 04:36 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 510, "size_kb": 392, "json": "run_output_88148f3_20260627T042814Z.json"}, "timestamp": "2026-06-27T04:36:43.981230+00:00", "session_id": null}
+- [2026-06-27 04:36 UTC] [process_run] Processing run_complete_20260627T042814Z.md
+- [2026-06-27 04:36 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_88148f3_20260627T042814Z.json
+- [2026-06-27 04:36 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 04:36 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 04:36 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 04:36 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 04:36 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 04:36 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 04:36 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 04:36 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 04:36 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 04:36 UTC] [process_run] Publishing market price feed
+- [2026-06-27 04:36 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 04:36 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 04:36 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 04:36 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 04:36 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 04:36 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 04:37 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 04:37 UTC] [process_run] Moved run_complete_20260627T042814Z.md to done/
+- [2026-06-27 04:37 UTC] [process_run] Done
+- [2026-06-27 04:37 UTC] Auto-processed run complete marker
+- [2026-06-27 04:37 UTC] Waiting 60s before next run...
+- [2026-06-27 04:38 UTC] Starting run — git=b40077e, json=run_output_b40077e_20260627T043820Z.json
+- [2026-06-27 04:46 UTC] Run complete — 460s, 392 KB (run_output_b40077e_20260627T043820Z.json)
+- [2026-06-27 04:46 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 460, "size_kb": 392, "json": "run_output_b40077e_20260627T043820Z.json"}, "timestamp": "2026-06-27T04:46:01.167775+00:00", "session_id": null}
+- [2026-06-27 04:46 UTC] [process_run] Processing run_complete_20260627T043820Z.md
+- [2026-06-27 04:46 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_b40077e_20260627T043820Z.json
+- [2026-06-27 04:46 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 04:46 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 04:46 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 04:46 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 04:46 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 04:46 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 04:46 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 04:46 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 04:46 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 04:46 UTC] [process_run] Publishing market price feed
+- [2026-06-27 04:46 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 04:46 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 04:46 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 04:46 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 04:46 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 04:46 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 04:46 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 04:46 UTC] [process_run] Moved run_complete_20260627T043820Z.md to done/
+- [2026-06-27 04:46 UTC] [process_run] Done
+- [2026-06-27 04:46 UTC] Auto-processed run complete marker
+- [2026-06-27 04:46 UTC] Waiting 60s before next run...
+- [2026-06-27 04:47 UTC] Starting run — git=c3f4408, json=run_output_c3f4408_20260627T044740Z.json
+- [2026-06-27 04:55 UTC] Run complete — 447s, 392 KB (run_output_c3f4408_20260627T044740Z.json)
+- [2026-06-27 04:55 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 447, "size_kb": 392, "json": "run_output_c3f4408_20260627T044740Z.json"}, "timestamp": "2026-06-27T04:55:08.250103+00:00", "session_id": null}
+- [2026-06-27 04:55 UTC] [process_run] Processing run_complete_20260627T044740Z.md
+- [2026-06-27 04:55 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_c3f4408_20260627T044740Z.json
+- [2026-06-27 04:55 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 04:55 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 04:55 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 04:55 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 04:55 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 04:55 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 04:55 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 04:55 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 04:55 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 04:55 UTC] [process_run] Publishing market price feed
+- [2026-06-27 04:55 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 04:55 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 04:55 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 04:55 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 04:55 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 04:55 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 04:55 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 04:55 UTC] [process_run] Moved run_complete_20260627T044740Z.md to done/
+- [2026-06-27 04:55 UTC] [process_run] Done
+- [2026-06-27 04:55 UTC] Auto-processed run complete marker
+- [2026-06-27 04:55 UTC] Waiting 60s before next run...
+- [2026-06-27 04:56 UTC] Starting run — git=bc2fa6a, json=run_output_bc2fa6a_20260627T045646Z.json
+- [2026-06-27 05:04 UTC] Run complete — 452s, 392 KB (run_output_bc2fa6a_20260627T045646Z.json)
+- [2026-06-27 05:04 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 452, "size_kb": 392, "json": "run_output_bc2fa6a_20260627T045646Z.json"}, "timestamp": "2026-06-27T05:04:18.964041+00:00", "session_id": null}
+- [2026-06-27 05:04 UTC] [process_run] Processing run_complete_20260627T045646Z.md
+- [2026-06-27 05:04 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_bc2fa6a_20260627T045646Z.json
+- [2026-06-27 05:04 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 05:04 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 05:04 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 05:04 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 05:04 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 05:04 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 05:04 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 05:04 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 05:04 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 05:04 UTC] [process_run] Publishing market price feed
+- [2026-06-27 05:04 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 05:04 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 05:04 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 05:04 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 05:04 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 05:04 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 05:04 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 05:04 UTC] [process_run] Moved run_complete_20260627T045646Z.md to done/
+- [2026-06-27 05:04 UTC] [process_run] Done
+- [2026-06-27 05:04 UTC] Auto-processed run complete marker
+- [2026-06-27 05:04 UTC] Waiting 60s before next run...
+- [2026-06-27 05:05 UTC] Starting run — git=cbdd077, json=run_output_cbdd077_20260627T050556Z.json
+- [2026-06-27 05:13 UTC] Run complete — 450s, 392 KB (run_output_cbdd077_20260627T050556Z.json)
+- [2026-06-27 05:13 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 450, "size_kb": 392, "json": "run_output_cbdd077_20260627T050556Z.json"}, "timestamp": "2026-06-27T05:13:26.490083+00:00", "session_id": null}
+- [2026-06-27 05:13 UTC] [process_run] Processing run_complete_20260627T050556Z.md
+- [2026-06-27 05:13 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_cbdd077_20260627T050556Z.json
+- [2026-06-27 05:13 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 05:13 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 05:13 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 05:13 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 05:13 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 05:13 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 05:13 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 05:13 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 05:13 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 05:13 UTC] [process_run] Publishing market price feed
+- [2026-06-27 05:13 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 05:13 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 05:13 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 05:13 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 05:13 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 05:13 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 05:14 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 05:14 UTC] [process_run] Moved run_complete_20260627T050556Z.md to done/
+- [2026-06-27 05:14 UTC] [process_run] Done
+- [2026-06-27 05:14 UTC] Auto-processed run complete marker
+- [2026-06-27 05:14 UTC] Waiting 60s before next run...
+- [2026-06-27 05:15 UTC] Starting run — git=2536bb5, json=run_output_2536bb5_20260627T051507Z.json
+- [2026-06-27 05:30 UTC] Simulation runner started
+- [2026-06-27 05:30 UTC] Starting run — git=2536bb5, json=run_output_2536bb5_20260627T053001Z.json
+- [2026-06-27 05:39 UTC] Run complete — 578s, 392 KB (run_output_2536bb5_20260627T053001Z.json)
+- [2026-06-27 05:39 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 578, "size_kb": 392, "json": "run_output_2536bb5_20260627T053001Z.json"}, "timestamp": "2026-06-27T05:39:39.990372+00:00", "session_id": null}
+- [2026-06-27 05:39 UTC] [process_run] Processing run_complete_20260627T053001Z.md
+- [2026-06-27 05:39 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_2536bb5_20260627T053001Z.json
+- [2026-06-27 05:39 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 05:39 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 05:39 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 05:39 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 05:39 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 05:39 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 05:39 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 05:39 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 05:39 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 05:39 UTC] [process_run] Publishing market price feed
+- [2026-06-27 05:39 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 05:39 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 05:39 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 05:39 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 05:39 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 05:39 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 05:40 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 05:40 UTC] [process_run] Moved run_complete_20260627T053001Z.md to done/
+- [2026-06-27 05:40 UTC] [process_run] Done
+- [2026-06-27 05:40 UTC] Auto-processed run complete marker
+- [2026-06-27 05:40 UTC] Waiting 60s before next run...
+- [2026-06-27 05:41 UTC] Starting run — git=6c92434, json=run_output_6c92434_20260627T054122Z.json
+- [2026-06-27 05:48 UTC] Run complete — 455s, 392 KB (run_output_6c92434_20260627T054122Z.json)
+- [2026-06-27 05:48 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 455, "size_kb": 392, "json": "run_output_6c92434_20260627T054122Z.json"}, "timestamp": "2026-06-27T05:48:57.877725+00:00", "session_id": null}
+- [2026-06-27 05:48 UTC] [process_run] Processing run_complete_20260627T054122Z.md
+- [2026-06-27 05:48 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_6c92434_20260627T054122Z.json
+- [2026-06-27 05:49 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 05:49 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 05:49 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 05:49 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 05:49 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 05:49 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 05:49 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 05:49 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 05:49 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 05:49 UTC] [process_run] Publishing market price feed
+- [2026-06-27 05:49 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 05:49 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 05:49 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 05:49 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 05:49 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 05:49 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 05:49 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 05:49 UTC] [process_run] Moved run_complete_20260627T054122Z.md to done/
+- [2026-06-27 05:49 UTC] [process_run] Done
+- [2026-06-27 05:49 UTC] Auto-processed run complete marker
+- [2026-06-27 05:49 UTC] Waiting 60s before next run...
+- [2026-06-27 05:50 UTC] Starting run — git=98d7796, json=run_output_98d7796_20260627T055035Z.json
+- [2026-06-27 05:58 UTC] Run complete — 445s, 392 KB (run_output_98d7796_20260627T055035Z.json)
+- [2026-06-27 05:58 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 445, "size_kb": 392, "json": "run_output_98d7796_20260627T055035Z.json"}, "timestamp": "2026-06-27T05:58:00.344905+00:00", "session_id": null}
+- [2026-06-27 05:58 UTC] [process_run] Processing run_complete_20260627T055035Z.md
+- [2026-06-27 05:58 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_98d7796_20260627T055035Z.json
+- [2026-06-27 05:58 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 05:58 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 05:58 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 05:58 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 05:58 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 05:58 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 05:58 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 05:58 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 05:58 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 05:58 UTC] [process_run] Publishing market price feed
+- [2026-06-27 05:58 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 05:58 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 05:58 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 05:58 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 05:58 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 05:58 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 05:58 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 05:58 UTC] [process_run] Moved run_complete_20260627T055035Z.md to done/
+- [2026-06-27 05:58 UTC] [process_run] Done
+- [2026-06-27 05:58 UTC] Auto-processed run complete marker
+- [2026-06-27 05:58 UTC] Waiting 60s before next run...
+- [2026-06-27 05:59 UTC] Starting run — git=4d4284f, json=run_output_4d4284f_20260627T055939Z.json
+- [2026-06-27 06:06 UTC] Run complete — 438s, 392 KB (run_output_4d4284f_20260627T055939Z.json)
+- [2026-06-27 06:06 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 438, "size_kb": 392, "json": "run_output_4d4284f_20260627T055939Z.json"}, "timestamp": "2026-06-27T06:06:57.016751+00:00", "session_id": null}
+- [2026-06-27 06:06 UTC] [process_run] Processing run_complete_20260627T055939Z.md
+- [2026-06-27 06:06 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_4d4284f_20260627T055939Z.json
+- [2026-06-27 06:06 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 06:06 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 06:07 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 06:07 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 06:07 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 06:07 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 06:07 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 06:07 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 06:07 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 06:07 UTC] [process_run] Publishing market price feed
+- [2026-06-27 06:07 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 06:07 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 06:07 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 06:07 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 06:07 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 06:07 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 06:07 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 06:07 UTC] [process_run] Moved run_complete_20260627T055939Z.md to done/
+- [2026-06-27 06:07 UTC] [process_run] Done
+- [2026-06-27 06:07 UTC] Auto-processed run complete marker
+- [2026-06-27 06:07 UTC] Waiting 60s before next run...
+- [2026-06-27 06:08 UTC] Starting run — git=985b72a, json=run_output_985b72a_20260627T060834Z.json
+- [2026-06-27 06:15 UTC] Run complete — 441s, 392 KB (run_output_985b72a_20260627T060834Z.json)
+- [2026-06-27 06:15 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 441, "size_kb": 392, "json": "run_output_985b72a_20260627T060834Z.json"}, "timestamp": "2026-06-27T06:15:55.406618+00:00", "session_id": null}
+- [2026-06-27 06:15 UTC] [process_run] Processing run_complete_20260627T060834Z.md
+- [2026-06-27 06:15 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_985b72a_20260627T060834Z.json
+- [2026-06-27 06:15 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 06:15 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 06:15 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 06:15 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 06:15 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 06:16 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 06:16 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 06:16 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 06:16 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 06:16 UTC] [process_run] Publishing market price feed
+- [2026-06-27 06:16 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 06:16 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 06:16 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 06:16 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 06:16 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 06:16 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 06:16 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 06:16 UTC] [process_run] Moved run_complete_20260627T060834Z.md to done/
+- [2026-06-27 06:16 UTC] [process_run] Done
+- [2026-06-27 06:16 UTC] Auto-processed run complete marker
+- [2026-06-27 06:16 UTC] Waiting 60s before next run...
+- [2026-06-27 06:17 UTC] Starting run — git=78031d9, json=run_output_78031d9_20260627T061731Z.json
+- [2026-06-27 06:24 UTC] Run complete — 445s, 392 KB (run_output_78031d9_20260627T061731Z.json)
+- [2026-06-27 06:24 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 445, "size_kb": 392, "json": "run_output_78031d9_20260627T061731Z.json"}, "timestamp": "2026-06-27T06:24:57.286169+00:00", "session_id": null}
+- [2026-06-27 06:24 UTC] [process_run] Processing run_complete_20260627T061731Z.md
+- [2026-06-27 06:24 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_78031d9_20260627T061731Z.json
+- [2026-06-27 06:25 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 06:25 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 06:25 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 06:25 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 06:25 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 06:25 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 06:25 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 06:25 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 06:25 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 06:25 UTC] [process_run] Publishing market price feed
+- [2026-06-27 06:25 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 06:25 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 06:25 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 06:25 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 06:25 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 06:25 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 06:25 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 06:25 UTC] [process_run] Moved run_complete_20260627T061731Z.md to done/
+- [2026-06-27 06:25 UTC] [process_run] Done
+- [2026-06-27 06:25 UTC] Auto-processed run complete marker
+- [2026-06-27 06:25 UTC] Waiting 60s before next run...
+- [2026-06-27 06:26 UTC] Starting run — git=7ee0ff5, json=run_output_7ee0ff5_20260627T062632Z.json
+- [2026-06-27 06:34 UTC] Run complete — 451s, 392 KB (run_output_7ee0ff5_20260627T062632Z.json)
+- [2026-06-27 06:34 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 451, "size_kb": 392, "json": "run_output_7ee0ff5_20260627T062632Z.json"}, "timestamp": "2026-06-27T06:34:04.404457+00:00", "session_id": null}
+- [2026-06-27 06:34 UTC] [process_run] Processing run_complete_20260627T062632Z.md
+- [2026-06-27 06:34 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_7ee0ff5_20260627T062632Z.json
+- [2026-06-27 06:34 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 06:34 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 06:34 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 06:34 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 06:34 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 06:34 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 06:34 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 06:34 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 06:34 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 06:34 UTC] [process_run] Publishing market price feed
+- [2026-06-27 06:34 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 06:34 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 06:34 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 06:34 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 06:34 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 06:34 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 06:34 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 06:34 UTC] [process_run] Moved run_complete_20260627T062632Z.md to done/
+- [2026-06-27 06:34 UTC] [process_run] Done
+- [2026-06-27 06:34 UTC] Auto-processed run complete marker
+- [2026-06-27 06:34 UTC] Waiting 60s before next run...
+- [2026-06-27 06:35 UTC] Starting run — git=5fcd4dd, json=run_output_5fcd4dd_20260627T063539Z.json
+- [2026-06-27 06:43 UTC] Run complete — 449s, 392 KB (run_output_5fcd4dd_20260627T063539Z.json)
+- [2026-06-27 06:43 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 449, "size_kb": 392, "json": "run_output_5fcd4dd_20260627T063539Z.json"}, "timestamp": "2026-06-27T06:43:07.655316+00:00", "session_id": null}
+- [2026-06-27 06:43 UTC] [process_run] Processing run_complete_20260627T063539Z.md
+- [2026-06-27 06:43 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_5fcd4dd_20260627T063539Z.json
+- [2026-06-27 06:43 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 06:43 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 06:43 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 06:43 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 06:43 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 06:43 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 06:43 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 06:43 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 06:43 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 06:43 UTC] [process_run] Publishing market price feed
+- [2026-06-27 06:43 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 06:43 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 06:43 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 06:43 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 06:43 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 06:43 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 06:43 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 06:43 UTC] [process_run] Moved run_complete_20260627T063539Z.md to done/
+- [2026-06-27 06:43 UTC] [process_run] Done
+- [2026-06-27 06:43 UTC] Auto-processed run complete marker
+- [2026-06-27 06:43 UTC] Waiting 60s before next run...
+- [2026-06-27 06:44 UTC] Starting run — git=0fd40cd, json=run_output_0fd40cd_20260627T064447Z.json
+- [2026-06-27 06:52 UTC] Run complete — 457s, 392 KB (run_output_0fd40cd_20260627T064447Z.json)
+- [2026-06-27 06:52 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 457, "size_kb": 392, "json": "run_output_0fd40cd_20260627T064447Z.json"}, "timestamp": "2026-06-27T06:52:24.912556+00:00", "session_id": null}
+- [2026-06-27 06:52 UTC] [process_run] Processing run_complete_20260627T064447Z.md
+- [2026-06-27 06:52 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_0fd40cd_20260627T064447Z.json
+- [2026-06-27 06:52 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 06:52 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 06:52 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 06:52 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 06:52 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 06:52 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 06:52 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 06:52 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 06:52 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 06:52 UTC] [process_run] Publishing market price feed
+- [2026-06-27 06:52 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 06:52 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 06:52 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 06:52 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 06:52 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 06:52 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 06:53 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 06:53 UTC] [process_run] Moved run_complete_20260627T064447Z.md to done/
+- [2026-06-27 06:53 UTC] [process_run] Done
+- [2026-06-27 06:53 UTC] Auto-processed run complete marker
+- [2026-06-27 06:53 UTC] Waiting 60s before next run...
+- [2026-06-27 06:54 UTC] Starting run — git=32a3cf2, json=run_output_32a3cf2_20260627T065401Z.json
+- [2026-06-27 07:01 UTC] Run complete — 476s, 392 KB (run_output_32a3cf2_20260627T065401Z.json)
+- [2026-06-27 07:01 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 476, "size_kb": 392, "json": "run_output_32a3cf2_20260627T065401Z.json"}, "timestamp": "2026-06-27T07:01:57.523654+00:00", "session_id": null}
+- [2026-06-27 07:01 UTC] [process_run] Processing run_complete_20260627T065401Z.md
+- [2026-06-27 07:01 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_32a3cf2_20260627T065401Z.json
+- [2026-06-27 07:02 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 07:02 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 07:02 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 07:02 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 07:02 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 07:02 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 07:02 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 07:02 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 07:02 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 07:02 UTC] [process_run] Publishing market price feed
+- [2026-06-27 07:02 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 07:02 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 07:02 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 07:02 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 07:02 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 07:02 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 07:02 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 07:02 UTC] [process_run] Moved run_complete_20260627T065401Z.md to done/
+- [2026-06-27 07:02 UTC] [process_run] Done
+- [2026-06-27 07:02 UTC] Auto-processed run complete marker
+- [2026-06-27 07:02 UTC] Waiting 60s before next run...
+- [2026-06-27 07:03 UTC] Starting run — git=66f2ff6, json=run_output_66f2ff6_20260627T070339Z.json
+- [2026-06-27 07:14 UTC] Run complete — 635s, 392 KB (run_output_66f2ff6_20260627T070339Z.json)
+- [2026-06-27 07:14 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 635, "size_kb": 392, "json": "run_output_66f2ff6_20260627T070339Z.json"}, "timestamp": "2026-06-27T07:14:14.213722+00:00", "session_id": null}
+- [2026-06-27 07:14 UTC] [process_run] Processing run_complete_20260627T070339Z.md
+- [2026-06-27 07:14 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_66f2ff6_20260627T070339Z.json
+- [2026-06-27 07:14 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 07:14 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 07:14 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 07:14 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 07:14 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 07:14 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 07:14 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 07:14 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 07:14 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 07:14 UTC] [process_run] Publishing market price feed
+- [2026-06-27 07:14 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 07:14 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 07:14 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 07:14 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 07:14 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 07:14 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 07:14 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 07:14 UTC] [process_run] Processing run_complete_20260627T070339Z.md
+- [2026-06-27 07:14 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_66f2ff6_20260627T070339Z.json
+- [2026-06-27 07:14 UTC] [process_run] Moved run_complete_20260627T070339Z.md to done/
+- [2026-06-27 07:14 UTC] [process_run] Done
+- [2026-06-27 07:14 UTC] Auto-processed run complete marker
+- [2026-06-27 07:14 UTC] Waiting 60s before next run...
+- [2026-06-27 07:14 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 07:14 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 07:14 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 07:14 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 07:14 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 07:15 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 07:15 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 07:15 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 07:15 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 07:15 UTC] [process_run] Publishing market price feed
+- [2026-06-27 07:15 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 07:15 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 07:15 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 07:15 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 07:15 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 07:15 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 07:15 UTC] [process_run] Tests skipped — already passed for git=66f2ff6
+- [2026-06-27 07:15 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 07:15 UTC] [process_run] run_complete_20260627T070339Z.md already in done/ (processed concurrently)
+- [2026-06-27 07:15 UTC] [process_run] Done
+- [2026-06-27 07:15 UTC] Starting run — git=892f694, json=run_output_892f694_20260627T071557Z.json
+- [2026-06-27 07:24 UTC] Run complete — 489s, 392 KB (run_output_892f694_20260627T071557Z.json)
+- [2026-06-27 07:24 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 489, "size_kb": 392, "json": "run_output_892f694_20260627T071557Z.json"}, "timestamp": "2026-06-27T07:24:06.136570+00:00", "session_id": null}
+- [2026-06-27 07:24 UTC] [process_run] Processing run_complete_20260627T071557Z.md
+- [2026-06-27 07:24 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_892f694_20260627T071557Z.json
+- [2026-06-27 07:24 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 07:24 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 07:24 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 07:24 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 07:24 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 07:24 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 07:24 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 07:24 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 07:24 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 07:24 UTC] [process_run] Publishing market price feed
+- [2026-06-27 07:24 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 07:24 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 07:24 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 07:24 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 07:24 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 07:24 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 07:24 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 07:24 UTC] [process_run] Moved run_complete_20260627T071557Z.md to done/
+- [2026-06-27 07:24 UTC] [process_run] Done
+- [2026-06-27 07:24 UTC] Auto-processed run complete marker
+- [2026-06-27 07:24 UTC] Waiting 60s before next run...
+- [2026-06-27 07:25 UTC] Starting run — git=8b93c16, json=run_output_8b93c16_20260627T072544Z.json
+- [2026-06-27 07:35 UTC] Run complete — 571s, 392 KB (run_output_8b93c16_20260627T072544Z.json)
+- [2026-06-27 07:35 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 571, "size_kb": 392, "json": "run_output_8b93c16_20260627T072544Z.json"}, "timestamp": "2026-06-27T07:35:15.892664+00:00", "session_id": null}
+- [2026-06-27 07:35 UTC] [process_run] Processing run_complete_20260627T072544Z.md
+- [2026-06-27 07:35 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_8b93c16_20260627T072544Z.json
+- [2026-06-27 07:35 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 07:35 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 07:35 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 07:35 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 07:35 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 07:35 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 07:35 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 07:35 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 07:35 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 07:35 UTC] [process_run] Publishing market price feed
+- [2026-06-27 07:35 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 07:35 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 07:35 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 07:35 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 07:35 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 07:35 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 07:35 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 07:35 UTC] [process_run] Moved run_complete_20260627T072544Z.md to done/
+- [2026-06-27 07:35 UTC] [process_run] Done
+- [2026-06-27 07:35 UTC] Auto-processed run complete marker
+- [2026-06-27 07:35 UTC] Waiting 60s before next run...
+- [2026-06-27 07:36 UTC] Starting run — git=003dccd, json=run_output_003dccd_20260627T073655Z.json
+- [2026-06-27 07:44 UTC] Run complete — 471s, 392 KB (run_output_003dccd_20260627T073655Z.json)
+- [2026-06-27 07:44 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 471, "size_kb": 392, "json": "run_output_003dccd_20260627T073655Z.json"}, "timestamp": "2026-06-27T07:44:46.041128+00:00", "session_id": null}
+- [2026-06-27 07:44 UTC] [process_run] Processing run_complete_20260627T073655Z.md
+- [2026-06-27 07:44 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_003dccd_20260627T073655Z.json
+- [2026-06-27 07:44 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 07:44 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 07:44 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 07:44 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 07:44 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 07:44 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 07:44 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 07:44 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 07:44 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 07:44 UTC] [process_run] Publishing market price feed
+- [2026-06-27 07:44 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 07:44 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 07:44 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 07:44 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 07:44 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 07:44 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 07:45 UTC] [process_run] Processing run_complete_20260627T073655Z.md
+- [2026-06-27 07:45 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_003dccd_20260627T073655Z.json
+- [2026-06-27 07:45 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 07:45 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 07:45 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 07:45 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 07:45 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 07:45 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 07:45 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 07:45 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 07:45 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 07:45 UTC] [process_run] Publishing market price feed
+- [2026-06-27 07:45 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 07:45 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 07:45 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 07:45 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 07:45 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 07:45 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 07:45 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 07:45 UTC] [process_run] Moved run_complete_20260627T073655Z.md to done/
+- [2026-06-27 07:45 UTC] [process_run] Done
+- [2026-06-27 07:45 UTC] Auto-processed run complete marker
+- [2026-06-27 07:45 UTC] Waiting 60s before next run...
+- [2026-06-27 07:45 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 07:45 UTC] [process_run] run_complete_20260627T073655Z.md already in done/ (processed concurrently)
+- [2026-06-27 07:45 UTC] [process_run] Done
+- [2026-06-27 07:46 UTC] Starting run — git=019a2f1, json=run_output_019a2f1_20260627T074622Z.json
+- [2026-06-27 07:54 UTC] Run complete — 495s, 392 KB (run_output_019a2f1_20260627T074622Z.json)
+- [2026-06-27 07:54 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 495, "size_kb": 392, "json": "run_output_019a2f1_20260627T074622Z.json"}, "timestamp": "2026-06-27T07:54:37.249520+00:00", "session_id": null}
+- [2026-06-27 07:54 UTC] [process_run] Processing run_complete_20260627T074622Z.md
+- [2026-06-27 07:54 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_019a2f1_20260627T074622Z.json
+- [2026-06-27 07:54 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 07:54 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 07:54 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 07:54 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 07:54 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 07:54 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 07:54 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 07:54 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 07:54 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 07:54 UTC] [process_run] Publishing market price feed
+- [2026-06-27 07:54 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 07:54 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 07:54 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 07:54 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 07:54 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 07:54 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 07:55 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 07:55 UTC] [process_run] Moved run_complete_20260627T074622Z.md to done/
+- [2026-06-27 07:55 UTC] [process_run] Done
+- [2026-06-27 07:55 UTC] Auto-processed run complete marker
+- [2026-06-27 07:55 UTC] Waiting 60s before next run...
+- [2026-06-27 07:56 UTC] Starting run — git=f6a4272, json=run_output_f6a4272_20260627T075616Z.json
+- [2026-06-27 08:04 UTC] Run complete — 523s, 392 KB (run_output_f6a4272_20260627T075616Z.json)
+- [2026-06-27 08:04 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 523, "size_kb": 392, "json": "run_output_f6a4272_20260627T075616Z.json"}, "timestamp": "2026-06-27T08:04:59.398215+00:00", "session_id": null}
+- [2026-06-27 08:04 UTC] [process_run] Processing run_complete_20260627T075616Z.md
+- [2026-06-27 08:04 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_f6a4272_20260627T075616Z.json
+- [2026-06-27 08:05 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 08:05 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 08:05 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 08:05 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 08:05 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 08:05 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 08:05 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 08:05 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 08:05 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 08:05 UTC] [process_run] Publishing market price feed
+- [2026-06-27 08:05 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 08:05 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 08:05 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 08:05 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 08:05 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 08:05 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 08:05 UTC] [process_run] Committing and pushing (net=£1,330,126)
+- [2026-06-27 08:05 UTC] [process_run] Moved run_complete_20260627T075616Z.md to done/
+- [2026-06-27 08:05 UTC] [process_run] Done
+- [2026-06-27 08:05 UTC] Auto-processed run complete marker
+- [2026-06-27 08:05 UTC] Waiting 60s before next run...
+- [2026-06-27 08:06 UTC] Starting run — git=83772d7, json=run_output_83772d7_20260627T080644Z.json
+- [2026-06-27 08:15 UTC] Run complete — 548s, 396 KB (run_output_83772d7_20260627T080644Z.json)
+- [2026-06-27 08:15 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 548, "size_kb": 396, "json": "run_output_83772d7_20260627T080644Z.json"}, "timestamp": "2026-06-27T08:15:52.834637+00:00", "session_id": null}
+- [2026-06-27 08:15 UTC] [process_run] Processing run_complete_20260627T080644Z.md
+- [2026-06-27 08:15 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_83772d7_20260627T080644Z.json
+- [2026-06-27 08:15 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 08:15 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 08:15 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 08:15 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 08:15 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 08:15 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 08:15 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 08:15 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 08:15 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 08:15 UTC] [process_run] Publishing market price feed
+- [2026-06-27 08:16 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 08:16 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 08:16 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 08:16 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 08:16 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 08:16 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 08:16 UTC] [process_run] Committing and pushing (net=£1,330,792)
+- [2026-06-27 08:16 UTC] [process_run] Moved run_complete_20260627T080644Z.md to done/
+- [2026-06-27 08:16 UTC] [process_run] Done
+- [2026-06-27 08:16 UTC] Auto-processed run complete marker
+- [2026-06-27 08:16 UTC] Waiting 60s before next run...
+- [2026-06-27 08:17 UTC] Starting run — git=ce2e351, json=run_output_ce2e351_20260627T081733Z.json
+- [2026-06-27 08:25 UTC] Run complete — 457s, 396 KB (run_output_ce2e351_20260627T081733Z.json)
+- [2026-06-27 08:25 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 457, "size_kb": 396, "json": "run_output_ce2e351_20260627T081733Z.json"}, "timestamp": "2026-06-27T08:25:10.379959+00:00", "session_id": null}
+- [2026-06-27 08:25 UTC] [process_run] Processing run_complete_20260627T081733Z.md
+- [2026-06-27 08:25 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_ce2e351_20260627T081733Z.json
+- [2026-06-27 08:25 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 08:25 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 08:25 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 08:25 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 08:25 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 08:25 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 08:25 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 08:25 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 08:25 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 08:25 UTC] [process_run] Publishing market price feed
+- [2026-06-27 08:25 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 08:25 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 08:25 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 08:25 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 08:25 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 08:25 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 08:25 UTC] [process_run] Committing and pushing (net=£1,329,427)
+- [2026-06-27 08:25 UTC] [process_run] Moved run_complete_20260627T081733Z.md to done/
+- [2026-06-27 08:25 UTC] [process_run] Done
+- [2026-06-27 08:25 UTC] Auto-processed run complete marker
+- [2026-06-27 08:25 UTC] Waiting 60s before next run...
+- [2026-06-27 08:26 UTC] Starting run — git=4742396, json=run_output_4742396_20260627T082651Z.json
+- [2026-06-27 08:34 UTC] Run complete — 445s, 396 KB (run_output_4742396_20260627T082651Z.json)
+- [2026-06-27 08:34 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 445, "size_kb": 396, "json": "run_output_4742396_20260627T082651Z.json"}, "timestamp": "2026-06-27T08:34:16.018100+00:00", "session_id": null}
+- [2026-06-27 08:34 UTC] [process_run] Processing run_complete_20260627T082651Z.md
+- [2026-06-27 08:34 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_4742396_20260627T082651Z.json
+- [2026-06-27 08:34 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 08:34 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 08:34 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 08:34 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 08:34 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 08:34 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 08:34 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 08:34 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 08:34 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 08:34 UTC] [process_run] Publishing market price feed
+- [2026-06-27 08:34 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 08:34 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 08:34 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 08:34 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 08:34 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 08:34 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 08:34 UTC] [process_run] Committing and pushing (net=£1,329,427)
+- [2026-06-27 08:34 UTC] [process_run] Moved run_complete_20260627T082651Z.md to done/
+- [2026-06-27 08:34 UTC] [process_run] Done
+- [2026-06-27 08:34 UTC] Auto-processed run complete marker
+- [2026-06-27 08:34 UTC] Waiting 60s before next run...
+- [2026-06-27 08:35 UTC] Starting run — git=73b2cfd, json=run_output_73b2cfd_20260627T083552Z.json
+- [2026-06-27 08:44 UTC] Run complete — 528s, 396 KB (run_output_73b2cfd_20260627T083552Z.json)
+- [2026-06-27 08:44 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 528, "size_kb": 396, "json": "run_output_73b2cfd_20260627T083552Z.json"}, "timestamp": "2026-06-27T08:44:40.180538+00:00", "session_id": null}
+- [2026-06-27 08:44 UTC] [process_run] Processing run_complete_20260627T083552Z.md
+- [2026-06-27 08:44 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_73b2cfd_20260627T083552Z.json
+- [2026-06-27 08:44 UTC] [process_run] Updating LATEST.md
+- [2026-06-27 08:44 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-06-27 08:44 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-06-27 08:44 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-06-27 08:44 UTC] [process_run] Generated customer invoice JSON
+- [2026-06-27 08:44 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-06-27 08:44 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-06-27 08:44 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-06-27 08:44 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-06-27 08:44 UTC] [process_run] Publishing market price feed
+- [2026-06-27 08:44 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-06-27 08:44 UTC] [process_run] Publishing HH consumption data feed
+- [2026-06-27 08:44 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-06-27 08:44 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-06-27 08:44 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-06-27 08:44 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-06-27 08:45 UTC] [process_run] Committing and pushing (net=£1,329,485)
+- [2026-06-27 08:45 UTC] [process_run] Moved run_complete_20260627T083552Z.md to done/
+- [2026-06-27 08:45 UTC] [process_run] Done
+- [2026-06-27 08:45 UTC] Auto-processed run complete marker
+- [2026-06-27 08:45 UTC] Waiting 60s before next run...
+- [2026-06-27 08:46 UTC] Starting run — git=38516ea, json=run_output_38516ea_20260627T084626Z.json

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,559 tests passing. Codebase: ~42,900 lines across 315+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,653 tests passing. Codebase: ~43,100 lines across 318+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,12 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase C (2026-06-27):** Household-Driven EAC Integration -- 26 new tests (4,652 total). simulation/household_demand.py (new): HouseholdDemandRegister: builds household register for all 18 customers; generates life events per customer 2016-2025 (seeded RNG); epc_multiplier(cid, date) -> float; eac_multiplier_for_date(cid, date) -> composite float (EPC * (1+EV_fraction) * max(0, 1-solar_fraction)); dynamic_assets(cid, date) -> {ev/solar/smart_meter}. simulation/run_phase2b.py: instantiates HouseholdDemandRegister at startup; passes dynamic_assets to demand model and epc_multiplier to settlement shape. Effect: EPC-D homes draw 1.25x segment EAC; EPC-E 1.55x; EV acquisition adds ~2,143 kWh/yr from acquisition date; solar install reduces net import from install date. First time household physical model (Phase A) and life events engine (Phase B) affect actual simulation P&L. Connects to household.py (Phase A), life_events.py (Phase B), run_phase2b.py.
+
+**Phase B (2026-06-27):** Life Events Engine -- 32 new tests (4,626 total). simulation/life_events.py (new): LifeEvent frozen dataclass (customer_id/event_date/event_type/payload); generate_life_events() -- Bernoulli trials per year on calibrated UK probability tables (solar 3%→5.7% 2016-2025 DESNZ REPD; EV 0.3%→7% DfT; ASHP 0.1%→0.6%; boiler replacement by age OLD=9%/MID=4%/NEW=1%; insulation upgrade POOR=3%/PARTIAL=1% ECO4); apply_events() reconstructs Household state by replaying event log; household_at_date() for point-in-time reconstruction. Constraints: no flat roof solar, no I&C EVs, battery conditional on solar install, no duplicate acquisitions. All 18 real customers generate events without error. Connects to household.py (Phase A).
+
+**Phase A (2026-06-27):** Household Physical Model -- 36 new tests (4,594 total). simulation/household.py (new): PropertyType/BuildEra/HeatingSystem/BoilerAge/InsulationLevel enums; Household frozen dataclass; epc_consumption_multiplier() calibrated to EHS 2022-23 AT1_6 (C=1.0 baseline; 50% prebound-effect adjustment; A/B=0.75x → G=2.20x); seasonal_flatness_factor(); ev_annual_kwh() (7,500 miles @ 3.5 MPkWh = 2,143 kWh/yr); solar_annual_generation_kwh() (850 kWh/kWp/yr SAP10.2). make_household() maps existing customer records to representative UK profiles (home_type → PropertyType/BuildEra/HeatingSystem/InsulationLevel); build_household_register() covers all 18 customers. Baseline 2016: 2.8% solar, no EVs, no heat pumps, gas-heated resi.
 
 **Phase 332 (2026-06-27):** Risk Committee Deterministic Engine + File API Fix -- 21 new tests (4,559 total). sim/risk_committee_rules.py: parse_handshake (hf/VaR ratio/sigma_recent/triggered_customers from structured handshake context), should_escalate (sigma > 1.5 or all triggered at hf=1.0), apply_rules (step: 0.25/0.20/0.15 by VaR ratio), decide (returns escalate_to_llm flag + adjustments dict). Updated sim/risk_committee_agent.py: rule engine by default; escalates to Ollama only for crisis sigma or maxed-out portfolio. background/file_api.py: auto-loads .env.file-api if FILE_API_KEY not in env (fixes 403 on restart). background/start_worker.sh: sources .env.file-api before starting file-api session. Expected: removes ~95% of Ollama committee calls; LLM reserved for genuine crisis events.
 
@@ -4026,9 +4032,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 200+ Python modules, ~22,500 lines
+- 318+ Python modules, ~43,100 lines
 - 400+ git commits
-- 4,215 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,653 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

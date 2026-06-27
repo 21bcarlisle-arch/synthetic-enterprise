@@ -1,73 +1,47 @@
-Phase 312 -- Account Closure Book
+Phase C -- Household-Driven EAC Integration
 
-Status: PROPOSED (2026-06-27T03:05 UTC)
-4h opt-out window: expires 2026-06-27T07:05 UTC
+Status: PROPOSED (2026-06-27T auto-session)
+4h opt-out window: expires 2026-06-27T~12:00 BST
 
 Context:
-The company has cos_process (Ph298) tracking the switch, supply_point_register (Ph299)
-for MPAN/MPRN registry, debt_collection (Ph311) for arrears, but no formal account
-closure process. In a real UK energy supplier, account closure is a regulated multi-step
-process with strict timelines.
+Phases A and B built the household physical model and life events engine.
+These modules are 68 tests passing but currently dead code -- no simulation
+path imports them. Every customer in a segment uses the same flat EAC
+regardless of physical characteristics. EPC-G home = 2.2x segment average,
+EPC-A = 0.75x. EV acquisition increases demand. Solar reduces net import.
+None of this currently affects consumption or billing.
 
-UK regulatory framework:
-- SLC 21B (Final bill): supplier must issue final bill within 6 weeks of supply end
-- SLC 12 (Deposit return): return security deposit within 14 days of final bill
-- SLC P14 (Vacant properties): vacancy-specific rules on standing charges
-- Gas Safety (Installation and Use) Regulations: vacant property de-energisation
-- CoS Protocol: deregistration from MPAS within 3 working days of switch completion
+What Phase C builds:
 
-Stages modelled:
-1. INITIATED: switch complete or vacancy confirmed
-2. FINAL_READ_RECEIVED: meter read received from MOp/DC
-3. FINAL_BILL_ISSUED: final invoice generated (SLC 21B: 6-week deadline)
-4. DEPOSIT_RETURNED or DEBT_REFERRED: deposit applied or returned; outstanding debt flagged
-5. CLOSED: account fully settled
+  simulation/household_demand.py (new, ~120 lines):
+    HouseholdDemandRegister:
+      build_household_register() for all 18 customers at init
+      generate_life_events() per customer 2016-2025 (seeded RNG)
+      eac_multiplier_for_date(customer_id, date_str) -> float
+        Composite: epc_multiplier * (1 + ev_fraction) * (1 - solar_fraction)
+      household_at_date(customer_id, date_str) -> Household
 
-Design:
-  company/billing/account_closure.py (new)
+  simulation/run_phase2b.py (2-3 line change):
+    Instantiate HouseholdDemandRegister at simulation start.
+    Multiply base consumption by eac_multiplier_for_date(cid, period_date).
 
-  ClosureReason (enum):
-    CUSTOMER_SWITCH / VACANT_PROPERTY / CUSTOMER_DECEASED / BUSINESS_CLOSURE
+Fidelity delta:
+  C1 (EPC-D, no solar/EV): 1.25x segment EAC baseline
+  C2 (EPC-C, EV ~2019): 1.0x + 2143 kWh/yr after acquisition date
+  C3 (EPC-E, no assets): 1.55x segment EAC
+  C4 (EPC-B, solar ~2020-2022): 0.75x * (1 - solar_fraction) post-install
+  18-customer register, events over 2016-2025.
+  2022 crisis figures diverge by EPC band.
 
-  ClosureStatus (enum):
-    INITIATED / FINAL_READ_RECEIVED / FINAL_BILL_ISSUED /
-    DEPOSIT_APPLIED / DEPOSIT_RETURNED / DEBT_REFERRED / CLOSED
+Files:
+  simulation/household_demand.py -- new module (~120 lines)
+  simulation/run_phase2b.py -- 2-3 line change
+  tests/simulation/test_phase_c_household_demand.py -- ~22 tests
 
-  AccountClosure (frozen dataclass):
-    account_id / supply_point_id / closure_date / reason / status
-    final_read_kwh (Optional[float]) / final_bill_gbp (Optional[float])
-    deposit_held_gbp / debt_balance_gbp
+Not in Phase C (later):
+  Gas adjustment for heat pump installs (Phase D)
+  Half-hourly EV load shape (Phase D)
+  Company-observable EPC inference (Phase E)
 
-    Computed:
-      net_balance_gbp -- final_bill + debt_balance - deposit_held
-      (positive = customer owes us; negative = we owe customer)
-      requires_debt_referral -- net_balance > 0 and not already referred/closed
-      days_since_closure(as_of) -- int
-
-  AccountClosureBook:
-    initiate(account_id, supply_point_id, reason, closure_date, deposit_held, debt_balance)
-    receive_final_read(account_id, kwh)
-    issue_final_bill(account_id, bill_gbp)
-    return_deposit(account_id) -- status -> DEPOSIT_RETURNED (net_balance <= 0)
-    apply_deposit_to_debt(account_id) -- status -> DEPOSIT_APPLIED (net_balance > 0)
-    refer_to_debt_collection(account_id) -- status -> DEBT_REFERRED
-    close(account_id) -- status -> CLOSED
-    active_closures() -- not CLOSED
-    overdue_final_bills(as_of, days=42) -- initiated but no final bill after 42 days
-    deposits_to_return() -- status DEPOSIT_RETURNED (receivable for company)
-    debt_referrals() -- status DEBT_REFERRED
-    closure_summary() -> dict
-
-Real data calibration:
-- Ofgem target: final bill within 6 weeks (42 days) of supply end
-- 2022 complaint data: final bill delays were #1 complaint category for switches
-- Deposit return: 14 days after final bill (mandatory); average deposit ~£150
-- ~8-12% of closures have outstanding debt balance at final bill
-- Vacant properties: standing charge continues until new supplier or de-energisation
-- Business closures (SME): debt more likely (invoice terms vs DD)
-
-Connects to: cos_process (Ph298), supply_point_register (Ph299), billing/invoice,
-  debt_collection (Ph311 -- refer outstanding balances), direct_debit (deposit return),
-  warm_home_discount (Ph281 -- deceased customer handling), consumer_duty (Ph283).
-
-Estimated: ~20 tests, ~130 lines
+Expected: ~22 new tests (4,648 total)
+Connects to: household.py (Phase A), life_events.py (Phase B), run_phase2b.py
