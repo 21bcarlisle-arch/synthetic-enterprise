@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,470 tests passing. Codebase: ~42,460 lines across 311+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,491 tests passing. Codebase: ~42,590 lines across 312+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 329 (2026-06-27):** Fuel Poverty Indicator Book -- 21 new tests (4,491 total). company/regulatory/fuel_poverty.py: FuelPovertyDefinition (CLASSIC >10% income / LIHC post-2013 England / AFFORDABLE_WARMTH Scotland), FuelPovertyRisk (LOW/MODERATE/HIGH/FUEL_POOR), FuelPovertyAssessment (frozen; energy_as_pct_income/income_after_energy_gbp/risk/is_fuel_poor -- LIHC: below 60% median after costs AND >10%), FuelPovertyBook (latest_for/fuel_poor_accounts uses only latest per account/high_risk_accounts/fuel_poverty_rate_pct/fuel_poverty_summary). Real: 6.5M UK households fuel poor 2023; Ofgem Consumer Duty: must identify and act. Connects to whd_book (Ph281), debt_collection (Ph311), consumer_duty (Ph283).
 
 **Phase 328 (2026-06-27):** Disconnection Warning Register -- 17 new tests (4,470 total). company/billing/disconnection_warning.py: WarningStep (WARNING_1/2/3/DISCONNECTION_NOTICE), WarningStatus (PENDING/SENT/RESOLVED/OVERRIDDEN), DisconnectionWarning (frozen; earliest_next_action_date/can_escalate), DisconnectionWarningRegister (mark_sent/resolve/override/can_disconnect requires full sequence + 28-day notice/outstanding_warnings/warning_summary). SLC 27/SoP Regs: 4-contact minimum; 28-day formal notice; 2023 Ofgem investigated suppliers threatening disconnection without completing sequence. Connects to debt_collection (Ph311), winter_moratorium (Ph325).
 
