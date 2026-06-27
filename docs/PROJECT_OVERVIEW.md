@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,297 tests passing. Codebase: ~41,500 lines across 303+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,321 tests passing. Codebase: ~41,620 lines across 304+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 321 (2026-06-27):** Supplier of Last Resort (SoLR) Register -- 24 new tests (4,321 total). company/crm/solr_register.py: SoLRStatus (TRANSFERRED/NOTIFIED/CONTRACT_OFFERED/CONTRACT_ACCEPTED/INTEGRATED), SoLRTransferRecord (frozen; is_notification_overdue/is_contract_offer_overdue/is_in_solr_billing_period), SoLRDesignation (frozen), SoLRRegister (record_designation/transfer/notify/offer_contract/accept/integrate/active_transfers/overdue_notifications/overdue_contract_offers/in_solr_billing_period/total_credit_claimed_gbp/solr_summary). 5-day notification/30-day contract offer/90-day SVT billing periods. 2021-22: 28 supplier failures, 4M+ customers via SoLR. Connects to supply_point_register (Ph299), account_closure (Ph312), credit_refund (Ph320).
 
 **Phase 320 (2026-06-27):** Credit Refund Book -- 26 new tests (4,297 total). company/billing/credit_refund.py: RefundTrigger (CUSTOMER_REQUEST/ACCOUNT_CLOSURE/ANNUAL_CREDIT_REVIEW/DECEASED_ESTATE), RefundStatus (PENDING/APPROVED/PAID/REJECTED/HELD), CreditRefundRecord (frozen; working_days_to_pay/is_overdue/breached_deadline), CreditRefundBook (raise_refund/approve/pay/reject/hold/pending_refunds/overdue_refunds/deadline_breaches/total_outstanding_gbp/refund_summary). Ofgem SLC 14: credit balance refund within 10 working days (tightened from 28 calendar days in 2019); 2022 crisis: multiple enforcement notices for suppliers withholding customer credit balances. Connects to account_closure (Ph312), invoice (billing).
 
