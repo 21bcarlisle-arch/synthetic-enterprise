@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 3,906 tests passing. Codebase: ~39,430 lines across 290+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 3,934 tests passing. Codebase: ~39,560 lines across 291+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase 306 (2026-06-27):** Gas Shipper Imbalance Ledger -- 28 new tests (3,934 total). company/market/gas_imbalance_ledger.py: GasImbalanceDirection (LONG/SHORT/FLAT), GasImbalanceRecord (frozen; mprn/trade_date/nominated_mwh/metered_mwh/sbp_gbp_per_mwh/ssp_gbp_per_mwh; imbalance_mwh=metered-nominated; direction with 1% linepack tolerance; imbalance_charge_gbp: SHORT=-imbalance*SBP cost, LONG=+surplus*SSP revenue; is_crisis_price SBP>100 GBP/MWh; cashout_spread), GasImbalanceLedger (nbp_annual_rate/nbp_sbp_for_month/nbp_ssp_for_month with seasonal factors; record/records_for_date/records_for_mprn/net_imbalance_cost_gbp/crisis_periods/short_periods/mean_cashout_spread/gas_imbalance_summary). Real NBP data 2016-2025: 12->180->30 GBP/MWh; 2022 crisis SBP exceeded 100 GBP/MWh threshold consistently; SBP=NBP+5%, SSP=NBP-5%; winter premium/summer discount via seasonal factors. 2021-22 NBP spike (10x) caused ruinous cashout costs for shippers caught short -- killed Igloo, People's Energy, etc. Connects to gas_nominations (nominations vs metered), gas_network_ledger (Ph305), imbalance_ledger (Ph297 -- electricity parallel), cost_to_serve (Ph294).
 **Phase 305 (2026-06-27):** Gas Network Charge Ledger -- 20 new tests (3,906 total). company/market/gas_network_ledger.py: GasTransporterZone (8 UK zones: CADENT_NW/NG/WM, NORTHERN, SOUTHERN, WALES_WEST, SGN_SCOTLAND/SOUTH), GasNetworkCharge (frozen; mprn/settlement_date/consumption_mwh/aq_kwh/zone/nts_rate_gbp_per_mwh/ldz_rate_gbp_per_mwh/ggl_rate_gbp_per_meter_year/days_in_period; nts_charge_gbp/ldz_charge_gbp/ggl_charge_gbp/total_charge_gbp/unit_cost_p_per_kwh), GasNetworkLedger (nts_rate_for_year/ldz_rate_for_year/ggl_rate_for_year; record_charge/charges_for_mprn/charges_for_year/total_nts_gbp/total_ldz_gbp/total_ggl_gbp/annual_cost_breakdown/cost_trend/gas_network_summary). Real rate data: NTS+LDZ 2016-2025 (1.40->1.43 p/kWh, peak 1.95 in 2022 crisis); GGL introduced Nov 2021 (GBP2.10/meter/yr), fell to GBP0.45 by 2023 as biomethane uptake disappointed. RIIO-GD2 stable post-crisis normalisation. Connects to gas_nominations, mprn_register, bsuos_ledger (Ph293), cost_to_serve (Ph294), ccl_ledger (Ph304).
 **Phase 304 (2026-06-27):** CCL Ledger -- 16 new tests (3,886 total). company/regulatory/ccl_ledger.py: CCLFuel (ELECTRICITY/GAS), CCLExemptReason (RESIDENTIAL/LEC_COVERED), CCLCharge (frozen; charge_gbp=0 if exempt), CCLQuarterlyReturn (frozen; total_due_gbp/is_nil_return), CCLLedger (rate_for_year/record_charge/charges_for_account/charges_for_year/total_due_gbp/quarterly_return/ccl_summary). Real HMRC rates 2016-2025: elec 0.554->0.775 p/kWh; gas 0.195->0.465 p/kWh. 2019 spike: elec +45% (0.583->0.847), gas +67% (0.203->0.339) -- Budget 2018 NIC->CCL tax-shift policy. Residential fully exempt; LEC holders (renewable electricity with Levy Exemption Certificate) exempt. Closes CCL gap across all business customer segments (SME/I&C). Connects to cost_to_serve (Ph294).
 **Phase 303 (2026-06-27):** Stress Test Framework -- 20 new tests (3,870 total). company/risk/stress_test.py: StressScenario (5: MARKET_SPIKE/CREDIT_DEFAULT/DEMAND_SHOCK/LIQUIDITY_CRISIS/COMBINED_CRISIS), StressAssumption (frozen; default_for() loads 2022-calibrated params; COMBINED_CRISIS: elec 5x/gas 4x/margin GBP500k/counterparty GBP1M), StressResult (frozen; drawdown_pct/is_severe <GBP250k/severity_rag GREEN-AMBER-RED/weeks_to_cash_concern Optional[int]), StressTestBook (run_stress/results_for_scenario/worst_case/probability_weighted_loss_gbp/scenarios_survived/scenarios_failed/all_red/stress_summary). Ofgem Financial Resilience Assessment Framework (introduced post-2022): quarterly stress tests mandatory; 28 supplier failures 2021-22 partly from failure to stress-test credit facility adequacy against margin call cascades. Connects to var_monitor (Ph282), margin_call_book (Ph289), credit_limit_book (Ph290), bsuos_ledger (Ph293), imbalance_ledger (Ph297). Closes largest gap in company/risk/ (previously 3 modules/305 lines).
@@ -3986,7 +3987,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 200+ Python modules, ~22,500 lines
 - 400+ git commits
-- 3,906 tests (fast / ~10s; simulation integration ~8 min per run)
+- 3,934 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
