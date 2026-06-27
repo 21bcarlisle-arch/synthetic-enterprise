@@ -423,6 +423,7 @@ def test_restart_claude_respects_cap(monkeypatch):
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: subprocess_calls.append(a))
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
 
     watchdog.restart_claude()
 

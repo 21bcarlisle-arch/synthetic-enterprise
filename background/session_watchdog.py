@@ -724,8 +724,6 @@ def restart_claude(resume: bool = True) -> None:
     checked before advancing.
     --dangerously-skip-permissions is never used.
     """
-    wait_for_api_connectivity()
-
     if restarts_in_last_hour() >= MAX_RESTARTS_PER_HOUR:
         msg = (f"Session watchdog: restart cap reached "
                f"({MAX_RESTARTS_PER_HOUR}/hour) — pausing 60 min before resuming.")
@@ -736,6 +734,7 @@ def restart_claude(resume: bool = True) -> None:
         time.sleep(3600)
         return
 
+    wait_for_api_connectivity()
     log("Restarting Claude Code (normal permissions, no skip flag, claude -c resume)")
     subprocess.run(["tmux", "kill-session", "-t", SESSION_NAME], capture_output=True)
     time.sleep(5)

@@ -1063,7 +1063,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-05-30: treasury £2,466,689.97, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-06-29: treasury £2,466,699.83, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-07-29: treasury £2,466,709.80, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
-  - 2016-08-28: treasury £2,466,719.79, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
+  - 2016-08-28: treasury £2,466,719.79, (none), VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-09-27: treasury £2,466,729.91, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-10-27: treasury £2,466,740.03, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
   - 2016-11-26: treasury £2,466,750.06, C1->1.00, VaR (current £22.23 / stressed £6.83) ratio 3.25
