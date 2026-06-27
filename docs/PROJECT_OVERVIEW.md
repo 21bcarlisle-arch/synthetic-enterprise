@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,386 tests passing. Codebase: ~41,980 lines across 307+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,411 tests passing. Codebase: ~42,100 lines across 308+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 325 (2026-06-27):** Winter Disconnection Moratorium Register -- 25 new tests (4,411 total). company/billing/winter_moratorium.py: MoratoriumType (WINTER_DOMESTIC/VULNERABLE_YEAR_ROUND/DEBT_MORATORIUM), DisconnectionRisk (NO_RISK/PROTECTED/AT_RISK), MoratoriumRecord (frozen; is_active/protection_status), is_winter_period() (Nov-Mar), WinterMoratoriumRegister (register/end_moratorium/is_protected/can_disconnect/vulnerable_protections/winter_protections/moratorium_summary). SLC 27/Gas SoP Regs: domestic Nov-Mar disconnection ban; vulnerable customers year-round; 2022-23 PPM-forcing scandal breached these rules. Connects to debt_collection (Ph311), consumer_duty (Ph283), priority_services.
 
 **Phase 324 (2026-06-27):** MHHS Readiness Tracker -- 22 new tests (4,386 total). company/market/mhhs_tracker.py: MHHSMilestone (8: DCC_CONNECTIVITY/HH_DATA_INGESTION/NHH_PROFILE_MIGRATION/SETTLEMENT_SYSTEM_UPGRADE/CUSTOMER_COMMUNICATION/ELEXON_REGISTRATION/GO_LIVE_SHADOW/GO_LIVE_PRODUCTION), MHHSMilestoneStatus (NOT_STARTED/IN_PROGRESS/COMPLETE/AT_RISK/FAILED), MHHSMilestoneRecord (frozen; is_overdue/days_to_target), MHHSReadinessSnapshot (frozen; migration_completion_pct/is_on_track), MHHSReadinessTracker (record_milestone/update_milestone/record_snapshot/overdue_milestones/complete_milestones/at_risk_milestones/readiness_rag/mhhs_summary). Ofgem SCR 2020/BSC P272: shadow running Nov 2024; production June 2025; DCC central infrastructure for SMETS2 HH data. Connects to smart_meter_rollout (Ph284), settlement_reconciler.
 
