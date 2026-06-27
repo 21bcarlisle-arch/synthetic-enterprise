@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,271 tests passing. Codebase: ~41,380 lines across 302+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,297 tests passing. Codebase: ~41,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 320 (2026-06-27):** Credit Refund Book -- 26 new tests (4,297 total). company/billing/credit_refund.py: RefundTrigger (CUSTOMER_REQUEST/ACCOUNT_CLOSURE/ANNUAL_CREDIT_REVIEW/DECEASED_ESTATE), RefundStatus (PENDING/APPROVED/PAID/REJECTED/HELD), CreditRefundRecord (frozen; working_days_to_pay/is_overdue/breached_deadline), CreditRefundBook (raise_refund/approve/pay/reject/hold/pending_refunds/overdue_refunds/deadline_breaches/total_outstanding_gbp/refund_summary). Ofgem SLC 14: credit balance refund within 10 working days (tightened from 28 calendar days in 2019); 2022 crisis: multiple enforcement notices for suppliers withholding customer credit balances. Connects to account_closure (Ph312), invoice (billing).
 
 **Phase 319 (2026-06-27):** Hedge Effectiveness Assessment Book -- 29 new tests (4,271 total). company/risk/hedge_effectiveness.py: HedgeRelationshipType (FAIR_VALUE/CASH_FLOW), EffectivenessOutcome (HIGHLY_EFFECTIVE/INEFFECTIVE/PROSPECTIVE_ONLY), EffectivenessTest (frozen; effectiveness_ratio_pct/outcome/is_effective/ineffectiveness_gbp), HedgeEffectivenessBook (tests_for_hedge/tests_for_period/failed_tests/effective_tests/de_designated_hedges/total_ineffectiveness_gbp/effectiveness_summary). IFRS 9 80-125% retrospective test; de-designation triggers P&L recognition of all gains/losses; 2022 crisis caused widespread de-designation as customer volumes shrank vs hedged quantities. Connects to forward_book (Ph307), hedge_policy (Ph22b), var_monitor (Ph282).
 
