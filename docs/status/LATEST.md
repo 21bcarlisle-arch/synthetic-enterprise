@@ -1,6 +1,6 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-27T08:05:43Z
+Last updated: 2026-06-27T08:16:31Z
 
 ## Current state
 
@@ -52,8 +52,8 @@ Portal (2): app, templates
 
 Interfaces (1): sim_interface
 
-**Latest simulation results (2016–2025)** — auto-processed (523s / 9 min):
-- Net margin: £6,322,835.71 | Gross: £6,559,770.69 | Capital: £236,935
-- Treasury: £2,466,636 → £3,796,762 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £6,124,100.98 | Net after CTS: £6,454,351
+**Latest simulation results (2016–2025)** — auto-processed (548s / 9 min):
+- Net margin: £6,327,105.62 | Gross: £6,564,077.30 | Capital: £236,972
+- Treasury: £2,466,636 → £3,797,428 | 38 committee interventions | 1531 bills issued
+- Enterprise value: £6,239,541.51 | Net after CTS: £6,458,584
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
