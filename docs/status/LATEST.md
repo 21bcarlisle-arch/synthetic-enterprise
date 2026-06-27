@@ -1,13 +1,13 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-27T03:09:30Z
+Last updated: 2026-06-27T03:11:40Z
 
 ## Current state
 
-- **Phase:** 312 complete
-- **Tests passing:** 4,117 (all green)
+- **Phase:** 313 complete
+- **Tests passing:** 4,136 (all green)
 - **Python modules:** 291+
-- **Company modules:** 225
+- **Company modules:** 226
 - **Net position (latest sim run):** £1,330,126
 
 ## Phase 300 milestone summary
