@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,453 tests passing. Codebase: ~42,340 lines across 310+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,470 tests passing. Codebase: ~42,460 lines across 311+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 328 (2026-06-27):** Disconnection Warning Register -- 17 new tests (4,470 total). company/billing/disconnection_warning.py: WarningStep (WARNING_1/2/3/DISCONNECTION_NOTICE), WarningStatus (PENDING/SENT/RESOLVED/OVERRIDDEN), DisconnectionWarning (frozen; earliest_next_action_date/can_escalate), DisconnectionWarningRegister (mark_sent/resolve/override/can_disconnect requires full sequence + 28-day notice/outstanding_warnings/warning_summary). SLC 27/SoP Regs: 4-contact minimum; 28-day formal notice; 2023 Ofgem investigated suppliers threatening disconnection without completing sequence. Connects to debt_collection (Ph311), winter_moratorium (Ph325).
 
 **Phase 327 (2026-06-27):** Third Party Authority (TPA) Register -- 19 new tests (4,453 total). company/crm/tpa_register.py: TPAScope (VIEW_ONLY/BILLING_MANAGEMENT/FULL_AUTHORITY), TPARelationship (CARER/FAMILY_MEMBER/ENERGY_ADVISOR/DEBT_CHARITY/SOLICITOR/POWER_OF_ATTORNEY/LANDLORD), TPARecord (frozen; is_active/has_billing_access/has_full_authority), TPARegister (grant/revoke/expire/active_tpas_for_account/expiring_soon/power_of_attorney_accounts/tpa_summary). Ofgem Consumer Duty/SLC: must respect designated TPAs; POA legally binding; GDPR Article 6 lawful basis for TPA data sharing. Connects to consumer_duty (Ph283), priority_services, billing.
 
