@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,364 tests passing. Codebase: ~41,860 lines across 306+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,386 tests passing. Codebase: ~41,980 lines across 307+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 324 (2026-06-27):** MHHS Readiness Tracker -- 22 new tests (4,386 total). company/market/mhhs_tracker.py: MHHSMilestone (8: DCC_CONNECTIVITY/HH_DATA_INGESTION/NHH_PROFILE_MIGRATION/SETTLEMENT_SYSTEM_UPGRADE/CUSTOMER_COMMUNICATION/ELEXON_REGISTRATION/GO_LIVE_SHADOW/GO_LIVE_PRODUCTION), MHHSMilestoneStatus (NOT_STARTED/IN_PROGRESS/COMPLETE/AT_RISK/FAILED), MHHSMilestoneRecord (frozen; is_overdue/days_to_target), MHHSReadinessSnapshot (frozen; migration_completion_pct/is_on_track), MHHSReadinessTracker (record_milestone/update_milestone/record_snapshot/overdue_milestones/complete_milestones/at_risk_milestones/readiness_rag/mhhs_summary). Ofgem SCR 2020/BSC P272: shadow running Nov 2024; production June 2025; DCC central infrastructure for SMETS2 HH data. Connects to smart_meter_rollout (Ph284), settlement_reconciler.
 
 **Phase 323 (2026-06-27):** Energy Theft Reporting Book -- 21 new tests (4,364 total). company/billing/energy_theft_book.py: TheftCaseStatus (SUSPECTED/UNDER_INVESTIGATION/CONFIRMED/DNO_NOTIFIED/ESTIMATED_BILL_RAISED/CLOSED_*), TheftType (METER_TAMPERING/BYPASSED/FRAUDULENT_READS/COMMUNICATION_INTERFERENCE), TheftCase (frozen; is_dno_notification_overdue 2-WD from confirmation/is_active), EnergyTheftBook (raise_case/start_investigation/confirm_theft/notify_dno/raise_estimated_bill/close/active_cases/confirmed_cases/overdue_dno_notifications/total_estimated_loss_kwh/theft_summary). GS(SS)5: 2-WD DNO notification post-confirmation; 3-year back-bill exception to 12-month SLC 31A rule; 2.6 TWh stolen annually UK. Connects to theft_indicator (billing), supply_point_register (Ph299).
 
