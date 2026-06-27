@@ -31,6 +31,12 @@ from simulation.life_events import household_at_date as _household_at_date
 SIM_START_YEAR = 2016
 SIM_END_YEAR = 2025
 
+# Phase D: residual gas fraction after heat pump installation.
+# With ASHP + heat pump hot water cylinder, gas boiler is decommissioned.
+# Residual: cooking only (~1,500 kWh/yr for typical UK home).
+# 0.12 * declared AQ gives 1,440 kWh for a 12,000 kWh home.
+GAS_HEAT_PUMP_RESIDUAL_FRACTION = 0.12
+
 RESI_BASE_EAC_KWH = 3_100.0
 SME_BASE_EAC_KWH = 25_000.0
 IC_BASE_EAC_KWH = 100_000.0
@@ -99,6 +105,19 @@ class HouseholdDemandRegister:
             "solar": hh.has_solar,
             "smart_meter": hh.has_smart_meter,
         }
+
+    def gas_eac_multiplier_for_date(self, customer_id: str, date_str: str) -> float:
+        """Phase D: EPC-based multiplier for gas annual quantity."""
+        hh = self.household_at_date(customer_id, date_str)
+        if hh is None:
+            return 1.0
+        if not hh.is_residential:
+            return 1.0
+        if hh.is_heat_pump:
+            return GAS_HEAT_PUMP_RESIDUAL_FRACTION
+        if not hh.is_gas_heated:
+            return 1.0
+        return hh.epc_consumption_multiplier()
 
     def event_count(self, customer_id: str) -> int:
         return len(self._events.get(customer_id, []))

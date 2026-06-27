@@ -1220,6 +1220,10 @@ def main(report_end: str | None = None, sim_interface=None):
         else:  # gas
             gas_customer = get_customer(cid)
             aq_kwh = gas_customer["aq_kwh"]
+            # Phase D: scale gas AQ by EPC-band multiplier from household model.
+            if household_demand_register is not None:
+                _gas_mult = household_demand_register.gas_eac_multiplier_for_date(cid, term_start_str)
+                aq_kwh = max(1, round(aq_kwh * _gas_mult))
 
             # Phase 44b: VaR-constrained hedge decision for gas fixed terms (mirrors electricity 43b).
             # Phase 56: Pass-through gas customers must not hedge — they bill at spot, so a forward

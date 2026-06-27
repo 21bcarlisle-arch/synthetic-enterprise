@@ -1,47 +1,47 @@
-Phase C -- Household-Driven EAC Integration
+Phase D -- Gas EAC Integration with Household Demand Register
 
-Status: PROPOSED (2026-06-27T auto-session)
-4h opt-out window: expires 2026-06-27T~12:00 BST
+Status: BUILDING (2026-06-27, auto-session)
 
 Context:
-Phases A and B built the household physical model and life events engine.
-These modules are 68 tests passing but currently dead code -- no simulation
-path imports them. Every customer in a segment uses the same flat EAC
-regardless of physical characteristics. EPC-G home = 2.2x segment average,
-EPC-A = 0.75x. EV acquisition increases demand. Solar reduces net import.
-None of this currently affects consumption or billing.
+Phase C wired the household physical model (EPC, EV, solar) into electricity
+settlement via eac_multiplier_for_date(). Gas settlement still uses static
+declared AQ regardless of household insulation. The EPC band is the primary
+driver of space heating demand -- for gas-heated homes it determines how much
+gas is consumed, not electricity.
 
-What Phase C builds:
+Gap: C1g (EPC-D, urban flat) bills at 12,000 kWh/yr whether the home is
+poorly or well insulated. C4g (EPC-E, rural detached) at 22,000 kWh/yr.
+A real supplier's gas AQ would reflect the home's EPC band.
 
-  simulation/household_demand.py (new, ~120 lines):
-    HouseholdDemandRegister:
-      build_household_register() for all 18 customers at init
-      generate_life_events() per customer 2016-2025 (seeded RNG)
-      eac_multiplier_for_date(customer_id, date_str) -> float
-        Composite: epc_multiplier * (1 + ev_fraction) * (1 - solar_fraction)
-      household_at_date(customer_id, date_str) -> Household
+What Phase D builds:
 
-  simulation/run_phase2b.py (2-3 line change):
-    Instantiate HouseholdDemandRegister at simulation start.
-    Multiply base consumption by eac_multiplier_for_date(cid, period_date).
+  simulation/household_demand.py (2 additions):
+    GAS_HEAT_PUMP_RESIDUAL_FRACTION = 0.12  (cooking + hot water backup)
+    HouseholdDemandRegister.gas_eac_multiplier_for_date(customer_id, date_str):
+      I&C / non-residential: 1.0 (industrial gas, not EPC-driven)
+      heat pump installed at date: GAS_HEAT_PUMP_RESIDUAL_FRACTION
+      gas boiler (resi/SME): epc_consumption_multiplier()
+      not in register: 1.0
+
+  simulation/run_phase2b.py (3 lines in gas term block):
+    After `aq_kwh = gas_customer["aq_kwh"]`, apply multiplier:
+      _gas_mult = household_demand_register.gas_eac_multiplier_for_date(cid, term_start_str)
+      aq_kwh = max(1, round(aq_kwh * _gas_mult))
+    Multiplier captured at term signing; applies to full term (correct for annual gas contracts).
+
+  tests/simulation/test_phase_d_gas_household_demand.py (~16 tests)
 
 Fidelity delta:
-  C1 (EPC-D, no solar/EV): 1.25x segment EAC baseline
-  C2 (EPC-C, EV ~2019): 1.0x + 2143 kWh/yr after acquisition date
-  C3 (EPC-E, no assets): 1.55x segment EAC
-  C4 (EPC-B, solar ~2020-2022): 0.75x * (1 - solar_fraction) post-install
-  18-customer register, events over 2016-2025.
-  2022 crisis figures diverge by EPC band.
+  C1g (EPC-D):  12,000 -> 15,000 kWh (+25%). Poorly insulated 2-bed London flat.
+  C2g (EPC-D):  15,000 -> 18,750 kWh (+25%). Poorly insulated 3-bed suburban semi.
+  C3g (EPC-E):  14,000 -> 21,700 kWh (+55%). Cold tenement flat, poor insulation.
+  C4g (EPC-E):  22,000 -> 34,100 kWh (+55%). Large rural detached, draughty.
+  C_IC3g (I&C): 5,000,000 kWh unchanged. Process heat, not EPC-driven.
 
-Files:
-  simulation/household_demand.py -- new module (~120 lines)
-  simulation/run_phase2b.py -- 2-3 line change
-  tests/simulation/test_phase_c_household_demand.py -- ~22 tests
+Total resi gas volume +42%. Gas P&L magnitude increases proportionally.
+First time EPC band affects gas consumption. Connects household.py (Phase A),
+life_events.py (Phase B), household_demand.py (Phase C) to gas_settlement.py.
 
-Not in Phase C (later):
-  Gas adjustment for heat pump installs (Phase D)
-  Half-hourly EV load shape (Phase D)
-  Company-observable EPC inference (Phase E)
-
-Expected: ~22 new tests (4,648 total)
-Connects to: household.py (Phase A), life_events.py (Phase B), run_phase2b.py
+Not in Phase D (later):
+  Insulation-upgrade events improving EPC band mid-simulation (Phase E)
+  Half-hourly EV load shape for ToU tariff impact (Phase E)
