@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,242 tests passing. Codebase: ~41,250 lines across 301+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,271 tests passing. Codebase: ~41,380 lines across 302+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 319 (2026-06-27):** Hedge Effectiveness Assessment Book -- 29 new tests (4,271 total). company/risk/hedge_effectiveness.py: HedgeRelationshipType (FAIR_VALUE/CASH_FLOW), EffectivenessOutcome (HIGHLY_EFFECTIVE/INEFFECTIVE/PROSPECTIVE_ONLY), EffectivenessTest (frozen; effectiveness_ratio_pct/outcome/is_effective/ineffectiveness_gbp), HedgeEffectivenessBook (tests_for_hedge/tests_for_period/failed_tests/effective_tests/de_designated_hedges/total_ineffectiveness_gbp/effectiveness_summary). IFRS 9 80-125% retrospective test; de-designation triggers P&L recognition of all gains/losses; 2022 crisis caused widespread de-designation as customer volumes shrank vs hedged quantities. Connects to forward_book (Ph307), hedge_policy (Ph22b), var_monitor (Ph282).
 
 **Phase 318 (2026-06-27):** Financial Resilience Assessment Book -- 27 new tests (4,242 total). company/risk/financial_resilience.py: FRAStatus (RESILIENT/ADEQUATE/BORDERLINE/INADEQUATE), FRATrigger (ROUTINE_QUARTERLY/MARKET_STRESS_EVENT/REGULATOR_DIRECTED), FRAAssessment (frozen; total_liquidity_gbp/months_of_liquidity/status/is_compliant/period_label), FinancialResilienceBook (record/assessments_for_year/latest_assessment/inadequate_quarters/borderline_or_worse/trend_is_deteriorating/fra_summary). Ofgem FRA Framework post-2022: 28 supplier failures; mandatory quarterly board sign-off; 12m liquidity minimum; stress+VaR must pass. Connects to stress_test (Ph303), var_monitor (Ph282), margin_call_book (Ph289), corporation_tax (Ph316).
 
