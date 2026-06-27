@@ -51,6 +51,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 HANDSHAKE_FILE = "docs/context-handshake-latest.md"
+
+# Import deterministic rule engine — used by default; LLM reserved for crisis escalations
+from sim.risk_committee_rules import decide as _rule_engine_decide
 COMMITTEE_LOG_FILE = "docs/observability/risk-committee-log.md"
 
 OLLAMA_URL = "http://localhost:11434/api/chat"

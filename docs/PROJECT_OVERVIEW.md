@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,491 tests passing. Codebase: ~42,590 lines across 312+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,559 tests passing. Codebase: ~42,900 lines across 315+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,12 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 332 (2026-06-27):** Risk Committee Deterministic Engine + File API Fix -- 21 new tests (4,559 total). sim/risk_committee_rules.py: parse_handshake (hf/VaR ratio/sigma_recent/triggered_customers from structured handshake context), should_escalate (sigma > 1.5 or all triggered at hf=1.0), apply_rules (step: 0.25/0.20/0.15 by VaR ratio), decide (returns escalate_to_llm flag + adjustments dict). Updated sim/risk_committee_agent.py: rule engine by default; escalates to Ollama only for crisis sigma or maxed-out portfolio. background/file_api.py: auto-loads .env.file-api if FILE_API_KEY not in env (fixes 403 on restart). background/start_worker.sh: sources .env.file-api before starting file-api session. Expected: removes ~95% of Ollama committee calls; LLM reserved for genuine crisis events.
+
+**Phase 331 (2026-06-27):** Dual-Fuel Account Consolidator -- 25 new tests (4,538 total). company/crm/dual_fuel_account.py: FuelType (ELECTRICITY/GAS), FuelLeg (frozen; supply_point_ref MPAN/MPRN; estimated_annual_cost_gbp from EAC/AQ + unit_rate + standing; active flag), DualFuelAccount (frozen; is_dual_fuel/is_electricity_only/is_gas_only/has_any_supply/combined_annual_cost_gbp/active_fuels), DualFuelAccountBook (register_electricity_leg/register_gas_leg raises ValueError on wrong fuel/get_account/all_accounts/dual_fuel_accounts/electricity_only/gas_only/total_combined_annual_cost_gbp/dual_fuel_summary). Electricity settled via BSC/MPAN; gas via UNC/MPRN; same customer account, separate settlement. Connects to supply_point_register (Ph299), customer_registry, tariff_engine.
+
+**Phase 330 (2026-06-27):** Payment Method Register -- 22 new tests (4,513 total). company/billing/payment_method_register.py: PaymentMethod (DIRECT_DEBIT/PREPAYMENT_METER/BACS_TRANSFER/CHEQUE/CASH), PaymentMethodSource (VOLUNTARY/DEBT_MANDATED/VULNERABILITY_PROTECTION/DEFAULT), PaymentMethodRecord (frozen; is_prepayment/is_direct_debit/is_debt_mandated), PaymentMethodRegister (set_method/current/history_for/accounts_by_method/ppm_accounts/dd_accounts/debt_mandated_ppm/method_breakdown/payment_method_summary). UK: ~70% DD, ~15% PPM; debt-mandated PPM monitored by Ofgem; SLC 27 PPM install rules; 2023 forced-fitting scandal. Connects to direct_debit, prepayment, ppm_debt_loading (Ph313), debt_collection (Ph311).
 
 **Phase 329 (2026-06-27):** Fuel Poverty Indicator Book -- 21 new tests (4,491 total). company/regulatory/fuel_poverty.py: FuelPovertyDefinition (CLASSIC >10% income / LIHC post-2013 England / AFFORDABLE_WARMTH Scotland), FuelPovertyRisk (LOW/MODERATE/HIGH/FUEL_POOR), FuelPovertyAssessment (frozen; energy_as_pct_income/income_after_energy_gbp/risk/is_fuel_poor -- LIHC: below 60% median after costs AND >10%), FuelPovertyBook (latest_for/fuel_poor_accounts uses only latest per account/high_risk_accounts/fuel_poverty_rate_pct/fuel_poverty_summary). Real: 6.5M UK households fuel poor 2023; Ofgem Consumer Duty: must identify and act. Connects to whd_book (Ph281), debt_collection (Ph311), consumer_duty (Ph283).
 

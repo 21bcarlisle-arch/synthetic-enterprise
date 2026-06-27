@@ -32,6 +32,15 @@ DOCS_DIR = (REPO_ROOT / "docs").resolve()
 STAGING_DIR = (REPO_ROOT / "docs" / "staging").resolve()
 RESPONSES_DIR = (STAGING_DIR / "responses").resolve()
 GATE_TOKENS_DIR = (STAGING_DIR / ".gate_tokens").resolve()
+
+# Load from .env.file-api if FILE_API_KEY not already in environment.
+_ENV_FILE = REPO_ROOT / "background" / ".env.file-api"
+if not os.environ.get("FILE_API_KEY") and _ENV_FILE.exists():
+    for _line in _ENV_FILE.read_text().splitlines():
+        if _line.startswith("FILE_API_KEY="):
+            os.environ["FILE_API_KEY"] = _line.split("=", 1)[1].strip()
+            break
+
 _API_KEY = os.environ.get("FILE_API_KEY", "")
 
 

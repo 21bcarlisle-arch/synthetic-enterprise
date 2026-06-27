@@ -56,6 +56,11 @@ _start_session "token-proxy" \
   "python3 -m background.token_proxy" \
   "Local HTTP proxy on :8801 — tracks token usage for autonomous turns"
 
+# Load FILE_API_KEY from .env.file-api if not already exported
+if [ -f background/.env.file-api ]; then
+  export $(grep -v "^#" background/.env.file-api | xargs)
+fi
+
 _start_session "file-api" \
   "python3 -m uvicorn background.file_api:app --host 0.0.0.0 --port 8765" \
   "Authenticated file API + Ollama /query proxy on :8765"
