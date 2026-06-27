@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,343 tests passing. Codebase: ~41,740 lines across 305+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,364 tests passing. Codebase: ~41,860 lines across 306+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 323 (2026-06-27):** Energy Theft Reporting Book -- 21 new tests (4,364 total). company/billing/energy_theft_book.py: TheftCaseStatus (SUSPECTED/UNDER_INVESTIGATION/CONFIRMED/DNO_NOTIFIED/ESTIMATED_BILL_RAISED/CLOSED_*), TheftType (METER_TAMPERING/BYPASSED/FRAUDULENT_READS/COMMUNICATION_INTERFERENCE), TheftCase (frozen; is_dno_notification_overdue 2-WD from confirmation/is_active), EnergyTheftBook (raise_case/start_investigation/confirm_theft/notify_dno/raise_estimated_bill/close/active_cases/confirmed_cases/overdue_dno_notifications/total_estimated_loss_kwh/theft_summary). GS(SS)5: 2-WD DNO notification post-confirmation; 3-year back-bill exception to 12-month SLC 31A rule; 2.6 TWh stolen annually UK. Connects to theft_indicator (billing), supply_point_register (Ph299).
 
 **Phase 322 (2026-06-27):** Deemed Contract Register -- 22 new tests (4,343 total). company/billing/deemed_contract.py: DeemedSupplyReason (NEW_TENANT/VOID_PERIOD_ENDED/ACQUISITION_DEFAULT/SUPPLIER_SWITCH_FAIL), DeemedContractStatus (ACTIVE_DEEMED/NOTIFIED/CONVERTED/VACATED), DeemedContractRecord (frozen; is_notification_overdue 5 working-day deadline/months_on_deemed/is_extended_deemed after 12m), DeemedContractRegister (register/notify/convert/vacate/active_deemed/overdue_notifications/extended_deemed/records_by_reason/deemed_summary). Ofgem SLC 2B: 5 working-day notification; after 12 months extra obligations + right to switch without exit fee. Connects to cot.py (deemed_rate_gbp_per_kwh), supply_point_register (Ph299), cos_process (Ph298).
 
