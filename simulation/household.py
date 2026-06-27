@@ -129,19 +129,21 @@ class Household:
     def epc_consumption_multiplier(self) -> float:
         """Multiplier on segment-average EAC based on EPC rating.
 
-        Calibrated to English Housing Survey 2022 mean energy use by EPC band.
-        Relative to D (=1.0, the most common band for existing UK stock).
-        Source: MHCLG EPC statistics Table C3.
+        C=1.00 reference (modal UK band, 44.8% of England stock per EHS 2022-23).
+        Derived from EHS AT1_6 SAP-modelled costs adjusted 50% toward 1.0 for
+        prebound effect (Firth et al. 2013 — lower-efficiency households under-heat
+        to manage bills, narrowing the modelled gap).
+        Source: docs/market_research/HUMAN_SIMULATION_RESEARCH.md Finding 8.
         """
         return {
-            "A": 0.50,
-            "B": 0.65,
-            "C": 0.82,
-            "D": 1.00,
-            "E": 1.25,
-            "F": 1.55,
-            "G": 1.90,
-        }.get(self.epc_rating.upper(), 1.0)
+            "A": 0.75,
+            "B": 0.75,
+            "C": 1.00,
+            "D": 1.25,
+            "E": 1.55,
+            "F": 1.85,
+            "G": 2.20,
+        }.get(self.epc_rating.upper(), 1.00)
 
     def seasonal_flatness_factor(self) -> float:
         """Higher value = flatter winter/summer ratio for electricity demand.

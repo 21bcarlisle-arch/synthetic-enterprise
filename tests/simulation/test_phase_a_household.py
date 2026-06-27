@@ -239,21 +239,29 @@ def test_warehouse_is_not_residential():
 # epc_consumption_multiplier
 # ---------------------------------------------------------------------------
 
-def test_epc_d_multiplier_is_baseline():
-    h = make_household(_resi_flat())  # EPC D
+def test_epc_c_multiplier_is_reference():
+    # C is the modal UK EPC band (44.8% of English stock, EHS 2022-23); reference = 1.0
+    c = {**_resi_semi(), "epc_rating": "C"}
+    h = make_household(c)
     assert h.epc_consumption_multiplier() == pytest.approx(1.0)
 
 
-def test_epc_a_multiplier_is_below_one():
+def test_epc_d_multiplier_is_above_reference():
+    h = make_household(_resi_flat())  # EPC D — 25% above C per EHS AT1_6 + prebound correction
+    assert h.epc_consumption_multiplier() == pytest.approx(1.25)
+
+
+def test_epc_a_multiplier_is_below_reference():
     c = {**_resi_semi(), "epc_rating": "A"}
     h = make_household(c)
     assert h.epc_consumption_multiplier() < 1.0
+    assert h.epc_consumption_multiplier() == pytest.approx(0.75)
 
 
-def test_epc_g_multiplier_is_above_one():
+def test_epc_g_multiplier_is_above_reference():
     c = {**_resi_semi(), "epc_rating": "G"}
     h = make_household(c)
-    assert h.epc_consumption_multiplier() > 1.5
+    assert h.epc_consumption_multiplier() == pytest.approx(2.20)
 
 
 def test_epc_multipliers_monotonically_increasing():
