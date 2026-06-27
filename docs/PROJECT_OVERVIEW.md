@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,215 tests passing. Codebase: ~41,130 lines across 300+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,242 tests passing. Codebase: ~41,250 lines across 301+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 318 (2026-06-27):** Financial Resilience Assessment Book -- 27 new tests (4,242 total). company/risk/financial_resilience.py: FRAStatus (RESILIENT/ADEQUATE/BORDERLINE/INADEQUATE), FRATrigger (ROUTINE_QUARTERLY/MARKET_STRESS_EVENT/REGULATOR_DIRECTED), FRAAssessment (frozen; total_liquidity_gbp/months_of_liquidity/status/is_compliant/period_label), FinancialResilienceBook (record/assessments_for_year/latest_assessment/inadequate_quarters/borderline_or_worse/trend_is_deteriorating/fra_summary). Ofgem FRA Framework post-2022: 28 supplier failures; mandatory quarterly board sign-off; 12m liquidity minimum; stress+VaR must pass. Connects to stress_test (Ph303), var_monitor (Ph282), margin_call_book (Ph289), corporation_tax (Ph316).
 
 **Phase 317 (2026-06-27):** VAT Book -- 20 new tests (4,215 total). company/finance/vat_book.py: VATRateCategory (DOMESTIC_REDUCED 5%/STANDARD 20%/ZERO/EXEMPT), classify_vat_category (residential->5%; SME <=33kWh/day elec or <=145kWh/day gas -> 5%; I&C->20%), VATTransaction (frozen; vat_rate/vat_gbp/gross_amount_gbp), VATQuarterlyReturn (frozen; net_vat_due/is_repayment), VATBook (record_transaction/transactions_for_period/quarterly_return with 8% input VAT estimate/total_output_vat_gbp by year/vat_summary). Real data: UK domestic energy 5% since Finance Act 1994; business 20%; SME qualifying threshold HMRC concession; quarterly HMRC returns within 1m+7d of quarter end; 2022 billing errors caused wrong VAT rate misapplication. Connects to billing/invoice, ccl_ledger (Ph304), company_pl, corporation_tax (Ph316).
 **Phase 316 (2026-06-27):** Corporation Tax Provision Book -- 24 new tests (4,195 total). company/finance/corporation_tax.py: _ct_rate_for_year 2016-2025 (20% 2016, 19% 2017-2022, 25% 2023+), TaxProvision (frozen; taxable_profit=PBT-loss_relief; current_tax_gbp=taxable*rate; profit_after_tax/effective_rate_pct/is_loss_year), CorporationTaxBook (provision_for_year with automatic loss-carry-forward relief; total_tax_paid/loss_years/accumulated_losses_gbp/tax_summary). Real data: UK CT rate rises from 19% to 25% April 2023 (largest rise since 1974, Finance Act 2021); Energy Profits Levy (EPL) applies to producers only, NOT energy suppliers; loss relief: trading losses carried forward indefinitely. For a GBP1M net profit supplier: +GBP60k/yr tax from 2023. Connects to company_pl (Ph?), pnl.py, management_accounts.
