@@ -13,7 +13,7 @@ _MINIMAL = {
         "gross_margin_gbp": 1_200_000.0,
         "revenue_gbp": 5_000_000.0,
     },
-    "total_net_gbp": 500_000.0,
+    "total_net_gbp": 1_000_000.0,
     "administration_event": None,
     "committee_wake_ups_total": 5,
     "bills_total": 200,
