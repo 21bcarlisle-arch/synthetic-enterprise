@@ -2046,3 +2046,139 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
 - [2026-06-26T14:37:50Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-06-26T15:01:28Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-06-26T15:20:46Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T15:39:44Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T15:59:01Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T16:17:57Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T16:37:08Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T16:56:19Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T17:15:29Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T17:34:38Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T17:53:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:04:47Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:07:26Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:09:47Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:10:43Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:12:27Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:12:46Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:13:25Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:14:51Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:15:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:16:02Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:16:26Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:19:07Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:19:52Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:37:41Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T18:56:58Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:16:03Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:35:26Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:39:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:41:14Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:41:41Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:44:00Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:45:04Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:45:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:47:23Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:48:02Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:48:14Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:50:11Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:50:49Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:51:41Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:53:14Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:53:53Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:54:35Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:54:38Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:56:11Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:56:48Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:58:00Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T19:59:21Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:00:05Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:01:08Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:02:18Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:08:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:11:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:13:05Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:14:42Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:18:23Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:19:40Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:21:19Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:24:04Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:30:13Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T20:44:48Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T21:03:52Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T21:23:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T21:42:15Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T22:01:18Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T22:20:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T22:39:50Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T22:58:59Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:08:30Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:11:06Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:14:28Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:17:10Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:18:07Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:19:41Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:22:20Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:37:16Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:56:31Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-26T23:58:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:01:20Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:15:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:34:47Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:43:00Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:45:34Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:47:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:48:52Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:49:39Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:51:31Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:53:00Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:54:03Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:54:16Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:55:36Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:55:39Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:56:57Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T00:57:06Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T01:00:30Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T01:00:34Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T01:02:00Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T01:02:06Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T01:15:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T01:35:21Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T01:54:30Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:13:36Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:26:58Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:29:25Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:29:43Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:32:00Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:32:50Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:32:52Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:35:17Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:35:42Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:37:57Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:38:18Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:40:56Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:41:27Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:43:49Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:44:08Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T02:52:32Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T03:11:41Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T03:30:52Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T03:49:28Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T03:50:07Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-27T03:52:03Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## 2026-06-27 — Phases 327-329 (continued session, post-context-compaction)
+
+- **Frontier tokens:** not computed (resumed from compacted context — /cost unavailable post-compaction)
+- **Local model calls:** 0 — all code written directly by Claude Code (no Ollama delegation this session)
+- **Produced:**
+  - Files created (6): `company/crm/tpa_register.py`, `company/billing/disconnection_warning.py`, `company/regulatory/fuel_poverty.py`, `tests/company/crm/test_tpa_register.py`, `tests/company/billing/test_disconnection_warning.py`, `tests/company/regulatory/test_fuel_poverty.py`
+  - Files modified (4): `docs/PROJECT_OVERVIEW.md`, `CLAUDE.md`, `docs/status/LATEST.md` (per phase), git pushes after each
+  - Lines: +750 / -5 (phases 327-329 only in this continuation)
+  - Tests added: 57 new (19 + 17 + 21)
+  - Total tests: 4,434 -> 4,491 (across continuation)
+  - Features shipped:
+    - Phase 327: Third Party Authority Register -- customer-designated representatives (Citizens Advice, StepChange, POA, carer). Ofgem Consumer Duty: must respect TPAs; POA legally binding.
+    - Phase 328: Disconnection Warning Register -- SLC 27 mandatory 4-contact sequence; 28-day notice; can_disconnect() only after all steps complete.
+    - Phase 329: Fuel Poverty Indicator Book -- Classic (>10% income) and LIHC definitions; latest-per-account tracking; national benchmark 6.5M fuel poor 2023.
+- **Notes:** Context-compacted continuation of the same long session. All three phases passed epistemic verifier (246 company files scanned, 0 violations). No friction — list-join write pattern works reliably to avoid heredoc/bash-escape issues.
+
+---
