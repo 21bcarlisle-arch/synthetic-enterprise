@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,321 tests passing. Codebase: ~41,620 lines across 304+ Python modules.*
+*Last updated: 2026-06-27. 400+ commits. 4,343 tests passing. Codebase: ~41,740 lines across 305+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase 322 (2026-06-27):** Deemed Contract Register -- 22 new tests (4,343 total). company/billing/deemed_contract.py: DeemedSupplyReason (NEW_TENANT/VOID_PERIOD_ENDED/ACQUISITION_DEFAULT/SUPPLIER_SWITCH_FAIL), DeemedContractStatus (ACTIVE_DEEMED/NOTIFIED/CONVERTED/VACATED), DeemedContractRecord (frozen; is_notification_overdue 5 working-day deadline/months_on_deemed/is_extended_deemed after 12m), DeemedContractRegister (register/notify/convert/vacate/active_deemed/overdue_notifications/extended_deemed/records_by_reason/deemed_summary). Ofgem SLC 2B: 5 working-day notification; after 12 months extra obligations + right to switch without exit fee. Connects to cot.py (deemed_rate_gbp_per_kwh), supply_point_register (Ph299), cos_process (Ph298).
 
 **Phase 321 (2026-06-27):** Supplier of Last Resort (SoLR) Register -- 24 new tests (4,321 total). company/crm/solr_register.py: SoLRStatus (TRANSFERRED/NOTIFIED/CONTRACT_OFFERED/CONTRACT_ACCEPTED/INTEGRATED), SoLRTransferRecord (frozen; is_notification_overdue/is_contract_offer_overdue/is_in_solr_billing_period), SoLRDesignation (frozen), SoLRRegister (record_designation/transfer/notify/offer_contract/accept/integrate/active_transfers/overdue_notifications/overdue_contract_offers/in_solr_billing_period/total_credit_claimed_gbp/solr_summary). 5-day notification/30-day contract offer/90-day SVT billing periods. 2021-22: 28 supplier failures, 4M+ customers via SoLR. Connects to supply_point_register (Ph299), account_closure (Ph312), credit_refund (Ph320).
 
