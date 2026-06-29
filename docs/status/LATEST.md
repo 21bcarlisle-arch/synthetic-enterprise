@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T13:33:37Z
+Last updated: 2026-06-29T13:35:30Z
 
 ## Current state
 
-- **Phase:** L complete (Tariff Segment Profitability Book)
-- **Tests passing:** 4,814 (all green)
+- **Phase:** M complete (Renewal Conversion Rate Book)
+- **Tests passing:** 4,835 (all green)
 - **Python modules:** 292+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,328,154
