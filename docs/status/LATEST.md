@@ -1,59 +1,40 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T14:52:22Z
+Last updated: 2026-06-29T14:57:50Z
 
 ## Current state
 
-- **Phase:** M complete (Renewal Conversion Rate Book)
-- **Tests passing:** 4,835 (all green)
-- **Python modules:** 292+
+- **Phase:** N complete (EV Settlement Wiring + Physical Suitability Constraints)
+- **Tests passing:** 4,861 (all green)
+- **Python modules:** 325+
 - **Company modules:** 230+
-- **Net position (latest sim run):** £1,328,154
+- **Net position (latest sim run):** £1,243,172
 
-## Phase 300 milestone summary
+## Latest run figures (git 173b93c, 2026-06-29)
 
-Starting from Phase 277 in this session, built 24 phases across:
+| Metric | Value |
+|--------|-------|
+| Total Revenue | £14,137,721 |
+| Gross Margin | £6,462,858 |
+| Net Margin | £1,243,172 |
+| Enterprise Value | £6,142,209 |
+| Administration Event | None |
 
-- **7 non-commodity electricity cost ledgers:** CM, CfD, RO, FIT, DUoS, TNUoS, BSUoS
-- **Cost-to-Serve Calculator:** unified per-unit economics (Ph294)
-- **Ofgem Price Cap Book:** 26 quarters real data Q1-2019 to Q1-2025 (Ph295)
-- **Trading infrastructure:** Margin Calls (Ph289), Counterparty Credit Limits (Ph290), Imbalance Ledger (Ph297)
-- **Regulatory compliance:** REMIT Reporting (Ph296), Regulatory Dashboard (Ph300)
-- **Customer operations:** CoS Process (Ph298), Supply Point Register (Ph299)
-- **ESG/Sustainability:** ECO Obligation (Ph288), Decarbonisation Score (Ph279)
-- **Regulatory protections:** WHD (Ph281), EBSS (Ph280), Consumer Duty (Ph283)
-- **Reporting:** VaR Monitor (Ph282), Smart Meter Rollout (Ph284), FIT/RO/FMD books
+## Recent build phases (N→G)
 
-## All company modules (219 total)
+- **Phase N:** EV settlement wiring + physical suitability (26 tests). has_driveway/roof_aspect/hp_eligible gates.
+- **Phase M:** Renewal Conversion Rate Book (21 tests). CRM lifecycle complete.
+- **Phase L:** Tariff Segment Profitability Book (19 tests).
+- **Phase K:** Break-Even Tariff Assessor (21 tests).
+- **Phase J:** Customer Profitability Register (25 tests).
+- **Phase I:** ASHP Seasonal Electricity Shape HDD-weighted (10 tests).
+- **Phase H:** Electricity EAC Multiplier at Term Signing (12 tests).
+- **Phase G:** ASHP Electricity Settlement Wiring (12 tests).
 
-Finance (19): treasury, credit facility, P&L, double-entry, cash flow, payroll, budget,
-working capital, margin calls, credit limits, management accounts, board KPIs, bad debt,
-revenue accruals, period reconciliation, trade finance, company P&L, board dashboard
+## Architecture
 
-Market (22): forwards, day-ahead, intraday, gas OTC, gas storage, CfD levy, PPA,
-capacity market, metering contracts, DUoS, TNUoS, BSUoS, imbalance, smart meter rollout
+- SIM layer: half-hourly settlement, weather, household physics, life events
+- SaaS layer: billing, risk, regulatory, CRM, finance
+- Seam: company/interfaces/sim_interface.py (epistemic boundary)
 
-CRM (57): acquisition, retention, CLV/CAC, churn, CSS, NPS, campaign tracker,
-behaviour segments, contact journey, CoS process, supply point register, vulnerability,
-property improvements, energy profiles, home registry...
-
-Regulatory (18): SFR, compliance scorecard, consumer duty, RO, FIT, FMD, EBSS, WHD,
-ECO obligation, price cap, REMIT, regulatory dashboard
-
-Risk (3): hedge policy, risk appetite, VaR monitor
-
-Sustainability (1): decarbonisation score
-
-Pricing (2): tariff smoothing, cost-to-serve
-
-Compliance (1): consumer duty
-
-Portal (2): app, templates
-
-Interfaces (1): sim_interface
-
-**Latest simulation results (2016–2025)** — auto-processed (464s / 8 min):
-- Net margin: £6,239,957.41 | Gross: £6,476,625.78 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,808 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £6,142,208.62 | Net after CTS: £6,371,510
-- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
+→ Full history: docs/PROJECT_OVERVIEW.md | Report: docs/reports/ANNUAL_REPORT.md
