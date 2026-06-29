@@ -195,7 +195,8 @@ def generate_life_events(
         # -- Solar PV install --
         if (not has_solar
                 and household.is_residential
-                and household.property_type != PropertyType.FLAT):
+                and household.property_type != PropertyType.FLAT
+                and household.roof_aspect not in ("north", "na")):
             prob = _annual_prob(_SOLAR_INSTALL_PROB_BY_YEAR, year)
             if rng.random() < prob:
                 kwp = round(rng.uniform(2.5, 4.5), 1)
@@ -221,7 +222,7 @@ def generate_life_events(
                 has_battery = True
 
         # -- EV acquisition --
-        if not has_ev and household.is_residential:
+        if not has_ev and household.is_residential and household.has_driveway:
             prob = _annual_prob(_EV_ACQUIRED_PROB_BY_YEAR, year)
             if rng.random() < prob:
                 charger_kw = rng.choice([3.7, 7.0, 7.0, 22.0])  # weighted toward 7kW
@@ -233,8 +234,8 @@ def generate_life_events(
                 ))
                 has_ev = True
 
-        # -- Heat pump installation (gas-heated resi) --
-        if (household.is_residential
+        # -- Heat pump installation (gas-heated resi, physically eligible) --
+        if (household.hp_eligible
                 and heating in (HeatingSystem.GAS_BOILER_COMBI, HeatingSystem.GAS_BOILER_SYSTEM)):
             prob = _annual_prob(_HEAT_PUMP_INSTALL_PROB_BY_YEAR, year)
             if rng.random() < prob:
@@ -313,6 +314,8 @@ def apply_events(household: Household, events: list[LifeEvent]) -> Household:
         "has_smart_meter": household.has_smart_meter,
         "smart_meter_install_year": household.smart_meter_install_year,
         "insulation": household.insulation,
+        "has_driveway": household.has_driveway,
+        "roof_aspect": household.roof_aspect,
     }
 
     for event in events:

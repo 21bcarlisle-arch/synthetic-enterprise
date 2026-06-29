@@ -42,7 +42,9 @@ def _make_hh(heating: HeatingSystem) -> Household:
         has_smart_meter=False,
         smart_meter_install_year=None,
         insulation=InsulationLevel.PARTIAL,
-    )
+        has_driveway=True,
+        roof_aspect="south",
+        )
 
 
 class TestASHPAnnualKwh:
@@ -107,7 +109,9 @@ class TestEACMultiplierASHPUplift:
             has_smart_meter=False,
             smart_meter_install_year=None,
             insulation=InsulationLevel.PARTIAL,
-        )
+            has_driveway=True,
+            roof_aspect="south",
+            )
         register._households["C1"] = new_hh
         register._events["C1"] = []  # no life events
         return register

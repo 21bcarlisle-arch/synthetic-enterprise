@@ -106,6 +106,10 @@ class Household:
     # Insulation
     insulation: InsulationLevel
 
+    # Physical suitability — drive EV/solar/HP eligibility in life events
+    has_driveway: bool       # off-street parking; required for home EV charging
+    roof_aspect: str         # "south" / "east_west" / "north" / "na" (flat/commercial)
+
     @property
     def is_residential(self) -> bool:
         return self.property_type in (
@@ -128,6 +132,22 @@ class Household:
             HeatingSystem.HEAT_PUMP_AIR,
             HeatingSystem.HEAT_PUMP_GROUND,
         )
+
+    @property
+    def hp_eligible(self) -> bool:
+        """True if property is physically suitable for heat pump installation.
+
+        Excludes flats (no outdoor unit space, shared building) and
+        single-bedroom homes (too small to justify ~GBP10k install cost).
+        Source: MCS HP installer guidance / BEIS Heat Pump Roadmap.
+        """
+        if not self.is_residential:
+            return False
+        if self.property_type == PropertyType.FLAT:
+            return False
+        if self.bedrooms is not None and self.bedrooms < 2:
+            return False
+        return True
 
     def epc_consumption_multiplier(self) -> float:
         """Multiplier on segment-average EAC based on EPC rating and actual insulation level.
@@ -315,6 +335,26 @@ def make_household(customer: dict) -> Household:
 
     insulation = _EPC_TO_INSULATION.get(epc, InsulationLevel.PARTIAL)
 
+    # Driveway: required for home EV charging. Detached/semi always have one;
+    # flats and terraced (inner-city) typically don't.
+    _has_driveway = property_type in (PropertyType.DETACHED, PropertyType.SEMI_DETACHED)
+
+    # Roof aspect: drives solar PV eligibility. Detached assumed south-facing;
+    # semi-detached east/west (party wall on one side); terraced variable;
+    # flats and commercial: N/A.
+    _roof_aspect_map: dict[str, str] = {
+        "urban_flat": "na",
+        "tenement_flat": "na",
+        "suburban_semi": "east_west",
+        "rural_detached": "south",
+        "small_office": "na",
+        "warehouse_unit": "na",
+        "office_building": "na",
+        "chemical_plant": "na",
+        "supermarket": "na",
+    }
+    _roof_aspect = _roof_aspect_map.get(home_type, "east_west")
+
     return Household(
         customer_id=cid,
         property_type=property_type,
@@ -333,6 +373,8 @@ def make_household(customer: dict) -> Household:
         has_smart_meter=has_smart,
         smart_meter_install_year=smart_year,
         insulation=insulation,
+        has_driveway=_has_driveway,
+        roof_aspect=_roof_aspect,
     )
 
 

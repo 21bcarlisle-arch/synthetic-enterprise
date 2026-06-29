@@ -318,7 +318,9 @@ def test_ev_demand_is_positive_when_has_ev():
         has_smart_meter=False,
         smart_meter_install_year=None,
         insulation=InsulationLevel.PARTIAL,
-    )
+        has_driveway=True,
+        roof_aspect="south",
+        )
     assert h.ev_annual_kwh() > 0
 
 

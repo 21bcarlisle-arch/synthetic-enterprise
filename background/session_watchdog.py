@@ -759,7 +759,6 @@ def restart_claude(resume: bool = True) -> None:
     restart_times.append(time.time())
     count = restarts_in_last_hour()
     log(f"Claude Code restarted ({count}/{MAX_RESTARTS_PER_HOUR} this hour, claude -c resume)")
-    ntfy("Claude Code resumed after usage limit." if resume else "Claude Code restarted — session running.")
 
 
 def queue_downtime_tasks() -> None:
@@ -806,8 +805,6 @@ def handle_usage_limit() -> None:
     limit message still showing.
     """
     log("Usage-limit message detected — auto-wait (no confirmation required)")
-    ntfy("Claude Code usage limit reached — watchdog will auto-resume when it "
-         "resets, no action needed.")
     queue_downtime_tasks()
 
     waited = 0
@@ -824,7 +821,6 @@ def handle_usage_limit() -> None:
         time.sleep(5)
         if not usage_limit_detected(capture_pane()):
             log("Usage limit cleared — session resumed in place")
-            ntfy("Claude Code usage limit cleared — session resumed automatically.")
             return
 
     log(f"Usage limit still showing after {USAGE_LIMIT_MAX_WAIT_SECONDS}s — "

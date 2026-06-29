@@ -39,6 +39,8 @@ def _make_hh(epc: str, insulation: InsulationLevel) -> Household:
         has_smart_meter=False,
         smart_meter_install_year=None,
         insulation=insulation,
+        has_driveway=False,
+        roof_aspect="na",
     )
 
 

@@ -57,7 +57,9 @@ def _make_register(heating: HeatingSystem, cid: str = "C1") -> HouseholdDemandRe
         has_smart_meter=False,
         smart_meter_install_year=None,
         insulation=InsulationLevel.PARTIAL,
-    )
+        has_driveway=True,
+        roof_aspect="south",
+        )
     register._events[cid] = []
     return register
 

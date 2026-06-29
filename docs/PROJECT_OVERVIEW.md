@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-29. 400+ commits. 4,835 tests passing. Codebase: ~44,500 lines across 324+ Python modules.*
+*Last updated: 2026-06-29. 400+ commits. 4,861 tests passing. Codebase: ~44,900 lines across 325+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase N (2026-06-29):** EV Settlement Wiring + Physical Suitability Constraints -- 26 new tests (4,861 total). simulation/household.py: has_driveway (off-street parking gate), roof_aspect (south/east_west/north/na), hp_eligible property. simulation/life_events.py: EV blocked for no-driveway; solar blocked for north/na aspect; HP blocked for flats/1-bed. simulation/run_phase2b.py: EV flat demand shape wired into _weather_adjusted_shape_fn (ev_annual_kwh/365.25/48, from ev_acquired date). background/session_watchdog.py: 3 usage-limit NTFY sends suppressed (Rich flagged as spam). EV now fully settled like ASHP Phase G. All permutations supported for eligible homes.
 **Phase M (2026-06-29):** Renewal Conversion Rate Book -- 21 new tests (4,835 total). company/crm/renewal_conversion.py (new): RenewalOutcome (ACCEPTED/SWITCHED/LAPSED/PENDING), RenewalChannel (DIRECT_PHONE/ONLINE/BROKER/AUTOMATIC), RenewalRecord (frozen; days_to_decision/days_notice_before_term_end/met_notice_obligation SLC22 42-day/is_retained), RenewalConversionBook (outcomes_for/conversion_rate_pct/avg_days_to_decision/notice_obligation_breaches/pending_decisions/best_converting_segment/conversion_summary). Fills CRM gap: acquisition→tenure→renewal→churn loop now complete. SLC 22 minimum 42-day notice before term end.
 **Phase L (2026-06-29):** Tariff Segment Profitability Book -- 19 new tests (4,814 total). company/pricing/segment_profitability.py (new): SEGMENT_RESI_CREDIT/RESI_PPM/SME/IC constants; SegmentProfitabilityRecord (frozen; total_net_contribution_gbp/is_net_negative/average_net_contribution_gbp/net_margin_pct/average_revenue_per_account_gbp); SegmentProfitabilityBook (record/aggregate_from_customers by segment+year/latest_for_segment/net_negative_segments/most_profitable_segment/segment_summary). Portfolio-level complement to Phase J (per-customer) and Phase K (cap constraints). Observable inputs only: revenue/wholesale/levy/operating cost breakdowns from billing data.
 **Fix (2026-06-29):** Phase 44a stale import + Phase G test updates -- 13 previously-broken tests now passing (4,795 total). company/crm/customer_profitability.py: estimate_prior_term_net_margin() groups settlement records by term_start, returns prior-term net margin for the most recent completed term (MIN_RECORDS_FOR_JUDGEMENT=3); compute_profitability_uplift() returns NET_NEGATIVE_UPLIFT_GBP_PER_MWH=5 GBP/MWh when net-negative, 0 otherwise. tests/simulation/test_phase_g_ashp_settlement.py: 3 tests updated for Phase I HDD-weighted ASHP shape (flat assertions replaced with HDD-aware assertions).
@@ -4048,7 +4049,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 318+ Python modules, ~43,100 lines
 - 400+ git commits
-- 4,835 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,861 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

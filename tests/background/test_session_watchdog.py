@@ -123,8 +123,10 @@ def test_handle_usage_limit_resumes_in_place_once_message_clears(monkeypatch):
 
     watchdog.handle_usage_limit()
 
-    assert any("resumed automatically" in msg for msg in ntfy_messages)
+    # "resumed automatically" NTFY suppressed by design (Rich flagged as spam).
+    # Verify: function polled (sent tmux keys) and did NOT send the suppressed NTFY.
     assert any(c[:2] == ["tmux", "send-keys"] for c in send_keys_calls)
+    assert not any("resumed automatically" in msg for msg in ntfy_messages)
 
 
 def test_queue_downtime_tasks_appends_to_queued_section(tmp_path, monkeypatch):

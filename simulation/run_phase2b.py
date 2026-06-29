@@ -252,6 +252,8 @@ def _weather_adjusted_shape_fn(
         # Phase I: ASHP electricity uplift -- HDD-weighted seasonal shape.
         # 70% space-heating (scales with HDD, same basis as gas boiler gas), 30% DHW (flat).
         # Replaces Phase G flat approximation. Annual total unchanged at ~5,500 kWh/yr.
+        # Phase N: EV electricity demand -- flat load across all HH periods.
+        # ~2,143 kWh/yr (7,500 mi / 3.5 mi/kWh). Applies from ev_acquired date.
         if household_register is not None and customer_id is not None:
             _hh = household_register.household_at_date(customer_id, date_str)
             if _hh is not None:
@@ -263,6 +265,10 @@ def _weather_adjusted_shape_fn(
                     _daily_dhw = _ashp_annual * 0.30 / 365.25
                     _ashp_hh_kwh = (_daily_heating + _daily_dhw) / 48
                     shape = [v + _ashp_hh_kwh for v in shape]
+                _ev_annual = _hh.ev_annual_kwh()
+                if _ev_annual > 0:
+                    _ev_hh_kwh = _ev_annual / 365.25 / 48
+                    shape = [v + _ev_hh_kwh for v in shape]
 
         return shape
 

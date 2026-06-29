@@ -42,6 +42,7 @@ def _make_ashp_register(cid="C1", epc="C"):
         has_battery=False, battery_kwh=0.0,
         has_ev=False, ev_charger_kw=0.0,
         has_smart_meter=True, smart_meter_install_year=None,
+        has_driveway=True, roof_aspect="south",
     )
     reg._events[cid] = []
     return reg
@@ -103,6 +104,7 @@ class TestASHPSeasonalShape:
             has_battery=False, battery_kwh=0.0,
             has_ev=False, ev_charger_kw=0.0,
             has_smart_meter=True, smart_meter_install_year=None,
+            has_driveway=bh.has_driveway, roof_aspect=bh.roof_aspect,
         )
         reg._events["C1"] = []
         shape_with_reg = _shape_for("2020-01-15", reg)

@@ -77,6 +77,7 @@ class TestEACMultiplierForDate:
             has_battery=False, battery_kwh=0.0,
             has_ev=False, ev_charger_kw=0.0,
             has_smart_meter=True, smart_meter_install_year=None,
+            has_driveway=True, roof_aspect="south",
         )
         reg._events["C1"] = []
         assert reg.eac_multiplier_for_date("C1", "2022-01-01") > 1.0
@@ -97,6 +98,7 @@ class TestEACMultiplierForDate:
                 has_battery=False, battery_kwh=0.0,
                 has_ev=False, ev_charger_kw=0.0,
                 has_smart_meter=True, smart_meter_install_year=None,
+                has_driveway=bh.has_driveway, roof_aspect=bh.roof_aspect,
             )
             reg._events["C1"] = []
             return hh
