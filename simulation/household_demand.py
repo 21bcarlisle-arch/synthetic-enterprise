@@ -24,6 +24,7 @@ multipliers directly -- it observes consequences via billing records.
 
 from __future__ import annotations
 
+import hashlib
 from simulation.household import Household, build_household_register
 from simulation.life_events import generate_life_events
 from simulation.life_events import household_at_date as _household_at_date
@@ -55,6 +56,11 @@ def _base_eac_for_customer(customer: dict) -> float:
     return _SEGMENT_BASE_EAC.get(customer.get("segment", "resi"), RESI_BASE_EAC_KWH)
 
 
+def _cid_hash(cid: str) -> int:
+    # Deterministic customer_id hash — independent of PYTHONHASHSEED
+    return int(hashlib.md5(cid.encode()).hexdigest()[:8], 16)
+
+
 class HouseholdDemandRegister:
     """Manages time-varying household physical state for all simulation customers."""
 
@@ -65,7 +71,7 @@ class HouseholdDemandRegister:
         self._households: dict[str, Household] = build_household_register(customers)
         self._events: dict[str, list] = {}
         for cid, hh in self._households.items():
-            cid_seed = seed ^ (hash(cid) & 0xFFFF)
+            cid_seed = seed ^ (_cid_hash(cid) & 0xFFFF)
             self._events[cid] = generate_life_events(
                 hh, SIM_START_YEAR, SIM_END_YEAR, seed=cid_seed
             )
@@ -83,17 +89,23 @@ class HouseholdDemandRegister:
         return hh.epc_consumption_multiplier()
 
     def eac_multiplier_for_date(self, customer_id: str, date_str: str) -> float:
-        """Composite EAC multiplier: EPC * (1 + EV fraction) * (1 - solar fraction)."""
+        """Composite EAC multiplier: EPC * (1 + EV fraction + ASHP fraction) * (1 - solar fraction).
+
+        Phase F: ASHP fraction adds ~5,500 kWh/yr electricity uplift when heat pump installed.
+        This is symmetric with Phase D gas reduction (GAS_HEAT_PUMP_RESIDUAL_FRACTION = 0.12).
+        """
         hh = self.household_at_date(customer_id, date_str)
         if hh is None:
             return 1.0
         base_eac = self._base_eac.get(customer_id, RESI_BASE_EAC_KWH)
         epc = hh.epc_consumption_multiplier()
         ev_kwh = hh.ev_annual_kwh()
+        ashp_kwh = hh.ashp_annual_kwh()
         solar_kwh = hh.solar_annual_generation_kwh()
         ev_fraction = ev_kwh / base_eac if base_eac > 0 else 0.0
+        ashp_fraction = ashp_kwh / base_eac if base_eac > 0 else 0.0
         solar_fraction = solar_kwh / base_eac if base_eac > 0 else 0.0
-        return epc * (1.0 + ev_fraction) * max(0.0, 1.0 - solar_fraction)
+        return epc * (1.0 + ev_fraction + ashp_fraction) * max(0.0, 1.0 - solar_fraction)
 
     def dynamic_assets(self, customer_id: str, date_str: str) -> dict:
         """Time-varying asset dict (ev/solar/smart_meter) for the demand model."""

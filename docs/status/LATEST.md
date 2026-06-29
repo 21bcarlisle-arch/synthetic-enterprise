@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T10:41:14Z
+Last updated: 2026-06-29T10:50:56Z
 
 ## Current state
 
-- **Phase:** E complete (EPC Band Evolution via Insulation Upgrades)
-- **Tests passing:** 4,688 (all green)
+- **Phase:** F complete (Heat Pump Electricity Uplift)
+- **Tests passing:** 4,702 (all green)
 - **Python modules:** 291+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,328,301

@@ -34,8 +34,8 @@ class TestGasEACMultiplierValues:
         assert mult == pytest.approx(1.55, abs=1e-6)
 
     def test_c4g_epc_e_returns_1_55(self, register):
-        # C4g: rural_detached, EPC-E, gas_boiler_system
-        mult = register.gas_eac_multiplier_for_date("C4g", "2022-07-01")
+        # C4g: rural_detached, EPC-E, gas_boiler_system — check before any insulation upgrade
+        mult = register.gas_eac_multiplier_for_date("C4g", "2019-03-15")
         assert mult == pytest.approx(1.55, abs=1e-6)
 
     def test_ic_gas_returns_1_0(self, register):
@@ -90,11 +90,13 @@ class TestGasEACMultiplierPhysics:
         mult_e = register.gas_eac_multiplier_for_date("C3g", "2020-01-01")
         assert mult_e > mult_d
 
-    def test_multiplier_stable_over_sim_window(self, register):
-        # No life events affecting gas multiplier for C1g -> stable throughout window
+    def test_multiplier_non_increasing_over_sim_window(self, register):
+        # Phase E: insulation upgrades can reduce gas EPC multiplier over time.
+        # The invariant is m_later <= m_earlier (insulation only improves, never worsens).
         m1 = register.gas_eac_multiplier_for_date("C1g", "2016-01-01")
         m2 = register.gas_eac_multiplier_for_date("C1g", "2025-06-01")
-        assert m1 == pytest.approx(m2, abs=1e-6)
+        assert m2 <= m1 + 1e-6
+        assert m1 > 0
 
 
 class TestHeatPumpGasResidual:

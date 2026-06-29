@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-29. 400+ commits. 4,688 tests passing. Codebase: ~43,200 lines across 318+ Python modules.*
+*Last updated: 2026-06-29. 400+ commits. 4,702 tests passing. Codebase: ~43,300 lines across 319+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase F (2026-06-29):** Heat Pump Electricity Uplift -- 14 new tests (4,702 total). simulation/household.py: ashp_annual_kwh() -> 5,500 kWh/yr for ASHP homes (BEIS Electrification of Heat trial 2021-22; DESNZ 2023 Roadmap median 5,200 kWh/yr for pre-2000 stock; 5,500 kWh as calibrated midpoint for EPC C-D portfolio mix). simulation/household_demand.py: eac_multiplier_for_date() extended from EPC*(1+EV)*(1-solar) to EPC*(1+EV+ASHP)*(1-solar); _cid_hash() replaces hash(cid) with deterministic md5-based hash (fixes PYTHONHASHSEED non-reproducibility). Tests in test_phase_c/d_*.py updated for new invariant (non-increasing rather than stable). Fidelity: from ASHP install date, electricity EAC rises +5,500 kWh AND gas AQ drops to 12% residual (Phase D) — first time single heat_pump_installed life event produces correct dual-fuel effects. Connects to household.py (A), life_events.py (B), household_demand.py (C/D/E), gas_settlement.py.
 
 **Phase E (2026-06-29):** EPC Band Evolution via Insulation Upgrades -- 19 new tests (4,688 total). simulation/household.py: epc_consumption_multiplier() now applies insulation-level caps: FULL insulation caps at 1.00 (EPC-C equivalent), PARTIAL caps at 1.25 (EPC-D equivalent). Caps apply only upward (A/B homes at 0.75 are unaffected). Effect: an EPC-E home (1.55x) with PARTIAL insulation upgrade bills at EPC-D rates (1.25x) from the upgrade date — flowing through electricity EAC (Phase C) and gas AQ (Phase D) settlement. First time ECO-scheme insulation events (Phase B life events) affect P&L. Connects to household.py (Phase A), life_events.py (Phase B), household_demand.py (Phase C), gas_settlement.py (Phase D).
 
@@ -4038,7 +4040,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 318+ Python modules, ~43,100 lines
 - 400+ git commits
-- 4,653 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,702 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

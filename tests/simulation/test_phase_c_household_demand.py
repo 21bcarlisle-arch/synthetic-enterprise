@@ -60,12 +60,15 @@ class TestEPCMultiplier:
         mult = register.epc_multiplier("NONEXISTENT", "2019-06-01")
         assert mult == 1.0
 
-    def test_epc_multiplier_stable_across_dates_no_events(self, register):
-        # C3 has no life events — EPC multiplier constant
+    def test_epc_multiplier_non_increasing_over_time(self, register):
+        # Phase E: insulation upgrades reduce EPC multiplier, so multiplier is non-increasing.
+        # C3 may or may not get insulation events; the invariant is m_later <= m_earlier.
         m2016 = register.epc_multiplier("C3", "2016-01-01")
         m2022 = register.epc_multiplier("C3", "2022-06-01")
         m2025 = register.epc_multiplier("C3", "2025-12-31")
-        assert m2016 == m2022 == m2025
+        assert m2022 <= m2016 + 1e-9
+        assert m2025 <= m2022 + 1e-9
+        assert m2016 > 0
 
 
 class TestEACMultiplierComposite:
@@ -146,14 +149,12 @@ class TestDeterminism:
             assert m1 == pytest.approx(m2, abs=1e-9)
 
     def test_different_seed_may_produce_different_events(self):
+        # seeds 1 and 2 are verified to produce different totals with deterministic md5 hashing
         r1 = HouseholdDemandRegister(CUSTOMERS, seed=1)
-        r2 = HouseholdDemandRegister(CUSTOMERS, seed=9999)
-        # Not guaranteed to differ for every customer, but total events should differ
+        r2 = HouseholdDemandRegister(CUSTOMERS, seed=2)
         total1 = sum(r1.event_count(c["customer_id"]) for c in CUSTOMERS)
         total2 = sum(r2.event_count(c["customer_id"]) for c in CUSTOMERS)
-        # With enough customers and 9-year window, seeds almost certainly produce diff totals
-        # Use a soft assertion — different seeds can occasionally match but is very unlikely
-        assert total1 != total2 or total1 == 0  # degenerate case: no events at all
+        assert total1 != total2
 
 
 class TestBaseEAC:

@@ -190,6 +190,17 @@ class Household:
             return 0.0
         return 7500 / 3.5  # ~2,143 kWh/year
 
+    def ashp_annual_kwh(self) -> float:
+        """Estimated additional annual electricity demand from ASHP space heating + hot water.
+
+        BEIS Electrification of Heat trial 2021-22: 3,503 kWh/yr for well-insulated stock.
+        DESNZ 2023 Heat Pump Roadmap median: 5,200 kWh/yr for pre-2000 stock.
+        Using 5,500 kWh/yr for synthetic portfolio (EPC C-D mix, pre-2000 build era).
+        """
+        if not self.is_heat_pump:
+            return 0.0
+        return 5_500.0
+
     def solar_annual_generation_kwh(self) -> float:
         """Estimated annual solar generation (kWh) from panels.
 
