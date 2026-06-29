@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T16:54:08Z
+Last updated: 2026-06-29T17:02:57Z
 
 ## Current state
 
-- **Phase:** Q complete (Battery Home Energy Storage Settlement Wiring)
-- **Tests passing:** 4,865 (all green)
+- **Phase:** R complete (SEG Export Estimator)
+- **Tests passing:** 4,886 (all green)
 - **Python modules:** 325+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,172
@@ -22,6 +22,7 @@ Last updated: 2026-06-29T16:54:08Z
 
 ## Recent build phases (Q→H)
 
+- **Phase R:** SEG Export Estimator (21 tests). Wires SEGBook to solar customers via capacity-based estimation; 50%/70% self-consumption (standard/battery). SEG cost now modelled for 2020-2025.
 - **Phase Q:** Battery home energy storage settlement wiring (14 tests). Battery charges from excess solar, discharges in evening peak (16:00-20:00). Last household asset gap closed.
 - **Phase O:** Solar dynamic settlement wiring (12 tests). Life-event solar now gets irradiance reduction in HH shape.
 - **Phase N:** EV settlement wiring + physical suitability (26 tests). has_driveway/roof_aspect/hp_eligible gates.

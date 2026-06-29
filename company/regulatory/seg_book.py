@@ -51,6 +51,7 @@ class SEGContract:
     rate_p_per_kwh: float
     contract_start: str   # ISO date YYYY-MM-DD
     contract_end: str | None = None   # None = still active
+    capacity_kwp: float = 0.0         # declared system size (kWp) from MCS certificate
 
     @property
     def is_active(self) -> bool:

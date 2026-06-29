@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-29. 400+ commits. 4,865 tests passing. Codebase: ~44,900 lines across 325+ Python modules.*
+*Last updated: 2026-06-29. 400+ commits. 4,886 tests passing. Codebase: ~44,900 lines across 325+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase R (2026-06-29):** SEG Export Estimator — 21 new tests (4,886 total). company/regulatory/seg_export_estimator.py (new): AnnualExportEstimate (frozen; generation_kwh/self_consumed_kwh/exported_kwh/seg_rate_p_per_kwh/seg_payment_gbp), SEGExportEstimator (annual_yield_kwh/self_consumption_fraction/export_fraction/estimate_annual_export_kwh/estimate_and_record/portfolio_summary). company/regulatory/seg_book.py: SEGContract gains capacity_kwp field (default 0.0, backward-compatible). Constants: ANNUAL_YIELD_KWH_PER_KWP=850 (SAP 10.2); SELF_CONSUMPTION_STANDARD=0.50/WITH_BATTERY=0.70 (BEIS 2022); SEG_START_YEAR=2020. estimate_and_record() raises ValueError pre-2020 (FIT era); records SEGPayment in SEGBook; 2022 crisis rate (7.5p) inflates payment vs 2020 (4.0p). portfolio_summary() dedups by customer_id. Closes the SEG gap: SEGBook (Phase 310) was unconnected; estimator wires capacity-based export estimation for solar customers registered post-2020.
 **Phase Q (2026-06-29):** Battery Home Energy Storage Settlement Wiring -- 14 new tests (4,865 total). simulation/household_demand.py: dynamic_assets() now returns battery/battery_kwh (was missing -- battery acquired via life events but invisible to settlement). simulation/run_phase2b.py: _BATTERY_EVENING_PEAK frozenset (periods 33-40 = 16:00-20:00); _battery_daily_dispatch() helper (charge from excess solar outside evening peak, SOC tracking, discharge in evening peak, 90% roundtrip efficiency); _weather_adjusted_shape_fn battery-aware path: when has_battery+has_solar+irradiance available, computes gross_load via build_demand_shape(solar=False) + solar_gen via solar_generation_shape(irradiance), then calls _battery_daily_dispatch in place of standard solar-clamped reduction. Non-battery path unchanged. Effect: battery-equipped solar homes now show reduced evening peak import (16:00-20:00) and correctly-modelled midday self-consumption (excess solar charges battery rather than being exported and discarded). Closes the last household asset gap: solar, EV, ASHP, and battery all now affect the HH settlement shape.
 **Phase O (2026-06-29):** Solar Dynamic Settlement Wiring -- 12 new tests (4,851 total). simulation/run_phase2b.py: (1) _weather_adjusted_shape_fn now updates assets["solar"] from dynamic_assets alongside assets["ev"] (was missing -- life-event solar never applied irradiance reduction); (2) cloud_cover and latitude always passed for all profile-class customers (removed has_solar gate); (3) cloud_cover_by_customer built for all elec customers not just static-solar C4. Customers acquiring solar via life events (Phase B) now get correct half-hourly import reduction: summer midday ~30-40% reduction, night periods unchanged, import clamped >= 0. Phase 25a (static C4 solar customer) unaffected -- irradiance was already applied there.
 **Phase N (2026-06-29):** EV Settlement Wiring + Physical Suitability Constraints -- 26 new tests (4,861 total). simulation/household.py: has_driveway (off-street parking gate), roof_aspect (south/east_west/north/na), hp_eligible property. simulation/life_events.py: EV blocked for no-driveway; solar blocked for north/na aspect; HP blocked for flats/1-bed. simulation/run_phase2b.py: EV flat demand shape wired into _weather_adjusted_shape_fn (ev_annual_kwh/365.25/48, from ev_acquired date). background/session_watchdog.py: 3 usage-limit NTFY sends suppressed (Rich flagged as spam). EV now fully settled like ASHP Phase G. All permutations supported for eligible homes.
@@ -4051,7 +4052,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 318+ Python modules, ~43,100 lines
 - 400+ git commits
-- 4,865 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,886 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
