@@ -1,6 +1,6 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T22:48:43Z
+Last updated: 2026-06-29T22:49:20Z
 
 ## Current state
 
@@ -41,7 +41,7 @@ Last updated: 2026-06-29T22:48:43Z
 
 → Full history: docs/PROJECT_OVERVIEW.md | Report: docs/reports/ANNUAL_REPORT.md
 
-**Latest simulation results (2016–2025)** — auto-processed (833s / 14 min):
+**Latest simulation results (2016–2025)** — auto-processed (589s / 10 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
 - Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
