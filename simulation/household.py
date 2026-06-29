@@ -127,15 +127,21 @@ class Household:
         )
 
     def epc_consumption_multiplier(self) -> float:
-        """Multiplier on segment-average EAC based on EPC rating.
+        """Multiplier on segment-average EAC based on EPC rating and actual insulation level.
 
         C=1.00 reference (modal UK band, 44.8% of England stock per EHS 2022-23).
         Derived from EHS AT1_6 SAP-modelled costs adjusted 50% toward 1.0 for
         prebound effect (Firth et al. 2013 — lower-efficiency households under-heat
         to manage bills, narrowing the modelled gap).
         Source: docs/market_research/HUMAN_SIMULATION_RESEARCH.md Finding 8.
+
+        Phase E: insulation upgrades (via ECO scheme life events) cap the multiplier:
+        - FULL insulation -> cap at 1.00 (EPC-C equivalent performance)
+        - PARTIAL insulation -> cap at 1.25 (EPC-D equivalent performance)
+        This means an EPC-E home that receives PARTIAL insulation bills at EPC-D rates
+        from the upgrade date onwards. Flows through electricity (Phase C) and gas (Phase D).
         """
-        return {
+        base = {
             "A": 0.75,
             "B": 0.75,
             "C": 1.00,
@@ -144,6 +150,11 @@ class Household:
             "F": 1.85,
             "G": 2.20,
         }.get(self.epc_rating.upper(), 1.00)
+        if self.insulation == InsulationLevel.FULL and base > 1.00:
+            return 1.00
+        if self.insulation == InsulationLevel.PARTIAL and base > 1.25:
+            return 1.25
+        return base
 
     def seasonal_flatness_factor(self) -> float:
         """Higher value = flatter winter/summer ratio for electricity demand.

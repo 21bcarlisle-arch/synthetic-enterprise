@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T09:31:04Z
+Last updated: 2026-06-29T10:21:27Z
 
 ## Current state
 
-- **Phase:** D complete (Gas EAC Integration with Household Demand Register)
-- **Tests passing:** 4,669 (all green)
+- **Phase:** E complete (EPC Band Evolution via Insulation Upgrades)
+- **Tests passing:** 4,688 (all green)
 - **Python modules:** 291+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,328,301
@@ -52,7 +52,7 @@ Portal (2): app, templates
 
 Interfaces (1): sim_interface
 
-**Latest simulation results (2016–2025)** — auto-processed (510s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (539s / 9 min):
 - Net margin: £6,326,180.45 | Gross: £6,563,216.58 | Capital: £237,036
 - Treasury: £2,466,636 → £3,794,937 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,225,440.09 | Net after CTS: £6,457,625

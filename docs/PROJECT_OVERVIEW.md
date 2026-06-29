@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-27. 400+ commits. 4,653 tests passing. Codebase: ~43,100 lines across 318+ Python modules.*
+*Last updated: 2026-06-29. 400+ commits. 4,688 tests passing. Codebase: ~43,200 lines across 318+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,10 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase E (2026-06-29):** EPC Band Evolution via Insulation Upgrades -- 19 new tests (4,688 total). simulation/household.py: epc_consumption_multiplier() now applies insulation-level caps: FULL insulation caps at 1.00 (EPC-C equivalent), PARTIAL caps at 1.25 (EPC-D equivalent). Caps apply only upward (A/B homes at 0.75 are unaffected). Effect: an EPC-E home (1.55x) with PARTIAL insulation upgrade bills at EPC-D rates (1.25x) from the upgrade date — flowing through electricity EAC (Phase C) and gas AQ (Phase D) settlement. First time ECO-scheme insulation events (Phase B life events) affect P&L. Connects to household.py (Phase A), life_events.py (Phase B), household_demand.py (Phase C), gas_settlement.py (Phase D).
+
+**Phase D (2026-06-27):** Gas EAC Integration with Household Demand Register -- 16 new tests (4,669 total). simulation/household_demand.py: GAS_HEAT_PUMP_RESIDUAL_FRACTION = 0.12; HouseholdDemandRegister.gas_eac_multiplier_for_date(cid, date) -> float: returns epc_consumption_multiplier() for gas-boiler resi/SME (EPC-D=1.25, EPC-E=1.55), GAS_HEAT_PUMP_RESIDUAL_FRACTION for heat-pump homes, 1.0 for I&C/non-residential. simulation/run_phase2b.py: 3-line change applies multiplier to aq_kwh at gas term signing. Effect on declared AQs: C1g 12,000->15,000 kWh (+25%), C2g 15,000->18,750 kWh (+25%), C3g 14,000->21,700 kWh (+55%), C4g 22,000->34,100 kWh (+55%), C_IC3g unchanged. Total resi gas volume +42%; gas P&L magnitude increases proportionally. First time EPC band affects gas consumption. Connects household.py (Phase A), life_events.py (Phase B), household_demand.py (Phase C) to gas_settlement.py.
 
 **Phase C (2026-06-27):** Household-Driven EAC Integration -- 26 new tests (4,652 total). simulation/household_demand.py (new): HouseholdDemandRegister: builds household register for all 18 customers; generates life events per customer 2016-2025 (seeded RNG); epc_multiplier(cid, date) -> float; eac_multiplier_for_date(cid, date) -> composite float (EPC * (1+EV_fraction) * max(0, 1-solar_fraction)); dynamic_assets(cid, date) -> {ev/solar/smart_meter}. simulation/run_phase2b.py: instantiates HouseholdDemandRegister at startup; passes dynamic_assets to demand model and epc_multiplier to settlement shape. Effect: EPC-D homes draw 1.25x segment EAC; EPC-E 1.55x; EV acquisition adds ~2,143 kWh/yr from acquisition date; solar install reduces net import from install date. First time household physical model (Phase A) and life events engine (Phase B) affect actual simulation P&L. Connects to household.py (Phase A), life_events.py (Phase B), run_phase2b.py.
 
