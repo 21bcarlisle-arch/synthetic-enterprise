@@ -131,3 +131,25 @@ def test_seen_state_persisted_across_calls(tmp_path, monkeypatch):
 
     loaded = dispatcher._load_seen()
     assert "from_rich_005.md" in loaded
+
+
+def test_already_processed_files_skipped_on_restart(tmp_path, monkeypatch):
+    """Files that already have a Dispatcher header should not be re-classified or re-notified."""
+    monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
+    monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
+    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
+    sent = []
+    monkeypatch.setattr(dispatcher, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: None)
+
+    path = tmp_path / "from_rich_006.md"
+    path.write_text(
+        "<!-- Dispatcher: URGENT (classified 2026-06-29 11:00 UTC) -->\n"
+        "# Inbound NTFY message from Rich\n\nsome old urgent message\n"
+    )
+
+    seen = dispatcher.check_once({})
+
+    assert seen.get("from_rich_006.md") == "already-processed"
+    assert len(sent) == 0  # no NTFY re-sent

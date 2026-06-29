@@ -202,6 +202,12 @@ def check_once(seen: dict[str, str]) -> dict[str, str]:
         message_text = ""
         try:
             content = path.read_text()
+            # Skip files already processed in a prior dispatcher run (have header).
+            # Prevents re-routing stale files after a dispatcher restart.
+            if content.startswith("<!-- Dispatcher:"):
+                seen[path.name] = "already-processed"
+                _save_seen(seen)
+                continue
             # Extract the actual message (after the header line)
             lines = content.splitlines()
             for i, line in enumerate(lines):
