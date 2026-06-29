@@ -1,47 +1,64 @@
-Phase D -- Gas EAC Integration with Household Demand Register
+Phase F — Heat Pump Electricity Uplift
 
-Status: BUILDING (2026-06-27, auto-session)
+Status: PROPOSED (2026-06-29)
 
 Context:
-Phase C wired the household physical model (EPC, EV, solar) into electricity
-settlement via eac_multiplier_for_date(). Gas settlement still uses static
-declared AQ regardless of household insulation. The EPC band is the primary
-driver of space heating demand -- for gas-heated homes it determines how much
-gas is consumed, not electricity.
+Phase D wired heat_pump_installed life events into gas settlement: ASHP homes
+get GAS_HEAT_PUMP_RESIDUAL_FRACTION = 0.12 (12% of gas AQ for residual cooking).
+Phase E closed insulation caps. But electricity settlement is still incomplete:
+an ASHP home consumes significantly more electricity for space heating, yet
+eac_multiplier_for_date() ignores heating system entirely.
 
-Gap: C1g (EPC-D, urban flat) bills at 12,000 kWh/yr whether the home is
-poorly or well insulated. C4g (EPC-E, rural detached) at 22,000 kWh/yr.
-A real supplier's gas AQ would reflect the home's EPC band.
+Gap:
+A household that installs ASHP in 2022 sees:
+  - Gas AQ correctly falls to ~12% of baseline (Phase D) ✓
+  - Electricity EAC unchanged at EPC * EV * solar — WRONG
+  - Reality: ASHP consumes ~5,500 kWh/yr electricity for space heating + hot water
+  - Net result: electricity EAC should rise by ~5,500 kWh from installation date
 
-What Phase D builds:
+Calibration source:
+  BEIS Electrification of Heat Trial 2021-22 (743 ASHP installations):
+  average 3,503 kWh/yr electricity @ mean seasonal COP 2.72.
+  Broader UK Climate Change Committee estimates 4,000-6,000 kWh/yr for
+  average home. EPC-D/E homes (higher thermal demand, lower CoP) toward
+  upper end. Using ASHP_BASE_ELECTRICITY_KWH = 5_500 as midpoint for
+  the synthetic portfolio (EPC-C/D mix). Consistent with DESNZ 2023 Heat
+  Pump Roadmap median of 5,200 kWh/yr for pre-2000 UK stock.
 
-  simulation/household_demand.py (2 additions):
-    GAS_HEAT_PUMP_RESIDUAL_FRACTION = 0.12  (cooking + hot water backup)
-    HouseholdDemandRegister.gas_eac_multiplier_for_date(customer_id, date_str):
-      I&C / non-residential: 1.0 (industrial gas, not EPC-driven)
-      heat pump installed at date: GAS_HEAT_PUMP_RESIDUAL_FRACTION
-      gas boiler (resi/SME): epc_consumption_multiplier()
-      not in register: 1.0
+What Phase F builds:
 
-  simulation/run_phase2b.py (3 lines in gas term block):
-    After `aq_kwh = gas_customer["aq_kwh"]`, apply multiplier:
-      _gas_mult = household_demand_register.gas_eac_multiplier_for_date(cid, term_start_str)
-      aq_kwh = max(1, round(aq_kwh * _gas_mult))
-    Multiplier captured at term signing; applies to full term (correct for annual gas contracts).
+  simulation/household.py (1 method):
+    ashp_annual_kwh(self) -> float:
+      # Returns 0 for non-heat-pump homes; ASHP_BASE_ELECTRICITY_KWH for ASHP
+      return ASHP_BASE_ELECTRICITY_KWH if self.is_heat_pump else 0.0
+    ASHP_BASE_ELECTRICITY_KWH = 5_500  (constant in household.py)
 
-  tests/simulation/test_phase_d_gas_household_demand.py (~16 tests)
+  simulation/household_demand.py (update eac_multiplier_for_date):
+    Current:  epc * (1 + ev_fraction) * (1 - solar_fraction)
+    Phase F:  epc * (1 + ev_fraction + ashp_fraction) * (1 - solar_fraction)
+    Where:
+      ashp_fraction = hh.ashp_annual_kwh() / base_eac
+    Note: EPC multiplier unchanged (building thermal demand; ASHP changes fuel not insulation).
+    Combined effect with Phase D gas: from ASHP install date, gas drops 88%
+    and electricity rises by ~5,500 kWh — net fuel-switching is modelled end-to-end.
+
+  tests/simulation/test_phase_f_ashp_electricity.py (~16 tests):
+    TestASHPElectricityKwh: gas-heated → 0, heat-pump-air → 5500, heat-pump-ground → 5500
+    TestEACMultiplierASHPUplift: eac_multiplier higher for ASHP home, gas home same EPC
+    TestASHPLifeEventEffect: before install → no uplift; after install → uplift applied
+    TestASHPGasElectricityCombined: both gas reduction + electricity uplift from same event
+    TestHouseholdDemandRegisterASHP: register eac_multiplier increases post-ASHP install
 
 Fidelity delta:
-  C1g (EPC-D):  12,000 -> 15,000 kWh (+25%). Poorly insulated 2-bed London flat.
-  C2g (EPC-D):  15,000 -> 18,750 kWh (+25%). Poorly insulated 3-bed suburban semi.
-  C3g (EPC-E):  14,000 -> 21,700 kWh (+55%). Cold tenement flat, poor insulation.
-  C4g (EPC-E):  22,000 -> 34,100 kWh (+55%). Large rural detached, draughty.
-  C_IC3g (I&C): 5,000,000 kWh unchanged. Process heat, not EPC-driven.
+  Any household that installs ASHP via life_events.py (heat_pump_installed event):
+    - Electricity EAC increases by ~5,500 kWh from installation date
+    - Gas AQ drops to 12% from installation date (already working, Phase D)
+    - First time a single life event (heat_pump_installed) produces correct dual-fuel
+      effects: gas settlement falls AND electricity settlement rises.
+    - Electrification-of-heating P&L impact now visible in annual report.
 
-Total resi gas volume +42%. Gas P&L magnitude increases proportionally.
-First time EPC band affects gas consumption. Connects household.py (Phase A),
-life_events.py (Phase B), household_demand.py (Phase C) to gas_settlement.py.
-
-Not in Phase D (later):
-  Insulation-upgrade events improving EPC band mid-simulation (Phase E)
-  Half-hourly EV load shape for ToU tariff impact (Phase E)
+Not in Phase F (later):
+  EPC score improvement from heat pump (affects epc_consumption_multiplier — complex
+  because it's a building + system combination; SAP calc not modelled)
+  Ground-source vs air-source COP differentiation
+  Seasonal COP variation (winter vs summer)
