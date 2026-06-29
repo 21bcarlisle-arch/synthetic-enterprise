@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T20:04:40Z
+Last updated: 2026-06-29T20:07:19Z
 
 ## Current state
 
-- **Phase:** U complete (EV Cross-Subsidy Register) -- T+U shipped this session
-- **Tests passing:** 4,974 (all green)
+- **Phase:** V complete (ToU Migration Scenario) -- T+U+V shipped -- T+U shipped this session
+- **Tests passing:** 4,990 (all green)
 - **Python modules:** 325+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,172

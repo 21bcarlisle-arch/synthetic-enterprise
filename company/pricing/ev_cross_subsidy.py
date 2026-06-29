@@ -37,6 +37,18 @@ class CrossSubsidyRecord:
     def is_at_risk(self) -> bool:
         return self.cross_subsidy_gbp > 0
 
+    @property
+    def flat_revenue_gbp(self) -> float:
+        return round(self.annual_kwh * self.flat_rate_p_per_kwh / 100.0, 2)
+
+    @property
+    def tou_revenue_gbp(self) -> float:
+        return round(self.flat_revenue_gbp - self.cross_subsidy_gbp, 2)
+
+    @property
+    def customer_saving_gbp(self) -> float:
+        return self.cross_subsidy_gbp
+
 
 class CrossSubsidyRegister:
     """Ranks EV customers by flat-tariff cross-subsidy value.
