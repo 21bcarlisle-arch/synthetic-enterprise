@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T16:22:45Z
+Last updated: 2026-06-29T16:32:16Z
 
 ## Current state
 
-- **Phase:** O complete (Solar Dynamic Settlement Wiring)
-- **Tests passing:** 4,851 (all green)
+- **Phase:** Q complete (Battery Home Energy Storage Settlement Wiring)
+- **Tests passing:** 4,865 (all green)
 - **Python modules:** 325+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,172
@@ -20,8 +20,9 @@ Last updated: 2026-06-29T16:22:45Z
 | Enterprise Value | £6,142,209 |
 | Administration Event | None |
 
-## Recent build phases (O→G)
+## Recent build phases (Q→H)
 
+- **Phase Q:** Battery home energy storage settlement wiring (14 tests). Battery charges from excess solar, discharges in evening peak (16:00-20:00). Last household asset gap closed.
 - **Phase O:** Solar dynamic settlement wiring (12 tests). Life-event solar now gets irradiance reduction in HH shape.
 - **Phase N:** EV settlement wiring + physical suitability (26 tests). has_driveway/roof_aspect/hp_eligible gates.
 - **Phase M:** Renewal Conversion Rate Book (21 tests). CRM lifecycle complete.
@@ -30,7 +31,6 @@ Last updated: 2026-06-29T16:22:45Z
 - **Phase J:** Customer Profitability Register (25 tests).
 - **Phase I:** ASHP Seasonal Electricity Shape HDD-weighted (10 tests).
 - **Phase H:** Electricity EAC Multiplier at Term Signing (12 tests).
-- **Phase G:** ASHP Electricity Settlement Wiring (12 tests).
 
 ## Architecture
 
