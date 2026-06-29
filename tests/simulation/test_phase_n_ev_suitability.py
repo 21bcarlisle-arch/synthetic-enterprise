@@ -131,12 +131,14 @@ class TestEVSettlementShape:
         ev_per_day=2143.0/365.25
         assert daily_after>daily_before
         assert daily_after-daily_before==pytest.approx(ev_per_day,rel=0.02)
-    def test_ev_uplift_flat_across_48_periods(self):
+    def test_ev_uplift_overnight_weighted(self):
+        # Phase P: overnight periods should carry more load than daytime periods.
         fn=self._fn(self._reg())
         s_before=fn("2020-06-15")
         s_after=fn("2021-06-15")
         uplift=[a-b for a,b in zip(s_after,s_before)]
-        assert all(abs(u-uplift[0])<1e-9 for u in uplift)
+        # Period 1 (index 0) is overnight; period 25 (index 24) is midday
+        assert uplift[0] > uplift[24]
     def test_no_ev_no_demand_change(self):
         from simulation.household_demand import HouseholdDemandRegister
         cust=[{"customer_id":"C1","segment":"resi","commodity":"electricity","eac_kwh":3100,"home_type":"suburban_semi","epc_rating":"C","bedrooms":3}]

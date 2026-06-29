@@ -197,6 +197,12 @@ DEFAULT_PROPERTY = {
 _BATTERY_EVENING_PEAK: frozenset = frozenset(range(33, 41))  # periods 33-40 = 16:00-20:00
 _BATTERY_ROUNDTRIP_EFFICIENCY: float = 0.90  # typical Li-ion roundtrip
 
+# Phase P: EV overnight smart-charging shape (UK Smart Charge Point Regulations 2021).
+# 90% of home EV charging occurs overnight (23:00-07:00); periods are 1-indexed.
+_EV_OVERNIGHT_PERIODS: frozenset = frozenset(range(1, 15)) | frozenset({47, 48})  # 16 periods
+_EV_OVERNIGHT_FRACTION: float = 0.90
+_EV_DAYTIME_FRACTION: float = 0.10
+
 
 def _battery_daily_dispatch(
     gross_load: list[float],
@@ -312,10 +318,15 @@ def _weather_adjusted_shape_fn(
                     _daily_dhw = _ashp_annual * 0.30 / 365.25
                     _ashp_hh_kwh = (_daily_heating + _daily_dhw) / 48
                     shape = [v + _ashp_hh_kwh for v in shape]
+                # Phase P: overnight-weighted EV shape (90% periods 47-48, 1-14).
+                # Replaces Phase N flat distribution. Annual total conserved.
                 _ev_annual = _hh.ev_annual_kwh()
                 if _ev_annual > 0:
-                    _ev_hh_kwh = _ev_annual / 365.25 / 48
-                    shape = [v + _ev_hh_kwh for v in shape]
+                    _ev_daily = _ev_annual / 365.25
+                    _ev_on = _ev_daily * _EV_OVERNIGHT_FRACTION / len(_EV_OVERNIGHT_PERIODS)
+                    _ev_day = _ev_daily * _EV_DAYTIME_FRACTION / (48 - len(_EV_OVERNIGHT_PERIODS))
+                    shape = [v + (_ev_on if (p + 1) in _EV_OVERNIGHT_PERIODS else _ev_day)
+                             for p, v in enumerate(shape)]
 
         return shape
 

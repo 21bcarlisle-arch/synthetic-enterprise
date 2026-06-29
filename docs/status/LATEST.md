@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T18:21:06Z
+Last updated: 2026-06-29T18:46:04Z
 
 ## Current state
 
-- **Phase:** R complete (SEG Export Estimator)
-- **Tests passing:** 4,886 (all green)
+- **Phase:** P complete (EV Smart Charging Shape)
+- **Tests passing:** 4,942 (all green)
 - **Python modules:** 325+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,172
@@ -20,18 +20,18 @@ Last updated: 2026-06-29T18:21:06Z
 | Enterprise Value | £6,142,209 |
 | Administration Event | None |
 
-## Recent build phases (Q→H)
+## Recent build phases (P→I)
 
-- **Phase R:** SEG Export Estimator (21 tests). Wires SEGBook to solar customers via capacity-based estimation; 50%/70% self-consumption (standard/battery). SEG cost now modelled for 2020-2025.
-- **Phase Q:** Battery home energy storage settlement wiring (14 tests). Battery charges from excess solar, discharges in evening peak (16:00-20:00). Last household asset gap closed.
+- **Phase P:** EV overnight smart-charging shape (12 tests). 90% overnight (periods 1-14, 47-48); triad periods now correctly low. Precondition for ToU tariff economics.
+- **Phase S:** Unified Dual-Fuel Billing Engine + Payment Ledger (44 tests). DualFuelBill/DualFuelBillBook/PaymentLedger. Portal billing page.
+- **Phase R:** SEG Export Estimator (21 tests). Wires SEGBook to solar customers via capacity-based estimation.
+- **Phase Q:** Battery home energy storage settlement wiring (14 tests). Battery charges from excess solar, discharges in evening peak.
 - **Phase O:** Solar dynamic settlement wiring (12 tests). Life-event solar now gets irradiance reduction in HH shape.
 - **Phase N:** EV settlement wiring + physical suitability (26 tests). has_driveway/roof_aspect/hp_eligible gates.
 - **Phase M:** Renewal Conversion Rate Book (21 tests). CRM lifecycle complete.
 - **Phase L:** Tariff Segment Profitability Book (19 tests).
 - **Phase K:** Break-Even Tariff Assessor (21 tests).
-- **Phase J:** Customer Profitability Register (25 tests).
 - **Phase I:** ASHP Seasonal Electricity Shape HDD-weighted (10 tests).
-- **Phase H:** Electricity EAC Multiplier at Term Signing (12 tests).
 
 ## Architecture
 
