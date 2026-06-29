@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T22:52:05Z
+Last updated: 2026-06-29T22:54:23Z
 
 ## Current state
 
 - **Phase:** AA complete (Demand Flexibility Potential) -- T..Z+AA shipped this session
-- **Tests passing:** 5,196 (all green)
+- **Tests passing:** 5,217 (all green)
 - **Python modules:** 328+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,337

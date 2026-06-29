@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase AE (2026-06-29):** Customer Retention Offer Book -- 21 new tests (5,217 total). company/crm/customer_retention.py (new): OfferType (LOYALTY_DISCOUNT/TOU_REFERRAL/DUAL_FUEL_BUNDLE/PRICE_MATCH/ACCOUNT_REVIEW/NO_OFFER); OfferDeclineReason (NET_NEGATIVE/INSUFFICIENT_MARGIN); RetentionOffer (frozen; max_spend=50% of net margin; is_affordable/expected_retention_value_gbp); CustomerRetentionBook (generate_offer selects by dominant driver: EV+RATE_SHOCK→TOU_REFERRAL zero-cost; RATE_SHOCK→PRICE_MATCH 8%; TENURE_SHORT/BASELINE→LOYALTY_DISCOUNT 5%; BILL_STRESS→ACCOUNT_REVIEW; net-neg→NO_OFFER; total_retention_spend_gbp/retention_summary). Completes retention trilogy: Phase AB (drift) → Phase AC (reprice) → Phase AD (churn risk) → Phase AE (retention offer).
+
 **Phase AD (2026-06-29):** Portfolio Churn Risk Book -- 34 new tests (5,196 total). company/crm/portfolio_churn_risk.py (new): ChurnRiskBand (CRITICAL≥50%/HIGH≥30%/MEDIUM≥15%/LOW); ChurnRiskDriver (RATE_SHOCK/BILL_STRESS/TENURE_SHORT/BASELINE); CustomerChurnRisk (frozen; expected_loss_gbp/is_at_risk); PortfolioChurnRiskBook (assess wraps churn_model.py with full segment/fuel/hedge support; at_risk_customers/by_band/by_driver/total_revenue_at_risk_gbp/total_expected_loss_gbp/portfolio_churn_rate_pct/top_n_by_expected_loss/driver_breakdown/churn_risk_summary). Connects Phase J (profitability), Phase M (renewal conversion), Phase AC (repricing trigger → churn driver).
 
 **Phase AC (2026-06-29):** Portfolio Repricing Action Book -- 24 new tests (5,162 total). company/crm/portfolio_repricing.py (new): RepricingPriority (CRITICAL/HIGH/MEDIUM/MONITOR); RepricingAction (frozen; tariff_delta_gbp_pa/estimated_margin_recovery_gbp_pa at 70% retention; is_urgent/is_actionable); PortfolioRepricingBook (plan_reprice recomputes recommended tariff at existing unit rate on new AQ; critical_actions/actionable_actions/by_priority/total_margin_at_risk_gbp/total_expected_recovery_gbp/top_n_by_margin_recovery/portfolio_reprice_summary). Priority logic: CRITICAL=urgent_drift+<=60d renewal; HIGH=urgent+<=180d or reprice+upcoming; MEDIUM=material drift+far renewal. Connects Phase AB (EAC drift), Phase M (renewal timing), Phase K (break-even assessor).
@@ -4068,16 +4070,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,196 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,217 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase AD, 2026-06-29):**
+**Latest full run (Phase AE, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,196 tests. Phase AD: Portfolio Churn Risk (34 tests). Phase AC: Portfolio Repricing (24 tests).
+- 5,217 tests. Phase AE: Customer Retention Offer (21 tests). Phase AD: Portfolio Churn Risk (34 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
