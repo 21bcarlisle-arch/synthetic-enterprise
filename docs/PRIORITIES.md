@@ -1,9 +1,9 @@
 # Current Priorities
 
-Last updated: 2026-06-29 by Claude Code (Phase Q complete)
+Last updated: 2026-06-29 by Claude Code (Phase T complete)
 
 ## Now (active this session)
-1. Phase P: EV Smart Charging Shape -- replace flat EV demand with overnight-weighted shape (90% overnight periods 47-48,1-14); 4h gate expires ~20:30 UTC
+1. Phase T COMPLETE: ToU Tariff Profitability Assessor (16 tests; 4,958 total)
 
 ## Next (queued, unblocked)
 2. Phase R: Gas boiler demand HDD shape -- replace flat gas AQ distribution with HDD-seasonal shape (mirrors Phase I for electricity ASHP). Gas settlement currently uniform across year; real gas boiler load peaks sharply in winter.
