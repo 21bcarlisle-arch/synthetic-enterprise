@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T13:28:07Z
+Last updated: 2026-06-29T13:33:37Z
 
 ## Current state
 
-- **Phase:** K complete (Break-Even Tariff Assessor) + Phase 44a fix
-- **Tests passing:** 4,795 (all green)
+- **Phase:** L complete (Tariff Segment Profitability Book)
+- **Tests passing:** 4,814 (all green)
 - **Python modules:** 292+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,328,154
