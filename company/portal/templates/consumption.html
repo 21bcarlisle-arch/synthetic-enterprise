@@ -29,6 +29,7 @@
     <a href="/">Logout</a> |
     <a href="/account/{{ customer.customer_id }}">Dashboard</a> |
     <a href="/account/{{ customer.customer_id }}/bills">Bills</a> |
+    <a href="/account/{{ customer.customer_id }}/billing">Billing Detail</a> |
     <a href="/account/{{ customer.customer_id }}/tariff-compare">Compare Tariffs</a>
   </nav>
 
@@ -157,6 +158,47 @@
   </table>
   {% else %}
   <p class="no-data">No consumption records found for this account.</p>
+  {% endif %}
+
+
+  {% if has_gas %}
+  <hr style="margin: 32px 0; border: none; border-top: 2px solid #fed7aa;">
+  <h2 style="color: #c05621;">&#128293; Gas Consumption</h2>
+  {% if gas_customer %}
+  <p style="font-size:0.88em;color:#718096">
+    Gas account: {{ gas_customer.customer_id }}
+    &nbsp;&middot;&nbsp;
+    Annual quantity: {{ gas_customer.get("aq_kwh", 0) | int | default(0) }} kWh/yr
+  </p>
+  {% endif %}
+  {% if gas_monthly_data %}
+  <table>
+    <thead>
+      <tr>
+        <th>Year</th>
+        <th>Month</th>
+        <th>Consumption (kWh)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set month_names = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] %}
+      {% for row in gas_monthly_data %}
+      <tr>
+        <td>{{ row.year }}</td>
+        <td>{{ month_names[row.month] }}</td>
+        <td>{{ "%.1f"|format(row.kwh) }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td colspan="2">Total</td>
+        <td>{{ "%.1f"|format(gas_total_kwh) }} kWh</td>
+      </tr>
+    </tbody>
+  </table>
+  {% else %}
+  <p class="no-data">No gas consumption records found.</p>
+  {% endif %}
   {% endif %}
 
 </body>

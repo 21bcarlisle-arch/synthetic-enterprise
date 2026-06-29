@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Billing &mdash; {{ customer.customer_id }}</title>
+  <style>
+    body { font-family: sans-serif; max-width: 960px; margin: 40px auto; padding: 0 16px; color: #1a202c; }
+    nav a { margin-right: 12px; color: #2b6cb0; text-decoration: none; font-size: 0.9em; }
+    h1 { color: #1a365d; border-bottom: 2px solid #bee3f8; padding-bottom: 8px; }
+    h2 { color: #2b6cb0; margin-top: 28px; font-size: 1.1em; }
+    .balance-box { padding: 16px 20px; border-radius: 8px; margin: 20px 0; font-size: 1.05em; }
+    .credit { background: #f0fff4; border: 2px solid #276749; color: #276749; }
+    .owing  { background: #fff5f5; border: 2px solid #c53030; color: #c53030; }
+    .zero   { background: #ebf8ff; border: 2px solid #2b6cb0; color: #2b6cb0; }
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0; }
+    .meta-cell { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; }
+    .meta-cell .label { font-size: 0.78em; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; }
+    .meta-cell .value { font-size: 1.05em; font-weight: 600; margin-top: 2px; }
+    .bill-card { border: 1px solid #e2e8f0; border-radius: 8px; margin: 16px 0; overflow: hidden; }
+    .bill-header { background: #ebf8ff; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+    .bill-body { padding: 0; }
+    .fuel-section { border-top: 1px solid #e2e8f0; padding: 14px 16px; }
+    .fuel-section:first-child { border-top: none; }
+    .fuel-label { font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .elec-label { color: #2b6cb0; }
+    .gas-label  { color: #c05621; }
+    .line-table { width: 100%; border-collapse: collapse; font-size: 0.88em; }
+    .line-table td { padding: 3px 6px; }
+    .line-table td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    .line-table tr.subtotal td { border-top: 1px solid #e2e8f0; font-weight: 600; }
+    .line-table tr.total-row td { border-top: 2px solid #2b6cb0; font-weight: 700; font-size: 1.0em; }
+    .status-paid { color: #276749; font-weight: 600; }
+    .status-unpaid { color: #c53030; font-weight: 600; }
+    .status-partially_paid { color: #c05621; font-weight: 600; }
+    .status-bad_debt { color: #718096; font-weight: 600; }
+    .pay-btn { background: #2b6cb0; color: #fff; border: none; padding: 5px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85em; margin-top: 6px; }
+    .empty { color: #718096; font-style: italic; padding: 20px 0; }
+    .dual-fuel-badge { background: #9ae6b4; color: #276749; border-radius: 12px; padding: 2px 10px; font-size: 0.78em; font-weight: 700; margin-left: 8px; }
+    .elec-only-badge { background: #bee3f8; color: #2b6cb0; border-radius: 12px; padding: 2px 10px; font-size: 0.78em; font-weight: 700; margin-left: 8px; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/">Logout</a> |
+  <a href="/account/{{ customer.customer_id }}">Dashboard</a> |
+  <a href="/account/{{ customer.customer_id }}/bills">Invoice List</a> |
+  <a href="/account/{{ customer.customer_id }}/consumption">Consumption</a> |
+  <a href="/account/{{ customer.customer_id }}/statement">Statement</a>
+</nav>
+
+<h1>
+  Billing &mdash; {{ customer.customer_id }}
+  {% if has_gas %}
+    <span class="dual-fuel-badge">Dual Fuel</span>
+  {% else %}
+    <span class="elec-only-badge">Electricity Only</span>
+  {% endif %}
+</h1>
+
+<div class="meta-grid">
+  <div class="meta-cell">
+    <div class="label">Segment</div>
+    <div class="value">{{ market_type | upper }}</div>
+  </div>
+  <div class="meta-cell">
+    <div class="label">Billing Cadence</div>
+    <div class="value">{{ billing_calendar | title }}</div>
+  </div>
+  <div class="meta-cell">
+    <div class="label">Payment Method</div>
+    <div class="value">{{ payment_method_label }}</div>
+  </div>
+  <div class="meta-cell">
+    <div class="label">Total Billed</div>
+    <div class="value">&pound;{{ "%.2f"|format(total_billed_gbp) }}</div>
+  </div>
+  <div class="meta-cell">
+    <div class="label">Total Paid</div>
+    <div class="value">&pound;{{ "%.2f"|format(total_paid_gbp) }}</div>
+  </div>
+  <div class="meta-cell">
+    <div class="label">Outstanding Bills</div>
+    <div class="value">{{ outstanding_count }}</div>
+  </div>
+</div>
+
+{% if in_credit %}
+<div class="balance-box credit">
+  &#10003; Account in credit: <strong>&pound;{{ "%.2f"|format(balance_gbp) }}</strong>
+</div>
+{% elif amount_owing_gbp > 0 %}
+<div class="balance-box owing">
+  &#9888; Amount owing: <strong>&pound;{{ "%.2f"|format(amount_owing_gbp) }}</strong>
+</div>
+{% else %}
+<div class="balance-box zero">
+  Account balance: &pound;0.00
+</div>
+{% endif %}
+
+<h2>Billing History</h2>
+
+{% if bills %}
+  {% for bill in bills | reverse %}
+  <div class="bill-card">
+    <div class="bill-header">
+      <span>{{ bill.billing_period_start }} &ndash; {{ bill.billing_period_end }}</span>
+      <span>
+        Total: &pound;{{ "%.2f"|format(bill.total_billed_gbp) }}
+        &nbsp;
+        {% if bill.all_paid %}
+          <span class="status-paid">&#10003; Paid</span>
+        {% else %}
+          <span class="status-unpaid">&#9888; Unpaid</span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="bill-body">
+
+      {% if bill.electricity %}
+      {% set e = bill.electricity %}
+      <div class="fuel-section">
+        <div class="fuel-label elec-label">&#9889; Electricity</div>
+        <table class="line-table">
+          <tr><td>Standing charge ({{ e.standing_charge_pence_per_day | round(2) }}p/day &times; {{ e.days_in_period }} days)</td>
+              <td>&pound;{{ "%.2f"|format(e.standing_charge_gbp) }}</td></tr>
+          <tr><td>Consumption ({{ "%.1f"|format(e.consumption_kwh) }} kWh @ {{ "%.2f"|format(e.unit_rate_pence) }}p/kWh)</td>
+              <td>&pound;{{ "%.2f"|format(e.energy_charge_gbp) }}</td></tr>
+          {% if e.levies_gbp %}
+          <tr><td>Network &amp; levies</td>
+              <td>&pound;{{ "%.2f"|format(e.levies_gbp) }}</td></tr>
+          {% endif %}
+          <tr class="subtotal"><td>Subtotal</td><td>&pound;{{ "%.2f"|format(e.subtotal_gbp) }}</td></tr>
+          <tr><td>VAT ({{ (e.vat_rate * 100) | round(0) | int }}%)</td>
+              <td>&pound;{{ "%.2f"|format(e.vat_gbp) }}</td></tr>
+          <tr class="total-row"><td>Electricity total</td><td>&pound;{{ "%.2f"|format(e.total_gbp) }}</td></tr>
+        </table>
+        <div style="margin-top:8px;font-size:0.83em;color:#718096">
+          Status: <span class="status-{{ e.payment_status }}">{{ e.payment_status.replace("_"," ").title() }}</span>
+          {% if e.invoice_number %}&nbsp;&middot; Invoice #{{ e.invoice_number }}{% endif %}
+          {% if e.payment_status in ("unpaid", "partially_paid") %}
+          <form method="post" action="/account/{{ customer.customer_id }}/pay" style="display:inline;margin-left:12px">
+            <input type="hidden" name="invoice_number" value="{{ e.invoice_number }}">
+            <input type="hidden" name="amount_gbp" value="{{ "%.2f"|format(e.total_gbp) }}">
+            <button class="pay-btn">Pay &pound;{{ "%.2f"|format(e.total_gbp) }}</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if bill.gas %}
+      {% set g = bill.gas %}
+      <div class="fuel-section">
+        <div class="fuel-label gas-label">&#128293; Gas</div>
+        <table class="line-table">
+          <tr><td>Standing charge ({{ g.standing_charge_pence_per_day | round(2) }}p/day &times; {{ g.days_in_period }} days)</td>
+              <td>&pound;{{ "%.2f"|format(g.standing_charge_gbp) }}</td></tr>
+          <tr><td>Consumption ({{ "%.1f"|format(g.consumption_kwh) }} kWh @ {{ "%.2f"|format(g.unit_rate_pence) }}p/kWh)</td>
+              <td>&pound;{{ "%.2f"|format(g.energy_charge_gbp) }}</td></tr>
+          {% if g.levies_gbp %}
+          <tr><td>CCL &amp; levies</td>
+              <td>&pound;{{ "%.2f"|format(g.levies_gbp) }}</td></tr>
+          {% endif %}
+          <tr class="subtotal"><td>Subtotal</td><td>&pound;{{ "%.2f"|format(g.subtotal_gbp) }}</td></tr>
+          <tr><td>VAT ({{ (g.vat_rate * 100) | round(0) | int }}%)</td>
+              <td>&pound;{{ "%.2f"|format(g.vat_gbp) }}</td></tr>
+          <tr class="total-row"><td>Gas total</td><td>&pound;{{ "%.2f"|format(g.total_gbp) }}</td></tr>
+        </table>
+        <div style="margin-top:8px;font-size:0.83em;color:#718096">
+          Status: <span class="status-{{ g.payment_status }}">{{ g.payment_status.replace("_"," ").title() }}</span>
+          {% if g.invoice_number %}&nbsp;&middot; Invoice #{{ g.invoice_number }}{% endif %}
+          {% if g.payment_status in ("unpaid", "partially_paid") %}
+          <form method="post" action="/account/{{ gas_customer.customer_id if gas_customer else customer.customer_id }}/pay" style="display:inline;margin-left:12px">
+            <input type="hidden" name="invoice_number" value="{{ g.invoice_number }}">
+            <input type="hidden" name="amount_gbp" value="{{ "%.2f"|format(g.total_gbp) }}">
+            <button class="pay-btn">Pay &pound;{{ "%.2f"|format(g.total_gbp) }}</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <p class="empty">No billing records found.</p>
+{% endif %}
+
+</body>
+</html>

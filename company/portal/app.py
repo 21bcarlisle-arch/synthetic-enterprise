@@ -18,6 +18,8 @@ from fastapi.templating import Jinja2Templates
 import json
 
 from company.billing.invoice import invoices_for_account, get_invoice
+from company.billing.dual_fuel_bill import DualFuelBillBook
+from company.billing.payment_ledger import PaymentLedger, PaymentRecord, PaymentMethodType, PaymentOutcome
 from company.billing.payments import reconcile_payment
 from company.market.price_feed import PriceFeed
 from company.billing.consumption import consumption_history, monthly_totals
@@ -298,6 +300,49 @@ async def switch_tariff(
         {"customer": customer, "tariff_name": tariff_name, "term_months": term_months, "ref": ref},
     )
 
+
+@app.get("/account/{account_id}/billing", response_class=HTMLResponse)
+async def billing_page(request: Request, account_id: str):
+    """Unified dual-fuel billing view: standing charges, consumption, period, payments."""
+    customer = _CUSTOMER_INDEX.get(account_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    book = DualFuelBillBook()
+    gas_id = book.gas_account_id(account_id)
+    has_gas = gas_id in _CUSTOMER_INDEX
+
+    elec_invoices = invoices_for_account(account_id, _DEFAULT_DB) if _DEFAULT_DB.exists() else []
+    gas_invoices = invoices_for_account(gas_id, _DEFAULT_DB) if (has_gas and _DEFAULT_DB.exists()) else []
+
+    market_type = customer.get("segment", "resi")
+    bills = book.build_bills(account_id, market_type, elec_invoices, gas_invoices)
+    all_invoices = elec_invoices + gas_invoices
+    balance = book.cumulative_balance_gbp(all_invoices)
+    outstanding = book.outstanding_invoices(all_invoices)
+
+    mandate = get_mandate(account_id, _DD_DB)
+    payment_method_label = "Direct Debit" if mandate else "Not set"
+
+    return templates.TemplateResponse(
+        request, "billing.html",
+        {
+            "customer": customer,
+            "bills": bills,
+            "balance_gbp": round(balance, 2),
+            "in_credit": balance > 0,
+            "amount_owing_gbp": round(-balance, 2) if balance < 0 else 0.0,
+            "outstanding_count": len(outstanding),
+            "total_billed_gbp": round(sum(float(i.get("total_gbp", 0)) for i in all_invoices), 2),
+            "total_paid_gbp": round(sum(float(i.get("total_gbp", 0)) for i in all_invoices if i.get("payment_status") == "paid"), 2),
+            "has_gas": has_gas,
+            "gas_customer": _CUSTOMER_INDEX.get(gas_id),
+            "billing_calendar": bills[0].billing_calendar if bills else "monthly",
+            "payment_method_label": payment_method_label,
+            "market_type": market_type,
+        },
+    )
+
 @app.get("/account/{account_id}/consumption", response_class=HTMLResponse)
 async def consumption_page(request: Request, account_id: str):
     customer = _CUSTOMER_INDEX.get(account_id)
@@ -325,12 +370,27 @@ async def consumption_page(request: Request, account_id: str):
         account_id, _ELEC_UNIT_P, _ELEC_SC_P, _DEFAULT_DB
     )
     rate_cmp = market_rate_comparison(account_id, _DEFAULT_DB)
+
+    # Gas consumption split for dual-fuel customers
+    gas_id = account_id + "g"
+    has_gas = gas_id in _CUSTOMER_INDEX
+    gas_monthly_data: list[dict] = []
+    gas_total_kwh = 0.0
+    gas_customer = None
+    if has_gas and _DEFAULT_DB.exists():
+        gas_customer = _CUSTOMER_INDEX.get(gas_id)
+        gas_records = consumption_history(gas_id, _DEFAULT_DB)
+        gas_monthly_data = monthly_totals(gas_records)
+        gas_total_kwh = sum(r["kwh"] for r in gas_monthly_data)
+
     return templates.TemplateResponse(
         request, "consumption.html",
         {"customer": customer, "monthly_data": data, "is_hh": is_hh,
          "total_kwh": total_kwh, "hh_data": hh_data, "is_tou": is_tou,
          "calibrated_eac": calibrated_eac, "eac_drift": drift,
-         "cost_forecast": cost_forecast, "rate_cmp": rate_cmp},
+         "cost_forecast": cost_forecast, "rate_cmp": rate_cmp,
+         "has_gas": has_gas, "gas_monthly_data": gas_monthly_data,
+         "gas_total_kwh": gas_total_kwh, "gas_customer": gas_customer},
     )
 
 @app.post("/account/{account_id}/pay", response_class=HTMLResponse)

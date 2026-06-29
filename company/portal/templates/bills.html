@@ -13,7 +13,7 @@
   </style>
 </head>
 <body>
-  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a> | <a href="/account/{{ customer.customer_id }}/statement">Statement</a></nav>
+  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a> | <a href="/account/{{ customer.customer_id }}/billing">Billing Detail</a> | <a href="/account/{{ customer.customer_id }}/statement">Statement</a></nav>
   <h1>Invoices — {{ customer.customer_id }}</h1>
   {% if invoices %}
   <table>
