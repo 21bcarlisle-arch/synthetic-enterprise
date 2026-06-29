@@ -227,6 +227,7 @@ def _weather_adjusted_shape_fn(
             if dyn:
                 assets = dict(property_record.get("assets") or {})
                 assets["ev"] = dyn.get("ev", assets.get("ev", False))
+                assets["solar"] = dyn.get("solar", assets.get("solar", False))
                 eff_property = dict(property_record)
                 eff_property["assets"] = assets
 
@@ -615,11 +616,10 @@ def main(report_end: str | None = None, sim_interface=None):
         c["customer_id"]: weather_means_for_customer(c)
         for c in ELEC_CUSTOMERS + GAS_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
     }
-    # Phase 25a: cloud cover for solar customers (C4 has assets.solar=True).
+    # Phase O: cloud cover for all elec customers — any can acquire solar via life events.
     cloud_cover_by_customer = {
         c["customer_id"]: cloud_cover_for_customer(c)
         for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
-        if properties.get(c["customer_id"], {}).get("assets", {}).get("solar")
     }
 
     # Phase 6a: per-customer HH consumption for HH (smart meter) customers.
@@ -1130,10 +1130,11 @@ def main(report_end: str | None = None, sim_interface=None):
             else:
                 profile_class = customer.get("profile_class", 1)
                 property_record = properties.get(cid, DEFAULT_PROPERTY)
-                # Phase 25a: pass cloud cover + latitude for solar customers (C4).
-                has_solar = property_record.get("assets", {}).get("solar", False)
-                cloud_cover = cloud_cover_by_customer.get(cid) if has_solar else None
-                latitude = customer.get("location", {}).get("lat") if has_solar else None
+                # Phase O: always pass cloud cover + latitude — any resi customer
+                # can acquire solar via a life event (Phase B), so irradiance must be
+                # available from the acquisition date onward.
+                cloud_cover = cloud_cover_by_customer.get(cid)
+                latitude = customer.get("location", {}).get("lat")
                 shape_fn = _weather_adjusted_shape_fn(
                     SHAPE_LOADERS[profile_class], weather_by_customer[cid], property_record,
                     cloud_cover_means=cloud_cover, latitude_deg=latitude,

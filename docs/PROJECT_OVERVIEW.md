@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-29. 400+ commits. 4,861 tests passing. Codebase: ~44,900 lines across 325+ Python modules.*
+*Last updated: 2026-06-29. 400+ commits. 4,851 tests passing. Codebase: ~44,900 lines across 325+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase O (2026-06-29):** Solar Dynamic Settlement Wiring -- 12 new tests (4,851 total). simulation/run_phase2b.py: (1) _weather_adjusted_shape_fn now updates assets["solar"] from dynamic_assets alongside assets["ev"] (was missing -- life-event solar never applied irradiance reduction); (2) cloud_cover and latitude always passed for all profile-class customers (removed has_solar gate); (3) cloud_cover_by_customer built for all elec customers not just static-solar C4. Customers acquiring solar via life events (Phase B) now get correct half-hourly import reduction: summer midday ~30-40% reduction, night periods unchanged, import clamped >= 0. Phase 25a (static C4 solar customer) unaffected -- irradiance was already applied there.
 **Phase N (2026-06-29):** EV Settlement Wiring + Physical Suitability Constraints -- 26 new tests (4,861 total). simulation/household.py: has_driveway (off-street parking gate), roof_aspect (south/east_west/north/na), hp_eligible property. simulation/life_events.py: EV blocked for no-driveway; solar blocked for north/na aspect; HP blocked for flats/1-bed. simulation/run_phase2b.py: EV flat demand shape wired into _weather_adjusted_shape_fn (ev_annual_kwh/365.25/48, from ev_acquired date). background/session_watchdog.py: 3 usage-limit NTFY sends suppressed (Rich flagged as spam). EV now fully settled like ASHP Phase G. All permutations supported for eligible homes.
 **Phase M (2026-06-29):** Renewal Conversion Rate Book -- 21 new tests (4,835 total). company/crm/renewal_conversion.py (new): RenewalOutcome (ACCEPTED/SWITCHED/LAPSED/PENDING), RenewalChannel (DIRECT_PHONE/ONLINE/BROKER/AUTOMATIC), RenewalRecord (frozen; days_to_decision/days_notice_before_term_end/met_notice_obligation SLC22 42-day/is_retained), RenewalConversionBook (outcomes_for/conversion_rate_pct/avg_days_to_decision/notice_obligation_breaches/pending_decisions/best_converting_segment/conversion_summary). Fills CRM gap: acquisition→tenure→renewal→churn loop now complete. SLC 22 minimum 42-day notice before term end.
 **Phase L (2026-06-29):** Tariff Segment Profitability Book -- 19 new tests (4,814 total). company/pricing/segment_profitability.py (new): SEGMENT_RESI_CREDIT/RESI_PPM/SME/IC constants; SegmentProfitabilityRecord (frozen; total_net_contribution_gbp/is_net_negative/average_net_contribution_gbp/net_margin_pct/average_revenue_per_account_gbp); SegmentProfitabilityBook (record/aggregate_from_customers by segment+year/latest_for_segment/net_negative_segments/most_profitable_segment/segment_summary). Portfolio-level complement to Phase J (per-customer) and Phase K (cap constraints). Observable inputs only: revenue/wholesale/levy/operating cost breakdowns from billing data.
@@ -4049,7 +4050,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 318+ Python modules, ~43,100 lines
 - 400+ git commits
-- 4,861 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,851 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

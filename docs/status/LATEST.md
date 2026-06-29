@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T15:14:26Z
+Last updated: 2026-06-29T15:31:27Z
 
 ## Current state
 
-- **Phase:** N complete (EV Settlement Wiring + Physical Suitability Constraints)
-- **Tests passing:** 4,861 (all green)
+- **Phase:** O complete (Solar Dynamic Settlement Wiring)
+- **Tests passing:** 4,851 (all green)
 - **Python modules:** 325+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,172
@@ -20,8 +20,9 @@ Last updated: 2026-06-29T15:14:26Z
 | Enterprise Value | £6,142,209 |
 | Administration Event | None |
 
-## Recent build phases (N→G)
+## Recent build phases (O→G)
 
+- **Phase O:** Solar dynamic settlement wiring (12 tests). Life-event solar now gets irradiance reduction in HH shape.
 - **Phase N:** EV settlement wiring + physical suitability (26 tests). has_driveway/roof_aspect/hp_eligible gates.
 - **Phase M:** Renewal Conversion Rate Book (21 tests). CRM lifecycle complete.
 - **Phase L:** Tariff Segment Profitability Book (19 tests).
