@@ -19,7 +19,7 @@ the last partial). The business survived the full window.
 - Capital cost ratio: 3.7% of gross
 - Net margin as % of revenue: 32.9%
   (industry benchmark for a retail energy supplier: 2-5%)
-- Risk committee (Context Handshake) interventions: 38
+- Risk committee (Context Handshake) interventions: 37
 - Bills issued: 1531, average clarity 0.841,
   service quality score 0.909
 - Enterprise value (CLV sum across 14 billing accounts): £6,142,208.62
@@ -1054,10 +1054,9 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - Gas: gross £868.53, capital £7.29, net £307.71
 - Treasury at year end: £2,467,416.56
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89)
-- Risk committee (Context Handshake) interventions: 13
+- Risk committee (Context Handshake) interventions: 12
   - 2016-01-01: treasury £2,466,636.23, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-01-31: treasury £2,466,648.35, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
-  - 2016-03-01: treasury £2,466,660.58, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-03-31: treasury £2,466,672.53, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-04-30: treasury £2,466,683.60, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-05-30: treasury £2,466,694.59, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
@@ -1124,7 +1123,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - C8: actual £174.46 vs. naked £784.20 -- hedging cost £609.74
   - C9: actual £58.27 vs. naked £653.38 -- hedging cost £595.11
 
-**Year narrative:** 2016 produced a net gain of £1,183.52 across 13 accounts. The risk committee intervened 13 time(s), raising hedge fractions in response to elevated VaR. 36 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2016 produced a net gain of £1,183.52 across 13 accounts. The risk committee intervened 12 time(s), raising hedge fractions in response to elevated VaR. 36 customer(s) experienced a bill shock of >=20%.
 
 ## 2017
 
