@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase AA (2026-06-29):** Demand Flexibility Potential Assessor -- 23 new tests (5,103 total). company/market/flexibility_potential.py (new): FlexibilityAssetType (EV/ASHP/BATTERY/EV_AND_BATTERY); FlexibilityEstimate (frozen; flex_kw/flex_kwh_per_event/dfs_revenue_gbp_pa/capacity_market_revenue_gbp_pa/total_annual_revenue_gbp/is_dfs_eligible/flex_mwh_per_event); FlexibilityPotentialBook (assess returns None if no assets; dfs_eligible/top_by_flex_kw/total_portfolio_flex_kw/total_portfolio_revenue_gbp_pa/by_asset_type/flexibility_summary). Calibrated: EV 7.4kW/ASHP 3kW/battery 5kW (UK typical). DFS £4.5/MWh × 20 events/yr × 1h; Capacity Market £75/kW/yr (T-4 2023). Key finding: EV+battery customer generates £2,046/yr flexibility revenue vs EV-only £930/yr. Connects to dsr_book.py for enrollment. Leverages Phases P (EV shape), I (ASHP), Q (battery) physical models.
 **Phase Z (2026-06-29):** Smart Meter Consumption Reconciliation Book -- 23 new tests (5,080 total). company/billing/smart_meter_reconciliation.py (new): ReconciliationType (OVERBILLED/UNDERBILLED/NO_ADJUSTMENT); ReconciliationAdjustment (frozen; adjustment_kwh/credit_debit_gbp/is_back_billing_protected using SLC31A 12-month cap on domestic undercharges/recoverable_gbp=0 when protected/is_material £5 threshold); SmartMeterReconciliationBook (reconcile/adjustments_for/credits_owed_to_customers/charges_owed_by_customers/back_billing_protected_adjustments/total_credit_exposure_gbp/total_recoverable_gbp/total_unrecoverable_gbp/material_adjustments/reconciliation_summary). SLC 31A: domestic suppliers cannot recover undercharges for consumption >12 months before billing date (May 2018 rule); ~GBP90M sector write-off 2018-2022. I&C always recoverable. Connects to back_billing.py (Ph314), smart_meter_analytics.py.
 **Phase Y (2026-06-29):** ToU Rate Card Optimiser -- 29 new tests (5,057 total). company/pricing/tou_rate_card.py (new): ToURateCandidate (frozen; overnight<standard<peak validation; octopus_go_style/aggressive_ev/conservative_ev classmethod factories; to_tou_rate_structure() conversion); RateCardEvaluation (frozen; margin_delta_gbp/is_margin_positive/is_customer_positive/viability_reason); ToURateCardOptimiser (evaluate/viable_rates/optimal_rate/best_customer_rate/optimiser_summary). Viability = customer_saving > 0 AND supplier_margin_tou > 0 AND margin_loss_pct <= threshold. Key finding: Octopus Go-style 7.5p overnight fails 20% threshold (74% margin reduction for overnight-heavy EV customers) but is viable at 80% threshold (supplier still earns £516 margin vs £1,989 flat). Conservative 10p overnight: £712 margin, 64% loss. Supplier must accept 60-75% margin reduction to offer meaningful overnight EV discount. Completes T-U-V-X-Y ToU analytics-to-product chain.
 **Phase X (2026-06-29):** ToU Product Launch Decision Engine -- 25 new tests (5,028 total). company/pricing/tou_product_launch.py (new): LaunchReadinessSignal (LAUNCH/HOLD/MONITOR); ToULaunchThreshold (default_for: min 5% EV penetration, £500 max margin loss); ToULaunchAssessment (frozen; ev_penetration_pct/margin_at_risk_gbp/is_launch_viable/is_market_ready/signal/worst_case_margin_delta_gbp); ToUProductLaunchBook (assess/launch_history/readiness_trend/years_until_viable/launch_summary). Signal logic: MONITOR when EV penetration < threshold; HOLD when margin-at-risk > max loss; LAUNCH otherwise. Key finding: for EV-heavy portfolio with high cross-subsidy, HOLD is board recommendation (toU launch would cost more than the at-risk subsidy is worth). years_until_viable() extrapolates EV penetration trajectory to estimate when ToU becomes viable product. Also: test_warm_factor_reduces_consumption → test_warm_factor_reduces_consumption_ic + test_resi_consumption_uses_hdd_not_weather_factor (Phase W test fix: resi now uses HDD not weather_factor). Completes T-U-V-X analytics chain.
@@ -4061,16 +4062,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,080 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,103 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase Z, 2026-06-29):**
+**Latest full run (Phase AA, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,080 tests. Phase Z: Smart Meter Reconciliation (23 tests). Phase Y: ToU Rate Card (29 tests).
+- 5,103 tests. Phase AA: Flexibility Potential (23 tests). Phase Z: Smart Meter Reconciliation (23 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
