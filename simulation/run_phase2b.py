@@ -249,6 +249,17 @@ def _weather_adjusted_shape_fn(
             epc_mult = household_register.epc_multiplier(customer_id, date_str)
             shape = [v * epc_mult for v in shape]
 
+        # Phase G: ASHP electricity uplift -- additive flat load for heat pump homes.
+        # ASHP adds ~5,500 kWh/yr of net-new electricity (space heating + DHW) not
+        # present in the base profile class shape (calibrated for gas boiler homes).
+        # Applied uniformly across all 48 half-hourly periods as a first approximation.
+        if household_register is not None and customer_id is not None:
+            _hh = household_register.household_at_date(customer_id, date_str)
+            if _hh is not None:
+                _ashp_hh_kwh = _hh.ashp_annual_kwh() / 365.25 / 48
+                if _ashp_hh_kwh > 0:
+                    shape = [v + _ashp_hh_kwh for v in shape]
+
         return shape
 
     return shape_fn

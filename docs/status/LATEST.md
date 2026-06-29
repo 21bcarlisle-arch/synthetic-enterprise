@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T11:18:52Z
+Last updated: 2026-06-29T11:22:26Z
 
 ## Current state
 
-- **Phase:** F complete (Heat Pump Electricity Uplift)
-- **Tests passing:** 4,702 (all green)
+- **Phase:** G complete (ASHP Electricity Settlement Wiring)
+- **Tests passing:** 4,714 (all green)
 - **Python modules:** 291+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,328,301

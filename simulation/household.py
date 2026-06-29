@@ -67,6 +67,9 @@ class InsulationLevel(str, Enum):
     NA = "na"               # commercial / no roof
 
 
+# Phase F/G: BEIS-calibrated ASHP annual electricity uplift (kWh/yr).
+ASHP_BASE_ELECTRICITY_KWH: float = 5_500.0
+
 @dataclass(frozen=True)
 class Household:
     """Physical attributes of a customer's premises.
@@ -199,7 +202,7 @@ class Household:
         """
         if not self.is_heat_pump:
             return 0.0
-        return 5_500.0
+        return ASHP_BASE_ELECTRICITY_KWH
 
     def solar_annual_generation_kwh(self) -> float:
         """Estimated annual solar generation (kWh) from panels.
