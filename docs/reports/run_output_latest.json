@@ -1,30 +1,30 @@
 {
   "starting_treasury_gbp": 2466636.220591217,
-  "final_treasury_gbp": 3794999.485298028,
-  "total_revenue_gbp": 14224289.966644123,
-  "total_gross_gbp": 6548925.694046078,
-  "total_capital_gbp": 237004.5995549718,
-  "total_bad_debt_gbp": 92559.343395,
-  "total_net_gbp": 1328363.264706,
+  "final_treasury_gbp": 3794790.6470598327,
+  "total_revenue_gbp": 14224308.703222157,
+  "total_gross_gbp": 6548944.553532276,
+  "total_capital_gbp": 237232.20405112565,
+  "total_bad_debt_gbp": 92559.435595,
+  "total_net_gbp": 1328154.426468,
   "administration_event": null,
   "committee_wake_ups_total": 38,
   "years": {
     "2016": {
-      "revenue_gbp": 10514.786076058388,
-      "gross_gbp": 6865.763555230469,
-      "capital_gbp": 77.55683794360684,
-      "bad_debt_gbp": 168.751706,
-      "net_gbp": 1192.401345,
-      "treasury_end_gbp": 2467417.614318229,
+      "revenue_gbp": 10514.785798180572,
+      "gross_gbp": 6865.763271362043,
+      "capital_gbp": 86.43379620154532,
+      "bad_debt_gbp": 168.751696,
+      "net_gbp": 1183.523726,
+      "treasury_end_gbp": 2467416.5600022273,
       "bsc_credit_required_gbp": 30.15,
       "bsc_peak_daily_gbp": 25.12,
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 9021.954461058387,
-          "wholesale_cost_gbp": 3024.723063827918,
-          "gross_gbp": 5997.231397230469,
-          "capital_gbp": 70.26537637360683,
-          "net_gbp": 884.688556
+          "revenue_gbp": 9021.954183180573,
+          "wholesale_cost_gbp": 3024.723069818529,
+          "gross_gbp": 5997.231113362043,
+          "capital_gbp": 79.14233463154531,
+          "net_gbp": 875.810937
         },
         "gas": {
           "revenue_gbp": 1492.831615,
@@ -36,9 +36,9 @@
       },
       "segment_split": {
         "resi electricity": {
-          "gross_gbp": 3266.52051474645,
-          "capital_gbp": 30.11998509211675,
-          "net_gbp": 626.2191390000128
+          "gross_gbp": 3266.519789019268,
+          "capital_gbp": 32.59055663716324,
+          "net_gbp": 623.7475540000448
         },
         "resi gas": {
           "gross_gbp": 868.5321580000035,
@@ -46,19 +46,19 @@
           "net_gbp": 307.71278899999794
         },
         "SME electricity": {
-          "gross_gbp": 2730.710882484024,
-          "capital_gbp": 40.14539128151945,
-          "net_gbp": 258.4694170000032
+          "gross_gbp": 2730.7113243427802,
+          "capital_gbp": 46.55177799436703,
+          "net_gbp": 252.06338300000036
         }
       },
       "per_customer": {
         "C1": {
           "commodity": "electricity",
-          "gross_gbp": 451.1743729860923,
-          "capital_gbp": 2.524299942263793,
-          "net_gbp": 137.365944,
+          "gross_gbp": 451.1744939228152,
+          "capital_gbp": 3.080037481615984,
+          "net_gbp": 136.810257,
           "tariff_min_gbp_per_mwh": 117.2999038342534,
-          "tariff_max_gbp_per_mwh": 131.890090027242
+          "tariff_max_gbp_per_mwh": 131.8980493154099
         },
         "C1g": {
           "commodity": "gas",
@@ -71,8 +71,8 @@
         "C2": {
           "commodity": "electricity",
           "gross_gbp": 314.69169611995017,
-          "capital_gbp": 1.993077688977569,
-          "net_gbp": 65.597299,
+          "capital_gbp": 2.4913471112219616,
+          "net_gbp": 65.099117,
           "tariff_min_gbp_per_mwh": 107.61795687671648,
           "tariff_max_gbp_per_mwh": 107.61795687671648
         },
@@ -87,8 +87,8 @@
         "C3": {
           "commodity": "electricity",
           "gross_gbp": 248.71576162770526,
-          "capital_gbp": 1.1655825137492062,
-          "net_gbp": 22.006901,
+          "capital_gbp": 1.8066528963112698,
+          "net_gbp": 21.365765,
           "tariff_min_gbp_per_mwh": 98.20535726135006,
           "tariff_max_gbp_per_mwh": 98.20535726135006
         },
@@ -103,8 +103,8 @@
         "C4": {
           "commodity": "electricity",
           "gross_gbp": 103.74388755251343,
-          "capital_gbp": 0.9751852584192424,
-          "net_gbp": 10.977341000000001,
+          "capital_gbp": 0.6237639525670712,
+          "net_gbp": 11.328494000000001,
           "tariff_min_gbp_per_mwh": 98.43062228085046,
           "tariff_max_gbp_per_mwh": 98.43062228085046
         },
@@ -118,41 +118,41 @@
         },
         "C5": {
           "commodity": "electricity",
-          "gross_gbp": 1565.138762557149,
-          "capital_gbp": 14.520106708948225,
-          "net_gbp": 247.281087,
+          "gross_gbp": 1565.139204415904,
+          "capital_gbp": 14.520172278661201,
+          "net_gbp": 247.281458,
           "tariff_min_gbp_per_mwh": 117.2999038342534,
-          "tariff_max_gbp_per_mwh": 131.04056173509568
+          "tariff_max_gbp_per_mwh": 131.04782584105976
         },
         "C6": {
           "commodity": "electricity",
           "gross_gbp": 1165.5721199269076,
-          "capital_gbp": 25.625284572568752,
-          "net_gbp": 11.18833,
+          "capital_gbp": 32.03160571571094,
+          "net_gbp": 4.781925,
           "tariff_min_gbp_per_mwh": 107.61795687671648,
           "tariff_max_gbp_per_mwh": 107.61795687671648
         },
         "C7": {
           "commodity": "electricity",
-          "gross_gbp": 1115.8088617917185,
-          "capital_gbp": 12.219605298171968,
-          "net_gbp": 233.222365,
+          "gross_gbp": 1115.8080151278143,
+          "capital_gbp": 12.219839353555212,
+          "net_gbp": 233.221319,
           "tariff_min_gbp_per_mwh": 92.16421015548482,
           "tariff_max_gbp_per_mwh": 175.94985575138008
         },
         "C8": {
           "commodity": "electricity",
           "gross_gbp": 633.6231369366807,
-          "capital_gbp": 6.736343783710822,
-          "net_gbp": 120.175332,
+          "capital_gbp": 6.736602588744183,
+          "net_gbp": 120.175075,
           "tariff_min_gbp_per_mwh": 84.5569661174201,
           "tariff_max_gbp_per_mwh": 161.42693531507473
         },
         "C9": {
           "commodity": "electricity",
           "gross_gbp": 398.76279773175236,
-          "capital_gbp": 4.505890606797252,
-          "net_gbp": 36.873957,
+          "capital_gbp": 5.632313253157493,
+          "net_gbp": 35.747527,
           "tariff_min_gbp_per_mwh": 77.16135213391792,
           "tariff_max_gbp_per_mwh": 147.3080358920251
         }
@@ -190,126 +190,126 @@
       "committee_wake_ups": [
         {
           "settlement_date": "2016-01-01",
-          "treasury_gbp": 2466636.227323217,
+          "treasury_gbp": 2466636.227292217,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-01-31",
-          "treasury_gbp": 2466648.3941312158,
+          "treasury_gbp": 2466648.3492952157,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-03-01",
-          "treasury_gbp": 2466660.6710212124,
+          "treasury_gbp": 2466660.5783672174,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-03-31",
-          "treasury_gbp": 2466672.665240221,
+          "treasury_gbp": 2466672.527799225,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-04-30",
-          "treasury_gbp": 2466683.786517224,
+          "treasury_gbp": 2466683.602806218,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-05-30",
-          "treasury_gbp": 2466694.820292218,
+          "treasury_gbp": 2466694.591680212,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-06-29",
-          "treasury_gbp": 2466705.4311002223,
+          "treasury_gbp": 2466705.1562652146,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-07-29",
-          "treasury_gbp": 2466716.168996226,
+          "treasury_gbp": 2466715.8492182195,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-08-28",
-          "treasury_gbp": 2466726.9323102236,
+          "treasury_gbp": 2466726.567682212,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-09-27",
-          "treasury_gbp": 2466737.871973222,
+          "treasury_gbp": 2466737.4612362213,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-10-27",
-          "treasury_gbp": 2466748.8031022204,
+          "treasury_gbp": 2466748.3473632187,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-11-26",
-          "treasury_gbp": 2466759.623876206,
+          "treasury_gbp": 2466759.122064224,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         },
         {
           "settlement_date": "2016-12-26",
-          "treasury_gbp": 2466771.570386209,
+          "treasury_gbp": 2466771.022283228,
           "adjustments": {
             "C1": 1.0
           },
-          "portfolio_var_current_gbp": 22.228773965545997,
-          "portfolio_var_stressed_gbp": 6.829193415425749
+          "portfolio_var_current_gbp": 27.785967456932497,
+          "portfolio_var_stressed_gbp": 8.536491769282186
         }
       ],
       "hedge_fractions": {
         "C1": {
           "start_hf": 0.9166739355712638,
-          "avg_hf": 0.9215328099859723
+          "avg_hf": 0.9215305889328389
         },
         "C2": {
           "start_hf": 0.9060610274919445,
@@ -320,12 +320,12 @@
           "avg_hf": 0.8897561620446971
         },
         "C4": {
-          "start_hf": 0.8902545832251131,
-          "avg_hf": 0.8902545832251131
+          "start_hf": 0.8902545832251132,
+          "avg_hf": 0.8902545832251132
         },
         "C5": {
           "start_hf": 0.9166739355712638,
-          "avg_hf": 0.9217698723256292
+          "avg_hf": 0.9217678452642926
         },
         "C6": {
           "start_hf": 0.9060610274919445,
@@ -333,7 +333,7 @@
         },
         "C7": {
           "start_hf": 0.9166739355712638,
-          "avg_hf": 0.9218867485242705
+          "avg_hf": 0.9218925619242486
         },
         "C8": {
           "start_hf": 0.9060610274919445,
@@ -364,11 +364,11 @@
         "settlement_date": "2016-11-08",
         "settlement_period": 40,
         "customer_id": "C6",
-        "net_margin_gbp": -0.36114
+        "net_margin_gbp": -0.361634
       },
       "bills_count": 108,
-      "avg_clarity": 0.8633211962883794,
-      "avg_bill_shock_pct": 0.19766422288824753,
+      "avg_clarity": 0.8633211984973637,
+      "avg_bill_shock_pct": 0.19766421786571506,
       "bill_shock_events": [
         {
           "customer_id": "C1g",
@@ -551,18 +551,18 @@
           "bill_shock_pct": 0.2338377927924485
         }
       ],
-      "avg_complaint_probability": 0.04448062718204535,
+      "avg_complaint_probability": 0.04448062646412549,
       "treasury_drawdown_events": [],
       "var_ratio": 3.254963304353886,
       "hedge_effectiveness": {
-        "actual_net_gbp": 2067.871839,
-        "naked_net_gbp": 11373.806896091059,
-        "hedging_value_add_gbp": -9305.935057091057,
+        "actual_net_gbp": 2055.886348,
+        "naked_net_gbp": 11249.775611753468,
+        "hedging_value_add_gbp": -9193.88926375347,
         "by_customer": {
           "C1": {
-            "actual_net_gbp": 257.26778,
-            "naked_net_gbp": 834.5011472402516,
-            "hedging_value_add_gbp": -577.2333672402516
+            "actual_net_gbp": 256.748213,
+            "naked_net_gbp": 827.8693303672702,
+            "hedging_value_add_gbp": -571.1211173672702
           },
           "C1g": {
             "actual_net_gbp": 201.412822,
@@ -570,9 +570,9 @@
             "hedging_value_add_gbp": -216.8630684359938
           },
           "C2": {
-            "actual_net_gbp": 84.123627,
-            "naked_net_gbp": 377.8735191135312,
-            "hedging_value_add_gbp": -293.7498921135312
+            "actual_net_gbp": 83.459324,
+            "naked_net_gbp": 370.80127623156636,
+            "hedging_value_add_gbp": -287.3419522315664
           },
           "C2g": {
             "actual_net_gbp": 167.172041,
@@ -580,9 +580,9 @@
             "hedging_value_add_gbp": -311.05756007772106
           },
           "C3": {
-            "actual_net_gbp": 30.707595,
-            "naked_net_gbp": 426.059444679577,
-            "hedging_value_add_gbp": -395.35184967957696
+            "actual_net_gbp": 29.425375,
+            "naked_net_gbp": 414.4293999632097,
+            "hedging_value_add_gbp": -385.0040249632097
           },
           "C3g": {
             "actual_net_gbp": 79.009559,
@@ -590,9 +590,9 @@
             "hedging_value_add_gbp": -449.4438613414404
           },
           "C4": {
-            "actual_net_gbp": 46.807003,
-            "naked_net_gbp": 248.2363661758436,
-            "hedging_value_add_gbp": -201.4293631758436
+            "actual_net_gbp": 48.212272999999996,
+            "naked_net_gbp": 261.0449668875441,
+            "hedging_value_add_gbp": -212.8326938875441
           },
           "C4g": {
             "actual_net_gbp": 174.786046,
@@ -600,29 +600,29 @@
             "hedging_value_add_gbp": -636.1011673664204
           },
           "C5": {
-            "actual_net_gbp": 411.58671100000004,
-            "naked_net_gbp": 2694.4277609597298,
-            "hedging_value_add_gbp": -2282.84104995973
+            "actual_net_gbp": 411.71652800000004,
+            "naked_net_gbp": 2694.559446406952,
+            "hedging_value_add_gbp": -2282.842918406952
           },
           "C6": {
-            "actual_net_gbp": -13.413281,
-            "naked_net_gbp": 1158.8281742674405,
-            "hedging_value_add_gbp": -1172.2414552674406
+            "actual_net_gbp": -21.955129,
+            "naked_net_gbp": 1067.8993372136063,
+            "hedging_value_add_gbp": -1089.8544662136062
           },
           "C7": {
-            "actual_net_gbp": 393.433444,
-            "naked_net_gbp": 1940.0167843659701,
-            "hedging_value_add_gbp": -1546.5833403659701
+            "actual_net_gbp": 393.173955,
+            "naked_net_gbp": 1939.746941832265,
+            "hedging_value_add_gbp": -1546.572986832265
           },
           "C8": {
-            "actual_net_gbp": 174.456603,
-            "naked_net_gbp": 784.2045694755709,
-            "hedging_value_add_gbp": -609.7479664755709
+            "actual_net_gbp": 174.456261,
+            "naked_net_gbp": 784.2008960973275,
+            "hedging_value_add_gbp": -609.7446350973274
           },
           "C9": {
-            "actual_net_gbp": 60.521889,
-            "naked_net_gbp": 673.8130045915675,
-            "hedging_value_add_gbp": -613.2911155915675
+            "actual_net_gbp": 58.26908,
+            "naked_net_gbp": 653.3778915321523,
+            "hedging_value_add_gbp": -595.1088115321522
           }
         }
       },
@@ -647,21 +647,21 @@
       "gas_network_cost_gbp": 523.67126003
     },
     "2017": {
-      "revenue_gbp": 236176.2275415896,
-      "gross_gbp": 124065.19877346445,
-      "capital_gbp": 1272.6427456063545,
-      "bad_debt_gbp": 1368.855581,
-      "net_gbp": 30791.675609,
-      "treasury_end_gbp": 2497944.982362259,
+      "revenue_gbp": 236176.1656133121,
+      "gross_gbp": 124065.13643491562,
+      "capital_gbp": 1275.657193818766,
+      "bad_debt_gbp": 1368.852945,
+      "net_gbp": 30788.601204,
+      "treasury_end_gbp": 2497932.996931951,
       "bsc_credit_required_gbp": 559.97,
       "bsc_peak_daily_gbp": 466.64,
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 233121.70677058958,
-          "wholesale_cost_gbp": 110681.45499212513,
-          "gross_gbp": 122440.25177846444,
-          "capital_gbp": 1257.9369186063545,
-          "net_gbp": 30296.008319
+          "revenue_gbp": 233121.64484231212,
+          "wholesale_cost_gbp": 110681.45540239649,
+          "gross_gbp": 122440.18943991563,
+          "capital_gbp": 1260.951366818766,
+          "net_gbp": 30292.933914
         },
         "gas": {
           "revenue_gbp": 3054.520771,
@@ -673,9 +673,9 @@
       },
       "segment_split": {
         "resi electricity": {
-          "gross_gbp": 4981.92714829268,
-          "capital_gbp": 43.575863043232296,
-          "net_gbp": 832.5629429999947
+          "gross_gbp": 4981.712930644856,
+          "capital_gbp": 44.45398353200747,
+          "net_gbp": 831.4744419999954
         },
         "resi gas": {
           "gross_gbp": 1624.9469949999886,
@@ -683,24 +683,24 @@
           "net_gbp": 495.66728999999765
         },
         "SME electricity": {
-          "gross_gbp": 3381.5148305040548,
-          "capital_gbp": 37.25086473142675,
-          "net_gbp": 222.55544399999948
+          "gross_gbp": 3381.66670960309,
+          "capital_gbp": 39.387233326662525,
+          "net_gbp": 220.5694789999991
         },
         "I&C electricity": {
           "gross_gbp": 114076.80979966736,
-          "capital_gbp": 1177.1101908317862,
-          "net_gbp": 29240.889932000016
+          "capital_gbp": 1177.110149960075,
+          "net_gbp": 29240.889992999968
         }
       },
       "per_customer": {
         "C1": {
           "commodity": "electricity",
-          "gross_gbp": 460.72832114162156,
-          "capital_gbp": 3.846392521191114,
-          "net_gbp": 119.764658,
-          "tariff_min_gbp_per_mwh": 117.80335097567738,
-          "tariff_max_gbp_per_mwh": 131.890090027242
+          "gross_gbp": 460.7657095765539,
+          "capital_gbp": 3.846610635297898,
+          "net_gbp": 119.800777,
+          "tariff_min_gbp_per_mwh": 117.80326443949656,
+          "tariff_max_gbp_per_mwh": 131.8980493154099
         },
         "C1g": {
           "commodity": "gas",
@@ -712,11 +712,11 @@
         },
         "C2": {
           "commodity": "electricity",
-          "gross_gbp": 476.837252114279,
-          "capital_gbp": 3.6548160842001147,
-          "net_gbp": 96.571035,
+          "gross_gbp": 476.83988173301685,
+          "capital_gbp": 3.8209224913740707,
+          "net_gbp": 96.407552,
           "tariff_min_gbp_per_mwh": 107.61795687671648,
-          "tariff_max_gbp_per_mwh": 125.77465534933594
+          "tariff_max_gbp_per_mwh": 125.77535351322484
         },
         "C2g": {
           "commodity": "gas",
@@ -728,11 +728,11 @@
         },
         "C3": {
           "commodity": "electricity",
-          "gross_gbp": 568.47054971127,
-          "capital_gbp": 3.624130334195503,
-          "net_gbp": 69.686169,
+          "gross_gbp": 568.4692113408761,
+          "capital_gbp": 4.265192758863468,
+          "net_gbp": 69.043744,
           "tariff_min_gbp_per_mwh": 98.20535726135006,
-          "tariff_max_gbp_per_mwh": 120.31444334586253
+          "tariff_max_gbp_per_mwh": 120.31405390881736
         },
         "C3g": {
           "commodity": "gas",
@@ -744,11 +744,11 @@
         },
         "C4": {
           "commodity": "electricity",
-          "gross_gbp": 342.32709948408717,
-          "capital_gbp": 3.7907822657710493,
-          "net_gbp": 45.052771,
+          "gross_gbp": 342.32677599050754,
+          "capital_gbp": 2.7365165218754015,
+          "net_gbp": 46.106557,
           "tariff_min_gbp_per_mwh": 98.43062228085046,
-          "tariff_max_gbp_per_mwh": 110.09188937744909
+          "tariff_max_gbp_per_mwh": 110.09165699306406
         },
         "C4g": {
           "commodity": "gas",
@@ -760,49 +760,49 @@
         },
         "C5": {
           "commodity": "electricity",
-          "gross_gbp": 1542.7829406078663,
-          "capital_gbp": 15.092358583188439,
-          "net_gbp": 163.375794,
-          "tariff_min_gbp_per_mwh": 119.59610151493084,
-          "tariff_max_gbp_per_mwh": 131.04056173509568
+          "gross_gbp": 1542.9144390634663,
+          "capital_gbp": 15.093146182524894,
+          "net_gbp": 163.505245,
+          "tariff_min_gbp_per_mwh": 119.5962030741169,
+          "tariff_max_gbp_per_mwh": 131.04782584105976
         },
         "C6": {
           "commodity": "electricity",
-          "gross_gbp": 1838.7318898961842,
-          "capital_gbp": 22.158506148219658,
-          "net_gbp": 59.17965,
+          "gross_gbp": 1838.752270539645,
+          "capital_gbp": 24.294087144134473,
+          "net_gbp": 57.064234,
           "tariff_min_gbp_per_mwh": 107.61795687671648,
-          "tariff_max_gbp_per_mwh": 126.27267172773765
+          "tariff_max_gbp_per_mwh": 126.27397569689357
         },
         "C7": {
           "commodity": "electricity",
-          "gross_gbp": 1075.8694840764474,
-          "capital_gbp": 10.709146707369998,
-          "net_gbp": 158.771712,
-          "tariff_min_gbp_per_mwh": 98.76676409364632,
-          "tariff_max_gbp_per_mwh": 195.9325924286517
+          "gross_gbp": 1075.6040815583215,
+          "capital_gbp": 10.707544967201592,
+          "net_gbp": 158.51327,
+          "tariff_min_gbp_per_mwh": 98.76680632048677,
+          "tariff_max_gbp_per_mwh": 195.90134338402027
         },
         "C8": {
           "commodity": "electricity",
-          "gross_gbp": 1041.9422339978644,
-          "capital_gbp": 9.142680061201867,
-          "net_gbp": 209.24272,
+          "gross_gbp": 1041.9571611879737,
+          "capital_gbp": 9.14287106679284,
+          "net_gbp": 209.257109,
           "tariff_min_gbp_per_mwh": 84.5569661174201,
-          "tariff_max_gbp_per_mwh": 190.20554030683772
+          "tariff_max_gbp_per_mwh": 190.20842865453713
         },
         "C9": {
           "commodity": "electricity",
-          "gross_gbp": 1015.7522077677772,
-          "capital_gbp": 8.807915069339707,
-          "net_gbp": 133.473878,
+          "gross_gbp": 1015.7501092582112,
+          "capital_gbp": 9.934325090601511,
+          "net_gbp": 132.34543299999999,
           "tariff_min_gbp_per_mwh": 77.16135213391792,
-          "tariff_max_gbp_per_mwh": 180.79352895509527
+          "tariff_max_gbp_per_mwh": 180.79299838254283
         },
         "C_IC1": {
           "commodity": "electricity",
           "gross_gbp": 114076.80979966705,
-          "capital_gbp": 1177.110190831677,
-          "net_gbp": 29240.889932000002,
+          "capital_gbp": 1177.1101499601,
+          "net_gbp": 29240.889993,
           "tariff_min_gbp_per_mwh": 78.24404995977055,
           "tariff_max_gbp_per_mwh": 149.37500446865286
         }
@@ -829,174 +829,174 @@
       "committee_wake_ups": [
         {
           "settlement_date": "2017-01-25",
-          "treasury_gbp": 2467422.333845233,
+          "treasury_gbp": 2467421.236630232,
           "adjustments": {
             "C1": 1.0,
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 296.0012170939364,
-          "portfolio_var_stressed_gbp": 93.84153501019824
+          "portfolio_var_current_gbp": 308.20567845593587,
+          "portfolio_var_stressed_gbp": 98.31680675585494
         },
         {
           "settlement_date": "2017-02-24",
-          "treasury_gbp": 2467428.3504942274,
+          "treasury_gbp": 2467427.1952972263,
           "adjustments": {
             "C1": 1.0,
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 296.0012170939364,
-          "portfolio_var_stressed_gbp": 93.84153501019824
+          "portfolio_var_current_gbp": 308.20567845593587,
+          "portfolio_var_stressed_gbp": 98.31680675585494
         },
         {
           "settlement_date": "2017-03-26",
-          "treasury_gbp": 2467434.7949682265,
+          "treasury_gbp": 2467433.5851572193,
           "adjustments": {
             "C1": 1.0,
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 296.0012170939364,
-          "portfolio_var_stressed_gbp": 93.84153501019824
+          "portfolio_var_current_gbp": 308.20567845593587,
+          "portfolio_var_stressed_gbp": 98.31680675585494
         },
         {
           "settlement_date": "2017-04-25",
-          "treasury_gbp": 2467792.562592237,
+          "treasury_gbp": 2467781.7527001845,
           "adjustments": {
             "C1": 1.0,
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 750.8012454526481,
-          "portfolio_var_stressed_gbp": 284.48056153561004
+          "portfolio_var_current_gbp": 861.2481804415628,
+          "portfolio_var_stressed_gbp": 330.5468192397706
         },
         {
           "settlement_date": "2017-05-25",
-          "treasury_gbp": 2467793.0421682307,
+          "treasury_gbp": 2467782.12821718,
           "adjustments": {
             "C1": 1.0,
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 750.8012454526481,
-          "portfolio_var_stressed_gbp": 284.48056153561004
+          "portfolio_var_current_gbp": 861.2481804415628,
+          "portfolio_var_stressed_gbp": 330.5468192397706
         },
         {
           "settlement_date": "2017-06-24",
-          "treasury_gbp": 2467794.599013236,
+          "treasury_gbp": 2467783.5790331904,
           "adjustments": {
             "C1": 1.0,
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 750.8012454526481,
-          "portfolio_var_stressed_gbp": 284.48056153561004
+          "portfolio_var_current_gbp": 861.2481804415628,
+          "portfolio_var_stressed_gbp": 330.5468192397706
         },
         {
           "settlement_date": "2017-07-24",
-          "treasury_gbp": 2467972.3789242054,
+          "treasury_gbp": 2467960.2220530277,
           "adjustments": {
             "C1": 1.0,
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 879.9264679253629,
-          "portfolio_var_stressed_gbp": 345.55787712201874
+          "portfolio_var_current_gbp": 998.8450036073956,
+          "portfolio_var_stressed_gbp": 395.4219411811508
         },
         {
           "settlement_date": "2017-08-23",
-          "treasury_gbp": 2467976.9046831657,
+          "treasury_gbp": 2467964.8613759205,
           "adjustments": {
             "C1": 1.0,
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 879.9264679253629,
-          "portfolio_var_stressed_gbp": 345.55787712201874
+          "portfolio_var_current_gbp": 998.8450036073956,
+          "portfolio_var_stressed_gbp": 395.4219411811508
         },
         {
           "settlement_date": "2017-09-22",
-          "treasury_gbp": 2467980.501813212,
+          "treasury_gbp": 2467968.574411914,
           "adjustments": {
             "C1": 1.0,
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 879.9264679253629,
-          "portfolio_var_stressed_gbp": 345.55787712201874
+          "portfolio_var_current_gbp": 998.8450036073956,
+          "portfolio_var_stressed_gbp": 395.4219411811508
         },
         {
           "settlement_date": "2017-10-22",
-          "treasury_gbp": 2468253.935526217,
+          "treasury_gbp": 2468242.071378918,
           "adjustments": {
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 893.8683994449201,
-          "portfolio_var_stressed_gbp": 353.98378129246237
+          "portfolio_var_current_gbp": 1007.2319244611912,
+          "portfolio_var_stressed_gbp": 402.1414676106339
         },
         {
           "settlement_date": "2017-11-21",
-          "treasury_gbp": 2468263.661798209,
+          "treasury_gbp": 2468251.8010239108,
           "adjustments": {
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 893.8683994449201,
-          "portfolio_var_stressed_gbp": 353.98378129246237
+          "portfolio_var_current_gbp": 1007.2319244611912,
+          "portfolio_var_stressed_gbp": 402.1414676106339
         },
         {
           "settlement_date": "2017-12-21",
-          "treasury_gbp": 2468273.0590042113,
+          "treasury_gbp": 2468261.2016799077,
           "adjustments": {
             "C5": 1.0,
             "C7": 1.0
           },
-          "portfolio_var_current_gbp": 893.8683994449201,
-          "portfolio_var_stressed_gbp": 353.98378129246237
+          "portfolio_var_current_gbp": 1007.2319244611912,
+          "portfolio_var_stressed_gbp": 402.1414676106339
         }
       ],
       "hedge_fractions": {
         "C1": {
-          "start_hf": 0.9095261025679153,
-          "avg_hf": 0.9095261025679153
+          "start_hf": 0.9095261690283808,
+          "avg_hf": 0.9095261690283808
         },
         "C2": {
-          "start_hf": 0.9169973153927334,
-          "avg_hf": 0.9169973153927334
+          "start_hf": 0.9169968546522376,
+          "avg_hf": 0.9169968546522376
         },
         "C3": {
-          "start_hf": 0.9115128871648023,
-          "avg_hf": 0.9115128871648023
+          "start_hf": 0.911513173582283,
+          "avg_hf": 0.911513173582283
         },
         "C4": {
-          "start_hf": 0.8973633530051686,
-          "avg_hf": 0.8973633530051686
+          "start_hf": 0.8973635696528638,
+          "avg_hf": 0.8973635696528638
         },
         "C5": {
-          "start_hf": 0.9081492560939706,
-          "avg_hf": 0.9081492560939706
+          "start_hf": 0.9081491780957192,
+          "avg_hf": 0.9081491780957192
         },
         "C6": {
-          "start_hf": 0.9166686585876648,
-          "avg_hf": 0.9166686585876648
+          "start_hf": 0.9166677980570572,
+          "avg_hf": 0.9166677980570572
         },
         "C7": {
-          "start_hf": 0.903458991659187,
-          "avg_hf": 0.903458991659187
+          "start_hf": 0.9034589503839484,
+          "avg_hf": 0.9034589503839484
         },
         "C8": {
-          "start_hf": 0.9163182204512581,
-          "avg_hf": 0.9163182204512581
+          "start_hf": 0.9163169497097484,
+          "avg_hf": 0.9163169497097484
         },
         "C9": {
-          "start_hf": 0.9113550739676661,
-          "avg_hf": 0.9113550739676661
+          "start_hf": 0.9113553341128435,
+          "avg_hf": 0.9113553341128435
         },
         "C_IC1": {
-          "start_hf": 0.9434799393657195,
-          "avg_hf": 0.9434799393657195
+          "start_hf": 0.9434799393657194,
+          "avg_hf": 0.9434799393657194
         },
         "C1g": {
           "start_hf": 0.85,
@@ -1022,8 +1022,8 @@
         "net_margin_gbp": -20.458978
       },
       "bills_count": 168,
-      "avg_clarity": 0.8554414377559381,
-      "avg_bill_shock_pct": 0.16789974644571293,
+      "avg_clarity": 0.8554417350714306,
+      "avg_bill_shock_pct": 0.1678991482540633,
       "bill_shock_events": [
         {
           "customer_id": "C1g",
@@ -1053,57 +1053,57 @@
         {
           "customer_id": "C5",
           "period_end": "2017-01-31",
-          "bill_shock_pct": 0.2524733419748659
+          "bill_shock_pct": 0.25252123336154497
         },
         {
           "customer_id": "C5",
           "period_end": "2017-02-28",
-          "bill_shock_pct": 0.22518610718241197
+          "bill_shock_pct": 0.22518644625767764
         },
         {
           "customer_id": "C5",
           "period_end": "2017-06-30",
-          "bill_shock_pct": 0.20941189247560782
+          "bill_shock_pct": 0.2094128010048987
         },
         {
           "customer_id": "C5",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.5460245263447954
+          "bill_shock_pct": 0.5460274441651907
         },
         {
           "customer_id": "C7",
           "period_end": "2017-01-31",
-          "bill_shock_pct": 0.32797718137654697
+          "bill_shock_pct": 0.32783543894156447
         },
         {
           "customer_id": "C7",
           "period_end": "2017-02-28",
-          "bill_shock_pct": 0.2801780894109143
+          "bill_shock_pct": 0.28017665182990936
         },
         {
           "customer_id": "C7",
           "period_end": "2017-05-31",
-          "bill_shock_pct": 0.3017521312978309
+          "bill_shock_pct": 0.30174873063060315
         },
         {
           "customer_id": "C7",
           "period_end": "2017-06-30",
-          "bill_shock_pct": 0.3116805036753181
+          "bill_shock_pct": 0.31167602427537455
         },
         {
           "customer_id": "C7",
           "period_end": "2017-09-30",
-          "bill_shock_pct": 0.2520219790144022
+          "bill_shock_pct": 0.252016283630059
         },
         {
           "customer_id": "C7",
           "period_end": "2017-10-31",
-          "bill_shock_pct": 0.21222171781560553
+          "bill_shock_pct": 0.21221808254563343
         },
         {
           "customer_id": "C7",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.7404767464768798
+          "bill_shock_pct": 0.7404654945982506
         },
         {
           "customer_id": "C2g",
@@ -1143,42 +1143,42 @@
         {
           "customer_id": "C6",
           "period_end": "2017-05-31",
-          "bill_shock_pct": 0.21700475128907845
+          "bill_shock_pct": 0.21700489650312016
         },
         {
           "customer_id": "C6",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.4941997992335495
+          "bill_shock_pct": 0.4942001891330707
         },
         {
           "customer_id": "C8",
           "period_end": "2017-05-31",
-          "bill_shock_pct": 0.38761061975944017
+          "bill_shock_pct": 0.3876109438554715
         },
         {
           "customer_id": "C8",
           "period_end": "2017-06-30",
-          "bill_shock_pct": 0.351148284288237
+          "bill_shock_pct": 0.3511487220848414
         },
         {
           "customer_id": "C8",
           "period_end": "2017-09-30",
-          "bill_shock_pct": 0.43311214559964145
+          "bill_shock_pct": 0.4331131311198201
         },
         {
           "customer_id": "C8",
           "period_end": "2017-10-31",
-          "bill_shock_pct": 0.21758392562290665
+          "bill_shock_pct": 0.21758426035495718
         },
         {
           "customer_id": "C8",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.8065349791167764
+          "bill_shock_pct": 0.8065359759861399
         },
         {
           "customer_id": "C8",
           "period_end": "2017-12-31",
-          "bill_shock_pct": 0.21375395407574402
+          "bill_shock_pct": 0.21375404606753293
         },
         {
           "customer_id": "C3g",
@@ -1228,17 +1228,17 @@
         {
           "customer_id": "C9",
           "period_end": "2017-09-30",
-          "bill_shock_pct": 0.28647196574659595
+          "bill_shock_pct": 0.28647186167233296
         },
         {
           "customer_id": "C9",
           "period_end": "2017-10-31",
-          "bill_shock_pct": 0.21172395999054053
+          "bill_shock_pct": 0.2117239039299934
         },
         {
           "customer_id": "C9",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.6875019620952487
+          "bill_shock_pct": 0.6875018017838492
         },
         {
           "customer_id": "C4",
@@ -1253,12 +1253,12 @@
         {
           "customer_id": "C4",
           "period_end": "2017-10-31",
-          "bill_shock_pct": 0.25585594733684053
+          "bill_shock_pct": 0.25585454467739693
         },
         {
           "customer_id": "C4",
           "period_end": "2017-11-30",
-          "bill_shock_pct": 0.26260059879484676
+          "bill_shock_pct": 0.2626005105467063
         },
         {
           "customer_id": "C4g",
@@ -1296,18 +1296,18 @@
           "bill_shock_pct": 0.23225018650182572
         }
       ],
-      "avg_complaint_probability": 0.044204435067437126,
+      "avg_complaint_probability": 0.04420433843990205,
       "treasury_drawdown_events": [],
-      "var_ratio": 2.716257163124691,
+      "var_ratio": 2.6927603217253497,
       "hedge_effectiveness": {
-        "actual_net_gbp": 30326.232541,
-        "naked_net_gbp": 113105.46946654374,
-        "hedging_value_add_gbp": -82779.23692554374,
+        "actual_net_gbp": 30326.285999,
+        "naked_net_gbp": 113105.52458668243,
+        "hedging_value_add_gbp": -82779.23858768243,
         "by_customer": {
           "C1": {
-            "actual_net_gbp": 14.913304,
-            "naked_net_gbp": 330.3526442657656,
-            "hedging_value_add_gbp": -315.4393402657656
+            "actual_net_gbp": 14.912888,
+            "naked_net_gbp": 330.3522370942403,
+            "hedging_value_add_gbp": -315.4393490942403
           },
           "C1g": {
             "actual_net_gbp": 129.98741,
@@ -1315,9 +1315,9 @@
             "hedging_value_add_gbp": -105.91244354214297
           },
           "C2": {
-            "actual_net_gbp": 103.882576,
-            "naked_net_gbp": 438.16998338903545,
-            "hedging_value_add_gbp": -334.2874073890355
+            "actual_net_gbp": 103.886248,
+            "naked_net_gbp": 438.17365940212403,
+            "hedging_value_add_gbp": -334.287411402124
           },
           "C2g": {
             "actual_net_gbp": 231.832007,
@@ -1325,9 +1325,9 @@
             "hedging_value_add_gbp": -323.7001886039045
           },
           "C3": {
-            "actual_net_gbp": 110.4461,
-            "naked_net_gbp": 513.3205933327686,
-            "hedging_value_add_gbp": -402.87449333276857
+            "actual_net_gbp": 110.443606,
+            "naked_net_gbp": 513.3178868581634,
+            "hedging_value_add_gbp": -402.87428085816344
           },
           "C3g": {
             "actual_net_gbp": 24.206981,
@@ -1335,9 +1335,9 @@
             "hedging_value_add_gbp": -485.5679361737077
           },
           "C4": {
-            "actual_net_gbp": 41.092808999999995,
-            "naked_net_gbp": 275.2961199590095,
-            "hedging_value_add_gbp": -234.2033109590095
+            "actual_net_gbp": 41.091916999999995,
+            "naked_net_gbp": 275.2951647898987,
+            "hedging_value_add_gbp": -234.2032477898987
           },
           "C4g": {
             "actual_net_gbp": 49.519867,
@@ -1345,34 +1345,34 @@
             "hedging_value_add_gbp": -539.2433895483018
           },
           "C5": {
-            "actual_net_gbp": -204.769495,
-            "naked_net_gbp": 1068.9274248135678,
-            "hedging_value_add_gbp": -1273.6969198135678
+            "actual_net_gbp": -204.767689,
+            "naked_net_gbp": 1068.9292775560334,
+            "hedging_value_add_gbp": -1273.6969665560334
           },
           "C6": {
-            "actual_net_gbp": 102.357013,
-            "naked_net_gbp": 1675.4625684145094,
-            "hedging_value_add_gbp": -1573.1055554145094
+            "actual_net_gbp": 102.387992,
+            "naked_net_gbp": 1675.4940984274112,
+            "hedging_value_add_gbp": -1573.1061064274113
           },
           "C7": {
-            "actual_net_gbp": -12.797358,
-            "naked_net_gbp": 858.8891606952441,
-            "hedging_value_add_gbp": -871.6865186952441
+            "actual_net_gbp": -12.796717,
+            "naked_net_gbp": 858.889852185717,
+            "hedging_value_add_gbp": -871.686569185717
           },
           "C8": {
-            "actual_net_gbp": 253.485475,
-            "naked_net_gbp": 990.1484856616078,
-            "hedging_value_add_gbp": -736.6630106616078
+            "actual_net_gbp": 253.510315,
+            "naked_net_gbp": 990.174119195787,
+            "hedging_value_add_gbp": -736.663804195787
           },
           "C9": {
-            "actual_net_gbp": 241.18592,
-            "naked_net_gbp": 951.7941266183125,
-            "hedging_value_add_gbp": -710.6082066183125
+            "actual_net_gbp": 241.181181,
+            "naked_net_gbp": 951.789208645085,
+            "hedging_value_add_gbp": -710.6080276450849
           },
           "C_IC1": {
-            "actual_net_gbp": 29240.889932000002,
-            "naked_net_gbp": 104113.13813652587,
-            "hedging_value_add_gbp": -74872.24820452587
+            "actual_net_gbp": 29240.889993,
+            "naked_net_gbp": 104113.13885965991,
+            "hedging_value_add_gbp": -74872.24886665991
           }
         }
       },
@@ -1404,21 +1404,21 @@
       "gas_network_cost_gbp": 1053.48335894
     },
     "2018": {
-      "revenue_gbp": 443507.8681287905,
-      "gross_gbp": 268919.6213092499,
-      "capital_gbp": 1552.9561857463148,
+      "revenue_gbp": 443507.84650728357,
+      "gross_gbp": 268919.5996739781,
+      "capital_gbp": 1552.9560444894644,
       "bad_debt_gbp": 2421.861464,
-      "net_gbp": 104990.59928,
-      "treasury_end_gbp": 2486550.360218976,
+      "net_gbp": 104990.577706,
+      "treasury_end_gbp": 2486538.42828966,
       "bsc_credit_required_gbp": 1023.65,
       "bsc_peak_daily_gbp": 853.04,
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 440143.60482979054,
-          "wholesale_cost_gbp": 172683.85563054064,
-          "gross_gbp": 267459.7491992499,
-          "capital_gbp": 1532.0901347863148,
-          "net_gbp": 104607.048288
+          "revenue_gbp": 440143.5832082836,
+          "wholesale_cost_gbp": 172683.85564430547,
+          "gross_gbp": 267459.7275639781,
+          "capital_gbp": 1532.0899935294642,
+          "net_gbp": 104607.026714
         },
         "gas": {
           "revenue_gbp": 3364.263299,
@@ -1430,9 +1430,9 @@
       },
       "segment_split": {
         "resi electricity": {
-          "gross_gbp": 5122.609310209839,
-          "capital_gbp": 40.7336396374013,
-          "net_gbp": 570.9167349999348
+          "gross_gbp": 5122.616517516439,
+          "capital_gbp": 40.73365546043004,
+          "net_gbp": 570.9239709999343
         },
         "resi gas": {
           "gross_gbp": 1459.8721100000046,
@@ -1440,24 +1440,24 @@
           "net_gbp": 383.55099200000325
         },
         "SME electricity": {
-          "gross_gbp": 3192.7416557954684,
-          "capital_gbp": 31.290157549189793,
-          "net_gbp": -257.76066499999945
+          "gross_gbp": 3192.754588092752,
+          "capital_gbp": 31.290213215516086,
+          "net_gbp": -257.7478939999996
         },
         "I&C electricity": {
-          "gross_gbp": 259144.3982332445,
-          "capital_gbp": 1460.0663375993768,
-          "net_gbp": 104293.89221800026
+          "gross_gbp": 259144.35645836993,
+          "capital_gbp": 1460.0661248537963,
+          "net_gbp": 104293.85063700043
         }
       },
       "per_customer": {
         "C1": {
           "commodity": "electricity",
-          "gross_gbp": 383.0938592753232,
-          "capital_gbp": 2.932270296016923,
-          "net_gbp": 15.249628,
-          "tariff_min_gbp_per_mwh": 117.80335097567738,
-          "tariff_max_gbp_per_mwh": 152.1255532887456
+          "gross_gbp": 383.093454921532,
+          "capital_gbp": 2.9322682742164874,
+          "net_gbp": 15.249213,
+          "tariff_min_gbp_per_mwh": 117.80326443949656,
+          "tariff_max_gbp_per_mwh": 152.12555300890926
         },
         "C1g": {
           "commodity": "gas",
@@ -1469,11 +1469,11 @@
         },
         "C2": {
           "commodity": "electricity",
-          "gross_gbp": 488.287127912056,
-          "capital_gbp": 4.348156485005861,
-          "net_gbp": 73.539331,
-          "tariff_min_gbp_per_mwh": 125.77465534933594,
-          "tariff_max_gbp_per_mwh": 143.10670852983463
+          "gross_gbp": 488.28815302885226,
+          "capital_gbp": 4.348161902588601,
+          "net_gbp": 73.54034,
+          "tariff_min_gbp_per_mwh": 125.77535351322484,
+          "tariff_max_gbp_per_mwh": 143.1067035905535
         },
         "C2g": {
           "commodity": "gas",
@@ -1485,11 +1485,11 @@
         },
         "C3": {
           "commodity": "electricity",
-          "gross_gbp": 611.413300237015,
-          "capital_gbp": 4.244384427745918,
-          "net_gbp": 67.828298,
-          "tariff_min_gbp_per_mwh": 120.31444334586253,
-          "tariff_max_gbp_per_mwh": 126.57325832460295
+          "gross_gbp": 611.4119571911947,
+          "capital_gbp": 4.244376493142413,
+          "net_gbp": 67.827155,
+          "tariff_min_gbp_per_mwh": 120.31405390881736,
+          "tariff_max_gbp_per_mwh": 126.57325997535085
         },
         "C3g": {
           "commodity": "gas",
@@ -1501,11 +1501,11 @@
         },
         "C4": {
           "commodity": "electricity",
-          "gross_gbp": 382.58461062578664,
-          "capital_gbp": 3.0975781246666387,
-          "net_gbp": 61.205897,
-          "tariff_min_gbp_per_mwh": 110.09188937744909,
-          "tariff_max_gbp_per_mwh": 148.82273185881354
+          "gross_gbp": 382.5839886151704,
+          "capital_gbp": 3.0975726437815805,
+          "net_gbp": 61.205335999999996,
+          "tariff_min_gbp_per_mwh": 110.09165699306406,
+          "tariff_max_gbp_per_mwh": 148.8227313050174
         },
         "C4g": {
           "commodity": "gas",
@@ -1517,57 +1517,57 @@
         },
         "C5": {
           "commodity": "electricity",
-          "gross_gbp": 1293.3717468452355,
-          "capital_gbp": 11.496168729748492,
-          "net_gbp": -203.611045,
-          "tariff_min_gbp_per_mwh": 119.59610151493084,
-          "tariff_max_gbp_per_mwh": 155.9733160528284
+          "gross_gbp": 1293.3735787100247,
+          "capital_gbp": 11.496177308340844,
+          "net_gbp": -203.609253,
+          "tariff_min_gbp_per_mwh": 119.5962030741169,
+          "tariff_max_gbp_per_mwh": 155.97319104634494
         },
         "C6": {
           "commodity": "electricity",
-          "gross_gbp": 1899.3699089502563,
-          "capital_gbp": 19.793988819453844,
-          "net_gbp": -54.14962,
-          "tariff_min_gbp_per_mwh": 126.27267172773765,
-          "tariff_max_gbp_per_mwh": 141.84661518215836
+          "gross_gbp": 1899.3810093827515,
+          "capital_gbp": 19.79403590715863,
+          "net_gbp": -54.138641,
+          "tariff_min_gbp_per_mwh": 126.27397569689357,
+          "tariff_max_gbp_per_mwh": 141.84661719136167
         },
         "C7": {
           "commodity": "electricity",
-          "gross_gbp": 987.5286001133094,
-          "capital_gbp": 8.459176460417096,
-          "net_gbp": -10.427909999999999,
-          "tariff_min_gbp_per_mwh": 98.76676409364632,
-          "tariff_max_gbp_per_mwh": 224.6687069243613
+          "gross_gbp": 987.5292890380703,
+          "capital_gbp": 8.459179913217126,
+          "net_gbp": -10.427268999999999,
+          "tariff_min_gbp_per_mwh": 98.76680632048677,
+          "tariff_max_gbp_per_mwh": 224.66872729703448
         },
         "C8": {
           "commodity": "electricity",
-          "gross_gbp": 1071.645389785127,
-          "capital_gbp": 9.79435657821101,
-          "net_gbp": 145.541049,
-          "tariff_min_gbp_per_mwh": 99.63147349405787,
-          "tariff_max_gbp_per_mwh": 205.1489563346907
+          "gross_gbp": 1071.6560258911998,
+          "capital_gbp": 9.794391589967077,
+          "net_gbp": 145.551426,
+          "tariff_min_gbp_per_mwh": 99.6329864380909,
+          "tariff_max_gbp_per_mwh": 205.14895905368377
         },
         "C9": {
           "commodity": "electricity",
-          "gross_gbp": 1198.0564222611445,
-          "capital_gbp": 7.857717265341414,
-          "net_gbp": 217.980442,
-          "tariff_min_gbp_per_mwh": 94.70137230981182,
-          "tariff_max_gbp_per_mwh": 202.69232653998404
+          "gross_gbp": 1198.0536488303958,
+          "capital_gbp": 7.857704643490222,
+          "net_gbp": 217.97777,
+          "tariff_min_gbp_per_mwh": 94.70109439085579,
+          "tariff_max_gbp_per_mwh": 202.6923267250932
         },
         "C_IC1": {
           "commodity": "electricity",
-          "gross_gbp": 214297.51339928416,
-          "capital_gbp": 1015.7660607665038,
-          "net_gbp": 111024.79032,
+          "gross_gbp": 214297.4716244084,
+          "capital_gbp": 1015.7659252532497,
+          "net_gbp": 111024.748635,
           "tariff_min_gbp_per_mwh": -82.116,
-          "tariff_max_gbp_per_mwh": 232.03368635107978
+          "tariff_max_gbp_per_mwh": 232.03365539548776
         },
         "C_IC2": {
           "commodity": "electricity",
           "gross_gbp": 44846.88483396048,
-          "capital_gbp": 444.30027683320384,
-          "net_gbp": -6730.898102,
+          "capital_gbp": 444.3001996003116,
+          "net_gbp": -6730.897998,
           "tariff_min_gbp_per_mwh": 70.26427720035791,
           "tariff_max_gbp_per_mwh": 134.1408928370469
         }
@@ -1595,44 +1595,44 @@
       "committee_wake_ups": [],
       "hedge_fractions": {
         "C1": {
-          "start_hf": 0.9196200426673048,
-          "avg_hf": 0.9196200426673048
+          "start_hf": 0.9196200428151645,
+          "avg_hf": 0.9196200428151645
         },
         "C2": {
-          "start_hf": 0.9040938264513191,
-          "avg_hf": 0.9040938264513191
+          "start_hf": 0.9040938297614891,
+          "avg_hf": 0.9040938297614891
         },
         "C3": {
-          "start_hf": 0.9055824736574758,
-          "avg_hf": 0.9055824736574758
+          "start_hf": 0.9055824724260977,
+          "avg_hf": 0.9055824724260977
         },
         "C4": {
-          "start_hf": 0.9169946090704013,
-          "avg_hf": 0.9169946090704013
+          "start_hf": 0.9169946093792793,
+          "avg_hf": 0.9169946093792793
         },
         "C5": {
-          "start_hf": 0.9175869653826736,
-          "avg_hf": 0.9175869653826736
+          "start_hf": 0.9175870314334822,
+          "avg_hf": 0.9175870314334822
         },
         "C6": {
-          "start_hf": 0.9049383062980803,
-          "avg_hf": 0.9049383062980803
+          "start_hf": 0.9049383049515676,
+          "avg_hf": 0.9049383049515676
         },
         "C7": {
-          "start_hf": 0.9208598394060512,
-          "avg_hf": 0.9208598394060512
+          "start_hf": 0.9208598322297219,
+          "avg_hf": 0.9208598322297219
         },
         "C8": {
-          "start_hf": 0.908343214133977,
-          "avg_hf": 0.908343214133977
+          "start_hf": 0.9083432129191809,
+          "avg_hf": 0.9083432129191809
         },
         "C9": {
-          "start_hf": 0.899200887908266,
-          "avg_hf": 0.899200887908266
+          "start_hf": 0.899200887816211,
+          "avg_hf": 0.899200887816211
         },
         "C_IC1": {
           "start_hf": 0.85,
-          "avg_hf": 0.8846712178128358
+          "avg_hf": 0.8846712231930949
         },
         "C_IC2": {
           "start_hf": 0.9312190989943019,
@@ -1659,11 +1659,11 @@
         "settlement_date": "2018-03-01",
         "settlement_period": 27,
         "customer_id": "C_IC1",
-        "net_margin_gbp": -14.910925
+        "net_margin_gbp": -14.910926
       },
       "bills_count": 180,
-      "avg_clarity": 0.8428847473120017,
-      "avg_bill_shock_pct": 0.16744352436975687,
+      "avg_clarity": 0.8428847874294051,
+      "avg_bill_shock_pct": 0.16744344368671077,
       "bill_shock_events": [
         {
           "customer_id": "C1g",
@@ -1698,52 +1698,52 @@
         {
           "customer_id": "C5",
           "period_end": "2018-04-30",
-          "bill_shock_pct": 0.3149839997234402
+          "bill_shock_pct": 0.314984013486145
         },
         {
           "customer_id": "C5",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.20036221477813507
+          "bill_shock_pct": 0.2003622292377823
         },
         {
           "customer_id": "C5",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.3051961001718934
+          "bill_shock_pct": 0.30519612473292707
         },
         {
           "customer_id": "C5",
           "period_end": "2018-11-30",
-          "bill_shock_pct": 0.26102324108554326
+          "bill_shock_pct": 0.2610232620153371
         },
         {
           "customer_id": "C7",
           "period_end": "2018-04-30",
-          "bill_shock_pct": 0.3790780012308138
+          "bill_shock_pct": 0.3790780086014792
         },
         {
           "customer_id": "C7",
           "period_end": "2018-05-31",
-          "bill_shock_pct": 0.2761637478526669
+          "bill_shock_pct": 0.2761637570931871
         },
         {
           "customer_id": "C7",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.29632958222031597
+          "bill_shock_pct": 0.2963295947985852
         },
         {
           "customer_id": "C7",
           "period_end": "2018-09-30",
-          "bill_shock_pct": 0.2747078311476308
+          "bill_shock_pct": 0.2747078486748476
         },
         {
           "customer_id": "C7",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.4511101243745704
+          "bill_shock_pct": 0.4511101464241263
         },
         {
           "customer_id": "C7",
           "period_end": "2018-11-30",
-          "bill_shock_pct": 0.31342719514995054
+          "bill_shock_pct": 0.3134272079843247
         },
         {
           "customer_id": "C2g",
@@ -1778,62 +1778,62 @@
         {
           "customer_id": "C6",
           "period_end": "2018-04-30",
-          "bill_shock_pct": 0.22949454164762512
+          "bill_shock_pct": 0.22950019932815754
         },
         {
           "customer_id": "C6",
           "period_end": "2018-05-31",
-          "bill_shock_pct": 0.21035194526486714
+          "bill_shock_pct": 0.2103519454596446
         },
         {
           "customer_id": "C6",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.21868093188933993
+          "bill_shock_pct": 0.21868093208433104
         },
         {
           "customer_id": "C6",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.2988744612737088
+          "bill_shock_pct": 0.29887446155903197
         },
         {
           "customer_id": "C6",
           "period_end": "2018-11-30",
-          "bill_shock_pct": 0.21418962243144388
+          "bill_shock_pct": 0.21418962264159708
         },
         {
           "customer_id": "C8",
           "period_end": "2018-04-30",
-          "bill_shock_pct": 0.34268676375515716
+          "bill_shock_pct": 0.34269361590026703
         },
         {
           "customer_id": "C8",
           "period_end": "2018-05-31",
-          "bill_shock_pct": 0.36764395857722987
+          "bill_shock_pct": 0.36764395882905043
         },
         {
           "customer_id": "C8",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.4163370593617344
+          "bill_shock_pct": 0.4163370598984166
         },
         {
           "customer_id": "C8",
           "period_end": "2018-08-31",
-          "bill_shock_pct": 0.23018763653923985
+          "bill_shock_pct": 0.2301876371111358
         },
         {
           "customer_id": "C8",
           "period_end": "2018-09-30",
-          "bill_shock_pct": 0.49215568319746694
+          "bill_shock_pct": 0.492155684141866
         },
         {
           "customer_id": "C8",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.532324377523533
+          "bill_shock_pct": 0.5323243782220087
         },
         {
           "customer_id": "C8",
           "period_end": "2018-11-30",
-          "bill_shock_pct": 0.2893421091736861
+          "bill_shock_pct": 0.2893421094961067
         },
         {
           "customer_id": "C3g",
@@ -1873,52 +1873,52 @@
         {
           "customer_id": "C9",
           "period_end": "2018-04-30",
-          "bill_shock_pct": 0.3114908258875565
+          "bill_shock_pct": 0.31149079464494167
         },
         {
           "customer_id": "C9",
           "period_end": "2018-05-31",
-          "bill_shock_pct": 0.33692748795407645
+          "bill_shock_pct": 0.33692743435289113
         },
         {
           "customer_id": "C9",
           "period_end": "2018-06-30",
-          "bill_shock_pct": 0.3303380050251508
+          "bill_shock_pct": 0.33033791675476615
         },
         {
           "customer_id": "C9",
           "period_end": "2018-08-31",
-          "bill_shock_pct": 0.39424820631192314
+          "bill_shock_pct": 0.39424820637666247
         },
         {
           "customer_id": "C9",
           "period_end": "2018-09-30",
-          "bill_shock_pct": 0.422575346422756
+          "bill_shock_pct": 0.422575346468728
         },
         {
           "customer_id": "C9",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.39014272995165233
+          "bill_shock_pct": 0.3901427299830505
         },
         {
           "customer_id": "C4",
           "period_end": "2018-04-30",
-          "bill_shock_pct": 0.2762715362092788
+          "bill_shock_pct": 0.2762714662504225
         },
         {
           "customer_id": "C4",
           "period_end": "2018-09-30",
-          "bill_shock_pct": 0.22641627554882682
+          "bill_shock_pct": 0.22641615984587915
         },
         {
           "customer_id": "C4",
           "period_end": "2018-10-31",
-          "bill_shock_pct": 0.40936762799836757
+          "bill_shock_pct": 0.40936913556212867
         },
         {
           "customer_id": "C4",
           "period_end": "2018-11-30",
-          "bill_shock_pct": 0.2777131596501538
+          "bill_shock_pct": 0.27771315949588987
         },
         {
           "customer_id": "C4g",
@@ -1958,12 +1958,12 @@
         {
           "customer_id": "C_IC1",
           "period_end": "2018-01-31",
-          "bill_shock_pct": 0.20514713687676106
+          "bill_shock_pct": 0.20514714294269518
         },
         {
           "customer_id": "C_IC1",
           "period_end": "2018-02-28",
-          "bill_shock_pct": 0.6114290355682965
+          "bill_shock_pct": 0.6114288836986177
         },
         {
           "customer_id": "C_IC2",
@@ -1971,18 +1971,18 @@
           "bill_shock_pct": 0.20184303921624394
         }
       ],
-      "avg_complaint_probability": 0.04508951793449549,
+      "avg_complaint_probability": 0.04508950489633936,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
-        "actual_net_gbp": 115600.965968,
-        "naked_net_gbp": 253468.16135905826,
-        "hedging_value_add_gbp": -137867.19539105825,
+        "actual_net_gbp": 115600.91846799999,
+        "naked_net_gbp": 253468.1146891633,
+        "hedging_value_add_gbp": -137867.19622116332,
         "by_customer": {
           "C1": {
-            "actual_net_gbp": 104.791597,
-            "naked_net_gbp": 572.4281676245105,
-            "hedging_value_add_gbp": -467.63657062451045
+            "actual_net_gbp": 104.791596,
+            "naked_net_gbp": 572.4281663024508,
+            "hedging_value_add_gbp": -467.63657030245076
           },
           "C1g": {
             "actual_net_gbp": 137.344349,
@@ -1990,9 +1990,9 @@
             "hedging_value_add_gbp": -204.27108037228876
           },
           "C2": {
-            "actual_net_gbp": 57.828136,
-            "naked_net_gbp": 494.99916093518664,
-            "hedging_value_add_gbp": -437.17102493518667
+            "actual_net_gbp": 57.828102,
+            "naked_net_gbp": 494.99913480997657,
+            "hedging_value_add_gbp": -437.17103280997657
           },
           "C2g": {
             "actual_net_gbp": 166.620633,
@@ -2000,9 +2000,9 @@
             "hedging_value_add_gbp": -271.1649696961062
           },
           "C3": {
-            "actual_net_gbp": 23.745632,
-            "naked_net_gbp": 555.578880788781,
-            "hedging_value_add_gbp": -531.833248788781
+            "actual_net_gbp": 23.745644,
+            "naked_net_gbp": 555.5788923105005,
+            "hedging_value_add_gbp": -531.8332483105005
           },
           "C3g": {
             "actual_net_gbp": 33.087064,
@@ -2010,9 +2010,9 @@
             "hedging_value_add_gbp": -604.7796246195815
           },
           "C4": {
-            "actual_net_gbp": 101.474208,
-            "naked_net_gbp": 462.348849425838,
-            "hedging_value_add_gbp": -360.87464142583804
+            "actual_net_gbp": 101.474205,
+            "naked_net_gbp": 462.3488471380942,
+            "hedging_value_add_gbp": -360.8746421380942
           },
           "C4g": {
             "actual_net_gbp": 72.6602,
@@ -2020,39 +2020,39 @@
             "hedging_value_add_gbp": -995.3628653893757
           },
           "C5": {
-            "actual_net_gbp": 166.746204,
-            "naked_net_gbp": 2029.1751000138631,
-            "hedging_value_add_gbp": -1862.428896013863
+            "actual_net_gbp": 166.743889,
+            "naked_net_gbp": 2029.1728046835653,
+            "hedging_value_add_gbp": -1862.4289156835653
           },
           "C6": {
-            "actual_net_gbp": -151.978791,
-            "naked_net_gbp": 1825.746658480613,
-            "hedging_value_add_gbp": -1977.725449480613
+            "actual_net_gbp": -151.978753,
+            "naked_net_gbp": 1825.7467047671585,
+            "hedging_value_add_gbp": -1977.7254577671586
           },
           "C7": {
-            "actual_net_gbp": 99.222212,
-            "naked_net_gbp": 1377.106994441542,
-            "hedging_value_add_gbp": -1277.884782441542
+            "actual_net_gbp": 99.222391,
+            "naked_net_gbp": 1377.107171088811,
+            "hedging_value_add_gbp": -1277.8847800888109
           },
           "C8": {
-            "actual_net_gbp": 58.331604,
-            "naked_net_gbp": 972.6746496074928,
-            "hedging_value_add_gbp": -914.3430456074929
+            "actual_net_gbp": 58.331616,
+            "naked_net_gbp": 972.6746716823299,
+            "hedging_value_add_gbp": -914.3430556823298
           },
           "C9": {
-            "actual_net_gbp": 179.012283,
-            "naked_net_gbp": 1083.4583530949105,
-            "hedging_value_add_gbp": -904.4460700949105
+            "actual_net_gbp": 179.012284,
+            "naked_net_gbp": 1083.4583547052648,
+            "hedging_value_add_gbp": -904.4460707052648
           },
           "C_IC1": {
-            "actual_net_gbp": 121282.97873900001,
-            "naked_net_gbp": 208033.4204798417,
-            "hedging_value_add_gbp": -86750.44174084169
+            "actual_net_gbp": 121282.933246,
+            "naked_net_gbp": 208033.37475398852,
+            "hedging_value_add_gbp": -86750.44150798852
           },
           "C_IC2": {
-            "actual_net_gbp": -6730.898102,
-            "naked_net_gbp": 33575.93327872647,
-            "hedging_value_add_gbp": -40306.83138072647
+            "actual_net_gbp": -6730.897998,
+            "naked_net_gbp": 33575.934401609295,
+            "hedging_value_add_gbp": -40306.832399609295
           }
         }
       },
@@ -2085,21 +2085,21 @@
       "gas_network_cost_gbp": 988.16986299
     },
     "2019": {
-      "revenue_gbp": 1210301.6381089217,
-      "gross_gbp": 711697.5321325848,
-      "capital_gbp": 11326.676070176778,
-      "bad_debt_gbp": 6273.358856,
-      "net_gbp": 227244.016408,
-      "treasury_end_gbp": 2612481.8249052917,
+      "revenue_gbp": 1210317.372133016,
+      "gross_gbp": 711713.3641097987,
+      "capital_gbp": 11542.383170064268,
+      "bad_debt_gbp": 6273.438154,
+      "net_gbp": 227044.06178,
+      "treasury_end_gbp": 2612254.1693339944,
       "bsc_credit_required_gbp": 1853.63,
       "bsc_peak_daily_gbp": 1544.69,
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 1072252.3844979217,
-          "wholesale_cost_gbp": 436737.288659337,
-          "gross_gbp": 635515.0958385848,
-          "capital_gbp": 2102.3540997767773,
-          "net_gbp": 226679.211199
+          "revenue_gbp": 1072268.1185220159,
+          "wholesale_cost_gbp": 436737.1907062172,
+          "gross_gbp": 635530.9278157988,
+          "capital_gbp": 2318.0611996642674,
+          "net_gbp": 226479.256571
         },
         "gas": {
           "revenue_gbp": 138049.253611,
@@ -2111,14 +2111,14 @@
       },
       "segment_split": {
         "I&C electricity": {
-          "gross_gbp": 625568.197005553,
-          "capital_gbp": 2053.2309031783316,
-          "net_gbp": 225630.15844599946
+          "gross_gbp": 625584.0236446765,
+          "capital_gbp": 2268.9379912409668,
+          "net_gbp": 225430.19897500044
         },
         "resi electricity": {
-          "gross_gbp": 5862.540012360699,
-          "capital_gbp": 28.023928841120153,
-          "net_gbp": 801.9446250000454
+          "gross_gbp": 5862.56687890033,
+          "capital_gbp": 28.02400171517546,
+          "net_gbp": 801.970876000048
         },
         "resi gas": {
           "gross_gbp": 1556.1674549999839,
@@ -2126,9 +2126,9 @@
           "net_gbp": 441.24852500000003
         },
         "SME electricity": {
-          "gross_gbp": 4084.358820682089,
-          "capital_gbp": 21.099267756873882,
-          "net_gbp": 247.10812799999863
+          "gross_gbp": 4084.3372922237413,
+          "capital_gbp": 21.0992067075278,
+          "net_gbp": 247.08672000000047
         },
         "I&C gas": {
           "gross_gbp": 74626.26883899991,
@@ -2139,11 +2139,11 @@
       "per_customer": {
         "C1": {
           "commodity": "electricity",
-          "gross_gbp": 514.7892592989278,
-          "capital_gbp": 2.329292674246096,
-          "net_gbp": 104.655355,
-          "tariff_min_gbp_per_mwh": 125.5634321596071,
-          "tariff_max_gbp_per_mwh": 152.1255532887456
+          "gross_gbp": 514.7892584739601,
+          "capital_gbp": 2.3292927142511246,
+          "net_gbp": 104.655354,
+          "tariff_min_gbp_per_mwh": 125.56346575303225,
+          "tariff_max_gbp_per_mwh": 152.12555300890926
         },
         "C1g": {
           "commodity": "gas",
@@ -2155,11 +2155,11 @@
         },
         "C2": {
           "commodity": "electricity",
-          "gross_gbp": 583.2620651677114,
-          "capital_gbp": 2.703853233329083,
-          "net_gbp": 124.093282,
-          "tariff_min_gbp_per_mwh": 143.10670852983463,
-          "tariff_max_gbp_per_mwh": 151.46856177702378
+          "gross_gbp": 583.291323954419,
+          "capital_gbp": 2.7039340226159716,
+          "net_gbp": 124.121855,
+          "tariff_min_gbp_per_mwh": 143.1067035905535,
+          "tariff_max_gbp_per_mwh": 151.4762775159972
         },
         "C2g": {
           "commodity": "gas",
@@ -2171,11 +2171,11 @@
         },
         "C3": {
           "commodity": "electricity",
-          "gross_gbp": 625.0905174157766,
-          "capital_gbp": 3.1235588366279523,
-          "net_gbp": 23.91054,
+          "gross_gbp": 625.0905232622162,
+          "capital_gbp": 3.123558859918545,
+          "net_gbp": 23.910542,
           "tariff_min_gbp_per_mwh": 120.67958302450799,
-          "tariff_max_gbp_per_mwh": 126.57325832460295
+          "tariff_max_gbp_per_mwh": 126.57325997535085
         },
         "C3g": {
           "commodity": "gas",
@@ -2187,11 +2187,11 @@
         },
         "C4": {
           "commodity": "electricity",
-          "gross_gbp": 457.4800794694877,
-          "capital_gbp": 1.8721110892403587,
-          "net_gbp": 99.460859,
-          "tariff_min_gbp_per_mwh": 126.51959833567453,
-          "tariff_max_gbp_per_mwh": 148.82273185881354
+          "gross_gbp": 457.48030452392163,
+          "capital_gbp": 1.8721115518308662,
+          "net_gbp": 99.461054,
+          "tariff_min_gbp_per_mwh": 126.51975999834997,
+          "tariff_max_gbp_per_mwh": 148.8227313050174
         },
         "C4g": {
           "commodity": "gas",
@@ -2203,51 +2203,51 @@
         },
         "C5": {
           "commodity": "electricity",
-          "gross_gbp": 1834.555432410933,
-          "capital_gbp": 9.246419725056237,
-          "net_gbp": 165.751753,
-          "tariff_min_gbp_per_mwh": 125.85487244670446,
-          "tariff_max_gbp_per_mwh": 155.9733160528284
+          "gross_gbp": 1834.5531261750223,
+          "capital_gbp": 9.24641298066109,
+          "net_gbp": 165.749448,
+          "tariff_min_gbp_per_mwh": 125.85490249596393,
+          "tariff_max_gbp_per_mwh": 155.97319104634494
         },
         "C6": {
           "commodity": "electricity",
-          "gross_gbp": 2249.8033882711866,
-          "capital_gbp": 11.85284803181557,
-          "net_gbp": 81.356375,
-          "tariff_min_gbp_per_mwh": 141.84661518215836,
-          "tariff_max_gbp_per_mwh": 148.33058556465582
+          "gross_gbp": 2249.784166048714,
+          "capital_gbp": 11.852793726870848,
+          "net_gbp": 81.337272,
+          "tariff_min_gbp_per_mwh": 141.84661719136167,
+          "tariff_max_gbp_per_mwh": 148.32939378294625
         },
         "C7": {
           "commodity": "electricity",
-          "gross_gbp": 1217.4232177501967,
-          "capital_gbp": 6.291536249873349,
-          "net_gbp": 98.911004,
-          "tariff_min_gbp_per_mwh": 99.52177093086794,
-          "tariff_max_gbp_per_mwh": 224.6687069243613
+          "gross_gbp": 1217.4233971280566,
+          "capital_gbp": 6.291536874861075,
+          "net_gbp": 98.911182,
+          "tariff_min_gbp_per_mwh": 99.52179187368772,
+          "tariff_max_gbp_per_mwh": 224.66872729703448
         },
         "C8": {
           "commodity": "electricity",
-          "gross_gbp": 1205.1090269533684,
-          "capital_gbp": 5.651041200031793,
-          "net_gbp": 167.680081,
-          "tariff_min_gbp_per_mwh": 107.45897712769515,
+          "gross_gbp": 1205.1090358330216,
+          "capital_gbp": 5.651041233145313,
+          "net_gbp": 167.680082,
+          "tariff_min_gbp_per_mwh": 107.45897855192962,
           "tariff_max_gbp_per_mwh": 211.40192093024504
         },
         "C9": {
           "commodity": "electricity",
-          "gross_gbp": 1259.3858463053682,
-          "capital_gbp": 6.0525355577759115,
-          "net_gbp": 183.233504,
-          "tariff_min_gbp_per_mwh": 101.24856381450655,
-          "tariff_max_gbp_per_mwh": 202.69232653998404
+          "gross_gbp": 1259.3830357248912,
+          "capital_gbp": 6.052526458540141,
+          "net_gbp": 183.230807,
+          "tariff_min_gbp_per_mwh": 101.24819470302339,
+          "tariff_max_gbp_per_mwh": 202.6923267250932
         },
         "C_IC1": {
           "commodity": "electricity",
-          "gross_gbp": 257564.38362551978,
-          "capital_gbp": 736.2018530292762,
-          "net_gbp": 142951.075994,
+          "gross_gbp": 257580.21026465247,
+          "capital_gbp": 736.2330054446958,
+          "net_gbp": 142966.792561,
           "tariff_min_gbp_per_mwh": 0.0,
-          "tariff_max_gbp_per_mwh": 267.52038101171973
+          "tariff_max_gbp_per_mwh": 267.53317644904564
         },
         "C_IC2": {
           "commodity": "electricity",
@@ -2260,8 +2260,8 @@
         "C_IC3": {
           "commodity": "electricity",
           "gross_gbp": 228719.04316975115,
-          "capital_gbp": 862.7040832202613,
-          "net_gbp": 1183.240006,
+          "capital_gbp": 1078.3800188676332,
+          "net_gbp": 967.563968,
           "tariff_min_gbp_per_mwh": 54.216567213060564,
           "tariff_max_gbp_per_mwh": 103.50435558857015
         },
@@ -2300,44 +2300,44 @@
       "committee_wake_ups": [],
       "hedge_fractions": {
         "C1": {
-          "start_hf": 0.888629544631915,
-          "avg_hf": 0.888629544631915
+          "start_hf": 0.8886295148356997,
+          "avg_hf": 0.8886295148356997
         },
         "C2": {
-          "start_hf": 0.9105673563126049,
-          "avg_hf": 0.9105673563126049
+          "start_hf": 0.9105628006548083,
+          "avg_hf": 0.9105628006548083
         },
         "C3": {
           "start_hf": 0.8919091595835236,
           "avg_hf": 0.8919091595835236
         },
         "C4": {
-          "start_hf": 0.8858034687367176,
-          "avg_hf": 0.8858034687367176
+          "start_hf": 0.885803322820061,
+          "avg_hf": 0.885803322820061
         },
         "C5": {
-          "start_hf": 0.8883710470986095,
-          "avg_hf": 0.8883710470986095
+          "start_hf": 0.8883710204459475,
+          "avg_hf": 0.8883710204459475
         },
         "C6": {
-          "start_hf": 0.9124201335833982,
-          "avg_hf": 0.9124201335833982
+          "start_hf": 0.9124208372554192,
+          "avg_hf": 0.9124208372554192
         },
         "C7": {
-          "start_hf": 0.8876533147808936,
-          "avg_hf": 0.8876533147808936
+          "start_hf": 0.8876532911392686,
+          "avg_hf": 0.8876532911392686
         },
         "C8": {
           "start_hf": 0.9167869888968896,
           "avg_hf": 0.9167869888968896
         },
         "C9": {
-          "start_hf": 0.8845804664856103,
-          "avg_hf": 0.8845804664856103
+          "start_hf": 0.8845808872587412,
+          "avg_hf": 0.8845808872587412
         },
         "C_IC1": {
           "start_hf": 0.85,
-          "avg_hf": 0.8831206779583454
+          "avg_hf": 0.8831186748801558
         },
         "C_IC2": {
           "start_hf": 0.85,
@@ -2375,13 +2375,13 @@
         "net_margin_gbp": -14.595211
       },
       "bills_count": 204,
-      "avg_clarity": 0.8543845725444318,
-      "avg_bill_shock_pct": 0.16800927145023645,
+      "avg_clarity": 0.8543846159164192,
+      "avg_bill_shock_pct": 0.1680095983271642,
       "bill_shock_events": [
         {
           "customer_id": "C1",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.20828715270399378
+          "bill_shock_pct": 0.20828715266883271
         },
         {
           "customer_id": "C1g",
@@ -2411,57 +2411,57 @@
         {
           "customer_id": "C5",
           "period_end": "2019-01-31",
-          "bill_shock_pct": 0.4370798447136357
+          "bill_shock_pct": 0.4370782275806108
         },
         {
           "customer_id": "C5",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.2121843057168617
+          "bill_shock_pct": 0.2121843014926313
         },
         {
           "customer_id": "C5",
           "period_end": "2019-06-30",
-          "bill_shock_pct": 0.25114179574179435
+          "bill_shock_pct": 0.2511417816437388
         },
         {
           "customer_id": "C5",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.42090936717602967
+          "bill_shock_pct": 0.4209093356511315
         },
         {
           "customer_id": "C5",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.3461326284550335
+          "bill_shock_pct": 0.34613260607106994
         },
         {
           "customer_id": "C7",
           "period_end": "2019-01-31",
-          "bill_shock_pct": 0.4351572660336985
+          "bill_shock_pct": 0.4351569614896459
         },
         {
           "customer_id": "C7",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.26144533202349435
+          "bill_shock_pct": 0.2614453329071469
         },
         {
           "customer_id": "C7",
           "period_end": "2019-05-31",
-          "bill_shock_pct": 0.23203927307614827
+          "bill_shock_pct": 0.23203927463161764
         },
         {
           "customer_id": "C7",
           "period_end": "2019-06-30",
-          "bill_shock_pct": 0.3405318089289196
+          "bill_shock_pct": 0.3405318112845024
         },
         {
           "customer_id": "C7",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.6821585509287376
+          "bill_shock_pct": 0.6821585582845203
         },
         {
           "customer_id": "C7",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.437943360431725
+          "bill_shock_pct": 0.4379433632329939
         },
         {
           "customer_id": "C2g",
@@ -2496,37 +2496,37 @@
         {
           "customer_id": "C6",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.20776484623262967
+          "bill_shock_pct": 0.20776484629436626
         },
         {
           "customer_id": "C6",
           "period_end": "2019-06-30",
-          "bill_shock_pct": 0.24112708727817414
+          "bill_shock_pct": 0.24112698203694138
         },
         {
           "customer_id": "C6",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.4124294758411748
+          "bill_shock_pct": 0.4124292426753459
         },
         {
           "customer_id": "C6",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.26304734469978414
+          "bill_shock_pct": 0.26304721181061697
         },
         {
           "customer_id": "C8",
           "period_end": "2019-01-31",
-          "bill_shock_pct": 0.2712708776996602
+          "bill_shock_pct": 0.27127087784008574
         },
         {
           "customer_id": "C8",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.27476426446731783
+          "bill_shock_pct": 0.2747642646047127
         },
         {
           "customer_id": "C8",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.22185660044725572
+          "bill_shock_pct": 0.22185660750574204
         },
         {
           "customer_id": "C8",
@@ -2556,7 +2556,7 @@
         {
           "customer_id": "C3",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.20168895269366088
+          "bill_shock_pct": 0.20168895287699726
         },
         {
           "customer_id": "C3g",
@@ -2596,52 +2596,52 @@
         {
           "customer_id": "C9",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.2640495266809983
+          "bill_shock_pct": 0.26404952669027737
         },
         {
           "customer_id": "C9",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.22422408876456806
+          "bill_shock_pct": 0.22422408876785255
         },
         {
           "customer_id": "C9",
           "period_end": "2019-06-30",
-          "bill_shock_pct": 0.3532560509595241
+          "bill_shock_pct": 0.35325605097995955
         },
         {
           "customer_id": "C9",
           "period_end": "2019-07-31",
-          "bill_shock_pct": 0.3235761809158097
+          "bill_shock_pct": 0.3235775857776333
         },
         {
           "customer_id": "C9",
           "period_end": "2019-09-30",
-          "bill_shock_pct": 0.4771704367721208
+          "bill_shock_pct": 0.47717017468531103
         },
         {
           "customer_id": "C9",
           "period_end": "2019-10-31",
-          "bill_shock_pct": 0.71673467088319
+          "bill_shock_pct": 0.7167344010277598
         },
         {
           "customer_id": "C9",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.3621935666890464
+          "bill_shock_pct": 0.36219349986809507
         },
         {
           "customer_id": "C4",
           "period_end": "2019-04-30",
-          "bill_shock_pct": 0.3108595630535003
+          "bill_shock_pct": 0.31085956292871025
         },
         {
           "customer_id": "C4",
           "period_end": "2019-09-30",
-          "bill_shock_pct": 0.2508481261122894
+          "bill_shock_pct": 0.2508481259027163
         },
         {
           "customer_id": "C4",
           "period_end": "2019-11-30",
-          "bill_shock_pct": 0.25999126519941723
+          "bill_shock_pct": 0.2599913167046904
         },
         {
           "customer_id": "C4g",
@@ -2681,12 +2681,12 @@
         {
           "customer_id": "C_IC1",
           "period_end": "2019-02-28",
-          "bill_shock_pct": 0.5472834188299891
+          "bill_shock_pct": 0.5472833742898088
         },
         {
           "customer_id": "C_IC1",
           "period_end": "2019-03-31",
-          "bill_shock_pct": 1.2872555169926136
+          "bill_shock_pct": 1.2873392419028535
         },
         {
           "customer_id": "C_IC2",
@@ -2694,18 +2694,18 @@
           "bill_shock_pct": 0.6939527705055886
         }
       ],
-      "avg_complaint_probability": 0.044040407865512686,
+      "avg_complaint_probability": 0.0440403937696168,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
-        "actual_net_gbp": 252567.74870799997,
-        "naked_net_gbp": 841711.08369776,
-        "hedging_value_add_gbp": -589143.3349897601,
+        "actual_net_gbp": 252370.923099,
+        "naked_net_gbp": 836060.4767098109,
+        "hedging_value_add_gbp": -583689.5536108109,
         "by_customer": {
           "C1": {
-            "actual_net_gbp": 73.755026,
-            "naked_net_gbp": 486.12371037766917,
-            "hedging_value_add_gbp": -412.3686843776692
+            "actual_net_gbp": 73.755197,
+            "naked_net_gbp": 486.1238692882376,
+            "hedging_value_add_gbp": -412.3686722882376
           },
           "C1g": {
             "actual_net_gbp": 141.188251,
@@ -2713,9 +2713,9 @@
             "hedging_value_add_gbp": -158.39884285303313
           },
           "C2": {
-            "actual_net_gbp": 154.477631,
-            "naked_net_gbp": 660.804274715859,
-            "hedging_value_add_gbp": -506.32664371585906
+            "actual_net_gbp": 154.51779,
+            "naked_net_gbp": 660.8450995317088,
+            "hedging_value_add_gbp": -506.3273095317088
           },
           "C2g": {
             "actual_net_gbp": 98.086166,
@@ -2733,9 +2733,9 @@
             "hedging_value_add_gbp": -518.2055821510878
           },
           "C4": {
-            "actual_net_gbp": 102.874132,
-            "naked_net_gbp": 442.6546303096306,
-            "hedging_value_add_gbp": -339.7804983096306
+            "actual_net_gbp": 102.874769,
+            "naked_net_gbp": 442.65529812168506,
+            "hedging_value_add_gbp": -339.78052912168505
           },
           "C4g": {
             "actual_net_gbp": 114.390154,
@@ -2743,19 +2743,19 @@
             "hedging_value_add_gbp": -653.7411896165263
           },
           "C5": {
-            "actual_net_gbp": -33.299621,
-            "naked_net_gbp": 1585.6070857023801,
-            "hedging_value_add_gbp": -1618.9067067023802
+            "actual_net_gbp": -33.299121,
+            "naked_net_gbp": 1585.6076189472,
+            "hedging_value_add_gbp": -1618.9067399472
           },
           "C6": {
-            "actual_net_gbp": 221.826736,
-            "naked_net_gbp": 2590.3281357241212,
-            "hedging_value_add_gbp": -2368.5013997241213
+            "actual_net_gbp": 221.798388,
+            "naked_net_gbp": 2590.2998028099737,
+            "hedging_value_add_gbp": -2368.5014148099735
           },
           "C7": {
-            "actual_net_gbp": 53.397952,
-            "naked_net_gbp": 1143.909930695227,
-            "hedging_value_add_gbp": -1090.511978695227
+            "actual_net_gbp": 53.398271,
+            "naked_net_gbp": 1143.9102589948893,
+            "hedging_value_add_gbp": -1090.5119879948893
           },
           "C8": {
             "actual_net_gbp": 239.620115,
@@ -2763,14 +2763,14 @@
             "hedging_value_add_gbp": -1131.1009816714568
           },
           "C9": {
-            "actual_net_gbp": 198.615836,
-            "naked_net_gbp": 1299.3278747111326,
-            "hedging_value_add_gbp": -1100.7120387111327
+            "actual_net_gbp": 198.609831,
+            "naked_net_gbp": 1299.3216727453669,
+            "hedging_value_add_gbp": -1100.7118417453669
           },
           "C_IC1": {
-            "actual_net_gbp": 160623.076711,
-            "naked_net_gbp": 301777.7515388453,
-            "hedging_value_add_gbp": -141154.6748278453
+            "actual_net_gbp": 160641.91970700002,
+            "naked_net_gbp": 301796.6030760197,
+            "hedging_value_add_gbp": -141154.68336901965
           },
           "C_IC2": {
             "actual_net_gbp": 89081.88144299999,
@@ -2778,9 +2778,9 @@
             "hedging_value_add_gbp": -76202.55313449618
           },
           "C_IC3": {
-            "actual_net_gbp": 1183.240006,
-            "naked_net_gbp": 295972.24912144564,
-            "hedging_value_add_gbp": -294789.00911544566
+            "actual_net_gbp": 967.563968,
+            "naked_net_gbp": 290302.78261811915,
+            "hedging_value_add_gbp": -289335.21865011915
           },
           "C_IC3g": {
             "actual_net_gbp": 123.556684,
@@ -2819,21 +2819,21 @@
       "gas_network_cost_gbp": 50497.45229025
     },
     "2020": {
-      "revenue_gbp": 1236026.046744582,
-      "gross_gbp": 802642.4648237223,
-      "capital_gbp": 7382.422911254057,
-      "bad_debt_gbp": 6364.220293,
-      "net_gbp": 126100.834053,
-      "treasury_end_gbp": 2918514.2887120047,
+      "revenue_gbp": 1236029.1331261836,
+      "gross_gbp": 802645.5765903956,
+      "capital_gbp": 7382.429042306935,
+      "bad_debt_gbp": 6364.235841,
+      "net_gbp": 126103.924041,
+      "treasury_end_gbp": 2918305.450473809,
       "bsc_credit_required_gbp": 2377.56,
       "bsc_peak_daily_gbp": 1981.3,
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 1114501.082084582,
-          "wholesale_cost_gbp": 389258.4243658598,
-          "gross_gbp": 725242.6577187222,
-          "capital_gbp": 1994.1149862140574,
-          "net_gbp": 121595.594561
+          "revenue_gbp": 1114504.1684661836,
+          "wholesale_cost_gbp": 389258.39898078796,
+          "gross_gbp": 725245.7694853956,
+          "capital_gbp": 1994.121117266935,
+          "net_gbp": 121598.684549
         },
         "gas": {
           "revenue_gbp": 121524.96466,
@@ -2845,14 +2845,14 @@
       },
       "segment_split": {
         "I&C electricity": {
-          "gross_gbp": 715326.396892694,
-          "capital_gbp": 1939.9995996249434,
-          "net_gbp": 120385.3721560003
+          "gross_gbp": 715329.5080495996,
+          "capital_gbp": 1940.0057260471556,
+          "net_gbp": 120388.46168099988
         },
         "resi electricity": {
-          "gross_gbp": 5690.155970294953,
-          "capital_gbp": 29.848772096974294,
-          "net_gbp": 884.8252989999658
+          "gross_gbp": 5690.165362667929,
+          "capital_gbp": 29.84879301829311,
+          "net_gbp": 884.8344969999646
         },
         "resi gas": {
           "gross_gbp": 1427.5016709999923,
@@ -2860,9 +2860,9 @@
           "net_gbp": 447.9684609999978
         },
         "SME electricity": {
-          "gross_gbp": 4226.104855736318,
-          "capital_gbp": 24.266614491282898,
-          "net_gbp": 325.397106
+          "gross_gbp": 4226.096073132645,
+          "capital_gbp": 24.266598200700514,
+          "net_gbp": 325.3883709999999
         },
         "I&C gas": {
           "gross_gbp": 75972.30543399963,
@@ -2873,10 +2873,10 @@
       "per_customer": {
         "C1": {
           "commodity": "electricity",
-          "gross_gbp": 495.6200768487995,
-          "capital_gbp": 2.3634592773665153,
-          "net_gbp": 73.394532,
-          "tariff_min_gbp_per_mwh": 125.5634321596071,
+          "gross_gbp": 495.62023561926344,
+          "capital_gbp": 2.3634598052146663,
+          "net_gbp": 73.394703,
+          "tariff_min_gbp_per_mwh": 125.56346575303225,
           "tariff_max_gbp_per_mwh": 132.16674868851308
         },
         "C1g": {
@@ -2889,11 +2889,11 @@
         },
         "C2": {
           "commodity": "electricity",
-          "gross_gbp": 657.0502331257345,
-          "capital_gbp": 3.3756625687055926,
-          "net_gbp": 181.859732,
+          "gross_gbp": 657.0621205513478,
+          "capital_gbp": 3.3756895113201457,
+          "net_gbp": 181.871309,
           "tariff_min_gbp_per_mwh": 143.88878922596368,
-          "tariff_max_gbp_per_mwh": 151.46856177702378
+          "tariff_max_gbp_per_mwh": 151.4762775159972
         },
         "C2g": {
           "commodity": "gas",
@@ -2921,11 +2921,11 @@
         },
         "C4": {
           "commodity": "electricity",
-          "gross_gbp": 455.4292482118402,
-          "capital_gbp": 2.1996337967600446,
-          "net_gbp": 85.938186,
+          "gross_gbp": 455.42968760851545,
+          "capital_gbp": 2.199635201340466,
+          "net_gbp": 85.938625,
           "tariff_min_gbp_per_mwh": 122.19527228318597,
-          "tariff_max_gbp_per_mwh": 126.51959833567453
+          "tariff_max_gbp_per_mwh": 126.51975999834997
         },
         "C4g": {
           "commodity": "gas",
@@ -2937,26 +2937,26 @@
         },
         "C5": {
           "commodity": "electricity",
-          "gross_gbp": 1645.3171478892602,
-          "capital_gbp": 9.223635750288851,
-          "net_gbp": -35.858935,
-          "tariff_min_gbp_per_mwh": 125.85487244670446,
+          "gross_gbp": 1645.3176795833258,
+          "capital_gbp": 9.223637585365443,
+          "net_gbp": -35.858436,
+          "tariff_min_gbp_per_mwh": 125.85490249596393,
           "tariff_max_gbp_per_mwh": 138.5849105898342
         },
         "C6": {
           "commodity": "electricity",
-          "gross_gbp": 2580.7877078470565,
-          "capital_gbp": 15.042978740983822,
-          "net_gbp": 361.256041,
+          "gross_gbp": 2580.7783935493144,
+          "capital_gbp": 15.042960615326436,
+          "net_gbp": 361.246807,
           "tariff_min_gbp_per_mwh": 143.88878922596368,
-          "tariff_max_gbp_per_mwh": 148.33058556465582
+          "tariff_max_gbp_per_mwh": 148.32939378294625
         },
         "C7": {
           "commodity": "electricity",
-          "gross_gbp": 1155.4391612804131,
-          "capital_gbp": 6.543918638248426,
-          "net_gbp": 54.575257,
-          "tariff_min_gbp_per_mwh": 99.52177093086794,
+          "gross_gbp": 1155.4394893449348,
+          "capital_gbp": 6.543919787016692,
+          "net_gbp": 54.575576,
+          "tariff_min_gbp_per_mwh": 99.52179187368772,
           "tariff_max_gbp_per_mwh": 211.11369882957104
         },
         "C8": {
@@ -2969,17 +2969,17 @@
         },
         "C9": {
           "commodity": "electricity",
-          "gross_gbp": 1225.4035066958093,
-          "capital_gbp": 6.724480977355785,
-          "net_gbp": 136.921552,
+          "gross_gbp": 1225.400085411495,
+          "capital_gbp": 6.724471874872771,
+          "net_gbp": 136.918244,
           "tariff_min_gbp_per_mwh": 85.1064228768059,
-          "tariff_max_gbp_per_mwh": 193.29271273678523
+          "tariff_max_gbp_per_mwh": 193.29200806940827
         },
         "C_IC1": {
           "commodity": "electricity",
-          "gross_gbp": 177668.42216784874,
-          "capital_gbp": 855.2487343751254,
-          "net_gbp": 58087.370501,
+          "gross_gbp": 177671.56672899346,
+          "capital_gbp": 855.2549671167636,
+          "net_gbp": 58090.493122,
           "tariff_min_gbp_per_mwh": -73.452,
           "tariff_max_gbp_per_mwh": 2690.7683999999995
         },
@@ -2993,10 +2993,10 @@
         },
         "C_IC3": {
           "commodity": "electricity",
-          "gross_gbp": 248702.53493816688,
-          "capital_gbp": 709.2334632272097,
-          "net_gbp": 10937.209373,
-          "tariff_min_gbp_per_mwh": 37.52823656510545,
+          "gross_gbp": 248702.50153392632,
+          "capital_gbp": 709.2333569077015,
+          "net_gbp": 10937.176277,
+          "tariff_min_gbp_per_mwh": 37.528229699486495,
           "tariff_max_gbp_per_mwh": 80.53927844322669
         },
         "C_IC3g": {
@@ -3082,8 +3082,8 @@
           "avg_hf": 0.8653429783214182
         },
         "C_IC3": {
-          "start_hf": 0.9612973247941488,
-          "avg_hf": 0.9602661166308096
+          "start_hf": 0.9612973318746258,
+          "avg_hf": 0.9602661201710482
         },
         "C_IC4": {
           "start_hf": 0.85,
@@ -3113,8 +3113,8 @@
         "net_margin_gbp": -484.20825
       },
       "bills_count": 204,
-      "avg_clarity": 0.857897879257236,
-      "avg_bill_shock_pct": 0.15033524574463517,
+      "avg_clarity": 0.8578978034225523,
+      "avg_bill_shock_pct": 0.15033539816114255,
       "bill_shock_events": [
         {
           "customer_id": "C1g",
@@ -3139,52 +3139,52 @@
         {
           "customer_id": "C5",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.2842263902922048
+          "bill_shock_pct": 0.28422639379947906
         },
         {
           "customer_id": "C5",
           "period_end": "2020-10-31",
-          "bill_shock_pct": 0.36378405221840565
+          "bill_shock_pct": 0.3637840605568775
         },
         {
           "customer_id": "C5",
           "period_end": "2020-12-31",
-          "bill_shock_pct": 0.24870799638398874
+          "bill_shock_pct": 0.24870798085195756
         },
         {
           "customer_id": "C7",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.3426716962553534
+          "bill_shock_pct": 0.34267169935488734
         },
         {
           "customer_id": "C7",
           "period_end": "2020-05-31",
-          "bill_shock_pct": 0.20411909690813893
+          "bill_shock_pct": 0.2041191012529198
         },
         {
           "customer_id": "C7",
           "period_end": "2020-06-30",
-          "bill_shock_pct": 0.265164431711442
+          "bill_shock_pct": 0.2651644364709184
         },
         {
           "customer_id": "C7",
           "period_end": "2020-10-31",
-          "bill_shock_pct": 0.5819482135116327
+          "bill_shock_pct": 0.5819482272887113
         },
         {
           "customer_id": "C7",
           "period_end": "2020-11-30",
-          "bill_shock_pct": 0.22606540062885191
+          "bill_shock_pct": 0.22606540549050694
         },
         {
           "customer_id": "C7",
           "period_end": "2020-12-31",
-          "bill_shock_pct": 0.3435753653819491
+          "bill_shock_pct": 0.34357535020584806
         },
         {
           "customer_id": "C2",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.22487608626085798
+          "bill_shock_pct": 0.22490030749113474
         },
         {
           "customer_id": "C2g",
@@ -3224,7 +3224,7 @@
         {
           "customer_id": "C6",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.28610557872707926
+          "bill_shock_pct": 0.28610152862975335
         },
         {
           "customer_id": "C6",
@@ -3294,17 +3294,17 @@
         {
           "customer_id": "C9",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.273050749914241
+          "bill_shock_pct": 0.27305072018829896
         },
         {
           "customer_id": "C9",
           "period_end": "2020-05-31",
-          "bill_shock_pct": 0.24569705047397614
+          "bill_shock_pct": 0.24569697682818514
         },
         {
           "customer_id": "C9",
           "period_end": "2020-06-30",
-          "bill_shock_pct": 0.34502224591090175
+          "bill_shock_pct": 0.3450221189151834
         },
         {
           "customer_id": "C9",
@@ -3324,17 +3324,17 @@
         {
           "customer_id": "C4",
           "period_end": "2020-04-30",
-          "bill_shock_pct": 0.30106616008430853
+          "bill_shock_pct": 0.3010662035644837
         },
         {
           "customer_id": "C4",
           "period_end": "2020-09-30",
-          "bill_shock_pct": 0.20236502671016277
+          "bill_shock_pct": 0.20236505676244207
         },
         {
           "customer_id": "C4",
           "period_end": "2020-10-31",
-          "bill_shock_pct": 0.22347138445803882
+          "bill_shock_pct": 0.223470588220969
         },
         {
           "customer_id": "C4",
@@ -3384,7 +3384,7 @@
         {
           "customer_id": "C_IC1",
           "period_end": "2020-03-31",
-          "bill_shock_pct": 0.5765340665025164
+          "bill_shock_pct": 0.576549764429222
         },
         {
           "customer_id": "C_IC1",
@@ -3402,13 +3402,13 @@
           "bill_shock_pct": 1.204457019996946
         }
       ],
-      "avg_complaint_probability": 0.04173216755213131,
+      "avg_complaint_probability": 0.04173219219840355,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
-        "actual_net_gbp": 83456.459489,
-        "naked_net_gbp": 944301.4074618086,
-        "hedging_value_add_gbp": -860844.9479728087,
+        "actual_net_gbp": 83456.426393,
+        "naked_net_gbp": 944301.3742691996,
+        "hedging_value_add_gbp": -860844.9478761995,
         "by_customer": {
           "C1": {
             "actual_net_gbp": -20.439053,
@@ -3476,9 +3476,9 @@
             "hedging_value_add_gbp": -53044.607820864076
           },
           "C_IC3": {
-            "actual_net_gbp": -17098.962606,
-            "naked_net_gbp": 216850.09858912806,
-            "hedging_value_add_gbp": -233949.06119512807
+            "actual_net_gbp": -17098.995702,
+            "naked_net_gbp": 216850.0653965189,
+            "hedging_value_add_gbp": -233949.0610985189
           },
           "C_IC3g": {
             "actual_net_gbp": 6419.857979,
@@ -3529,7 +3529,7 @@
       "capital_gbp": 15947.244172175017,
       "bad_debt_gbp": 9262.012286,
       "net_gbp": 66433.776989,
-      "treasury_end_gbp": 2946681.2432693527,
+      "treasury_end_gbp": 2946472.405031157,
       "bsc_credit_required_gbp": 5296.71,
       "bsc_peak_daily_gbp": 4413.92,
       "commodity_split": {
@@ -3786,8 +3786,8 @@
         "net_margin_gbp": -4053.066506
       },
       "bills_count": 192,
-      "avg_clarity": 0.853424506740237,
-      "avg_bill_shock_pct": 0.15729224852839743,
+      "avg_clarity": 0.8534245078472148,
+      "avg_bill_shock_pct": 0.15729224631444189,
       "bill_shock_events": [
         {
           "customer_id": "C1g",
@@ -3832,7 +3832,7 @@
         {
           "customer_id": "C7",
           "period_end": "2021-01-31",
-          "bill_shock_pct": 0.20974135630203453
+          "bill_shock_pct": 0.2097412049659182
         },
         {
           "customer_id": "C7",
@@ -4065,7 +4065,7 @@
           "bill_shock_pct": 0.22938398727740483
         }
       ],
-      "avg_complaint_probability": 0.04315469306053191,
+      "avg_complaint_probability": 0.043154692700764136,
       "treasury_drawdown_events": [],
       "var_ratio": null,
       "hedge_effectiveness": {
@@ -4176,7 +4176,7 @@
       "capital_gbp": 65389.336197621175,
       "bad_debt_gbp": 36121.391488,
       "net_gbp": 276415.046998,
-      "treasury_end_gbp": 3115590.894737847,
+      "treasury_end_gbp": 3115382.0564996516,
       "bsc_credit_required_gbp": 10212.66,
       "bsc_peak_daily_gbp": 8510.55,
       "commodity_split": {
@@ -4358,7 +4358,7 @@
       "committee_wake_ups": [
         {
           "settlement_date": "2022-04-29",
-          "treasury_gbp": 3054433.9146154467,
+          "treasury_gbp": 3054225.076377251,
           "adjustments": {
             "C2": 1.0,
             "C6": 1.0,
@@ -4371,7 +4371,7 @@
         },
         {
           "settlement_date": "2022-05-29",
-          "treasury_gbp": 3054566.26104041,
+          "treasury_gbp": 3054357.4228022145,
           "adjustments": {
             "C2": 1.0,
             "C6": 1.0,
@@ -4385,7 +4385,7 @@
         },
         {
           "settlement_date": "2022-06-28",
-          "treasury_gbp": 3054560.616443419,
+          "treasury_gbp": 3054351.7782052234,
           "adjustments": {
             "C2": 1.0,
             "C6": 1.0,
@@ -4399,7 +4399,7 @@
         },
         {
           "settlement_date": "2022-07-28",
-          "treasury_gbp": 3054366.870326703,
+          "treasury_gbp": 3054158.0320885074,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -4414,7 +4414,7 @@
         },
         {
           "settlement_date": "2022-08-27",
-          "treasury_gbp": 3054357.1996418633,
+          "treasury_gbp": 3054148.361403668,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -4429,7 +4429,7 @@
         },
         {
           "settlement_date": "2022-09-26",
-          "treasury_gbp": 3054341.667176872,
+          "treasury_gbp": 3054132.8289386765,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -4444,7 +4444,7 @@
         },
         {
           "settlement_date": "2022-10-26",
-          "treasury_gbp": 3051969.758827828,
+          "treasury_gbp": 3051760.9205896324,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -4460,7 +4460,7 @@
         },
         {
           "settlement_date": "2022-11-25",
-          "treasury_gbp": 3051818.872933826,
+          "treasury_gbp": 3051610.0346956304,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -4476,7 +4476,7 @@
         },
         {
           "settlement_date": "2022-12-25",
-          "treasury_gbp": 3051551.8712048214,
+          "treasury_gbp": 3051343.032966626,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -4850,9 +4850,9 @@
       "avg_complaint_probability": 0.05431898294780677,
       "treasury_drawdown_events": [
         {
-          "peak_gbp": 3429813.304088811,
-          "trough_gbp": 3051520.8490518252,
-          "drawdown_pct": 0.11029534890018908
+          "peak_gbp": 3429604.4658506154,
+          "trough_gbp": 3051312.0108136297,
+          "drawdown_pct": 0.11030206509343375
         }
       ],
       "var_ratio": 2.706293756726678,
@@ -4957,7 +4957,7 @@
       "capital_gbp": 49252.8626305775,
       "bad_debt_gbp": 13903.636512,
       "net_gbp": 59070.45405,
-      "treasury_end_gbp": 3228513.2692715223,
+      "treasury_end_gbp": 3228304.431033327,
       "bsc_credit_required_gbp": 6736.45,
       "bsc_peak_daily_gbp": 5613.71,
       "commodity_split": {
@@ -5119,7 +5119,7 @@
       "committee_wake_ups": [
         {
           "settlement_date": "2023-01-24",
-          "treasury_gbp": 3115590.0337348515,
+          "treasury_gbp": 3115381.195496656,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -5136,7 +5136,7 @@
         },
         {
           "settlement_date": "2023-02-23",
-          "treasury_gbp": 3115589.757570846,
+          "treasury_gbp": 3115380.9193326505,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -5153,7 +5153,7 @@
         },
         {
           "settlement_date": "2023-03-25",
-          "treasury_gbp": 3115589.4165048418,
+          "treasury_gbp": 3115380.5782666462,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -5170,7 +5170,7 @@
         },
         {
           "settlement_date": "2023-04-24",
-          "treasury_gbp": 3200309.1335398233,
+          "treasury_gbp": 3200100.295301628,
           "adjustments": {
             "C2": 1.0,
             "C4": 1.0,
@@ -5476,9 +5476,9 @@
       "avg_complaint_probability": 0.04822556751100475,
       "treasury_drawdown_events": [
         {
-          "peak_gbp": 3641335.2822800097,
-          "trough_gbp": 3228509.914684523,
-          "drawdown_pct": 0.11337197362858539
+          "peak_gbp": 3641126.444041814,
+          "trough_gbp": 3228301.0764463274,
+          "drawdown_pct": 0.11337847612268913
         }
       ],
       "var_ratio": 2.7262017428710132,
@@ -5582,7 +5582,7 @@
       "capital_gbp": 55819.82668319454,
       "bad_debt_gbp": 11658.34614,
       "net_gbp": 339497.40603,
-      "treasury_end_gbp": 3611782.07491104,
+      "treasury_end_gbp": 3611573.2366728443,
       "bsc_credit_required_gbp": 3285.84,
       "bsc_peak_daily_gbp": 2738.2,
       "commodity_split": {
@@ -5959,9 +5959,9 @@
       "avg_complaint_probability": 0.0449352195809471,
       "treasury_drawdown_events": [
         {
-          "peak_gbp": 3641248.0038710097,
-          "trough_gbp": 3228513.3076775223,
-          "drawdown_pct": 0.1133497898947584
+          "peak_gbp": 3641039.165632814,
+          "trough_gbp": 3228304.469439327,
+          "drawdown_pct": 0.11335629127234448
         }
       ],
       "var_ratio": null,
@@ -6050,7 +6050,7 @@
       "capital_gbp": 28983.07512067644,
       "bad_debt_gbp": 5016.909069,
       "net_gbp": 96627.053944,
-      "treasury_end_gbp": 3666684.4032670474,
+      "treasury_end_gbp": 3666475.565028852,
       "bsc_credit_required_gbp": 5030.83,
       "bsc_peak_daily_gbp": 4192.36,
       "commodity_split": {
@@ -6340,12 +6340,12 @@
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-01-01",
-      "revenue_gbp": 4235.239860109989,
-      "gross_gbp": 2741.5388797401915,
-      "capital_gbp": 18.68172695623963,
-      "net_gbp": 430.288654,
-      "cost_to_serve_gbp": 414.6357332752178,
-      "net_margin_after_cost_to_serve_gbp": 2326.9031464649447,
+      "revenue_gbp": 4235.277007578212,
+      "gross_gbp": 2741.576142703552,
+      "capital_gbp": 19.237681155751346,
+      "net_gbp": 429.768841,
+      "cost_to_serve_gbp": 414.6364762245732,
+      "net_margin_after_cost_to_serve_gbp": 2326.9396664789733,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6355,12 +6355,12 @@
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-04-01",
-      "revenue_gbp": 5108.10422477983,
-      "gross_gbp": 3400.7678702618473,
-      "capital_gbp": 24.10289923856143,
-      "net_gbp": 711.267182,
-      "cost_to_serve_gbp": 432.0961598381175,
-      "net_margin_after_cost_to_serve_gbp": 2968.671710423807,
+      "revenue_gbp": 5108.148699483558,
+      "gross_gbp": 3400.8126712097023,
+      "capital_gbp": 24.767388217463964,
+      "net_gbp": 710.646676,
+      "cost_to_serve_gbp": 432.09704933217074,
+      "net_margin_after_cost_to_serve_gbp": 2968.715621877578,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6370,12 +6370,12 @@
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-07-01",
-      "revenue_gbp": 3623.2574275151364,
-      "gross_gbp": 2381.0389427374466,
-      "capital_gbp": 13.49537834164691,
-      "net_gbp": 199.581602,
-      "cost_to_serve_gbp": 292.4149202397705,
-      "net_margin_after_cost_to_serve_gbp": 2088.624022497662,
+      "revenue_gbp": 3623.254732562251,
+      "gross_gbp": 2381.036267167672,
+      "capital_gbp": 14.777503237564027,
+      "net_gbp": 198.2969,
+      "cost_to_serve_gbp": 292.4148663407341,
+      "net_margin_after_cost_to_serve_gbp": 2088.62140082692,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6385,12 +6385,12 @@
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-10-01",
-      "revenue_gbp": 6280.874000829877,
-      "gross_gbp": 3315.465608197907,
-      "capital_gbp": 39.049629056689014,
-      "net_gbp": 137.432413,
-      "cost_to_serve_gbp": 565.5076055877232,
-      "net_margin_after_cost_to_serve_gbp": 2749.958002609793,
+      "revenue_gbp": 6280.873711185078,
+      "gross_gbp": 3315.46532714482,
+      "capital_gbp": 37.64393839322707,
+      "net_gbp": 138.837425,
+      "cost_to_serve_gbp": 565.5075997948163,
+      "net_margin_after_cost_to_serve_gbp": 2749.957727349587,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6400,12 +6400,12 @@
       "commodity": "electricity",
       "segment": "SME",
       "acquisition_date": "2016-01-01",
-      "revenue_gbp": 15288.906959027032,
-      "gross_gbp": 9460.271452091169,
-      "capital_gbp": 78.03242626280975,
-      "net_gbp": 46.172245000000004,
-      "cost_to_serve_gbp": 872.73838465877,
-      "net_margin_after_cost_to_serve_gbp": 8587.533067432434,
+      "revenue_gbp": 15289.038735131242,
+      "gross_gbp": 9460.403449728468,
+      "capital_gbp": 78.03328310113298,
+      "net_gbp": 46.302053,
+      "cost_to_serve_gbp": 872.7397024198168,
+      "net_margin_after_cost_to_serve_gbp": 8587.663747308692,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6415,12 +6415,12 @@
       "commodity": "electricity",
       "segment": "SME",
       "acquisition_date": "2016-04-01",
-      "revenue_gbp": 38927.58669530147,
-      "gross_gbp": 22409.079579981804,
-      "capital_gbp": 256.3494405709252,
-      "net_gbp": 3545.4746,
-      "cost_to_serve_gbp": 1349.0498395558263,
-      "net_margin_after_cost_to_serve_gbp": 21060.02974042567,
+      "revenue_gbp": 38927.58993868677,
+      "gross_gbp": 22409.082524537545,
+      "capital_gbp": 264.89131736708487,
+      "net_gbp": 3536.935421,
+      "cost_to_serve_gbp": 1349.0498719897003,
+      "net_margin_after_cost_to_serve_gbp": 21060.032652547554,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6430,12 +6430,12 @@
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-01-01",
-      "revenue_gbp": 21776.55319259793,
-      "gross_gbp": 10778.15403914332,
-      "capital_gbp": 139.9264786659221,
-      "net_gbp": -1317.484134,
-      "cost_to_serve_gbp": 954.6657670482409,
-      "net_margin_after_cost_to_serve_gbp": 9823.488272094948,
+      "revenue_gbp": 21776.288957575216,
+      "gross_gbp": 10777.888986328431,
+      "capital_gbp": 139.92511620769298,
+      "net_gbp": -1317.742484,
+      "cost_to_serve_gbp": 954.6604823478324,
+      "net_margin_after_cost_to_serve_gbp": 9823.22850398059,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6445,12 +6445,12 @@
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-04-01",
-      "revenue_gbp": 21705.330344349626,
-      "gross_gbp": 12467.789367301744,
-      "capital_gbp": 135.28815797211635,
-      "net_gbp": 1514.210719,
-      "cost_to_serve_gbp": 939.5383991242744,
-      "net_margin_after_cost_to_serve_gbp": 11528.250968177315,
+      "revenue_gbp": 21705.355999958643,
+      "gross_gbp": 12467.81493947758,
+      "capital_gbp": 135.2886428276103,
+      "net_gbp": 1514.235229,
+      "cost_to_serve_gbp": 939.5389122364654,
+      "net_margin_after_cost_to_serve_gbp": 11528.276027241,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6460,12 +6460,12 @@
       "commodity": "electricity",
       "segment": "resi",
       "acquisition_date": "2016-07-01",
-      "revenue_gbp": 20295.743114068522,
-      "gross_gbp": 12746.633861298791,
-      "capital_gbp": 129.56179045401757,
-      "net_gbp": 1532.453283,
-      "cost_to_serve_gbp": 897.6343257516543,
-      "net_margin_after_cost_to_serve_gbp": 11848.999535547162,
+      "revenue_gbp": 20295.731995739883,
+      "gross_gbp": 12746.622757493686,
+      "capital_gbp": 131.81459229806964,
+      "net_gbp": 1530.189731,
+      "cost_to_serve_gbp": 897.6341033851078,
+      "net_margin_after_cost_to_serve_gbp": 11848.988654108685,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6475,12 +6475,12 @@
       "commodity": "electricity",
       "segment": "I&C",
       "acquisition_date": "2017-01-01",
-      "revenue_gbp": 3205007.072810318,
-      "gross_gbp": 1937646.3189392586,
-      "capital_gbp": 18891.0287795023,
-      "net_gbp": 879536.692724,
-      "cost_to_serve_gbp": 20243.157510175166,
-      "net_margin_after_cost_to_serve_gbp": 1917403.1614290455,
+      "revenue_gbp": 3205025.8786216388,
+      "gross_gbp": 1937665.2483646602,
+      "capital_gbp": 18891.065988274528,
+      "net_gbp": 879555.490288,
+      "cost_to_serve_gbp": 20243.251539233297,
+      "net_margin_after_cost_to_serve_gbp": 1917421.996825404,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6492,8 +6492,8 @@
       "acquisition_date": "2018-01-01",
       "revenue_gbp": 1566191.9379251222,
       "gross_gbp": 941358.3665701183,
-      "capital_gbp": 8750.962004869976,
-      "net_gbp": 452490.211895,
+      "capital_gbp": 8750.961927637085,
+      "net_gbp": 452490.211999,
       "cost_to_serve_gbp": 11549.138913367406,
       "net_margin_after_cost_to_serve_gbp": 929809.2276567336,
       "pricing_action": {
@@ -6505,12 +6505,12 @@
       "commodity": "electricity",
       "segment": "I&C",
       "acquisition_date": "2019-01-01",
-      "revenue_gbp": 4675300.398586969,
-      "gross_gbp": 1837807.659193606,
-      "capital_gbp": 23134.71106365882,
-      "net_gbp": 106883.55235,
-      "cost_to_serve_gbp": 26594.8239107428,
-      "net_margin_after_cost_to_serve_gbp": 1811212.835282861,
+      "revenue_gbp": 4675300.36539436,
+      "gross_gbp": 1837807.6257893655,
+      "capital_gbp": 23350.38689298668,
+      "net_gbp": 106667.843216,
+      "cost_to_serve_gbp": 26594.82374477976,
+      "net_margin_after_cost_to_serve_gbp": 1811212.8020445833,
       "pricing_action": {
         "flag": "OK",
         "recommended_uplift_pct": null
@@ -6623,82 +6623,82 @@
     }
   },
   "bills_total": 1531,
-  "avg_clarity_total": 0.8408208662951888,
-  "service_quality_score": 0.9084490331878057,
-  "avg_complaint_probability_total": 0.04577548340609716,
-  "cost_to_serve_portfolio_gbp": 91784.13182423964,
-  "net_margin_after_cost_to_serve_gbp": 6457141.562223317,
-  "enterprise_value_gbp": 6081285.496254054,
+  "avg_clarity_total": 0.8408208996060023,
+  "service_quality_score": 0.9084490548398344,
+  "avg_complaint_probability_total": 0.045775472580082806,
+  "cost_to_serve_portfolio_gbp": 91784.22361632613,
+  "net_margin_after_cost_to_serve_gbp": 6457160.329917459,
+  "enterprise_value_gbp": 6081300.098753543,
   "enterprise_value_account_count": 14,
   "by_billing_account": {
     "C1": {
       "latest_churn_probability": 0.32,
       "latest_renewal_period": "2021-12",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 3640.106758661873,
+      "clv_gbp": 3640.142717749947,
       "expected_lifetime_periods": 9.386
     },
     "C2": {
       "latest_churn_probability": 0.32,
       "latest_renewal_period": "2022-03",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 5208.146561876924,
+      "clv_gbp": 5208.19119840392,
       "expected_lifetime_periods": 9.882
     },
     "C3": {
       "latest_churn_probability": 0.35,
       "latest_renewal_period": "2020-06",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 5242.343858343747,
+      "clv_gbp": 5242.340008475503,
       "expected_lifetime_periods": 9.298
     },
     "C4": {
       "latest_churn_probability": 0.35,
       "latest_renewal_period": "2024-09",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 3221.8683832074576,
+      "clv_gbp": 3221.8681769882182,
       "expected_lifetime_periods": 9.608
     },
     "C5": {
       "latest_churn_probability": 0.35,
       "latest_renewal_period": "2021-12",
       "home_move_win_probability": 0.35,
-      "clv_gbp": 8493.15675124794,
+      "clv_gbp": 8493.285994962587,
       "expected_lifetime_periods": 9.454
     },
     "C6": {
       "latest_churn_probability": 0.37999999999999995,
       "latest_renewal_period": "2024-03",
       "home_move_win_probability": 0.35,
-      "clv_gbp": 14964.158419794896,
+      "clv_gbp": 14964.160488996778,
       "expected_lifetime_periods": 8.824
     },
     "C7": {
       "latest_churn_probability": 0.35,
       "latest_renewal_period": "2024-12",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 6646.18890917428,
+      "clv_gbp": 6646.013160202754,
       "expected_lifetime_periods": 9.856
     },
     "C8": {
       "latest_churn_probability": 0.37999999999999995,
       "latest_renewal_period": "2025-03",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 7223.638291097977,
+      "clv_gbp": 7223.653993186045,
       "expected_lifetime_periods": 8.718
     },
     "C9": {
       "latest_churn_probability": 0.37999999999999995,
       "latest_renewal_period": "2025-06",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 7544.106835044108,
+      "clv_gbp": 7544.099906971056,
       "expected_lifetime_periods": 8.932
     },
     "C_IC1": {
       "latest_churn_probability": 0.08,
       "latest_renewal_period": "2024-12",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 1485806.2924244648,
+      "clv_gbp": 1485820.8880770605,
       "expected_lifetime_periods": 10.156
     },
     "C_IC2": {
@@ -6712,7 +6712,7 @@
       "latest_churn_probability": 0.05,
       "latest_renewal_period": "2024-12",
       "home_move_win_probability": 0.55,
-      "clv_gbp": 2482426.985026449,
+      "clv_gbp": 2482426.950995854,
       "expected_lifetime_periods": 9.996
     },
     "C_IC4": {
@@ -6725,17 +6725,17 @@
   },
   "highest_clv": {
     "customer_id": "C_IC3",
-    "clv_gbp": 2482426.985026449
+    "clv_gbp": 2482426.950995854
   },
   "lowest_clv": {
     "customer_id": "C4",
-    "clv_gbp": 3221.8683832074576
+    "clv_gbp": 3221.8681769882182
   },
-  "avg_clv_gbp": 467526.17021509085,
+  "avg_clv_gbp": 467527.2934842823,
   "hedge_effectiveness_total": {
-    "actual_net_gbp": 1328363.264706,
-    "naked_net_gbp": 5380265.0819692025,
-    "hedging_value_add_gbp": -4051901.817263203,
+    "actual_net_gbp": 1328154.426468,
+    "naked_net_gbp": 5374490.418954551,
+    "hedging_value_add_gbp": -4046335.992486551,
     "best_decision": {
       "customer_id": "C_IC1",
       "term_start": "2021-04-30",
@@ -6760,11 +6760,11 @@
       "effective_retention_probability": 0.883,
       "random_roll": 0.1646,
       "home_move_won": false,
-      "company_churn_estimate": 0.0524,
-      "churn_estimate_error_pct": -0.7985,
+      "company_churn_estimate": 0.0525,
+      "churn_estimate_error_pct": -0.7981,
       "retention_offered": false,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 131.890090027242
+      "unit_rate_gbp_per_mwh": 131.8980493154099
     },
     {
       "customer_id": "C5",
@@ -6780,7 +6780,7 @@
       "churn_estimate_error_pct": -0.8217,
       "retention_offered": false,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 131.04056173509568
+      "unit_rate_gbp_per_mwh": 131.04782584105976
     },
     {
       "customer_id": "C7",
@@ -6792,11 +6792,11 @@
       "effective_retention_probability": 0.8695,
       "random_roll": 0.105,
       "home_move_won": false,
-      "company_churn_estimate": 0.0514,
-      "churn_estimate_error_pct": -0.8228,
+      "company_churn_estimate": 0.0513,
+      "churn_estimate_error_pct": -0.8231,
       "retention_offered": false,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 130.6217282857678
+      "unit_rate_gbp_per_mwh": 130.60089558934683
     },
     {
       "customer_id": "C1",
@@ -6812,7 +6812,7 @@
       "churn_estimate_error_pct": -0.9449,
       "retention_offered": false,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 117.80335097567738
+      "unit_rate_gbp_per_mwh": 117.80326443949656
     },
     {
       "customer_id": "C5",
@@ -6828,7 +6828,7 @@
       "churn_estimate_error_pct": -0.9334,
       "retention_offered": false,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 119.59610151493084
+      "unit_rate_gbp_per_mwh": 119.5962030741169
     },
     {
       "customer_id": "C7",
@@ -6840,11 +6840,11 @@
       "effective_retention_probability": 0.829,
       "random_roll": 0.8255,
       "home_move_won": false,
-      "company_churn_estimate": 0.0262,
-      "churn_estimate_error_pct": -0.9311,
+      "company_churn_estimate": 0.0263,
+      "churn_estimate_error_pct": -0.9308,
       "retention_offered": false,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 125.70315430100439
+      "unit_rate_gbp_per_mwh": 125.70320804425587
     },
     {
       "customer_id": "C_IC1",
@@ -6860,7 +6860,7 @@
       "churn_estimate_error_pct": 18.0,
       "retention_offered": true,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 154.6891242340532
+      "unit_rate_gbp_per_mwh": 154.68910359699183
     },
     {
       "customer_id": "C1",
@@ -6876,7 +6876,7 @@
       "churn_estimate_error_pct": -0.3763,
       "retention_offered": false,
       "is_active_renewal": true,
-      "unit_rate_gbp_per_mwh": 152.1255532887456
+      "unit_rate_gbp_per_mwh": 152.12555300890926
     },
     {
       "customer_id": "C5",
@@ -6892,7 +6892,7 @@
       "churn_estimate_error_pct": -0.856,
       "retention_offered": false,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 155.9733160528284
+      "unit_rate_gbp_per_mwh": 155.97319104634494
     },
     {
       "customer_id": "C7",
@@ -6908,7 +6908,7 @@
       "churn_estimate_error_pct": -0.5905,
       "retention_offered": false,
       "is_active_renewal": true,
-      "unit_rate_gbp_per_mwh": 149.7791379495742
+      "unit_rate_gbp_per_mwh": 149.77915153135632
     },
     {
       "customer_id": "C_IC2",
@@ -6940,7 +6940,7 @@
       "churn_estimate_error_pct": -1.0,
       "retention_offered": false,
       "is_active_renewal": true,
-      "unit_rate_gbp_per_mwh": 125.5634321596071
+      "unit_rate_gbp_per_mwh": 125.56346575303225
     },
     {
       "customer_id": "C5",
@@ -6956,7 +6956,7 @@
       "churn_estimate_error_pct": -1.0,
       "retention_offered": false,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 125.85487244670446
+      "unit_rate_gbp_per_mwh": 125.85490249596393
     },
     {
       "customer_id": "C7",
@@ -6972,7 +6972,7 @@
       "churn_estimate_error_pct": -1.0,
       "retention_offered": false,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 126.66407209383192
+      "unit_rate_gbp_per_mwh": 126.6640987483298
     },
     {
       "customer_id": "C2",
@@ -8911,10 +8911,10 @@
       "customer_id": "C1",
       "term_start": "2016-12-31",
       "sim_churn_probability": 0.26,
-      "company_churn_estimate": 0.0524,
-      "churn_estimate_error_pct": -0.7985,
+      "company_churn_estimate": 0.0525,
+      "churn_estimate_error_pct": -0.7981,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 131.890090027242,
+      "unit_rate_gbp_per_mwh": 131.8980493154099,
       "svt_rate_gbp_per_mwh": 140.0,
       "rate_vs_svt_pct": -5.79
     },
@@ -8925,20 +8925,20 @@
       "company_churn_estimate": 0.0517,
       "churn_estimate_error_pct": -0.8217,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 131.04056173509568,
+      "unit_rate_gbp_per_mwh": 131.04782584105976,
       "svt_rate_gbp_per_mwh": 140.0,
-      "rate_vs_svt_pct": -6.4
+      "rate_vs_svt_pct": -6.39
     },
     {
       "customer_id": "C7",
       "term_start": "2016-12-31",
       "sim_churn_probability": 0.29,
-      "company_churn_estimate": 0.0514,
-      "churn_estimate_error_pct": -0.8228,
+      "company_churn_estimate": 0.0513,
+      "churn_estimate_error_pct": -0.8231,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 130.6217282857678,
+      "unit_rate_gbp_per_mwh": 130.60089558934683,
       "svt_rate_gbp_per_mwh": 140.0,
-      "rate_vs_svt_pct": -6.7
+      "rate_vs_svt_pct": -6.71
     },
     {
       "customer_id": "C1",
@@ -8947,7 +8947,7 @@
       "company_churn_estimate": 0.0193,
       "churn_estimate_error_pct": -0.9449,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 117.80335097567738,
+      "unit_rate_gbp_per_mwh": 117.80326443949656,
       "svt_rate_gbp_per_mwh": 140.0,
       "rate_vs_svt_pct": -15.85
     },
@@ -8958,7 +8958,7 @@
       "company_churn_estimate": 0.0213,
       "churn_estimate_error_pct": -0.9334,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 119.59610151493084,
+      "unit_rate_gbp_per_mwh": 119.5962030741169,
       "svt_rate_gbp_per_mwh": 140.0,
       "rate_vs_svt_pct": -14.57
     },
@@ -8966,10 +8966,10 @@
       "customer_id": "C7",
       "term_start": "2017-12-31",
       "sim_churn_probability": 0.38,
-      "company_churn_estimate": 0.0262,
-      "churn_estimate_error_pct": -0.9311,
+      "company_churn_estimate": 0.0263,
+      "churn_estimate_error_pct": -0.9308,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 125.70315430100439,
+      "unit_rate_gbp_per_mwh": 125.70320804425587,
       "svt_rate_gbp_per_mwh": 140.0,
       "rate_vs_svt_pct": -10.21
     },
@@ -8980,7 +8980,7 @@
       "company_churn_estimate": 0.95,
       "churn_estimate_error_pct": 18.0,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 154.6891242340532,
+      "unit_rate_gbp_per_mwh": 154.68910359699183,
       "svt_rate_gbp_per_mwh": 152.5,
       "rate_vs_svt_pct": 1.44
     },
@@ -8991,7 +8991,7 @@
       "company_churn_estimate": 0.2183,
       "churn_estimate_error_pct": -0.3763,
       "is_active_renewal": true,
-      "unit_rate_gbp_per_mwh": 152.1255532887456,
+      "unit_rate_gbp_per_mwh": 152.12555300890926,
       "svt_rate_gbp_per_mwh": 152.5,
       "rate_vs_svt_pct": -0.25
     },
@@ -9002,7 +9002,7 @@
       "company_churn_estimate": 0.0504,
       "churn_estimate_error_pct": -0.856,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 155.9733160528284,
+      "unit_rate_gbp_per_mwh": 155.97319104634494,
       "svt_rate_gbp_per_mwh": 152.5,
       "rate_vs_svt_pct": 2.28
     },
@@ -9013,7 +9013,7 @@
       "company_churn_estimate": 0.1679,
       "churn_estimate_error_pct": -0.5905,
       "is_active_renewal": true,
-      "unit_rate_gbp_per_mwh": 149.7791379495742,
+      "unit_rate_gbp_per_mwh": 149.77915153135632,
       "svt_rate_gbp_per_mwh": 152.5,
       "rate_vs_svt_pct": -1.78
     },
@@ -9035,7 +9035,7 @@
       "company_churn_estimate": 0.0,
       "churn_estimate_error_pct": -1.0,
       "is_active_renewal": true,
-      "unit_rate_gbp_per_mwh": 125.5634321596071,
+      "unit_rate_gbp_per_mwh": 125.56346575303225,
       "svt_rate_gbp_per_mwh": 178.5,
       "rate_vs_svt_pct": -29.66
     },
@@ -9046,7 +9046,7 @@
       "company_churn_estimate": 0.0,
       "churn_estimate_error_pct": -1.0,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 125.85487244670446,
+      "unit_rate_gbp_per_mwh": 125.85490249596393,
       "svt_rate_gbp_per_mwh": 178.5,
       "rate_vs_svt_pct": -29.49
     },
@@ -9057,7 +9057,7 @@
       "company_churn_estimate": 0.0,
       "churn_estimate_error_pct": -1.0,
       "is_active_renewal": false,
-      "unit_rate_gbp_per_mwh": 126.66407209383192,
+      "unit_rate_gbp_per_mwh": 126.6640987483298,
       "svt_rate_gbp_per_mwh": 178.5,
       "rate_vs_svt_pct": -29.04
     },
@@ -9530,8 +9530,8 @@
       "event_date": "2018-01-31",
       "company_churn_estimate": 0.95,
       "discount_pct": 0.08,
-      "retention_cost_gbp": 24752.594748431806,
-      "expected_term_margin_gbp": 169433.8541459027,
+      "retention_cost_gbp": 24752.59144619049,
+      "expected_term_margin_gbp": 169433.81286788627,
       "acq_cost_saved_gbp": 150.0,
       "outcome": "retained"
     },
@@ -9550,8 +9550,8 @@
       "event_date": "2019-03-02",
       "company_churn_estimate": 0.95,
       "discount_pct": 0.08,
-      "retention_cost_gbp": 28529.600558649985,
-      "expected_term_margin_gbp": 201260.9788376004,
+      "retention_cost_gbp": 28530.965122779642,
+      "expected_term_margin_gbp": 201278.03588922115,
       "acq_cost_saved_gbp": 150.0,
       "outcome": "retained"
     },
@@ -9560,8 +9560,8 @@
       "event_date": "2020-01-01",
       "company_churn_estimate": 0.3635,
       "discount_pct": 0.03,
-      "retention_cost_gbp": 5736.897363194987,
-      "expected_term_margin_gbp": 10938.404670942018,
+      "retention_cost_gbp": 5736.896313655894,
+      "expected_term_margin_gbp": 10938.369686305641,
       "acq_cost_saved_gbp": 150.0,
       "outcome": "retained"
     },
@@ -9800,11 +9800,11 @@
       "2016": {
         "n": 3,
         "mean_abs_error_pct": 0.8143,
-        "max_abs_error_pct": 0.8228
+        "max_abs_error_pct": 0.8231
       },
       "2017": {
         "n": 3,
-        "mean_abs_error_pct": 0.9365,
+        "mean_abs_error_pct": 0.9364,
         "max_abs_error_pct": 0.9449
       },
       "2018": {
@@ -9919,171 +9919,171 @@
       "acquisition_gate_event": 1
     },
     "pnl": {
-      "revenue_gbp": 19060338.38315612,
-      "wholesale_cost_gbp": 7675364.272361045,
-      "gross_margin_gbp": 6562693.094283076,
-      "capital_cost_gbp": 237004.5995549718,
-      "net_margin_gbp": 6325688.494728104,
-      "total_billed_gbp": 20023949.075007375,
-      "vat_remittance_gbp": 963610.691851253,
+      "revenue_gbp": 19060357.119734157,
+      "wholesale_cost_gbp": 7675364.14945288,
+      "gross_margin_gbp": 6562711.953769276,
+      "capital_cost_gbp": 237232.20405112565,
+      "net_margin_gbp": 6325479.74971815,
+      "total_billed_gbp": 20023968.768667236,
+      "vat_remittance_gbp": 963611.6489330782,
       "non_commodity_cost_gbp": 4822281.016512001,
-      "cash_collected_gbp": 19623365.122709204,
-      "bad_debt_gbp": 400583.9522981751,
-      "cash_net_margin_gbp": 6888715.234281188,
+      "cash_collected_gbp": 19623384.423246156,
+      "bad_debt_gbp": 400584.3454210795,
+      "cash_net_margin_gbp": 6888507.05323015,
       "acquisition_spend_gbp": 1100.0,
       "fixed_cost_gbp": 5700.0,
-      "operating_net_margin_gbp": 6318888.494728104
+      "operating_net_margin_gbp": 6318679.74971815
     }
   },
   "ledger_pnl": {
-    "revenue_gbp": 19060338.38315612,
-    "wholesale_cost_gbp": 7675364.272361045,
-    "gross_margin_gbp": 6562693.094283076,
-    "capital_cost_gbp": 237004.5995549718,
-    "net_margin_gbp": 6325688.494728104,
-    "total_billed_gbp": 20023949.075007375,
-    "vat_remittance_gbp": 963610.691851253,
+    "revenue_gbp": 19060357.119734157,
+    "wholesale_cost_gbp": 7675364.14945288,
+    "gross_margin_gbp": 6562711.953769276,
+    "capital_cost_gbp": 237232.20405112565,
+    "net_margin_gbp": 6325479.74971815,
+    "total_billed_gbp": 20023968.768667236,
+    "vat_remittance_gbp": 963611.6489330782,
     "non_commodity_cost_gbp": 4822281.016512001,
-    "cash_collected_gbp": 19623365.122709204,
-    "bad_debt_gbp": 400583.9522981751,
-    "cash_net_margin_gbp": 6888715.234281188,
+    "cash_collected_gbp": 19623384.423246156,
+    "bad_debt_gbp": 400584.3454210795,
+    "cash_net_margin_gbp": 6888507.05323015,
     "acquisition_spend_gbp": 1100.0,
     "fixed_cost_gbp": 5700.0,
-    "operating_net_margin_gbp": 6318888.494728104
+    "operating_net_margin_gbp": 6318679.74971815
   },
   "clv_snapshots": {
     "2016": {
-      "C1": 1727.785559480906,
-      "C5": 4331.687760972305,
-      "C7": 3079.497990250865
+      "C1": 1727.7859016851232,
+      "C5": 4331.689093906014,
+      "C7": 3079.495503499733
     },
     "2017": {
-      "C1": 1834.408890007968,
-      "C5": 4493.014773396188,
-      "C7": 3212.5706882737663,
-      "C2": 3845.4640637261955,
-      "C6": 8284.707766093159,
-      "C8": 4623.2471390336605,
-      "C3": 3730.100927057914,
-      "C9": 4051.3168450304333,
-      "C4": 3723.311812095863
+      "C1": 1834.4642418520673,
+      "C5": 4493.22293822765,
+      "C7": 3212.1543606006894,
+      "C2": 3845.471419647521,
+      "C6": 8284.768637437244,
+      "C8": 4623.291391534377,
+      "C3": 3730.0969632814636,
+      "C9": 4051.310383102983,
+      "C4": 3723.3107533811126
     },
     "2018": {
-      "C1": 2007.6075530439655,
-      "C5": 4087.583972736149,
-      "C7": 3121.213099603904,
-      "C2": 3590.316712792978,
-      "C6": 6907.451320793809,
-      "C8": 3995.2334162720153,
-      "C3": 3398.3623205609247,
-      "C9": 3728.812047455938,
-      "C4": 2777.415624739594,
-      "C_IC1": 999382.6022772796
+      "C1": 2007.6483406962689,
+      "C5": 4087.720350495993,
+      "C7": 3120.9341111864296,
+      "C2": 3590.322687367424,
+      "C6": 6907.499247204183,
+      "C8": 3995.2733060593573,
+      "C3": 3398.3580372146143,
+      "C9": 3728.804618567487,
+      "C4": 2777.4142419002555,
+      "C_IC1": 999382.4743248271
     },
     "2019": {
-      "C1": 2000.64745035832,
-      "C5": 4405.2754854338455,
-      "C7": 3308.928069473735,
-      "C2": 3001.8622231839936,
-      "C6": 7503.260687594329,
-      "C8": 3915.763622054757,
-      "C3": 3383.7123531594834,
-      "C9": 3862.084544240334,
-      "C4": 2986.759218785846,
-      "C_IC1": 907973.0358482444,
+      "C1": 2000.6766743612236,
+      "C5": 4405.37689421458,
+      "C7": 3308.7146898950045,
+      "C2": 3001.894517104085,
+      "C6": 7503.27451342934,
+      "C8": 3915.7907223964,
+      "C3": 3383.709417004156,
+      "C9": 3862.076384296593,
+      "C4": 2986.7584536748277,
+      "C_IC1": 907997.6291074977,
       "C_IC2": 549645.7501667693
     },
     "2020": {
-      "C1": 2246.183476356451,
-      "C5": 5536.075712285192,
-      "C7": 3324.508348036573,
-      "C2": 3651.121693378121,
-      "C6": 7495.405810496259,
-      "C8": 4603.108900947525,
-      "C3": 2878.9112660353094,
-      "C9": 3979.790316914029,
-      "C4": 3120.6699810843843,
-      "C_IC1": 617472.1448434788,
+      "C1": 2246.209286696261,
+      "C5": 5536.176824118961,
+      "C7": 3324.3390167304565,
+      "C2": 3651.1623129247505,
+      "C6": 7495.408233075503,
+      "C8": 4603.132431503394,
+      "C3": 2878.909151822782,
+      "C9": 3979.781102544818,
+      "C4": 3120.6697447474903,
+      "C_IC1": 617487.5332258197,
       "C_IC2": 310265.2777193487,
-      "C_IC3": 1141184.329113411,
+      "C_IC3": 1141184.2680538048,
       "C_IC4": 631175.0783622012
     },
     "2021": {
-      "C1": 2113.790072522434,
-      "C5": 5011.451623042621,
-      "C7": 3430.410331355938,
-      "C2": 3502.2749250885895,
-      "C6": 8350.546299099236,
-      "C8": 4384.310162697327,
-      "C3": 3027.4258700462933,
-      "C9": 3555.680877409679,
-      "C4": 2813.446325251581,
-      "C_IC1": 596851.9635126631,
+      "C1": 2113.8109537680753,
+      "C5": 5011.527884277695,
+      "C7": 3430.265727197014,
+      "C2": 3502.306526415591,
+      "C6": 8350.548360120132,
+      "C8": 4384.327505857918,
+      "C3": 3027.423646767731,
+      "C9": 3555.674207781314,
+      "C4": 2813.4461273628553,
+      "C_IC1": 596864.2882528949,
       "C_IC2": 334718.49307871767,
-      "C_IC3": 1009507.8440098691,
+      "C_IC3": 1009507.8074861718,
       "C_IC4": 639263.8637113981
     },
     "2022": {
-      "C1": 2234.6851989304787,
-      "C5": 4917.249734081171,
-      "C7": 2844.707512115964,
-      "C2": 2855.2866352139963,
-      "C6": 8318.218372432342,
-      "C8": 3966.6589825937203,
-      "C3": 3099.4665361710245,
-      "C9": 3979.3153348514334,
-      "C4": 1742.1727227870101,
-      "C_IC1": 661430.6747294319,
+      "C1": 2234.7072744483726,
+      "C5": 4917.324561808963,
+      "C7": 2844.579279840544,
+      "C2": 2855.311106506703,
+      "C6": 8318.219952526666,
+      "C8": 3966.6722215704026,
+      "C3": 3099.464259987296,
+      "C9": 3979.309209956005,
+      "C4": 1742.1725689892094,
+      "C_IC1": 661441.2455256383,
       "C_IC2": 378474.08269574004,
-      "C_IC3": 1165017.6476328152,
+      "C_IC3": 1165017.6196002532,
       "C_IC4": 608064.8986336833,
       "C2_2": 491.1918945292248
     },
     "2023": {
-      "C1": 2230.094244763085,
-      "C5": 4908.362763424429,
-      "C7": 3027.6576179530166,
-      "C2": 2845.7426788466396,
-      "C6": 9103.173736396977,
-      "C8": 4030.661802906515,
-      "C3": 3095.033264409503,
-      "C9": 4243.931563390092,
-      "C4": 1391.5367493690787,
-      "C_IC1": 712596.7211769569,
+      "C1": 2230.1162749288683,
+      "C5": 4908.437455915686,
+      "C7": 3027.5456969792563,
+      "C2": 2845.7670683426722,
+      "C6": 9103.175089213653,
+      "C8": 4030.6731065890704,
+      "C3": 3095.030991481477,
+      "C9": 4243.926323131893,
+      "C4": 1391.536617933055,
+      "C_IC1": 712605.7517857931,
       "C_IC2": 405648.9167583185,
-      "C_IC3": 1082713.5300728995,
+      "C_IC3": 1082713.5076963818,
       "C_IC4": 628114.5549445298,
       "C2_2": 1370.6969172022546
     },
     "2024": {
-      "C1": 2242.336789209469,
-      "C5": 4458.682048193353,
-      "C7": 3398.2292377367844,
-      "C2": 2969.8141116222755,
-      "C6": 8511.409496166625,
-      "C8": 4771.286452547715,
-      "C3": 2970.9016550868896,
-      "C9": 4648.813294961942,
-      "C4": 1785.4568101491875,
-      "C_IC1": 754635.7598167455,
+      "C1": 2242.3589403142146,
+      "C5": 4458.749897715882,
+      "C7": 3398.131437069303,
+      "C2": 2969.839564475069,
+      "C6": 8511.410673100474,
+      "C8": 4771.297653786272,
+      "C3": 2970.899473318534,
+      "C9": 4648.808643859975,
+      "C4": 1785.4566958690552,
+      "C_IC1": 754643.7493142214,
       "C_IC2": 440769.71990114346,
-      "C_IC3": 1419352.9254562438,
+      "C_IC3": 1419352.9041436708,
       "C_IC4": 693298.0516789857,
       "C2_2": 1951.3476571315384
     },
     "2025": {
-      "C1": 2066.350212792695,
-      "C5": 4579.544849125025,
-      "C7": 3610.3611329659543,
-      "C2": 3037.682245790144,
-      "C6": 8786.01854829852,
-      "C8": 4111.236128762894,
-      "C3": 3092.8166285287416,
-      "C9": 4562.423035618272,
-      "C4": 1825.5111776536091,
-      "C_IC1": 788609.7488317873,
+      "C1": 2066.3706253998575,
+      "C5": 4579.614537864446,
+      "C7": 3610.265662123247,
+      "C2": 3037.7082803081744,
+      "C6": 8786.019763204538,
+      "C8": 4111.245065394153,
+      "C3": 3092.8143572285667,
+      "C9": 4562.418845751827,
+      "C4": 1825.511060809753,
+      "C_IC1": 788617.4956518041,
       "C_IC2": 467734.80902359245,
-      "C_IC3": 1411435.4701559893,
+      "C_IC3": 1411435.450807187,
       "C_IC4": 789656.1553004289,
       "C2_2": 2056.506948429735
     }
@@ -10095,42 +10095,42 @@
   "total_acquisition_wins": 0,
   "acquired_customers": [],
   "_ledger_headline": {
-    "total_billed_gbp": 20023949.075007375,
-    "vat_remittance_gbp": 963610.691851253,
-    "revenue_gbp": 19060338.38315612,
+    "total_billed_gbp": 20023968.768667236,
+    "vat_remittance_gbp": 963611.6489330782,
+    "revenue_gbp": 19060357.119734157,
     "non_commodity_cost_gbp": 4822281.016512001,
-    "gross_margin_gbp": 6562693.094283076,
-    "capital_cost_gbp": 237004.5995549718,
-    "net_margin_gbp": 6325688.494728104
+    "gross_margin_gbp": 6562711.953769276,
+    "capital_cost_gbp": 237232.20405112565,
+    "net_margin_gbp": 6325479.74971815
   },
   "tou_stats": {
-    "C7": {
-      "total_kwh": 120839.4,
-      "peak_kwh": 36249.2,
-      "offpeak_kwh": 84590.1,
-      "peak_pct": 30.0,
-      "peak_revenue_gbp": 9518.17,
-      "offpeak_revenue_gbp": 12258.38,
-      "avg_peak_rate": 262.58,
-      "avg_offpeak_rate": 144.92
-    },
     "C9": {
       "total_kwh": 109386.6,
       "peak_kwh": 43689.1,
       "offpeak_kwh": 65697.5,
       "peak_pct": 39.9,
-      "peak_revenue_gbp": 10962.34,
-      "offpeak_revenue_gbp": 9333.41,
+      "peak_revenue_gbp": 10962.33,
+      "offpeak_revenue_gbp": 9333.4,
       "avg_peak_rate": 250.92,
       "avg_offpeak_rate": 142.07
+    },
+    "C7": {
+      "total_kwh": 120839.4,
+      "peak_kwh": 36249.2,
+      "offpeak_kwh": 84590.1,
+      "peak_pct": 30.0,
+      "peak_revenue_gbp": 9518.05,
+      "offpeak_revenue_gbp": 12258.24,
+      "avg_peak_rate": 262.57,
+      "avg_offpeak_rate": 144.91
     },
     "C8": {
       "total_kwh": 106721.8,
       "peak_kwh": 43948.0,
       "offpeak_kwh": 62773.8,
       "peak_pct": 41.2,
-      "peak_revenue_gbp": 11995.4,
-      "offpeak_revenue_gbp": 9709.93,
+      "peak_revenue_gbp": 11995.41,
+      "offpeak_revenue_gbp": 9709.94,
       "avg_peak_rate": 272.95,
       "avg_offpeak_rate": 154.68
     }
@@ -10360,11 +10360,11 @@
       "customer_id": "C5",
       "commodity": "electricity",
       "term_start": "2018-12-31",
-      "prev_margin_gbp": -204.7695,
-      "prev_revenue_gbp": 2324.084,
+      "prev_margin_gbp": -204.7677,
+      "prev_revenue_gbp": 2324.0858,
       "surcharge_pct": 3.81,
       "unit_rate_before": 148.6801,
-      "unit_rate_after": 152.9733
+      "unit_rate_after": 152.9732
     },
     {
       "customer_id": "C_IC2",
@@ -10384,7 +10384,7 @@
       "prev_revenue_gbp": 10243.034,
       "surcharge_pct": 20.0,
       "unit_rate_before": 128.2242,
-      "unit_rate_after": 175.3469
+      "unit_rate_after": 175.3555
     },
     {
       "customer_id": "C_IC2",
@@ -10644,14 +10644,14 @@
       "term_start": "2016-12-31",
       "recent_margin_rates": [
         0.1172,
-        0.0398,
-        0.0443,
-        0.0942
+        0.0381,
+        0.0427,
+        0.097
       ],
-      "mean_recent_margin_rate": 0.0739,
+      "mean_recent_margin_rate": 0.0737,
       "portfolio_premium_pct": 0.31,
       "unit_rate_before": 131.4867,
-      "unit_rate_after": 131.8901
+      "unit_rate_after": 131.898
     },
     {
       "customer_id": "C1g",
@@ -10673,45 +10673,45 @@
       "commodity": "electricity",
       "term_start": "2016-12-31",
       "recent_margin_rates": [
-        0.0398,
-        0.0443,
-        0.0942,
-        0.1688
+        0.0381,
+        0.0427,
+        0.097,
+        0.1689
       ],
-      "mean_recent_margin_rate": 0.0868,
-      "portfolio_premium_pct": -0.34,
+      "mean_recent_margin_rate": 0.0867,
+      "portfolio_premium_pct": -0.33,
       "unit_rate_before": 131.4867,
-      "unit_rate_after": 131.0406
+      "unit_rate_after": 131.0478
     },
     {
       "customer_id": "C7",
       "commodity": "electricity",
       "term_start": "2016-12-31",
       "recent_margin_rates": [
-        0.0443,
-        0.0942,
-        0.1688,
+        0.0427,
+        0.097,
+        0.1689,
         0.0653
       ],
-      "mean_recent_margin_rate": 0.0932,
-      "portfolio_premium_pct": -0.66,
+      "mean_recent_margin_rate": 0.0935,
+      "portfolio_premium_pct": -0.67,
       "unit_rate_before": 131.4867,
-      "unit_rate_after": 130.6217
+      "unit_rate_after": 130.6009
     },
     {
       "customer_id": "C2",
       "commodity": "electricity",
       "term_start": "2017-04-01",
       "recent_margin_rates": [
-        0.1688,
+        0.1689,
         0.0653,
-        0.0905,
+        0.0903,
         0.1329
       ],
       "mean_recent_margin_rate": 0.1144,
       "portfolio_premium_pct": -1.72,
       "unit_rate_before": 127.9741,
-      "unit_rate_after": 125.7747
+      "unit_rate_after": 125.7754
     },
     {
       "customer_id": "C2g",
@@ -10734,21 +10734,21 @@
       "term_start": "2017-04-01",
       "recent_margin_rates": [
         0.0653,
-        0.0905,
+        0.0903,
         0.1329,
         0.1377
       ],
       "mean_recent_margin_rate": 0.1066,
       "portfolio_premium_pct": -1.33,
       "unit_rate_before": 127.9741,
-      "unit_rate_after": 126.2727
+      "unit_rate_after": 126.274
     },
     {
       "customer_id": "C8",
       "commodity": "electricity",
       "term_start": "2017-04-01",
       "recent_margin_rates": [
-        0.0905,
+        0.0903,
         0.1329,
         0.1377,
         0.0321
@@ -10756,7 +10756,7 @@
       "mean_recent_margin_rate": 0.0983,
       "portfolio_premium_pct": -0.91,
       "unit_rate_before": 127.9741,
-      "unit_rate_after": 126.8037
+      "unit_rate_after": 126.8056
     },
     {
       "customer_id": "C3",
@@ -10771,7 +10771,7 @@
       "mean_recent_margin_rate": 0.1113,
       "portfolio_premium_pct": -1.56,
       "unit_rate_before": 122.2254,
-      "unit_rate_after": 120.3144
+      "unit_rate_after": 120.3141
     },
     {
       "customer_id": "C3g",
@@ -10801,7 +10801,7 @@
       "mean_recent_margin_rate": 0.1078,
       "portfolio_premium_pct": -1.39,
       "unit_rate_before": 122.2254,
-      "unit_rate_after": 120.529
+      "unit_rate_after": 120.5287
     },
     {
       "customer_id": "C4",
@@ -10811,12 +10811,12 @@
         0.0321,
         0.1424,
         0.1189,
-        0.1364
+        0.1363
       ],
       "mean_recent_margin_rate": 0.1074,
       "portfolio_premium_pct": -1.37,
       "unit_rate_before": 111.6222,
-      "unit_rate_after": 110.0919
+      "unit_rate_after": 110.0917
     },
     {
       "customer_id": "C4g",
@@ -10840,13 +10840,13 @@
       "recent_margin_rates": [
         0.1424,
         0.1189,
-        0.1364,
+        0.1363,
         0.0752
       ],
       "mean_recent_margin_rate": 0.1182,
       "portfolio_premium_pct": -1.91,
       "unit_rate_before": 120.0972,
-      "unit_rate_after": 117.8034
+      "unit_rate_after": 117.8033
     },
     {
       "customer_id": "C1g",
@@ -10869,21 +10869,21 @@
       "term_start": "2017-12-31",
       "recent_margin_rates": [
         0.1189,
-        0.1364,
+        0.1363,
         0.0752,
         0.023
       ],
       "mean_recent_margin_rate": 0.0883,
       "portfolio_premium_pct": -0.42,
       "unit_rate_before": 120.0972,
-      "unit_rate_after": 119.5961
+      "unit_rate_after": 119.5962
     },
     {
       "customer_id": "C7",
       "commodity": "electricity",
       "term_start": "2017-12-31",
       "recent_margin_rates": [
-        0.1364,
+        0.1363,
         0.0752,
         0.023,
         -0.0881
@@ -11101,7 +11101,7 @@
       "mean_recent_margin_rate": 0.1056,
       "portfolio_premium_pct": -1.28,
       "unit_rate_before": 148.6801,
-      "unit_rate_after": 146.7791
+      "unit_rate_after": 146.7792
     },
     {
       "customer_id": "C_IC2",
@@ -11110,10 +11110,10 @@
       "recent_margin_rates": [
         0.0485,
         -0.5227,
-        0.0024,
+        0.002,
         -0.7097
       ],
-      "mean_recent_margin_rate": -0.2954,
+      "mean_recent_margin_rate": -0.2955,
       "portfolio_premium_pct": 15.0,
       "unit_rate_before": 134.5715,
       "unit_rate_after": 154.7572
@@ -11124,29 +11124,29 @@
       "term_start": "2019-03-02",
       "recent_margin_rates": [
         -0.5227,
-        0.0024,
+        0.002,
         -0.7097,
         0.4332
       ],
-      "mean_recent_margin_rate": -0.1992,
+      "mean_recent_margin_rate": -0.1993,
       "portfolio_premium_pct": 13.96,
       "unit_rate_before": 128.2242,
-      "unit_rate_after": 146.1224
+      "unit_rate_after": 146.1295
     },
     {
       "customer_id": "C2",
       "commodity": "electricity",
       "term_start": "2019-04-01",
       "recent_margin_rates": [
-        0.0024,
+        0.002,
         -0.7097,
         0.4332,
         0.426
       ],
-      "mean_recent_margin_rate": 0.038,
-      "portfolio_premium_pct": 2.1,
+      "mean_recent_margin_rate": 0.0379,
+      "portfolio_premium_pct": 2.11,
       "unit_rate_before": 148.3522,
-      "unit_rate_after": 151.4686
+      "unit_rate_after": 151.4763
     },
     {
       "customer_id": "C2g",
@@ -11174,9 +11174,9 @@
         0.1717
       ],
       "mean_recent_margin_rate": 0.0803,
-      "portfolio_premium_pct": -0.01,
+      "portfolio_premium_pct": -0.02,
       "unit_rate_before": 148.3522,
-      "unit_rate_after": 148.3306
+      "unit_rate_after": 148.3294
     },
     {
       "customer_id": "C8",
@@ -11236,7 +11236,7 @@
       "mean_recent_margin_rate": 0.0984,
       "portfolio_premium_pct": -0.92,
       "unit_rate_before": 127.0311,
-      "unit_rate_after": 125.8618
+      "unit_rate_after": 125.8613
     },
     {
       "customer_id": "C4",
@@ -11251,7 +11251,7 @@
       "mean_recent_margin_rate": 0.0831,
       "portfolio_premium_pct": -0.15,
       "unit_rate_before": 126.7152,
-      "unit_rate_after": 126.5196
+      "unit_rate_after": 126.5198
     },
     {
       "customer_id": "C4g",
@@ -11281,7 +11281,7 @@
       "mean_recent_margin_rate": 0.1094,
       "portfolio_premium_pct": -1.47,
       "unit_rate_before": 127.4365,
-      "unit_rate_after": 125.5634
+      "unit_rate_after": 125.5635
     },
     {
       "customer_id": "C1g",
@@ -13011,10 +13011,10 @@
   ],
   "per_cid_pnl": {
     "C1": {
-      "gross": 2741.5388797402284,
-      "capital": 18.681726956233454,
-      "net": 430.2886540000051,
-      "revenue": 4235.2398601101095
+      "gross": 2741.5761427035577,
+      "capital": 19.237681155736375,
+      "net": 429.7688410000028,
+      "revenue": 4235.277007577995
     },
     "C1g": {
       "gross": 1428.938528999997,
@@ -13023,22 +13023,22 @@
       "revenue": 2603.8938699999862
     },
     "C5": {
-      "gross": 9460.271452091323,
-      "capital": 78.03242626281238,
-      "net": 46.17224499999803,
-      "revenue": 15288.906959027934
+      "gross": 9460.403449728588,
+      "capital": 78.03328310113734,
+      "net": 46.302052999996846,
+      "revenue": 15289.038735130787
     },
     "C7": {
-      "gross": 10778.154039143381,
-      "capital": 139.92647866601015,
-      "net": -1317.4841339999866,
-      "revenue": 21776.553192599924
+      "gross": 10777.888986328453,
+      "capital": 139.9251162078232,
+      "net": -1317.742483999984,
+      "revenue": 21776.288957577664
     },
     "C2": {
-      "gross": 3400.767870261803,
-      "capital": 24.102899238555143,
-      "net": 711.2671819999932,
-      "revenue": 5108.104224780144
+      "gross": 3400.812671209687,
+      "capital": 24.767388217452343,
+      "net": 710.6466759999955,
+      "revenue": 5108.148699484729
     },
     "C2g": {
       "gross": 2248.0210809999885,
@@ -13047,22 +13047,22 @@
       "revenue": 4313.603417999973
     },
     "C6": {
-      "gross": 22409.0795799821,
-      "capital": 256.3494405708141,
-      "net": 3545.474599999996,
-      "revenue": 38927.586695301965
+      "gross": 22409.082524537916,
+      "capital": 264.8913173668699,
+      "net": 3536.9354209999947,
+      "revenue": 38927.5899386853
     },
     "C8": {
-      "gross": 12467.789367301808,
-      "capital": 135.2881579720127,
-      "net": 1514.2107190000188,
-      "revenue": 21705.33034434649
+      "gross": 12467.814939477626,
+      "capital": 135.2886428275007,
+      "net": 1514.2352290000204,
+      "revenue": 21705.355999955296
     },
     "C3": {
-      "gross": 2381.038942737408,
-      "capital": 13.495378341642168,
-      "net": 199.58160200000225,
-      "revenue": 3623.257427514921
+      "gross": 2381.0362671676908,
+      "capital": 14.777503237556495,
+      "net": 198.29690000000159,
+      "revenue": 3623.254732562252
     },
     "C3g": {
       "gross": 1550.9659789999932,
@@ -13071,16 +13071,16 @@
       "revenue": 3254.6207920000065
     },
     "C9": {
-      "gross": 12746.633861298793,
-      "capital": 129.5617904539999,
-      "net": 1532.453283000012,
-      "revenue": 20295.743114069
+      "gross": 12746.62275749373,
+      "capital": 131.81459229805176,
+      "net": 1530.1897310000122,
+      "revenue": 20295.73199574081
     },
     "C4": {
-      "gross": 3315.4656081982703,
-      "capital": 39.049629056705285,
-      "net": 137.43241299997578,
-      "revenue": 6280.874000830046
+      "gross": 3315.4653271451966,
+      "capital": 37.64393839324466,
+      "net": 138.8374249999735,
+      "revenue": 6280.873711185551
     },
     "C4g": {
       "gross": 1800.6222639999673,
@@ -13089,22 +13089,22 @@
       "revenue": 12044.148631999942
     },
     "C_IC1": {
-      "gross": 1937646.3189393436,
-      "capital": 18891.02877949675,
-      "net": 879536.6927239901,
-      "revenue": 3205007.0728108883
+      "gross": 1937665.2483647298,
+      "capital": 18891.065988268332,
+      "net": 879555.4902879897,
+      "revenue": 3205025.8786223354
     },
     "C_IC2": {
       "gross": 941358.3665701132,
-      "capital": 8750.962004867017,
-      "net": 452490.2118949927,
+      "capital": 8750.961927634244,
+      "net": 452490.21199899266,
       "revenue": 1566191.9379245082
     },
     "C_IC3": {
-      "gross": 1837807.6591936033,
-      "capital": 23134.711063659553,
-      "net": 106883.55235000083,
-      "revenue": 4675300.398586994
+      "gross": 1837807.6257893625,
+      "capital": 23350.386892985996,
+      "net": 106667.84321600088,
+      "revenue": 4675300.36539438
     },
     "C_IC3g": {
       "gross": 622647.0275739988,
@@ -13128,10 +13128,10 @@
   "per_cid_comm_pnl": {
     "C1": {
       "electricity": {
-        "gross": 2741.5388797402284,
-        "capital": 18.681726956233454,
-        "net": 430.2886540000051,
-        "revenue": 4235.2398601101095
+        "gross": 2741.5761427035577,
+        "capital": 19.237681155736375,
+        "net": 429.7688410000028,
+        "revenue": 4235.277007577995
       }
     },
     "C1g": {
@@ -13144,26 +13144,26 @@
     },
     "C5": {
       "electricity": {
-        "gross": 9460.271452091323,
-        "capital": 78.03242626281238,
-        "net": 46.17224499999803,
-        "revenue": 15288.906959027934
+        "gross": 9460.403449728588,
+        "capital": 78.03328310113734,
+        "net": 46.302052999996846,
+        "revenue": 15289.038735130787
       }
     },
     "C7": {
       "electricity": {
-        "gross": 10778.154039143381,
-        "capital": 139.92647866601015,
-        "net": -1317.4841339999866,
-        "revenue": 21776.553192599924
+        "gross": 10777.888986328453,
+        "capital": 139.9251162078232,
+        "net": -1317.742483999984,
+        "revenue": 21776.288957577664
       }
     },
     "C2": {
       "electricity": {
-        "gross": 3400.767870261803,
-        "capital": 24.102899238555143,
-        "net": 711.2671819999932,
-        "revenue": 5108.104224780144
+        "gross": 3400.812671209687,
+        "capital": 24.767388217452343,
+        "net": 710.6466759999955,
+        "revenue": 5108.148699484729
       }
     },
     "C2g": {
@@ -13176,26 +13176,26 @@
     },
     "C6": {
       "electricity": {
-        "gross": 22409.0795799821,
-        "capital": 256.3494405708141,
-        "net": 3545.474599999996,
-        "revenue": 38927.586695301965
+        "gross": 22409.082524537916,
+        "capital": 264.8913173668699,
+        "net": 3536.9354209999947,
+        "revenue": 38927.5899386853
       }
     },
     "C8": {
       "electricity": {
-        "gross": 12467.789367301808,
-        "capital": 135.2881579720127,
-        "net": 1514.2107190000188,
-        "revenue": 21705.33034434649
+        "gross": 12467.814939477626,
+        "capital": 135.2886428275007,
+        "net": 1514.2352290000204,
+        "revenue": 21705.355999955296
       }
     },
     "C3": {
       "electricity": {
-        "gross": 2381.038942737408,
-        "capital": 13.495378341642168,
-        "net": 199.58160200000225,
-        "revenue": 3623.257427514921
+        "gross": 2381.0362671676908,
+        "capital": 14.777503237556495,
+        "net": 198.29690000000159,
+        "revenue": 3623.254732562252
       }
     },
     "C3g": {
@@ -13208,18 +13208,18 @@
     },
     "C9": {
       "electricity": {
-        "gross": 12746.633861298793,
-        "capital": 129.5617904539999,
-        "net": 1532.453283000012,
-        "revenue": 20295.743114069
+        "gross": 12746.62275749373,
+        "capital": 131.81459229805176,
+        "net": 1530.1897310000122,
+        "revenue": 20295.73199574081
       }
     },
     "C4": {
       "electricity": {
-        "gross": 3315.4656081982703,
-        "capital": 39.049629056705285,
-        "net": 137.43241299997578,
-        "revenue": 6280.874000830046
+        "gross": 3315.4653271451966,
+        "capital": 37.64393839324466,
+        "net": 138.8374249999735,
+        "revenue": 6280.873711185551
       }
     },
     "C4g": {
@@ -13232,26 +13232,26 @@
     },
     "C_IC1": {
       "electricity": {
-        "gross": 1937646.3189393436,
-        "capital": 18891.02877949675,
-        "net": 879536.6927239901,
-        "revenue": 3205007.0728108883
+        "gross": 1937665.2483647298,
+        "capital": 18891.065988268332,
+        "net": 879555.4902879897,
+        "revenue": 3205025.8786223354
       }
     },
     "C_IC2": {
       "electricity": {
         "gross": 941358.3665701132,
-        "capital": 8750.962004867017,
-        "net": 452490.2118949927,
+        "capital": 8750.961927634244,
+        "net": 452490.21199899266,
         "revenue": 1566191.9379245082
       }
     },
     "C_IC3": {
       "electricity": {
-        "gross": 1837807.6591936033,
-        "capital": 23134.711063659553,
-        "net": 106883.55235000083,
-        "revenue": 4675300.398586994
+        "gross": 1837807.6257893625,
+        "capital": 23350.386892985996,
+        "net": 106667.84321600088,
+        "revenue": 4675300.36539438
       }
     },
     "C_IC3g": {
@@ -13812,141 +13812,141 @@
   "management_accounts": {
     "2016": {
       "income_statement": {
-        "revenue_gbp": 15499.703635591657,
-        "wholesale_cost_gbp": 3649.02258182792,
+        "revenue_gbp": 15499.70335771384,
+        "wholesale_cost_gbp": 3649.0225878185315,
         "non_commodity_cost_gbp": 3932.7775595332714,
-        "gross_margin_gbp": 7917.903494230466,
-        "capital_cost_gbp": 77.55683794362018,
+        "gross_margin_gbp": 7917.9032103620375,
+        "capital_cost_gbp": 86.43379620155387,
         "bad_debt_gbp": 233.31231149825922,
         "cost_to_serve_gbp": 0.0,
         "fixed_cost_gbp": 600.0,
         "acquisition_spend_gbp": 0.0,
         "total_opex_gbp": 833.3123114982592,
-        "net_margin_gbp": 7007.034344788587
+        "net_margin_gbp": 6998.157102662224
       },
       "balance_sheet": {
-        "cash_gbp": 2470630.5594920735,
-        "trade_receivables_gbp": 3012.695443929748,
-        "total_assets_gbp": 2473643.254936003,
+        "cash_gbp": 2470621.682475869,
+        "trade_receivables_gbp": 3012.695218007615,
+        "total_assets_gbp": 2473634.3776938766,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 7007.034344788587,
-        "total_equity_gbp": 2473643.2549360055,
-        "total_liabilities_and_equity_gbp": 2473643.2549360055,
+        "current_period_profit_gbp": 6998.157102662224,
+        "total_equity_gbp": 2473634.377693879,
+        "total_liabilities_and_equity_gbp": 2473634.377693879,
         "equation_holds": true
       }
     },
     "2017": {
       "income_statement": {
-        "revenue_gbp": 351275.3915639932,
-        "wholesale_cost_gbp": 112111.02855512591,
+        "revenue_gbp": 351275.3296357157,
+        "wholesale_cost_gbp": 112111.0289653973,
         "non_commodity_cost_gbp": 113544.26402240347,
-        "gross_margin_gbp": 125620.09898646378,
-        "capital_cost_gbp": 1272.6427456078532,
-        "bad_debt_gbp": 6296.5414404792555,
+        "gross_margin_gbp": 125620.03664791492,
+        "capital_cost_gbp": 1275.6571938186735,
+        "bad_debt_gbp": 6296.540325440612,
         "cost_to_serve_gbp": 0.0,
         "fixed_cost_gbp": 600.0,
         "acquisition_spend_gbp": 0.0,
-        "total_opex_gbp": 6896.5414404792555,
-        "net_margin_gbp": 117450.91480037667
+        "total_opex_gbp": 6896.540325440612,
+        "net_margin_gbp": 117447.83912865564
       },
       "balance_sheet": {
-        "cash_gbp": 2558822.4488623883,
-        "trade_receivables_gbp": 32271.720874190796,
-        "total_assets_gbp": 2591094.169736579,
+        "cash_gbp": 2558810.5036503156,
+        "trade_receivables_gbp": 32271.713172260672,
+        "total_assets_gbp": 2591082.2168225762,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 124457.94914516485,
-        "total_equity_gbp": 2591094.1697363816,
-        "total_liabilities_and_equity_gbp": 2591094.1697363816,
+        "current_period_profit_gbp": 124445.99623131806,
+        "total_equity_gbp": 2591082.216822535,
+        "total_liabilities_and_equity_gbp": 2591082.216822535,
         "equation_holds": true
       }
     },
     "2018": {
       "income_statement": {
-        "revenue_gbp": 610257.8212368415,
-        "wholesale_cost_gbp": 174599.1998241273,
+        "revenue_gbp": 610257.7996153351,
+        "wholesale_cost_gbp": 174599.19983789264,
         "non_commodity_cost_gbp": 165096.5031080515,
-        "gross_margin_gbp": 270562.1183046627,
-        "capital_cost_gbp": 1552.956185746328,
-        "bad_debt_gbp": 11963.388369027129,
+        "gross_margin_gbp": 270562.0966693909,
+        "capital_cost_gbp": 1552.9560444905674,
+        "bad_debt_gbp": 11963.387627524688,
         "cost_to_serve_gbp": 0.0,
         "fixed_cost_gbp": 600.0,
         "acquisition_spend_gbp": 0.0,
-        "total_opex_gbp": 12563.388369027129,
-        "net_margin_gbp": 256445.77374988922
+        "total_opex_gbp": 12563.387627524688,
+        "net_margin_gbp": 256445.75299737568
       },
       "balance_sheet": {
-        "cash_gbp": 2791851.3986238483,
-        "trade_receivables_gbp": 55688.544863048475,
-        "total_assets_gbp": 2847539.943486897,
+        "cash_gbp": 2791839.4286606954,
+        "trade_receivables_gbp": 55688.54115964251,
+        "total_assets_gbp": 2847527.969820338,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 380903.7228950566,
-        "total_equity_gbp": 2847539.9434862733,
-        "total_liabilities_and_equity_gbp": 2847539.9434862733,
+        "current_period_profit_gbp": 380891.7492286939,
+        "total_equity_gbp": 2847527.969819911,
+        "total_liabilities_and_equity_gbp": 2847527.969819911,
         "equation_holds": true
       }
     },
     "2019": {
       "income_statement": {
-        "revenue_gbp": 1658728.0209002122,
-        "wholesale_cost_gbp": 498607.14597334305,
+        "revenue_gbp": 1658743.7549243064,
+        "wholesale_cost_gbp": 498607.0480202217,
         "non_commodity_cost_gbp": 446575.83279129124,
-        "gross_margin_gbp": 713545.0421355781,
-        "capital_cost_gbp": 11326.676070172656,
-        "bad_debt_gbp": 31033.092342363452,
+        "gross_margin_gbp": 713560.8741127935,
+        "capital_cost_gbp": 11542.383170071034,
+        "bad_debt_gbp": 31033.35694124407,
         "cost_to_serve_gbp": 0.0,
         "fixed_cost_gbp": 600.0,
         "acquisition_spend_gbp": 0.0,
-        "total_opex_gbp": 31633.092342363452,
-        "net_margin_gbp": 670585.273723042
+        "total_opex_gbp": 31633.35694124407,
+        "net_margin_gbp": 670385.1340014783
       },
       "balance_sheet": {
-        "cash_gbp": 3360356.137437511,
-        "trade_receivables_gbp": 157769.07977271127,
-        "total_assets_gbp": 3518125.217210222,
+        "cash_gbp": 3360142.3220814643,
+        "trade_receivables_gbp": 157770.7817420317,
+        "total_assets_gbp": 3517913.103823496,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 1051488.9966181084,
-        "total_equity_gbp": 3518125.217209325,
-        "total_liabilities_and_equity_gbp": 3518125.217209325,
+        "current_period_profit_gbp": 1051276.8832301793,
+        "total_equity_gbp": 3517913.103821396,
+        "total_liabilities_and_equity_gbp": 3517913.103821396,
         "equation_holds": true
       }
     },
     "2020": {
       "income_statement": {
-        "revenue_gbp": 1871203.417338975,
-        "wholesale_cost_gbp": 433441.22921266855,
+        "revenue_gbp": 1871206.5037205769,
+        "wholesale_cost_gbp": 433441.20382759837,
         "non_commodity_cost_gbp": 633319.1305943932,
-        "gross_margin_gbp": 804443.0575319133,
-        "capital_cost_gbp": 7382.422911257322,
-        "bad_debt_gbp": 38528.19597277314,
+        "gross_margin_gbp": 804446.1692985853,
+        "capital_cost_gbp": 7382.4290423054545,
+        "bad_debt_gbp": 38528.32646742715,
         "cost_to_serve_gbp": 0.0,
         "fixed_cost_gbp": 600.0,
         "acquisition_spend_gbp": 150.0,
-        "total_opex_gbp": 39278.19597277314,
-        "net_margin_gbp": 757782.4386478828
+        "total_opex_gbp": 39278.32646742715,
+        "net_margin_gbp": 757785.4137888526
       },
       "balance_sheet": {
-        "cash_gbp": 4092359.7935488694,
-        "trade_receivables_gbp": 183547.86231123284,
-        "total_assets_gbp": 4275907.655860102,
+        "cash_gbp": 4092150.6582042268,
+        "trade_receivables_gbp": 183547.85940826125,
+        "total_assets_gbp": 4275698.517612488,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 1809271.435266025,
-        "total_equity_gbp": 4275907.655857242,
-        "total_liabilities_and_equity_gbp": 4275907.655857242,
+        "current_period_profit_gbp": 1809062.2970190695,
+        "total_equity_gbp": 4275698.517610286,
+        "total_liabilities_and_equity_gbp": 4275698.517610286,
         "equation_holds": true
       }
     },
@@ -13957,24 +13957,24 @@
         "non_commodity_cost_gbp": 686512.3816572324,
         "gross_margin_gbp": 782511.5312998596,
         "capital_cost_gbp": 15947.244172170089,
-        "bad_debt_gbp": 47511.11130733727,
+        "bad_debt_gbp": 47511.111193248165,
         "cost_to_serve_gbp": 0.0,
         "fixed_cost_gbp": 600.0,
         "acquisition_spend_gbp": 400.0,
-        "total_opex_gbp": 48511.11130733727,
-        "net_margin_gbp": 718053.1758203523
+        "total_opex_gbp": 48511.111193248165,
+        "net_margin_gbp": 718053.1759344414
       },
       "balance_sheet": {
-        "cash_gbp": 4695717.601933528,
-        "trade_receivables_gbp": 298243.2297432488,
-        "total_assets_gbp": 4993960.8316767765,
+        "cash_gbp": 4695508.463799998,
+        "trade_receivables_gbp": 298243.22974325065,
+        "total_assets_gbp": 4993751.693543249,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 2527324.611086271,
-        "total_equity_gbp": 4993960.831677487,
-        "total_liabilities_and_equity_gbp": 4993960.831677487,
+        "current_period_profit_gbp": 2527115.4729534,
+        "total_equity_gbp": 4993751.693544617,
+        "total_liabilities_and_equity_gbp": 4993751.693544617,
         "equation_holds": true
       }
     },
@@ -13993,16 +13993,16 @@
         "net_margin_gbp": 932533.9788685547
       },
       "balance_sheet": {
-        "cash_gbp": 5486921.02291913,
-        "trade_receivables_gbp": 439573.78761481494,
-        "total_assets_gbp": 5926494.8105339445,
+        "cash_gbp": 5486711.8847856,
+        "trade_receivables_gbp": 439573.78761481866,
+        "total_assets_gbp": 5926285.672400419,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 3459858.5899548917,
-        "total_equity_gbp": 5926494.8105461085,
-        "total_liabilities_and_equity_gbp": 5926494.8105461085,
+        "current_period_profit_gbp": 3459649.451822021,
+        "total_equity_gbp": 5926285.672413237,
+        "total_liabilities_and_equity_gbp": 5926285.672413237,
         "equation_holds": true
       }
     },
@@ -14021,16 +14021,16 @@
         "net_margin_gbp": 802540.4280327434
       },
       "balance_sheet": {
-        "cash_gbp": 6422236.951825561,
-        "trade_receivables_gbp": 306798.28672536835,
-        "total_assets_gbp": 6729035.238550929,
+        "cash_gbp": 6422027.813692031,
+        "trade_receivables_gbp": 306798.2867253721,
+        "total_assets_gbp": 6728826.1004174035,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 4262399.017987836,
-        "total_equity_gbp": 6729035.238579053,
-        "total_liabilities_and_equity_gbp": 6729035.238579053,
+        "current_period_profit_gbp": 4262189.879854967,
+        "total_equity_gbp": 6728826.100446183,
+        "total_liabilities_and_equity_gbp": 6728826.100446183,
         "equation_holds": true
       }
     },
@@ -14049,16 +14049,16 @@
         "net_margin_gbp": 1193383.3595145824
       },
       "balance_sheet": {
-        "cash_gbp": 7629346.505018095,
-        "trade_receivables_gbp": 293072.093055591,
-        "total_assets_gbp": 7922418.598073686,
+        "cash_gbp": 7629137.366884565,
+        "trade_receivables_gbp": 293072.0930555947,
+        "total_assets_gbp": 7922209.45994016,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 5455782.377502584,
-        "total_equity_gbp": 7922418.5980938,
-        "total_liabilities_and_equity_gbp": 7922418.5980938,
+        "current_period_profit_gbp": 5455573.2393697165,
+        "total_equity_gbp": 7922209.459960934,
+        "total_liabilities_and_equity_gbp": 7922209.459960934,
         "equation_holds": true
       }
     },
@@ -14077,16 +14077,16 @@
         "net_margin_gbp": 461206.17713475385
       },
       "balance_sheet": {
-        "cash_gbp": 8383624.775207551,
-        "trade_receivables_gbp": 0.0,
-        "total_assets_gbp": 8383624.775207551,
+        "cash_gbp": 8383415.637074022,
+        "trade_receivables_gbp": 3.725290298461914e-09,
+        "total_assets_gbp": 8383415.637074025,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 5916988.554637136,
-        "total_equity_gbp": 8383624.775228353,
-        "total_liabilities_and_equity_gbp": 8383624.775228353,
+        "current_period_profit_gbp": 5916779.416504268,
+        "total_equity_gbp": 8383415.637095485,
+        "total_liabilities_and_equity_gbp": 8383415.637095485,
         "equation_holds": true
       }
     }
