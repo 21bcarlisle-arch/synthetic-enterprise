@@ -1,12 +1,12 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T20:52:25Z
+Last updated: 2026-06-29T21:19:57Z
 
 ## Current state
 
-- **Phase:** V complete (ToU Migration Scenario) -- T+U+V shipped -- T+U shipped this session
-- **Tests passing:** 4,990 (all green)
-- **Python modules:** 325+
+- **Phase:** W complete (Gas Boiler Daily HDD Shape) -- T+U+V+W shipped this session
+- **Tests passing:** 5,003 (all green)
+- **Python modules:** 328+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,172
 
@@ -41,8 +41,8 @@ Last updated: 2026-06-29T20:52:25Z
 
 → Full history: docs/PROJECT_OVERVIEW.md | Report: docs/reports/ANNUAL_REPORT.md
 
-**Latest simulation results (2016–2025)** — auto-processed (445s / 7 min):
-- Net margin: £6,239,957.41 | Gross: £6,476,625.78 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,808 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £6,142,208.62 | Net after CTS: £6,371,510
+**Latest simulation results (2016–2025)** — auto-processed (484s / 8 min):
+- Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
+- Treasury: £2,466,636 → £3,709,973 | 37 committee interventions | 1531 bills issued
+- Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
