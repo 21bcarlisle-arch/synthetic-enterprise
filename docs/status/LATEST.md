@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T13:06:52Z
+Last updated: 2026-06-29T13:10:58Z
 
 ## Current state
 
-- **Phase:** I complete (ASHP Seasonal Electricity Shape — HDD-Weighted)
-- **Tests passing:** 4,736 (all green)
+- **Phase:** J complete (Customer Profitability Register)
+- **Tests passing:** 4,761 (all green)
 - **Python modules:** 292+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,328,363

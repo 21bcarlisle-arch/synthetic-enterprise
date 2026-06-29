@@ -1,90 +1,126 @@
-"""Customer-level profitability tracking from observable billing records — Phase 44a.
+"""Customer Profitability Register.
 
-The company observes its own billing records: revenue charged, wholesale cost (from
-hedge P&L decomposition), policy and network costs billed. From these it can estimate
-whether each customer's last term was profitable.
+Computes per-customer annual contribution margin from observable data:
+  contribution = revenue - wholesale_cost - levies - operating_costs
 
-Epistemic constraint: uses only company-observable accounting data — records the
-company itself produced (bills sent, costs it paid). No simulation internals.
+This is the company's view of which customers are net-positive or net-negative.
+Flat margin pricing makes some customers net-negative when their cost-to-serve
+(volume-driven levies + operating costs) exceeds the margin earned on their tariff.
+
+All inputs are company-observable: billing records, tariff rates, forward costs,
+CTS breakdowns. No simulation internals used.
 """
-
 from __future__ import annotations
 
-from datetime import date
-
-# Uplift applied to renewal rate when prior-term net margin was negative.
-# Set at £3/MWh — enough to move a marginally-negative customer to breakeven,
-# with £1/MWh headroom. Smaller than the £2/MWh base target so large chronic
-# losers still churn (the market rejects over-priced customers naturally).
-NET_NEGATIVE_UPLIFT_GBP_PER_MWH = 3.0
-
-# Minimum prior-term records needed to make a profitability judgement.
-# If fewer records exist (e.g. first term), return no adjustment.
-MIN_RECORDS_FOR_JUDGEMENT = 48  # at least 1 month of HH data
+from dataclasses import dataclass
+from typing import Optional
 
 
-def estimate_prior_term_net_margin(
-    customer_id: str,
-    term_start: str,
-    all_records: list[dict],
-) -> float | None:
-    """Estimate net margin (£) the company earned from this customer in their most
-    recent completed term before term_start.
+@dataclass(frozen=True)
+class CustomerProfitabilityRecord:
+    """Annual profitability for one customer account."""
+    account_id: str
+    year: int
+    annual_revenue_gbp: float
+    annual_wholesale_cost_gbp: float
+    annual_levy_cost_gbp: float
+    annual_operating_cost_gbp: float
 
-    Uses only company-observable fields present in settlement records:
-    - revenue_gbp
-    - wholesale_cost_gbp (or can be derived from hedge_pnl_gbp + implied cost)
-    - policy_cost_gbp + network_cost_gbp (passed through)
-    - capital_cost_gbp
-    - net_margin_gbp (directly observable — the company knows its own books)
+    @property
+    def gross_margin_gbp(self) -> float:
+        return round(self.annual_revenue_gbp - self.annual_wholesale_cost_gbp, 2)
 
-    Returns None if insufficient history (first term or < MIN_RECORDS_FOR_JUDGEMENT records).
-    Returns total net margin £ over the most recent prior term.
+    @property
+    def net_contribution_gbp(self) -> float:
+        return round(
+            self.annual_revenue_gbp
+            - self.annual_wholesale_cost_gbp
+            - self.annual_levy_cost_gbp
+            - self.annual_operating_cost_gbp,
+            2,
+        )
+
+    @property
+    def is_net_negative(self) -> bool:
+        return self.net_contribution_gbp < 0.0
+
+    @property
+    def gross_margin_pct(self) -> float:
+        if self.annual_revenue_gbp == 0:
+            return 0.0
+        return round(self.gross_margin_gbp / self.annual_revenue_gbp * 100, 2)
+
+    @property
+    def net_margin_pct(self) -> float:
+        if self.annual_revenue_gbp == 0:
+            return 0.0
+        return round(self.net_contribution_gbp / self.annual_revenue_gbp * 100, 2)
+
+
+class CustomerProfitabilityBook:
+    """Register of per-customer annual profitability assessments.
+
+    The company records a CustomerProfitabilityRecord for each account/year
+    as billing and cost-to-serve data becomes available.
     """
-    prior_records = [
-        r for r in all_records
-        if r.get("customer_id") == customer_id
-        and r.get("settlement_date", "") < term_start
-        and r.get("commodity") == "electricity"
-        and "net_margin_gbp" in r
-    ]
-    if len(prior_records) < MIN_RECORDS_FOR_JUDGEMENT:
-        return None
 
-    # Find the most recent term_start in the prior records
-    terms_seen: dict[str, list[dict]] = {}
-    for r in prior_records:
-        ts = r.get("term_start", r.get("settlement_date", "")[:10])
-        terms_seen.setdefault(ts, []).append(r)
+    def __init__(self) -> None:
+        self._records: list[CustomerProfitabilityRecord] = []
 
-    if not terms_seen:
-        return None
+    def record(self, rec: CustomerProfitabilityRecord) -> CustomerProfitabilityRecord:
+        self._records.append(rec)
+        return rec
 
-    most_recent_term = max(terms_seen.keys())
-    term_records = terms_seen[most_recent_term]
+    def latest_for(self, account_id: str) -> Optional[CustomerProfitabilityRecord]:
+        matches = [r for r in self._records if r.account_id == account_id]
+        return max(matches, key=lambda r: r.year) if matches else None
 
-    if len(term_records) < MIN_RECORDS_FOR_JUDGEMENT:
-        return None
+    def history_for(self, account_id: str) -> list[CustomerProfitabilityRecord]:
+        return sorted(
+            [r for r in self._records if r.account_id == account_id],
+            key=lambda r: r.year,
+        )
 
-    return sum(r["net_margin_gbp"] for r in term_records)
+    def net_negative_accounts(self, year: Optional[int] = None) -> list[str]:
+        records = self._for_year(year)
+        return sorted({r.account_id for r in records if r.is_net_negative})
 
+    def top_n_by_contribution(self, n: int = 5, year: Optional[int] = None) -> list[CustomerProfitabilityRecord]:
+        records = self._for_year(year)
+        seen: dict[str, CustomerProfitabilityRecord] = {}
+        for r in records:
+            if r.account_id not in seen or r.year > seen[r.account_id].year:
+                seen[r.account_id] = r
+        return sorted(seen.values(), key=lambda r: r.net_contribution_gbp, reverse=True)[:n]
 
-def compute_profitability_uplift(
-    customer_id: str,
-    term_start: str,
-    all_records: list[dict],
-) -> float:
-    """Return a unit rate uplift (£/MWh) for renewal pricing based on prior-term P&L.
+    def total_net_contribution_gbp(self, year: Optional[int] = None) -> float:
+        records = self._for_year(year)
+        return round(sum(r.net_contribution_gbp for r in records), 2)
 
-    Returns NET_NEGATIVE_UPLIFT_GBP_PER_MWH if the prior term was net-negative,
-    0.0 otherwise (including when there's insufficient history).
+    def net_negative_rate_pct(self, year: Optional[int] = None) -> float:
+        records = self._for_year(year)
+        if not records:
+            return 0.0
+        net_neg = sum(1 for r in records if r.is_net_negative)
+        return round(net_neg / len(records) * 100, 2)
 
-    A real supplier's commercial team would identify loss-making accounts and
-    quote them a higher renewal rate — or decline to retain them and let them churn.
-    The churn model will handle the latter outcome: a higher rate increases churn
-    probability, naturally filtering out price-sensitive customers.
-    """
-    prior_net = estimate_prior_term_net_margin(customer_id, term_start, all_records)
-    if prior_net is None:
-        return 0.0
-    return NET_NEGATIVE_UPLIFT_GBP_PER_MWH if prior_net < 0.0 else 0.0
+    def profitability_summary(self, year: Optional[int] = None) -> dict:
+        records = self._for_year(year)
+        if not records:
+            return {"accounts_assessed": 0}
+        net_neg = [r for r in records if r.is_net_negative]
+        total_rev = sum(r.annual_revenue_gbp for r in records)
+        total_net = sum(r.net_contribution_gbp for r in records)
+        return {
+            "accounts_assessed": len(records),
+            "net_negative_count": len(net_neg),
+            "net_negative_rate_pct": self.net_negative_rate_pct(year),
+            "total_net_contribution_gbp": round(total_net, 2),
+            "total_revenue_gbp": round(total_rev, 2),
+            "portfolio_net_margin_pct": round(total_net / total_rev * 100, 2) if total_rev else 0.0,
+        }
+
+    def _for_year(self, year: Optional[int]) -> list[CustomerProfitabilityRecord]:
+        if year is None:
+            return list(self._records)
+        return [r for r in self._records if r.year == year]

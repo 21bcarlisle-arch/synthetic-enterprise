@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-29. 400+ commits. 4,736 tests passing. Codebase: ~43,600 lines across 320+ Python modules.*
+*Last updated: 2026-06-29. 400+ commits. 4,761 tests passing. Codebase: ~43,800 lines across 321+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase J (2026-06-29):** Customer Profitability Register -- 25 new tests (4,761 total). company/crm/customer_profitability.py: CustomerProfitabilityRecord (frozen; gross_margin_gbp/net_contribution_gbp/is_net_negative/gross_margin_pct/net_margin_pct), CustomerProfitabilityBook (record/latest_for/history_for/net_negative_accounts/top_n_by_contribution/total_net_contribution_gbp/net_negative_rate_pct/profitability_summary). Observable inputs only: annual_revenue_gbp/wholesale_cost_gbp/levy_cost_gbp/operating_cost_gbp. Test includes ASHP-customer-drives-net-negative scenario: 8,600 kWh @ standard tariff, volume-driven levies (CM/CfD/RO/BSUoS) exceed margin. Addresses CLAUDE.md "flat margin makes some customers net-negative" concern. Connects to cost_to_serve (Ph294), clv_calculator, dual_fuel_account (Ph331).
 **Phase I (2026-06-29):** ASHP Seasonal Electricity Shape (HDD-Weighted) -- 10 new tests (4,736 total). simulation/run_phase2b.py: _weather_adjusted_shape_fn Phase G flat ASHP adder replaced with HDD-weighted seasonal profile. 70% of ASHP annual kWh scaled by daily HDD / REFERENCE_MONTHLY_HDD sum (same basis as gas boiler gas consumption); 30% DHW component flat year-round. Uses existing get_hdd() and REFERENCE_MONTHLY_HDD from sim/weather_hdd.py. Annual total conserved (~5,500 kWh over a reference year, within 3%). In warm 2020 actual HDD ~81% of reference, giving ~4,800 kWh -- correct weather-responsive behaviour. Winter peak ~2x flat-average daily load; July trough ~0.03x flat-average. First time ASHP electricity demand is weather-responsive. Replaces Phase G comment "first approximation".
 **Phase H (2026-06-29):** Electricity EAC Multiplier at Term Signing -- 12 new tests (4,726 total). simulation/run_phase2b.py: _company_eac_estimate() gains base_eac_override kwarg (falls back to it on first term, ignores on renewal terms where billing history is used). At electricity term signing: eac_multiplier_for_date() called on household_demand_register, declared EAC multiplied by EPC*(1+ev_fraction+ashp_fraction)*(1-solar_fraction), result used as override. EV customers: first-term EAC correctly higher; solar customers: correctly lower; ASHP customers: matches Phase G settlement uplift. No double-counting on renewal terms (billing history already reflects actual consumption). Mirrors Phase D gas_eac_multiplier_for_date wiring. Tests: first-term uses override, renewal-term ignores override, EV uplift, solar reduction, ASHP >1, solar < no-solar, adjusted-base identity.
 **Phase G (2026-06-29):** ASHP Electricity Settlement Wiring -- 12 new tests (4,714 total). simulation/household.py: ASHP_BASE_ELECTRICITY_KWH=5_500.0 module-level constant. simulation/run_phase2b.py: _weather_adjusted_shape_fn gains Phase G block after EPC multiplier: household_at_date() for date + ashp_annual_kwh()/365.25/48 per half-hour, additive flat load for heat pump homes. Phase F built eac_multiplier_for_date() but never called it in settlement (eac_multiplier_for_date has 0 production call sites). Gas side (gas_eac_multiplier_for_date, Phase D) was wired; electricity side was not. Phase G closes the gap: from ASHP install date, demand shape +5,500 kWh/yr + gas AQ -88% (Phase D). Tests: uplift amount ≈5,500 kWh/yr; uplift absent before install date; EPC + ASHP independent; district heat zero uplift; I&C zero uplift; ground-source same as air-source; pre/post timing via life event injection.
@@ -4043,7 +4044,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 318+ Python modules, ~43,100 lines
 - 400+ git commits
-- 4,736 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,761 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
