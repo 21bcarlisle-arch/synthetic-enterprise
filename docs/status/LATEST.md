@@ -1,6 +1,6 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T21:19:57Z
+Last updated: 2026-06-29T22:07:27Z
 
 ## Current state
 
@@ -8,15 +8,15 @@ Last updated: 2026-06-29T21:19:57Z
 - **Tests passing:** 5,003 (all green)
 - **Python modules:** 328+
 - **Company modules:** 230+
-- **Net position (latest sim run):** £1,243,172
+- **Net position (latest sim run):** £1,243,337
 
 ## Latest run figures (git 173b93c, 2026-06-29)
 
 | Metric | Value |
 |--------|-------|
 | Total Revenue | £14,137,721 |
-| Gross Margin | £6,462,858 |
-| Net Margin | £1,243,172 |
+| Gross Margin | £6,462,146 |
+| Net Margin | £1,243,337 |
 | Enterprise Value | £6,142,209 |
 | Administration Event | None |
 
@@ -41,8 +41,8 @@ Last updated: 2026-06-29T21:19:57Z
 
 → Full history: docs/PROJECT_OVERVIEW.md | Report: docs/reports/ANNUAL_REPORT.md
 
-**Latest simulation results (2016–2025)** — auto-processed (484s / 8 min):
-- Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,973 | 37 committee interventions | 1531 bills issued
-- Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
+**Latest simulation results (2016–2025)** — auto-processed (451s / 8 min):
+- Net margin: £6,239,957.41 | Gross: £6,476,625.78 | Capital: £236,668
+- Treasury: £2,466,636 → £3,709,808 | 38 committee interventions | 1531 bills issued
+- Enterprise value: £6,142,208.62 | Net after CTS: £6,371,510
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
