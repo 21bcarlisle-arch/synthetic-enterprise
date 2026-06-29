@@ -525,12 +525,18 @@ def _derive_eac_from_settlement(cid: str, all_records: list[dict]) -> float:
     return sum(r["consumption_kwh"] for r in recs) / total_days * 365.25
 
 
-def _company_eac_estimate(cid: str, term_start_str: str, all_records: list[dict]) -> float:
+def _company_eac_estimate(
+    cid: str, term_start_str: str, all_records: list[dict],
+    base_eac_override: float | None = None,
+) -> float:
     """Estimate customer annual consumption from observable prior-year billing records.
 
     Phase 23a: replaces SIM-internal EFFECTIVE_EAC_KWH lookup in company-layer decisions.
     The company observes kWh billed in the 12 months before the renewal date.
     Falls back to EFFECTIVE_EAC_KWH on the first term (no prior billing yet).
+
+    Phase H: base_eac_override replaces the EFFECTIVE_EAC_KWH fallback when provided.
+    Allows the caller to supply a household-model-adjusted base (EV/solar/ASHP multiplied).
     """
     from datetime import date as _date
     term_start = _date.fromisoformat(term_start_str)
@@ -542,7 +548,8 @@ def _company_eac_estimate(cid: str, term_start_str: str, all_records: list[dict]
         and r.get("consumption_kwh") is not None
         and year_ago <= _date.fromisoformat(r["settlement_date"]) < term_start
     )
-    return estimated if estimated > 0 else EFFECTIVE_EAC_KWH.get(cid, 0.0)
+    base = base_eac_override if (base_eac_override is not None) else EFFECTIVE_EAC_KWH.get(cid, 0.0)
+    return estimated if estimated > 0 else base
 
 
 def main(report_end: str | None = None, sim_interface=None):
@@ -1097,9 +1104,17 @@ def main(report_end: str | None = None, sim_interface=None):
 
         if commodity == "electricity":
             customer = get_customer(cid)
-            # Phase 25a: use calibrated EAC from prior billing records; falls back
-            # to declared EAC on first term (no billing history yet).
-            eac_kwh = _company_eac_estimate(cid, term_start_str, all_records)
+            # Phase H: adjust base EAC for EV/solar/ASHP at first term.
+            # Billing history on renewal terms already reflects actual consumption;
+            # the declared-EAC fallback needs the household multiplier.
+            if household_demand_register is not None:
+                _elec_mult = household_demand_register.eac_multiplier_for_date(cid, term_start_str)
+                _base_elec_eac = EFFECTIVE_EAC_KWH.get(cid, 0.0)
+                _adj_base_elec = max(1, round(_base_elec_eac * _elec_mult))
+            else:
+                _adj_base_elec = None
+            # Phase 25a/H: use billing records; falls back to household-adjusted declared EAC.
+            eac_kwh = _company_eac_estimate(cid, term_start_str, all_records, base_eac_override=_adj_base_elec)
             if is_hh_customer(customer):
                 shape_fn = hh_shape_fn(hh_consumption_by_customer[cid])
             else:

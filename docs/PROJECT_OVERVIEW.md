@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-29. 400+ commits. 4,714 tests passing. Codebase: ~43,400 lines across 319+ Python modules.*
+*Last updated: 2026-06-29. 400+ commits. 4,726 tests passing. Codebase: ~43,500 lines across 320+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase H (2026-06-29):** Electricity EAC Multiplier at Term Signing -- 12 new tests (4,726 total). simulation/run_phase2b.py: _company_eac_estimate() gains base_eac_override kwarg (falls back to it on first term, ignores on renewal terms where billing history is used). At electricity term signing: eac_multiplier_for_date() called on household_demand_register, declared EAC multiplied by EPC*(1+ev_fraction+ashp_fraction)*(1-solar_fraction), result used as override. EV customers: first-term EAC correctly higher; solar customers: correctly lower; ASHP customers: matches Phase G settlement uplift. No double-counting on renewal terms (billing history already reflects actual consumption). Mirrors Phase D gas_eac_multiplier_for_date wiring. Tests: first-term uses override, renewal-term ignores override, EV uplift, solar reduction, ASHP >1, solar < no-solar, adjusted-base identity.
 **Phase G (2026-06-29):** ASHP Electricity Settlement Wiring -- 12 new tests (4,714 total). simulation/household.py: ASHP_BASE_ELECTRICITY_KWH=5_500.0 module-level constant. simulation/run_phase2b.py: _weather_adjusted_shape_fn gains Phase G block after EPC multiplier: household_at_date() for date + ashp_annual_kwh()/365.25/48 per half-hour, additive flat load for heat pump homes. Phase F built eac_multiplier_for_date() but never called it in settlement (eac_multiplier_for_date has 0 production call sites). Gas side (gas_eac_multiplier_for_date, Phase D) was wired; electricity side was not. Phase G closes the gap: from ASHP install date, demand shape +5,500 kWh/yr + gas AQ -88% (Phase D). Tests: uplift amount ≈5,500 kWh/yr; uplift absent before install date; EPC + ASHP independent; district heat zero uplift; I&C zero uplift; ground-source same as air-source; pre/post timing via life event injection.
 **Phase F (2026-06-29):** Heat Pump Electricity Uplift -- 14 new tests (4,702 total). simulation/household.py: ashp_annual_kwh() -> 5,500 kWh/yr for ASHP homes (BEIS Electrification of Heat trial 2021-22; DESNZ 2023 Roadmap median 5,200 kWh/yr for pre-2000 stock; 5,500 kWh as calibrated midpoint for EPC C-D portfolio mix). simulation/household_demand.py: eac_multiplier_for_date() extended from EPC*(1+EV)*(1-solar) to EPC*(1+EV+ASHP)*(1-solar); _cid_hash() replaces hash(cid) with deterministic md5-based hash (fixes PYTHONHASHSEED non-reproducibility). Tests in test_phase_c/d_*.py updated for new invariant (non-increasing rather than stable). Fidelity: from ASHP install date, electricity EAC rises +5,500 kWh AND gas AQ drops to 12% residual (Phase D) — first time single heat_pump_installed life event produces correct dual-fuel effects. Connects to household.py (A), life_events.py (B), household_demand.py (C/D/E), gas_settlement.py.
 
@@ -4041,7 +4042,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 318+ Python modules, ~43,100 lines
 - 400+ git commits
-- 4,714 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,726 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

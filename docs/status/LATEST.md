@@ -1,14 +1,14 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T12:37:57Z
+Last updated: 2026-06-29T12:53:59Z
 
 ## Current state
 
-- **Phase:** G complete (ASHP Electricity Settlement Wiring)
-- **Tests passing:** 4,714 (all green)
-- **Python modules:** 291+
+- **Phase:** H complete (Electricity EAC Multiplier at Term Signing)
+- **Tests passing:** 4,726 (all green)
+- **Python modules:** 292+
 - **Company modules:** 230+
-- **Net position (latest sim run):** £1,328,301
+- **Net position (latest sim run):** £1,328,363
 
 ## Phase 300 milestone summary
 
