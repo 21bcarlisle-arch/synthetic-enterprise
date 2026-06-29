@@ -1,9 +1,16 @@
 Project Status
 
 Last updated: 2026-06-29T21:15:24Z
-Current phase: Phase W COMPLETE (2026-06-29). 5,003 tests passing.
+Current phase: Phase X COMPLETE (2026-06-29). 5,028 tests passing.
 
 Current state:
+
+Phase X (2026-06-29): ToU Product Launch Decision Engine
+  company/pricing/tou_product_launch.py: LaunchReadinessSignal (LAUNCH/HOLD/MONITOR).
+  ToUProductLaunchBook.assess() integrates CrossSubsidyRegister + year + total_customers.
+  HOLD when EV cross-subsidy > £500 threshold. MONITOR when EV penetration < 5%.
+  readiness_trend() tracks EV penetration trajectory. years_until_viable() extrapolates.
+  Completes T-U-V-X ToU analytics chain. 25 new tests (5,028 total).
 
 Phase W (2026-06-29): Gas Boiler Daily HDD Shape
   simulation/gas_settlement.py: resi/SME gas uses per-day HDD-weighted shape.
@@ -37,9 +44,7 @@ Five hollow gaps: all closed.
   4. HH data path: CLOSED (Phase 6a)
   5. Reporting: CLOSED (Phase 5a/5b)
 
-Next: Phase X -- ToU Product Launch Decision Engine
-  Company decides whether to launch ToU given EV penetration, cross-subsidy exposure,
-  and migration risk. Completes T-V analytics to decision loop.
+Next: Phase Y -- TBD (ToU chain complete; next gap TBD)
 
 5,003 tests passing.
 

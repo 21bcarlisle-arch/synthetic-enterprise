@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T22:09:01Z
+Last updated: 2026-06-29T22:27:58Z
 
 ## Current state
 
-- **Phase:** W complete (Gas Boiler Daily HDD Shape) -- T+U+V+W shipped this session
-- **Tests passing:** 5,003 (all green)
+- **Phase:** X complete (ToU Product Launch Decision Engine) -- T+U+V+W+X shipped this session
+- **Tests passing:** 5,028 (all green)
 - **Python modules:** 328+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,337

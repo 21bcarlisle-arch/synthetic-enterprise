@@ -1,5 +1,10 @@
-Phase U: EV Cross-Subsidy Register
+Phase X: ToU Product Launch Decision Engine
 
 Status: COMPLETE 2026-06-29
-See: company/pricing/ev_cross_subsidy.py
-16 new tests (4,974 total)
+See: company/pricing/tou_product_launch.py
+25 new tests (5,028 total)
+
+Completes the T-U-V-X ToU analytics chain.
+T=economics, U=cross-subsidy register, V=migration scenario, X=board decision.
+
+Next phase (Y) TBD.

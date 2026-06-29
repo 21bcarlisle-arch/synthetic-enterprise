@@ -105,16 +105,32 @@ class TestGasCustomerMapping:
 
 
 class TestWeatherAdjustedGasSettlement:
-    def test_warm_factor_reduces_consumption(self):
+    def test_warm_factor_reduces_consumption_ic(self):
         records_normal = run_gas_term(
-            "C1g", "2020-01-01", "2020-02-01",
-            aq_kwh=12000, unit_rate_gbp_mwh=30.0,
+            "C_IC3g", "2020-01-01", "2020-02-01",
+            aq_kwh=120000, unit_rate_gbp_mwh=30.0,
             hedge_fraction=0.0, forward_price=30.0,
             monthly_cost_of_capital_gbp=1.0,
             gas_price_records=_fake_gas_records("2019-12-01", "2020-03-01"),
+            segment="I&C",
             weather_factor=1.0,
         )
         records_warm = run_gas_term(
+            "C_IC3g", "2020-01-01", "2020-02-01",
+            aq_kwh=120000, unit_rate_gbp_mwh=30.0,
+            hedge_fraction=0.0, forward_price=30.0,
+            monthly_cost_of_capital_gbp=1.0,
+            gas_price_records=_fake_gas_records("2019-12-01", "2020-03-01"),
+            segment="I&C",
+            weather_factor=0.8,
+        )
+        normal_kwh = sum(r["daily_kwh"] for r in records_normal)
+        warm_kwh = sum(r["daily_kwh"] for r in records_warm)
+        assert warm_kwh < normal_kwh, "Warm weather factor should reduce I&C consumption"
+        assert abs(warm_kwh / normal_kwh - 0.8) < 0.001, "Factor 0.8 gives exactly 80% I&C consumption"
+
+    def test_resi_consumption_uses_hdd_not_weather_factor(self):
+        records_wf08 = run_gas_term(
             "C1g", "2020-01-01", "2020-02-01",
             aq_kwh=12000, unit_rate_gbp_mwh=30.0,
             hedge_fraction=0.0, forward_price=30.0,
@@ -122,10 +138,17 @@ class TestWeatherAdjustedGasSettlement:
             gas_price_records=_fake_gas_records("2019-12-01", "2020-03-01"),
             weather_factor=0.8,
         )
-        normal_kwh = sum(r["daily_kwh"] for r in records_normal)
-        warm_kwh = sum(r["daily_kwh"] for r in records_warm)
-        assert warm_kwh < normal_kwh, "Warm weather factor should reduce consumption"
-        assert abs(warm_kwh / normal_kwh - 0.8) < 0.001, "Factor 0.8 should give exactly 80% consumption"
+        records_wf10 = run_gas_term(
+            "C1g", "2020-01-01", "2020-02-01",
+            aq_kwh=12000, unit_rate_gbp_mwh=30.0,
+            hedge_fraction=0.0, forward_price=30.0,
+            monthly_cost_of_capital_gbp=1.0,
+            gas_price_records=_fake_gas_records("2019-12-01", "2020-03-01"),
+            weather_factor=1.0,
+        )
+        kwh_wf08 = sum(r["daily_kwh"] for r in records_wf08)
+        kwh_wf10 = sum(r["daily_kwh"] for r in records_wf10)
+        assert abs(kwh_wf08 - kwh_wf10) < 0.01, "Resi gas ignores weather_factor; uses HDD shape"
 
     def test_weather_factor_in_record(self):
         records = run_gas_term(

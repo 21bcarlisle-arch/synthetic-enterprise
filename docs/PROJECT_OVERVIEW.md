@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase X (2026-06-29):** ToU Product Launch Decision Engine -- 25 new tests (5,028 total). company/pricing/tou_product_launch.py (new): LaunchReadinessSignal (LAUNCH/HOLD/MONITOR); ToULaunchThreshold (default_for: min 5% EV penetration, £500 max margin loss); ToULaunchAssessment (frozen; ev_penetration_pct/margin_at_risk_gbp/is_launch_viable/is_market_ready/signal/worst_case_margin_delta_gbp); ToUProductLaunchBook (assess/launch_history/readiness_trend/years_until_viable/launch_summary). Signal logic: MONITOR when EV penetration < threshold; HOLD when margin-at-risk > max loss; LAUNCH otherwise. Key finding: for EV-heavy portfolio with high cross-subsidy, HOLD is board recommendation (toU launch would cost more than the at-risk subsidy is worth). years_until_viable() extrapolates EV penetration trajectory to estimate when ToU becomes viable product. Also: test_warm_factor_reduces_consumption → test_warm_factor_reduces_consumption_ic + test_resi_consumption_uses_hdd_not_weather_factor (Phase W test fix: resi now uses HDD not weather_factor). Completes T-U-V-X analytics chain.
 **Phase W (2026-06-29):** Gas Boiler Daily HDD Shape -- 13 new tests (5,003 total). simulation/gas_settlement.py: replaces static GAS_CONSUMPTION_MONTHLY_PROFILE × term-level weather_factor for resi/SME with per-day HDD-weighted shape (_GAS_BOILER_HEATING_FRACTION=0.70, _HDD_REF_ANNUAL from sim.weather_hdd). Daily heating = AQ × 0.70 × (hdd_today / hdd_ref_annual); DHW flat = AQ × 0.30 / 365. I&C keeps monthly profile (Phase 60). run_phase2b.py: removes weather_factor_for_term computation (was term-level scalar, now internal to settlement). Mirrors Phase I ASHP electricity pattern exactly. Annual total conserved with reference HDD; actual cold years add heating demand. Three existing tests updated: test_gas_seasonality.py, test_ic_gas_profile.py, test_phase30b_gas_policy_costs.py. Closes last major settlement accuracy gap: gas consumption now responds to daily weather, not just monthly averages.
 **Phase V (2026-06-29):** ToU Migration Impact Scenario -- 16 new tests (4,990 total). company/pricing/tou_migration_scenario.py (new): MigrationScenario (frozen; migrated_count/retained_count/baseline_margin_gbp/post_migration_margin_gbp/margin_delta_gbp/revenue_delta_gbp/avg_customer_saving_gbp/is_margin_positive); ToUMigrationScenarioBook (run_scenario/compare_rates/best_supplier_scenario/portfolio_summary). Customers migrate in order of lowest cross-subsidy first. Key finding: for EV-heavy portfolio 0% migration is always best for supplier (flat-rate cross-subsidy never recovered under ToU). company/pricing/ev_cross_subsidy.py gains flat_revenue_gbp/tou_revenue_gbp/customer_saving_gbp properties on CrossSubsidyRecord. Closes T-U-V ToU chain.
 **Phase U (2026-06-29):** EV Cross-Subsidy Register -- 16 new tests (4,974 total). company/pricing/ev_cross_subsidy.py (new): CrossSubsidyRecord (frozen; flat_margin_gbp/tou_margin_gbp/cross_subsidy_gbp=flat-tou/is_at_risk/years_with_ev); CrossSubsidyRegister (record via Phase T OVERNIGHT_HEAVY shape/top_n_by_cross_subsidy/at_risk_if_tou_launched/total_cross_subsidy_gbp/average_cross_subsidy_gbp/portfolio_summary with top_account_id). cross_subsidy proportional to annual_kwh; crisis year still positive. Operational complement to Phase T: supplier can rank all EV customers by cross-subsidy value for flat-tariff retention.
@@ -4056,18 +4057,18 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 327+ Python modules, ~45,500 lines
-- 400+ git commits
-- 4,930 tests (fast / ~10s; simulation integration ~8 min per run)
+- 330+ Python modules, ~46,500 lines
+- 410+ git commits
+- 5,028 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase 303, 2026-06-27):**
-- Net margin £6,322,836 | Gross £6,559,771 | Revenue £19,048,203 | Treasury £3,796,762 | SURVIVED
-- 4 new tests: Dashboard Insights tab (extract_insights) — surfaces run_insights.json into poesys.net dashboard.
+**Latest full run (Phase X, 2026-06-29):**
+- Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
+- 5,028 tests. Phase X: ToU Product Launch Decision Engine (25 tests). Phase W: Gas Boiler HDD Shape (13 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
