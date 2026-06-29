@@ -82,7 +82,7 @@ from sim.system_prices_history import get_system_prices_range
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.customer_events import roll_lifecycle_event
 from saas.cost_to_serve import get_bad_debt_rate
-from simulation.demand_model import build_demand_shape
+from simulation.demand_model import build_demand_shape, solar_generation_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from company.trading.forward_book import ForwardContract, TradingBook
@@ -193,6 +193,39 @@ DEFAULT_PROPERTY = {
 }
 
 
+# Phase Q: battery home energy storage dispatch constants + helper.
+_BATTERY_EVENING_PEAK: frozenset = frozenset(range(33, 41))  # periods 33-40 = 16:00-20:00
+_BATTERY_ROUNDTRIP_EFFICIENCY: float = 0.90  # typical Li-ion roundtrip
+
+
+def _battery_daily_dispatch(
+    gross_load: list[float],
+    solar_gen: list[float],
+    battery_kwh: float,
+) -> list[float]:
+    """One-day home battery dispatch: charge from excess solar, discharge in evening peak.
+
+    Returns 48-period net import [kWh], clamped >= 0.
+    Efficiency applied on the way in (charge); discharge is 1:1 from stored kWh.
+    Battery only charges from excess solar outside the evening peak window.
+    """
+    soc = 0.0
+    for i, (load, gen) in enumerate(zip(gross_load, solar_gen)):
+        period = i + 1
+        if period not in _BATTERY_EVENING_PEAK:
+            excess = max(0.0, gen - load)
+            can_charge = (battery_kwh - soc) / _BATTERY_ROUNDTRIP_EFFICIENCY
+            soc += min(excess, can_charge) * _BATTERY_ROUNDTRIP_EFFICIENCY
+
+    net = [max(0.0, l - g) for l, g in zip(gross_load, solar_gen)]
+    for i in range(32, 40):  # 0-indexed: periods 33-40
+        if soc > 0.0 and net[i] > 0.0:
+            discharge = min(soc, net[i])
+            soc -= discharge
+            net[i] -= discharge
+    return net
+
+
 def _weather_adjusted_shape_fn(
     base_shape_fn,
     weather_means: dict[str, float],
@@ -222,6 +255,8 @@ def _weather_adjusted_shape_fn(
 
         # Phase C: time-varying EV flag from household life events
         eff_property = property_record
+        _has_battery = False
+        _battery_kwh = 0.0
         if household_register is not None and customer_id is not None:
             dyn = household_register.dynamic_assets(customer_id, date_str)
             if dyn:
@@ -230,6 +265,8 @@ def _weather_adjusted_shape_fn(
                 assets["solar"] = dyn.get("solar", assets.get("solar", False))
                 eff_property = dict(property_record)
                 eff_property["assets"] = assets
+                _has_battery = dyn.get("battery", False)
+                _battery_kwh = dyn.get("battery_kwh", 0.0)
 
         if mean_temp is None:
             shape = list(base_shape)
@@ -243,7 +280,16 @@ def _weather_adjusted_shape_fn(
                         half_hourly_solar_irradiance(day_of_year, p, latitude_deg, cloud_pct)
                         for p in range(1, 49)
                     ]
-            shape = build_demand_shape(base_shape, mean_temp, "electricity", eff_property, irradiance)
+            # Phase Q: battery dispatch replaces solar reduction in build_demand_shape.
+            # Battery charges from excess solar, discharges 16:00-20:00 (periods 33-40).
+            if _has_battery and _battery_kwh > 0.0 and irradiance is not None:
+                _no_solar_prop = dict(eff_property)
+                _no_solar_prop["assets"] = dict(_no_solar_prop.get("assets") or {})
+                _no_solar_prop["assets"]["solar"] = False
+                _gross = build_demand_shape(base_shape, mean_temp, "electricity", _no_solar_prop, None)
+                shape = _battery_daily_dispatch(_gross, solar_generation_shape(irradiance), _battery_kwh)
+            else:
+                shape = build_demand_shape(base_shape, mean_temp, "electricity", eff_property, irradiance)
 
         # Phase C: EPC-band consumption multiplier
         if household_register is not None and customer_id is not None:

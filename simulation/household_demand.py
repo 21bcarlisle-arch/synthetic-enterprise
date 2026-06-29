@@ -116,6 +116,8 @@ class HouseholdDemandRegister:
             "ev": hh.has_ev,
             "solar": hh.has_solar,
             "smart_meter": hh.has_smart_meter,
+            "battery": hh.has_battery,
+            "battery_kwh": hh.battery_kwh,
         }
 
     def gas_eac_multiplier_for_date(self, customer_id: str, date_str: str) -> float:
