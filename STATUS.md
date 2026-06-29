@@ -1,7 +1,7 @@
 Project Status
 
 Last updated: 2026-06-29T21:15:24Z
-Current phase: Phase Y COMPLETE (2026-06-29). 5,057 tests passing.
+Current phase: Phase Z COMPLETE (2026-06-29). 5,080 tests passing.
 
 Current state:
 
@@ -44,7 +44,7 @@ Five hollow gaps: all closed.
   4. HH data path: CLOSED (Phase 6a)
   5. Reporting: CLOSED (Phase 5a/5b)
 
-Next: Phase Z -- TBD (full ToU chain complete; T-U-V-X-Y done)
+Next: TBD
 
 5,003 tests passing.
 

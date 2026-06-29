@@ -1,10 +1,10 @@
-Phase Y: ToU Rate Card Optimiser
+Phase Z: Smart Meter Consumption Reconciliation Book
 
 Status: COMPLETE 2026-06-29
-See: company/pricing/tou_rate_card.py
-29 new tests (5,057 total)
+See: company/billing/smart_meter_reconciliation.py
+23 new tests (5,080 total)
 
-Completes the T-U-V-X-Y ToU analytics chain.
-T=economics, U=register, V=migration, X=decision, Y=rate card design.
+SLC 31A: domestic undercharges >12m not recoverable (back-billing cap).
+Connects to back_billing.py (Ph314), smart_meter_analytics.py.
 
-Next phase (Z) TBD.
+Next phase: TBD
