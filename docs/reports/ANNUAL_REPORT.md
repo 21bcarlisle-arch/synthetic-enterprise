@@ -19,7 +19,7 @@ the last partial). The business survived the full window.
 - Capital cost ratio: 3.7% of gross
 - Net margin as % of revenue: 32.9%
   (industry benchmark for a retail energy supplier: 2-5%)
-- Risk committee (Context Handshake) interventions: 37
+- Risk committee (Context Handshake) interventions: 38
 - Bills issued: 1531, average clarity 0.841,
   service quality score 0.909
 - Enterprise value (CLV sum across 14 billing accounts): £6,142,208.62
@@ -1065,8 +1065,8 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-07-29: treasury £2,466,715.85, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-08-28: treasury £2,466,726.57, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-09-27: treasury £2,466,737.46, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
-  - 2016-10-27: treasury £2,466,748.35, (none), VaR (current £27.79 / stressed £8.54) ratio 3.25
-  - 2016-11-26: treasury £2,466,759.12, (none), VaR (current £27.79 / stressed £8.54) ratio 3.25
+  - 2016-10-27: treasury £2,466,748.35, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
+  - 2016-11-26: treasury £2,466,759.12, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-12-26: treasury £2,466,771.02, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
 - VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.25
 - Worst single period: C6 on 2016-11-08 period 40, net margin £-0.36
@@ -1589,11 +1589,12 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - Gas: gross £121,025.31, capital £39,345.65, net £-31,937.27
 - Treasury at year end: £3,173,050.84
 - Hedge fraction at first renewal this year (avg across year's terms): C2_2 0.93 (avg 0.93), C4 0.90 (avg 0.90), C4g 0.85 (avg 0.85), C6 0.94 (avg 0.94), C7 0.92 (avg 0.92), C8 0.95 (avg 0.95), C9 0.91 (avg 0.91), C_IC1 0.85 (avg 0.88), C_IC2 0.85 (avg 0.88), C_IC3 0.96 (avg 0.96), C_IC3g 0.00 (avg 0.00), C_IC4 0.85 (avg 0.85)
-- Risk committee (Context Handshake) interventions: 3
+- Risk committee (Context Handshake) interventions: 4
   - 2023-01-24: treasury £3,069,115.62, C2->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, C_IC3->1.00, VaR (current £122,462.76 / stressed £44,376.48) ratio 2.76
   - 2023-02-23: treasury £3,069,115.35, C2->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, C_IC3->1.00, VaR (current £122,462.76 / stressed £44,376.48) ratio 2.76
+  - 2023-03-25: treasury £3,069,115.01, C2->1.00, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, C_IC3->1.00, VaR (current £122,462.76 / stressed £44,376.48) ratio 2.76
   - 2023-04-24: treasury £3,150,535.85, C2->1.00, C4->1.00, C7->1.00, C9->1.00, C_IC3->1.00, VaR (current £129,699.09 / stressed £49,443.60) ratio 2.62
-- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.71
+- VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.73
 - Worst single period: C_IC3g on 2023-12-31 period 1, net margin £-3,474.99
 
 **Customer Book**
@@ -1647,7 +1648,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - C_IC3g: actual £-36,843.35 vs. naked £77,603.64 -- hedging cost £114,446.99
   - C_IC4: actual £3,728.07 vs. naked £187,953.96 -- hedging cost £184,225.88
 
-**Year narrative:** 2023 produced a net gain of £50,721.34 across 12 accounts. The risk committee intervened 3 time(s), raising hedge fractions in response to elevated VaR. 46 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2023 produced a net gain of £50,721.34 across 12 accounts. The risk committee intervened 4 time(s), raising hedge fractions in response to elevated VaR. 46 customer(s) experienced a bill shock of >=20%.
 
 ## 2024
 

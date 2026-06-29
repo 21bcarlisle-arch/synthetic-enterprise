@@ -1,6 +1,6 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T16:33:47Z
+Last updated: 2026-06-29T16:43:34Z
 
 ## Current state
 
@@ -40,8 +40,8 @@ Last updated: 2026-06-29T16:33:47Z
 
 → Full history: docs/PROJECT_OVERVIEW.md | Report: docs/reports/ANNUAL_REPORT.md
 
-**Latest simulation results (2016–2025)** — auto-processed (562s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £6,239,957.41 | Gross: £6,476,625.78 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,808 | 37 committee interventions | 1531 bills issued
+- Treasury: £2,466,636 → £3,709,808 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,142,208.62 | Net after CTS: £6,371,510
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
