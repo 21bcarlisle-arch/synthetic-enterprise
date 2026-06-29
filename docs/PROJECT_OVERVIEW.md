@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-29. 400+ commits. 4,782 tests passing. Codebase: ~44,000 lines across 322+ Python modules.*
+*Last updated: 2026-06-29. 400+ commits. 4,795 tests passing. Codebase: ~44,100 lines across 322+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Fix (2026-06-29):** Phase 44a stale import + Phase G test updates -- 13 previously-broken tests now passing (4,795 total). company/crm/customer_profitability.py: estimate_prior_term_net_margin() groups settlement records by term_start, returns prior-term net margin for the most recent completed term (MIN_RECORDS_FOR_JUDGEMENT=3); compute_profitability_uplift() returns NET_NEGATIVE_UPLIFT_GBP_PER_MWH=5 GBP/MWh when net-negative, 0 otherwise. tests/simulation/test_phase_g_ashp_settlement.py: 3 tests updated for Phase I HDD-weighted ASHP shape (flat assertions replaced with HDD-aware assertions).
 **Phase K (2026-06-29):** Break-Even Tariff Assessor -- 21 new tests (4,782 total). company/pricing/break_even_assessor.py: BreakEvenAssessment (frozen; break_even_p_per_kwh=total_cost+minimum_margin; is_cap_constrained when cap<break_even; headroom_p_per_kwh/uncovered_loss_gbp/minimum_viable_tariff_gbp_pa), BreakEvenAssessorBook (record/latest_for/cap_constrained/total_uncovered_loss_gbp/cap_constrained_rate_pct/assessor_summary). Connects Phase J (profitability detection) with Ph295 (price cap) and Ph294 (CTS). Key test: 2022-Q4 cap tight -- ASHP customer at 8,600 kWh with high levies is structurally constrained (company cannot price profitably within regulatory ceiling). None cap = uncapped I&C/SME segments. Closes "flat margin" loop: detection (PhJ) + structural diagnosis (PhK).
 **Phase J (2026-06-29):** Customer Profitability Register -- 25 new tests (4,761 total). company/crm/customer_profitability.py: CustomerProfitabilityRecord (frozen; gross_margin_gbp/net_contribution_gbp/is_net_negative/gross_margin_pct/net_margin_pct), CustomerProfitabilityBook (record/latest_for/history_for/net_negative_accounts/top_n_by_contribution/total_net_contribution_gbp/net_negative_rate_pct/profitability_summary). Observable inputs only: annual_revenue_gbp/wholesale_cost_gbp/levy_cost_gbp/operating_cost_gbp. Test includes ASHP-customer-drives-net-negative scenario: 8,600 kWh @ standard tariff, volume-driven levies (CM/CfD/RO/BSUoS) exceed margin. Addresses CLAUDE.md "flat margin makes some customers net-negative" concern. Connects to cost_to_serve (Ph294), clv_calculator, dual_fuel_account (Ph331).
 **Phase I (2026-06-29):** ASHP Seasonal Electricity Shape (HDD-Weighted) -- 10 new tests (4,736 total). simulation/run_phase2b.py: _weather_adjusted_shape_fn Phase G flat ASHP adder replaced with HDD-weighted seasonal profile. 70% of ASHP annual kWh scaled by daily HDD / REFERENCE_MONTHLY_HDD sum (same basis as gas boiler gas consumption); 30% DHW component flat year-round. Uses existing get_hdd() and REFERENCE_MONTHLY_HDD from sim/weather_hdd.py. Annual total conserved (~5,500 kWh over a reference year, within 3%). In warm 2020 actual HDD ~81% of reference, giving ~4,800 kWh -- correct weather-responsive behaviour. Winter peak ~2x flat-average daily load; July trough ~0.03x flat-average. First time ASHP electricity demand is weather-responsive. Replaces Phase G comment "first approximation".
@@ -4045,7 +4046,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 318+ Python modules, ~43,100 lines
 - 400+ git commits
-- 4,782 tests (fast / ~10s; simulation integration ~8 min per run)
+- 4,795 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

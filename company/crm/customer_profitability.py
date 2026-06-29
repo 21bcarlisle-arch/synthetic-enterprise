@@ -124,3 +124,66 @@ class CustomerProfitabilityBook:
         if year is None:
             return list(self._records)
         return [r for r in self._records if r.year == year]
+
+
+
+# Phase 44a constants for net-negative profitability feedback.
+# Applied as a unit-rate uplift at renewal when prior term is net-negative.
+MIN_RECORDS_FOR_JUDGEMENT: int = 3  # minimum settlement records to form a view
+NET_NEGATIVE_UPLIFT_GBP_PER_MWH: float = 5.0  # uplift applied for net-negative prior term
+
+
+def estimate_prior_term_net_margin(
+    cid: str,
+    term_start_str: str,
+    all_records: list[dict],
+    commodity: str = "electricity",
+) -> Optional[float]:
+    """Estimate total net margin from the most recent prior completed term.
+
+    Returns the sum of net_margin_gbp for records matching:
+      - customer_id == cid
+      - commodity == commodity
+      - settlement_date < term_start_str (point-in-time blindfold)
+    grouped by term_start, using only the most recent such term.
+
+    Returns None if:
+      - No matching records exist
+      - The most recent prior term has fewer than MIN_RECORDS_FOR_JUDGEMENT records
+    """
+    eligible = [
+        r for r in all_records
+        if (r.get("customer_id") == cid
+            and r.get("commodity", "electricity") == commodity
+            and r.get("settlement_date", "") < term_start_str
+            and r.get("net_margin_gbp") is not None)
+    ]
+    if not eligible:
+        return None
+
+    # Find most recent prior term_start
+    prior_term_starts = {r.get("term_start", "") for r in eligible if r.get("term_start")}
+    if not prior_term_starts:
+        return None
+    latest_term = max(prior_term_starts)
+    term_records = [r for r in eligible if r.get("term_start") == latest_term]
+
+    if len(term_records) < MIN_RECORDS_FOR_JUDGEMENT:
+        return None
+    return sum(r["net_margin_gbp"] for r in term_records)
+
+
+def compute_profitability_uplift(
+    cid: str,
+    term_start_str: str,
+    all_records: list[dict],
+) -> float:
+    """Return a unit-rate uplift (GBP/MWh) for net-negative customers.
+
+    Phase 44a: called at renewal term signing. Returns NET_NEGATIVE_UPLIFT_GBP_PER_MWH
+    if the most recent prior term was net-negative; 0.0 otherwise.
+    """
+    prior_margin = estimate_prior_term_net_margin(cid, term_start_str, all_records)
+    if prior_margin is None or prior_margin >= 0.0:
+        return 0.0
+    return NET_NEGATIVE_UPLIFT_GBP_PER_MWH

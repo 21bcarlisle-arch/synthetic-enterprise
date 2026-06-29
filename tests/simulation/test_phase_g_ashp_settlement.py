@@ -10,6 +10,7 @@ Key invariant:
 """
 
 import pytest
+from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
 from simulation.household import (
     BoilerAge,
     BuildEra,
@@ -62,7 +63,7 @@ def _make_register(heating: HeatingSystem, cid: str = "C1") -> HouseholdDemandRe
 
 
 class TestASHPShapeUplift:
-    """ASHP home demand shape is higher than gas-boiler home by the expected flat uplift."""
+    """ASHP home demand shape is higher than gas-boiler home by HDD-weighted uplift (Phase I)."""
 
     def _shape(self, heating: HeatingSystem, date_str: str = TEST_DATE) -> list[float]:
         register = _make_register(heating)
@@ -76,17 +77,23 @@ class TestASHPShapeUplift:
         assert sum(ashp_shape) > sum(gas_shape)
 
     def test_ashp_uplift_per_period_is_correct(self):
+        """Phase I: uplift is HDD-weighted. All 48 periods equal within a day."""
         gas_shape = self._shape(HeatingSystem.GAS_BOILER_COMBI)
         ashp_shape = self._shape(HeatingSystem.HEAT_PUMP_AIR)
-        for g, a in zip(gas_shape, ashp_shape):
-            assert (a - g) == pytest.approx(EXPECTED_HH_UPLIFT, rel=1e-4)
+        diffs = [a - g for a, g in zip(ashp_shape, gas_shape)]
+        # All 48 periods receive equal uplift within a given day
+        assert max(diffs) - min(diffs) < 1e-9
+        # Uplift is positive (at minimum DHW floor remains)
+        assert all(d > 0 for d in diffs)
 
-    def test_ashp_annual_uplift_is_5500_kwh(self):
+    def test_ashp_summer_daily_uplift_reflects_dhw_floor(self):
+        """Phase I: summer day uplift >= DHW floor (5500 * 30% / 365.25 / 48 per period)."""
         gas_shape = self._shape(HeatingSystem.GAS_BOILER_COMBI)
         ashp_shape = self._shape(HeatingSystem.HEAT_PUMP_AIR)
-        diff_daily = sum(ashp_shape) - sum(gas_shape)
-        annual_uplift = diff_daily * DAYS_PER_YEAR
-        assert annual_uplift == pytest.approx(ASHP_BASE_ELECTRICITY_KWH, rel=1e-3)
+        daily_uplift = sum(ashp_shape) - sum(gas_shape)
+        dhw_floor = ASHP_BASE_ELECTRICITY_KWH * 0.30 / DAYS_PER_YEAR
+        # Summer (June 15) has low HDD -> mostly DHW, minimal heating
+        assert daily_uplift >= dhw_floor * 0.9  # 10% tolerance for HDD rounding
 
     def test_gas_boiler_combi_has_zero_ashp_uplift(self):
         gas_shape = self._shape(HeatingSystem.GAS_BOILER_COMBI)
@@ -118,14 +125,17 @@ class TestASHPShapeIndependence:
     """ASHP uplift is additive and independent of EPC multiplier."""
 
     def test_epc_multiplier_and_ashp_uplift_are_independent(self):
-        """EPC scales the base; ASHP adds a flat offset. Both apply independently."""
+        """EPC scales the base; Phase I HDD-weighted ASHP uplift adds independently."""
         register = _make_register(HeatingSystem.HEAT_PUMP_AIR)
         epc_mult = register.epc_multiplier("C1", TEST_DATE)
         fn = _weather_adjusted_shape_fn(_flat_base, {}, DEFAULT_PROPERTY,
                                         household_register=register, customer_id="C1")
         shape = fn(TEST_DATE)
-        # Expected: flat_base * epc_mult + ashp_hh_uplift
-        expected = [1.0 * epc_mult + EXPECTED_HH_UPLIFT] * HH_PER_DAY
+        hdd_day = get_hdd(TEST_DATE, "C1")
+        hdd_ref = sum(REFERENCE_MONTHLY_HDD.values())
+        expected_hh = (ASHP_BASE_ELECTRICITY_KWH * 0.70 * hdd_day / hdd_ref
+                       + ASHP_BASE_ELECTRICITY_KWH * 0.30 / DAYS_PER_YEAR) / HH_PER_DAY
+        expected = [1.0 * epc_mult + expected_hh] * HH_PER_DAY
         for v, e in zip(shape, expected):
             assert v == pytest.approx(e, rel=1e-6)
 
