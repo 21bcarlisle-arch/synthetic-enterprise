@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T22:27:58Z
+Last updated: 2026-06-29T22:33:35Z
 
 ## Current state
 
-- **Phase:** X complete (ToU Product Launch Decision Engine) -- T+U+V+W+X shipped this session
-- **Tests passing:** 5,028 (all green)
+- **Phase:** Y complete (ToU Rate Card Optimiser) -- T+U+V+W+X+Y shipped this session
+- **Tests passing:** 5,057 (all green)
 - **Python modules:** 328+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,337
