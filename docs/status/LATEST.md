@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T13:10:58Z
+Last updated: 2026-06-29T13:14:59Z
 
 ## Current state
 
-- **Phase:** J complete (Customer Profitability Register)
-- **Tests passing:** 4,761 (all green)
+- **Phase:** K complete (Break-Even Tariff Assessor)
+- **Tests passing:** 4,782 (all green)
 - **Python modules:** 292+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,328,363
