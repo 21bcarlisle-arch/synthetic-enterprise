@@ -2,7 +2,8 @@
 
 Gas settlement differs from electricity in three ways:
   1. Daily granularity (one period per gas day, not 48 half-hours)
-  2. Seasonal daily consumption = AQ_kwh / 365 × monthly_profile × weather_factor
+  2. Seasonal daily consumption: resi/SME = HDD-weighted daily shape (Phase W);
+     I&C = monthly profile × weather_factor (Phase 59/60)
   3. Price feed is NBP SAP (sim/gas_data/nbp_sap.csv) not Elexon SSP
 
 The hedging mechanic mirrors electricity: a fixed fraction of consumption is
@@ -26,7 +27,10 @@ This module is called by run_phase2b.py for each gas customer term.
 from collections import defaultdict
 from datetime import date, timedelta
 
+from calendar import monthrange
+
 from sim.risk_engine import compute_net_margin
+from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -57,6 +61,13 @@ GAS_IC_CONSUMPTION_MONTHLY_PROFILE: dict[int, float] = {
     1: 1.0746, 2: 1.1258, 3: 1.0168, 4: 0.9910, 5: 0.9590, 6: 0.9432,
     7: 0.9128, 8: 0.9128, 9: 0.9910, 10: 0.9590, 11: 1.0507, 12: 1.0746,
 }
+
+# Phase W: gas boiler daily HDD shape constants.
+# 70% space heating (HDD-weighted), 30% DHW + cooking (flat year-round).
+# Fraction calibrated to match DUKES Table 4.3 Jan:Jul ratio ~5.3x for UK resi.
+# Annual total conserved when actual HDD equals reference HDD.
+_GAS_BOILER_HEATING_FRACTION: float = 0.70
+_HDD_REF_ANNUAL: float = sum(REFERENCE_MONTHLY_HDD.values())
 
 
 def _daily_consumption_kwh(aq_kwh: int) -> float:
@@ -91,7 +102,7 @@ def run_gas_term(
     monthly_cost_of_capital_gbp : capital cost per calendar month for this term
     gas_price_records : list of {settlementDate, systemSellPrice} daily records
     segment : customer segment for CCL exemption ('resi' -> CCL exempt)
-    weather_factor : HDD-based scaling for resi/SME gas consumption (1.0 = average)
+    weather_factor : HDD-based scaling applied to I&C gas only (resi/SME use daily HDD internally)
     """
     spot_index = {r["settlementDate"]: r["systemSellPrice"] for r in gas_price_records}
     base_daily_kwh = _daily_consumption_kwh(aq_kwh)
@@ -104,11 +115,18 @@ def run_gas_term(
         d = current.isoformat()
         spot_price = spot_index.get(d)
         if spot_price is not None:
-            # Phase 59/60: per-day seasonal profile × Phase 58 weather factor.
-            # Phase 60: I&C gas uses near-flat process-heat profile (1.18x ratio vs 5.3x resi).
-            _profile = GAS_IC_CONSUMPTION_MONTHLY_PROFILE if segment == "I&C" else GAS_CONSUMPTION_MONTHLY_PROFILE
-            seasonal = _profile.get(current.month, 1.0)
-            daily_kwh = base_daily_kwh * seasonal * weather_factor
+            # Phase W: resi/SME gas uses daily HDD-weighted shape.
+            # 70% space heating (scales with today's HDD vs annual reference), 30% DHW/cooking flat.
+            # Mirrors Phase I for ASHP electricity. I&C keeps static monthly profile (Phase 60).
+            if segment == "I&C":
+                seasonal = GAS_IC_CONSUMPTION_MONTHLY_PROFILE.get(current.month, 1.0)
+                daily_kwh = base_daily_kwh * seasonal * weather_factor
+            else:
+                hdd_today = get_hdd(str(current), customer_id)
+                daily_heating = aq_kwh * _GAS_BOILER_HEATING_FRACTION * (hdd_today / _HDD_REF_ANNUAL)
+                daily_dhw = base_daily_kwh * (1.0 - _GAS_BOILER_HEATING_FRACTION)
+                daily_kwh = daily_heating + daily_dhw
+                seasonal = daily_kwh / base_daily_kwh if base_daily_kwh > 0 else 1.0
             daily_mwh = daily_kwh / 1000.0
             hedged_mwh = daily_mwh * hedge_fraction
             unhedged_mwh = daily_mwh * (1.0 - hedge_fraction)

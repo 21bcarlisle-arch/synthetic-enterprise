@@ -207,18 +207,21 @@ def test_resi_gas_ccl_exempt_in_settlement():
 
 
 def test_gas_network_cost_in_settlement_2022():
-    """2022 gas network: £11/MWh × seasonal daily_mwh for resi customer (June)."""
-    from simulation.gas_settlement import GAS_CONSUMPTION_MONTHLY_PROFILE, run_gas_term
+    """2022 gas network: £11/MWh × daily_mwh for resi customer (June).
+
+    Phase W: resi gas uses daily HDD shape; compute expected from actual daily_kwh
+    in the record rather than the old static monthly profile factor.
+    """
+    from simulation.gas_settlement import run_gas_term
 
     aq_kwh = 11500
-    # Phase 59: daily consumption uses monthly seasonal profile; June (month 6) factor applied.
-    seasonal_june = GAS_CONSUMPTION_MONTHLY_PROFILE.get(6, 1.0)
-    daily_mwh = aq_kwh / 365 / 1000 * seasonal_june
     gas_prices = [{"settlementDate": "2022-06-01", "systemSellPrice": 100.0}]
     records = run_gas_term(
-        "C1g", "2022-06-01", "2022-06-02", aq_kwh, 120.0, 0.85, 100.0, 0.0, gas_prices,
-        segment="resi",
+        "NO_WEATHER_FILE_CID", "2022-06-01", "2022-06-02", aq_kwh, 120.0, 0.85, 100.0, 0.0,
+        gas_prices, segment="resi",
     )
+    assert records, "Expected at least one settlement record"
+    daily_mwh = records[0]["daily_kwh"] / 1000.0
     expected_network = 11.0 * daily_mwh
     assert records[0]["gas_network_cost_gbp"] == pytest.approx(expected_network, rel=0.01)
 

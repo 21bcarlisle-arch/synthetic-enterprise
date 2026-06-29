@@ -65,9 +65,10 @@ class TestSeasonalSettlement:
         assert jan_kwh > jul_kwh, "January daily consumption should exceed July"
 
     def test_annual_total_kwh_preserved(self):
+        # Phase W: use customer with no weather file -> reference HDD -> annual total conserved.
         gas_records = _fake_gas_records("2019-12-01", "2020-12-31")
         annual_records = run_gas_term(
-            "C1g", "2020-01-01", "2021-01-01",
+            "NO_WEATHER_FILE_CID", "2020-01-01", "2021-01-01",
             aq_kwh=12000, unit_rate_gbp_mwh=30.0,
             hedge_fraction=0.0, forward_price=30.0,
             monthly_cost_of_capital_gbp=1.0,
@@ -80,9 +81,10 @@ class TestSeasonalSettlement:
         )
 
     def test_seasonal_factor_in_record(self):
+        # Use reference-HDD customer so January seasonal_factor is predictably > 1.
         gas_records = _fake_gas_records("2019-12-01", "2020-03-31")
         records = run_gas_term(
-            "C1g", "2020-01-01", "2020-02-01",
+            "NO_WEATHER_FILE_CID", "2020-01-01", "2020-02-01",
             aq_kwh=12000, unit_rate_gbp_mwh=30.0,
             hedge_fraction=0.0, forward_price=30.0,
             monthly_cost_of_capital_gbp=1.0,
@@ -93,28 +95,31 @@ class TestSeasonalSettlement:
             # January factor should be >1
             assert rec["seasonal_factor"] > 1.0, "January seasonal_factor should be >1"
 
-    def test_weather_and_seasonal_compound(self):
+    def test_weather_factor_ignored_for_resi_in_phase_w(self):
+        # Phase W: resi/SME gas weather is handled by daily HDD internally.
+        # Passing weather_factor=0.5 vs 1.0 should produce identical output.
         gas_records = _fake_gas_records("2019-12-01", "2020-03-31")
-        rec_normal = run_gas_term(
-            "C1g", "2020-01-01", "2020-02-01",
+        rec_half = run_gas_term(
+            "NO_WEATHER_FILE_CID", "2020-01-01", "2020-02-01",
+            aq_kwh=12000, unit_rate_gbp_mwh=30.0,
+            hedge_fraction=0.0, forward_price=30.0,
+            monthly_cost_of_capital_gbp=1.0,
+            gas_price_records=gas_records,
+            weather_factor=0.5,
+        )
+        rec_one = run_gas_term(
+            "NO_WEATHER_FILE_CID", "2020-01-01", "2020-02-01",
             aq_kwh=12000, unit_rate_gbp_mwh=30.0,
             hedge_fraction=0.0, forward_price=30.0,
             monthly_cost_of_capital_gbp=1.0,
             gas_price_records=gas_records,
             weather_factor=1.0,
         )
-        rec_warm = run_gas_term(
-            "C1g", "2020-01-01", "2020-02-01",
-            aq_kwh=12000, unit_rate_gbp_mwh=30.0,
-            hedge_fraction=0.0, forward_price=30.0,
-            monthly_cost_of_capital_gbp=1.0,
-            gas_price_records=gas_records,
-            weather_factor=0.8,
+        kwh_half = rec_half[0]["daily_kwh"] if rec_half else 0
+        kwh_one = rec_one[0]["daily_kwh"] if rec_one else 0
+        assert abs(kwh_half - kwh_one) < 0.0001, (
+            "Phase W: weather_factor has no effect for resi gas (HDD handled internally)"
         )
-        kwh_normal = rec_normal[0]["daily_kwh"] if rec_normal else 0
-        kwh_warm = rec_warm[0]["daily_kwh"] if rec_warm else 0
-        assert kwh_warm < kwh_normal, "Warm weather should reduce Jan consumption"
-        assert abs(kwh_warm / kwh_normal - 0.8) < 0.001, "Weather factor 0.8 gives 80% consumption"
 
     def test_ic_gas_uses_flat_profile(self):
         """Phase 60: I&C gas uses a near-flat seasonal profile (process heat), not resi 5.3x."""

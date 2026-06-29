@@ -50,22 +50,28 @@ class TestIcGasProfile:
 
 
 class TestSegmentProfileSelection:
-    def test_resi_uses_resi_profile(self):
+    def test_resi_uses_hdd_shape_not_static_profile(self):
+        # Phase W: resi gas uses daily HDD shape, not GAS_CONSUMPTION_MONTHLY_PROFILE.
+        # seasonal_factor is the HDD-derived ratio (daily_kwh / base_daily_kwh), not the
+        # fixed monthly profile factor. January with reference HDD should give factor > 1.
+        from sim.weather_hdd import REFERENCE_MONTHLY_HDD
         gas_records = _fake_gas_records()
         recs = run_gas_term(
-            "C1g", "2020-01-01", "2020-02-01",
+            "NO_WEATHER_FILE_CID", "2020-01-01", "2020-02-01",
             aq_kwh=12000, unit_rate_gbp_mwh=30.0,
             hedge_fraction=0.0, forward_price=30.0,
             monthly_cost_of_capital_gbp=1.0,
             gas_price_records=gas_records,
             segment="resi",
         )
-        # Resi Jan factor ~1.88 → daily_kwh >> AQ/365
-        expected_factor = GAS_CONSUMPTION_MONTHLY_PROFILE[1]
-        actual_factor = recs[0]["seasonal_factor"]
-        assert abs(actual_factor - expected_factor) < 0.001, (
-            f"Resi should use resi profile. Expected {expected_factor}, got {actual_factor}"
+        actual_factor = recs[0]["seasonal_factor"] if recs else 0
+        static_profile_factor = GAS_CONSUMPTION_MONTHLY_PROFILE[1]
+        # HDD-derived factor is NOT the static profile factor
+        assert abs(actual_factor - static_profile_factor) > 0.01, (
+            "Phase W: resi should use HDD shape, not static GAS_CONSUMPTION_MONTHLY_PROFILE"
         )
+        # But factor should still be > 1 in January (winter peak)
+        assert actual_factor > 1.0, "January HDD-derived factor should be > 1"
 
     def test_ic_uses_ic_profile(self):
         gas_records = _fake_gas_records()
