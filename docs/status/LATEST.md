@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T12:53:59Z
+Last updated: 2026-06-29T13:06:52Z
 
 ## Current state
 
-- **Phase:** H complete (Electricity EAC Multiplier at Term Signing)
-- **Tests passing:** 4,726 (all green)
+- **Phase:** I complete (ASHP Seasonal Electricity Shape — HDD-Weighted)
+- **Tests passing:** 4,736 (all green)
 - **Python modules:** 292+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,328,363

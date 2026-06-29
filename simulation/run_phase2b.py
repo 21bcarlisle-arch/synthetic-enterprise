@@ -104,7 +104,7 @@ from simulation.hh_consumption import (
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.weather_inputs import cloud_cover_for_customer, lookback_mean_temps, weather_means_for_customer
-from sim.weather_hdd import weather_factor_for_term
+from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd, weather_factor_for_term
 from simulation.household_demand import HouseholdDemandRegister
 
 REPORT_START = "2016-01-01"
@@ -249,15 +249,19 @@ def _weather_adjusted_shape_fn(
             epc_mult = household_register.epc_multiplier(customer_id, date_str)
             shape = [v * epc_mult for v in shape]
 
-        # Phase G: ASHP electricity uplift -- additive flat load for heat pump homes.
-        # ASHP adds ~5,500 kWh/yr of net-new electricity (space heating + DHW) not
-        # present in the base profile class shape (calibrated for gas boiler homes).
-        # Applied uniformly across all 48 half-hourly periods as a first approximation.
+        # Phase I: ASHP electricity uplift -- HDD-weighted seasonal shape.
+        # 70% space-heating (scales with HDD, same basis as gas boiler gas), 30% DHW (flat).
+        # Replaces Phase G flat approximation. Annual total unchanged at ~5,500 kWh/yr.
         if household_register is not None and customer_id is not None:
             _hh = household_register.household_at_date(customer_id, date_str)
             if _hh is not None:
-                _ashp_hh_kwh = _hh.ashp_annual_kwh() / 365.25 / 48
-                if _ashp_hh_kwh > 0:
+                _ashp_annual = _hh.ashp_annual_kwh()
+                if _ashp_annual > 0:
+                    _hdd_day = get_hdd(date_str, customer_id)
+                    _hdd_ref = sum(REFERENCE_MONTHLY_HDD.values())
+                    _daily_heating = _ashp_annual * 0.70 * (_hdd_day / _hdd_ref)
+                    _daily_dhw = _ashp_annual * 0.30 / 365.25
+                    _ashp_hh_kwh = (_daily_heating + _daily_dhw) / 48
                     shape = [v + _ashp_hh_kwh for v in shape]
 
         return shape

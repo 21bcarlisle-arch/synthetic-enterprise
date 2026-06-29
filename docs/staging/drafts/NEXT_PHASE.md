@@ -1,59 +1,44 @@
-# Phase H: Electricity EAC Multiplier at Term Signing
+# Phase I: ASHP Seasonal Electricity Shape (HDD-Weighted)
 
-Status: PROPOSED (2026-06-29)
+Status: IN PROGRESS (2026-06-29)
 
 ## The gap
 
-`eac_multiplier_for_date()` in `household_demand.py` was built in Phase F and computes:
+Phase G added ASHP electricity as a flat additive load:
 
-    epc * (1 + ev_fraction + ashp_fraction) * max(0, 1 - solar_fraction)
+    ashp_hh_kwh = ashp_annual_kwh() / 365.25 / 48  # uniform across all HH periods
 
-It has ZERO production call sites for electricity. Compare:
-- Gas (Phase D): `gas_eac_multiplier_for_date()` applied to `aq_kwh` at term signing (line 1236)
-- Electricity: `eac_multiplier_for_date()` never called
+The Phase G comment explicitly marks this as "a first approximation." A real ASHP
+follows a strongly seasonal demand pattern: ~70% of consumption is space-heating
+(scales with Heating Degree Days, same basis as gas), ~30% is DHW (flat year-round).
 
-The settlement SHAPE correctly reflects EV, solar, ASHP (Phases C/G/25a).
-But the company's EAC ESTIMATE at term signing does not.
-Effect: the company under-hedges EV customers (EAC understates electricity need)
-and over-hedges solar customers (EAC ignores self-generation offset).
+UK reference annual HDD sum (base 15.5C, E&W normals): ~2,066 HDD/yr.
 
-## What Phase H does
+January daily HDD ~11.3 -> ASHP daily kWh ~30 kWh (flat: 15.1 kWh) -- 2x flat
+July daily HDD ~0.16 -> ASHP daily kWh ~0.42 kWh (flat: 15.1 kWh) -- 0.03x flat
 
-Modify `_company_eac_estimate()` to accept a `base_eac_override` kwarg:
-    return estimated if estimated > 0 else (base_eac_override or EFFECTIVE_EAC_KWH.get(cid, 0.0))
+This affects:
+1. Imbalance costs (higher winter, near-zero summer)
+2. Shape risk (settlement profile mismatches hedge)
+3. BSUoS (time-of-use winter peaks)
+4. Network charges (DUoS seasonal/triad exposure)
 
-At electricity term signing (run_phase2b.py ~line 1102):
-    _elec_mult = household_demand_register.eac_multiplier_for_date(cid, term_start_str)
-    _adj_base = max(1, round(EFFECTIVE_EAC_KWH.get(cid, 0.0) * _elec_mult))
-    eac_kwh = _company_eac_estimate(cid, term_start_str, all_records, base_eac_override=_adj_base)
+## What Phase I does
 
-Logic:
-- First term (no billing history): base_eac_override is used → adjusted for EV/solar/ASHP ✓
-- Renewal terms (billing history exists): billing history used unchanged → no double-counting ✓
+In _weather_adjusted_shape_fn (run_phase2b.py line 252-261), replace the flat adder
+with an HDD-weighted additive. Split annual kWh: 70% heating (HDD-driven), 30% DHW (flat).
+Uses get_hdd() and REFERENCE_MONTHLY_HDD from sim/weather_hdd.py (already exist).
 
-## Expected effects on run output
-
-EV customers (C2, C4): electricity EAC higher on first term → company hedges more volume,
-prices to recover margin over true annual consumption. Imbalance risk reduced.
-
-Solar customers (C4): electricity EAC lower on first term → company expects lower volume,
-prices correctly for net-import-only customer.
-
-ASHP customers: electricity EAC higher on first term (5,500 kWh uplift captured),
-matching Phase G's settlement effect. Completes dual-fuel ASHP picture: gas -88% at term
-signing (Phase D) + electricity +ASHP at term signing (Phase H).
+Annual total ASHP electricity unchanged (5,500 kWh/yr by construction).
 
 ## Scope
 
 Files to change:
-- simulation/run_phase2b.py: 4 lines (compute _elec_mult, _adj_base, call with override)
-- simulation/run_phase2b.py: 2 lines (_company_eac_estimate kwarg + fallback line)
+- simulation/run_phase2b.py: replace flat ashp_hh_kwh adder (~5 lines)
 
-Tests to add (~12):
-- eac_estimate uses adjusted base on first term with EV
-- eac_estimate uses billing history on renewal term (no override applied)
-- eac_estimate uses adjusted base on first term with solar (reduction)
-- eac_estimate uses adjusted base on first term with ASHP
-- multiplier applied when household_demand_register present
-- no multiplier applied when household_demand_register absent (guard)
-- eac_kwh consistent with gas side (Phase D parallel)
+Tests to add (~10):
+- Winter day ASHP load > flat
+- Summer day ASHP load < flat
+- Annual integral over reference year ~= ashp_annual_kwh (conservation check)
+- Non-ASHP customer unchanged
+- DHW component always present (floor > 0 even in summer)
