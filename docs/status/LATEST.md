@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-29T19:49:30Z
+Last updated: 2026-06-29T20:04:40Z
 
 ## Current state
 
-- **Phase:** P complete (EV Smart Charging Shape)
-- **Tests passing:** 4,942 (all green)
+- **Phase:** U complete (EV Cross-Subsidy Register) -- T+U shipped this session
+- **Tests passing:** 4,974 (all green)
 - **Python modules:** 325+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,172
@@ -41,8 +41,8 @@ Last updated: 2026-06-29T19:49:30Z
 
 → Full history: docs/PROJECT_OVERVIEW.md | Report: docs/reports/ANNUAL_REPORT.md
 
-**Latest simulation results (2016–2025)** — auto-processed (571s / 10 min):
+**Latest simulation results (2016–2025)** — auto-processed (804s / 13 min):
 - Net margin: £6,239,957.41 | Gross: £6,476,625.78 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,808 | 38 committee interventions | 1531 bills issued
+- Treasury: £2,466,636 → £3,709,808 | 37 committee interventions | 1531 bills issued
 - Enterprise value: £6,142,208.62 | Net after CTS: £6,371,510
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
