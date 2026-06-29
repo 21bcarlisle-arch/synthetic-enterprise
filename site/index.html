@@ -198,7 +198,8 @@ tr:hover td { background: var(--surface2); }
   <button class="tab-btn"        data-tab="query"     onclick="switchTab('query')">Query</button>
   <button class="tab-btn"        data-tab="market"    onclick="switchTab('market')">Market</button>
   <button class="tab-btn"        data-tab="system"    onclick="switchTab('system')">System</button>
-  <button class="tab-btn"        data-tab="about"     onclick="switchTab('about')">About</button>
+  <button class="tab-btn"        data-tab="timeline"  onclick="switchTab('timeline')">Timeline</button>
+  <button class="tab-btn"        data-tab="company"   onclick="switchTab('company')">Company</button>
 </nav>
 
 <main>
@@ -214,7 +215,8 @@ tr:hover td { background: var(--surface2); }
   <div id="tab-query"     class="view"></div>
   <div id="tab-market"    class="view"></div>
   <div id="tab-system"   class="view"></div>
-  <div id="tab-about"    class="view"></div>
+  <div id="tab-timeline" class="view"></div>
+  <div id="tab-company"  class="view"></div>
 </main>
 
 <script>
@@ -288,7 +290,8 @@ function switchTab(name) {
 let SYS = null;
 
 function renderTab(name) {
-  if (name === 'about')  { renderAbout(); return; }
+  if (name === 'company')   { renderCompany(); return; }
+  if (name === 'timeline')  { renderTimeline(); return; }
   if (!D) return;
   if (name === 'overview')  renderOverview();
   if (name === 'financial') renderFinancial();
@@ -997,11 +1000,95 @@ function renderMarket() {
   });
 }
 
-// ── About ────────────────────────────────────────────────────────────────────
-function renderAbout() {
-  el('tab-about').innerHTML = `
+
+// ── Timeline ─────────────────────────────────────────────────────────────────
+const COMPANY_MILESTONES = [
+  { date: '2016-01', type: 'founding',   label: 'Company established',          detail: 'First electricity customers on supply. Residential and I&C segments.' },
+  { date: '2017-01', type: 'expansion',  label: 'Dual fuel launch',              detail: 'Gas customers acquired. Full dual-fuel offer to residential customers.' },
+  { date: '2018-01', type: 'operations', label: 'Smart meter rollout begins',    detail: 'HH consumption data available for smart meter customers. C2, C4 on supply.' },
+  { date: '2019-01', type: 'regulatory', label: 'Ofgem domestic price cap',      detail: 'Q1 2019 cap: £1,138/yr. Residential tariffs capped for first time.' },
+  { date: '2020-01', type: 'market',     label: 'COVID demand shift',            detail: 'Residential consumption rises; I&C drops sharply. Forward curves volatile.' },
+  { date: '2021-01', type: 'crisis',     label: 'Wholesale crisis begins',       detail: 'Gas prices surge 10x. Risk committee activating. 30+ licensed suppliers fail.' },
+  { date: '2022-01', type: 'crisis',     label: 'Peak crisis — company survives',detail: 'Worst energy market crisis since privatisation. VaR-constrained hedging limits exposure.' },
+  { date: '2022-10', type: 'regulatory', label: 'Energy Price Guarantee',        detail: 'Government intervention: Ofgem cap effectively £2,500/yr. Wholesale costs partly backstopped.' },
+  { date: '2023-06', type: 'market',     label: 'Market stabilises',             detail: 'Wholesale prices retreat. Margins recovering. Retention model improving.' },
+  { date: '2024-01', type: 'technology', label: 'MHHS shadow running',           detail: 'Half-hourly settlement migration underway. HH data path maturing.' },
+  { date: '2024-06', type: 'technology', label: 'Heat pump customers',           detail: 'ASHP installations: +5,500 kWh/yr electricity, -88% gas. Dual-fuel rebalancing.' },
+  { date: '2025-01', type: 'operations', label: 'EPC-led demand evolution',      detail: 'Insulation upgrades flowing through consumption. ECO scheme customers tracked.' },
+];
+
+const MS_COLORS = {
+  founding:   '#3fb950', expansion: '#58a6ff', regulatory: '#d29922',
+  market:     '#bc8cff', crisis:    '#f85149',  technology: '#39d353', operations: '#7d8590'
+};
+
+function renderTimeline() {
+  // Augment milestones with financial data if available
+  const fa = D && D.financial && D.financial.annual ? D.financial.annual : [];
+  const faByYear = {};
+  fa.forEach(function(r) { faByYear[r.year] = r; });
+
+  const rows = COMPANY_MILESTONES.map(function(ms) {
+    const yr = parseInt(ms.date.split('-')[0]);
+    const fin = faByYear[yr];
+    const finNote = fin
+      ? '<span style="color:var(--muted);font-size:10px;margin-left:8px">net ' + (fin.net_gbp >= 0 ? '+' : '') + gbp(fin.net_gbp || 0) + ' that year</span>'
+      : '';
+    const dot = '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + (MS_COLORS[ms.type] || '#7d8590') + ';margin-right:10px;flex-shrink:0;margin-top:3px"></span>';
+    const badge = '<span style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);color:' + (MS_COLORS[ms.type] || '#7d8590') + ';padding:1px 6px;border-radius:10px;font-size:9px;font-weight:600;text-transform:uppercase;margin-left:8px">' + ms.type + '</span>';
+    return '<div style="display:flex;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)">' +
+      dot +
+      '<div style="flex:1">' +
+        '<div style="font-size:12px;color:var(--muted);margin-bottom:2px">' + ms.date + badge + finNote + '</div>' +
+        '<div style="font-size:14px;font-weight:600;margin-bottom:4px">' + ms.label + '</div>' +
+        '<div style="font-size:12px;color:var(--muted);line-height:1.5">' + ms.detail + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // Treasury chart data
+  const labels = fa.map(function(r) { return r.year; });
+  const tData  = fa.map(function(r) { return (r.treasury_end_gbp || 0) / 1e3; });
+  const nData  = fa.map(function(r) { return (r.net_gbp || 0) / 1e3; });
+
+  el('tab-timeline').innerHTML =
+    '<div class="section">' +
+      '<div class="section-title">Company milestones</div>' +
+      '<div class="chart-box" style="margin-bottom:12px">' + rows + '</div>' +
+    '</div>' +
+    (labels.length ? '<div class="section">' +
+      '<div class="section-title">Treasury &amp; net margin by year (£k)</div>' +
+      '<div class="chart-box"><div class="chart-wrap"><canvas id="ch-timeline-fin"></canvas></div></div>' +
+    '</div>' : '');
+
+  if (labels.length) {
+    mkChart('ch-timeline-fin', {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Treasury (end, £k)', data: tData, backgroundColor: 'rgba(88,166,255,0.35)', borderColor: '#58a6ff', borderWidth: 1, yAxisID: 'y' },
+          { label: 'Net margin (£k)', data: nData, type: 'line', borderColor: '#3fb950', borderWidth: 2, pointRadius: 4, fill: false, yAxisID: 'y2' }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 10 } } },
+        scales: {
+          x: { grid: { color: 'rgba(48,54,61,.4)' } },
+          y: { grid: { color: 'rgba(48,54,61,.4)' }, title: { display: true, text: 'Treasury (£k)' } },
+          y2: { position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Net margin (£k)' } }
+        }
+      }
+    });
+  }
+}
+
+// ── Company ──────────────────────────────────────────────────────────────────
+function renderCompany() {
+  el('tab-company').innerHTML = `
 <div class="section">
-  <div class="section-title">About Poesys</div>
+  <div class="section-title">Company overview</div>
   <div class="chart-box" style="margin-bottom:12px">
     <p style="font-size:14px;line-height:1.7;color:var(--text);margin-bottom:14px">
       Poesys is a high-fidelity autonomous simulation of a UK electricity and gas supply business,
@@ -1123,7 +1210,7 @@ function renderAbout() {
       <div><div style="color:var(--muted);margin-bottom:3px">Weather</div>Open-Meteo</div>
       <div><div style="color:var(--muted);margin-bottom:3px">Hosting</div>Cloudflare Pages (poesys.net)</div>
       <div><div style="color:var(--muted);margin-bottom:3px">Hardware</div>Intel i5-13400F, RTX 3060 12GB, WSL2</div>
-      <div><div style="color:var(--muted);margin-bottom:3px">Tests</div>${D ? (D.meta?.total_tests || '1,260') + '+ passing' : '1,260+ passing'}</div>
+      <div><div style="color:var(--muted);margin-bottom:3px">Commission date</div>January 2016</div>
     </div>
   </div>
 </div>`;
@@ -1257,6 +1344,30 @@ function renderInsights() {
 }
 
 
+
+
+// ── Query learning loop ───────────────────────────────────────────────────────
+const QUERY_STORAGE_KEY = 'poesys_query_log';
+const QUERY_GAP_PATTERNS = ['unable to', "can't", 'cannot', 'not available', 'insufficient data',
+  "don't have", 'do not have', 'no data for', 'not enough', 'outside the scope',
+  'not captured', 'not modelled', 'no information', 'no records'];
+
+function qLoadHistory() {
+  try { return JSON.parse(localStorage.getItem(QUERY_STORAGE_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function qSaveHistory(hist) {
+  localStorage.setItem(QUERY_STORAGE_KEY, JSON.stringify(hist.slice(-100)));
+}
+function qIsGap(answer) {
+  const lo = (answer || '').toLowerCase();
+  return QUERY_GAP_PATTERNS.some(function(p) { return lo.includes(p); });
+}
+function qClearHistory() {
+  localStorage.removeItem(QUERY_STORAGE_KEY);
+  rendered['query'] = false;
+  switchTab('query');
+}
 
 // ── QUERY ─────────────────────────────────────────────────────────────────────
 const QUERY_EXAMPLES = [
