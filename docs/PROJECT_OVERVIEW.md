@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JB — Coverage Depth Sprint XXIV (2026-06-30)
+**Modules:** bm_unit_log · board_kpis · cash_flow_forecast
+**Tests added:** 30 (BM offer/dispatch/revenue/utilisation/year-filters; KPI vs_target/GREEN-AMBER-RED/lower_is_better/dashboard; cash weekly-inflows/outflows/net/closing/min-balance/weeks-to-concern)
+**Total:** 10,128 tests
+
 ### Phase JA — Coverage Depth Sprint XXIII (2026-06-30)
 **Modules:** arrears_book · billing_dispute · back_billing
 **Tests added:** 30 (arrears ARR-IDs/stages/terminal-guard/outstanding/open_cases/summary; billing dispute DISP-IDs/overdue-56d/disconnect-block/total-amount; back-billing SLC31A cap/non-domestic/pre-2018/proportion/book-summary)
@@ -4554,7 +4559,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,098 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,128 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

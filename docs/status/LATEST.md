@@ -1,5 +1,5 @@
-Phase JA complete -- 10,098 tests. Coverage Depth Sprint XXIII (arrears_book, billing_dispute, back_billing). Epistemic verifier PASS.
-Last updated: 2026-06-30T21:55:55Z
+Phase JB complete -- 10,128 tests. Coverage Depth Sprint XXIV (bm_unit_log, board_kpis, cash_flow_forecast). Epistemic verifier PASS.
+Last updated: 2026-06-30T21:59:54Z
 
 **Latest simulation results (2016–2025)** — auto-processed (650s / 11 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
