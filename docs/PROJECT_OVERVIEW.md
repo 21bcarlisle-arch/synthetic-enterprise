@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GE (2026-06-30):** I&C Invoice Dispute Register -- 34 new tests (7,800 total). company/billing/ic_invoice_dispute_register.py (new): ICDisputeType (6); ICResolutionMethod (5); ICDisputeStatus (8); ICInvoiceDisputeRecord (frozen; is_open: RAISED/UNDER_REVIEW/AUDIT; is_escalated: GEMA/COURT; days_open resolves to resolved_date if available); ICInvoiceDisputeRegister (raise_dispute amount>0; all transitions→immutable; total_disputed_gbp counts open+escalated only; long_running_disputes(as_of, days=90)). Commercial contract law (not SLC 18.9); GEMA/NICC independent audit path; amounts typically GBP10k-GBP10M. Distinct from billing_dispute.py (FC domestic SLC). PASS (374 files).
+
 **Phase GD (2026-06-30):** Direct Debit Mandate Register -- 33 new tests (7,766 total). company/billing/dd_mandate_register.py (new): DDMandateStatus (5); DDMandateRecord (frozen; is_active: ACTIVE+REINSTATED; is_collectable; next_collection_due None when not collectable; record_failure: 1st→FAILED/2nd→CANCELLED); DDMandateRegister (setup_mandate: day guard 1-28/amount>0; update_amount/suspend/reinstate/cancel→immutable; record_failure auto-cancels on 2nd; mandate_for_account prefers active; total_monthly_collection_gbp active only; accounts_without_active_mandate(ids)). BACS Direct Debit Guarantee; Pay.UK SUN; advance notice 10WD; 2-failure auto-cancel rule. Connects to payment_ledger (transactions), debt_collection (missed payment trigger). PASS (373 files).
 
 **Phase GC (2026-06-30):** EPG Reconciliation Register -- 33 new tests (7,733 total). company/regulatory/epg_reconciliation_register.py (new): _is_epg_period (Oct 2022–Jun 2023 inclusive); EPGMonthlyRecord (frozen; elec/gas subsidy=max(0,actual-EPG-cap) at 34p/10.3p; is_settled); EPGReconciliationRegister (record_month raises outside Oct22-Jun23; submit/approve/settle/dispute→immutable; outstanding_subsidy_gbp excludes settled+disputed). BEIS EPG rates: elec 34p/kWh, gas 10.3p/kWh, Oct 2022–Jun 2023; cost recovery via HMT EMFS. Distinct from EBSS (DE), EBRS (DD), price cap (ofgem_price_cap.py). Connects to regulatory_dashboard. 6-year HMRC audit trail required. PASS (372 files).
@@ -4370,7 +4372,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 7,766 tests (fast / ~10s; simulation integration ~8 min per run)
+- 7,800 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
