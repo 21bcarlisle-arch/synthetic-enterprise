@@ -4553,6 +4553,142 @@ def _section_pricing_basis_risk(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_board_risk_summary(data: dict) -> str:
+    pcl = data.get("per_customer_lifetime", {})
+    years_data = data.get("years", {})
+    cd = data.get("company_divergence", {})
+    brt = data.get("basis_risk_terms", [])
+    ce_all = data.get("customer_events", [])
+    cbr = data.get("churn_basis_risk", [])
+    hl = data.get("_ledger_headline")
+
+    if not any([pcl, years_data, cd, brt, ce_all, cbr, hl]):
+        return ""
+
+    rows = []
+
+    # 1. Revenue concentration (from Phase AN)
+    pos_margins = {
+        cid: v.get("net_margin_after_cost_to_serve_gbp") or 0.0
+        for cid, v in pcl.items()
+        if (v.get("net_margin_after_cost_to_serve_gbp") or 0.0) > 0
+    }
+    if pos_margins:
+        total_pos = sum(pos_margins.values())
+        ic_pct = sum(v for cid, v in pos_margins.items()
+                     if pcl.get(cid, {}).get("segment") == "I&C") / total_pos
+        shares = [v / total_pos for v in pos_margins.values()]
+        hhi = sum(s * s for s in shares) * 10000
+        rag = "RED" if hhi > 2500 else ("AMBER" if hhi > 1500 else "GREEN")
+        rows.append(("Revenue concentration",
+                     "HHI %.0f, I&C %.0f%%" % (hhi, ic_pct * 100),
+                     rag,
+                     "Single I&C departure removes 14-29%% of margin"))
+
+    # 2. Gas ROC (from Phase AP)
+    seg_lifetime: dict = {}
+    for yr, yd in sorted(years_data.items()):
+        for seg, vals in yd.get("segment_split", {}).items():
+            if seg not in seg_lifetime:
+                seg_lifetime[seg] = [0.0, 0.0, 0.0]
+            seg_lifetime[seg][0] += vals.get("gross_gbp", 0.0)
+            seg_lifetime[seg][1] += vals.get("capital_gbp", 0.0)
+            seg_lifetime[seg][2] += vals.get("net_gbp", 0.0)
+    gas_net = sum(seg_lifetime[s][2] for s in seg_lifetime if "gas" in s)
+    gas_cap = sum(seg_lifetime[s][1] for s in seg_lifetime if "gas" in s)
+    if gas_cap > 0:
+        gas_roc = gas_net / gas_cap
+        rag = "RED" if gas_roc < 0 else ("AMBER" if gas_roc < 3 else "GREEN")
+        rows.append(("Gas segment ROC",
+                     "%.1fx (net %s on %s capital)" % (gas_roc, _fmt_gbp(gas_net), _fmt_gbp(gas_cap)),
+                     rag,
+                     "Gas legs destroy capital; electricity cross-subsidises"))
+
+    # 3. Churn blind miss rate (from Phase AK)
+    churned = [e for e in ce_all if e.get("event_type") == "churned"]
+    if churned and cbr:
+        latest_churn: dict = {}
+        seen_ts: dict = {}
+        for rec in cbr:
+            cid = rec.get("customer_id", "")
+            ts = rec.get("term_start", "")
+            if cid and (cid not in seen_ts or ts > seen_ts[cid]):
+                seen_ts[cid] = ts
+                latest_churn[cid] = rec.get("company_churn_estimate", 0.0)
+        misses = sum(1 for e in churned
+                     if latest_churn.get(e.get("customer_id"), 0.0) < 0.10)
+        miss_rate = misses / len(churned) if churned else 0.0
+        rag = "RED" if miss_rate > 0.4 else ("AMBER" if miss_rate > 0.2 else "GREEN")
+        rows.append(("Churn blind miss rate",
+                     "%d/%d departures (%.0f%%)" % (misses, len(churned), miss_rate * 100),
+                     rag,
+                     "Company did not forecast these churns"))
+
+    # 4. Demand estimation error peak (from Phase AO)
+    ded = cd.get("demand_error_by_year", {})
+    if ded:
+        peak_mean = max((s["mean_abs_error_pct"] for s in ded.values() if s.get("n", 0) >= 5), default=0.0)
+        peak_max = max((s["max_abs_error_pct"] for s in ded.values()), default=0.0)
+        rag = "RED" if peak_mean > 3.0 else ("AMBER" if peak_mean > 1.0 else "GREEN")
+        rows.append(("Demand estimation error",
+                     "Peak mean %.1f%%, max %.1f%%" % (peak_mean, peak_max),
+                     rag,
+                     "EAC drift from asset acquisitions; smart meters eliminate"))
+
+    # 5. Pricing basis risk worst year mean (from Phase AM)
+    if brt:
+        by_year: dict = {}
+        for b in brt:
+            if "tariff_error_pct" in b:
+                yr = b.get("term_start", "")[:4]
+                by_year.setdefault(yr, []).append(b["tariff_error_pct"])
+        year_means = {yr: sum(v)/len(v) for yr, v in by_year.items() if v}
+        if year_means:
+            worst_yr = max(year_means, key=lambda k: year_means[k])
+            worst_over = year_means[worst_yr]
+            rag = "RED" if worst_over > 0.15 else ("AMBER" if worst_over > 0.05 else "GREEN")
+            rows.append(("Pricing basis risk (worst year)",
+                         "%s: +%.1f%% mean over-estimate" % (worst_yr, worst_over * 100),
+                         rag,
+                         "Over-priced contracts help margin but create churn risk"))
+
+    # 6. Net margin as % of revenue
+    if hl and hl.get("revenue_gbp", 0) > 0:
+        nm_pct = hl["net_margin_gbp"] / hl["revenue_gbp"]
+        rag = "GREEN" if nm_pct > 0.02 else ("AMBER" if nm_pct > 0 else "RED")
+        rows.append(("Net margin % of revenue",
+                     "%.1f%% (benchmark: 2-5%%)" % (nm_pct * 100),
+                     rag,
+                     "Within/above industry range" if nm_pct > 0.02 else "Below benchmark"))
+
+    if not rows:
+        return ""
+
+    lines = [
+        "## Board Risk Summary",
+        "",
+        "Synthesised risk indicators across portfolio, capital, operations and pricing.",
+        "RAG: RED = immediate board action, AMBER = monitor closely, GREEN = on track.",
+        "",
+        "| Risk Indicator | Value | RAG | Implication |",
+        "|----------------|-------|-----|-------------|",
+    ]
+    for metric, value, rag, implication in rows:
+        lines.append("| " + metric + " | " + value + " | **" + rag + "** | " + implication + " |")
+    lines.append("")
+
+    reds = [r for r in rows if r[2] == "RED"]
+    if reds:
+        lines.append(
+            "**Board Action Required:** "
+            + ", ".join(r[0] for r in reds)
+            + " — RED rating(s) require immediate attention."
+        )
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def _section_segment_capital_efficiency(data):
     ydata = data.get('years', {})
     if not ydata:
@@ -4856,6 +4992,7 @@ def generate_annual_report(data: dict) -> str:
         _executive_summary(data),
     ]
 
+    sections.append(_section_board_risk_summary(data))               # Phase AQ
     sections.append(_mandate_comparison_section(data, _load_old_model_data()))
     sections.append(_administration_section(data))
     sections.append(_hedge_effectiveness_summary_section(data))

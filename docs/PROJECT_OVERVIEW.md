@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,354 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,366 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AQ (2026-06-30):** Board Risk Summary -- 12 new tests (5,366 total). saas/reporting/annual_report.py: _section_board_risk_summary() synthesises 6 RAG indicators from all preceding phase data: (1) Revenue concentration HHI (AMBER); (2) Gas segment ROC (RED=-0.7x); (3) Churn blind miss rate (RED=67%); (4) Demand estimation error peak (RED=3.3%/15.6%); (5) Pricing basis risk worst year (RED=+32.8%); (6) Net margin % (GREEN=32.9%). Renders RAG table with Board Action Required note when REDs present. Wired as second section in generate_annual_report after executive summary. Fixed early-exit condition and basis_risk key names. Epistemic verifier: PASS.
 
 **Phase AP (2026-06-30):** Segment Capital Efficiency -- 12 new tests (5,354 total). saas/reporting/annual_report.py: _section_segment_capital_efficiency() aggregates segment_split per year into lifetime gross/capital/net; ROC = net/capital; CAPITAL DESTROYER when ROC<0; gas finding when lifetime gas net < 0. Key finding: I&C gas ROC=-0.7x (-£132k net on £185k capital); resi gas ROC=-0.9x; I&C electricity ROC=27.1x cross-subsidises both gas segments. Board: gas supply is a capital destroyer justified only if CLV of dual-fuel retention exceeds loss. Epistemic verifier: PASS. Connects segment_split, Phase 331 (dual-fuel account).
 
@@ -4090,7 +4092,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,354 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,366 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -4099,7 +4101,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase AE, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,354 tests. Phase AP: Segment Capital Efficiency (12 tests). Phase AO: Demand Estimation Error Trend (12 tests). Phase AN: Portfolio Concentration (12 tests).
+- 5,366 tests. Phase AQ: Board Risk Summary (12 tests). Phase AP: Segment Capital Efficiency (12 tests). Phase AO: Demand Estimation Error Trend (12 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
