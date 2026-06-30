@@ -276,6 +276,29 @@ well-hedged and therefore not experiencing bill shocks during their last contrac
 | 2024 | 7 | 2.32× ⚠ | 10.88× |
 | 2025 | 2 | 0.94× | 1.00× |
 
+### Demand Estimation Error (Phase AO)
+
+Company EAC estimate error vs SIM settled consumption — year-by-year trend.
+Error grows as customers acquire EVs, solar, and heat pumps that the company
+cannot directly observe. The first contract term after asset acquisition has
+the highest error; subsequent terms self-correct from billing history.
+
+| Year | Customers | Mean Abs Error | Max Abs Error | Signal |
+|------|-----------|----------------|---------------|--------|
+| 2016 | 3 | 0.07% | 0.07% | Low — stable portfolio |
+| 2017 | 9 | 0.38% | 1.69% | Low — stable portfolio |
+| 2018 | 10 | 0.63% | 3.21% | Low — stable portfolio |
+| 2019 | 11 | 1.00% | 5.05% | Low — stable portfolio |
+| 2020 | 13 | 0.76% | 3.50% | Low — stable portfolio |
+| 2021 | 11 | 1.06% | 4.24% | MODERATE — asset adoption visible |
+| 2022 | 9 | 1.87% | 7.47% | MODERATE — asset adoption visible |
+| 2023 | 9 | 2.46% | 8.47% | MODERATE — asset adoption visible |
+| 2024 | 9 | 3.26% | 15.56% | HIGH drift — EV/asset cohort growing |
+| 2025 | 2 | 1.42% | 2.07% | MODERATE — asset adoption visible |
+
+**Trend:** demand estimation error grew from **0.07%** in 2016 to **3.26%** mean / **15.56%** max in 2024. Root cause: new asset acquisitions (Phase B life events) create a temporary estimation gap until the company observes a full billing cycle.
+Portfolio action: prioritise smart meter installation for high-EAC-drift accounts — interval data eliminates estimation error at renewal.
+
 ## Demand Estimation Accuracy (Phase 23a/25a)
 
 Company EAC estimate (from prior-year billing records) vs actual settled kWh.
@@ -869,6 +892,24 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Segment Capital Efficiency (Return-on-Capital)
+
+Lifetime net margin and capital deployed per segment.
+ROC = lifetime net / lifetime capital. ROC < 0 = capital destroyer.
+
+| Segment | Lifetime Gross | Capital Deployed | Lifetime Net | ROC | Signal |
+|---------|---------------|------------------|--------------|-----|--------|
+| I&C electricity | £5,748,240.53 | £50,429.58 | £1,368,630.46 | 27.1x | Strong |
+| I&C gas | £622,647.03 | £185,126.72 | £-132,711.18 | -0.7x | CAPITAL DESTROYER |
+| SME electricity | £31,798.01 | £342.49 | £3,513.04 | 10.3x | Moderate |
+| resi electricity | £53,144.26 | £570.80 | £4,091.52 | 7.2x | Moderate |
+| resi gas | £6,316.16 | £198.77 | £-186.91 | -0.9x | CAPITAL DESTROYER |
+
+**Gas Segment Finding:**
+- Gas supply legs are net-negative over the simulation period (£-132,898.09 net on £185,325.49 capital)
+- Electricity segments (£1,376,235.01 net) cross-subsidise gas retention
+- Board decision required: is dual-fuel gas justified by CLV, or does it need pricing reform?
+
 ## Portfolio Concentration Risk
 
 Revenue concentration analysis across 19 margin-positive accounts. Herfindahl-Hirschman Index (HHI): **2249** — MODERATE (1,500-2,500).
@@ -1224,7 +1265,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89)
 - Risk committee (Context Handshake) interventions: 13
   - 2016-01-01: treasury £2,466,636.23, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
-  - 2016-01-31: treasury £2,466,648.35, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
+  - 2016-01-31: treasury £2,466,648.35, (none), VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-03-01: treasury £2,466,660.58, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-03-31: treasury £2,466,672.53, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-04-30: treasury £2,466,683.60, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
