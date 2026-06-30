@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase IJ — Coverage Depth Sprint VII (2026-06-30)
+**Modules:** campaign_tracker · marketing_budget · acquisition_cohort
+**Tests added:** 30 (campaign conversion/contact rates, marketing CAC by category, cohort CLV/payback analytics)
+**Total:** 9,620 tests
+
 ### Phase II — Coverage Depth Sprint VI (2026-06-30)
 **Modules:** pnl · credit_facility · retention_risk
 **Tests added:** 30 (company income statement cash/accrual basis, credit facility drawdown/interest, retention risk scoring)
@@ -4494,7 +4499,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 9,590 tests (fast / ~10s; simulation integration ~8 min per run)
+- 9,620 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

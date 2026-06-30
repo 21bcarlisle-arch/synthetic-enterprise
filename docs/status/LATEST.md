@@ -1,5 +1,5 @@
-Phase II complete -- 9,590 tests. Coverage Depth Sprint VI (pnl, credit_facility, retention_risk). Epistemic verifier PASS.
-Last updated: 2026-06-30T20:59:27Z
+Phase IJ complete -- 9,620 tests. Coverage Depth Sprint VII (campaign_tracker, marketing_budget, acquisition_cohort). Epistemic verifier PASS.
+Last updated: 2026-06-30T21:01:18Z
 
 **Latest simulation results (2016–2025)** — auto-processed (571s / 10 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
