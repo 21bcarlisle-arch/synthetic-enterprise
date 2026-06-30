@@ -4755,6 +4755,48 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_bsc_regulatory_levies(data: dict) -> str:
+    """Phase BQ: BSC credit obligation and regulatory levy breakdown by year."""
+    years = data.get("years", {})
+    if not years:
+        return ""
+    rows = []
+    for yr in sorted(years.keys()):
+        y = years[yr]
+        bsc_cr = y.get("bsc_credit_required_gbp", 0.0)
+        cm = y.get("cm_levy_gbp", 0.0)
+        mute = y.get("mutualization_levy_gbp", 0.0)
+        ccl = y.get("ccl_gbp", 0.0)
+        gas_net = y.get("gas_network_cost_gbp", 0.0)
+        rows.append((yr, bsc_cr, cm, mute, ccl, gas_net))
+    if not rows:
+        return ""
+    peak_bsc_yr, peak_bsc = max(((r[0], r[1]) for r in rows), key=lambda x: x[1])
+    first_mute_yr = next((r[0] for r in rows if r[2] > 0), None)
+    lines = [
+        "## BSC Credit Obligation and Regulatory Levy Breakdown",
+        "",
+        "Elexon BSC credit posting requirement and annual levy costs.",
+        "",
+        "| Year | BSC Credit £ | CM Levy £ | Mutualization £ | CCL £ | Gas Network £ |",
+        "|------|-------------|----------|----------------|-------|--------------|",
+    ]
+    for yr, bsc, cm, mute, ccl, gas in rows:
+        mute_str = "£{:,.0f}".format(mute) if mute > 0 else "—"
+        lines.append("| {} | £{:,.0f} | £{:,.0f} | {} | £{:,.0f} | £{:,.0f} |".format(
+            yr, bsc, cm, mute_str, ccl, gas))
+    lines.extend([""])
+    lines.append("**Peak BSC credit obligation: {} (£{:,.0f})** — driven by portfolio volume growth and crisis price levels.".format(peak_bsc_yr, peak_bsc))
+    if first_mute_yr:
+        lines.append("**Mutualization levy first appeared in {}** — reflects supplier failure costs passed to remaining suppliers via BSC.".format(first_mute_yr))
+    lines.extend([
+        "",
+        "> BSC credit = Elexon-mandated deposit against settlement exposure. Scales with volume × price.",
+        "> Mutualization = recoverable defaults from failed suppliers in settlement.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_cohort_revenue_analysis(data: dict) -> str:
     """Phase BP: Customer cohort (vintage) analysis by acquisition year."""
     pcl = data.get("per_customer_lifetime", {})
@@ -6136,6 +6178,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_bsc_regulatory_levies(data))          # Phase BQ
     sections.append(_section_cohort_revenue_analysis(data))        # Phase BP
     sections.append(_section_cfd_and_treasury(data))               # Phase BO
     sections.append(_section_segment_margin_attribution(data))     # Phase BN

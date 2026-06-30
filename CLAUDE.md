@@ -57,7 +57,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BP COMPLETE (2026-06-30):** Customer Cohort Revenue -- 12 tests (5,693 total). Vintage by acquisition year; lifetime rev/gross/net; best-rpc-cohort; loss-cohort. 2017 best (£837k); 2019 loss (gas drag).
+**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Regulatory Levies -- 12 tests (5,705 total). BSC/CM/mute/CCL/gas-net per year; BSC grew £30→£10,210; mute first 2021.
+**Phase BP COMPLETE (2026-06-30):** Customer Cohort Revenue -- 12 tests (5,693 total). Vintage by acquisition year; 2017 best (£837k); 2019 loss (gas drag).
 **Phase BO COMPLETE (2026-06-30):** CfD Levy & Treasury -- 12 tests (5,681 total). 2022 CfD CREDIT -£50k; treasury draws 2022-2024.
 **Phase BN COMPLETE (2026-06-30):** Segment Margin Attribution -- 12 tests (5,669 total). 5×10yr table; 2022 resi gas -£742; I&C £964k peak.
 **Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657 total). avg/above-cap/min/max from churn_basis_risk. 2021 5/9 above SVT.
@@ -191,7 +192,6 @@ account for cost-to-serve at the customer level.
 ---
 
 ## Technical environment
-
 **Hardware (Skynet):** Intel i5-13400F, 32GB DDR4, RTX 3060 12GB VRAM. Windows 11 Pro + WSL2/Ubuntu.
 **Networking:** Tailscale WSL2 `100.69.81.59` | File API `https://skynet-1.taila062fa.ts.net:8765`
 **AI stack:** Claude Code (orchestrator) → qwen3:14b/Ollama (code gen) → risk committee (local Ollama)

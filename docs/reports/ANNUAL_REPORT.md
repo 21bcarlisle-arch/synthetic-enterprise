@@ -908,6 +908,29 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## BSC Credit Obligation and Regulatory Levy Breakdown
+
+Elexon BSC credit posting requirement and annual levy costs.
+
+| Year | BSC Credit £ | CM Levy £ | Mutualization £ | CCL £ | Gas Network £ |
+|------|-------------|----------|----------------|-------|--------------|
+| 2016 | £30 | £37 | — | £189 | £479 |
+| 2017 | £560 | £1,985 | — | £11,227 | £898 |
+| 2018 | £1,020 | £9,401 | — | £17,545 | £905 |
+| 2019 | £1,854 | £32,051 | — | £42,580 | £50,388 |
+| 2020 | £2,376 | £56,674 | — | £69,608 | £47,215 |
+| 2021 | £5,291 | £50,148 | £41,818 | £72,054 | £50,441 |
+| 2022 | £10,210 | £37,170 | £100,685 | £71,853 | £54,433 |
+| 2023 | £6,737 | £51,399 | £13,891 | £72,499 | £79,700 |
+| 2024 | £3,282 | £69,368 | £2,019 | £73,612 | £76,429 |
+| 2025 | £5,012 | £31,480 | £866 | £31,649 | £31,816 |
+
+**Peak BSC credit obligation: 2022 (£10,210)** — driven by portfolio volume growth and crisis price levels.
+**Mutualization levy first appeared in 2016** — reflects supplier failure costs passed to remaining suppliers via BSC.
+
+> BSC credit = Elexon-mandated deposit against settlement exposure. Scales with volume × price.
+> Mutualization = recoverable defaults from failed suppliers in settlement.
+
 ## Customer Cohort Revenue Analysis
 
 Lifetime P&L by year-of-acquisition cohort (all years to simulation end).
