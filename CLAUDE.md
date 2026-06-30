@@ -20,7 +20,6 @@ real UK energy supplier works."
 ---
 
 ## How to operate autonomously
-
 **NTFY is the primary communication channel.** Rich uses it for steering and quick direction changes.
 - `background/ntfy_responder.py` writes inbound messages (>25 chars) to `docs/staging/from_rich_TIMESTAMP.md`
 - After acting on a `from_rich_*.md` message, reply via `background.ntfy_utils.send_ntfy`.
@@ -55,6 +54,7 @@ real UK energy supplier works."
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 ---
 ## Current state
+**Phase CC COMPLETE (2026-06-30):** OTC Margin Call Book -- 12 tests (5,849). company/trading/otc_margin_book.py: MarginCallDirection (CALL/RETURN); MarginCallStatus; VariationMarginCall (frozen; cash_impact_gbp/is_call_on_company/is_settled/is_overdue T+1 CSA standard); OTCMarginBook (record_call/settle_call/pending/overdue/total_cash_impact/total_pending_outflow/calls_by_counterparty/net_cash_for_year). 2022 crisis mechanism: margin calls drain treasury when forwards move against company; direct cause of 28 UK supplier failures.
 **Phase CB COMPLETE (2026-06-30):** Hedge Value-Add Analysis -- 12 tests (5,837). _section_hedge_value_add(): actual vs naked net margin 10-yr table; value-add always negative (backwardation 2016-21; hedging cost £4.04M total vs spot). 2022 worst (-£988k); 2016 best (-£8.9k).
 **Phase CA COMPLETE (2026-06-30):** Service Quality Monitor -- 12 tests (5,825). company/crm/service_quality_monitor.py: ServiceQualityRAG (GREEN/AMBER/RED); ServiceQualitySnapshot (clarity/complaint/shock RAG; shock_rate_pct); ServiceQualityMonitor (worst_clarity/complaint/shock year; is_improving; quality_summary). Annual report section: 10-yr table; 2022=RED (crisis); 2025=declining. Benchmarks: clarity>0.82 GREEN; complaint<5% GREEN; shock<0.20% GREEN.
 **Phase BZ COMPLETE (2026-06-30):** Portfolio Margin Sensitivity Analyser -- 12 tests (5,813). company/finance/portfolio_margin_sensitivity.py: 5-factor/10-row sensitivity table; wholesale most sensitive (-10.4%); LOW/MEDIUM/HIGH severity. Board tool using observed P&L fractions.

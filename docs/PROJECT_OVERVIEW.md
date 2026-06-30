@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,837 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,849 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CC (2026-06-30):** OTC Variation Margin Book -- 12 new tests (5,849 total). company/trading/otc_margin_book.py (new): MarginCallDirection (CALL/RETURN); MarginCallStatus (4 states); VariationMarginCall (frozen; cash_impact_gbp — negative for CALL, positive for RETURN; is_call_on_company; is_settled; is_overdue T+1 CSA standard); OTCMarginBook (record_call/settle_call/pending_calls/overdue_calls/total_cash_impact_gbp/total_pending_outflow_gbp/calls_by_counterparty/net_cash_for_year/margin_book_summary). Models the key 2022 supplier-failure mechanism: OTC forward positions move against company as prices rise, generating daily margin calls that drain treasury. Epistemic verifier: PASS.
 
 **Phase CB (2026-06-30):** Hedge Value-Add Analysis Annual Report Section -- 12 new tests (5,837 total). _section_hedge_value_add() in annual_report.py: per-year actual hedged net margin vs hypothetical naked (spot-priced) net margin; hedging value-add; totals row; identifies largest/smallest hedging cost year. Key finding: hedging value-add ALWAYS negative across all 10 years — total cost £4.04M vs going naked. 2022 worst (-£988k); 2016 best (-£8.9k). Reflects UK market backwardation 2016-21 and partial hedging in crisis years. Epistemic verifier: PASS.
 
@@ -4166,7 +4168,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,837 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,849 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
