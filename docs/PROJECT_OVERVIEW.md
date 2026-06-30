@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 6,140 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,623 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,10 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase DG (2026-06-30):** Consumer Vulnerability Duty Action Register -- 23 new tests (5,623 total). company/regulatory/consumer_vulnerability_register.py (new): VulnerabilityCategory (8: MEDICAL_DEPENDENCY/MENTAL_HEALTH/BEREAVED/FINANCIAL_HARDSHIP/ELDERLY_FRAIL/DISABILITY/LANGUAGE_BARRIER/TEMPORARY); VulnerabilityAction (10: PSR_ENROLMENT/PAYMENT_PLAN_OFFERED/PPM_WAIVER/DEBT_WRITEOFF/DISCONNECTION_HOLD/EXTRA_CONTACT/WARM_HOME_DISCOUNT/NOMINEE_ADDED/TARIFF_DOWNGRADE/ACCOUNT_FLAGGED); ActionOutcome (ACCEPTED/DECLINED/NO_RESPONSE/IN_PROGRESS); VulnerabilityActionRecord (frozen; follow_up_overdue(as_of)/is_medical/is_effective); ConsumerVulnerabilityRegister (record_action/actions_for/by_category/by_action_type/medical_dependency_accounts/overdue_follow_ups/effective_actions/effectiveness_rate/disconnection_holds/vulnerability_summary). Ofgem Consumer Vulnerability Strategy 2025 / SLC 26B. Companion to Phase DF (SAR) and Phase 329 (PSR). Epistemic verifier: PASS.
+
+**Phase DF (2026-06-30):** Data Subject Access Request Register (UK GDPR Art.15) -- 32 new tests (5,600 total). company/regulatory/sar_register.py (new): SARStatus (RECEIVED/ACKNOWLEDGED/IN_PROGRESS/RESPONDED/EXTENDED/REFUSED/COMPLAINT_RAISED); SARTrigger (7: BILLING_DISPUTE/DEBT_DISPUTE/VULNERABILITY_CONCERN/GENERAL_ENQUIRY/PRE_LITIGATION/OMBUDSMAN_REFERRAL/UNKNOWN); SARRefusalReason (4: MANIFESTLY_UNFOUNDED/MANIFESTLY_EXCESSIVE/THIRD_PARTY_RIGHTS/LEGAL_EXEMPTION); SARRecord (frozen; deadline=received+30d standard/+90d extended; is_overdue(as_of)/days_to_deadline/days_to_respond/responded_within_deadline/is_active); SARRegister (receive/acknowledge/extend/respond/refuse/mark_ico_complaint/overdue/active/late_responses/by_trigger/compliance_rate/sar_summary). UK GDPR Art.15; 30-day standard/90-day extended for complex; no fee unless manifestly unfounded/excessive; max fine GBP17.5M. Companion to Phase DB (ICO breach). Epistemic verifier: PASS.
 
 **Phase DA (2026-06-30):** Customer Communication Preference Register -- 12 new tests (6,140 total). company/crm/customer_comm_preferences.py (new): CommChannel (EMAIL/POST/PHONE/SMS/PORTAL/PAPER_BILL); CommPurpose (BILLING/SERVICE_NOTICE = essential/cannot be blocked; MARKETING = GDPR opt-in required; TARIFF_ALERT/TRIAD_ALERT); CustomerCommPreferences (set_preference/can_contact/set_marketing_opt_in/suppress); CustomerCommPreferenceRegister (set_preference/set_marketing_opt_in/suppress_account/can_contact/marketing_opt_in_accounts/suppressed_accounts/paperless_accounts/comm_preference_summary). GDPR Article 6 / PECR 2003 (SMS/email marketing opt-in) / SLC 25C (channel choice). Epistemic verifier: PASS.
 
@@ -4214,18 +4218,18 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 330+ Python modules, ~46,500 lines
-- 410+ git commits
-- 6,140 tests (fast / ~10s; simulation integration ~8 min per run)
+- 303+ Python modules (company layer), ~47,500 lines total
+- 420+ git commits
+- 5,623 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase AE, 2026-06-29):**
+**Latest full run (Phase AG, 2026-06-30):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,380 tests. Phase AR: Gas Exit Decision Book (14 tests). Phase AQ: Board Risk Summary (12 tests). Phase AP: Segment Capital Efficiency (12 tests).
+- 5,623 tests. Phase DG: Consumer Vulnerability Register (23). Phase DF: SAR Register (32). Phase DE: EBSS (28). Phase DD: EBRS (28). Phase DC: EMIR (29). Phase DB: ICO Breach (33).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

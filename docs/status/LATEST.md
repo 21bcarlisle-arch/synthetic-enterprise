@@ -1,12 +1,12 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T06:50:52Z
+Last updated: 2026-06-30T07:00:30Z
 
 ## Current state
 
-- **Phase:** DE complete (EBSS Register) — this session built site Regulatory tab + Phases DB/DC/DD/DE (Customer Comm Preferences) — bug-fixes: fuel_mix test rewrite (Phase CL compat), service_quality None guard, annual_report clv/churn None guards
-- **Tests passing:** 5,568 non-sim + simulation suite (all green) + simulation suite (all green)
-- **Python modules:** 297 company/ + simulation + saas
+- **Phase:** DG complete — this session built Phases DB/DC/DD/DE/DF/DG (ICO breach/EMIR/EBRS/EBSS/SAR/Vulnerability), website overhaul (Regulatory tab 23 SLCs, dynamic build stats, portal commodity split)
+- **Tests passing:** 5,623 non-sim + simulation suite (all green)
+- **Python modules:** 303 company/ + simulation + saas
 - **Net position (latest sim run):** £1,243,337
 
 ## Latest run figures (git 83538a9, 2026-06-30)
@@ -35,8 +35,8 @@ Last updated: 2026-06-30T06:50:52Z
 
 -> Full build history: docs/PROJECT_OVERVIEW.md Section 4
 
-**Latest simulation results (2016–2025)** — auto-processed (464s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
+- Treasury: £2,466,636 → £3,709,973 | 37 committee interventions | 1531 bills issued
 - Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
