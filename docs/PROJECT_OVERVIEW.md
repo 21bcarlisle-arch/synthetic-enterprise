@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JG — Coverage Depth Sprint XXIX (2026-07-01)
+**Modules:** smart_meter_analytics · tariff_change_log · usage_benchmark
+**Tests added:** 33 (HH is_morning_peak boundary/period-15-18; days_covered single/multi; off_peak_kwh; avg_daily_kwh; load_factor 0-100%/zero-guard; customers_with_data; multi-customer isolation; peak_share_pct zero-total; TCN by_change_type/unacknowledged/ack-excluded; cap_reset/whd_change/other 30d; rate_change_pct zero-old; summary empty 100%; for_customer multi; channel=post; EPC high/low band grouping; efficient/heavy/average ratings; label content; customer_eac/percentile in result; no_peers_label)
+**Total:** 10,290 tests
+
 ### Phase JF — Coverage Depth Sprint XXVIII (2026-06-30)
 **Modules:** economy7 · payment_behaviour · renewal_engine
 **Tests added:** 39 (E7 day/night rates 2016-2025/crisis-peak/fallback/night-cheaper-invariant; meter-read total/night-pct/zero-guard; bill day/night/total/blended-rate/generate year-rates; payment DD_FAILED/MISSED days-late=None/GOOD/FAIR/POOR thresholds/avg-late-guard/shortfall-zero; renewal SME/IC margins/sc/2yr-0.5p/SVT-2.5p/VAR-id/annual-cost-formula/customer-id)
@@ -4579,7 +4584,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,257 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,290 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

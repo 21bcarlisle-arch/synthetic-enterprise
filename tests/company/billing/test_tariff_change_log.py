@@ -71,3 +71,80 @@ def test_summary_compliance_rate():
     assert s["total"] == 2
     assert s["non_compliant"] == 1
     assert s["compliance_rate_pct"] == 50.0
+
+
+def test_by_change_type_filters():
+    log = TariffChangeLog()
+    log.record(_notice(change_type="cap_reset"))
+    log.record(_notice(change_type="svt_price_change"))
+    cap_resets = log.by_change_type("cap_reset")
+    assert len(cap_resets) == 1
+    assert cap_resets[0].change_type == "cap_reset"
+
+
+def test_unacknowledged_returns_unacked():
+    log = TariffChangeLog()
+    log.record(_notice(ack=False))
+    log.record(_notice(ack=True))
+    assert len(log.unacknowledged()) == 1
+
+
+def test_acknowledged_excluded_from_unacknowledged():
+    log = TariffChangeLog()
+    log.record(_notice(ack=True))
+    assert len(log.unacknowledged()) == 0
+
+
+def test_cap_reset_notice_days():
+    n = _notice(change_type="cap_reset")
+    assert n.required_notice_days == 30
+
+
+def test_whd_change_notice_days():
+    n = _notice(change_type="whd_change")
+    assert n.required_notice_days == 30
+
+
+def test_other_change_type_notice_days():
+    n = _notice(change_type="other")
+    assert n.required_notice_days == 30
+
+
+def test_rate_change_pct_zero_old_rate():
+    n = _notice(old=0.0, new=30.0)
+    assert n.rate_change_pct == 0.0
+
+
+def test_summary_empty_log():
+    log = TariffChangeLog()
+    s = log.summary()
+    assert s["total"] == 0
+    assert s["compliance_rate_pct"] == 100.0
+
+
+def test_for_customer_multiple_customers():
+    from company.billing.tariff_change_log import TariffChangeNotice
+    log = TariffChangeLog()
+    log.record(TariffChangeNotice(
+        notice_id="TCN-001", customer_id="C1", change_type="svt_price_change",
+        notification_date="2024-01-01", effective_date="2024-02-15",
+        old_unit_rate_p_kwh=28.0, new_unit_rate_p_kwh=32.0,
+    ))
+    log.record(TariffChangeNotice(
+        notice_id="TCN-002", customer_id="C2", change_type="svt_price_change",
+        notification_date="2024-01-01", effective_date="2024-02-15",
+        old_unit_rate_p_kwh=28.0, new_unit_rate_p_kwh=32.0,
+    ))
+    assert len(log.for_customer("C1")) == 1
+    assert len(log.for_customer("C2")) == 1
+
+
+def test_channel_non_default():
+    from company.billing.tariff_change_log import TariffChangeNotice
+    n = TariffChangeNotice(
+        notice_id="TCN-001", customer_id="C1", change_type="svt_price_change",
+        notification_date="2024-01-01", effective_date="2024-02-15",
+        old_unit_rate_p_kwh=28.0, new_unit_rate_p_kwh=32.0,
+        channel="post",
+    )
+    assert n.channel == "post"
