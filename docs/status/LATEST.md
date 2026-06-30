@@ -1,11 +1,11 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T12:50:35Z
+Last updated: 2026-06-30T12:53:31Z
 
 ## Current state
 
-- **Phase:** GJ complete -- 7,950 tests. Phase GJ: MAP Contract Register (31). Phase FY: Debt Respite (Breathing Space) Register (29 tests). Phase FX: PPM Installation Warrant Register (32). Phase FW: Consumer Duty Annual Board Report Register (38 tests). Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
-- **Tests passing:** 7,950 (all green)
+- **Phase:** GK complete -- 7,982 tests. Phase GK: Change of Tenancy Register (32). Phase FY: Debt Respite (Breathing Space) Register (29 tests). Phase FX: PPM Installation Warrant Register (32). Phase FW: Consumer Duty Annual Board Report Register (38 tests). Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
+- **Tests passing:** 7,982 (all green)
 - **Python modules:** 350 company/ modules + simulation + saas
 - **Net position (latest sim run):** £1,243,337 (git 5d0e280)
 
