@@ -57,8 +57,9 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BU COMPLETE (2026-06-30):** Gas Exit Decision -- 12 tests (5,753). SQ/exit/reprice; loss C4+C_IC3; reprice +£135k vs SQ.
-**Phase BT COMPLETE (2026-06-30):** Hedge Fraction -- 12 tests (5,741). 2019 naked; 2024 lowest 79.3%.
+**Phase BV COMPLETE (2026-06-30):** Retention Economics -- 12 tests (5,765). Per-offer ROI 6.7× portfolio.
+**Phase BU COMPLETE (2026-06-30):** Gas Exit Decision -- 12 tests (5,753). Loss C4+C_IC3; reprice +£135k vs SQ.
+**Phase BT COMPLETE (2026-06-30):** Hedge Fraction -- 12 tests (5,741). 2019: first naked; 2024: 79.3%.
 **Phase BS COMPLETE (2026-06-30):** Committee Intervention -- 12 tests (5,729). Peak 2016: 13; 2022: 9.
 **Phase BR COMPLETE (2026-06-30):** Worst Settlement Period -- 12 tests (5,717). 2023: -£3,475 (C_IC3g).
 **Phase BQ COMPLETE (2026-06-30):** BSC Credit & Levies -- 12 tests (5,705). BSC £30→£10,210 2016→2022; mute first 2021.
@@ -68,9 +69,9 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657). 2021: 5/9 above SVT.
 **Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). 5 scenarios/year RAG; StressTestBook wired to annual report.
 **Phase BK COMPLETE (2026-06-30):** Financial Ratios -- 12 tests (5,633). EBIT%/rev-per-cust; 2022 worst EBIT; 2022 peak £306k/cust.
-**Phase BJ COMPLETE (2026-06-30):** Churn Prediction Calibration -- 12 tests (5,621 total). UNDER/ACCURATE/OVER + MAE. 5/6 churns underestimated (epistemic gap).
-**Phase BI COMPLETE (2026-06-30):** Tariff Estimation Accuracy -- 12 tests (5,609 total). GOOD/MODERATE/POOR bands. 2024 best 9.75%; 2023 worst 19.89% (crisis lag).
-**Phase BH COMPLETE (2026-06-30):** Dynamic Pricing Activity -- 12 tests (5,597 total). _section_dynamic_pricing_activity(): adj/avg-delta/up/down/emergency by year. 2022 peak +18.1 £/MWh; 29 emergency reprices total.
+**Phase BJ COMPLETE (2026-06-30):** Churn Calibration -- 12 tests (5,621). UNDER/ACCURATE/OVER + MAE; 5/6 underestimated.
+**Phase BI COMPLETE (2026-06-30):** Tariff Accuracy -- 12 tests (5,609). GOOD/MODERATE/POOR; 2024 best 9.75%; 2023 worst 19.89%.
+**Phase BH COMPLETE (2026-06-30):** Dynamic Pricing -- 12 tests (5,597). adj/delta/up/down/emergency by year; 2022 peak +18.1 £/MWh.
 **Phase BG COMPLETE (2026-06-30):** Portfolio CLV Evolution -- 12 tests (5,585 total). _section_clv_evolution(): CLV table (gas excluded); 2018 jump £37k→£1M; 2025 peak £3.46M.
 **Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence -- 15 tests (5,573 total). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario. PCW £55/ref £20/broker £160.
 **Phase BE COMPLETE (2026-06-30):** Gross Margin Bridge (YoY) -- 12 tests (5,558 total). _section_gross_margin_bridge(): revenue/wholesale/non-comm/GM + deltas table. 2022 GM%=24.8% worst; 2024 42.4% recovery.
@@ -146,9 +147,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase 310 COMPLETE (2026-06-27):** Smart Export Guarantee (SEG) Book -- 20 new tests (4,068 passing). company/regulatory/seg_book.py: SEGTechnology, SEGContract (frozen; is_active), SEGPayment (frozen; payment_gbp), SEGBook (seg_rate_for_year/register_contract/terminate_contract/record_payment/active_contracts/payments_for_customer/payments_for_year/total_paid_gbp/total_export_kwh/seg_summary). SEG replaced FIT export Jan 2020; mandatory for >150k domestic customers; not levy-recoverable. Connects to fit_book (Ph286), eep_book, decarbonisation_score (Ph279).
 → Phases 1–309: `docs/claude/phase-history.md` | Earlier: `CLAUDE_HISTORY.md`
 ---
-
 ## Architectural Laws
-
 ### Epistemic Honesty — The Company Cannot See Inside the SIM
 
 The company layer operates under the same information constraints as a real energy supplier.

@@ -4755,6 +4755,49 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_retention_decision_economics(data: dict) -> str:
+    """Phase BV: Retention decision economics — ROI of individual retention offers."""
+    rl = data.get("retention_log", [])
+    if not rl:
+        return ""
+    rows = []
+    for entry in rl:
+        cid = entry.get("customer_id", "?")
+        dt = entry.get("event_date", "?")[:7]
+        cost = entry.get("retention_cost_gbp", 0.0)
+        margin = entry.get("expected_term_margin_gbp", 0.0)
+        disc = entry.get("discount_pct", 0.0) * 100
+        outcome = entry.get("outcome", "?")
+        roi = margin / cost if cost > 0 else 0.0
+        rows.append((cid, dt, cost, margin, roi, disc, outcome))
+    total_cost = sum(r[2] for r in rows)
+    total_margin = sum(r[3] for r in rows)
+    retained_count = sum(1 for r in rows if r[6] == "retained")
+    best_roi_row = max(rows, key=lambda r: r[4])
+    lines = [
+        "## Retention Decision Economics",
+        "",
+        "Per-offer cost, expected margin protected, and ROI for each retention intervention.",
+        "",
+        "| Customer | Period | Retention Cost £ | Margin Protected £ | ROI | Discount % | Outcome |",
+        "|----------|--------|-----------------|-------------------|-----|------------|---------|",
+    ]
+    for cid, dt, cost, margin, roi, disc, outcome in rows:
+        lines.append("| {} | {} | £{:,.0f} | £{:,.0f} | {:.1f}× | {:.0f}% | {} |".format(
+            cid, dt, cost, margin, roi, disc, outcome))
+    portfolio_roi = total_margin / total_cost if total_cost > 0 else 0
+    lines.extend([
+        "",
+        "**Total retention spend: £{:,.0f}** | **Total margin protected: £{:,.0f}**".format(total_cost, total_margin),
+        "**Portfolio retention ROI: {:.1f}×** | **Retained: {}/{}**".format(portfolio_roi, retained_count, len(rows)),
+        "**Best ROI intervention: {} {} ({:.1f}×)**".format(best_roi_row[0], best_roi_row[1], best_roi_row[4]),
+        "",
+        "> ROI = expected remaining-term margin ÷ retention cost (discount given).",
+        "> Churn probability weighted; 95% churn estimate used for I&C renewal trigger.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_gas_exit_decision(data: dict) -> str:
     """Phase BU: Gas exit decision — three-scenario analysis for the board."""
     from company.finance.gas_exit_analysis import GasExitDecisionBook
@@ -6358,6 +6401,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_retention_decision_economics(data))   # Phase BV
     sections.append(_section_gas_exit_decision(data))              # Phase BU
     sections.append(_section_hedge_fraction_evolution(data))       # Phase BT
     sections.append(_section_committee_intervention_pattern(data)) # Phase BS

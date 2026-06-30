@@ -908,6 +908,38 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Retention Decision Economics
+
+Per-offer cost, expected margin protected, and ROI for each retention intervention.
+
+| Customer | Period | Retention Cost £ | Margin Protected £ | ROI | Discount % | Outcome |
+|----------|--------|-----------------|-------------------|-----|------------|---------|
+| C_IC1 | 2018-01 | £24,333 | £164,194 | 6.7× | 8% | retained |
+| C_IC2 | 2019-01 | £14,931 | £102,254 | 6.8× | 8% | retained |
+| C_IC1 | 2019-03 | £28,079 | £195,632 | 7.0× | 8% | retained |
+| C_IC3 | 2020-01 | £5,732 | £10,774 | 1.9× | 3% | retained |
+| C_IC1 | 2020-03 | £10,391 | £131,076 | 12.6× | 5% | retained |
+| C_IC3 | 2020-12 | £10,801 | £22,991 | 2.1× | 5% | retained |
+| C_IC2 | 2021-03 | £14,250 | £91,903 | 6.4× | 8% | retained |
+| C_IC1 | 2021-04 | £22,658 | £159,188 | 7.0× | 8% | retained |
+| C5 | 2021-12 | £510 | £2,243 | 4.4× | 8% | churned_despite_offer |
+| C_IC3 | 2021-12 | £83,539 | £166,048 | 2.0× | 8% | retained |
+| C_IC2 | 2022-04 | £25,479 | £96,837 | 3.8× | 8% | retained |
+| C_IC1 | 2022-05 | £49,064 | £233,484 | 4.8× | 8% | retained |
+| C6 | 2023-03 | £231 | £3,265 | 14.1× | 3% | retained |
+| C_IC2 | 2023-05 | £11,869 | £132,247 | 11.1× | 5% | retained |
+| C_IC1 | 2023-06 | £35,196 | £246,751 | 7.0× | 8% | retained |
+| C_IC3 | 2023-12 | £41,009 | £61,206 | 1.5× | 8% | retained |
+| C_IC2 | 2024-06 | £10,346 | £134,847 | 13.0× | 5% | retained |
+| C_IC1 | 2024-07 | £34,136 | £272,506 | 8.0× | 8% | retained |
+
+**Total retention spend: £422,555** | **Total margin protected: £2,227,446**
+**Portfolio retention ROI: 5.3×** | **Retained: 17/18**
+**Best ROI intervention: C6 2023-03 (14.1×)**
+
+> ROI = expected remaining-term margin ÷ retention cost (discount given).
+> Churn probability weighted; 95% churn estimate used for I&C renewal trigger.
+
 ## Gas Exit Decision Analysis
 
 Three-scenario P&L impact for the board (dual-fuel portfolio lifetime figures).
