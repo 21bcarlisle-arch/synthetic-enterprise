@@ -51,6 +51,7 @@ real UK energy supplier works."
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 ---
 ## Current state
+**Phase CG COMPLETE (2026-06-30):** Supplier Resilience Scorecard -- 12 tests (5,897). company/risk/supplier_resilience_scorecard.py: PillarScore (score_value 1-3 RED/AMBER/GREEN); 5 pillars: Liquidity (≥12m GREEN); Hedge (≥70%); Credit Quality (bad_debt ≤1%); Concentration (max_cust ≤20%); Stress Resilience (stressed_net≥1.0x). SupplierResilienceScorecard (composite_score/overall_rag/red_pillars). Ofgem FRA post-2022 framework.
 **Phase CF COMPLETE (2026-06-30):** TPI Commission Book -- 12 tests (5,885). company/market/tpi_commission_book.py: TPITier (NATIONAL/REGIONAL/INDEPENDENT/ONLINE); CommissionType (UPFRONT/TRAIL/HYBRID); TPIAgreement (is_compliant=disclosed; rate_gbp_per_mwh); TPICommissionBook (register_tpi/record_payment/non_compliant_agreements/total_for_year/avg_rate_gbp_per_mwh). Ofgem 2022 disclosure rules. Typical trail rates £2-25/MWh I&C.
 **Phase CE COMPLETE (2026-06-30):** SLC Compliance Tracker -- 12 tests (5,873). slc_compliance_tracker.py: SLCStatus/SLCCategory (7); SLCObservation (severity 0-2); SLCComplianceTracker (overall_rag/breached/at_risk/highest_severity_slcs). Consolidates SLC 6/14/21B/22/27/27A/31A/45 into single RAG.
 **Phase CD COMPLETE (2026-06-30):** Customer Commodity P&L section -- 12 tests (5,861). _section_customer_commodity_pnl(): per-customer lifetime elec/gas split; loss-marking (*); gas loss summary; gas % of total. C_IC3g -£132,711; C4g -£1,950; C7 -£1,378 loss-making. Confirms Phase AR gas exit rationale.
@@ -89,7 +90,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase AW COMPLETE (2026-06-30):** Bill Shock Analysis -- 12 new tests (5,438 total). annual_report.py: _section_bill_shock_analysis(): avg_shock %/events/bills/shock-rate by year; HIGH >=30%/ELEVATED >=20% flags; crisis peak note (2022=33.8%, SLC 21 note). Normal 14-17%, crisis 34%.
 **Phase AV COMPLETE (2026-06-30):** Policy Cost & Levy Breakdown -- 12 new tests (5,426 total). annual_report.py: _section_policy_cost_breakdown(): RO/CfD/CCL/CM/FiT/policy/network by year; negative CfD in 2022 bolded + rebate note (crisis: spot > strike → generators repay); CAGR 76.7%/yr. Connects regulatory cost structure to board.
 **Phase AU COMPLETE (2026-06-30):** Commodity Split (Electricity vs Gas) -- 12 new tests (5,414 total). annual_report.py: _section_commodity_split(): elec/gas net+revenue by year; YES/NO profitable flag; gas-share-of-revenue %; loss-making since note + cross-subsidy callout. Gas loss-making since 2021 (5 consecutive years, 2016-2020 profitable).
-**Phase AT COMPLETE (2026-06-30):** Management Accounts P&L Section -- 12 new tests (5,402 total). annual_report.py: _section_management_accounts(): year-by-year income statement from management_accounts; revenue/wholesale/non-commod/gross/bad-debt/opex/net columns; best/worst year note; balance sheet (cash/receivables/assets/opening-capital). Wired first in generate_annual_report.
+**Phase AT COMPLETE (2026-06-30):** Management Accounts P&L Section -- 12 tests (5,402). _section_management_accounts(): income statement + balance sheet per year; best/worst year annotation.
 **Phase AS COMPLETE (2026-06-30):** Gas Exit Analysis Annual Report Section -- 10 new tests (5,390 total). annual_report.py: _section_gas_exit_analysis() renders scenario comparison table (STATUS_QUO/EXIT_GAS/REPRICE_GAS), loss-making accounts with ROC + breakeven uplift, accretive accounts, board decision note. Connects Phase AR.
 **Phase AR COMPLETE (2026-06-30):** Gas Exit Decision Book -- 14 new tests (5,380 total). company/finance/gas_exit_analysis.py: GasAccountProfile (frozen; gas_roc/breakeven_revenue_uplift_pct); GasExitDecisionBook (exit_gas: I&C 40% churn/resi 20%; reprice_gas: loss-making→break-even; scenario_comparison). Board: REPRICE_GAS +£134k vs SQ; EXIT_GAS +£99k vs SQ.
 **Phase AQ COMPLETE (2026-06-30):** Board Risk Summary -- 12 new tests (5,366 total). _section_board_risk_summary(): 6 RAG indicators; 4 RED (gas-ROC=-0.7x, churn-miss 67%, demand-error 3.3%/15.6%, basis-risk +32.8%), 1 AMBER, 1 GREEN.
@@ -122,7 +123,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase Q COMPLETE (2026-06-29):** Battery Settlement Wiring -- 14 tests (4,865). _battery_daily_dispatch(): charge excess solar; discharge peaks 33-40; 90% round-trip; SOC tracking. Closes HH asset gap: solar+EV+ASHP+battery all in HH settlement.
 **Phase O COMPLETE (2026-06-29):** Solar Dynamic Settlement Wiring -- 12 tests (4,851 total). run_phase2b.py: dynamic solar assets update; cloud_cover/latitude for all profile-class customers. Solar-via-life-events now reduces import. Phase 25a unaffected.
 **Phase N COMPLETE (2026-06-29):** EV Settlement Wiring + Physical Suitability -- 26 tests (4,861 total). household.py: has_driveway/roof_aspect/hp_eligible; EV/solar/HP acquisition gates. EV flat demand shape in run_phase2b.py. Flats/no-driveway cannot acquire EV.
-**Phase M COMPLETE (2026-06-29):** Renewal Conversion Rate Book -- 21 new tests (4,835 total). company/crm/renewal_conversion.py: RenewalOutcome/RenewalChannel enums; RenewalRecord (met_notice_obligation SLC22 42-day/days_to_decision/is_retained); RenewalConversionBook (conversion_rate_pct by segment/fuel/year; notice_obligation_breaches; best_converting_segment). CRM lifecycle now complete: acquisition→tenure→renewal→churn.
+**Phase M COMPLETE (2026-06-29):** Renewal Conversion Rate Book -- 21 tests (4,835). renewal_conversion.py: RenewalRecord (SLC22 42-day/is_retained); RenewalConversionBook (conversion_rate/notice_breaches/best_segment). Completes CRM lifecycle.
 **Phase C COMPLETE (2026-06-27):** Household-Driven EAC Integration -- 26 tests (4,653 passing). HouseholdDemandRegister: epc_multiplier/eac_multiplier_for_date/dynamic_assets. First time Phase A+B affect actual P&L.
 **Phase B COMPLETE (2026-06-27):** Life events engine -- 32 tests (4,626). life_events.py: Bernoulli trials (solar 3→5.7%, EV 0.3→7%, ASHP); apply_events/household_at_date. No flat solar; no I&C EVs; battery on solar only.
 **Phase A COMPLETE (2026-06-27):** Household physical model -- 36 tests (4,594). household.py: Household frozen dataclass (PropertyType/BuildEra/HeatingSystem/InsulationLevel enums; epc_consumption_multiplier EHS 2022-23); make_household/build_household_register for all 18 customers.
@@ -188,9 +189,7 @@ account for cost-to-serve at the customer level.
 - **CLAUDE.md hard limit: 35k chars / 200 lines.** Stop and trim before anything else if exceeded.
 - **Committee cooldown must be date-based**, not record-count. With 18+ customers, 1440 records ≠ 30 days.
 - **sim_runner TimeoutExpired must be caught.** Uncaught exception kills the `while True` loop.
-
 ---
-
 ## Technical environment
 **Hardware (Skynet):** Intel i5-13400F, 32GB DDR4, RTX 3060 12GB VRAM. Windows 11 Pro + WSL2/Ubuntu.
 **Networking:** Tailscale WSL2 `100.69.81.59` | File API `https://skynet-1.taila062fa.ts.net:8765`

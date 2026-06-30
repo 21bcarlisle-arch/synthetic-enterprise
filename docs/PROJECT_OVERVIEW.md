@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,885 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,897 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CG (2026-06-30):** Supplier Resilience Scorecard -- 12 new tests (5,897 total). company/risk/supplier_resilience_scorecard.py (new): PillarRAG (GREEN/AMBER/RED); PillarScore (frozen; score_value 1-3); SupplierResilienceScorecard — 5 pillar assessors: assess_liquidity (≥12m GREEN / ≥6m AMBER / <6m RED); assess_hedge_coverage (≥70% GREEN / ≥40% AMBER); assess_credit_quality (bad_debt ≤1% / ≤2.5%); assess_concentration (max_cust ≤20% / ≤35%); assess_stress_resilience (stressed_net ≥1.0x / ≥0.5x net_margin); composite_score/overall_rag/red_pillars/scorecard_summary. Ofgem FRA post-2022 framework. 2022 scenario: RED (hedge 35%, concentration 58%, stress -0.68x). Epistemic verifier: PASS.
 
 **Phase CF (2026-06-30):** TPI Commission Book -- 12 new tests (5,885 total). company/market/tpi_commission_book.py (new): TPITier (NATIONAL/REGIONAL/INDEPENDENT/ONLINE per Ofgem 2022 Business Energy mandate); CommissionType (UPFRONT/TRAIL/HYBRID); TPIAgreement (frozen; is_compliant=is_disclosed_to_customer per Ofgem; rate_gbp_per_mwh); TPIPayment (frozen; rate_gbp_per_mwh from annual_kwh); TPICommissionBook (register_tpi/record_payment/non_compliant_agreements/payments_for_year/payments_for_customer/total_commission_gbp/total_for_year/avg_rate_gbp_per_mwh/tpi_summary). UK I&C trail rates £2-25/MWh; Ofgem requires disclosure to business customers since 2022. Epistemic verifier: PASS.
 
@@ -4174,7 +4176,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,885 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,897 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
