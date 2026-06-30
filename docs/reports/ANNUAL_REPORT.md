@@ -908,6 +908,29 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Tariff Estimation Accuracy
+
+Mean and maximum absolute error between company tariff estimates and actual outturn.
+
+| Year | Observations | Mean Abs Error | Max Abs Error | Accuracy |
+|------|-------------|---------------|--------------|----------|
+| 2016 | 17 | 15.1% | 28.9% | POOR |
+| 2017 | 14 | 16.6% | 48.0% | POOR |
+| 2018 | 16 | 12.2% | 27.4% | MODERATE |
+| 2019 | 19 | 11.1% | 36.9% | MODERATE |
+| 2020 | 22 | 12.7% | 33.2% | MODERATE |
+| 2021 | 17 | 14.5% | 44.2% | MODERATE |
+| 2022 | 15 | 10.3% | 23.3% | MODERATE |
+| 2023 | 14 | 19.9% | 41.3% | POOR |
+| 2024 | 13 | 9.8% | 23.8% | GOOD |
+| 2025 | 2 | 32.9% | 32.9% | POOR |
+
+**Best accuracy year (n≥5): 2024 (9.8% mean error)**
+**Worst accuracy year (n≥5): 2023 (19.9% mean error)**
+
+> Errors reflect the company's information gap: forward curves are approximations;
+> the company cannot observe simulation wholesale cost internals (epistemic blindfold).
+
 ## Dynamic Pricing Activity
 
 Rate adjustments driven by the margin feedback loop and emergency reprice events.

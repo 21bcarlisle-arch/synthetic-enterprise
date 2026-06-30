@@ -4755,6 +4755,54 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_tariff_estimation_accuracy(data: dict) -> str:
+    """Phase BI: Tariff estimation accuracy — company vs actual outturn by year."""
+    div = data.get("company_divergence", {})
+    teby = div.get("tariff_error_by_year", {})
+    if not teby:
+        return ""
+    rows = []
+    for yr in sorted(teby.keys()):
+        e = teby[yr]
+        n = e.get("n", 0)
+        mean_err = e.get("mean_abs_error_pct", 0.0)
+        max_err = e.get("max_abs_error_pct", 0.0)
+        rows.append((yr, n, mean_err, max_err))
+    lines = [
+        "## Tariff Estimation Accuracy",
+        "",
+        "Mean and maximum absolute error between company tariff estimates and actual outturn.",
+        "",
+        "| Year | Observations | Mean Abs Error | Max Abs Error | Accuracy |",
+        "|------|-------------|---------------|--------------|----------|",
+    ]
+    for yr, n, mean_err, max_err in rows:
+        if mean_err < 0.10:
+            accuracy = "GOOD"
+        elif mean_err < 0.15:
+            accuracy = "MODERATE"
+        else:
+            accuracy = "POOR"
+        lines.append("| {} | {} | {:.1f}% | {:.1f}% | {} |".format(
+            yr, n, mean_err * 100, max_err * 100, accuracy))
+    # Use rows with n >= 5 for fair comparison
+    fair_rows = [(yr, n, m, mx) for yr, n, m, mx in rows if n >= 5]
+    if fair_rows:
+        best_yr, _, best_mean, _ = min(fair_rows, key=lambda r: r[2])
+        worst_yr, _, worst_mean, _ = max(fair_rows, key=lambda r: r[2])
+        lines.extend([
+            "",
+            "**Best accuracy year (n≥5): {} ({:.1f}% mean error)**".format(best_yr, best_mean * 100),
+            "**Worst accuracy year (n≥5): {} ({:.1f}% mean error)**".format(worst_yr, worst_mean * 100),
+        ])
+    lines.extend([
+        "",
+        "> Errors reflect the company\'s information gap: forward curves are approximations;",
+        "> the company cannot observe simulation wholesale cost internals (epistemic blindfold).",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_dynamic_pricing_activity(data: dict) -> str:
     """Phase BH: Dynamic Pricing Activity — year-by-year tariff adjustment analysis."""
     dpl = data.get("dynamic_pricing_log", [])
@@ -5699,6 +5747,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_tariff_estimation_accuracy(data))     # Phase BI
     sections.append(_section_dynamic_pricing_activity(data))       # Phase BH
     sections.append(_section_clv_evolution(data))                  # Phase BG
     sections.append(_section_gross_margin_bridge(data))            # Phase BE

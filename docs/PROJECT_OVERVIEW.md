@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,597 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,609 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BI (2026-06-30):** Tariff Estimation Accuracy Section -- 12 new tests (5,609 total). saas/reporting/annual_report.py: _section_tariff_estimation_accuracy(): reads company_divergence.tariff_error_by_year; table shows observation count / mean absolute error % / max absolute error % / accuracy band (GOOD <10% / MODERATE 10-15% / POOR ≥15%); identifies best and worst accuracy years (n≥5 filter); epistemic blindfold note. Key insights: 2024 best accuracy (9.75% mean error, market normalised); 2023 worst non-trivial year (19.89%, crisis aftermath lag in forward curves); 2025 outlier (n=2, 32.85%, insufficient data). Epistemic verifier: PASS.
 
 **Phase BH (2026-06-30):** Dynamic Pricing Activity Section -- 12 new tests (5,597 total). saas/reporting/annual_report.py: _section_dynamic_pricing_activity(): groups dynamic_pricing_log and margin_feedback_log by year; table shows adjustment count / avg delta (£/MWh) / up count / down count / emergency reprice count; identifies peak-avg-delta year and total emergency reprices. Key insights: 2022 crisis peak avg adjustment +18.1 £/MWh; 29 total emergency reprices 2016-2025 (8 in crisis years 2021-2022); 2023 post-crisis lag shows 8 emergency reprices (delayed contract renewals still exposed). Epistemic verifier: PASS.
 
@@ -4126,7 +4128,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,597 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,609 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

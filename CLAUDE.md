@@ -41,7 +41,6 @@ real UK energy supplier works."
 **Always update and commit LATEST.md before sending NTFY.** If stale, fix the root cause.
 
 **When budget is available between tasks:** check backlog, fix known issues, improve coverage. Don't sit idle.
-
 ---
 
 ## Phase-close checklist (in order)
@@ -58,6 +57,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
+**Phase BI COMPLETE (2026-06-30):** Tariff Estimation Accuracy -- 12 tests (5,609 total). _section_tariff_estimation_accuracy(): GOOD/MODERATE/POOR flags; best/worst year (n≥5). 2024 best 9.75%; 2023 worst 19.89% (crisis lag).
 **Phase BH COMPLETE (2026-06-30):** Dynamic Pricing Activity -- 12 tests (5,597 total). _section_dynamic_pricing_activity(): adj/avg-delta/up/down/emergency by year. 2022 peak +18.1 £/MWh; 29 emergency reprices total.
 **Phase BG COMPLETE (2026-06-30):** Portfolio CLV Evolution -- 12 tests (5,585 total). _section_clv_evolution(): CLV table (gas excluded); 2018 jump £37k→£1M; 2025 peak £3.46M.
 **Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence -- 15 tests (5,573 total). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario. PCW £55/ref £20/broker £160.
