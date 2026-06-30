@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GL (2026-06-30):** Line Loss Factor (LLF) Register -- 26 new tests (8,008 total). company/market/llf_register.py (new): LLFRecord (frozen; is_current=effective_to is None; is_effective_as_of checks from<=date<to exclusive; loss_uplift_pct=(llf-1)*100); LLFRegister (register_llf: llf_value>0 guard; update_llf: closes current then registers new; current_llf_for(mpan,as_of); historical_for_mpan sorted by effective_from; high_loss_meters(as_of, threshold=1.05); average_llf_as_of; portfolio_loss_uplift_pct). BSC Section S / BSCP128: settlement_qty=metered_qty×LLF; DNOs publish LLFs annually; domestic ~1.00-1.05; rural up to 1.12. **8,000 test milestone**. PASS (381 files).
+
 **Phase GK (2026-06-30):** Change of Tenancy Register -- 32 new tests (7,982 total). company/crm/change_of_tenancy_register.py (new): CoTType (5); CoTStatus (5); CoTRecord (frozen; is_open: NOTIFIED+SUPPLY_TAKEN; mpas_notification_due +2WD; read_submission_due +10WD; is_abandon_candidate: NOTIFIED+>=3 attempts+>=28d); ChangeOfTenancyRegister (notify_cot; accept_supply/decline/log_contact_attempt/mark_abandoned/close; abandon_candidates(as_of); active_supply_for_mpan=latest SUPPLY_TAKEN; conversion_rate_pct=taken/(taken+terminal)). SLC 12.2/27: debt not transferable to property; new tenant gets deemed supply from day 1. Connects to back_billing (Ph314), credit_assessment (DU). PASS (380 files).
 
 **Phase GJ (2026-06-30):** MAP Contract Register -- 31 new tests (7,950 total). company/market/map_contract_register.py (new): MAPServiceType (7); MAPContractStatus (4); MAPServiceRate (frozen; annual_cost_estimate_gbp); MAPContractRecord (frozen; is_current_as_of(date); months_remaining; monthly/annual_rental_cost_gbp with override_count; service_rate_for); MAPContractRegister (register_contract: end>start, rate>=0, meters>=0 guards; mark_expired/terminate/mark_under_renegotiation; active_contracts(as_of) uses is_current_as_of; contracts_expiring_within(as_of, days); total_monthly_rental_gbp aggregates active). UK Smart Energy Code (SEC): MAPs own SMETS2 meters; supplier pays monthly rental; 10WD DCC registration window. Connects to smart_meter_programme_register (Phase GI). PASS (379 files).
@@ -4384,7 +4386,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 7,982 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,008 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

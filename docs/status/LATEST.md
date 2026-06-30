@@ -1,11 +1,11 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T12:53:31Z
+Last updated: 2026-06-30T12:55:15Z
 
 ## Current state
 
-- **Phase:** GK complete -- 7,982 tests. Phase GK: Change of Tenancy Register (32). Phase FY: Debt Respite (Breathing Space) Register (29 tests). Phase FX: PPM Installation Warrant Register (32). Phase FW: Consumer Duty Annual Board Report Register (38 tests). Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
-- **Tests passing:** 7,982 (all green)
+- **Phase:** GL complete -- 8,008 tests. Phase GL: LLF Register (26). [8,000 milestone] Phase FY: Debt Respite (Breathing Space) Register (29 tests). Phase FX: PPM Installation Warrant Register (32). Phase FW: Consumer Duty Annual Board Report Register (38 tests). Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
+- **Tests passing:** 8,008 (all green)
 - **Python modules:** 350 company/ modules + simulation + saas
 - **Net position (latest sim run):** £1,243,337 (git 5d0e280)
 
@@ -28,7 +28,7 @@ Last updated: 2026-06-30T12:53:31Z
 - [Phase History](../claude/phase-history.md)
 - [Project Overview](../PROJECT_OVERVIEW.md)
 
-**Latest simulation results (2016–2025)** — auto-processed (438s / 7 min):
+**Latest simulation results (2016–2025)** — auto-processed (445s / 7 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
 - Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
