@@ -2315,3 +2315,144 @@
 - [2026-06-30 07:01 UTC] Inbound NTFY command from Rich: 'Publish state snapshots twice daily at 06:00 and 18:00 UK time. After each scheduled snapshot, generate three artifacts: (1) poesys.net/snapshots/LATEST_[TIMESTAMP].json with all dashboard data (financial, trading, customers, market, system metrics), (2) docs/BUILD_STATE.md with current phase, test count, module status, latest run metrics, known gaps, (3) update docs/status/LATEST.md with fresh timestamp. These are the checkpoints for strategy review — Rich reviews and steers at 06:00 and 18:00 UK time, agent proceeds autonomously between checkpoints.' — relaying to session
 - [2026-06-30 07:14 UTC] Session idle — sending autoloop continuation instruction
 - [2026-06-30 07:25 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-30 09:20 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 09:21 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 09:21 UTC] Pane at death: roceed autonomously. Proceed immediately — do not hold for confirmation before s | tarting. NTFY Rich with what you are doing so he can redirect via NTFY if needed | . If you hit a genuine blocker or a REVIEW_GATE that needs Rich's input, stop an | d state it clearly. | >
+- [2026-06-30 09:21 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 09:21 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 09:21 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-06-30 09:22 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 09:23 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 09:23 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 09:23 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 09:23 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 09:23 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-06-30 09:24 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 09:25 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 09:25 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 09:25 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 09:25 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 09:26 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-06-30 09:27 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 09:28 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 09:28 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 09:28 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 09:28 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-06-30 10:29 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 10:30 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 10:30 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 10:30 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 10:30 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 10:30 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-06-30 10:31 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 10:32 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 10:32 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 10:32 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 10:32 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 10:33 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-06-30 10:34 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 10:35 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 10:35 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 10:35 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 10:35 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 10:35 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-06-30 10:36 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 10:37 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 10:37 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 10:37 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 10:37 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-06-30 11:48 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-30 11:59 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-30 13:14 UTC] Inbound NTFY command from Rich: "Latest snapshot URL with timestamp for strategy advisor: poesys.net/snapshots/LATEST_[current timestamp].json and docs/BUILD_STATE.md location. Strategy advisor cannot read stale URLs; needs fresh link to see current project state (phase, test count, metrics, what's live on website, what's stub)." — relaying to session
+- [2026-06-30 14:05 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 14:06 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 14:06 UTC] Pane at death: -- do NOT use a raw curl, it won't be recognised as our own message and will be | relayed back as a new inbound command. If this is actually a substantial multi- | step instruction, treat it per the Staging Directory Protocol instead.] | -sh: 16: Syntax error: "(" unexpected | $
+- [2026-06-30 14:06 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 14:06 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 14:06 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-06-30 14:07 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 14:08 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 14:08 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 14:08 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 14:08 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 14:09 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-06-30 14:10 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 14:11 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 14:11 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 14:11 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 14:11 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 14:11 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-06-30 14:12 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 14:13 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 14:13 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 14:13 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 14:13 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-06-30 15:14 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 15:15 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 15:15 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 15:15 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 15:15 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 15:16 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-06-30 15:17 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 15:18 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 15:18 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 15:18 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 15:18 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 15:18 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-06-30 15:19 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 15:20 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 15:20 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 15:20 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 15:20 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 15:20 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-06-30 15:21 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 15:22 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 15:22 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 15:22 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 15:22 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-06-30 16:24 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 16:25 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 16:25 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 16:25 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 16:25 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 16:25 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-06-30 16:26 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 16:27 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 16:27 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 16:27 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 16:27 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 16:27 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-06-30 16:28 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 16:29 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 16:29 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 16:29 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 16:29 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 16:30 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-06-30 16:31 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 16:32 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 16:32 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 16:32 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 16:32 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-06-30 17:33 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 17:34 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 17:34 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 17:34 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 17:34 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 17:34 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-06-30 17:35 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 17:36 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 17:36 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 17:36 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 17:36 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 17:37 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-06-30 17:38 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 17:39 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 17:39 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 17:39 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 17:39 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 17:39 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-06-30 17:40 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 17:41 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 17:41 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 17:41 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 17:41 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.

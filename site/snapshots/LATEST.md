@@ -1,6 +1,6 @@
 # BUILD STATE
 
-**Generated:** 20260630T181517Z  
+**Generated:** 20260630T182006Z  
 **Current Phase:** HJ  
 **Tests Passing:** 8,777+ (non-sim)  
 **Company Modules:** 405+  
@@ -23,5 +23,5 @@
 
 ## Snapshot Location
 
-- `site/data/snapshots/LATEST_20260630T181517Z.json` — full dashboard data
+- `site/data/snapshots/LATEST_20260630T182006Z.json` — full dashboard data
 - `site/data/snapshots/LATEST.json` — stable pointer to latest

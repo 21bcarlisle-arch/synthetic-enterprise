@@ -190,3 +190,7 @@
 - [2026-06-30 07:00 UTC] Acked inbound message 'sZOqY4EkWNqA' ('Publish state snapshots twice daily at 06:00 and 18:00 UK ti') — staged as from_rich_20260630_070041.md
 - [2026-06-30 07:12 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782803399 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
 - [2026-06-30 07:20 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Read timed out. (read timeout=10)
+- [2026-06-30 09:13 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782806540 (Caused by NameResolutionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to resolve 'ntfy.sh' ([Errno -3] Temporary failure in name resolution)"))
+- [2026-06-30 11:28 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782815861 (Caused by NameResolutionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to resolve 'ntfy.sh' ([Errno -3] Temporary failure in name resolution)"))
+- [2026-06-30 13:13 UTC] Acked inbound message 'OmNzB02uA0Qh' ('Latest snapshot URL with timestamp for strategy advisor: poe') — staged as from_rich_20260630_131327.md
+- [2026-06-30 17:53 UTC] Acked inbound message 'y74fh1T9slP3' ('BUILD_STATE.md generation is failing or not accessible. Rich') — staged as from_rich_20260630_175324.md

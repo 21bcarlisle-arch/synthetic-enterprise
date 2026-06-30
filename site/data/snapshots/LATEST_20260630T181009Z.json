@@ -1,11 +1,11 @@
 {
-  "snapshot_ts": "2026-06-30T18:20:06.176623+00:00",
-  "snapshot_label": "20260630T182006Z",
+  "snapshot_ts": "2026-06-30T18:10:09.940539+00:00",
+  "snapshot_label": "20260630T181009Z",
   "dashboard": {
     "meta": {
-      "generated_at": "2026-06-30T18:20:06Z",
-      "git_commit": "7c7e265c",
-      "source_file": "run_output_7c7e265c_20260630T181208Z.json",
+      "generated_at": "2026-06-30T18:10:10Z",
+      "git_commit": "d200a2d1",
+      "source_file": "run_output_d200a2d1_20260630T175357Z.json",
       "spot_monthly_count": 114
     },
     "portfolio": {
@@ -4258,7 +4258,7 @@
     },
     "insights": {
       "git_hash": "abc1234",
-      "generated_at": "2026-06-30T18:19:55.335463+00:00",
+      "generated_at": "2026-06-30T18:01:34.673259+00:00",
       "net_margin_gbp": -8317.21,
       "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin -\u00a38,317 (0.0% of revenue -- below 2-5% benchmark). Hedging added \u00a30 vs going naked (commodity basis). 0 bill shock events (0 in crisis years); 2/2 retention offers accepted.",
       "insights": [
@@ -4336,6 +4336,102 @@
       ]
     },
     "run_history": [
+      {
+        "git_hash": "9cf96d1",
+        "generated_at": "2026-06-30T16:34:54.444995+00:00",
+        "net_margin_gbp": 1243336.92,
+        "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin \u00a31,243,337 (6.6% of revenue -- above 2-5% benchmark). Hedging cost \u00a34,042,149 vs going naked (85% mandate price). 467 bill shock events (112 in crisis years); 17/18 retention offers accepted.",
+        "headline_metrics": {
+          "trading": {
+            "whole_run_actual_net_gbp": 1243336.92,
+            "whole_run_naked_net_gbp": 5285486.32,
+            "hedging_cost_gbp": -4042149.4,
+            "worst_year": "2022",
+            "worst_year_cost_gbp": -988416.9
+          },
+          "customers": {
+            "total_bill_shocks": 467,
+            "crisis_year_shocks": 112,
+            "extreme_shocks_over_100pct": 9,
+            "retention_offers": 18,
+            "retained": 17,
+            "no_offer_churns": 5,
+            "total_churned": 6,
+            "enterprise_value_gbp": 6037509.08
+          },
+          "risk": {
+            "committee_interventions_total": 38,
+            "crisis_year_interventions": 9,
+            "survived": true,
+            "administration_event": null
+          },
+          "financial": {
+            "net_margin_gbp": 1243336.92,
+            "gross_margin_gbp": 6475913.39,
+            "revenue_gbp": 18970503.05,
+            "net_margin_pct": 6.55,
+            "ic_net_margin_gbp": 1235919.27,
+            "ic_net_pct_of_total": 99.4,
+            "cost_to_serve_gbp": 91300.4,
+            "net_after_cost_to_serve_gbp": 6370845.59
+          },
+          "operations": {
+            "bills_total": 1531,
+            "avg_clarity": 0.8163,
+            "service_quality_score": 0.9051,
+            "cost_to_serve_gbp": 91300.4,
+            "cost_to_serve_per_account_gbp": 6521.46
+          }
+        }
+      },
+      {
+        "git_hash": "8b9ae8d",
+        "generated_at": "2026-06-30T16:44:07.316196+00:00",
+        "net_margin_gbp": 1243336.92,
+        "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin \u00a31,243,337 (6.6% of revenue -- above 2-5% benchmark). Hedging cost \u00a34,042,149 vs going naked (85% mandate price). 467 bill shock events (112 in crisis years); 17/18 retention offers accepted.",
+        "headline_metrics": {
+          "trading": {
+            "whole_run_actual_net_gbp": 1243336.92,
+            "whole_run_naked_net_gbp": 5285486.32,
+            "hedging_cost_gbp": -4042149.4,
+            "worst_year": "2022",
+            "worst_year_cost_gbp": -988416.9
+          },
+          "customers": {
+            "total_bill_shocks": 467,
+            "crisis_year_shocks": 112,
+            "extreme_shocks_over_100pct": 9,
+            "retention_offers": 18,
+            "retained": 17,
+            "no_offer_churns": 5,
+            "total_churned": 6,
+            "enterprise_value_gbp": 6037509.08
+          },
+          "risk": {
+            "committee_interventions_total": 38,
+            "crisis_year_interventions": 9,
+            "survived": true,
+            "administration_event": null
+          },
+          "financial": {
+            "net_margin_gbp": 1243336.92,
+            "gross_margin_gbp": 6475913.39,
+            "revenue_gbp": 18970503.05,
+            "net_margin_pct": 6.55,
+            "ic_net_margin_gbp": 1235919.27,
+            "ic_net_pct_of_total": 99.4,
+            "cost_to_serve_gbp": 91300.4,
+            "net_after_cost_to_serve_gbp": 6370845.59
+          },
+          "operations": {
+            "bills_total": 1531,
+            "avg_clarity": 0.8163,
+            "service_quality_score": 0.9051,
+            "cost_to_serve_gbp": 91300.4,
+            "cost_to_serve_per_account_gbp": 6521.46
+          }
+        }
+      },
       {
         "git_hash": "491ad6f",
         "generated_at": "2026-06-30T16:53:35.742811+00:00",
@@ -4675,102 +4771,6 @@
       {
         "git_hash": "d200a2d1",
         "generated_at": "2026-06-30T18:01:27.062663+00:00",
-        "net_margin_gbp": 1243336.92,
-        "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin \u00a31,243,337 (6.6% of revenue -- above 2-5% benchmark). Hedging cost \u00a34,042,149 vs going naked (85% mandate price). 467 bill shock events (112 in crisis years); 17/18 retention offers accepted.",
-        "headline_metrics": {
-          "trading": {
-            "whole_run_actual_net_gbp": 1243336.92,
-            "whole_run_naked_net_gbp": 5285486.32,
-            "hedging_cost_gbp": -4042149.4,
-            "worst_year": "2022",
-            "worst_year_cost_gbp": -988416.9
-          },
-          "customers": {
-            "total_bill_shocks": 467,
-            "crisis_year_shocks": 112,
-            "extreme_shocks_over_100pct": 9,
-            "retention_offers": 18,
-            "retained": 17,
-            "no_offer_churns": 5,
-            "total_churned": 6,
-            "enterprise_value_gbp": 6037509.08
-          },
-          "risk": {
-            "committee_interventions_total": 38,
-            "crisis_year_interventions": 9,
-            "survived": true,
-            "administration_event": null
-          },
-          "financial": {
-            "net_margin_gbp": 1243336.92,
-            "gross_margin_gbp": 6475913.39,
-            "revenue_gbp": 18970503.05,
-            "net_margin_pct": 6.55,
-            "ic_net_margin_gbp": 1235919.27,
-            "ic_net_pct_of_total": 99.4,
-            "cost_to_serve_gbp": 91300.4,
-            "net_after_cost_to_serve_gbp": 6370845.59
-          },
-          "operations": {
-            "bills_total": 1531,
-            "avg_clarity": 0.8163,
-            "service_quality_score": 0.9051,
-            "cost_to_serve_gbp": 91300.4,
-            "cost_to_serve_per_account_gbp": 6521.46
-          }
-        }
-      },
-      {
-        "git_hash": "cd755262",
-        "generated_at": "2026-06-30T18:10:33.034653+00:00",
-        "net_margin_gbp": 1243336.92,
-        "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin \u00a31,243,337 (6.6% of revenue -- above 2-5% benchmark). Hedging cost \u00a34,042,149 vs going naked (85% mandate price). 467 bill shock events (112 in crisis years); 17/18 retention offers accepted.",
-        "headline_metrics": {
-          "trading": {
-            "whole_run_actual_net_gbp": 1243336.92,
-            "whole_run_naked_net_gbp": 5285486.32,
-            "hedging_cost_gbp": -4042149.4,
-            "worst_year": "2022",
-            "worst_year_cost_gbp": -988416.9
-          },
-          "customers": {
-            "total_bill_shocks": 467,
-            "crisis_year_shocks": 112,
-            "extreme_shocks_over_100pct": 9,
-            "retention_offers": 18,
-            "retained": 17,
-            "no_offer_churns": 5,
-            "total_churned": 6,
-            "enterprise_value_gbp": 6037509.08
-          },
-          "risk": {
-            "committee_interventions_total": 38,
-            "crisis_year_interventions": 9,
-            "survived": true,
-            "administration_event": null
-          },
-          "financial": {
-            "net_margin_gbp": 1243336.92,
-            "gross_margin_gbp": 6475913.39,
-            "revenue_gbp": 18970503.05,
-            "net_margin_pct": 6.55,
-            "ic_net_margin_gbp": 1235919.27,
-            "ic_net_pct_of_total": 99.4,
-            "cost_to_serve_gbp": 91300.4,
-            "net_after_cost_to_serve_gbp": 6370845.59
-          },
-          "operations": {
-            "bills_total": 1531,
-            "avg_clarity": 0.8163,
-            "service_quality_score": 0.9051,
-            "cost_to_serve_gbp": 91300.4,
-            "cost_to_serve_per_account_gbp": 6521.46
-          }
-        }
-      },
-      {
-        "git_hash": "7c7e265c",
-        "generated_at": "2026-06-30T18:19:49.774995+00:00",
         "net_margin_gbp": 1243336.92,
         "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin \u00a31,243,337 (6.6% of revenue -- above 2-5% benchmark). Hedging cost \u00a34,042,149 vs going naked (85% mandate price). 467 bill shock events (112 in crisis years); 17/18 retention offers accepted.",
         "headline_metrics": {
@@ -5997,25 +5997,25 @@
       ]
     },
     "build": {
-      "current_phase": "HJ",
-      "phases_built": "Phase HJ (300+ total)",
-      "test_count": 8777,
-      "test_suite": "8,777+ (non-sim)",
-      "company_modules": 405,
+      "current_phase": "FS",
+      "phases_built": "Phase FS (300+ total)",
+      "test_count": 6752,
+      "test_suite": "6,752+ (non-sim)",
+      "company_modules": 303,
       "simulation_window": "2016-2025",
       "regulatory_modules": 48
     }
   },
   "agent_status": {
     "_schema_version": "1",
-    "last_updated": "2026-06-30T18:19:56.671733+00:00",
+    "last_updated": "2026-06-30T18:10:10.753691+00:00",
     "agents": [
       {
         "name": "session-watchdog",
         "status": "running",
-        "last_heartbeat": "2026-06-30T18:19:56.666088+00:00",
+        "last_heartbeat": "2026-06-30T18:01:36.165846+00:00",
         "last_action": "Watchdog started",
-        "last_action_ts": "2026-06-30T18:19:56.666088+00:00",
+        "last_action_ts": "2026-06-30T18:01:36.165846+00:00",
         "anomaly": null,
         "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
         "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -6023,9 +6023,9 @@
       {
         "name": "staging-watcher",
         "status": "idle",
-        "last_heartbeat": "2026-06-30T18:19:40.767753+00:00",
+        "last_heartbeat": "2026-06-30T18:10:10.753691+00:00",
         "last_action": "Heartbeat \u2014 2 files tracked",
-        "last_action_ts": "2026-06-30T18:19:40.767753+00:00",
+        "last_action_ts": "2026-06-30T18:10:10.753691+00:00",
         "anomaly": null,
         "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
         "produces": "NTFY notifications on new staging files"
@@ -6033,19 +6033,19 @@
       {
         "name": "discovery-daemon",
         "status": "idle",
-        "last_heartbeat": "2026-06-30T18:19:25.354682+00:00",
-        "last_action": "Waiting for next cycle (3h 20m remaining)",
-        "last_action_ts": "2026-06-30T18:19:25.354682+00:00",
+        "last_heartbeat": "2026-06-30T18:09:25.351334+00:00",
+        "last_action": "Waiting for next cycle (3h 30m remaining)",
+        "last_action_ts": "2026-06-30T18:09:25.351334+00:00",
         "anomaly": null,
         "role": "Validates simulation assumptions against real UK market benchmarks",
         "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
       },
       {
         "name": "sim-runner",
-        "status": "idle",
-        "last_heartbeat": "2026-06-30T18:19:56.671733+00:00",
-        "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260630T181956Z.json)",
-        "last_action_ts": "2026-06-30T18:19:56.671733+00:00",
+        "status": "running",
+        "last_heartbeat": "2026-06-30T18:03:04.657170+00:00",
+        "last_action": "Sim started \u2014 git=cd755262",
+        "last_action_ts": "2026-06-30T18:03:04.657170+00:00",
         "anomaly": null,
         "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
         "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -6053,9 +6053,9 @@
       {
         "name": "dispatcher",
         "status": "idle",
-        "last_heartbeat": "2026-06-30T18:19:55.063078+00:00",
+        "last_heartbeat": "2026-06-30T18:01:34.265750+00:00",
         "last_action": "Classified from_rich_005.md as NORMAL",
-        "last_action_ts": "2026-06-30T18:19:55.063078+00:00",
+        "last_action_ts": "2026-06-30T18:01:34.265750+00:00",
         "anomaly": null,
         "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
         "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -6063,9 +6063,9 @@
       {
         "name": "ntfy-responder",
         "status": "idle",
-        "last_heartbeat": "2026-06-30T18:19:55.306774+00:00",
+        "last_heartbeat": "2026-06-30T18:01:34.658176+00:00",
         "last_action": "Acked message: 'Start the full 2016-2025 run when GPU is free.'",
-        "last_action_ts": "2026-06-30T18:19:55.306774+00:00",
+        "last_action_ts": "2026-06-30T18:01:34.658176+00:00",
         "anomaly": null,
         "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
         "produces": "docs/staging/from_rich_*.md"
@@ -6073,9 +6073,9 @@
       {
         "name": "autonomous-runner",
         "status": "idle",
-        "last_heartbeat": "2026-06-30T18:18:45.589767+00:00",
+        "last_heartbeat": "2026-06-30T18:08:45.566784+00:00",
         "last_action": "Polling \u2014 idle",
-        "last_action_ts": "2026-06-30T18:18:45.589767+00:00",
+        "last_action_ts": "2026-06-30T18:08:45.566784+00:00",
         "anomaly": null,
         "role": "Runs scheduled Claude Code sessions for background work when session is idle",
         "produces": "CC session activity, phase completions"
@@ -6083,9 +6083,9 @@
       {
         "name": "background-worker",
         "status": "idle",
-        "last_heartbeat": "2026-06-30T18:11:54.692262+00:00",
-        "last_action": "Peak hours pause \u2014 18:11 UTC",
-        "last_action_ts": "2026-06-30T18:11:54.692262+00:00",
+        "last_heartbeat": "2026-06-30T17:56:54.690874+00:00",
+        "last_action": "Peak hours pause \u2014 17:56 UTC",
+        "last_action_ts": "2026-06-30T17:56:54.690874+00:00",
         "anomaly": null,
         "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
         "produces": "docs/observability/background-worker-log.md"
@@ -6101,9 +6101,9 @@
         "produces": "PASS/FAIL report to stdout"
       }
     ],
-    "treasury_gbp": 11131.0,
-    "net_margin_gbp": -8317.21,
-    "enterprise_value_gbp": -20661.9
+    "treasury_gbp": 3709973.141429883,
+    "net_margin_gbp": 1243336.92084,
+    "enterprise_value_gbp": 6037509.076503393
   },
   "latest_run": {
     "starting_treasury_gbp": 2466636.220591217,
