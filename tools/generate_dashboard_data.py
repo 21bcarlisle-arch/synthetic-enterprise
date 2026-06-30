@@ -18,6 +18,10 @@ OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
 RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT / "docs" / "observability" / "run_history.json"
 
+_BUILD_PHASE = "DE"
+_BUILD_TEST_COUNT = 5568
+_BUILD_COMPANY_MODULES = 300
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -546,6 +550,15 @@ def generate(run_json_path=None):
         "query_context": extract_query_context(data),
         "management_accounts": extract_management_accounts(data),
         "monthly_ops": extract_monthly_ops(data),
+        "build": {
+            "current_phase": _BUILD_PHASE,
+            "phases_built": f"Phase {_BUILD_PHASE} (300+ total)",
+            "test_count": _BUILD_TEST_COUNT,
+            "test_suite": f"{_BUILD_TEST_COUNT:,}+ (non-sim)",
+            "company_modules": _BUILD_COMPANY_MODULES,
+            "simulation_window": "2016-2025",
+            "regulatory_modules": 48,
+        },
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
