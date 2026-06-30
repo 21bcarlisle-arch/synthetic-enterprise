@@ -5400,7 +5400,6 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_bill_shock_analysis(data))            # Phase AW
     sections.append(_section_policy_cost_breakdown(data))          # Phase AV
     sections.append(_section_commodity_split(data))                # Phase AU
-    sections.append(_section_management_accounts(data))            # Phase AT
     sections.append(_section_gas_exit_analysis(data))              # Phase AS
     sections.append(_section_segment_capital_efficiency(data))     # Phase AP
     sections.append(_section_portfolio_concentration_risk(data))  # Phase AN
