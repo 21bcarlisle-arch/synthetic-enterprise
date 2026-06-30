@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GV (2026-06-30):** RGGO Register -- 30 new tests (8,309 total). company/regulatory/rggo_register.py (new): BiomethaneSource (5); RGGOStatus (4); RGGORecord (frozen; is_redeemable(as_of): available+within valid_to; is_expired(as_of): available+past valid_to); RGGORegister (register_rggo: volume>0, valid_to>issue_date; redeem: raises ValueError if not redeemable; expire_stale: bulk; redemption_rate_pct: redeemed/(redeemed+expired)); redemption_deadline_for_year: year+1 Mar 31. Green Gas Law 2021/GGCS. Distinct from green_gas_levy_register.py, rego_portfolio.py. PASS (391 files).
+
 **Phase GU (2026-06-30):** Network Code Modification Register -- 32 new tests (8,279 total). company/regulatory/network_code_modification_register.py (new): IndustryCode (6: BSC/UNC/REC/DCUSA/SEC/MRA); ModificationStatus (7); ImpactLevel (5); NetworkCodeModificationRecord (frozen; is_active; is_high_impact; is_implementation_due_soon <=90d; days_to_implementation); NetworkCodeModificationRegister (track/assess_impact/ballot/set_implementation_date/mark_implemented/reject; active/high_impact/due_soon/by_code/pending_ballot). Elexon/Xoserve/Gemserv administered codes. Distinct from slc_compliance_tracker.py. PASS (390 files).
 
 **Phase GT (2026-06-30):** CCA Verification Register -- 32 new tests (8,247 total). company/regulatory/cca_verification_register.py (new): CCASector (10); CCAStatus (5); CCAVerificationRecord (frozen; is_valid_as_of(as_of): active+date range; is_expiring_soon <=60d; electricity_ccl_discount_pct: 90% if active else 0%; gas_ccl_discount_pct: 92% if active else 0%); CCAVerificationRegister (register_certificate: valid_to>valid_from; suspend/revoke/mark_expired/pending_renewal; valid_for_account: latest valid_to; cca_eligible_mpans: deduplicated). Finance Act 2000 s.30; 90%/92% CCL discount; 4-year target periods; HMRC clawback risk. Distinct from ccl_ledger.py. PASS (389 files).
@@ -4404,7 +4406,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,279 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,309 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
