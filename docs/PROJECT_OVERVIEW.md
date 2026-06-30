@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,981 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,993 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CO (2026-06-30):** Contract Exposure Register -- 12 new tests (5,993 total). company/crm/contract_exposure_register.py (new): ContractStatus (FIXED_TERM / STANDARD_VARIABLE / OUT_OF_CONTRACT / DEEMED / PENDING_RENEWAL); ContractSegment (DOMESTIC/SME/I&C); ContractRecord (frozen; is_fixed_term / is_svt / days_remaining / is_in_notice_window — SLC 22 42-day window / annual_contract_revenue_gbp); ContractExposureRegister (fixed_term_contracts / svt_contracts / in_notice_window / notice_not_issued — SLC 22 breach risk / svt_revenue_at_risk_gbp / exposure_summary). SVT contracts are at-risk; OOC I&C allows supplier exit. Epistemic verifier: PASS.
 
 **Phase CN (2026-06-30):** Unit Economics Report Section -- 12 new tests (5,981 total). saas/reporting/annual_report.py: _section_unit_economics() renders per-active-customer revenue / gross margin / net margin by year; flags net margin <5% with << marker (below Ofgem FRA comfort); identifies best year (2024, £26,588/customer) and worst year (2021, £3,642/customer). Wired into generate_annual_report() before Phase CD (_section_customer_commodity_pnl). 2021: 3.3% net margin flagged; 2022 crisis compressed net despite record revenue (£248k/customer). Epistemic verifier: PASS.
 
@@ -4190,7 +4192,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,981 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,993 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
