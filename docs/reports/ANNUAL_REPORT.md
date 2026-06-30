@@ -727,6 +727,33 @@ Company applied 29 recovery surcharge(s) at renewal based on prior-term losses (
 
 
 
+## Portfolio Intelligence Pack (Phase AH)
+
+Board-level synthesis of CRM and flexibility intelligence derived from observable operational data.
+
+### 1. Retention Intelligence
+
+- **Retention offers made:** 18
+- **Offer acceptance rate:** 94% (17 retained / 1 churned despite offer)
+- **Estimated margin protected:** £2,225,202.82
+- **No-offer churns:** 5 total (0 blind miss / 0 deliberate pass)
+- **Retention coverage rate:** 78% of at-risk renewals received an offer
+
+### 2. Flexibility Revenue Intelligence
+
+- No flexibility revenue data available.
+
+### 3. Churn Pattern Analysis
+
+- **Total lifetime churn events:** 6
+- **Peak churn year:** 2021 (2 events)
+- **Net book movement:** 1 acquisitions − 6 churns = -5
+- **Portfolio trend:** shrinking
+
+### 4. Board Recommendations
+
+1. **Crisis-year churn:** 3 churn events in 2021–2022. Maintain minimum hedge floor pre-crisis to preserve pricing stability and limit bill-shock churn.
+
 ## Portfolio Learning Premium (Phase 17a + 19a)
 
 Company applied portfolio premium adjustments at 112 renewal(s) (26 gas) based on recent portfolio-wide margin rates: 61 surcharge(s), 51 discount(s).
