@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,909 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,921 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CI (2026-06-30):** Annual Board Pack Synthesiser -- 12 new tests (5,921 total). company/risk/annual_board_pack.py (new): BoardSignalRAG (GREEN/AMBER/RED); BoardSignalCategory (Financial/Risk/Compliance/Portfolio/Strategic); BoardSignal (mutable; is_red/is_green); AnnualBoardPack (add_financial/risk/compliance/portfolio/strategic; red_signals / overall_rag — RED if any RED, AMBER if any AMBER; highest_risk_signals/signals_by_category/pack_summary). Synthesises all company-layer risk signals into a CEO-level annual board pack with overall RAG. Epistemic verifier: PASS.
 
 **Phase CH (2026-06-30):** Net Open Position Register -- 12 new tests (5,909 total). company/trading/net_open_position_register.py (new): ExposureDirection (LONG_RETAIL/OVERHEDGED/FLAT ±5% tolerance); NOPSeverity (GREEN / AMBER ≥20% / RED ≥40%); DeliveryPeriodPosition (frozen; net_open_position_mwh / nop_pct_of_retail / hedge_fraction_pct / direction / severity); NetOpenPositionRegister (record / positions_for_year / positions_for_commodity / red_positions / long_retail_positions / overhedged_positions / aggregate_for_year / nop_summary). Core risk metric for UK suppliers: long retail / short market position in 2022 caused catastrophic mark-to-market losses. Epistemic verifier: PASS.
 
@@ -4178,7 +4180,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,909 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,921 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
