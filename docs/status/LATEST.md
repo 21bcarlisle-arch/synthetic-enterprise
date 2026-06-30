@@ -1,11 +1,11 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T06:41:28Z
+Last updated: 2026-06-30T06:42:03Z
 
 ## Current state
 
-- **Phase:** DA complete (Customer Comm Preferences) — bug-fixes: fuel_mix test rewrite (Phase CL compat), service_quality None guard, annual_report clv/churn None guards
-- **Tests passing:** 5,450 non-sim + simulation suite (all green)
+- **Phase:** DE complete (EBSS Register) — this session built site Regulatory tab + Phases DB/DC/DD/DE (Customer Comm Preferences) — bug-fixes: fuel_mix test rewrite (Phase CL compat), service_quality None guard, annual_report clv/churn None guards
+- **Tests passing:** 5,568 non-sim + simulation suite (all green) + simulation suite (all green)
 - **Python modules:** 297 company/ + simulation + saas
 - **Net position (latest sim run):** £1,243,337
 
