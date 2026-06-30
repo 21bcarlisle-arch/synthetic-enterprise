@@ -1,6 +1,6 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T08:42:16Z
+Last updated: 2026-06-30T08:49:04Z
 
 ## Current state
 
@@ -42,8 +42,8 @@ building Horizon 1 at high velocity. 6,507 tests confirms foundation is solid.
 - [Phase History](../claude/phase-history.md)
 - [Project Overview](../PROJECT_OVERVIEW.md)
 
-**Latest simulation results (2016-2025)** -- auto-processed (516s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (812s / 14 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
-- Treasury: £2,466,636 -> £3,709,973 | 38 committee interventions | 1531 bills issued
+- Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
