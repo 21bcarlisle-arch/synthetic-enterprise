@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,873 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,885 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CF (2026-06-30):** TPI Commission Book -- 12 new tests (5,885 total). company/market/tpi_commission_book.py (new): TPITier (NATIONAL/REGIONAL/INDEPENDENT/ONLINE per Ofgem 2022 Business Energy mandate); CommissionType (UPFRONT/TRAIL/HYBRID); TPIAgreement (frozen; is_compliant=is_disclosed_to_customer per Ofgem; rate_gbp_per_mwh); TPIPayment (frozen; rate_gbp_per_mwh from annual_kwh); TPICommissionBook (register_tpi/record_payment/non_compliant_agreements/payments_for_year/payments_for_customer/total_commission_gbp/total_for_year/avg_rate_gbp_per_mwh/tpi_summary). UK I&C trail rates £2-25/MWh; Ofgem requires disclosure to business customers since 2022. Epistemic verifier: PASS.
 
 **Phase CE (2026-06-30):** SLC Compliance Tracker -- 12 new tests (5,873 total). company/regulatory/slc_compliance_tracker.py (new): SLCStatus (COMPLIANT/BREACH_RISK/BREACHED/N/A/UNKNOWN); SLCCategory (7: Billing/Credit/Debt/Metering/Renewal/Vulnerability/Smart); SLCObservation (frozen; severity_score 0-2; is_compliant/is_breached); SLCComplianceTracker (record/get/all_observations/breached/at_risk/compliant/total_breach_count/total_at_risk_count/overall_rag/by_category/highest_severity_slcs/compliance_summary). Consolidates SLC 6 (bills), 14 (refund), 21B (closure), 22 (renewal), 27 (debt), 27A (ATP), 31A (back-billing), 45 (smart meter) signals. Epistemic verifier: PASS.
 
@@ -4172,7 +4174,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,873 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,885 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

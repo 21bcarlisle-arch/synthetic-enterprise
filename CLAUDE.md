@@ -1,7 +1,6 @@
 # CLAUDE.md — Synthetic Enterprise
 
 ## What this project is
-
 A high-fidelity simulation of a fully autonomous UK energy supply business, operating against
 real Elexon/NESO half-hourly settlement data. The business layer cannot see future data
 (Point-in-Time Blindfold, strictly enforced). Goal: detailed enough to say "that is how a
@@ -52,6 +51,7 @@ real UK energy supplier works."
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 ---
 ## Current state
+**Phase CF COMPLETE (2026-06-30):** TPI Commission Book -- 12 tests (5,885). company/market/tpi_commission_book.py: TPITier (NATIONAL/REGIONAL/INDEPENDENT/ONLINE); CommissionType (UPFRONT/TRAIL/HYBRID); TPIAgreement (is_compliant=disclosed; rate_gbp_per_mwh); TPICommissionBook (register_tpi/record_payment/non_compliant_agreements/total_for_year/avg_rate_gbp_per_mwh). Ofgem 2022 disclosure rules. Typical trail rates £2-25/MWh I&C.
 **Phase CE COMPLETE (2026-06-30):** SLC Compliance Tracker -- 12 tests (5,873). slc_compliance_tracker.py: SLCStatus/SLCCategory (7); SLCObservation (severity 0-2); SLCComplianceTracker (overall_rag/breached/at_risk/highest_severity_slcs). Consolidates SLC 6/14/21B/22/27/27A/31A/45 into single RAG.
 **Phase CD COMPLETE (2026-06-30):** Customer Commodity P&L section -- 12 tests (5,861). _section_customer_commodity_pnl(): per-customer lifetime elec/gas split; loss-marking (*); gas loss summary; gas % of total. C_IC3g -£132,711; C4g -£1,950; C7 -£1,378 loss-making. Confirms Phase AR gas exit rationale.
 **Phase CC COMPLETE (2026-06-30):** OTC Margin Call Book -- 12 tests (5,849). otc_margin_book.py: VariationMarginCall (CALL/RETURN; T+1 CSA; cash_impact/is_settled/is_overdue); OTCMarginBook (record/settle/pending/overdue/calls_by_counterparty/net_cash_for_year). Key 2022 supplier-failure mechanism.
