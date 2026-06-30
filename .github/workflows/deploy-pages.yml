@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - site/**
+      - docs/PROJECT_STATE.md
 
 jobs:
   deploy:
@@ -14,6 +15,11 @@ jobs:
       deployments: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Sync PROJECT_STATE.md to site/state/PROJECT_STATE.txt
+        run: |
+          mkdir -p site/state
+          cp docs/PROJECT_STATE.md site/state/PROJECT_STATE.txt
 
       - name: Deploy site/ to Cloudflare Pages
         run: npx wrangler pages deploy site --project-name=poesys-net --commit-dirty=true
