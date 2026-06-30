@@ -57,7 +57,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BV COMPLETE (2026-06-30):** Retention Economics -- 12 tests (5,765). Per-offer ROI 6.7× portfolio.
+**Phase BW COMPLETE (2026-06-30):** Missed Retention -- 12 tests (5,777). C6 24.7% no-offer; gas >15% flagged.
+**Phase BV COMPLETE (2026-06-30):** Retention Economics -- 12 tests (5,765). ROI 6.7×; 17/18 retained.
 **Phase BU COMPLETE (2026-06-30):** Gas Exit Decision -- 12 tests (5,753). Loss C4+C_IC3; reprice +£135k vs SQ.
 **Phase BT COMPLETE (2026-06-30):** Hedge Fraction -- 12 tests (5,741). 2019: first naked; 2024: 79.3%.
 **Phase BS COMPLETE (2026-06-30):** Committee Intervention -- 12 tests (5,729). Peak 2016: 13; 2022: 9.
@@ -72,7 +73,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase BJ COMPLETE (2026-06-30):** Churn Calibration -- 12 tests (5,621). UNDER/ACCURATE/OVER + MAE; 5/6 underestimated.
 **Phase BI COMPLETE (2026-06-30):** Tariff Accuracy -- 12 tests (5,609). GOOD/MODERATE/POOR; 2024 best 9.75%; 2023 worst 19.89%.
 **Phase BH COMPLETE (2026-06-30):** Dynamic Pricing -- 12 tests (5,597). adj/delta/up/down/emergency by year; 2022 peak +18.1 £/MWh.
-**Phase BG COMPLETE (2026-06-30):** Portfolio CLV Evolution -- 12 tests (5,585 total). _section_clv_evolution(): CLV table (gas excluded); 2018 jump £37k→£1M; 2025 peak £3.46M.
+**Phase BG COMPLETE (2026-06-30):** CLV Evolution -- 12 tests (5,585). Gas excluded; 2018 jump £37k→£1M; peak 2025 £3.46M.
 **Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence -- 15 tests (5,573 total). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario. PCW £55/ref £20/broker £160.
 **Phase BE COMPLETE (2026-06-30):** Gross Margin Bridge (YoY) -- 12 tests (5,558 total). _section_gross_margin_bridge(): revenue/wholesale/non-comm/GM + deltas table. 2022 GM%=24.8% worst; 2024 42.4% recovery.
 **Phase BD COMPLETE (2026-06-30):** Renewal Pricing Engine -- 15 tests (5,546 total). renewal_pricing_engine.py: FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER; SVT-cap; I&C 0.3× decay; portfolio_renewal_plan.

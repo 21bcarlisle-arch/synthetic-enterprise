@@ -4755,6 +4755,66 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_missed_retention_analysis(data: dict) -> str:
+    """Phase BW: Missed retention opportunities — no-offer churn at-risk customers."""
+    nol = data.get("no_offer_churn_log", [])
+    gcl = data.get("company_gas_churn_log", [])
+    if not nol and not gcl:
+        return ""
+    lines = [
+        "## Missed Retention Opportunity Analysis",
+        "",
+        "Customers who reached a renewal/churn trigger but received no retention offer.",
+        "",
+    ]
+    if nol:
+        at_risk = [e for e in nol if e.get("company_churn_estimate", 0) >= 0.10]
+        total_margin_at_risk = sum(e.get("expected_term_margin_gbp", 0) for e in at_risk)
+        lines.extend([
+            "### Electricity Customers — No Offer Made",
+            "",
+            "| Customer | Date | Churn Estimate | Margin at Risk £ | Reason |",
+            "|----------|------|---------------|-----------------|--------|",
+        ])
+        for entry in nol:
+            cid = entry.get("customer_id", "?")
+            dt = entry.get("event_date", "?")[:7]
+            est = entry.get("company_churn_estimate", 0)
+            margin = entry.get("expected_term_margin_gbp", 0)
+            reason = entry.get("no_offer_reason", "?").replace("_", " ")
+            flag = " ⚑" if est >= 0.15 else ""
+            margin_str = "£{:,.0f}".format(margin) if margin >= 0 else "-£{:,.0f}".format(abs(margin))
+            lines.append("| {} | {} | {:.1%} | {} | {}{} |".format(cid, dt, est, margin_str, reason, flag))
+        lines.extend([
+            "",
+            "**High-risk no-offer events (≥10% churn): {}** — £{:,.0f} margin at risk.".format(len(at_risk), total_margin_at_risk),
+            "",
+        ])
+    if gcl:
+        high_risk_gas = [e for e in gcl if e.get("company_gas_churn_estimate", 0) >= 0.15]
+        lines.extend([
+            "### Gas Renewal Risk — High-Churn Reprice Events (≥15% estimate)",
+            "",
+        ])
+        if high_risk_gas:
+            lines.extend([
+                "| Customer | Term Start | Old Rate p/therm | New Rate p/therm | Churn Est |",
+                "|----------|-----------|-----------------|-----------------|----------|",
+            ])
+            for entry in high_risk_gas[:8]:
+                cid = entry.get("customer_id", "?")
+                ts = entry.get("term_start", "?")[:7]
+                old_r = entry.get("old_gas_rate", 0)
+                new_r = entry.get("new_gas_rate", 0)
+                est = entry.get("company_gas_churn_estimate", 0)
+                lines.append("| {} | {} | {:.2f} | {:.2f} | {:.1%} |".format(cid, ts, old_r, new_r, est))
+            lines.extend(["", "**High-risk gas reprices: {}**".format(len(high_risk_gas)), ""])
+        else:
+            lines.extend(["No high-risk gas reprices (all below 15% churn estimate).", ""])
+    lines.append("> ⚑ = customers with ≥15% churn estimate who received no retention offer.")
+    lines.append("")
+    return "\n".join(lines)
+
 def _section_retention_decision_economics(data: dict) -> str:
     """Phase BV: Retention decision economics — ROI of individual retention offers."""
     rl = data.get("retention_log", [])
@@ -6401,6 +6461,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_missed_retention_analysis(data))      # Phase BW
     sections.append(_section_retention_decision_economics(data))   # Phase BV
     sections.append(_section_gas_exit_decision(data))              # Phase BU
     sections.append(_section_hedge_fraction_evolution(data))       # Phase BT

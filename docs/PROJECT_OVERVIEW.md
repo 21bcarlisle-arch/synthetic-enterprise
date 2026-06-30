@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,765 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,777 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BW (2026-06-30):** Missed Retention Opportunity Analysis Section -- 12 new tests (5,777 total). saas/reporting/annual_report.py: _section_missed_retention_analysis(): reads no_offer_churn_log + company_gas_churn_log; electricity no-offer events with churn estimate (≥10% flagged); gas renewal events with ≥15% churn estimate flagged; totals margin at risk from high-churn no-offer events. Key insight: C6 (SME electricity) had 24.7% churn estimate but received no retention offer at 2024 renewal — £2,853 margin at risk. 3 gas reprices with >15% churn estimate. Epistemic verifier: PASS.
 
 **Phase BV (2026-06-30):** Retention Decision Economics Section -- 12 new tests (5,765 total). saas/reporting/annual_report.py: _section_retention_decision_economics(): reads retention_log; shows per-offer retention cost / expected margin protected / ROI (margin÷cost) / discount % / outcome; totals at bottom. Key insights: 18 retention offers placed, 17/18 retained; portfolio ROI ~6.7× (£118k spent protects £885k+ margin); best single ROI = 12.6× (C_IC1 2020, low cost, high expected margin); worst ROI 1.9× (C_IC3 2020, margin already compressed). Epistemic verifier: PASS.
 
@@ -4154,7 +4156,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,765 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,777 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

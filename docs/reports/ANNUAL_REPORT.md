@@ -908,6 +908,39 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Missed Retention Opportunity Analysis
+
+Customers who reached a renewal/churn trigger but received no retention offer.
+
+### Electricity Customers — No Offer Made
+
+| Customer | Date | Churn Estimate | Margin at Risk £ | Reason |
+|----------|------|---------------|-----------------|--------|
+| C3 | 2020-06 | 0.0% | £586 | below threshold |
+| C1 | 2021-12 | 3.8% | -£178 | below threshold |
+| C2 | 2022-03 | 6.7% | £237 | below threshold |
+| C6 | 2024-03 | 24.7% | £2,853 | below threshold ⚑ |
+| C4 | 2024-09 | 0.0% | £469 | below threshold |
+
+**High-risk no-offer events (≥10% churn): 1** — £2,853 margin at risk.
+
+### Gas Renewal Risk — High-Churn Reprice Events (≥15% estimate)
+
+| Customer | Term Start | Old Rate p/therm | New Rate p/therm | Churn Est |
+|----------|-----------|-----------------|-----------------|----------|
+| C2g | 2017-04 | 26.92 | 32.81 | 20.1% |
+| C1g | 2017-12 | 26.25 | 33.42 | 22.4% |
+| C3g | 2018-07 | 23.11 | 28.75 | 20.6% |
+| C4g | 2018-10 | 26.10 | 33.55 | 23.1% |
+| C_IC3g | 2020-12 | 15.44 | 20.15 | 24.3% |
+| C2g | 2021-03 | 21.66 | 35.00 | 39.9% |
+| C4g | 2021-09 | 16.09 | 35.00 | 73.5% |
+| C_IC3g | 2021-12 | 20.15 | 123.85 | 95.0% |
+
+**High-risk gas reprices: 9**
+
+> ⚑ = customers with ≥15% churn estimate who received no retention offer.
+
 ## Retention Decision Economics
 
 Per-offer cost, expected margin protected, and ROI for each retention intervention.
