@@ -1,5 +1,5 @@
-Phase IT complete -- 9,923 tests. Coverage Depth Sprint XVII (contact_centre_metrics, complaint_register, conversation_log). Epistemic verifier PASS.
-Last updated: 2026-06-30T21:26:10Z
+Phase IU complete -- 9,953 tests. Coverage Depth Sprint XVIII (customer_profitability, forward_book, hedge_decision). Epistemic verifier PASS.
+Last updated: 2026-06-30T21:29:03Z
 
 **Latest simulation results (2016–2025)** — auto-processed (571s / 10 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
