@@ -1,5 +1,5 @@
-Phase HD complete -- 8,582 tests. Phase HD: DSO Flexibility Tender Register -- 38 tests. All 8,582 tests passing, epistemic verifier PASS (399 company/ files).
-Last updated: 2026-06-30T13:46:16Z
+Phase HE complete -- 8,619 tests. Phase HE: Smart Export Guarantee Register -- 37 tests. 400 company/ files milestone! All 8,619 tests passing, epistemic verifier PASS.
+Last updated: 2026-06-30T13:48:34Z
 
 **Latest simulation results (2016–2025)** — auto-processed (439s / 7 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
