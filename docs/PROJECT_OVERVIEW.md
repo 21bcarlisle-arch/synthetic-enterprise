@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase IE — Coverage Depth Sprint II (2026-06-30)
+**Modules:** solr_intake · risk_appetite · renewals_book
+**Tests added:** 30 (SoLR batch intake, risk limit breach tracking, renewal rate analytics)
+**Total:** 9,470 tests
+
 ### Phase ID — Coverage Depth Sprint I (2026-06-30)
 **Modules:** gas_interruption · ee_obligation_tracker · credit_rating_book
 **Tests added:** 30 (deeper coverage for thin modules from HS/HT expansion)
@@ -4469,7 +4474,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 9,440 tests (fast / ~10s; simulation integration ~8 min per run)
+- 9,470 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
