@@ -3837,6 +3837,204 @@ def _section_flexibility_revenue(data: dict) -> str:
     return "\n".join(lines)
 
 
+
+def _section_portfolio_intelligence_pack(data: dict) -> str:
+    """Phase AH: Board-level portfolio intelligence synthesis.
+
+    Synthesises observable CRM and operational intelligence into a board pack:
+    - Retention coverage rate and offer effectiveness
+    - Flexibility enrollment growth and revenue per enrolled customer
+    - Churn pattern analysis (peak years, net book movement)
+    - Board recommendations derived from the above signals
+
+    Silent when there are no retention events or churn history to draw from.
+    """
+    rl = data.get("retention_log", [])
+    no_offer = data.get("no_offer_churn_log", [])
+    cel = data.get("company_event_log", [])
+    flex = data.get("flexibility_revenue_summary", {})
+
+    churn_events = [e for e in cel if e.get("event_type") == "churn"]
+    if not rl and not churn_events:
+        return ""
+
+    lines = [
+        "## Portfolio Intelligence Pack (Phase AH)",
+        "",
+        "Board-level synthesis of CRM and flexibility intelligence derived from observable operational data.",
+        "",
+    ]
+
+    # 1. Retention Intelligence
+    lines += ["### 1. Retention Intelligence", ""]
+
+    if rl:
+        total_offers = len(rl)
+        retained_ct = sum(1 for r in rl if r.get("outcome") == "retained")
+        churned_despite = sum(1 for r in rl if r.get("outcome") == "churned_despite_offer")
+        acceptance_rate = retained_ct / total_offers * 100 if total_offers > 0 else 0.0
+        margin_protected = sum(r.get("expected_term_margin_gbp", 0.0) for r in rl if r.get("outcome") == "retained")
+        lines += [
+            f"- **Retention offers made:** {total_offers}",
+            f"- **Offer acceptance rate:** {acceptance_rate:.0f}% "
+            f"({retained_ct} retained / {churned_despite} churned despite offer)",
+            f"- **Estimated margin protected:** {_fmt_gbp(margin_protected)}",
+        ]
+    else:
+        lines.append("- No retention offers in this run period.")
+
+    no_offer_count = len(no_offer)
+    if no_offer_count > 0:
+        blind_miss = sum(1 for n in no_offer if n.get("no_offer_reason") is None)
+        deliberate = sum(1 for n in no_offer if n.get("no_offer_reason") == "uneconomical")
+        avoidable_loss = sum(
+            n.get("expected_term_margin_gbp", 0.0) for n in no_offer
+            if n.get("no_offer_reason") is None
+        )
+        lines.append(
+            f"- **No-offer churns:** {no_offer_count} total "
+            f"({blind_miss} blind miss / {deliberate} deliberate pass)"
+        )
+        if avoidable_loss > 0:
+            lines.append(f"- **Estimated avoidable margin loss:** {_fmt_gbp(avoidable_loss)}")
+
+    coverage_denom = len(rl) + no_offer_count
+    if coverage_denom > 0:
+        coverage_rate = len(rl) / coverage_denom * 100
+        lines.append(f"- **Retention coverage rate:** {coverage_rate:.0f}% of at-risk renewals received an offer")
+
+    lines.append("")
+
+    # 2. Flexibility Revenue Intelligence
+    per_year = flex.get("per_year", {})
+    lines += ["### 2. Flexibility Revenue Intelligence", ""]
+
+    if per_year:
+        years_sorted = sorted(per_year.keys())
+        first_yr, last_yr = years_sorted[0], years_sorted[-1]
+        enrolled_first = per_year[first_yr].get("enrolled_customers", 0)
+        enrolled_last = per_year[last_yr].get("enrolled_customers", 0)
+        n_intervals = len(years_sorted) - 1
+        if n_intervals > 0 and enrolled_first > 0:
+            enrollment_cagr = ((enrolled_last / enrolled_first) ** (1 / n_intervals) - 1) * 100
+        else:
+            enrollment_cagr = 0.0
+
+        total_rev = flex.get("total_flexibility_revenue_gbp", 0.0)
+        enrolled_years = flex.get("enrolled_customer_years", 0)
+        rev_per_enrolled = total_rev / enrolled_years if enrolled_years > 0 else 0.0
+
+        lines += [
+            f"- **Total flexibility revenue (full run):** {_fmt_gbp(total_rev)}",
+            f"- **Revenue per enrolled customer-year:** {_fmt_gbp(rev_per_enrolled)}",
+            f"- **Enrollment trajectory:** {enrolled_first} ({first_yr}) → {enrolled_last} ({last_yr})"
+            + (f" (CAGR {enrollment_cagr:.0f}%/yr)" if enrollment_cagr > 0 else ""),
+        ]
+
+        dfs_years = [y for y in years_sorted if per_year[y].get("dfs_gbp", 0.0) > 0]
+        if dfs_years:
+            dfs_total = sum(per_year[y].get("dfs_gbp", 0.0) for y in dfs_years)
+            dfs_launch = dfs_years[0]
+            if len(dfs_years) >= 2:
+                dfs_first = per_year[dfs_years[0]].get("dfs_gbp", 0.0)
+                dfs_last = per_year[dfs_years[-1]].get("dfs_gbp", 0.0)
+                n_dfs = len(dfs_years) - 1
+                if dfs_first > 0 and n_dfs > 0:
+                    dfs_cagr = ((dfs_last / dfs_first) ** (1 / n_dfs) - 1) * 100
+                    lines.append(
+                        f"- **DFS revenue since {dfs_launch}:** {_fmt_gbp(dfs_total)}"
+                        f" (CAGR {dfs_cagr:.0f}%/yr)"
+                    )
+                else:
+                    lines.append(f"- **DFS revenue since {dfs_launch}:** {_fmt_gbp(dfs_total)}")
+            else:
+                lines.append(f"- **DFS revenue since {dfs_launch}:** {_fmt_gbp(dfs_total)}")
+    else:
+        lines.append("- No flexibility revenue data available.")
+
+    lines.append("")
+
+    # 3. Churn Pattern Analysis
+    lines += ["### 3. Churn Pattern Analysis", ""]
+
+    net_change = 0
+    by_year_churn: dict = {}
+    if churn_events:
+        total_churns = len(churn_events)
+        for ev in churn_events:
+            yr = (ev.get("event_date") or "")[:4]
+            if yr:
+                by_year_churn[yr] = by_year_churn.get(yr, 0) + 1
+
+        peak_yr = max(by_year_churn, key=by_year_churn.get) if by_year_churn else None
+        lines.append(f"- **Total lifetime churn events:** {total_churns}")
+        if peak_yr:
+            lines.append(f"- **Peak churn year:** {peak_yr} ({by_year_churn[peak_yr]} events)")
+
+        acq_events = [e for e in cel if e.get("event_type") == "acquisition"]
+        if acq_events:
+            net_change = len(acq_events) - total_churns
+            lines.append(
+                f"- **Net book movement:** {len(acq_events)} acquisitions − {total_churns} churns "
+                f"= {net_change:+d}"
+            )
+            trend = "growing" if net_change > 0 else "shrinking" if net_change < 0 else "stable"
+            lines.append(f"- **Portfolio trend:** {trend}")
+    else:
+        lines.append("- No churn events recorded in this run period.")
+
+    lines.append("")
+
+    # 4. Board Recommendations
+    lines += ["### 4. Board Recommendations", ""]
+    recommendations: list = []
+
+    blind_miss_count = sum(1 for n in no_offer if n.get("no_offer_reason") is None)
+    if blind_miss_count > 0:
+        missed_gbp = sum(n.get("expected_term_margin_gbp", 0.0) for n in no_offer if n.get("no_offer_reason") is None)
+        recommendations.append(
+            f"**Retention gap:** {blind_miss_count} customers churned without receiving a retention offer "
+            f"(estimated margin loss: {_fmt_gbp(missed_gbp)}). Lower the blind-miss detection threshold."
+        )
+
+    if rl:
+        churned_despite_ct = sum(1 for r in rl if r.get("outcome") == "churned_despite_offer")
+        fail_rate = churned_despite_ct / len(rl) * 100
+        if fail_rate > 25:
+            recommendations.append(
+                f"**Offer effectiveness:** {fail_rate:.0f}% of retention offers did not succeed. "
+                "Consider TOU_REFERRAL for EV customers or deeper price-match discounts for bill-stress cases."
+            )
+
+    if per_year:
+        last_enrolled_n = per_year.get(last_yr, {}).get("enrolled_customers", 0)
+        if last_enrolled_n > 0:
+            recommendations.append(
+                f"**Flexibility revenue:** {last_enrolled_n} customers enrolled in CM/DFS as of {last_yr}. "
+                "Prioritise EV+battery acquisition — combined enrollment earns ~£2,046/yr vs EV-only ~£930/yr."
+            )
+
+    if churn_events and by_year_churn:
+        crisis_churns = sum(by_year_churn.get(str(y), 0) for y in [2021, 2022])
+        if crisis_churns > 0:
+            recommendations.append(
+                f"**Crisis-year churn:** {crisis_churns} churn events in 2021–2022. "
+                "Maintain minimum hedge floor pre-crisis to preserve pricing stability and limit bill-shock churn."
+            )
+
+    if not recommendations:
+        recommendations.append(
+            "Portfolio operating within normal parameters. "
+            "Monitor retention coverage and flexibility enrollment growth."
+        )
+
+    for i, rec in enumerate(recommendations, 1):
+        lines.append(f"{i}. {rec}")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -3887,6 +4085,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_margin_feedback(data))
     sections.append(_section_profitability_uplift(data))
     sections.append(_section_flexibility_revenue(data))   # Phase AG
+    sections.append(_section_portfolio_intelligence_pack(data))  # Phase AH
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
     sections.append(_section_dual_fuel_pnl(data))

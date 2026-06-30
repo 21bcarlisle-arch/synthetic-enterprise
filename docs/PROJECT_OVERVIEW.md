@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,244 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,256 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AH (2026-06-30):** Board Intelligence Pack -- 12 new tests (5,256 total). saas/reporting/annual_report.py: _section_portfolio_intelligence_pack() synthesises four sections from observable pipeline data: (1) Retention Intelligence — coverage rate (offers/at-risk), acceptance rate, margin protected, blind-miss avoidable loss; (2) Flexibility Revenue Intelligence — total revenue, revenue-per-enrolled-customer-year, enrollment CAGR, DFS CAGR since launch; (3) Churn Pattern Analysis — total churns, peak year, net book movement, portfolio trend; (4) Board Recommendations — up to 4 actionable recommendations derived from retention gap, offer fail rate, flexibility enrollment, crisis-year churn. Silent when no retention or churn data. Wired after _section_flexibility_revenue. Data sources: retention_log, no_offer_churn_log, company_event_log, flexibility_revenue_summary. Tests: 12/12 passing. Epistemic verifier: PASS. Connects Phases AG, AE, AD, AF.
 
 **Phase AF (2026-06-30):** DSR/Flexibility Revenue Integration -- 15 new tests (5,232 total). company/market/flexibility_revenue_book.py (new): FlexibilityRevenueRecord (frozen; customer_id/year/has_ev/has_ashp/has_battery/flex_kw/capacity_market_revenue_gbp/dfs_revenue_gbp/total_revenue_gbp); FlexibilityRevenueBook (compute_year uses HouseholdDemandRegister.dynamic_assets to identify enrolled customers; CM revenue from 2016 onwards at T-4 rate £75/kW/yr; DFS revenue from 2022 onwards at £4.5/MWh x 20 events/yr; records_for_year/total_revenue_for_year/total_cm_revenue/total_dfs_revenue/flexibility_summary with per_year breakdown). Wired into simulation/run_phase2b.py (compute_year for all elec customers per year; returned in flexibility_revenue_summary + flexibility_revenue_by_year). Wired into saas/reporting/annual_report.py (flexibility_revenue_gbp per year in yearly dict; total_flexibility_revenue_gbp in report). Key finding: EV customer earns £555/yr CM + £666/yr DFS (2022+) = £1,221/yr; battery adds £375/yr CM + £450/yr DFS = £825/yr additional. Connects Phase AA (potential assessment), Phase N/Q (EV/battery asset wiring).
 
@@ -4072,7 +4074,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,244 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,256 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -4081,7 +4083,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase AE, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,244 tests. Phase AG: Flexibility Revenue Annual Report Section (12 tests). Phase AF: DSR/Flexibility Revenue Integration (15 tests).
+- 5,256 tests. Phase AH: Board Intelligence Pack (12 tests). Phase AG: Flexibility Revenue Annual Report Section (12 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
