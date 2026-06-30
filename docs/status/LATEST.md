@@ -1,11 +1,11 @@
-# Simulation Status — LATEST
+# Simulation Status -- LATEST
 
-Last updated: 2026-06-30T02:13:11Z
+Last updated: 2026-06-30T02:22:49Z
 
 ## Current state
 
-- **Phase:** AI complete (EAC Drift Snapshot) -- all phases P→AI shipped
-- **Tests passing:** 5,266 (all green)
+- **Phase:** AJ complete (CRM Risk Triage) -- all phases P through AJ shipped
+- **Tests passing:** 5,280 (all green)
 - **Python modules:** 330+
 - **Company modules:** 232+
 - **Net position (latest sim run):** £1,243,337
@@ -20,15 +20,15 @@ Last updated: 2026-06-30T02:13:11Z
 | Enterprise Value | £6,142,209 |
 | Administration Event | None |
 
-## Recent build phases (AH→AI)
+## Recent build phases (AH→AJ)
 
-- **Phase AI:** EAC Drift Snapshot (10 tests). _section_eac_drift_snapshot() in annual_report.py:
-  per-customer demand drift (first renewal → latest renewal) from billing-derived EAC estimates.
-  Classifies significant/moderate/stable; infers likely cause (EV/ASHP/solar/efficiency).
-  Shows notable-drift table + portfolio trend. Uses demand_estimation_log (Phases 23a/25a).
+- **Phase AJ:** CRM Risk Triage (14 tests). _section_crm_intelligence() in annual_report.py:
+  churn_basis_risk latest-renewal-per-customer classified CRITICAL/HIGH/MEDIUM/LOW bands;
+  rate-vs-SVT flag; lifetime margin at risk (CRITICAL+HIGH); company blind-spot count
+  (HIGH sim risk + <10% company estimate). Connects Phases AD, AC, 11b.
+- **Phase AI:** EAC Drift Snapshot (10 tests). _section_eac_drift_snapshot():
+  per-customer demand drift from billing EAC estimates. Classifies significant/moderate/stable.
 - **Phase AH:** Board Intelligence Pack (12 tests). _section_portfolio_intelligence_pack():
   retention coverage, flex enrollment CAGR, churn peak year, board recommendations.
-- **Phase AG:** Flexibility Revenue Annual Report Section (12 tests). CM vs DFS table, pre-DFS years
-  labelled, enrolled customer-years, DFS launch note.
 
-→ Full build history: docs/PROJECT_OVERVIEW.md Section 4
+-> Full build history: docs/PROJECT_OVERVIEW.md Section 4
