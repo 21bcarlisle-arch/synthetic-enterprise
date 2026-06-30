@@ -29,6 +29,22 @@ the last partial). The business survived the full window.
 - **2021** (crisis year): net margin £58,274.80, 0 risk committee wake-up(s).
 - **2022** (crisis year): net margin £256,283.73, 9 risk committee wake-up(s).
 
+## Board Risk Summary
+
+Synthesised risk indicators across portfolio, capital, operations and pricing.
+RAG: RED = immediate board action, AMBER = monitor closely, GREEN = on track.
+
+| Risk Indicator | Value | RAG | Implication |
+|----------------|-------|-----|-------------|
+| Revenue concentration | HHI 2249, I&C 99% | **AMBER** | Single I&C departure removes 14-29%% of margin |
+| Gas segment ROC | -0.7x (net £-132,898.09 on £185,325.49 capital) | **RED** | Gas legs destroy capital; electricity cross-subsidises |
+| Churn blind miss rate | 4/6 departures (67%) | **RED** | Company did not forecast these churns |
+| Demand estimation error | Peak mean 3.3%, max 15.6% | **RED** | EAC drift from asset acquisitions; smart meters eliminate |
+| Pricing basis risk (worst year) | 2025: +32.8% mean over-estimate | **RED** | Over-priced contracts help margin but create churn risk |
+| Net margin % of revenue | 32.9% (benchmark: 2-5%) | **GREEN** | Within/above industry range |
+
+**Board Action Required:** Gas segment ROC, Churn blind miss rate, Demand estimation error, Pricing basis risk (worst year) — RED rating(s) require immediate attention.
+
 ## Hedging Mandate — Before/After Phase 5c
 
 Phase 5c replaced the old reactive hedging model (start at 50/50, risk committee reacts upward from there with no floor) with a minimum hedge mandate: every term starts at least 85% hedged (`MIN_HEDGE_FLOOR` in `sim/hedging_strategy.py`), modelling a real supplier's supply-obligation-first behaviour rather than a speculative book with a safety valve. Because capital cost is charged on the unhedged (active) position only, raising the floor to 85% caps that active position at 15% of volume by construction.
@@ -1265,7 +1281,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89)
 - Risk committee (Context Handshake) interventions: 13
   - 2016-01-01: treasury £2,466,636.23, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
-  - 2016-01-31: treasury £2,466,648.35, (none), VaR (current £27.79 / stressed £8.54) ratio 3.25
+  - 2016-01-31: treasury £2,466,648.35, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-03-01: treasury £2,466,660.58, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-03-31: treasury £2,466,672.53, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-04-30: treasury £2,466,683.60, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25

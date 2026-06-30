@@ -1,6 +1,6 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T03:00:20Z
+Last updated: 2026-06-30T03:01:41Z
 
 ## Current state
 
@@ -36,3 +36,9 @@ Board intelligence synthesis: all annual report sections now synthesised in _sec
 - **Board finding:** Gas is a capital destroyer; electricity cross-subsidises; I&C concentration at existential risk level; churn blind miss rate 67%.
 
 -> Full build history: docs/PROJECT_OVERVIEW.md Section 4
+
+**Latest simulation results (2016–2025)** — auto-processed (454s / 8 min):
+- Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
+- Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
+- Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
+- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
