@@ -1,5 +1,5 @@
-Phase JC complete -- 10,158 tests. Coverage Depth Sprint XXV (capacity_market, company_pl, credit_limits). Epistemic verifier PASS.
-Last updated: 2026-06-30T22:02:12Z
+Phase JD complete -- 10,188 tests. Coverage Depth Sprint XXVI (contract_manager, dsr_portfolio, curve_monitor). Epistemic verifier PASS.
+Last updated: 2026-06-30T22:04:29Z
 
 **Latest simulation results (2016–2025)** — auto-processed (454s / 8 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668

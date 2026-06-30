@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JD — Coverage Depth Sprint XXVI (2026-06-30)
+**Modules:** contract_manager · dsr_portfolio · curve_monitor
+**Tests added:** 30 (contract notice-periods/expiry/cost/serve-notice/active-filter/expiring-within; DSR event-hours/target/short-notice/COMPLIED-PARTIAL-NON_COMPLIANT/compliance-rate/revenue; curve min-window/severity/screen-series/summary)
+**Total:** 10,188 tests
+
 ### Phase JC — Coverage Depth Sprint XXV (2026-06-30)
 **Modules:** capacity_market · company_pl · credit_limits
 **Tests added:** 30 (CM unit/obligation/revenue/penalty/year-filter/summary; PL gross-margin/ebitda/margin-pct/is-profitable; credit GREEN/AMBER/RED/NO_LIMIT/breached_limits)
@@ -4564,7 +4569,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,158 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,188 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
