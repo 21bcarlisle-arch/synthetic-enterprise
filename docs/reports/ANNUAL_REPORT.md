@@ -908,6 +908,29 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## UK Grid Fuel Mix Disclosure (Ofgem FMD)
+
+Company's disclosed fuel mix per year (UK national grid average — Ofgem FMD requirement).
+
+| Year | Renewable % | Nuclear % | Gas % | Coal % | Other % | Low-Carbon % |
+|------|------------|----------|-------|--------|---------|-------------|
+| 2016 | 24.6% | 20.9% | 42.6% | 9.0% | 2.9% | **45.5%** |
+| 2017 | 29.3% | 20.4% | 40.7% | 7.0% | 2.6% | **49.7%** |
+| 2018 | 33.0% | 19.3% | 39.4% | 5.1% | 3.2% | **52.3%** |
+| 2019 | 36.9% | 17.4% | 38.3% | 2.1% | 5.3% | **54.3%** |
+| 2020 | 42.2% | 16.7% | 35.8% | 1.8% | 3.5% | **58.9%** |
+| 2021 | 39.8% | 14.5% | 38.3% | 2.5% | 4.9% | **54.3%** |
+| 2022 | 40.5% | 14.5% | 37.8% | 1.7% | 5.5% | **55.0%** |
+| 2023 | 47.8% | 14.6% | 31.5% | 1.3% | 4.8% | **62.4%** |
+| 2024 | 51.4% | 14.1% | 28.6% | 0.4% | 5.5% | **65.5%** |
+| 2025 | 55.0% | 13.5% | 26.0% | 0.1% | 5.4% | **68.5%** |
+
+**Peak renewable share: 2025 (55.0%)**
+**Renewable majority first achieved: 2024**
+
+> UK grid fuel mix disclosed per Ofgem FMD regulations; published annually.
+> Suppliers with 100% renewable tariffs must hold REGOs matching total supply.
+
 ## Missed Retention Opportunity Analysis
 
 Customers who reached a renewal/churn trigger but received no retention offer.

@@ -57,15 +57,16 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BW COMPLETE (2026-06-30):** Missed Retention -- 12 tests (5,777). C6 24.7% no-offer; gas >15% flagged.
-**Phase BV COMPLETE (2026-06-30):** Retention Economics -- 12 tests (5,765). ROI 6.7×; 17/18 retained.
-**Phase BU COMPLETE (2026-06-30):** Gas Exit Decision -- 12 tests (5,753). Loss C4+C_IC3; reprice +£135k vs SQ.
-**Phase BT COMPLETE (2026-06-30):** Hedge Fraction -- 12 tests (5,741). 2019: first naked; 2024: 79.3%.
-**Phase BS COMPLETE (2026-06-30):** Committee Intervention -- 12 tests (5,729). Peak 2016: 13; 2022: 9.
+**Phase BX COMPLETE (2026-06-30):** Fuel Mix Disclosure -- 12 tests (5,789). FMD; 45.5%→68.5% LC; 2025: 55% ren.
+**Phase BW COMPLETE (2026-06-30):** Missed Retention -- 12 tests (5,777). C6 24.7% no-offer; gas >15%.
+**Phase BV COMPLETE (2026-06-30):** Retention Economics -- 12 tests (5,765). ROI 6.7×.
+**Phase BU COMPLETE (2026-06-30):** Gas Exit -- 12 tests (5,753). C4+C_IC3 loss; reprice +£135k.
+**Phase BT COMPLETE (2026-06-30):** Hedge Fraction -- 12 tests (5,741). 2019 naked; 2024: 79.3%.
+**Phase BS COMPLETE (2026-06-30):** Committee -- 12 tests (5,729). Peak 2016: 13 wakeups; 2022: 9.
 **Phase BR COMPLETE (2026-06-30):** Worst Settlement Period -- 12 tests (5,717). 2023: -£3,475 (C_IC3g).
-**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Levies -- 12 tests (5,705). BSC £30→£10,210 2016→2022; mute first 2021.
-**Phase BP COMPLETE (2026-06-30):** Cohort Revenue -- 12 tests (5,693). 2017 best £837k; 2019 loss (gas drag).
-**Phase BO COMPLETE (2026-06-30):** CfD Levy & Treasury -- 12 tests (5,681). 2022 CfD CREDIT -£50k; treasury draws 2022-2024.
+**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Levies -- 12 tests (5,705). BSC £30→£10,210; mute 2021.
+**Phase BP COMPLETE (2026-06-30):** Cohort Revenue -- 12 tests (5,693). 2017 £837k; 2019 loss.
+**Phase BO COMPLETE (2026-06-30):** CfD & Treasury -- 12 tests (5,681). 2022 CfD CREDIT; draws 2022-2024.
 **Phase BN COMPLETE (2026-06-30):** Segment Attribution -- 12 tests (5,669). 5×10yr table; 2022 resi gas -£742; I&C £964k.
 **Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657). 2021: 5/9 above SVT.
 **Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). 5 scenarios/year RAG; StressTestBook wired to annual report.
@@ -150,7 +151,6 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 ---
 ## Architectural Laws
 ### Epistemic Honesty — The Company Cannot See Inside the SIM
-
 The company layer operates under the same information constraints as a real energy supplier.
 It cannot see simulation internals — churn parameters, forward curve construction, weather
 engine outputs, VaR internals. It discovers the world through observable interfaces: market

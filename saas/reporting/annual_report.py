@@ -4755,6 +4755,57 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_fuel_mix_disclosure(data: dict) -> str:
+    """Phase BX: Annual UK grid fuel mix disclosure (Ofgem FMD requirement)."""
+    from company.billing.fuel_mix import get_fuel_mix
+    years = data.get("years", {})
+    if not years:
+        return ""
+    rows = []
+    for yr in sorted(years.keys()):
+        try:
+            yr_int = int(yr)
+            mix = get_fuel_mix(yr_int)
+        except Exception:
+            continue
+        if not mix:
+            continue
+        ren = mix.get("renewable", 0.0)
+        nuc = mix.get("nuclear", 0.0)
+        gas = mix.get("gas", 0.0)
+        coal = mix.get("coal", 0.0)
+        other = mix.get("other", 0.0)
+        low_carbon = ren + nuc
+        rows.append((yr, ren, nuc, gas, coal, other, low_carbon))
+    if not rows:
+        return ""
+    peak_ren_yr, peak_ren = max(((r[0], r[1]) for r in rows), key=lambda x: x[1])
+    first_majority_ren = next((r[0] for r in rows if r[1] >= 50.0), None)
+    lines = [
+        "## UK Grid Fuel Mix Disclosure (Ofgem FMD)",
+        "",
+        "Company's disclosed fuel mix per year (UK national grid average — Ofgem FMD requirement).",
+        "",
+        "| Year | Renewable % | Nuclear % | Gas % | Coal % | Other % | Low-Carbon % |",
+        "|------|------------|----------|-------|--------|---------|-------------|",
+    ]
+    for yr, ren, nuc, gas, coal, other, lc in rows:
+        lines.append("| {} | {:.1f}% | {:.1f}% | {:.1f}% | {:.1f}% | {:.1f}% | **{:.1f}%** |".format(
+            yr, ren, nuc, gas, coal, other, lc))
+    lines.extend([""])
+    lines.append("**Peak renewable share: {} ({:.1f}%)**".format(peak_ren_yr, peak_ren))
+    if first_majority_ren:
+        lines.append("**Renewable majority first achieved: {}**".format(first_majority_ren))
+    else:
+        lines.append("**Renewable majority not achieved in simulation period.**")
+    lines.extend([
+        "",
+        "> UK grid fuel mix disclosed per Ofgem FMD regulations; published annually.",
+        "> Suppliers with 100% renewable tariffs must hold REGOs matching total supply.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_missed_retention_analysis(data: dict) -> str:
     """Phase BW: Missed retention opportunities — no-offer churn at-risk customers."""
     nol = data.get("no_offer_churn_log", [])
@@ -6461,6 +6512,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_fuel_mix_disclosure(data))            # Phase BX
     sections.append(_section_missed_retention_analysis(data))      # Phase BW
     sections.append(_section_retention_decision_economics(data))   # Phase BV
     sections.append(_section_gas_exit_decision(data))              # Phase BU

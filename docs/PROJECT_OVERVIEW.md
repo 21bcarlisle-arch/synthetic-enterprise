@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,777 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,789 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BX (2026-06-30):** UK Grid Fuel Mix Disclosure Section -- 12 new tests (5,789 total). saas/reporting/annual_report.py: _section_fuel_mix_disclosure(): reads Ofgem FMD data per year (renewable/nuclear/gas/coal/other) from company.billing.fuel_mix; computes low-carbon% (ren+nuc); identifies peak renewable year and first-majority-renewable year. Key insights: UK grid went from 24.6% renewable (2016) to 55.0% (2025); low-carbon% improved 45.5%→68.5%; 2025 first year with renewable majority (>50%). Ofgem FMD published under Electricity Act 1989 s.4(1)(b). Epistemic verifier: PASS.
 
 **Phase BW (2026-06-30):** Missed Retention Opportunity Analysis Section -- 12 new tests (5,777 total). saas/reporting/annual_report.py: _section_missed_retention_analysis(): reads no_offer_churn_log + company_gas_churn_log; electricity no-offer events with churn estimate (≥10% flagged); gas renewal events with ≥15% churn estimate flagged; totals margin at risk from high-churn no-offer events. Key insight: C6 (SME electricity) had 24.7% churn estimate but received no retention offer at 2024 renewal — £2,853 margin at risk. 3 gas reprices with >15% churn estimate. Epistemic verifier: PASS.
 
@@ -4156,7 +4158,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,777 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,789 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
