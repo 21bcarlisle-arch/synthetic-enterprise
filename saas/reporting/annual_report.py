@@ -4755,6 +4755,54 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_gas_exit_decision(data: dict) -> str:
+    """Phase BU: Gas exit decision — three-scenario analysis for the board."""
+    from company.finance.gas_exit_analysis import GasExitDecisionBook
+    comm_pnl = data.get("per_cid_comm_pnl", {})
+    pcl = data.get("per_customer_lifetime", {})
+    if not comm_pnl or not pcl:
+        return ""
+    try:
+        book = GasExitDecisionBook(comm_pnl, pcl)
+    except Exception:
+        return ""
+    comp = book.scenario_comparison()
+    loss_accts = comp.get("loss_making_accounts", [])
+    sq_net = comp["status_quo_net_gbp"]
+    exit_net = comp["exit_gas_net_gbp"]
+    reprice_net = comp["reprice_gas_net_gbp"]
+    exit_delta = comp["exit_vs_status_quo_gbp"]
+    reprice_delta = comp["reprice_vs_status_quo_gbp"]
+    rec = comp["recommended_action"]
+    def fmt(v):
+        if v >= 0:
+            return "£{:,.0f}".format(v)
+        return "-£{:,.0f}".format(abs(v))
+    def delta(v):
+        if v >= 0:
+            return "+£{:,.0f}".format(v)
+        return "-£{:,.0f}".format(abs(v))
+    lines = [
+        "## Gas Exit Decision Analysis",
+        "",
+        "Three-scenario P&L impact for the board (dual-fuel portfolio lifetime figures).",
+        "",
+        "| Scenario | Net Margin £ | vs Status Quo |",
+        "|----------|-------------|--------------|",
+        "| Status Quo (hold gas) | {} | — |".format(fmt(sq_net)),
+        "| Exit Gas (with churn risk) | {} | {} |".format(fmt(exit_net), delta(exit_delta)),
+        "| Reprice to Breakeven | {} | {} |".format(fmt(reprice_net), delta(reprice_delta)),
+        "",
+        "**Loss-making gas accounts: {}**".format(", ".join(loss_accts) if loss_accts else "None"),
+        "**Board recommendation: {}**".format(rec.replace("_", " ")),
+        "",
+    ]
+    if loss_accts:
+        lines.append("> Gas drag reduces dual-fuel net margin. Repricing to breakeven is preferable to exit")
+        lines.append("> because exiting gas risks losing the electricity contract (cross-product churn).")
+    lines.append("")
+    return "\n".join(lines)
+
 def _section_hedge_fraction_evolution(data: dict) -> str:
     """Phase BT: Portfolio hedge fraction evolution by year."""
     years = data.get("years", {})
@@ -6310,6 +6358,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_gas_exit_decision(data))              # Phase BU
     sections.append(_section_hedge_fraction_evolution(data))       # Phase BT
     sections.append(_section_committee_intervention_pattern(data)) # Phase BS
     sections.append(_section_worst_settlement_periods(data))       # Phase BR

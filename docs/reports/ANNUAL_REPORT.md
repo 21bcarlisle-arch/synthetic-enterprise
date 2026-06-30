@@ -908,6 +908,22 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Gas Exit Decision Analysis
+
+Three-scenario P&L impact for the board (dual-fuel portfolio lifetime figures).
+
+| Scenario | Net Margin £ | vs Status Quo |
+|----------|-------------|--------------|
+| Status Quo (hold gas) | -£47,674 | — |
+| Exit Gas (with churn risk) | £51,429 | +£99,103 |
+| Reprice to Breakeven | £86,988 | +£134,662 |
+
+**Loss-making gas accounts: C4, C_IC3**
+**Board recommendation: REPRICE GAS**
+
+> Gas drag reduces dual-fuel net margin. Repricing to breakeven is preferable to exit
+> because exiting gas risks losing the electricity contract (cross-product churn).
+
 ## Portfolio Hedge Fraction Evolution
 
 Average hedge fraction (0=fully naked, 1=fully hedged) per year.

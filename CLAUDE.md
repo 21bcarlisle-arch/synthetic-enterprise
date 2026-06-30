@@ -57,16 +57,17 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BT COMPLETE (2026-06-30):** Hedge Fraction Evolution -- 12 tests (5,741). 2019 first naked; 2024 lowest 79.3%.
-**Phase BS COMPLETE (2026-06-30):** Committee Intervention -- 12 tests (5,729). 2016 peak 13 wakeups; 2022 resurgent 9.
-**Phase BR COMPLETE (2026-06-30):** Worst Settlement Period -- 12 tests (5,717). 2023 worst -£3,475 (C_IC3g).
-**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Levies -- 12 tests (5,705). BSC/CM/mute/CCL per year; BSC £30→£10,210; mute 2021.
-**Phase BP COMPLETE (2026-06-30):** Customer Cohort Revenue -- 12 tests (5,693). Vintage; 2017 best (£837k net); 2019 loss (gas).
+**Phase BU COMPLETE (2026-06-30):** Gas Exit Decision -- 12 tests (5,753). SQ/exit/reprice; loss C4+C_IC3; reprice +£135k vs SQ.
+**Phase BT COMPLETE (2026-06-30):** Hedge Fraction -- 12 tests (5,741). 2019 naked; 2024 lowest 79.3%.
+**Phase BS COMPLETE (2026-06-30):** Committee Intervention -- 12 tests (5,729). Peak 2016: 13; 2022: 9.
+**Phase BR COMPLETE (2026-06-30):** Worst Settlement Period -- 12 tests (5,717). 2023: -£3,475 (C_IC3g).
+**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Levies -- 12 tests (5,705). BSC £30→£10,210 2016→2022; mute first 2021.
+**Phase BP COMPLETE (2026-06-30):** Cohort Revenue -- 12 tests (5,693). 2017 best £837k; 2019 loss (gas drag).
 **Phase BO COMPLETE (2026-06-30):** CfD Levy & Treasury -- 12 tests (5,681). 2022 CfD CREDIT -£50k; treasury draws 2022-2024.
 **Phase BN COMPLETE (2026-06-30):** Segment Attribution -- 12 tests (5,669). 5×10yr table; 2022 resi gas -£742; I&C £964k.
-**Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657). avg/above-cap from churn_basis_risk; 2021 5/9 above SVT.
+**Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657). 2021: 5/9 above SVT.
 **Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). 5 scenarios/year RAG; StressTestBook wired to annual report.
-**Phase BK COMPLETE (2026-06-30):** Financial Ratios -- 12 tests (5,633 total). EBIT%/rev-per-cust/bad-debt-rate. 2022 worst EBIT 21.3%; £306k rev/cust peak.
+**Phase BK COMPLETE (2026-06-30):** Financial Ratios -- 12 tests (5,633). EBIT%/rev-per-cust; 2022 worst EBIT; 2022 peak £306k/cust.
 **Phase BJ COMPLETE (2026-06-30):** Churn Prediction Calibration -- 12 tests (5,621 total). UNDER/ACCURATE/OVER + MAE. 5/6 churns underestimated (epistemic gap).
 **Phase BI COMPLETE (2026-06-30):** Tariff Estimation Accuracy -- 12 tests (5,609 total). GOOD/MODERATE/POOR bands. 2024 best 9.75%; 2023 worst 19.89% (crisis lag).
 **Phase BH COMPLETE (2026-06-30):** Dynamic Pricing Activity -- 12 tests (5,597 total). _section_dynamic_pricing_activity(): adj/avg-delta/up/down/emergency by year. 2022 peak +18.1 £/MWh; 29 emergency reprices total.

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,741 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,753 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BU (2026-06-30):** Gas Exit Decision Section -- 12 new tests (5,753 total). saas/reporting/annual_report.py: _section_gas_exit_decision(): calls GasExitDecisionBook (company/finance/gas_exit_analysis.py); presents 3-scenario board analysis: Status Quo / Exit Gas / Reprice to Breakeven; shows loss-making accounts and delta vs SQ; board recommendation. Key insights: gas drag -£47,674 in dual-fuel portfolio; reprice to breakeven = +£134,662 vs SQ; exit gas = +£99,103 (but risks losing electricity contract via cross-product churn). Connects Phase AR (GasExitDecisionBook). Epistemic verifier: PASS.
 
 **Phase BT (2026-06-30):** Portfolio Hedge Fraction Evolution Section -- 12 new tests (5,741 total). saas/reporting/annual_report.py: _section_hedge_fraction_evolution(): reads hedge_fractions per year (per-customer avg_hf); computes portfolio avg / min / max / naked-count (hf < 5%); identifies lowest-avg year and first-naked year. Key insights: naked positions first appeared in 2019 when C_IC3g (gas I&C) was added with zero hedge; portfolio avg dropped from 89.6% (2017) to 79.3% (2024) — regime-change blindness in action; mirrors strategy that destroyed 28 real UK suppliers 2021-22. Epistemic verifier: PASS.
 
@@ -4150,7 +4152,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,741 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,753 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
