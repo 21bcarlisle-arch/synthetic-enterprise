@@ -4755,6 +4755,61 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_dynamic_pricing_activity(data: dict) -> str:
+    """Phase BH: Dynamic Pricing Activity — year-by-year tariff adjustment analysis."""
+    dpl = data.get("dynamic_pricing_log", [])
+    mfl = data.get("margin_feedback_log", [])
+    if not dpl:
+        return ""
+    by_year: dict = {}
+    for e in dpl:
+        yr = e.get("term_start", "")[:4]
+        if not yr:
+            continue
+        by_year.setdefault(yr, []).append(e)
+    mfl_by_year: dict = {}
+    for e in mfl:
+        yr = e.get("term_start", "")[:4]
+        if not yr:
+            continue
+        mfl_by_year.setdefault(yr, []).append(e)
+    rows = []
+    for yr in sorted(by_year.keys()):
+        entries = by_year[yr]
+        avg_delta = sum(e.get("unit_rate_after", 0) - e.get("unit_rate_before", 0) for e in entries) / len(entries)
+        ups = sum(1 for e in entries if e.get("unit_rate_after", 0) > e.get("unit_rate_before", 0))
+        downs = sum(1 for e in entries if e.get("unit_rate_after", 0) < e.get("unit_rate_before", 0))
+        emergency = len(mfl_by_year.get(yr, []))
+        rows.append((yr, len(entries), avg_delta, ups, downs, emergency))
+    lines = [
+        "## Dynamic Pricing Activity",
+        "",
+        "Rate adjustments driven by the margin feedback loop and emergency reprice events.",
+        "",
+        "| Year | Adjustments | Avg Delta £/MWh | Up | Down | Emergency |",
+        "|------|------------|-----------------|-----|------|-----------|",
+    ]
+    for yr, adj, avg_d, up, dn, emerg in rows:
+        sign = "+" if avg_d >= 0 else ""
+        lines.append("| {} | {} | {}{:.1f} | {} | {} | {} |".format(
+            yr, adj, sign, avg_d, up, dn, emerg))
+    total_adj = sum(r[1] for r in rows)
+    peak_yr, peak_delta = max(((r[0], r[2]) for r in rows), key=lambda x: x[1])
+    max_emerg_yr = max(rows, key=lambda r: r[5])
+    total_emergency = sum(r[5] for r in rows)
+    lines.extend([
+        "",
+        "**Total adjustments 2016-2025: {}** | **Peak avg adjustment: {} (+{:.1f} £/MWh)**".format(
+            total_adj, peak_yr, peak_delta if peak_delta >= 0 else -peak_delta),
+        "**Emergency reprices: {} total** ({} in {})".format(
+            total_emergency, max_emerg_yr[5], max_emerg_yr[0]),
+        "",
+        "> Emergency reprices triggered when recent margin dropped below cost floor.",
+        "> Normal adjustments from rolling margin feedback; £/MWh delta versus prior contracted rate.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_clv_evolution(data: dict) -> str:
     """Phase BG: CLV Evolution — portfolio forward value trajectory by year."""
     clv_snapshots = data.get("clv_snapshots", {})
@@ -5644,6 +5699,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_dynamic_pricing_activity(data))       # Phase BH
     sections.append(_section_clv_evolution(data))                  # Phase BG
     sections.append(_section_gross_margin_bridge(data))            # Phase BE
     sections.append(_section_risk_committee_activity(data))        # Phase BC

@@ -38,7 +38,6 @@ real UK energy supplier works."
 2. NTFY Rich with what was done and what's next.
 3. Proceed immediately to the next phase — do not hold for confirmation.
 4. Rich redirects via NTFY if he wants a different direction.
-
 **Always update and commit LATEST.md before sending NTFY.** If stale, fix the root cause.
 
 **When budget is available between tasks:** check backlog, fix known issues, improve coverage. Don't sit idle.
@@ -59,7 +58,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BG COMPLETE (2026-06-30):** Portfolio CLV Evolution -- 12 tests (5,585 total). _section_clv_evolution(): gas-excluded CLV table per year; peak/delta summary. 2018 jump £37k→£1M (I&C joined); 2025 peak £3.46M.
+**Phase BH COMPLETE (2026-06-30):** Dynamic Pricing Activity -- 12 tests (5,597 total). _section_dynamic_pricing_activity(): adj/avg-delta/up/down/emergency by year. 2022 peak +18.1 £/MWh; 29 emergency reprices total.
+**Phase BG COMPLETE (2026-06-30):** Portfolio CLV Evolution -- 12 tests (5,585 total). _section_clv_evolution(): CLV table (gas excluded); 2018 jump £37k→£1M; 2025 peak £3.46M.
 **Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence -- 15 tests (5,573 total). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario. PCW £55/ref £20/broker £160.
 **Phase BE COMPLETE (2026-06-30):** Gross Margin Bridge (YoY) -- 12 tests (5,558 total). _section_gross_margin_bridge(): revenue/wholesale/non-comm/GM + deltas table. 2022 GM%=24.8% worst; 2024 42.4% recovery.
 **Phase BD COMPLETE (2026-06-30):** Renewal Pricing Engine -- 15 tests (5,546 total). renewal_pricing_engine.py: FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER; SVT-cap; I&C 0.3× decay; portfolio_renewal_plan.

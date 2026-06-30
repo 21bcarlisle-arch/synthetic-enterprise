@@ -908,6 +908,29 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Dynamic Pricing Activity
+
+Rate adjustments driven by the margin feedback loop and emergency reprice events.
+
+| Year | Adjustments | Avg Delta £/MWh | Up | Down | Emergency |
+|------|------------|-----------------|-----|------|-----------|
+| 2016 | 4 | -0.6 | 1 | 3 | 0 |
+| 2017 | 13 | -1.2 | 1 | 12 | 0 |
+| 2018 | 14 | +2.4 | 6 | 8 | 2 |
+| 2019 | 15 | +1.4 | 5 | 10 | 2 |
+| 2020 | 18 | +3.3 | 9 | 9 | 2 |
+| 2021 | 14 | +11.3 | 14 | 0 | 6 |
+| 2022 | 11 | +18.1 | 10 | 1 | 6 |
+| 2023 | 11 | +9.9 | 8 | 3 | 8 |
+| 2024 | 10 | +8.0 | 6 | 4 | 3 |
+| 2025 | 2 | +0.6 | 1 | 1 | 0 |
+
+**Total adjustments 2016-2025: 112** | **Peak avg adjustment: 2022 (+18.1 £/MWh)**
+**Emergency reprices: 29 total** (8 in 2023)
+
+> Emergency reprices triggered when recent margin dropped below cost floor.
+> Normal adjustments from rolling margin feedback; £/MWh delta versus prior contracted rate.
+
 ## Portfolio CLV Evolution
 
 Estimated forward lifetime value of active billing accounts at each year-end.
