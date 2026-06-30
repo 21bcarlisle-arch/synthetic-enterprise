@@ -34,13 +34,13 @@ real UK energy supplier works."
 ## Phase-close checklist (in order)
 1. Update test count + latest run figures in PROJECT_OVERVIEW.md Section 10.
 2. Add build history entry in PROJECT_OVERVIEW.md Section 4.
-3. **Run epistemic verifier:** `python3 -m tools.epistemic_verifier` — must PASS before committing.
-   If FAIL: fix violations before committing any phase-close output.
+3. **Run epistemic verifier:** `python3 -m tools.epistemic_verifier` — must PASS before committing. If FAIL: fix violations first.
 4. **`wc -c CLAUDE.md` — hard limit 35,000 chars / 200 lines.** If over: move to `docs/claude/phase-history.md`. Never accumulate phase details in CLAUDE.md.
 5. Add one-line phase completion entry to CLAUDE.md "Current state".
 6. Commit and push.
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 ## Current state
+**Phase CW COMPLETE (2026-06-30):** Licence Application Register -- 12 tests (6,091). company/regulatory/licence_application_register.py: LicenceType (4 types: elec/gas domestic/non-domestic); LicenceTier (TIER_1 <250k / TIER_2 >=250k); LicenceRecord (frozen; has_special_conditions); LicenceApplication (frozen; is_open/is_approved); LicenceApplicationRegister (submit/decide/active_licences/licences_with_special_conditions/open_applications). Post-2022 Ofgem requires explicit continuation when FRA deteriorates.
 **Phase CV COMPLETE (2026-06-30):** DA/DC Contract Register -- 12 tests (6,079). company/market/dadc_contract_register.py: MeteringAgentType (DA/DC/DA_DC/MOA); AgentAppointment (frozen; is_active); DADCContractRegister (appoint/terminate/agent_for_mpan/mpans_without_dc/mpans_without_da/agents_by_name). BSC SVA: DC reads/submits; DA aggregates HH data; DA_DC combined covers NHH; missing appointment = BSC breach.
 **Phase CU COMPLETE (2026-06-30):** Interruptible Gas Supply Register -- 13 tests (6,067). company/market/interruptible_supply_register.py: InterruptionReason (COLD_WEATHER/NGT_INSTRUCTION/NETWORK_CONSTRAINT/SUPPLIER_DISCRETION); InterruptibleContract (saving_vs_firm_gbp_pa at 15% INT discount); InterruptibleSupplyRegister (register/record_interruption/notice_violations: <2h/annual_curtailment_days/over_cap_accounts: >30d/total_portfolio_annual_kwh). UNC TPD X3: 2-hour min notice; 30-day cap.
 **Phase CT COMPLETE (2026-06-30):** Shipper Code Register -- 13 tests (6,054). company/market/shipper_code_register.py: LDZ enum (13 GB Local Distribution Zones); LDZAuthorisation (frozen); ShipperRecord (ldz_coverage_count/is_national/can_supply_in/add_ldz/revoke_ldz); ShipperCodeRegister (register/suspend/active_shippers/suspended). Xoserve UK Link: shipper code required for gas nomination; 13 LDZs; MPRN registry.
@@ -83,15 +83,15 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase BI COMPLETE (2026-06-30):** Tariff Accuracy -- 12 tests (5,609). GOOD/MODERATE/POOR; 2024 best 9.75%; 2023 worst 19.89%.
 **Phase BH COMPLETE (2026-06-30):** Dynamic Pricing -- 12 tests (5,597). adj/delta/up/down/emergency by year; 2022 peak +18.1 £/MWh.
 **Phase BG COMPLETE (2026-06-30):** CLV Evolution -- 12 tests (5,585). 2018 →£1M; peak 2025 £3.46M.
-**Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence -- 15 tests (5,573 total). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario. PCW £55/ref £20/broker £160.
+**Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence -- 15 tests (5,573). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario. PCW £55/ref £20/broker £160.
 **Phase BE COMPLETE (2026-06-30):** Gross Margin Bridge -- 12 tests (5,558). YoY revenue/wholesale/GM; 2022 worst GM 24.8%; 2024 recovery 42.4%.
-**Phase BD COMPLETE (2026-06-30):** Renewal Pricing Engine -- 15 tests (5,546 total). renewal_pricing_engine.py: FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER; SVT-cap; I&C 0.3× decay; portfolio_renewal_plan.
-**Phase BC COMPLETE (2026-06-30):** Risk Committee Activity Section -- 12 tests (5,531 total). _section_risk_committee_activity(): sessions/peak-VaR/accounts table; 38 sessions 2016-2025; 2016 busiest (13); 2023 peak VaR £130k (only 4 sessions); C1 adjusted 22× most.
-**Phase BB COMPLETE (2026-06-30):** Risk Committee Decision Ledger -- 15 tests (5,519 total). risk_committee_ledger.py: EFFECTIVE/NEUTRAL/COUNTERPRODUCTIVE/PENDING (±£1k); intervention_effectiveness_rate; busiest_year; governance_summary.
-**Phase BA COMPLETE (2026-06-30):** Price Elasticity Estimator -- 15 tests (5,504 total). price_elasticity.py: ElasticityBand/PriceChangeImpact/PortfolioImpact; PriceElasticityBook (crisis×1.5; estimate_churn_impact; optimal_tariff_change). CMA 2016: resi=-0.18; SME=-0.12; I&C=-0.05.
+**Phase BD COMPLETE (2026-06-30):** Renewal Pricing Engine -- 15 tests (5,546). renewal_pricing_engine.py: FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER; SVT-cap; I&C 0.3× decay; portfolio_renewal_plan.
+**Phase BC COMPLETE (2026-06-30):** Risk Committee Activity Section -- 12 tests (5,531). _section_risk_committee_activity(): sessions/peak-VaR/accounts table; 38 sessions 2016-2025; 2016 busiest (13); 2023 peak VaR £130k (only 4 sessions); C1 adjusted 22× most.
+**Phase BB COMPLETE (2026-06-30):** Risk Committee Decision Ledger -- 15 tests (5,519). risk_committee_ledger.py: EFFECTIVE/NEUTRAL/COUNTERPRODUCTIVE/PENDING (±£1k); intervention_effectiveness_rate; busiest_year; governance_summary.
+**Phase BA COMPLETE (2026-06-30):** Price Elasticity Estimator -- 15 tests (5,504). price_elasticity.py: ElasticityBand/PriceChangeImpact/PortfolioImpact; PriceElasticityBook (crisis×1.5; estimate_churn_impact; optimal_tariff_change). CMA 2016: resi=-0.18; SME=-0.12; I&C=-0.05.
 **Phase AZ COMPLETE (2026-06-30):** I&C Triad Notification Book -- 15 tests (5,489). triad_notification_book.py: TriadNotificationBook (enrol/issue_alert/savings_summary). 2022 £60.40/kW; C_IC3 1000kW→£42,280 at 70% response.
-**Phase AY COMPLETE (2026-06-30):** Customer Strategic Value Matrix -- 12 tests (5,474 total). _section_customer_strategic_value(): 2x2 CLV×churn quadrant; PROTECT/CRITICAL/MONITOR/EXIT. I&C (99% CLV) in PROTECT.
-**Phase AX COMPLETE (2026-06-30):** Customer Experience & Service Quality -- 12 tests (5,462 total). _section_customer_experience(): clarity/complaint-prob + flags; 2025=0.777 (worst clarity); 0/5 acquisition wins.
+**Phase AY COMPLETE (2026-06-30):** Customer Strategic Value Matrix -- 12 tests (5,474). _section_customer_strategic_value(): 2x2 CLV×churn quadrant; PROTECT/CRITICAL/MONITOR/EXIT. I&C (99% CLV) in PROTECT.
+**Phase AX COMPLETE (2026-06-30):** Customer Experience & Service Quality -- 12 tests (5,462). _section_customer_experience(): clarity/complaint-prob + flags; 2025=0.777 (worst clarity); 0/5 acquisition wins.
 **Phase AW COMPLETE (2026-06-30):** Bill Shock Analysis -- 12 tests (5,438). annual_report.py: _section_bill_shock_analysis(): avg_shock %/events/bills/shock-rate by year; HIGH >=30%/ELEVATED >=20% flags; crisis peak note (2022=33.8%, SLC 21 note). Normal 14-17%, crisis 34%.
 **Phase AV COMPLETE (2026-06-30):** Policy Cost & Levy Breakdown -- 12 tests (5,426). _section_policy_cost_breakdown(): RO/CfD/CCL/CM/FiT per year; negative 2022 CfD noted (spot>strike); CAGR 76.7%/yr.
 **Phase AU COMPLETE (2026-06-30):** Commodity Split -- 12 tests (5,414). _section_commodity_split(): elec/gas net+revenue per year; profitable flag; gas-share%. Gas loss-making since 2021 (was profitable 2016-20).
@@ -100,22 +100,22 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase AR COMPLETE (2026-06-30):** Gas Exit Decision Book -- 14 tests (5,380). gas_exit_analysis.py: 3 scenarios (SQ/EXIT/REPRICE); I&C 40%/resi 20% churn on exit. REPRICE +£134k; EXIT +£99k vs SQ.
 **Phase AQ COMPLETE (2026-06-30):** Board Risk Summary -- 12 tests (5,366). _section_board_risk_summary(): 6 RAG indicators; 4 RED (gas-ROC=-0.7x, churn-miss 67%, demand-error 3.3%/15.6%, basis-risk +32.8%), 1 AMBER, 1 GREEN.
 **Phase AP COMPLETE (2026-06-30):** Segment Capital Efficiency -- 12 tests (5,354). _section_segment_capital_efficiency(): lifetime ROC per segment; CAPITAL DESTROYER flag; I&C gas=-0.7x, resi gas=-0.9x; electricity cross-subsidises.
-**Phase AO COMPLETE (2026-06-30):** Demand Estimation Error Trend -- 12 tests (5,342 total). demand_error_by_year; 0.07%→15.56% by 2024.
-**Phase AN COMPLETE (2026-06-30):** Portfolio Concentration Risk -- 12 tests (5,330 total). HHI=2249 MODERATE; I&C=98.7% portfolio.
-**Phase AM COMPLETE (2026-06-30):** Pricing Basis Risk -- 12 tests (5,318 total). company_fwd vs sim_fwd; HIGH OVER-PRICE 2023/2025 (+18-33%).
-**Phase AL COMPLETE (2026-06-30):** Counterfactual Retention -- 12 tests (5,306 total). £3,621 recoverable from 4 blind misses at £293 cost.
-**Phase AK COMPLETE (2026-06-30):** Churn Root Cause Attribution -- 14 tests (5,294 total). 6 churns £39,706 lost; 3 blind misses.
-**Phase AJ COMPLETE (2026-06-30):** CRM Risk Triage -- 14 tests (5,280 total). CRITICAL/HIGH/MEDIUM/LOW triage; rate-vs-SVT.
-**Phase AI COMPLETE (2026-06-30):** EAC Drift Snapshot -- 10 tests (5,266 total). Demand drift per customer; EV/solar/efficiency.
-**Phase AH COMPLETE (2026-06-30):** Board Intelligence Pack -- 12 tests (5,256 total). Retention/flex CAGR/churn peak/4 board recs.
-**Phase AG COMPLETE (2026-06-30):** Annual Report Flex Revenue Section -- 12 tests (5,244 total). CM/DFS table; pre-DFS labels.
-**Phase AF COMPLETE (2026-06-30):** DSR/Flexibility Revenue Integration -- 15 tests (5,232 total). CM £75/kW/yr; DFS £4.5/MWh×20; EV+battery £2,046/yr.
+**Phase AO COMPLETE (2026-06-30):** Demand Estimation Error Trend -- 12 tests (5,342). demand_error_by_year; 0.07%→15.56% by 2024.
+**Phase AN COMPLETE (2026-06-30):** Portfolio Concentration Risk -- 12 tests (5,330). HHI=2249 MODERATE; I&C=98.7% portfolio.
+**Phase AM COMPLETE (2026-06-30):** Pricing Basis Risk -- 12 tests (5,318). company_fwd vs sim_fwd; HIGH OVER-PRICE 2023/2025 (+18-33%).
+**Phase AL COMPLETE (2026-06-30):** Counterfactual Retention -- 12 tests (5,306). £3,621 recoverable from 4 blind misses at £293 cost.
+**Phase AK COMPLETE (2026-06-30):** Churn Root Cause Attribution -- 14 tests (5,294). 6 churns £39,706 lost; 3 blind misses.
+**Phase AJ COMPLETE (2026-06-30):** CRM Risk Triage -- 14 tests (5,280). CRITICAL/HIGH/MEDIUM/LOW triage; rate-vs-SVT.
+**Phase AI COMPLETE (2026-06-30):** EAC Drift Snapshot -- 10 tests (5,266). Demand drift per customer; EV/solar/efficiency.
+**Phase AH COMPLETE (2026-06-30):** Board Intelligence Pack -- 12 tests (5,256). Retention/flex CAGR/churn peak/4 board recs.
+**Phase AG COMPLETE (2026-06-30):** Annual Report Flex Revenue Section -- 12 tests (5,244). CM/DFS table; pre-DFS labels.
+**Phase AF COMPLETE (2026-06-30):** DSR/Flexibility Revenue Integration -- 15 tests (5,232). CM £75/kW/yr; DFS £4.5/MWh×20; EV+battery £2,046/yr.
 **Phase AE COMPLETE (2026-06-29):** Customer Retention Offer Book -- 21 tests (5,217). company/crm/customer_retention.py: OfferType; RetentionOffer (max_spend=50%); EV+shock→TOU/8%/5% offers.
 **Phase AD COMPLETE (2026-06-29):** Portfolio Churn Risk Book -- 34 tests (5,196). portfolio_churn_risk.py: ChurnRiskBand/Driver; PortfolioChurnRiskBook (by_band/by_driver/rate_pct). Connects J, M, AC.
 **Phase AC COMPLETE (2026-06-29):** Portfolio Repricing Action Book -- 24 tests (5,162). company/crm/portfolio_repricing.py: RepricingPriority (CRITICAL/HIGH/MEDIUM/MONITOR); RepricingAction (tariff_delta/recovery at 70% retention); EV 3,000→11,000 kWh = £2,000/yr delta, £1,400/yr recovery. Connects AB, M, K.
 **Phase AB COMPLETE (2026-06-29):** EAC Drift Assessor -- 35 tests (5,138). company/crm/eac_drift_assessor.py: DriftDirection/RenewalAction; EACDriftBook (urgent_reprice/mean_drift_pct). EV 3,000→11,000 kWh = URGENT_REPRICE. Connects C, H, M.
 **Phase AA COMPLETE (2026-06-29):** Demand Flexibility Potential Assessor -- 23 tests (5,103). company/market/flexibility_potential.py: FlexibilityPotentialBook (EV/ASHP/BATTERY types; DFS £4.5/MWh×20; CM £75/kW/yr; EV+battery £2,046/yr). Connects to dsr_book.py.
-**Phase Z COMPLETE (2026-06-29):** Smart Meter Reconciliation Book -- 23 tests (5,080 total). smart_meter_reconciliation.py: ReconciliationType/ReconciliationAdjustment (SLC31A 12m cap); SmartMeterReconciliationBook. Domestic undercharges >12m not recoverable; I&C always recoverable.
+**Phase Z COMPLETE (2026-06-29):** Smart Meter Reconciliation Book -- 23 tests (5,080). smart_meter_reconciliation.py: ReconciliationType/ReconciliationAdjustment (SLC31A 12m cap); SmartMeterReconciliationBook. Domestic undercharges >12m not recoverable; I&C always recoverable.
 **Phase Y COMPLETE (2026-06-29):** ToU Rate Card Optimiser -- 29 tests (5,057). tou_rate_card.py: 3 candidates (Octopus Go/aggressive/conservative); viable_rates/optimal_rate. Octopus Go not viable at 20% margin threshold. Completes T-U-V-X-Y.
 **Phase X COMPLETE (2026-06-29):** ToU Product Launch Decision Engine -- 25 tests (5,028). LaunchReadinessSignal/ToUProductLaunchBook; EV penetration/margin thresholds. HOLD for EV-heavy portfolio (cross-subsidy). Completes T-U-V-X chain.
 **Phase W COMPLETE (2026-06-29):** Gas Boiler Daily HDD Shape -- 13 tests (5,003). gas_settlement.py: 70% heating (HDD-weighted) + 30% DHW; I&C keeps monthly profile.
@@ -123,11 +123,11 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase U COMPLETE (2026-06-29):** EV Cross-Subsidy Register -- 16 tests (4,974). company/pricing/ev_cross_subsidy.py: CrossSubsidyRecord + CrossSubsidyRegister. Connects Phase T.
 **Phase T COMPLETE (2026-06-29):** ToU Tariff Profitability Assessor -- 16 tests (4,958). tou_tariff_assessor.py: OVERNIGHT_HEAVY/STANDARD_FLAT/PEAK_HEAVY; EV = 4x more margin flat vs ToU (£746 vs £189). Enabled by Phase P.
 **Phase P COMPLETE (2026-06-29):** EV Smart Charging Shape (Overnight-Weighted) -- 12 tests (4,942). _EV_OVERNIGHT_PERIODS: 23:00-07:00 (16 HH); 90%/10% overnight/day (UK SCPR 2021). Triad low; overnight 9x daytime. Precondition for Phase T.
-**Phase S COMPLETE (2026-06-29):** Dual-Fuel Billing Engine + Payment Ledger -- 44 tests (4,930 total). dual_fuel_bill.py/payment_ledger.py: FuelBillSection/DualFuelBill; DualFuelBillBook; PaymentLedger. VAT resi=5%/I&C=20%/SME usage-gated.
-**Phase R COMPLETE (2026-06-29):** SEG Export Estimator -- 21 tests (4,886 total). seg_export_estimator.py: 850 kWh/kWp/yr; 50%/70% self-consumption (BEIS 2022); 2022 crisis 7.5p vs 2020 4.0p. Battery 30% vs standard 50% export. Wires SEGBook to actual solar customers.
+**Phase S COMPLETE (2026-06-29):** Dual-Fuel Billing Engine + Payment Ledger -- 44 tests (4,930). dual_fuel_bill.py/payment_ledger.py: FuelBillSection/DualFuelBill; DualFuelBillBook; PaymentLedger. VAT resi=5%/I&C=20%/SME usage-gated.
+**Phase R COMPLETE (2026-06-29):** SEG Export Estimator -- 21 tests (4,886). seg_export_estimator.py: 850 kWh/kWp/yr; 50%/70% self-consumption (BEIS 2022); 2022 crisis 7.5p vs 2020 4.0p. Battery 30% vs standard 50% export. Wires SEGBook to actual solar customers.
 **Phase Q COMPLETE (2026-06-29):** Battery Settlement Wiring -- 14 tests (4,865). _battery_daily_dispatch(): charge excess solar; discharge peaks 33-40; 90% round-trip; SOC tracking. Closes HH asset gap: solar+EV+ASHP+battery all in HH settlement.
-**Phase O COMPLETE (2026-06-29):** Solar Dynamic Settlement Wiring -- 12 tests (4,851 total). run_phase2b.py: dynamic solar assets update; cloud_cover/latitude for all profile-class customers. Solar-via-life-events now reduces import. Phase 25a unaffected.
-**Phase N COMPLETE (2026-06-29):** EV Settlement Wiring + Physical Suitability -- 26 tests (4,861 total). household.py: has_driveway/roof_aspect/hp_eligible; EV/solar/HP acquisition gates. EV flat demand shape in run_phase2b.py. Flats/no-driveway cannot acquire EV.
+**Phase O COMPLETE (2026-06-29):** Solar Dynamic Settlement Wiring -- 12 tests (4,851). run_phase2b.py: dynamic solar assets update; cloud_cover/latitude for all profile-class customers. Solar-via-life-events now reduces import. Phase 25a unaffected.
+**Phase N COMPLETE (2026-06-29):** EV Settlement Wiring + Physical Suitability -- 26 tests (4,861). household.py: has_driveway/roof_aspect/hp_eligible; EV/solar/HP acquisition gates. EV flat demand shape in run_phase2b.py. Flats/no-driveway cannot acquire EV.
 **Phase M COMPLETE (2026-06-29):** Renewal Conversion Rate Book -- 21 tests (4,835). renewal_conversion.py: RenewalRecord (SLC22 42-day/is_retained); RenewalConversionBook (conversion_rate/notice_breaches/best_segment). Completes CRM lifecycle.
 **Phase C COMPLETE (2026-06-27):** Household-Driven EAC Integration -- 26 tests (4,653 passing). HouseholdDemandRegister: epc_multiplier/eac_multiplier_for_date/dynamic_assets. First time Phase A+B affect actual P&L.
 **Phase B COMPLETE (2026-06-27):** Life events engine -- 32 tests (4,626). life_events.py: Bernoulli trials (solar 3→5.7%, EV 0.3→7%, ASHP); apply_events/household_at_date. No flat solar; no I&C EVs; battery on solar only.
