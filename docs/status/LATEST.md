@@ -1,11 +1,11 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T12:10:57Z
+Last updated: 2026-06-30T12:15:40Z
 
 ## Current state
 
-- **Phase:** FV complete -- 7,506 tests. Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
-- **Tests passing:** 7,506 (all green)
+- **Phase:** FW complete -- 7,544 tests. Phase FW: Consumer Duty Annual Board Report Register (38 tests). Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
+- **Tests passing:** 7,544 (all green)
 - **Python modules:** 350 company/ modules + simulation + saas
 - **Net position (latest sim run):** £1,243,337 (git 5d0e280)
 
