@@ -1,11 +1,11 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T12:46:43Z
+Last updated: 2026-06-30T12:47:23Z
 
 ## Current state
 
-- **Phase:** GH complete -- 7,891 tests. Phase GH: Energy Theft Risk Scoring Register (33). Phase FY: Debt Respite (Breathing Space) Register (29 tests). Phase FX: PPM Installation Warrant Register (32). Phase FW: Consumer Duty Annual Board Report Register (38 tests). Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
-- **Tests passing:** 7,891 (all green)
+- **Phase:** GI complete -- 7,919 tests. Phase GI: Smart Meter Installation Programme Register (28). Phase FY: Debt Respite (Breathing Space) Register (29 tests). Phase FX: PPM Installation Warrant Register (32). Phase FW: Consumer Duty Annual Board Report Register (38 tests). Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
+- **Tests passing:** 7,919 (all green)
 - **Python modules:** 350 company/ modules + simulation + saas
 - **Net position (latest sim run):** £1,243,337 (git 5d0e280)
 
