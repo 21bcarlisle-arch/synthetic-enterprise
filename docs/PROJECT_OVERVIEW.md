@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 6,091 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 6,103 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CX (2026-06-30):** Regulatory Breach Log -- 12 new tests (6,103 total). company/regulatory/regulatory_breach_log.py (new): BreachSeverity (LOW/MEDIUM/HIGH/CRITICAL); BreachStatus (POTENTIAL/CONFIRMED/REMEDIATED/CLOSED/REPORTED_TO_OFGEM); BreachSource (INTERNAL_AUDIT/SELF_DETECTION/OFGEM_REQUEST/CUSTOMER_COMPLAINT/THIRD_PARTY); RegulatoryBreachRecord (frozen; is_open/is_reportable: HIGH or CRITICAL + open); RegulatoryBreachLog (record/confirm/report_to_ofgem/remediate/open_breaches/critical_breaches/reportable_breaches/total_estimated_penalty_gbp/by_slc). Central breach register for SLC violations. Ofgem enforcement: penalty up to 10% of turnover; material breaches must be self-reported. Epistemic verifier: PASS.
 
 **Phase CW (2026-06-30):** Licence Application and Variation Register -- 12 new tests (6,091 total). company/regulatory/licence_application_register.py (new): LicenceType (ELECTRICITY_DOMESTIC/GAS_DOMESTIC/ELECTRICITY_NON_DOMESTIC/GAS_NON_DOMESTIC); LicenceTier (TIER_1 <250,000 domestic customers / TIER_2 >=250,000); VariationReason (NEW_CATEGORY/CHANGE_OF_CONTROL/FINANCIAL_CONDITION/GEOGRAPHIC_EXPANSION/SPECIAL_CONDITION); LicenceRecord (frozen; has_special_conditions); LicenceApplication (frozen; is_open/is_approved); LicenceApplicationRegister (register_licence/submit_application/decide/active_licences/licences_with_special_conditions/open_applications/approved_applications). Post-2022: Ofgem requires explicit continuation application when FRA deteriorates; Special Conditions (SpC) imposed beyond standard SLC. Epistemic verifier: PASS.
 
@@ -4208,7 +4210,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 6,091 tests (fast / ~10s; simulation integration ~8 min per run)
+- 6,103 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

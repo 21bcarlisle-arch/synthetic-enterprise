@@ -40,6 +40,7 @@ real UK energy supplier works."
 6. Commit and push.
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 ## Current state
+**Phase CX COMPLETE (2026-06-30):** Regulatory Breach Log -- 12 tests (6,103). company/regulatory/regulatory_breach_log.py: BreachSeverity (LOW/MEDIUM/HIGH/CRITICAL); BreachStatus (POTENTIAL→CONFIRMED→REMEDIATED/REPORTED_TO_OFGEM); BreachSource; RegulatoryBreachRecord (frozen; is_open/is_reportable: H/C only); RegulatoryBreachLog (record/confirm/report_to_ofgem/remediate/open_breaches/critical_breaches/reportable_breaches/total_estimated_penalty_gbp/by_slc). Central breach register for SLC violations; Ofgem penalty up to 10% turnover.
 **Phase CW COMPLETE (2026-06-30):** Licence Application Register -- 12 tests (6,091). company/regulatory/licence_application_register.py: LicenceType (4 types: elec/gas domestic/non-domestic); LicenceTier (TIER_1 <250k / TIER_2 >=250k); LicenceRecord (frozen; has_special_conditions); LicenceApplication (frozen; is_open/is_approved); LicenceApplicationRegister (submit/decide/active_licences/licences_with_special_conditions/open_applications). Post-2022 Ofgem requires explicit continuation when FRA deteriorates.
 **Phase CV COMPLETE (2026-06-30):** DA/DC Contract Register -- 12 tests (6,079). company/market/dadc_contract_register.py: MeteringAgentType (DA/DC/DA_DC/MOA); AgentAppointment (frozen; is_active); DADCContractRegister (appoint/terminate/agent_for_mpan/mpans_without_dc/mpans_without_da/agents_by_name). BSC SVA: DC reads/submits; DA aggregates HH data; DA_DC combined covers NHH; missing appointment = BSC breach.
 **Phase CU COMPLETE (2026-06-30):** Interruptible Gas Supply Register -- 13 tests (6,067). company/market/interruptible_supply_register.py: InterruptionReason (COLD_WEATHER/NGT_INSTRUCTION/NETWORK_CONSTRAINT/SUPPLIER_DISCRETION); InterruptibleContract (saving_vs_firm_gbp_pa at 15% INT discount); InterruptibleSupplyRegister (register/record_interruption/notice_violations: <2h/annual_curtailment_days/over_cap_accounts: >30d/total_portfolio_annual_kwh). UNC TPD X3: 2-hour min notice; 30-day cap.
@@ -123,9 +124,9 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase U COMPLETE (2026-06-29):** EV Cross-Subsidy Register -- 16 tests (4,974). company/pricing/ev_cross_subsidy.py: CrossSubsidyRecord + CrossSubsidyRegister. Connects Phase T.
 **Phase T COMPLETE (2026-06-29):** ToU Tariff Profitability Assessor -- 16 tests (4,958). tou_tariff_assessor.py: OVERNIGHT_HEAVY/STANDARD_FLAT/PEAK_HEAVY; EV = 4x more margin flat vs ToU (£746 vs £189). Enabled by Phase P.
 **Phase P COMPLETE (2026-06-29):** EV Smart Charging Shape (Overnight-Weighted) -- 12 tests (4,942). _EV_OVERNIGHT_PERIODS: 23:00-07:00 (16 HH); 90%/10% overnight/day (UK SCPR 2021). Triad low; overnight 9x daytime. Precondition for Phase T.
-**Phase S COMPLETE (2026-06-29):** Dual-Fuel Billing Engine + Payment Ledger -- 44 tests (4,930). dual_fuel_bill.py/payment_ledger.py: FuelBillSection/DualFuelBill; DualFuelBillBook; PaymentLedger. VAT resi=5%/I&C=20%/SME usage-gated.
-**Phase R COMPLETE (2026-06-29):** SEG Export Estimator -- 21 tests (4,886). seg_export_estimator.py: 850 kWh/kWp/yr; 50%/70% self-consumption (BEIS 2022); 2022 crisis 7.5p vs 2020 4.0p. Battery 30% vs standard 50% export. Wires SEGBook to actual solar customers.
-**Phase Q COMPLETE (2026-06-29):** Battery Settlement Wiring -- 14 tests (4,865). _battery_daily_dispatch(): charge excess solar; discharge peaks 33-40; 90% round-trip; SOC tracking. Closes HH asset gap: solar+EV+ASHP+battery all in HH settlement.
+**Phase S COMPLETE (2026-06-29):** Dual-Fuel Billing Engine + Payment Ledger -- 44 tests (4,930). dual_fuel_bill.py/payment_ledger.py: VAT resi=5%/I&C=20%/SME usage-gated; billing_calendar.
+**Phase R COMPLETE (2026-06-29):** SEG Export Estimator -- 21 tests (4,886). seg_export_estimator.py: 850 kWh/kWp/yr; BEIS 2022 50%/70% self-consumption; 2022=7.5p, 2020=4.0p.
+**Phase Q COMPLETE (2026-06-29):** Battery Settlement Wiring -- 14 tests (4,865). _battery_daily_dispatch(): charge solar excess; discharge peaks (33-40); 90% roundtrip. HH gap closed.
 **Phase O COMPLETE (2026-06-29):** Solar Dynamic Settlement Wiring -- 12 tests (4,851). run_phase2b.py: dynamic solar assets update; cloud_cover/latitude for all profile-class customers. Solar-via-life-events now reduces import. Phase 25a unaffected.
 **Phase N COMPLETE (2026-06-29):** EV Settlement Wiring + Physical Suitability -- 26 tests (4,861). household.py: has_driveway/roof_aspect/hp_eligible; EV/solar/HP acquisition gates. EV flat demand shape in run_phase2b.py. Flats/no-driveway cannot acquire EV.
 **Phase M COMPLETE (2026-06-29):** Renewal Conversion Rate Book -- 21 tests (4,835). renewal_conversion.py: RenewalRecord (SLC22 42-day/is_retained); RenewalConversionBook (conversion_rate/notice_breaches/best_segment). Completes CRM lifecycle.
@@ -160,9 +161,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 ## Architectural Laws — Epistemic Honesty: The Company Cannot See Inside the SIM
 The company layer operates under the same information constraints as a real energy supplier.
 It cannot see simulation internals — churn parameters, forward curve construction, weather
-engine outputs, VaR internals. It discovers the world through observable interfaces: market
-data feeds, meter reads, customer interactions, its own bills and payments, regulatory
-publications.
+engine outputs, VaR internals. It discovers the world through observable interfaces: market data feeds, meter reads, customer interactions, its own bills and payments, regulatory publications.
 The company's models are approximations built from observed outcomes — not reads from ground
 truth. That imperfection is the point.
 **Before writing any company-layer code:** ask "Could a real UK energy supplier know this?"
