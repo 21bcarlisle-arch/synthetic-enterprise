@@ -1,5 +1,5 @@
-Phase HM complete -- 8,885 tests. Phase HM: Service Quality Monitor -- 30 tests. All 8,885 tests passing, epistemic verifier PASS (406 company/ files).
-Last updated: 2026-06-30T19:08:17Z
+Phase HN complete -- 8,908 tests. Phase HN: Risk Committee Decision Ledger -- 23 tests. All 8,908 tests passing, epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T19:09:37Z
 
 **Latest simulation results (2016–2025)** — auto-processed (676s / 11 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
