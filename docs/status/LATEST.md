@@ -1,12 +1,12 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T08:23:29Z
+Last updated: 2026-06-30T08:25:04Z
 
 ## Current state
 
-- **Phase:** EH complete -- 6,158 tests. Phases DZ-EH built this session. Phases DU-EB built this session (Event Ledger, Resentment Ledger, GRI) (6,000 milestone crossed!). Phases DF-DY built this session (26 phases): compliance, CRM, trading, sustainability, regulatory modules.
-- **Tests passing:** 6,158 (all green)
-- **Python modules:** 327 company/ modules + simulation + saas
+- **Phase:** EO complete -- 6,302 tests. Phases EI-EO built this session (account intelligence, switching CBA, market share, penalty provision, price cap, imbalance register, shape risk). Phases DZ-EH built this session. Phases DU-EB built this session (Event Ledger, Resentment Ledger, GRI) (6,000 milestone crossed!). Phases DF-DY built this session (26 phases): compliance, CRM, trading, sustainability, regulatory modules.
+- **Tests passing:** 6,302 (all green)
+- **Python modules:** 334 company/ modules + simulation + saas
 - **Net position (latest sim run):** £1,243,337 (git 5d0e280)
 
 ## Latest run figures (git 5d0e280 + ongoing builds)
