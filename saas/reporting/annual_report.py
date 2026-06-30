@@ -4755,6 +4755,66 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_customer_experience(data: dict) -> str:
+    ydata = data.get("years", {})
+    sq = data.get("service_quality_score")
+    avg_clarity = data.get("avg_clarity_total")
+    avg_complaint = data.get("avg_complaint_probability_total")
+    if not ydata or not sq:
+        return ""
+    years = sorted(ydata.keys())
+    lines = [
+        "## Customer Experience & Service Quality",
+        "",
+        "| Year | Billing Clarity | Complaint Prob | Acq Attempts | Acq Wins | Flag |",
+        "|------|----------------|---------------|-------------|---------|------|",
+    ]
+    worst_clarity = 1.0
+    worst_yr = None
+    for yr in years:
+        yd = ydata[yr]
+        clarity = yd.get("avg_clarity") or 0.0
+        complaint = yd.get("avg_complaint_probability") or 0.0
+        acq_att = yd.get("acquisition_attempts") or 0
+        acq_wins = yd.get("acquisition_wins") or 0
+        flag = ""
+        if clarity < 0.80:
+            flag = "**LOW CLARITY**"
+        elif complaint > 0.055:
+            flag = "HIGH COMPLAINTS"
+        if clarity < worst_clarity:
+            worst_clarity = clarity
+            worst_yr = yr
+        lines.append(
+            "| " + yr + " | " + ("%.3f" % clarity) + " | " + ("%.3f" % complaint) +
+            " | " + str(acq_att) + " | " + str(acq_wins) + " | " + flag + " |"
+        )
+    lines.append("")
+    total_att = data.get("total_acquisition_attempts", 0) or 0
+    total_wins = data.get("total_acquisition_wins", 0) or 0
+    win_rate = (total_wins / total_att * 100) if total_att > 0 else 0.0
+    if sq:
+        lines.append("**Overall service quality:** " + ("%.1f%%" % (sq * 100)) + " | " +
+                     "**Average billing clarity:** " + ("%.3f" % (avg_clarity or 0)) + " | " +
+                     "**Average complaint probability:** " + ("%.3f" % (avg_complaint or 0)))
+        lines.append("")
+    if total_att > 0:
+        lines.append(
+            "**Acquisition performance:** " + str(total_att) + " attempts, " +
+            str(total_wins) + " wins (" + ("%.0f%%" % win_rate) + " win rate). " +
+            ("No new customers acquired — " if total_wins == 0 else "") +
+            "cap-constrained gate blocked resi acquisition 2021-2023 (negative projected margin)."
+        )
+        lines.append("")
+    if worst_yr:
+        lines.append(
+            "**Lowest clarity: " + worst_yr + "** (" + ("%.3f" % worst_clarity) + ") — " +
+            "crisis complexity (multiple tariff changes, bill shock events) degraded statement clarity."
+        )
+        lines.append("")
+    return "\n".join(lines)
+
+
 def _section_bill_shock_analysis(data: dict) -> str:
     ydata = data.get("years", {})
     if not ydata:
@@ -5336,6 +5396,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_customer_experience(data))            # Phase AX
     sections.append(_section_bill_shock_analysis(data))            # Phase AW
     sections.append(_section_policy_cost_breakdown(data))          # Phase AV
     sections.append(_section_commodity_split(data))                # Phase AU

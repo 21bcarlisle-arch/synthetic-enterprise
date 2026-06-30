@@ -63,6 +63,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase AX COMPLETE (2026-06-30):** Customer Experience & Service Quality -- 12 new tests (5,462 total). annual_report.py: _section_customer_experience(): billing clarity/complaint-prob by year; LOW CLARITY <0.80/HIGH COMPLAINTS >5.5% flags; service quality score; acquisition performance (5 att/0 wins). 2022=0.791 (LOW CLARITY), 2025=0.777 (worst).
 **Phase AW COMPLETE (2026-06-30):** Bill Shock Analysis -- 12 new tests (5,438 total). annual_report.py: _section_bill_shock_analysis(): avg_shock %/events/bills/shock-rate by year; HIGH >=30%/ELEVATED >=20% flags; crisis peak note (2022=33.8%, SLC 21 note). Normal 14-17%, crisis 34%.
 **Phase AV COMPLETE (2026-06-30):** Policy Cost & Levy Breakdown -- 12 new tests (5,426 total). annual_report.py: _section_policy_cost_breakdown(): RO/CfD/CCL/CM/FiT/policy/network by year; negative CfD in 2022 bolded + rebate note (crisis: spot > strike → generators repay); CAGR 76.7%/yr. Connects regulatory cost structure to board.
 **Phase AU COMPLETE (2026-06-30):** Commodity Split (Electricity vs Gas) -- 12 new tests (5,414 total). annual_report.py: _section_commodity_split(): elec/gas net+revenue by year; YES/NO profitable flag; gas-share-of-revenue %; loss-making since note + cross-subsidy callout. Gas loss-making since 2021 (5 consecutive years, 2016-2020 profitable).
