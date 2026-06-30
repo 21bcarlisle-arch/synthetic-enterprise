@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,380 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,390 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AS (2026-06-30):** Gas Exit Analysis Annual Report Section -- 10 new tests (5,390 total). annual_report.py: _section_gas_exit_analysis() renders scenario comparison table (STATUS_QUO/EXIT_GAS/REPRICE_GAS); loss-making accounts with ROC + breakeven uplift %; accretive accounts; board decision note. Wired into generate_annual_report before _section_segment_capital_efficiency. Connects Phase AR (GasExitDecisionBook), Phase AP (gas capital ROC). Epistemic verifier: PASS.
 
 **Phase AR (2026-06-30):** Gas Exit Decision Book -- 14 new tests (5,380 total). company/finance/gas_exit_analysis.py: GasAccountProfile (frozen; is_gas_accretive/gas_roc/breakeven_revenue_uplift_pct); GasScenarioResult (frozen; total_net_gbp/gas_net_gbp/elec_net_gbp/customers_retained/accounts_exited); GasExitDecisionBook (pairs inferred from per_cid_comm_pnl trailing-g keys; status_quo/exit_gas/reprice_gas scenarios; loss_making_accounts/accretive_accounts/scenario_comparison/gas_exit_summary). Exit gas: I&C 40% churn risk / resi 20% churn risk on electricity leg. Reprice gas: loss-making accounts repriced to break-even (net=0). Board finding: REPRICE_GAS recommended (+£134k vs SQ) vs EXIT_GAS (+£99k vs SQ). C_IC3g needs 7.2% revenue uplift; C4g needs 18.8%. Epistemic verifier: PASS (267 company files).
 
@@ -4094,7 +4096,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,380 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,390 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

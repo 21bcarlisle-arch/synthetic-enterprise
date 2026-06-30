@@ -4689,6 +4689,72 @@ def _section_board_risk_summary(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_gas_exit_analysis(data: dict) -> str:
+    pcp = data.get("per_cid_comm_pnl", {})
+    pcl = data.get("per_customer_lifetime", {})
+    if not pcp:
+        return ""
+    try:
+        from company.finance.gas_exit_analysis import GasExitDecisionBook
+        book = GasExitDecisionBook(pcp, pcl)
+        if not book._profiles:
+            return ""
+        comp = book.scenario_comparison()
+        sq = book.status_quo()
+        exit_s = book.exit_gas()
+        reprice_s = book.reprice_gas()
+        loss = book.loss_making_accounts()
+        accr = book.accretive_accounts()
+        lines = [
+            "## Gas Supply Exit Decision Analysis (Phase AR/AS)",
+            "",
+            "Models three strategic scenarios for the board regarding gas supply legs.",
+            "Inputs: company billing records (per_cid_comm_pnl). Gas capital = hedge cost applied to gas leg.",
+            "",
+            "### Scenario Comparison (Dual-Fuel Portfolio Only)",
+            "",
+            "| Scenario | Portfolio Net | vs Status Quo | Action |",
+            "|----------|--------------|---------------|--------|",
+            "| STATUS_QUO | " + _fmt_gbp(sq.total_net_gbp) + " | — | Current strategy |",
+            "| EXIT_GAS | " + _fmt_gbp(exit_s.total_net_gbp) + " | " + _fmt_gbp(comp["exit_vs_status_quo_gbp"]) + " | Remove gas; model elec churn risk |",
+            "| REPRICE_GAS | " + _fmt_gbp(reprice_s.total_net_gbp) + " | " + _fmt_gbp(comp["reprice_vs_status_quo_gbp"]) + " | Raise gas tariff to break-even |",
+            "",
+            "**Recommended action: " + comp["recommended_action"] + "**",
+            "",
+        ]
+        if loss:
+            lines += [
+                "### Loss-Making Gas Accounts",
+                "",
+                "| Account | Gas Net | Gas ROC | Revenue Uplift Needed |",
+                "|---------|---------|---------|----------------------|",
+            ]
+            for p in loss:
+                roc_str = ("%.2fx" % p.gas_roc) if p.gas_roc is not None else "n/a"
+                lines.append(
+                    "| " + p.customer_id + "g | " + _fmt_gbp(p.gas_net_gbp) +
+                    " | " + roc_str + " | +" + ("%.1f%%" % (p.breakeven_revenue_uplift_pct * 100)) + " |"
+                )
+            lines.append("")
+        if accr:
+            lines.append(
+                "**Accretive gas accounts:** " +
+                ", ".join(p.customer_id + "g (" + _fmt_gbp(p.gas_net_gbp) + ")" for p in accr) +
+                " — these gas legs support customer retention without capital destruction."
+            )
+            lines.append("")
+        lines += [
+            "**Board Decision:**",
+            "- Exit gas: I&C customers at 40% electricity churn risk when gas removed (relationship loss)",
+            "- Reprice gas: increases customer cost but eliminates capital destruction",
+            "- Status quo: unsustainable — gas legs destroying £" + ("%.0f" % abs(sq.gas_net_gbp)) + " in net value",
+        ]
+        lines.append("")
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+
 def _section_segment_capital_efficiency(data):
     ydata = data.get('years', {})
     if not ydata:
@@ -5032,6 +5098,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_gas_exit_analysis(data))              # Phase AS
     sections.append(_section_segment_capital_efficiency(data))     # Phase AP
     sections.append(_section_portfolio_concentration_risk(data))  # Phase AN
     sections.append(_section_dynamic_pricing(data))
