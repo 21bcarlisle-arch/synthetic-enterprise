@@ -57,7 +57,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657 total). _section_price_cap_headroom(): avg/above-cap/min/max from churn_basis_risk. 2021 5/9 above SVT (I&C crisis; exempt).
+**Phase BN COMPLETE (2026-06-30):** Segment Margin Attribution -- 12 tests (5,669 total). 5-segment×10-year table; loss-making flags. 2022 resi gas -£742; I&C elec £964k.
+**Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657 total). avg/above-cap/min/max from churn_basis_risk. 2021 5/9 above SVT.
 **Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). 5 scenarios/year RAG; StressTestBook wired to annual report.
 **Phase BK COMPLETE (2026-06-30):** Financial Ratios -- 12 tests (5,633 total). EBIT%/rev-per-cust/bad-debt-rate. 2022 worst EBIT 21.3%; £306k rev/cust peak.
 **Phase BJ COMPLETE (2026-06-30):** Churn Prediction Calibration -- 12 tests (5,621 total). UNDER/ACCURATE/OVER + MAE. 5/6 churns underestimated (epistemic gap).
@@ -164,7 +165,6 @@ exposes observables and outcomes only, never parameters or internals.
 **Build efficiency:** tests passing + capabilities added per frontier session (hard metric).
 Fidelity delta — one sentence per phase on what the sim can now do (soft metric, Rich assesses).
 CLV is not a stable measuring stick — it evolves with business rules.
-
 **Reversibility** governs data architecture and agent governance. Prefer designs that can be unwound.
 **Regime-change blindness** is a known failure mode. The sim converged to near-naked hedging during
 calm 2016–2020 data, directly before the crisis — mirroring what killed real suppliers. All

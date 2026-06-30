@@ -4755,6 +4755,67 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_segment_margin_attribution(data: dict) -> str:
+    """Phase BN: Segment margin attribution — gross margin by segment per year."""
+    yrs_data = data.get("years", {})
+    if not yrs_data:
+        return ""
+    seg_order = ["resi electricity", "resi gas", "SME electricity", "I&C electricity", "I&C gas"]
+    all_segs = set()
+    for yr in yrs_data.values():
+        all_segs.update(yr.get("segment_split", {}).keys())
+    if not all_segs:
+        return ""
+    cols = [s for s in seg_order if s in all_segs]
+    if not cols:
+        return ""
+    header = " | ".join(c.replace(" ", " ") for c in cols)
+    sep = "|".join("----------" for _ in cols)
+    lines = [
+        "## Segment Gross Margin Attribution",
+        "",
+        "Gross margin (£) by customer segment and year.",
+        "",
+        f"| Year | {header} | Total |",
+        f"|------|{sep}|-------|",
+    ]
+    year_totals = []
+    best_seg_overall = {}  # seg -> (yr, val)
+    for yr in sorted(yrs_data.keys()):
+        ss = yrs_data[yr].get("segment_split", {})
+        row_vals = []
+        total = 0.0
+        for seg in cols:
+            gm = ss.get(seg, {}).get("gross_gbp", 0.0)
+            row_vals.append(gm)
+            total += gm
+            if seg not in best_seg_overall or gm > best_seg_overall[seg][1]:
+                best_seg_overall[seg] = (yr, gm)
+        cells = " | ".join(
+            "£{:,.0f}".format(v) if v >= 0 else "-£{:,.0f}".format(abs(v))
+            for v in row_vals
+        )
+        lines.append("| {} | {} | £{:,.0f} |".format(yr, cells, total))
+        year_totals.append((yr, total, row_vals))
+    # Summary
+    best_yr, best_total, _ = max(year_totals, key=lambda r: r[1])
+    worst_yr, worst_total, _ = min(year_totals, key=lambda r: r[1])
+    lines.extend([
+        "",
+        "**Best gross margin year: {} (£{:,.0f})** | **Worst: {} (£{:,.0f})**".format(
+            best_yr, best_total, worst_yr, worst_total),
+    ])
+    # Check for negative segments
+    neg_segs = [(seg, yr, val) for seg, (yr, val) in best_seg_overall.items() if val < 0]
+    for yr in sorted(yrs_data.keys()):
+        ss = yrs_data[yr].get("segment_split", {})
+        for seg in cols:
+            gm = ss.get(seg, {}).get("gross_gbp", 0.0)
+            if gm < 0:
+                lines.append("**Loss-making: {} in {} (£{:,.0f})**".format(seg, yr, gm))
+    lines.extend(["", ""])
+    return "\n".join(lines)
+
 def _section_price_cap_headroom(data: dict) -> str:
     """Phase BM: Price cap headroom — tariff vs SVT by year."""
     churn_basis = data.get("churn_basis_risk", [])
@@ -5977,6 +6038,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_segment_margin_attribution(data))     # Phase BN
     sections.append(_section_price_cap_headroom(data))             # Phase BM
     sections.append(_section_stress_test_history(data))            # Phase BL
     sections.append(_section_financial_ratios(data))               # Phase BK

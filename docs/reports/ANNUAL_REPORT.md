@@ -908,6 +908,28 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Segment Gross Margin Attribution
+
+Gross margin (£) by customer segment and year.
+
+| Year | resi electricity | resi gas | SME electricity | I&C electricity | I&C gas | Total |
+|------|----------|----------|----------|----------|----------|-------|
+| 2016 | £3,267 | £814 | £2,731 | £0 | £0 | £6,811 |
+| 2017 | £4,982 | £1,439 | £3,382 | £114,077 | £0 | £123,879 |
+| 2018 | £5,052 | £1,374 | £3,194 | £253,842 | £0 | £263,462 |
+| 2019 | £5,774 | £1,442 | £4,044 | £616,721 | £74,626 | £702,607 |
+| 2020 | £5,678 | £1,223 | £4,233 | £705,992 | £75,972 | £793,098 |
+| 2021 | £5,359 | £546 | £4,484 | £679,959 | £82,255 | £772,603 |
+| 2022 | £3,739 | -£742 | £3,737 | £964,199 | £91,118 | £1,062,052 |
+| 2023 | £7,197 | -£548 | £4,473 | £787,055 | £121,515 | £919,693 |
+| 2024 | £8,485 | £767 | £1,520 | £1,160,154 | £123,652 | £1,294,577 |
+| 2025 | £3,613 | £0 | £0 | £466,242 | £53,509 | £523,364 |
+
+**Best gross margin year: 2024 (£1,294,577)** | **Worst: 2016 (£6,811)**
+**Loss-making: resi gas in 2022 (£-742)**
+**Loss-making: resi gas in 2023 (£-548)**
+
+
 ## Price Cap Headroom (Tariff vs SVT)
 
 Percentage difference between contracted unit rate and SVT (price cap) at term start.
