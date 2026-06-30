@@ -1,12 +1,12 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T06:14:30Z
+Last updated: 2026-06-30T06:20:17Z
 
 ## Current state
 
-- **Phase:** CZ complete (Revenue Protection Register)
-- **Tests passing:** 6,128 (all green)
-- **Python modules:** 296 company/ + simulation + saas
+- **Phase:** DA complete (Customer Comm Preferences) — bug-fixes: fuel_mix test rewrite (Phase CL compat), service_quality None guard, annual_report clv/churn None guards
+- **Tests passing:** 5,450 non-sim + simulation suite (all green)
+- **Python modules:** 297 company/ + simulation + saas
 - **Net position (latest sim run):** £1,243,337
 
 ## Latest run figures (git 83538a9, 2026-06-30)
@@ -19,7 +19,7 @@ Last updated: 2026-06-30T06:14:30Z
 | Enterprise Value | £6,142,209 |
 | Administration Event | None |
 
-## This session: phases CR-CZ (9 phases this continuation)
+## This session: phases CR-DA (10 phases this continuation) + bug-fix session
 
 - **CR:** Priority Services Register (SLC 26B; 9 PSR categories)
 - **CS:** Gas Nomination Register (UNC; ±5% tolerance; short/long day tracking)
@@ -35,7 +35,7 @@ Last updated: 2026-06-30T06:14:30Z
 
 -> Full build history: docs/PROJECT_OVERVIEW.md Section 4
 
-**Latest simulation results (2016–2025)** — auto-processed (441s / 7 min):
+**Latest simulation results (2016–2025)** — auto-processed (473s / 8 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
 - Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
