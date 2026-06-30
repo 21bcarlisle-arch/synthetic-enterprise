@@ -4755,6 +4755,72 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_customer_strategic_value(data: dict) -> str:
+    bba = data.get("by_billing_account", {})
+    if not bba:
+        return ""
+    # Only electricity accounts (not gas legs)
+    elec_accounts = {cid: v for cid, v in bba.items() if not cid.endswith("g")}
+    if not elec_accounts:
+        return ""
+    # Compute median CLV for quadrant boundary
+    clvs = sorted(v.get("clv_gbp", 0.0) for v in elec_accounts.values())
+    n = len(clvs)
+    med_clv = clvs[n // 2]
+    # Churn boundary: median churn probability
+    churns = sorted(v.get("latest_churn_probability", 0.0) for v in elec_accounts.values())
+    med_churn = churns[n // 2]
+    quadrants = {
+        "PROTECT": [],   # High CLV, Low Churn
+        "CRITICAL": [],  # High CLV, High Churn
+        "MONITOR": [],   # Low CLV, Low Churn
+        "EXIT": [],      # Low CLV, High Churn
+    }
+    for cid, v in sorted(elec_accounts.items(), key=lambda x: -x[1].get("clv_gbp", 0)):
+        clv = v.get("clv_gbp", 0.0)
+        churn = v.get("latest_churn_probability", 0.0)
+        periods = v.get("expected_lifetime_periods", 0.0)
+        if clv >= med_clv and churn < med_churn:
+            q = "PROTECT"
+        elif clv >= med_clv and churn >= med_churn:
+            q = "CRITICAL"
+        elif clv < med_clv and churn < med_churn:
+            q = "MONITOR"
+        else:
+            q = "EXIT"
+        quadrants[q].append((cid, clv, churn, periods))
+    total_clv = sum(v.get("clv_gbp", 0) for v in elec_accounts.values())
+    lines = [
+        "## Customer Strategic Value Matrix",
+        "",
+        "2x2 matrix: CLV (above/below median) × Churn probability (above/below median).",
+        "Median CLV: " + _fmt_gbp(med_clv) + " | Median churn: " + ("%.0f%%" % (med_churn * 100)) + " | Total portfolio CLV: " + _fmt_gbp(total_clv),
+        "",
+    ]
+    for q_name, q_label in [("PROTECT", "PROTECT (High CLV, Low Churn)"),
+                              ("CRITICAL", "CRITICAL (High CLV, High Churn — priority intervention)"),
+                              ("MONITOR", "MONITOR (Low CLV, Low Churn)"),
+                              ("EXIT", "EXIT (Low CLV, High Churn)")]:
+        members = quadrants[q_name]
+        if not members:
+            continue
+        lines.append("### " + q_label)
+        lines.append("")
+        lines.append("| Account | CLV | Churn Prob | Expected Life |")
+        lines.append("|---------|-----|------------|--------------|")
+        for cid, clv, churn, periods in members:
+            lines.append("| " + cid + " | " + _fmt_gbp(clv) + " | " + ("%.0f%%" % (churn * 100)) + " | " + ("%.1f" % periods) + " periods |")
+        q_clv = sum(c for _, c, _, _ in members)
+        lines.append("")
+        lines.append("Quadrant CLV: " + _fmt_gbp(q_clv) + " (" + ("%.0f%%" % (q_clv / total_clv * 100 if total_clv else 0)) + " of portfolio)")
+        lines.append("")
+    if quadrants["CRITICAL"]:
+        lines.append("**Board action: CRITICAL quadrant has " + str(len(quadrants["CRITICAL"])) +
+                     " account(s). High CLV at risk from elevated churn probability. Immediate retention offers recommended.**")
+        lines.append("")
+    return "\n".join(lines)
+
+
 def _section_customer_experience(data: dict) -> str:
     ydata = data.get("years", {})
     sq = data.get("service_quality_score")
@@ -5396,6 +5462,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
     sections.append(_section_bill_shock_analysis(data))            # Phase AW
     sections.append(_section_policy_cost_breakdown(data))          # Phase AV

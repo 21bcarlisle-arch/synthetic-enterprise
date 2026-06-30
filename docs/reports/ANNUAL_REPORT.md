@@ -908,6 +908,54 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Customer Strategic Value Matrix
+
+2x2 matrix: CLV (above/below median) × Churn probability (above/below median).
+Median CLV: £7,550.40 | Median churn: 32% | Total portfolio CLV: £6,034,039.33
+
+### PROTECT (High CLV, Low Churn)
+
+| Account | CLV | Churn Prob | Expected Life |
+|---------|-----|------------|--------------|
+| C_IC3 | £2,470,546.96 | 8% | 10.1 periods |
+| C_IC1 | £1,459,081.37 | 8% | 10.2 periods |
+| C_IC4 | £1,255,073.05 | 14% | 8.9 periods |
+| C_IC2 | £787,674.20 | 8% | 9.8 periods |
+
+Quadrant CLV: £5,972,375.59 (99% of portfolio)
+
+### CRITICAL (High CLV, High Churn — priority intervention)
+
+| Account | CLV | Churn Prob | Expected Life |
+|---------|-----|------------|--------------|
+| C6 | £15,082.43 | 38% | 8.9 periods |
+| C5 | £8,442.05 | 35% | 9.5 periods |
+| C9 | £7,550.40 | 38% | 9.0 periods |
+
+Quadrant CLV: £31,074.87 (1% of portfolio)
+
+### MONITOR (Low CLV, Low Churn)
+
+| Account | CLV | Churn Prob | Expected Life |
+|---------|-----|------------|--------------|
+| C2 | £5,025.37 | 26% | 10.0 periods |
+
+Quadrant CLV: £5,025.37 (0% of portfolio)
+
+### EXIT (Low CLV, High Churn)
+
+| Account | CLV | Churn Prob | Expected Life |
+|---------|-----|------------|--------------|
+| C8 | £7,245.77 | 38% | 8.8 periods |
+| C7 | £6,636.66 | 35% | 9.9 periods |
+| C3 | £4,942.59 | 32% | 9.4 periods |
+| C1 | £3,762.94 | 32% | 9.5 periods |
+| C4 | £2,975.54 | 32% | 9.7 periods |
+
+Quadrant CLV: £25,563.51 (0% of portfolio)
+
+**Board action: CRITICAL quadrant has 3 account(s). High CLV at risk from elevated churn probability. Immediate retention offers recommended.**
+
 ## Customer Experience & Service Quality
 
 | Year | Billing Clarity | Complaint Prob | Acq Attempts | Acq Wins | Flag |

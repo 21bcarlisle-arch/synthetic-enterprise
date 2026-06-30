@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,462 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,474 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AY (2026-06-30):** Customer Strategic Value Matrix -- 12 new tests (5,474 total). annual_report.py: _section_customer_strategic_value(): 2x2 CLV×churn-probability quadrant matrix using by_billing_account data; PROTECT (high CLV, low churn)/CRITICAL (high CLV, high churn)/MONITOR (low CLV, low churn)/EXIT (low CLV, high churn); median CLV and median churn as quadrant boundaries; gas accounts excluded (no trailing-g keys); per-quadrant CLV total and % of portfolio; board action note if CRITICAL non-empty. Key finding: I&C accounts (C_IC1/IC2/IC3/IC4) in PROTECT = 99% of portfolio CLV £5.97M; resi accounts in CRITICAL/MONITOR/EXIT with collectively negligible CLV. Annual report deduplication fix: removed duplicate _section_management_accounts call introduced in Phase AT; report now renders single management accounts section. Epistemic verifier: PASS.
 
 **Phase AX (2026-06-30):** Customer Experience & Service Quality -- 12 new tests (5,462 total). annual_report.py: _section_customer_experience(): year-by-year billing clarity (0-1 scale) and complaint probability; LOW CLARITY flag (<0.80); HIGH COMPLAINTS flag (>5.5%); service quality score; acquisition performance summary (5 attempts, 0 wins, 0% win rate). Key finding: 2025=0.777 (worst clarity, end-of-portfolio billing complexity); 2022=0.791 LOW CLARITY (crisis). Epistemic verifier: PASS.
 
@@ -4106,7 +4108,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,462 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,474 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

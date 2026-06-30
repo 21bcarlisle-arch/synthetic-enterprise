@@ -63,6 +63,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ## Current state
 
+**Phase AY COMPLETE (2026-06-30):** Customer Strategic Value Matrix -- 12 new tests (5,474 total). annual_report.py: _section_customer_strategic_value(): 2x2 CLV×churn quadrant matrix (PROTECT/CRITICAL/MONITOR/EXIT); median CLV/churn boundaries; gas accounts excluded; board action note for CRITICAL. I&C accounts (99% CLV) safely in PROTECT.
 **Phase AX COMPLETE (2026-06-30):** Customer Experience & Service Quality -- 12 new tests (5,462 total). annual_report.py: _section_customer_experience(): billing clarity/complaint-prob by year; LOW CLARITY <0.80/HIGH COMPLAINTS >5.5% flags; service quality score; acquisition performance (5 att/0 wins). 2022=0.791 (LOW CLARITY), 2025=0.777 (worst).
 **Phase AW COMPLETE (2026-06-30):** Bill Shock Analysis -- 12 new tests (5,438 total). annual_report.py: _section_bill_shock_analysis(): avg_shock %/events/bills/shock-rate by year; HIGH >=30%/ELEVATED >=20% flags; crisis peak note (2022=33.8%, SLC 21 note). Normal 14-17%, crisis 34%.
 **Phase AV COMPLETE (2026-06-30):** Policy Cost & Levy Breakdown -- 12 new tests (5,426 total). annual_report.py: _section_policy_cost_breakdown(): RO/CfD/CCL/CM/FiT/policy/network by year; negative CfD in 2022 bolded + rebate note (crisis: spot > strike → generators repay); CAGR 76.7%/yr. Connects regulatory cost structure to board.
@@ -72,16 +73,16 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase AR COMPLETE (2026-06-30):** Gas Exit Decision Book -- 14 new tests (5,380 total). company/finance/gas_exit_analysis.py: GasAccountProfile (frozen; gas_roc/breakeven_revenue_uplift_pct); GasExitDecisionBook (exit_gas: I&C 40% churn/resi 20%; reprice_gas: loss-making→break-even; scenario_comparison). Board: REPRICE_GAS +£134k vs SQ; EXIT_GAS +£99k vs SQ.
 **Phase AQ COMPLETE (2026-06-30):** Board Risk Summary -- 12 new tests (5,366 total). _section_board_risk_summary(): 6 RAG indicators; 4 RED (gas-ROC=-0.7x, churn-miss 67%, demand-error 3.3%/15.6%, basis-risk +32.8%), 1 AMBER, 1 GREEN.
 **Phase AP COMPLETE (2026-06-30):** Segment Capital Efficiency -- 12 new tests (5,354 total). _section_segment_capital_efficiency(): lifetime ROC per segment; CAPITAL DESTROYER flag; I&C gas=-0.7x, resi gas=-0.9x; electricity cross-subsidises.
-**Phase AO COMPLETE (2026-06-30):** Demand Estimation Error Trend -- 12 new tests (5,342 total). _section_company_divergence() extended: demand_error_by_year; 0.07%→3.26%/15.56% by 2024; HIGH/MODERATE/Low; smart meter note.
-**Phase AN COMPLETE (2026-06-30):** Portfolio Concentration Risk -- 12 new tests (5,330 total). _section_portfolio_concentration_risk(): HHI; I&C=98.7%, HHI=2249 MODERATE; top-5 churn-weighted margin-at-risk; >95% warning.
-**Phase AM COMPLETE (2026-06-30):** Pricing Basis Risk -- 12 new tests (5,318 total). _section_pricing_basis_risk(): company_fwd vs sim_fwd; HIGH OVER-PRICE 2023/2025 (+18-33%).
-**Phase AL COMPLETE (2026-06-30):** Counterfactual Retention Value -- 12 new tests (5,306 total). _section_counterfactual_retention(): £3,621 recoverable from 4 no-offer churn misses at £293 cost.
-**Phase AK COMPLETE (2026-06-30):** Churn Root Cause Attribution -- 14 new tests (5,294 total). _section_churn_root_cause(): rate-shock/blind-miss/crisis per churn; 6 churns £39,706 lost; 3 blind misses.
-**Phase AJ COMPLETE (2026-06-30):** CRM Risk Triage -- 14 new tests (5,280 total). _section_crm_intelligence(): CRITICAL/HIGH/MEDIUM/LOW; rate-vs-SVT; blind spots.
-**Phase AI COMPLETE (2026-06-30):** EAC Drift Snapshot -- 10 new tests (5,266 total). _section_eac_drift_snapshot(): demand drift per customer; EV/solar/efficiency causes; trend.
-**Phase AH COMPLETE (2026-06-30):** Board Intelligence Pack -- 12 new tests (5,256 total). _section_portfolio_intelligence_pack(): retention/flex CAGR/churn peak/4 board recs.
-**Phase AG COMPLETE (2026-06-30):** Annual Report Flexibility Revenue Section -- 12 new tests (5,244 total). _section_flexibility_revenue(): year-by-year CM/DFS table; pre-DFS labels; portfolio CM/DFS split.
-**Phase AF COMPLETE (2026-06-30):** DSR/Flexibility Revenue Integration -- 15 new tests (5,232 total). flexibility_revenue_book.py: CM 2016+ £75/kW/yr; DFS 2022+ £4.5/MWh×20. EV+battery: £2,046/yr.
+**Phase AO COMPLETE (2026-06-30):** Demand Estimation Error Trend -- 12 tests (5,342 total). demand_error_by_year; 0.07%→15.56% by 2024.
+**Phase AN COMPLETE (2026-06-30):** Portfolio Concentration Risk -- 12 tests (5,330 total). HHI=2249 MODERATE; I&C=98.7% portfolio.
+**Phase AM COMPLETE (2026-06-30):** Pricing Basis Risk -- 12 tests (5,318 total). company_fwd vs sim_fwd; HIGH OVER-PRICE 2023/2025 (+18-33%).
+**Phase AL COMPLETE (2026-06-30):** Counterfactual Retention -- 12 tests (5,306 total). £3,621 recoverable from 4 blind misses at £293 cost.
+**Phase AK COMPLETE (2026-06-30):** Churn Root Cause Attribution -- 14 tests (5,294 total). 6 churns £39,706 lost; 3 blind misses.
+**Phase AJ COMPLETE (2026-06-30):** CRM Risk Triage -- 14 tests (5,280 total). CRITICAL/HIGH/MEDIUM/LOW triage; rate-vs-SVT.
+**Phase AI COMPLETE (2026-06-30):** EAC Drift Snapshot -- 10 tests (5,266 total). Demand drift per customer; EV/solar/efficiency.
+**Phase AH COMPLETE (2026-06-30):** Board Intelligence Pack -- 12 tests (5,256 total). Retention/flex CAGR/churn peak/4 board recs.
+**Phase AG COMPLETE (2026-06-30):** Annual Report Flex Revenue Section -- 12 tests (5,244 total). CM/DFS table; pre-DFS labels.
+**Phase AF COMPLETE (2026-06-30):** DSR/Flexibility Revenue Integration -- 15 tests (5,232 total). CM £75/kW/yr; DFS £4.5/MWh×20; EV+battery £2,046/yr.
 **Phase AE COMPLETE (2026-06-29):** Customer Retention Offer Book -- 21 new tests (5,217 total). company/crm/customer_retention.py: OfferType; RetentionOffer (max_spend=50%); EV+shock→TOU/8%/5% offers.
 **Phase AD COMPLETE (2026-06-29):** Portfolio Churn Risk Book -- 34 new tests (5,196 total). portfolio_churn_risk.py: ChurnRiskBand/Driver; PortfolioChurnRiskBook (by_band/by_driver/rate_pct). Connects J, M, AC.
 **Phase AC COMPLETE (2026-06-29):** Portfolio Repricing Action Book -- 24 new tests (5,162 total). company/crm/portfolio_repricing.py: RepricingPriority (CRITICAL/HIGH/MEDIUM/MONITOR); RepricingAction (tariff_delta/recovery at 70% retention); EV 3,000→11,000 kWh = £2,000/yr delta, £1,400/yr recovery. Connects AB, M, K.
