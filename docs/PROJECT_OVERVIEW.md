@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GN (2026-06-30):** Unidentified Gas (UIG) Allocation Register -- 25 new tests (8,064 total). company/market/uig_allocation_register.py (new): UIGMonthlyRecord (frozen; settlement_month normalised to first of month; uig_rate_pct=uig/throughput*100; is_high_uig>=2.0%; [HIGH] flag in summary); UIGAllocationRegister (record_allocation: throughput>=0 guard; for_month(y,m); high_uig_periods; average_uig_rate_pct=None if no records; rolling_3m_avg_rate_pct; most_recent). Xoserve monthly UIG allocations; UK Gas Act/UK Link: >=2% triggers investigation; ~0.5-2% additional gas procurement cost. Distinct from gas_imbalance_ledger (flow balance). PASS (383 files).
+
 **Phase GM (2026-06-30):** Annual Compliance Attestation Register -- 31 new tests (8,039 total). company/regulatory/annual_compliance_attestation_register.py (new): AttestationStatus (5); AttestationOutcome (4: COMPLIANT/WITH_MITIGATIONS/MINOR_BREACH/MATERIAL_BREACH); SLCAttestationRecord (frozen; is_submitted: SUBMITTED+ACKNOWLEDGED; is_breach: MINOR+MATERIAL; query_response_due +20WD); AnnualComplianceAttestationRegister (create_attestation: end>start guard; submit/mark_acknowledged/mark_queried/supersede; outstanding_queries; compliance_rate_pct(year)). Ofgem Annual Compliance Statement (ACS): board-signed; published on licence register; Ofgem queries require response in 20WD. Distinct from slc_compliance_tracker (daily observations). PASS (382 files).
 
 **Phase GL (2026-06-30):** Line Loss Factor (LLF) Register -- 26 new tests (8,008 total). company/market/llf_register.py (new): LLFRecord (frozen; is_current=effective_to is None; is_effective_as_of checks from<=date<to exclusive; loss_uplift_pct=(llf-1)*100); LLFRegister (register_llf: llf_value>0 guard; update_llf: closes current then registers new; current_llf_for(mpan,as_of); historical_for_mpan sorted by effective_from; high_loss_meters(as_of, threshold=1.05); average_llf_as_of; portfolio_loss_uplift_pct). BSC Section S / BSCP128: settlement_qty=metered_qty×LLF; DNOs publish LLFs annually; domestic ~1.00-1.05; rural up to 1.12. **8,000 test milestone**. PASS (381 files).
@@ -4388,7 +4390,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,039 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,064 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
