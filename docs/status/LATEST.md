@@ -1,11 +1,11 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T03:14:01Z
+Last updated: 2026-06-30T03:21:31Z
 
 ## Current state
 
-- **Phase:** AU complete (Commodity Split: Electricity vs Gas P&L) -- phases P through AU shipped
-- **Tests passing:** 5,414 (all green)
+- **Phase:** AX complete (Customer Experience & Service Quality) -- phases P through AX shipped
+- **Tests passing:** 5,462 (all green)
 - **Python modules:** 330+
 - **Company modules:** 267+
 - **Net position (latest sim run):** £1,243,337
@@ -20,24 +20,22 @@ Last updated: 2026-06-30T03:14:01Z
 | Enterprise Value | 6,142,209 |
 | Administration Event | None |
 
-## Session (AH--AU): 15 phases, 178 tests added
+## Session (AH--AX): 18 phases, 216 tests added
 
-Board intelligence synthesis: annual report now comprehensive.
-- **AU:** Commodity Split (12 tests; gas loss-making 2021-2025, 5 consecutive years)
+Annual report now contains 20+ comprehensive sections:
+- **AX:** Customer Experience (12 tests; 2025 worst clarity 0.777, 0/5 acq wins)
+- **AW:** Bill Shock Analysis (12 tests; 2022=33.8% HIGH, normal 14-17%)
+- **AV:** Policy Cost & Levy Breakdown (12 tests; CfD negative 2022; CAGR 76.7%/yr)
+- **AU:** Commodity Split Electricity vs Gas (12 tests; gas loss-making since 2021)
 - **AT:** Management Accounts P&L (12 tests; 2016-2025 income statement + balance sheet)
-- **AS:** Gas Exit Analysis Report Section (10 tests; REPRICE +£134k vs SQ)
+- **AS:** Gas Exit Analysis Report Section (10 tests; REPRICE +134k vs SQ)
 - **AR:** Gas Exit Decision Book (14 tests; board-level scenario model)
-- **AQ:** Board Risk Summary (12 tests; 6 RAG indicators: 4 RED, 1 AMBER, 1 GREEN)
-- **AP:** Segment Capital Efficiency (12 tests; I&C gas ROC=-0.7x CAPITAL DESTROYER)
-- **AO:** Demand Estimation Error Trend (12 tests; 0.07% -> 3.3%/15.6% by 2024)
+- **AQ:** Board Risk Summary (12 tests; 6 RAG: 4 RED, 1 AMBER, 1 GREEN)
+- **AP:** Segment Capital Efficiency (12 tests; gas ROC=-0.7x CAPITAL DESTROYER)
+- **AO:** Demand Estimation Error Trend (12 tests; 0.07%->3.3%/15.6% by 2024)
 - **AN:** Portfolio Concentration Risk (12 tests; HHI=2249 MODERATE, I&C=98.7%)
-- **AM:** Pricing Basis Risk (12 tests; 2025 +32.8% over-estimate)
-- **AL:** Counterfactual Retention (12 tests; £3,621 recoverable from 4 missed)
-- **AK:** Churn Root Cause Attribution (14 tests; 6 churns, 4 blind misses)
-- **AJ:** CRM Risk Triage (14 tests; CRITICAL/HIGH/MEDIUM/LOW + blind spots)
-- **AI:** EAC Drift Snapshot (10 tests; demand drift per customer)
-- **AH:** Board Intelligence Pack (12 tests; retention/flex/churn synthesis)
-- **Board finding:** Gas cross-subsidy confirmed 5 years; REPRICE_GAS recommended; I&C concentration existential; churn blind miss 67%.
+- **AM-AH:** Pricing Basis Risk, Counterfactual Retention, Churn Attribution, CRM Triage, EAC Drift, Board Intel
+- **Board finding:** Gas loss-making 5 consecutive years; REPRICE_GAS recommended; I&C concentration existential; churn blind miss 67%; no acquisitions (0/5 wins).
 
 -> Full build history: docs/PROJECT_OVERVIEW.md Section 4
 
