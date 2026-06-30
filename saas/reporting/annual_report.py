@@ -4152,6 +4152,127 @@ def _section_portfolio_intelligence_pack(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_crm_intelligence(data: dict) -> str:
+    """Phase AJ: CRM Risk Triage - final-year churn risk bands + repricing triage.
+
+    Uses churn_basis_risk (latest renewal per customer) and per_customer_lifetime
+    to produce an ex-post board view of which accounts ended the simulation at
+    which risk band and what repricing action is warranted.
+
+    Risk bands mirror Phase AD: CRITICAL>=50%, HIGH>=30%, MEDIUM>=15%, LOW<15%.
+    Silent when churn_basis_risk is absent.
+    """
+    cbr = data.get("churn_basis_risk", [])
+    if not cbr:
+        return ""
+
+    pcl = data.get("per_customer_lifetime", {})
+
+    latest = {}
+    for rec in cbr:
+        cid = rec.get("customer_id", "")
+        if not cid:
+            continue
+        if cid not in latest or rec.get("term_start", "") > latest[cid].get("term_start", ""):
+            latest[cid] = rec
+
+    if not latest:
+        return ""
+
+    def _risk_band(p):
+        if p >= 0.50:
+            return "CRITICAL"
+        if p >= 0.30:
+            return "HIGH"
+        if p >= 0.15:
+            return "MEDIUM"
+        return "LOW"
+
+    def _rate_flag(rate_vs_svt):
+        if rate_vs_svt is None:
+            return "n/a"
+        if rate_vs_svt > 5.0:
+            return "+" + f"{rate_vs_svt:.1f}" + "% [overpriced]"
+        if rate_vs_svt < -20.0:
+            return f"{rate_vs_svt:.1f}" + "% [competitive]"
+        return f"{rate_vs_svt:+.1f}" + "%"
+
+    rows = []
+    for cid, rec in sorted(
+        latest.items(),
+        key=lambda kv: kv[1].get("sim_churn_probability", 0.0),
+        reverse=True,
+    ):
+        sim_p = rec.get("sim_churn_probability", 0.0)
+        co_est = rec.get("company_churn_estimate", 0.0)
+        rate_vs_svt = rec.get("rate_vs_svt_pct")
+        band = _risk_band(sim_p)
+        pcl_rec = pcl.get(cid, {})
+        segment = pcl_rec.get("segment", "?")
+        lifetime_margin = pcl_rec.get("net_margin_after_cost_to_serve_gbp", 0.0)
+        rows.append((cid, segment, band, sim_p, co_est, rate_vs_svt, lifetime_margin))
+
+    lines = [
+        "## CRM Intelligence: Risk Triage (Final Year)",
+        "",
+        "Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIUM>=15% | LOW<15%.",
+        "",
+        "| Account | Seg | Risk Band | Sim Churn | Co. Est. | Rate vs SVT | Lifetime Margin |",
+        "|---------|-----|-----------|-----------|----------|-------------|-----------------|",
+    ]
+
+    for cid, seg, band, sim_p, co_est, rvs, lm in rows:
+        lm_fmt = _fmt_gbp(lm) if lm else "n/a"
+        lines.append(
+            "| " + cid + " | " + seg + " | " + band + " | " +
+            f"{sim_p:.0%}" + " | " + f"{co_est:.0%}" + " | " +
+            _rate_flag(rvs) + " | " + lm_fmt + " |"
+        )
+
+    lines.append("")
+
+    band_counts = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
+    at_risk_margin = 0.0
+    overpriced_high = 0
+    for cid, seg, band, sim_p, co_est, rvs, lm in rows:
+        band_counts[band] += 1
+        if band in ("CRITICAL", "HIGH"):
+            at_risk_margin += lm if lm else 0.0
+            if rvs is not None and rvs > 5.0:
+                overpriced_high += 1
+
+    lines += [
+        "**Risk Band Summary (latest renewal):**",
+        "- CRITICAL (>=50%): " + str(band_counts["CRITICAL"]) + " accounts",
+        "- HIGH (>=30%): " + str(band_counts["HIGH"]) + " accounts",
+        "- MEDIUM (>=15%): " + str(band_counts["MEDIUM"]) + " accounts",
+        "- LOW (<15%): " + str(band_counts["LOW"]) + " accounts",
+        "- Lifetime margin at risk (CRITICAL+HIGH): " + _fmt_gbp(at_risk_margin),
+    ]
+    if overpriced_high:
+        lines.append(
+            "- Overpriced vs SVT within HIGH/CRITICAL band: " + str(overpriced_high) +
+            " account(s) -- rate shock risk compounds churn probability"
+        )
+
+    high_risk_missed = [
+        (cid, sim_p, co_est)
+        for cid, seg, band, sim_p, co_est, rvs, lm in rows
+        if band in ("CRITICAL", "HIGH") and co_est < 0.10
+    ]
+    if high_risk_missed:
+        lines += [
+            "",
+            "**Company blind spot:** " + str(len(high_risk_missed)) +
+            " HIGH/CRITICAL account(s) where company churn estimate was <10%.",
+        ]
+        for cid, sim_p, co_est in high_risk_missed[:5]:
+            lines.append("  - " + cid + ": sim " + f"{sim_p:.0%}" + ", company est " + f"{co_est:.0%}")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -4204,6 +4325,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_profitability_uplift(data))
     sections.append(_section_flexibility_revenue(data))   # Phase AG
     sections.append(_section_portfolio_intelligence_pack(data))  # Phase AH
+    sections.append(_section_crm_intelligence(data))  # Phase AJ
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
     sections.append(_section_dual_fuel_pnl(data))
