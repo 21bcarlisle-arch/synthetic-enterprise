@@ -4755,6 +4755,59 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_commodity_split(data: dict) -> str:
+    ydata = data.get("years", {})
+    if not ydata:
+        return ""
+    years = sorted(ydata.keys())
+    has_cs = any(ydata[yr].get("commodity_split") for yr in years)
+    if not has_cs:
+        return ""
+    lines = [
+        "## Electricity vs Gas P&L Split",
+        "",
+        "Year-by-year net margin by fuel. Gas became structurally loss-making from 2021.",
+        "",
+        "| Year | Elec Net | Gas Net | Elec Rev | Gas Rev | Gas Share of Rev | Gas Profitable |",
+        "|------|----------|---------|----------|---------|-----------------|---------------|",
+    ]
+    gas_loss_years = []
+    gas_prof_years = []
+    for yr in years:
+        cs = ydata[yr].get("commodity_split", {})
+        elec = cs.get("electricity", {})
+        gas = cs.get("gas", {})
+        e_net = elec.get("net_gbp", 0.0)
+        g_net = gas.get("net_gbp", 0.0)
+        e_rev = elec.get("revenue_gbp", 0.0)
+        g_rev = gas.get("revenue_gbp", 0.0)
+        total_rev = e_rev + g_rev
+        gas_share_pct = (g_rev / total_rev * 100) if total_rev > 0 else 0.0
+        is_gas_profitable = g_net >= 0
+        flag = "YES" if is_gas_profitable else "**NO**"
+        if is_gas_profitable:
+            gas_prof_years.append(yr)
+        else:
+            gas_loss_years.append(yr)
+        lines.append(
+            "| " + yr + " | " + _fmt_gbp(e_net) + " | " + _fmt_gbp(g_net) +
+            " | " + _fmt_gbp(e_rev) + " | " + _fmt_gbp(g_rev) +
+            " | " + ("%.1f%%" % gas_share_pct) + " | " + flag + " |"
+        )
+    lines.append("")
+    if gas_loss_years:
+        first_loss = gas_loss_years[0]
+        lines.append(
+            "**Gas has been loss-making since " + first_loss + "** (" +
+            str(len(gas_loss_years)) + " consecutive years). " +
+            "Electricity cross-subsidises gas supply."
+        )
+    else:
+        lines.append("**Gas supply has been profitable throughout** (" + str(len(gas_prof_years)) + " years).")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_management_accounts(data: dict) -> str:
     ma = data.get("management_accounts", {})
     if not ma:
@@ -5172,6 +5225,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_commodity_split(data))                # Phase AU
     sections.append(_section_management_accounts(data))            # Phase AT
     sections.append(_section_gas_exit_analysis(data))              # Phase AS
     sections.append(_section_segment_capital_efficiency(data))     # Phase AP

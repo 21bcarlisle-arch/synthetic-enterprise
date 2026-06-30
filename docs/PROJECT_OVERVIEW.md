@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,402 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,414 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AU (2026-06-30):** Commodity Split (Electricity vs Gas P&L) -- 12 new tests (5,414 total). annual_report.py: _section_commodity_split(): year-by-year elec/gas net margin and revenue; YES/NO profitable flag; gas share of revenue %; 'gas loss-making since X' note; cross-subsidy callout. Key finding: gas profitable 2016-2020, loss-making every year 2021-2025 (5 consecutive years). Electricity cross-subsidises gas supply. Connects Phase AR (Gas Exit). Epistemic verifier: PASS.
 
 **Phase AT (2026-06-30):** Management Accounts P&L Section -- 12 new tests (5,402 total). annual_report.py: _section_management_accounts(): year-by-year income statement from management_accounts; revenue/wholesale/non-commodity/gross/bad-debt/opex/net columns; net margin %; best/worst year notes; balance sheet (cash/receivables/total assets/opening capital/profit). Wired first in generate_annual_report. 12/12 tests first run. Epistemic verifier: PASS.
 
@@ -4098,7 +4100,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,402 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,414 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
