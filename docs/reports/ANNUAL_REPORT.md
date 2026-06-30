@@ -908,6 +908,47 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## BSC Settlement Exposure
+
+Elexon's Balancing and Settlement Code (BSC) requires suppliers to post credit cover to fund potential imbalance charges. Credit requirements track portfolio size and wholesale price levels. Peak daily settlement is the largest single-day settlement amount seen in that year.
+
+| Year | BSC Credit Required | Peak Daily | % of Revenue |
+|------|---------------------|------------|--------------|
+| 2016 | £30 | £25 | 0.29% |
+| 2017 | £560 | £467 | 0.24% |
+| 2018 | £1,020 | £850 | 0.23% |
+| 2019 | £1,854 | £1,545 | 0.15% |
+| 2020 | £2,376 | £1,980 | 0.19% |
+| 2021 | £5,291 | £4,409 | 0.30% |
+| 2022 | £10,210 | £8,508 | 0.29% |
+| 2023 | £6,737 | £5,614 | 0.26% |
+| 2024 | £3,282 | £2,735 | 0.15% |
+| 2025 | £5,012 | £4,177 | 0.51% << |
+
+<< BSC credit above 0.4% of revenue (elevated operational cash tie-up)
+
+**Peak BSC credit requirement:** 2022 at £10,210 (portfolio growth and 2021-22 price surge)
+## Operational Unit Economics
+
+Revenue, gross margin, and net margin per active customer account. The dramatic rise in 2022-23 reflects wholesale price crisis inflating all revenue and cost metrics simultaneously.
+
+| Year | Active | Rev/cust | Gross/cust | Net/cust | Net % |
+|------|--------|----------|------------|----------|-------|
+| 2016 | 13 | £801 | £524 | £90 | 11.3% |
+| 2017 | 14 | £16,842 | £8,849 | £2,198 | 13.0% |
+| 2018 | 15 | £29,191 | £17,564 | £6,644 | 22.8% |
+| 2019 | 17 | £70,653 | £41,330 | £12,830 | 18.2% |
+| 2020 | 18 | £68,126 | £44,061 | £6,490 | 9.5% |
+| 2021 | 16 | £109,728 | £48,288 | £3,642 | 3.3% << |
+| 2022 | 14 | £248,150 | £75,861 | £18,306 | 7.4% |
+| 2023 | 12 | £214,772 | £76,641 | £4,230 | 2.0% << |
+| 2024 | 12 | £186,236 | £107,881 | £26,588 | 14.3% |
+| 2025 | 9 | £109,116 | £58,152 | £10,269 | 9.4% |
+
+<< Net margin below 5% (below Ofgem FRA comfort threshold)
+
+**Best year per customer:** 2024 at £26,588 net/customer
+**Worst year per customer:** 2016 at £90 net/customer
 ## Customer Lifetime P&L by Commodity
 
 Lifetime net margin per customer, split by electricity and gas. Loss-making accounts (marked *) warrant repricing review or exit.
@@ -1142,7 +1183,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 12 | 0.9 | £9 |
+| 2016 | 13 | 13 | 1.0 | £9 |
 | 2017 | 12 | 33 | 2.8 | £402 |
 | 2022 | 9 | 62 | 6.9 | £20,705 |
 | 2023 | 4 | 32 | 8.0 | £49,444 |
@@ -1455,7 +1496,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £129,699 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 21 sessions
+- C1: 22 sessions
 - C7: 19 sessions
 - C2: 13 sessions
 - C5: 12 sessions
@@ -2005,7 +2046,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-03-31: treasury £2,466,672.53, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-04-30: treasury £2,466,683.60, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-05-30: treasury £2,466,694.59, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
-  - 2016-06-29: treasury £2,466,705.16, (none), VaR (current £27.79 / stressed £8.54) ratio 3.25
+  - 2016-06-29: treasury £2,466,705.16, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-07-29: treasury £2,466,715.85, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-08-28: treasury £2,466,726.57, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-09-27: treasury £2,466,737.46, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
