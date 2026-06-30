@@ -1,11 +1,11 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T12:29:16Z
+Last updated: 2026-06-30T12:33:49Z
 
 ## Current state
 
-- **Phase:** GB complete -- 7,700 tests. Phase GB: DCC Meter Registration Register (34). Phase FY: Debt Respite (Breathing Space) Register (29 tests). Phase FX: PPM Installation Warrant Register (32). Phase FW: Consumer Duty Annual Board Report Register (38 tests). Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
-- **Tests passing:** 7,700 (all green)
+- **Phase:** GC complete -- 7,733 tests. Phase GC: EPG Reconciliation Register (33). Phase FY: Debt Respite (Breathing Space) Register (29 tests). Phase FX: PPM Installation Warrant Register (32). Phase FW: Consumer Duty Annual Board Report Register (38 tests). Phase FU: Triad Demand Response Book (25). Phase FT: Imbalance Cash Flow (22). Phase FV: Green Gas Levy Register (31). Phase FT: Imbalance Cash Flow Register (22 tests). Session (FK-FT): Customer Profitability Scorecard, Porting Loss, Power Auction, Lifetime Revenue, Debt Age Analysis, SC Fairness, Interconnector Booking, Gas Forward Curve, EV Demand Forecast, Imbalance Cash Flow. 350 company/ modules. All green.
+- **Tests passing:** 7,733 (all green)
 - **Python modules:** 350 company/ modules + simulation + saas
 - **Net position (latest sim run):** £1,243,337 (git 5d0e280)
 
