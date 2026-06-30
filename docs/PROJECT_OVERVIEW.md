@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase HM (2026-06-30):** Service Quality Monitor -- 30 new tests (8,885 total). company/crm/service_quality_monitor.py (existing; test coverage). ServiceQualityRAG; ServiceQualitySnapshot (clarity/complaint/bill_shock RAGs; overall=worst; shock_rate_pct); ServiceQualityMonitor (record; worst_year helpers; is_improving; quality_summary). Ofgem: clarity>0.80/complaints<2.5%; Consumer Duty outcomes.
 **Phase HL (2026-06-30):** Net Open Position Register -- 29 new tests (8,855 total). company/trading/net_open_position_register.py (existing module; test coverage added). DeliveryPeriodPosition; ExposureDirection (LONG_RETAIL/OVERHEDGED/FLAT +-5%); NOPSeverity (GREEN/AMBER/RED); NOP = forward - retail; severity by abs pct; aggregate_for_year; nop_summary. Ofgem FRA; 2022 crisis causation. Connects to bsc_credit_register (FI), wholesale_trading_mandate (HH).
 **Phase HK (2026-06-30):** BSC Performance Assurance Register -- 49 new tests (8,826 total). company/market/bsc_performance_assurance_register.py. PAAgentType (4); PAMetric (6); PAAssessmentTier (3); PAStatus (6); PAMetricScore (is_breached; severity); PAAssessmentRecord (tier: 0=STANDARD/1-2=WATCH/3+=FORMAL_ACTION; rap_due_date +20WD; is_rap_overdue); record_assessment; submit/accept_assessment; raise_rap/close_rap; current_tier_for_agent(as_of); agents_on_watch/agents_on_formal_action; overdue_raps; quarterly_summary; pa_register_summary. BSC Section M; 20WD RAP; agent suspension risk. Connects to dadc_contract_register (CV), mop_appointment_register (HJ).
 **Phase HJ (2026-06-30):** MOP Appointment Register -- 26 new tests (8,777 total). company/market/mop_appointment_register.py. MOPServiceTier (3); MOPAppointmentStatus (3); MOPChangeReason (5); appoint_mop; initiate_change (+5WD D0147 notice); complete_change; terminate; mpans_without_mop (SLC gap detection); total_monthly_fees/total_fees_to_date; mop_provider_breakdown. BSC D0147/D0148; gap in MOP coverage = SLC breach. Distinct from map_register.py.
@@ -4435,7 +4436,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 8,855 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,885 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

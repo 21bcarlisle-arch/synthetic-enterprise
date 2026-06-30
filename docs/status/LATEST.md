@@ -1,5 +1,5 @@
-Phase HL complete -- 8,855 tests. Phase HL: Net Open Position Register -- 29 tests. All 8,855 tests passing, epistemic verifier PASS (406 company/ files).
-Last updated: 2026-06-30T19:06:00Z
+Phase HM complete -- 8,885 tests. Phase HM: Service Quality Monitor -- 30 tests. All 8,885 tests passing, epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T19:08:17Z
 
 **Latest simulation results (2016–2025)** — auto-processed (676s / 11 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
