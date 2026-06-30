@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-29. 400+ commits. 5,003 tests passing. Codebase: ~45,600 lines across 328+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,244 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -4072,7 +4072,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,217 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,244 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -4081,7 +4081,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase AE, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,217 tests. Phase AE: Customer Retention Offer (21 tests). Phase AD: Portfolio Churn Risk (34 tests).
+- 5,244 tests. Phase AG: Flexibility Revenue Annual Report Section (12 tests). Phase AF: DSR/Flexibility Revenue Integration (15 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

@@ -3777,6 +3777,66 @@ def _section_scenario_metadata(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_flexibility_revenue(data: dict) -> str:
+    """Phase AG: DSR/Capacity Market flexibility revenue breakdown by year.
+
+    Renders the CM and DFS revenue earned from customers with flexible assets
+    (EV, ASHP, battery). CM is available 2016+; DFS launched October 2022.
+    Data comes from FlexibilityRevenueBook (Phase AF) via flex_summary in run_phase2b.
+    Silent when no customers hold flexible assets.
+    """
+    flex = data.get("flexibility_revenue_summary", {})
+    if not flex or not flex.get("years_with_revenue"):
+        return ""
+
+    total_gbp = flex.get("total_flexibility_revenue_gbp", 0.0)
+    cm_total = flex.get("total_cm_revenue_gbp", 0.0)
+    dfs_total = flex.get("total_dfs_revenue_gbp", 0.0)
+    peak_yr_rev = flex.get("peak_year_revenue_gbp", 0.0)
+    enrolled_years = flex.get("enrolled_customer_years", 0)
+    per_year: dict = flex.get("per_year", {})
+
+    lines = [
+        "## Flexibility Revenue — DSR & Capacity Market (Phase AG)",
+        "",
+        "Customers with EVs, ASHPs, and batteries earn ancillary revenue through two channels:",
+        "- **Capacity Market (CM):** ~£75/kW/yr; T-4 auctions; operational since 2014.",
+        "- **Demand Flexibility Service (DFS):** launched October 2022 by NESO; ~£4.5/MWh × 20 winter dispatch events/yr.",
+        "",
+    ]
+
+    cm_total_str = _fmt_gbp(cm_total)
+    dfs_total_str = _fmt_gbp(dfs_total)
+    peak_str = _fmt_gbp(peak_yr_rev)
+    total_str = _fmt_gbp(total_gbp)
+    lines.append(f"**Portfolio total (2016–2025):** {total_str} (CM: {cm_total_str} | DFS: {dfs_total_str} | Peak year: {peak_str} | Enrolled customer-years: {enrolled_years})")
+    lines += [
+        "",
+        "| Year | CM Revenue | DFS Revenue | Total | Enrolled |",
+        "|------|------------|-------------|-------|----------|",
+    ]
+
+    for yr in sorted(per_year.keys()):
+        yd = per_year[yr]
+        cm_gbp = yd.get("cm_gbp", 0.0)
+        dfs_gbp = yd.get("dfs_gbp", 0.0)
+        yr_total = yd.get("total_gbp", 0.0)
+        enrolled = yd.get("enrolled_customers", 0)
+        cm_str = _fmt_gbp(cm_gbp)
+        dfs_str = _fmt_gbp(dfs_gbp)
+        if dfs_gbp == 0.0 and int(yr) < 2022:
+            dfs_str = "£0.00 (pre-DFS)"
+        yr_total_str = _fmt_gbp(yr_total)
+        lines.append(f"| {yr} | {cm_str} | {dfs_str} | {yr_total_str} | {enrolled} |")
+
+    lines += [
+        "",
+        "DFS launched October 2022 (NESO Winter Demand Flexibility Service). Pre-2022 years show CM-only revenue. EV+battery customers earn ~£2,046/yr; EV-only ~£930/yr.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _load_old_model_data() -> dict | None:
     """Load the pre-Phase-5c run snapshot for `_mandate_comparison_section`,
     or None if it isn't present."""
@@ -3826,6 +3886,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_repricing_impact(data))
     sections.append(_section_margin_feedback(data))
     sections.append(_section_profitability_uplift(data))
+    sections.append(_section_flexibility_revenue(data))   # Phase AG
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
     sections.append(_section_dual_fuel_pnl(data))

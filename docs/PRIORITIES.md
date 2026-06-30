@@ -1,32 +1,32 @@
 # Current Priorities
 
-Last updated: 2026-06-30 by Claude Code (Phase AF complete)
+Last updated: 2026-06-30 by Claude Code (Phase AG complete)
 
 ## Now (active this session)
-- Phase AF: DSR/Flexibility Revenue Integration -- COMPLETE (2026-06-30). 15 new tests (5,232 total).
-  company/market/flexibility_revenue_book.py wired into run_phase2b.py + annual_report.py.
-  CM revenue 2016+ / DFS revenue 2022+. EV+battery = £2,046/yr flexibility revenue.
+- Phase AG: Annual Report Flexibility Revenue Section -- COMPLETE (2026-06-30). 12 new tests (5,244 total).
+  saas/reporting/annual_report.py: _section_flexibility_revenue() renders year-by-year CM vs DFS table.
+  Pre-2022 rows labelled pre-DFS. Portfolio total with CM/DFS split. DFS launch note (NESO Oct 2022).
 
 ## Next (queued, unblocked)
-- Phase AG: Phase 48a (Term-Length Premium for I&C contracts) -- 2% per additional year beyond
-  12-month baseline. Closes I&C forward curve term structure gap. ~6-8 tests.
-- Phase AH: Annual Report Flexibility Section -- add flexibility revenue breakdown table
-  to annual report markdown output showing CM vs DFS split by year.
+- Phase AH: Network Charge Year-Indexed Costs -- DUoS/TNUoS currently flat pass-through in non_commodity.py.
+  Year-indexed actuals would improve calibration (DUoS ~£15-20/MWh resi, rising with network investment).
+  Closes Section 9 known gap. ~8-10 tests.
 
 ## Backlog
 - Dashboard KPI coverage (company P&L trends, household asset mix over time)
 - Integration tests: end-to-end workflow tests across module seams
+- I&C Triad management model (active demand reduction in Triad windows for 1-4 GWh customers)
 
 ## Recently completed (last 12)
+- Phase AG (2026-06-30) -- Annual Report Flex Revenue Section (12 tests; 5,244 total)
+- Phase AF (2026-06-30) -- DSR/Flexibility Revenue Integration (15 tests; 5,232 total)
+- Phase AE (2026-06-29) -- Customer Retention Offer Book (21 tests; 5,217 total)
+- Phase AD (2026-06-29) -- Portfolio Churn Risk Book (34 tests; 5,196 total)
+- Phase AC (2026-06-29) -- Portfolio Repricing Action Book (24 tests; 5,162 total)
+- Phase AB (2026-06-29) -- EAC Drift Assessor (35 tests; 5,138 total)
+- Phase AA (2026-06-29) -- Demand Flexibility Potential Assessor (23 tests; 5,103 total)
+- Phase Z (2026-06-29) -- Smart Meter Consumption Reconciliation (23 tests; 5,080 total)
+- Phase Y (2026-06-29) -- ToU Rate Card Optimiser (29 tests; 5,057 total)
+- Phase X (2026-06-29) -- ToU Product Launch Decision Engine (25 tests; 5,028 total)
+- Phase W (2026-06-29) -- Gas Boiler Daily HDD Shape (13 tests; 5,003 total)
 - Phase V (2026-06-29) -- ToU Migration Impact Scenario (16 tests; 4,990 total)
-- Phase U (2026-06-29) -- EV Cross-Subsidy Register (16 tests; 4,974 total)
-- Phase T (2026-06-29) -- ToU Tariff Profitability Assessor (16 tests; 4,958 total)
-- Phase S (2026-06-29) -- Unified Dual-Fuel Billing Engine + Payment Ledger (44 tests; 4,930 total)
-- Phase R (2026-06-29) -- SEG Export Estimator (21 tests; 4,886 total)
-- Phase Q (2026-06-29) -- Battery Home Energy Storage Settlement Wiring (14 tests; 4,865 total)
-- Phase P (2026-06-29) -- EV Smart Charging Shape (12 tests; 4,942 total)
-- Phase O (2026-06-29) -- Solar Dynamic Settlement Wiring (12 tests; 4,851 total)
-- Phase N (2026-06-29) -- EV Settlement Wiring + Physical Suitability Constraints (26 tests; 4,861 total)
-- Phase M (2026-06-29) -- Renewal Conversion Rate Book (21 tests; 4,835 total)
-- Phase L (2026-06-29) -- Tariff Segment Profitability Book (21 tests; 4,814 total)
-- Phase K (2026-06-29) -- Break-Even Tariff Assessor (21 tests; 4,782 total)

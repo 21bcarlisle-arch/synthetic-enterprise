@@ -1,7 +1,8 @@
-Phase AA: Demand Flexibility Potential Assessor
+Phase AH: Network Charge Year-Indexed Costs
 
-Status: COMPLETE 2026-06-29
-See: company/market/flexibility_potential.py
-23 new tests (5,103 total)
+Status: PROPOSED 2026-06-30
+See: docs/PRIORITIES.md
 
-Next phase: TBD
+Next phase after AG is network charge year-indexing:
+DUoS/TNUoS currently flat pass-through in non_commodity.py.
+Year-indexed actuals close the Section 9 known gap.

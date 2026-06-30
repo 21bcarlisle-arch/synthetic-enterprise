@@ -1,11 +1,11 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-30T01:24:14Z
+Last updated: 2026-06-30T01:32:42Z
 
 ## Current state
 
-- **Phase:** AF complete (DSR/Flexibility Revenue Integration) -- T..Z+AA+AB..AE+AF shipped
-- **Tests passing:** 5,232 (all green)
+- **Phase:** AG complete (Annual Report Flexibility Revenue Section) -- T..Z+AA..AF+AG shipped
+- **Tests passing:** 5,244 (all green)
 - **Python modules:** 328+
 - **Company modules:** 230+
 - **Net position (latest sim run):** £1,243,337
