@@ -4755,6 +4755,51 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_financial_ratios(data: dict) -> str:
+    """Phase BK: Financial Ratios — EBIT margin, revenue and margin per customer."""
+    ma = data.get("management_accounts", {})
+    yrs_data = data.get("years", {})
+    if not ma:
+        return ""
+    rows = []
+    for yr in sorted(ma.keys()):
+        ist = ma[yr].get("income_statement", {})
+        rev = ist.get("revenue_gbp", 0.0)
+        nm = ist.get("net_margin_gbp", 0.0)
+        gm = ist.get("gross_margin_gbp", 0.0)
+        bd = ist.get("bad_debt_gbp", 0.0)
+        active_ids = yrs_data.get(yr, {}).get("active_customer_ids", [])
+        n_cust = len(active_ids) if active_ids else 1
+        ebit_pct = nm / rev * 100 if rev else 0.0
+        rev_per_cust = rev / n_cust
+        gm_per_cust = gm / n_cust
+        bad_debt_rate_pct = bd / rev * 100 if rev else 0.0
+        rows.append((yr, n_cust, ebit_pct, rev_per_cust, gm_per_cust, bad_debt_rate_pct))
+    lines = [
+        "## Financial Ratios",
+        "",
+        "Key per-customer and margin metrics by year.",
+        "",
+        "| Year | Customers | EBIT% | Revenue/Customer £ | GM/Customer £ | Bad Debt% |",
+        "|------|-----------|-------|--------------------|--------------|-----------|",
+    ]
+    for yr, n, ebit, rpc, gmpc, bd_rate in rows:
+        lines.append("| {} | {} | {:.1f}% | £{:,.0f} | £{:,.0f} | {:.2f}% |".format(
+            yr, n, ebit, rpc, gmpc, bd_rate))
+    best_ebit_yr, best_ebit = max(((r[0], r[2]) for r in rows), key=lambda x: x[1])
+    worst_ebit_yr, worst_ebit = min(((r[0], r[2]) for r in rows), key=lambda x: x[1])
+    max_rev_per_cust_yr, max_rpc = max(((r[0], r[3]) for r in rows), key=lambda x: x[1])
+    lines.extend([
+        "",
+        "**Best EBIT%: {} ({:.1f}%)** | **Worst EBIT%: {} ({:.1f}%)**".format(
+            best_ebit_yr, best_ebit, worst_ebit_yr, worst_ebit),
+        "**Peak revenue/customer: {} (£{:,.0f})**".format(max_rev_per_cust_yr, max_rpc),
+        "",
+        "> Note: Revenue/customer driven by customer mix (I&C customers 10-100× resi volumes).",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_churn_prediction_calibration(data: dict) -> str:
     """Phase BJ: Churn prediction calibration — company estimate vs sim probability."""
     cel = [e for e in data.get("company_event_log", []) if e.get("event_type") == "churn"]
@@ -5803,6 +5848,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_financial_ratios(data))               # Phase BK
     sections.append(_section_churn_prediction_calibration(data))   # Phase BJ
     sections.append(_section_tariff_estimation_accuracy(data))     # Phase BI
     sections.append(_section_dynamic_pricing_activity(data))       # Phase BH

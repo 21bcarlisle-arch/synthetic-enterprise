@@ -908,6 +908,28 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Financial Ratios
+
+Key per-customer and margin metrics by year.
+
+| Year | Customers | EBIT% | Revenue/Customer £ | GM/Customer £ | Bad Debt% |
+|------|-----------|-------|--------------------|--------------|-----------|
+| 2016 | 13 | 45.2% | £1,181 | £605 | 1.53% |
+| 2017 | 14 | 33.4% | £25,052 | £8,960 | 1.79% |
+| 2018 | 15 | 41.5% | £40,302 | £17,674 | 1.96% |
+| 2019 | 17 | 40.1% | £97,024 | £41,438 | 1.87% |
+| 2020 | 18 | 40.2% | £103,402 | £44,161 | 2.06% |
+| 2021 | 16 | 29.1% | £152,742 | £48,388 | 1.94% |
+| 2022 | 14 | 21.3% | £306,108 | £75,950 | 1.98% |
+| 2023 | 12 | 22.9% | £288,653 | £76,728 | 2.21% |
+| 2024 | 12 | 38.4% | £254,433 | £107,906 | 2.13% |
+| 2025 | 9 | 36.8% | £138,093 | £58,194 | 3.01% |
+
+**Best EBIT%: 2016 (45.2%)** | **Worst EBIT%: 2022 (21.3%)**
+**Peak revenue/customer: 2022 (£306,108)**
+
+> Note: Revenue/customer driven by customer mix (I&C customers 10-100× resi volumes).
+
 ## Churn Prediction Calibration
 
 How well the company estimated churn probability versus actual simulation outcomes.
