@@ -57,7 +57,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BN COMPLETE (2026-06-30):** Segment Margin Attribution -- 12 tests (5,669 total). 5-segment×10-year table; loss-making flags. 2022 resi gas -£742; I&C elec £964k.
+**Phase BO COMPLETE (2026-06-30):** CfD Levy & Treasury -- 12 tests (5,681 total). CfD/RO/bad-debt/drawdowns/bills. 2022 CfD CREDIT -£50k; draws 2022-2024.
+**Phase BN COMPLETE (2026-06-30):** Segment Margin Attribution -- 12 tests (5,669 total). 5×10yr table; 2022 resi gas -£742; I&C £964k peak.
 **Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657 total). avg/above-cap/min/max from churn_basis_risk. 2021 5/9 above SVT.
 **Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). 5 scenarios/year RAG; StressTestBook wired to annual report.
 **Phase BK COMPLETE (2026-06-30):** Financial Ratios -- 12 tests (5,633 total). EBIT%/rev-per-cust/bad-debt-rate. 2022 worst EBIT 21.3%; £306k rev/cust peak.
@@ -169,7 +170,6 @@ CLV is not a stable measuring stick — it evolves with business rules.
 **Regime-change blindness** is a known failure mode. The sim converged to near-naked hedging during
 calm 2016–2020 data, directly before the crisis — mirroring what killed real suppliers. All
 hedging/risk models must account for this.
-
 **Activity-based pricing:** flat margin makes some customers net-negative. Any pricing model must
 account for cost-to-serve at the customer level.
 

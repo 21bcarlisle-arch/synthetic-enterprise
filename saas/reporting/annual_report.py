@@ -4755,6 +4755,53 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_cfd_and_treasury(data: dict) -> str:
+    """Phase BO: CfD levy evolution and treasury drawdown events by year."""
+    yrs_data = data.get("years", {})
+    if not yrs_data:
+        return ""
+    rows = []
+    for yr in sorted(yrs_data.keys()):
+        y = yrs_data[yr]
+        cfd = y.get("cfd_levy_gbp", 0.0)
+        ro = y.get("ro_levy_gbp", 0.0)
+        bd = y.get("bad_debt_gbp", 0.0)
+        drawdowns = len(y.get("treasury_drawdown_events", []))
+        bills = y.get("bills_count", 0)
+        rows.append((yr, cfd, ro, bd, drawdowns, bills))
+    lines = [
+        "## CfD Levy, Bad Debt & Treasury Drawdowns",
+        "",
+        "Contracts for Difference levy (negative = credit to supplier in high-price periods).",
+        "",
+        "| Year | CfD Levy £ | RO Levy £ | Bad Debt £ | Treasury Drawdowns | Bills |",
+        "|------|-----------|----------|-----------|-------------------|-------|",
+    ]
+    for yr, cfd, ro, bd, draws, bills in rows:
+        cfd_str = "+£{:,.0f}".format(abs(cfd)) if cfd >= 0 else "-£{:,.0f} CREDIT".format(abs(cfd))
+        lines.append("| {} | {} | £{:,.0f} | £{:,.0f} | {} | {} |".format(
+            yr, cfd_str, ro, bd, draws if draws else "—", bills))
+    # Summaries
+    cfd_credits = [(r[0], r[1]) for r in rows if r[1] < 0]
+    drawdown_years = [(r[0], r[4]) for r in rows if r[4] > 0]
+    max_bad_debt_yr, max_bad_debt = max(((r[0], r[3]) for r in rows), key=lambda x: x[1])
+    lines.extend([""])
+    if cfd_credits:
+        for yr, cfd in cfd_credits:
+            lines.append("**CfD turned CREDIT in {}: -£{:,.0f} (high wholesale → CfD generators repay system)**".format(
+                yr, abs(cfd)))
+    if drawdown_years:
+        lines.append("**Treasury drawdown years: {}** (credit facility used)".format(
+            ", ".join(str(r[0]) for r in drawdown_years)))
+    lines.extend([
+        "**Peak bad debt year: {} (£{:,.0f})**".format(max_bad_debt_yr, max_bad_debt),
+        "",
+        "> CfD (Contracts for Difference): when wholesale > strike price, generators repay;",
+        "> the net credit is passed through as a negative levy on supplier bills.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_segment_margin_attribution(data: dict) -> str:
     """Phase BN: Segment margin attribution — gross margin by segment per year."""
     yrs_data = data.get("years", {})
@@ -6038,6 +6085,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_cfd_and_treasury(data))               # Phase BO
     sections.append(_section_segment_margin_attribution(data))     # Phase BN
     sections.append(_section_price_cap_headroom(data))             # Phase BM
     sections.append(_section_stress_test_history(data))            # Phase BL

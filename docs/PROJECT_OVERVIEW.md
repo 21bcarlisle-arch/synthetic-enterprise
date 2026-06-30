@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,669 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,681 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BO (2026-06-30):** CfD Levy, Bad Debt & Treasury Drawdowns Section -- 12 new tests (5,681 total). saas/reporting/annual_report.py: _section_cfd_and_treasury(): year-by-year CfD levy / RO levy / bad debt / treasury drawdown count / bills count; identifies CfD credit years (negative levy); flags treasury drawdown years (credit facility used); peak bad debt year. Key insight: 2022 CfD went CREDIT (-£50,342) as wholesale >> strike price and CfD generators had to repay the system — this reduced supplier cost; treasury drawn in 2022-2024 (crisis stress + recovery). Epistemic verifier: PASS.
 
 **Phase BN (2026-06-30):** Segment Margin Attribution Section -- 12 new tests (5,669 total). saas/reporting/annual_report.py: _section_segment_margin_attribution(): reads segment_split per year; table showing all 5 segments (resi electricity / resi gas / SME electricity / I&C electricity / I&C gas) with gross margin £ + year total; identifies best/worst total GM year; flags loss-making segment-years. Key insights: 2022 resi gas first loss (-£742); I&C electricity peak £964k (2022) and £1.16M (2024); resi+SME together <1% of total gross margin. Epistemic verifier: PASS.
 
@@ -4138,7 +4140,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,669 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,681 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

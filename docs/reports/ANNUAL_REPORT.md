@@ -908,6 +908,30 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## CfD Levy, Bad Debt & Treasury Drawdowns
+
+Contracts for Difference levy (negative = credit to supplier in high-price periods).
+
+| Year | CfD Levy £ | RO Levy £ | Bad Debt £ | Treasury Drawdowns | Bills |
+|------|-----------|----------|-----------|-------------------|-------|
+| 2016 | +£7 | £1,162 | £167 | — | 108 |
+| 2017 | +£2,722 | £37,352 | £1,361 | — | 168 |
+| 2018 | +£9,938 | £65,913 | £2,389 | — | 180 |
+| 2019 | +£28,434 | £165,083 | £6,222 | — | 204 |
+| 2020 | +£35,468 | £239,156 | £6,309 | — | 204 |
+| 2021 | +£15,152 | £249,026 | £9,216 | — | 192 |
+| 2022 | -£50,342 CREDIT | £259,289 | £35,892 | 1 | 148 |
+| 2023 | +£65,429 | £274,578 | £13,844 | 1 | 144 |
+| 2024 | +£111,030 | £310,631 | £11,547 | 1 | 129 |
+| 2025 | +£47,631 | £137,698 | £4,995 | — | 54 |
+
+**CfD turned CREDIT in 2022: -£50,342 (high wholesale → CfD generators repay system)**
+**Treasury drawdown years: 2022, 2023, 2024** (credit facility used)
+**Peak bad debt year: 2022 (£35,892)**
+
+> CfD (Contracts for Difference): when wholesale > strike price, generators repay;
+> the net credit is passed through as a negative levy on supplier bills.
+
 ## Segment Gross Margin Attribution
 
 Gross margin (£) by customer segment and year.
