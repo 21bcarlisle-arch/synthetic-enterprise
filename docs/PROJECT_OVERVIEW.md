@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,945 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,957 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CL (2026-06-30):** Fuel Mix Disclosure Book -- 12 new tests (5,957 total). company/regulatory/fuel_mix_disclosure.py (new): FuelSource enum (11 sources); _CARBON_INTENSITY lookup (7–820 gCO₂e/kWh) and _IS_RENEWABLE map; FuelMixComponent (frozen; weighted_carbon / is_renewable); FuelMixDisclosure (frozen; renewable_fraction / carbon_intensity_gco2_per_kwh / rego_coverage_fraction / is_fully_rego_matched — ≥1 REGO/MWh / unmatched_volume_mwh); FuelMixDisclosureBook (record_disclosure / carbon_trend / fully_matched_years / fmd_summary). Regulatory basis: SLC 21C annual FMD obligation; REGO = 1 MWh renewable; UK residual mix ~280 gCO₂e/kWh (DESNZ 2022). Epistemic verifier: PASS.
 
 **Phase CK (2026-06-30):** Liquidity Stress Test Book -- 12 new tests (5,945 total). company/risk/liquidity_stress_test.py (new): StressScenario (frozen; wholesale_price_shock_pct / volume_shock_pct / initial_margin_shock_pct / stress_days; is_severe flag); LiquidityStressOutcome (SOLVENT / MARGIN_CONSTRAINED / CRITICAL / INSOLVENT); StressTestResult (frozen; vm_drain_gbp / im_additional_call_gbp / retail_revenue_inflow_gbp / ending_cash_gbp / survival_days / headroom_pct / total_cash_drain_gbp); LiquidityStressTestBook (run_scenario / standard_scenarios: mild/moderate/severe_2022 / worst_outcome with severity + cash tiebreaker / stress_summary). 2022 context: IM tripled + daily VM calls = insolvency within weeks. Ofgem FRA thresholds: 365d = GREEN, 90d = AMBER, <90d = CRITICAL, <0 = INSOLVENT. Epistemic verifier: PASS.
 
@@ -4184,7 +4186,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,945 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,957 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
