@@ -908,6 +908,27 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Worst Half-Hourly Settlement Period by Year
+
+Most loss-making single 30-minute period per settlement year.
+
+| Year | Date | SP | Customer | Net Margin £ |
+|------|------|----|----------|-------------|
+| 2016 | 2016-11-08 | 40 | C6 | -£0 |
+| 2017 | 2017-05-17 | 32 | C_IC1 | -£20 |
+| 2018 | 2018-03-01 | 27 | C_IC1 | -£15 |
+| 2019 | 2019-02-04 | 35 | C_IC1 | -£15 |
+| 2020 | 2020-12-31 | 1 | C_IC3g | -£484 |
+| 2021 | 2021-12-31 | 1 | C_IC3g | -£4,053 |
+| 2022 | 2022-12-31 | 1 | C_IC3g | -£2,970 |
+| 2023 | 2023-12-31 | 1 | C_IC3g | -£3,475 |
+| 2024 | 2024-12-30 | 1 | C_IC3g | -£1,916 |
+| 2025 | 2025-06-01 | 1 | C_IC3g | -£532 |
+
+**Single worst period: 2021 2021-12-31 SP1 (C_IC3g, -£4,053)** — exposure from gas supply anchor at year-end pricing.
+
+> SP = settlement period (1-48; SP1 = 00:00-00:30). Year-end gas exposure dominates from 2020 onward as C_IC3g position grows.
+
 ## BSC Credit Obligation and Regulatory Levy Breakdown
 
 Elexon BSC credit posting requirement and annual levy costs.

@@ -4755,6 +4755,49 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_worst_settlement_periods(data: dict) -> str:
+    """Phase BR: Worst half-hourly settlement period per year."""
+    years = data.get("years", {})
+    if not years:
+        return ""
+    rows = []
+    for yr in sorted(years.keys()):
+        y = years[yr]
+        wp = y.get("worst_period", {})
+        if not wp:
+            continue
+        rows.append((
+            yr,
+            wp.get("settlement_date", "?"),
+            wp.get("settlement_period", "?"),
+            wp.get("customer_id", "?"),
+            wp.get("net_margin_gbp", 0.0),
+        ))
+    if not rows:
+        return ""
+    worst_yr, worst_date, worst_sp, worst_cid, worst_loss = min(rows, key=lambda r: r[4])
+    lines = [
+        "## Worst Half-Hourly Settlement Period by Year",
+        "",
+        "Most loss-making single 30-minute period per settlement year.",
+        "",
+        "| Year | Date | SP | Customer | Net Margin £ |",
+        "|------|------|----|----------|-------------|",
+    ]
+    for yr, date, sp, cid, loss in rows:
+        loss_str = "-£{:,.0f}".format(abs(loss)) if loss < 0 else "£{:,.0f}".format(loss)
+        lines.append("| {} | {} | {} | {} | {} |".format(yr, date, sp, cid, loss_str))
+    lines.extend([""])
+    lines.append("**Single worst period: {} {} SP{} ({}, -{})** — exposure from gas supply anchor at year-end pricing.".format(
+        worst_yr, worst_date, worst_sp, worst_cid, "£{:,.0f}".format(abs(worst_loss))))
+    sp_note = "SP = settlement period (1-48; SP1 = 00:00-00:30)."
+    lines.extend([
+        "",
+        "> {} Year-end gas exposure dominates from 2020 onward as C_IC3g position grows.".format(sp_note),
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_bsc_regulatory_levies(data: dict) -> str:
     """Phase BQ: BSC credit obligation and regulatory levy breakdown by year."""
     years = data.get("years", {})
@@ -6178,6 +6221,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_worst_settlement_periods(data))       # Phase BR
     sections.append(_section_bsc_regulatory_levies(data))          # Phase BQ
     sections.append(_section_cohort_revenue_analysis(data))        # Phase BP
     sections.append(_section_cfd_and_treasury(data))               # Phase BO

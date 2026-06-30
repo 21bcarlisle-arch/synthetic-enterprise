@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,705 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,717 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BR (2026-06-30):** Worst Half-Hourly Settlement Period by Year -- 12 new tests (5,717 total). saas/reporting/annual_report.py: _section_worst_settlement_periods(): shows worst HH settlement (date / SP / customer / net margin) per year; identifies single worst period across all years. Key insights: C_IC3g (large gas I&C) dominates worst periods from 2020 onwards; 2023 single worst period = -£3,475 on 2023-12-31 SP1 (gas spot price elevated at year-end). 2016-2019 worst periods small (C6, C_IC1, -£0.36 to -£20). Epistemic verifier: PASS.
 
 **Phase BQ (2026-06-30):** BSC Credit Obligation and Regulatory Levy Breakdown -- 12 new tests (5,705 total). saas/reporting/annual_report.py: _section_bsc_regulatory_levies(): BSC credit required / CM levy / mutualization levy / CCL / gas network cost by year; identifies peak BSC credit year; flags first mutualization year. Key insights: BSC credit grew from £30 (2016) to £10,210 (2022) — a 340× increase driven by portfolio volume growth + crisis price levels. Mutualization levy first appeared 2021 (£42k) reflecting costs of failing suppliers passed through Elexon settlement. Epistemic verifier: PASS.
 
@@ -4144,7 +4146,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,705 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,717 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

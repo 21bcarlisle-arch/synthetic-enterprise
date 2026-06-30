@@ -57,7 +57,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Regulatory Levies -- 12 tests (5,705 total). BSC/CM/mute/CCL/gas-net per year; BSC grew £30→£10,210; mute first 2021.
+**Phase BR COMPLETE (2026-06-30):** Worst Settlement Period -- 12 tests (5,717 total). HH period/customer/loss per year. 2023 worst -£3,475 (C_IC3g).
+**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Levies -- 12 tests (5,705 total). BSC/CM/mute/CCL/gas per year; BSC £30→£10,210; mute 2021.
 **Phase BP COMPLETE (2026-06-30):** Customer Cohort Revenue -- 12 tests (5,693 total). Vintage by acquisition year; 2017 best (£837k); 2019 loss (gas drag).
 **Phase BO COMPLETE (2026-06-30):** CfD Levy & Treasury -- 12 tests (5,681 total). 2022 CfD CREDIT -£50k; treasury draws 2022-2024.
 **Phase BN COMPLETE (2026-06-30):** Segment Margin Attribution -- 12 tests (5,669 total). 5×10yr table; 2022 resi gas -£742; I&C £964k peak.
@@ -152,7 +153,6 @@ It cannot see simulation internals — churn parameters, forward curve construct
 engine outputs, VaR internals. It discovers the world through observable interfaces: market
 data feeds, meter reads, customer interactions, its own bills and payments, regulatory
 publications.
-
 The company's models are approximations built from observed outcomes — not reads from ground
 truth. That imperfection is the point.
 **Before writing any company-layer code:** ask "Could a real UK energy supplier know this?"
