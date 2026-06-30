@@ -18,8 +18,8 @@ OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
 RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT / "docs" / "observability" / "run_history.json"
 
-_BUILD_PHASE = "DP"
-_BUILD_TEST_COUNT = 5836
+_BUILD_PHASE = "DQ"
+_BUILD_TEST_COUNT = 5855
 _BUILD_COMPANY_MODULES = 303
 
 
