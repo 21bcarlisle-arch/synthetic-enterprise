@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GO (2026-06-30):** Transfer Objection Register -- 26 new tests (8,090 total). company/market/transfer_objection_register.py (new): ObjectionGround (5); ObjectionStatus (5); TransferObjectionRecord (frozen; is_open: RAISED+VALID; objection_deadline +5WD; resolution_days uses resolution_date if set); TransferObjectionRegister (raise_objection; mark_valid/invalid/resolve/withdraw; invalid_objections; by_ground/by_switch; average_resolution_days: None if no terminal records; invalid_rate_pct: invalid/all_terminal). CSS 2023: 5WD window; debt alone does NOT block switch (SLC 14.5); invalid objections = SLC 14 breach; Ofgem enforcement. Connects to css_performance_register (Phase GA). PASS (384 files).
+
 **Phase GN (2026-06-30):** Unidentified Gas (UIG) Allocation Register -- 25 new tests (8,064 total). company/market/uig_allocation_register.py (new): UIGMonthlyRecord (frozen; settlement_month normalised to first of month; uig_rate_pct=uig/throughput*100; is_high_uig>=2.0%; [HIGH] flag in summary); UIGAllocationRegister (record_allocation: throughput>=0 guard; for_month(y,m); high_uig_periods; average_uig_rate_pct=None if no records; rolling_3m_avg_rate_pct; most_recent). Xoserve monthly UIG allocations; UK Gas Act/UK Link: >=2% triggers investigation; ~0.5-2% additional gas procurement cost. Distinct from gas_imbalance_ledger (flow balance). PASS (383 files).
 
 **Phase GM (2026-06-30):** Annual Compliance Attestation Register -- 31 new tests (8,039 total). company/regulatory/annual_compliance_attestation_register.py (new): AttestationStatus (5); AttestationOutcome (4: COMPLIANT/WITH_MITIGATIONS/MINOR_BREACH/MATERIAL_BREACH); SLCAttestationRecord (frozen; is_submitted: SUBMITTED+ACKNOWLEDGED; is_breach: MINOR+MATERIAL; query_response_due +20WD); AnnualComplianceAttestationRegister (create_attestation: end>start guard; submit/mark_acknowledged/mark_queried/supersede; outstanding_queries; compliance_rate_pct(year)). Ofgem Annual Compliance Statement (ACS): board-signed; published on licence register; Ofgem queries require response in 20WD. Distinct from slc_compliance_tracker (daily observations). PASS (382 files).
@@ -4390,7 +4392,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,064 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,090 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
