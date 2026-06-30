@@ -1,5 +1,5 @@
-Phase IB complete -- 9,380 tests. Phase IB: Coverage Expansion Sprint XII -- 30 tests (3 modules: tpi_commission_book, triad_notification_book, licence_application_register). All tests passing, epistemic verifier PASS (406 company/ files).
-Last updated: 2026-06-30T20:17:32Z
+Phase IC complete -- 9,410 tests. Phase IC: Coverage Expansion Sprint XIII -- 30 tests (3 modules: supplier_fitness_register, annual_board_pack, environmental_impact). All zero-test modules now covered. Epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T20:19:32Z
 
 **Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
