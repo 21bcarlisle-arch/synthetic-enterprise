@@ -1,11 +1,11 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T02:41:40Z
+Last updated: 2026-06-30T02:41:43Z
 
 ## Current state
 
-- **Phase:** AM complete (Pricing Basis Risk) -- phases P through AM shipped
-- **Tests passing:** 5,318 (all green)
+- **Phase:** AN complete (Portfolio Concentration Risk) -- phases P through AN shipped
+- **Tests passing:** 5,330 (all green)
 - **Python modules:** 330+
 - **Company modules:** 232+
 - **Net position (latest sim run):** £1,243,337
@@ -20,19 +20,15 @@ Last updated: 2026-06-30T02:41:40Z
 | Enterprise Value | £6,142,209 |
 | Administration Event | None |
 
-## Session summary (AH--AM): 6 phases, 84 tests
+## Session (AH--AN): 7 phases, 96 tests added
 
-- **Phase AM:** Pricing Basis Risk (12 tests). year-by-year tariff error; 2023/2025 HIGH OVER-PRICE.
-- **Phase AL:** Counterfactual Retention (12 tests). CF value of 4 missed no-offer churns: £3,621.
-- **Phase AK:** Churn Root Cause Attribution (14 tests). rate shock + blind misses per departure.
-- **Phase AJ:** CRM Risk Triage (14 tests). CRITICAL/HIGH/MEDIUM/LOW bands + company blind spots.
-- **Phase AI:** EAC Drift Snapshot (10 tests). per-customer demand drift from billing history.
-- **Phase AH:** Board Intelligence Pack (12 tests). retention/flex/churn board synthesis.
+Board intelligence sections added to annual report using existing run output:
+- **AN:** Portfolio Concentration (HHI=2249, I&C=98.7% of margin, warning triggered)
+- **AM:** Pricing Basis Risk (company_fwd vs sim_fwd; 2023/2025 HIGH OVER-PRICE)
+- **AL:** Counterfactual Retention (£3,621 net recoverable from 4 missed churns)
+- **AK:** Churn Root Cause Attribution (6 churns, 3 blind misses, £39,706 lost)
+- **AJ:** CRM Risk Triage (CRITICAL/HIGH/MEDIUM/LOW bands + company blind spots)
+- **AI:** EAC Drift Snapshot (per-customer demand drift from billing history)
+- **AH:** Board Intelligence Pack (retention/flex/churn synthesis, 4 board recs)
 
 -> Full build history: docs/PROJECT_OVERVIEW.md Section 4
-
-**Latest simulation results (2016–2025)** — auto-processed (763s / 13 min):
-- Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
-- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
