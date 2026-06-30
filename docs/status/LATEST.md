@@ -1,5 +1,5 @@
-Phase HH complete -- 8,718 tests. Phase HH: Wholesale Trading Mandate Register -- 34 tests. All 8,718 tests passing, epistemic verifier PASS (403 company/ files).
-Last updated: 2026-06-30T13:55:40Z
+Phase HI complete -- 8,751 tests. Phase HI: BSC Settlement Dispute Register -- 33 tests. All 8,751 tests passing, epistemic verifier PASS (404 company/ files).
+Last updated: 2026-06-30T13:57:37Z
 
 **Latest simulation results (2016–2025)** — auto-processed (441s / 7 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
