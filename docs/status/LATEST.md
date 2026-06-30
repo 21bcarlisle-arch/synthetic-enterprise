@@ -1,5 +1,5 @@
-Phase IH complete -- 9,560 tests. Coverage Depth Sprint V (capacity_to_pay, eep_book, meter_read_validation). Epistemic verifier PASS.
-Last updated: 2026-06-30T20:56:39Z
+Phase II complete -- 9,590 tests. Coverage Depth Sprint VI (pnl, credit_facility, retention_risk). Epistemic verifier PASS.
+Last updated: 2026-06-30T20:59:27Z
 
 **Latest simulation results (2016–2025)** — auto-processed (571s / 10 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
