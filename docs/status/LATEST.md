@@ -1,5 +1,5 @@
 Phase JE complete -- 10,218 tests. Coverage Depth Sprint XXVII (ets_registry, flexible_asset, desnz_returns). Epistemic verifier PASS.
-Last updated: 2026-06-30T22:11:58Z
+Last updated: 2026-06-30T22:21:14Z
 
 **Latest simulation results (2016–2025)** — auto-processed (451s / 8 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
