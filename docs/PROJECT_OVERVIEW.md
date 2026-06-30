@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase FV (2026-06-30):** Green Gas Levy (GGL) Register -- 31 new tests (7,506 total). company/regulatory/green_gas_levy_register.py (new): GGLPaymentStatus (ACCRUED/PAID/OVERDUE); GGLQuarterlyObligation (frozen; total_levy_gbp=meters×rate×days; quarter_label; payment_due_date=quarter_end+28d — Q4 rolls to Jan; is_overdue(as_of)); GreenGasLevyRegister (record_obligation: default rates from _GGL_RATE_GBP_PER_METER_PER_DAY 2022-2025; raises ValueError pre-Q4-2021; partial first quarter supported via days_in_quarter override; mark_paid/is_paid/obligations_for_year/unpaid_obligations/overdue_obligations/total_levy_paid_gbp/total_levy_accrued_gbp/annual_levy_gbp/ggl_summary). GGL Regulations 2021 SI 2021/1375: came into force 30 Nov 2021; funds GGSS biomethane injection scheme (successor to RHI); quarterly submission; DESNZ sets levy rate annually via SI (~£0.33→£0.70/meter/year 2022-2025). All licensed gas suppliers must pay per active gas supply point per day. Epistemic: rate observable from published DESNZ SI; meter count from company own register. PASS.
+
 **Phase FU (2026-06-30):** Triad Demand Response Book -- 25 new tests (7,475 total). company/trading/triad_response_book.py (new): TriadResponseOutcome (FULL/PARTIAL/NO_RESPONSE/NOT_ALERTED); TriadDemandEvent (frozen; demand_reduction_mw; reduction_pct; outcome from reduction% and was_alerted; tnuos_saving_gbp=reduction_kw x rate GBP80/kW Zone14); TriadDemandResponseBook (record; events_for_customer/season; full/no_response_events; total_demand_reduction_mw_for_season; total_tnuos_saving_gbp; response_rate_pct: alerted->full%; saving_by_customer; top_responders; demand_response_summary). Closes I&C Triad management backlog: triad_notification_book (AZ) + triad_exposure_register (FG) + demand response book (FU) = full Triad management cycle. NESO: 3 Triads/winter Nov-Feb; published March; Zone 14 ~GBP60-100/kW. Epistemic: baseline from company EAC forecast; actual from metered HH data; NESO rate from annual published statement. Epistemic verifier: PASS.
 
 **Phase FT (2026-06-30):** Imbalance Cash Flow Register -- 22 new tests (7,450 total). company/trading/imbalance_cashflow.py (new): SettlementRunType (INITIAL/RECONCILIATION/FINAL/AMENDED_FINAL); ImbalanceDirection (SHORT/LONG/FLAT); ImbalanceCashFlowRecord (frozen; direction from nop_mwh sign; cash_flow_gbp: SHORT pays outflow, LONG receives inflow, FLAT=0; is_outflow; sbp_ssp_spread; cashflow_summary); ImbalanceCashFlowRegister (record; records_for_date; short/long_records; total_net_cashflow_gbp; pending_payments_gbp(as_of): future outflows only; total_sbp_paid/ssp_received_gbp; cashflow_register_summary). BSC dual cash-out: SBP>SSP; NOP settlement T+2WD; 2022 crisis: SBP-SSP spread >GBP200/MWh. Complements imbalance_charge_register (EN); adds cash-flow lifecycle for liquidity management. Epistemic verifier: PASS.
@@ -4352,7 +4354,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 7,475 tests (fast / ~10s; simulation integration ~8 min per run)
+- 7,506 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
