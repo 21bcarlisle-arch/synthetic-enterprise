@@ -1,12 +1,12 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T05:01:33Z
+Last updated: 2026-06-30T05:16:26Z
 
 ## Current state
 
-- **Phase:** CE complete (SLC Compliance Tracker)
-- **Tests passing:** 5,873 (all green)
-- **Python modules:** 276 company/ + simulation + saas
+- **Phase:** CL complete (Fuel Mix Disclosure Book)
+- **Tests passing:** 5,957 (all green)
+- **Python modules:** 282 company/ + simulation + saas
 - **Net position (latest sim run):** £1,243,337
 
 ## Latest run figures (git 83538a9, 2026-06-30)
@@ -19,15 +19,14 @@ Last updated: 2026-06-30T05:01:33Z
 | Enterprise Value | £6,142,209 |
 | Administration Event | None |
 
-## This session: phases BY-CE (7 phases this continuation)
+## This session: phases CG-CL (6 phases this continuation)
 
-- **BY:** VaR & Treasury Evolution section (peak VaR 2016 @ 3.25)
-- **BZ:** Portfolio Margin Sensitivity Analyser (10-row board table)
-- **CA:** Service Quality Monitor + section (2022=RED crisis year)
-- **CB:** Hedge Value-Add Analysis (hedging cost £4.04M total vs spot)
-- **CC:** OTC Variation Margin Book (T+1 CSA; 2022 failure mechanism)
-- **CD:** Customer Commodity P&L section (gas loss confirms AR exit)
-- **CE:** SLC Compliance Tracker (8 SLCs → single RAG dashboard)
+- **CG:** Supplier Resilience Scorecard (Ofgem FRA 5-pillar; 2022=RED)
+- **CH:** Net Open Position Register (retail vs forwards; long-retail=crisis)
+- **CI:** Annual Board Pack Synthesiser (aggregates all company-layer RAGs)
+- **CJ:** Initial Margin Register (T+0 IM vs daily VM; 2022 liquidity drain)
+- **CK:** Liquidity Stress Test Book (mild/moderate/severe_2022 cash waterfall)
+- **CL:** Fuel Mix Disclosure Book (SLC 21C; REGO coverage; 280 gCO₂/kWh residual)
 
 **Annual report:** 159,922 chars / 65+ sections covering full 2016-2025 run
 
