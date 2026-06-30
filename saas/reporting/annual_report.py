@@ -4755,6 +4755,80 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_management_accounts(data: dict) -> str:
+    ma = data.get("management_accounts", {})
+    if not ma:
+        return ""
+    years = sorted(ma.keys())
+    lines = [
+        "## Annual Management Accounts",
+        "",
+        "Year-by-year income statement from company accounting records. All figures £.",
+        "",
+        "| Year | Revenue | Wholesale | Non-Commod | Gross Margin | Bad Debt | OpEx | Net Margin |",
+        "|------|---------|-----------|-----------|--------------|----------|------|------------|",
+    ]
+    cumulative_rev = 0.0
+    cumulative_net = 0.0
+    for yr in years:
+        inc = ma[yr].get("income_statement", {})
+        rev = inc.get("revenue_gbp", 0.0)
+        whl = inc.get("wholesale_cost_gbp", 0.0)
+        ncm = inc.get("non_commodity_cost_gbp", 0.0)
+        gm = inc.get("gross_margin_gbp", 0.0)
+        bd = inc.get("bad_debt_gbp", 0.0)
+        opx = inc.get("total_opex_gbp", 0.0)
+        net = inc.get("net_margin_gbp", 0.0)
+        cumulative_rev += rev
+        cumulative_net += net
+        net_pct = (net / rev * 100) if rev > 0 else 0.0
+        net_str = _fmt_gbp(net) + " (" + ("%.1f%%" % net_pct) + ")"
+        lines.append(
+            "| " + yr + " | " + _fmt_gbp(rev) + " | " + _fmt_gbp(whl) +
+            " | " + _fmt_gbp(ncm) + " | " + _fmt_gbp(gm) +
+            " | " + _fmt_gbp(bd) + " | " + _fmt_gbp(opx) +
+            " | " + net_str + " |"
+        )
+    # Totals row
+    total_pct = (cumulative_net / cumulative_rev * 100) if cumulative_rev > 0 else 0.0
+    lines.append(
+        "| **Total** | **" + _fmt_gbp(cumulative_rev) + "** | | | | | | **" +
+        _fmt_gbp(cumulative_net) + " (" + ("%.1f%%" % total_pct) + ")** |"
+    )
+    lines.append("")
+    # Key commentary
+    # Identify worst and best net margin years
+    margin_by_year = {yr: ma[yr].get("income_statement", {}).get("net_margin_gbp", 0.0) for yr in years}
+    best_yr = max(margin_by_year, key=lambda y: margin_by_year[y])
+    worst_yr = min(margin_by_year, key=lambda y: margin_by_year[y])
+    best_inc = ma[best_yr].get("income_statement", {})
+    worst_inc = ma[worst_yr].get("income_statement", {})
+    lines += [
+        "**Best year:** " + best_yr + " — net " + _fmt_gbp(best_inc.get("net_margin_gbp", 0)) +
+        " (" + ("%.1f%%" % (best_inc.get("net_margin_gbp", 0) / best_inc.get("revenue_gbp", 1) * 100)) + " margin)",
+        "**Worst year:** " + worst_yr + " — net " + _fmt_gbp(worst_inc.get("net_margin_gbp", 0)) +
+        " (" + ("%.1f%%" % (worst_inc.get("net_margin_gbp", 0) / worst_inc.get("revenue_gbp", 1) * 100)) + " margin)",
+        "",
+    ]
+    # Balance sheet summary for latest year
+    latest_yr = years[-1]
+    bs = ma[latest_yr].get("balance_sheet", {})
+    if bs:
+        lines += [
+            "### Balance Sheet (Year End " + latest_yr + ")",
+            "",
+            "| Item | Value |",
+            "|------|-------|",
+            "| Cash | " + _fmt_gbp(bs.get("cash_gbp", 0)) + " |",
+            "| Trade Receivables | " + _fmt_gbp(bs.get("trade_receivables_gbp", 0)) + " |",
+            "| **Total Assets** | **" + _fmt_gbp(bs.get("total_assets_gbp", 0)) + "** |",
+            "| Opening Capital | " + _fmt_gbp(bs.get("opening_capital_gbp", 0)) + " |",
+            "| Current Period Profit | " + _fmt_gbp(bs.get("current_period_profit_gbp", 0)) + " |",
+            "",
+        ]
+    return "\n".join(lines)
+
+
 def _section_segment_capital_efficiency(data):
     ydata = data.get('years', {})
     if not ydata:
@@ -5098,6 +5172,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_management_accounts(data))            # Phase AT
     sections.append(_section_gas_exit_analysis(data))              # Phase AS
     sections.append(_section_segment_capital_efficiency(data))     # Phase AP
     sections.append(_section_portfolio_concentration_risk(data))  # Phase AN
