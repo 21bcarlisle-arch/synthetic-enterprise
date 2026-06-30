@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase IB — Coverage Expansion Sprint XII (2026-06-30)
+**Modules:** tpi_commission_book · triad_notification_book · licence_application_register
+**Tests added:** 30 (TPI disclosure compliance, Triad TNUoS saving calc, Ofgem licence lifecycle)
+**Total:** 9,380 tests
+
 ### Phase IA — Coverage Expansion Sprint XI (2026-06-30)
 **Modules:** gas_exit_analysis · dadc_contract_register · regulatory_breach_log
 **Tests added:** 30 (gas exit scenarios, DA/DC BSC SVA appointments, Ofgem breach lifecycle)
@@ -4454,7 +4459,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 9,350 tests (fast / ~10s; simulation integration ~8 min per run)
+- 9,380 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
