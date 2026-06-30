@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,489 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,504 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BA (2026-06-30):** Price Elasticity Estimator -- 15 new tests (5,504 total). company/pricing/price_elasticity.py: ElasticityBand (LOW/MODERATE/HIGH); PriceChangeImpact (frozen; extra_churn_rate_pct / total_churn_rate_pct / expected_lost_customers / expected_lost_revenue_gbp / expected_retained_revenue_gbp / is_viable / revenue_delta_gbp / elasticity_band); PortfolioImpact (frozen; net_revenue_delta_gbp / retention_rate_pct); PriceElasticityBook (is_crisis_year multiplies elasticity ×1.5; estimate_churn_impact; model_portfolio_impact; optimal_tariff_change gradient search over user-specified range; elasticity_summary). Calibration: CMA 2016 / Ofgem 2019-2023 — resi=-0.18 (1.8% extra churn per 10% price rise); SME=-0.12; I&C=-0.05 (very inelastic — long contracts). Connects Phase AC (repricing actions), Phase M (renewal conversion). Epistemic verifier: PASS.
 
 **Phase AZ (2026-06-30):** I&C Triad Notification Book -- 15 new tests (5,489 total). company/market/triad_notification_book.py: AlertStatus (ISSUED/RESPONDED/NO_RESPONSE); TriadAlert (frozen; demand_reduction_kw = 70% × estimated_demand if RESPONDED, else 0); CustomerTriadProfile (frozen; triad_charge_gbp/avoided_charge_gbp using _TNUOS_TRIAD_RATE_GBP_PER_KW 2022=£60.40/kW); TriadSavingsRecord (frozen; response_rate_pct/saving_pct); TriadNotificationBook (enrol; issue_alert: requires enrolled profile — raises KeyError/ValueError; is_triad_season Nov-Feb; is_triad_risk_period SP 33-39; savings_for_account_year; total_portfolio_saving_gbp; triad_notification_summary). Calibration: C_IC3 at 1,000 kW peak demand → £42,280 estimated saving at 70% response. Connects to tnuos_ledger.py (Phase 29a). Closes I&C Triad management gap in backlog.
 
@@ -4110,7 +4112,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,489 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,504 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
