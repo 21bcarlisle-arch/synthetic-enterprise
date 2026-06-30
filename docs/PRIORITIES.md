@@ -1,16 +1,16 @@
 # Current Priorities
 
-Last updated: 2026-06-30 by Claude Code (Phase AQ complete)
+Last updated: 2026-06-30 by Claude Code (Phase FT complete)
 
 ## Now (active this session)
-- Phase AQ: Board Risk Summary -- COMPLETE (2026-06-30). 12 new tests (5,366 total).
-  6 RAG indicators synthesised: concentration/gas-ROC/churn-miss/demand-error/basis-risk/net-margin.
+- Phase FT: Imbalance Cash Flow Register -- COMPLETE (2026-06-30). 22 new tests (7,450 total).
+  company/trading/imbalance_cashflow.py: BSC dual cash-out lifecycle; SBP/SSP direction; pending payment view.
 
 ## Backlog (highest priority first)
-- Phase AR: Gas Exit Decision Book -- new company/finance/gas_exit_analysis.py
-  Models three scenarios for board: (1) exit gas entirely, (2) reprice C_IC3g/C4g, (3) status quo.
-  Uses per_cid_comm_pnl + per_customer_lifetime to compute net portfolio margin under each scenario.
-  Board-level decision tool. ~15-18 tests.
+- Phase FU: Next company layer module -- TBD based on build gaps
+- Dashboard: Flexibility revenue tab (per-year CM/DFS data from flexibility_revenue_by_year)
+- I&C Triad management model (active demand reduction in Triad windows for 1-4 GWh customers)
+- Real forward curve (NBP/EPEX term structure) -- HIGH fidelity, substantial work
 - Dashboard: Flexibility revenue tab (per-year CM/DFS data from flexibility_revenue_by_year)
 - I&C Triad management model (active demand reduction in Triad windows for 1-4 GWh customers)
 - Real forward curve (NBP/EPEX term structure) -- HIGH fidelity, substantial work

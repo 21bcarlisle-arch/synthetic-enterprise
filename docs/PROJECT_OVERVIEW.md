@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase FT (2026-06-30):** Imbalance Cash Flow Register -- 22 new tests (7,450 total). company/trading/imbalance_cashflow.py (new): SettlementRunType (INITIAL/RECONCILIATION/FINAL/AMENDED_FINAL); ImbalanceDirection (SHORT/LONG/FLAT); ImbalanceCashFlowRecord (frozen; direction from nop_mwh sign; cash_flow_gbp: SHORT pays outflow, LONG receives inflow, FLAT=0; is_outflow; sbp_ssp_spread; cashflow_summary); ImbalanceCashFlowRegister (record; records_for_date; short/long_records; total_net_cashflow_gbp; pending_payments_gbp(as_of): future outflows only; total_sbp_paid/ssp_received_gbp; cashflow_register_summary). BSC dual cash-out: SBP>SSP; NOP settlement T+2WD; 2022 crisis: SBP-SSP spread >GBP200/MWh. Complements imbalance_charge_register (EN); adds cash-flow lifecycle for liquidity management. Epistemic verifier: PASS.
+
 **Phase FS (2026-06-30):** EV Charging Demand Forecaster -- 13 new tests (6,752 total). company/market/ev_demand_forecast.py (new): ChargingPattern (3: SMART/UNMANAGED/MIXED); _SMART_KWH_PER_EV=3,700 kWh/yr; _SMART_FRACTION=0.85 (UK Smart Charge Point Regs 2021); EVDemandForecast (frozen; annual_ev_kwh=count×base; overnight_kwh: SMART 85%/UNMANAGED 50%/MIXED 65%; peak_risk_kwh; triad_risk_mw: SMART=0/UNMANAGED=peak/24_periods/0.5; forecast_summary); EVDemandForecaster (add_forecast; forecast_for_year; total_annual_ev_kwh with year filter; total_triad_risk_mw; smart_charging_adoption_pct; ev_demand_summary). Observable inputs: DVLA EV data, smart meter overnight patterns. Connects to triad_exposure (FG), tou_product_launch (X), flexibility_potential (AA).
 
 **Phase FR (2026-06-30):** Wholesale Gas Forward Curve -- 12 new tests (6,739 total). company/trading/gas_forward_curve.py (new): GasTenorBand (7: DA/BoM/front_month/summer/winter/Cal+1/Cal+2); _GAS_CONFIDENCE_INTERVAL_PCT: DA 3% to Cal+2 50%; _THERMS_PER_MWH=1/29.307; GasForwardPoint (frozen; mid_price_gbp_per_mwh; CI%; lower/upper_band_pence; is_crisis_price>200p; point_summary); GasForwardCurve (add_point; points_for_date sorted by tenor order; latest_da_price_pence; winter_summer_spread; crisis_points; gas_curve_summary). NBP (National Balancing Point); seasonal storage premium (winter > summer); CI widens with tenor liquidity falloff. Connects to gas_market_monitor (FF), forward_curve_confidence (ET).
@@ -4346,9 +4348,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 303+ Python modules (company layer), ~47,500 lines total
+- 350+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 5,623 tests (fast / ~10s; simulation integration ~8 min per run)
+- 7,450 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
