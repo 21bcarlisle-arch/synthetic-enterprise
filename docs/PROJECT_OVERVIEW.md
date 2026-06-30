@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,969 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,981 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CN (2026-06-30):** Unit Economics Report Section -- 12 new tests (5,981 total). saas/reporting/annual_report.py: _section_unit_economics() renders per-active-customer revenue / gross margin / net margin by year; flags net margin <5% with << marker (below Ofgem FRA comfort); identifies best year (2024, £26,588/customer) and worst year (2021, £3,642/customer). Wired into generate_annual_report() before Phase CD (_section_customer_commodity_pnl). 2021: 3.3% net margin flagged; 2022 crisis compressed net despite record revenue (£248k/customer). Epistemic verifier: PASS.
 
 **Phase CM (2026-06-30):** Market Share Estimator -- 12 new tests (5,969 total). company/market/market_share_estimator.py (new): MarketSegment (DOMESTIC / SME / INDUSTRIAL_COMMERCIAL); _UK_MARKET_SIZE benchmarks (29M domestic / 1.7M SME / 28k I&C, Ofgem/DESNZ published); _MICRO_SUPPLIER_THRESHOLD (<0.01% = micro); SegmentShareEstimate (frozen; market_share_pct / is_micro_supplier / customers_needed_for_1pct); MarketShareSnapshot (frozen; total_own / blended_share_pct / largest_segment / estimate_for_segment); MarketShareEstimator (record_year with optional market_overrides / snapshot_for_year / latest_snapshot / growth_rate_pct / share_trend / market_summary). Portfolio: 4 I&C = 0.0143% share; 9 domestic = 0.000031% (micro). Epistemic verifier: PASS.
 
@@ -4188,7 +4190,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,969 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,981 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

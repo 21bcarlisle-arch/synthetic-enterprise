@@ -4761,6 +4761,64 @@ def _section_gas_exit_analysis(data: dict) -> str:
 
 
 
+def _section_unit_economics(data: dict) -> str:
+    """Phase CN: Operational unit economics — per-customer and margin metrics."""
+    years = data.get("years", {})
+    if not years:
+        return ""
+
+    lines = [
+        "## Operational Unit Economics",
+        "",
+        "Revenue, gross margin, and net margin per active customer account. "
+        "The dramatic rise in 2022-23 reflects wholesale price crisis inflating "
+        "all revenue and cost metrics simultaneously.",
+        "",
+        "| Year | Active | Rev/cust | Gross/cust | Net/cust | Net % |",
+        "|------|--------|----------|------------|----------|-------|",
+    ]
+
+    for yr in sorted(years.keys()):
+        y = years[yr]
+        n_cust = len(y.get("active_customer_ids", []))
+        if n_cust == 0:
+            continue
+        rev = y.get("revenue_gbp", 0)
+        gross = y.get("gross_gbp", 0)
+        net = y.get("net_gbp", 0)
+        net_pct = net / rev * 100 if rev > 0 else 0.0
+        flag = " <<" if net_pct < 5.0 else ""
+        lines.append(
+            "| {} | {:d} | £{:,.0f} | £{:,.0f} | £{:,.0f} | {:.1f}%{} |".format(
+                yr, n_cust, rev / n_cust, gross / n_cust, net / n_cust, net_pct, flag
+            )
+        )
+
+    lines.append("")
+    lines.append("<< Net margin below 5% (below Ofgem FRA comfort threshold)")
+    lines.append("")
+
+    # Best and worst year per customer
+    best_yr = max(years.keys(), key=lambda y: years[y].get("net_gbp", 0) / max(len(years[y].get("active_customer_ids") or []), 1))
+    worst_yr = min(years.keys(), key=lambda y: years[y].get("net_gbp", 0) / max(len(years[y].get("active_customer_ids") or []), 1))
+    by_best = years[best_yr]
+    by_worst = years[worst_yr]
+    n_best = max(len(by_best.get("active_customer_ids") or []), 1)
+    n_worst = max(len(by_worst.get("active_customer_ids") or []), 1)
+    lines.append(
+        "**Best year per customer:** {} at £{:,.0f} net/customer".format(
+            best_yr, by_best.get("net_gbp", 0) / n_best
+        )
+    )
+    lines.append(
+        "**Worst year per customer:** {} at £{:,.0f} net/customer".format(
+            worst_yr, by_worst.get("net_gbp", 0) / n_worst
+        )
+    )
+
+    return chr(10).join(lines)
+
+
 def _section_customer_commodity_pnl(data: dict) -> str:
     """Phase CD: Per-customer lifetime P&L by commodity (electricity vs gas).
 
@@ -6791,6 +6849,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_unit_economics(data))               # Phase CN
     sections.append(_section_customer_commodity_pnl(data))        # Phase CD
     sections.append(_section_hedge_value_add(data))               # Phase CB
     sections.append(_section_service_quality(data))               # Phase CA
