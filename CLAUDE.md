@@ -26,7 +26,6 @@ real UK energy supplier works."
 - `background/ntfy_responder.py` writes inbound messages (>25 chars) to `docs/staging/from_rich_TIMESTAMP.md`
 - After acting on a `from_rich_*.md` message, reply via `background.ntfy_utils.send_ntfy`.
 - Move actioned files to `docs/staging/done/` after processing.
-
 **At startup and after every completed task:** poll `docs/staging/` and action unread files immediately.
 - `run_complete_*.md` — publish results (regenerate report, LATEST.md, dashboard.json), commit, push,
   archive. **Do NOT send NTFY for routine sim run completions.** Only NTFY for notable exceptions
@@ -60,7 +59,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence Book -- 15 tests (5,573 total). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario; minimum_viable_clv. PCW £55/referral £20/broker £160. I&C tenure 4.5yr > resi 3.2yr.
+**Phase BG COMPLETE (2026-06-30):** Portfolio CLV Evolution -- 12 tests (5,585 total). _section_clv_evolution(): gas-excluded CLV table per year; peak/delta summary. 2018 jump £37k→£1M (I&C joined); 2025 peak £3.46M.
+**Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence -- 15 tests (5,573 total). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario. PCW £55/ref £20/broker £160.
 **Phase BE COMPLETE (2026-06-30):** Gross Margin Bridge (YoY) -- 12 tests (5,558 total). _section_gross_margin_bridge(): revenue/wholesale/non-comm/GM + deltas table. 2022 GM%=24.8% worst; 2024 42.4% recovery.
 **Phase BD COMPLETE (2026-06-30):** Renewal Pricing Engine -- 15 tests (5,546 total). renewal_pricing_engine.py: FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER; SVT-cap; I&C 0.3× decay; portfolio_renewal_plan.
 **Phase BC COMPLETE (2026-06-30):** Risk Committee Activity Section -- 12 tests (5,531 total). _section_risk_committee_activity(): sessions/peak-VaR/accounts table; 38 sessions 2016-2025; 2016 busiest (13); 2023 peak VaR £130k (only 4 sessions); C1 adjusted 22× most.

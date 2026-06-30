@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,573 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,585 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BG (2026-06-30):** Portfolio CLV Evolution Section -- 12 new tests (5,585 total). saas/reporting/annual_report.py: _section_clv_evolution(): year-end CLV snapshots aggregated by year (gas accounts excluded via trailing 'g' filter); table shows total portfolio CLV / account count / average CLV / YoY delta; identifies peak, earliest/lowest, biggest YoY gain and drop. Key insight: 2018 I&C step-change (CLV jumped £37k→£1M when major I&C customers joined); 2025 peak at £3.46M forward portfolio value. Epistemic verifier: PASS.
 
 **Phase BF (2026-06-30):** Acquisition Strategy Intelligence Book -- 15 new tests (5,573 total). company/crm/acquisition_strategy_book.py (new): ChannelROIAnalysis (frozen; is_viable = CLV ≥ 3×CAC; net_value_gbp); PortfolioGrowthScenario (frozen; required_attempts from win_rate; total_cac_spend/expected_total_clv/net_value); AcquisitionStrategyBook (analyse_channel / rank_channels / model_growth_scenario / minimum_viable_clv / strategy_summary). Channel benchmarks: PCW £55, direct £30, broker £160, referral £20, winback £37. Tenure: I&C 4.5yr, resi 3.2yr, SME 2.8yr. Epistemic verifier: PASS.
 
@@ -4122,7 +4124,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,573 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,585 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

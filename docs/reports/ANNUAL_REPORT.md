@@ -908,6 +908,29 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Portfolio CLV Evolution
+
+Estimated forward lifetime value of active billing accounts at each year-end.
+
+| Year | Accounts | Total CLV £ | Avg CLV £ | Δ CLV £ |
+|------|----------|-------------|-----------|---------|
+| 2016 | 3 | £11,533 | £3,844 | — |
+| 2017 | 9 | £37,284 | £4,143 | +£25,750 |
+| 2018 | 10 | £1,009,778 | £100,978 | +£972,494 |
+| 2019 | 11 | £1,442,868 | £131,170 | +£433,090 |
+| 2020 | 13 | £2,728,361 | £209,874 | +£1,285,493 |
+| 2021 | 13 | £2,658,101 | £204,469 | £-70,260 |
+| 2022 | 14 | £2,848,746 | £203,482 | +£190,645 |
+| 2023 | 14 | £2,861,747 | £204,410 | +£13,001 |
+| 2024 | 14 | £3,307,559 | £236,254 | +£445,812 |
+| 2025 | 14 | £3,461,436 | £247,245 | +£153,877 |
+
+**Peak portfolio CLV: 2025 (£3,461,436)** | **Earliest/lowest: 2016 (£11,533)**
+**Largest YoY gain: 2020 (+£1,285,493)**
+**Largest YoY fall: 2021 (£-70,260)**
+
+> Note: CLV snapshots are forward estimates at year-end based on remaining contract tenure and expected margins at that point in time.
+
 ## Gross Margin Bridge (Year-over-Year Attribution)
 
 Annual change in gross margin decomposed into revenue and cost drivers.

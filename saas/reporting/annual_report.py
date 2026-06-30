@@ -4755,6 +4755,58 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_clv_evolution(data: dict) -> str:
+    """Phase BG: CLV Evolution — portfolio forward value trajectory by year."""
+    clv_snapshots = data.get("clv_snapshots", {})
+    if len(clv_snapshots) < 2:
+        return ""
+    rows = []
+    prev_total = None
+    for yr in sorted(clv_snapshots.keys()):
+        accts = clv_snapshots[yr]
+        elec = {k: v for k, v in accts.items() if not k.endswith("g")}
+        total = sum(elec.values())
+        count = len(elec)
+        avg = total / count if count else 0
+        if prev_total is None:
+            delta = "\u2014"
+        elif total >= prev_total:
+            delta = "+\u00a3{:,.0f}".format(total - prev_total)
+        else:
+            delta = "\u00a3{:,.0f}".format(total - prev_total)
+        rows.append((yr, count, total, avg, delta))
+        prev_total = total
+    lines = [
+        "## Portfolio CLV Evolution",
+        "",
+        "Estimated forward lifetime value of active billing accounts at each year-end.",
+        "",
+        "| Year | Accounts | Total CLV \u00a3 | Avg CLV \u00a3 | \u0394 CLV \u00a3 |",
+        "|------|----------|-------------|-----------|---------|",
+    ]
+    for yr, count, total, avg, delta in rows:
+        lines.append("| {} | {} | \u00a3{:,.0f} | \u00a3{:,.0f} | {} |".format(yr, count, total, avg, delta))
+    best_yr, best_total = max(((r[0], r[2]) for r in rows), key=lambda x: x[1])
+    worst_yr, worst_total = min(((r[0], r[2]) for r in rows), key=lambda x: x[1])
+    deltas_raw = [(rows[i][0], rows[i][2] - rows[i - 1][2]) for i in range(1, len(rows))]
+    biggest_jump_yr, biggest_jump_val = max(deltas_raw, key=lambda x: x[1])
+    biggest_drop_yr, biggest_drop_val = min(deltas_raw, key=lambda x: x[1])
+    lines.extend([
+        "",
+        "**Peak portfolio CLV: {} (\u00a3{:,.0f})** | **Earliest/lowest: {} (\u00a3{:,.0f})**".format(
+            best_yr, best_total, worst_yr, worst_total),
+        "**Largest YoY gain: {} (+\u00a3{:,.0f})**".format(biggest_jump_yr, biggest_jump_val),
+    ])
+    if biggest_drop_val < 0:
+        lines.append("**Largest YoY fall: {} (\u00a3{:,.0f})**".format(biggest_drop_yr, biggest_drop_val))
+    lines.extend([
+        "",
+        "> Note: CLV snapshots are forward estimates at year-end based on remaining"
+        " contract tenure and expected margins at that point in time.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_gross_margin_bridge(data: dict) -> str:
     """Phase BE: Gross margin bridge — year-over-year P&L attribution."""
     ma = data.get("management_accounts", {})
@@ -5592,6 +5644,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_clv_evolution(data))                  # Phase BG
     sections.append(_section_gross_margin_bridge(data))            # Phase BE
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
