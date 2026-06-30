@@ -1,74 +1,99 @@
+"""Tests for Billing Dispute Resolution Book (Phase FC)."""
 import datetime as dt
 import pytest
 from company.billing.billing_dispute import (
-    BillingDisputeType, BillingDisputeStatus, BillingDispute, BillingDisputeBook
+    DisputeStatus, DisputeReason, BillingDispute, BillingDisputeBook,
 )
 
-D = dt.date
+DATE = dt.date(2024, 3, 1)
+ACCT = "C1"
 
 
-def test_raise_dispute():
-    book = BillingDisputeBook()
-    d = book.raise_dispute('C001', 'INV-001', BillingDisputeType.WRONG_TARIFF_APPLIED, 75.0, D(2023, 5, 1))
-    assert d.status == BillingDisputeStatus.OPEN
-    assert d.is_open
+def make_dispute(amount=250.0, reason=DisputeReason.ESTIMATED_BILL,
+                 status=DisputeStatus.RAISED, credit=0.0, date=DATE):
+    return BillingDispute(
+        dispute_id="DISP-00001", account_id=ACCT,
+        raised_at=date, reason=reason,
+        disputed_amount_gbp=amount, status=status, credit_applied_gbp=credit,
+    )
 
 
-def test_resolve_with_credit():
-    book = BillingDisputeBook()
-    d = book.raise_dispute('C002', 'INV-002', BillingDisputeType.INCORRECT_UNIT_RATE, 120.0, D(2023, 5, 1))
-    resolved = book.resolve_with_credit(d.dispute_id, 120.0, D(2023, 5, 20))
-    assert resolved.status == BillingDisputeStatus.RESOLVED_CREDIT
-    assert resolved.credit_applied_gbp == 120.0
-    assert not resolved.is_open
+class TestBillingDispute:
+    def test_is_open_raised(self):
+        assert make_dispute().is_open
+
+    def test_is_open_investigating(self):
+        assert make_dispute(status=DisputeStatus.INVESTIGATING).is_open
+
+    def test_not_open_resolved(self):
+        d = make_dispute(status=DisputeStatus.RESOLVED_IN_SUPPLIER_FAVOUR)
+        assert not d.is_open
+
+    def test_can_disconnect_resolved(self):
+        d = make_dispute(status=DisputeStatus.RESOLVED_IN_SUPPLIER_FAVOUR)
+        assert d.can_disconnect
+
+    def test_cannot_disconnect_open(self):
+        assert not make_dispute(status=DisputeStatus.INVESTIGATING).can_disconnect
+
+    def test_net_disputed_amount(self):
+        d = make_dispute(amount=300.0, credit=100.0)
+        assert d.net_disputed_amount_gbp == pytest.approx(200.0)
+
+    def test_final_response_overdue(self):
+        d = make_dispute(date=dt.date(2023, 1, 1))
+        assert d.is_final_response_overdue(DATE)
+
+    def test_final_response_not_overdue(self):
+        assert not make_dispute().is_final_response_overdue(DATE)
+
+    def test_not_overdue_if_resolved(self):
+        d = make_dispute(status=DisputeStatus.RESOLVED_IN_CUSTOMER_FAVOUR,
+                         date=dt.date(2020, 1, 1))
+        assert not d.is_final_response_overdue(DATE)
+
+    def test_dispute_summary(self):
+        s = make_dispute().dispute_summary()
+        assert "DISP-00001" in s
 
 
-def test_resolve_no_change():
-    book = BillingDisputeBook()
-    d = book.raise_dispute('C003', 'INV-003', BillingDisputeType.EXIT_FEE_DISPUTE, 50.0, D(2023, 5, 1))
-    resolved = book.resolve_no_change(d.dispute_id, D(2023, 5, 15))
-    assert resolved.status == BillingDisputeStatus.RESOLVED_NO_CHANGE
-    assert resolved.credit_applied_gbp == 0.0
+class TestBillingDisputeBook:
+    def test_raise_auto_id(self):
+        book = BillingDisputeBook()
+        d = book.raise_dispute(ACCT, DisputeReason.ESTIMATED_BILL, 100.0, DATE)
+        assert d.dispute_id == "DISP-00001"
 
+    def test_open_disputes(self):
+        book = BillingDisputeBook()
+        book.raise_dispute(ACCT, DisputeReason.ESTIMATED_BILL, 100.0, DATE)
+        assert len(book.open_disputes()) == 1
 
-def test_days_to_resolution():
-    book = BillingDisputeBook()
-    d = book.raise_dispute('C004', 'INV-004', BillingDisputeType.DUPLICATE_INVOICE, 200.0, D(2023, 5, 1))
-    resolved = book.resolve_with_credit(d.dispute_id, 200.0, D(2023, 5, 11))
-    assert resolved.days_to_resolution == 10
+    def test_update_to_resolved(self):
+        book = BillingDisputeBook()
+        d = book.raise_dispute(ACCT, DisputeReason.ESTIMATED_BILL, 100.0, DATE)
+        updated = book.update_dispute(d.dispute_id,
+                                      DisputeStatus.RESOLVED_IN_CUSTOMER_FAVOUR, DATE)
+        assert not updated.is_open
+        assert len(book.open_disputes()) == 0
 
+    def test_overdue_final_responses(self):
+        book = BillingDisputeBook()
+        book.raise_dispute(ACCT, DisputeReason.ESTIMATED_BILL, 100.0, dt.date(2023, 1, 1))
+        assert len(book.overdue_final_responses(DATE)) == 1
 
-def test_open_disputes():
-    book = BillingDisputeBook()
-    d1 = book.raise_dispute('C005', 'INV-005', BillingDisputeType.MISSING_DISCOUNT, 30.0, D(2023, 5, 1))
-    d2 = book.raise_dispute('C006', 'INV-006', BillingDisputeType.DIRECT_DEBIT_ERROR, 80.0, D(2023, 5, 1))
-    book.resolve_no_change(d1.dispute_id, D(2023, 5, 14))
-    assert len(book.open_disputes()) == 1
+    def test_accounts_blocked_from_disconnection(self):
+        book = BillingDisputeBook()
+        book.raise_dispute(ACCT, DisputeReason.ESTIMATED_BILL, 100.0, DATE)
+        blocked = book.accounts_blocked_from_disconnection()
+        assert ACCT in blocked
 
+    def test_total_disputed_amount(self):
+        book = BillingDisputeBook()
+        book.raise_dispute(ACCT, DisputeReason.TARIFF_ERROR, 200.0, DATE)
+        assert book.total_disputed_amount_gbp() == pytest.approx(200.0)
 
-def test_total_credits_issued():
-    book = BillingDisputeBook()
-    d1 = book.raise_dispute('C007', 'INV-007', BillingDisputeType.WRONG_TARIFF_APPLIED, 100.0, D(2023, 5, 1))
-    d2 = book.raise_dispute('C008', 'INV-008', BillingDisputeType.INCORRECT_UNIT_RATE, 50.0, D(2023, 5, 1))
-    book.resolve_with_credit(d1.dispute_id, 100.0, D(2023, 5, 15))
-    book.resolve_with_credit(d2.dispute_id, 50.0, D(2023, 5, 18))
-    assert book.total_credits_issued_gbp() == pytest.approx(150.0)
-
-
-def test_disputes_for_customer():
-    book = BillingDisputeBook()
-    book.raise_dispute('C009', 'INV-009', BillingDisputeType.STANDING_CHARGE_ERROR, 25.0, D(2023, 5, 1))
-    book.raise_dispute('C009', 'INV-010', BillingDisputeType.DUPLICATE_INVOICE, 150.0, D(2023, 6, 1))
-    assert len(book.disputes_for_customer('C009')) == 2
-
-
-def test_annual_summary():
-    book = BillingDisputeBook()
-    d1 = book.raise_dispute('C010', 'INV-011', BillingDisputeType.WRONG_TARIFF_APPLIED, 80.0, D(2023, 5, 1))
-    d2 = book.raise_dispute('C011', 'INV-012', BillingDisputeType.EXIT_FEE_DISPUTE, 60.0, D(2023, 5, 1))
-    book.resolve_with_credit(d1.dispute_id, 80.0, D(2023, 5, 20))
-    s = book.annual_summary()
-    assert s['total_disputes'] == 2
-    assert s['resolved_credit'] == 1
-    assert s['total_credits_issued_gbp'] == pytest.approx(80.0)
-    assert s['avg_days_to_resolution'] is not None
+    def test_dispute_book_summary(self):
+        book = BillingDisputeBook()
+        book.raise_dispute(ACCT, DisputeReason.METER_ERROR, 150.0, DATE)
+        s = book.dispute_book_summary(DATE)
+        assert "Billing Disputes" in s

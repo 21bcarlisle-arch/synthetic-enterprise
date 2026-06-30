@@ -1,145 +1,175 @@
+"""Billing Dispute Resolution Book (Phase FC).
+
+When a customer disputes a charge on their bill, the supplier must follow
+a formal dispute resolution process.
+
+SLC 23 (Consumer standards): Suppliers must have effective complaint handling.
+SLC 14: Billing accuracy obligations.
+
+Dispute resolution stages:
+1. RAISED: Customer notifies supplier of dispute
+2. INVESTIGATING: Supplier reviews meter reads, tariff history, payments
+3. CREDIT_ISSUED: Supplier agrees error; credit applied before resolution
+4. RESOLVED_IN_CUSTOMER_FAVOUR: Charge corrected/waived
+5. RESOLVED_IN_SUPPLIER_FAVOUR: Original charge confirmed as correct
+6. REFERRED_TO_OMBUDSMAN: Customer disagrees with resolution
+
+Key obligations:
+- Acknowledge within 3 working days (SLC 18.7)
+- Resolve or provide Final Response within 8 weeks (SLC 18.9)
+- No disconnection while genuine dispute is unresolved
+- Back-billing cap applies to disputed historic charges (SLC 31A)
+"""
 from __future__ import annotations
 
 import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 
-class BillingDisputeType(str, Enum):
-    WRONG_TARIFF_APPLIED = 'wrong_tariff_applied'
-    INCORRECT_UNIT_RATE = 'incorrect_unit_rate'
-    MISSING_DISCOUNT = 'missing_discount'
-    DUPLICATE_INVOICE = 'duplicate_invoice'
-    DIRECT_DEBIT_ERROR = 'direct_debit_error'
-    STANDING_CHARGE_ERROR = 'standing_charge_error'
-    EXIT_FEE_DISPUTE = 'exit_fee_dispute'
+class DisputeStatus(str, Enum):
+    RAISED = "raised"
+    INVESTIGATING = "investigating"
+    CREDIT_ISSUED = "credit_issued"
+    RESOLVED_IN_CUSTOMER_FAVOUR = "resolved_in_customer_favour"
+    RESOLVED_IN_SUPPLIER_FAVOUR = "resolved_in_supplier_favour"
+    REFERRED_TO_OMBUDSMAN = "referred_to_ombudsman"
 
 
-class BillingDisputeStatus(str, Enum):
-    OPEN = 'open'
-    UNDER_REVIEW = 'under_review'
-    RESOLVED_CREDIT = 'resolved_credit'
-    RESOLVED_NO_CHANGE = 'resolved_no_change'
-    ESCALATED = 'escalated'
+class DisputeReason(str, Enum):
+    ESTIMATED_BILL = "estimated_bill"
+    TARIFF_ERROR = "tariff_error"
+    METER_ERROR = "meter_error"
+    BACK_BILLING = "back_billing"
+    DIRECT_DEBIT_ERROR = "direct_debit_error"
+    SWITCH_FINAL_BILL = "switch_final_bill"
+    PAYMENT_NOT_CREDITED = "payment_not_credited"
+
+
+_NO_DISCONNECT_STATUSES = frozenset({
+    DisputeStatus.RAISED,
+    DisputeStatus.INVESTIGATING,
+    DisputeStatus.CREDIT_ISSUED,
+})
+_FINAL_RESPONSE_DEADLINE_DAYS = 56  # 8 weeks SLC 18.9
 
 
 @dataclass(frozen=True)
 class BillingDispute:
     dispute_id: str
-    customer_id: str
-    invoice_reference: str
-    dispute_type: BillingDisputeType
+    account_id: str
+    raised_at: dt.date
+    reason: DisputeReason
     disputed_amount_gbp: float
-    opened_date: dt.date
-    status: BillingDisputeStatus
+    status: DisputeStatus = DisputeStatus.RAISED
     credit_applied_gbp: float = 0.0
-    closed_date: Optional[dt.date] = None
+    resolved_at: Optional[dt.date] = None
 
     @property
     def is_open(self) -> bool:
-        return self.status in (BillingDisputeStatus.OPEN, BillingDisputeStatus.UNDER_REVIEW)
+        return self.status in (
+            DisputeStatus.RAISED,
+            DisputeStatus.INVESTIGATING,
+            DisputeStatus.CREDIT_ISSUED,
+        )
 
     @property
-    def days_to_resolution(self) -> Optional[int]:
-        if self.closed_date is None:
-            return None
-        return (self.closed_date - self.opened_date).days
+    def can_disconnect(self) -> bool:
+        return self.status not in _NO_DISCONNECT_STATUSES
+
+    @property
+    def net_disputed_amount_gbp(self) -> float:
+        return self.disputed_amount_gbp - self.credit_applied_gbp
+
+    def is_final_response_overdue(self, as_of: dt.date) -> bool:
+        if not self.is_open:
+            return False
+        return (as_of - self.raised_at).days > _FINAL_RESPONSE_DEADLINE_DAYS
+
+    def dispute_summary(self) -> str:
+        return (
+            "BillingDispute " + self.dispute_id + " (" + self.account_id + "): "
+            + self.reason.value + " GBP" + str(round(self.disputed_amount_gbp, 2))
+            + " [" + self.status.value + "]"
+        )
 
 
 class BillingDisputeBook:
+
     def __init__(self) -> None:
-        self._disputes: Dict[str, BillingDispute] = {}
+        self._disputes: List[BillingDispute] = []
         self._next_id = 1
 
-    def raise_dispute(self, customer_id: str, invoice_reference: str,
-                      dispute_type: BillingDisputeType, disputed_amount_gbp: float,
-                      opened_date: dt.date) -> BillingDispute:
-        dispute_id = f'BDR-{self._next_id:04d}'
+    def raise_dispute(
+        self,
+        account_id: str,
+        reason: DisputeReason,
+        disputed_amount_gbp: float,
+        raised_at: dt.date,
+    ) -> BillingDispute:
+        did = "DISP-" + str(self._next_id).zfill(5)
         self._next_id += 1
         d = BillingDispute(
-            dispute_id=dispute_id,
-            customer_id=customer_id,
-            invoice_reference=invoice_reference,
-            dispute_type=dispute_type,
+            dispute_id=did,
+            account_id=account_id,
+            raised_at=raised_at,
+            reason=reason,
             disputed_amount_gbp=disputed_amount_gbp,
-            opened_date=opened_date,
-            status=BillingDisputeStatus.OPEN,
         )
-        self._disputes[dispute_id] = d
+        self._disputes.append(d)
         return d
 
-    def update_status(self, dispute_id: str, new_status: BillingDisputeStatus) -> BillingDispute:
-        d = self._disputes[dispute_id]
-        self._disputes[dispute_id] = BillingDispute(
-            dispute_id=d.dispute_id,
-            customer_id=d.customer_id,
-            invoice_reference=d.invoice_reference,
-            dispute_type=d.dispute_type,
-            disputed_amount_gbp=d.disputed_amount_gbp,
-            opened_date=d.opened_date,
-            status=new_status,
-            credit_applied_gbp=d.credit_applied_gbp,
-            closed_date=d.closed_date,
-        )
-        return self._disputes[dispute_id]
-
-    def resolve_with_credit(self, dispute_id: str, credit_gbp: float,
-                            closed_date: dt.date) -> BillingDispute:
-        d = self._disputes[dispute_id]
-        self._disputes[dispute_id] = BillingDispute(
-            dispute_id=d.dispute_id,
-            customer_id=d.customer_id,
-            invoice_reference=d.invoice_reference,
-            dispute_type=d.dispute_type,
-            disputed_amount_gbp=d.disputed_amount_gbp,
-            opened_date=d.opened_date,
-            status=BillingDisputeStatus.RESOLVED_CREDIT,
-            credit_applied_gbp=credit_gbp,
-            closed_date=closed_date,
-        )
-        return self._disputes[dispute_id]
-
-    def resolve_no_change(self, dispute_id: str, closed_date: dt.date) -> BillingDispute:
-        d = self._disputes[dispute_id]
-        self._disputes[dispute_id] = BillingDispute(
-            dispute_id=d.dispute_id,
-            customer_id=d.customer_id,
-            invoice_reference=d.invoice_reference,
-            dispute_type=d.dispute_type,
-            disputed_amount_gbp=d.disputed_amount_gbp,
-            opened_date=d.opened_date,
-            status=BillingDisputeStatus.RESOLVED_NO_CHANGE,
-            credit_applied_gbp=0.0,
-            closed_date=closed_date,
-        )
-        return self._disputes[dispute_id]
+    def update_dispute(
+        self,
+        dispute_id: str,
+        new_status: DisputeStatus,
+        as_of: dt.date,
+        credit_applied_gbp: float = 0.0,
+    ) -> Optional[BillingDispute]:
+        for i, d in enumerate(self._disputes):
+            if d.dispute_id == dispute_id:
+                resolved_at = as_of if new_status in (
+                    DisputeStatus.RESOLVED_IN_CUSTOMER_FAVOUR,
+                    DisputeStatus.RESOLVED_IN_SUPPLIER_FAVOUR,
+                    DisputeStatus.REFERRED_TO_OMBUDSMAN,
+                ) else None
+                updated = BillingDispute(
+                    dispute_id=d.dispute_id,
+                    account_id=d.account_id,
+                    raised_at=d.raised_at,
+                    reason=d.reason,
+                    disputed_amount_gbp=d.disputed_amount_gbp,
+                    status=new_status,
+                    credit_applied_gbp=credit_applied_gbp,
+                    resolved_at=resolved_at,
+                )
+                self._disputes[i] = updated
+                return updated
+        return None
 
     def open_disputes(self) -> List[BillingDispute]:
-        return [d for d in self._disputes.values() if d.is_open]
+        return [d for d in self._disputes if d.is_open]
 
-    def disputes_for_customer(self, customer_id: str) -> List[BillingDispute]:
-        return [d for d in self._disputes.values() if d.customer_id == customer_id]
+    def disputes_for_account(self, account_id: str) -> List[BillingDispute]:
+        return [d for d in self._disputes if d.account_id == account_id]
 
-    def total_credits_issued_gbp(self) -> float:
-        return round(sum(d.credit_applied_gbp for d in self._disputes.values()), 2)
+    def overdue_final_responses(self, as_of: dt.date) -> List[BillingDispute]:
+        return [d for d in self.open_disputes() if d.is_final_response_overdue(as_of)]
 
-    def annual_summary(self) -> dict:
-        all_d = list(self._disputes.values())
-        closed = [d for d in all_d if not d.is_open]
-        credited = [d for d in all_d if d.status == BillingDisputeStatus.RESOLVED_CREDIT]
-        by_type: dict = {}
-        for d in all_d:
-            by_type[d.dispute_type.value] = by_type.get(d.dispute_type.value, 0) + 1
-        avg_days = None
-        days_list = [d.days_to_resolution for d in closed if d.days_to_resolution is not None]
-        if days_list:
-            avg_days = round(sum(days_list) / len(days_list), 1)
-        return {
-            'total_disputes': len(all_d),
-            'open': len(self.open_disputes()),
-            'resolved_credit': len(credited),
-            'total_credits_issued_gbp': self.total_credits_issued_gbp(),
-            'avg_days_to_resolution': avg_days,
-            'by_type': by_type,
-        }
+    def accounts_blocked_from_disconnection(self) -> List[str]:
+        return list({d.account_id for d in self.open_disputes() if not d.can_disconnect})
+
+    def total_disputed_amount_gbp(self) -> float:
+        return sum(d.disputed_amount_gbp for d in self.open_disputes())
+
+    def dispute_book_summary(self, as_of: dt.date) -> str:
+        n_open = len(self.open_disputes())
+        n_overdue = len(self.overdue_final_responses(as_of))
+        total = self.total_disputed_amount_gbp()
+        return (
+            "Billing Disputes (" + str(as_of) + "): "
+            + str(n_open) + " open. "
+            "Overdue final responses: " + str(n_overdue) + ". "
+            "Total disputed: GBP" + str(round(total, 0)) + "."
+        )
