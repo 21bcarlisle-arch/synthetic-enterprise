@@ -4553,6 +4553,51 @@ def _section_pricing_basis_risk(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_segment_capital_efficiency(data):
+    ydata = data.get('years', {})
+    if not ydata:
+        return ''
+    sl = {}
+    for yr, yd in sorted(ydata.items()):
+        for seg, vals in yd.get('segment_split', {}).items():
+            if seg not in sl:
+                sl[seg] = [0.0, 0.0, 0.0]
+            sl[seg][0] += vals.get('gross_gbp', 0.0)
+            sl[seg][1] += vals.get('capital_gbp', 0.0)
+            sl[seg][2] += vals.get('net_gbp', 0.0)
+    if not sl:
+        return ''
+    lines = [
+        '## Segment Capital Efficiency (Return-on-Capital)',
+        '',
+        'Lifetime net margin and capital deployed per segment.',
+        'ROC = lifetime net / lifetime capital. ROC < 0 = capital destroyer.',
+        '',
+        '| Segment | Lifetime Gross | Capital Deployed | Lifetime Net | ROC | Signal |',
+        '|---------|---------------|------------------|--------------|-----|--------|',
+    ]
+    for seg in sorted(sl):
+        g, cap, net = sl[seg]
+        roc = net / cap if cap > 0 else 0.0
+        sig = 'CAPITAL DESTROYER' if roc < 0 else ('Low return' if roc < 5 else ('Moderate' if roc < 15 else 'Strong'))
+        lines.append('| ' + seg + ' | ' + _fmt_gbp(g) + ' | ' + _fmt_gbp(cap) + ' | ' + _fmt_gbp(net) + ' | ' + ('%.1fx' % roc) + ' | ' + sig + ' |')
+    lines.append('')
+    gas_segs = [s for s in sl if 'gas' in s]
+    elec_segs = [s for s in sl if 'electricity' in s]
+    gas_net = sum(sl[s][2] for s in gas_segs)
+    elec_net = sum(sl[s][2] for s in elec_segs)
+    gas_cap = sum(sl[s][1] for s in gas_segs)
+    if gas_cap > 0 and gas_net < 0:
+        lines += [
+            '**Gas Segment Finding:**',
+            '- Gas supply legs are net-negative over the simulation period (' + _fmt_gbp(gas_net) + ' net on ' + _fmt_gbp(gas_cap) + ' capital)',
+            '- Electricity segments (' + _fmt_gbp(elec_net) + ' net) cross-subsidise gas retention',
+            '- Board decision required: is dual-fuel gas justified by CLV, or does it need pricing reform?',
+            '',
+        ]
+    return chr(10).join(lines)
+
+
 def _section_portfolio_concentration_risk(data: dict) -> str:
     """Phase AN: Portfolio Concentration Risk.
 
@@ -4850,6 +4895,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_segment_capital_efficiency(data))     # Phase AP
     sections.append(_section_portfolio_concentration_risk(data))  # Phase AN
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))

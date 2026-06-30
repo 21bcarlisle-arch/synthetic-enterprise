@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,342 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,354 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AP (2026-06-30):** Segment Capital Efficiency -- 12 new tests (5,354 total). saas/reporting/annual_report.py: _section_segment_capital_efficiency() aggregates segment_split per year into lifetime gross/capital/net; ROC = net/capital; CAPITAL DESTROYER when ROC<0; gas finding when lifetime gas net < 0. Key finding: I&C gas ROC=-0.7x (-£132k net on £185k capital); resi gas ROC=-0.9x; I&C electricity ROC=27.1x cross-subsidises both gas segments. Board: gas supply is a capital destroyer justified only if CLV of dual-fuel retention exceeds loss. Epistemic verifier: PASS. Connects segment_split, Phase 331 (dual-fuel account).
 
 **Phase AO (2026-06-30):** Demand Estimation Error Trend -- 12 new tests (5,342 total). saas/reporting/annual_report.py: _section_company_divergence() extended with demand_error_by_year subsection; year-by-year mean/max EAC prediction error; HIGH/MODERATE/Low signals; trend note (0.07% in 2016 → 3.26% mean / 15.56% max in 2024 as customers acquire EVs/solar/heat pumps the company cannot directly observe); smart meter action note. Early-exit condition updated to include demand data. Epistemic verifier: PASS. Root cause: Phase B life events create temporary estimation gap until company observes a full billing cycle with new device. Connects demand_error_by_year (company_divergence), Phase B, Phase 23a.
 
@@ -4088,7 +4090,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,342 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,354 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -4097,7 +4099,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase AE, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,342 tests. Phase AO: Demand Estimation Error Trend (12 tests). Phase AN: Portfolio Concentration (12 tests). Phase AM: Pricing Basis Risk (12 tests).
+- 5,354 tests. Phase AP: Segment Capital Efficiency (12 tests). Phase AO: Demand Estimation Error Trend (12 tests). Phase AN: Portfolio Concentration (12 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
