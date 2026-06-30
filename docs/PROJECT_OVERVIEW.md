@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GQ (2026-06-30):** DNO Network Charge Dispute Register -- 32 new tests (8,151 total). company/market/dno_network_charge_dispute_register.py (new): DUoSDisputeGround (6); DUoSDisputeStatus (6); DUoSDisputeRecord (frozen; is_dno_response_overdue(as_of); outstanding_recovery_gbp: 0 for terminal, net for CREDIT, full for open); DNONetworkChargeDisputeRegister (raise_dispute: amount>0; acknowledge/resolve_with_credit/resolve_no_credit/escalate_gema/withdraw; success_rate_pct; overdue_dno_responses(as_of)). ENA 28-day response; DCOPF/GEMA escalation. Connects to duos_ledger.py, llf_register.py. PASS (386 files).
+
 **Phase GP (2026-06-30):** Fair Value Assessment Register -- 29 new tests (8,119 total). company/compliance/fair_value_assessment_register.py (new): ProductCategory (6); FairValueOutcome (5); FairValueAssessmentRecord (frozen; margin_per_customer_gbp; margin_pct; is_overdue_review >=12m; poor_value_review_due: POOR+30d or None); FairValueAssessmentRegister (create_assessment: cost/revenue>=0, count>=0 guards; approve/update_outcome; poor_value_products; overdue_reviews(as_of); unapproved_assessments; total_customers_assessed). Consumer Duty July 2023: annual board-approved assessment per product; POOR_VALUE triggers 30d remediation. Distinct from consumer_duty.py (general obligations). PASS (385 files).
 
 **Phase GO (2026-06-30):** Transfer Objection Register -- 26 new tests (8,090 total). company/market/transfer_objection_register.py (new): ObjectionGround (5); ObjectionStatus (5); TransferObjectionRecord (frozen; is_open: RAISED+VALID; objection_deadline +5WD; resolution_days uses resolution_date if set); TransferObjectionRegister (raise_objection; mark_valid/invalid/resolve/withdraw; invalid_objections; by_ground/by_switch; average_resolution_days: None if no terminal records; invalid_rate_pct: invalid/all_terminal). CSS 2023: 5WD window; debt alone does NOT block switch (SLC 14.5); invalid objections = SLC 14 breach; Ofgem enforcement. Connects to css_performance_register (Phase GA). PASS (384 files).
@@ -4394,7 +4396,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,119 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,151 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
