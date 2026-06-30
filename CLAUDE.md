@@ -57,13 +57,14 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BS COMPLETE (2026-06-30):** Committee Intervention Pattern -- 12 tests (5,729 total). Wakeups/adj/max-VaR per year; 2016 peak 13; 2022 resurgent 9.
-**Phase BR COMPLETE (2026-06-30):** Worst Settlement Period -- 12 tests (5,717 total). 2023 worst -£3,475 (C_IC3g).
-**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Levies -- 12 tests (5,705 total). BSC/CM/mute/CCL/gas per year; BSC £30→£10,210; mute 2021.
-**Phase BP COMPLETE (2026-06-30):** Customer Cohort Revenue -- 12 tests (5,693 total). Vintage by acquisition year; 2017 best (£837k); 2019 loss (gas drag).
-**Phase BO COMPLETE (2026-06-30):** CfD Levy & Treasury -- 12 tests (5,681 total). 2022 CfD CREDIT -£50k; treasury draws 2022-2024.
-**Phase BN COMPLETE (2026-06-30):** Segment Margin Attribution -- 12 tests (5,669 total). 5×10yr table; 2022 resi gas -£742; I&C £964k peak.
-**Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657 total). avg/above-cap/min/max from churn_basis_risk. 2021 5/9 above SVT.
+**Phase BT COMPLETE (2026-06-30):** Hedge Fraction Evolution -- 12 tests (5,741). 2019 first naked; 2024 lowest 79.3%.
+**Phase BS COMPLETE (2026-06-30):** Committee Intervention -- 12 tests (5,729). 2016 peak 13 wakeups; 2022 resurgent 9.
+**Phase BR COMPLETE (2026-06-30):** Worst Settlement Period -- 12 tests (5,717). 2023 worst -£3,475 (C_IC3g).
+**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Levies -- 12 tests (5,705). BSC/CM/mute/CCL per year; BSC £30→£10,210; mute 2021.
+**Phase BP COMPLETE (2026-06-30):** Customer Cohort Revenue -- 12 tests (5,693). Vintage; 2017 best (£837k net); 2019 loss (gas).
+**Phase BO COMPLETE (2026-06-30):** CfD Levy & Treasury -- 12 tests (5,681). 2022 CfD CREDIT -£50k; treasury draws 2022-2024.
+**Phase BN COMPLETE (2026-06-30):** Segment Attribution -- 12 tests (5,669). 5×10yr table; 2022 resi gas -£742; I&C £964k.
+**Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657). avg/above-cap from churn_basis_risk; 2021 5/9 above SVT.
 **Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). 5 scenarios/year RAG; StressTestBook wired to annual report.
 **Phase BK COMPLETE (2026-06-30):** Financial Ratios -- 12 tests (5,633 total). EBIT%/rev-per-cust/bad-debt-rate. 2022 worst EBIT 21.3%; £306k rev/cust peak.
 **Phase BJ COMPLETE (2026-06-30):** Churn Prediction Calibration -- 12 tests (5,621 total). UNDER/ACCURATE/OVER + MAE. 5/6 churns underestimated (epistemic gap).
@@ -161,9 +162,7 @@ If the answer requires reading simulation internals, it is a violation.
 The SIM/company seam (`company/interfaces/sim_interface.py`) enforces this boundary —
 exposes observables and outcomes only, never parameters or internals.
 ---
-
 ## Sequencing principles
-
 **Two-way-door filter:** don't build something that depends on an unresolved upstream question.
 **Build efficiency:** tests passing + capabilities added per frontier session (hard metric).
 Fidelity delta — one sentence per phase on what the sim can now do (soft metric, Rich assesses).

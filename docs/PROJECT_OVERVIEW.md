@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,729 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,741 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BT (2026-06-30):** Portfolio Hedge Fraction Evolution Section -- 12 new tests (5,741 total). saas/reporting/annual_report.py: _section_hedge_fraction_evolution(): reads hedge_fractions per year (per-customer avg_hf); computes portfolio avg / min / max / naked-count (hf < 5%); identifies lowest-avg year and first-naked year. Key insights: naked positions first appeared in 2019 when C_IC3g (gas I&C) was added with zero hedge; portfolio avg dropped from 89.6% (2017) to 79.3% (2024) — regime-change blindness in action; mirrors strategy that destroyed 28 real UK suppliers 2021-22. Epistemic verifier: PASS.
 
 **Phase BS (2026-06-30):** Risk Committee Intervention Pattern Section -- 12 new tests (5,729 total). saas/reporting/annual_report.py: _section_committee_intervention_pattern(): shows per-year committee wakeups (triggered by VaR threshold breach), total customer adjustments, avg customers per event, and max VaR stressed. Key insights: 2016 had peak 13 wakeups (early book calibration); 2018-2021 were quiet (stable hedging); 2022 resurgence with 9 wakeups (crisis onset) — 62 customer adjustments. Total 38 events across run. Years with zero wakeups skipped from table. Epistemic verifier: PASS.
 
@@ -4148,7 +4150,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,729 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,741 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

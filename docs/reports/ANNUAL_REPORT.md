@@ -908,6 +908,29 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Portfolio Hedge Fraction Evolution
+
+Average hedge fraction (0=fully naked, 1=fully hedged) per year.
+
+| Year | Portfolio Avg | Min HF | Max HF | Naked Accounts | Covered Accts |
+|------|--------------|--------|--------|---------------|--------------|
+| 2016 | 88.9% | 85.0% | 92.2% | — | 13 |
+| 2017 | 89.6% | 85.0% | 94.3% | — | 14 |
+| 2018 | 89.5% | 85.0% | 93.1% | — | 15 |
+| 2019 | 83.5% | 0.0% | 96.2% | 1 | 16 |
+| 2020 | 81.8% | 0.0% | 96.0% | 1 | 15 |
+| 2021 | 83.6% | 0.0% | 97.0% | 1 | 12 |
+| 2022 | 85.7% | 0.0% | 97.4% | 1 | 11 |
+| 2023 | 83.1% | 0.0% | 95.9% | 1 | 11 |
+| 2024 | 79.3% | 0.0% | 94.5% | 1 | 8 |
+| 2025 | 87.2% | 85.0% | 89.4% | — | 2 |
+
+**Lowest portfolio hedge fraction: 2024 (79.3%)** — risk erosion from regime-change blindness.
+**Naked positions first appear in 2019** — unhedged accounts expose portfolio to spot price swings.
+
+> Regime-change blindness: the sim converged toward lower hedging during calm 2016-2020,
+> mirroring the strategy that destroyed real UK suppliers entering the 2021-22 crisis.
+
 ## Risk Committee Intervention Pattern
 
 Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).

@@ -4755,6 +4755,51 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_hedge_fraction_evolution(data: dict) -> str:
+    """Phase BT: Portfolio hedge fraction evolution by year."""
+    years = data.get("years", {})
+    if not years:
+        return ""
+    rows = []
+    for yr in sorted(years.keys()):
+        y = years[yr]
+        hf_map = y.get("hedge_fractions", {})
+        avg_hf_vals = [v["avg_hf"] for v in hf_map.values() if isinstance(v, dict) and "avg_hf" in v]
+        if not avg_hf_vals:
+            continue
+        portfolio_avg = sum(avg_hf_vals) / len(avg_hf_vals)
+        min_hf = min(avg_hf_vals)
+        max_hf = max(avg_hf_vals)
+        naked_count = sum(1 for v in avg_hf_vals if v < 0.05)
+        n = len(avg_hf_vals)
+        rows.append((yr, portfolio_avg, min_hf, max_hf, naked_count, n))
+    if not rows:
+        return ""
+    lowest_avg_yr, lowest_avg, _, _, _, _ = min(rows, key=lambda r: r[1])
+    first_naked_yr = next((r[0] for r in rows if r[4] > 0), None)
+    lines = [
+        "## Portfolio Hedge Fraction Evolution",
+        "",
+        "Average hedge fraction (0=fully naked, 1=fully hedged) per year.",
+        "",
+        "| Year | Portfolio Avg | Min HF | Max HF | Naked Accounts | Covered Accts |",
+        "|------|--------------|--------|--------|---------------|--------------|",
+    ]
+    for yr, avg, min_hf, max_hf, naked, n in rows:
+        lines.append("| {} | {:.1%} | {:.1%} | {:.1%} | {} | {} |".format(
+            yr, avg, min_hf, max_hf, naked if naked > 0 else "—", n - naked))
+    lines.extend([""])
+    lines.append("**Lowest portfolio hedge fraction: {} ({:.1%})** — risk erosion from regime-change blindness.".format(lowest_avg_yr, lowest_avg))
+    if first_naked_yr:
+        lines.append("**Naked positions first appear in {}** — unhedged accounts expose portfolio to spot price swings.".format(first_naked_yr))
+    lines.extend([
+        "",
+        "> Regime-change blindness: the sim converged toward lower hedging during calm 2016-2020,",
+        "> mirroring the strategy that destroyed real UK suppliers entering the 2021-22 crisis.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_committee_intervention_pattern(data: dict) -> str:
     """Phase BS: Risk committee intervention pattern — wake-ups per year."""
     years = data.get("years", {})
@@ -6265,6 +6310,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_hedge_fraction_evolution(data))       # Phase BT
     sections.append(_section_committee_intervention_pattern(data)) # Phase BS
     sections.append(_section_worst_settlement_periods(data))       # Phase BR
     sections.append(_section_bsc_regulatory_levies(data))          # Phase BQ
