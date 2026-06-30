@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,861 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,873 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CE (2026-06-30):** SLC Compliance Tracker -- 12 new tests (5,873 total). company/regulatory/slc_compliance_tracker.py (new): SLCStatus (COMPLIANT/BREACH_RISK/BREACHED/N/A/UNKNOWN); SLCCategory (7: Billing/Credit/Debt/Metering/Renewal/Vulnerability/Smart); SLCObservation (frozen; severity_score 0-2; is_compliant/is_breached); SLCComplianceTracker (record/get/all_observations/breached/at_risk/compliant/total_breach_count/total_at_risk_count/overall_rag/by_category/highest_severity_slcs/compliance_summary). Consolidates SLC 6 (bills), 14 (refund), 21B (closure), 22 (renewal), 27 (debt), 27A (ATP), 31A (back-billing), 45 (smart meter) signals. Epistemic verifier: PASS.
 
 **Phase CD (2026-06-30):** Customer Lifetime P&L by Commodity Section -- 12 new tests (5,861 total). _section_customer_commodity_pnl() in annual_report.py: shows per-customer lifetime electricity and gas net margins side-by-side; loss-making accounts marked *; gas-loss summary; gas portfolio net as % of total. Key findings: C_IC3g lifetime loss -£132,711; C4g -£1,950; C7 -£1,378; C5 -£42. Gas portfolio net = -£133,697 (loss-making overall). Confirms Phase AR gas exit decision rationale. Epistemic verifier: PASS.
 
@@ -4170,7 +4172,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,861 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,873 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

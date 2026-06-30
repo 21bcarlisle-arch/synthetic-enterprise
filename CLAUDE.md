@@ -11,7 +11,6 @@ real UK energy supplier works."
 ---
 
 ## Who does what
-
 - **Rich** — MD/board. Stages instructions in `docs/staging/`. Staging = approval. Does not write code.
 - **Claude Code** — lead orchestrator. Designs, delegates, reviews, manages build.
 - **qwen3:14b (Ollama)** — all code generation and mechanical execution. Frontier tokens for reasoning only.
@@ -53,10 +52,11 @@ real UK energy supplier works."
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 ---
 ## Current state
+**Phase CE COMPLETE (2026-06-30):** SLC Compliance Tracker -- 12 tests (5,873). slc_compliance_tracker.py: SLCStatus/SLCCategory (7); SLCObservation (severity 0-2); SLCComplianceTracker (overall_rag/breached/at_risk/highest_severity_slcs). Consolidates SLC 6/14/21B/22/27/27A/31A/45 into single RAG.
 **Phase CD COMPLETE (2026-06-30):** Customer Commodity P&L section -- 12 tests (5,861). _section_customer_commodity_pnl(): per-customer lifetime elec/gas split; loss-marking (*); gas loss summary; gas % of total. C_IC3g -£132,711; C4g -£1,950; C7 -£1,378 loss-making. Confirms Phase AR gas exit rationale.
-**Phase CC COMPLETE (2026-06-30):** OTC Margin Call Book -- 12 tests (5,849). company/trading/otc_margin_book.py: MarginCallDirection (CALL/RETURN); MarginCallStatus; VariationMarginCall (frozen; cash_impact_gbp/is_call_on_company/is_settled/is_overdue T+1 CSA standard); OTCMarginBook (record_call/settle_call/pending/overdue/total_cash_impact/total_pending_outflow/calls_by_counterparty/net_cash_for_year). 2022 crisis mechanism: margin calls drain treasury when forwards move against company; direct cause of 28 UK supplier failures.
+**Phase CC COMPLETE (2026-06-30):** OTC Margin Call Book -- 12 tests (5,849). otc_margin_book.py: VariationMarginCall (CALL/RETURN; T+1 CSA; cash_impact/is_settled/is_overdue); OTCMarginBook (record/settle/pending/overdue/calls_by_counterparty/net_cash_for_year). Key 2022 supplier-failure mechanism.
 **Phase CB COMPLETE (2026-06-30):** Hedge Value-Add Analysis -- 12 tests (5,837). _section_hedge_value_add(): actual vs naked net margin 10-yr table; value-add always negative (backwardation 2016-21; hedging cost £4.04M total vs spot). 2022 worst (-£988k); 2016 best (-£8.9k).
-**Phase CA COMPLETE (2026-06-30):** Service Quality Monitor -- 12 tests (5,825). company/crm/service_quality_monitor.py: ServiceQualityRAG (GREEN/AMBER/RED); ServiceQualitySnapshot (clarity/complaint/shock RAG; shock_rate_pct); ServiceQualityMonitor (worst_clarity/complaint/shock year; is_improving; quality_summary). Annual report section: 10-yr table; 2022=RED (crisis); 2025=declining. Benchmarks: clarity>0.82 GREEN; complaint<5% GREEN; shock<0.20% GREEN.
+**Phase CA COMPLETE (2026-06-30):** Service Quality Monitor -- 12 tests (5,825). service_quality_monitor.py: RAG (clarity/complaint/shock); is_improving; quality_summary. Annual report: 10-yr table; 2022=RED; 2025 declining.
 **Phase BZ COMPLETE (2026-06-30):** Portfolio Margin Sensitivity Analyser -- 12 tests (5,813). company/finance/portfolio_margin_sensitivity.py: 5-factor/10-row sensitivity table; wholesale most sensitive (-10.4%); LOW/MEDIUM/HIGH severity. Board tool using observed P&L fractions.
 **Phase BY COMPLETE (2026-06-30):** VaR & Treasury -- 12 tests (5,801). Peak 2016(3.25); £2.47M→£3.59M.
 **Phase BX COMPLETE (2026-06-30):** Fuel Mix -- 12 tests (5,789). 45.5%→68.5% LC; 55% ren 2025.
@@ -116,7 +116,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase V COMPLETE (2026-06-29):** ToU Migration Impact Scenario -- 16 new tests (4,990 total). tou_migration_scenario.py: MigrationScenario; 0% migration best for all-EV (flat tariff cross-subsidy never recovered under ToU). Closes T-U-V chain.
 **Phase U COMPLETE (2026-06-29):** EV Cross-Subsidy Register -- 16 new tests (4,974 total). company/pricing/ev_cross_subsidy.py: CrossSubsidyRecord + CrossSubsidyRegister. Connects Phase T.
 **Phase T COMPLETE (2026-06-29):** ToU Tariff Profitability Assessor -- 16 new tests (4,958 total). tou_tariff_assessor.py: OVERNIGHT_HEAVY/STANDARD_FLAT/PEAK_HEAVY; EV = 4x more margin flat vs ToU (£746 vs £189). Enabled by Phase P.
-**Phase P COMPLETE (2026-06-29):** EV Smart Charging Shape (Overnight-Weighted) -- 12 new tests (4,942 total). simulation/run_phase2b.py: _EV_OVERNIGHT_PERIODS frozenset (periods 1-14 + 47-48 = 23:00-07:00, 16 periods); 90%/10% overnight/daytime split (UK Smart Charge Point Regs 2021). Replaces Phase N flat adder. Triad periods (16:00-19:00) now correctly low; overnight periods 9x higher per HH. Annual total conserved. Precondition for Phase T (ToU tariff profitability).
+**Phase P COMPLETE (2026-06-29):** EV Smart Charging Shape (Overnight-Weighted) -- 12 tests (4,942). _EV_OVERNIGHT_PERIODS: 23:00-07:00 (16 HH); 90%/10% overnight/day (UK SCPR 2021). Triad low; overnight 9x daytime. Precondition for Phase T.
 **Phase S COMPLETE (2026-06-29):** Dual-Fuel Billing Engine + Payment Ledger -- 44 tests (4,930 total). dual_fuel_bill.py/payment_ledger.py: FuelBillSection/DualFuelBill; DualFuelBillBook; PaymentLedger. VAT resi=5%/I&C=20%/SME usage-gated.
 **Phase R COMPLETE (2026-06-29):** SEG Export Estimator -- 21 tests (4,886 total). seg_export_estimator.py: 850 kWh/kWp/yr; 50%/70% self-consumption (BEIS 2022); 2022 crisis 7.5p vs 2020 4.0p. Battery 30% vs standard 50% export. Wires SEGBook to actual solar customers.
 **Phase Q COMPLETE (2026-06-29):** Battery Settlement Wiring -- 14 tests (4,865). _battery_daily_dispatch(): charge excess solar; discharge peaks 33-40; 90% round-trip; SOC tracking. Closes HH asset gap: solar+EV+ASHP+battery all in HH settlement.
