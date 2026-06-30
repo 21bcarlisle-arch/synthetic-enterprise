@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,993 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 6,005 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CP (2026-06-30):** BSC Settlement Exposure Report Section -- 12 new tests (6,005 total). saas/reporting/annual_report.py: _section_bsc_settlement_exposure() renders per-year BSC credit required and peak daily settlement amount; flags years where BSC credit > 0.4% of revenue with << marker; identifies peak credit year. BSC (Balancing and Settlement Code): Elexon requires suppliers to post credit cover for potential imbalance charges; scales with portfolio size and wholesale price level. 2022 peak: £10,210 credit; 2025 flagged at 0.51%. Wired before Phase CN. Epistemic verifier: PASS.
 
 **Phase CO (2026-06-30):** Contract Exposure Register -- 12 new tests (5,993 total). company/crm/contract_exposure_register.py (new): ContractStatus (FIXED_TERM / STANDARD_VARIABLE / OUT_OF_CONTRACT / DEEMED / PENDING_RENEWAL); ContractSegment (DOMESTIC/SME/I&C); ContractRecord (frozen; is_fixed_term / is_svt / days_remaining / is_in_notice_window — SLC 22 42-day window / annual_contract_revenue_gbp); ContractExposureRegister (fixed_term_contracts / svt_contracts / in_notice_window / notice_not_issued — SLC 22 breach risk / svt_revenue_at_risk_gbp / exposure_summary). SVT contracts are at-risk; OOC I&C allows supplier exit. Epistemic verifier: PASS.
 
@@ -4192,7 +4194,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,993 tests (fast / ~10s; simulation integration ~8 min per run)
+- 6,005 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -30,7 +30,6 @@ real UK energy supplier works."
 3. Proceed immediately to the next phase — do not hold for confirmation.
 4. Rich redirects via NTFY if he wants a different direction.
 **Always update and commit LATEST.md before sending NTFY.** If stale, fix the root cause.
-
 **When budget is available between tasks:** check backlog, fix known issues, improve coverage. Don't sit idle.
 ---
 ## Phase-close checklist (in order)
@@ -44,6 +43,7 @@ real UK energy supplier works."
 6. Commit and push.
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 ## Current state
+**Phase CP COMPLETE (2026-06-30):** BSC Settlement Exposure Section -- 12 tests (6,005). annual_report.py: _section_bsc_settlement_exposure(): BSC credit + peak daily per year; <<flag if >0.4% of revenue; peak year identified. 2022=£10,210 credit; 2025=0.51% flagged. Elexon BSC: suppliers must post credit cover for imbalance.
 **Phase CO COMPLETE (2026-06-30):** Contract Exposure Register -- 12 tests (5,993). company/crm/contract_exposure_register.py: ContractStatus (FIXED_TERM/SVT/OOC/DEEMED/PENDING_RENEWAL); ContractRecord (is_fixed_term/is_svt/days_remaining/is_in_notice_window/annual_contract_revenue_gbp); ContractExposureRegister (fixed_term/svt_contracts/in_notice_window/notice_not_issued→SLC 22 breach risk/svt_revenue_at_risk_gbp). SVT = at-risk; OOC = supplier may exit.
 **Phase CN COMPLETE (2026-06-30):** Unit Economics Annual Report Section -- 12 tests (5,981). annual_report.py: _section_unit_economics(): rev/gross/net per active customer by year; <<flag for net margin <5% (Ofgem FRA); best/worst year per customer. 2021=3.3% flagged; 2024=14.3% clean. Wired before Phase CD section.
 **Phase CM COMPLETE (2026-06-30):** Market Share Estimator -- 12 tests (5,969). company/market/market_share_estimator.py: MarketSegment (DOMESTIC/SME/I&C); UK benchmarks (29M domestic/1.7M SME/28k I&C, Ofgem); SegmentShareEstimate (market_share_pct/is_micro_supplier <0.01%/customers_needed_for_1pct); MarketShareSnapshot (blended_share/largest_segment); MarketShareEstimator (record_year/growth_rate_pct/share_trend). Our 4 I&C = 0.014% share; 9 resi = 0.000031% (micro).
@@ -146,7 +146,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase 317 COMPLETE (2026-06-27):** VAT Book -- 20 new tests (4,215 passing). company/finance/vat_book.py: VATRateCategory (5%/20%/0%/exempt), classify_vat_category, VATTransaction (frozen; vat_rate/vat_gbp/gross_amount), VATQuarterlyReturn (net_vat_due/is_repayment), VATBook (quarterly_return/total_output_vat/vat_summary). UK domestic energy 5% (Finance Act 1994); SME threshold <=33/145 kWh/day. Connects to invoice, ccl_ledger (Ph304), corporation_tax (Ph316).
 **Phase 316 COMPLETE (2026-06-27):** Corporation Tax Provision Book -- 24 new tests (4,195 passing). company/finance/corporation_tax.py: _ct_rate_for_year (20% 2016, 19% 2017-22, 25% 2023+), TaxProvision (frozen; taxable_profit/current_tax/effective_rate/is_loss_year), CorporationTaxBook (provision_for_year with loss-carry-forward; total_tax/loss_years/accumulated_losses/tax_summary). 19->25% from April 2023 = biggest UK CT rise since 1974. Connects to company_pl, pnl, management_accounts.
 **Phase 315 COMPLETE (2026-06-27):** Payment Plan Adequacy Checker -- 19 tests (4,171). payment_plan_adequacy.py: AFFORDABLE/BORDERLINE/UNAFFORDABLE; 15%/25% disposable income thresholds (SLC 27A ATP). 2022-23: 40% of plans unaffordable.
-**Phase 314 COMPLETE (2026-06-27):** Back-billing Compliance Book -- 16 new tests (4,152 passing). company/billing/back_billing.py: BackBillingReason, BackBillingAssessment (frozen; cap_applies: domestic+post-2018-05+old consumption; capped_amount_gbp pro-rata; written_off_gbp), BackBillingBook (capped_assessments/total_written_off_gbp/back_billing_summary). Ofgem SLC 31A 01-May-2018: 12-month cap on retrospective domestic charges; ~GBP90M sector write-off 2018-2022; non-domestic excluded. Connects to invoice, smart_meter_rollout (Ph284).
+**Phase 314 COMPLETE (2026-06-27):** Back-billing Compliance Book -- 16 tests (4,152). back_billing.py: SLC 31A 12-month cap (post May-2018 domestic); BackBillingAssessment (cap_applies/capped_amount/written_off); ~£90M sector write-off 2018-22.
 **Phase 313 COMPLETE (2026-06-27):** PPM Debt Loading Tracker -- 19 tests (4,136). ppm_debt_loading.py: £250 cap/5% rate cap/smart-meter consent (Ofgem 2019); 2023 forced-fitting scandal context.
 **Phase 312 COMPLETE (2026-06-27):** Account Closure Book -- 23 tests (4,117). account_closure.py: 7 ClosureStatuses; 42-day final bill SLC 21B; deposit returned or debt referred. Closes lifecycle loop.
 **Phase 311 COMPLETE (2026-06-27):** Debt Collection Process Book -- 26 tests (4,094). debt_collection.py: 6 DebtStages; statute-barred >6yr; recovery 95%→0%; agency 65p/£; SLC 27A.

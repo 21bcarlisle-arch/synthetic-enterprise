@@ -4761,6 +4761,52 @@ def _section_gas_exit_analysis(data: dict) -> str:
 
 
 
+def _section_bsc_settlement_exposure(data: dict) -> str:
+    """Phase CP: BSC credit required and peak daily settlement exposure."""
+    years = data.get("years", {})
+    if not years:
+        return ""
+
+    lines = [
+        "## BSC Settlement Exposure",
+        "",
+        "Elexon's Balancing and Settlement Code (BSC) requires suppliers to post "
+        "credit cover to fund potential imbalance charges. Credit requirements "
+        "track portfolio size and wholesale price levels. Peak daily settlement "
+        "is the largest single-day settlement amount seen in that year.",
+        "",
+        "| Year | BSC Credit Required | Peak Daily | % of Revenue |",
+        "|------|---------------------|------------|--------------|",
+    ]
+
+    for yr in sorted(years.keys()):
+        y = years[yr]
+        bsc = y.get("bsc_credit_required_gbp", 0)
+        peak = y.get("bsc_peak_daily_gbp", 0)
+        rev = y.get("revenue_gbp", 0)
+        ratio = bsc / rev * 100 if rev > 0 else 0.0
+        note = " <<" if ratio > 0.40 else ""
+        lines.append(
+            "| {} | £{:,.0f} | £{:,.0f} | {:.2f}%{} |".format(
+                yr, bsc, peak, ratio, note
+            )
+        )
+
+    lines.append("")
+    lines.append("<< BSC credit above 0.4% of revenue (elevated operational cash tie-up)")
+    lines.append("")
+
+    # Peak year
+    peak_yr = max(years.keys(), key=lambda y: years[y].get("bsc_credit_required_gbp", 0))
+    lines.append(
+        "**Peak BSC credit requirement:** {} at £{:,.0f} (portfolio growth and 2021-22 price surge)".format(
+            peak_yr, years[peak_yr].get("bsc_credit_required_gbp", 0)
+        )
+    )
+
+    return chr(10).join(lines)
+
+
 def _section_unit_economics(data: dict) -> str:
     """Phase CN: Operational unit economics — per-customer and margin metrics."""
     years = data.get("years", {})
@@ -6849,6 +6895,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_bsc_settlement_exposure(data))     # Phase CP
     sections.append(_section_unit_economics(data))               # Phase CN
     sections.append(_section_customer_commodity_pnl(data))        # Phase CD
     sections.append(_section_hedge_value_add(data))               # Phase CB
