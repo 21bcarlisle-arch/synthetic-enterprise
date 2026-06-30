@@ -1,5 +1,5 @@
-Phase HC complete -- 8,544 tests. Phase HC: Gas Safety Incident Register (GSIUR/RIDDOR) -- 36 tests. All 8,544 tests passing, epistemic verifier PASS (398 company/ files).
-Last updated: 2026-06-30T13:44:20Z
+Phase HD complete -- 8,582 tests. Phase HD: DSO Flexibility Tender Register -- 38 tests. All 8,582 tests passing, epistemic verifier PASS (399 company/ files).
+Last updated: 2026-06-30T13:46:16Z
 
 **Latest simulation results (2016–2025)** — auto-processed (439s / 7 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
