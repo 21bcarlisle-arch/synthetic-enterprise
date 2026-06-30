@@ -2928,3 +2928,31 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
 
 - [2026-06-30T02:25:16Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-06-30T02:28:21Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:31:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:37:30Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:38:51Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:42:16Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:42:44Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:44:26Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:47:15Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:50:44Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:53:30Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:53:54Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:56:50Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-06-30T02:59:35Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## 2026-06-30 -- Session continuation: Phases AK through AQ -- Annual Report Board Intelligence
+
+- **Frontier tokens:** ~estimated 200K (12 phases total this session including AH-AQ; session resumed after context compaction)
+- **Local model calls:** 0
+- **Produced:**
+  - Files created (8): test_phase_ak_churn_root_cause.py, test_phase_al_counterfactual_retention.py, test_phase_am_pricing_basis_risk.py, test_phase_an_portfolio_concentration.py, test_phase_ao_demand_error_trend.py, test_phase_ap_segment_capital.py, test_phase_aq_board_risk_summary.py, tests/saas/reporting/test_phase_al_counterfactual_retention.py
+  - Files modified (3): saas/reporting/annual_report.py, CLAUDE.md, docs/PROJECT_OVERVIEW.md
+  - Features shipped:
+    - Phase AK: _section_churn_root_cause() -- 6 departures, 4 blind misses, 39,706 lifetime margin lost (14 tests)
+    - Phase AL: _section_counterfactual_retention() -- 3,621 net recoverable from 4 missed, 94% actual retention rate (12 tests)
+    - Phase AM: _section_pricing_basis_risk() -- company_fwd vs sim_fwd, 2025 +32.8% HIGH OVER-PRICE (12 tests)
+    - Phase AN: _section_portfolio_concentration_risk() -- HHI=2249 MODERATE, I&C=98.7% of lifetime margin (12 tests)
+    - Phase AO: demand_error_by_year in _section_company_divergence() -- 0.07% to 3.26%/15.56% trend (12 tests)
+    - Phase AP: _section_segment_capital_efficiency() -- gas ROC=-0.7x CAPITAL DESTROYER (12 tests)
+    - Phase AQ: _section_board_risk_summary() -- 6 RAG indicators, 4 RED, board action summary (12 tests)
+- **Notes:** All phases are pure annual-report synthesis using existing run output data. No run_phase2b.py changes needed. All 84 new tests passed first run. Epistemic verifier PASS on each phase. CLAUDE.md required 5+ trim operations to stay under 35,000 char limit. Key session finding: gas supply is a capital destroyer (ROC=-0.7x), churn blind miss rate=67%, I&C=98.7% concentration risk.
