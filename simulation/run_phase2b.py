@@ -88,6 +88,7 @@ from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hed
 from company.trading.forward_book import ForwardContract, TradingBook
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost
 from company.crm.customer_profitability import compute_profitability_uplift
+from company.market.flexibility_revenue_book import FlexibilityRevenueBook
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -1611,6 +1612,21 @@ def main(report_end: str | None = None, sim_interface=None):
     total_net = sum(r["net_margin_gbp"] for r in all_records)
     final_treasury = all_records[-1]["treasury_cash_balance_gbp"] if all_records else STARTING_TREASURY_GBP
 
+    # Phase AF: DSR/Capacity Market flexibility revenue.
+    # Company earns CM revenue for all flexible assets (2016+).
+    # DFS revenue from 2022 onwards (NESO DFS launch).
+    _flex_book = FlexibilityRevenueBook()
+    _elec_cids = [c["customer_id"] for c in ELEC_CUSTOMERS]
+    _all_years = sorted({r["settlement_date"][:4] for r in all_records})
+    _flex_by_year: dict[str, dict[str, float]] = {}
+    if household_demand_register is not None:
+        for _yr_str in _all_years:
+            _yr_int = int(_yr_str)
+            _by_cid = _flex_book.compute_year(_yr_int, household_demand_register, _elec_cids)
+            _flex_by_year[_yr_str] = _by_cid
+    flexibility_revenue_summary = _flex_book.flexibility_summary()
+    total_flexibility_revenue = _flex_book.total_revenue_all_years()
+
     # Phase 27d: Triad risk for I&C customers.
     # Identify Triad periods for each winter in the run window, then compute
     # each I&C customer's TNUoS exposure. Uses SSP as a demand proxy.
@@ -1705,6 +1721,10 @@ def main(report_end: str | None = None, sim_interface=None):
         "demand_estimation_log": demand_estimation_log,  # Phase 23a: full log for report
         # Phase 43a: company trading book — forward position lifecycle
         "trading_book": trading_book.summary(),
+        # Phase AF: DSR/Capacity Market flexibility revenue
+        "flexibility_revenue_summary": flexibility_revenue_summary,
+        "flexibility_revenue_by_year": _flex_by_year,
+        "total_flexibility_revenue": total_flexibility_revenue,
     }
 
 

@@ -189,6 +189,10 @@ def extract_report_data(run_output: dict) -> dict:
     acquired_customer_ids = run_output.get("acquired_customers", [])
     growth_mandate = run_output.get("growth_mandate", "flat")
 
+    # Phase AF: flexibility revenue by year (CM + DFS)
+    flex_by_year: dict[str, dict[str, float]] = phase2b.get("flexibility_revenue_by_year", {})
+    flex_summary = phase2b.get("flexibility_revenue_summary", {})
+
     # Phase 53: BSC credit cover — computed while all_records is available
     bsc_credit_by_yr = compute_bsc_credit_by_year(all_records)
 
@@ -391,6 +395,10 @@ def extract_report_data(run_output: dict) -> dict:
             "gas_network_cost_gbp": sum(
                 r.get("gas_network_cost_gbp", 0.0) for r in yr_records if r.get("commodity") == "gas"
             ),
+            # Phase AF: DSR/CM flexibility revenue earned from flexible assets
+            "flexibility_revenue_gbp": sum(
+                flex_by_year.get(year, {}).values()
+            ),
         }
 
     per_customer_lifetime = {}
@@ -537,6 +545,8 @@ def extract_report_data(run_output: dict) -> dict:
         ),
         "cost_to_serve_portfolio_gbp": cost_to_serve.get("portfolio", {}).get("cost_to_serve_gbp"),
         "net_margin_after_cost_to_serve_gbp": cost_to_serve.get("portfolio", {}).get("net_margin_gbp"),
+        "flexibility_revenue_summary": flex_summary,
+        "total_flexibility_revenue_gbp": flex_summary.get("total_flexibility_revenue_gbp", 0.0),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
         "by_billing_account": by_billing_account,
