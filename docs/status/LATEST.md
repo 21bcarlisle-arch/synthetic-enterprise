@@ -1,16 +1,16 @@
 # Simulation Status — LATEST
 
-Last updated: 2026-06-30T01:55:24Z
+Last updated: 2026-06-30T02:06:56Z
 
 ## Current state
 
-- **Phase:** AG complete (Annual Report Flexibility Revenue Section) -- T..Z+AA..AF+AG shipped
-- **Tests passing:** 5,244 (all green)
-- **Python modules:** 328+
-- **Company modules:** 230+
+- **Phase:** AH complete (Board Intelligence Pack) -- all phases P→AH shipped
+- **Tests passing:** 5,256 (all green)
+- **Python modules:** 330+
+- **Company modules:** 232+
 - **Net position (latest sim run):** £1,243,337
 
-## Latest run figures (git 173b93c, 2026-06-29)
+## Latest run figures (git 5e2a5dc, 2026-06-30)
 
 | Metric | Value |
 |--------|-------|
@@ -20,29 +20,20 @@ Last updated: 2026-06-30T01:55:24Z
 | Enterprise Value | £6,142,209 |
 | Administration Event | None |
 
-## Recent build phases (P→I)
+## Recent build phases (AG→AH)
 
-- **Phase P:** EV overnight smart-charging shape (12 tests). 90% overnight (periods 1-14, 47-48); triad periods now correctly low. Precondition for ToU tariff economics.
-- **Phase S:** Unified Dual-Fuel Billing Engine + Payment Ledger (44 tests). DualFuelBill/DualFuelBillBook/PaymentLedger. Portal billing page.
-- **Phase R:** SEG Export Estimator (21 tests). Wires SEGBook to solar customers via capacity-based estimation.
-- **Phase Q:** Battery home energy storage settlement wiring (14 tests). Battery charges from excess solar, discharges in evening peak.
-- **Phase O:** Solar dynamic settlement wiring (12 tests). Life-event solar now gets irradiance reduction in HH shape.
-- **Phase N:** EV settlement wiring + physical suitability (26 tests). has_driveway/roof_aspect/hp_eligible gates.
-- **Phase M:** Renewal Conversion Rate Book (21 tests). CRM lifecycle complete.
-- **Phase L:** Tariff Segment Profitability Book (19 tests).
-- **Phase K:** Break-Even Tariff Assessor (21 tests).
-- **Phase I:** ASHP Seasonal Electricity Shape HDD-weighted (10 tests).
+- **Phase AH:** Board Intelligence Pack (12 tests). _section_portfolio_intelligence_pack() in annual_report.py:
+  retention coverage rate/acceptance rate, flexibility enrollment CAGR, churn peak year,
+  net book movement, 4 board recommendations. Uses retention_log/no_offer_churn_log/company_event_log.
+- **Phase AG:** Flexibility Revenue Annual Report Section (12 tests). _section_flexibility_revenue() renders
+  CM vs DFS revenue table; pre-DFS years labelled; enrolled customer-years count; DFS launch note.
+- **Phase AF:** DSR/Flexibility Revenue Integration (15 tests). FlexibilityRevenueBook computes
+  CM (2016+) and DFS (2022+) revenue from dynamic_assets; wired into run_phase2b and annual_report.
+- **Phase AE:** Customer Retention Offer Book (21 tests). CustomerRetentionBook generates tailored offers
+  by driver: EV+RATE_SHOCK→TOU_REFERRAL; RATE_SHOCK→PRICE_MATCH 8%; BILL_STRESS→ACCOUNT_REVIEW.
+- **Phase AD:** Portfolio Churn Risk Book (34 tests). PortfolioChurnRiskBook: CRITICAL/HIGH/MEDIUM/LOW
+  bands; RATE_SHOCK/BILL_STRESS/TENURE_SHORT/BASELINE drivers; revenue-at-risk.
+- **Phase AC:** Portfolio Repricing Action Book (24 tests). RepricingPriority CRITICAL→MONITOR; EAC-based
+  recommended tariff; 70% retention; margin recovery estimates.
 
-## Architecture
-
-- SIM layer: half-hourly settlement, weather, household physics, life events
-- SaaS layer: billing, risk, regulatory, CRM, finance
-- Seam: company/interfaces/sim_interface.py (epistemic boundary)
-
-→ Full history: docs/PROJECT_OVERVIEW.md | Report: docs/reports/ANNUAL_REPORT.md
-
-**Latest simulation results (2016–2025)** — auto-processed (503s / 8 min):
-- Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
-- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
+→ Full build history: docs/PROJECT_OVERVIEW.md Section 4
