@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 6,041 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 6,054 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CT (2026-06-30):** Shipper Code Register -- 13 new tests (6,054 total). company/market/shipper_code_register.py (new): LDZ enum (13 GB Local Distribution Zones: EA/EM/NE/NO/NT/NW/SC/SE/SO/SW/WM/WN/WS); LDZAuthorisation (frozen; effective_date/is_active); ShipperRecord (active_ldz_codes/ldz_coverage_count/is_national/can_supply_in/add_ldz/revoke_ldz); ShipperCodeRegister (register/suspend/active_shippers/suspended/shipper_summary). Xoserve UK Link: shipper code required for gas transportation under UNC; each LDZ requires separate authorisation; MPRN registry. Epistemic verifier: PASS.
 
 **Phase CS (2026-06-30):** Gas Nomination Register -- 12 new tests (6,041 total). company/market/gas_nomination_register.py (new): NominationStatus (INITIAL/REVISED/CONFIRMED/SETTLED); ImbalanceDirection (LONG/SHORT/BALANCED ±5% tolerance); GasNominationRecord (frozen; effective_nominated_kwh — uses revised if set; imbalance_kwh / imbalance_pct / direction / is_in_tolerance); GasNominationRegister (nominate / revise / settle / out_of_tolerance_days / short_days / long_days / mean_imbalance_pct / nomination_summary). UNC: nominate by 08:30 each gas day (06:00-06:00); cash-out penalty applies outside ±5% tolerance; small shipper flex band. Epistemic verifier: PASS.
 
@@ -4200,7 +4202,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 6,041 tests (fast / ~10s; simulation integration ~8 min per run)
+- 6,054 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
