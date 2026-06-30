@@ -1,5 +1,5 @@
-Phase HO complete -- 8,936 tests. Phase HO: Supplier Resilience Scorecard -- 28 tests. All 8,936 tests passing, epistemic verifier PASS (406 company/ files).
-Last updated: 2026-06-30T19:16:02Z
+Phase HP complete -- 8,964 tests. Phase HP: Renewal Pricing Engine -- 28 tests. All tests passing, epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T19:21:00Z
 
 **Latest simulation results (2016–2025)** — auto-processed (746s / 12 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668

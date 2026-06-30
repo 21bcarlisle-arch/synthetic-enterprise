@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase HP (2026-06-30):** Renewal Pricing Engine -- 28 new tests (8,964 total). company/pricing/renewal_pricing_engine.py (existing; test coverage). RenewalPricingRecommendation (FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER); RenewalPricingResult (total_cost_per_mwh; margin_per_mwh; is_viable; vs_svt_pct); _estimate_conversion: 2%/1% decay above SVT; I&C 30% decay; RenewalPricingEngine (cost_floor; SVT×1.02 cap; NO_OFFER if floor>SVT; portfolio_renewal_plan; pricing_summary). Cost-to-serve per MWh; elasticity calibrated to CMA 2016. Connects to renewal_portfolio (Phase Q*), nop_register (HL).
 **Phase HO (2026-06-30):** Supplier Resilience Scorecard -- 28 new tests (8,936 total). company/risk/supplier_resilience_scorecard.py (existing; test coverage). Five-pillar Ofgem FRA: liquidity/hedge/credit/concentration/stress; PillarRAG; composite_score; overall_rag=worst. Post-2022 FRA framework (28 failures 2021-22).
 **Phase HN (2026-06-30):** Risk Committee Decision Ledger -- 23 new tests (8,908 total). company/risk/risk_committee_ledger.py (existing; test coverage). CommitteeSession (var_ratio; outcome: EFFECTIVE/NEUTRAL/COUNTERPRODUCTIVE/PENDING; treasury_delta); RiskCommitteeDecisionLedger (sessions_for_year/trigger; effectiveness_rate; most_active_trigger; busiest_year; governance_summary).
 **Phase HM (2026-06-30):** Service Quality Monitor -- 30 new tests (8,885 total). company/crm/service_quality_monitor.py (existing; test coverage). ServiceQualityRAG; ServiceQualitySnapshot (clarity/complaint/bill_shock RAGs; overall=worst; shock_rate_pct); ServiceQualityMonitor (record; worst_year helpers; is_improving; quality_summary). Ofgem: clarity>0.80/complaints<2.5%; Consumer Duty outcomes.
@@ -4438,7 +4439,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 8,936 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,964 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
