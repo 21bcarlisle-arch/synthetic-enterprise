@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GM (2026-06-30):** Annual Compliance Attestation Register -- 31 new tests (8,039 total). company/regulatory/annual_compliance_attestation_register.py (new): AttestationStatus (5); AttestationOutcome (4: COMPLIANT/WITH_MITIGATIONS/MINOR_BREACH/MATERIAL_BREACH); SLCAttestationRecord (frozen; is_submitted: SUBMITTED+ACKNOWLEDGED; is_breach: MINOR+MATERIAL; query_response_due +20WD); AnnualComplianceAttestationRegister (create_attestation: end>start guard; submit/mark_acknowledged/mark_queried/supersede; outstanding_queries; compliance_rate_pct(year)). Ofgem Annual Compliance Statement (ACS): board-signed; published on licence register; Ofgem queries require response in 20WD. Distinct from slc_compliance_tracker (daily observations). PASS (382 files).
+
 **Phase GL (2026-06-30):** Line Loss Factor (LLF) Register -- 26 new tests (8,008 total). company/market/llf_register.py (new): LLFRecord (frozen; is_current=effective_to is None; is_effective_as_of checks from<=date<to exclusive; loss_uplift_pct=(llf-1)*100); LLFRegister (register_llf: llf_value>0 guard; update_llf: closes current then registers new; current_llf_for(mpan,as_of); historical_for_mpan sorted by effective_from; high_loss_meters(as_of, threshold=1.05); average_llf_as_of; portfolio_loss_uplift_pct). BSC Section S / BSCP128: settlement_qty=metered_qty×LLF; DNOs publish LLFs annually; domestic ~1.00-1.05; rural up to 1.12. **8,000 test milestone**. PASS (381 files).
 
 **Phase GK (2026-06-30):** Change of Tenancy Register -- 32 new tests (7,982 total). company/crm/change_of_tenancy_register.py (new): CoTType (5); CoTStatus (5); CoTRecord (frozen; is_open: NOTIFIED+SUPPLY_TAKEN; mpas_notification_due +2WD; read_submission_due +10WD; is_abandon_candidate: NOTIFIED+>=3 attempts+>=28d); ChangeOfTenancyRegister (notify_cot; accept_supply/decline/log_contact_attempt/mark_abandoned/close; abandon_candidates(as_of); active_supply_for_mpan=latest SUPPLY_TAKEN; conversion_rate_pct=taken/(taken+terminal)). SLC 12.2/27: debt not transferable to property; new tenant gets deemed supply from day 1. Connects to back_billing (Ph314), credit_assessment (DU). PASS (380 files).
@@ -4386,7 +4388,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,008 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,039 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
