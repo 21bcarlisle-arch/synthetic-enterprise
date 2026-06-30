@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GY (2026-06-30):** TPI Conduct Compliance Register -- 29 new tests (8,388 total). company/crm/tpi_conduct_register.py (new): TPIMisconductType (7); TPIComplaintStatus (6); TPISanction (5); _SERIOUS: CONTRACT_FORGERY+DATA_MISUSE; TPIComplaintRecord (frozen; investigation_due +10d; is_serious); TPIConductRegister (receive_complaint; start_investigation/uphold/not_uphold/escalate_to_ofgem; uphold_rate_pct: terminal only; tpis_with_repeat_complaints(threshold)). Ofgem TPI Code 2021; SMICR; 10-day investigation SLA. Distinct from tpi_commission_book.py. PASS (394 files).
+
 **Phase GX (2026-06-30):** Customer Account Adjustment Register -- 29 new tests (8,359 total). company/billing/account_adjustment_register.py (new): AdjustmentType (8); AdjustmentDirection (CREDIT/DEBIT); AdjustmentStatus (5); approval_tier_required: <=25 auto, <=100 team_leader, <=500 management, >500 director; AccountAdjustmentRecord (frozen; net_amount_gbp: negative for credits; is_open: PENDING+APPROVED); AccountAdjustmentRegister (raise_adjustment: amount>0; auto-approves <=GBP25; approve/apply/reject/reverse; goodwill_spend_gbp). Consumer Duty: goodwill over-reliance indicator. Distinct from billing_dispute.py, back_billing.py. PASS (393 files).
 
 **Phase GW (2026-06-30):** Non-Commodity Cost (NCC) Forecast Register -- 21 new tests (8,330 total). company/pricing/ncc_forecast_register.py (new): NCCComponent (11); Fuel (ELECTRICITY/GAS); NCCForecastRecord (frozen; period_months; is_applicable_for_fuel: GAS+ELECTRICITY_ONLY returns False; annual_cost_per_customer_gbp: p/kWh→kwh×rate/100, GBP/customer→rate); NCCForecastRegister (add_forecast: period_end>start, rate>=0; total_ncc_pence_per_kwh: only p/kWh records; components_without_forecast(period,fuel)). NCC ~40-50% domestic bill; NCC under-estimation was core cause of 2021-22 failures. Distinct from bsuos_ledger.py etc. (actuals). PASS (392 files).
@@ -4410,7 +4412,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,359 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,388 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
