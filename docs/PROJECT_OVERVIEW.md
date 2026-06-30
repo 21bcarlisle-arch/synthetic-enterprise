@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase IA — Coverage Expansion Sprint XI (2026-06-30)
+**Modules:** gas_exit_analysis · dadc_contract_register · regulatory_breach_log
+**Tests added:** 30 (gas exit scenarios, DA/DC BSC SVA appointments, Ofgem breach lifecycle)
+**Total:** 9,350 tests
+
 ### Phase 0 — Prove the Machine (early June 2026)
 **What was built:** agentic loop, Elexon SSP data ingestion, basic settlement proof-of-concept.
 **What it proved:** the architecture works end-to-end. Claude Code can orchestrate Qwen3 to write simulation code that runs against real data without hallucinating.
@@ -4449,7 +4454,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 9,320 tests (fast / ~10s; simulation integration ~8 min per run)
+- 9,350 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

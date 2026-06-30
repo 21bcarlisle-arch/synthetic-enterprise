@@ -1,5 +1,5 @@
-Phase HZ complete -- 9,320 tests. Phase HZ: Coverage Expansion Sprint X -- 30 tests (3 modules: revenue_protection_register, interruptible_supply_register, otc_margin_book). All tests passing, epistemic verifier PASS (406 company/ files).
-Last updated: 2026-06-30T20:13:00Z
+Phase IA complete -- 9,350 tests. Phase IA: Coverage Expansion Sprint XI -- 30 tests (3 modules: gas_exit_analysis, dadc_contract_register, regulatory_breach_log). All tests passing, epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T20:15:58Z
 
 **Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
