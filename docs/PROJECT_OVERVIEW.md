@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase IL — Coverage Depth Sprint IX (2026-06-30)
+**Modules:** payroll · bad_debt_provision · board_dashboard
+**Tests added:** 30 (headcount employment cost model, arrears aging provision rates, board KPI RAG status)
+**Total:** 9,680 tests
+
 ### Phase IK — Coverage Depth Sprint VIII (2026-06-30)
 **Modules:** lifecycle_tracker · margin_feedback · consumption_forecast
 **Tests added:** 30 (lifecycle stage transitions, margin surcharge threshold/cap logic, EAC-based annual cost projection)
@@ -4504,7 +4509,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 9,650 tests (fast / ~10s; simulation integration ~8 min per run)
+- 9,680 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -1,5 +1,5 @@
-Phase IK complete -- 9,650 tests. Coverage Depth Sprint VIII (lifecycle_tracker, margin_feedback, consumption_forecast). Epistemic verifier PASS.
-Last updated: 2026-06-30T21:03:33Z
+Phase IL complete -- 9,680 tests. Coverage Depth Sprint IX (payroll, bad_debt_provision, board_dashboard). Epistemic verifier PASS.
+Last updated: 2026-06-30T21:05:26Z
 
 **Latest simulation results (2016–2025)** — auto-processed (571s / 10 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
