@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GD (2026-06-30):** Direct Debit Mandate Register -- 33 new tests (7,766 total). company/billing/dd_mandate_register.py (new): DDMandateStatus (5); DDMandateRecord (frozen; is_active: ACTIVE+REINSTATED; is_collectable; next_collection_due None when not collectable; record_failure: 1st→FAILED/2nd→CANCELLED); DDMandateRegister (setup_mandate: day guard 1-28/amount>0; update_amount/suspend/reinstate/cancel→immutable; record_failure auto-cancels on 2nd; mandate_for_account prefers active; total_monthly_collection_gbp active only; accounts_without_active_mandate(ids)). BACS Direct Debit Guarantee; Pay.UK SUN; advance notice 10WD; 2-failure auto-cancel rule. Connects to payment_ledger (transactions), debt_collection (missed payment trigger). PASS (373 files).
+
 **Phase GC (2026-06-30):** EPG Reconciliation Register -- 33 new tests (7,733 total). company/regulatory/epg_reconciliation_register.py (new): _is_epg_period (Oct 2022–Jun 2023 inclusive); EPGMonthlyRecord (frozen; elec/gas subsidy=max(0,actual-EPG-cap) at 34p/10.3p; is_settled); EPGReconciliationRegister (record_month raises outside Oct22-Jun23; submit/approve/settle/dispute→immutable; outstanding_subsidy_gbp excludes settled+disputed). BEIS EPG rates: elec 34p/kWh, gas 10.3p/kWh, Oct 2022–Jun 2023; cost recovery via HMT EMFS. Distinct from EBSS (DE), EBRS (DD), price cap (ofgem_price_cap.py). Connects to regulatory_dashboard. 6-year HMRC audit trail required. PASS (372 files).
 
 **Phase GB (2026-06-30):** DCC Meter Registration Register -- 34 new tests (7,700 total). company/market/dcc_meter_registration.py (new): DCCRegistrationStatus (5); DCCRegistrationRecord (frozen; registration_deadline=install+10WD; is_overdue_as_of: False when REGISTERED/DEREGISTERED; is_orphan_candidate_as_of: pending/failed >90d from install; retry_count); DCCMeterRegistrationRegister (register_installation; mark_registered/failed(+retry_count)/orphaned/deregister→immutable; overdue(as_of); orphan_candidates(as_of); registration_rate_pct excludes deregistered; total_retry_count; dcc_summary). SEC obligation: 10WD to DCC from installation; orphans in quarterly SLC 21B. SMETS2 only (SMETS1 not DCC-connected). PASS (371 files).
@@ -4368,7 +4370,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 7,733 tests (fast / ~10s; simulation integration ~8 min per run)
+- 7,766 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
