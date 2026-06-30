@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 6,116 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 6,128 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CZ (2026-06-30):** Revenue Protection Register -- 12 new tests (6,128 total). company/billing/revenue_protection_register.py (new): RPCaseType (METER_TAMPERING/ILLEGAL_RECONNECTION/METER_BYPASS/ESTIMATION_FRAUD/SUPPLY_DIVERSION); RPCaseStatus (SUSPECTED/UNDER_INVESTIGATION/CONFIRMED/ESTIMATED_BILL_RAISED/RECOVERED/WRITTEN_OFF); RPCase (frozen; is_active/is_recoverable); RevenueProtectionRegister (open_case/confirm/raise_estimated_bill/recover/write_off/active_cases/confirmed_cases/total_estimated_loss_gbp/total_estimated_loss_kwh/cases_by_type/revenue_protection_summary). Theft exception: 3-year backbill permitted (vs SLC 31A 12-month cap for non-theft). Epistemic verifier: PASS.
 
 **Phase CY (2026-06-30):** Supplier Fitness and Propriety Register -- 13 new tests (6,116 total). company/regulatory/supplier_fitness_register.py (new): FitnessRole (EXECUTIVE_DIRECTOR/NON_EXECUTIVE_DIRECTOR/SENIOR_MANAGER/MAJOR_SHAREHOLDER); FitnessConcernCategory (CRIMINAL_CONVICTION/BANKRUPTCY/DISQUALIFICATION/CONFLICT_OF_INTEREST/COMPETENCE_GAP/PRIOR_SUPPLIER_FAILURE); FitnessOutcome (FIT/FIT_WITH_CONDITIONS/UNDER_REVIEW/NOT_FIT); FitnessAssessment (frozen; review_due_date = assessment+365d; is_review_overdue/is_fit/has_concerns); SupplierFitnessRegister (assess/get/not_fit_persons/overdue_reviews/persons_with_concerns/prior_supplier_failure_risk/all_fit/fitness_summary). Ofgem LC 30A (June 2022): suppliers must ensure directors and senior managers are fit and proper; annual review. Epistemic verifier: PASS.
 
@@ -4212,7 +4214,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 6,116 tests (fast / ~10s; simulation integration ~8 min per run)
+- 6,128 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
