@@ -3,14 +3,14 @@
 Last updated: 2026-06-30 by Claude Code (Phase FT complete)
 
 ## Now (active this session)
-- Phase FT: Imbalance Cash Flow Register -- COMPLETE (2026-06-30). 22 new tests (7,450 total).
-  company/trading/imbalance_cashflow.py: BSC dual cash-out lifecycle; SBP/SSP direction; pending payment view.
+- Phase FU: Triad Demand Response Book -- COMPLETE (2026-06-30). 25 new tests (7,475 total).
+  company/trading/triad_response_book.py: TriadDemandEvent + TriadDemandResponseBook.
+  Closes I&C Triad management backlog: notification (AZ) + exposure (FG) + response (FU).
 
 ## Backlog (highest priority first)
-- Phase FU: Next company layer module -- TBD based on build gaps
-- Dashboard: Flexibility revenue tab (per-year CM/DFS data from flexibility_revenue_by_year)
-- I&C Triad management model (active demand reduction in Triad windows for 1-4 GWh customers)
+- Dashboard: Flexibility revenue tab (per-year CM/DFS data -- currently zero as no customers have flexible assets)
 - Real forward curve (NBP/EPEX term structure) -- HIGH fidelity, substantial work
+- Phase FV: Next company layer module -- TBD
 - Dashboard: Flexibility revenue tab (per-year CM/DFS data from flexibility_revenue_by_year)
 - I&C Triad management model (active demand reduction in Triad windows for 1-4 GWh customers)
 - Real forward curve (NBP/EPEX term structure) -- HIGH fidelity, substantial work

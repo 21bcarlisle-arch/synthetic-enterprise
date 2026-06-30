@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase FU (2026-06-30):** Triad Demand Response Book -- 25 new tests (7,475 total). company/trading/triad_response_book.py (new): TriadResponseOutcome (FULL/PARTIAL/NO_RESPONSE/NOT_ALERTED); TriadDemandEvent (frozen; demand_reduction_mw; reduction_pct; outcome from reduction% and was_alerted; tnuos_saving_gbp=reduction_kw x rate GBP80/kW Zone14); TriadDemandResponseBook (record; events_for_customer/season; full/no_response_events; total_demand_reduction_mw_for_season; total_tnuos_saving_gbp; response_rate_pct: alerted->full%; saving_by_customer; top_responders; demand_response_summary). Closes I&C Triad management backlog: triad_notification_book (AZ) + triad_exposure_register (FG) + demand response book (FU) = full Triad management cycle. NESO: 3 Triads/winter Nov-Feb; published March; Zone 14 ~GBP60-100/kW. Epistemic: baseline from company EAC forecast; actual from metered HH data; NESO rate from annual published statement. Epistemic verifier: PASS.
+
 **Phase FT (2026-06-30):** Imbalance Cash Flow Register -- 22 new tests (7,450 total). company/trading/imbalance_cashflow.py (new): SettlementRunType (INITIAL/RECONCILIATION/FINAL/AMENDED_FINAL); ImbalanceDirection (SHORT/LONG/FLAT); ImbalanceCashFlowRecord (frozen; direction from nop_mwh sign; cash_flow_gbp: SHORT pays outflow, LONG receives inflow, FLAT=0; is_outflow; sbp_ssp_spread; cashflow_summary); ImbalanceCashFlowRegister (record; records_for_date; short/long_records; total_net_cashflow_gbp; pending_payments_gbp(as_of): future outflows only; total_sbp_paid/ssp_received_gbp; cashflow_register_summary). BSC dual cash-out: SBP>SSP; NOP settlement T+2WD; 2022 crisis: SBP-SSP spread >GBP200/MWh. Complements imbalance_charge_register (EN); adds cash-flow lifecycle for liquidity management. Epistemic verifier: PASS.
 
 **Phase FS (2026-06-30):** EV Charging Demand Forecaster -- 13 new tests (6,752 total). company/market/ev_demand_forecast.py (new): ChargingPattern (3: SMART/UNMANAGED/MIXED); _SMART_KWH_PER_EV=3,700 kWh/yr; _SMART_FRACTION=0.85 (UK Smart Charge Point Regs 2021); EVDemandForecast (frozen; annual_ev_kwh=count×base; overnight_kwh: SMART 85%/UNMANAGED 50%/MIXED 65%; peak_risk_kwh; triad_risk_mw: SMART=0/UNMANAGED=peak/24_periods/0.5; forecast_summary); EVDemandForecaster (add_forecast; forecast_for_year; total_annual_ev_kwh with year filter; total_triad_risk_mw; smart_charging_adoption_pct; ev_demand_summary). Observable inputs: DVLA EV data, smart meter overnight patterns. Connects to triad_exposure (FG), tou_product_launch (X), flexibility_potential (AA).
@@ -4348,9 +4350,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 350+ Python modules (company layer), ~55,000 lines total
+- 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 7,450 tests (fast / ~10s; simulation integration ~8 min per run)
+- 7,475 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
