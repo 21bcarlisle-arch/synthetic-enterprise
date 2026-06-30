@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase FZ (2026-06-30):** Ofgem Redress Payment Register -- 27 new tests (7,632 total). company/regulatory/ofgem_redress_register.py (new): RedressPaymentRecipient (6: ENERGY_SAVING_TRUST/NEA/CITIZENS_ADVICE/COMMUNITY_ENERGY_FUND/VULNERABLE_CUSTOMER_FUND/OTHER); RedressPaymentStatus (4); RedressPaymentRecord (frozen; is_overdue_as_of: false when PAID/CANCELLED; record_summary); OfgemRedressRegister (record_redress: raises if amount<=0; deadline=agreed+days; mark_paid/mark_overdue/cancel immutable; pending/overdue_payments(as_of); by_recipient; total_paid_gbp; total_outstanding_gbp(as_of) excludes paid+cancelled; all_paid; redress_register_summary). Redress directed to charities/consumer bodies (NOT government); published on Ofgem website; separate from financial penalties. Notable: nPower £26M (2018), Opus £4.5M (2019). Epistemic: consent orders published; company knows its own agreed amounts. PASS (369 files).
+
 **Phase FY (2026-06-30):** Debt Respite (Breathing Space) Register -- 29 new tests (7,605 total). company/billing/breathing_space_register.py (new): BreathingSpaceType (STANDARD 60d/MENTAL_HEALTH_CRISIS open-ended); BreathingSpaceStatus (4); BreathingSpaceRecord (frozen; expected_end_date=start+60d/None for MH; is_active_as_of: STANDARD window-checked/MH always while ACTIVE; days_elapsed/days_remaining: None for MH; record_summary); BreathingSpaceRegister (register_entry raises ValueError pre-4-May-2021; complete/cancel_by_adviser immutable; active_records(as_of); mental_health_crisis/standard_records; total/active_debt_frozen_gbp; total_interest_frozen_gbp; breathing_space_summary). SI 2020/1311 (Breathing Space Moratorium and Mental Health Crisis Moratorium) Regs 2020 in force 4 May 2021: supplier must freeze interest, halt enforcement, cancel pending disconnections; frozen charges resume (not cancelled) at scheme end. Connects to debt_collection (Ph311), payment_deferral, disconnection_warning (Ph328). Epistemic: PASS.
 
 **Phase FX (2026-06-30):** PPM Installation Warrant Register -- 32 new tests (7,576 total). company/billing/ppm_warrant_register.py (new): WarrantStatus (6); WarrantRefusalReason (5); VulnerabilityCheck (frozen; is_clear_to_proceed=cleared+no_medical; is_expired_as_of 28d); PPMWarrantRecord (frozen; is_pre_ban: before ban_date 2023-04-27; is_post_ban; is_active: APPLIED/GRANTED; meets_debt_threshold >=£200; warrant_summary pre-ban/POST-BAN label); PPMWarrantRegister (apply_for_warrant auto WA-NNNNN; update_status immutable; records_for_account; active/granted/executed/rejected; post_ban_applications; vulnerability_flagged_warrants; total_compensation_paid_gbp; warrant_register_summary). British Gas warrant scandal Feb 2023: Ofgem-estimated 94 forced installations in one day on vulnerable customers; voluntary moratorium Feb; Ofgem ban 27 Apr 2023 (formal direction). Compensation programme run from 2023. Connects to ppm_debt_loading (Ph313), disconnection_warning (Ph328), vulnerable_customer_register (FA). Epistemic verifier: PASS.
@@ -4360,7 +4362,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 7,605 tests (fast / ~10s; simulation integration ~8 min per run)
+- 7,632 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
