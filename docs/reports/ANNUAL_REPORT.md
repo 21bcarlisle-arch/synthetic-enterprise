@@ -908,6 +908,30 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Customer Service Quality
+
+Ofgem benchmarks: bill clarity >0.82 (GREEN) / >0.80 (AMBER) / ≤0.80 (RED); complaint probability <5% (GREEN) / <6% (RED); bill shock <0.20% (GREEN) / <0.30% (AMBER) / ≥0.30% (RED).
+
+| Year | Clarity | Complaint% | Shock% | Shock events | Bills | RAG |
+|------|---------|------------|--------|--------------|-------|-----|
+| 2016 | 0.829 G | 4.7% | 0.20% | 31 | 108 | GREEN |
+| 2017 | 0.818 A | 4.7% | 0.17% | 50 | 168 | AMBER |
+| 2018 | 0.810 A | 4.7% | 0.16% | 60 | 180 | AMBER |
+| 2019 | 0.824 G | 4.7% | 0.17% | 66 | 204 | GREEN |
+| 2020 | 0.830 G | 4.3% | 0.14% | 53 | 204 | GREEN |
+| 2021 | 0.829 G | 4.5% | 0.16% | 51 | 192 | GREEN |
+| 2022 | 0.791 R | 5.6% | 0.34% | 61 | 148 | RED ! |
+| 2023 | 0.808 A | 4.8% | 0.17% | 42 | 144 | AMBER |
+| 2024 | 0.813 A | 4.6% | 0.16% | 33 | 129 | AMBER |
+| 2025 | 0.777 R | 5.9% | 0.24% | 20 | 54 | RED ! |
+
+Worst clarity year: **2025** (0.777)
+Highest complaint probability: **2025** (5.9%)
+Worst bill shock: **2022** (0.34%)
+RED years: 2022, 2025
+AMBER years: 2017, 2018, 2023, 2024
+Trend (last 2 years): DECLINING
+
 ## Portfolio VaR Trajectory and Treasury Evolution
 
 Annual VaR ratio (committee trigger = 3.0) and year-end treasury balance.

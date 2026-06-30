@@ -4755,6 +4755,77 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+
+
+def _section_service_quality(data: dict) -> str:
+    """Phase CA: Customer service quality — clarity, complaint probability, bill shock per year."""
+    years = data.get("years", {})
+    if not years:
+        return ""
+
+    from company.crm.service_quality_monitor import ServiceQualityMonitor, ServiceQualityRAG
+
+    mon = ServiceQualityMonitor()
+    for yr in sorted(years.keys()):
+        y = years[yr]
+        shock_ev = y.get("bill_shock_events", [])
+        n_shock = len(shock_ev) if isinstance(shock_ev, list) else 0
+        mon.record(
+            year=int(yr),
+            avg_clarity=y.get("avg_clarity", 0.0),
+            avg_complaint_probability=y.get("avg_complaint_probability", 0.0),
+            avg_bill_shock_pct=y.get("avg_bill_shock_pct", 0.0),
+            bills_count=y.get("bills_count", 0),
+            shock_event_count=n_shock,
+        )
+
+    rows = []
+    for snap in mon.all_snapshots:
+        rag_icon = {"GREEN": "GREEN", "AMBER": "AMBER", "RED": "RED !"}.get(snap.overall_rag.value, "")
+        rows.append("| {} | {:.3f} {} | {:.1f}% | {:.2f}% | {} | {:d} | {} |".format(
+            snap.year,
+            snap.avg_clarity,
+            snap.clarity_rag.value[0],  # G/A/R
+            snap.avg_complaint_probability * 100,
+            snap.avg_bill_shock_pct,
+            snap.shock_event_count,
+            snap.bills_count,
+            rag_icon,
+        ))
+
+    wc = mon.worst_clarity_year
+    wcp = mon.worst_complaint_year
+    ws = mon.worst_bill_shock_year
+    red_yrs = [str(s.year) for s in mon.red_years]
+    amber_yrs = [str(s.year) for s in mon.amber_years]
+    improving = mon.is_improving()
+
+    lines = [
+        "## Customer Service Quality",
+        "",
+        "Ofgem benchmarks: bill clarity >0.82 (GREEN) / >0.80 (AMBER) / ≤0.80 (RED); "
+        "complaint probability <5% (GREEN) / <6% (RED); bill shock <0.20% (GREEN) / <0.30% (AMBER) / ≥0.30% (RED).",
+        "",
+        "| Year | Clarity | Complaint% | Shock% | Shock events | Bills | RAG |",
+        "|------|---------|------------|--------|--------------|-------|-----|",
+    ]
+    lines += rows
+    lines += [""]
+
+    if wc:
+        lines.append("Worst clarity year: **{}** ({:.3f})".format(wc.year, wc.avg_clarity))
+    if wcp:
+        lines.append("Highest complaint probability: **{}** ({:.1f}%)".format(wcp.year, wcp.avg_complaint_probability * 100))
+    if ws:
+        lines.append("Worst bill shock: **{}** ({:.2f}%)".format(ws.year, ws.avg_bill_shock_pct))
+    if red_yrs:
+        lines.append("RED years: {}".format(", ".join(red_yrs)))
+    if amber_yrs:
+        lines.append("AMBER years: {}".format(", ".join(amber_yrs)))
+    lines.append("Trend (last 2 years): {}".format("IMPROVING" if improving else "DECLINING"))
+
+    return chr(10).join(lines) + chr(10)
+
 def _section_var_treasury_evolution(data: dict) -> str:
     """Phase BY: VaR ratio and treasury balance evolution per year."""
     years = data.get("years", {})
@@ -6559,6 +6630,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_service_quality(data))               # Phase CA
     sections.append(_section_var_treasury_evolution(data))         # Phase BY
     sections.append(_section_fuel_mix_disclosure(data))            # Phase BX
     sections.append(_section_missed_retention_analysis(data))      # Phase BW

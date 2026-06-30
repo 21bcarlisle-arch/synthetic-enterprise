@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,813 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,825 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CA (2026-06-30):** Customer Service Quality Monitor + Annual Report Section -- 12 new tests (5,825 total). company/crm/service_quality_monitor.py (new): ServiceQualityRAG (GREEN/AMBER/RED); ServiceQualitySnapshot (clarity_rag/complaint_rag/bill_shock_rag/overall_rag/shock_rate_pct — all computed from observed billing data); ServiceQualityMonitor (record/worst_clarity_year/worst_complaint_year/worst_bill_shock_year/is_improving/quality_summary). _section_service_quality() in annual_report.py: 10-year table; 2022 = RED (clarity 0.791 / complaint 5.6% / shock 0.34%); 2025 declining. Ofgem benchmarks embedded. Epistemic verifier: PASS.
 
 **Phase BZ (2026-06-30):** Portfolio Margin Sensitivity Analyser -- 12 new tests (5,813 total). company/finance/portfolio_margin_sensitivity.py (new): SensitivityFactor enum (5 types: wholesale/demand/churn/ncc/fixed); SensitivityScenario (frozen; is_adverse/severity); PortfolioMarginSensitivityBook — 5 shock methods + standard_sensitivity_table() (10-row board table) + most_sensitive_factor(). Wholesale +10% is most sensitive (-10.4%); NCC least sensitive (-1.2%). Company derives sensitivity from its own P&L fractions — epistemically valid. Connects Phase 318 (FRA), Phase BT (hedge evolution), Phase BS (committee). Epistemic verifier: PASS.
 
@@ -4162,7 +4164,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,813 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,825 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

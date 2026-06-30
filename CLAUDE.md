@@ -6,7 +6,6 @@ A high-fidelity simulation of a fully autonomous UK energy supply business, oper
 real Elexon/NESO half-hourly settlement data. The business layer cannot see future data
 (Point-in-Time Blindfold, strictly enforced). Goal: detailed enough to say "that is how a
 real UK energy supplier works."
-
 → Architecture, module inventory, build history: `docs/PROJECT_OVERVIEW.md`
 
 ---
@@ -57,6 +56,7 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
+**Phase CA COMPLETE (2026-06-30):** Service Quality Monitor -- 12 tests (5,825). company/crm/service_quality_monitor.py: ServiceQualityRAG (GREEN/AMBER/RED); ServiceQualitySnapshot (clarity/complaint/shock RAG; shock_rate_pct); ServiceQualityMonitor (worst_clarity/complaint/shock year; is_improving; quality_summary). Annual report section: 10-yr table; 2022=RED (crisis); 2025=declining. Benchmarks: clarity>0.82 GREEN; complaint<5% GREEN; shock<0.20% GREEN.
 **Phase BZ COMPLETE (2026-06-30):** Portfolio Margin Sensitivity Analyser -- 12 tests (5,813). company/finance/portfolio_margin_sensitivity.py: 5-factor/10-row sensitivity table; wholesale most sensitive (-10.4%); LOW/MEDIUM/HIGH severity. Board tool using observed P&L fractions.
 **Phase BY COMPLETE (2026-06-30):** VaR & Treasury -- 12 tests (5,801). Peak 2016(3.25); £2.47M→£3.59M.
 **Phase BX COMPLETE (2026-06-30):** Fuel Mix -- 12 tests (5,789). 45.5%→68.5% LC; 55% ren 2025.
