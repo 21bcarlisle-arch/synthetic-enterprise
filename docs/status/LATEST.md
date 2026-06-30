@@ -1,5 +1,5 @@
-Phase HB complete -- 8,508 tests. Phase HB: MPAS Standing Data Correction Register -- 40 tests. All 8,508 tests passing, epistemic verifier PASS (397 company/ files).
-Last updated: 2026-06-30T13:42:36Z
+Phase HC complete -- 8,544 tests. Phase HC: Gas Safety Incident Register (GSIUR/RIDDOR) -- 36 tests. All 8,544 tests passing, epistemic verifier PASS (398 company/ files).
+Last updated: 2026-06-30T13:44:20Z
 
 **Latest simulation results (2016–2025)** — auto-processed (439s / 7 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
