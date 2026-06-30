@@ -76,10 +76,10 @@ def write_build_state(snap, timestamp):
         f"",
         f"| Metric | Value |",
         f"|--------|-------|",
-        f"| Net Margin | £{latest_run.get('net_margin_gbp', 0):,.0f} |",
-        f"| Gross Margin | £{latest_run.get('gross_margin_gbp', 0):,.0f} |",
+        f"| Net Margin | £{latest_run.get('total_net_gbp', latest_run.get('net_margin_gbp', 0)):,.0f} |",
+        f"| Gross Margin | £{latest_run.get('total_gross_gbp', latest_run.get('gross_margin_gbp', 0)):,.0f} |",
         f"| Enterprise Value | £{latest_run.get('enterprise_value_gbp', 0):,.0f} |",
-        f"| Treasury | £{latest_run.get('treasury_gbp', 0):,.0f} |",
+        f"| Treasury | £{latest_run.get('final_treasury_gbp', latest_run.get('treasury_gbp', 0)):,.0f} |",
         f"",
         f"## Module Status",
         f"",
@@ -116,4 +116,12 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"WARNING: Could not update LATEST.md: {e}")
     
+    # Also copy to site/snapshots/LATEST.md for stable web URL
+    try:
+        build_state = open("docs/BUILD_STATE.md").read()
+        open("site/snapshots/LATEST.md", "w").write(build_state)
+        print("site/snapshots/LATEST.md updated")
+    except Exception as e:
+        print(f"WARNING: Could not update site/snapshots/LATEST.md: {e}")
+
     print("Snapshot complete.")

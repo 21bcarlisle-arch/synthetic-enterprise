@@ -1,9 +1,9 @@
 {
-  "snapshot_ts": "2026-06-30T18:15:17.556678+00:00",
-  "snapshot_label": "20260630T181517Z",
+  "snapshot_ts": "2026-06-30T18:14:33.169344+00:00",
+  "snapshot_label": "20260630T181433Z",
   "dashboard": {
     "meta": {
-      "generated_at": "2026-06-30T18:15:18Z",
+      "generated_at": "2026-06-30T18:14:34Z",
       "git_commit": "cd755262",
       "source_file": "run_output_cd755262_20260630T180304Z.json",
       "spot_monthly_count": 114
@@ -6008,7 +6008,7 @@
   },
   "agent_status": {
     "_schema_version": "1",
-    "last_updated": "2026-06-30T18:15:10.760142+00:00",
+    "last_updated": "2026-06-30T18:14:25.351848+00:00",
     "agents": [
       {
         "name": "session-watchdog",
@@ -6023,9 +6023,9 @@
       {
         "name": "staging-watcher",
         "status": "idle",
-        "last_heartbeat": "2026-06-30T18:15:10.760142+00:00",
+        "last_heartbeat": "2026-06-30T18:14:10.758980+00:00",
         "last_action": "Heartbeat \u2014 2 files tracked",
-        "last_action_ts": "2026-06-30T18:15:10.760142+00:00",
+        "last_action_ts": "2026-06-30T18:14:10.758980+00:00",
         "anomaly": null,
         "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
         "produces": "NTFY notifications on new staging files"
@@ -6073,9 +6073,9 @@
       {
         "name": "autonomous-runner",
         "status": "working",
-        "last_heartbeat": "2026-06-30T18:14:45.581178+00:00",
+        "last_heartbeat": "2026-06-30T18:12:45.577623+00:00",
         "last_action": "Autonomous turn running",
-        "last_action_ts": "2026-06-30T18:14:45.581178+00:00",
+        "last_action_ts": "2026-06-30T18:12:45.577623+00:00",
         "anomaly": null,
         "role": "Runs scheduled Claude Code sessions for background work when session is idle",
         "produces": "CC session activity, phase completions"
