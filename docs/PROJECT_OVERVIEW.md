@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,609 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,621 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BJ (2026-06-30):** Churn Prediction Calibration Section -- 12 new tests (5,621 total). saas/reporting/annual_report.py: _section_churn_prediction_calibration(): filters company_event_log for churn events; table shows customer / date / sim_churn_probability / company_estimate / delta (pp) / UNDERESTIMATED/ACCURATE/OVERESTIMATED verdict (±10pp threshold); summary with MAE and systematic bias flag. Key insight: 5 of 6 actual churns were underestimated by the company — the epistemic blindfold (company cannot see sim churn parameters) creates systematic under-prediction, exactly as real small suppliers experience. Epistemic verifier: PASS.
 
 **Phase BI (2026-06-30):** Tariff Estimation Accuracy Section -- 12 new tests (5,609 total). saas/reporting/annual_report.py: _section_tariff_estimation_accuracy(): reads company_divergence.tariff_error_by_year; table shows observation count / mean absolute error % / max absolute error % / accuracy band (GOOD <10% / MODERATE 10-15% / POOR ≥15%); identifies best and worst accuracy years (n≥5 filter); epistemic blindfold note. Key insights: 2024 best accuracy (9.75% mean error, market normalised); 2023 worst non-trivial year (19.89%, crisis aftermath lag in forward curves); 2025 outlier (n=2, 32.85%, insufficient data). Epistemic verifier: PASS.
 
@@ -4128,7 +4130,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,609 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,621 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -4755,6 +4755,62 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_churn_prediction_calibration(data: dict) -> str:
+    """Phase BJ: Churn prediction calibration — company estimate vs sim probability."""
+    cel = [e for e in data.get("company_event_log", []) if e.get("event_type") == "churn"]
+    if not cel:
+        return ""
+    rows = []
+    for e in cel:
+        cid = e.get("customer_id", "?")
+        date = e.get("event_date", "?")[:7]  # YYYY-MM
+        sim_p = e.get("sim_churn_probability", 0.0)
+        co_p = e.get("company_churn_estimate", 0.0)
+        delta = co_p - sim_p
+        if abs(delta) < 0.10:
+            verdict = "ACCURATE"
+        elif delta > 0:
+            verdict = "OVERESTIMATED"
+        else:
+            verdict = "UNDERESTIMATED"
+        rows.append((cid, date, sim_p, co_p, delta, verdict))
+    lines = [
+        "## Churn Prediction Calibration",
+        "",
+        "How well the company estimated churn probability versus actual simulation outcomes.",
+        "",
+        "| Customer | Date | Sim Probability | Company Estimate | Delta | Verdict |",
+        "|----------|------|----------------|-----------------|-------|---------|",
+    ]
+    for cid, date, sim_p, co_p, delta, verdict in rows:
+        sign = "+" if delta >= 0 else ""
+        lines.append("| {} | {} | {:.1f}% | {:.1f}% | {}{:.1f}pp | {} |".format(
+            cid, date, sim_p * 100, co_p * 100, sign, delta * 100, verdict))
+    underest = sum(1 for r in rows if r[5] == "UNDERESTIMATED")
+    overest = sum(1 for r in rows if r[5] == "OVERESTIMATED")
+    accurate = sum(1 for r in rows if r[5] == "ACCURATE")
+    mae = sum(abs(r[4]) for r in rows) / len(rows) if rows else 0
+    lines.extend([
+        "",
+        "**Outcomes: {} underestimated / {} accurate / {} overestimated**".format(
+            underest, accurate, overest),
+        "**Mean absolute error: {:.1f}pp**".format(mae * 100),
+    ])
+    if underest > overest:
+        lines.append("**Systematic bias: company consistently UNDER-predicted churn risk.**")
+    elif overest > underest:
+        lines.append("**Systematic bias: company consistently OVER-predicted churn risk.**")
+    else:
+        lines.append("**No systematic directional bias detected.**")
+    lines.extend([
+        "",
+        "> Company churn estimates derived from company-observable signals (bill shock,",
+        "> margin feedback, renewal history) without access to the simulation\'s internal",
+        "> churn parameters — epistemic gap is expected and realistic for a small supplier.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_tariff_estimation_accuracy(data: dict) -> str:
     """Phase BI: Tariff estimation accuracy — company vs actual outturn by year."""
     div = data.get("company_divergence", {})
@@ -5747,6 +5803,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_churn_prediction_calibration(data))   # Phase BJ
     sections.append(_section_tariff_estimation_accuracy(data))     # Phase BI
     sections.append(_section_dynamic_pricing_activity(data))       # Phase BH
     sections.append(_section_clv_evolution(data))                  # Phase BG

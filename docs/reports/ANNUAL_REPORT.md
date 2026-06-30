@@ -908,6 +908,27 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Churn Prediction Calibration
+
+How well the company estimated churn probability versus actual simulation outcomes.
+
+| Customer | Date | Sim Probability | Company Estimate | Delta | Verdict |
+|----------|------|----------------|-----------------|-------|---------|
+| C3 | 2020-06 | 32.0% | 0.0% | -32.0pp | UNDERESTIMATED |
+| C1 | 2021-12 | 32.0% | 3.8% | -28.2pp | UNDERESTIMATED |
+| C5 | 2021-12 | 35.0% | 82.7% | +47.7pp | OVERESTIMATED |
+| C2 | 2022-03 | 26.0% | 6.7% | -19.3pp | UNDERESTIMATED |
+| C6 | 2024-03 | 38.0% | 24.7% | -13.3pp | UNDERESTIMATED |
+| C4 | 2024-09 | 32.0% | 0.0% | -32.0pp | UNDERESTIMATED |
+
+**Outcomes: 5 underestimated / 0 accurate / 1 overestimated**
+**Mean absolute error: 28.8pp**
+**Systematic bias: company consistently UNDER-predicted churn risk.**
+
+> Company churn estimates derived from company-observable signals (bill shock,
+> margin feedback, renewal history) without access to the simulation's internal
+> churn parameters — epistemic gap is expected and realistic for a small supplier.
+
 ## Tariff Estimation Accuracy
 
 Mean and maximum absolute error between company tariff estimates and actual outturn.
