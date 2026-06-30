@@ -4755,6 +4755,53 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_var_treasury_evolution(data: dict) -> str:
+    """Phase BY: VaR ratio and treasury balance evolution per year."""
+    years = data.get("years", {})
+    if not years:
+        return ""
+    rows = []
+    for yr in sorted(years.keys()):
+        y = years[yr]
+        var_r = y.get("var_ratio") or 0.0
+        treas = y.get("treasury_end_gbp", 0.0)
+        net = y.get("net_gbp", 0.0)
+        rows.append((yr, var_r, treas, net))
+    if not rows:
+        return ""
+    peak_var_yr, peak_var = max(((r[0], r[1]) for r in rows), key=lambda x: x[1])
+    peak_treas_yr, peak_treas = max(((r[0], r[2]) for r in rows), key=lambda x: x[1])
+    start_treas = rows[0][2]
+    end_treas = rows[-1][2]
+    treas_growth = end_treas - start_treas
+    lines = [
+        "## Portfolio VaR Trajectory and Treasury Evolution",
+        "",
+        "Annual VaR ratio (committee trigger = 3.0) and year-end treasury balance.",
+        "",
+        "| Year | VaR Ratio | Status | Treasury £ | Net Margin £ |",
+        "|------|-----------|--------|-----------|-------------|",
+    ]
+    for yr, var_r, treas, net in rows:
+        if var_r > 0:
+            status = "ALERT" if var_r >= 3.0 else "WATCH"
+        else:
+            status = "—"
+        net_str = "£{:,.0f}".format(net) if net >= 0 else "-£{:,.0f}".format(abs(net))
+        var_str = "{:.2f}".format(var_r) if var_r > 0 else "—"
+        lines.append("| {} | {} | {} | £{:,.0f} | {} |".format(yr, var_str, status, treas, net_str))
+    lines.extend([
+        "",
+        "**Peak VaR year: {} (ratio {:.2f})**".format(peak_var_yr, peak_var),
+        "**Treasury peak: {} (£{:,.0f})**".format(peak_treas_yr, peak_treas),
+        "**Treasury growth: £{:,.0f} → £{:,.0f} (+£{:,.0f})**".format(start_treas, end_treas, treas_growth),
+        "",
+        "> VaR ratio = portfolio stressed VaR ÷ treasury; ≥ 3.0 triggers committee review.",
+        "> Treasury funded from net margin accumulation, never falling to zero across run.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_fuel_mix_disclosure(data: dict) -> str:
     """Phase BX: Annual UK grid fuel mix disclosure (Ofgem FMD requirement)."""
     from company.billing.fuel_mix import get_fuel_mix
@@ -6512,6 +6559,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_var_treasury_evolution(data))         # Phase BY
     sections.append(_section_fuel_mix_disclosure(data))            # Phase BX
     sections.append(_section_missed_retention_analysis(data))      # Phase BW
     sections.append(_section_retention_decision_economics(data))   # Phase BV

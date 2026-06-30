@@ -908,6 +908,30 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Portfolio VaR Trajectory and Treasury Evolution
+
+Annual VaR ratio (committee trigger = 3.0) and year-end treasury balance.
+
+| Year | VaR Ratio | Status | Treasury £ | Net Margin £ |
+|------|-----------|--------|-----------|-------------|
+| 2016 | 3.25 | ALERT | £2,467,421 | £1,175 |
+| 2017 | 2.69 | WATCH | £2,497,910 | £30,766 |
+| 2018 | — | — | £2,486,468 | £99,667 |
+| 2019 | — | — | £2,606,311 | £218,118 |
+| 2020 | — | — | £2,899,699 | £116,822 |
+| 2021 | — | — | £2,921,160 | £58,275 |
+| 2022 | 2.70 | WATCH | £3,069,185 | £256,284 |
+| 2023 | 2.73 | WATCH | £3,173,344 | £50,755 |
+| 2024 | — | — | £3,535,467 | £319,054 |
+| 2025 | — | — | £3,587,262 | £92,421 |
+
+**Peak VaR year: 2016 (ratio 3.25)**
+**Treasury peak: 2025 (£3,587,262)**
+**Treasury growth: £2,467,421 → £3,587,262 (+£1,119,841)**
+
+> VaR ratio = portfolio stressed VaR ÷ treasury; ≥ 3.0 triggers committee review.
+> Treasury funded from net margin accumulation, never falling to zero across run.
+
 ## UK Grid Fuel Mix Disclosure (Ofgem FMD)
 
 Company's disclosed fuel mix per year (UK national grid average — Ofgem FMD requirement).

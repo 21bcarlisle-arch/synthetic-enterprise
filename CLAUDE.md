@@ -57,14 +57,15 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BX COMPLETE (2026-06-30):** Fuel Mix Disclosure -- 12 tests (5,789). FMD; 45.5%→68.5% LC; 2025: 55% ren.
-**Phase BW COMPLETE (2026-06-30):** Missed Retention -- 12 tests (5,777). C6 24.7% no-offer; gas >15%.
-**Phase BV COMPLETE (2026-06-30):** Retention Economics -- 12 tests (5,765). ROI 6.7×.
-**Phase BU COMPLETE (2026-06-30):** Gas Exit -- 12 tests (5,753). C4+C_IC3 loss; reprice +£135k.
-**Phase BT COMPLETE (2026-06-30):** Hedge Fraction -- 12 tests (5,741). 2019 naked; 2024: 79.3%.
-**Phase BS COMPLETE (2026-06-30):** Committee -- 12 tests (5,729). Peak 2016: 13 wakeups; 2022: 9.
+**Phase BY COMPLETE (2026-06-30):** VaR & Treasury -- 12 tests (5,801). Peak 2016(3.25); £2.47M→£3.59M.
+**Phase BX COMPLETE (2026-06-30):** Fuel Mix -- 12 tests (5,789). 45.5%→68.5% LC; 55% ren 2025.
+**Phase BW COMPLETE (2026-06-30):** Missed Retention -- 12 tests (5,777). C6 24.7% no-offer.
+**Phase BV COMPLETE (2026-06-30):** Retention ROI -- 12 tests (5,765). 6.7×; 17/18 retained.
+**Phase BU COMPLETE (2026-06-30):** Gas Exit -- 12 tests (5,753). Reprice +£135k vs SQ.
+**Phase BT COMPLETE (2026-06-30):** Hedge Fraction -- 12 tests (5,741). 2019 naked; 79.3% 2024.
+**Phase BS COMPLETE (2026-06-30):** Committee -- 12 tests (5,729). 2016: 13; 2022: 9.
 **Phase BR COMPLETE (2026-06-30):** Worst Settlement Period -- 12 tests (5,717). 2023: -£3,475 (C_IC3g).
-**Phase BQ COMPLETE (2026-06-30):** BSC Credit & Levies -- 12 tests (5,705). BSC £30→£10,210; mute 2021.
+**Phase BQ COMPLETE (2026-06-30):** BSC & Levies -- 12 tests (5,705). £30→£10,210; mute 2021.
 **Phase BP COMPLETE (2026-06-30):** Cohort Revenue -- 12 tests (5,693). 2017 £837k; 2019 loss.
 **Phase BO COMPLETE (2026-06-30):** CfD & Treasury -- 12 tests (5,681). 2022 CfD CREDIT; draws 2022-2024.
 **Phase BN COMPLETE (2026-06-30):** Segment Attribution -- 12 tests (5,669). 5×10yr table; 2022 resi gas -£742; I&C £964k.
@@ -74,9 +75,9 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 **Phase BJ COMPLETE (2026-06-30):** Churn Calibration -- 12 tests (5,621). UNDER/ACCURATE/OVER + MAE; 5/6 underestimated.
 **Phase BI COMPLETE (2026-06-30):** Tariff Accuracy -- 12 tests (5,609). GOOD/MODERATE/POOR; 2024 best 9.75%; 2023 worst 19.89%.
 **Phase BH COMPLETE (2026-06-30):** Dynamic Pricing -- 12 tests (5,597). adj/delta/up/down/emergency by year; 2022 peak +18.1 £/MWh.
-**Phase BG COMPLETE (2026-06-30):** CLV Evolution -- 12 tests (5,585). Gas excluded; 2018 jump £37k→£1M; peak 2025 £3.46M.
+**Phase BG COMPLETE (2026-06-30):** CLV Evolution -- 12 tests (5,585). 2018 →£1M; peak 2025 £3.46M.
 **Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence -- 15 tests (5,573 total). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario. PCW £55/ref £20/broker £160.
-**Phase BE COMPLETE (2026-06-30):** Gross Margin Bridge (YoY) -- 12 tests (5,558 total). _section_gross_margin_bridge(): revenue/wholesale/non-comm/GM + deltas table. 2022 GM%=24.8% worst; 2024 42.4% recovery.
+**Phase BE COMPLETE (2026-06-30):** Gross Margin Bridge -- 12 tests (5,558). YoY revenue/wholesale/GM; 2022 worst GM 24.8%; 2024 recovery 42.4%.
 **Phase BD COMPLETE (2026-06-30):** Renewal Pricing Engine -- 15 tests (5,546 total). renewal_pricing_engine.py: FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER; SVT-cap; I&C 0.3× decay; portfolio_renewal_plan.
 **Phase BC COMPLETE (2026-06-30):** Risk Committee Activity Section -- 12 tests (5,531 total). _section_risk_committee_activity(): sessions/peak-VaR/accounts table; 38 sessions 2016-2025; 2016 busiest (13); 2023 peak VaR £130k (only 4 sessions); C1 adjusted 22× most.
 **Phase BB COMPLETE (2026-06-30):** Risk Committee Decision Ledger -- 15 tests (5,519 total). risk_committee_ledger.py: EFFECTIVE/NEUTRAL/COUNTERPRODUCTIVE/PENDING (±£1k); intervention_effectiveness_rate; busiest_year; governance_summary.
@@ -174,9 +175,7 @@ calm 2016–2020 data, directly before the crisis — mirroring what killed real
 hedging/risk models must account for this.
 **Activity-based pricing:** flat margin makes some customers net-negative. Any pricing model must
 account for cost-to-serve at the customer level.
-
 ---
-
 ## Key learnings — do not repeat these mistakes
 - **Local models confabulate endpoints.** Pre-load ground-truth API context before any local model touches external sources.
 - **LATEST.md must be committed before NTFY**, not after. If stale, fix root cause.
