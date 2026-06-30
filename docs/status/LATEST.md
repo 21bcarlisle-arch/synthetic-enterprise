@@ -1,5 +1,5 @@
-Phase HK complete -- 8,826 tests. Phase HK: BSC Performance Assurance Register -- 49 tests. All 8,826 tests passing, epistemic verifier PASS (406 company/ files).
-Last updated: 2026-06-30T19:01:39Z
+Phase HL complete -- 8,855 tests. Phase HL: Net Open Position Register -- 29 tests. All 8,855 tests passing, epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T19:06:00Z
 
 **Latest simulation results (2016–2025)** — auto-processed (676s / 11 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
