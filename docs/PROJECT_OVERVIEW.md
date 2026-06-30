@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase HF (2026-06-30):** Grid Connection Queue Register -- 33 new tests (8,652 total). company/market/grid_connection_queue_register.py.
+
 **Phase HE (2026-06-30):** Smart Export Guarantee (SEG) Register -- 37 new tests (8,619 total). company/billing/seg_register.py. 400 company/ files milestone!
 
 **Phase HD (2026-06-30):** DSO Flexibility Tender Register -- 38 new tests (8,582 total). company/market/dso_flexibility_tender_register.py.
@@ -4424,7 +4426,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,619 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,652 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

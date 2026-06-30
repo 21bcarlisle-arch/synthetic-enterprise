@@ -1,5 +1,5 @@
-Phase HE complete -- 8,619 tests. Phase HE: Smart Export Guarantee Register -- 37 tests. 400 company/ files milestone! All 8,619 tests passing, epistemic verifier PASS.
-Last updated: 2026-06-30T13:50:06Z
+Phase HF complete -- 8,652 tests. Phase HF: Grid Connection Queue Register -- 33 tests. All 8,652 tests passing, epistemic verifier PASS (401 company/ files).
+Last updated: 2026-06-30T13:50:55Z
 
 **Latest simulation results (2016–2025)** — auto-processed (441s / 7 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
