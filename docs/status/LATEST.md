@@ -1,5 +1,5 @@
-Phase HP complete -- 8,964 tests. Phase HP: Renewal Pricing Engine -- 28 tests. All tests passing, epistemic verifier PASS (406 company/ files).
-Last updated: 2026-06-30T19:29:57Z
+Phase HU complete -- 9,170 tests. Phase HU: Coverage Expansion Sprint V -- 30 tests (3 modules: tariff_notification, ancillary_products, price_monitor). All tests passing, epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T19:52:27Z
 
 **Latest simulation results (2016–2025)** — auto-processed (723s / 12 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
