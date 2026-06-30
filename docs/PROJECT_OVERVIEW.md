@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase IN — Coverage Depth Sprint XI (2026-06-30)
+**Modules:** network_charge_ledger · carbon_emissions · ofgem_supply_return
+**Tests added:** 30 (TNUoS/DUoS/BSUoS charge pass-through, fuel mix emission intensity, Ofgem annual return metrics)
+**Total:** 9,740 tests
+
 ### Phase IM — Coverage Depth Sprint X (2026-06-30)
 **Modules:** rate_comparison · interconnector_monitor · hedge_performance
 **Tests added:** 30 (price feed comparison delta, interconnector utilisation/import MWh, hedge PnL and outcome classification)
@@ -4514,7 +4519,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 9,710 tests (fast / ~10s; simulation integration ~8 min per run)
+- 9,740 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -1,5 +1,5 @@
-Phase IM complete -- 9,710 tests. Coverage Depth Sprint X (rate_comparison, interconnector_monitor, hedge_performance). Epistemic verifier PASS.
-Last updated: 2026-06-30T21:07:25Z
+Phase IN complete -- 9,740 tests. Coverage Depth Sprint XI (network_charge_ledger, carbon_emissions, ofgem_supply_return). Epistemic verifier PASS.
+Last updated: 2026-06-30T21:08:54Z
 
 **Latest simulation results (2016–2025)** — auto-processed (571s / 10 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
