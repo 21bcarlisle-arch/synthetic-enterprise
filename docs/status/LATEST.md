@@ -1,5 +1,5 @@
-Phase IQ complete -- 9,830 tests. Coverage Depth Sprint XIV (contact_journey, multisite_account, clv_cohort_book). Epistemic verifier PASS.
-Last updated: 2026-06-30T21:15:04Z
+Phase IR complete -- 9,860 tests. Coverage Depth Sprint XV (tpi_book, vulnerability_index, contact_log). Epistemic verifier PASS.
+Last updated: 2026-06-30T21:17:13Z
 
 **Latest simulation results (2016–2025)** — auto-processed (571s / 10 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
