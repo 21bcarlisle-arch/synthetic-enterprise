@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,256 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,266 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AI (2026-06-30):** EAC Drift Snapshot -- 10 new tests (5,266 total). saas/reporting/annual_report.py: _section_eac_drift_snapshot() groups demand_estimation_log (Phase 23a/25a) by customer_id, computes first-to-latest EAC drift, classifies as significant (≥15%)/moderate (5-15%)/stable (<5%), infers likely cause (>50% drift: likely EV acquisition; >20%: EV or ASHP; <-15%: solar/efficiency upgrade), shows notable-drift table sorted by absolute drift magnitude, portfolio demand trend (N increasing / M decreasing / mean drift %). Silent when no demand_estimation_log. Observable billing data only — epistemic-compliant. Tests: 10/10. Epistemic verifier: PASS. Connects Phases 23a, 25a (demand estimation).
 
 **Phase AH (2026-06-30):** Board Intelligence Pack -- 12 new tests (5,256 total). saas/reporting/annual_report.py: _section_portfolio_intelligence_pack() synthesises four sections from observable pipeline data: (1) Retention Intelligence — coverage rate (offers/at-risk), acceptance rate, margin protected, blind-miss avoidable loss; (2) Flexibility Revenue Intelligence — total revenue, revenue-per-enrolled-customer-year, enrollment CAGR, DFS CAGR since launch; (3) Churn Pattern Analysis — total churns, peak year, net book movement, portfolio trend; (4) Board Recommendations — up to 4 actionable recommendations derived from retention gap, offer fail rate, flexibility enrollment, crisis-year churn. Silent when no retention or churn data. Wired after _section_flexibility_revenue. Data sources: retention_log, no_offer_churn_log, company_event_log, flexibility_revenue_summary. Tests: 12/12 passing. Epistemic verifier: PASS. Connects Phases AG, AE, AD, AF.
 
@@ -4074,7 +4076,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,256 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,266 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -4083,7 +4085,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase AE, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,256 tests. Phase AH: Board Intelligence Pack (12 tests). Phase AG: Flexibility Revenue Annual Report Section (12 tests).
+- 5,266 tests. Phase AI: EAC Drift Snapshot (10 tests). Phase AH: Board Intelligence Pack (12 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

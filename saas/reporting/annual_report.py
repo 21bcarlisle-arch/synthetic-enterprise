@@ -1772,6 +1772,123 @@ def _section_demand_estimation(data: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _section_eac_drift_snapshot(data: dict) -> str:
+    """Phase AI: Per-customer EAC drift from billing history.
+
+    Computes the drift in each customer's observed annual consumption (from the
+    company's own billing-derived EAC estimates) between their first and most recent
+    renewal. Customers with >+15% drift likely acquired EVs or ASHPs; <-15% drift
+    suggests solar installation or significant efficiency improvements.
+
+    Uses demand_estimation_log (Phase 23a/25a) — observable billing data only.
+    Silent when no log entries.
+    """
+    log = data.get("demand_estimation_log", [])
+    if not log:
+        return ""
+
+    from collections import defaultdict
+    by_customer: dict = defaultdict(list)
+    for entry in log:
+        cid = entry.get("customer_id")
+        if cid:
+            by_customer[cid].append(entry)
+
+    if not by_customer:
+        return ""
+
+    _SIGNIFICANT_INCREASE = 15.0
+    _MODERATE_INCREASE = 5.0
+    _MODERATE_DECREASE = -5.0
+    _SIGNIFICANT_DECREASE = -15.0
+
+    def _infer_cause(drift_pct: float, delta_kwh: float) -> str:
+        if drift_pct > 50:
+            return "likely EV acquisition"
+        if drift_pct > 20:
+            return "likely EV or ASHP installation"
+        if drift_pct > 8:
+            return "moderate demand growth (building use change)"
+        if drift_pct < _SIGNIFICANT_DECREASE:
+            return "likely solar installation or significant efficiency upgrade"
+        if drift_pct < _MODERATE_DECREASE:
+            return "efficiency improvement or reduced occupancy"
+        return "stable"
+
+    # Build per-customer drift records
+    drifts = []
+    for cid, entries in by_customer.items():
+        sorted_entries = sorted(entries, key=lambda e: e["term_start"])
+        first = sorted_entries[0]
+        last = sorted_entries[-1]
+        if first["company_eac_kwh"] <= 0:
+            continue
+        baseline_kwh = first["company_eac_kwh"]
+        current_kwh = last["company_eac_kwh"]
+        drift_pct = (current_kwh - baseline_kwh) / baseline_kwh * 100.0
+        delta_kwh = current_kwh - baseline_kwh
+        drifts.append({
+            "customer_id": cid,
+            "baseline_kwh": baseline_kwh,
+            "current_kwh": current_kwh,
+            "drift_pct": drift_pct,
+            "delta_kwh": delta_kwh,
+            "first_term": first["term_start"],
+            "last_term": last["term_start"],
+            "cause_hint": _infer_cause(drift_pct, delta_kwh),
+        })
+
+    if not drifts:
+        return ""
+
+    significant = [d for d in drifts if abs(d["drift_pct"]) >= _SIGNIFICANT_INCREASE]
+    moderate = [d for d in drifts if _MODERATE_INCREASE <= abs(d["drift_pct"]) < _SIGNIFICANT_INCREASE]
+    stable = [d for d in drifts if abs(d["drift_pct"]) < _MODERATE_INCREASE]
+
+    # Sort: biggest drift first (absolute value)
+    notable = sorted(
+        [d for d in drifts if abs(d["drift_pct"]) >= _MODERATE_INCREASE],
+        key=lambda d: abs(d["drift_pct"]),
+        reverse=True,
+    )
+
+    lines = [
+        "## EAC Drift Snapshot (Phase AI)",
+        "",
+        "Per-customer consumption drift from company billing history (first renewal → latest renewal).",
+        "Drift > +15%: EV/ASHP acquisition. Drift < −15%: solar installation or efficiency upgrade.",
+        "",
+        f"**{len(significant)} significant** (≥15%) | **{len(moderate)} moderate** (5–15%) | **{len(stable)} stable** (<5%)",
+        "",
+    ]
+
+    if notable:
+        lines += [
+            "| Customer | Baseline kWh | Current kWh | Drift | Likely Cause |",
+            "|----------|-------------|-------------|-------|--------------|",
+        ]
+        for d in notable:
+            drift_str = f"{d['drift_pct']:+.0f}%"
+            lines.append(
+                f"| {d['customer_id']} | {d['baseline_kwh']:,.0f} | {d['current_kwh']:,.0f} "
+                f"| {drift_str} | {d['cause_hint']} |"
+            )
+        lines.append("")
+
+    # Portfolio-wide trend
+    avg_drift = sum(d["drift_pct"] for d in drifts) / len(drifts)
+    increasing = sum(1 for d in drifts if d["drift_pct"] > 0)
+    decreasing = sum(1 for d in drifts if d["drift_pct"] < 0)
+    lines += [
+        f"**Portfolio demand trend:** {increasing} customers increasing / {decreasing} decreasing "
+        f"(mean drift: {avg_drift:+.1f}%)",
+        "",
+    ]
+
+    return "\n".join(lines)
+
+
+
 def _section_enterprise_value_analysis(data: dict) -> str:
     """Phase 22a: dual enterprise value — full-history vs 3yr-trailing margin.
 
@@ -4062,6 +4179,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_svt_comparison(data))      # Phase 39a
     sections.append(_section_company_divergence(data))
     sections.append(_section_demand_estimation(data))
+    sections.append(_section_eac_drift_snapshot(data))  # Phase AI
     sections.append(_section_company_crm(data))
     sections.append(_section_policy_costs(data))
     sections.append(_section_network_costs(data))
