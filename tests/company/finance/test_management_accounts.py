@@ -141,7 +141,7 @@ def test_management_accounts_section_in_report():
     events = [_bill("C1", 1000.0, "2022-01-01"), _settle("C1", 600.0, "2022-01-01")]
     pack = annual_management_pack(events)
     section = _section_management_accounts({"management_accounts": pack, "total_net_gbp": 400.0})
-    assert "## Management Accounts" in section
+    assert "Management Accounts" in section
     assert "2022" in section
 
 

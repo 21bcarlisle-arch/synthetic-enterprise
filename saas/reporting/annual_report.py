@@ -5039,7 +5039,7 @@ def _section_service_quality(data: dict) -> str:
             year=int(yr),
             avg_clarity=y.get("avg_clarity", 0.0),
             avg_complaint_probability=y.get("avg_complaint_probability", 0.0),
-            avg_bill_shock_pct=y.get("avg_bill_shock_pct", 0.0),
+            avg_bill_shock_pct=y.get("avg_bill_shock_pct") or 0.0,
             bills_count=y.get("bills_count", 0),
             shock_event_count=n_shock,
         )
@@ -6008,7 +6008,7 @@ def _section_dynamic_pricing_activity(data: dict) -> str:
 
 def _section_clv_evolution(data: dict) -> str:
     """Phase BG: CLV Evolution — portfolio forward value trajectory by year."""
-    clv_snapshots = data.get("clv_snapshots", {})
+    clv_snapshots = data.get("clv_snapshots") or {}
     if len(clv_snapshots) < 2:
         return ""
     rows = []
@@ -6197,11 +6197,11 @@ def _section_customer_strategic_value(data: dict) -> str:
     if not elec_accounts:
         return ""
     # Compute median CLV for quadrant boundary
-    clvs = sorted(v.get("clv_gbp", 0.0) for v in elec_accounts.values())
+    clvs = sorted((v.get("clv_gbp") or 0.0) for v in elec_accounts.values())
     n = len(clvs)
     med_clv = clvs[n // 2]
     # Churn boundary: median churn probability
-    churns = sorted(v.get("latest_churn_probability", 0.0) for v in elec_accounts.values())
+    churns = sorted((v.get("latest_churn_probability") or 0.0) for v in elec_accounts.values())
     med_churn = churns[n // 2]
     quadrants = {
         "PROTECT": [],   # High CLV, Low Churn
@@ -6209,10 +6209,10 @@ def _section_customer_strategic_value(data: dict) -> str:
         "MONITOR": [],   # Low CLV, Low Churn
         "EXIT": [],      # Low CLV, High Churn
     }
-    for cid, v in sorted(elec_accounts.items(), key=lambda x: -x[1].get("clv_gbp", 0)):
-        clv = v.get("clv_gbp", 0.0)
-        churn = v.get("latest_churn_probability", 0.0)
-        periods = v.get("expected_lifetime_periods", 0.0)
+    for cid, v in sorted(elec_accounts.items(), key=lambda x: -(x[1].get("clv_gbp") or 0)):
+        clv = v.get("clv_gbp") or 0.0
+        churn = v.get("latest_churn_probability") or 0.0
+        periods = v.get("expected_lifetime_periods") or 0.0
         if clv >= med_clv and churn < med_churn:
             q = "PROTECT"
         elif clv >= med_clv and churn >= med_churn:
@@ -6222,7 +6222,7 @@ def _section_customer_strategic_value(data: dict) -> str:
         else:
             q = "EXIT"
         quadrants[q].append((cid, clv, churn, periods))
-    total_clv = sum(v.get("clv_gbp", 0) for v in elec_accounts.values())
+    total_clv = sum((v.get("clv_gbp") or 0) for v in elec_accounts.values())
     lines = [
         "## Customer Strategic Value Matrix",
         "",

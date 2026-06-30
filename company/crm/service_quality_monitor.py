@@ -56,7 +56,7 @@ class ServiceQualitySnapshot:
 
     @property
     def bill_shock_rag(self) -> ServiceQualityRAG:
-        if self.avg_bill_shock_pct < _BILL_SHOCK_AMBER:
+        if self.avg_bill_shock_pct is None or self.avg_bill_shock_pct < _BILL_SHOCK_AMBER:
             return ServiceQualityRAG.GREEN
         if self.avg_bill_shock_pct < _BILL_SHOCK_RED:
             return ServiceQualityRAG.AMBER
