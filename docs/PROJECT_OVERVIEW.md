@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,546 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,558 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BE (2026-06-30):** Gross Margin Bridge (Year-over-Year Attribution) -- 12 new tests (5,558 total). annual_report.py: _section_gross_margin_bridge(): year-by-year table showing revenue / wholesale_cost / non_commodity_cost / gross_margin / GM% with delta columns (ΔRevenue / ΔWholesale / ΔNon-Commodity / ΔGM); first year shows — for deltas; best/worst GM% years highlighted. Key findings: 2022 worst GM% = 24.8% (revenue +£1.84M but wholesale cost +£1.43M consumed most of it); 2024 recovery to 42.4% (wholesale cost fell £717k on normalising market); 2016 nominal best (51.2%) but tiny portfolio. Epistemic verifier: PASS.
 
 **Phase BD (2026-06-30):** Renewal Pricing Engine -- 15 new tests (5,546 total). company/pricing/renewal_pricing_engine.py: RenewalPricingRecommendation (FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER); RenewalPricingResult (frozen; total_cost_gbp_per_mwh / margin_per_mwh / vs_svt_pct / is_viable); RenewalPricingEngine (base_conversion_pct 85%; risk_premium_pct 5%; price_renewal computes cost floor from wholesale + non-commodity + CTS/MWh, applies risk premium, caps at SVT×1.02; NO_OFFER when cost_floor > SVT; I&C segment 0.3× conversion decay rate for relationship selling; portfolio_renewal_plan; pricing_summary). 15 tests first pass. Connects Phase BA (price elasticity), Phase M (renewal conversion), Phase K (break-even). Epistemic verifier: PASS.
 
@@ -4118,7 +4120,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,546 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,558 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -4755,6 +4755,71 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_gross_margin_bridge(data: dict) -> str:
+    """Phase BE: Gross margin bridge — year-over-year P&L attribution."""
+    ma = data.get("management_accounts", {})
+    if not ma:
+        return ""
+    years = sorted(ma.keys())
+    if len(years) < 2:
+        return ""
+    lines = [
+        "## Gross Margin Bridge (Year-over-Year Attribution)",
+        "",
+        "Annual change in gross margin decomposed into revenue and cost drivers.",
+        "",
+        "| Year | Revenue £ | Wholesale £ | Non-Commodity £ | Gross Margin £ | GM% | ΔRevenue £ | ΔWholesale £ | ΔNon-Comm £ | ΔGM £ |",
+        "|------|-----------|-------------|-----------------|----------------|-----|------------|--------------|-------------|-------|",
+    ]
+    prev = None
+    max_gm_pct = 0.0
+    min_gm_pct = 100.0
+    worst_yr = None
+    best_yr = None
+    for yr in years:
+        inc = ma[yr].get("income_statement", {})
+        rev = inc.get("revenue_gbp", 0.0)
+        wc = inc.get("wholesale_cost_gbp", 0.0)
+        nc = inc.get("non_commodity_cost_gbp", 0.0)
+        gm = inc.get("gross_margin_gbp", 0.0)
+        gm_pct = gm / rev * 100 if rev > 0 else 0.0
+        if gm_pct > max_gm_pct:
+            max_gm_pct = gm_pct
+            best_yr = yr
+        if gm_pct < min_gm_pct:
+            min_gm_pct = gm_pct
+            worst_yr = yr
+        if prev is not None:
+            p_inc = ma[prev].get("income_statement", {})
+            p_rev = p_inc.get("revenue_gbp", 0.0)
+            p_wc = p_inc.get("wholesale_cost_gbp", 0.0)
+            p_nc = p_inc.get("non_commodity_cost_gbp", 0.0)
+            p_gm = p_inc.get("gross_margin_gbp", 0.0)
+            d_rev = rev - p_rev
+            d_wc = wc - p_wc
+            d_nc = nc - p_nc
+            d_gm = gm - p_gm
+            sign = lambda x: ("+" if x >= 0 else "") + _fmt_gbp(x)
+            lines.append(
+                f"| {yr} | {_fmt_gbp(rev)} | {_fmt_gbp(wc)} | {_fmt_gbp(nc)} | "
+                f"{_fmt_gbp(gm)} | {gm_pct:.1f}% | {sign(d_rev)} | {sign(d_wc)} | {sign(d_nc)} | {sign(d_gm)} |"
+            )
+        else:
+            lines.append(
+                f"| {yr} | {_fmt_gbp(rev)} | {_fmt_gbp(wc)} | {_fmt_gbp(nc)} | "
+                f"{_fmt_gbp(gm)} | {gm_pct:.1f}% | — | — | — | — |"
+            )
+        prev = yr
+    lines += [
+        "",
+        f"**Best GM year: {best_yr} ({max_gm_pct:.1f}%)** | **Worst GM year: {worst_yr} ({min_gm_pct:.1f}%)**",
+        "",
+        "> Note: Non-commodity costs include network (DUoS/TNUoS), policy levies (RO/CfD/CCL/CM/FiT), and mutualization.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _section_risk_committee_activity(data: dict) -> str:
     """Phase BC: Risk Committee intervention summary from committee_wake_ups."""
     years = data.get("years", {})
@@ -5527,6 +5592,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_gross_margin_bridge(data))            # Phase BE
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
