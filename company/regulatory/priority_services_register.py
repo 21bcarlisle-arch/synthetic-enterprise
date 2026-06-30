@@ -58,9 +58,8 @@ class PSRRecord:
             or PSRCategory.PENSIONABLE_AGE in self.categories
         )
 
-    @property
-    def is_review_overdue(self) -> bool:
-        return date.today() > self.review_due_date
+    def is_review_overdue(self, as_of: date) -> bool:
+        return as_of > self.review_due_date
 
     @property
     def has_at_least_one_service(self) -> bool:
@@ -119,20 +118,19 @@ class PriorityServicesRegister:
     def network_shared_count(self) -> int:
         return sum(1 for r in self.active_records if r.shared_with_network)
 
-    @property
-    def overdue_reviews(self) -> list[PSRRecord]:
-        return [r for r in self.active_records if r.is_review_overdue]
+    def overdue_reviews(self, as_of: date) -> list[PSRRecord]:
+        return [r for r in self.active_records if r.is_review_overdue(as_of)]
 
     def psr_penetration_pct(self, total_domestic_accounts: int) -> float:
         if total_domestic_accounts == 0:
             return 0.0
         return len(self.active_records) / total_domestic_accounts * 100
 
-    def psr_summary(self) -> str:
+    def psr_summary(self, as_of: date) -> str:
         n = len(self.active_records)
         n_elec_dep = len(self.electricity_dependent)
         n_non_compliant = len(self.non_compliant_records)
-        n_overdue = len(self.overdue_reviews)
+        n_overdue = len(self.overdue_reviews(as_of))
         lines = [
             "Priority Services Register (SLC 26B)",
             "Active: {:d} | Electricity-dependent: {:d}".format(n, n_elec_dep),
