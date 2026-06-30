@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JF — Coverage Depth Sprint XXVIII (2026-06-30)
+**Modules:** economy7 · payment_behaviour · renewal_engine
+**Tests added:** 39 (E7 day/night rates 2016-2025/crisis-peak/fallback/night-cheaper-invariant; meter-read total/night-pct/zero-guard; bill day/night/total/blended-rate/generate year-rates; payment DD_FAILED/MISSED days-late=None/GOOD/FAIR/POOR thresholds/avg-late-guard/shortfall-zero; renewal SME/IC margins/sc/2yr-0.5p/SVT-2.5p/VAR-id/annual-cost-formula/customer-id)
+**Total:** 10,257 tests
+
 ### Phase JE — Coverage Depth Sprint XXVII (2026-06-30)
 **Modules:** ets_registry · flexible_asset · desnz_returns
 **Tests added:** 30 (ETS purchase/holding/surrender/compliance-position; battery soc/charge-discharge/revenue/cycles; DESNZ total-customers/smart-pct/fuel-poverty/CO2-intensity/renewable-pct)
@@ -4574,7 +4579,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,218 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,257 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
