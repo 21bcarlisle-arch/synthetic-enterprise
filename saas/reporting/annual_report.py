@@ -4755,6 +4755,50 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_committee_intervention_pattern(data: dict) -> str:
+    """Phase BS: Risk committee intervention pattern — wake-ups per year."""
+    years = data.get("years", {})
+    if not years:
+        return ""
+    rows = []
+    total_all_years = 0
+    for yr in sorted(years.keys()):
+        y = years[yr]
+        cw = y.get("committee_wake_ups", [])
+        n_wakeups = len(cw)
+        total_all_years += n_wakeups
+        if n_wakeups == 0:
+            continue
+        total_adj = sum(len(e.get("adjustments", {})) for e in cw)
+        avg_customers = total_adj / n_wakeups if n_wakeups else 0
+        max_stressed = max(
+            (e.get("portfolio_var_stressed_gbp", 0) for e in cw), default=0
+        )
+        rows.append((yr, n_wakeups, total_adj, avg_customers, max_stressed))
+    if not rows:
+        return ""
+    peak_yr, peak_n, _, _, _ = max(rows, key=lambda r: r[1])
+    lines = [
+        "## Risk Committee Intervention Pattern",
+        "",
+        "Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).",
+        "",
+        "| Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |",
+        "|------|----------|---------------------|--------------------|--------------------|",
+    ]
+    for yr, n, total_adj, avg, max_s in rows:
+        lines.append("| {} | {} | {} | {:.1f} | £{:,.0f} |".format(yr, n, total_adj, avg, max_s))
+    lines.extend([
+        "",
+        "**Peak intervention year: {} ({} wake-ups)**".format(peak_yr, peak_n),
+        "**Total committee events (all years): {}**".format(total_all_years),
+        "",
+        "> Each wake-up adjusts hedge fractions upward for flagged customers. 2016-17 (early book).",
+        "> 2022-23 crisis years trigger most interventions on I&C anchor accounts.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_worst_settlement_periods(data: dict) -> str:
     """Phase BR: Worst half-hourly settlement period per year."""
     years = data.get("years", {})
@@ -6221,6 +6265,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_committee_intervention_pattern(data)) # Phase BS
     sections.append(_section_worst_settlement_periods(data))       # Phase BR
     sections.append(_section_bsc_regulatory_levies(data))          # Phase BQ
     sections.append(_section_cohort_revenue_analysis(data))        # Phase BP

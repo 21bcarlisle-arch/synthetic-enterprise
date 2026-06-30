@@ -908,6 +908,23 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Risk Committee Intervention Pattern
+
+Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
+
+| Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
+|------|----------|---------------------|--------------------|--------------------|
+| 2016 | 13 | 13 | 1.0 | £9 |
+| 2017 | 12 | 33 | 2.8 | £402 |
+| 2022 | 9 | 62 | 6.9 | £20,705 |
+| 2023 | 4 | 32 | 8.0 | £49,444 |
+
+**Peak intervention year: 2016 (13 wake-ups)**
+**Total committee events (all years): 38**
+
+> Each wake-up adjusts hedge fractions upward for flagged customers. 2016-17 (early book).
+> 2022-23 crisis years trigger most interventions on I&C anchor accounts.
+
 ## Worst Half-Hourly Settlement Period by Year
 
 Most loss-making single 30-minute period per settlement year.

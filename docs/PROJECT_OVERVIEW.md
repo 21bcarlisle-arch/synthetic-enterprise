@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,717 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,729 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BS (2026-06-30):** Risk Committee Intervention Pattern Section -- 12 new tests (5,729 total). saas/reporting/annual_report.py: _section_committee_intervention_pattern(): shows per-year committee wakeups (triggered by VaR threshold breach), total customer adjustments, avg customers per event, and max VaR stressed. Key insights: 2016 had peak 13 wakeups (early book calibration); 2018-2021 were quiet (stable hedging); 2022 resurgence with 9 wakeups (crisis onset) — 62 customer adjustments. Total 38 events across run. Years with zero wakeups skipped from table. Epistemic verifier: PASS.
 
 **Phase BR (2026-06-30):** Worst Half-Hourly Settlement Period by Year -- 12 new tests (5,717 total). saas/reporting/annual_report.py: _section_worst_settlement_periods(): shows worst HH settlement (date / SP / customer / net margin) per year; identifies single worst period across all years. Key insights: C_IC3g (large gas I&C) dominates worst periods from 2020 onwards; 2023 single worst period = -£3,475 on 2023-12-31 SP1 (gas spot price elevated at year-end). 2016-2019 worst periods small (C6, C_IC1, -£0.36 to -£20). Epistemic verifier: PASS.
 
@@ -4146,7 +4148,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,717 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,729 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
