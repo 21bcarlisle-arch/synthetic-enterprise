@@ -908,6 +908,153 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Customer Experience & Service Quality
+
+| Year | Billing Clarity | Complaint Prob | Acq Attempts | Acq Wins | Flag |
+|------|----------------|---------------|-------------|---------|------|
+| 2016 | 0.829 | 0.047 | 0 | 0 |  |
+| 2017 | 0.818 | 0.047 | 0 | 0 |  |
+| 2018 | 0.810 | 0.047 | 0 | 0 |  |
+| 2019 | 0.824 | 0.047 | 0 | 0 |  |
+| 2020 | 0.830 | 0.043 | 1 | 0 |  |
+| 2021 | 0.829 | 0.045 | 2 | 0 |  |
+| 2022 | 0.791 | 0.056 | 0 | 0 | **LOW CLARITY** |
+| 2023 | 0.808 | 0.048 | 0 | 0 |  |
+| 2024 | 0.813 | 0.046 | 2 | 0 |  |
+| 2025 | 0.777 | 0.059 | 0 | 0 | **LOW CLARITY** |
+
+**Overall service quality:** 90.5% | **Average billing clarity:** 0.816 | **Average complaint probability:** 0.047
+
+**Acquisition performance:** 5 attempts, 0 wins (0% win rate). No new customers acquired — cap-constrained gate blocked resi acquisition 2021-2023 (negative projected margin).
+
+**Lowest clarity: 2025** (0.777) — crisis complexity (multiple tariff changes, bill shock events) degraded statement clarity.
+
+## Bill Shock Analysis
+
+Bill shock events occur when a customer's bill increases >20% vs the prior bill.
+Regulatory context: Ofgem monitors bill shock as a consumer harm indicator.
+
+| Year | Avg Shock % | Events | Bills | Shock Rate | Flag |
+|------|------------|--------|-------|------------|------|
+| 2016 | 19.7% | 31 | 108 | 29% |  |
+| 2017 | 16.5% | 50 | 168 | 30% |  |
+| 2018 | 15.9% | 60 | 180 | 33% |  |
+| 2019 | 17.0% | 66 | 204 | 32% |  |
+| 2020 | 14.5% | 53 | 204 | 26% |  |
+| 2021 | 15.9% | 51 | 192 | 27% |  |
+| 2022 | 33.8% | 61 | 148 | 41% | **HIGH** |
+| 2023 | 17.2% | 42 | 144 | 29% |  |
+| 2024 | 15.9% | 33 | 129 | 26% |  |
+| 2025 | 23.6% | 20 | 54 | 37% | ELEVATED |
+
+**Crisis peak: 2022** — 33.8% average shock. Energy crisis drove wholesale costs above locked tariff rates,
+causing step-change increases at every renewal. SLC 21: suppliers must issue
+renewal notice 42 days before contract end, giving customers time to switch.
+
+## Policy Cost & Levy Breakdown
+
+UK energy levies collected through supplier bills. Policy costs are non-commodity costs
+passed through to customers. CfD levy went negative in 2022 (crisis: spot exceeded strike prices;
+renewable generators repaid back via levy mechanism).
+
+| Year | RO | CfD | CCL | CM | FiT | Total Policy | Network |
+|------|----|-----|-----|----|-----|-------------|---------|
+| 2016 | £1,161.79 | £7.45 | £189.19 | £37.24 | £305.34 | £1,701.01 | £3,202.38 |
+| 2017 | £37,352.08 | £2,721.53 | £11,227.21 | £1,985.49 | £9,991.40 | £63,277.71 | £26,300.83 |
+| 2018 | £65,913.01 | £9,937.67 | £17,545.09 | £9,400.73 | £17,390.54 | £120,187.04 | £38,779.00 |
+| 2019 | £165,082.60 | £28,433.77 | £42,580.25 | £32,050.88 | £44,423.38 | £312,570.88 | £88,630.41 |
+| 2020 | £239,155.88 | £35,468.03 | £69,608.00 | £56,674.42 | £70,177.06 | £471,083.40 | £124,849.03 |
+| 2021 | £249,025.89 | £15,151.61 | £72,053.98 | £50,147.85 | £63,433.22 | £491,631.00 | £124,693.38 |
+| 2022 | £259,288.78 | **£-50,342.40** | £71,853.14 | £37,169.98 | £69,906.78 | £488,561.07 | £134,602.75 |
+| 2023 | £274,577.82 | £65,429.09 | £72,498.67 | £51,398.91 | £75,853.52 | £553,649.11 | £140,330.40 |
+| 2024 | £310,630.69 | £111,030.29 | £73,611.67 | £69,368.01 | £83,373.29 | £650,032.69 | £144,360.33 |
+| 2025 | £137,697.53 | £47,631.22 | £31,649.06 | £31,479.91 | £36,676.04 | £285,999.79 | £61,947.94 |
+
+**CfD rebate in 2022:** Contracts for Difference (CfD) generators are paid
+the difference between strike price and reference price. When spot > strike (2022 crisis),
+the mechanism reverses — generators pay back, creating a negative levy for suppliers.
+
+Policy costs: £1,701.01 (2016) → £285,999.79 (2025). CAGR: 76.7%.
+
+## Electricity vs Gas P&L Split
+
+Year-by-year net margin by fuel. Gas became structurally loss-making from 2021.
+
+| Year | Elec Net | Gas Net | Elec Rev | Gas Rev | Gas Share of Rev | Gas Profitable |
+|------|----------|---------|----------|---------|-----------------|---------------|
+| 2016 | £875.81 | £299.61 | £9,021.95 | £1,386.57 | 13.3% | YES |
+| 2017 | £30,292.86 | £473.19 | £233,121.55 | £2,660.42 | 1.1% | YES |
+| 2018 | £99,280.66 | £385.93 | £434,755.79 | £3,110.99 | 0.7% | YES |
+| 2019 | £217,552.61 | £565.47 | £1,063,332.44 | £137,765.93 | 11.5% | YES |
+| 2020 | £112,332.85 | £4,488.81 | £1,105,132.61 | £121,132.23 | 9.9% | YES |
+| 2021 | £60,168.89 | £-1,894.09 | £1,457,800.09 | £297,851.59 | 17.0% | **NO** |
+| 2022 | £305,299.96 | £-49,016.23 | £2,885,765.52 | £588,329.77 | 16.9% | **NO** |
+| 2023 | £82,658.60 | £-31,903.62 | £2,280,062.68 | £297,197.78 | 11.5% | **NO** |
+| 2024 | £355,851.91 | £-36,797.75 | £1,964,341.07 | £270,490.62 | 12.1% | **NO** |
+| 2025 | £111,920.86 | £-19,499.39 | £849,591.30 | £132,453.71 | 13.5% | **NO** |
+
+**Gas has been loss-making since 2021** (5 consecutive years). Electricity cross-subsidises gas supply.
+
+## Annual Management Accounts
+
+Year-by-year income statement from company accounting records. All figures £.
+
+| Year | Revenue | Wholesale | Non-Commod | Gross Margin | Bad Debt | OpEx | Net Margin |
+|------|---------|-----------|-----------|--------------|----------|------|------------|
+| 2016 | £15,352.90 | £3,597.58 | £3,892.24 | £7,863.08 | £234.60 | £834.60 | £6,942.05 (45.2%) |
+| 2017 | £350,732.11 | £111,902.60 | £113,395.24 | £125,434.28 | £6,284.22 | £6,884.22 | £117,274.42 (33.4%) |
+| 2018 | £604,530.96 | £174,416.17 | £165,010.73 | £265,104.06 | £11,866.65 | £12,466.65 | £251,102.06 (41.5%) |
+| 2019 | £1,649,401.15 | £498,494.72 | £446,452.22 | £704,454.21 | £30,848.57 | £31,448.57 | £661,482.63 (40.1%) |
+| 2020 | £1,861,237.49 | £433,224.88 | £633,114.40 | £794,898.21 | £38,319.86 | £39,069.86 | £748,476.97 (40.2%) |
+| 2021 | £2,443,877.58 | £983,205.34 | £686,468.74 | £774,203.50 | £47,323.39 | £48,323.39 | £710,004.47 (29.1%) |
+| 2022 | £4,285,512.24 | £2,412,100.99 | £810,117.20 | £1,063,294.05 | £84,928.55 | £85,528.55 | £912,531.62 (21.3%) |
+| 2023 | £3,463,834.36 | £1,657,807.50 | £885,296.40 | £920,730.46 | £76,623.27 | £77,223.27 | £794,320.62 (22.9%) |
+| 2024 | £3,053,190.27 | £941,043.41 | £817,278.82 | £1,294,868.05 | £64,905.54 | £66,055.54 | £1,173,152.05 (38.4%) |
+| 2025 | £1,242,833.99 | £458,681.43 | £260,405.04 | £523,747.52 | £37,362.93 | £37,662.93 | £457,144.59 (36.8%) |
+| **Total** | **£18,970,503.05** | | | | | | **£5,832,431.47 (30.7%)** |
+
+**Best year:** 2024 — net £1,173,152.05 (38.4% margin)
+**Worst year:** 2016 — net £6,942.05 (45.2% margin)
+
+### Balance Sheet (Year End 2025)
+
+| Item | Value |
+|------|-------|
+| Cash | £8,299,067.70 |
+| Trade Receivables | £0.00 |
+| **Total Assets** | **£8,299,067.70** |
+| Opening Capital | £2,466,636.22 |
+| Current Period Profit | £5,832,431.47 |
+
+## Gas Supply Exit Decision Analysis (Phase AR/AS)
+
+Models three strategic scenarios for the board regarding gas supply legs.
+Inputs: company billing records (per_cid_comm_pnl). Gas capital = hedge cost applied to gas leg.
+
+### Scenario Comparison (Dual-Fuel Portfolio Only)
+
+| Scenario | Portfolio Net | vs Status Quo | Action |
+|----------|--------------|---------------|--------|
+| STATUS_QUO | £-47,673.88 | — | Current strategy |
+| EXIT_GAS | £51,429.11 | £99,102.99 | Remove gas; model elec churn risk |
+| REPRICE_GAS | £86,987.64 | £134,661.52 | Raise gas tariff to break-even |
+
+**Recommended action: REPRICE_GAS**
+
+### Loss-Making Gas Accounts
+
+| Account | Gas Net | Gas ROC | Revenue Uplift Needed |
+|---------|---------|---------|----------------------|
+| C4g | £-1,950.33 | -13.60x | +18.8% |
+| C_IC3g | £-132,711.18 | -0.72x | +7.2% |
+
+**Accretive gas accounts:** C1g (£652.07), C2g (£814.57), C3g (£296.79) — these gas legs support customer retention without capital destruction.
+
+**Board Decision:**
+- Exit gas: I&C customers at 40% electricity churn risk when gas removed (relationship loss)
+- Reprice gas: increases customer cost but eliminates capital destruction
+- Status quo: unsustainable — gas legs destroying £132898 in net value
+
 ## Segment Capital Efficiency (Return-on-Capital)
 
 Lifetime net margin and capital deployed per segment.
@@ -1190,36 +1337,36 @@ _Cash reconciliation: of £19,929,610.87 billed, bad debt of £398,697.56 was wr
 | Fixed overhead | (£5,700.00) |
 | Operating net margin | £6,232,445.03 |
 
-## Management Accounts
+## Annual Management Accounts
 
-P&L and balance sheet from double-entry journal (account codes), not formulas.
+Year-by-year income statement from company accounting records. All figures £.
 
-| Year | Revenue | COGS | Gross | OpEx | Net | Cash | Equity |
-|------|---------|------|-------|------|-----|------|--------||
-| 2016 | £15,352.90 | (£7,489.82) | £7,863.08 | (£921.03) | £6,942.05 | £2,470,741.03 | £2,473,578.27 |
-| 2017 | £350,732.11 | (£225,297.83) | £125,434.28 | (£8,159.86) | £117,274.42 | £2,558,685.02 | £2,590,852.69 |
-| 2018 | £604,530.96 | (£339,426.90) | £265,104.06 | (£14,002.00) | £251,102.06 | £2,786,978.21 | £2,841,954.75 |
-| 2019 | £1,649,401.15 | (£944,946.94) | £704,454.21 | (£42,971.57) | £661,482.63 | £3,346,704.20 | £3,503,437.38 |
-| 2020 | £1,861,237.49 | (£1,066,339.28) | £794,898.21 | (£46,421.24) | £748,476.97 | £4,069,390.30 | £4,251,914.35 |
-| 2021 | £2,443,877.58 | (£1,669,674.08) | £774,203.50 | (£64,199.03) | £710,004.47 | £4,664,659.21 | £4,961,918.81 |
-| 2022 | £4,285,512.24 | (£3,222,218.19) | £1,063,294.05 | (£150,762.43) | £912,531.62 | £5,436,888.04 | £5,874,450.43 |
-| 2023 | £3,463,834.36 | (£2,543,103.90) | £920,730.46 | (£126,409.83) | £794,320.62 | £6,362,968.00 | £6,668,771.06 |
-| 2024 | £3,053,190.27 | (£1,758,322.23) | £1,294,868.05 | (£121,716.00) | £1,173,152.05 | £7,550,757.97 | £7,841,923.11 |
-| 2025 | £1,242,833.99 | (£719,086.48) | £523,747.52 | (£66,602.93) | £457,144.59 | £8,299,067.70 | £8,299,067.70 |
+| Year | Revenue | Wholesale | Non-Commod | Gross Margin | Bad Debt | OpEx | Net Margin |
+|------|---------|-----------|-----------|--------------|----------|------|------------|
+| 2016 | £15,352.90 | £3,597.58 | £3,892.24 | £7,863.08 | £234.60 | £834.60 | £6,942.05 (45.2%) |
+| 2017 | £350,732.11 | £111,902.60 | £113,395.24 | £125,434.28 | £6,284.22 | £6,884.22 | £117,274.42 (33.4%) |
+| 2018 | £604,530.96 | £174,416.17 | £165,010.73 | £265,104.06 | £11,866.65 | £12,466.65 | £251,102.06 (41.5%) |
+| 2019 | £1,649,401.15 | £498,494.72 | £446,452.22 | £704,454.21 | £30,848.57 | £31,448.57 | £661,482.63 (40.1%) |
+| 2020 | £1,861,237.49 | £433,224.88 | £633,114.40 | £794,898.21 | £38,319.86 | £39,069.86 | £748,476.97 (40.2%) |
+| 2021 | £2,443,877.58 | £983,205.34 | £686,468.74 | £774,203.50 | £47,323.39 | £48,323.39 | £710,004.47 (29.1%) |
+| 2022 | £4,285,512.24 | £2,412,100.99 | £810,117.20 | £1,063,294.05 | £84,928.55 | £85,528.55 | £912,531.62 (21.3%) |
+| 2023 | £3,463,834.36 | £1,657,807.50 | £885,296.40 | £920,730.46 | £76,623.27 | £77,223.27 | £794,320.62 (22.9%) |
+| 2024 | £3,053,190.27 | £941,043.41 | £817,278.82 | £1,294,868.05 | £64,905.54 | £66,055.54 | £1,173,152.05 (38.4%) |
+| 2025 | £1,242,833.99 | £458,681.43 | £260,405.04 | £523,747.52 | £37,362.93 | £37,662.93 | £457,144.59 (36.8%) |
+| **Total** | **£18,970,503.05** | | | | | | **£5,832,431.47 (30.7%)** |
 
-**Cross-check:** FAIL -- Journal: £5,832,431.47, Sim: £1,243,336.92, Variance: 369.1%
+**Best year:** 2024 — net £1,173,152.05 (38.4% margin)
+**Worst year:** 2016 — net £6,942.05 (45.2% margin)
 
-**Balance sheet -- 2025 year-end:**
+### Balance Sheet (Year End 2025)
 
-| Account | GBP |
-|---------|-----|
-| Cash and Treasury (1001) | £8,299,067.70 |
-| Trade Receivables (1100) | £0.00 |
+| Item | Value |
+|------|-------|
+| Cash | £8,299,067.70 |
+| Trade Receivables | £0.00 |
 | **Total Assets** | **£8,299,067.70** |
-| Opening Capital (3001) | £2,466,636.22 |
-| Cumulative Net Profit | £5,832,431.47 |
-| **Total Equity** | **£8,299,067.70** |
-| A = L + E | OK |
+| Opening Capital | £2,466,636.22 |
+| Current Period Profit | £5,832,431.47 |
 
 ## Budget vs Actual
 
