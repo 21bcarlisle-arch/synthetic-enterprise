@@ -4152,6 +4152,149 @@ def _section_portfolio_intelligence_pack(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_churn_root_cause(data: dict) -> str:
+    """Phase AK: Churn Root Cause Attribution.
+
+    For each churned account, traces the price journey and churn estimate context.
+    Cross-references:
+      - customer_events (event_type=churned) for departure timing
+      - dynamic_pricing_log for last rate change before churn
+      - churn_basis_risk for rate-vs-SVT and company vs sim divergence
+      - per_customer_lifetime for tenure and margin lost
+
+    Silent when no churned events.
+    """
+    ce_all = data.get("customer_events", [])
+    churned = [e for e in ce_all if e.get("event_type") == "churned"]
+    if not churned:
+        return ""
+
+    dpl = data.get("dynamic_pricing_log", [])
+    cbr = data.get("churn_basis_risk", [])
+    pcl = data.get("per_customer_lifetime", {})
+
+    rows = []
+    for ev in sorted(churned, key=lambda e: e["event_date"]):
+        cid = ev["customer_id"]
+        churn_date = ev["event_date"]
+
+        # Last pricing entry for this customer at or before churn
+        cid_pricing = [p for p in dpl if p["customer_id"] == cid and p["term_start"] <= churn_date]
+        last_price = max(cid_pricing, key=lambda p: p["term_start"]) if cid_pricing else None
+
+        # Last churn basis risk entry at or before churn
+        cid_cbr = [r for r in cbr if r["customer_id"] == cid and r["term_start"] <= churn_date]
+        last_cbr = max(cid_cbr, key=lambda r: r["term_start"]) if cid_cbr else None
+
+        pcl_rec = pcl.get(cid, {})
+        segment = pcl_rec.get("segment", "?")
+        net_margin = pcl_rec.get("net_margin_after_cost_to_serve_gbp", 0.0)
+        acq_date = pcl_rec.get("acquisition_date", "")
+        tenure_years = 0.0
+        if acq_date:
+            from datetime import date as _date
+            try:
+                d0 = _date.fromisoformat(acq_date)
+                d1 = _date.fromisoformat(churn_date)
+                tenure_years = (d1 - d0).days / 365.25
+            except ValueError:
+                pass
+
+        rate_shock_pct = None
+        final_rate = None
+        if last_price:
+            rb = last_price.get("unit_rate_before", 0)
+            ra = last_price.get("unit_rate_after", 0)
+            if rb:
+                rate_shock_pct = (ra - rb) / rb * 100
+            final_rate = ra
+
+        rate_vs_svt = last_cbr.get("rate_vs_svt_pct") if last_cbr else None
+        sim_p = last_cbr.get("sim_churn_probability", 0.0) if last_cbr else 0.0
+        co_est = last_cbr.get("company_churn_estimate", 0.0) if last_cbr else 0.0
+
+        rows.append({
+            "cid": cid,
+            "date": churn_date,
+            "segment": segment,
+            "tenure_years": tenure_years,
+            "rate_shock_pct": rate_shock_pct,
+            "final_rate": final_rate,
+            "rate_vs_svt": rate_vs_svt,
+            "sim_p": sim_p,
+            "co_est": co_est,
+            "net_margin": net_margin,
+        })
+
+    lines = [
+        "## Churn Root Cause Attribution",
+        "",
+        "Per-churned-account analysis: pricing journey, rate-vs-SVT positioning, and company "
+        "vs SIM churn estimate at the point of departure.",
+        "",
+        "| Account | Seg | Churn Date | Tenure | Last Rate Shock | Rate vs SVT | Sim Risk | Co. Est. | Margin Lost |",
+        "|---------|-----|------------|--------|-----------------|-------------|----------|----------|-------------|",
+    ]
+
+    for r in rows:
+        shock_str = (
+            f"{r['rate_shock_pct']:+.1f}%" if r["rate_shock_pct"] is not None else "n/a"
+        )
+        rvs_str = (
+            f"{r['rate_vs_svt']:+.1f}%" if r["rate_vs_svt"] is not None else "n/a"
+        )
+        lines.append(
+            "| " + r["cid"] + " | " + r["segment"] + " | " + r["date"] + " | " +
+            f"{r['tenure_years']:.1f}yr" + " | " + shock_str + " | " + rvs_str +
+            " | " + f"{r['sim_p']:.0%}" + " | " + f"{r['co_est']:.0%}" + " | " +
+            _fmt_gbp(r["net_margin"]) + " |"
+        )
+
+    lines.append("")
+
+    # Summary metrics
+    total_margin_lost = sum(r["net_margin"] for r in rows)
+    avg_tenure = sum(r["tenure_years"] for r in rows) / len(rows) if rows else 0.0
+    blind_misses = [r for r in rows if r["co_est"] < 0.10 and r["sim_p"] >= 0.30]
+    warned = [r for r in rows if r["co_est"] >= 0.20]
+    crisis_churns = [r for r in rows if "2021" in r["date"] or "2022" in r["date"]]
+
+    lines += [
+        "**Root Cause Summary:**",
+        "- Total churned accounts: " + str(len(rows)),
+        "- Lifetime margin lost: " + _fmt_gbp(total_margin_lost),
+        "- Average tenure at departure: " + f"{avg_tenure:.1f} years",
+    ]
+    if blind_misses:
+        lines.append(
+            "- Company blind misses (sim >=30%, co. est. <10%): " +
+            str(len(blind_misses)) + " -- " +
+            ", ".join(r["cid"] for r in blind_misses)
+        )
+    if warned:
+        lines.append(
+            "- Company-warned churns (co. est. >=20%): " +
+            str(len(warned)) + " -- " +
+            ", ".join(r["cid"] for r in warned)
+        )
+    if crisis_churns:
+        lines.append(
+            "- Crisis-era churns (2021-22): " + str(len(crisis_churns)) +
+            " -- absolute crisis price level, not rate-change delta, was the driver"
+        )
+
+    # Overpriced at churn
+    overpriced = [r for r in rows if r["rate_vs_svt"] is not None and r["rate_vs_svt"] > 5.0]
+    if overpriced:
+        lines.append(
+            "- Overpriced vs SVT at departure: " + str(len(overpriced)) + " account(s) -- " +
+            "rate shock risk was observable but unactioned"
+        )
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_crm_intelligence(data: dict) -> str:
     """Phase AJ: CRM Risk Triage - final-year churn risk bands + repricing triage.
 
@@ -4326,6 +4469,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_flexibility_revenue(data))   # Phase AG
     sections.append(_section_portfolio_intelligence_pack(data))  # Phase AH
     sections.append(_section_crm_intelligence(data))  # Phase AJ
+    sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
     sections.append(_section_dual_fuel_pnl(data))
