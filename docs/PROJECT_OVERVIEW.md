@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,921 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,933 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CJ (2026-06-30):** Initial Margin Register -- 12 new tests (5,933 total). company/trading/initial_margin_register.py (new): MarginAccountType (BILATERAL_OTC / EXCHANGE_CLEARED / INTERNAL_NETTING); IMStatus (POSTED/RETURNED/CALLED/PARTIAL); InitialMarginRecord (frozen; total_held_gbp = margin_posted_gbp + additional_call_gbp; margin_rate_pct_of_notional vs £100/MWh proxy; is_active); InitialMarginRegister (post_margin / issue_additional_call — CCP margin call increases IM requirement / return_margin / total_locked_gbp / records_by_counterparty / im_summary). Context: 2022 crisis — clearing houses tripled initial margin requirements; combined IM + variation margin (Phase CC) drain destroyed supplier liquidity within weeks. Complements Phase CC (OTC Variation Margin Book). Epistemic verifier: PASS.
 
 **Phase CI (2026-06-30):** Annual Board Pack Synthesiser -- 12 new tests (5,921 total). company/risk/annual_board_pack.py (new): BoardSignalRAG (GREEN/AMBER/RED); BoardSignalCategory (Financial/Risk/Compliance/Portfolio/Strategic); BoardSignal (mutable; is_red/is_green); AnnualBoardPack (add_financial/risk/compliance/portfolio/strategic; red_signals / overall_rag — RED if any RED, AMBER if any AMBER; highest_risk_signals/signals_by_category/pack_summary). Synthesises all company-layer risk signals into a CEO-level annual board pack with overall RAG. Epistemic verifier: PASS.
 
@@ -4180,7 +4182,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,921 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,933 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
