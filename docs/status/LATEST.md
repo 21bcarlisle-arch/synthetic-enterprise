@@ -1,5 +1,5 @@
-Phase HW complete -- 9,230 tests. Phase HW: Coverage Expansion Sprint VII -- 30 tests (3 modules: liquidity_stress_test, initial_margin_register, price_elasticity). All tests passing, epistemic verifier PASS (406 company/ files).
-Last updated: 2026-06-30T20:00:19Z
+Phase HX complete -- 9,260 tests. Phase HX: Coverage Expansion Sprint VIII -- 30 tests (3 modules: acquisition_strategy_book, dual_fuel_bill, market_share_estimator). All tests passing, epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T20:02:37Z
 
 **Latest simulation results (2016–2025)** — auto-processed (723s / 12 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
