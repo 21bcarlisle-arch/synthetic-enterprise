@@ -4755,6 +4755,71 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_risk_committee_activity(data: dict) -> str:
+    """Phase BC: Risk Committee intervention summary from committee_wake_ups."""
+    years = data.get("years", {})
+    all_sessions = []
+    for yr, yd in sorted(years.items()):
+        wk = yd.get("committee_wake_ups", [])
+        if isinstance(wk, list):
+            for s in wk:
+                all_sessions.append((yr, s))
+    if not all_sessions:
+        return ""
+    lines = [
+        "## Risk Committee Activity (2016-2025)",
+        "",
+        "Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate threshold.",
+        "",
+        "| Year | Sessions | Peak VaR (current) £ | Peak VaR (stressed) £ | Accounts touched |",
+        "|------|----------|----------------------|----------------------|-----------------|",
+    ]
+    total_sessions = 0
+    total_accounts = set()
+    busiest_year = None
+    busiest_count = 0
+    peak_var_yr = None
+    peak_var_val = 0.0
+    for yr, yd in sorted(years.items()):
+        wk = yd.get("committee_wake_ups", [])
+        if not isinstance(wk, list) or not wk:
+            continue
+        n = len(wk)
+        total_sessions += n
+        if n > busiest_count:
+            busiest_count = n
+            busiest_year = yr
+        peak_var_current = max(s.get("portfolio_var_current_gbp", 0) for s in wk)
+        peak_var_stressed = max(s.get("portfolio_var_stressed_gbp", 0) for s in wk)
+        if peak_var_current > peak_var_val:
+            peak_var_val = peak_var_current
+            peak_var_yr = yr
+        accounts = set()
+        for s in wk:
+            accounts.update(s.get("adjustments", {}).keys())
+        total_accounts.update(accounts)
+        lines.append(f"| {yr} | {n} | £{peak_var_current:,.0f} | £{peak_var_stressed:,.0f} | {len(accounts)} |")
+    lines += [
+        "",
+        f"**Total sessions 2016-2025: {total_sessions}** | Busiest year: {busiest_year} ({busiest_count} sessions)",
+        f"Peak VaR observed: {peak_var_yr} at £{peak_var_val:,.0f} | Unique accounts ever adjusted: {len(total_accounts)}",
+        "",
+    ]
+    # Most frequently adjusted accounts
+    account_freq: dict[str, int] = {}
+    for yr, s in all_sessions:
+        for cid in s.get("adjustments", {}).keys():
+            account_freq[cid] = account_freq.get(cid, 0) + 1
+    if account_freq:
+        lines.append("**Most frequently adjusted accounts:**")
+        for cid, cnt in sorted(account_freq.items(), key=lambda x: -x[1])[:5]:
+            lines.append(f"- {cid}: {cnt} sessions")
+        lines.append("")
+    lines.append("> Risk committee wake-ups are documented in `docs/observability/run_history.json`.")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_customer_strategic_value(data: dict) -> str:
     bba = data.get("by_billing_account", {})
     if not bba:
@@ -5462,6 +5527,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
     sections.append(_section_bill_shock_analysis(data))            # Phase AW

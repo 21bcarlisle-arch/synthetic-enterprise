@@ -908,6 +908,29 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Risk Committee Activity (2016-2025)
+
+Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate threshold.
+
+| Year | Sessions | Peak VaR (current) £ | Peak VaR (stressed) £ | Accounts touched |
+|------|----------|----------------------|----------------------|-----------------|
+| 2016 | 13 | £28 | £9 | 1 |
+| 2017 | 12 | £1,007 | £402 | 3 |
+| 2022 | 9 | £55,976 | £20,705 | 8 |
+| 2023 | 4 | £129,699 | £49,444 | 9 |
+
+**Total sessions 2016-2025: 38** | Busiest year: 2016 (13 sessions)
+Peak VaR observed: 2023 at £129,699 | Unique accounts ever adjusted: 11
+
+**Most frequently adjusted accounts:**
+- C1: 22 sessions
+- C7: 19 sessions
+- C2: 13 sessions
+- C5: 12 sessions
+- C6: 12 sessions
+
+> Risk committee wake-ups are documented in `docs/observability/run_history.json`.
+
 ## Customer Strategic Value Matrix
 
 2x2 matrix: CLV (above/below median) × Churn probability (above/below median).
