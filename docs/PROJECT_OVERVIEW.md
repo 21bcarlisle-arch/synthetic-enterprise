@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GW (2026-06-30):** Non-Commodity Cost (NCC) Forecast Register -- 21 new tests (8,330 total). company/pricing/ncc_forecast_register.py (new): NCCComponent (11); Fuel (ELECTRICITY/GAS); NCCForecastRecord (frozen; period_months; is_applicable_for_fuel: GAS+ELECTRICITY_ONLY returns False; annual_cost_per_customer_gbp: p/kWh→kwh×rate/100, GBP/customer→rate); NCCForecastRegister (add_forecast: period_end>start, rate>=0; total_ncc_pence_per_kwh: only p/kWh records; components_without_forecast(period,fuel)). NCC ~40-50% domestic bill; NCC under-estimation was core cause of 2021-22 failures. Distinct from bsuos_ledger.py etc. (actuals). PASS (392 files).
+
 **Phase GV (2026-06-30):** RGGO Register -- 30 new tests (8,309 total). company/regulatory/rggo_register.py (new): BiomethaneSource (5); RGGOStatus (4); RGGORecord (frozen; is_redeemable(as_of): available+within valid_to; is_expired(as_of): available+past valid_to); RGGORegister (register_rggo: volume>0, valid_to>issue_date; redeem: raises ValueError if not redeemable; expire_stale: bulk; redemption_rate_pct: redeemed/(redeemed+expired)); redemption_deadline_for_year: year+1 Mar 31. Green Gas Law 2021/GGCS. Distinct from green_gas_levy_register.py, rego_portfolio.py. PASS (391 files).
 
 **Phase GU (2026-06-30):** Network Code Modification Register -- 32 new tests (8,279 total). company/regulatory/network_code_modification_register.py (new): IndustryCode (6: BSC/UNC/REC/DCUSA/SEC/MRA); ModificationStatus (7); ImpactLevel (5); NetworkCodeModificationRecord (frozen; is_active; is_high_impact; is_implementation_due_soon <=90d; days_to_implementation); NetworkCodeModificationRegister (track/assess_impact/ballot/set_implementation_date/mark_implemented/reject; active/high_impact/due_soon/by_code/pending_ballot). Elexon/Xoserve/Gemserv administered codes. Distinct from slc_compliance_tracker.py. PASS (390 files).
@@ -4406,7 +4408,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,309 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,330 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
