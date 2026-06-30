@@ -57,7 +57,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BK COMPLETE (2026-06-30):** Financial Ratios -- 12 tests (5,633 total). _section_financial_ratios(): EBIT%/rev-per-cust/GM-per-cust/bad-debt-rate. 2022 worst EBIT 21.3%; rev/cust peak £306k.
+**Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). _section_stress_test_history(): 5 scenarios per year; RAG table. Connects StressTestBook to annual report.
+**Phase BK COMPLETE (2026-06-30):** Financial Ratios -- 12 tests (5,633 total). EBIT%/rev-per-cust/bad-debt-rate. 2022 worst EBIT 21.3%; £306k rev/cust peak.
 **Phase BJ COMPLETE (2026-06-30):** Churn Prediction Calibration -- 12 tests (5,621 total). UNDER/ACCURATE/OVER + MAE. 5/6 churns underestimated (epistemic gap).
 **Phase BI COMPLETE (2026-06-30):** Tariff Estimation Accuracy -- 12 tests (5,609 total). GOOD/MODERATE/POOR bands. 2024 best 9.75%; 2023 worst 19.89% (crisis lag).
 **Phase BH COMPLETE (2026-06-30):** Dynamic Pricing Activity -- 12 tests (5,597 total). _section_dynamic_pricing_activity(): adj/avg-delta/up/down/emergency by year. 2022 peak +18.1 £/MWh; 29 emergency reprices total.
@@ -159,7 +160,6 @@ exposes observables and outcomes only, never parameters or internals.
 ## Sequencing principles
 
 **Two-way-door filter:** don't build something that depends on an unresolved upstream question.
-
 **Build efficiency:** tests passing + capabilities added per frontier session (hard metric).
 Fidelity delta — one sentence per phase on what the sim can now do (soft metric, Rich assesses).
 CLV is not a stable measuring stick — it evolves with business rules.

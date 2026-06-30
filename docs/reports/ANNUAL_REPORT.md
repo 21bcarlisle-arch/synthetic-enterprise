@@ -908,6 +908,28 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Portfolio Stress Test History
+
+Retrospective RAG status: would year-end treasury have survived each scenario?
+Credit facility: £2M. Weekly burn estimated at 1% of year-end treasury.
+
+| Year | Treasury £ | Mkt Spike | Credit | Demand | Liquidity | Combined |
+|------|-----------|----------|----------|----------|----------|----------|
+| 2016 | £2,467,421 | AMBER | RED | GREEN | AMBER | RED |
+| 2017 | £2,497,910 | AMBER | RED | GREEN | AMBER | RED |
+| 2018 | £2,486,468 | AMBER | RED | GREEN | AMBER | RED |
+| 2019 | £2,606,311 | AMBER | RED | GREEN | AMBER | RED |
+| 2020 | £2,899,699 | AMBER | AMBER | GREEN | AMBER | RED |
+| 2021 | £2,921,160 | AMBER | AMBER | GREEN | AMBER | RED |
+| 2022 | £3,069,185 | AMBER | AMBER | GREEN | AMBER | RED |
+| 2023 | £3,173,344 | AMBER | AMBER | GREEN | AMBER | RED |
+| 2024 | £3,535,467 | AMBER | AMBER | GREEN | AMBER | RED |
+| 2025 | £3,587,262 | AMBER | AMBER | GREEN | AMBER | RED |
+
+**Most stressed year: 2016 (2 RED scenario(s))**
+
+> GREEN = drawdown <25% | AMBER = 25-50% | RED = drawdown >50% (or failure).
+
 ## Financial Ratios
 
 Key per-customer and margin metrics by year.

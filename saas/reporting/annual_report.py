@@ -4755,6 +4755,83 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_stress_test_history(data: dict) -> str:
+    """Phase BL: Portfolio stress test — retrospective RAG per year per scenario."""
+    try:
+        from company.risk.stress_test import StressTestBook, StressScenario
+    except ImportError:
+        return ""
+    yrs_data = data.get("years", {})
+    if not yrs_data:
+        return ""
+    book = StressTestBook(credit_facility_gbp=2_000_000.0)
+    scenario_order = [
+        StressScenario.MARKET_SPIKE,
+        StressScenario.CREDIT_DEFAULT,
+        StressScenario.DEMAND_SHOCK,
+        StressScenario.LIQUIDITY_CRISIS,
+        StressScenario.COMBINED_CRISIS,
+    ]
+    short_names = {
+        StressScenario.MARKET_SPIKE: "Mkt Spike",
+        StressScenario.CREDIT_DEFAULT: "Credit",
+        StressScenario.DEMAND_SHOCK: "Demand",
+        StressScenario.LIQUIDITY_CRISIS: "Liquidity",
+        StressScenario.COMBINED_CRISIS: "Combined",
+    }
+    rows = []
+    for yr in sorted(yrs_data.keys()):
+        treasury = yrs_data[yr].get("treasury_end_gbp", 0.0)
+        cwu = yrs_data[yr].get("committee_wake_ups", [])
+        var_current = 50_000.0
+        if cwu:
+            last_var = cwu[-1].get("portfolio_var_current_gbp", None)
+            if last_var and last_var > 0:
+                var_current = last_var
+        weekly_burn = max(treasury * 0.01, 25_000.0)
+        scenario_rags = {}
+        for sc in scenario_order:
+            result = book.run_stress(
+                scenario=sc,
+                starting_treasury_gbp=treasury,
+                current_var_gbp=var_current,
+                weekly_burn_gbp=weekly_burn,
+            )
+            scenario_rags[sc] = result.severity_rag
+        rows.append((yr, treasury, scenario_rags))
+    header_cells = " | ".join(short_names[sc] for sc in scenario_order)
+    lines = [
+        "## Portfolio Stress Test History",
+        "",
+        "Retrospective RAG status: would year-end treasury have survived each scenario?",
+        "Credit facility: £2M. Weekly burn estimated at 1% of year-end treasury.",
+        "",
+        f"| Year | Treasury £ | {header_cells} |",
+        "|------|-----------|" + "|".join("----------" for _ in scenario_order) + "|",
+    ]
+    for yr, treasury, rags in rows:
+        cells = " | ".join(rags[sc] for sc in scenario_order)
+        lines.append(f"| {yr} | £{treasury:,.0f} | {cells} |")
+    all_reds = [yr for yr, _, rags in rows if any(v == "RED" for v in rags.values())]
+    all_green = [yr for yr, _, rags in rows if all(v == "GREEN" for v in rags.values())]
+    worst_yr = None
+    worst_count = 0
+    for yr, _, rags in rows:
+        red_count = sum(1 for v in rags.values() if v == "RED")
+        if red_count > worst_count:
+            worst_count = red_count
+            worst_yr = yr
+    lines.extend([""])
+    if worst_yr:
+        lines.append(f"**Most stressed year: {worst_yr} ({worst_count} RED scenario(s))**")
+    if all_green:
+        lines.append(f"**Clean bill of health (all GREEN): {', '.join(all_green)}**")
+    lines.extend(["",
+        "> GREEN = drawdown <25% | AMBER = 25-50% | RED = drawdown >50% (or failure).",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_financial_ratios(data: dict) -> str:
     """Phase BK: Financial Ratios — EBIT margin, revenue and margin per customer."""
     ma = data.get("management_accounts", {})
@@ -5848,6 +5925,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_stress_test_history(data))            # Phase BL
     sections.append(_section_financial_ratios(data))               # Phase BK
     sections.append(_section_churn_prediction_calibration(data))   # Phase BJ
     sections.append(_section_tariff_estimation_accuracy(data))     # Phase BI

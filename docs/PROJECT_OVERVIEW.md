@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,633 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,645 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BL (2026-06-30):** Portfolio Stress Test History Section -- 12 new tests (5,645 total). saas/reporting/annual_report.py: _section_stress_test_history(): for each year, runs all 5 StressTestBook scenarios (MARKET_SPIKE, CREDIT_DEFAULT, DEMAND_SHOCK, LIQUIDITY_CRISIS, COMBINED_CRISIS) against year-end treasury and best available VaR; outputs RAG table (GREEN/AMBER/RED per year per scenario); identifies most-stressed year and all-GREEN years. Credit facility assumption: £2M; weekly burn = max(1% treasury, £25k). First time existing StressTestBook (Phase 303) is connected to annual report retrospective analysis. Epistemic verifier: PASS.
 
 **Phase BK (2026-06-30):** Financial Ratios Section -- 12 new tests (5,633 total). saas/reporting/annual_report.py: _section_financial_ratios(): year-by-year EBIT margin % / revenue per customer / gross margin per customer / bad debt rate %; uses management_accounts income_statement + years active_customer_ids; best/worst EBIT year; peak revenue-per-customer year. Key insights: 2016 best EBIT (45.2%, early portfolio before I&C dominance); 2022 worst EBIT (21.3%, crisis peak); 2022 peak revenue-per-customer £306k (I&C crisis-year billing); 2024 EBIT recovery to 38.4%. Epistemic verifier: PASS.
 
@@ -4132,7 +4134,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,633 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,645 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
