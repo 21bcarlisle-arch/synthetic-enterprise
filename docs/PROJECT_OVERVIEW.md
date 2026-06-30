@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GP (2026-06-30):** Fair Value Assessment Register -- 29 new tests (8,119 total). company/compliance/fair_value_assessment_register.py (new): ProductCategory (6); FairValueOutcome (5); FairValueAssessmentRecord (frozen; margin_per_customer_gbp; margin_pct; is_overdue_review >=12m; poor_value_review_due: POOR+30d or None); FairValueAssessmentRegister (create_assessment: cost/revenue>=0, count>=0 guards; approve/update_outcome; poor_value_products; overdue_reviews(as_of); unapproved_assessments; total_customers_assessed). Consumer Duty July 2023: annual board-approved assessment per product; POOR_VALUE triggers 30d remediation. Distinct from consumer_duty.py (general obligations). PASS (385 files).
+
 **Phase GO (2026-06-30):** Transfer Objection Register -- 26 new tests (8,090 total). company/market/transfer_objection_register.py (new): ObjectionGround (5); ObjectionStatus (5); TransferObjectionRecord (frozen; is_open: RAISED+VALID; objection_deadline +5WD; resolution_days uses resolution_date if set); TransferObjectionRegister (raise_objection; mark_valid/invalid/resolve/withdraw; invalid_objections; by_ground/by_switch; average_resolution_days: None if no terminal records; invalid_rate_pct: invalid/all_terminal). CSS 2023: 5WD window; debt alone does NOT block switch (SLC 14.5); invalid objections = SLC 14 breach; Ofgem enforcement. Connects to css_performance_register (Phase GA). PASS (384 files).
 
 **Phase GN (2026-06-30):** Unidentified Gas (UIG) Allocation Register -- 25 new tests (8,064 total). company/market/uig_allocation_register.py (new): UIGMonthlyRecord (frozen; settlement_month normalised to first of month; uig_rate_pct=uig/throughput*100; is_high_uig>=2.0%; [HIGH] flag in summary); UIGAllocationRegister (record_allocation: throughput>=0 guard; for_month(y,m); high_uig_periods; average_uig_rate_pct=None if no records; rolling_3m_avg_rate_pct; most_recent). Xoserve monthly UIG allocations; UK Gas Act/UK Link: >=2% triggers investigation; ~0.5-2% additional gas procurement cost. Distinct from gas_imbalance_ledger (flow balance). PASS (383 files).
@@ -4392,7 +4394,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,090 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,119 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
