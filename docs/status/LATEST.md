@@ -1,42 +1,38 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T07:14:48Z
+Last updated: 2026-06-30T07:37:29Z
 
 ## Current state
 
-- **Phase:** DG complete — this session built Phases DB/DC/DD/DE/DF/DG (ICO breach/EMIR/EBRS/EBSS/SAR/Vulnerability), website overhaul (Regulatory tab 23 SLCs, dynamic build stats, portal commodity split)
-- **Tests passing:** 5,623 non-sim + simulation suite (all green)
-- **Python modules:** 303 company/ + simulation + saas
-- **Net position (latest sim run):** £1,243,337
+- **Phase:** DR complete — this session built Phases DF-DR (SAR/vulnerability/EBSS/EBRS/EMIR/BSC/social obligations/statutory accounts/switching cost/price transparency/PSR/SLC tracker/embedded networks/interconnectors/renewal notices/board meetings)
+- **Tests passing:** 5,876 non-sim + simulation suite (all green)
+- **Python modules:** 310 company/ + simulation + saas
+- **Net position (latest sim run):** £1,243,337 (git 5190a86)
 
-## Latest run figures (git 83538a9, 2026-06-30)
+## Latest run figures (git 5190a86, 2026-06-30T07:25)
 
 | Metric | Value |
 |--------|-------|
-| Total Revenue | £14,137,721 |
+| Total Revenue | £14,135,305 |
 | Gross Margin | £6,462,146 |
 | Net Margin | £1,243,337 |
-| Enterprise Value | £6,142,209 |
+| Enterprise Value | £6,037,509 |
+| Final Treasury | £3,709,973 |
 | Administration Event | None |
 
-## This session: phases CR-DA (10 phases this continuation) + bug-fix session
+## Build summary (2026-06-30)
 
-- **CR:** Priority Services Register (SLC 26B; 9 PSR categories)
-- **CS:** Gas Nomination Register (UNC; ±5% tolerance; short/long day tracking)
-- **CT:** Shipper Code Register (Xoserve; 13 LDZs)
-- **CU:** Interruptible Gas Supply Register (UNC TPD X3; 2h notice; 30-day cap)
-- **CV:** DA/DC Contract Register (BSC SVA; metering agents per MPAN)
-- **CW:** Licence Application Register (Ofgem; 4 types; TIER_1/2)
-- **CX:** Regulatory Breach Log (SLC central register; penalty tracking)
-- **CY:** Supplier Fitness Register (Ofgem LC 30A; annual review)
-- **CZ:** Revenue Protection Register (theft; 3yr backbill exception)
+- Phases completed today: DF, DG, DH, DI, DJ, DK, DL, DM, DN, DO, DP, DQ, DR
+- New modules: sar_register, consumer_vulnerability_register, bsc_settlement_run_register,
+  social_obligation_register, statutory_accounts_register, switching_cost_model,
+  price_transparency_register, embedded_network_register, interconnector_monitor_register,
+  renewal_notice_register, board_meeting_register
+- Website: all subpage 404s fixed (relative path fix), Capabilities tab (72 capabilities),
+  expanded Regulatory tab (23 SLCs)
+- Snapshot tool: tools/generate_snapshot.py for 06:00/18:00 checkpoints
 
-**Annual report:** 159,922 chars / 75 sections covering full 2016-2025 run
+## Links
 
--> Full build history: docs/PROJECT_OVERVIEW.md Section 4
-
-**Latest simulation results (2016–2025)** — auto-processed (727s / 12 min):
-- Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
-- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
+- [Annual Report](../reports/ANNUAL_REPORT.md)
+- [Phase History](../claude/phase-history.md)
+- [Project Overview](../PROJECT_OVERVIEW.md)

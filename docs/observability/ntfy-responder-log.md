@@ -188,3 +188,5 @@
 - [2026-06-30 06:38 UTC] Acked inbound message 'tPRgkcrZ1bCO' ('Please check all tabs and sub tabs in the website. Do they m') — staged as from_rich_20260630_063837.md
 - [2026-06-30 06:56 UTC] Acked inbound message 'gFgbxRyGGiHl' ("I don't think those website changes worked. I can't access t") — staged as from_rich_20260630_065616.md
 - [2026-06-30 07:00 UTC] Acked inbound message 'sZOqY4EkWNqA' ('Publish state snapshots twice daily at 06:00 and 18:00 UK ti') — staged as from_rich_20260630_070041.md
+- [2026-06-30 07:12 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782803399 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-30 07:20 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Read timed out. (read timeout=10)
