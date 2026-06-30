@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GJ (2026-06-30):** MAP Contract Register -- 31 new tests (7,950 total). company/market/map_contract_register.py (new): MAPServiceType (7); MAPContractStatus (4); MAPServiceRate (frozen; annual_cost_estimate_gbp); MAPContractRecord (frozen; is_current_as_of(date); months_remaining; monthly/annual_rental_cost_gbp with override_count; service_rate_for); MAPContractRegister (register_contract: end>start, rate>=0, meters>=0 guards; mark_expired/terminate/mark_under_renegotiation; active_contracts(as_of) uses is_current_as_of; contracts_expiring_within(as_of, days); total_monthly_rental_gbp aggregates active). UK Smart Energy Code (SEC): MAPs own SMETS2 meters; supplier pays monthly rental; 10WD DCC registration window. Connects to smart_meter_programme_register (Phase GI). PASS (379 files).
+
 **Phase GI (2026-06-30):** Smart Meter Installation Programme Register -- 28 new tests (7,919 total). company/market/smart_meter_programme_register.py (new): SMETSGeneration (3); AppointmentSlot (4); InstallationOutcome (7: SCHEDULED/COMPLETED/CUSTOMER_REFUSED/PROPERTY_UNSUITABLE/ACCESS_FAILED/ABORTED_ENGINEER/FAILED_TECHNICAL); InstallationAppointmentRecord (frozen; is_access_issue/is_technical_failure/is_terminal); SmartMeterProgrammeRegister (schedule_appointment fuel guard; record_outcome; completion_rate_pct/access_failure_rate_pct→None if no terminal; monthly_completions(y,m); pending_appointments(as_of)). SLC 21B: no domestic compulsion; Ofgem SMIP rollout targets. Distinct from dcc_meter_registration (post-install DCC enrollment). PASS (378 files).
 
 **Phase GH (2026-06-30):** Energy Theft Risk Scoring Register -- 33 new tests (7,891 total). company/billing/theft_risk_scoring_register.py (new): TheftRiskIndicator (9: HIGH_CONSUMPTION_SPIKE/METER_BYPASS/VOLTAGE_VARIANCE/PAYMENT_PATTERN/EMPTY_PROPERTY/CANNABIS_GROW/etc); TheftRiskLevel (LOW<30/MEDIUM/HIGH/CRITICAL>=80); TheftRiskScoringRecord (frozen; risk_level from score; requires_inspection: HIGH+CRITICAL; is_critical); TheftRiskScoringRegister (score_account 0-100 guard; trigger_inspection; current_score_for=latest by date; accounts_above_threshold uses latest per account; by_indicator; total_high_risk_accounts deduplicated). GS(SS)5 pre-investigation; confirmed cases → energy_theft_book.py; cannabis cultivation dominant category. PASS (377 files).
@@ -4380,7 +4382,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 7,919 tests (fast / ~10s; simulation integration ~8 min per run)
+- 7,950 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
