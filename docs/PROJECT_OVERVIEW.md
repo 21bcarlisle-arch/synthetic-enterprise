@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GR (2026-06-30):** Wholesale Trade Confirmation Register -- 33 new tests (8,184 total). company/trading/trade_confirmation_register.py (new): ConfirmationMethod (4); ConfirmationStatus (5); TradeConfirmationRecord (frozen; confirmation_due: broker=T+1, bilateral=T+2, exchange=T+1; is_long_outstanding >5d; days_outstanding uses matched_date if set); TradeConfirmationRegister (register_trade: notional>=0; send/match/dispute/cancel; confirmation_rate_pct: matched/all_total). EMIR Art.11: timely confirmation. Distinct from emir_reporting_register.py, trade_blotter.py. PASS (387 files).
+
 **Phase GQ (2026-06-30):** DNO Network Charge Dispute Register -- 32 new tests (8,151 total). company/market/dno_network_charge_dispute_register.py (new): DUoSDisputeGround (6); DUoSDisputeStatus (6); DUoSDisputeRecord (frozen; is_dno_response_overdue(as_of); outstanding_recovery_gbp: 0 for terminal, net for CREDIT, full for open); DNONetworkChargeDisputeRegister (raise_dispute: amount>0; acknowledge/resolve_with_credit/resolve_no_credit/escalate_gema/withdraw; success_rate_pct; overdue_dno_responses(as_of)). ENA 28-day response; DCOPF/GEMA escalation. Connects to duos_ledger.py, llf_register.py. PASS (386 files).
 
 **Phase GP (2026-06-30):** Fair Value Assessment Register -- 29 new tests (8,119 total). company/compliance/fair_value_assessment_register.py (new): ProductCategory (6); FairValueOutcome (5); FairValueAssessmentRecord (frozen; margin_per_customer_gbp; margin_pct; is_overdue_review >=12m; poor_value_review_due: POOR+30d or None); FairValueAssessmentRegister (create_assessment: cost/revenue>=0, count>=0 guards; approve/update_outcome; poor_value_products; overdue_reviews(as_of); unapproved_assessments; total_customers_assessed). Consumer Duty July 2023: annual board-approved assessment per product; POOR_VALUE triggers 30d remediation. Distinct from consumer_duty.py (general obligations). PASS (385 files).
@@ -4396,7 +4398,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,151 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,184 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
