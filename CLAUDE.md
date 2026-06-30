@@ -60,9 +60,9 @@ real UK energy supplier works."
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 
 ---
-
 ## Current state
-**Phase BC COMPLETE (2026-06-30):** Risk Committee Activity Report Section -- 12 new tests (5,531 total). annual_report.py: _section_risk_committee_activity(): year-by-year sessions/peak-VaR/accounts-touched table; busiest year (2016: 13 sessions); peak VaR (2023: £130k despite only 4 sessions); most-frequently-adjusted accounts (C1: 22 sessions). Committee wake-ups from run_output: 38 total sessions 2016-2025; VaR £28 in 2016 → £130k in 2023. Connects to Phase BB RiskCommitteeDecisionLedger.
+**Phase BD COMPLETE (2026-06-30):** Renewal Pricing Engine -- 15 tests (5,546 total). renewal_pricing_engine.py: RenewalPricingRecommendation (FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER); RenewalPricingResult/RenewalPricingEngine (SVT-cap; NO_OFFER if cost>SVT; I&C 0.3× decay; portfolio_renewal_plan). Connects to Phase BA/M/K.
+**Phase BC COMPLETE (2026-06-30):** Risk Committee Activity Section -- 12 tests (5,531 total). _section_risk_committee_activity(): sessions/peak-VaR/accounts table; 38 sessions 2016-2025; 2016 busiest (13); 2023 peak VaR £130k (only 4 sessions); C1 adjusted 22× most.
 **Phase BB COMPLETE (2026-06-30):** Risk Committee Decision Ledger -- 15 tests (5,519 total). risk_committee_ledger.py: InterventionTrigger/InterventionOutcome/CommitteeSession (EFFECTIVE/NEUTRAL/COUNTERPRODUCTIVE/PENDING ±£1k delta); RiskCommitteeDecisionLedger (intervention_effectiveness_rate; most_active_trigger; busiest_year; governance_summary).
 **Phase BA COMPLETE (2026-06-30):** Price Elasticity Estimator -- 15 tests (5,504 total). price_elasticity.py: ElasticityBand/PriceChangeImpact/PortfolioImpact; PriceElasticityBook (crisis×1.5; estimate_churn_impact; optimal_tariff_change). CMA 2016: resi=-0.18; SME=-0.12; I&C=-0.05.
 **Phase AZ COMPLETE (2026-06-30):** I&C Triad Notification Book -- 15 tests (5,489 total). triad_notification_book.py: AlertStatus/TriadAlert/CustomerTriadProfile/TriadSavingsRecord; TriadNotificationBook (enrol/issue_alert; savings_for_account_year; triad_notification_summary). 2022 rate £60.40/kW; C_IC3 1000kW → £42,280 saving at 70% response.

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,531 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,546 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BD (2026-06-30):** Renewal Pricing Engine -- 15 new tests (5,546 total). company/pricing/renewal_pricing_engine.py: RenewalPricingRecommendation (FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER); RenewalPricingResult (frozen; total_cost_gbp_per_mwh / margin_per_mwh / vs_svt_pct / is_viable); RenewalPricingEngine (base_conversion_pct 85%; risk_premium_pct 5%; price_renewal computes cost floor from wholesale + non-commodity + CTS/MWh, applies risk premium, caps at SVT×1.02; NO_OFFER when cost_floor > SVT; I&C segment 0.3× conversion decay rate for relationship selling; portfolio_renewal_plan; pricing_summary). 15 tests first pass. Connects Phase BA (price elasticity), Phase M (renewal conversion), Phase K (break-even). Epistemic verifier: PASS.
 
 **Phase BC (2026-06-30):** Risk Committee Activity Section -- 12 new tests (5,531 total). annual_report.py: _section_risk_committee_activity(): year-by-year table of session count / peak VaR current & stressed / accounts touched; busiest year / peak VaR year callouts; most-frequently-adjusted accounts ranking; non-list wake-up values handled gracefully. Key finding: 2016 busiest (13 sessions, VaR £28 — early framework calibration); 2023 peak VaR (£130k despite only 4 sessions — reduced committee oversight at highest stress). C1 adjusted 22 times across all years. Connects to Phase BB RiskCommitteeDecisionLedger. Epistemic verifier: PASS.
 
@@ -4116,7 +4118,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,531 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,546 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
