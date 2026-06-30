@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,330 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,342 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AO (2026-06-30):** Demand Estimation Error Trend -- 12 new tests (5,342 total). saas/reporting/annual_report.py: _section_company_divergence() extended with demand_error_by_year subsection; year-by-year mean/max EAC prediction error; HIGH/MODERATE/Low signals; trend note (0.07% in 2016 → 3.26% mean / 15.56% max in 2024 as customers acquire EVs/solar/heat pumps the company cannot directly observe); smart meter action note. Early-exit condition updated to include demand data. Epistemic verifier: PASS. Root cause: Phase B life events create temporary estimation gap until company observes a full billing cycle with new device. Connects demand_error_by_year (company_divergence), Phase B, Phase 23a.
 
 **Phase AN (2026-06-30):** Portfolio Concentration Risk -- 12 new tests (5,330 total). saas/reporting/annual_report.py: _section_portfolio_concentration_risk() computes HHI on per_customer_lifetime net_margin_after_cost_to_serve_gbp; segment margin share (I&C 98.7%, resi 0.9%, SME 0.5%); top-5 accounts by margin contribution + latest sim churn probability + churn-weighted margin-at-risk; concentration warning when I&C >95%. HHI=2,249 (MODERATE). Board finding: a single I&C departure removes 14-29% of all portfolio margin; resi/SME are effectively margin-neutral. Tests: 12/12 passing. Epistemic verifier: PASS. Connects per_customer_lifetime, churn_basis_risk.
 
@@ -4086,7 +4088,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,330 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,342 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -4095,7 +4097,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase AE, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,330 tests. Phase AN: Portfolio Concentration (12 tests). Phase AM: Pricing Basis Risk (12 tests). Phase AL: Counterfactual Retention (12 tests).
+- 5,342 tests. Phase AO: Demand Estimation Error Trend (12 tests). Phase AN: Portfolio Concentration (12 tests). Phase AM: Pricing Basis Risk (12 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

@@ -1661,8 +1661,9 @@ def _section_company_divergence(data: dict) -> str:
     div = data.get("company_divergence", {})
     tariff_by_year = div.get("tariff_error_by_year", {})
     churn_by_year = div.get("churn_error_by_year", {})
+    demand_by_year = div.get("demand_error_by_year", {})
 
-    if not tariff_by_year and not churn_by_year:
+    if not tariff_by_year and not churn_by_year and not demand_by_year:
         return f"## Company Model Divergence\n\n{NOT_AVAILABLE}\n"
 
     lines = [
@@ -1717,6 +1718,49 @@ def _section_company_divergence(data: dict) -> str:
             flag = " ⚠" if mean_raw > 2.0 else ""  # flag when company over-estimates by >2× on average
             lines.append(f"| {yr} | {n} | {mean_raw:.2f}×{flag} | {max_raw:.2f}× |")
         lines.append("")
+
+    # Phase AO: Demand estimation error trend
+    if demand_by_year:
+        lines += [
+            "### Demand Estimation Error (Phase AO)",
+            "",
+            "Company EAC estimate error vs SIM settled consumption — year-by-year trend.",
+            "Error grows as customers acquire EVs, solar, and heat pumps that the company",
+            "cannot directly observe. The first contract term after asset acquisition has",
+            "the highest error; subsequent terms self-correct from billing history.",
+            "",
+            "| Year | Customers | Mean Abs Error | Max Abs Error | Signal |",
+            "|------|-----------|----------------|---------------|--------|",
+        ]
+        errors = [(yr, s) for yr, s in sorted(demand_by_year.items())]
+        for yr, s in errors:
+            n = s["n"]
+            mean_e = s["mean_abs_error_pct"]
+            max_e = s["max_abs_error_pct"]
+            if mean_e > 2.5:
+                sig = "HIGH drift — EV/asset cohort growing"
+            elif mean_e > 1.0:
+                sig = "MODERATE — asset adoption visible"
+            else:
+                sig = "Low — stable portfolio"
+            lines.append(f"| {yr} | {n} | {mean_e:.2f}% | {max_e:.2f}% | {sig} |")
+        lines.append("")
+
+        # Trend note
+        first_yr = errors[0]
+        last_active = [(yr, s) for yr, s in errors[:-1] if s["n"] >= 5]
+        if last_active:
+            peak_yr, peak_s = max(last_active, key=lambda kv: kv[1]["mean_abs_error_pct"])
+            lines += [
+                f"**Trend:** demand estimation error grew from **{first_yr[1]['mean_abs_error_pct']:.2f}%** "
+                f"in {first_yr[0]} to **{peak_s['mean_abs_error_pct']:.2f}%** mean / "
+                f"**{peak_s['max_abs_error_pct']:.2f}%** max in {peak_yr}. "
+                "Root cause: new asset acquisitions (Phase B life events) create a "
+                "temporary estimation gap until the company observes a full billing cycle.",
+                "Portfolio action: prioritise smart meter installation for high-EAC-drift "
+                "accounts — interval data eliminates estimation error at renewal.",
+                "",
+            ]
 
     return "\n".join(lines)
 
