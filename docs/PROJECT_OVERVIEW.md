@@ -747,6 +747,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase HJ (2026-06-30):** MOP Appointment Register -- 26 new tests (8,777 total). company/market/mop_appointment_register.py. MOPServiceTier (3); MOPAppointmentStatus (3); MOPChangeReason (5); appoint_mop; initiate_change (+5WD D0147 notice); complete_change; terminate; mpans_without_mop (SLC gap detection); total_monthly_fees/total_fees_to_date; mop_provider_breakdown. BSC D0147/D0148; gap in MOP coverage = SLC breach. Distinct from map_register.py.
 **Phase HI (2026-06-30):** BSC Settlement Dispute Register -- 33 new tests (8,751 total). company/market/bsc_settlement_dispute_register.py.
 
 **Phase HH (2026-06-30):** Wholesale Trading Mandate Register -- 34 new tests (8,718 total). company/trading/wholesale_trading_mandate_register.py.
@@ -4430,9 +4431,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 351+ Python modules (company layer), ~55,000 lines total
+- 352+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 8,751 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,777 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
