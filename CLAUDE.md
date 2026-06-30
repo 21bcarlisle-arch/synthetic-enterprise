@@ -57,7 +57,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BO COMPLETE (2026-06-30):** CfD Levy & Treasury -- 12 tests (5,681 total). CfD/RO/bad-debt/drawdowns/bills. 2022 CfD CREDIT -£50k; draws 2022-2024.
+**Phase BP COMPLETE (2026-06-30):** Customer Cohort Revenue -- 12 tests (5,693 total). Vintage by acquisition year; lifetime rev/gross/net; best-rpc-cohort; loss-cohort. 2017 best (£837k); 2019 loss (gas drag).
+**Phase BO COMPLETE (2026-06-30):** CfD Levy & Treasury -- 12 tests (5,681 total). 2022 CfD CREDIT -£50k; treasury draws 2022-2024.
 **Phase BN COMPLETE (2026-06-30):** Segment Margin Attribution -- 12 tests (5,669 total). 5×10yr table; 2022 resi gas -£742; I&C £964k peak.
 **Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657 total). avg/above-cap/min/max from churn_basis_risk. 2021 5/9 above SVT.
 **Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). 5 scenarios/year RAG; StressTestBook wired to annual report.
@@ -176,7 +177,6 @@ account for cost-to-serve at the customer level.
 ---
 
 ## Key learnings — do not repeat these mistakes
-
 - **Local models confabulate endpoints.** Pre-load ground-truth API context before any local model touches external sources.
 - **LATEST.md must be committed before NTFY**, not after. If stale, fix root cause.
 - **REVIEW_GATE must only match on actual pane idleness** — not on prose mentioning the string "REVIEW_GATE".

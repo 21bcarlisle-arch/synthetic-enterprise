@@ -908,6 +908,24 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Customer Cohort Revenue Analysis
+
+Lifetime P&L by year-of-acquisition cohort (all years to simulation end).
+
+| Cohort | Customers | Total Revenue £ | Gross Margin £ | Net Margin £ | Rev/Customer £ |
+|--------|-----------|----------------|---------------|-------------|----------------|
+| 2016 | 14 | £167,099 | £91,258 | £7,418 | £11,936 |
+| 2017 | 1 | £3,162,009 | £1,895,098 | £837,491 | £3,162,009 |
+| 2018 | 1 | £1,546,034 | £921,341 | £432,702 | £1,546,034 |
+| 2019 | 2 | £6,484,687 | £2,437,171 | -£48,960 | £3,242,344 |
+| 2020 | 1 | £2,775,476 | £1,117,277 | £14,686 | £2,775,476 |
+
+**Best revenue/customer cohort: 2019 (£3,242,344/customer)**
+**Best net margin cohort: 2017 (£837,491)**
+**Loss cohort: 2019 (net -£48,960)**
+
+> Note: Gas customer legs excluded from electricity metrics; cohort = year of first contract.
+
 ## CfD Levy, Bad Debt & Treasury Drawdowns
 
 Contracts for Difference levy (negative = credit to supplier in high-price periods).

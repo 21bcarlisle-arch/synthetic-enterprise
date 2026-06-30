@@ -4755,6 +4755,57 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_cohort_revenue_analysis(data: dict) -> str:
+    """Phase BP: Customer cohort (vintage) analysis by acquisition year."""
+    pcl = data.get("per_customer_lifetime", {})
+    pcp = data.get("per_cid_pnl", {})
+    if not pcl or not pcp:
+        return ""
+    cohorts: dict = {}
+    for cid, info in pcl.items():
+        acq_yr = info.get("acquisition_date", "?")[:4]
+        if acq_yr not in cohorts:
+            cohorts[acq_yr] = []
+        cohorts[acq_yr].append(cid)
+    if not cohorts:
+        return ""
+    rows = []
+    for acq_yr in sorted(cohorts.keys()):
+        customers = cohorts[acq_yr]
+        total_rev = sum(pcp.get(c, {}).get("revenue", 0.0) for c in customers)
+        total_net = sum(pcp.get(c, {}).get("net", 0.0) for c in customers)
+        total_gross = sum(pcp.get(c, {}).get("gross", 0.0) for c in customers)
+        n = len(customers)
+        rev_per_cust = total_rev / n if n else 0
+        rows.append((acq_yr, n, total_rev, total_gross, total_net, rev_per_cust))
+    lines = [
+        "## Customer Cohort Revenue Analysis",
+        "",
+        "Lifetime P&L by year-of-acquisition cohort (all years to simulation end).",
+        "",
+        "| Cohort | Customers | Total Revenue £ | Gross Margin £ | Net Margin £ | Rev/Customer £ |",
+        "|--------|-----------|----------------|---------------|-------------|----------------|",
+    ]
+    for acq_yr, n, rev, gm, nm, rpc in rows:
+        net_str = "£{:,.0f}".format(nm) if nm >= 0 else "-£{:,.0f}".format(abs(nm))
+        lines.append("| {} | {} | £{:,.0f} | £{:,.0f} | {} | £{:,.0f} |".format(
+            acq_yr, n, rev, gm, net_str, rpc))
+    best_rpc_yr, _, _, _, _, best_rpc = max(rows, key=lambda r: r[5])
+    best_nm_yr, _, _, _, best_nm, _ = max(rows, key=lambda r: r[4])
+    loss_cohorts = [(r[0], r[4]) for r in rows if r[4] < 0]
+    lines.extend([""])
+    lines.append("**Best revenue/customer cohort: {} (£{:,.0f}/customer)**".format(best_rpc_yr, best_rpc))
+    lines.append("**Best net margin cohort: {} (£{:,.0f})**".format(best_nm_yr, best_nm))
+    if loss_cohorts:
+        for yr, nm in loss_cohorts:
+            lines.append("**Loss cohort: {} (net -£{:,.0f})**".format(yr, abs(nm)))
+    lines.extend([
+        "",
+        "> Note: Gas customer legs excluded from electricity metrics; cohort = year of first contract.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_cfd_and_treasury(data: dict) -> str:
     """Phase BO: CfD levy evolution and treasury drawdown events by year."""
     yrs_data = data.get("years", {})
@@ -6085,6 +6136,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_cohort_revenue_analysis(data))        # Phase BP
     sections.append(_section_cfd_and_treasury(data))               # Phase BO
     sections.append(_section_segment_margin_attribution(data))     # Phase BN
     sections.append(_section_price_cap_headroom(data))             # Phase BM

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,681 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,693 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BP (2026-06-30):** Customer Cohort Revenue Analysis Section -- 12 new tests (5,693 total). saas/reporting/annual_report.py: _section_cohort_revenue_analysis(): groups customers by acquisition year (cohort); reads per_customer_lifetime.acquisition_date + per_cid_pnl; table shows total revenue / gross margin / net margin / revenue-per-customer per cohort; identifies best rev/customer cohort and best net margin cohort; flags loss cohorts. Key insights: 2017 cohort (C_IC1) best (£3.16M rev, £837k net); 2019 cohort (C_IC3 + C_IC3g) loss-making (£6.5M rev but -£49k net due to gas anchor drag). Epistemic verifier: PASS.
 
 **Phase BO (2026-06-30):** CfD Levy, Bad Debt & Treasury Drawdowns Section -- 12 new tests (5,681 total). saas/reporting/annual_report.py: _section_cfd_and_treasury(): year-by-year CfD levy / RO levy / bad debt / treasury drawdown count / bills count; identifies CfD credit years (negative levy); flags treasury drawdown years (credit facility used); peak bad debt year. Key insight: 2022 CfD went CREDIT (-£50,342) as wholesale >> strike price and CfD generators had to repay the system — this reduced supplier cost; treasury drawn in 2022-2024 (crisis stress + recovery). Epistemic verifier: PASS.
 
@@ -4140,7 +4142,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,681 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,693 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
