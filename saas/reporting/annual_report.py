@@ -4755,6 +4755,56 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_bill_shock_analysis(data: dict) -> str:
+    ydata = data.get("years", {})
+    if not ydata:
+        return ""
+    years = sorted(ydata.keys())
+    has_data = any(ydata[yr].get("avg_bill_shock_pct") is not None for yr in years)
+    if not has_data:
+        return ""
+    lines = [
+        "## Bill Shock Analysis",
+        "",
+        "Bill shock events occur when a customer\'s bill increases >20% vs the prior bill.",
+        "Regulatory context: Ofgem monitors bill shock as a consumer harm indicator.",
+        "",
+        "| Year | Avg Shock % | Events | Bills | Shock Rate | Flag |",
+        "|------|------------|--------|-------|------------|------|",
+    ]
+    worst_yr = None
+    worst_shock = 0.0
+    for yr in years:
+        yd = ydata[yr]
+        avg = yd.get("avg_bill_shock_pct") or 0.0
+        events_list = yd.get("bill_shock_events", [])
+        n_events = len(events_list) if isinstance(events_list, list) else int(events_list or 0)
+        bills = yd.get("bills_count", 0) or 0
+        shock_rate = (n_events / bills * 100) if bills > 0 else 0.0
+        flag = ""
+        if avg >= 0.30:
+            flag = "**HIGH**"
+        elif avg >= 0.20:
+            flag = "ELEVATED"
+        if avg > worst_shock:
+            worst_shock = avg
+            worst_yr = yr
+        lines.append(
+            "| " + yr + " | " + ("%.1f%%" % (avg * 100)) + " | " + str(n_events) +
+            " | " + str(bills) + " | " + ("%.0f%%" % shock_rate) + " | " + flag + " |"
+        )
+    lines.append("")
+    if worst_yr:
+        lines += [
+            "**Crisis peak: " + worst_yr + "** — " + ("%.1f%%" % (worst_shock * 100)) +
+            " average shock. Energy crisis drove wholesale costs above locked tariff rates,",
+            "causing step-change increases at every renewal. SLC 21: suppliers must issue",
+            "renewal notice 42 days before contract end, giving customers time to switch.",
+            "",
+        ]
+    return "\n".join(lines)
+
+
 def _section_policy_cost_breakdown(data: dict) -> str:
     ydata = data.get("years", {})
     if not ydata:
@@ -5286,6 +5336,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_bill_shock_analysis(data))            # Phase AW
     sections.append(_section_policy_cost_breakdown(data))          # Phase AV
     sections.append(_section_commodity_split(data))                # Phase AU
     sections.append(_section_management_accounts(data))            # Phase AT

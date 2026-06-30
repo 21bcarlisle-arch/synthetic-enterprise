@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,426 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,438 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AW (2026-06-30):** Bill Shock Analysis -- 12 new tests (5,438 total). annual_report.py: _section_bill_shock_analysis(): year-by-year avg shock %, event count, bills count, shock rate %; HIGH flag (>=30%), ELEVATED (>=20%); crisis peak note with SLC 21 reference. Key finding: 2022=33.8% avg shock (HIGH) vs 14-17% normal years; 2025=23.6% (ELEVATED, likely final-term renewal spike). Epistemic verifier: PASS.
 
 **Phase AV (2026-06-30):** Policy Cost & Levy Breakdown -- 12 new tests (5,426 total). annual_report.py: _section_policy_cost_breakdown(): RO/CfD/CCL/CM/FiT/total-policy/network by year; negative CfD levy in 2022 bolded with rebate note (crisis: spot > strike → generators repay via CfD mechanism); policy cost CAGR computation. Key finding: policy costs £1,701 (2016) → £285,999 (2025), CAGR 76.7%/yr. 2022: CfD levy = -£50,342 (unique negative year). Epistemic verifier: PASS.
 
@@ -4102,7 +4104,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,426 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,438 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
