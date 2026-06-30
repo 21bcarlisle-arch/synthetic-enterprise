@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 6,067 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 6,079 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CV (2026-06-30):** DA/DC Contract Register -- 12 new tests (6,079 total). company/market/dadc_contract_register.py (new): MeteringAgentType (DA/DC/DA_DC/MOA); MeterType (NHH/HH/SMETS2); AgentAppointment (frozen; is_active); DADCContractRegister (appoint/terminate/agent_for_mpan/mpans_without_dc/mpans_without_da/agents_by_name/da_dc_summary). BSC SVA: each MPAN must have appointed DC (reads/validates) and DA (aggregates HH data); DA_DC combined covers NHH meters; missing appointment = BSC breach risk; appointment notified via Elexon MDD. Epistemic verifier: PASS.
 
 **Phase CU (2026-06-30):** Interruptible Gas Supply Register -- 13 new tests (6,067 total). company/market/interruptible_supply_register.py (new): SupplyFirmness (FIRM/INTERRUPTIBLE); InterruptionReason (COLD_WEATHER/NETWORK_CONSTRAINT/NGT_INSTRUCTION/SUPPLIER_DISCRETION); InterruptionEvent (frozen; notice_compliant: ≥2h per UNC TPD X3); InterruptibleContract (frozen; saving_vs_firm_gbp_pa at 15% INT discount vs 4p/kWh firm rate); InterruptibleSupplyRegister (register/record_interruption/events_for_account/annual_curtailment_days/over_cap_accounts: >30 days/notice_violations/total_portfolio_annual_kwh/interruptible_summary). Epistemic verifier: PASS.
 
@@ -4204,7 +4206,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 6,067 tests (fast / ~10s; simulation integration ~8 min per run)
+- 6,079 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
