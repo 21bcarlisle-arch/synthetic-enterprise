@@ -1,5 +1,5 @@
-Phase HN complete -- 8,908 tests. Phase HN: Risk Committee Decision Ledger -- 23 tests. All 8,908 tests passing, epistemic verifier PASS (406 company/ files).
-Last updated: 2026-06-30T19:09:37Z
+Phase HO complete -- 8,936 tests. Phase HO: Supplier Resilience Scorecard -- 28 tests. All 8,936 tests passing, epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T19:11:03Z
 
 **Latest simulation results (2016–2025)** — auto-processed (676s / 11 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
