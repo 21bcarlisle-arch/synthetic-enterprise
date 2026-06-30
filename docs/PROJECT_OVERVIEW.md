@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,474 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,489 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AZ (2026-06-30):** I&C Triad Notification Book -- 15 new tests (5,489 total). company/market/triad_notification_book.py: AlertStatus (ISSUED/RESPONDED/NO_RESPONSE); TriadAlert (frozen; demand_reduction_kw = 70% × estimated_demand if RESPONDED, else 0); CustomerTriadProfile (frozen; triad_charge_gbp/avoided_charge_gbp using _TNUOS_TRIAD_RATE_GBP_PER_KW 2022=£60.40/kW); TriadSavingsRecord (frozen; response_rate_pct/saving_pct); TriadNotificationBook (enrol; issue_alert: requires enrolled profile — raises KeyError/ValueError; is_triad_season Nov-Feb; is_triad_risk_period SP 33-39; savings_for_account_year; total_portfolio_saving_gbp; triad_notification_summary). Calibration: C_IC3 at 1,000 kW peak demand → £42,280 estimated saving at 70% response. Connects to tnuos_ledger.py (Phase 29a). Closes I&C Triad management gap in backlog.
 
 **Phase AY (2026-06-30):** Customer Strategic Value Matrix -- 12 new tests (5,474 total). annual_report.py: _section_customer_strategic_value(): 2x2 CLV×churn-probability quadrant matrix using by_billing_account data; PROTECT (high CLV, low churn)/CRITICAL (high CLV, high churn)/MONITOR (low CLV, low churn)/EXIT (low CLV, high churn); median CLV and median churn as quadrant boundaries; gas accounts excluded (no trailing-g keys); per-quadrant CLV total and % of portfolio; board action note if CRITICAL non-empty. Key finding: I&C accounts (C_IC1/IC2/IC3/IC4) in PROTECT = 99% of portfolio CLV £5.97M; resi accounts in CRITICAL/MONITOR/EXIT with collectively negligible CLV. Annual report deduplication fix: removed duplicate _section_management_accounts call introduced in Phase AT; report now renders single management accounts section. Epistemic verifier: PASS.
 
@@ -4108,7 +4110,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,474 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,489 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
