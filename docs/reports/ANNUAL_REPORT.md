@@ -1183,8 +1183,8 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 12 | 0.9 | £9 |
-| 2017 | 12 | 31 | 2.6 | £402 |
+| 2016 | 13 | 13 | 1.0 | £9 |
+| 2017 | 12 | 33 | 2.8 | £402 |
 | 2022 | 9 | 62 | 6.9 | £20,705 |
 | 2023 | 4 | 32 | 8.0 | £49,444 |
 
@@ -1496,8 +1496,8 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £129,699 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 20 sessions
-- C7: 18 sessions
+- C1: 22 sessions
+- C7: 19 sessions
 - C2: 13 sessions
 - C5: 12 sessions
 - C6: 12 sessions
@@ -2049,7 +2049,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-06-29: treasury £2,466,705.16, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-07-29: treasury £2,466,715.85, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-08-28: treasury £2,466,726.57, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
-  - 2016-09-27: treasury £2,466,737.46, (none), VaR (current £27.79 / stressed £8.54) ratio 3.25
+  - 2016-09-27: treasury £2,466,737.46, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-10-27: treasury £2,466,748.35, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-11-26: treasury £2,466,759.12, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-12-26: treasury £2,466,771.02, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
@@ -2122,7 +2122,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.91 (avg 0.91), C1g 0.85 (avg 0.85), C2 0.92 (avg 0.92), C2g 0.85 (avg 0.85), C3 0.91 (avg 0.91), C3g 0.85 (avg 0.85), C4 0.90 (avg 0.90), C4g 0.85 (avg 0.85), C5 0.91 (avg 0.91), C6 0.92 (avg 0.92), C7 0.91 (avg 0.91), C8 0.92 (avg 0.92), C9 0.91 (avg 0.91), C_IC1 0.94 (avg 0.94)
 - Risk committee (Context Handshake) interventions: 12
   - 2017-01-25: treasury £2,467,425.77, C1->1.00, C5->1.00, C7->1.00, VaR (current £308.21 / stressed £98.32) ratio 3.13
-  - 2017-02-24: treasury £2,467,431.73, C5->1.00, VaR (current £308.21 / stressed £98.32) ratio 3.13
+  - 2017-02-24: treasury £2,467,431.73, C1->1.00, C5->1.00, C7->1.00, VaR (current £308.21 / stressed £98.32) ratio 3.13
   - 2017-03-26: treasury £2,467,438.12, C1->1.00, C5->1.00, C7->1.00, VaR (current £308.21 / stressed £98.32) ratio 3.13
   - 2017-04-25: treasury £2,467,773.43, C1->1.00, C5->1.00, C7->1.00, VaR (current £861.25 / stressed £330.55) ratio 2.61
   - 2017-05-25: treasury £2,467,773.81, C1->1.00, C5->1.00, C7->1.00, VaR (current £861.25 / stressed £330.55) ratio 2.61
