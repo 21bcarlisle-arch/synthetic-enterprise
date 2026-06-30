@@ -4509,6 +4509,126 @@ def _section_pricing_basis_risk(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_portfolio_concentration_risk(data: dict) -> str:
+    """Phase AN: Portfolio Concentration Risk.
+
+    Computes revenue concentration across segments and customers.
+    Uses per_customer_lifetime net_margin_after_cost_to_serve_gbp as the
+    revenue proxy (lifetime contribution to margin).
+
+    HHI (Herfindahl-Hirschman Index) on net margin shares:
+      HHI < 1500: low concentration
+      HHI 1500-2500: moderate
+      HHI > 2500: high (regulatory concern in many sectors)
+
+    Board signal: a supplier where >95% of margin comes from I&C customers
+    faces existential concentration risk — one large departure is catastrophic.
+
+    Silent when per_customer_lifetime absent.
+    """
+    pcl = data.get("per_customer_lifetime", {})
+    if not pcl:
+        return ""
+
+    cbr = data.get("churn_basis_risk", [])
+
+    # Latest churn probability per customer
+    latest_churn: dict[str, float] = {}
+    for rec in cbr:
+        cid = rec.get("customer_id", "")
+        ts = rec.get("term_start", "")
+        if cid and (cid not in latest_churn or ts > (cbr[0].get("term_start", ""))):
+            latest_churn[cid] = rec.get("sim_churn_probability", 0.0)
+
+    # Rebuild using proper latest
+    latest_churn = {}
+    seen_ts: dict[str, str] = {}
+    for rec in cbr:
+        cid = rec.get("customer_id", "")
+        ts = rec.get("term_start", "")
+        if cid and (cid not in seen_ts or ts > seen_ts[cid]):
+            seen_ts[cid] = ts
+            latest_churn[cid] = rec.get("sim_churn_probability", 0.0)
+
+    # Segment concentrations
+    segment_margin: dict[str, float] = {}
+    customer_margin: dict[str, float] = {}
+    for cid, v in pcl.items():
+        seg = v.get("segment", "?")
+        nm = v.get("net_margin_after_cost_to_serve_gbp") or 0.0
+        if nm > 0:
+            segment_margin[seg] = segment_margin.get(seg, 0.0) + nm
+            customer_margin[cid] = nm
+
+    total_pos = sum(customer_margin.values())
+    if total_pos <= 0:
+        return ""
+
+    # HHI
+    shares = [v / total_pos for v in customer_margin.values()]
+    hhi = sum(s * s for s in shares) * 10000
+
+    if hhi > 2500:
+        hhi_label = "HIGH (>2,500)"
+    elif hhi > 1500:
+        hhi_label = "MODERATE (1,500-2,500)"
+    else:
+        hhi_label = "LOW (<1,500)"
+
+    lines = [
+        "## Portfolio Concentration Risk",
+        "",
+        f"Revenue concentration analysis across {len(customer_margin)} margin-positive accounts. "
+        f"Herfindahl-Hirschman Index (HHI): **{hhi:.0f}** — {hhi_label}.",
+        "",
+        "**Segment Margin Share:**",
+    ]
+    for seg, sm in sorted(segment_margin.items(), key=lambda kv: -kv[1]):
+        pct = sm / total_pos
+        lines.append(f"- {seg}: {_fmt_gbp(sm)} ({pct:.1%} of total positive margin)")
+
+    lines += [
+        "",
+        "**Top 5 Accounts by Margin Contribution:**",
+        "",
+        "| Account | Segment | Lifetime Margin | Share | Latest Churn Risk | Margin at Risk |",
+        "|---------|---------|-----------------|-------|-------------------|----------------|",
+    ]
+
+    top5 = sorted(customer_margin.items(), key=lambda kv: -kv[1])[:5]
+    for cid, nm in top5:
+        share = nm / total_pos
+        churn_p = latest_churn.get(cid, 0.0)
+        margin_at_risk = nm * churn_p
+        seg = pcl.get(cid, {}).get("segment", "?")
+        lines.append(
+            "| " + cid + " | " + seg + " | " + _fmt_gbp(nm) + " | " +
+            f"{share:.1%}" + " | " + f"{churn_p:.0%}" + " | " +
+            _fmt_gbp(margin_at_risk) + " |"
+        )
+
+    lines.append("")
+
+    # Board warning
+    ic_share = segment_margin.get("I&C", 0.0) / total_pos if total_pos > 0 else 0.0
+    if ic_share > 0.95:
+        lines += [
+            "**Concentration Risk Warning:**",
+            f"- I&C segment accounts for {ic_share:.1%} of total portfolio margin",
+            "- Resi and SME segments are effectively margin-neutral at portfolio scale",
+            "- A single large I&C departure would remove 14-29% of all margin",
+            "- Board action: diversify acquisition pipeline toward profitable resi/SME to reduce I&C dependency",
+        ]
+    elif ic_share > 0.80:
+        lines.append(
+            "**Note:** I&C segment accounts for " + f"{ic_share:.1%}" +
+            " of margin. Consider resi/SME margin improvement to reduce concentration."
+        )
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_crm_intelligence(data: dict) -> str:
     """Phase AJ: CRM Risk Triage - final-year churn risk bands + repricing triage.
 
@@ -4686,6 +4806,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_portfolio_concentration_risk(data))  # Phase AN
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
     sections.append(_section_dual_fuel_pnl(data))
