@@ -56,11 +56,11 @@ real UK energy supplier works."
    `docs/claude/phase-history.md`. Never accumulate phase details in CLAUDE.md.
 5. Add one-line phase completion entry to CLAUDE.md "Current state".
 6. Commit and push.
-
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 
 ---
 ## Current state
+**Phase BF COMPLETE (2026-06-30):** Acquisition Strategy Intelligence Book -- 15 tests (5,573 total). acquisition_strategy_book.py: is_viable=CLV≥3×CAC; rank_channels; model_growth_scenario; minimum_viable_clv. PCW £55/referral £20/broker £160. I&C tenure 4.5yr > resi 3.2yr.
 **Phase BE COMPLETE (2026-06-30):** Gross Margin Bridge (YoY) -- 12 tests (5,558 total). _section_gross_margin_bridge(): revenue/wholesale/non-comm/GM + deltas table. 2022 GM%=24.8% worst; 2024 42.4% recovery.
 **Phase BD COMPLETE (2026-06-30):** Renewal Pricing Engine -- 15 tests (5,546 total). renewal_pricing_engine.py: FULL_MARGIN/COMPETITIVE/COST_PLUS/NO_OFFER; SVT-cap; I&C 0.3× decay; portfolio_renewal_plan.
 **Phase BC COMPLETE (2026-06-30):** Risk Committee Activity Section -- 12 tests (5,531 total). _section_risk_committee_activity(): sessions/peak-VaR/accounts table; 38 sessions 2016-2025; 2016 busiest (13); 2023 peak VaR £130k (only 4 sessions); C1 adjusted 22× most.

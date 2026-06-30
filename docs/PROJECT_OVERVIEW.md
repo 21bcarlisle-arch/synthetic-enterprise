@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,558 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,573 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BF (2026-06-30):** Acquisition Strategy Intelligence Book -- 15 new tests (5,573 total). company/crm/acquisition_strategy_book.py (new): ChannelROIAnalysis (frozen; is_viable = CLV ≥ 3×CAC; net_value_gbp); PortfolioGrowthScenario (frozen; required_attempts from win_rate; total_cac_spend/expected_total_clv/net_value); AcquisitionStrategyBook (analyse_channel / rank_channels / model_growth_scenario / minimum_viable_clv / strategy_summary). Channel benchmarks: PCW £55, direct £30, broker £160, referral £20, winback £37. Tenure: I&C 4.5yr, resi 3.2yr, SME 2.8yr. Epistemic verifier: PASS.
 
 **Phase BE (2026-06-30):** Gross Margin Bridge (Year-over-Year Attribution) -- 12 new tests (5,558 total). annual_report.py: _section_gross_margin_bridge(): year-by-year table showing revenue / wholesale_cost / non_commodity_cost / gross_margin / GM% with delta columns (ΔRevenue / ΔWholesale / ΔNon-Commodity / ΔGM); first year shows — for deltas; best/worst GM% years highlighted. Key findings: 2022 worst GM% = 24.8% (revenue +£1.84M but wholesale cost +£1.43M consumed most of it); 2024 recovery to 42.4% (wholesale cost fell £717k on normalising market); 2016 nominal best (51.2%) but tiny portfolio. Epistemic verifier: PASS.
 
@@ -4120,7 +4122,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,558 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,573 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
