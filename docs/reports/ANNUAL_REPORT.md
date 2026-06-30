@@ -803,6 +803,97 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
   - C7: sim 35%, company est 0%
   - C1: sim 32%, company est 4%
 
+## Churn Root Cause Attribution
+
+Per-churned-account analysis: pricing journey, rate-vs-SVT positioning, and company vs SIM churn estimate at the point of departure.
+
+| Account | Seg | Churn Date | Tenure | Last Rate Shock | Rate vs SVT | Sim Risk | Co. Est. | Margin Lost |
+|---------|-----|------------|--------|-----------------|-------------|----------|----------|-------------|
+| C3 | resi | 2020-06-30 | 4.0yr | -4.2% | -39.0% | 32% | 0% | £2,091.46 |
+| C1 | resi | 2021-12-30 | 6.0yr | +1.6% | -12.0% | 32% | 4% | £2,318.20 |
+| C5 | SME | 2021-12-30 | 6.0yr | +1.6% | +63.9% | 35% | 83% | £8,498.31 |
+| C2 | resi | 2022-03-31 | 6.0yr | +15.0% | +46.6% | 26% | 7% | £2,973.40 |
+| C6 | SME | 2024-03-30 | 8.0yr | -0.9% | -24.9% | 38% | 25% | £21,078.65 |
+| C4 | resi | 2024-09-29 | 8.0yr | +3.7% | -9.1% | 32% | 0% | £2,746.37 |
+
+**Root Cause Summary:**
+- Total churned accounts: 6
+- Lifetime margin lost: £39,706.39
+- Average tenure at departure: 6.3 years
+- Company blind misses (sim >=30%, co. est. <10%): 3 -- C3, C1, C4
+- Company-warned churns (co. est. >=20%): 2 -- C5, C6
+- Crisis-era churns (2021-22): 3 -- absolute crisis price level, not rate-change delta, was the driver
+- Overpriced vs SVT at departure: 2 account(s) -- rate shock risk was observable but unactioned
+
+## Counterfactual Retention Value
+
+What would company-initiated retention offers have been worth for the 5 accounts that churned without an offer? Calibrated from 18 actual offers (observed retention rate 94%).
+
+| Account | Seg | Churn Date | Co. Est. | Term Margin | Disc Rate | Retention Cost | CF Net Benefit | Assessment |
+|---------|-----|------------|----------|-------------|-----------|----------------|----------------|------------|
+| C3 | resi | 2020-06-30 | 0% | £585.53 | 5% | £29.28 | £523.73 | MISSED OPP. |
+| C1 | resi | 2021-12-30 | 4% | £-178.13 | 5% | £0.00 | n/a | CORRECT PASS |
+| C2 | resi | 2022-03-31 | 7% | £236.63 | 5% | £11.83 | £211.65 | MISSED OPP. |
+| C6 | SME | 2024-03-30 | 25% | £2,852.65 | 8% | £228.21 | £2,465.96 | MISSED OPP. |
+| C4 | resi | 2024-09-29 | 0% | £468.64 | 5% | £23.43 | £419.17 | MISSED OPP. |
+
+**Counterfactual Summary:**
+- No-offer churns assessed: 5
+- Correct no-offer (net-neg ETM): 1 (C1)
+- Missed opportunities (positive ETM, below detection): 4
+- Total term margin foregone: £4,143.45
+- Total retention cost (counterfactual): £292.75
+- Net counterfactual benefit: £3,620.51 (at 94% retention probability)
+- Root cause: company churn detection below threshold for all missed cases -- churn model underestimated bill-shock risk
+
+## Pricing Basis Risk Attribution
+
+Forward curve accuracy at each contract term. tariff_error_pct = (company_fwd - sim_fwd) / sim_fwd: positive = company over-estimated costs (higher than market); negative = company under-estimated (margin-at-risk).
+Portfolio-wide mean error: +6.3%
+
+| Year | Contracts | Mean Error | Max Abs | Over-priced | Under-priced | Assessment |
+|------|-----------|------------|---------|-------------|--------------|------------|
+| 2016 | 17 | +9.0% | 28.9% | 9 | 4 | moderate over |
+| 2017 | 14 | +5.6% | 48.0% | 8 | 5 | moderate over |
+| 2018 | 16 | -2.8% | 27.4% | 6 | 8 | on target |
+| 2019 | 19 | +8.5% | 36.9% | 10 | 3 | moderate over |
+| 2020 | 22 | +0.8% | 33.2% | 10 | 7 | on target |
+| 2021 | 17 | +8.5% | 44.2% | 6 | 3 | moderate over |
+| 2022 | 15 | +0.7% | 23.3% | 7 | 3 | on target |
+| 2023 | 14 | +18.4% | 41.3% | 9 | 1 | HIGH OVER-PRICE |
+| 2024 | 13 | +7.1% | 23.8% | 7 | 1 | moderate over |
+| 2025 | 2 | +32.8% | 32.8% | 2 | 0 | HIGH OVER-PRICE |
+
+**Basis Risk Summary:**
+- Portfolio mean tariff error: +6.3%
+- Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
+- Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
+
+## Portfolio Concentration Risk
+
+Revenue concentration analysis across 19 margin-positive accounts. Herfindahl-Hirschman Index (HHI): **2249** — MODERATE (1,500-2,500).
+
+**Segment Margin Share:**
+- I&C: £6,287,106.32 (98.7% of total positive margin)
+- resi: £54,162.31 (0.9% of total positive margin)
+- SME: £29,576.96 (0.5% of total positive margin)
+
+**Top 5 Accounts by Margin Contribution:**
+
+| Account | Segment | Lifetime Margin | Share | Latest Churn Risk | Margin at Risk |
+|---------|---------|-----------------|-------|-------------------|----------------|
+| C_IC1 | I&C | £1,875,070.23 | 29.4% | 5% | £93,753.51 |
+| C_IC3 | I&C | £1,788,045.18 | 28.1% | 8% | £143,043.61 |
+| C_IC4 | I&C | £1,100,681.25 | 17.3% | 0% | £0.00 |
+| C_IC2 | I&C | £909,892.59 | 14.3% | 5% | £45,494.63 |
+| C_IC3g | I&C | £613,417.06 | 9.6% | 0% | £0.00 |
+
+**Concentration Risk Warning:**
+- I&C segment accounts for 98.7% of total portfolio margin
+- Resi and SME segments are effectively margin-neutral at portfolio scale
+- A single large I&C departure would remove 14-29% of all margin
+- Board action: diversify acquisition pipeline toward profitable resi/SME to reduce I&C dependency
+
 ## Portfolio Learning Premium (Phase 17a + 19a)
 
 Company applied portfolio premium adjustments at 112 renewal(s) (26 gas) based on recent portfolio-wide margin rates: 61 surcharge(s), 51 discount(s).
