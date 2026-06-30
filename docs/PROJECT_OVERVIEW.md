@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase ID — Coverage Depth Sprint I (2026-06-30)
+**Modules:** gas_interruption · ee_obligation_tracker · credit_rating_book
+**Tests added:** 30 (deeper coverage for thin modules from HS/HT expansion)
+**Total:** 9,440 tests
+
 ### Phase IC — Coverage Expansion Sprint XIII (2026-06-30)
 **Modules:** supplier_fitness_register · annual_board_pack · environmental_impact
 **Tests added:** 30 (Ofgem Fit & Proper LC 30A, board RAG signals, SECR Scope 3 emissions)
@@ -4464,7 +4469,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 9,410 tests (fast / ~10s; simulation integration ~8 min per run)
+- 9,440 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
