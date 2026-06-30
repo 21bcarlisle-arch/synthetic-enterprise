@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 6,017 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 6,029 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CR (2026-06-30):** Priority Services Register -- 12 new tests (6,029 total). company/regulatory/priority_services_register.py (new): PSRCategory (9 eligibility types — PENSIONABLE_AGE / DISABILITY / MEDICAL_EQUIPMENT / CHILD_UNDER_5 / CHRONIC_ILLNESS / MENTAL_HEALTH / VISUAL_IMPAIRMENT / HEARING_IMPAIRMENT / LANGUAGE_SUPPORT); PSRService (6 core services — PRIORITY_RECONNECTION / NOMINEE_SCHEME / GAS_SAFETY_CHECK / ALTERNATIVE_FORMAT / PASSWORD_SCHEME / ADVANCE_INTERRUPTION_NOTICE); PSRRecord (frozen; is_electricity_dependent / needs_priority_reconnection / is_review_overdue / is_compliant — ≥1 service enrolled); PriorityServicesRegister (active_records / electricity_dependent / priority_reconnection_customers / non_compliant_records / overdue_reviews / network_shared_count / psr_penetration_pct). SLC 26B: UK ~9M households on PSR (~31% domestic). Epistemic verifier: PASS.
 
 **Phase CQ (2026-06-30):** Environmental Impact Register -- 12 new tests (6,017 total). company/sustainability/environmental_impact.py (new): EmissionScope (SCOPE_1 / SCOPE_2_LOCATION / SCOPE_2_MARKET / SCOPE_3_DOWNSTREAM); EmissionRecord (frozen; emissions_kgco2e / emissions_tco2e / emissions_mtco2e); EnvironmentalImpactRegister (record_gas_scope3 / record_electricity_scope3: market-based uses REGO×0 + grid×unmatched fraction; total_scope3_tco2e / emissions_by_year / peak_emission_year). DEFRA 2023 factors: gas 0.18253 kgCO₂e/kWh; UK grid 0.2104; REGO-backed = 0.0. Regulatory basis: SECR Regulations 2018 (>250 employees or >£36M turnover); TCFD climate disclosure. Epistemic verifier: PASS.
 
@@ -4196,7 +4198,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 6,017 tests (fast / ~10s; simulation integration ~8 min per run)
+- 6,029 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
