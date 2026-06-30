@@ -38,6 +38,7 @@ real UK energy supplier works."
 6. Commit and push.
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 ## Current state
+**Phase DA COMPLETE (2026-06-30):** Customer Comm Preferences -- 12 tests (6,140). company/crm/customer_comm_preferences.py: CommChannel (EMAIL/POST/PHONE/SMS/PORTAL/PAPER_BILL); CommPurpose (BILLING/SERVICE_NOTICE essential; MARKETING requires opt-in); CustomerCommPreferences (can_contact/marketing_opt_in/suppressed); CustomerCommPreferenceRegister (set_preference/set_marketing_opt_in/suppress_account/paperless_accounts). GDPR/PECR/SLC 25C.
 **Phase CZ COMPLETE (2026-06-30):** Revenue Protection Register -- 12 tests (6,128). revenue_protection_register.py: 5 RPCaseType incl. METER_TAMPERING/SUPPLY_DIVERSION; open_case/confirm/recover/write_off; 3yr theft backbill exception (vs SLC 31A 12m cap).
 **Phase CY COMPLETE (2026-06-30):** Supplier Fitness Register -- 13 tests (6,116). supplier_fitness_register.py: Ofgem LC 30A fit-and-proper for directors; annual review; PRIOR_SUPPLIER_FAILURE flagged; not_fit_persons/overdue_reviews.
 **Phase CX COMPLETE (2026-06-30):** Regulatory Breach Log -- 12 tests (6,103). regulatory_breach_log.py: POTENTIAL→CONFIRMED→REMEDIATED/REPORTED_TO_OFGEM; is_reportable (H/C); total_estimated_penalty_gbp; by_slc. Ofgem up to 10% turnover.
