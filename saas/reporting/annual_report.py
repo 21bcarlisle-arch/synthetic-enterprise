@@ -4757,6 +4757,87 @@ def _section_gas_exit_analysis(data: dict) -> str:
 
 
 
+
+
+def _section_hedge_value_add(data: dict) -> str:
+    """Phase CB: Hedge value-add analysis — actual vs naked P&L per year.
+
+    Compares the company's hedged actual net margin against a hypothetical
+    fully-naked (spot-priced) scenario. Negative value-add = hedging cost money
+    vs buying at spot. Positive = hedging saved money vs spot.
+    UK electricity forward markets 2016-2021 were in backwardation — spot < forward —
+    so systematic hedging consistently underperformed spot purchasing.
+    """
+    years = data.get("years", {})
+    if not years:
+        return ""
+
+    rows = []
+    total_actual = 0.0
+    total_naked = 0.0
+    worst_yr = None
+    worst_va = 0.0
+    best_yr = None
+    best_va = 0.0
+
+    for yr in sorted(years.keys()):
+        y = years[yr]
+        he = y.get("hedge_effectiveness", {})
+        if not he:
+            continue
+        actual = he.get("actual_net_gbp", 0.0)
+        naked = he.get("naked_net_gbp", 0.0)
+        value_add = he.get("hedging_value_add_gbp", 0.0)
+        total_actual += actual
+        total_naked += naked
+
+        # Track worst (most negative VA) and best (least negative VA)
+        if worst_yr is None or value_add < worst_va:
+            worst_yr, worst_va = yr, value_add
+        if best_yr is None or value_add > best_va:
+            best_yr, best_va = yr, value_add
+
+        va_sign = "+" if value_add >= 0 else ""
+        rows.append("| {} | £{:,.0f} | £{:,.0f} | {}£{:,.0f} |".format(
+            yr, actual, naked, va_sign, int(value_add)
+        ))
+
+    if not rows:
+        return ""
+
+    total_va = total_actual - total_naked
+    va_sign = "+" if total_va >= 0 else ""
+
+    lines = [
+        "## Hedge Value-Add Analysis",
+        "",
+        "Actual hedged net margin vs hypothetical spot-only (naked) net margin. "
+        "Negative value-add indicates forward prices exceeded spot outturn — "
+        "consistent with UK market backwardation in 2016-2021 and partial hedging in the crisis years.",
+        "",
+        "| Year | Actual net | Naked net | Hedge value-add |",
+        "|------|-----------|-----------|-----------------|",
+    ]
+    lines += rows
+    lines += [
+        "| **Total** | **£{:,.0f}** | **£{:,.0f}** | **{}£{:,.0f}** |".format(
+            total_actual, total_naked, va_sign, int(total_va)
+        ),
+        "",
+    ]
+    if worst_yr:
+        lines.append("Largest hedging cost: **{}** (£{:,.0f} vs naked)".format(worst_yr, abs(int(worst_va))))
+    if best_yr:
+        lines.append("Smallest hedging cost: **{}** (£{:,.0f} vs naked)".format(best_yr, abs(int(best_va))))
+    lines.append(
+        "Conclusion: systematic forward hedging {} over 10 years vs spot purchasing.".format(
+            "saved money" if total_va > 0 else "cost £{:,.0f}".format(abs(int(total_va)))
+        )
+    )
+    lines.append("")
+
+    return chr(10).join(lines)
+
 def _section_service_quality(data: dict) -> str:
     """Phase CA: Customer service quality — clarity, complaint probability, bill shock per year."""
     years = data.get("years", {})
@@ -6630,6 +6711,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_hedge_value_add(data))               # Phase CB
     sections.append(_section_service_quality(data))               # Phase CA
     sections.append(_section_var_treasury_evolution(data))         # Phase BY
     sections.append(_section_fuel_mix_disclosure(data))            # Phase BX

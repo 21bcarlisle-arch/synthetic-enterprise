@@ -908,6 +908,28 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Hedge Value-Add Analysis
+
+Actual hedged net margin vs hypothetical spot-only (naked) net margin. Negative value-add indicates forward prices exceeded spot outturn — consistent with UK market backwardation in 2016-2021 and partial hedging in the crisis years.
+
+| Year | Actual net | Naked net | Hedge value-add |
+|------|-----------|-----------|-----------------|
+| 2016 | £2,033 | £10,918 | £-8,885 |
+| 2017 | £30,279 | £112,837 | £-82,557 |
+| 2018 | £109,728 | £247,200 | £-137,471 |
+| 2019 | £242,695 | £825,966 | £-583,270 |
+| 2020 | £73,762 | £934,294 | £-860,531 |
+| 2021 | £144,025 | £349,142 | £-205,116 |
+| 2022 | £103,679 | £1,092,096 | £-988,416 |
+| 2023 | £362,539 | £1,159,893 | £-797,354 |
+| 2024 | £174,539 | £552,804 | £-378,264 |
+| 2025 | £57 | £337 | £-280 |
+| **Total** | **£1,243,337** | **£5,285,486** | **£-4,042,149** |
+
+Largest hedging cost: **2022** (£988,416 vs naked)
+Smallest hedging cost: **2025** (£280 vs naked)
+Conclusion: systematic forward hedging cost £4,042,149 over 10 years vs spot purchasing.
+
 ## Customer Service Quality
 
 Ofgem benchmarks: bill clarity >0.82 (GREEN) / >0.80 (AMBER) / ≤0.80 (RED); complaint probability <5% (GREEN) / <6% (RED); bill shock <0.20% (GREEN) / <0.30% (AMBER) / ≥0.30% (RED).
@@ -1089,7 +1111,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 12 | 0.9 | £9 |
 | 2017 | 12 | 33 | 2.8 | £402 |
 | 2022 | 9 | 62 | 6.9 | £20,705 |
 | 2023 | 4 | 32 | 8.0 | £49,444 |
@@ -1402,7 +1424,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £129,699 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 21 sessions
 - C7: 19 sessions
 - C2: 13 sessions
 - C5: 12 sessions
@@ -1952,7 +1974,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-03-31: treasury £2,466,672.53, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-04-30: treasury £2,466,683.60, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-05-30: treasury £2,466,694.59, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
-  - 2016-06-29: treasury £2,466,705.16, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
+  - 2016-06-29: treasury £2,466,705.16, (none), VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-07-29: treasury £2,466,715.85, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-08-28: treasury £2,466,726.57, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-09-27: treasury £2,466,737.46, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
