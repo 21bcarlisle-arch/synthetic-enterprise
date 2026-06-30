@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,306 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,318 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AM (2026-06-30):** Pricing Basis Risk Attribution -- 12 new tests (5,318 total). saas/reporting/annual_report.py: _section_pricing_basis_risk() uses basis_risk_terms (149 per-contract forward-rate comparisons) to show year-by-year accuracy of the company forward curve: tariff_error_pct = (company_fwd - sim_fwd) / sim_fwd. Labels: HIGH OVER-PRICE (mean >+15%), moderate over, on target, UNDER-PRICE (mean <-5%). Post-crisis board warning when >=1 HIGH OVER-PRICE year in 2023+. Key finding: 2023 (+18.4%) and 2025 (+32.8%) are HIGH OVER-PRICE -- company locked in expensive crisis-era forwards after market normalised, mirroring the mechanism that eroded real UK supplier margins 2022-24. Tests: 12/12 passing. Epistemic verifier: PASS. Connects basis_risk_terms output, Phase 37b (forward curve).
 
 **Phase AL (2026-06-30):** Counterfactual Retention Value -- 12 new tests (5,306 total). saas/reporting/annual_report.py: _section_counterfactual_retention() uses no_offer_churn_log + retention_log (calibrates P(retain|offer) from actuals = 94%) + per_customer_lifetime; computes counterfactual net benefit for each positive-ETM no-offer churn (5% discount resi, 8% SME/I&C); flags net-neg ETM churns as CORRECT PASS; root cause note when missed opportunities exist. Simulation finding: £3,621 net recoverable value from 4 missed opportunities (C3, C2, C6, C4) at £293 retention cost. C1 churn correctly declined (net-neg ETM). Tests: 12/12 passing. Epistemic verifier: PASS. Connects no_offer_churn_log (sim output), Phase AE (retention offers), Phase AK (churn root cause).
 
@@ -4082,7 +4084,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,306 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,318 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -4091,7 +4093,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase AE, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,306 tests. Phase AL: Counterfactual Retention (12 tests). Phase AK: Churn Root Cause (14 tests). Phase AJ: CRM Risk Triage (14 tests).
+- 5,318 tests. Phase AM: Pricing Basis Risk (12 tests). Phase AL: Counterfactual Retention (12 tests). Phase AK: Churn Root Cause (14 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

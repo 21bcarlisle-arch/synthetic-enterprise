@@ -4405,6 +4405,110 @@ def _section_counterfactual_retention(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_pricing_basis_risk(data: dict) -> str:
+    """Phase AM: Pricing Basis Risk Attribution.
+
+    Uses basis_risk_terms (per-contract forward-rate comparison) to show
+    year-by-year accuracy of the company's forward curve model.
+    tariff_error_pct = (company_fwd - sim_fwd) / sim_fwd:
+      positive = company overestimated forward costs (over-priced contracts)
+      negative = company underestimated (under-priced, margin-at-risk)
+
+    Crisis pattern: 2021-22 error near zero (company correctly priced the crisis).
+    Post-crisis 2023+: high positive error = company locked in expensive forwards
+    after market normalised -- the mechanism that destroyed real suppliers.
+
+    Silent when basis_risk_terms absent.
+    """
+    brt = data.get("basis_risk_terms", [])
+    if not brt:
+        return ""
+
+    from collections import defaultdict
+    by_year: dict[str, list[dict]] = defaultdict(list)
+    for r in brt:
+        yr = r.get("term_start", "")[:4]
+        if yr:
+            by_year[yr].append(r)
+
+    if not by_year:
+        return ""
+
+    all_errors = [r["tariff_error_pct"] for r in brt]
+    portfolio_mean = sum(all_errors) / len(all_errors)
+
+    lines = [
+        "## Pricing Basis Risk Attribution",
+        "",
+        "Forward curve accuracy at each contract term. "
+        "tariff_error_pct = (company_fwd - sim_fwd) / sim_fwd: "
+        "positive = company over-estimated costs (higher than market); "
+        "negative = company under-estimated (margin-at-risk).",
+        f"Portfolio-wide mean error: {portfolio_mean:+.1%}",
+        "",
+        "| Year | Contracts | Mean Error | Max Abs | Over-priced | Under-priced | Assessment |",
+        "|------|-----------|------------|---------|-------------|--------------|------------|",
+    ]
+
+    worst_over_yr = None
+    worst_over_val = 0.0
+    under_priced_years = []
+    late_crisis_over = []
+
+    for yr in sorted(by_year.keys()):
+        entries = by_year[yr]
+        errors = [r["tariff_error_pct"] for r in entries]
+        mean_err = sum(errors) / len(errors)
+        max_abs = max(abs(e) for e in errors)
+        over = sum(1 for e in errors if e > 0.05)
+        under = sum(1 for e in errors if e < -0.05)
+
+        if mean_err > 0.15:
+            assess = "HIGH OVER-PRICE"
+            late_crisis_over.append(yr)
+        elif mean_err > 0.05:
+            assess = "moderate over"
+        elif mean_err < -0.05:
+            assess = "UNDER-PRICE"
+            under_priced_years.append(yr)
+        else:
+            assess = "on target"
+
+        if mean_err > worst_over_val:
+            worst_over_val = mean_err
+            worst_over_yr = yr
+
+        lines.append(
+            f"| {yr} | {len(entries)} | {mean_err:+.1%} | {max_abs:.1%} | "
+            f"{over} | {under} | {assess} |"
+        )
+
+    lines.append("")
+    lines.append("**Basis Risk Summary:**")
+    lines.append(f"- Portfolio mean tariff error: {portfolio_mean:+.1%}")
+    if worst_over_yr:
+        lines.append(
+            f"- Worst over-pricing year: {worst_over_yr} ({worst_over_val:+.1%}) "
+            "-- company forward curve above settled market"
+        )
+    if under_priced_years:
+        lines.append(
+            "- Under-pricing years (margin risk): " +
+            ", ".join(under_priced_years) +
+            " -- company forward curve below settled market"
+        )
+    if late_crisis_over:
+        lines.append(
+            "- Post-crisis over-pricing years (" +
+            ", ".join(late_crisis_over) +
+            "): company locked in expensive crisis-era forwards after prices normalised "
+            "-- mechanism that eroded real suppliers' margins 2022-24"
+        )
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_crm_intelligence(data: dict) -> str:
     """Phase AJ: CRM Risk Triage - final-year churn risk bands + repricing triage.
 
@@ -4581,6 +4685,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_crm_intelligence(data))  # Phase AJ
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
+    sections.append(_section_pricing_basis_risk(data))          # Phase AM
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
     sections.append(_section_dual_fuel_pnl(data))
