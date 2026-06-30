@@ -1,7 +1,7 @@
-Phase JB complete -- 10,128 tests. Coverage Depth Sprint XXIV (bm_unit_log, board_kpis, cash_flow_forecast). Epistemic verifier PASS.
-Last updated: 2026-06-30T21:59:54Z
+Phase JC complete -- 10,158 tests. Coverage Depth Sprint XXV (capacity_market, company_pl, credit_limits). Epistemic verifier PASS.
+Last updated: 2026-06-30T22:02:12Z
 
-**Latest simulation results (2016–2025)** — auto-processed (650s / 11 min):
+**Latest simulation results (2016–2025)** — auto-processed (454s / 8 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
 - Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
