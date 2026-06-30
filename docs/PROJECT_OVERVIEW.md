@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase GT (2026-06-30):** CCA Verification Register -- 32 new tests (8,247 total). company/regulatory/cca_verification_register.py (new): CCASector (10); CCAStatus (5); CCAVerificationRecord (frozen; is_valid_as_of(as_of): active+date range; is_expiring_soon <=60d; electricity_ccl_discount_pct: 90% if active else 0%; gas_ccl_discount_pct: 92% if active else 0%); CCAVerificationRegister (register_certificate: valid_to>valid_from; suspend/revoke/mark_expired/pending_renewal; valid_for_account: latest valid_to; cca_eligible_mpans: deduplicated). Finance Act 2000 s.30; 90%/92% CCL discount; 4-year target periods; HMRC clawback risk. Distinct from ccl_ledger.py. PASS (389 files).
+
 **Phase GS (2026-06-30):** Agreed Capacity Register -- 31 new tests (8,215 total). company/market/agreed_capacity_register.py (new): CapacityChangeType (5); AgreedCapacityRecord (frozen; capacity_change_kva=None if no prev; is_reduction); CapacityExceedanceRecord (frozen; excess_charge_gbp=excess×rate×3; utilisation_pct); AgreedCapacityRegister (register_capacity: capacity>0; record_exceedance: measured>agreed; current_capacity_for: latest applied by date; reduction_candidates: exceedances within 90d). P2/6: 3m notice; 3x excess rate. Distinct from duos_ledger.py. PASS (388 files).
 
 **Phase GR (2026-06-30):** Wholesale Trade Confirmation Register -- 33 new tests (8,184 total). company/trading/trade_confirmation_register.py (new): ConfirmationMethod (4); ConfirmationStatus (5); TradeConfirmationRecord (frozen; confirmation_due: broker=T+1, bilateral=T+2, exchange=T+1; is_long_outstanding >5d; days_outstanding uses matched_date if set); TradeConfirmationRegister (register_trade: notional>=0; send/match/dispute/cancel; confirmation_rate_pct: matched/all_total). EMIR Art.11: timely confirmation. Distinct from emir_reporting_register.py, trade_blotter.py. PASS (387 files).
@@ -4400,7 +4402,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,215 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,247 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
