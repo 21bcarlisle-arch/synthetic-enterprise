@@ -65,13 +65,13 @@ def test_priority_reconnection_medical():
 # 6. is_review_overdue triggers correctly
 def test_review_overdue():
     r = _psr_rec(review_overdue=True)
-    assert r.is_review_overdue
+    assert r.is_review_overdue(date.today())
 
 
 # 7. is_review_overdue false when not due
 def test_review_not_overdue():
     r = _psr_rec(review_overdue=False)
-    assert not r.is_review_overdue
+    assert not r.is_review_overdue(date.today())
 
 
 # 8. is_compliant false when no services enrolled
@@ -110,7 +110,7 @@ def test_psr_penetration():
 def test_psr_summary():
     reg = PriorityServicesRegister()
     reg.register(_psr_rec("C1", categories=(PSRCategory.MEDICAL_EQUIPMENT,)))
-    summary = reg.psr_summary()
+    summary = reg.psr_summary(date.today())
     assert "Priority Services" in summary
     assert "SLC 26B" in summary
     assert "1" in summary
