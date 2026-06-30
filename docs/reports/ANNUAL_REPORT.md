@@ -1183,7 +1183,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 12 | 0.9 | £9 |
+| 2016 | 13 | 13 | 1.0 | £9 |
 | 2017 | 12 | 33 | 2.8 | £402 |
 | 2022 | 9 | 62 | 6.9 | £20,705 |
 | 2023 | 4 | 32 | 8.0 | £49,444 |
@@ -1496,7 +1496,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £129,699 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 21 sessions
+- C1: 22 sessions
 - C7: 19 sessions
 - C2: 13 sessions
 - C5: 12 sessions
@@ -2040,7 +2040,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 - Treasury at year end: £2,467,421.09
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89)
 - Risk committee (Context Handshake) interventions: 13
-  - 2016-01-01: treasury £2,466,636.23, (none), VaR (current £27.79 / stressed £8.54) ratio 3.25
+  - 2016-01-01: treasury £2,466,636.23, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-01-31: treasury £2,466,648.35, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-03-01: treasury £2,466,660.58, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
   - 2016-03-31: treasury £2,466,672.53, C1->1.00, VaR (current £27.79 / stressed £8.54) ratio 3.25
