@@ -4755,6 +4755,67 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_policy_cost_breakdown(data: dict) -> str:
+    ydata = data.get("years", {})
+    if not ydata:
+        return ""
+    years = sorted(ydata.keys())
+    has_data = any(ydata[yr].get("policy_cost_gbp") for yr in years)
+    if not has_data:
+        return ""
+    lines = [
+        "## Policy Cost & Levy Breakdown",
+        "",
+        "UK energy levies collected through supplier bills. Policy costs are non-commodity costs",
+        "passed through to customers. CfD levy went negative in 2022 (crisis: spot exceeded strike prices;",
+        "renewable generators repaid back via levy mechanism).",
+        "",
+        "| Year | RO | CfD | CCL | CM | FiT | Total Policy | Network |",
+        "|------|----|-----|-----|----|-----|-------------|---------|",
+    ]
+    cfd_negative_year = None
+    for yr in years:
+        yd = ydata[yr]
+        ro = yd.get("ro_levy_gbp", 0.0)
+        cfd = yd.get("cfd_levy_gbp", 0.0)
+        ccl = yd.get("ccl_gbp", 0.0)
+        cm = yd.get("cm_levy_gbp", 0.0)
+        fit = yd.get("fit_levy_gbp", 0.0)
+        pc = yd.get("policy_cost_gbp", 0.0)
+        nc = yd.get("network_cost_gbp", 0.0)
+        if cfd < 0 and cfd_negative_year is None:
+            cfd_negative_year = yr
+        cfd_str = _fmt_gbp(cfd)
+        if cfd < 0:
+            cfd_str = "**" + cfd_str + "**"
+        lines.append(
+            "| " + yr + " | " + _fmt_gbp(ro) + " | " + cfd_str +
+            " | " + _fmt_gbp(ccl) + " | " + _fmt_gbp(cm) + " | " + _fmt_gbp(fit) +
+            " | " + _fmt_gbp(pc) + " | " + _fmt_gbp(nc) + " |"
+        )
+    lines.append("")
+    if cfd_negative_year:
+        lines += [
+            "**CfD rebate in " + cfd_negative_year + ":** Contracts for Difference (CfD) generators are paid",
+            "the difference between strike price and reference price. When spot > strike (2022 crisis),",
+            "the mechanism reverses — generators pay back, creating a negative levy for suppliers.",
+            "",
+        ]
+    # Policy cost CAGR from first to latest year
+    first_pc = ydata[years[0]].get("policy_cost_gbp", 0.0)
+    last_pc = ydata[years[-1]].get("policy_cost_gbp", 0.0)
+    if first_pc > 0 and last_pc > 0:
+        n_years = len(years) - 1
+        if n_years > 0:
+            cagr = ((last_pc / first_pc) ** (1.0 / n_years) - 1.0) * 100.0
+            lines.append(
+                "Policy costs: " + _fmt_gbp(first_pc) + " (" + years[0] + ") → " +
+                _fmt_gbp(last_pc) + " (" + years[-1] + "). CAGR: " + ("%.1f%%" % cagr) + "."
+            )
+            lines.append("")
+    return "\n".join(lines)
+
+
 def _section_commodity_split(data: dict) -> str:
     ydata = data.get("years", {})
     if not ydata:
@@ -5225,6 +5286,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_policy_cost_breakdown(data))          # Phase AV
     sections.append(_section_commodity_split(data))                # Phase AU
     sections.append(_section_management_accounts(data))            # Phase AT
     sections.append(_section_gas_exit_analysis(data))              # Phase AS
