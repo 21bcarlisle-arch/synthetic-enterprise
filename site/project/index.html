@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poesys -- Project</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -71,11 +71,11 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 </head>
 <body>
 <nav class="site-nav">
-  <a href="/" class="nav-logo">&#9889; Poesys</a>
-  <a href="/" class="nav-link">Supplier</a>
-  <a href="/customers/" class="nav-link">Customers</a>
-  <a href="/project/" class="nav-link active">Project</a>
-  <a href="/sim/" class="nav-link">SIM</a>
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../project/" class="nav-link active">Project</a>
+  <a href="../sim/" class="nav-link">SIM</a>
 </nav>
 <nav class="tab-nav">
   <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
@@ -218,14 +218,14 @@ function renderTimeline(){
 }
 function renderSystem(){
   var c=document.getElementById("sys-container");
-  if(!SYS){fetch("/data/agent_status.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){SYS=d;renderSystem();}).catch(function(){c.innerHTML='<p style="color:var(--red);font-size:12px">Could not load agent_status.json</p>';});return;}
+  if(!SYS){fetch("../data/agent_status.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){SYS=d;renderSystem();}).catch(function(){c.innerHTML='<p style="color:var(--red);font-size:12px">Could not load agent_status.json</p>';});return;}
   var upd=SYS.last_updated?ageLabel(SYS.last_updated):"unknown";
   var rows=(SYS.agents||[]).map(function(a){var dc=ageDot(a.last_heartbeat,a.status);var sc={running:"sb-running",idle:"sb-idle",working:"sb-working",error:"sb-error"}[a.status]||"sb-idle";return'<div class="agent-row"><div class="agent-dot '+dc+'"></div><div class="agent-body"><div class="agent-name">'+a.name+'<span class="status-badge '+sc+'">'+a.status+'</span></div><div class="agent-role">'+(a.role||"")+'</div><div class="agent-action">&rarr; '+(a.last_action||"&mdash;")+'</div>'+(a.anomaly?'<div style="color:var(--amber);font-size:11px;margin-top:2px">'+a.anomaly+'</div>':"")+'</div><div class="agent-ts">'+ageLabel(a.last_heartbeat)+'</div></div>';}).join("");
   c.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:12px">Status updated '+upd+'</div><div class="agent-grid">'+rows+'</div>';
 }
 function renderKpis(){if(!D||!PH)return;var ann=(D.financial||{}).annual||[];var totalNet=ann.reduce(function(s,r){return s+(r.net_gbp||0);},0);var treasury=ann.length?(ann[ann.length-1].treasury_end_gbp||0):0;var tp=PH.test_progression||[];var lt=tp.length?tp[tp.length-1][1]:0;var rh=D.run_history||[];var kpis=[{l:"Started",v:PH.start_date||"June 2026"},{l:"Phases shipped",v:PH.total_phases||"--"},{l:"Tests passing",v:lt.toLocaleString()},{l:"Net margin (all time)",v:gbp(totalNet),g:totalNet>=0},{l:"Treasury (end 2025)",v:gbp(treasury)},{l:"Crisis survived",v:"2021-22"},{l:"Sim runs",v:rh.length},{l:"Built by",v:"1 human + Claude + Qwen"}];document.getElementById("inv-kpis").innerHTML=kpis.map(function(k){return'<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv'+(k.g?" green":"")+'">'+k.v+'</div></div>';}).join("");}
 function renderCharts(){if(!PH)return;var tp=PH.test_progression||[];var opts={responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:5,color:"#7d8590"},grid:{color:"#30363d"}},y:{ticks:{color:"#7d8590"},grid:{color:"#30363d"}}}};new Chart(document.getElementById("ct"),{type:"line",data:{labels:tp.map(function(p){return p[0];}),datasets:[{data:tp.map(function(p){return p[1];}),borderColor:"#3fb950",backgroundColor:"rgba(63,185,80,0.1)",fill:true,borderWidth:2,pointRadius:1}]},options:opts});var pd=PH.phase_dates||[];var dm={};pd.forEach(function(p){dm[p[0]]=(dm[p[0]]||0)+1;});var days=Object.keys(dm).sort();new Chart(document.getElementById("cp"),{type:"bar",data:{labels:days,datasets:[{data:days.map(function(d){return dm[d];}),backgroundColor:"rgba(88,166,255,0.6)"}]},options:opts});}
-Promise.all([fetch("/data/dashboard.json").then(function(r){return r.json();}),fetch("/data/phases.json").then(function(r){return r.json();})]).then(function(rs){D=rs[0];PH=rs[1];renderKpis();renderCharts();}).catch(function(e){console.error("Load error:",e);});
+Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();})]).then(function(rs){D=rs[0];PH=rs[1];renderKpis();renderCharts();}).catch(function(e){console.error("Load error:",e);});
 </script>
 </body>
 </html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poesys - Customer Portal</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <style>
 :root {
   --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
@@ -83,11 +83,11 @@ tr.crisis-row td { background: rgba(248,81,73,.04); }
 </head>
 <body>
 <nav class="site-nav">
-  <a href="/" class="nav-logo">&#9889; Poesys</a>
-  <a href="/" class="nav-link">Supplier</a>
-  <a href="/customers/" class="nav-link active">Customers</a>
-  <a href="/project/" class="nav-link">Project</a>
-  <a href="/sim/" class="nav-link">SIM</a>
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link active">Customers</a>
+  <a href="../project/" class="nav-link">Project</a>
+  <a href="../sim/" class="nav-link">SIM</a>
 </nav>
 <div id="app"></div>
 <script>
@@ -124,7 +124,7 @@ function showLogin(err){
 function doLogin(){
   var id=(document.getElementById("acc").value||"").trim();
   if(!id)return;
-  fetch("/data/customers/"+id+".json")
+  fetch("../data/customers/"+id+".json")
     .then(function(r){if(!r.ok)throw new Error("Account not found: "+id);return r.json();})
     .then(function(d){ACC=d;renderAccount();})
     .catch(function(e){showLogin(e.message);});
