@@ -1,5 +1,5 @@
-Phase IV complete -- 9,983 tests. Coverage Depth Sprint XIX (revenue_accruals, renewals_book, switch_governance). Epistemic verifier PASS.
-Last updated: 2026-06-30T21:33:53Z
+Phase IW complete -- 10,013 tests. Coverage Depth Sprint XX (portal_analytics, dsr_book, licence_health). MILESTONE: >10,000 tests. Epistemic verifier PASS.
+Last updated: 2026-06-30T21:36:00Z
 
 **Latest simulation results (2016–2025)** — auto-processed (571s / 10 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
