@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase IZ — Coverage Depth Sprint XXII (2026-06-30)
+**Modules:** switch_analytics · risk_appetite · credit_rating_book
+**Tests added:** 30 (switch SW-00001 IDs/complete/days_to_complete/gains/losses/erroneous/avg_days; risk limit warning_value/utilisation_pct/RAG/active_breaches/dashboard; credit is_investment_grade BBB+/profile PD/exposure/within_limit/sub_ig/summary)
+**Total:** 10,068 tests
+
 ### Phase IS — Coverage Depth Sprint XVI (2026-06-30)
 **Modules:** clv_calculator · cos_process · nps_tracker
 **Tests added:** 33 (CLV DCF model/margin tiers/LTV:CAC verdicts, CoS stage transitions/objection reasons/happy path, NPS promoter/passive/detractor/period/segment calculation)
@@ -4544,7 +4549,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,038 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,068 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
