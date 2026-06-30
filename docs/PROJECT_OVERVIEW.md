@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,294 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,306 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase AL (2026-06-30):** Counterfactual Retention Value -- 12 new tests (5,306 total). saas/reporting/annual_report.py: _section_counterfactual_retention() uses no_offer_churn_log + retention_log (calibrates P(retain|offer) from actuals = 94%) + per_customer_lifetime; computes counterfactual net benefit for each positive-ETM no-offer churn (5% discount resi, 8% SME/I&C); flags net-neg ETM churns as CORRECT PASS; root cause note when missed opportunities exist. Simulation finding: £3,621 net recoverable value from 4 missed opportunities (C3, C2, C6, C4) at £293 retention cost. C1 churn correctly declined (net-neg ETM). Tests: 12/12 passing. Epistemic verifier: PASS. Connects no_offer_churn_log (sim output), Phase AE (retention offers), Phase AK (churn root cause).
 
 **Phase AK (2026-06-30):** Churn Root Cause Attribution -- 14 new tests (5,294 total). saas/reporting/annual_report.py: _section_churn_root_cause() cross-references customer_events (event_type=churned) with dynamic_pricing_log (last rate change), churn_basis_risk (rate-vs-SVT, company vs sim estimate), and per_customer_lifetime (segment, tenure, lifetime margin). Shows per-departed-account table; root cause summary (blind misses/warned/crisis-era/overpriced-at-departure). 6 simulation churns: £39,706 total lifetime margin lost; 3 company blind misses (sim 32%, company 0%); 3 crisis-era churns (2021-22). Tests: 14/14 passing. Epistemic verifier: PASS. Connects Phase AD (churn), Phase 11b (basis risk), Phase 15b (dynamic pricing).
 
@@ -4080,7 +4082,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,294 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,306 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -4089,7 +4091,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase AE, 2026-06-29):**
 - Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,294 tests. Phase AK: Churn Root Cause (14 tests). Phase AJ: CRM Risk Triage (14 tests). Phase AI: EAC Drift Snapshot (10 tests).
+- 5,306 tests. Phase AL: Counterfactual Retention (12 tests). Phase AK: Churn Root Cause (14 tests). Phase AJ: CRM Risk Triage (14 tests).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

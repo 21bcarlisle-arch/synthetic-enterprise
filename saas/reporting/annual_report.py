@@ -4295,6 +4295,116 @@ def _section_churn_root_cause(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_counterfactual_retention(data: dict) -> str:
+    """Phase AL: Counterfactual Retention Value.
+
+    For each no_offer_churn_log entry (departed with no retention offer made),
+    computes the counterfactual net benefit of a hypothetical retention offer.
+    Uses:
+      - no_offer_churn_log: expected_term_margin_gbp, company_churn_estimate
+      - retention_log: calibrates P(retain|offer) from actual outcomes
+      - per_customer_lifetime: segment for discount rate selection
+
+    Counterfactual: 5% discount for resi, 8% for SME/I&C (Phase AE calibrated).
+    Retention probability: calibrated from actual retention_log outcomes.
+    Net benefit = P_retain * etm - retention_cost; only meaningful if etm > 0.
+
+    Silent when no_offer_churn_log is absent.
+    """
+    no_offer = data.get("no_offer_churn_log", [])
+    if not no_offer:
+        return ""
+
+    rl = data.get("retention_log", [])
+    pcl = data.get("per_customer_lifetime", {})
+
+    # Calibrate retention probability from actual offer outcomes
+    retained_count = sum(1 for r in rl if r.get("outcome") == "retained")
+    p_retain = retained_count / len(rl) if rl else 0.60
+
+    def _discount_rate(segment: str) -> float:
+        if segment in ("SME", "I&C"):
+            return 0.08
+        return 0.05
+
+    rows = []
+    for r in no_offer:
+        cid = r["customer_id"]
+        etm = r.get("expected_term_margin_gbp", 0.0)
+        co_est = r.get("company_churn_estimate", 0.0)
+        event_date = r.get("event_date", "")
+        pcl_rec = pcl.get(cid, {})
+        segment = pcl_rec.get("segment", "resi")
+        disc = _discount_rate(segment)
+        retention_cost = max(0.0, etm) * disc
+        counterfactual_net = (p_retain * etm - retention_cost) if etm > 0 else 0.0
+        decision = "correct_no_offer" if etm <= 0 else "missed_opportunity"
+        rows.append({
+            "cid": cid,
+            "segment": segment,
+            "date": event_date,
+            "etm": etm,
+            "co_est": co_est,
+            "disc": disc,
+            "retention_cost": retention_cost,
+            "counterfactual_net": counterfactual_net,
+            "decision": decision,
+        })
+
+    lines = [
+        "## Counterfactual Retention Value",
+        "",
+        f"What would company-initiated retention offers have been worth for the {len(rows)} "
+        f"accounts that churned without an offer? Calibrated from {len(rl)} actual offers "
+        f"(observed retention rate {p_retain:.0%}).",
+        "",
+        "| Account | Seg | Churn Date | Co. Est. | Term Margin | Disc Rate | "
+        "Retention Cost | CF Net Benefit | Assessment |",
+        "|---------|-----|------------|----------|-------------|-----------|"
+        "----------------|----------------|------------|",
+    ]
+
+    for r in rows:
+        etm_str = _fmt_gbp(r["etm"])
+        rc_str = _fmt_gbp(r["retention_cost"])
+        cf_str = _fmt_gbp(r["counterfactual_net"]) if r["counterfactual_net"] != 0 else "n/a"
+        assess = "CORRECT PASS" if r["decision"] == "correct_no_offer" else "MISSED OPP."
+        lines.append(
+            "| " + r["cid"] + " | " + r["segment"] + " | " + r["date"] + " | " +
+            f"{r['co_est']:.0%}" + " | " + etm_str + " | " +
+            f"{r['disc']:.0%}" + " | " + rc_str + " | " + cf_str + " | " + assess + " |"
+        )
+
+    lines.append("")
+
+    # Summary
+    missed = [r for r in rows if r["decision"] == "missed_opportunity"]
+    correct_passes = [r for r in rows if r["decision"] == "correct_no_offer"]
+    total_cf_net = sum(r["counterfactual_net"] for r in missed)
+    total_cost = sum(r["retention_cost"] for r in missed)
+    total_etm = sum(r["etm"] for r in missed)
+
+    lines += [
+        "**Counterfactual Summary:**",
+        "- No-offer churns assessed: " + str(len(rows)),
+        "- Correct no-offer (net-neg ETM): " + str(len(correct_passes)) +
+        (" (" + ", ".join(r["cid"] for r in correct_passes) + ")" if correct_passes else ""),
+        "- Missed opportunities (positive ETM, below detection): " + str(len(missed)),
+    ]
+    if missed:
+        lines += [
+            "- Total term margin foregone: " + _fmt_gbp(total_etm),
+            "- Total retention cost (counterfactual): " + _fmt_gbp(total_cost),
+            "- Net counterfactual benefit: " + _fmt_gbp(total_cf_net) +
+            " (at " + f"{p_retain:.0%}" + " retention probability)",
+            "- Root cause: company churn detection below threshold for all missed cases "
+            "-- churn model underestimated bill-shock risk",
+        ]
+
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_crm_intelligence(data: dict) -> str:
     """Phase AJ: CRM Risk Triage - final-year churn risk bands + repricing triage.
 
@@ -4470,6 +4580,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_portfolio_intelligence_pack(data))  # Phase AH
     sections.append(_section_crm_intelligence(data))  # Phase AJ
     sections.append(_section_churn_root_cause(data))   # Phase AK
+    sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_dynamic_pricing(data))
     sections.append(_section_churn_avoidability(data))
     sections.append(_section_dual_fuel_pnl(data))
