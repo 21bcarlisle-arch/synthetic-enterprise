@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,504 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,519 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase BB (2026-06-30):** Risk Committee Decision Ledger -- 15 new tests (5,519 total). company/risk/risk_committee_ledger.py: InterventionTrigger (VAR_THRESHOLD/TREASURY_STRESS/PRICE_SPIKE/MARGIN_DETERIORATION/SCHEDULED_REVIEW); InterventionOutcome (EFFECTIVE/NEUTRAL/COUNTERPRODUCTIVE/PENDING); CommitteeSession (frozen; var_ratio property; outcome property using ±£1k treasury delta threshold; treasury_delta_gbp); RiskCommitteeDecisionLedger (record_session; sessions_for_year; sessions_by_trigger; effective_interventions; counterproductive_interventions; intervention_effectiveness_rate; most_active_trigger; busiest_year; peak_stressed_var_gbp; governance_summary). Company-observable: records own committee decisions and treasury outcomes. Connects to var_monitor (Ph282), hedge_effectiveness (Ph319), financial_resilience (Ph318). Epistemic verifier: PASS.
 
 **Phase BA (2026-06-30):** Price Elasticity Estimator -- 15 new tests (5,504 total). company/pricing/price_elasticity.py: ElasticityBand (LOW/MODERATE/HIGH); PriceChangeImpact (frozen; extra_churn_rate_pct / total_churn_rate_pct / expected_lost_customers / expected_lost_revenue_gbp / expected_retained_revenue_gbp / is_viable / revenue_delta_gbp / elasticity_band); PortfolioImpact (frozen; net_revenue_delta_gbp / retention_rate_pct); PriceElasticityBook (is_crisis_year multiplies elasticity ×1.5; estimate_churn_impact; model_portfolio_impact; optimal_tariff_change gradient search over user-specified range; elasticity_summary). Calibration: CMA 2016 / Ofgem 2019-2023 — resi=-0.18 (1.8% extra churn per 10% price rise); SME=-0.12; I&C=-0.05 (very inelastic — long contracts). Connects Phase AC (repricing actions), Phase M (renewal conversion). Epistemic verifier: PASS.
 
@@ -4112,7 +4114,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,504 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,519 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
