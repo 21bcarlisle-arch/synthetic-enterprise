@@ -1,5 +1,5 @@
-Phase HI complete -- 8,751 tests. Phase HI: BSC Settlement Dispute Register -- 33 tests. All 8,751 tests passing, epistemic verifier PASS (404 company/ files).
-Last updated: 2026-06-30T18:43:41Z
+Phase HK complete -- 8,826 tests. Phase HK: BSC Performance Assurance Register -- 49 tests. All 8,826 tests passing, epistemic verifier PASS (406 company/ files).
+Last updated: 2026-06-30T19:01:39Z
 
 **Latest simulation results (2016–2025)** — auto-processed (676s / 11 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
