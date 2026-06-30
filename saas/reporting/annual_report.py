@@ -4759,6 +4759,86 @@ def _section_gas_exit_analysis(data: dict) -> str:
 
 
 
+
+
+def _section_customer_commodity_pnl(data: dict) -> str:
+    """Phase CD: Per-customer lifetime P&L by commodity (electricity vs gas).
+
+    The company can observe its own per-customer P&L from its billing and
+    trading records. This section shows which customers are profitable,
+    which are loss-making, and the electricity/gas split.
+    """
+    pcp = data.get("per_cid_comm_pnl", {})
+    if not pcp:
+        return ""
+
+    rows = []
+    total_elec_net = 0.0
+    total_gas_net = 0.0
+    loss_customers = []
+    gas_loss_customers = []
+
+    for cid in sorted(pcp.keys()):
+        e = pcp[cid]
+        elec = e.get("electricity", {})
+        gas = e.get("gas", {})
+        elec_net = elec.get("net", 0.0)
+        gas_net = gas.get("net", 0.0)
+        total_net = elec_net + gas_net
+        total_elec_net += elec_net
+        total_gas_net += gas_net
+        if total_net < 0:
+            loss_customers.append((cid, total_net))
+        if gas_net < 0:
+            gas_loss_customers.append((cid, gas_net))
+
+        elec_str = "£{:,.0f}".format(elec_net) if elec else "—"
+        gas_str = "£{:,.0f}".format(gas_net) if gas else "—"
+        total_str = "£{:,.0f}".format(total_net)
+        flag = " *" if total_net < 0 else ""
+        rows.append("| {} | {} | {} | {}{} |".format(
+            cid, elec_str, gas_str, total_str, flag
+        ))
+
+    total_both = total_elec_net + total_gas_net
+
+    lines = [
+        "## Customer Lifetime P&L by Commodity",
+        "",
+        "Lifetime net margin per customer, split by electricity and gas. "
+        "Loss-making accounts (marked *) warrant repricing review or exit.",
+        "",
+        "| Customer | Elec net | Gas net | Total |",
+        "|----------|----------|---------|-------|",
+    ]
+    lines += rows
+    lines += [
+        "| **Total** | **£{:,.0f}** | **£{:,.0f}** | **£{:,.0f}** |".format(
+            total_elec_net, total_gas_net, total_both
+        ),
+        "",
+    ]
+
+    if loss_customers:
+        lines.append(
+            "Loss-making accounts: {}".format(
+                ", ".join("{} (£{:,.0f})".format(c, n) for c, n in sorted(loss_customers, key=lambda x: x[1]))
+            )
+        )
+    if gas_loss_customers:
+        lines.append(
+            "Gas loss-making: {}".format(
+                ", ".join("{} (£{:,.0f})".format(c, n) for c, n in sorted(gas_loss_customers, key=lambda x: x[1]))
+            )
+        )
+    lines.append("Gas portfolio net: £{:,.0f} ({:.1f}% of total)".format(
+        total_gas_net,
+        total_gas_net / total_both * 100 if total_both != 0 else 0,
+    ))
+    lines.append("")
+
+    return chr(10).join(lines)
+
 def _section_hedge_value_add(data: dict) -> str:
     """Phase CB: Hedge value-add analysis — actual vs naked P&L per year.
 
@@ -6711,6 +6791,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_customer_commodity_pnl(data))        # Phase CD
     sections.append(_section_hedge_value_add(data))               # Phase CB
     sections.append(_section_service_quality(data))               # Phase CA
     sections.append(_section_var_treasury_evolution(data))         # Phase BY

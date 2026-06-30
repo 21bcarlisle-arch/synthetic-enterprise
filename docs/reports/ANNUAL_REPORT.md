@@ -908,6 +908,37 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Customer Lifetime P&L by Commodity
+
+Lifetime net margin per customer, split by electricity and gas. Loss-making accounts (marked *) warrant repricing review or exit.
+
+| Customer | Elec net | Gas net | Total |
+|----------|----------|---------|-------|
+| C1 | £421 | — | £421 |
+| C1g | — | £652 | £652 |
+| C2 | £715 | — | £715 |
+| C2_2 | £1,036 | — | £1,036 |
+| C2g | — | £815 | £815 |
+| C3 | £201 | — | £201 |
+| C3g | — | £297 | £297 |
+| C4 | £135 | — | £135 |
+| C4g | — | £-1,950 | £-1,950 * |
+| C5 | £-42 | — | £-42 * |
+| C6 | £3,555 | — | £3,555 |
+| C7 | £-1,378 | — | £-1,378 * |
+| C8 | £1,486 | — | £1,486 |
+| C9 | £1,475 | — | £1,475 |
+| C_IC1 | £837,491 | — | £837,491 |
+| C_IC2 | £432,702 | — | £432,702 |
+| C_IC3 | £83,751 | — | £83,751 |
+| C_IC3g | — | £-132,711 | £-132,711 * |
+| C_IC4 | £14,686 | — | £14,686 |
+| **Total** | **£1,376,235** | **£-132,898** | **£1,243,337** |
+
+Loss-making accounts: C_IC3g (£-132,711), C4g (£-1,950), C7 (£-1,378), C5 (£-42)
+Gas loss-making: C_IC3g (£-132,711), C4g (£-1,950)
+Gas portfolio net: £-132,898 (-10.7% of total)
+
 ## Hedge Value-Add Analysis
 
 Actual hedged net margin vs hypothetical spot-only (naked) net margin. Negative value-add indicates forward prices exceeded spot outturn — consistent with UK market backwardation in 2016-2021 and partial hedging in the crisis years.

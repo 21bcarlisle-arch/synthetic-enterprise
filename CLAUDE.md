@@ -42,7 +42,6 @@ real UK energy supplier works."
 ---
 
 ## Phase-close checklist (in order)
-
 1. Update test count + latest run figures in PROJECT_OVERVIEW.md Section 10.
 2. Add build history entry in PROJECT_OVERVIEW.md Section 4.
 3. **Run epistemic verifier:** `python3 -m tools.epistemic_verifier` — must PASS before committing.
@@ -54,6 +53,7 @@ real UK energy supplier works."
 PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT update it.
 ---
 ## Current state
+**Phase CD COMPLETE (2026-06-30):** Customer Commodity P&L section -- 12 tests (5,861). _section_customer_commodity_pnl(): per-customer lifetime elec/gas split; loss-marking (*); gas loss summary; gas % of total. C_IC3g -£132,711; C4g -£1,950; C7 -£1,378 loss-making. Confirms Phase AR gas exit rationale.
 **Phase CC COMPLETE (2026-06-30):** OTC Margin Call Book -- 12 tests (5,849). company/trading/otc_margin_book.py: MarginCallDirection (CALL/RETURN); MarginCallStatus; VariationMarginCall (frozen; cash_impact_gbp/is_call_on_company/is_settled/is_overdue T+1 CSA standard); OTCMarginBook (record_call/settle_call/pending/overdue/total_cash_impact/total_pending_outflow/calls_by_counterparty/net_cash_for_year). 2022 crisis mechanism: margin calls drain treasury when forwards move against company; direct cause of 28 UK supplier failures.
 **Phase CB COMPLETE (2026-06-30):** Hedge Value-Add Analysis -- 12 tests (5,837). _section_hedge_value_add(): actual vs naked net margin 10-yr table; value-add always negative (backwardation 2016-21; hedging cost £4.04M total vs spot). 2022 worst (-£988k); 2016 best (-£8.9k).
 **Phase CA COMPLETE (2026-06-30):** Service Quality Monitor -- 12 tests (5,825). company/crm/service_quality_monitor.py: ServiceQualityRAG (GREEN/AMBER/RED); ServiceQualitySnapshot (clarity/complaint/shock RAG; shock_rate_pct); ServiceQualityMonitor (worst_clarity/complaint/shock year; is_improving; quality_summary). Annual report section: 10-yr table; 2022=RED (crisis); 2025=declining. Benchmarks: clarity>0.82 GREEN; complaint<5% GREEN; shock<0.20% GREEN.

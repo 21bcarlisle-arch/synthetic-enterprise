@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-06-30. 420+ commits. 5,849 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
+*Last updated: 2026-06-30. 420+ commits. 5,861 tests passing. Codebase: ~46,500 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -746,6 +746,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - BILL_YEAR state variable; filterBillYear(y) function updates state and re-renders; renderBills() is the isolated bills renderer.
 
 **8 new tests (3,487 total).**
+
+**Phase CD (2026-06-30):** Customer Lifetime P&L by Commodity Section -- 12 new tests (5,861 total). _section_customer_commodity_pnl() in annual_report.py: shows per-customer lifetime electricity and gas net margins side-by-side; loss-making accounts marked *; gas-loss summary; gas portfolio net as % of total. Key findings: C_IC3g lifetime loss -£132,711; C4g -£1,950; C7 -£1,378; C5 -£42. Gas portfolio net = -£133,697 (loss-making overall). Confirms Phase AR gas exit decision rationale. Epistemic verifier: PASS.
 
 **Phase CC (2026-06-30):** OTC Variation Margin Book -- 12 new tests (5,849 total). company/trading/otc_margin_book.py (new): MarginCallDirection (CALL/RETURN); MarginCallStatus (4 states); VariationMarginCall (frozen; cash_impact_gbp — negative for CALL, positive for RETURN; is_call_on_company; is_settled; is_overdue T+1 CSA standard); OTCMarginBook (record_call/settle_call/pending_calls/overdue_calls/total_cash_impact_gbp/total_pending_outflow_gbp/calls_by_counterparty/net_cash_for_year/margin_book_summary). Models the key 2022 supplier-failure mechanism: OTC forward positions move against company as prices rise, generating daily margin calls that drain treasury. Epistemic verifier: PASS.
 
@@ -4168,7 +4170,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 330+ Python modules, ~46,500 lines
 - 410+ git commits
-- 5,849 tests (fast / ~10s; simulation integration ~8 min per run)
+- 5,861 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
