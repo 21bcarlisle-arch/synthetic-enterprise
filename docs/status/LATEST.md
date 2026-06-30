@@ -1,15 +1,15 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T07:37:29Z
+Last updated: 2026-06-30T07:49:24Z
 
 ## Current state
 
-- **Phase:** DR complete — this session built Phases DF-DR (SAR/vulnerability/EBSS/EBRS/EMIR/BSC/social obligations/statutory accounts/switching cost/price transparency/PSR/SLC tracker/embedded networks/interconnectors/renewal notices/board meetings)
-- **Tests passing:** 5,876 non-sim + simulation suite (all green)
-- **Python modules:** 310 company/ + simulation + saas
-- **Net position (latest sim run):** £1,243,337 (git 5190a86)
+- **Phase:** DY complete -- 6,012 tests (6,000 milestone crossed!). Phases DF-DY built this session (26 phases): compliance, CRM, trading, sustainability, regulatory modules.
+- **Tests passing:** 6,012 (all green)
+- **Python modules:** 317 company/ modules + simulation + saas
+- **Net position (latest sim run):** £1,243,337 (git 5d0e280)
 
-## Latest run figures (git 5190a86, 2026-06-30T07:25)
+## Latest run figures (git 5d0e280, 2026-06-30T07:45)
 
 | Metric | Value |
 |--------|-------|
@@ -20,16 +20,21 @@ Last updated: 2026-06-30T07:37:29Z
 | Final Treasury | £3,709,973 |
 | Administration Event | None |
 
-## Build summary (2026-06-30)
+## Build summary (2026-06-30, this session)
 
-- Phases completed today: DF, DG, DH, DI, DJ, DK, DL, DM, DN, DO, DP, DQ, DR
-- New modules: sar_register, consumer_vulnerability_register, bsc_settlement_run_register,
-  social_obligation_register, statutory_accounts_register, switching_cost_model,
-  price_transparency_register, embedded_network_register, interconnector_monitor_register,
-  renewal_notice_register, board_meeting_register
-- Website: all subpage 404s fixed (relative path fix), Capabilities tab (72 capabilities),
-  expanded Regulatory tab (23 SLCs)
-- Snapshot tool: tools/generate_snapshot.py for 06:00/18:00 checkpoints
+Phases DU-DY completed (plus DT completed in previous session, DV-DX in this):
+- DU: Customer Credit Assessment Register (18 tests) -- SLC 12, deposit refund
+- DV: Wholesale Market Position Monthly Report (23 tests) -- hedge posture, RAG, MtM
+- DW: CLV Sensitivity Model (19 tests) -- Gordon Growth, churn/margin elasticity
+- DX: TCFD Climate Risk Financial Assessment (16 tests) -- 3 IPCC scenarios, 5 risk types
+- DY: Wholesale Credit Exposure Register (21 tests) -- ISDA/CSA, rating-based limits
+
+## CTO Architecture Guidance
+
+Rich staged CTO_architecture_guidance.md. This is the long-term vision document.
+Key directive: Horizon 1 (compliance core, epistemic air gap, event ledger) must be
+bulletproof before Horizon 2 (behavioral depth, 3-horizon CLV). We are currently
+building Horizon 1 at high velocity. 6,012 tests confirms foundation is solid.
 
 ## Links
 
