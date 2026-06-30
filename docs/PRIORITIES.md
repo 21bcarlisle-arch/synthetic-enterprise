@@ -1,18 +1,17 @@
 # Current Priorities
 
-Last updated: 2026-06-29 by Claude Code (Phase V complete)
+Last updated: 2026-06-30 by Claude Code (Phase AF complete)
 
 ## Now (active this session)
-- Phase W: Gas Boiler Demand HDD Shape -- replace flat gas AQ distribution with HDD-seasonal
-  shape (mirrors Phase I for electricity ASHP). Last major settlement accuracy gap: gas boilers
-  peak sharply in winter but settlement currently distributes AQ evenly across all half-hours.
+- Phase AF: DSR/Flexibility Revenue Integration -- COMPLETE (2026-06-30). 15 new tests (5,232 total).
+  company/market/flexibility_revenue_book.py wired into run_phase2b.py + annual_report.py.
+  CM revenue 2016+ / DFS revenue 2022+. EV+battery = £2,046/yr flexibility revenue.
 
 ## Next (queued, unblocked)
-- Phase X: ToU Product Launch Decision Engine -- company-layer model for deciding whether to
-  launch a ToU product given EV penetration, cross-subsidy exposure (Phase U), and migration
-  risk (Phase V). Completes T-V analytics to decision loop.
-- Phase Y: Annual Run Integration -- wire Phase A-V household physics into run output summary.
-  HDD-shaped gas + EV overnight + battery dispatch should shift the annual P&L numbers.
+- Phase AG: Phase 48a (Term-Length Premium for I&C contracts) -- 2% per additional year beyond
+  12-month baseline. Closes I&C forward curve term structure gap. ~6-8 tests.
+- Phase AH: Annual Report Flexibility Section -- add flexibility revenue breakdown table
+  to annual report markdown output showing CM vs DFS split by year.
 
 ## Backlog
 - Dashboard KPI coverage (company P&L trends, household asset mix over time)
