@@ -57,7 +57,8 @@ PROJECT_OVERVIEW.md is updated at phase close. Run-complete pipeline does NOT up
 
 ---
 ## Current state
-**Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). _section_stress_test_history(): 5 scenarios per year; RAG table. Connects StressTestBook to annual report.
+**Phase BM COMPLETE (2026-06-30):** Price Cap Headroom -- 12 tests (5,657 total). _section_price_cap_headroom(): avg/above-cap/min/max from churn_basis_risk. 2021 5/9 above SVT (I&C crisis; exempt).
+**Phase BL COMPLETE (2026-06-30):** Stress Test History -- 12 tests (5,645 total). 5 scenarios/year RAG; StressTestBook wired to annual report.
 **Phase BK COMPLETE (2026-06-30):** Financial Ratios -- 12 tests (5,633 total). EBIT%/rev-per-cust/bad-debt-rate. 2022 worst EBIT 21.3%; £306k rev/cust peak.
 **Phase BJ COMPLETE (2026-06-30):** Churn Prediction Calibration -- 12 tests (5,621 total). UNDER/ACCURATE/OVER + MAE. 5/6 churns underestimated (epistemic gap).
 **Phase BI COMPLETE (2026-06-30):** Tariff Estimation Accuracy -- 12 tests (5,609 total). GOOD/MODERATE/POOR bands. 2024 best 9.75%; 2023 worst 19.89% (crisis lag).
@@ -165,7 +166,6 @@ Fidelity delta — one sentence per phase on what the sim can now do (soft metri
 CLV is not a stable measuring stick — it evolves with business rules.
 
 **Reversibility** governs data architecture and agent governance. Prefer designs that can be unwound.
-
 **Regime-change blindness** is a known failure mode. The sim converged to near-naked hedging during
 calm 2016–2020 data, directly before the crisis — mirroring what killed real suppliers. All
 hedging/risk models must account for this.

@@ -908,6 +908,30 @@ Portfolio-wide mean error: +6.3%
 - Worst over-pricing year: 2025 (+32.8%) -- company forward curve above settled market
 - Post-crisis over-pricing years (2023, 2025): company locked in expensive crisis-era forwards after prices normalised -- mechanism that eroded real suppliers' margins 2022-24
 
+## Price Cap Headroom (Tariff vs SVT)
+
+Percentage difference between contracted unit rate and SVT (price cap) at term start.
+Negative = below cap (headroom). Positive = above cap (I&C terms; SVT applies to resi only).
+
+| Year | Terms | Avg vs SVT% | Above Cap | Min% | Max% |
+|------|-------|-------------|-----------|------|------|
+| 2016 | 3 | -6.3% | 0/3 | -6.7% | +-5.8% |
+| 2017 | 3 | -14.3% | 0/3 | -15.8% | +-12.3% |
+| 2018 | 4 | -1.2% | 1/4 | -3.2% | +0.6% |
+| 2019 | 4 | -18.8% | 1/4 | -29.5% | +12.4% |
+| 2020 | 10 | -30.0% | 0/10 | -68.7% | +-18.0% |
+| 2021 | 9 | +9.2% | 5/9 | -12.0% | +63.9% |
+| 2022 | 7 | +11.5% | 4/7 | -66.3% | +95.7% |
+| 2023 | 7 | -37.1% | 0/7 | -60.5% | +-12.8% |
+| 2024 | 7 | -24.2% | 0/7 | -54.9% | +-9.1% |
+| 2025 | 2 | -4.8% | 1/2 | -23.6% | +14.0% |
+
+**Best headroom year: 2023 (avg 37.1% below SVT)**
+**Largest above-SVT year: 2022** (4/7 terms above — note: I&C customers exempt from SVT cap)
+
+> SVT (Standard Variable Tariff) = Ofgem price cap. Residential tariffs must not exceed SVT.
+> I&C/SME terms above SVT are expected during crisis years when wholesale >cap.
+
 ## Portfolio Stress Test History
 
 Retrospective RAG status: would year-end treasury have survived each scenario?

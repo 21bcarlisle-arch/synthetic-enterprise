@@ -4755,6 +4755,58 @@ def _section_gas_exit_analysis(data: dict) -> str:
         return ""
 
 
+def _section_price_cap_headroom(data: dict) -> str:
+    """Phase BM: Price cap headroom — tariff vs SVT by year."""
+    churn_basis = data.get("churn_basis_risk", [])
+    if not churn_basis:
+        return ""
+    by_year: dict = {}
+    for r in churn_basis:
+        yr = r.get("term_start", "")[:4]
+        if not yr:
+            continue
+        vs_svt = r.get("rate_vs_svt_pct")
+        if vs_svt is None:
+            continue
+        by_year.setdefault(yr, []).append(vs_svt)
+    if not by_year:
+        return ""
+    rows = []
+    for yr in sorted(by_year.keys()):
+        vals = by_year[yr]
+        n = len(vals)
+        avg = sum(vals) / n
+        above_cap = sum(1 for v in vals if v > 0)
+        min_v = min(vals)
+        max_v = max(vals)
+        rows.append((yr, n, avg, above_cap, min_v, max_v))
+    lines = [
+        "## Price Cap Headroom (Tariff vs SVT)",
+        "",
+        "Percentage difference between contracted unit rate and SVT (price cap) at term start.",
+        "Negative = below cap (headroom). Positive = above cap (I&C terms; SVT applies to resi only).",
+        "",
+        "| Year | Terms | Avg vs SVT% | Above Cap | Min% | Max% |",
+        "|------|-------|-------------|-----------|------|------|",
+    ]
+    for yr, n, avg, above, mn, mx in rows:
+        sign = "+" if avg >= 0 else ""
+        lines.append("| {} | {} | {}{:.1f}% | {}/{} | {:.1f}% | +{:.1f}% |".format(
+            yr, n, sign, avg, above, n, mn, mx))
+    best_yr = min(rows, key=lambda r: r[2])
+    worst_avg_yr = max(rows, key=lambda r: r[2])
+    lines.extend([
+        "",
+        "**Best headroom year: {} (avg {:.1f}% below SVT)**".format(best_yr[0], abs(best_yr[2])),
+        "**Largest above-SVT year: {}** ({}/{} terms above — note: I&C customers exempt from SVT cap)".format(
+            worst_avg_yr[0], worst_avg_yr[3], worst_avg_yr[1]),
+        "",
+        "> SVT (Standard Variable Tariff) = Ofgem price cap. Residential tariffs must not exceed SVT.",
+        "> I&C/SME terms above SVT are expected during crisis years when wholesale >cap.",
+        "",
+    ])
+    return "\n".join(lines)
+
 def _section_stress_test_history(data: dict) -> str:
     """Phase BL: Portfolio stress test — retrospective RAG per year per scenario."""
     try:
@@ -5925,6 +5977,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_root_cause(data))   # Phase AK
     sections.append(_section_counterfactual_retention(data))  # Phase AL
     sections.append(_section_pricing_basis_risk(data))          # Phase AM
+    sections.append(_section_price_cap_headroom(data))             # Phase BM
     sections.append(_section_stress_test_history(data))            # Phase BL
     sections.append(_section_financial_ratios(data))               # Phase BK
     sections.append(_section_churn_prediction_calibration(data))   # Phase BJ
