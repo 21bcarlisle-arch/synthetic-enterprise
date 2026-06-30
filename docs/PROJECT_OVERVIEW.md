@@ -747,6 +747,8 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **8 new tests (3,487 total).**
 
+**Phase HB (2026-06-30):** MPAS Standing Data Correction Register -- 40 new tests (8,508 total). company/market/mpas_standing_data_correction_register.py.
+
 **Phase HA (2026-06-30):** Revenue Protection Visit Register (GS(SS)5) -- 38 new tests (8,468 total). company/billing/revenue_protection_visit_register.py.
 
 **Phase GZ (2026-06-30):** Meter Technical Investigation Register (SLC 21A) -- 42 new tests (8,430 total). company/market/meter_technical_investigation_register.py.
@@ -4416,7 +4418,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 351+ Python modules (company layer), ~55,000 lines total
 - 420+ git commits
-- 8,468 tests (fast / ~10s; simulation integration ~8 min per run)
+- 8,508 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
