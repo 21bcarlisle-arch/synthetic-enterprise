@@ -1,12 +1,12 @@
 # Simulation Status -- LATEST
 
-Last updated: 2026-06-30T09:00:29Z
+Last updated: 2026-06-30T09:02:22Z
 
 ## Current state
 
-- **Phase:** FK complete -- 6,646 tests. Session (FA-FK): VCR, Ombudsman, Billing Disputes, Carbon Intensity, Onboarding Journey, Gas Market Monitor, Triad Exposure, ROC Ledger, BSC Credit, CfD Levy, Customer Profitability Scorecard. Earlier: EX-EZ + FA (6,500 milestone). 354 company/ modules. All green.
-- **Tests passing:** 6,646 (all green)
-- **Python modules:** 354 company/ modules + simulation + saas
+- **Phase:** FO complete -- 6,702 tests. **6,700 milestone crossed.** Session (FK-FO): Customer Profitability Scorecard, Porting Loss Register, Power Auction Monitor, Customer Lifetime Revenue, Debt Age Analysis. 358 company/ modules. All green.
+- **Tests passing:** 6,702 (all green, verified)
+- **Python modules:** 358 company/ modules + simulation + saas
 - **Net position (latest sim run):** £1,243,337 (git 5d0e280)
 
 ## Latest run figures (git 5d0e280 + ongoing builds)
@@ -20,25 +20,19 @@ Last updated: 2026-06-30T09:00:29Z
 | Final Treasury | £3,709,973 |
 | Administration Event | None |
 
-## Build summary (2026-06-30, this session FA-FK)
+## Build summary (2026-06-30, this session FK-FO)
 
-- FA: Vulnerable Customer Register (17 tests) -- Consumer Duty 2023, PPM ban, 6 vuln types
-- FB: Ombudsman Register (15 tests) -- SLC 18.9, 6m referral window, binding decisions
-- FC: Billing Dispute Resolution Book (17 tests) -- SLC 23, no disconnect while open
-- FD: Carbon Intensity Register (13 tests) -- FMD, REGO, 53% decarbonisation 2016-25
-- FE: Customer Onboarding Journey Tracker (15 tests) -- SLC 14.2/22.1/7.5
-- FF: Wholesale Gas Market Monitor (13 tests) -- NBP pricing, WAPP, crisis detection
-- FG: Triad Exposure Register (12 tests) -- TNUoS, 3 peak HH Nov-Feb, I&C management
-- FH: ROC Ledger (13 tests) -- Renewables Obligation, buy-out prices 2016-25
-- FI: BSC Credit Assurance Register (13 tests) -- CDN, 5WD cure, suspension risk
-- FJ: CfD Levy Register (14 tests) -- LCCC quarterly levy, credit when market>strike
-- FK: Customer Profitability Scorecard (14 tests) -- 4-component score, PLATINUM/GOLD/SILVER
+- FK: Customer Profitability Scorecard (14 tests) -- 4-component 0-100 score, PLATINUM tier
+- FL: Porting Loss Register (14 tests) -- switch reasons, winback eligibility gates
+- FM: Wholesale Power Auction Monitor (16 tests) -- N2EX DA, crisis/negative price detection
+- FN: Customer Lifetime Revenue Register (13 tests) -- backward-looking actuals vs CLV
+- FO: Debt Age Analysis Register (13 tests) -- IFRS 9 ECL, 5 age buckets, 6,700 crossed
 
 ## CTO Architecture Guidance
 
 Rich staged CTO_architecture_guidance.md. This is the long-term vision document.
 Key directive: Horizon 1 (compliance core, epistemic air gap, event ledger) must be
-bulletproof before Horizon 2 (behavioral depth, 3-horizon CLV). Currently at high velocity.
+bulletproof before Horizon 2 (behavioral depth, 3-horizon CLV). 6,700 tests confirms foundation.
 
 ## Links
 
@@ -46,8 +40,7 @@ bulletproof before Horizon 2 (behavioral depth, 3-horizon CLV). Currently at hig
 - [Phase History](../claude/phase-history.md)
 - [Project Overview](../PROJECT_OVERVIEW.md)
 
-**Latest simulation results (2016–2025)** — auto-processed (586s / 10 min):
+**Latest simulation results (2016-2025)** -- auto-processed:
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
-- Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
+- Treasury: £2,466,636 -> £3,709,973 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
-- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
