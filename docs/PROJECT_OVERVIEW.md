@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,240 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 12,270 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LU -- Coverage Depth Sprint XCV (2026-07-01)
+30 depth tests across 3 modules: priority_services (customer_id/needs_stored/added_date/nominee_name_none/nominee_contact_none/not_medically_dependent/get_found/get_unknown_none/update_needs_unknown_false/summary_keys), property_improvement (customer_id/uprn/measure/installation_date/funding_scheme/cost_gbp/epc_before/epc_after/customer_cost_nonneg/record_returns_improvement), property_model (uprn/bedrooms/occupants/floor_area/ev_default_false/fuel_poor_false_owner/fuel_poor_true_F_private/no_gas_zero_kwh/ev_increases_elec/uk_avg_elec=3100/uk_avg_gas=12000).
+**Total:** 12,270 tests
 
 ### Phase LT -- Coverage Depth Sprint XCIV (2026-07-01)
 30 depth tests across 3 modules: service_quality_monitor (year/avg_clarity/bills_count/shock_event_count/clarity_amber=0.82/complaint_amber=0.05/bill_shock_amber=0.2/record_returns_snapshot/get_none_unknown/shock_rate_pct_20pct), contract_exposure (account_id/segment/status/annual_kwh/unit_rate/standing_charge/notice_issued_false/register_returns/get_found/annual_revenue_computed), comm_pref (unknown_billing_allowed/unknown_marketing_blocked/mkt_opt_in_enables/mkt_opt_out_blocks/suppress_blocks_mkt/suppress_allows_billing/opt_in_list/suppressed_list/tariff_alert_email_allowed/tariff_alert_sms_blocked).
@@ -4876,7 +4880,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,240 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,270 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

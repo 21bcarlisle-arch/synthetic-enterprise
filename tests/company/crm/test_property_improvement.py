@@ -132,3 +132,60 @@ def test_book_improvement_summary():
     assert s["annual_gas_saving_kwh"] == pytest.approx(1800.0 + 900.0)
     assert "ECO4" in s["by_funding_scheme"]
     assert "GBIS" in s["by_funding_scheme"]
+
+
+# --- Phase LU depth tests ---
+
+def test_customer_id_stored():
+    imp = _improvement(customer_id='CUST_LU')
+    assert imp.customer_id == 'CUST_LU'
+
+
+def test_uprn_stored():
+    imp = _improvement(uprn='UPRN_LU')
+    assert imp.uprn == 'UPRN_LU'
+
+
+def test_measure_stored():
+    imp = _improvement(measure=MeasureType.LOFT_INSULATION)
+    assert imp.measure == MeasureType.LOFT_INSULATION
+
+
+def test_installation_date_stored():
+    d = dt.date(2024, 3, 15)
+    imp = _improvement(installation_date=d)
+    assert imp.installation_date == d
+
+
+def test_funding_scheme_stored():
+    imp = _improvement(funding_scheme=FundingScheme.PRIVATE)
+    assert imp.funding_scheme == FundingScheme.PRIVATE
+
+
+def test_cost_gbp_stored():
+    imp = _improvement(cost_gbp=3500.0)
+    assert imp.cost_gbp == pytest.approx(3500.0)
+
+
+def test_epc_before_stored():
+    imp = _improvement(epc_before='E')
+    assert imp.epc_before == 'E'
+
+
+def test_epc_after_stored():
+    imp = _improvement(epc_after='C')
+    assert imp.epc_after == 'C'
+
+
+def test_customer_cost_non_negative():
+    imp = _improvement(cost_gbp=0.0)
+    assert imp.customer_cost_gbp >= 0.0
+
+
+def test_record_improvement_returns_improvement():
+    book = PropertyImprovementBook()
+    result = book.record_improvement(
+        'C1', 'UPRN-001', MeasureType.CAVITY_WALL_INSULATION,
+        DATE, FundingScheme.ECO4, 2500.0, 'E', 'D'
+    )
+    assert isinstance(result, PropertyImprovement)

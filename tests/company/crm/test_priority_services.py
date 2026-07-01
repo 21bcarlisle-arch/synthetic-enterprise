@@ -83,3 +83,57 @@ def test_portfolio_summary(book):
     assert s["with_nominee"] == 1
     assert s["need_breakdown"]["medically_dependent"] == 1
     assert s["need_breakdown"]["nominee_billing"] == 1
+
+
+# --- Phase LU depth tests ---
+
+def test_customer_id_stored(book):
+    e = book.register('CUST_LU', [PSRNeed.LARGE_PRINT_BILLS], date(2022, 1, 1))
+    assert e.customer_id == 'CUST_LU'
+
+
+def test_needs_stored(book):
+    e = book.register('C1', [PSRNeed.AUDIO_BILLS], date(2022, 1, 1))
+    assert PSRNeed.AUDIO_BILLS in e.needs
+
+
+def test_added_date_stored(book):
+    d = date(2023, 6, 15)
+    e = book.register('C1', [PSRNeed.BRAILLE_BILLS], d)
+    assert e.added_date == d
+
+
+def test_nominee_name_default_none(book):
+    e = book.register('C1', [PSRNeed.ADVANCE_NOTICE], date(2022, 1, 1))
+    assert e.nominee_name is None
+
+
+def test_nominee_contact_default_none(book):
+    e = book.register('C1', [PSRNeed.ADVANCE_NOTICE], date(2022, 1, 1))
+    assert e.nominee_contact is None
+
+
+def test_is_not_medically_dependent_without_need(book):
+    e = book.register('C1', [PSRNeed.LARGE_PRINT_BILLS], date(2022, 1, 1))
+    assert e.is_medically_dependent() is False
+
+
+def test_get_registered_customer(book):
+    book.register('C1', [PSRNeed.BRAILLE_BILLS], date(2022, 1, 1))
+    assert book.get('C1') is not None
+
+
+def test_get_unregistered_returns_none(book):
+    assert book.get('UNKNOWN') is None
+
+
+def test_update_needs_unknown_returns_false(book):
+    result = book.update_needs('UNKNOWN', [PSRNeed.AUDIO_BILLS])
+    assert result is False
+
+
+def test_portfolio_summary_keys(book):
+    book.register('C1', [PSRNeed.BRAILLE_BILLS], date(2022, 1, 1))
+    s = book.portfolio_summary()
+    assert 'total_registered' in s
+    assert 'medically_dependent' in s
