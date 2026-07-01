@@ -2,7 +2,8 @@
 import pytest
 from datetime import date
 from company.market.gas_nomination_register import (
-    GasNominationRegister, NominationStatus, ImbalanceDirection
+    GasNominationRegister, NominationStatus, ImbalanceDirection,
+    GasNominationRecord,
 )
 
 _D = date(2022, 1, 10)
@@ -109,3 +110,67 @@ def test_nomination_summary():
     assert "Gas Nomination" in summary
     assert "UNC" in summary
     assert "1" in summary   # out of tolerance
+
+
+# --- Phase LZ depth tests ---
+
+def test_gas_day_stored():
+    from datetime import date as _date
+    reg = GasNominationRegister('P1')
+    d = _date(2022, 3, 15)
+    rec = reg.nominate(d, 10000.0)
+    assert rec.gas_day == d
+
+
+def test_portfolio_id_stored():
+    reg = GasNominationRegister('PORT1')
+    rec = reg.nominate(date(2022, 3, 15), 10000.0)
+    assert rec.portfolio_id == 'PORT1'
+
+
+def test_nominated_kwh_stored():
+    reg = GasNominationRegister()
+    rec = reg.nominate(date(2022, 3, 15), 50000.0)
+    assert rec.nominated_kwh == pytest.approx(50000.0)
+
+
+def test_actual_consumed_none_before_settle():
+    reg = GasNominationRegister()
+    rec = reg.nominate(date(2022, 3, 15), 10000.0)
+    assert rec.actual_consumed_kwh is None
+
+
+def test_status_default_initial():
+    reg = GasNominationRegister()
+    rec = reg.nominate(date(2022, 3, 15), 10000.0)
+    assert rec.status == NominationStatus.INITIAL
+
+
+def test_revised_nominated_none_before_revise():
+    reg = GasNominationRegister()
+    rec = reg.nominate(date(2022, 3, 15), 10000.0)
+    assert rec.revised_nominated_kwh is None
+
+
+def test_imbalance_none_before_settle():
+    reg = GasNominationRegister()
+    rec = reg.nominate(date(2022, 3, 15), 10000.0)
+    assert rec.imbalance_kwh is None
+
+
+def test_direction_none_before_settle():
+    reg = GasNominationRegister()
+    rec = reg.nominate(date(2022, 3, 15), 10000.0)
+    assert rec.direction is None
+
+
+def test_is_in_tolerance_none_before_settle():
+    reg = GasNominationRegister()
+    rec = reg.nominate(date(2022, 3, 15), 10000.0)
+    assert rec.is_in_tolerance is None
+
+
+def test_nominate_returns_gas_nomination_record():
+    reg = GasNominationRegister()
+    result = reg.nominate(date(2022, 3, 15), 10000.0)
+    assert isinstance(result, GasNominationRecord)

@@ -2,7 +2,7 @@
 import pytest
 from datetime import date
 from company.market.dadc_contract_register import (
-    DADCContractRegister, MeteringAgentType, MeterType
+    DADCContractRegister, MeteringAgentType, MeterType, AgentAppointment
 )
 
 _D = date(2020, 1, 1)
@@ -103,3 +103,63 @@ def test_summary():
     summary = r.da_dc_summary()
     assert "BSC" in summary
     assert "DA/DC" in summary
+
+
+# --- Phase LZ depth tests ---
+
+def test_mpan_stored():
+    reg = DADCContractRegister()
+    appt = reg.appoint('MPAN1', MeteringAgentType.DC, 'Agent A', date(2022, 1, 1))
+    assert appt.mpan == 'MPAN1'
+
+
+def test_agent_type_stored():
+    reg = DADCContractRegister()
+    appt = reg.appoint('MPAN1', MeteringAgentType.DA, 'Agent B', date(2022, 1, 1))
+    assert appt.agent_type == MeteringAgentType.DA
+
+
+def test_agent_name_stored():
+    reg = DADCContractRegister()
+    appt = reg.appoint('MPAN1', MeteringAgentType.DC, 'Metering Co', date(2022, 1, 1))
+    assert appt.agent_name == 'Metering Co'
+
+
+def test_appointment_date_stored():
+    reg = DADCContractRegister()
+    d = date(2022, 6, 15)
+    appt = reg.appoint('MPAN1', MeteringAgentType.DC, 'Agent', d)
+    assert appt.appointment_date == d
+
+
+def test_termination_date_none_by_default():
+    reg = DADCContractRegister()
+    appt = reg.appoint('MPAN1', MeteringAgentType.DC, 'Agent', date(2022, 1, 1))
+    assert appt.termination_date is None
+
+
+def test_is_active_true_before_terminate():
+    reg = DADCContractRegister()
+    appt = reg.appoint('MPAN1', MeteringAgentType.DC, 'Agent', date(2022, 1, 1))
+    assert appt.is_active is True
+
+
+def test_appoint_returns_agent_appointment():
+    reg = DADCContractRegister()
+    result = reg.appoint('MPAN1', MeteringAgentType.DC, 'Agent', date(2022, 1, 1))
+    assert isinstance(result, AgentAppointment)
+
+
+def test_da_dc_type_covers_both():
+    reg = DADCContractRegister()
+    reg.appoint('M1', MeteringAgentType.DA_DC, 'Combo', date(2022, 1, 1))
+    assert reg.mpans_without_dc() == []
+    assert reg.mpans_without_da() == []
+
+
+def test_meter_type_hhh_value():
+    assert MeterType.HH == 'hh'
+
+
+def test_meter_type_nhh_value():
+    assert MeterType.NHH == 'nhh'

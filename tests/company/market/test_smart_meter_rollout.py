@@ -86,3 +86,56 @@ def test_rollout_summary_empty():
     book = SmartMeterRolloutBook()
     s = book.rollout_summary()
     assert s["years_tracked"] == 0
+
+
+# --- Phase LZ depth tests ---
+
+def test_year_stored():
+    snap = MeterPortfolioSnapshot(year=2022, traditional_count=50, smets1_count=30, smets2_count=20)
+    assert snap.year == 2022
+
+
+def test_traditional_count_stored():
+    snap = MeterPortfolioSnapshot(year=2022, traditional_count=50, smets1_count=0, smets2_count=0)
+    assert snap.traditional_count == 50
+
+
+def test_smets1_count_stored():
+    snap = MeterPortfolioSnapshot(year=2022, traditional_count=0, smets1_count=40, smets2_count=0)
+    assert snap.smets1_count == 40
+
+
+def test_smets2_count_stored():
+    snap = MeterPortfolioSnapshot(year=2022, traditional_count=0, smets1_count=0, smets2_count=60)
+    assert snap.smets2_count == 60
+
+
+def test_total_meters_sums_all():
+    snap = MeterPortfolioSnapshot(year=2022, traditional_count=50, smets1_count=30, smets2_count=20)
+    assert snap.total_meters == 100
+
+
+def test_smart_count_excludes_traditional():
+    snap = MeterPortfolioSnapshot(year=2022, traditional_count=50, smets1_count=30, smets2_count=20)
+    assert snap.smart_count == 50
+
+
+def test_smart_penetration_100pct_no_traditional():
+    snap = MeterPortfolioSnapshot(year=2022, traditional_count=0, smets1_count=50, smets2_count=50)
+    assert snap.smart_penetration_pct == pytest.approx(100.0)
+
+
+def test_record_snapshot_returns_snapshot():
+    book = SmartMeterRolloutBook()
+    snap = MeterPortfolioSnapshot(year=2022, traditional_count=50, smets1_count=30, smets2_count=20)
+    result = book.record_snapshot(snap)
+    assert isinstance(result, MeterPortfolioSnapshot)
+
+
+def test_snapshot_for_year_none_missing():
+    book = SmartMeterRolloutBook()
+    assert book.snapshot_for_year(2099) is None
+
+
+def test_meter_generation_has_3_members():
+    assert len(list(MeterGeneration)) == 3
