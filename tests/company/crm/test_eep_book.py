@@ -59,3 +59,73 @@ def test_solar_self_funded_payback():
     inst = book.installs_for_customer('C003')[0]
     assert inst.customer_cost_gbp == pytest.approx(6000.0)
     assert inst.simple_payback_years == pytest.approx(6000 / 350, rel=0.01)
+
+
+# --- Phase KC depth tests ---
+
+def test_installation_id_format():
+    book = EEPBook()
+    inst = book.record('C001', '1200011111', EEPMeasure.LOFT_INSULATION, EEPScheme.ECO4,
+                       dt.date(2022, 9, 15), 180.0, 1500.0, 1500.0)
+    assert inst.installation_id == 'EEP-00001'
+
+
+def test_installation_id_sequential():
+    book = EEPBook()
+    i1 = book.record('C001', '1200011111', EEPMeasure.LOFT_INSULATION, EEPScheme.ECO4,
+                     dt.date(2022, 9, 15), 180.0, 1500.0, 1500.0)
+    i2 = book.record('C002', '1200022222', EEPMeasure.HEAT_PUMP, EEPScheme.BUS,
+                     dt.date(2022, 11, 1), 600.0, 14_000.0, 7_500.0)
+    assert i1.installation_id == 'EEP-00001'
+    assert i2.installation_id == 'EEP-00002'
+
+
+def test_payback_none_when_zero_saving():
+    book = EEPBook()
+    inst = book.record('C001', '1200011111', EEPMeasure.SMART_CONTROLS, EEPScheme.SELF_FUNDED,
+                       dt.date(2022, 6, 1), 0.0, 500.0, 0.0)
+    assert inst.simple_payback_years is None
+
+
+def test_payback_zero_when_zero_customer_cost():
+    book = EEPBook()
+    inst = book.record('C001', '1200011111', EEPMeasure.LOFT_INSULATION, EEPScheme.ECO4,
+                       dt.date(2022, 9, 15), 180.0, 1500.0, 1500.0)
+    assert inst.simple_payback_years == pytest.approx(0.0)
+
+
+def test_total_subsidy_no_filter():
+    book = _book()
+    # 1500 + 7500 + 0 = 9000
+    assert book.total_subsidy_gbp() == pytest.approx(9000.0)
+
+
+def test_total_subsidy_year_filter():
+    book = _book()
+    # C003 is 2021; C001 + C002 are 2022
+    assert book.total_subsidy_gbp(year=2021) == pytest.approx(0.0)
+    assert book.total_subsidy_gbp(year=2022) == pytest.approx(9000.0)
+
+
+def test_annual_summary_empty_year():
+    book = _book()
+    s = book.annual_summary(2099)
+    assert s['installations'] == 0
+    assert s['total_subsidy_gbp'] == pytest.approx(0.0)
+
+
+def test_measure_stored():
+    book = _book()
+    inst = book.installs_for_customer('C001')[0]
+    assert inst.measure == EEPMeasure.LOFT_INSULATION
+
+
+def test_scheme_stored():
+    book = _book()
+    inst = book.installs_for_customer('C002')[0]
+    assert inst.scheme == EEPScheme.BUS
+
+
+def test_installs_unknown_customer_empty():
+    book = _book()
+    assert book.installs_for_customer('UNKNOWN') == []
