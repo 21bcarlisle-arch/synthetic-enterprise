@@ -63,3 +63,62 @@ def test_annual_summary():
     assert s['trade_count'] == 2
     assert s['profitable_trades'] == 1
     assert s['costly_trades'] == 1
+
+
+# --- Phase KO depth tests ---
+
+def test_trade_id_stored():
+    book = HedgePerformanceBook()
+    d = book.record_delivery('T_ID', 'electricity', 2022, 100.0, 80.0, 100.0)
+    assert d.trade_id == 'T_ID'
+
+
+def test_commodity_stored():
+    book = HedgePerformanceBook()
+    d = book.record_delivery('T_C', 'gas', 2022, 100.0, 50.0, 60.0)
+    assert d.commodity == 'gas'
+
+
+def test_year_stored():
+    book = HedgePerformanceBook()
+    d = book.record_delivery('T_Y', 'electricity', 2021, 100.0, 80.0, 90.0)
+    assert d.delivery_year == 2021
+
+
+def test_volume_mwh_stored():
+    book = HedgePerformanceBook()
+    d = book.record_delivery('T_V', 'electricity', 2022, 750.0, 80.0, 100.0)
+    assert d.volume_mwh == pytest.approx(750.0)
+
+
+def test_pnl_negative_costly():
+    book = HedgePerformanceBook()
+    d = book.record_delivery('T_N', 'electricity', 2022, 500.0, 80.0, 60.0)
+    assert d.pnl_gbp < 0.0
+
+
+def test_total_pnl_zero_empty_year():
+    book = HedgePerformanceBook()
+    assert book.total_pnl_gbp(2099) == pytest.approx(0.0)
+
+
+def test_avg_effectiveness_none_empty_year():
+    book = HedgePerformanceBook()
+    assert book.avg_effectiveness_pct(2099) is None
+
+
+def test_annual_summary_empty_year():
+    book = HedgePerformanceBook()
+    s = book.annual_summary(2099)
+    assert s['trade_count'] == 0
+
+
+def test_profitable_trades_empty_book():
+    book = HedgePerformanceBook()
+    assert book.profitable_trades() == []
+
+
+def test_contracted_price_stored():
+    book = HedgePerformanceBook()
+    d = book.record_delivery('T_CP', 'electricity', 2022, 100.0, 85.0, 120.0)
+    assert d.contracted_price_gbp_per_mwh == pytest.approx(85.0)

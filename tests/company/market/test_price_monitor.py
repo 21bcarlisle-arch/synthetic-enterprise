@@ -67,3 +67,59 @@ def test_monitor_summary():
     s = m.monitor_summary(Commodity.ELECTRICITY)
     assert s['highest_alert'] == 'high'
     assert s['active_alerts'] == 2
+
+
+# --- Phase KO depth tests ---
+
+def test_commodity_stored_on_observation():
+    obs = PriceObservation(Commodity.GAS, dt.date(2022, 1, 1), 50.0, 55.0)
+    assert obs.commodity == Commodity.GAS
+
+
+def test_date_stored_on_observation():
+    obs = PriceObservation(Commodity.ELECTRICITY, dt.date(2022, 6, 15), 100.0, 110.0)
+    assert obs.observation_date == dt.date(2022, 6, 15)
+
+
+def test_spot_price_stored():
+    obs = PriceObservation(Commodity.ELECTRICITY, dt.date(2022, 1, 1), 95.0, 100.0)
+    assert obs.spot_gbp_per_mwh == pytest.approx(95.0)
+
+
+def test_month_ahead_price_stored():
+    obs = PriceObservation(Commodity.GAS, dt.date(2022, 1, 1), 50.0, 60.0)
+    assert obs.month_ahead_gbp_per_mwh == pytest.approx(60.0)
+
+
+def test_flat_price_neither_contango_nor_backwardation():
+    obs = PriceObservation(Commodity.ELECTRICITY, dt.date(2022, 1, 1), 100.0, 100.0)
+    assert not obs.is_contango
+    assert not obs.is_backwardation
+
+
+def test_term_structure_slope_contango_positive():
+    obs = PriceObservation(Commodity.ELECTRICITY, dt.date(2022, 1, 1), 80.0, 100.0)
+    assert obs.term_structure_slope == pytest.approx(20.0)
+
+
+def test_latest_observation_none_when_empty():
+    m = WholesalePriceMonitor()
+    assert m.latest_observation(Commodity.ELECTRICITY) is None
+
+
+def test_highest_alert_normal_when_no_observations():
+    m = _setup_monitor()
+    assert m.highest_alert_level(Commodity.ELECTRICITY) == PriceAlertLevel.NORMAL
+
+
+def test_no_alerts_for_price_below_all_triggers():
+    m = _setup_monitor()
+    m.record_observation(Commodity.ELECTRICITY, dt.date(2022, 1, 1), 50.0, 55.0)
+    alerts = m.active_alerts(Commodity.ELECTRICITY)
+    assert alerts == []
+
+
+def test_highest_alert_elevated_at_trigger_threshold():
+    m = _setup_monitor()
+    m.record_observation(Commodity.ELECTRICITY, dt.date(2022, 1, 1), 150.0, 160.0)
+    assert m.highest_alert_level(Commodity.ELECTRICITY) == PriceAlertLevel.ELEVATED

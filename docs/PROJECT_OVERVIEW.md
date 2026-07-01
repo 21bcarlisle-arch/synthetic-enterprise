@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,280 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,310 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KO -- Coverage Depth Sprint LXIII (2026-07-01)
+30 depth tests across 3 modules: hedge_performance (trade_id/commodity/year/volume/pnl_neg/total_zero/avg_none/summary_empty/profitable_empty/contracted_price), interconnector_monitor (interconnector/flow_mw/direction/gb_price/foreign_price/date/avg_single/import_zero_export/import_days_zero/two_active), price_monitor (commodity/date/spot/month_ahead/flat_neither/slope_positive/latest_none/highest_normal/no_alerts/elevated_150).
+**Total:** 11,310 tests
 
 ### Phase KN -- Coverage Depth Sprint LXII (2026-07-01)
 30 depth tests across 3 modules: gas_interruption (firm_class/contract_id/mprn/reason/not_vulnerable_default/notice_zero/restore_end_date/for_customer/active_excl_restored/year_filter), rate_comparison (five_keys/market_p_formula/protected_false/delta_p_formula/message_string/effective_float/rate_proportional/contracted_none/market_positive/none_no_feed), margin_feedback (threshold_float/max_float/threshold_pos/max_pos/surcharge_float/at_threshold_zero/6pct_1pct/increases/extreme_capped/max>threshold).
@@ -4748,7 +4752,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,280 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,310 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
