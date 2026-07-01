@@ -70,3 +70,64 @@ def test_switching_summary():
     assert s['losses'] == 1
     assert s['net_movement'] == 1
     assert 'loss_reasons' in s
+
+
+# --- Phase KS depth tests ---
+
+def test_switch_id_stored():
+    r = _make_report()
+    gain = r.gains(2022)[0]
+    assert gain.switch_id == 'S001'
+
+
+def test_customer_id_stored():
+    r = _make_report()
+    gain = r.gains(2022)[0]
+    assert gain.customer_id == 'C001'
+
+
+def test_direction_stored():
+    r = _make_report()
+    loss = r.losses(2022)[0]
+    assert loss.direction == SwitchDirection.LOSS
+
+
+def test_switch_date_stored():
+    r = _make_report()
+    gain = r.gains(2022)[0]
+    assert gain.switch_date == dt.date(2022, 3, 1)
+
+
+def test_annual_kwh_stored():
+    r = _make_report()
+    gain = r.gains(2022)[0]
+    assert gain.annual_kwh == pytest.approx(3000.0)
+
+
+def test_reason_stored():
+    r = _make_report()
+    gain = r.gains(2022)[0]
+    assert gain.reason == SwitchReason.PRICE
+
+
+def test_gains_empty_wrong_year():
+    r = _make_report()
+    assert r.gains(2021) == []
+
+
+def test_losses_empty_wrong_year():
+    r = _make_report()
+    assert r.losses(2021) == []
+
+
+def test_net_zero_equal_gains_losses():
+    r = SwitchingReport('TestCo')
+    r.record('G1', 'C1', dt.date(2022,1,1), SwitchDirection.GAIN, 'A', 3000.0, SwitchReason.PRICE)
+    r.record('L1', 'C2', dt.date(2022,2,1), SwitchDirection.LOSS, 'B', 3000.0, SwitchReason.PRICE)
+    assert r.net_customer_movement(2022) == 0
+
+
+def test_churn_rate_zero_no_losses():
+    r = SwitchingReport('TestCo')
+    r.record('G1', 'C1', dt.date(2022,1,1), SwitchDirection.GAIN, 'A', 3000.0)
+    assert r.churn_rate_pct(2022, 100) == pytest.approx(0.0)

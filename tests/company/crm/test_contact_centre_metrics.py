@@ -79,3 +79,55 @@ def test_summary_keys():
     assert 'sla_answer_rate' in s
     assert 'avg_handle_time_seconds' in s
     assert 'calls_per_agent' in s
+
+
+# --- Phase KS depth tests ---
+
+def test_agent_id_stored():
+    ap = _agent()
+    assert ap.agent_id == 'AGT001'
+
+
+def test_period_start_stored():
+    ap = _agent()
+    assert ap.period_start == dt.date(2022, 1, 1)
+
+
+def test_period_end_stored():
+    ap = _agent()
+    assert ap.period_end == dt.date(2022, 3, 31)
+
+
+def test_calls_handled_stored():
+    ap = _agent(calls=250)
+    assert ap.calls_handled == 250
+
+
+def test_avg_csat_stored():
+    ap = _agent(csat=4.5)
+    assert ap.avg_csat == pytest.approx(4.5)
+
+
+def test_avg_handle_time_seconds():
+    cc = _cc_metrics(calls=500, handle=2_000_000, agents=20)
+    assert cc.avg_handle_time_seconds == pytest.approx(4_000.0)
+
+
+def test_period_start_stored_cc():
+    cc = _cc_metrics()
+    assert cc.period_start == dt.date(2022, 1, 1)
+
+
+def test_agents_on_duty_stored():
+    cc = _cc_metrics(agents=12)
+    assert cc.agents_on_duty == 12
+
+
+def test_total_calls_stored():
+    cc = _cc_metrics(calls=750)
+    assert cc.total_calls == 750
+
+
+def test_summary_is_dict():
+    cc = _cc_metrics()
+    assert isinstance(cc.summary(), dict)

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,400 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,430 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KS -- Coverage Depth Sprint LXVII (2026-07-01)
+30 depth tests across 3 modules: csat (customer_id/channel/reason/outcome/score/none/mean_two/filters/rate_zero/latest_id), contact_centre_metrics (agent_id/period_start/period_end/calls/avg_csat/avg_handle/cc_start/agents/total_calls/summary_dict), switching_report (switch_id/customer_id/direction/date/kwh/reason/gains_empty/losses_empty/net_zero/churn_zero).
+**Total:** 11,430 tests
 
 ### Phase KR -- Coverage Depth Sprint LXVI (2026-07-01)
 30 depth tests across 3 modules: ee_obligation_tracker (referral_id/customer_id/scheme/measure_type/date/not_vulnerable/cost/installer/completed_empty/savings_zero), hedging_schedule (contract_id/commodity/volume/price/traded_date/get_none/forecast_stored/delivery_month/over_hedged_empty/portfolio_zero), clv_calculator (customer_id/margin/discount_pos/standard/float/higher_higher/uncapped/break_even/mean_pos/total).
@@ -4764,7 +4768,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,400 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,430 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
