@@ -101,3 +101,53 @@ def test_ro_summary_empty():
     s = book.ro_summary()
     assert s["years_filed"] == 0
     assert s["total_buyout_gbp"] == 0.0
+
+
+# --- Phase LF depth tests ---
+
+def test_obligation_year_stored():
+    r = _return(year=2023)
+    assert r.obligation_year == 2023
+
+
+def test_electricity_supplied_mwh_stored():
+    r = _return(year=2022, mwh=5000.0)
+    assert r.electricity_supplied_mwh == pytest.approx(5000.0)
+
+
+def test_rocs_surrendered_stored():
+    r = _return(year=2022, mwh=10000.0, surrendered=500.0)
+    assert r.rocs_surrendered == pytest.approx(500.0)
+
+
+def test_settlement_method_stored():
+    r = _return(year=2022)
+    assert isinstance(r.settlement_method, ROSettlementMethod)
+
+
+def test_obligation_level_is_float():
+    r = _return(year=2022)
+    assert isinstance(r.obligation_level, float)
+
+
+def test_shortfall_zero_when_fully_surrendered():
+    r = _return(year=2022)  # surrendered = obligation by default
+    assert r.shortfall_rocs == pytest.approx(0.0)
+
+
+def test_is_compliant_true_when_no_shortfall():
+    r = _return(year=2022)
+    assert r.is_compliant is True
+
+
+def test_buyout_price_2022():
+    assert abs(_BUYOUT_PRICE_GBP_PER_ROC[2022] - 54.35) < 0.01
+
+
+def test_obligation_level_2022():
+    assert abs(_OBLIGATION_LEVEL_ROC_PER_MWH[2022] - 0.1053) < 0.001
+
+
+def test_ro_book_return_for_year_none_initially():
+    book = RenewableObligationBook()
+    assert book.return_for_year(2022) is None

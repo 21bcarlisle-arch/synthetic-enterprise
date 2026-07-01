@@ -64,3 +64,57 @@ def test_solr_scenario_keys():
     result = solr_scenario("medium", 10_000_000)
     for key in ("levy_gbp", "total_required_gbp", "headroom_gbp", "status", "revenue"):
         assert key in result
+
+import pytest
+
+# --- Phase LF depth tests ---
+
+def test_transfer_size_in_result():
+    result = solr_capital_requirement(1000, 500_000.0)
+    assert result['transfer_size'] == 1000
+
+
+def test_levy_positive():
+    result = solr_capital_requirement(1000, 500_000.0)
+    assert result['levy_gbp'] > 0.0
+
+
+def test_bad_debt_risk_positive():
+    result = solr_capital_requirement(1000, 500_000.0)
+    assert result['bad_debt_risk_gbp'] > 0.0
+
+
+def test_total_required_sum_levy_bad_debt():
+    result = solr_capital_requirement(1000, 500_000.0)
+    assert result['total_required_gbp'] == pytest.approx(result['levy_gbp'] + result['bad_debt_risk_gbp'])
+
+
+def test_treasury_stored():
+    result = solr_capital_requirement(1000, 750_000.0)
+    assert result['treasury_gbp'] == pytest.approx(750_000.0)
+
+
+def test_status_is_string():
+    result = solr_capital_requirement(1000, 500_000.0)
+    assert isinstance(result['status'], str)
+
+
+def test_sustainable_bool():
+    result = solr_capital_requirement(1000, 500_000.0)
+    assert isinstance(result['sustainable'], bool)
+
+
+def test_revenue_upside_returns_dict():
+    result = solr_revenue_upside(1000)
+    assert isinstance(result, dict)
+
+
+def test_revenue_upside_transfer_size():
+    result = solr_revenue_upside(5000)
+    assert result['transfer_size'] == 5000
+
+
+def test_headroom_is_treasury_minus_required():
+    result = solr_capital_requirement(1000, 500_000.0)
+    expected = result['treasury_gbp'] - result['total_required_gbp']
+    assert result['headroom_gbp'] == pytest.approx(expected)

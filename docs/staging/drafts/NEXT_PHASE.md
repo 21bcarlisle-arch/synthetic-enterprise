@@ -1,2 +1,2 @@
-Phase LF -- Coverage Depth Sprint LXXX
-30 tests: renewable_obligation + solr + mtm coverage depth
+Phase LG -- Coverage Depth Sprint LXXXI
+30 tests: phase47a_ofgem_cap + next lowest-test modules coverage depth
