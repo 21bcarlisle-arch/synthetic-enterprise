@@ -115,3 +115,57 @@ def test_get_forward_price_regime_false_unchanged():
                                                seasonal=False, adaptive_lookback=False, regime_detect=False)
     # Flat prices → regime premium = 0 → same result
     assert with_regime == pytest.approx(without_regime)
+
+
+# --- Phase KM depth tests ---
+
+def test_max_premium_is_positive():
+    assert REGIME_PREMIUM_MAX > 0.0
+
+
+def test_min_premium_is_negative():
+    assert REGIME_PREMIUM_MIN < 0.0
+
+
+def test_short_window_positive():
+    assert REGIME_SHORT_WINDOW > 0
+
+
+def test_long_window_greater_than_short():
+    assert REGIME_LONG_WINDOW > REGIME_SHORT_WINDOW
+
+
+def test_result_is_float():
+    delivery = '2021-04-01'
+    records = _price_records('2020-10-01', '2021-03-31', price=100.0)
+    result = _compute_regime_premium(delivery, records)
+    assert isinstance(result, float)
+
+
+def test_flat_prices_zero_different_date():
+    delivery = '2020-07-01'
+    records = _price_records('2020-01-01', '2020-06-30', price=50.0)
+    result = _compute_regime_premium(delivery, records)
+    assert result == pytest.approx(0.0)
+
+
+def test_small_upward_trend_in_bounds():
+    delivery = '2022-01-01'
+    records = _records_with_step(delivery, low_price=100.0, high_price=115.0)
+    result = _compute_regime_premium(delivery, records)
+    assert REGIME_PREMIUM_MIN <= result <= REGIME_PREMIUM_MAX
+
+
+def test_small_downward_trend_in_bounds():
+    delivery = '2020-04-01'
+    records = _records_with_step(delivery, low_price=100.0, high_price=85.0)
+    result = _compute_regime_premium(delivery, records)
+    assert REGIME_PREMIUM_MIN <= result <= REGIME_PREMIUM_MAX
+
+
+def test_max_constant_is_float_or_int():
+    assert isinstance(REGIME_PREMIUM_MAX, (float, int))
+
+
+def test_min_constant_is_float_or_int():
+    assert isinstance(REGIME_PREMIUM_MIN, (float, int))

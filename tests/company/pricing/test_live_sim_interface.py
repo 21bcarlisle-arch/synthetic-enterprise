@@ -66,3 +66,53 @@ class TestLiveSimInterfaceGetForwardPrice:
         assert iface.get_settlement_data("M123", "2020-01-01")["_stub"] is True
         iface.notify_churn("C1", "2020-01-01")    # should not raise
         iface.notify_acquisition("C2", "2020-01-01")  # should not raise
+
+
+# --- Phase KM depth tests ---
+
+class TestLiveSimInterfaceDepth:
+    def test_live_forward_price_is_float(self):
+        iface = LiveSimInterface()
+        price = iface.get_forward_price('electricity', '2020-01-01')
+        assert isinstance(price, float)
+
+    def test_gas_forward_price_is_float(self):
+        iface = LiveSimInterface()
+        price = iface.get_forward_price('gas', '2020-01-01')
+        assert isinstance(price, float)
+
+    def test_price_cache_populated_after_electricity_call(self):
+        iface = LiveSimInterface()
+        iface.get_forward_price('electricity', '2020-01-01')
+        assert 'electricity' in iface._price_cache
+
+    def test_event_log_churn_initially_empty(self):
+        iface = LiveSimInterface()
+        assert iface.event_log.churn_events() == []
+
+    def test_event_log_acquisition_initially_empty(self):
+        iface = LiveSimInterface()
+        assert iface.event_log.acquisition_events() == []
+
+    def test_live_customer_status_unknown_is_active(self):
+        iface = LiveSimInterface()
+        assert iface.get_customer_status('UNKNOWN_CUSTOMER') == 'active'
+
+    def test_settlement_data_stub_flag_true(self):
+        iface = LiveSimInterface()
+        data = iface.get_settlement_data('M123', '2020-01-01')
+        assert data['_stub'] is True
+
+    def test_notify_churn_populates_log(self):
+        iface = LiveSimInterface()
+        iface.notify_churn('C99', '2021-05-01')
+        assert len(iface.event_log.churn_events()) == 1
+
+    def test_stub_churn_estimate_non_negative(self):
+        stub = StubSimInterface()
+        result = stub.get_churn_estimate('C1', 100.0, 120.0, 2.0)
+        assert result >= 0.0
+
+    def test_build_false_stub_is_stub_instance(self):
+        iface = build_sim_interface(live=False)
+        assert isinstance(iface, StubSimInterface)

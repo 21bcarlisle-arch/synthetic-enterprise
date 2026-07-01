@@ -90,3 +90,75 @@ def test_portfolio_summary():
     assert s['active_count'] == 1
     assert s['total_coverage_gbp'] == pytest.approx(75_000.0)
     assert 'cash_deposit' in s['by_type']
+
+
+# --- Phase KM depth tests ---
+
+def test_instrument_id_stored():
+    ledger = TradeFinanceLedger()
+    inst = ledger.register('LC100', 'IC_X', InstrumentType.LETTER_OF_CREDIT, 'HSBC',
+                            100_000.0, dt.date(2022, 1, 1), dt.date(2022, 12, 31))
+    assert inst.instrument_id == 'LC100'
+
+
+def test_issuer_stored():
+    ledger = TradeFinanceLedger()
+    inst = ledger.register('LC101', 'IC_X', InstrumentType.BANK_GUARANTEE, 'Barclays',
+                            200_000.0, dt.date(2022, 1, 1), dt.date(2022, 12, 31))
+    assert inst.issuer == 'Barclays'
+
+
+def test_instrument_type_stored():
+    ledger = TradeFinanceLedger()
+    inst = ledger.register('LC102', 'IC_X', InstrumentType.SURETY_BOND, 'Aviva',
+                            50_000.0, dt.date(2022, 1, 1), dt.date(2022, 12, 31))
+    assert inst.instrument_type == InstrumentType.SURETY_BOND
+
+
+def test_face_value_stored():
+    ledger = TradeFinanceLedger()
+    inst = ledger.register('LC103', 'IC_X', InstrumentType.CASH_DEPOSIT, 'Internal',
+                            75_000.0, dt.date(2022, 1, 1), dt.date(2022, 12, 31))
+    assert inst.face_value_gbp == pytest.approx(75_000.0)
+
+
+def test_expiry_date_stored():
+    ledger = TradeFinanceLedger()
+    inst = ledger.register('LC104', 'IC_X', InstrumentType.LETTER_OF_CREDIT, 'HSBC',
+                            100_000.0, dt.date(2022, 1, 1), dt.date(2022, 9, 30))
+    assert inst.expiry_date == dt.date(2022, 9, 30)
+
+
+def test_get_not_found_returns_none():
+    ledger = TradeFinanceLedger()
+    assert ledger.get('UNKNOWN_ID') is None
+
+
+def test_days_to_expiry_negative_past_expiry():
+    ledger = TradeFinanceLedger()
+    inst = ledger.register('LC105', 'IC_X', InstrumentType.PARENT_GUARANTEE, 'Group Ltd',
+                            100_000.0, dt.date(2022, 1, 1), dt.date(2022, 6, 30))
+    assert inst.days_to_expiry(dt.date(2022, 7, 1)) < 0
+
+
+def test_call_amount_stored():
+    ledger = TradeFinanceLedger()
+    ledger.register('LC106', 'IC_X', InstrumentType.LETTER_OF_CREDIT, 'HSBC',
+                    300_000.0, dt.date(2022, 1, 1), dt.date(2022, 12, 31))
+    ledger.call_instrument('LC106', dt.date(2022, 9, 1), 150_000.0)
+    assert ledger.get('LC106').call_amount_gbp == pytest.approx(150_000.0)
+
+
+def test_portfolio_summary_zero_active_empty_ledger():
+    ledger = TradeFinanceLedger()
+    s = ledger.portfolio_summary(dt.date(2022, 6, 1))
+    assert s['active_count'] == 0
+    assert s['total_coverage_gbp'] == pytest.approx(0.0)
+
+
+def test_expiring_within_empty_when_none_due():
+    ledger = TradeFinanceLedger()
+    ledger.register('LC107', 'IC_X', InstrumentType.BANK_GUARANTEE, 'NatWest',
+                    50_000.0, dt.date(2022, 1, 1), dt.date(2022, 12, 31))
+    result = ledger.expiring_within(dt.date(2022, 6, 1), 30)
+    assert len(result) == 0
