@@ -147,3 +147,66 @@ class TestSettlePeriod:
         assert s["contract_count"] == 1
         assert abs(s["total_hedged_mwh"] - 1.0) < 0.001
         assert abs(s["total_hedge_pnl_gbp"] - 10.0) < 0.01
+
+
+# --- Phase MP depth tests ---
+
+def test_customer_id_stored():
+    c = _make_contract(customer_id="C7")
+    assert c.customer_id == "C7"
+
+
+def test_term_start_stored():
+    c = _make_contract(term_start="2021-01-01")
+    assert c.term_start == "2021-01-01"
+
+
+def test_term_end_stored():
+    c = _make_contract(term_end="2022-01-01")
+    assert c.term_end == "2022-01-01"
+
+
+def test_notional_mwh_stored():
+    c = _make_contract(notional_mwh=250.0)
+    assert c.notional_mwh == pytest.approx(250.0)
+
+
+def test_hedge_fraction_stored():
+    c = _make_contract(hedge_fraction=0.70)
+    assert c.hedge_fraction == pytest.approx(0.70)
+
+
+def test_bid_ask_cost_default_zero():
+    c = _make_contract()
+    assert c.bid_ask_cost_gbp == pytest.approx(0.0)
+
+
+def test_bid_ask_cost_accumulated():
+    book = TradingBook()
+    book.open_hedge(_make_contract(bid_ask_cost_gbp=500.0))
+    book.open_hedge(_make_contract(customer_id="C2", bid_ask_cost_gbp=300.0))
+    assert book.total_bid_ask_cost_gbp == pytest.approx(800.0)
+
+
+def test_amend_hedge_returns_hedge_amendment():
+    from company.trading.forward_book import HedgeAmendment
+    book = TradingBook()
+    book.open_hedge(_make_contract())
+    result = book.amend_hedge("C1", "2020-01-01", 0.90, "2020-06-01")
+    assert isinstance(result, HedgeAmendment)
+
+
+def test_close_position_returns_position_closure():
+    from company.trading.forward_book import PositionClosure
+    book = TradingBook()
+    book.open_hedge(_make_contract())
+    result = book.close_position("C1", "2020-01-01", "2021-01-01", 70.0)
+    assert isinstance(result, PositionClosure)
+
+
+def test_closed_contracts_includes_closed_position():
+    book = TradingBook()
+    book.open_hedge(_make_contract())
+    assert len(book.closed_contracts()) == 0
+    book.close_position("C1", "2020-01-01", "2021-01-01", 70.0)
+    assert len(book.closed_contracts()) == 1

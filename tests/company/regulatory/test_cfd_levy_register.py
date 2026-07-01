@@ -75,3 +75,59 @@ class TestCFDLevyRegister:
         reg.record(make_q())
         s = reg.cfd_levy_summary()
         assert "CfD Levy Register" in s
+
+
+# --- Phase MP depth tests ---
+
+def test_year_stored():
+    q = make_q(year=2023)
+    assert q.year == 2023
+
+
+def test_quarter_stored():
+    q = make_q(quarter=3)
+    assert q.quarter == 3
+
+
+def test_levy_rate_stored():
+    q = make_q(rate=4.2)
+    assert q.levy_rate_pence_per_mwh == pytest.approx(4.2)
+
+
+def test_supplier_mwh_stored():
+    q = make_q(mwh=50_000.0)
+    assert q.supplier_mwh_supplied == pytest.approx(50_000.0)
+
+
+def test_cfd_levy_direction_count():
+    assert len(list(CFDLevyDirection)) == 2
+
+
+def test_total_levy_zero_rate():
+    q = make_q(rate=0.0, mwh=10_000.0)
+    assert q.total_levy_gbp == pytest.approx(0.0)
+
+
+def test_is_credit_false_for_zero():
+    q = make_q(rate=0.0)
+    assert not q.is_credit
+
+
+def test_avg_levy_rate_empty():
+    reg = CFDLevyRegister()
+    assert reg.avg_levy_rate_pence_per_mwh() == pytest.approx(0.0)
+
+
+def test_record_returns_cfd_quarter():
+    reg = CFDLevyRegister()
+    q = make_q()
+    result = reg.record(q)
+    assert isinstance(result, CFDLevyQuarter)
+
+
+def test_cfd_summary_contains_credit_count():
+    reg = CFDLevyRegister()
+    reg.record(make_q(rate=2.5))
+    reg.record(make_q(rate=-3.0))
+    s = reg.cfd_levy_summary()
+    assert "Credit quarters: 1" in s

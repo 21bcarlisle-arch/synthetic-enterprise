@@ -104,3 +104,62 @@ class TestOnboardingJourneyTracker:
         make_journey_with_supply(tracker)
         s = tracker.onboarding_summary(AS_OF)
         assert "Onboarding" in s
+
+
+# --- Phase MP depth tests ---
+
+def test_account_id_stored():
+    tracker = OnboardingJourneyTracker()
+    j = tracker.start_journey("C5", SWITCH_DATE)
+    assert j.account_id == "C5"
+
+
+def test_switch_request_date_stored():
+    tracker = OnboardingJourneyTracker()
+    j = tracker.start_journey(ACCT, SWITCH_DATE)
+    assert j.switch_request_date == SWITCH_DATE
+
+
+def test_onboarding_stage_count():
+    assert len(list(OnboardingStage)) == 10
+
+
+def test_events_tuple():
+    tracker = OnboardingJourneyTracker()
+    j = tracker.start_journey(ACCT, SWITCH_DATE)
+    assert isinstance(j.events, tuple)
+    assert len(j.events) == 1
+
+
+def test_supply_start_date_none_without_supply_event():
+    tracker = OnboardingJourneyTracker()
+    j = tracker.start_journey(ACCT, SWITCH_DATE)
+    assert j.supply_start_date is None
+
+
+def test_welcome_pack_deadline_none_without_supply():
+    tracker = OnboardingJourneyTracker()
+    j = tracker.start_journey(ACCT, SWITCH_DATE)
+    assert j.welcome_pack_deadline() is None
+
+
+def test_smart_meter_offer_deadline():
+    tracker = OnboardingJourneyTracker()
+    j = make_journey_with_supply(tracker)
+    assert j.smart_meter_offer_deadline() == SUPPLY_DATE + dt.timedelta(days=365)
+
+
+def test_onboarding_event_stage_stored():
+    event = OnboardingEvent(stage=OnboardingStage.SUPPLY_START, occurred_at=SUPPLY_DATE)
+    assert event.stage == OnboardingStage.SUPPLY_START
+
+
+def test_onboarding_event_occurred_at_stored():
+    event = OnboardingEvent(stage=OnboardingStage.SUPPLY_START, occurred_at=SUPPLY_DATE)
+    assert event.occurred_at == SUPPLY_DATE
+
+
+def test_start_journey_returns_onboarding_journey():
+    tracker = OnboardingJourneyTracker()
+    result = tracker.start_journey(ACCT, SWITCH_DATE)
+    assert isinstance(result, OnboardingJourney)
