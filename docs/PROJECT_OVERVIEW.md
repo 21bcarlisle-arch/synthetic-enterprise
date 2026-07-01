@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,130 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,160 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KJ -- Coverage Depth Sprint LVIII (2026-07-01)
+**Modules:** lifecycle_tracker (crm) · service_log_persistent (crm) · marketing_budget (crm)
+**Tests added:** 30 (lifecycle_tracker: get_raises_key_error; customer_id; acquisition_date; at_risk_active; tenure_same_day=0; two_transitions_len2; reason_stored; pending_on_supply; total_matches_registered; churned_not_on_supply. service_log_persistent: channel; contact_reason; outcome; complaint_flag; empty_initially; two_complaints_year; vuln_false_not_in_reg; event_date; rate_zero_no_complaints; two_vulns_reconnect. marketing_budget: category; year; amount; customers_acquired; two_years_independent; single_blended_cac; zero_brand_customers; utilisation_zero_no_budget; total_spend_empty=0; missing_cat_not_in_cac.)
+**Total:** 11,160 tests
 
 ### Phase KI -- Coverage Depth Sprint LVII (2026-07-01)
 **Modules:** phase45c_risk_premium (pricing) · solr_intake (crm) · retention_risk (crm)
@@ -4725,7 +4730,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,130 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,160 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
