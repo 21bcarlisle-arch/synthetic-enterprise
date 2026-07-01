@@ -76,3 +76,73 @@ def test_annual_summary():
     assert s['total_gbp'] == pytest.approx(100.0)
     assert 'cmsuos' in s['by_type']
     assert s['record_count'] == 1
+
+
+# --- Phase KP depth tests ---
+
+def test_customer_id_stored():
+    ledger = NetworkChargeLedger()
+    rec = ledger.post_charge('CUST_X', 'MPAN_X', dt.date(2022,1,1), dt.date(2022,1,31),
+                              NetworkChargeType.DUOS, 10.0, 8.0)
+    assert rec.customer_id == 'CUST_X'
+
+
+def test_mpan_stored_on_record():
+    ledger = NetworkChargeLedger()
+    rec = ledger.post_charge('C001', 'MPAN_STORED', dt.date(2022,1,1), dt.date(2022,1,31),
+                              NetworkChargeType.TNUOS, 10.0, 15.0)
+    assert rec.mpan == 'MPAN_STORED'
+
+
+def test_charge_type_stored():
+    ledger = NetworkChargeLedger()
+    rec = ledger.post_charge('C001', 'M001', dt.date(2022,1,1), dt.date(2022,1,31),
+                              NetworkChargeType.BSUOS, 5.0, 20.0)
+    assert rec.charge_type == NetworkChargeType.BSUOS
+
+
+def test_rate_stored():
+    ledger = NetworkChargeLedger()
+    rec = ledger.post_charge('C001', 'M001', dt.date(2022,1,1), dt.date(2022,1,31),
+                              NetworkChargeType.CMSUOS, 10.0, 7.5)
+    assert rec.rate_gbp_per_mwh == pytest.approx(7.5)
+
+
+def test_consumption_stored():
+    ledger = NetworkChargeLedger()
+    rec = ledger.post_charge('C001', 'M001', dt.date(2022,1,1), dt.date(2022,1,31),
+                              NetworkChargeType.TNUOS, 25.0, 15.0)
+    assert rec.consumption_mwh == pytest.approx(25.0)
+
+
+def test_total_charges_zero_empty():
+    ledger = NetworkChargeLedger()
+    total = ledger.total_charges_gbp('UNKNOWN', dt.date(2022,1,1), dt.date(2022,12,31))
+    assert total == pytest.approx(0.0)
+
+
+def test_portfolio_total_zero_empty():
+    ledger = NetworkChargeLedger()
+    total = ledger.portfolio_total_gbp(2022)
+    assert total == pytest.approx(0.0)
+
+
+def test_charges_by_type_excludes_other_year():
+    ledger = NetworkChargeLedger()
+    ledger.post_charge('C001', 'M001', dt.date(2021,1,1), dt.date(2021,12,31),
+                        NetworkChargeType.DUOS, 10.0, 8.0)
+    by_type = ledger.charges_by_type(2022)
+    assert by_type.get('duos', 0.0) == pytest.approx(0.0)
+
+
+def test_annual_summary_empty_year():
+    ledger = NetworkChargeLedger()
+    s = ledger.annual_summary(2022)
+    assert s['total_gbp'] == pytest.approx(0.0)
+    assert s['record_count'] == 0
+
+
+def test_get_rate_returns_none_after_set_for_different_year():
+    ledger = NetworkChargeLedger()
+    ledger.set_rate(2022, NetworkChargeType.TNUOS, 'electricity', 15.5, 'desc')
+    assert ledger.get_rate(2023, NetworkChargeType.TNUOS, 'electricity') is None

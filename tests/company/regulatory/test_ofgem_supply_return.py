@@ -86,3 +86,65 @@ def test_all_returns_sorted():
         )
     years = [r.year for r in book.all_returns()]
     assert years == [2020, 2021, 2022]
+
+
+# --- Phase KP depth tests ---
+
+def test_year_stored():
+    r = _return(year=2022)
+    assert r.year == 2022
+
+
+def test_elec_supplied_stored():
+    r = _return()
+    assert r.elec_supplied_gwh == pytest.approx(25.0)
+
+
+def test_gas_supplied_stored():
+    r = _return()
+    assert r.gas_supplied_gwh == pytest.approx(60.0)
+
+
+def test_residential_customers_stored():
+    r = _return()
+    assert r.total_customers_residential == 5000
+
+
+def test_sme_customers_stored():
+    r = _return()
+    assert r.total_customers_sme == 200
+
+
+def test_complaints_stored():
+    r = _return(complaints=300)
+    assert r.residential_complaints == 300
+
+
+def test_avg_debt_stored():
+    r = _return()
+    assert r.average_debt_per_customer_gbp == pytest.approx(180.0)
+
+
+def test_get_missing_returns_none():
+    book = OfgemReturnBook()
+    assert book.get(2099) is None
+
+
+def test_missing_years_when_none_filed():
+    book = OfgemReturnBook()
+    missing = book.missing_years(2020, 2022)
+    assert set(missing) == {2020, 2021, 2022}
+
+
+def test_complaints_per_100_zero_customers():
+    r = OfgemSupplyReturn(
+        year=2022, submitted_date=dt.date(2023, 3, 31),
+        total_customers_residential=0, total_customers_sme=0, total_customers_ic=0,
+        elec_supplied_gwh=0.0, gas_supplied_gwh=0.0,
+        residential_complaints=0,
+        average_debt_per_customer_gbp=0.0,
+        whd_customers_supported=0,
+        gsop_payments_gbp=0.0,
+        bad_debt_written_off_gbp=0.0,
+    )
+    assert r.total_customers == 0

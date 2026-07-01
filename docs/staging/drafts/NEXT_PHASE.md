@@ -1,2 +1,2 @@
-Phase KP -- Coverage Depth Sprint LXIV
-30 tests: metering_contracts + network_charge_ledger + ofgem_supply_return coverage depth
+Phase KQ -- Coverage Depth Sprint LXV
+30 tests: ofgem_price_cap + solr_exposure + gas_supply_contracts coverage depth

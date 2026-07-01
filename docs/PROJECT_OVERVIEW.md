@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,310 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,340 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KP -- Coverage Depth Sprint LXIV (2026-07-01)
+30 depth tests across 3 modules: metering_contracts (provider_id/service_type/meter_type/mpan/start_date/sequential_ids/year_filter/not_active_before/no_active_before/summary_zero), network_charge_ledger (customer_id/mpan/charge_type/rate/consumption/total_zero/portfolio_zero/by_type_year_excl/summary_empty/rate_none_diff_year), ofgem_supply_return (year/elec/gas/resi/sme/complaints/avg_debt/get_none/missing_all/total_zero).
+**Total:** 11,340 tests
 
 ### Phase KO -- Coverage Depth Sprint LXIII (2026-07-01)
 30 depth tests across 3 modules: hedge_performance (trade_id/commodity/year/volume/pnl_neg/total_zero/avg_none/summary_empty/profitable_empty/contracted_price), interconnector_monitor (interconnector/flow_mw/direction/gb_price/foreign_price/date/avg_single/import_zero_export/import_days_zero/two_active), price_monitor (commodity/date/spot/month_ahead/flat_neither/slope_positive/latest_none/highest_normal/no_alerts/elevated_150).
@@ -4752,7 +4756,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,310 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,340 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
