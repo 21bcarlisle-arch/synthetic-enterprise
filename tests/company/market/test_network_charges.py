@@ -1,3 +1,4 @@
+import pytest
 """Phase 122: Network Use of System (UoS) charges tests."""
 
 from company.market.network_charges import (
@@ -60,3 +61,56 @@ def test_annual_network_cost_scales():
 def test_annual_cost_positive():
     cost = annual_network_cost(2024, "sme", 100.0)
     assert cost > 0
+
+import pytest
+
+# --- Phase LB depth tests ---
+
+def test_duos_resi_2022():
+    rate = get_duos_rate(2022, 'resi')
+    assert rate == pytest.approx(3.0)
+
+
+def test_duos_sme_2022():
+    rate = get_duos_rate(2022, 'sme')
+    assert rate == pytest.approx(3.9)
+
+
+def test_duos_ic_2022():
+    rate = get_duos_rate(2022, 'ic')
+    assert rate == pytest.approx(2.0)
+
+
+def test_tnuos_rate_is_float():
+    rate = get_tnuos_rate(2022)
+    assert isinstance(rate, float)
+
+
+def test_tnuos_rate_2022():
+    rate = get_tnuos_rate(2022)
+    assert rate == pytest.approx(0.62)
+
+
+def test_network_cost_year_stored():
+    result = network_cost_per_mwh(2022, 'resi')
+    assert result['year'] == 2022
+
+
+def test_network_cost_segment_stored():
+    result = network_cost_per_mwh(2022, 'sme')
+    assert result['segment'] == 'sme'
+
+
+def test_network_cost_total_is_sum():
+    result = network_cost_per_mwh(2022, 'resi')
+    assert result['total_p_per_kwh'] == pytest.approx(result['duos_p_per_kwh'] + result['tnuos_p_per_kwh'])
+
+
+def test_annual_cost_is_float():
+    result = annual_network_cost(2022, 'resi', 10.0)
+    assert isinstance(result, float)
+
+
+def test_annual_cost_zero_zero_mwh():
+    result = annual_network_cost(2022, 'resi', 0.0)
+    assert result == pytest.approx(0.0)

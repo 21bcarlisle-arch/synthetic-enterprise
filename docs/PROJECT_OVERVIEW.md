@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,670 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,700 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LB -- Coverage Depth Sprint LXXVI (2026-07-01)
+30 depth tests across 3 modules: neighbourhood_comparison (customer_id/postcode/property_type/occupant/kwh/vs_pct_float/rating_enum/saving_zero/summary_dict/has_rating), dtn_log (flow_id/direction/timestamp/customer_id/mpan/status_received/notes_empty/inbound_empty/for_customer_empty/rejected_empty), network_charges (duos_resi_2022=3.0/duos_sme=3.9/ic=2.0/tnuos_float/tnuos_0.62/year_stored/segment/total_sum/annual_float/zero_mwh).
+**Total:** 11,700 tests
 
 ### Phase LA -- Coverage Depth Sprint LXXV (2026-07-01)
 30 depth tests across 3 modules: churn_analytics (customer_id/direction/year/reason/retention_false/waterfall_closing/waterfall_net/waterfall_rate/record_none/losses_empty), fuel_poverty (customer_id/income/energy_cost/spend_pct/is_fp_bool/whd_bool/eco4_bool/median_income/median_energy/returns_assessment), energy_profile (customer_id/as_of/is_fp/tou/heat_pump/score_bounds/eco4/summary_cid/summary_date/summary_epc).
@@ -4800,7 +4804,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,670 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,700 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

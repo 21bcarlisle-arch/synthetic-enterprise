@@ -1,2 +1,2 @@
-Phase LB -- Coverage Depth Sprint LXXVI
-30 tests: neighbourhood_comparison + dtn_log + network_charges coverage depth
+Phase LC -- Coverage Depth Sprint LXXVII
+30 tests: price_feed + rego_portfolio + tnuos_ledger coverage depth

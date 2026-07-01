@@ -59,3 +59,56 @@ def test_summary_keys():
     assert 'consumption_rating' in s
     assert 'potential_saving_kwh' in s
     assert 'vs_median_pct' in s
+
+
+# --- Phase LB depth tests ---
+
+def test_customer_id_stored():
+    c = build_neighbourhood_comparison('C_LB', 'SW1', 'semi_detached', 2, 3500.0, SAMPLE)
+    assert c.customer_id == 'C_LB'
+
+
+def test_postcode_district_stored():
+    c = build_neighbourhood_comparison('C1', 'EC1', 'semi_detached', 2, 3500.0, SAMPLE)
+    assert c.postcode_district == 'EC1'
+
+
+def test_property_type_stored():
+    c = build_neighbourhood_comparison('C1', 'SW1', 'detached', 2, 3500.0, SAMPLE)
+    assert c.property_type == 'detached'
+
+
+def test_occupant_count_stored():
+    c = build_neighbourhood_comparison('C1', 'SW1', 'semi_detached', 4, 3500.0, SAMPLE)
+    assert c.occupant_count == 4
+
+
+def test_customer_annual_kwh_stored():
+    c = build_neighbourhood_comparison('C1', 'SW1', 'semi_detached', 2, 4000.0, SAMPLE)
+    assert c.customer_annual_kwh == pytest.approx(4000.0)
+
+
+def test_vs_median_pct_is_float():
+    c = build_neighbourhood_comparison('C1', 'SW1', 'semi_detached', 2, 3500.0, SAMPLE)
+    assert isinstance(c.vs_median_pct, float)
+
+
+def test_consumption_rating_is_enum():
+    c = build_neighbourhood_comparison('C1', 'SW1', 'semi_detached', 2, 3500.0, SAMPLE)
+    assert isinstance(c.consumption_rating, ConsumptionRating)
+
+
+def test_potential_saving_zero_when_below_efficient():
+    # Customer uses less than efficient neighbours
+    c = build_neighbourhood_comparison('C1', 'SW1', 'semi_detached', 2, 1000.0, SAMPLE)
+    assert c.potential_saving_kwh == pytest.approx(0.0)
+
+
+def test_summary_is_dict():
+    c = build_neighbourhood_comparison('C1', 'SW1', 'semi_detached', 2, 3500.0, SAMPLE)
+    assert isinstance(c.summary(), dict)
+
+
+def test_summary_has_rating():
+    c = build_neighbourhood_comparison('C1', 'SW1', 'semi_detached', 2, 3500.0, SAMPLE)
+    assert 'consumption_rating' in c.summary()
