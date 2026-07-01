@@ -83,3 +83,55 @@ def test_duos_summary_keys():
     s = ledger.duos_summary(2022)
     for k in ("total_charges", "total_charged_gbp", "hv_customers", "annual_unit_cost_p_per_kwh"):
         assert k in s
+
+
+# --- Phase LL depth tests ---
+
+def test_account_id_stored():
+    c = _charge(aid="ACCT_LL")
+    assert c.account_id == "ACCT_LL"
+
+
+def test_charge_period_stored():
+    c = _charge(period="2023-06")
+    assert c.charge_period == "2023-06"
+
+
+def test_dno_area_stored():
+    c = _charge(dno=DNOArea.LONDON)
+    assert c.dno_area == DNOArea.LONDON
+
+
+def test_voltage_level_stored():
+    c = _charge(vol=VoltageLevel.HIGH)
+    assert c.voltage_level == VoltageLevel.HIGH
+
+
+def test_consumption_kwh_stored():
+    c = _charge(kwh=5000.0)
+    assert c.consumption_kwh == pytest.approx(5000.0)
+
+
+def test_unit_rate_stored():
+    c = _charge(rate=2.48)
+    assert c.unit_rate_p_per_kwh == pytest.approx(2.48)
+
+
+def test_standing_charge_default_zero():
+    c = DUoSCharge(
+        account_id="C1", charge_period="2022-09", dno_area=DNOArea.SOUTHERN,
+        voltage_level=VoltageLevel.LOW, consumption_kwh=1000.0, unit_rate_p_per_kwh=2.35,
+    )
+    assert c.standing_charge_gbp == pytest.approx(0.0)
+
+
+def test_rate_2016_exact():
+    assert DUoSLedger.unit_rate_for_year(2016) == pytest.approx(1.85)
+
+
+def test_rate_2025_exact():
+    assert DUoSLedger.unit_rate_for_year(2025) == pytest.approx(2.75)
+
+
+def test_rate_fallback():
+    assert DUoSLedger.unit_rate_for_year(2010) == pytest.approx(2.50)

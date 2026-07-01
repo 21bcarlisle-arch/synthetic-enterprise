@@ -96,3 +96,61 @@ def test_crisis_2022_scenario():
     assert book.max_bill_shock_pct("electricity") > 0
     s = book.smoothing_summary()
     assert s["loss_making_elec_years"] == 1
+
+
+# --- Phase LL depth tests ---
+
+def test_year_stored():
+    d = _dec(2019)
+    assert d.year == 2019
+
+
+def test_commodity_stored():
+    d = _dec(2022, commodity="gas")
+    assert d.commodity == "gas"
+
+
+def test_unit_rate_stored():
+    d = _dec(2022, rate=22.5)
+    assert d.unit_rate_p_per_kwh == pytest.approx(22.5)
+
+
+def test_wholesale_cost_stored():
+    d = _dec(2022, cost=18.3)
+    assert d.wholesale_cost_p_per_kwh == pytest.approx(18.3)
+
+
+def test_reserve_stored():
+    d = _dec(2022, reserve=1.25)
+    assert d.smoothing_reserve_applied_p == pytest.approx(1.25)
+
+
+def test_at_cost_status():
+    d = _dec(2022, rate=12.05, cost=12.0)
+    assert d.status == SmoothedRateStatus.AT_COST
+
+
+def test_profitable_status_above_0_5():
+    d = _dec(2022, rate=13.0, cost=12.0)
+    assert d.status == SmoothedRateStatus.PROFITABLE
+
+
+def test_decisions_for_commodity_gas():
+    book = TariffSmoothingBook()
+    book.record_decision(_dec(2022, commodity="electricity"))
+    book.record_decision(_dec(2022, commodity="gas"))
+    gas = book.decisions_for_commodity("gas")
+    assert len(gas) == 1
+    assert gas[0].commodity == "gas"
+
+
+def test_record_returns_decision():
+    book = TariffSmoothingBook()
+    d = _dec(2022)
+    result = book.record_decision(d)
+    assert result is d
+
+
+def test_loss_making_years_empty_initially():
+    book = TariffSmoothingBook()
+    assert book.loss_making_years() == []

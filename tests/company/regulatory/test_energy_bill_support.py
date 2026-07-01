@@ -94,3 +94,59 @@ def test_ebss_summary_empty():
     s = book.ebss_summary()
     assert s["total_credits"] == 0
     assert s["total_credited_gbp"] == 0.0
+
+
+# --- Phase LL depth tests ---
+
+def test_account_id_in_credit():
+    book = EBSSBook()
+    c = book.record_credit("ACC_LL", "2022-10")
+    assert c.account_id == "ACC_LL"
+
+
+def test_credit_month_stored():
+    book = EBSSBook()
+    c = book.record_credit("C1", "2022-11")
+    assert c.credit_month == "2022-11"
+
+
+def test_credit_type_default_standard():
+    book = EBSSBook()
+    c = book.record_credit("C1", "2022-10")
+    assert c.credit_type == EBSSCreditType.STANDARD
+
+
+def test_claimed_from_govt_false_default():
+    book = EBSSBook()
+    c = book.record_credit("C1", "2022-10")
+    assert c.claimed_from_govt is False
+
+
+def test_monthly_credit_constant():
+    assert EBSS_MONTHLY_CREDIT_GBP == pytest.approx(66.67)
+
+
+def test_alt_fuel_constant():
+    assert EBSS_ALT_FUEL_CREDIT_GBP == pytest.approx(100.0)
+
+
+def test_scheme_months_count():
+    assert len(EBSS_MONTHS) == 6
+
+
+def test_total_credited_gbp_accumulates():
+    book = EBSSBook()
+    book.record_credit("C1", "2022-10")
+    book.record_credit("C1", "2022-11")
+    assert book.total_credited_gbp() == pytest.approx(66.67 * 2)
+
+
+def test_record_credit_returns_ebss_credit():
+    book = EBSSBook()
+    result = book.record_credit("C1", "2022-10")
+    assert isinstance(result, EBSSCredit)
+
+
+def test_is_scheme_month_march_2023():
+    book = EBSSBook()
+    assert book.is_scheme_month("2023-03") is True
