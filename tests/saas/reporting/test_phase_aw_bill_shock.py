@@ -101,3 +101,25 @@ def test_shock_pct_formatted():
     d = {"years": {"2022": _yr(0.338, 61)}}
     result = _section_bill_shock_analysis(d)
     assert "33.8%" in result
+
+
+def test_bill_shock_header_present():
+    from saas.reporting.annual_report import _section_bill_shock_analysis
+    d = {"years": {"2022": _yr(0.25, 30)}}
+    result = _section_bill_shock_analysis(d)
+    assert "Bill Shock" in result
+
+
+def test_elevated_flag_shown():
+    from saas.reporting.annual_report import _section_bill_shock_analysis
+    d = {"years": {"2022": _yr(0.25, 30, bills=100)}}
+    result = _section_bill_shock_analysis(d)
+    assert "ELEVATED" in result
+
+
+def test_zero_events_no_flag():
+    from saas.reporting.annual_report import _section_bill_shock_analysis
+    d = {"years": {"2020": _yr(0.05, 0, bills=100)}}
+    result = _section_bill_shock_analysis(d)
+    assert "HIGH" not in result
+    assert "ELEVATED" not in result

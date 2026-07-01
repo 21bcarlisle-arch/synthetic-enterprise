@@ -112,3 +112,21 @@ def test_multiple_years_all_appear():
     })
     result = _section_customer_experience(d)
     assert "2020" in result and "2021" in result and "2022" in result
+
+
+def test_header_present():
+    d = _data({"2022": _yr()})
+    result = _section_customer_experience(d)
+    assert "Customer Experience" in result
+
+
+def test_high_complaints_flag_shown():
+    d = _data({"2022": _yr(complaint=0.06)})
+    result = _section_customer_experience(d)
+    assert "HIGH COMPLAINTS" in result
+
+
+def test_low_clarity_flag_shown():
+    d = _data({"2022": _yr(clarity=0.75)})
+    result = _section_customer_experience(d)
+    assert "LOW CLARITY" in result

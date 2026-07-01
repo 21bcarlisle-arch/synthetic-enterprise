@@ -129,3 +129,24 @@ def test_single_account_handled():
     result = _section_customer_strategic_value(d)
     assert "C_IC1" in result
     assert "PROTECT" in result or "CRITICAL" in result or "MONITOR" in result or "EXIT" in result
+
+
+def test_header_contains_strategic_value():
+    d = {"by_billing_account": {"C1": _bba(50000, 0.10), "C2": _bba(200000, 0.05)}}
+    result = _section_customer_strategic_value(d)
+    assert "Strategic Value Matrix" in result
+
+
+def test_gas_accounts_excluded():
+    d = {"by_billing_account": {"C_IC3g": _bba(1000000, 0.08)}}
+    result = _section_customer_strategic_value(d)
+    assert result == ""
+
+
+def test_total_clv_shown():
+    d = {"by_billing_account": {
+        "C1": _bba(50000, 0.10),
+        "C2": _bba(200000, 0.05),
+    }}
+    result = _section_customer_strategic_value(d)
+    assert "Total portfolio CLV" in result or "total" in result.lower()

@@ -111,3 +111,27 @@ def test_first_cfd_negative_year_identified():
     result = _section_policy_cost_breakdown(d)
     assert "2022" in result
     assert "rebate" in result.lower()
+
+
+def test_cagr_computed_with_two_years():
+    from saas.reporting.annual_report import _section_policy_cost_breakdown
+    d = {"years": {
+        "2020": _yr(policy=1000.0),
+        "2022": _yr(policy=1210.0),
+    }}
+    result = _section_policy_cost_breakdown(d)
+    assert "CAGR" in result
+
+
+def test_missing_policy_cost_skips_section():
+    from saas.reporting.annual_report import _section_policy_cost_breakdown
+    d = {"years": {"2022": {}}}
+    result = _section_policy_cost_breakdown(d)
+    assert result == ""
+
+
+def test_policy_cost_header_present():
+    from saas.reporting.annual_report import _section_policy_cost_breakdown
+    d = {"years": {"2022": _yr(policy=50000.0)}}
+    result = _section_policy_cost_breakdown(d)
+    assert "Policy Cost" in result

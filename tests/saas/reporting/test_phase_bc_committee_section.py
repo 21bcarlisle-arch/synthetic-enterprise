@@ -102,3 +102,21 @@ def test_non_list_wakeups_handled():
     d = {"years": {"2022": {"committee_wake_ups": 9}}}  # integer not list
     result = _section_risk_committee_activity(d)
     assert result == ""
+
+
+def test_total_sessions_shown():
+    d = _data({2022: [_wk(), _wk()], 2023: [_wk()]})
+    result = _section_risk_committee_activity(d)
+    assert "3" in result  # total sessions
+
+
+def test_peak_var_shown():
+    wk = _wk(var_cur=999000.0)
+    d = _data({2022: [wk]})
+    result = _section_risk_committee_activity(d)
+    assert "999,000" in result or "999" in result
+
+
+def test_empty_returns_empty():
+    from saas.reporting.annual_report import _section_risk_committee_activity
+    assert _section_risk_committee_activity({}) == ""
