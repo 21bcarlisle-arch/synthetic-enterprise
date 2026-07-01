@@ -92,3 +92,27 @@ def test_var_trigger_note():
     d = _data([(3.25, 2467421, 1175)])
     result = _section_var_treasury_evolution(d)
     assert "3.0" in result and "committee" in result.lower()
+
+
+# 13. ALERT status for var_ratio >= 3.0
+def test_alert_status_shown():
+    d = {"years": {"2022": {"var_ratio": 3.5, "treasury_end_gbp": 200000, "net_gbp": 5000}}}
+    result = _section_var_treasury_evolution(d)
+    assert "ALERT" in result
+
+
+# 14. WATCH status for var_ratio between 0 and 3.0
+def test_watch_status_shown():
+    d = {"years": {"2022": {"var_ratio": 1.5, "treasury_end_gbp": 300000, "net_gbp": 8000}}}
+    result = _section_var_treasury_evolution(d)
+    assert "WATCH" in result
+
+
+# 15. Peak VaR year shown
+def test_peak_var_year_shown():
+    d = {"years": {
+        "2022": {"var_ratio": 2.0, "treasury_end_gbp": 100000, "net_gbp": 5000},
+        "2023": {"var_ratio": 4.5, "treasury_end_gbp": 200000, "net_gbp": 8000},
+    }}
+    result = _section_var_treasury_evolution(d)
+    assert "Peak VaR year: 2023" in result

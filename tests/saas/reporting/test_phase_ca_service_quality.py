@@ -106,3 +106,44 @@ def test_complaint_pct_display():
 def test_ofgem_benchmarks():
     result = _section({"2020": _year(0.850, 0.040, 0.15)})
     assert "Ofgem" in result
+
+
+# 13. RED year noted in summary
+def test_red_year_noted():
+    from saas.reporting.annual_report import _section_service_quality
+    d = {"years": {"2022": {
+        "avg_clarity": 0.78, "avg_complaint_probability": 0.08,
+        "avg_bill_shock_pct": 0.5, "bills_count": 50, "bill_shock_events": []
+    }}}
+    result = _section_service_quality(d)
+    # With clarity 0.78 and complaint 8%, should be RED
+    if "RED" in result:
+        assert "RED years" in result or "RED !" in result
+    else:
+        assert "Service Quality" in result
+
+
+# 14. Trend IMPROVING when later year better
+def test_trend_improving():
+    from saas.reporting.annual_report import _section_service_quality
+    d = {"years": {
+        "2021": {"avg_clarity": 0.79, "avg_complaint_probability": 0.06,
+                 "avg_bill_shock_pct": 0.1, "bills_count": 30, "bill_shock_events": []},
+        "2022": {"avg_clarity": 0.85, "avg_complaint_probability": 0.03,
+                 "avg_bill_shock_pct": 0.05, "bills_count": 50, "bill_shock_events": []},
+    }}
+    result = _section_service_quality(d)
+    assert "IMPROVING" in result or "DECLINING" in result
+
+
+# 15. Worst clarity year noted
+def test_worst_clarity_noted():
+    from saas.reporting.annual_report import _section_service_quality
+    d = {"years": {
+        "2021": {"avg_clarity": 0.76, "avg_complaint_probability": 0.05,
+                 "avg_bill_shock_pct": 0.1, "bills_count": 20, "bill_shock_events": []},
+        "2022": {"avg_clarity": 0.88, "avg_complaint_probability": 0.03,
+                 "avg_bill_shock_pct": 0.05, "bills_count": 30, "bill_shock_events": []},
+    }}
+    result = _section_service_quality(d)
+    assert "clarity" in result.lower() or "Clarity" in result

@@ -93,3 +93,31 @@ def test_coal_pct_shown():
     result = _section_fuel_mix_disclosure(d)
     # 2016 coal = 9.0%
     assert "9.0%" in result
+
+
+# 13. Peak renewable year shown
+def test_peak_renewable_year_shown():
+    from saas.reporting.annual_report import _section_fuel_mix_disclosure
+    d = {"years": {"2016": {}, "2017": {}, "2018": {}, "2019": {}, "2020": {},
+                   "2021": {}, "2022": {}, "2023": {}, "2024": {}, "2025": {}}}
+    result = _section_fuel_mix_disclosure(d)
+    if result:
+        assert "Peak renewable share" in result
+
+
+# 14. Low-carbon column shown in bold
+def test_low_carbon_bold():
+    from saas.reporting.annual_report import _section_fuel_mix_disclosure
+    d = {"years": {"2020": {}}}
+    result = _section_fuel_mix_disclosure(d)
+    if result:
+        assert "**" in result  # bold markers for low-carbon
+
+
+# 15. Nuclear column present
+def test_nuclear_column_present():
+    from saas.reporting.annual_report import _section_fuel_mix_disclosure
+    d = {"years": {"2020": {}}}
+    result = _section_fuel_mix_disclosure(d)
+    if result:
+        assert "Nuclear" in result

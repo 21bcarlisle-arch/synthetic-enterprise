@@ -100,3 +100,33 @@ def test_actual_net_displayed():
 def test_naked_net_displayed():
     result = _section({"2022": _yr(103679, 1092096)})
     assert "£1,092,096" in result
+
+
+# 13. Total row shown
+def test_total_row_shown():
+    from saas.reporting.annual_report import _section_hedge_value_add
+    d = {"years": {"2022": {"hedge_effectiveness": {
+        "actual_net_gbp": 100000.0, "naked_net_gbp": 120000.0, "hedging_value_add_gbp": -20000.0
+    }}}}
+    result = _section_hedge_value_add(d)
+    assert "Total" in result
+
+
+# 14. Positive value-add shown with plus sign
+def test_positive_va_shown_with_plus():
+    from saas.reporting.annual_report import _section_hedge_value_add
+    d = {"years": {"2022": {"hedge_effectiveness": {
+        "actual_net_gbp": 120000.0, "naked_net_gbp": 100000.0, "hedging_value_add_gbp": 20000.0
+    }}}}
+    result = _section_hedge_value_add(d)
+    assert "+£20,000" in result or "+20" in result
+
+
+# 15. Saved money conclusion when total_va positive
+def test_saved_money_conclusion():
+    from saas.reporting.annual_report import _section_hedge_value_add
+    d = {"years": {"2022": {"hedge_effectiveness": {
+        "actual_net_gbp": 200000.0, "naked_net_gbp": 150000.0, "hedging_value_add_gbp": 50000.0
+    }}}}
+    result = _section_hedge_value_add(d)
+    assert "saved money" in result

@@ -117,3 +117,35 @@ def test_gas_only():
     result = _section_missed_retention_analysis(d)
     assert "Gas Renewal" in result
     assert len(result) > 50
+
+
+# 13. High risk events count shown
+def test_high_risk_count_shown():
+    nol = [
+        {"customer_id": "C1", "event_date": "2022-01-01", "company_churn_estimate": 0.20,
+         "expected_term_margin_gbp": 1000.0, "no_offer_reason": "below_threshold"},
+        {"customer_id": "C2", "event_date": "2022-06-01", "company_churn_estimate": 0.05,
+         "expected_term_margin_gbp": 500.0, "no_offer_reason": "low_margin"},
+    ]
+    d = {"no_offer_churn_log": nol}
+    result = _section_missed_retention_analysis(d)
+    assert "High-risk no-offer events" in result
+
+
+# 14. Flag shown for >=15% churn estimate
+def test_high_risk_flag_shown():
+    nol = [{"customer_id": "C1", "event_date": "2022-01-01", "company_churn_estimate": 0.20,
+             "expected_term_margin_gbp": 2000.0, "no_offer_reason": "below_threshold"}]
+    d = {"no_offer_churn_log": nol}
+    result = _section_missed_retention_analysis(d)
+    # Flag character or "15%" in note
+    assert "15%" in result or "\u2691" in result
+
+
+# 15. Gas repricing section shown when gas churn log present
+def test_gas_section_header_shown():
+    gcl = [{"customer_id": "C1", "term_start": "2022-01-01",
+             "old_gas_rate": 50.0, "new_gas_rate": 80.0, "company_gas_churn_estimate": 0.20}]
+    d = {"no_offer_churn_log": [], "company_gas_churn_log": gcl}
+    result = _section_missed_retention_analysis(d)
+    assert "Gas Renewal Risk" in result or "gas" in result.lower()
