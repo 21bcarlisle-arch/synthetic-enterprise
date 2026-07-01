@@ -73,3 +73,78 @@ def test_annual_summary():
     assert s['objections_upheld'] == 1
     assert s['erroneous_transfers'] == 1
     assert s['ets_resolved'] == 0
+
+
+# --- Phase KE depth tests ---
+
+def test_objection_id_format():
+    book = SwitchGovernanceBook()
+    obj = book.raise_objection('MPAN001', 'S1', dt.date(2022, 10, 1),
+                                dt.date(2022, 10, 5), ObjectionReason.DEBT)
+    assert obj.objection_id == 'OBJ-0001'
+
+
+def test_objection_id_sequential():
+    book = SwitchGovernanceBook()
+    o1 = book.raise_objection('MPAN001', 'S1', dt.date(2022, 10, 1),
+                               dt.date(2022, 10, 5), ObjectionReason.DEBT)
+    o2 = book.raise_objection('MPAN002', 'S2', dt.date(2022, 10, 1),
+                               dt.date(2022, 10, 5), ObjectionReason.CONTRACT_IN_TERM)
+    assert o1.objection_id == 'OBJ-0001'
+    assert o2.objection_id == 'OBJ-0002'
+
+
+def test_et_id_format():
+    book = SwitchGovernanceBook()
+    et = book.report_et('MPAN001', 'L', 'G', dt.date(2022, 10, 1), dt.date(2022, 10, 8))
+    assert et.et_id == 'ET-0001'
+
+
+def test_14_days_within_cooling_off():
+    c = CoolingOffCancellation('C001', 'MPAN001', dt.date(2022, 10, 1), dt.date(2022, 10, 15))
+    assert c.days_after_sale == 14
+    assert c.within_cooling_off is True
+
+
+def test_15_days_not_within_cooling_off():
+    c = CoolingOffCancellation('C001', 'MPAN001', dt.date(2022, 10, 1), dt.date(2022, 10, 16))
+    assert c.days_after_sale == 15
+    assert c.within_cooling_off is False
+
+
+def test_15_days_within_objection_window():
+    obj = SwitchObjection('OBJ-001', 'MPAN001', 'S1',
+                           dt.date(2022, 10, 1), dt.date(2022, 10, 16),
+                           ObjectionReason.DEBT)
+    assert obj.within_objection_window is True
+
+
+def test_16_days_not_within_objection_window():
+    obj = SwitchObjection('OBJ-001', 'MPAN001', 'S1',
+                           dt.date(2022, 10, 1), dt.date(2022, 10, 17),
+                           ObjectionReason.DEBT)
+    assert obj.within_objection_window is False
+
+
+def test_closed_no_action_is_resolved():
+    book = SwitchGovernanceBook()
+    et = book.report_et('MPAN001', 'L', 'G', dt.date(2022, 10, 1), dt.date(2022, 10, 8))
+    book.resolve_et(et.et_id, ErroneousTransferStatus.CLOSED_NO_ACTION, dt.date(2022, 10, 30))
+    assert et.is_resolved is True
+
+
+def test_objection_reason_stored():
+    book = SwitchGovernanceBook()
+    obj = book.raise_objection('MPAN001', 'S1', dt.date(2022, 10, 1),
+                                dt.date(2022, 10, 5), ObjectionReason.CONTRACT_IN_TERM)
+    assert obj.reason == ObjectionReason.CONTRACT_IN_TERM
+
+
+def test_annual_summary_objections_raised_two():
+    book = SwitchGovernanceBook()
+    book.raise_objection('MPAN001', 'S1', dt.date(2022, 10, 1),
+                          dt.date(2022, 10, 5), ObjectionReason.DEBT)
+    book.raise_objection('MPAN002', 'S2', dt.date(2022, 11, 1),
+                          dt.date(2022, 11, 5), ObjectionReason.DEBT)
+    s = book.annual_summary(2022)
+    assert s['objections_raised'] == 2

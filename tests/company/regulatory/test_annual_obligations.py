@@ -107,3 +107,123 @@ def test_summary_dict():
     assert s['year'] == 2023
     assert s['overall_status'] == 'met'
     assert 'total_penalty_estimate_gbp' in s
+
+
+# --- Phase KE depth tests ---
+
+def test_get_unknown_returns_none():
+    r = build_obligations_report(
+        year=2023, report_date=dt.date(2024, 4, 1),
+        whd_obligation_customers=0, whd_delivered_customers=0,
+        eco4_obligation_mwh=0.0, eco4_delivered_mwh=0.0,
+        gsop_breaches=0, gsop_payments_gbp=0.0,
+        ofgem_return_submitted=True,
+    )
+    assert r.get('UNKNOWN_OBL') is None
+
+
+def test_at_risk_no_breach_overall():
+    r = build_obligations_report(
+        year=2023, report_date=dt.date(2024, 4, 1),
+        whd_obligation_customers=0, whd_delivered_customers=0,
+        eco4_obligation_mwh=1000.0, eco4_delivered_mwh=900.0,
+        gsop_breaches=0, gsop_payments_gbp=0.0,
+        ofgem_return_submitted=True,
+    )
+    assert r.overall_status == ObligationStatus.AT_RISK
+    assert r.breached_count == 0
+
+
+def test_total_penalty_accumulates():
+    r = build_obligations_report(
+        year=2022, report_date=dt.date(2023, 4, 1),
+        whd_obligation_customers=200, whd_delivered_customers=0,
+        eco4_obligation_mwh=0.0, eco4_delivered_mwh=0.0,
+        gsop_breaches=1, gsop_payments_gbp=50.0,
+        ofgem_return_submitted=True,
+        rego_obligation_mwh=0.0, rego_held_mwh=0.0,
+    )
+    # WHD: 200*150=30000; GSOP: 50
+    assert r.total_penalty_estimate_gbp == pytest.approx(30050.0)
+
+
+def test_whd_zero_obligation_not_in_report():
+    r = build_obligations_report(
+        year=2023, report_date=dt.date(2024, 4, 1),
+        whd_obligation_customers=0, whd_delivered_customers=0,
+        eco4_obligation_mwh=0.0, eco4_delivered_mwh=0.0,
+        gsop_breaches=0, gsop_payments_gbp=0.0,
+        ofgem_return_submitted=True,
+    )
+    assert r.get('WHD') is None
+
+
+def test_no_rego_obligation_no_rego_item():
+    r = build_obligations_report(
+        year=2023, report_date=dt.date(2024, 4, 1),
+        whd_obligation_customers=0, whd_delivered_customers=0,
+        eco4_obligation_mwh=0.0, eco4_delivered_mwh=0.0,
+        gsop_breaches=0, gsop_payments_gbp=0.0,
+        ofgem_return_submitted=True,
+        rego_obligation_mwh=0.0, rego_held_mwh=0.0,
+    )
+    assert r.get('REGO') is None
+
+
+def test_report_date_isoformat():
+    r = build_obligations_report(
+        year=2023, report_date=dt.date(2024, 4, 1),
+        whd_obligation_customers=0, whd_delivered_customers=0,
+        eco4_obligation_mwh=0.0, eco4_delivered_mwh=0.0,
+        gsop_breaches=0, gsop_payments_gbp=0.0,
+        ofgem_return_submitted=True,
+    )
+    assert r.summary()['report_date'] == '2024-04-01'
+
+
+def test_ofgem_at_risk_before_due_date():
+    r = build_obligations_report(
+        year=2022, report_date=dt.date(2023, 3, 1),
+        whd_obligation_customers=0, whd_delivered_customers=0,
+        eco4_obligation_mwh=0.0, eco4_delivered_mwh=0.0,
+        gsop_breaches=0, gsop_payments_gbp=0.0,
+        ofgem_return_submitted=False,
+        ofgem_return_due_date=dt.date(2023, 4, 30),
+    )
+    ret = r.get('Ofgem_annual_return')
+    assert ret.status == ObligationStatus.AT_RISK
+
+
+def test_eco4_100_pct_met():
+    r = build_obligations_report(
+        year=2023, report_date=dt.date(2024, 4, 1),
+        whd_obligation_customers=0, whd_delivered_customers=0,
+        eco4_obligation_mwh=1000.0, eco4_delivered_mwh=1000.0,
+        gsop_breaches=0, gsop_payments_gbp=0.0,
+        ofgem_return_submitted=True,
+    )
+    assert r.get('ECO4').status == ObligationStatus.MET
+
+
+def test_eco4_80_pct_breached():
+    r = build_obligations_report(
+        year=2023, report_date=dt.date(2024, 4, 1),
+        whd_obligation_customers=0, whd_delivered_customers=0,
+        eco4_obligation_mwh=1000.0, eco4_delivered_mwh=800.0,
+        gsop_breaches=0, gsop_payments_gbp=0.0,
+        ofgem_return_submitted=True,
+    )
+    assert r.get('ECO4').status == ObligationStatus.BREACHED
+
+
+def test_summary_keys_present():
+    r = build_obligations_report(
+        year=2023, report_date=dt.date(2024, 4, 1),
+        whd_obligation_customers=0, whd_delivered_customers=0,
+        eco4_obligation_mwh=0.0, eco4_delivered_mwh=0.0,
+        gsop_breaches=0, gsop_payments_gbp=0.0,
+        ofgem_return_submitted=True,
+    )
+    s = r.summary()
+    for k in ('year', 'report_date', 'met', 'at_risk', 'breached', 'overall_status', 'total_penalty_estimate_gbp'):
+        assert k in s

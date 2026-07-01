@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 10,980 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,010 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KE -- Coverage Depth Sprint LIII (2026-07-01)
+**Modules:** switch_governance (market) · acquisition_cohort (crm) · annual_obligations (regulatory)
+**Tests added:** 30 (switch_governance: id=OBJ-0001; sequential=OBJ-0002; et_id=ET-0001; 14d=within; 15d=not_within; 15d_objection_within; 16d_not_within; closed_no_action=resolved; reason_stored; annual_raised=2. acquisition_cohort: is_active_true; is_active_false_churned; all_churned_retention=0; total_cac=245; avg_clv_positive; churn_unknown_no_op; payback_none_zero_revenue; channel_referral; cohort_id_in_summary; retention_100_all_active. annual_obligations: get_unknown=None; at_risk_no_breach; penalty_accumulates=30050; whd_zero_not_in_report; rego_zero_not_in_report; date_isoformat; ofgem_at_risk_before_due; eco4_100pct=MET; eco4_80pct=BREACHED; summary_keys.)
+**Total:** 11,010 tests
 
 ### Phase KD -- Coverage Depth Sprint LII (2026-07-01)
 **Modules:** portal_analytics (crm) · revenue_accruals (finance) · pnl (finance)
@@ -4700,7 +4705,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,980 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,010 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
