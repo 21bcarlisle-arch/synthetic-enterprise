@@ -78,3 +78,76 @@ def test_schedule_summary():
     assert summary['total_forecast_mwh'] == pytest.approx(500.0)
     assert summary['portfolio_hedge_ratio_pct'] == pytest.approx(80.0)
     assert 'over_hedged_count' in summary
+
+
+# --- Phase KR depth tests ---
+
+def test_contract_id_stored():
+    c = ForwardContractDelivery(
+        'FWD-T1', Commodity.ELECTRICITY, dt.date(2022, 11, 1),
+        300.0, 120.0, HedgeTenor.MONTH_AHEAD, dt.date(2022, 10, 1)
+    )
+    assert c.contract_id == 'FWD-T1'
+
+
+def test_commodity_stored_on_contract():
+    c = ForwardContractDelivery(
+        'FWD-T2', Commodity.GAS, dt.date(2022, 12, 1),
+        100.0, 80.0, HedgeTenor.YEAR_AHEAD, dt.date(2022, 1, 1)
+    )
+    assert c.commodity == Commodity.GAS
+
+
+def test_volume_mwh_stored():
+    c = ForwardContractDelivery(
+        'FWD-T3', Commodity.ELECTRICITY, dt.date(2022, 10, 1),
+        500.0, 130.0, HedgeTenor.QUARTER_AHEAD, dt.date(2022, 7, 1)
+    )
+    assert c.volume_mwh == pytest.approx(500.0)
+
+
+def test_contracted_price_stored():
+    c = ForwardContractDelivery(
+        'FWD-T4', Commodity.GAS, dt.date(2022, 11, 1),
+        200.0, 75.0, HedgeTenor.SEASON_AHEAD, dt.date(2022, 8, 1)
+    )
+    assert c.contracted_price_gbp_per_mwh == pytest.approx(75.0)
+
+
+def test_traded_date_stored():
+    c = ForwardContractDelivery(
+        'FWD-T5', Commodity.ELECTRICITY, dt.date(2022, 10, 1),
+        300.0, 120.0, HedgeTenor.MONTH_AHEAD, dt.date(2022, 9, 15)
+    )
+    assert c.traded_date == dt.date(2022, 9, 15)
+
+
+def test_get_position_none_no_forecast():
+    s = HedgingSchedule()
+    assert s.get_position(dt.date(2022, 10, 1), Commodity.ELECTRICITY) is None
+
+
+def test_forecast_mwh_stored():
+    s = HedgingSchedule()
+    pos = s.set_forecast(dt.date(2022, 10, 1), Commodity.GAS, 750.0)
+    assert pos.forecast_mwh == pytest.approx(750.0)
+
+
+def test_delivery_month_stored():
+    s = HedgingSchedule()
+    pos = s.set_forecast(dt.date(2022, 11, 1), Commodity.ELECTRICITY, 1000.0)
+    assert pos.delivery_month == dt.date(2022, 11, 1)
+
+
+def test_over_hedged_empty_when_not_over_hedged():
+    s = HedgingSchedule()
+    s.set_forecast(dt.date(2022, 10, 1), Commodity.ELECTRICITY, 1000.0)
+    s.add_contract(dt.date(2022, 10, 1), Commodity.ELECTRICITY, 800.0,
+                   150.0, HedgeTenor.MONTH_AHEAD, dt.date(2022, 9, 1))
+    assert s.over_hedged_months(Commodity.ELECTRICITY) == []
+
+
+def test_portfolio_hedge_ratio_zero_no_hedges():
+    s = HedgingSchedule()
+    s.set_forecast(dt.date(2022, 10, 1), Commodity.GAS, 500.0)
+    assert s.portfolio_hedge_ratio(Commodity.GAS) == pytest.approx(0.0)
