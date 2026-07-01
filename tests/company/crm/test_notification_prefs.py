@@ -78,3 +78,64 @@ def test_summary_structure():
     assert "service_channels" in s
     assert "marketing_opted_out" in s
     assert s["paper_bills"] is True
+
+
+# --- Phase LJ depth tests ---
+
+def test_set_returns_commpreference():
+    p = NotificationPreferences()
+    pref = p.set("C1", "email", "service", True, "2024-01-01")
+    assert pref.customer_id == "C1"
+
+
+def test_channel_in_pref():
+    p = NotificationPreferences()
+    pref = p.set("C1", "sms", "service", True, "2024-01-01")
+    assert pref.channel == "sms"
+
+
+def test_pref_type_in_pref():
+    p = NotificationPreferences()
+    pref = p.set("C1", "email", "marketing", True, "2024-01-01")
+    assert pref.pref_type == "marketing"
+
+
+def test_updated_date_stored():
+    p = NotificationPreferences()
+    pref = p.set("C1", "email", "service", True, "2025-06-01")
+    assert pref.updated_date == "2025-06-01"
+
+
+def test_source_default_customer():
+    p = NotificationPreferences()
+    pref = p.set("C1", "email", "service", True, "2024-01-01")
+    assert pref.source == "customer"
+
+
+def test_for_customer_returns_list():
+    p = _prefs()
+    result = p.for_customer("C1")
+    assert isinstance(result, list)
+    assert len(result) > 0
+
+
+def test_get_returns_none_unknown():
+    p = NotificationPreferences()
+    assert p.get("UNKNOWN", "email", "service") is None
+
+
+def test_can_contact_default_sms_service_denied():
+    p = NotificationPreferences()
+    assert p.can_contact("UNKNOWN", "sms", "service") is False
+
+
+def test_summary_marketing_channels_key():
+    p = _prefs()
+    s = p.summary("C1")
+    assert "marketing_channels" in s
+
+
+def test_summary_service_channels_is_list():
+    p = _prefs()
+    s = p.summary("C1")
+    assert isinstance(s["service_channels"], list)

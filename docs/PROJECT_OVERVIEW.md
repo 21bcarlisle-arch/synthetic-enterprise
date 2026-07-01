@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,910 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,940 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LJ -- Coverage Depth Sprint LXXXIV (2026-07-01)
+30 depth tests across 3 modules: life_events (customer_id/event_type/event_date/notes_empty/occupancy_delta_zero/death_triggers_vulnerability/move_out_triggers_cot/retirement_triggers_psr/pending_psr_reviews/annual_summary_year), notification_prefs (set_returns_pref/channel/pref_type/updated_date/source_customer/for_customer_list/get_none_unknown/sms_service_denied/summary_marketing_key/service_channels_list), supply_point_register (identifier/account_id/fuel_elec/profile_class/start_date/annual_quantity/gas_pc_none/points_for_account/profile_breakdown/register_returns).
+**Total:** 11,940 tests
 
 ### Phase LI -- Coverage Depth Sprint LXXXIII (2026-07-01)
 30 depth tests across 3 modules: switching (customer_id/mpan/transfer_date/submitted_date/status_pending/objection_reason_empty/completed_date_empty/gains_method/losses_method/summary_total), whd_register (rebate_constant=150/application_id_format/eligibility_reason/applied_date/rebated_date_none/status_applied/status_rebated/summary_year_key/total_no_filter/pending_empty), household_profile (single_peak=0.85/family_peak=1.35/couple_peak=1.0/retired_daytime=0.72/student_peak=0.75/wfh_daytime_boost/occupants/heating_system/tou_couple_medium/oil_boiler_eligible).
@@ -4832,7 +4836,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,910 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,940 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

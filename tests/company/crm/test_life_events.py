@@ -78,3 +78,59 @@ def test_annual_summary(log):
     assert summary["vulnerability_triggers"] == 1
     assert summary["cot_triggers"] == 1
     assert summary["by_type"]["birth"] == 1
+
+
+# --- Phase LJ depth tests ---
+
+def test_customer_id_stored():
+    e = LifeEvent("CUST_LJ", LifeEventType.JOB_LOSS, date(2022, 1, 1))
+    assert e.customer_id == "CUST_LJ"
+
+
+def test_event_type_stored():
+    e = LifeEvent("C1", LifeEventType.RETIREMENT, date(2022, 1, 1))
+    assert e.event_type == LifeEventType.RETIREMENT
+
+
+def test_event_date_stored():
+    e = LifeEvent("C1", LifeEventType.BIRTH, date(2022, 5, 15))
+    assert e.event_date == date(2022, 5, 15)
+
+
+def test_notes_default_empty():
+    e = LifeEvent("C1", LifeEventType.BIRTH, date(2022, 1, 1))
+    assert e.notes == ""
+
+
+def test_occupancy_delta_default_zero():
+    e = LifeEvent("C1", LifeEventType.BIRTH, date(2022, 1, 1))
+    assert e.occupancy_delta == 0
+
+
+def test_death_triggers_vulnerability():
+    e = LifeEvent("C1", LifeEventType.DEATH, date(2022, 1, 1))
+    assert e.triggers_vulnerability_review is True
+
+
+def test_move_out_triggers_cot():
+    e = LifeEvent("C1", LifeEventType.MOVE_OUT, date(2022, 1, 1))
+    assert e.triggers_cot is True
+
+
+def test_retirement_triggers_psr():
+    e = LifeEvent("C1", LifeEventType.RETIREMENT, date(2022, 1, 1))
+    assert e.triggers_psr_review is True
+
+
+def test_pending_psr_reviews(log):
+    log.record(LifeEvent("C1", LifeEventType.SERIOUS_ILLNESS, date(2022, 4, 1)))
+    log.record(LifeEvent("C2", LifeEventType.JOB_GAIN, date(2022, 4, 5)))
+    reviews = log.pending_psr_reviews(since=date(2022, 1, 1))
+    assert len(reviews) == 1
+    assert reviews[0].customer_id == "C1"
+
+
+def test_annual_summary_year_key(log):
+    log.record(LifeEvent("C1", LifeEventType.BIRTH, date(2022, 3, 1)))
+    s = log.annual_summary(2022)
+    assert s["year"] == 2022

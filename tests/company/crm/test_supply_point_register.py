@@ -91,3 +91,66 @@ def test_register_summary_keys():
     for k in ("total_registered", "active_electricity", "active_gas", "hh_points",
                "total_aq_electricity_kwh"):
         assert k in s
+
+
+# --- Phase LJ depth tests ---
+
+def test_identifier_stored():
+    r = _elec(mpan="1012345678901")
+    assert r.identifier == "1012345678901"
+
+
+def test_account_id_stored():
+    r = _elec(aid="ACCT_LJ")
+    assert r.account_id == "ACCT_LJ"
+
+
+def test_fuel_electricity():
+    r = _elec()
+    assert r.fuel == FuelType.ELECTRICITY
+
+
+def test_profile_class_stored():
+    r = _elec(pc=ProfileClass.PC3)
+    assert r.profile_class == ProfileClass.PC3
+
+
+def test_supplier_start_date_stored():
+    r = _elec(start="2023-04-01")
+    assert r.supplier_start_date == "2023-04-01"
+
+
+def test_annual_quantity_stored():
+    r = _elec(aq=5000.0)
+    assert r.annual_quantity_kwh == pytest.approx(5000.0)
+
+
+def test_gas_profile_class_none():
+    r = _gas()
+    assert r.profile_class is None
+
+
+def test_points_for_account():
+    reg = SupplyPointRegister()
+    reg.register(_elec(mpan="A", aid="ACCT1"))
+    reg.register(_elec(mpan="B", aid="ACCT1"))
+    reg.register(_elec(mpan="C", aid="ACCT2"))
+    pts = reg.points_for_account("ACCT1")
+    assert len(pts) == 2
+
+
+def test_profile_class_breakdown():
+    reg = SupplyPointRegister()
+    reg.register(_elec(mpan="A", pc=ProfileClass.PC1))
+    reg.register(_elec(mpan="B", pc=ProfileClass.PC1))
+    reg.register(_elec(mpan="C", pc=ProfileClass.PC3))
+    bd = reg.profile_class_breakdown()
+    assert bd.get("1") == 2
+    assert bd.get("3") == 1
+
+
+def test_register_returns_record():
+    reg = SupplyPointRegister()
+    r = _elec()
+    result = reg.register(r)
+    assert result is r
