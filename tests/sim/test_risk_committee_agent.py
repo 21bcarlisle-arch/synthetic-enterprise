@@ -139,3 +139,53 @@ def test_invoke_logs_decision(tmp_path, monkeypatch):
     log_text = log_file.read_text()
     assert "elevated VaR, bump hedge" in log_text
     assert "C1: 0.30 → 0.50" in log_text
+
+
+def test_invoke_returns_empty_dict_for_no_adjustments(tmp_path, monkeypatch):
+    handshake = tmp_path / "handshake.md"
+    handshake.write_text("Risk Committee Wake-Up — context")
+    log_file = tmp_path / "risk-committee-log.md"
+    monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
+    monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.delenv("SIM_FAST_MODE", raising=False)
+
+    monkeypatch.setattr(agent, "_call_local", lambda context: {
+        "reasoning": "all within tolerance",
+        "adjustments": [],
+    })
+
+    adjustments = agent.invoke("2020-01-01", 1, {"C1": 0.85})
+    assert adjustments == {}
+
+
+def test_invoke_multiple_customers_only_valid_adjustments(tmp_path, monkeypatch):
+    handshake = tmp_path / "handshake.md"
+    handshake.write_text("Risk Committee Wake-Up")
+    log_file = tmp_path / "risk-committee-log.md"
+    monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
+    monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.delenv("SIM_FAST_MODE", raising=False)
+
+    monkeypatch.setattr(agent, "_call_local", lambda context: {
+        "reasoning": "concern for some",
+        "adjustments": [
+            {"customer_id": "C1", "old_hedge_fraction": 0.30, "new_hedge_fraction": 0.50},
+            {"customer_id": "C2", "old_hedge_fraction": 0.85, "new_hedge_fraction": 0.85},
+        ],
+    })
+
+    adjustments = agent.invoke("2020-01-01", 1, {"C1": 0.30, "C2": 0.85})
+    assert "C1" in adjustments
+    assert adjustments["C1"] == 0.50
+
+
+def test_fast_mode_empty_portfolio_returns_empty(tmp_path, monkeypatch):
+    handshake = tmp_path / "handshake.md"
+    handshake.write_text("context")
+    log_file = tmp_path / "log.md"
+    monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
+    monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.setenv("SIM_FAST_MODE", "1")
+
+    adjustments = agent.invoke("2020-01-01", 1, {})
+    assert adjustments == {}

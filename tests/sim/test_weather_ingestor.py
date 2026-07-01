@@ -98,3 +98,36 @@ def test_write_weather_csv_header(tmp_path):
     with open(out) as f:
         header = f.readline().strip()
     assert "date" in header and "temperature_mean_c" in header
+
+
+def test_temperature_max_min_mapped():
+    dates = ["2022-06-15"]
+    payload = _open_meteo_payload(dates, temp_mean=10.0)
+    from unittest.mock import patch
+    with patch("requests.get", return_value=_mock_response(payload)):
+        result = get_daily_weather("LON", 51.5, -0.1, "2022-06-15", "2022-06-15")
+    assert result[0]["temperature_max_c"] == 15.0
+    assert result[0]["temperature_min_c"] == 5.0
+
+
+def test_cloud_cover_mapped():
+    dates = ["2022-06-15"]
+    payload = _open_meteo_payload(dates, temp_mean=10.0)
+    from unittest.mock import patch
+    with patch("requests.get", return_value=_mock_response(payload)):
+        result = get_daily_weather("LON", 51.5, -0.1, "2022-06-15", "2022-06-15")
+    assert result[0]["cloud_cover_pct"] == 60.0
+
+
+def test_write_weather_csv_row_count(tmp_path):
+    records = [
+        {"date": f"2022-01-0{i}", "location_id": "LON", "temperature_max_c": 12.0,
+         "temperature_min_c": 6.0, "temperature_mean_c": 9.0, "wind_speed_mean_ms": 4.2,
+         "cloud_cover_pct": 70.0, "precipitation_mm": 2.5}
+        for i in range(1, 4)
+    ]
+    out = str(tmp_path / "weather.csv")
+    write_weather_csv(records, out)
+    with open(out) as f:
+        lines = f.readlines()
+    assert len(lines) == 4  # header + 3 data rows

@@ -110,3 +110,22 @@ class TestSegmentProfileSelection:
         ratio = jan_recs[0]["daily_kwh"] / jul_recs[0]["daily_kwh"]
         assert ratio < 2.0, f"I&C gas Jan:Jul kwh ratio should be <2, got {ratio:.2f}"
         assert ratio > 1.0, "I&C gas has slight winter uplift"
+
+
+    def test_resi_all_months_present(self):
+        assert set(GAS_CONSUMPTION_MONTHLY_PROFILE.keys()) == set(range(1, 13))
+
+    def test_resi_normalisation_to_365(self):
+        from calendar import monthrange
+        days = {m: monthrange(2019, m)[1] for m in range(1, 13)}
+        total = sum(GAS_CONSUMPTION_MONTHLY_PROFILE[m] * days[m] for m in range(1, 13))
+        assert abs(total - 365) < 1.0
+
+    def test_ic_february_higher_than_july(self):
+        assert GAS_IC_CONSUMPTION_MONTHLY_PROFILE[2] > GAS_IC_CONSUMPTION_MONTHLY_PROFILE[7]
+
+    def test_ic_all_factors_below_2(self):
+        assert all(v < 2.0 for v in GAS_IC_CONSUMPTION_MONTHLY_PROFILE.values())
+
+    def test_resi_jan_far_above_ic_jan(self):
+        assert GAS_CONSUMPTION_MONTHLY_PROFILE[1] > GAS_IC_CONSUMPTION_MONTHLY_PROFILE[1] * 1.5

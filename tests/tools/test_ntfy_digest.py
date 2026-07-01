@@ -94,3 +94,47 @@ def test_run_history_max_net_returns_zero_on_missing(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
     result = prc._run_history_max_net()
     assert result == 0.0
+
+
+def test_ntfy_admin_event_message_includes_date(monkeypatch):
+    from background.process_run_complete import maybe_ntfy
+    mock = _MockNtfy()
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", mock)
+    data = {"administration_event": {"date": "2022-09-15"}}
+    maybe_ntfy(data, 500_000)
+    assert "2022-09-15" in mock.messages[0]
+
+
+def test_high_and_low_both_send_only_one_ntfy(monkeypatch):
+    from background import process_run_complete as prc
+    mock = _MockNtfy()
+    monkeypatch.setattr(prc, "_run_history_max_net", lambda: 5_000_000.0)
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", mock)
+    data = {"administration_event": None}
+    prc.maybe_ntfy(data, 6_500_000.0)
+    assert len(mock.messages) == 1
+
+
+def test_no_ntfy_for_same_net_as_history_max(monkeypatch):
+    from background import process_run_complete as prc
+    mock = _MockNtfy()
+    monkeypatch.setattr(prc, "_run_history_max_net", lambda: 6_000_000.0)
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", mock)
+    data = {"administration_event": None}
+    prc.maybe_ntfy(data, 6_000_000.0)
+    assert len(mock.messages) == 0
+
+
+def test_run_history_max_net_reads_from_history_file(tmp_path, monkeypatch):
+    import json as _json
+    import background.process_run_complete as prc
+    history = [{"net_margin_gbp": 3_000_000.0}, {"net_margin_gbp": 7_000_000.0}, {"net_margin_gbp": 2_000_000.0}]
+    hist_dir = tmp_path / "docs" / "observability"
+    hist_dir.mkdir(parents=True)
+    (hist_dir / "run_history.json").write_text(_json.dumps(history))
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    result = prc._run_history_max_net()
+    assert result == 7_000_000.0

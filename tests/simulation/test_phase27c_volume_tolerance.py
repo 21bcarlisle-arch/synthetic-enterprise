@@ -107,3 +107,36 @@ def test_band_boundaries_correct():
     )
     assert result["band_high_kwh"] == pytest.approx(2_200_000.0)
     assert result["band_low_kwh"] == pytest.approx(1_800_000.0)
+
+
+def test_all_result_keys_present():
+    from simulation.volume_tolerance import compute_term_volume_tolerance
+    r = compute_term_volume_tolerance(100.0, 100.0, 50.0, 60.0, 0.85)
+    expected_keys = {
+        "actual_kwh", "contracted_kwh", "band_high_kwh", "band_low_kwh",
+        "excess_kwh", "deficit_kwh", "excess_spot_cost_gbp", "deficit_unwind_gbp",
+        "variance_pct", "within_band",
+    }
+    assert expected_keys == set(r.keys())
+
+
+def test_contracted_kwh_stored_in_result():
+    from simulation.volume_tolerance import compute_term_volume_tolerance
+    r = compute_term_volume_tolerance(100.0, 200.0, 50.0, 60.0, 0.85)
+    assert r["contracted_kwh"] == 200.0
+    assert r["actual_kwh"] == 100.0
+
+
+def test_excess_spot_cost_proportional_to_excess():
+    from simulation.volume_tolerance import compute_term_volume_tolerance
+    spot = 50.0
+    r = compute_term_volume_tolerance(130.0, 100.0, spot, 60.0, 0.85)
+    expected_excess_cost = r["excess_kwh"] * spot / 1000.0
+    assert abs(r["excess_spot_cost_gbp"] - expected_excess_cost) < 1e-6
+
+
+def test_zero_excess_zero_deficit_when_exactly_at_band_high():
+    from simulation.volume_tolerance import compute_term_volume_tolerance
+    r = compute_term_volume_tolerance(110.0, 100.0, 50.0, 60.0, 0.85)
+    assert r["excess_kwh"] == pytest.approx(0.0, abs=0.01)
+    assert r["within_band"] is True
