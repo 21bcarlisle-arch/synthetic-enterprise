@@ -87,3 +87,18 @@ def test_fmt_rounds_to_two_decimal_places():
 
 def test_fmt_zero_returns_zero():
     assert _fmt(0) == 0.0
+
+
+def test_fmt_rounds_large_value():
+    assert _fmt(1234.567) == 1234.57
+
+
+def test_fmt_negative_value():
+    assert _fmt(-5.0) == -5.0
+
+
+def test_extract_insights_git_hash_stored(tmp_path):
+    p = tmp_path / "run_insights.json"
+    p.write_text(json.dumps(_SAMPLE_INSIGHTS))
+    result = extract_insights(p)
+    assert result["git_hash"] == "abc1234"

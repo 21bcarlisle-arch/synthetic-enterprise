@@ -124,3 +124,24 @@ def test_main_writes_to_log_file(monkeypatch, tmp_path):
     health_check.main()
 
     assert log.exists()
+
+
+def test_expected_panes_count_is_nonzero():
+    assert len(health_check.EXPECTED_PANES) > 0
+
+
+def test_run_health_check_returns_three_values(monkeypatch):
+    monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
+    monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
+    monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+    result = health_check.run_health_check()
+    assert len(result) == 3
+
+
+def test_ok_lines_are_all_strings(monkeypatch):
+    monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
+    monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
+    monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+    all_ok, ok_lines, problem_lines = health_check.run_health_check()
+    assert all(isinstance(line, str) for line in ok_lines)
+    assert all(isinstance(line, str) for line in problem_lines)

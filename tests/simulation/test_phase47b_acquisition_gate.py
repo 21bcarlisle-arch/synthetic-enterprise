@@ -73,3 +73,18 @@ class TestAcquisitionGateIntegration:
         ok, reason = should_attempt_acquisition("resi", "electricity", 400.0, "2022-09-01")
         assert not ok
         assert reason is not None
+
+
+    def test_should_attempt_acquisition_returns_tuple(self):
+        result = should_attempt_acquisition("resi", "electricity", 350.0, "2022-06-01")
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+
+    def test_gate_ok_is_bool(self):
+        ok, reason = should_attempt_acquisition("resi", "electricity", 350.0, "2022-06-01")
+        assert isinstance(ok, bool)
+
+    def test_normal_year_below_cap_fwd_levels_pass(self):
+        for fwd in [100.0, 130.0, 150.0, 160.0]:
+            ok, _ = should_attempt_acquisition("resi", "electricity", fwd, "2019-06-01")
+            assert ok, f"Expected gate to pass for fwd={fwd} in 2019 (cap=165)"

@@ -111,3 +111,28 @@ def test_check_once_with_empty_staging_dir(tmp_path, monkeypatch):
 
     seen = watcher.check_once(set())
     assert seen == set()
+
+
+def test_current_files_returns_set(tmp_path, monkeypatch):
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    result = watcher.current_files()
+    assert isinstance(result, set)
+
+
+def test_save_and_reload_multiple_files(tmp_path, monkeypatch):
+    state_file = tmp_path / "seen.json"
+    monkeypatch.setattr(watcher, "STATE_FILE", state_file)
+    files = {"A.md", "B.md", "C.md", "D.md"}
+    watcher.save_seen(files)
+    assert watcher.load_seen() == files
+
+
+def test_check_once_returns_updated_seen(tmp_path, monkeypatch):
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
+    monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    (tmp_path / "NEW.md").write_text("content")
+    monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
+    result = watcher.check_once(set())
+    assert isinstance(result, set)
+    assert "NEW.md" in result

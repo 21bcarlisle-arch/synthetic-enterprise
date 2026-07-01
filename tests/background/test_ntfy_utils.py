@@ -103,3 +103,24 @@ def test_send_ntfy_no_id_key_returns_none(tmp_path, monkeypatch):
     msg_id = ntfy_utils.send_ntfy("hello")
 
     assert msg_id is None
+
+
+def test_max_sent_ids_constant_exists():
+    assert hasattr(ntfy_utils, "MAX_SENT_IDS")
+    assert ntfy_utils.MAX_SENT_IDS > 0
+
+
+def test_record_sent_id_stores_single_id(tmp_path, monkeypatch):
+    sent_ids_file = tmp_path / "sent.json"
+    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
+    ntfy_utils.record_sent_id("test-id-001")
+    import json as _json
+    ids = _json.loads(sent_ids_file.read_text())
+    assert "test-id-001" in ids
+
+
+def test_was_sent_by_us_returns_bool(tmp_path, monkeypatch):
+    sent_ids_file = tmp_path / "sent.json"
+    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
+    result = ntfy_utils.was_sent_by_us("any-id")
+    assert isinstance(result, bool)
