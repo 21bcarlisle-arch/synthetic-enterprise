@@ -86,3 +86,45 @@ def test_portfolio_summary_with_accounts(book):
     summary = book.portfolio_summary(2022)
     assert summary["total_accounts"] == 2
     assert summary["total_export_kwh"] == pytest.approx(800.0)
+
+
+# --- Phase LP depth tests ---
+
+def test_seg_min_rate_constant():
+    assert _SEG_MIN_RATE_PPM == pytest.approx(1.0)
+
+
+def test_seg_rate_2020():
+    assert seg_rate_ppm(2020) == pytest.approx(5.5)
+
+
+def test_seg_rate_2025():
+    assert seg_rate_ppm(2025) == pytest.approx(7.0)
+
+
+def test_seg_rate_unknown_year_fallback():
+    assert seg_rate_ppm(2010) == pytest.approx(5.5)
+
+
+def test_seg_valid_rate_at_minimum():
+    assert seg_valid_rate(1.0) is True
+
+
+def test_account_customer_id_stored(account):
+    assert account.customer_id == "C001"
+
+
+def test_account_meter_point_stored(account):
+    assert account.meter_point_id == "MPAN_001"
+
+
+def test_account_tariff_name_stored(account):
+    assert account.tariff_name == "SEG_Standard"
+
+
+def test_account_registered_date_stored(account):
+    assert account.registered_date == date(2022, 4, 1)
+
+
+def test_total_payments_gbp_empty(account):
+    assert account.total_payments_gbp() == pytest.approx(0.0)

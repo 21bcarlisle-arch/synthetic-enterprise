@@ -106,3 +106,68 @@ def test_summary():
     summary = r.revenue_protection_summary()
     assert "Revenue Protection" in summary
     assert "Active" in summary
+
+
+# --- Phase LP depth tests ---
+
+def test_case_id_stored():
+    r = RevenueProtectionRegister()
+    c = r.open_case("RP_LP", "C1", RPCaseType.METER_TAMPERING, _D, 5000, 1000.0)
+    assert c.case_id == "RP_LP"
+
+
+def test_account_id_stored():
+    r = RevenueProtectionRegister()
+    c = r.open_case("RP001", "ACCT_LP", RPCaseType.METER_TAMPERING, _D, 5000, 1000.0)
+    assert c.account_id == "ACCT_LP"
+
+
+def test_case_type_stored():
+    r = RevenueProtectionRegister()
+    c = r.open_case("RP001", "C1", RPCaseType.METER_BYPASS, _D, 5000, 1000.0)
+    assert c.case_type == RPCaseType.METER_BYPASS
+
+
+def test_discovery_date_stored():
+    r = RevenueProtectionRegister()
+    c = r.open_case("RP001", "C1", RPCaseType.METER_TAMPERING, _D, 5000, 1000.0)
+    assert c.discovery_date == _D
+
+
+def test_estimated_loss_kwh_stored():
+    r = RevenueProtectionRegister()
+    c = r.open_case("RP001", "C1", RPCaseType.METER_TAMPERING, _D, 12345, 2000.0)
+    import pytest
+    assert c.estimated_loss_kwh == pytest.approx(12345)
+
+
+def test_estimated_loss_gbp_stored():
+    r = RevenueProtectionRegister()
+    c = r.open_case("RP001", "C1", RPCaseType.METER_TAMPERING, _D, 5000, 2500.0)
+    import pytest
+    assert c.estimated_loss_gbp == pytest.approx(2500.0)
+
+
+def test_backbill_date_default_none():
+    r = RevenueProtectionRegister()
+    c = r.open_case("RP001", "C1", RPCaseType.METER_TAMPERING, _D, 5000, 1000.0)
+    assert c.backbill_start_date is None
+
+
+def test_open_case_returns_case():
+    r = RevenueProtectionRegister()
+    from company.billing.revenue_protection_register import RPCase
+    c = r.open_case("RP001", "C1", RPCaseType.METER_TAMPERING, _D, 5000, 1000.0)
+    assert isinstance(c, RPCase)
+
+
+def test_is_recoverable_suspected_false():
+    r, c = _reg_with_case()
+    assert c.is_recoverable is False
+
+
+def test_estimation_fraud_case_type():
+    from company.billing.revenue_protection_register import RPCaseType as T
+    r = RevenueProtectionRegister()
+    c = r.open_case("RP001", "C1", T.ESTIMATION_FRAUD, _D, 3000, 500.0)
+    assert c.case_type == T.ESTIMATION_FRAUD
