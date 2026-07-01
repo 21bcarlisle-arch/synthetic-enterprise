@@ -1,7 +1,7 @@
 Phase LF: Coverage Depth Sprint LXXX (11,820 tests)
-Last updated: 2026-07-01T05:28:00Z
+Last updated: 2026-07-01T05:31:13Z
 
-**Latest simulation results (2016–2025)** — auto-processed (463s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
 - Treasury: £2,466,636 → £3,709,973 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £6,037,509.08 | Net after CTS: £6,370,846
