@@ -104,3 +104,62 @@ def test_var_trend_ordering():
     trend = book.var_trend()
     assert trend[0]["date"] == "2022-01-15"
     assert trend[1]["date"] == "2022-06-15"
+
+
+# --- Phase MK depth tests ---
+
+def test_observation_date_stored():
+    book = _book()
+    obs = book.record_observation("2022-01-15", 30000.0, 60000.0, 500000.0)
+    assert obs.observation_date == "2022-01-15"
+
+
+def test_current_var_gbp_stored():
+    book = _book()
+    obs = book.record_observation("2022-01-15", 80000.0, 120000.0, 500000.0)
+    assert obs.current_var_gbp == pytest.approx(80000.0)
+
+
+def test_stressed_var_gbp_stored():
+    book = _book()
+    obs = book.record_observation("2022-01-15", 30000.0, 90000.0, 500000.0)
+    assert obs.stressed_var_gbp == pytest.approx(90000.0)
+
+
+def test_treasury_gbp_stored():
+    book = _book()
+    obs = book.record_observation("2022-01-15", 30000.0, 60000.0, 750000.0)
+    assert obs.treasury_gbp == pytest.approx(750000.0)
+
+
+def test_var_breach_level_has_3_members():
+    assert len(list(VaRBreachLevel)) == 3
+
+
+def test_amber_limit_stored():
+    book = _book(amber=75000, red=200000)
+    assert book.amber_limit_gbp == pytest.approx(75000.0)
+
+
+def test_red_limit_stored():
+    book = _book(amber=75000, red=200000)
+    assert book.red_limit_gbp == pytest.approx(200000.0)
+
+
+def test_record_observation_returns_var_observation():
+    book = _book()
+    result = book.record_observation("2022-01-15", 30000.0, 60000.0, 500000.0)
+    assert isinstance(result, VaRObservation)
+
+
+def test_breach_count_with_year_filter():
+    book = _book(amber=50000, red=150000)
+    book.record_observation("2022-01-01", 80000.0, 100000.0, 500000.0)   # amber 2022
+    book.record_observation("2023-01-01", 80000.0, 100000.0, 500000.0)   # amber 2023
+    assert book.breach_count(VaRBreachLevel.AMBER, year=2022) == 1
+    assert book.breach_count(VaRBreachLevel.AMBER, year=2023) == 1
+
+
+def test_stress_uplift_pct_zero_when_current_zero():
+    obs = VaRObservation("2022-01-01", current_var_gbp=0.0, stressed_var_gbp=10000.0, treasury_gbp=500000.0)
+    assert obs.stress_uplift_pct == pytest.approx(0.0)

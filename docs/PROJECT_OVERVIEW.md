@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,720 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 12,750 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase MK -- Coverage Depth Sprint CXI (2026-07-01)
+30 depth tests across 3 modules: roc_ledger (obligation_year/total_mwh/rocs_required/surrendered_0/buy_out_0/status_open/status_count=5/create_returns/rocs_required_computed/compliance_100_zero), solr_levy_register (levy_type/supplier_name/levy_date/company_mwh/rate/total_mwh/share_fraction/levy_count=3/mutualisation/record_returns), var_monitor (observation_date/current_var/stressed_var/treasury/breach_count=3/amber_stored/red_stored/record_returns/breach_year_filter/uplift_0_zero).
+**Total:** 12,750 tests
 
 ### Phase MJ -- Coverage Depth Sprint CX (2026-07-01)
 30 depth tests across 3 modules: interruptible_supply (account_id/start_date/annual_kwh/discount_pct=15/event_date/event_account/event_reason/event_curtailment/firmness_count=2/reason_count=4), compliance (target_float/pre_2019/post_2025/sc_breach/breach_customer_id/filing_required/vulnerable_key/fee_0007/checked_count/resolution_1_no_complaints), fitness_register (person_id/name/role/assessment_date/outcome/conditions_empty/concerns_empty/is_fit_conditions/has_concerns/outcome_count=4).
@@ -4940,7 +4944,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,720 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,750 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

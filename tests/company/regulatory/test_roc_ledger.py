@@ -85,3 +85,57 @@ class TestROCLedger:
         ledger.create_obligation(YEAR, 10000.0)
         s = ledger.roc_ledger_summary()
         assert "ROC Ledger" in s
+
+
+# --- Phase MK depth tests ---
+
+def test_obligation_year_stored():
+    r = ROCObligationRecord(2023, 10000.0, rocs_required=376.0)
+    assert r.obligation_year == 2023
+
+
+def test_total_mwh_supplied_stored():
+    r = ROCObligationRecord(2022, 50000.0, rocs_required=185.0)
+    assert r.total_mwh_supplied == pytest.approx(50000.0)
+
+
+def test_rocs_required_stored():
+    r = ROCObligationRecord(2023, 10000.0, rocs_required=376.0)
+    assert r.rocs_required == pytest.approx(376.0)
+
+
+def test_rocs_surrendered_default_zero():
+    r = ROCObligationRecord(2023, 10000.0, rocs_required=376.0)
+    assert r.rocs_surrendered == pytest.approx(0.0)
+
+
+def test_buy_out_paid_gbp_default_zero():
+    r = ROCObligationRecord(2023, 10000.0, rocs_required=376.0)
+    assert r.buy_out_paid_gbp == pytest.approx(0.0)
+
+
+def test_status_default_open():
+    r = ROCObligationRecord(2023, 10000.0, rocs_required=376.0)
+    assert r.status == ROCObligationStatus.OPEN
+
+
+def test_roc_obligation_status_has_5_members():
+    assert len(list(ROCObligationStatus)) == 5
+
+
+def test_create_obligation_returns_record():
+    ledger = ROCLedger()
+    result = ledger.create_obligation(2023, 10000.0)
+    assert isinstance(result, ROCObligationRecord)
+
+
+def test_create_obligation_computes_rocs_required():
+    ledger = ROCLedger()
+    r = ledger.create_obligation(2022, 10000.0)
+    expected = 10000.0 * _ROC_OBLIGATION_LEVEL[2022]
+    assert r.rocs_required == pytest.approx(expected)
+
+
+def test_compliance_pct_100_when_rocs_required_zero():
+    r = ROCObligationRecord(2023, 0.0, rocs_required=0.0)
+    assert r.compliance_pct == pytest.approx(100.0)
