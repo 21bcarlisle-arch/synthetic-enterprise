@@ -106,3 +106,65 @@ def test_score_values():
     assert g.score_value == 3
     assert a.score_value == 2
     assert r.score_value == 1
+
+
+# --- Phase MD depth tests ---
+
+def test_pillar_stored():
+    sc = SupplierResilienceScorecard()
+    score = sc.assess_liquidity(6_000_000, 400_000)
+    assert score.pillar == ResiliencePillar.LIQUIDITY
+
+
+def test_rag_stored():
+    sc = SupplierResilienceScorecard()
+    score = sc.assess_liquidity(6_000_000, 400_000)
+    assert score.rag == PillarRAG.GREEN
+
+
+def test_value_stored():
+    sc = SupplierResilienceScorecard()
+    score = sc.assess_liquidity(6_000_000, 400_000)
+    assert score.value == pytest.approx(15.0)
+
+
+def test_threshold_green_stored():
+    sc = SupplierResilienceScorecard()
+    score = sc.assess_liquidity(6_000_000, 400_000)
+    assert score.threshold_green == pytest.approx(12.0)
+
+
+def test_threshold_amber_stored():
+    sc = SupplierResilienceScorecard()
+    score = sc.assess_liquidity(6_000_000, 400_000)
+    assert score.threshold_amber == pytest.approx(6.0)
+
+
+def test_description_non_empty():
+    sc = SupplierResilienceScorecard()
+    score = sc.assess_liquidity(6_000_000, 400_000)
+    assert len(score.description) > 0
+
+
+def test_score_value_green_equals_3():
+    sc = SupplierResilienceScorecard()
+    score = sc.assess_liquidity(6_000_000, 400_000)
+    assert score.score_value == 3
+
+
+def test_score_value_amber_equals_2():
+    sc = SupplierResilienceScorecard()
+    score = sc.assess_liquidity(3_000_000, 400_000)
+    assert score.rag == PillarRAG.AMBER
+    assert score.score_value == 2
+
+
+def test_resilience_pillar_has_5_members():
+    assert len(list(ResiliencePillar)) == 5
+
+
+def test_assess_liquidity_returns_pillar_score():
+    from company.risk.supplier_resilience_scorecard import PillarScore
+    sc = SupplierResilienceScorecard()
+    result = sc.assess_liquidity(6_000_000, 400_000)
+    assert isinstance(result, PillarScore)

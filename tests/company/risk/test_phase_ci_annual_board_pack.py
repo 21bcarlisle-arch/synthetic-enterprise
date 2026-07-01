@@ -104,3 +104,54 @@ def test_pack_summary():
     assert "RED" in summary
     assert "Financial" in summary
     assert "Risk" in summary
+
+
+# --- Phase MD depth tests ---
+
+def test_signal_category_stored():
+    signal = BoardSignal(BoardSignalCategory.FINANCIAL, 'Net Margin', '£1M', BoardSignalRAG.GREEN)
+    assert signal.category == BoardSignalCategory.FINANCIAL
+
+
+def test_signal_name_stored():
+    signal = BoardSignal(BoardSignalCategory.RISK, 'Score', '2.5', BoardSignalRAG.AMBER)
+    assert signal.name == 'Score'
+
+
+def test_signal_value_stored():
+    signal = BoardSignal(BoardSignalCategory.COMPLIANCE, 'SLC', 'GREEN', BoardSignalRAG.GREEN)
+    assert signal.value == 'GREEN'
+
+
+def test_signal_rag_stored():
+    signal = BoardSignal(BoardSignalCategory.STRATEGIC, 'Growth', '+5%', BoardSignalRAG.AMBER)
+    assert signal.rag == BoardSignalRAG.AMBER
+
+
+def test_signal_commentary_default_empty():
+    signal = BoardSignal(BoardSignalCategory.FINANCIAL, 'Rev', '£1M', BoardSignalRAG.GREEN)
+    assert signal.commentary == ''
+
+
+def test_is_red_true():
+    signal = BoardSignal(BoardSignalCategory.RISK, 'Score', '1.0', BoardSignalRAG.RED)
+    assert signal.is_red is True
+
+
+def test_is_green_false_for_amber():
+    signal = BoardSignal(BoardSignalCategory.RISK, 'Score', '1.5', BoardSignalRAG.AMBER)
+    assert signal.is_green is False
+
+
+def test_add_signal_returns_board_signal():
+    pack = AnnualBoardPack(2023)
+    result = pack.add_signal(BoardSignalCategory.FINANCIAL, 'Rev', '£1M', BoardSignalRAG.GREEN)
+    assert isinstance(result, BoardSignal)
+
+
+def test_board_signal_category_has_5_members():
+    assert len(list(BoardSignalCategory)) == 5
+
+
+def test_board_signal_rag_has_3_members():
+    assert len(list(BoardSignalRAG)) == 3

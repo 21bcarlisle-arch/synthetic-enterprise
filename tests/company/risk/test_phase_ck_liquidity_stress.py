@@ -120,3 +120,59 @@ def test_stress_summary():
     assert "Liquidity Stress" in summary
     assert "severe_2022" in summary
     assert "Insolvent" in summary or "insolvent" in summary
+
+
+# --- Phase MD depth tests ---
+
+def test_scenario_name_stored():
+    s = StressScenario('Test', 20.0, 10.0, 50.0)
+    assert s.name == 'Test'
+
+
+def test_price_shock_stored():
+    s = StressScenario('Test', 30.0, 10.0, 100.0)
+    assert s.wholesale_price_shock_pct == pytest.approx(30.0)
+
+
+def test_volume_shock_stored():
+    s = StressScenario('Test', 20.0, 15.0, 50.0)
+    assert s.volume_shock_pct == pytest.approx(15.0)
+
+
+def test_im_shock_stored():
+    s = StressScenario('Test', 20.0, 10.0, 200.0)
+    assert s.initial_margin_shock_pct == pytest.approx(200.0)
+
+
+def test_stress_days_default_30():
+    s = StressScenario('Test', 20.0, 10.0, 50.0)
+    assert s.stress_days == 30
+
+
+def test_is_severe_false_low_shock():
+    s = StressScenario('mild', 20.0, 5.0, 50.0)
+    assert s.is_severe is False
+
+
+def test_is_severe_true_high_price_shock():
+    s = StressScenario('severe', 60.0, 5.0, 50.0)
+    assert s.is_severe is True
+
+
+def test_starting_cash_stored():
+    book = _healthy_book()
+    result = book.run_scenario(StressScenario('mild', 20, 5, 50))
+    assert result.starting_cash_gbp == pytest.approx(5_000_000)
+
+
+def test_total_drain_is_sum():
+    book = _healthy_book()
+    result = book.run_scenario(StressScenario('mild', 20, 5, 50))
+    expected = result.vm_drain_gbp + result.im_additional_call_gbp
+    assert result.total_cash_drain_gbp == pytest.approx(expected)
+
+
+def test_run_scenario_returns_stress_test_result():
+    book = _healthy_book()
+    result = book.run_scenario(StressScenario('mild', 20, 5, 50))
+    assert isinstance(result, StressTestResult)
