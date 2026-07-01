@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-01T11:38:50.620390+00:00",
+  "last_updated": "2026-07-01T11:44:50.629144+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-01T11:38:50.620390+00:00",
+      "last_heartbeat": "2026-07-01T11:44:50.629144+00:00",
       "last_action": "Heartbeat \u2014 5 files tracked",
-      "last_action_ts": "2026-07-01T11:38:50.620390+00:00",
+      "last_action_ts": "2026-07-01T11:44:50.629144+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-01T11:34:29.466128+00:00",
-      "last_action": "Waiting for next cycle (4h 10m remaining)",
-      "last_action_ts": "2026-07-01T11:34:29.466128+00:00",
+      "last_heartbeat": "2026-07-01T11:44:29.471572+00:00",
+      "last_action": "Waiting for next cycle (4h 0m remaining)",
+      "last_action_ts": "2026-07-01T11:44:29.471572+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -64,10 +64,10 @@
     },
     {
       "name": "autonomous-runner",
-      "status": "idle",
-      "last_heartbeat": "2026-07-01T11:37:28.854425+00:00",
-      "last_action": "Turn completed (rc=0)",
-      "last_action_ts": "2026-07-01T11:37:28.854425+00:00",
+      "status": "working",
+      "last_heartbeat": "2026-07-01T11:43:28.877036+00:00",
+      "last_action": "Autonomous turn running",
+      "last_action_ts": "2026-07-01T11:43:28.877036+00:00",
       "anomaly": null,
       "role": "Runs scheduled Claude Code sessions for background work when session is idle",
       "produces": "CC session activity, phase completions"
