@@ -1,2 +1,2 @@
-Phase JW -- Coverage Depth Sprint XLV
-30 tests: switch_analytics + gas_interruption + hedging_schedule coverage depth
+Phase JX -- Coverage Depth Sprint XLVI
+30 tests: decarb_recommender + three_horizon_clv + capacity_market coverage depth

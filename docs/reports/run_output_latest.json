@@ -7,7 +7,7 @@
   "total_bad_debt_gbp": 91940.92539,
   "total_net_gbp": 1243336.92084,
   "administration_event": null,
-  "committee_wake_ups_total": 35,
+  "committee_wake_ups_total": 38,
   "years": {
     "2016": {
       "revenue_gbp": 10408.520299180573,
@@ -5060,6 +5060,57 @@
       "acquisitions": [],
       "committee_wake_ups": [
         {
+          "settlement_date": "2023-01-24",
+          "treasury_gbp": 3069183.8743325467,
+          "adjustments": {
+            "C2": 1.0,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0,
+            "C9": 1.0,
+            "C_IC1": 1.0,
+            "C_IC2": 1.0,
+            "C_IC3": 1.0
+          },
+          "portfolio_var_current_gbp": 122462.75834904924,
+          "portfolio_var_stressed_gbp": 44376.48010014342
+        },
+        {
+          "settlement_date": "2023-02-23",
+          "treasury_gbp": 3069183.598168541,
+          "adjustments": {
+            "C2": 1.0,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0,
+            "C9": 1.0,
+            "C_IC1": 1.0,
+            "C_IC2": 1.0,
+            "C_IC3": 1.0
+          },
+          "portfolio_var_current_gbp": 122462.75834904924,
+          "portfolio_var_stressed_gbp": 44376.48010014342
+        },
+        {
+          "settlement_date": "2023-03-25",
+          "treasury_gbp": 3069183.257102537,
+          "adjustments": {
+            "C2": 1.0,
+            "C4": 1.0,
+            "C6": 1.0,
+            "C7": 1.0,
+            "C8": 1.0,
+            "C9": 1.0,
+            "C_IC1": 1.0,
+            "C_IC2": 1.0,
+            "C_IC3": 1.0
+          },
+          "portfolio_var_current_gbp": 122462.75834904924,
+          "portfolio_var_stressed_gbp": 44376.48010014342
+        },
+        {
           "settlement_date": "2023-04-24",
           "treasury_gbp": 3150604.1011385,
           "adjustments": {
@@ -5352,7 +5403,7 @@
           "drawdown_pct": 0.10986662915975243
         }
       ],
-      "var_ratio": 2.6231722770001245,
+      "var_ratio": 2.7255171337661372,
       "hedge_effectiveness": {
         "actual_net_gbp": 362538.83299799997,
         "naked_net_gbp": 1159893.0118637856,
@@ -9998,16 +10049,6 @@
       "avg_peak_rate": 250.21,
       "avg_offpeak_rate": 141.7
     },
-    "C7": {
-      "total_kwh": 120839.4,
-      "peak_kwh": 36249.2,
-      "offpeak_kwh": 84590.1,
-      "peak_pct": 30.0,
-      "peak_revenue_gbp": 9490.22,
-      "offpeak_revenue_gbp": 12224.4,
-      "avg_peak_rate": 261.8,
-      "avg_offpeak_rate": 144.51
-    },
     "C8": {
       "total_kwh": 106721.8,
       "peak_kwh": 43948.0,
@@ -10017,6 +10058,16 @@
       "offpeak_revenue_gbp": 9697.46,
       "avg_peak_rate": 272.57,
       "avg_offpeak_rate": 154.48
+    },
+    "C7": {
+      "total_kwh": 120839.4,
+      "peak_kwh": 36249.2,
+      "offpeak_kwh": 84590.1,
+      "peak_pct": 30.0,
+      "peak_revenue_gbp": 9490.22,
+      "offpeak_revenue_gbp": 12224.4,
+      "avg_peak_rate": 261.8,
+      "avg_offpeak_rate": 144.51
     }
   },
   "company_gas_churn_log": [

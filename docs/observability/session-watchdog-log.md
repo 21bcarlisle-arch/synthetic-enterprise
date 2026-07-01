@@ -2456,3 +2456,60 @@
 - [2026-06-30 17:41 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
 - [2026-06-30 17:41 UTC] Claude Code session ended — auto-restarting
 - [2026-06-30 17:41 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-06-30 18:42 UTC] Inbound NTFY command from Rich: "BUILD_STATE.md generation is failing or not accessible. Rich cannot read it from filesystem, strategy advisor cannot read it from web. This breaks the entire snapshot system — without readable status, there is no checkpoint for steering. Diagnose: (1) Is BUILD_STATE.md being created? (2) Is it in the right directory? (3) Is it readable? (4) If created, paste its contents in NTFY so we can see what's happening. Fix this before the next scheduled snapshot at [18:00 or 06:00 UK time]." — relaying to session
+- [2026-06-30 18:53 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-30 19:05 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-30 19:53 UTC] Inbound NTFY command from Rich: 'Phase inventory missing. Need: (1) List of phases GW→HJ with one-line description of what each built. (2) Module inventory: all 405 company modules grouped by domain with one-line purpose. (3) Website audit: which sections live vs stub. (4) Add this to BUILD_STATE.md as "Phase Summary" and "Module Inventory" sections. Without these, we cannot assess whether the build is coherent or lost. This blocks strategy review.' — relaying to session
+- [2026-06-30 19:56 UTC] Inbound NTFY command from Rich: 'The strategy advisor cannot see progress or website without copy-paste. This violates the cardinal rule. Fix: After every snapshot, publish a text-readable status file (docs/PROJECT_STATE.md or similar) that lists current phase, module inventory by domain, website section status, and phase history. This must be fetchable as plain text without JavaScript rendering or JSON parsing. Without this, the oversight loop is broken.' — relaying to session
+- [2026-06-30 20:07 UTC] Session idle — sending autoloop continuation instruction
+- [2026-06-30 20:12 UTC] Inbound NTFY command from Rich: 'PROJECT_STATE.md must be fetchable as plain text by the strategy advisor without copy-paste or manual explanation. Current fetch restrictions are blocking access. Solution: Publish PROJECT_STATE.md to a web-readable location (poesys.net/state/PROJECT_STATE.txt or similar) that can be fetched directly. This is blocking strategic review and violates the oversight architecture. Fix before next checkpoint.' — relaying to session
+- [2026-06-30 20:24 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-06-30 21:39 UTC] Inbound command poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782854295 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-06-30 22:42 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 22:43 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 22:43 UTC] Pane at death: our own message and will be relayed back as a new inbound command. If this is a | ctually a substantial multi-step instruction, treat it per the Staging Directory | Protocol instead.] | -sh: 18: Syntax error: "(" unexpected | $
+- [2026-06-30 22:43 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 22:43 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 22:44 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-06-30 22:45 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 22:46 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 22:46 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 22:46 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 22:46 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 22:46 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-06-30 22:47 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 22:48 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 22:48 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 22:48 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 22:48 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-06-30 22:48 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-06-30 22:49 UTC] Claude Code not detected (check 1/2)
+- [2026-06-30 22:50 UTC] Claude Code not detected (check 2/2)
+- [2026-06-30 22:50 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-06-30 22:50 UTC] Claude Code session ended — auto-restarting
+- [2026-06-30 22:50 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-07-01 00:01 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-01 00:13 UTC] REVIEW_GATE visible — waiting for Rich, autoloop paused
+- [2026-07-01 02:49 UTC] Claude Code not detected (check 1/2)
+- [2026-07-01 02:50 UTC] Claude Code not detected (check 2/2)
+- [2026-07-01 02:50 UTC] Pane at death: roceed autonomously. Proceed immediately — do not hold for confirmation before s | tarting. NTFY Rich with what you are doing so he can redirect via NTFY if needed | . If you hit a genuine blocker or a REVIEW_GATE that needs Rich's input, stop an | d state it clearly. | >
+- [2026-07-01 02:50 UTC] Claude Code session ended — auto-restarting
+- [2026-07-01 02:50 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-07-01 02:50 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-07-01 02:51 UTC] Claude Code not detected (check 1/2)
+- [2026-07-01 02:52 UTC] Claude Code not detected (check 2/2)
+- [2026-07-01 02:52 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-01 02:52 UTC] Claude Code session ended — auto-restarting
+- [2026-07-01 02:52 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-07-01 02:53 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-07-01 02:54 UTC] Claude Code not detected (check 1/2)
+- [2026-07-01 02:55 UTC] Claude Code not detected (check 2/2)
+- [2026-07-01 02:55 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-01 02:55 UTC] Claude Code session ended — auto-restarting
+- [2026-07-01 02:55 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-07-01 02:55 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-07-01 02:56 UTC] Claude Code not detected (check 1/2)
+- [2026-07-01 02:57 UTC] Claude Code not detected (check 2/2)
+- [2026-07-01 02:57 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-01 02:57 UTC] Claude Code session ended — auto-restarting
+- [2026-07-01 02:57 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
