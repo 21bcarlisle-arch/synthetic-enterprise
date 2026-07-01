@@ -74,3 +74,69 @@ def test_notification_summary():
     assert s['compliance_breaches'] == 0
     assert s['price_increases'] == 1
     assert 'email' in s['channels']
+
+
+# --- Phase KK depth tests ---
+
+def test_advance_notice_days_constant_is_42():
+    assert ADVANCE_NOTICE_DAYS == 42
+
+
+def test_notification_id_stored():
+    log = _make_log()
+    n = log.get('N001')
+    assert n.notification_id == 'N001'
+
+
+def test_customer_id_stored():
+    log = _make_log()
+    n = log.get('N001')
+    assert n.customer_id == 'C001'
+
+
+def test_sent_date_stored():
+    log = _make_log()
+    n = log.get('N001')
+    assert n.sent_date == dt.date(2022, 9, 1)
+
+
+def test_effective_date_stored():
+    log = _make_log()
+    n = log.get('N001')
+    assert n.effective_date == dt.date(2022, 11, 1)
+
+
+def test_channel_stored():
+    log = _make_log()
+    n = log.get('N001')
+    assert n.channel == NotificationChannel.EMAIL
+
+
+def test_reason_stored():
+    log = _make_log()
+    n = log.get('N001')
+    assert n.reason == TariffChangeReason.MARKET_PRICE_CHANGE
+
+
+def test_status_pending_initially():
+    log = _make_log()
+    n = log.get('N001')
+    assert n.status == NotificationStatus.SENT
+
+
+def test_not_price_increase_when_decrease():
+    log = TariffNotificationLog()
+    log.send(
+        'N003', 'C003', NotificationChannel.EMAIL,
+        dt.date(2022, 9, 1), dt.date(2022, 11, 1),
+        TariffChangeReason.MARKET_PRICE_CHANGE,
+        38.0, 28.0, 50.0, 40.0
+    )
+    n = log.get('N003')
+    assert not n.is_price_increase
+
+
+def test_no_compliance_breach_for_sufficient_notice():
+    log = _make_log()
+    breaches = log.compliance_breaches()
+    assert len(breaches) == 0

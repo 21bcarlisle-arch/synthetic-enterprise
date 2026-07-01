@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,160 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,190 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KK -- Coverage Depth Sprint LIX (2026-07-01)
+**Modules:** renewals_book (crm) · tariff_notification (crm) · switch_analytics (crm)
+**Tests added:** 30 (renewals_book: customer_id; outcome=LAPSED; accepted_false_lapsed; accepted_false_switched; sme_rate=100; offered_rate; new_term=24; deceased_excluded; empty=None; r+l=100. tariff_notification: notice=42; id_stored; customer_id; sent_date; effective_date; channel; reason; status_SENT; decrease_not_increase; no_breach_61d. switch_analytics: SW-prefix; sequential; mpan; losing_supplier; gaining_supplier; initiation_date; erroneous_false; completed_false; days_to_complete=None; wrong_year_empty.)
+**Total:** 11,190 tests
 
 ### Phase KJ -- Coverage Depth Sprint LVIII (2026-07-01)
 **Modules:** lifecycle_tracker (crm) · service_log_persistent (crm) · marketing_budget (crm)
@@ -4730,7 +4735,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,160 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,190 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

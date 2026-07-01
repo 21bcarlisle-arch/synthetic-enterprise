@@ -1,2 +1,2 @@
-Phase KK -- Coverage Depth Sprint LIX
-30 tests: renewals_book + tariff_notification + switch_analytics coverage depth
+Phase KL -- Coverage Depth Sprint LX
+30 tests: hedge_policy + risk_appetite + tariff_compare coverage depth
