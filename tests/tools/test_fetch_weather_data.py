@@ -119,3 +119,29 @@ def test_is_cold_winter_flag(tmp_path, monkeypatch):
     for row in result["annual"]:
         assert "is_cold_winter" in row
         assert isinstance(row["is_cold_winter"], bool)
+
+
+def test_annual_year_range():
+    daily = _multi_year_daily(2016, 2025)
+    monthly = _compute_monthly(daily)
+    annual = _compute_annual(monthly)
+    years = [r["year"] for r in annual]
+    assert min(years) == "2016"
+    assert max(years) == "2025"
+
+
+def test_monthly_has_required_keys():
+    daily = _make_daily(2022)
+    monthly = _compute_monthly(daily)
+    assert len(monthly) > 0
+    row = monthly[0]
+    for key in ("month", "mean_temp_c", "hdd"):
+        assert key in row
+
+
+def test_hdd_formula_matches_base():
+    import datetime
+    daily_one = {"2022-01-01": 5.0}
+    monthly = _compute_monthly(daily_one)
+    expected_hdd = max(0, HDD_BASE - 5.0)
+    assert abs(monthly[0]["hdd"] - expected_hdd) < 0.01

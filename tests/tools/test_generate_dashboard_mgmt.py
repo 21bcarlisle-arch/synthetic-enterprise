@@ -102,3 +102,22 @@ def test_mgmt_accounts_in_dashboard_json():
     db = json.loads(pathlib.Path("site/data/dashboard.json").read_text())
     assert "management_accounts" in db
     assert len(db["management_accounts"]["annual"]) >= 1
+
+
+def test_extract_mgmt_accounts_single_year():
+    data = _make_data(years_range=(2022, 2022))
+    result = extract_management_accounts(data)
+    assert len(result["annual"]) == 1
+    assert result["annual"][0]["year"] == 2022
+
+
+def test_total_opex_positive():
+    result = extract_management_accounts(_make_data())
+    for row in result["annual"]:
+        assert row.get("total_opex_gbp", 0) > 0
+
+
+def test_net_margin_below_gross():
+    result = extract_management_accounts(_make_data())
+    row = result["annual"][0]
+    assert row["net_margin_gbp"] < row["gross_margin_gbp"]

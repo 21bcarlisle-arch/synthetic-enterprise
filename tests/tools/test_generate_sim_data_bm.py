@@ -103,3 +103,20 @@ def test_bm_2022_high_short_pct():
     months_2018 = [r for r in result if r["month"].startswith("2018")]
     avg_short_2018 = sum(m["short_pct"] for m in months_2018) / len(months_2018)
     assert avg_short_2022 > avg_short_2018 or avg_short_2022 > 40
+
+
+def test_bm_spread_is_sbp_minus_ssp():
+    recs = _make_recs([("2020-01", 50.0, 60.0, [0.0])])
+    result = _bm_monthly_aggregation(recs)
+    assert abs(result[0]["spread_sbp_ssp"] - 10.0) < 0.01
+
+
+def test_bm_empty_returns_empty_list():
+    result = _bm_monthly_aggregation([])
+    assert result == []
+
+
+def test_bm_max_ssp_is_correct():
+    recs = _make_recs([("2022-06", 100.0, 100.0, [0.0]),("2022-06", 300.0, 300.0, [0.0])])
+    result = _bm_monthly_aggregation(recs)
+    assert result[0]["max_ssp"] == 300.0
