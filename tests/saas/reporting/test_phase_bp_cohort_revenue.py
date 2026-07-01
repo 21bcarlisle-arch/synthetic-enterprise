@@ -143,3 +143,36 @@ def test_positive_net_format():
     result = _section_cohort_revenue_analysis(d)
     assert "£837,000" in result
     assert "-£837,000" not in result
+
+
+# 13. Loss cohort flagged when net negative
+def test_loss_cohort_flagged():
+    pcl = {"C1": {"acquisition_date": "2020-01-01", "segment": "resi"}}
+    pcp = {"C1": {"revenue": 5000.0, "gross": 1000.0, "net": -200.0}}
+    d = {"per_customer_lifetime": pcl, "per_cid_pnl": pcp}
+    result = _section_cohort_revenue_analysis(d)
+    assert "Loss cohort" in result or "loss" in result.lower()
+
+
+# 14. Best revenue per customer cohort shown
+def test_best_rpc_cohort_shown():
+    pcl = {
+        "C1": {"acquisition_date": "2020-01-01", "segment": "resi"},
+        "C2": {"acquisition_date": "2021-01-01", "segment": "I&C"},
+    }
+    pcp = {
+        "C1": {"revenue": 1000.0, "gross": 200.0, "net": 100.0},
+        "C2": {"revenue": 50000.0, "gross": 10000.0, "net": 5000.0},
+    }
+    d = {"per_customer_lifetime": pcl, "per_cid_pnl": pcp}
+    result = _section_cohort_revenue_analysis(d)
+    assert "Best revenue/customer" in result and "2021" in result
+
+
+# 15. Header present
+def test_header_present():
+    pcl = {"C1": {"acquisition_date": "2020-01-01", "segment": "resi"}}
+    pcp = {"C1": {"revenue": 1000.0, "gross": 200.0, "net": 100.0}}
+    d = {"per_customer_lifetime": pcl, "per_cid_pnl": pcp}
+    result = _section_cohort_revenue_analysis(d)
+    assert "Cohort Revenue" in result or "Customer Cohort" in result

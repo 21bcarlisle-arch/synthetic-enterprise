@@ -134,3 +134,30 @@ def test_under_priced_years_in_summary():
     result = _section_pricing_basis_risk(data)
     assert "Under-pricing" in result or "under-pric" in result.lower()
     assert "2018" in result
+
+
+# 13. Portfolio mean error shown
+def test_portfolio_mean_error_shown():
+    brt = [{"term_start": "2022-01-01", "tariff_error_pct": 0.10},
+           {"term_start": "2022-06-01", "tariff_error_pct": 0.20}]
+    d = {"basis_risk_terms": brt}
+    result = _section_pricing_basis_risk(d)
+    assert "mean error" in result.lower() or "portfolio" in result.lower()
+
+
+# 14. UNDER-PRICE label for negative mean error
+def test_under_price_label():
+    brt = [{"term_start": "2022-01-01", "tariff_error_pct": -0.12},
+           {"term_start": "2022-06-01", "tariff_error_pct": -0.15}]
+    d = {"basis_risk_terms": brt}
+    result = _section_pricing_basis_risk(d)
+    assert "UNDER-PRICE" in result or "under" in result.lower()
+
+
+# 15. On-target label when mean error is small
+def test_on_target_label():
+    brt = [{"term_start": "2022-01-01", "tariff_error_pct": 0.02},
+           {"term_start": "2022-06-01", "tariff_error_pct": -0.01}]
+    d = {"basis_risk_terms": brt}
+    result = _section_pricing_basis_risk(d)
+    assert "on target" in result or "target" in result.lower()

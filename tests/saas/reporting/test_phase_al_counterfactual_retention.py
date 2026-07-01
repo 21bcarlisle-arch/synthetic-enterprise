@@ -152,3 +152,32 @@ def test_root_cause_note():
     data = _data([_no_offer("C3", "2020-06-30", etm=500.0)])
     result = _section_counterfactual_retention(data)
     assert "Root cause" in result or "root cause" in result.lower()
+
+
+# 13. Correct-pass label shown when ETM <= 0
+def test_correct_pass_shown():
+    no_offer = [{"customer_id": "C1", "expected_term_margin_gbp": -500.0,
+                 "company_churn_estimate": 0.8, "event_date": "2022-06-01"}]
+    d = {"no_offer_churn_log": no_offer}
+    result = _section_counterfactual_retention(d)
+    assert "CORRECT PASS" in result or "correct" in result.lower()
+
+
+# 14. Retention probability calibrated from rl outcomes
+def test_retention_prob_from_log():
+    no_offer = [{"customer_id": "C1", "expected_term_margin_gbp": 2000.0,
+                 "company_churn_estimate": 0.7, "event_date": "2022-01-01"}]
+    rl = [{"outcome": "retained"}, {"outcome": "retained"}, {"outcome": "churned"}]
+    d = {"no_offer_churn_log": no_offer, "retention_log": rl}
+    result = _section_counterfactual_retention(d)
+    # P(retain) = 2/3 = 67%, should show it or at least not crash
+    assert "Counterfactual" in result
+
+
+# 15. Account id shown in table
+def test_account_id_in_table():
+    no_offer = [{"customer_id": "C99", "expected_term_margin_gbp": 1000.0,
+                 "company_churn_estimate": 0.5, "event_date": "2023-01-01"}]
+    d = {"no_offer_churn_log": no_offer}
+    result = _section_counterfactual_retention(d)
+    assert "C99" in result

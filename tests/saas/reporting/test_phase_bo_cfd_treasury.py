@@ -115,3 +115,34 @@ def test_years_sorted():
     pos_2022 = result.find("| 2022 |")
     pos_2023 = result.find("| 2023 |")
     assert pos_2021 < pos_2022 < pos_2023
+
+
+# 13. CfD CREDIT label when cfd negative
+def test_cfd_credit_label():
+    d = {"years": {"2022": {"cfd_levy_gbp": -12000.0, "ro_levy_gbp": 5000.0,
+                             "bad_debt_gbp": 200.0, "treasury_drawdown_events": [],
+                             "bills_count": 50}}}
+    result = _section_cfd_and_treasury(d)
+    assert "CREDIT" in result
+
+
+# 14. Peak bad debt year shown
+def test_peak_bad_debt_shown():
+    d = {"years": {
+        "2022": {"cfd_levy_gbp": 1000.0, "ro_levy_gbp": 500.0, "bad_debt_gbp": 3000.0,
+                 "treasury_drawdown_events": [], "bills_count": 40},
+        "2023": {"cfd_levy_gbp": 1000.0, "ro_levy_gbp": 500.0, "bad_debt_gbp": 500.0,
+                 "treasury_drawdown_events": [], "bills_count": 40},
+    }}
+    result = _section_cfd_and_treasury(d)
+    assert "Peak bad debt year" in result and "2022" in result
+
+
+# 15. Drawdown year listed when events present
+def test_drawdown_year_listed():
+    d = {"years": {"2022": {"cfd_levy_gbp": 0.0, "ro_levy_gbp": 0.0,
+                             "bad_debt_gbp": 0.0,
+                             "treasury_drawdown_events": [{"amount": 10000}],
+                             "bills_count": 10}}}
+    result = _section_cfd_and_treasury(d)
+    assert "Treasury drawdown" in result and "2022" in result

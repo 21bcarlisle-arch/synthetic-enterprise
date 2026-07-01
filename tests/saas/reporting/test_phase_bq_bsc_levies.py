@@ -101,3 +101,36 @@ def test_years_sorted():
     pos_2016 = result.find("| 2016 |")
     pos_2017 = result.find("| 2017 |")
     assert pos_2016 < pos_2017
+
+
+# 13. Peak BSC credit year shown
+def test_peak_bsc_year_shown():
+    d = {"years": {
+        "2022": {"bsc_credit_required_gbp": 80000.0, "cm_levy_gbp": 500.0,
+                 "mutualization_levy_gbp": 0.0, "ccl_gbp": 100.0, "gas_network_cost_gbp": 200.0},
+        "2021": {"bsc_credit_required_gbp": 20000.0, "cm_levy_gbp": 400.0,
+                 "mutualization_levy_gbp": 0.0, "ccl_gbp": 80.0, "gas_network_cost_gbp": 150.0},
+    }}
+    result = _section_bsc_regulatory_levies(d)
+    assert "Peak BSC credit" in result and "2022" in result
+
+
+# 14. Mutualization dash when zero
+def test_mutualization_dash_when_zero():
+    d = {"years": {"2022": {"bsc_credit_required_gbp": 10000.0, "cm_levy_gbp": 500.0,
+                             "mutualization_levy_gbp": 0.0, "ccl_gbp": 100.0,
+                             "gas_network_cost_gbp": 200.0}}}
+    result = _section_bsc_regulatory_levies(d)
+    assert "—" in result
+
+
+# 15. Mutualization first year noted when non-zero
+def test_mutualization_first_year_noted():
+    d = {"years": {
+        "2021": {"bsc_credit_required_gbp": 5000.0, "cm_levy_gbp": 200.0,
+                 "mutualization_levy_gbp": 0.0, "ccl_gbp": 50.0, "gas_network_cost_gbp": 100.0},
+        "2022": {"bsc_credit_required_gbp": 8000.0, "cm_levy_gbp": 300.0,
+                 "mutualization_levy_gbp": 1500.0, "ccl_gbp": 70.0, "gas_network_cost_gbp": 120.0},
+    }}
+    result = _section_bsc_regulatory_levies(d)
+    assert "Mutualization levy first appeared" in result and "2022" in result
