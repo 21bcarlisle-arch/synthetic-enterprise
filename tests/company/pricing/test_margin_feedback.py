@@ -60,3 +60,54 @@ def test_surcharge_never_exceeds_max():
         for revenue in [100.0, 500.0, 10000.0]:
             s = compute_margin_surcharge(margin, revenue)
             assert 0.0 <= s <= FEEDBACK_MAX_SURCHARGE
+
+
+# --- Phase KN depth tests ---
+
+def test_threshold_is_float():
+    assert isinstance(FEEDBACK_LOSS_THRESHOLD, float)
+
+
+def test_max_surcharge_is_float():
+    assert isinstance(FEEDBACK_MAX_SURCHARGE, float)
+
+
+def test_threshold_positive():
+    assert FEEDBACK_LOSS_THRESHOLD > 0.0
+
+
+def test_max_surcharge_positive():
+    assert FEEDBACK_MAX_SURCHARGE > 0.0
+
+
+def test_surcharge_is_float():
+    result = compute_margin_surcharge(-50.0, 500.0)
+    assert isinstance(result, float)
+
+
+def test_loss_exactly_at_threshold_zero():
+    # exactly at threshold (5%) -> zero
+    loss = FEEDBACK_LOSS_THRESHOLD * 500.0
+    result = compute_margin_surcharge(-loss, 500.0)
+    assert result == 0.0
+
+
+def test_loss_6pct_gives_1pct_surcharge():
+    # 6% - 5% threshold = 1% surcharge
+    result = compute_margin_surcharge(-30.0, 500.0)  # 6% of 500
+    assert result == pytest.approx(0.01, abs=1e-9)
+
+
+def test_surcharge_increases_with_loss():
+    s1 = compute_margin_surcharge(-50.0, 500.0)   # 10%
+    s2 = compute_margin_surcharge(-75.0, 500.0)   # 15%
+    assert s2 > s1
+
+
+def test_extreme_loss_capped():
+    s = compute_margin_surcharge(-999_999.0, 1000.0)
+    assert s == pytest.approx(FEEDBACK_MAX_SURCHARGE)
+
+
+def test_max_surcharge_greater_than_threshold():
+    assert FEEDBACK_MAX_SURCHARGE > FEEDBACK_LOSS_THRESHOLD

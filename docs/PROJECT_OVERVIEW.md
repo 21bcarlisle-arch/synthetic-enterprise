@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,250 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,280 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KN -- Coverage Depth Sprint LXII (2026-07-01)
+30 depth tests across 3 modules: gas_interruption (firm_class/contract_id/mprn/reason/not_vulnerable_default/notice_zero/restore_end_date/for_customer/active_excl_restored/year_filter), rate_comparison (five_keys/market_p_formula/protected_false/delta_p_formula/message_string/effective_float/rate_proportional/contracted_none/market_positive/none_no_feed), margin_feedback (threshold_float/max_float/threshold_pos/max_pos/surcharge_float/at_threshold_zero/6pct_1pct/increases/extreme_capped/max>threshold).
+**Total:** 11,280 tests
 
 ### Phase KM -- Coverage Depth Sprint LXI (2026-07-01)
 30 depth tests across 3 modules: trade_finance (issuer/instrument_type/face_value/expiry/get_none/days_negative/call_amount/portfolio_empty/expiring_empty/id), live_sim_interface (forward_float/gas_float/cache_populated/churn_empty/acq_empty/unknown_active/stub_flag/churn_populates/stub_nonneg/build_stub), regime_premium (max_positive/min_negative/short_positive/long>short/result_float/flat_zero_date/upward_inbounds/downward_inbounds/max_float/min_float).
@@ -4744,7 +4748,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,250 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,280 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

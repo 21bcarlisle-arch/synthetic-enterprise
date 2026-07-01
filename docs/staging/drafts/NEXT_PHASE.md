@@ -1,2 +1,2 @@
-Phase KN -- Coverage Depth Sprint LXII
-30 tests: gas_interruption + rate_comparison + margin_feedback coverage depth
+Phase KO -- Coverage Depth Sprint LXIII
+30 tests: hedge_performance + interconnector_monitor + price_monitor coverage depth
