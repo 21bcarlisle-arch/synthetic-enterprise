@@ -9,7 +9,7 @@
   "meter_type": "HH",
   "lifetime_revenue_gbp": 1832579.91,
   "lifetime_gross_gbp": 622647.03,
-  "lifetime_net_gbp": -132711.18,
+  "lifetime_net_gbp": -134500.12,
   "lifetime_net_after_cts_gbp": 613417.06,
   "cost_to_serve_gbp": 9229.97,
   "pricing_action": {
@@ -22,7 +22,7 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": -132711.18,
+      "net_gbp": -134500.12,
       "revenue_gbp": 1832579.91
     }
   },
@@ -32,7 +32,7 @@
       "year": 2019,
       "revenue_gbp": 0,
       "gross_gbp": 74626.27,
-      "net_gbp": 123.56,
+      "net_gbp": 34.62,
       "tariff_min": 27.53,
       "tariff_max": 27.53
     },
@@ -40,49 +40,49 @@
       "year": 2020,
       "revenue_gbp": 0,
       "gross_gbp": 75972.31,
-      "net_gbp": 4057.27,
+      "net_gbp": 4005.3,
       "tariff_min": 15.44,
-      "tariff_max": 20.15
+      "tariff_max": 20.18
     },
     {
       "year": 2021,
       "revenue_gbp": 0,
       "gross_gbp": 82254.81,
-      "net_gbp": -1690.48,
-      "tariff_min": 20.15,
-      "tariff_max": 123.85
+      "net_gbp": -1789.15,
+      "tariff_min": 20.18,
+      "tariff_max": 124.11
     },
     {
       "year": 2022,
       "revenue_gbp": 0,
       "gross_gbp": 91117.83,
-      "net_gbp": -47735.11,
-      "tariff_min": 120.28,
-      "tariff_max": 123.85
+      "net_gbp": -48236.35,
+      "tariff_min": 120.39,
+      "tariff_max": 124.11
     },
     {
       "year": 2023,
       "revenue_gbp": 0,
       "gross_gbp": 121515.44,
-      "net_gbp": -30767.46,
-      "tariff_min": 60.92,
-      "tariff_max": 120.28
+      "net_gbp": -31147.16,
+      "tariff_min": 61.13,
+      "tariff_max": 120.39
     },
     {
       "year": 2024,
       "revenue_gbp": 0,
       "gross_gbp": 123651.59,
-      "net_gbp": -37199.57,
-      "tariff_min": 60.92,
-      "tariff_max": 61.58
+      "net_gbp": -37642.96,
+      "tariff_min": 61.13,
+      "tariff_max": 61.82
     },
     {
       "year": 2025,
       "revenue_gbp": 0,
       "gross_gbp": 53508.78,
-      "net_gbp": -19499.39,
-      "tariff_min": 61.58,
-      "tariff_max": 61.58
+      "net_gbp": -19724.42,
+      "tariff_min": 61.82,
+      "tariff_max": 61.82
     }
   ],
   "invoices": [
