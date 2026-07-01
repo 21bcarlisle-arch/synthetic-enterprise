@@ -206,3 +206,56 @@ class TestPassThroughSpotBilling:
                 pass_through=True,
             )
             assert recs[0]["revenue_gbp"] > 0
+
+
+class TestPassThroughRecordFields:
+    def test_pass_through_net_margin_is_float(self):
+        from simulation.gas_settlement import run_gas_term
+        recs = run_gas_term(
+            customer_id="T",
+            term_start="2021-01-01",
+            term_end="2021-01-02",
+            aq_kwh=5_000_000,
+            unit_rate_gbp_mwh=30.0,
+            hedge_fraction=1.0,
+            forward_price=30.0,
+            monthly_cost_of_capital_gbp=0.0,
+            gas_price_records=_make_gas_records("2021-01-01", 1, 30.0),
+            segment="I&C",
+            pass_through=True,
+        )
+        assert isinstance(recs[0]["net_margin_gbp"], float)
+
+    def test_pass_through_record_has_customer_id(self):
+        from simulation.gas_settlement import run_gas_term
+        recs = run_gas_term(
+            customer_id="TTest",
+            term_start="2021-01-01",
+            term_end="2021-01-02",
+            aq_kwh=5_000_000,
+            unit_rate_gbp_mwh=30.0,
+            hedge_fraction=1.0,
+            forward_price=30.0,
+            monthly_cost_of_capital_gbp=0.0,
+            gas_price_records=_make_gas_records("2021-01-01", 1, 30.0),
+            segment="I&C",
+            pass_through=True,
+        )
+        assert recs[0]["customer_id"] == "TTest"
+
+    def test_fixed_gas_has_revenue_key(self):
+        from simulation.gas_settlement import run_gas_term
+        recs = run_gas_term(
+            customer_id="T",
+            term_start="2021-01-01",
+            term_end="2021-01-02",
+            aq_kwh=5_000_000,
+            unit_rate_gbp_mwh=30.0,
+            hedge_fraction=1.0,
+            forward_price=30.0,
+            monthly_cost_of_capital_gbp=0.0,
+            gas_price_records=_make_gas_records("2021-01-01", 1, 30.0),
+            segment="I&C",
+            pass_through=False,
+        )
+        assert "revenue_gbp" in recs[0]

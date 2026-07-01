@@ -81,3 +81,22 @@ def test_published_feed_gas_readable(tmp_path):
     feed = PriceFeed(output)
     latest_gas = feed.get_latest_spot("gas")
     assert latest_gas is not None and latest_gas > 0
+
+
+def test_build_feed_prices_returns_list():
+    prices = build_feed_prices(n_elec_periods=2, n_gas_days=1)
+    assert isinstance(prices, list)
+
+
+def test_build_feed_prices_elec_has_period_field():
+    prices = build_feed_prices(n_elec_periods=2, n_gas_days=0)
+    elec = [p for p in prices if p["fuel"] == "electricity"]
+    for p in elec:
+        assert "period" in p
+
+
+def test_build_feed_mixed_elec_and_gas():
+    prices = build_feed_prices(n_elec_periods=3, n_gas_days=2)
+    fuels = [p["fuel"] for p in prices]
+    assert fuels.count("electricity") == 3
+    assert fuels.count("gas") == 2

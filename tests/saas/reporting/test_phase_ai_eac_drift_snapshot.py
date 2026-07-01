@@ -124,3 +124,23 @@ def test_single_renewal_stable():
     # 0 significant, 0 moderate, 1 stable
     assert "0 significant" in result
     assert "1 stable" in result
+
+
+def test_section_returns_string_type():
+    result = _section_eac_drift_snapshot(_make_data())
+    assert isinstance(result, str)
+
+
+def test_section_returns_string_with_data():
+    data = _make_data([_entry("C1", "2016-12-31", 3000), _entry("C1", "2021-12-31", 4000)])
+    result = _section_eac_drift_snapshot(data)
+    assert isinstance(result, str)
+
+
+def test_stable_count_is_1_for_minimal_drift():
+    data = _make_data([
+        _entry("C1", "2016-12-31", 3000),
+        _entry("C1", "2021-12-31", 3050),
+    ])
+    result = _section_eac_drift_snapshot(data)
+    assert "1 stable" in result

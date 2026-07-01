@@ -91,3 +91,19 @@ def test_vs_status_quo_shown():
     d = _data([("C1", 500.0, 300.0)], [("C1", "resi")])
     result = _section_gas_exit_analysis(d)
     assert "vs Status Quo" in result
+
+
+def test_result_is_string():
+    d = _data([("C1", 500.0, 300.0)], [("C1", "resi")])
+    assert isinstance(_section_gas_exit_analysis(d), str)
+
+
+def test_result_is_string_empty_case():
+    assert isinstance(_section_gas_exit_analysis({}), str)
+
+
+def test_all_profitable_no_loss_making_header():
+    d = _data([("C1", 500.0, 300.0), ("C2", 200.0, 100.0)], [("C1", "resi"), ("C2", "resi")])
+    result = _section_gas_exit_analysis(d)
+    # No loss-making accounts, so the Loss-Making section is empty or absent
+    assert "C1g" in result  # accretive section

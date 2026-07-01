@@ -148,3 +148,16 @@ class TestASHPSeasonalShape:
         shape_without = _shape_for("2020-01-15")
         uplifts = [w - b for w, b in zip(shape_with, shape_without)]
         assert max(uplifts) - min(uplifts) < 1e-9
+
+
+
+def test_reference_monthly_hdd_has_12_months():
+    assert len(REFERENCE_MONTHLY_HDD) == 12
+
+
+def test_hdd_annual_ref_is_positive():
+    assert HDD_ANNUAL_REF > 0
+
+
+def test_ashp_annual_kwh_constant_is_5500():
+    assert ASHP_ANNUAL_KWH == 5_500.0

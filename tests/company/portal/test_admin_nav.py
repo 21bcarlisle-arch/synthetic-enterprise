@@ -58,3 +58,19 @@ def test_admin_template_has_nav_block():
     assert "admin/complaints" in html
     assert "admin/collections" in html
     assert "admin/renewals" in html
+
+
+def test_admin_has_trading_link():
+    r = client.get("/admin")
+    assert "/trading" in r.text or "Trading" in r.text
+
+
+def test_admin_content_type_is_html():
+    r = client.get("/admin")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_admin_template_has_vulnerability_link():
+    with open("company/portal/templates/admin.html") as f:
+        html = f.read()
+    assert "vulnerability" in html.lower()

@@ -55,3 +55,16 @@ def test_tou_band_evening_transition():
     assert _tou_band("2026-06-24", 18.5) == "Peak"
     # 19:01 off-peak (hour >= 19)
     assert _tou_band("2026-06-24", 19.1) == "Off-Peak"
+
+
+def test_tou_band_off_peak_before_7am():
+    assert _tou_band("2026-06-24", 6.99) == "Off-Peak"
+
+
+def test_tou_band_peak_at_18_59():
+    assert _tou_band("2026-06-24", 18.99) == "Peak"
+
+
+def test_consumption_route_content_type_is_html():
+    r = client.get("/account/C1/consumption")
+    assert "text/html" in r.headers.get("content-type", "")

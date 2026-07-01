@@ -112,3 +112,24 @@ def test_fit_ols_by_year_two_years():
     assert set(result.keys()) == {"2022", "2023"}
     assert result["2022"]["n"] == 5
     assert result["2023"]["n"] == 5
+
+
+def test_fit_ols_returns_dict():
+    rows = _make_exact_rows(5)
+    fit = _fit_ols(rows)
+    assert isinstance(fit, dict)
+
+
+def test_fit_ols_by_year_returns_dict():
+    result = _fit_ols_by_year([])
+    assert isinstance(result, dict)
+
+
+def test_fit_ols_by_year_single_year():
+    rows = [
+        {"settlementDate": "2020-06-01", "ssp": 10.0 + g, "gas_price": g, "demand_mw": 1000.0, "wind_mw": 500.0}
+        for g in [5.0, 10.0, 15.0, 20.0, 25.0]
+    ]
+    result = _fit_ols_by_year(rows)
+    assert "2020" in result
+    assert result["2020"]["n"] == 5

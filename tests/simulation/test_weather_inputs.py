@@ -67,3 +67,18 @@ def test_weather_source_unknown_location_returns_self():
     customer = {"customer_id": "X99", "location": {"lat": 0.0, "lon": 0.0, "region": "Unknown"}}
     result = _weather_source_customer_id(customer)
     assert result == "X99"
+
+
+def test_load_weather_means_returns_dict():
+    means = load_weather_means("C1")
+    assert isinstance(means, dict)
+
+
+def test_lookback_mean_temps_length_matches_window():
+    weather_means = {"2016-01-01": 1.0, "2016-01-02": 2.0, "2016-01-03": 3.0}
+    temps = lookback_mean_temps(weather_means, "2016-01-03", lookback_days=2)
+    assert len(temps) == 2
+
+
+def test_weather_data_dir_is_string():
+    assert isinstance(WEATHER_DATA_DIR, str)

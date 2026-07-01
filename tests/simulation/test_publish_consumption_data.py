@@ -126,3 +126,28 @@ def test_publish_consumption_json_structure(tmp_path):
     assert "published_at" in payload
     assert "records" in payload
     assert len(payload["records"]) == 48
+
+
+def test_read_hh_data_date_field_matches_csv(tmp_path):
+    hh_dir = tmp_path / "hh_data"
+    path = hh_dir / "C7.csv"
+    _write_hh_csv(path, [_data_row("2024-03-15")])
+    result = pcd.read_hh_data("C7", n_days=1)
+    assert all(r["date"] == "2024-03-15" for r in result)
+
+
+def test_publish_consumption_records_have_customer_id(tmp_path):
+    hh_dir = tmp_path / "hh_data"
+    _write_hh_csv(hh_dir / "C7.csv", [_data_row("2024-01-01")])
+    feed_path = tmp_path / "consumption_feed.json"
+    pcd.publish_consumption(hh_customers=("C7",), n_days=1, output_path=feed_path)
+    payload = __import__("json").loads(feed_path.read_text())
+    assert all("customer_id" in r for r in payload["records"])
+
+
+def test_read_hh_data_period_starts_at_1(tmp_path):
+    hh_dir = tmp_path / "hh_data"
+    path = hh_dir / "C7.csv"
+    _write_hh_csv(path, [_data_row("2024-01-01")])
+    result = pcd.read_hh_data("C7", n_days=1)
+    assert result[0]["period"] == 1
