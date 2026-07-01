@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 441+ commits. 12,976 tests passing. Codebase: ~47,600 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 441+ commits. 13,033 tests passing. Codebase: ~47,600 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase MU -- Coverage Depth Sprint CXIX (2026-07-01)
+30 depth tests: sim/hedging_strategy, sim/risk_engine, sim/weather_price_sensitivity. hedging_strategy: EVOLUTION_STEP; MARGIN_TOLERANCE_GBP; hold at exact ±5.0 boundary; raise from floor by one step; cap at 1.0; floor clamp; mandate floor text; reasoning values; noise text. risk_engine: Z_SCORE; WACC; sigma_recent float; bootstrap fallback; ValueError no records; var formula; stressed boundary; active_collateral max; assess_term_risk 6 keys; post-reform higher cost. weather_price_sensitivity: HDD_THRESHOLD; BASELINE_HDD; MULTIPLIER; heating base zero; above base clamped; negative temp; boundary at 8.0; just above threshold; very cold; known mix.
+**Total:** 13,033 tests
 
 ### Phase MT -- I&C Triad Demand Curtailment (2026-07-01)
 27 tests. Wired Triad notifications to actual demand reduction in settlement run. simulation/triad.py: build_triad_alert_set() identifies (date, period) pairs where SSP > 80 GBP/MWh + Triad season + risk periods 33-39; make_triad_aware_shape_fn() wraps I&C HH shape function with 25% curtailment. simulation/run_phase2b.py: pre-computes _ic_triad_alert_set and applies it for I&C customers. company/market/triad_notification_book.py: get_active_alerts(date, period) query method. I&C customers now reduce demand during Triad windows; triad_log avg_triad_kw will be lower for responding customers.
@@ -4980,7 +4984,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 13,003 tests (fast / ~10s; simulation integration ~8 min per run)
+- 13,033 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -1,24 +1,19 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-01T10:33:27Z
+Last updated: 2026-07-01T10:45:45Z
 
 ## Current Status
-**Phase MT COMPLETE** -- I&C Triad Demand Curtailment (13,003 tests)
+**Phase MU COMPLETE** -- Coverage Depth Sprint CXIX (13,033 tests)
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: 1248298 GBP
 
 ## Test Suite
-- **13,003 tests passing** (fast suite ~10s)
-- Epistemic verifier: PASS (1 file scanned)
+- **13,033 tests passing** (fast suite ~10s)
+- Epistemic verifier: PASS
 
 ## Recent Phases
+- **MU** (2026-07-01): Coverage Depth Sprint CXIX -- sim/hedging_strategy, sim/risk_engine, sim/weather_price_sensitivity (13,033 tests)
 - **MT** (2026-07-01): I&C Triad Demand Curtailment -- build_triad_alert_set/make_triad_aware_shape_fn/get_active_alerts (13,003 tests)
-- **MS** (2026-07-01): Real NBP Forward Curve -- seasonal calibration from market data (12,976 tests)
-- **MR** (2026-07-01): Coverage Depth Sprint CXVIII -- flexibility_revenue, triad_notification, tariff_benchmarking (12,976 tests)
-
-**Latest simulation results (2016--2025)** -- auto-processed (478s / 8 min):
-- Net margin: £6,244,187.30 | Gross: £6,482,518.46 | Capital: £238,331
-- Treasury: £2,466,636 → £3,714,934 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £6,043,702.85 | Net after CTS: £6,377,464
-- Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
+- **MS** (2026-07-01): Real NBP Forward Curve -- seasonal multipliers data-derived (12,976 tests)
+- **MR** (2026-07-01): Coverage Depth Sprint CXVIII -- flexibility_revenue/triad_notification/tariff_benchmarking (12,960 tests)
