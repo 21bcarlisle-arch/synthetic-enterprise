@@ -224,3 +224,21 @@ def test_gas_pass_through_record_commodity_is_gas():
         pass_through=False,
     )
     assert recs[0].get("commodity") == "gas"
+
+
+def test_c_ic3g_tariff_type_is_pass_through():
+    from simulation.run_phase2b import GAS_CUSTOMERS
+    c = next(c for c in GAS_CUSTOMERS if c["customer_id"] == "C_IC3g")
+    assert c.get("tariff_type") == "pass_through"
+
+
+def test_c_ic3g_commodity_is_gas():
+    from simulation.run_phase2b import GAS_CUSTOMERS
+    c = next(c for c in GAS_CUSTOMERS if c["customer_id"] == "C_IC3g")
+    assert c.get("commodity") == "gas"
+
+
+def test_c_ic3g_segment_is_ic():
+    from simulation.run_phase2b import GAS_CUSTOMERS
+    c = next(c for c in GAS_CUSTOMERS if c["customer_id"] == "C_IC3g")
+    assert c.get("segment") == "I&C"

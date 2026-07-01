@@ -67,3 +67,21 @@ def test_retention_has_table():
 def test_retention_risk_column_present():
     r = client.get("/admin/retention")
     assert "Risk" in r.text
+
+
+def test_retention_route_has_risk_label():
+    client = TestClient(app)
+    r = client.get("/admin/retention")
+    assert "risk" in r.text.lower()
+
+
+def test_retention_total_customers_positive():
+    from company.portal.app import _load_admin_data
+    d = _load_admin_data()
+    assert d["total_customers"] >= 0
+
+
+def test_retention_csat_has_promoter_pct_key():
+    from company.portal.app import _load_admin_data
+    d = _load_admin_data()
+    assert "promoter_pct" in d["csat"]

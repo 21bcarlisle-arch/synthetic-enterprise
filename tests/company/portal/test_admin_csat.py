@@ -85,3 +85,21 @@ def test_csat_initial_mean_none_or_float():
     data = _load_admin_data()
     mean = data["csat"]["mean"]
     assert mean is None or isinstance(mean, float)
+
+
+def test_csat_has_count_key():
+    from company.portal.app import _load_admin_data
+    d = _load_admin_data()
+    assert "count" in d["csat"]
+
+
+def test_outstanding_balance_is_float():
+    from company.portal.app import _load_admin_data
+    d = _load_admin_data()
+    assert isinstance(d["total_outstanding_gbp"], float)
+
+
+def test_bad_debt_is_numeric():
+    from company.portal.app import _load_admin_data
+    d = _load_admin_data()
+    assert isinstance(d["total_bad_debt_gbp"], (int, float))

@@ -136,3 +136,30 @@ def test_stamp_replaces_arbitrary_old_timestamp(tmp_path, monkeypatch):
     text = latest_md.read_text(encoding="utf-8")
     assert "1990-06-15T12:34:56Z" not in text
     assert re.search(r"Last updated: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", text)
+
+
+def test_stamp_preserves_non_updated_lines(tmp_path, monkeypatch):
+    md = tmp_path / "LATEST.md"
+    md.write_text("header\nLast updated: 2020-01-01T00:00:00Z\nbody line\n")
+    monkeypatch.setattr(stamp_latest_md, "LATEST_MD", md)
+    stamp_latest_md.stamp()
+    assert "header" in md.read_text()
+    assert "body line" in md.read_text()
+
+
+def test_stamp_updates_last_updated_to_today(tmp_path, monkeypatch):
+    import datetime
+    md = tmp_path / "LATEST.md"
+    md.write_text("Last updated: 2020-01-01T00:00:00Z\n")
+    monkeypatch.setattr(stamp_latest_md, "LATEST_MD", md)
+    stamp_latest_md.stamp()
+    today = datetime.date.today().isoformat()
+    assert today in md.read_text()
+
+
+def test_stamp_function_returns_none(tmp_path, monkeypatch):
+    md = tmp_path / "LATEST.md"
+    md.write_text("Last updated: 2020-01-01T00:00:00Z\n")
+    monkeypatch.setattr(stamp_latest_md, "LATEST_MD", md)
+    result = stamp_latest_md.stamp()
+    assert result is None

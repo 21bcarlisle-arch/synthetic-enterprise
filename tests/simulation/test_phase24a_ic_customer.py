@@ -125,3 +125,22 @@ def test_c_ic1_commodity_is_electricity():
     from simulation.run_phase2b import ELEC_CUSTOMERS
     c = next(c for c in ELEC_CUSTOMERS if c["customer_id"] == "C_IC1")
     assert c["commodity"] == "electricity"
+
+
+def test_c_ic1_make_records_count():
+    """_make_ic1_records generates one record per day of the year."""
+    recs = _make_ic1_records(2022)
+    assert len(recs) == 365
+
+
+def test_c_ic1_make_records_customer_id():
+    recs = _make_ic1_records(2020)
+    for r in recs:
+        assert r["customer_id"] == "C_IC1"
+
+
+def test_c_ic1_make_records_total_kwh():
+    total = 2_000_000.0
+    recs = _make_ic1_records(2022, total_kwh=total)
+    approx = sum(r["consumption_kwh"] for r in recs)
+    assert abs(approx - total) < 1.0
