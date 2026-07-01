@@ -104,3 +104,22 @@ def test_note_present():
     d = _data((2021, 500_000, 200_000, 100_000), (2022, 600_000, 250_000, 120_000))
     result = _section_gross_margin_bridge(d)
     assert "Note:" in result or "non-commodity" in result.lower()
+
+
+def test_header_contains_bridge():
+    d = _data((2021, 500_000, 200_000, 100_000), (2022, 600_000, 250_000, 120_000))
+    result = _section_gross_margin_bridge(d)
+    assert "Gross Margin Bridge" in result
+
+
+def test_single_year_returns_empty():
+    d = _data((2022, 600_000, 250_000, 120_000))
+    result = _section_gross_margin_bridge(d)
+    assert result == ""
+
+
+def test_best_worst_year_shown():
+    d = _data((2020, 500_000, 200_000, 50_000), (2021, 600_000, 400_000, 100_000))
+    result = _section_gross_margin_bridge(d)
+    assert "Best GM year" in result
+    assert "Worst GM year" in result

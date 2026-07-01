@@ -145,3 +145,21 @@ def test_year_in_rows():
     }
     result = _section_dynamic_pricing_activity(d)
     assert "| 2019 |" in result
+
+
+def test_header_present():
+    d = {"dynamic_pricing_log": [_entry("2019-03-01", 100.0, 110.0)], "margin_feedback_log": []}
+    result = _section_dynamic_pricing_activity(d)
+    assert "Dynamic Pricing Activity" in result
+
+
+def test_rate_increase_delta_shown():
+    d = {"dynamic_pricing_log": [_entry("2021-01-01", 100.0, 120.0)], "margin_feedback_log": []}
+    result = _section_dynamic_pricing_activity(d)
+    assert "+20.0" in result or "20.0" in result
+
+
+def test_emergency_flag_shown():
+    d = {"dynamic_pricing_log": [_emerg("2022-06-01", 200.0, 250.0)], "margin_feedback_log": []}
+    result = _section_dynamic_pricing_activity(d)
+    assert "emergency" in result.lower() or "EMERG" in result

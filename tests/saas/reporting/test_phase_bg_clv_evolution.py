@@ -113,3 +113,25 @@ def test_note_present():
     d = _data({"2021": {"C1": 1000.0}, "2022": {"C1": 2000.0}})
     result = _section_clv_evolution(d)
     assert "forward estimates" in result.lower() or "Note:" in result
+
+
+def test_header_contains_clv_evolution():
+    d = _data({"2021": {"C1": 1000.0, "C2": 2000.0}, "2022": {"C1": 1500.0, "C2": 2500.0}})
+    result = _section_clv_evolution(d)
+    assert "Portfolio CLV Evolution" in result
+
+
+def test_gas_accounts_excluded_from_total():
+    d = _data({
+        "2021": {"C1": 1000.0, "C_IC3g": 999999.0},
+        "2022": {"C1": 1200.0, "C_IC3g": 999999.0},
+    })
+    result = _section_clv_evolution(d)
+    assert "1,000" in result or "1,200" in result
+    assert "999,999" not in result
+
+
+def test_peak_portfolio_clv_shown():
+    d = _data({"2021": {"C1": 1000.0}, "2022": {"C1": 3000.0}})
+    result = _section_clv_evolution(d)
+    assert "Peak portfolio CLV" in result

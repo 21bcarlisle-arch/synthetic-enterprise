@@ -115,3 +115,25 @@ def test_summary_counts():
     assert "1 underestimated" in result
     assert "1 accurate" in result
     assert "1 overestimated" in result
+
+
+def test_verdict_accurate_shown():
+    d = {"company_event_log": [_churn("C1", "2020-03-01", 0.50, 0.55)]}
+    result = _section_churn_prediction_calibration(d)
+    assert "ACCURATE" in result
+
+
+def test_mean_absolute_error_shown():
+    d = {"company_event_log": [
+        _churn("C1", "2020-03-01", 0.50, 0.20),
+    ]}
+    result = _section_churn_prediction_calibration(d)
+    assert "Mean absolute error" in result
+
+
+def test_only_churn_events_counted():
+    d = {"company_event_log": [
+        _acq("C1", "2020-01-01"),
+    ]}
+    result = _section_churn_prediction_calibration(d)
+    assert result == ""
