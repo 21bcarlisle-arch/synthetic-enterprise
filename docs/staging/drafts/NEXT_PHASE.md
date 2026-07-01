@@ -1,2 +1,2 @@
-Phase KF -- Coverage Depth Sprint LIV
-30 tests: admin_renewals + admin_vulnerability + bad_debt_provision coverage depth
+Phase KG -- Coverage Depth Sprint LV
+30 tests: carbon_emissions + consumption_forecast + credit_rating_book coverage depth

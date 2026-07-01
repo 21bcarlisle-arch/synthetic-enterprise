@@ -77,3 +77,66 @@ def test_summary_keys():
     assert s['total_customers'] == 1
     assert 'provision_coverage_pct' in s
     assert 'by_bucket' in s
+
+
+# --- Phase KF depth tests ---
+
+def test_provision_rate_days_30_5_pct():
+    item = ArrearsLedgerItem('C001', 1000.0, 31)
+    assert item.aging_bucket == AgingBucket.DAYS_30
+    assert item.provision_rate == pytest.approx(0.05)
+
+
+def test_provision_rate_days_60_20_pct():
+    item = ArrearsLedgerItem('C001', 1000.0, 61)
+    assert item.aging_bucket == AgingBucket.DAYS_60
+    assert item.provision_rate == pytest.approx(0.20)
+
+
+def test_provision_rate_days_90_50_pct():
+    item = ArrearsLedgerItem('C001', 1000.0, 91)
+    assert item.aging_bucket == AgingBucket.DAYS_90
+    assert item.provision_rate == pytest.approx(0.50)
+
+
+def test_classify_30_days_is_current():
+    assert classify_age(30) == AgingBucket.CURRENT
+
+
+def test_provision_coverage_zero_no_items():
+    p = build_provision(dt.date(2022, 12, 31), [])
+    assert p.provision_coverage_pct == pytest.approx(0.0)
+
+
+def test_as_of_date_stored():
+    items = [ArrearsLedgerItem('C001', 500.0, 50)]
+    p = build_provision(dt.date(2022, 12, 31), items)
+    assert p.as_of == dt.date(2022, 12, 31)
+
+
+def test_by_bucket_91_180_days_key():
+    items = [ArrearsLedgerItem('C001', 1000.0, 100)]
+    p = build_provision(dt.date(2022, 12, 31), items)
+    buckets = p.by_bucket()
+    assert '91_180_days' in buckets
+    assert buckets['91_180_days']['arrears_gbp'] == pytest.approx(1000.0)
+
+
+def test_single_item_provision_gbp():
+    item = ArrearsLedgerItem('C001', 1000.0, 45)
+    assert item.provision_gbp == pytest.approx(50.0)
+
+
+def test_summary_total_customers():
+    items = [ArrearsLedgerItem('C001', 200.0, 10), ArrearsLedgerItem('C002', 300.0, 50)]
+    p = build_provision(dt.date(2022, 12, 31), items)
+    assert p.summary()['total_customers'] == 2
+
+
+def test_vulnerable_provision_excludes_non_vulnerable():
+    items = [
+        ArrearsLedgerItem('C001', 1000.0, 200, is_vulnerable=False),
+        ArrearsLedgerItem('C002', 2000.0, 200, is_vulnerable=True),
+    ]
+    p = build_provision(dt.date(2022, 12, 31), items)
+    assert p.vulnerable_provision_gbp() == pytest.approx(2000.0 * 0.90)
