@@ -92,3 +92,58 @@ def test_fit_summary_empty():
     s = book.fit_summary()
     assert s["installations"] == 0
     assert s["total_paid_gbp"] == 0.0
+
+
+# --- Phase LM depth tests ---
+
+def test_installation_id_stored():
+    i = _install(iid="FIT_LM")
+    assert i.installation_id == "FIT_LM"
+
+
+def test_account_id_stored():
+    i = _install(account="ACCT_LM")
+    assert i.account_id == "ACCT_LM"
+
+
+def test_technology_stored():
+    i = _install(tech=FITTechnology.WIND)
+    assert i.technology == FITTechnology.WIND
+
+
+def test_capacity_kw_stored():
+    i = _install(kw=5.0)
+    assert i.capacity_kw == pytest.approx(5.0)
+
+
+def test_accreditation_date_stored():
+    i = _install(date="2017-03-15")
+    assert i.accreditation_date == "2017-03-15"
+
+
+def test_tariff_group_stored():
+    i = _install()
+    assert i.tariff_group == "E"
+
+
+def test_payment_quarter_stored():
+    p = _payment(quarter="2019-Q1")
+    assert p.quarter == "2019-Q1"
+
+
+def test_generation_rate_2012_exact():
+    assert _GENERATION_RATE_P_PER_KWH["2012"] == pytest.approx(16.0)
+
+
+def test_register_returns_installation():
+    book = FITBook()
+    i = _install()
+    result = book.register_installation(i)
+    assert result is i
+
+
+def test_record_payment_returns_payment():
+    book = FITBook()
+    p = _payment()
+    result = book.record_payment(p)
+    assert result is p

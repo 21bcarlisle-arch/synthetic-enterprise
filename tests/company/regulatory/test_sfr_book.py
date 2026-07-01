@@ -103,3 +103,59 @@ def test_book_sfr_summary():
     assert s["latest_status"] == "WATCH"
     assert s["latest_liquidity_days"] == pytest.approx(38.0)
     assert s["latest_hedge_ratio_pct"] == pytest.approx(0.68)
+
+
+# --- Phase LM depth tests ---
+
+def test_quarter_end_stored():
+    a = _passing_assessment(quarter_end=dt.date(2023, 9, 30))
+    assert a.quarter_end == dt.date(2023, 9, 30)
+
+
+def test_liquidity_days_stored():
+    a = _passing_assessment(liquidity_days=42.5)
+    assert a.liquidity_days == pytest.approx(42.5)
+
+
+def test_credit_balance_cover_stored():
+    a = _passing_assessment(credit_balance_cover_pct=0.95)
+    assert a.credit_balance_cover_pct == pytest.approx(0.95)
+
+
+def test_hedge_ratio_stored():
+    a = _passing_assessment(hedge_ratio_pct=0.73)
+    assert a.hedge_ratio_pct == pytest.approx(0.73)
+
+
+def test_return_filed_stored():
+    a = _passing_assessment(return_filed=True)
+    assert a.return_filed is True
+
+
+def test_liquidity_amber_at_30_days():
+    a = _passing_assessment(liquidity_days=30.0)
+    assert a.liquidity_status == "AMBER"
+    assert a.overall_status == SFRStatus.WATCH
+
+
+def test_hedge_amber_at_60pct():
+    a = _passing_assessment(hedge_ratio_pct=0.60)
+    assert a.hedge_status == "AMBER"
+    assert a.overall_status == SFRStatus.WATCH
+
+
+def test_no_breach_metrics_when_pass():
+    a = _passing_assessment()
+    assert a.breach_metrics == []
+
+
+def test_file_return_unknown_quarter():
+    book = SFRBook()
+    result = book.file_return(dt.date(2099, 12, 31))
+    assert result is None
+
+
+def test_sfr_summary_latest_none_when_empty():
+    book = SFRBook()
+    s = book.sfr_summary()
+    assert s["latest_status"] is None

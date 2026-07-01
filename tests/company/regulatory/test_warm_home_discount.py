@@ -88,3 +88,69 @@ def test_records_for_account():
     book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
     book.record_discount("C2", 2022, WHDEligibilityBasis.BROADER_GROUP, "2022-12")
     assert len(book.records_for_account("C1")) == 2
+
+
+# --- Phase LM depth tests ---
+
+def test_account_id_stored():
+    book = WHDBook()
+    r = book.record_discount("ACCT_LM", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    assert r.account_id == "ACCT_LM"
+
+
+def test_scheme_year_stored():
+    book = WHDBook()
+    r = book.record_discount("C1", 2023, WHDEligibilityBasis.CORE_GROUP, "2023-12")
+    assert r.scheme_year == 2023
+
+
+def test_eligibility_basis_stored():
+    book = WHDBook()
+    r = book.record_discount("C1", 2022, WHDEligibilityBasis.BROADER_GROUP, "2022-12")
+    assert r.eligibility_basis == WHDEligibilityBasis.BROADER_GROUP
+
+
+def test_applied_month_stored():
+    book = WHDBook()
+    r = book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-11")
+    assert r.applied_month == "2022-11"
+
+
+def test_levy_recovered_default_false():
+    book = WHDBook()
+    r = book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    assert r.levy_recovered is False
+
+
+def test_core_group_2015_rate_140():
+    book = WHDBook()
+    r = book.record_discount("C1", 2015, WHDEligibilityBasis.CORE_GROUP, "2015-12")
+    assert r.discount_gbp == pytest.approx(140.0)
+
+
+def test_core_group_unknown_year_fallback():
+    book = WHDBook()
+    r = book.record_discount("C1", 2030, WHDEligibilityBasis.CORE_GROUP, "2030-12")
+    assert r.discount_gbp == pytest.approx(150.0)
+
+
+def test_total_discounted_no_year_filter():
+    book = WHDBook()
+    book.record_discount("C1", 2021, WHDEligibilityBasis.CORE_GROUP, "2021-12")
+    book.record_discount("C2", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    total = book.total_discounted_gbp()
+    assert total == pytest.approx(290.0)
+
+
+def test_record_discount_returns_record():
+    book = WHDBook()
+    result = book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    assert isinstance(result, WHDRecord)
+
+
+def test_mark_levy_recovered_returns_count():
+    book = WHDBook()
+    book.record_discount("C1", 2022, WHDEligibilityBasis.CORE_GROUP, "2022-12")
+    book.record_discount("C2", 2022, WHDEligibilityBasis.BROADER_GROUP, "2022-12")
+    n = book.mark_levy_recovered(2022)
+    assert n == 2
