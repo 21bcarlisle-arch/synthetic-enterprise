@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 430+ commits. 10,650 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 435+ commits. 10,680 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase JT -- Coverage Depth Sprint XLII (2026-07-01)
+**Modules:** credit_facility · switch_governance · licence_health
+**Tests added:** 30 (credit_facility: DD-0001 first ID; DD-0001/DD-0002 sequential; is_outstanding False after repay; multiple drawdowns accumulate; repay one of two updates balance; interest stops at repay_date; utilisation=0 no drawdowns; interest=0 same-day drawdown; repay unknown raises KeyError; drawdown after repay within limit. switch_governance: OBJ-0001 first; OBJ-0001/0002 sequential; ET-0001 first; exact 14-day=within; day-15=not-within; exact-15-day-objection=within; day-16=outside; ET CLOSED_NO_ACTION is_resolved; reason stored; annual_summary objections_raised=2. licence_health: pass_count=6 all healthy; watch_count>=1 on cash-watch; breach=not going concern; get unknown=None; headroom positive; headroom negative; overall WATCH no breach; bad_debt 5.0%=WATCH; complaints 1.0=PASS; summary as_of iso)
+**Total:** 10,680 tests
 
 ### Phase JS -- Coverage Depth Sprint XLI (2026-07-01)
 **Modules:** eep_book · meter_read_validation · capacity_to_pay
@@ -4645,7 +4650,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,650 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,680 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
