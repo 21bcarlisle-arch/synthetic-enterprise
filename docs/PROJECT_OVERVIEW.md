@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 10,710 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 10,740 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase JV -- Coverage Depth Sprint XLIV (2026-07-01)
+**Modules:** risk_appetite · hedging_schedule · annual_obligations
+**Tests added:** 30 (risk_appetite: multiple_limits_dashboard; latest_picks_max_date; active_breaches_excludes_approaching; two_limits_both_breach=2; utilisation_zero_limit=0.0; custom_warning_70pct=APPROACHING; dashboard_excludes_future; latest_none_empty; unmeasured_not_in_items; breach_then_recovery. hedging_schedule: FWD-0001_first; FWD-0002_sequential; portfolio_ratio_3months=50%; over_hedged_filtered_by_commodity; get_position_none_unknown; ratio_none_zero_forecast; avg_price_none_no_contracts; summary_zero_empty; multiple_contracts_sum_hedged; tenor_stored. annual_obligations: WHD_95pct=AT_RISK; ECO4_100pct=MET; ECO4_80pct=BREACHED_penalty=200*10; REGO_92pct=AT_RISK; overall_AT_RISK_no_breach; total_penalty_accumulates; get_None_unknown; ofgem_AT_RISK_before_due; no_REGO_zero_obligation; summary_keys.)
+**Total:** 10,740 tests
 
 ### Phase JU -- Coverage Depth Sprint XLIII (2026-07-01)
 **Modules:** revenue_accruals · dsr_book · portal_analytics
@@ -4655,7 +4660,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,710 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,740 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
