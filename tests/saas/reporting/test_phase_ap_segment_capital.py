@@ -88,3 +88,24 @@ def test_multiple_segments_all_shown():
     assert "I&C electricity" in result
     assert "resi electricity" in result
     assert "I&C gas" in result
+
+
+def test_zero_capital_gives_low_return():
+    from saas.reporting.annual_report import _section_segment_capital_efficiency
+    data = _make_data({"2024": {"resi electricity": (5000.0, 0.0, 1000.0)}})
+    result = _section_segment_capital_efficiency(data)
+    assert "Low return" in result
+
+
+def test_negative_net_appears_in_table():
+    from saas.reporting.annual_report import _section_segment_capital_efficiency
+    data = _make_data({"2024": {"I&C gas": (50000.0, 5000.0, -200.0)}})
+    result = _section_segment_capital_efficiency(data)
+    assert "I&C gas" in result
+
+
+def test_no_gas_finding_when_gas_cap_is_zero():
+    from saas.reporting.annual_report import _section_segment_capital_efficiency
+    data = _make_data({"2024": {"I&C gas": (50000.0, 0.0, -100.0)}})
+    result = _section_segment_capital_efficiency(data)
+    assert "Gas Segment Finding" not in result

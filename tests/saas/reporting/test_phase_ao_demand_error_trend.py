@@ -132,3 +132,27 @@ def test_single_small_cohort_no_trend():
     assert "2025" in result
     # Trend note may be absent
     # (no assertion on "Trend:" — it's only shown when last_active is non-empty)
+
+
+def test_returns_not_available_header_when_no_data():
+    from saas.reporting.annual_report import _section_company_divergence
+    result = _section_company_divergence({})
+    assert "## Company Model Divergence" in result
+
+
+def test_tariff_error_section_header_shown():
+    from saas.reporting.annual_report import _section_company_divergence
+    data = {"company_divergence": {"tariff_error_by_year": {
+        "2022": {"n": 3, "mean_abs_error_pct": 0.05, "max_abs_error_pct": 0.12}
+    }}}
+    result = _section_company_divergence(data)
+    assert "Tariff Pricing Error" in result
+
+
+def test_churn_error_shown_independently():
+    from saas.reporting.annual_report import _section_company_divergence
+    data = {"company_divergence": {"churn_error_by_year": {
+        "2021": {"n": 4, "mean_abs_error_pct": 2.5, "max_abs_error_pct": 5.0}
+    }}}
+    result = _section_company_divergence(data)
+    assert "Churn Estimate Error" in result

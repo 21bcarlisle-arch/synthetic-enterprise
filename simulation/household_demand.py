@@ -88,6 +88,13 @@ class HouseholdDemandRegister:
             return 1.0
         return hh.epc_consumption_multiplier()
 
+    def income_stress_at_date(self, customer_id: str, date_str: str):
+        """Return the customer's IncomeStress level at a given date."""
+        hh = self.household_at_date(customer_id, date_str)
+        if hh is None:
+            return None
+        return hh.income_stress
+
     def eac_multiplier_for_date(self, customer_id: str, date_str: str) -> float:
         """Composite EAC multiplier: EPC * (1 + EV fraction + ASHP fraction) * (1 - solar fraction).
 

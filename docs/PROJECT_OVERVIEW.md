@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 441+ commits. 13,033 tests passing. Codebase: ~47,600 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 441+ commits. 13,949 tests passing. Codebase: ~47,700 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase MV -- Economic Life Events (2026-07-01)
+20 tests. Added IncomeStress(str, Enum) with LOW/MODERATE/HIGH to simulation/household.py. Added income_stress field (default LOW) to frozen Household dataclass. Extended EventType Literal with job_loss, income_recovery, new_baby, retirement_starts. Added probability tables: _JOB_LOSS_ANNUAL_PROB=0.022, _INCOME_RECOVERY_ANNUAL_PROB=0.50, _NEW_BABY_ANNUAL_PROB=0.011, _RETIREMENT_PROB_BY_ERA (ERA_1945_1964=0.035 peak). Extended generate_life_events() with econ_rng (separate from physical-event rng to preserve existing RNG sequence). Extended apply_events() to handle all 4 new event types. Added income_stress_at_date() to HouseholdDemandRegister.
+**Total:** 13,949 tests
 
 ### Phase MU -- Coverage Depth Sprint CXIX (2026-07-01)
 30 depth tests: sim/hedging_strategy, sim/risk_engine, sim/weather_price_sensitivity. hedging_strategy: EVOLUTION_STEP; MARGIN_TOLERANCE_GBP; hold at exact ±5.0 boundary; raise from floor by one step; cap at 1.0; floor clamp; mandate floor text; reasoning values; noise text. risk_engine: Z_SCORE; WACC; sigma_recent float; bootstrap fallback; ValueError no records; var formula; stressed boundary; active_collateral max; assess_term_risk 6 keys; post-reform higher cost. weather_price_sensitivity: HDD_THRESHOLD; BASELINE_HDD; MULTIPLIER; heating base zero; above base clamped; negative temp; boundary at 8.0; just above threshold; very cold; known mix.

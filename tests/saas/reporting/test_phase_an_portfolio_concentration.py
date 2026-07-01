@@ -151,3 +151,27 @@ def test_missing_churn_data_handled():
     result = _section_portfolio_concentration_risk(_data(pcl))
     assert "C_IC4" in result
     assert "0%" in result
+
+
+def test_all_negative_net_margin_returns_empty():
+    from saas.reporting.annual_report import _section_portfolio_concentration_risk
+    pcl = {
+        "C1": {"segment": "resi", "net_margin_after_cost_to_serve_gbp": -100.0},
+        "C2": {"segment": "I&C", "net_margin_after_cost_to_serve_gbp": -500.0},
+    }
+    result = _section_portfolio_concentration_risk({"per_customer_lifetime": pcl})
+    assert result == ""
+
+
+def test_portfolio_top5_accounts_header_shown():
+    from saas.reporting.annual_report import _section_portfolio_concentration_risk
+    pcl = {"C_IC1": {"segment": "I&C", "net_margin_after_cost_to_serve_gbp": 1000000.0}}
+    result = _section_portfolio_concentration_risk({"per_customer_lifetime": pcl})
+    assert "Top 5 Accounts" in result
+
+
+def test_portfolio_hhi_low_for_equal_margin_segments():
+    from saas.reporting.annual_report import _section_portfolio_concentration_risk
+    pcl = {f"C{i}": {"segment": "resi", "net_margin_after_cost_to_serve_gbp": 1000.0} for i in range(10)}
+    result = _section_portfolio_concentration_risk({"per_customer_lifetime": pcl})
+    assert "LOW" in result

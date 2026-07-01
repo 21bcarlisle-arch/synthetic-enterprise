@@ -151,3 +151,20 @@ def test_run_simulation_staging_marker_name_format(tmp_path, monkeypatch):
     markers = list((tmp_path / "staging").glob("run_complete_*.md"))
     assert len(markers) == 1
     assert markers[0].name.startswith("run_complete_")
+
+def test_log_appends_on_second_call(tmp_path, monkeypatch):
+    log_file = tmp_path / "log.md"
+    monkeypatch.setattr(sim_runner, "LOG_FILE", log_file)
+    sim_runner.log("first")
+    sim_runner.log("second")
+    text = log_file.read_text()
+    assert "first" in text
+    assert "second" in text
+
+
+def test_reports_dir_name_is_reports():
+    assert sim_runner.REPORTS_DIR.name == "reports"
+
+
+def test_staging_dir_name_is_staging():
+    assert sim_runner.STAGING_DIR.name == "staging"

@@ -144,3 +144,24 @@ def test_rag_table_header():
     result = _section_board_risk_summary(_data(years=years))
     assert "RAG" in result
     assert "Risk Indicator" in result
+
+
+def test_net_margin_amber():
+    hl = {"revenue_gbp": 100000.0, "net_margin_gbp": 500.0}  # 0.5% — AMBER
+    result = _section_board_risk_summary(_data(_ledger_headline=hl))
+    assert "AMBER" in result
+
+
+def test_no_board_action_when_all_green():
+    hl = {"revenue_gbp": 100000.0, "net_margin_gbp": 5000.0}  # 5% — GREEN
+    result = _section_board_risk_summary(_data(_ledger_headline=hl))
+    assert "Board Action Required" not in result
+
+
+def test_pricing_basis_amber_when_moderate():
+    brt = [
+        {"customer_id": "C1", "term_start": "2022-01-01", "tariff_error_pct": 0.08},
+        {"customer_id": "C2", "term_start": "2022-01-01", "tariff_error_pct": 0.06},
+    ]
+    result = _section_board_risk_summary(_data(basis_risk_terms=brt))
+    assert "AMBER" in result

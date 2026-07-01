@@ -67,6 +67,12 @@ class InsulationLevel(str, Enum):
     NA = "na"               # commercial / no roof
 
 
+class IncomeStress(str, Enum):
+    LOW = "low"             # employed / stable income
+    MODERATE = "moderate"   # reduced income — new baby, retirement starts
+    HIGH = "high"           # job loss / acute financial distress
+
+
 # Phase F/G: BEIS-calibrated ASHP annual electricity uplift (kWh/yr).
 ASHP_BASE_ELECTRICITY_KWH: float = 5_500.0
 
@@ -109,6 +115,9 @@ class Household:
     # Physical suitability — drive EV/solar/HP eligibility in life events
     has_driveway: bool       # off-street parking; required for home EV charging
     roof_aspect: str         # "south" / "east_west" / "north" / "na" (flat/commercial)
+
+    # Economic stress — updated by life events (job_loss, income_recovery, new_baby, retirement)
+    income_stress: IncomeStress = IncomeStress.LOW
 
     @property
     def is_residential(self) -> bool:

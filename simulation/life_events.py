@@ -36,6 +36,7 @@ from simulation.household import (
     BuildEra,
     HeatingSystem,
     Household,
+    IncomeStress,
     InsulationLevel,
     PropertyType,
 )
@@ -49,6 +50,10 @@ EventType = Literal[
     "battery_installed",
     "smart_meter_installed",
     "insulation_upgraded",
+    "job_loss",
+    "income_recovery",
+    "new_baby",
+    "retirement_starts",
 ]
 
 
@@ -139,6 +144,31 @@ _BATTERY_INSTALL_PROB_WITH_SOLAR_BY_YEAR: dict[int, float] = {
 }
 
 
+# Economic life events: income stress
+# Job loss: UK annual unemployment entry rate ~2.2% of working-age employed
+# Source: ONS Labour Market Statistics 2016-2025
+_JOB_LOSS_ANNUAL_PROB = 0.022
+
+# Income recovery: conditional on HIGH stress; median UK unemployment spell ~6 months
+_INCOME_RECOVERY_ANNUAL_PROB = 0.50
+
+# New baby: UK birth rate ~10.7/1,000 population ≈ 1.1% per resi household/year
+# Source: ONS Birth Summary Tables
+_NEW_BABY_ANNUAL_PROB = 0.011
+
+# Retirement: calibrated to build era. Typical UK retirement age ~65.
+# ERA_1945_1964 occupants: born 1945–64, aged 52–71 in 2016 — peak cohort.
+# Source: ONS Labour Force Survey — economic inactivity by age
+_RETIREMENT_PROB_BY_ERA: dict[str, float] = {
+    "pre_1919":   0.000,  # already retired pre-simulation
+    "1919_1944":  0.000,  # already retired pre-simulation
+    "1945_1964":  0.035,  # peak retirement cohort 2016-2025
+    "1965_1980":  0.008,  # approaching retirement by 2025
+    "1981_2000":  0.000,  # too young
+    "post_2000":  0.000,  # too young
+}
+
+
 def _annual_prob(table: dict[int, float], year: int) -> float:
     """Look up annual probability, clamping to table bounds."""
     if year <= min(table):
@@ -179,6 +209,10 @@ def generate_life_events(
     if seed is None:
         seed = hash(household.customer_id) % (2**31)
     rng = random.Random(seed)
+    # Separate RNG for economic events — prevents economic event draws from
+    # shifting the physical-event RNG sequence (which would change consumption
+    # and margin results) when economic events are added or removed.
+    econ_rng = random.Random(seed ^ 0xEC0EFF)
 
     events: list[LifeEvent] = []
 
@@ -189,6 +223,8 @@ def generate_life_events(
     boiler_age = household.boiler_age
     insulation = household.insulation
     heating = household.heating_system
+    income_stress = household.income_stress
+    is_retired = False
 
     for year in range(sim_start_year, sim_end_year + 1):
 
@@ -285,6 +321,56 @@ def generate_life_events(
                 ))
                 insulation = InsulationLevel.FULL
 
+        # -- Economic life events (residential only) --
+        # Uses econ_rng (not rng) to keep physical-event RNG sequence stable.
+        if household.is_residential:
+            # Job loss (only when not already in high stress)
+            if income_stress != IncomeStress.HIGH:
+                if econ_rng.random() < _JOB_LOSS_ANNUAL_PROB:
+                    events.append(LifeEvent(
+                        customer_id=household.customer_id,
+                        event_date=_random_date_in_year(year, econ_rng),
+                        event_type="job_loss",
+                        payload={},
+                    ))
+                    income_stress = IncomeStress.HIGH
+
+            # Income recovery (only when in high stress)
+            elif income_stress == IncomeStress.HIGH:
+                if econ_rng.random() < _INCOME_RECOVERY_ANNUAL_PROB:
+                    events.append(LifeEvent(
+                        customer_id=household.customer_id,
+                        event_date=_random_date_in_year(year, econ_rng),
+                        event_type="income_recovery",
+                        payload={},
+                    ))
+                    income_stress = IncomeStress.LOW
+
+            # New baby (only when stable income)
+            if income_stress == IncomeStress.LOW:
+                if econ_rng.random() < _NEW_BABY_ANNUAL_PROB:
+                    events.append(LifeEvent(
+                        customer_id=household.customer_id,
+                        event_date=_random_date_in_year(year, econ_rng),
+                        event_type="new_baby",
+                        payload={},
+                    ))
+                    income_stress = IncomeStress.MODERATE
+
+            # Retirement (era-calibrated, only fires once)
+            if not is_retired:
+                retire_prob = _RETIREMENT_PROB_BY_ERA.get(household.build_era.value, 0.0)
+                if retire_prob > 0 and econ_rng.random() < retire_prob:
+                    events.append(LifeEvent(
+                        customer_id=household.customer_id,
+                        event_date=_random_date_in_year(year, econ_rng),
+                        event_type="retirement_starts",
+                        payload={},
+                    ))
+                    is_retired = True
+                    if income_stress == IncomeStress.LOW:
+                        income_stress = IncomeStress.MODERATE
+
     events.sort(key=lambda e: e.event_date)
     return events
 
@@ -316,6 +402,7 @@ def apply_events(household: Household, events: list[LifeEvent]) -> Household:
         "insulation": household.insulation,
         "has_driveway": household.has_driveway,
         "roof_aspect": household.roof_aspect,
+        "income_stress": household.income_stress,
     }
 
     for event in events:
@@ -345,6 +432,20 @@ def apply_events(household: Household, events: list[LifeEvent]) -> Household:
         elif event.event_type == "smart_meter_installed":
             state["has_smart_meter"] = True
             state["smart_meter_install_year"] = int(event.event_date[:4])
+
+        elif event.event_type == "job_loss":
+            state["income_stress"] = IncomeStress.HIGH
+
+        elif event.event_type == "income_recovery":
+            state["income_stress"] = IncomeStress.LOW
+
+        elif event.event_type == "new_baby":
+            if state["income_stress"] == IncomeStress.LOW:
+                state["income_stress"] = IncomeStress.MODERATE
+
+        elif event.event_type == "retirement_starts":
+            if state["income_stress"] == IncomeStress.LOW:
+                state["income_stress"] = IncomeStress.MODERATE
 
     return Household(**state)
 

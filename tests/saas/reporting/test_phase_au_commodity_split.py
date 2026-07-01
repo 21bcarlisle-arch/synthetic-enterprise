@@ -112,3 +112,30 @@ def test_multiple_years_all_appear():
     assert "2020" in result
     assert "2021" in result
     assert "2022" in result
+
+
+def test_gas_profitable_throughout_message():
+    from saas.reporting.annual_report import _section_commodity_split
+    d = {"years": {
+        "2019": _cs_year(1000, 200, 10000, 2000),
+        "2020": _cs_year(1000, 100, 10000, 2000),
+    }}
+    result = _section_commodity_split(d)
+    assert "profitable throughout" in result
+
+
+def test_gas_share_pct_in_result():
+    from saas.reporting.annual_report import _section_commodity_split
+    d = {"years": {"2020": _cs_year(1000, 100, 8000, 2000)}}
+    result = _section_commodity_split(d)
+    assert "%" in result  # gas share pct shown
+
+
+def test_first_gas_loss_year_in_message():
+    from saas.reporting.annual_report import _section_commodity_split
+    d = {"years": {
+        "2019": _cs_year(1000, 100, 8000, 2000),
+        "2021": _cs_year(2000, -500, 9000, 2000),
+    }}
+    result = _section_commodity_split(d)
+    assert "loss-making since 2021" in result
