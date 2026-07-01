@@ -201,3 +201,5 @@
 - [2026-06-30 20:46 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782850958 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
 - [2026-06-30 21:39 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782854295 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
 - [2026-06-30 22:40 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782857758 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-07-01 07:41 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Read timed out. (read timeout=10)
+- [2026-07-01 07:42 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Read timed out. (read timeout=10)
