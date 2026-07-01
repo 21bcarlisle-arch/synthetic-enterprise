@@ -89,3 +89,26 @@ def test_peak_records_keys():
     r = _peak_records(records, n=1)[0]
     for key in ("date", "period", "ssp"):
         assert key in r
+
+import pytest as _pytest2
+
+def test_annual_aggregation_single_month():
+    monthly = [{"month": "2022-03", "mean": 90.0, "max": 110.0, "min": 70.0, "p95": 105.0}]
+    result = _annual_aggregation(monthly)
+    assert len(result) == 1
+    assert result[0]["year"] == "2022"
+
+
+def test_peak_records_sorted_desc():
+    records = [_ssp_rec("2022-06-01", i, float(i)) for i in range(1, 10)]
+    result = _peak_records(records, n=3)
+    ssps = [r["ssp"] for r in result]
+    assert ssps == sorted(ssps, reverse=True)
+
+
+def test_monthly_aggregation_two_periods_same_month():
+    records = [_ssp_rec("2022-06-01", 1, 100.0), _ssp_rec("2022-06-01", 2, 200.0)]
+    result = _monthly_aggregation(records)
+    assert len(result) == 1
+    assert result[0]["period_count"] == 2
+    assert result[0]["mean"] == _pytest2.approx(150.0)

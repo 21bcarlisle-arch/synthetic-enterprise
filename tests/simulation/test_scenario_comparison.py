@@ -112,3 +112,24 @@ def test_format_comparison_table_net_margin_sign():
     table = format_comparison_table(comp)
     assert "£+1,234" in table or "£1,234" in table
     assert "£-567" in table
+
+
+def test_extract_kpis_final_treasury_none_no_years():
+    result = {"scenario_name": "x", "years": {}, "customer_events": [], "retention_log": []}
+    kpis = extract_scenario_kpis(result, "x")
+    assert kpis["final_treasury_gbp"] is None
+
+
+def test_format_comparison_table_mentions_margin():
+    r1 = _make_run_result("test_scenario")
+    comp = [extract_scenario_kpis(r1, "test_scenario")]
+    table = format_comparison_table(comp)
+    assert "net" in table.lower() or "margin" in table.lower()
+
+
+def test_extract_kpis_years_summary_active_customer_count():
+    result = _make_run_result(years={
+        "2026": {"net_margin_gbp": 100.0, "active_customer_ids": ["C1", "C2"]},
+    })
+    kpis = extract_scenario_kpis(result, "x")
+    assert kpis["years_summary"]["2026"]["active_customers"] == 2

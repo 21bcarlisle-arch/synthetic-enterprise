@@ -168,3 +168,19 @@ def test_reports_dir_name_is_reports():
 
 def test_staging_dir_name_is_staging():
     assert sim_runner.STAGING_DIR.name == "staging"
+
+
+def test_log_file_is_under_project_dir():
+    assert sim_runner.PROJECT_DIR in sim_runner.LOG_FILE.parents
+
+
+def test_staging_dir_is_under_project_dir():
+    assert sim_runner.PROJECT_DIR in sim_runner.STAGING_DIR.parents
+
+
+def test_log_entry_has_timestamp(tmp_path, monkeypatch):
+    log_file = tmp_path / "log.md"
+    monkeypatch.setattr(sim_runner, "LOG_FILE", log_file)
+    sim_runner.log("check timestamp")
+    text = log_file.read_text()
+    assert "20" in text and "UTC" in text

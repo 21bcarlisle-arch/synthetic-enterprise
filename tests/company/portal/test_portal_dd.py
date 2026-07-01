@@ -82,3 +82,21 @@ def test_dd_template_has_payment_day_options():
         html = f.read()
     assert "payment_day" in html
     assert "28" in html or "1" in html
+
+
+def test_dd_post_valid_day_15_returns_200():
+    r = client.post(
+        "/account/C1/direct-debit",
+        data={"sort_code": "20-00-00", "account_number": "12345678", "payment_day": "15"},
+    )
+    assert r.status_code == 200
+
+
+def test_dd_page_title_contains_direct_debit():
+    r = client.get("/account/C1/direct-debit")
+    assert "Direct Debit" in r.text
+
+
+def test_dd_cancel_response_is_html():
+    r = client.post("/account/C1/direct-debit/cancel")
+    assert "text/html" in r.headers.get("content-type", "")

@@ -109,3 +109,23 @@ def test_negative_margin_allowed():
     records = [_record("C1", revenue=10.0, wholesale=50.0, margin=-40.0)]
     result = build_portfolio_pnl(records)
     assert result["portfolio"]["margin_gbp"] == -40.0
+
+import pytest as _pytest
+
+def test_by_customer_revenue_matches_portfolio_single():
+    records = [_record("C1", revenue=55.0)]
+    result = build_portfolio_pnl(records)
+    assert result["by_customer"]["C1"]["revenue_gbp"] == _pytest.approx(55.0)
+    assert result["portfolio"]["revenue_gbp"] == _pytest.approx(55.0)
+
+
+def test_by_customer_consumption_accumulates():
+    records = [_record("C1", consumption=200.0), _record("C1", consumption=300.0)]
+    result = build_portfolio_pnl(records)
+    assert result["by_customer"]["C1"]["consumption_kwh"] == _pytest.approx(500.0)
+
+
+def test_zero_margin_records_portfolio_zero():
+    records = [_record("C1", margin=0.0), _record("C2", margin=0.0)]
+    result = build_portfolio_pnl(records)
+    assert result["portfolio"]["margin_gbp"] == 0.0

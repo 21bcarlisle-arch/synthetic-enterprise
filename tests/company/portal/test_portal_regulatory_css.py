@@ -94,3 +94,22 @@ def test_css_filing_has_vulnerable_contacts_key():
     data = _load_regulatory_data()
     css = data["css"]
     assert "vulnerable_contacts" in css or "vulnerable" in str(css).lower()
+
+
+def test_regulatory_returns_200():
+    r = client.get("/regulatory")
+    assert r.status_code == 200
+
+
+def test_css_resolution_rate_in_range():
+    from company.portal.app import _load_regulatory_data
+    data = _load_regulatory_data()
+    rate = data["css"]["complaint_resolution_rate"]
+    assert 0.0 <= rate <= 100.0
+
+
+def test_css_resolution_target_met_is_bool_type():
+    from company.portal.app import _load_regulatory_data
+    data = _load_regulatory_data()
+    css = data["css"]
+    assert isinstance(css["resolution_target_met"], bool)

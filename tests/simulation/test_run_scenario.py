@@ -137,3 +137,27 @@ def test_expand_daily_to_hh_settlement_periods_1_to_48():
 def test_expand_daily_to_hh_empty_input():
     result = _expand_daily_to_hh([])
     assert result == []
+
+
+def test_expand_daily_to_hh_empty_list():
+    assert _expand_daily_to_hh([]) == []
+
+
+def test_expand_daily_to_hh_two_days():
+    daily = _daily_records("2027-04-01", "2027-04-02")
+    hh = _expand_daily_to_hh(daily)
+    assert len(hh) == 96
+
+
+def test_build_extended_scenario_dates_start_at_year_from():
+    hist_elec = _hh_records("2016-01-01", "2025-12-31")
+    hist_gas = _daily_records("2016-01-01", "2025-12-31")
+    ext_elec, _ = build_extended_price_feeds(
+        hist_elec, hist_gas,
+        scenario="central_2027", year_from=2026, year_to=2026,
+        seed="x",
+    )
+    scenario_dates = sorted(
+        r["settlementDate"] for r in ext_elec if r["settlementDate"] >= "2026-01-01"
+    )
+    assert scenario_dates[0] == "2026-01-01"

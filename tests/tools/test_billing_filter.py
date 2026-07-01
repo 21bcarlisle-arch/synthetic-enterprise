@@ -62,3 +62,18 @@ def test_customers_index_has_segment_reference():
 def test_customers_index_has_invoice_reference():
     text = (CUSTOMERS / "index.html").read_text()
     assert "invoice" in text
+
+
+def test_customers_index_has_total_reference():
+    text = (CUSTOMERS / "index.html").read_text()
+    assert "total" in text.lower() or "amount" in text.lower()
+
+
+def test_customers_index_has_currency_reference():
+    text = (CUSTOMERS / "index.html").read_text()
+    assert "amount_gbp" in text or "GBP" in text or "£" in text
+
+
+def test_customers_index_has_data_fetch():
+    text = (CUSTOMERS / "index.html").read_text()
+    assert "fetch" in text or "sim_data" in text

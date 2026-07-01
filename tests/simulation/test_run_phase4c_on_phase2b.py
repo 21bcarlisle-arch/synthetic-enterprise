@@ -118,3 +118,21 @@ def test_build_monthly_bills_multi_customer_total_revenue():
     c2_bills = [b for b in bills if b["customer_id"] == "C2"]
     assert len(c1_bills) == 1  # both C1 dates same month
     assert len(c2_bills) == 1
+
+
+def test_billing_month_new_year():
+    assert _billing_month("2022-01-01") == "2022-01"
+
+
+def test_build_monthly_bills_total_exceeds_raw_revenue():
+    records = [make_record("C1", "2023-01-01", 10.0, unit_rate=200.0)]
+    bills = build_monthly_bills(records)
+    raw_revenue = (10.0 / 1000) * 200.0
+    assert bills[0]["total_amount_gbp"] > raw_revenue
+
+
+def test_build_monthly_bills_clarity_score_not_none():
+    records = [make_record("C1", "2023-03-01", 25.0)]
+    bills = build_monthly_bills(records)
+    assert bills[0]["clarity_score"] is not None
+    assert isinstance(bills[0]["clarity_score"], float)
