@@ -136,3 +136,60 @@ def test_exposure_summary():
     assert "Contract Exposure" in summary
     assert "Fixed: 1" in summary
     assert "SVT: 1" in summary
+
+
+# --- Phase LT depth tests ---
+
+def test_account_id_stored():
+    c = _fixed_contract(account_id='ACCT_LT')
+    assert c.account_id == 'ACCT_LT'
+
+
+def test_segment_stored():
+    c = _fixed_contract()
+    assert c.segment == ContractSegment.DOMESTIC
+
+
+def test_status_stored():
+    c = _fixed_contract()
+    assert c.status == ContractStatus.FIXED_TERM
+
+
+def test_annual_kwh_stored():
+    c = _fixed_contract()
+    assert c.annual_kwh == pytest.approx(3500)
+
+
+def test_unit_rate_stored():
+    c = _fixed_contract()
+    assert c.unit_rate_gbp_per_kwh == pytest.approx(0.28)
+
+
+def test_standing_charge_stored():
+    c = _fixed_contract()
+    assert c.standing_charge_gbp_per_day == pytest.approx(0.60)
+
+
+def test_notice_issued_default_false():
+    c = _fixed_contract()
+    assert c.notice_issued is False
+
+
+def test_register_contract_returns_record():
+    reg = ContractExposureRegister()
+    c = _fixed_contract()
+    result = reg.register_contract(c)
+    assert result is c
+
+
+def test_get_contract_found():
+    reg = ContractExposureRegister()
+    c = _fixed_contract(account_id='CGET')
+    reg.register_contract(c)
+    assert reg.get_contract('CGET') is c
+
+
+def test_annual_contract_revenue_computed():
+    c = _fixed_contract()
+    expected = 3500 * 0.28 + 0.60 * 365
+    assert c.annual_contract_revenue_gbp == pytest.approx(expected, rel=0.01)

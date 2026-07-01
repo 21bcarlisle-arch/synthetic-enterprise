@@ -98,3 +98,67 @@ def test_summary():
     summary = r.comm_preference_summary()
     assert "GDPR" in summary
     assert "PECR" in summary
+
+
+# --- Phase LT depth tests ---
+
+def test_unknown_customer_billing_allowed():
+    r = _reg()
+    assert r.can_contact('UNKNOWN_LT', CommChannel.EMAIL, CommPurpose.BILLING) is True
+
+
+def test_unknown_customer_marketing_blocked():
+    r = _reg()
+    assert r.can_contact('UNKNOWN_LT', CommChannel.EMAIL, CommPurpose.MARKETING) is False
+
+
+def test_marketing_opt_in_enables_marketing():
+    r = _reg()
+    r.set_marketing_opt_in('C1', True, _D)
+    assert r.can_contact('C1', CommChannel.EMAIL, CommPurpose.MARKETING) is True
+
+
+def test_marketing_opt_out_blocks_after_optin():
+    r = _reg()
+    r.set_marketing_opt_in('C1', True, _D)
+    r.set_marketing_opt_in('C1', False, date(_D.year, _D.month + 1, 1))
+    assert r.can_contact('C1', CommChannel.EMAIL, CommPurpose.MARKETING) is False
+
+
+def test_suppressed_account_blocks_marketing():
+    r = _reg()
+    r.set_marketing_opt_in('C1', True, _D)
+    r.suppress_account('C1')
+    assert r.can_contact('C1', CommChannel.EMAIL, CommPurpose.MARKETING) is False
+
+
+def test_suppressed_account_allows_billing():
+    r = _reg()
+    r.suppress_account('C1')
+    assert r.can_contact('C1', CommChannel.EMAIL, CommPurpose.BILLING) is True
+
+
+def test_marketing_opt_in_accounts_list():
+    r = _reg()
+    r.set_marketing_opt_in('C1', True, _D)
+    r.set_marketing_opt_in('C2', False, _D)
+    assert 'C1' in r.marketing_opt_in_accounts
+    assert 'C2' not in r.marketing_opt_in_accounts
+
+
+def test_suppressed_accounts_list():
+    r = _reg()
+    r.suppress_account('C1')
+    assert 'C1' in r.suppressed_accounts
+
+
+def test_tariff_alert_allowed_unknown_email():
+    r = _reg()
+    # tariff_alert is not essential and not marketing → default: email/post/portal allowed
+    assert r.can_contact('UNKNOWN', CommChannel.EMAIL, CommPurpose.TARIFF_ALERT) is True
+
+
+def test_tariff_alert_blocked_sms_unknown():
+    r = _reg()
+    # Unknown customer, non-essential, SMS not in default allowed channels
+    assert r.can_contact('UNKNOWN', CommChannel.SMS, CommPurpose.TARIFF_ALERT) is False

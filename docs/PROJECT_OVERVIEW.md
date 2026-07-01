@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,210 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 12,240 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LT -- Coverage Depth Sprint XCIV (2026-07-01)
+30 depth tests across 3 modules: service_quality_monitor (year/avg_clarity/bills_count/shock_event_count/clarity_amber=0.82/complaint_amber=0.05/bill_shock_amber=0.2/record_returns_snapshot/get_none_unknown/shock_rate_pct_20pct), contract_exposure (account_id/segment/status/annual_kwh/unit_rate/standing_charge/notice_issued_false/register_returns/get_found/annual_revenue_computed), comm_pref (unknown_billing_allowed/unknown_marketing_blocked/mkt_opt_in_enables/mkt_opt_out_blocks/suppress_blocks_mkt/suppress_allows_billing/opt_in_list/suppressed_list/tariff_alert_email_allowed/tariff_alert_sms_blocked).
+**Total:** 12,240 tests
 
 ### Phase LS -- Coverage Depth Sprint XCIII (2026-07-01)
 30 depth tests across 3 modules: home_registry (uprn/property_type/tenure/epc_rating/has_gas_true/has_solar_pv_false/eco4_eligible_D/eco4_not_eligible_A/psr_priority_F/get_profile_or_none_found), life_event_impact (event_stored/death_high/death_negative_delta/marriage_not_psr/divorce_vulnerability/actions_tuple/is_urgent_false_low/batch_count=2/psr_candidates_filter/summary_keys), microbusiness (customer_id/elec_stored/gas_stored/staff_count/turnover/staff_max=10/turnover_threshold=2M/protections_non_micro_empty/protections_micro_nonempty/as_of_date).
@@ -4872,7 +4876,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,210 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,240 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

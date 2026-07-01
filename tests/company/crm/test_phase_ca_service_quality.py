@@ -103,3 +103,53 @@ def test_quality_summary():
     assert "Years recorded" in summary
     assert "RED years" in summary
     assert "Worst clarity" in summary
+
+
+# --- Phase LT depth tests ---
+
+def test_year_stored():
+    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 0.15, 100, 15)
+    assert snap.year == 2023
+
+
+def test_avg_clarity_stored():
+    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 0.15, 100, 15)
+    assert snap.avg_clarity == pytest.approx(0.85)
+
+
+def test_bills_count_stored():
+    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 0.15, 200, 30)
+    assert snap.bills_count == 200
+
+
+def test_shock_event_count_stored():
+    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 0.15, 200, 30)
+    assert snap.shock_event_count == 30
+
+
+def test_clarity_amber_constant():
+    assert _CLARITY_AMBER == pytest.approx(0.82)
+
+
+def test_complaint_amber_constant():
+    assert _COMPLAINT_AMBER == pytest.approx(0.05)
+
+
+def test_bill_shock_amber_constant():
+    assert _BILL_SHOCK_AMBER == pytest.approx(0.2)
+
+
+def test_record_returns_snapshot():
+    mon = ServiceQualityMonitor()
+    result = mon.record(2022, 0.85, 0.04, 0.15, 100, 15)
+    assert isinstance(result, ServiceQualitySnapshot)
+
+
+def test_get_returns_none_unknown():
+    mon = ServiceQualityMonitor()
+    assert mon.get(2099) is None
+
+
+def test_shock_rate_pct_computed():
+    snap = ServiceQualitySnapshot(2022, 0.85, 0.04, 0.15, 200, 40)
+    assert snap.shock_rate_pct == pytest.approx(20.0)
