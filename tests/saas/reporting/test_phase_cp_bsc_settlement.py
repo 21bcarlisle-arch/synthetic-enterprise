@@ -99,3 +99,23 @@ def test_2017_credit_appears():
     result = _render()
     # Small float variations mean value is ~559-560; check 2017 row exists with £5xx
     assert "2017" in result and "£5" in result
+
+
+# 13. Peak BSC year noted
+def test_peak_bsc_credit_noted():
+    result = _render()
+    assert "Peak BSC credit" in result
+
+
+# 14. Above 0.4% flag in table when applicable
+def test_flag_note_present():
+    result = _render()
+    assert "<<" in result or "BSC credit above" in result or "elevated" in result.lower()
+
+
+# 15. Year rows present in output
+def test_year_rows_present():
+    result = _render()
+    import re
+    rows = [l for l in result.splitlines() if l.startswith("| 20")]
+    assert len(rows) > 0

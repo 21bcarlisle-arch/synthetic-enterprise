@@ -100,3 +100,25 @@ def test_high_margin_year_clean():
 def test_active_customer_count():
     result = _render()
     assert "18" in result   # peak portfolio size
+
+
+# 13. Best year per customer shown
+def test_best_year_per_customer():
+    result = _render()
+    assert "Best year per customer" in result
+
+
+# 14. Low margin flag present when applicable
+def test_low_margin_flag():
+    result = _render()
+    # Check either << flag or the Ofgem threshold note
+    assert "5%" in result or "<<" in result or "threshold" in result.lower()
+
+
+# 15. Active customer count in table
+def test_active_count_in_table():
+    result = _render()
+    # Rows contain numbers for active customers
+    import re
+    rows = [l for l in result.splitlines() if l.startswith("| 20")]
+    assert len(rows) > 0

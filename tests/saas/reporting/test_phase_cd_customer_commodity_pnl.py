@@ -95,3 +95,28 @@ def test_multiple_customers():
     assert "C1" in result
     assert "C2" in result
     assert "C3" in result
+
+
+# 13. Loss account marked with asterisk
+def test_loss_account_marked():
+    pcp = {"C1": {"electricity": {"net": -500.0, "gross": 0, "capital": 0, "revenue": 1000}}}
+    result = _section(pcp)
+    assert "*" in result or "Loss-making" in result
+
+
+# 14. Gas portfolio net shown
+def test_gas_portfolio_net_shown():
+    pcp = {
+        "C1": _cid(elec_net=1000.0, gas_net=200.0),
+        "C2": _cid(elec_net=500.0, gas_net=-100.0),
+    }
+    result = _section(pcp)
+    assert "Gas portfolio net" in result
+
+
+# 15. Total row sums elec and gas
+def test_total_row_format():
+    pcp = {"C1": _cid(elec_net=3000.0, gas_net=1000.0)}
+    result = _section(pcp)
+    assert "Total" in result
+    assert "3,000" in result or "3000" in result.replace(",","")

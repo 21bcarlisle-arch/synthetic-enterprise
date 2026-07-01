@@ -82,3 +82,22 @@ def test_all_prices_above_price_floor():
 def test_year_range_correct_count():
     records = generate_gas_scenario_prices(2025, 2026, "baseline_2025")
     assert len(records) == 365 + 365
+
+
+# 13. All scenarios have non-empty name
+def test_scenario_names_not_empty():
+    for name in GAS_SCENARIOS:
+        assert name and isinstance(name, str)
+
+
+# 14. price_floor in GasScenarioParams has a default
+def test_params_price_floor_default():
+    p = GasScenarioParams()
+    assert hasattr(p, "price_floor")
+    assert p.price_floor >= 0
+
+
+# 15. Multi-year span gives correct count
+def test_two_year_span():
+    records = generate_gas_scenario_prices(2027, 2028, "central_2027", seed="g99")
+    assert len(records) == 365 + 366  # 2028 is leap year

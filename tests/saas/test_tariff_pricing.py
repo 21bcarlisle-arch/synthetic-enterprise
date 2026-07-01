@@ -114,3 +114,20 @@ def test_tou_revenue_neutral_30_70():
 def test_tou_constants_relationship():
     assert TOU_PEAK_MULTIPLIER > 1.0
     assert TOU_OFFPEAK_MULTIPLIER < 1.0
+
+
+# 13. Higher forward price gives higher tariff
+def test_higher_forward_price_gives_higher_tariff():
+    tariff_low = price_fixed_tariff(50.0, 3500, "2024-01-01")
+    tariff_high = price_fixed_tariff(100.0, 3500, "2024-01-01")
+    assert tariff_high > tariff_low
+
+
+# 14. WACC is a positive float < 1
+def test_wacc_positive_lt_one():
+    assert 0 < WACC < 1
+
+
+# 15. Z_SCORE positive (confidence bound above mean)
+def test_z_score_positive():
+    assert Z_SCORE > 0

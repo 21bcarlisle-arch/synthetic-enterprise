@@ -90,3 +90,23 @@ def test_aggregate_wind_multiple_periods_independent():
     result = aggregate_wind_generation(records)
     assert result[("2024-01-01", 1)] == 100.0
     assert result[("2024-01-01", 2)] == 200.0
+
+
+# 13. Aggregate renewable includes wind and solar
+def test_aggregate_includes_solar():
+    totals = aggregate_renewable_generation(_RECORDS)
+    # SP1 has wind+solar = 350
+    assert totals[("2024-01-01", 1)] == 350.0
+
+
+# 14. Aggregate wind excludes solar
+def test_aggregate_wind_excludes_solar():
+    totals = aggregate_wind_generation(_RECORDS)
+    # SP1 wind = 100 + 200 = 300 (no solar)
+    assert totals[("2024-01-01", 1)] == 300.0
+
+
+# 15. Empty input returns empty dict
+def test_aggregate_renewable_empty():
+    totals = aggregate_renewable_generation([])
+    assert totals == {}
