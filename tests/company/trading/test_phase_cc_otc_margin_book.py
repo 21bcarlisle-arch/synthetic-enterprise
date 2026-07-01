@@ -119,3 +119,73 @@ def test_margin_book_summary():
 def test_no_pending_outflow_when_settled():
     b = _call()  # all settled
     assert b.total_pending_outflow_gbp == 0.0
+
+
+# --- Phase ME depth tests ---
+
+def test_call_id_stored():
+    b = _book()
+    call = b.record_call('MC-ME', date(2022, 3, 1), 'CounterA', 5000, 100_000,
+                         MarginCallDirection.CALL, MarginCallStatus.PENDING)
+    assert call.call_id == 'MC-ME'
+
+
+def test_call_date_stored():
+    b = _book()
+    d = date(2022, 6, 15)
+    call = b.record_call('MC1', d, 'A', 5000, 50_000,
+                         MarginCallDirection.CALL, MarginCallStatus.PENDING)
+    assert call.call_date == d
+
+
+def test_counterparty_stored():
+    b = _book()
+    call = b.record_call('MC1', date(2022, 3, 1), 'ShellEnergy', 5000, 100_000,
+                         MarginCallDirection.CALL, MarginCallStatus.PENDING)
+    assert call.counterparty == 'ShellEnergy'
+
+
+def test_notional_mwh_stored():
+    b = _book()
+    call = b.record_call('MC1', date(2022, 3, 1), 'A', 7500, 100_000,
+                         MarginCallDirection.CALL, MarginCallStatus.PENDING)
+    assert call.notional_mwh == pytest.approx(7500)
+
+
+def test_mtm_loss_stored():
+    b = _book()
+    call = b.record_call('MC1', date(2022, 3, 1), 'A', 5000, 250_000,
+                         MarginCallDirection.CALL, MarginCallStatus.PENDING)
+    assert call.mtm_loss_gbp == pytest.approx(250_000)
+
+
+def test_direction_stored():
+    b = _book()
+    call = b.record_call('MC1', date(2022, 3, 1), 'A', 5000, 100_000,
+                         MarginCallDirection.RETURN, MarginCallStatus.PENDING)
+    assert call.direction == MarginCallDirection.RETURN
+
+
+def test_status_stored():
+    b = _book()
+    call = b.record_call('MC1', date(2022, 3, 1), 'A', 5000, 100_000,
+                         MarginCallDirection.CALL, MarginCallStatus.DISPUTED)
+    assert call.status == MarginCallStatus.DISPUTED
+
+
+def test_settled_date_none_pending():
+    b = _book()
+    call = b.record_call('MC1', date(2022, 3, 1), 'A', 5000, 100_000,
+                         MarginCallDirection.CALL, MarginCallStatus.PENDING)
+    assert call.settled_date is None
+
+
+def test_record_call_returns_variation_margin_call():
+    b = _book()
+    result = b.record_call('MC1', date(2022, 3, 1), 'A', 5000, 100_000,
+                           MarginCallDirection.CALL, MarginCallStatus.PENDING)
+    assert isinstance(result, VariationMarginCall)
+
+
+def test_margin_call_status_has_4_members():
+    assert len(list(MarginCallStatus)) == 4

@@ -77,3 +77,57 @@ class TestGasForwardCurve:
         curve.add_point(make_point())
         s = curve.gas_curve_summary(DATE)
         assert "Gas Forward Curve" in s
+
+
+# --- Phase ME depth tests ---
+
+def test_curve_date_stored():
+    p = make_point()
+    assert p.curve_date == DATE
+
+
+def test_tenor_band_stored():
+    p = make_point(tenor=GasTenorBand.WINTER)
+    assert p.tenor_band == GasTenorBand.WINTER
+
+
+def test_mid_price_stored():
+    p = make_point(price=85.0)
+    assert p.mid_price_pence_per_therm == pytest.approx(85.0)
+
+
+def test_upper_band_above_mid():
+    p = make_point(price=70.0)
+    assert p.upper_band_pence > p.mid_price_pence_per_therm
+
+
+def test_lower_band_below_mid():
+    p = make_point(price=70.0)
+    assert p.lower_band_pence < p.mid_price_pence_per_therm
+
+
+def test_is_crisis_false_below_200():
+    p = make_point(price=199.0)
+    assert p.is_crisis_price is False
+
+
+def test_is_crisis_true_above_200():
+    p = make_point(price=201.0)
+    assert p.is_crisis_price is True
+
+
+def test_gas_tenor_band_has_7_members():
+    assert len(list(GasTenorBand)) == 7
+
+
+def test_gas_forward_curve_add_and_count():
+    curve = GasForwardCurve()
+    curve.add_point(make_point(tenor=GasTenorBand.DAY_AHEAD, price=55.0))
+    curve.add_point(make_point(tenor=GasTenorBand.WINTER, price=80.0))
+    assert len(curve.points_for_date(DATE)) == 2
+
+
+def test_gbp_per_mwh_uses_therms_per_mwh():
+    p = make_point(price=100.0)
+    expected = 100.0 * _THERMS_PER_MWH * 100
+    assert p.mid_price_gbp_per_mwh == pytest.approx(expected)

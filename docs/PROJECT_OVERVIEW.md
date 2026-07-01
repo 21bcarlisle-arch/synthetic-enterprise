@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,540 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 12,570 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase ME -- Coverage Depth Sprint CV (2026-07-01)
+30 depth tests across 3 modules: environmental_impact (year/scope/commodity/consumption_kwh/emission_factor/emissions_kgco2e/emissions_tco2e/emissions_mtco2e/record_returns/scope_count=4), gas_forward_curve (curve_date/tenor_band/mid_price/upper_band/lower_band/not_crisis_199/crisis_201/tenor_count=7/add_and_count/gbp_per_mwh), otc_margin_book (call_id/call_date/counterparty/notional_mwh/mtm_loss/direction/status/settled_none/record_returns/status_count=4).
+**Total:** 12,570 tests
 
 ### Phase MD -- Coverage Depth Sprint CIV (2026-07-01)
 30 depth tests across 3 modules: supplier_resilience_scorecard (pillar/rag/value/threshold_green/threshold_amber/description/score_value_3/score_value_amber=2/pillar_count=5/assess_returns), annual_board_pack (category/name/value/rag/commentary_empty/is_red/is_green_false_amber/add_returns/category_count=5/rag_count=3), liquidity_stress_test (scenario_name/price_shock/volume_shock/im_shock/stress_days=30/not_severe_low/severe_high/starting_cash/total_drain/run_returns).
@@ -4916,7 +4920,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,540 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,570 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

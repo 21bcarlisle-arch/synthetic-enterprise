@@ -106,3 +106,63 @@ def test_environmental_summary():
     summary = reg.environmental_summary()
     assert "SECR" in summary or "Environmental" in summary
     assert "2022" in summary
+
+
+# --- Phase ME depth tests ---
+
+def test_year_stored():
+    reg = EnvironmentalImpactRegister()
+    r = reg.record_gas_scope3(2023, 100_000)
+    assert r.year == 2023
+
+
+def test_scope_stored():
+    reg = EnvironmentalImpactRegister()
+    r = reg.record_gas_scope3(2022, 50_000)
+    assert r.scope == EmissionScope.SCOPE_3_DOWNSTREAM
+
+
+def test_commodity_gas():
+    reg = EnvironmentalImpactRegister()
+    r = reg.record_gas_scope3(2022, 50_000)
+    assert r.commodity == 'gas'
+
+
+def test_consumption_kwh_stored():
+    reg = EnvironmentalImpactRegister()
+    r = reg.record_gas_scope3(2022, 75_000)
+    assert r.consumption_kwh == pytest.approx(75_000)
+
+
+def test_emission_factor_stored():
+    reg = EnvironmentalImpactRegister()
+    r = reg.record_gas_scope3(2022, 100_000)
+    assert r.emission_factor_kgco2e_per_kwh == pytest.approx(_GAS_FACTOR)
+
+
+def test_emissions_kgco2e_computed():
+    reg = EnvironmentalImpactRegister()
+    r = reg.record_gas_scope3(2022, 100_000)
+    assert r.emissions_kgco2e == pytest.approx(100_000 * _GAS_FACTOR)
+
+
+def test_emissions_tco2e_computed():
+    reg = EnvironmentalImpactRegister()
+    r = reg.record_gas_scope3(2022, 100_000)
+    assert r.emissions_tco2e == pytest.approx(100_000 * _GAS_FACTOR / 1000)
+
+
+def test_emissions_mtco2e_is_tco2e_divided_by_million():
+    reg = EnvironmentalImpactRegister()
+    r = reg.record_gas_scope3(2022, 1_000_000_000)
+    assert r.emissions_mtco2e == pytest.approx(r.emissions_tco2e / 1_000_000)
+
+
+def test_record_gas_scope3_returns_emission_record():
+    reg = EnvironmentalImpactRegister()
+    result = reg.record_gas_scope3(2022, 100_000)
+    assert isinstance(result, EmissionRecord)
+
+
+def test_emission_scope_has_4_members():
+    assert len(list(EmissionScope)) == 4
