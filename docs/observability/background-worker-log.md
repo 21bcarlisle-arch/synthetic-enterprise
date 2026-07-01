@@ -1958,3 +1958,4 @@ Structured performance entries are added after each task completes.
 - [2026-07-01 15:18 UTC] run_queued_tasks: no parseable QUEUED task found
 - [2026-07-01 15:48 UTC] Found queued tasks — beginning execution
 - [2026-07-01 15:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-01 16:18 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:18 UTC

@@ -1,5 +1,5 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-01T16:17:00Z
+Last updated: 2026-07-01T16:27:28Z
 
 ## Current Status
 **Coverage Sprint (pre-Phase MV)** -- 13,560 tests (+527 from Phase MU)
@@ -18,8 +18,8 @@ Net position: 1248298 GBP
 - **MS** (2026-07-01): Real NBP Forward Curve -- seasonal multipliers data-derived (12,976 tests)
 - **MR** (2026-07-01): Coverage Depth Sprint CXVIII -- flexibility_revenue/triad_notification/tariff_benchmarking (12,960 tests)
 
-**Latest simulation results (2016–2025)** — auto-processed (474s / 8 min):
-- Net margin: £6,174,052.14 | Gross: £6,411,912.14 | Capital: £237,860
-- Treasury: £2,466,636 → £3,684,796 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £5,982,074.81 | Net after CTS: £6,307,559
+**Latest simulation results (2016–2025)** — auto-processed (592s / 10 min):
+- Net margin: £6,173,973.33 | Gross: £6,411,862.49 | Capital: £237,889
+- Treasury: £2,466,636 → £3,684,423 | 38 committee interventions | 1531 bills issued
+- Enterprise value: £5,967,084.36 | Net after CTS: £6,307,483
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts

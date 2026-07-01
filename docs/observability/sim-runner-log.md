@@ -18002,3 +18002,27 @@
 - [2026-07-01 16:10 UTC] Auto-process failed (rc=1) -- marker left for background_worker
 - [2026-07-01 16:10 UTC] Waiting 60s before next run...
 - [2026-07-01 16:11 UTC] Starting run — git=a820bf96, json=run_output_a820bf96_20260701T161120Z.json
+- [2026-07-01 16:21 UTC] Run complete — 592s, 397 KB (run_output_a820bf96_20260701T161120Z.json)
+- [2026-07-01 16:21 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 592, "size_kb": 397, "json": "run_output_a820bf96_20260701T161120Z.json"}, "timestamp": "2026-07-01T16:21:12.634095+00:00", "session_id": null}
+- [2026-07-01 16:21 UTC] [process_run] Processing run_complete_20260701T161120Z.md
+- [2026-07-01 16:21 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_a820bf96_20260701T161120Z.json
+- [2026-07-01 16:21 UTC] [process_run] Updating LATEST.md
+- [2026-07-01 16:21 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-07-01 16:21 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-01 16:21 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-07-01 16:21 UTC] [process_run] Generated customer invoice JSON
+- [2026-07-01 16:21 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-01 16:21 UTC] [process_run] Revenue sanity: ANOMALIES — see annual report
+- [2026-07-01 16:21 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-07-01 16:21 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-07-01 16:21 UTC] [process_run] Publishing market price feed
+- [2026-07-01 16:21 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-07-01 16:21 UTC] [process_run] Publishing HH consumption data feed
+- [2026-07-01 16:21 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-07-01 16:21 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-07-01 16:21 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-07-01 16:21 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-07-01 16:21 UTC] [process_run] Tests FAILED - not committing
+- [2026-07-01 16:21 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-07-01 16:21 UTC] Waiting 60s before next run...
+- [2026-07-01 16:22 UTC] Starting run — git=d80bd064, json=run_output_d80bd064_20260701T162259Z.json
