@@ -77,3 +77,58 @@ class TestCapacityMarketRegister:
         reg.record(make_obl())
         s = reg.cm_register_summary()
         assert "Capacity Market" in s
+
+
+# --- Phase LX depth tests ---
+
+def test_delivery_year_stored():
+    txn = make_obl(year=2022)
+    assert txn.delivery_year == 2022
+
+
+def test_direction_stored():
+    txn = make_obl()
+    assert txn.direction == CMDirection.OBLIGATION
+
+
+def test_mwh_consumed_stored():
+    txn = make_obl(mwh=2500.0)
+    assert txn.mwh_consumed == pytest.approx(2500.0)
+
+
+def test_rate_gbp_stored():
+    txn = make_obl(rate=0.80)
+    assert txn.rate_gbp == pytest.approx(0.80)
+
+
+def test_is_obligation_true():
+    txn = make_obl()
+    assert txn.is_obligation is True
+
+
+def test_gross_amount_obligation_is_mwh_times_rate():
+    txn = make_obl(mwh=1000.0, rate=0.75)
+    assert txn.gross_amount_gbp == pytest.approx(750.0)
+
+
+def test_asset_id_none_for_obligation():
+    txn = make_obl()
+    assert txn.asset_id is None
+
+
+def test_record_returns_txn():
+    reg = CapacityMarketRegister()
+    txn = make_obl()
+    result = reg.record(txn)
+    assert result is txn
+
+
+def test_transactions_for_wrong_year_empty():
+    reg = CapacityMarketRegister()
+    reg.record(make_obl(year=2022))
+    assert reg.transactions_for_year(2099) == []
+
+
+def test_total_obligation_zero_empty():
+    reg = CapacityMarketRegister()
+    assert reg.total_obligation_gbp() == pytest.approx(0.0)

@@ -111,3 +111,68 @@ def test_book_charges_for_account_filter():
     acc1_charges = book.charges_for_account("ACC-001")
     assert len(acc1_charges) == 2
     assert all(c.account_id == "ACC-001" for c in acc1_charges)
+
+
+# --- Phase LX depth tests ---
+import datetime as _dt
+
+
+def test_account_id_stored():
+    book = CfDLevyBook()
+    charge = book.record_charge('ACCT_LX', _dt.date(2022, 6, 1), 100.0)
+    assert charge.account_id == 'ACCT_LX'
+
+
+def test_charge_date_stored():
+    book = CfDLevyBook()
+    d = _dt.date(2022, 6, 1)
+    charge = book.record_charge('C1', d, 100.0)
+    assert charge.charge_date == d
+
+
+def test_year_derived_from_date():
+    book = CfDLevyBook()
+    charge = book.record_charge('C1', _dt.date(2022, 6, 1), 100.0)
+    assert charge.year == 2022
+
+
+def test_quarter_derived_from_date():
+    book = CfDLevyBook()
+    charge = book.record_charge('C1', _dt.date(2022, 6, 1), 100.0)
+    assert charge.quarter == 2
+
+
+def test_consumption_mwh_stored():
+    book = CfDLevyBook()
+    charge = book.record_charge('C1', _dt.date(2022, 6, 1), 250.0)
+    assert charge.consumption_mwh == pytest.approx(250.0)
+
+
+def test_levy_gbp_is_mwh_times_rate():
+    book = CfDLevyBook()
+    charge = book.record_charge('C1', _dt.date(2022, 6, 1), 100.0)
+    assert charge.levy_gbp == pytest.approx(charge.consumption_mwh * charge.rate_gbp_per_mwh, abs=0.01)
+
+
+def test_direction_positive_for_positive_rate():
+    book = CfDLevyBook()
+    charge = book.record_charge('C1', _dt.date(2022, 6, 1), 100.0)
+    if charge.rate_gbp_per_mwh > 0:
+        assert charge.direction == LevyDirection.POSITIVE
+
+
+def test_record_charge_returns_cfd_levy_charge():
+    book = CfDLevyBook()
+    result = book.record_charge('C1', _dt.date(2022, 6, 1), 100.0)
+    assert isinstance(result, CfDLevyCharge)
+
+
+def test_charges_for_account_filters():
+    book = CfDLevyBook()
+    book.record_charge('C1', _dt.date(2022, 6, 1), 100.0)
+    book.record_charge('C2', _dt.date(2022, 6, 1), 200.0)
+    assert len(book.charges_for_account('C1')) == 1
+
+
+def test_levy_directions_count():
+    assert len(LevyDirection) == 3

@@ -81,3 +81,57 @@ def test_imbalance_summary_keys():
     for k in ("total_periods", "net_imbalance_cost_gbp", "short_periods",
                "crisis_periods", "mean_cashout_spread_gbp_per_mwh"):
         assert k in s
+
+
+# --- Phase LX depth tests ---
+
+def test_settlement_date_stored():
+    r = _rec(date='2022-09-15')
+    assert r.settlement_date == '2022-09-15'
+
+
+def test_settlement_period_stored():
+    r = _rec(sp=20)
+    assert r.settlement_period == 20
+
+
+def test_metered_volume_stored():
+    r = _rec(metered=8.0)
+    assert r.metered_volume_mwh == pytest.approx(8.0)
+
+
+def test_contracted_volume_stored():
+    r = _rec(contracted=10.0)
+    assert r.contracted_volume_mwh == pytest.approx(10.0)
+
+
+def test_sbp_stored():
+    r = _rec(sbp=300.0)
+    assert r.system_buy_price_gbp_per_mwh == pytest.approx(300.0)
+
+
+def test_ssp_stored():
+    r = _rec(ssp=280.0)
+    assert r.system_sell_price_gbp_per_mwh == pytest.approx(280.0)
+
+
+def test_is_crisis_price_false_below_500():
+    r = _rec(sbp=499.0)
+    assert r.is_crisis_price is False
+
+
+def test_is_crisis_price_true_above_500():
+    r = _rec(sbp=501.0)
+    assert r.is_crisis_price is True
+
+
+def test_cashout_spread_is_sbp_minus_ssp():
+    r = _rec(sbp=200.0, ssp=180.0)
+    assert r.cashout_spread_gbp_per_mwh == pytest.approx(20.0)
+
+
+def test_record_returns_imbalance_record():
+    ledger = ImbalanceLedger()
+    r = _rec()
+    result = ledger.record(r)
+    assert result is r
