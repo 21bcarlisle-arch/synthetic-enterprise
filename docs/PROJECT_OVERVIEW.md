@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 10,830 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 10,860 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase JZ -- Coverage Depth Sprint XLVIII (2026-07-01)
+**Modules:** channel_roi (crm) · vulnerability_index (crm) · credit_scoring (crm)
+**Tests added:** 30 (channel_roi: avg_cac_computed; avg_cac_zero_customers; effective_churn_capped_1; zero_churn_tenure=20; partner_referral_cac=35; telesales_cac=90; is_profitable_at_1=True; not_profitable_below_1; direct_web_effective<base; existing_referral_lowest_effective. vulnerability_index: band_15=MEDIUM; band_35=HIGH; band_60=CRITICAL; arrears_25_score=5; arrears_0_score=0; fuel_spend_None=0; fuel_spend_5pct=0; cancer_treatment_score=30; priority_services_False_low; disconnection_False_high. credit_scoring: prime_score=100; bad_debt_40=STANDARD; missed_1_score=85=PRIME; missed_3_score=70=STANDARD; no_dd_flag; arrears_flag; new_account_flag; standard_label_no_deposit; subprime_label_deposit; high_risk_label.)
+**Total:** 10,860 tests
 
 ### Phase JY -- Coverage Depth Sprint XLVII (2026-07-01)
 **Modules:** tpi_book (crm) · nps_tracker (crm) · ancillary_products (crm)
@@ -4675,7 +4680,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,830 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,860 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

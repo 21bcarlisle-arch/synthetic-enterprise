@@ -73,3 +73,71 @@ def test_deposit_scales_with_annual_bill():
                        annual_bill_est_gbp=2400)
     if a1.deposit_gbp > 0 and a2.deposit_gbp > 0:
         assert a2.deposit_gbp > a1.deposit_gbp
+
+
+# --- Phase JZ depth tests ---
+
+import pytest
+
+
+def test_prime_score_exactly_100():
+    a = _clean()
+    assert a.score == 100
+
+
+def test_bad_debt_subtracts_40_gives_standard():
+    a = assess_credit('C10', '2024-01-01', dd_active=True, missed_payments=0,
+                      account_age_days=365, has_bad_debt_history=True)
+    assert a.score == 60
+    assert a.tier == 'STANDARD'
+
+
+def test_one_missed_payment_subtracts_15():
+    a = assess_credit('C11', '2024-01-01', dd_active=True, missed_payments=1,
+                      account_age_days=365, has_bad_debt_history=False)
+    assert a.score == 85
+    assert a.tier == 'PRIME'
+
+
+def test_three_missed_payments_subtracts_30():
+    a = assess_credit('C12', '2024-01-01', dd_active=True, missed_payments=3,
+                      account_age_days=365, has_bad_debt_history=False)
+    assert a.score == 70
+    assert a.tier == 'STANDARD'
+
+
+def test_no_dd_flag_in_flags():
+    a = assess_credit('C13', '2024-01-01', dd_active=False, missed_payments=0,
+                      account_age_days=365, has_bad_debt_history=False)
+    assert 'no_direct_debit' in a.flags
+
+
+def test_arrears_flag_in_flags_over_50():
+    a = assess_credit('C14', '2024-01-01', dd_active=True, missed_payments=0,
+                      account_age_days=365, has_bad_debt_history=False, arrears_gbp=100.0)
+    assert any('arrears' in f for f in a.flags)
+
+
+def test_new_account_flag_when_age_under_90():
+    a = assess_credit('C15', '2024-01-01', dd_active=True, missed_payments=0,
+                      account_age_days=30, has_bad_debt_history=False)
+    assert 'new_account' in a.flags
+
+
+def test_standard_tier_label_no_deposit():
+    a = assess_credit('C16', '2024-01-01', dd_active=True, missed_payments=0,
+                      account_age_days=365, has_bad_debt_history=True)
+    assert a.tier == 'STANDARD'
+    assert 'no deposit' in a.tier_label
+
+
+def test_subprime_tier_label_deposit_required():
+    a = assess_credit('C17', '2024-01-01', dd_active=False, missed_payments=2,
+                      account_age_days=200, has_bad_debt_history=False, arrears_gbp=250)
+    assert a.tier == 'SUBPRIME'
+    assert 'deposit required' in a.tier_label
+
+
+def test_high_risk_tier_label():
+    a = _risky()
+    assert 'High risk' in a.tier_label
