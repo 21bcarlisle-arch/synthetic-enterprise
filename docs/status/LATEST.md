@@ -1,19 +1,19 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-01T17:53:47Z
+Last updated: 2026-07-01T17:55:41Z
 
 ## Current Status
-**Coverage sprints ongoing** -- 14,430 tests
+**Coverage sprints ongoing** -- 14,460 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,218,159 (git 7711c008, 2026-07-01)
 
 ## Test Suite
-- **14,430 tests passing** (fast suite ~10s)
+- **14,460 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
-- **CLIV** (2026-07-01): Coverage Depth Sprint -- bsc_performance_assurance, dso_flexibility_tender, gas_safety_incident (14,430 tests)
+- **CLIV** (2026-07-01): Coverage Depth Sprint -- bsc_performance_assurance, dso_flexibility_tender, gas_safety_incident (14,460 tests)
 - **CLIII** (2026-07-01): Coverage Depth Sprint -- green_gas_levy, annual_compliance_attestation, liquidity_stress_test (14,310 tests)
 - **CLII** (2026-07-01): Coverage Depth Sprint -- theft_risk_scoring, dno_network_charge_dispute, grid_connection_queue (14,280 tests)
 - **CLI** (2026-07-01): Coverage Depth Sprint -- account_adjustment, transfer_objection, map_contract (14,250 tests)
