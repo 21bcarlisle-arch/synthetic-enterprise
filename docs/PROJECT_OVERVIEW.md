@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JJ — Coverage Depth Sprint XXXII (2026-07-01)
+**Modules:** load_forecast · ofgem_obligations · meter_assets
+**Tests added:** 30 (load_forecast: year field; SME gas annual mwh; resi gas Q1 steeper than elec Q1; quarterly elec Q4>Q2; IC no gas; segment count 5 full/4 without IC; summary year; total elec combines all; resi gas Q1 factor; segment count no IC. ofgem_obligations: obligation not-found; submissions_for filter; submissions_for empty; penalty multiple late; on_time_rate all-on-time; submission on exact deadline; annual_business_report max £10M; summary potential_penalty_gbp; all 6 names present; no penalty when on-time. meter_assets: cert_due_date TRAD 10yr/SMETS2 15yr; AMR 7yr overdue; cert_overdue_old_trad; cert_not_overdue installed 2022; cert_overdue list excludes faulty; operational excludes replaced; smart_pct SMETS1+SMETS2 only; empty register zeros; manufacturer stored)
+**Total:** 10,380 tests
+
 ### Phase JI — Coverage Depth Sprint XXXI (2026-07-01)
 **Modules:** gas_storage · mpas_registry · market_report
 **Tests added:** 30 (gas_storage: inventory all facilities; withdraw capped at zero; net storage cost inject-only/inject-withdraw; spread None when no inject/no withdraw; summary net_cost key; total_injected year filter; October winter/April not-winter. mpas_registry: get not-found; losing_supplier stored; objected_points; objection not in active; complete_transfer removes from active; active_supply_points no filter; total_mwh no filter; registrations_in_period; summary objected count; summary mwh values. market_report: elec pre-crisis < 2022; gas 2016 lowest; switching 2016 > 2022; domestic accounts crisis drop; compare gas delta; compare all keys; gas annual reasonable; elec 2022 peak; switching 2021 low; compare just above 3pct threshold)
@@ -4594,7 +4599,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,350 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,380 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
