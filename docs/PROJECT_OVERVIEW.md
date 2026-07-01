@@ -4418,6 +4418,12 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 ---
 
+**Phase JQ COMPLETE (2026-07-01):** Coverage Depth Sprint XXXIX — 30 depth tests across 3 thin-coverage modules.
+- **ppa_book (10):** effective_price INDEXED returns market; FLOOR uses floor when market below; vs_market positive when PPA above market; total_annual_cost sums two active; empty book returns []; floor_price/capacity_mw attributes stored; total_vs_market two contracts; add_contract returns PPAContract; summary vs_market sign.
+- **decarb_recommender (10):** D-rating loft not wall insulation; D-rating heat pump included; eco4 loft zero cost; oil boiler + C EPC → heat pump; battery/LED not recommended; A-rating no insulation; top_measure is first rec; summary recommendation_count; priority increments by 1.
+- **three_horizon_clv (10):** outperforming_accounts list; DETERIORATING signal (margin=80 → H3 CLV 20% below H1); h3_signal None with no H3/unknown account; latest_h3 None unknown; h2_margin all events unfiltered; h1_vs_h2 None no H1; H1 CLV fallback for negative churn_rate; _H3_DETERIORATE_THRESHOLD constant; at_risk_accounts empty when all on track.
+- **Tests added:** 30 | **Total:** 10,590 | **Epistemic verifier:** PASS
+
 ## 4b. Institutional Knowledge System
 
 All R&D findings and market intelligence are stored in a structured knowledge system:
@@ -4629,7 +4635,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,560 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,590 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

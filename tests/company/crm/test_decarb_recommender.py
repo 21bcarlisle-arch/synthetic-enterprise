@@ -79,3 +79,71 @@ def test_plan_is_frozen():
     plan = recommend_measures('C010', 'B', 'terraced', 'gas_boiler')
     with pytest.raises(Exception):
         plan.customer_id = 'X'
+
+
+# --- Phase JQ depth tests ---
+
+def test_epc_d_loft_not_wall_insulation():
+    plan = recommend_measures('C011', 'D', 'terraced', 'gas_boiler')
+    measures = [r.measure for r in plan.recommendations]
+    assert Measure.LOFT_INSULATION in measures
+    assert Measure.CAVITY_WALL_INSULATION not in measures
+    assert Measure.SOLID_WALL_INSULATION not in measures
+
+
+def test_epc_d_heat_pump_included():
+    plan = recommend_measures('C012', 'D', 'semi_detached', 'gas_boiler')
+    measures = [r.measure for r in plan.recommendations]
+    assert Measure.HEAT_PUMP in measures
+
+
+def test_eco4_loft_zero_cost():
+    plan = recommend_measures('C013', 'E', 'terraced', 'gas_boiler', eco4_eligible=True)
+    loft = next(r for r in plan.recommendations if r.measure == Measure.LOFT_INSULATION)
+    assert loft.estimated_cost_gbp == 0
+
+
+def test_oil_boiler_c_epc_heat_pump():
+    plan = recommend_measures('C014', 'C', 'detached', 'oil_boiler')
+    measures = [r.measure for r in plan.recommendations]
+    assert Measure.HEAT_PUMP in measures
+    hp = next(r for r in plan.recommendations if r.measure == Measure.HEAT_PUMP)
+    assert FundingScheme.BUS in hp.funding_schemes
+
+
+def test_battery_not_in_recommendations():
+    plan = recommend_measures('C015', 'B', 'detached', 'gas_boiler')
+    measures = [r.measure for r in plan.recommendations]
+    assert Measure.BATTERY_STORAGE not in measures
+
+
+def test_led_not_in_recommendations():
+    plan = recommend_measures('C016', 'A', 'terraced', 'heat_pump')
+    measures = [r.measure for r in plan.recommendations]
+    assert Measure.LED_LIGHTING not in measures
+
+
+def test_epc_a_no_insulation():
+    plan = recommend_measures('C017', 'A', 'terraced', 'heat_pump')
+    measures = [r.measure for r in plan.recommendations]
+    assert Measure.CAVITY_WALL_INSULATION not in measures
+    assert Measure.SOLID_WALL_INSULATION not in measures
+    assert Measure.LOFT_INSULATION not in measures
+
+
+def test_top_measure_is_first_recommendation():
+    plan = recommend_measures('C018', 'F', 'terraced', 'gas_boiler')
+    assert plan.top_measure is plan.recommendations[0]
+
+
+def test_summary_recommendation_count():
+    plan = recommend_measures('C019', 'E', 'detached', 'gas_boiler')
+    s = plan.summary()
+    assert s['recommendation_count'] == len(plan.recommendations)
+
+
+def test_priority_increments_by_one():
+    plan = recommend_measures('C020', 'F', 'terraced', 'gas_boiler')
+    priorities = [r.priority for r in plan.recommendations]
+    for i in range(len(priorities) - 1):
+        assert priorities[i + 1] == priorities[i] + 1

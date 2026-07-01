@@ -129,3 +129,104 @@ def test_book_ppa_summary_keys():
     assert s['total_annual_cost_gbp'] == pytest.approx(120_000.0 * 45.0, rel=1e-6)
     assert 'vs_market_gbp' in s
     assert 'renewable_share_mwh' in s
+
+
+# --- Phase JQ depth tests ---
+
+def test_effective_price_indexed_returns_market():
+    c = PPAContract(
+        contract_id='P6', generator_id='G6',
+        technology=PPATechnology.ONSHORE_WIND,
+        start_date=START, end_date=END,
+        capacity_mw=20.0, annual_generation_mwh=50_000.0,
+        price_gbp_per_mwh=45.0, pricing_type=PPAPricingType.INDEXED,
+    )
+    assert c.effective_price(80.0) == 80.0
+    assert c.effective_price(30.0) == 30.0
+
+
+def test_effective_price_floor_uses_floor_when_market_below():
+    c = PPAContract(
+        contract_id='P7', generator_id='G7',
+        technology=PPATechnology.SOLAR,
+        start_date=START, end_date=END,
+        capacity_mw=10.0, annual_generation_mwh=20_000.0,
+        price_gbp_per_mwh=40.0, pricing_type=PPAPricingType.FLOOR,
+        floor_price_gbp_per_mwh=40.0,
+    )
+    assert c.effective_price(20.0) == 40.0
+
+
+def test_vs_market_positive_when_ppa_above_market():
+    c = PPAContract(
+        contract_id='P8', generator_id='G8',
+        technology=PPATechnology.BIOMASS,
+        start_date=START, end_date=END,
+        capacity_mw=5.0, annual_generation_mwh=10_000.0,
+        price_gbp_per_mwh=100.0,
+    )
+    vs = c.vs_market_gbp(market_price=60.0)
+    assert vs == pytest.approx(10_000.0 * (100.0 - 60.0), rel=1e-6)
+    assert vs > 0
+
+
+def test_book_total_annual_cost_gbp_two_active():
+    book = PPABook()
+    book.add_contract('A1', 'G1', PPATechnology.SOLAR, START, END, 10.0, 20_000.0, 40.0)
+    book.add_contract('A2', 'G2', PPATechnology.ONSHORE_WIND, START, END, 30.0, 80_000.0, 50.0)
+    total = book.total_annual_cost_gbp(dt.date(2022, 6, 1))
+    assert total == pytest.approx(20_000.0 * 40.0 + 80_000.0 * 50.0, rel=1e-6)
+
+
+def test_book_empty_active_contracts():
+    book = PPABook()
+    assert book.active_contracts(dt.date(2022, 1, 1)) == []
+
+
+def test_floor_price_attribute_stored():
+    c = PPAContract(
+        contract_id='P9', generator_id='G9',
+        technology=PPATechnology.HYDRO,
+        start_date=START, end_date=END,
+        capacity_mw=8.0, annual_generation_mwh=15_000.0,
+        price_gbp_per_mwh=38.0, pricing_type=PPAPricingType.FLOOR,
+        floor_price_gbp_per_mwh=35.0,
+    )
+    assert c.floor_price_gbp_per_mwh == 35.0
+
+
+def test_capacity_mw_stored():
+    c = PPAContract(
+        contract_id='P10', generator_id='G10',
+        technology=PPATechnology.OFFSHORE_WIND,
+        start_date=START, end_date=END,
+        capacity_mw=250.0, annual_generation_mwh=750_000.0,
+        price_gbp_per_mwh=55.0,
+    )
+    assert c.capacity_mw == 250.0
+
+
+def test_book_total_vs_market_two_contracts():
+    book = PPABook()
+    book.add_contract('B1', 'G1', PPATechnology.SOLAR, START, END, 20.0, 40_000.0, 45.0)
+    book.add_contract('B2', 'G2', PPATechnology.ONSHORE_WIND, START, END, 50.0, 100_000.0, 50.0)
+    market = 70.0
+    total = book.total_vs_market_gbp(dt.date(2022, 6, 1), market)
+    expected = 40_000.0 * (45.0 - 70.0) + 100_000.0 * (50.0 - 70.0)
+    assert total == pytest.approx(expected, rel=1e-6)
+
+
+def test_add_contract_returns_ppa_contract():
+    book = PPABook()
+    result = book.add_contract(
+        'C1', 'G1', PPATechnology.SOLAR, START, END, 10.0, 15_000.0, 42.0,
+    )
+    assert isinstance(result, PPAContract)
+    assert result.contract_id == 'C1'
+
+
+def test_ppa_summary_vs_market_positive_when_ppa_expensive():
+    book = PPABook()
+    book.add_contract('D1', 'G1', PPATechnology.BIOMASS, START, END, 5.0, 8_000.0, 120.0)
+    s = book.ppa_summary(dt.date(2022, 1, 1), market_price=50.0)
+    assert s['vs_market_gbp'] > 0

@@ -134,3 +134,63 @@ class TestThreeHorizonCLVTracker:
     def test_constants(self):
         assert _H3_OUTPERFORM_THRESHOLD == pytest.approx(0.10)
         assert _H3_AT_RISK_THRESHOLD == pytest.approx(-0.30)
+
+
+# --- Phase JQ depth tests ---
+
+class TestThreeHorizonCLVTrackerDepth:
+    def test_outperforming_accounts(self, tracker):
+        tracker.commit_h1(make_h1("C1", margin=100.0, churn=0.40))
+        tracker.commit_h1(make_h1("C2", margin=200.0, churn=0.18))
+        tracker.update_h3(make_h3("C1", margin=300.0, churn=0.05))  # outperforming
+        tracker.update_h3(make_h3("C2", margin=200.0, churn=0.18))  # on track
+        out = tracker.outperforming_accounts()
+        assert "C1" in out
+        assert "C2" not in out
+
+    def test_h3_signal_deteriorating(self, tracker):
+        # H1 CLV = 100 * 0.90 / (1.08 - 0.90) = 500; H3 with margin=80 gives CLV=400 → -20% → DETERIORATING
+        tracker.commit_h1(make_h1("C1", margin=100.0, churn=0.10))
+        tracker.update_h3(make_h3("C1", margin=80.0, churn=0.10))
+        assert tracker.h3_signal("C1") == H3Signal.DETERIORATING
+
+    def test_h3_signal_none_no_h3(self, tracker):
+        tracker.commit_h1(make_h1())
+        assert tracker.h3_signal("C1") is None
+
+    def test_h3_signal_none_unknown_account(self, tracker):
+        assert tracker.h3_signal("UNKNOWN") is None
+
+    def test_latest_h3_none_unknown_account(self, tracker):
+        assert tracker.latest_h3("UNKNOWN") is None
+
+    def test_h2_margin_no_filter_all_events(self, tracker):
+        tracker.commit_h1(make_h1())
+        tracker.record_revenue("C1", START, 150.0)
+        tracker.record_cost("C1", START, 30.0)
+        assert tracker.h2_margin("C1") == pytest.approx(120.0)
+
+    def test_h1_vs_h2_variance_none_no_h1(self, tracker):
+        result = tracker.h1_vs_h2_variance_gbp("NOACCOUNT", MID)
+        assert result is None
+
+    def test_h1_clv_fallback_negative_churn(self):
+        h1 = H1Commitment(
+            account_id="FX",
+            committed_at=START,
+            contract_start=START,
+            contract_end=END,
+            expected_annual_margin_gbp=200.0,
+            expected_churn_rate=-0.10,
+            discount_rate=0.08,
+        )
+        # retention = 1.10; denom = 1.08 - 1.10 = -0.02 <= 0 => fallback
+        assert h1.h1_clv_gbp == pytest.approx(200.0 * h1.contract_years)
+
+    def test_deteriorate_threshold_constant(self):
+        assert _H3_DETERIORATE_THRESHOLD == pytest.approx(-0.10)
+
+    def test_at_risk_accounts_empty_when_all_on_track(self, tracker):
+        tracker.commit_h1(make_h1("C1", margin=200.0, churn=0.18))
+        tracker.update_h3(make_h3("C1", margin=200.0, churn=0.18))
+        assert tracker.at_risk_accounts() == []
