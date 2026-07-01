@@ -1,5 +1,5 @@
-Phase JZ: Coverage Depth Sprint XLVIII (11,040 tests)
-Last updated: 2026-07-01T04:26:30Z
+Phase KG: Coverage Depth Sprint LV (11,070 tests)
+Last updated: 2026-07-01T04:29:49Z
 
 **Latest simulation results (2016–2025)** — auto-processed (903s / 15 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668

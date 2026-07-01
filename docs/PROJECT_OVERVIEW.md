@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,040 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,070 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KG -- Coverage Depth Sprint LV (2026-07-01)
+**Modules:** carbon_emissions (regulatory) · consumption_forecast (billing) · credit_rating_book (trading)
+**Tests added:** 30 (carbon_emissions: low_carbon_pct=nuclear+biomass+renewable; zero_gas_kwh=zero_co2; zero_elec_kwh=zero_co2; gas_factor_183; summary_year; intensity_stored; all_nuclear=12; all_wind=11; total=elec+gas; summary_co2_keys. consumption_forecast: monthly_sum=annual; higher_rate→higher_commodity; c2_none_no_history; monthly_non_negative; sc_zero=zero_sc; eac_positive; two_customers_independent; quarterly_4_elements; two_invoices_same_customer; annual=commodity+sc. credit_rating_book: get_not_found=None; score_aaa=10; score_bbb=7; pd_aaa=0.01; pd_d=100; ccc_not_ig; two_exposures_accumulate; within_limit_at_limit=True; limit_stored; sub_ig_count=2.)
+**Total:** 11,070 tests
 
 ### Phase KF -- Coverage Depth Sprint LIV (2026-07-01)
 **Modules:** bad_debt_provision (finance) · board_dashboard (finance) · campaign_tracker (crm)
@@ -4710,7 +4715,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,040 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,070 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

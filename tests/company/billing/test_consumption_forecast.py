@@ -91,3 +91,100 @@ def test_forecast_zero_eac_returns_zero_cost(tmp_path):
     # May return None (0 kWh) or a valid result with 0 commodity
     if result is not None:
         assert result["annual_commodity_gbp"] == 0.0
+
+
+# --- Phase KG depth tests ---
+
+def test_monthly_sum_equals_annual(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-12-31", 2500.0, 700.0), db)
+    result = forecast_annual_cost("C1", 24.5, 61.0, db)
+    assert result is not None
+    monthly_sum = sum(result["monthly_total_gbp"])
+    assert abs(monthly_sum - result["annual_total_gbp"]) < 1.0
+
+
+def test_higher_unit_rate_higher_commodity(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-12-31", 2500.0, 700.0), db)
+    low = forecast_annual_cost("C1", 20.0, 61.0, db)
+    high = forecast_annual_cost("C1", 40.0, 61.0, db)
+    assert high["annual_commodity_gbp"] > low["annual_commodity_gbp"]
+
+
+def test_c2_returns_none_no_history(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-12-31", 2500.0, 700.0), db)
+    # C2 has no history
+    result = forecast_annual_cost("C2", 24.5, 61.0, db)
+    assert result is None
+
+
+def test_monthly_all_non_negative(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-12-31", 2500.0, 700.0), db)
+    result = forecast_annual_cost("C1", 24.5, 61.0, db)
+    assert result is not None
+    assert all(v >= 0 for v in result["monthly_total_gbp"])
+
+
+def test_sc_zero_gives_zero_sc_gbp(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-12-31", 2500.0, 700.0), db)
+    result = forecast_annual_cost("C1", 24.5, 0.0, db)
+    assert result is not None
+    assert result["annual_sc_gbp"] == 0.0
+
+
+def test_eac_kwh_positive_with_consumption(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-12-31", 3500.0, 900.0), db)
+    result = forecast_annual_cost("C1", 24.5, 61.0, db)
+    assert result is not None
+    assert result["eac_kwh"] > 0
+
+
+def test_different_customers_independent(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-12-31", 1000.0, 300.0), db)
+    create_invoice(_make_bill("C2", "2023-01-01", "2023-12-31", 4000.0, 1100.0), db)
+    r1 = forecast_annual_cost("C1", 24.5, 61.0, db)
+    r2 = forecast_annual_cost("C2", 24.5, 61.0, db)
+    assert r1 is not None and r2 is not None
+    assert r2["eac_kwh"] > r1["eac_kwh"]
+
+
+def test_quarterly_has_four_elements(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-12-31", 2500.0, 700.0), db)
+    result = forecast_annual_cost("C1", 24.5, 61.0, db)
+    assert result is not None
+    assert len(result["quarterly_total_gbp"]) == 4
+
+
+def test_two_invoices_same_customer(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-06-30", 1000.0, 300.0), db)
+    create_invoice(_make_bill("C1", "2023-07-01", "2023-12-31", 1200.0, 350.0), db)
+    result = forecast_annual_cost("C1", 24.5, 61.0, db)
+    assert result is not None
+    assert result["annual_total_gbp"] > 0
+
+
+def test_annual_total_contains_commodity_and_sc(tmp_path):
+    db = tmp_path / "inv.db"
+    create_schema(db)
+    create_invoice(_make_bill("C1", "2023-01-01", "2023-12-31", 2500.0, 700.0), db)
+    result = forecast_annual_cost("C1", 24.5, 61.0, db)
+    assert result is not None
+    expected = result["annual_commodity_gbp"] + result["annual_sc_gbp"]
+    assert abs(result["annual_total_gbp"] - expected) < 0.01

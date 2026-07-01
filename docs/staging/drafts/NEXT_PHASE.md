@@ -1,2 +1,2 @@
-Phase KG -- Coverage Depth Sprint LV
-30 tests: carbon_emissions + consumption_forecast + credit_rating_book coverage depth
+Phase KH -- Coverage Depth Sprint LVI
+30 tests: churn_via_live_interface + notify_churn_live + phase48a_term_premium coverage depth
