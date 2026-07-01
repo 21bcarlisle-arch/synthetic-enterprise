@@ -78,3 +78,60 @@ class TestStandingChargeAssessor:
         assessor.assess(make_assessment())
         s = assessor.sc_assessor_summary()
         assert "Standing Charge Assessor" in s
+
+
+# --- Phase MA depth tests ---
+
+def test_tariff_id_stored():
+    a = make_assessment(tariff_id='TARIFF-MA')
+    assert a.tariff_id == 'TARIFF-MA'
+
+
+def test_is_electricity_stored():
+    a = make_assessment(is_elec=False)
+    assert a.is_electricity is False
+
+
+def test_standing_charge_stored():
+    a = make_assessment(sc=50.0)
+    assert a.standing_charge_pence_per_day == pytest.approx(50.0)
+
+
+def test_unit_rate_stored():
+    a = make_assessment(ur=28.0)
+    assert a.unit_rate_pence_per_kwh == pytest.approx(28.0)
+
+
+def test_annual_sc_gbp_is_sc_times_365_over_100():
+    a = make_assessment(sc=61.0)
+    expected = 365 * 61.0 / 100
+    assert a.annual_sc_gbp == pytest.approx(expected)
+
+
+def test_cap_reference_elec():
+    a = make_assessment(is_elec=True)
+    assert a.cap_reference == pytest.approx(_OFGEM_SC_CAP_ELEC_PENCE_PER_DAY)
+
+
+def test_fairness_rating_borderline():
+    # Just above cap (within 10% over)
+    a = make_assessment(sc=_OFGEM_SC_CAP_ELEC_PENCE_PER_DAY * 1.05)
+    assert a.fairness_rating == SCFairnessRating.BORDERLINE
+
+
+def test_consumer_impact_medium():
+    # high sc, modest unit rate → sc 20-35% of bill
+    a = StandingChargeAssessment('T1', True, 30.0, 10.0)
+    assert a.consumer_impact == ConsumerImpactLevel.MEDIUM
+
+
+def test_sc_pct_zero_when_bill_zero():
+    a = StandingChargeAssessment('T1', True, 0.0, 0.0)
+    assert a.sc_pct_of_typical_bill == pytest.approx(0.0)
+
+
+def test_assess_returns_assessment():
+    assessor = StandingChargeAssessor()
+    a = make_assessment()
+    result = assessor.assess(a)
+    assert isinstance(result, StandingChargeAssessment)

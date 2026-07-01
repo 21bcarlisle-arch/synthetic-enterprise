@@ -108,3 +108,63 @@ def test_scorecard_summary():
     assert s["rag_counts"]["AMBER"] == 1
     assert s["rag_counts"]["RED"] == 1
     assert "financial_resilience" in s["breach_domains"]
+
+
+# --- Phase MA depth tests ---
+
+def test_check_domain_stored():
+    sc = ComplianceScorecard()
+    c = sc.record_check(ComplianceDomain.COMPLAINTS, DATE, RAGStatus.GREEN)
+    assert c.domain == ComplianceDomain.COMPLAINTS
+
+
+def test_check_date_stored():
+    sc = ComplianceScorecard()
+    c = sc.record_check(ComplianceDomain.BILLING_METERING, DATE, RAGStatus.GREEN)
+    assert c.check_date == DATE
+
+
+def test_check_status_stored():
+    sc = ComplianceScorecard()
+    c = sc.record_check(ComplianceDomain.GOVERNANCE, DATE, RAGStatus.AMBER)
+    assert c.status == RAGStatus.AMBER
+
+
+def test_metric_value_default_none():
+    sc = ComplianceScorecard()
+    c = sc.record_check(ComplianceDomain.COMPLAINTS, DATE, RAGStatus.GREEN)
+    assert c.metric_value is None
+
+
+def test_threshold_default_none():
+    sc = ComplianceScorecard()
+    c = sc.record_check(ComplianceDomain.COMPLAINTS, DATE, RAGStatus.GREEN)
+    assert c.threshold is None
+
+
+def test_notes_default_empty():
+    sc = ComplianceScorecard()
+    c = sc.record_check(ComplianceDomain.COMPLAINTS, DATE, RAGStatus.GREEN)
+    assert c.notes == ''
+
+
+def test_slc_reference_non_empty():
+    sc = ComplianceScorecard()
+    c = sc.record_check(ComplianceDomain.BILLING_METERING, DATE, RAGStatus.GREEN)
+    assert len(c.slc_reference) > 0
+
+
+def test_record_check_returns_compliance_check():
+    sc = ComplianceScorecard()
+    result = sc.record_check(ComplianceDomain.GOVERNANCE, DATE, RAGStatus.GREEN)
+    assert isinstance(result, ComplianceCheck)
+
+
+def test_compliance_domain_has_10_members():
+    assert len(list(ComplianceDomain)) == 10
+
+
+def test_is_breach_amber_false():
+    sc = ComplianceScorecard()
+    c = sc.record_check(ComplianceDomain.GOVERNANCE, DATE, RAGStatus.AMBER)
+    assert c.is_breach is False

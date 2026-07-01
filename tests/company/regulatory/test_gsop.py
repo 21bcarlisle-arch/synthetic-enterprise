@@ -88,3 +88,57 @@ def test_add_working_days_skips_weekends():
     result = _add_working_days(date(2022, 3, 1), 5)
     assert result == date(2022, 3, 8)
     assert result.weekday() == 1  # Tuesday
+
+
+# --- Phase MA depth tests ---
+
+def test_payment_id_is_1_for_first(book):
+    p = book.record_trigger('C1', GSOPType.MISSED_APPOINTMENT, date(2022, 3, 1))
+    assert p.payment_id == 1
+
+
+def test_payment_customer_id_stored(book):
+    p = book.record_trigger('CUST-MA', GSOPType.ERRONEOUS_TRANSFER, date(2022, 3, 1))
+    assert p.customer_id == 'CUST-MA'
+
+
+def test_gsop_type_stored(book):
+    p = book.record_trigger('C1', GSOPType.WRONGFUL_DISCONNECT, date(2022, 3, 1))
+    assert p.gsop_type == GSOPType.WRONGFUL_DISCONNECT
+
+
+def test_trigger_date_stored(book):
+    d = date(2022, 5, 10)
+    p = book.record_trigger('C1', GSOPType.FINAL_BILL_DELAY, d)
+    assert p.trigger_date == d
+
+
+def test_amount_gbp_stored(book):
+    p = book.record_trigger('C1', GSOPType.MISSED_APPOINTMENT, date(2022, 3, 1))
+    assert p.amount_gbp == pytest.approx(30.0)
+
+
+def test_paid_date_none_before_pay(book):
+    p = book.record_trigger('C1', GSOPType.MISSED_APPOINTMENT, date(2022, 3, 1))
+    assert p.paid_date is None
+
+
+def test_is_paid_false_before_pay(book):
+    p = book.record_trigger('C1', GSOPType.MISSED_APPOINTMENT, date(2022, 3, 1))
+    assert p.is_paid is False
+
+
+def test_sequential_payment_ids(book):
+    p1 = book.record_trigger('C1', GSOPType.MISSED_APPOINTMENT, date(2022, 3, 1))
+    p2 = book.record_trigger('C2', GSOPType.ERRONEOUS_TRANSFER, date(2022, 3, 2))
+    assert p1.payment_id == 1
+    assert p2.payment_id == 2
+
+
+def test_record_trigger_returns_gsop_payment(book):
+    result = book.record_trigger('C1', GSOPType.MISSED_APPOINTMENT, date(2022, 3, 1))
+    assert isinstance(result, GSOPPayment)
+
+
+def test_gsop_type_has_5_members():
+    assert len(list(GSOPType)) == 5
