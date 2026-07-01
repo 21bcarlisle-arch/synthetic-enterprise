@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JI — Coverage Depth Sprint XXXI (2026-07-01)
+**Modules:** gas_storage · mpas_registry · market_report
+**Tests added:** 30 (gas_storage: inventory all facilities; withdraw capped at zero; net storage cost inject-only/inject-withdraw; spread None when no inject/no withdraw; summary net_cost key; total_injected year filter; October winter/April not-winter. mpas_registry: get not-found; losing_supplier stored; objected_points; objection not in active; complete_transfer removes from active; active_supply_points no filter; total_mwh no filter; registrations_in_period; summary objected count; summary mwh values. market_report: elec pre-crisis < 2022; gas 2016 lowest; switching 2016 > 2022; domestic accounts crisis drop; compare gas delta; compare all keys; gas annual reasonable; elec 2022 peak; switching 2021 low; compare just above 3pct threshold)
+**Total:** 10,350 tests
+
 ### Phase JH — Coverage Depth Sprint XXX (2026-07-01)
 **Modules:** period_reconciliation · payment_deferral · imbalance_analytics
 **Tests added:** 30 (period_reconciliation: get found/not-found; positive variance not-adverse; multiple variances sum; zero-variance adjusted=gross; variances by type multiple; open periods filter; annual margin year filter; summary open-count after close; annual margin includes variance. payment_deferral: DEF-0001/0002 sequential; outstanding capped at zero on overpay; deferrals_for_customer; outstanding excludes completed/defaulted; overdue excludes completed; defaulted not active; annual_summary by_reason multiple/completed; cancelled not active. imbalance_analytics: direction FLAT within threshold/zero; worst_period empty year; avg_cash_out None empty year; total_cash_out commodity filter; systematic_bias LONG/FLAT; short_count year filter; avg_cash_out weighted; summary zero worst when no records)
@@ -4589,7 +4594,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,320 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,350 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -77,3 +77,70 @@ def test_mpas_summary():
     assert s['electricity_points'] == 1
     assert s['gas_points'] == 1
     assert s['objected'] == 0
+
+
+def test_get_not_found():
+    r = _make_reg()
+    assert r.get('NONEXISTENT') is None
+
+
+def test_losing_supplier_stored():
+    r = _make_reg()
+    sp = r.get('MPAN001')
+    assert sp.losing_supplier == 'OldSupplier'
+
+
+def test_objected_points():
+    r = _make_reg()
+    r.get('MPAN001').raise_objection('In contract')
+    assert len(r.objected_points()) == 1
+    assert r.objected_points()[0].supply_point_id == 'MPAN001'
+
+
+def test_objection_not_in_active():
+    r = _make_reg()
+    r.get('MPAN001').raise_objection('In contract')
+    active = r.active_supply_points()
+    ids = [sp.supply_point_id for sp in active]
+    assert 'MPAN001' not in ids
+
+
+def test_complete_transfer_removes_from_active():
+    r = _make_reg()
+    r.get('MPAN001').complete_transfer(dt.date(2022, 2, 1))
+    active = r.active_supply_points()
+    assert all(sp.supply_point_id != 'MPAN001' for sp in active)
+
+
+def test_active_supply_points_no_filter():
+    r = _make_reg()
+    all_active = r.active_supply_points()
+    assert len(all_active) == 2
+
+
+def test_total_mwh_no_filter():
+    r = _make_reg()
+    total = r.total_registered_mwh()
+    assert total == pytest.approx(3.5 + 15.0)
+
+
+def test_registrations_in_period():
+    r = _make_reg()
+    results = r.registrations_in_period(dt.date(2022, 1, 1), dt.date(2022, 1, 3))
+    assert len(results) == 1
+    assert results[0].supply_point_id == 'MPAN001'
+
+
+def test_mpas_summary_objected_count():
+    r = _make_reg()
+    r.get('MPAN001').raise_objection('reason')
+    s = r.mpas_summary()
+    assert s['objected'] == 1
+    assert s['total_registered'] == 1
+
+
+def test_mpas_summary_mwh_values():
+    r = _make_reg()
+    s = r.mpas_summary()
+    assert s['total_electricity_mwh'] == pytest.approx(3.5)
+    assert s['total_gas_mwh'] == pytest.approx(15.0)
