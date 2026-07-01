@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JN — Coverage Depth Sprint XXXVI (2026-07-01)
+**Modules:** contact_log · contact_journey · complaint_register
+**Tests added:** 30 (contact_log: contacts_for_customer empty; annual_summary by_reason multiple; avg_handle fallback to default; notes stored; escalated flag; resolved=False; channel stored; year filter; record returns ContactInteraction; not-escalated-by-default. contact_journey: CA-00001/00002 sequential; get_prefs found/not-found; SMS 4p/Phone 350p/IN_APP free; delivery_rate zero empty; cost year filter; summary year field; NO_ANSWER not successful. complaint_register: get found/not-found; open excludes resolved; overdue excludes resolved; ombudsman eligible day 56; refer_to_ombudsman status; total goodwill sum; upheld_rate None no-resolved; not-overdue 55d; vulnerable flag stored)
+**Total:** 10,500 tests
+
 ### Phase JM — Coverage Depth Sprint XXXV (2026-07-01)
 **Modules:** privacy_register · seasonal_demand · settlement_reconciler
 **Tests added:** 30 (privacy_register: DSR-0001/0002 sequential; get_dsr found/not-found; customers_without_consent excludes opted-in; DSR not-overdue on deadline day; latest consent wins; refused not in overdue_requests; refused not_overdue; total_consent_records. seasonal_demand: Nov→WINTER/Apr→SUMMER; July index 0.80; LOW scenario 0.85×; get_month found/not-found; peak_month None empty; winter_summer_ratio None when summer=0; annual_demand year filter; demand_summary ratio included. settlement_reconciler: flags small absolute imbalance >£10; zero settlement cost guard; batch negative total; missing customer defaults 0; net_position unfavourable; all-favourable unfavourable_count=0; hedge_pnl stored; customer_id in result; checked count; flagged_count summary matches batch)
@@ -4614,7 +4619,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,470 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,500 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -79,3 +79,76 @@ def test_complaints_summary():
     s = reg.complaints_summary(dt.date(2022, 8, 1), 200)
     assert 'open' in s
     assert 'debt_collection' in s['by_category']
+
+
+def test_get_complaint_found():
+    reg = ComplaintRegister()
+    reg.raise_complaint('CPL010', 'C001', dt.date(2022, 1, 1), ComplaintCategory.BILLING)
+    c = reg.get('CPL010')
+    assert c is not None
+    assert c.customer_id == 'C001'
+
+
+def test_get_complaint_not_found():
+    reg = ComplaintRegister()
+    assert reg.get('NONEXISTENT') is None
+
+
+def test_open_complaints_excludes_resolved():
+    reg = ComplaintRegister()
+    c1 = reg.raise_complaint('O001', 'C001', dt.date(2022, 1, 1), ComplaintCategory.TARIFF)
+    c2 = reg.raise_complaint('O002', 'C002', dt.date(2022, 1, 5), ComplaintCategory.BILLING)
+    c1.resolve(dt.date(2022, 2, 1), upheld=True)
+    open_list = reg.open_complaints()
+    ids = [c.complaint_id for c in open_list]
+    assert 'O001' not in ids
+    assert 'O002' in ids
+
+
+def test_overdue_complaints_excludes_resolved():
+    reg = ComplaintRegister()
+    c = reg.raise_complaint('OD001', 'C001', dt.date(2022, 1, 1), ComplaintCategory.BILLING)
+    c.resolve(dt.date(2022, 2, 28), upheld=False)
+    overdue = reg.overdue_complaints(dt.date(2022, 4, 1))
+    assert len(overdue) == 0
+
+
+def test_ombudsman_eligible_on_day_56():
+    c = Complaint('C001', 'CU1', dt.date(2022, 1, 1), ComplaintCategory.BILLING, '')
+    as_of = dt.date(2022, 1, 1) + __import__('datetime').timedelta(days=56)
+    assert c.is_ombudsman_eligible(as_of)
+
+
+def test_refer_to_ombudsman():
+    reg = ComplaintRegister()
+    c = reg.raise_complaint('OMB001', 'C001', dt.date(2022, 1, 1), ComplaintCategory.SWITCH)
+    c.refer_to_ombudsman(dt.date(2022, 3, 1))
+    assert c.status == ComplaintStatus.OMBUDSMAN_REFERRED
+
+
+def test_total_goodwill_gbp():
+    reg = ComplaintRegister()
+    c1 = reg.raise_complaint('G001', 'C001', dt.date(2022, 3, 1), ComplaintCategory.BILLING)
+    c2 = reg.raise_complaint('G002', 'C002', dt.date(2022, 3, 5), ComplaintCategory.BILLING)
+    c1.resolve(dt.date(2022, 4, 1), upheld=True, goodwill_gbp=25.0)
+    c2.resolve(dt.date(2022, 4, 2), upheld=True, goodwill_gbp=15.0)
+    assert reg.total_goodwill_gbp(2022) == pytest.approx(40.0)
+
+
+def test_upheld_rate_none_when_no_resolved():
+    reg = ComplaintRegister()
+    reg.raise_complaint('NR001', 'C001', dt.date(2022, 1, 1), ComplaintCategory.SUPPLY_FAILURE)
+    assert reg.upheld_rate_pct(2022) is None
+
+
+def test_complaint_not_overdue_when_under_56_days():
+    reg = ComplaintRegister()
+    c = reg.raise_complaint('ND001', 'C001', dt.date(2022, 1, 1), ComplaintCategory.BILLING)
+    assert not c.is_overdue(dt.date(2022, 1, 1) + __import__('datetime').timedelta(days=55))
+
+
+def test_vulnerable_flag_stored():
+    reg = ComplaintRegister()
+    c = reg.raise_complaint('V001', 'C001', dt.date(2022, 1, 1),
+                             ComplaintCategory.BILLING, is_vulnerable=True)
+    assert c.is_vulnerable is True

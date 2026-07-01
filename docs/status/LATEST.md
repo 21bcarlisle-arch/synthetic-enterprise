@@ -1,5 +1,5 @@
-Phase JM: Coverage Depth Sprint XXXV
-Last updated: 2026-07-01T00:28:53Z
+Phase JN: Coverage Depth Sprint XXXVI
+Last updated: 2026-07-01T00:33:40Z
 
 **Latest simulation results (2016–2025)** — auto-processed (572s / 10 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668

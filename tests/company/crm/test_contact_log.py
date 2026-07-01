@@ -79,3 +79,69 @@ def test_annual_summary_with_data(log):
     assert summary["unresolved"] == 1
     assert summary["by_reason"]["billing_query"] == 2
     assert summary["total_handle_minutes"] > 0
+
+
+def test_contacts_for_customer_empty(log):
+    contacts = log.contacts_for_customer("UNKNOWN")
+    assert contacts == []
+
+
+def test_annual_summary_by_reason_multiple(log):
+    log.record("C001", ContactChannel.PHONE, ContactReason.BILLING_QUERY, date(2022, 1, 1))
+    log.record("C002", ContactChannel.PHONE, ContactReason.BILLING_QUERY, date(2022, 1, 2))
+    log.record("C003", ContactChannel.EMAIL, ContactReason.METER_READ, date(2022, 1, 3))
+    summary = log.annual_summary(2022)
+    assert summary["by_reason"]["billing_query"] == 2
+    assert summary["by_reason"]["meter_read"] == 1
+
+
+def test_avg_handle_minutes_fallback_to_default(log):
+    # No records yet — should return _AVG_HANDLE_MINUTES["tariff_query"]
+    avg = log.avg_handle_minutes_for_reason(ContactReason.TARIFF_QUERY)
+    assert avg == pytest.approx(_AVG_HANDLE_MINUTES["tariff_query"])
+
+
+def test_record_notes_stored(log):
+    interaction = log.record(
+        "C001", ContactChannel.EMAIL, ContactReason.OTHER, date(2022, 6, 1), notes="Test note"
+    )
+    assert interaction.notes == "Test note"
+
+
+def test_escalated_flag_stored(log):
+    interaction = log.record(
+        "C001", ContactChannel.PHONE, ContactReason.COMPLAINT, date(2022, 4, 1), escalated=True
+    )
+    assert interaction.escalated is True
+
+
+def test_resolved_false_stored(log):
+    interaction = log.record(
+        "C001", ContactChannel.PHONE, ContactReason.COMPLAINT, date(2022, 4, 1), resolved=False
+    )
+    assert interaction.resolved is False
+
+
+def test_channel_stored(log):
+    interaction = log.record(
+        "C001", ContactChannel.LETTER, ContactReason.BILLING_QUERY, date(2022, 5, 1)
+    )
+    assert interaction.channel == ContactChannel.LETTER
+
+
+def test_annual_summary_year_filter(log):
+    log.record("C001", ContactChannel.PHONE, ContactReason.OTHER, date(2021, 6, 1))
+    log.record("C002", ContactChannel.PHONE, ContactReason.OTHER, date(2022, 6, 1))
+    summary = log.annual_summary(2022)
+    assert summary["total"] == 1
+
+
+def test_record_returns_interaction(log):
+    result = log.record("C001", ContactChannel.PHONE, ContactReason.BILLING_QUERY, date(2022, 1, 1))
+    from company.crm.contact_log import ContactInteraction
+    assert isinstance(result, ContactInteraction)
+
+
+def test_interaction_not_escalated_by_default(log):
+    interaction = log.record("C001", ContactChannel.EMAIL, ContactReason.TARIFF_QUERY, date(2022, 3, 1))
+    assert interaction.escalated is False
