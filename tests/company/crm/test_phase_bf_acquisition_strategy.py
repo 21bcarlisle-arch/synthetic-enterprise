@@ -126,3 +126,63 @@ def test_net_value_property():
     r = book.analyse_channel("referral", "resi", 200.0, expected_tenure_years=3.0)
     expected_net = r.expected_clv_gbp - r.cac_gbp
     assert abs(r.net_value_gbp - expected_net) < 0.01
+
+
+# --- Phase MQ depth tests ---
+
+def test_channel_roi_segment_stored():
+    book = _book()
+    r = book.analyse_channel("pcw", "SME", 200.0)
+    assert r.segment == "SME"
+
+
+def test_channel_roi_cac_gbp_matches_typical():
+    book = _book()
+    r = book.analyse_channel("pcw", "resi", 200.0)
+    assert r.cac_gbp == pytest.approx(_TYPICAL_CAC_GBP["pcw"])
+
+
+def test_channel_roi_payback_none_negative_margin():
+    book = _book()
+    r = book.analyse_channel("direct", "resi", -10.0)
+    assert r.payback_months is None
+
+
+def test_channel_roi_recommendation_not_empty():
+    book = _book()
+    r = book.analyse_channel("pcw", "resi", 200.0)
+    assert len(r.recommendation) > 0
+
+
+def test_portfolio_scenario_target_new_customers_stored():
+    book = _book(win_rates={"resi": 0.20})
+    scenario = book.model_growth_scenario(10, "pcw", "resi", 200.0)
+    assert scenario.target_new_customers == 10
+
+
+def test_portfolio_scenario_channel_stored():
+    book = _book(win_rates={"resi": 0.20})
+    scenario = book.model_growth_scenario(5, "referral", "resi", 200.0)
+    assert scenario.channel == "referral"
+
+
+def test_portfolio_scenario_segment_stored():
+    book = _book(win_rates={"SME": 0.12})
+    scenario = book.model_growth_scenario(5, "pcw", "SME", 200.0)
+    assert scenario.segment == "SME"
+
+
+def test_portfolio_scenario_win_rate_pct():
+    book = _book(win_rates={"resi": 0.20})
+    scenario = book.model_growth_scenario(5, "pcw", "resi", 200.0)
+    assert scenario.win_rate_assumption_pct == pytest.approx(20.0)
+
+
+def test_typical_cac_has_5_channels():
+    assert len(_TYPICAL_CAC_GBP) == 5
+
+
+def test_portfolio_scenario_expected_clv():
+    book = _book(win_rates={"resi": 0.20})
+    scenario = book.model_growth_scenario(5, "pcw", "resi", 100.0, expected_tenure_years=3.0)
+    assert scenario.expected_total_clv_gbp == pytest.approx(5 * 100.0 * 3.0)

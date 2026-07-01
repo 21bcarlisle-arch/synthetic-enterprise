@@ -119,3 +119,58 @@ def test_day_ahead_summary_populated():
     assert s["total_sell_volume_mwh"] == pytest.approx(20.0)
     assert s["years_active"] == [2022]
     assert s["crisis_auctions_count"] == 1
+
+
+# --- Phase MQ depth tests ---
+
+def test_auction_id_stored():
+    a = DayAheadAuction("A99", D0, DayAheadDirection.BUY, 100.0, 50.0, 55.0, D_PREV)
+    assert a.auction_id == "A99"
+
+
+def test_delivery_date_stored():
+    a = DayAheadAuction("A1", D0, DayAheadDirection.BUY, 100.0, 50.0, 55.0, D_PREV)
+    assert a.delivery_date == D0
+
+
+def test_direction_stored():
+    a = DayAheadAuction("A1", D0, DayAheadDirection.SELL, 100.0, 50.0, 55.0, D_PREV)
+    assert a.direction == DayAheadDirection.SELL
+
+
+def test_volume_mwh_stored():
+    a = DayAheadAuction("A1", D0, DayAheadDirection.BUY, 150.0, 50.0, 55.0, D_PREV)
+    assert a.volume_mwh == pytest.approx(150.0)
+
+
+def test_bid_price_stored():
+    a = DayAheadAuction("A1", D0, DayAheadDirection.BUY, 100.0, 48.0, 55.0, D_PREV)
+    assert a.bid_price_gbp_per_mwh == pytest.approx(48.0)
+
+
+def test_cleared_price_stored():
+    a = DayAheadAuction("A1", D0, DayAheadDirection.BUY, 100.0, 48.0, 57.0, D_PREV)
+    assert a.cleared_price_gbp_per_mwh == pytest.approx(57.0)
+
+
+def test_auctioned_at_stored():
+    a = DayAheadAuction("A1", D0, DayAheadDirection.BUY, 100.0, 50.0, 55.0, D_PREV)
+    assert a.auctioned_at == D_PREV
+
+
+def test_day_ahead_direction_count():
+    assert len(list(DayAheadDirection)) == 2
+
+
+def test_submit_auction_returns_day_ahead_auction():
+    book = DayAheadBook()
+    result = book.submit_auction("A1", D0, DayAheadDirection.BUY, 100.0, 50.0, 55.0, D_PREV)
+    assert isinstance(result, DayAheadAuction)
+
+
+def test_auctions_for_month_filters_correctly():
+    book = _book_with_auctions()
+    jan = book.auctions_for_month(2022, 1)
+    assert len(jan) == 3
+    feb = book.auctions_for_month(2022, 2)
+    assert len(feb) == 0

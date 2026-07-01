@@ -108,3 +108,71 @@ def test_stub_different_accounts_same_inputs_same_result():
     r1 = iface.get_churn_estimate('CUST_A', 100.0, 110.0, 2.0)
     r2 = iface.get_churn_estimate('CUST_Z', 100.0, 110.0, 2.0)
     assert r1 == pytest.approx(r2)
+
+
+# --- Phase MQ depth tests ---
+
+def test_gas_fuel_lower_base_churn_than_elec():
+    from company.crm.churn_model import estimate_churn_probability, GAS_BASE_CHURN_RATE, BASE_CHURN_RATE
+    gas = estimate_churn_probability(100.0, 100.0, 0.0, fuel="gas")
+    elec = estimate_churn_probability(100.0, 100.0, 0.0, fuel="electricity")
+    assert gas < elec
+    assert gas == pytest.approx(GAS_BASE_CHURN_RATE)
+
+
+def test_hedge_fraction_reduces_churn():
+    from company.crm.churn_model import estimate_churn_probability
+    unhd = estimate_churn_probability(100.0, 120.0, 0.0, hedge_fraction=0.0)
+    fully = estimate_churn_probability(100.0, 120.0, 0.0, hedge_fraction=1.0)
+    assert fully < unhd
+
+
+def test_ic_segment_higher_base_churn():
+    from company.crm.churn_model import estimate_churn_probability
+    resi = estimate_churn_probability(100.0, 100.0, 0.0, segment="resi")
+    ic = estimate_churn_probability(100.0, 100.0, 0.0, segment="I&C")
+    assert ic > resi
+
+
+def test_annual_consumption_zero_no_bill_stress():
+    from company.crm.churn_model import estimate_churn_probability, BASE_CHURN_RATE, TENURE_DISCOUNT_PER_YEAR
+    p = estimate_churn_probability(200.0, 200.0, 0.0, annual_consumption_kwh=0.0)
+    assert p == pytest.approx(BASE_CHURN_RATE)
+
+
+def test_high_consumption_adds_bill_stress():
+    from company.crm.churn_model import estimate_churn_probability
+    low = estimate_churn_probability(100.0, 100.0, 0.0, annual_consumption_kwh=0.0)
+    high = estimate_churn_probability(400.0, 400.0, 0.0, annual_consumption_kwh=10_000.0)
+    assert high > low
+
+
+def test_hangover_adds_uplift():
+    from company.crm.churn_model import estimate_churn_probability
+    no_hang = estimate_churn_probability(100.0, 100.0, 0.0, hangover_periods_remaining=0)
+    hang = estimate_churn_probability(100.0, 100.0, 0.0, hangover_periods_remaining=1)
+    assert hang > no_hang
+
+
+def test_estimate_passive_churn_returns_float():
+    from company.crm.churn_model import estimate_passive_churn_probability
+    p = estimate_passive_churn_probability(100.0, 110.0, 2.0)
+    assert isinstance(p, float)
+
+
+def test_passive_churn_capped_at_passive_cap():
+    from company.crm.churn_model import estimate_passive_churn_probability, PASSIVE_CHURN_CAP
+    p = estimate_passive_churn_probability(100.0, 5000.0, 0.0)
+    assert p <= PASSIVE_CHURN_CAP
+
+
+def test_is_active_renewal_returns_bool():
+    from company.crm.churn_model import is_active_renewal
+    result = is_active_renewal("2020-01-01", "C1")
+    assert isinstance(result, bool)
+
+
+def test_crisis_year_always_passive():
+    from company.crm.churn_model import is_active_renewal
+    result = is_active_renewal("2022-06-01", "C1")
+    assert result is False
