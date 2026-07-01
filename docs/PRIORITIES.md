@@ -1,11 +1,10 @@
 # Current Priorities
 
-Last updated: 2026-07-01 by Claude Code (Phase JV complete; Phase JW proposed)
+Last updated: 2026-07-01 by Claude Code (Phase JW complete)
 
 ## Now (active this session)
-- Phase JW: Coverage Depth Sprint XLV -- proposed.
-  Draft in docs/staging/drafts/NEXT_PHASE.md.
-  Targets switch_analytics + gas_interruption + additional thin modules.
+- Phase JW: Coverage Depth Sprint XLV -- COMPLETE (30 tests; 10,770 total).
+  Targets: switch_analytics + gas_interruption + hedging_schedule.
 
 ## Backlog (highest priority first)
 - Real forward curve (NBP/EPEX term structure) -- HIGH fidelity, substantial work
@@ -13,6 +12,7 @@ Last updated: 2026-07-01 by Claude Code (Phase JV complete; Phase JW proposed)
 - I&C Triad demand curtailment simulation (active load reduction in Triad windows)
 
 ## Recently completed (last 12)
+- Phase JW (2026-07-01) -- Coverage Depth Sprint XLV (30 tests; 10,770 total)
 - Phase JV (2026-07-01) -- Coverage Depth Sprint XLIV (30 tests; 10,740 total)
 - Phase JU (2026-07-01) -- Coverage Depth Sprint XLIII (30 tests; 10,710 total)
 - Phase JT (2026-07-01) -- Coverage Depth Sprint XLII (30 tests; 10,680 total)

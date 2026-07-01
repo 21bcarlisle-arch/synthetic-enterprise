@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 10,740 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 10,770 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase JW -- Coverage Depth Sprint XLV (2026-07-01)
+**Modules:** switch_analytics (crm) · gas_interruption (market) · hedging_schedule (market)
+**Tests added:** 30 (switch_analytics: days_to_complete None incomplete; is_completed False initiated; avg_days None no-completed-year; erroneous year-filter excludes other year; gains empty wrong year; losses empty; net negative more losses; annual_summary net=gains-losses; empty-year all-zeros; record_loss direction. gas_interruption: EMERGENCY_ONLY discount=15%; actual_duration None not-restored; interruptions_for_customer filter; year-filter excludes other year; vulnerable_empty when none; active_excludes_restored; summary total=2; summary vulnerable_affected=1; notice_days=7; register_contract stores max/min_notice. hedging_schedule: open_position negative over-hedged; over_hedged_months multiple=2; portfolio_hedge_ratio gas=75%; schedule_summary months=2; hedged_mwh=0 no-contracts; contract_value rounding; over_hedged_count=2; avg_price single-contract; portfolio_ratio two-gas-months=50%; total_hedged_across_months=1500.)
+**Total:** 10,770 tests
 
 ### Phase JV -- Coverage Depth Sprint XLIV (2026-07-01)
 **Modules:** risk_appetite · hedging_schedule · annual_obligations
@@ -4660,7 +4665,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,740 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,770 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
