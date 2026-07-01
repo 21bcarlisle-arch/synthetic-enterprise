@@ -1,2 +1,2 @@
-Phase KL -- Coverage Depth Sprint LX
-30 tests: hedge_policy + risk_appetite + tariff_compare coverage depth
+Phase KM -- Coverage Depth Sprint LXI
+30 tests: trade_finance + live_sim_interface + regime_premium coverage depth

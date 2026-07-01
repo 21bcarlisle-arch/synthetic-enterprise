@@ -70,3 +70,66 @@ def test_summary_keys():
     assert s['year'] == 2023
     assert s['total_headcount'] == 1
     assert 'by_department' in s
+
+
+# --- Phase KL depth tests ---
+
+def test_role_id_stored():
+    r = HeadcountRole('CSR01', 'CS Agent', Department.CUSTOMER_SERVICES,
+                       EmploymentType.PERMANENT, 28000.0, headcount=5, fte=1.0)
+    assert r.role_id == 'CSR01'
+
+
+def test_role_title_stored():
+    r = HeadcountRole('CSR01', 'Customer Service Agent', Department.CUSTOMER_SERVICES,
+                       EmploymentType.PERMANENT, 28000.0, headcount=2, fte=1.0)
+    assert r.title == 'Customer Service Agent'
+
+
+def test_department_stored():
+    r = HeadcountRole('FIN01', 'Accountant', Department.FINANCE,
+                       EmploymentType.PERMANENT, 45000.0, headcount=1, fte=1.0)
+    assert r.department == Department.FINANCE
+
+
+def test_employment_type_stored():
+    r = HeadcountRole('PT01', 'Admin', Department.OPERATIONS,
+                       EmploymentType.CONTRACT, 50000.0, headcount=1, fte=1.0)
+    assert r.employment_type == EmploymentType.CONTRACT
+
+
+def test_headcount_plan_year_stored():
+    plan = HeadcountPlan(2025)
+    assert plan.year == 2025
+
+
+def test_employer_ni_zero_below_threshold():
+    r = HeadcountRole('JR01', 'Junior', Department.CUSTOMER_SERVICES,
+                       EmploymentType.PERMANENT, 9000.0, headcount=1, fte=1.0)
+    assert r.employer_ni_gbp == pytest.approx(0.0)
+
+
+def test_cost_per_customer_none_zero_customers():
+    plan = HeadcountPlan(2022)
+    plan.add_role('CSR', 'CS Agent', Department.CUSTOMER_SERVICES,
+                   EmploymentType.PERMANENT, 28000.0, headcount=10)
+    cpc = plan.cost_per_customer_gbp(0)
+    assert cpc is None
+
+
+def test_total_employment_cost_exceeds_salary():
+    r = HeadcountRole('T01', 'Trader', Department.TRADING,
+                       EmploymentType.PERMANENT, 80_000.0, headcount=1, fte=1.0)
+    assert r.total_employment_cost_gbp > r.total_annual_salary_gbp
+
+
+def test_plan_add_two_roles_total_headcount():
+    plan = HeadcountPlan(2022)
+    plan.add_role('CSR', 'CS', Department.CUSTOMER_SERVICES, EmploymentType.PERMANENT, 28000.0, headcount=3)
+    plan.add_role('FIN', 'Fin', Department.FINANCE, EmploymentType.PERMANENT, 45000.0, headcount=2)
+    assert plan.total_headcount == 5
+
+
+def test_salary_stored_in_role():
+    r = HeadcountRole('X01', 'X', Department.TRADING, EmploymentType.PERMANENT, 55000.0, headcount=1, fte=1.0)
+    assert r.annual_salary_gbp == pytest.approx(55000.0)

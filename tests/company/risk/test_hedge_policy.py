@@ -63,3 +63,65 @@ def test_run_phase2b_imports_from_company_layer():
 
 
 import pytest
+
+
+# --- Phase KL depth tests ---
+
+def test_evolution_step_is_0_1():
+    assert COMPANY_EVOLUTION_STEP == pytest.approx(0.1)
+
+
+def test_tolerance_is_5():
+    assert COMPANY_MARGIN_TOLERANCE_GBP == pytest.approx(5.0)
+
+
+def test_exact_positive_boundary_holds():
+    small_diff = COMPANY_MARGIN_TOLERANCE_GBP
+    hf, reason = company_evolve_hedge_fraction(0.90, naked_net_gbp=100.0, actual_net_gbp=100.0 + small_diff)
+    assert hf == pytest.approx(0.90)
+    assert "hold" in reason
+
+
+def test_exact_negative_boundary_holds():
+    small_diff = COMPANY_MARGIN_TOLERANCE_GBP
+    hf, reason = company_evolve_hedge_fraction(0.90, naked_net_gbp=100.0 + small_diff, actual_net_gbp=100.0)
+    assert hf == pytest.approx(0.90)
+    assert "hold" in reason
+
+
+def test_just_above_tolerance_raises():
+    diff = COMPANY_MARGIN_TOLERANCE_GBP + 0.01
+    hf, reason = company_evolve_hedge_fraction(0.90, naked_net_gbp=100.0, actual_net_gbp=100.0 + diff)
+    assert hf == pytest.approx(0.90 + COMPANY_EVOLUTION_STEP)
+
+
+def test_just_below_tolerance_trims():
+    diff = COMPANY_MARGIN_TOLERANCE_GBP + 0.01
+    hf, reason = company_evolve_hedge_fraction(0.95, naked_net_gbp=100.0 + diff, actual_net_gbp=100.0)
+    assert hf == pytest.approx(0.95 - COMPANY_EVOLUTION_STEP)
+
+
+def test_multiple_raises_capped_at_1():
+    hf = 0.90
+    for _ in range(5):
+        hf, _ = company_evolve_hedge_fraction(hf, naked_net_gbp=0.0, actual_net_gbp=1000.0)
+    assert hf == pytest.approx(1.0)
+
+
+def test_multiple_trims_floored_at_min():
+    hf = 0.90
+    for _ in range(5):
+        hf, _ = company_evolve_hedge_fraction(hf, naked_net_gbp=1000.0, actual_net_gbp=0.0)
+    assert hf == pytest.approx(COMPANY_MIN_HEDGE_FLOOR)
+
+
+def test_reason_contains_fraction():
+    _, reason = company_evolve_hedge_fraction(0.90, naked_net_gbp=0.0, actual_net_gbp=1000.0)
+    assert "0.9" in reason or "90" in reason or "1.0" in reason or "100" in reason
+
+
+def test_0_95_trims_to_0_85():
+    hf = 0.95
+    for _ in range(2):
+        hf, _ = company_evolve_hedge_fraction(hf, naked_net_gbp=1000.0, actual_net_gbp=0.0)
+    assert hf == pytest.approx(COMPANY_MIN_HEDGE_FLOOR)
