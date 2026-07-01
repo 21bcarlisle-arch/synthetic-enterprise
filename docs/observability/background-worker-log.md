@@ -1959,3 +1959,87 @@ Structured performance entries are added after each task completes.
 - [2026-07-01 15:48 UTC] Found queued tasks — beginning execution
 - [2026-07-01 15:48 UTC] run_queued_tasks: no parseable QUEUED task found
 - [2026-07-01 16:18 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:18 UTC
+- [2026-07-01 16:33 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-01 16:34 UTC] Failed to process run_complete_20260701T162259Z.md (rc=1) — will retry next cycle
+- [2026-07-01 16:34 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:34 UTC
+- [2026-07-01 16:49 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-01 16:49 UTC] Failed to process run_complete_20260701T163504Z.md (rc=1) — will retry next cycle
+- [2026-07-01 16:49 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:49 UTC
+- [2026-07-01 17:04 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:04 UTC
+- [2026-07-01 17:19 UTC] Found 2 leftover run_complete marker(s) — processing
+- [2026-07-01 17:20 UTC] Failed to process run_complete_20260701T165744Z.md (rc=1) — will retry next cycle
+- [2026-07-01 17:21 UTC] Failed to process run_complete_20260701T170704Z.md (rc=1) — will retry next cycle
+- [2026-07-01 17:21 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:21 UTC
+- [2026-07-01 17:36 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:36 UTC
+- [2026-07-01 17:51 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:51 UTC
+- [2026-07-01 18:06 UTC] Found 2 leftover run_complete marker(s) — processing
+- [2026-07-01 18:06 UTC] Failed to process run_complete_20260701T174455Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:07 UTC] Failed to process run_complete_20260701T175409Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:07 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:07 UTC
+- [2026-07-01 18:22 UTC] Found 4 leftover run_complete marker(s) — processing
+- [2026-07-01 18:22 UTC] Failed to process run_complete_20260701T174455Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:23 UTC] Failed to process run_complete_20260701T175409Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:24 UTC] Failed to process run_complete_20260701T180319Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:24 UTC] Failed to process run_complete_20260701T181215Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:24 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:24 UTC
+- [2026-07-01 18:39 UTC] Found 6 leftover run_complete marker(s) — processing
+- [2026-07-01 18:40 UTC] Failed to process run_complete_20260701T174455Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:40 UTC] Failed to process run_complete_20260701T175409Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:41 UTC] Failed to process run_complete_20260701T180319Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:42 UTC] Failed to process run_complete_20260701T181215Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:42 UTC] Failed to process run_complete_20260701T182110Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:43 UTC] Failed to process run_complete_20260701T183014Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:43 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:43 UTC
+- [2026-07-01 18:58 UTC] Found 8 leftover run_complete marker(s) — processing
+- [2026-07-01 18:58 UTC] Failed to process run_complete_20260701T174455Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:59 UTC] Failed to process run_complete_20260701T175409Z.md (rc=1) — will retry next cycle
+- [2026-07-01 18:59 UTC] Processed run_complete_20260701T180319Z.md
+- [2026-07-01 18:59 UTC] Processed run_complete_20260701T181215Z.md
+- [2026-07-01 18:59 UTC] Processed run_complete_20260701T182110Z.md
+- [2026-07-01 18:59 UTC] Processed run_complete_20260701T183014Z.md
+- [2026-07-01 18:59 UTC] Processed run_complete_20260701T183904Z.md
+- [2026-07-01 18:59 UTC] Processed run_complete_20260701T184805Z.md
+- [2026-07-01 18:59 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:59 UTC
+- [2026-07-01 19:14 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-01 19:15 UTC] Failed to process run_complete_20260701T185659Z.md (rc=1) — will retry next cycle
+- [2026-07-01 19:15 UTC] Found queued tasks — beginning execution
+- [2026-07-01 19:15 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-01 19:45 UTC] Found 4 leftover run_complete marker(s) — processing
+- [2026-07-01 19:46 UTC] Failed to process run_complete_20260701T185659Z.md (rc=1) — will retry next cycle
+- [2026-07-01 19:46 UTC] Failed to process run_complete_20260701T190636Z.md (rc=1) — will retry next cycle
+- [2026-07-01 19:47 UTC] Failed to process run_complete_20260701T192253Z.md (rc=1) — will retry next cycle
+- [2026-07-01 19:48 UTC] Failed to process run_complete_20260701T193238Z.md (rc=1) — will retry next cycle
+- [2026-07-01 19:48 UTC] Found queued tasks — beginning execution
+- [2026-07-01 19:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-01 20:18 UTC] Found 7 leftover run_complete marker(s) — processing
+- [2026-07-01 20:18 UTC] Failed to process run_complete_20260701T185659Z.md (rc=1) — will retry next cycle
+- [2026-07-01 20:19 UTC] Failed to process run_complete_20260701T190636Z.md (rc=1) — will retry next cycle
+- [2026-07-01 20:20 UTC] Failed to process run_complete_20260701T192253Z.md (rc=1) — will retry next cycle
+- [2026-07-01 20:21 UTC] Failed to process run_complete_20260701T193238Z.md (rc=1) — will retry next cycle
+- [2026-07-01 20:21 UTC] Failed to process run_complete_20260701T194133Z.md (rc=1) — will retry next cycle
+- [2026-07-01 20:22 UTC] Failed to process run_complete_20260701T195019Z.md (rc=1) — will retry next cycle
+- [2026-07-01 20:22 UTC] Failed to process run_complete_20260701T195915Z.md (rc=1) — will retry next cycle
+- [2026-07-01 20:22 UTC] Found queued tasks — beginning execution
+- [2026-07-01 20:22 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-01 20:52 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-01 20:53 UTC] Failed to process run_complete_20260701T204314Z.md (rc=1) — will retry next cycle
+- [2026-07-01 20:53 UTC] Found queued tasks — beginning execution
+- [2026-07-01 20:53 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-01 21:23 UTC] Found 4 leftover run_complete marker(s) — processing
+- [2026-07-01 21:23 UTC] Failed to process run_complete_20260701T204314Z.md (rc=1) — will retry next cycle
+- [2026-07-01 21:24 UTC] Failed to process run_complete_20260701T205255Z.md (rc=1) — will retry next cycle
+- [2026-07-01 21:25 UTC] Failed to process run_complete_20260701T210147Z.md (rc=1) — will retry next cycle
+- [2026-07-01 21:25 UTC] Failed to process run_complete_20260701T211112Z.md (rc=1) — will retry next cycle
+- [2026-07-01 21:25 UTC] Found queued tasks — beginning execution
+- [2026-07-01 21:25 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-01 21:55 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-01 21:56 UTC] Failed to process run_complete_20260701T213954Z.md (rc=1) — will retry next cycle
+- [2026-07-01 21:56 UTC] Found queued tasks — beginning execution
+- [2026-07-01 21:56 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-01 22:26 UTC] Found 4 leftover run_complete marker(s) — processing
+- [2026-07-01 22:26 UTC] Failed to process run_complete_20260701T213954Z.md (rc=1) — will retry next cycle
+- [2026-07-01 22:27 UTC] Failed to process run_complete_20260701T215237Z.md (rc=1) — will retry next cycle
+- [2026-07-01 22:27 UTC] Failed to process run_complete_20260701T220209Z.md (rc=1) — will retry next cycle
+- [2026-07-01 22:28 UTC] Failed to process run_complete_20260701T221126Z.md (rc=1) — will retry next cycle
+- [2026-07-01 22:28 UTC] Found queued tasks — beginning execution
+- [2026-07-01 22:28 UTC] run_queued_tasks: no parseable QUEUED task found

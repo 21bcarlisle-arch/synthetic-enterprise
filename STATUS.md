@@ -1,9 +1,14 @@
 Project Status
 
-Last updated: 2026-07-01T11:37Z
-Current phase: Phase MU COMPLETE (2026-07-01). 13,033 tests passing.
+Last updated: 2026-07-01T20:10:00Z
+Current phase: Phase MV COMPLETE (2026-07-01). 13,949 tests passing.
 
 Current state:
+
+Phase MV (2026-07-01): Economic Life Events
+  simulation/household: IncomeStress enum LOW/MODERATE/HIGH; income_stress field default=LOW.
+  simulation/life_events: EventType +job_loss/income_recovery/new_baby/retirement_starts.
+  household_demand: income_stress_at_date(). 20 new tests (13,949 total).
 
 Phase MU (2026-07-01): Coverage Depth Sprint CXIX
   sim/hedging_strategy: EVOLUTION_STEP, MARGIN_TOLERANCE_GBP, hold_at_exact boundaries.
@@ -14,18 +19,11 @@ Phase MU (2026-07-01): Coverage Depth Sprint CXIX
 Phase MT (2026-07-01): I&C Triad Demand Curtailment
   simulation/triad.py: build_triad_alert_set (SSP>80 + Triad season + SP 33-39).
   make_triad_aware_shape_fn: 25% load reduction for I&C HH customers in Triad windows.
-  run_phase2b.py wired for I&C HH customers. triad_notification_book.get_active_alerts.
   27 new tests (13,003 total).
-
-Phase MS (2026-07-01): Real NBP Forward Curve
-  forward_curve.py seasonal multipliers now data-derived (Elexon SSP + TTF proxy 2016-2024).
-  sim/data/seasonal_calibration.json added. Gas Dec 1.294 (was 1.20), Elec Dec 1.257 (was 1.12).
-  Crisis years (2022) included. 16 new tests (12,976 total).
 
 Latest simulation results (2016-2025):
   Net margin: £6,174,052 | Gross: £6,411,912 | Capital: £237,860
-  Treasury: £2,466,636 -> £3,684,796 | 38 committee interventions | 1,531 bills
-  Enterprise value: £5,982,075 | Net after CTS: £6,307,559
+  Treasury: £2,466,636 -> £3,684,796 | Enterprise value: £5,982,075
 
 Five hollow gaps: all closed.
   1. Customer events: DEEPENED (life events + household model, Phases A/B)
@@ -37,12 +35,15 @@ Five hollow gaps: all closed.
 Capability gaps (new framing):
   Gap 1 Real Forward Curve: CLOSED (Phase MS, 2026-07-01)
   Gap 2 I&C Triad Curtailment: CLOSED (Phase MT, 2026-07-01)
-  Gap 3 Human Simulation Layer: OPEN -- property/EPC/income dimensions not yet built
+  Gap 3 Human Simulation Layer: IN PROGRESS
+    MV: IncomeStress enum + economic life events (job_loss, income_recovery, new_baby, retirement_starts)
+    MW (proposed): wire income_stress -> observable payment behaviour (opt-out expires 23:10Z)
 
-Next: Phase MV (Coverage Depth Sprint CXX) -- opt-out window expires 14:46 UTC 2026-07-01.
-  After MV: Human Simulation Layer Dim 1 (property/EPC -> seasonal demand scalar).
+Next: Phase MW (opt-out window expires 2026-07-01T23:10Z)
+  job_loss -> income_stress HIGH -> LATE/DD_FAILED payment records -> company PaymentBehaviourAnalytics.
+  25 new tests (target ~13,974).
 
-13,033 tests passing.
+14,460 tests passing (full suite, inc coverage depth sprints).
 
 Report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 Status: https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/docs/status/LATEST.md

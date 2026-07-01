@@ -10488,3 +10488,451 @@
 - [2026-07-01 16:21 UTC] Previous autonomous turn still running — skipping this cycle
 - [2026-07-01 16:21 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-633/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
 - [2026-07-01 16:21 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 16:33 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 16:33 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 16:33 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-636/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 16:33 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 16:33 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 16:33 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 16:33 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-637/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 16:33 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 16:44 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 16:44 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 16:44 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-639/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 16:44 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 16:49 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 16:49 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 16:49 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-640/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 16:49 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 16:56 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 16:56 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 16:56 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-641/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 16:56 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:05 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 17:05 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 17:05 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-642/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 17:05 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:15 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 17:15 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 17:15 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-643/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 17:15 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:20 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 17:20 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 17:20 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-644/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 17:20 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:20 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 17:20 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 17:20 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-645/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 17:20 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:24 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 17:24 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 17:24 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-646/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 17:24 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:34 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 17:34 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 17:34 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-649/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 17:34 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:43 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 17:43 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 17:43 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-650/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 17:43 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:44 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 17:44 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 17:44 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-651/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 17:44 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:52 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 17:52 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 17:52 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-653/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 17:52 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 17:57 UTC] Autonomous turn completed (pid=614616, rc=1)
+- [2026-07-01 17:57 UTC] Session idle 347min — launching autonomous turn
+- [2026-07-01 17:57 UTC] Launching autonomous turn (claude -p)
+- [2026-07-01 17:57 UTC] Autonomous turn launched (pid=741346)
+- [2026-07-01 17:59 UTC] Autonomous turn completed (pid=741346, rc=1)
+- [2026-07-01 17:59 UTC] Session idle 349min — launching autonomous turn
+- [2026-07-01 17:59 UTC] Launching autonomous turn (claude -p)
+- [2026-07-01 17:59 UTC] Autonomous turn launched (pid=741452)
+- [2026-07-01 18:01 UTC] Autonomous turn completed (pid=741452, rc=1)
+- [2026-07-01 18:01 UTC] Session idle 351min — launching autonomous turn
+- [2026-07-01 18:01 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:01 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:01 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:01 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-654/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:01 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:06 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:06 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:06 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-655/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:06 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:06 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:06 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:06 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-656/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:06 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:10 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:10 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:10 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-657/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:10 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:19 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:19 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:19 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-658/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:19 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:22 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:22 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:22 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-659/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:22 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:23 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:23 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:23 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-660/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:23 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:23 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:23 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:23 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-661/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:23 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:24 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:24 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:24 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-662/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:24 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:28 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:28 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:28 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-663/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:28 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:37 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:37 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:37 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-664/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:37 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:39 UTC] Session idle 30min — launching autonomous turn
+- [2026-07-01 18:39 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:39 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:39 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:39 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-665/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:39 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:40 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:40 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:40 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-666/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:40 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:41 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:41 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:41 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-667/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:41 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:41 UTC] Session idle 32min — launching autonomous turn
+- [2026-07-01 18:41 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:41 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:41 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:41 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-668/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:41 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:42 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:42 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:42 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-669/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:42 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:42 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:42 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:42 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-670/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:42 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:43 UTC] Session idle 34min — launching autonomous turn
+- [2026-07-01 18:43 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:45 UTC] Session idle 36min — launching autonomous turn
+- [2026-07-01 18:45 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:46 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:46 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:46 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-671/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:46 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:47 UTC] Session idle 38min — launching autonomous turn
+- [2026-07-01 18:47 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:49 UTC] Session idle 40min — launching autonomous turn
+- [2026-07-01 18:49 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:51 UTC] Session idle 42min — launching autonomous turn
+- [2026-07-01 18:51 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:53 UTC] Session idle 44min — launching autonomous turn
+- [2026-07-01 18:53 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:55 UTC] Session idle 46min — launching autonomous turn
+- [2026-07-01 18:55 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:55 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:55 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:55 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-672/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:55 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:57 UTC] Session idle 48min — launching autonomous turn
+- [2026-07-01 18:57 UTC] Launching autonomous turn (claude -p)
+- [2026-07-01 18:57 UTC] Autonomous turn launched (pid=750017)
+- [2026-07-01 18:58 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:58 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:58 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-673/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:58 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:59 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:59 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:59 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-674/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:59 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 18:59 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 18:59 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 18:59 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-675/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 18:59 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:01 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:01 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:01 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-676/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:01 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:03 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:03 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:03 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-677/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:03 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:05 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:05 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:05 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-678/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:05 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:07 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:07 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:07 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-679/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:07 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:11 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:11 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:11 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-680/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:11 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:13 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:13 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:13 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-681/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:13 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:14 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:14 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:14 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-684/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:14 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:19 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:19 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:19 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-685/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:19 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:21 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:21 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:21 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-686/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:21 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:23 UTC] Autonomous turn completed (pid=750017, rc=0)
+- [2026-07-01 19:31 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:31 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:31 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-687/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:31 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:40 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:40 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:40 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-688/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:40 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:45 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:45 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:45 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-689/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:45 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:46 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:46 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:46 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-690/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:46 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:47 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:47 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:47 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-691/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:47 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:47 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:47 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:47 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-692/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:47 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:48 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:48 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:48 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-693/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:48 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 19:57 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 19:57 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 19:57 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-694/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 19:57 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:01 UTC] Session idle 30min — launching autonomous turn
+- [2026-07-01 20:01 UTC] Launching autonomous turn (claude -p)
+- [2026-07-01 20:01 UTC] Autonomous turn launched (pid=761312)
+- [2026-07-01 20:04 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:04 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:04 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-695/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:04 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:06 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:06 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:06 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-696/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:06 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:07 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:07 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:07 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-697/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:07 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:10 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:10 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:10 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-698/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:10 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:14 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:14 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:14 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-699/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:14 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:18 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:18 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:18 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-700/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:18 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:19 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:19 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:19 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-701/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:19 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:19 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:19 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:19 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-702/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:19 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:20 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:20 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:20 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-703/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:20 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:21 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:21 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:21 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-704/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:21 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:21 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:21 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:21 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-705/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:21 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:21 UTC] Autonomous turn completed (pid=761312, rc=0)
+- [2026-07-01 20:21 UTC] Session idle 50min — launching autonomous turn
+- [2026-07-01 20:21 UTC] Launching autonomous turn (claude -p)
+- [2026-07-01 20:21 UTC] Autonomous turn launched (pid=766518)
+- [2026-07-01 20:22 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:22 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:22 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-706/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:22 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:24 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:24 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:24 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-707/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:24 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:26 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:26 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:26 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-708/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:26 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:29 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:29 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:29 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-709/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:29 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:30 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:30 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:30 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-710/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:30 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:31 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:31 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:31 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-711/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:31 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:32 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:32 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:32 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-714/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:32 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:33 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:33 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:33 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-715/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:33 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:41 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:41 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:41 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-719/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:41 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:45 UTC] Autonomous turn completed (pid=766518, rc=0)
+- [2026-07-01 20:51 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:51 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:51 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-720/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:51 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 20:52 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 20:52 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 20:52 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-721/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 20:52 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:00 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:00 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:00 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-722/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:00 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:09 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:09 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:09 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-723/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:09 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:19 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:19 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:19 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-724/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:19 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:23 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:23 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:23 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-725/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:23 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:24 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:24 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:24 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-726/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:24 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:24 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:24 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:24 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-727/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:24 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:25 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:25 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:25 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-728/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:25 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:25 UTC] Session idle 30min — launching autonomous turn
+- [2026-07-01 21:25 UTC] Launching autonomous turn (claude -p)
+- [2026-07-01 21:25 UTC] Autonomous turn launched (pid=777783)
+- [2026-07-01 21:26 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:26 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:26 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-729/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:26 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:28 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:28 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:28 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-730/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:28 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:29 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:29 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:29 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-731/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:29 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:32 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:32 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:32 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-732/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:32 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:37 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:37 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:37 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-733/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:37 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:38 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:38 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:38 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-734/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:38 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:43 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:43 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:43 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-735/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:43 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:45 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:45 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:45 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-736/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:45 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:51 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:51 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:51 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-737/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:51 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 21:51 UTC] Autonomous turn completed (pid=777783, rc=0)
+- [2026-07-01 21:55 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 21:55 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 21:55 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-738/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 21:55 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 22:00 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 22:00 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 22:00 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-739/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 22:00 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 22:10 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 22:10 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 22:10 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-740/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 22:10 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 22:19 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 22:19 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 22:19 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-741/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 22:19 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 22:26 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 22:26 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 22:26 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-742/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 22:26 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 22:26 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 22:26 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 22:26 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-743/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 22:26 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 22:27 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 22:27 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 22:27 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-744/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 22:27 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 22:28 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 22:28 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 22:28 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-745/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 22:28 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 22:28 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-01 22:28 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-01 22:28 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-746/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-01 22:28 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-01 22:29 UTC] Session idle 30min — launching autonomous turn
+- [2026-07-01 22:29 UTC] Launching autonomous turn (claude -p)
+- [2026-07-01 22:29 UTC] Autonomous turn launched (pid=787401)
