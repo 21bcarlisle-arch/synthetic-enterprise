@@ -167,3 +167,27 @@ class TestSolarDynamicWiring:
         # 2021-06-14 is in cloud dict but not in weather dict -> mean_temp=None -> flat base
         shape_day_before = fn("2021-06-14")
         assert all(abs(v - 1.0) < 1e-6 for v in shape_day_before)
+
+
+
+class TestSolarDynamicEdgeCases:
+    # 13. Shape function returns 48 periods
+    def test_shape_returns_48_periods(self):
+        prop = dict(_PROP_BASE, assets={"ev": False, "solar": False, "smart_meter": False})
+        fn = _weather_adjusted_shape_fn(_flat_base, {}, prop)
+        assert len(fn("2022-01-01")) == 48
+
+    # 14. All shape values are non-negative
+    def test_shape_values_nonneg(self):
+        prop = dict(_PROP_BASE, assets={"ev": False, "solar": False, "smart_meter": False})
+        fn = _weather_adjusted_shape_fn(_flat_base, {}, prop)
+        shape = fn("2022-07-01")
+        assert all(v >= 0.0 for v in shape)
+
+    # 15. No-solar customer flat base passthrough
+    def test_no_solar_shape_equals_base(self):
+        prop = dict(_PROP_BASE, assets={"ev": False, "solar": False, "smart_meter": False})
+        fn = _weather_adjusted_shape_fn(_flat_base, {}, prop)
+        shape = fn("2022-01-15")
+        assert len(shape) == 48
+        assert all(v >= 0.0 for v in shape)

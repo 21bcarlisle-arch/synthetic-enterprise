@@ -159,3 +159,27 @@ def test_elec_revenue_includes_sc_above_unit_rate():
     unit_only = unit_rate * total_mwh
     daily_sc = get_electricity_standing_charge_per_day(date_str, "resi")
     assert abs(total_revenue - (unit_only + daily_sc)) < 1e-6
+
+
+# 13. Gas SC positive for resi
+def test_gas_sc_resi_positive():
+    from simulation.policy_costs import get_gas_standing_charge_per_day
+    for year in range(2016, 2025):
+        sc = get_gas_standing_charge_per_day(f"{year}-06-01", segment="resi")
+        assert sc > 0.0
+
+
+# 14. Elec SC SME is positive
+def test_elec_sc_sme_positive():
+    from simulation.policy_costs import get_electricity_standing_charge_per_day
+    for year in range(2016, 2025):
+        sc = get_electricity_standing_charge_per_day(f"{year}-06-01", segment="SME")
+        assert sc > 0.0
+
+
+# 15. Standing charge increases over time (inflationary trend)
+def test_elec_sc_higher_in_2024_than_2016():
+    from simulation.policy_costs import get_electricity_standing_charge_per_day
+    sc_2016 = get_electricity_standing_charge_per_day("2016-06-01", segment="resi")
+    sc_2024 = get_electricity_standing_charge_per_day("2024-06-01", segment="resi")
+    assert sc_2024 >= sc_2016

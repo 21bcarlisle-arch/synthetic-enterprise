@@ -225,3 +225,39 @@ def test_flex_markup_stored_in_record():
     prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 80.0} for sp in range(1, 49)]
     recs = run_flex_term("T", date_str, "2020-06-02", 5.0, lambda _: [100.0]*48, prior, "I&C")
     assert all(r["flex_markup_per_mwh"] == 5.0 for r in recs)
+
+
+# 13. Flex term revenue non-negative
+def test_run_flex_term_revenue_nonneg():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    date_str = "2020-06-01"
+    prior = [{"settlementDate": (date.fromisoformat(date_str)-timedelta(days=i)).isoformat(),
+              "settlementPeriod": sp, "systemSellPrice": 80.0} for i in range(1, 9) for sp in range(1, 49)]
+    prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 80.0} for sp in range(1, 49)]
+    recs = run_flex_term("T", date_str, "2020-06-02", 2.0, lambda _: [100.0]*48, prior, "I&C")
+    assert all(r["revenue_gbp"] >= 0 for r in recs)
+
+
+# 14. Flex term customer id in record
+def test_run_flex_term_customer_id_in_record():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    date_str = "2020-06-01"
+    prior = [{"settlementDate": (date.fromisoformat(date_str)-timedelta(days=i)).isoformat(),
+              "settlementPeriod": sp, "systemSellPrice": 80.0} for i in range(1, 9) for sp in range(1, 49)]
+    prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 80.0} for sp in range(1, 49)]
+    recs = run_flex_term("FLEXCUST", date_str, "2020-06-02", 2.0, lambda _: [100.0]*48, prior, "I&C")
+    assert all(r["customer_id"] == "FLEXCUST" for r in recs)
+
+
+# 15. Flex term capital cost is zero (no forward commitment)
+def test_run_flex_term_zero_capital():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    date_str = "2020-06-01"
+    prior = [{"settlementDate": (date.fromisoformat(date_str)-timedelta(days=i)).isoformat(),
+              "settlementPeriod": sp, "systemSellPrice": 80.0} for i in range(1, 9) for sp in range(1, 49)]
+    prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 80.0} for sp in range(1, 49)]
+    recs = run_flex_term("T", date_str, "2020-06-02", 2.0, lambda _: [100.0]*48, prior, "I&C")
+    assert all(r.get("capital_cost_gbp", 0.0) == 0.0 for r in recs)

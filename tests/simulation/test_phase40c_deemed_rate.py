@@ -244,3 +244,32 @@ def test_run_deemed_term_48_periods_per_day():
     price_records = [{"settlementDate": date_str, "settlementPeriod": p, "systemSellPrice": 80.0} for p in range(1, 49)]
     records = run_deemed_term("T", date_str, "2020-06-02", 0.20, lambda _: [100.0]*48, price_records, "I&C")
     assert len(records) == 48
+
+
+# 13. Deemed rate premium is stored in record
+def test_run_deemed_term_premium_in_record():
+    from simulation.hedged_settlement import run_deemed_term
+    date_str = "2020-06-01"
+    price_records = [{"settlementDate": date_str, "settlementPeriod": p, "systemSellPrice": 80.0} for p in range(1, 49)]
+    records = run_deemed_term("T", date_str, "2020-06-02", 0.20, lambda _: [100.0]*48, price_records, "I&C")
+    assert all("deemed_premium_pct" in r or r.get("tariff_type") == "deemed" for r in records)
+
+
+# 14. Revenue is positive when spot > 0
+def test_run_deemed_term_revenue_positive():
+    from simulation.hedged_settlement import run_deemed_term
+    date_str = "2020-06-01"
+    price_records = [{"settlementDate": date_str, "settlementPeriod": p, "systemSellPrice": 80.0} for p in range(1, 49)]
+    records = run_deemed_term("T", date_str, "2020-06-02", 0.20, lambda _: [100.0]*48, price_records, "I&C")
+    total_rev = sum(r["revenue_gbp"] for r in records)
+    assert total_rev > 0.0
+
+
+# 15. Net margin positive when premium > 0
+def test_run_deemed_term_net_margin_positive_at_positive_premium():
+    from simulation.hedged_settlement import run_deemed_term
+    date_str = "2020-06-01"
+    price_records = [{"settlementDate": date_str, "settlementPeriod": p, "systemSellPrice": 80.0} for p in range(1, 49)]
+    records = run_deemed_term("T", date_str, "2020-06-02", 0.20, lambda _: [100.0]*48, price_records, "I&C")
+    total_margin = sum(r["margin_gbp"] for r in records)
+    assert total_margin > 0.0

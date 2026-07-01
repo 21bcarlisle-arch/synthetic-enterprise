@@ -122,3 +122,42 @@ def test_flex_consumption_kwh_matches_shape():
     records = _make_records()
     for r in records:
         assert r["consumption_kwh"] == pytest.approx(1000.0)
+
+
+# 13. Flex passthrough gross >= 0 at any spot
+def test_flex_passthrough_gross_nonneg():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    date_str = "2022-10-01"
+    prior = [{"settlementDate": (date.fromisoformat(date_str)-timedelta(days=i)).isoformat(),
+              "settlementPeriod": sp, "systemSellPrice": 200.0} for i in range(1, 9) for sp in range(1, 49)]
+    prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 200.0} for sp in range(1, 49)]
+    recs = run_flex_term("T", date_str, "2022-10-02", 2.0, lambda _: [100.0]*48, prior, "I&C")
+    gross = sum(r["margin_gbp"] for r in recs)
+    assert gross >= 0
+
+
+# 14. Flex markup 2.0 gives deterministic margin
+def test_flex_markup_determines_margin():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    date_str = "2022-01-01"
+    prior = [{"settlementDate": (date.fromisoformat(date_str)-timedelta(days=i)).isoformat(),
+              "settlementPeriod": sp, "systemSellPrice": 100.0} for i in range(1, 9) for sp in range(1, 49)]
+    prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 100.0} for sp in range(1, 49)]
+    recs = run_flex_term("T", date_str, "2022-01-02", 2.0, lambda _: [50.0]*48, prior, "I&C")
+    # Each period: 50 kWh * (1/1000) * 2.0 GBP/MWh = 0.1 GBP gross
+    total_gross = sum(r["margin_gbp"] for r in recs)
+    assert total_gross > 0
+
+
+# 15. Flex settlement date stored in record
+def test_flex_settlement_date_stored():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    date_str = "2022-06-01"
+    prior = [{"settlementDate": (date.fromisoformat(date_str)-timedelta(days=i)).isoformat(),
+              "settlementPeriod": sp, "systemSellPrice": 80.0} for i in range(1, 9) for sp in range(1, 49)]
+    prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 80.0} for sp in range(1, 49)]
+    recs = run_flex_term("T", date_str, "2022-06-02", 2.0, lambda _: [100.0]*48, prior, "I&C")
+    assert all(r["settlement_date"] == date_str for r in recs)

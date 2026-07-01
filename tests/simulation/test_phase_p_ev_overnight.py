@@ -139,3 +139,35 @@ class TestEVOvernightShape:
         overnight_sum = sum(uplift[p - 1] for p in _EV_OVERNIGHT_PERIODS)
         total_sum = sum(uplift)
         assert overnight_sum / total_sum == pytest.approx(0.90, rel=0.01)
+
+
+
+class TestEVOvernightEdgeCases:
+    # 13. Overnight period constant has >= 12 items
+    def test_ev_overnight_periods_count(self):
+        assert len(_EV_OVERNIGHT_PERIODS) >= 12
+
+    # 14. Shape values are all non-negative
+    def test_shape_nonneg(self):
+        prop = {"segment": "resi", "commodity": "electricity",
+                "assets": {"ev": False, "solar": False, "smart_meter": False}, "eac_kwh": 3100}
+        reg = _reg()
+        fn = _weather_adjusted_shape_fn(_flat_base, {}, prop, household_register=reg, customer_id="C1")
+        shape = fn("2021-06-01")
+        assert all(v >= 0.0 for v in shape)
+
+    # 15. EV customer shape sums higher than no-EV (extra load)
+    def test_ev_shape_higher_total_than_no_ev(self):
+        prop = {"segment": "resi", "commodity": "electricity",
+                "assets": {"ev": False, "solar": False, "smart_meter": False}, "eac_kwh": 3100}
+        cust_no_ev = [{"customer_id": "NEV", "segment": "resi", "commodity": "electricity",
+                       "eac_kwh": 3100, "home_type": "suburban_semi", "epc_rating": "C", "bedrooms": 3}]
+        reg_no_ev = HouseholdDemandRegister(cust_no_ev, seed=99)
+        fn_no_ev = _weather_adjusted_shape_fn(_flat_base, {}, prop, household_register=reg_no_ev, customer_id="NEV")
+        total_no_ev = sum(fn_no_ev("2021-06-01"))
+
+        reg_ev = _reg()
+        fn_ev = _weather_adjusted_shape_fn(_flat_base, {}, prop, household_register=reg_ev, customer_id="C1")
+        total_ev = sum(fn_ev("2021-06-01"))
+
+        assert total_ev > total_no_ev

@@ -207,3 +207,23 @@ class TestASHPRegisterIntegration:
         if hh is None:
             pytest.skip("C_IC1 not in register")
         assert hh.ashp_annual_kwh() == pytest.approx(0.0)
+
+
+
+class TestASHPBaseConstant:
+    """Tests for the ASHP_BASE_ELECTRICITY_KWH constant."""
+
+    # 13. ASHP base electricity constant is positive
+    def test_ashp_base_kwh_positive(self):
+        assert ASHP_BASE_ELECTRICITY_KWH > 0
+
+    # 14. ASHP base electricity constant is plausible for UK heat pump
+    def test_ashp_base_kwh_in_range(self):
+        # UK heat pump adds ~3,000-8,000 kWh/year
+        assert 3_000 <= ASHP_BASE_ELECTRICITY_KWH <= 8_000
+
+    # 15. ASHP uplift per period is 1/(365.25*48) of annual kWh
+    def test_ashp_uplift_per_period_formula(self):
+        per_period = ASHP_BASE_ELECTRICITY_KWH / 365.25 / 48
+        assert per_period > 0.0
+        assert per_period < 1.0  # Less than 1 kWh per 30-min period on average

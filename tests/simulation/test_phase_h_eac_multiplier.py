@@ -117,3 +117,20 @@ class TestEACMultiplierForDate:
         override = float(max(1, round(declared * m)))
         eac = _company_eac_estimate("C1", "2018-01-01", [], base_eac_override=override)
         assert eac == override
+
+
+
+class TestEACMultiplierEdgeCases:
+    """Additional tests for _company_eac_estimate edge cases."""
+
+    def test_known_customer_positive_eac(self):
+        eac = _company_eac_estimate("C1", "2018-01-01", [])
+        assert eac > 0.0
+
+    def test_single_record_uses_history(self):
+        recs = [_rec("C1", "2017-06-15", 100.0)]
+        eac = _company_eac_estimate("C1", "2018-01-01", recs)
+        assert eac > 0.0
+
+    def test_effective_eac_nonempty(self):
+        assert len(EFFECTIVE_EAC_KWH) > 0
