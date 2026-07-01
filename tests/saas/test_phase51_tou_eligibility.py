@@ -46,3 +46,16 @@ class TestIsTouEligible:
             "smart_meter": False,
         }
         assert is_tou_eligible(acquired) is False
+
+
+    def test_smart_metering_without_smart_meter_flag_not_eligible(self):
+        assert is_tou_eligible({"metering": "Smart"}) is False
+
+    def test_empty_dict_not_eligible(self):
+        assert is_tou_eligible({}) is False
+
+    def test_hh_metered_ignores_smart_meter_flag(self):
+        assert is_tou_eligible({"metering": "HH", "smart_meter": False}) is True
+
+    def test_tou_requires_smart_meter_or_hh(self):
+        assert is_tou_eligible({"metering": "NHH"}) is False

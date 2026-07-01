@@ -220,3 +220,27 @@ def test_deemed_customer_in_fast_run():
     for r in deemed_recs:
         assert r.get("hedge_fraction", 0.0) == 0.0
         assert r.get("capital_cost_gbp", 0.0) == 0.0
+
+
+def test_run_deemed_term_customer_id_stored():
+    from simulation.hedged_settlement import run_deemed_term
+    date_str = "2020-06-01"
+    price_records = [{"settlementDate": date_str, "settlementPeriod": p, "systemSellPrice": 80.0} for p in range(1, 49)]
+    records = run_deemed_term("MYTEST", date_str, "2020-06-02", 0.20, lambda _: [100.0]*48, price_records, "I&C")
+    assert all(r["customer_id"] == "MYTEST" for r in records)
+
+
+def test_run_deemed_term_tariff_type_is_deemed():
+    from simulation.hedged_settlement import run_deemed_term
+    date_str = "2020-06-01"
+    price_records = [{"settlementDate": date_str, "settlementPeriod": p, "systemSellPrice": 80.0} for p in range(1, 49)]
+    records = run_deemed_term("T", date_str, "2020-06-02", 0.20, lambda _: [100.0]*48, price_records, "I&C")
+    assert all(r.get("tariff_type") == "deemed" for r in records)
+
+
+def test_run_deemed_term_48_periods_per_day():
+    from simulation.hedged_settlement import run_deemed_term
+    date_str = "2020-06-01"
+    price_records = [{"settlementDate": date_str, "settlementPeriod": p, "systemSellPrice": 80.0} for p in range(1, 49)]
+    records = run_deemed_term("T", date_str, "2020-06-02", 0.20, lambda _: [100.0]*48, price_records, "I&C")
+    assert len(records) == 48

@@ -116,3 +116,21 @@ def test_ccl_included_in_policy_cost():
         + rec.get("mutualization_levy_gbp", 0.0)
     )
     assert rec["policy_cost_gbp"] == pytest.approx(expected_policy)
+
+
+def test_ccl_increases_after_2020():
+    rate_2019 = get_ccl_per_mwh("2019-06-01", segment="I&C")
+    rate_2020 = get_ccl_per_mwh("2020-06-01", segment="I&C")
+    assert rate_2020 > rate_2019
+
+
+def test_ccl_sme_equals_ic_rate():
+    rate_sme = get_ccl_per_mwh("2022-01-01", segment="sme")
+    rate_ic = get_ccl_per_mwh("2022-01-01", segment="I&C")
+    assert rate_sme == pytest.approx(rate_ic)
+
+
+def test_ccl_rate_positive_for_all_business_years():
+    for year in range(2016, 2025):
+        rate = get_ccl_per_mwh(f"{year}-06-01", segment="I&C")
+        assert rate > 0

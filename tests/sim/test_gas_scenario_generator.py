@@ -65,3 +65,20 @@ def test_custom_params():
     records = generate_gas_scenario_prices(2027, 2027, params, seed="custom")
     prices = [r["systemSellPrice"] for r in records]
     assert all(90 <= p < 130 for p in prices)
+
+
+def test_scenario_names_include_expected():
+    assert "baseline_2025" in GAS_SCENARIOS
+    assert "central_2027" in GAS_SCENARIOS
+    assert "stress_dunkelflaute_2027" in GAS_SCENARIOS
+
+
+def test_all_prices_above_price_floor():
+    records = generate_gas_scenario_prices(2025, 2025, "baseline_2025")
+    floor = GAS_SCENARIOS["baseline_2025"].price_floor
+    assert all(r["systemSellPrice"] >= floor for r in records)
+
+
+def test_year_range_correct_count():
+    records = generate_gas_scenario_prices(2025, 2026, "baseline_2025")
+    assert len(records) == 365 + 365

@@ -91,3 +91,34 @@ def test_flex_net_stable_across_high_low_policy_years():
     for r in recs_2018 + recs_2022:
         expected = markup * (r["consumption_kwh"] / 1000.0)
         assert abs(r["net_margin_gbp"] - expected) < 1e-6
+import pytest
+
+
+def test_flex_commodity_is_electricity():
+    records = _make_records()
+    assert all(r["commodity"] == "electricity" for r in records)
+
+
+def test_flex_customer_id_stored():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    prior = []
+    for i in range(1, 9):
+        d = (date.fromisoformat("2022-01-01") - timedelta(days=i)).isoformat()
+        for sp in range(1, 49):
+            prior.append({"settlementDate": d, "settlementPeriod": sp, "systemSellPrice": 80.0})
+    for sp in range(1, 49):
+        prior.append({"settlementDate": "2022-01-01", "settlementPeriod": sp, "systemSellPrice": 80.0})
+    recs = run_flex_term("TESTCUST", "2022-01-01", "2022-01-02", 2.0, lambda _: [1000.0]*48, prior, "I&C")
+    assert all(r["customer_id"] == "TESTCUST" for r in recs)
+
+
+def test_flex_tariff_type_is_flex():
+    records = _make_records()
+    assert all(r["tariff_type"] == "flex" for r in records)
+
+
+def test_flex_consumption_kwh_matches_shape():
+    records = _make_records()
+    for r in records:
+        assert r["consumption_kwh"] == pytest.approx(1000.0)
