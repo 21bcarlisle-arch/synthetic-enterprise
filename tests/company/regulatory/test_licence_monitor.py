@@ -78,3 +78,65 @@ def test_catalogue_contains_key_slcs():
     cat = m.catalogue()
     for key in ("SLC 7", "SLC 14", "SLC 21C", "SLC 36", "SLC 47"):
         assert key in cat
+
+
+# --- Phase LD depth tests ---
+
+def test_slc_number_stored():
+    m = _monitor()
+    s = m.set_status('SLC 7', 'COMPLIANT', 'Bills issued within 12 months')
+    assert s.slc_number == 'SLC 7'
+
+
+def test_status_stored():
+    m = _monitor()
+    s = m.set_status('SLC 14', 'BREACH', 'Complaint overdue')
+    assert s.status == 'BREACH'
+
+
+def test_evidence_stored():
+    m = _monitor()
+    s = m.set_status('SLC 14', 'COMPLIANT', 'All on time')
+    assert s.evidence == 'All on time'
+
+
+def test_description_is_string():
+    m = _monitor()
+    s = m.set_status('SLC 7', 'COMPLIANT')
+    assert isinstance(s.description, str)
+
+
+def test_get_none_for_unknown():
+    m = _monitor()
+    assert m.get('SLC_UNKNOWN_XYZ') is None
+
+
+def test_breaches_empty_initially():
+    m = _monitor()
+    assert m.breaches() == []
+
+
+def test_under_monitor_empty_initially():
+    m = _monitor()
+    assert m.under_monitor() == []
+
+
+def test_compliance_summary_is_dict():
+    m = _monitor()
+    s = m.compliance_summary()
+    assert isinstance(s, dict)
+
+
+def test_compliance_summary_has_overall():
+    m = _monitor()
+    s = m.compliance_summary()
+    assert 'rag' in s
+
+
+def test_all_statuses_values():
+    valid = {'COMPLIANT', 'MONITOR', 'BREACH', 'NOT_ASSESSED'}
+    m = _monitor()
+    m.set_status('SLC 7', 'MONITOR')
+    m.set_status('SLC 14', 'BREACH')
+    all_s = m.all_statuses()
+    assert all(s.status in valid for s in all_s)

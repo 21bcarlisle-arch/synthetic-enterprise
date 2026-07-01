@@ -78,3 +78,57 @@ def test_eco_summary_empty():
     s = book.eco_summary()
     assert s["total_deliveries"] == 0
     assert s["total_co2_saved_tonnes"] == 0.0
+
+
+# --- Phase LD depth tests ---
+
+def test_delivery_id_stored():
+    d = _delivery(did='D_LD')
+    assert d.delivery_id == 'D_LD'
+
+
+def test_phase_stored():
+    d = _delivery(phase=ECOPhase.ECO3)
+    assert d.phase == ECOPhase.ECO3
+
+
+def test_delivery_year_stored():
+    d = _delivery(year=2022)
+    assert d.delivery_year == 2022
+
+
+def test_customer_id_stored():
+    d = _delivery(cid='C_LD')
+    assert d.customer_id == 'C_LD'
+
+
+def test_category_stored():
+    d = _delivery(cat=MeasureCategory.HEATING)
+    assert d.category == MeasureCategory.HEATING
+
+
+def test_co2_saved_stored():
+    d = _delivery(co2=3.0)
+    assert d.co2_saved_tonnes == pytest.approx(3.0)
+
+
+def test_cost_gbp_stored():
+    d = _delivery(cost=1000.0)
+    assert d.cost_gbp == pytest.approx(1000.0)
+
+
+def test_is_fuel_poor_stored():
+    d = _delivery(fuel_poor=True)
+    assert d.is_fuel_poor is True
+
+
+def test_deliveries_for_year_empty_unknown():
+    book = ECOObligationBook()
+    assert book.deliveries_for_year(1999) == []
+
+
+def test_record_delivery_returns_delivery():
+    book = ECOObligationBook()
+    d = _delivery()
+    result = book.record_delivery(d)
+    assert result is d

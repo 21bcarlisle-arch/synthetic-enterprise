@@ -83,3 +83,55 @@ def test_cts_summary_keys():
     s = calc.cts_summary(2022)
     for k in ("accounts_analysed", "mean_total_cost_p_per_kwh", "mean_levy_pct"):
         assert k in s
+
+
+# --- Phase LD depth tests ---
+
+def test_account_id_stored():
+    b = _bd(aid='ACC_LD')
+    assert b.account_id == 'ACC_LD'
+
+
+def test_year_stored():
+    b = _bd(year=2023)
+    assert b.year == 2023
+
+
+def test_segment_stored():
+    b = _bd(seg=CustomerSegment.SME)
+    assert b.segment == CustomerSegment.SME
+
+
+def test_consumption_mwh_stored():
+    b = _bd(mwh=5.0)
+    assert b.consumption_mwh == pytest.approx(5.0)
+
+
+def test_wholesale_cost_stored():
+    b = _bd(wholesale=20.0)
+    assert b.wholesale_cost_p_per_kwh == pytest.approx(20.0)
+
+
+def test_consumption_kwh_is_mwh_times_1000():
+    b = _bd(mwh=3.5)
+    assert b.consumption_kwh == pytest.approx(3500.0)
+
+
+def test_levy_components_sum_correctly():
+    b = _bd(cm=0.5, cfd=0.3, ro=0.8, fit=0.2, duos=2.0, tnuos=1.0, bsuos=6.0)
+    assert b.levy_p_per_kwh == pytest.approx(0.5+0.3+0.8+0.2+2.0+1.0+6.0)
+
+
+def test_annual_support_cost_positive():
+    b = _bd()
+    assert b.annual_support_cost_gbp > 0.0
+
+
+def test_annual_billing_cost_positive():
+    b = _bd()
+    assert b.annual_billing_cost_gbp > 0.0
+
+
+def test_bad_debt_stored():
+    b = _bd(bad_debt=25.0)
+    assert b.bad_debt_provision_gbp == pytest.approx(25.0)

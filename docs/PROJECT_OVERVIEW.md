@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,730 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,760 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LD -- Coverage Depth Sprint LXXVIII (2026-07-01)
+30 depth tests across 3 modules: cost_to_serve (account_id/year/segment/consumption_mwh/wholesale/kwh_x1000/levy_sum/support_pos/billing_pos/bad_debt), eco_obligation (delivery_id/phase/year/customer_id/category/co2/cost/fuel_poor/year_empty/record_returns), licence_monitor (slc_number/status/evidence/description_str/get_none/breaches_empty/monitor_empty/summary_dict/has_rag/all_valid_statuses).
+**Total:** 11,760 tests
 
 ### Phase LC -- Coverage Depth Sprint LXXVII (2026-07-01)
 30 depth tests across 3 modules: price_feed (fuel/period/price_stored/avail_bool/empty_wrong_fuel/list_type/latest_float/latest_is_last/stale_bool/max_age=24), rego_portfolio (purchase_id/scheme_year/mwh/price/generator/technology/retired_false/price_2022=6.5/price_2021=2.0/total_cost_zero), tnuos_ledger (account_id/charge_year/kwh/res_rate/triad_kw/triad_rate/zone/charges_empty/south=0.85/rate_2022=1.05).
@@ -4808,7 +4812,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,730 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,760 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

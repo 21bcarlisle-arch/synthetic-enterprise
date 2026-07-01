@@ -1,2 +1,2 @@
-Phase LD -- Coverage Depth Sprint LXXVIII
-30 tests: cost_to_serve + next lowest-test modules coverage depth
+Phase LE -- Coverage Depth Sprint LXXIX
+30 tests: eco_tracker + price_cap + remit_book coverage depth
