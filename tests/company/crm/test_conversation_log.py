@@ -80,3 +80,81 @@ def test_annual_summary_keys():
     assert 'avg_csat' in s
     assert 'resolution_rate' in s
     assert s['by_outcome']['resolved'] == 1
+
+
+def test_conv_id_sequential():
+    log = ConversationLog()
+    c1 = log.start('C001', 'billing', 'phone', DT(2023, 1, 1, 9, 0))
+    c2 = log.start('C002', 'billing', 'phone', DT(2023, 1, 2, 9, 0))
+    assert c1.conversation_id == 'CONV-00001'
+    assert c2.conversation_id == 'CONV-00002'
+
+
+def test_get_conversation_found():
+    log = ConversationLog()
+    c = log.start('C001', 'query', 'email', DT(2023, 6, 1, 10, 0))
+    found = log.get(c.conversation_id)
+    assert found is not None
+    assert found.customer_id == 'C001'
+
+
+def test_get_conversation_not_found():
+    log = ConversationLog()
+    assert log.get('CONV-99999') is None
+
+
+def test_conversations_for_customer_filter():
+    log = ConversationLog()
+    log.start('C001', 'billing', 'phone', DT(2023, 6, 1, 9, 0))
+    log.start('C002', 'tariff', 'email', DT(2023, 6, 1, 10, 0))
+    log.start('C001', 'payment', 'portal', DT(2023, 6, 2, 9, 0))
+    c1_convs = log.conversations_for_customer('C001')
+    assert len(c1_convs) == 2
+    assert all(c.customer_id == 'C001' for c in c1_convs)
+
+
+def test_open_conversations_excludes_closed():
+    log = ConversationLog()
+    c1 = log.start('C001', 'query', 'phone', DT(2023, 6, 1, 9, 0))
+    c2 = log.start('C002', 'query', 'phone', DT(2023, 6, 1, 10, 0))
+    c1.close(DT(2023, 6, 1, 9, 15), ConversationOutcome.RESOLVED)
+    open_convs = log.open_conversations()
+    assert len(open_convs) == 1
+    assert open_convs[0].conversation_id == c2.conversation_id
+
+
+def test_avg_csat_none_when_no_scores():
+    log = ConversationLog()
+    log.start('C001', 'query', 'email', DT(2023, 6, 1, 9, 0))
+    assert log.avg_csat() is None
+
+
+def test_avg_nps_computed():
+    log = ConversationLog()
+    c1 = log.start('C001', 'query', 'phone', DT(2023, 6, 1, 9, 0))
+    c2 = log.start('C002', 'query', 'phone', DT(2023, 6, 2, 9, 0))
+    c1.close(DT(2023, 6, 1, 9, 15), ConversationOutcome.RESOLVED, nps_score=8)
+    c2.close(DT(2023, 6, 2, 9, 15), ConversationOutcome.RESOLVED, nps_score=6)
+    assert log.avg_nps() == pytest.approx(7.0)
+
+
+def test_resolution_rate_none_when_all_open():
+    log = ConversationLog()
+    log.start('C001', 'query', 'email', DT(2023, 6, 1, 9, 0))
+    assert log.resolution_rate() is None
+
+
+def test_duration_seconds_none_when_open():
+    log = ConversationLog()
+    conv = log.start('C001', 'query', 'phone', DT(2023, 6, 1, 9, 0))
+    assert conv.duration_seconds is None
+
+
+def test_annual_summary_open_count():
+    log = ConversationLog()
+    log.start('C001', 'query', 'phone', DT(2023, 6, 1, 9, 0))
+    c2 = log.start('C002', 'query', 'phone', DT(2023, 6, 2, 9, 0))
+    c2.close(DT(2023, 6, 2, 9, 15), ConversationOutcome.RESOLVED)
+    s = log.annual_summary()
+    assert s['open'] == 1
+    assert s['closed'] == 1

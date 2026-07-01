@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JP — Coverage Depth Sprint XXXVIII (2026-07-01)
+**Modules:** conversation_log · bm_unit_log · working_capital
+**Tests added:** 30 (conversation_log: CONV-00001/00002 sequential; get found/not-found; conversations_for_customer filter; open excludes closed; avg_csat None no-scores; avg_nps computed; resolution_rate None all-open; duration_seconds None open; annual_summary open count. bm_unit_log: avg_dispatch_price None no-dispatches; total_revenue year filter; dispatch_count year filter; is_expensive at exactly 500=False; utilisation_pct zero no-offered; dispatched_mwh property; bmu_id in summary; offers_submitted count; 98.9%=PART_DISPATCHED; revenue=dispatched_mwh*price. working_capital: closing balance chains days; positions_in_period filter; lowest_balance None empty; net_cash_flow mixed; total_inflows excludes outflows; headroom in summary; set_minimum changes threshold; total_outflows; period_start/end isoformat; headroom positive above minimum)
+**Total:** 10,560 tests
+
 ### Phase JO — Coverage Depth Sprint XXXVII (2026-07-01)
 **Modules:** dsr_portfolio · multisite_account · arrears_book
 **Tests added:** 30 (dsr_portfolio: compliance_rate None no-curtailments; compliance_pct zero no-contracted; total_mwh_delivered unknown=0; annual_revenue year filter; summary total_target_mwh; unique-customers; event_type stored; notice_minutes stored; revenue excludes wrong year; 95%-boundary=COMPLIED. multisite_account: peak_site None empty; remove False not-found; portfolio.get found/not-found; annual_mwh property; accounts_by_manager; largest_accounts sorted; add_site stored; credit_limit in summary; 33kV is_hv. arrears_book: ARR-0001/0002; cases_for_customer filter; cases_at_stage filter; outstanding capped at zero; days_open None when open; days_open when resolved; vulnerable flag; outstanding excludes written-off; write-off then advance raises; stage_date stored)
@@ -4624,7 +4629,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,530 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,560 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
