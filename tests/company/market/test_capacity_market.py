@@ -61,3 +61,38 @@ def test_cm_summary():
     s = book.cm_summary(2022)
     assert s['obligations'] == 1
     assert s['total_derated_kw'] == pytest.approx(50_000.0)
+
+
+# --- Phase JX depth tests ---
+
+def test_cm_price_unknown_year_fallback():
+    assert get_cm_price(9999) == pytest.approx(50.0)
+
+
+def test_cm_price_2021_zero():
+    assert get_cm_price(2021) == pytest.approx(0.0)
+
+
+def test_penalty_accumulates_multiple_calls():
+    unit = CMUnit('BATT-002', CMUnitType.BATTERY, 5000.0, dt.date(2022, 1, 1))
+    o = CMObligation(unit, 2022, AuctionType.T4, 75.0)
+    o.apply_penalty(10_000.0)
+    o.apply_penalty(5_000.0)
+    assert o.penalties_gbp == pytest.approx(15_000.0)
+
+
+def test_total_revenue_empty_year():
+    book = CapacityMarketBook()
+    unit = book.register_unit('U1', CMUnitType.CCGT, 10_000.0, dt.date(2022, 1, 1))
+    book.add_obligation(unit, 2022, AuctionType.T4)
+    assert book.total_revenue_gbp(2023) == pytest.approx(0.0)
+
+
+def test_obligations_for_year_filters_correctly():
+    book = CapacityMarketBook()
+    u1 = book.register_unit('U1', CMUnitType.BATTERY, 1000.0, dt.date(2022, 1, 1))
+    u2 = book.register_unit('U2', CMUnitType.DEMAND_RESPONSE, 2000.0, dt.date(2022, 1, 1))
+    book.add_obligation(u1, 2022, AuctionType.T4)
+    book.add_obligation(u2, 2023, AuctionType.T1)
+    assert len(book.obligations_for_year(2022)) == 1
+    assert len(book.obligations_for_year(2023)) == 1

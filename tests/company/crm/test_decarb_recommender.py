@@ -147,3 +147,60 @@ def test_priority_increments_by_one():
     priorities = [r.priority for r in plan.recommendations]
     for i in range(len(priorities) - 1):
         assert priorities[i + 1] == priorities[i] + 1
+
+
+# --- Phase JX depth tests ---
+
+def test_payback_infinite_when_zero_savings():
+    rec = MeasureRecommendation(Measure.SOLID_WALL_INSULATION, 0.0, 8000.0, (FundingScheme.SELF_FUNDED,), 1)
+    assert rec.simple_payback_years == float('inf')
+
+
+def test_payback_zero_when_zero_cost():
+    rec = MeasureRecommendation(Measure.LOFT_INSULATION, 150.0, 0.0, (FundingScheme.ECO4,), 1)
+    assert rec.simple_payback_years == pytest.approx(0.0)
+
+
+def test_top_measure_none_empty_plan():
+    plan = DecarbonisationPlan(customer_id='C021', recommendations=())
+    assert plan.top_measure is None
+
+
+def test_summary_top_measure_none_empty_plan():
+    plan = DecarbonisationPlan(customer_id='C022', recommendations=())
+    assert plan.summary()['top_measure'] is None
+
+
+def test_total_potential_savings_empty_plan():
+    plan = DecarbonisationPlan(customer_id='C023', recommendations=())
+    assert plan.total_potential_savings_gbp == 0.0
+
+
+def test_storage_heater_d_epc_heat_pump():
+    plan = recommend_measures('C024', 'D', 'semi_detached', 'storage_heater')
+    measures = [r.measure for r in plan.recommendations]
+    assert Measure.HEAT_PUMP in measures
+
+
+def test_epc_b_gas_boiler_heat_pump():
+    plan = recommend_measures('C025', 'B', 'detached', 'gas_boiler')
+    measures = [r.measure for r in plan.recommendations]
+    assert Measure.HEAT_PUMP in measures
+
+
+def test_eco4_loft_has_eco4_funding_scheme():
+    plan = recommend_measures('C026', 'E', 'terraced', 'gas_boiler', eco4_eligible=True)
+    loft = next(r for r in plan.recommendations if r.measure == Measure.LOFT_INSULATION)
+    assert FundingScheme.ECO4 in loft.funding_schemes
+
+
+def test_non_eco4_loft_self_funded():
+    plan = recommend_measures('C027', 'D', 'semi_detached', 'heat_pump')
+    loft = next(r for r in plan.recommendations if r.measure == Measure.LOFT_INSULATION)
+    assert FundingScheme.SELF_FUNDED in loft.funding_schemes
+
+
+def test_eco4_flat_solid_wall_eco4_only():
+    plan = recommend_measures('C028', 'G', 'flat', 'gas_boiler', eco4_eligible=True)
+    sw = next(r for r in plan.recommendations if r.measure == Measure.SOLID_WALL_INSULATION)
+    assert sw.funding_schemes == (FundingScheme.ECO4,)

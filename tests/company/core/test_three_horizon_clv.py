@@ -194,3 +194,70 @@ class TestThreeHorizonCLVTrackerDepth:
         tracker.commit_h1(make_h1("C1", margin=200.0, churn=0.18))
         tracker.update_h3(make_h3("C1", margin=200.0, churn=0.18))
         assert tracker.at_risk_accounts() == []
+
+
+# --- Phase JX depth tests ---
+
+class TestH2ActualsDirect:
+    def test_total_revenue_sums_events(self):
+        h2 = H2Actuals('A1')
+        h2.record_revenue(START, 100.0)
+        h2.record_revenue(MID, 80.0)
+        assert h2.total_revenue_gbp() == pytest.approx(180.0)
+
+    def test_total_cost_sums_events(self):
+        h2 = H2Actuals('A1')
+        h2.record_cost(START, 30.0)
+        h2.record_cost(MID, 20.0)
+        assert h2.total_cost_gbp() == pytest.approx(50.0)
+
+    def test_h2_margin_gbp_direct(self):
+        h2 = H2Actuals('A1')
+        h2.record_revenue(START, 200.0)
+        h2.record_cost(START, 75.0)
+        assert h2.h2_margin_gbp() == pytest.approx(125.0)
+
+
+class TestThreeHorizonCLVTrackerDepthJX:
+    def test_h1_vs_h2_variance_negative_underperform(self, tracker):
+        tracker.commit_h1(make_h1(margin=200.0))
+        # 6 months elapsed; expected = 100; actual = 50 -> variance = -50
+        tracker.record_revenue('C1', MID, 80.0)
+        tracker.record_cost('C1', MID, 30.0)  # actual margin = 50
+        variance = tracker.h1_vs_h2_variance_gbp('C1', MID)
+        assert variance is not None
+        assert variance < 0
+
+    def test_h3_clv_fallback_zero_denom(self):
+        # churn_probability = -0.08 -> retention = 1.08; denom = 1+0.08-1.08 = 0 -> fallback
+        h3 = H3Forecast(
+            account_id='FX', forecast_at=MID, remaining_contract_years=2.0,
+            updated_annual_margin_gbp=100.0, updated_churn_probability=-0.08, discount_rate=0.08,
+        )
+        assert h3.h3_clv_gbp == pytest.approx(100.0 * 2.0)
+
+    def test_h3_signal_just_below_outperform_threshold_is_on_track(self, tracker):
+        # pct = 0.09 -> NOT > 0.10 -> ON_TRACK
+        tracker.commit_h1(make_h1('C1', margin=100.0, churn=0.18))
+        tracker.update_h3(make_h3('C1', margin=109.0, churn=0.18))
+        assert tracker.h3_signal('C1') == H3Signal.ON_TRACK
+
+    def test_h3_signal_boundary_exactly_at_risk_threshold_is_deteriorating(self, tracker):
+        # pct = exactly -0.30 -> NOT < -0.30 -> DETERIORATING (not AT_RISK)
+        tracker.commit_h1(make_h1('C1', margin=100.0, churn=0.18))
+        tracker.update_h3(make_h3('C1', margin=70.0, churn=0.18))
+        assert tracker.h3_signal('C1') == H3Signal.DETERIORATING
+
+    def test_outperforming_accounts_empty_when_no_h3(self, tracker):
+        tracker.commit_h1(make_h1('C1', margin=300.0, churn=0.05))
+        # no H3 committed -> h3_signal returns None -> not in outperforming
+        assert tracker.outperforming_accounts() == []
+
+    def test_clv_summary_shows_account_count(self, tracker):
+        tracker.commit_h1(make_h1('C1'))
+        tracker.commit_h1(make_h1('C2'))
+        s = tracker.clv_summary()
+        assert '2 accounts' in s
+
+    def test_h2_margin_unknown_account_returns_zero(self, tracker):
+        assert tracker.h2_margin('UNKNOWN') == pytest.approx(0.0)
