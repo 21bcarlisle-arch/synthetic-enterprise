@@ -132,3 +132,56 @@ def test_monthly_variance_returns_12_months():
     assert "01" in result and "12" in result
     for m in result.values():
         assert set(m.keys()) == {"revenue", "gross", "net"}
+
+
+# --- Phase LV depth tests ---
+
+def test_budget_has_revenue_key_2022():
+    b = get_annual_budget(2022)
+    assert 'revenue' in b
+
+
+def test_budget_has_net_key_2022():
+    b = get_annual_budget(2022)
+    assert 'net' in b
+
+
+def test_budget_has_gross_key_2022():
+    b = get_annual_budget(2022)
+    assert 'gross' in b
+
+
+def test_budget_has_opex_key_2022():
+    b = get_annual_budget(2022)
+    assert 'opex' in b
+
+
+def test_budget_has_cogs_key_2022():
+    b = get_annual_budget(2022)
+    assert 'cogs' in b
+
+
+def test_budget_revenue_positive_2022():
+    b = get_annual_budget(2022)
+    assert b['revenue'] > 0
+
+
+def test_traffic_light_amber_boundaries():
+    assert traffic_light(5.0) == 'AMBER'
+    assert traffic_light(14.9) == 'AMBER'
+
+
+def test_traffic_light_red_at_15pct():
+    assert traffic_light(15.0) == 'RED'
+
+
+def test_budget_integer_year_works():
+    b = get_annual_budget(2022)
+    assert b is not None
+    assert b != {}
+
+
+def test_budget_2016_through_2025_all_five_keys():
+    for yr in range(2016, 2026):
+        b = get_annual_budget(yr)
+        assert len(b) == 5, f'Missing keys for {yr}'

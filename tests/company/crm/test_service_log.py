@@ -118,3 +118,58 @@ def test_multiple_contacts_same_customer_separate_records():
             outcome="resolved",
         ))
     assert len(log.contacts_for_customer("C3")) == 5
+
+
+# --- Phase LV depth tests ---
+
+def test_customer_id_stored():
+    ev = _contact(customer_id='CUST_LV')
+    assert ev.customer_id == 'CUST_LV'
+
+
+def test_event_date_stored():
+    ev = _contact(date='2022-07-01')
+    assert ev.event_date == '2022-07-01'
+
+
+def test_channel_stored():
+    ev = ServiceEvent(
+        customer_id='C1', event_date='2022-01-01', channel='sms',
+        contact_reason='billing_query', outcome='resolved',
+    )
+    assert ev.channel == 'sms'
+
+
+def test_contact_reason_stored():
+    ev = _contact(reason='meter_read')
+    assert ev.contact_reason == 'meter_read'
+
+
+def test_outcome_stored():
+    ev = _contact(outcome='escalated')
+    assert ev.outcome == 'escalated'
+
+
+def test_complaint_flag_default_false():
+    ev = _contact()
+    assert ev.complaint_flag is False
+
+
+def test_vulnerability_flag_default_false():
+    ev = _contact()
+    assert ev.vulnerability_flag is False
+
+
+def test_agent_type_default_ai():
+    ev = _contact()
+    assert ev.agent_type == 'ai'
+
+
+def test_notes_default_empty():
+    ev = _contact()
+    assert ev.notes == ''
+
+
+def test_csat_score_default_none():
+    ev = _contact()
+    assert ev.csat_score is None

@@ -94,3 +94,57 @@ def test_limit_summary_keys():
     for k in ("counterparty_count", "total_limit_gbp", "total_exposure_gbp",
                "portfolio_utilisation_pct", "breach_count", "material_limits"):
         assert k in s
+
+
+# --- Phase LV depth tests ---
+
+def test_counterparty_id_stored():
+    lim = _limit(cid='CP_LV')
+    assert lim.counterparty_id == 'CP_LV'
+
+
+def test_counterparty_type_stored():
+    lim = _limit(ctype=CounterpartyType.BROKER)
+    assert lim.counterparty_type == CounterpartyType.BROKER
+
+
+def test_limit_gbp_stored():
+    lim = _limit(gbp=2_500_000.0)
+    assert lim.limit_gbp == pytest.approx(2_500_000.0)
+
+
+def test_approved_date_stored():
+    lim = _limit(date='2023-06-01')
+    assert lim.approved_date == '2023-06-01'
+
+
+def test_approved_by_stored():
+    lim = _limit(by='board')
+    assert lim.approved_by == 'board'
+
+
+def test_is_material_true_at_1m():
+    lim = _limit(gbp=1_000_000.0)
+    assert lim.is_material is True
+
+
+def test_is_material_false_below_1m():
+    lim = _limit(gbp=999_999.0)
+    assert lim.is_material is False
+
+
+def test_exposure_counterparty_id_stored():
+    e = _exp(cid='CP_TEST')
+    assert e.counterparty_id == 'CP_TEST'
+
+
+def test_exposure_as_of_date_stored():
+    e = _exp(date='2023-09-15')
+    assert e.as_of_date == '2023-09-15'
+
+
+def test_set_limit_returns_limit():
+    book = CreditLimitBook()
+    lim = _limit()
+    result = book.set_limit(lim)
+    assert result is lim
