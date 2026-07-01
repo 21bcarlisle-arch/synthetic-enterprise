@@ -84,3 +84,54 @@ def test_dashboard_summary_keys():
     for k in ("total_obligations", "breaches", "attention_items",
                "overall_rag", "filed_on_time_rate_pct", "area_rag"):
         assert k in s
+
+
+# --- Phase MC depth tests ---
+
+def test_area_stored():
+    ob = _ob(area=ComplianceArea.ENVIRONMENTAL)
+    assert ob.area == ComplianceArea.ENVIRONMENTAL
+
+
+def test_obligation_name_stored():
+    ob = _ob(name='REGO Filing')
+    assert ob.obligation_name == 'REGO Filing'
+
+
+def test_due_date_stored():
+    ob = _ob(due='2023-09-30')
+    assert ob.due_date == '2023-09-30'
+
+
+def test_status_stored():
+    ob = _ob(status=FilingStatus.OVERDUE)
+    assert ob.status == FilingStatus.OVERDUE
+
+
+def test_rag_stored():
+    ob = _ob(rag='AMBER')
+    assert ob.rag == 'AMBER'
+
+
+def test_notes_none_default():
+    ob = _ob()
+    assert ob.notes is None
+
+
+def test_add_obligation_returns_obligation():
+    d = RegulatoryDashboard()
+    result = d.add_obligation(_ob())
+    assert isinstance(result, ComplianceObligation)
+
+
+def test_compliance_area_has_8_members():
+    assert len(list(ComplianceArea)) == 8
+
+
+def test_filing_status_has_4_members():
+    assert len(list(FilingStatus)) == 4
+
+
+def test_needs_attention_filed_green_false():
+    ob = _ob(status=FilingStatus.FILED, rag='GREEN')
+    assert ob.needs_attention is False

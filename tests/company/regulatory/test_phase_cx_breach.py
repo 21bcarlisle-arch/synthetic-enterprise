@@ -109,3 +109,57 @@ def test_breach_summary():
     summary = log.breach_summary()
     assert "Ofgem" in summary
     assert "SLC" in summary
+
+
+# --- Phase MC depth tests ---
+
+def test_breach_id_stored():
+    log, rec = _log_with_breach()
+    assert rec.breach_id == 'B001'
+
+
+def test_slc_reference_stored():
+    log, rec = _log_with_breach()
+    assert rec.slc_reference == 'SLC 14'
+
+
+def test_description_stored():
+    log, rec = _log_with_breach()
+    assert rec.description == 'Credit refund overdue'
+
+
+def test_detected_date_stored():
+    log, rec = _log_with_breach()
+    assert rec.detected_date == _D
+
+
+def test_severity_stored():
+    _, rec = _log_with_breach(severity=BreachSeverity.HIGH)
+    assert rec.severity == BreachSeverity.HIGH
+
+
+def test_status_potential_on_record():
+    log, rec = _log_with_breach()
+    assert rec.status == BreachStatus.POTENTIAL
+
+
+def test_accounts_affected_default_zero():
+    log, rec = _log_with_breach()
+    assert rec.accounts_affected == 0
+
+
+def test_estimated_penalty_default_zero():
+    log, rec = _log_with_breach()
+    assert rec.estimated_penalty_gbp == pytest.approx(0.0)
+
+
+def test_is_reportable_high():
+    _, rec = _log_with_breach(severity=BreachSeverity.HIGH)
+    assert rec.is_reportable is True
+
+
+def test_record_returns_breach_record():
+    from company.regulatory.regulatory_breach_log import RegulatoryBreachRecord
+    log = RegulatoryBreachLog()
+    result = log.record('B1', 'SLC 6', 'Test', _D, BreachSeverity.LOW)
+    assert isinstance(result, RegulatoryBreachRecord)

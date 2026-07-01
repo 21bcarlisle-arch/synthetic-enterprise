@@ -107,3 +107,63 @@ def test_summary():
     summary = r.licence_summary()
     assert "Ofgem" in summary
     assert "Active" in summary
+
+
+# --- Phase MC depth tests ---
+
+def test_licence_id_stored():
+    r = LicenceApplicationRegister()
+    lic = r.register_licence('EL-MC', LicenceType.GAS_DOMESTIC, LicenceTier.TIER_1, _D)
+    assert lic.licence_id == 'EL-MC'
+
+
+def test_licence_type_stored():
+    r = LicenceApplicationRegister()
+    lic = r.register_licence('EL-MC', LicenceType.GAS_NON_DOMESTIC, LicenceTier.TIER_1, _D)
+    assert lic.licence_type == LicenceType.GAS_NON_DOMESTIC
+
+
+def test_tier_stored():
+    r = LicenceApplicationRegister()
+    lic = r.register_licence('EL-MC', LicenceType.ELECTRICITY_DOMESTIC, LicenceTier.TIER_2, _D)
+    assert lic.tier == LicenceTier.TIER_2
+
+
+def test_grant_date_stored():
+    r = LicenceApplicationRegister()
+    d = date(2018, 3, 15)
+    lic = r.register_licence('EL-MC', LicenceType.ELECTRICITY_DOMESTIC, LicenceTier.TIER_1, d)
+    assert lic.grant_date == d
+
+
+def test_is_active_true_default():
+    r = LicenceApplicationRegister()
+    lic = r.register_licence('EL-MC', LicenceType.ELECTRICITY_DOMESTIC, LicenceTier.TIER_1, _D)
+    assert lic.is_active is True
+
+
+def test_special_conditions_empty_default():
+    r = LicenceApplicationRegister()
+    lic = r.register_licence('EL-MC', LicenceType.ELECTRICITY_DOMESTIC, LicenceTier.TIER_1, _D)
+    assert lic.special_conditions == ()
+
+
+def test_has_special_conditions_false_empty():
+    r = LicenceApplicationRegister()
+    lic = r.register_licence('EL-MC', LicenceType.ELECTRICITY_DOMESTIC, LicenceTier.TIER_1, _D)
+    assert lic.has_special_conditions is False
+
+
+def test_register_licence_returns_licence_record():
+    from company.regulatory.licence_application_register import LicenceRecord
+    r = LicenceApplicationRegister()
+    result = r.register_licence('EL-MC', LicenceType.ELECTRICITY_DOMESTIC, LicenceTier.TIER_1, _D)
+    assert isinstance(result, LicenceRecord)
+
+
+def test_licence_type_has_4_members():
+    assert len(list(LicenceType)) == 4
+
+
+def test_application_status_has_5_members():
+    assert len(list(ApplicationStatus)) == 5
