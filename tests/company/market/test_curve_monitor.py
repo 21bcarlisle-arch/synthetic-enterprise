@@ -1,3 +1,4 @@
+import pytest
 """Phase 138: Forward curve anomaly detection tests."""
 
 from company.market.curve_monitor import PricePoint, ForwardCurveMonitor
@@ -75,3 +76,68 @@ def test_empty_summary():
     m = ForwardCurveMonitor()
     s = m.summary([])
     assert s["total"] == 0
+
+
+# --- Phase KW depth tests ---
+
+def _result_after_stable(n=20, base=50.0, spike=None):
+    m = ForwardCurveMonitor(window=n)
+    for i in range(n - 1):
+        m.add(PricePoint(f"2024-{i:03}", base))
+    final_price = spike if spike is not None else base
+    return m.add(PricePoint(f"2024-{n:03}", final_price))
+
+
+def test_period_stored_in_result():
+    r = _result_after_stable()
+    assert r is not None
+    assert '2024' in r.period
+
+
+def test_price_stored_in_result():
+    r = _result_after_stable(base=50.0)
+    assert r.price_gbp_mwh == pytest.approx(50.0)
+
+
+def test_z_score_is_float():
+    r = _result_after_stable()
+    assert isinstance(r.z_score, float)
+
+
+def test_mean_non_negative():
+    r = _result_after_stable(base=60.0)
+    assert r.mean_gbp_mwh >= 0.0
+
+
+def test_std_positive():
+    r = _result_after_stable(base=50.0, spike=200.0)
+    assert r.std_gbp_mwh > 0.0
+
+
+def test_severity_is_string():
+    r = _result_after_stable()
+    assert isinstance(r.severity, str)
+
+
+def test_message_is_string():
+    r = _result_after_stable()
+    assert isinstance(r.message, str)
+
+
+def test_z_warn_constant():
+    from company.market.curve_monitor import _Z_WARN
+    assert _Z_WARN == pytest.approx(2.5)
+
+
+def test_z_critical_constant():
+    from company.market.curve_monitor import _Z_CRITICAL
+    assert _Z_CRITICAL == pytest.approx(5.0)
+
+
+def test_summary_total_matches_added():
+    m = ForwardCurveMonitor(window=10)
+    series = _stable_series(20)
+    results = [m.add(p) for p in series]
+    valid = [r for r in results if r is not None]
+    s = m.summary(valid)
+    assert s["total"] == len(valid)

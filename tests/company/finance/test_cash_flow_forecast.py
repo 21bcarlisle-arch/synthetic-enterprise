@@ -85,3 +85,56 @@ def test_other_outflows_in_specific_week():
     )
     assert f.weeks[3].total_outflows_gbp == pytest.approx(70_000 + 10_000 + 5_000 + 8_000 + 200_000)
     assert f.weeks[3].net_cash_gbp < 0
+
+
+# --- Phase KW depth tests ---
+
+def test_week_start_stored():
+    f = _make_forecast()
+    assert f.weeks[0].week_start == dt.date(2023, 1, 2)
+
+
+def test_customer_receipts_stored():
+    f = _make_forecast(receipts=120_000)
+    assert f.weeks[0].customer_receipts_gbp == pytest.approx(120_000.0)
+
+
+def test_total_inflows_equals_receipts():
+    f = _make_forecast(receipts=100_000)
+    assert f.weeks[0].total_inflows_gbp == pytest.approx(100_000.0)
+
+
+def test_total_outflows_positive():
+    f = _make_forecast()
+    assert f.weeks[0].total_outflows_gbp > 0.0
+
+
+def test_net_cash_is_inflows_minus_outflows():
+    w = f = _make_forecast().weeks[0]
+    assert w.net_cash_gbp == pytest.approx(w.total_inflows_gbp - w.total_outflows_gbp)
+
+
+def test_is_net_positive_true_when_surplus():
+    f = _make_forecast(receipts=200_000, wholesale=10_000, network=1_000, policy=1_000, opex=1_000)
+    assert f.weeks[0].is_net_positive is True
+
+
+def test_opening_cash_stored():
+    f = _make_forecast(opening=750_000)
+    assert f.opening_cash_gbp == pytest.approx(750_000.0)
+
+
+def test_as_of_stored():
+    f = _make_forecast()
+    assert f.as_of == dt.date(2023, 1, 2)
+
+
+def test_total_net_cash_is_sum():
+    f = _make_forecast()
+    expected = sum(w.net_cash_gbp for w in f.weeks)
+    assert f.total_net_cash_gbp == pytest.approx(expected)
+
+
+def test_week_count_equals_requested():
+    f = _make_forecast(weeks=8)
+    assert len(f.weeks) == 8

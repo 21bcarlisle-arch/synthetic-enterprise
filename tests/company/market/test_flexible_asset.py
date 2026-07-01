@@ -66,3 +66,57 @@ def test_total_revenue():
     bat.dispatch(DATE, 36, DispatchMode.DISCHARGE, 10.0, 200.0)
     revenue = bat.total_revenue_gbp(2022)
     assert revenue == pytest.approx(5.0 * 200.0 - 5.0 * 50.0)
+
+
+# --- Phase KW depth tests ---
+
+def test_asset_id_stored():
+    b = _bat()
+    assert b.asset_id == 'BAT-001'
+
+
+def test_asset_type_stored():
+    b = _bat()
+    assert b.asset_type == AssetType.BATTERY_STORAGE
+
+
+def test_capacity_mw_stored():
+    b = _bat()
+    assert b.capacity_mw == pytest.approx(10.0)
+
+
+def test_storage_mwh_stored():
+    b = _bat()
+    assert b.storage_mwh == pytest.approx(20.0)
+
+
+def test_soc_pct_zero_initially():
+    b = _bat()
+    assert b.soc_pct == pytest.approx(0.0)
+
+
+def test_can_charge_initially_true():
+    b = _bat()
+    assert b.can_charge is True
+
+
+def test_can_discharge_initially_false():
+    b = _bat()
+    assert b.can_discharge is False
+
+
+def test_dispatch_adds_to_history():
+    b = _bat()
+    b.dispatch(DATE, 1, DispatchMode.CHARGE, 5.0, 50.0)
+    assert len(b.dispatch_history) == 1
+
+
+def test_is_evening_peak_false_outside_range():
+    interval = AssetDispatchInterval(DATE, 10, DispatchMode.STANDBY, 0.0, 0.0)
+    assert interval.is_evening_peak is False
+
+
+def test_total_revenue_year_filter():
+    b = _bat()
+    b.dispatch(DATE, 33, DispatchMode.DISCHARGE, 10.0, 100.0)
+    assert b.total_revenue_gbp(DATE.year) > 0.0
