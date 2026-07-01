@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,360 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 12,390 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LY -- Coverage Depth Sprint XCIX (2026-07-01)
+30 depth tests across 3 modules: intraday_book (trade_id/settlement_date/settlement_period/direction/volume_mw/price/reason_default/volume_mwh=mw*0.5/crisis_false_below_500/record_returns), tpi_commission_book (tpi_id/tpi_name/tier/commission_type/upfront_zero/trail_zero/disclosed_false/compliant_false_undisclosed/customer_id_none/start_year_none), market_share_estimator (segment_stored/own_customers/uk_market_total/year_in_estimate/share_pct_computed/is_micro_tiny/customers_needed/total_own_customers/snapshot_year/segment_count=3).
+**Total:** 12,390 tests
 
 ### Phase LX -- Coverage Depth Sprint XCVIII (2026-07-01)
 30 depth tests across 3 modules: capacity_market_register (delivery_year/direction/mwh_consumed/rate_gbp/is_obligation/gross_amount=mwh*rate/asset_id_none/record_returns/wrong_year_empty/total_obligation_zero), cfd_levy (account_id/charge_date/year_from_date/quarter_from_date/consumption_mwh/levy_gbp/direction_positive/record_returns_charge/charges_filter/levy_directions=3), imbalance_ledger (settlement_date/settlement_period/metered_volume/contracted_volume/sbp/ssp/crisis_false_below_500/crisis_true_above_500/cashout_spread/record_returns).
@@ -4892,7 +4896,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,360 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,390 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

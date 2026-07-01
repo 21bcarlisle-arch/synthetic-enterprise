@@ -118,3 +118,77 @@ def test_market_summary():
     assert "Market Share" in summary
     assert "2022" in summary
     assert "13" in summary   # total customers
+
+
+# --- Phase LY depth tests ---
+
+def test_segment_stored():
+    est = _estimator_with_2022()
+    snap = est.snapshot_for_year(2022)
+    segments = [s.segment for s in snap.segment_estimates]
+    assert MarketSegment.DOMESTIC in segments
+
+
+def test_own_customers_stored():
+    est = _estimator_with_2022()
+    snap = est.snapshot_for_year(2022)
+    dom = next(s for s in snap.segment_estimates if s.segment == MarketSegment.DOMESTIC)
+    assert dom.own_customers == 9
+
+
+def test_uk_market_total_stored():
+    est = _estimator_with_2022()
+    snap = est.snapshot_for_year(2022)
+    dom = next(s for s in snap.segment_estimates if s.segment == MarketSegment.DOMESTIC)
+    assert dom.uk_market_total > 0
+
+
+def test_year_stored_in_estimate():
+    est = _estimator_with_2022()
+    snap = est.snapshot_for_year(2022)
+    for seg_est in snap.segment_estimates:
+        assert seg_est.year == 2022
+
+
+def test_market_share_pct_computed():
+    est = MarketShareEstimator()
+    est.record_year(2022, {MarketSegment.DOMESTIC: 100})
+    snap = est.snapshot_for_year(2022)
+    dom = next(s for s in snap.segment_estimates if s.segment == MarketSegment.DOMESTIC)
+    expected = 100 / dom.uk_market_total * 100
+    assert dom.market_share_pct == pytest.approx(expected)
+
+
+def test_is_micro_supplier_true_for_tiny_share():
+    est = MarketShareEstimator()
+    est.record_year(2022, {MarketSegment.DOMESTIC: 5})
+    snap = est.snapshot_for_year(2022)
+    dom = next(s for s in snap.segment_estimates if s.segment == MarketSegment.DOMESTIC)
+    assert dom.is_micro_supplier is True
+
+
+def test_customers_needed_for_1pct_computed():
+    est = MarketShareEstimator()
+    est.record_year(2022, {MarketSegment.DOMESTIC: 5})
+    snap = est.snapshot_for_year(2022)
+    dom = next(s for s in snap.segment_estimates if s.segment == MarketSegment.DOMESTIC)
+    expected = max(0, round(dom.uk_market_total * 0.01 - 5))
+    assert dom.customers_needed_for_1pct == expected
+
+
+def test_snapshot_total_own_customers_sums():
+    est = MarketShareEstimator()
+    est.record_year(2022, {MarketSegment.DOMESTIC: 10, MarketSegment.SME: 3})
+    snap = est.snapshot_for_year(2022)
+    assert snap.total_own_customers == 13
+
+
+def test_snapshot_year_stored():
+    est = MarketShareEstimator()
+    est.record_year(2023, {MarketSegment.DOMESTIC: 5})
+    snap = est.snapshot_for_year(2023)
+    assert snap.year == 2023
+
+
+def test_market_segment_has_3_members():
+    assert len(list(MarketSegment)) == 3

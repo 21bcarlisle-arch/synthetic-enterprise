@@ -121,3 +121,65 @@ def test_intraday_summary():
     assert s["sell_volume_mwh"] == pytest.approx(0.75)
     assert "daily_pnl_gbp" in s
     assert "net_position_mwh" in s
+
+
+# --- Phase LY depth tests ---
+
+def test_trade_id_stored():
+    book = IntradayBook()
+    t = book.record_trade('T_LY', DATE, 10, TradeDirection.BUY, 2.0, 80.0, AT)
+    assert t.trade_id == 'T_LY'
+
+
+def test_settlement_date_stored():
+    book = IntradayBook()
+    t = book.record_trade('T1', DATE, 10, TradeDirection.BUY, 2.0, 80.0, AT)
+    assert t.settlement_date == DATE
+
+
+def test_settlement_period_stored():
+    book = IntradayBook()
+    t = book.record_trade('T1', DATE, 15, TradeDirection.BUY, 2.0, 80.0, AT)
+    assert t.settlement_period == 15
+
+
+def test_direction_stored():
+    book = IntradayBook()
+    t = book.record_trade('T1', DATE, 10, TradeDirection.SELL, 2.0, 80.0, AT)
+    assert t.direction == TradeDirection.SELL
+
+
+def test_volume_mw_stored():
+    book = IntradayBook()
+    t = book.record_trade('T1', DATE, 10, TradeDirection.BUY, 3.5, 80.0, AT)
+    assert t.volume_mw == pytest.approx(3.5)
+
+
+def test_price_stored():
+    book = IntradayBook()
+    t = book.record_trade('T1', DATE, 10, TradeDirection.BUY, 2.0, 95.0, AT)
+    assert t.price_gbp_per_mwh == pytest.approx(95.0)
+
+
+def test_reason_default_position_balancing():
+    book = IntradayBook()
+    t = book.record_trade('T1', DATE, 10, TradeDirection.BUY, 2.0, 80.0, AT)
+    assert t.reason == TradeReason.POSITION_BALANCING
+
+
+def test_volume_mwh_is_mw_times_half():
+    book = IntradayBook()
+    t = book.record_trade('T1', DATE, 10, TradeDirection.BUY, 4.0, 80.0, AT)
+    assert t.volume_mwh == pytest.approx(2.0)
+
+
+def test_is_crisis_price_false_below_500():
+    book = IntradayBook()
+    t = book.record_trade('T1', DATE, 10, TradeDirection.BUY, 2.0, 499.0, AT)
+    assert t.is_crisis_price is False
+
+
+def test_record_trade_returns_intraday_trade():
+    book = IntradayBook()
+    result = book.record_trade('T1', DATE, 10, TradeDirection.BUY, 2.0, 80.0, AT)
+    assert isinstance(result, IntradayTrade)

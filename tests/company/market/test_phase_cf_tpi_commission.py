@@ -116,3 +116,75 @@ def test_tpi_summary():
     assert "TPI Commission" in summary
     assert "Total" in summary
     assert "Non-disclosed" in summary
+
+
+# --- Phase LY depth tests ---
+
+def test_tpi_id_stored():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.REGIONAL, CommissionType.UPFRONT)
+    agr = book.all_agreements[0]
+    assert agr.tpi_id == 'TPI-LY'
+
+
+def test_tpi_name_stored():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.INDEPENDENT, CommissionType.UPFRONT)
+    agr = book.all_agreements[0]
+    assert agr.tpi_name == 'LY Agency'
+
+
+def test_tier_stored():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.ONLINE, CommissionType.UPFRONT)
+    agr = book.all_agreements[0]
+    assert agr.tier == TPITier.ONLINE
+
+
+def test_commission_type_stored():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.NATIONAL, CommissionType.TRAIL)
+    agr = book.all_agreements[0]
+    assert agr.commission_type == CommissionType.TRAIL
+
+
+def test_upfront_gbp_default_zero():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.NATIONAL, CommissionType.UPFRONT)
+    agr = book.all_agreements[0]
+    assert agr.upfront_gbp == pytest.approx(0.0)
+
+
+def test_trail_gbp_per_mwh_default_zero():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.NATIONAL, CommissionType.TRAIL)
+    agr = book.all_agreements[0]
+    assert agr.trail_gbp_per_mwh == pytest.approx(0.0)
+
+
+def test_is_disclosed_default_false():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.NATIONAL, CommissionType.UPFRONT)
+    agr = book.all_agreements[0]
+    assert agr.is_disclosed_to_customer is False
+
+
+def test_is_compliant_false_when_not_disclosed():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.NATIONAL, CommissionType.UPFRONT)
+    agr = book.all_agreements[0]
+    assert agr.is_compliant is False
+
+
+def test_customer_id_default_none():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.NATIONAL, CommissionType.UPFRONT)
+    agr = book.all_agreements[0]
+    assert agr.customer_id is None
+
+
+def test_contract_start_year_default_none():
+    book = _book()
+    book.register_tpi('TPI-LY', 'LY Agency', TPITier.NATIONAL, CommissionType.UPFRONT)
+    agr = book.all_agreements[0]
+    assert agr.contract_start_year is None
