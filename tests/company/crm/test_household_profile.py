@@ -79,3 +79,56 @@ def test_gas_boiler_household_is_heat_pump_eligible(retired_couple):
 def test_profile_is_frozen(retired_couple):
     with pytest.raises(Exception):
         retired_couple.occupants = 5
+
+
+# --- Phase LI depth tests ---
+
+def test_single_occupant_peak_0_85():
+    p = HouseholdBehaviourProfile(HouseholdType.SINGLE_OCCUPANT, HeatingSystem.GAS_BOILER, 1)
+    assert p.peak_load_factor == pytest.approx(0.85)
+
+
+def test_family_peak_1_35():
+    p = HouseholdBehaviourProfile(HouseholdType.FAMILY_WITH_CHILDREN, HeatingSystem.GAS_BOILER, 4)
+    assert p.peak_load_factor == pytest.approx(1.35)
+
+
+def test_couple_no_children_peak_1_0():
+    p = HouseholdBehaviourProfile(HouseholdType.COUPLE_NO_CHILDREN, HeatingSystem.GAS_BOILER, 2)
+    assert p.peak_load_factor == pytest.approx(1.00)
+
+
+def test_retired_couple_daytime_0_72():
+    p = HouseholdBehaviourProfile(HouseholdType.RETIRED_COUPLE, HeatingSystem.GAS_BOILER, 2)
+    assert p.daytime_consumption_pct == pytest.approx(0.72)
+
+
+def test_student_peak_0_75():
+    p = HouseholdBehaviourProfile(HouseholdType.STUDENT_HOUSEHOLD, HeatingSystem.STORAGE_HEATER, 3)
+    assert p.peak_load_factor == pytest.approx(0.75)
+
+
+def test_wfh_daytime_boost():
+    base = HouseholdBehaviourProfile(HouseholdType.WORK_FROM_HOME, HeatingSystem.GAS_BOILER, 1, wfh_days_per_week=0)
+    wfh = HouseholdBehaviourProfile(HouseholdType.WORK_FROM_HOME, HeatingSystem.GAS_BOILER, 1, wfh_days_per_week=5)
+    assert wfh.daytime_consumption_pct == pytest.approx(base.daytime_consumption_pct + 0.10)
+
+
+def test_occupants_stored():
+    p = HouseholdBehaviourProfile(HouseholdType.FAMILY_WITH_CHILDREN, HeatingSystem.GAS_BOILER, 4)
+    assert p.occupants == 4
+
+
+def test_heating_system_stored():
+    p = HouseholdBehaviourProfile(HouseholdType.RETIRED_COUPLE, HeatingSystem.OIL_BOILER, 2)
+    assert p.heating_system == HeatingSystem.OIL_BOILER
+
+
+def test_tou_sensitivity_couple_medium():
+    p = HouseholdBehaviourProfile(HouseholdType.COUPLE_NO_CHILDREN, HeatingSystem.GAS_BOILER, 2)
+    assert p.tou_price_sensitivity == "medium"
+
+
+def test_oil_boiler_heat_pump_eligible():
+    p = HouseholdBehaviourProfile(HouseholdType.RETIRED_COUPLE, HeatingSystem.OIL_BOILER, 2)
+    assert p.heat_pump_eligible is True

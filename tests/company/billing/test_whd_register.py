@@ -102,3 +102,67 @@ def test_custom_rebate_amount():
     app = reg.apply('C001', 2024, WHDEligibilityReason.INDUSTRY_INITIATIVE,
                     D(2024, 10, 1), rebate_gbp=200.0)
     assert app.rebate_gbp == 200.0
+
+
+# --- Phase LI depth tests ---
+
+def test_rebate_gbp_constant():
+    assert WHD_REBATE_GBP == pytest.approx(150.0)
+
+
+def test_application_id_format():
+    reg = WHDRegister()
+    app = reg.apply('C001', 2022, WHDEligibilityReason.CORE_GROUP, D(2022, 12, 1))
+    assert app.application_id.startswith('WHD-2022-')
+
+
+def test_eligibility_reason_stored():
+    reg = WHDRegister()
+    app = reg.apply('C001', 2022, WHDEligibilityReason.BROADER_GROUP_PSR, D(2022, 12, 1))
+    assert app.eligibility_reason == WHDEligibilityReason.BROADER_GROUP_PSR
+
+
+def test_applied_date_stored():
+    reg = WHDRegister()
+    app = reg.apply('C001', 2022, WHDEligibilityReason.CORE_GROUP, D(2022, 11, 15))
+    assert app.applied_date == D(2022, 11, 15)
+
+
+def test_rebated_date_none_default():
+    reg = WHDRegister()
+    app = reg.apply('C001', 2022, WHDEligibilityReason.CORE_GROUP, D(2022, 12, 1))
+    assert app.rebated_date is None
+
+
+def test_status_applied_before_rebate():
+    reg = WHDRegister()
+    app = reg.apply('C001', 2022, WHDEligibilityReason.CORE_GROUP, D(2022, 12, 1))
+    assert app.status == WHDStatus.APPLIED
+
+
+def test_status_rebated_after_mark():
+    reg = WHDRegister()
+    app = reg.apply('C001', 2022, WHDEligibilityReason.CORE_GROUP, D(2022, 12, 1))
+    updated = reg.mark_rebated(app.application_id, D(2023, 1, 10))
+    assert updated.status == WHDStatus.REBATED
+
+
+def test_annual_summary_scheme_year_key():
+    reg = WHDRegister()
+    reg.apply('C001', 2024, WHDEligibilityReason.CORE_GROUP, D(2024, 11, 1))
+    s = reg.annual_summary(2024)
+    assert s['scheme_year'] == 2024
+
+
+def test_total_rebated_no_year_filter():
+    reg = WHDRegister()
+    a1 = reg.apply('C001', 2022, WHDEligibilityReason.CORE_GROUP, D(2022, 12, 1))
+    a2 = reg.apply('C001', 2023, WHDEligibilityReason.CORE_GROUP, D(2023, 12, 1))
+    reg.mark_rebated(a1.application_id, D(2023, 1, 1))
+    reg.mark_rebated(a2.application_id, D(2024, 1, 1))
+    assert reg.total_rebated_gbp() == pytest.approx(300.0)
+
+
+def test_pending_rebates_empty_on_fresh():
+    reg = WHDRegister()
+    assert reg.pending_rebates() == []

@@ -92,3 +92,63 @@ def test_net_positive_when_gaining():
 def test_objection_deadline_14_days():
     r = _req("SW-012")
     assert r.objection_deadline == "2026-07-10"
+
+import pytest
+
+# --- Phase LI depth tests ---
+
+def test_customer_id_stored():
+    r = _req("SW-100")
+    assert r.customer_id == "C1"
+
+
+def test_mpan_stored():
+    r = _req("SW-101")
+    assert r.mpan_or_mprn == "1012345678901"
+
+
+def test_requested_transfer_date_stored():
+    r = _req("SW-102")
+    assert r.requested_transfer_date == "2026-07-10"
+
+
+def test_submitted_date_stored():
+    r = _req("SW-103")
+    assert r.submitted_date == "2026-06-26"
+
+
+def test_status_default_pending():
+    r = _req("SW-104")
+    assert r.status == "pending"
+
+
+def test_objection_reason_default_empty():
+    r = _req("SW-105")
+    assert r.objection_reason == ""
+
+
+def test_completed_date_default_empty():
+    r = _req("SW-106")
+    assert r.completed_date == ""
+
+
+def test_gains_method():
+    b = SwitchingBook()
+    b.record(_req("SW-107", "gain"))
+    b.record(_req("SW-108", "loss"))
+    assert len(b.gains()) == 1
+    assert len(b.losses()) == 1
+
+
+def test_losses_method():
+    b = SwitchingBook()
+    b.record(_req("SW-109", "loss"))
+    b.record(_req("SW-110", "loss"))
+    assert len(b.losses()) == 2
+
+
+def test_summary_total():
+    b = SwitchingBook()
+    b.record(_req("SW-111", "gain"))
+    b.record(_req("SW-112", "loss"))
+    assert b.switching_summary()["total"] == 2
