@@ -1,11 +1,11 @@
-"""Generation of synthetic forward prices for fixed-rate tariffs.
+"""Forward price model for fixed-rate tariff acquisition.
 
-Synthetic Forward Curve law: no real UK forward-curve data exists for this
-purpose, so a forward price is built FROM real historical spot data — the
-Historical Ground Truth law stays satisfied because the base is always real
-spot, never invented. The output is a SYNTHETIC number and must be labelled
-as such wherever it is used downstream (it is the input `saas/tariff_pricing`
-applies its margin to, not a real market quote).
+Phase MS: seasonal multipliers loaded from sim/data/seasonal_calibration.json,
+derived empirically from real market data 2016-2024:
+  - Electricity: Elexon BMRS half-hourly SSP (per-year monthly/annual ratio)
+  - Gas: FRED PNGASEUUSDM TTF proxy in GBP/MWh (same methodology)
+Includes 2021-2022 energy crisis — real events, not excluded.
+Falls back to hand-calibrated constants if calibration file is missing.
 
 PHASE 41-PREP REFORM: replaced the old (base + pstdev × risk_factor) formula
 with a proper term-structure model matching how UK baseload forwards actually
@@ -38,33 +38,54 @@ PHASE 42 ADDITION: fuel-specific seasonal multipliers.
 Phase 4c-3 weather sensitivity multiplier is preserved unchanged.
 """
 
+import json
 import statistics
+from pathlib import Path
 from datetime import date, timedelta
 
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
+
+_CALIBRATION_PATH = Path(__file__).parent / 'data' / 'seasonal_calibration.json'
+
+
+def _load_calibration():
+    try:
+        with open(_CALIBRATION_PATH) as _f:
+            _cal = json.load(_f)
+        _elec = {int(k): float(v) for k, v in _cal['electricity_n2ex']['multipliers'].items()}
+        _gas = {int(k): float(v) for k, v in _cal['gas_nbp']['multipliers'].items()}
+        if len(_elec) == 12 and len(_gas) == 12:
+            return _elec, _gas
+    except (FileNotFoundError, KeyError, ValueError):
+        pass
+    return None, None
+
 
 # Monthly seasonal multipliers (1=Jan … 12=Dec).
 # ELECTRICITY: calibrated to UK N2EX historical baseload seasonality 2016-2025.
 #   Q4/Q1: peak demand, low renewable output → premium
 #   Q2/Q3: mild demand, high solar/wind surplus → discount
 # Annual arithmetic mean = 1.002 — 12-month contracts are near-flat on seasonal.
-MONTH_SEASONAL_MULTIPLIER: dict[int, float] = {
+_ELEC_FALLBACK: dict[int, float] = {
     1: 1.12, 2: 1.12, 3: 1.08,
     4: 0.95, 5: 0.92, 6: 0.88,
     7: 0.88, 8: 0.90, 9: 0.95,
     10: 1.02, 11: 1.08, 12: 1.12,
 }
+_cal_elec, _cal_gas = _load_calibration()
+MONTH_SEASONAL_MULTIPLIER: dict[int, float] = _cal_elec if _cal_elec is not None else _ELEC_FALLBACK
 
 # GAS (NBP): much steeper winter premium reflecting UK space-heating demand.
 # Q1 peak: up to 3-4× July demand in UK (National Grid gas consumption data).
 # Monthly spreads calibrated to NBP seasonal price structure 2016-2025.
 # Annual arithmetic mean ≈ 0.99 — 12-month contracts are near-flat.
-GAS_MONTH_SEASONAL_MULTIPLIER: dict[int, float] = {
+_GAS_FALLBACK: dict[int, float] = {
     1: 1.22, 2: 1.17, 3: 1.06,
     4: 0.92, 5: 0.87, 6: 0.82,
     7: 0.80, 8: 0.82, 9: 0.90,
     10: 1.00, 11: 1.10, 12: 1.20,
 }
+GAS_MONTH_SEASONAL_MULTIPLIER: dict[int, float] = _cal_gas if _cal_gas is not None else _GAS_FALLBACK
 
 # Aggregate winter/summer values — kept for backward-compat (callers and tests).
 WINTER_MONTHS: frozenset[int] = frozenset({10, 11, 12, 1, 2, 3})

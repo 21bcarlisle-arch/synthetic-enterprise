@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,960 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 441+ commits. 12,976 tests passing. Codebase: ~47,600 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase MS -- Real NBP Forward Curve (2026-07-01)
+16 calibration tests. Replaced hand-coded seasonal multipliers with empirically derived values from real market data 2016-2024 (Elexon SSP + FRED TTF proxy). Gas Dec 1.12→1.294, Elec Dec 1.12→1.257. Added sim/data/seasonal_calibration.json.
+**Total:** 12,976 tests
 
 ### Phase MR -- Coverage Depth Sprint CXVIII (2026-07-01)
 30 depth tests: flexibility_revenue/triad_notification/tariff_benchmarking.
@@ -4972,7 +4976,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,960 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,976 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

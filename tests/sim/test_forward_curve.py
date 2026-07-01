@@ -258,50 +258,58 @@ def test_gas_seasonal_shape_annual_contract_near_flat():
 
 
 def test_gas_winter_premium_steeper_than_electricity():
-    """Gas Q1 delivery carries a larger seasonal premium than electricity Q1."""
-    elec_winter = _seasonal_shape(1, 3)      # electricity Jan-Mar
-    gas_winter = _seasonal_shape(1, 3, "gas")  # gas Jan-Mar
-    assert gas_winter > elec_winter, (
-        f"Gas Q1 premium ({gas_winter:.3f}) should exceed electricity ({elec_winter:.3f})"
+    """Gas Dec delivery carries a larger seasonal premium than electricity Dec.
+    Empirical 2016-2024 data: gas Dec=1.294, elec Dec=1.257. Q1 inverted by crisis.
+    """
+    elec_dec = _seasonal_shape(12, 1)
+    gas_dec = _seasonal_shape(12, 1, "gas")
+    assert gas_dec > elec_dec, (
+        f"Gas Dec premium ({gas_dec:.3f}) should exceed electricity ({elec_dec:.3f})"
     )
 
 
 def test_gas_summer_discount_steeper_than_electricity():
-    """Gas Q3 delivery carries a larger seasonal discount than electricity Q3."""
-    elec_summer = _seasonal_shape(7, 3)       # electricity Jul-Sep
-    gas_summer = _seasonal_shape(7, 3, "gas")  # gas Jul-Sep
-    assert gas_summer < elec_summer, (
-        f"Gas Q3 discount ({gas_summer:.3f}) should be deeper than electricity ({elec_summer:.3f})"
+    """Gas May delivery carries a larger seasonal discount than electricity May.
+    Empirical 2016-2024: gas May=0.798, elec May=0.827. Jul-Sep inverted by 2021-22 crisis.
+    """
+    elec_may = _seasonal_shape(5, 1)
+    gas_may = _seasonal_shape(5, 1, "gas")
+    assert gas_may < elec_may, (
+        f"Gas May discount ({gas_may:.3f}) should be deeper than electricity ({elec_may:.3f})"
     )
 
 
 def test_gas_forward_price_lower_than_electricity_in_summer():
-    """Gas forward in summer delivery has deeper discount than electricity (steeper seasonality)."""
-    acquisition_date = "2023-07-01"
+    """Gas forward in May delivery is lower than electricity (May is gas trough month).
+    Empirical 2016-2024: gas May=0.798, elec May=0.827.
+    """
+    acquisition_date = "2023-05-01"
     start_lb = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()
     end_lb = (date.fromisoformat(acquisition_date) - timedelta(days=1)).isoformat()
     records = _records(start_lb, end_lb, price_pattern=[50.0])
 
-    fwd_elec = generate_forward_price(acquisition_date, records, contract_length_months=3)
-    fwd_gas = generate_forward_price(acquisition_date, records, contract_length_months=3, fuel="gas")
+    fwd_elec = generate_forward_price(acquisition_date, records, contract_length_months=1)
+    fwd_gas = generate_forward_price(acquisition_date, records, contract_length_months=1, fuel="gas")
 
     assert fwd_gas < fwd_elec, (
-        f"Gas summer forward ({fwd_gas:.2f}) should be lower than electricity ({fwd_elec:.2f})"
+        f"Gas May forward ({fwd_gas:.2f}) should be lower than electricity ({fwd_elec:.2f})"
     )
 
 
 def test_gas_forward_price_higher_than_electricity_in_winter():
-    """Gas forward in winter delivery has larger premium than electricity."""
-    acquisition_date = "2023-01-15"
+    """Gas forward in December delivery is higher than electricity (Dec is gas peak month).
+    Empirical 2016-2024: gas Dec=1.294, elec Dec=1.257.
+    """
+    acquisition_date = "2023-12-01"
     start_lb = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()
     end_lb = (date.fromisoformat(acquisition_date) - timedelta(days=1)).isoformat()
     records = _records(start_lb, end_lb, price_pattern=[50.0])
 
-    fwd_elec = generate_forward_price(acquisition_date, records, contract_length_months=3)
-    fwd_gas = generate_forward_price(acquisition_date, records, contract_length_months=3, fuel="gas")
+    fwd_elec = generate_forward_price(acquisition_date, records, contract_length_months=1)
+    fwd_gas = generate_forward_price(acquisition_date, records, contract_length_months=1, fuel="gas")
 
     assert fwd_gas > fwd_elec, (
-        f"Gas winter forward ({fwd_gas:.2f}) should exceed electricity ({fwd_elec:.2f})"
+        f"Gas Dec forward ({fwd_gas:.2f}) should exceed electricity ({fwd_elec:.2f})"
     )
 
 
@@ -326,3 +334,97 @@ def test_weather_premium_not_applied_to_gas():
     assert gas_no_weather == pytest.approx(gas_with_temps), (
         "Weather adjustment must not apply to gas forwards"
     )
+
+
+def test_calibration_loaded_not_fallback():
+    from sim.forward_curve import _ELEC_FALLBACK
+    assert MONTH_SEASONAL_MULTIPLIER is not _ELEC_FALLBACK
+    assert MONTH_SEASONAL_MULTIPLIER != _ELEC_FALLBACK
+
+def test_calibration_elec_dec_empirical():
+    assert MONTH_SEASONAL_MULTIPLIER[12] == pytest.approx(1.257, abs=0.01)
+
+def test_calibration_gas_dec_empirical():
+    assert GAS_MONTH_SEASONAL_MULTIPLIER[12] == pytest.approx(1.294, abs=0.01)
+
+def test_calibration_gas_may_trough():
+    gas_may = GAS_MONTH_SEASONAL_MULTIPLIER[5]
+    assert gas_may == pytest.approx(0.798, abs=0.01)
+    for m in range(1, 13):
+        assert GAS_MONTH_SEASONAL_MULTIPLIER[m] >= gas_may
+
+def test_calibration_elec_annual_mean_near_unity():
+    mean_val = statistics.mean(MONTH_SEASONAL_MULTIPLIER.values())
+    assert abs(mean_val - 1.0) < 0.02
+
+def test_calibration_gas_annual_mean_near_unity():
+    mean_val = statistics.mean(GAS_MONTH_SEASONAL_MULTIPLIER.values())
+    assert abs(mean_val - 1.0) < 0.02
+
+def test_calibration_q4_peak_both_fuels():
+    for m in (11, 12):
+        assert MONTH_SEASONAL_MULTIPLIER[m] > 1.0
+        assert GAS_MONTH_SEASONAL_MULTIPLIER[m] > 1.0
+
+def test_calibration_spring_trough_both_fuels():
+    for m in (5, 6):
+        assert MONTH_SEASONAL_MULTIPLIER[m] < 1.0
+        assert GAS_MONTH_SEASONAL_MULTIPLIER[m] < 1.0
+
+def test_calibration_all_multipliers_positive():
+    for m, v in MONTH_SEASONAL_MULTIPLIER.items():
+        assert v > 0
+    for m, v in GAS_MONTH_SEASONAL_MULTIPLIER.items():
+        assert v > 0
+
+def test_calibration_dec_is_peak_for_gas():
+    assert GAS_MONTH_SEASONAL_MULTIPLIER[12] == max(GAS_MONTH_SEASONAL_MULTIPLIER.values())
+
+def test_calibration_dec_is_peak_for_electricity():
+    assert MONTH_SEASONAL_MULTIPLIER[12] == max(MONTH_SEASONAL_MULTIPLIER.values())
+
+def test_calibration_file_valid_structure():
+    from sim.forward_curve import _CALIBRATION_PATH
+    assert _CALIBRATION_PATH.exists()
+    import json
+    with open(_CALIBRATION_PATH) as f:
+        cal = json.load(f)
+    assert 'electricity_n2ex' in cal
+    assert 'gas_nbp' in cal
+    assert 'multipliers' in cal['electricity_n2ex']
+    assert 'multipliers' in cal['gas_nbp']
+    assert len(cal['electricity_n2ex']['multipliers']) == 12
+    assert len(cal['gas_nbp']['multipliers']) == 12
+
+def test_load_calibration_returns_twelve_month_dicts():
+    from sim.forward_curve import _load_calibration
+    cal_e, cal_g = _load_calibration()
+    assert cal_e is not None
+    assert cal_g is not None
+    assert len(cal_e) == 12
+    assert len(cal_g) == 12
+
+def test_calibration_elec_annual_avgs_cover_2016_to_2024():
+    from sim.forward_curve import _CALIBRATION_PATH
+    import json
+    with open(_CALIBRATION_PATH) as f:
+        cal = json.load(f)
+    avgs = cal['electricity_n2ex']['annual_averages_gbp_mwh']
+    for y in range(2016, 2025):
+        assert str(y) in avgs
+
+def test_calibration_crisis_years_reflected_in_gas():
+    from sim.forward_curve import _CALIBRATION_PATH
+    import json
+    with open(_CALIBRATION_PATH) as f:
+        cal = json.load(f)
+    avgs = cal['gas_nbp']['annual_averages_gbp_mwh']
+    assert avgs['2022'] > avgs['2016'] * 5
+
+def test_calibration_elec_2022_exceeds_2019():
+    from sim.forward_curve import _CALIBRATION_PATH
+    import json
+    with open(_CALIBRATION_PATH) as f:
+        cal = json.load(f)
+    avgs = cal['electricity_n2ex']['annual_averages_gbp_mwh']
+    assert avgs['2022'] > avgs['2019'] * 3

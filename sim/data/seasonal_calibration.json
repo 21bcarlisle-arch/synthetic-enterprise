@@ -1,0 +1,60 @@
+{
+  "description": "Empirical seasonal multipliers derived from historical market data 2016-2024",
+  "methodology": "Per-year monthly/annual ratio, mean across years 2016-2024. Includes 2021-2022 energy crisis.",
+  "gas_nbp": {
+    "source": "FRED PNGASEUUSDM TTF proxy converted to GBP/MWh (daily expanded from monthly)",
+    "multipliers": {
+      "1": 1.0526,
+      "2": 0.9544,
+      "3": 0.9203,
+      "4": 0.8523,
+      "5": 0.7978,
+      "6": 0.8176,
+      "7": 0.8882,
+      "8": 1.0322,
+      "9": 1.0996,
+      "10": 1.1032,
+      "11": 1.1827,
+      "12": 1.2939
+    },
+    "annual_averages_gbp_mwh": {
+      "2016": 11.6,
+      "2017": 15.31,
+      "2018": 21.1,
+      "2019": 11.85,
+      "2020": 8.48,
+      "2021": 42.59,
+      "2022": 100.26,
+      "2023": 34.28,
+      "2024": 29.06
+    }
+  },
+  "electricity_n2ex": {
+    "source": "Elexon BMRS system sell price (SSP) half-hourly 2016-2024",
+    "multipliers": {
+      "1": 1.0743,
+      "2": 0.9364,
+      "3": 0.9707,
+      "4": 0.8384,
+      "5": 0.8267,
+      "6": 0.8695,
+      "7": 0.9117,
+      "8": 0.9905,
+      "9": 1.0943,
+      "10": 1.0446,
+      "11": 1.1804,
+      "12": 1.257
+    },
+    "annual_averages_gbp_mwh": {
+      "2016": 39.38,
+      "2017": 44.27,
+      "2018": 57.35,
+      "2019": 42.0,
+      "2020": 35.06,
+      "2021": 113.29,
+      "2022": 200.08,
+      "2023": 94.55,
+      "2024": 71.17
+    }
+  }
+}
