@@ -1,89 +1,87 @@
-# Proposed Phase MV -- Economic Life Events: Income Stress in the SIM
+# Proposed Phase MW -- Income Stress -> Observed Payment Behaviour
 
-**Drafted:** 2026-07-01T12:05:00Z
-**4-hour opt-out window expires:** ~2026-07-01T16:05:00Z
-**Replaces:** EPC Fabric Efficiency proposal (already implemented in simulation/household_demand.py)
+**Drafted:** 2026-07-01T19:10:00Z
+**4-hour opt-out window expires:** ~2026-07-01T23:10:00Z
+**Replaces:** Phase MV proposal (Phase MV already complete)
 
 ## Summary
-Add economic life events (job_loss, income_recovery, new_baby, retirement_starts) to
-the SIM life events engine. Wire these to an IncomeStress state on the Household
-dataclass. The SIM now knows when a customer is under financial pressure -- the company
-observes this only via payment timing (which Phase MW will wire). Human Simulation
-Layer -- Dimension 2 (Economic), first increment.
+
+Wire the SIM income_stress state (added in Phase MV) to synthetic payment records
+that the company can observe through PaymentBehaviourAnalytics. The canonical Human
+Simulation Layer scenario now becomes possible: job_loss fires -> HIGH stress -> late
+payment pattern -> company observes deteriorating payment behaviour and must respond.
 
 ## Why now
-Physical life events (solar, EV, heat pump, boiler, insulation, smart meter) are all
-modelled (Phases A-G of the simulation). The EPC consumption multiplier is live.
-The remaining real gap is the economic dimension: the SIM has no model of income stress,
-job loss, or financial shocks. The canonical HSL scenario (new baby + reduced income ->
-payment timing slip -> company misreads as high-risk debtor) cannot happen in the SIM
-because economic life events do not fire.
+
+Phase MV added IncomeStress to every household and fires economic events. But
+IncomeStress is currently inert -- no downstream effect on simulation output. Without
+this wiring the SIM knows a customer is under stress but behaves identically to a
+stress-free customer. Phase MW closes this gap.
+
+The canonical scenario becomes testable end-to-end:
+1. job_loss fires month 3 (SIM knows, company cannot read)
+2. payment_timing.py generates LATE/DD_FAILED records months 4-6 (observable signal)
+3. Company PaymentBehaviourAnalytics shows behaviour_score degrading EXCELLENT -> POOR
+4. Company debt management responds correctly to observable signals
 
 ## Epistemic note
-IncomeStress is SIM ground truth. The company cannot read it directly -- it observes
-payment timing, complaint frequency, and debt escalation as downstream signals.
-Consistent with SIM/company barrier.
 
-## Calibration sources
-- DWP STAT-Xplore: UK employee job loss rate ~2.2%/yr (2016-2024 average)
-- ONS Birth Statistics: UK birth rate ~11/1000/yr -> ~1.1%/yr per household (resi)
-- ONS LFS: retirement transition rate ~3.5%/yr for 55-65 age band
-- Income recovery: median job loss duration ~4.5 months (ONS LFS 2023)
-All calibrated to resi customers only; SME/I&C customers are exempt from economic events.
-
-## IncomeStress state transitions
-  LOW (default) --job_loss--> HIGH
-  HIGH --income_recovery--> LOW (after ~5 months median)
-  LOW --new_baby--> MODERATE (new baby + partner income reduction)
-  MODERATE --income_recovery--> LOW (typically 12-18 months)
-  LOW --retirement_starts--> MODERATE (initial adjustment period)
-  MODERATE (retirement) --income_stabilised--> LOW (after 3 months pension stabilises)
-
-## Files to modify
-- `simulation/household.py`:
-  - Add `IncomeStress(str, Enum)`: LOW / MODERATE / HIGH
-  - Add `income_stress: IncomeStress = IncomeStress.LOW` to Household dataclass
-  - Add `income_stress_at_events(events) -> IncomeStress` classmethod helper
-
-- `simulation/life_events.py`:
-  - Add to EventType: "job_loss", "income_recovery", "new_baby", "retirement_starts"
-  - Add `_job_loss_probability(year, segment) -> float`: ~0.022 for resi, 0 for SME/I&C
-  - Add `_new_baby_probability(year, segment) -> float`: ~0.011 for resi
-  - Add `_retirement_probability(year, segment, build_era) -> float`: era-calibrated
-  - Extend `generate_life_events()` to fire economic events alongside physical ones
-
-- `simulation/household_demand.py`:
-  - Add `income_stress_at_date(customer_id, date_str) -> IncomeStress` method
-    (reads from household_at_date, returns LOW if customer not in register)
+income_stress is SIM ground truth -- the company never reads it directly.
+Payment records (due_date, payment_date, result) are observable to the company.
+Correlation between stress and payment quality is indirect and noisy. Consistent with
+SIM/company barrier.
 
 ## Files to create
-- `tests/sim/test_phase_mv_economic_life_events.py` -- 20 tests:
-  - IncomeStress enum has LOW/MODERATE/HIGH
-  - EventType includes job_loss, income_recovery, new_baby, retirement_starts
-  - job_loss_probability_resi_nonzero
-  - job_loss_probability_sme_zero (SME exempt)
-  - new_baby_probability_resi_nonzero
-  - retirement_probability_pre_1919_higher (older cohort retires sooner)
-  - generate_life_events_can_fire_job_loss (seeded RNG, verify at least 1 in 100)
-  - job_loss_event_transitions_to_HIGH
-  - income_recovery_after_job_loss_returns_to_LOW
-  - new_baby_transitions_to_MODERATE
-  - income_recovery_after_baby_returns_to_LOW
-  - retirement_transitions_to_MODERATE
-  - income_stabilised_returns_to_LOW
-  - no_economic_events_remains_LOW
-  - income_stress_at_date_unknown_customer_returns_LOW
-  - income_stress_at_date_after_job_loss_date_is_HIGH
-  - income_stress_at_date_before_job_loss_date_is_LOW
-  - multiple_events_replay_in_order
-  - sme_customer_no_economic_events
-  - stress_does_not_affect_existing_physical_events (independence)
+
+simulation/payment_timing.py -- new SIM-side module:
+  _PAYMENT_DELAY_DAYS: LOW (7,14) days; MODERATE (14,45); HIGH (30,90)
+  _DD_FAILURE_PROBABILITY: LOW 0.03, MODERATE 0.12, HIGH 0.35
+  generate_payment_record(customer_id, due_date, amount_gbp, income_stress, rng) -> dict
+  stress_bad_debt_multiplier(income_stress) -> float: LOW 1.0 / MODERATE 1.5 / HIGH 3.0
+
+## Files to modify
+
+simulation/run_phase2b.py:
+  At term close: look up income_stress_at_date(billing_account, term_end_str)
+  Multiply get_bad_debt_rate() by stress_bad_debt_multiplier(income_stress)
+  Emit payment record dict into run output payment_behaviour_records list
+
+## Files to create (tests)
+
+tests/sim/test_phase_mw_payment_timing.py -- 25 tests:
+  LOW_stress_delay_in_7_14_window
+  MODERATE_stress_delay_in_14_45_window
+  HIGH_stress_delay_in_30_90_window
+  LOW_dd_failure_rare (3% rate, seeded 100 -> <=10 failures)
+  HIGH_dd_failure_common (35% rate, seeded 100 -> >=20 failures)
+  generate_payment_record_fields_present
+  dd_failed_has_no_payment_date
+  on_time_has_payment_date_not_none
+  late_payment_date_after_due_date
+  stress_multiplier_LOW_is_1.0
+  stress_multiplier_MODERATE_is_1.5
+  stress_multiplier_HIGH_is_3.0
+  stress_multiplier_None_is_1.0 (I&C/SME no household)
+  high_stress_bad_debt_higher_than_low_stress
+  payment_records_accumulate
+  seeded_rng_deterministic
+  income_stress_LOW_mostly_on_time (>=85pct)
+  income_stress_HIGH_mostly_not_on_time (>=40pct LATE or worse)
+  MODERATE_between_LOW_and_HIGH_on_time_rate
+  payment_date_is_date_type
+  amount_paid_zero_when_dd_failed
+  amount_paid_equals_due_when_not_partial
+  two_customers_independent
+  sme_customer_None_multiplier
+  resi_job_loss_shows_payment_deterioration (integration)
 
 ## Target
-20 new tests, total 13,053.
 
-## Impact
-The SIM now models income shocks. Phase MW (to follow) will wire IncomeStress to
-payment timing in the settlement loop. The canonical HSL scenario becomes possible:
-job_loss fires in month 3, customer transitions to HIGH stress, late payment in
-month 4, company observes (not reads), and service layer must respond correctly.
+25 new tests, total ~14,485.
+
+## Fidelity delta
+
+IncomeStress now cascades into observable company-side signals. Financial stress leaves
+a footprint in payment records the company can read, classify, and act on. The canonical
+HSL scenario (job_loss -> payment slip -> company response) is now end-to-end testable.
+Bad debt becomes customer-specific rather than segment-average for the first time.
