@@ -70,3 +70,49 @@ def test_e7_bill_frozen():
     bill = generate_e7_bill("C001", date(2022, 1, 1), date(2022, 1, 31), 300.0, 150.0)
     with pytest.raises(Exception):
         bill.day_kwh = 999.0
+
+
+# --- Phase LH depth tests ---
+
+def test_day_rate_2016_exact():
+    assert e7_unit_rate_ppm(2016, TariffRegister.DAY) == pytest.approx(12.0)
+
+
+def test_night_rate_2016_exact():
+    assert e7_unit_rate_ppm(2016, TariffRegister.NIGHT) == pytest.approx(6.5)
+
+
+def test_day_rate_2025_exact():
+    assert e7_unit_rate_ppm(2025, TariffRegister.DAY) == pytest.approx(18.0)
+
+
+def test_night_rate_2025_exact():
+    assert e7_unit_rate_ppm(2025, TariffRegister.NIGHT) == pytest.approx(10.0)
+
+
+def test_unknown_year_fallback_day():
+    assert e7_unit_rate_ppm(2010, TariffRegister.DAY) == pytest.approx(14.5)
+
+
+def test_unknown_year_fallback_night():
+    assert e7_unit_rate_ppm(2010, TariffRegister.NIGHT) == pytest.approx(8.0)
+
+
+def test_meter_read_customer_id_stored():
+    r = E7MeterRead("CUST_LH", date(2022, 6, 1), day_kwh=200.0, night_kwh=100.0)
+    assert r.customer_id == "CUST_LH"
+
+
+def test_meter_read_read_date_stored():
+    r = E7MeterRead("C1", date(2022, 6, 15), day_kwh=100.0, night_kwh=50.0)
+    assert r.read_date == date(2022, 6, 15)
+
+
+def test_bill_customer_id_stored():
+    bill = generate_e7_bill("CUST_LH", date(2022, 1, 1), date(2022, 1, 31), 200.0, 100.0)
+    assert bill.customer_id == "CUST_LH"
+
+
+def test_bill_period_start_stored():
+    bill = generate_e7_bill("C1", date(2022, 3, 1), date(2022, 3, 31), 100.0, 50.0)
+    assert bill.period_start == date(2022, 3, 1)

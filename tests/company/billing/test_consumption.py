@@ -81,3 +81,62 @@ class TestMonthlyTotals:
 
     def test_empty_input(self):
         assert monthly_totals([]) == []
+
+
+# --- Phase LH depth tests ---
+
+def test_period_start_stored(db_path):
+    records = consumption_history("A001", db_path)
+    assert records[0]["period_start"] == "2022-01-01"
+
+
+def test_period_end_stored(db_path):
+    records = consumption_history("A001", db_path)
+    assert records[0]["period_end"] == "2022-02-01"
+
+
+def test_kwh_value(db_path):
+    records = consumption_history("A001", db_path)
+    assert records[0]["kwh"] == pytest.approx(300.0)
+
+
+def test_commodity_gas_for_a002(db_path):
+    records = consumption_history("A002", db_path)
+    assert records[0]["commodity"] == "gas"
+
+
+def test_a001_has_electricity(db_path):
+    records = consumption_history("A001", db_path)
+    assert all(r["commodity"] == "electricity" for r in records)
+
+
+def test_both_accounts_independent(db_path):
+    assert len(consumption_history("A001", db_path)) == 2
+    assert len(consumption_history("A002", db_path)) == 1
+
+
+def test_monthly_totals_has_commodity_key():
+    records = [{"year": 2022, "month": 1, "kwh": 100.0, "commodity": "electricity"}]
+    totals = monthly_totals(records)
+    assert "commodity" in totals[0]
+
+
+def test_monthly_totals_has_year_key():
+    records = [{"year": 2022, "month": 1, "kwh": 100.0, "commodity": "electricity"}]
+    totals = monthly_totals(records)
+    assert totals[0]["year"] == 2022
+
+
+def test_monthly_totals_has_month_key():
+    records = [{"year": 2022, "month": 2, "kwh": 200.0, "commodity": "electricity"}]
+    totals = monthly_totals(records)
+    assert totals[0]["month"] == 2
+
+
+def test_monthly_total_feb_value():
+    records = [
+        {"year": 2022, "month": 2, "kwh": 120.0, "commodity": "electricity"},
+        {"year": 2022, "month": 2, "kwh": 80.0, "commodity": "electricity"},
+    ]
+    totals = monthly_totals(records)
+    assert totals[0]["kwh"] == pytest.approx(200.0)
