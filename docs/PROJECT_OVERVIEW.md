@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JM — Coverage Depth Sprint XXXV (2026-07-01)
+**Modules:** privacy_register · seasonal_demand · settlement_reconciler
+**Tests added:** 30 (privacy_register: DSR-0001/0002 sequential; get_dsr found/not-found; customers_without_consent excludes opted-in; DSR not-overdue on deadline day; latest consent wins; refused not in overdue_requests; refused not_overdue; total_consent_records. seasonal_demand: Nov→WINTER/Apr→SUMMER; July index 0.80; LOW scenario 0.85×; get_month found/not-found; peak_month None empty; winter_summer_ratio None when summer=0; annual_demand year filter; demand_summary ratio included. settlement_reconciler: flags small absolute imbalance >£10; zero settlement cost guard; batch negative total; missing customer defaults 0; net_position unfavourable; all-favourable unfavourable_count=0; hedge_pnl stored; customer_id in result; checked count; flagged_count summary matches batch)
+**Total:** 10,470 tests
+
 ### Phase JL — Coverage Depth Sprint XXXIV (2026-07-01)
 **Modules:** mpan_register · mprn_register · occupancy_register
 **Tests added:** 30 (mpan_register: get None unknown; deregistered not in active; by_profile_class PC1; by_profile_class excludes deregistered; pending_switch still active; objected is active; portfolio summary by_profile_class counts; measurement_class stored; complete_switch updates registered_date; multiple active. mprn_register: get None unknown; classify medium_non_domestic; classify at domestic boundary 73200; deregistered not in active; portfolio pending_switches count; by_band excludes deregistered; consumption_band on record; portfolio by_band keys; pending_switch_date stored; total_aq excludes deregistered. occupancy_register: history_for_mpan; history_for_customer; duration_days None when current; end_reason stored; move_out not found raises; void_mpans empty when all occupied; total_occupancy_records; occupancy_at_date before move-in=None; history_for_mpan multiple periods; void unregistered not listed)
@@ -4609,7 +4614,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,440 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,470 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
