@@ -68,3 +68,67 @@ def test_is_active_pending_switch():
     reg.initiate_switch('7401234567890', dt.date(2022, 3, 1))
     r = reg.get('7401234567890')
     assert r.is_active is True
+
+
+def test_get_returns_none_for_unknown():
+    reg = _reg()
+    assert reg.get('NONEXISTENT') is None
+
+
+def test_classify_medium_non_domestic():
+    assert classify_gas_band(400_000.0) == GasConsumptionBand.MEDIUM_NON_DOMESTIC
+
+
+def test_classify_at_domestic_boundary():
+    assert classify_gas_band(73_200.0) == GasConsumptionBand.DOMESTIC
+
+
+def test_deregistered_not_in_active():
+    reg = _reg()
+    reg.deregister('7401234567890', dt.date(2023, 1, 1))
+    assert len(reg.active_mprns()) == 0
+
+
+def test_portfolio_summary_pending_switches():
+    reg = _reg()
+    reg.initiate_switch('7401234567890', dt.date(2022, 3, 1))
+    s = reg.portfolio_summary()
+    assert s['pending_switches'] == 1
+
+
+def test_by_band_excludes_deregistered():
+    reg = MPRNRegister()
+    reg.register('M001', 12_000.0, dt.date(2020, 1, 1), 'SA')
+    reg.deregister('M001', dt.date(2023, 1, 1))
+    assert len(reg.by_band(GasConsumptionBand.DOMESTIC)) == 0
+
+
+def test_consumption_band_on_record():
+    reg = _reg()
+    r = reg.get('7401234567890')
+    assert r.consumption_band == GasConsumptionBand.DOMESTIC
+
+
+def test_portfolio_summary_by_band_keys():
+    reg = _reg()
+    s = reg.portfolio_summary()
+    bands = s['by_band']
+    for band in GasConsumptionBand:
+        assert band.value in bands
+
+
+def test_pending_switch_date_stored():
+    reg = _reg()
+    switch_date = dt.date(2022, 3, 1)
+    r = reg.initiate_switch('7401234567890', switch_date)
+    assert r.pending_switch_date == switch_date
+
+
+def test_total_aq_excludes_deregistered():
+    reg = MPRNRegister()
+    reg.register('M001', 12_000.0, dt.date(2020, 1, 1), 'SA')
+    reg.register('M002', 50_000.0, dt.date(2020, 1, 1), 'SA')
+    reg.deregister('M002', dt.date(2023, 1, 1))
+    s = reg.portfolio_summary()
+    import pytest
+    assert s['total_aq_kwh'] == pytest.approx(12_000.0)
