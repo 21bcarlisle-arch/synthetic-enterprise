@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,840 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 12,870 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase MO -- Coverage Depth Sprint CXV (2026-07-01)
+30 depth tests: gas_exit_analysis/sim_interface/capacity_market.
+**Total:** 12,870 tests
 
 ### Phase MN -- Coverage Depth Sprint CXIV (2026-07-01)
 30 depth tests across 3 modules: customer_profitability_scorecard (account_id/scored_at/tier_count=5/tier_gold/tier_silver/tier_bronze/budget_gold=80/efficiency_zero_rev/clv_half=12.5/tenure_partial=12.5), customer_registry (mpan/email/address/fuel_type_C5=elec/tariff_type/status_pending/segment/contact_name/supply_start/all_sorted), porting_loss_register (account_id/switch_date/reason/revenue/clv/dni_flag/reason_count=7/eligibility_count=5/total_clv/record_returns).
@@ -4956,7 +4960,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,840 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,870 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

@@ -111,3 +111,65 @@ def test_live_interface_notify_retention_records_to_event_log():
     assert len(ret_events) == 1
     assert ret_events[0].customer_id == "C3"
     assert ret_events[0].outcome == "churned_despite_offer"
+
+
+# --- Phase MO depth tests ---
+
+def test_churn_notification_stores_reason():
+    iface = StubSimInterface()
+    iface.notify_churn("C1", "2020-06-30", reason="price-increase")
+    assert iface.churn_notifications[0]["reason"] == "price-increase"
+
+
+def test_churn_notification_stores_sim_churn_probability():
+    iface = StubSimInterface()
+    iface.notify_churn("C1", "2020-06-30", sim_churn_probability=0.72)
+    assert iface.churn_notifications[0]["sim_churn_probability"] == pytest.approx(0.72)
+
+
+def test_acquisition_notification_stores_channel():
+    iface = StubSimInterface()
+    iface.notify_acquisition("C2", "2020-07-01", channel="home-move-win")
+    assert iface.acquisition_notifications[0]["channel"] == "home-move-win"
+
+
+def test_acquisition_notification_stores_predecessor_id():
+    iface = StubSimInterface()
+    iface.notify_acquisition("C1_2", "2020-07-01", predecessor_id="C1")
+    assert iface.acquisition_notifications[0]["predecessor_id"] == "C1"
+
+
+def test_settlement_data_returns_period():
+    iface = StubSimInterface()
+    result = iface.get_settlement_data("1234567890123", "2016-06-01")
+    assert result["period"] == "2016-06-01"
+
+
+def test_settlement_data_returns_consumption_kwh():
+    iface = StubSimInterface()
+    result = iface.get_settlement_data("1234567890123", "2016-06-01")
+    assert "consumption_kwh" in result
+
+
+def test_get_churn_estimate_returns_float_in_range():
+    iface = StubSimInterface()
+    est = iface.get_churn_estimate("C1", 100.0, 120.0, 3.0, 2800.0)
+    assert isinstance(est, float)
+    assert 0.0 <= est <= 0.95
+
+
+def test_base_interface_raises_for_notify_churn():
+    iface = SimInterface()
+    with pytest.raises(NotImplementedError):
+        iface.notify_churn("C1", "2020-01-01")
+
+
+def test_base_interface_raises_for_get_churn_estimate():
+    iface = SimInterface()
+    with pytest.raises(NotImplementedError):
+        iface.get_churn_estimate("C1", 100.0, 120.0, 3.0)
+
+
+def test_get_forward_price_unknown_fuel_returns_100():
+    iface = StubSimInterface()
+    assert iface.get_forward_price("wind", "2020-01-01") == pytest.approx(100.0)

@@ -96,3 +96,61 @@ def test_obligations_for_year_filters_correctly():
     book.add_obligation(u2, 2023, AuctionType.T1)
     assert len(book.obligations_for_year(2022)) == 1
     assert len(book.obligations_for_year(2023)) == 1
+
+
+# --- Phase MO depth tests ---
+
+def test_unit_id_stored():
+    unit = CMUnit("DR-001", CMUnitType.DEMAND_RESPONSE, 5000.0, dt.date(2022, 1, 1))
+    assert unit.unit_id == "DR-001"
+
+
+def test_unit_type_stored():
+    unit = CMUnit("DR-001", CMUnitType.DEMAND_RESPONSE, 5000.0, dt.date(2022, 1, 1))
+    assert unit.unit_type == CMUnitType.DEMAND_RESPONSE
+
+
+def test_unit_derated_capacity_stored():
+    unit = CMUnit("DR-001", CMUnitType.DEMAND_RESPONSE, 5000.0, dt.date(2022, 1, 1))
+    assert unit.derated_capacity_kw == pytest.approx(5000.0)
+
+
+def test_unit_registered_date_stored():
+    d = dt.date(2022, 3, 15)
+    unit = CMUnit("DR-001", CMUnitType.DEMAND_RESPONSE, 5000.0, d)
+    assert unit.registered_date == d
+
+
+def test_obligation_is_prequalified_default_true():
+    unit = CMUnit("BATT-001", CMUnitType.BATTERY, 10000.0, dt.date(2022, 1, 1))
+    o = CMObligation(unit, 2022, AuctionType.T4, 75.0)
+    assert o.is_prequalified is True
+
+
+def test_obligation_auction_type_stored():
+    unit = CMUnit("BATT-001", CMUnitType.BATTERY, 10000.0, dt.date(2022, 1, 1))
+    o = CMObligation(unit, 2022, AuctionType.T1, 75.0)
+    assert o.auction_type == AuctionType.T1
+
+
+def test_cm_unit_type_has_6_members():
+    assert len(list(CMUnitType)) == 6
+
+
+def test_auction_type_has_2_members():
+    assert len(list(AuctionType)) == 2
+
+
+def test_register_unit_returns_cm_unit():
+    book = CapacityMarketBook()
+    result = book.register_unit("U1", CMUnitType.CCGT, 50000.0, dt.date(2022, 1, 1))
+    assert isinstance(result, CMUnit)
+
+
+def test_cm_summary_has_clearing_price_key():
+    book = CapacityMarketBook()
+    unit = book.register_unit("U1", CMUnitType.OCGT, 50000.0, dt.date(2022, 1, 1))
+    book.add_obligation(unit, 2022, AuctionType.T4)
+    s = book.cm_summary(2022)
+    assert "clearing_price_gbp_per_kw" in s
+    assert s["clearing_price_gbp_per_kw"] == pytest.approx(75.0)

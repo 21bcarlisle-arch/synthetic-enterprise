@@ -144,3 +144,72 @@ def test_gas_exit_summary_string():
     summary = book.gas_exit_summary()
     assert "Gas Exit Decision Book" in summary
     assert "Recommended action" in summary
+
+
+# --- Phase MO depth tests ---
+
+def test_profile_customer_id_stored():
+    pcp = _pcp([("C1", 500.0, 300.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "resi")]))
+    assert book._profiles[0].customer_id == "C1"
+
+
+def test_profile_segment_stored():
+    pcp = _pcp([("C1", 500.0, 300.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "SME")]))
+    assert book._profiles[0].segment == "SME"
+
+
+def test_profile_gas_gross_gbp_stored():
+    pcp = _pcp([("C1", 500.0, 300.0, 600.0, 50.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "resi")]))
+    assert book._profiles[0].gas_gross_gbp == pytest.approx(600.0)
+
+
+def test_profile_gas_capital_gbp_stored():
+    pcp = _pcp([("C1", 500.0, 300.0, 600.0, 50.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "resi")]))
+    assert book._profiles[0].gas_capital_gbp == pytest.approx(50.0)
+
+
+def test_profile_gas_revenue_gbp_stored():
+    pcp = _pcp([("C1", 500.0, 300.0, 800.0, 50.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "resi")]))
+    assert book._profiles[0].gas_revenue_gbp == pytest.approx(960.0)
+
+
+def test_profile_combined_net_gbp_equals_elec_plus_gas():
+    pcp = _pcp([("C1", 500.0, 300.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "resi")]))
+    p = book._profiles[0]
+    assert p.combined_net_gbp == pytest.approx(p.elec_net_gbp + p.gas_net_gbp)
+
+
+def test_gas_roc_computed():
+    pcp = _pcp([("C1", 500.0, 300.0, 600.0, 100.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "resi")]))
+    p = book._profiles[0]
+    assert p.gas_roc == pytest.approx(300.0 / 100.0)
+
+
+def test_gas_roc_none_zero_capital():
+    # _pcp with 3-tuple generates gc=|gn|*0.1 = 30, not zero
+    # Use explicit zero capital by providing all 5 args
+    pcp = _pcp([("C1", 500.0, 300.0, 600.0, 0.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "resi")]))
+    p = book._profiles[0]
+    assert p.gas_roc is None
+
+
+def test_status_quo_customers_retained():
+    pcp = _pcp([("C1", 500.0, 300.0), ("C2", 200.0, -100.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "resi"), ("C2", "resi")]))
+    sq = book.status_quo()
+    assert sq.customers_retained == 2
+
+
+def test_status_quo_customers_lost_is_zero():
+    pcp = _pcp([("C1", 500.0, 300.0)])
+    book = GasExitDecisionBook(pcp, _pcl([("C1", "resi")]))
+    sq = book.status_quo()
+    assert sq.customers_lost == 0
