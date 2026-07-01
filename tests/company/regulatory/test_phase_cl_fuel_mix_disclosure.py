@@ -119,3 +119,57 @@ def test_fmd_summary():
     assert "Fuel Mix" in summary
     assert "SLC 21C" in summary
     assert "30.0%" in summary   # REGO coverage or renewable fraction
+
+
+# --- Phase MB depth tests ---
+
+def test_source_stored():
+    c = FuelMixComponent(source=FuelSource.WIND_ONSHORE, fraction=0.5)
+    assert c.source == FuelSource.WIND_ONSHORE
+
+
+def test_fraction_stored():
+    c = FuelMixComponent(source=FuelSource.SOLAR, fraction=0.25)
+    assert c.fraction == pytest.approx(0.25)
+
+
+def test_carbon_intensity_wind_onshore():
+    c = FuelMixComponent(source=FuelSource.WIND_ONSHORE, fraction=1.0)
+    assert c.carbon_intensity_gco2_per_kwh == pytest.approx(7.0)
+
+
+def test_is_renewable_wind_true():
+    c = FuelMixComponent(source=FuelSource.WIND_OFFSHORE, fraction=1.0)
+    assert c.is_renewable is True
+
+
+def test_is_renewable_gas_false():
+    c = FuelMixComponent(source=FuelSource.GAS_CCGT, fraction=1.0)
+    assert c.is_renewable is False
+
+
+def test_weighted_carbon_computed():
+    c = FuelMixComponent(source=FuelSource.GAS_CCGT, fraction=0.5)
+    assert c.weighted_carbon == pytest.approx(0.5 * 394.0)
+
+
+def test_disclosure_year_stored():
+    b = _book()
+    d = b.latest_disclosure
+    assert d.disclosure_year == 2022
+
+
+def test_total_supply_mwh_stored():
+    b = _book()
+    d = b.latest_disclosure
+    assert d.total_supply_mwh == pytest.approx(50_000)
+
+
+def test_rego_certificates_held_stored():
+    b = _book()
+    d = b.latest_disclosure
+    assert d.rego_certificates_held == 15_000
+
+
+def test_fuel_source_has_11_members():
+    assert len(list(FuelSource)) == 11

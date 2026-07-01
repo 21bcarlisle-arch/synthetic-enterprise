@@ -114,3 +114,57 @@ def test_psr_summary():
     assert "Priority Services" in summary
     assert "SLC 26B" in summary
     assert "1" in summary
+
+
+# --- Phase MB depth tests ---
+
+def test_account_id_stored():
+    rec = _psr_rec(account_id='ACCT-MB')
+    assert rec.account_id == 'ACCT-MB'
+
+
+def test_categories_stored():
+    rec = _psr_rec(categories=(PSRCategory.DISABILITY,))
+    assert PSRCategory.DISABILITY in rec.categories
+
+
+def test_services_enrolled_stored():
+    rec = _psr_rec(services=(PSRService.NOMINEE_SCHEME,))
+    assert PSRService.NOMINEE_SCHEME in rec.services_enrolled
+
+
+def test_registration_date_stored():
+    rec = _psr_rec()
+    assert rec.registration_date == date(2022, 1, 1)
+
+
+def test_shared_with_network_stored():
+    rec = _psr_rec(shared=True)
+    assert rec.shared_with_network is True
+
+
+def test_is_active_true_default():
+    rec = _psr_rec()
+    assert rec.is_active is True
+
+
+def test_has_at_least_one_service_true():
+    rec = _psr_rec(services=(PSRService.GAS_SAFETY_CHECK,))
+    assert rec.has_at_least_one_service is True
+
+
+def test_is_compliant_with_service():
+    rec = _psr_rec(services=(PSRService.PRIORITY_RECONNECTION,))
+    assert rec.is_compliant is True
+
+
+def test_not_electricity_dependent_without_medical():
+    rec = _psr_rec(categories=(PSRCategory.PENSIONABLE_AGE,))
+    assert rec.is_electricity_dependent is False
+
+
+def test_register_returns_psr_record():
+    register = PriorityServicesRegister()
+    rec = _psr_rec()
+    result = register.register(rec)
+    assert isinstance(result, PSRRecord)

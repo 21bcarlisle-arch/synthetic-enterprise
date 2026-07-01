@@ -111,3 +111,65 @@ def test_compliance_summary():
     assert "Overall RAG" in summary
     assert "Compliant" in summary
     assert "SLC 27" in summary
+
+
+# --- Phase MB depth tests ---
+
+def test_slc_ref_stored():
+    t = _tracker()
+    obs = t.record('SLC 6', SLCCategory.BILLING, 'Bills timely', SLCStatus.COMPLIANT)
+    assert obs.slc_ref == 'SLC 6'
+
+
+def test_category_stored():
+    t = _tracker()
+    obs = t.record('SLC 14', SLCCategory.CREDIT, 'Refunds', SLCStatus.COMPLIANT)
+    assert obs.category == SLCCategory.CREDIT
+
+
+def test_description_stored():
+    t = _tracker()
+    obs = t.record('SLC 6', SLCCategory.BILLING, 'My description', SLCStatus.COMPLIANT)
+    assert obs.description == 'My description'
+
+
+def test_status_stored():
+    t = _tracker()
+    obs = t.record('SLC 6', SLCCategory.BILLING, 'Bills', SLCStatus.BREACH_RISK)
+    assert obs.status == SLCStatus.BREACH_RISK
+
+
+def test_breach_count_default_zero():
+    t = _tracker()
+    obs = t.record('SLC 6', SLCCategory.BILLING, 'Bills', SLCStatus.COMPLIANT)
+    assert obs.breach_count == 0
+
+
+def test_at_risk_count_default_zero():
+    t = _tracker()
+    obs = t.record('SLC 6', SLCCategory.BILLING, 'Bills', SLCStatus.COMPLIANT)
+    assert obs.at_risk_count == 0
+
+
+def test_notes_default_empty():
+    t = _tracker()
+    obs = t.record('SLC 6', SLCCategory.BILLING, 'Bills', SLCStatus.COMPLIANT)
+    assert obs.notes == ''
+
+
+def test_is_compliant_compliant_status():
+    t = _tracker()
+    obs = t.record('SLC 6', SLCCategory.BILLING, 'Bills', SLCStatus.COMPLIANT)
+    assert obs.is_compliant is True
+
+
+def test_is_breached_false_for_risk():
+    t = _tracker()
+    obs = t.record('SLC 6', SLCCategory.BILLING, 'Bills', SLCStatus.BREACH_RISK)
+    assert obs.is_breached is False
+
+
+def test_record_returns_slc_observation():
+    t = _tracker()
+    result = t.record('SLC 6', SLCCategory.BILLING, 'Bills', SLCStatus.COMPLIANT)
+    assert isinstance(result, SLCObservation)
