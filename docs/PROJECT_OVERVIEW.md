@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,460 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,490 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KU -- Coverage Depth Sprint LXIX (2026-07-01)
+30 depth tests across 3 modules: contract_manager (contract_id/customer_id/mpan/unit_rate/standing_charge/annual_qty/start_date/end_date/active_list/notice_none), fuel_mix (2022_renewable=40.5/nuclear/gas/coal/other/summary_year/mix_dict/renewable_pct/fossil_pos/2025_low_carbon>50), renewal_engine (customer_id_in_pack/expiry_date/days_to_expiry/spot_price/each_customer_id/tariff_type/unit_rate/standing_charge/recommended_one/sme>ic).
+**Total:** 11,490 tests
 
 ### Phase KT -- Coverage Depth Sprint LXVIII (2026-07-01)
 30 depth tests across 3 modules: credit_limits (counterparty_id/name/rating/limit_gbp/category/active/zero_initially/get_none/message/two_acc), portfolio_premium (max_float/min_float/target_pos/max_pos/min_neg/single_target_zero/float/neg_bounds/high_bounds/two_mean_zero), payment_behaviour (customer_id/due_date/amount_due/amount_paid/result/on_time_none/days_none/shortfall_zero/excellent/dd_zero).
@@ -4772,7 +4776,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,460 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,490 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

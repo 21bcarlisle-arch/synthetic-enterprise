@@ -1,3 +1,4 @@
+import pytest
 """Phase 136: Renewal pricing engine tests."""
 
 from company.billing.renewal_engine import generate_renewal_pack, RenewalPack
@@ -70,3 +71,63 @@ def test_pack_metadata():
     assert pack.days_to_expiry == 42
     assert pack.spot_price_p_kwh == 22.0
     assert pack.expiry_date == "2024-06-30"
+
+
+# --- Phase KU depth tests ---
+
+def test_customer_id_in_pack():
+    pack = _pack()
+    assert pack.customer_id == 'C1'
+
+
+def test_expiry_date_stored():
+    pack = _pack()
+    assert pack.expiry_date == '2024-06-30'
+
+
+def test_days_to_expiry_stored():
+    pack = _pack()
+    assert pack.days_to_expiry == 42
+
+
+def test_spot_price_stored():
+    pack = _pack()
+    assert pack.spot_price_p_kwh == pytest.approx(22.0)
+
+
+def test_each_quote_has_customer_id():
+    pack = _pack()
+    for q in pack.quotes:
+        assert q.customer_id == 'C1'
+
+
+def test_each_quote_tariff_type_non_empty():
+    pack = _pack()
+    for q in pack.quotes:
+        assert len(q.tariff_type) > 0
+
+
+def test_unit_rate_positive_all_quotes():
+    pack = _pack()
+    for q in pack.quotes:
+        assert q.unit_rate_p_kwh > 0.0
+
+
+def test_standing_charge_positive_all_quotes():
+    pack = _pack()
+    for q in pack.quotes:
+        assert q.standing_charge_p_day > 0.0
+
+
+def test_recommended_flag_on_one_quote():
+    pack = _pack()
+    recommended = [q for q in pack.quotes if q.recommended]
+    assert len(recommended) == 1
+
+
+def test_sme_segment_higher_than_ic():
+    pack_sme = _pack(segment='SME', spot=22.0)
+    pack_ic = _pack(segment='IC', spot=22.0)
+    sme_rate = next(q.unit_rate_p_kwh for q in pack_sme.quotes if q.tariff_type == 'fixed_1yr')
+    ic_rate = next(q.unit_rate_p_kwh for q in pack_ic.quotes if q.tariff_type == 'fixed_1yr')
+    assert sme_rate > ic_rate

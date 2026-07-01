@@ -1,3 +1,4 @@
+import pytest
 """Phase 111: Fuel mix disclosure tests."""
 
 from company.billing.fuel_mix import get_fuel_mix, fuel_mix_summary
@@ -58,3 +59,55 @@ def test_prior_year_fallback():
     # Year before data range returns 2016 values
     mix = get_fuel_mix(2010)
     assert mix["renewable"] == 24.6
+
+
+# --- Phase KU depth tests ---
+
+def test_fuel_mix_2022_renewable():
+    mix = get_fuel_mix(2022)
+    assert mix['renewable'] == pytest.approx(40.5)
+
+
+def test_fuel_mix_has_nuclear():
+    mix = get_fuel_mix(2022)
+    assert 'nuclear' in mix
+
+
+def test_fuel_mix_has_gas():
+    mix = get_fuel_mix(2022)
+    assert 'gas' in mix
+
+
+def test_fuel_mix_has_coal():
+    mix = get_fuel_mix(2022)
+    assert 'coal' in mix
+
+
+def test_fuel_mix_has_other():
+    mix = get_fuel_mix(2022)
+    assert 'other' in mix
+
+
+def test_summary_year_stored():
+    s = fuel_mix_summary(2022)
+    assert s['year'] == 2022
+
+
+def test_summary_mix_is_dict():
+    s = fuel_mix_summary(2022)
+    assert isinstance(s['mix'], dict)
+
+
+def test_renewable_pct_matches_mix():
+    s = fuel_mix_summary(2022)
+    assert s['renewable_pct'] == pytest.approx(s['mix']['renewable'])
+
+
+def test_fossil_pct_positive():
+    s = fuel_mix_summary(2022)
+    assert s['fossil_pct'] > 0.0
+
+
+def test_2025_low_carbon_above_50():
+    s = fuel_mix_summary(2025)
+    assert s['low_carbon_pct'] > 50.0

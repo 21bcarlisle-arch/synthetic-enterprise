@@ -1,2 +1,2 @@
-Phase KU -- Coverage Depth Sprint LXIX
-30 tests: contract_manager + fuel_mix + renewal_engine coverage depth
+Phase KV -- Coverage Depth Sprint LXX
+30 tests: moa_charges + company_pl + board_kpis coverage depth

@@ -71,3 +71,57 @@ def test_portfolio_summary():
     assert s['active'] == 1
     assert s['in_notice_window'] == 1
     assert 'by_type' in s
+
+
+# --- Phase KU depth tests ---
+
+def test_contract_id_stored():
+    _, c = _manager_with_contract()
+    assert c.contract_id == 'CTR001'
+
+
+def test_customer_id_stored():
+    _, c = _manager_with_contract()
+    assert c.customer_id == 'C001'
+
+
+def test_mpan_stored():
+    _, c = _manager_with_contract()
+    assert c.mpan == 'MPAN001'
+
+
+def test_unit_rate_stored():
+    _, c = _manager_with_contract()
+    assert c.unit_rate_pence_per_kwh == pytest.approx(28.0)
+
+
+def test_standing_charge_stored():
+    _, c = _manager_with_contract()
+    assert c.standing_charge_pence_per_day == pytest.approx(50.0)
+
+
+def test_annual_quantity_stored():
+    _, c = _manager_with_contract()
+    assert c.annual_quantity_kwh == pytest.approx(3000.0)
+
+
+def test_start_date_stored():
+    _, c = _manager_with_contract()
+    assert c.start_date == dt.date(2022, 1, 1)
+
+
+def test_end_date_stored():
+    _, c = _manager_with_contract()
+    assert c.end_date == dt.date(2022, 12, 31)
+
+
+def test_active_contracts_returns_list():
+    mgr, _ = _manager_with_contract()
+    contracts = mgr.active_contracts()
+    assert isinstance(contracts, list)
+    assert len(contracts) == 1
+
+
+def test_notice_served_date_none_before_notice():
+    _, c = _manager_with_contract()
+    assert c.notice_served_date is None
