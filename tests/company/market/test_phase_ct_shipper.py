@@ -110,3 +110,59 @@ def test_shipper_summary():
     summary = r.shipper_summary()
     assert "SE" in summary
     assert "SyntheticEnergy" in summary
+
+
+# --- Phase MI depth tests ---
+
+def test_shipper_code_stored():
+    r, rec = _reg_with_shipper(code="SE")
+    assert rec.shipper_code == "SE"
+
+
+def test_company_name_stored():
+    r, rec = _reg_with_shipper(name="Synthetic Energy Ltd")
+    assert rec.company_name == "Synthetic Energy Ltd"
+
+
+def test_registration_date_stored():
+    r, rec = _reg_with_shipper()
+    assert rec.registration_date == _REG_DATE
+
+
+def test_status_active_default():
+    r, rec = _reg_with_shipper()
+    assert rec.status == ShipperStatus.ACTIVE
+
+
+def test_register_returns_shipper_record():
+    reg = ShipperCodeRegister()
+    result = reg.register("SE", "SyntheticEnergy", _REG_DATE)
+    assert isinstance(result, ShipperRecord)
+
+
+def test_ldz_has_13_members():
+    assert len(list(LDZ)) == 13
+
+
+def test_shipper_status_has_4_members():
+    assert len(list(ShipperStatus)) == 4
+
+
+def test_ldz_coverage_count_after_add_ldz():
+    r, rec = _reg_with_shipper()
+    rec.add_ldz(LDZ.SE, date(2016, 3, 1))
+    rec.add_ldz(LDZ.SO, date(2016, 3, 1))
+    assert rec.ldz_coverage_count == 2
+
+
+def test_active_ldz_codes_after_add():
+    r, rec = _reg_with_shipper()
+    rec.add_ldz(LDZ.NW, date(2016, 3, 1))
+    assert LDZ.NW in rec.active_ldz_codes
+
+
+def test_can_supply_false_after_revoke():
+    r, rec = _reg_with_shipper()
+    rec.add_ldz(LDZ.EA, date(2016, 3, 1))
+    rec.revoke_ldz(LDZ.EA)
+    assert rec.can_supply_in(LDZ.EA) is False

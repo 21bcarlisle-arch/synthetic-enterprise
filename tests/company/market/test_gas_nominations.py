@@ -138,3 +138,65 @@ def test_empty_book_safe():
     s = b.balancing_summary()
     assert s["total_nominations"] == 0
     assert s["net_position"] == "balanced"
+
+
+# --- Phase MI depth tests ---
+
+def test_date_stored():
+    nom = DailyNomination(date=D1, gas_account_id="GA1", nominated_kwh=1000.0, actual_kwh=1000.0, nbp_spot_gbp_per_therm=SPOT_CRISIS)
+    assert nom.date == D1
+
+
+def test_gas_account_id_stored():
+    nom = DailyNomination(date=D1, gas_account_id="GA-MI", nominated_kwh=1000.0, actual_kwh=1000.0, nbp_spot_gbp_per_therm=SPOT_CRISIS)
+    assert nom.gas_account_id == "GA-MI"
+
+
+def test_nominated_kwh_stored():
+    nom = DailyNomination(date=D1, gas_account_id="GA1", nominated_kwh=5000.0, actual_kwh=5000.0, nbp_spot_gbp_per_therm=SPOT_NORMAL)
+    assert nom.nominated_kwh == 5000.0
+
+
+def test_actual_kwh_stored():
+    nom = DailyNomination(date=D1, gas_account_id="GA1", nominated_kwh=5000.0, actual_kwh=5200.0, nbp_spot_gbp_per_therm=SPOT_NORMAL)
+    assert nom.actual_kwh == 5200.0
+
+
+def test_nbp_spot_stored():
+    nom = DailyNomination(date=D1, gas_account_id="GA1", nominated_kwh=1000.0, actual_kwh=1000.0, nbp_spot_gbp_per_therm=1.23)
+    assert nom.nbp_spot_gbp_per_therm == pytest.approx(1.23)
+
+
+def test_imbalance_kwh_zero_for_unknown_account():
+    book = GasNominationBook()
+    book.nominate(DailyNomination(date=D1, gas_account_id="GA1", nominated_kwh=1000.0, actual_kwh=1100.0, nbp_spot_gbp_per_therm=SPOT_NORMAL))
+    assert book.imbalance_kwh(D1, "UNKNOWN") == 0.0
+
+
+def test_cash_out_cost_short_exact():
+    book = GasNominationBook()
+    # Short 100 kWh at 0.35 GBP/therm -> imb_therms = 100/29.31; cost = therms * 0.35
+    nom = DailyNomination(date=D2, gas_account_id="GA1", nominated_kwh=1000.0, actual_kwh=1100.0, nbp_spot_gbp_per_therm=SPOT_NORMAL)
+    book.nominate(nom)
+    cost = book.cash_out_cost_gbp(D2, "GA1")
+    expected = round(100.0 / 29.31 * SPOT_NORMAL, 2)
+    assert cost == pytest.approx(expected, rel=1e-3)
+
+
+def test_nomination_accuracy_zero_for_empty_book():
+    book = GasNominationBook()
+    assert book.nomination_accuracy_pct() == 0.0
+
+
+def test_balancing_summary_total_nominations():
+    book = GasNominationBook()
+    book.nominate(DailyNomination(date=D1, gas_account_id="GA1", nominated_kwh=1000.0, actual_kwh=1000.0, nbp_spot_gbp_per_therm=SPOT_CRISIS))
+    book.nominate(DailyNomination(date=D2, gas_account_id="GA1", nominated_kwh=500.0, actual_kwh=500.0, nbp_spot_gbp_per_therm=SPOT_NORMAL))
+    summary = book.balancing_summary()
+    assert summary["total_nominations"] == 2
+
+
+def test_worst_imbalance_empty_when_no_imbalances():
+    book = GasNominationBook()
+    book.nominate(DailyNomination(date=D1, gas_account_id="GA1", nominated_kwh=1000.0, actual_kwh=1000.0, nbp_spot_gbp_per_therm=SPOT_CRISIS))
+    assert book.worst_imbalance_periods() == []

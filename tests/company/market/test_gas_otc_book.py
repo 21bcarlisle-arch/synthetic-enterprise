@@ -111,3 +111,61 @@ def test_book_gas_book_summary():
     assert s["buy_volume_therms"] == pytest.approx(120_000.0)
     assert s["crisis_price_trades"] == 1
     assert "seasonal_exposure" in s
+
+
+# --- Phase MI depth tests ---
+
+def test_trade_id_stored():
+    book = GasOTCBook()
+    t = book.record_trade("GT-MI", TRADE_DATE, DELIVERY, GasTenor.MONTH_AHEAD, GasTradeDirection.BUY, 10000.0, 200.0)
+    assert t.trade_id == "GT-MI"
+
+
+def test_trade_date_stored():
+    book = GasOTCBook()
+    t = book.record_trade("GT-MI", TRADE_DATE, DELIVERY, GasTenor.DAY_AHEAD, GasTradeDirection.BUY, 5000.0, 150.0)
+    assert t.trade_date == TRADE_DATE
+
+
+def test_delivery_date_stored():
+    book = GasOTCBook()
+    t = book.record_trade("GT-MI", TRADE_DATE, DELIVERY, GasTenor.MONTH_AHEAD, GasTradeDirection.BUY, 5000.0, 150.0)
+    assert t.delivery_date == DELIVERY
+
+
+def test_tenor_stored():
+    book = GasOTCBook()
+    t = book.record_trade("GT-MI", TRADE_DATE, DELIVERY, GasTenor.SEASON_AHEAD, GasTradeDirection.BUY, 5000.0, 150.0)
+    assert t.tenor == GasTenor.SEASON_AHEAD
+
+
+def test_direction_stored():
+    book = GasOTCBook()
+    t = book.record_trade("GT-MI", TRADE_DATE, DELIVERY, GasTenor.MONTH_AHEAD, GasTradeDirection.SELL, 5000.0, 150.0)
+    assert t.direction == GasTradeDirection.SELL
+
+
+def test_volume_therms_stored():
+    book = GasOTCBook()
+    t = book.record_trade("GT-MI", TRADE_DATE, DELIVERY, GasTenor.MONTH_AHEAD, GasTradeDirection.BUY, 7500.0, 150.0)
+    assert t.volume_therms == pytest.approx(7500.0)
+
+
+def test_price_p_per_therm_stored():
+    book = GasOTCBook()
+    t = book.record_trade("GT-MI", TRADE_DATE, DELIVERY, GasTenor.MONTH_AHEAD, GasTradeDirection.BUY, 5000.0, 325.0)
+    assert t.price_p_per_therm == pytest.approx(325.0)
+
+
+def test_gas_tenor_has_4_members():
+    assert len(list(GasTenor)) == 4
+
+
+def test_gas_trade_direction_has_2_members():
+    assert len(list(GasTradeDirection)) == 2
+
+
+def test_record_trade_returns_gas_otc_trade():
+    book = GasOTCBook()
+    result = book.record_trade("GT-MI", TRADE_DATE, DELIVERY, GasTenor.MONTH_AHEAD, GasTradeDirection.BUY, 5000.0, 200.0)
+    assert isinstance(result, GasOTCTrade)

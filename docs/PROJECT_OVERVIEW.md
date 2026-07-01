@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,660 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 12,690 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase MI -- Coverage Depth Sprint CIX (2026-07-01)
+30 depth tests across 3 modules: gas_nominations (date/gas_account_id/nominated_kwh/actual_kwh/nbp_spot/imbalance_zero_unknown/cash_out_short/accuracy_empty=0/summary_total/worst_empty), gas_otc_book (trade_id/trade_date/delivery_date/tenor/direction/volume_therms/price/tenor_count=4/direction_count=2/record_returns), shipper_code (shipper_code/company_name/registration_date/status_active/register_returns/ldz_count=13/status_count=4/ldz_coverage/active_ldz/supply_false_after_revoke).
+**Total:** 12,690 tests
 
 ### Phase MH -- Coverage Depth Sprint CVIII (2026-07-01)
 30 depth tests across 3 modules: debt_age_analysis (account_id/invoice_date/outstanding/is_domestic/days_overdue/record_returns/bucket_count=5/total_in_bucket/ecl_31_60/high_risk_over_180), management_accounts (pass_key/journal_net_key/abs_diff_key/variance_pct_key/tolerance_pct_key/zero_ledger_passes/abs_diff_computed/annual_income_stmt/annual_balance_sheet/build_monthly_returns_dict), ev_demand_forecast (forecast_year/ev_count/charging_pattern/is_smart_charged/add_returns/pattern_count=3/total_sums_all/forecast_for_year/mixed_65pct/peak_risk=annual-overnight).
@@ -4932,7 +4936,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,660 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,690 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
