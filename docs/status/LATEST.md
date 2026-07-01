@@ -1,5 +1,5 @@
-Phase LR: Coverage Depth Sprint XCII (12,180 tests)
-Last updated: 2026-07-01T06:10:35Z
+Phase LS: Coverage Depth Sprint XCIII (12,210 tests)
+Last updated: 2026-07-01T06:11:35Z
 
 **Latest simulation results (2016–2025)** — auto-processed (552s / 9 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668

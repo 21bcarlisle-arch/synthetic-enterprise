@@ -72,3 +72,63 @@ def test_profile_is_frozen():
 def test_as_of_date_stored():
     p = classify_customer("C005", annual_elec_kwh=25000, as_of_date=date(2022, 4, 1))
     assert p.as_of_date == date(2022, 4, 1)
+
+
+# --- Phase LS depth tests ---
+from company.crm.microbusiness import (
+    MICROBUSINESS_STAFF_MAX, MICROBUSINESS_TURNOVER_MAX_GBP,
+)
+
+
+def test_customer_id_stored():
+    p = classify_customer('CUST_LS', annual_elec_kwh=20000)
+    assert p.customer_id == 'CUST_LS'
+
+
+def test_annual_elec_kwh_stored():
+    p = classify_customer('C1', annual_elec_kwh=50000.0)
+    import pytest
+    assert p.annual_elec_kwh == pytest.approx(50000.0)
+
+
+def test_annual_gas_kwh_stored():
+    p = classify_customer('C1', annual_gas_kwh=120000.0)
+    import pytest
+    assert p.annual_gas_kwh == pytest.approx(120000.0)
+
+
+def test_staff_count_stored():
+    p = classify_customer('C1', annual_elec_kwh=20000, staff_count=7)
+    assert p.staff_count == 7
+
+
+def test_turnover_stored():
+    p = classify_customer('C1', annual_elec_kwh=20000, annual_turnover_gbp=500000.0)
+    import pytest
+    assert p.annual_turnover_gbp == pytest.approx(500000.0)
+
+
+def test_staff_max_constant():
+    assert MICROBUSINESS_STAFF_MAX == 10
+
+
+def test_turnover_threshold_constant():
+    assert MICROBUSINESS_TURNOVER_MAX_GBP == 2_000_000
+
+
+def test_eligible_protections_non_micro_empty():
+    p = classify_customer('C1', annual_elec_kwh=1_000_000)
+    assert p.eligible_protections() == []
+
+
+def test_eligible_protections_micro_nonempty():
+    p = classify_customer('C1', annual_elec_kwh=20000)
+    prots = p.eligible_protections()
+    assert len(prots) > 0
+
+
+def test_as_of_date_stored():
+    from datetime import date
+    d = date(2024, 1, 1)
+    p = classify_customer('C1', annual_elec_kwh=20000, as_of_date=d)
+    assert p.as_of_date == d

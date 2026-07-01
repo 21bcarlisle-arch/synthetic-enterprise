@@ -98,3 +98,71 @@ def test_impact_is_frozen():
     impact = a.assess(_ev(LifeEventType.BIRTH))
     with pytest.raises((AttributeError, TypeError)):
         impact.severity = ImpactSeverity.CRITICAL
+
+
+# --- Phase LS depth tests ---
+
+def test_event_stored_in_impact():
+    a = LifeEventImpactAssessor()
+    ev = _ev(LifeEventType.BIRTH)
+    impact = a.assess(ev)
+    assert impact.event is ev
+
+
+def test_death_high_severity():
+    a = LifeEventImpactAssessor()
+    impact = a.assess(_ev(LifeEventType.DEATH))
+    assert impact.severity == ImpactSeverity.HIGH
+
+
+def test_death_negative_consumption_delta():
+    a = LifeEventImpactAssessor()
+    impact = a.assess(_ev(LifeEventType.DEATH))
+    assert impact.expected_consumption_delta_pct < 0
+
+
+def test_marriage_not_psr():
+    a = LifeEventImpactAssessor()
+    impact = a.assess(_ev(LifeEventType.MARRIAGE))
+    assert impact.triggers_psr_review is False
+
+
+def test_divorce_vulnerability_flag():
+    a = LifeEventImpactAssessor()
+    impact = a.assess(_ev(LifeEventType.DIVORCE))
+    assert impact.vulnerability_flag is True
+
+
+def test_recommended_actions_tuple():
+    a = LifeEventImpactAssessor()
+    impact = a.assess(_ev(LifeEventType.BIRTH))
+    assert isinstance(impact.recommended_actions, tuple)
+    assert len(impact.recommended_actions) > 0
+
+
+def test_is_urgent_false_for_low_severity():
+    a = LifeEventImpactAssessor()
+    impact = a.assess(_ev(LifeEventType.BIRTH))
+    assert impact.is_urgent is False
+
+
+def test_batch_assess_count():
+    a = LifeEventImpactAssessor()
+    evs = [_ev(LifeEventType.BIRTH), _ev(LifeEventType.DIVORCE)]
+    results = a.batch_assess(evs)
+    assert len(results) == 2
+
+
+def test_psr_candidates_filters():
+    a = LifeEventImpactAssessor()
+    evs = [_ev(LifeEventType.SERIOUS_ILLNESS), _ev(LifeEventType.BIRTH)]
+    cands = a.psr_candidates(evs)
+    assert len(cands) == 1
+
+
+def test_summary_keys():
+    a = LifeEventImpactAssessor()
+    s = a.summary([_ev(LifeEventType.JOB_LOSS)])
+    for k in ('total_events', 'urgent_count', 'psr_candidates',
+              'vulnerability_flags', 'by_severity'):
+        assert k in s
