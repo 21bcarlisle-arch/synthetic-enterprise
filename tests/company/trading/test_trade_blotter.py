@@ -1,4 +1,5 @@
 """Phase 131: Trade blotter tests."""
+import pytest
 
 from company.trading.trade_blotter import TradeEntry, TradeBlotter
 
@@ -87,3 +88,68 @@ def test_summary_structure():
     s = blotter.summary()
     for k in ("total_trades", "buys", "sells", "net_position_mwh", "unreported_remit", "counterparties"):
         assert k in s
+
+
+# --- Phase LG depth tests ---
+
+def test_trade_date_stored():
+    blotter = TradeBlotter()
+    t = blotter.record(_entry())
+    assert t.trade_date == '2024-01-15'
+
+
+def test_trade_time_stored():
+    blotter = TradeBlotter()
+    t = blotter.record(_entry())
+    assert t.trade_time == '10:00'
+
+
+def test_commodity_stored():
+    blotter = TradeBlotter()
+    t = blotter.record(_entry())
+    assert t.commodity == 'electricity'
+
+
+def test_delivery_period_stored():
+    blotter = TradeBlotter()
+    t = blotter.record(_entry())
+    assert t.delivery_period == '2024-Q2'
+
+
+def test_desk_default_front_office():
+    e = _entry()
+    assert e.desk == 'front_office'
+
+
+def test_trader_id_default_empty():
+    e = _entry()
+    assert e.trader_id == ''
+
+
+def test_notes_default_empty():
+    e = _entry()
+    assert e.notes == ''
+
+
+def test_by_desk_filter():
+    blotter = TradeBlotter()
+    e1 = _entry()
+    e1.desk  # immutable dataclass — just test attribute exists
+    blotter.record(e1)
+    assert len(blotter.by_desk('front_office')) == 1
+    assert len(blotter.by_desk('gas_desk')) == 0
+
+
+def test_total_notional_gbp():
+    blotter = TradeBlotter()
+    blotter.record(_entry(volume=100.0, price=50.0))
+    blotter.record(_entry(volume=200.0, price=60.0))
+    assert blotter.total_notional_gbp() == pytest.approx(17_000.0)
+
+
+def test_summary_total_notional_key():
+    blotter = TradeBlotter()
+    blotter.record(_entry())
+    s = blotter.summary()
+    assert 'total_notional_gbp' in s
+    assert s['total_notional_gbp'] > 0

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,820 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,850 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LG -- Coverage Depth Sprint LXXXI (2026-07-01)
+30 depth tests across 3 modules: phase47a_ofgem_cap (elec_2019=165/elec_2020=157/elec_2021>2020/elec_2023_between_2022_2024/elec_2025=190/gas_2019=26/gas_2020<2019/gas_2021>2020/gas_2023=70/gas_2025=52), position_management (term_end/bid_ask_zero/notional/settle_pnl/settle_hedged_mwh/closures_list/closure_date/closure_price/amendment_cid/amendment_date), trade_blotter (trade_date/trade_time/commodity/delivery_period/desk_default/trader_id_default/notes_default/by_desk/total_notional/summary_notional_key).
+**Total:** 11,850 tests
 
 ### Phase LF -- Coverage Depth Sprint LXXX (2026-07-01)
 30 depth tests across 3 modules: renewable_obligation (year/mwh/surrendered/method/obligation_float/shortfall_zero/compliant/buyout_2022=54.35/level_2022=0.1053/return_none), solr (transfer_size/levy_pos/bad_debt_pos/total_sum/treasury/status_str/sustainable_bool/revenue_dict/transfer_5000/headroom), mtm (customer_id/term_start/agreed_price/notional/hf/bid_ask_zero/open_empty/mtm_zero/term_end/open_adds).
@@ -4820,7 +4824,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,820 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,850 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

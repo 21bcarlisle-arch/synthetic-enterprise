@@ -51,3 +51,48 @@ class TestCapAppliedInSimulation:
         assert "C_IC1" not in _RESI_CUSTOMER_IDS
         assert "C5" not in _RESI_CUSTOMER_IDS
         assert "C6" not in _RESI_CUSTOMER_IDS
+
+
+# --- Phase LG depth tests ---
+
+def test_elec_2019_exact():
+    assert get_cap_unit_rate_gbp_per_mwh('electricity', 2019) == pytest.approx(165.0)
+
+
+def test_elec_2020_exact():
+    assert get_cap_unit_rate_gbp_per_mwh('electricity', 2020) == pytest.approx(157.0)
+
+
+def test_elec_2021_above_2020():
+    assert get_cap_unit_rate_gbp_per_mwh('electricity', 2021) > get_cap_unit_rate_gbp_per_mwh('electricity', 2020)
+
+
+def test_elec_2023_between_2022_and_2024():
+    cap22 = get_cap_unit_rate_gbp_per_mwh('electricity', 2022)
+    cap23 = get_cap_unit_rate_gbp_per_mwh('electricity', 2023)
+    cap24 = get_cap_unit_rate_gbp_per_mwh('electricity', 2024)
+    assert cap22 > cap23 > cap24
+
+
+def test_elec_2025_exact():
+    assert get_cap_unit_rate_gbp_per_mwh('electricity', 2025) == pytest.approx(190.0)
+
+
+def test_gas_2019_exact():
+    assert get_cap_unit_rate_gbp_per_mwh('gas', 2019) == pytest.approx(26.0)
+
+
+def test_gas_2020_below_2019():
+    assert get_cap_unit_rate_gbp_per_mwh('gas', 2020) < get_cap_unit_rate_gbp_per_mwh('gas', 2019)
+
+
+def test_gas_2021_above_2020():
+    assert get_cap_unit_rate_gbp_per_mwh('gas', 2021) > get_cap_unit_rate_gbp_per_mwh('gas', 2020)
+
+
+def test_gas_2023_exact():
+    assert get_cap_unit_rate_gbp_per_mwh('gas', 2023) == pytest.approx(70.0)
+
+
+def test_gas_2025_exact():
+    assert get_cap_unit_rate_gbp_per_mwh('gas', 2025) == pytest.approx(52.0)
