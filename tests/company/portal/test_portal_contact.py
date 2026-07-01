@@ -88,3 +88,21 @@ def test_complaint_flag_set_correctly():
         data={"contact_reason": "complaint", "notes": "Bad service", "complaint": "yes"},
     )
     assert len(_SERVICE_LOG.complaints()) == initial + 1
+
+
+def test_contact_route_content_type_is_html():
+    r = client.get("/account/C1/contact")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_contact_template_file_exists():
+    from pathlib import Path
+    assert Path("company/portal/templates/contact.html").exists()
+
+
+def test_contact_post_returns_html():
+    r = client.post(
+        "/account/C1/contact",
+        data={"contact_reason": "general", "notes": ""},
+    )
+    assert "text/html" in r.headers.get("content-type", "")

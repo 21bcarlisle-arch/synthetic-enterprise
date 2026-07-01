@@ -77,3 +77,18 @@ def test_admin_template_has_summary_cards():
         html = f.read()
     assert "card" in html
     assert "Outstanding" in html
+
+
+def test_load_admin_data_has_csat():
+    data = _load_admin_data()
+    assert "csat" in data
+
+
+def test_admin_total_customers_positive():
+    data = _load_admin_data()
+    assert data["total_customers"] > 0
+
+
+def test_admin_total_billed_nonneg():
+    data = _load_admin_data()
+    assert data["total_billed_gbp"] >= 0

@@ -146,3 +146,23 @@ def test_invoice_summary_outstanding_balance(tmp_path):
     )
     expected = round(80.0 * (1 + VAT), 2)
     assert abs(outstanding - expected) < 0.01
+
+
+def test_reconcile_payment_returns_string(tmp_path):
+    db = tmp_path / "inv.db"
+    _make_invoice(db, "C1", "2024-04-30", 50.0)
+    result = reconcile_payment(
+        {"event_type": "payment_received_event", "customer_id": "C1",
+         "bill_period_end": "2024-04-30", "amount_gbp": 10.0},
+        db,
+    )
+    assert isinstance(result, str)
+
+
+def test_vat_constant_is_5_pct():
+    assert VAT == 0.05
+
+
+def test_payment_confirm_template_exists():
+    from pathlib import Path
+    assert Path("company/portal/templates/payment_confirm.html").exists()

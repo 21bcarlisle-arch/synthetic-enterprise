@@ -66,3 +66,18 @@ def test_bills_has_statement_link():
     with open("company/portal/templates/bills.html") as f:
         html = f.read()
     assert "/statement" in html
+
+
+def test_statement_content_type_is_html():
+    r = client.get("/account/C1/statement")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_statement_c2_returns_200():
+    r = client.get("/account/C2/statement")
+    assert r.status_code == 200
+
+
+def test_statement_template_exists():
+    from pathlib import Path
+    assert Path("company/portal/templates/statement.html").exists()

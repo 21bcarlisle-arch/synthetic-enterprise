@@ -129,3 +129,21 @@ def test_consumption_route_no_banner_for_non_hh(client, tmp_db):
 def test_consumption_route_unknown_account_returns_404(client):
     resp = client.get("/account/UNKNOWN_XYZ/consumption")
     assert resp.status_code == 404
+
+
+def test_consumption_history_returns_list(tmp_db):
+    records = consumption_history("C1", tmp_db)
+    assert isinstance(records, list)
+
+
+def test_monthly_totals_returns_list(tmp_db):
+    records = consumption_history("C1", tmp_db)
+    totals = monthly_totals(records)
+    assert isinstance(totals, list)
+
+
+def test_consumption_route_content_type(client, tmp_db):
+    from company.billing.invoice import create_invoice
+    create_invoice(_bill("C1", "2022-01-01", "2022-01-31", kwh=100.0), tmp_db)
+    resp = client.get("/account/C1/consumption")
+    assert "text/html" in resp.headers.get("content-type", "")
