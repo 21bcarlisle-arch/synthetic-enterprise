@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 10,800 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 10,830 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase JY -- Coverage Depth Sprint XLVII (2026-07-01)
+**Modules:** tpi_book (crm) · nps_tracker (crm) · ancillary_products (crm)
+**Tests added:** 30 (tpi_book: deal_id_sequential DEAL-0001/0002; total_commission_all_tpis no-filter; deals_for_tpi_empty; annual_summary_empty_year deal_count=0; annual_summary_two_deals; annual_summary_year_filter; accredited_default_true; suspend_changes_tier=SUSPENDED; annual_summary_tpi_count=2; probation_tier_can_record_deal. nps_tracker: classify_6=detractor; classify_7=passive; is_promoter_9=True; is_detractor_6=True; not_detractor_7=False; nps_none_empty_period; score_0_valid; score_neg_raises; monthly_nps_none_empty_month; annual_summary_empty_year. ancillary_products: default_price_boiler=18; ev_tariff_price=0; is_active_False_end_date; active_empty_after_cancel; avg_none_all_cancelled; revenue_zero_prior_year; custom_price_override; unique_customers=2; cancel_no_match_no_op; annual_revenue_cancelled_mid_year.)
+**Total:** 10,830 tests
 
 ### Phase JX -- Coverage Depth Sprint XLVI (2026-07-01)
 **Modules:** decarb_recommender (crm) · three_horizon_clv (core) · capacity_market (market + regulatory)
@@ -4670,7 +4675,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,800 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,830 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

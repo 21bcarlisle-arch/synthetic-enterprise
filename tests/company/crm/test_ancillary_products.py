@@ -67,3 +67,71 @@ def test_portfolio_summary():
     assert s['total_active_subscriptions'] == 1
     assert 'avg_products_per_customer' in s
     assert 'by_product' in s
+
+
+# --- Phase JY depth tests ---
+
+def test_default_price_boiler_cover_18():
+    sub = ProductSubscription('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 1, 1))
+    assert sub.monthly_price_gbp == pytest.approx(18.0)
+
+
+def test_ev_tariff_default_price_zero():
+    sub = ProductSubscription('C001', AncillaryProduct.EV_TARIFF, dt.date(2022, 1, 1))
+    assert sub.monthly_price_gbp == pytest.approx(0.0)
+
+
+def test_is_active_false_when_end_date_set():
+    sub = ProductSubscription('C001', AncillaryProduct.BROADBAND, dt.date(2022, 1, 1),
+                               end_date=dt.date(2022, 6, 1))
+    assert sub.is_active is False
+
+
+def test_active_subscriptions_empty_after_cancel():
+    t = AncillaryRevenueTracker()
+    t.subscribe('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 1, 1))
+    t.cancel('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 6, 1))
+    assert t.active_subscriptions('C001') == []
+
+
+def test_avg_products_none_when_all_cancelled():
+    t = AncillaryRevenueTracker()
+    t.subscribe('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 1, 1))
+    t.cancel('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 6, 1))
+    assert t.avg_products_per_customer() is None
+
+
+def test_total_annual_revenue_zero_for_prior_year():
+    t = AncillaryRevenueTracker()
+    t.subscribe('C001', AncillaryProduct.BROADBAND, dt.date(2022, 1, 1))
+    assert t.total_annual_revenue_gbp(2021) == pytest.approx(0.0)
+
+
+def test_custom_monthly_price_override():
+    t = AncillaryRevenueTracker()
+    t.subscribe('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 1, 1), monthly_price_gbp=25.0)
+    rev = t.total_annual_revenue_gbp(2022)
+    assert rev == pytest.approx(25.0 * 12, rel=0.05)
+
+
+def test_portfolio_summary_unique_customers_two():
+    t = AncillaryRevenueTracker()
+    t.subscribe('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 1, 1))
+    t.subscribe('C002', AncillaryProduct.BROADBAND, dt.date(2022, 1, 1))
+    s = t.portfolio_summary(2022)
+    assert s['unique_customers'] == 2
+
+
+def test_cancel_no_match_is_no_op():
+    t = AncillaryRevenueTracker()
+    t.subscribe('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 1, 1))
+    t.cancel('C001', AncillaryProduct.BROADBAND, dt.date(2022, 6, 1))
+    assert len(t.active_subscriptions('C001')) == 1
+
+
+def test_annual_revenue_cancelled_mid_year():
+    t = AncillaryRevenueTracker()
+    t.subscribe('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 1, 1))
+    t.cancel('C001', AncillaryProduct.BOILER_COVER, dt.date(2022, 7, 1))
+    rev = t.total_annual_revenue_gbp(2022)
+    assert 90.0 < rev < 115.0  # approximately 6 months of £18/month

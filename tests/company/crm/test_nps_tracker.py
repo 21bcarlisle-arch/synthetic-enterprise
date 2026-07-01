@@ -66,3 +66,63 @@ def test_annual_summary():
     assert 'nps' in s
     assert 'promoter_pct' in s
     assert 'detractor_pct' in s
+
+
+# --- Phase JY depth tests ---
+
+def test_classify_score_6_is_detractor():
+    assert classify_nps(6) == 'detractor'
+
+
+def test_classify_score_7_is_passive():
+    assert classify_nps(7) == 'passive'
+
+
+def test_nps_response_is_promoter_at_9():
+    r = NPSResponse('C1', 9, dt.date(2022, 1, 1), 'residential', 'post_call')
+    assert r.is_promoter is True
+
+
+def test_nps_response_is_detractor_at_6():
+    r = NPSResponse('C1', 6, dt.date(2022, 1, 1), 'residential', 'post_call')
+    assert r.is_detractor is True
+
+
+def test_nps_response_not_detractor_at_7():
+    r = NPSResponse('C1', 7, dt.date(2022, 1, 1), 'residential', 'post_call')
+    assert r.is_detractor is False
+
+
+def test_nps_in_period_none_when_empty():
+    t = NPSTracker()
+    result = t.nps_in_period(dt.date(2022, 1, 1), dt.date(2022, 12, 31))
+    assert result is None
+
+
+def test_record_score_zero_valid():
+    t = NPSTracker()
+    r = t.record('C001', 0, dt.date(2022, 1, 1), 'residential')
+    assert r.score == 0
+    assert r.is_detractor is True
+
+
+def test_record_score_negative_raises():
+    t = NPSTracker()
+    with pytest.raises(ValueError):
+        t.record('C001', -1, dt.date(2022, 1, 1), 'residential')
+
+
+def test_monthly_nps_none_for_empty_month():
+    t = NPSTracker()
+    t.record('C001', 9, dt.date(2022, 1, 10), 'residential')
+    monthly = t.monthly_nps(2022)
+    assert monthly[3] is None  # March has no responses
+
+
+def test_annual_summary_empty_year():
+    t = _tracker()  # has responses in 2022
+    s = t.annual_summary(2021)
+    assert s['responses'] == 0
+    assert s['nps'] is None
+    assert s['promoter_pct'] is None
+    assert s['detractor_pct'] is None

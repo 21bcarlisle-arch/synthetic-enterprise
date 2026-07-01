@@ -1,2 +1,2 @@
-Phase JX -- Coverage Depth Sprint XLVI
-30 tests: decarb_recommender + three_horizon_clv + capacity_market coverage depth
+Phase JY -- Coverage Depth Sprint XLVII
+30 tests: tpi_book + nps_tracker + ancillary_products coverage depth
