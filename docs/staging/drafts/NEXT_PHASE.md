@@ -1,2 +1,2 @@
-Phase KH -- Coverage Depth Sprint LVI
-30 tests: churn_via_live_interface + notify_churn_live + phase48a_term_premium coverage depth
+Phase KI -- Coverage Depth Sprint LVII
+30 tests: phase45c_risk_premium + solr_intake + retention_risk coverage depth

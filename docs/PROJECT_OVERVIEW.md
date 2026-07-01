@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,070 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,100 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KH -- Coverage Depth Sprint LVI (2026-07-01)
+**Modules:** churn_via_live_interface (interfaces) · notify_churn_live (interfaces) · phase48a_term_premium (pricing)
+**Tests added:** 30 (churn_via_live_interface: result_in_0_1; live_in_0_1; stub_and_live_agree; higher_tenure_lowers; higher_market_increases; equal_prices_nonneg; returns_float; live_clamps_0.95; zero_tenure_matches_model; different_accounts_same. notify_churn_live: empty_churn_events; empty_acquisition_events; empty_all_events; churn_event_type; acquisition_event_type; two_churns_ids; churn_date; acquisition_date; sim_prob_stored; all_events=3. phase48a_term_premium: 48m=3yr_prem; 1m=12m_floor; monotonic; scales_with_base; 0m=12m_floor; gas_36m_2yr_prem; two_engines_independent; 24m_positive; 12m_positive; constant_is_float.)
+**Total:** 11,100 tests
 
 ### Phase KG -- Coverage Depth Sprint LV (2026-07-01)
 **Modules:** carbon_emissions (regulatory) · consumption_forecast (billing) · credit_rating_book (trading)
@@ -4715,7 +4720,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,070 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,100 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
