@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 425+ commits. 10,620 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 430+ commits. 10,650 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,16 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase JS -- Coverage Depth Sprint XLI (2026-07-01)
+**Modules:** eep_book · meter_read_validation · capacity_to_pay
+**Tests added:** 30 (eep_book: EEP-00001/00002 sequential IDs; simple_payback_years None when saving=0; total_subsidy BUS scheme; total_subsidy year-2021=0; total_subsidy no-filter sums all; estimated_savings_all_years; installs_for_unknown=[]; annual_summary by_measure loft_insulation; customer_cost_partial_subsidy 6500; annual_summary empty year installations=0. meter_read_validation: days_elapsed min=1 same-day; zero-advance not flagged within 7d; transposition_queried prev=500 read=9100 expected=100; exactly-3x not-EXCESSIVE; reversal does not trigger LOW_DAILY_RATE; exactly-0.2x not-LOW; summary includes advance_kwh; ENGINEER_VISIT source stored; SMART_METER source; summary queried low-rate. capacity_to_pay: disposable floors at zero; energy_share None zero-income; estimated_plan_months None CANNOT_PAY; plan_months=5 for 500/100; extended_plan within 24m; affordable_repayment capped at debt; exact-10pct=FUEL_POVERTY; just-below-10pct not fuel-poverty; summary assessment_date iso; minimum_payment_floor 5GBP in plan_months)
+**Total:** 10,650 tests
+
+### Phase JR -- Coverage Depth Sprint XL (2026-07-01)
+**Modules:** hedge_policy · ofgem_price_cap · service_log (CSAT/service behaviors)
+**Tests added:** 30 (hedge_policy: EVOLUTION_STEP=0.1 constant; TOLERANCE=5.0 constant; exact +TOLERANCE holds; exact -TOLERANCE holds; just-above raises; just-below trims (from 1.0); multiple raises cap at 1.0; multiple trims floor at 0.85; reason contains fraction; 0.95→0.85. ofgem_price_cap: 2019 first year not-None; 2022 elec>300; 2022 gas>90; 2024 elec<2022; 2024 gas<2022; 2018=None; 2017=None; 2030 future fallback float; elec always>gas; 2024 gas in range. service_log: score 1 valid; score 0 raises ValueError; latest_id None empty; latest_id most-recent; nonexistent ID returns False; mean correct; promoter 3of4=75%; score 3 not promoter; complaint_rate zero; contacts_filter by customer)
+**Total:** 10,620 tests
 
 ### Phase JP — Coverage Depth Sprint XXXVIII (2026-07-01)
 **Modules:** conversation_log · bm_unit_log · working_capital
@@ -4635,7 +4645,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,620 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,650 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
