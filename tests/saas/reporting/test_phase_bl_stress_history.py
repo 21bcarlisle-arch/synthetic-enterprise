@@ -112,3 +112,24 @@ def test_zero_treasury_no_crash():
     d = _data(2022, 0)
     result = _section_stress_test_history(d)
     assert "Portfolio Stress Test" in result
+
+
+# 13. Header text present
+def test_header_text():
+    d = _data(2022, 3_000_000)
+    result = _section_stress_test_history(d)
+    assert "Portfolio Stress Test" in result
+
+
+# 14. Credit facility mentioned
+def test_credit_facility_mentioned():
+    d = _data(2022, 3_000_000)
+    result = _section_stress_test_history(d)
+    assert "2M" in result or "2,000,000" in result or "credit" in result.lower()
+
+
+# 15. Scenario short names in header row
+def test_scenario_names_in_header():
+    d = _data(2022, 3_000_000)
+    result = _section_stress_test_history(d)
+    assert "Mkt Spike" in result or "Combined" in result

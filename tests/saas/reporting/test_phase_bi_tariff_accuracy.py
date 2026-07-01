@@ -108,3 +108,23 @@ def test_sorted_years():
     pos_2022 = result.find("| 2022 |")
     pos_2023 = result.find("| 2023 |")
     assert pos_2021 < pos_2022 < pos_2023
+
+
+# 13. POOR flag when mean >= 15%
+def test_poor_accuracy_flag():
+    d = _data({"2022": {"n": 10, "mean_abs_error_pct": 0.16, "max_abs_error_pct": 0.40}})
+    assert "POOR" in _section_tariff_estimation_accuracy(d)
+
+
+# 14. Max error shown in table row
+def test_max_error_shown():
+    d = _data({"2022": {"n": 10, "mean_abs_error_pct": 0.05, "max_abs_error_pct": 0.3742}})
+    result = _section_tariff_estimation_accuracy(d)
+    assert "37.4%" in result
+
+
+# 15. Single year with n>=5 still shows best/worst
+def test_single_year_best_worst():
+    d = _data({"2023": {"n": 8, "mean_abs_error_pct": 0.11, "max_abs_error_pct": 0.28}})
+    result = _section_tariff_estimation_accuracy(d)
+    assert "Best accuracy year" in result and "2023" in result

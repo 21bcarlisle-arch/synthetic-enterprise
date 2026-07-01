@@ -121,3 +121,24 @@ def test_no_loss_note_when_all_positive():
     d = _data(2022, _ss(resi_e=1000, resi_g=500, sme_e=2000, ic_e=50000, ic_g=5000))
     result = _section_segment_margin_attribution(d)
     assert "Loss-making" not in result
+
+
+# 13. Total column shown
+def test_total_column_shown():
+    d = _data(2022, _ss(ic_e=50000, resi_e=10000))
+    result = _section_segment_margin_attribution(d)
+    assert "| Total |" in result or "Total" in result
+
+
+# 14. Negative gross shown as negative in output
+def test_negative_gross_shown():
+    d = _data(2022, _ss(resi_g=-1500, ic_e=50000))
+    result = _section_segment_margin_attribution(d)
+    assert "-" in result and "1,500" in result
+
+
+# 15. Best/worst shown in footer
+def test_best_worst_footer():
+    d = _multi({2021: _ss(ic_e=100000), 2022: _ss(ic_e=200000)})
+    result = _section_segment_margin_attribution(d)
+    assert "Best gross margin year" in result and "Worst" in result

@@ -119,3 +119,27 @@ def test_zero_revenue_no_crash():
     d = _data([_ma(2022, 0, 0, 0, 0)], [_yrs(2022, 10)])
     result = _section_financial_ratios(d)
     assert "0.0%" in result  # EBIT% = 0%
+
+
+# 13. EBIT% computed from known values
+def test_ebit_pct_computed():
+    d = _data([_ma(2022, 100000.0, 20000.0, 10000.0)], [_yrs(2022, 10)])
+    result = _section_financial_ratios(d)
+    assert "10.0%" in result
+
+
+# 14. Multi-year best EBIT shown
+def test_best_ebit_year_shown():
+    d = _data(
+        [_ma(2022, 100000.0, 20000.0, 5000.0), _ma(2023, 200000.0, 40000.0, 30000.0)],
+        [_yrs(2022, 5), _yrs(2023, 5)],
+    )
+    result = _section_financial_ratios(d)
+    assert "Best EBIT%" in result and "2023" in result
+
+
+# 15. Bad debt rate shown in table
+def test_bad_debt_rate_shown():
+    d = _data([_ma(2022, 100000.0, 20000.0, 5000.0, bd=2000.0)], [_yrs(2022, 5)])
+    result = _section_financial_ratios(d)
+    assert "2.00%" in result

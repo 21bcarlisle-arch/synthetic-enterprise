@@ -105,3 +105,28 @@ def test_svt_regulatory_note():
     d = {"churn_basis_risk": [_r("C1", "2022-01-01", -10.0)]}
     result = _section_price_cap_headroom(d)
     assert "SVT" in result and "Ofgem" in result
+
+
+# 13. Best headroom year label shown
+def test_best_headroom_label_shown():
+    d = {"churn_basis_risk": [_r("C1", "2022-01-01", -25.0), _r("C1", "2023-01-01", -5.0)]}
+    result = _section_price_cap_headroom(d)
+    assert "Best headroom year" in result
+
+
+# 14. Observation count in row
+def test_observation_count_in_row():
+    d = {"churn_basis_risk": [
+        _r("C1", "2022-01-01", -10.0),
+        _r("C2", "2022-06-01", -12.0),
+        _r("C3", "2022-09-01", -8.0),
+    ]}
+    result = _section_price_cap_headroom(d)
+    assert "| 3 |" in result or "| 2022 | 3 |" in result
+
+
+# 15. Largest above-SVT year label shown
+def test_largest_above_svt_label_shown():
+    d = {"churn_basis_risk": [_r("C1", "2022-01-01", 15.0), _r("C1", "2023-01-01", -5.0)]}
+    result = _section_price_cap_headroom(d)
+    assert "above-SVT" in result or "Largest" in result
