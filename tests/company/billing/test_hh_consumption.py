@@ -70,3 +70,58 @@ class TestIsFeedAvailable:
 
     def test_existing_returns_true(self, feed_path):
         assert is_feed_available(feed_path)
+
+
+# --- Phase KY depth tests ---
+
+def test_records_have_kwh_key(feed_path):
+    records = get_hh_consumption("C1", feed_path)
+    assert all("kwh" in r for r in records)
+
+
+def test_records_have_date_key(feed_path):
+    records = get_hh_consumption("C1", feed_path)
+    assert all("date" in r for r in records)
+
+
+def test_records_have_period_key(feed_path):
+    records = get_hh_consumption("C1", feed_path)
+    assert all("period" in r for r in records)
+
+
+def test_records_have_hour_key(feed_path):
+    records = get_hh_consumption("C1", feed_path)
+    assert all("hour" in r for r in records)
+
+
+def test_kwh_values_positive(feed_path):
+    records = get_hh_consumption("C1", feed_path)
+    assert all(r["kwh"] > 0.0 for r in records)
+
+
+def test_return_type_is_list(feed_path):
+    result = get_hh_consumption("C1", feed_path)
+    assert isinstance(result, list)
+
+
+def test_recent_hh_first_period(feed_path):
+    records = get_hh_consumption("C1", feed_path)
+    recent = recent_hh_periods(records, n_periods=1)
+    assert len(recent) == 1
+
+
+def test_recent_hh_returns_list():
+    records = [{"period": i} for i in range(5)]
+    result = recent_hh_periods(records, n_periods=3)
+    assert isinstance(result, list)
+
+
+def test_is_feed_available_type():
+    import tempfile, pathlib
+    result = is_feed_available(pathlib.Path("/nonexistent/path/feed.json"))
+    assert isinstance(result, bool)
+
+
+def test_customer_id_in_returned_records(feed_path):
+    records = get_hh_consumption("C2", feed_path)
+    assert records[0]["customer_id"] == "C2"

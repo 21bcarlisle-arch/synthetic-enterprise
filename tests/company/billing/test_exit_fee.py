@@ -76,3 +76,61 @@ def test_zero_days_remaining_at_expiry():
     r = calculate_exit_fee("C1", date(2022, 12, 31), date(2022, 12, 31), 3500.0)
     assert r.days_remaining == 0
     assert r.waived
+
+
+# --- Phase KY depth tests ---
+
+def test_customer_id_stored():
+    r = calculate_exit_fee('C_KY', date(2023, 12, 31), date(2023, 6, 1), 3600.0)
+    assert r.customer_id == 'C_KY'
+
+
+def test_contract_end_date_stored():
+    r = calculate_exit_fee('C1', date(2023, 12, 31), date(2023, 6, 1), 3600.0)
+    assert r.contract_end_date == date(2023, 12, 31)
+
+
+def test_exit_date_stored():
+    r = calculate_exit_fee('C1', date(2023, 12, 31), date(2023, 6, 1), 3600.0)
+    assert r.exit_date == date(2023, 6, 1)
+
+
+def test_days_remaining_calculation():
+    end = date(2023, 12, 31)
+    exit_d = date(2023, 6, 1)
+    r = calculate_exit_fee('C1', end, exit_d, 3600.0)
+    assert r.days_remaining == (end - exit_d).days
+
+
+def test_fee_gbp_is_float():
+    r = calculate_exit_fee('C1', date(2023, 12, 31), date(2023, 6, 1), 3600.0)
+    assert isinstance(r.fee_gbp, float)
+
+
+def test_waived_is_bool():
+    r = calculate_exit_fee('C1', date(2023, 12, 31), date(2023, 6, 1), 3600.0)
+    assert isinstance(r.waived, bool)
+
+
+def test_waive_reason_none_when_charged():
+    r = calculate_exit_fee('C1', date(2023, 12, 31), date(2023, 6, 1), 3600.0)
+    assert r.waive_reason is None
+
+
+def test_notice_period_days_constant():
+    assert NOTICE_PERIOD_DAYS == 42
+
+
+def test_gas_fee_lower_than_elec_same_consumption():
+    end = date(2023, 12, 31)
+    exit_d = date(2023, 6, 1)
+    elec = calculate_exit_fee('C1', end, exit_d, 3600.0, 'electricity')
+    gas = calculate_exit_fee('C1', end, exit_d, 3600.0, 'gas')
+    assert gas.fee_gbp < elec.fee_gbp
+
+
+def test_fee_zero_when_supplier_breach():
+    r = calculate_exit_fee('C1', date(2023, 12, 31), date(2023, 6, 1), 3600.0,
+                           waive_reason=ExitFeeWaiveReason.SUPPLIER_BREACH)
+    assert r.fee_gbp == pytest.approx(0.0)
+    assert r.waived is True

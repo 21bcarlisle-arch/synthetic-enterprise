@@ -120,3 +120,66 @@ def test_debt_aging_empty_db_returns_zeros(db):
         assert bucket in summary
         assert summary[bucket]['count'] == 0
         assert summary[bucket]['amount_gbp'] == 0.0
+
+
+# --- Phase KY depth tests ---
+
+def test_bad_debt_days_constant():
+    from company.billing.payments import BAD_DEBT_DAYS
+    assert BAD_DEBT_DAYS == 90
+
+
+def test_reconcile_returns_string(db):
+    event = {
+        "event_type": "payment_received_event",
+        "customer_id": "C001",
+        "bill_period_end": "2022-03-31",
+        "amount_gbp": 0.0,
+    }
+    result = reconcile_payment(event, db)
+    assert isinstance(result, str)
+
+
+def test_reconcile_no_match_returns_no_match(db):
+    event = {
+        "event_type": "payment_received_event",
+        "customer_id": "UNKNOWN",
+        "bill_period_end": "2099-01-31",
+        "amount_gbp": 100.0,
+    }
+    assert reconcile_payment(event, db) == "no_match"
+
+
+def test_reconcile_payments_returns_dict(db):
+    result = reconcile_payments([], db)
+    assert isinstance(result, dict)
+
+
+def test_reconcile_payments_has_no_match_key(db):
+    result = reconcile_payments([], db)
+    assert "no_match" in result
+
+
+def test_reconcile_payments_has_paid_key(db):
+    result = reconcile_payments([], db)
+    assert "paid" in result
+
+
+def test_reconcile_payments_empty_events_all_zero(db):
+    result = reconcile_payments([], db)
+    assert result["paid"] == 0 and result["no_match"] == 0
+
+
+def test_age_debt_returns_list(db):
+    result = age_debt(db, "2022-06-01")
+    assert isinstance(result, list)
+
+
+def test_debt_aging_summary_returns_dict(db):
+    result = debt_aging_summary(db, "2022-06-01")
+    assert isinstance(result, dict)
+
+
+def test_debt_aging_summary_has_current_key(db):
+    result = debt_aging_summary(db, "2022-06-01")
+    assert "current" in result

@@ -1,2 +1,2 @@
-Phase KY -- Coverage Depth Sprint LXXIII
-30 tests: exit_fee + hh_consumption + payments coverage depth
+Phase KZ -- Coverage Depth Sprint LXXIV
+30 tests: seg_portfolio + theft_indicator + acquisition_cost coverage depth
