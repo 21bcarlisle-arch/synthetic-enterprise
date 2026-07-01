@@ -1,10 +1,6 @@
-"""Tests for sim/price_engine.py -- Phase 3b merit-order price model."""
-
 import pytest
 
 from sim.price_engine import (
-    GAMMA_MAX,
-    GAMMA_MIN,
     THERMAL_EFFICIENCY,
     WIND_CUT_IN_MS,
     WIND_CUT_OUT_MS,
@@ -16,80 +12,95 @@ from sim.price_engine import (
 )
 
 
-# --- gas_floor_price ---
+def test_gas_floor_price_default_efficiency():
+    assert gas_floor_price(25.0) == 25.0 / THERMAL_EFFICIENCY
 
-def test_gas_floor_price_basic():
-    # 50 GBP/MWh(th) at 50% efficiency -> 100 GBP/MWh(e)
+
+def test_gas_floor_price_custom_efficiency():
+    assert gas_floor_price(30.0, thermal_efficiency=0.60) == 50.0
+
+
+def test_system_margin_price_at_unity_ratio_returns_floor():
+    floor = 50.0
+    assert system_margin_price(floor, demand_mw=1000, renewable_generation_mw=1000, gamma=2.0) == floor
+
+
+def test_system_margin_price_increases_with_tighter_margin():
+    floor = 50.0
+    loose = system_margin_price(floor, demand_mw=1000, renewable_generation_mw=2000, gamma=2.0)
+    tight = system_margin_price(floor, demand_mw=2000, renewable_generation_mw=1000, gamma=2.0)
+    assert tight > floor > loose
+
+
+def test_system_margin_price_higher_gamma_amplifies_tight_margin():
+    floor = 50.0
+    demand_mw, renewable_mw = 2000, 1000
+    low_gamma = system_margin_price(floor, demand_mw, renewable_mw, gamma=1.5)
+    high_gamma = system_margin_price(floor, demand_mw, renewable_mw, gamma=2.5)
+    assert high_gamma > low_gamma > floor
+
+
+def test_system_margin_price_rejects_gamma_out_of_range():
+    with pytest.raises(ValueError):
+        system_margin_price(50.0, 1000, 1000, gamma=1.0)
+    with pytest.raises(ValueError):
+        system_margin_price(50.0, 1000, 1000, gamma=3.0)
+
+
+def test_system_margin_price_rejects_zero_renewable_generation():
+    with pytest.raises(ValueError):
+        system_margin_price(50.0, demand_mw=1000, renewable_generation_mw=0, gamma=2.0)
+
+
+def test_wind_power_below_cut_in_is_zero():
+    assert wind_power_output_fraction(WIND_CUT_IN_MS - 0.1, rated_power_mw=10) == 0.0
+
+
+def test_wind_power_at_cut_in_is_zero():
+    assert wind_power_output_fraction(WIND_CUT_IN_MS, rated_power_mw=10) == 0.0
+
+
+def test_wind_power_at_rated_speed_is_full_output():
+    assert wind_power_output_fraction(WIND_RATED_MS, rated_power_mw=10) == 10
+
+
+def test_wind_power_in_rated_plateau_is_full_output():
+    assert wind_power_output_fraction(20.0, rated_power_mw=10) == 10
+
+
+def test_wind_power_at_cut_out_is_still_full_output():
+    assert wind_power_output_fraction(WIND_CUT_OUT_MS, rated_power_mw=10) == 10
+
+
+def test_wind_power_above_cut_out_is_zero():
+    assert wind_power_output_fraction(WIND_CUT_OUT_MS + 0.1, rated_power_mw=10) == 0.0
+
+
+def test_wind_power_ramp_is_cubic_and_monotonic():
+    p1 = wind_power_output_fraction(5.0, rated_power_mw=10)
+    p2 = wind_power_output_fraction(8.0, rated_power_mw=10)
+    p3 = wind_power_output_fraction(11.0, rated_power_mw=10)
+    assert 0 < p1 < p2 < p3 < 10
+
+    # Doubling from 5 -> 10 m/s within the ramp should roughly 8x the
+    # fractional output (cubic), modulo the cut-in offset.
+    expected_p1 = ((5.0**3 - WIND_CUT_IN_MS**3) / (WIND_RATED_MS**3 - WIND_CUT_IN_MS**3)) * 10
+    assert p1 == pytest.approx(expected_p1)
+
+
+def test_synthetic_price_chains_gas_floor_and_margin():
+    gas_price = 25.0
+    demand_mw, renewable_mw, gamma = 1500, 1000, 2.0
+    expected_floor = gas_floor_price(gas_price)
+    expected = system_margin_price(expected_floor, demand_mw, renewable_mw, gamma)
+    assert synthetic_price(gas_price, demand_mw, renewable_mw, gamma) == expected
+
+
+def test_gas_floor_price_basic_50pct_efficiency():
     assert gas_floor_price(50.0, 0.50) == pytest.approx(100.0)
 
 
-def test_gas_floor_price_default_efficiency():
-    assert gas_floor_price(40.0) == pytest.approx(40.0 / THERMAL_EFFICIENCY)
-
-
-def test_gas_floor_price_higher_efficiency_lower_cost():
-    low_eff = gas_floor_price(50.0, 0.40)
-    high_eff = gas_floor_price(50.0, 0.60)
-    assert high_eff < low_eff
-
-
-# --- system_margin_price ---
-
-def test_system_margin_price_balanced_demand():
-    # demand == renewable -> ratio=1 -> result == floor
-    price = system_margin_price(100.0, 10_000.0, 10_000.0, gamma=2.0)
-    assert price == pytest.approx(100.0)
-
-
-def test_system_margin_price_tight_margin_raises():
-    # demand >> renewable -> price spikes
-    price = system_margin_price(100.0, 40_000.0, 10_000.0, gamma=2.0)
-    assert price > 100.0
-
-
-def test_system_margin_price_abundant_renewables_lowers():
-    # demand << renewable -> price drops
-    price = system_margin_price(100.0, 5_000.0, 20_000.0, gamma=2.0)
-    assert price < 100.0
-
-
-def test_system_margin_invalid_gamma_raises():
-    with pytest.raises(ValueError):
-        system_margin_price(100.0, 10_000.0, 10_000.0, gamma=0.5)
-
-
-def test_system_margin_zero_renewable_raises():
-    with pytest.raises(ValueError):
-        system_margin_price(100.0, 10_000.0, 0.0, gamma=2.0)
-
-
-# --- wind_power_output_fraction ---
-
-def test_wind_below_cut_in_zero():
-    assert wind_power_output_fraction(1.0) == pytest.approx(0.0)
-
-
-def test_wind_above_cut_out_zero():
-    assert wind_power_output_fraction(30.0) == pytest.approx(0.0)
-
-
-def test_wind_at_rated_speed_full_output():
-    assert wind_power_output_fraction(WIND_RATED_MS) == pytest.approx(1.0)
-
-
-def test_wind_in_ramp_zone_between_zero_and_one():
-    frac = wind_power_output_fraction(7.5)
-    assert 0.0 < frac < 1.0
-
-
-def test_wind_cubic_ramp_at_cut_in_zero():
-    assert wind_power_output_fraction(WIND_CUT_IN_MS) == pytest.approx(0.0)
-
-
-# --- synthetic_price ---
-
-def test_synthetic_price_chains_floor_and_margin():
-    floor = gas_floor_price(50.0)
-    margin = system_margin_price(floor, 10_000.0, 10_000.0, 2.0)
-    sp = synthetic_price(50.0, 10_000.0, 10_000.0, 2.0)
-    assert sp == pytest.approx(margin)
+def test_wind_power_output_fraction_in_ramp_monotonic():
+    speeds = [4.0, 6.0, 8.0, 10.0, 11.0]
+    fracs = [wind_power_output_fraction(v) for v in speeds]
+    assert fracs == sorted(fracs), "Wind ramp should be monotonically increasing"
