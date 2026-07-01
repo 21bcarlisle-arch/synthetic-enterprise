@@ -1,3 +1,4 @@
+import pytest
 """Tests for company.finance.pnl."""
 
 from company.finance.pnl import company_income_statement, reconcile_with_sim
@@ -82,3 +83,69 @@ def test_reconcile_disagrees_when_gap_exceeds_one_penny():
     rec = reconcile_with_sim(stmt, 100.02)
     assert rec["agrees"] is False
     assert "Gap" in rec["note"]
+
+
+# --- Phase KD depth tests ---
+
+def test_zero_events_zero_revenue():
+    stmt = company_income_statement([])
+    assert stmt['revenue_gbp'] == pytest.approx(0.0)
+    assert stmt['gross_margin_gbp'] == pytest.approx(0.0)
+
+
+def test_net_margin_negative_when_costs_exceed_revenue():
+    events = [_event('billing_event', 100.0), _event('settlement_event', -200.0)]
+    stmt = company_income_statement(events)
+    assert stmt['net_margin_gbp'] < 0
+
+
+def test_reconcile_gap_less_than_0_01_agrees():
+    stmt = {'net_margin_gbp': 100.00}
+    rec = reconcile_with_sim(stmt, 100.009)
+    assert rec['agrees'] is True
+
+
+def test_reconcile_exactly_0_01_disagrees():
+    stmt = {'net_margin_gbp': 100.00}
+    rec = reconcile_with_sim(stmt, 100.01)
+    assert rec['agrees'] is False
+
+
+def test_cost_to_serve_included_in_total_operating():
+    events = [_event('billing_event', 100.0), _event('settlement_event', -60.0)]
+    stmt = company_income_statement(events, cost_to_serve_gbp=15.0)
+    assert stmt['total_operating_costs_gbp'] == pytest.approx(15.0)
+
+
+def test_net_revenue_cash_basis_subtracts_bad_debt():
+    events = [
+        _event('payment_received_event', 90.0),
+        _event('bad_debt_event', -10.0),
+        _event('settlement_event', -60.0),
+    ]
+    stmt = company_income_statement(events)
+    assert stmt['net_revenue_gbp'] == pytest.approx(80.0)
+
+
+def test_net_revenue_accrual_basis_equals_revenue():
+    events = [_event('billing_event', 100.0), _event('settlement_event', -60.0)]
+    stmt = company_income_statement(events)
+    assert stmt['net_revenue_gbp'] == pytest.approx(100.0)
+
+
+def test_gross_margin_formula():
+    events = [_event('billing_event', 100.0), _event('settlement_event', -60.0)]
+    stmt = company_income_statement(events)
+    assert stmt['gross_margin_gbp'] == pytest.approx(40.0)
+
+
+def test_acquisition_spend_positive():
+    events = [_event('billing_event', 100.0), _event('acquisition_spend_event', -50.0)]
+    stmt = company_income_statement(events)
+    assert stmt['acquisition_spend_gbp'] == pytest.approx(50.0)
+
+
+def test_net_margin_pct_absent_when_zero_gross():
+    events = [_event('billing_event', 100.0), _event('settlement_event', -100.0)]
+    stmt = company_income_statement(events)
+    assert 'net_margin_pct' not in stmt

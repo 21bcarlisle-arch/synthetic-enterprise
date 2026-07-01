@@ -1,2 +1,2 @@
-Phase KD -- Coverage Depth Sprint LII
-30 tests: portal_analytics + revenue_accruals + pnl coverage depth
+Phase KE -- Coverage Depth Sprint LIII
+30 tests: switch_governance + dsr_book (market) + licence_health (billing)
