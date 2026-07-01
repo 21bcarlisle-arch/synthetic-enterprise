@@ -1,2 +1,2 @@
-Phase KZ -- Coverage Depth Sprint LXXIV
-30 tests: seg_portfolio + theft_indicator + acquisition_cost coverage depth
+Phase LA -- Coverage Depth Sprint LXXV
+30 tests: next lowest-test modules coverage depth

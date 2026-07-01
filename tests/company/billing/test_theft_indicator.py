@@ -1,3 +1,4 @@
+import pytest
 """Phase 116: Energy theft indicator tests."""
 
 from company.billing.theft_indicator import classify_anomaly, screen_portfolio
@@ -63,3 +64,58 @@ def test_screen_results_sorted_by_ratio():
 def test_investigate_message_mentions_ofgem():
     result = classify_anomaly(500, 3500)
     assert "Ofgem" in result["message"]
+
+import pytest
+
+# --- Phase KZ depth tests ---
+
+def test_status_is_string():
+    result = classify_anomaly(1000.0, 2000.0)
+    assert isinstance(result['status'], str)
+
+
+def test_ratio_is_float_when_ok():
+    result = classify_anomaly(1500.0, 2000.0)
+    assert isinstance(result['ratio'], float)
+
+
+def test_ratio_is_none_when_no_data():
+    result = classify_anomaly(1000.0, 0.0)
+    assert result['ratio'] is None
+
+
+def test_message_is_string():
+    result = classify_anomaly(1000.0, 2000.0)
+    assert isinstance(result['message'], str)
+
+
+def test_theft_threshold_is_float():
+    from company.billing.theft_indicator import _THEFT_THRESHOLD_LOW
+    assert isinstance(_THEFT_THRESHOLD_LOW, float)
+
+
+def test_theft_threshold_below_half():
+    from company.billing.theft_indicator import _THEFT_THRESHOLD_LOW
+    assert _THEFT_THRESHOLD_LOW < 0.5
+
+
+def test_concern_threshold_is_float():
+    from company.billing.theft_indicator import _CONCERN_THRESHOLD_LOW
+    assert isinstance(_CONCERN_THRESHOLD_LOW, float)
+
+
+def test_concern_above_theft():
+    from company.billing.theft_indicator import _THEFT_THRESHOLD_LOW, _CONCERN_THRESHOLD_LOW
+    assert _CONCERN_THRESHOLD_LOW > _THEFT_THRESHOLD_LOW
+
+
+def test_screen_portfolio_empty_returns_zeros():
+    result = screen_portfolio([])
+    assert result['total'] == 0
+    assert result['investigate'] == 0
+
+
+def test_screen_portfolio_ok_count():
+    customers = [{"customer_id": "C1", "eac_kwh": 3000.0, "annualised_actual_kwh": 2800.0}]
+    result = screen_portfolio(customers)
+    assert result['ok'] == 1

@@ -68,3 +68,55 @@ def test_seg_summary():
     assert s['registered_customers'] == 1
     assert s['seg_rate_pence'] == 12.0
     assert s['total_export_kwh'] == pytest.approx(500.0)
+
+
+# --- Phase KZ depth tests ---
+
+def test_customer_id_stored():
+    c = SEGCustomer('C_KZ', 'MP001', 4.0, dt.date(2022, 3, 1))
+    assert c.customer_id == 'C_KZ'
+
+
+def test_mpan_stored():
+    c = SEGCustomer('C1', 'MP_KZ', 4.0, dt.date(2022, 3, 1))
+    assert c.mpan == 'MP_KZ'
+
+
+def test_solar_capacity_stored():
+    c = SEGCustomer('C1', 'MP001', 5.5, dt.date(2022, 3, 1))
+    assert c.solar_capacity_kwp == pytest.approx(5.5)
+
+
+def test_registration_date_stored():
+    d = dt.date(2021, 6, 15)
+    c = SEGCustomer('C1', 'MP001', 4.0, d)
+    assert c.registration_date == d
+
+
+def test_tariff_tier_default_fixed():
+    c = SEGCustomer('C1', 'MP001', 4.0, dt.date(2022, 1, 1))
+    assert c.tariff_tier == SEGTariffTier.FIXED
+
+
+def test_battery_capacity_default_zero():
+    c = SEGCustomer('C1', 'MP001', 4.0, dt.date(2022, 1, 1))
+    assert c.battery_capacity_kwh == pytest.approx(0.0)
+
+
+def test_has_battery_true_when_nonzero():
+    c = SEGCustomer('C1', 'MP001', 4.0, dt.date(2022, 1, 1), battery_capacity_kwh=10.0)
+    assert c.has_battery is True
+
+
+def test_seg_rate_2023():
+    assert get_seg_rate(2023) == pytest.approx(15.0)
+
+
+def test_seg_rate_2025():
+    assert get_seg_rate(2025) == pytest.approx(10.0)
+
+
+def test_portfolio_register_returns_seg_customer():
+    p = SEGPortfolio()
+    c = p.register('C1', 'MP001', 4.0, dt.date(2022, 1, 1))
+    assert isinstance(c, SEGCustomer)
