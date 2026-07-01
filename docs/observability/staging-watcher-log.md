@@ -888,3 +888,5 @@
 - [2026-07-01 09:40 UTC] Silently registered sim run marker: run_complete_20260701T093201Z.md (Claude polls staging, no notification needed)
 - [2026-07-01 09:49 UTC] Silently registered sim run marker: run_complete_20260701T094109Z.md (Claude polls staging, no notification needed)
 - [2026-07-01 10:00 UTC] Silently registered sim run marker: run_complete_20260701T095103Z.md (Claude polls staging, no notification needed)
+- [2026-07-01 10:12 UTC] Silently registered sim run marker: run_complete_20260701T100129Z.md (Claude polls staging, no notification needed)
+- [2026-07-01 10:23 UTC] Silently registered sim run marker: run_complete_20260701T101352Z.md (Claude polls staging, no notification needed)

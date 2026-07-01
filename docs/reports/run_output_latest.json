@@ -209,7 +209,9 @@
         {
           "settlement_date": "2016-03-01",
           "treasury_gbp": 2466660.6500222096,
-          "adjustments": {},
+          "adjustments": {
+            "C1": 1.0
+          },
           "portfolio_var_current_gbp": 27.727020520979767,
           "portfolio_var_stressed_gbp": 8.518381907375637
         },

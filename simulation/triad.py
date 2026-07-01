@@ -1,4 +1,8 @@
-"""Phase 27d: Triad risk tracking for I&C electricity customers.
+"""Triad risk tracking and I&C demand curtailment for TNUoS avoidance.
+
+Phase 27d: Triad risk tracking for I&C electricity customers.
+Phase MT: I&C demand curtailment -- wires Triad notifications to actual demand
+          reduction in the settlement run.
 
 TNUoS (Transmission Network Use of System) charges for large I&C sites are
 determined by the customer's consumption during the 3 highest national demand
@@ -23,7 +27,9 @@ Using SSP as a proxy for high-demand periods is the observable-data approach
 a real supplier would take.
 """
 
+from __future__ import annotations
 from datetime import date
+from typing import Callable
 
 # TNUoS Triad tariff (£/kW/year) for HV-connected demand (large I&C, Zone 14 London).
 # Source: National Grid ESO TNUoS tariff statements.
@@ -39,6 +45,67 @@ _TNUOS_TRIAD_TARIFF_BY_YEAR: dict[int, float] = {
     2023: 61.47,
     2024: 63.82,
 }
+
+
+# Phase MT: Triad alert threshold and demand curtailment constants.
+# SSP threshold for issuing Triad risk alerts (GBP/MWh).
+# Calibration: UK winter SSP typically 40-80 GBP/MWh; crisis 2021-22 >200.
+# 80 GBP/MWh represents elevated demand signal used in practice.
+_TRIAD_ALERT_SSP_THRESHOLD: float = 80.0
+# Risk periods for Triad: 16:00-19:30 (SP 33-39, half-hourly, 1-indexed).
+_TRIAD_RISK_PERIODS: frozenset[int] = frozenset(range(33, 40))
+# I&C demand reduction during Triad risk windows (portfolio-average response).
+# Real-world: 65-75% of enrolled I&C sites respond; 25% reduction is conservative.
+_IC_TRIAD_RESPONSE_REDUCTION: float = 0.25
+
+
+def build_triad_alert_set(elec_records: list[dict]) -> frozenset[tuple[str, int]]:
+    """Return (date_str, settlement_period) pairs where Triad alerts would fire.
+
+    Alert criteria (all must hold):
+    - Date in Triad season (Nov-Feb)
+    - Settlement period in risk window (33-39, i.e. 16:00-19:30)
+    - SSP >= _TRIAD_ALERT_SSP_THRESHOLD (high-demand price signal)
+
+    Uses only observable market data (SSP). No company layer imports.
+    Point-in-time safe: SSP is published for each settlement period.
+    """
+    alert_set: set[tuple[str, int]] = set()
+    for rec in elec_records:
+        sp = rec.get("settlementPeriod", 0)
+        ssp = rec.get("systemSellPrice", 0.0)
+        d = date.fromisoformat(rec["settlementDate"])
+        if (
+            d.month in _TRIAD_WINDOW_MONTHS
+            and sp in _TRIAD_RISK_PERIODS
+            and ssp >= _TRIAD_ALERT_SSP_THRESHOLD
+        ):
+            alert_set.add((rec["settlementDate"], sp))
+    return frozenset(alert_set)
+
+
+def make_triad_aware_shape_fn(
+    base_fn: Callable[[str], list[float]],
+    alert_set: frozenset[tuple[str, int]],
+    reduction: float = _IC_TRIAD_RESPONSE_REDUCTION,
+) -> Callable[[str], list[float]]:
+    """Wrap a settlement shape function with I&C Triad demand curtailment.
+
+    For each half-hour where (date_str, period) is in alert_set, demand is
+    reduced by `reduction` fraction (default 25%).  All other periods and all
+    dates outside Triad season are unaffected.
+    """
+    keep = 1.0 - reduction
+
+    def _shape_fn(date_str: str) -> list[float]:
+        shape = list(base_fn(date_str))
+        for i, v in enumerate(shape):
+            sp = i + 1
+            if (date_str, sp) in alert_set:
+                shape[i] = v * keep
+        return shape
+
+    return _shape_fn
 
 # Triad window: November through February (months 11, 12, 1, 2)
 _TRIAD_WINDOW_MONTHS = {11, 12, 1, 2}

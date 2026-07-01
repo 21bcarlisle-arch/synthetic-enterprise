@@ -111,6 +111,10 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase MT -- I&C Triad Demand Curtailment (2026-07-01)
+27 tests. Wired Triad notifications to actual demand reduction in settlement run. simulation/triad.py: build_triad_alert_set() identifies (date, period) pairs where SSP > 80 GBP/MWh + Triad season + risk periods 33-39; make_triad_aware_shape_fn() wraps I&C HH shape function with 25% curtailment. simulation/run_phase2b.py: pre-computes _ic_triad_alert_set and applies it for I&C customers. company/market/triad_notification_book.py: get_active_alerts(date, period) query method. I&C customers now reduce demand during Triad windows; triad_log avg_triad_kw will be lower for responding customers.
+**Total:** 13,003 tests
+
 ### Phase MS -- Real NBP Forward Curve (2026-07-01)
 16 calibration tests. Replaced hand-coded seasonal multipliers with empirically derived values from real market data 2016-2024 (Elexon SSP + FRED TTF proxy). Gas Dec 1.12→1.294, Elec Dec 1.12→1.257. Added sim/data/seasonal_calibration.json.
 **Total:** 12,976 tests
@@ -4976,7 +4980,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,976 tests (fast / ~10s; simulation integration ~8 min per run)
+- 13,003 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

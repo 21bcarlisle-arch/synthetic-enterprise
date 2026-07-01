@@ -160,6 +160,19 @@ class TriadNotificationBook:
                 pass
         return round(total, 2)
 
+
+    def get_active_alerts(self, alert_date: str, settlement_period: int) -> list[TriadAlert]:
+        """Return all alerts matching a given date and settlement period.
+
+        Useful for the company to check whether a Triad alert was issued for a
+        specific date/period (e.g. when reconciling settlement vs notification records).
+        Returns alerts with any status (ISSUED, RESPONDED, NO_RESPONSE).
+        """
+        return [
+            a for a in self._alerts
+            if a.alert_date == alert_date and a.settlement_period == settlement_period
+        ]
+
     def triad_notification_summary(self) -> str:
         if not self._profiles:
             return "No accounts enrolled in Triad notification service."

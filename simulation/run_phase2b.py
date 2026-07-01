@@ -95,7 +95,7 @@ from simulation.policy_costs import (
     get_ggl_per_mwh,
 )
 from simulation.volume_tolerance import compute_term_volume_tolerance
-from simulation.triad import identify_triad_candidates, compute_triad_exposure, _triad_year
+from simulation.triad import identify_triad_candidates, compute_triad_exposure, _triad_year, build_triad_alert_set, make_triad_aware_shape_fn
 from simulation.hh_consumption import (
     estimate_annual_kwh,
     hh_shape_fn,
@@ -666,6 +666,10 @@ def main(report_end: str | None = None, sim_interface=None):
         for r in elec_records
     }
 
+    # Phase MT: pre-compute Triad alert set for I&C demand curtailment.
+    # Identifies (date, period) pairs where SSP signals a Triad risk window.
+    _ic_triad_alert_set = build_triad_alert_set(elec_records)
+
     # ---- Phase 4c-1/4c-2/4c-3 inputs: per-customer weather + property records ----
     properties = build_properties(CUSTOMERS)
     # Phase C: household physical model (EPC multipliers, time-varying EV/solar)
@@ -1185,6 +1189,9 @@ def main(report_end: str | None = None, sim_interface=None):
             eac_kwh = _company_eac_estimate(cid, term_start_str, all_records, base_eac_override=_adj_base_elec)
             if is_hh_customer(customer):
                 shape_fn = hh_shape_fn(hh_consumption_by_customer[cid])
+                # Phase MT: I&C customers reduce demand 25% during Triad risk windows.
+                if customer.get("segment") == "I&C":
+                    shape_fn = make_triad_aware_shape_fn(shape_fn, _ic_triad_alert_set)
             else:
                 profile_class = customer.get("profile_class", 1)
                 property_record = properties.get(cid, DEFAULT_PROPERTY)
