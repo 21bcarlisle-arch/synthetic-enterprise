@@ -88,3 +88,16 @@ def test_admin_collections_route_returns_200():
 def test_admin_collections_shows_clear_state_or_table():
     r = client.get("/admin/collections")
     assert "Collections" in r.text
+
+
+def test_aging_tier_exactly_30():
+    assert _aging_tier(30) == "30-60"
+
+
+def test_aging_tier_exactly_0():
+    assert _aging_tier(0) == "0-30"
+
+
+def test_admin_collections_content_type_is_html():
+    r = client.get("/admin/collections")
+    assert "text/html" in r.headers.get("content-type", "")

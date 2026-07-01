@@ -59,3 +59,21 @@ def test_switch_tariff_includes_reference():
         data={"tariff_name": "Variable SVT", "term_months": "1"},
     )
     assert "SW-" in r.text
+
+
+def test_tariff_compare_content_type_is_html():
+    r = client.get(f"/account/{_KNOWN}/tariff-compare")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_tariff_compare_shows_unit_rate():
+    r = client.get(f"/account/{_KNOWN}/tariff-compare")
+    assert "p/kWh" in r.text or "unit" in r.text.lower()
+
+
+def test_switch_tariff_shows_customer_id():
+    r = client.post(
+        f"/account/{_KNOWN}/switch-tariff",
+        data={"tariff_name": "Fixed 1 Year", "term_months": "12"},
+    )
+    assert _KNOWN in r.text

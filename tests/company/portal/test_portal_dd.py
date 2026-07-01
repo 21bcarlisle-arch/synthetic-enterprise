@@ -65,3 +65,20 @@ def test_dashboard_has_dd_link():
     with open("company/portal/templates/dashboard.html") as f:
         html = f.read()
     assert "/direct-debit" in html
+
+
+def test_dd_route_content_type_is_html():
+    r = client.get("/account/C1/direct-debit")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_dd_page_has_nav():
+    r = client.get("/account/C1/direct-debit")
+    assert "nav" in r.text.lower() or "Account" in r.text
+
+
+def test_dd_template_has_payment_day_options():
+    with open("company/portal/templates/direct_debit.html") as f:
+        html = f.read()
+    assert "payment_day" in html
+    assert "28" in html or "1" in html

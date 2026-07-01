@@ -74,3 +74,23 @@ def test_css_complaint_stats_after_complaint_form():
     from company.portal.app import _load_regulatory_data
     data = _load_regulatory_data()
     assert data["css"]["total_complaints"] >= 1
+
+
+def test_regulatory_content_type_is_html():
+    r = client.get("/regulatory")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_css_total_contacts_is_nonneg_int():
+    from company.portal.app import _load_regulatory_data
+    data = _load_regulatory_data()
+    count = data["css"]["total_contacts"]
+    assert isinstance(count, int)
+    assert count >= 0
+
+
+def test_css_filing_has_vulnerable_contacts_key():
+    from company.portal.app import _load_regulatory_data
+    data = _load_regulatory_data()
+    css = data["css"]
+    assert "vulnerable_contacts" in css or "vulnerable" in str(css).lower()

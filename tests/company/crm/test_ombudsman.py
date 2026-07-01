@@ -77,3 +77,23 @@ def test_regulatory_route_includes_ombudsman_count():
     r = client.get("/regulatory")
     assert r.status_code == 200
     assert "Ombudsman" in r.text
+
+
+def test_ombudsman_eligible_returns_list():
+    log = ServiceLog()
+    result = log.ombudsman_eligible()
+    assert isinstance(result, list)
+
+
+def test_ombudsman_count_is_int():
+    log = ServiceLog()
+    result = log.ombudsman_count()
+    assert isinstance(result, int)
+
+
+def test_ombudsman_8_week_threshold():
+    from datetime import date, timedelta
+    # 7 weeks = 49 days — not yet eligible
+    not_yet = (date.today() - timedelta(weeks=7)).isoformat()
+    log = _make_log(not_yet, outcome="pending")
+    assert log.ombudsman_eligible() == []

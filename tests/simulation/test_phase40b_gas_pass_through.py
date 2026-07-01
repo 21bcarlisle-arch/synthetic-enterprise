@@ -175,3 +175,52 @@ def test_gas_pass_through_customer_in_fast_run():
     assert total_revenue > 100_000, (
         f"C_IC3g (5GWh gas, pass-through) revenue should exceed £100k, got £{total_revenue:,.0f}"
     )
+
+
+def test_c_ic3g_is_ic_segment():
+    from saas.customers import CUSTOMERS
+    c = next(c for c in CUSTOMERS if c["customer_id"] == "C_IC3g")
+    assert c["segment"] == "I&C"
+
+
+def test_gas_pass_through_records_have_net_margin_key():
+    from simulation.gas_settlement import run_gas_term
+
+    date_str = "2020-06-01"
+    price_records = [{"settlementDate": date_str, "systemSellPrice": 20.0}]
+    recs = run_gas_term(
+        customer_id="T",
+        term_start=date_str,
+        term_end="2020-06-02",
+        aq_kwh=5_000_000,
+        unit_rate_gbp_mwh=25.0,
+        hedge_fraction=1.0,
+        forward_price=20.0,
+        monthly_cost_of_capital_gbp=0.0,
+        gas_price_records=price_records,
+        segment="I&C",
+        pass_through=True,
+    )
+    assert len(recs) >= 1
+    assert "net_margin_gbp" in recs[0]
+
+
+def test_gas_pass_through_record_commodity_is_gas():
+    from simulation.gas_settlement import run_gas_term
+
+    date_str = "2020-06-01"
+    price_records = [{"settlementDate": date_str, "systemSellPrice": 20.0}]
+    recs = run_gas_term(
+        customer_id="T",
+        term_start=date_str,
+        term_end="2020-06-02",
+        aq_kwh=5_000_000,
+        unit_rate_gbp_mwh=25.0,
+        hedge_fraction=1.0,
+        forward_price=20.0,
+        monthly_cost_of_capital_gbp=0.0,
+        gas_price_records=price_records,
+        segment="I&C",
+        pass_through=False,
+    )
+    assert recs[0].get("commodity") == "gas"

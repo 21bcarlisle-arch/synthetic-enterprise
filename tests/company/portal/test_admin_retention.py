@@ -52,3 +52,18 @@ def test_retention_all_customers_present():
     from company.portal.app import _CUSTOMER_INDEX
     for cid in list(_CUSTOMER_INDEX.keys())[:3]:
         assert cid in r.text
+
+
+def test_retention_route_content_type_is_html():
+    r = client.get("/admin/retention")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_retention_has_table():
+    r = client.get("/admin/retention")
+    assert "<table" in r.text.lower()
+
+
+def test_retention_risk_column_present():
+    r = client.get("/admin/retention")
+    assert "Risk" in r.text

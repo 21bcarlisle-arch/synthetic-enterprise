@@ -101,3 +101,21 @@ def test_total_elec_eac_includes_c_ic2():
     """TOTAL_ELEC_EAC increases by approximately 1 GWh with C_IC2 added."""
     from simulation.run_phase2b import TOTAL_ELEC_EAC
     assert TOTAL_ELEC_EAC > 3_000_000, f"Total EAC {TOTAL_ELEC_EAC:,.0f} should exceed 3 GWh with both I&C customers"
+
+
+def test_c_ic2_commodity_is_electricity():
+    from saas.customers import get_customer
+    c = get_customer("C_IC2")
+    assert c["commodity"] == "electricity"
+
+
+def test_c_ic2_acquisition_date_2018():
+    from saas.customers import get_customer
+    c = get_customer("C_IC2")
+    assert c["acquisition_date"].startswith("2018")
+
+
+def test_elec_customers_count_includes_both_ic():
+    from simulation.run_phase2b import ELEC_CUSTOMERS
+    ic_customers = [c for c in ELEC_CUSTOMERS if c["segment"] == "I&C"]
+    assert len(ic_customers) >= 2

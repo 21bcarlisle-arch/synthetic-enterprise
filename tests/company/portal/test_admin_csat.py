@@ -69,3 +69,19 @@ def test_promoter_pct_is_percentage():
     pct = data["csat"].get("promoter_pct")
     if pct is not None:
         assert 0.0 <= pct <= 100.0
+
+
+def test_csat_count_is_int():
+    data = _load_admin_data()
+    assert isinstance(data["csat"]["count"], int)
+
+
+def test_admin_route_content_type_is_html():
+    r = client.get("/admin")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_csat_initial_mean_none_or_float():
+    data = _load_admin_data()
+    mean = data["csat"]["mean"]
+    assert mean is None or isinstance(mean, float)

@@ -82,3 +82,23 @@ def test_load_trading_data_empty_when_no_file(tmp_path, monkeypatch):
 def test_trading_page_has_logout_link():
     r = client.get("/trading")
     assert "Logout" in r.text or "/" in r.text
+
+
+def test_by_year_entries_have_year_key():
+    data = _load_trading_data()
+    if data.get("by_year"):
+        for entry in data["by_year"][:3]:
+            assert "year" in entry
+
+
+def test_trading_data_has_total_value_add():
+    data = _load_trading_data()
+    if data:
+        assert "total_value_add" in data
+        assert isinstance(data["total_value_add"], float)
+
+
+def test_trading_data_by_year_is_list():
+    data = _load_trading_data()
+    if data:
+        assert isinstance(data["by_year"], list)

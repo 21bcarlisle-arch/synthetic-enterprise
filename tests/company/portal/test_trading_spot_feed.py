@@ -73,3 +73,21 @@ def test_trading_page_no_feed_still_loads(monkeypatch, tmp_path):
     c = TestClient(app)
     resp = c.get("/trading")
     assert resp.status_code == 200
+
+
+def test_load_spot_prices_available_key_present(live_feed, monkeypatch):
+    monkeypatch.setattr("company.portal.app._PRICE_FEED_PATH", live_feed)
+    result = _load_spot_prices()
+    assert "available" in result
+
+
+def test_load_spot_prices_forward_is_numeric(live_feed, monkeypatch):
+    monkeypatch.setattr("company.portal.app._PRICE_FEED_PATH", live_feed)
+    result = _load_spot_prices()
+    elec_fwd = result.get("elec_forward")
+    assert elec_fwd is None or isinstance(elec_fwd, (int, float))
+
+
+def test_trading_page_content_type(client):
+    resp = client.get("/trading")
+    assert "text/html" in resp.headers.get("content-type", "")

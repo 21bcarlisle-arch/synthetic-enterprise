@@ -70,3 +70,19 @@ def test_template_has_timeline():
         html = f.read()
     assert "Installation typically takes" in html
     assert "Half-hourly data" in html
+
+
+def test_smart_meter_get_c3_returns_200():
+    r = client.get("/account/C3/smart-meter")
+    assert r.status_code == 200
+
+
+def test_smart_meter_template_has_nav():
+    with open("company/portal/templates/smart_meter.html") as f:
+        html = f.read()
+    assert "nav" in html.lower() or "logout" in html.lower()
+
+
+def test_smart_meter_post_returns_200():
+    r = client.post("/account/C1/smart-meter", data={"contact_pref": "morning", "notes": ""})
+    assert r.status_code == 200

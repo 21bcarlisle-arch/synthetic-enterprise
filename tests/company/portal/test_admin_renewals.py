@@ -52,3 +52,18 @@ def test_admin_links_to_renewals():
     with open("company/portal/templates/admin_renewals.html") as f:
         html = f.read()
     assert "admin" in html.lower()
+
+
+def test_admin_renewals_content_type_is_html():
+    r = client.get("/admin/renewals")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_admin_renewals_has_table():
+    r = client.get("/admin/renewals")
+    assert "<table" in r.text.lower() or "No contracts" in r.text
+
+
+def test_admin_renewals_has_nav():
+    r = client.get("/admin/renewals")
+    assert "/admin" in r.text

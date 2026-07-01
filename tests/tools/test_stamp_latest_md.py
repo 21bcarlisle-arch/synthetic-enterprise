@@ -105,3 +105,34 @@ def test_stamp_writes_utc_not_local(tmp_path, monkeypatch):
     match = re.search(r"Last updated: (.+)", text)
     ts = datetime.strptime(match.group(1), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
     assert before <= ts <= after
+
+
+def test_stamp_latest_md_is_path_object():
+    from pathlib import Path
+    assert isinstance(stamp_latest_md.LATEST_MD, Path)
+
+
+def test_stamp_second_call_advances_or_holds_timestamp(tmp_path, monkeypatch):
+    import re, time
+    from datetime import UTC, datetime
+    latest_md = tmp_path / "LATEST.md"
+    latest_md.write_text("Last updated: 2000-01-01T00:00:00Z\n", encoding="utf-8")
+    monkeypatch.setattr(stamp_latest_md, "LATEST_MD", latest_md)
+    stamp_latest_md.stamp()
+    ts1_text = re.search(r"Last updated: (.+)", latest_md.read_text()).group(1)
+    stamp_latest_md.stamp()
+    ts2_text = re.search(r"Last updated: (.+)", latest_md.read_text()).group(1)
+    ts1 = datetime.strptime(ts1_text, "%Y-%m-%dT%H:%M:%SZ")
+    ts2 = datetime.strptime(ts2_text, "%Y-%m-%dT%H:%M:%SZ")
+    assert ts2 >= ts1
+
+
+def test_stamp_replaces_arbitrary_old_timestamp(tmp_path, monkeypatch):
+    import re
+    latest_md = tmp_path / "LATEST.md"
+    latest_md.write_text("Last updated: 1990-06-15T12:34:56Z\n", encoding="utf-8")
+    monkeypatch.setattr(stamp_latest_md, "LATEST_MD", latest_md)
+    stamp_latest_md.stamp()
+    text = latest_md.read_text(encoding="utf-8")
+    assert "1990-06-15T12:34:56Z" not in text
+    assert re.search(r"Last updated: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", text)

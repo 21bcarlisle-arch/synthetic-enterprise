@@ -102,3 +102,26 @@ def test_fast_mode_produces_ic1_settlement_records():
     # Revenue should be large (2 GWh × rate/1000)
     total_revenue = sum(r.get("revenue_gbp", 0) for r in ic1_records)
     assert total_revenue > 100_000, f"C_IC1 revenue should exceed £100k, got £{total_revenue:.0f}"
+
+
+def test_c_ic1_segment_is_ic():
+    from simulation.run_phase2b import ELEC_CUSTOMERS
+    c = next(c for c in ELEC_CUSTOMERS if c["customer_id"] == "C_IC1")
+    assert c["segment"] == "I&C"
+
+
+def test_bill_stress_resi_does_not_saturate_at_normal_rate():
+    from company.crm.churn_model import estimate_churn_probability, MAX_CHURN_PROBABILITY
+    p = estimate_churn_probability(
+        old_rate_gbp_per_mwh=100.0,
+        new_rate_gbp_per_mwh=100.0,
+        tenure_years=5.0,
+        annual_consumption_kwh=3500,
+    )
+    assert p < MAX_CHURN_PROBABILITY
+
+
+def test_c_ic1_commodity_is_electricity():
+    from simulation.run_phase2b import ELEC_CUSTOMERS
+    c = next(c for c in ELEC_CUSTOMERS if c["customer_id"] == "C_IC1")
+    assert c["commodity"] == "electricity"
