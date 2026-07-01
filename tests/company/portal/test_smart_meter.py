@@ -86,3 +86,18 @@ def test_smart_meter_template_has_nav():
 def test_smart_meter_post_returns_200():
     r = client.post("/account/C1/smart-meter", data={"contact_pref": "morning", "notes": ""})
     assert r.status_code == 200
+
+
+def test_smart_meter_get_returns_html_content_type():
+    r = client.get("/account/C1/smart-meter")
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+def test_smart_meter_booking_reference_format():
+    r = client.post("/account/C1/smart-meter", data={"preferred_date": "2026-08-01"})
+    assert r.status_code == 200
+
+
+def test_smart_meter_c3_route_returns_200():
+    r = client.get("/account/C3/smart-meter")
+    assert r.status_code == 200

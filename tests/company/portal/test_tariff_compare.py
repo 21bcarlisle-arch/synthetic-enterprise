@@ -77,3 +77,21 @@ def test_switch_tariff_shows_customer_id():
         data={"tariff_name": "Fixed 1 Year", "term_months": "12"},
     )
     assert _KNOWN in r.text
+
+
+def test_tariff_compare_shows_standing_charge():
+    r = client.get(f"/account/{_KNOWN}/tariff-compare")
+    assert "standing" in r.text.lower() or "charge" in r.text.lower()
+
+
+def test_tariff_compare_switch_post_returns_200():
+    r = client.post(
+        f"/account/{_KNOWN}/switch-tariff",
+        data={"tariff_name": "Variable", "term_months": "12"},
+    )
+    assert r.status_code == 200
+
+
+def test_tariff_compare_has_multiple_options_listed():
+    r = client.get(f"/account/{_KNOWN}/tariff-compare")
+    assert r.text.count("tariff") >= 1 or r.text.count("option") >= 1

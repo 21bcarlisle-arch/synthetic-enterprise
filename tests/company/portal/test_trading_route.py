@@ -102,3 +102,21 @@ def test_trading_data_by_year_is_list():
     data = _load_trading_data()
     if data:
         assert isinstance(data["by_year"], list)
+
+
+def test_trading_data_best_key_present():
+    data = _load_trading_data()
+    if data:
+        assert "best" in data
+
+
+def test_trading_data_worst_key_present():
+    data = _load_trading_data()
+    if data:
+        assert "worst" in data
+
+
+def test_trading_data_total_actual_net_is_float():
+    data = _load_trading_data()
+    if data:
+        assert isinstance(data["total_actual_net"], (int, float))

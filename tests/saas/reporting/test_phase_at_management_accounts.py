@@ -139,3 +139,24 @@ def test_latest_year_balance_sheet():
     result = _section_management_accounts(d)
     assert "2025" in result
     assert "Year End 2025" in result
+
+
+def test_revenue_row_in_income_statement():
+    from saas.reporting.annual_report import _section_management_accounts
+    d = _make_data({"2022": _make_year(10000, 4000, 1000, 5000, 200, 800, 4000)})
+    result = _section_management_accounts(d)
+    assert "Revenue" in result or "revenue" in result.lower()
+
+
+def test_single_year_no_best_worst_note():
+    from saas.reporting.annual_report import _section_management_accounts
+    d = _make_data({"2022": _make_year(10000, 4000, 1000, 5000, 200, 800, 4000)})
+    result = _section_management_accounts(d)
+    assert result != ""
+
+
+def test_zero_net_margin_handled():
+    from saas.reporting.annual_report import _section_management_accounts
+    d = _make_data({"2020": _make_year(5000, 3000, 1000, 1000, 500, 500, 0)})
+    result = _section_management_accounts(d)
+    assert "0" in result

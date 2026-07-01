@@ -91,3 +91,21 @@ def test_load_spot_prices_forward_is_numeric(live_feed, monkeypatch):
 def test_trading_page_content_type(client):
     resp = client.get("/trading")
     assert "text/html" in resp.headers.get("content-type", "")
+
+
+def test_load_spot_prices_gas_forward_key_present(live_feed, monkeypatch):
+    monkeypatch.setattr("company.portal.app._PRICE_FEED_PATH", live_feed)
+    result = _load_spot_prices()
+    assert "gas_forward" in result
+
+
+def test_load_spot_prices_available_is_bool(live_feed, monkeypatch):
+    monkeypatch.setattr("company.portal.app._PRICE_FEED_PATH", live_feed)
+    result = _load_spot_prices()
+    assert isinstance(result["available"], bool)
+
+
+def test_trading_page_no_crash_repeated(client):
+    for _ in range(2):
+        resp = client.get("/trading")
+        assert resp.status_code == 200

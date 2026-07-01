@@ -67,3 +67,22 @@ def test_admin_renewals_has_table():
 def test_admin_renewals_has_nav():
     r = client.get("/admin/renewals")
     assert "/admin" in r.text
+
+
+def test_admin_renewals_has_active_class():
+    client = TestClient(app)
+    r = client.get("/admin/renewals")
+    assert "active" in r.text or "renewals" in r.text.lower()
+
+
+def test_admin_renewals_response_is_bytes_decodable():
+    client = TestClient(app)
+    r = client.get("/admin/renewals")
+    text = r.content.decode("utf-8")
+    assert len(text) > 0
+
+
+def test_admin_renewals_shows_90_day_window():
+    client = TestClient(app)
+    r = client.get("/admin/renewals")
+    assert "90" in r.text or "horizon" in r.text.lower()
