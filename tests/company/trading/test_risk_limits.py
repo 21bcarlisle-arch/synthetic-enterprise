@@ -85,3 +85,64 @@ def test_get_limit():
     l = g.get_limit("var_limit_gbp")
     assert l is not None
     assert l.value == 50_000.0
+
+
+# --- Phase LN depth tests ---
+
+from company.trading.risk_limits import LimitCheckResult
+
+def test_limit_name_stored():
+    l = RiskLimit("var_limit_gbp", 50_000.0, "GBP", 2025)
+    assert l.limit_name == "var_limit_gbp"
+
+
+def test_limit_value_stored():
+    l = RiskLimit("stop_loss_gbp", 20_000.0, "GBP", 2025)
+    assert l.value == 20_000.0
+
+
+def test_unit_stored():
+    l = RiskLimit("max_open_position_mwh", 500.0, "MWh", 2025)
+    assert l.unit == "MWh"
+
+
+def test_effective_year_stored():
+    l = RiskLimit("var_limit_gbp", 50_000.0, "GBP", 2024)
+    assert l.effective_year == 2024
+
+
+def test_set_by_default_risk_committee():
+    l = RiskLimit("max_open_position_mwh", 500.0, "MWh", 2025)
+    assert l.set_by == "risk_committee"
+
+
+def test_notes_default_empty():
+    l = RiskLimit("max_open_position_mwh", 500.0, "MWh", 2025)
+    assert l.notes == ""
+
+
+def test_check_result_limit_name():
+    g = _governor()
+    r = g.check("max_open_position_mwh", 100.0)
+    assert r.limit_name == "max_open_position_mwh"
+
+
+def test_check_result_current_value():
+    g = _governor()
+    r = g.check("max_open_position_mwh", 250.0)
+    import pytest
+    assert r.current_value == pytest.approx(250.0)
+
+
+def test_set_limit_returns_limit():
+    g = RiskGovernor()
+    l = RiskLimit("test_limit", 100.0, "MWh", 2025)
+    result = g.set_limit(l)
+    assert result is l
+
+
+def test_warning_boundary_exactly_80pct():
+    g = RiskGovernor()
+    g.set_limit(RiskLimit("max_open_position_mwh", 500.0, "MWh", 2025))
+    r = g.check("max_open_position_mwh", 400.0)  # exactly 80%
+    assert r.status == "WARNING"
