@@ -1,18 +1,19 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-01T17:38:26Z
+Last updated: 2026-07-01T17:48:54Z
 
 ## Current Status
-**Coverage sprints ongoing** -- 14,310 tests
+**Coverage sprints ongoing** -- 14,340 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,218,159 (git 049da982, 2026-07-01)
+Net position: £1,218,159 (git 7711c008, 2026-07-01)
 
 ## Test Suite
-- **14,310 tests passing** (fast suite ~10s)
+- **14,340 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
+- **CLIV** (2026-07-01): Coverage Depth Sprint -- bsc_performance_assurance, dso_flexibility_tender, gas_safety_incident (14,340 tests)
 - **CLIII** (2026-07-01): Coverage Depth Sprint -- green_gas_levy, annual_compliance_attestation, liquidity_stress_test (14,310 tests)
 - **CLII** (2026-07-01): Coverage Depth Sprint -- theft_risk_scoring, dno_network_charge_dispute, grid_connection_queue (14,280 tests)
 - **CLI** (2026-07-01): Coverage Depth Sprint -- account_adjustment, transfer_objection, map_contract (14,250 tests)
@@ -25,7 +26,7 @@ Net position: £1,218,159 (git 049da982, 2026-07-01)
 - **MU** (2026-07-01): Coverage Depth Sprint CXIX -- sim/hedging_strategy, sim/risk_engine, sim/weather_price_sensitivity (13,033 tests)
 - **MT** (2026-07-01): I&C Triad Demand Curtailment -- build_triad_alert_set/make_triad_aware_shape_fn/get_active_alerts (13,003 tests)
 
-**Latest simulation results (2016–2025)** — auto-processed (471s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (453s / 8 min):
 - Net margin: £6,174,052.14 | Gross: £6,411,912.14 | Capital: £237,860
 - Treasury: £2,466,636 → £3,684,796 | 38 committee interventions | 1531 bills issued
 - Enterprise value: £5,982,074.81 | Net after CTS: £6,307,559
