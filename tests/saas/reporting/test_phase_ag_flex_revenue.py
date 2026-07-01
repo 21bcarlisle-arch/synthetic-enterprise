@@ -121,3 +121,20 @@ def test_table_has_correct_header_columns():
     assert "CM Revenue" in result
     assert "DFS Revenue" in result
     assert "Enrolled" in result
+
+
+def test_section_returns_string():
+    flex = _make_flex_summary([(2022, 100.0, 30.0, 2)])
+    result = _section_flexibility_revenue({"flexibility_revenue_summary": flex})
+    assert isinstance(result, str)
+
+
+def test_total_includes_cm_and_dfs():
+    flex = _make_flex_summary([(2022, 200.0, 100.0, 3)])
+    result = _section_flexibility_revenue({"flexibility_revenue_summary": flex})
+    assert "300.00" in result
+
+
+def test_empty_input_returns_string():
+    result = _section_flexibility_revenue({})
+    assert isinstance(result, str)

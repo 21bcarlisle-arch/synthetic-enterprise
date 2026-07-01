@@ -222,3 +222,20 @@ def test_avoidable_margin_loss():
     result = _section_portfolio_intelligence_pack(data)
     # Blind miss margin = 800 + 600 = 1400
     assert "£1,400.00" in result
+
+
+def test_section_returns_string_type():
+    data = _make_data(company_event_log=[_churn_ev("C1", "2022-01-01")])
+    result = _section_portfolio_intelligence_pack(data)
+    assert isinstance(result, str)
+
+
+def test_empty_returns_empty_string():
+    result = _section_portfolio_intelligence_pack(_make_data())
+    assert result == ""
+
+
+def test_non_empty_result_not_empty_when_churn_present():
+    data = _make_data(company_event_log=[_churn_ev("C1", "2020-01-01")])
+    result = _section_portfolio_intelligence_pack(data)
+    assert len(result) > 0

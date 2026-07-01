@@ -76,3 +76,17 @@ class TestComputeSolvencyByYear:
     def test_empty_years_returns_empty(self):
         result = compute_solvency_by_year({})
         assert result == {}
+
+
+
+class TestSolvencyConstants:
+    def test_mcr_floor_is_130(self):
+        assert MCR_FLOOR_GBP_PER_CUSTOMER == 130.0
+
+    def test_compute_solvency_signal_returns_dict(self):
+        result = compute_solvency_signal(treasury_gbp=1000.0, active_customer_count=5)
+        assert isinstance(result, dict)
+
+    def test_compute_solvency_by_year_returns_dict(self):
+        result = compute_solvency_by_year({})
+        assert isinstance(result, dict)
