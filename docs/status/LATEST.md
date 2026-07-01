@@ -1,24 +1,18 @@
-# LATEST.md — Synthetic Enterprise Project Status
-*Auto-updated at phase close. Do not edit manually.*
+# LATEST — Synthetic Enterprise Simulation
+Last updated: 2026-07-01T06:54:06Z
 
-Last updated: 2026-07-01T06:47:52Z
+## Current Status
+**Phase MF COMPLETE** — Coverage Depth Sprint CVI (12,600 tests)
 
-## Current phase
-Phase ME COMPLETE -- Coverage Depth Sprint CV (12,570 tests)
+## Last Run
+See `docs/reports/run_output_latest.json` for most recent simulation results.
+Net position: £1,243,337
 
-## Test suite
-- Total tests: 12,570
-- All passing (fast suite ~10s)
-- Epistemic verifier: PASS
+## Test Suite
+- **12,600 tests passing** (fast suite ~10s)
+- Epistemic verifier: PASS (406 files scanned)
 
-## Recent phases
-- ME: Coverage Depth Sprint CV -- 30 tests. environmental_impact/gas_forward_curve/otc_margin_book depth.
-- MD: Coverage Depth Sprint CIV -- 30 tests. supplier_resilience_scorecard/annual_board_pack/liquidity_stress_test depth.
-- MC: Coverage Depth Sprint CIII -- 30 tests. licence_application_register/regulatory_breach_log/regulatory_dashboard depth.
-- MB: Coverage Depth Sprint CII -- 30 tests. slc_compliance_tracker/fuel_mix_disclosure/priority_services_register depth.
-
-## Net position
-£1,243,337 (last completed run)
-
-## Next
-Phase MF -- Coverage Depth Sprint CVI: next 3 lowest-test company modules.
+## Recent Phases
+- **MF** (2026-07-01): Coverage Depth Sprint CVI — nop_register, initial_margin_register, triad_exposure_register (12,600 tests)
+- **ME** (2026-07-01): Coverage Depth Sprint CV — environmental_impact, gas_forward_curve, otc_margin_book (12,570 tests)
+- **MD** (2026-07-01): Coverage Depth Sprint CIV — resilience_scorecard, annual_board_pack, liquidity_stress (12,540 tests)

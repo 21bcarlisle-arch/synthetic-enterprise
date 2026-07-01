@@ -96,3 +96,69 @@ def test_nop_summary():
     summary = r.nop_summary()
     assert "Net Open Position" in summary
     assert "RED" in summary
+
+
+# --- Phase MF depth tests ---
+
+def test_delivery_year_stored():
+    _, p = _pos(100, 100, yr=2023)
+    assert p.delivery_year == 2023
+
+
+def test_delivery_quarter_stored():
+    _, p = _pos(100, 100, q=3)
+    assert p.delivery_quarter == 3
+
+
+def test_commodity_stored():
+    _, p = _pos(100, 100, commodity="gas")
+    assert p.commodity == "gas"
+
+
+def test_retail_commitment_mwh_stored():
+    _, p = _pos(500, 400)
+    assert p.retail_commitment_mwh == pytest.approx(500.0)
+
+
+def test_forward_position_mwh_stored():
+    _, p = _pos(500, 400)
+    assert p.forward_position_mwh == pytest.approx(400.0)
+
+
+def test_record_returns_delivery_period_position():
+    reg = _reg()
+    result = reg.record(2022, 1, "electricity", 1000, 900)
+    assert isinstance(result, DeliveryPeriodPosition)
+
+
+def test_positions_for_year_filter():
+    reg = _reg()
+    reg.record(2021, 1, "electricity", 1000, 900)
+    reg.record(2022, 2, "gas", 800, 800)
+    assert len(reg.positions_for_year(2021)) == 1
+    assert reg.positions_for_year(2021)[0].delivery_year == 2021
+
+
+def test_positions_for_commodity_filter():
+    reg = _reg()
+    reg.record(2022, 1, "electricity", 1000, 900)
+    reg.record(2022, 2, "gas", 800, 800)
+    gas = reg.positions_for_commodity("gas")
+    assert len(gas) == 1
+    assert gas[0].commodity == "gas"
+
+
+def test_long_retail_positions():
+    reg = _reg()
+    reg.record(2022, 1, "electricity", 1000, 500)  # LONG_RETAIL (underhedged 50%)
+    reg.record(2022, 2, "gas", 800, 850)           # OVERHEDGED
+    assert len(reg.long_retail_positions) == 1
+    assert reg.long_retail_positions[0].direction == ExposureDirection.LONG_RETAIL
+
+
+def test_overhedged_positions():
+    reg = _reg()
+    reg.record(2022, 1, "electricity", 500, 700)   # OVERHEDGED 40%
+    reg.record(2022, 2, "gas", 1000, 500)           # LONG_RETAIL
+    assert len(reg.overhedged_positions) == 1
+    assert reg.overhedged_positions[0].direction == ExposureDirection.OVERHEDGED

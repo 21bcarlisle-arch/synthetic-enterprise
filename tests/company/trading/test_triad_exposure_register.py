@@ -94,3 +94,62 @@ class TestTriadExposureRegister:
         reg.record_customer_exposure(make_exposure())
         s = reg.triad_register_summary(SEASON)
         assert "Triad Register" in s
+
+
+# --- Phase MF depth tests ---
+
+def test_season_stored_in_observation():
+    obs = make_obs(n=1)
+    assert obs.season == SEASON
+
+
+def test_triad_number_stored():
+    obs = make_obs(n=2)
+    assert obs.triad_number == 2
+
+
+def test_settlement_date_stored():
+    obs = make_obs(n=1)
+    assert obs.settlement_date == dt.date(2024, 1, 11)
+
+
+def test_settlement_period_stored():
+    obs = make_obs(n=1, sp=36)
+    assert obs.settlement_period == 36
+
+
+def test_national_demand_gw_stored():
+    obs = make_obs(n=1, demand=58.3)
+    assert obs.national_demand_gw == pytest.approx(58.3)
+
+
+def test_account_id_stored_in_exposure():
+    exp = CustomerTriadExposure(
+        account_id="ACC-MF", season=SEASON,
+        demand_mw_triad_1=0.5, demand_mw_triad_2=0.6, demand_mw_triad_3=0.4,
+    )
+    assert exp.account_id == "ACC-MF"
+
+
+def test_demand_mw_triad_1_stored():
+    exp = CustomerTriadExposure(
+        account_id="ACC-MF", season=SEASON,
+        demand_mw_triad_1=1.2, demand_mw_triad_2=0.0, demand_mw_triad_3=0.0,
+    )
+    assert exp.demand_mw_triad_1 == pytest.approx(1.2)
+
+
+def test_exposure_class_default_high():
+    exp = CustomerTriadExposure(
+        account_id="ACC-MF", season=SEASON,
+        demand_mw_triad_1=0.5, demand_mw_triad_2=0.5, demand_mw_triad_3=0.5,
+    )
+    assert exp.exposure_class == CustomerExposureClass.HIGH
+
+
+def test_triad_season_has_9_members():
+    assert len(list(TriadSeason)) == 9
+
+
+def test_customer_exposure_class_has_3_members():
+    assert len(list(CustomerExposureClass)) == 3

@@ -107,3 +107,67 @@ def test_im_summary():
     assert "Initial Margin" in summary
     assert "55,000" in summary   # total locked
     assert "5,000" in summary    # additional calls
+
+
+# --- Phase MF depth tests ---
+
+def test_margin_id_stored():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "T-001", "BP", MarginAccountType.BILATERAL_OTC, 500, 25000, _D1, _D2)
+    assert rec.margin_id == "IM-MF"
+
+
+def test_trade_id_stored():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "TRADE-MF", "BP", MarginAccountType.BILATERAL_OTC, 500, 25000, _D1, _D2)
+    assert rec.trade_id == "TRADE-MF"
+
+
+def test_counterparty_stored():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "T001", "Equinor", MarginAccountType.EXCHANGE_CLEARED, 500, 25000, _D1, _D2)
+    assert rec.counterparty == "Equinor"
+
+
+def test_account_type_stored():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "T001", "ICE", MarginAccountType.EXCHANGE_CLEARED, 500, 25000, _D1, _D2)
+    assert rec.account_type == MarginAccountType.EXCHANGE_CLEARED
+
+
+def test_notional_mwh_stored():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "T001", "BP", MarginAccountType.BILATERAL_OTC, 2000, 25000, _D1, _D2)
+    assert rec.notional_mwh == pytest.approx(2000.0)
+
+
+def test_margin_posted_gbp_stored():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "T001", "BP", MarginAccountType.BILATERAL_OTC, 500, 40000, _D1, _D2)
+    assert rec.margin_posted_gbp == pytest.approx(40000.0)
+
+
+def test_posted_date_stored():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "T001", "BP", MarginAccountType.BILATERAL_OTC, 500, 25000, _D1, _D2)
+    assert rec.posted_date == _D1
+
+
+def test_actual_return_date_none_default():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "T001", "BP", MarginAccountType.BILATERAL_OTC, 500, 25000, _D1, _D2)
+    assert rec.actual_return_date is None
+
+
+def test_post_margin_returns_initial_margin_record():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "T001", "BP", MarginAccountType.BILATERAL_OTC, 500, 25000, _D1, _D2)
+    assert isinstance(rec, InitialMarginRecord)
+
+
+def test_total_held_gbp_equals_posted_plus_additional():
+    reg = InitialMarginRegister()
+    rec = reg.post_margin("IM-MF", "T001", "BP", MarginAccountType.BILATERAL_OTC, 500, 30000, _D1, _D2)
+    reg.issue_additional_call("IM-MF", 5000)
+    updated = [r for r in reg._records if r.margin_id == "IM-MF"][0]
+    assert updated.total_held_gbp == pytest.approx(35000.0)
