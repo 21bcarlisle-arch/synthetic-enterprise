@@ -123,3 +123,68 @@ def test_auto_increment_ids(book):
     d2 = book.open_dispute("C001", "B2", DisputeType.METER_FAULT, 200.0, 180.0, date(2022, 2, 1))
     assert d1.dispute_id == 1
     assert d2.dispute_id == 2
+
+
+# --- Phase LO depth tests ---
+
+def test_dispute_customer_id_stored(book):
+    d = book.open_dispute("CUST_LO", "BILL-01", DisputeType.METER_FAULT,
+                          5000.0, 4000.0, date(2022, 3, 15))
+    assert d.customer_id == "CUST_LO"
+
+
+def test_dispute_bill_reference_stored(book):
+    d = book.open_dispute("C1", "BILL_LO_REF", DisputeType.ACTUAL_TOO_HIGH,
+                          5000.0, 4000.0, date(2022, 3, 15))
+    assert d.bill_reference == "BILL_LO_REF"
+
+
+def test_dispute_type_stored(book):
+    d = book.open_dispute("C1", "BILL-01", DisputeType.PRIOR_READING_ERROR,
+                          5000.0, 4000.0, date(2022, 3, 15))
+    assert d.dispute_type == DisputeType.PRIOR_READING_ERROR
+
+
+def test_billed_read_kwh_stored(book):
+    d = book.open_dispute("C1", "BILL-01", DisputeType.ESTIMATED_READ,
+                          7500.0, 4000.0, date(2022, 3, 15))
+    import pytest
+    assert d.billed_read_kwh == pytest.approx(7500.0)
+
+
+def test_claimed_read_kwh_stored(book):
+    d = book.open_dispute("C1", "BILL-01", DisputeType.ESTIMATED_READ,
+                          5000.0, 3800.0, date(2022, 3, 15))
+    import pytest
+    assert d.claimed_read_kwh == pytest.approx(3800.0)
+
+
+def test_opened_date_stored(book):
+    d = book.open_dispute("C1", "BILL-01", DisputeType.ESTIMATED_READ,
+                          5000.0, 4000.0, date(2022, 7, 22))
+    assert d.opened_date == date(2022, 7, 22)
+
+
+def test_credit_applied_default_zero(book):
+    d = book.open_dispute("C1", "BILL-01", DisputeType.ESTIMATED_READ,
+                          5000.0, 4000.0, date(2022, 3, 15))
+    import pytest
+    assert d.credit_applied_gbp == pytest.approx(0.0)
+
+
+def test_resolved_date_default_none(book):
+    d = book.open_dispute("C1", "BILL-01", DisputeType.ESTIMATED_READ,
+                          5000.0, 4000.0, date(2022, 3, 15))
+    assert d.resolved_date is None
+
+
+def test_resolution_notes_default_none(book):
+    d = book.open_dispute("C1", "BILL-01", DisputeType.ESTIMATED_READ,
+                          5000.0, 4000.0, date(2022, 3, 15))
+    assert d.resolution_notes is None
+
+
+def test_open_dispute_returns_meter_dispute_instance(book):
+    result = book.open_dispute("C1", "BILL-01", DisputeType.ESTIMATED_READ,
+                               5000.0, 4000.0, date(2022, 3, 15))
+    assert isinstance(result, MeterDispute)

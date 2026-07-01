@@ -122,3 +122,67 @@ def test_attempts_for_customer():
     b.record_attempt(DDPaymentAttempt("DD-C1", "C1", "2024-02-26", 80.0, "failed"))
     assert len(b.attempts_for_customer("C1")) == 2
     assert len(b.failed_attempts_for_customer("C1")) == 1
+
+
+# --- Phase LO depth tests ---
+
+def test_mandate_sort_code_stored():
+    b = _book()
+    m = b.create_mandate("C1", "12-34-**", "5678", 80.0, "2024-01-01")
+    assert m.bank_sort_code == "12-34-**"
+
+
+def test_mandate_account_last4_stored():
+    b = _book()
+    m = b.create_mandate("C1", "12-34-**", "9999", 80.0, "2024-01-01")
+    assert m.bank_account_last4 == "9999"
+
+
+def test_mandate_setup_date_stored():
+    b = _book()
+    m = b.create_mandate("C1", "12-34-**", "5678", 80.0, "2024-06-01")
+    assert m.setup_date == "2024-06-01"
+
+
+def test_cancel_unknown_customer_returns_false():
+    b = _book()
+    assert b.cancel_mandate("UNKNOWN") is False
+
+
+def test_reinstate_unknown_returns_false():
+    b = _book()
+    assert b.reinstate_mandate("UNKNOWN") is False
+
+
+def test_active_mandates_excludes_suspended():
+    b = _book()
+    b.create_mandate("C1", "12-34-**", "5678", 80.0, "2024-01-01")
+    b.create_mandate("C2", "56-78-**", "1234", 60.0, "2024-01-01")
+    b.get_mandate("C2").status = "suspended"
+    assert len(b.active_mandates()) == 1
+
+
+def test_dd_summary_suspended_count():
+    b = _book()
+    b.create_mandate("C1", "12-34-**", "5678", 80.0, "2024-01-01")
+    b.get_mandate("C1").status = "suspended"
+    s = b.dd_summary()
+    assert s["suspended"] == 1
+
+
+def test_attempt_mandate_reference_stored():
+    attempt = DDPaymentAttempt("DD-REF-001", "C1", "2024-01-29", 80.0, "collected")
+    assert attempt.mandate_reference == "DD-REF-001"
+
+
+def test_attempt_outcome_stored():
+    attempt = DDPaymentAttempt("DD-REF-001", "C1", "2024-01-29", 80.0, "failed")
+    assert attempt.outcome == "failed"
+
+
+def test_failure_reason_stored():
+    attempt = DDPaymentAttempt(
+        "DD-REF-001", "C1", "2024-01-29", 80.0, "failed",
+        failure_reason="insufficient_funds"
+    )
+    assert attempt.failure_reason == "insufficient_funds"

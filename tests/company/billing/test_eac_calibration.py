@@ -118,3 +118,71 @@ def test_calibrate_eac_zero_kwh_invoices(tmp_path):
     _add_invoice(db, "C1", "2024-01-01", "2024-06-30", 0.0)
     result = calibrate_eac("C1", db)
     assert result == 0.0 or result is None
+
+
+def test_eac_drift_zero_original_flat():
+    d = eac_drift(0.0, 1000.0)
+    assert d["direction"] == "flat"
+    assert d["drift_pct"] == pytest.approx(0.0)
+
+
+def test_eac_drift_calibrated_value_stored():
+    d = eac_drift(3000.0, 3200.0)
+    assert d["calibrated"] == pytest.approx(3200.0)
+
+
+def test_eac_drift_original_value_stored():
+    d = eac_drift(3000.0, 3200.0)
+    assert d["original"] == pytest.approx(3000.0)
+
+
+def test_eac_drift_pct_correct():
+    d = eac_drift(3000.0, 4500.0)
+    assert d["drift_pct"] == pytest.approx(50.0)
+
+
+def test_eac_drift_flat_at_exactly_0_5pct():
+    d = eac_drift(3000.0, 3015.0)
+    assert d["drift_pct"] == pytest.approx(0.5)
+    assert d["direction"] == "flat"
+
+
+def test_eac_drift_up_just_above_0_5pct():
+    # 3020-3000=20; 20/3000*100=0.667 → rounds to 0.7, direction="up"
+    d = eac_drift(3000.0, 3020.0)
+    assert d["drift_pct"] > 0.5
+    assert d["direction"] == "up"
+
+
+def test_calibrate_all_returns_all_keys(tmp_path):
+    db = tmp_path / "inv.db"
+    _add_invoice(db, "C1", "2024-01-01", "2024-12-31", 3000.0)
+    result = calibrate_all_customers(["C1", "C2"], db)
+    assert "C1" in result
+    assert "C2" in result
+
+
+def test_calibrate_all_empty_list_returns_empty(tmp_path):
+    db = tmp_path / "inv.db"
+    result = calibrate_all_customers([], db)
+    assert result == {}
+
+
+def test_calibrate_eac_lookback_1_year(tmp_path):
+    db = tmp_path / "inv.db"
+    _add_invoice(db, "C1", "2022-01-01", "2022-12-31", 9000.0)
+    _add_invoice(db, "C1", "2024-01-01", "2024-12-31", 3000.0)
+    result_1yr = calibrate_eac("C1", db, lookback_years=1)
+    result_2yr = calibrate_eac("C1", db, lookback_years=2)
+    assert result_1yr is not None
+    assert result_1yr < result_2yr
+
+
+def test_calibrate_eac_monthly_billing_correct(tmp_path):
+    db = tmp_path / "inv.db"
+    _add_invoice(db, "C1", "2024-01-01", "2024-01-31", 250.0)
+    _add_invoice(db, "C1", "2024-02-01", "2024-02-29", 250.0)
+    _add_invoice(db, "C1", "2024-03-01", "2024-03-31", 250.0)
+    result = calibrate_eac("C1", db)
+    assert result is not None
+    assert result > 0
