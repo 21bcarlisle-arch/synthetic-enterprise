@@ -63,3 +63,53 @@ def test_assessment_is_frozen():
     a = assess_fuel_poverty("C010", 20000.0, 2500.0)
     with pytest.raises(Exception):
         a.customer_id = "X"
+
+
+# --- Phase LA depth tests ---
+
+def test_customer_id_stored():
+    a = FuelPovertyAssessment('C_LA', 30_000.0, 2_500.0)
+    assert a.customer_id == 'C_LA'
+
+
+def test_income_stored():
+    a = FuelPovertyAssessment('C1', 25_000.0, 2_000.0)
+    assert a.gross_annual_income_gbp == pytest.approx(25_000.0)
+
+
+def test_energy_cost_stored():
+    a = FuelPovertyAssessment('C1', 25_000.0, 3_000.0)
+    assert a.estimated_annual_energy_cost_gbp == pytest.approx(3_000.0)
+
+
+def test_energy_spend_pct_formula():
+    a = FuelPovertyAssessment('C1', 20_000.0, 2_000.0)
+    assert a.energy_spend_pct == pytest.approx(10.0)
+
+
+def test_is_fuel_poor_bool():
+    a = FuelPovertyAssessment('C1', 20_000.0, 2_500.0)
+    assert isinstance(a.is_fuel_poor, bool)
+
+
+def test_whd_eligible_bool():
+    a = FuelPovertyAssessment('C1', 20_000.0, 2_500.0)
+    assert isinstance(a.whd_eligible, bool)
+
+
+def test_eco4_priority_bool():
+    a = FuelPovertyAssessment('C1', 20_000.0, 2_500.0)
+    assert isinstance(a.eco4_priority, bool)
+
+
+def test_median_income_constant_is_positive():
+    assert _UK_MEDIAN_HOUSEHOLD_INCOME_GBP > 0
+
+
+def test_median_energy_cost_constant_is_positive():
+    assert _UK_MEDIAN_ENERGY_COST_GBP > 0
+
+
+def test_assess_fuel_poverty_returns_assessment():
+    result = assess_fuel_poverty('C1', 20_000.0, 2_500.0)
+    assert isinstance(result, FuelPovertyAssessment)

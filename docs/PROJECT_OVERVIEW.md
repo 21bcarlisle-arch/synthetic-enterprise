@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,640 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,670 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LA -- Coverage Depth Sprint LXXV (2026-07-01)
+30 depth tests across 3 modules: churn_analytics (customer_id/direction/year/reason/retention_false/waterfall_closing/waterfall_net/waterfall_rate/record_none/losses_empty), fuel_poverty (customer_id/income/energy_cost/spend_pct/is_fp_bool/whd_bool/eco4_bool/median_income/median_energy/returns_assessment), energy_profile (customer_id/as_of/is_fp/tou/heat_pump/score_bounds/eco4/summary_cid/summary_date/summary_epc).
+**Total:** 11,670 tests
 
 ### Phase KZ -- Coverage Depth Sprint LXXIV (2026-07-01)
 30 depth tests across 3 modules: seg_portfolio (customer_id/mpan/solar_cap/reg_date/tier_fixed/battery_zero/has_battery/rate_2023=15/rate_2025=10/register_returns), theft_indicator (status_str/ratio_float/ratio_none/message_str/theft_float/theft<0.5/concern_float/concern>theft/empty_zero/ok_count), acquisition_cost (cac_float/pcw_72/direct_31/winback_42/referral_25/summary_dict/all_floats/returns_dict/channel/year).
@@ -4796,7 +4800,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,640 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,670 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

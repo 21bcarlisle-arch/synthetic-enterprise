@@ -89,3 +89,49 @@ def test_summary_contains_expected_keys(mid_range_profile):
 def test_profile_is_frozen(mid_range_profile):
     with pytest.raises(Exception):
         mid_range_profile.customer_id = "CHANGED"
+
+
+# --- Phase LA depth tests ---
+
+def test_customer_id_stored(mid_range_profile):
+    assert mid_range_profile.customer_id == 'C001'
+
+
+def test_as_of_date_stored(mid_range_profile):
+    assert mid_range_profile.as_of_date == date(2022, 1, 1)
+
+
+def test_is_fuel_poor_bool(mid_range_profile):
+    assert isinstance(mid_range_profile.is_fuel_poor, bool)
+
+
+def test_tou_candidate_bool(mid_range_profile):
+    assert isinstance(mid_range_profile.tou_candidate, bool)
+
+
+def test_heat_pump_candidate_bool(mid_range_profile):
+    assert isinstance(mid_range_profile.heat_pump_candidate, bool)
+
+
+def test_decarbonisation_score_in_bounds(mid_range_profile):
+    score = mid_range_profile.decarbonisation_priority_score
+    assert 0.0 <= score <= 1.0
+
+
+def test_eco4_eligible_bool(mid_range_profile):
+    assert isinstance(mid_range_profile.eco4_eligible, bool)
+
+
+def test_summary_customer_id(mid_range_profile):
+    s = mid_range_profile.summary()
+    assert s['customer_id'] == 'C001'
+
+
+def test_summary_as_of_date(mid_range_profile):
+    s = mid_range_profile.summary()
+    assert s['as_of_date'] == '2022-01-01'
+
+
+def test_summary_epc_rating(mid_range_profile):
+    s = mid_range_profile.summary()
+    assert s['epc_rating'] == 'D'

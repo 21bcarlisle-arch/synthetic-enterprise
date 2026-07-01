@@ -1,3 +1,4 @@
+import pytest
 """Phase 124: Churn waterfall and reason code analysis tests."""
 
 from company.crm.churn_analytics import ChurnEvent, ChurnAnalytics
@@ -76,3 +77,60 @@ def test_prior_year_losses_not_counted():
     ca = _analytics()
     assert len(ca.losses_by_year(2023)) == 1  # only the moving_home 2023 event
     assert len(ca.losses_by_year(2024)) == 3  # not contaminated by 2023
+
+
+# --- Phase LA depth tests ---
+
+def test_churn_event_customer_id():
+    e = ChurnEvent('C_LA', 'loss', 2024, reason='price')
+    assert e.customer_id == 'C_LA'
+
+
+def test_churn_event_direction():
+    e = ChurnEvent('C1', 'gain', 2024)
+    assert e.direction == 'gain'
+
+
+def test_churn_event_year():
+    e = ChurnEvent('C1', 'loss', 2023)
+    assert e.year == 2023
+
+
+def test_churn_event_reason_stored():
+    e = ChurnEvent('C1', 'loss', 2024, reason='service')
+    assert e.reason == 'service'
+
+
+def test_churn_event_retention_not_attempted_default():
+    e = ChurnEvent('C1', 'loss', 2024)
+    assert e.retention_attempted is False
+
+
+def test_waterfall_closing_book():
+    from company.crm.churn_analytics import ChurnWaterfall
+    w = ChurnWaterfall(year=2024, opening_book=1000, gains=50, losses=80)
+    assert w.closing_book == 970
+
+
+def test_waterfall_net_change():
+    from company.crm.churn_analytics import ChurnWaterfall
+    w = ChurnWaterfall(year=2024, opening_book=1000, gains=50, losses=80)
+    assert w.net_change == -30
+
+
+def test_waterfall_churn_rate_formula():
+    from company.crm.churn_analytics import ChurnWaterfall
+    w = ChurnWaterfall(year=2024, opening_book=1000, gains=50, losses=100)
+    assert w.churn_rate == pytest.approx(0.1)
+
+
+def test_analytics_record_returns_none():
+    import pytest
+    ca = ChurnAnalytics()
+    result = ca.record(ChurnEvent('C1', 'loss', 2024))
+    assert result is None
+
+
+def test_losses_by_year_unknown_year_empty():
+    ca = _analytics()
+    assert ca.losses_by_year(1999) == []
