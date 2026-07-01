@@ -77,3 +77,56 @@ def test_carbon_zero_if_no_supply():
 
 
 import pytest
+
+
+# --- Phase KX depth tests ---
+
+def test_reference_month_stored():
+    sdr = _sdr()
+    assert sdr.reference_month == "2024-03"
+
+
+def test_electricity_customers_stored():
+    sdr = _sdr()
+    assert sdr.electricity_customers == 10_000
+
+
+def test_dual_fuel_customers_stored():
+    sdr = _sdr()
+    assert sdr.dual_fuel_customers == 6_000
+
+
+def test_total_customers_formula():
+    sdr = _sdr()
+    expected = sdr.electricity_customers + sdr.gas_customers - sdr.dual_fuel_customers
+    assert sdr.total_customers == expected
+
+
+def test_submitted_false_by_default():
+    sdr = _sdr()
+    assert sdr.submitted is False
+
+
+def test_fuel_poverty_year_stored():
+    fp = FuelPovertyDeclaration(2023, 5000, 750)
+    assert fp.declaration_year == 2023
+
+
+def test_fuel_poverty_total_customers_stored():
+    fp = FuelPovertyDeclaration(2023, 5000, 750)
+    assert fp.total_customers == 5000
+
+
+def test_fuel_poverty_rate_formula():
+    fp = FuelPovertyDeclaration(2023, 5000, 500)
+    assert fp.fuel_poverty_rate_pct == pytest.approx(10.0)
+
+
+def test_carbon_intensity_year_stored():
+    c = CarbonIntensityReturn(2022, 1_000_000, 500_000, 0, 500_000, 0, 0)
+    assert c.declaration_year == 2022
+
+
+def test_renewable_pct_all_renewable():
+    c = CarbonIntensityReturn(2022, 1_000_000, 1_000_000, 0, 0, 0, 0)
+    assert c.renewable_pct == pytest.approx(100.0)
