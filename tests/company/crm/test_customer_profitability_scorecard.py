@@ -75,3 +75,76 @@ class TestCustomerProfitabilityScore:
         text = s.scorecard_summary()
         assert "Scorecard" in text
         assert "C1" in text
+
+
+# --- Phase MN depth tests ---
+
+def test_account_id_stored():
+    s = make_score()
+    assert s.account_id == 'C1'
+
+
+def test_scored_at_stored():
+    s = make_score()
+    assert s.scored_at == DATE
+
+
+def test_scorecard_tier_count():
+    from company.crm.customer_profitability_scorecard import ScorecardTier
+    assert len(list(ScorecardTier)) == 5
+
+
+def test_tier_gold():
+    # margin=25, tenure=12.5, clv=12.5, service=12.5 → 62.5 GOLD
+    s = CustomerProfitabilityScore(
+        account_id='C1', scored_at=DATE,
+        annual_margin_gbp=150.0, tenure_years=2.5,
+        h3_clv_gbp=250.0, cost_to_serve_gbp=250.0, annual_revenue_gbp=500.0,
+    )
+    assert s.tier == ScorecardTier.GOLD
+
+
+def test_tier_silver():
+    # margin=12.5, tenure=10, clv=7.5, service=15 → 45 SILVER
+    s = CustomerProfitabilityScore(
+        account_id='C1', scored_at=DATE,
+        annual_margin_gbp=75.0, tenure_years=2.0,
+        h3_clv_gbp=150.0, cost_to_serve_gbp=200.0, annual_revenue_gbp=500.0,
+    )
+    assert s.tier == ScorecardTier.SILVER
+
+
+def test_tier_bronze():
+    # margin=10, tenure=7.5, clv=5, service=2.5 → 25 BRONZE
+    s = CustomerProfitabilityScore(
+        account_id='C1', scored_at=DATE,
+        annual_margin_gbp=60.0, tenure_years=1.5,
+        h3_clv_gbp=100.0, cost_to_serve_gbp=450.0, annual_revenue_gbp=500.0,
+    )
+    assert s.tier == ScorecardTier.BRONZE
+
+
+def test_max_retention_budget_gold():
+    from company.crm.customer_profitability_scorecard import _GOLD_RETENTION_BUDGET_GBP
+    s = CustomerProfitabilityScore(
+        account_id='C1', scored_at=DATE,
+        annual_margin_gbp=150.0, tenure_years=2.5,
+        h3_clv_gbp=250.0, cost_to_serve_gbp=250.0, annual_revenue_gbp=500.0,
+    )
+    assert s.tier == ScorecardTier.GOLD
+    assert s.max_retention_budget_gbp == pytest.approx(_GOLD_RETENTION_BUDGET_GBP)
+
+
+def test_service_efficiency_zero_revenue():
+    s = make_score(c2s=100.0, rev=0.0)
+    assert s.service_efficiency_score == pytest.approx(0.0)
+
+
+def test_clv_score_half_target():
+    s = make_score(clv=_TARGET_CLV_GBP / 2)
+    assert s.clv_score == pytest.approx(12.5)
+
+
+def test_tenure_score_partial():
+    s = make_score(tenure=2.5)
+    assert s.tenure_score == pytest.approx(12.5)

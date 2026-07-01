@@ -86,3 +86,56 @@ class TestPortingLossRegister:
         reg.record(make_loss())
         s = reg.porting_loss_summary(AS_OF)
         assert "Porting Loss Register" in s
+
+
+# --- Phase MN depth tests ---
+
+def test_account_id_stored():
+    rec = make_loss(acct='C99')
+    assert rec.account_id == 'C99'
+
+
+def test_switch_date_stored():
+    rec = make_loss(date=SWITCH_DATE)
+    assert rec.switch_date == SWITCH_DATE
+
+
+def test_reason_stored():
+    rec = make_loss(reason=SwitchReason.POOR_SERVICE)
+    assert rec.reason == SwitchReason.POOR_SERVICE
+
+
+def test_annual_revenue_gbp_stored():
+    rec = make_loss()
+    assert rec.annual_revenue_gbp == pytest.approx(500.0)
+
+
+def test_h3_clv_gbp_stored():
+    rec = make_loss(clv=750.0)
+    assert rec.h3_clv_gbp == pytest.approx(750.0)
+
+
+def test_has_dni_flag_stored():
+    rec = make_loss(dni=True)
+    assert rec.has_dni_flag is True
+
+
+def test_switch_reason_count():
+    assert len(list(SwitchReason)) == 7
+
+
+def test_winback_eligibility_count():
+    assert len(list(WinbackEligibility)) == 5
+
+
+def test_total_clv_lost_gbp():
+    reg = PortingLossRegister()
+    reg.record(make_loss(clv=300.0))
+    reg.record(make_loss(acct='C2', clv=200.0))
+    assert reg.total_clv_lost_gbp() == pytest.approx(500.0)
+
+
+def test_record_returns_porting_loss_record():
+    reg = PortingLossRegister()
+    result = reg.record(make_loss())
+    assert isinstance(result, PortingLossRecord)

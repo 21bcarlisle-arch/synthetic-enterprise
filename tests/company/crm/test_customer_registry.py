@@ -146,3 +146,67 @@ def test_all_accounts_status_filter(db):
 def test_account_count(db):
     seed_from_customers(_SAMPLE_CUSTOMERS, db)
     assert account_count(db) == 3
+
+
+# --- Phase MN depth tests ---
+
+def test_mpan_stored(db):
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    rec = get_account('C1', db)
+    assert rec['mpan'] is not None and len(rec['mpan']) > 0
+
+
+def test_email_stored(db):
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    rec = get_account('C1', db)
+    assert '@synthetic-supplier.co.uk' in rec['email']
+
+
+def test_address_stored(db):
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    rec = get_account('C1', db)
+    assert rec['address'] is not None and len(rec['address']) > 0
+
+
+def test_fuel_type_electricity(db):
+    # C5 is SME, not in the dual-fuel C1-C4 group, so fuel_type=electricity
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    rec = get_account('C5', db)
+    assert rec['fuel_type'] == 'electricity'
+
+
+def test_tariff_type_stored(db):
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    rec = get_account('C1', db)
+    assert rec['tariff_type'] == 'fixed'
+
+
+def test_update_status_pending(db):
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    update_status('C1', 'pending', db)
+    assert get_account('C1', db)['status'] == 'pending'
+
+
+def test_segment_stored(db):
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    rec = get_account('C1', db)
+    assert rec['segment'] == 'resi'
+
+
+def test_contact_name_stored(db):
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    rec = get_account('C1', db)
+    assert rec['contact_name'] == 'Alice Thompson'
+
+
+def test_supply_start_stored(db):
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    rec = get_account('C1', db)
+    assert rec['supply_start'] == '2016-01-01'
+
+
+def test_all_accounts_sorted_by_account_id(db):
+    seed_from_customers(_SAMPLE_CUSTOMERS, db)
+    accounts = all_accounts(db_path=db)
+    ids = [a['account_id'] for a in accounts]
+    assert ids == sorted(ids)
