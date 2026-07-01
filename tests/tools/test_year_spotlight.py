@@ -42,3 +42,31 @@ def test_crisis_year_2022_worse_than_2020(dash):
     shocks_2022 = next((r["bill_shock_count"] for r in dash["customers"]["book_annual"] if r["year"] == 2022), 0)
     shocks_2020 = next((r["bill_shock_count"] for r in dash["customers"]["book_annual"] if r["year"] == 2020), 0)
     assert shocks_2022 >= shocks_2020
+
+
+
+def test_financial_annual_includes_net_gbp(dash):
+    for row in dash["financial"]["annual"]:
+        assert "net_gbp" in row
+
+
+def test_financial_annual_revenue_positive_all_years(dash):
+    for row in dash["financial"]["annual"]:
+        assert row["revenue_gbp"] > 0
+
+
+def test_portfolio_has_bills_total(dash):
+    assert "bills_total" in dash["portfolio"]
+    assert dash["portfolio"]["bills_total"] > 0
+
+
+def test_trading_spot_monthly_has_entries(dash):
+    assert len(dash["trading"]["spot_monthly"]) > 0
+
+
+def test_meta_has_generated_at(dash):
+    assert "generated_at" in dash["meta"] or "generated_at" in str(dash.get("build", ""))
+
+
+def test_financial_annual_has_10_years(dash):
+    assert len(dash["financial"]["annual"]) == 10

@@ -61,3 +61,67 @@ def test_administration_triggers_at_zero_treasury():
     assert is_administration_triggered(0) is True
     assert is_administration_triggered(-50.0) is True
     assert is_administration_triggered(100.0) is False
+
+
+from sim.risk_engine import (
+    Z_SCORE_90_CONFIDENCE,
+    WACC,
+    SIGMA_STRESSED_PRE_REFORM,
+    SIGMA_STRESSED_POST_REFORM,
+    REGULATORY_REGIME_CHANGE_DATE,
+    calculate_var,
+    calculate_active_collateral,
+    calculate_monthly_cost_of_capital,
+)
+
+
+def test_z_score_90_confidence():
+    assert Z_SCORE_90_CONFIDENCE == 1.645
+
+
+def test_wacc_is_10_percent():
+    assert WACC == 0.10
+
+
+def test_sigma_stressed_post_higher_than_pre():
+    assert SIGMA_STRESSED_POST_REFORM > SIGMA_STRESSED_PRE_REFORM
+
+
+def test_var_formula_matches_z_sigma_price_volume():
+    sigma = 0.50
+    volume_kwh = 2000.0
+    price = 100.0
+    result = calculate_var(sigma, volume_kwh, price)
+    expected = Z_SCORE_90_CONFIDENCE * sigma * price * (volume_kwh / 1000.0)
+    assert abs(result - expected) < 1e-6
+
+
+def test_active_collateral_is_max_of_current_and_stressed():
+    assert calculate_active_collateral(100.0, 200.0) == 200.0
+    assert calculate_active_collateral(300.0, 200.0) == 300.0
+
+
+def test_monthly_cost_of_capital_formula():
+    collateral = 12000.0
+    expected = collateral * WACC / 12
+    assert abs(calculate_monthly_cost_of_capital(collateral) - expected) < 1e-6
+
+
+def test_sigma_recent_raises_on_empty_records():
+    from sim.risk_engine import calculate_sigma_recent
+    import pytest
+    with pytest.raises((ValueError, ZeroDivisionError, IndexError, Exception)):
+        calculate_sigma_recent("2022-01-01", [])
+
+
+def test_regulatory_regime_change_date_2023():
+    assert REGULATORY_REGIME_CHANGE_DATE == "2023-01-01"
+
+
+def test_stressed_var_higher_post_reform():
+    from sim.risk_engine import get_sigma_stressed
+    s_pre = get_sigma_stressed("2022-12-31")
+    s_post = get_sigma_stressed("2023-01-01")
+    var_pre = calculate_var(s_pre, 1000.0, 50.0)
+    var_post = calculate_var(s_post, 1000.0, 50.0)
+    assert var_post > var_pre

@@ -126,3 +126,48 @@ def test_none_returned_when_no_renewal_data():
         new_rate_gbp_per_mwh=120.0,
     )
     assert result is None
+
+
+def test_result_contains_customer_id():
+    customers = _make_customers()
+    records = _build_one_year_records()
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result["customer_id"] == "C5"
+
+
+def test_result_contains_commodity():
+    customers = _make_customers()
+    records = _build_one_year_records()
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result["commodity"] == "electricity"
+
+
+def test_result_event_type_is_renewal():
+    customers = _make_customers()
+    records = _build_one_year_records()
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result["event_type"] == "renewed"
+
+
+def test_result_event_date_matches_first_renewal():
+    customers = _make_customers()
+    records = _build_one_year_records()
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result["event_date"] == FIRST_RENEWAL
+
+
+def test_result_random_roll_is_float_in_unit_interval():
+    customers = _make_customers()
+    records = _build_one_year_records()
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    rr = result["random_roll"]
+    assert isinstance(rr, float)
+    assert 0.0 <= rr <= 1.0
+
+
+def test_result_effective_retention_probability_in_unit_interval():
+    customers = _make_customers()
+    records = _build_one_year_records()
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    p = result["effective_retention_probability"]
+    assert 0.0 <= p <= 1.0

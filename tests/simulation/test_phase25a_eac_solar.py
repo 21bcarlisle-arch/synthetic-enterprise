@@ -161,3 +161,54 @@ def test_non_solar_customer_unaffected_by_cloud_cover():
     )(test_date)
 
     assert shape_without == shape_with_cloud, "Non-solar customer should be unaffected by cloud cover"
+
+
+def test_derive_eac_180_days_is_enough():
+    """Exactly 180 days of records is sufficient (threshold not exclusive)."""""
+    from simulation.run_phase2b import _derive_eac_from_settlement
+    records = _make_records("C2", "2017-01-01", 180, 20.0)
+    result = _derive_eac_from_settlement("C2", records)
+    assert abs(result - 7305.0) < 50
+
+
+def test_derive_eac_two_years_same_as_one():
+    """Two full years of data produces same per-year result as one year."""""
+    from simulation.run_phase2b import _derive_eac_from_settlement
+    one_yr = _make_records("C2", "2016-01-01", 365, 20.0)
+    two_yr = _make_records("C2", "2016-01-01", 730, 20.0)
+    r1 = _derive_eac_from_settlement("C2", one_yr)
+    r2 = _derive_eac_from_settlement("C2", two_yr)
+    assert abs(r1 - r2) < 10
+
+
+def test_derive_eac_proportional_to_daily_kwh():
+    """Result scales linearly with daily consumption."""""
+    from simulation.run_phase2b import _derive_eac_from_settlement
+    recs_20 = _make_records("C2", "2017-01-01", 365, 20.0)
+    recs_40 = _make_records("C2", "2017-01-01", 365, 40.0)
+    r20 = _derive_eac_from_settlement("C2", recs_20)
+    r40 = _derive_eac_from_settlement("C2", recs_40)
+    assert abs(r40 / r20 - 2.0) < 0.01
+
+
+def test_derive_eac_unknown_customer_still_returns_float():
+    """Even if customer not in EFFECTIVE_EAC_KWH, returns a float from records."""""
+    from simulation.run_phase2b import _derive_eac_from_settlement
+    records = _make_records("ZZUNK99", "2017-01-01", 365, 10.0)
+    result = _derive_eac_from_settlement("ZZUNK99", records)
+    assert isinstance(result, float)
+    assert result > 0
+
+
+def test_cloud_cover_values_are_between_0_and_100():
+    from simulation.weather_inputs import load_weather_cloud_cover
+    data = load_weather_cloud_cover("C4")
+    for v in list(data.values())[:100]:
+        assert 0.0 <= v <= 100.0
+
+
+def test_cloud_cover_has_data_for_2020():
+    from simulation.weather_inputs import load_weather_cloud_cover
+    data = load_weather_cloud_cover("C4")
+    dates_2020 = [k for k in data if k.startswith("2020")]
+    assert len(dates_2020) > 0

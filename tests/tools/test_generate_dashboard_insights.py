@@ -48,3 +48,42 @@ def test_extract_insights_includes_all_areas(tmp_path):
     assert "trading" in areas
     assert "financial" in areas
     assert "customers" in areas
+
+
+from tools.generate_dashboard_data import _fmt
+import json
+
+
+def test_extract_insights_executive_summary_preserved(tmp_path):
+    p = tmp_path / "run_insights.json"
+    p.write_text(json.dumps(_SAMPLE_INSIGHTS))
+    result = extract_insights(p)
+    assert result["executive_summary"] == "Business survived."
+
+
+def test_extract_insights_net_margin_preserved(tmp_path):
+    p = tmp_path / "run_insights.json"
+    p.write_text(json.dumps(_SAMPLE_INSIGHTS))
+    result = extract_insights(p)
+    assert abs(result["net_margin_gbp"] - 6322835.71) < 0.01
+
+
+def test_extract_insights_empty_insights_list(tmp_path):
+    p = tmp_path / "run_insights.json"
+    data = dict(_SAMPLE_INSIGHTS)
+    data["insights"] = []
+    p.write_text(json.dumps(data))
+    result = extract_insights(p)
+    assert result["insights"] == []
+
+
+def test_fmt_none_returns_zero():
+    assert _fmt(None) == 0.0
+
+
+def test_fmt_rounds_to_two_decimal_places():
+    assert _fmt(3.14159) == 3.14
+
+
+def test_fmt_zero_returns_zero():
+    assert _fmt(0) == 0.0

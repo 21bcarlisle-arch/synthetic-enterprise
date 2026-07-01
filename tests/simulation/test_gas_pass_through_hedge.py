@@ -65,6 +65,31 @@ class TestPassThroughZeroHedge:
             expected = rec["consumption_kwh"] / 1000.0 * 20.0
             assert abs(rec["wholesale_cost_gbp"] - expected) < 0.01
 
+    def test_pass_through_all_records_have_net_margin(self):
+        records = run_gas_term(
+            "TEST", "2022-10-01", "2022-10-07", 50000, 120.0,
+            0.0, 30.0, 0.0, GAS_RECORDS_HIGH, "I&C", pass_through=True,
+        )
+        for rec in records:
+            assert "net_margin_gbp" in rec
+
+
+    def test_pass_through_customer_id_stored(self):
+        records = run_gas_term(
+            "C_PT1", "2022-10-01", "2022-10-07", 50000, 120.0,
+            0.0, 30.0, 0.0, GAS_RECORDS_HIGH, "I&C", pass_through=True,
+        )
+        assert all(r["customer_id"] == "C_PT1" for r in records)
+
+
+    def test_pass_through_commodity_is_gas(self):
+        records = run_gas_term(
+            "TEST", "2022-10-01", "2022-10-03", 50000, 120.0,
+            0.0, 30.0, 0.0, GAS_RECORDS_HIGH, "I&C", pass_through=True,
+        )
+        assert all(r["commodity"] == "gas" for r in records)
+
+
     def test_pass_through_hf_zero_margin_stable_across_spot_levels(self):
         """At hf=0, margin per MWh is similar regardless of spot (±tolerance for policy/network)."""
         records_low = run_gas_term(

@@ -90,3 +90,44 @@ def test_risk_committee_eac_not_using_effective_eac_kwh_directly():
     )
 
 
+
+
+def test_industrial_profile_has_48_period_columns():
+    rows = _load_ic1_csv()
+    periods = [k for k in rows[0].keys() if k.startswith("p")]
+    assert len(periods) == 48
+
+
+def test_industrial_profile_all_periods_nonnegative():
+    rows = _load_ic1_csv()[:30]
+    for row in rows:
+        for i in range(1, 49):
+            assert float(row[f"p{i}"]) >= 0.0
+
+
+def test_industrial_profile_saturday_higher_than_sunday():
+    rows = _load_ic1_csv()
+    saturdays = [r for r in rows if _weekday_for(r["date"]) == 5]
+    sundays = [r for r in rows if _weekday_for(r["date"]) == 6]
+    avg_sat = sum(_day_total(r) for r in saturdays) / len(saturdays)
+    avg_sun = sum(_day_total(r) for r in sundays) / len(sundays)
+    assert avg_sat > avg_sun * 2.0
+
+
+def test_industrial_profile_saturday_lower_than_weekday():
+    rows = _load_ic1_csv()
+    saturdays = [r for r in rows if _weekday_for(r["date"]) == 5]
+    weekdays = [r for r in rows if _weekday_for(r["date"]) < 5]
+    avg_sat = sum(_day_total(r) for r in saturdays) / len(saturdays)
+    avg_wd = sum(_day_total(r) for r in weekdays) / len(weekdays)
+    assert avg_sat < avg_wd * 0.6
+
+
+def test_industrial_profile_has_more_than_1000_rows():
+    rows = _load_ic1_csv()
+    assert len(rows) > 1000
+
+
+def test_industrial_profile_starts_2016():
+    rows = _load_ic1_csv()
+    assert rows[0]["date"].startswith("2016")
