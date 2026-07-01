@@ -87,3 +87,56 @@ class TestGasMarketMonitor:
         m.record_price(make_snap())
         s = m.gas_market_summary()
         assert "Gas Market Monitor" in s
+
+
+# --- Phase MM depth tests ---
+
+def test_settlement_date_stored():
+    snap = make_snap(date=dt.date(2022, 12, 1))
+    assert snap.settlement_date == dt.date(2022, 12, 1)
+
+
+def test_session_stored_in_snapshot():
+    snap = make_snap(session=GasMarketSession.SEASON_AHEAD)
+    assert snap.session == GasMarketSession.SEASON_AHEAD
+
+
+def test_price_pence_per_therm_stored():
+    snap = make_snap(price=350.0)
+    assert snap.price_pence_per_therm == pytest.approx(350.0)
+
+
+def test_volume_therm_default_zero():
+    snap = GasMarketSnapshot(settlement_date=DATE, session=GasMarketSession.DAY_AHEAD, price_pence_per_therm=70.0)
+    assert snap.volume_therm == pytest.approx(0.0)
+
+
+def test_gas_market_session_has_5_members():
+    assert len(list(GasMarketSession)) == 5
+
+
+def test_record_price_returns_snapshot():
+    monitor = GasMarketMonitor()
+    snap = make_snap()
+    result = monitor.record_price(snap)
+    assert isinstance(result, GasMarketSnapshot)
+
+
+def test_purchase_date_stored():
+    p = make_purchase(date=dt.date(2022, 11, 1))
+    assert p.purchase_date == dt.date(2022, 11, 1)
+
+
+def test_purchase_session_stored():
+    p = GasPurchaseRecord(purchase_date=DATE, session=GasMarketSession.WITHIN_DAY, volume_therm=500.0, price_pence_per_therm=80.0)
+    assert p.session == GasMarketSession.WITHIN_DAY
+
+
+def test_purchase_volume_therm_stored():
+    p = make_purchase(vol=3000.0)
+    assert p.volume_therm == pytest.approx(3000.0)
+
+
+def test_purchase_price_pence_per_therm_stored():
+    p = make_purchase(price=125.0)
+    assert p.price_pence_per_therm == pytest.approx(125.0)

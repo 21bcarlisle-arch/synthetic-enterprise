@@ -81,3 +81,62 @@ class TestInterconnectorBookingRegister:
         reg.record(make_booking())
         s = reg.interconnector_booking_summary()
         assert "Interconnector Bookings" in s
+
+
+# --- Phase MM depth tests ---
+
+def test_booking_id_stored():
+    b = make_booking(bk_id="ICB-MM")
+    assert b.booking_id == "ICB-MM"
+
+
+def test_interconnector_stored():
+    b = make_booking(ic=InterconnectorId.NSL)
+    assert b.interconnector == InterconnectorId.NSL
+
+
+def test_period_type_stored():
+    b = InterconnectorBooking(
+        booking_id="ICB-MM", interconnector=InterconnectorId.IFA,
+        period_type=BookingPeriod.DAILY,
+        period_start=START, period_end=START,
+        capacity_mw=50.0, capacity_price_gbp_per_mw=3.0,
+        expected_continental_price_gbp_per_mwh=60.0,
+        expected_uk_price_gbp_per_mwh=75.0,
+    )
+    assert b.period_type == BookingPeriod.DAILY
+
+
+def test_period_start_stored():
+    b = make_booking()
+    assert b.period_start == START
+
+
+def test_period_end_stored():
+    b = make_booking()
+    assert b.period_end == END
+
+
+def test_capacity_mw_stored():
+    b = make_booking(cap=250.0)
+    assert b.capacity_mw == pytest.approx(250.0)
+
+
+def test_capacity_price_stored():
+    b = make_booking(cap_price=8.0)
+    assert b.capacity_price_gbp_per_mw == pytest.approx(8.0)
+
+
+def test_interconnector_id_has_7_members():
+    assert len(list(InterconnectorId)) == 7
+
+
+def test_booking_period_has_3_members():
+    assert len(list(BookingPeriod)) == 3
+
+
+def test_record_booking_returns_interconnector_booking():
+    reg = InterconnectorBookingRegister()
+    b = make_booking()
+    result = reg.record(b)
+    assert isinstance(result, InterconnectorBooking)

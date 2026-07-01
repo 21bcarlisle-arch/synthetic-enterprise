@@ -122,3 +122,67 @@ def test_book_segment_summary():
     assert s["total_profiled"] == 3
     assert s["at_risk_count"] >= 1
     assert s["struggling_count"] >= 1
+
+
+# --- Phase MM depth tests ---
+
+def _make_profile(cid="C1", pf_date=None, payment_rate=0.95, logins=3.0, contacts=1.0, months=None, paper_free=False):
+    import datetime as dt
+    return BehaviourProfile(
+        customer_id=cid,
+        as_of_date=pf_date or dt.date(2024, 1, 1),
+        payment_on_time_rate=payment_rate,
+        portal_logins_per_month=logins,
+        inbound_contacts_per_quarter=contacts,
+        months_since_last_switch=months,
+        paper_free=paper_free,
+    )
+
+
+def test_customer_id_stored():
+    import datetime as dt
+    p = _make_profile(cid="CUST-MM")
+    assert p.customer_id == "CUST-MM"
+
+
+def test_as_of_date_stored():
+    import datetime as dt
+    d = dt.date(2023, 6, 15)
+    p = _make_profile(pf_date=d)
+    assert p.as_of_date == d
+
+
+def test_payment_on_time_rate_stored():
+    p = _make_profile(payment_rate=0.82)
+    assert p.payment_on_time_rate == pytest.approx(0.82)
+
+
+def test_portal_logins_per_month_stored():
+    p = _make_profile(logins=5.5)
+    assert p.portal_logins_per_month == pytest.approx(5.5)
+
+
+def test_paper_free_default_false():
+    p = _make_profile()
+    assert p.paper_free is False
+
+
+def test_payment_behaviour_has_4_members():
+    assert len(list(PaymentBehaviour)) == 4
+
+
+def test_engagement_level_has_4_members():
+    assert len(list(EngagementLevel)) == 4
+
+
+def test_switching_risk_has_3_members():
+    assert len(list(SwitchingRisk)) == 3
+
+
+def test_customer_segment_has_6_members():
+    assert len(list(CustomerSegment)) == 6
+
+
+def test_engagement_level_engaged_2_to_4_logins():
+    p = _make_profile(logins=3.0, paper_free=False)
+    assert p.engagement_level == EngagementLevel.ENGAGED
