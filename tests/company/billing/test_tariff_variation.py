@@ -113,3 +113,63 @@ def test_annual_summary_with_data(book, sample_variation):
     assert summary["total"] == 2
     assert summary["accepted"] == 1
     assert summary["violations"] == 1
+
+
+# --- Phase MG depth tests ---
+
+def test_variation_id_first_is_1():
+    book = TariffVariationBook()
+    v = book.issue_notice("C001", 28.0, 34.0, date(2022, 10, 1), date(2022, 11, 1), VariationReason.PRICE_CAP_CHANGE)
+    assert v.variation_id == 1
+
+
+def test_customer_id_stored():
+    book = TariffVariationBook()
+    v = book.issue_notice("C-MG", 28.0, 34.0, date(2022, 10, 1), date(2022, 11, 1), VariationReason.COMMERCIAL_DECISION)
+    assert v.customer_id == "C-MG"
+
+
+def test_old_unit_rate_stored():
+    book = TariffVariationBook()
+    v = book.issue_notice("C001", 22.5, 34.0, date(2022, 10, 1), date(2022, 11, 1), VariationReason.PRICE_CAP_CHANGE)
+    assert v.old_unit_rate_ppm == pytest.approx(22.5)
+
+
+def test_new_unit_rate_stored():
+    book = TariffVariationBook()
+    v = book.issue_notice("C001", 22.5, 38.0, date(2022, 10, 1), date(2022, 11, 1), VariationReason.PRICE_CAP_CHANGE)
+    assert v.new_unit_rate_ppm == pytest.approx(38.0)
+
+
+def test_notice_sent_date_stored():
+    book = TariffVariationBook()
+    v = book.issue_notice("C001", 28.0, 34.0, date(2022, 9, 15), date(2022, 11, 1), VariationReason.TARIFF_RESTRUCTURE)
+    assert v.notice_sent_date == date(2022, 9, 15)
+
+
+def test_effective_date_stored():
+    book = TariffVariationBook()
+    v = book.issue_notice("C001", 28.0, 34.0, date(2022, 10, 1), date(2022, 12, 31), VariationReason.NETWORK_COST_CHANGE)
+    assert v.effective_date == date(2022, 12, 31)
+
+
+def test_reason_stored():
+    book = TariffVariationBook()
+    v = book.issue_notice("C001", 28.0, 34.0, date(2022, 10, 1), date(2022, 11, 1), VariationReason.POLICY_COST_CHANGE)
+    assert v.reason == VariationReason.POLICY_COST_CHANGE
+
+
+def test_outcome_pending_default():
+    book = TariffVariationBook()
+    v = book.issue_notice("C001", 28.0, 34.0, date(2022, 10, 1), date(2022, 11, 1), VariationReason.PRICE_CAP_CHANGE)
+    assert v.outcome == VariationOutcome.PENDING
+
+
+def test_response_date_none_default():
+    book = TariffVariationBook()
+    v = book.issue_notice("C001", 28.0, 34.0, date(2022, 10, 1), date(2022, 11, 1), VariationReason.PRICE_CAP_CHANGE)
+    assert v.response_date is None
+
+
+def test_variation_reason_has_5_members():
+    assert len(list(VariationReason)) == 5

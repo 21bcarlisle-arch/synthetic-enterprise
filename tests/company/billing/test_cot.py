@@ -88,3 +88,73 @@ def test_events_for_meter_point(book):
     types = {e.cot_type for e in evs}
     assert COTType.MOVE_OUT in types
     assert COTType.MOVE_IN in types
+
+
+# --- Phase MG depth tests ---
+
+def test_move_out_meter_point_attr():
+    book = COTBook()
+    ev = book.record_move_out("C1", "MPAN-MG", date(2022, 3, 1), 12500.0)
+    assert ev.meter_point == "MPAN-MG"
+
+
+def test_move_out_date_attr():
+    book = COTBook()
+    ev = book.record_move_out("C1", "MPAN001", date(2023, 6, 15), 10000.0)
+    assert ev.date == date(2023, 6, 15)
+
+
+def test_new_occupant_id_none_on_move_out():
+    book = COTBook()
+    ev = book.record_move_out("C1", "MPAN001", date(2022, 3, 1), 12500.0)
+    assert ev.new_occupant_id is None
+
+
+def test_move_in_cot_type_is_move_in():
+    book = COTBook()
+    book.record_move_out("C1", "MPAN001", date(2022, 3, 1), 12500.0)
+    ev = book.record_move_in("C2", "MPAN001", date(2022, 3, 15), 12500.0)
+    assert ev.cot_type == COTType.MOVE_IN
+
+
+def test_cot_type_has_2_members():
+    assert len(list(COTType)) == 2
+
+
+def test_void_properties_returns_meter_points():
+    book = COTBook()
+    book.record_move_out("C1", "MPAN-A", date(2022, 3, 1), 10000.0)
+    book.record_move_out("C2", "MPAN-B", date(2022, 4, 1), 8000.0)
+    voids = book.void_properties()
+    assert "MPAN-A" in voids and "MPAN-B" in voids
+
+
+def test_move_in_sets_new_occupant_id():
+    book = COTBook()
+    book.record_move_out("C1", "MPAN001", date(2022, 3, 1), 12500.0)
+    ev = book.record_move_in("C_NEW", "MPAN001", date(2022, 3, 15), 12500.0)
+    assert ev.new_occupant_id == "C_NEW"
+
+
+def test_portfolio_summary_total_events_count():
+    book = COTBook()
+    book.record_move_out("C1", "MPAN001", date(2022, 3, 1), 10000.0)
+    book.record_move_in("C2", "MPAN001", date(2022, 3, 15), 10000.0)
+    summary = book.portfolio_summary(date(2022, 6, 1))
+    assert summary["total_events"] == 2
+
+
+def test_void_days_uses_move_out_date():
+    book = COTBook()
+    book.record_move_out("C1", "MPAN001", date(2022, 3, 1), 10000.0)
+    as_of = date(2022, 3, 11)
+    assert book.void_days("MPAN001", as_of) == 10
+
+
+def test_events_for_returns_events_with_correct_meter_point():
+    book = COTBook()
+    book.record_move_out("C1", "MPAN-X", date(2022, 3, 1), 10000.0)
+    book.record_move_out("C2", "MPAN-Y", date(2022, 4, 1), 8000.0)
+    events = book.events_for("MPAN-X")
+    assert len(events) == 1
+    assert events[0].meter_point == "MPAN-X"
