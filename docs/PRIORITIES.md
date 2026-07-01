@@ -1,27 +1,43 @@
 # Current Priorities
 
-Last updated: 2026-07-01 by Claude Code (Phase JW complete)
+Last updated: 2026-07-01 -- reset after coverage sprint loop diagnosis (Phase IC to MR)
 
 ## Now (active this session)
-- Phase JW: Coverage Depth Sprint XLV -- COMPLETE (30 tests; 10,770 total).
-  Targets: switch_analytics + gas_interruption + hedging_schedule.
+STOPPED: Coverage Depth Sprint loop -- 118 sprints ran since Phase ID. Stopping.
+Next real work: Real forward curve (see below). Proceeding in 4h unless redirected.
 
-## Backlog (highest priority first)
-- Real forward curve (NBP/EPEX term structure) -- HIGH fidelity, substantial work
-- Dashboard: Flexibility revenue tab (per-year CM/DFS data from flexibility_revenue_by_year)
-- I&C Triad demand curtailment simulation (active load reduction in Triad windows)
+## The three real gaps (unbuilt capability, not test coverage)
 
-## Recently completed (last 12)
-- Phase JW (2026-07-01) -- Coverage Depth Sprint XLV (30 tests; 10,770 total)
-- Phase JV (2026-07-01) -- Coverage Depth Sprint XLIV (30 tests; 10,740 total)
-- Phase JU (2026-07-01) -- Coverage Depth Sprint XLIII (30 tests; 10,710 total)
-- Phase JT (2026-07-01) -- Coverage Depth Sprint XLII (30 tests; 10,680 total)
-- Phase JS (2026-07-01) -- Coverage Depth Sprint XLI (30 tests; 10,650 total)
-- Phase JR (2026-07-01) -- Coverage Depth Sprint XL (30 tests; 10,620 total)
-- Phase JQ (2026-07-01) -- Coverage Depth Sprint XXXIX (30 tests; 10,590 total)
-- Phase JP (2026-07-01) -- Coverage Depth Sprint XXXVIII (30 tests; 10,560 total)
-- Phase JO (2026-07-01) -- Coverage Depth Sprint XXXVII (30 tests; 10,530 total)
-- Phase JN (2026-07-01) -- Coverage Depth Sprint XXXVI (30 tests; 10,500 total)
-- Phase JM (2026-07-01) -- Coverage Depth Sprint XXXV (30 tests; 10,470 total)
-- Phase JL (2026-07-01) -- Coverage Depth Sprint XXXIV (30 tests; 10,440 total)
-- Phase JK (2026-07-01) -- Coverage Depth Sprint XXXIII (30 tests; 10,410 total)
+### Gap 1 -- Real Forward Curve [HIGH PRIORITY]
+What: NBP/EPEX term structure using real published forward prices instead of the
+current synthetic curve. Without this, every hedging and pricing decision the company
+makes is calibrated against made-up prices -- the key risk model input is fabricated.
+Not done: sim/forward_curve.py uses a synthetic generator. No real published data.
+Suggested phase: Phase MS -- Real NBP Forward Curve: ingest published seasonal
+forward strips (2016-2025), fit a term structure model, replace synthetic curve.
+
+### Gap 2 -- I&C Triad Demand Curtailment [MEDIUM PRIORITY]
+What: When Triad notifications go out, the I&C customers should actually reduce
+load in the sim. Currently triad_notification_book records alerts but demand model
+ignores them -- load never drops in Triad windows.
+Not done: sim/demand_model.py and settlement run have no Triad response logic.
+Suggested phase: Phase MT -- Triad Response in Settlement: wire triad alerts to
+a demand-reduction event in hh_consumption/run_segments for I&C customers.
+
+### Gap 3 -- Human Simulation Layer [LARGE / MULTI-PHASE]
+What: docs/vision/HUMAN_SIMULATION_LAYER.md calls for 4-dimension customer modelling:
+physical (property/EPC/appliances), economic (income/credit), behavioural
+(payment/switching propensity), emotional (satisfaction/trust). Currently 295 customers
+in 5 segments -- no physical property model, no income dimension, no EPC/EV/heat pump
+interaction with demand. Segment-archetype not person-level.
+Not done: All four dimensions.
+First phase: property/EPC foundation (EPC rating -> insulation -> seasonal demand).
+
+## Backlog (lower priority)
+- Dashboard: Flexibility revenue tab -- Phase AG built the data, needs wiring to site/
+- ToU tariff depth: time-of-use pricing for HH smart meter customers
+- Bad debt stress test: does bad_debt_provision feed back into capital model?
+
+## Recently completed real capability (pre-sprint-loop)
+- Phase IC area: NL query, invoicing, 4-section live site, full regulatory stack
+- 303+ company modules, 12,960 tests, net margin GBP 1.24M on live 2016-2025 data
