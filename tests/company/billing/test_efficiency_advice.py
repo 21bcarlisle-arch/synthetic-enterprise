@@ -66,3 +66,42 @@ def test_dashboard_route_returns_200():
     client = TestClient(app, raise_server_exceptions=True)
     r = client.get("/account/C1")
     assert r.status_code == 200
+
+
+from company.billing.efficiency_advice import epc_advice, available_schemes, efficiency_summary
+
+
+def test_epc_b_has_advice():
+    advice = epc_advice("B")
+    assert len(advice) > 0
+
+
+def test_epc_d_has_advice():
+    advice = epc_advice("D")
+    assert len(advice) > 0
+
+
+def test_epc_unknown_falls_back():
+    result = epc_advice("Z")
+    assert len(result) > 0
+
+
+def test_available_schemes_unknown_epc_returns_empty():
+    result = available_schemes({"epc_rating": "X"})
+    assert result == []
+
+
+def test_efficiency_summary_is_high_c():
+    result = efficiency_summary({"epc_rating": "C"})
+    assert result["is_high_efficiency"] is True
+
+
+def test_efficiency_summary_is_not_high_e():
+    result = efficiency_summary({"epc_rating": "E"})
+    assert result["is_high_efficiency"] is False
+
+
+def test_efficiency_summary_all_keys():
+    result = efficiency_summary({"epc_rating": "D"})
+    for key in ("epc_rating", "band", "is_high_efficiency", "advice", "available_schemes"):
+        assert key in result

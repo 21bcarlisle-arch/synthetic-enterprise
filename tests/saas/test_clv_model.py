@@ -1,6 +1,9 @@
+import pytest
 from saas.clv_model import (
+    _annuity_factor,
     DISCOUNT_RATE_ANNUAL,
     FALLBACK_PRIOR_PSEUDO_COUNT,
+    MAX_PROJECTION_PERIODS,
     build_clv,
     build_shifted_beta_geo_data,
     fit_theta_prior_from_churn_probabilities,
@@ -86,3 +89,35 @@ def test_build_clv_empty_churn_risk_returns_empty():
 
 def test_discount_rate_is_positive():
     assert 0 < DISCOUNT_RATE_ANNUAL < 1
+
+
+def test_annuity_factor_zero_periods():
+    assert _annuity_factor(0, 0.10) == pytest.approx(0.0)
+
+
+def test_annuity_factor_one_period():
+    assert _annuity_factor(1, 0.10) == pytest.approx(1 / 1.1)
+
+
+def test_annuity_factor_two_periods():
+    expected = 1 / 1.1 + 1 / 1.21
+    assert _annuity_factor(2, 0.10) == pytest.approx(expected)
+
+
+def test_annuity_factor_fractional():
+    expected = 0.5 / 1.1
+    assert _annuity_factor(0.5, 0.10) == pytest.approx(expected)
+
+
+def test_annuity_factor_one_and_half():
+    expected = 1 / 1.1 + 0.5 / 1.21
+    assert _annuity_factor(1.5, 0.10) == pytest.approx(expected)
+
+
+def test_annuity_factor_zero_rate_equals_periods():
+    assert _annuity_factor(3, 0.0) == pytest.approx(3.0)
+
+
+def test_clv_constants():
+    assert DISCOUNT_RATE_ANNUAL == pytest.approx(0.10)
+    assert MAX_PROJECTION_PERIODS == 50  # noqa: E501

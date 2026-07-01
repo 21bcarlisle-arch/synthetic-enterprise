@@ -81,3 +81,48 @@ def test_dashboard_includes_run_history_key(tmp_path):
     result = extract_run_history(hp)
     assert len(result) == 1
     assert result[0]["git_hash"] == "a1b2c3d4"
+
+
+from tools.generate_insights import _fmt_gbp, _fmt_pct, _committee_count
+
+
+def test_fmt_gbp_positive():
+    assert _fmt_gbp(1000.0) == "£1,000"
+
+
+def test_fmt_gbp_negative():
+    assert _fmt_gbp(-500.0) == "-£500"
+
+
+def test_fmt_gbp_zero():
+    assert _fmt_gbp(0.0) == "£0"
+
+
+def test_fmt_gbp_million():
+    assert _fmt_gbp(1_234_567.0) == "£1,234,567"
+
+
+def test_fmt_pct_default_one_decimal():
+    assert _fmt_pct(3.5) == "3.5%"
+
+
+def test_fmt_pct_zero_decimals():
+    assert _fmt_pct(7.0, 0) == "7%"
+
+
+def test_fmt_pct_two_decimals():
+    assert _fmt_pct(1.234, 2) == "1.23%"
+
+
+def test_committee_count_missing_year():
+    assert _committee_count({}, "2022") == 0
+
+
+def test_committee_count_int_value():
+    years = {"2022": {"committee_wake_ups": 5}}
+    assert _committee_count(years, "2022") == 5
+
+
+def test_committee_count_list_value():
+    years = {"2022": {"committee_wake_ups": ["a", "b", "c"]}}
+    assert _committee_count(years, "2022") == 3

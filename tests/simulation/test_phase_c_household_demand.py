@@ -169,3 +169,48 @@ class TestBaseEAC:
     def test_falls_back_to_segment_average_sme(self):
         customer = {"customer_id": "X3", "segment": "SME"}
         assert _base_eac_for_customer(customer) == SME_BASE_EAC_KWH
+
+
+from simulation.household_demand import (
+    IC_BASE_EAC_KWH,
+    _cid_hash,
+    SIM_START_YEAR,
+    SIM_END_YEAR,
+)
+
+
+def test_cid_hash_deterministic():
+    assert _cid_hash("C1") == _cid_hash("C1")
+
+
+def test_cid_hash_different_ids_different_values():
+    assert _cid_hash("C1") != _cid_hash("C2")
+
+
+def test_cid_hash_returns_positive_int():
+    assert isinstance(_cid_hash("C1"), int)
+    assert _cid_hash("C1") >= 0
+
+
+def test_cid_hash_known_value():
+    assert _cid_hash("C1") == 439213101
+
+
+def test_resi_base_eac_kwh_constant():
+    assert RESI_BASE_EAC_KWH == pytest.approx(3100.0)
+
+
+def test_sme_base_eac_kwh_constant():
+    assert SME_BASE_EAC_KWH == pytest.approx(25000.0)
+
+
+def test_ic_base_eac_kwh_constant():
+    assert IC_BASE_EAC_KWH == pytest.approx(100000.0)
+
+
+def test_sim_start_year():
+    assert SIM_START_YEAR == 2016
+
+
+def test_sim_end_year():
+    assert SIM_END_YEAR == 2025

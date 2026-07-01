@@ -113,3 +113,46 @@ def test_generate_writes_invoices_to_customer_json(tmp_path):
     updated = json.loads((cust_dir / "C1.json").read_text())
     assert len(updated["invoices"]) > 0
     assert updated["invoices"][0]["amount_gbp"] > 0
+
+
+from datetime import date
+from tools.generate_invoice_data import _month_end, _months_between, _seasonal
+
+
+def test_month_end_december():
+    assert _month_end(2022, 12) == date(2022, 12, 31)
+
+
+def test_month_end_january():
+    assert _month_end(2022, 1) == date(2022, 1, 31)
+
+
+def test_month_end_february_non_leap():
+    assert _month_end(2022, 2) == date(2022, 2, 28)
+
+
+def test_month_end_february_leap():
+    assert _month_end(2024, 2) == date(2024, 2, 29)
+
+
+def test_months_between_cross_year():
+    months = _months_between("2022-11-01", date(2023, 2, 28))
+    assert len(months) == 4
+
+
+def test_months_between_tuples():
+    months = _months_between("2022-01-01", date(2022, 3, 31))
+    assert months[0] == (2022, 1)
+    assert months[-1] == (2022, 3)
+
+
+def test_seasonal_sums_to_total():
+    months = [(2022, m) for m in range(1, 13)]
+    shares = _seasonal(1200.0, months, "electricity")
+    assert abs(sum(shares) - 1200.0) < 1e-6
+
+
+def test_seasonal_gas_winter_higher_than_summer():
+    months = [(2022, m) for m in range(1, 13)]
+    shares = _seasonal(1200.0, months, "gas")
+    assert shares[0] > shares[6]  # Jan > Jul

@@ -3,6 +3,7 @@
 import pytest
 
 from saas.growth_mandate import (
+    acquisition_budget_gbp,
     ACQUISITION_WIN_RATE,
     COST_PER_ACQUISITION,
     FIXED_COST_MONTHLY,
@@ -71,3 +72,57 @@ def test_acquisition_budget_defaults_unknown_segment_to_resi():
     segment_by_account = {}
     budget = acquisition_budget_gbp(churn_forecast, segment_by_account)
     assert abs(budget - COST_PER_ACQUISITION["resi"]) < 0.01
+
+
+from saas.growth_mandate import (
+    MANDATE,
+    COST_PER_ACQUISITION,
+    ACQUISITION_WIN_RATE,
+    FIXED_COST_MONTHLY,
+    should_attempt_acquisition,
+)
+
+
+def test_mandate_is_flat():
+    assert MANDATE == "flat"
+
+
+def test_resi_acquisition_cost():
+    assert COST_PER_ACQUISITION["resi"] == pytest.approx(150.0)
+
+
+def test_sme_acquisition_cost():
+    assert COST_PER_ACQUISITION["SME"] == pytest.approx(400.0)
+
+
+def test_resi_win_rate():
+    assert ACQUISITION_WIN_RATE["resi"] == pytest.approx(0.20)
+
+
+def test_sme_win_rate():
+    assert ACQUISITION_WIN_RATE["SME"] == pytest.approx(0.12)
+
+
+def test_fixed_cost_monthly():
+    assert FIXED_COST_MONTHLY == pytest.approx(50.0)
+
+
+def test_should_attempt_nonresi_always_proceeds():
+    proceed, reason = should_attempt_acquisition("SME", "electricity", 999.0, "2022-01-01")
+    assert proceed is True
+    assert reason is None
+
+
+def test_should_attempt_gas_always_proceeds():
+    proceed, reason = should_attempt_acquisition("resi", "gas", 999.0, "2022-01-01")
+    assert proceed is True
+    assert reason is None
+
+
+def test_acquisition_budget_empty():
+    assert acquisition_budget_gbp({}, {}) == pytest.approx(0.0)
+
+
+def test_acquisition_budget_single_resi():
+    budget = acquisition_budget_gbp({"C1": 0.5}, {"C1": "resi"})
+    assert budget == pytest.approx(0.5 * 150.0)

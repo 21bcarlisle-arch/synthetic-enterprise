@@ -87,3 +87,28 @@ def test_dashboard_template_has_switch_widget():
         html = f.read()
     assert "switch_rec" in html
     assert "Tariff advice" in html
+
+
+from company.pricing.switching_recommendation import _cap_p_per_kwh
+
+
+def test_cap_p_per_kwh_2024():
+    # 2024 should have a defined cap
+    result = _cap_p_per_kwh(2024)
+    assert result is not None
+    assert result > 0
+
+
+def test_cap_p_per_kwh_is_one_tenth_of_mwh_rate():
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+    rate_mwh = get_cap_unit_rate_gbp_per_mwh("electricity", 2023)
+    if rate_mwh is not None:
+        assert _cap_p_per_kwh(2023) == round(rate_mwh / 10.0, 2)
+
+
+def test_cap_p_per_kwh_2022_is_high():
+    # 2022 energy crisis year: cap higher than 2020
+    cap_2022 = _cap_p_per_kwh(2022)
+    cap_2020 = _cap_p_per_kwh(2020)
+    if cap_2022 is not None and cap_2020 is not None:
+        assert cap_2022 > cap_2020

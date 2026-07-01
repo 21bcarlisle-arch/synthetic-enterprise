@@ -106,3 +106,42 @@ def test_multiple_terms_all_have_notice_date():
         assert (
             date.fromisoformat(term["acquisition_date"]) - date.fromisoformat(term["notice_date"])
         ).days == NOTICE_DAYS
+
+
+def test_deemed_premium_constant():
+    from simulation.renewals import DEEMED_PREMIUM
+    assert DEEMED_PREMIUM == 0.20
+
+
+def test_flex_markup_constant():
+    from simulation.renewals import FLEX_MARKUP_PER_MWH
+    assert FLEX_MARKUP_PER_MWH == 2.0
+
+
+def test_first_term_starts_on_supply_start():
+    records = _flat_price_records("2015-10-01", "2017-06-30")
+    schedule = build_renewal_schedule("C1", "2016-03-01", "2016-03-01", records, 2800)
+    assert schedule[0]["acquisition_date"] == "2016-03-01"
+
+
+def test_all_term_keys_present():
+    records = _flat_price_records("2015-10-01", "2017-06-30")
+    schedule = build_renewal_schedule("C1", "2016-01-01", "2016-01-01", records, 2800)
+    r = schedule[0]
+    for key in ("acquisition_date", "term_end", "forward_price_gbp_per_mwh",
+                "company_forward_price_gbp_per_mwh", "unit_rate_gbp_per_mwh",
+                "notice_date"):
+        assert key in r, f"missing key {key!r}"
+
+
+def test_company_forward_price_is_positive():
+    records = _flat_price_records("2015-10-01", "2017-06-30")
+    schedule = build_renewal_schedule("C1", "2016-01-01", "2016-01-01", records, 2800)
+    assert schedule[0]["company_forward_price_gbp_per_mwh"] > 0
+
+
+def test_tariff_rate_exceeds_forward_price():
+    records = _flat_price_records("2015-10-01", "2017-06-30")
+    schedule = build_renewal_schedule("C1", "2016-01-01", "2016-01-01", records, 2800)
+    r = schedule[0]
+    assert r["unit_rate_gbp_per_mwh"] > r["forward_price_gbp_per_mwh"]

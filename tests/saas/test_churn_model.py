@@ -1,9 +1,13 @@
+import pytest
+
 from saas.churn_model import (
     BASE_ANNUAL_CHURN_PROBABILITY,
     CHURN_UPLIFT_PER_BILL_SHOCK,
     MAX_CHURN_PROBABILITY,
     build_churn_risk,
     churn_probability,
+    _shift_month,
+    _renewal_periods,
 )
 
 CUSTOMERS = [
@@ -68,3 +72,44 @@ def test_unknown_account_raises_key_error():
         assert False, "expected KeyError"
     except KeyError:
         pass
+
+
+def test_constants_values():
+    assert BASE_ANNUAL_CHURN_PROBABILITY == pytest.approx(0.05)
+    assert CHURN_UPLIFT_PER_BILL_SHOCK == pytest.approx(0.03)
+    assert MAX_CHURN_PROBABILITY == pytest.approx(0.95)
+
+
+def test_shift_month_forward():
+    assert _shift_month("2022-06", 6) == "2022-12"
+
+
+def test_shift_month_crosses_year():
+    assert _shift_month("2022-12", 1) == "2023-01"
+
+
+def test_shift_month_backward():
+    assert _shift_month("2023-01", -1) == "2022-12"
+
+
+def test_shift_month_twelve_months():
+    assert _shift_month("2022-01", 12) == "2023-01"
+
+
+def test_renewal_periods_one_year():
+    periods = _renewal_periods("2022-01-01", "2023-01")
+    assert periods == ["2023-01"]
+
+
+def test_renewal_periods_too_short():
+    periods = _renewal_periods("2022-01-01", "2022-11")
+    assert periods == []
+
+
+def test_renewal_periods_three_points():
+    periods = _renewal_periods("2022-01-01", "2024-12")
+    assert periods == ["2023-01", "2024-01", "2024-12"]
+
+
+def test_churn_probability_specific_value():
+    assert churn_probability(3) == pytest.approx(0.05 + 3 * 0.03)

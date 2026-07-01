@@ -52,3 +52,57 @@ def test_pc3_season_for_date_winter():
 
 def test_pc3_day_type_for_date_saturday():
     assert day_type_for_date(date(2024, 1, 20)) == "saturday"
+
+
+from datetime import date
+from sim.profile_class_3 import (
+    last_sunday_of_month, last_monday_of_month, season_for_date, day_type_for_date
+)
+
+
+def test_last_sunday_of_march_2022():
+    result = last_sunday_of_month(2022, 3)
+    assert result == date(2022, 3, 27)
+    assert result.weekday() == 6  # Sunday
+
+
+def test_last_sunday_of_october_2022():
+    result = last_sunday_of_month(2022, 10)
+    assert result == date(2022, 10, 30)
+    assert result.weekday() == 6  # Sunday
+
+
+def test_last_monday_of_august_2022():
+    result = last_monday_of_month(2022, 8)
+    assert result == date(2022, 8, 29)
+    assert result.weekday() == 0  # Monday
+
+
+def test_last_sunday_of_december():
+    result = last_sunday_of_month(2022, 12)
+    assert result.weekday() == 6
+
+
+def test_season_for_date_january_is_winter():
+    assert season_for_date(date(2022, 1, 15)) == "winter"
+
+
+def test_season_for_date_april_is_spring():
+    assert season_for_date(date(2022, 4, 15)) == "spring"
+
+
+def test_season_for_date_september_is_autumn():
+    # High summer ends on Sunday 2022-09-04; autumn starts 2022-09-05
+    assert season_for_date(date(2022, 9, 5)) == "autumn"
+
+
+def test_day_type_for_date_saturday():
+    assert day_type_for_date(date(2022, 6, 4)) == "saturday"
+
+
+def test_day_type_for_date_sunday():
+    assert day_type_for_date(date(2022, 6, 5)) == "sunday"
+
+
+def test_day_type_for_date_weekday():
+    assert day_type_for_date(date(2022, 6, 6)) == "weekday"

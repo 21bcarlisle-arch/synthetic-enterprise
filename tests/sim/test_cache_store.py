@@ -83,3 +83,29 @@ def test_write_cached_prices_custom_filename(tmp_path):
     records = [{"settlementDate": "2024-01-01", "systemSellPrice": 50.0}]
     cache_store.write_cached_prices(records, "gas_prices.json")
     assert (tmp_path / "gas_prices.json").exists()
+
+
+
+def test_write_then_read_roundtrip(tmp_path):
+    import json
+    records = [
+        {"settlementDate": "2022-06-01", "systemSellPrice": 60.0},
+        {"settlementDate": "2022-06-02", "systemSellPrice": 65.0},
+    ]
+    cache_store.write_cached_prices(records)
+    result = cache_store.get_cached_prices("2022-06-01", "2022-06-02")
+    assert result is not None
+    assert len(result) == 2
+
+
+def test_hit_returns_exact_range_only(tmp_path):
+    records = [
+        {"settlementDate": "2022-01-01", "systemSellPrice": 50.0},
+        {"settlementDate": "2022-06-15", "systemSellPrice": 60.0},
+        {"settlementDate": "2022-12-31", "systemSellPrice": 70.0},
+    ]
+    cache_store.write_cached_prices(records)
+    result = cache_store.get_cached_prices("2022-01-01", "2022-06-15")
+    assert result is not None
+    dates = [r["settlementDate"] for r in result]
+    assert "2022-12-31" not in dates

@@ -78,3 +78,41 @@ def test_records_contain_settlement_date():
     with patch.object(sph._session, "get", return_value=_mock_response(day_records)):
         result = sph.get_system_prices_range("2022-05-10", "2022-05-10")
     assert result[0]["settlementDate"] == "2022-05-10"
+
+
+def test_records_have_all_keys():
+    day_records = [_record("2022-05-10", 1, ssp=60.0, sbp=65.0)]
+    with patch.object(sph._session, "get", return_value=_mock_response(day_records)):
+        result = sph.get_system_prices_range("2022-05-10", "2022-05-10")
+    rec = result[0]
+    assert "settlementPeriod" in rec
+    assert "systemSellPrice" in rec
+    assert "systemBuyPrice" in rec
+
+
+def test_five_day_range_queries_five_days():
+    calls = []
+    def record_call(url):
+        calls.append(url)
+        return _mock_response([])
+    with patch.object(sph._session, "get", side_effect=record_call):
+        sph.get_system_prices_range("2022-01-01", "2022-01-05")
+    assert len(calls) == 5
+
+
+def test_all_records_from_two_days_returned():
+    day1_records = [_record("2022-01-01", p) for p in range(1, 49)]
+    day2_records = [_record("2022-01-02", p) for p in range(1, 49)]
+    responses = iter([_mock_response(day1_records), _mock_response(day2_records)])
+    with patch.object(sph._session, "get", side_effect=lambda url: next(responses)):
+        result = sph.get_system_prices_range("2022-01-01", "2022-01-02")
+    assert len(result) == 96
+
+
+def test_missing_data_key_in_response_returns_empty():
+    resp = MagicMock()
+    resp.status_code = 200
+    resp.json.return_value = {}
+    with patch.object(sph._session, "get", return_value=resp):
+        result = sph.get_system_prices_range("2022-01-01", "2022-01-01")
+    assert result == []

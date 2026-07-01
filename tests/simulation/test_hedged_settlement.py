@@ -148,3 +148,91 @@ def test_net_margin_deducts_policy_and_capital():
     r = result[0]
     # net_margin < margin_gbp because policy costs + network are deducted
     assert r["net_margin_gbp"] < r["margin_gbp"]
+
+
+from simulation.hedged_settlement import run_deemed_term
+
+
+def test_deemed_single_day_48_periods():
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(1.0),
+        system_price_records=_prices(["2022-01-01"]),
+    )
+    assert len(result) == 48
+
+
+def test_deemed_keys_present():
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(1.0),
+        system_price_records=_prices(["2022-01-01"]),
+    )
+    r = result[0]
+    for key in ("customer_id", "settlement_date", "settlement_period",
+                "consumption_kwh", "revenue_gbp", "wholesale_cost_gbp",
+                "margin_gbp", "capital_cost_gbp", "net_margin_gbp",
+                "hedge_fraction", "tariff_type"):
+        assert key in r
+
+
+def test_deemed_zero_premium_gives_zero_margin():
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.0,
+        consumption_shape=_shape_fn(1.0),
+        system_price_records=_prices(["2022-01-01"], price=100.0),
+    )
+    for r in result:
+        assert r["margin_gbp"] == pytest.approx(0.0)
+
+
+def test_deemed_hedge_fraction_is_zero():
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(1.0),
+        system_price_records=_prices(["2022-01-01"]),
+    )
+    for r in result:
+        assert r["hedge_fraction"] == 0.0
+        assert r["capital_cost_gbp"] == pytest.approx(0.0)
+
+
+def test_deemed_revenue_equals_spot_times_premium():
+    spot = 100.0
+    premium = 0.20
+    consumption_kwh = 2.0
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=premium,
+        consumption_shape=_shape_fn(consumption_kwh),
+        system_price_records=_prices(["2022-01-01"], price=spot),
+    )
+    r = result[0]
+    expected_revenue = spot * (1.0 + premium) * (consumption_kwh / 1000.0)
+    assert r["revenue_gbp"] == pytest.approx(expected_revenue)
+
+
+def test_deemed_tariff_type_field():
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(1.0),
+        system_price_records=_prices(["2022-01-01"]),
+    )
+    assert all(r["tariff_type"] == "deemed" for r in result)

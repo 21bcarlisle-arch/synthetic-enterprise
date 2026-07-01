@@ -51,3 +51,43 @@ def test_build_monthly_bills_uses_customer_contract_type():
     bills = build_monthly_bills(records)
     # C1 is fixed_1yr -> base clarity 1.0, single steady day -> clarity 1.0
     assert bills[0]["clarity_score"] == pytest.approx(1.0)
+
+
+from simulation.run_phase4c_on_phase2b import _billing_month
+
+
+def test_billing_month_standard():
+    assert _billing_month("2022-01-15") == "2022-01"
+
+
+def test_billing_month_december():
+    assert _billing_month("2022-12-31") == "2022-12"
+
+
+def test_build_monthly_bills_empty():
+    assert build_monthly_bills([]) == []
+
+
+def test_build_monthly_bills_bill_keys_present():
+    records = [make_record("C1", "2023-01-01", 10.0)]
+    bills = build_monthly_bills(records)
+    bill = bills[0]
+    for key in ("customer_id", "period_start", "total_amount_gbp", "clarity_score", "bill_shock_pct"):
+        assert key in bill, f"missing key: {key}"
+
+
+def test_build_monthly_bills_chronological_order():
+    records = [
+        make_record("C1", "2023-02-15", 10.0),
+        make_record("C1", "2023-01-01", 10.0),
+    ]
+    bills = build_monthly_bills(records)
+    c1_bills = [b for b in bills if b["customer_id"] == "C1"]
+    starts = [b["period_start"] for b in c1_bills]
+    assert starts == sorted(starts)
+
+
+def test_build_monthly_bills_total_is_positive():
+    records = [make_record("C1", "2023-01-01", 50.0, unit_rate=200.0)]
+    bills = build_monthly_bills(records)
+    assert bills[0]["total_amount_gbp"] > 0.0

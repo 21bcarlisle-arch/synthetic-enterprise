@@ -113,3 +113,37 @@ def test_renewal_periods_preserved_in_order():
 def test_unknown_billing_account_raises_key_error():
     with pytest.raises(KeyError):
         build_home_move_win_rates({"C99": []}, CUSTOMERS, 0.0)
+
+
+from saas.home_move_win_rate import (
+    MIN_WIN_PROBABILITY,
+    MAX_WIN_PROBABILITY,
+    BASE_WIN_PROBABILITY,
+    PRICE_SENSITIVITY_BY_EPC,
+)
+
+
+def test_min_win_probability():
+    assert MIN_WIN_PROBABILITY == pytest.approx(0.05)
+
+
+def test_max_win_probability():
+    assert MAX_WIN_PROBABILITY == pytest.approx(0.95)
+
+
+def test_resi_base_win_probability():
+    assert BASE_WIN_PROBABILITY["resi"] == pytest.approx(0.55)
+
+
+def test_sme_base_win_probability():
+    assert BASE_WIN_PROBABILITY["SME"] == pytest.approx(0.35)
+
+
+def test_epc_g_most_price_sensitive():
+    assert PRICE_SENSITIVITY_BY_EPC["G"] > PRICE_SENSITIVITY_BY_EPC["A"]
+
+
+def test_epc_sensitivity_monotonic():
+    ratings = ["A", "B", "C", "D", "E", "F", "G"]
+    sensitivities = [PRICE_SENSITIVITY_BY_EPC[r] for r in ratings]
+    assert sensitivities == sorted(sensitivities)

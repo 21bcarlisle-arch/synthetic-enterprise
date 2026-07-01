@@ -1,3 +1,4 @@
+import pytest
 from saas.customers import get_customer
 from simulation.weather_inputs import (
     load_weather_means,
@@ -40,3 +41,29 @@ def test_lookback_mean_temps_returns_window_before_term_start():
 def test_lookback_mean_temps_returns_none_when_window_has_no_data():
     weather_means = {"2020-01-01": 5.0}
     assert lookback_mean_temps(weather_means, "2016-01-03", lookback_days=2) is None
+
+
+from simulation.weather_inputs import _weather_source_customer_id, WEATHER_DATA_DIR
+
+
+def test_weather_data_dir_constant():
+    assert WEATHER_DATA_DIR == "sim/weather_data"
+
+
+def test_weather_source_c1_resolves_to_c1():
+    from saas.customers import CUSTOMERS
+    c1 = next(c for c in CUSTOMERS if c["customer_id"] == "C1")
+    assert _weather_source_customer_id(c1) == "C1"
+
+
+def test_weather_source_c5_resolves_to_london_customer():
+    from saas.customers import CUSTOMERS
+    c5 = next(c for c in CUSTOMERS if c["customer_id"] == "C5")
+    result = _weather_source_customer_id(c5)
+    assert result in ("C1", "C2", "C3", "C4")
+
+
+def test_weather_source_unknown_location_returns_self():
+    customer = {"customer_id": "X99", "location": {"lat": 0.0, "lon": 0.0, "region": "Unknown"}}
+    result = _weather_source_customer_id(customer)
+    assert result == "X99"

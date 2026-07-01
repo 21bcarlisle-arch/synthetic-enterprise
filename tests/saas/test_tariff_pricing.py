@@ -73,3 +73,44 @@ def test_default_naked_fraction_is_fully_naked():
     default = price_fixed_tariff(forward_price, eac_kwh, term_start)
     explicit = price_fixed_tariff(forward_price, eac_kwh, term_start, naked_fraction=1.0)
     assert default == explicit
+
+
+from saas.tariff_pricing import TOU_PEAK_MULTIPLIER, TOU_OFFPEAK_MULTIPLIER, price_tou_tariff
+
+
+def test_tou_returns_tuple():
+    result = price_tou_tariff(60.0, 3500, "2024-01-01")
+    assert isinstance(result, tuple)
+    assert len(result) == 2
+
+
+def test_tou_peak_above_offpeak():
+    peak, offpeak = price_tou_tariff(60.0, 3500, "2024-01-01")
+    assert peak > offpeak
+
+
+def test_tou_peak_multiplier_applied():
+    from saas.tariff_pricing import price_fixed_tariff
+    flat = price_fixed_tariff(60.0, 3500, "2024-01-01")
+    peak, _ = price_tou_tariff(60.0, 3500, "2024-01-01")
+    assert peak == pytest.approx(flat * TOU_PEAK_MULTIPLIER)
+
+
+def test_tou_offpeak_multiplier_applied():
+    from saas.tariff_pricing import price_fixed_tariff
+    flat = price_fixed_tariff(60.0, 3500, "2024-01-01")
+    _, offpeak = price_tou_tariff(60.0, 3500, "2024-01-01")
+    assert offpeak == pytest.approx(flat * TOU_OFFPEAK_MULTIPLIER)
+
+
+def test_tou_revenue_neutral_30_70():
+    peak, offpeak = price_tou_tariff(60.0, 3500, "2024-01-01")
+    blended = 0.30 * peak + 0.70 * offpeak
+    from saas.tariff_pricing import price_fixed_tariff
+    flat = price_fixed_tariff(60.0, 3500, "2024-01-01")
+    assert blended == pytest.approx(flat)
+
+
+def test_tou_constants_relationship():
+    assert TOU_PEAK_MULTIPLIER > 1.0
+    assert TOU_OFFPEAK_MULTIPLIER < 1.0

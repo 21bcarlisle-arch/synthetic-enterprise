@@ -60,3 +60,50 @@ def test_fetch_system_prices_non_200_returns_empty():
     with patch("requests.get", return_value=_mock_response([], status=503)):
         result = sp._fetch_system_prices("2022-01-01")
     assert result == []
+
+
+def test_latest_result_has_required_keys():
+    records = [_record(5)]
+    with patch("requests.get", return_value=_mock_response(records)):
+        result = sp.get_latest_system_prices()
+    assert result is not None
+    for key in ("settlementDate", "settlementPeriod", "systemSellPrice", "systemBuyPrice"):
+        assert key in result
+
+
+def test_latest_single_record_returned():
+    records = [_record(12, ssp=55.0)]
+    with patch("requests.get", return_value=_mock_response(records)):
+        result = sp.get_latest_system_prices()
+    assert result["settlementPeriod"] == 12
+    assert result["systemSellPrice"] == 55.0
+
+
+def test_fetch_returns_list():
+    records = [_record(1)]
+    with patch("requests.get", return_value=_mock_response(records)):
+        result = sp._fetch_system_prices("2022-01-01")
+    assert isinstance(result, list)
+
+
+def test_fetch_missing_data_key_returns_empty():
+    resp = MagicMock()
+    resp.status_code = 200
+    resp.json.return_value = {}
+    with patch("requests.get", return_value=resp):
+        result = sp._fetch_system_prices("2022-01-01")
+    assert result == []
+
+
+def test_latest_returns_today_records_if_available():
+    today_records = [_record(48, date="2022-06-02")]
+    yesterday_records = [_record(40, date="2022-06-01")]
+    call_count = [0]
+    def side_effect(url):
+        call_count[0] += 1
+        if call_count[0] == 1:
+            return _mock_response(today_records)
+        return _mock_response(yesterday_records)
+    with patch("requests.get", side_effect=side_effect):
+        result = sp.get_latest_system_prices()
+    assert result["settlementPeriod"] == 48

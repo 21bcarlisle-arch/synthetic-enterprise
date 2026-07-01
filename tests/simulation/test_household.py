@@ -140,3 +140,52 @@ def test_solar_generation_no_solar_zero():
 def test_solar_generation_3kwp():
     h = _make_household(has_solar=True, solar_kwp=3.0, solar_install_year=2020)
     assert h.solar_annual_generation_kwh() == pytest.approx(3.0 * 850.0)
+
+
+def test_is_heat_pump_false_for_gas():
+    h = _make_household(heating_system=HeatingSystem.GAS_BOILER_COMBI)
+    assert h.is_heat_pump is False
+
+
+def test_is_heat_pump_true_for_ashp():
+    h = _make_household(heating_system=HeatingSystem.HEAT_PUMP_AIR)
+    assert h.is_heat_pump is True
+
+
+def test_is_heat_pump_true_for_gshp():
+    h = _make_household(heating_system=HeatingSystem.HEAT_PUMP_GROUND)
+    assert h.is_heat_pump is True
+
+
+def test_seasonal_flatness_factor_a_is_high():
+    h = _make_household(epc_rating="A", insulation=InsulationLevel.FULL)
+    assert h.seasonal_flatness_factor() >= 0.85
+
+
+def test_seasonal_flatness_factor_g_is_low():
+    h = _make_household(epc_rating="G", insulation=InsulationLevel.POOR)
+    assert h.seasonal_flatness_factor() <= 0.15
+
+
+def test_seasonal_flatness_factor_c_partial():
+    h = _make_household(epc_rating="C", insulation=InsulationLevel.PARTIAL)
+    assert h.seasonal_flatness_factor() == pytest.approx(0.60)
+
+
+def test_seasonal_flatness_full_insulation_uplift():
+    h_partial = _make_household(epc_rating="C", insulation=InsulationLevel.PARTIAL)
+    h_full = _make_household(epc_rating="C", insulation=InsulationLevel.FULL)
+    assert h_full.seasonal_flatness_factor() > h_partial.seasonal_flatness_factor()
+
+
+def test_seasonal_flatness_poor_insulation_penalty():
+    h_partial = _make_household(epc_rating="C", insulation=InsulationLevel.PARTIAL)
+    h_poor = _make_household(epc_rating="C", insulation=InsulationLevel.POOR)
+    assert h_poor.seasonal_flatness_factor() < h_partial.seasonal_flatness_factor()
+
+
+def test_seasonal_flatness_bounded_0_to_1():
+    for epc in ["A", "B", "C", "D", "E", "F", "G"]:
+        for insulation in (InsulationLevel.FULL, InsulationLevel.PARTIAL, InsulationLevel.POOR):
+            h = _make_household(epc_rating=epc, insulation=insulation)
+            assert 0.0 <= h.seasonal_flatness_factor() <= 1.0

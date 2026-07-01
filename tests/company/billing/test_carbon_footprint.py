@@ -64,3 +64,36 @@ def test_carbon_estimate_structure():
     assert "intensity" in result
     assert "unit" in result
     assert "year" in result
+
+
+from company.billing.carbon_footprint import electricity_intensity, estimate_carbon, _GAS_KG_CO2E_PER_KWH
+
+
+def test_electricity_intensity_pre_2016_clamps_to_2016():
+    assert electricity_intensity(2010) == electricity_intensity(2016)
+
+
+def test_electricity_intensity_future_clamps_to_2025():
+    assert electricity_intensity(2030) == electricity_intensity(2025)
+
+
+def test_estimate_gas_carbon_formula():
+    result = estimate_carbon(1000.0, "gas", 2022)
+    expected_kg = round(1000.0 * _GAS_KG_CO2E_PER_KWH, 1)
+    assert result["kg_co2e"] == expected_kg
+
+
+def test_estimate_carbon_returns_all_keys():
+    result = estimate_carbon(3500.0, "electricity", 2022)
+    for key in ("kg_co2e", "tonnes_co2e", "intensity", "unit", "year"):
+        assert key in result
+
+
+def test_estimate_carbon_year_stored():
+    result = estimate_carbon(3500.0, "electricity", 2022)
+    assert result["year"] == 2022
+
+
+def test_estimate_carbon_gas_unit_string():
+    result = estimate_carbon(5000.0, "gas", 2020)
+    assert "gas" in result["unit"]

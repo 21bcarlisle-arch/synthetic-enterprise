@@ -74,3 +74,61 @@ def test_unknown_customer_raises_key_error():
         assert False, "expected KeyError"
     except KeyError:
         pass
+
+
+import pytest
+from saas.cost_to_serve import (
+    SETTLEMENT_PERIODS_PER_YEAR,
+    FIXED_OVERHEAD_GBP_PER_YEAR,
+    FIXED_OVERHEAD_GBP_PER_PERIOD,
+    BAD_DEBT_RATE,
+    get_bad_debt_rate,
+    cost_to_serve_for_period,
+)
+
+
+def test_settlement_periods_per_year():
+    assert SETTLEMENT_PERIODS_PER_YEAR == 17_520
+
+
+def test_bad_debt_rate_resi():
+    assert BAD_DEBT_RATE["resi"] == pytest.approx(0.02)
+
+
+def test_bad_debt_rate_sme():
+    assert BAD_DEBT_RATE["SME"] == pytest.approx(0.01)
+
+
+def test_bad_debt_rate_ic():
+    assert BAD_DEBT_RATE["I&C"] == pytest.approx(0.005)
+
+
+def test_fixed_overhead_resi():
+    assert FIXED_OVERHEAD_GBP_PER_YEAR["resi"] == pytest.approx(55.0)
+
+
+def test_get_bad_debt_rate_baseline():
+    assert get_bad_debt_rate(2020, "resi") == pytest.approx(0.02)
+
+
+def test_get_bad_debt_rate_crisis_elevated_sme():
+    rate_2022 = get_bad_debt_rate(2022, "SME")
+    rate_2020 = get_bad_debt_rate(2020, "SME")
+    assert rate_2022 > rate_2020
+
+
+def test_get_bad_debt_rate_future_falls_back():
+    assert get_bad_debt_rate(2030, "resi") == pytest.approx(0.02)
+
+
+def test_cost_to_serve_zero_revenue_is_overhead_only():
+    result = cost_to_serve_for_period("resi", 0.0)
+    assert result == pytest.approx(FIXED_OVERHEAD_GBP_PER_PERIOD["resi"])
+
+
+def test_cost_to_serve_includes_bad_debt_component():
+    revenue = 100.0
+    result = cost_to_serve_for_period("resi", revenue)
+    expected_bad_debt = revenue * BAD_DEBT_RATE["resi"]
+    expected_overhead = FIXED_OVERHEAD_GBP_PER_PERIOD["resi"]
+    assert result == pytest.approx(expected_bad_debt + expected_overhead)

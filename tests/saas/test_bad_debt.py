@@ -45,3 +45,41 @@ def test_rates_peak_in_2022_for_resi():
 def test_post_2022_recovery_partial():
     assert get_bad_debt_rate(2023, "resi") < get_bad_debt_rate(2022, "resi")
     assert get_bad_debt_rate(2023, "resi") > get_bad_debt_rate(2020, "resi")
+
+
+from saas.cost_to_serve import (
+    cost_to_serve_for_period,
+    FIXED_OVERHEAD_GBP_PER_PERIOD,
+    BAD_DEBT_RATE,
+    SETTLEMENT_PERIODS_PER_YEAR,
+    FIXED_OVERHEAD_GBP_PER_YEAR,
+)
+
+
+def test_cost_to_serve_resi_zero_revenue():
+    cts = cost_to_serve_for_period("resi", 0.0)
+    assert cts == pytest.approx(FIXED_OVERHEAD_GBP_PER_PERIOD["resi"])
+
+
+def test_cost_to_serve_sme_zero_revenue():
+    cts = cost_to_serve_for_period("SME", 0.0)
+    assert cts == pytest.approx(FIXED_OVERHEAD_GBP_PER_PERIOD["SME"])
+
+
+def test_cost_to_serve_increases_with_revenue():
+    low = cost_to_serve_for_period("resi", 10.0)
+    high = cost_to_serve_for_period("resi", 100.0)
+    assert high > low
+
+
+def test_cost_to_serve_formula():
+    rev = 200.0
+    cts = cost_to_serve_for_period("resi", rev)
+    expected = FIXED_OVERHEAD_GBP_PER_PERIOD["resi"] + BAD_DEBT_RATE["resi"] * rev
+    assert cts == pytest.approx(expected)
+
+
+def test_fixed_overhead_per_year_to_period_ratio():
+    resi_annual = FIXED_OVERHEAD_GBP_PER_YEAR["resi"]
+    resi_period = FIXED_OVERHEAD_GBP_PER_PERIOD["resi"]
+    assert abs(resi_annual / SETTLEMENT_PERIODS_PER_YEAR - resi_period) < 1e-6

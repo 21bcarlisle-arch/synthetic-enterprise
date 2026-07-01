@@ -84,3 +84,22 @@ def test_admin_link_from_admin_page():
     with open("company/portal/templates/admin_complaints.html") as f:
         html = f.read()
     assert "acknowledge" in html.lower() or "Ofgem" in html
+
+
+def test_add_working_days_starting_friday():
+    # Friday + 2 working days = Tuesday (skipping weekend)
+    friday = date(2022, 6, 3)  # Friday
+    result = _add_working_days(friday, 2)
+    assert result == date(2022, 6, 7)  # Tuesday
+
+
+def test_add_working_days_zero():
+    start = date(2022, 6, 1)  # Wednesday
+    assert _add_working_days(start, 0) == date(2022, 6, 1)
+
+
+def test_add_working_days_ten():
+    # 10 working days = 2 full weeks from Mon
+    monday = date(2022, 6, 6)  # Monday
+    result = _add_working_days(monday, 10)
+    assert result == date(2022, 6, 20)  # Monday 2 weeks later

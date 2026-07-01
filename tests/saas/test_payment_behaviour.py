@@ -1,6 +1,8 @@
 import pytest
 
 from saas.payment_behaviour import (
+    bad_debt_provision_gbp,
+    expected_payment_date,
     CREDIT_RISK_BY_CUSTOMER,
     DEFAULT_PROBABILITY_BY_CREDIT_RISK,
     PAYMENT_TIMING_DAYS_BY_CREDIT_RISK,
@@ -78,3 +80,56 @@ def test_all_credit_risk_segments_have_probability_and_timing():
     for segment in CREDIT_RISK_BY_CUSTOMER.values():
         assert segment in DEFAULT_PROBABILITY_BY_CREDIT_RISK
         assert segment in PAYMENT_TIMING_DAYS_BY_CREDIT_RISK
+
+
+from saas.payment_behaviour import (
+    CREDIT_RISK_SEGMENTS,
+    DEFAULT_PROBABILITY_BY_CREDIT_RISK,
+    PAYMENT_TIMING_DAYS_BY_CREDIT_RISK,
+    VULNERABLE_SEGMENT,
+    DEFAULT_CREDIT_RISK,
+)
+
+
+def test_credit_risk_segments_count():
+    assert len(CREDIT_RISK_SEGMENTS) == 4
+
+
+def test_vulnerable_probability_highest():
+    assert DEFAULT_PROBABILITY_BY_CREDIT_RISK["vulnerable"] == pytest.approx(0.08)
+
+
+def test_low_probability_smallest():
+    assert DEFAULT_PROBABILITY_BY_CREDIT_RISK["low"] == pytest.approx(0.005)
+
+
+def test_high_payment_timing_thirty_days():
+    assert PAYMENT_TIMING_DAYS_BY_CREDIT_RISK["high"] == 30
+
+
+def test_vulnerable_payment_timing_longest():
+    assert PAYMENT_TIMING_DAYS_BY_CREDIT_RISK["vulnerable"] > PAYMENT_TIMING_DAYS_BY_CREDIT_RISK["high"]
+
+
+def test_bad_debt_provision_low_segment():
+    assert bad_debt_provision_gbp("low", 100.0) == pytest.approx(0.50)
+
+
+def test_bad_debt_provision_high_segment():
+    assert bad_debt_provision_gbp("high", 200.0) == pytest.approx(10.0)
+
+
+def test_expected_payment_low_five_days():
+    assert expected_payment_date("2022-01-31", "low") == "2022-02-05"
+
+
+def test_expected_payment_vulnerable_45_days():
+    assert expected_payment_date("2022-01-31", "vulnerable") == "2022-03-17"
+
+
+def test_vulnerable_segment_constant():
+    assert VULNERABLE_SEGMENT == "vulnerable"
+
+
+def test_default_credit_risk_is_medium():
+    assert DEFAULT_CREDIT_RISK == "medium"

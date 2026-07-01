@@ -130,3 +130,27 @@ def test_customers_are_independent():
     assert set(signals.keys()) == {"C1", "C2"}
     assert signals["C1"][0]["actual_bill_gbp"] == 100.0
     assert signals["C2"][0]["actual_bill_gbp"] == 200.0
+
+
+from saas.customer_reaction import _billing_account_id
+
+
+def test_billing_account_id_strips_gas_suffix():
+    assert _billing_account_id("C1g") == "C1"
+
+
+def test_billing_account_id_no_suffix():
+    assert _billing_account_id("C1") == "C1"
+
+
+def test_billing_account_id_ic_gas_suffix():
+    assert _billing_account_id("C_IC3g") == "C_IC3"
+
+
+def test_billing_account_id_single_char_g():
+    # 'g' alone should not be stripped (len == 1)
+    assert _billing_account_id("g") == "g"
+
+
+def test_billing_account_id_c5_electricity():
+    assert _billing_account_id("C5") == "C5"

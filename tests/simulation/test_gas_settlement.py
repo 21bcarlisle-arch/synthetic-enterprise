@@ -58,3 +58,108 @@ def test_pass_through_fee_positive():
 
 def test_boiler_heating_fraction_seventy_pct():
     assert _GAS_BOILER_HEATING_FRACTION == pytest.approx(0.70)
+
+
+from datetime import date, timedelta
+from simulation.gas_settlement import run_gas_term
+
+
+def _gas_records(start_date, end_date, price=50.0):
+    start = date.fromisoformat(start_date)
+    end = date.fromisoformat(end_date)
+    records = []
+    current = start
+    while current < end:
+        records.append({"settlementDate": current.isoformat(), "systemSellPrice": price})
+        current += timedelta(days=1)
+    return records
+
+
+def test_run_gas_term_single_day():
+    records = _gas_records("2022-01-01", "2022-01-10")
+    result = run_gas_term(
+        customer_id="C1",
+        term_start="2022-01-01",
+        term_end="2022-01-02",
+        aq_kwh=12000,
+        unit_rate_gbp_mwh=80.0,
+        hedge_fraction=0.5,
+        forward_price=70.0,
+        monthly_cost_of_capital_gbp=5.0,
+        gas_price_records=records,
+    )
+    assert len(result) == 1
+
+
+def test_run_gas_term_end_date_exclusive():
+    records = _gas_records("2022-01-01", "2022-01-10")
+    result = run_gas_term(
+        customer_id="C1",
+        term_start="2022-01-01",
+        term_end="2022-01-01",
+        aq_kwh=12000,
+        unit_rate_gbp_mwh=80.0,
+        hedge_fraction=0.5,
+        forward_price=70.0,
+        monthly_cost_of_capital_gbp=5.0,
+        gas_price_records=records,
+    )
+    assert len(result) == 0
+
+
+def test_run_gas_term_all_keys_present():
+    records = _gas_records("2022-01-01", "2022-01-10")
+    result = run_gas_term(
+        customer_id="C1",
+        term_start="2022-01-01",
+        term_end="2022-01-02",
+        aq_kwh=12000,
+        unit_rate_gbp_mwh=80.0,
+        hedge_fraction=0.5,
+        forward_price=70.0,
+        monthly_cost_of_capital_gbp=5.0,
+        gas_price_records=records,
+    )
+    r = result[0]
+    for key in ("customer_id", "settlement_date", "commodity", "daily_kwh",
+                "revenue_gbp", "wholesale_cost_gbp", "margin_gbp",
+                "net_margin_gbp", "capital_cost_gbp", "hedge_fraction"):
+        assert key in r
+
+
+def test_run_gas_term_hedge_fraction_zero_uses_spot():
+    spot = 100.0
+    records = _gas_records("2022-01-01", "2022-01-10", price=spot)
+    result = run_gas_term(
+        customer_id="C1",
+        term_start="2022-01-01",
+        term_end="2022-01-02",
+        aq_kwh=12000,
+        unit_rate_gbp_mwh=80.0,
+        hedge_fraction=0.0,
+        forward_price=50.0,
+        monthly_cost_of_capital_gbp=0.0,
+        gas_price_records=records,
+    )
+    r = result[0]
+    # With hedge_fraction=0, all cost is at spot
+    # spot_price * daily_mwh
+    expected_cost = spot * (r["daily_kwh"] / 1000.0)
+    assert abs(r["wholesale_cost_gbp"] - expected_cost) < 1e-3
+
+
+def test_run_gas_term_commodity_is_gas():
+    records = _gas_records("2022-01-01", "2022-01-10")
+    result = run_gas_term(
+        customer_id="C1",
+        term_start="2022-01-01",
+        term_end="2022-01-03",
+        aq_kwh=12000,
+        unit_rate_gbp_mwh=80.0,
+        hedge_fraction=0.5,
+        forward_price=70.0,
+        monthly_cost_of_capital_gbp=0.0,
+        gas_price_records=records,
+    )
+    for r in result:
+        assert r["commodity"] == "gas"

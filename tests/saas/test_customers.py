@@ -98,3 +98,43 @@ def test_c5_2_successor_eac_matches_c5():
     """C5_2 successor inherits calibrated 15,000 kWh/yr EAC."""
     c5_2 = get_customer("C5_2")
     assert c5_2["eac_kwh"] == 15000
+
+
+from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS, get_customers_for_segment, customer_to_settlement_input
+
+
+def test_customers_count():
+    assert len(CUSTOMERS) == 18
+
+
+def test_successor_customers_count():
+    assert len(SUCCESSOR_CUSTOMERS) == 6
+
+
+def test_get_customers_for_segment_resi():
+    resi = get_customers_for_segment("resi")
+    assert len(resi) > 0
+    assert all(c["segment"] == "resi" for c in resi)
+
+
+def test_get_customers_for_segment_sme():
+    sme = get_customers_for_segment("SME")
+    assert all(c["segment"] == "SME" for c in sme)
+
+
+def test_get_customers_for_segment_ic():
+    ic = get_customers_for_segment("I&C")
+    assert all(c["segment"] == "I&C" for c in ic)
+
+
+def test_customer_to_settlement_input_keys():
+    c1 = next(c for c in CUSTOMERS if c["customer_id"] == "C1")
+    result = customer_to_settlement_input(c1)
+    assert "customer_id" in result
+    assert "acquisition_date" in result
+
+
+def test_customer_to_settlement_input_preserves_id():
+    c1 = next(c for c in CUSTOMERS if c["customer_id"] == "C1")
+    result = customer_to_settlement_input(c1)
+    assert result["customer_id"] == "C1"

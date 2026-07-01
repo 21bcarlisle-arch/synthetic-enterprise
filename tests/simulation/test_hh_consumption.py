@@ -47,3 +47,40 @@ def test_estimate_annual_kwh_extrapolates_daily_mean_to_365_days():
 
 def test_estimate_annual_kwh_empty_returns_zero():
     assert estimate_annual_kwh({}) == 0.0
+
+
+from simulation.hh_consumption import is_hh_customer, estimate_annual_kwh, hh_shape_fn, PERIODS_PER_DAY
+
+
+def test_is_hh_customer_requires_metering_hh():
+    assert is_hh_customer({"metering": "HH", "customer_id": "C7"}) is True
+    assert is_hh_customer({"metering": "smart", "customer_id": "C1"}) is False
+
+
+def test_is_hh_customer_missing_metering():
+    assert is_hh_customer({}) is False
+
+
+def test_estimate_annual_kwh_single_day():
+    consumption = {"2022-01-01": [1.0] * 48}
+    # total_kwh = 48.0, n=1, annual = 48 * 365 = 17,520
+    result = estimate_annual_kwh(consumption)
+    assert abs(result - 48.0 * 365.0) < 1e-6
+
+
+def test_hh_shape_fn_returns_zeros_for_unknown_date():
+    fn = hh_shape_fn({})
+    result = fn("2022-01-01")
+    assert len(result) == PERIODS_PER_DAY
+    assert all(v == 0.0 for v in result)
+
+
+def test_hh_shape_fn_returns_data_for_known_date():
+    data = {"2022-01-01": [2.5] * 48}
+    fn = hh_shape_fn(data)
+    result = fn("2022-01-01")
+    assert result[0] == 2.5
+
+
+def test_periods_per_day_constant():
+    assert PERIODS_PER_DAY == 48

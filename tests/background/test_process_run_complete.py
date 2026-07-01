@@ -164,3 +164,22 @@ def test_main_returns_1_when_tests_fail(tmp_path, monkeypatch):
     rc = prc.main(str(marker))
     assert rc == 1
     assert marker.exists()
+
+
+from background.process_run_complete import _fmt_gbp
+
+
+def test_fmt_gbp_positive():
+    assert _fmt_gbp(1000) == "£+1,000"
+
+
+def test_fmt_gbp_negative():
+    assert _fmt_gbp(-500) == "£-500"
+
+
+def test_fmt_gbp_zero():
+    assert _fmt_gbp(0) == "£+0"
+
+
+def test_fmt_gbp_large():
+    assert _fmt_gbp(1_234_567) == "£+1,234,567"

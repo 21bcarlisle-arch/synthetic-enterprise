@@ -97,3 +97,56 @@ def test_build_contact_model_empty_bills():
     assert result["by_customer"] == {}
     assert result["portfolio"]["avg_complaint_probability"] == pytest.approx(0.0)
     assert result["portfolio"]["service_quality_score"] == pytest.approx(1.0)
+
+
+from saas.contact_model import (
+    BASE_CONTACT_PROBABILITY,
+    LOW_CLARITY_CONTACT_PENALTY,
+    BILL_SHOCK_CONTACT_PENALTY,
+    COMPLAINT_ESCALATION_DAYS,
+    MIN_SERVICE_QUALITY_SCORE,
+    MAX_SERVICE_QUALITY_SCORE,
+    complaint_probability,
+    service_quality_score,
+)
+
+
+def test_base_contact_probability():
+    assert BASE_CONTACT_PROBABILITY == pytest.approx(0.05)
+
+
+def test_low_clarity_penalty():
+    assert LOW_CLARITY_CONTACT_PENALTY == pytest.approx(0.3)
+
+
+def test_bill_shock_penalty():
+    assert BILL_SHOCK_CONTACT_PENALTY == pytest.approx(0.5)
+
+
+def test_complaint_escalation_days():
+    assert COMPLAINT_ESCALATION_DAYS == 14
+
+
+def test_min_service_quality_zero():
+    assert MIN_SERVICE_QUALITY_SCORE == pytest.approx(0.0)
+
+
+def test_max_service_quality_one():
+    assert MAX_SERVICE_QUALITY_SCORE == pytest.approx(1.0)
+
+
+def test_complaint_probability_zero_contact():
+    assert complaint_probability(0.0) == pytest.approx(0.0)
+
+
+def test_service_quality_no_complaints_is_perfect():
+    assert service_quality_score(0.0) == pytest.approx(1.0)
+
+
+def test_service_quality_all_complaints_floored():
+    result = service_quality_score(1.0)
+    assert result >= MIN_SERVICE_QUALITY_SCORE
+
+
+def test_contact_prob_clear_bill_no_shock_is_base():
+    assert contact_probability(1.0, None) == pytest.approx(BASE_CONTACT_PROBABILITY)

@@ -64,3 +64,58 @@ def test_crisis_rate_much_higher_than_normal():
     rate_2020 = get_svt_elec_rate_gbp_per_mwh("2020-06-01")
     rate_2022_oct = get_svt_elec_rate_gbp_per_mwh("2022-11-01")
     assert rate_2022_oct > rate_2020 * 2.5
+
+
+from simulation.svt_rates import _quarter_start_month
+
+
+def test_quarter_start_jan():
+    assert _quarter_start_month(1) == 1
+
+
+def test_quarter_start_march_is_q1():
+    assert _quarter_start_month(3) == 1
+
+
+def test_quarter_start_april():
+    assert _quarter_start_month(4) == 4
+
+
+def test_quarter_start_june_is_q2():
+    assert _quarter_start_month(6) == 4
+
+
+def test_quarter_start_july():
+    assert _quarter_start_month(7) == 7
+
+
+def test_quarter_start_september_is_q3():
+    assert _quarter_start_month(9) == 7
+
+
+def test_quarter_start_october():
+    assert _quarter_start_month(10) == 10
+
+
+def test_quarter_start_december_is_q4():
+    assert _quarter_start_month(12) == 10
+
+
+def test_q1_2022_crisis_rate():
+    rate = get_svt_elec_rate_gbp_per_mwh("2022-01-01")
+    assert rate == pytest.approx(208.0)
+
+
+def test_q3_2022_crisis_rate():
+    rate = get_svt_elec_rate_gbp_per_mwh("2022-07-01")
+    assert rate == pytest.approx(283.4)
+
+
+def test_q4_2022_extreme_crisis_rate():
+    rate = get_svt_elec_rate_gbp_per_mwh("2022-10-01")
+    assert rate == pytest.approx(518.9)
+
+
+def test_q1_2023_epg_rate():
+    rate = get_svt_elec_rate_gbp_per_mwh("2023-01-01")
+    assert rate == pytest.approx(670.0)
