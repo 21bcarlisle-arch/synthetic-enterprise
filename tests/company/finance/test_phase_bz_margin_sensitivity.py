@@ -129,3 +129,62 @@ def test_severity_bands():
     assert whl_10.severity == "MEDIUM"
     whl_20 = b.wholesale_price_shock(20)  # -80k on 270k = -29.6% -> HIGH
     assert whl_20.severity == "HIGH"
+
+
+# --- Phase LW depth tests ---
+
+def test_base_net_margin_stored():
+    b = _book(net=100000)
+    assert b.base_net_margin_gbp == pytest.approx(100000, rel=0.01)
+
+
+def test_factor_stored_in_scenario():
+    b = _book()
+    sc = b.wholesale_price_shock(10.0)
+    assert sc.factor == SensitivityFactor.WHOLESALE_PRICE
+
+
+def test_label_stored_in_scenario():
+    b = _book()
+    sc = b.wholesale_price_shock(10.0)
+    assert '10' in sc.label
+
+
+def test_shock_magnitude_stored():
+    b = _book()
+    sc = b.wholesale_price_shock(20.0)
+    assert sc.shock_magnitude == pytest.approx(20.0)
+
+
+def test_base_net_in_scenario():
+    b = _book(net=100000)
+    sc = b.wholesale_price_shock(10.0)
+    assert sc.base_net_margin_gbp == pytest.approx(100000, rel=0.01)
+
+
+def test_is_adverse_true_for_positive_shock():
+    b = _book(net=100000)
+    sc = b.wholesale_price_shock(50.0)
+    assert sc.is_adverse is True
+
+
+def test_no_shock_not_adverse():
+    b = _book()
+    sc = b.wholesale_price_shock(0.0)
+    assert sc.is_adverse is False
+
+
+def test_severity_high_large_shock():
+    b = _book()
+    sc = b.wholesale_price_shock(100.0)
+    assert sc.severity in ('HIGH', 'MEDIUM')
+
+
+def test_delta_gbp_negative_for_cost_increase():
+    b = _book(net=100000)
+    sc = b.wholesale_price_shock(30.0)
+    assert sc.delta_gbp < 0
+
+
+def test_sensitivity_factors_count():
+    assert len(SensitivityFactor) == 5

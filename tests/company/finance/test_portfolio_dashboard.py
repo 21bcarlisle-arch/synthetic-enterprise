@@ -107,3 +107,77 @@ class TestPortfolioProfitabilitySnapshot:
         s = snap.dashboard_summary()
         assert "Portfolio Dashboard" in s
         assert str(DATE.year) in s
+
+
+# --- Phase LW depth tests ---
+
+def test_segment_name_stored():
+    s = make_segment(name='sme')
+    assert s.segment == 'sme'
+
+
+def test_customer_count_stored():
+    s = make_segment(count=250)
+    assert s.customer_count == 250
+
+
+def test_total_margin_stored():
+    s = make_segment(margin=50000.0)
+    assert s.total_annual_margin_gbp == pytest.approx(50000.0)
+
+
+def test_avg_margin_computed_correctly():
+    s = make_segment(count=100, margin=20000.0)
+    assert s.avg_annual_margin_gbp == pytest.approx(200.0)
+
+
+def test_churn_rate_stored():
+    s = make_segment(churn=12.0)
+    assert s.churn_rate_pct == pytest.approx(12.0)
+
+
+def test_revenue_at_risk_computed():
+    s = make_segment(margin=100000.0, churn=10.0)
+    assert s.revenue_at_risk_gbp == pytest.approx(10000.0)
+
+
+def test_snapshot_date_stored():
+    snap = PortfolioProfitabilitySnapshot(
+        snapshot_date=DATE, supplier_name='Acme', segments=(make_segment(),),
+        gri_score=0.8, complaint_resolution_pct=90.0,
+        smart_meter_pct=60.0, hedge_fraction_pct=75.0,
+    )
+    assert snap.snapshot_date == DATE
+
+
+def test_supplier_name_stored():
+    snap = PortfolioProfitabilitySnapshot(
+        snapshot_date=DATE, supplier_name='Acme', segments=(make_segment(),),
+        gri_score=0.8, complaint_resolution_pct=90.0,
+        smart_meter_pct=60.0, hedge_fraction_pct=75.0,
+    )
+    assert snap.supplier_name == 'Acme'
+
+
+def test_total_customers_sums_segments():
+    snap = PortfolioProfitabilitySnapshot(
+        snapshot_date=DATE, supplier_name='X',
+        segments=(make_segment(count=100), make_segment(count=50)),
+        gri_score=0.8, complaint_resolution_pct=90.0,
+        smart_meter_pct=60.0, hedge_fraction_pct=75.0,
+    )
+    assert snap.total_customers == 150
+
+
+def test_gri_score_stored():
+    snap = PortfolioProfitabilitySnapshot(
+        snapshot_date=DATE, supplier_name='X', segments=(make_segment(),),
+        gri_score=0.92, complaint_resolution_pct=90.0,
+        smart_meter_pct=60.0, hedge_fraction_pct=75.0,
+    )
+    assert snap.gri_score == pytest.approx(0.92)
+
+
+def test_health_status_values_exist():
+    assert PortfolioHealthStatus.STRONG == 'strong'
+    assert PortfolioHealthStatus.CRITICAL == 'critical'

@@ -107,3 +107,64 @@ def test_treasury_health_watch_at_boundary():
     pack = _pack({2022: 10 * MCR_PER_ACCOUNT + 1.0})
     result = treasury_health(pack, "2022", customer_count=10)
     assert result["status"] == "WATCH"
+
+
+# --- Phase LW depth tests ---
+
+def test_mcr_per_account_constant():
+    assert MCR_PER_ACCOUNT == pytest.approx(130.0)
+
+
+def test_working_capital_basic():
+    bs = _bs(cash=1000.0, receivables=200.0, vat_payable=0.0, liabilities=100.0)
+    assert working_capital(bs) == pytest.approx(1100.0)
+
+
+def test_working_capital_negative_when_liabilities_exceed():
+    bs = _bs(cash=100.0, receivables=0.0, vat_payable=0.0, liabilities=500.0)
+    assert working_capital(bs) < 0
+
+
+def test_working_capital_includes_receivables():
+    bs_with = _bs(cash=500.0, receivables=300.0)
+    bs_without = _bs(cash=500.0, receivables=0.0)
+    assert working_capital(bs_with) > working_capital(bs_without)
+
+
+def test_treasury_health_status_ok():
+    pack = {'2022': {'balance_sheet': {'cash_gbp': 100000.0, 'trade_receivables_gbp': 0.0,
+                                       'vat_payable_gbp': 0.0, 'total_liabilities_gbp': 0.0}}}
+    h = treasury_health(pack, '2022', customer_count=10)
+    assert h['status'] == 'OK'
+
+
+def test_treasury_health_cash_returned():
+    pack = {'2022': {'balance_sheet': {'cash_gbp': 50000.0, 'trade_receivables_gbp': 0.0,
+                                       'vat_payable_gbp': 0.0, 'total_liabilities_gbp': 0.0}}}
+    h = treasury_health(pack, '2022', customer_count=1)
+    assert h['cash_gbp'] == pytest.approx(50000.0)
+
+
+def test_treasury_health_mcr_requirement():
+    pack = {'2022': {'balance_sheet': {'cash_gbp': 50000.0, 'trade_receivables_gbp': 0.0,
+                                       'vat_payable_gbp': 0.0, 'total_liabilities_gbp': 0.0}}}
+    h = treasury_health(pack, '2022', customer_count=10)
+    assert h['mcr_requirement_gbp'] == pytest.approx(10 * 130.0)
+
+
+def test_treasury_health_missing_year_returns_watch_or_critical():
+    h = treasury_health({}, '2099', customer_count=100)
+    assert h['status'] in ('WATCH', 'CRITICAL')
+
+
+def test_treasury_health_has_all_keys():
+    pack = {'2022': {'balance_sheet': {'cash_gbp': 50000.0, 'trade_receivables_gbp': 0.0,
+                                       'vat_payable_gbp': 0.0, 'total_liabilities_gbp': 0.0}}}
+    h = treasury_health(pack, '2022', customer_count=5)
+    for k in ('year', 'cash_gbp', 'working_capital_gbp', 'mcr_requirement_gbp',
+              'mcr_headroom_gbp', 'mcr_headroom_ratio', 'status'):
+        assert k in h
+
+
+def test_working_capital_zero_everything():
+    assert working_capital({}) == pytest.approx(0.0)
