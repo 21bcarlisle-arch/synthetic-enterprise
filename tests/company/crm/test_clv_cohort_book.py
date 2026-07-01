@@ -71,3 +71,69 @@ def test_is_profitable_cohort():
     c2022 = book.by_acquisition_year(2022)
     assert c2019.is_profitable_cohort is True
     assert c2022.is_profitable_cohort is False
+
+
+# --- Phase KA depth tests ---
+
+def test_by_acquisition_year_empty():
+    book = _book()
+    c = book.by_acquisition_year(2099)
+    assert c.customer_count == 0
+    assert c.avg_clv_gbp == pytest.approx(0.0)
+
+
+def test_by_channel_empty():
+    book = _book()
+    c = book.by_channel('unknown_channel')
+    assert c.customer_count == 0
+
+
+def test_by_segment_empty():
+    book = _book()
+    c = book.by_segment('unknown_segment')
+    assert c.customer_count == 0
+
+
+def test_cohort_summary_median_even():
+    # 2019 has 2 records: [280, 320] -> median = (280+320)/2 = 300
+    book = _book()
+    c = book.by_acquisition_year(2019)
+    assert c.median_clv_gbp == pytest.approx(300.0)
+
+
+def test_cohort_summary_total_clv():
+    # 2019: 320 + 280 = 600
+    book = _book()
+    c = book.by_acquisition_year(2019)
+    assert c.total_clv_gbp == pytest.approx(600.0)
+
+
+def test_all_cohorts_by_year_keys():
+    book = _book()
+    cohorts = book.all_cohorts_by_year()
+    assert 2019 in cohorts
+    assert 2020 in cohorts
+    assert 2022 in cohorts
+
+
+def test_best_cohort_none_when_empty():
+    book = CLVCohortBook()
+    assert book.best_cohort_by_year() is None
+
+
+def test_worst_cohort_none_when_empty():
+    book = CLVCohortBook()
+    assert book.worst_cohort_by_year() is None
+
+
+def test_portfolio_summary_empty_book():
+    book = CLVCohortBook()
+    s = book.portfolio_summary()
+    assert s['total_customers'] == 0
+
+
+def test_portfolio_summary_total_clv():
+    book = _book()
+    s = book.portfolio_summary()
+    expected = 320 + 280 + 450 + 1200 + (-50)
+    assert s['total_clv_gbp'] == pytest.approx(expected)

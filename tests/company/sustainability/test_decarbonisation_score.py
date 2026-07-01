@@ -108,3 +108,69 @@ def test_book_summary_keys():
     s = book.summary()
     for k in ("years_recorded", "latest_score", "latest_band", "improving", "trend"):
         assert k in s
+
+
+# --- Phase KA depth tests ---
+
+def test_band_b_at_exactly_60():
+    bd = DScoreBreakdown(
+        rego_coverage_pts=25.0, epc_improvement_pts=25.0,
+        heat_pump_pts=0.0, carbon_reduction_pts=10.0
+    )
+    assert bd.total == pytest.approx(60.0)
+    assert bd.band == DScoreBand.B
+
+
+def test_band_c_at_exactly_40():
+    bd = DScoreBreakdown(
+        rego_coverage_pts=10.0, epc_improvement_pts=15.0,
+        heat_pump_pts=10.0, carbon_reduction_pts=5.0
+    )
+    assert bd.total == pytest.approx(40.0)
+    assert bd.band == DScoreBand.C
+
+
+def test_rego_capped_at_max():
+    s = DecarbScorer()
+    pts = s.score_rego_coverage(200.0, 100.0)
+    assert pts == pytest.approx(25.0)
+
+
+def test_epc_zero_total_returns_zero():
+    s = DecarbScorer()
+    assert s.score_epc_improvement(5, 0) == pytest.approx(0.0)
+
+
+def test_heat_pump_zero_total_returns_zero():
+    s = DecarbScorer()
+    assert s.score_heat_pump_adoption(2, 0) == pytest.approx(0.0)
+
+
+def test_carbon_zero_prior_returns_zero():
+    s = DecarbScorer()
+    assert s.score_carbon_reduction(0.0, 100.0) == pytest.approx(0.0)
+
+
+def test_carbon_increase_gives_zero_score():
+    s = DecarbScorer()
+    pts = s.score_carbon_reduction(500.0, 600.0)
+    assert pts == pytest.approx(0.0)
+
+
+def test_book_latest_none_when_empty():
+    book = DScoreBook()
+    assert book.latest() is None
+
+
+def test_book_score_for_year_none_when_missing():
+    book = DScoreBook()
+    scorer = DecarbScorer()
+    book.record(2022, scorer.compute(50.0, 100.0, 2, 20, 1, 500.0, 480.0))
+    assert book.score_for_year(2099) is None
+
+
+def test_book_improving_false_with_one_record():
+    book = DScoreBook()
+    scorer = DecarbScorer()
+    book.record(2022, scorer.compute(50.0, 100.0, 2, 20, 1, 500.0, 480.0))
+    assert book.improving() is False
