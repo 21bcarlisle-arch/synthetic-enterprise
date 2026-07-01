@@ -62,3 +62,61 @@ def test_events_summary():
     assert s['events_count'] == 1
     assert s['customers_affected'] == 25000
     assert s['levy_rate_gbp_per_mwh'] == pytest.approx(10.0)
+
+
+# --- Phase KQ depth tests ---
+
+def test_event_id_stored():
+    book = SoLRBook()
+    ev = book.record_event('SOLR_ID', 'TestCo', dt.date(2022, 1, 1), 1000, 3000.0)
+    assert ev.event_id == 'SOLR_ID'
+
+
+def test_failed_supplier_stored():
+    book = SoLRBook()
+    ev = book.record_event('SOLR_FS', 'GoneCo Ltd', dt.date(2022, 1, 1), 500, 3000.0)
+    assert ev.failed_supplier == 'GoneCo Ltd'
+
+
+def test_customer_count_stored():
+    book = SoLRBook()
+    ev = book.record_event('SOLR_CC', 'Bust PLC', dt.date(2021, 8, 1), 25000, 3500.0)
+    assert ev.customer_count_transferred == 25000
+
+
+def test_avg_kwh_stored():
+    book = SoLRBook()
+    ev = book.record_event('SOLR_KW', 'ElecFail', dt.date(2021, 9, 1), 10000, 2500.0)
+    assert ev.avg_annual_kwh_per_customer == pytest.approx(2500.0)
+
+
+def test_legacy_credit_stored():
+    book = SoLRBook()
+    ev = book.record_event('SOLR_LC', 'BustCo', dt.date(2021, 1, 1), 5000, 3000.0,
+                            legacy_credit_gbp=1_500_000.0)
+    assert ev.legacy_credit_gbp == pytest.approx(1_500_000.0)
+
+
+def test_get_missing_returns_none():
+    book = SoLRBook()
+    assert book.get('NOT_FOUND') is None
+
+
+def test_levy_2019():
+    assert get_solr_levy_gbp_per_mwh(2019) == pytest.approx(1.5)
+
+
+def test_annual_levy_cost_zero_empty_year():
+    book = SoLRBook()
+    assert book.annual_levy_cost_gbp(2099) == pytest.approx(0.0)
+
+
+def test_total_legacy_credit_zero_empty():
+    book = SoLRBook()
+    assert book.total_legacy_credit_gbp() == pytest.approx(0.0)
+
+
+def test_status_is_announced_on_record():
+    book = SoLRBook()
+    ev = book.record_event('SOLR_ST', 'NewFail', dt.date(2022, 6, 1), 3000, 2800.0)
+    assert ev.status == SoLREventStatus.ANNOUNCED

@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,340 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,370 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KQ -- Coverage Depth Sprint LXV (2026-07-01)
+30 depth tests across 3 modules: ofgem_price_cap (return_float/2019_elec_pos/2019_gas_pos/2023_exists/gas_2023/elec_2022>2019/gas_2022>2019/none_2017/gas_none_2018/fallback_float), solr_exposure (event_id/failed_supplier/count/avg_kwh/legacy_credit/get_none/levy_2019/levy_zero_empty/legacy_zero_empty/status_announced), reporting_calendar (id/regulator/frequency/due_date/not_submitted/overdue_list/overdue_empty/due_within_empty/by_reg_unknown/submitted_date).
+**Total:** 11,370 tests
 
 ### Phase KP -- Coverage Depth Sprint LXIV (2026-07-01)
 30 depth tests across 3 modules: metering_contracts (provider_id/service_type/meter_type/mpan/start_date/sequential_ids/year_filter/not_active_before/no_active_before/summary_zero), network_charge_ledger (customer_id/mpan/charge_type/rate/consumption/total_zero/portfolio_zero/by_type_year_excl/summary_empty/rate_none_diff_year), ofgem_supply_return (year/elec/gas/resi/sme/complaints/avg_debt/get_none/missing_all/total_zero).
@@ -4756,7 +4760,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,340 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,370 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

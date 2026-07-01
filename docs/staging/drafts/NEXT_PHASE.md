@@ -1,2 +1,2 @@
-Phase KQ -- Coverage Depth Sprint LXV
-30 tests: ofgem_price_cap + solr_exposure + gas_supply_contracts coverage depth
+Phase KR -- Coverage Depth Sprint LXVI
+30 tests: ee_obligation_tracker + hedging_schedule + clv_calculator coverage depth

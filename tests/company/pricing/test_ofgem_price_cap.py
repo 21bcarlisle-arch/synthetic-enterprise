@@ -40,3 +40,43 @@ class TestGetCapUnitRateGbpPerMwh:
 
     def test_2019_introduction_not_none(self):
         assert get_cap_unit_rate_gbp_per_mwh("electricity", 2019) is not None
+
+
+# --- Phase KQ depth tests ---
+
+
+class TestOfgemPriceCapDepth:
+    def test_return_type_is_float(self):
+        cap = get_cap_unit_rate_gbp_per_mwh("electricity", 2022)
+        assert isinstance(cap, float)
+
+    def test_2019_electricity_positive(self):
+        assert get_cap_unit_rate_gbp_per_mwh("electricity", 2019) > 0.0
+
+    def test_2019_gas_positive(self):
+        assert get_cap_unit_rate_gbp_per_mwh("gas", 2019) > 0.0
+
+    def test_2023_cap_exists(self):
+        cap = get_cap_unit_rate_gbp_per_mwh("electricity", 2023)
+        assert cap is not None
+
+    def test_gas_cap_2023_exists(self):
+        cap = get_cap_unit_rate_gbp_per_mwh("gas", 2023)
+        assert cap is not None
+
+    def test_electricity_cap_monotone_2019_to_2022(self):
+        # 2022 was crisis peak, cap was higher than 2019
+        assert get_cap_unit_rate_gbp_per_mwh("electricity", 2022) > get_cap_unit_rate_gbp_per_mwh("electricity", 2019)
+
+    def test_gas_cap_2022_higher_than_2019(self):
+        assert get_cap_unit_rate_gbp_per_mwh("gas", 2022) > get_cap_unit_rate_gbp_per_mwh("gas", 2019)
+
+    def test_none_for_year_before_introduction(self):
+        assert get_cap_unit_rate_gbp_per_mwh("electricity", 2017) is None
+
+    def test_gas_none_before_2019(self):
+        assert get_cap_unit_rate_gbp_per_mwh("gas", 2018) is None
+
+    def test_fallback_year_returns_float(self):
+        cap = get_cap_unit_rate_gbp_per_mwh("gas", 2035)
+        assert isinstance(cap, float)
