@@ -1,5 +1,5 @@
-Phase JJ complete -- 10,380 tests. Coverage Depth Sprint XXXII (load_forecast, ofgem_obligations, meter_assets). Epistemic verifier PASS.
-Last updated: 2026-07-01T00:16:56Z
+Phase JK complete -- 10,410 tests. Coverage Depth Sprint XXXIII (portfolio_position, hh_data_quality, tariff_comparison). Epistemic verifier PASS.
+Last updated: 2026-07-01T00:20:00Z
 
 **Latest simulation results (2016-2025)** -- auto-processed (551s / 9 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668

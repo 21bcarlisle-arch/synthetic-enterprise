@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JK — Coverage Depth Sprint XXXIII (2026-07-01)
+**Modules:** portfolio_position · hh_data_quality · tariff_comparison
+**Tests added:** 30 (portfolio_position: net_position LONG; direction just-over-upper/just-under-lower; FLAT at exact 95%/105% boundaries; not within policy when SHORT; portfolio summary year; zero forecast hedge_ratio=0→SHORT; portfolio not fully hedged if one LONG; commodity stored. hh_data_quality: check_day total/period count; estimated kwh sum; negative is error-only; check_record returns list; high EAC accepts 5kWh; threshold scales with EAC; infos for estimated records; quality_ok false when error; substituted warning message; zero-estimated no zero-warning. tariff_comparison: SME standing charge 60p; markup+VAT combined; zero standing charge; Fixed 1 Year present; £200/MWh=20p; business VAT > domestic; annual cost proportional to EAC; Variable SVT present; forward price positive; unit rate positive)
+**Total:** 10,410 tests
+
 ### Phase JJ — Coverage Depth Sprint XXXII (2026-07-01)
 **Modules:** load_forecast · ofgem_obligations · meter_assets
 **Tests added:** 30 (load_forecast: year field; SME gas annual mwh; resi gas Q1 steeper than elec Q1; quarterly elec Q4>Q2; IC no gas; segment count 5 full/4 without IC; summary year; total elec combines all; resi gas Q1 factor; segment count no IC. ofgem_obligations: obligation not-found; submissions_for filter; submissions_for empty; penalty multiple late; on_time_rate all-on-time; submission on exact deadline; annual_business_report max £10M; summary potential_penalty_gbp; all 6 names present; no penalty when on-time. meter_assets: cert_due_date TRAD 10yr/SMETS2 15yr; AMR 7yr overdue; cert_overdue_old_trad; cert_not_overdue installed 2022; cert_overdue list excludes faulty; operational excludes replaced; smart_pct SMETS1+SMETS2 only; empty register zeros; manufacturer stored)
@@ -4599,7 +4604,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,380 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,410 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
