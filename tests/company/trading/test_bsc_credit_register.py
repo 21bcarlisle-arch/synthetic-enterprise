@@ -79,3 +79,107 @@ class TestBSCCreditRegister:
         reg.record(make_rec())
         s = reg.bsc_credit_summary(DATE)
         assert "BSC Credit Register" in s
+
+
+# --- Phase ML depth tests ---
+
+def test_assessment_date_stored():
+    r = CreditCoverRecord(
+        assessment_date=dt.date(2022, 11, 1),
+        credit_assessment_price_gbp=500_000.0,
+        credit_cover_posted_gbp=600_000.0,
+        instrument_type=CreditInstrumentType.CASH_DEPOSIT,
+    )
+    assert r.assessment_date == dt.date(2022, 11, 1)
+
+
+def test_credit_assessment_price_stored():
+    r = CreditCoverRecord(
+        assessment_date=dt.date(2022, 11, 1),
+        credit_assessment_price_gbp=400_000.0,
+        credit_cover_posted_gbp=500_000.0,
+        instrument_type=CreditInstrumentType.BANK_GUARANTEE,
+    )
+    assert r.credit_assessment_price_gbp == pytest.approx(400_000.0)
+
+
+def test_credit_cover_posted_stored():
+    r = CreditCoverRecord(
+        assessment_date=dt.date(2022, 11, 1),
+        credit_assessment_price_gbp=400_000.0,
+        credit_cover_posted_gbp=480_000.0,
+        instrument_type=CreditInstrumentType.LETTER_OF_CREDIT,
+    )
+    assert r.credit_cover_posted_gbp == pytest.approx(480_000.0)
+
+
+def test_instrument_type_stored():
+    r = CreditCoverRecord(
+        assessment_date=dt.date(2022, 11, 1),
+        credit_assessment_price_gbp=400_000.0,
+        credit_cover_posted_gbp=500_000.0,
+        instrument_type=CreditInstrumentType.LETTER_OF_CREDIT,
+    )
+    assert r.instrument_type == CreditInstrumentType.LETTER_OF_CREDIT
+
+
+def test_credit_instrument_type_has_3_members():
+    assert len(list(CreditInstrumentType)) == 3
+
+
+def test_bsc_credit_status_has_4_members():
+    assert len(list(BSCCreditStatus)) == 4
+
+
+def test_record_returns_credit_cover_record():
+    reg = BSCCreditRegister()
+    r = CreditCoverRecord(
+        assessment_date=dt.date(2022, 11, 1),
+        credit_assessment_price_gbp=400_000.0,
+        credit_cover_posted_gbp=500_000.0,
+        instrument_type=CreditInstrumentType.CASH_DEPOSIT,
+    )
+    result = reg.record(r)
+    assert isinstance(result, CreditCoverRecord)
+
+
+def test_cdn_date_recorded_when_in_default():
+    reg = BSCCreditRegister()
+    r = CreditCoverRecord(
+        assessment_date=dt.date(2022, 11, 1),
+        credit_assessment_price_gbp=500_000.0,
+        credit_cover_posted_gbp=400_000.0,  # below CAP = CDN
+        instrument_type=CreditInstrumentType.CASH_DEPOSIT,
+    )
+    reg.record(r)
+    assert dt.date(2022, 11, 1) in reg._cdn_dates
+
+
+def test_headroom_negative_when_short():
+    r = CreditCoverRecord(
+        assessment_date=dt.date(2022, 11, 1),
+        credit_assessment_price_gbp=500_000.0,
+        credit_cover_posted_gbp=400_000.0,
+        instrument_type=CreditInstrumentType.CASH_DEPOSIT,
+    )
+    assert r.headroom_gbp == pytest.approx(-100_000.0)
+
+
+def test_records_approaching_limit_filter():
+    reg = BSCCreditRegister()
+    # 110% ratio = APPROACHING (between 100-120%)
+    r1 = CreditCoverRecord(dt.date(2022, 11, 1), 100_000.0, 110_000.0, CreditInstrumentType.CASH_DEPOSIT)
+    # 150% ratio = COMPLIANT
+    r2 = CreditCoverRecord(dt.date(2022, 11, 2), 100_000.0, 150_000.0, CreditInstrumentType.CASH_DEPOSIT)
+    reg.record(r1)
+    reg.record(r2)
+    approaching = reg.records_approaching_limit()
+    assert len(approaching) == 1
+    assert approaching[0].status == BSCCreditStatus.APPROACHING_LIMIT
+
+
+def test_min_cover_ratio_pct_returns_lowest():
+    reg = BSCCreditRegister()
+    reg.record(CreditCoverRecord(dt.date(2022, 11, 1), 100_000.0, 150_000.0, CreditInstrumentType.CASH_DEPOSIT))
+    reg.record(CreditCoverRecord(dt.date(2022, 11, 2), 100_000.0, 125_000.0, CreditInstrumentType.CASH_DEPOSIT))
+    assert reg.min_cover_ratio_pct() == pytest.approx(125.0)

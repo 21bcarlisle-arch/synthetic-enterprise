@@ -1,6 +1,6 @@
-Phase ML -- Coverage Depth Sprint CXII
+Phase MM -- Coverage Depth Sprint CXIII
 30 tests: next 3 lowest-test company modules coverage depth
 Targets (all at 13 tests):
-  tests/company/sustainability/test_carbon_intensity_register.py
-  tests/company/test_customer_profitability.py
-  tests/company/trading/test_bsc_credit_register.py
+  tests/company/trading/test_gas_market_monitor.py
+  tests/company/trading/test_interconnector_booking.py
+  tests/company/crm/test_behaviour_segment.py

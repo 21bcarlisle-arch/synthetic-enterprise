@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,750 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 12,780 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase ML -- Coverage Depth Sprint CXII (2026-07-01)
+30 depth tests across 3 modules: carbon_intensity_register (year/kwh/rego_false/fuel_source_count=10/record_returns/pure_gas/hydro_renewable/snapshot_for_year/total_co2_sums/avg_zero_empty), customer_profitability (account_id/year/gross_margin/net_contribution/is_net_negative/gm_pct_zero/record_returns/latest_for/net_neg_rate/total_net_contrib), bsc_credit_register (assessment_date/cap/cover_posted/instrument/instrument_count=3/status_count=4/record_returns/cdn_date_recorded/headroom_negative/min_cover_ratio).
+**Total:** 12,780 tests
 
 ### Phase MK -- Coverage Depth Sprint CXI (2026-07-01)
 30 depth tests across 3 modules: roc_ledger (obligation_year/total_mwh/rocs_required/surrendered_0/buy_out_0/status_open/status_count=5/create_returns/rocs_required_computed/compliance_100_zero), solr_levy_register (levy_type/supplier_name/levy_date/company_mwh/rate/total_mwh/share_fraction/levy_count=3/mutualisation/record_returns), var_monitor (observation_date/current_var/stressed_var/treasury/breach_count=3/amber_stored/red_stored/record_returns/breach_year_filter/uplift_0_zero).
@@ -4944,7 +4948,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,750 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,780 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
