@@ -91,3 +91,31 @@ def test_negative_margin_subtracts():
     ]
     result = build_clv_seed(records)
     assert result["C1"]["running_total_gbp"] == 0.0
+
+
+def test_history_entry_has_required_keys():
+    records = [_record("C1", "2024-01-01", 1, 50.0, 30.0)]
+    result = build_clv_seed(records)
+    entry = result["C1"]["history"][0]
+    for key in ("settlement_date", "settlement_period", "period_value_gbp", "running_total_gbp"):
+        assert key in entry
+
+
+def test_history_running_total_is_cumulative():
+    records = [
+        _record("C1", "2024-01-01", 1, 50.0, 30.0),
+        _record("C1", "2024-01-01", 2, 60.0, 35.0),
+        _record("C1", "2024-01-02", 1, 40.0, 25.0),
+    ]
+    result = build_clv_seed(records)
+    totals = [h["running_total_gbp"] for h in result["C1"]["history"]]
+    assert totals[0] == 20.0
+    assert totals[1] == 45.0
+    assert totals[2] == 60.0
+
+
+def test_period_value_equals_revenue_minus_wholesale():
+    records = [_record("C1", "2024-01-01", 1, 75.0, 25.0)]
+    result = build_clv_seed(records)
+    entry = result["C1"]["history"][0]
+    assert entry["period_value_gbp"] == 50.0

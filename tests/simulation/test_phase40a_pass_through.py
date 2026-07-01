@@ -241,3 +241,67 @@ def test_pass_through_customer_in_fast_run():
     assert total_revenue > 500_000, (
         f"C_IC3 (4GWh, pass-through) revenue should exceed £500k, got £{total_revenue:,.0f}"
     )
+
+
+def test_pass_through_net_margin_positive_when_covered():
+    from simulation.hedged_settlement import run_hedged_term
+
+    date_str = "2020-06-01"
+    price_records = [
+        {"settlementDate": date_str, "settlementPeriod": p, "systemSellPrice": 50.0}
+        for p in range(1, 49)
+    ]
+
+    def flat_shape(_date):
+        return [100.0] * 48
+
+    records = run_hedged_term(
+        customer_id="T",
+        term_start_date=date_str,
+        term_end_date="2020-06-02",
+        fixed_tariff_rate_gbp_per_mwh=60.0,
+        hedge_price_gbp_per_mwh=50.0,
+        hedge_fraction=1.0,
+        monthly_cost_of_capital_gbp=0.0,
+        consumption_shape=flat_shape,
+        system_price_records=price_records,
+        segment="I&C",
+        pass_through=True,
+    )
+    total_net = sum(r["net_margin_gbp"] for r in records)
+    assert total_net > 0
+
+
+def test_pass_through_settlement_period_stored():
+    from simulation.hedged_settlement import run_hedged_term
+
+    date_str = "2020-01-02"
+    price_records = [
+        {"settlementDate": date_str, "settlementPeriod": p, "systemSellPrice": 50.0}
+        for p in range(1, 3)
+    ]
+
+    def flat_shape(_date):
+        return [100.0] * 48
+
+    records = run_hedged_term(
+        customer_id="T",
+        term_start_date=date_str,
+        term_end_date="2020-01-03",
+        fixed_tariff_rate_gbp_per_mwh=60.0,
+        hedge_price_gbp_per_mwh=50.0,
+        hedge_fraction=1.0,
+        monthly_cost_of_capital_gbp=0.0,
+        consumption_shape=flat_shape,
+        system_price_records=price_records,
+        segment="I&C",
+        pass_through=True,
+    )
+    assert all("settlement_period" in r for r in records)
+
+
+def test_c_ic3_customer_is_elec():
+    from saas.customers import CUSTOMERS
+    c = next((c for c in CUSTOMERS if c["customer_id"] == "C_IC3"), None)
+    assert c is not None
+    assert c.get("commodity", "electricity") == "electricity"

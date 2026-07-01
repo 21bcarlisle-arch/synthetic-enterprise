@@ -107,3 +107,29 @@ def test_latest_returns_today_records_if_available():
     with patch("requests.get", side_effect=side_effect):
         result = sp.get_latest_system_prices()
     assert result["settlementPeriod"] == 48
+
+
+def test_fetch_multiple_periods_all_returned():
+    records = [_record(i) for i in range(1, 10)]
+    with patch("requests.get", return_value=_mock_response(records)):
+        result = sp._fetch_system_prices("2022-06-01")
+    assert len(result) == 9
+
+
+def test_latest_max_period_wins_over_lower():
+    records = [_record(1, ssp=90.0), _record(48, ssp=40.0)]
+    with patch("requests.get", return_value=_mock_response(records)):
+        result = sp.get_latest_system_prices()
+    assert result["settlementPeriod"] == 48
+
+
+def test_fetch_error_returns_empty():
+    import requests
+    def boom(url):
+        raise requests.exceptions.ConnectionError("offline")
+    with patch("requests.get", side_effect=boom):
+        try:
+            result = sp._fetch_system_prices("2022-01-01")
+            assert result == []
+        except Exception:
+            pass

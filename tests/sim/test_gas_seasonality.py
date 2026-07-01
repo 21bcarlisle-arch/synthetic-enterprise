@@ -43,6 +43,20 @@ class TestGasConsumptionProfile:
         assert all(v > 0 for v in GAS_CONSUMPTION_MONTHLY_PROFILE.values())
 
 
+
+
+    def test_max_factor_is_december_or_january(self):
+        max_month = max(GAS_CONSUMPTION_MONTHLY_PROFILE, key=lambda m: GAS_CONSUMPTION_MONTHLY_PROFILE[m])
+        assert max_month in (1, 2, 12), f"Peak month should be Jan/Feb/Dec, got month {max_month}"
+
+    def test_min_factor_is_summer(self):
+        min_month = min(GAS_CONSUMPTION_MONTHLY_PROFILE, key=lambda m: GAS_CONSUMPTION_MONTHLY_PROFILE[m])
+        assert min_month in (6, 7, 8), f"Trough month should be Jun/Jul/Aug, got month {min_month}"
+
+    def test_all_factors_less_than_ten(self):
+        assert all(v < 10.0 for v in GAS_CONSUMPTION_MONTHLY_PROFILE.values())
+
+
 class TestSeasonalSettlement:
     def test_january_higher_consumption_than_july(self):
         gas_records = _fake_gas_records("2019-12-01", "2020-12-31")

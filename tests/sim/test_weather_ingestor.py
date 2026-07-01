@@ -131,3 +131,27 @@ def test_write_weather_csv_row_count(tmp_path):
     with open(out) as f:
         lines = f.readlines()
     assert len(lines) == 4  # header + 3 data rows
+
+
+def test_precipitation_mapped():
+    dates = ["2022-06-15"]
+    payload = _open_meteo_payload(dates, temp_mean=10.0)
+    with patch("requests.get", return_value=_mock_response(payload)):
+        result = get_daily_weather("LON", 51.5, -0.1, "2022-06-15", "2022-06-15")
+    assert result[0]["precipitation_mm"] == 1.2
+
+
+def test_wind_speed_mapped():
+    dates = ["2022-06-15"]
+    payload = _open_meteo_payload(dates, temp_mean=10.0)
+    with patch("requests.get", return_value=_mock_response(payload)):
+        result = get_daily_weather("LON", 51.5, -0.1, "2022-06-15", "2022-06-15")
+    assert result[0]["wind_speed_mean_ms"] == 3.5
+
+
+def test_get_daily_weather_date_matches():
+    dates = ["2022-06-15"]
+    payload = _open_meteo_payload(dates, temp_mean=10.0)
+    with patch("requests.get", return_value=_mock_response(payload)):
+        result = get_daily_weather("LON", 51.5, -0.1, "2022-06-15", "2022-06-15")
+    assert result[0]["date"] == "2022-06-15"

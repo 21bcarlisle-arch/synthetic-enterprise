@@ -116,3 +116,29 @@ def test_missing_data_key_in_response_returns_empty():
     with patch.object(sph._session, "get", return_value=resp):
         result = sph.get_system_prices_range("2022-01-01", "2022-01-01")
     assert result == []
+
+
+def test_result_is_list():
+    with patch.object(sph._session, "get", return_value=_mock_response([])):
+        result = sph.get_system_prices_range("2022-01-01", "2022-01-01")
+    assert isinstance(result, list)
+
+
+def test_ssp_value_preserved():
+    record = _record("2022-01-01", 1, ssp=99.5)
+    with patch.object(sph._session, "get", return_value=_mock_response([record])):
+        result = sph.get_system_prices_range("2022-01-01", "2022-01-01")
+    assert result[0]["systemSellPrice"] == 99.5
+
+
+def test_multiple_day_response_dates_all_present():
+    day1 = [_record("2022-03-01", 1)]
+    day2 = [_record("2022-03-02", 1)]
+    day3 = [_record("2022-03-03", 1)]
+    responses = iter([_mock_response(day1), _mock_response(day2), _mock_response(day3)])
+    with patch.object(sph._session, "get", side_effect=lambda url: next(responses)):
+        result = sph.get_system_prices_range("2022-03-01", "2022-03-03")
+    dates = {r["settlementDate"] for r in result}
+    assert "2022-03-01" in dates
+    assert "2022-03-02" in dates
+    assert "2022-03-03" in dates

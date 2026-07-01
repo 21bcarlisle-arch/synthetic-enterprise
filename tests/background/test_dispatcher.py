@@ -153,3 +153,31 @@ def test_already_processed_files_skipped_on_restart(tmp_path, monkeypatch):
 
     assert seen.get("from_rich_006.md") == "already-processed"
     assert len(sent) == 0  # no NTFY re-sent
+
+
+def test_classify_message_strips_whitespace_from_qwen_output(monkeypatch):
+    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "  urgent  ")
+    result = dispatcher.classify_message("something is wrong")
+    assert result in ("urgent", "normal", "fyi")
+
+
+def test_check_once_ignores_non_md_files(tmp_path, monkeypatch):
+    monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
+    monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
+    monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "normal")
+    monkeypatch.setattr(dispatcher, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda *a: None)
+    (tmp_path / "some_config.json").write_text("{}")
+    seen = dispatcher.check_once({})
+    assert "some_config.json" not in seen
+
+
+def test_check_once_empty_staging_returns_empty(tmp_path, monkeypatch):
+    monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
+    monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
+    monkeypatch.setattr(dispatcher, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda *a: None)
+    seen = dispatcher.check_once({})
+    assert seen == {}

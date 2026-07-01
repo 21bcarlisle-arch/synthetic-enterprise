@@ -109,3 +109,25 @@ def test_hit_returns_exact_range_only(tmp_path):
     assert result is not None
     dates = [r["settlementDate"] for r in result]
     assert "2022-12-31" not in dates
+
+
+def test_cache_dir_attribute_exists():
+    import sim.cache_store as cs
+    assert hasattr(cs, "CACHE_DIR")
+
+
+def test_log_cache_access_does_not_raise(tmp_path):
+    cache_store.log_cache_access("miss", "2024-01-01", "2024-01-31")
+
+
+def test_write_then_read_returns_matching_prices(tmp_path):
+    records = [
+        {"settlementDate": "2023-03-01", "systemSellPrice": 100.0},
+        {"settlementDate": "2023-03-15", "systemSellPrice": 90.0},
+        {"settlementDate": "2023-03-31", "systemSellPrice": 80.0},
+    ]
+    cache_store.write_cached_prices(records)
+    result = cache_store.get_cached_prices("2023-03-01", "2023-03-31")
+    assert result is not None
+    prices = [r["systemSellPrice"] for r in result]
+    assert prices == [100.0, 90.0, 80.0]

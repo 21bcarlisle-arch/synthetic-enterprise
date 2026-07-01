@@ -94,3 +94,19 @@ def test_assets_dict_is_a_copy_not_shared_with_constant():
     properties = build_properties(CUSTOMERS)
     properties["C1"]["assets"]["ev"] = True
     assert ASSET_PROFILE_BY_CUSTOMER["C1"]["ev"] is False
+
+
+def test_all_properties_have_customer_id_key():
+    properties = build_properties(CUSTOMERS)
+    for cid, prop in properties.items():
+        assert prop["customer_id"] == cid
+
+
+def test_epc_c9_is_a_class():
+    properties = build_properties(CUSTOMERS)
+    assert properties["C9"]["epc_rating"] in list("ABCDEFG")
+
+
+def test_build_properties_empty_input_returns_empty():
+    properties = build_properties([])
+    assert properties == {}

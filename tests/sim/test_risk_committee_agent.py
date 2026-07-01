@@ -189,3 +189,49 @@ def test_fast_mode_empty_portfolio_returns_empty(tmp_path, monkeypatch):
 
     adjustments = agent.invoke("2020-01-01", 1, {})
     assert adjustments == {}
+
+
+def test_invoke_adjustments_clamped_to_1_0(tmp_path, monkeypatch):
+    handshake = tmp_path / "handshake.md"
+    handshake.write_text("Risk Committee Wake-Up")
+    log_file = tmp_path / "log.md"
+    monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
+    monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.delenv("SIM_FAST_MODE", raising=False)
+    monkeypatch.setattr(agent, "_call_local", lambda context: {
+        "reasoning": "extreme risk",
+        "adjustments": [{"customer_id": "C1", "old_hedge_fraction": 0.90, "new_hedge_fraction": 0.95}],
+    })
+    adjustments = agent.invoke("2020-01-01", 1, {"C1": 0.90})
+    assert adjustments.get("C1", 0.95) <= 1.0
+
+
+def test_invoke_result_contains_only_adjusted_customers(tmp_path, monkeypatch):
+    handshake = tmp_path / "handshake.md"
+    handshake.write_text("Risk Committee Wake-Up")
+    log_file = tmp_path / "log.md"
+    monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
+    monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.delenv("SIM_FAST_MODE", raising=False)
+    monkeypatch.setattr(agent, "_call_local", lambda context: {
+        "reasoning": "concern for C1",
+        "adjustments": [{"customer_id": "C1", "old_hedge_fraction": 0.30, "new_hedge_fraction": 0.50}],
+    })
+    portfolio = {"C1": 0.30, "C2": 0.80}
+    adjustments = agent.invoke("2020-01-01", 1, portfolio)
+    assert "C1" in adjustments
+    assert adjustments["C1"] == 0.50
+
+
+def test_invoke_result_is_dict(tmp_path, monkeypatch):
+    handshake = tmp_path / "handshake.md"
+    handshake.write_text("Risk Committee Wake-Up")
+    log_file = tmp_path / "log.md"
+    monkeypatch.setattr(agent, "HANDSHAKE_FILE", str(handshake))
+    monkeypatch.setattr(agent, "COMMITTEE_LOG_FILE", str(log_file))
+    monkeypatch.delenv("SIM_FAST_MODE", raising=False)
+    monkeypatch.setattr(agent, "_call_local", lambda context: {
+        "reasoning": "ok", "adjustments": [],
+    })
+    result = agent.invoke("2020-01-01", 1, {"C1": 0.50})
+    assert isinstance(result, dict)

@@ -100,3 +100,22 @@ def test_build_enterprise_value_empty_churn_risk_returns_empty():
     result = build_enterprise_value({"C1": []}, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, n_draws=50)
     assert result["by_customer"] == {}
     assert result["portfolio"] == {"enterprise_value_gbp": 0.0, "account_count": 0}
+
+
+def test_effective_churn_probability_monotone_in_churn_rate():
+    # Higher raw churn -> higher effective churn (for fixed win probability)
+    low = effective_churn_probability(0.05, 0.5)
+    high = effective_churn_probability(0.10, 0.5)
+    assert high > low
+
+
+def test_build_enterprise_value_by_customer_has_clv_key():
+    result = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, n_draws=50)
+    for entry in result["by_customer"].values():
+        assert "clv_gbp" in entry
+
+
+def test_effective_churn_probability_bounded_by_raw_churn():
+    raw = 0.15
+    result = effective_churn_probability(raw, 0.5)
+    assert 0.0 <= result <= raw
