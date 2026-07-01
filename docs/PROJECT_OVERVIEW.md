@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 12,150 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 12,180 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LR -- Coverage Depth Sprint XCII (2026-07-01)
+30 depth tests across 3 modules: acquisition_journey (customer_id/channel/stage_dates_not_empty_after_start/current_stage_none_no_dates/start_journey_returns_instance/advance_records_exact_date/days_to_stage_none_no_start/converted_false_after_decline/conversion_rate_zero_empty/drop_off_excludes_completed), complaints (complaint_id/customer_id/category/opened_date/description/redress_default_zero/resolved_date_none/resolution_summary_none/escalated_date_none/escalation_days=56), css_tracker (customer_id/survey_year/survey_date/overall_score/billing_accuracy/complaint_handling_none_default/would_recommend_exactly_7/record_returns_instance/annual_responses_filter/recommend_rate_none_empty).
+**Total:** 12,180 tests
 
 ### Phase LQ -- Coverage Depth Sprint XCI (2026-07-01)
 30 depth tests across 3 modules: consumer_duty (outcome/date/rag/metric_value/metric_name/narrative/evidence_ref_empty/record_returns/overall_amber_no_red/implementation_date=2023-07-31), green_claims_audit (result_year/obligation/rego_held/coverage/status/shortfall/green_products/penalty/at_risk_threshold=90/compliant_threshold=100), adr_register (adr_id/title/category/status/decided_at/context/decision/consequences/superseded_by_none/is_superseded_false_deprecated_no_ref).
@@ -4864,7 +4868,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 12,150 tests (fast / ~10s; simulation integration ~8 min per run)
+- 12,180 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

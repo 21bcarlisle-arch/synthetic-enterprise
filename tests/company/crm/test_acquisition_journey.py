@@ -93,3 +93,58 @@ def test_channel_summary(funnel):
 def test_channel_summary_empty(funnel):
     summary = funnel.channel_summary("telemarketing")
     assert summary["total"] == 0
+
+
+# --- Phase LR depth tests ---
+
+def test_customer_id_stored(journey):
+    assert journey.customer_id == "C001"
+
+
+def test_channel_stored(journey):
+    assert journey.channel == "comparison_site"
+
+
+def test_stage_dates_not_empty_after_start(journey):
+    assert len(journey.stage_dates) >= 1
+
+
+def test_current_stage_none_when_no_dates():
+    j = AcquisitionJourney(customer_id="C1", channel="direct")
+    assert j.current_stage is None
+
+
+def test_start_journey_returns_journey(funnel):
+    result = funnel.start_journey("C1", "direct", date(2022, 1, 1))
+    assert isinstance(result, AcquisitionJourney)
+
+
+def test_advance_records_exact_date(funnel, journey):
+    d = date(2022, 3, 5)
+    funnel.advance("C001", AcquisitionStage.SIGNED_UP, d)
+    assert journey.stage_dates[AcquisitionStage.SIGNED_UP] == d
+
+
+def test_days_to_stage_none_if_no_start():
+    j = AcquisitionJourney(customer_id="C1", channel="direct")
+    j.advance(AcquisitionStage.SIGNED_UP, date(2022, 3, 5))
+    assert j.days_to_stage(AcquisitionStage.SIGNED_UP) is None
+
+
+def test_converted_false_after_decline(funnel, journey):
+    funnel.advance("C001", AcquisitionStage.CREDIT_DECLINED, date(2022, 3, 3))
+    assert journey.converted is False
+
+
+def test_conversion_rate_zero_empty_funnel(funnel):
+    rate = funnel.conversion_rate(
+        AcquisitionStage.QUOTE_REQUESTED, AcquisitionStage.ONBOARDED
+    )
+    assert rate == pytest.approx(0.0)
+
+
+def test_drop_off_excludes_completed(funnel):
+    j1 = funnel.start_journey("C1", "web", date(2022, 1, 1))
+    j1.advance(AcquisitionStage.ONBOARDED, date(2022, 1, 15))
+    drop = funnel.drop_off_at(AcquisitionStage.QUOTE_REQUESTED)
+    assert j1 not in drop

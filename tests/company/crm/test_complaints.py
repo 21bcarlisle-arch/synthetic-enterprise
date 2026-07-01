@@ -109,3 +109,45 @@ def test_annual_summary_with_data(book):
     assert summary["total_redress_gbp"] == pytest.approx(50.0)
     assert summary["by_category"]["billing"] == 1
     assert summary["by_category"]["ppm"] == 1
+
+
+# --- Phase LR depth tests ---
+
+def test_complaint_id_stored(billing_complaint):
+    assert billing_complaint.complaint_id == 1
+
+
+def test_customer_id_stored(billing_complaint):
+    assert billing_complaint.customer_id == "C001"
+
+
+def test_category_stored(billing_complaint):
+    assert billing_complaint.category == ComplaintCategory.BILLING
+
+
+def test_opened_date_stored(billing_complaint):
+    assert billing_complaint.opened_date == date(2022, 1, 10)
+
+
+def test_description_stored(billing_complaint):
+    assert billing_complaint.description == "Overcharged in January"
+
+
+def test_redress_default_zero(billing_complaint):
+    assert billing_complaint.redress_gbp == pytest.approx(0.0)
+
+
+def test_resolved_date_default_none(billing_complaint):
+    assert billing_complaint.resolved_date is None
+
+
+def test_resolution_summary_default_none(billing_complaint):
+    assert billing_complaint.resolution_summary is None
+
+
+def test_escalated_date_default_none(billing_complaint):
+    assert billing_complaint.escalated_date is None
+
+
+def test_ombudsman_escalation_days_constant():
+    assert OMBUDSMAN_ESCALATION_DAYS == 56

@@ -106,3 +106,68 @@ def test_book_css_summary_keys():
     assert "performance_band" in s
     assert "vs_industry" in s
     assert "recommend_rate" in s
+
+
+# --- Phase LR depth tests ---
+
+def test_customer_id_stored():
+    r = _response(customer_id="CUST_LR")
+    assert r.customer_id == "CUST_LR"
+
+
+def test_survey_year_stored():
+    r = _response(survey_year=2021)
+    assert r.survey_year == 2021
+
+
+def test_survey_date_stored():
+    d = dt.date(2023, 6, 30)
+    r = _response(survey_date=d)
+    assert r.survey_date == d
+
+
+def test_overall_score_stored():
+    r = _response(overall_score=9.0)
+    assert r.overall_score == pytest.approx(9.0)
+
+
+def test_billing_accuracy_stored():
+    r = _response(billing_accuracy=6.0)
+    assert r.billing_accuracy == pytest.approx(6.0)
+
+
+def test_complaint_handling_none_default():
+    r = _response()  # no complaint_handling kwarg
+    assert r.complaint_handling is None
+
+
+def test_would_recommend_exactly_7():
+    r = _response(overall_score=7.0)
+    assert r.would_recommend is True
+
+
+def test_record_response_returns_css_response():
+    book = CSSBook()
+    result = book.record_response(
+        customer_id="C1", survey_year=2023, survey_date=SURVEY_DATE,
+        overall_score=7.5, billing_accuracy=8.0, ease_of_contact=7.0,
+        value_for_money=6.5, meter_accuracy=8.5,
+    )
+    assert isinstance(result, CSSResponse)
+
+
+def test_annual_responses_filter():
+    book = CSSBook()
+    book.record_response(
+        "C1", 2022, dt.date(2022, 9, 1), 8.0, 8.0, 7.0, 7.0, 8.0,
+    )
+    book.record_response(
+        "C2", 2023, dt.date(2023, 9, 1), 7.5, 7.5, 7.5, 7.5, 7.5,
+    )
+    assert len(book.annual_responses(2022)) == 1
+    assert len(book.annual_responses(2023)) == 1
+
+
+def test_recommend_rate_none_empty_year():
+    book = CSSBook()
+    assert book.recommend_rate(2022) is None
