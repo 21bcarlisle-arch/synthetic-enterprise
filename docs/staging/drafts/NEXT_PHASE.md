@@ -1,6 +1,6 @@
-Phase MJ -- Coverage Depth Sprint CX
+Phase MK -- Coverage Depth Sprint CXI
 30 tests: next 3 lowest-test company modules coverage depth
 Targets (all at 13 tests):
-  tests/company/market/test_phase_cu_interruptible.py
-  tests/company/regulatory/test_compliance.py
-  tests/company/regulatory/test_phase_cy_fitness.py
+  tests/company/regulatory/test_roc_ledger.py
+  tests/company/regulatory/test_solr_levy_register.py
+  tests/company/risk/test_var_monitor.py

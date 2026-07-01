@@ -113,3 +113,61 @@ def test_summary():
     summary = r.interruptible_summary()
     assert "UNC" in summary
     assert "INT" in summary
+
+
+# --- Phase MJ depth tests ---
+
+def test_account_id_stored_in_contract():
+    r = InterruptibleSupplyRegister()
+    c = r.register("ACC-MJ", date(2021, 1, 1), annual_kwh=300_000)
+    assert c.account_id == "ACC-MJ"
+
+
+def test_start_date_stored():
+    r = InterruptibleSupplyRegister()
+    c = r.register("C1", date(2020, 6, 15), annual_kwh=200_000)
+    assert c.start_date == date(2020, 6, 15)
+
+
+def test_annual_kwh_stored():
+    r = InterruptibleSupplyRegister()
+    c = r.register("C1", date(2020, 1, 1), annual_kwh=750_000)
+    assert c.annual_kwh == pytest.approx(750_000.0)
+
+
+def test_discount_pct_default_15():
+    r = InterruptibleSupplyRegister()
+    c = r.register("C1", date(2020, 1, 1), annual_kwh=500_000)
+    assert c.discount_pct == pytest.approx(15.0)
+
+
+def test_interruption_event_date_stored():
+    r, _ = _reg_with_contract()
+    ev = r.record_interruption(_D, "C_IC1g", InterruptionReason.COLD_WEATHER, 10000.0, 3.0)
+    assert ev.event_date == _D
+
+
+def test_interruption_event_account_id_stored():
+    r, _ = _reg_with_contract()
+    ev = r.record_interruption(_D, "C_IC1g", InterruptionReason.NETWORK_CONSTRAINT, 5000.0, 4.0)
+    assert ev.account_id == "C_IC1g"
+
+
+def test_interruption_event_reason_stored():
+    r, _ = _reg_with_contract()
+    ev = r.record_interruption(_D, "C_IC1g", InterruptionReason.NGT_INSTRUCTION, 5000.0, 4.0)
+    assert ev.reason == InterruptionReason.NGT_INSTRUCTION
+
+
+def test_interruption_event_curtailment_kwh_stored():
+    r, _ = _reg_with_contract()
+    ev = r.record_interruption(_D, "C_IC1g", InterruptionReason.COLD_WEATHER, 12345.0, 3.0)
+    assert ev.curtailment_kwh == pytest.approx(12345.0)
+
+
+def test_supply_firmness_has_2_members():
+    assert len(list(SupplyFirmness)) == 2
+
+
+def test_interruption_reason_has_4_members():
+    assert len(list(InterruptionReason)) == 4

@@ -112,3 +112,66 @@ def test_css_resolution_target_met_when_all_resolved():
 def test_annual_turnover_fee():
     fee = annual_turnover_fee(1_000_000.0)
     assert fee == pytest.approx(700.0)
+
+
+# --- Phase MJ depth tests ---
+
+def test_smart_meter_target_returns_float():
+    result = smart_meter_target(2022, "resi")
+    assert isinstance(result, float)
+    assert 0.0 < result < 1.0
+
+
+def test_smart_meter_target_year_before_2019():
+    # year < 2019: base = 0.53 * 0.5 = 0.265
+    result = smart_meter_target(2017, "resi")
+    assert result == pytest.approx(0.265)
+
+
+def test_smart_meter_target_year_after_2025():
+    # year > 2025: uses 2025 target = 0.86
+    result = smart_meter_target(2030, "resi")
+    assert result == pytest.approx(0.86)
+
+
+def test_price_cap_compliance_sc_breach():
+    records = [{"unit_rate_p_per_kwh": 20.0, "standing_charge_p_per_day": 100.0,
+                "customer_id": "C1", "period": "2022-Q4"}]
+    result = check_price_cap_compliance(records, cap_unit_rate_p_per_kwh=30.0, cap_standing_charge_p_per_day=60.0)
+    assert result["compliant"] is False
+    assert len(result["breaches"]) == 1
+
+
+def test_price_cap_compliance_breach_has_customer_id():
+    records = [{"unit_rate_p_per_kwh": 50.0, "standing_charge_p_per_day": 40.0, "customer_id": "C-MJ"}]
+    result = check_price_cap_compliance(records, 30.0, 60.0)
+    assert result["breaches"][0]["customer_id"] == "C-MJ"
+
+
+def test_css_filing_regulatory_filing_required():
+    result = generate_css_filing([], year=2022)
+    assert result["regulatory_filing_required"] is True
+
+
+def test_css_filing_has_vulnerable_customers_key():
+    result = generate_css_filing([], year=2022)
+    assert "vulnerable_customers_contacted" in result
+
+
+def test_annual_turnover_fee_uses_0007_rate():
+    fee = annual_turnover_fee(1_000_000.0)
+    assert fee == pytest.approx(700.0)
+
+
+def test_price_cap_checked_count_equals_records():
+    records = [
+        {"unit_rate_p_per_kwh": 20.0, "customer_id": "C1"},
+        {"unit_rate_p_per_kwh": 22.0, "customer_id": "C2"},
+    ]
+    result = check_price_cap_compliance(records, 30.0, 60.0)
+    assert result["checked"] == 2
+
+
+def test_css_filing_resolution_rate_1_when_no_complaints():
+    result = generate_css_filing([], year=2022)
+    assert result["complaint_resolution_rate"] == pytest.approx(1.0)

@@ -106,3 +106,57 @@ def test_fitness_summary():
     summary = r.fitness_summary(_D)
     assert "LC 30A" in summary
     assert "Ofgem" in summary
+
+
+# --- Phase MJ depth tests ---
+
+def test_person_id_stored():
+    r, a = _reg_with_director()
+    assert a.person_id == "P001"
+
+
+def test_name_stored():
+    r, a = _reg_with_director()
+    assert a.name == "Alice Smith"
+
+
+def test_role_stored():
+    r, a = _reg_with_director()
+    assert a.role == FitnessRole.EXECUTIVE_DIRECTOR
+
+
+def test_assessment_date_stored():
+    r, a = _reg_with_director()
+    assert a.assessment_date == _D
+
+
+def test_outcome_stored():
+    r, a = _reg_with_director(outcome=FitnessOutcome.UNDER_REVIEW)
+    assert a.outcome == FitnessOutcome.UNDER_REVIEW
+
+
+def test_conditions_default_empty():
+    r, a = _reg_with_director()
+    assert a.conditions == ()
+
+
+def test_concerns_default_empty():
+    r, a = _reg_with_director()
+    assert a.concerns == ()
+
+
+def test_is_fit_true_for_fit_with_conditions():
+    r = SupplierFitnessRegister()
+    a = r.assess("P001", "Bob", FitnessRole.SENIOR_MANAGER, _D, FitnessOutcome.FIT_WITH_CONDITIONS)
+    assert a.is_fit is True
+
+
+def test_has_concerns_true_with_concern():
+    r = SupplierFitnessRegister()
+    a = r.assess("P001", "Carol", FitnessRole.EXECUTIVE_DIRECTOR, _D, FitnessOutcome.FIT,
+                 concerns=(FitnessConcernCategory.CONFLICT_OF_INTEREST,))
+    assert a.has_concerns is True
+
+
+def test_fitness_outcome_has_4_members():
+    assert len(list(FitnessOutcome)) == 4
