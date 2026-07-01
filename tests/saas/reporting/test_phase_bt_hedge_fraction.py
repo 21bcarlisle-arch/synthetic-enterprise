@@ -107,3 +107,29 @@ def test_years_sorted():
     pos_2016 = result.find("| 2016 |")
     pos_2018 = result.find("| 2018 |")
     assert pos_2016 < pos_2018
+
+
+# 13. Lowest hedge fraction year noted
+def test_lowest_hf_year_noted():
+    d = {"years": {
+        "2020": {"hedge_fractions": {"C1": {"avg_hf": 0.8}, "C2": {"avg_hf": 0.7}}},
+        "2021": {"hedge_fractions": {"C1": {"avg_hf": 0.1}, "C2": {"avg_hf": 0.05}}},
+    }}
+    result = _section_hedge_fraction_evolution(d)
+    assert "Lowest portfolio hedge fraction: 2021" in result
+
+
+# 14. Naked positions label shown when avg_hf < 5%
+def test_naked_positions_label():
+    d = {"years": {"2022": {"hedge_fractions": {
+        "C1": {"avg_hf": 0.02}, "C2": {"avg_hf": 0.01}
+    }}}}
+    result = _section_hedge_fraction_evolution(d)
+    assert "Naked positions" in result or "Naked" in result
+
+
+# 15. Regime-change blindness note in output
+def test_regime_change_blindness_note():
+    d = {"years": {"2022": {"hedge_fractions": {"C1": {"avg_hf": 0.4}}}}}
+    result = _section_hedge_fraction_evolution(d)
+    assert "Regime-change blindness" in result or "regime-change" in result.lower()

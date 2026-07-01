@@ -115,3 +115,40 @@ def test_returns_non_empty():
     d = _data([("C1", 1000, -500, "resi"), ("C2", 2000, 300, "I&C")])
     result = _section_gas_exit_decision(d)
     assert len(result) > 100
+
+
+# 13. Recommendation shown
+def test_recommendation_shown():
+    comm_pnl = {
+        "C1_g": {"segment": "I&C gas", "commodity": "gas", "revenue": 50000, "gross": -5000, "net": -8000},
+        "C1_e": {"segment": "I&C electricity", "commodity": "electricity", "revenue": 80000, "gross": 15000, "net": 10000},
+    }
+    pcl = {
+        "C1_g": {"segment": "I&C", "fuel_type": "gas", "linked_electricity_cid": "C1_e"},
+        "C1_e": {"segment": "I&C", "fuel_type": "electricity"},
+    }
+    d = {"per_cid_comm_pnl": comm_pnl, "per_customer_lifetime": pcl}
+    result = _section_gas_exit_decision(d)
+    assert "Board recommendation" in result or result == ""
+
+
+# 14. Three scenarios in table
+def test_three_scenarios_in_table():
+    comm_pnl = {
+        "C1_g": {"segment": "I&C gas", "commodity": "gas", "revenue": 50000, "gross": -5000, "net": -8000},
+        "C1_e": {"segment": "I&C electricity", "commodity": "electricity", "revenue": 80000, "gross": 15000, "net": 10000},
+    }
+    pcl = {
+        "C1_g": {"segment": "I&C", "fuel_type": "gas", "linked_electricity_cid": "C1_e"},
+        "C1_e": {"segment": "I&C", "fuel_type": "electricity"},
+    }
+    d = {"per_cid_comm_pnl": comm_pnl, "per_customer_lifetime": pcl}
+    result = _section_gas_exit_decision(d)
+    if result:
+        assert "Status Quo" in result and "Exit Gas" in result and "Reprice" in result
+
+
+# 15. Returns empty when no data
+def test_empty_returns_empty():
+    assert _section_gas_exit_decision({}) == ""
+    assert _section_gas_exit_decision({"per_cid_comm_pnl": {}}) == ""

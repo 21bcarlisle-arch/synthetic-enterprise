@@ -112,3 +112,38 @@ def test_years_sorted():
     pos_2016 = result.find("| 2016 |")
     pos_2017 = result.find("| 2017 |")
     assert pos_2016 < pos_2017
+
+
+# 13. Total committee events shown
+def test_total_events_shown():
+    d = {"years": {
+        "2022": {"committee_wake_ups": [{"adjustments": {"C1": 0.6}, "portfolio_var_stressed_gbp": 50000}]},
+        "2023": {"committee_wake_ups": [{"adjustments": {}, "portfolio_var_stressed_gbp": 60000},
+                                         {"adjustments": {}, "portfolio_var_stressed_gbp": 55000}]},
+    }}
+    result = _section_committee_intervention_pattern(d)
+    assert "Total committee events" in result and "3" in result
+
+
+# 14. Peak intervention year noted
+def test_peak_intervention_year():
+    d = {"years": {
+        "2022": {"committee_wake_ups": [{"adjustments": {}, "portfolio_var_stressed_gbp": 1000}]},
+        "2023": {"committee_wake_ups": [
+            {"adjustments": {}, "portfolio_var_stressed_gbp": 2000},
+            {"adjustments": {}, "portfolio_var_stressed_gbp": 3000},
+        ]},
+    }}
+    result = _section_committee_intervention_pattern(d)
+    assert "Peak intervention year: 2023" in result
+
+
+# 15. Zero wake-up years excluded from table
+def test_zero_wakeup_year_excluded():
+    d = {"years": {
+        "2020": {"committee_wake_ups": []},
+        "2022": {"committee_wake_ups": [{"adjustments": {}, "portfolio_var_stressed_gbp": 500}]},
+    }}
+    result = _section_committee_intervention_pattern(d)
+    assert "| 2022 |" in result
+    assert "| 2020 |" not in result

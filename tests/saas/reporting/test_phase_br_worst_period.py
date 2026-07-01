@@ -103,3 +103,36 @@ def test_missing_worst_period_skipped():
     result = _section_worst_settlement_periods(data)
     assert "| 2017 |" in result
     assert "| 2016 |" not in result
+
+
+# 13. Single worst period shown in summary
+def test_single_worst_period_summary():
+    d = {"years": {"2022": {"worst_period": {
+        "settlement_date": "2022-12-01", "settlement_period": 36,
+        "customer_id": "C1", "net_margin_gbp": -450.0
+    }}}}
+    result = _section_worst_settlement_periods(d)
+    assert "Single worst period" in result or "worst period" in result.lower()
+
+
+# 14. Negative margin shown as loss
+def test_negative_margin_formatted():
+    d = {"years": {"2022": {"worst_period": {
+        "settlement_date": "2022-12-01", "settlement_period": 36,
+        "customer_id": "C1", "net_margin_gbp": -750.0
+    }}}}
+    result = _section_worst_settlement_periods(d)
+    assert "-£750" in result or "750" in result
+
+
+# 15. Years without worst_period skipped gracefully
+def test_missing_worst_period_year_skipped():
+    d = {"years": {
+        "2021": {},
+        "2022": {"worst_period": {"settlement_date": "2022-10-01",
+                                   "settlement_period": 20, "customer_id": "C2",
+                                   "net_margin_gbp": -300.0}},
+    }}
+    result = _section_worst_settlement_periods(d)
+    assert "| 2022 |" in result
+    assert "| 2021 |" not in result

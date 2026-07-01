@@ -105,3 +105,33 @@ def test_period_shown():
     d = {"retention_log": [_entry("C1", "2018-01-31", 10000, 50000)]}
     result = _section_retention_decision_economics(d)
     assert "2018-01" in result
+
+
+# 13. Portfolio ROI shown
+def test_portfolio_roi_shown():
+    rl = [{"customer_id": "C1", "event_date": "2022-03-01", "retention_cost_gbp": 500.0,
+            "expected_term_margin_gbp": 2000.0, "discount_pct": 0.05, "outcome": "retained"}]
+    d = {"retention_log": rl}
+    result = _section_retention_decision_economics(d)
+    assert "Portfolio retention ROI" in result
+
+
+# 14. Total cost and margin shown
+def test_total_cost_margin_shown():
+    rl = [{"customer_id": "C1", "event_date": "2022-01-01", "retention_cost_gbp": 300.0,
+            "expected_term_margin_gbp": 1500.0, "discount_pct": 0.05, "outcome": "retained"},
+           {"customer_id": "C2", "event_date": "2022-06-01", "retention_cost_gbp": 200.0,
+            "expected_term_margin_gbp": 800.0, "discount_pct": 0.05, "outcome": "churned"}]
+    d = {"retention_log": rl}
+    result = _section_retention_decision_economics(d)
+    assert "Total retention spend" in result
+    assert "500" in result
+
+
+# 15. Churned outcome shown in table
+def test_churned_outcome_shown():
+    rl = [{"customer_id": "C1", "event_date": "2022-01-01", "retention_cost_gbp": 200.0,
+            "expected_term_margin_gbp": 800.0, "discount_pct": 0.05, "outcome": "churned"}]
+    d = {"retention_log": rl}
+    result = _section_retention_decision_economics(d)
+    assert "churned" in result
