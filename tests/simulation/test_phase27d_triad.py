@@ -115,3 +115,19 @@ def test_compute_triad_exposure_calculates_tnuos():
     # 200 kW × £56.41/kW = £11,282
     assert result["estimated_tnuos_gbp"] == pytest.approx(200.0 * 56.41, rel=1e-4)
     assert len(result["triad_periods"]) == 3
+
+
+# 13. _triad_year returns correct triad year for Nov (same year)
+def test_triad_year_november():
+    assert _triad_year("2022-11-15") == 2022
+
+
+# 14. _triad_year returns previous year for Jan/Feb
+def test_triad_year_january():
+    assert _triad_year("2023-01-15") == 2022
+
+
+# 15. get_tnuos_tariff returns positive value for a known year
+def test_tnuos_tariff_positive_known_year():
+    tariff = get_tnuos_tariff(2022)
+    assert tariff > 0.0

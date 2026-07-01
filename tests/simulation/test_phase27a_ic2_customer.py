@@ -119,3 +119,24 @@ def test_elec_customers_count_includes_both_ic():
     from simulation.run_phase2b import ELEC_CUSTOMERS
     ic_customers = [c for c in ELEC_CUSTOMERS if c["segment"] == "I&C"]
     assert len(ic_customers) >= 2
+
+
+# 13. C_IC2 has electricity commodity
+def test_c_ic2_commodity_electricity():
+    from saas.customers import get_customer
+    c = get_customer("C_IC2")
+    assert c.get("commodity") == "electricity"
+
+
+# 14. C_IC2 has metering HH
+def test_c_ic2_metering_hh():
+    from saas.customers import get_customer
+    c = get_customer("C_IC2")
+    assert c.get("metering") == "HH"
+
+
+# 15. C_IC2 segment is I&C
+def test_c_ic2_segment_ic():
+    from saas.customers import get_customer
+    c = get_customer("C_IC2")
+    assert c.get("segment") == "I&C"

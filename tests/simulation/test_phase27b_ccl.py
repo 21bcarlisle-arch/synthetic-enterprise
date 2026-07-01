@@ -134,3 +134,23 @@ def test_ccl_rate_positive_for_all_business_years():
     for year in range(2016, 2025):
         rate = get_ccl_per_mwh(f"{year}-06-01", segment="I&C")
         assert rate > 0
+
+
+# 13. CCL rate for electricity is positive for I&C 2023
+def test_ccl_ic_2023_positive():
+    from simulation.policy_costs import get_ccl_per_mwh
+    rate = get_ccl_per_mwh("2023-06-01", segment="I&C")
+    assert rate > 0.0
+
+
+# 14. CCL electricity dict has at least one year entry
+def test_ccl_electricity_rate_table_nonempty():
+    from simulation.policy_costs import _CCL_ELECTRICITY_RATE_BY_YEAR
+    assert len(_CCL_ELECTRICITY_RATE_BY_YEAR) > 0
+
+
+# 15. CCL rate for 2016 is non-negative
+def test_ccl_2016_nonnegative():
+    from simulation.policy_costs import get_ccl_per_mwh
+    rate = get_ccl_per_mwh("2016-01-01", segment="I&C")
+    assert rate >= 0.0

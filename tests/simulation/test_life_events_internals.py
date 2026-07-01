@@ -74,3 +74,22 @@ def test_life_event_has_expected_fields():
     assert event.event_date == "2022-06-15"
     assert event.event_type == "ev_acquired"
     assert event.payload == {}
+
+
+# 13. _annual_prob returns table value for exact year
+def test_annual_prob_exact_year_mid():
+    table = {2016: 0.10, 2020: 0.25, 2024: 0.40}
+    assert _annual_prob(table, 2020) == 0.25
+
+
+# 14. _random_date_in_year returns a date string in that year
+def test_random_date_in_year_returns_correct_year():
+    rng = random.Random(99)
+    d = _random_date_in_year(2022, rng)
+    assert d.startswith("2022-")
+
+
+# 15. LifeEvent event_date is stored as provided
+def test_life_event_event_date_stored():
+    ev = LifeEvent(customer_id="C1", event_date="2022-07-15", event_type="solar_install", payload={})
+    assert ev.event_date == "2022-07-15"

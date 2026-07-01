@@ -140,3 +140,37 @@ def test_zero_excess_zero_deficit_when_exactly_at_band_high():
     r = compute_term_volume_tolerance(110.0, 100.0, 50.0, 60.0, 0.85)
     assert r["excess_kwh"] == pytest.approx(0.0, abs=0.01)
     assert r["within_band"] is True
+
+
+# 13. Above-band excess calculated correctly
+def test_excess_kwh_above_band():
+    result = compute_term_volume_tolerance(
+        actual_kwh=2_300_000,
+        contracted_kwh=2_000_000,
+        avg_spot_gbp_per_mwh=80.0,
+        hedge_price_gbp_per_mwh=75.0,
+        hedge_fraction=0.90,
+    )
+    assert result["within_band"] is False
+    # 10% band high = 2_200_000; excess = 100_000
+    assert result["excess_kwh"] == pytest.approx(100_000.0)
+
+
+# 14. Below-band deficit calculated correctly
+def test_deficit_kwh_below_band():
+    result = compute_term_volume_tolerance(
+        actual_kwh=1_700_000,
+        contracted_kwh=2_000_000,
+        avg_spot_gbp_per_mwh=80.0,
+        hedge_price_gbp_per_mwh=75.0,
+        hedge_fraction=0.90,
+    )
+    assert result["within_band"] is False
+    # 10% band low = 1_800_000; deficit = 100_000
+    assert result["deficit_kwh"] == pytest.approx(100_000.0)
+
+
+# 15. Volume tolerance fraction is accessible as a constant
+def test_tolerance_fraction_accessible():
+    assert VOLUME_TOLERANCE_FRACTION > 0.0
+    assert VOLUME_TOLERANCE_FRACTION < 1.0

@@ -131,3 +131,23 @@ def test_industrial_profile_has_more_than_1000_rows():
 def test_industrial_profile_starts_2016():
     rows = _load_ic1_csv()
     assert rows[0]["date"].startswith("2016")
+
+
+# 13. Profile covers multiple years
+def test_industrial_profile_multi_year_span():
+    rows = _load_ic1_csv()
+    years = {r["date"][:4] for r in rows}
+    assert len(years) >= 2
+
+
+# 14. Daily total non-negative for all rows
+def test_industrial_profile_daily_totals_nonneg():
+    rows = _load_ic1_csv()
+    for r in rows:
+        assert _day_total(r) >= 0
+
+
+# 15. Last period p48 column exists
+def test_industrial_profile_has_p48_column():
+    rows = _load_ic1_csv()
+    assert "p48" in rows[0]
