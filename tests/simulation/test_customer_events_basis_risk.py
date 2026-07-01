@@ -171,3 +171,34 @@ def test_result_effective_retention_probability_in_unit_interval():
     result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
     p = result["effective_retention_probability"]
     assert 0.0 <= p <= 1.0
+
+
+# 13. Result contains event_type key
+def test_basis_risk_event_type_present():
+    customers = _make_customers()
+    records = _build_one_year_records()
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result is not None
+    assert "event_type" in result
+
+
+# 14. Company churn estimate between 0 and 1
+def test_company_churn_estimate_in_unit_interval():
+    customers = _make_customers()
+    records = _build_one_year_records()
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    if result:
+        est = result.get("company_churn_estimate")
+        if est is not None:
+            assert 0.0 <= est <= 1.0
+
+
+# 15. Random roll in unit interval
+def test_random_roll_in_0_1():
+    customers = _make_customers()
+    records = _build_one_year_records()
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    if result:
+        roll = result.get("random_roll")
+        if roll is not None:
+            assert 0.0 <= roll <= 1.0

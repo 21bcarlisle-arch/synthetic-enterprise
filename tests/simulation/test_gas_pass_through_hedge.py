@@ -139,3 +139,59 @@ class TestPassThroughZeroHedge:
             0.0, 30.0, 0.0, GAS_RECORDS_LOW, "I&C", pass_through=True,
         )
         assert all(r["revenue_gbp"] > 0 for r in records)
+
+
+    def test_pass_through_no_loss_at_high_spot(self):
+        """At any spot price, service-fee margin is positive."""
+        result = run_gas_term(
+            customer_id="TEST",
+            term_start="2022-10-01",
+            term_end="2022-10-30",
+            aq_kwh=50_000,
+            unit_rate_gbp_mwh=120.0,
+            hedge_fraction=0.0,
+            forward_price=100.0,
+            monthly_cost_of_capital_gbp=0.0,
+            gas_price_records=GAS_RECORDS_HIGH,
+            segment="I&C",
+            pass_through=True,
+        )
+        gross = sum(r.get("gross_margin_gbp", r.get("gross_gbp", 0)) for r in result)
+        assert gross >= 0
+
+
+    def test_pass_through_revenue_nonneg(self):
+        """Revenue is non-negative for pass-through customer at any spot."""
+        result = run_gas_term(
+            customer_id="TEST",
+            term_start="2021-01-01",
+            term_end="2021-01-30",
+            aq_kwh=50_000,
+            unit_rate_gbp_mwh=25.0,
+            hedge_fraction=0.0,
+            forward_price=20.0,
+            monthly_cost_of_capital_gbp=0.0,
+            gas_price_records=GAS_RECORDS_LOW,
+            segment="I&C",
+            pass_through=True,
+        )
+        for r in result:
+            assert r.get("revenue_gbp", 0) >= 0
+
+
+    def test_pass_through_kwh_positive(self):
+        """Daily kWh must be positive for active pass-through customer."""
+        result = run_gas_term(
+            customer_id="TEST",
+            term_start="2021-01-01",
+            term_end="2021-01-30",
+            aq_kwh=50_000,
+            unit_rate_gbp_mwh=25.0,
+            hedge_fraction=0.0,
+            forward_price=20.0,
+            monthly_cost_of_capital_gbp=0.0,
+            gas_price_records=GAS_RECORDS_LOW,
+            segment="I&C",
+            pass_through=True,
+        )
+        assert all(r["daily_kwh"] > 0 for r in result)

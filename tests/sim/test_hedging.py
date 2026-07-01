@@ -99,3 +99,25 @@ def test_partial_hedge_intermediate_margin():
     r_half = settle_hedged_period(1000.0, 100.0, 60.0, 0.5, 200.0)
     r_none = settle_hedged_period(1000.0, 100.0, 60.0, 0.0, 200.0)
     assert r_none["margin_gbp"] < r_half["margin_gbp"] < r_full["margin_gbp"]
+
+
+# 13. Fully hedged means margin doesn't depend on spot
+def test_fully_hedged_spot_independent():
+    r1 = _settle(hedge_fraction=1.0, spot=90.0)
+    r2 = _settle(hedge_fraction=1.0, spot=200.0)
+    assert abs(r1["margin_gbp"] - r2["margin_gbp"]) < 0.001
+
+
+# 14. Full hedge margin = (tariff - hedge) * kwh / 1000
+def test_fully_hedged_margin_formula():
+    r = _settle(consumption_kwh=1000.0, tariff=100.0, hedge_price=80.0, hedge_fraction=1.0, spot=200.0)
+    expected = (100.0 - 80.0) * 1.0  # (tariff - hedge) * mwh
+    assert abs(r["margin_gbp"] - expected) < 0.01
+
+
+# 15. Result is a dict with expected keys
+def test_result_is_dict_with_keys():
+    r = _settle(hedge_fraction=0.5)
+    assert isinstance(r, dict)
+    assert "margin_gbp" in r
+    assert "revenue_gbp" in r
