@@ -126,3 +126,66 @@ class TestADRRegister:
         s = reg.adr_summary()
         assert "ADR Register" in s
         assert "ADR required" in s
+
+
+# --- Phase LQ depth tests ---
+
+def _direct_adr(**kwargs):
+    defaults = dict(
+        adr_id="ADR-001", title="Test", category=ADRCategory.EPISTEMIC_AIR_GAP,
+        status=ADRStatus.ACCEPTED, decided_at=DATE,
+        context="ctx", decision="dec", consequences="cons"
+    )
+    defaults.update(kwargs)
+    return ArchitecturalDecisionRecord(**defaults)
+
+
+def test_adr_id_stored():
+    a = _direct_adr(adr_id="ADR-042")
+    assert a.adr_id == "ADR-042"
+
+
+def test_title_stored():
+    a = _direct_adr(title="My Decision")
+    assert a.title == "My Decision"
+
+
+def test_category_stored():
+    a = _direct_adr(category=ADRCategory.EVENT_DRIVEN)
+    assert a.category == ADRCategory.EVENT_DRIVEN
+
+
+def test_status_stored():
+    a = _direct_adr(status=ADRStatus.PROPOSED)
+    assert a.status == ADRStatus.PROPOSED
+
+
+def test_decided_at_stored():
+    d = dt.date(2025, 3, 10)
+    a = _direct_adr(decided_at=d)
+    assert a.decided_at == d
+
+
+def test_context_stored():
+    a = _direct_adr(context="failure mode X")
+    assert a.context == "failure mode X"
+
+
+def test_decision_stored():
+    a = _direct_adr(decision="Use event sourcing")
+    assert a.decision == "Use event sourcing"
+
+
+def test_consequences_stored():
+    a = _direct_adr(consequences="Higher complexity")
+    assert a.consequences == "Higher complexity"
+
+
+def test_superseded_by_default_none():
+    a = _direct_adr()
+    assert a.superseded_by is None
+
+
+def test_is_superseded_deprecated_without_ref():
+    a = _direct_adr(status=ADRStatus.DEPRECATED)
+    assert a.is_superseded is False

@@ -103,3 +103,61 @@ def test_at_risk_partial_coverage():
     result = a.audit(2022, {"GREEN_FIX_1YR": 330_000})
     assert result.status in ("AT_RISK", "NON_COMPLIANT")
     assert result.coverage_pct < 100.0
+
+
+# --- Phase LQ depth tests ---
+
+def _result(**kwargs):
+    defaults = dict(year=2022, obligation_mwh=200.0, rego_held_mwh=200.0,
+                    coverage_pct=100.0, status="COMPLIANT", shortfall_mwh=0.0,
+                    green_products_active=1, penalty_estimate_gbp=0.0)
+    defaults.update(kwargs)
+    return GreenClaimsAuditResult(**defaults)
+
+
+def test_result_year_stored():
+    r = _result(year=2023)
+    assert r.year == 2023
+
+
+def test_result_obligation_stored():
+    r = _result(obligation_mwh=350.0)
+    assert r.obligation_mwh == pytest.approx(350.0)
+
+
+def test_result_rego_held_stored():
+    r = _result(rego_held_mwh=280.0)
+    assert r.rego_held_mwh == pytest.approx(280.0)
+
+
+def test_result_coverage_stored():
+    r = _result(coverage_pct=92.5)
+    assert r.coverage_pct == pytest.approx(92.5)
+
+
+def test_result_status_stored():
+    r = _result(status="AT_RISK")
+    assert r.status == "AT_RISK"
+
+
+def test_result_shortfall_stored():
+    r = _result(shortfall_mwh=50.0)
+    assert r.shortfall_mwh == pytest.approx(50.0)
+
+
+def test_result_green_products_stored():
+    r = _result(green_products_active=3)
+    assert r.green_products_active == 3
+
+
+def test_result_penalty_stored():
+    r = _result(penalty_estimate_gbp=2500.0)
+    assert r.penalty_estimate_gbp == pytest.approx(2500.0)
+
+
+def test_at_risk_threshold():
+    assert GreenClaimsAuditor._AT_RISK_THRESHOLD == pytest.approx(90.0)
+
+
+def test_compliant_threshold():
+    assert GreenClaimsAuditor._COMPLIANT_THRESHOLD == pytest.approx(100.0)

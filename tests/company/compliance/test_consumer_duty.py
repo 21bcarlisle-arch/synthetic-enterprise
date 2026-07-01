@@ -97,3 +97,71 @@ def test_outcomes_summary_unassessed_outcome_null():
     support = s["outcomes"][DutyOutcome.CONSUMER_SUPPORT.value]
     assert support["rag"] is None
     assert support["assessments_count"] == 0
+
+
+# --- Phase LQ depth tests ---
+
+def test_outcome_stored():
+    a = _assessment(outcome=DutyOutcome.CONSUMER_SUPPORT)
+    assert a.outcome == DutyOutcome.CONSUMER_SUPPORT
+
+
+def test_assessment_date_stored():
+    a = _assessment(date="2023-12-31")
+    assert a.assessment_date == "2023-12-31"
+
+
+def test_rag_stored():
+    a = _assessment(rag=OutcomeRAG.RED)
+    assert a.rag == OutcomeRAG.RED
+
+
+def test_metric_value_stored():
+    a = _assessment(metric=7.2)
+    assert a.metric_value == pytest.approx(7.2)
+
+
+def test_metric_name_stored():
+    a = OutcomeAssessment(
+        outcome=DutyOutcome.PRICE_AND_VALUE,
+        assessment_date="2023-09-30",
+        rag=OutcomeRAG.GREEN,
+        metric_value=8.5,
+        metric_name="nps_score",
+        narrative="on target",
+    )
+    assert a.metric_name == "nps_score"
+
+
+def test_narrative_stored():
+    a = OutcomeAssessment(
+        outcome=DutyOutcome.PRICE_AND_VALUE,
+        assessment_date="2023-09-30",
+        rag=OutcomeRAG.GREEN,
+        metric_value=8.5,
+        metric_name="score",
+        narrative="meets threshold",
+    )
+    assert a.narrative == "meets threshold"
+
+
+def test_evidence_ref_default_empty():
+    a = _assessment()
+    assert a.evidence_ref == ""
+
+
+def test_record_returns_assessment():
+    reg = ConsumerDutyRegister()
+    a = _assessment()
+    result = reg.record_assessment(a)
+    assert result is a
+
+
+def test_overall_rag_amber_no_red():
+    reg = ConsumerDutyRegister()
+    reg.record_assessment(_assessment(outcome=DutyOutcome.CONSUMER_UNDERSTANDING, rag=OutcomeRAG.AMBER))
+    assert reg.overall_rag() == OutcomeRAG.AMBER
+
+
+def test_implementation_date():
+    assert ConsumerDutyRegister.IMPLEMENTATION_DATE == "2023-07-31"
