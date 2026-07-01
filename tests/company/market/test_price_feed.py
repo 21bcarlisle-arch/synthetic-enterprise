@@ -113,3 +113,78 @@ def test_summary_structure(tmp_path):
     assert set(s.keys()) == required
     assert s["electricity_price_count"] == 1
     assert s["gas_price_count"] == 1
+
+
+# --- Phase LC depth tests ---
+
+def test_spot_price_fuel_stored(tmp_path):
+    prices = [{"fuel": "electricity", "period": "2022-01-01T00:00:00Z", "price_gbp_per_mwh": 100.0}]
+    feed_path = _write_feed(tmp_path, prices, _recent_ts())
+    feed = PriceFeed(feed_path)
+    spots = feed.spot_prices("electricity")
+    assert spots[0].fuel == "electricity"
+
+
+def test_spot_price_period_stored(tmp_path):
+    prices = [{"fuel": "electricity", "period": "2022-06-01T00:00:00Z", "price_gbp_per_mwh": 100.0}]
+    feed_path = _write_feed(tmp_path, prices, _recent_ts())
+    feed = PriceFeed(feed_path)
+    spots = feed.spot_prices("electricity")
+    assert spots[0].period == "2022-06-01T00:00:00Z"
+
+
+def test_spot_price_price_stored(tmp_path):
+    prices = [{"fuel": "electricity", "period": "2022-01-01T00:00:00Z", "price_gbp_per_mwh": 85.5}]
+    feed_path = _write_feed(tmp_path, prices, _recent_ts())
+    feed = PriceFeed(feed_path)
+    spots = feed.spot_prices("electricity")
+    assert spots[0].price_gbp_per_mwh == pytest.approx(85.5)
+
+
+def test_feed_available_is_bool(tmp_path):
+    feed = PriceFeed(tmp_path / "missing.json")
+    assert isinstance(feed.is_available(), bool)
+
+
+def test_spot_prices_empty_when_no_matching_fuel(tmp_path):
+    prices = [{"fuel": "electricity", "period": "2022-01-01T00:00:00Z", "price_gbp_per_mwh": 100.0}]
+    feed_path = _write_feed(tmp_path, prices, _recent_ts())
+    feed = PriceFeed(feed_path)
+    assert feed.spot_prices("gas") == []
+
+
+def test_spot_prices_returns_list(tmp_path):
+    prices = [{"fuel": "electricity", "period": "2022-01-01T00:00:00Z", "price_gbp_per_mwh": 100.0}]
+    feed_path = _write_feed(tmp_path, prices, _recent_ts())
+    feed = PriceFeed(feed_path)
+    assert isinstance(feed.spot_prices("electricity"), list)
+
+
+def test_latest_spot_is_float(tmp_path):
+    prices = [{"fuel": "electricity", "period": "2022-01-01T00:00:00Z", "price_gbp_per_mwh": 100.0}]
+    feed_path = _write_feed(tmp_path, prices, _recent_ts())
+    feed = PriceFeed(feed_path)
+    result = feed.get_latest_spot("electricity")
+    assert isinstance(result, float)
+
+
+def test_multiple_prices_latest_is_last(tmp_path):
+    prices = [
+        {"fuel": "electricity", "period": "2022-01-01T00:00:00Z", "price_gbp_per_mwh": 80.0},
+        {"fuel": "electricity", "period": "2022-01-02T00:00:00Z", "price_gbp_per_mwh": 90.0},
+    ]
+    feed_path = _write_feed(tmp_path, prices, _recent_ts())
+    feed = PriceFeed(feed_path)
+    assert feed.get_latest_spot("electricity") == pytest.approx(90.0)
+
+
+def test_is_stale_type(tmp_path):
+    prices = [{"fuel": "electricity", "period": "2022-01-01T00:00:00Z", "price_gbp_per_mwh": 100.0}]
+    feed_path = _write_feed(tmp_path, prices, _recent_ts())
+    feed = PriceFeed(feed_path)
+    assert isinstance(feed.is_stale(), bool)
+
+
+def test_feed_max_age_constant():
+    from company.market.price_feed import FEED_MAX_AGE_HOURS
+    assert FEED_MAX_AGE_HOURS == 24

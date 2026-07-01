@@ -1,2 +1,2 @@
-Phase LC -- Coverage Depth Sprint LXXVII
-30 tests: price_feed + rego_portfolio + tnuos_ledger coverage depth
+Phase LD -- Coverage Depth Sprint LXXVIII
+30 tests: cost_to_serve + next lowest-test modules coverage depth

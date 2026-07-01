@@ -77,3 +77,54 @@ def test_tnuos_summary_keys():
     s = ledger.tnuos_summary(2022)
     for k in ("total_accounts", "total_charged_gbp", "confirmed_triads"):
         assert k in s
+
+
+# --- Phase LC depth tests ---
+
+def test_account_id_stored():
+    c = _charge(aid='ACCT_LC')
+    assert c.account_id == 'ACCT_LC'
+
+
+def test_charge_year_stored():
+    c = _charge(year=2023)
+    assert c.charge_year == 2023
+
+
+def test_consumption_kwh_stored():
+    c = _charge(kwh=200_000.0)
+    assert c.consumption_kwh == pytest.approx(200_000.0)
+
+
+def test_residual_rate_stored():
+    c = _charge(res_rate=1.18)
+    assert c.residual_rate_p_per_kwh == pytest.approx(1.18)
+
+
+def test_triad_demand_kw_stored():
+    c = _charge(triad_kw=75.0)
+    assert c.triad_demand_kw == pytest.approx(75.0)
+
+
+def test_triad_rate_stored():
+    c = _charge(triad_rate=35.0)
+    assert c.triad_rate_gbp_per_kw == pytest.approx(35.0)
+
+
+def test_zone_stored():
+    c = _charge(zone='north')
+    assert c.zone == 'north'
+
+
+def test_ledger_charges_empty_initially():
+    ledger = TNUoSLedger()
+    assert ledger.charges_for_year(2022) == []
+
+
+def test_zone_factor_south():
+    assert TNUoSLedger.zone_factor('south') == pytest.approx(0.85)
+
+
+def test_residual_rate_2022():
+    rate = TNUoSLedger.residual_rate_for_year(2022)
+    assert rate == pytest.approx(1.05)
