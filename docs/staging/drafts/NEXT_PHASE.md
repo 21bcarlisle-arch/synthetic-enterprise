@@ -1,25 +1,33 @@
-Phase MT -- I and C Triad Demand Curtailment
+# Proposed Phase MV — Coverage Depth Sprint CXX
 
-Wire Triad notifications to actual demand reduction in the settlement run.
+**Drafted:** 2026-07-01T10:46:07Z
+**4-hour opt-out window expires:** ~2026-07-01T14:46:07Z
 
-Motivation: triad_notification_book records alerts when Triad periods are
-expected, but sim/demand_model.py and the settlement loop ignore them.
-Industrial and commercial customers never reduce load in Triad windows.
-This means the sim overstates I and C consumption (and hence costs) during
-Triad periods, and the Triad management benefit is never realised.
+## Summary
+Deepen test coverage across three sim/ modules that currently have 4-8 tests
+and contain additional testable logic: `sim/forward_curve.py`,
+`sim/gas_scenario_generator.py`, and `sim/bimodal_generator.py`.
 
-Scope:
-1. sim/demand_model.py: add a triad_response_factor(account, settlement_period)
-   function. For I and C accounts with triad notification active, apply a
-   demand reduction of 20-30% during notified Triad settlement periods.
-   Response rate should be calibrated to industry data (Ofgem/NESO Triad avoidance).
-2. Settlement run: pass active Triad alerts into demand calculation.
-   Use triad_notification_book.get_active_alerts(date, period) to check.
-3. triad_notification_book: expose a query method for active alerts by date/period.
-4. Run 2016-2025 full simulation. Verify Triad periods show reduced I and C demand.
-5. 15+ tests: demand reduction active/inactive, response rate bounds, PIT safety.
+## Why these modules
+- `sim/forward_curve.py` — 8 tests. New seasonal_calibration.json (Phase MS)
+  adds testable paths: load_seasonal_calibration(), calibrated multiplier
+  lookup, fallback for unknown tenor, crisis year (2022) returns elevated
+  value, calibrated vs uncalibrated seasonal diff.
+- `sim/gas_scenario_generator.py` — 4 tests (very shallow given its
+  complexity). Testable: scenario_count constant, generate_gas_scenarios
+  returns N scenarios, each scenario has required keys (scenario_name,
+  price_shock, volume_shock), base scenario has zero shocks, severe scenario
+  has larger shocks than mild.
+- `sim/bimodal_generator.py` — 16 tests (modest). Can add: peak/off-peak
+  boundary SPs, weekday vs weekend split, annual total sums to consumption,
+  HH output length is always 48.
 
-Expected outcome: I and C customers reduce demand by 20-30 percent during
-the 3 Triad settlement periods per winter season. Triad charges decrease.
-The triad_exposure_register will show lower demand_t1 values for I and C
-customers who received notifications.
+## Target
+30 new tests, total 13,063.
+
+## Files to create
+- `tests/sim/test_phase_mv_coverage_cxx.py` — 30 tests
+
+## Epistemic note
+All three modules are pure physics/calibration — no company-layer reads,
+no PIT issues.
