@@ -80,3 +80,66 @@ class TestDebtAgeAnalysisRegister:
         reg.record(make_debt(days_old=15))
         s = reg.debt_age_summary(BASE_DATE)
         assert "Debt Age Analysis" in s
+
+
+# --- Phase MH depth tests ---
+
+def test_account_id_stored():
+    d = make_debt(days_old=10, amount=300.0, acct="ACC-MH")
+    assert d.account_id == "ACC-MH"
+
+
+def test_invoice_date_stored():
+    invoice = BASE_DATE - dt.timedelta(days=10)
+    d = AgedDebt(account_id="C1", invoice_date=invoice, outstanding_gbp=200.0)
+    assert d.invoice_date == invoice
+
+
+def test_outstanding_gbp_stored():
+    d = make_debt(days_old=5, amount=750.0)
+    assert d.outstanding_gbp == pytest.approx(750.0)
+
+
+def test_is_domestic_default_true():
+    d = make_debt(days_old=5)
+    assert d.is_domestic is True
+
+
+def test_days_overdue_computed():
+    d = make_debt(days_old=45)
+    assert d.days_overdue(BASE_DATE) == 45
+
+
+def test_record_returns_aged_debt():
+    reg = DebtAgeAnalysisRegister()
+    d = make_debt(days_old=10)
+    result = reg.record(d)
+    assert isinstance(result, AgedDebt)
+
+
+def test_debt_age_bucket_has_5_members():
+    assert len(list(DebtAgeBucket)) == 5
+
+
+def test_total_in_bucket_gbp():
+    reg = DebtAgeAnalysisRegister()
+    reg.record(make_debt(days_old=10, amount=100.0))  # CURRENT
+    reg.record(make_debt(days_old=15, amount=200.0))  # CURRENT
+    reg.record(make_debt(days_old=45, amount=500.0))  # 31-60
+    total = reg.total_in_bucket_gbp(DebtAgeBucket.CURRENT, BASE_DATE)
+    assert total == pytest.approx(300.0)
+
+
+def test_ecl_31_60_days_rate():
+    d = make_debt(days_old=45, amount=1000.0)
+    expected = 1000.0 * _PROVISION_RATE[DebtAgeBucket.DAYS_31_60]
+    assert d.ecl_provision_gbp(BASE_DATE) == pytest.approx(expected)
+
+
+def test_high_risk_debts_includes_over_180():
+    reg = DebtAgeAnalysisRegister()
+    reg.record(make_debt(days_old=10))    # CURRENT - not high risk
+    reg.record(make_debt(days_old=200))   # OVER_180 - high risk
+    high_risk = reg.high_risk_debts(BASE_DATE)
+    assert len(high_risk) == 1
+    assert high_risk[0].age_bucket(BASE_DATE) == DebtAgeBucket.OVER_180

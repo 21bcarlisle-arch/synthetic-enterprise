@@ -75,3 +75,64 @@ class TestEVDemandForecaster:
         fcast.add_forecast(make_forecast())
         s = fcast.ev_demand_summary()
         assert "EV Demand Forecaster" in s
+
+
+# --- Phase MH depth tests ---
+
+def test_forecast_year_stored():
+    f = make_forecast(year=2026)
+    assert f.forecast_year == 2026
+
+
+def test_ev_count_stored():
+    f = make_forecast(evs=250)
+    assert f.ev_count == 250
+
+
+def test_charging_pattern_stored():
+    f = make_forecast(pattern=ChargingPattern.UNMANAGED, smart=False)
+    assert f.charging_pattern == ChargingPattern.UNMANAGED
+
+
+def test_is_smart_charged_stored():
+    f = make_forecast(smart=False)
+    assert f.is_smart_charged is False
+
+
+def test_add_forecast_returns_ev_demand_forecast():
+    forecaster = EVDemandForecaster()
+    f = make_forecast()
+    result = forecaster.add_forecast(f)
+    assert isinstance(result, EVDemandForecast)
+
+
+def test_charging_pattern_has_3_members():
+    assert len(list(ChargingPattern)) == 3
+
+
+def test_total_annual_kwh_no_year_sums_all():
+    forecaster = EVDemandForecaster()
+    forecaster.add_forecast(make_forecast(year=2024, evs=100))
+    forecaster.add_forecast(make_forecast(year=2025, evs=50))
+    total = forecaster.total_annual_ev_kwh()
+    expected = 150 * _SMART_KWH_PER_EV_PER_YEAR
+    assert total == pytest.approx(expected)
+
+
+def test_forecast_for_year_returns_matching():
+    forecaster = EVDemandForecaster()
+    forecaster.add_forecast(make_forecast(year=2024, evs=100))
+    forecaster.add_forecast(make_forecast(year=2025, evs=200))
+    f = forecaster.forecast_for_year(2025)
+    assert f is not None and f.ev_count == 200
+
+
+def test_overnight_kwh_mixed_65pct():
+    f = make_forecast(evs=100, pattern=ChargingPattern.MIXED)
+    expected = f.annual_ev_kwh * 0.65
+    assert f.overnight_kwh == pytest.approx(expected)
+
+
+def test_peak_risk_kwh_equals_annual_minus_overnight():
+    f = make_forecast(evs=100, pattern=ChargingPattern.SMART)
+    assert f.peak_risk_kwh == pytest.approx(f.annual_ev_kwh - f.overnight_kwh)

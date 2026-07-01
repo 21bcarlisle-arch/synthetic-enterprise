@@ -180,3 +180,60 @@ def test_management_accounts_handles_empty_events():
     assert build_monthly_accounts([]) == {}
     assert annual_management_pack([]) == {}
     assert annual_management_pack([], opening_treasury=1000.0) == {}
+
+
+# --- Phase MH depth tests ---
+
+def test_cross_check_result_has_pass_key():
+    result = cross_check(100.0, 100.0)
+    assert "pass" in result
+
+
+def test_cross_check_result_has_journal_net_key():
+    result = cross_check(100.0, 105.0)
+    assert "journal_net_gbp" in result
+
+
+def test_cross_check_result_has_abs_diff_key():
+    result = cross_check(100.0, 105.0)
+    assert "abs_diff_gbp" in result
+
+
+def test_cross_check_result_has_variance_pct_key():
+    result = cross_check(100.0, 105.0)
+    assert "variance_pct" in result
+
+
+def test_cross_check_result_has_tolerance_pct_key():
+    result = cross_check(100.0, 100.0)
+    assert "tolerance_pct" in result
+
+
+def test_cross_check_zero_ledger_passes_when_diff_lt_1():
+    result = cross_check(0.5, 0.0)
+    assert result["pass"] is True
+
+
+def test_cross_check_abs_diff_computed():
+    result = cross_check(110.0, 100.0)
+    assert result["abs_diff_gbp"] == pytest.approx(10.0)
+
+
+def test_annual_pack_has_income_statement_key_per_year():
+    events = [_bill("C1", 100.0, "2022-06-01")]
+    pack = annual_management_pack(events)
+    assert "2022" in pack
+    assert "income_statement" in pack["2022"]
+
+
+def test_annual_pack_has_balance_sheet_key_per_year():
+    events = [_bill("C1", 100.0, "2022-06-01")]
+    pack = annual_management_pack(events)
+    assert "balance_sheet" in pack["2022"]
+
+
+def test_build_monthly_accounts_returns_dict():
+    events = [_bill("C1", 100.0, "2022-03-01")]
+    result = build_monthly_accounts(events)
+    assert isinstance(result, dict)
+    assert "2022" in result
