@@ -84,3 +84,75 @@ def test_dsr_summary():
     assert s['events'] == 1
     assert s['participating_customers'] == 1
     assert s['annual_revenue_gbp'] == pytest.approx(300.0)
+
+
+def test_compliance_rate_none_when_no_curtailments():
+    p = DSRPortfolio()
+    _make_event(p)
+    assert p.compliance_rate_pct('DSR001') is None
+
+
+def test_compliance_pct_zero_when_no_contracted():
+    c = CustomerCurtailment('IC001', 'DSR001', 0.0, 0.0)
+    assert c.compliance_pct == pytest.approx(0.0)
+
+
+def test_total_mwh_delivered_unknown_event():
+    p = DSRPortfolio()
+    assert p.total_mwh_delivered('UNKNOWN') == pytest.approx(0.0)
+
+
+def test_annual_revenue_year_filter():
+    p = DSRPortfolio()
+    _make_event(p)
+    p.record_curtailment('IC001', 'DSR001', 500.0, 500.0, revenue_gbp=400.0)
+    assert p.annual_revenue_gbp(2021) == pytest.approx(0.0)
+    assert p.annual_revenue_gbp(2022) == pytest.approx(400.0)
+
+
+def test_dsr_summary_total_target_mwh():
+    p = DSRPortfolio()
+    _make_event(p)  # target_mw=50, duration=2h → 100 MWh
+    s = p.dsr_summary(2022)
+    assert s['total_target_mwh'] == pytest.approx(100.0)
+
+
+def test_dsr_summary_participating_customers_unique():
+    p = DSRPortfolio()
+    _make_event(p)
+    p.record_curtailment('IC001', 'DSR001', 500.0, 500.0, revenue_gbp=100.0)
+    p.record_curtailment('IC001', 'DSR001', 200.0, 200.0, revenue_gbp=50.0)
+    s = p.dsr_summary(2022)
+    assert s['participating_customers'] == 1
+
+
+def test_event_type_stored():
+    p = DSRPortfolio()
+    ev = _make_event(p)
+    assert ev.event_type == DSREventType.GRID_STRESS
+
+
+def test_notice_given_minutes_stored():
+    p = DSRPortfolio()
+    ev = _make_event(p)
+    assert ev.notice_given_minutes == 60
+
+
+def test_annual_revenue_excludes_wrong_year():
+    p = DSRPortfolio()
+    # Create a 2023 event instead of 2022
+    p.create_event(
+        'DSR_2023', DSREventType.VOLUNTARY,
+        dt.datetime(2023, 5, 1, 10, 0), dt.datetime(2023, 5, 1, 11, 0),
+        target_mw=10.0, notice_minutes=60,
+    )
+    p.record_curtailment('IC001', 'DSR_2023', 100.0, 100.0, revenue_gbp=200.0)
+    assert p.annual_revenue_gbp(2022) == pytest.approx(0.0)
+
+
+def test_curtailment_95pct_boundary():
+    p = DSRPortfolio()
+    _make_event(p)
+    # exactly 95% → COMPLIED
+    c = p.record_curtailment('IC001', 'DSR001', 100.0, 95.0)
+    assert c.status == CurtailmentStatus.COMPLIED

@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase JO — Coverage Depth Sprint XXXVII (2026-07-01)
+**Modules:** dsr_portfolio · multisite_account · arrears_book
+**Tests added:** 30 (dsr_portfolio: compliance_rate None no-curtailments; compliance_pct zero no-contracted; total_mwh_delivered unknown=0; annual_revenue year filter; summary total_target_mwh; unique-customers; event_type stored; notice_minutes stored; revenue excludes wrong year; 95%-boundary=COMPLIED. multisite_account: peak_site None empty; remove False not-found; portfolio.get found/not-found; annual_mwh property; accounts_by_manager; largest_accounts sorted; add_site stored; credit_limit in summary; 33kV is_hv. arrears_book: ARR-0001/0002; cases_for_customer filter; cases_at_stage filter; outstanding capped at zero; days_open None when open; days_open when resolved; vulnerable flag; outstanding excludes written-off; write-off then advance raises; stage_date stored)
+**Total:** 10,530 tests
+
 ### Phase JN — Coverage Depth Sprint XXXVI (2026-07-01)
 **Modules:** contact_log · contact_journey · complaint_register
 **Tests added:** 30 (contact_log: contacts_for_customer empty; annual_summary by_reason multiple; avg_handle fallback to default; notes stored; escalated flag; resolved=False; channel stored; year filter; record returns ContactInteraction; not-escalated-by-default. contact_journey: CA-00001/00002 sequential; get_prefs found/not-found; SMS 4p/Phone 350p/IN_APP free; delivery_rate zero empty; cost year filter; summary year field; NO_ANSWER not successful. complaint_register: get found/not-found; open excludes resolved; overdue excludes resolved; ombudsman eligible day 56; refer_to_ombudsman status; total goodwill sum; upheld_rate None no-resolved; not-overdue 55d; vulnerable flag stored)
@@ -4619,7 +4624,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,500 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,530 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
