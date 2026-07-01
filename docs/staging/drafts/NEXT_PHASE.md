@@ -1,64 +1,89 @@
-# Proposed Phase MV -- EPC Fabric Efficiency: Heating Demand Now EPC-Dependent
+# Proposed Phase MV -- Economic Life Events: Income Stress in the SIM
 
-**Drafted:** 2026-07-01T11:40:00Z
-**4-hour opt-out window expires:** ~2026-07-01T15:40:00Z
-**Replaces:** Coverage Depth Sprint CXX proposal (coverage sprint; lower impact)
+**Drafted:** 2026-07-01T12:05:00Z
+**4-hour opt-out window expires:** ~2026-07-01T16:05:00Z
+**Replaces:** EPC Fabric Efficiency proposal (already implemented in simulation/household_demand.py)
 
 ## Summary
-Wire EPC rating into `simulation/demand_model.py` so that heating demand scales
-with insulation quality. EPC A customers use ~25% of the heating load of EPC G.
-Human Simulation Layer -- Dimension 1 (Physical), first increment.
+Add economic life events (job_loss, income_recovery, new_baby, retirement_starts) to
+the SIM life events engine. Wire these to an IncomeStress state on the Household
+dataclass. The SIM now knows when a customer is under financial pressure -- the company
+observes this only via payment timing (which Phase MW will wire). Human Simulation
+Layer -- Dimension 2 (Economic), first increment.
 
 ## Why now
-Gaps 1 (real forward curve) and 2 (Triad curtailment) are closed. Gap 3
-(Human Simulation Layer) is the only remaining capability gap. Coverage sprints
-add tests to existing working code; this adds a real physical relationship.
-
-The demand model (`simulation/demand_model.py`) already reads `property["epc_rating"]`
-from the property dict but does NOT use it -- GAS_HEATING_KWH_PER_DEGREE_DAY is
-a flat constant applied equally to all customers regardless of insulation.
-
-Real UK data (BRE/EPC Register): EPC A heat demand ~40 kWh/m2/yr,
-EPC D (UK average) ~110 kWh/m2/yr, EPC G ~250 kWh/m2/yr. These ratios
-give EPC fabric scalars relative to D: A=0.36, B=0.55, C=0.73, D=1.00,
-E=1.36, F=1.82, G=2.27.
+Physical life events (solar, EV, heat pump, boiler, insulation, smart meter) are all
+modelled (Phases A-G of the simulation). The EPC consumption multiplier is live.
+The remaining real gap is the economic dimension: the SIM has no model of income stress,
+job loss, or financial shocks. The canonical HSL scenario (new baby + reduced income ->
+payment timing slip -> company misreads as high-risk debtor) cannot happen in the SIM
+because economic life events do not fire.
 
 ## Epistemic note
-EPC rating is observable (public EPC Register). The company sees the customer's
-EPC rating and will observe higher-than-expected winter consumption from EPC G
-customers. The fabric scalar itself is a SIM internal -- company cannot read it
-directly (consistent with SIM/company barrier).
+IncomeStress is SIM ground truth. The company cannot read it directly -- it observes
+payment timing, complaint frequency, and debt escalation as downstream signals.
+Consistent with SIM/company barrier.
+
+## Calibration sources
+- DWP STAT-Xplore: UK employee job loss rate ~2.2%/yr (2016-2024 average)
+- ONS Birth Statistics: UK birth rate ~11/1000/yr -> ~1.1%/yr per household (resi)
+- ONS LFS: retirement transition rate ~3.5%/yr for 55-65 age band
+- Income recovery: median job loss duration ~4.5 months (ONS LFS 2023)
+All calibrated to resi customers only; SME/I&C customers are exempt from economic events.
+
+## IncomeStress state transitions
+  LOW (default) --job_loss--> HIGH
+  HIGH --income_recovery--> LOW (after ~5 months median)
+  LOW --new_baby--> MODERATE (new baby + partner income reduction)
+  MODERATE --income_recovery--> LOW (typically 12-18 months)
+  LOW --retirement_starts--> MODERATE (initial adjustment period)
+  MODERATE (retirement) --income_stabilised--> LOW (after 3 months pension stabilises)
 
 ## Files to modify
-- `simulation/demand_model.py`:
-  - Add `EPC_FABRIC_SCALAR: dict[str, float]` (A-G + fallback)
-  - Modify `build_demand_shape()` to multiply heating extra by
-    `EPC_FABRIC_SCALAR.get(property.get("epc_rating", "D"), 1.0)`
+- `simulation/household.py`:
+  - Add `IncomeStress(str, Enum)`: LOW / MODERATE / HIGH
+  - Add `income_stress: IncomeStress = IncomeStress.LOW` to Household dataclass
+  - Add `income_stress_at_events(events) -> IncomeStress` classmethod helper
+
+- `simulation/life_events.py`:
+  - Add to EventType: "job_loss", "income_recovery", "new_baby", "retirement_starts"
+  - Add `_job_loss_probability(year, segment) -> float`: ~0.022 for resi, 0 for SME/I&C
+  - Add `_new_baby_probability(year, segment) -> float`: ~0.011 for resi
+  - Add `_retirement_probability(year, segment, build_era) -> float`: era-calibrated
+  - Extend `generate_life_events()` to fire economic events alongside physical ones
+
+- `simulation/household_demand.py`:
+  - Add `income_stress_at_date(customer_id, date_str) -> IncomeStress` method
+    (reads from household_at_date, returns LOW if customer not in register)
 
 ## Files to create
-- `tests/sim/test_phase_mv_epc_fabric.py` -- 16 tests:
-  - epc_fabric_scalar_has_all_ratings (A through G)
-  - epc_A_below_1 (A customers use less than baseline)
-  - epc_D_is_1 (D is the baseline)
-  - epc_G_above_2 (G customers use more than 2x baseline)
-  - ordering_A_lt_B_lt_C_lt_D_lt_E_lt_F_lt_G
-  - unknown_epc_fallback_is_1
-  - gas_build_demand_epc_A_less_than_epc_G (high HDD scenario)
-  - gas_build_demand_epc_D_baseline
-  - gas_build_demand_zero_hdd_epc_irrelevant
-  - elec_heat_pump_epc_A_less_than_epc_G
-  - gas_epc_A_vs_G_ratio_approx_correct (ratio within 10% of scalar ratio)
-  - property_without_epc_key_falls_back
-  - build_demand_shape_unchanged_for_no_heating (cooling-only day)
-  - build_demand_shape_gas_peak_periods_correct (heating lands in morning/evening)
-  - occupancy_multiplier_still_applied_after_epc_scaling
-  - solar_still_subtracted_after_epc_scaling
+- `tests/sim/test_phase_mv_economic_life_events.py` -- 20 tests:
+  - IncomeStress enum has LOW/MODERATE/HIGH
+  - EventType includes job_loss, income_recovery, new_baby, retirement_starts
+  - job_loss_probability_resi_nonzero
+  - job_loss_probability_sme_zero (SME exempt)
+  - new_baby_probability_resi_nonzero
+  - retirement_probability_pre_1919_higher (older cohort retires sooner)
+  - generate_life_events_can_fire_job_loss (seeded RNG, verify at least 1 in 100)
+  - job_loss_event_transitions_to_HIGH
+  - income_recovery_after_job_loss_returns_to_LOW
+  - new_baby_transitions_to_MODERATE
+  - income_recovery_after_baby_returns_to_LOW
+  - retirement_transitions_to_MODERATE
+  - income_stabilised_returns_to_LOW
+  - no_economic_events_remains_LOW
+  - income_stress_at_date_unknown_customer_returns_LOW
+  - income_stress_at_date_after_job_loss_date_is_HIGH
+  - income_stress_at_date_before_job_loss_date_is_LOW
+  - multiple_events_replay_in_order
+  - sme_customer_no_economic_events
+  - stress_does_not_affect_existing_physical_events (independence)
 
 ## Target
-16 new tests, total 13,049.
+20 new tests, total 13,053.
 
 ## Impact
-Every simulated customer's winter gas bill now reflects their actual insulation
-quality. EPC G customers cost the supplier more in cold winters (higher volume
-risk). EPC A customers are lower-risk but also lower-revenue. Opens the door to
-tariff differentiation by EPC band (a real UK pricing strategy).
+The SIM now models income shocks. Phase MW (to follow) will wire IncomeStress to
+payment timing in the settlement loop. The canonical HSL scenario becomes possible:
+job_loss fires in month 3, customer transitions to HIGH stress, late payment in
+month 4, company observes (not reads), and service layer must respond correctly.
