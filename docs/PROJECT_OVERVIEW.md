@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 435+ commits. 10,680 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 10,710 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase JU -- Coverage Depth Sprint XLIII (2026-07-01)
+**Modules:** revenue_accruals · dsr_book · portal_analytics
+**Tests added:** 30 (revenue_accruals: period_days single-day=1; accrual_ratio None empty; entries_in_period overlap-start; overlap-end; billed_excludes_accrued; accrued_excludes_billed; by_type exit_fee; monthly_summary December; multiple_customers_total; commodity stored. dsr_book: DSR-0001 first; DSR-0001/0002 sequential; 95%=DELIVERED; below-95%=PARTIAL; payment=mwh*rate; duration_hours=2h; delivered_mwh=6 at 3h; events_for_customer filter; delivery_rate_year None empty; 100% rate on full delivery. portal_analytics: PE-000001 first; PE-000001/000002 sequential; CHANGE_DIRECT_DEBIT=self_serve; ENROL_PAPERLESS=self_serve; LOGIN=not_self_serve; VIEW_BILL=not_self_serve; self_serve_rate None empty; events_in_period action filter; unique_users same-customer=1; monthly_summary year/month fields)
+**Total:** 10,710 tests
 
 ### Phase JT -- Coverage Depth Sprint XLII (2026-07-01)
 **Modules:** credit_facility · switch_governance · licence_health
@@ -4650,7 +4655,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 10,680 tests (fast / ~10s; simulation integration ~8 min per run)
+- 10,710 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
