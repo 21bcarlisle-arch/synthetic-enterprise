@@ -66,3 +66,55 @@ def test_summary_includes_rag_counts():
     assert 'red' in s
     assert 'overall_status' in s
     assert len(s['kpis']) == 7
+
+
+# --- Phase KV depth tests ---
+
+def test_kpi_name_stored():
+    k = KPIValue(name='Revenue', value=1_000_000.0, unit='GBP', target=1_000_000.0)
+    assert k.name == 'Revenue'
+
+
+def test_kpi_value_stored():
+    k = KPIValue(name='Revenue', value=950_000.0, unit='GBP', target=1_000_000.0)
+    assert k.value == pytest.approx(950_000.0)
+
+
+def test_kpi_unit_stored():
+    k = KPIValue(name='Revenue', value=1.0, unit='GBP', target=1.0)
+    assert k.unit == 'GBP'
+
+
+def test_kpi_target_stored():
+    k = KPIValue(name='Rev', value=1.0, unit='GBP', target=2.0)
+    assert k.target == pytest.approx(2.0)
+
+
+def test_vs_target_pct_exact():
+    k = KPIValue(name='Rev', value=90.0, unit='GBP', target=100.0)
+    assert k.vs_target_pct == pytest.approx(-10.0)
+
+
+def test_vs_target_pct_zero_target():
+    k = KPIValue(name='Rev', value=10.0, unit='GBP', target=0.0)
+    assert k.vs_target_pct == pytest.approx(0.0)
+
+
+def test_dashboard_year_stored():
+    dash = _make_dashboard()
+    assert dash.year == 2023
+
+
+def test_dashboard_quarter_stored():
+    dash = _make_dashboard()
+    assert dash.quarter == 2
+
+
+def test_dashboard_has_kpis():
+    dash = _make_dashboard()
+    assert len(dash.kpis) > 0
+
+
+def test_get_kpi_not_found_returns_none():
+    dash = _make_dashboard()
+    assert dash.get_kpi('nonexistent_kpi_xyz') is None

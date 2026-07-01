@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,490 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,520 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KV -- Coverage Depth Sprint LXX (2026-07-01)
+30 depth tests across 3 modules: moa_charges (mpan/meter_type/year/days_365/charge_proportional/smets1_2022=24/ppm>trad/amr_highest/portfolio_zero_empty/daily_is_float), board_kpis (kpi_name/value/unit/target/vs_pct_exact/vs_pct_zero_target/year/quarter/has_kpis/get_none), company_pl (year/revenue/wholesale/policy/network/opex/bad_debt/gross_margin_formula/opex_includes_bad_debt/summary_dict).
+**Total:** 11,520 tests
 
 ### Phase KU -- Coverage Depth Sprint LXIX (2026-07-01)
 30 depth tests across 3 modules: contract_manager (contract_id/customer_id/mpan/unit_rate/standing_charge/annual_qty/start_date/end_date/active_list/notice_none), fuel_mix (2022_renewable=40.5/nuclear/gas/coal/other/summary_year/mix_dict/renewable_pct/fossil_pos/2025_low_carbon>50), renewal_engine (customer_id_in_pack/expiry_date/days_to_expiry/spot_price/each_customer_id/tariff_type/unit_rate/standing_charge/recommended_one/sme>ic).
@@ -4776,7 +4780,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,490 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,520 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

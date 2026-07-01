@@ -60,3 +60,55 @@ def test_partial_year_charge():
 
 
 import pytest
+
+
+# --- Phase KV depth tests ---
+
+def test_mpan_stored_on_invoice_line():
+    lines = calculate_moa_charges([{"mpan_or_mprn": "MP001", "meter_type": "TRAD"}], 2022)
+    assert lines[0].mpan_or_mprn == "MP001"
+
+
+def test_meter_type_stored_on_invoice_line():
+    lines = calculate_moa_charges([{"mpan_or_mprn": "MP001", "meter_type": "SMETS2"}], 2022)
+    assert lines[0].meter_type == "SMETS2"
+
+
+def test_year_stored_on_invoice_line():
+    lines = calculate_moa_charges([{"mpan_or_mprn": "MP001", "meter_type": "TRAD"}], 2020)
+    assert lines[0].year == 2020
+
+
+def test_days_in_period_default_365():
+    lines = calculate_moa_charges([{"mpan_or_mprn": "MP001", "meter_type": "TRAD"}], 2022)
+    assert lines[0].days_in_period == 365
+
+
+def test_charge_gbp_proportional_to_days():
+    full = calculate_moa_charges([{"mpan_or_mprn": "MP001", "meter_type": "TRAD", "days_in_period": 365}], 2022)
+    half = calculate_moa_charges([{"mpan_or_mprn": "MP001", "meter_type": "TRAD", "days_in_period": 182}], 2022)
+    assert full[0].charge_gbp > half[0].charge_gbp
+
+
+def test_smets1_annual_charge_2022():
+    rate = get_moa_annual_charge("SMETS1", 2022)
+    assert rate == pytest.approx(24.0)
+
+
+def test_ppm_higher_than_trad():
+    assert get_moa_annual_charge("PPM", 2022) > get_moa_annual_charge("TRAD", 2022)
+
+
+def test_amr_highest_rate():
+    amr = get_moa_annual_charge("AMR", 2022)
+    smets2 = get_moa_annual_charge("SMETS2", 2022)
+    assert amr > smets2
+
+
+def test_portfolio_cost_zero_empty():
+    assert moa_portfolio_cost([], 2022) == pytest.approx(0.0)
+
+
+def test_daily_charge_is_float():
+    result = get_moa_daily_charge("TRAD", 2022)
+    assert isinstance(result, float)

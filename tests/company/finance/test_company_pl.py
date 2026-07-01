@@ -85,3 +85,56 @@ def test_summary_keys():
     assert 'ebitda_margin_pct' in s
     assert 'bad_debt_as_pct_revenue' in s
     assert 'is_profitable' in s
+
+
+# --- Phase KV depth tests ---
+
+def _pl():
+    return build_company_pl(
+        year=2022, revenue_gbp=5_000_000.0, wholesale_cost_gbp=3_500_000.0,
+        policy_cost_gbp=200_000.0, network_cost_gbp=300_000.0,
+        operating_cost_gbp=400_000.0, bad_debt_gbp=50_000.0,
+    )
+
+
+def test_year_stored():
+    assert _pl().year == 2022
+
+
+def test_revenue_stored():
+    assert _pl().revenue_gbp == pytest.approx(5_000_000.0)
+
+
+def test_wholesale_cost_stored():
+    assert _pl().wholesale_cost_gbp == pytest.approx(3_500_000.0)
+
+
+def test_policy_cost_stored():
+    assert _pl().policy_cost_gbp == pytest.approx(200_000.0)
+
+
+def test_network_cost_stored():
+    assert _pl().network_cost_gbp == pytest.approx(300_000.0)
+
+
+def test_operating_cost_stored():
+    assert _pl().operating_cost_gbp == pytest.approx(400_000.0)
+
+
+def test_bad_debt_stored():
+    assert _pl().bad_debt_gbp == pytest.approx(50_000.0)
+
+
+def test_gross_margin_gbp_formula():
+    expected = 5_000_000.0 - 3_500_000.0 - 200_000.0 - 300_000.0
+    assert _pl().gross_margin_gbp == pytest.approx(expected)
+
+
+def test_total_opex_includes_bad_debt():
+    assert _pl().total_operating_cost_gbp >= _pl().bad_debt_gbp
+
+
+def test_summary_is_dict():
+    s = _pl().summary()
+    assert isinstance(s, dict)
+    assert 'year' in s

@@ -1,5 +1,5 @@
-Phase KU: Coverage Depth Sprint LXIX (11,490 tests)
-Last updated: 2026-07-01T05:08:50Z
+Phase KV: Coverage Depth Sprint LXX (11,520 tests)
+Last updated: 2026-07-01T05:11:31Z
 
 **Latest simulation results (2016–2025)** — auto-processed (448s / 7 min):
 - Net margin: £6,239,245.03 | Gross: £6,475,913.39 | Capital: £236,668
