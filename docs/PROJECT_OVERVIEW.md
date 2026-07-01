@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,940 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,970 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LK -- Coverage Depth Sprint LXXXV (2026-07-01)
+30 depth tests across 3 modules: vulnerability_register (flags/date/notes_empty/fuel_poverty=3/job_loss=2/language=1/get_none/whd_assessment/psr_false_fuel_poverty/no_disconnect_false_elderly), margin_call_book (call_id/date/counterparty/contract_id/initial/variation/deadline/status_received/calls_for_date/record_returns), bsuos_ledger (account_id/period/mwh/rate/2016=2.10/2025=3.80/fallback=3.50/charges_for_account/total_no_filter/2020_not_crisis).
+**Total:** 11,970 tests
 
 ### Phase LJ -- Coverage Depth Sprint LXXXIV (2026-07-01)
 30 depth tests across 3 modules: life_events (customer_id/event_type/event_date/notes_empty/occupancy_delta_zero/death_triggers_vulnerability/move_out_triggers_cot/retirement_triggers_psr/pending_psr_reviews/annual_summary_year), notification_prefs (set_returns_pref/channel/pref_type/updated_date/source_customer/for_customer_list/get_none_unknown/sms_service_denied/summary_marketing_key/service_channels_list), supply_point_register (identifier/account_id/fuel_elec/profile_class/start_date/annual_quantity/gas_pc_none/points_for_account/profile_breakdown/register_returns).
@@ -4836,7 +4840,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,940 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,970 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

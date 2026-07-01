@@ -70,3 +70,59 @@ def test_peak_rate_year_is_2022():
     ledger = BSUoSLedger()
     s = ledger.bsuos_summary()
     assert s["peak_rate_year"] == 2022
+
+
+# --- Phase LK depth tests ---
+
+def test_account_id_stored():
+    c = _charge(aid="ACCT_LK")
+    assert c.account_id == "ACCT_LK"
+
+
+def test_charge_period_stored():
+    c = _charge(period="2023-04")
+    assert c.charge_period == "2023-04"
+
+
+def test_consumption_mwh_stored():
+    c = _charge(mwh=250.0)
+    assert c.consumption_mwh == pytest.approx(250.0)
+
+
+def test_rate_stored():
+    c = _charge(rate=4.20)
+    assert c.rate_gbp_per_mwh == pytest.approx(4.20)
+
+
+def test_rate_2016_exact():
+    assert BSUoSLedger.rate_for_year(2016) == pytest.approx(2.10)
+
+
+def test_rate_2025_exact():
+    assert BSUoSLedger.rate_for_year(2025) == pytest.approx(3.80)
+
+
+def test_rate_unknown_fallback():
+    assert BSUoSLedger.rate_for_year(2010) == pytest.approx(3.50)
+
+
+def test_charges_for_account():
+    ledger = BSUoSLedger()
+    ledger.record_charge(_charge(aid="C1", period="2022-01"))
+    ledger.record_charge(_charge(aid="C2", period="2022-02"))
+    ledger.record_charge(_charge(aid="C1", period="2022-03"))
+    c1 = ledger.charges_for_account("C1")
+    assert len(c1) == 2
+
+
+def test_total_charged_no_filter():
+    ledger = BSUoSLedger()
+    ledger.record_charge(_charge(mwh=100.0, rate=2.10))
+    ledger.record_charge(_charge(mwh=100.0, rate=6.85))
+    total = ledger.total_charged_gbp()
+    assert total == pytest.approx(895.0)
+
+
+def test_is_crisis_2020_false():
+    c = _charge(period="2020-06")
+    assert c.is_crisis_period is False

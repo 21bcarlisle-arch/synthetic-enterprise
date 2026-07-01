@@ -80,3 +80,61 @@ def test_stress_events():
     book.record_call(_call(cid="MC001", var=1_000_000.0))
     book.record_call(_call(cid="MC002", var=100_000.0))
     assert len(book.stress_events()) == 1
+
+
+# --- Phase LK depth tests ---
+
+def test_call_id_stored():
+    c = _call(cid="MC_LK_001")
+    assert c.call_id == "MC_LK_001"
+
+
+def test_call_date_stored():
+    c = _call(date="2022-10-01")
+    assert c.call_date == "2022-10-01"
+
+
+def test_counterparty_stored():
+    c = _call(cpty="DEUTSCHE")
+    assert c.counterparty == "DEUTSCHE"
+
+
+def test_contract_id_stored():
+    c = _call(contract="FWD_LK_001")
+    assert c.contract_id == "FWD_LK_001"
+
+
+def test_initial_margin_stored():
+    c = _call(init=250_000.0)
+    assert c.initial_margin_gbp == pytest.approx(250_000.0)
+
+
+def test_variation_margin_stored():
+    c = _call(var=600_000.0)
+    assert c.variation_margin_gbp == pytest.approx(600_000.0)
+
+
+def test_settlement_deadline_stored():
+    c = _call(deadline="2022-09-17")
+    assert c.settlement_deadline == "2022-09-17"
+
+
+def test_status_default_received():
+    c = _call()
+    assert c.status == MarginCallStatus.RECEIVED
+
+
+def test_calls_for_date():
+    book = MarginCallBook()
+    book.record_call(_call(cid="MC001", date="2022-09-15"))
+    book.record_call(_call(cid="MC002", date="2022-09-16"))
+    calls = book.calls_for_date("2022-09-15")
+    assert len(calls) == 1
+    assert calls[0].call_id == "MC001"
+
+
+def test_record_call_returns_call():
+    book = MarginCallBook()
+    c = _call()
+    result = book.record_call(c)
+    assert result is c
