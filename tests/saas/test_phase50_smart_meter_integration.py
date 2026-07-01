@@ -93,3 +93,17 @@ class TestMakeAcquiredCustomerSmartMeter:
         pct_2016 = sum(results_2016) / len(results_2016)
         pct_2024 = sum(results_2024) / len(results_2024)
         assert pct_2024 > pct_2016
+
+
+
+class TestSmartMeterConstants:
+    def test_asset_profile_has_c1(self):
+        assert "C1" in ASSET_PROFILE_BY_CUSTOMER
+
+    def test_get_smart_meter_status_returns_bool(self):
+        result = get_smart_meter_status("C1", 2020, "resi")
+        assert isinstance(result, bool)
+
+    def test_get_smart_meter_status_acquired_returns_bool(self):
+        result = get_smart_meter_status("CNEW_99", 2020, "resi")
+        assert isinstance(result, bool)

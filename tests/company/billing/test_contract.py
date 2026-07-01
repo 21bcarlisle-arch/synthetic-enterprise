@@ -79,3 +79,19 @@ def test_dashboard_template_has_renewal_block():
         html = f.read()
     assert "renewal" in html
     assert "days_until_renewal" in html or "days" in html
+
+
+def test_contract_end_date_returns_date_object():
+    end = contract_end_date(_customer("fixed_1yr"), as_of=_PIVOT)
+    from datetime import date as _date
+    assert isinstance(end, _date)
+
+
+def test_days_until_variable_returns_none():
+    days = days_until_renewal(_customer("variable"), as_of=_PIVOT)
+    assert days is None
+
+
+def test_renewal_summary_returns_dict():
+    s = renewal_summary(_customer("fixed_1yr"), as_of=_PIVOT)
+    assert isinstance(s, dict)

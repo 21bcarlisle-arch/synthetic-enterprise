@@ -48,3 +48,18 @@ def test_base_id_no_suffix():
 
 def test_base_id_single_char():
     assert _base_id("g") == "g"
+
+
+def test_tariff_unknown_segment_defaults_to_resi():
+    result = _tariff("unknown", "electricity")
+    assert isinstance(result, str)
+    assert len(result) > 0
+
+
+def test_meter_unknown_defaults_to_smart():
+    result = _meter("unknown")
+    assert isinstance(result, str)
+
+
+def test_base_id_strips_trailing_g_only():
+    assert _base_id("Cgg") == "Cg"

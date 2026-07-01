@@ -124,3 +124,18 @@ def test_launch_turn_skips_during_usage_limit(monkeypatch):
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
         autonomous_runner.launch_turn()
         mock_popen.assert_not_called()
+
+
+def test_max_turns_per_hour_is_positive():
+    assert autonomous_runner.MAX_TURNS_PER_HOUR > 0
+
+
+def test_turn_times_is_deque():
+    from collections import deque
+    assert isinstance(autonomous_runner._turn_times, deque)
+
+
+def test_turns_in_last_hour_returns_int():
+    autonomous_runner._turn_times.clear()
+    result = autonomous_runner.turns_in_last_hour()
+    assert isinstance(result, int)

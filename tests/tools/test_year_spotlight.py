@@ -70,3 +70,19 @@ def test_meta_has_generated_at(dash):
 
 def test_financial_annual_has_10_years(dash):
     assert len(dash["financial"]["annual"]) == 10
+
+
+def test_book_annual_all_rows_have_year(dash):
+    for row in dash["customers"]["book_annual"]:
+        assert "year" in row
+
+
+def test_operations_monthly_has_is_crisis_key(dash):
+    if dash.get("operations") and dash["operations"].get("monthly"):
+        for row in dash["operations"]["monthly"][:5]:
+            assert "is_crisis" in row
+
+
+def test_trading_hedge_annual_has_hf_key(dash):
+    for row in dash["trading"]["hedge_annual"]:
+        assert "avg_hf" in row

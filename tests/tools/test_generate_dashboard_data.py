@@ -104,3 +104,17 @@ def test_extract_financial_annual_keys():
 def test_extract_financial_empty_years():
     r = extract_financial({"years": {}, "ledger_pnl": {}})
     assert r["annual"] == []
+
+
+def test_fmt_negative_value():
+    assert _fmt(-5.5) == -5.5
+
+
+def test_extract_portfolio_returns_dict():
+    r = extract_portfolio(_portfolio_data())
+    assert isinstance(r, dict)
+
+
+def test_extract_financial_annual_is_list():
+    r = extract_financial(_financial_data())
+    assert isinstance(r["annual"], list)

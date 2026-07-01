@@ -98,3 +98,20 @@ def test_shock_count_zero_when_no_shocks():
     mar = next(m for m in r["monthly"] if m["month"] == "2022-03")
     assert mar["shock_count"] == 0
     assert mar["avg_shock_pct"] == 0.0
+
+
+def test_monthly_is_list():
+    r = extract_monthly_ops(_data())
+    assert isinstance(r["monthly"], list)
+
+
+def test_monthly_row_has_month_key():
+    r = extract_monthly_ops(_data())
+    for row in r["monthly"]:
+        assert "month" in row
+
+
+def test_shock_count_is_int():
+    r = extract_monthly_ops(_data())
+    jan = next(m for m in r["monthly"] if m["month"] == "2022-01")
+    assert isinstance(jan["shock_count"], int)

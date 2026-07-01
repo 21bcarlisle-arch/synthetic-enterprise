@@ -153,3 +153,39 @@ def test_contract_boundary_exclusive_right():
         system_price_records=_price_records("2023-01-01"),
     )
     assert len(result) == 0
+
+
+def test_run_settlement_returns_list():
+    result = run_settlement(
+        customers=[],
+        start_date="2022-01-01",
+        end_date="2022-01-01",
+        consumption_shape=_flat_shape(),
+        system_price_records=_price_records("2022-01-01"),
+    )
+    assert isinstance(result, list)
+
+
+def test_settlement_date_in_record():
+    result = run_settlement(
+        customers=[{"customer_id": "C1", "acquisition_date": "2022-01-01", "unit_rate_gbp_per_mwh": 100.0}],
+        start_date="2022-01-01",
+        end_date="2022-01-01",
+        consumption_shape=_flat_shape(),
+        system_price_records=_price_records("2022-01-01"),
+    )
+    assert all(r["settlement_date"] == "2022-01-01" for r in result)
+
+
+def test_higher_unit_rate_higher_revenue():
+    def _make_result(rate):
+        return run_settlement(
+            customers=[{"customer_id": "C1", "acquisition_date": "2022-01-01", "unit_rate_gbp_per_mwh": rate}],
+            start_date="2022-01-01",
+            end_date="2022-01-01",
+            consumption_shape=_flat_shape(1.0),
+            system_price_records=_price_records("2022-01-01", price=60.0),
+        )
+    low = sum(r["revenue_gbp"] for r in _make_result(80.0))
+    high = sum(r["revenue_gbp"] for r in _make_result(200.0))
+    assert high > low
