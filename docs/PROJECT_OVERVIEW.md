@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 441+ commits. 13,949 tests passing. Codebase: ~47,700 lines across 303+ Python modules.*
+*Last updated: 2026-07-02. 442+ commits. 14,485 tests passing. Codebase: ~47,800 lines across 304+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase MW -- Income Stress to Observed Payment Behaviour (2026-07-02)
+25 tests. simulation/payment_timing.py (new): _PAYMENT_DELAY_DAYS (LOW 7-14d, MODERATE 14-45d, HIGH 30-90d); _DD_FAILURE_PROBABILITY (LOW 3%, MODERATE 12%, HIGH 35%); _ON_TIME_PROBABILITY (LOW 92%, MODERATE 50%, HIGH 10%); _BAD_DEBT_MULTIPLIER (LOW 1.0x, MODERATE 1.5x, HIGH 3.0x); stress_bad_debt_multiplier(income_stress) -> float; generate_payment_record(customer_id, due_date, amount_gbp, income_stress, rng) -> dict with result ON_TIME/LATE/DD_FAILED. simulation/run_phase2b.py: at each term, look up income_stress_at_date via household_demand_register and multiply get_bad_debt_rate() by stress_bad_debt_multiplier(). Epistemic note: income_stress is SIM ground truth; payment records (due_date, payment_date, result) are observable signals. The canonical HSL scenario (job_loss -> HIGH stress -> late payments -> company observes) is now end-to-end testable.
+**Total:** 14,485 tests
 
 ### Phase MV -- Economic Life Events (2026-07-01)
 20 tests. Added IncomeStress(str, Enum) with LOW/MODERATE/HIGH to simulation/household.py. Added income_stress field (default LOW) to frozen Household dataclass. Extended EventType Literal with job_loss, income_recovery, new_baby, retirement_starts. Added probability tables: _JOB_LOSS_ANNUAL_PROB=0.022, _INCOME_RECOVERY_ANNUAL_PROB=0.50, _NEW_BABY_ANNUAL_PROB=0.011, _RETIREMENT_PROB_BY_ERA (ERA_1945_1964=0.035 peak). Extended generate_life_events() with econ_rng (separate from physical-event rng to preserve existing RNG sequence). Extended apply_events() to handle all 4 new event types. Added income_stress_at_date() to HouseholdDemandRegister.
@@ -4988,7 +4992,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 13,033 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,485 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

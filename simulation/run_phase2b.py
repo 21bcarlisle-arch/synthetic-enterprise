@@ -82,6 +82,7 @@ from sim.system_prices_history import get_system_prices_range
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.customer_events import roll_lifecycle_event
 from saas.cost_to_serve import get_bad_debt_rate
+from simulation.payment_timing import stress_bad_debt_multiplier
 from simulation.demand_model import build_demand_shape, solar_generation_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
@@ -1362,6 +1363,13 @@ def main(report_end: str | None = None, sim_interface=None):
             for rec in term_records:
                 rec["data_regime"] = "historical"
 
+        # Phase MW: income stress bad-debt uplift (residential only).
+        _income_stress = (
+            household_demand_register.income_stress_at_date(cid, term_end_str)
+            if household_demand_register is not None else None
+        )
+        _stress_bd_mult = stress_bad_debt_multiplier(_income_stress)
+
         settled_this_term: list[dict] = []
         for rec in term_records:
             rec_year = rec["settlement_date"][:4]
@@ -1379,7 +1387,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 fixed_cost_events.append(make_fixed_cost_event(rec_month, FIXED_COST_MONTHLY))
                 _fixed_cost_emitted.add(rec_month)
 
-            _bd_rate = get_bad_debt_rate(int(rec_year), cust_segment)
+            _bd_rate = get_bad_debt_rate(int(rec_year), cust_segment) * _stress_bd_mult
             _bad_debt = round(rec.get("revenue_gbp", 0.0) * _bd_rate, 6)
             rec["bad_debt_gbp"] = _bad_debt
             rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - _bad_debt, 6)
