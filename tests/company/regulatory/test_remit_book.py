@@ -87,3 +87,55 @@ def test_remit_summary_keys():
     s = book.remit_summary()
     for k in ("total_reports", "pending", "compliance_rate_pct", "large_trades"):
         assert k in s
+
+
+# --- Phase LE depth tests ---
+
+def test_report_id_stored():
+    r = _report(rid='R_LE')
+    assert r.report_id == 'R_LE'
+
+
+def test_trade_id_stored():
+    r = _report(tid='T_LE')
+    assert r.trade_id == 'T_LE'
+
+
+def test_product_type_stored():
+    r = _report(pt=REMITProductType.GAS_FORWARD)
+    assert r.product_type == REMITProductType.GAS_FORWARD
+
+
+def test_volume_stored():
+    r = _report(vol=200.0)
+    assert r.volume_mwh == pytest.approx(200.0)
+
+
+def test_price_stored():
+    r = _report(price=150.0)
+    assert r.price_gbp_per_mwh == pytest.approx(150.0)
+
+
+def test_counterparty_stored():
+    r = _report(cpty='HSBC_ENERGY')
+    assert r.counterparty == 'HSBC_ENERGY'
+
+
+def test_status_default_pending():
+    r = _report()
+    assert r.status == REMITStatus.PENDING
+
+
+def test_is_submitted_false_when_pending():
+    r = _report()
+    assert r.is_submitted is False
+
+
+def test_notional_zero_zero_volume():
+    r = _report(vol=0.0)
+    assert r.notional_value_gbp == pytest.approx(0.0)
+
+
+def test_is_large_trade_false_below_100():
+    r = _report(vol=50.0)
+    assert r.is_large_trade is False

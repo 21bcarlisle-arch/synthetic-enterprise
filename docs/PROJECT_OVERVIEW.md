@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,760 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,790 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase LE -- Coverage Depth Sprint LXXIX (2026-07-01)
+30 depth tests across 3 modules: eco_tracker (account_count/scheme_year/no_contrib/must_deliver/not_exempt/measure_id/type/customer_id/score/measures_empty), price_cap (2022Q1_elec=28.34/2022Q1_gas=7.37/2024Q1_exists/2019Q1_17.14/quarter/supplier_rate/cap_rate/headroom/compliant_true/compliant_false), remit_book (report_id/trade_id/product/volume/price/counterparty/pending/not_submitted/zero_notional/not_large).
+**Total:** 11,790 tests
 
 ### Phase LD -- Coverage Depth Sprint LXXVIII (2026-07-01)
 30 depth tests across 3 modules: cost_to_serve (account_id/year/segment/consumption_mwh/wholesale/kwh_x1000/levy_sum/support_pos/billing_pos/bad_debt), eco_obligation (delivery_id/phase/year/customer_id/category/co2/cost/fuel_poor/year_empty/record_returns), licence_monitor (slc_number/status/evidence/description_str/get_none/breaches_empty/monitor_empty/summary_dict/has_rag/all_valid_statuses).
@@ -4812,7 +4816,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,760 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,790 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

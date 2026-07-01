@@ -80,3 +80,55 @@ def test_summary_structure():
     s = t.summary()
     for k in ("annual_obligation_twhd", "delivered_twhd", "shortfall_twhd", "completion_pct", "status"):
         assert k in s
+
+
+# --- Phase LE depth tests ---
+
+def test_account_count_stored():
+    t = EcoTracker(account_count=5000)
+    assert t._account_count == 5000
+
+
+def test_scheme_year_stored():
+    t = EcoTracker(account_count=5000, scheme_year=2025)
+    assert t._scheme_year == 2025
+
+
+def test_small_supplier_pays_no_contribution():
+    t = _tracker_small()
+    assert t.pays_contribution is False
+
+
+def test_full_must_deliver():
+    t = _tracker_full()
+    assert t.must_deliver_directly is True
+
+
+def test_contribution_not_exempt():
+    t = _tracker_contrib()
+    assert t.is_exempt is False
+
+
+def test_measure_id_stored():
+    m = EcoMeasure('M_LE', 'loft_insulation_100mm', 'C1', 'Addr', '2024-01-01', 65.0, 500.0)
+    assert m.measure_id == 'M_LE'
+
+
+def test_measure_type_stored():
+    m = EcoMeasure('M1', 'cavity_wall_insulation', 'C1', 'Addr', '2024-01-01', 95.0, 600.0)
+    assert m.measure_type == 'cavity_wall_insulation'
+
+
+def test_measure_customer_id_stored():
+    m = EcoMeasure('M1', 'loft_insulation_100mm', 'C_LE', 'Addr', '2024-01-01', 65.0, 500.0)
+    assert m.customer_id == 'C_LE'
+
+
+def test_measure_score_stored():
+    m = EcoMeasure('M1', 'loft_insulation_100mm', 'C1', 'Addr', '2024-01-01', 80.0, 500.0)
+    assert m.score_twhd == 80.0
+
+
+def test_eco_tracker_measures_empty_initially():
+    t = EcoTracker(account_count=300_000)
+    assert len(t._measures) == 0
