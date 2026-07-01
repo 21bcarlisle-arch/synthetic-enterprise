@@ -149,3 +149,60 @@ class TestPassThroughSpotBilling:
         # energy component of bill should reflect crisis spot
         energy_billed = r["revenue_gbp"] - r["gas_policy_cost_gbp"] - r["gas_network_cost_gbp"]
         assert energy_billed > daily_mwh * (crisis_spot + GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH) * 0.99
+
+
+    def test_service_fee_constant_is_2_gbp_per_mwh(self):
+        from simulation.gas_settlement import GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH
+        assert GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH == 2.0
+
+    def test_pass_through_multi_day_returns_one_record_per_day(self):
+        from simulation.gas_settlement import run_gas_term
+        recs = run_gas_term(
+            customer_id="T",
+            term_start="2021-01-01",
+            term_end="2021-01-04",
+            aq_kwh=5_000_000,
+            unit_rate_gbp_mwh=30.0,
+            hedge_fraction=0.0,
+            forward_price=30.0,
+            monthly_cost_of_capital_gbp=0.0,
+            gas_price_records=_make_gas_records("2021-01-01", 3, 30.0),
+            segment="I&C",
+            pass_through=True,
+        )
+        assert len(recs) == 3
+
+    def test_pass_through_commodity_is_gas(self):
+        from simulation.gas_settlement import run_gas_term
+        recs = run_gas_term(
+            customer_id="T",
+            term_start="2021-01-01",
+            term_end="2021-01-02",
+            aq_kwh=5_000_000,
+            unit_rate_gbp_mwh=30.0,
+            hedge_fraction=0.0,
+            forward_price=30.0,
+            monthly_cost_of_capital_gbp=0.0,
+            gas_price_records=_make_gas_records("2021-01-01", 1, 30.0),
+            segment="I&C",
+            pass_through=True,
+        )
+        assert all(r["commodity"] == "gas" for r in recs)
+
+    def test_pass_through_revenue_positive_at_any_spot(self):
+        from simulation.gas_settlement import run_gas_term
+        for spot in [10.0, 50.0, 200.0]:
+            recs = run_gas_term(
+                customer_id="T",
+                term_start="2021-01-01",
+                term_end="2021-01-02",
+                aq_kwh=5_000_000,
+                unit_rate_gbp_mwh=30.0,
+                hedge_fraction=0.0,
+                forward_price=30.0,
+                monthly_cost_of_capital_gbp=0.0,
+                gas_price_records=_make_gas_records("2021-01-01", 1, spot),
+                segment="I&C",
+                pass_through=True,
+            )
+            assert recs[0]["revenue_gbp"] > 0

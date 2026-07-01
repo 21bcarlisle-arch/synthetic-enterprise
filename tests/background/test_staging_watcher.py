@@ -66,3 +66,48 @@ def test_check_once_persists_seen_state(tmp_path, monkeypatch):
     watcher.check_once(set())
 
     assert watcher.load_seen() == {"TASK_NEW.md"}
+
+
+def test_current_files_finds_md_files(tmp_path, monkeypatch):
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    (tmp_path / "from_rich_001.md").write_text("hello")
+    (tmp_path / "run_complete_001.md").write_text("done")
+
+    result = watcher.current_files()
+    assert "from_rich_001.md" in result
+    assert "run_complete_001.md" in result
+
+
+def test_save_seen_overwrites_previous(tmp_path, monkeypatch):
+    state_file = tmp_path / "seen.json"
+    monkeypatch.setattr(watcher, "STATE_FILE", state_file)
+
+    watcher.save_seen({"OLD.md"})
+    watcher.save_seen({"NEW.md"})
+
+    assert watcher.load_seen() == {"NEW.md"}
+
+
+def test_check_once_notifies_for_multiple_new_files(tmp_path, monkeypatch):
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
+    monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    (tmp_path / "A.md").write_text("a")
+    (tmp_path / "B.md").write_text("b")
+
+    ntfy_messages = []
+    monkeypatch.setattr(watcher, "ntfy", lambda msg: ntfy_messages.append(msg))
+
+    watcher.check_once(set())
+
+    assert len(ntfy_messages) == 2
+
+
+def test_check_once_with_empty_staging_dir(tmp_path, monkeypatch):
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
+    monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
+
+    seen = watcher.check_once(set())
+    assert seen == set()

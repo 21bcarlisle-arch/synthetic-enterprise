@@ -85,3 +85,42 @@ def test_main_returns_1_and_sends_ntfy_on_failure(monkeypatch, tmp_path):
     assert rc == 1
     assert len(sent) == 1
     assert "DEGRADED" in sent[0]
+
+
+def test_all_expected_panes_are_checked():
+    assert "dispatcher" in health_check.EXPECTED_PANES
+    assert "sim-runner" in health_check.EXPECTED_PANES
+
+
+def test_ok_lines_include_staging_check_when_clean(monkeypatch):
+    monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
+    monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
+    monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+
+    all_ok, ok_lines, _ = health_check.run_health_check()
+    assert any("staging" in line.lower() or "Staging" in line for line in ok_lines)
+
+
+def test_multiple_missing_panes_reported(monkeypatch):
+    monkeypatch.setattr(health_check, "_tmux_panes", lambda: {})
+    monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
+    monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+
+    all_ok, _, problem_lines = health_check.run_health_check()
+
+    assert not all_ok
+    assert len(problem_lines) >= len(health_check.EXPECTED_PANES)
+
+
+def test_main_writes_to_log_file(monkeypatch, tmp_path):
+    monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
+    monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
+    monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+    log = tmp_path / "health.md"
+    monkeypatch.setattr(health_check, "LOG_FILE", log)
+    monkeypatch.setattr(health_check, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(__import__("sys"), "argv", ["health_check.py"])
+
+    health_check.main()
+
+    assert log.exists()
