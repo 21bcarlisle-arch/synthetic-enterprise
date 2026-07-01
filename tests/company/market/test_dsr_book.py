@@ -76,3 +76,91 @@ def test_annual_summary():
     assert s['full_deliveries'] == 1
     assert 'total_payments_gbp' in s
     assert 'active_participants' in s
+
+
+# --- Phase KB depth tests ---
+
+def test_event_id_format():
+    book = _book()
+    start = dt.datetime(2022, 1, 10, 17, 0)
+    end = dt.datetime(2022, 1, 10, 18, 0)
+    ev = book.dispatch('IC001', 2.0, start, end, delivered_mw=2.0)
+    assert ev.event_id == 'DSR-0001'
+
+
+def test_event_id_sequential():
+    book = _book()
+    start = dt.datetime(2022, 1, 10, 17, 0)
+    end = dt.datetime(2022, 1, 10, 18, 0)
+    ev1 = book.dispatch('IC001', 2.0, start, end, delivered_mw=2.0)
+    ev2 = book.dispatch('IC002', 1.5, start, end, delivered_mw=1.5)
+    assert ev1.event_id == 'DSR-0001'
+    assert ev2.event_id == 'DSR-0002'
+
+
+def test_duration_hours_two_hour_dispatch():
+    book = _book()
+    start = dt.datetime(2022, 1, 10, 16, 0)
+    end = dt.datetime(2022, 1, 10, 18, 0)
+    ev = book.dispatch('IC001', 2.0, start, end, delivered_mw=2.0)
+    assert ev.duration_hours == pytest.approx(2.0)
+
+
+def test_delivered_mwh_2_5mw_3h():
+    book = _book()
+    start = dt.datetime(2022, 1, 10, 15, 0)
+    end = dt.datetime(2022, 1, 10, 18, 0)
+    ev = book.dispatch('IC001', 2.0, start, end, delivered_mw=2.5)
+    assert ev.delivered_mwh == pytest.approx(7.5)
+
+
+def test_events_for_customer_filters():
+    book = _book()
+    start = dt.datetime(2022, 1, 10, 17, 0)
+    end = dt.datetime(2022, 1, 10, 18, 0)
+    book.dispatch('IC001', 2.0, start, end, delivered_mw=2.0)
+    book.dispatch('IC002', 1.5, start, end, delivered_mw=1.5)
+    events = book.events_for_customer('IC001')
+    assert len(events) == 1
+    assert events[0].customer_id == 'IC001'
+
+
+def test_delivery_rate_year_none_when_empty():
+    book = _book()
+    assert book.delivery_rate_year(2099) is None
+
+
+def test_delivery_rate_partial_50_pct():
+    book = _book()
+    start = dt.datetime(2022, 1, 10, 17, 0)
+    end = dt.datetime(2022, 1, 10, 18, 0)
+    book.dispatch('IC001', 2.0, start, end, delivered_mw=1.0)
+    assert book.delivery_rate_year(2022) == pytest.approx(50.0)
+
+
+def test_payment_formula_3h_dispatch():
+    book = _book()
+    start = dt.datetime(2022, 1, 10, 15, 0)
+    end = dt.datetime(2022, 1, 10, 18, 0)
+    ev = book.dispatch('IC002', 1.5, start, end, delivered_mw=1.5)
+    assert ev.payment_gbp == pytest.approx(247.5)
+
+
+def test_annual_summary_year_filter():
+    book = _book()
+    start_22 = dt.datetime(2022, 1, 10, 17, 0)
+    end_22 = dt.datetime(2022, 1, 10, 18, 0)
+    start_23 = dt.datetime(2023, 1, 10, 17, 0)
+    end_23 = dt.datetime(2023, 1, 10, 18, 0)
+    book.dispatch('IC001', 2.0, start_22, end_22, delivered_mw=2.0)
+    book.dispatch('IC001', 2.0, start_23, end_23, delivered_mw=2.0)
+    s = book.annual_summary(2022)
+    assert s['dispatch_events'] == 1
+
+
+def test_delivered_at_exactly_95_pct():
+    book = _book()
+    start = dt.datetime(2022, 1, 10, 17, 0)
+    end = dt.datetime(2022, 1, 10, 18, 0)
+    ev = book.dispatch('IC001', 2.0, start, end, delivered_mw=1.9)
+    assert ev.result == DispatchResult.DELIVERED

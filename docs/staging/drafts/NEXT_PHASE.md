@@ -1,2 +1,2 @@
-Phase JY -- Coverage Depth Sprint XLVII
-30 tests: tpi_book + nps_tracker + ancillary_products coverage depth
+Phase KB -- Coverage Depth Sprint L
+30 tests: capacity_to_pay + credit_facility + dsr_book coverage depth
