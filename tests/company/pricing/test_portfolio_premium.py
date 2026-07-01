@@ -75,3 +75,51 @@ def test_premium_always_in_bounds():
     for rates in extreme_cases:
         p = compute_portfolio_premium(rates)
         assert PORTFOLIO_PREMIUM_MIN <= p <= PORTFOLIO_PREMIUM_MAX
+
+
+# --- Phase KT depth tests ---
+
+def test_max_premium_is_float():
+    assert isinstance(PORTFOLIO_PREMIUM_MAX, float)
+
+
+def test_min_premium_is_float():
+    assert isinstance(PORTFOLIO_PREMIUM_MIN, float)
+
+
+def test_target_margin_positive():
+    assert PORTFOLIO_TARGET_MARGIN_RATE > 0.0
+
+
+def test_max_premium_positive():
+    assert PORTFOLIO_PREMIUM_MAX > 0.0
+
+
+def test_min_premium_negative():
+    assert PORTFOLIO_PREMIUM_MIN < 0.0
+
+
+def test_single_value_at_target_zero():
+    result = compute_portfolio_premium([PORTFOLIO_TARGET_MARGIN_RATE])
+    assert result == pytest.approx(0.0)
+
+
+def test_result_is_float():
+    result = compute_portfolio_premium([0.05])
+    assert isinstance(result, float)
+
+
+def test_premium_in_bounds_negative_margins():
+    result = compute_portfolio_premium([-0.5, -0.3, -0.1])
+    assert PORTFOLIO_PREMIUM_MIN <= result <= PORTFOLIO_PREMIUM_MAX
+
+
+def test_premium_in_bounds_high_margins():
+    result = compute_portfolio_premium([0.5, 0.4, 0.6])
+    assert PORTFOLIO_PREMIUM_MIN <= result <= PORTFOLIO_PREMIUM_MAX
+
+
+def test_two_values_mean_at_target_zero():
+    t = PORTFOLIO_TARGET_MARGIN_RATE
+    result = compute_portfolio_premium([t - 0.05, t + 0.05])
+    assert result == pytest.approx(0.0)

@@ -74,3 +74,59 @@ def test_utilisation_pct_correct():
     m.update_exposure("EDF", 100_000)
     result = m.check_trade("EDF", 0)  # 0 new trade to just check current
     assert result.utilisation_pct == 20.0
+
+
+# --- Phase KT depth tests ---
+
+def test_counterparty_id_stored():
+    lim = CounterpartyLimit('TEST_ID', 'Test Corp', 'BBB', 200_000, 'bank')
+    assert lim.counterparty_id == 'TEST_ID'
+
+
+def test_name_stored():
+    lim = CounterpartyLimit('T1', 'Bright Corp', 'A', 100_000, 'trader')
+    assert lim.name == 'Bright Corp'
+
+
+def test_credit_rating_stored():
+    lim = CounterpartyLimit('T1', 'X', 'AA', 100_000, 'bank')
+    assert lim.credit_rating == 'AA'
+
+
+def test_limit_gbp_stored():
+    lim = CounterpartyLimit('T1', 'X', 'A', 750_000, 'bank')
+    assert lim.limit_gbp == 750_000
+
+
+def test_category_stored():
+    lim = CounterpartyLimit('T1', 'X', 'A', 100_000, 'exchange')
+    assert lim.category == 'exchange'
+
+
+def test_active_true_by_default():
+    lim = CounterpartyLimit('T1', 'X', 'A', 100_000, 'bank')
+    assert lim.active is True
+
+
+def test_current_exposure_zero_initially():
+    m = CounterpartyCreditManager()
+    m.set_limit(CounterpartyLimit('T1', 'X', 'A', 100_000, 'bank'))
+    assert m.current_exposure('T1') == pytest.approx(0.0)
+
+
+def test_get_limit_none_missing():
+    m = CounterpartyCreditManager()
+    assert m.get_limit('NOBODY') is None
+
+
+def test_check_trade_message_present():
+    m = _mgr()
+    result = m.check_trade('EDF', 100_000)
+    assert isinstance(result.message, str)
+
+
+def test_two_accumulations():
+    m = _mgr()
+    m.update_exposure('EDF', 100_000)
+    m.update_exposure('EDF', 150_000)
+    assert m.current_exposure('EDF') == pytest.approx(250_000)
