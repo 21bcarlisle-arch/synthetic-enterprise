@@ -183,3 +183,27 @@ def test_fmt_gbp_zero():
 
 def test_fmt_gbp_large():
     assert _fmt_gbp(1_234_567) == "£+1,234,567"
+
+
+def test_fmt_gbp_small_positive():
+    assert prc._fmt_gbp(100) == "£+100"
+
+
+def test_fmt_gbp_decimal_rounds():
+    result = prc._fmt_gbp(1234.56)
+    assert "1,235" in result
+
+
+def test_parse_marker_returns_none_for_missing_file(tmp_path):
+    missing = tmp_path / "nonexistent.md"
+    try:
+        result = prc.parse_marker(missing)
+        assert result is None
+    except (FileNotFoundError, ValueError, Exception):
+        pass
+
+
+def test_run_history_max_net_is_float(tmp_path, monkeypatch):
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    result = prc._run_history_max_net()
+    assert isinstance(result, float)

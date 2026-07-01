@@ -109,3 +109,33 @@ class TestPassThroughZeroHedge:
         assert 1.5 < margin_per_mwh_high < 30
         # And similar to each other (no spot exposure)
         assert abs(margin_per_mwh_low - margin_per_mwh_high) < 15
+
+
+    def test_pass_through_records_have_settlement_date(self):
+        records = run_gas_term(
+            "TEST", "2021-01-01", "2021-01-07", 50000, 20.0,
+            0.0, 30.0, 0.0, GAS_RECORDS_LOW, "I&C", pass_through=True,
+        )
+        assert all("settlement_date" in r for r in records)
+
+    def test_pass_through_daily_kwh_nonnegative(self):
+        records = run_gas_term(
+            "TEST", "2021-01-01", "2021-01-07", 50000, 20.0,
+            0.0, 30.0, 0.0, GAS_RECORDS_LOW, "I&C", pass_through=True,
+        )
+        assert all(r["daily_kwh"] >= 0 for r in records)
+
+    def test_pass_through_unit_rate_stored_in_record(self):
+        records = run_gas_term(
+            "TEST", "2021-01-01", "2021-01-03", 50000, 25.0,
+            0.0, 30.0, 0.0, GAS_RECORDS_LOW, "I&C", pass_through=True,
+        )
+        assert all(r["unit_rate_gbp_per_mwh"] == 25.0 for r in records)
+
+    def test_pass_through_revenue_positive_at_service_fee_rate(self):
+        """Revenue > 0 because unit_rate > 0 and consumption > 0."""
+        records = run_gas_term(
+            "TEST", "2021-01-01", "2021-01-07", 50000, 25.0,
+            0.0, 30.0, 0.0, GAS_RECORDS_LOW, "I&C", pass_through=True,
+        )
+        assert all(r["revenue_gbp"] > 0 for r in records)

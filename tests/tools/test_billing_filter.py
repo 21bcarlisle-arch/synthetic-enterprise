@@ -42,3 +42,23 @@ def test_customers_index_bill_total_calculation():
 def test_customers_index_outstanding_display():
     text = (CUSTOMERS / "index.html").read_text()
     assert "Outstanding" in text or "UNPAID" in text
+
+
+def test_customers_index_has_tariff_reference():
+    text = (CUSTOMERS / "index.html").read_text()
+    assert "tariff" in text
+
+
+def test_customers_index_has_meter_reference():
+    text = (CUSTOMERS / "index.html").read_text()
+    assert "meter" in text
+
+
+def test_customers_index_has_segment_reference():
+    text = (CUSTOMERS / "index.html").read_text()
+    assert "segment" in text
+
+
+def test_customers_index_has_invoice_reference():
+    text = (CUSTOMERS / "index.html").read_text()
+    assert "invoice" in text

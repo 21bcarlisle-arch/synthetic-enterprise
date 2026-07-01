@@ -83,3 +83,28 @@ def test_mkchart_destroys_existing_instance():
     html = _html()
     assert "Chart.getChart" in html
     assert ".destroy()" in html
+
+
+def test_all_years_constant_present():
+    """ALL_YEARS handles 'all years' selection for year filter."""
+    html = _html()
+    assert "allYears" in html
+
+
+def test_render_overview_tab_present():
+    """renderOverview function is defined in dashboard."""
+    html = _html()
+    assert "function renderOverview" in html
+
+
+def test_render_market_tab_present():
+    """renderMarket is a dedicated market data tab renderer."""
+    html = _html()
+    assert "function renderMarket" in html
+
+
+def test_tooltip_and_legend_in_charts():
+    """Charts include tooltip and legend configuration."""
+    html = _html()
+    assert "tooltip" in html
+    assert "legend" in html

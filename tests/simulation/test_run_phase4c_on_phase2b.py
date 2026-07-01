@@ -91,3 +91,30 @@ def test_build_monthly_bills_total_is_positive():
     records = [make_record("C1", "2023-01-01", 50.0, unit_rate=200.0)]
     bills = build_monthly_bills(records)
     assert bills[0]["total_amount_gbp"] > 0.0
+
+
+def test_billing_month_february_leap():
+    assert _billing_month("2020-02-29") == "2020-02"
+
+
+def test_build_monthly_bills_clarity_score_in_range():
+    records = [make_record("C1", "2023-06-01", 50.0)]
+    bills = build_monthly_bills(records)
+    score = bills[0]["clarity_score"]
+    assert 0.0 <= score <= 1.0
+
+
+def test_build_monthly_bills_multi_customer_total_revenue():
+    records = [
+        make_record("C1", "2023-01-01", 10.0, unit_rate=100.0),
+        make_record("C2", "2023-01-01", 20.0, unit_rate=100.0),
+        make_record("C1", "2023-01-02", 5.0, unit_rate=100.0),
+    ]
+    bills = build_monthly_bills(records)
+    total = sum(b["total_amount_gbp"] for b in bills)
+    # Revenue: (10+5)/1000*100 + 20/1000*100 = 1.5 + 2.0 = 3.5 (before VAT/SC)
+    assert total > 0.0
+    c1_bills = [b for b in bills if b["customer_id"] == "C1"]
+    c2_bills = [b for b in bills if b["customer_id"] == "C2"]
+    assert len(c1_bills) == 1  # both C1 dates same month
+    assert len(c2_bills) == 1

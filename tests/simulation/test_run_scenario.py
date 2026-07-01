@@ -118,3 +118,22 @@ def test_build_extended_returns_unmodified_when_no_extension_needed():
     )
     assert ext_elec == hist_elec
     assert ext_gas == hist_gas
+
+
+def test_expand_daily_to_hh_keys_present():
+    records = _daily_records("2020-01-01", "2020-01-01")
+    hh = _expand_daily_to_hh(records)
+    expected_keys = {"settlementDate", "settlementPeriod", "systemSellPrice"}
+    assert set(hh[0].keys()) == expected_keys
+
+
+def test_expand_daily_to_hh_settlement_periods_1_to_48():
+    records = _daily_records("2020-01-01", "2020-01-01")
+    hh = _expand_daily_to_hh(records)
+    periods = sorted({r["settlementPeriod"] for r in hh})
+    assert periods == list(range(1, 49))
+
+
+def test_expand_daily_to_hh_empty_input():
+    result = _expand_daily_to_hh([])
+    assert result == []

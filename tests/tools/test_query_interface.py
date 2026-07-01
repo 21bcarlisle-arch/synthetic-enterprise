@@ -91,3 +91,21 @@ def test_dashboard_json_contains_query_context(tmp_path, run_data):
     assert "query_context" in d
     assert isinstance(d["query_context"], str)
     assert len(d["query_context"]) > 100
+
+
+def test_extract_query_context_contains_financial_data(run_data):
+    from tools.generate_dashboard_data import extract_query_context
+    result = extract_query_context(run_data)
+    assert "FINANCIAL" in result or "financial" in result.lower() or "net" in result.lower()
+
+
+def test_extract_query_context_contains_trading_data(run_data):
+    from tools.generate_dashboard_data import extract_query_context
+    result = extract_query_context(run_data)
+    assert "TRADING" in result or "hedge" in result.lower()
+
+
+def test_extract_query_context_is_ascii_safe(run_data):
+    from tools.generate_dashboard_data import extract_query_context
+    result = extract_query_context(run_data)
+    result.encode("ascii", errors="strict")

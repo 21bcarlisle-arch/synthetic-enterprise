@@ -161,3 +161,28 @@ def test_check_once_drops_duplicate_content(tmp_path, monkeypatch):
     assert sent == []
     # Hash still in hashes list
     assert existing_hash in hashes
+
+
+def test_write_to_staging_creates_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    path = responder._write_to_staging("Hello from Rich - this is a long enough message")
+    assert path is not None
+    assert path.exists()
+    assert "Hello from Rich" in path.read_text()
+
+
+def test_write_to_staging_rejects_short_message():
+    path = responder._write_to_staging("Hi")
+    assert path is None
+
+
+def test_content_hash_consistent():
+    h1 = responder._content_hash("Hello world")
+    h2 = responder._content_hash("Hello world")
+    assert h1 == h2
+
+
+def test_content_hash_different_messages():
+    h1 = responder._content_hash("Hello")
+    h2 = responder._content_hash("World")
+    assert h1 != h2

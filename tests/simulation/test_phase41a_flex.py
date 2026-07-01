@@ -195,3 +195,33 @@ def test_flex_customer_in_fast_run():
     assert all(r.get("hedge_fraction") == 1.0 for r in flex_recs)
     total_rev = sum(r["revenue_gbp"] for r in flex_recs)
     assert total_rev > 50_000, f"C_IC4 (3GWh flex) revenue should exceed £50k, got £{total_rev:,.0f}"
+
+
+def test_run_flex_term_settlement_date_stored():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    date_str = "2020-06-01"
+    prior = [{"settlementDate": (date.fromisoformat(date_str)-timedelta(days=i)).isoformat(), "settlementPeriod": sp, "systemSellPrice": 80.0} for i in range(1, 9) for sp in range(1, 49)]
+    prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 80.0} for sp in range(1, 49)]
+    recs = run_flex_term("T", date_str, "2020-06-02", 2.0, lambda _: [100.0]*48, prior, "I&C")
+    assert all(r["settlement_date"] == date_str for r in recs)
+
+
+def test_run_flex_term_48_records_per_day():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    date_str = "2020-06-01"
+    prior = [{"settlementDate": (date.fromisoformat(date_str)-timedelta(days=i)).isoformat(), "settlementPeriod": sp, "systemSellPrice": 80.0} for i in range(1, 9) for sp in range(1, 49)]
+    prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 80.0} for sp in range(1, 49)]
+    recs = run_flex_term("T", date_str, "2020-06-02", 2.0, lambda _: [100.0]*48, prior, "I&C")
+    assert len(recs) == 48
+
+
+def test_flex_markup_stored_in_record():
+    from simulation.hedged_settlement import run_flex_term
+    from datetime import date, timedelta
+    date_str = "2020-06-01"
+    prior = [{"settlementDate": (date.fromisoformat(date_str)-timedelta(days=i)).isoformat(), "settlementPeriod": sp, "systemSellPrice": 80.0} for i in range(1, 9) for sp in range(1, 49)]
+    prior += [{"settlementDate": date_str, "settlementPeriod": sp, "systemSellPrice": 80.0} for sp in range(1, 49)]
+    recs = run_flex_term("T", date_str, "2020-06-02", 5.0, lambda _: [100.0]*48, prior, "I&C")
+    assert all(r["flex_markup_per_mwh"] == 5.0 for r in recs)
