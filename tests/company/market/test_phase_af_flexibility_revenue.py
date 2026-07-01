@@ -196,3 +196,92 @@ def test_per_year_detail_in_summary():
 
 def test_dfs_launch_year_constant():
     assert _DFS_LAUNCH_YEAR == 2022
+
+
+# --- Phase MR depth tests ---
+
+def test_record_customer_id_stored():
+    book = FlexibilityRevenueBook()
+    reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
+    book.compute_year(2022, reg, ["C1"])
+    rec = book.records_for_year(2022)[0]
+    assert rec.customer_id == "C1"
+
+
+def test_record_year_stored():
+    book = FlexibilityRevenueBook()
+    reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
+    book.compute_year(2023, reg, ["C1"])
+    rec = book.records_for_year(2023)[0]
+    assert rec.year == 2023
+
+
+def test_record_has_ev_stored():
+    book = FlexibilityRevenueBook()
+    reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
+    book.compute_year(2022, reg, ["C1"])
+    rec = book.records_for_year(2022)[0]
+    assert rec.has_ev is True
+
+
+def test_record_has_ashp_stored():
+    book = FlexibilityRevenueBook()
+    reg = _make_register({"C1": {"ev": False, "ashp": True, "battery": False}})
+    book.compute_year(2022, reg, ["C1"])
+    rec = book.records_for_year(2022)[0]
+    assert rec.has_ashp is True
+
+
+def test_record_has_battery_stored():
+    book = FlexibilityRevenueBook()
+    reg = _make_register({"C1": {"ev": False, "ashp": False, "battery": True}})
+    book.compute_year(2022, reg, ["C1"])
+    rec = book.records_for_year(2022)[0]
+    assert rec.has_battery is True
+
+
+def test_record_flex_kw_positive():
+    book = FlexibilityRevenueBook()
+    reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
+    book.compute_year(2022, reg, ["C1"])
+    rec = book.records_for_year(2022)[0]
+    assert rec.flex_kw > 0.0
+
+
+def test_record_total_equals_cm_plus_dfs():
+    book = FlexibilityRevenueBook()
+    reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
+    book.compute_year(2022, reg, ["C1"])
+    rec = book.records_for_year(2022)[0]
+    assert rec.total_revenue_gbp == pytest.approx(
+        rec.capacity_market_revenue_gbp + rec.dfs_revenue_gbp, abs=0.01
+    )
+
+
+def test_total_cm_revenue_accumulates():
+    book = FlexibilityRevenueBook()
+    reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
+    book.compute_year(2021, reg, ["C1"])
+    book.compute_year(2022, reg, ["C1"])
+    rec2021 = book.records_for_year(2021)[0]
+    rec2022 = book.records_for_year(2022)[0]
+    assert book.total_cm_revenue() == pytest.approx(
+        rec2021.capacity_market_revenue_gbp + rec2022.capacity_market_revenue_gbp, abs=0.01
+    )
+
+
+def test_total_dfs_revenue_sums():
+    book = FlexibilityRevenueBook()
+    reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
+    book.compute_year(2022, reg, ["C1"])
+    book.compute_year(2023, reg, ["C1"])
+    rec2022 = book.records_for_year(2022)[0]
+    rec2023 = book.records_for_year(2023)[0]
+    assert book.total_dfs_revenue() == pytest.approx(
+        rec2022.dfs_revenue_gbp + rec2023.dfs_revenue_gbp, abs=0.01
+    )
+
+
+def test_records_for_year_empty_when_no_records():
+    book = FlexibilityRevenueBook()
+    assert book.records_for_year(2099) == []

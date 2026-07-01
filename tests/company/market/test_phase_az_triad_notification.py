@@ -154,3 +154,56 @@ def test_high_demand_customer_calibration():
     expected = round(1000.0 * 0.70 * rate, 2)
     assert abs(rec.estimated_saving_gbp - expected) < 1.0
     assert rec.estimated_saving_gbp > 40_000
+
+
+# --- Phase MR depth tests ---
+
+def test_alert_account_id_stored():
+    a = _alert(cid="C_IC5")
+    assert a.account_id == "C_IC5"
+
+
+def test_alert_alert_date_stored():
+    a = _alert(d="2022-01-20")
+    assert a.alert_date == "2022-01-20"
+
+
+def test_alert_settlement_period_stored():
+    a = _alert(sp=37)
+    assert a.settlement_period == 37
+
+
+def test_alert_estimated_demand_kw_stored():
+    a = _alert(demand_kw=350.0)
+    assert a.estimated_demand_kw == pytest.approx(350.0)
+
+
+def test_alert_status_stored():
+    a = _alert(status=AlertStatus.NO_RESPONSE)
+    assert a.status == AlertStatus.NO_RESPONSE
+
+
+def test_alert_confirmed_triad_stored():
+    a = _alert(confirmed=False)
+    assert a.confirmed_triad is False
+
+
+def test_alert_status_count():
+    assert len(list(AlertStatus)) == 3
+
+
+def test_profile_account_id_stored():
+    p = _ic_profile(cid="C_IC7")
+    assert p.account_id == "C_IC7"
+
+
+def test_profile_annual_kwh_stored():
+    p = _ic_profile(kwh=500_000)
+    assert p.annual_kwh == 500_000
+
+
+def test_savings_record_response_rate_zero_no_alerts():
+    book = TriadNotificationBook()
+    book.enrol(_ic_profile(peak_kw=200.0))
+    rec = book.savings_for_account_year("C_IC1", 2022)
+    assert rec.response_rate_pct == pytest.approx(0.0)

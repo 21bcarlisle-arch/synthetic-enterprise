@@ -111,3 +111,56 @@ class TestTariffBenchmarkingRegister:
         reg.record(make_snap())
         s = reg.tariff_benchmark_summary(DATE)
         assert "Tariff Benchmarking" in s
+
+
+# --- Phase MR depth tests ---
+
+def test_supplier_name_stored():
+    t = make_competitor(name="Octopus")
+    assert t.supplier_name == "Octopus"
+
+
+def test_tariff_type_stored():
+    from company.market.tariff_benchmarking import TariffType
+    t = CompetitorTariff("OVO", TariffType.FIXED_12M, DATE, 28.0, 50.0, 850.0)
+    assert t.tariff_type == TariffType.FIXED_12M
+
+
+def test_snapshot_date_stored():
+    t = make_competitor(date=DATE)
+    assert t.snapshot_date == DATE
+
+
+def test_unit_rate_stored():
+    t = make_competitor(rate=32.5)
+    assert t.electricity_unit_rate_pence == pytest.approx(32.5)
+
+
+def test_standing_charge_stored():
+    t = make_competitor(sc=55.0)
+    assert t.electricity_standing_charge_pence == pytest.approx(55.0)
+
+
+def test_annual_bill_typical_stored():
+    t = make_competitor(bill=920.0)
+    assert t.annual_bill_gbp_typical == pytest.approx(920.0)
+
+
+def test_supplier_rank_count():
+    assert len(list(SupplierRank)) == 5
+
+
+def test_tariff_type_count():
+    assert len(list(TariffType)) == 5
+
+
+def test_latest_for_none_when_missing():
+    from company.market.tariff_benchmarking import TariffType
+    reg = TariffBenchmarkingRegister()
+    reg.record(make_snap())
+    assert reg.latest_for(TariffType.FIXED_24M) is None
+
+
+def test_avg_company_premium_empty():
+    reg = TariffBenchmarkingRegister()
+    assert reg.avg_company_premium_pence() == pytest.approx(0.0)
