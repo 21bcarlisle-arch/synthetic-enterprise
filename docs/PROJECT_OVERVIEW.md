@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-01. 440+ commits. 11,100 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
+*Last updated: 2026-07-01. 440+ commits. 11,130 tests passing. Codebase: ~47,500 lines across 303+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase KI -- Coverage Depth Sprint LVII (2026-07-01)
+**Modules:** phase45c_risk_premium (pricing) · solr_intake (crm) · retention_risk (crm)
+**Tests added:** 30 (phase45c_risk_premium: elec>gas_prem; elec_float; gas_float; elec_above_spot; gas_above_spot; elec_scales; gas_scales; elec_exact; two_engines_agree; elec_pos; gas_pos. solr_intake: supplier_stored; appointment_date; customer_id; mpan; segment; switched_away_not_retained; notified_not_retained; deemed_zero_not_above_cap; customer_count; retention_rate_zero_no_customers. retention_risk: has_score_tier; score_int; tier_str; score_nonneg; paid_invoice_no_score; portfolio_empty; portfolio_two=2; multiple_signals>=2; no_flag_no_score; customers_list=1.)
+**Total:** 11,130 tests
 
 ### Phase KH -- Coverage Depth Sprint LVI (2026-07-01)
 **Modules:** churn_via_live_interface (interfaces) · notify_churn_live (interfaces) · phase48a_term_premium (pricing)
@@ -4720,7 +4725,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 11,100 tests (fast / ~10s; simulation integration ~8 min per run)
+- 11,130 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)

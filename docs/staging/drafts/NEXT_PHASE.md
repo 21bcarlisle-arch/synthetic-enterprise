@@ -1,2 +1,2 @@
-Phase KI -- Coverage Depth Sprint LVII
-30 tests: phase45c_risk_premium + solr_intake + retention_risk coverage depth
+Phase KJ -- Coverage Depth Sprint LVIII
+30 tests: lifecycle_tracker + service_log_persistent + marketing_budget coverage depth

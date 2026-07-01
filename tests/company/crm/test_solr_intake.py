@@ -74,3 +74,66 @@ def test_batch_summary_keys():
     assert 'contact_rate_pct' in s
     assert 'by_status' in s
     assert 'actual_customers_received' in s
+
+
+# --- Phase KI depth tests ---
+
+def test_failed_supplier_stored():
+    book = _book()
+    b = book._batches['BATCH001']
+    assert b.failed_supplier == 'GreenStar Energy'
+
+
+def test_appointment_date_stored():
+    book = _book()
+    b = book._batches['BATCH001']
+    assert b.appointment_date == dt.date(2021, 11, 1)
+
+
+def test_customer_id_stored():
+    book = _book()
+    c = book.add_customer('C010', 'BATCH001', '1200011110', 'residential')
+    assert c.customer_id == 'C010'
+
+
+def test_mpan_stored():
+    book = _book()
+    c = book.add_customer('C011', 'BATCH001', '1200011111', 'residential')
+    assert c.mpan == '1200011111'
+
+
+def test_segment_stored():
+    book = _book()
+    c = book.add_customer('C012', 'BATCH001', '1200011112', 'sme')
+    assert c.segment == 'sme'
+
+
+def test_switched_away_not_retained():
+    book = _book()
+    book.add_customer('C013', 'BATCH001', '1200011113', 'residential')
+    c = book.mark_switched_away('C013', dt.date(2021, 11, 20))
+    assert c.is_retained is False
+
+
+def test_notified_status_not_retained():
+    book = _book()
+    c = book.add_customer('C014', 'BATCH001', '1200011114', 'residential')
+    assert c.is_retained is False
+
+
+def test_deemed_not_above_cap_at_zero():
+    book = SoLRBook('SUPPLIER_A')
+    batch = book.register_batch('B3', 'GreenStar', dt.date(2021, 11, 1), 100, 0.0)
+    assert batch.is_priced_above_cap is False
+
+
+def test_customer_count_stored():
+    book = _book()
+    b = book._batches['BATCH001']
+    assert b.customer_count == 1500
+
+
+def test_retention_rate_none_no_customers():
+    book = SoLRBook('SUPPLIER_A')
+    book.register_batch('B4', 'AnyEnergy', dt.date(2021, 11, 1), 500, 0.0)
+    assert book.retention_rate('B4') == pytest.approx(0.0)

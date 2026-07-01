@@ -73,3 +73,76 @@ class TestForwardPriceWithNewPremiums:
         )
         assert fwd < 50.0 * 1.20   # below old 20% premium
         assert fwd > 50.0 * 1.00   # above raw spot (has some premium)
+
+
+# --- Phase KI depth tests ---
+
+class TestRiskPremiumDepth:
+    def setup_method(self):
+        from company.pricing.tariff_engine import (
+            CompanyTariffEngine, COMPANY_RISK_PREMIUM_FRACTION, GAS_RISK_PREMIUM_FRACTION
+        )
+        self.engine = CompanyTariffEngine()
+        self.elec_prem = COMPANY_RISK_PREMIUM_FRACTION
+        self.gas_prem = GAS_RISK_PREMIUM_FRACTION
+
+    def test_elec_premium_greater_than_gas_premium(self):
+        assert self.elec_prem > self.gas_prem
+
+    def test_elec_premium_is_float(self):
+        assert isinstance(self.elec_prem, float)
+
+    def test_gas_premium_is_float(self):
+        assert isinstance(self.gas_prem, float)
+
+    def test_elec_forward_above_spot(self):
+        records = _records(2017, price=80.0)
+        fwd = self.engine.get_forward_price(
+            'electricity', '2017-05-01', records, seasonal=False)
+        assert fwd > 80.0
+
+    def test_gas_forward_above_spot(self):
+        records = _records(2017, price=40.0)
+        fwd = self.engine.get_forward_price(
+            'gas', '2017-05-01', records, seasonal=False)
+        assert fwd > 40.0
+
+    def test_elec_price_scales_with_base(self):
+        r50 = _records(2017, price=50.0)
+        r100 = _records(2017, price=100.0)
+        p50 = self.engine.get_forward_price(
+            'electricity', '2017-05-01', r50, seasonal=False)
+        p100 = self.engine.get_forward_price(
+            'electricity', '2017-05-01', r100, seasonal=False)
+        assert p100 == pytest.approx(p50 * 2.0, rel=1e-6)
+
+    def test_gas_price_scales_with_base(self):
+        r40 = _records(2017, price=40.0)
+        r80 = _records(2017, price=80.0)
+        p40 = self.engine.get_forward_price(
+            'gas', '2017-05-01', r40, seasonal=False)
+        p80 = self.engine.get_forward_price(
+            'gas', '2017-05-01', r80, seasonal=False)
+        assert p80 == pytest.approx(p40 * 2.0, rel=1e-6)
+
+    def test_elec_forward_exact_value(self):
+        records = _records(2017, price=100.0)
+        fwd = self.engine.get_forward_price(
+            'electricity', '2017-05-01', records, seasonal=False)
+        assert fwd == pytest.approx(100.0 * (1 + self.elec_prem), rel=1e-6)
+
+    def test_two_engines_agree(self):
+        from company.pricing.tariff_engine import CompanyTariffEngine
+        engine2 = CompanyTariffEngine()
+        records = _records(2017, price=60.0)
+        p1 = self.engine.get_forward_price(
+            'electricity', '2017-05-01', records, seasonal=False)
+        p2 = engine2.get_forward_price(
+            'electricity', '2017-05-01', records, seasonal=False)
+        assert p1 == pytest.approx(p2)
+
+    def test_elec_premium_positive(self):
+        assert self.elec_prem > 0.0
+
+    def test_gas_premium_positive(self):
+        assert self.gas_prem > 0.0

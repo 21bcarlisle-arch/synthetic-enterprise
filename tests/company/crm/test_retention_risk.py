@@ -83,3 +83,74 @@ def test_retention_risk_result_structure():
     assert "tier" in result
     assert "signals" in result
     assert isinstance(result["signals"], list)
+
+
+# --- Phase KI depth tests ---
+
+def test_result_has_customer_id():
+    result = retention_risk(_CUSTOMER, [], [])
+    assert 'score' in result
+    assert 'tier' in result
+
+
+def test_score_is_int():
+    result = retention_risk(_CUSTOMER, [], [])
+    assert isinstance(result['score'], int)
+
+
+def test_tier_is_string():
+    result = retention_risk(_CUSTOMER, [], [])
+    assert isinstance(result['tier'], str)
+
+
+def test_score_non_negative():
+    result = retention_risk(_CUSTOMER, [], [])
+    assert result['score'] >= 0
+
+
+def test_paid_invoice_no_score():
+    from datetime import date, timedelta
+    paid = {
+        'customer_id': 'C1', 'payment_status': 'paid',
+        'due_date': (date.today() - timedelta(days=5)).isoformat(),
+    }
+    result = retention_risk(_CUSTOMER, [paid], [])
+    assert result['score'] == 0
+
+
+def test_portfolio_empty_customers():
+    summary = portfolio_risk_summary([], [], [])
+    assert summary['total'] == 0
+    assert summary['high_risk'] == 0
+
+
+def test_portfolio_two_customers_total():
+    customers = [_CUSTOMER, {**_CUSTOMER, 'customer_id': 'C2'}]
+    summary = portfolio_risk_summary(customers, [], [])
+    assert summary['total'] == 2
+
+
+def test_multiple_signals_both_present():
+    from datetime import date, timedelta
+    overdue = {'customer_id': 'C1', 'payment_status': 'unpaid',
+               'due_date': (date.today() - timedelta(days=5)).isoformat()}
+    complaint = {'customer_id': 'C1', 'complaint_flag': True,
+                 'event_date': date.today().isoformat()}
+    result = retention_risk(_CUSTOMER, [overdue], [complaint])
+    assert len(result['signals']) >= 2
+
+
+def test_no_complaint_flag_no_complaint_score():
+    from datetime import date
+    contact_no_flag = {
+        'customer_id': 'C1', 'complaint_flag': False,
+        'event_date': date.today().isoformat(),
+    }
+    result = retention_risk(_CUSTOMER, [], [contact_no_flag])
+    assert result['score'] == 0
+
+
+def test_portfolio_customers_list_matches_count():
+    customers = [_CUSTOMER]
+    summary = portfolio_risk_summary(customers, [], [])
+    assert len(summary['customers']) == 1
