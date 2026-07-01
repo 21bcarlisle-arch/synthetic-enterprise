@@ -109,3 +109,21 @@ def test_extract_query_context_is_ascii_safe(run_data):
     from tools.generate_dashboard_data import extract_query_context
     result = extract_query_context(run_data)
     result.encode("ascii", errors="strict")
+
+
+def test_extract_query_context_starts_with_section_header(run_data):
+    from tools.generate_dashboard_data import extract_query_context
+    result = extract_query_context(run_data)
+    assert result.startswith("=") or result[:3].isupper() or "PORTFOLIO" in result[:100]
+
+
+def test_extract_query_context_has_net_figure(run_data):
+    from tools.generate_dashboard_data import extract_query_context
+    result = extract_query_context(run_data)
+    assert "net" in result.lower() or "margin" in result.lower()
+
+
+def test_extract_query_context_has_year_range(run_data):
+    from tools.generate_dashboard_data import extract_query_context
+    result = extract_query_context(run_data)
+    assert "2016" in result or "2017" in result

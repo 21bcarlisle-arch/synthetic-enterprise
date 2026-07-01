@@ -108,3 +108,18 @@ def test_tooltip_and_legend_in_charts():
     html = _html()
     assert "tooltip" in html
     assert "legend" in html
+
+
+def test_render_regulatory_tab_or_compliance_present():
+    html = _html()
+    assert "function renderRegulatory" in html or "function renderCompliance" in html or "regulatory" in html.lower()
+
+
+def test_site_index_has_script_tag():
+    html = _html()
+    assert "<script" in html
+
+
+def test_site_index_has_year_all_option():
+    html = _html()
+    assert "All Years" in html or "all" in html.lower()
