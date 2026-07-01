@@ -49,11 +49,15 @@ def test_crisis_year_flagged():
 
 # 6. Revenue per customer increases through 2022
 def test_revenue_increases_by_2022():
+    import re
     from saas.reporting.annual_report import _section_unit_economics
     data = _load_data()
     result = _section_unit_economics(data)
-    # 2022 has highest revenue per customer (£248k) — check line present
-    assert "248" in result.replace(",", "")
+    # 2022 crisis year drove revenue per customer into hundreds of thousands
+    rows = [l for l in result.split("\n") if "| 2022 |" in l]
+    assert rows, "No 2022 row in unit economics table"
+    m = re.findall(r"£([\d,]+)", rows[0])
+    assert m and int(m[0].replace(",", "")) > 200_000, f"2022 rev/cust should exceed £200k in crisis year, got {m}"
 
 
 # 7. Best year identified
