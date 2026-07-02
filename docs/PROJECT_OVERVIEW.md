@@ -111,6 +111,10 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Fix: I&C Churn Model Calibration -- IC_BILL_STRESS_SENSITIVITY 0.10->0.0 (2026-07-02)
+2 tests added. company/crm/churn_model.py: IC_BILL_STRESS_SENSITIVITY changed from 0.10 to 0.0. Root cause: the bill_stress term for I&C customers (bill_stress = 0.10 × max(0, bill/£50k - 1)) caused systematic 95% churn overestimate for mid-size I&C. A 4 GWh customer at £54/MWh has a £216k annual bill (4.3× threshold), giving bill_stress=0.332 that dominates the rate-sensitivity term. Churn basis risk analysis showed company estimates 0.95 vs SIM ground truth 0.05 for I&C customers at stable rates (1800% overestimate). I&C churn is broker-driven and rate-comparison-driven, not bill-size-driven; rate sensitivity (IC_RATE_SENSITIVITY=1.5×) already captures price sensitivity. Fix: 58% of retention offers were going to I&C customers who had 5% actual churn -- now only triggered by genuine rate spikes (correctly reaches 0.95 during crisis-level 400% rate increases). 2 new tests in test_churn_model.py: flat-rate large I&C consumption < 0.30; crisis-level rate spike still reaches MAX_CHURN_PROBABILITY. Epistemic verifier: PASS.
+**Total:** 14,670 tests
+
 ### Phase NG -- Company Satisfaction Score -> Renewal Churn Estimate (2026-07-02)
 16 tests. simulation/run_phase2b.py (modified): Import CustomerSatisfactionAccumulator; instantiate _company_sat_acc = CustomerSatisfactionAccumulator(); at each active electricity renewal apply 12-month decay then record_bill_shock(cid) if rate_increase > 20%; pass satisfaction_score=_company_sat_acc.get_satisfaction(cid) to _enriched_churn_estimate. Closes the gap where enriched_churn_estimate had satisfaction_score=None despite the param existing since Phase NB. Company now uses observable bill-shock history to derive a satisfaction signal at renewal time. Epistemic: satisfaction derived from company's own billing records only (rate changes it issued). Tests: threshold constant; baseline (no shocks); rate below/at/above threshold; two consecutive shocks cumulate; decay restores toward baseline; score always in [0.0,1.0]; two customers independent; low sat raises churn estimate; high sat lowers churn estimate; shocked customer estimate higher than unshocked; multi-term no-shock stays near baseline; shock then recovery. Epistemic verifier: PASS.
 
@@ -5031,16 +5035,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,668 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,670 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase ND, 2026-07-02, git ca1d8ab5):**
-- Net margin £1,224,097 | Gross £6,418,373 | EV £5,987,458 | Treasury £3,690,734 | SURVIVED
-- 14,652 tests. Phase NF: SIM-side satisfaction -> churn probability (sim_satisfaction.py + satisfaction_churn.py). Gap 3 Dim 4 CLOSED.
+**Latest full run (Phase NG, 2026-07-02, git c6b49c35):**
+- Net margin £1,443,537 | Gross £5,422,401 | EV £5,256,728 | Treasury £3,910,174 | SURVIVED
+- 14,670 tests. I&C churn calibration fix + Phase NG (satisfaction score -> renewal churn estimate).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

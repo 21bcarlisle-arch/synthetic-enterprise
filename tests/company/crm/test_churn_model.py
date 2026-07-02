@@ -337,6 +337,30 @@ def test_ic_churn_capped_at_max():
     assert p == pytest.approx(MAX_CHURN_PROBABILITY)
 
 
+def test_ic_large_consumption_flat_rate_not_bill_stress_driven():
+    """I&C at 4 GWh with flat rate gets base churn, not max.
+    IC_BILL_STRESS_SENSITIVITY=0 means bill size does not drive churn for I&C.
+    A 4 GWh site has a large bill (£216k/yr at £54/MWh) but is not financially
+    stressed -- it is a professional energy buyer pricing via brokers."""
+    p = estimate_churn_probability(
+        54.0, 54.0, 2.0,
+        annual_consumption_kwh=4_000_000,
+        segment="I&C",
+    )
+    assert p < 0.30, f"Expected low I&C churn at flat rate, got {p:.3f}"
+
+
+def test_ic_crisis_rate_spike_still_triggers_max_churn():
+    """I&C churn caps at max when rate spikes 400% (crisis scenario)."""
+    from company.crm.churn_model import MAX_CHURN_PROBABILITY
+    p = estimate_churn_probability(
+        54.0, 270.0, 2.0,
+        annual_consumption_kwh=4_000_000,
+        segment="I&C",
+    )
+    assert p == pytest.approx(MAX_CHURN_PROBABILITY)
+
+
 def test_resi_segment_same_as_default():
     """segment='resi' gives same result as default (no segment param)."""
     p_default = estimate_churn_probability(100.0, 110.0, 2.0)

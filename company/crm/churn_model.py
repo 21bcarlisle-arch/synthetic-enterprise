@@ -54,13 +54,17 @@ MAX_CHURN_PROBABILITY = 0.95
 # Phase 27e: I&C-specific churn constants.
 # I&C customers shop via brokers at every renewal — base churn is higher and
 # rate sensitivity is stronger than residential/SME. Tenure loyalty is lower
-# (brokers switch regardless of relationship). Bill stress threshold is much
-# higher (I&C bills are £50k-£500k/year, not £2-3k).
+# (brokers switch regardless of relationship).
+# Bill stress sensitivity is 0 for I&C: large industrial sites have large
+# bills by nature (4 GWh at £54/MWh = £216k/yr) but are not "financially
+# stressed" by bill size. I&C churn is driven by rate comparison via brokers
+# (captured by IC_RATE_SENSITIVITY=1.5x), not absolute bill magnitude.
+# Setting sensitivity=0 fixes systematic 95% overestimate for mid-size I&C.
 IC_BASE_CHURN_RATE = 0.20       # brokers shop every renewal regardless
-IC_RATE_SENSITIVITY = 1.5       # highly price-sensitive — 10% rate rise → +15% churn
+IC_RATE_SENSITIVITY = 1.5       # highly price-sensitive -- 10% rate rise -> +15% churn
 IC_TENURE_DISCOUNT_PER_YEAR = 0.005  # less loyalty benefit per year
-IC_BILL_STRESS_THRESHOLD_GBP = 50_000.0  # I&C bill threshold (vs £3k resi)
-IC_BILL_STRESS_SENSITIVITY = 0.10   # proportional sensitivity on large bills
+IC_BILL_STRESS_THRESHOLD_GBP = 50_000.0  # retained for backward-compat; unused when sensitivity=0
+IC_BILL_STRESS_SENSITIVITY = 0.0    # I&C: rate-driven churn, not bill-size-driven
 # Phase 22a: post-crisis churn hangover. When the company observes that a
 # customer's prior term had a large net loss (>20% of revenue), customers
 # who survived crisis prices remain financially anxious even after rates fall.
