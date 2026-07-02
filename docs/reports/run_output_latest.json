@@ -281,7 +281,9 @@
         {
           "settlement_date": "2016-10-27",
           "treasury_gbp": 2466748.640797218,
-          "adjustments": {},
+          "adjustments": {
+            "C1": 1.0
+          },
           "portfolio_var_current_gbp": 27.727020520979767,
           "portfolio_var_stressed_gbp": 8.518381907375637
         },
@@ -4152,7 +4154,8 @@
           "adjustments": {
             "C6": 1.0,
             "C8": 1.0,
-            "C_IC1": 1.0
+            "C_IC1": 1.0,
+            "C_IC2": 1.0
           },
           "portfolio_var_current_gbp": 56060.496704909405,
           "portfolio_var_stressed_gbp": 20778.40447381378
@@ -4191,8 +4194,7 @@
             "C6": 1.0,
             "C8": 1.0,
             "C9": 1.0,
-            "C_IC1": 1.0,
-            "C_IC2": 1.0
+            "C_IC1": 1.0
           },
           "portfolio_var_current_gbp": 56231.396330339354,
           "portfolio_var_stressed_gbp": 20819.805194326847
@@ -4205,7 +4207,8 @@
             "C6": 1.0,
             "C8": 1.0,
             "C9": 1.0,
-            "C_IC1": 1.0
+            "C_IC1": 1.0,
+            "C_IC2": 1.0
           },
           "portfolio_var_current_gbp": 56231.396330339354,
           "portfolio_var_stressed_gbp": 20819.805194326847
@@ -9345,16 +9348,6 @@
       "avg_peak_rate": 262.7,
       "avg_offpeak_rate": 145.0
     },
-    "C9": {
-      "total_kwh": 109386.6,
-      "peak_kwh": 43689.1,
-      "offpeak_kwh": 65697.5,
-      "peak_pct": 39.9,
-      "peak_revenue_gbp": 10921.49,
-      "offpeak_revenue_gbp": 9301.28,
-      "avg_peak_rate": 249.98,
-      "avg_offpeak_rate": 141.58
-    },
     "C8": {
       "total_kwh": 106721.8,
       "peak_kwh": 43948.0,
@@ -9364,6 +9357,16 @@
       "offpeak_revenue_gbp": 9684.35,
       "avg_peak_rate": 272.17,
       "avg_offpeak_rate": 154.27
+    },
+    "C9": {
+      "total_kwh": 109386.6,
+      "peak_kwh": 43689.1,
+      "offpeak_kwh": 65697.5,
+      "peak_pct": 39.9,
+      "peak_revenue_gbp": 10921.49,
+      "offpeak_revenue_gbp": 9301.28,
+      "avg_peak_rate": 249.98,
+      "avg_offpeak_rate": 141.58
     }
   },
   "company_gas_churn_log": [

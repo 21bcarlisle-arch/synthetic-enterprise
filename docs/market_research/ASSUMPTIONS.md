@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-07-01 from current codebase.
+Last seeded: 2026-07-02 from current codebase.
 
 ---
 
