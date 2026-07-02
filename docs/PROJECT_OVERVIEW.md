@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-02. 443+ commits. 14,511 tests passing. Codebase: ~47,800 lines across 305+ Python modules.*
+*Last updated: 2026-07-02. 444+ commits. 14,531 tests passing. Codebase: ~47,800 lines across 306+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase MY -- Payment Behaviour Score -> Company Churn Model (2026-07-02)
+20 tests. company/crm/payment_churn_model.py (new): CHURN_UPLIFT_BY_SCORE dict mapping BehaviourScore -> float (EXCELLENT: -0.02, GOOD: 0.00, FAIR: +0.03, POOR: +0.10, CRITICAL: +0.20); combined_churn_probability(bill_shock_count, behaviour_score) -> min(base + uplift, MAX_CHURN_PROBABILITY). Imports churn_probability from saas.churn_model (bill-shock base rate) and BehaviourScore from Phase MX. Epistemic note: both inputs are observable (billing records + payment records) -- no SIM internals. Gap 4 (Churn Blind Miss Rate) closes: company now uses two signals to flag POOR/CRITICAL payment customers as high churn risk before renewal.
+**Total:** 14,531 tests
 
 ### Phase MX -- Company Payment Behaviour Analytics (2026-07-02)
 26 tests. company/crm/payment_behaviour_analytics.py (new): BehaviourScore(str, Enum) with EXCELLENT/GOOD/FAIR/POOR/CRITICAL; _SCORE_ORDER dict for trend comparison; score_payment_history(records) thresholds (EXCELLENT: otr>=0.95+no_dd; GOOD: otr>=0.80+ddf<0.05; FAIR: otr>=0.60+ddf<0.15; POOR: otr>=0.40+ddf<0.35; CRITICAL: otherwise); compute_payment_metrics(records) -> on_time_rate/late_rate/dd_fail_rate/avg_days_late; PaymentBehaviourAnalytics class: record_payment/get_score/get_metrics/is_at_risk(POOR|CRITICAL)/at_risk_customers/score_trend(half-window split: IMPROVING/STABLE/DETERIORATING). Epistemic note: reads only observable payment records, not income_stress SIM ground truth. Integration test confirms HIGH stress payments produce POOR or CRITICAL.
@@ -4996,16 +5000,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,511 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,531 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase MX, 2026-07-02, git ca1d8ab5):**
+**Latest full run (Phase MY, 2026-07-02, git ca1d8ab5):**
 - Net margin £1,224,097 | Gross £6,418,373 | EV £5,987,458 | Treasury £3,690,734 | SURVIVED
-- 14,511 tests. Company-side payment behaviour analytics closes the observable loop for HSL Dim 2.
+- 14,531 tests. Payment behaviour + bill shock combined churn model closes Gap 4 company-side.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

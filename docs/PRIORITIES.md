@@ -10,7 +10,8 @@ Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and r
 ## Now (active this session)
 Phase MW COMPLETE (2026-07-02): income_stress -> observable payment behaviour.
 Phase MX COMPLETE (2026-07-02): Company-side PaymentBehaviourAnalytics -- BehaviourScore enum, score_payment_history, PaymentBehaviourAnalytics (14,511 tests).
-Phase MY PROPOSED: Wire BehaviourScore into company/crm/churn_model.py via payment_churn_model.py.
+Phase MY COMPLETE (2026-07-02): BehaviourScore wired into combined_churn_probability via payment_churn_model.py (14,531 tests).
+Next: Dim 3 behavioural (income_stress -> SIM-side switching propensity) or Gap 5 gas ROC.
 After MY: Dim 3 behavioural (income_stress -> SIM-side switching propensity) or Gap 5 gas ROC.
 
 ## Real capability gaps

@@ -1,15 +1,15 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T01:22:42Z
+Last updated: 2026-07-02T01:25:20Z
 
 ## Current Status
-**Phase MX complete** -- 14,511 tests
+**Phase MY complete** -- 14,531 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £6,180,475 (git dac2278b, 2026-07-02)
 
 ## Test Suite
-- **14,511 tests passing** (fast suite ~10s)
+- **14,531 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
@@ -23,6 +23,7 @@ Net position: £6,180,475 (git dac2278b, 2026-07-02)
 - **CXLVII** (2026-07-01): Coverage Depth Sprint -- 9 files: sim_runner, portal_dd, portal_css, portfolio_pnl, run_phase4c, run_scenario, scenario_comparison, billing_filter, generate_sim (14,154 tests)
 - **CXLVI** (2026-07-01): Coverage Depth Sprint -- phase_h eac_multiplier, phase_o solar_dynamic, phase_p ev_overnight (13,063 tests)
 - **CXLV** (2026-07-01): Coverage Depth Sprint -- phase40c deemed_rate, phase41a flex, phase61 flex_passthrough, phase62 standing_charges, phase_g ashp_settlement (13,048 tests)
+- **MY** (2026-07-02): Payment Behaviour Score -> Company Churn Model -- combined_churn_probability, CHURN_UPLIFT_BY_SCORE (14,531 tests)
 - **MX** (2026-07-02): Company Payment Behaviour Analytics -- PaymentBehaviourAnalytics, BehaviourScore enum, score_payment_history (14,511 tests)
 - **MW** (2026-07-02): Income Stress -> Observed Payment Behaviour -- payment_timing.py, bad debt multiplier wired to income_stress (14,485 tests)
 - **MV** (2026-07-01): Economic Life Events -- IncomeStress enum, job_loss/income_recovery/new_baby/retirement life events (13,949 tests)
