@@ -16,7 +16,8 @@ Phase NA COMPLETE (2026-07-02): Dim 4 emotional company-side -- CustomerSatisfac
 Phase NB COMPLETE (2026-07-02): satisfaction_score wired into combined_churn_probability as third signal (14,588 tests).
 Phase NC COMPLETE (2026-07-02): enriched_churn_estimate = max(rate_model, payment_model); sim_interface.get_churn_estimate extended (14,604 tests).
 Phase ND COMPLETE (2026-07-02): Gap 4 SIM-side wiring -- bill_shock_tracker -> enriched_churn_estimate in run_phase2b. Gap 4 CLOSED (14,620 tests).
-Next: Gap 3 Dim 4 SIM-side (satisfaction -> actual SIM churn) OR Gap 5 gas ROC.
+Phase NE COMPLETE (2026-07-02): Gas pass-through capital correction; Gap 5 CLOSED (14,636 tests).
+Next: Gap 3 Dim 4 SIM-side (satisfaction -> actual SIM churn).
 
 ## Real capability gaps
 
@@ -47,12 +48,11 @@ Phase MY wired BehaviourScore (payment_churn_model.py). Phase NB added satisfact
 Phase NC enriched_churn_estimate = max(rate, payment) wired into sim_interface.get_churn_estimate.
 CLOSED. run_phase2b uses enriched_churn_estimate with bill_shock_count from all_records (Phase ND).
 
-### Gap 5 -- Gas Segment ROC [OPEN]
-Gas legs show -0.7x ROC (net GBP -134,790 on GBP 187,116 capital for C_IC3g).
-Root cause: gas crisis 2021-2023 drove NBP to GBP 100-300/MWh; large naked gas positions
-generated VaR-based capital costs that wiped out gross margin. Correct simulation physics.
-Business response options: exit gas (company/finance/gas_exit_decision.py),
-gas-specific tariff uplift, or improved gas hedging model. Address after Gap 4 closes.
+### Gap 5 -- Gas Segment ROC [CLOSED -- Phase NE]
+Root cause was a bug: assess_term_risk called with naked_kwh=aq_kwh for pass_through gas
+(hf=0 forced), generating spurious full-VaR capital on a zero-risk position. C_IC3g bills at
+spot+service_fee; company holds no commodity price risk. Fix: naked_kwh=0.0 for pass_through
+in run_phase2b.py. C_IC3g: net -GBP 134k -> +GBP 95k (service_fee x volume over 9.5 years).
 
 ## Backlog (lower priority)
 - Dashboard: Flexibility revenue tab -- Phase AG built the data, needs wiring to site/

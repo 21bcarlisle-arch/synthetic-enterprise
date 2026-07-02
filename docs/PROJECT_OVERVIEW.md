@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-02. 457+ commits. 14,620 tests passing. Codebase: ~48,600 lines across 312+ Python modules.*
+*Last updated: 2026-07-02. 458+ commits. 14,636 tests passing. Codebase: ~48,600 lines across 312+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NE -- Gas Pass-Through Capital Risk Correction (2026-07-02)
+16 tests. Root cause: simulation/run_phase2b.py was calling assess_term_risk with naked_kwh = aq_kwh * (1 - hf) for pass_through gas customers (where hf=0 is forced), generating full VaR-based capital costs on a genuinely zero-risk position (C_IC3g: 5 GWh/year, spurious capital ~£20k/year wiping out £10k/year service fee). Fix: naked_kwh = 0.0 if term_tariff_type == "pass_through" (company has no commodity price risk; customer pays spot directly). Also counterfactual_risk uses 0.0 for pass_through. Result: C_IC3g gas switches from net -£134k to net +£95k (service_fee × volume over 9.5 years). Tests cover: VaR formula at zero volume, assess_term_risk with zero naked volume, linear VaR in volume/price, active_collateral max, monthly_cost_of_capital, GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH=2.0 constant, 5GWh × £2 = £10k/year identity, naked_kwh logic for fixed vs pass_through, gas_settlement integration (margin < unit_rate margin, net positive, capital_cost=0). Gap 5 CLOSED.
+**Total:** 14,636 tests
 
 ### Phase ND -- Gap 4 SIM-side Wiring: Bill Shock Tracker (2026-07-02)
 16 tests. simulation/bill_shock_tracker.py (new): count_rate_shocks(customer_id, commodity, all_records, shock_threshold=BILL_SHOCK_THRESHOLD=0.20) -> int. Filters records by customer+commodity, sorts by term_start, counts term transitions where (new_rate - prev_rate)/prev_rate > shock_threshold. Handles None rates, unsorted input, zero prev rate. simulation/run_phase2b.py (modified): imports enriched_churn_estimate and count_rate_shocks; active renewal path now calls enriched_churn_estimate(old_rate, new_rate, tenure, eac, bill_shock_count=count_rate_shocks(cid, 'electricity', all_records), ...) instead of pure rate-model estimate_churn_probability. Gap 4 full chain now closed: rate_shocks from all_records -> bill_shock_count -> enriched_churn_estimate = max(rate_model, payment_model) -> retention threshold decision.
@@ -5020,7 +5024,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,620 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,636 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -5029,7 +5033,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase ND, 2026-07-02, git ca1d8ab5):**
 - Net margin £1,224,097 | Gross £6,418,373 | EV £5,987,458 | Treasury £3,690,734 | SURVIVED
-- 14,620 tests. Gap 4 full chain closed: bill_shock_tracker -> enriched_churn_estimate in run_phase2b (ND).
+- 14,636 tests. Phase NE: pass_through gas capital corrected (naked_kwh=0 -> zero VaR). Gap 5 CLOSED.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

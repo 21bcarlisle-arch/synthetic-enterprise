@@ -1358,9 +1358,16 @@ def main(report_end: str | None = None, sim_interface=None):
                         hf = _gas_var_hf
                         current_hf[cid] = hf
 
-            naked_kwh = aq_kwh * (1.0 - hf)
+            # Phase NE: pass-through gas has no commodity price risk -- customer pays spot
+            # directly, so company holds no naked position. Using aq_kwh here was generating
+            # spurious VaR capital costs on a genuinely zero-risk position.
+            naked_kwh = 0.0 if term_tariff_type == "pass_through" else aq_kwh * (1.0 - hf)
             risk = assess_term_risk(term_start_str, naked_kwh, forward_price, gas_records)
-            counterfactual_risk = assess_term_risk(term_start_str, float(aq_kwh), forward_price, gas_records)
+            counterfactual_risk = assess_term_risk(
+                term_start_str,
+                0.0 if term_tariff_type == "pass_through" else float(aq_kwh),
+                forward_price, gas_records,
+            )
             current_risk[cid] = risk
 
             # Phase W: gas HDD shape is now computed daily inside run_gas_term.
