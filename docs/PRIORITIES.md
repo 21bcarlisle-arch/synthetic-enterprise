@@ -11,7 +11,8 @@ Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and r
 Phase MW COMPLETE (2026-07-02): income_stress -> observable payment behaviour.
 Phase MX COMPLETE (2026-07-02): Company-side PaymentBehaviourAnalytics -- BehaviourScore enum, score_payment_history, PaymentBehaviourAnalytics (14,511 tests).
 Phase MY COMPLETE (2026-07-02): BehaviourScore wired into combined_churn_probability via payment_churn_model.py (14,531 tests).
-Next: Dim 3 behavioural (income_stress -> SIM-side switching propensity) or Gap 5 gas ROC.
+Phase MZ COMPLETE (2026-07-02): Dim 3 behavioural SIM-side -- vulnerability trap wired (14,552 tests).
+Next: Gap 5 gas ROC (business decision: exit / tariff uplift / better hedging) or Dim 4 emotional.
 After MY: Dim 3 behavioural (income_stress -> SIM-side switching propensity) or Gap 5 gas ROC.
 
 ## Real capability gaps
@@ -30,9 +31,8 @@ behavioural (payment/switching propensity), emotional (satisfaction/trust).
 Dim 1 (physical): CLOSED -- simulation/household.py + household_demand.py fully wired (EPC
   multipliers, seasonal_flatness_factor, life events for solar/EV/boiler/insulation).
 Dim 2 (economic): CLOSED SIM-side (MV/MW); company-side closes with Phase MX.
-Dim 3 (behavioural): OPEN -- no SIM-side model linking income_stress to switching propensity.
-  High-stress customers are LESS likely to switch (vulnerability trap); low-stress MORE likely.
-  Should feed into saas/churn_model.py via income_stress_at_date lookup.
+Dim 3 (behavioural): CLOSED -- simulation/switching_propensity.py (Phase MZ) wires income_stress
+  into roll_lifecycle_event. HIGH 0.65x / MODERATE 0.85x / LOW 1.10x multiplier on churn probability.
 Dim 4 (emotional/satisfaction): OPEN -- css_tracker and customer_reaction exist but no
   satisfaction accumulation model or trust decay over time in SIM.
 

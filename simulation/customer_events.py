@@ -28,6 +28,8 @@ from company.crm.churn_model import estimate_churn_probability
 from saas.churn_model import build_churn_risk
 from saas.customer_reaction import _billing_account_id
 from saas.home_move_win_rate import build_home_move_win_rates
+from simulation.household import IncomeStress
+from simulation.switching_propensity import adjust_churn_probability
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
 
@@ -44,6 +46,7 @@ def roll_lifecycle_event(
     retention_modifier: float | None = None,
     precomputed_company_estimate: float | None = None,
     passive_churn_cap: float | None = None,
+    income_stress: IncomeStress | None = None,
 ) -> dict | None:
     """Compute and roll the churn/renewal event for a billing account at a
     renewal point.
@@ -85,6 +88,10 @@ def roll_lifecycle_event(
     if passive_churn_cap is not None:
         p_churn_raw = 1.0 - effective_p_retain
         effective_p_retain = 1.0 - min(p_churn_raw, passive_churn_cap)
+    # Phase MZ: apply income_stress switching propensity before retention modifier
+    if income_stress is not None:
+        p_churn_stress = adjust_churn_probability(1.0 - effective_p_retain, income_stress)
+        effective_p_retain = 1.0 - p_churn_stress
     if retention_modifier is not None:
         p_churn_base = 1.0 - effective_p_retain
         effective_p_retain = 1.0 - p_churn_base * (1.0 - retention_modifier)
