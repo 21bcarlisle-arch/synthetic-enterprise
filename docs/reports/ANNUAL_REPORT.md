@@ -1156,7 +1156,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 |------|----------|---------------------|--------------------|--------------------|
 | 2016 | 13 | 13 | 1.0 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
-| 2022 | 9 | 51 | 5.7 | £20,830 |
+| 2022 | 9 | 50 | 5.6 | £20,830 |
 | 2023 | 4 | 25 | 6.2 | £48,770 |
 
 **Peak intervention year: 2016 (13 wake-ups)**
@@ -1360,6 +1360,49 @@ How well the company estimated churn probability versus actual simulation outcom
 > Company churn estimates derived from company-observable signals (bill shock,
 > margin feedback, renewal history) without access to the simulation's internal
 > churn parameters — epistemic gap is expected and realistic for a small supplier.
+
+## Churn Model Quality (Phase NK)
+
+Company churn model performance: did the company predict churn before it happened?
+Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal event.
+
+| Metric | Value | Interpretation |
+|--------|-------|----------------|
+| Total churn events | 6 | Customers who actually churned |
+| True Positives (TP) | 1 | Churn predicted AND happened |
+| False Positives (FP) | 5 | Churn predicted BUT customer renewed |
+| False Negatives (FN) | 5 | Churn NOT predicted BUT happened (blind miss) |
+| True Negatives (TN) | 40 | No churn predicted AND customer renewed |
+| **Recall** | **16.7%** | % of churners detected before departure |
+| **Precision** | **16.7%** | % of retention offers to genuine churners |
+| **F1 Score** | **0.17** | Harmonic mean of recall and precision |
+
+**Model quality: RED**
+
+> **Board Action Required:** F1 < 0.30 — churn model is failing to detect departures.
+> Company is missing churning customers; retention spend may be misdirected.
+
+> **Known limitation:** passive SVT-rollers (69% of renewals) churn at ~10% effective rate
+> after passive_churn_cap, but the 30% retention threshold is calibrated for active renewers.
+> Passive blind misses are a structural feature — these customers's seasonal bill variability
+> (8-11 monthly shocks/year) inflates the SIM's base churn_probability to 29-38%, but
+> effective churn after the passive cap is ~11%. A separate passive loyalty programme
+> would be needed to recover these departures.
+
+### Per-Year Model Performance
+
+| Year | TP | FP | FN | TN | Recall | Precision |
+|------|----|----|----|----|--------|-----------|
+| 2016 | 0 | 0 | 0 | 3 | 0% | 0% |
+| 2017 | 0 | 0 | 0 | 3 | 0% | 0% |
+| 2018 | 0 | 1 | 0 | 3 | 0% | 0% |
+| 2019 | 0 | 1 | 0 | 3 | 0% | 0% |
+| 2020 | 0 | 1 | 2 | 7 | 0% | 0% |
+| 2021 | 1 | 1 | 1 | 5 | 50% | 50% |
+| 2022 | 0 | 0 | 0 | 6 | 0% | 0% |
+| 2023 | 0 | 1 | 0 | 5 | 0% | 0% |
+| 2024 | 0 | 0 | 2 | 4 | 0% | 0% |
+| 2025 | 0 | 0 | 0 | 1 | 0% | 0% |
 
 ## Tariff Estimation Accuracy
 
@@ -2445,7 +2488,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2022-04-29: treasury £3,091,790.81, C6->1.00, C8->1.00, C_IC1->1.00, VaR (current £56,060.50 / stressed £20,778.40) ratio 2.70
   - 2022-05-29: treasury £3,091,894.79, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,169.42 / stressed £20,807.27) ratio 2.70
   - 2022-06-28: treasury £3,091,889.12, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,169.42 / stressed £20,807.27) ratio 2.70
-  - 2022-07-28: treasury £3,091,696.47, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,231.40 / stressed £20,819.81) ratio 2.70
+  - 2022-07-28: treasury £3,091,696.47, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, VaR (current £56,231.40 / stressed £20,819.81) ratio 2.70
   - 2022-08-27: treasury £3,091,686.87, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,231.40 / stressed £20,819.81) ratio 2.70
   - 2022-09-26: treasury £3,091,671.42, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, VaR (current £56,231.40 / stressed £20,819.81) ratio 2.70
   - 2022-10-26: treasury £3,089,385.48, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,292.84 / stressed £20,829.96) ratio 2.70
