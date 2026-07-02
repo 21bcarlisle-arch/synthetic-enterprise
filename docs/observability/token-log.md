@@ -4239,3 +4239,14 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
 - [2026-07-02T00:54:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-02T00:55:02Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-02T00:55:40Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T00:59:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T00:59:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T01:00:07Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T01:01:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T01:01:50Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T01:02:28Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T01:02:39Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T01:03:16Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T01:05:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T01:08:43Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T01:11:07Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
