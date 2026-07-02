@@ -60,6 +60,7 @@ in run_phase2b.py. C_IC3g: net -GBP 134k -> +GBP 95k (service_fee x volume over 
 - Bad debt stress test: does bad_debt_provision feed back into capital model?
 
 ## Recently completed real capability
+- **I&C churn calibration fix** (2026-07-02): IC_BILL_STRESS_SENSITIVITY 0.10->0.0. I&C was estimating 95% churn vs SIM 5% (1800% error) at stable rates. 58% of retention offers were wasted. Rate-sensitivity (IC_RATE_SENSITIVITY=1.5x) now drives I&C churn exclusively. Crisis spikes still correctly reach 95%.
 - Phase MW (2026-07-02): Income Stress -> Observed Payment Behaviour (14,485 tests)
 - Phase MV (2026-07-01): Economic Life Events -- income_stress enum, job_loss/income_recovery/new_baby/retirement
 - Phase MT (2026-07-01): I&C Triad Demand Curtailment -- wired to settlement

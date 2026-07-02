@@ -1,18 +1,19 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T04:49:46Z
+Last updated: 2026-07-02T04:50:07Z
 
 ## Current Status
-**Phase NG complete** -- 14,668 tests
+I&C churn calibration fix + Phase NG complete -- 14,670 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,443,537 (git b7f6ec73, 2026-07-02)
 
 ## Test Suite
-- **14,668 tests passing** (fast suite ~10s)
+- **14,670 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
+- **I&C churn calibration fix** (2026-07-02): IC_BILL_STRESS_SENSITIVITY 0.10->0.0; I&C no longer gets 95% churn estimate at stable rates; 14,670 tests
 - **CLIV** (2026-07-01): Coverage Depth Sprint -- bsc_performance_assurance, dso_flexibility_tender, gas_safety_incident (14,460 tests)
 - **CLIII** (2026-07-01): Coverage Depth Sprint -- green_gas_levy, annual_compliance_attestation, liquidity_stress_test (14,310 tests)
 - **CLII** (2026-07-01): Coverage Depth Sprint -- theft_risk_scoring, dno_network_charge_dispute, grid_connection_queue (14,280 tests)
