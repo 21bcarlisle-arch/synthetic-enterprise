@@ -1,97 +1,67 @@
-# Phase NJ -- Churn Model Calibration Report
+# Phase NK — Churn Model Performance Report
 
-## Gap
+## Problem
 
-The company has a three-signal churn model (Phases MX-NH) but no way to measure
-how well it performs. The board knows "4/6 departures not forecast" anecdotally —
-there is no code that computes this. After Phase NH improved the model, we cannot
-quantify the improvement without a formal accuracy report.
+Phase NJ (2026-07-02) added compute_churn_model_performance() and wired it into run_phase2b.main()
+at line 1809. But extract_report_data() in saas/reporting/annual_report.py does NOT include
+"churn_model_performance" in its return dict (lines 558-596). The board KPI — recall/precision/F1 —
+is computed every run and silently discarded. The JSON output contains no "churn_model_performance"
+key. Phase NJ's board-level model calibration section is completely invisible.
 
-A real UK energy supplier treats churn model recall/precision as a board KPI.
-Currently we have the raw data (customer_events, retention_log, no_offer_churn_log)
-but no post-hoc analysis.
+Root cause: omission in extract_report_data return dict (single missing line).
 
-## What to build
+Secondary issue: no annual report section exists to DISPLAY churn model performance, even after
+the extraction is fixed. The data would be in the JSON but the report would show nothing.
 
-company/analytics/churn_accuracy_report.py (new file)
+## Changes
 
-```python
-def compute_churn_model_performance(
-    customer_events: list[dict],
-    retention_log: list[dict],
-    no_offer_churn_log: list[dict],
-    threshold: float = 0.30,
-) -> dict:
-    """
-    Returns:
-        total_churn_events, true_positives, false_positives,
-        false_negatives, true_negatives,
-        recall, precision, f1_score,
-        per_year: {year: {tp, fp, fn, tn, recall, precision}}
-    """
-```
+### 1. saas/reporting/annual_report.py — extract_report_data (line ~588)
+Add after "demand_estimation_log" line:
+    "churn_model_performance": phase2b.get("churn_model_performance", {}),
 
-Logic:
-- True Positive (TP): company estimate > threshold AND customer actually churned
-  Source: customer_events where event_type=="churned" and company_churn_estimate > threshold
-  (these are in retention_log with outcome=="churned_despite_offer")
-- False Positive (FP): company estimate > threshold AND customer renewed
-  Source: retention_log with outcome=="retained"
-- False Negative (FN): company estimate <= threshold AND customer churned
-  Source: no_offer_churn_log (all are FN by definition — no offer made means estimate was below threshold)
-  Also: customer_events with event_type=="churned" and company_churn_estimate <= threshold
-- True Negative (TN): company estimate <= threshold AND customer renewed
-  Source: customer_events with event_type=="renewed" and company_churn_estimate <= threshold
+### 2. saas/reporting/annual_report.py — _section_churn_model_performance(data)
+New report section (placed after "Churn Prediction Calibration" section, ~line 1362).
+Shows:
+- Total churn events, TP, FP, FN, TN
+- Recall = TP/(TP+FN): "% of churners detected before departure"
+- Precision = TP/(TP+FP): "% of retention offers went to genuine churners"
+- F1 score: harmonic mean
+- Per-year table: Year | Renewals | TP | FP | FN | TN | Recall | Precision
+- Interpretation bullet:
+    - recall=0: "Model detected 0% of churners — all departures were surprises"
+    - recall=1: "Model detected all churners — full visibility"
+    - f1>0.5: "Model is reasonably calibrated"
+    - f1<0.2: "Model calibration needs attention (Board Action Required: RED)"
+- Notes RAG: recall >= 0.5 = GREEN, 0.3-0.5 = AMBER, < 0.3 = RED
+- Wired in generate_annual_report() return list after _section_churn_prediction_calibration()
 
-Wire into run_phase2b.py at results assembly (end of main()), add
-churn_model_performance to output JSON.
+## Tests (~14 new) — test_phase_nk_churn_model_performance.py
+- extract_has_churn_model_performance_key: extract_report_data result dict has "churn_model_performance"
+- perf_key_is_dict: churn_model_performance value is a dict
+- perf_has_recall: dict has "recall" key
+- perf_has_precision: dict has "precision" key
+- perf_has_f1_score: dict has "f1_score" key
+- perf_has_total_churn_events: dict has "total_churn_events" key
+- perf_all_fn_zero_recall: all churns not predicted -> recall=0.0
+- perf_all_tp_perfect_recall: all churns predicted -> recall=1.0
+- perf_no_fp_precision_one: TP>0 no FP -> precision=1.0
+- perf_f1_harmonic_mean: f1 = 2*P*R/(P+R) when both nonzero
+- perf_per_year_has_recall: per_year[year] has "recall" key
+- section_renders_with_data: _section_churn_model_performance renders markdown when data present
+- section_silent_no_data: section returns empty string when churn_model_performance is {}
+- section_shows_recall_precision: rendered markdown contains "Recall" and "Precision"
 
-## Test plan (16 tests in tests/company/test_churn_accuracy_report.py)
+## Expected impact
+- Board finally sees recall/precision/F1 on every run (Phase NJ's intent, 2 months late)
+- Current expected values: recall=0.33 (2/6 churns predicted), precision=1.0, f1=0.50
+  (C5 at 85% and C6 at 26% were above 30% threshold; C2/C3/C1/C4 were blind misses)
+- Board can track model quality improving or degrading run-to-run
+- RED flag when f1 < 0.2 (churn model is failing to detect departures)
 
-1.  all_tp: all predicted churns actually churn -> recall=1.0, precision=1.0
-2.  all_fn: no churns predicted, all churn -> recall=0.0, precision=undefined(0.0)
-3.  all_fp: all predicted churn, none churn -> recall=undefined(0.0), precision=0.0
-4.  mixed: 2 TP, 1 FP, 1 FN, 3 TN -> recall=2/3, precision=2/3
-5.  threshold_boundary: co=0.30 exactly treated as not above threshold (< not <=)
-6.  f1_score: matches 2*p*r/(p+r) formula
-7.  per_year: two events in 2019, one in 2020 -> separate per-year entries
-8.  empty_events: all zeros, recall/precision/f1 = 0.0
-9.  no_offer_churns_are_fn: no_offer_churn_log entries count as FN
-10. retained_despite_offer_are_tp: retention_log outcome=="retained" are NOT TP
-    (they stayed — only "churned_despite_offer" are TP)
-11. churned_despite_offer_are_tp: retention_log outcome=="churned_despite_offer" are TP
-12. above_threshold_renewed_are_fp: company over-estimated churn for renewals
-13. total_churn_events: TP + FN matches total actual churns
-14. recall_formula: TP / (TP + FN)
-15. precision_formula: TP / (TP + FP), 0.0 if no predictions
-16. f1_zero_if_no_predictions: F1 = 0 when precision=0 and recall=0
-
-## Expected simulation impact
-
-At run end, run_output_latest.json will include:
-  "churn_model_performance": {
-    "total_churn_events": 7,
-    "true_positives": 1,   (the one churned_despite_offer from retention_log)
-    "false_positives": 25, (25 retained customers who got an offer they didn't need)
-    "false_negatives": 6,  (6 no-offer churns — completely missed)
-    "true_negatives": N,
-    "recall": 0.14,        (1/7 = 14% recall — the model is catching very few churns)
-    "precision": 0.038,    (1/26 = 3.8% precision — almost all offers are wasted)
-    "f1_score": 0.065,
-    "per_year": {...}
-  }
-
-These metrics will reveal the baseline and how much Phase NH moves the needle
-on future simulation runs.
-
-## Epistemic check
-
-PASS. Company is analysing its OWN records (company estimates, its own offers,
-observed churn outcomes). No SIM internals involved. This is internal model
-evaluation — exactly what a real supplier's analytics team would do.
-
-## Fidelity delta
-
-The company can now measure its own churn model quality. Board report gains
-a "model calibration" section. Quantifies the cost of missed churns (FN) vs
-wasted retention spend (FP). Sets baseline before any threshold-tuning work.
+## Known limitation (document in report section)
+The SIM's churn_probability for resi/SME customers (29-38%) is driven by SEASONAL bill
+variation — all resi customers have 8-11 monthly bill shocks per year from winter/summer
+bill cycles. This makes the passive blind miss rate (4/5 no-offer churns) a structural feature:
+passive customers churn at ~10% effective rate (after passive_churn_cap) but the 30%
+RETENTION_THRESHOLD is calibrated for active renewers. A separate passive loyalty program
+would be needed to address this gap (future phase).
