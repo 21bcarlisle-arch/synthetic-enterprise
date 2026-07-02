@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-02. 446+ commits. 14,572 tests passing. Codebase: ~48,000 lines across 308+ Python modules.*
+*Last updated: 2026-07-02. 450+ commits. 14,588 tests passing. Codebase: ~48,200 lines across 309+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NB -- Satisfaction Score -> Combined Churn Model (2026-07-02)
+16 tests. company/crm/payment_churn_model.py (extended): Added satisfaction_score as third churn signal alongside bill_shock_count and behaviour_score. _HIGH_SATISFACTION_THRESHOLD=0.80; _LOW_SATISFACTION_THRESHOLD=0.50; _HIGH_SATISFACTION_UPLIFT=-0.02; _LOW_SATISFACTION_UPLIFT=+0.10; _satisfaction_uplift(score | None) -> float (None=0.0; >=0.80 -> -0.02; <0.50 -> +0.10; else 0.0). combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score) -> min(base + payment_uplift + sat_uplift, 0.95). Backward-compatible: existing Phase MY tests pass unchanged (default=None). Epistemic: satisfaction_score sourced from company/crm/satisfaction_accumulator.py -- observable signals only (bill shocks, CSS surveys, complaints). Completes Gap 4 company-side: three observable signals now feed churn estimate.
+**Total:** 14,588 tests
 
 ### Phase NA -- Dim 4 Emotional: Customer Satisfaction Accumulator (2026-07-02)
 20 tests. company/crm/satisfaction_accumulator.py (new): Observable-signal satisfaction model with mean-reversion. Constants: BASELINE=0.70, BILL_SHOCK_DELTA=-0.05, COMPLAINT_RAISED_DELTA=-0.10, COMPLAINT_RESOLVED_DELTA=+0.05, CSS_GOOD_DELTA=+0.05, CSS_POOR_DELTA=-0.05, MONTHLY_DECAY_RATE=0.01. Methods: record_bill_shock, record_css_score (good>=7.0/poor<4.0), record_complaint_raised, record_complaint_resolved, apply_monthly_decay (mean-reverts toward 0.70), get_satisfaction, is_low_satisfaction (<0.50), low_satisfaction_customers. Epistemic: reads only company observables (billing, CSS surveys, complaint register). Dim 4 OPEN at SIM-side (no satisfaction -> actual churn wiring yet).
@@ -5008,16 +5012,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,572 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,588 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase NA, 2026-07-02, git ca1d8ab5):**
+**Latest full run (Phase NB, 2026-07-02, git ca1d8ab5):**
 - Net margin £1,224,097 | Gross £6,418,373 | EV £5,987,458 | Treasury £3,690,734 | SURVIVED
-- 14,572 tests. Satisfaction accumulator closes Dim 4 company-side; Dim 3 SIM-side closed (MZ).
+- 14,588 tests. Three-signal churn model (MX/MY/NB): bill_shock+BehaviourScore+satisfaction. Dim 3+4 closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
