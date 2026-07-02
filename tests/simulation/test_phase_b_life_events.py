@@ -154,7 +154,8 @@ def test_generate_events_different_seeds_may_differ():
     # More usefully, check both are valid (all event types in known set)
     valid_types = {"solar_install", "ev_acquired", "boiler_replaced",
                    "heat_pump_installed", "battery_installed",
-                   "smart_meter_installed", "insulation_upgraded"}
+                   "smart_meter_installed", "insulation_upgraded",
+                   "job_loss", "income_recovery", "new_baby", "retirement_starts"}
     for e in e1 + e2:
         assert e.event_type in valid_types
 
