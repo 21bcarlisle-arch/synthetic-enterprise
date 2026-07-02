@@ -7,22 +7,22 @@
   "acquisition_date": "2016-07-01",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Smart",
-  "lifetime_revenue_gbp": 3625.34,
-  "lifetime_gross_gbp": 2385.47,
-  "lifetime_net_gbp": 202.72,
-  "lifetime_net_after_cts_gbp": 2093.02,
-  "cost_to_serve_gbp": 292.46,
+  "lifetime_revenue_gbp": 3628.72,
+  "lifetime_gross_gbp": 2388.84,
+  "lifetime_net_gbp": 205.99,
+  "lifetime_net_after_cts_gbp": 2096.31,
+  "cost_to_serve_gbp": 292.52,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
   },
-  "clv_gbp": 4935.34,
+  "clv_gbp": 4940.21,
   "churn_probability": 0.32,
   "expected_lifetime_periods": 9.4,
   "commodity_split": {
     "electricity": {
-      "net_gbp": 202.72,
-      "revenue_gbp": 3625.34
+      "net_gbp": 205.99,
+      "revenue_gbp": 3628.72
     },
     "gas": null
   },
@@ -30,8 +30,8 @@
     "gas_account_id": "C3g",
     "gas_lifetime_net_gbp": 287.57,
     "gas_lifetime_revenue_gbp": 2688.18,
-    "combined_net_gbp": 490.28,
-    "combined_revenue_gbp": 6313.52
+    "combined_net_gbp": 493.56,
+    "combined_revenue_gbp": 6316.9
   },
   "annual_pnl": [
     {
@@ -45,17 +45,17 @@
     {
       "year": 2017,
       "revenue_gbp": 0,
-      "gross_gbp": 568.91,
-      "net_gbp": 69.5,
+      "gross_gbp": 570.59,
+      "net_gbp": 71.13,
       "tariff_min": 98.21,
-      "tariff_max": 120.29
+      "tariff_max": 120.78
     },
     {
       "year": 2018,
       "revenue_gbp": 0,
-      "gross_gbp": 613.08,
-      "net_gbp": 69.48,
-      "tariff_min": 120.29,
+      "gross_gbp": 614.77,
+      "net_gbp": 71.12,
+      "tariff_min": 120.78,
       "tariff_max": 126.9
     },
     {
@@ -81,7 +81,7 @@
       "date": "2016-07-31",
       "period_start": "2016-07-01",
       "period_end": "2016-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -90,7 +90,7 @@
       "date": "2016-08-31",
       "period_start": "2016-08-01",
       "period_end": "2016-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -99,7 +99,7 @@
       "date": "2016-09-30",
       "period_start": "2016-09-01",
       "period_end": "2016-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -108,7 +108,7 @@
       "date": "2016-10-31",
       "period_start": "2016-10-01",
       "period_end": "2016-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -117,7 +117,7 @@
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -126,7 +126,7 @@
       "date": "2016-12-31",
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -135,7 +135,7 @@
       "date": "2017-01-31",
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
-      "amount_gbp": 46.55,
+      "amount_gbp": 46.59,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -144,7 +144,7 @@
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
-      "amount_gbp": 44.07,
+      "amount_gbp": 44.1,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -153,7 +153,7 @@
       "date": "2017-03-31",
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
-      "amount_gbp": 41.61,
+      "amount_gbp": 41.64,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -162,7 +162,7 @@
       "date": "2017-04-30",
       "period_start": "2017-04-01",
       "period_end": "2017-04-30",
-      "amount_gbp": 38.04,
+      "amount_gbp": 38.07,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -171,7 +171,7 @@
       "date": "2017-05-31",
       "period_start": "2017-05-01",
       "period_end": "2017-05-31",
-      "amount_gbp": 36.67,
+      "amount_gbp": 36.7,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -180,7 +180,7 @@
       "date": "2017-06-30",
       "period_start": "2017-06-01",
       "period_end": "2017-06-30",
-      "amount_gbp": 35.41,
+      "amount_gbp": 35.43,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -189,7 +189,7 @@
       "date": "2017-07-31",
       "period_start": "2017-07-01",
       "period_end": "2017-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -198,7 +198,7 @@
       "date": "2017-08-31",
       "period_start": "2017-08-01",
       "period_end": "2017-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -207,7 +207,7 @@
       "date": "2017-09-30",
       "period_start": "2017-09-01",
       "period_end": "2017-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -216,7 +216,7 @@
       "date": "2017-10-31",
       "period_start": "2017-10-01",
       "period_end": "2017-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -225,7 +225,7 @@
       "date": "2017-11-30",
       "period_start": "2017-11-01",
       "period_end": "2017-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -234,7 +234,7 @@
       "date": "2017-12-31",
       "period_start": "2017-12-01",
       "period_end": "2017-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -243,7 +243,7 @@
       "date": "2018-01-31",
       "period_start": "2018-01-01",
       "period_end": "2018-01-31",
-      "amount_gbp": 46.55,
+      "amount_gbp": 46.59,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -252,7 +252,7 @@
       "date": "2018-02-28",
       "period_start": "2018-02-01",
       "period_end": "2018-02-28",
-      "amount_gbp": 44.07,
+      "amount_gbp": 44.1,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -261,7 +261,7 @@
       "date": "2018-03-31",
       "period_start": "2018-03-01",
       "period_end": "2018-03-31",
-      "amount_gbp": 41.61,
+      "amount_gbp": 41.64,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -270,7 +270,7 @@
       "date": "2018-04-30",
       "period_start": "2018-04-01",
       "period_end": "2018-04-30",
-      "amount_gbp": 38.04,
+      "amount_gbp": 38.07,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -279,7 +279,7 @@
       "date": "2018-05-31",
       "period_start": "2018-05-01",
       "period_end": "2018-05-31",
-      "amount_gbp": 36.67,
+      "amount_gbp": 36.7,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -288,7 +288,7 @@
       "date": "2018-06-30",
       "period_start": "2018-06-01",
       "period_end": "2018-06-30",
-      "amount_gbp": 35.41,
+      "amount_gbp": 35.43,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -297,7 +297,7 @@
       "date": "2018-07-31",
       "period_start": "2018-07-01",
       "period_end": "2018-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -306,7 +306,7 @@
       "date": "2018-08-31",
       "period_start": "2018-08-01",
       "period_end": "2018-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -315,7 +315,7 @@
       "date": "2018-09-30",
       "period_start": "2018-09-01",
       "period_end": "2018-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -324,7 +324,7 @@
       "date": "2018-10-31",
       "period_start": "2018-10-01",
       "period_end": "2018-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -333,7 +333,7 @@
       "date": "2018-11-30",
       "period_start": "2018-11-01",
       "period_end": "2018-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -342,7 +342,7 @@
       "date": "2018-12-31",
       "period_start": "2018-12-01",
       "period_end": "2018-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -351,7 +351,7 @@
       "date": "2019-01-31",
       "period_start": "2019-01-01",
       "period_end": "2019-01-31",
-      "amount_gbp": 46.55,
+      "amount_gbp": 46.59,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -360,7 +360,7 @@
       "date": "2019-02-28",
       "period_start": "2019-02-01",
       "period_end": "2019-02-28",
-      "amount_gbp": 44.07,
+      "amount_gbp": 44.1,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -369,7 +369,7 @@
       "date": "2019-03-31",
       "period_start": "2019-03-01",
       "period_end": "2019-03-31",
-      "amount_gbp": 41.61,
+      "amount_gbp": 41.64,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -378,7 +378,7 @@
       "date": "2019-04-30",
       "period_start": "2019-04-01",
       "period_end": "2019-04-30",
-      "amount_gbp": 38.04,
+      "amount_gbp": 38.07,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -387,7 +387,7 @@
       "date": "2019-05-31",
       "period_start": "2019-05-01",
       "period_end": "2019-05-31",
-      "amount_gbp": 36.67,
+      "amount_gbp": 36.7,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -396,7 +396,7 @@
       "date": "2019-06-30",
       "period_start": "2019-06-01",
       "period_end": "2019-06-30",
-      "amount_gbp": 35.41,
+      "amount_gbp": 35.43,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -405,7 +405,7 @@
       "date": "2019-07-31",
       "period_start": "2019-07-01",
       "period_end": "2019-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -414,7 +414,7 @@
       "date": "2019-08-31",
       "period_start": "2019-08-01",
       "period_end": "2019-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -423,7 +423,7 @@
       "date": "2019-09-30",
       "period_start": "2019-09-01",
       "period_end": "2019-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -432,7 +432,7 @@
       "date": "2019-10-31",
       "period_start": "2019-10-01",
       "period_end": "2019-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -441,7 +441,7 @@
       "date": "2019-11-30",
       "period_start": "2019-11-01",
       "period_end": "2019-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -450,7 +450,7 @@
       "date": "2019-12-31",
       "period_start": "2019-12-01",
       "period_end": "2019-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -459,7 +459,7 @@
       "date": "2020-01-31",
       "period_start": "2020-01-01",
       "period_end": "2020-01-31",
-      "amount_gbp": 46.55,
+      "amount_gbp": 46.59,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -468,7 +468,7 @@
       "date": "2020-02-29",
       "period_start": "2020-02-01",
       "period_end": "2020-02-29",
-      "amount_gbp": 44.35,
+      "amount_gbp": 44.38,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -477,7 +477,7 @@
       "date": "2020-03-31",
       "period_start": "2020-03-01",
       "period_end": "2020-03-31",
-      "amount_gbp": 41.61,
+      "amount_gbp": 41.64,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -486,7 +486,7 @@
       "date": "2020-04-30",
       "period_start": "2020-04-01",
       "period_end": "2020-04-30",
-      "amount_gbp": 38.04,
+      "amount_gbp": 38.07,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -495,7 +495,7 @@
       "date": "2020-05-31",
       "period_start": "2020-05-01",
       "period_end": "2020-05-31",
-      "amount_gbp": 36.67,
+      "amount_gbp": 36.7,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -504,7 +504,7 @@
       "date": "2020-06-30",
       "period_start": "2020-06-01",
       "period_end": "2020-06-30",
-      "amount_gbp": 35.41,
+      "amount_gbp": 35.43,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -513,7 +513,7 @@
       "date": "2020-07-31",
       "period_start": "2020-07-01",
       "period_end": "2020-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -522,7 +522,7 @@
       "date": "2020-08-31",
       "period_start": "2020-08-01",
       "period_end": "2020-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -531,7 +531,7 @@
       "date": "2020-09-30",
       "period_start": "2020-09-01",
       "period_end": "2020-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -540,7 +540,7 @@
       "date": "2020-10-31",
       "period_start": "2020-10-01",
       "period_end": "2020-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -549,7 +549,7 @@
       "date": "2020-11-30",
       "period_start": "2020-11-01",
       "period_end": "2020-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -558,7 +558,7 @@
       "date": "2020-12-31",
       "period_start": "2020-12-01",
       "period_end": "2020-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -567,7 +567,7 @@
       "date": "2021-01-31",
       "period_start": "2021-01-01",
       "period_end": "2021-01-31",
-      "amount_gbp": 46.55,
+      "amount_gbp": 46.59,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -576,7 +576,7 @@
       "date": "2021-02-28",
       "period_start": "2021-02-01",
       "period_end": "2021-02-28",
-      "amount_gbp": 44.07,
+      "amount_gbp": 44.1,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -585,7 +585,7 @@
       "date": "2021-03-31",
       "period_start": "2021-03-01",
       "period_end": "2021-03-31",
-      "amount_gbp": 41.61,
+      "amount_gbp": 41.64,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -594,7 +594,7 @@
       "date": "2021-04-30",
       "period_start": "2021-04-01",
       "period_end": "2021-04-30",
-      "amount_gbp": 38.04,
+      "amount_gbp": 38.07,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -603,7 +603,7 @@
       "date": "2021-05-31",
       "period_start": "2021-05-01",
       "period_end": "2021-05-31",
-      "amount_gbp": 36.67,
+      "amount_gbp": 36.7,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -612,7 +612,7 @@
       "date": "2021-06-30",
       "period_start": "2021-06-01",
       "period_end": "2021-06-30",
-      "amount_gbp": 35.41,
+      "amount_gbp": 35.43,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -621,7 +621,7 @@
       "date": "2021-07-31",
       "period_start": "2021-07-01",
       "period_end": "2021-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -630,7 +630,7 @@
       "date": "2021-08-31",
       "period_start": "2021-08-01",
       "period_end": "2021-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -639,7 +639,7 @@
       "date": "2021-09-30",
       "period_start": "2021-09-01",
       "period_end": "2021-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -648,7 +648,7 @@
       "date": "2021-10-31",
       "period_start": "2021-10-01",
       "period_end": "2021-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -657,7 +657,7 @@
       "date": "2021-11-30",
       "period_start": "2021-11-01",
       "period_end": "2021-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -666,7 +666,7 @@
       "date": "2021-12-31",
       "period_start": "2021-12-01",
       "period_end": "2021-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -675,7 +675,7 @@
       "date": "2022-01-31",
       "period_start": "2022-01-01",
       "period_end": "2022-01-31",
-      "amount_gbp": 46.55,
+      "amount_gbp": 46.59,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -684,7 +684,7 @@
       "date": "2022-02-28",
       "period_start": "2022-02-01",
       "period_end": "2022-02-28",
-      "amount_gbp": 44.07,
+      "amount_gbp": 44.1,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -693,7 +693,7 @@
       "date": "2022-03-31",
       "period_start": "2022-03-01",
       "period_end": "2022-03-31",
-      "amount_gbp": 41.61,
+      "amount_gbp": 41.64,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -702,7 +702,7 @@
       "date": "2022-04-30",
       "period_start": "2022-04-01",
       "period_end": "2022-04-30",
-      "amount_gbp": 38.04,
+      "amount_gbp": 38.07,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -711,7 +711,7 @@
       "date": "2022-05-31",
       "period_start": "2022-05-01",
       "period_end": "2022-05-31",
-      "amount_gbp": 36.67,
+      "amount_gbp": 36.7,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -720,7 +720,7 @@
       "date": "2022-06-30",
       "period_start": "2022-06-01",
       "period_end": "2022-06-30",
-      "amount_gbp": 35.41,
+      "amount_gbp": 35.43,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -729,7 +729,7 @@
       "date": "2022-07-31",
       "period_start": "2022-07-01",
       "period_end": "2022-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -738,7 +738,7 @@
       "date": "2022-08-31",
       "period_start": "2022-08-01",
       "period_end": "2022-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -747,7 +747,7 @@
       "date": "2022-09-30",
       "period_start": "2022-09-01",
       "period_end": "2022-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -756,7 +756,7 @@
       "date": "2022-10-31",
       "period_start": "2022-10-01",
       "period_end": "2022-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -765,7 +765,7 @@
       "date": "2022-11-30",
       "period_start": "2022-11-01",
       "period_end": "2022-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -774,7 +774,7 @@
       "date": "2022-12-31",
       "period_start": "2022-12-01",
       "period_end": "2022-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -783,7 +783,7 @@
       "date": "2023-01-31",
       "period_start": "2023-01-01",
       "period_end": "2023-01-31",
-      "amount_gbp": 46.55,
+      "amount_gbp": 46.59,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -792,7 +792,7 @@
       "date": "2023-02-28",
       "period_start": "2023-02-01",
       "period_end": "2023-02-28",
-      "amount_gbp": 44.07,
+      "amount_gbp": 44.1,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -801,7 +801,7 @@
       "date": "2023-03-31",
       "period_start": "2023-03-01",
       "period_end": "2023-03-31",
-      "amount_gbp": 41.61,
+      "amount_gbp": 41.64,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -810,7 +810,7 @@
       "date": "2023-04-30",
       "period_start": "2023-04-01",
       "period_end": "2023-04-30",
-      "amount_gbp": 38.04,
+      "amount_gbp": 38.07,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -819,7 +819,7 @@
       "date": "2023-05-31",
       "period_start": "2023-05-01",
       "period_end": "2023-05-31",
-      "amount_gbp": 36.67,
+      "amount_gbp": 36.7,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -828,7 +828,7 @@
       "date": "2023-06-30",
       "period_start": "2023-06-01",
       "period_end": "2023-06-30",
-      "amount_gbp": 35.41,
+      "amount_gbp": 35.43,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -837,7 +837,7 @@
       "date": "2023-07-31",
       "period_start": "2023-07-01",
       "period_end": "2023-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -846,7 +846,7 @@
       "date": "2023-08-31",
       "period_start": "2023-08-01",
       "period_end": "2023-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -855,7 +855,7 @@
       "date": "2023-09-30",
       "period_start": "2023-09-01",
       "period_end": "2023-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -864,7 +864,7 @@
       "date": "2023-10-31",
       "period_start": "2023-10-01",
       "period_end": "2023-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -873,7 +873,7 @@
       "date": "2023-11-30",
       "period_start": "2023-11-01",
       "period_end": "2023-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -882,7 +882,7 @@
       "date": "2023-12-31",
       "period_start": "2023-12-01",
       "period_end": "2023-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -891,7 +891,7 @@
       "date": "2024-01-31",
       "period_start": "2024-01-01",
       "period_end": "2024-01-31",
-      "amount_gbp": 46.55,
+      "amount_gbp": 46.59,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -900,7 +900,7 @@
       "date": "2024-02-29",
       "period_start": "2024-02-01",
       "period_end": "2024-02-29",
-      "amount_gbp": 44.35,
+      "amount_gbp": 44.38,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -909,7 +909,7 @@
       "date": "2024-03-31",
       "period_start": "2024-03-01",
       "period_end": "2024-03-31",
-      "amount_gbp": 41.61,
+      "amount_gbp": 41.64,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -918,7 +918,7 @@
       "date": "2024-04-30",
       "period_start": "2024-04-01",
       "period_end": "2024-04-30",
-      "amount_gbp": 38.04,
+      "amount_gbp": 38.07,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -927,7 +927,7 @@
       "date": "2024-05-31",
       "period_start": "2024-05-01",
       "period_end": "2024-05-31",
-      "amount_gbp": 36.67,
+      "amount_gbp": 36.7,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -936,7 +936,7 @@
       "date": "2024-06-30",
       "period_start": "2024-06-01",
       "period_end": "2024-06-30",
-      "amount_gbp": 35.41,
+      "amount_gbp": 35.43,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -945,7 +945,7 @@
       "date": "2024-07-31",
       "period_start": "2024-07-01",
       "period_end": "2024-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -954,7 +954,7 @@
       "date": "2024-08-31",
       "period_start": "2024-08-01",
       "period_end": "2024-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -963,7 +963,7 @@
       "date": "2024-09-30",
       "period_start": "2024-09-01",
       "period_end": "2024-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -972,7 +972,7 @@
       "date": "2024-10-31",
       "period_start": "2024-10-01",
       "period_end": "2024-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -981,7 +981,7 @@
       "date": "2024-11-30",
       "period_start": "2024-11-01",
       "period_end": "2024-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -990,7 +990,7 @@
       "date": "2024-12-31",
       "period_start": "2024-12-01",
       "period_end": "2024-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -999,7 +999,7 @@
       "date": "2025-01-31",
       "period_start": "2025-01-01",
       "period_end": "2025-01-31",
-      "amount_gbp": 46.55,
+      "amount_gbp": 46.59,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1008,7 +1008,7 @@
       "date": "2025-02-28",
       "period_start": "2025-02-01",
       "period_end": "2025-02-28",
-      "amount_gbp": 44.07,
+      "amount_gbp": 44.1,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1017,7 +1017,7 @@
       "date": "2025-03-31",
       "period_start": "2025-03-01",
       "period_end": "2025-03-31",
-      "amount_gbp": 41.61,
+      "amount_gbp": 41.64,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1026,7 +1026,7 @@
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
-      "amount_gbp": 38.04,
+      "amount_gbp": 38.07,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1035,7 +1035,7 @@
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
-      "amount_gbp": 36.67,
+      "amount_gbp": 36.7,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1044,7 +1044,7 @@
       "date": "2025-06-30",
       "period_start": "2025-06-01",
       "period_end": "2025-06-30",
-      "amount_gbp": 35.41,
+      "amount_gbp": 35.43,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1053,7 +1053,7 @@
       "date": "2025-07-31",
       "period_start": "2025-07-01",
       "period_end": "2025-07-31",
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.71,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1062,7 +1062,7 @@
       "date": "2025-08-31",
       "period_start": "2025-08-01",
       "period_end": "2025-08-31",
-      "amount_gbp": 36.01,
+      "amount_gbp": 36.04,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1071,7 +1071,7 @@
       "date": "2025-09-30",
       "period_start": "2025-09-01",
       "period_end": "2025-09-30",
-      "amount_gbp": 37.38,
+      "amount_gbp": 37.41,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1080,7 +1080,7 @@
       "date": "2025-10-31",
       "period_start": "2025-10-01",
       "period_end": "2025-10-31",
-      "amount_gbp": 40.95,
+      "amount_gbp": 40.99,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1089,7 +1089,7 @@
       "date": "2025-11-30",
       "period_start": "2025-11-01",
       "period_end": "2025-11-30",
-      "amount_gbp": 43.97,
+      "amount_gbp": 44.0,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1098,7 +1098,7 @@
       "date": "2025-12-31",
       "period_start": "2025-12-01",
       "period_end": "2025-12-31",
-      "amount_gbp": 47.54,
+      "amount_gbp": 47.58,
       "status": "UNPAID",
       "commodity": "electricity"
     }
