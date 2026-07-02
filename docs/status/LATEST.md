@@ -1,5 +1,5 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T00:59:11Z
+Last updated: 2026-07-02T01:00:12Z
 
 ## Current Status
 **Phase MW complete** -- 14,485 tests
@@ -9,7 +9,7 @@ See docs/reports/run_output_latest.json.
 Net position: £6,180,475 (git 0d0619f6, 2026-07-01)
 
 ## Test Suite
-- **14,460 tests passing** (fast suite ~10s)
+- **14,485 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
