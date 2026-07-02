@@ -91,6 +91,7 @@ from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_as
 from company.crm.customer_profitability import compute_profitability_uplift
 from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
+from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
@@ -1028,6 +1029,15 @@ def main(report_end: str | None = None, sim_interface=None):
                 _churn_income_stress = household_demand_register.income_stress_at_date(
                     billing_account, term_start_str
                 )
+            # Phase NF: SIM-side satisfaction -> actual churn probability
+            _nf_shock_count = _count_rate_shocks(cid, "electricity", all_records)
+            _nf_tenure = (
+                (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_for_est)).days / 365.25
+                if old_elec_rate is not None else term_index * 0.5
+            )
+            _nf_satisfaction = _sim_satisfaction_score(
+                _nf_shock_count, _nf_tenure, _churn_income_stress
+            )
             event = roll_lifecycle_event(
                 cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
                 old_rate_gbp_per_mwh=old_elec_rate,
@@ -1036,6 +1046,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 precomputed_company_estimate=company_est_pre,
                 passive_churn_cap=passive_cap,
                 income_stress=_churn_income_stress,
+                satisfaction_score=_nf_satisfaction,
             )
             if event is not None:
                 event["is_active_renewal"] = active_renewal

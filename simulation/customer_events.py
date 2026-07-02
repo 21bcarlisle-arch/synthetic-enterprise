@@ -30,6 +30,7 @@ from saas.customer_reaction import _billing_account_id
 from saas.home_move_win_rate import build_home_move_win_rates
 from simulation.household import IncomeStress
 from simulation.switching_propensity import adjust_churn_probability
+from simulation.satisfaction_churn import adjust_churn_for_satisfaction
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
 
@@ -47,6 +48,7 @@ def roll_lifecycle_event(
     precomputed_company_estimate: float | None = None,
     passive_churn_cap: float | None = None,
     income_stress: IncomeStress | None = None,
+    satisfaction_score: float | None = None,
 ) -> dict | None:
     """Compute and roll the churn/renewal event for a billing account at a
     renewal point.
@@ -92,6 +94,10 @@ def roll_lifecycle_event(
     if income_stress is not None:
         p_churn_stress = adjust_churn_probability(1.0 - effective_p_retain, income_stress)
         effective_p_retain = 1.0 - p_churn_stress
+    # Phase NF: apply SIM-side satisfaction score before retention modifier
+    if satisfaction_score is not None:
+        p_churn_sat = adjust_churn_for_satisfaction(1.0 - effective_p_retain, satisfaction_score)
+        effective_p_retain = 1.0 - p_churn_sat
     if retention_modifier is not None:
         p_churn_base = 1.0 - effective_p_retain
         effective_p_retain = 1.0 - p_churn_base * (1.0 - retention_modifier)

@@ -17,7 +17,8 @@ Phase NB COMPLETE (2026-07-02): satisfaction_score wired into combined_churn_pro
 Phase NC COMPLETE (2026-07-02): enriched_churn_estimate = max(rate_model, payment_model); sim_interface.get_churn_estimate extended (14,604 tests).
 Phase ND COMPLETE (2026-07-02): Gap 4 SIM-side wiring -- bill_shock_tracker -> enriched_churn_estimate in run_phase2b. Gap 4 CLOSED (14,620 tests).
 Phase NE COMPLETE (2026-07-02): Gas pass-through capital correction; Gap 5 CLOSED (14,636 tests).
-Next: Gap 3 Dim 4 SIM-side (satisfaction -> actual SIM churn).
+Phase NF COMPLETE (2026-07-02): Gap 3 Dim 4 SIM-side satisfaction wiring; Gap 3 CLOSED (14,652 tests).
+Next: All gaps closed -- consider simulation validation run or new gap identification.
 
 ## Real capability gaps
 
@@ -37,9 +38,8 @@ Dim 1 (physical): CLOSED -- simulation/household.py + household_demand.py fully 
 Dim 2 (economic): CLOSED SIM-side (MV/MW); company-side closes with Phase MX.
 Dim 3 (behavioural): CLOSED -- simulation/switching_propensity.py (Phase MZ) wires income_stress
   into roll_lifecycle_event. HIGH 0.65x / MODERATE 0.85x / LOW 1.10x multiplier on churn probability.
-Dim 4 (emotional/satisfaction): PARTIAL -- company/crm/satisfaction_accumulator.py (Phase NA)
-  tracks rolling satisfaction; combined_churn_probability (NB) uses it; enriched_churn_estimate (NC) wired
-  into sim_interface. SIM-side (satisfaction -> actual churn simulation) still OPEN.
+Dim 4 (emotional/satisfaction): CLOSED -- company side: satisfaction_accumulator.py (NA/NB/NC). SIM side:
+  sim_satisfaction.py + satisfaction_churn.py + roll_lifecycle_event (NF). Full four-dimension model complete.
 
 ### Gap 4 -- Churn Blind Miss Rate [OPEN -- in progress]
 Board risk shows 4/6 departures (67%) not forecast. Company churn model (saas/churn_model.py)
