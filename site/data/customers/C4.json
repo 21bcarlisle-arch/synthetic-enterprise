@@ -7,22 +7,22 @@
   "acquisition_date": "2016-10-01",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Smart",
-  "lifetime_revenue_gbp": 6266.04,
-  "lifetime_gross_gbp": 3306.78,
-  "lifetime_net_gbp": 130.92,
-  "lifetime_net_after_cts_gbp": 2741.57,
+  "lifetime_revenue_gbp": 6265.96,
+  "lifetime_gross_gbp": 3306.69,
+  "lifetime_net_gbp": 130.84,
+  "lifetime_net_after_cts_gbp": 2741.48,
   "cost_to_serve_gbp": 565.21,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
   },
-  "clv_gbp": 2727.75,
+  "clv_gbp": 2777.33,
   "churn_probability": 0.32,
-  "expected_lifetime_periods": 8.72,
+  "expected_lifetime_periods": 8.96,
   "commodity_split": {
     "electricity": {
-      "net_gbp": 130.92,
-      "revenue_gbp": 6266.04
+      "net_gbp": 130.84,
+      "revenue_gbp": 6265.96
     },
     "gas": null
   },
@@ -30,8 +30,8 @@
     "gas_account_id": "C4g",
     "gas_lifetime_net_gbp": -2029.86,
     "gas_lifetime_revenue_gbp": 10370.3,
-    "combined_net_gbp": -1898.93,
-    "combined_revenue_gbp": 16636.34
+    "combined_net_gbp": -1899.01,
+    "combined_revenue_gbp": 16636.25
   },
   "annual_pnl": [
     {
@@ -93,18 +93,18 @@
     {
       "year": 2023,
       "revenue_gbp": 0,
-      "gross_gbp": 421.05,
-      "net_gbp": -68.64,
-      "tariff_min": 249.37,
+      "gross_gbp": 421.02,
+      "net_gbp": -68.67,
+      "tariff_min": 249.34,
       "tariff_max": 305.0
     },
     {
       "year": 2024,
       "revenue_gbp": 0,
-      "gross_gbp": 537.77,
-      "net_gbp": 235.27,
-      "tariff_min": 249.37,
-      "tariff_max": 249.37
+      "gross_gbp": 537.71,
+      "net_gbp": 235.22,
+      "tariff_min": 249.34,
+      "tariff_max": 249.34
     }
   ],
   "invoices": [
@@ -167,7 +167,7 @@
       "date": "2017-04-30",
       "period_start": "2017-04-01",
       "period_end": "2017-04-30",
-      "amount_gbp": 60.84,
+      "amount_gbp": 60.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -275,7 +275,7 @@
       "date": "2018-04-30",
       "period_start": "2018-04-01",
       "period_end": "2018-04-30",
-      "amount_gbp": 60.84,
+      "amount_gbp": 60.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -383,7 +383,7 @@
       "date": "2019-04-30",
       "period_start": "2019-04-01",
       "period_end": "2019-04-30",
-      "amount_gbp": 60.84,
+      "amount_gbp": 60.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -491,7 +491,7 @@
       "date": "2020-04-30",
       "period_start": "2020-04-01",
       "period_end": "2020-04-30",
-      "amount_gbp": 60.84,
+      "amount_gbp": 60.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -599,7 +599,7 @@
       "date": "2021-04-30",
       "period_start": "2021-04-01",
       "period_end": "2021-04-30",
-      "amount_gbp": 60.84,
+      "amount_gbp": 60.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -707,7 +707,7 @@
       "date": "2022-04-30",
       "period_start": "2022-04-01",
       "period_end": "2022-04-30",
-      "amount_gbp": 60.84,
+      "amount_gbp": 60.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -815,7 +815,7 @@
       "date": "2023-04-30",
       "period_start": "2023-04-01",
       "period_end": "2023-04-30",
-      "amount_gbp": 60.84,
+      "amount_gbp": 60.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -923,7 +923,7 @@
       "date": "2024-04-30",
       "period_start": "2024-04-01",
       "period_end": "2024-04-30",
-      "amount_gbp": 60.84,
+      "amount_gbp": 60.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1031,7 +1031,7 @@
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
-      "amount_gbp": 60.84,
+      "amount_gbp": 60.83,
       "status": "PAID",
       "commodity": "electricity"
     },

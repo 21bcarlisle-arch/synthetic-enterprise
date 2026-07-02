@@ -7,22 +7,22 @@
   "acquisition_date": "2016-07-01",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Smart",
-  "lifetime_revenue_gbp": 20223.1,
-  "lifetime_gross_gbp": 12688.08,
-  "lifetime_net_gbp": 1473.46,
-  "lifetime_net_after_cts_gbp": 11791.9,
-  "cost_to_serve_gbp": 896.18,
+  "lifetime_revenue_gbp": 20222.77,
+  "lifetime_gross_gbp": 12687.75,
+  "lifetime_net_gbp": 1473.15,
+  "lifetime_net_after_cts_gbp": 11791.58,
+  "cost_to_serve_gbp": 896.17,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
   },
-  "clv_gbp": 7296.6,
+  "clv_gbp": 7204.17,
   "churn_probability": 0.38,
-  "expected_lifetime_periods": 8.55,
+  "expected_lifetime_periods": 8.39,
   "commodity_split": {
     "electricity": {
-      "net_gbp": 1473.46,
-      "revenue_gbp": 20223.1
+      "net_gbp": 1473.15,
+      "revenue_gbp": 20222.77
     },
     "gas": null
   },
@@ -87,18 +87,18 @@
     {
       "year": 2023,
       "revenue_gbp": 0,
-      "gross_gbp": 1874.49,
-      "net_gbp": 226.68,
-      "tariff_min": 192.63,
+      "gross_gbp": 1874.35,
+      "net_gbp": 226.55,
+      "tariff_min": 192.61,
       "tariff_max": 389.61
     },
     {
       "year": 2024,
       "revenue_gbp": 0,
-      "gross_gbp": 2187.82,
-      "net_gbp": 560.84,
+      "gross_gbp": 2187.64,
+      "net_gbp": 560.67,
       "tariff_min": 165.0,
-      "tariff_max": 367.74
+      "tariff_max": 367.7
     },
     {
       "year": 2025,
@@ -133,7 +133,7 @@
       "date": "2016-09-30",
       "period_start": "2016-09-01",
       "period_end": "2016-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -205,7 +205,7 @@
       "date": "2017-05-31",
       "period_start": "2017-05-01",
       "period_end": "2017-05-31",
-      "amount_gbp": 164.84,
+      "amount_gbp": 164.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -241,7 +241,7 @@
       "date": "2017-09-30",
       "period_start": "2017-09-01",
       "period_end": "2017-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -313,7 +313,7 @@
       "date": "2018-05-31",
       "period_start": "2018-05-01",
       "period_end": "2018-05-31",
-      "amount_gbp": 164.84,
+      "amount_gbp": 164.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -349,7 +349,7 @@
       "date": "2018-09-30",
       "period_start": "2018-09-01",
       "period_end": "2018-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -421,7 +421,7 @@
       "date": "2019-05-31",
       "period_start": "2019-05-01",
       "period_end": "2019-05-31",
-      "amount_gbp": 164.84,
+      "amount_gbp": 164.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -457,7 +457,7 @@
       "date": "2019-09-30",
       "period_start": "2019-09-01",
       "period_end": "2019-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -529,7 +529,7 @@
       "date": "2020-05-31",
       "period_start": "2020-05-01",
       "period_end": "2020-05-31",
-      "amount_gbp": 164.84,
+      "amount_gbp": 164.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -565,7 +565,7 @@
       "date": "2020-09-30",
       "period_start": "2020-09-01",
       "period_end": "2020-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -637,7 +637,7 @@
       "date": "2021-05-31",
       "period_start": "2021-05-01",
       "period_end": "2021-05-31",
-      "amount_gbp": 164.84,
+      "amount_gbp": 164.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -673,7 +673,7 @@
       "date": "2021-09-30",
       "period_start": "2021-09-01",
       "period_end": "2021-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -745,7 +745,7 @@
       "date": "2022-05-31",
       "period_start": "2022-05-01",
       "period_end": "2022-05-31",
-      "amount_gbp": 164.84,
+      "amount_gbp": 164.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -781,7 +781,7 @@
       "date": "2022-09-30",
       "period_start": "2022-09-01",
       "period_end": "2022-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -853,7 +853,7 @@
       "date": "2023-05-31",
       "period_start": "2023-05-01",
       "period_end": "2023-05-31",
-      "amount_gbp": 164.84,
+      "amount_gbp": 164.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -889,7 +889,7 @@
       "date": "2023-09-30",
       "period_start": "2023-09-01",
       "period_end": "2023-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -961,7 +961,7 @@
       "date": "2024-05-31",
       "period_start": "2024-05-01",
       "period_end": "2024-05-31",
-      "amount_gbp": 164.84,
+      "amount_gbp": 164.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -997,7 +997,7 @@
       "date": "2024-09-30",
       "period_start": "2024-09-01",
       "period_end": "2024-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1069,7 +1069,7 @@
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
-      "amount_gbp": 164.84,
+      "amount_gbp": 164.83,
       "status": "PAID",
       "commodity": "electricity"
     },
@@ -1105,7 +1105,7 @@
       "date": "2025-09-30",
       "period_start": "2025-09-01",
       "period_end": "2025-09-30",
-      "amount_gbp": 170.07,
+      "amount_gbp": 170.06,
       "status": "PAID",
       "commodity": "electricity"
     },
