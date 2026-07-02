@@ -7,11 +7,11 @@
   "acquisition_date": "2019-01-01",
   "tariff_name": "Half-Hourly Industrial and Commercial",
   "meter_type": "HH",
-  "lifetime_revenue_gbp": 1134564.64,
-  "lifetime_gross_gbp": 323696.23,
-  "lifetime_net_gbp": 31404.02,
-  "lifetime_net_after_cts_gbp": 317981.74,
-  "cost_to_serve_gbp": 5714.49,
+  "lifetime_revenue_gbp": 1832579.91,
+  "lifetime_gross_gbp": 622647.03,
+  "lifetime_net_gbp": 52415.53,
+  "lifetime_net_after_cts_gbp": 613417.06,
+  "cost_to_serve_gbp": 9229.97,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
@@ -22,8 +22,8 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 31404.02,
-      "revenue_gbp": 1134564.64
+      "net_gbp": 52415.53,
+      "revenue_gbp": 1832579.91
     }
   },
   "dual_fuel_combined": null,
@@ -55,10 +55,34 @@
     {
       "year": 2022,
       "revenue_gbp": 0,
-      "gross_gbp": 90842.85,
-      "net_gbp": 4122.01,
-      "tariff_min": 125.9,
+      "gross_gbp": 91117.83,
+      "net_gbp": 4134.82,
+      "tariff_min": 116.42,
       "tariff_max": 125.9
+    },
+    {
+      "year": 2023,
+      "revenue_gbp": 0,
+      "gross_gbp": 121515.44,
+      "net_gbp": 8526.27,
+      "tariff_min": 56.57,
+      "tariff_max": 116.42
+    },
+    {
+      "year": 2024,
+      "revenue_gbp": 0,
+      "gross_gbp": 123651.59,
+      "net_gbp": 8684.92,
+      "tariff_min": 54.85,
+      "tariff_max": 56.57
+    },
+    {
+      "year": 2025,
+      "revenue_gbp": 0,
+      "gross_gbp": 53508.78,
+      "net_gbp": 3787.52,
+      "tariff_min": 54.85,
+      "tariff_max": 54.85
     }
   ],
   "invoices": [
@@ -67,7 +91,7 @@
       "date": "2019-01-31",
       "period_start": "2019-01-01",
       "period_end": "2019-01-31",
-      "amount_gbp": 22187.71,
+      "amount_gbp": 35815.32,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -76,7 +100,7 @@
       "date": "2019-02-28",
       "period_start": "2019-02-01",
       "period_end": "2019-02-28",
-      "amount_gbp": 20656.49,
+      "amount_gbp": 33344.26,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -85,7 +109,7 @@
       "date": "2019-03-31",
       "period_start": "2019-03-01",
       "period_end": "2019-03-31",
-      "amount_gbp": 17604.85,
+      "amount_gbp": 28412.95,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -94,7 +118,7 @@
       "date": "2019-04-30",
       "period_start": "2019-04-01",
       "period_end": "2019-04-30",
-      "amount_gbp": 11493.16,
+      "amount_gbp": 18541.92,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -103,7 +127,7 @@
       "date": "2019-05-31",
       "period_start": "2019-05-01",
       "period_end": "2019-05-31",
-      "amount_gbp": 9202.93,
+      "amount_gbp": 14841.94,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -112,7 +136,7 @@
       "date": "2019-06-30",
       "period_start": "2019-06-01",
       "period_end": "2019-06-30",
-      "amount_gbp": 7674.11,
+      "amount_gbp": 12373.28,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -121,7 +145,7 @@
       "date": "2019-07-31",
       "period_start": "2019-07-01",
       "period_end": "2019-07-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -130,7 +154,7 @@
       "date": "2019-08-31",
       "period_start": "2019-08-01",
       "period_end": "2019-08-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -139,7 +163,7 @@
       "date": "2019-09-30",
       "period_start": "2019-09-01",
       "period_end": "2019-09-30",
-      "amount_gbp": 8437.92,
+      "amount_gbp": 13607.01,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -148,7 +172,7 @@
       "date": "2019-10-31",
       "period_start": "2019-10-01",
       "period_end": "2019-10-31",
-      "amount_gbp": 12258.17,
+      "amount_gbp": 19776.85,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -157,7 +181,7 @@
       "date": "2019-11-30",
       "period_start": "2019-11-01",
       "period_end": "2019-11-30",
-      "amount_gbp": 17603.65,
+      "amount_gbp": 28411.75,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -166,7 +190,7 @@
       "date": "2019-12-31",
       "period_start": "2019-12-01",
       "period_end": "2019-12-31",
-      "amount_gbp": 20660.09,
+      "amount_gbp": 33347.86,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -175,7 +199,7 @@
       "date": "2020-01-31",
       "period_start": "2020-01-01",
       "period_end": "2020-01-31",
-      "amount_gbp": 22187.71,
+      "amount_gbp": 35815.32,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -184,7 +208,7 @@
       "date": "2020-02-29",
       "period_start": "2020-02-01",
       "period_end": "2020-02-29",
-      "amount_gbp": 20657.69,
+      "amount_gbp": 33345.46,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -193,7 +217,7 @@
       "date": "2020-03-31",
       "period_start": "2020-03-01",
       "period_end": "2020-03-31",
-      "amount_gbp": 17604.85,
+      "amount_gbp": 28412.95,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -202,7 +226,7 @@
       "date": "2020-04-30",
       "period_start": "2020-04-01",
       "period_end": "2020-04-30",
-      "amount_gbp": 11493.16,
+      "amount_gbp": 18541.92,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -211,7 +235,7 @@
       "date": "2020-05-31",
       "period_start": "2020-05-01",
       "period_end": "2020-05-31",
-      "amount_gbp": 9202.93,
+      "amount_gbp": 14841.94,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -220,7 +244,7 @@
       "date": "2020-06-30",
       "period_start": "2020-06-01",
       "period_end": "2020-06-30",
-      "amount_gbp": 7674.11,
+      "amount_gbp": 12373.28,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -229,7 +253,7 @@
       "date": "2020-07-31",
       "period_start": "2020-07-01",
       "period_end": "2020-07-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -238,7 +262,7 @@
       "date": "2020-08-31",
       "period_start": "2020-08-01",
       "period_end": "2020-08-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -247,7 +271,7 @@
       "date": "2020-09-30",
       "period_start": "2020-09-01",
       "period_end": "2020-09-30",
-      "amount_gbp": 8437.92,
+      "amount_gbp": 13607.01,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -256,7 +280,7 @@
       "date": "2020-10-31",
       "period_start": "2020-10-01",
       "period_end": "2020-10-31",
-      "amount_gbp": 12258.17,
+      "amount_gbp": 19776.85,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -265,7 +289,7 @@
       "date": "2020-11-30",
       "period_start": "2020-11-01",
       "period_end": "2020-11-30",
-      "amount_gbp": 17603.65,
+      "amount_gbp": 28411.75,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -274,7 +298,7 @@
       "date": "2020-12-31",
       "period_start": "2020-12-01",
       "period_end": "2020-12-31",
-      "amount_gbp": 20660.09,
+      "amount_gbp": 33347.86,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -283,7 +307,7 @@
       "date": "2021-01-31",
       "period_start": "2021-01-01",
       "period_end": "2021-01-31",
-      "amount_gbp": 22187.71,
+      "amount_gbp": 35815.32,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -292,7 +316,7 @@
       "date": "2021-02-28",
       "period_start": "2021-02-01",
       "period_end": "2021-02-28",
-      "amount_gbp": 20656.49,
+      "amount_gbp": 33344.26,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -301,7 +325,7 @@
       "date": "2021-03-31",
       "period_start": "2021-03-01",
       "period_end": "2021-03-31",
-      "amount_gbp": 17604.85,
+      "amount_gbp": 28412.95,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -310,7 +334,7 @@
       "date": "2021-04-30",
       "period_start": "2021-04-01",
       "period_end": "2021-04-30",
-      "amount_gbp": 11493.16,
+      "amount_gbp": 18541.92,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -319,7 +343,7 @@
       "date": "2021-05-31",
       "period_start": "2021-05-01",
       "period_end": "2021-05-31",
-      "amount_gbp": 9202.93,
+      "amount_gbp": 14841.94,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -328,7 +352,7 @@
       "date": "2021-06-30",
       "period_start": "2021-06-01",
       "period_end": "2021-06-30",
-      "amount_gbp": 7674.11,
+      "amount_gbp": 12373.28,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -337,7 +361,7 @@
       "date": "2021-07-31",
       "period_start": "2021-07-01",
       "period_end": "2021-07-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -346,7 +370,7 @@
       "date": "2021-08-31",
       "period_start": "2021-08-01",
       "period_end": "2021-08-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -355,7 +379,7 @@
       "date": "2021-09-30",
       "period_start": "2021-09-01",
       "period_end": "2021-09-30",
-      "amount_gbp": 8437.92,
+      "amount_gbp": 13607.01,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -364,7 +388,7 @@
       "date": "2021-10-31",
       "period_start": "2021-10-01",
       "period_end": "2021-10-31",
-      "amount_gbp": 12258.17,
+      "amount_gbp": 19776.85,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -373,7 +397,7 @@
       "date": "2021-11-30",
       "period_start": "2021-11-01",
       "period_end": "2021-11-30",
-      "amount_gbp": 17603.65,
+      "amount_gbp": 28411.75,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -382,7 +406,7 @@
       "date": "2021-12-31",
       "period_start": "2021-12-01",
       "period_end": "2021-12-31",
-      "amount_gbp": 20660.09,
+      "amount_gbp": 33347.86,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -391,7 +415,7 @@
       "date": "2022-01-31",
       "period_start": "2022-01-01",
       "period_end": "2022-01-31",
-      "amount_gbp": 22187.71,
+      "amount_gbp": 35815.32,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -400,7 +424,7 @@
       "date": "2022-02-28",
       "period_start": "2022-02-01",
       "period_end": "2022-02-28",
-      "amount_gbp": 20656.49,
+      "amount_gbp": 33344.26,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -409,7 +433,7 @@
       "date": "2022-03-31",
       "period_start": "2022-03-01",
       "period_end": "2022-03-31",
-      "amount_gbp": 17604.85,
+      "amount_gbp": 28412.95,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -418,7 +442,7 @@
       "date": "2022-04-30",
       "period_start": "2022-04-01",
       "period_end": "2022-04-30",
-      "amount_gbp": 11493.16,
+      "amount_gbp": 18541.92,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -427,7 +451,7 @@
       "date": "2022-05-31",
       "period_start": "2022-05-01",
       "period_end": "2022-05-31",
-      "amount_gbp": 9202.93,
+      "amount_gbp": 14841.94,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -436,7 +460,7 @@
       "date": "2022-06-30",
       "period_start": "2022-06-01",
       "period_end": "2022-06-30",
-      "amount_gbp": 7674.11,
+      "amount_gbp": 12373.28,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -445,7 +469,7 @@
       "date": "2022-07-31",
       "period_start": "2022-07-01",
       "period_end": "2022-07-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -454,7 +478,7 @@
       "date": "2022-08-31",
       "period_start": "2022-08-01",
       "period_end": "2022-08-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -463,7 +487,7 @@
       "date": "2022-09-30",
       "period_start": "2022-09-01",
       "period_end": "2022-09-30",
-      "amount_gbp": 8437.92,
+      "amount_gbp": 13607.01,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -472,7 +496,7 @@
       "date": "2022-10-31",
       "period_start": "2022-10-01",
       "period_end": "2022-10-31",
-      "amount_gbp": 12258.17,
+      "amount_gbp": 19776.85,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -481,7 +505,7 @@
       "date": "2022-11-30",
       "period_start": "2022-11-01",
       "period_end": "2022-11-30",
-      "amount_gbp": 17603.65,
+      "amount_gbp": 28411.75,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -490,7 +514,7 @@
       "date": "2022-12-31",
       "period_start": "2022-12-01",
       "period_end": "2022-12-31",
-      "amount_gbp": 20660.09,
+      "amount_gbp": 33347.86,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -499,7 +523,7 @@
       "date": "2023-01-31",
       "period_start": "2023-01-01",
       "period_end": "2023-01-31",
-      "amount_gbp": 22187.71,
+      "amount_gbp": 35815.32,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -508,7 +532,7 @@
       "date": "2023-02-28",
       "period_start": "2023-02-01",
       "period_end": "2023-02-28",
-      "amount_gbp": 20656.49,
+      "amount_gbp": 33344.26,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -517,7 +541,7 @@
       "date": "2023-03-31",
       "period_start": "2023-03-01",
       "period_end": "2023-03-31",
-      "amount_gbp": 17604.85,
+      "amount_gbp": 28412.95,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -526,7 +550,7 @@
       "date": "2023-04-30",
       "period_start": "2023-04-01",
       "period_end": "2023-04-30",
-      "amount_gbp": 11493.16,
+      "amount_gbp": 18541.92,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -535,7 +559,7 @@
       "date": "2023-05-31",
       "period_start": "2023-05-01",
       "period_end": "2023-05-31",
-      "amount_gbp": 9202.93,
+      "amount_gbp": 14841.94,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -544,7 +568,7 @@
       "date": "2023-06-30",
       "period_start": "2023-06-01",
       "period_end": "2023-06-30",
-      "amount_gbp": 7674.11,
+      "amount_gbp": 12373.28,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -553,7 +577,7 @@
       "date": "2023-07-31",
       "period_start": "2023-07-01",
       "period_end": "2023-07-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -562,7 +586,7 @@
       "date": "2023-08-31",
       "period_start": "2023-08-01",
       "period_end": "2023-08-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -571,7 +595,7 @@
       "date": "2023-09-30",
       "period_start": "2023-09-01",
       "period_end": "2023-09-30",
-      "amount_gbp": 8437.92,
+      "amount_gbp": 13607.01,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -580,7 +604,7 @@
       "date": "2023-10-31",
       "period_start": "2023-10-01",
       "period_end": "2023-10-31",
-      "amount_gbp": 12258.17,
+      "amount_gbp": 19776.85,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -589,7 +613,7 @@
       "date": "2023-11-30",
       "period_start": "2023-11-01",
       "period_end": "2023-11-30",
-      "amount_gbp": 17603.65,
+      "amount_gbp": 28411.75,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -598,7 +622,7 @@
       "date": "2023-12-31",
       "period_start": "2023-12-01",
       "period_end": "2023-12-31",
-      "amount_gbp": 20660.09,
+      "amount_gbp": 33347.86,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -607,7 +631,7 @@
       "date": "2024-01-31",
       "period_start": "2024-01-01",
       "period_end": "2024-01-31",
-      "amount_gbp": 22187.71,
+      "amount_gbp": 35815.32,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -616,7 +640,7 @@
       "date": "2024-02-29",
       "period_start": "2024-02-01",
       "period_end": "2024-02-29",
-      "amount_gbp": 20657.69,
+      "amount_gbp": 33345.46,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -625,7 +649,7 @@
       "date": "2024-03-31",
       "period_start": "2024-03-01",
       "period_end": "2024-03-31",
-      "amount_gbp": 17604.85,
+      "amount_gbp": 28412.95,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -634,7 +658,7 @@
       "date": "2024-04-30",
       "period_start": "2024-04-01",
       "period_end": "2024-04-30",
-      "amount_gbp": 11493.16,
+      "amount_gbp": 18541.92,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -643,7 +667,7 @@
       "date": "2024-05-31",
       "period_start": "2024-05-01",
       "period_end": "2024-05-31",
-      "amount_gbp": 9202.93,
+      "amount_gbp": 14841.94,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -652,7 +676,7 @@
       "date": "2024-06-30",
       "period_start": "2024-06-01",
       "period_end": "2024-06-30",
-      "amount_gbp": 7674.11,
+      "amount_gbp": 12373.28,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -661,7 +685,7 @@
       "date": "2024-07-31",
       "period_start": "2024-07-01",
       "period_end": "2024-07-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -670,7 +694,7 @@
       "date": "2024-08-31",
       "period_start": "2024-08-01",
       "period_end": "2024-08-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -679,7 +703,7 @@
       "date": "2024-09-30",
       "period_start": "2024-09-01",
       "period_end": "2024-09-30",
-      "amount_gbp": 8437.92,
+      "amount_gbp": 13607.01,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -688,7 +712,7 @@
       "date": "2024-10-31",
       "period_start": "2024-10-01",
       "period_end": "2024-10-31",
-      "amount_gbp": 12258.17,
+      "amount_gbp": 19776.85,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -697,7 +721,7 @@
       "date": "2024-11-30",
       "period_start": "2024-11-01",
       "period_end": "2024-11-30",
-      "amount_gbp": 17603.65,
+      "amount_gbp": 28411.75,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -706,7 +730,7 @@
       "date": "2024-12-31",
       "period_start": "2024-12-01",
       "period_end": "2024-12-31",
-      "amount_gbp": 20660.09,
+      "amount_gbp": 33347.86,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -715,7 +739,7 @@
       "date": "2025-01-31",
       "period_start": "2025-01-01",
       "period_end": "2025-01-31",
-      "amount_gbp": 22187.71,
+      "amount_gbp": 35815.32,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -724,7 +748,7 @@
       "date": "2025-02-28",
       "period_start": "2025-02-01",
       "period_end": "2025-02-28",
-      "amount_gbp": 20656.49,
+      "amount_gbp": 33344.26,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -733,7 +757,7 @@
       "date": "2025-03-31",
       "period_start": "2025-03-01",
       "period_end": "2025-03-31",
-      "amount_gbp": 17604.85,
+      "amount_gbp": 28412.95,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -742,7 +766,7 @@
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
-      "amount_gbp": 11493.16,
+      "amount_gbp": 18541.92,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -751,7 +775,7 @@
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
-      "amount_gbp": 9202.93,
+      "amount_gbp": 14841.94,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -760,7 +784,7 @@
       "date": "2025-06-30",
       "period_start": "2025-06-01",
       "period_end": "2025-06-30",
-      "amount_gbp": 7674.11,
+      "amount_gbp": 12373.28,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -769,7 +793,7 @@
       "date": "2025-07-31",
       "period_start": "2025-07-01",
       "period_end": "2025-07-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -778,7 +802,7 @@
       "date": "2025-08-31",
       "period_start": "2025-08-01",
       "period_end": "2025-08-31",
-      "amount_gbp": 7369.78,
+      "amount_gbp": 11880.99,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -787,7 +811,7 @@
       "date": "2025-09-30",
       "period_start": "2025-09-01",
       "period_end": "2025-09-30",
-      "amount_gbp": 8437.92,
+      "amount_gbp": 13607.01,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -796,7 +820,7 @@
       "date": "2025-10-31",
       "period_start": "2025-10-01",
       "period_end": "2025-10-31",
-      "amount_gbp": 12258.17,
+      "amount_gbp": 19776.85,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -805,7 +829,7 @@
       "date": "2025-11-30",
       "period_start": "2025-11-01",
       "period_end": "2025-11-30",
-      "amount_gbp": 17603.65,
+      "amount_gbp": 28411.75,
       "status": "PAID",
       "commodity": "gas"
     },
@@ -814,7 +838,7 @@
       "date": "2025-12-31",
       "period_start": "2025-12-01",
       "period_end": "2025-12-31",
-      "amount_gbp": 20660.09,
+      "amount_gbp": 33347.86,
       "status": "UNPAID",
       "commodity": "gas"
     }
