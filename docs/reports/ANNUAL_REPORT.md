@@ -2469,9 +2469,9 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2022-04-29: treasury £3,070,885.52, C6->1.00, C8->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,060.50 / stressed £20,778.40) ratio 2.70
   - 2022-05-29: treasury £3,070,989.51, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,169.42 / stressed £20,807.27) ratio 2.70
   - 2022-06-28: treasury £3,070,983.84, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,169.42 / stressed £20,807.27) ratio 2.70
-  - 2022-07-28: treasury £3,070,791.19, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,231.40 / stressed £20,819.81) ratio 2.70
+  - 2022-07-28: treasury £3,070,791.19, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, VaR (current £56,231.40 / stressed £20,819.81) ratio 2.70
   - 2022-08-27: treasury £3,070,781.59, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,231.40 / stressed £20,819.81) ratio 2.70
-  - 2022-09-26: treasury £3,070,766.14, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, VaR (current £56,231.40 / stressed £20,819.81) ratio 2.70
+  - 2022-09-26: treasury £3,070,766.14, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,231.40 / stressed £20,819.81) ratio 2.70
   - 2022-10-26: treasury £3,068,480.20, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,292.84 / stressed £20,829.96) ratio 2.70
   - 2022-11-25: treasury £3,068,329.79, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,292.84 / stressed £20,829.96) ratio 2.70
   - 2022-12-25: treasury £3,068,063.59, C4->1.00, C6->1.00, C7->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £56,292.84 / stressed £20,829.96) ratio 2.70
