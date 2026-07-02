@@ -4999,9 +4999,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase AG, 2026-06-30):**
-- Net margin £1,243,337 (treasury change) | Gross £6,462,146 | EV £6,037,509 | SURVIVED
-- 5,623 tests. Phase DG: Consumer Vulnerability Register (23). Phase DF: SAR Register (32). Phase DE: EBSS (28). Phase DD: EBRS (28). Phase DC: EMIR (29). Phase DB: ICO Breach (33).
+**Latest full run (Phase MW, 2026-07-02, git 0d0619f6):**
+- Net margin £6,180,475 (ledger) | Gross £6,418,373 | EV £5,987,458 | Treasury £3,690,734 | SURVIVED
+- 14,485 tests. Income stress → observed payment behaviour wired end-to-end.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
