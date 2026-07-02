@@ -89,6 +89,8 @@ from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hed
 from company.trading.forward_book import ForwardContract, TradingBook
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost
 from company.crm.customer_profitability import compute_profitability_uplift
+from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate
+from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
@@ -979,9 +981,12 @@ def main(report_end: str | None = None, sim_interface=None):
                         old_elec_rate, unit_rate, tenure_for_est,
                     ), 4)
                 else:
-                    company_est_pre = round(_est_churn(
+                    # Phase ND: use enriched estimate with bill_shock_count from prior terms
+                    _nd_shock_count = _count_rate_shocks(cid, "electricity", all_records)
+                    company_est_pre = round(_enriched_churn_estimate(
                         old_elec_rate, unit_rate, tenure_for_est,
                         company_eac,
+                        bill_shock_count=_nd_shock_count,
                         hedge_fraction=prev_hf,
                         hangover_periods_remaining=hangover_periods,
                         segment=segment_for_churn,

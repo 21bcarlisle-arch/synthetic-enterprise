@@ -1,15 +1,15 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T01:52:38Z
+Last updated: 2026-07-02T01:57:56Z
 
 ## Current Status
-**Phase NC complete** -- 14,604 tests
+**Phase ND complete** -- 14,620 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,274,350 (git a304c3da, 2026-07-02)
 
 ## Test Suite
-- **14,604 tests passing** (fast suite ~10s)
+- **14,620 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
@@ -23,6 +23,7 @@ Net position: £1,274,350 (git a304c3da, 2026-07-02)
 - **CXLVII** (2026-07-01): Coverage Depth Sprint -- 9 files: sim_runner, portal_dd, portal_css, portfolio_pnl, run_phase4c, run_scenario, scenario_comparison, billing_filter, generate_sim (14,154 tests)
 - **CXLVI** (2026-07-01): Coverage Depth Sprint -- phase_h eac_multiplier, phase_o solar_dynamic, phase_p ev_overnight (13,063 tests)
 - **CXLV** (2026-07-01): Coverage Depth Sprint -- phase40c deemed_rate, phase41a flex, phase61 flex_passthrough, phase62 standing_charges, phase_g ashp_settlement (13,048 tests)
+- **ND** (2026-07-02): Gap 4 SIM-side -- bill_shock_tracker wired into run_phase2b.py enriched_churn_estimate; Gap 4 full chain closed (14,620 tests)
 - **NC** (2026-07-02): Enriched Company Churn Estimate -- enriched_churn_estimate = max(rate_model, payment_model); sim_interface.get_churn_estimate extended with behaviour+satisfaction signals (14,604 tests)
 - **NB** (2026-07-02): Satisfaction Score -> Combined Churn Model -- three-signal churn probability; bill_shock+BehaviourScore+satisfaction; backward-compatible (14,588 tests)
 - **NA** (2026-07-02): Dim 4 Emotional -- CustomerSatisfactionAccumulator; bill_shock/css/complaint signals, mean-reversion decay (14,572 tests)

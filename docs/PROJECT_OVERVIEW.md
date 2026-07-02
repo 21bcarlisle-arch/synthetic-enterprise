@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-02. 454+ commits. 14,604 tests passing. Codebase: ~48,400 lines across 311+ Python modules.*
+*Last updated: 2026-07-02. 457+ commits. 14,620 tests passing. Codebase: ~48,600 lines across 312+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase ND -- Gap 4 SIM-side Wiring: Bill Shock Tracker (2026-07-02)
+16 tests. simulation/bill_shock_tracker.py (new): count_rate_shocks(customer_id, commodity, all_records, shock_threshold=BILL_SHOCK_THRESHOLD=0.20) -> int. Filters records by customer+commodity, sorts by term_start, counts term transitions where (new_rate - prev_rate)/prev_rate > shock_threshold. Handles None rates, unsorted input, zero prev rate. simulation/run_phase2b.py (modified): imports enriched_churn_estimate and count_rate_shocks; active renewal path now calls enriched_churn_estimate(old_rate, new_rate, tenure, eac, bill_shock_count=count_rate_shocks(cid, 'electricity', all_records), ...) instead of pure rate-model estimate_churn_probability. Gap 4 full chain now closed: rate_shocks from all_records -> bill_shock_count -> enriched_churn_estimate = max(rate_model, payment_model) -> retention threshold decision.
+**Total:** 14,620 tests
 
 ### Phase NC -- Enriched Company Churn Estimate (2026-07-02)
 16 tests. company/crm/enriched_churn_estimate.py (new): enriched_churn_estimate(old_rate, new_rate, tenure, kwh, *, bill_shock_count=0, behaviour_score=None, satisfaction_score=None, fuel, hedge_fraction, hangover_periods_remaining, segment) -> float. Takes max(rate_model estimate, combined_payment_model estimate) capped at MAX_CHURN_PROBABILITY. Rate model catches price-sensitivity churn; payment model catches stress-driven churn. company/interfaces/sim_interface.py: SimInterface.get_churn_estimate and StubSimInterface.get_churn_estimate both extended with bill_shock_count/behaviour_score/satisfaction_score keyword params. StubSimInterface now calls enriched_churn_estimate(). Backward-compatible: no payment signals → pure rate model (confirmed by test_no_behaviour_signals_matches_rate_model). Epistemic: all inputs observable -- no SIM internals. Gap 4 company-side now complete: three observable signals (rate change, payment behaviour, satisfaction) feed company retention decisions.
@@ -5016,16 +5020,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,604 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,620 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase NC, 2026-07-02, git ca1d8ab5):**
+**Latest full run (Phase ND, 2026-07-02, git ca1d8ab5):**
 - Net margin £1,224,097 | Gross £6,418,373 | EV £5,987,458 | Treasury £3,690,734 | SURVIVED
-- 14,604 tests. enriched_churn_estimate wired into sim_interface (NC): rate+behaviour+satisfaction. Gap 4 company-side closed.
+- 14,620 tests. Gap 4 full chain closed: bill_shock_tracker -> enriched_churn_estimate in run_phase2b (ND).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

@@ -15,7 +15,8 @@ Phase MZ COMPLETE (2026-07-02): Dim 3 behavioural SIM-side -- vulnerability trap
 Phase NA COMPLETE (2026-07-02): Dim 4 emotional company-side -- CustomerSatisfactionAccumulator (14,572 tests).
 Phase NB COMPLETE (2026-07-02): satisfaction_score wired into combined_churn_probability as third signal (14,588 tests).
 Phase NC COMPLETE (2026-07-02): enriched_churn_estimate = max(rate_model, payment_model); sim_interface.get_churn_estimate extended (14,604 tests).
-Next: Gap 4 SIM-side wiring (run_phase2b passes payment behaviour signals to get_churn_estimate) OR Gap 3 Dim 4 SIM-side (satisfaction -> actual SIM churn) OR Gap 5 gas ROC.
+Phase ND COMPLETE (2026-07-02): Gap 4 SIM-side wiring -- bill_shock_tracker -> enriched_churn_estimate in run_phase2b. Gap 4 CLOSED (14,620 tests).
+Next: Gap 3 Dim 4 SIM-side (satisfaction -> actual SIM churn) OR Gap 5 gas ROC.
 
 ## Real capability gaps
 
@@ -44,7 +45,7 @@ Board risk shows 4/6 departures (67%) not forecast. Company churn model (saas/ch
 uses only bill shocks. Phase MX gives company payment behaviour scores (proxy signal).
 Phase MY wired BehaviourScore (payment_churn_model.py). Phase NB added satisfaction_score.
 Phase NC enriched_churn_estimate = max(rate, payment) wired into sim_interface.get_churn_estimate.
-Company-side CLOSED. Gap 4 SIM wiring (run_phase2b uses enriched estimate) still OPEN.
+CLOSED. run_phase2b uses enriched_churn_estimate with bill_shock_count from all_records (Phase ND).
 
 ### Gap 5 -- Gas Segment ROC [OPEN]
 Gas legs show -0.7x ROC (net GBP -134,790 on GBP 187,116 capital for C_IC3g).
