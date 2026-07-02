@@ -4300,3 +4300,48 @@ Continuation session. Processed 2 staging files (run_complete + from_rich), buil
 - Gaps closed: Gap 4 (churn blind miss rate), Gap 5 (gas ROC), Gap 3 Dim 4 SIM-side
 - All 5 priority gaps now CLOSED
 - Models: claude-sonnet-4-6 (frontier orchestration), all code gen inline
+
+- [2026-07-02T02:28:01Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:29:45Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:31:07Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:37:11Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:37:12Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:38:48Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:39:52Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:40:11Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:40:21Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:40:22Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:42:59Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:43:11Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:43:12Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:43:17Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:46:17Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:46:29Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:46:53Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:49:38Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:49:39Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:49:45Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:50:41Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:51:02Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:51:13Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:51:14Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:51:44Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:51:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:53:14Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:54:03Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:54:04Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:55:44Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:56:03Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:56:37Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:58:07Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-02T02:58:08Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T02:59:06Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T03:00:31Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-02T03:01:58Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## Session 2026-07-02T03:02:17Z
+- Phase NG: Company Satisfaction Score -> Renewal Churn Estimate
+  - simulation/run_phase2b.py: CustomerSatisfactionAccumulator wired; satisfaction_score now passed to _enriched_churn_estimate at renewal (was None)
+  - 16 new tests (14,668 total)
+  - Epistemic verifier: PASS
+  - Staged run_complete_20260702T022112Z.md processed (auto-committed as 4df9cd5f)
+  - Commit: deff7133
