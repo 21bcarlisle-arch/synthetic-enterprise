@@ -12,9 +12,11 @@ When the functional separation is built (later phase), these stubs will be
 replaced with real implementations that call the simulation layer.
 """
 
-from typing import Any
+from typing import Any, Optional
 
 from company.crm.churn_model import estimate_churn_probability
+from company.crm.enriched_churn_estimate import enriched_churn_estimate
+from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.pricing.tariff_engine import CompanyTariffEngine
 
 
@@ -95,11 +97,16 @@ class SimInterface:
         new_rate_gbp_per_mwh: float,
         tenure_years: float,
         annual_consumption_kwh: float = 0.0,
+        *,
+        bill_shock_count: int = 0,
+        behaviour_score: Optional[BehaviourScore] = None,
+        satisfaction_score: Optional[float] = None,
     ) -> float:
         """Company observable-data churn probability estimate for a renewal.
 
-        Does not read SIM churn model internals. Uses rate change %, tenure,
-        and absolute bill burden (old_rate × annual_consumption_kwh / 1000).
+        Combines rate-sensitivity model with payment-behaviour signals (Phase NC).
+        Returns max(rate_model, payment_behaviour_model), capped at 0.95.
+        All inputs are company observables -- no SIM internals.
         Returns: estimated churn probability in [0.0, 0.95]
         """
         raise NotImplementedError
@@ -159,8 +166,17 @@ class StubSimInterface(SimInterface):
         new_rate_gbp_per_mwh: float,
         tenure_years: float,
         annual_consumption_kwh: float = 0.0,
+        *,
+        bill_shock_count: int = 0,
+        behaviour_score: Optional[BehaviourScore] = None,
+        satisfaction_score: Optional[float] = None,
     ) -> float:
-        return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years, annual_consumption_kwh)
+        return enriched_churn_estimate(
+            old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years, annual_consumption_kwh,
+            bill_shock_count=bill_shock_count,
+            behaviour_score=behaviour_score,
+            satisfaction_score=satisfaction_score,
+        )
 
     def notify_retention_attempt(self, account_id, event_date, company_churn_estimate, discount_pct, outcome='pending'):
         self._retention_notifications.append({

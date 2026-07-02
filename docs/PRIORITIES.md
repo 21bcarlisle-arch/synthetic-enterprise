@@ -13,8 +13,9 @@ Phase MX COMPLETE (2026-07-02): Company-side PaymentBehaviourAnalytics -- Behavi
 Phase MY COMPLETE (2026-07-02): BehaviourScore wired into combined_churn_probability via payment_churn_model.py (14,531 tests).
 Phase MZ COMPLETE (2026-07-02): Dim 3 behavioural SIM-side -- vulnerability trap wired (14,552 tests).
 Phase NA COMPLETE (2026-07-02): Dim 4 emotional company-side -- CustomerSatisfactionAccumulator (14,572 tests).
-Next: Gap 5 gas ROC or wire satisfaction score into combined churn model.
-After MY: Dim 3 behavioural (income_stress -> SIM-side switching propensity) or Gap 5 gas ROC.
+Phase NB COMPLETE (2026-07-02): satisfaction_score wired into combined_churn_probability as third signal (14,588 tests).
+Phase NC COMPLETE (2026-07-02): enriched_churn_estimate = max(rate_model, payment_model); sim_interface.get_churn_estimate extended (14,604 tests).
+Next: Gap 4 SIM-side wiring (run_phase2b passes payment behaviour signals to get_churn_estimate) OR Gap 3 Dim 4 SIM-side (satisfaction -> actual SIM churn) OR Gap 5 gas ROC.
 
 ## Real capability gaps
 
@@ -35,14 +36,15 @@ Dim 2 (economic): CLOSED SIM-side (MV/MW); company-side closes with Phase MX.
 Dim 3 (behavioural): CLOSED -- simulation/switching_propensity.py (Phase MZ) wires income_stress
   into roll_lifecycle_event. HIGH 0.65x / MODERATE 0.85x / LOW 1.10x multiplier on churn probability.
 Dim 4 (emotional/satisfaction): PARTIAL -- company/crm/satisfaction_accumulator.py (Phase NA)
-  tracks rolling satisfaction from bill_shock/css/complaint observables with mean-reversion.
-  SIM-side (satisfaction -> actual churn) still OPEN.
+  tracks rolling satisfaction; combined_churn_probability (NB) uses it; enriched_churn_estimate (NC) wired
+  into sim_interface. SIM-side (satisfaction -> actual churn simulation) still OPEN.
 
 ### Gap 4 -- Churn Blind Miss Rate [OPEN -- in progress]
 Board risk shows 4/6 departures (67%) not forecast. Company churn model (saas/churn_model.py)
 uses only bill shocks. Phase MX gives company payment behaviour scores (proxy signal).
-Phase MY will wire BehaviourScore into company/crm/churn_model.py: POOR/CRITICAL scores
-add churn uplift, EXCELLENT suppresses it. Gap closes when company predicts >= 60% of churns.
+Phase MY wired BehaviourScore (payment_churn_model.py). Phase NB added satisfaction_score.
+Phase NC enriched_churn_estimate = max(rate, payment) wired into sim_interface.get_churn_estimate.
+Company-side CLOSED. Gap 4 SIM wiring (run_phase2b uses enriched estimate) still OPEN.
 
 ### Gap 5 -- Gas Segment ROC [OPEN]
 Gas legs show -0.7x ROC (net GBP -134,790 on GBP 187,116 capital for C_IC3g).

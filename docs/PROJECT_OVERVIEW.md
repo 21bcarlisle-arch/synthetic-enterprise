@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-02. 450+ commits. 14,588 tests passing. Codebase: ~48,200 lines across 309+ Python modules.*
+*Last updated: 2026-07-02. 454+ commits. 14,604 tests passing. Codebase: ~48,400 lines across 311+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NC -- Enriched Company Churn Estimate (2026-07-02)
+16 tests. company/crm/enriched_churn_estimate.py (new): enriched_churn_estimate(old_rate, new_rate, tenure, kwh, *, bill_shock_count=0, behaviour_score=None, satisfaction_score=None, fuel, hedge_fraction, hangover_periods_remaining, segment) -> float. Takes max(rate_model estimate, combined_payment_model estimate) capped at MAX_CHURN_PROBABILITY. Rate model catches price-sensitivity churn; payment model catches stress-driven churn. company/interfaces/sim_interface.py: SimInterface.get_churn_estimate and StubSimInterface.get_churn_estimate both extended with bill_shock_count/behaviour_score/satisfaction_score keyword params. StubSimInterface now calls enriched_churn_estimate(). Backward-compatible: no payment signals → pure rate model (confirmed by test_no_behaviour_signals_matches_rate_model). Epistemic: all inputs observable -- no SIM internals. Gap 4 company-side now complete: three observable signals (rate change, payment behaviour, satisfaction) feed company retention decisions.
+**Total:** 14,604 tests
 
 ### Phase NB -- Satisfaction Score -> Combined Churn Model (2026-07-02)
 16 tests. company/crm/payment_churn_model.py (extended): Added satisfaction_score as third churn signal alongside bill_shock_count and behaviour_score. _HIGH_SATISFACTION_THRESHOLD=0.80; _LOW_SATISFACTION_THRESHOLD=0.50; _HIGH_SATISFACTION_UPLIFT=-0.02; _LOW_SATISFACTION_UPLIFT=+0.10; _satisfaction_uplift(score | None) -> float (None=0.0; >=0.80 -> -0.02; <0.50 -> +0.10; else 0.0). combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score) -> min(base + payment_uplift + sat_uplift, 0.95). Backward-compatible: existing Phase MY tests pass unchanged (default=None). Epistemic: satisfaction_score sourced from company/crm/satisfaction_accumulator.py -- observable signals only (bill shocks, CSS surveys, complaints). Completes Gap 4 company-side: three observable signals now feed churn estimate.
@@ -5012,16 +5016,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,588 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,604 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase NB, 2026-07-02, git ca1d8ab5):**
+**Latest full run (Phase NC, 2026-07-02, git ca1d8ab5):**
 - Net margin £1,224,097 | Gross £6,418,373 | EV £5,987,458 | Treasury £3,690,734 | SURVIVED
-- 14,588 tests. Three-signal churn model (MX/MY/NB): bill_shock+BehaviourScore+satisfaction. Dim 3+4 closed.
+- 14,604 tests. enriched_churn_estimate wired into sim_interface (NC): rate+behaviour+satisfaction. Gap 4 company-side closed.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

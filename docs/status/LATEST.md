@@ -1,15 +1,15 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T01:45:11Z
+Last updated: 2026-07-02T01:50:05Z
 
 ## Current Status
-**Phase NB complete** -- 14,588 tests
+**Phase NC complete** -- 14,604 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,224,097 (git 4fe842f3, 2026-07-02)
 
 ## Test Suite
-- **14,588 tests passing** (fast suite ~10s)
+- **14,604 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
@@ -23,6 +23,7 @@ Net position: £1,224,097 (git 4fe842f3, 2026-07-02)
 - **CXLVII** (2026-07-01): Coverage Depth Sprint -- 9 files: sim_runner, portal_dd, portal_css, portfolio_pnl, run_phase4c, run_scenario, scenario_comparison, billing_filter, generate_sim (14,154 tests)
 - **CXLVI** (2026-07-01): Coverage Depth Sprint -- phase_h eac_multiplier, phase_o solar_dynamic, phase_p ev_overnight (13,063 tests)
 - **CXLV** (2026-07-01): Coverage Depth Sprint -- phase40c deemed_rate, phase41a flex, phase61 flex_passthrough, phase62 standing_charges, phase_g ashp_settlement (13,048 tests)
+- **NC** (2026-07-02): Enriched Company Churn Estimate -- enriched_churn_estimate = max(rate_model, payment_model); sim_interface.get_churn_estimate extended with behaviour+satisfaction signals (14,604 tests)
 - **NB** (2026-07-02): Satisfaction Score -> Combined Churn Model -- three-signal churn probability; bill_shock+BehaviourScore+satisfaction; backward-compatible (14,588 tests)
 - **NA** (2026-07-02): Dim 4 Emotional -- CustomerSatisfactionAccumulator; bill_shock/css/complaint signals, mean-reversion decay (14,572 tests)
 - **MZ** (2026-07-02): Dim 3 Behavioural -- SIM switching propensity; vulnerability trap HIGH stress 35% less likely to switch (14,552 tests)
