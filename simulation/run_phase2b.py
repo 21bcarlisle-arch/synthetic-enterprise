@@ -15,6 +15,7 @@ Key differences from Phase 2a repriced:
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
+import random
 import statistics
 from collections import defaultdict
 from datetime import date, timedelta
@@ -82,7 +83,7 @@ from sim.system_prices_history import get_system_prices_range
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.customer_events import roll_lifecycle_event
 from saas.cost_to_serve import get_bad_debt_rate
-from simulation.payment_timing import stress_bad_debt_multiplier
+from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
 from simulation.demand_model import build_demand_shape, solar_generation_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
@@ -93,6 +94,7 @@ from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enri
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
 from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
+from company.crm.payment_behaviour_analytics import PaymentBehaviourAnalytics
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
@@ -768,6 +770,10 @@ def main(report_end: str | None = None, sim_interface=None):
     hangover_remaining: dict[str, int] = {}
     # Phase NG: company-side satisfaction tracker using observable bill-shock signals only
     _company_sat_acc = CustomerSatisfactionAccumulator()
+    # Phase NH: payment behaviour analytics -- three-signal churn model wiring
+    _payment_analytics = PaymentBehaviourAnalytics()
+    _payment_rng = random.Random(42 + 7919)
+    _payment_month_seen: set[tuple[str, str]] = set()  # (cid, YYYY-MM)
     _NG_BILL_SHOCK_THRESHOLD = 0.20  # matches simulation.bill_shock_tracker.BILL_SHOCK_THRESHOLD
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
 
@@ -994,6 +1000,8 @@ def main(report_end: str | None = None, sim_interface=None):
                 else:
                     # Phase ND: use enriched estimate with bill_shock_count from prior terms
                     _nd_shock_count = _elec_rate_shock_counts.get(cid, 0)
+                    # Phase NH: payment behaviour score from observable payment history
+                    _nh_behaviour_score = _payment_analytics.get_score(cid)
                     # Phase NG: apply yearly decay then record shock if rate rose >20%
                     _company_sat_acc.apply_monthly_decay(cid, months=12)
                     if old_elec_rate > 0 and unit_rate / old_elec_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
@@ -1003,6 +1011,7 @@ def main(report_end: str | None = None, sim_interface=None):
                         old_elec_rate, unit_rate, tenure_for_est,
                         company_eac,
                         bill_shock_count=_nd_shock_count,
+                        behaviour_score=_nh_behaviour_score,
                         satisfaction_score=_ng_satisfaction,
                         hedge_fraction=prev_hf,
                         hangover_periods_remaining=hangover_periods,
@@ -1433,6 +1442,15 @@ def main(report_end: str | None = None, sim_interface=None):
                 fixed_cost_events.append(make_fixed_cost_event(rec_month, FIXED_COST_MONTHLY))
                 _fixed_cost_emitted.add(rec_month)
 
+            # Phase NH: generate one payment record per customer-month for analytics
+            _pm_key = (cid, rec['settlement_date'][:7])
+            if _pm_key not in _payment_month_seen:
+                _payment_month_seen.add(_pm_key)
+                _pm_due = date.fromisoformat(rec['settlement_date'][:7] + '-28')
+                _pm_rec = generate_payment_record(
+                    cid, _pm_due, rec.get('revenue_gbp', 0.0), _income_stress, _payment_rng
+                )
+                _payment_analytics.record_payment(cid, _pm_rec)
             _bd_rate = get_bad_debt_rate(int(rec_year), cust_segment) * _stress_bd_mult
             _bad_debt = round(rec.get("revenue_gbp", 0.0) * _bd_rate, 6)
             rec["bad_debt_gbp"] = _bad_debt

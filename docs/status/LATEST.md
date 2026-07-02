@@ -1,18 +1,19 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T05:23:18Z
+Last updated: 2026-07-02T05:52:22Z
 
 ## Current Status
-TOU bill shock fix (Phase NI) + I&C fix + Phase NG -- 14,684 tests
+Phase NH: PaymentBehaviourAnalytics wired -- three-signal churn model live (14,701 tests)
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,443,537 (git aede93e9, 2026-07-02)
 
 ## Test Suite
-- **14,684 tests passing** (fast suite ~10s)
+- **14,701 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
+- **Phase NH** (2026-07-02): PaymentBehaviourAnalytics wired into run_phase2b.py -- behaviour_score now populated from monthly payment records; three-signal churn model (bill_shock+behaviour+satisfaction) fully operational. 17 tests, 14,701 total.
 - **TOU bill shock counter fix (Phase NI)** (2026-07-02): _elec_rate_shock_counts replaces count_rate_shocks; resi HH TOU customers no longer get 500-1500 spurious shocks → 95% cap. 14 tests, 14,684 total.
 - **I&C churn calibration fix** (2026-07-02): IC_BILL_STRESS_SENSITIVITY 0.10->0.0; I&C no longer gets 95% churn estimate at stable rates; 14,670 tests
 - **CLIV** (2026-07-01): Coverage Depth Sprint -- bsc_performance_assurance, dso_flexibility_tender, gas_safety_incident (14,460 tests)
