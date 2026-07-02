@@ -586,6 +586,8 @@ def extract_report_data(run_output: dict) -> dict:
         "margin_feedback_log": phase2b.get("margin_feedback_log", []),
         "dynamic_pricing_log": phase2b.get("dynamic_pricing_log", []),
         "demand_estimation_log": phase2b.get("demand_estimation_log", []),  # Phase 23a
+        # Phase NK: churn model calibration KPI (recall/precision/F1) from Phase NJ
+        "churn_model_performance": phase2b.get("churn_model_performance", {}),
         # Phase 17c/17d: pre-aggregated per-customer P&L (all_records not persisted)
         "per_cid_pnl": per_cid_pnl,
         "per_cid_comm_pnl": per_cid_comm_pnl,
@@ -5903,6 +5905,91 @@ def _section_churn_prediction_calibration(data: dict) -> str:
     ])
     return "\n".join(lines)
 
+
+def _section_churn_model_performance(data: dict) -> str:
+    """Phase NK: Churn model quality — recall/precision/F1 from company vs actual churn."""
+    perf = data.get("churn_model_performance", {})
+    if not perf or not perf.get("total_churn_events"):
+        return ""
+
+    total = perf.get("total_churn_events", 0)
+    tp = perf.get("true_positives", 0)
+    fp = perf.get("false_positives", 0)
+    fn = perf.get("false_negatives", 0)
+    tn = perf.get("true_negatives", 0)
+    recall = perf.get("recall", 0.0)
+    precision = perf.get("precision", 0.0)
+    f1 = perf.get("f1_score", 0.0)
+    per_year = perf.get("per_year", {})
+
+    if f1 >= 0.5:
+        rag = "GREEN"
+    elif f1 >= 0.3:
+        rag = "AMBER"
+    else:
+        rag = "RED"
+
+    lines = [
+        "## Churn Model Quality (Phase NK)",
+        "",
+        "Company churn model performance: did the company predict churn before it happened?",
+        "Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal event.",
+        "",
+        "| Metric | Value | Interpretation |",
+        "|--------|-------|----------------|",
+        "| Total churn events | {} | Customers who actually churned |".format(total),
+        "| True Positives (TP) | {} | Churn predicted AND happened |".format(tp),
+        "| False Positives (FP) | {} | Churn predicted BUT customer renewed |".format(fp),
+        "| False Negatives (FN) | {} | Churn NOT predicted BUT happened (blind miss) |".format(fn),
+        "| True Negatives (TN) | {} | No churn predicted AND customer renewed |".format(tn),
+        "| **Recall** | **{:.1%}** | % of churners detected before departure |".format(recall),
+        "| **Precision** | **{:.1%}** | % of retention offers to genuine churners |".format(precision),
+        "| **F1 Score** | **{:.2f}** | Harmonic mean of recall and precision |".format(f1),
+        "",
+        "**Model quality: {}**".format(rag),
+    ]
+
+    if rag == "RED":
+        lines.append("")
+        lines.append("> **Board Action Required:** F1 < 0.30 — churn model is failing to detect departures.")
+        lines.append("> Company is missing churning customers; retention spend may be misdirected.")
+    elif rag == "AMBER":
+        lines.append("")
+        lines.append("> Model is partially calibrated. Some churners detected but blind miss rate is significant.")
+    else:
+        lines.append("")
+        lines.append("> Model is reasonably calibrated. Majority of churners detected before departure.")
+
+    lines.extend([
+        "",
+        "> **Known limitation:** passive SVT-rollers (69% of renewals) churn at ~10% effective rate",
+        "> after passive_churn_cap, but the 30% retention threshold is calibrated for active renewers.",
+        "> Passive blind misses are a structural feature — these customers\'s seasonal bill variability",
+        "> (8-11 monthly shocks/year) inflates the SIM\'s base churn_probability to 29-38%, but",
+        "> effective churn after the passive cap is ~11%. A separate passive loyalty programme",
+        "> would be needed to recover these departures.",
+        "",
+    ])
+
+    if per_year:
+        lines.extend([
+            "### Per-Year Model Performance",
+            "",
+            "| Year | TP | FP | FN | TN | Recall | Precision |",
+            "|------|----|----|----|----|--------|-----------|",
+        ])
+        for yr in sorted(per_year.keys()):
+            d = per_year[yr]
+            yr_recall = d.get("recall", 0.0)
+            yr_prec = d.get("precision", 0.0)
+            lines.append("| {} | {} | {} | {} | {} | {:.0%} | {:.0%} |".format(
+                yr, d.get("tp", 0), d.get("fp", 0), d.get("fn", 0), d.get("tn", 0),
+                yr_recall, yr_prec,
+            ))
+        lines.append("")
+
+    return "\n".join(lines)
+
 def _section_tariff_estimation_accuracy(data: dict) -> str:
     """Phase BI: Tariff estimation accuracy — company vs actual outturn by year."""
     div = data.get("company_divergence", {})
@@ -6916,6 +7003,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_stress_test_history(data))            # Phase BL
     sections.append(_section_financial_ratios(data))               # Phase BK
     sections.append(_section_churn_prediction_calibration(data))   # Phase BJ
+    sections.append(_section_churn_model_performance(data))        # Phase NK
     sections.append(_section_tariff_estimation_accuracy(data))     # Phase BI
     sections.append(_section_dynamic_pricing_activity(data))       # Phase BH
     sections.append(_section_clv_evolution(data))                  # Phase BG

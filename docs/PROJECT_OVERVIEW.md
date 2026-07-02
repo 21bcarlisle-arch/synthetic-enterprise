@@ -111,6 +111,10 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase NK -- Churn Model Performance Report (2026-07-02)
+14 tests. saas/reporting/annual_report.py: (1) extract_report_data — added "churn_model_performance": phase2b.get("churn_model_performance", {}) — fixes silent Phase NJ regression where recall/precision/F1 was computed but discarded in JSON extraction (key was absent from every run output since Phase NJ). (2) _section_churn_model_performance(data) — new report section after Churn Prediction Calibration: displays TP/FP/FN/TN, Recall=TP/(TP+FN), Precision=TP/(TP+FP), F1 harmonic mean, RAG (GREEN f1>=0.5/AMBER 0.3-0.5/RED <0.3), per-year table. Notes structural limitation: passive SVT-rollers (69% of renewals) churn at 10% effective rate after passive_churn_cap; 30% RETENTION_THRESHOLD means passive churns are below detection threshold by design (seasonal bill shocks 8-11/year inflate SIM base rate to 29-38% but the company correctly caps passive estimate at 10%). Board now sees model calibration quality on every run. Epistemic verifier: PASS.
+**Total:** 14,731 tests
+
 ### Phase NJ -- Churn Model Calibration Report (2026-07-02)
 16 tests. company/analytics/churn_accuracy_report.py (new): compute_churn_model_performance(customer_events, retention_log, no_offer_churn_log, threshold=0.30) -> dict. Classifies renewals using company_churn_estimate vs threshold: TP=predicted_churn+actually_churned; FP=predicted_churn+renewed; FN=not_predicted+churned (also supplemental from no_offer_churn_log); TN=not_predicted+renewed. Returns total_churn_events, true_positives, false_positives, false_negatives, true_negatives, recall=TP/(TP+FN), precision=TP/(TP+FP), f1_score=2pr/(p+r), per_year {year: {tp,fp,fn,tn,recall,precision}}. simulation/run_phase2b.py: imports and calls at results assembly as churn_model_performance. Epistemic verifier: PASS. Company now measures its own churn model quality — board gains a model calibration section quantifying missed churn cost (FN) vs wasted retention spend (FP).
 **Total:** 14,717 tests
@@ -5043,8 +5047,8 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,717 tests (fast / ~10s; simulation integration ~8 min per run)
-- Phase NJ (2026-07-02): company/analytics/churn_accuracy_report.py — compute_churn_model_performance wired; board-level recall/precision/F1 for churn model.
+- 14,731 tests (fast / ~10s; simulation integration ~8 min per run)
+- Phase NK (2026-07-02): extract_report_data churn_model_performance extraction fix + _section_churn_model_performance board report section.
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
