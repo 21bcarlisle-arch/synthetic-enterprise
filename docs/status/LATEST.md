@@ -1,15 +1,15 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T02:50:09Z
+Last updated: 2026-07-02T03:01:47Z
 
 ## Current Status
-**Phase NF complete** -- 14,652 tests
+**Phase NG complete** -- 14,668 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,443,537 (git c389b6fc, 2026-07-02)
 
 ## Test Suite
-- **14,620 tests passing** (fast suite ~10s)
+- **14,668 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
@@ -23,6 +23,7 @@ Net position: £1,443,537 (git c389b6fc, 2026-07-02)
 - **CXLVII** (2026-07-01): Coverage Depth Sprint -- 9 files: sim_runner, portal_dd, portal_css, portfolio_pnl, run_phase4c, run_scenario, scenario_comparison, billing_filter, generate_sim (14,154 tests)
 - **CXLVI** (2026-07-01): Coverage Depth Sprint -- phase_h eac_multiplier, phase_o solar_dynamic, phase_p ev_overnight (13,063 tests)
 - **CXLV** (2026-07-01): Coverage Depth Sprint -- phase40c deemed_rate, phase41a flex, phase61 flex_passthrough, phase62 standing_charges, phase_g ashp_settlement (13,048 tests)
+- **NG** (2026-07-02): Company Satisfaction Score -> Renewal Churn Estimate -- CustomerSatisfactionAccumulator wired into run_phase2b.py; enriched_churn_estimate now gets satisfaction_score from observable bill shocks (14,668 tests)
 - **NF** (2026-07-02): Gap 3 Dim 4 SIM-side -- sim_satisfaction.py + satisfaction_churn.py wired into roll_lifecycle_event; all 4 dimensions CLOSED (14,652 tests)
 - **NE** (2026-07-02): Gap 5 Gas Pass-Through Capital Fix -- naked_kwh=0 for pass_through in assess_term_risk; C_IC3g net -£134k -> +£95k. Gap 5 CLOSED (14,636 tests)
 - **ND** (2026-07-02): Gap 4 SIM-side -- bill_shock_tracker wired into run_phase2b.py enriched_churn_estimate; Gap 4 full chain closed (14,620 tests)

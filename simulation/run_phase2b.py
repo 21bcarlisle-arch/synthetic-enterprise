@@ -92,6 +92,7 @@ from company.crm.customer_profitability import compute_profitability_uplift
 from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
+from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
@@ -765,6 +766,9 @@ def main(report_end: str | None = None, sim_interface=None):
     demand_response_log: list[dict] = []   # Phase 52: per-term DR shift records
     # Phase 22a: post-crisis hangover — how many more renewals get the +12% churn uplift
     hangover_remaining: dict[str, int] = {}
+    # Phase NG: company-side satisfaction tracker using observable bill-shock signals only
+    _company_sat_acc = CustomerSatisfactionAccumulator()
+    _NG_BILL_SHOCK_THRESHOLD = 0.20  # matches simulation.bill_shock_tracker.BILL_SHOCK_THRESHOLD
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
 
     # Phase 17a + 19a: rolling portfolio-wide margin rates for learning premium
@@ -984,10 +988,16 @@ def main(report_end: str | None = None, sim_interface=None):
                 else:
                     # Phase ND: use enriched estimate with bill_shock_count from prior terms
                     _nd_shock_count = _count_rate_shocks(cid, "electricity", all_records)
+                    # Phase NG: apply yearly decay then record shock if rate rose >20%
+                    _company_sat_acc.apply_monthly_decay(cid, months=12)
+                    if old_elec_rate > 0 and unit_rate / old_elec_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
+                        _company_sat_acc.record_bill_shock(cid)
+                    _ng_satisfaction = _company_sat_acc.get_satisfaction(cid)
                     company_est_pre = round(_enriched_churn_estimate(
                         old_elec_rate, unit_rate, tenure_for_est,
                         company_eac,
                         bill_shock_count=_nd_shock_count,
+                        satisfaction_score=_ng_satisfaction,
                         hedge_fraction=prev_hf,
                         hangover_periods_remaining=hangover_periods,
                         segment=segment_for_churn,

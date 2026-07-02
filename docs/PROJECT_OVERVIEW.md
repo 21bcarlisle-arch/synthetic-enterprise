@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-02. 459+ commits. 14,652 tests passing. Codebase: ~48,600 lines across 312+ Python modules.*
+*Last updated: 2026-07-02. 460+ commits. 14,668 tests passing. Codebase: ~48,600 lines across 312+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -111,9 +111,12 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase NG -- Company Satisfaction Score -> Renewal Churn Estimate (2026-07-02)
+16 tests. simulation/run_phase2b.py (modified): Import CustomerSatisfactionAccumulator; instantiate _company_sat_acc = CustomerSatisfactionAccumulator(); at each active electricity renewal apply 12-month decay then record_bill_shock(cid) if rate_increase > 20%; pass satisfaction_score=_company_sat_acc.get_satisfaction(cid) to _enriched_churn_estimate. Closes the gap where enriched_churn_estimate had satisfaction_score=None despite the param existing since Phase NB. Company now uses observable bill-shock history to derive a satisfaction signal at renewal time. Epistemic: satisfaction derived from company's own billing records only (rate changes it issued). Tests: threshold constant; baseline (no shocks); rate below/at/above threshold; two consecutive shocks cumulate; decay restores toward baseline; score always in [0.0,1.0]; two customers independent; low sat raises churn estimate; high sat lowers churn estimate; shocked customer estimate higher than unshocked; multi-term no-shock stays near baseline; shock then recovery. Epistemic verifier: PASS.
+
 ### Phase NF -- Gap 3 Dim 4 SIM-side: Satisfaction -> Actual Churn (2026-07-02)
 16 tests. simulation/sim_satisfaction.py (new): sim_satisfaction_score(bill_shock_count, tenure_years, income_stress) -> float [0,1]. BASELINE_SATISFACTION=0.70; _BILL_SHOCK_DELTA=-0.10 per shock; _INCOME_STRESS_DELTA {LOW:0.0, MODERATE:-0.05, HIGH:-0.15}; _TENURE_BONUS_PER_YEAR=0.02 capped at _MAX_TENURE_BONUS=0.10. simulation/satisfaction_churn.py (new): satisfaction_churn_multiplier(score) -> float (>=0.80 -> 0.85x; <0.50 -> 1.30x; else 1.0). adjust_churn_for_satisfaction(base, score) -> min(base * multiplier, MAX_CHURN). simulation/customer_events.py: added satisfaction_score: float | None = None parameter to roll_lifecycle_event; applies adjust_churn_for_satisfaction after income_stress block. simulation/run_phase2b.py: computes _nf_shock_count, _nf_tenure (from acq_date_for_est or term_index*0.5), _nf_satisfaction; passes satisfaction_score=_nf_satisfaction to roll_lifecycle_event. Gap 3 Dim 4 CLOSED -- all four dimensions of human simulation now wired at SIM level.
-**Total:** 14,652 tests
+**Total:** 14,668 tests
 
 ### Phase NE -- Gas Pass-Through Capital Risk Correction (2026-07-02)
 16 tests. Root cause: simulation/run_phase2b.py was calling assess_term_risk with naked_kwh = aq_kwh * (1 - hf) for pass_through gas customers (where hf=0 is forced), generating full VaR-based capital costs on a genuinely zero-risk position (C_IC3g: 5 GWh/year, spurious capital ~£20k/year wiping out £10k/year service fee). Fix: naked_kwh = 0.0 if term_tariff_type == "pass_through" (company has no commodity price risk; customer pays spot directly). Also counterfactual_risk uses 0.0 for pass_through. Result: C_IC3g gas switches from net -£134k to net +£95k (service_fee × volume over 9.5 years). Tests cover: VaR formula at zero volume, assess_term_risk with zero naked volume, linear VaR in volume/price, active_collateral max, monthly_cost_of_capital, GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH=2.0 constant, 5GWh × £2 = £10k/year identity, naked_kwh logic for fixed vs pass_through, gas_settlement integration (margin < unit_rate margin, net positive, capital_cost=0). Gap 5 CLOSED.
@@ -5028,7 +5031,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,652 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,668 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
