@@ -50,7 +50,7 @@ def regenerate_report(json_path):
     return result.returncode == 0
 
 
-def update_latest_md(data, elapsed_s):
+def update_latest_md(data, elapsed_s, git_hash="unknown"):
     text = LATEST_MD.read_text()
     ts_now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     text = re.sub(r"Last updated: \S+", "Last updated: {}".format(ts_now), text)
@@ -96,6 +96,13 @@ def update_latest_md(data, elapsed_s):
         # Block not yet present — append to end on first auto-process
         text = text.rstrip() + "\n\n" + new_block + "\n"
         log("Created 'Latest simulation results' block in LATEST.md")
+    # Update "Net position:" summary line in Last Run section
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    text = re.sub(
+        r"Net position: .*",
+        "Net position: \xa3{:,.0f} (git {}, {})".format(net, git_hash, date_str),
+        text,
+    )
     LATEST_MD.write_text(text)
 
 
@@ -275,7 +282,7 @@ def main(marker_path_str):
         return 1
 
     log("Updating LATEST.md")
-    update_latest_md(data, elapsed_s)
+    update_latest_md(data, elapsed_s, git_hash)
 
     log("Generating site/data/dashboard.json")
     generate_dashboard_json(json_path)
