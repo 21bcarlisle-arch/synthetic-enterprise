@@ -12,7 +12,8 @@ Phase MW COMPLETE (2026-07-02): income_stress -> observable payment behaviour.
 Phase MX COMPLETE (2026-07-02): Company-side PaymentBehaviourAnalytics -- BehaviourScore enum, score_payment_history, PaymentBehaviourAnalytics (14,511 tests).
 Phase MY COMPLETE (2026-07-02): BehaviourScore wired into combined_churn_probability via payment_churn_model.py (14,531 tests).
 Phase MZ COMPLETE (2026-07-02): Dim 3 behavioural SIM-side -- vulnerability trap wired (14,552 tests).
-Next: Gap 5 gas ROC (business decision: exit / tariff uplift / better hedging) or Dim 4 emotional.
+Phase NA COMPLETE (2026-07-02): Dim 4 emotional company-side -- CustomerSatisfactionAccumulator (14,572 tests).
+Next: Gap 5 gas ROC or wire satisfaction score into combined churn model.
 After MY: Dim 3 behavioural (income_stress -> SIM-side switching propensity) or Gap 5 gas ROC.
 
 ## Real capability gaps
@@ -33,8 +34,9 @@ Dim 1 (physical): CLOSED -- simulation/household.py + household_demand.py fully 
 Dim 2 (economic): CLOSED SIM-side (MV/MW); company-side closes with Phase MX.
 Dim 3 (behavioural): CLOSED -- simulation/switching_propensity.py (Phase MZ) wires income_stress
   into roll_lifecycle_event. HIGH 0.65x / MODERATE 0.85x / LOW 1.10x multiplier on churn probability.
-Dim 4 (emotional/satisfaction): OPEN -- css_tracker and customer_reaction exist but no
-  satisfaction accumulation model or trust decay over time in SIM.
+Dim 4 (emotional/satisfaction): PARTIAL -- company/crm/satisfaction_accumulator.py (Phase NA)
+  tracks rolling satisfaction from bill_shock/css/complaint observables with mean-reversion.
+  SIM-side (satisfaction -> actual churn) still OPEN.
 
 ### Gap 4 -- Churn Blind Miss Rate [OPEN -- in progress]
 Board risk shows 4/6 departures (67%) not forecast. Company churn model (saas/churn_model.py)

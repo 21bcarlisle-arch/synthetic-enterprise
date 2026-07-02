@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-02. 445+ commits. 14,552 tests passing. Codebase: ~47,900 lines across 307+ Python modules.*
+*Last updated: 2026-07-02. 446+ commits. 14,572 tests passing. Codebase: ~48,000 lines across 308+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NA -- Dim 4 Emotional: Customer Satisfaction Accumulator (2026-07-02)
+20 tests. company/crm/satisfaction_accumulator.py (new): Observable-signal satisfaction model with mean-reversion. Constants: BASELINE=0.70, BILL_SHOCK_DELTA=-0.05, COMPLAINT_RAISED_DELTA=-0.10, COMPLAINT_RESOLVED_DELTA=+0.05, CSS_GOOD_DELTA=+0.05, CSS_POOR_DELTA=-0.05, MONTHLY_DECAY_RATE=0.01. Methods: record_bill_shock, record_css_score (good>=7.0/poor<4.0), record_complaint_raised, record_complaint_resolved, apply_monthly_decay (mean-reverts toward 0.70), get_satisfaction, is_low_satisfaction (<0.50), low_satisfaction_customers. Epistemic: reads only company observables (billing, CSS surveys, complaint register). Dim 4 OPEN at SIM-side (no satisfaction -> actual churn wiring yet).
+**Total:** 14,572 tests
 
 ### Phase MZ -- Dim 3 Behavioural: Income Stress -> SIM Switching Propensity (2026-07-02)
 21 tests. simulation/switching_propensity.py (new): STRESS_SWITCHING_MULTIPLIER {LOW: 1.10, MODERATE: 0.85, HIGH: 0.65}; stress_switching_multiplier(income_stress | None) -> float (None maps to LOW default); adjust_churn_probability(base_prob, income_stress) -> min(base * multiplier, 0.95). simulation/customer_events.py: roll_lifecycle_event adds income_stress: IncomeStress | None = None parameter; applies adjust_churn_probability to p_churn before retention modifier. Fidelity: vulnerability trap now modelled at SIM ground-truth level -- HIGH stress customers 35% less likely to actually switch even when bill-shocked. Company cannot see income_stress; it uses payment behaviour (MX/MY) to approximate. This creates an inherent gap between company prediction and SIM reality.
@@ -5004,16 +5008,16 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,552 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,572 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase MZ, 2026-07-02, git ca1d8ab5):**
+**Latest full run (Phase NA, 2026-07-02, git ca1d8ab5):**
 - Net margin £1,224,097 | Gross £6,418,373 | EV £5,987,458 | Treasury £3,690,734 | SURVIVED
-- 14,552 tests. Vulnerability trap: HIGH stress customers 35% less likely to switch (SIM ground truth).
+- 14,572 tests. Satisfaction accumulator closes Dim 4 company-side; Dim 3 SIM-side closed (MZ).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)
