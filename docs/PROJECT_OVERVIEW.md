@@ -111,6 +111,10 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase NJ -- Churn Model Calibration Report (2026-07-02)
+16 tests. company/analytics/churn_accuracy_report.py (new): compute_churn_model_performance(customer_events, retention_log, no_offer_churn_log, threshold=0.30) -> dict. Classifies renewals using company_churn_estimate vs threshold: TP=predicted_churn+actually_churned; FP=predicted_churn+renewed; FN=not_predicted+churned (also supplemental from no_offer_churn_log); TN=not_predicted+renewed. Returns total_churn_events, true_positives, false_positives, false_negatives, true_negatives, recall=TP/(TP+FN), precision=TP/(TP+FP), f1_score=2pr/(p+r), per_year {year: {tp,fp,fn,tn,recall,precision}}. simulation/run_phase2b.py: imports and calls at results assembly as churn_model_performance. Epistemic verifier: PASS. Company now measures its own churn model quality — board gains a model calibration section quantifying missed churn cost (FN) vs wasted retention spend (FP).
+**Total:** 14,717 tests
+
 ### Fix: I&C Churn Model Calibration -- IC_BILL_STRESS_SENSITIVITY 0.10->0.0 (2026-07-02)
 2 tests added. company/crm/churn_model.py: IC_BILL_STRESS_SENSITIVITY changed from 0.10 to 0.0. Root cause: the bill_stress term for I&C customers (bill_stress = 0.10 × max(0, bill/£50k - 1)) caused systematic 95% churn overestimate for mid-size I&C. A 4 GWh customer at £54/MWh has a £216k annual bill (4.3× threshold), giving bill_stress=0.332 that dominates the rate-sensitivity term. Churn basis risk analysis showed company estimates 0.95 vs SIM ground truth 0.05 for I&C customers at stable rates (1800% overestimate). I&C churn is broker-driven and rate-comparison-driven, not bill-size-driven; rate sensitivity (IC_RATE_SENSITIVITY=1.5×) already captures price sensitivity. Fix: 58% of retention offers were going to I&C customers who had 5% actual churn -- now only triggered by genuine rate spikes (correctly reaches 0.95 during crisis-level 400% rate increases). 2 new tests in test_churn_model.py: flat-rate large I&C consumption < 0.30; crisis-level rate spike still reaches MAX_CHURN_PROBABILITY. Epistemic verifier: PASS.
 **Total:** 14,701 tests
@@ -5039,8 +5043,8 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,701 tests (fast / ~10s; simulation integration ~8 min per run)
-- Phase NH (2026-07-02): PaymentBehaviourAnalytics wired into run_phase2b.py — behaviour_score now populated from monthly payment records; three-signal churn model live.
+- 14,717 tests (fast / ~10s; simulation integration ~8 min per run)
+- Phase NJ (2026-07-02): company/analytics/churn_accuracy_report.py — compute_churn_model_performance wired; board-level recall/precision/F1 for churn model.
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -5049,7 +5053,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase NG, 2026-07-02, git c6b49c35):**
 - Net margin £1,443,537 | Gross £5,422,401 | EV £5,256,728 | Treasury £3,910,174 | SURVIVED
-- 14,701 tests. Phase NH: PaymentBehaviourAnalytics wired (behaviour_score now live); three-signal churn model (bill_shock+behaviour+satisfaction) fully operational.
+- 14,717 tests. Phase NJ: churn_model_performance wired; company can now measure recall/precision/F1 of its own churn model.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

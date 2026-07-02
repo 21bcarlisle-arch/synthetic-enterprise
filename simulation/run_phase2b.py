@@ -96,6 +96,7 @@ from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfact
 from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
 from company.crm.payment_behaviour_analytics import PaymentBehaviourAnalytics
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
+from company.analytics.churn_accuracy_report import compute_churn_model_performance as _compute_churn_model_performance
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -1804,6 +1805,10 @@ def main(report_end: str | None = None, sim_interface=None):
         "flexibility_revenue_summary": flexibility_revenue_summary,
         "flexibility_revenue_by_year": _flex_by_year,
         "total_flexibility_revenue": total_flexibility_revenue,
+        # Phase NJ: company churn model calibration report
+        "churn_model_performance": _compute_churn_model_performance(
+            customer_events_log, retention_log, no_offer_churn_log
+        ),
     }
 
 
