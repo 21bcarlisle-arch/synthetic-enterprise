@@ -1,16 +1,17 @@
 # Current Priorities
 
-Last updated: 2026-07-01 -- Sprints STOPPED. Direction: Human Simulation Layer (Gap 3).
+Last updated: 2026-07-02 -- Direction: Human Simulation Layer (Gap 3) + Churn (Gap 4).
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
-Coverage sprints (phases LQ through MU, 95+ sprints) are complete. Test count: 14,460.
+Coverage sprints (phases LQ through MU, 95+ sprints) are complete. Test count: 14,485.
 All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Phase MW proposed (Income Stress -> Observed Payment Behaviour). Opt-out ~2026-07-01T23:10Z.
-If MW proceeds: income_stress (SIM ground truth) cascades into observable payment records.
-After MW: Dim 1 physical model (property/EPC -> seasonal demand scalar).
+Phase MW COMPLETE (2026-07-02): income_stress -> observable payment behaviour.
+Phase MX PROPOSED: Company-side PaymentBehaviourAnalytics (opt-out ~2026-07-02T03:24Z).
+After MX: Phase MY -- Wire payment behaviour score into company churn model (closes Gap 4).
+After MY: Dim 3 behavioural (income_stress -> SIM-side switching propensity) or Gap 5 gas ROC.
 
 ## Real capability gaps
 
@@ -25,18 +26,27 @@ build_triad_alert_set (SSP>80 + Triad season + SP 33-39) + make_triad_aware_shap
 ### Gap 3 -- Human Simulation Layer [OPEN -- LARGE / MULTI-PHASE]
 4-dimension customer modelling: physical (property/EPC/appliances), economic (income/credit),
 behavioural (payment/switching propensity), emotional (satisfaction/trust).
-Phase MV closed part of Dim 2 (income_stress enum + economic life events).
-Phase MW closes Dim 2 further (income_stress -> observable payment behaviour).
-Next after MW: Dim 1 physical (property/EPC foundation -> seasonal demand scalar).
+Dim 1 (physical): CLOSED -- simulation/household.py + household_demand.py fully wired (EPC
+  multipliers, seasonal_flatness_factor, life events for solar/EV/boiler/insulation).
+Dim 2 (economic): CLOSED SIM-side (MV/MW); company-side closes with Phase MX.
+Dim 3 (behavioural): OPEN -- no SIM-side model linking income_stress to switching propensity.
+  High-stress customers are LESS likely to switch (vulnerability trap); low-stress MORE likely.
+  Should feed into saas/churn_model.py via income_stress_at_date lookup.
+Dim 4 (emotional/satisfaction): OPEN -- css_tracker and customer_reaction exist but no
+  satisfaction accumulation model or trust decay over time in SIM.
 
-### Gap 4 -- Churn Blind Miss Rate [OPEN]
-Board risk shows 4/6 departures (67%) not forecast. Company churn model needs calibration
-against observed payment behaviour and contract near-expiry signals.
-Addressable after Gap 3 Dim 2 (payment behaviour) is closed.
+### Gap 4 -- Churn Blind Miss Rate [OPEN -- in progress]
+Board risk shows 4/6 departures (67%) not forecast. Company churn model (saas/churn_model.py)
+uses only bill shocks. Phase MX gives company payment behaviour scores (proxy signal).
+Phase MY will wire BehaviourScore into company/crm/churn_model.py: POOR/CRITICAL scores
+add churn uplift, EXCELLENT suppresses it. Gap closes when company predicts >= 60% of churns.
 
 ### Gap 5 -- Gas Segment ROC [OPEN]
-Gas legs show -0.7x ROC (net GBP -134,790 on GBP 187,116 capital).
-Options: exit gas, gas-specific tariff uplift, gas hedging model improvement.
+Gas legs show -0.7x ROC (net GBP -134,790 on GBP 187,116 capital for C_IC3g).
+Root cause: gas crisis 2021-2023 drove NBP to GBP 100-300/MWh; large naked gas positions
+generated VaR-based capital costs that wiped out gross margin. Correct simulation physics.
+Business response options: exit gas (company/finance/gas_exit_decision.py),
+gas-specific tariff uplift, or improved gas hedging model. Address after Gap 4 closes.
 
 ## Backlog (lower priority)
 - Dashboard: Flexibility revenue tab -- Phase AG built the data, needs wiring to site/
@@ -44,7 +54,8 @@ Options: exit gas, gas-specific tariff uplift, gas hedging model improvement.
 - Bad debt stress test: does bad_debt_provision feed back into capital model?
 
 ## Recently completed real capability
+- Phase MW (2026-07-02): Income Stress -> Observed Payment Behaviour (14,485 tests)
 - Phase MV (2026-07-01): Economic Life Events -- income_stress enum, job_loss/income_recovery/new_baby/retirement
 - Phase MT (2026-07-01): I&C Triad Demand Curtailment -- wired to settlement
 - Phase MS (2026-07-01): Real NBP Forward Curve -- seasonal multipliers data-derived
-- 14,460 tests, net margin GBP 6.17M on live 2016-2025 data
+- Net margin GBP 6.18M | EV GBP 5.99M | Treasury GBP 3.69M on live 2016-2025 data
