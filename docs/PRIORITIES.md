@@ -9,8 +9,8 @@ Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and r
 
 ## Now (active this session)
 Phase MW COMPLETE (2026-07-02): income_stress -> observable payment behaviour.
-Phase MX PROPOSED: Company-side PaymentBehaviourAnalytics (opt-out ~2026-07-02T03:24Z).
-After MX: Phase MY -- Wire payment behaviour score into company churn model (closes Gap 4).
+Phase MX COMPLETE (2026-07-02): Company-side PaymentBehaviourAnalytics -- BehaviourScore enum, score_payment_history, PaymentBehaviourAnalytics (14,511 tests).
+Phase MY PROPOSED: Wire BehaviourScore into company/crm/churn_model.py via payment_churn_model.py.
 After MY: Dim 3 behavioural (income_stress -> SIM-side switching propensity) or Gap 5 gas ROC.
 
 ## Real capability gaps
@@ -58,4 +58,4 @@ gas-specific tariff uplift, or improved gas hedging model. Address after Gap 4 c
 - Phase MV (2026-07-01): Economic Life Events -- income_stress enum, job_loss/income_recovery/new_baby/retirement
 - Phase MT (2026-07-01): I&C Triad Demand Curtailment -- wired to settlement
 - Phase MS (2026-07-01): Real NBP Forward Curve -- seasonal multipliers data-derived
-- Net margin GBP 6.18M | EV GBP 5.99M | Treasury GBP 3.69M on live 2016-2025 data
+- Net margin GBP 1.22M | EV GBP 5.99M | Treasury GBP 3.69M on live 2016-2025 data
