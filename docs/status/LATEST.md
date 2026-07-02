@@ -1,12 +1,12 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T07:18:15Z
+Last updated: 2026-07-02T07:31:47Z
 
 ## Current Status
 Phase NJ: Churn Model Calibration Report live -- board-level recall/precision/F1 for churn model (14,717 tests)
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,461,253 (git c0675520, 2026-07-02)
+Net position: £1,461,253 (git 1539a7dd, 2026-07-02)
 
 ## Test Suite
 - **14,717 tests passing** (fast suite ~10s)
@@ -18,3 +18,9 @@ Net position: £1,461,253 (git c0675520, 2026-07-02)
 - **TOU bill shock counter fix** (2026-07-02): _elec_rate_shock_counts replaces count_rate_shocks; resi HH TOU customers no longer get 500-1500 spurious shocks. 14 tests, 14,684 total.
 - **I&C churn calibration fix** (2026-07-02): IC_BILL_STRESS_SENSITIVITY 0.10->0.0; I&C no longer gets 95% churn estimate at stable rates. 14,670 tests.
 - **Phase NG** (2026-07-02): CustomerSatisfactionAccumulator wired; satisfaction_score now live in enriched_churn_estimate. 16 tests, 14,668 total.
+
+**Latest simulation results (2016–2025)** — auto-processed (454s / 8 min):
+- Net margin: £1,461,253.49 | Gross: £6,462,528.09 | Capital: £51,123
+- Treasury: £2,466,636 → £3,927,890 | 38 committee interventions | 1443 bills issued
+- Enterprise value: £5,637,800.63 | Net after CTS: £6,359,124
+- Retention: 11 offers, 10/11 retained | 5 no-offer churns | 6 total churned accounts
