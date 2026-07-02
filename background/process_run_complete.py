@@ -56,7 +56,7 @@ def update_latest_md(data, elapsed_s, git_hash="unknown"):
     text = re.sub(r"Last updated: \S+", "Last updated: {}".format(ts_now), text)
 
     ledger = data.get("_ledger_headline", {})
-    net = ledger.get("net_margin_gbp", data.get("total_net_gbp", 0))
+    net = data.get("total_net_gbp", ledger.get("net_margin_gbp", 0))  # total_net_gbp includes bad debt + hedging costs
     gross = ledger.get("gross_margin_gbp", data.get("total_gross_gbp", 0))
     capital = data.get("total_capital_gbp", 0)
     t_start = data.get("starting_treasury_gbp", 0)
