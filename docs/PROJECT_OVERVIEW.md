@@ -113,7 +113,11 @@ The system has four layers, each with a clean seam to the next:
 
 ### Fix: I&C Churn Model Calibration -- IC_BILL_STRESS_SENSITIVITY 0.10->0.0 (2026-07-02)
 2 tests added. company/crm/churn_model.py: IC_BILL_STRESS_SENSITIVITY changed from 0.10 to 0.0. Root cause: the bill_stress term for I&C customers (bill_stress = 0.10 × max(0, bill/£50k - 1)) caused systematic 95% churn overestimate for mid-size I&C. A 4 GWh customer at £54/MWh has a £216k annual bill (4.3× threshold), giving bill_stress=0.332 that dominates the rate-sensitivity term. Churn basis risk analysis showed company estimates 0.95 vs SIM ground truth 0.05 for I&C customers at stable rates (1800% overestimate). I&C churn is broker-driven and rate-comparison-driven, not bill-size-driven; rate sensitivity (IC_RATE_SENSITIVITY=1.5×) already captures price sensitivity. Fix: 58% of retention offers were going to I&C customers who had 5% actual churn -- now only triggered by genuine rate spikes (correctly reaches 0.95 during crisis-level 400% rate increases). 2 new tests in test_churn_model.py: flat-rate large I&C consumption < 0.30; crisis-level rate spike still reaches MAX_CHURN_PROBABILITY. Epistemic verifier: PASS.
-**Total:** 14,670 tests
+**Total:** 14,684 tests
+
+### Fix: TOU Bill Shock Counter Bug -- _elec_rate_shock_counts replaces count_rate_shocks (2026-07-02)
+14 tests added. simulation/run_phase2b.py: _elec_rate_shock_counts dict tracks term-level electricity rate shocks (>20% increase) directly at the point where prev_elec_unit_rates is updated. Replaces _count_rate_shocks(cid, "electricity", all_records) which was counting TOU peak/offpeak HH period transitions as bill shocks (resi HH customers C7/C8/C9 had 500-1500+ spurious shock counts, capping company churn estimate at 0.95 on every renewal). Root: unit_rate_gbp_per_mwh in settlement records reflects TOU period rates (peak/offpeak), not the fixed annual contract rate. Fix eliminates the systematic 95% overestimate for resi HH TOU customers; correct estimates now range from 0.05-0.25 for stable-rate renewals. Also fixes _nf_shock_count (SIM-side satisfaction score) at line 1043. 14 new tests in test_phase_ni_rate_shock_fix.py. Epistemic verifier: PASS.
+**Total:** 14,684 tests
 
 ### Phase NG -- Company Satisfaction Score -> Renewal Churn Estimate (2026-07-02)
 16 tests. simulation/run_phase2b.py (modified): Import CustomerSatisfactionAccumulator; instantiate _company_sat_acc = CustomerSatisfactionAccumulator(); at each active electricity renewal apply 12-month decay then record_bill_shock(cid) if rate_increase > 20%; pass satisfaction_score=_company_sat_acc.get_satisfaction(cid) to _enriched_churn_estimate. Closes the gap where enriched_churn_estimate had satisfaction_score=None despite the param existing since Phase NB. Company now uses observable bill-shock history to derive a satisfaction signal at renewal time. Epistemic: satisfaction derived from company's own billing records only (rate changes it issued). Tests: threshold constant; baseline (no shocks); rate below/at/above threshold; two consecutive shocks cumulate; decay restores toward baseline; score always in [0.0,1.0]; two customers independent; low sat raises churn estimate; high sat lowers churn estimate; shocked customer estimate higher than unshocked; multi-term no-shock stays near baseline; shock then recovery. Epistemic verifier: PASS.
@@ -5035,7 +5039,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,670 tests (fast / ~10s; simulation integration ~8 min per run)
+- 14,684 tests (fast / ~10s; simulation integration ~8 min per run)
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
@@ -5044,7 +5048,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Latest full run (Phase NG, 2026-07-02, git c6b49c35):**
 - Net margin £1,443,537 | Gross £5,422,401 | EV £5,256,728 | Treasury £3,910,174 | SURVIVED
-- 14,670 tests. I&C churn calibration fix + Phase NG (satisfaction score -> renewal churn estimate).
+- 14,684 tests. TOU bill shock counter fix (Phase NI) + I&C churn calibration fix + Phase NG.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

@@ -1,18 +1,19 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T05:12:34Z
+Last updated: 2026-07-02T05:23:18Z
 
 ## Current Status
-I&C churn calibration fix + Phase NG complete -- 14,670 tests
+TOU bill shock fix (Phase NI) + I&C fix + Phase NG -- 14,684 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,443,537 (git aede93e9, 2026-07-02)
 
 ## Test Suite
-- **14,670 tests passing** (fast suite ~10s)
+- **14,684 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
+- **TOU bill shock counter fix (Phase NI)** (2026-07-02): _elec_rate_shock_counts replaces count_rate_shocks; resi HH TOU customers no longer get 500-1500 spurious shocks → 95% cap. 14 tests, 14,684 total.
 - **I&C churn calibration fix** (2026-07-02): IC_BILL_STRESS_SENSITIVITY 0.10->0.0; I&C no longer gets 95% churn estimate at stable rates; 14,670 tests
 - **CLIV** (2026-07-01): Coverage Depth Sprint -- bsc_performance_assurance, dso_flexibility_tender, gas_safety_incident (14,460 tests)
 - **CLIII** (2026-07-01): Coverage Depth Sprint -- green_gas_levy, annual_compliance_attestation, liquidity_stress_test (14,310 tests)

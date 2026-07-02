@@ -779,6 +779,9 @@ def main(report_end: str | None = None, sim_interface=None):
     all_records: list[dict] = []
     evolution_logs: dict[str, list] = {cid: [] for cid in all_customers_ids}
     term_indices: dict[str, int] = {cid: 0 for cid in all_customers_ids}
+    # Phase NI: term-level rate shock counter. Replaces count_rate_shocks(all_records)
+    # which incorrectly counted TOU peak/offpeak transitions as bill shocks for HH customers.
+    _elec_rate_shock_counts: dict[str, int] = {}
     committee_wake_ups: list[dict] = []
     customer_events_log: list[dict] = []
     churned_billing_accounts: set[str] = set()
@@ -930,6 +933,9 @@ def main(report_end: str | None = None, sim_interface=None):
         _indexed_tariff = term_tariff_type in ("deemed", "flex")
         if commodity == "electricity" and not _indexed_tariff:
             prev_elec_unit_rates[cid] = unit_rate
+            if old_elec_rate is not None and old_elec_rate > 0:
+                if (unit_rate - old_elec_rate) / old_elec_rate > _NG_BILL_SHOCK_THRESHOLD:
+                    _elec_rate_shock_counts[cid] = _elec_rate_shock_counts.get(cid, 0) + 1
         elif commodity == "gas" and not _indexed_tariff:
             prev_gas_unit_rates[cid] = unit_rate
 
@@ -987,7 +993,7 @@ def main(report_end: str | None = None, sim_interface=None):
                     ), 4)
                 else:
                     # Phase ND: use enriched estimate with bill_shock_count from prior terms
-                    _nd_shock_count = _count_rate_shocks(cid, "electricity", all_records)
+                    _nd_shock_count = _elec_rate_shock_counts.get(cid, 0)
                     # Phase NG: apply yearly decay then record shock if rate rose >20%
                     _company_sat_acc.apply_monthly_decay(cid, months=12)
                     if old_elec_rate > 0 and unit_rate / old_elec_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
@@ -1040,7 +1046,7 @@ def main(report_end: str | None = None, sim_interface=None):
                     billing_account, term_start_str
                 )
             # Phase NF: SIM-side satisfaction -> actual churn probability
-            _nf_shock_count = _count_rate_shocks(cid, "electricity", all_records)
+            _nf_shock_count = _elec_rate_shock_counts.get(cid, 0)
             _nf_tenure = (
                 (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_for_est)).days / 365.25
                 if old_elec_rate is not None else term_index * 0.5
