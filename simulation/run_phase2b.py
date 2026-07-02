@@ -1017,6 +1017,12 @@ def main(report_end: str | None = None, sim_interface=None):
                         })
                     else:
                         _no_offer_reason = "uneconomical"
+            # Phase MZ: SIM-side income stress -> actual switching propensity
+            _churn_income_stress = None
+            if household_demand_register is not None:
+                _churn_income_stress = household_demand_register.income_stress_at_date(
+                    billing_account, term_start_str
+                )
             event = roll_lifecycle_event(
                 cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
                 old_rate_gbp_per_mwh=old_elec_rate,
@@ -1024,6 +1030,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 retention_modifier=retention_modifier_val,
                 precomputed_company_estimate=company_est_pre,
                 passive_churn_cap=passive_cap,
+                income_stress=_churn_income_stress,
             )
             if event is not None:
                 event["is_active_renewal"] = active_renewal
