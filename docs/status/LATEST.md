@@ -1,12 +1,12 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T01:50:05Z
+Last updated: 2026-07-02T01:52:38Z
 
 ## Current Status
 **Phase NC complete** -- 14,604 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,224,097 (git 4fe842f3, 2026-07-02)
+Net position: £1,274,350 (git a304c3da, 2026-07-02)
 
 ## Test Suite
 - **14,604 tests passing** (fast suite ~10s)
@@ -34,8 +34,8 @@ Net position: £1,224,097 (git 4fe842f3, 2026-07-02)
 - **MU** (2026-07-01): Coverage Depth Sprint CXIX -- sim/hedging_strategy, sim/risk_engine, sim/weather_price_sensitivity (13,033 tests)
 - **MT** (2026-07-01): I&C Triad Demand Curtailment -- build_triad_alert_set/make_triad_aware_shape_fn/get_active_alerts (13,003 tests)
 
-**Latest simulation results (2016–2025)** — auto-processed (757s / 13 min):
-- Net margin: £1,224,097.28 | Gross: £6,404,606.09 | Capital: £237,898
-- Treasury: £2,466,636 → £3,690,734 | 38 committee interventions | 1531 bills issued
-- Enterprise value: £5,987,457.53 | Net after CTS: £6,313,987
+**Latest simulation results (2016–2025)** — auto-processed (438s / 7 min):
+- Net margin: £1,274,350.48 | Gross: £6,462,540.99 | Capital: £238,039
+- Treasury: £2,466,636 → £3,740,987 | 38 committee interventions | 1443 bills issued
+- Enterprise value: £5,637,813.51 | Net after CTS: £6,359,137
 - Retention: 18 offers, 17/18 retained | 5 no-offer churns | 6 total churned accounts
