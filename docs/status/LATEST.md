@@ -1,13 +1,13 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T17:01:13Z
+Last updated: 2026-07-03T18:13:47Z
 
 ## Current Status
 Phase OL COMPLETE (2026-07-03) -- Carbon Emissions: FuelMixRecord 2016-2025; scope 2+1; 290->175g/kWh trend. 17 tests, 15,148 total.
 
-Website updated: Project page now has Regulatory + Capabilities tabs. SIM page now has Customers tab. phases.json/dashboard.json updated to 15,148 tests / 748+ phases.
+Website fixed (2026-07-03): kpi() function added to main dashboard -- Regulatory and Capabilities tabs now render correctly. Customer data regenerated (21 customers, 2313 invoices). Dashboard/shadow HTML refreshed.
 
 ## Last Run
-Net position: GBP 1,445,258 (git c7520ec2, 2026-07-03)
+Net position: £1,445,258 (git 948ec935, 2026-07-03)
 Revenue: GBP 14,060,576 | Treasury: GBP 3,911,894 | EV: GBP 8,826,939
 
 ## Test Suite
@@ -15,8 +15,8 @@ Revenue: GBP 14,060,576 | Treasury: GBP 3,911,894 | EV: GBP 8,826,939
 - Epistemic verifier: PASS
 - PRIORITIES.md: OM (Fuel Mix Disclosure) next
 
-**Latest simulation results (2016-2025)** -- auto-processed:
-- Net margin: GBP 1,445,258 | Gross: GBP 6,452,602 | Capital: GBP 51,433
-- Treasury: GBP 2,466,636 -> GBP 3,911,894 | 38 committee interventions | 1605 bills issued
-- Enterprise value: GBP 8,826,939 | Net after CTS: GBP 6,360,822
+**Latest simulation results (2016–2025)** — auto-processed (478s / 8 min):
+- Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
+- Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
+- Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
 - Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
