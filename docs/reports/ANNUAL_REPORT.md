@@ -1400,6 +1400,28 @@ Key per-customer and margin metrics by year.
 
 > Note: Revenue/customer driven by customer mix (I&C customers 10-100× resi volumes).
 
+## Population Anchoring -- Complaints & Arrears (Phase PS)
+
+SIM aggregate complaint and arrears rates vs published UK benchmarks.
+Complaints: Ofgem QoS survey, I&C adjusted (GREEN 2-6%, crisis 2-8%).
+Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
+
+| Year | Complaint rate% | C.Bench hi | C.RAG | Arrears rate% | A.Bench hi | A.RAG |
+|------|-----------------|-----------|-------|---------------|-----------|-------|
+| 2016 | 4.70% | 6% | OK | n/a | n/a | n/a |
+| 2017 | 4.67% | 6% | OK | n/a | n/a | n/a |
+| 2018 | 4.66% | 6% | OK | n/a | n/a | n/a |
+| 2019 | 4.67% | 6% | OK | n/a | n/a | n/a |
+| 2020 | 4.29% | 6% | OK | n/a | n/a | n/a |
+| 2021 | 4.80% | 8% | OK | n/a | n/a | n/a |
+| 2022 | 5.81% | 8% | OK | n/a | n/a | n/a |
+| 2023 | 5.05% | 8% | OK | n/a | n/a | n/a |
+| 2024 | 4.82% | 6% | OK | n/a | n/a | n/a |
+| 2025 | 6.07% | 6% | ~ | n/a | n/a | n/a |
+
+**Complaints:** 9 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
+**Arrears:** 0 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
+
 ## Plausibility vs Industry
 
 Key metrics vs UK retail energy norms (Ofgem/Cornwall Insight). OK = within range | ~ = amber | ! = outside expected range.
@@ -1789,7 +1811,7 @@ WATCH = within 20% of threshold. BREACH = threshold crossed.
 
 **BREACH years:** 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 — board escalation required.
 
-_Note: Complaints not modelled (0.0/100 customers assumed). Customer count <50 triggers Ofgem viability review — small-portfolio years will show WATCH._
+_Note: Complaints from contact model avg_complaint_probability. Customer count <50 triggers Ofgem viability review — small-portfolio years will show WATCH._
 ## Ofgem SLC Compliance Scorecard (Phase OD)
 
 10 compliance domains per year, derived from simulation outputs.

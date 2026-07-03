@@ -1,7 +1,9 @@
 {
   "meta": {
     "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
-    "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)"
+    "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)",
+    "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
+    "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis"
   },
   "overall_rag": "AMBER",
   "long_run_comparison": {
@@ -270,5 +272,179 @@
       "ofgem_benchmark": 0.14,
       "calibrated_multiplier": 0.93
     }
-  }
+  },
+  "complaints_vs_benchmark": [
+    {
+      "year": 2016,
+      "complaint_rate_pct": 4.7,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2017,
+      "complaint_rate_pct": 4.67,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2018,
+      "complaint_rate_pct": 4.66,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2019,
+      "complaint_rate_pct": 4.67,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2020,
+      "complaint_rate_pct": 4.29,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2021,
+      "complaint_rate_pct": 4.8,
+      "benchmark_green_hi": 8.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": true,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2022,
+      "complaint_rate_pct": 5.81,
+      "benchmark_green_hi": 8.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": true,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2023,
+      "complaint_rate_pct": 5.05,
+      "benchmark_green_hi": 8.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": true,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2024,
+      "complaint_rate_pct": 4.82,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2025,
+      "complaint_rate_pct": 6.07,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "AMBER"
+    }
+  ],
+  "arrears_vs_benchmark": [
+    {
+      "year": 2016,
+      "new_arrears_count": 4,
+      "active_customers": 13,
+      "new_arrears_rate_pct": 30.8,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "RED"
+    },
+    {
+      "year": 2017,
+      "new_arrears_count": 3,
+      "active_customers": 14,
+      "new_arrears_rate_pct": 21.4,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "RED"
+    },
+    {
+      "year": 2018,
+      "new_arrears_count": 4,
+      "active_customers": 15,
+      "new_arrears_rate_pct": 26.7,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "RED"
+    },
+    {
+      "year": 2019,
+      "new_arrears_count": 4,
+      "active_customers": 17,
+      "new_arrears_rate_pct": 23.5,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "RED"
+    },
+    {
+      "year": 2020,
+      "new_arrears_count": 1,
+      "active_customers": 19,
+      "new_arrears_rate_pct": 5.3,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2021,
+      "new_arrears_count": 3,
+      "active_customers": 15,
+      "new_arrears_rate_pct": 20.0,
+      "benchmark_green_hi": 12.0,
+      "is_crisis_year": true,
+      "rag": "RED"
+    },
+    {
+      "year": 2022,
+      "new_arrears_count": 5,
+      "active_customers": 17,
+      "new_arrears_rate_pct": 29.4,
+      "benchmark_green_hi": 12.0,
+      "is_crisis_year": true,
+      "rag": "RED"
+    },
+    {
+      "year": 2023,
+      "new_arrears_count": 3,
+      "active_customers": 14,
+      "new_arrears_rate_pct": 21.4,
+      "benchmark_green_hi": 12.0,
+      "is_crisis_year": true,
+      "rag": "RED"
+    },
+    {
+      "year": 2024,
+      "new_arrears_count": 4,
+      "active_customers": 14,
+      "new_arrears_rate_pct": 28.6,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "RED"
+    },
+    {
+      "year": 2025,
+      "new_arrears_count": 1,
+      "active_customers": 11,
+      "new_arrears_rate_pct": 9.1,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "AMBER"
+    }
+  ]
 }
