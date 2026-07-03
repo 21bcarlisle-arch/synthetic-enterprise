@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang=en><head><meta charset=UTF-8><title>Project Status - Synthetic Enterprise</title><style>body{font-family:monospace;background:#1a1a1a;color:#e0e0e0;margin:0;padding:16px}h1,h2{color:#aaf}table{border-collapse:collapse;width:100%;margin-bottom:24px}th{background:#2a2a4a;color:#aaf;text-align:left;padding:6px 10px;border:1px solid #333}td{padding:5px 10px;border:1px solid #2a2a2a;vertical-align:top}tr:nth-child(even){background:#1e1e1e}.pos{color:#4f4}.neg{color:#f44}.meta{color:#888;font-size:0.85em;margin-bottom:16px}pre{background:#111;padding:12px;overflow-x:auto;color:#cce;white-space:pre-wrap}dl{display:grid;grid-template-columns:200px 1fr;gap:4px 16px;margin-bottom:16px}dt{color:#aaf}dd{margin:0}</style></head><body><nav style="background:#111;color:#ccc;padding:8px;font-family:monospace"><a href="/shadow/" style="color:#88f">Overview</a> &bull; <a href="/shadow/customers/" style="color:#88f">Customers</a> &bull; <a href="/shadow/supplier/" style="color:#88f">Supplier</a> &bull; <a href="/shadow/sim/" style="color:#88f">Sim</a> &bull; <strong style="color:#fff">Project</strong> | <a href="/" style="color:#666">Live site</a> | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></nav><h1>Project Status</h1><dl><dt>Current Phase</dt><dd>HJ</dd><dt>Test Count</dt><dd>8777</dd><dt>Company Modules</dt><dd>405</dd><dt>Simulation Window</dt><dd>2016-2025</dd></dl><h2>LATEST.md</h2><pre># LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T12:19:39Z
+Last updated: 2026-07-03T12:29:27Z
 
 ## Current Status
 Phase NR COMPLETE (2026-07-03) -- Bad Debt -> Capital Stress Feedback: company/risk/credit_risk_stress.py (CreditRiskStress dataclass, 2.5x Ofgem crisis multiplier); capital_adequacy.py stress_test_passes = equity > (price_VaR + credit_stress); _section_credit_risk_capital board section. 19 tests, 14,805 total. Capital model now reflects full Ofgem FRA requirement.
@@ -8,7 +8,7 @@ Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,436,949 (git 43b37825, 2026-07-03)
+Net position: £1,436,949 (git 51045433, 2026-07-03)
 
 ## Test Suite
 - **14,805 tests passing** (fast suite ~10s)
@@ -23,8 +23,8 @@ Net position: £1,436,949 (git 43b37825, 2026-07-03)
 - **Phase NL** (2026-07-02): saas/customer_reaction.py YoY comparison; saas/churn_model.py comparison_mode=yoy. 13 tests, 14,744 total.
 - **Phase NK** (2026-07-02): churn_model_performance section in annual report. 14 tests, 14,731 total.
 
-**Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
 - Net margin: £1,436,949.07 | Gross: £6,453,707.51 | Capital: £51,306
 - Treasury: £2,466,636 → £3,903,585 | 38 committee interventions | 1574 bills issued
 - Enterprise value: £8,087,302.19 | Net after CTS: £6,347,906
-- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-07-03T12:19:41Z | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></p></body></html>
+- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-07-03T12:29:29Z | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></p></body></html>
