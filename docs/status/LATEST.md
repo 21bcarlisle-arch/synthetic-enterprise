@@ -1,5 +1,5 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T13:50:08Z
+Last updated: 2026-07-03T13:59:40Z
 
 ## Current Status
 NQ Advisor Redirect (2026-07-03) -- enriched_churn_estimate 5% floor DROPPED (uniform shift, no discrimination); PRIORITIES.md refreshed (P1: observability, P2: billing infra, P3: population anchoring, P4: shadow ops); PROJECT_STATE.txt sync fixed (deploy-pages.yml overwrite removed). 14,823 tests total.
@@ -12,7 +12,7 @@ Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,445,258 (git 10a1da6c, 2026-07-03)
+Net position: £1,445,258 (git c388671e, 2026-07-03)
 
 ## Test Suite
 - **14,823 tests passing** (fast suite ~10s)
@@ -28,7 +28,7 @@ Net position: £1,445,258 (git 10a1da6c, 2026-07-03)
 - **Phase NL** (2026-07-02): saas/customer_reaction.py YoY comparison; saas/churn_model.py comparison_mode=yoy. 13 tests, 14,744 total.
 - **Phase NK** (2026-07-02): churn_model_performance section in annual report. 14 tests, 14,731 total.
 
-**Latest simulation results (2016–2025)** — auto-processed (465s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (457s / 8 min):
 - Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
