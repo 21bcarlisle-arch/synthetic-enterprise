@@ -1,5 +1,5 @@
 ## Phase PU COMPLETE -- Shadow Live Operation (P4 MVP)
-Last updated: 2026-07-03T23:13:54Z
+Last updated: 2026-07-03T23:23:57Z
 
 **Status:** COMPLETE. 15,314 tests passing.
 
@@ -10,7 +10,7 @@ Last updated: 2026-07-03T23:13:54Z
 - KEY FINDING: C9 in renewal window (22 days), proposed 153.49 GBP/MWh vs current 210.0 (market fallen 2022->2025); hedge rec INCREASE (most pass-through I&C at 0% hf). SIM is no longer retrodiction-only.
 - Wired into process_run_complete.py; outputs site/state/live_portfolio.json + site/state/live_decisions_latest.json
 
-**Latest simulation results (2016–2025)** — auto-processed (478s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
 - Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
