@@ -78,7 +78,7 @@ def generate(run_json_path=None, out_path=None):
         })
 
     result = {
-        "generated": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "customer_count": len(customers),
         "customers": customers,
     }

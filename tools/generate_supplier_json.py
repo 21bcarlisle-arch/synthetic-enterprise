@@ -32,7 +32,7 @@ def generate(run_json_path=None, out_path=None):
         })
 
     result = {
-        "generated": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "simulation_window": "2016-2025",
         "portfolio_summary": {
             "total_revenue_gbp": round(data.get("total_revenue_gbp", 0), 0),
