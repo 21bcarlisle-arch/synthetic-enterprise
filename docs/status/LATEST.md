@@ -1,12 +1,12 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T08:15:44Z
+Last updated: 2026-07-03T08:19:54Z
 
 ## Current Status
 Phase NL: Bill Shock YoY Recalibration live -- seasonal false-positives eliminated (14,744 tests)
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,436,949 (git 7d370e99, 2026-07-03)
+Net position: £1,436,949 (git fcf39189, 2026-07-03)
 
 ## Test Suite
 - **14,744 tests passing** (fast suite ~10s)
@@ -19,8 +19,8 @@ Net position: £1,436,949 (git 7d370e99, 2026-07-03)
 - **Phase NH** (2026-07-02): PaymentBehaviourAnalytics wired into run_phase2b.py -- three-signal churn model (bill_shock+behaviour+satisfaction) fully operational. 17 tests, 14,701 total.
 - **Fix** (2026-07-02): TOU bill shock counter -- resi HH TOU customers no longer get 500-1500 spurious shocks. 14 tests, 14,684 total.
 
-**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (585s / 10 min):
 - Net margin: £1,436,949.07 | Gross: £6,453,707.51 | Capital: £51,306
-- Treasury: £2,466,636 → £3,903,585 | 38 committee interventions | 1574 bills issued
+- Treasury: £2,466,636 → £3,903,585 | 37 committee interventions | 1574 bills issued
 - Enterprise value: £8,087,302.19 | Net after CTS: £6,347,906
 - Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
