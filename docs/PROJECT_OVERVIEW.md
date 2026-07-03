@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 468+ commits. 14,772 tests passing. Codebase: ~49,400 lines across 319+ Python modules.*
+*Last updated: 2026-07-03. 469+ commits. 14,786 tests passing. Codebase: ~49,450 lines across 319+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -113,7 +113,10 @@ The system has four layers, each with a clean seam to the next:
 
 ### Phase NO -- Counterfactual Retention & Threshold Optimisation (2026-07-03)
 15 tests. company/analytics/counterfactual_retention.py: compute_counterfactual_retention(no_offer_churn_log, customer_events, customers) -- CounterfactualMiss per no-offer churn (counterfactual_retained/value_recovered_gbp/retention_cost_gbp/net_value_of_offer_gbp/was_worth_offering); CounterfactualRetentionReport aggregates (total_value_at_stake/total_recoverable/would_have_been_retained_count). company/analytics/threshold_sensitivity.py: compute_threshold_sensitivity(customer_events, no_offer_churn_log) -- ThresholdPoint per threshold 0-50% in 5% steps (TP/FP/FN/TN/recall/precision/F1); ThresholdSensitivityResult (optimal_threshold/optimal_f1/current_f1). saas/reporting/annual_report.py: _section_threshold_optimisation renders per-miss detail table + sensitivity curve + RAG (model_underestimates flag triggers RED when optimal threshold < 50% of current). Key finding: all 6 no-offer churns had company estimates < 25%; optimal F1 threshold is 0% (offer everyone) -- reveals model underestimation, not a threshold problem. Board section diagnoses root cause.
-**Total:** 14,772 tests
+**Total:** 14,786 tests
+
+### Phase NQ -- Churn Model Recalibration (2026-07-03)
+`company/crm/enriched_churn_estimate.py`: INDUSTRY_BASE_CHURN_RATE=0.05 floor ensures company never estimates 0% churn (Ofgem passive switching baseline). `company/crm/churn_model.py`: estimate_passive_churn_probability floor at PASSIVE_BASE_CHURN_RATE. `saas/customer_reaction.py`: yoy_extended comparison mode averages prior 2 years -- crisis-period shocks now visible when reference year was itself elevated. `saas/churn_model.py`: build_churn_risk accepts comparison_mode param. `simulation/run_phase2b.py`: industry base rate applied when no prior rate exists; pay_metrics dict access bug fixed. 14 tests added. **Fidelity gain:** churn model never outputs <5% (Ofgem baseline); extended reference window detects sustained crisis-period shocks that 12-month YoY misses.
 
 ### Phase NP -- Behavioral Trajectory Emission (2026-07-03)
 13 tests. simulation/household_demand.py: income_stress_trajectory(customer_id, years) emits list of year+stress dicts per year (Dec-31 snapshot; None defaults to low); life_event_history(customer_id) emits list of date+event_type dicts from _events registry. simulation/run_phase2b.py: _build_behavioral_trajectories assembles per-customer dict -- income_stress_trajectory (2016-2025), life_event_history, payment_behaviour_score+metrics, company_satisfaction_score; added to run output as per_customer_behavioral. tools/generate_customer_sample.py: behavioral lookup wired (behavioral.get(cid) or {}); income_stress_trajectory/life_event_history/payment_behaviour_analytics populated in customer_sample.json; data_status shows complete vs pending_sim_emission. Behavioral trajectory data flows end-to-end from SIM event log to per-customer JSON.

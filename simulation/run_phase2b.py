@@ -90,7 +90,7 @@ from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hed
 from company.trading.forward_book import ForwardContract, TradingBook
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost
 from company.crm.customer_profitability import compute_profitability_uplift
-from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate
+from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate, INDUSTRY_BASE_CHURN_RATE as _INDUSTRY_BASE_CHURN_RATE
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
 from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
@@ -1049,6 +1049,9 @@ def main(report_end: str | None = None, sim_interface=None):
                         })
                     else:
                         _no_offer_reason = "uneconomical"
+            # Phase NQ: industry base rate floor when no prior rate exists
+            if company_est_pre is None:
+                company_est_pre = _INDUSTRY_BASE_CHURN_RATE
             # Phase MZ: SIM-side income stress -> actual switching propensity
             _churn_income_stress = None
             if household_demand_register is not None:
@@ -1836,9 +1839,9 @@ def _build_behavioral_trajectories(customers, hdr, payment_analytics, sat_acc):
             "life_event_history": life_hist,
             "payment_behaviour_score": pay_score.value if pay_score else None,
             "payment_behaviour_metrics": {
-                "on_time_rate": pay_metrics.on_time_rate if pay_metrics else None,
-                "late_rate": pay_metrics.late_rate if pay_metrics else None,
-                "dd_fail_rate": pay_metrics.dd_fail_rate if pay_metrics else None,
+                "on_time_rate": pay_metrics["on_time_rate"] if pay_metrics else None,
+                "late_rate": pay_metrics["late_rate"] if pay_metrics else None,
+                "dd_fail_rate": pay_metrics["dd_fail_rate"] if pay_metrics else None,
             } if pay_metrics else None,
             "company_satisfaction_score": round(sat_score, 4) if sat_score else None,
         }

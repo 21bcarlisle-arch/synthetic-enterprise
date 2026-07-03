@@ -73,7 +73,7 @@ def _renewal_periods(acquisition_date: str, last_period: str) -> list[str]:
     return periods
 
 
-def build_churn_risk(settlement_records: list[dict], customers: list[dict]) -> dict:
+def build_churn_risk(settlement_records: list[dict], customers: list[dict], comparison_mode: str = "yoy") -> dict:
     """Estimate churn risk at each annual renewal point for every billing
     account present in `settlement_records`.
 
@@ -92,7 +92,7 @@ def build_churn_risk(settlement_records: list[dict], customers: list[dict]) -> d
     Raises KeyError if a billing account has no matching entry in
     `customers` (looked up by `customer_id`).
     """
-    signals = score_experience_signals(settlement_records, comparison_mode="yoy")
+    signals = score_experience_signals(settlement_records, comparison_mode=comparison_mode)
     acquisition_by_account = {c["customer_id"]: c["acquisition_date"] for c in customers}
 
     churn_risk: dict[str, list[dict]] = {}

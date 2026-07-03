@@ -8,17 +8,15 @@ All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Last updated: 2026-07-03 -- Direction: Harness hardening + Phase NO (Counterfactual Retention).
+Last updated: 2026-07-03 -- Direction: Churn recalibration (Phase NQ).
 
-Harness Hardening COMPLETE (2026-07-03): Three rules encoded in CLAUDE.md + PRIORITIES.md. Sim boundary audit closed. Observability (customer_sample.json + shadow HTML) live in pipeline.
-Phase NL COMPLETE (2026-07-02): Bill Shock YoY Recalibration -- YoY comparison_mode eliminates seasonal false-positives (14,744 tests).
-Phase NK COMPLETE (2026-07-02): Churn Model Performance Report -- TP/FP/FN/TN/recall/precision/F1 rendered in annual report (14,731 tests).
-Phase NH COMPLETE (2026-07-02): Payment Behaviour Score wired into run_phase2b three-signal churn estimate (14,701 tests).
-Phase NJ COMPLETE (2026-07-02): Churn Model Calibration Report -- compute_churn_model_performance (14,717 tests).
+Phase NO COMPLETE (2026-07-03): Counterfactual Retention & Threshold Optimisation -- counterfactual_retention.py + threshold_sensitivity.py; board section; optimal F1 threshold=0% reveals model underestimation. 15 tests (14,772 total).
+Phase NP COMPLETE (2026-07-03): Behavioral Trajectory Emission -- income_stress_trajectory + life_event_history emitted from run_phase2b; customer_sample.json wired. 13 tests (14,757 total).
+Phase NQ COMPLETE (2026-07-03): Churn Model Recalibration -- INDUSTRY_BASE_CHURN_RATE=0.05 floor on enriched_churn_estimate + passive model; yoy_extended 24-month reference window in score_experience_signals; build_churn_risk comparison_mode param; Phase NP pay_metrics bug fixed. 14 tests (14,786 total).
 All 5 real capability gaps CLOSED (Gaps 1-5).
 
 ## Next (roadmap items outbid self-generated work)
-- **Phase NO: Counterfactual Retention & Threshold Optimisation** — 4h opt-out window expires 2026-07-03 ~12:25 UTC. Adds F1-optimal RETENTION_THRESHOLD and counterfactual board report (which customers were retained/lost at what threshold). Serves: calibration quality + board decision-making.
+- **Phase NQ: Churn Recalibration** -- DONE (2026-07-03). Base rate floor + 24m reference window.
 - **Plausibility vs industry section** -- DONE (Harness Hardening 2026-07-03)
 - **Remote staging bridge** -- DONE (2026-07-03)
 - **Sim emission of behavioral trajectories** -- DONE (Phase NP 2026-07-03)

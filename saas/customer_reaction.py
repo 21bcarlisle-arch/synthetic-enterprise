@@ -47,6 +47,12 @@ def score_experience_signals(
     winter bills); requires 12+ months of history before first shock fires.
     Used by build_churn_risk for realistic SIM churn probabilities.
 
+    comparison_mode='yoy_extended': compare against the average of the same
+    calendar month across the prior 2 years. During a sustained crisis where
+    the reference year is itself elevated, the 2-year average reaches back
+    to pre-crisis levels and shows the full shock magnitude. Falls back to
+    1-year reference when only 12 months of history exist.
+
     Output keys per period: billing_period, actual_bill_gbp, actual_cost_gbp,
     rolling_avg_gbp (None in yoy mode), yoy_ref_gbp (None in rolling mode),
     bill_shock_score, bill_shock_triggered, cumulative_exposure_gbp,
@@ -71,14 +77,24 @@ def score_experience_signals(
         previous_bill_gbp = None
         customer_signals = []
 
-        if comparison_mode == "yoy":
+        if comparison_mode in ("yoy", "yoy_extended"):
             bills_by_period = {p: t["actual_bill_gbp"] for p, t in ordered_periods}
             for billing_period, totals in ordered_periods:
                 actual_bill_gbp = totals["actual_bill_gbp"]
                 actual_cost_gbp = totals["actual_cost_gbp"]
                 year, month = billing_period.split("-")
-                prior_year_period = str(int(year) - 1) + "-" + month
-                yoy_ref_gbp = bills_by_period.get(prior_year_period)
+                yr_int = int(year)
+                prior_y1 = f"{yr_int - 1}-{month}"
+                ref_gbp_1 = bills_by_period.get(prior_y1)
+                if comparison_mode == "yoy_extended":
+                    prior_y2 = f"{yr_int - 2}-{month}"
+                    ref_gbp_2 = bills_by_period.get(prior_y2)
+                    if ref_gbp_1 is not None and ref_gbp_2 is not None and ref_gbp_1 > 0 and ref_gbp_2 > 0:
+                        yoy_ref_gbp = (ref_gbp_1 + ref_gbp_2) / 2.0
+                    else:
+                        yoy_ref_gbp = ref_gbp_1
+                else:
+                    yoy_ref_gbp = ref_gbp_1
                 if yoy_ref_gbp is not None and yoy_ref_gbp > 0:
                     bill_shock_score = abs(actual_bill_gbp - yoy_ref_gbp) / yoy_ref_gbp
                     bill_shock_triggered = bill_shock_score > bill_shock_threshold

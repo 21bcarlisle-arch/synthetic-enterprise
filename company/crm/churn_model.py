@@ -116,7 +116,7 @@ def estimate_passive_churn_probability(
         rate_increase_pct = 0.0
     tenure_discount = TENURE_DISCOUNT_PER_YEAR * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
     p = PASSIVE_BASE_CHURN_RATE + PASSIVE_RATE_SENSITIVITY * rate_increase_pct - tenure_discount
-    return max(0.0, min(PASSIVE_CHURN_CAP, p))
+    return max(PASSIVE_BASE_CHURN_RATE, min(PASSIVE_CHURN_CAP, p))
 
 
 def estimate_churn_probability(

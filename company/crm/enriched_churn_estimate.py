@@ -24,6 +24,8 @@ from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.crm.payment_churn_model import combined_churn_probability
 from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY, MAX_CHURN_PROBABILITY
 
+INDUSTRY_BASE_CHURN_RATE: float = 0.05
+
 
 def enriched_churn_estimate(
     old_rate_gbp_per_mwh: float,
@@ -60,4 +62,5 @@ def enriched_churn_estimate(
         segment=segment,
     )
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
-    return min(max(rate_est, payment_est), MAX_CHURN_PROBABILITY)
+    result = max(rate_est, payment_est, INDUSTRY_BASE_CHURN_RATE)
+    return min(result, MAX_CHURN_PROBABILITY)
