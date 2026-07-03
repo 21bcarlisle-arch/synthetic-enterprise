@@ -1602,6 +1602,81 @@ Annual change in gross margin decomposed into revenue and cost drivers.
 
 > Note: Non-commodity costs include network (DUoS/TNUoS), policy levies (RO/CfD/CCL/CM/FiT), and mutualization.
 
+## Net Margin Bridge (Year-on-Year Attribution)
+
+Decomposes each year's net margin change into: gross margin movement, bad debt, capital costs, policy levies, network costs.
+
+| Transition | Net Δ | Gross Δ | Bad Debt Δ | Capital Δ | Policy Δ | Network Δ | Portfolio | Driver | RAG |
+|-----------|-------|---------|-----------|---------|---------|---------|---------|--------|-----|
+| 2016→2017 | +£29,388 | +£116,423 | -£1,209 | -£1,187 | -£61,247 | -£23,393 | +1 | gross margin | GREEN |
+| 2017→2018 | +£69,140 | +£139,295 | -£1,009 | -£255 | -£56,505 | -£12,385 | +1 | gross margin | GREEN |
+| 2018→2019 | +£128,166 | +£439,496 | -£3,823 | -£781 | -£207,410 | -£99,316 | +2 | gross margin | GREEN |
+| 2019→2020 | -£105,656 | +£89,778 | -£88 | +£344 | -£162,663 | -£33,027 | +2 | policy levies | RED |
+| 2020→2021 | -£54,288 | -£25,564 | -£2,851 | -£3,670 | -£19,932 | -£2,271 | -4 | gross margin | RED |
+| 2021→2022 | +£232,277 | +£282,982 | -£26,879 | -£7,660 | -£1,107 | -£15,058 | +2 | gross margin | GREEN |
+| 2022→2023 | -£152,852 | -£75,327 | +£21,601 | +£3,156 | -£70,820 | -£31,462 | -3 | gross margin | RED |
+| 2023→2024 | +£182,807 | +£280,648 | +£2,919 | +£639 | -£100,877 | -£522 | +0 | gross margin | GREEN |
+| 2024→2025 | -£212,091 | -£732,265 | +£6,482 | +£3,803 | +£382,565 | +£127,323 | -3 | gross margin | RED |
+
+**Most damaging transition: 2024→2025 (-£212,091)** | **Best transition: 2021→2022 (+£232,277)**
+
+> Gross delta: revenue minus energy wholesale cost. Bad debt / capital / policy / network deltas: negative = costs rose (margin impact). Portfolio: active customer count change.
+
+## Payment Portfolio Health (P2: Billing Infra)
+
+Year-by-year bad debt rate and high-churn-risk customer concentration.
+
+| Year | Bad Debt | Bad Debt Rate | At-Risk Customers | At-Risk % | Trend | RAG |
+|------|----------|--------------|-----------------|----------|-------|-----|
+| 2016 | £167 | 1.60% | 0/5 | 0% | — STABLE | RED |
+| 2017 | £1,375 | 0.59% | 0/12 | 0% | ↓ IMPROVING | GREEN |
+| 2018 | £2,385 | 0.55% | 1/13 | 8% | — STABLE | GREEN |
+| 2019 | £6,207 | 0.52% | 3/14 | 21% | — STABLE | GREEN |
+| 2020 | £6,295 | 0.51% | 5/16 | 31% | — STABLE | AMBER |
+| 2021 | £9,146 | 0.53% | 4/14 | 29% | — STABLE | GREEN |
+| 2022 | £36,025 | 1.05% | 10/14 | 71% | ↑ DETERIORATING | RED |
+| 2023 | £14,424 | 0.55% | 9/12 | 75% | ↓ IMPROVING | RED |
+| 2024 | £11,505 | 0.53% | 3/12 | 25% | — STABLE | GREEN |
+| 2025 | £5,022 | 0.52% | 2/3 | 67% | — STABLE | RED |
+
+**Worst bad debt year: 2016 (1.60%)** | **Peak at-risk concentration: 2023 (75% of customers)**
+
+> At-risk = churn risk score >30% at year-end. Bad debt rate = written-off bad debt as % of annual revenue. RAG: GREEN <0.75% bad debt and <30% at-risk; RED >1.5% bad debt or >60% at-risk.
+
+## Portfolio Composition (P3: Population Anchoring)
+
+Gross margin share by segment and fuel type. Concentration RAG: GREEN <70% dominant, AMBER 70-90%, RED >90% (single-segment dependency).
+Benchmark: balanced UK small supplier targets resi 40-70%, I&C 20-50%, elec 70-90% of gross.
+
+| Year | Resi% | SME% | I&C% | Elec% | Gas% | Dominant | Concentration |
+|------|-------|------|------|-------|------|---------|--------------|
+| 2016 | 60% | 40% | 0% | 88% | 12% | Residential | GREEN |
+| 2017 | 5% | 3% | 92% | 99% | 1% | I&C | RED |
+| 2018 | 2% | 1% | 96% | 99% | 1% | I&C | RED |
+| 2019 | 1% | 1% | 98% | 89% | 11% | I&C | RED |
+| 2020 | 1% | 1% | 99% | 90% | 10% | I&C | RED |
+| 2021 | 1% | 1% | 99% | 89% | 11% | I&C | RED |
+| 2022 | 0% | 1% | 99% | 91% | 9% | I&C | RED |
+| 2023 | 1% | 1% | 99% | 88% | 12% | I&C | RED |
+| 2024 | 1% | 0% | 99% | 90% | 10% | I&C | RED |
+| 2025 | 1% | 0% | 99% | 90% | 10% | I&C | RED |
+
+> **Concentration alert:** I&C dominated gross margin in 2017–2025. Loss of a single large I&C customer has outsized P&L impact. Benchmark: a resilient mixed-book supplier targets no segment >70% of gross margin.
+
+## Shadow Retention Strategy (P4: Shadow Ops)
+
+Counterfactual: what if the company had offered retention to ALL renewal customers (not just those above the 30% threshold)?
+Shadow discount: 8% off next term. Assumes P(accept) = (1 - churn\_estimate) x 90%.
+
+| Year | No-Offer Churns | Margin Lost | Shadow Retained | Offer Cost | Shadow Net Gain |
+|------|----------------|------------|----------------|-----------|----------------|
+| 2020 | 2 | £1,001 | £778 | £68 | +£710 |
+| 2022 | 2 | £2,289 | £1,797 | £156 | +£1,641 |
+| 2024 | 2 | £3,334 | £2,157 | £188 | +£1,969 |
+
+**Total opportunity cost vs actual: +£4,321 net** (gross £6,623 margin lost; £411 offer cost if all retained).
+
+> The shadow strategy net gain is small because all no-offer churns were residential customers with low margins. I&C customers (large margins) already received retention offers — the current threshold strategy is near-optimal for the existing portfolio composition.
 
 ## Risk Committee Activity (2016-2025)
 
