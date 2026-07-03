@@ -787,6 +787,29 @@ Company applied 29 recovery surcharge(s) at renewal based on prior-term losses (
 | C_IC1 | electricity | 2024-07-28 | £-10,717.78 | £14,454.77 | +20.0% | £154.38/MWh | £213.04/MWh |
 
 
+## Flexibility Revenue — DSR & Capacity Market (Phase AG/NX)
+
+Two flexibility revenue streams: residential DSR (EV/ASHP/battery via FlexibilityRevenueBook) and I&C demand response (interruptible process load via ICFlexibilityRevenueBook).
+- **Capacity Market (CM):** T-4 auction clearing prices (£6.44–£22.50/kW/yr by year, NESO); operational since 2014.
+- **Demand Flexibility Service (DFS):** launched October 2022; £4.5/MWh × 20 events/yr.
+- **I&C DSR aggregator fee:** 20% of gross CM/DFS revenue.
+
+**Total 2016–2025:** £0.00  (Residential: £0.00 | I&C: £21,381.06)
+
+### I&C Demand Response Revenue
+
+| Year | Net Revenue | Enrolled | Flex kW |
+|------|-------------|----------|---------|
+| 2016 | £2,109.00 | 4 | 176 kW |
+| 2017 | £1,406.00 | 4 | 176 kW |
+| 2018 | £2,727.64 | 4 | 176 kW |
+| 2019 | £2,530.80 | 4 | 176 kW |
+| 2020 | £3,163.50 | 4 | 176 kW |
+| 2021 | £1,181.04 | 4 | 176 kW |
+| 2022 | £918.12 | 4 | 176 kW |
+| 2023 | £2,258.04 | 4 | 176 kW |
+| 2024 | £2,543.46 | 4 | 176 kW |
+| 2025 | £2,543.46 | 4 | 176 kW |
 
 ## Portfolio Intelligence Pack (Phase AH)
 
@@ -1191,7 +1214,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 12 | 0.9 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,607 |
 | 2023 | 4 | 36 | 9.0 | £48,915 |
@@ -1678,6 +1701,7 @@ Shadow discount: 8% off next term. Assumes P(accept) = (1 - churn\_estimate) x 9
 
 > The shadow strategy net gain is small because all no-offer churns were residential customers with low margins. I&C customers (large margins) already received retention offers — the current threshold strategy is near-optimal for the existing portfolio composition.
 
+
 ## Risk Committee Activity (2016-2025)
 
 Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate threshold.
@@ -1693,7 +1717,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,380 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 21 sessions
 - C5: 16 sessions
 - C7: 16 sessions
 - C2: 13 sessions
@@ -2245,7 +2269,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-05-30: treasury £2,466,694.75, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-06-29: treasury £2,466,705.34, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-07-29: treasury £2,466,716.06, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-08-28: treasury £2,466,726.80, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-08-28: treasury £2,466,726.80, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-09-27: treasury £2,466,737.73, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-10-27: treasury £2,466,748.64, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-11-26: treasury £2,466,759.45, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
