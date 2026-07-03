@@ -26,7 +26,8 @@ All 5 real capability gaps CLOSED (Gaps 1-5).
 Last refreshed: 2026-07-03. Previous P1-P4 + NX/NY complete. New direction: Regulatory fidelity + Settlement accounting.
 
 - **Phase NZ: Ofgem FRA Regulatory Capital Ratio** -- board section computing equity/monthly-revenue ratio per year; RAG GREEN>=2x / AMBER 1-2x / RED<1x (Ofgem FRA non-compliant). Post-2022 FRA requires this metric. Builds on NR capital stress.
-- **Phase OA: I&C Broker/TPI Commission Model** -- I&C customers procure via brokers (0.5-2 p/kWh commission); currently modelled as zero cost. Broker commission is a real supplier cost not yet deducted from I&C gross margin.
+- ~~**Phase OA: I&C Broker/TPI Commission Model**~~ -- DONE (2026-07-03): TPIBook wired; £1.5/MWh (0.15 p/kWh) annual trail commission on I&C consumption; tpi_summary in run output; board section added. 21 tests (14,929 total).
+- **Phase OB: Elexon Settlement Reconciliation Cash Flow** -- UK suppliers receive reconciliation charges/credits up to 28 months after delivery (R1/R2/RF runs). Zero-mean but timing creates cash flow lumps. Board section showing estimated reconciliation exposure by year.
 - **Phase OB: Elexon Settlement Reconciliation Cash Flow** -- UK suppliers receive reconciliation charges/credits up to 28 months after delivery (R1/R2/RF runs). Zero-mean but timing creates cash flow lumps. Board section showing estimated reconciliation exposure by year.
 - **ToU tariff depth** -- time-of-use pricing for HH smart meter customers (existing backlog; lower priority than regulatory items above)
 

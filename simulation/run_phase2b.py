@@ -97,6 +97,7 @@ from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
 from company.crm.payment_behaviour_analytics import PaymentBehaviourAnalytics
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
 from company.market.ic_flexibility_revenue import ICFlexibilityRevenueBook
+from company.crm.tpi_book import TPIBook, TPITier, TPICommissionBasis
 from company.analytics.churn_accuracy_report import compute_churn_model_performance as _compute_churn_model_performance
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
@@ -1724,6 +1725,47 @@ def main(report_end: str | None = None, sim_interface=None):
     ic_flexibility_summary = _ic_flex_book.flexibility_summary()
     total_flexibility_revenue += _ic_flex_book.total_revenue_all_years()
 
+    # Phase OA: I&C Broker/TPI Commission Model.
+    # I&C customers procure electricity via brokers. Industry commission: 0.15 p/kWh (£1.5/MWh).
+    # Computed from actual settled consumption per customer per year.
+    _tpi_book = TPIBook()
+    _tpi_book.register(
+        tpi_id="TPI-001",
+        name="Standard Energy Broker",
+        tier=TPITier.PREFERRED,
+        commission_basis=TPICommissionBasis.PCT_OF_ANNUAL_CONSUMPTION,
+        commission_rate=1.5,  # £/MWh (0.15 p/kWh — standard for large I&C)
+        registered_date=date(2016, 1, 1),
+    )
+    _ic_billing_ids = {c["customer_id"] for c in ELEC_CUSTOMERS if c.get("segment") == "I&C"}
+    _ic_yearly_recs: dict = defaultdict(list)
+    for _rec in all_records:
+        if _rec.get("customer_id") in _ic_billing_ids:
+            _ic_yearly_recs[(_rec["customer_id"], _rec["settlement_date"][:4])].append(_rec)
+
+    for (_cid_tpi, _yr_tpi), _recs_tpi in sorted(_ic_yearly_recs.items()):
+        _ann_cons_mwh = sum(_r.get("consumption_kwh", 0.0) for _r in _recs_tpi) / 1000.0
+        _ann_rev_gbp = sum(_r.get("revenue_gbp", 0.0) for _r in _recs_tpi)
+        if _ann_cons_mwh > 0:
+            _tpi_book.record_deal(
+                tpi_id="TPI-001",
+                customer_id=_cid_tpi,
+                annual_consumption_mwh=round(_ann_cons_mwh, 3),
+                annual_revenue_gbp=round(_ann_rev_gbp, 2),
+                deal_date=date(int(_yr_tpi), 1, 1),
+            )
+
+    tpi_summary = {
+        "total_commission_gbp": _tpi_book.total_commission_gbp(),
+        "commission_rate_gbp_per_mwh": 1.5,
+        "per_year": {
+            yr: _tpi_book.annual_summary(int(yr))
+            for yr in sorted(_all_years)
+        },
+        "active_tpi_count": len(_tpi_book.active_tpis()),
+        "total_deals": len(_tpi_book._deals),
+    }
+
     # Phase 27d: Triad risk for I&C customers.
     # Identify Triad periods for each winter in the run window, then compute
     # each I&C customer's TNUoS exposure. Uses SSP as a demand proxy.
@@ -1824,6 +1866,8 @@ def main(report_end: str | None = None, sim_interface=None):
         "total_flexibility_revenue": total_flexibility_revenue,
         # Phase NX: I&C demand response enrollment
         "ic_flexibility_summary": ic_flexibility_summary,
+        # Phase OA: I&C broker/TPI commission
+        "tpi_summary": tpi_summary,
         "per_customer_behavioral": _build_behavioral_trajectories(
             ELEC_CUSTOMERS + GAS_CUSTOMERS,
             household_demand_register,
