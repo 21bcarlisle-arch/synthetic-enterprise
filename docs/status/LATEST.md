@@ -1,27 +1,27 @@
-## Phase PR + Website Fixes
-Last updated: 2026-07-03T21:11:41Z
+## Phase PT + Staging Actioned (3 advisor instructions)
+Last updated: 2026-07-03T21:29:06Z
 
-**Status:** COMPLETE. 15,194 tests passing.
+**Status:** COMPLETE. 15,290 tests passing.
 
-**What changed (PR):**
-- `tools/population_anchor.py`: long-run 10-yr comparison + 3-year rolling crisis windows
-- overall_rag: AMBER (was false-alarm RED from small-N single-year noise)
-- SIM long-run churn 6.4% vs Ofgem 13.6% (ratio=0.47, GREEN)
+**Phase PT — customers.json + supplier.json:**
+- `tools/generate_customers_json.py`: 16 customer groups; dual-fuel pairs with per-leg elec/gas split + combined roll-up; kwh + avg rate from bills
+- `tools/generate_supplier_json.py`: portfolio_summary, 10-year series, FRA ratio series
+- Both wired into `process_run_complete.py` + committed on every run
+- Live: poesys.net/data/customers.json | poesys.net/data/supplier.json
 
-**What changed (Website fixes):**
-- `site/index.html`: fix rendered[] timing bug -- tabs no longer permanently blank if clicked before data loads
-- `tools/generate_shadow_html.py` + shadow/supplier: added Regulatory & Compliance Framework (23 SLC obligations) + Business Capability Matrix (6 domains) to supplier shadow page
-- Customer portal fix already applied (commit 6725e066): JS string concat bug fixed
+**Staging actioned (3 advisor instructions):**
+- `DEPLOY_PATH_DIAGNOSE.md`: root cause was pre-NQ deploy-pages.yml overwriting state file; fixed in NQ. Now confirmed regenerating on every run since 18:50 UTC.
+- `STATE_ROOTCAUSE_COMMIT_STEP.md`: commit step confirmed working; PROJECT_STATE.txt in git_commit_push since NQ fix.
+- `STATE_SYNC_VERIFY_BY_FETCH.md`: verified-by-fetch rule encoded in CLAUDE.md Key Learnings.
 
-**Live URLs:**
-- https://poesys.net/state/population_anchoring.json -- AMBER, long-run GREEN
-- https://poesys.net/state/billing_ledger.json -- 1,605 invoices
-- https://poesys.net/state/customer_sample.json -- behavioral data populated
-- https://poesys.net/shadow/supplier/ -- now includes Regulatory + Capabilities sections
-- https://poesys.net/customers/ -- customer portal working (login with C1, C_IC1 etc)
+**Also in this session: Phase PS (Complaints + Arrears Population Anchoring, 22 tests)**
+- `tools/population_anchor.py`: complaint rate vs Ofgem QoS benchmark + arrears rate vs DESNZ benchmark
+- `saas/reporting/annual_report.py`: Population Anchoring section added
+- KEY FINDING: SIM arrears RED most years (29-31% unique customers with new arrears), consistent with resi payment model. 2020: GREEN (5.3%). Signal exposed.
 
-**Latest simulation results (2016–2025)** — auto-processed (597s / 10 min):
-- Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
-- Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
-- Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
-- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
+**CLAUDE.md addition:**
+- "Observability artifacts verified by fetch" — done only when live URL fetched and confirmed current
+
+**Latest simulation results (2016–2025):**
+- Net margin: £1,445,258 | Gross: £6,452,602 | 15,290 tests
+- Enterprise value: £8,826,939 | Treasury: £3,911,894
