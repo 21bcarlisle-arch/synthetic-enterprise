@@ -4928,6 +4928,96 @@ def _section_licence_health(data: dict) -> str:
 
 
 
+
+
+def _section_gsop_obligations(data: dict) -> str:
+    """Phase OF: GSOP (Guaranteed Standards of Performance) payment obligations.
+
+    Estimates GSOP triggers from simulation data: final bill delays for churned
+    customers, missed appointments from customer count proxy. Each trigger
+    carries a GBP 30 statutory payment obligation (Ofgem-set).
+    Silent when no yearly data.
+    """
+    from company.regulatory.gsop import GSOPBook, GSOPType
+    import datetime as dt
+
+    years = data.get("years", {})
+    if not years:
+        return ""
+
+    # Get churn events by year from customer events
+    cust_events = data.get("customer_events", [])
+    churned_by_year: dict = {}
+    for evt in cust_events:
+        if evt.get("event_type") == "churned":
+            yr = evt.get("event_date", "")[:4]
+            churned_by_year.setdefault(yr, []).append(evt.get("customer_id", ""))
+
+    book = GSOPBook()
+
+    for yr in sorted(years.keys()):
+        yd = years[yr]
+        yr_int = int(yr)
+        active_ids = yd.get("active_customer_ids", [])
+        n_active = len(active_ids)
+        churned = churned_by_year.get(yr, [])
+
+        # FINAL_BILL_DELAY: 5% of churned customers (industry rate for small suppliers)
+        for i, cid in enumerate(churned[:max(0, round(len(churned) * 0.05))]):
+            book.record_trigger(cid, GSOPType.FINAL_BILL_DELAY, dt.date(yr_int, 6, 1))
+
+        # MISSED_APPOINTMENT: 1% of active customers per year (industry benchmark)
+        n_missed = max(0, round(n_active * 0.01))
+        for i in range(n_missed):
+            book.record_trigger(
+                f"generic_{yr}_{i}", GSOPType.MISSED_APPOINTMENT, dt.date(yr_int, 9, 1)
+            )
+
+    all_yrs = sorted(years.keys())
+    if not book._payments:
+        # No GSOP triggers in this portfolio — show a clean zero-liability table
+        lines = [
+            "## GSOP Obligations (Phase OF)",
+            "",
+            "Guaranteed Standards of Performance — GBP 30 per breach (Ofgem-mandated).",
+            "",
+            "No GSOP obligations triggered in 2016-2025 window.",
+            "_Small portfolio with low complaint and churn volumes falls below estimated trigger thresholds._",
+        ]
+        return "\n".join(lines)
+
+    lines = [
+        "## GSOP Obligations (Phase OF)",
+        "",
+        "Guaranteed Standards of Performance (Ofgem) — GBP 30 auto-payment per breach type.",
+        "Triggers: missed appointments (1% of customers/yr), final bill delay (5% of churned).",
+        "",
+        "| Year | Triggers | Liability GBP | Final Bill | Missed Apt |",
+        "|------|----------|---------------|------------|------------|",
+    ]
+
+    total_liability = 0.0
+    for yr in all_yrs:
+        yr_int = int(yr)
+        rep = book.annual_report(yr_int)
+        triggers = rep["total_triggers"]
+        liability = rep["total_liability_gbp"]
+        total_liability += liability
+        by_type = rep.get("by_type", {})
+        fb = by_type.get(GSOPType.FINAL_BILL_DELAY.value, 0)
+        ma = by_type.get(GSOPType.MISSED_APPOINTMENT.value, 0)
+        lines.append(f"| {yr} | {triggers} | {_fmt_gbp(liability)} | {fb} | {ma} |")
+
+    lines += [
+        "",
+        f"**Total GSOP liability 2016-2025:** {_fmt_gbp(total_liability)}",
+        "",
+        "_Note: Triggers estimated from industry benchmarks (not directly modelled)._",
+        "_Final bill delays: 5% of churned accounts. Missed appointments: 1% of active accounts/yr._",
+    ]
+
+    return "\n".join(lines)
+
 def _section_ofgem_supply_return(data: dict) -> str:
     """Phase OE: Ofgem Annual Supply Return filing record.
 
@@ -8099,6 +8189,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_licence_health(data))                   # Phase OC
     sections.append(_section_compliance_scorecard(data))             # Phase OD
     sections.append(_section_ofgem_supply_return(data))              # Phase OE
+    sections.append(_section_gsop_obligations(data))                # Phase OF
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
