@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-03T17:01:11.988408+00:00",
+  "last_updated": "2026-07-03T17:02:34.518321+00:00",
   "agents": [
     {
       "name": "session-watchdog",
       "status": "idle",
-      "last_heartbeat": "2026-07-03T17:01:11.988408+00:00",
+      "last_heartbeat": "2026-07-03T17:02:12.311962+00:00",
       "last_action": "Session alive check passed",
-      "last_action_ts": "2026-07-03T17:01:11.988408+00:00",
+      "last_action_ts": "2026-07-03T17:02:12.311962+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-03T17:01:04.516329+00:00",
+      "last_heartbeat": "2026-07-03T17:02:34.518321+00:00",
       "last_action": "Heartbeat \u2014 4 files tracked",
-      "last_action_ts": "2026-07-03T17:01:04.516329+00:00",
+      "last_action_ts": "2026-07-03T17:02:34.518321+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -65,9 +65,9 @@
     {
       "name": "autonomous-runner",
       "status": "working",
-      "last_heartbeat": "2026-07-03T16:59:35.816969+00:00",
+      "last_heartbeat": "2026-07-03T17:01:35.821159+00:00",
       "last_action": "Autonomous turn running",
-      "last_action_ts": "2026-07-03T16:59:35.816969+00:00",
+      "last_action_ts": "2026-07-03T17:01:35.821159+00:00",
       "anomaly": null,
       "role": "Runs scheduled Claude Code sessions for background work when session is idle",
       "produces": "CC session activity, phase completions"
