@@ -1,29 +1,31 @@
 <!DOCTYPE html><html lang=en><head><meta charset=UTF-8><title>Project Status - Synthetic Enterprise</title><style>body{font-family:monospace;background:#1a1a1a;color:#e0e0e0;margin:0;padding:16px}h1,h2{color:#aaf}table{border-collapse:collapse;width:100%;margin-bottom:24px}th{background:#2a2a4a;color:#aaf;text-align:left;padding:6px 10px;border:1px solid #333}td{padding:5px 10px;border:1px solid #2a2a2a;vertical-align:top}tr:nth-child(even){background:#1e1e1e}.pos{color:#4f4}.neg{color:#f44}.meta{color:#888;font-size:0.85em;margin-bottom:16px}pre{background:#111;padding:12px;overflow-x:auto;color:#cce;white-space:pre-wrap}dl{display:grid;grid-template-columns:200px 1fr;gap:4px 16px;margin-bottom:16px}dt{color:#aaf}dd{margin:0}</style></head><body><nav style="background:#111;color:#ccc;padding:8px;font-family:monospace"><a href="/shadow/" style="color:#88f">Overview</a> &bull; <a href="/shadow/customers/" style="color:#88f">Customers</a> &bull; <a href="/shadow/supplier/" style="color:#88f">Supplier</a> &bull; <a href="/shadow/sim/" style="color:#88f">Sim</a> &bull; <strong style="color:#fff">Project</strong> | <a href="/" style="color:#666">Live site</a> | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></nav><h1>Project Status</h1><dl><dt>Current Phase</dt><dd>HJ</dd><dt>Test Count</dt><dd>8777</dd><dt>Company Modules</dt><dd>405</dd><dt>Simulation Window</dt><dd>2016-2025</dd></dl><h2>LATEST.md</h2><pre># LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T11:15:50Z
+Last updated: 2026-07-03T11:41:12Z
 
 ## Current Status
-Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN_RATE=0.05 floor on enriched_churn_estimate + passive model; yoy_extended 24-month reference window in score_experience_signals; build_churn_risk comparison_mode param; Phase NP pay_metrics dict access bug fixed. 14 tests, 14,786 total. Recall from 0% now quantifiable at lower thresholds.
+Phase NR COMPLETE (2026-07-03) -- Bad Debt -> Capital Stress Feedback: company/risk/credit_risk_stress.py (CreditRiskStress dataclass, 2.5x Ofgem crisis multiplier); capital_adequacy.py stress_test_passes = equity > (price_VaR + credit_stress); _section_credit_risk_capital board section. 19 tests, 14,805 total. Capital model now reflects full Ofgem FRA requirement.
 
-Phase NO COMPLETE (2026-07-03) -- Counterfactual Retention & Threshold Optimisation: 15 tests (14,772 total).
-
-## Current Status
-Phase NO COMPLETE (2026-07-03) -- Counterfactual Retention & Threshold Optimisation: company/analytics/counterfactual_retention.py + threshold_sensitivity.py; board section _section_threshold_optimisation in annual report; 15 tests, 14,772 total. Key finding: model underestimates churn (all 6 no-offer churns estimated < 25%; optimal F1 threshold = 0% = offer everyone). Phase NP also complete: behavioral trajectories emitted.
-
-**Phase NP COMPLETE (2026-07-03) -- Behavioral Trajectory Emission: income_stress_trajectory + life_event_history emitted from run_phase2b into per_customer_behavioral; customer_sample.json fully wired. 13 tests, 14,757 total. Phase NO (Counterfactual Retention) pending 4h opt-out window (expires ~12:25 UTC).
+Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN_RATE=0.05 floor on enriched_churn_estimate + passive model; yoy_extended 24-month reference window. 14 tests, 14,786 total.
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,436,949 (git 47ba1178, 2026-07-03)
+Net position: £1,436,949 (git 15ec4fb5, 2026-07-03)
 
 ## Test Suite
-- **14,772 tests passing** (fast suite ~10s)
+- **14,805 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
-- **Phase NO** (2026-07-03): counterfactual_retention.py + threshold_sensitivity.py; _section_threshold_optimisation in annual report; optimal F1 threshold=0% reveals model underestimation not threshold problem. 15 tests, 14,772 total.
-- **Phase NP** (2026-07-03): simulation/household_demand.py: income_stress_trajectory + life_event_history methods; run_phase2b emits per_customer_behavioral; customer_sample.json wired. Behavioral data flows end-to-end. 13 tests, 14,757 total.
-- **Remote Staging Bridge + Harness Hardening** (2026-07-03): Sim boundary audit (3 violations fixed); observability tools (customer_sample.json + shadow HTML); epistemic verifier extended to saas/; plausibility vs industry section in annual report; CLAUDE.md 3 rules encoded. 15 tests, 14,759 total.
-- **Phase NL** (2026-07-02): saas/customer_reaction.py comparison_mode=rolling|yoy; YoY compares same calendar month prior year, eliminates seasonal false-positives. saas/churn_model.py build_churn_risk comparison_mode=yoy. 13 tests, 14,744 total.
-- **Phase NK** (2026-07-02): saas/reporting/annual_report.py churn_model_performance section; TP/FP/FN/TN/recall/precision/F1/per-year/RAG. 14 tests, 14,731 total.
-- **Phase NJ** (2026-07-02): company/analytics/churn_accuracy_report.py -- compute_churn_model_performance computes TP/FP/FN/TN, recall, precision, F1. Board gains churn model calibration KPI. 16 tests, 14,717 total.
-- **Phase NH** (2026-07-02): PaymentBeh</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-07-03T11:15:52Z | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></p></body></html>
+- **Phase NR** (2026-07-03): credit_risk_stress.py; capital_adequacy stress_test_passes = equity > (VaR + credit); _section_credit_risk_capital board section. 19 tests, 14,805 total.
+- **Phase NQ** (2026-07-03): INDUSTRY_BASE_CHURN_RATE=0.05 floor; yoy_extended 24-month reference window; Phase NP pay_metrics bug fixed. 14 tests, 14,786 total.
+- **Phase NO** (2026-07-03): counterfactual_retention.py + threshold_sensitivity.py; _section_threshold_optimisation in annual report; optimal F1 threshold=0% reveals model underestimation. 15 tests, 14,772 total.
+- **Phase NP** (2026-07-03): simulation/household_demand.py income_stress_trajectory + life_event_history; run_phase2b emits per_customer_behavioral; customer_sample.json wired. 13 tests, 14,757 total.
+- **Remote Staging Bridge + Harness Hardening** (2026-07-03): Sim boundary audit (3 violations); observability tools; epistemic verifier extended to saas/; plausibility vs industry section. 15 tests.
+- **Phase NL** (2026-07-02): saas/customer_reaction.py YoY comparison; saas/churn_model.py comparison_mode=yoy. 13 tests, 14,744 total.
+- **Phase NK** (2026-07-02): churn_model_performance section in annual report. 14 tests, 14,731 total.
+
+**Latest simulation results (2016–2025)** — auto-processed (508s / 8 min):
+- Net margin: £1,436,949.07 | Gross: £6,453,707.51 | Capital: £51,306
+- Treasury: £2,466,636 → £3,903,585 | 38 committee interventions | 1574 bills issued
+- Enterprise value: £8,087,302.19 | Net after CTS: £6,347,906
+- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
+</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-07-03T11:41:14Z | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></p></body></html>

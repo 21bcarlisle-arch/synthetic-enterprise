@@ -1489,6 +1489,18 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 | 2024 | 0 | 0 | 2 | 6 | 0% | 0% |
 | 2025 | 0 | 0 | 0 | 2 | 0% | 0% |
 
+## Credit Risk & Capital Stress (Phase NR)
+
+**Ofgem FRA stress multiplier:** 2.5x (empirical: 2021-22 crisis, industry bad debt 1% → 2.5% revenue)
+
+| Year | Revenue £ | Bad Debt £ | Bad Debt % | Crisis Stress £ |
+|------|-----------|------------|------------|-----------------|
+
+**Total bad debt (all years):** £91,999
+**Crisis stress incremental:** £137,999
+
+**RAG [~]:** AMBER — Credit stress material but below 1% revenue
+
 ## Tariff Estimation Accuracy
 
 Mean and maximum absolute error between company tariff estimates and actual outturn.
