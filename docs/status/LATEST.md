@@ -1,23 +1,19 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T14:43:46Z
+Last updated: 2026-07-03T14:48:31Z
 
 ## Current Status
-Phase NV COMPLETE (2026-07-03) -- Portfolio Composition Benchmark (P3: Population Anchoring): portfolio_composition.py (PortfolioComposition, build_composition_series, concentration RAG); _section_portfolio_composition board section. KEY: SIM I&C-dominated (99% of gross) from 2017 onwards -- concentration RED alert 9 consecutive years. Business is B2B commercial specialist. 17 tests, 14,880 total.
+Phase NW COMPLETE (2026-07-03) -- Shadow Retention Strategy P&L (P4: Shadow Ops): shadow_retention.py (ShadowRetentionEvent, ShadowRetentionSummary, build_shadow_retention_analysis); _section_shadow_retention board section. KEY: shadow universal-retention nets only +£4,321 total -- threshold strategy is near-optimal; I&C already gets offers; resi no-offer churns are small margin. 11 tests, 14,891 total.
 
-Phase NU COMPLETE (2026-07-03) -- Payment Portfolio Health Observatory (P2: Billing Infra): payment_health.py; bad debt rate + churn-risk concentration; churn risk leads bad debt by ~1 year. 20 tests, 14,863 total.
+Phase NV COMPLETE (2026-07-03) -- Portfolio Composition Benchmark (P3: Population Anchoring): SIM I&C-dominated (99%) from 2017; concentration RED 9 consecutive years; exposes B2B commercial specialist. 17 tests, 14,880.
 
-Phase NT COMPLETE (2026-07-03) -- Year-on-Year Net Margin Bridge (P1: Observability): margin_attribution.py; 9 transitions 2016-2025; primary driver attribution. 19 tests, 14,843 total.
+Phase NU COMPLETE (2026-07-03) -- Payment Portfolio Health Observatory (P2: Billing Infra): bad debt rate + at-risk concentration; churn risk leads bad debt by ~1 year. 20 tests, 14,863.
+
+Phase NT COMPLETE (2026-07-03) -- Year-on-Year Net Margin Bridge (P1: Observability): primary driver attribution 2016-2025. 19 tests, 14,843.
 
 ## Last Run
-See docs/reports/run_output_latest.json.
 Net position: £1,445,258 (git c388671e, 2026-07-03)
 
 ## Test Suite
-- **14,880 tests passing**
+- **14,891 tests passing**
 - Epistemic verifier: PASS
-
-## Recent Phases
-- **Phase NV** (2026-07-03): portfolio_composition.py; I&C concentration alert; P3 population anchoring. 17 tests, 14,880.
-- **Phase NU** (2026-07-03): payment_health.py; payment portfolio health observatory. 20 tests, 14,863.
-- **Phase NT** (2026-07-03): margin_attribution.py; year-on-year net margin bridge. 19 tests, 14,843.
-- **Phase NS** (2026-07-03): market_switching_propensity.py; savings-elasticity churn multiplier. 19 tests, 14,824.
+- All P1-P4 priorities addressed: NT (observability), NU (billing infra), NV (population anchoring), NW (shadow ops)
