@@ -1,5 +1,5 @@
 ## Phase PR + Website Fixes
-Last updated: 2026-07-03T20:47:32Z
+Last updated: 2026-07-03T20:59:34Z
 
 **Status:** COMPLETE. 15,194 tests passing.
 
@@ -20,7 +20,7 @@ Last updated: 2026-07-03T20:47:32Z
 - https://poesys.net/shadow/supplier/ -- now includes Regulatory + Capabilities sections
 - https://poesys.net/customers/ -- customer portal working (login with C1, C_IC1 etc)
 
-**Latest simulation results (2016–2025)** — auto-processed (484s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (597s / 10 min):
 - Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822

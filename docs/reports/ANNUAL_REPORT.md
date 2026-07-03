@@ -1408,19 +1408,19 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 
 | Year | Complaint rate% | C.Bench hi | C.RAG | Arrears rate% | A.Bench hi | A.RAG |
 |------|-----------------|-----------|-------|---------------|-----------|-------|
-| 2016 | 4.70% | 6% | OK | n/a | n/a | n/a |
-| 2017 | 4.67% | 6% | OK | n/a | n/a | n/a |
-| 2018 | 4.66% | 6% | OK | n/a | n/a | n/a |
-| 2019 | 4.67% | 6% | OK | n/a | n/a | n/a |
-| 2020 | 4.29% | 6% | OK | n/a | n/a | n/a |
-| 2021 | 4.80% | 8% | OK | n/a | n/a | n/a |
-| 2022 | 5.81% | 8% | OK | n/a | n/a | n/a |
-| 2023 | 5.05% | 8% | OK | n/a | n/a | n/a |
-| 2024 | 4.82% | 6% | OK | n/a | n/a | n/a |
-| 2025 | 6.07% | 6% | ~ | n/a | n/a | n/a |
+| 2016 | 4.70% | 6% | OK | 30.8% | 8% | ! |
+| 2017 | 4.67% | 6% | OK | 21.4% | 8% | ! |
+| 2018 | 4.66% | 6% | OK | 26.7% | 8% | ! |
+| 2019 | 4.67% | 6% | OK | 23.5% | 8% | ! |
+| 2020 | 4.29% | 6% | OK | 5.3% | 8% | OK |
+| 2021 | 4.80% | 8% | OK | 20.0% | 12% | ! |
+| 2022 | 5.81% | 8% | OK | 29.4% | 12% | ! |
+| 2023 | 5.05% | 8% | OK | 21.4% | 12% | ! |
+| 2024 | 4.82% | 6% | OK | 28.6% | 8% | ! |
+| 2025 | 6.07% | 6% | ~ | 9.1% | 8% | ~ |
 
 **Complaints:** 9 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
-**Arrears:** 0 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
+**Arrears:** 1 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
 
 ## Plausibility vs Industry
 
