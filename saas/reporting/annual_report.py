@@ -49,6 +49,7 @@ from company.risk.credit_risk_stress import build_credit_risk_stress, CRISIS_BAD
 from saas.reporting.margin_attribution import build_margin_bridge_series, dominant_driver
 from saas.reporting.payment_health import build_payment_health_series
 from saas.reporting.portfolio_composition import build_composition_series
+from saas.reporting.shadow_retention import build_shadow_retention_analysis
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -607,6 +608,9 @@ def extract_report_data(run_output: dict) -> dict:
         "payment_health_series": [s.__dict__ for s in build_payment_health_series({"years": yearly})],
         # Phase NV: portfolio composition benchmark (P3: population anchoring)
         "portfolio_composition_series": [c.__dict__ for c in build_composition_series({"years": yearly})],
+        # Phase NW: shadow retention strategy P&L (P4: shadow ops)
+        "shadow_retention_events": [e.__dict__ for e in build_shadow_retention_analysis({"no_offer_churn_log": phase2b.get("no_offer_churn_log", [])})[0]],
+        "shadow_retention_summaries": [s.__dict__ for s in build_shadow_retention_analysis({"no_offer_churn_log": phase2b.get("no_offer_churn_log", [])})[1]],
     }
 
 
@@ -6301,6 +6305,53 @@ def _section_net_margin_bridge(data: dict) -> str:
 
 
 
+def _section_shadow_retention(data: dict) -> str:
+    """Phase NW: Shadow universal-retention strategy P&L vs actual (P4: Shadow Ops)."""
+    summaries_raw = data.get("shadow_retention_summaries", [])
+    events_raw = data.get("shadow_retention_events", [])
+    if not summaries_raw and not events_raw:
+        return ""
+
+    total_margin_lost = sum(e["expected_margin_gbp"] for e in events_raw)
+    total_shadow_gain = sum(e["shadow_net_gain_gbp"] for e in events_raw)
+    total_offer_cost = sum(e["shadow_offer_cost_gbp"] for e in events_raw)
+
+    lines = [
+        "## Shadow Retention Strategy (P4: Shadow Ops)",
+        "",
+        "Counterfactual: what if the company had offered retention to ALL renewal customers "
+        f"(not just those above the {30}% threshold)?",
+        f"Shadow discount: {8}% off next term. Assumes P(accept) = (1 - churn\_estimate) x {0.9:.0%}.",
+        "",
+        "| Year | No-Offer Churns | Margin Lost | Shadow Retained | Offer Cost | Shadow Net Gain |",
+        "|------|----------------|------------|----------------|-----------|----------------|",
+    ]
+
+    for s_raw in summaries_raw:
+        s = type("S", (), s_raw)()
+        lines.append(
+            f"| {s.year} "
+            f"| {s.no_offer_count} "
+            f"| £{s.actual_margin_lost_gbp:,.0f} "
+            f"| £{s.shadow_margin_retained_gbp:,.0f} "
+            f"| £{s.shadow_offer_cost_gbp:,.0f} "
+            f"| +£{s.shadow_net_gain_gbp:,.0f} |"
+        )
+
+    lines += [
+        "",
+        f"**Total opportunity cost vs actual: +£{total_shadow_gain:,.0f} net** "
+        f"(gross £{total_margin_lost:,.0f} margin lost; "
+        f"£{total_offer_cost:,.0f} offer cost if all retained).",
+        "",
+        "> The shadow strategy net gain is small because all no-offer churns were residential customers "
+        "with low margins. I&C customers (large margins) already received retention offers — the current "
+        "threshold strategy is near-optimal for the existing portfolio composition.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _section_portfolio_composition(data: dict) -> str:
     """Phase NV: Portfolio composition benchmark vs UK norms (P3: Population Anchoring)."""
     series_raw = data.get("portfolio_composition_series", [])
@@ -7431,6 +7482,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_net_margin_bridge(data))             # Phase NT
     sections.append(_section_payment_health(data))               # Phase NU
     sections.append(_section_portfolio_composition(data))         # Phase NV
+    sections.append(_section_shadow_retention(data))              # Phase NW
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX

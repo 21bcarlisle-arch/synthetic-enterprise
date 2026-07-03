@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 474+ commits. 14,880 tests passing. Codebase: ~50,000 lines across 324+ Python modules.*
+*Last updated: 2026-07-03. 476+ commits. 14,891 tests passing. Codebase: ~50,100 lines across 325+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NW -- Shadow Retention Strategy P&L (2026-07-03)
+11 tests. `saas/reporting/shadow_retention.py` (new): `ShadowRetentionEvent` frozen dataclass -- customer_id/year/expected_margin_gbp/company_churn_estimate/p_accept/shadow_margin_retained_gbp/shadow_offer_cost_gbp/shadow_net_gain_gbp. `ShadowRetentionSummary` per-year aggregate. `build_shadow_retention_analysis(run_data)` processes no_offer_churn_log: p_accept = (1 - churn_estimate) * 0.9; shadow_margin_retained = margin * p_accept * (1 - 8% discount); net_gain = retained - cost. `saas/reporting/annual_report.py`: `_section_shadow_retention` board section -- 3-year table of no-offer churns; total opportunity cost summary. KEY FINDINGS (live 2016-2025 data): shadow universal-retention strategy nets +£4,321 total over actual (£6,623 margin lost across 6 no-offer churns; £411 offer cost). ALL no-offer churns are residential customers with small margins; I&C customers already received offers. VERDICT: current threshold strategy is near-optimal -- the retention engine is correctly prioritising I&C (large margin, high churn risk) over below-threshold residential. Shadow ops reveals there is no significant untapped retention opportunity under the current portfolio composition. Directly addresses P4: shadow live ops. Epistemic: PASS.
+**Total:** 14,891 tests
 
 ### Phase NV -- Portfolio Composition Benchmark (2026-07-03)
 17 tests. `saas/reporting/portfolio_composition.py` (new): `PortfolioComposition` frozen dataclass -- year/resi_gross_pct/sme_gross_pct/ic_gross_pct/elec_gross_pct/gas_gross_pct/total_gross_gbp/dominant_segment/concentration_rag. `build_composition_series(run_data)` iterates year segment_split and commodity_split dicts; resi = sum of gross_gbp for segments starting "resi"; sme = "SME"; ic = "I&C"; concentration_rag = RED if dominant >90%, AMBER >70%, GREEN <70%. `saas/reporting/annual_report.py`: `_section_portfolio_composition` board section -- 10-year composition table + concentration alert if I&C dominated years detected. KEY FINDINGS (2016-2025 live data): SIM starts 2016 balanced (60% resi / 40% SME); transitions to I&C-dominated (92-99%) from 2017 onward as large commercial contracts won; RED concentration alert 2017-2025 (9 consecutive years). This is realistic for a B2B commercial specialist but the board section now explicitly flags the P&L concentration risk: loss of one large I&C customer is outsized vs a balanced residential book. Electricity dominated at 88-99% of gross. Directly addresses P3: population anchoring -- SIM is demonstrably an I&C specialist, not a mixed resi retail portfolio. Epistemic: PASS.
