@@ -1214,7 +1214,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 12 | 0.9 | £9 |
+| 2016 | 13 | 13 | 1.0 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,607 |
 | 2023 | 4 | 36 | 9.0 | £48,915 |
@@ -1701,6 +1701,28 @@ Shadow discount: 8% off next term. Assumes P(accept) = (1 - churn\_estimate) x 9
 
 > The shadow strategy net gain is small because all no-offer churns were residential customers with low margins. I&C customers (large margins) already received retention offers — the current threshold strategy is near-optimal for the existing portfolio composition.
 
+## Ofgem FRA Regulatory Capital Ratio (Phase NZ)
+
+Equity / (annual revenue ÷ 12). Ofgem FRA minimum: ≥ 1x monthly revenue.
+Sector best practice: ≥ 6x (GREEN). Early warning: < 3x (AMBER). Non-compliant: < 1x (RED).
+Real-world context: Bulb 2021 collapse at ~-0.01x; Igloo 2021 ~0.07x.
+
+| Year | Equity | Monthly Rev | FRA Ratio | RAG | Compliant |
+|------|--------|-------------|-----------|-----|-----------|
+| 2016 | £2,473,581.11 | £1,279.55 | 1933.2x | ✓ GREEN | Yes |
+| 2017 | £2,590,238.47 | £29,052.54 | 89.2x | ✓ GREEN | Yes |
+| 2018 | £2,840,461.34 | £50,079.42 | 56.7x | ✓ GREEN | Yes |
+| 2019 | £3,510,680.54 | £137,121.01 | 25.6x | ✓ GREEN | Yes |
+| 2020 | £4,263,301.67 | £154,758.03 | 27.6x | ✓ GREEN | Yes |
+| 2021 | £4,977,644.98 | £201,778.67 | 24.7x | ✓ GREEN | Yes |
+| 2022 | £5,930,261.96 | £353,797.13 | 16.8x | ✓ GREEN | Yes |
+| 2023 | £6,817,903.47 | £291,313.47 | 23.4x | ✓ GREEN | Yes |
+| 2024 | £7,998,172.05 | £249,935.16 | 32.0x | ✓ GREEN | Yes |
+| 2025 | £8,478,280.23 | £102,757.00 | 82.5x | ✓ GREEN | Yes |
+
+**Weakest year:** 2022 — 16.8x (equity £5,930,261.96 vs monthly revenue £353,797.13). RAG: GREEN.
+**Strongest year:** 2016 — 1933.2x.
+
 
 ## Risk Committee Activity (2016-2025)
 
@@ -1717,7 +1739,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,380 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 21 sessions
+- C1: 22 sessions
 - C5: 16 sessions
 - C7: 16 sessions
 - C2: 13 sessions
@@ -2269,7 +2291,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-05-30: treasury £2,466,694.75, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-06-29: treasury £2,466,705.34, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-07-29: treasury £2,466,716.06, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-08-28: treasury £2,466,726.80, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-08-28: treasury £2,466,726.80, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-09-27: treasury £2,466,737.73, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-10-27: treasury £2,466,748.64, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-11-26: treasury £2,466,759.45, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
