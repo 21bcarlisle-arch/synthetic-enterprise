@@ -1766,6 +1766,33 @@ def main(report_end: str | None = None, sim_interface=None):
         "total_deals": len(_tpi_book._deals),
     }
 
+    # Phase OG: Renewable Obligation (RO) cost.
+    from company.regulatory.roc_ledger import ROCLedger, _ROC_OBLIGATION_LEVEL, _ROC_BUY_OUT_PRICE_GBP
+    _roc_ledger = ROCLedger()
+    _elec_mwh_by_year: dict = defaultdict(float)
+    for _rec in all_records:
+        if _rec.get("commodity", "elec") != "gas":
+            _yr_roc = _rec.get("settlement_date", "")[:4]
+            if _yr_roc:
+                _elec_mwh_by_year[_yr_roc] += _rec.get("consumption_kwh", 0.0) / 1000.0
+    _roc_per_year = {}
+    for _yr_roc in sorted(_all_years):
+        _mwh = _elec_mwh_by_year.get(_yr_roc, 0.0)
+        _oblig = _roc_ledger.create_obligation(int(_yr_roc), round(_mwh, 1))
+        _price = _ROC_BUY_OUT_PRICE_GBP.get(int(_yr_roc), 50.0)
+        _level = _ROC_OBLIGATION_LEVEL.get(int(_yr_roc), 0.35)
+        _roc_per_year[_yr_roc] = {
+            "elec_mwh": round(_mwh, 1),
+            "rocs_required": round(_oblig.rocs_required, 1),
+            "obligation_level": _level,
+            "buy_out_price_gbp": _price,
+            "buy_out_cost_gbp": round(_oblig.rocs_required * _price, 0),
+        }
+    roc_summary = {
+        "total_buy_out_cost_gbp": round(sum(v["buy_out_cost_gbp"] for v in _roc_per_year.values()), 0),
+        "per_year": _roc_per_year,
+    }
+
     # Phase 27d: Triad risk for I&C customers.
     # Identify Triad periods for each winter in the run window, then compute
     # each I&C customer's TNUoS exposure. Uses SSP as a demand proxy.
@@ -1868,6 +1895,8 @@ def main(report_end: str | None = None, sim_interface=None):
         "ic_flexibility_summary": ic_flexibility_summary,
         # Phase OA: I&C broker/TPI commission
         "tpi_summary": tpi_summary,
+        # Phase OG: Renewable Obligation cost
+        "roc_summary": roc_summary,
         "per_customer_behavioral": _build_behavioral_trajectories(
             ELEC_CUSTOMERS + GAS_CUSTOMERS,
             household_demand_register,

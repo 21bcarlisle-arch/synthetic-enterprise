@@ -557,6 +557,7 @@ def extract_report_data(run_output: dict) -> dict:
         "total_flexibility_revenue_gbp": flex_summary.get("total_flexibility_revenue_gbp", 0.0),
         "ic_flexibility_summary": phase2b.get("ic_flexibility_summary", {}),
         "tpi_summary": phase2b.get("tpi_summary", {}),
+        "roc_summary": phase2b.get("roc_summary", {}),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
         "by_billing_account": by_billing_account,
@@ -4930,6 +4931,57 @@ def _section_licence_health(data: dict) -> str:
 
 
 
+
+def _section_roc_obligations(data: dict) -> str:
+    from company.regulatory.roc_ledger import _ROC_OBLIGATION_LEVEL, _ROC_BUY_OUT_PRICE_GBP
+    roc = data.get("roc_summary", {})
+    per_year = roc.get("per_year", {})
+    if not per_year:
+        return ""
+    lines = ["## Renewable Obligation (RO) Cost Observatory"]
+    lines.append("")
+    lines.append("UK suppliers must surrender ROCs (or pay buy-out price) by 1 September each year.")
+    lines.append("ROC buy-out cost is the maximum supplier exposure; ROC market purchases reduce actual cost.")
+    lines.append("")
+    lines.append("| Year | Elec MWh | Obligation Level | ROCs Required | Buy-out Price | Buy-out Cost |")
+    lines.append("|------|----------|-----------------|--------------|--------------|-------------|")
+    total_cost = 0.0
+    total_mwh = 0.0
+    for yr in sorted(per_year.keys()):
+        yd = per_year[yr]
+        mwh = yd.get("elec_mwh", 0.0)
+        rocs_req = yd.get("rocs_required", 0.0)
+        level = yd.get("obligation_level", 0.0)
+        price = yd.get("buy_out_price_gbp", 0.0)
+        cost = yd.get("buy_out_cost_gbp", 0.0)
+        total_cost += cost
+        total_mwh += mwh
+        lines.append(
+            "| " + yr + " | "
+            + f"{mwh:,.1f}" + " | "
+            + f"{level:.3f}" + " ROC/MWh | "
+            + f"{rocs_req:,.1f}" + " | "
+            + "£" + f"{price:.2f}" + " | "
+            + "£" + f"{cost:,.0f}" + " |"
+        )
+    lines.append(
+        "| **Total** | **" + f"{total_mwh:,.1f}" + "** | | | | **£" + f"{total_cost:,.0f}" + "** |"
+    )
+    lines.append("")
+    # cost as % of typical revenue
+    ma = data.get("management_accounts", {})
+    total_rev = 0.0
+    for yr in per_year:
+        yr_ma = ma.get(str(yr), {})
+        total_rev += yr_ma.get("income_statement", {}).get("revenue_gbp", 0.0)
+    if total_rev > 0:
+        pct = 100.0 * total_cost / total_rev
+        lines.append(f"RO cost as % of total revenue (2016-2025): **{pct:.1f}%** (industry benchmark 5-10%)")
+        lines.append("")
+    lines.append("> Note: actual RO cost depends on ROC market prices. Buy-out price is the regulatory ceiling.")
+    return "\n".join(lines)
+
+
 def _section_gsop_obligations(data: dict) -> str:
     """Phase OF: GSOP (Guaranteed Standards of Performance) payment obligations.
 
@@ -8190,6 +8242,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_compliance_scorecard(data))             # Phase OD
     sections.append(_section_ofgem_supply_return(data))              # Phase OE
     sections.append(_section_gsop_obligations(data))                # Phase OF
+    sections.append(_section_roc_obligations(data))                 # Phase OG
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
