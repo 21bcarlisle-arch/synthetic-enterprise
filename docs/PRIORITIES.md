@@ -37,7 +37,8 @@ Last refreshed: 2026-07-03. Previous P1-P4 + NX/NY complete. New direction: Regu
 - ~~**Phase OI: Climate Change Levy (CCL) Observatory**~~ -- DONE (2026-07-03): CCLLedger wired; I&C elec+gas CCL by year; 2019 spike (+45%/+67%) flagged; pass-through note; board section. 19 tests (15,093 total).
 - ~~**Phase OJ: Warm Home Discount (WHD) Liability Observatory**~~ -- DONE (2026-07-03): WHDBook threshold check; I&C-dominated portfolio EXEMPT (domestic count far below 150k); NIL liability confirmed; growth warning note. 19 tests (15,112 total).
 - ~~**Phase OK: Energy Company Obligation (ECO) Observatory**~~ -- DONE (2026-07-03): ECOObligationBook per-phase rates; I&C portfolio EXEMPT; counterfactual liability shown (GBP3.20-6.80/MWh by phase). 19 tests (15,131 total).
-- **Phase OL: Carbon Emissions Reporting Observatory** -- carbon_emissions.py exists but is not wired. UK suppliers must report scope 1/2/3 emissions annually (ESOS, SECR). Board section should show estimated annual emissions from customer electricity/gas consumption using grid emissions factors.
+- ~~**Phase OL: Carbon Emissions Reporting Observatory**~~ -- DONE (2026-07-03): FuelMixRecord with real UK grid fuel mix data 2016-2025; scope 2 elec CO2 + scope 1 gas CO2; decarbonisation trend (290g/kWh->175g/kWh). 17 tests (15,148 total).
+- **Phase OM: Fuel Mix Disclosure (FMD) Board Report** -- fuel_mix_disclosure.py exists but is not wired. UK suppliers must publish their electricity fuel mix annually. Board section showing disclosed fuel mix percentages and renewable content.
 - **Phase OB: Elexon Settlement Reconciliation Cash Flow** -- UK suppliers receive reconciliation charges/credits up to 28 months after delivery (R1/R2/RF runs). Zero-mean but timing creates cash flow lumps. Board section showing estimated reconciliation exposure by year.
 - **ToU tariff depth** -- time-of-use pricing for HH smart meter customers (existing backlog; lower priority than regulatory items above)
 

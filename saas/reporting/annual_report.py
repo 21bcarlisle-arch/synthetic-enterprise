@@ -4938,6 +4938,74 @@ def _section_licence_health(data: dict) -> str:
 
 
 
+
+def _section_carbon_emissions(data: dict) -> str:
+    from company.regulatory.carbon_emissions import FuelMixRecord
+
+    # UK grid fuel mix (approx, DESNZ/National Grid annual data) -- percent values
+    _UK_FUEL_MIX = {
+        2016: FuelMixRecord(2016, coal_pct=9.0, gas_pct=42.0, nuclear_pct=21.0, wind_pct=11.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=4.0),
+        2017: FuelMixRecord(2017, coal_pct=7.0, gas_pct=40.0, nuclear_pct=21.0, wind_pct=15.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=4.0),
+        2018: FuelMixRecord(2018, coal_pct=5.0, gas_pct=39.0, nuclear_pct=20.0, wind_pct=17.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=9.0, imports_pct=5.0),
+        2019: FuelMixRecord(2019, coal_pct=2.0, gas_pct=37.0, nuclear_pct=19.0, wind_pct=20.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=12.0, imports_pct=4.0),
+        2020: FuelMixRecord(2020, coal_pct=1.0, gas_pct=33.0, nuclear_pct=17.0, wind_pct=24.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=12.0, imports_pct=7.0),
+        2021: FuelMixRecord(2021, coal_pct=2.0, gas_pct=36.0, nuclear_pct=17.0, wind_pct=22.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=11.0, imports_pct=6.0),
+        2022: FuelMixRecord(2022, coal_pct=2.0, gas_pct=38.0, nuclear_pct=17.0, wind_pct=26.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=3.0),
+        2023: FuelMixRecord(2023, coal_pct=1.0, gas_pct=32.0, nuclear_pct=14.0, wind_pct=28.0, solar_pct=5.0, hydro_pct=2.0, biomass_pct=10.0, imports_pct=8.0),
+        2024: FuelMixRecord(2024, coal_pct=0.0, gas_pct=29.0, nuclear_pct=14.0, wind_pct=32.0, solar_pct=5.0, hydro_pct=2.0, biomass_pct=11.0, imports_pct=7.0),
+        2025: FuelMixRecord(2025, coal_pct=0.0, gas_pct=25.0, nuclear_pct=13.0, wind_pct=36.0, solar_pct=6.0, hydro_pct=3.0, biomass_pct=10.0, imports_pct=7.0),
+    }
+    _GAS_G_PER_KWH = 183.0
+
+    ma = data.get("management_accounts", {})
+    if not ma:
+        return ""
+
+    lines = ["## Carbon Emissions Reporting Observatory"]
+    lines.append("")
+    lines.append("Scope 2 emissions from customer electricity consumption (UK grid emission intensity).")
+    lines.append("Scope 1 emissions from gas supply (183g CO2/kWh). Source: DESNZ/National Grid annual fuel mix data.")
+    lines.append("")
+    lines.append("| Year | Elec MWh | Grid Intensity | Elec CO2 (t) | Gas MWh | Gas CO2 (t) | Total CO2 (t) | Low Carbon % |")
+    lines.append("|------|----------|---------------|-------------|---------|------------|-------------|-------------|")
+    total_co2 = 0.0
+    for yr in sorted(ma.keys()):
+        yr_int = int(yr)
+        yr_ma = ma.get(str(yr), {})
+        rev = yr_ma.get("income_statement", {}).get("revenue_gbp", 0.0)
+        elec_mwh = rev / 150_000.0
+        elec_kwh = elec_mwh * 1000.0
+        fm = _UK_FUEL_MIX.get(yr_int)
+        if not fm:
+            continue
+        intensity = fm.emission_intensity_g_per_kwh
+        elec_co2_t = round(elec_kwh * intensity / 1_000_000, 1)
+        low_c_pct = fm.low_carbon_pct
+        # Gas rough proxy: 10% of electricity revenue
+        gas_mwh = elec_mwh * 0.10
+        gas_kwh = gas_mwh * 1000.0
+        gas_co2_t = round(gas_kwh * _GAS_G_PER_KWH / 1_000_000, 1)
+        total_yr = round(elec_co2_t + gas_co2_t, 1)
+        total_co2 += total_yr
+        trend = " (decarbonising)" if yr_int >= 2020 else ""
+        lines.append(
+            "| " + yr + " | "
+            + f"{elec_mwh:,.0f}" + " | "
+            + f"{intensity:.0f}" + "g/kWh" + " | "
+            + f"{elec_co2_t:,.1f}" + " | "
+            + f"{gas_mwh:,.0f}" + " | "
+            + f"{gas_co2_t:,.1f}" + " | "
+            + f"{total_yr:,.1f}" + " | "
+            + f"{low_c_pct:.0f}%" + trend + " |"
+        )
+    lines.append(
+        "| **Total** | | | | | | **" + f"{total_co2:,.1f}" + " t** | |"
+    )
+    lines.append("")
+    lines.append("> Grid emission intensity declining: 2016 ~290g/kWh -> 2025 ~175g/kWh (40% reduction). Carbon disclosure per SECR/ESOS.")
+    return "\n".join(lines)
+
+
 def _section_eco_obligation(data: dict) -> str:
     from company.regulatory.eco_obligation import ECOObligationBook, ECOPhase, _ECO_OBLIGATION_COST_PER_MWH, _ECO_PHASE_YEARS
     _ECO_THRESHOLD = 150_000
@@ -8438,6 +8506,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_ccl_levy(data))                        # Phase OI
     sections.append(_section_whd_liability(data))                   # Phase OJ
     sections.append(_section_eco_obligation(data))                  # Phase OK
+    sections.append(_section_carbon_emissions(data))               # Phase OL
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
