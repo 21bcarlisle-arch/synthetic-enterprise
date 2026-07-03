@@ -1,84 +1,97 @@
-# NEXT PHASE PROPOSAL: Phase PS -- Complaints & Arrears Population Anchoring (closes P3)
+# NEXT PHASE PROPOSAL: Phase PU -- Shadow Live Operation (P4 MVP)
 
 ## Gap addressed
-P3 Population Anchoring -- two of the three required benchmarks remain unanchored:
-- Complaints/ombudsman volumes: avg_complaint_probability exists in run output (4-6% per
-  billing period) but is never compared against published Ofgem/Citizens Advice benchmarks.
-  The Ofgem Supply Return section still hardcodes complaints_per_100=0.0.
-- Arrears rates: Phase PP billing ledger has full per-customer arrears history with dates,
-  but there is no population-level aggregation or DESNZ benchmark comparison.
-
-Switching rates (NS/PQ/PR) and bad debt (plausibility section) are already anchored.
-Phase PS finishes P3.
+P4 Shadow Live Operation -- the SIM currently operates only in retrodiction mode
+(2016-2025 historical settlement data). It cannot answer: what would the company do
+today? A real UK supplier makes active daily decisions -- price quotes, hedge reviews,
+retention offers -- against current market conditions. Phase PU wires the company layer
+to today's data and produces a daily decision log.
 
 ## What real fidelity is gained
-A real UK energy supplier CFO compares complaint and arrears rates against Ofgem QoS
-survey benchmarks each year. The board cannot currently answer: Are our complaint and
-arrears rates plausible for a UK I&C supplier? After this phase they can -- with
-per-year RAG flags anchored to published data.
+A real UK energy supply MD can say: "Our risk committee met today. Wholesale is at
+GBP 82/MWh. We are 65% hedged for Q1 2027. Three I&C customers are in their renewal
+window. Our proposed tariff for a 2 GWh I&C account is 9.2p/kWh." Phase PU means
+the SIM's company layer can make exactly that statement -- against real market data --
+and log it with a timestamp. The board section becomes a live daily operations log,
+not a retrodiction of what happened.
 
 ## What this phase builds
 
-### Part A: tools/population_anchor.py
+### Part A: Company state snapshot at 2025-12-31
+tools/project_portfolio_to_2026.py:
+  Read run_output_latest.json -> extract portfolio as of 2025-12-31:
+  - Active customers (cid / segment / eac / current_rate / term_expiry)
+  - Treasury and capital position
+  - Hedging ledger (hedge fractions per customer)
+  Write site/state/live_portfolio.json (point-in-time state for live engine)
 
-_complaints_check(years_data) -> list[dict]:
-  Metric: complaint_rate_pct = avg_complaint_probability x 100
-  Benchmarks (Ofgem QoS, I&C adjustment):
-    GREEN 2.0-6.0% normal; 2.0-8.0% crisis (2021-2023)
-    AMBER 6.0-10.0% or 1.0-2.0%
-    RED >10.0% or <1.0%
+### Part B: Live market data connector
+tools/live_market.py:
+  fetch_day_ahead(date=today) -> {elec_gbp_mwh: float, gas_gbp_therm: float}
+    Source: Elexon BMRS Derived Data / N2EX day-ahead (existing elexon_client.py wrappers)
+    Fallback: rolling 30-day average from docs/market_data/price_feed.json
+  build_live_forward_curve(date=today) -> ForwardCurve
+    Use existing sim/forward_curve machinery with today as the anchor date
 
-_arrears_check_by_year(billing_ledger, years_data) -> list[dict]:
-  new_arrears_rate_pct = unique customers with new arrears in year / active customers x 100
-  Denominator from years_data[yr][active_customer_ids]
-  Benchmarks (DESNZ, I&C portfolio):
-    GREEN <8% normal; <12% crisis (2021-2023)
-    AMBER 8-15%; 12-18% crisis
-    RED >15%; >18% crisis
+### Part C: Daily decision engine
+tools/run_live_decisions.py:
+  Loads live_portfolio.json + today's ForwardCurve
+  For each customer:
+    - Is term expiring within 60 days? -> compute renewal price + churn estimate
+    - churn_estimate > retention threshold? -> flag for retention offer
+  Risk committee check:
+    - Compute VaR at current hedge fractions vs capital
+    - Flag if hedge recommendation changes (increase/hold/reduce)
+  Pricing desk:
+    - compute_tariff(segment, eac, forward_curve_today) for new acquisition
+  Write site/state/live_decisions_YYYYMMDD.json:
+    {date, spot_elec_gbp_mwh, spot_gas_gbp_therm, hedge_recommendation,
+     renewal_flags: [{cid, expiry, proposed_rate, churn_estimate, offer_flag}],
+     acquisition_prices: {resi_dual_fuel: ..., sme_elec: ..., ic_elec: ...}}
+  Also write site/state/live_decisions_latest.json (always current)
 
-generate() extended: reads site/state/billing_ledger.json; adds complaints_vs_benchmark
-and arrears_vs_benchmark keys to population_anchoring.json.
+### Part D: Observable output
+site/shadow/live/index.html: no-JS daily operations log page
+  Today's spot price | Hedge status | Renewal queue | Acquisition price ladder
+  Listed in PROJECT_STATE.txt Key Files.
 
-### Part B: saas/reporting/annual_report.py -- _section_population_anchoring(data)
+### Part E: Scheduled runner
+background/live_runner.py: called daily from background dispatcher
+  Catches today's market data, runs decision engine, writes + commits JSON
 
-New dedicated section. Per-year table:
-  Year | Complaint rate% | Benchmark | RAG | Arrears rate% | Benchmark | RAG
+## Architecture decision (one-way-door: Rich must approve)
+The SIM portfolio is anchored at 2025-12-31. From 2026 onwards, customers are
+projected (terms roll at renewal, no new customers -- existing portfolio only).
+This means the live operation runs against a FROZEN population evolving forward.
+Alternative: start a fresh 2026 portfolio (new customers). Recommend: frozen first,
+then optionally grow. The frozen approach is reversible; the growth approach is not.
 
-Summary: X of 10 years GREEN for complaints; Y of 10 years GREEN for arrears.
+## Epistemic check
+Live market data (Elexon BMRS, N2EX day-ahead) is public. Company decisions based
+on observable market data. Portfolio state is company-observable. PASS.
 
-### Part C: Fix Ofgem Supply Return hardcoded zero
-
-Replace complaints_per_100=0.0 with:
-  round(yd.get('avg_complaint_probability', 0.0) * 100, 1)
-
-### Part D: Wire billing_ledger into process_run_complete.py -> generate()
-
-## Epistemic check: all data company-observable or publicly published. PASS.
-
-## Test targets (~20 tests)
-1.  _complaints_check converts avg_complaint_probability to complaint_rate_pct correctly
-2.  _complaints_check GREEN for normal year 5.0% (within 2-6%)
-3.  _complaints_check AMBER for 6.5% in normal year (above 6.0%)
-4.  _complaints_check GREEN for 2022 at 5.8% (crisis ceiling 8.0%)
-5.  _complaints_check RED for rate <1.0%
-6.  _arrears_check_by_year counts unique customers with new arrears per year
-7.  _arrears_check_by_year GREEN for arrears_rate <8%
-8.  _arrears_check_by_year AMBER for arrears_rate 9%
-9.  _arrears_check_by_year GREEN for crisis year at 10% (ceiling 12%)
-10. _arrears_check_by_year RED for rate >15%
-11. _arrears_check_by_year handles empty arrears_history gracefully
-12. generate() output includes complaints_vs_benchmark key
-13. generate() output includes arrears_vs_benchmark key
-14. generate() handles missing billing_ledger.json without crash
-15. _section_population_anchoring renders complaints and arrears table
-16. _section_population_anchoring GREEN for in-range year
-17. _section_population_anchoring summary line counts GREEN years correctly
-18. _section_population_anchoring returns empty string if no year data
-19. Ofgem supply return: complaints_per_100 now >0.0 for any year with bills
-20. _arrears_check_by_year denominator uses active_customer_ids count per year
+## Test targets (~18 tests)
+1. project_portfolio_to_2026 reads run_output and extracts active customers
+2. project_portfolio_to_2026 includes cid / segment / eac / current_rate / term_expiry
+3. fetch_day_ahead returns float pair (elec, gas) from price_feed fallback
+4. fetch_day_ahead raises on network error gracefully (fallback kicks in)
+5. build_live_forward_curve uses today as anchor date
+6. run_live_decisions loads portfolio and produces renewal_flags list
+7. renewal_flags includes customers within 60-day window
+8. renewal_flags excludes customers outside window
+9. churn_estimate above threshold sets offer_flag=True
+10. churn_estimate below threshold sets offer_flag=False
+11. hedge_recommendation HOLD when VaR within policy limits
+12. hedge_recommendation INCREASE when naked position exceeds limit
+13. acquisition_prices returns price per segment
+14. live_decisions JSON written with today's date key
+15. live_decisions_latest.json always updated
+16. shadow live/index.html renders renewal queue
+17. shadow live/index.html renders acquisition prices
+18. live_runner.py can be called without error on stub data
 
 ## Expected key finding
-SIM complaint rate (4-6% per billing period) within GREEN for most years; 2022 elevated.
-Arrears elevated in 2016 (early resi, DD failures) and 2022 (crisis), GREEN in I&C-
-dominated 2017-2021. Board confirmed: complaint and arrears profile consistent with
-UK I&C supplier -- Ofgem benchmarks met.
+Company layer makes its first forward-looking daily decision: three I&C customers
+entering renewal window in Q1 2026; wholesale forward at ~GBP 82/MWh; acquisition
+price for 2 GWh I&C at 9.2p/kWh. Hedge recommendation HOLD. Board sees: first live
+daily operations log, timestamped, reproducible. SIM is no longer retrodiction only.
