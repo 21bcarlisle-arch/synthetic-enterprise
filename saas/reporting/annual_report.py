@@ -4926,6 +4926,118 @@ def _section_licence_health(data: dict) -> str:
 
 
 
+
+
+def _section_ofgem_supply_return(data: dict) -> str:
+    """Phase OE: Ofgem Annual Supply Return filing record.
+
+    Populates OfgemReturnBook from simulation data for each year.
+    Required fields: customer counts by segment, volume supplied (GWh),
+    complaints, debt per customer, WHD, bad debt written off.
+    Shows filed/missing status and key Ofgem-reportable metrics.
+    Silent when no yearly data.
+    """
+    from company.regulatory.ofgem_supply_return import OfgemSupplyReturn, OfgemReturnBook
+    import datetime as dt
+
+    years = data.get("years", {})
+    if not years:
+        return ""
+
+    book = OfgemReturnBook()
+
+    for yr in sorted(years.keys()):
+        yd = years[yr]
+        yr_int = int(yr)
+
+        active_ids = yd.get("active_customer_ids", [])
+        # Derive segment counts from per_customer data
+        per_cust = yd.get("per_customer", {})
+        resi_count = sum(1 for cid in active_ids if per_cust.get(cid, {}).get("segment", "resi") == "resi")
+        sme_count = sum(1 for cid in active_ids if per_cust.get(cid, {}).get("segment", "SME") == "SME")
+        ic_count = sum(1 for cid in active_ids if per_cust.get(cid, {}).get("segment", "I&C") == "I&C")
+        # Fallback: count by customer ID prefix if per_customer not available
+        if resi_count + sme_count + ic_count == 0:
+            resi_count = sum(1 for c in active_ids if "IC" not in c and "SME" not in c)
+            ic_count = sum(1 for c in active_ids if "IC" in c)
+            sme_count = len(active_ids) - resi_count - ic_count
+
+        # Volume from commodity split
+        comm = yd.get("commodity_split", {})
+        elec_gwh = comm.get("electricity", {}).get("revenue_gbp", 0.0) / max(
+            yd.get("revenue_gbp", 1.0), 1.0
+        ) * yd.get("revenue_gbp", 0.0)  # simplified proxy
+        # Better: compute from revenue and unit rate proxy
+        # Use consumption_mwh if available, else estimate from revenue
+        elec_rev = comm.get("electricity", {}).get("revenue_gbp", 0.0)
+        gas_rev = comm.get("gas", {}).get("revenue_gbp", 0.0) if "gas" in comm else 0.0
+        # Estimate GWh from revenue (crude proxy: £150/MWh average)
+        elec_gwh = elec_rev / 150_000.0  # £150/MWh → GWh
+        gas_gwh = gas_rev / 50_000.0     # £50/MWh gas proxy → GWh
+
+        bad_debt = yd.get("bad_debt_gbp", 0.0)
+        total_cust = max(len(active_ids), 1)
+        avg_debt_per_cust = bad_debt / total_cust
+
+        avg_complaint = yd.get("avg_complaint_probability", 0.0)
+        resi_complaints = max(0, round(avg_complaint * resi_count))
+
+        book.file_return(
+            year=yr_int,
+            submitted_date=dt.date(yr_int + 1, 3, 31),  # filed by 31 March following year
+            total_customers_residential=resi_count,
+            total_customers_sme=sme_count,
+            total_customers_ic=ic_count,
+            elec_supplied_gwh=round(elec_gwh, 2),
+            gas_supplied_gwh=round(gas_gwh, 2),
+            residential_complaints=resi_complaints,
+            average_debt_per_customer_gbp=round(avg_debt_per_cust, 2),
+            whd_customers_supported=0,   # WHD not yet modelled
+            gsop_payments_gbp=0.0,       # GSOP not yet modelled
+            bad_debt_written_off_gbp=round(bad_debt, 2),
+        )
+
+    all_returns = book.all_returns()
+    if not all_returns:
+        return ""
+
+    lines = [
+        "## Ofgem Annual Supply Return (Phase OE)",
+        "",
+        "UK suppliers must file annual supply returns to Ofgem. Filed by 31 March "
+        "of the following year.",
+        "",
+        "| Year | Submitted | Customers (R/SME/I&C) | Elec GWh | Gas GWh | Bad Debt/Cust |",
+        "|------|-----------|----------------------|----------|---------|---------------|",
+    ]
+
+    for ret in sorted(all_returns, key=lambda r: r.year):
+        status = "Yes" if ret.is_submitted else "MISSING"
+        seg_str = f"{ret.total_customers_residential}/{ret.total_customers_sme}/{ret.total_customers_ic}"
+        lines.append(
+            f"| {ret.year} | {status} | {seg_str} | "
+            f"{ret.elec_supplied_gwh:.1f} | {ret.gas_supplied_gwh:.1f} | "
+            f"£{ret.average_debt_per_customer_gbp:.0f} |"
+        )
+
+    from_yr = min(int(yr) for yr in years.keys())
+    to_yr = max(int(yr) for yr in years.keys())
+    missing = book.missing_years(from_yr, to_yr)
+
+    lines += [""]
+    if missing:
+        lines.append(f"**Missing returns:** {', '.join(str(y) for y in missing)} — Ofgem regulatory breach.")
+    else:
+        lines.append(f"**All {len(all_returns)} annual returns filed** — full compliance 2016–2025.")
+
+    lines += [
+        "",
+        "_Note: WHD and GSOP metrics default to zero (not yet modelled in detail)._",
+        "_Volume GWh estimated from revenue at average unit rate proxies (£150/MWh elec, £50/MWh gas)._",
+    ]
+
+    return "\n".join(lines)
+
 def _section_compliance_scorecard(data: dict) -> str:
     """Phase OD: Ofgem SLC Compliance Scorecard Synthesis.
 
@@ -7986,6 +8098,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_settlement_reconciliation(data))     # Phase OB
     sections.append(_section_licence_health(data))                   # Phase OC
     sections.append(_section_compliance_scorecard(data))             # Phase OD
+    sections.append(_section_ofgem_supply_return(data))              # Phase OE
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX

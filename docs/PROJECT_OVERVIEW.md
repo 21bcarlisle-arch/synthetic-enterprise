@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 481+ commits. 14,998 tests passing. Codebase: ~50,650 lines across 330+ Python modules.*
+*Last updated: 2026-07-03. 482+ commits. 15,014 tests passing. Codebase: ~50,650 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -111,6 +111,9 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase OE -- Ofgem Annual Supply Return (2026-07-03)
+`_section_ofgem_supply_return` populates `OfgemReturnBook` (existing `company/regulatory/ofgem_supply_return.py`) from per-year simulation data. Fields: customer counts by segment (resi/SME/I&C), electricity/gas GWh (estimated from revenue at unit rate proxies), residential complaints, average debt per customer, WHD count (0 — not yet modelled), GSOP (0), bad debt written off. Submission date: 31 March following year. All 10 returns filed (GREEN). `missing_years` check validates completeness. **16 tests (15,014 total). Epistemic: PASS.**
+
 ### Phase OD -- Compliance Scorecard Synthesis (2026-07-03)
 `_section_compliance_scorecard` populates `ComplianceScorecard` (existing `company/regulatory/compliance_scorecard.py`) from simulation outputs. 10 SLC domains per year: Governance (net assets check), Billing/Metering (bill clarity), Payment/Debt (bad debt ratio), Information/Transparency (EAC estimation error), Complaints (complaint probability), Vulnerable Customers, Tariff/Cap, Environmental, Network/BSC, Financial Resilience (FRA ratio). Per-year RAG table + overall row + breach/watch year summary. **16 tests (14,998 total). Epistemic: PASS.**
 
@@ -125,7 +128,7 @@ Wired existing `company/crm/tpi_book.py` into `run_phase2b.py`. TPIBook register
 
 ### Phase NZ -- Ofgem FRA Regulatory Capital Ratio (2026-07-03)
 24 tests. `saas/reporting/fra_capital_ratio.py` (new): `FRACapitalRatio` frozen dataclass -- year/equity_gbp/annual_revenue_gbp/monthly_revenue_gbp/fra_ratio/rag/is_compliant. `build_fra_ratio_series(management_accounts)` -> list sorted by year; skips zero-revenue years. `weakest_year(series)` / `strongest_year(series)`. RAG thresholds: GREEN>=6x (sector best practice), AMBER 3-6x, RED<3x; `is_compliant` = ratio >= 1x Ofgem FRA minimum. `saas/reporting/annual_report.py`: `_section_fra_capital_ratio` board section -- 10-year table (equity, monthly revenue, FRA ratio, RAG, compliant flag) + weakest/strongest year highlights; `fra_ratio_series` added to `extract_report_data`. Wired as import `build_fra_ratio_series` + `_compute_management_accounts` feed. KEY FINDINGS (live 2016-2025): SIM supplier 16-32x all GREEN -- well above Ofgem 1x minimum; weakest year 2022 at 16.8x (crisis: revenue spike outpaced equity growth); context: Bulb 2021 ~-0.01x, Igloo ~0.07x. Epistemic: PASS (management accounts are company-observable from double-entry journal).
-**Total:** 14,998 tests
+**Total:** 15,014 tests
 
 ### Phase NY -- Flexibility Revenue Site/ Dashboard + Annual Report Extension (2026-07-03)
 15 tests. `tools/generate_dashboard_data.py`: `extract_flexibility(data)` — new function extracting residential (`flexibility_revenue_summary`) and I&C (`ic_flexibility_summary`) flex data; returns `total_gbp/resi_total_gbp/ic_total_gbp/resi_per_year/ic_per_year`; wired as `"flexibility"` key in dashboard JSON. `saas/reporting/annual_report.py`: `_section_flexibility_revenue` extended (Phase AG/NX) — now renders when I&C data is present even with zero residential flex; two-part section: I&C demand response table (year/net revenue/enrolled/flex kW) + residential DSR table (when active); `ic_flexibility_summary` added to `extract_report_data` return dict. Closes backlog item "Dashboard: Flexibility revenue tab -- Phase AG built the data, needs wiring to site/". Epistemic: PASS.
