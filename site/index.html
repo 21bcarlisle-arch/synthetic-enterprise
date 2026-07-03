@@ -295,7 +295,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   el('tab-' + name).classList.add('active');
   document.querySelector(`[data-tab="${name}"]`).classList.add('active');
-  if (!rendered[name]) { renderTab(name); rendered[name] = true; }
+  if (!rendered[name]) { renderTab(name); if (D) rendered[name] = true; }
 }
 
 function renderTab(name) {
