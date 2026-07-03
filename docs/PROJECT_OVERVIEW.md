@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 477+ commits. 14,869 tests passing. Codebase: ~50,300 lines across 326+ Python modules.*
+*Last updated: 2026-07-03. 478+ commits. 14,884 tests passing. Codebase: ~50,450 lines across 327+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NY -- Flexibility Revenue Site/ Dashboard + Annual Report Extension (2026-07-03)
+15 tests. `tools/generate_dashboard_data.py`: `extract_flexibility(data)` — new function extracting residential (`flexibility_revenue_summary`) and I&C (`ic_flexibility_summary`) flex data; returns `total_gbp/resi_total_gbp/ic_total_gbp/resi_per_year/ic_per_year`; wired as `"flexibility"` key in dashboard JSON. `saas/reporting/annual_report.py`: `_section_flexibility_revenue` extended (Phase AG/NX) — now renders when I&C data is present even with zero residential flex; two-part section: I&C demand response table (year/net revenue/enrolled/flex kW) + residential DSR table (when active); `ic_flexibility_summary` added to `extract_report_data` return dict. Closes backlog item "Dashboard: Flexibility revenue tab -- Phase AG built the data, needs wiring to site/". Epistemic: PASS.
+**Total:** 14,884 tests
 
 ### Phase NX -- I&C Demand Response Enrollment (2026-07-03)
 24 tests. `company/market/ic_flexibility_revenue.py` (new): `ICFlexibilityRecord` frozen dataclass (customer_id/year/eac_kwh/peak_demand_kw/flex_kw/cm_price_gbp_per_kw/gross_cm_revenue_gbp/gross_dfs_revenue_gbp/aggregator_fee_gbp/net_revenue_gbp). `ICFlexibilityRevenueBook.compute_year(year, ic_customers)`: filters EAC>=200 MWh; peak_kw = EAC/(8760*0.65); flex_kw = peak_kw * 10%; CM revenue at published T-4 clearing prices (£6.44-£22.50/kW/yr by year, sourced from NESO); DFS from 2022 (£4.5/MWh, 20 events, 1 hr, flex_mw * duration * rate * events); aggregator fee 20%. `run_phase2b.py`: ICFlexibilityRevenueBook wired; 4 I&C electricity customers enrolled each year; ic_flexibility_summary in results dict; total_flexibility_revenue incremented. RESULT: £21k CM/DFS revenue 2016-2025 (was £0). Also fixed dormant DFS formula bug in `flexibility_potential.py` (was 1000x too high: used flex_kw*rate instead of flex_mw*rate; harmless since no resi EV adoption). Epistemic: company observes I&C EAC from billing records (no SIM internals). PASS.

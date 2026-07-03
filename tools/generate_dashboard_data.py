@@ -157,6 +157,39 @@ def extract_financial(data):
     }
 
 
+def extract_flexibility(data):
+    """Phase NY: Flexibility revenue summary for site/ dashboard tab."""
+    flex = data.get("flexibility_revenue_summary", {})
+    ic_flex = data.get("ic_flexibility_summary", {})
+
+    resi_per_year = {}
+    for yr, yd in flex.get("per_year", {}).items():
+        resi_per_year[str(yr)] = {
+            "cm_gbp": _fmt(yd.get("cm_gbp", 0)),
+            "dfs_gbp": _fmt(yd.get("dfs_gbp", 0)),
+            "total_gbp": _fmt(yd.get("total_gbp", 0)),
+            "enrolled_customers": int(yd.get("enrolled_customers", 0)),
+        }
+
+    ic_per_year = {}
+    for yr, yd in ic_flex.get("per_year", {}).items():
+        ic_per_year[str(yr)] = {
+            "net_gbp": _fmt(yd.get("total_net_gbp", 0)),
+            "enrolled_customers": int(yd.get("enrolled_customers", 0)),
+            "total_flex_kw": _fmt(yd.get("total_flex_kw", 0)),
+        }
+
+    return {
+        "total_gbp": _fmt(data.get("total_flexibility_revenue_gbp", 0)),
+        "resi_total_gbp": _fmt(flex.get("total_flexibility_revenue_gbp", 0)),
+        "ic_total_gbp": _fmt(ic_flex.get("total_ic_flex_revenue_gbp", 0)),
+        "resi_enrolled_customer_years": int(flex.get("enrolled_customer_years", 0)),
+        "ic_enrolled_customer_years": int(ic_flex.get("enrolled_customer_years", 0)),
+        "resi_per_year": resi_per_year,
+        "ic_per_year": ic_per_year,
+    }
+
+
 def extract_trading(data, spot_monthly):
     # Committee interventions per month
     committee_monthly = defaultdict(int)
@@ -550,6 +583,7 @@ def generate(run_json_path=None):
         "query_context": extract_query_context(data),
         "management_accounts": extract_management_accounts(data),
         "monthly_ops": extract_monthly_ops(data),
+        "flexibility": extract_flexibility(data),
         "build": {
             "current_phase": _BUILD_PHASE,
             "phases_built": f"Phase {_BUILD_PHASE} (300+ total)",

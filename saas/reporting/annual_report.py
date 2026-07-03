@@ -554,6 +554,7 @@ def extract_report_data(run_output: dict) -> dict:
         "net_margin_after_cost_to_serve_gbp": cost_to_serve.get("portfolio", {}).get("net_margin_gbp"),
         "flexibility_revenue_summary": flex_summary,
         "total_flexibility_revenue_gbp": flex_summary.get("total_flexibility_revenue_gbp", 0.0),
+        "ic_flexibility_summary": phase2b.get("ic_flexibility_summary", {}),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
         "by_billing_account": by_billing_account,
@@ -3964,62 +3965,77 @@ def _section_scenario_metadata(data: dict) -> str:
 
 
 def _section_flexibility_revenue(data: dict) -> str:
-    """Phase AG: DSR/Capacity Market flexibility revenue breakdown by year.
+    """Phase AG/NX: DSR/Capacity Market flexibility revenue — residential and I&C.
 
-    Renders the CM and DFS revenue earned from customers with flexible assets
-    (EV, ASHP, battery). CM is available 2016+; DFS launched October 2022.
-    Data comes from FlexibilityRevenueBook (Phase AF) via flex_summary in run_phase2b.
-    Silent when no customers hold flexible assets.
+    Residential: EV/ASHP/battery customers enrolled via FlexibilityRevenueBook (Phase AF).
+    I&C: interruptible load enrolled via ICFlexibilityRevenueBook (Phase NX);
+    10% of peak demand via DSR aggregator; CM clearing prices from NESO T-4 auctions.
+    Silent when neither residential nor I&C flex revenue exists.
     """
     flex = data.get("flexibility_revenue_summary", {})
-    if not flex or not flex.get("years_with_revenue"):
+    ic_flex = data.get("ic_flexibility_summary", {})
+    resi_has_data = bool(flex and flex.get("years_with_revenue"))
+    ic_has_data = bool(ic_flex and ic_flex.get("years_with_revenue"))
+    if not resi_has_data and not ic_has_data:
         return ""
 
-    total_gbp = flex.get("total_flexibility_revenue_gbp", 0.0)
-    cm_total = flex.get("total_cm_revenue_gbp", 0.0)
-    dfs_total = flex.get("total_dfs_revenue_gbp", 0.0)
-    peak_yr_rev = flex.get("peak_year_revenue_gbp", 0.0)
-    enrolled_years = flex.get("enrolled_customer_years", 0)
-    per_year: dict = flex.get("per_year", {})
+    total_gbp = data.get("total_flexibility_revenue_gbp", 0.0)
+    resi_total = flex.get("total_flexibility_revenue_gbp", 0.0)
+    ic_total = ic_flex.get("total_ic_flex_revenue_gbp", 0.0)
 
     lines = [
-        "## Flexibility Revenue — DSR & Capacity Market (Phase AG)",
+        "## Flexibility Revenue — DSR & Capacity Market (Phase AG/NX)",
         "",
-        "Customers with EVs, ASHPs, and batteries earn ancillary revenue through two channels:",
-        "- **Capacity Market (CM):** ~£75/kW/yr; T-4 auctions; operational since 2014.",
-        "- **Demand Flexibility Service (DFS):** launched October 2022 by NESO; ~£4.5/MWh × 20 winter dispatch events/yr.",
+        "Two flexibility revenue streams: residential DSR (EV/ASHP/battery via FlexibilityRevenueBook) "
+        "and I&C demand response (interruptible process load via ICFlexibilityRevenueBook).",
+        "- **Capacity Market (CM):** T-4 auction clearing prices (£6.44–£22.50/kW/yr by year, NESO); operational since 2014.",
+        "- **Demand Flexibility Service (DFS):** launched October 2022; £4.5/MWh × 20 events/yr.",
+        "- **I&C DSR aggregator fee:** 20% of gross CM/DFS revenue.",
+        "",
+        f"**Total 2016–2025:** {_fmt_gbp(total_gbp)}  "
+        f"(Residential: {_fmt_gbp(resi_total)} | I&C: {_fmt_gbp(ic_total)})",
         "",
     ]
 
-    cm_total_str = _fmt_gbp(cm_total)
-    dfs_total_str = _fmt_gbp(dfs_total)
-    peak_str = _fmt_gbp(peak_yr_rev)
-    total_str = _fmt_gbp(total_gbp)
-    lines.append(f"**Portfolio total (2016–2025):** {total_str} (CM: {cm_total_str} | DFS: {dfs_total_str} | Peak year: {peak_str} | Enrolled customer-years: {enrolled_years})")
-    lines += [
-        "",
-        "| Year | CM Revenue | DFS Revenue | Total | Enrolled |",
-        "|------|------------|-------------|-------|----------|",
-    ]
+    if ic_has_data:
+        ic_per_year = ic_flex.get("per_year", {})
+        lines += [
+            "### I&C Demand Response Revenue",
+            "",
+            "| Year | Net Revenue | Enrolled | Flex kW |",
+            "|------|-------------|----------|---------|",
+        ]
+        for yr in sorted(ic_per_year.keys()):
+            yd = ic_per_year[yr]
+            net = yd.get("total_net_gbp", 0.0)
+            enrolled = yd.get("enrolled_customers", 0)
+            fkw = yd.get("total_flex_kw", 0.0)
+            lines.append(f"| {yr} | {_fmt_gbp(net)} | {enrolled} | {fkw:.0f} kW |")
+        lines.append("")
 
-    for yr in sorted(per_year.keys()):
-        yd = per_year[yr]
-        cm_gbp = yd.get("cm_gbp", 0.0)
-        dfs_gbp = yd.get("dfs_gbp", 0.0)
-        yr_total = yd.get("total_gbp", 0.0)
-        enrolled = yd.get("enrolled_customers", 0)
-        cm_str = _fmt_gbp(cm_gbp)
-        dfs_str = _fmt_gbp(dfs_gbp)
-        if dfs_gbp == 0.0 and int(yr) < 2022:
-            dfs_str = "£0.00 (pre-DFS)"
-        yr_total_str = _fmt_gbp(yr_total)
-        lines.append(f"| {yr} | {cm_str} | {dfs_str} | {yr_total_str} | {enrolled} |")
+    if resi_has_data:
+        per_year: dict = flex.get("per_year", {})
+        cm_total = flex.get("total_cm_revenue_gbp", 0.0)
+        dfs_total = flex.get("total_dfs_revenue_gbp", 0.0)
+        enrolled_years = flex.get("enrolled_customer_years", 0)
+        lines += [
+            "### Residential DSR Revenue (EV/ASHP/Battery)",
+            "",
+            f"CM total: {_fmt_gbp(cm_total)} | DFS total: {_fmt_gbp(dfs_total)} | Enrolled customer-years: {enrolled_years}",
+            "",
+            "| Year | CM Revenue | DFS Revenue | Total | Enrolled |",
+            "|------|------------|-------------|-------|----------|",
+        ]
+        for yr in sorted(per_year.keys()):
+            yd = per_year[yr]
+            cm_gbp = yd.get("cm_gbp", 0.0)
+            dfs_gbp = yd.get("dfs_gbp", 0.0)
+            yr_total = yd.get("total_gbp", 0.0)
+            enrolled = yd.get("enrolled_customers", 0)
+            dfs_str = _fmt_gbp(dfs_gbp) if dfs_gbp > 0 or int(yr) >= 2022 else "£0.00 (pre-DFS)"
+            lines.append(f"| {yr} | {_fmt_gbp(cm_gbp)} | {dfs_str} | {_fmt_gbp(yr_total)} | {enrolled} |")
+        lines.append("")
 
-    lines += [
-        "",
-        "DFS launched October 2022 (NESO Winter Demand Flexibility Service). Pre-2022 years show CM-only revenue. EV+battery customers earn ~£2,046/yr; EV-only ~£930/yr.",
-        "",
-    ]
     return "\n".join(lines)
 
 

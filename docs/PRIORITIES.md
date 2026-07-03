@@ -65,7 +65,7 @@ spot+service_fee; company holds no commodity price risk. Fix: naked_kwh=0.0 for 
 in run_phase2b.py. C_IC3g: net -GBP 134k -> +GBP 95k (service_fee x volume over 9.5 years).
 
 ## Backlog (lower priority)
-- Dashboard: Flexibility revenue tab -- Phase AG built the data, needs wiring to site/
+- ~~Dashboard: Flexibility revenue tab~~ -- CLOSED (Phase NY, 2026-07-03): extract_flexibility() + dashboard["flexibility"] key + _section_flexibility_revenue extended
 - ToU tariff depth: time-of-use pricing for HH smart meter customers
 - Bad debt stress test: does bad_debt_provision feed back into capital model?
 
