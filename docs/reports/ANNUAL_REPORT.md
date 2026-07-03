@@ -1723,7 +1723,51 @@ Real-world context: Bulb 2021 collapse at ~-0.01x; Igloo 2021 ~0.07x.
 **Weakest year:** 2022 — 16.8x (equity £5,930,261.96 vs monthly revenue £353,797.13). RAG: GREEN.
 **Strongest year:** 2016 — 1933.2x.
 
+## I&C Broker / TPI Commission (Phase OA)
 
+I&C customers procure electricity via energy brokers. Commission rate: £1.5/MWh (0.15p/kWh — standard for large I&C per Ofgem TPI register data).
+
+| Year | Deals | Consumption (MWh) | Commission £ |
+|------|-------|-------------------|--------------|
+| 2016 | 0 | 0 | £0 |
+| 2017 | 1 | 1,983 | £2,974 |
+| 2018 | 2 | 2,986 | £4,478 |
+| 2019 | 3 | 6,987 | £10,481 |
+| 2020 | 4 | 10,016 | £15,024 |
+| 2021 | 4 | 9,907 | £14,860 |
+| 2022 | 4 | 9,868 | £14,802 |
+| 2023 | 4 | 9,883 | £14,825 |
+| 2024 | 4 | 9,929 | £14,894 |
+| 2025 | 4 | 4,239 | £6,358 |
+|------|-------|-------------------|--------------|
+| **Total** | **30** | | **£98,698** |
+
+**Total broker commission 2016–2025:** £98,698
+
+_Note: This cost was previously unmodelled — I&C gross margin was overstated by this amount._
+## Elexon Settlement Reconciliation Exposure (Phase OB)
+
+UK electricity suppliers receive reconciliation adjustments via R1/R2/R3/RF runs (1, 3, 5, 28 months after delivery). 60% resolved at R1; 3% tail into RF.
+HH meters (I&C): ±0.5% variance. Non-HH (resi/SME): ±4%. Portfolio: ~90% HH.
+Zero-mean: adjustments go both ways. Crisis years bias toward supplier credit.
+
+| Year | Revenue £ | Pool Outstanding £ | Max Adverse £ | RAG | Crisis |
+|------|-----------|---------------------|---------------|-----|--------|
+| 2016 | £15,354.61 | £5,706.80 | £48.51 | ✓ GREEN |  |
+| 2017 | £348,630.52 | £129,574.34 | £1,101.38 | ✓ GREEN |  |
+| 2018 | £600,953.01 | £223,354.20 | £1,898.51 | ✓ GREEN |  |
+| 2019 | £1,645,452.10 | £611,559.70 | £5,198.26 | ✓ GREEN |  |
+| 2020 | £1,857,096.31 | £690,220.80 | £5,866.88 | ✓ GREEN |  |
+| 2021 | £2,421,344.01 | £899,932.86 | £7,649.43 | ✓ GREEN | CREDIT EXPECTED |
+| 2022 | £4,245,565.53 | £1,577,935.19 | £13,412.45 | ✓ GREEN | CREDIT EXPECTED |
+| 2023 | £3,495,761.69 | £1,299,258.10 | £11,043.69 | ✓ GREEN |  |
+| 2024 | £2,999,221.95 | £1,114,710.82 | £9,475.04 | ✓ GREEN |  |
+| 2025 | £1,233,083.98 | £458,296.21 | £3,895.52 | ✓ GREEN |  |
+
+**Peak reconciliation exposure:** 2022 — max adverse £13,412 (4.5 months weighted tail).
+
+_Note: Outstanding pool ≈ current-year revenue × (weighted outstanding months ÷ 12)._
+_Max adverse = pool × blended variance rate (0.5% HH + 4% non-HH, portfolio-weighted)._
 ## Risk Committee Activity (2016-2025)
 
 Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate threshold.
