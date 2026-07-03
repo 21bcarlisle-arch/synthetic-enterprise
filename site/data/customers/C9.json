@@ -9,19 +9,19 @@
   "meter_type": "Smart",
   "lifetime_revenue_gbp": 20243.67,
   "lifetime_gross_gbp": 12708.16,
-  "lifetime_net_gbp": 1492.51,
-  "lifetime_net_after_cts_gbp": 11811.57,
+  "lifetime_net_gbp": 1492.5,
+  "lifetime_net_after_cts_gbp": 11811.56,
   "cost_to_serve_gbp": 896.59,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
   },
-  "clv_gbp": 10251.81,
+  "clv_gbp": 12017.28,
   "churn_probability": 0.26,
-  "expected_lifetime_periods": 15.94,
+  "expected_lifetime_periods": 25.95,
   "commodity_split": {
     "electricity": {
-      "net_gbp": 1492.51,
+      "net_gbp": 1492.5,
       "revenue_gbp": 20243.67
     },
     "gas": null
@@ -71,7 +71,7 @@
     {
       "year": 2021,
       "revenue_gbp": 0,
-      "gross_gbp": 1200.4,
+      "gross_gbp": 1200.39,
       "net_gbp": -13.51,
       "tariff_min": 85.33,
       "tariff_max": 264.43
@@ -82,15 +82,15 @@
       "gross_gbp": 1388.8,
       "net_gbp": -116.82,
       "tariff_min": 138.51,
-      "tariff_max": 389.54
+      "tariff_max": 389.55
     },
     {
       "year": 2023,
       "revenue_gbp": 0,
-      "gross_gbp": 1873.77,
+      "gross_gbp": 1873.78,
       "net_gbp": 226.0,
       "tariff_min": 192.57,
-      "tariff_max": 389.54
+      "tariff_max": 389.55
     },
     {
       "year": 2024,

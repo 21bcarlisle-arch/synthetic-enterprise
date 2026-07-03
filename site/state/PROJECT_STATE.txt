@@ -1,79 +1,67 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-07-03T09:20:00Z
+Generated: 2026-07-03T12:55:17Z
 
 ## Summary
-- Current Phase: NL (Bill Shock YoY Recalibration)
-- Test Suite: 14,744 tests passing (unit / fast suite ~10s)
-- Company Modules: 397 Python modules across company/
-- SaaS Modules: 22 | SIM Modules: 22 | Simulation Modules: 46
+- Current Phase: NS (Price-Elasticity Switching Model)
+- Test Suite: 14,824 tests passing (unit / fast suite ~10s)
+- Company Modules: 397+ Python modules across company/
+- SaaS Modules: 22 | SIM Modules: 22 | Simulation Modules: 47
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ (market + settlement engine) | company/ (business layer) | saas/ (SaaS analytics) | site/ (dashboard at poesys.net)
 
 ## Latest Simulation Results (auto-processed 2026-07-03)
-- Net Margin: £1,436,949 (10-year 2016-2025)
-- Gross Margin: £6,453,708
-- Capital at Risk: £51,306
-- Treasury: £2,466,636 → £3,903,585
-- Enterprise Value: £8,087,302 | Net after Cost-to-Serve: £6,347,906
+- Net Margin: GBP1,436,949 (10-year 2016-2025)
+- Gross Margin: GBP6,453,708
+- Capital at Risk: GBP51,306
+- Treasury: GBP2,466,636 -> GBP3,903,585
+- Enterprise Value: GBP8,087,302 | Net after Cost-to-Serve: GBP6,347,906
 - Risk Committee Interventions: 38
 - Bills Issued: 1,574
 - Retention: 12/12 offers accepted | 6 no-offer churns | 6 total churned accounts
 
-## Churn Model Performance (Phase NJ/NK)
-- Three-signal model: bill_shock + payment_behaviour + satisfaction
-- Calibration KPIs: TP/FP/FN/TN/recall/precision/F1 reported on annual board pack
-- YoY bill shock comparison (Phase NL): eliminates seasonal false-positives
+## Key Findings -- Churn Calibration (Phases NS + NQ redirect, 2026-07-03)
+- PRIMARY FINDING: Rising absolute prices do NOT independently drive switching.
+  2022 (bills at GBP3,549/yr) saw switching collapse to 3-4% -- no cheaper alternatives.
+- Savings-elasticity model: 0-300 GBP/yr savings -> 3-22% switching rate (piecewise linear)
+- Crisis multiplier 2022: 0.44x (suppresses even bill-shocked customers)
+- Peak competition 2016: 2.17x (high-competition era amplification)
+- Post-2023 fairer-pricing rule: 0.75x structural suppression (new-customer exclusives banned)
 
-## Recent Build Activity (June-July 2026)
-Phase NL (2026-07-02): Bill Shock YoY Recalibration -- 13 tests (14,744 total). Eliminates 8-11 rolling-avg seasonal shocks/year; now compares same calendar month prior year.
-Phase NK (2026-07-02): Churn Model Performance Report -- 14 tests (14,731 total). Annual report churn_model_performance section with RAG status.
-Phase NJ (2026-07-02): Churn Model Calibration Report -- 16 tests (14,717 total). Board-level recall/precision/F1 KPI.
-Phase NH (2026-07-02): Payment Behaviour Analytics wired -- 17 tests (14,701 total). Three-signal churn model fully operational.
-Phase NG (2026-07-02): Satisfaction score wired into renewal churn estimate -- 16 tests (14,668 total).
-Phase NF (2026-07-02): Gap 3 SIM-side satisfaction churn -- 16 tests (14,652 total).
-Phase NE (2026-07-02): Gas pass-through capital risk correction -- 16 tests (14,636 total). Gap 5 closed.
-Phase ND (2026-07-02): Bill shock tracker wired into run_phase2b -- 16 tests (14,620 total).
-Phase NC (2026-07-02): Enriched company churn estimate (rate+behaviour+satisfaction) -- 16 tests (14,604 total).
-Phase NB (2026-07-02): Satisfaction score -> combined churn model -- 16 tests (14,588 total).
-Phase NA (2026-07-02): Customer Satisfaction Accumulator -- 20 tests (14,572 total).
-Phase MZ (2026-07-02): Income Stress -> SIM switching propensity -- 21 tests (14,552 total).
-Phase MY (2026-07-02): Payment behaviour -> company churn model -- 20 tests (14,531 total).
-Phase MX (2026-07-02): Company payment behaviour analytics -- 26 tests (14,511 total).
-Phase MW (2026-07-02): Income stress -> observed payment behaviour -- 25 tests (14,485 total).
-Phase MV (2026-07-01): Economic life events (IncomeStress) -- 20 tests (13,949 total).
-Coverage Sprints CI-CLIX (2026-07-01): 5,000+ tests across all operational modules.
-
-## Website Sections (poesys.net)
-
-- / (index.html) -- LIVE: main dashboard with sim run metrics, treasury, retention, auto-updated on each run
-- /customers/ -- LIVE: per-customer portal (login with account ID e.g. C1); lifetime P&L, tariff history
-- /project/ -- LIVE: investor summary, test/phase velocity charts, 4 key discoveries, roadmap
-- /sim/ -- LIVE: market data visualisation (settlement prices, HH data)
-- /staging-status/ -- LIVE: pending and actioned staging files
-- /timeline/ -- LIVE: build phase timeline (interactive)
-- /snapshots/ -- LIVE: historical run dashboards (point-in-time snapshots)
-- /state/PROJECT_STATE.txt -- THIS FILE: plain-text machine-readable project state
-
-## Data Files (parseable without JavaScript)
+## Key Files (fetchable without JavaScript)
+- https://poesys.net/state/PROJECT_STATE.txt -- THIS FILE (plain-text)
+- https://poesys.net/state/customer_sample.json -- per-customer ground truth
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/status/LATEST.md -- always-current status
 - site/data/dashboard.json -- full financial + retention + run history
-- site/data/sim_data.json -- HH market data (monthly/annual aggregates)
-- site/data/phases.json -- test progression + phase velocity data
-- site/data/agent_status.json -- background agent health (auto-updated)
-- site/data/customers/*.json -- per-customer P&L and history (21 accounts)
-- docs/status/LATEST.md -- always-current one-page status (plain text)
+- site/data/sim_data.json -- HH market data aggregates
+- site/data/agent_status.json -- background agent health
+- docs/status/LATEST.md -- one-page status (plain text, repo)
 - docs/reports/run_output_latest.json -- full run output (JSON)
 
-## Key Architecture Facts
-- Epistemic Honesty: company layer cannot see SIM internals; discovers world via observables only
-- Point-in-Time Blindfold: business layer uses no future data
-- SIM covers 2016-2025 Elexon HH settlement; crisis years 2021-22 included
-- Hedging: risk committee driven; hf=0 trap (naked hedging) is a documented finding
-- Customer segments: Resi (C1-C4 elec, C1g-C4g gas, TOU variants), I&C (IC3e, IC3g, IC4e)
-- Churn model: three signals (bill shock YoY, payment behaviour score, satisfaction score)
+## Recent Build Activity (July 2026)
+Phase NS (2026-07-03): Price-Elasticity Switching Model -- 19 tests (14,824 total). market_switching_propensity.py: MARKET_SAVINGS_BY_YEAR; piecewise savings-to-rate elasticity calibrated from DESNZ; post-ban factor 0.75x. Crisis 2022 multiplier 0.44x; peak 2016 multiplier 2.17x.
+NQ redirect (2026-07-03): Dropped 5% floor from enriched_churn_estimate (cosmetic, no discrimination improvement). Kept 24-month yoy_extended reference window.
+Phase NR (2026-07-03): Bad Debt -> Capital Stress Feedback -- 19 tests (14,805 total). Full Ofgem FRA requirement: equity > (price_VaR + credit_stress).
+Phase NQ (2026-07-03): Churn Model Recalibration -- 14 tests (14,786 total). yoy_extended 24-month reference window for sustained crisis periods.
+Phase NO (2026-07-03): Counterfactual Retention & Threshold Optimisation -- 15 tests (14,772 total). Optimal F1 threshold=0% reveals model underestimation.
+Phase NP (2026-07-03): Behavioral Trajectory Emission -- 13 tests (14,757 total). income_stress_trajectory + life_event_history in run output.
+Remote Staging Bridge (2026-07-03): staging_watcher.py fetches [ADVISOR-STAGED] commits. 12 tests.
 
-## Key Metrics (10-year 2016-2025)
-- Started: June 2026 | Current: July 2026
-- Tests at start (Phase 0): 0 | Tests now: 14,744
-- Net margin all-time: £1,436,949 | Crisis survived: 2021-22
-- Retention rate: 100% (12/12 offers accepted in last run)
-- Bad debt: included in capital figure
+## Website Sections (poesys.net)
+- / (index.html) -- LIVE: main dashboard
+- /customers/ -- LIVE: per-customer portal
+- /project/ -- LIVE: investor summary
+- /sim/ -- LIVE: market data visualisation
+- /staging-status/ -- LIVE: pending staging files
+- /state/PROJECT_STATE.txt -- THIS FILE
+
+## Key Architecture Facts
+- Epistemic Honesty: company layer cannot see SIM internals
+- Point-in-Time Blindfold: no future data in business layer
+- Churn model: three signals (bill shock YoY, payment behaviour, satisfaction) + market year elasticity
+- Market switching multiplier: savings-elastic (DESNZ calibrated, 2016-2025)
+- Customer segments: Resi (C1-C4 elec/gas, TOU), I&C (IC3e, IC3g, IC4e)
+
+## Key Metrics
+- Tests at start (Phase 0): 0 | Tests now: 14,824
+- Net margin all-time: GBP1,436,949 | Crisis survived: 2021-22
+- Retention rate: 100% (12/12 offers in last run) | 6 no-offer churns

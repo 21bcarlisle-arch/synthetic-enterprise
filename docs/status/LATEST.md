@@ -1,5 +1,5 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T12:46:16Z
+Last updated: 2026-07-03T12:58:44Z
 
 ## Current Status
 Phase NS COMPLETE (2026-07-03) -- Price-Elasticity Switching Model: simulation/market_switching_propensity.py (MARKET_SAVINGS_BY_YEAR; _savings_to_rate piecewise; market_switching_multiplier normalised 2024=1.0); customer_events.py market_year param wired; run_phase2b passes year at each renewal. 19 tests, 14,824 total. KEY: rising prices do NOT drive switching -- savings available is primary driver (2022: bills £3,549 yet switching 3-4%).
@@ -10,7 +10,7 @@ Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,436,949 (git 51045433, 2026-07-03)
+Net position: £1,445,258 (git 60780587, 2026-07-03)
 
 ## Test Suite
 - **14,824 tests passing** (fast suite ~10s)
@@ -26,8 +26,8 @@ Net position: £1,436,949 (git 51045433, 2026-07-03)
 - **Phase NL** (2026-07-02): saas/customer_reaction.py YoY comparison; saas/churn_model.py comparison_mode=yoy. 13 tests, 14,744 total.
 - **Phase NK** (2026-07-02): churn_model_performance section in annual report. 14 tests, 14,731 total.
 
-**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
-- Net margin: £1,436,949.07 | Gross: £6,453,707.51 | Capital: £51,306
-- Treasury: £2,466,636 → £3,903,585 | 38 committee interventions | 1574 bills issued
-- Enterprise value: £8,087,302.19 | Net after CTS: £6,347,906
+**Latest simulation results (2016–2025)** — auto-processed (585s / 10 min):
+- Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
+- Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
+- Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
 - Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
