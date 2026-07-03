@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-03T21:16:24.353570+00:00",
+  "last_updated": "2026-07-03T21:19:01.750907+00:00",
   "agents": [
     {
       "name": "session-watchdog",
       "status": "idle",
-      "last_heartbeat": "2026-07-03T21:16:00.639082+00:00",
+      "last_heartbeat": "2026-07-03T21:19:01.750907+00:00",
       "last_action": "Session alive check passed",
-      "last_action_ts": "2026-07-03T21:16:00.639082+00:00",
+      "last_action_ts": "2026-07-03T21:19:01.750907+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-03T21:16:24.353570+00:00",
+      "last_heartbeat": "2026-07-03T21:18:54.364590+00:00",
       "last_action": "Heartbeat \u2014 1 files tracked",
-      "last_action_ts": "2026-07-03T21:16:24.353570+00:00",
+      "last_action_ts": "2026-07-03T21:18:54.364590+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-03T21:13:46.895286+00:00",
-      "last_action": "Waiting for next cycle (4h 20m remaining)",
-      "last_action_ts": "2026-07-03T21:13:46.895286+00:00",
+      "last_heartbeat": "2026-07-03T21:18:46.901930+00:00",
+      "last_action": "Waiting for next cycle (4h 15m remaining)",
+      "last_action_ts": "2026-07-03T21:18:46.901930+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -65,9 +65,9 @@
     {
       "name": "autonomous-runner",
       "status": "working",
-      "last_heartbeat": "2026-07-03T21:15:54.529642+00:00",
+      "last_heartbeat": "2026-07-03T21:17:54.537490+00:00",
       "last_action": "Autonomous turn running",
-      "last_action_ts": "2026-07-03T21:15:54.529642+00:00",
+      "last_action_ts": "2026-07-03T21:17:54.537490+00:00",
       "anomaly": null,
       "role": "Runs scheduled Claude Code sessions for background work when session is idle",
       "produces": "CC session activity, phase completions"
