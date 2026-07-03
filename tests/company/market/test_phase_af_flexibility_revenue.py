@@ -58,7 +58,7 @@ def test_ev_earns_dfs_from_2022():
     rec = book.records_for_year(2022)[0]
     assert rec.dfs_revenue_gbp > 0.0
     expected_dfs = round(
-        _EV_FLEX_KW * _DFS_RATE_GBP_PER_MWH * _DISPATCH_EVENTS_PER_YR * _DISPATCH_DURATION_HRS, 2
+        _EV_FLEX_KW / 1000 * _DISPATCH_DURATION_HRS * _DFS_RATE_GBP_PER_MWH * _DISPATCH_EVENTS_PER_YR, 2
     )
     assert rec.dfs_revenue_gbp == expected_dfs
     assert rec.total_revenue_gbp == round(rec.capacity_market_revenue_gbp + rec.dfs_revenue_gbp, 2)

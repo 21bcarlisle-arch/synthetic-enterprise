@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 476+ commits. 14,891 tests passing. Codebase: ~50,100 lines across 325+ Python modules.*
+*Last updated: 2026-07-03. 477+ commits. 14,869 tests passing. Codebase: ~50,300 lines across 326+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NX -- I&C Demand Response Enrollment (2026-07-03)
+24 tests. `company/market/ic_flexibility_revenue.py` (new): `ICFlexibilityRecord` frozen dataclass (customer_id/year/eac_kwh/peak_demand_kw/flex_kw/cm_price_gbp_per_kw/gross_cm_revenue_gbp/gross_dfs_revenue_gbp/aggregator_fee_gbp/net_revenue_gbp). `ICFlexibilityRevenueBook.compute_year(year, ic_customers)`: filters EAC>=200 MWh; peak_kw = EAC/(8760*0.65); flex_kw = peak_kw * 10%; CM revenue at published T-4 clearing prices (£6.44-£22.50/kW/yr by year, sourced from NESO); DFS from 2022 (£4.5/MWh, 20 events, 1 hr, flex_mw * duration * rate * events); aggregator fee 20%. `run_phase2b.py`: ICFlexibilityRevenueBook wired; 4 I&C electricity customers enrolled each year; ic_flexibility_summary in results dict; total_flexibility_revenue incremented. RESULT: £21k CM/DFS revenue 2016-2025 (was £0). Also fixed dormant DFS formula bug in `flexibility_potential.py` (was 1000x too high: used flex_kw*rate instead of flex_mw*rate; harmless since no resi EV adoption). Epistemic: company observes I&C EAC from billing records (no SIM internals). PASS.
+**Total:** 14,869 tests
 
 ### Phase NW -- Shadow Retention Strategy P&L (2026-07-03)
 11 tests. `saas/reporting/shadow_retention.py` (new): `ShadowRetentionEvent` frozen dataclass -- customer_id/year/expected_margin_gbp/company_churn_estimate/p_accept/shadow_margin_retained_gbp/shadow_offer_cost_gbp/shadow_net_gain_gbp. `ShadowRetentionSummary` per-year aggregate. `build_shadow_retention_analysis(run_data)` processes no_offer_churn_log: p_accept = (1 - churn_estimate) * 0.9; shadow_margin_retained = margin * p_accept * (1 - 8% discount); net_gain = retained - cost. `saas/reporting/annual_report.py`: `_section_shadow_retention` board section -- 3-year table of no-offer churns; total opportunity cost summary. KEY FINDINGS (live 2016-2025 data): shadow universal-retention strategy nets +£4,321 total over actual (£6,623 margin lost across 6 no-offer churns; £411 offer cost). ALL no-offer churns are residential customers with small margins; I&C customers already received offers. VERDICT: current threshold strategy is near-optimal -- the retention engine is correctly prioritising I&C (large margin, high churn risk) over below-threshold residential. Shadow ops reveals there is no significant untapped retention opportunity under the current portfolio composition. Directly addresses P4: shadow live ops. Epistemic: PASS.

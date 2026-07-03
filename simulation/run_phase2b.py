@@ -96,6 +96,7 @@ from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfact
 from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
 from company.crm.payment_behaviour_analytics import PaymentBehaviourAnalytics
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
+from company.market.ic_flexibility_revenue import ICFlexibilityRevenueBook
 from company.analytics.churn_accuracy_report import compute_churn_model_performance as _compute_churn_model_performance
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
@@ -1711,6 +1712,18 @@ def main(report_end: str | None = None, sim_interface=None):
     flexibility_revenue_summary = _flex_book.flexibility_summary()
     total_flexibility_revenue = _flex_book.total_revenue_all_years()
 
+    # Phase NX: I&C Demand Response Enrollment (CM/DFS for process flexibility).
+    _ic_flex_book = ICFlexibilityRevenueBook()
+    _ic_elec_customers = [c for c in ELEC_CUSTOMERS if c.get("segment") == "I&C"]
+    _ic_flex_input = [
+        (c["customer_id"], EFFECTIVE_EAC_KWH.get(c["customer_id"], 0.0))
+        for c in _ic_elec_customers
+    ]
+    for _yr_str in _all_years:
+        _ic_flex_book.compute_year(int(_yr_str), _ic_flex_input)
+    ic_flexibility_summary = _ic_flex_book.flexibility_summary()
+    total_flexibility_revenue += _ic_flex_book.total_revenue_all_years()
+
     # Phase 27d: Triad risk for I&C customers.
     # Identify Triad periods for each winter in the run window, then compute
     # each I&C customer's TNUoS exposure. Uses SSP as a demand proxy.
@@ -1809,6 +1822,8 @@ def main(report_end: str | None = None, sim_interface=None):
         "flexibility_revenue_summary": flexibility_revenue_summary,
         "flexibility_revenue_by_year": _flex_by_year,
         "total_flexibility_revenue": total_flexibility_revenue,
+        # Phase NX: I&C demand response enrollment
+        "ic_flexibility_summary": ic_flexibility_summary,
         "per_customer_behavioral": _build_behavioral_trajectories(
             ELEC_CUSTOMERS + GAS_CUSTOMERS,
             household_demand_register,

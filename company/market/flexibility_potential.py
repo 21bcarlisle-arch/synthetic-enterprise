@@ -95,9 +95,10 @@ def _estimate_flex_kw(has_ev: bool, has_ashp: bool, has_battery: bool) -> float:
 
 
 def _estimate_dfs_revenue(flex_kw: float) -> float:
+    # MWh per event = flex_kw * duration_hrs / 1000; multiply by rate and events
     flex_mw = flex_kw / 1000.0
     return round(
-        flex_mw * 1000 * _DFS_RATE_GBP_PER_MWH * _DISPATCH_EVENTS_PER_YR * _DISPATCH_DURATION_HRS,
+        flex_mw * _DISPATCH_DURATION_HRS * _DFS_RATE_GBP_PER_MWH * _DISPATCH_EVENTS_PER_YR,
         2,
     )
 

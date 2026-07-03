@@ -23,6 +23,8 @@ Phase NQ COMPLETE (2026-07-03): Churn Model Recalibration -- INDUSTRY_BASE_CHURN
 All 5 real capability gaps CLOSED (Gaps 1-5).
 
 ## Next (roadmap items outbid self-generated work)
+- **Phase NX: I&C Demand Response Enrollment** -- DONE (2026-07-03). ICFlexibilityRevenueBook wired; £21k CM/DFS revenue from 4 I&C customers over 2016-2025; DFS formula bug fixed.
+
 - **Phase NQ: Churn Recalibration** -- DONE (2026-07-03). Base rate floor + 24m reference window.
 - **Plausibility vs industry section** -- DONE (Harness Hardening 2026-07-03)
 - **Remote staging bridge** -- DONE (2026-07-03)
