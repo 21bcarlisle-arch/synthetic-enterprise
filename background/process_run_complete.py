@@ -193,6 +193,12 @@ def generate_dashboard_json(json_path):
         log("Generated site/shadow/ static HTML mirror")
     except Exception as exc:
         log("Shadow HTML generation failed: {}".format(exc))
+    try:
+        from tools.generate_project_state import generate as gen_state
+        gen_state()
+        log("Generated site/state/PROJECT_STATE.txt")
+    except Exception as exc:
+        log("PROJECT_STATE generation failed: {}".format(exc))
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):

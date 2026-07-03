@@ -144,7 +144,7 @@ def build_index(dash, ts):
         + '<div class="meta">2016&#8211;2025 | Phase ' + str(phase)
         + " | " + str(tests) + " tests | " + str(modules) + " modules</div>"
         + "<h2>10-Year Totals</h2><dl>"
-        + "<dt>Net Margin</dt><dd class="" + _cls(net) + "">" + _gbp(net) + "</dd>"
+        + '<dt>Net Margin</dt><dd class="' + _cls(net) + '">' + _gbp(net) + "</dd>"
         + "<dt>Gross Margin</dt><dd>" + _gbp(gross) + "</dd>"
         + "<dt>Enterprise Value</dt><dd>" + _gbp(ev) + "</dd>"
         + "<dt>Treasury Start</dt><dd>" + _gbp(t_start) + "</dd>"
