@@ -21162,3 +21162,71 @@
 - [2026-07-03 08:08 UTC] Auto-processed run complete marker
 - [2026-07-03 08:08 UTC] Waiting 60s before next run...
 - [2026-07-03 08:09 UTC] Starting run — git=fcf39189, json=run_output_fcf39189_20260703T080905Z.json
+- [2026-07-03 09:36 UTC] Run complete — 831s, 1048 KB (run_output_8f6bbcf7_20260703T092234Z.json)
+- [2026-07-03 09:36 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 831, "size_kb": 1048, "json": "run_output_8f6bbcf7_20260703T092234Z.json"}, "timestamp": "2026-07-03T09:36:25.393677+00:00", "session_id": null}
+- [2026-07-03 09:36 UTC] [process_run] Processing run_complete_20260703T092234Z.md
+- [2026-07-03 09:36 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_8f6bbcf7_20260703T092234Z.json
+- [2026-07-03 09:36 UTC] [process_run] Updating LATEST.md
+- [2026-07-03 09:36 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-07-03 09:36 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-03 09:36 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-07-03 09:36 UTC] [process_run] Generated customer invoice JSON
+- [2026-07-03 09:36 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-03 09:36 UTC] [process_run] Generated site/data/customer_sample.json
+- [2026-07-03 09:36 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-03 09:36 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-07-03 09:36 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-07-03 09:36 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-07-03 09:36 UTC] [process_run] Publishing market price feed
+- [2026-07-03 09:36 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-07-03 09:36 UTC] [process_run] Publishing HH consumption data feed
+- [2026-07-03 09:36 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-07-03 09:36 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-07-03 09:36 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-07-03 09:36 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-07-03 09:37 UTC] [process_run] Committing and pushing (net=£1,436,949)
+- [2026-07-03 09:37 UTC] [process_run] Moved run_complete_20260703T092234Z.md to done/
+- [2026-07-03 09:37 UTC] [process_run] Done
+- [2026-07-03 09:37 UTC] Auto-processed run complete marker
+- [2026-07-03 09:37 UTC] Waiting 60s before next run...
+- [2026-07-03 09:38 UTC] Starting run — git=d80c97a4, json=run_output_d80c97a4_20260703T093824Z.json
+- [2026-07-03 09:49 UTC] Run FAILED (rc=1) after 647s
+- [2026-07-03 09:49 UTC] Waiting 300s before next run...
+- [2026-07-03 09:54 UTC] Starting run — git=d69cade6, json=run_output_d69cade6_20260703T095412Z.json
+- [2026-07-03 10:02 UTC] Run FAILED (rc=1) after 521s
+- [2026-07-03 10:02 UTC] Waiting 300s before next run...
+- [2026-07-03 10:07 UTC] Starting run — git=47ba1178, json=run_output_47ba1178_20260703T100753Z.json
+- [2026-07-03 10:15 UTC] Run FAILED (rc=1) after 450s
+- [2026-07-03 10:15 UTC] Waiting 300s before next run...
+- [2026-07-03 10:20 UTC] Starting run — git=47ba1178, json=run_output_47ba1178_20260703T102023Z.json
+- [2026-07-03 10:27 UTC] Run FAILED (rc=1) after 451s
+- [2026-07-03 10:27 UTC] Waiting 300s before next run...
+- [2026-07-03 10:32 UTC] Starting run — git=47ba1178, json=run_output_47ba1178_20260703T103254Z.json
+- [2026-07-03 10:45 UTC] Run FAILED (rc=1) after 748s
+- [2026-07-03 10:45 UTC] Waiting 300s before next run...
+- [2026-07-03 10:50 UTC] Starting run — git=47ba1178, json=run_output_47ba1178_20260703T105023Z.json
+- [2026-07-03 11:00 UTC] Run FAILED (rc=1) after 618s
+- [2026-07-03 11:00 UTC] Waiting 300s before next run...
+- [2026-07-03 11:05 UTC] Starting run — git=47ba1178, json=run_output_47ba1178_20260703T110541Z.json
+- [2026-07-03 11:15 UTC] Run complete — 604s, 1048 KB (run_output_47ba1178_20260703T110541Z.json)
+- [2026-07-03 11:15 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 604, "size_kb": 1048, "json": "run_output_47ba1178_20260703T110541Z.json"}, "timestamp": "2026-07-03T11:15:45.437738+00:00", "session_id": null}
+- [2026-07-03 11:15 UTC] [process_run] Processing run_complete_20260703T110541Z.md
+- [2026-07-03 11:15 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_47ba1178_20260703T110541Z.json
+- [2026-07-03 11:15 UTC] [process_run] Updating LATEST.md
+- [2026-07-03 11:15 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-07-03 11:15 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-03 11:15 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-07-03 11:15 UTC] [process_run] Generated customer invoice JSON
+- [2026-07-03 11:15 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-03 11:15 UTC] [process_run] Generated site/data/customer_sample.json
+- [2026-07-03 11:15 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-03 11:15 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-07-03 11:15 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-07-03 11:15 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-07-03 11:15 UTC] [process_run] Publishing market price feed
+- [2026-07-03 11:15 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-07-03 11:15 UTC] [process_run] Publishing HH consumption data feed
+- [2026-07-03 11:15 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-07-03 11:15 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-07-03 11:15 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-07-03 11:15 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)

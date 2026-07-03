@@ -1,5 +1,5 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T11:14:38Z
+Last updated: 2026-07-03T11:16:49Z
 
 ## Current Status
 Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN_RATE=0.05 floor on enriched_churn_estimate + passive model; yoy_extended 24-month reference window in score_experience_signals; build_churn_risk comparison_mode param; Phase NP pay_metrics dict access bug fixed. 14 tests, 14,786 total. Recall from 0% now quantifiable at lower thresholds.
@@ -13,7 +13,7 @@ Phase NO COMPLETE (2026-07-03) -- Counterfactual Retention & Threshold Optimisat
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,436,949 (git 8f6bbcf7, 2026-07-03)
+Net position: £1,436,949 (git 47ba1178, 2026-07-03)
 
 ## Test Suite
 - **14,772 tests passing** (fast suite ~10s)
@@ -29,7 +29,7 @@ Net position: £1,436,949 (git 8f6bbcf7, 2026-07-03)
 - **Phase NH** (2026-07-02): PaymentBehaviourAnalytics wired into run_phase2b.py -- three-signal churn model (bill_shock+behaviour+satisfaction) fully operational. 17 tests, 14,701 total.
 - **Fix** (2026-07-02): TOU bill shock counter -- resi HH TOU customers no longer get 500-1500 spurious shocks. 14 tests, 14,684 total.
 
-**Latest simulation results (2016–2025)** — auto-processed (831s / 14 min):
+**Latest simulation results (2016–2025)** — auto-processed (604s / 10 min):
 - Net margin: £1,436,949.07 | Gross: £6,453,707.51 | Capital: £51,306
 - Treasury: £2,466,636 → £3,903,585 | 38 committee interventions | 1574 bills issued
 - Enterprise value: £8,087,302.19 | Net after CTS: £6,347,906
