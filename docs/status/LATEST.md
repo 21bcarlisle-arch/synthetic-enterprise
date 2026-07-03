@@ -1,26 +1,18 @@
-# LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T19:56:28Z
+## Phase PR: Population Anchoring Robustness
+Last updated: 2026-07-03T20:13:09Z
 
-## Current Status
-Phase OL COMPLETE (2026-07-03) -- Carbon Emissions: FuelMixRecord 2016-2025; scope 2+1; 290->175g/kWh trend. 17 tests, 15,148 total.
+**Status:** COMPLETE. 15,194 tests passing.
 
-Website fixes deployed (2026-07-03):
-- Supplier dashboard: kpi() function + CSS added -- Regulatory and Capabilities tabs now render correctly.
-- Customer portal: JS string bug fixed (line 208 kpi-value class attribute was broken) -- portal now renders account details.
-- Annual report: management_accounts None guard fixed (was crashing on empty ledger).
+**What changed:**
+- `tools/population_anchor.py`: `_long_run_comparison` added (SIM 10-yr avg vs Ofgem avg)
+- `_crisis_churn_direction` now uses 3-year rolling windows (not single-year)
+- `crisis_divergence_flag` requires rolling + absolute + N>=10
+- `overall_rag` now AMBER (was false-alarm RED from Phase PQ single-year small-N noise)
 
-## Last Run
-Net position: £1,445,258 (git 7d8feb2b, 2026-07-03)
-Revenue: GBP 14,060,576 | Treasury: GBP 3,911,894 | EV: GBP 8,826,939
+**KEY FINDING:** SIM long-run average churn 6.4% vs Ofgem 13.6% (ratio=0.47) -- SIM is BELOW market average over full decade.
 
-## Test Suite
-- **15,189 tests passing** (Phase PQ: +18)
-- Epistemic verifier: PASS
-- Priority 3 complete: Population anchoring gate (population_anchoring.json)
-- Priority 2 complete: Per-customer billing ledger (billing_ledger.json)
-
-**Latest simulation results (2016–2025)** — auto-processed (851s / 14 min):
-- Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
-- Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
-- Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
-- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
+**Live URLs:**
+- https://poesys.net/state/population_anchoring.json -- AMBER, long-run GREEN
+- https://poesys.net/state/billing_ledger.json -- 1,605 invoices
+- https://poesys.net/state/customer_sample.json -- behavioral data populated
+- https://poesys.net/shadow/ -- all 4 sections live

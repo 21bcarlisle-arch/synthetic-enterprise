@@ -3,15 +3,27 @@
     "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
     "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)"
   },
-  "overall_rag": "RED",
+  "overall_rag": "AMBER",
+  "long_run_comparison": {
+    "sim_avg_pct": 6.4,
+    "ofgem_avg_pct": 13.6,
+    "ratio": 0.47,
+    "years_compared": 10,
+    "total_renewals": 62,
+    "rag": "GREEN",
+    "note": "SIM portfolio is predominantly I&C (B2B contract churn) vs Ofgem residential switching. Long-run average comparison is more robust than single-year with N<15 renewals."
+  },
   "crisis_churn_direction": {
-    "2020_churn_rate": 20.0,
-    "2021_churn_rate": 0.0,
-    "2022_churn_rate": 22.2,
-    "2020_multiplier_normalised": 21.1,
-    "2022_multiplier_normalised": 50.5,
-    "crisis_divergence_flag": true,
-    "note": "SIM shows I&C-specific churn; Ofgem switching data is for residential. 2022 multiplier=0.44 should suppress churn vs 2020 multiplier=0.95. Flag fires if 2022 normalised propensity is >2x 2020 propensity."
+    "pre_crisis_avg_pct": 6.7,
+    "crisis_avg_pct": 7.4,
+    "2022_sim_rate_pct": 22.2,
+    "2022_ofgem_rate_pct": 4.0,
+    "2022_ratio_vs_ofgem": 5.6,
+    "rolling_divergence_flag": false,
+    "absolute_divergence_flag": true,
+    "crisis_divergence_flag": false,
+    "insufficient_data": false,
+    "note": "3-year rolling comparison reduces single-year small-N noise. crisis_divergence_flag requires BOTH rolling AND absolute divergence AND adequate N. I&C at-contract-end churn is structurally higher than residential -- 4x Ofgem threshold allows for portfolio composition difference."
   },
   "bad_debt_vs_benchmark": [
     {

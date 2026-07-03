@@ -1,15 +1,30 @@
-"""Tests for tools/population_anchor.py (Phase PQ)."""
+"""Tests for tools/population_anchor.py (Phase PR -- improved crisis churn direction + long-run comparison)."""
 import json
 from pathlib import Path
 
 from tools.population_anchor import (
     generate, _churn_by_year, _bad_debt_check, _crisis_churn_direction,
-    _multiplier_alignment, OFGEM_SWITCHING_RATE, CALIBRATED_MULTIPLIER
+    _multiplier_alignment, _long_run_comparison,
+    OFGEM_SWITCHING_RATE, CALIBRATED_MULTIPLIER,
 )
 
 
 def _ev(cid, yr, et):
     return {"customer_id": cid, "event_date": "%s-06-30" % yr, "event_type": et}
+
+
+def _cby(rates_and_counts):
+    """Build churn_by_year dict from {year: (sim_churn_rate, renewals, churns)}."""
+    result = {}
+    for yr, (rate, r, c) in rates_and_counts.items():
+        result[yr] = {
+            "sim_churn_rate": rate,
+            "renewals": r,
+            "churns": c,
+            "ofgem_benchmark": OFGEM_SWITCHING_RATE.get(yr),
+            "calibrated_multiplier": CALIBRATED_MULTIPLIER.get(yr),
+        }
+    return result
 
 
 def _make_run(events=None, years=None):
@@ -62,61 +77,98 @@ def test_bad_debt_red_non_crisis():
 
 
 def test_bad_debt_crisis_year_higher_threshold():
-    # 3% bad debt in 2022 crisis -- within 4% crisis ceiling, should be AMBER not RED
     years = {"2022": {"bad_debt_gbp": 15000, "revenue_gbp": 500000}}
     findings = _bad_debt_check(years)
     assert findings[0]["rag"] in ("AMBER", "GREEN")
 
 
 def test_crisis_direction_no_divergence():
-    churn = {
-        2020: {"sim_churn_rate": 0.10},
-        2021: {"sim_churn_rate": 0.05},
-        2022: {"sim_churn_rate": 0.04},
-    }
+    churn = _cby({
+        2019: (0.10, 5, 1), 2020: (0.08, 5, 0), 2021: (0.04, 5, 0),
+        2022: (0.04, 5, 0), 2023: (0.03, 5, 0),
+    })
     result = _crisis_churn_direction(churn)
     assert not result["crisis_divergence_flag"]
 
 
 def test_crisis_direction_with_divergence():
-    # 2022 churn = 0.50, 2020 = 0.10: normalised 2022 propensity is very high
-    churn = {
-        2020: {"sim_churn_rate": 0.10},
-        2021: {"sim_churn_rate": 0.02},
-        2022: {"sim_churn_rate": 0.50},
-    }
+    # Crisis window avg much higher than pre-crisis AND absolute 2022 >> 4x Ofgem
+    churn = _cby({
+        2019: (0.05, 5, 0), 2020: (0.05, 5, 0), 2021: (0.03, 5, 0),
+        2022: (0.50, 5, 2), 2023: (0.40, 5, 2),
+    })
     result = _crisis_churn_direction(churn)
     assert result["crisis_divergence_flag"]
 
 
+def test_crisis_direction_insufficient_data():
+    churn = _cby({
+        2020: (0.10, 2, 0), 2021: (0.05, 2, 0),
+        2022: (0.50, 2, 1), 2023: (0.40, 2, 1),
+    })
+    result = _crisis_churn_direction(churn)
+    assert result["insufficient_data"] is True
+    assert not result["crisis_divergence_flag"]
+
+
+def test_crisis_direction_has_3yr_rolling_fields():
+    churn = _cby({
+        2019: (0.10, 5, 1), 2020: (0.08, 5, 0),
+        2021: (0.05, 5, 0), 2022: (0.22, 5, 2), 2023: (0.00, 5, 0),
+    })
+    result = _crisis_churn_direction(churn)
+    assert "pre_crisis_avg_pct" in result
+    assert "crisis_avg_pct" in result
+    assert "2022_ratio_vs_ofgem" in result
+
+
+def test_long_run_comparison_low_ratio_green():
+    # SIM 6% vs Ofgem 13% avg -> ratio 0.47 -> GREEN
+    churn = _cby({
+        2016: (0.00, 5, 0), 2017: (0.00, 5, 0), 2018: (0.00, 5, 0),
+        2019: (0.00, 5, 0), 2020: (0.20, 5, 2), 2021: (0.00, 5, 0),
+        2022: (0.22, 5, 2), 2023: (0.00, 5, 0), 2024: (0.22, 5, 2), 2025: (0.00, 5, 0),
+    })
+    result = _long_run_comparison(churn)
+    assert result["rag"] == "GREEN"
+    assert result["ratio"] < 1.0
+
+
+def test_long_run_comparison_high_ratio_red():
+    # SIM 45% vs Ofgem 13% avg -> ratio ~3.3 -> AMBER or RED
+    churn = _cby({
+        2016: (0.50, 5, 2), 2017: (0.50, 5, 2), 2018: (0.40, 5, 2),
+        2019: (0.40, 5, 2), 2020: (0.50, 5, 2), 2021: (0.40, 5, 2),
+        2022: (0.45, 5, 2), 2023: (0.40, 5, 2), 2024: (0.40, 5, 2), 2025: (0.45, 5, 2),
+    })
+    result = _long_run_comparison(churn)
+    assert result["rag"] in ("AMBER", "RED")
+
+
+def test_long_run_has_note():
+    churn = _cby({2020: (0.10, 5, 1), 2021: (0.05, 5, 0), 2022: (0.04, 5, 0)})
+    result = _long_run_comparison(churn)
+    assert "note" in result
+
+
 def test_multiplier_alignment_all_tracking():
-    # Both Ofgem and SIM going down 2021->2022: GREEN
-    churn = {
-        2021: {"sim_churn_rate": 0.09},
-        2022: {"sim_churn_rate": 0.04},
-    }
+    churn = _cby({2021: (0.09, 5, 1), 2022: (0.04, 5, 0)})
     findings = _multiplier_alignment(churn)
     assert any(f["year_transition"] == "2021->2022" and f["rag"] == "GREEN" for f in findings)
 
 
 def test_multiplier_alignment_diverges():
-    # Ofgem going down but SIM going up: AMBER
-    churn = {
-        2021: {"sim_churn_rate": 0.02},
-        2022: {"sim_churn_rate": 0.30},
-    }
+    churn = _cby({2021: (0.02, 5, 0), 2022: (0.30, 5, 2)})
     findings = _multiplier_alignment(churn)
     assert any(f["year_transition"] == "2021->2022" and f["rag"] == "AMBER" for f in findings)
 
 
 def test_ofgem_switching_rates_have_crisis_collapse():
-    # Ofgem 2022 switching rate should be much lower than 2020
     assert OFGEM_SWITCHING_RATE[2022] < OFGEM_SWITCHING_RATE[2020]
-    assert OFGEM_SWITCHING_RATE[2022] < 0.06  # 6% ceiling
+    assert OFGEM_SWITCHING_RATE[2022] < 0.06
 
 
 def test_calibrated_multiplier_crisis_year_low():
-    # 2022 multiplier should be much lower than 2016
     assert CALIBRATED_MULTIPLIER[2022] < CALIBRATED_MULTIPLIER[2016] * 0.5
 
 
@@ -136,6 +188,7 @@ def test_generate_output_structure(tmp_path):
     assert "bad_debt_vs_benchmark" in result
     assert "multiplier_alignment" in result
     assert "churn_by_year" in result
+    assert "long_run_comparison" in result
 
 
 def test_generate_writes_file(tmp_path):
@@ -157,7 +210,10 @@ def test_generate_empty_events(tmp_path):
 
 
 def test_crisis_note_in_result():
-    churn = {2020: {"sim_churn_rate": 0.1}, 2021: {"sim_churn_rate": 0.0}, 2022: {"sim_churn_rate": 0.05}}
+    churn = _cby({
+        2019: (0.1, 5, 1), 2020: (0.08, 5, 0), 2021: (0.05, 5, 0),
+        2022: (0.04, 5, 0), 2023: (0.03, 5, 0),
+    })
     result = _crisis_churn_direction(churn)
     assert "note" in result
 

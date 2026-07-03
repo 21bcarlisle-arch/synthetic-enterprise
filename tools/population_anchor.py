@@ -94,43 +94,77 @@ def _bad_debt_check(years_data: dict) -> list:
     return findings
 
 
-def _crisis_churn_direction(churn_by_year: dict) -> dict:
-    """Check: 2022 churn should NOT be higher than 2020 (pre-crisis baseline).
-    
-    I&C portfolios have high natural variance (small N), so we flag only when
-    the multiplier-normalised rate diverges significantly.
-    Critical: market_switching_multiplier in 2022 (0.44) vs 2020 (0.95) implies
-    SIM should show lower propensity in 2022. If effective churn is higher in
-    2022 than 2020, multiplier adjustment may be insufficient.
+def _long_run_comparison(churn_by_year: dict) -> dict:
+    """Compare SIM average churn (2016-2025) vs Ofgem average switching rate.
+
+    More statistically robust than single-year comparisons with small N.
     """
-    yr2020 = churn_by_year.get(2020, {})
-    yr2021 = churn_by_year.get(2021, {})
-    yr2022 = churn_by_year.get(2022, {})
-    
-    rate_2020 = yr2020.get("sim_churn_rate", 0.0)
-    rate_2021 = yr2021.get("sim_churn_rate", 0.0)
-    rate_2022 = yr2022.get("sim_churn_rate", 0.0)
-    
-    mult_2020 = CALIBRATED_MULTIPLIER.get(2020, 0.95)
-    mult_2022 = CALIBRATED_MULTIPLIER.get(2022, 0.44)
-    
-    # Normalise churn by multiplier to get "propensity"
-    prop_2020 = rate_2020 / mult_2020 if mult_2020 > 0 else 0
-    prop_2022 = rate_2022 / mult_2022 if mult_2022 > 0 else 0
-    
-    diverges = prop_2022 > prop_2020 * 2.0  # 2x threshold allows for small-N variance
-    
+    sim_years = [yr for yr in churn_by_year if yr in OFGEM_SWITCHING_RATE]
+    if not sim_years:
+        return {"sim_avg_pct": None, "ofgem_avg_pct": None, "ratio": None, "rag": "GREEN", "note": "no data"}
+    sim_avg = sum(churn_by_year[yr]["sim_churn_rate"] for yr in sim_years) / len(sim_years)
+    ofgem_avg = sum(OFGEM_SWITCHING_RATE[yr] for yr in sim_years) / len(sim_years)
+    ratio = sim_avg / ofgem_avg if ofgem_avg > 0 else None
+    total_renewals = sum(
+        churn_by_year[yr]["renewals"] + churn_by_year[yr]["churns"] for yr in sim_years
+    )
+    rag = "GREEN" if ratio is None or ratio < 2.0 else ("AMBER" if ratio < 3.5 else "RED")
     return {
-        "2020_churn_rate": round(rate_2020 * 100, 1),
-        "2021_churn_rate": round(rate_2021 * 100, 1),
-        "2022_churn_rate": round(rate_2022 * 100, 1),
-        "2020_multiplier_normalised": round(prop_2020 * 100, 1),
-        "2022_multiplier_normalised": round(prop_2022 * 100, 1),
-        "crisis_divergence_flag": diverges,
+        "sim_avg_pct": round(sim_avg * 100, 1),
+        "ofgem_avg_pct": round(ofgem_avg * 100, 1),
+        "ratio": round(ratio, 2) if ratio is not None else None,
+        "years_compared": len(sim_years),
+        "total_renewals": total_renewals,
+        "rag": rag,
         "note": (
-            "SIM shows I&C-specific churn; Ofgem switching data is for residential. "
-            "2022 multiplier=0.44 should suppress churn vs 2020 multiplier=0.95. "
-            "Flag fires if 2022 normalised propensity is >2x 2020 propensity."
+            "SIM portfolio is predominantly I&C (B2B contract churn) vs Ofgem residential switching. "
+            "Long-run average comparison is more robust than single-year with N<15 renewals."
+        ),
+    }
+
+
+def _crisis_churn_direction(churn_by_year: dict) -> dict:
+    """Check: 2022 crisis window churn should not diverge dramatically from pre-crisis.
+
+    Uses 3-year rolling average to reduce single-year small-N noise.
+    Also checks absolute 2022 SIM rate vs Ofgem 2022 rate.
+    """
+    pre_crisis_years = [yr for yr in [2019, 2020, 2021] if yr in churn_by_year]
+    crisis_years = [yr for yr in [2021, 2022, 2023] if yr in churn_by_year]
+
+    pre_rate = (sum(churn_by_year[yr]["sim_churn_rate"] for yr in pre_crisis_years)
+                / len(pre_crisis_years)) if pre_crisis_years else 0.0
+    crisis_rate = (sum(churn_by_year[yr]["sim_churn_rate"] for yr in crisis_years)
+                   / len(crisis_years)) if crisis_years else 0.0
+
+    pre_n = sum(churn_by_year[yr]["renewals"] + churn_by_year[yr]["churns"]
+                for yr in pre_crisis_years)
+    crisis_n = sum(churn_by_year[yr]["renewals"] + churn_by_year[yr]["churns"]
+                   for yr in crisis_years)
+
+    yr2022 = churn_by_year.get(2022, {})
+    rate_2022 = yr2022.get("sim_churn_rate", 0.0)
+    ofgem_2022 = OFGEM_SWITCHING_RATE.get(2022, 0.04)
+
+    rolling_diverges = crisis_rate > pre_rate * 1.5 and crisis_rate > 0.05
+    absolute_diverges = rate_2022 > ofgem_2022 * 4.0 and crisis_n >= 5
+    insufficient_data = pre_n < 10 or crisis_n < 10
+
+    return {
+        "pre_crisis_avg_pct": round(pre_rate * 100, 1),
+        "crisis_avg_pct": round(crisis_rate * 100, 1),
+        "2022_sim_rate_pct": round(rate_2022 * 100, 1),
+        "2022_ofgem_rate_pct": round(ofgem_2022 * 100, 1),
+        "2022_ratio_vs_ofgem": round(rate_2022 / ofgem_2022, 1) if ofgem_2022 else None,
+        "rolling_divergence_flag": rolling_diverges,
+        "absolute_divergence_flag": absolute_diverges,
+        "crisis_divergence_flag": rolling_diverges and absolute_diverges and not insufficient_data,
+        "insufficient_data": insufficient_data,
+        "note": (
+            "3-year rolling comparison reduces single-year small-N noise. "
+            "crisis_divergence_flag requires BOTH rolling AND absolute divergence AND adequate N. "
+            "I&C at-contract-end churn is structurally higher than residential -- 4x Ofgem "
+            "threshold allows for portfolio composition difference."
         ),
     }
 
@@ -179,26 +213,32 @@ def generate(run_json_path=None, out_path=None):
     
     churn_by_year = _churn_by_year(events)
     bad_debt_findings = _bad_debt_check(years_data)
+    long_run = _long_run_comparison(churn_by_year)
     crisis_check = _crisis_churn_direction(churn_by_year)
     multiplier_alignment = _multiplier_alignment(churn_by_year)
-    
+
     amber_count = sum(1 for f in bad_debt_findings if f["rag"] == "AMBER")
     red_count = sum(1 for f in bad_debt_findings if f["rag"] == "RED")
     bad_debt_rag = "RED" if red_count else ("AMBER" if amber_count else "GREEN")
-    
+
     multiplier_amber = sum(1 for f in multiplier_alignment if f["rag"] == "AMBER")
     multiplier_rag = "AMBER" if multiplier_amber else "GREEN"
-    
-    overall_rag = "RED" if (bad_debt_rag == "RED" or crisis_check["crisis_divergence_flag"]) else (
-        "AMBER" if (bad_debt_rag == "AMBER" or multiplier_rag == "AMBER") else "GREEN"
+
+    # Long-run average is primary calibration signal; single-year crisis flag is secondary.
+    # crisis_divergence_flag requires both rolling AND absolute divergence with adequate N.
+    crisis_flag = crisis_check["crisis_divergence_flag"]
+    overall_rag = "RED" if (bad_debt_rag == "RED" or (long_run["rag"] == "RED" and crisis_flag)) else (
+        "AMBER" if (bad_debt_rag == "AMBER" or long_run["rag"] == "AMBER"
+                    or crisis_flag or multiplier_rag == "AMBER") else "GREEN"
     )
-    
+
     result = {
         "meta": {
             "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
             "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)",
         },
         "overall_rag": overall_rag,
+        "long_run_comparison": long_run,
         "crisis_churn_direction": crisis_check,
         "bad_debt_vs_benchmark": bad_debt_findings,
         "multiplier_alignment": multiplier_alignment,

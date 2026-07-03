@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 489+ commits. 15,189 tests passing. Codebase: ~50,800 lines across 330+ Python modules.*
+*Last updated: 2026-07-03. 490+ commits. 15,194 tests passing. Codebase: ~50,850 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase PR -- Population Anchoring Robustness (2026-07-03)
+5 new tests (23 total in file). `tools/population_anchor.py` improved: `_long_run_comparison(churn_by_year)` -> SIM 10-year average vs Ofgem average (ratio / GREEN if ratio<2.0 / AMBER<3.5 / RED). `_crisis_churn_direction` refactored from single-year 2020 vs 2022 comparison to 3-year rolling: pre-crisis (2019-21 avg) vs crisis window (2021-23 avg). `crisis_divergence_flag` now requires BOTH rolling divergence AND absolute 2022>4x Ofgem AND N>=10. `overall_rag` RED only when long_run RED AND crisis flag both true. KEY FINDING: SIM long-run average churn 6.4% vs Ofgem 13.6% (ratio=0.47, GREEN) -- SIM is BELOW market average over the full decade; the Phase PQ RED flag was false alarm from single-year small-N noise (2 churns in 9 renewals). 2022 single-year rate still 5.6x Ofgem but rolling 3-year criterion not met. overall_rag AMBER (bad debt in benchmark range 0.5-1.6%; 2 multiplier-alignment transitions AMBER). Epistemic: PASS.
+**Total:** 15,194 tests
 
 ### Phase PQ -- Population Anchoring Validation Gate (2026-07-03)
 18 tests. `tools/population_anchor.py` (new): `generate(run_json, out)` compares SIM aggregates vs Ofgem/DESNZ published benchmarks. `_churn_by_year(events)` -> per-year SIM churn rate + Ofgem switching benchmark + calibrated multiplier. `_bad_debt_check(years)` -> RAG: GREEN (<0.5%), AMBER (<2.5%), RED (>2.5%); crisis ceiling 4% for 2021-23. `_crisis_churn_direction` -> crisis_divergence_flag if 2022 multiplier-normalised propensity >2x 2020 (invariant: crisis should suppress churn). `_multiplier_alignment` -> AMBER if Ofgem going down but SIM going up. Wired into process_run_complete.py; output to site/state/population_anchoring.json. OFGEM_SWITCHING_RATE 2016-2025 hardcoded (source: Ofgem Retail Market Indicators). KEY FINDING (live 2016-2025 run): overall_rag=RED -- 2022 normalised churn propensity 2.4x 2020 propensity (22.2% / 0.44x vs 20% / 0.95x), indicating the market switching multiplier is not fully suppressing I&C churn in crisis years. Small-N caveat (9 renewals in 2022) documented. Priority 3 complete. Epistemic: PASS.

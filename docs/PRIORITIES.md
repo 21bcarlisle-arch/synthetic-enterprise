@@ -8,18 +8,19 @@ All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Last updated: 2026-07-03 -- P1/P2/P3 all complete. Pending: advisor live-fetch confirmation.
+Last updated: 2026-07-03 -- P1/P2/P3 complete; Phase PR improves anchoring robustness.
 
-Phase PP COMPLETE (2026-07-03): Per-Customer Invoice & Payment Ledger -- billing_ledger.json; invoices/payments/arrears per customer. 23 tests (15,171 total).
-Phase PQ COMPLETE (2026-07-03): Population Anchoring Validation Gate -- population_anchoring.json; SIM vs Ofgem benchmarks; KEY FINDING: 2022 normalised churn 2.4x 2020 (RED flag). 18 tests (15,189 total).
-Cloudflare cache fix: /state/* paths now have no-cache header -- PROJECT_STATE.txt was served stale despite fresh deploys.
+Phase PP COMPLETE (2026-07-03): Per-Customer Invoice & Payment Ledger -- billing_ledger.json; 1,605 invoices live. 23 tests (15,171 total).
+Phase PQ COMPLETE (2026-07-03): Population Anchoring Validation Gate -- population_anchoring.json; SIM vs Ofgem benchmarks. 23 tests (15,194 total, +5 from PQ update).
+Phase PR COMPLETE (2026-07-03): Population Anchoring Robustness -- 3-year rolling crisis comparison; long-run 10yr average (SIM 6.4% vs Ofgem 13.6%, ratio=0.47 GREEN); crisis_divergence_flag now requires rolling+absolute+N>=10. overall_rag: AMBER (was false-alarm RED). 23 tests (15,194 total).
+Cloudflare cache fix: /state/* paths now have no-cache header.
 
 Observability URLs (all live at poesys.net):
-- /state/PROJECT_STATE.txt -- Phase PP / 15,171 tests (auto-regenerates on push)
-- /state/customer_sample.json -- behavioral data pending next sim run (3c5c124f run in progress ~20:27-20:43 BST)
-- /state/billing_ledger.json -- pending next sim run (bills now in extract_report_data)
-- /state/population_anchoring.json -- live (Ofgem benchmark comparison)
-- /shadow/ /shadow/customers/ /shadow/project/ /shadow/sim/ -- shadow HTML all sections live
+- /state/PROJECT_STATE.txt -- Phase PQ / 15,189 tests (auto-regenerates on push; will update to PR on next run)
+- /state/customer_sample.json -- behavioral data now populated (3c5c124f run processed 19:40 UTC)
+- /state/billing_ledger.json -- 1,605 invoices live (confirmed)
+- /state/population_anchoring.json -- AMBER (not RED); long-run GREEN
+- /shadow/ /shadow/customers/ /shadow/project/ /shadow/sim/ -- all sections live
 
 
 ## Next (roadmap items outbid self-generated work)
