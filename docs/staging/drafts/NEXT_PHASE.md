@@ -1,97 +1,81 @@
-# NEXT PHASE PROPOSAL: Phase PU -- Shadow Live Operation (P4 MVP)
+# NEXT PHASE PROPOSAL: Phase PV -- I&C Corporate Payment Behavior + Arrears Calibration
 
 ## Gap addressed
-P4 Shadow Live Operation -- the SIM currently operates only in retrodiction mode
-(2016-2025 historical settlement data). It cannot answer: what would the company do
-today? A real UK supplier makes active daily decisions -- price quotes, hedge reviews,
-retention offers -- against current market conditions. Phase PU wires the company layer
-to today's data and produces a daily decision log.
+Population Anchoring RED finding (Phase PS): arrears 29-31% of active customers per year
+vs DESNZ I&C benchmark <8%. Root cause: (1) the I&C benchmark is applied to a MIXED
+portfolio including residential customers whose DD failure rate is correctly higher; and
+(2) I&C customers show 0% arrears (unrealistically clean -- bacs/chaps always success),
+when real I&C businesses have ~5-8% from late BACS transfers and disputed invoices.
 
 ## What real fidelity is gained
-A real UK energy supply MD can say: "Our risk committee met today. Wholesale is at
-GBP 82/MWh. We are 65% hedged for Q1 2027. Three I&C customers are in their renewal
-window. Our proposed tariff for a 2 GWh I&C account is 9.2p/kWh." Phase PU means
-the SIM's company layer can make exactly that statement -- against real market data --
-and log it with a timestamp. The board section becomes a live daily operations log,
-not a retrodiction of what happened.
+A real UK energy supplier operates two distinct credit risk regimes:
+  Residential: income-stress -> DD failure -> arrears dunning (Ofgem domestic benchmarks)
+  I&C: corporate treasury -> late BACS / invoice dispute -> credit controller (DESNZ benchmarks)
+Currently the SIM applies the I&C benchmark to the whole mixed portfolio.
+Phase PV separates the two regimes, giving each segment correct payment mechanics and the
+correct benchmark. The Population Anchoring dashboard transitions from RED to AMBER/GREEN.
 
 ## What this phase builds
 
-### Part A: Company state snapshot at 2025-12-31
-tools/project_portfolio_to_2026.py:
-  Read run_output_latest.json -> extract portfolio as of 2025-12-31:
-  - Active customers (cid / segment / eac / current_rate / term_expiry)
-  - Treasury and capital position
-  - Hedging ledger (hedge fractions per customer)
-  Write site/state/live_portfolio.json (point-in-time state for live engine)
+### Part A: I&C corporate payment behavior (tools/generate_billing_ledger.py)
+Current: bacs/chaps -> always (success, 0). No arrears ever.
+New: _ic_payment_outcome(amount_gbp, year, rng) -> (outcome, days_late, dispute_flag)
+  Base: 5% late BACS normal years; 10% crisis years (2021-22)
+  Invoice dispute rate: 3% of invoices (BACS held pending resolution)
+  Late days: 7-21 normal; 14-45 crisis
+  Arrears trigger: >45 days overdue after dispute
+  Resolution: 90% within 30 days via credit controller
+  Write-off: only on customer churn (insolvency-proxied)
+  Target: ~5-8% I&C arrears rate per year; <12% crisis years
 
-### Part B: Live market data connector
-tools/live_market.py:
-  fetch_day_ahead(date=today) -> {elec_gbp_mwh: float, gas_gbp_therm: float}
-    Source: Elexon BMRS Derived Data / N2EX day-ahead (existing elexon_client.py wrappers)
-    Fallback: rolling 30-day average from docs/market_data/price_feed.json
-  build_live_forward_curve(date=today) -> ForwardCurve
-    Use existing sim/forward_curve machinery with today as the anchor date
+  _ic_arrears_stages(arrears_gbp, due_date, is_dispute, eventually_resolved) -> stages
+  INVOICE_DISPUTE / BACS_HOLD -> CREDIT_CONTROLLER -> RESOLVED | WRITTEN_OFF
+  (not DD_FAILED dunning language -- I&C gets different stage labels)
 
-### Part C: Daily decision engine
-tools/run_live_decisions.py:
-  Loads live_portfolio.json + today's ForwardCurve
-  For each customer:
-    - Is term expiring within 60 days? -> compute renewal price + churn estimate
-    - churn_estimate > retention threshold? -> flag for retention offer
-  Risk committee check:
-    - Compute VaR at current hedge fractions vs capital
-    - Flag if hedge recommendation changes (increase/hold/reduce)
-  Pricing desk:
-    - compute_tariff(segment, eac, forward_curve_today) for new acquisition
-  Write site/state/live_decisions_YYYYMMDD.json:
-    {date, spot_elec_gbp_mwh, spot_gas_gbp_therm, hedge_recommendation,
-     renewal_flags: [{cid, expiry, proposed_rate, churn_estimate, offer_flag}],
-     acquisition_prices: {resi_dual_fuel: ..., sme_elec: ..., ic_elec: ...}}
-  Also write site/state/live_decisions_latest.json (always current)
+### Part B: Segmented arrears benchmarks (tools/population_anchor.py)
+_arrears_check_by_year: add segment_filter param (ic | resi | None=all)
+Separate outputs:
+  ic_arrears_vs_benchmark: filter to C_IC* customers; benchmark <8%/<12%
+  resi_arrears_vs_benchmark: filter to non-IC; benchmark <15%/<25% (Ofgem domestic)
+population_anchoring.json: replace arrears_vs_benchmark with ic_arrears + resi_arrears keys
+overall_rag: arrears component uses IC rag only (company is I&C specialist)
 
-### Part D: Observable output
-site/shadow/live/index.html: no-JS daily operations log page
-  Today's spot price | Hedge status | Renewal queue | Acquisition price ladder
-  Listed in PROJECT_STATE.txt Key Files.
+### Part C: Annual report update (saas/reporting/annual_report.py)
+_section_population_anchoring: render two arrears rows (I&C / Residential) instead of one
+Column: segment | arrears_rate | benchmark | RAG
 
-### Part E: Scheduled runner
-background/live_runner.py: called daily from background dispatcher
-  Catches today's market data, runs decision engine, writes + commits JSON
-
-## Architecture decision (one-way-door: Rich must approve)
-The SIM portfolio is anchored at 2025-12-31. From 2026 onwards, customers are
-projected (terms roll at renewal, no new customers -- existing portfolio only).
-This means the live operation runs against a FROZEN population evolving forward.
-Alternative: start a fresh 2026 portfolio (new customers). Recommend: frozen first,
-then optionally grow. The frozen approach is reversible; the growth approach is not.
+## Architecture decision (no one-way door)
+Split is fully reversible -- two code paths additive, residential path unchanged.
 
 ## Epistemic check
-Live market data (Elexon BMRS, N2EX day-ahead) is public. Company decisions based
-on observable market data. Portfolio state is company-observable. PASS.
+Payment terms and dispute rates are company-observable (invoice ledger, BACS remittances).
+DESNZ benchmarks are public (published business energy debt statistics). PASS.
 
-## Test targets (~18 tests)
-1. project_portfolio_to_2026 reads run_output and extracts active customers
-2. project_portfolio_to_2026 includes cid / segment / eac / current_rate / term_expiry
-3. fetch_day_ahead returns float pair (elec, gas) from price_feed fallback
-4. fetch_day_ahead raises on network error gracefully (fallback kicks in)
-5. build_live_forward_curve uses today as anchor date
-6. run_live_decisions loads portfolio and produces renewal_flags list
-7. renewal_flags includes customers within 60-day window
-8. renewal_flags excludes customers outside window
-9. churn_estimate above threshold sets offer_flag=True
-10. churn_estimate below threshold sets offer_flag=False
-11. hedge_recommendation HOLD when VaR within policy limits
-12. hedge_recommendation INCREASE when naked position exceeds limit
-13. acquisition_prices returns price per segment
-14. live_decisions JSON written with today's date key
-15. live_decisions_latest.json always updated
-16. shadow live/index.html renders renewal queue
-17. shadow live/index.html renders acquisition prices
-18. live_runner.py can be called without error on stub data
+## Test targets (~20 tests)
+1. I&C invoice generates late BACS payment at ~5% rate in normal year
+2. I&C crisis year late rate ~10%
+3. I&C dispute rate ~3% of invoices
+4. I&C arrears stage labels use BACS_HOLD / CREDIT_CONTROLLER (not DD_FAILED)
+5. I&C arrears resolved within 30 days in 90% of cases
+6. I&C write-off only on churned customers
+7. I&C arrears rate per year: 5-8% normal, <12% crisis
+8. Residential path unchanged (DD failure still income_stress driven)
+9. _arrears_check_by_year segment_filter ic returns only C_IC* customers
+10. _arrears_check_by_year segment_filter resi returns only non-IC customers
+11. population_anchoring.json has ic_arrears_vs_benchmark key
+12. population_anchoring.json has resi_arrears_vs_benchmark key
+13. IC arrears RAG GREEN most years (5-8% < 8% benchmark)
+14. IC arrears RAG AMBER in crisis years (9-11% < 12% benchmark)
+15. overall_rag uses IC arrears RAG (not mixed)
+16. Annual report renders two-row arrears table (I&C / Residential)
+17. Annual report I&C row shows GREEN most years
+18. Regression: existing churn/billing tests still pass
+19. generate_billing_ledger with IC customers produces 5-8% arrears rate
+20. population_anchor generate() runs end-to-end on live billing ledger
 
 ## Expected key finding
-Company layer makes its first forward-looking daily decision: three I&C customers
-entering renewal window in Q1 2026; wholesale forward at ~GBP 82/MWh; acquisition
-price for 2 GWh I&C at 9.2p/kWh. Hedge recommendation HOLD. Board sees: first live
-daily operations log, timestamped, reproducible. SIM is no longer retrodiction only.
+I&C arrears: 5-8% (GREEN, consistent with DESNZ business debt benchmarks). Residential
+arrears: 20-30% (benchmarked against Ofgem domestic, AMBER most years). Population Anchoring
+overall_rag transitions from RED to AMBER. Root cause of prior RED confirmed: mixed-benchmark
+error, not a real simulation flaw. I&C corporate credit discipline correctly distinct from
+residential income-stress-driven arrears.
