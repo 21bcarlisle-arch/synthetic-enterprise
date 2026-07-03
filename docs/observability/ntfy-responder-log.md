@@ -235,3 +235,10 @@
 - [2026-07-03 07:30 UTC] NTFY responder started
 - [2026-07-03 07:38 UTC] Acked inbound message 'zO6qix5aN55b' ('Please confirm you are back up and running. Give me a link t') — staged as from_rich_20260703_073809.md
 - [2026-07-03 10:41 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1783074481 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-07-03 13:25 UTC] Acked inbound message 'KIqXHighuNos' ('Are you running or paused ?') — staged as from_rich_20260703_132539.md
+- [2026-07-03 14:31 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1783088969 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-07-03 14:35 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1783088969 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-07-03 14:42 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1783088969 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-07-03 15:05 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1783090127 (Caused by NameResolutionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to resolve 'ntfy.sh' ([Errno -3] Temporary failure in name resolution)"))
+- [2026-07-03 16:26 UTC] Acked inbound message 'YuwjuVjwM4gv' ('On the website the customer tab and portal arent working ple') — staged as from_rich_20260703_162652.md
+- [2026-07-03 16:37 UTC] Acked inbound message 'fD4Xoelxgoy0' ('Customers tab still not working on the website. Project tabs') — staged as from_rich_20260703_163722.md

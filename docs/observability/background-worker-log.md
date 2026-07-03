@@ -2108,3 +2108,24 @@ Structured performance entries are added after each task completes.
 - [2026-07-03 10:31 UTC] run_queued_tasks: no parseable QUEUED task found
 - [2026-07-03 11:01 UTC] Found queued tasks — beginning execution
 - [2026-07-03 11:01 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-03 13:01 UTC] Found queued tasks — beginning execution
+- [2026-07-03 13:01 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-03 13:31 UTC] Found queued tasks — beginning execution
+- [2026-07-03 13:31 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-03 14:01 UTC] Found queued tasks — beginning execution
+- [2026-07-03 14:01 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-03 14:31 UTC] Found queued tasks — beginning execution
+- [2026-07-03 14:31 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-03 15:01 UTC] Found queued tasks — beginning execution
+- [2026-07-03 15:01 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-03 15:31 UTC] Found queued tasks — beginning execution
+- [2026-07-03 15:31 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-03 16:01 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:01 UTC
+- [2026-07-03 16:16 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-03 16:17 UTC] Failed to process run_complete_20260703T155951Z.md (rc=1) — will retry next cycle
+- [2026-07-03 16:17 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:17 UTC
+- [2026-07-03 16:32 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:32 UTC
+- [2026-07-03 16:47 UTC] Found 2 leftover run_complete marker(s) — processing
+- [2026-07-03 16:48 UTC] Failed to process run_complete_20260703T162505Z.md (rc=1) — will retry next cycle
+- [2026-07-03 16:48 UTC] Failed to process run_complete_20260703T163624Z.md (rc=1) — will retry next cycle
+- [2026-07-03 16:48 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:48 UTC
