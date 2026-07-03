@@ -1811,6 +1811,45 @@ def main(report_end: str | None = None, sim_interface=None):
         "per_year": _fit_per_year,
     }
 
+    # Phase OI: Climate Change Levy (CCL) -- I&C elec + gas pass-through.
+    from company.regulatory.ccl_ledger import CCLLedger, CCLFuel
+    _ccl_ledger = CCLLedger()
+    _ic_ids = {c["customer_id"] for c in ELEC_CUSTOMERS if c.get("segment") == "I&C"}
+    _ic_gas_ids = {c["customer_id"] for c in GAS_CUSTOMERS if c.get("segment") == "I&C"}
+    _ccl_elec_by_year: dict = defaultdict(float)
+    _ccl_gas_by_year: dict = defaultdict(float)
+    for _rec in all_records:
+        _yr_ccl = _rec.get("settlement_date", "")[:4]
+        if not _yr_ccl:
+            continue
+        _cid_ccl = _rec.get("customer_id", "")
+        if _cid_ccl in _ic_ids and _rec.get("commodity", "elec") != "gas":
+            _ccl_elec_by_year[_yr_ccl] += _rec.get("consumption_kwh", 0.0)
+        elif _cid_ccl in _ic_gas_ids and _rec.get("commodity") == "gas":
+            _ccl_gas_by_year[_yr_ccl] += _rec.get("consumption_kwh", 0.0)
+    _ccl_per_year = {}
+    for _yr_ccl in sorted(_all_years):
+        _yr_int_ccl = int(_yr_ccl)
+        _elec_kwh = _ccl_elec_by_year.get(_yr_ccl, 0.0)
+        _gas_kwh = _ccl_gas_by_year.get(_yr_ccl, 0.0)
+        _elec_rate = _ccl_ledger.rate_for_year(_yr_int_ccl, CCLFuel.ELECTRICITY)
+        _gas_rate = _ccl_ledger.rate_for_year(_yr_int_ccl, CCLFuel.GAS)
+        _elec_ccl = round(_elec_kwh * _elec_rate / 100.0, 2)
+        _gas_ccl = round(_gas_kwh * _gas_rate / 100.0, 2)
+        _ccl_per_year[_yr_ccl] = {
+            "elec_kwh": round(_elec_kwh, 0),
+            "gas_kwh": round(_gas_kwh, 0),
+            "elec_rate_p_per_kwh": _elec_rate,
+            "gas_rate_p_per_kwh": _gas_rate,
+            "ccl_elec_gbp": _elec_ccl,
+            "ccl_gas_gbp": _gas_ccl,
+            "ccl_total_gbp": round(_elec_ccl + _gas_ccl, 2),
+        }
+    ccl_summary = {
+        "total_ccl_gbp": round(sum(v["ccl_total_gbp"] for v in _ccl_per_year.values()), 2),
+        "per_year": _ccl_per_year,
+    }
+
     # Phase 27d: Triad risk for I&C customers.
     # Identify Triad periods for each winter in the run window, then compute
     # each I&C customer's TNUoS exposure. Uses SSP as a demand proxy.
@@ -1917,6 +1956,8 @@ def main(report_end: str | None = None, sim_interface=None):
         "roc_summary": roc_summary,
         # Phase OH: FiT Levelisation Levy
         "fit_summary": fit_summary,
+        # Phase OI: Climate Change Levy pass-through
+        "ccl_summary": ccl_summary,
         "per_customer_behavioral": _build_behavioral_trajectories(
             ELEC_CUSTOMERS + GAS_CUSTOMERS,
             household_demand_register,

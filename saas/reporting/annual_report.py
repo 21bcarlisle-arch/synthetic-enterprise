@@ -559,6 +559,7 @@ def extract_report_data(run_output: dict) -> dict:
         "tpi_summary": phase2b.get("tpi_summary", {}),
         "roc_summary": phase2b.get("roc_summary", {}),
         "fit_summary": phase2b.get("fit_summary", {}),
+        "ccl_summary": phase2b.get("ccl_summary", {}),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
         "by_billing_account": by_billing_account,
@@ -4934,6 +4935,53 @@ def _section_licence_health(data: dict) -> str:
 
 
 
+
+def _section_ccl_levy(data: dict) -> str:
+    from company.regulatory.ccl_ledger import _CCL_ELECTRICITY_P_KWH, _CCL_GAS_P_KWH
+    ccl = data.get("ccl_summary", {})
+    per_year = ccl.get("per_year", {})
+    if not per_year:
+        return ""
+    lines = ["## Climate Change Levy (CCL) Observatory"]
+    lines.append("")
+    lines.append("CCL is charged on business energy consumption and remitted to HMRC quarterly.")
+    lines.append("Residential customers are fully exempt. I&C customers pay at HMRC annual rates.")
+    lines.append("CCL is a pass-through: collected from customers, remitted to HMRC (no net P&L impact).")
+    lines.append("")
+    lines.append("| Year | Elec kWh | Elec Rate (p/kWh) | CCL Elec | Gas kWh | Gas Rate | CCL Gas | Total CCL |")
+    lines.append("|------|----------|------------------|----------|---------|----------|---------|----------|")
+    total_ccl = 0.0
+    for yr in sorted(per_year.keys()):
+        yd = per_year[yr]
+        elec_kwh = yd.get("elec_kwh", 0.0)
+        gas_kwh = yd.get("gas_kwh", 0.0)
+        er = yd.get("elec_rate_p_per_kwh", 0.0)
+        gr = yd.get("gas_rate_p_per_kwh", 0.0)
+        ccl_e = yd.get("ccl_elec_gbp", 0.0)
+        ccl_g = yd.get("ccl_gas_gbp", 0.0)
+        ccl_t = yd.get("ccl_total_gbp", 0.0)
+        total_ccl += ccl_t
+        spike = " (*)" if int(yr) == 2019 else ""
+        lines.append(
+            "| " + yr + spike + " | "
+            + f"{elec_kwh:,.0f}" + " | "
+            + f"{er:.3f}" + "p | "
+            + "GBP" + f"{ccl_e:,.2f}" + " | "
+            + f"{gas_kwh:,.0f}" + " | "
+            + f"{gr:.3f}" + "p | "
+            + "GBP" + f"{ccl_g:,.2f}" + " | "
+            + "GBP" + f"{ccl_t:,.2f}" + " |"
+        )
+    lines.append(
+        "| **Total** | | | | | | | **GBP" + f"{total_ccl:,.2f}" + "** |"
+    )
+    lines.append("")
+    lines.append("(*) 2019: electricity CCL +45% (0.583->0.847p/kWh), gas +67% (0.203->0.339p/kWh) -- Budget 2018 carbon tax shift.")
+    lines.append("")
+    lines.append("> Quarterly HMRC remittance obligation per CCLQuarterlyReturn. Pass-through: no net supplier P&L impact.")
+    return "\n".join(lines)
+
+
 def _section_fit_levy(data: dict) -> str:
     from company.regulatory.fit_book import _FIT_LEVELISATION_RATE_PER_MWH, FIT_SCHEME_END_DATE
     fit = data.get("fit_summary", {})
@@ -8290,6 +8338,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_gsop_obligations(data))                # Phase OF
     sections.append(_section_roc_obligations(data))                 # Phase OG
     sections.append(_section_fit_levy(data))                        # Phase OH
+    sections.append(_section_ccl_levy(data))                        # Phase OI
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
