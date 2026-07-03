@@ -92,7 +92,7 @@ def build_churn_risk(settlement_records: list[dict], customers: list[dict]) -> d
     Raises KeyError if a billing account has no matching entry in
     `customers` (looked up by `customer_id`).
     """
-    signals = score_experience_signals(settlement_records)
+    signals = score_experience_signals(settlement_records, comparison_mode="yoy")
     acquisition_by_account = {c["customer_id"]: c["acquisition_date"] for c in customers}
 
     churn_risk: dict[str, list[dict]] = {}

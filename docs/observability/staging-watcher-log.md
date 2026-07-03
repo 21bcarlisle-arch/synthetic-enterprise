@@ -999,3 +999,11 @@
 - [2026-07-02 07:58 UTC] Silently registered sim run marker: run_complete_20260702T075048Z.md (Claude polls staging, no notification needed)
 - [2026-07-02 08:07 UTC] Silently registered sim run marker: run_complete_20260702T075946Z.md (Claude polls staging, no notification needed)
 - [2026-07-02 08:16 UTC] Silently registered sim run marker: run_complete_20260702T080836Z.md (Claude polls staging, no notification needed)
+- [2026-07-02 08:50 UTC] Silently registered sim run marker: run_complete_20260702T083417Z.md (Claude polls staging, no notification needed)
+- [2026-07-03 07:00 UTC] Staging watcher started — resuming from saved state
+- [2026-07-03 07:30 UTC] Staging watcher started — resuming from saved state
+- [2026-07-03 07:38 UTC] Silently registered NTFY-originated file: from_rich_20260703_073809.md (no staging notification)
+- [2026-07-03 07:38 UTC] Silently registered sim run marker: run_complete_20260703T073002Z.md (Claude polls staging, no notification needed)
+- [2026-07-03 07:48 UTC] Silently registered sim run marker: run_complete_20260703T074008Z.md (Claude polls staging, no notification needed)
+- [2026-07-03 07:58 UTC] Silently registered sim run marker: run_complete_20260703T074944Z.md (Claude polls staging, no notification needed)
+- [2026-07-03 08:07 UTC] Silently registered sim run marker: run_complete_20260703T075927Z.md (Claude polls staging, no notification needed)

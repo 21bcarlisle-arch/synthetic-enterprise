@@ -2787,3 +2787,30 @@
 - [2026-07-02 07:27 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
 - [2026-07-02 07:27 UTC] Claude Code session ended — auto-restarting
 - [2026-07-02 07:27 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-07-02 08:37 UTC] Inbound command poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1782980963 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+- [2026-07-02 08:45 UTC] Inbound command poll error: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+- [2026-07-02 08:47 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-03 07:00 UTC] Session watchdog started (auto-restart mode — no YES gate, max 3/hr); autoloop active (idle 600s -> continue, REVIEW_GATE/permission prompts pause for Rich)
+- [2026-07-03 07:30 UTC] Session watchdog started (auto-restart mode — no YES gate, max 3/hr); autoloop active (idle 600s -> continue, REVIEW_GATE/permission prompts pause for Rich)
+- [2026-07-03 07:31 UTC] Claude Code not detected (check 1/2)
+- [2026-07-03 07:32 UTC] Claude Code not detected (check 2/2)
+- [2026-07-03 07:32 UTC] Claude Code session ended — auto-restarting
+- [2026-07-03 07:32 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-07-03 07:32 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-07-03 07:33 UTC] Claude Code not detected (check 1/2)
+- [2026-07-03 07:34 UTC] Claude Code not detected (check 2/2)
+- [2026-07-03 07:34 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-03 07:34 UTC] Claude Code session ended — auto-restarting
+- [2026-07-03 07:34 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-07-03 07:34 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-07-03 07:35 UTC] Claude Code not detected (check 1/2)
+- [2026-07-03 07:36 UTC] Claude Code not detected (check 2/2)
+- [2026-07-03 07:36 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-03 07:36 UTC] Claude Code session ended — auto-restarting
+- [2026-07-03 07:36 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-07-03 07:37 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-07-03 07:38 UTC] Claude Code not detected (check 1/2)
+- [2026-07-03 07:39 UTC] Claude Code not detected (check 2/2)
+- [2026-07-03 07:39 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-03 07:39 UTC] Claude Code session ended — auto-restarting
+- [2026-07-03 07:39 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.

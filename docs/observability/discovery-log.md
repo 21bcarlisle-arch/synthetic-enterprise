@@ -677,3 +677,33 @@
 - [2026-07-02 03:49 UTC] Discovery cycle complete: 10 assumptions reviewed, 0 critical, 0 warnings
 - [2026-07-02 03:49 UTC] Discovery: 10 OK, 0 warnings, 0 critical
 - [2026-07-02 03:49 UTC] Next cycle in 6h — sleeping
+- [2026-07-03 07:00 UTC] Discovery agent started (date: 2026-07-03, daemon=True)
+- [2026-07-03 07:00 UTC] Discovery cycle started — 45 assumptions to review
+- [2026-07-03 07:00 UTC] OK: Non-commodity cost — electricity (resi)
+- [2026-07-03 07:00 UTC] OK: Non-commodity cost — electricity (SME)
+- [2026-07-03 07:00 UTC] OK: Non-commodity cost — gas (resi)
+- [2026-07-03 07:00 UTC] OK: Non-commodity cost — gas (SME)
+- [2026-07-03 07:00 UTC] OK: Non-commodity as % of all-in bill
+- [2026-07-03 07:00 UTC] OK: Standing charge — electricity (resi)
+- [2026-07-03 07:01 UTC] OK: Standing charge — electricity (SME)
+- [2026-07-03 07:01 UTC] OK: Standing charge — gas (resi)
+- [2026-07-03 07:01 UTC] OK: Standing charge — gas (SME)
+- [2026-07-03 07:01 UTC] OK: VAT — residential
+- [2026-07-03 07:01 UTC] Discovery cycle complete: 10 assumptions reviewed, 0 critical, 0 warnings
+- [2026-07-03 07:01 UTC] Discovery: 10 OK, 0 warnings, 0 critical
+- [2026-07-03 07:01 UTC] Next cycle in 6h — sleeping
+- [2026-07-03 07:30 UTC] Discovery agent started (date: 2026-07-03, daemon=True)
+- [2026-07-03 07:30 UTC] Discovery cycle started — 45 assumptions to review
+- [2026-07-03 07:30 UTC] OK: Non-commodity cost — electricity (resi)
+- [2026-07-03 07:30 UTC] OK: Non-commodity cost — electricity (SME)
+- [2026-07-03 07:30 UTC] OK: Non-commodity cost — gas (resi)
+- [2026-07-03 07:30 UTC] OK: Non-commodity cost — gas (SME)
+- [2026-07-03 07:30 UTC] OK: Non-commodity as % of all-in bill
+- [2026-07-03 07:30 UTC] OK: Standing charge — electricity (resi)
+- [2026-07-03 07:30 UTC] OK: Standing charge — electricity (SME)
+- [2026-07-03 07:31 UTC] OK: Standing charge — gas (resi)
+- [2026-07-03 07:31 UTC] OK: Standing charge — gas (SME)
+- [2026-07-03 07:31 UTC] OK: VAT — residential
+- [2026-07-03 07:31 UTC] Discovery cycle complete: 10 assumptions reviewed, 0 critical, 0 warnings
+- [2026-07-03 07:31 UTC] Discovery: 10 OK, 0 warnings, 0 critical
+- [2026-07-03 07:31 UTC] Next cycle in 6h — sleeping
