@@ -7,7 +7,9 @@
       "Bash(journalctl --user-unit * *)",
       "Bash(make test)",
       "Bash(make lint)",
-      "Bash(python3 -m tools.epistemic_verifier)"
+      "Bash(python3 -m tools.epistemic_verifier)",
+      "Bash(git pull*)",
+      "Bash(git fetch*)"
     ]
   }
 }
