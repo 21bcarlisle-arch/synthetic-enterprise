@@ -8,7 +8,13 @@ All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Last updated: 2026-07-03 -- Direction: Capital model completeness (Phase NR).
+Last updated: 2026-07-03 -- Direction: P1-P4 priorities all addressed.
+
+Phase NT COMPLETE (2026-07-03): Year-on-Year Net Margin Bridge (P1: Observability) -- margin_attribution.py; 9 transitions 2016-2025; primary driver attribution. 19 tests (14,843 total).
+Phase NU COMPLETE (2026-07-03): Payment Portfolio Health Observatory (P2: Billing Infra) -- payment_health.py; bad debt rate + churn risk at-risk concentration; leading indicator. 20 tests (14,863 total).
+Phase NV COMPLETE (2026-07-03): Portfolio Composition Benchmark (P3: Population Anchoring) -- portfolio_composition.py; I&C-dominated (99%) from 2017; concentration RED alert. 17 tests (14,880 total).
+Phase NW COMPLETE (2026-07-03): Shadow Retention Strategy P&L (P4: Shadow Ops) -- shadow_retention.py; universal-retention nets only +GBP4,321; threshold strategy near-optimal. 11 tests (14,891 total).
+All P1-P4 priorities ADDRESSED.
 
 Phase NO COMPLETE (2026-07-03): Counterfactual Retention & Threshold Optimisation -- counterfactual_retention.py + threshold_sensitivity.py; board section; optimal F1 threshold=0% reveals model underestimation. 15 tests (14,772 total).
 Phase NP COMPLETE (2026-07-03): Behavioral Trajectory Emission -- income_stress_trajectory + life_event_history emitted from run_phase2b; customer_sample.json wired. 13 tests (14,757 total).
