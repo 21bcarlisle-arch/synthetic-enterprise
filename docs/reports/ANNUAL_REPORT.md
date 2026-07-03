@@ -1366,6 +1366,26 @@ Key per-customer and margin metrics by year.
 
 > Note: Revenue/customer driven by customer mix (I&C customers 10-100× resi volumes).
 
+## Plausibility vs Industry
+
+Key metrics vs UK retail energy norms (Ofgem/Cornwall Insight). OK = within range | ~ = amber | ! = outside expected range.
+
+| Year | Net margin% | Gross margin% | Bad debt% | Churn% |
+|------|-------------|---------------|-----------|--------|
+| 2016 | !45.2% | !51.2% | OK1.53% | ~0% |
+| 2017 | !33.5% | !35.8% | OK1.80% | ~0% |
+| 2018 | !41.6% | !44.0% | OK1.97% | ~0% |
+| 2019 | !40.7% | !42.8% | OK1.87% | ~0% |
+| 2020 | !40.5% | !42.7% | OK2.06% | OK6% |
+| 2021 | !29.5% | !31.7% | OK1.95% | OK6% |
+| 2022 | !22.5% | ~24.8% | OK1.98% | OK12% |
+| 2023 | !25.1% | ~27.6% | OK2.20% | ~0% |
+| 2024 | !39.5% | !42.0% | OK2.14% | OK15% |
+| 2025 | !38.9% | !42.3% | OK2.98% | ~0% |
+
+**Benchmark ranges:** Net margin %: −5 to +8% green | Gross margin %: 0–20% green | Bad debt %: 0–5% green | Annual churn %: 3–35% green.
+**RED — review required: 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025**
+
 ## Churn Prediction Calibration
 
 How well the company estimated churn probability versus actual simulation outcomes.
