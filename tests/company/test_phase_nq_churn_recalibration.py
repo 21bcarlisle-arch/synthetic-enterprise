@@ -1,9 +1,10 @@
-"""Phase NQ: Churn Model Recalibration -- industry base rate floor + extended reference window.
+"""Phase NQ: Churn Model Recalibration -- extended reference window.
 
-Part A: INDUSTRY_BASE_CHURN_RATE = 0.05 floor on enriched_churn_estimate and passive model.
-        Company never reports 0% churn; Ofgem data shows >= 5% passive switching at all times.
-Part B: yoy_extended comparison mode averages prior 2 years, surfacing crisis-period shocks
-        that YoY comparison misses when the reference year itself was elevated.
+Part A (floor): INDUSTRY_BASE_CHURN_RATE floor on enriched_churn_estimate was REMOVED
+        per advisor redirect (2026-07-03). Floor shifted estimates uniformly without
+        improving discrimination. PASSIVE_BASE_CHURN_RATE still applies to passive renewers only.
+Part B (keep): yoy_extended comparison mode averages prior 2 years, surfacing crisis-period
+        shocks that YoY misses when the reference year itself was elevated.
 """
 import inspect
 import pytest
@@ -18,26 +19,31 @@ from saas.customer_reaction import score_experience_signals
 from saas.churn_model import build_churn_risk
 
 
-def test_industry_base_churn_rate_is_five_percent():
+def test_industry_base_churn_rate_constant_still_defined():
+    # Constant kept for documentation; no longer used as a floor in enriched_churn_estimate.
     assert INDUSTRY_BASE_CHURN_RATE == 0.05
 
 
-def test_enriched_estimate_floor_with_stable_rates_long_tenure():
+def test_enriched_estimate_no_floor_stable_rates_long_tenure():
+    # Without floor: stable rates + excellent behaviour + long tenure -> estimate below 5%.
     p = enriched_churn_estimate(80.0, 80.0, 6.0, behaviour_score=BehaviourScore.EXCELLENT)
-    assert p >= INDUSTRY_BASE_CHURN_RATE
+    # Should still be positive but may be well below the old 5% floor.
+    assert 0.0 < p < 0.10
 
 
-def test_enriched_estimate_floor_when_rate_falls():
+def test_enriched_estimate_no_floor_when_rate_falls():
+    # Rate falls (customer benefits) -> very low estimate; no artificial floor.
     p = enriched_churn_estimate(100.0, 80.0, 4.0)
-    assert p >= INDUSTRY_BASE_CHURN_RATE
+    assert 0.0 < p <= 0.10
 
 
-def test_enriched_estimate_normal_case_unaffected_by_floor():
+def test_enriched_estimate_normal_case_high_rate_rise():
     p = enriched_churn_estimate(80.0, 120.0, 1.0)
     assert p > 0.30
 
 
 def test_passive_estimate_never_below_passive_base_rate():
+    # Passive model retains its own floor -- appropriate for inert SVT-rollers.
     p = estimate_passive_churn_probability(80.0, 78.0, 6.0)
     assert p >= PASSIVE_BASE_CHURN_RATE
 
@@ -47,10 +53,6 @@ def test_passive_estimate_cap_still_respected():
     p_rising = estimate_passive_churn_probability(80.0, 160.0, 1.0)
     assert p_stable <= PASSIVE_CHURN_CAP
     assert p_rising <= PASSIVE_CHURN_CAP
-
-
-def test_enriched_floor_consistent_with_passive_floor():
-    assert INDUSTRY_BASE_CHURN_RATE == PASSIVE_BASE_CHURN_RATE
 
 
 _CRISIS_RECORDS = [

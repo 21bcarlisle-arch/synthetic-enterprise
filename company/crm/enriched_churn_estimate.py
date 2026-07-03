@@ -46,6 +46,8 @@ def enriched_churn_estimate(
     rate_estimate  = estimate_churn_probability(old_rate, new_rate, tenure, ...)
     payment_estimate = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
     result = max(rate_estimate, payment_estimate), capped at MAX_CHURN_PROBABILITY.
+    No base-rate floor applied -- company estimates may be low when there is no evidence of
+    churn risk. Use PASSIVE_BASE_CHURN_RATE from churn_model.py for passive renewers specifically.
 
     When behaviour_score and satisfaction_score are both None and bill_shock_count is 0,
     payment_estimate = BASE_ANNUAL_CHURN_PROBABILITY (same as combined_churn_probability baseline),
@@ -62,5 +64,5 @@ def enriched_churn_estimate(
         segment=segment,
     )
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
-    result = max(rate_est, payment_est, INDUSTRY_BASE_CHURN_RATE)
+    result = max(rate_est, payment_est)
     return min(result, MAX_CHURN_PROBABILITY)

@@ -1,22 +1,22 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-07-03T12:55:17Z
+Generated: 2026-07-03T13:30:00Z
 
 ## Summary
 - Current Phase: NS (Price-Elasticity Switching Model)
-- Test Suite: 14,824 tests passing (unit / fast suite ~10s)
+- Test Suite: 14,823 tests passing (unit / fast suite ~10s)
 - Company Modules: 397+ Python modules across company/
 - SaaS Modules: 22 | SIM Modules: 22 | Simulation Modules: 47
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ (market + settlement engine) | company/ (business layer) | saas/ (SaaS analytics) | site/ (dashboard at poesys.net)
 
 ## Latest Simulation Results (auto-processed 2026-07-03)
-- Net Margin: GBP1,436,949 (10-year 2016-2025)
-- Gross Margin: GBP6,453,708
-- Capital at Risk: GBP51,306
-- Treasury: GBP2,466,636 -> GBP3,903,585
-- Enterprise Value: GBP8,087,302 | Net after Cost-to-Serve: GBP6,347,906
+- Net Margin: GBP1,445,258 (10-year 2016-2025)
+- Gross Margin: GBP6,467,309
+- Capital at Risk: GBP51,433
+- Treasury: GBP2,466,636 -> GBP3,911,894
+- Enterprise Value: GBP8,826,939 | Net after Cost-to-Serve: GBP6,360,822
 - Risk Committee Interventions: 38
-- Bills Issued: 1,574
+- Bills Issued: 1,605
 - Retention: 12/12 offers accepted | 6 no-offer churns | 6 total churned accounts
 
 ## Key Findings -- Churn Calibration (Phases NS + NQ redirect, 2026-07-03)
@@ -62,6 +62,6 @@ Remote Staging Bridge (2026-07-03): staging_watcher.py fetches [ADVISOR-STAGED] 
 - Customer segments: Resi (C1-C4 elec/gas, TOU), I&C (IC3e, IC3g, IC4e)
 
 ## Key Metrics
-- Tests at start (Phase 0): 0 | Tests now: 14,824
-- Net margin all-time: GBP1,436,949 | Crisis survived: 2021-22
+- Tests at start (Phase 0): 0 | Tests now: 14,823
+- Net margin all-time: GBP1,445,258 | Crisis survived: 2021-22
 - Retention rate: 100% (12/12 offers in last run) | 6 no-offer churns

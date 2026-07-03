@@ -221,6 +221,9 @@ def git_commit_push(git_hash, net_margin):
     site_state_sample = PROJECT_DIR / "site" / "state" / "customer_sample.json"
     if site_state_sample.exists():
         files.append(str(site_state_sample))
+    site_state_project = PROJECT_DIR / "site" / "state" / "PROJECT_STATE.txt"
+    if site_state_project.exists():
+        files.append(str(site_state_project))
     subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin

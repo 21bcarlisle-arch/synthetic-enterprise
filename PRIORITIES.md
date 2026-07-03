@@ -1,44 +1,50 @@
 # PRIORITIES.md — Synthetic Enterprise
+# Last refreshed: 2026-07-03 per advisor PRIORITIES_REFRESH staging file
 
-## Next (highest priority)
+## PRIORITY 1 — OBSERVABILITY COMPLETION (non-negotiable trust infrastructure)
 
-### NT: SVT Positioning Intelligence — Company Uses Public Ofgem Cap Data
+### 1a. Fix PROJECT_STATE.txt auto-sync (dead since Jun 30)
+PROJECT_STATE.txt at poesys.net/state/PROJECT_STATE.txt still shows Phase HY / 9,290 tests.
+Must regenerate on every push. Root cause: auto-sync hook not firing since Jun 30.
+Acceptance: advisor fetches and confirms current state without copy-paste.
 
-**Gap served**: Company churn model is blind to whether customers are positioned better or worse
-than the Ofgem SVT cap. A real supplier DOES know this (SVT rates are public data published
-quarterly by Ofgem). Currently the enriched_churn_estimate uses rate-vs-prior-term but not
-rate-vs-SVT. In 2022, customers on our pre-crisis fixed rate of 20p/kWh were BETTER than
-SVT (28-52p) -- zero switching incentive. In 2019, customers at 18p when SVT was 17p had
-NEGATIVE positioning -- more likely to switch. This is fully epistemic (company reads Ofgem
-public data, not SIM internals).
+### 1b. Stable fetchable URL for customer_sample.json
+customer_sample.json must be at a stable URL listed in PROJECT_STATE.txt Key Files section.
 
-**Fidelity gain**: Company churn estimate now reflects the rate-vs-market observation that
-is the PRIMARY driver of switching (per Phase NS research). Closes the epistemic gap between
-what the company CAN observe and what it currently uses.
+### 1c. Shadow HTML site (all 4 sections, no JS required)
+Plain HTML mirror of Supplier / Customers / Project / SIM sections at poesys.net/shadow/.
+Strategy advisor cannot execute JavaScript -- shadow site is the only way website is visible.
+Ugly is fine; complete and current is mandatory. Listed in PROJECT_STATE.txt.
+NON-NEGOTIABLE: advisor can fetch and verify every section without JS or copy-paste.
+Artifacts regenerate automatically on every run/push.
 
-**Implementation outline**:
-- `company/crm/svt_positioning.py`: `svt_rate_at_date(date_str)` reads Ofgem cap data;
-  `rate_vs_svt(customer_rate, date_str)` -> pct differential;
-  `svt_positioning_churn_signal(rate_vs_svt_pct)` -> float [0, 1] churn risk signal
-- Wire into enriched_churn_estimate as optional `svt_differential_pct` param
-- Board section: per-year table showing portfolio average rate vs SVT cap
+## PRIORITY 2 — BILLING & PAYMENT INFRASTRUCTURE (roadmap stage 4)
+
+Real per-customer invoices with payment due dates, payment methods (DD / cash / prepay),
+actual payment events posting to the ledger, arrears states from missed payments.
+Money moves per customer per month. Bad debt (stage 5) emerges from this naturally.
+Do NOT build bad debt separately first.
+
+## PRIORITY 3 — POPULATION ANCHORING (standing constraint, applies from now on)
+
+SIM aggregate behaviour must match published UK statistics:
+- Annual switching rates by year including crisis-period collapse
+- Complaints/ombudsman volumes
+- Arrears rates
+Individual variation is free; aggregates are anchored.
+Add anchoring section to annual report: SIM aggregate vs. published benchmark with RAG flags.
+Phase NS addressed switching rate anchoring. This generalises the approach.
+
+## PRIORITY 4 — SHADOW LIVE OPERATION (design after Priority 2 lands)
+
+Paper-trading mode against current real market data: daily decisions logged and timestamped,
+zero capital at risk. Converts sim from retrodiction to falsifiable live prediction.
+Design proposal first via drafts/ -- one-way-door architecture decision, Rich reviews.
 
 ---
+## Backlog (not queued)
 
-## Backlog
-
-### NU: Crisis Tariff Strategy — No Fixed Deals When Cap Below Wholesale
-When SVT cap rate is below what we can profitably offer on fixed (2022 scenario), the company
-should NOT offer new fixed deals. Currently run_phase2b generates fixed-rate terms even in
-crisis periods. Real-world fidelity: suppliers withdrew fixed products in H2 2021 and 2022.
-This would affect renewal outcomes and capital deployment.
-
-### NV: Gas Market Churn Alignment
-Gas customers currently share the electricity billing-account churn decision. But gas churn
-drivers differ slightly -- gas is more inertial (fewer comparison sites; no smart meter visibility).
-An independent gas churn propensity model would increase segment accuracy.
-
-### NW: Company SVT Rate vs Cap Revenue Leakage Report
-Board should track: "are we leaving money on the table vs SVT?" In years where SVT > our rate,
-we under-charge customers who would accept higher prices. In years where SVT < our rate, we risk
-outpricing the market. Bridges SVT data (Phase 39a) to commercial strategy.
+- **NT**: SVT Positioning Intelligence -- company uses Ofgem public SVT rates to compute
+  rate-vs-SVT differential as observable churn signal.
+- **NU**: Crisis Tariff Strategy -- no fixed deals when cap below wholesale cost (2022 scenario).
+- **NV**: Gas Market Churn Alignment -- independent gas churn propensity model.

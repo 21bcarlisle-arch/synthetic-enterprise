@@ -1,7 +1,9 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T12:58:44Z
+Last updated: 2026-07-03T13:03:13Z
 
 ## Current Status
+NQ Advisor Redirect (2026-07-03) -- enriched_churn_estimate 5% floor DROPPED (uniform shift, no discrimination); PRIORITIES.md refreshed (P1: observability, P2: billing infra, P3: population anchoring, P4: shadow ops); PROJECT_STATE.txt sync fixed (deploy-pages.yml overwrite removed). 14,823 tests total.
+
 Phase NS COMPLETE (2026-07-03) -- Price-Elasticity Switching Model: simulation/market_switching_propensity.py (MARKET_SAVINGS_BY_YEAR; _savings_to_rate piecewise; market_switching_multiplier normalised 2024=1.0); customer_events.py market_year param wired; run_phase2b passes year at each renewal. 19 tests, 14,824 total. KEY: rising prices do NOT drive switching -- savings available is primary driver (2022: bills £3,549 yet switching 3-4%).
 
 Phase NR COMPLETE (2026-07-03) -- Bad Debt -> Capital Stress Feedback: company/risk/credit_risk_stress.py (CreditRiskStress dataclass, 2.5x Ofgem crisis multiplier); capital_adequacy.py stress_test_passes = equity > (price_VaR + credit_stress); _section_credit_risk_capital board section. 19 tests, 14,805 total. Capital model now reflects full Ofgem FRA requirement.
@@ -13,7 +15,7 @@ See docs/reports/run_output_latest.json.
 Net position: £1,445,258 (git 60780587, 2026-07-03)
 
 ## Test Suite
-- **14,824 tests passing** (fast suite ~10s)
+- **14,823 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
