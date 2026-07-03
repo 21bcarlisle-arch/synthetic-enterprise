@@ -29,6 +29,7 @@ from saas.churn_model import build_churn_risk
 from saas.customer_reaction import _billing_account_id
 from saas.home_move_win_rate import build_home_move_win_rates
 from simulation.household import IncomeStress
+from simulation.market_switching_propensity import market_switching_multiplier
 from simulation.switching_propensity import adjust_churn_probability
 from simulation.satisfaction_churn import adjust_churn_for_satisfaction
 
@@ -49,6 +50,7 @@ def roll_lifecycle_event(
     passive_churn_cap: float | None = None,
     income_stress: IncomeStress | None = None,
     satisfaction_score: float | None = None,
+    market_year: int | None = None,
 ) -> dict | None:
     """Compute and roll the churn/renewal event for a billing account at a
     renewal point.
@@ -90,6 +92,13 @@ def roll_lifecycle_event(
     if passive_churn_cap is not None:
         p_churn_raw = 1.0 - effective_p_retain
         effective_p_retain = 1.0 - min(p_churn_raw, passive_churn_cap)
+    # Phase NS: apply market-conditions switching multiplier (savings elasticity).
+    # Suppresses churn in crisis years (2022: no cheaper alternatives); amplifies in
+    # high-competition years (2016-2018). Applied before income_stress so market
+    # opportunity ceiling is set first, then individual customer frictions modify it.
+    if market_year is not None:
+        p_churn_market = (1.0 - effective_p_retain) * market_switching_multiplier(market_year)
+        effective_p_retain = 1.0 - min(p_churn_market, 0.95)
     # Phase MZ: apply income_stress switching propensity before retention modifier
     if income_stress is not None:
         p_churn_stress = adjust_churn_probability(1.0 - effective_p_retain, income_stress)
@@ -142,4 +151,5 @@ def roll_lifecycle_event(
         "company_churn_estimate": company_churn_estimate,
         "churn_estimate_error_pct": churn_estimate_error_pct,
         "retention_offered": retention_modifier is not None,
+        "market_switching_multiplier": round(market_switching_multiplier(market_year), 4) if market_year is not None else None,
     }

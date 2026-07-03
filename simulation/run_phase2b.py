@@ -1076,6 +1076,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 passive_churn_cap=passive_cap,
                 income_stress=_churn_income_stress,
                 satisfaction_score=_nf_satisfaction,
+                market_year=int(term_start_str[:4]),
             )
             if event is not None:
                 event["is_active_renewal"] = active_renewal

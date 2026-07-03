@@ -1,7 +1,9 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T12:30:20Z
+Last updated: 2026-07-03T12:46:16Z
 
 ## Current Status
+Phase NS COMPLETE (2026-07-03) -- Price-Elasticity Switching Model: simulation/market_switching_propensity.py (MARKET_SAVINGS_BY_YEAR; _savings_to_rate piecewise; market_switching_multiplier normalised 2024=1.0); customer_events.py market_year param wired; run_phase2b passes year at each renewal. 19 tests, 14,824 total. KEY: rising prices do NOT drive switching -- savings available is primary driver (2022: bills £3,549 yet switching 3-4%).
+
 Phase NR COMPLETE (2026-07-03) -- Bad Debt -> Capital Stress Feedback: company/risk/credit_risk_stress.py (CreditRiskStress dataclass, 2.5x Ofgem crisis multiplier); capital_adequacy.py stress_test_passes = equity > (price_VaR + credit_stress); _section_credit_risk_capital board section. 19 tests, 14,805 total. Capital model now reflects full Ofgem FRA requirement.
 
 Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN_RATE=0.05 floor on enriched_churn_estimate + passive model; yoy_extended 24-month reference window. 14 tests, 14,786 total.
@@ -11,10 +13,11 @@ See docs/reports/run_output_latest.json.
 Net position: £1,436,949 (git 51045433, 2026-07-03)
 
 ## Test Suite
-- **14,805 tests passing** (fast suite ~10s)
+- **14,824 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
+- **Phase NS** (2026-07-03): market_switching_propensity.py; savings-elasticity churn multiplier (2022: 0.44x; 2016: 2.17x; 2024: 1.0x baseline). 19 tests, 14,824 total.
 - **Phase NR** (2026-07-03): credit_risk_stress.py; capital_adequacy stress_test_passes = equity > (VaR + credit); _section_credit_risk_capital board section. 19 tests, 14,805 total.
 - **Phase NQ** (2026-07-03): INDUSTRY_BASE_CHURN_RATE=0.05 floor; yoy_extended 24-month reference window; Phase NP pay_metrics bug fixed. 14 tests, 14,786 total.
 - **Phase NO** (2026-07-03): counterfactual_retention.py + threshold_sensitivity.py; _section_threshold_optimisation in annual report; optimal F1 threshold=0% reveals model underestimation. 15 tests, 14,772 total.
