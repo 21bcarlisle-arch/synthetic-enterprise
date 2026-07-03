@@ -174,22 +174,22 @@ Accounts lost before end of window: C1, C2, C3, C4, C5, C6
 
 At each renewal the company estimated churn risk from observable signals (rate change %, customer tenure). The SIM used its bill-shock model (actual bill amount relative to customer-specific thresholds). The gap is epistemic: in crisis years the company sees a rate % while the SIM sees the household-level financial shock — the same failure mode that surprised real suppliers in 2021-22.
 
-- **Average absolute error:** 142.1%
-- **Average signed error:** +19.3% (over-estimates vs SIM)
+- **Average absolute error:** 132.5%
+- **Average signed error:** +28.9% (over-estimates vs SIM)
 - **Renewal events with estimates:** 59
 
 | Year | Renewals | Avg error (signed) | Avg abs error |
 |------|----------|--------------------|---------------|
 | 2016 | 3 | +3.6% | 3.6% |
-| 2017 | 3 | -80.5% | 80.5% |
-| 2018 | 4 | +399.5% | 434.1% |
-| 2019 | 4 | +381.9% | 518.1% |
-| 2020 | 10 | -69.5% | 80.2% |
-| 2021 | 9 | +21.3% | 108.8% |
-| 2022 | 8 | -80.2% | 80.2% |
-| 2023 | 8 | +21.2% | 139.5% |
-| 2024 | 8 | -74.6% | 74.6% |
-| 2025 | 2 | -93.1% | 93.1% |
+| 2017 | 3 | -54.5% | 54.5% |
+| 2018 | 4 | +399.8% | 433.8% |
+| 2019 | 4 | +389.8% | 510.2% |
+| 2020 | 10 | -53.0% | 63.7% |
+| 2021 | 9 | +28.6% | 101.5% |
+| 2022 | 8 | -78.4% | 78.4% |
+| 2023 | 8 | +27.4% | 133.3% |
+| 2024 | 8 | -56.6% | 56.6% |
+| 2025 | 2 | -84.4% | 84.4% |
 
 Positive error = company over-estimated churn vs SIM. Negative error = company under-estimated (more dangerous — expected retentions that were actually at risk).
 
@@ -199,20 +199,20 @@ Positive error = company over-estimated churn vs SIM. Negative error = company u
 
 - **Total renewal events:** 59
 - **Active renewers:** 18 (31%) — mean company estimate 30.1%, abs error 201.0%
-- **Passive SVT-rollers:** 41 (69%) — mean company estimate 5.0%, abs error 116.2%
+- **Passive SVT-rollers:** 41 (69%) — mean company estimate 7.5%, abs error 102.4%
 
 | Year | Active | Passive | Active est | Passive est | Active abs err | Passive abs err |
 |------|--------|---------|-----------|------------|---------------|----------------|
 | 2016 | 0 | 3 | 0.0% | 5.2% | 0.0% | 3.6% |
-| 2017 | 0 | 3 | 0.0% | 2.1% | 0.0% | 80.5% |
-| 2018 | 2 | 2 | 19.1% | 44.4% | 51.5% | 816.8% |
-| 2019 | 2 | 2 | 51.5% | 0.0% | 936.2% | 100.0% |
-| 2020 | 5 | 5 | 12.6% | 0.5% | 63.7% | 96.8% |
-| 2021 | 3 | 6 | 66.0% | 4.1% | 195.2% | 65.6% |
-| 2022 | 0 | 8 | 0.0% | 6.6% | 0.0% | 80.2% |
-| 2023 | 3 | 5 | 30.1% | 2.2% | 214.3% | 94.6% |
-| 2024 | 3 | 5 | 16.5% | 0.0% | 32.2% | 100.0% |
-| 2025 | 0 | 2 | 0.0% | 2.2% | 0.0% | 93.1% |
+| 2017 | 0 | 3 | 0.0% | 5.0% | 0.0% | 54.5% |
+| 2018 | 2 | 2 | 19.1% | 44.4% | 51.5% | 816.1% |
+| 2019 | 2 | 2 | 51.5% | 5.0% | 936.2% | 84.2% |
+| 2020 | 5 | 5 | 12.6% | 5.0% | 63.7% | 63.8% |
+| 2021 | 3 | 6 | 66.0% | 5.2% | 195.2% | 54.6% |
+| 2022 | 0 | 8 | 0.0% | 7.2% | 0.0% | 78.4% |
+| 2023 | 3 | 5 | 30.1% | 6.2% | 214.3% | 84.7% |
+| 2024 | 3 | 5 | 16.5% | 5.0% | 32.2% | 71.2% |
+| 2025 | 0 | 2 | 0.0% | 5.0% | 0.0% | 84.4% |
 
 Passive renewers should show lower company estimates and lower SIM churn — high abs error for passive renewers indicates the passive model needs recalibration.
 
@@ -285,15 +285,15 @@ well-hedged and therefore not experiencing bill shocks during their last contrac
 | Year | Renewals | Mean Abs Error (×SIM) | Max Abs Error (×SIM) |
 |------|----------|-----------------------|---------------------|
 | 2016 | 3 | 0.04× | 0.05× |
-| 2017 | 3 | 0.80× | 0.83× |
+| 2017 | 3 | 0.55× | 0.55× |
 | 2018 | 4 | 4.34× ⚠ | 15.78× |
-| 2019 | 4 | 5.18× ⚠ | 18.00× |
-| 2020 | 10 | 0.80× | 1.00× |
-| 2021 | 9 | 1.09× | 3.87× |
-| 2022 | 8 | 0.80× | 1.00× |
-| 2023 | 8 | 1.40× | 5.43× |
-| 2024 | 8 | 0.75× | 1.00× |
-| 2025 | 2 | 0.93× | 1.00× |
+| 2019 | 4 | 5.10× ⚠ | 18.00× |
+| 2020 | 10 | 0.64× | 0.88× |
+| 2021 | 9 | 1.01× | 3.87× |
+| 2022 | 8 | 0.78× | 0.87× |
+| 2023 | 8 | 1.33× | 5.43× |
+| 2024 | 8 | 0.57× | 0.87× |
+| 2025 | 2 | 0.84× | 0.84× |
 
 ### Demand Estimation Error (Phase AO)
 
@@ -362,14 +362,14 @@ Total events: **8** (6 churn, 2 acquisition)
 
 | Date | Event | Customer | Detail |
 |------|-------|----------|--------|
-| 2020-06-30 | CHURN | C3 | SIM p=0.11, company est=0.00 |
-| 2021-12-30 | CHURN | C1 | SIM p=0.11, company est=0.04 |
+| 2020-06-30 | CHURN | C3 | SIM p=0.11, company est=0.05 |
+| 2021-12-30 | CHURN | C1 | SIM p=0.11, company est=0.05 |
 | 2022-03-31 | CHURN | C2 | SIM p=0.38, company est=0.07 |
 | 2022-03-31 | ACQUISITION | C2_2 | home-move-win (predecessor: C2) |
-| 2022-12-30 | CHURN | C5 | SIM p=0.38, company est=0.00 |
+| 2022-12-30 | CHURN | C5 | SIM p=0.38, company est=0.05 |
 | 2022-12-30 | ACQUISITION | C5_2 | home-move-win (predecessor: C5) |
 | 2024-03-30 | CHURN | C6 | SIM p=0.26, company est=0.25 |
-| 2024-09-29 | CHURN | C4 | SIM p=0.38, company est=0.00 |
+| 2024-09-29 | CHURN | C4 | SIM p=0.38, company est=0.05 |
 
 **SIM ground truth vs company CRM reconciliation (year-end snapshots):**
 
@@ -813,17 +813,17 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
 | Account | Seg | Risk Band | Sim Churn | Co. Est. | Rate vs SVT | Lifetime Margin |
 |---------|-----|-----------|-----------|----------|-------------|-----------------|
 | C_IC3 | I&C | HIGH | 41% | 11% | -53.9% [competitive] | £1,798,804.30 |
-| C5 | SME | HIGH | 38% | 0% | -48.8% [competitive] | £10,703.12 |
+| C5 | SME | HIGH | 38% | 5% | -48.8% [competitive] | £10,703.12 |
 | C2 | resi | HIGH | 38% | 7% | +46.6% [overpriced] | £2,978.09 |
-| C4 | resi | HIGH | 38% | 0% | -9.0% | £2,749.41 |
-| C8 | resi | HIGH | 32% | 0% | -23.6% [competitive] | £11,527.29 |
-| C2_2 | resi | HIGH | 32% | 4% | +16.8% [overpriced] | £5,115.36 |
-| C7 | resi | MEDIUM | 29% | 0% | -14.3% | £9,846.82 |
+| C4 | resi | HIGH | 38% | 5% | -9.0% | £2,749.41 |
+| C8 | resi | HIGH | 32% | 5% | -23.6% [competitive] | £11,527.29 |
+| C2_2 | resi | HIGH | 32% | 5% | +16.8% [overpriced] | £5,115.36 |
+| C7 | resi | MEDIUM | 29% | 5% | -14.3% | £9,846.82 |
 | C6 | SME | MEDIUM | 26% | 25% | -24.8% [competitive] | £21,101.25 |
-| C9 | resi | MEDIUM | 17% | 0% | -14.3% | £11,811.57 |
-| C1 | resi | LOW | 11% | 4% | -12.0% | £2,319.83 |
-| C3 | resi | LOW | 11% | 0% | -39.0% [competitive] | £2,096.31 |
-| C5_2 | SME | LOW | 8% | 0% | +3.3% | £6,106.01 |
+| C9 | resi | MEDIUM | 17% | 5% | -14.3% | £11,811.57 |
+| C1 | resi | LOW | 11% | 5% | -12.0% | £2,319.83 |
+| C3 | resi | LOW | 11% | 5% | -39.0% [competitive] | £2,096.31 |
+| C5_2 | SME | LOW | 8% | 5% | +3.3% | £6,106.01 |
 | C_IC1 | I&C | LOW | 5% | 84% | -0.1% | £1,854,821.05 |
 | C_IC2 | I&C | LOW | 5% | 95% | +12.4% [overpriced] | £898,486.46 |
 
@@ -836,11 +836,11 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
 - Overpriced vs SVT within HIGH/CRITICAL band: 2 account(s) -- rate shock risk compounds churn probability
 
 **Company blind spot:** 5 HIGH/CRITICAL account(s) where company churn estimate was <10%.
-  - C5: sim 38%, company est 0%
+  - C5: sim 38%, company est 5%
   - C2: sim 38%, company est 7%
-  - C4: sim 38%, company est 0%
-  - C8: sim 32%, company est 0%
-  - C2_2: sim 32%, company est 4%
+  - C4: sim 38%, company est 5%
+  - C8: sim 32%, company est 5%
+  - C2_2: sim 32%, company est 5%
 
 ## Churn Root Cause Attribution
 
@@ -848,12 +848,12 @@ Per-churned-account analysis: pricing journey, rate-vs-SVT positioning, and comp
 
 | Account | Seg | Churn Date | Tenure | Last Rate Shock | Rate vs SVT | Sim Risk | Co. Est. | Margin Lost |
 |---------|-----|------------|--------|-----------------|-------------|----------|----------|-------------|
-| C3 | resi | 2020-06-30 | 4.0yr | -4.3% | -39.0% | 11% | 0% | £2,096.31 |
-| C1 | resi | 2021-12-30 | 6.0yr | +1.6% | -12.0% | 11% | 4% | £2,319.83 |
+| C3 | resi | 2020-06-30 | 4.0yr | -4.3% | -39.0% | 11% | 5% | £2,096.31 |
+| C1 | resi | 2021-12-30 | 6.0yr | +1.6% | -12.0% | 11% | 5% | £2,319.83 |
 | C2 | resi | 2022-03-31 | 6.0yr | +12.3% | +46.6% | 38% | 7% | £2,978.09 |
-| C5 | SME | 2022-12-30 | 7.0yr | -0.5% | -48.8% | 38% | 0% | £10,703.12 |
+| C5 | SME | 2022-12-30 | 7.0yr | -0.5% | -48.8% | 38% | 5% | £10,703.12 |
 | C6 | SME | 2024-03-30 | 8.0yr | -0.8% | -24.8% | 26% | 25% | £21,101.25 |
-| C4 | resi | 2024-09-29 | 8.0yr | +3.8% | -9.0% | 38% | 0% | £2,749.41 |
+| C4 | resi | 2024-09-29 | 8.0yr | +3.8% | -9.0% | 38% | 5% | £2,749.41 |
 
 **Root Cause Summary:**
 - Total churned accounts: 6
@@ -870,12 +870,12 @@ What would company-initiated retention offers have been worth for the 6 accounts
 
 | Account | Seg | Churn Date | Co. Est. | Term Margin | Disc Rate | Retention Cost | CF Net Benefit | Assessment |
 |---------|-----|------------|----------|-------------|-----------|----------------|----------------|------------|
-| C3 | resi | 2020-06-30 | 0% | £585.39 | 5% | £29.27 | £556.12 | MISSED OPP. |
-| C1 | resi | 2021-12-30 | 4% | £-178.13 | 5% | £0.00 | n/a | CORRECT PASS |
+| C3 | resi | 2020-06-30 | 5% | £585.39 | 5% | £29.27 | £556.12 | MISSED OPP. |
+| C1 | resi | 2021-12-30 | 5% | £-178.13 | 5% | £0.00 | n/a | CORRECT PASS |
 | C2 | resi | 2022-03-31 | 7% | £236.63 | 5% | £11.83 | £224.80 | MISSED OPP. |
-| C5 | SME | 2022-12-30 | 0% | £1,774.75 | 8% | £141.98 | £1,632.77 | MISSED OPP. |
+| C5 | SME | 2022-12-30 | 5% | £1,774.75 | 8% | £141.98 | £1,632.77 | MISSED OPP. |
 | C6 | SME | 2024-03-30 | 25% | £2,860.15 | 8% | £228.81 | £2,631.34 | MISSED OPP. |
-| C4 | resi | 2024-09-29 | 0% | £468.87 | 5% | £23.44 | £445.43 | MISSED OPP. |
+| C4 | resi | 2024-09-29 | 5% | £468.87 | 5% | £23.44 | £445.43 | MISSED OPP. |
 
 **Counterfactual Summary:**
 - No-offer churns assessed: 6
@@ -1083,12 +1083,12 @@ Customers who reached a renewal/churn trigger but received no retention offer.
 
 | Customer | Date | Churn Estimate | Margin at Risk £ | Reason |
 |----------|------|---------------|-----------------|--------|
-| C3 | 2020-06 | 0.0% | £585 | below threshold |
-| C1 | 2021-12 | 3.8% | -£178 | below threshold |
+| C3 | 2020-06 | 5.0% | £585 | below threshold |
+| C1 | 2021-12 | 5.0% | -£178 | below threshold |
 | C2 | 2022-03 | 6.7% | £237 | below threshold |
-| C5 | 2022-12 | 0.0% | £1,775 | below threshold |
+| C5 | 2022-12 | 5.0% | £1,775 | below threshold |
 | C6 | 2024-03 | 24.6% | £2,860 | below threshold ⚑ |
-| C4 | 2024-09 | 0.0% | £469 | below threshold |
+| C4 | 2024-09 | 5.0% | £469 | below threshold |
 
 **High-risk no-offer events (≥10% churn): 1** — £2,860 margin at risk.
 
@@ -1392,20 +1392,59 @@ How well the company estimated churn probability versus actual simulation outcom
 
 | Customer | Date | Sim Probability | Company Estimate | Delta | Verdict |
 |----------|------|----------------|-----------------|-------|---------|
-| C3 | 2020-06 | 11.0% | 0.0% | -11.0pp | UNDERESTIMATED |
-| C1 | 2021-12 | 11.0% | 3.8% | -7.2pp | ACCURATE |
+| C3 | 2020-06 | 11.0% | 5.0% | -6.0pp | ACCURATE |
+| C1 | 2021-12 | 11.0% | 5.0% | -6.0pp | ACCURATE |
 | C2 | 2022-03 | 38.0% | 6.7% | -31.3pp | UNDERESTIMATED |
-| C5 | 2022-12 | 38.0% | 0.0% | -38.0pp | UNDERESTIMATED |
+| C5 | 2022-12 | 38.0% | 5.0% | -33.0pp | UNDERESTIMATED |
 | C6 | 2024-03 | 26.0% | 24.6% | -1.4pp | ACCURATE |
-| C4 | 2024-09 | 38.0% | 0.0% | -38.0pp | UNDERESTIMATED |
+| C4 | 2024-09 | 38.0% | 5.0% | -33.0pp | UNDERESTIMATED |
 
-**Outcomes: 4 underestimated / 2 accurate / 0 overestimated**
-**Mean absolute error: 21.1pp**
+**Outcomes: 3 underestimated / 3 accurate / 0 overestimated**
+**Mean absolute error: 18.4pp**
 **Systematic bias: company consistently UNDER-predicted churn risk.**
 
 > Company churn estimates derived from company-observable signals (bill shock,
 > margin feedback, renewal history) without access to the simulation's internal
 > churn parameters — epistemic gap is expected and realistic for a small supplier.
+
+## Counterfactual Retention & Threshold Optimisation
+
+**Current threshold:** 30% | F1=0.000
+**Optimal threshold:** 0% | F1=0.185
+
+**RAG [!]:** RED — 5 unrecoverable high-value miss(es) — model underestimates churn: optimal threshold below current
+
+**Missed retention opportunities:** 6 no-offer churns
+  Value at stake: £5,748
+  Counterfactually recoverable (with offer): 0/6
+  Net value recoverable (after offer cost): £0
+
+### Per-miss detail
+
+| Year | Customer | Est | SIM p | Recoverable? | Margin | Net value |
+|------|----------|-----|-------|-------------|--------|----------|
+| 2020 | C3 | 5% | 11% | No | £585 | £-50 |
+| 2021 | C1 | 5% | 11% | No | £-178 | £-50 |
+| 2022 | C2 | 7% | 38% | No | £237 | £-50 |
+| 2022 | C5 | 5% | 38% | No | £1,775 | £-50 |
+| 2024 | C6 | 25% | 26% | No | £2,860 | £-50 |
+| 2024 | C4 | 5% | 38% | No | £469 | £-50 |
+
+### Threshold sensitivity curve
+
+| Threshold | Recall | Precision | F1 |
+|-----------|--------|-----------|----|
+| 0% | 1.000 | 0.102 | 0.185 ← optimal |
+| 5% | 1.000 | 0.102 | 0.185 |
+| 10% | 0.167 | 0.059 | 0.087 |
+| 15% | 0.167 | 0.091 | 0.118 |
+| 20% | 0.167 | 0.100 | 0.125 |
+| 25% | 0.000 | 0.000 | 0.000 |
+| 30% | 0.000 | 0.000 | 0.000 |
+| 35% | 0.000 | 0.000 | 0.000 |
+| 40% | 0.000 | 0.000 | 0.000 |
+| 45% | 0.000 | 0.000 | 0.000 |
+| 50% | 0.000 | 0.000 | 0.000 |
 
 ## Churn Model Quality (Phase NK)
 
@@ -1897,12 +1936,12 @@ Total no-offer churns: **6** | Blind misses: **6** | Deliberate passes (uneconom
 
 | Customer | Date | Reason | Co. est | SIM p | Detectable? | Margin at stake |
 |----------|------|--------|---------|-------|-------------|----------------|
-| C3 | 2020-06-30 | Blind miss | 0.00 | 0.11 | No | £585.39 |
-| C1 | 2021-12-30 | Blind miss | 0.04 | 0.11 | No | £-178.13 |
+| C3 | 2020-06-30 | Blind miss | 0.05 | 0.11 | No | £585.39 |
+| C1 | 2021-12-30 | Blind miss | 0.05 | 0.11 | No | £-178.13 |
 | C2 | 2022-03-31 | Blind miss | 0.07 | 0.38 | Yes | £236.63 |
-| C5 | 2022-12-30 | Blind miss | 0.00 | 0.38 | Yes | £1,774.75 |
+| C5 | 2022-12-30 | Blind miss | 0.05 | 0.38 | Yes | £1,774.75 |
 | C6 | 2024-03-30 | Blind miss | 0.25 | 0.26 | No | £2,860.15 |
-| C4 | 2024-09-29 | Blind miss | 0.00 | 0.38 | Yes | £468.87 |
+| C4 | 2024-09-29 | Blind miss | 0.05 | 0.38 | Yes | £468.87 |
 
 ## Dual-Fuel Account P&L (Phase 17d)
 
