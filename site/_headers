@@ -12,3 +12,5 @@
 
 /data/*.json
   Cache-Control: no-cache, must-revalidate
+/state/*
+  Cache-Control: no-cache, must-revalidate
