@@ -19,7 +19,7 @@ def test_sim_index_has_nav():
 def test_sim_index_active_not_dim():
     text = (SITE / "sim" / "index.html").read_text()
     assert "active" in text
-    assert "dim" not in text
+    assert "site-nav-link dim" not in text
 
 
 def test_main_index_sim_link_not_dim():

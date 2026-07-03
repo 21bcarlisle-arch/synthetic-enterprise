@@ -1,10 +1,13 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T18:15:37Z
+Last updated: 2026-07-03T18:30:27Z
 
 ## Current Status
 Phase OL COMPLETE (2026-07-03) -- Carbon Emissions: FuelMixRecord 2016-2025; scope 2+1; 290->175g/kWh trend. 17 tests, 15,148 total.
 
-Website fixed (2026-07-03): kpi() function added to main dashboard -- Regulatory and Capabilities tabs now render correctly. Customer data regenerated (21 customers, 2313 invoices). Dashboard/shadow HTML refreshed.
+Website fixes deployed (2026-07-03):
+- Supplier dashboard: kpi() function + CSS added -- Regulatory and Capabilities tabs now render correctly.
+- Customer portal: JS string bug fixed (line 208 kpi-value class attribute was broken) -- portal now renders account details.
+- Annual report: management_accounts None guard fixed (was crashing on empty ledger).
 
 ## Last Run
 Net position: £1,445,258 (git 1ae3d1a4, 2026-07-03)

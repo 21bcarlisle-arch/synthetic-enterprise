@@ -4830,7 +4830,7 @@ def _section_licence_health(data: dict) -> str:
     import datetime as dt
 
     years = data.get("years", {})
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     if not years:
         return ""
 
@@ -4957,7 +4957,7 @@ def _section_carbon_emissions(data: dict) -> str:
     }
     _GAS_G_PER_KWH = 183.0
 
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     if not ma:
         return ""
 
@@ -5019,7 +5019,7 @@ def _section_eco_obligation(data: dict) -> str:
                 return phase
         return "ECO4"
 
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     lines = ["## Energy Company Obligation (ECO) Observatory"]
     lines.append("")
     lines.append(f"ECO requires suppliers with {_ECO_THRESHOLD:,}+ domestic customers to fund home energy efficiency upgrades.")
@@ -5178,7 +5178,7 @@ def _section_fit_levy(data: dict) -> str:
         "| **Total** | | | **GBP" + f"{total_levy:,.2f}" + "** |"
     )
     lines.append("")
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     total_rev = 0.0
     for yr in per_year:
         yr_ma = ma.get(str(yr), {})
@@ -5228,7 +5228,7 @@ def _section_roc_obligations(data: dict) -> str:
     )
     lines.append("")
     # cost as % of typical revenue
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     total_rev = 0.0
     for yr in per_year:
         yr_ma = ma.get(str(yr), {})
@@ -5456,7 +5456,7 @@ def _section_compliance_scorecard(data: dict) -> str:
     import datetime as dt
 
     years = data.get("years", {})
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     fra_series = {r["year"]: r for r in data.get("fra_ratio_series", [])}
 
     if not years:
@@ -5651,7 +5651,7 @@ def _section_settlement_reconciliation(data: dict) -> str:
         largest_exposure_year,
     )
 
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     if not ma:
         return ""
     # Build by_year dict from management accounts income statements
@@ -6744,7 +6744,7 @@ def _section_stress_test_history(data: dict) -> str:
 
 def _section_financial_ratios(data: dict) -> str:
     """Phase BK: Financial Ratios — EBIT margin, revenue and margin per customer."""
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     yrs_data = data.get("years", {})
     if not ma:
         return ""
@@ -7085,7 +7085,7 @@ def _section_clv_evolution(data: dict) -> str:
 
 def _section_gross_margin_bridge(data: dict) -> str:
     """Phase BE: Gross margin bridge — year-over-year P&L attribution."""
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     if not ma:
         return ""
     years = sorted(ma.keys())
@@ -7731,7 +7731,7 @@ def _section_commodity_split(data: dict) -> str:
 
 
 def _section_management_accounts(data: dict) -> str:
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     if not ma:
         return ""
     years = sorted(ma.keys())
@@ -8125,7 +8125,7 @@ def _section_plausibility_vs_industry(data: dict) -> str:
     def _flag(rag):
         return {"GREEN": "OK", "AMBER": "~", "RED": "!"}[rag]
 
-    ma = data.get("management_accounts", {})
+    ma = data.get("management_accounts") or {}
     customer_events = data.get("customer_events") or []
     years_data = data.get("years", {})
 
