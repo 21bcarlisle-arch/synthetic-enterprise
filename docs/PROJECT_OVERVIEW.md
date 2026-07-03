@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 490+ commits. 15,276 tests passing. Codebase: ~50,900 lines across 332+ Python modules.*
+*Last updated: 2026-07-03. 490+ commits. 15,290 tests passing. Codebase: ~50,900 lines across 332+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
