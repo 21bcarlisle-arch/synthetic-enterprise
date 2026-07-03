@@ -97,6 +97,7 @@ def generate():
         "- https://poesys.net/shadow/customers/ -- no-JS HTML: Customer portal",
         "- https://poesys.net/shadow/project/ -- no-JS HTML: Project overview",
         "- https://poesys.net/shadow/sim/ -- no-JS HTML: SIM market data",
+        "- https://poesys.net/state/billing_ledger.json -- per-customer invoice/payment/arrears ledger",
         "- docs/reports/run_output_latest.json -- full run output (JSON)",
         "",
         "## Architecture & Key Rules",

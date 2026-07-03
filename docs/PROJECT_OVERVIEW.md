@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 489+ commits. 15,148 tests passing. Codebase: ~50,650 lines across 330+ Python modules.*
+*Last updated: 2026-07-03. 489+ commits. 15,171 tests passing. Codebase: ~50,700 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase PP -- Per-Customer Invoice & Payment Ledger (2026-07-03)
+23 tests. `tools/generate_billing_ledger.py` (new): `generate(run_json, out)` processes bills list + per_customer_behavioral from run output. Per-bill: invoice record (period/amount/due_date/payment_status); payment event (method/outcome/income_stress_at_time); arrears case if failed (stages: DD_FAILED->FIRST_NOTICE->SECOND_NOTICE->RESOLVED|WRITTEN_OFF). Payment method: I&C -> BACS (<10k) / CHAPS (>=10k); SME -> BACS; Resi -> DD. Payment outcome from income_stress_trajectory: LOW 92% on-time / 3% DD fail; MODERATE 50% / 12%; HIGH 10% / 35%. Churned -> WRITTEN_OFF; retained -> RESOLVED. Wired into process_run_complete.py; output to site/state/billing_ledger.json. Bills list + per_customer_behavioral added to extract_report_data (were previously discarded). Epistemic: PASS.
+**Total:** 15,171 tests
 
 ### Phase OL -- Carbon Emissions Reporting Observatory (2026-07-03)
 Real UK grid fuel mix data 2016-2025 embedded (DESNZ/National Grid): FuelMixRecord objects with coal/gas/nuclear/wind/solar/hydro/biomass/imports percentages. Emission intensity calculated per year: 2016 ~290g CO2/kWh -> 2025 ~175g CO2/kWh (40% reduction). Board section: per-year scope 2 (electricity) + scope 1 (gas, 183g/kWh) emissions in tonnes, low-carbon % column, total 2016-2025. **17 tests (15,148 total). Epistemic: PASS.**

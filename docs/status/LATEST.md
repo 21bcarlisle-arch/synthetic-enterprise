@@ -1,5 +1,5 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T19:10:58Z
+Last updated: 2026-07-03T19:20:47Z
 
 ## Current Status
 Phase OL COMPLETE (2026-07-03) -- Carbon Emissions: FuelMixRecord 2016-2025; scope 2+1; 290->175g/kWh trend. 17 tests, 15,148 total.
@@ -14,9 +14,9 @@ Net position: £1,445,258 (git c780cb4e, 2026-07-03)
 Revenue: GBP 14,060,576 | Treasury: GBP 3,911,894 | EV: GBP 8,826,939
 
 ## Test Suite
-- **15,148 tests passing**
+- **15,171 tests passing** (Phase PP: +23)
 - Epistemic verifier: PASS
-- PRIORITIES.md: OM (Fuel Mix Disclosure) next
+- Priority 2 in progress: per-customer billing ledger (billing_ledger.json)
 
 **Latest simulation results (2016–2025)** — auto-processed (1044s / 17 min):
 - Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433

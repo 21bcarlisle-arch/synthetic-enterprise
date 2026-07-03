@@ -620,6 +620,10 @@ def extract_report_data(run_output: dict) -> dict:
         # Phase NZ: Ofgem FRA regulatory capital ratio
         "fra_ratio_series": [r.__dict__ for r in build_fra_ratio_series(
             _compute_management_accounts(run_output, phase2b.get("starting_treasury", 0.0)) or {})],
+        # Phase NP: per-customer behavioral trajectories
+        "per_customer_behavioral": phase2b.get("per_customer_behavioral", {}),
+        # Phase PP: full bill list (needed for billing ledger generation)
+        "bills": bills,
     }
 
 
