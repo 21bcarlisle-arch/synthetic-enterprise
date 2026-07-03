@@ -205,6 +205,12 @@ def generate_dashboard_json(json_path):
         log("Generated site/state/billing_ledger.json")
     except Exception as exc:
         log("Billing ledger generation failed: {}".format(exc))
+    try:
+        from tools.population_anchor import generate as gen_anchor
+        gen_anchor(json_path)
+        log("Generated site/state/population_anchoring.json")
+    except Exception as exc:
+        log("Population anchoring failed: {}".format(exc))
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):
@@ -239,6 +245,9 @@ def git_commit_push(git_hash, net_margin):
     site_state_billing = PROJECT_DIR / "site" / "state" / "billing_ledger.json"
     if site_state_billing.exists():
         files.append(str(site_state_billing))
+    site_state_anchor = PROJECT_DIR / "site" / "state" / "population_anchoring.json"
+    if site_state_anchor.exists():
+        files.append(str(site_state_anchor))
     subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin

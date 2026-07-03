@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 489+ commits. 15,171 tests passing. Codebase: ~50,700 lines across 330+ Python modules.*
+*Last updated: 2026-07-03. 489+ commits. 15,189 tests passing. Codebase: ~50,800 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase PQ -- Population Anchoring Validation Gate (2026-07-03)
+18 tests. `tools/population_anchor.py` (new): `generate(run_json, out)` compares SIM aggregates vs Ofgem/DESNZ published benchmarks. `_churn_by_year(events)` -> per-year SIM churn rate + Ofgem switching benchmark + calibrated multiplier. `_bad_debt_check(years)` -> RAG: GREEN (<0.5%), AMBER (<2.5%), RED (>2.5%); crisis ceiling 4% for 2021-23. `_crisis_churn_direction` -> crisis_divergence_flag if 2022 multiplier-normalised propensity >2x 2020 (invariant: crisis should suppress churn). `_multiplier_alignment` -> AMBER if Ofgem going down but SIM going up. Wired into process_run_complete.py; output to site/state/population_anchoring.json. OFGEM_SWITCHING_RATE 2016-2025 hardcoded (source: Ofgem Retail Market Indicators). KEY FINDING (live 2016-2025 run): overall_rag=RED -- 2022 normalised churn propensity 2.4x 2020 propensity (22.2% / 0.44x vs 20% / 0.95x), indicating the market switching multiplier is not fully suppressing I&C churn in crisis years. Small-N caveat (9 renewals in 2022) documented. Priority 3 complete. Epistemic: PASS.
+**Total:** 15,189 tests
 
 ### Phase PP -- Per-Customer Invoice & Payment Ledger (2026-07-03)
 23 tests. `tools/generate_billing_ledger.py` (new): `generate(run_json, out)` processes bills list + per_customer_behavioral from run output. Per-bill: invoice record (period/amount/due_date/payment_status); payment event (method/outcome/income_stress_at_time); arrears case if failed (stages: DD_FAILED->FIRST_NOTICE->SECOND_NOTICE->RESOLVED|WRITTEN_OFF). Payment method: I&C -> BACS (<10k) / CHAPS (>=10k); SME -> BACS; Resi -> DD. Payment outcome from income_stress_trajectory: LOW 92% on-time / 3% DD fail; MODERATE 50% / 12%; HIGH 10% / 35%. Churned -> WRITTEN_OFF; retained -> RESOLVED. Wired into process_run_complete.py; output to site/state/billing_ledger.json. Bills list + per_customer_behavioral added to extract_report_data (were previously discarded). Epistemic: PASS.

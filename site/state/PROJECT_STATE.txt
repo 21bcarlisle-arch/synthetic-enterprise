@@ -1,9 +1,9 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-07-03T19:14:18Z
+Generated: 2026-07-03T19:31:14Z
 
 ## Summary
-- Current Phase: OL
-- Test Suite: 15,148 tests passing (unit / fast suite ~10s)
+- Current Phase: PP
+- Test Suite: 15,171 tests passing (unit / fast suite ~10s)
 - Company Modules: 405+ Python modules across company/
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)
@@ -26,6 +26,7 @@ Generated: 2026-07-03T19:14:18Z
 - https://poesys.net/shadow/project/ -- no-JS HTML: Project overview
 - https://poesys.net/shadow/sim/ -- no-JS HTML: SIM market data
 - https://poesys.net/state/billing_ledger.json -- per-customer invoice/payment/arrears ledger
+- https://poesys.net/state/population_anchoring.json -- SIM vs Ofgem/DESNZ benchmark validation
 - docs/reports/run_output_latest.json -- full run output (JSON)
 
 ## Architecture & Key Rules
@@ -34,6 +35,6 @@ Generated: 2026-07-03T19:14:18Z
 - Churn model: bill shock YoY + payment behaviour + satisfaction + market year elasticity
 
 ## Key Metrics
-- Tests at start (Phase 0): 0 | Tests now: 15,148
+- Tests at start (Phase 0): 0 | Tests now: 15,171
 - Net margin all-time: GBP1,445,258 | Crisis survived: 2021-22
 - Retention: 12/12 offers | 6 no-offer churns

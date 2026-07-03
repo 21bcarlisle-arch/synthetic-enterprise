@@ -1,0 +1,262 @@
+{
+  "meta": {
+    "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
+    "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)"
+  },
+  "overall_rag": "RED",
+  "crisis_churn_direction": {
+    "2020_churn_rate": 20.0,
+    "2021_churn_rate": 0.0,
+    "2022_churn_rate": 22.2,
+    "2020_multiplier_normalised": 21.1,
+    "2022_multiplier_normalised": 50.5,
+    "crisis_divergence_flag": true,
+    "note": "SIM shows I&C-specific churn; Ofgem switching data is for residential. 2022 multiplier=0.44 should suppress churn vs 2020 multiplier=0.95. Flag fires if 2022 normalised propensity is >2x 2020 propensity."
+  },
+  "bad_debt_vs_benchmark": [
+    {
+      "year": 2016,
+      "bad_debt_gbp": 167.0,
+      "bad_debt_rate": 1.6,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "AMBER"
+    },
+    {
+      "year": 2017,
+      "bad_debt_gbp": 1375.0,
+      "bad_debt_rate": 0.59,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "AMBER"
+    },
+    {
+      "year": 2018,
+      "bad_debt_gbp": 2385.0,
+      "bad_debt_rate": 0.55,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "AMBER"
+    },
+    {
+      "year": 2019,
+      "bad_debt_gbp": 6207.0,
+      "bad_debt_rate": 0.52,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "AMBER"
+    },
+    {
+      "year": 2020,
+      "bad_debt_gbp": 6295.0,
+      "bad_debt_rate": 0.51,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "AMBER"
+    },
+    {
+      "year": 2021,
+      "bad_debt_gbp": 9146.0,
+      "bad_debt_rate": 0.53,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 4.0,
+      "rag": "AMBER"
+    },
+    {
+      "year": 2022,
+      "bad_debt_gbp": 36025.0,
+      "bad_debt_rate": 1.05,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 4.0,
+      "rag": "AMBER"
+    },
+    {
+      "year": 2023,
+      "bad_debt_gbp": 14424.0,
+      "bad_debt_rate": 0.55,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 4.0,
+      "rag": "AMBER"
+    },
+    {
+      "year": 2024,
+      "bad_debt_gbp": 11505.0,
+      "bad_debt_rate": 0.53,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "AMBER"
+    },
+    {
+      "year": 2025,
+      "bad_debt_gbp": 5022.0,
+      "bad_debt_rate": 0.52,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "AMBER"
+    }
+  ],
+  "multiplier_alignment": [
+    {
+      "year_transition": "2016->2017",
+      "ofgem_direction": "down",
+      "sim_direction": "flat",
+      "ofgem_rate_prev": 0.2,
+      "ofgem_rate_curr": 0.19,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2017->2018",
+      "ofgem_direction": "down",
+      "sim_direction": "flat",
+      "ofgem_rate_prev": 0.19,
+      "ofgem_rate_curr": 0.18,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2018->2019",
+      "ofgem_direction": "down",
+      "sim_direction": "flat",
+      "ofgem_rate_prev": 0.18,
+      "ofgem_rate_curr": 0.17,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2019->2020",
+      "ofgem_direction": "down",
+      "sim_direction": "up",
+      "ofgem_rate_prev": 0.17,
+      "ofgem_rate_curr": 0.14,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.2,
+      "rag": "AMBER"
+    },
+    {
+      "year_transition": "2020->2021",
+      "ofgem_direction": "down",
+      "sim_direction": "down",
+      "ofgem_rate_prev": 0.14,
+      "ofgem_rate_curr": 0.09,
+      "sim_rate_prev": 0.2,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2021->2022",
+      "ofgem_direction": "down",
+      "sim_direction": "up",
+      "ofgem_rate_prev": 0.09,
+      "ofgem_rate_curr": 0.04,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.2222,
+      "rag": "AMBER"
+    },
+    {
+      "year_transition": "2022->2023",
+      "ofgem_direction": "up",
+      "sim_direction": "down",
+      "ofgem_rate_prev": 0.04,
+      "ofgem_rate_curr": 0.08,
+      "sim_rate_prev": 0.2222,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2023->2024",
+      "ofgem_direction": "up",
+      "sim_direction": "up",
+      "ofgem_rate_prev": 0.08,
+      "ofgem_rate_curr": 0.13,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.2222,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2024->2025",
+      "ofgem_direction": "up",
+      "sim_direction": "down",
+      "ofgem_rate_prev": 0.13,
+      "ofgem_rate_curr": 0.14,
+      "sim_rate_prev": 0.2222,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    }
+  ],
+  "churn_by_year": {
+    "2016": {
+      "renewals": 3,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.2,
+      "calibrated_multiplier": 2.17
+    },
+    "2017": {
+      "renewals": 3,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.19,
+      "calibrated_multiplier": 1.88
+    },
+    "2018": {
+      "renewals": 4,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.18,
+      "calibrated_multiplier": 1.72
+    },
+    "2019": {
+      "renewals": 4,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.17,
+      "calibrated_multiplier": 1.43
+    },
+    "2020": {
+      "renewals": 8,
+      "churns": 2,
+      "sim_churn_rate": 0.2,
+      "ofgem_benchmark": 0.14,
+      "calibrated_multiplier": 0.95
+    },
+    "2021": {
+      "renewals": 9,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.09,
+      "calibrated_multiplier": 0.57
+    },
+    "2022": {
+      "renewals": 7,
+      "churns": 2,
+      "sim_churn_rate": 0.2222,
+      "ofgem_benchmark": 0.04,
+      "calibrated_multiplier": 0.44
+    },
+    "2023": {
+      "renewals": 9,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.08,
+      "calibrated_multiplier": 0.79
+    },
+    "2024": {
+      "renewals": 7,
+      "churns": 2,
+      "sim_churn_rate": 0.2222,
+      "ofgem_benchmark": 0.13,
+      "calibrated_multiplier": 1.0
+    },
+    "2025": {
+      "renewals": 2,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.14,
+      "calibrated_multiplier": 0.93
+    }
+  }
+}
