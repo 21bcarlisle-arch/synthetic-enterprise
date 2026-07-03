@@ -1,76 +1,84 @@
-# NEXT PHASE PROPOSAL: Phase NT — Year-on-Year Margin Bridge (P1: Observability)
+# NEXT PHASE PROPOSAL: Phase PS -- Complaints & Arrears Population Anchoring (closes P3)
 
 ## Gap addressed
-P1: Observability (from 2026-07-03 PRIORITIES.md refresh).
+P3 Population Anchoring -- two of the three required benchmarks remain unanchored:
+- Complaints/ombudsman volumes: avg_complaint_probability exists in run output (4-6% per
+  billing period) but is never compared against published Ofgem/Citizens Advice benchmarks.
+  The Ofgem Supply Return section still hardcodes complaints_per_100=0.0.
+- Arrears rates: Phase PP billing ledger has full per-customer arrears history with dates,
+  but there is no population-level aggregation or DESNZ benchmark comparison.
 
-The board report currently shows absolute net margin per year, but cannot answer:
-"Why did margin change in 2022?" A real UK supplier CFO produces a bridge/waterfall
-analysis for the MD every year: starting from prior-year net, decomposing the delta
-into attributable cost and revenue drivers.
+Switching rates (NS/PQ/PR) and bad debt (plausibility section) are already anchored.
+Phase PS finishes P3.
 
-Currently: board sees £1.4M net. It cannot see that -£280k came from bad debt surge,
--£90k from capital cost spike, -£40k from policy levy increase, +£120k from new I&C win.
-That causal chain is the observability gap.
+## What real fidelity is gained
+A real UK energy supplier CFO compares complaint and arrears rates against Ofgem QoS
+survey benchmarks each year. The board cannot currently answer: Are our complaint and
+arrears rates plausible for a UK I&C supplier? After this phase they can -- with
+per-year RAG flags anchored to published data.
 
 ## What this phase builds
 
-### Part A: Margin attribution module
-`saas/reporting/margin_attribution.py`:
+### Part A: tools/population_anchor.py
 
-`MarginBridge` dataclass (frozen):
-- `year_from`: int (e.g. 2021)
-- `year_to`: int (e.g. 2022)
-- `net_delta_gbp`: net_gbp[to] - net_gbp[from]  -- total change
-- `gross_delta_gbp`: gross_gbp[to] - gross_gbp[from]  -- commodity + unit economics change
-- `bad_debt_delta_gbp`: bad_debt_gbp[from] - bad_debt_gbp[to]  -- sign: negative = costs rose
-- `capital_delta_gbp`: capital_gbp[from] - capital_gbp[to]   -- sign: negative = capital costs rose
-- `policy_cost_delta_gbp`: total policy levies delta (ro + cfd + ccl + cm + fit + mutualization)
-- `network_cost_delta_gbp`: (network_cost + gas_network_cost) delta
-- `portfolio_change`: active customer count delta (int)
-- `residual_gbp`: net_delta minus sum of components (should be near-zero)
-- `direction`: Literal["IMPROVEMENT", "DETERIORATION", "FLAT"]  -- net_delta sign + £5k threshold
+_complaints_check(years_data) -> list[dict]:
+  Metric: complaint_rate_pct = avg_complaint_probability x 100
+  Benchmarks (Ofgem QoS, I&C adjustment):
+    GREEN 2.0-6.0% normal; 2.0-8.0% crisis (2021-2023)
+    AMBER 6.0-10.0% or 1.0-2.0%
+    RED >10.0% or <1.0%
 
-`build_margin_bridge_series(run_data: dict) -> list[MarginBridge]`:
-- Iterates sorted year keys from run_data["years"]
-- Returns one MarginBridge per adjacent year pair
-- Empty list if fewer than 2 years
+_arrears_check_by_year(billing_ledger, years_data) -> list[dict]:
+  new_arrears_rate_pct = unique customers with new arrears in year / active customers x 100
+  Denominator from years_data[yr][active_customer_ids]
+  Benchmarks (DESNZ, I&C portfolio):
+    GREEN <8% normal; <12% crisis (2021-2023)
+    AMBER 8-15%; 12-18% crisis
+    RED >15%; >18% crisis
 
-`dominant_driver(bridge: MarginBridge) -> str`:
-- Returns label of the component with the largest absolute contribution
-- Candidates: "gross margin", "bad debt", "capital costs", "policy levies", "network costs"
+generate() extended: reads site/state/billing_ledger.json; adds complaints_vs_benchmark
+and arrears_vs_benchmark keys to population_anchoring.json.
 
-### Part B: Board section
-`saas/reporting/annual_report.py`: `_section_margin_bridge(data: dict) -> str`
+### Part B: saas/reporting/annual_report.py -- _section_population_anchoring(data)
 
-Table per year-transition showing: Net delta, Gross delta, Bad Debt delta, Capital delta,
-Policy delta, Network delta, Portfolio change, Primary Driver. RAG: GREEN (net_delta > 0),
-AMBER (within -10% of prior year), RED (<-10%). Summary line: most damaging year and best year.
+New dedicated section. Per-year table:
+  Year | Complaint rate% | Benchmark | RAG | Arrears rate% | Benchmark | RAG
 
-### Part C: Expose in run output
-`extract_report_data` includes `margin_bridge_series` key. Each bridge serialised as dict.
+Summary: X of 10 years GREEN for complaints; Y of 10 years GREEN for arrears.
 
-## Why this has real fidelity value
-- Every real UK supplier CFO presents a year-on-year P&L bridge to the MD/board
-- 2022 crisis: bad debt 2.5x, capital VaR spike, policy levies shifted -- attribution matters
-- Board currently sees absolute numbers, not causes; a real board demands "why?"
-- Closes P1 observability gap: MD can trace any year to its causal drivers
-- No new sim instrumentation needed -- all data in run_data["years"] per-year dicts
-- Epistemic: company observes its own P&L components -- zero sim barrier issues
+### Part C: Fix Ofgem Supply Return hardcoded zero
 
-## Test targets (~16 tests)
-- MarginBridge computes net_delta correctly (to minus from)
-- bad_debt_delta_gbp negative when bad debt costs rose
-- capital_delta_gbp negative when capital costs rose
-- residual_gbp near-zero when all components wired correctly
-- direction IMPROVEMENT when net_delta > 5000
-- direction DETERIORATION when net_delta < -5000
-- direction FLAT within +/-5k
-- build_margin_bridge_series returns N-1 bridges for N years
-- build_margin_bridge_series returns [] for single-year input
-- dominant_driver returns "bad debt" when bad_debt_delta is largest absolute contributor
-- dominant_driver returns "gross margin" when gross_delta dominates
-- Board section renders GREEN row for positive net_delta
-- Board section renders RED row when net_delta < -10% of prior year net
-- Board section summary line names most damaging year
-- policy_cost_delta sums all six levy components correctly
-- portfolio_change matches active customer count delta
+Replace complaints_per_100=0.0 with:
+  round(yd.get('avg_complaint_probability', 0.0) * 100, 1)
+
+### Part D: Wire billing_ledger into process_run_complete.py -> generate()
+
+## Epistemic check: all data company-observable or publicly published. PASS.
+
+## Test targets (~20 tests)
+1.  _complaints_check converts avg_complaint_probability to complaint_rate_pct correctly
+2.  _complaints_check GREEN for normal year 5.0% (within 2-6%)
+3.  _complaints_check AMBER for 6.5% in normal year (above 6.0%)
+4.  _complaints_check GREEN for 2022 at 5.8% (crisis ceiling 8.0%)
+5.  _complaints_check RED for rate <1.0%
+6.  _arrears_check_by_year counts unique customers with new arrears per year
+7.  _arrears_check_by_year GREEN for arrears_rate <8%
+8.  _arrears_check_by_year AMBER for arrears_rate 9%
+9.  _arrears_check_by_year GREEN for crisis year at 10% (ceiling 12%)
+10. _arrears_check_by_year RED for rate >15%
+11. _arrears_check_by_year handles empty arrears_history gracefully
+12. generate() output includes complaints_vs_benchmark key
+13. generate() output includes arrears_vs_benchmark key
+14. generate() handles missing billing_ledger.json without crash
+15. _section_population_anchoring renders complaints and arrears table
+16. _section_population_anchoring GREEN for in-range year
+17. _section_population_anchoring summary line counts GREEN years correctly
+18. _section_population_anchoring returns empty string if no year data
+19. Ofgem supply return: complaints_per_100 now >0.0 for any year with bills
+20. _arrears_check_by_year denominator uses active_customer_ids count per year
+
+## Expected key finding
+SIM complaint rate (4-6% per billing period) within GREEN for most years; 2022 elevated.
+Arrears elevated in 2016 (early resi, DD failures) and 2022 (crisis), GREEN in I&C-
+dominated 2017-2021. Board confirmed: complaint and arrears profile consistent with
+UK I&C supplier -- Ofgem benchmarks met.

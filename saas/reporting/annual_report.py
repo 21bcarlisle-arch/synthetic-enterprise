@@ -32,6 +32,7 @@ import argparse
 import json
 import subprocess
 from pathlib import Path
+_PROJECT = Path(__file__).resolve().parent.parent.parent
 
 from saas.clv_model import build_clv
 from saas.cost_to_serve import build_cost_to_serve
@@ -4865,6 +4866,7 @@ def _section_licence_health(data: dict) -> str:
         weekly_procure = max((revenue - gross) / 52.0, 1.0)  # avoid div/0
         weeks_runway = treasury / weekly_procure
 
+        complaints_per_100_val = round(yd.get("avg_complaint_probability", 0.0) * 100, 1)
         report = build_licence_health_report(
             as_of=dt.date(int(yr), 12, 31),
             active_customer_count=cust_count,
@@ -4872,7 +4874,7 @@ def _section_licence_health(data: dict) -> str:
             treasury_gbp=treasury,
             weeks_cash_runway=weeks_runway,
             bad_debt_ratio_pct=bad_debt_pct,
-            complaints_per_100=0.0,  # not modelled
+            complaints_per_100=complaints_per_100_val,
         )
 
         overall = report.overall_status.value.upper()
@@ -4902,6 +4904,7 @@ def _section_licence_health(data: dict) -> str:
         yr_ma = ma.get(yr, {})
         net_assets = yr_ma.get("balance_sheet", {}).get("total_equity_gbp", treasury)
         import datetime as dt
+        complaints_per_100_val2 = round(yd.get("avg_complaint_probability", 0.0) * 100, 1)
         report = build_licence_health_report(
             as_of=dt.date(int(yr), 12, 31),
             active_customer_count=cust_count,
@@ -4909,7 +4912,7 @@ def _section_licence_health(data: dict) -> str:
             treasury_gbp=treasury,
             weeks_cash_runway=weeks_runway,
             bad_debt_ratio_pct=bad_debt_pct,
-            complaints_per_100=0.0,
+            complaints_per_100=complaints_per_100_val2,
         )
         if report.breach_count > 0:
             breach_yrs.append(yr)
@@ -4925,7 +4928,7 @@ def _section_licence_health(data: dict) -> str:
 
     lines += [
         "",
-        "_Note: Complaints not modelled (0.0/100 customers assumed). Customer count <50 triggers "
+        "_Note: Complaints from contact model avg_complaint_probability. Customer count <50 triggers "
         "Ofgem viability review — small-portfolio years will show WATCH._",
     ]
 
@@ -8103,6 +8106,119 @@ def _load_old_model_data() -> dict | None:
 
 
 
+
+
+def _section_population_anchoring(data: dict) -> str:
+    """Phase PS: Population anchoring -- complaints and arrears vs published benchmarks.
+
+    Completes P3 (Population Anchoring): switching rates already anchored (NS/PQ/PR).
+    This section anchors the remaining two required benchmarks:
+    - Complaint rate vs Ofgem QoS survey (I&C adjusted: GREEN 2-6%, crisis 2-8%)
+    - Arrears rate vs DESNZ business energy debt (I&C: GREEN <8%, crisis <12%)
+    """
+    import json as _json
+    years = data.get("years", {})
+    if not years:
+        return ""
+
+    # Load billing ledger arrears data if available
+    _arrears_by_year: dict = {}
+    _ledger_path = _PROJECT / "site" / "state" / "billing_ledger.json"
+    try:
+        _ledger = _json.loads(_ledger_path.read_text())
+        for _cid, _cd in _ledger.get("customers", {}).items():
+            for _case in _cd.get("arrears_history", []):
+                _od = _case.get("opened_date", "")
+                if _od:
+                    try:
+                        _yr = int(_od[:4])
+                        _arrears_by_year.setdefault(_yr, set()).add(_cid)
+                    except ValueError:
+                        pass
+    except (FileNotFoundError, _json.JSONDecodeError):
+        pass
+
+    rows = []
+    for yr in sorted(years.keys()):
+        yd = years[yr]
+        yr_int = int(yr)
+        is_crisis = yr_int in (2021, 2022, 2023)
+
+        cp = yd.get("avg_complaint_probability", 0.0) * 100
+        c_green_hi = 8.0 if is_crisis else 6.0
+        if cp < 1.0 or cp > 10.0:
+            c_rag = "RED"
+        elif cp > c_green_hi:
+            c_rag = "AMBER"
+        else:
+            c_rag = "GREEN"
+
+        active = yd.get("active_customer_ids", [])
+        n_active = len(active)
+        arrears_count = len(_arrears_by_year.get(yr_int, set()))
+        if n_active > 0:
+            arrears_rate = arrears_count / n_active * 100
+            a_green_hi = 12.0 if is_crisis else 8.0
+            a_amber_hi = 18.0 if is_crisis else 15.0
+            if arrears_rate > a_amber_hi:
+                a_rag = "RED"
+            elif arrears_rate > a_green_hi:
+                a_rag = "AMBER"
+            else:
+                a_rag = "GREEN"
+        else:
+            arrears_rate = None
+            a_rag = ""
+
+        rows.append({
+            "yr": yr,
+            "cp": cp, "c_rag": c_rag, "c_green_hi": c_green_hi,
+            "arrears_rate": arrears_rate, "a_rag": a_rag,
+            "is_crisis": is_crisis,
+        })
+
+    if not rows:
+        return ""
+
+    rag_flag = {"GREEN": "OK", "AMBER": "~", "RED": "!"}
+
+    lines = [
+        "## Population Anchoring -- Complaints & Arrears (Phase PS)",
+        "",
+        "SIM aggregate complaint and arrears rates vs published UK benchmarks.",
+        "Complaints: Ofgem QoS survey, I&C adjusted (GREEN 2-6%, crisis 2-8%).",
+        "Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).",
+        "",
+        "| Year | Complaint rate% | C.Bench hi | C.RAG | Arrears rate% | A.Bench hi | A.RAG |",
+        "|------|-----------------|-----------|-------|---------------|-----------|-------|",
+    ]
+
+    c_green = 0
+    a_green = 0
+    for r in rows:
+        ar_str = ("%.1f%%" % r["arrears_rate"]) if r["arrears_rate"] is not None else "n/a"
+        a_bench_str = ("%.0f%%" % (12.0 if r["is_crisis"] else 8.0)) if r["a_rag"] else "n/a"
+        a_rag_str = rag_flag.get(r["a_rag"], "") if r["a_rag"] else "n/a"
+        lines.append(
+            "| {} | {:.2f}% | {:.0f}% | {} | {} | {} | {} |".format(
+                r["yr"], r["cp"], r["c_green_hi"],
+                rag_flag.get(r["c_rag"], r["c_rag"]),
+                ar_str, a_bench_str, a_rag_str,
+            )
+        )
+        if r["c_rag"] == "GREEN":
+            c_green += 1
+        if r["a_rag"] == "GREEN":
+            a_green += 1
+
+    total = len(rows)
+    lines += [
+        "",
+        "**Complaints:** {} of {} years GREEN (I&C baseline 2-6% normal, 2-8% crisis).".format(c_green, total),
+        "**Arrears:** {} of {} years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).".format(a_green, total),
+        "",
+    ]
+    return "\n".join(lines)
 def _section_plausibility_vs_industry(data: dict) -> str:
     """Harness Hardening: Plausibility vs UK industry benchmarks.
 
@@ -8485,6 +8601,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_price_cap_headroom(data))             # Phase BM
     sections.append(_section_stress_test_history(data))            # Phase BL
     sections.append(_section_financial_ratios(data))               # Phase BK
+    sections.append(_section_population_anchoring(data))         # Phase PS
     sections.append(_section_plausibility_vs_industry(data))      # Harness Hardening
     sections.append(_section_churn_prediction_calibration(data))   # Phase BJ
     sections.append(_section_threshold_optimisation(data))      # Phase NO

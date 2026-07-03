@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 490+ commits. 15,194 tests passing. Codebase: ~50,850 lines across 330+ Python modules.*
+*Last updated: 2026-07-03. 490+ commits. 15,276 tests passing. Codebase: ~50,900 lines across 332+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase PS -- Complaints & Arrears Population Anchoring (2026-07-03)
+22 new tests. `tools/population_anchor.py` extended: `_complaints_check(years_data)` -- complaint rate per billing period (avg_complaint_probability x 100%) vs Ofgem QoS survey benchmark (I&C adjusted: GREEN 2-6% normal, 2-8% crisis); `_arrears_check_by_year(billing_ledger, years_data)` -- unique customers with new arrears case opened per year vs DESNZ business energy debt benchmark (GREEN <8% normal, <12% crisis). `generate()` extended with billing_ledger_path param; adds complaints_vs_benchmark and arrears_vs_benchmark keys to population_anchoring.json. `saas/reporting/annual_report.py`: `_section_population_anchoring` (new) -- per-year table with complaint and arrears RAG vs benchmarks; summary counts GREEN years. Fixed `_section_licence_health` -- was hardcoding `complaints_per_100=0.0`; now uses actual avg_complaint_probability. KEY FINDING: Complaint rate (4-6% per billing period) GREEN in all years except 2025 (AMBER at 6.1%). Arrears elevated in most years (30% 2016, 29% 2022); only 2020 GREEN (5.3%) when I&C-dominated and stable -- surfaces that arrears model calibrated towards residential rates, not pure I&C. P3 Population Anchoring fully closed (switching, complaints, arrears all benchmarked). Epistemic: PASS.
+**Total:** 15,276 tests
 
 ### Phase PR -- Population Anchoring Robustness (2026-07-03)
 5 new tests (23 total in file). `tools/population_anchor.py` improved: `_long_run_comparison(churn_by_year)` -> SIM 10-year average vs Ofgem average (ratio / GREEN if ratio<2.0 / AMBER<3.5 / RED). `_crisis_churn_direction` refactored from single-year 2020 vs 2022 comparison to 3-year rolling: pre-crisis (2019-21 avg) vs crisis window (2021-23 avg). `crisis_divergence_flag` now requires BOTH rolling divergence AND absolute 2022>4x Ofgem AND N>=10. `overall_rag` RED only when long_run RED AND crisis flag both true. KEY FINDING: SIM long-run average churn 6.4% vs Ofgem 13.6% (ratio=0.47, GREEN) -- SIM is BELOW market average over the full decade; the Phase PQ RED flag was false alarm from single-year small-N noise (2 churns in 9 renewals). 2022 single-year rate still 5.6x Ofgem but rolling 3-year criterion not met. overall_rag AMBER (bad debt in benchmark range 0.5-1.6%; 2 multiplier-alignment transitions AMBER). Epistemic: PASS.

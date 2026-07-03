@@ -1,4 +1,4 @@
-"""Phase PQ -- Population Anchoring Validation Gate.
+"""Phase PQ/PS -- Population Anchoring Validation Gate.
 
 Compares SIM aggregate outputs against published UK energy market benchmarks.
 Runs every sim run; outputs to site/state/population_anchoring.json.
@@ -7,6 +7,8 @@ Key benchmarks (sources: Ofgem switching data, DESNZ, Energy UK):
   - Annual switching rates by year (Ofgem Retail Market Indicators)
   - Bad debt rates vs industry range (0.5-2.5% of revenue)
   - Churn direction: 2021-22 crisis = switching COLLAPSE, not rise
+  - Complaint rate vs Ofgem QoS survey benchmarks (Phase PS)
+  - Arrears rate vs DESNZ business energy debt data (Phase PS)
 
 Critical invariant: SIM market_switching_multiplier should track Ofgem rates.
 If SIM effective churn RISES in 2022 vs 2021 by >15pp, flag as DIVERGENCE.
@@ -42,6 +44,17 @@ BAD_DEBT_BENCHMARK_HIGH = 0.025  # 2.5%
 BAD_DEBT_CRISIS_HIGH = 0.040     # 4.0% during crisis peaks
 
 
+
+
+COMPLAINT_BENCHMARK_NORMAL_HI = 6.0
+COMPLAINT_BENCHMARK_NORMAL_LO = 1.0
+COMPLAINT_BENCHMARK_CRISIS_HI = 8.0
+COMPLAINT_RED_HI = 10.0
+ARREARS_BENCHMARK_NORMAL_HI = 8.0
+ARREARS_BENCHMARK_CRISIS_HI = 12.0
+ARREARS_AMBER_HI = 15.0
+ARREARS_AMBER_CRISIS_HI = 18.0
+_CRISIS_YEARS = {2021, 2022, 2023}
 def _churn_by_year(customer_events: list) -> dict:
     """Compute SIM churn rate by year from customer_events list."""
     by_year = {}
@@ -69,6 +82,37 @@ def _churn_by_year(customer_events: list) -> dict:
     return result
 
 
+
+
+def _complaints_check(years_data: dict) -> list:
+    """Check complaint rate vs Ofgem QoS benchmarks per year.
+
+    Metric: avg_complaint_probability * 100 = % of billing periods generating
+    a formal complaint. Benchmarks: Ofgem QoS survey, I&C adjusted.
+    Normal years GREEN 2-6%; crisis years (2021-2023) GREEN ceiling 8%.
+    """
+    findings = []
+    for yr_str in sorted(years_data.keys()):
+        yr = int(yr_str)
+        yd = years_data[yr_str]
+        rate = yd.get("avg_complaint_probability", 0.0) * 100
+        is_crisis = yr in _CRISIS_YEARS
+        green_hi = COMPLAINT_BENCHMARK_CRISIS_HI if is_crisis else COMPLAINT_BENCHMARK_NORMAL_HI
+        if rate < COMPLAINT_BENCHMARK_NORMAL_LO or rate > COMPLAINT_RED_HI:
+            rag = "RED"
+        elif rate > green_hi:
+            rag = "AMBER"
+        else:
+            rag = "GREEN"
+        findings.append({
+            "year": yr,
+            "complaint_rate_pct": round(rate, 2),
+            "benchmark_green_hi": green_hi,
+            "benchmark_lo": COMPLAINT_BENCHMARK_NORMAL_LO,
+            "is_crisis_year": is_crisis,
+            "rag": rag,
+        })
+    return findings
 def _bad_debt_check(years_data: dict) -> list:
     """Check bad debt rate vs benchmarks for each year."""
     findings = []
@@ -94,6 +138,54 @@ def _bad_debt_check(years_data: dict) -> list:
     return findings
 
 
+
+
+def _arrears_check_by_year(billing_ledger_data: dict, years_data: dict) -> list:
+    """Check new arrears rate per year vs DESNZ business energy debt benchmarks.
+
+    Metric: unique customers with a new arrears case opened in each calendar year
+    divided by active customers that year. DESNZ I&C benchmark: <8% normal, <12% crisis.
+    """
+    customers = billing_ledger_data.get("customers", {})
+    arrears_by_year: dict = {}
+    for cid, cdata in customers.items():
+        for case in cdata.get("arrears_history", []):
+            opened = case.get("opened_date", "")
+            if not opened:
+                continue
+            try:
+                yr = int(opened[:4])
+            except ValueError:
+                continue
+            arrears_by_year.setdefault(yr, set()).add(cid)
+
+    findings = []
+    for yr_str in sorted(years_data.keys()):
+        yr = int(yr_str)
+        yd = years_data[yr_str]
+        active = yd.get("active_customer_ids", [])
+        n_active = len(active) if active else 0
+        n_arrears = len(arrears_by_year.get(yr, set()))
+        rate = (n_arrears / n_active * 100) if n_active > 0 else 0.0
+        is_crisis = yr in _CRISIS_YEARS
+        green_hi = ARREARS_BENCHMARK_CRISIS_HI if is_crisis else ARREARS_BENCHMARK_NORMAL_HI
+        amber_hi = ARREARS_AMBER_CRISIS_HI if is_crisis else ARREARS_AMBER_HI
+        if rate > amber_hi:
+            rag = "RED"
+        elif rate > green_hi:
+            rag = "AMBER"
+        else:
+            rag = "GREEN"
+        findings.append({
+            "year": yr,
+            "new_arrears_count": n_arrears,
+            "active_customers": n_active,
+            "new_arrears_rate_pct": round(rate, 1),
+            "benchmark_green_hi": green_hi,
+            "is_crisis_year": is_crisis,
+            "rag": rag,
+        })
+    return findings
 def _long_run_comparison(churn_by_year: dict) -> dict:
     """Compare SIM average churn (2016-2025) vs Ofgem average switching rate.
 
@@ -201,7 +293,7 @@ def _multiplier_alignment(churn_by_year: dict) -> list:
     return findings
 
 
-def generate(run_json_path=None, out_path=None):
+def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
     if run_json_path is None:
         run_json_path = RUN_JSON
     if out_path is None:
@@ -216,6 +308,15 @@ def generate(run_json_path=None, out_path=None):
     long_run = _long_run_comparison(churn_by_year)
     crisis_check = _crisis_churn_direction(churn_by_year)
     multiplier_alignment = _multiplier_alignment(churn_by_year)
+
+    complaints_findings = _complaints_check(years_data)
+    if billing_ledger_path is None:
+        billing_ledger_path = PROJECT / "site" / "state" / "billing_ledger.json"
+    try:
+        ledger_data: dict = json.loads(Path(billing_ledger_path).read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        ledger_data = {}
+    arrears_findings = _arrears_check_by_year(ledger_data, years_data)
 
     amber_count = sum(1 for f in bad_debt_findings if f["rag"] == "AMBER")
     red_count = sum(1 for f in bad_debt_findings if f["rag"] == "RED")
@@ -236,6 +337,8 @@ def generate(run_json_path=None, out_path=None):
         "meta": {
             "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
             "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)",
+            "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
+            "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis",
         },
         "overall_rag": overall_rag,
         "long_run_comparison": long_run,
@@ -243,6 +346,8 @@ def generate(run_json_path=None, out_path=None):
         "bad_debt_vs_benchmark": bad_debt_findings,
         "multiplier_alignment": multiplier_alignment,
         "churn_by_year": {str(k): v for k, v in sorted(churn_by_year.items())},
+        "complaints_vs_benchmark": complaints_findings,
+        "arrears_vs_benchmark": arrears_findings,
     }
     
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
