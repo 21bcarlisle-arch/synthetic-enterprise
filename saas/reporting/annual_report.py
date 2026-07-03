@@ -47,6 +47,7 @@ from company.analytics.counterfactual_retention import compute_counterfactual_re
 from company.analytics.threshold_sensitivity import compute_threshold_sensitivity
 from company.risk.credit_risk_stress import build_credit_risk_stress, CRISIS_BAD_DEBT_MULTIPLIER
 from saas.reporting.margin_attribution import build_margin_bridge_series, dominant_driver
+from saas.reporting.payment_health import build_payment_health_series
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -601,6 +602,8 @@ def extract_report_data(run_output: dict) -> dict:
         "management_accounts": _compute_management_accounts(run_output, phase2b.get("starting_treasury", 0.0)),
         # Phase NT: year-on-year net margin bridge (P1: Observability)
         "margin_bridge_series": [b.__dict__ for b in build_margin_bridge_series({"years": yearly})],
+        # Phase NU: payment portfolio health (P2: billing infra)
+        "payment_health_series": [s.__dict__ for s in build_payment_health_series({"years": yearly})],
     }
 
 
@@ -6295,6 +6298,66 @@ def _section_net_margin_bridge(data: dict) -> str:
 
 
 
+def _section_payment_health(data: dict) -> str:
+    """Phase NU: Payment portfolio health -- bad debt rates and at-risk customer concentration."""
+    series_raw = data.get("payment_health_series", [])
+    if not series_raw:
+        return ""
+
+    def _fmt_rate(v):
+        return f"{v * 100:.2f}%"
+
+    def _trend_arrow(trend):
+        return {"IMPROVING": "\u2193", "STABLE": "\u2014", "DETERIORATING": "\u2191"}.get(trend, "?")
+
+    lines = [
+        "## Payment Portfolio Health (P2: Billing Infra)",
+        "",
+        "Year-by-year bad debt rate and high-churn-risk customer concentration.",
+        "",
+        "| Year | Bad Debt | Bad Debt Rate | At-Risk Customers | At-Risk % | Trend | RAG |",
+        "|------|----------|--------------|-----------------|----------|-------|-----|",
+    ]
+
+    worst_rate_yr = None
+    worst_rate = 0.0
+    peak_at_risk_yr = None
+    peak_at_risk = 0.0
+
+    for s_raw in series_raw:
+        s = type("S", (), s_raw)()
+        lines.append(
+            f"| {s.year} "
+            f"| \u00a3{s.bad_debt_gbp:,.0f} "
+            f"| {_fmt_rate(s.bad_debt_rate)} "
+            f"| {s.at_risk_customer_count}/{s.total_customer_count} "
+            f"| {s.at_risk_pct:.0f}% "
+            f"| {_trend_arrow(s.trend)} {s.trend} "
+            f"| {s.rag} |"
+        )
+        if s.bad_debt_rate > worst_rate:
+            worst_rate = s.bad_debt_rate
+            worst_rate_yr = s.year
+        if s.at_risk_pct > peak_at_risk:
+            peak_at_risk = s.at_risk_pct
+            peak_at_risk_yr = s.year
+
+    lines += [""]
+    if worst_rate_yr:
+        lines.append(
+            f"**Worst bad debt year: {worst_rate_yr} ({_fmt_rate(worst_rate)})** | "
+            f"**Peak at-risk concentration: {peak_at_risk_yr} ({peak_at_risk:.0f}% of customers)**"
+        )
+    lines += [
+        "",
+        "> At-risk = churn risk score >30% at year-end. "
+        "Bad debt rate = written-off bad debt as % of annual revenue. "
+        "RAG: GREEN <0.75% bad debt and <30% at-risk; RED >1.5% bad debt or >60% at-risk.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _section_risk_committee_activity(data: dict) -> str:
     """Phase BC: Risk Committee intervention summary from committee_wake_ups."""
     years = data.get("years", {})
@@ -7315,6 +7378,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_clv_evolution(data))                  # Phase BG
     sections.append(_section_gross_margin_bridge(data))            # Phase BE
     sections.append(_section_net_margin_bridge(data))             # Phase NT
+    sections.append(_section_payment_health(data))               # Phase NU
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX

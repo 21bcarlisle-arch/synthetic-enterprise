@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 472+ commits. 14,843 tests passing. Codebase: ~49,800 lines across 322+ Python modules.*
+*Last updated: 2026-07-03. 473+ commits. 14,863 tests passing. Codebase: ~49,900 lines across 323+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NU -- Payment Portfolio Health Observatory (2026-07-03)
+20 tests. `saas/reporting/payment_health.py` (new): `PaymentHealthSummary` frozen dataclass -- year/bad_debt_gbp/revenue_gbp/bad_debt_rate/at_risk_customer_count/total_customer_count/at_risk_pct/trend/rag. `build_payment_health_series(run_data)` iterates year dicts: bad_debt_rate = bad_debt_gbp/revenue_gbp; at_risk = count of customers with churn_risk_by_account > 30% threshold; trend = DETERIORATING/IMPROVING/STABLE (±20% band vs prior year); RAG = GREEN (<0.75% and <30% at-risk), AMBER, RED (>1.5% or >60% at-risk). `saas/reporting/annual_report.py`: `_section_payment_health` board section -- 10-year table with bad debt amount, rate, at-risk count, trend arrow, RAG; worst bad debt year + peak at-risk concentration summary. KEY FINDINGS (2016-2025 live data): 2022 crisis year DETERIORATING (1.05% bad debt, 71% at-risk concentration); 2023 bad debt IMPROVED (£14k vs £36k in 2022) but at-risk stayed elevated (75%) -- churn risk is a leading indicator of bad debt by ~1 year. RAG threshold sensitivity: 30% at-risk amber threshold correctly flags 2020 (5/16 = 31%); 60% red correctly flags 2022-2023 crisis tail. Epistemic: PASS. Directly addresses P2: billing infra -- board can now see payment health trends, not just bad debt write-offs.
+**Total:** 14,863 tests
 
 ### Phase NT -- Year-on-Year Net Margin Bridge (2026-07-03)
 19 tests. `saas/reporting/margin_attribution.py` (new): `MarginBridge` frozen dataclass -- year_from/year_to/net_delta_gbp/gross_delta_gbp/bad_debt_delta_gbp/capital_delta_gbp/policy_cost_delta_gbp/network_cost_delta_gbp/portfolio_change/residual_gbp/direction (IMPROVEMENT/DETERIORATION/FLAT, ±£5k threshold). `build_margin_bridge_series(run_data)` -> list[MarginBridge] for all adjacent year pairs; empty for <2 years. `dominant_driver(bridge)` -> str (gross margin/bad debt/capital costs/policy levies/network costs -- largest absolute contributor). `saas/reporting/annual_report.py`: `_section_net_margin_bridge` board section -- 9-row table (2016->2025 transitions) with net/gross/bad-debt/capital/policy/network deltas, portfolio change, primary driver, RAG (GREEN=improvement, RED=deterioration); summary line: most-damaging and best transitions. `extract_report_data` includes `margin_bridge_series` key. KEY FINDINGS from 2016-2025 live data: 2019->2020 deterioration was policy-levy-driven (-£162k policy shock, not gross margin); 2021->2022 crisis windfall (+£283k gross) masked £27k bad debt surge (crisis year yet net improved); 2024->2025 gross margin collapse (-£732k) partially offset by policy/network cost relief (+£510k) -- portfolio shrank 3 customers. Board can now trace any year's net margin change to its causal drivers (P1: Observability). Epistemic: PASS.
