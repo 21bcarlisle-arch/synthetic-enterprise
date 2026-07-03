@@ -1,5 +1,5 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-03 (all P1-P3 complete; P4 is next)
+# Last refreshed: 2026-07-04 (P4 Shadow Live DONE as Phase PU; PV = market adapter; endgame = correlated generator)
 
 ## COMPLETED
 - P1a: PROJECT_STATE.txt auto-sync -- FIXED (Phase PT + HARD GATE verified 2026-07-03T21:36:23Z)
@@ -32,3 +32,4 @@ Precondition for P4 live operation to be architecturally clean.
 - Smart meter customers on real HH shapes for segment model
 - EPC-calibrated consumption distributions (requires GOV.UK data access)
 - BSUoS year-indexed actuals
+- CORRELATED SIMULATION ENDGAME (long horizon, gated): free-running weather+market generator with NO historical replay; statistical-equivalence gate required (distributional moments + tail frequencies + stylised facts) before outputs trusted; prerequisite is Phase PV swappable adapter (drop-in replacement, zero company-layer rework). Do NOT start until P4 and P2 network charges land. [Advisor note: 2026-07-04]
