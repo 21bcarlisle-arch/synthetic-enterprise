@@ -5079,3 +5079,10 @@ Commits: 7d333dc6 (NX), e27475a9 (NY), e9a3a535 (NZ)
 - [2026-07-03T21:25:30Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-03T21:25:54Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
 - [2026-07-03T21:25:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## 2026-07-03T21:29:28Z — Phase PT + Staging (3 advisor files) + rebase/push fix
+- **Phases:** PT (customers.json + supplier.json), staging actions x3
+- **Frontier tokens (est):** ~80,000 (continuation session, mainly planning + code)
+- **Qwen tokens:** 0 (all inline)
+- **Tests added:** 14 (PT) = 15,290 total
+- **Artifacts:** tools/generate_customers_json.py, tools/generate_supplier_json.py, 14 tests
+- **Actions:** 3 advisor staging files actioned + archived; LATEST.md updated; pushed
