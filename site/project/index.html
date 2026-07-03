@@ -45,7 +45,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .tl { color: var(--teal); }
 .tab-nav{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
 .tab-nav::-webkit-scrollbar{display:none;}
-.tab-btn{flex:1;min-width:90px;padding:10px 6px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;cursor:pointer;}
+.tab-btn{flex:0 0 auto;min-width:90px;padding:10px 6px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;cursor:pointer;}
 .tab-btn.active{color:var(--text);border-bottom-color:var(--blue);}
 .tab-btn:hover{color:var(--text);}
 .view{display:none;}.view.active{display:block;}
@@ -82,6 +82,8 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <button class="tab-btn" data-tab="timeline" onclick="switchTab('timeline')">Timeline</button>
   <button class="tab-btn" data-tab="system" onclick="switchTab('system')">System</button>
   <button class="tab-btn" data-tab="company" onclick="switchTab('company')">Company</button>
+  <button class="tab-btn" data-tab="regulatory" onclick="switchTab('regulatory')">Regulatory</button>
+  <button class="tab-btn" data-tab="capabilities" onclick="switchTab('capabilities')">Capabilities</button>
 </nav>
 <div id="tab-overview" class="view active">
 <div class="wrap">
@@ -112,9 +114,9 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
       Large SME customers destroy value under standard pricing.</p>
     </div>
     <div class="disc">
-      <h3>Forward Curve Overpricing</h3>
-      <p>Half-hourly sigma 4.3x too high, causing systematic margin inflation.
-      Real settlement data falsified the synthetic curve directly.</p>
+      <h3>Price Elasticity Disconfirmed</h3>
+      <p>Rising prices do NOT increase switching propensity. 2022 crisis bills (avg &#163;3,549)
+      produced the lowest switching rate (3-4%). Savings available -- not price level -- drives switching.</p>
     </div>
     <div class="disc">
       <h3>Crisis Survival</h3>
@@ -132,11 +134,13 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <div class="sec">Roadmap</div>
   <div class="card">
     <div style="font-size:13px;line-height:2">
-      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Company layer: 260+ modules, 3,400+ tests</div>
+      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Company layer: 330+ modules, 15,148 tests passing (490+ commits)</div>
       <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Crisis survival: 2021-22 energy crisis replicated and survived</div>
-      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Four-section site live: Supplier, Customers, Project, SIM (stub)</div>
-      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>Invoice history: billing engine integration</div>
-      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>SIM section: wholesale market data, weather, balancing mechanism</div>
+      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Four-dimension customer model: physical, economic, behavioural, emotional</div>
+      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Three-signal churn model: bill shock + payment behaviour + satisfaction</div>
+      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Full regulatory policy cost stack: RO, FiT, CCL, GSOP, WHD, ECO, Carbon, TPI</div>
+      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>SIM section live: prices, weather, BM settlement, customer detail &amp; behaviour</div>
+      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>Fuel Mix Disclosure board report (module exists, wiring next)</div>
       <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Real market interfaces: N2EX, Elexon API, Met Office live feeds</div>
       <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Capital raise: when the blueprint is proven</div>
     </div>
@@ -192,6 +196,56 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 </div></div>
 
 
+<div id="tab-regulatory" class="view"><div class="wrap">
+  <div class="sec">Policy Cost Stack</div>
+  <p style="font-size:12px;color:var(--muted);line-height:1.6;padding:12px 16px;background:var(--surface2);border-radius:8px;margin-bottom:16px">62 regulatory modules wired (Phase OL, 2026-07-03). All levy calculations use real Ofgem/DESNZ published rates.</p>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="background:var(--surface2)"><th style="color:var(--muted);font-size:10px;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Scheme</th><th style="color:var(--muted);font-size:10px;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Key Rate</th><th style="color:var(--muted);font-size:10px;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Status</th></tr></thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>Renewable Obligation (RO)</strong></td><td style="padding:8px 12px">0.24&ndash;0.42 ROCs/MWh; buy-out &pound;44&ndash;50/ROC per year</td><td style="padding:8px 12px"><span style="background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">WIRED</span></td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>Feed-in Tariff (FiT) Levy</strong></td><td style="padding:8px 12px">&pound;8.36&ndash;9.45/MWh elec; closed Apr 2019; NIL from 2020 onward</td><td style="padding:8px 12px"><span style="background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">WIRED</span></td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>Climate Change Levy (CCL)</strong></td><td style="padding:8px 12px">Elec: 0.583&ndash;0.847 p/kWh; Gas: 0.203&ndash;0.339 p/kWh; 2019 spike +45%/+67% flagged</td><td style="padding:8px 12px"><span style="background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">WIRED</span></td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>Guaranteed Standards (GSOP)</strong></td><td style="padding:8px 12px">&pound;30/missed appointment; &pound;30/final bill delay (&gt;6 weeks after account closure)</td><td style="padding:8px 12px"><span style="background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">WIRED</span></td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>Warm Home Discount (WHD)</strong></td><td style="padding:8px 12px">&pound;140/eligible customer; mandatory only for &gt;150k domestic customers &mdash; portfolio EXEMPT</td><td style="padding:8px 12px"><span style="background:rgba(125,133,144,.15);color:var(--muted);border:1px solid var(--border);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">EXEMPT</span></td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>Energy Company Obligation (ECO)</strong></td><td style="padding:8px 12px">ECO1&ndash;ECO4 rates; mandatory only for &gt;150k domestic customers &mdash; portfolio EXEMPT</td><td style="padding:8px 12px"><span style="background:rgba(125,133,144,.15);color:var(--muted);border:1px solid var(--border);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">EXEMPT</span></td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>Carbon Emissions</strong></td><td style="padding:8px 12px">Scope 2 elec: 175&ndash;290 gCO2/kWh (real UK grid mix); Scope 1 gas: 183 gCO2/kWh</td><td style="padding:8px 12px"><span style="background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">WIRED</span></td></tr>
+        <tr><td style="padding:8px 12px"><strong>Fuel Mix Disclosure (FMD)</strong></td><td style="padding:8px 12px">Annual disclosure per Electricity (Fuel Mix Disclosure) Regulations; fuel_mix_disclosure.py exists</td><td style="padding:8px 12px"><span style="background:rgba(88,166,255,.15);color:var(--blue);border:1px solid rgba(88,166,255,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">NEXT</span></td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>Ofgem Supply Return</strong></td><td style="padding:8px 12px">Customer counts by segment, GWh supplied, bad debt/customer; annual filing per year 2016&ndash;2025</td><td style="padding:8px 12px"><span style="background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">WIRED</span></td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>SLC Compliance Scorecard</strong></td><td style="padding:8px 12px">10 SLC domains; per-domain RAG from bad debt / bill clarity / FRA / complaint signals</td><td style="padding:8px 12px"><span style="background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">WIRED</span></td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><strong>FRA Capital Ratio</strong></td><td style="padding:8px 12px">Equity / monthly revenue: &ge;2x GREEN, 1&ndash;2x AMBER, &lt;1x RED. Post-2022 Ofgem FRA requirement.</td><td style="padding:8px 12px"><span style="background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">WIRED</span></td></tr>
+        <tr><td style="padding:8px 12px"><strong>Settlement Reconciliation</strong></td><td style="padding:8px 12px">Elexon R1/R2/RF timeline; 90% HH portfolio = GREEN RAG; outstanding pool up to 28 months</td><td style="padding:8px 12px"><span style="background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px">WIRED</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="sec">Key Regulatory Findings</div>
+  <div class="disc-grid">
+    <div class="disc"><h3>WHD / ECO Exemption</h3><p>Both mandatory only for &gt;150k domestic customers. Portfolio has 2&ndash;5 residential customers -- EXEMPT for all years. Growth warning: obligation triggers at ~150k customers.</p></div>
+    <div class="disc"><h3>CCL 2019 Spike</h3><p>April 2019: electricity CCL +45%, gas CCL +67%. Largest single-year policy cost increase in the dataset. I&amp;C pass-through means this hits customers directly.</p></div>
+    <div class="disc"><h3>FiT Scheme Closure</h3><p>FiT closed to new applicants April 2019. Board section shows cost falling to NIL from 2020. Smart Export Guarantee replaced it but is not a supplier levy.</p></div>
+    <div class="disc"><h3>FRA Capital Post-2022</h3><p>Ofgem FRA requires combined market + credit stress. Model: equity &gt; (price VaR + credit stress). Board RAG shows FRA compliance per year 2016&ndash;2025.</p></div>
+  </div>
+</div></div>
+
+<div id="tab-capabilities" class="view"><div class="wrap">
+  <div class="sec">What the simulation can do</div>
+  <p style="font-size:12px;color:var(--muted);line-height:1.6;padding:12px 16px;background:var(--surface2);border-radius:8px;margin-bottom:16px">748+ phases, 15,148 tests, 490+ commits. Full 2016-2025 simulation with 20+ section annual board pack.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:32px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Half-Hourly Settlement Engine</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Full 2016-2025 settlement against real Elexon SSP data. 168,000+ half-hourly records. Every customer bill computed against actual historical wholesale prices including the 2021-22 crisis peak (&pound;6,000+/MWh).</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Four-Dimension Customer Model</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Dim 1 Physical: EPC band, heating system, boiler age, insulation, solar/EV upgrades. Dim 2 Economic: income stress, life events (job loss, retirement, new baby). Dim 3 Behavioural: switching propensity. Dim 4 Emotional: satisfaction accumulator (decay + bill shock + CSS events).</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Three-Signal Churn Model</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Company-side estimate: bill shock count + payment behaviour (EXCELLENT&ndash;CRITICAL) + satisfaction. Combined = max(rate_model, payment_model) capped at 95%. Calibration report: recall, precision, F1 per year. Counterfactual retention per customer.</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Payment Behaviour Analytics</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Per-customer payment record per month. On-time rate, late rate, DD failure rate, avg days late. HIGH income stress: 35% DD failure, 30-90 day delays, 3x bad debt multiplier. Score drives churn estimate and board risk dashboard.</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Risk &amp; Hedging Model</div><div style="font-size:12px;color:var(--muted);line-height:1.5">VaR at 98% confidence per term. Hedge fraction decision each renewal. Capital adequacy: equity &gt; (VaR + credit stress). Gas pass-through correctly assigned zero VaR. Regime-change blindness discovered: agent converged to hf=0.00 during 2016-20 calm.</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Price-Elasticity Switching Model</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Market switching rate from savings available (DESNZ 2016-2025), not price level. Post-2023 structural factor 0.75x (fairer-pricing rule). 2022 crisis paradox reproduced: avg bill &pound;3,549, switching rate only 3-4%.</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Full Regulatory Stack (62 modules)</div><div style="font-size:12px;color:var(--muted);line-height:1.5">RO, FiT, CCL, GSOP, WHD/ECO (EXEMPT), Carbon emissions, Settlement Reconciliation, TPI commission, Ofgem Supply Return, SLC Compliance Scorecard, FRA Capital Ratio. All using real published rates.</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Carbon Emissions Reporting</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Scope 2 elec: real UK fuel mix 2016-2025 (coal 9% to 0%, wind 11% to 36%). Grid intensity 290 to 175 gCO2/kWh. Scope 1 gas: 183 gCO2/kWh. 10-year decarbonisation trend in board section.</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">I&amp;C Segment Simulation</div><div style="font-size:12px;color:var(--muted);line-height:1.5">HH metering for large I&amp;C. Gas pass-through (zero VaR, service-fee billing). TPI trail commission &pound;1.50/MWh. Triad demand curtailment 25% on alert days (SSP&gt;&pound;80/MWh). Rate-sensitivity-only churn.</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Year-on-Year Margin Bridge</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Net margin attribution across 9 transitions 2016-2025. Primary driver per year (price/volume/cost/mix). Payment portfolio health observatory. Shadow retention P&amp;L analysis. Portfolio concentration RAG (I&amp;C 99%).</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Counterfactual Retention</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Per-customer: was the retention offer worth making? Net value recovered vs offer cost. Threshold sensitivity: recall/precision/F1 at 0-50% thresholds. Finding: model underestimates churn (optimal threshold = 0%).</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Annual Board Pack (20+ sections)</div><div style="font-size:12px;color:var(--muted);line-height:1.5">P&amp;L, capital adequacy, churn performance, retention, regulatory compliance, carbon, payment health, margin bridge, portfolio composition, shadow retention, TPI, settlement reconciliation, licence health, compliance scorecard, and more.</div></div>
+  </div>
+</div></div>
+
 <script>
 var D=null,PH=null,SYS=null,rendered={};
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"\u00a3"+s;}
@@ -208,7 +262,12 @@ var PROJ=[
   {date:"2026-06-25",type:"discovery",label:"Regime-change blindness confirmed",detail:"Capital physics run: agent converged to naked hedging (hf=0.00) during 2016-20 calm, mirroring 28 real supplier failures."},
   {date:"2026-06-26",type:"milestone",label:"Phase 310 - full operational stack",detail:"Debt collection, account closure, SoLR, winter moratorium, MHHS readiness, energy theft, deemed contracts."},
   {date:"2026-06-27",type:"milestone",label:"Phase A-D - Household physical model",detail:"EPC bands, heating systems, boiler age, insulation. Life events engine. EAC/AQ into settlement."},
-  {date:"2026-06-29",type:"milestone",label:"Phase E-M - ASHP dual-fuel and profitability",detail:"EPC evolution, heat pump (+5,500 kWh/yr elec, -88% gas), HDD-weighted seasonal demand, per-customer and segment profitability, renewal tracking."}
+  {date:"2026-06-29",type:"milestone",label:"Phase E-M - ASHP dual-fuel and profitability",detail:"EPC evolution, heat pump (+5,500 kWh/yr elec, -88% gas), HDD-weighted seasonal demand, per-customer and segment profitability, renewal tracking."},
+  {date:"2026-06-30",type:"milestone",label:"Phase FJ-HH - 8,777 tests - full I&C model",detail:"I&C Triad curtailment, gas pass-through VaR fix, real NBP forward curve. I&C churn calibration (rate-sensitivity-only). 8,777 tests."},
+  {date:"2026-07-01",type:"milestone",label:"Phase MV-MW - Economic life events",detail:"Job loss / income recovery / new baby / retirement. Income stress drives payment delay, DD failure, bad debt multiplier (1.0-3.0x). 13,090 tests."},
+  {date:"2026-07-02",type:"milestone",label:"Four-dimension customer model complete",detail:"Dim 1 Physical, Dim 2 Economic, Dim 3 Behavioural (switching propensity), Dim 4 Emotional (satisfaction). Three-signal churn model: bill shock + payment behaviour + satisfaction. 14,731 tests."},
+  {date:"2026-07-03",type:"discovery",label:"Price elasticity of switching disconfirmed",detail:"Rising absolute prices do NOT increase switching propensity. 2022 crisis bills (avg £3,549) had lowest switching rate (3-4%) of the decade. Primary driver: savings available from switching, not price level."},
+  {date:"2026-07-03",type:"milestone",label:"Phase OG-OL - Full regulatory stack wired",detail:"Renewable Obligation, FiT Levy, CCL, WHD (EXEMPT), ECO (EXEMPT), Carbon Emissions, Settlement Reconciliation, TPI commission, GSOP, Licence Health, Compliance Scorecard, Ofgem Supply Return. 15,148 tests, 62 regulatory modules."}
 ];
 var MC={start:"#39d353",build:"#58a6ff",milestone:"#3fb950",discovery:"#d29922"};
 function renderTimeline(){

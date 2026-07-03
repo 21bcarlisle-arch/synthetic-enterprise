@@ -1214,7 +1214,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 12 | 0.9 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,607 |
 | 2023 | 4 | 36 | 9.0 | £48,915 |
@@ -1841,9 +1841,135 @@ Guaranteed Standards of Performance — GBP 30 per breach (Ofgem-mandated).
 
 No GSOP obligations triggered in 2016-2025 window.
 _Small portfolio with low complaint and churn volumes falls below estimated trigger thresholds._
+## Renewable Obligation (RO) Cost Observatory
 
+UK suppliers must surrender ROCs (or pay buy-out price) by 1 September each year.
+ROC buy-out cost is the maximum supplier exposure; ROC market purchases reduce actual cost.
 
+| Year | Elec MWh | Obligation Level | ROCs Required | Buy-out Price | Buy-out Cost |
+|------|----------|-----------------|--------------|--------------|-------------|
+| 2016 | 74.5 | 0.317 ROC/MWh | 23.6 | £43.30 | £1,023 |
+| 2017 | 2,082.1 | 0.334 ROC/MWh | 695.4 | £44.77 | £31,134 |
+| 2018 | 3,086.0 | 0.342 ROC/MWh | 1,055.4 | £46.43 | £49,003 |
+| 2019 | 7,088.2 | 0.351 ROC/MWh | 2,488.0 | £47.22 | £117,481 |
+| 2020 | 10,111.8 | 0.358 ROC/MWh | 3,620.0 | £48.78 | £176,585 |
+| 2021 | 10,006.6 | 0.364 ROC/MWh | 3,642.4 | £50.80 | £185,034 |
+| 2022 | 9,965.4 | 0.370 ROC/MWh | 3,687.2 | £52.88 | £194,979 |
+| 2023 | 9,982.9 | 0.376 ROC/MWh | 3,753.6 | £54.35 | £204,007 |
+| 2024 | 10,011.6 | 0.382 ROC/MWh | 3,824.4 | £56.19 | £214,895 |
+| 2025 | 4,277.0 | 0.389 ROC/MWh | 1,663.8 | £58.10 | £96,664 |
+| **Total** | **66,686.1** | | | | **£1,270,805** |
 
+RO cost as % of total revenue (2016-2025): **6.7%** (industry benchmark 5-10%)
+
+> Note: actual RO cost depends on ROC market prices. Buy-out price is the regulatory ceiling.
+## Feed-in Tariff (FiT) Levelisation Levy
+
+Ofgem FiT levelisation redistributes FiT payment obligations across all licensed suppliers
+(proportional to electricity supplied). FiT scheme closed to new applicants 2019-03-31.
+
+| Year | Elec MWh | Levy Rate (GBP/MWh) | FiT Levy Cost |
+|------|----------|---------------------|--------------|
+| 2016 | 74.5 | GBP8.36 | GBP622.60 |
+| 2017 | 2,082.1 | GBP9.19 | GBP19,134.80 |
+| 2018 | 3,086.0 | GBP9.40 | GBP29,008.53 |
+| 2019 | 7,088.2 | GBP9.45 | GBP66,983.17 |
+| 2020 | 10,111.8 | GBP0.00 (scheme closed) | NIL |
+| 2021 | 10,006.6 | GBP0.00 (scheme closed) | NIL |
+| 2022 | 9,965.4 | GBP0.00 (scheme closed) | NIL |
+| 2023 | 9,982.9 | GBP0.00 (scheme closed) | NIL |
+| 2024 | 10,011.6 | GBP0.00 (scheme closed) | NIL |
+| 2025 | 4,277.0 | GBP0.00 (scheme closed) | NIL |
+| **Total** | | | **GBP115,749.10** |
+
+FiT levy as % of total revenue (levy years 2016-2019): **0.6%** (industry benchmark ~1-2%)
+
+> FiT levy ended 2019-20. Post-2019 cost is NIL as levelisation rates fell to zero.
+## Climate Change Levy (CCL) Observatory
+
+CCL is charged on business energy consumption and remitted to HMRC quarterly.
+Residential customers are fully exempt. I&C customers pay at HMRC annual rates.
+CCL is a pass-through: collected from customers, remitted to HMRC (no net P&L impact).
+
+| Year | Elec kWh | Elec Rate (p/kWh) | CCL Elec | Gas kWh | Gas Rate | CCL Gas | Total CCL |
+|------|----------|------------------|----------|---------|----------|---------|----------|
+| 2016 | 0 | 0.554p | GBP0.00 | 0 | 0.195p | GBP0.00 | GBP0.00 |
+| 2017 | 1,982,966 | 0.568p | GBP11,263.25 | 0 | 0.198p | GBP0.00 | GBP11,263.25 |
+| 2018 | 2,985,506 | 0.583p | GBP17,405.50 | 0 | 0.203p | GBP0.00 | GBP17,405.50 |
+| 2019 (*) | 6,987,285 | 0.847p | GBP59,182.30 | 4,999,959 | 0.339p | GBP16,949.86 | GBP76,132.16 |
+| 2020 | 10,016,266 | 0.811p | GBP81,231.91 | 5,015,381 | 0.406p | GBP20,362.45 | GBP101,594.36 |
+| 2021 | 9,906,804 | 0.775p | GBP76,777.73 | 4,999,959 | 0.465p | GBP23,249.81 | GBP100,027.54 |
+| 2022 | 9,868,318 | 0.775p | GBP76,479.47 | 4,999,959 | 0.465p | GBP23,249.81 | GBP99,729.28 |
+| 2023 | 9,883,290 | 0.775p | GBP76,595.50 | 4,999,959 | 0.465p | GBP23,249.81 | GBP99,845.31 |
+| 2024 | 9,929,315 | 0.775p | GBP76,952.19 | 5,015,381 | 0.465p | GBP23,321.52 | GBP100,273.71 |
+| 2025 | 4,238,894 | 0.775p | GBP32,851.43 | 2,224,893 | 0.465p | GBP10,345.75 | GBP43,197.18 |
+| **Total** | | | | | | | **GBP649,468.29** |
+
+(*) 2019: electricity CCL +45% (0.583->0.847p/kWh), gas +67% (0.203->0.339p/kWh) -- Budget 2018 carbon tax shift.
+
+> Quarterly HMRC remittance obligation per CCLQuarterlyReturn. Pass-through: no net supplier P&L impact.
+## Warm Home Discount (WHD) Liability Observatory
+
+WHD is mandatory for suppliers with 150,000+ domestic customers.
+Eligible customers receive a GBP 140-150 rebate applied to their electricity bill.
+
+| Year | Domestic Customers | WHD Threshold | Status | Rebate/Customer | Liability |
+|------|-------------------|--------------|--------|----------------|---------|
+| 2016 | 13 | 150,000 | OK (exempt) | N/A | NIL |
+| 2017 | 13 | 150,000 | OK (exempt) | N/A | NIL |
+| 2018 | 13 | 150,000 | OK (exempt) | N/A | NIL |
+| 2019 | 13 | 150,000 | OK (exempt) | N/A | NIL |
+| 2020 | 14 | 150,000 | OK (exempt) | N/A | NIL |
+| 2021 | 10 | 150,000 | OK (exempt) | N/A | NIL |
+| 2022 | 12 | 150,000 | OK (exempt) | N/A | NIL |
+| 2023 | 9 | 150,000 | OK (exempt) | N/A | NIL |
+| 2024 | 9 | 150,000 | OK (exempt) | N/A | NIL |
+| 2025 | 6 | 150,000 | OK (exempt) | N/A | NIL |
+
+> Portfolio is primarily I&C. Domestic customer count is far below WHD threshold -- no obligation to participate.
+> If domestic portfolio grows to 150,000+, WHD registration with Ofgem becomes mandatory.
+## Energy Company Obligation (ECO) Observatory
+
+ECO requires suppliers with 150,000+ domestic customers to fund home energy efficiency upgrades.
+Phases: ECO2 (2015-2018, GBP3.20/MWh), ECO3 (2018-2022, GBP4.50/MWh), ECO4 (2022-2026, GBP6.80/MWh).
+
+| Year | ECO Phase | Rate (GBP/MWh) | Domestic Cust | Status | Counterfactual Liability |
+|------|----------|---------------|--------------|--------|------------------------|
+| 2016 | ECO2 | GBP3.20 | 13 | OK (exempt) | GBP0 |
+| 2017 | ECO2 | GBP3.20 | 13 | OK (exempt) | GBP7 |
+| 2018 | ECO3 | GBP4.50 | 13 | OK (exempt) | GBP18 |
+| 2019 | ECO3 | GBP4.50 | 13 | OK (exempt) | GBP49 |
+| 2020 | ECO3 | GBP4.50 | 14 | OK (exempt) | GBP56 |
+| 2021 | ECO3 | GBP4.50 | 10 | OK (exempt) | GBP73 |
+| 2022 | ECO4 | GBP6.80 | 12 | OK (exempt) | GBP192 |
+| 2023 | ECO4 | GBP6.80 | 9 | OK (exempt) | GBP158 |
+| 2024 | ECO4 | GBP6.80 | 9 | OK (exempt) | GBP136 |
+| 2025 | ECO4 | GBP6.80 | 6 | OK (exempt) | GBP56 |
+
+Counterfactual total 2016-2025 (if 150k domestic): **GBP745**
+
+> Actual ECO liability: NIL -- domestic customer count is far below threshold.
+> Counterfactual shows obligation rate if portfolio scaled to 150,000 domestic customers.
+## Carbon Emissions Reporting Observatory
+
+Scope 2 emissions from customer electricity consumption (UK grid emission intensity).
+Scope 1 emissions from gas supply (183g CO2/kWh). Source: DESNZ/National Grid annual fuel mix data.
+
+| Year | Elec MWh | Grid Intensity | Elec CO2 (t) | Gas MWh | Gas CO2 (t) | Total CO2 (t) | Low Carbon % |
+|------|----------|---------------|-------------|---------|------------|-------------|-------------|
+| 2016 | 0 | 315g/kWh | 0.0 | 0 | 0.0 | 0.0 | 45% |
+| 2017 | 2 | 290g/kWh | 0.7 | 0 | 0.0 | 0.7 | 49% |
+| 2018 | 4 | 274g/kWh | 1.1 | 0 | 0.1 | 1.2 | 51% |
+| 2019 | 11 | 244g/kWh | 2.7 | 1 | 0.2 | 2.9 | 57% |
+| 2020 | 12 | 225g/kWh | 2.8 | 1 | 0.2 | 3.0 | 59% (decarbonising) |
+| 2021 | 16 | 243g/kWh | 3.9 | 2 | 0.3 | 4.2 | 56% (decarbonising) |
+| 2022 | 28 | 237g/kWh | 6.7 | 3 | 0.5 | 7.2 | 57% (decarbonising) |
+| 2023 | 23 | 219g/kWh | 5.1 | 2 | 0.4 | 5.5 | 59% (decarbonising) |
+| 2024 | 20 | 196g/kWh | 3.9 | 2 | 0.4 | 4.3 | 64% (decarbonising) |
+| 2025 | 8 | 175g/kWh | 1.4 | 1 | 0.2 | 1.6 | 68% (decarbonising) |
+| **Total** | | | | | | **30.6 t** | |
+
+> Grid emission intensity declining: 2016 ~290g/kWh -> 2025 ~175g/kWh (40% reduction). Carbon disclosure per SECR/ESOS.
 ## Risk Committee Activity (2016-2025)
 
 Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate threshold.
@@ -1859,7 +1985,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,380 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 21 sessions
 - C5: 16 sessions
 - C7: 16 sessions
 - C2: 13 sessions
@@ -2411,7 +2537,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-05-30: treasury £2,466,694.75, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-06-29: treasury £2,466,705.34, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-07-29: treasury £2,466,716.06, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-08-28: treasury £2,466,726.80, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-08-28: treasury £2,466,726.80, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-09-27: treasury £2,466,737.73, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-10-27: treasury £2,466,748.64, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-11-26: treasury £2,466,759.45, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25

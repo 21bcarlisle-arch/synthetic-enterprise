@@ -69,7 +69,8 @@
   <div class="tab-bar">
     <button class="tab-btn active" onclick="showTab('prices',this)">Prices</button>
     <button class="tab-btn" onclick="showTab('weather',this)">Weather &amp; HDD</button>
-  <button class="tab-btn" onclick="showTab('bm',this)">BM Settlement</button>
+    <button class="tab-btn" onclick="showTab('bm',this)">BM Settlement</button>
+    <button class="tab-btn" onclick="showTab('customers',this)">Customers</button>
   </div>
   <div id="tab-prices" class="tab-panel active">
   <div class="kpi-grid" id="kpi-grid">
@@ -136,9 +137,40 @@
     </div>
     <div class="meta-bar" id="bm-meta-bar">Elexon Settlement Price &amp; Volume (BSC) &mdash; 2016&ndash;2025 &mdash; 168,026 half-hourly records</div>
   </div>
+  <div id="tab-customers" class="tab-panel">
+    <div class="kpi-grid" id="cust-kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
+    </div>
+    <div class="section-title">Customer Behavioural Model</div>
+    <div class="narrative">
+      <strong>Four-dimension customer model</strong> &mdash; each simulated customer has a physical profile (EPC band, heating system, appliances), an economic trajectory (income stress driven by life events), a behavioural model (payment timing, switching propensity), and an emotional accumulator (satisfaction score decaying monthly, shocked by bill spikes).
+      The company layer cannot see these simulation internals directly &mdash; it observes only meter reads, payment records, and its own billing data.
+    </div>
+    <div class="section-title">Customer Sample &mdash; Behavioural Trajectories</div>
+    <div class="table-wrap">
+      <table id="cust-table">
+        <thead><tr>
+          <th style="text-align:left">Customer</th>
+          <th>Segment</th>
+          <th>Tenure (yrs)</th>
+          <th>Current Income Stress</th>
+          <th>Payment Score</th>
+          <th>Satisfaction</th>
+          <th>Life Events</th>
+        </tr></thead>
+        <tbody id="cust-tbody"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="section-title">Income Stress Distribution Over Time</div>
+    <div class="chart-wrap"><canvas id="cust-stress-chart" height="220"></canvas></div>
+    <div class="section-title">Payment Behaviour Score Distribution</div>
+    <div class="chart-wrap"><canvas id="cust-pay-chart" height="200"></canvas></div>
+    <div class="meta-bar" id="cust-meta-bar">Loading customer data&hellip;</div>
+  </div>
+
 <script>
 (function () {
-  var pricesLoaded = false, weatherLoaded = false, bmLoaded = false;
+  var pricesLoaded = false, weatherLoaded = false, bmLoaded = false, customersLoaded = false;
   var monthlyPriceChart = null, wTempChart = null, wHddChart = null;
   var YEAR_PAL = ['#58a6ff','#3fb950','#d29922','#f85149','#39d353','#a371f7','#ffa657','#79c0ff','#56d364','#ff7b72'];
   function showTab(name, btn) {
@@ -151,6 +183,7 @@
     if (name === 'prices' && !pricesLoaded) loadPrices();
     if (name === 'weather' && !weatherLoaded) loadWeather();
     if (name === 'bm' && !bmLoaded) loadBm();
+    if (name === 'customers' && !customersLoaded) loadCustomers();
   }
   window.showTab = showTab;
   function fmt(n, dp) {
@@ -248,6 +281,124 @@
         '<td>'+yr+badge+'</td><td>£'+mean_ssp+'</td><td>'+mean_niv+'</td><td>'+mean_short+'%</td>'+
         '<td>'+(mean_niv > 0 ? 'NET LONG' : 'NET SHORT')+'</td></tr>';
     }).join('');
+  }
+
+  function loadCustomers() {
+    customersLoaded = true;
+    fetch('/data/customer_sample.json').then(function(r) {
+      return r.json();
+    }).then(function(d) {
+      buildCustKpis(d); buildCustTable(d); buildStressChart(d); buildPayChart(d);
+      var cnt = Object.keys(d.customers || {}).length;
+      document.getElementById('cust-meta-bar').textContent = cnt + ' customers | simulation/run_phase2b.py behavioral trajectories | 4-dimension model: physical / economic / behavioural / emotional';
+    }).catch(function(e) {
+      document.getElementById('cust-kpi-grid').innerHTML = '<p style="color:var(--muted);padding:16px">Customer sample not available yet. Error: '+e+'</p>';
+    });
+  }
+  function buildCustKpis(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var ic = ids.filter(function(id) { return id.indexOf('IC') >= 0; }).length;
+    var stressH = 0, stressM = 0, stressL = 0;
+    ids.forEach(function(id) {
+      var traj = custs[id].income_stress_trajectory || [];
+      var s = traj.length ? traj[traj.length-1].stress || 'LOW' : 'LOW';
+      if (s === 'HIGH') stressH++;
+      else if (s === 'MODERATE') stressM++;
+      else stressL++;
+    });
+    var kpis = [
+      {label:'Total Customers', value:ids.length, sub:'in sample', cls:'color-blue'},
+      {label:'I&C Customers', value:ic, sub:'industrial & commercial', cls:'color-amber'},
+      {label:'Residential', value:ids.length-ic, sub:'household customers', cls:'color-green'},
+      {label:'High Stress', value:stressH, sub:'financially vulnerable', cls:'color-red'},
+      {label:'Moderate Stress', value:stressM, sub:'under financial pressure', cls:'color-amber'},
+      {label:'Low Stress', value:stressL, sub:'financially stable', cls:'color-green'}
+    ];
+    document.getElementById('cust-kpi-grid').innerHTML = kpis.map(function(k) {
+      return '<div class="kpi-card"><div class="kpi-label">'+k.label+'</div><div class="kpi-value '+k.cls+'">'+k.value+'</div><div class="kpi-sub">'+k.sub+'</div></div>';
+    }).join('');
+  }
+  function buildCustTable(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs).sort().slice(0, 20);
+    var scColors = {EXCELLENT:'var(--green)', GOOD:'var(--green)', FAIR:'var(--muted)', POOR:'var(--amber)', CRITICAL:'var(--red)'};
+    var stColors = {LOW:'var(--green)', MODERATE:'var(--amber)', HIGH:'var(--red)'};
+    var rows = ids.map(function(id) {
+      var c = custs[id];
+      var seg = (id.indexOf('IC') >= 0) ? 'I&C' : 'Residential';
+      var traj = c.income_stress_trajectory || [];
+      var lastSt = traj.length ? traj[traj.length-1].stress || 'LOW' : 'LOW';
+      var pa = c.payment_behaviour_analytics || {};
+      var sc = pa.current_score || 'GOOD';
+      var tenure = c.tenure_years != null ? Number(c.tenure_years).toFixed(1) : '—';
+      var sat = c.satisfaction_score != null ? (Number(c.satisfaction_score)*100).toFixed(0)+'%' : '—';
+      var evts = (c.life_event_history || []).slice(0,3).map(function(e) { return e.event_type; }).join(', ') || '—';
+      var stCol = stColors[lastSt] || 'var(--muted)';
+      var scCol = scColors[sc] || 'var(--muted)';
+      return '<tr><td style="font-family:monospace;font-size:11px">'+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
+    }).join('');
+    document.getElementById('cust-tbody').innerHTML = rows || '<tr><td colspan="7" style="color:var(--muted)">No data</td></tr>';
+  }
+  var custStressChart = null, custPayChart = null;
+  function buildStressChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var yearMap = {};
+    ids.forEach(function(id) {
+      (custs[id].income_stress_trajectory || []).forEach(function(pt) {
+        var yr = String(pt.year);
+        if (!yearMap[yr]) yearMap[yr] = {L:0, M:0, H:0};
+        var s = pt.stress || 'LOW';
+        if (s === 'HIGH') yearMap[yr].H++;
+        else if (s === 'MODERATE') yearMap[yr].M++;
+        else yearMap[yr].L++;
+      });
+    });
+    var years = Object.keys(yearMap).sort();
+    var ctx = document.getElementById('cust-stress-chart').getContext('2d');
+    if (custStressChart) custStressChart.destroy();
+    custStressChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: [
+          {label:'LOW stress', data:years.map(function(y){return yearMap[y].L||0;}), backgroundColor:'rgba(63,185,80,0.6)', stack:'s'},
+          {label:'MODERATE stress', data:years.map(function(y){return yearMap[y].M||0;}), backgroundColor:'rgba(210,153,34,0.6)', stack:'s'},
+          {label:'HIGH stress', data:years.map(function(y){return yearMap[y].H||0;}), backgroundColor:'rgba(248,81,73,0.6)', stack:'s'}
+        ]
+      },
+      options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#7d8590',font:{size:11},boxWidth:14}}},
+        scales:{x:{stacked:true,ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.6)'}},
+                y:{stacked:true,ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.6)'}}}}
+    });
+  }
+  function buildPayChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var scoreKeys = ['EXCELLENT','GOOD','FAIR','POOR','CRITICAL'];
+    var counts = [0,0,0,0,0];
+    ids.forEach(function(id) {
+      var sc = (custs[id].payment_behaviour_analytics || {}).current_score || 'GOOD';
+      var idx = scoreKeys.indexOf(sc);
+      if (idx >= 0) counts[idx]++;
+    });
+    var ctx = document.getElementById('cust-pay-chart').getContext('2d');
+    if (custPayChart) custPayChart.destroy();
+    custPayChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: scoreKeys,
+        datasets: [{
+          data: counts,
+          backgroundColor: ['rgba(63,185,80,0.7)','rgba(63,185,80,0.5)','rgba(125,133,144,0.6)','rgba(210,153,34,0.7)','rgba(248,81,73,0.7)'],
+          borderRadius: 4
+        }]
+      },
+      options: {responsive:true, plugins:{legend:{display:false}},
+        scales:{x:{ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.4)'}},
+                y:{ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.4)'}}}}
+    });
   }
 
   function loadPrices() {
