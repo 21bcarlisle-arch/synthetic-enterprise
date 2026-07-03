@@ -1,12 +1,12 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-02T08:50:55Z
+Last updated: 2026-07-03T07:39:06Z
 
 ## Current Status
 Phase NJ: Churn Model Calibration Report live -- board-level recall/precision/F1 for churn model (14,717 tests)
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,461,253 (git unknown, 2026-07-02)
+Net position: £1,436,949 (git 1bfc7fb1, 2026-07-03)
 
 ## Test Suite
 - **14,717 tests passing** (fast suite ~10s)
@@ -19,8 +19,8 @@ Net position: £1,461,253 (git unknown, 2026-07-02)
 - **I&C churn calibration fix** (2026-07-02): IC_BILL_STRESS_SENSITIVITY 0.10->0.0; I&C no longer gets 95% churn estimate at stable rates. 14,670 tests.
 - **Phase NG** (2026-07-02): CustomerSatisfactionAccumulator wired; satisfaction_score now live in enriched_churn_estimate. 16 tests, 14,668 total.
 
-**Latest simulation results (2016–2025)** — auto-processed (930s / 16 min):
-- Net margin: £1,461,253.49 | Gross: £6,462,528.09 | Capital: £51,123
-- Treasury: £2,466,636 → £3,927,890 | 38 committee interventions | 1443 bills issued
-- Enterprise value: £5,637,800.63 | Net after CTS: £6,359,124
-- Retention: 11 offers, 10/11 retained | 5 no-offer churns | 6 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
+- Net margin: £1,436,949.07 | Gross: £6,453,707.51 | Capital: £51,306
+- Treasury: £2,466,636 → £3,903,585 | 38 committee interventions | 1574 bills issued
+- Enterprise value: £8,087,302.19 | Net after CTS: £6,347,906
+- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
