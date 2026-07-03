@@ -558,6 +558,7 @@ def extract_report_data(run_output: dict) -> dict:
         "ic_flexibility_summary": phase2b.get("ic_flexibility_summary", {}),
         "tpi_summary": phase2b.get("tpi_summary", {}),
         "roc_summary": phase2b.get("roc_summary", {}),
+        "fit_summary": phase2b.get("fit_summary", {}),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
         "by_billing_account": by_billing_account,
@@ -4932,6 +4933,51 @@ def _section_licence_health(data: dict) -> str:
 
 
 
+
+def _section_fit_levy(data: dict) -> str:
+    from company.regulatory.fit_book import _FIT_LEVELISATION_RATE_PER_MWH, FIT_SCHEME_END_DATE
+    fit = data.get("fit_summary", {})
+    per_year = fit.get("per_year", {})
+    if not per_year:
+        return ""
+    lines = ["## Feed-in Tariff (FiT) Levelisation Levy"]
+    lines.append("")
+    lines.append("Ofgem FiT levelisation redistributes FiT payment obligations across all licensed suppliers")
+    lines.append(f"(proportional to electricity supplied). FiT scheme closed to new applicants {FIT_SCHEME_END_DATE}.")
+    lines.append("")
+    lines.append("| Year | Elec MWh | Levy Rate (GBP/MWh) | FiT Levy Cost |")
+    lines.append("|------|----------|---------------------|--------------|")
+    total_levy = 0.0
+    for yr in sorted(per_year.keys()):
+        yd = per_year[yr]
+        mwh = yd.get("elec_mwh", 0.0)
+        rate = yd.get("levy_rate_gbp_per_mwh", 0.0)
+        levy = yd.get("fit_levy_gbp", 0.0)
+        total_levy += levy
+        rate_str = f"GBP{rate:.2f}" if rate > 0 else "GBP0.00 (scheme closed)"
+        lines.append(
+            "| " + yr + " | "
+            + f"{mwh:,.1f}" + " | "
+            + rate_str + " | "
+            + ("GBP" + f"{levy:,.2f}" if levy > 0 else "NIL") + " |"
+        )
+    lines.append(
+        "| **Total** | | | **GBP" + f"{total_levy:,.2f}" + "** |"
+    )
+    lines.append("")
+    ma = data.get("management_accounts", {})
+    total_rev = 0.0
+    for yr in per_year:
+        yr_ma = ma.get(str(yr), {})
+        total_rev += yr_ma.get("income_statement", {}).get("revenue_gbp", 0.0)
+    if total_rev > 0 and total_levy > 0:
+        pct = 100.0 * total_levy / total_rev
+        lines.append(f"FiT levy as % of total revenue (levy years 2016-2019): **{pct:.1f}%** (industry benchmark ~1-2%)")
+        lines.append("")
+    lines.append("> FiT levy ended 2019-20. Post-2019 cost is NIL as levelisation rates fell to zero.")
+    return "\n".join(lines)
+
+
 def _section_roc_obligations(data: dict) -> str:
     from company.regulatory.roc_ledger import _ROC_OBLIGATION_LEVEL, _ROC_BUY_OUT_PRICE_GBP
     roc = data.get("roc_summary", {})
@@ -8243,6 +8289,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_ofgem_supply_return(data))              # Phase OE
     sections.append(_section_gsop_obligations(data))                # Phase OF
     sections.append(_section_roc_obligations(data))                 # Phase OG
+    sections.append(_section_fit_levy(data))                        # Phase OH
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX

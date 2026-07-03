@@ -1793,6 +1793,24 @@ def main(report_end: str | None = None, sim_interface=None):
         "per_year": _roc_per_year,
     }
 
+    # Phase OH: FiT Levelisation Levy.
+    from company.regulatory.fit_book import FITBook, _FIT_LEVELISATION_RATE_PER_MWH
+    _fit_book = FITBook()
+    _fit_per_year = {}
+    for _yr_fit in sorted(_all_years):
+        _mwh_fit = _elec_mwh_by_year.get(_yr_fit, 0.0)
+        _levy_rate = _FIT_LEVELISATION_RATE_PER_MWH.get(int(_yr_fit), 0.0)
+        _levy_gbp = _fit_book.levelisation_charge_gbp(int(_yr_fit), _mwh_fit * 1000.0)
+        _fit_per_year[_yr_fit] = {
+            "elec_mwh": round(_mwh_fit, 1),
+            "levy_rate_gbp_per_mwh": _levy_rate,
+            "fit_levy_gbp": round(_levy_gbp, 2),
+        }
+    fit_summary = {
+        "total_fit_levy_gbp": round(sum(v["fit_levy_gbp"] for v in _fit_per_year.values()), 2),
+        "per_year": _fit_per_year,
+    }
+
     # Phase 27d: Triad risk for I&C customers.
     # Identify Triad periods for each winter in the run window, then compute
     # each I&C customer's TNUoS exposure. Uses SSP as a demand proxy.
@@ -1897,6 +1915,8 @@ def main(report_end: str | None = None, sim_interface=None):
         "tpi_summary": tpi_summary,
         # Phase OG: Renewable Obligation cost
         "roc_summary": roc_summary,
+        # Phase OH: FiT Levelisation Levy
+        "fit_summary": fit_summary,
         "per_customer_behavioral": _build_behavioral_trajectories(
             ELEC_CUSTOMERS + GAS_CUSTOMERS,
             household_demand_register,
