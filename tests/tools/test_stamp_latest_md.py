@@ -153,7 +153,7 @@ def test_stamp_updates_last_updated_to_today(tmp_path, monkeypatch):
     md.write_text("Last updated: 2020-01-01T00:00:00Z\n")
     monkeypatch.setattr(stamp_latest_md, "LATEST_MD", md)
     stamp_latest_md.stamp()
-    today = datetime.date.today().isoformat()
+    today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
     assert today in md.read_text()
 
 

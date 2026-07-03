@@ -1,12 +1,12 @@
-## Risk Committee Wake-Up — 2022-09-26 period 1
-Trigger: VaR_current £55609.19 exceeds VaR_stressed £20606.62 × 2.5 (ratio 2.70)
-Treasury balance: £3038904.24 (12-month peak: £3039127.16, drawdown: 0.0%)
-Portfolio gross margin YTD: £197.32 | Net margin YTD: £-144.60
-Capital costs YTD: £6.97
-VaR_current: £55609.19 | VaR_stressed: £20606.62 | Ratio: 2.70
-Per-customer hedge_fraction: C1=0.89 C2=0.92 C3=0.89 C4=0.94 C5=0.89 C6=0.92 C7=0.88 C8=0.92 C9=0.92 C_IC1=0.92 C_IC2=0.92 C_IC3=0.96
-Per-customer collateral: C1: collateral=£19.73 coc=£0.1644/mo C2: collateral=£66.07 coc=£0.5506/mo C3: collateral=£26.70 coc=£0.2225/mo C4: collateral=£94.43 coc=£0.7869/mo C5: collateral=£182.13 coc=£1.5178/mo C6: collateral=£320.93 coc=£2.6745/mo C7: collateral=£131.09 coc=£1.0924/mo C8: collateral=£149.78 coc=£1.2482/mo C9: collateral=£182.12 coc=£1.5176/mo C_IC1: collateral=£28016.39 coc=£233.4699/mo C_IC2: collateral=£10984.03 coc=£91.5336/mo C_IC3: collateral=£15438.04 coc=£128.6503/mo
-Rolling 12m SSP: σ_recent = 1.339 | Forward price: £150.74/MWh
+## Risk Committee Wake-Up — 2017-12-21 period 1
+Trigger: VaR_current £1005.08 exceeds VaR_stressed £401.28 × 2.5 (ratio 2.50)
+Treasury balance: £2468236.21 (12-month peak: £2468236.21, drawdown: 0.0%)
+Portfolio gross margin YTD: £445.49 | Net margin YTD: £117.08
+Capital costs YTD: £3.51
+VaR_current: £1005.08 | VaR_stressed: £401.28 | Ratio: 2.50
+Per-customer hedge_fraction: C1=0.93 C2=0.91 C3=0.89 C4=0.89 C5=0.92 C6=0.91 C7=0.92 C8=0.91 C9=0.89
+Per-customer collateral: C1: collateral=£36.08 coc=£0.3007/mo C2: collateral=£33.15 coc=£0.2762/mo C3: collateral=£36.06 coc=£0.3005/mo C4: collateral=£24.90 coc=£0.2075/mo C5: collateral=£133.09 coc=£1.1091/mo C6: collateral=£426.18 coc=£3.5515/mo C7: collateral=£113.59 coc=£0.9466/mo C8: collateral=£89.63 coc=£0.7469/mo C9: collateral=£112.41 coc=£0.9367/mo
+Rolling 12m SSP: σ_recent = 1.155 | Forward price: £53.50/MWh
 Regime: pre-2023 (σ_stressed = 0.50)
-Recommendation requested: adjust hedge_fraction for C2, C4, C6, C8, C9, C_IC1, C_IC2
+Recommendation requested: adjust hedge_fraction for C5, C7
 Constraint: minimum adjustment +0.10, maximum single adjustment +0.30 | never decrease hedge_fraction
