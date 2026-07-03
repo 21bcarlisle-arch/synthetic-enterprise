@@ -1602,6 +1602,7 @@ Annual change in gross margin decomposed into revenue and cost drivers.
 
 > Note: Non-commodity costs include network (DUoS/TNUoS), policy levies (RO/CfD/CCL/CM/FiT), and mutualization.
 
+
 ## Risk Committee Activity (2016-2025)
 
 Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate threshold.
