@@ -1,6 +1,6 @@
 # Current Priorities
 
-Last updated: 2026-07-02 -- Direction: Human Simulation Layer (Gap 3) + Churn (Gap 4).
+Last updated: 2026-07-03 -- HARD REDIRECT: Stop Observatory loop; build observability/billing/anchoring.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
 Coverage sprints (phases LQ through MU, 95+ sprints) are complete. Test count: 14,485.
@@ -23,27 +23,43 @@ Phase NQ COMPLETE (2026-07-03): Churn Model Recalibration -- INDUSTRY_BASE_CHURN
 All 5 real capability gaps CLOSED (Gaps 1-5).
 
 ## Next (roadmap items outbid self-generated work)
-Last refreshed: 2026-07-03. Previous P1-P4 + NX/NY complete. New direction: Regulatory fidelity + Settlement accounting.
+Last refreshed: 2026-07-03 -- HARD REDIRECT (ADVISOR). Observatory loop stopped; board sections are NOT phases.
 
-- **Phase NZ: Ofgem FRA Regulatory Capital Ratio** -- board section computing equity/monthly-revenue ratio per year; RAG GREEN>=2x / AMBER 1-2x / RED<1x (Ofgem FRA non-compliant). Post-2022 FRA requires this metric. Builds on NR capital stress.
-- ~~**Phase OA: I&C Broker/TPI Commission Model**~~ -- DONE (2026-07-03): TPIBook wired; £1.5/MWh (0.15 p/kWh) annual trail commission on I&C consumption; tpi_summary in run output; board section added. 21 tests (14,929 total).
-- ~~**Phase OB: Elexon Settlement Reconciliation Cash Flow**~~ -- DONE (2026-07-03): settlement_reconciliation.py; ReconciliationExposure(outstanding_pool/max_adverse/rag/is_crisis_year); R1/R2/R3/RF timeline; 90% HH portfolio gives GREEN RAG (low variance); crisis years flagged for credit bias. 25 tests (14,966 total).
-- ~~**Phase OC: Licence Health Observatory**~~ -- DONE (2026-07-03): _section_licence_health wired; build_licence_health_report per year; customer count / net assets / bad debt / cash runway; small-portfolio years WATCH. 16 tests (14,982 total).
-- ~~**Phase OD: Compliance Scorecard Synthesis**~~ -- DONE (2026-07-03): ComplianceScorecard populated from 10 SLC domains; per-year RAG table using bad_debt/bill_clarity/FRA/complaint signals; board section. 16 tests (14,998 total).
-- ~~**Phase OE: Ofgem Annual Supply Return**~~ -- DONE (2026-07-03): OfgemReturnBook populated per year from sim data; customer counts by segment, GWh supplied, bad debt/cust, filed status; board table; missing_years check. 16 tests (15,014 total).
-- ~~**Phase OF: GSOP Obligations Tracker**~~ -- DONE (2026-07-03): GSOPBook wired; missed_appointment (1% cust/yr) + final_bill_delay (5% churned); GBP 30/trigger; board section; small portfolio correctly shows zero triggers. 14 tests (15,028 total).
-- ~~**Phase OG: Renewable Obligation (RO) Cost Observatory**~~ -- DONE (2026-07-03): ROCLedger wired; per-year electricity MWh from all_records; obligation_level x MWh = ROCs required; buy-out price ceiling; board section shows per-year cost + % of revenue. 25 tests (15,053 total).
-- ~~**Phase OH: Feed-in Tariff (FiT) Levy Observatory**~~ -- DONE (2026-07-03): FITBook.levelisation_charge_gbp wired; per-year GBP/MWh rate; scheme closure shown as NIL from 2020; board section + % of revenue. 21 tests (15,074 total).
-- ~~**Phase OI: Climate Change Levy (CCL) Observatory**~~ -- DONE (2026-07-03): CCLLedger wired; I&C elec+gas CCL by year; 2019 spike (+45%/+67%) flagged; pass-through note; board section. 19 tests (15,093 total).
-- ~~**Phase OJ: Warm Home Discount (WHD) Liability Observatory**~~ -- DONE (2026-07-03): WHDBook threshold check; I&C-dominated portfolio EXEMPT (domestic count far below 150k); NIL liability confirmed; growth warning note. 19 tests (15,112 total).
-- ~~**Phase OK: Energy Company Obligation (ECO) Observatory**~~ -- DONE (2026-07-03): ECOObligationBook per-phase rates; I&C portfolio EXEMPT; counterfactual liability shown (GBP3.20-6.80/MWh by phase). 19 tests (15,131 total).
-- ~~**Phase OL: Carbon Emissions Reporting Observatory**~~ -- DONE (2026-07-03): FuelMixRecord with real UK grid fuel mix data 2016-2025; scope 2 elec CO2 + scope 1 gas CO2; decarbonisation trend (290g/kWh->175g/kWh). 17 tests (15,148 total).
-- **Phase OM: Fuel Mix Disclosure (FMD) Board Report** -- fuel_mix_disclosure.py exists but is not wired. UK suppliers must publish their electricity fuel mix annually. Board section showing disclosed fuel mix percentages and renewable content.
-- **Phase OB: Elexon Settlement Reconciliation Cash Flow** -- UK suppliers receive reconciliation charges/credits up to 28 months after delivery (R1/R2/RF runs). Zero-mean but timing creates cash flow lumps. Board section showing estimated reconciliation exposure by year.
-- **ToU tariff depth** -- time-of-use pricing for HH smart meter customers (existing backlog; lower priority than regulatory items above)
+**RULE (permanent, added to phase-close checklist):** A new board/report/Observatory section is NOT a phase. Board sections are byproducts of building capability. Any "add an X Observatory / X dashboard" proposal is automatically outbid by the priorities below.
 
-Previously completed (archived here):
-- Phase NX DONE (2026-07-03), Phase NY DONE (2026-07-03), Phase NQ DONE, Harness Hardening DONE, NP DONE, remote staging DONE
+### PRIORITY 1: OBSERVABILITY THE ADVISOR CAN ACTUALLY USE
+**Acceptance: advisor confirms successful fetch of all three -- not a statement it was built.**
+
+(a) **PROJECT_STATE.txt auto-sync BROKEN** -- shows Phase NS / 14,823 tests from Jun 30. Fix the
+    regeneration pipeline so it updates on every push. Verify by fetching the file and confirming
+    current phase + test count.
+
+(b) **customer_sample.json**: 15-20 real segment-model customers, full behavioural trajectories
+    (income_stress, life_events, payment_score, satisfaction, churn_estimate, basis_risk),
+    at a STABLE fetchable URL listed in PROJECT_STATE.txt.
+
+(c) **Shadow HTML site**: ALL FOUR sections (Supplier/Customers/Project/SIM) as plain no-JS HTML
+    pre-rendered static content. No client-side rendering. The advisor's fetch tool must be able
+    to read the full content. Ugly is fine; complete and current is mandatory.
+
+### PRIORITY 2: REAL BILLING & PAYMENT INFRASTRUCTURE
+Per-customer money movement -- NOT an Observatory section:
+- Invoices issued per customer per billing cycle with due dates
+- Payment methods (DD / cash / prepay) and payment events posting to ledger
+- Missed payment -> arrears state -> dunning cycle (emergent from non-payment)
+- Bad debt (stage 5) emerges naturally -- do NOT build separately first
+**Acceptance:** named customer's ledger shows invoices raised, payments received, arrears accruing.
+
+### PRIORITY 3: POPULATION ANCHORING AS STANDING CONSTRAINT
+SIM aggregates validated against published UK statistics every run:
+- Ofgem annual switching rates by year (CRITICAL: 2021-22 crisis = switching COLLAPSE, not rise;
+  SIM must NOT show churn rising during crisis -- if it does, the SIM is wrong)
+- Complaints/ombudsman volumes, arrears rates vs published ranges
+Build as a validation gate that flags SIM divergence from published reality.
+
+### Completed / No longer current
+~~Phase OM (Fuel Mix Disclosure board section)~~ -- SUPERSEDED BY HARD REDIRECT. Board sections
+are not phases. Fuel mix capability already built; a board section is a byproduct, not a phase.
 
 ## Real capability gaps
 

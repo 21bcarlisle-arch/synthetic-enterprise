@@ -32,6 +32,7 @@ real UK energy supplier works."
 ---
 ## Phase-close checklist (in order)
 0. **PRIORITIES.md freshness:** "Next" must have ≥1 real roadmap item outbidding self-generated work. If stale, refreshing it IS the next task — before all else.
+0a. **Board sections are NOT phases (permanent rule):** A new board/report/Observatory section alone never counts as a phase. Reporting is a byproduct of building capability. Any "add X Observatory / X report section" proposal is automatically outbid by PRIORITIES.md P1-P3.
 1. Update test count + latest run figures in PROJECT_OVERVIEW.md Section 10.
 2. Add build history entry in PROJECT_OVERVIEW.md Section 4.
 3. **Run epistemic verifier:** `python3 -m tools.epistemic_verifier` — must PASS before committing. If FAIL: fix violations first.
