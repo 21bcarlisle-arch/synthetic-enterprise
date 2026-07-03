@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 471+ commits. 14,823 tests passing. Codebase: ~49,700 lines across 321+ Python modules.*
+*Last updated: 2026-07-03. 472+ commits. 14,843 tests passing. Codebase: ~49,800 lines across 322+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NT -- Year-on-Year Net Margin Bridge (2026-07-03)
+19 tests. `saas/reporting/margin_attribution.py` (new): `MarginBridge` frozen dataclass -- year_from/year_to/net_delta_gbp/gross_delta_gbp/bad_debt_delta_gbp/capital_delta_gbp/policy_cost_delta_gbp/network_cost_delta_gbp/portfolio_change/residual_gbp/direction (IMPROVEMENT/DETERIORATION/FLAT, ±£5k threshold). `build_margin_bridge_series(run_data)` -> list[MarginBridge] for all adjacent year pairs; empty for <2 years. `dominant_driver(bridge)` -> str (gross margin/bad debt/capital costs/policy levies/network costs -- largest absolute contributor). `saas/reporting/annual_report.py`: `_section_net_margin_bridge` board section -- 9-row table (2016->2025 transitions) with net/gross/bad-debt/capital/policy/network deltas, portfolio change, primary driver, RAG (GREEN=improvement, RED=deterioration); summary line: most-damaging and best transitions. `extract_report_data` includes `margin_bridge_series` key. KEY FINDINGS from 2016-2025 live data: 2019->2020 deterioration was policy-levy-driven (-£162k policy shock, not gross margin); 2021->2022 crisis windfall (+£283k gross) masked £27k bad debt surge (crisis year yet net improved); 2024->2025 gross margin collapse (-£732k) partially offset by policy/network cost relief (+£510k) -- portfolio shrank 3 customers. Board can now trace any year's net margin change to its causal drivers (P1: Observability). Epistemic: PASS.
+**Total:** 14,843 tests
 
 ### Phase NO -- Counterfactual Retention & Threshold Optimisation (2026-07-03)
 15 tests. company/analytics/counterfactual_retention.py: compute_counterfactual_retention(no_offer_churn_log, customer_events, customers) -- CounterfactualMiss per no-offer churn (counterfactual_retained/value_recovered_gbp/retention_cost_gbp/net_value_of_offer_gbp/was_worth_offering); CounterfactualRetentionReport aggregates (total_value_at_stake/total_recoverable/would_have_been_retained_count). company/analytics/threshold_sensitivity.py: compute_threshold_sensitivity(customer_events, no_offer_churn_log) -- ThresholdPoint per threshold 0-50% in 5% steps (TP/FP/FN/TN/recall/precision/F1); ThresholdSensitivityResult (optimal_threshold/optimal_f1/current_f1). saas/reporting/annual_report.py: _section_threshold_optimisation renders per-miss detail table + sensitivity curve + RAG (model_underestimates flag triggers RED when optimal threshold < 50% of current). Key finding: all 6 no-offer churns had company estimates < 25%; optimal F1 threshold is 0% (offer everyone) -- reveals model underestimation, not a threshold problem. Board section diagnoses root cause.

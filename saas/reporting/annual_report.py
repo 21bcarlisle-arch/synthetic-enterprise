@@ -46,6 +46,7 @@ from company.finance import budget as _budget
 from company.analytics.counterfactual_retention import compute_counterfactual_retention
 from company.analytics.threshold_sensitivity import compute_threshold_sensitivity
 from company.risk.credit_risk_stress import build_credit_risk_stress, CRISIS_BAD_DEBT_MULTIPLIER
+from saas.reporting.margin_attribution import build_margin_bridge_series, dominant_driver
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -598,6 +599,8 @@ def extract_report_data(run_output: dict) -> dict:
         "churn_risk": churn_risk,
         # Phase 64: management accounts pre-computed from ledger events
         "management_accounts": _compute_management_accounts(run_output, phase2b.get("starting_treasury", 0.0)),
+        # Phase NT: year-on-year net margin bridge (P1: Observability)
+        "margin_bridge_series": [b.__dict__ for b in build_margin_bridge_series({"years": yearly})],
     }
 
 
@@ -6220,6 +6223,78 @@ def _section_gross_margin_bridge(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_net_margin_bridge(data: dict) -> str:
+    """Phase NT: Net margin bridge -- year-on-year attribution of net margin changes."""
+    bridges = [
+        type("B", (), b)()
+        for b in data.get("margin_bridge_series", [])
+    ]
+    if not bridges:
+        return ""
+
+    def _sign_gbp(v):
+        prefix = "+" if v >= 0 else "-"
+        return f"{prefix}£{abs(v):,.0f}"
+
+    def _rag(b) -> str:
+        if b.direction == "IMPROVEMENT":
+            return "GREEN"
+        if b.direction == "DETERIORATION":
+            return "RED"
+        return "AMBER"
+
+    lines = [
+        "## Net Margin Bridge (Year-on-Year Attribution)",
+        "",
+        "Decomposes each year's net margin change into: gross margin movement, bad debt, capital costs, policy levies, network costs.",
+        "",
+        "| Transition | Net Δ | Gross Δ | Bad Debt Δ | Capital Δ | Policy Δ | Network Δ | Portfolio | Driver | RAG |",
+        "|-----------|-------|---------|-----------|---------|---------|---------|---------|--------|-----|",
+    ]
+
+    worst_val = None
+    worst_label = None
+    best_val = None
+    best_label = None
+
+    for b in bridges:
+        driver = dominant_driver(b)
+        rag = _rag(b)
+        lines.append(
+            f"| {b.year_from}\u2192{b.year_to} "
+            f"| {_sign_gbp(b.net_delta_gbp)} "
+            f"| {_sign_gbp(b.gross_delta_gbp)} "
+            f"| {_sign_gbp(b.bad_debt_delta_gbp)} "
+            f"| {_sign_gbp(b.capital_delta_gbp)} "
+            f"| {_sign_gbp(b.policy_cost_delta_gbp)} "
+            f"| {_sign_gbp(b.network_cost_delta_gbp)} "
+            f"| {b.portfolio_change:+d} "
+            f"| {driver} "
+            f"| {rag} |"
+        )
+        if worst_val is None or b.net_delta_gbp < worst_val:
+            worst_val = b.net_delta_gbp
+            worst_label = f"{b.year_from}\u2192{b.year_to}"
+        if best_val is None or b.net_delta_gbp > best_val:
+            best_val = b.net_delta_gbp
+            best_label = f"{b.year_from}\u2192{b.year_to}"
+
+    lines += [""]
+    if worst_label and best_label:
+        lines.append(
+            f"**Most damaging transition: {worst_label} ({_sign_gbp(worst_val)})** | "
+            f"**Best transition: {best_label} ({_sign_gbp(best_val)})**"
+        )
+    lines += [
+        "",
+        "> Gross delta: revenue minus energy wholesale cost. Bad debt / capital / policy / network deltas: "
+        "negative = costs rose (margin impact). Portfolio: active customer count change.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+
 def _section_risk_committee_activity(data: dict) -> str:
     """Phase BC: Risk Committee intervention summary from committee_wake_ups."""
     years = data.get("years", {})
@@ -7239,6 +7314,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_dynamic_pricing_activity(data))       # Phase BH
     sections.append(_section_clv_evolution(data))                  # Phase BG
     sections.append(_section_gross_margin_bridge(data))            # Phase BE
+    sections.append(_section_net_margin_bridge(data))             # Phase NT
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX

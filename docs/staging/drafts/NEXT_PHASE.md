@@ -1,54 +1,76 @@
-# NEXT PHASE PROPOSAL: Phase NR — Bad Debt → Capital Stress Feedback
+# NEXT PHASE PROPOSAL: Phase NT — Year-on-Year Margin Bridge (P1: Observability)
 
-## Problem
+## Gap addressed
+P1: Observability (from 2026-07-03 PRIORITIES.md refresh).
 
-`company/finance/bad_debt_provision.py` exists and computes IFRS 9 ECL provisions, but it
-is never imported by `company/risk/capital_adequacy.py`. The capital adequacy stress test
-considers only price VaR (market risk) — credit risk from customer bad debt is completely
-absent.
+The board report currently shows absolute net margin per year, but cannot answer:
+"Why did margin change in 2022?" A real UK supplier CFO produces a bridge/waterfall
+analysis for the MD every year: starting from prior-year net, decomposing the delta
+into attributable cost and revenue drivers.
 
-In a real UK energy supplier this is a material gap: post-2022 Ofgem FRA requires combined
-stress testing of market risk AND credit risk. Several of the 28 supplier failures in
-2021-22 were partly caused by bad debt shock (payment holidays + payment cap extension)
-eroding working capital faster than price VaR alone.
-
-Current state: `CapitalAdequacyAssessment.stress_test_passes` = `equity > price_VaR`.
-Real state: should be `equity > (price_VaR + credit_stress_shock)`.
+Currently: board sees £1.4M net. It cannot see that -£280k came from bad debt surge,
+-£90k from capital cost spike, -£40k from policy levy increase, +£120k from new I&C win.
+That causal chain is the observability gap.
 
 ## What this phase builds
 
-### Part A: Credit risk stress module
-`company/risk/credit_risk_stress.py`: `CreditRiskStress` dataclass:
-- `current_provision_gbp`: existing bad debt provision
-- `stress_multiplier`: how much worse bad debt becomes in a crisis (2.5x empirical from
-  Ofgem 2022 data: industry bad debt rose from ~1% to ~2.5% of revenue)
-- `stress_incremental_gbp`: `max(0, provision * multiplier - provision)` = extra capital
-  needed above current provision
-- `is_material`: whether incremental > 0.5% of annual revenue (disclosure threshold)
+### Part A: Margin attribution module
+`saas/reporting/margin_attribution.py`:
 
-### Part B: Wire into CapitalAdequacyAssessment
-`company/risk/capital_adequacy.py`: add `credit_risk_stress_gbp` field to
-`CapitalAdequacyAssessment`; update `stress_test_passes` to
-`equity > (stress_var_gbp + credit_risk_stress_gbp)`; status scoring unchanged (still
-0-4 failure count -> ADEQUATE/MARGINAL/INADEQUATE/CRITICAL).
+`MarginBridge` dataclass (frozen):
+- `year_from`: int (e.g. 2021)
+- `year_to`: int (e.g. 2022)
+- `net_delta_gbp`: net_gbp[to] - net_gbp[from]  -- total change
+- `gross_delta_gbp`: gross_gbp[to] - gross_gbp[from]  -- commodity + unit economics change
+- `bad_debt_delta_gbp`: bad_debt_gbp[from] - bad_debt_gbp[to]  -- sign: negative = costs rose
+- `capital_delta_gbp`: capital_gbp[from] - capital_gbp[to]   -- sign: negative = capital costs rose
+- `policy_cost_delta_gbp`: total policy levies delta (ro + cfd + ccl + cm + fit + mutualization)
+- `network_cost_delta_gbp`: (network_cost + gas_network_cost) delta
+- `portfolio_change`: active customer count delta (int)
+- `residual_gbp`: net_delta minus sum of components (should be near-zero)
+- `direction`: Literal["IMPROVEMENT", "DETERIORATION", "FLAT"]  -- net_delta sign + £5k threshold
 
-### Part C: Board section
-`saas/reporting/annual_report.py`: `_section_credit_risk_capital` -- shows current
-provision rate, stress multiplier applied, incremental capital consumed, whether combined
-stress (price VaR + credit) is within equity buffer. RAG: GREEN both within equity;
-AMBER credit stress alone exceeds 1% equity; RED combined exceeds equity.
+`build_margin_bridge_series(run_data: dict) -> list[MarginBridge]`:
+- Iterates sorted year keys from run_data["years"]
+- Returns one MarginBridge per adjacent year pair
+- Empty list if fewer than 2 years
+
+`dominant_driver(bridge: MarginBridge) -> str`:
+- Returns label of the component with the largest absolute contribution
+- Candidates: "gross margin", "bad debt", "capital costs", "policy levies", "network costs"
+
+### Part B: Board section
+`saas/reporting/annual_report.py`: `_section_margin_bridge(data: dict) -> str`
+
+Table per year-transition showing: Net delta, Gross delta, Bad Debt delta, Capital delta,
+Policy delta, Network delta, Portfolio change, Primary Driver. RAG: GREEN (net_delta > 0),
+AMBER (within -10% of prior year), RED (<-10%). Summary line: most damaging year and best year.
+
+### Part C: Expose in run output
+`extract_report_data` includes `margin_bridge_series` key. Each bridge serialised as dict.
 
 ## Why this has real fidelity value
-- Ofgem FRA post-2022 explicitly requires combined market + credit stress testing
-- 2022 empirical data: bad debt rose 2.5x during crisis (Ofgem consumer vulnerability report)
-- Current model would show capital as adequate even if customers stopped paying en masse
-- Closing this gap means the board section gives a complete risk picture, not just commodity VaR
-- Epistemic: company observes its own arrears book (bad_debt_provision) -- zero sim barrier issues
+- Every real UK supplier CFO presents a year-on-year P&L bridge to the MD/board
+- 2022 crisis: bad debt 2.5x, capital VaR spike, policy levies shifted -- attribution matters
+- Board currently sees absolute numbers, not causes; a real board demands "why?"
+- Closes P1 observability gap: MD can trace any year to its causal drivers
+- No new sim instrumentation needed -- all data in run_data["years"] per-year dicts
+- Epistemic: company observes its own P&L components -- zero sim barrier issues
 
-## Test targets (~12 tests)
-- CreditRiskStress dataclass: multiplier, incremental, is_material threshold
-- Capital assessment passes when equity covers combined stress
-- Capital assessment fails when credit shock pushes combined above equity
-- Stress multiplier 1.0 = current provision, no incremental capital required
-- Board section renders RAG correctly at Green/Amber/Red boundaries
-- No epistemic violations (company reads its own arrears book)
+## Test targets (~16 tests)
+- MarginBridge computes net_delta correctly (to minus from)
+- bad_debt_delta_gbp negative when bad debt costs rose
+- capital_delta_gbp negative when capital costs rose
+- residual_gbp near-zero when all components wired correctly
+- direction IMPROVEMENT when net_delta > 5000
+- direction DETERIORATION when net_delta < -5000
+- direction FLAT within +/-5k
+- build_margin_bridge_series returns N-1 bridges for N years
+- build_margin_bridge_series returns [] for single-year input
+- dominant_driver returns "bad debt" when bad_debt_delta is largest absolute contributor
+- dominant_driver returns "gross margin" when gross_delta dominates
+- Board section renders GREEN row for positive net_delta
+- Board section renders RED row when net_delta < -10% of prior year net
+- Board section summary line names most damaging year
+- policy_cost_delta sums all six levy components correctly
+- portfolio_change matches active customer count delta
