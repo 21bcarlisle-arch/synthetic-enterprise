@@ -1,5 +1,5 @@
 ## Phase PT + Staging Actioned (3 advisor instructions)
-Last updated: 2026-07-03T21:29:06Z
+Last updated: 2026-07-03T21:32:00Z
 
 **Status:** COMPLETE. 15,290 tests passing.
 
@@ -22,6 +22,8 @@ Last updated: 2026-07-03T21:29:06Z
 **CLAUDE.md addition:**
 - "Observability artifacts verified by fetch" — done only when live URL fetched and confirmed current
 
-**Latest simulation results (2016–2025):**
-- Net margin: £1,445,258 | Gross: £6,452,602 | 15,290 tests
-- Enterprise value: £8,826,939 | Treasury: £3,911,894
+**Latest simulation results (2016–2025)** — auto-processed (893s / 15 min):
+- Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
+- Treasury: £2,466,636 → £3,911,894 | 36 committee interventions | 1605 bills issued
+- Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
+- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
