@@ -1842,6 +1842,8 @@ Guaranteed Standards of Performance — GBP 30 per breach (Ofgem-mandated).
 No GSOP obligations triggered in 2016-2025 window.
 _Small portfolio with low complaint and churn volumes falls below estimated trigger thresholds._
 
+
+
 ## Risk Committee Activity (2016-2025)
 
 Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate threshold.

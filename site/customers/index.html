@@ -98,16 +98,6 @@ function nc(v){return v>=0?"green":"red";}
 function churnColour(p){return p>=0.5?"red":p>=0.3?"amber":"green";}
 function churnLabel(p){return p>=0.5?"High risk":p>=0.3?"Medium risk":"Low risk";}
 function showLogin(err){
-  var commSplitHtml="";
-  var cs=d.commodity_split||{};
-  var csE=cs.electricity,csG=cs.gas;
-  if(csE||csG){
-    var csRows="";
-    if(csE){var cec=nc(csE.net_gbp);csRows+="<div class=\"row\"><span class=\"rl\">Electricity — Revenue</span><span>"+gbp(csE.revenue_gbp)+"</span></div><div class=\"row\"><span class=\"rl\">Electricity — Net Margin</span><span class=\""+cec+"\">"+gbp(csE.net_gbp)+"</span></div>";}
-    if(csG){var cgc=nc(csG.net_gbp);csRows+="<div class=\"row\"><span class=\"rl\">Gas — Revenue</span><span>"+gbp(csG.revenue_gbp)+"</span></div><div class=\"row\"><span class=\"rl\">Gas — Net Margin</span><span class=\""+cgc+"\">"+gbp(csG.net_gbp)+"</span></div>";}
-    commSplitHtml="<div class=\"sec-title\">Commodity Split</div><div class=\"card\">"+csRows+"</div>";
-  }
-  var netActs=d.lifetime_net_after_cts_gbp||0;
   document.getElementById("app").innerHTML=
     "<div class=\"login-wrap\"><div class=\"login-card\">"+
     "<h1>Customer Portal</h1>"+
@@ -154,6 +144,16 @@ function renderBills(){
 function filterBillYear(y){BILL_YEAR=y;renderBills();}
 function renderAccount(){
   var d=ACC;
+  var commSplitHtml="";
+  var cs=d.commodity_split||{};
+  var csE=cs.electricity,csG=cs.gas;
+  if(csE||csG){
+    var csRows="";
+    if(csE){var cec=nc(csE.net_gbp);csRows+="<div class=\"row\"><span class=\"rl\">Electricity — Revenue</span><span>"+gbp(csE.revenue_gbp)+"</span></div><div class=\"row\"><span class=\"rl\">Electricity — Net Margin</span><span class=\""+cec+"\">"+gbp(csE.net_gbp)+"</span></div>";}
+    if(csG){var cgc=nc(csG.net_gbp);csRows+="<div class=\"row\"><span class=\"rl\">Gas — Revenue</span><span>"+gbp(csG.revenue_gbp)+"</span></div><div class=\"row\"><span class=\"rl\">Gas — Net Margin</span><span class=\""+cgc+"\">"+gbp(csG.net_gbp)+"</span></div>";}
+    commSplitHtml="<div class=\"sec-title\">Commodity Split</div><div class=\"card\">"+csRows+"</div>";
+  }
+  var netActs=d.lifetime_net_after_cts_gbp||0;
   var segLabel=d.segment==="I&C"?"I&C":d.segment==="sme"?"SME":"Residential";
   var segBadge=d.segment==="I&C"?"<span class=\"badge bi\">I&amp;C</span>":"<span class=\"badge br\">Residential</span>";
   var comBadge=d.commodity==="gas"?"<span class=\"badge bg\">Gas</span>":"<span class=\"badge be\">Electricity</span>";
