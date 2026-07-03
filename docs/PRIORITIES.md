@@ -8,10 +8,11 @@ All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Last updated: 2026-07-03 -- Direction: Churn recalibration (Phase NQ).
+Last updated: 2026-07-03 -- Direction: Capital model completeness (Phase NR).
 
 Phase NO COMPLETE (2026-07-03): Counterfactual Retention & Threshold Optimisation -- counterfactual_retention.py + threshold_sensitivity.py; board section; optimal F1 threshold=0% reveals model underestimation. 15 tests (14,772 total).
 Phase NP COMPLETE (2026-07-03): Behavioral Trajectory Emission -- income_stress_trajectory + life_event_history emitted from run_phase2b; customer_sample.json wired. 13 tests (14,757 total).
+Phase NR COMPLETE (2026-07-03): Bad Debt -> Capital Stress Feedback -- credit_risk_stress.py; capital_adequacy stress_test_passes = equity > (VaR + credit); board section. 19 tests (14,805 total).
 Phase NQ COMPLETE (2026-07-03): Churn Model Recalibration -- INDUSTRY_BASE_CHURN_RATE=0.05 floor on enriched_churn_estimate + passive model; yoy_extended 24-month reference window in score_experience_signals; build_churn_risk comparison_mode param; Phase NP pay_metrics bug fixed. 14 tests (14,786 total).
 All 5 real capability gaps CLOSED (Gaps 1-5).
 

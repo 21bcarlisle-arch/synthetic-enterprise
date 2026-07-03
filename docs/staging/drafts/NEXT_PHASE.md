@@ -1,47 +1,54 @@
-# NEXT PHASE PROPOSAL: Phase NQ — Churn Model Recalibration via Rate Context
+# NEXT PHASE PROPOSAL: Phase NR — Bad Debt → Capital Stress Feedback
 
 ## Problem
 
-Phase NO revealed: 0% recall, all 6 churns missed, F1=0. Root cause diagnosis:
-- C3, C4, C5 (estimates 0%): base-rate churn at stable prices — epistemic limit, unpredictable
-- C1 (Dec 2021, 3.8%), C2 (Mar 2022, 6.7%): crisis-period churns with YoY comparison neutralised
-- C6 (Mar 2024, 24.7%): near-threshold, missed by 5 pts
+`company/finance/bad_debt_provision.py` exists and computes IFRS 9 ECL provisions, but it
+is never imported by `company/risk/capital_adequacy.py`. The capital adequacy stress test
+considers only price VaR (market risk) — credit risk from customer bad debt is completely
+absent.
 
-The crisis-period misses (C1, C2) are fixable: the YoY comparison fails during a sustained crisis
-because the reference year (Dec 2020, Mar 2021) was also elevated. The company would observe
-this: its own rate vs the average of the previous 24 months (a wider reference window).
+In a real UK energy supplier this is a material gap: post-2022 Ofgem FRA requires combined
+stress testing of market risk AND credit risk. Several of the 28 supplier failures in
+2021-22 were partly caused by bad debt shock (payment holidays + payment cap extension)
+eroding working capital faster than price VaR alone.
 
-The base-rate misses (C3, C4, C5) are epistemic: the company cannot predict lifestyle churns.
-However, a real company would ensure minimum 5% floor on all estimates (the Ofgem-published
-resi industry base rate).
+Current state: `CapitalAdequacyAssessment.stress_test_passes` = `equity > price_VaR`.
+Real state: should be `equity > (price_VaR + credit_stress_shock)`.
 
 ## What this phase builds
 
-### Part A: Industry base rate floor
-company/crm/enriched_churn_estimate.py: add INDUSTRY_BASE_CHURN_RATE = 0.05; ensure
-enriched_churn_estimate always returns >= INDUSTRY_BASE_CHURN_RATE. This is defensible
-from Ofgem published annual switching statistics.
+### Part A: Credit risk stress module
+`company/risk/credit_risk_stress.py`: `CreditRiskStress` dataclass:
+- `current_provision_gbp`: existing bad debt provision
+- `stress_multiplier`: how much worse bad debt becomes in a crisis (2.5x empirical from
+  Ofgem 2022 data: industry bad debt rose from ~1% to ~2.5% of revenue)
+- `stress_incremental_gbp`: `max(0, provision * multiplier - provision)` = extra capital
+  needed above current provision
+- `is_material`: whether incremental > 0.5% of annual revenue (disclosure threshold)
 
-### Part B: Extended rate reference window
-saas/churn_model.py: add extended_reference_mode that compares current bill against the
-24-month (rather than 12-month) rolling average. Crisis-year 2021: 12-month ref is already
-elevated; 24-month ref reaches back to pre-crisis 2019-2020, showing the full crisis shock.
-Controlled by a flag: comparison_mode='yoy_extended'.
+### Part B: Wire into CapitalAdequacyAssessment
+`company/risk/capital_adequacy.py`: add `credit_risk_stress_gbp` field to
+`CapitalAdequacyAssessment`; update `stress_test_passes` to
+`equity > (stress_var_gbp + credit_risk_stress_gbp)`; status scoring unchanged (still
+0-4 failure count -> ADEQUATE/MARGINAL/INADEQUATE/CRITICAL).
 
-### Part C: Wire extended reference in run_phase2b
-simulation/run_phase2b.py: pass comparison_mode='yoy_extended' to _enriched_churn_estimate.
-
-### Part D: Tests and report update
-~12 tests. Update threshold sensitivity to show F1 improvement with new calibration.
+### Part C: Board section
+`saas/reporting/annual_report.py`: `_section_credit_risk_capital` -- shows current
+provision rate, stress multiplier applied, incremental capital consumed, whether combined
+stress (price VaR + credit) is within equity buffer. RAG: GREEN both within equity;
+AMBER credit stress alone exceeds 1% equity; RED combined exceeds equity.
 
 ## Why this has real fidelity value
-- Real UK suppliers use wider reference windows during crises (Ofgem ECP analysis)
-- The INDUSTRY_BASE_CHURN_RATE floor reflects what Ofgem publishes as passive switching baseline
-- Recall improvement from 0% to something positive closes the epistemic gap meaningfully
-- Without recall improvement, the board section just shows a permanently broken model
+- Ofgem FRA post-2022 explicitly requires combined market + credit stress testing
+- 2022 empirical data: bad debt rose 2.5x during crisis (Ofgem consumer vulnerability report)
+- Current model would show capital as adequate even if customers stopped paying en masse
+- Closing this gap means the board section gives a complete risk picture, not just commodity VaR
+- Epistemic: company observes its own arrears book (bad_debt_provision) -- zero sim barrier issues
 
 ## Test targets (~12 tests)
-- Base rate floor: estimate never < 0.05 regardless of signals
-- Extended window catches crisis: 24-month ref for Dec 2021 shows shock, 12-month doesn't
-- Threshold sensitivity shows F1 improvement (optimal F1 > 0.18 current)
-- No epistemic violations (company reads its own billing history, not SIM internals)
+- CreditRiskStress dataclass: multiplier, incremental, is_material threshold
+- Capital assessment passes when equity covers combined stress
+- Capital assessment fails when credit shock pushes combined above equity
+- Stress multiplier 1.0 = current provision, no incremental capital required
+- Board section renders RAG correctly at Green/Amber/Red boundaries
+- No epistemic violations (company reads its own arrears book)

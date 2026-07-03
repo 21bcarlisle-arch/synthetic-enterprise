@@ -20,7 +20,7 @@ Post-2022: 28 failures were partly attributable to insufficient capital buffers.
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 
@@ -47,6 +47,7 @@ class CapitalAdequacyAssessment:
     total_equity_gbp: float
     risk_weighted_assets_gbp: float
     stress_var_gbp: float               # 1-in-20 year VaR
+    credit_risk_stress_gbp: float = field(default=0.0)  # Phase NR: bad-debt crisis shock
 
     @property
     def wind_down_reserve_pct(self) -> float:
@@ -68,7 +69,7 @@ class CapitalAdequacyAssessment:
 
     @property
     def stress_test_passes(self) -> bool:
-        return self.total_equity_gbp > self.stress_var_gbp
+        return self.total_equity_gbp > (self.stress_var_gbp + self.credit_risk_stress_gbp)
 
     @property
     def wind_down_compliant(self) -> bool:

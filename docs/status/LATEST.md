@@ -1,36 +1,24 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T11:16:49Z
+Last updated: 2026-07-03T11:27:52Z
 
 ## Current Status
-Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN_RATE=0.05 floor on enriched_churn_estimate + passive model; yoy_extended 24-month reference window in score_experience_signals; build_churn_risk comparison_mode param; Phase NP pay_metrics dict access bug fixed. 14 tests, 14,786 total. Recall from 0% now quantifiable at lower thresholds.
+Phase NR COMPLETE (2026-07-03) -- Bad Debt -> Capital Stress Feedback: company/risk/credit_risk_stress.py (CreditRiskStress dataclass, 2.5x Ofgem crisis multiplier); capital_adequacy.py stress_test_passes = equity > (price_VaR + credit_stress); _section_credit_risk_capital board section. 19 tests, 14,805 total. Capital model now reflects full Ofgem FRA requirement.
 
-Phase NO COMPLETE (2026-07-03) -- Counterfactual Retention & Threshold Optimisation: 15 tests (14,772 total).
-
-## Current Status
-Phase NO COMPLETE (2026-07-03) -- Counterfactual Retention & Threshold Optimisation: company/analytics/counterfactual_retention.py + threshold_sensitivity.py; board section _section_threshold_optimisation in annual report; 15 tests, 14,772 total. Key finding: model underestimates churn (all 6 no-offer churns estimated < 25%; optimal F1 threshold = 0% = offer everyone). Phase NP also complete: behavioral trajectories emitted.
-
-**Phase NP COMPLETE (2026-07-03) -- Behavioral Trajectory Emission: income_stress_trajectory + life_event_history emitted from run_phase2b into per_customer_behavioral; customer_sample.json fully wired. 13 tests, 14,757 total. Phase NO (Counterfactual Retention) pending 4h opt-out window (expires ~12:25 UTC).
+Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN_RATE=0.05 floor on enriched_churn_estimate + passive model; yoy_extended 24-month reference window. 14 tests, 14,786 total.
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,436,949 (git 47ba1178, 2026-07-03)
 
 ## Test Suite
-- **14,772 tests passing** (fast suite ~10s)
+- **14,805 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
-- **Phase NO** (2026-07-03): counterfactual_retention.py + threshold_sensitivity.py; _section_threshold_optimisation in annual report; optimal F1 threshold=0% reveals model underestimation not threshold problem. 15 tests, 14,772 total.
-- **Phase NP** (2026-07-03): simulation/household_demand.py: income_stress_trajectory + life_event_history methods; run_phase2b emits per_customer_behavioral; customer_sample.json wired. Behavioral data flows end-to-end. 13 tests, 14,757 total.
-- **Remote Staging Bridge + Harness Hardening** (2026-07-03): Sim boundary audit (3 violations fixed); observability tools (customer_sample.json + shadow HTML); epistemic verifier extended to saas/; plausibility vs industry section in annual report; CLAUDE.md 3 rules encoded. 15 tests, 14,759 total.
-- **Phase NL** (2026-07-02): saas/customer_reaction.py comparison_mode=rolling|yoy; YoY compares same calendar month prior year, eliminates seasonal false-positives. saas/churn_model.py build_churn_risk comparison_mode=yoy. 13 tests, 14,744 total.
-- **Phase NK** (2026-07-02): saas/reporting/annual_report.py churn_model_performance section; TP/FP/FN/TN/recall/precision/F1/per-year/RAG. 14 tests, 14,731 total.
-- **Phase NJ** (2026-07-02): company/analytics/churn_accuracy_report.py -- compute_churn_model_performance computes TP/FP/FN/TN, recall, precision, F1. Board gains churn model calibration KPI. 16 tests, 14,717 total.
-- **Phase NH** (2026-07-02): PaymentBehaviourAnalytics wired into run_phase2b.py -- three-signal churn model (bill_shock+behaviour+satisfaction) fully operational. 17 tests, 14,701 total.
-- **Fix** (2026-07-02): TOU bill shock counter -- resi HH TOU customers no longer get 500-1500 spurious shocks. 14 tests, 14,684 total.
-
-**Latest simulation results (2016–2025)** — auto-processed (604s / 10 min):
-- Net margin: £1,436,949.07 | Gross: £6,453,707.51 | Capital: £51,306
-- Treasury: £2,466,636 → £3,903,585 | 38 committee interventions | 1574 bills issued
-- Enterprise value: £8,087,302.19 | Net after CTS: £6,347,906
-- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
+- **Phase NR** (2026-07-03): credit_risk_stress.py; capital_adequacy stress_test_passes = equity > (VaR + credit); _section_credit_risk_capital board section. 19 tests, 14,805 total.
+- **Phase NQ** (2026-07-03): INDUSTRY_BASE_CHURN_RATE=0.05 floor; yoy_extended 24-month reference window; Phase NP pay_metrics bug fixed. 14 tests, 14,786 total.
+- **Phase NO** (2026-07-03): counterfactual_retention.py + threshold_sensitivity.py; _section_threshold_optimisation in annual report; optimal F1 threshold=0% reveals model underestimation. 15 tests, 14,772 total.
+- **Phase NP** (2026-07-03): simulation/household_demand.py income_stress_trajectory + life_event_history; run_phase2b emits per_customer_behavioral; customer_sample.json wired. 13 tests, 14,757 total.
+- **Remote Staging Bridge + Harness Hardening** (2026-07-03): Sim boundary audit (3 violations); observability tools; epistemic verifier extended to saas/; plausibility vs industry section. 15 tests.
+- **Phase NL** (2026-07-02): saas/customer_reaction.py YoY comparison; saas/churn_model.py comparison_mode=yoy. 13 tests, 14,744 total.
+- **Phase NK** (2026-07-02): churn_model_performance section in annual report. 14 tests, 14,731 total.

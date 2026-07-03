@@ -45,6 +45,7 @@ from company.finance import management_accounts as _ma
 from company.finance import budget as _budget
 from company.analytics.counterfactual_retention import compute_counterfactual_retention
 from company.analytics.threshold_sensitivity import compute_threshold_sensitivity
+from company.risk.credit_risk_stress import build_credit_risk_stress, CRISIS_BAD_DEBT_MULTIPLIER
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -7110,6 +7111,56 @@ def _section_threshold_optimisation(data: dict) -> str:
     lines.append("")
     return "\n".join(lines)
 
+def _section_credit_risk_capital(data: dict) -> str:
+    """Phase NR: Bad Debt -> Capital Stress Feedback board section."""
+    total_bad_debt = data.get("total_bad_debt_gbp", 0.0)
+    total_revenue = data.get("total_revenue_gbp", 0.0)
+    year_data = data.get("by_year", {})
+
+    lines = ["## Credit Risk & Capital Stress (Phase NR)", ""]
+    lines.append(
+        f"**Ofgem FRA stress multiplier:** {CRISIS_BAD_DEBT_MULTIPLIER:.1f}x "
+        "(empirical: 2021-22 crisis, industry bad debt 1% → 2.5% revenue)"
+    )
+    lines.append("")
+
+    # Per-year bad debt table
+    lines.append("| Year | Revenue £ | Bad Debt £ | Bad Debt % | Crisis Stress £ |")
+    lines.append("|------|-----------|------------|------------|-----------------|")
+    total_stress_incremental = 0.0
+    for yr in sorted(year_data.keys()):
+        yd = year_data[yr]
+        rev = yd.get("revenue_gbp", 0.0)
+        bd = yd.get("bad_debt_gbp", 0.0)
+        bd_pct = bd / rev * 100 if rev else 0.0
+        crs = build_credit_risk_stress(bd, rev)
+        stress_inc = crs.stress_incremental_gbp
+        total_stress_incremental += stress_inc
+        lines.append(
+            f"| {yr} | £{rev:,.0f} | £{bd:,.0f} | {bd_pct:.2f}% | £{stress_inc:,.0f} |"
+        )
+    lines.append("")
+
+    # Overall stress
+    crs_total = build_credit_risk_stress(total_bad_debt, total_revenue)
+    lines.append(f"**Total bad debt (all years):** £{total_bad_debt:,.0f}")
+    lines.append(f"**Crisis stress incremental:** £{crs_total.stress_incremental_gbp:,.0f}")
+    lines.append("")
+
+    # RAG
+    if crs_total.stress_incremental_gbp == 0.0:
+        rag, flag, reason = "GREEN", "OK", "No bad debt recorded — no credit stress"
+    elif not crs_total.is_material:
+        rag, flag, reason = "GREEN", "OK", "Incremental credit stress below 0.5% revenue — not material"
+    elif crs_total.stress_incremental_gbp / total_revenue < 0.01 if total_revenue else False:
+        rag, flag, reason = "AMBER", "~", "Credit stress material but below 1% revenue"
+    else:
+        rag, flag, reason = "RED", "!", "Credit stress exceeds 1% revenue — combined market+credit stress warrants capital review"
+    lines.append(f"**RAG [{flag}]:** {rag} — {reason}")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def generate_annual_report(data: dict) -> str:
     """Build the full markdown annual report from `extract_report_data()`'s
     output."""
@@ -7183,6 +7234,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_churn_prediction_calibration(data))   # Phase BJ
     sections.append(_section_threshold_optimisation(data))      # Phase NO
     sections.append(_section_churn_model_performance(data))        # Phase NK
+    sections.append(_section_credit_risk_capital(data))            # Phase NR
     sections.append(_section_tariff_estimation_accuracy(data))     # Phase BI
     sections.append(_section_dynamic_pricing_activity(data))       # Phase BH
     sections.append(_section_clv_evolution(data))                  # Phase BG

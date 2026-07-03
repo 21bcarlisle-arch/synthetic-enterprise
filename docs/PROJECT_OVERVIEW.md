@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 469+ commits. 14,786 tests passing. Codebase: ~49,450 lines across 319+ Python modules.*
+*Last updated: 2026-07-03. 470+ commits. 14,805 tests passing. Codebase: ~49,600 lines across 320+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -113,7 +113,10 @@ The system has four layers, each with a clean seam to the next:
 
 ### Phase NO -- Counterfactual Retention & Threshold Optimisation (2026-07-03)
 15 tests. company/analytics/counterfactual_retention.py: compute_counterfactual_retention(no_offer_churn_log, customer_events, customers) -- CounterfactualMiss per no-offer churn (counterfactual_retained/value_recovered_gbp/retention_cost_gbp/net_value_of_offer_gbp/was_worth_offering); CounterfactualRetentionReport aggregates (total_value_at_stake/total_recoverable/would_have_been_retained_count). company/analytics/threshold_sensitivity.py: compute_threshold_sensitivity(customer_events, no_offer_churn_log) -- ThresholdPoint per threshold 0-50% in 5% steps (TP/FP/FN/TN/recall/precision/F1); ThresholdSensitivityResult (optimal_threshold/optimal_f1/current_f1). saas/reporting/annual_report.py: _section_threshold_optimisation renders per-miss detail table + sensitivity curve + RAG (model_underestimates flag triggers RED when optimal threshold < 50% of current). Key finding: all 6 no-offer churns had company estimates < 25%; optimal F1 threshold is 0% (offer everyone) -- reveals model underestimation, not a threshold problem. Board section diagnoses root cause.
-**Total:** 14,786 tests
+**Total:** 14,805 tests
+
+### Phase NR -- Bad Debt -> Capital Stress Feedback (2026-07-03)
+19 tests. `company/risk/credit_risk_stress.py` (new): `CreditRiskStress` dataclass — current_provision_gbp * stress_multiplier (2.5x Ofgem 2022 empirical) = stressed_provision; stress_incremental = max(0, stressed - current); is_material = incremental > 0.5% annual_revenue. `build_credit_risk_stress(provision, revenue, multiplier=2.5)` factory. `company/risk/capital_adequacy.py`: added `credit_risk_stress_gbp` field (default=0.0); `stress_test_passes` = `equity > (price_VaR + credit_stress)` — combined market+credit stress check. Backward-compatible: all 18 existing tests pass. `saas/reporting/annual_report.py`: `_section_credit_risk_capital` board section — per-year bad debt table with crisis stress multiplied; total incremental capital; RAG (GREEN=no bad debt or <0.5% rev; AMBER=0.5-1%; RED=>1% rev = warrants capital review). Closes capital model gap: Ofgem FRA post-2022 requires combined market+credit stress test; prior model would show capital adequate even under mass payment default. **Fidelity gain:** capital adequacy now reflects full Ofgem FRA requirement — price VaR alone is insufficient.
 
 ### Phase NQ -- Churn Model Recalibration (2026-07-03)
 `company/crm/enriched_churn_estimate.py`: INDUSTRY_BASE_CHURN_RATE=0.05 floor ensures company never estimates 0% churn (Ofgem passive switching baseline). `company/crm/churn_model.py`: estimate_passive_churn_probability floor at PASSIVE_BASE_CHURN_RATE. `saas/customer_reaction.py`: yoy_extended comparison mode averages prior 2 years -- crisis-period shocks now visible when reference year was itself elevated. `saas/churn_model.py`: build_churn_risk accepts comparison_mode param. `simulation/run_phase2b.py`: industry base rate applied when no prior rate exists; pay_metrics dict access bug fixed. 14 tests added. **Fidelity gain:** churn model never outputs <5% (Ofgem baseline); extended reference window detects sustained crisis-period shocks that 12-month YoY misses.
