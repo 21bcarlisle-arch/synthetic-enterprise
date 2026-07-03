@@ -47,6 +47,7 @@ from company.analytics.counterfactual_retention import compute_counterfactual_re
 from company.analytics.threshold_sensitivity import compute_threshold_sensitivity
 from company.risk.credit_risk_stress import build_credit_risk_stress, CRISIS_BAD_DEBT_MULTIPLIER
 from saas.reporting.margin_attribution import build_margin_bridge_series, dominant_driver
+from saas.reporting.fra_capital_ratio import build_fra_ratio_series, weakest_year, strongest_year
 from saas.reporting.payment_health import build_payment_health_series
 from saas.reporting.portfolio_composition import build_composition_series
 from saas.reporting.shadow_retention import build_shadow_retention_analysis
@@ -612,6 +613,9 @@ def extract_report_data(run_output: dict) -> dict:
         # Phase NW: shadow retention strategy P&L (P4: shadow ops)
         "shadow_retention_events": [e.__dict__ for e in build_shadow_retention_analysis({"no_offer_churn_log": phase2b.get("no_offer_churn_log", [])})[0]],
         "shadow_retention_summaries": [s.__dict__ for s in build_shadow_retention_analysis({"no_offer_churn_log": phase2b.get("no_offer_churn_log", [])})[1]],
+        # Phase NZ: Ofgem FRA regulatory capital ratio
+        "fra_ratio_series": [r.__dict__ for r in build_fra_ratio_series(
+            _compute_management_accounts(run_output, phase2b.get("starting_treasury", 0.0)) or {})],
     }
 
 
@@ -7367,6 +7371,54 @@ def _section_threshold_optimisation(data: dict) -> str:
     lines.append("")
     return "\n".join(lines)
 
+def _section_fra_capital_ratio(data: dict) -> str:
+    """Phase NZ: Ofgem FRA Regulatory Capital Ratio board section.
+
+    Computes equity/monthly-revenue per year. Ofgem FRA minimum: 1x monthly revenue.
+    Failed suppliers (Bulb 2021: ~-0.01x; Igloo 2021: ~0.07x) show this ratio
+    distinguishes solvent from at-risk suppliers. Silent when no management accounts.
+    """
+    series_raw = data.get("fra_ratio_series", [])
+    if not series_raw:
+        return ""
+
+    from saas.reporting.fra_capital_ratio import FRACapitalRatio, weakest_year, strongest_year
+
+    series = [type("R", (), r)() for r in series_raw]
+
+    lines = [
+        "## Ofgem FRA Regulatory Capital Ratio (Phase NZ)",
+        "",
+        "Equity / (annual revenue ÷ 12). Ofgem FRA minimum: ≥ 1x monthly revenue.",
+        "Sector best practice: ≥ 6x (GREEN). Early warning: < 3x (AMBER). Non-compliant: < 1x (RED).",
+        "Real-world context: Bulb 2021 collapse at ~-0.01x; Igloo 2021 ~0.07x.",
+        "",
+        "| Year | Equity | Monthly Rev | FRA Ratio | RAG | Compliant |",
+        "|------|--------|-------------|-----------|-----|-----------|",
+    ]
+
+    for r in sorted(series, key=lambda x: x.year):
+        rag_icon = {"GREEN": "✓ GREEN", "AMBER": "~ AMBER", "RED": "✗ RED"}.get(r.rag, r.rag)
+        compliant = "Yes" if r.is_compliant else "NO"
+        lines.append(
+            f"| {r.year} | {_fmt_gbp(r.equity_gbp)} | {_fmt_gbp(r.monthly_revenue_gbp)} | "
+            f"{r.fra_ratio:.1f}x | {rag_icon} | {compliant} |"
+        )
+
+    if series:
+        w = min(series, key=lambda x: x.fra_ratio)
+        s = max(series, key=lambda x: x.fra_ratio)
+        lines += [
+            "",
+            f"**Weakest year:** {w.year} — {w.fra_ratio:.1f}x (equity {_fmt_gbp(w.equity_gbp)} vs "
+            f"monthly revenue {_fmt_gbp(w.monthly_revenue_gbp)}). RAG: {w.rag}.",
+            f"**Strongest year:** {s.year} — {s.fra_ratio:.1f}x.",
+            "",
+        ]
+
+    return "\n".join(lines)
+
+
 def _section_credit_risk_capital(data: dict) -> str:
     """Phase NR: Bad Debt -> Capital Stress Feedback board section."""
     total_bad_debt = data.get("total_bad_debt_gbp", 0.0)
@@ -7499,6 +7551,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_payment_health(data))               # Phase NU
     sections.append(_section_portfolio_composition(data))         # Phase NV
     sections.append(_section_shadow_retention(data))              # Phase NW
+    sections.append(_section_fra_capital_ratio(data))            # Phase NZ
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
