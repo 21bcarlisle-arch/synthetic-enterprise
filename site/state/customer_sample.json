@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-07-03T19:10:07Z",
-    "git_commit": "c780cb4e",
+    "generated_at": "2026-07-03T19:39:22Z",
+    "git_commit": "3c5c124f",
     "customer_count": 21,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
   },
@@ -205,19 +205,67 @@
           "rate_vs_svt_pct": -22.96
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "EXCELLENT",
+        "metrics": {
+          "on_time_rate": 0.95,
+          "late_rate": 0.05,
+          "dd_fail_rate": 0.0
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C1_2": {
@@ -504,19 +552,67 @@
         }
       ],
       "churn_accuracy_by_renewal": [],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "FAIR",
+        "metrics": {
+          "on_time_rate": 0.8833333333333333,
+          "late_rate": 0.05,
+          "dd_fail_rate": 0.06666666666666667
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C2": {
@@ -699,19 +795,80 @@
           "rate_vs_svt_pct": 46.63
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "high"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [
+        {
+          "date": "2017-06-28",
+          "event_type": "job_loss"
+        },
+        {
+          "date": "2018-04-02",
+          "event_type": "income_recovery"
+        },
+        {
+          "date": "2023-06-20",
+          "event_type": "insulation_upgraded"
+        }
+      ],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "FAIR",
+        "metrics": {
+          "on_time_rate": 0.7638888888888888,
+          "late_rate": 0.18055555555555555,
+          "dd_fail_rate": 0.05555555555555555
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C2_2": {
@@ -978,19 +1135,67 @@
         }
       ],
       "churn_accuracy_by_renewal": [],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8888888888888888,
+          "late_rate": 0.06944444444444445,
+          "dd_fail_rate": 0.041666666666666664
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C3": {
@@ -1105,19 +1310,76 @@
           "rate_vs_svt_pct": -39.02
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "high"
+        },
+        {
+          "year": 2023,
+          "stress": "high"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [
+        {
+          "date": "2022-08-28",
+          "event_type": "job_loss"
+        },
+        {
+          "date": "2024-01-06",
+          "event_type": "income_recovery"
+        }
+      ],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8541666666666666,
+          "late_rate": 0.10416666666666667,
+          "dd_fail_rate": 0.041666666666666664
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C3g": {
@@ -1203,19 +1465,72 @@
         }
       ],
       "churn_accuracy_by_renewal": [],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [
+        {
+          "date": "2018-03-21",
+          "event_type": "boiler_replaced"
+        }
+      ],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8958333333333334,
+          "late_rate": 0.10416666666666667,
+          "dd_fail_rate": 0.0
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C4": {
@@ -1466,19 +1781,72 @@
           "rate_vs_svt_pct": -9.04
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [
+        {
+          "date": "2023-02-11",
+          "event_type": "insulation_upgraded"
+        }
+      ],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8958333333333334,
+          "late_rate": 0.08333333333333333,
+          "dd_fail_rate": 0.020833333333333332
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C4g": {
@@ -1620,19 +1988,76 @@
         }
       ],
       "churn_accuracy_by_renewal": [],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [
+        {
+          "date": "2021-04-02",
+          "event_type": "battery_installed"
+        },
+        {
+          "date": "2021-07-06",
+          "event_type": "insulation_upgraded"
+        }
+      ],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "FAIR",
+        "metrics": {
+          "on_time_rate": 0.875,
+          "late_rate": 0.052083333333333336,
+          "dd_fail_rate": 0.07291666666666667
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C5": {
@@ -1902,19 +2327,67 @@
           "rate_vs_svt_pct": -45.81
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8690476190476191,
+          "late_rate": 0.11904761904761904,
+          "dd_fail_rate": 0.011904761904761904
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C5_2": {
@@ -2291,19 +2764,67 @@
           "rate_vs_svt_pct": -24.7
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8854166666666666,
+          "late_rate": 0.08333333333333333,
+          "dd_fail_rate": 0.03125
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C7": {
@@ -2648,19 +3169,76 @@
           "rate_vs_svt_pct": -14.29
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "moderate"
+        },
+        {
+          "year": 2024,
+          "stress": "moderate"
+        },
+        {
+          "year": 2025,
+          "stress": "moderate"
+        }
+      ],
+      "life_event_history": [
+        {
+          "date": "2021-08-17",
+          "event_type": "boiler_replaced"
+        },
+        {
+          "date": "2023-12-23",
+          "event_type": "new_baby"
+        }
+      ],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "FAIR",
+        "metrics": {
+          "on_time_rate": 0.7456140350877193,
+          "late_rate": 0.15789473684210525,
+          "dd_fail_rate": 0.09649122807017543
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C8": {
@@ -2945,19 +3523,76 @@
           "rate_vs_svt_pct": -23.57
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "moderate"
+        },
+        {
+          "year": 2023,
+          "stress": "moderate"
+        },
+        {
+          "year": 2024,
+          "stress": "moderate"
+        },
+        {
+          "year": 2025,
+          "stress": "moderate"
+        }
+      ],
+      "life_event_history": [
+        {
+          "date": "2016-09-03",
+          "event_type": "solar_install"
+        },
+        {
+          "date": "2022-05-11",
+          "event_type": "retirement_starts"
+        }
+      ],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "FAIR",
+        "metrics": {
+          "on_time_rate": 0.7837837837837838,
+          "late_rate": 0.18018018018018017,
+          "dd_fail_rate": 0.036036036036036036
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C9": {
@@ -3215,19 +3850,67 @@
           "rate_vs_svt_pct": -14.29
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8981481481481481,
+          "late_rate": 0.08333333333333333,
+          "dd_fail_rate": 0.018518518518518517
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C_IC1": {
@@ -3440,19 +4123,67 @@
           "rate_vs_svt_pct": -0.12
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.9509803921568627,
+          "late_rate": 0.0392156862745098,
+          "dd_fail_rate": 0.00980392156862745
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C_IC2": {
@@ -3644,19 +4375,67 @@
           "rate_vs_svt_pct": 12.41
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8666666666666667,
+          "late_rate": 0.12222222222222222,
+          "dd_fail_rate": 0.011111111111111112
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C_IC3": {
@@ -3879,19 +4658,72 @@
           "rate_vs_svt_pct": -53.52
         }
       ],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [
+        {
+          "date": "2018-02-24",
+          "event_type": "insulation_upgraded"
+        }
+      ],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8846153846153846,
+          "late_rate": 0.08974358974358974,
+          "dd_fail_rate": 0.02564102564102564
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C_IC3g": {
@@ -4012,19 +4844,67 @@
         }
       ],
       "churn_accuracy_by_renewal": [],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "FAIR",
+        "metrics": {
+          "on_time_rate": 0.8589743589743589,
+          "late_rate": 0.0641025641025641,
+          "dd_fail_rate": 0.07692307692307693
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     },
     "C_IC4": {
@@ -4131,19 +5011,67 @@
         }
       ],
       "churn_accuracy_by_renewal": [],
-      "income_stress_trajectory": null,
-      "life_event_history": null,
+      "income_stress_trajectory": [
+        {
+          "year": 2016,
+          "stress": "low"
+        },
+        {
+          "year": 2017,
+          "stress": "low"
+        },
+        {
+          "year": 2018,
+          "stress": "low"
+        },
+        {
+          "year": 2019,
+          "stress": "low"
+        },
+        {
+          "year": 2020,
+          "stress": "low"
+        },
+        {
+          "year": 2021,
+          "stress": "low"
+        },
+        {
+          "year": 2022,
+          "stress": "low"
+        },
+        {
+          "year": 2023,
+          "stress": "low"
+        },
+        {
+          "year": 2024,
+          "stress": "low"
+        },
+        {
+          "year": 2025,
+          "stress": "low"
+        }
+      ],
+      "life_event_history": [],
       "satisfaction_score_trajectory": null,
-      "payment_behaviour_analytics": null,
+      "payment_behaviour_analytics": {
+        "score": "GOOD",
+        "metrics": {
+          "on_time_rate": 0.8939393939393939,
+          "late_rate": 0.07575757575757576,
+          "dd_fail_rate": 0.030303030303030304
+        }
+      },
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
         "basis_risk": "complete",
         "churn_accuracy": "complete",
-        "income_stress_trajectory": "pending_sim_emission",
-        "life_event_history": "pending_sim_emission",
+        "income_stress_trajectory": "complete",
+        "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "complete"
       }
     }
   }
