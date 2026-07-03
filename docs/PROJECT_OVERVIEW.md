@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 490+ commits. 15,290 tests passing. Codebase: ~50,900 lines across 332+ Python modules.*
+*Last updated: 2026-07-03. 490+ commits. 15,314 tests passing. Codebase: ~51,100 lines across 335+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,11 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase PU -- Shadow Live Operation P4 MVP (2026-07-03)
+24 new tests. tools/project_portfolio_to_2026.py: extracts active customers from final sim year, last renewal date/rate from customer_events, EAC from bills, hedge fraction from hedge_fractions dict. tools/live_market.py: Elexon SSP EWMA for spot; gas from price_feed.json; gas forward=spot x1.05; get_market_summary. tools/run_live_decisions.py: 60-day renewal window; hedge INCREASE/HOLD/REDUCE vs 50-90% band; proposed_rate=fwd+non_commodity+segment_margin; writes live_decisions_YYYYMMDD.json + live_decisions_latest.json. Wired into process_run_complete.py. KEY FINDING: as-of 2025-06-07, C9 in renewal window (22 days), proposed 153.49 vs current 210.0 GBP/MWh (market fallen from 2022 peak); hedge rec INCREASE (I&C pass-through at 0% hf -- expected). SIM no longer retrodiction-only. P4 MVP delivered.
+**Total:** 15,314 tests
+
 
 ### Phase PS -- Complaints & Arrears Population Anchoring (2026-07-03)
 22 new tests. `tools/population_anchor.py` extended: `_complaints_check(years_data)` -- complaint rate per billing period (avg_complaint_probability x 100%) vs Ofgem QoS survey benchmark (I&C adjusted: GREEN 2-6% normal, 2-8% crisis); `_arrears_check_by_year(billing_ledger, years_data)` -- unique customers with new arrears case opened per year vs DESNZ business energy debt benchmark (GREEN <8% normal, <12% crisis). `generate()` extended with billing_ledger_path param; adds complaints_vs_benchmark and arrears_vs_benchmark keys to population_anchoring.json. `saas/reporting/annual_report.py`: `_section_population_anchoring` (new) -- per-year table with complaint and arrears RAG vs benchmarks; summary counts GREEN years. Fixed `_section_licence_health` -- was hardcoding `complaints_per_100=0.0`; now uses actual avg_complaint_probability. KEY FINDING: Complaint rate (4-6% per billing period) GREEN in all years except 2025 (AMBER at 6.1%). Arrears elevated in most years (30% 2016, 29% 2022); only 2020 GREEN (5.3%) when I&C-dominated and stable -- surfaces that arrears model calibrated towards residential rates, not pure I&C. P3 Population Anchoring fully closed (switching, complaints, arrears all benchmarked). Epistemic: PASS.
@@ -5159,7 +5164,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 354+ Python modules (company layer), ~55,200 lines total
 - 420+ git commits
-- 14,744 tests (fast / ~10s; simulation integration ~8 min per run)
+- 15,314 tests (fast / ~10s; simulation integration ~8 min per run)
 - Phase NK (2026-07-02): extract_report_data churn_model_performance extraction fix + _section_churn_model_performance board report section.
 
 **Data:**

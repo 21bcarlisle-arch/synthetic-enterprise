@@ -223,6 +223,18 @@ def generate_dashboard_json(json_path):
         log("Generated site/data/supplier.json")
     except Exception as exc:
         log("supplier.json generation failed: {}".format(exc))
+    try:
+        from tools.project_portfolio_to_2026 import generate as gen_portfolio
+        gen_portfolio(json_path)
+        log("Generated site/state/live_portfolio.json")
+    except Exception as exc:
+        log("Live portfolio generation failed: {}".format(exc))
+    try:
+        from tools.run_live_decisions import run_decisions
+        run_decisions()
+        log("Generated site/state/live_decisions_latest.json")
+    except Exception as exc:
+        log("Live decisions generation failed: {}".format(exc))
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):
