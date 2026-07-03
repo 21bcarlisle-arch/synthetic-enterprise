@@ -4988,3 +4988,84 @@ Commits: 7d333dc6 (NX), e27475a9 (NY), e9a3a535 (NZ)
 - Tests: 15,148 -> 15,189 (+41 across PP+PQ)
 
 - [2026-07-03T19:38:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:39:51Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:39:54Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T19:41:17Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:41:21Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:42:27Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:42:48Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:46:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:49:17Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:52:37Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:54:22Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:55:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:56:08Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T19:56:38Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:57:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:58:27Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T19:58:28Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T19:59:10Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:00:50Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T20:00:51Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:01:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:04:15Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:05:44Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:06:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:09:26Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:09:43Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:10:03Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:10:12Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:12:31Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:12:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:13:10Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:13:49Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:14:00Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:17:31Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:17:39Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:17:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:21:14Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:21:31Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:21:34Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:24:59Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:25:17Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:25:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:27:37Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:28:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:28:41Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:37:13Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T20:38:36Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:47:14Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T20:47:27Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T20:47:28Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:48:36Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:49:50Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T20:49:51Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:50:36Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:52:56Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:54:36Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:58:23Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T20:58:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:58:43Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T20:59:12Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T20:59:25Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:00:38Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:02:12Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:02:20Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:02:59Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:03:43Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T21:03:44Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:06:13Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:07:44Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:07:51Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:10:27Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:11:17Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-03T21:11:49Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:12:39Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-03T21:14:06Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+
+## Session: 2026-07-03T20:15Z (Phase PS)
+- **Phase completed:** PS -- Complaints & Arrears Population Anchoring (22 tests, 15,276 total)
+- **What was built:** tools/population_anchor.py extended (_complaints_check + _arrears_check_by_year + billing_ledger_path in generate()); _section_population_anchoring in annual_report.py; fixed _section_licence_health complaints_per_100=0.0; 22 tests in test_population_anchor_ps.py
+- **Key finding:** Complaint rate (4-6%) GREEN in all years except 2025 AMBER. Arrears RED in most years (29-31%), only 2020 GREEN -- arrears model calibrated to residential rates. P3 Population Anchoring fully closed.
+- **Frontier tokens:** ~120,000 (implementation session; reading existing code + writing patches + tests)
+- **Notes:** Push blocked (remote diverged -- likely CI or another session). NTFY sent to Rich. Local commits safe (a3bc3319 Phase PS + 37001a4a run process). Epistemic verifier: PASS. All 22 new tests + 1455 saas/tools tests passing.
