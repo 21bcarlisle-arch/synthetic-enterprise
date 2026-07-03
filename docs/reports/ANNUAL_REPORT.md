@@ -1768,6 +1768,80 @@ Zero-mean: adjustments go both ways. Crisis years bias toward supplier credit.
 
 _Note: Outstanding pool ≈ current-year revenue × (weighted outstanding months ÷ 12)._
 _Max adverse = pool × blended variance rate (0.5% HH + 4% non-HH, portfolio-weighted)._
+## Ofgem Supply Licence Health (Phase OC)
+
+Annual licence health checks: customer base, net assets, liquidity, bad debt.
+Breach triggers board escalation and Ofgem notification under SLC 0.
+WATCH = within 20% of threshold. BREACH = threshold crossed.
+
+| Year | Customers | Net Assets | Treasury | Cash Wks | Bad Debt % | Overall |
+|------|-----------|------------|----------|----------|------------|---------|
+| 2016 | 13 | £2,473,581.11 | £2,467,424.50 | 35675w | 1.60% | ✗ BREACH |
+| 2017 | 14 | £2,590,238.47 | £2,497,718.04 | 1170w | 0.59% | ✗ BREACH |
+| 2018 | 15 | £2,840,461.34 | £2,486,406.51 | 748w | 0.55% | ✗ BREACH |
+| 2019 | 17 | £3,510,680.54 | £2,606,406.14 | 273w | 0.52% | ✗ BREACH |
+| 2020 | 19 | £4,263,301.67 | £2,914,252.99 | 351w | 0.51% | ✗ BREACH |
+| 2021 | 15 | £4,977,644.98 | £2,943,329.55 | 157w | 0.53% | ✗ BREACH |
+| 2022 | 17 | £5,930,261.96 | £3,135,960.69 | 68w | 1.05% | ✗ BREACH |
+| 2023 | 14 | £6,817,903.47 | £3,336,256.48 | 106w | 0.55% | ✗ BREACH |
+| 2024 | 14 | £7,998,172.05 | £3,710,669.07 | 207w | 0.53% | ✗ BREACH |
+| 2025 | 11 | £8,478,280.23 | £3,760,599.46 | 432w | 0.52% | ✗ BREACH |
+
+**BREACH years:** 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 — board escalation required.
+
+_Note: Complaints not modelled (0.0/100 customers assumed). Customer count <50 triggers Ofgem viability review — small-portfolio years will show WATCH._
+## Ofgem SLC Compliance Scorecard (Phase OD)
+
+10 compliance domains per year, derived from simulation outputs.
+G = GREEN (compliant), A = AMBER (watch), R = RED (breach).
+
+| Domain | SLC Ref | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 |
+|--------|---------|------|------|------|------|------|------|------|------|------|------|
+| Governance | SLC 0-9 | G | G | G | G | G | G | G | G | G | G |
+| Billing/Metering | SLC 10-14 | G | G | G | G | G | G | A | G | G | A |
+| Payment/Debt | SLC 15-19 | A | G | G | G | G | G | A | G | G | G |
+| Information | SLC 20-24 | G | G | G | G | G | G | G | G | G | G |
+| Complaints | SLC 25-29 / Ofgem Time to Fix rules | A | A | A | A | A | A | R | R | A | R |
+| Vulnerable Cust | SLC 30-35 / PSR | G | G | G | G | G | G | G | G | G | G |
+| Tariff/Cap | SLC 36-40 / Default Tariff Cap | G | G | G | G | G | G | G | G | G | G |
+| Environmental | SLC 41-50 / RO, CfD, EE obligation | G | G | G | G | G | G | G | G | G | G |
+| Network/BSC | SLC 51-60 / BSC obligations | G | G | G | G | G | G | G | G | G | G |
+| Financial Res. | SLC 4C / SFR Decision 2023 | G | G | G | G | G | G | G | G | G | G |
+| **Overall** |  | A | A | A | A | A | A | R | R | A | R |
+
+**Breach years (RED):** 2022, 2023, 2025
+**Watch years (AMBER):** 2016, 2017, 2018, 2019, 2020, 2021, 2024
+
+_Note: Vulnerable customers, tariff/cap, and environmental domains defaulted to GREEN_
+_(these are modelled as compliant; detailed SLC breach simulation not yet implemented)._
+## Ofgem Annual Supply Return (Phase OE)
+
+UK suppliers must file annual supply returns to Ofgem. Filed by 31 March of the following year.
+
+| Year | Submitted | Customers (R/SME/I&C) | Elec GWh | Gas GWh | Bad Debt/Cust |
+|------|-----------|----------------------|----------|---------|---------------|
+| 2016 | Yes | 13/13/13 | 0.1 | 0.0 | £13 |
+| 2017 | Yes | 14/14/14 | 1.5 | 0.1 | £98 |
+| 2018 | Yes | 15/15/15 | 2.9 | 0.1 | £159 |
+| 2019 | Yes | 17/17/17 | 7.1 | 2.8 | £365 |
+| 2020 | Yes | 19/19/19 | 7.3 | 2.4 | £331 |
+| 2021 | Yes | 15/15/15 | 9.6 | 6.0 | £610 |
+| 2022 | Yes | 17/17/17 | 19.0 | 11.8 | £2119 |
+| 2023 | Yes | 14/14/14 | 15.5 | 5.9 | £1030 |
+| 2024 | Yes | 14/14/14 | 12.8 | 5.4 | £822 |
+| 2025 | Yes | 11/11/11 | 5.6 | 2.6 | £457 |
+
+**All 10 annual returns filed** — full compliance 2016–2025.
+
+_Note: WHD and GSOP metrics default to zero (not yet modelled in detail)._
+_Volume GWh estimated from revenue at average unit rate proxies (£150/MWh elec, £50/MWh gas)._
+## GSOP Obligations (Phase OF)
+
+Guaranteed Standards of Performance — GBP 30 per breach (Ofgem-mandated).
+
+No GSOP obligations triggered in 2016-2025 window.
+_Small portfolio with low complaint and churn volumes falls below estimated trigger thresholds._
+
 ## Risk Committee Activity (2016-2025)
 
 Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate threshold.
