@@ -1,5 +1,5 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T12:01:13Z
+Last updated: 2026-07-03T12:10:55Z
 
 ## Current Status
 Phase NR COMPLETE (2026-07-03) -- Bad Debt -> Capital Stress Feedback: company/risk/credit_risk_stress.py (CreditRiskStress dataclass, 2.5x Ofgem crisis multiplier); capital_adequacy.py stress_test_passes = equity > (price_VaR + credit_stress); _section_credit_risk_capital board section. 19 tests, 14,805 total. Capital model now reflects full Ofgem FRA requirement.
@@ -8,7 +8,7 @@ Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,436,949 (git 800a0777, 2026-07-03)
+Net position: £1,436,949 (git 7e3b520a, 2026-07-03)
 
 ## Test Suite
 - **14,805 tests passing** (fast suite ~10s)
@@ -23,7 +23,7 @@ Net position: £1,436,949 (git 800a0777, 2026-07-03)
 - **Phase NL** (2026-07-02): saas/customer_reaction.py YoY comparison; saas/churn_model.py comparison_mode=yoy. 13 tests, 14,744 total.
 - **Phase NK** (2026-07-02): churn_model_performance section in annual report. 14 tests, 14,731 total.
 
-**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (471s / 8 min):
 - Net margin: £1,436,949.07 | Gross: £6,453,707.51 | Capital: £51,306
 - Treasury: £2,466,636 → £3,903,585 | 38 committee interventions | 1574 bills issued
 - Enterprise value: £8,087,302.19 | Net after CTS: £6,347,906
