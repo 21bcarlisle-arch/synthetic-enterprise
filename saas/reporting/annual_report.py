@@ -4924,6 +4924,206 @@ def _section_licence_health(data: dict) -> str:
 
     return "\n".join(lines)
 
+
+
+def _section_compliance_scorecard(data: dict) -> str:
+    """Phase OD: Ofgem SLC Compliance Scorecard Synthesis.
+
+    Populates ComplianceScorecard from existing simulation signals for each year.
+    10 SLC domains: governance, billing, payment, transparency, complaints,
+    vulnerable customers, tariff/price-cap, environmental, network/balancing,
+    financial resilience. RAG derived from metrics already in the report.
+    Silent when no yearly data.
+    """
+    from company.regulatory.compliance_scorecard import (
+        ComplianceScorecard,
+        ComplianceDomain,
+        RAGStatus,
+    )
+    import datetime as dt
+
+    years = data.get("years", {})
+    ma = data.get("management_accounts", {})
+    fra_series = {r["year"]: r for r in data.get("fra_ratio_series", [])}
+
+    if not years:
+        return ""
+
+    scorecard = ComplianceScorecard()
+
+    for yr in sorted(years.keys()):
+        yd = years[yr]
+        yr_int = int(yr)
+        as_of = dt.date(yr_int, 12, 31)
+
+        revenue = yd.get("revenue_gbp", 0.0)
+        bad_debt = yd.get("bad_debt_gbp", 0.0)
+        bad_debt_pct = bad_debt / revenue * 100 if revenue > 0 else 0.0
+        avg_clarity = yd.get("avg_clarity", 1.0)
+        avg_complaint = yd.get("avg_complaint_probability", 0.0)
+        fra_data = fra_series.get(yr_int, {})
+        fra_ratio = fra_data.get("fra_ratio", 10.0) if fra_data else 10.0
+
+        # GOVERNANCE (SLC 0-9): GREEN unless licence health BREACH
+        yr_ma = ma.get(yr, {})
+        net_assets = yr_ma.get("balance_sheet", {}).get("total_equity_gbp", 1.0)
+        gov_rag = RAGStatus.AMBER if net_assets < 0 else RAGStatus.GREEN
+        scorecard.record_check(ComplianceDomain.GOVERNANCE, as_of, gov_rag,
+                                notes="Net assets positive" if net_assets >= 0 else "Balance sheet insolvency risk")
+
+        # BILLING & METERING (SLC 10-14): bill clarity score
+        if avg_clarity >= 0.80:
+            bill_rag = RAGStatus.GREEN
+        elif avg_clarity >= 0.60:
+            bill_rag = RAGStatus.AMBER
+        else:
+            bill_rag = RAGStatus.RED
+        scorecard.record_check(ComplianceDomain.BILLING_METERING, as_of, bill_rag,
+                                metric_value=avg_clarity, threshold=0.80,
+                                notes=f"Bill clarity score {avg_clarity:.2f}")
+
+        # PAYMENT & DEBT (SLC 15-19): bad debt ratio
+        if bad_debt_pct < 1.0:
+            pay_rag = RAGStatus.GREEN
+        elif bad_debt_pct < 3.0:
+            pay_rag = RAGStatus.AMBER
+        else:
+            pay_rag = RAGStatus.RED
+        scorecard.record_check(ComplianceDomain.PAYMENT_DEBT, as_of, pay_rag,
+                                metric_value=round(bad_debt_pct, 2), threshold=3.0,
+                                notes=f"Bad debt {bad_debt_pct:.2f}% of revenue")
+
+        # INFORMATION & TRANSPARENCY (SLC 20-24): demand estimation accuracy
+        dem_log = [e for e in data.get("demand_estimation_log", []) if e.get("term_start", "")[:4] == yr]
+        avg_err = abs(sum(abs(e.get("error_pct", 0.0)) for e in dem_log) / len(dem_log)) if dem_log else 0.0
+        if avg_err < 10.0:
+            info_rag = RAGStatus.GREEN
+        elif avg_err < 20.0:
+            info_rag = RAGStatus.AMBER
+        else:
+            info_rag = RAGStatus.RED
+        scorecard.record_check(ComplianceDomain.INFORMATION_TRANSPARENCY, as_of, info_rag,
+                                metric_value=round(avg_err, 1), threshold=10.0,
+                                notes=f"EAC estimation error {avg_err:.1f}%")
+
+        # COMPLAINTS (SLC 25-29): complaint probability proxy
+        if avg_complaint < 0.01:
+            comp_rag = RAGStatus.GREEN
+        elif avg_complaint < 0.05:
+            comp_rag = RAGStatus.AMBER
+        else:
+            comp_rag = RAGStatus.RED
+        scorecard.record_check(ComplianceDomain.COMPLAINTS, as_of, comp_rag,
+                                metric_value=round(avg_complaint, 4), threshold=0.01,
+                                notes=f"Avg complaint probability {avg_complaint:.3f}")
+
+        # VULNERABLE CUSTOMERS (SLC 30-35): always GREEN (not modelled in detail)
+        scorecard.record_check(ComplianceDomain.VULNERABLE_CUSTOMERS, as_of, RAGStatus.GREEN,
+                                notes="PSR register maintained; no adverse findings modelled")
+
+        # TARIFF & PRICE CAP (SLC 36-40): always GREEN for I&C (cap applies to SVT resi only)
+        scorecard.record_check(ComplianceDomain.TARIFF_PRICE_CAP, as_of, RAGStatus.GREEN,
+                                notes="I&C supply exempt from SVT cap (bespoke contracts)")
+
+        # ENVIRONMENTAL (SLC 41-50): policy costs modelled; assume compliance
+        scorecard.record_check(ComplianceDomain.ENVIRONMENTAL, as_of, RAGStatus.GREEN,
+                                notes="RO, CfD, EE obligations modelled as compliant")
+
+        # NETWORK & BALANCING (SLC 51-60): BSC credit cover
+        bsc = yd.get("bsc_credit_required_gbp", 0.0)
+        treasury = yd.get("treasury_end_gbp", 0.0)
+        net_rag = RAGStatus.GREEN if treasury >= bsc else RAGStatus.RED
+        scorecard.record_check(ComplianceDomain.NETWORK_BALANCING, as_of, net_rag,
+                                metric_value=round(treasury, 0), threshold=bsc,
+                                notes=f"BSC credit GBP {bsc:,.0f} vs treasury GBP {treasury:,.0f}")
+
+        # FINANCIAL RESILIENCE (SFR Decision 2023)
+        if fra_ratio >= 3.0:
+            fin_rag = RAGStatus.GREEN
+        elif fra_ratio >= 1.0:
+            fin_rag = RAGStatus.AMBER
+        else:
+            fin_rag = RAGStatus.RED
+        scorecard.record_check(ComplianceDomain.FINANCIAL_RESILIENCE, as_of, fin_rag,
+                                metric_value=round(fra_ratio, 1), threshold=1.0,
+                                notes=f"FRA ratio {fra_ratio:.1f}x monthly revenue")
+
+    # Build output table
+    all_yrs = sorted(years.keys())
+    domains = list(ComplianceDomain)
+    domain_labels = {
+        ComplianceDomain.GOVERNANCE: "Governance",
+        ComplianceDomain.BILLING_METERING: "Billing/Metering",
+        ComplianceDomain.PAYMENT_DEBT: "Payment/Debt",
+        ComplianceDomain.INFORMATION_TRANSPARENCY: "Information",
+        ComplianceDomain.COMPLAINTS: "Complaints",
+        ComplianceDomain.VULNERABLE_CUSTOMERS: "Vulnerable Cust",
+        ComplianceDomain.TARIFF_PRICE_CAP: "Tariff/Cap",
+        ComplianceDomain.ENVIRONMENTAL: "Environmental",
+        ComplianceDomain.NETWORK_BALANCING: "Network/BSC",
+        ComplianceDomain.FINANCIAL_RESILIENCE: "Financial Res.",
+    }
+
+    rag_icon = {"GREEN": "G", "AMBER": "A", "RED": "R"}
+
+    lines = [
+        "## Ofgem SLC Compliance Scorecard (Phase OD)",
+        "",
+        "10 compliance domains per year, derived from simulation outputs.",
+        "G = GREEN (compliant), A = AMBER (watch), R = RED (breach).",
+        "",
+        "| Domain | SLC Ref | " + " | ".join(all_yrs) + " |",
+        "|--------|---------|" + "|".join(["-" * 6 for _ in all_yrs]) + "|",
+    ]
+
+    for dom in domains:
+        row = [domain_labels[dom], dom.slc_reference if hasattr(dom, "slc_reference") else ""]
+        from company.regulatory.compliance_scorecard import _DOMAIN_SLC_REF
+        slc_ref = _DOMAIN_SLC_REF.get(dom.value, "")
+        row = [domain_labels[dom], slc_ref]
+        for yr in all_yrs:
+            latest = scorecard.latest_status(dom)
+            # Re-derive status for this specific year
+            yr_checks = [c for c in scorecard._checks
+                          if c.domain == dom and str(c.check_date.year) == yr]
+            if yr_checks:
+                st = sorted(yr_checks, key=lambda c: c.check_date)[-1].status
+                row.append(rag_icon.get(st.value, "?"))
+            else:
+                row.append("-")
+        lines.append("| " + " | ".join(row) + " |")
+
+    # Overall RAG per year
+    overall_row = ["**Overall**", ""]
+    for yr in all_yrs:
+        as_of = dt.date(int(yr), 12, 31)
+        overall_rag = scorecard.overall_rag(as_of)
+        overall_row.append(rag_icon.get(overall_rag.value, "?"))
+    lines.append("| " + " | ".join(overall_row) + " |")
+
+    lines += [""]
+
+    # Count breaches
+    breach_years = [yr for yr in all_yrs
+                    if scorecard.overall_rag(dt.date(int(yr), 12, 31)).value == "RED"]
+    amber_years = [yr for yr in all_yrs
+                   if scorecard.overall_rag(dt.date(int(yr), 12, 31)).value == "AMBER"]
+
+    if breach_years:
+        lines.append(f"**Breach years (RED):** {', '.join(breach_years)}")
+    if amber_years:
+        lines.append(f"**Watch years (AMBER):** {', '.join(amber_years)}")
+    if not breach_years and not amber_years:
+        lines.append("**All years: GREEN** — full compliance 2016–2025.")
+
+    lines += [
+        "",
+        "_Note: Vulnerable customers, tariff/cap, and environmental domains defaulted to GREEN_",
+        "_(these are modelled as compliant; detailed SLC breach simulation not yet implemented)._",
+    ]
+
+    return "\n".join(lines)
+
 def _section_settlement_reconciliation(data: dict) -> str:
     """Phase OB: Elexon BSC settlement reconciliation cash flow exposure.
 
@@ -7785,6 +7985,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_tpi_commission(data))                # Phase OA
     sections.append(_section_settlement_reconciliation(data))     # Phase OB
     sections.append(_section_licence_health(data))                   # Phase OC
+    sections.append(_section_compliance_scorecard(data))             # Phase OD
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
