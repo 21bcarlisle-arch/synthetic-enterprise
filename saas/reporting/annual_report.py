@@ -38,7 +38,7 @@ from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
 from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
-from simulation.tou_periods import is_peak_period
+from company.market.tou_periods import is_peak_period
 from saas.capital.bsc_credit import compute_bsc_credit_by_year
 from saas.capital.solvency import compute_solvency_by_year, compute_solvency_signal
 from company.finance import management_accounts as _ma
@@ -3903,11 +3903,7 @@ def _section_scenario_metadata(data: dict) -> str:
     year_from = year_range[0] if len(year_range) >= 1 else "?"
     year_to = year_range[1] if len(year_range) >= 2 else "?"
 
-    try:
-        from sim.scenario.bimodal_generator import SCENARIOS
-        params = SCENARIOS.get(scenario_name)
-    except ImportError:
-        params = None
+    params = data.get("scenario_params")
 
     lines = [
         "## Forward Scenario Run",
@@ -3921,19 +3917,30 @@ def _section_scenario_metadata(data: dict) -> str:
     ]
 
     if params is not None:
+        # params is a dict emitted by the SIM runner in run output
+        _g = params.get if isinstance(params, dict) else getattr
+        lower_mean = params.get("lower_mode_mean", 0) if isinstance(params, dict) else params.lower_mode_mean
+        lower_std = params.get("lower_mode_std", 0) if isinstance(params, dict) else params.lower_mode_std
+        upper_mean = params.get("upper_mode_mean", 0) if isinstance(params, dict) else params.upper_mode_mean
+        upper_std = params.get("upper_mode_std", 0) if isinstance(params, dict) else params.upper_mode_std
+        lower_frac = params.get("lower_mode_fraction", 0) if isinstance(params, dict) else params.lower_mode_fraction
+        neg_days = params.get("negative_days_per_year", 0) if isinstance(params, dict) else params.negative_days_per_year
+        neg_floor = params.get("negative_price_floor", 0) if isinstance(params, dict) else params.negative_price_floor
+        dunkel_ev = params.get("dunkelflaute_events_per_year", 0) if isinstance(params, dict) else params.dunkelflaute_events_per_year
+        dunkel_mult = params.get("dunkelflaute_multiplier_mean", 0) if isinstance(params, dict) else params.dunkelflaute_multiplier_mean
         lines += [
             "",
             "**Electricity price parameters (synthetic period):**",
             "",
             f"| Parameter | Value |",
             f"|-----------|-------|",
-            f"| Lower mode (renewable-rich) | £{params.lower_mode_mean:.0f}/MWh (σ={params.lower_mode_std:.0f}) |",
-            f"| Upper mode (gas-marginal) | £{params.upper_mode_mean:.0f}/MWh (σ={params.upper_mode_std:.0f}) |",
-            f"| Lower mode fraction | {params.lower_mode_fraction:.0%} of days |",
-            f"| Negative price days/year | {params.negative_days_per_year:.0f} |",
-            f"| Negative price floor | £{params.negative_price_floor:.0f}/MWh |",
-            f"| Dunkelflaute events/year | {params.dunkelflaute_events_per_year:.0f} |",
-            f"| Dunkelflaute price premium | {params.dunkelflaute_multiplier_mean:.1f}× upper mode |",
+            f"| Lower mode (renewable-rich) | £{lower_mean:.0f}/MWh (σ={lower_std:.0f}) |",
+            f"| Upper mode (gas-marginal) | £{upper_mean:.0f}/MWh (σ={upper_std:.0f}) |",
+            f"| Lower mode fraction | {lower_frac:.0%} of days |",
+            f"| Negative price days/year | {neg_days:.0f} |",
+            f"| Negative price floor | £{neg_floor:.0f}/MWh |",
+            f"| Dunkelflaute events/year | {dunkel_ev:.0f} |",
+            f"| Dunkelflaute price premium | {dunkel_mult:.1f}× upper mode |",
         ]
 
     lines.append("")
@@ -6933,6 +6940,101 @@ def _load_old_model_data() -> dict | None:
     return json.loads(OLD_MODEL_REPORT_DATA_PATH.read_text())
 
 
+
+def _section_plausibility_vs_industry(data: dict) -> str:
+    """Harness Hardening: Plausibility vs UK industry benchmarks.
+
+    Benchmarks key financials against published UK retail energy supplier ranges.
+    RAG-flags any metric outside industry norms to catch economic drift.
+    Benchmark sources: Ofgem Retail Market Monitoring, Cornwall Insight.
+    """
+    # (lo, hi) pairs: GREEN = within, AMBER = within outer, RED = outside
+    _BENCH = {
+        "nm":  ((-5.0,  8.0), (-20.0, 20.0),  "Net margin %",   "−5 to +8% green"),
+        "gm":  (( 0.0, 20.0), (-10.0, 30.0),  "Gross margin %", "0–20% green"),
+        "bd":  (( 0.0,  5.0), (  0.0, 10.0),  "Bad debt %",     "0–5% green"),
+        "ch":  (( 3.0, 35.0), (  0.0, 60.0),  "Annual churn %", "3–35% green"),
+    }
+
+    def _rag(val, key):
+        (glo, ghi), (alo, ahi), *_ = _BENCH[key]
+        if glo <= val <= ghi:
+            return "GREEN"
+        if alo <= val <= ahi:
+            return "AMBER"
+        return "RED"
+
+    def _flag(rag):
+        return {"GREEN": "OK", "AMBER": "~", "RED": "!"}[rag]
+
+    ma = data.get("management_accounts", {})
+    customer_events = data.get("customer_events") or []
+    years_data = data.get("years", {})
+
+    if not ma:
+        return ""
+
+    rows = []
+    for yr in sorted(ma.keys()):
+        ist = ma[yr].get("income_statement", {})
+        rev = ist.get("revenue_gbp", 0.0)
+        if not rev:
+            continue
+        nm_pct = ist.get("net_margin_gbp", 0.0) / rev * 100
+        gm_pct = ist.get("gross_margin_gbp", 0.0) / rev * 100
+        bd_pct = ist.get("bad_debt_gbp", 0.0) / rev * 100
+
+        yr_str = str(yr)
+        yr_events = [e for e in customer_events if (e.get("event_date") or "")[:4] == yr_str]
+        churned = sum(1 for e in yr_events if e.get("event_type") == "churned")
+        n_active = max(len(years_data.get(yr, {}).get("active_customer_ids", [])), 1)
+        ch_pct = churned / n_active * 100
+
+        rows.append({
+            "yr": yr,
+            "nm": nm_pct, "nm_rag": _rag(nm_pct, "nm"),
+            "gm": gm_pct, "gm_rag": _rag(gm_pct, "gm"),
+            "bd": bd_pct, "bd_rag": _rag(bd_pct, "bd"),
+            "ch": ch_pct, "ch_rag": _rag(ch_pct, "ch"),
+        })
+
+    if not rows:
+        return ""
+
+    lines = [
+        "## Plausibility vs Industry",
+        "",
+        "Key metrics vs UK retail energy norms (Ofgem/Cornwall Insight). "
+        "OK = within range | ~ = amber | ! = outside expected range.",
+        "",
+        "| Year | Net margin% | Gross margin% | Bad debt% | Churn% |",
+        "|------|-------------|---------------|-----------|--------|",
+    ]
+    for r in rows:
+        lines.append("| {} | {}{:.1f}% | {}{:.1f}% | {}{:.2f}% | {}{:.0f}% |".format(
+            r["yr"],
+            _flag(r["nm_rag"]), r["nm"],
+            _flag(r["gm_rag"]), r["gm"],
+            _flag(r["bd_rag"]), r["bd"],
+            _flag(r["ch_rag"]), r["ch"],
+        ))
+
+    reds = [str(r["yr"]) for r in rows if "RED" in (r["nm_rag"], r["gm_rag"], r["bd_rag"], r["ch_rag"])]
+    ambers = [str(r["yr"]) for r in rows if "AMBER" in (r["nm_rag"], r["gm_rag"], r["bd_rag"], r["ch_rag"])]
+
+    lines += [
+        "",
+        "**Benchmark ranges:** " + " | ".join(_BENCH[k][2] + ": " + _BENCH[k][3] for k in ("nm", "gm", "bd", "ch")) + ".",
+    ]
+    if reds:
+        lines.append("**RED — review required: {}**".format(", ".join(reds)))
+    elif ambers:
+        lines.append("**AMBER — monitor: {}**".format(", ".join(ambers)))
+    else:
+        lines.append("**All years within industry norms.**")
+    lines.append("")
+    return "\n".join(lines)
+
 def generate_annual_report(data: dict) -> str:
     """Build the full markdown annual report from `extract_report_data()`'s
     output."""
@@ -7002,6 +7104,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_price_cap_headroom(data))             # Phase BM
     sections.append(_section_stress_test_history(data))            # Phase BL
     sections.append(_section_financial_ratios(data))               # Phase BK
+    sections.append(_section_plausibility_vs_industry(data))      # Harness Hardening
     sections.append(_section_churn_prediction_calibration(data))   # Phase BJ
     sections.append(_section_churn_model_performance(data))        # Phase NK
     sections.append(_section_tariff_estimation_accuracy(data))     # Phase BI

@@ -1,18 +1,19 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T09:21:32Z
+Last updated: 2026-07-03T09:23:18Z
 
 ## Current Status
-Phase NL: Bill Shock YoY Recalibration live -- seasonal false-positives eliminated (14,744 tests)
+Harness Hardening COMPLETE (2026-07-03) -- sim boundary audit closed (3 violations); observability live (customer_sample.json + shadow HTML); 3 durability rules encoded in CLAUDE.md; plausibility vs industry section added to annual report (14,759 tests)
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,436,949 (git dca9dd03, 2026-07-03)
 
 ## Test Suite
-- **14,744 tests passing** (fast suite ~10s)
+- **14,759 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
+- **Harness Hardening** (2026-07-03): Sim boundary audit (3 violations fixed); observability tools (customer_sample.json + shadow HTML); epistemic verifier extended to saas/; plausibility vs industry section in annual report; CLAUDE.md 3 rules encoded. 15 tests, 14,759 total.
 - **Phase NL** (2026-07-02): saas/customer_reaction.py comparison_mode=rolling|yoy; YoY compares same calendar month prior year, eliminates seasonal false-positives. saas/churn_model.py build_churn_risk comparison_mode=yoy. 13 tests, 14,744 total.
 - **Phase NK** (2026-07-02): saas/reporting/annual_report.py churn_model_performance section; TP/FP/FN/TN/recall/precision/F1/per-year/RAG. 14 tests, 14,731 total.
 - **Phase NJ** (2026-07-02): company/analytics/churn_accuracy_report.py -- compute_churn_model_performance computes TP/FP/FN/TN, recall, precision, F1. Board gains churn model calibration KPI. 16 tests, 14,717 total.

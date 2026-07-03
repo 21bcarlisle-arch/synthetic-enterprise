@@ -49,10 +49,10 @@ def test_account_with_less_than_a_year_has_no_renewal_points():
 
 
 def test_renewal_point_counts_bill_shocks_in_preceding_year():
-    # Jan-Jun: flat £100/month, no prior history to compare against -> no shocks.
-    # Jul: £200 spikes vs the £100 rolling avg -> bill_shock_triggered.
-    # Aug-Dec: back to £100; rolling avg (last 6 incl. the £200) softens the
-    # gap below the 0.15 threshold -> not triggered.
+    # Phase NL: build_churn_risk uses YoY mode. With only 2016 data (no prior
+    # year) no shocks are possible, even with a Jul £200 spike -- there is no
+    # Jul 2015 reference. First shocks can only appear at the second renewal
+    # (2017 data vs 2016 data). bill_shock_count=0 -> BASE churn probability.
     revenues = {1: 100, 2: 100, 3: 100, 4: 100, 5: 100, 6: 100, 7: 200, 8: 100, 9: 100, 10: 100, 11: 100, 12: 100}
     records = [_record("C1", f"2016-{month:02d}-15", revenue) for month, revenue in revenues.items()]
 
@@ -61,8 +61,8 @@ def test_renewal_point_counts_bill_shocks_in_preceding_year():
     assert len(result["C1"]) == 1
     renewal = result["C1"][0]
     assert renewal["renewal_period"] == "2016-12"
-    assert renewal["bill_shock_count"] == 1
-    assert renewal["churn_probability"] == BASE_ANNUAL_CHURN_PROBABILITY + CHURN_UPLIFT_PER_BILL_SHOCK
+    assert renewal["bill_shock_count"] == 0
+    assert renewal["churn_probability"] == BASE_ANNUAL_CHURN_PROBABILITY
 
 
 def test_unknown_account_raises_key_error():

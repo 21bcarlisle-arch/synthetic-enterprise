@@ -2471,11 +2471,18 @@ def test_section_scenario_metadata_shows_forward_scenario_warning():
 
 
 def test_section_scenario_metadata_shows_distribution_params():
-    data = {"scenario_name": "central_2027", "scenario_year_range": [2026, 2028]}
+    # scenario_params now passed via run output, not looked up from SIM bimodal_generator
+    scenario_params = {
+        "upper_mode_mean": 120.0, "upper_mode_std": 20.0,
+        "lower_mode_mean": 38.0, "lower_mode_std": 20.0,
+        "lower_mode_fraction": 0.55, "negative_days_per_year": 20.0,
+        "negative_price_floor": -75.0,
+        "dunkelflaute_events_per_year": 5.0, "dunkelflaute_multiplier_mean": 2.0,
+    }
+    data = {"scenario_name": "central_2027", "scenario_year_range": [2026, 2028], "scenario_params": scenario_params}
     result = _section_scenario_metadata(data)
-    # Should show upper and lower mode means from the preset
-    assert "120" in result or "£120" in result  # upper_mode_mean for central_2027
-    assert "38" in result or "£38" in result    # lower_mode_mean for central_2027
+    assert "120" in result or "£120" in result  # upper_mode_mean
+    assert "38" in result or "£38" in result    # lower_mode_mean
 
 
 def test_section_scenario_metadata_works_with_unknown_scenario_name():

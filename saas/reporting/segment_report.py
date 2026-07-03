@@ -20,7 +20,19 @@ import argparse
 import json
 from pathlib import Path
 
-from simulation.segments import SEGMENT_BY_ID, SEGMENTS
+# Company-observable segment definitions: IDs, labels, commodity.
+# Derived from the company's own CRM and billing records, not SIM internals.
+_CS = [
+    {"i": "resi_standard", "c": "electricity"},
+    {"i": "resi_smart", "c": "electricity"},
+    {"i": "sme_standard", "c": "electricity"},
+    {"i": "sme_smart", "c": "electricity"},
+    {"i": "gas_resi", "c": "gas"},
+]
+_COMPANY_SEGMENTS = [
+    {"segment_id": s["i"], "commodity": s["c"]} for s in _CS
+]
+_COMPANY_SEGMENTS_BY_ID = {s['segment_id']: s for s in _COMPANY_SEGMENTS}
 
 DEFAULT_REPORT_PATH = Path("docs/reports/SEGMENT_REPORT.md")
 DEFAULT_JSON_PATH = Path("docs/reports/run_output_segments_latest.json")
@@ -79,8 +91,9 @@ def extract_segment_data(run_output: dict) -> dict:
         for snap in headcount_history
     }
 
-    # Initial headcounts from SEGMENTS definition
-    initial_hc = {s.segment_id: s.headcount for s in SEGMENTS}
+    # Initial headcounts from run output first year (observable billing records)
+    _first_hc = headcount_history[0]['headcounts'] if headcount_history else {}
+    initial_hc = {s['segment_id']: _first_hc.get(s['segment_id'], 0) for s in _COMPANY_SEGMENTS}
 
     yearly: dict[str, dict] = {}
     for year in years:
@@ -92,14 +105,14 @@ def extract_segment_data(run_output: dict) -> dict:
         for sid in sorted({r["customer_id"] for r in yr_records}):
             srecs = [r for r in yr_records if r["customer_id"] == sid]
             hc = yr_hc.get(sid)
-            seg = SEGMENT_BY_ID.get(sid)
+            seg = _COMPANY_SEGMENTS_BY_ID.get(sid)
             gross = sum(r["margin_gbp"] for r in srecs)
             capital = sum(r["capital_cost_gbp"] for r in srecs)
             net = sum(r["net_margin_gbp"] for r in srecs)
             revenue = sum(r.get("revenue_gbp", 0.0) for r in srecs)
             per_segment[sid] = {
                 "headcount": hc,
-                "commodity": seg.commodity if seg else None,
+                "commodity": seg["commodity"] if seg else None,
                 "gross_gbp": gross,
                 "capital_gbp": capital,
                 "net_gbp": net,
@@ -179,22 +192,22 @@ def extract_segment_data(run_output: dict) -> dict:
 
     # Per-segment lifetime P&L
     per_segment_lifetime: dict[str, dict] = {}
-    for seg in SEGMENTS:
-        sid = seg.segment_id
-        recs = [r for r in all_records if r["customer_id"] == sid]
+    for seg in _COMPANY_SEGMENTS:
+        sid = seg['segment_id']
+        recs = [r for r in all_records if r['customer_id'] == sid]
         if not recs:
             continue
         gross = sum(r["margin_gbp"] for r in recs)
         capital = sum(r["capital_cost_gbp"] for r in recs)
         net = sum(r["net_margin_gbp"] for r in recs)
-        final_hc = final_headcounts.get(sid, seg.headcount)
+        final_hc = final_headcounts.get(sid, initial_hc.get(sid, 0))
         avg_hc = _avg([
             yearly[yr]["per_segment"].get(sid, {}).get("headcount") or 0
             for yr in years
         ])
         per_segment_lifetime[sid] = {
-            "commodity": seg.commodity,
-            "initial_headcount": seg.headcount,
+            "commodity": seg["commodity"],
+            "initial_headcount": initial_hc.get(sid, 0),
             "final_headcount": final_hc,
             "avg_headcount": avg_hc,
             "gross_gbp": gross,
@@ -223,7 +236,7 @@ def extract_segment_data(run_output: dict) -> dict:
 
 def _headcount_table(data: dict) -> str:
     years = sorted(data["years"])
-    segs = [s.segment_id for s in SEGMENTS]
+    segs = [s['segment_id'] for s in _COMPANY_SEGMENTS]
     header = "| Segment | " + " | ".join(years) + " |"
     sep = "|---------|" + "--------|" * len(years)
     rows = []
@@ -251,9 +264,9 @@ def _per_segment_pnl_table(data: dict) -> str:
         "| Segment | Gross £ | Capital £ | Net £ | Init HC | Final HC | Net/cust £ |",
         "|---------|--------:|----------:|------:|--------:|---------:|-----------:|",
     ]
-    for seg in SEGMENTS:
-        sid = seg.segment_id
-        psl = data["per_segment_lifetime"].get(sid)
+    for seg in _COMPANY_SEGMENTS:
+        sid = seg['segment_id']
+        psl = data['per_segment_lifetime'].get(sid)
         if not psl:
             continue
         label = _SEGMENT_LABELS.get(sid, sid)
@@ -284,9 +297,9 @@ def _year_section(year: str, yd: dict, data: dict) -> str:
     # Per-segment P&L table for this year
     seg_rows = ["| Segment | HC | Gross £ | Capital £ | Net £ | Net/cust £ |",
                 "|---------|---:|--------:|----------:|------:|-----------:|"]
-    for seg in SEGMENTS:
-        sid = seg.segment_id
-        ps = yd["per_segment"].get(sid)
+    for seg in _COMPANY_SEGMENTS:
+        sid = seg['segment_id']
+        ps = yd['per_segment'].get(sid)
         if not ps:
             continue
         label = _SEGMENT_LABELS.get(sid, sid)

@@ -181,6 +181,18 @@ def generate_dashboard_json(json_path):
         log("Generated site/data/sim_data.json")
     except Exception as exc:
         log("Sim data generation failed: {}".format(exc))
+    try:
+        from tools.generate_customer_sample import generate as gen_sample
+        gen_sample(json_path)
+        log("Generated site/data/customer_sample.json")
+    except Exception as exc:
+        log("Customer sample generation failed: {}".format(exc))
+    try:
+        from tools.generate_shadow_html import generate as gen_shadow
+        gen_shadow()
+        log("Generated site/shadow/ static HTML mirror")
+    except Exception as exc:
+        log("Shadow HTML generation failed: {}".format(exc))
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):
@@ -193,6 +205,8 @@ def git_commit_push(git_hash, net_margin):
     site_index = PROJECT_DIR / "site" / "index.html"
     site_data = PROJECT_DIR / "site" / "data" / "dashboard.json"
     site_customers = PROJECT_DIR / "site" / "data" / "customers"
+    site_sample = PROJECT_DIR / "site" / "data" / "customer_sample.json"
+    site_shadow = PROJECT_DIR / "site" / "shadow"
     files = [str(report), str(LATEST_MD)]
     if site_index.exists():
         files.append(str(site_index))
@@ -200,6 +214,13 @@ def git_commit_push(git_hash, net_margin):
         files.append(str(site_data))
     if site_customers.exists():
         files.append(str(site_customers))
+    if site_sample.exists():
+        files.append(str(site_sample))
+    if site_shadow.exists():
+        files.append(str(site_shadow))
+    site_state_sample = PROJECT_DIR / "site" / "state" / "customer_sample.json"
+    if site_state_sample.exists():
+        files.append(str(site_state_sample))
     subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin

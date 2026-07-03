@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-02. 460+ commits. 14,668 tests passing. Codebase: ~48,600 lines across 312+ Python modules.*
+*Last updated: 2026-07-03. 465+ commits. 14,759 tests passing. Codebase: ~48,900 lines across 315+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Harness Hardening + Observability + Sim Boundary Audit (2026-07-03)
+15 tests added (plausibility vs industry). (1) Sim boundary audit: 3 epistemic violations fixed (simulation.segments in segment_report.py, sim.scenario.bimodal_generator in annual_report.py, simulation.tou_periods in annual_report.py); company/market/tou_periods.py created as company-observable replacement; epistemic verifier extended to scan saas/ (437 files, PASS). (2) Observability: tools/generate_customer_sample.py builds site/data/customer_sample.json (20-customer ground truth per run); tools/generate_shadow_html.py builds site/shadow/ static HTML mirror (5 pages: index/customers/supplier/sim/project); both hooked into background/process_run_complete.py pipeline. (3) Harness hardening: CLAUDE.md + PRIORITIES.md updated with 3 durable rules: PRIORITIES.md freshness is phase-close gate; "Done" = named artifact; NEXT_PHASE.md must state fidelity value. (4) Annual report: _section_plausibility_vs_industry — compares net margin%, gross margin%, bad debt%, annual churn% against UK retail energy benchmarks (Ofgem/Cornwall Insight), RAG-flagged. Phases LQ-MU archived to phase-history.md.
+**Total:** 14,759 tests
 
 ### Phase NL -- Bill Shock YoY Recalibration (2026-07-02)
 13 tests. saas/customer_reaction.py: score_experience_signals gains comparison_mode parameter ('rolling' default, 'yoy' new). YoY mode compares each month's bill against the same calendar month in the prior year, eliminating seasonal false-positives that drove all resi customers to 8-11 rolling-average shocks/year (29-38% SIM churn). First shock possible only after 12+ months of data; output includes yoy_ref_gbp key (None in rolling mode). saas/churn_model.py: build_churn_risk now calls score_experience_signals(comparison_mode='yoy') -- stable YoY prices -> 0 shocks -> 5% base churn; genuine crisis-period doubles fire 11 shocks in 12-month window. tests/saas/test_churn_model.py: updated test_renewal_point_counts_bill_shocks_in_preceding_year to reflect YoY behaviour (0 shocks in first year, no prior-year reference). Epistemic: PASS.

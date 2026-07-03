@@ -8,17 +8,20 @@ All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Phase MW COMPLETE (2026-07-02): income_stress -> observable payment behaviour.
-Phase MX COMPLETE (2026-07-02): Company-side PaymentBehaviourAnalytics -- BehaviourScore enum, score_payment_history, PaymentBehaviourAnalytics (14,511 tests).
-Phase MY COMPLETE (2026-07-02): BehaviourScore wired into combined_churn_probability via payment_churn_model.py (14,531 tests).
-Phase MZ COMPLETE (2026-07-02): Dim 3 behavioural SIM-side -- vulnerability trap wired (14,552 tests).
-Phase NA COMPLETE (2026-07-02): Dim 4 emotional company-side -- CustomerSatisfactionAccumulator (14,572 tests).
-Phase NB COMPLETE (2026-07-02): satisfaction_score wired into combined_churn_probability as third signal (14,588 tests).
-Phase NC COMPLETE (2026-07-02): enriched_churn_estimate = max(rate_model, payment_model); sim_interface.get_churn_estimate extended (14,604 tests).
-Phase ND COMPLETE (2026-07-02): Gap 4 SIM-side wiring -- bill_shock_tracker -> enriched_churn_estimate in run_phase2b. Gap 4 CLOSED (14,620 tests).
-Phase NE COMPLETE (2026-07-02): Gas pass-through capital correction; Gap 5 CLOSED (14,636 tests).
-Phase NF COMPLETE (2026-07-02): Gap 3 Dim 4 SIM-side satisfaction wiring; Gap 3 CLOSED (14,652 tests).
-Next: All gaps closed -- consider simulation validation run or new gap identification.
+Last updated: 2026-07-03 -- Direction: Harness hardening + Phase NO (Counterfactual Retention).
+
+Harness Hardening COMPLETE (2026-07-03): Three rules encoded in CLAUDE.md + PRIORITIES.md. Sim boundary audit closed. Observability (customer_sample.json + shadow HTML) live in pipeline.
+Phase NL COMPLETE (2026-07-02): Bill Shock YoY Recalibration -- YoY comparison_mode eliminates seasonal false-positives (14,744 tests).
+Phase NK COMPLETE (2026-07-02): Churn Model Performance Report -- TP/FP/FN/TN/recall/precision/F1 rendered in annual report (14,731 tests).
+Phase NH COMPLETE (2026-07-02): Payment Behaviour Score wired into run_phase2b three-signal churn estimate (14,701 tests).
+Phase NJ COMPLETE (2026-07-02): Churn Model Calibration Report -- compute_churn_model_performance (14,717 tests).
+All 5 real capability gaps CLOSED (Gaps 1-5).
+
+## Next (roadmap items outbid self-generated work)
+- **Phase NO: Counterfactual Retention & Threshold Optimisation** — 4h opt-out window expires 2026-07-03 ~13:25 BST. Adds F1-optimal RETENTION_THRESHOLD and counterfactual board report (which customers were retained/lost at what threshold). Serves: calibration quality + board decision-making.
+- **Plausibility vs industry section in annual report** — net margin %, capital ratio, bad debt rate, churn rate vs UK supplier benchmark ranges, RAG-flagged. Catches economic drift mechanically. Requested in Harness_hardening.md.
+- **Remote staging bridge** — staging_watcher git pull + advisor commit pattern. See docs/staging/Remote_staging_bridge.md.
+- **Sim emission of behavioral trajectories** — income_stress_trajectory, life_event_history, satisfaction_score_trajectory, payment_behaviour_analytics to run output (currently null in customer_sample.json).
 
 ## Real capability gaps
 

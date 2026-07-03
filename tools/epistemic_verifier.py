@@ -18,6 +18,13 @@ from pathlib import Path
 # Imports from these modules are allowed in company/ code (the approved seam)
 APPROVED_SEAM = "company/interfaces/sim_interface"
 
+# SIM runner imports allowed in saas/reporting/ (structural orchestration, not epistemic).
+# These run the SIM as a data source -- they do not read SIM internals into company state.
+APPROVED_ORCHESTRATION = [
+    "simulation.run_phase4c_on_phase2b",
+    "simulation.run_segments",
+]
+
 # Importing directly from these is a violation if found in company/ files
 FORBIDDEN_SOURCES = [
     r"^from sim\.",
@@ -38,7 +45,7 @@ EXEMPT_PATHS = {
 }
 
 # Company-layer paths that must be checked
-COMPANY_PATHS = ["company/"]
+COMPANY_PATHS = ["company/", "saas/"]
 
 
 def _get_diff_files() -> list[str]:
@@ -62,7 +69,7 @@ def _is_exempt(path: str) -> bool:
 
 
 def _is_company_file(path: str) -> bool:
-    return path.startswith("company/") and path.endswith(".py")
+    return (path.startswith("company/") or path.startswith("saas/")) and path.endswith(".py")
 
 
 def _scan_file(path: str) -> list[dict]:
@@ -79,8 +86,10 @@ def _scan_file(path: str) -> list[dict]:
         # Check for forbidden direct imports
         for pattern in FORBIDDEN_SOURCES:
             if re.match(pattern, stripped):
-                # Exception: importing through the approved seam
+                # Exception: importing through the approved seam or orchestration layer
                 if APPROVED_SEAM in stripped:
+                    break
+                if any(m in stripped for m in APPROVED_ORCHESTRATION):
                     break
                 violations.append({
                     "file": path,
@@ -106,9 +115,12 @@ def scan(files: list[str] | None = None) -> tuple[bool, list[dict]]:
     If files provided, scans only those that are company/ files.
     """
     if files is None:
-        # Scan all company/ files
+        # Scan all company/ and saas/ files
         to_scan = [
             str(p) for p in Path("company").rglob("*.py")
+            if not _is_exempt(str(p))
+        ] + [
+            str(p) for p in Path("saas").rglob("*.py")
             if not _is_exempt(str(p))
         ]
     else:
@@ -125,7 +137,7 @@ def _format_report(passed: bool, violations: list[dict], files_checked: int) -> 
     if passed:
         return (
             f"PASS\n"
-            f"Summary: Scanned {files_checked} company/ file(s). No epistemic barrier violations found.\n"
+            f"Summary: Scanned {files_checked} company/ + saas/ file(s). No epistemic barrier violations found.\n"
             f"Files checked: {files_checked}"
         )
 
@@ -153,7 +165,7 @@ def main() -> int:
         if not files_to_scan:
             # No company files changed — scan all company/ for safety
             passed, violations = scan(files=None)
-            all_company = list(Path("company").rglob("*.py"))
+            all_company = list(Path("company").rglob("*.py")) + list(Path("saas").rglob("*.py")) + list(Path("saas").rglob("*.py"))
             print(_format_report(passed, violations, len(all_company)))
         else:
             passed, violations = scan(files=files_to_scan)
@@ -165,7 +177,7 @@ def main() -> int:
         print(_format_report(passed, violations, len(file_list)))
     else:
         passed, violations = scan(files=None)
-        all_company = list(Path("company").rglob("*.py"))
+        all_company = list(Path("company").rglob("*.py")) + list(Path("saas").rglob("*.py"))
         print(_format_report(passed, violations, len(all_company)))
 
     # Update observability
