@@ -43,6 +43,8 @@ from saas.capital.bsc_credit import compute_bsc_credit_by_year
 from saas.capital.solvency import compute_solvency_by_year, compute_solvency_signal
 from company.finance import management_accounts as _ma
 from company.finance import budget as _budget
+from company.analytics.counterfactual_retention import compute_counterfactual_retention
+from company.analytics.threshold_sensitivity import compute_threshold_sensitivity
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -7035,6 +7037,79 @@ def _section_plausibility_vs_industry(data: dict) -> str:
     lines.append("")
     return "\n".join(lines)
 
+
+
+def _section_threshold_optimisation(data: dict) -> str:
+    """Phase NO: Counterfactual Retention & Threshold Optimisation board report section."""
+    no_offer_log = data.get("no_offer_churn_log", [])
+    customer_events = data.get("customer_events", [])
+
+    cf = compute_counterfactual_retention(no_offer_log, customer_events)
+    ts = compute_threshold_sensitivity(customer_events, no_offer_log)
+
+    lines = ["## Counterfactual Retention & Threshold Optimisation", ""]
+    lines.append(f"**Current threshold:** {ts.current_threshold:.0%} | F1={ts.current_f1:.3f}")
+    lines.append(f"**Optimal threshold:** {ts.optimal_threshold:.0%} | F1={ts.optimal_f1:.3f}")
+    lines.append("")
+
+    misses = cf.misses
+    per_year: dict[str, list] = {}
+    for m in misses:
+        yr = m.event_date[:4]
+        per_year.setdefault(yr, []).append(m)
+
+    high_value_miss_count = sum(
+        1 for m in misses if m.expected_term_margin_gbp > 0 and not m.counterfactual_retained
+    )
+    if high_value_miss_count == 0:
+        rag = "GREEN"
+    elif high_value_miss_count <= 2:
+        rag = "AMBER"
+    else:
+        rag = "RED"
+
+    model_underestimates = ts.optimal_threshold < ts.current_threshold * 0.5
+    if model_underestimates and rag != "RED":
+        rag = "RED"
+
+    flag = {"GREEN": "OK", "AMBER": "~", "RED": "!"}[rag]
+    reason = (
+        f"{high_value_miss_count} unrecoverable high-value miss(es)"
+        + (" — model underestimates churn: optimal threshold below current" if model_underestimates else "")
+    )
+    lines.append(f"**RAG [{flag}]:** {rag} — {reason}")
+    lines.append("")
+    lines.append(f"**Missed retention opportunities:** {len(misses)} no-offer churns")
+    lines.append(f"  Value at stake: £{cf.total_value_at_stake_gbp:,.0f}")
+    lines.append(f"  Counterfactually recoverable (with offer): {cf.would_have_been_retained_count}/{len(misses)}")
+    lines.append(f"  Net value recoverable (after offer cost): £{cf.total_net_value_gbp:,.0f}")
+    lines.append("")
+
+    if per_year:
+        lines.append("### Per-miss detail")
+        lines.append("")
+        lines.append("| Year | Customer | Est | SIM p | Recoverable? | Margin | Net value |")
+        lines.append("|------|----------|-----|-------|-------------|--------|----------|")
+        for yr, yr_misses in sorted(per_year.items()):
+            for m in yr_misses:
+                rec = "Yes" if m.counterfactual_retained else "No"
+                lines.append(
+                    f"| {yr} | {m.customer_id} | {m.company_churn_estimate:.0%}"
+                    f" | {m.sim_churn_probability:.0%} | {rec}"
+                    f" | £{m.expected_term_margin_gbp:,.0f} | £{m.net_value_of_offer_gbp:,.0f} |"
+                )
+        lines.append("")
+
+    lines.append("### Threshold sensitivity curve")
+    lines.append("")
+    lines.append("| Threshold | Recall | Precision | F1 |")
+    lines.append("|-----------|--------|-----------|----|")
+    for pt in ts.curve:
+        marker = " ← optimal" if abs(pt.threshold - ts.optimal_threshold) < 1e-9 else ""
+        lines.append(f"| {pt.threshold:.0%} | {pt.recall:.3f} | {pt.precision:.3f} | {pt.f1:.3f}{marker} |")
+    lines.append("")
+    return "\n".join(lines)
+
 def generate_annual_report(data: dict) -> str:
     """Build the full markdown annual report from `extract_report_data()`'s
     output."""
@@ -7106,6 +7181,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_financial_ratios(data))               # Phase BK
     sections.append(_section_plausibility_vs_industry(data))      # Harness Hardening
     sections.append(_section_churn_prediction_calibration(data))   # Phase BJ
+    sections.append(_section_threshold_optimisation(data))      # Phase NO
     sections.append(_section_churn_model_performance(data))        # Phase NK
     sections.append(_section_tariff_estimation_accuracy(data))     # Phase BI
     sections.append(_section_dynamic_pricing_activity(data))       # Phase BH

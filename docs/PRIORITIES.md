@@ -18,10 +18,10 @@ Phase NJ COMPLETE (2026-07-02): Churn Model Calibration Report -- compute_churn_
 All 5 real capability gaps CLOSED (Gaps 1-5).
 
 ## Next (roadmap items outbid self-generated work)
-- **Phase NO: Counterfactual Retention & Threshold Optimisation** — 4h opt-out window expires 2026-07-03 ~13:25 BST. Adds F1-optimal RETENTION_THRESHOLD and counterfactual board report (which customers were retained/lost at what threshold). Serves: calibration quality + board decision-making.
-- **Plausibility vs industry section in annual report** — net margin %, capital ratio, bad debt rate, churn rate vs UK supplier benchmark ranges, RAG-flagged. Catches economic drift mechanically. Requested in Harness_hardening.md.
-- **Remote staging bridge** — staging_watcher git pull + advisor commit pattern. See docs/staging/Remote_staging_bridge.md.
-- **Sim emission of behavioral trajectories** — income_stress_trajectory, life_event_history, satisfaction_score_trajectory, payment_behaviour_analytics to run output (currently null in customer_sample.json).
+- **Phase NO: Counterfactual Retention & Threshold Optimisation** — 4h opt-out window expires 2026-07-03 ~12:25 UTC. Adds F1-optimal RETENTION_THRESHOLD and counterfactual board report (which customers were retained/lost at what threshold). Serves: calibration quality + board decision-making.
+- **Plausibility vs industry section** -- DONE (Harness Hardening 2026-07-03)
+- **Remote staging bridge** -- DONE (2026-07-03)
+- **Sim emission of behavioral trajectories** -- DONE (Phase NP 2026-07-03)
 
 ## Real capability gaps
 
