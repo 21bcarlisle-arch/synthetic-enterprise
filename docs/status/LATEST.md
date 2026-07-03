@@ -1,18 +1,21 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T09:52:10Z
+Last updated: 2026-07-03T10:03:36Z
 
 ## Current Status
-Phase NP COMPLETE (2026-07-03) -- Behavioral Trajectory Emission: income_stress_trajectory + life_event_history emitted from run_phase2b into per_customer_behavioral; customer_sample.json fully wired. 13 tests, 14,757 total. Phase NO (Counterfactual Retention) pending 4h opt-out window (expires ~12:25 UTC).
+Phase NO COMPLETE (2026-07-03) -- Counterfactual Retention & Threshold Optimisation: company/analytics/counterfactual_retention.py + threshold_sensitivity.py; board section _section_threshold_optimisation in annual report; 15 tests, 14,772 total. Key finding: model underestimates churn (all 6 no-offer churns estimated < 25%; optimal F1 threshold = 0% = offer everyone). Phase NP also complete: behavioral trajectories emitted.
+
+**Phase NP COMPLETE (2026-07-03) -- Behavioral Trajectory Emission: income_stress_trajectory + life_event_history emitted from run_phase2b into per_customer_behavioral; customer_sample.json fully wired. 13 tests, 14,757 total. Phase NO (Counterfactual Retention) pending 4h opt-out window (expires ~12:25 UTC).
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,436,949 (git 8f6bbcf7, 2026-07-03)
 
 ## Test Suite
-- **14,757 tests passing** (fast suite ~10s)
+- **14,772 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
+- **Phase NO** (2026-07-03): counterfactual_retention.py + threshold_sensitivity.py; _section_threshold_optimisation in annual report; optimal F1 threshold=0% reveals model underestimation not threshold problem. 15 tests, 14,772 total.
 - **Phase NP** (2026-07-03): simulation/household_demand.py: income_stress_trajectory + life_event_history methods; run_phase2b emits per_customer_behavioral; customer_sample.json wired. Behavioral data flows end-to-end. 13 tests, 14,757 total.
 - **Remote Staging Bridge + Harness Hardening** (2026-07-03): Sim boundary audit (3 violations fixed); observability tools (customer_sample.json + shadow HTML); epistemic verifier extended to saas/; plausibility vs industry section in annual report; CLAUDE.md 3 rules encoded. 15 tests, 14,759 total.
 - **Phase NL** (2026-07-02): saas/customer_reaction.py comparison_mode=rolling|yoy; YoY compares same calendar month prior year, eliminates seasonal false-positives. saas/churn_model.py build_churn_risk comparison_mode=yoy. 13 tests, 14,744 total.
