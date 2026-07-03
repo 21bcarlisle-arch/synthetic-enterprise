@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 479+ commits. 14,941 tests passing. Codebase: ~50,600 lines across 329+ Python modules.*
+*Last updated: 2026-07-03. 480+ commits. 14,966 tests passing. Codebase: ~50,650 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -111,12 +111,15 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase OB -- Elexon BSC Settlement Reconciliation Exposure (2026-07-03)
+`company/regulatory/settlement_reconciliation.py`: `ReconciliationExposure` dataclass — outstanding pool, max adverse adjustment, weighted settlement months, RAG, crisis-year flag. `build_reconciliation_series(management_accounts, hh_revenue_fraction=0.90)` computes per-year exposure from revenue data. R1/R2/R3/RF run timeline (1, 3, 5, 28 months); variance factors: HH 0.5%, non-HH 4%. I&C-dominated portfolio (90% HH) results in GREEN RAG. Crisis years (2021-22) flagged for net credit bias. Board section `_section_settlement_reconciliation` added. **25 tests (14,966 total). Epistemic: PASS.**
+
 ### Phase OA -- I&C Broker/TPI Commission Model (2026-07-03)
 Wired existing `company/crm/tpi_book.py` into `run_phase2b.py`. TPIBook registers a Standard Energy Broker TPI at £1.5/MWh (0.15 p/kWh — Ofgem-calibrated rate for large I&C). Actual settled consumption data (consumption_kwh per record) used to compute annual deals per I&C customer per year. Total commission 2016–2025 computed and exposed in `tpi_summary` results key. Board section `_section_tpi_commission` added to annual report. I&C gross margin was previously overstated by this commission cost. **21 tests (14,941 total). Epistemic: PASS.**
 
 ### Phase NZ -- Ofgem FRA Regulatory Capital Ratio (2026-07-03)
 24 tests. `saas/reporting/fra_capital_ratio.py` (new): `FRACapitalRatio` frozen dataclass -- year/equity_gbp/annual_revenue_gbp/monthly_revenue_gbp/fra_ratio/rag/is_compliant. `build_fra_ratio_series(management_accounts)` -> list sorted by year; skips zero-revenue years. `weakest_year(series)` / `strongest_year(series)`. RAG thresholds: GREEN>=6x (sector best practice), AMBER 3-6x, RED<3x; `is_compliant` = ratio >= 1x Ofgem FRA minimum. `saas/reporting/annual_report.py`: `_section_fra_capital_ratio` board section -- 10-year table (equity, monthly revenue, FRA ratio, RAG, compliant flag) + weakest/strongest year highlights; `fra_ratio_series` added to `extract_report_data`. Wired as import `build_fra_ratio_series` + `_compute_management_accounts` feed. KEY FINDINGS (live 2016-2025): SIM supplier 16-32x all GREEN -- well above Ofgem 1x minimum; weakest year 2022 at 16.8x (crisis: revenue spike outpaced equity growth); context: Bulb 2021 ~-0.01x, Igloo ~0.07x. Epistemic: PASS (management accounts are company-observable from double-entry journal).
-**Total:** 14,941 tests
+**Total:** 14,966 tests
 
 ### Phase NY -- Flexibility Revenue Site/ Dashboard + Annual Report Extension (2026-07-03)
 15 tests. `tools/generate_dashboard_data.py`: `extract_flexibility(data)` — new function extracting residential (`flexibility_revenue_summary`) and I&C (`ic_flexibility_summary`) flex data; returns `total_gbp/resi_total_gbp/ic_total_gbp/resi_per_year/ic_per_year`; wired as `"flexibility"` key in dashboard JSON. `saas/reporting/annual_report.py`: `_section_flexibility_revenue` extended (Phase AG/NX) — now renders when I&C data is present even with zero residential flex; two-part section: I&C demand response table (year/net revenue/enrolled/flex kW) + residential DSR table (when active); `ic_flexibility_summary` added to `extract_report_data` return dict. Closes backlog item "Dashboard: Flexibility revenue tab -- Phase AG built the data, needs wiring to site/". Epistemic: PASS.

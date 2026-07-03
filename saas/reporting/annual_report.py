@@ -4807,6 +4807,72 @@ def _section_gas_exit_analysis(data: dict) -> str:
 
 
 
+
+
+def _section_settlement_reconciliation(data: dict) -> str:
+    """Phase OB: Elexon BSC settlement reconciliation cash flow exposure.
+
+    Shows estimated outstanding reconciliation pool and max adverse adjustment
+    per year. Reconciliation runs (R1→R2→R3→RF) span 1–28 months after delivery.
+    Zero-mean process, but timing creates cash flow lumps. Crisis years expect
+    net credits (demand destruction -> actual < estimated -> supplier refunded).
+    Silent when no management accounts data.
+    """
+    from company.regulatory.settlement_reconciliation import (
+        build_reconciliation_series,
+        largest_exposure_year,
+    )
+
+    ma = data.get("management_accounts", {})
+    if not ma:
+        return ""
+    # Build by_year dict from management accounts income statements
+    by_year = {
+        yr: {"revenue_gbp": ma[yr]["income_statement"].get("revenue_gbp", 0.0)}
+        for yr in ma
+        if "income_statement" in ma.get(yr, {})
+    }
+    mgmt = {"by_year": by_year}
+    series = build_reconciliation_series(mgmt)
+    if not series:
+        return ""
+
+    lines = [
+        "## Elexon Settlement Reconciliation Exposure (Phase OB)",
+        "",
+        "UK electricity suppliers receive reconciliation adjustments via R1/R2/R3/RF runs "
+        "(1, 3, 5, 28 months after delivery). 60% resolved at R1; 3% tail into RF.",
+        "HH meters (I&C): ±0.5% variance. Non-HH (resi/SME): ±4%. Portfolio: ~90% HH.",
+        "Zero-mean: adjustments go both ways. Crisis years bias toward supplier credit.",
+        "",
+        "| Year | Revenue £ | Pool Outstanding £ | Max Adverse £ | RAG | Crisis |",
+        "|------|-----------|---------------------|---------------|-----|--------|",
+    ]
+
+    for r in sorted(series, key=lambda x: x.year):
+        rag_icon = {"GREEN": "✓", "AMBER": "~", "RED": "✗"}.get(r.rag, r.rag)
+        crisis_flag = "CREDIT EXPECTED" if r.is_crisis_year else ""
+        lines.append(
+            f"| {r.year} | {_fmt_gbp(r.annual_revenue_gbp)} | "
+            f"{_fmt_gbp(r.outstanding_pool_gbp)} | "
+            f"{_fmt_gbp(r.max_adverse_gbp)} | "
+            f"{rag_icon} {r.rag} | {crisis_flag} |"
+        )
+
+    largest = largest_exposure_year(series)
+    if largest:
+        lines += [
+            "",
+            f"**Peak reconciliation exposure:** {largest.year} — "
+            f"max adverse £{largest.max_adverse_gbp:,.0f} "
+            f"({largest.months_outstanding:.1f} months weighted tail).",
+            "",
+            "_Note: Outstanding pool ≈ current-year revenue × (weighted outstanding months ÷ 12)._",
+            "_Max adverse = pool × blended variance rate (0.5% HH + 4% non-HH, portfolio-weighted)._",
+        ]
+
+    return "\n".join(lines)
+
 def _section_bsc_settlement_exposure(data: dict) -> str:
     """Phase CP: BSC credit required and peak daily settlement exposure."""
     years = data.get("years", {})
@@ -7602,6 +7668,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_shadow_retention(data))              # Phase NW
     sections.append(_section_fra_capital_ratio(data))            # Phase NZ
     sections.append(_section_tpi_commission(data))                # Phase OA
+    sections.append(_section_settlement_reconciliation(data))     # Phase OB
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
