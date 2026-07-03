@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 473+ commits. 14,863 tests passing. Codebase: ~49,900 lines across 323+ Python modules.*
+*Last updated: 2026-07-03. 474+ commits. 14,880 tests passing. Codebase: ~50,000 lines across 324+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase NV -- Portfolio Composition Benchmark (2026-07-03)
+17 tests. `saas/reporting/portfolio_composition.py` (new): `PortfolioComposition` frozen dataclass -- year/resi_gross_pct/sme_gross_pct/ic_gross_pct/elec_gross_pct/gas_gross_pct/total_gross_gbp/dominant_segment/concentration_rag. `build_composition_series(run_data)` iterates year segment_split and commodity_split dicts; resi = sum of gross_gbp for segments starting "resi"; sme = "SME"; ic = "I&C"; concentration_rag = RED if dominant >90%, AMBER >70%, GREEN <70%. `saas/reporting/annual_report.py`: `_section_portfolio_composition` board section -- 10-year composition table + concentration alert if I&C dominated years detected. KEY FINDINGS (2016-2025 live data): SIM starts 2016 balanced (60% resi / 40% SME); transitions to I&C-dominated (92-99%) from 2017 onward as large commercial contracts won; RED concentration alert 2017-2025 (9 consecutive years). This is realistic for a B2B commercial specialist but the board section now explicitly flags the P&L concentration risk: loss of one large I&C customer is outsized vs a balanced residential book. Electricity dominated at 88-99% of gross. Directly addresses P3: population anchoring -- SIM is demonstrably an I&C specialist, not a mixed resi retail portfolio. Epistemic: PASS.
+**Total:** 14,880 tests
 
 ### Phase NU -- Payment Portfolio Health Observatory (2026-07-03)
 20 tests. `saas/reporting/payment_health.py` (new): `PaymentHealthSummary` frozen dataclass -- year/bad_debt_gbp/revenue_gbp/bad_debt_rate/at_risk_customer_count/total_customer_count/at_risk_pct/trend/rag. `build_payment_health_series(run_data)` iterates year dicts: bad_debt_rate = bad_debt_gbp/revenue_gbp; at_risk = count of customers with churn_risk_by_account > 30% threshold; trend = DETERIORATING/IMPROVING/STABLE (±20% band vs prior year); RAG = GREEN (<0.75% and <30% at-risk), AMBER, RED (>1.5% or >60% at-risk). `saas/reporting/annual_report.py`: `_section_payment_health` board section -- 10-year table with bad debt amount, rate, at-risk count, trend arrow, RAG; worst bad debt year + peak at-risk concentration summary. KEY FINDINGS (2016-2025 live data): 2022 crisis year DETERIORATING (1.05% bad debt, 71% at-risk concentration); 2023 bad debt IMPROVED (£14k vs £36k in 2022) but at-risk stayed elevated (75%) -- churn risk is a leading indicator of bad debt by ~1 year. RAG threshold sensitivity: 30% at-risk amber threshold correctly flags 2020 (5/16 = 31%); 60% red correctly flags 2022-2023 crisis tail. Epistemic: PASS. Directly addresses P2: billing infra -- board can now see payment health trends, not just bad debt write-offs.

@@ -48,6 +48,7 @@ from company.analytics.threshold_sensitivity import compute_threshold_sensitivit
 from company.risk.credit_risk_stress import build_credit_risk_stress, CRISIS_BAD_DEBT_MULTIPLIER
 from saas.reporting.margin_attribution import build_margin_bridge_series, dominant_driver
 from saas.reporting.payment_health import build_payment_health_series
+from saas.reporting.portfolio_composition import build_composition_series
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")
@@ -604,6 +605,8 @@ def extract_report_data(run_output: dict) -> dict:
         "margin_bridge_series": [b.__dict__ for b in build_margin_bridge_series({"years": yearly})],
         # Phase NU: payment portfolio health (P2: billing infra)
         "payment_health_series": [s.__dict__ for s in build_payment_health_series({"years": yearly})],
+        # Phase NV: portfolio composition benchmark (P3: population anchoring)
+        "portfolio_composition_series": [c.__dict__ for c in build_composition_series({"years": yearly})],
     }
 
 
@@ -6298,6 +6301,54 @@ def _section_net_margin_bridge(data: dict) -> str:
 
 
 
+def _section_portfolio_composition(data: dict) -> str:
+    """Phase NV: Portfolio composition benchmark vs UK norms (P3: Population Anchoring)."""
+    series_raw = data.get("portfolio_composition_series", [])
+    if not series_raw:
+        return ""
+
+    lines = [
+        "## Portfolio Composition (P3: Population Anchoring)",
+        "",
+        "Gross margin share by segment and fuel type. "
+        "Concentration RAG: GREEN <70% dominant, AMBER 70-90%, RED >90% (single-segment dependency).",
+        "Benchmark: balanced UK small supplier targets resi 40-70%, I&C 20-50%, elec 70-90% of gross.",
+        "",
+        "| Year | Resi% | SME% | I&C% | Elec% | Gas% | Dominant | Concentration |",
+        "|------|-------|------|------|-------|------|---------|--------------|",
+    ]
+
+    ic_dominated_years = []
+    for c_raw in series_raw:
+        c = type("C", (), c_raw)()
+        dom_label = {"resi": "Residential", "sme": "SME", "ic": "I&C"}.get(c.dominant_segment, c.dominant_segment)
+        lines.append(
+            f"| {c.year} "
+            f"| {c.resi_gross_pct:.0f}% "
+            f"| {c.sme_gross_pct:.0f}% "
+            f"| {c.ic_gross_pct:.0f}% "
+            f"| {c.elec_gross_pct:.0f}% "
+            f"| {c.gas_gross_pct:.0f}% "
+            f"| {dom_label} "
+            f"| {c.concentration_rag} |"
+        )
+        if c.dominant_segment == "ic" and c.concentration_rag in ("AMBER", "RED"):
+            ic_dominated_years.append(c.year)
+
+    lines += [""]
+    if ic_dominated_years:
+        yr_range = f"{min(ic_dominated_years)}\u2013{max(ic_dominated_years)}" if len(ic_dominated_years) > 1 else str(ic_dominated_years[0])
+        lines.append(
+            f"> **Concentration alert:** I&C dominated gross margin in {yr_range}. "
+            "Loss of a single large I&C customer has outsized P&L impact. "
+            "Benchmark: a resilient mixed-book supplier targets no segment >70% of gross margin."
+        )
+    else:
+        lines.append("> Portfolio composition within balanced range (no single segment >70% of gross margin).")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_payment_health(data: dict) -> str:
     """Phase NU: Payment portfolio health -- bad debt rates and at-risk customer concentration."""
     series_raw = data.get("payment_health_series", [])
@@ -7379,6 +7430,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_gross_margin_bridge(data))            # Phase BE
     sections.append(_section_net_margin_bridge(data))             # Phase NT
     sections.append(_section_payment_health(data))               # Phase NU
+    sections.append(_section_portfolio_composition(data))         # Phase NV
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
