@@ -1805,11 +1805,44 @@ def main(report_end: str | None = None, sim_interface=None):
         "flexibility_revenue_summary": flexibility_revenue_summary,
         "flexibility_revenue_by_year": _flex_by_year,
         "total_flexibility_revenue": total_flexibility_revenue,
+        "per_customer_behavioral": _build_behavioral_trajectories(
+            ELEC_CUSTOMERS + GAS_CUSTOMERS,
+            household_demand_register,
+            _payment_analytics,
+            _company_sat_acc,
+        ),
         # Phase NJ: company churn model calibration report
         "churn_model_performance": _compute_churn_model_performance(
             customer_events_log, retention_log, no_offer_churn_log
         ),
     }
+
+
+
+def _build_behavioral_trajectories(customers, hdr, payment_analytics, sat_acc):
+    if hdr is None:
+        return {}
+    sim_years = list(range(2016, 2026))
+    out = {}
+    all_cids = {c["customer_id"] for c in customers}
+    for cid in sorted(all_cids):
+        stress_traj = hdr.income_stress_trajectory(cid, sim_years)
+        life_hist = hdr.life_event_history(cid)
+        pay_score = payment_analytics.get_score(cid) if payment_analytics else None
+        pay_metrics = payment_analytics.get_metrics(cid) if payment_analytics else None
+        sat_score = sat_acc.get_satisfaction(cid) if sat_acc else None
+        out[cid] = {
+            "income_stress_trajectory": stress_traj,
+            "life_event_history": life_hist,
+            "payment_behaviour_score": pay_score.value if pay_score else None,
+            "payment_behaviour_metrics": {
+                "on_time_rate": pay_metrics.on_time_rate if pay_metrics else None,
+                "late_rate": pay_metrics.late_rate if pay_metrics else None,
+                "dd_fail_rate": pay_metrics.dd_fail_rate if pay_metrics else None,
+            } if pay_metrics else None,
+            "company_satisfaction_score": round(sat_score, 4) if sat_score else None,
+        }
+    return out
 
 
 if __name__ == "__main__":

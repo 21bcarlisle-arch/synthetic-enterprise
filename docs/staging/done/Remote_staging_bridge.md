@@ -1,0 +1,3 @@
+[PROJECT] Remote staging bridge -- let the strategy advisor commit instructions directly
+
+Extend staging_watcher: git pull origin main every 2-5 minutes. Any new/changed file in docs/staging/ arriving via remote commit is treated identically to a /ui/stage submission -- same NTFY notification, same 4h opt-out window, same review queue. Guard: only act on files authored via the designated advisor commit pattern (e.g. commit message prefix [ADVISOR-STAGED]) so random repo pushes don't trigger the queue. Confirm with a named phase entry and a test file round-trip.

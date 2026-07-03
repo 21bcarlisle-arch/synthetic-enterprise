@@ -89,11 +89,13 @@ def generate(run_json_path=None):
             "rate_vs_svt_pct": r.get("rate_vs_svt_pct"),
         })
 
+    behavioral = run.get("per_customer_behavioral", {})
     sample = {}
     for cid, cdata in sorted(pcl.items()):
         base = _base_id(cid)
         is_gas = cid.endswith("g") and cid != base
         clv_data = bba.get(base, {}) if not is_gas else {}
+        _beh = behavioral.get(cid) or {}
 
         sample[cid] = {
             "account_id": cid,
@@ -117,19 +119,22 @@ def generate(run_json_path=None):
             "renewal_events": events_by_cid.get(cid, []),
             "basis_risk_by_term": basis_by_cid.get(cid, []),
             "churn_accuracy_by_renewal": churn_acc_by_cid.get(cid, []),
-            "income_stress_trajectory": None,
-            "life_event_history": None,
+            "income_stress_trajectory": _beh.get("income_stress_trajectory"),
+            "life_event_history": _beh.get("life_event_history"),
             "satisfaction_score_trajectory": None,
-            "payment_behaviour_analytics": None,
+            "payment_behaviour_analytics": {
+                "score": _beh.get("payment_behaviour_score"),
+                "metrics": _beh.get("payment_behaviour_metrics"),
+            } if _beh else None,
             "data_status": {
                 "financial": "complete",
                 "renewal_events": "complete",
                 "basis_risk": "complete",
                 "churn_accuracy": "complete",
-                "income_stress_trajectory": "pending_sim_emission",
-                "life_event_history": "pending_sim_emission",
+                "income_stress_trajectory": "complete" if _beh else "pending_sim_emission",
+                "life_event_history": "complete" if _beh else "pending_sim_emission",
                 "satisfaction_score_trajectory": "pending_sim_emission",
-                "payment_behaviour_analytics": "pending_sim_emission",
+                "payment_behaviour_analytics": "complete" if _beh else "pending_sim_emission",
             },
         }
 

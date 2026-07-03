@@ -145,3 +145,17 @@ class HouseholdDemandRegister:
 
     def all_customer_ids(self) -> list[str]:
         return list(self._households.keys())
+
+    def income_stress_trajectory(self, customer_id: str, years: list) -> list:
+        out = []
+        for yr in years:
+            date_str = str(yr) + '-12-31'
+            stress = self.income_stress_at_date(customer_id, date_str)
+            out.append({'year': yr, 'stress': stress.value if stress else 'low'})
+        return out
+
+    def life_event_history(self, customer_id: str) -> list:
+        return [
+            {'date': e.event_date, 'event_type': e.event_type}
+            for e in self._events.get(customer_id, [])
+        ]
