@@ -1,23 +1,21 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T15:58:50Z
+Last updated: 2026-07-03T16:00:21Z
 
 ## Current Status
-Phase OB COMPLETE (2026-07-03) -- Elexon Settlement Reconciliation Exposure: settlement_reconciliation.py; R1/R2/R3/RF timeline (1, 3, 5, 28 months); HH 0.5% / non-HH 4% variance; 90% HH portfolio -> GREEN RAG; crisis years (2021-22) flagged for net credit bias. 25 tests, 14,966 total.
+Phase OC COMPLETE (2026-07-03) -- Licence Health Observatory: _section_licence_health per-year; build_licence_health_report (customer_count/net_assets/bad_debt/cash_runway); small-portfolio early years WATCH; crisis bad debt WATCH. 16 tests, 14,982 total.
 
-Phase OA COMPLETE (2026-07-03) -- I&C Broker/TPI Commission Model: tpi_book.py wired; Standard Energy Broker GBP 1.5/MWh (0.15 p/kWh); actual settled consumption per year per customer; tpi_summary in results; board section. 21 tests, 14,941 total.
+Phase OB COMPLETE (2026-07-03) -- Elexon Settlement Reconciliation: settlement_reconciliation.py; R1/R2/R3/RF timeline; 90% HH -> GREEN RAG; crisis year credit bias. 25 tests, 14,966 total.
 
-Phase NZ COMPLETE (2026-07-03) -- Ofgem FRA Regulatory Capital Ratio: fra_capital_ratio.py; 16-32x all GREEN; 2022 weakest. 24 tests, 14,908 total.
+Phase OA COMPLETE (2026-07-03) -- I&C Broker/TPI Commission Model: tpi_book.py wired; GBP 1.5/MWh trail; tpi_summary in results; board section. 21 tests, 14,941 total.
 
 ## Last Run
-Net position: £1,445,258 (git 3fe6e96b, 2026-07-03)
+Net position: GBP 1,445,258 (git f432904b, 2026-07-03)
 
 ## Test Suite
-- **14,966 tests passing**
+- **14,982 tests passing**
 - Epistemic verifier: PASS
-- PRIORITIES.md refreshed: OB DONE, OC (Licence Health Observatory) next
+- PRIORITIES.md: OD (Demand Estimation Observatory) next
 
-**Latest simulation results (2016–2025)** — auto-processed (540s / 9 min):
-- Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
-- Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
-- Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
-- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts
+**Latest simulation results (2016-2025)** -- auto-processed:
+- Net margin: GBP 1,445,257.67 | Gross: GBP 6,467,308.57 | Capital: GBP 51,433
+- Enterprise value: GBP 8,826,938.57

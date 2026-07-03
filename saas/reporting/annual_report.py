@@ -4809,6 +4809,121 @@ def _section_gas_exit_analysis(data: dict) -> str:
 
 
 
+
+
+def _section_licence_health(data: dict) -> str:
+    """Phase OC: Ofgem supply licence health monitoring per year.
+
+    Runs LicenceHealthReport checks against each year in the simulation.
+    Key metrics: customer count, net assets, treasury, cash runway,
+    bad debt ratio. Early years (2016-2018) show WATCH on customer count
+    (<50 threshold). Crisis years show WATCH on bad debt.
+    Silent when no yearly data.
+    """
+    from company.regulatory.licence_health import (
+        build_licence_health_report,
+        LicenceCheckStatus,
+    )
+    import datetime as dt
+
+    years = data.get("years", {})
+    ma = data.get("management_accounts", {})
+    if not years:
+        return ""
+
+    lines = [
+        "## Ofgem Supply Licence Health (Phase OC)",
+        "",
+        "Annual licence health checks: customer base, net assets, liquidity, bad debt.",
+        "Breach triggers board escalation and Ofgem notification under SLC 0.",
+        "WATCH = within 20% of threshold. BREACH = threshold crossed.",
+        "",
+        "| Year | Customers | Net Assets | Treasury | Cash Wks | Bad Debt % | Overall |",
+        "|------|-----------|------------|----------|----------|------------|---------|",
+    ]
+
+    for yr in sorted(years.keys()):
+        yd = years[yr]
+        active_cids = yd.get("active_customer_ids", [])
+        cust_count = len(active_cids)
+        revenue = yd.get("revenue_gbp", 0.0)
+        bad_debt = yd.get("bad_debt_gbp", 0.0)
+        treasury = yd.get("treasury_end_gbp", 0.0)
+        bad_debt_pct = bad_debt / revenue * 100 if revenue > 0 else 0.0
+        # Net assets from management accounts equity (or fall back to treasury)
+        yr_ma = ma.get(yr, {})
+        net_assets = yr_ma.get("balance_sheet", {}).get("total_equity_gbp", treasury)
+        # Cash runway: treasury / weekly procurement cost
+        gross = yd.get("gross_gbp", 0.0)
+        weekly_procure = max((revenue - gross) / 52.0, 1.0)  # avoid div/0
+        weeks_runway = treasury / weekly_procure
+
+        report = build_licence_health_report(
+            as_of=dt.date(int(yr), 12, 31),
+            active_customer_count=cust_count,
+            net_assets_gbp=net_assets,
+            treasury_gbp=treasury,
+            weeks_cash_runway=weeks_runway,
+            bad_debt_ratio_pct=bad_debt_pct,
+            complaints_per_100=0.0,  # not modelled
+        )
+
+        overall = report.overall_status.value.upper()
+        icon = {"PASS": "✓", "WATCH": "~", "BREACH": "✗"}.get(overall, "?")
+        lines.append(
+            f"| {yr} | {cust_count} | {_fmt_gbp(net_assets)} | "
+            f"{_fmt_gbp(treasury)} | {weeks_runway:.0f}w | "
+            f"{bad_debt_pct:.2f}% | {icon} {overall} |"
+        )
+
+    lines += [""]
+
+    # Count overall breach/watch years
+    breach_yrs = []
+    watch_yrs = []
+    for yr in sorted(years.keys()):
+        yd = years[yr]
+        active_cids = yd.get("active_customer_ids", [])
+        cust_count = len(active_cids)
+        revenue = yd.get("revenue_gbp", 0.0)
+        bad_debt = yd.get("bad_debt_gbp", 0.0)
+        treasury = yd.get("treasury_end_gbp", 0.0)
+        bad_debt_pct = bad_debt / revenue * 100 if revenue > 0 else 0.0
+        gross = yd.get("gross_gbp", 0.0)
+        weekly_procure = max((revenue - gross) / 52.0, 1.0)
+        weeks_runway = treasury / weekly_procure
+        yr_ma = ma.get(yr, {})
+        net_assets = yr_ma.get("balance_sheet", {}).get("total_equity_gbp", treasury)
+        import datetime as dt
+        report = build_licence_health_report(
+            as_of=dt.date(int(yr), 12, 31),
+            active_customer_count=cust_count,
+            net_assets_gbp=net_assets,
+            treasury_gbp=treasury,
+            weeks_cash_runway=weeks_runway,
+            bad_debt_ratio_pct=bad_debt_pct,
+            complaints_per_100=0.0,
+        )
+        if report.breach_count > 0:
+            breach_yrs.append(yr)
+        elif report.watch_count > 0:
+            watch_yrs.append(yr)
+
+    if breach_yrs:
+        lines.append(f"**BREACH years:** {', '.join(breach_yrs)} — board escalation required.")
+    if watch_yrs:
+        lines.append(f"**WATCH years:** {', '.join(watch_yrs)} — approaching threshold.")
+    if not breach_yrs and not watch_yrs:
+        lines.append("**All years PASS** — no licence health concerns over 2016–2025 window.")
+
+    lines += [
+        "",
+        "_Note: Complaints not modelled (0.0/100 customers assumed). Customer count <50 triggers "
+        "Ofgem viability review — small-portfolio years will show WATCH._",
+    ]
+
+    return "\n".join(lines)
+
 def _section_settlement_reconciliation(data: dict) -> str:
     """Phase OB: Elexon BSC settlement reconciliation cash flow exposure.
 
@@ -7669,6 +7784,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_fra_capital_ratio(data))            # Phase NZ
     sections.append(_section_tpi_commission(data))                # Phase OA
     sections.append(_section_settlement_reconciliation(data))     # Phase OB
+    sections.append(_section_licence_health(data))                   # Phase OC
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
