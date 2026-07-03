@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 465+ commits. 14,759 tests passing. Codebase: ~48,900 lines across 315+ Python modules.*
+*Last updated: 2026-07-03. 466+ commits. 14,771 tests passing. Codebase: ~49,100 lines across 316+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Remote Staging Bridge (2026-07-03)
+12 tests. background/staging_watcher.py: new `_run(cmd)` helper (captures returncode/stdout/stderr via subprocess); `_extract_advisor_staging_files(since_ref)` — parses `git log since_ref..origin/main --pretty=%s` for `[ADVISOR-STAGED]` prefix, then `git diff --name-only since_ref origin/main -- docs/staging/` to identify new staging files, filtering out done/ and .gitkeep; `check_remote(seen)` — runs git fetch, checks for new remote commits, calls _extract_advisor_staging_files, and for each new advisor file calls `git show origin/main:docs/staging/NAME` to extract and write locally, skipping files that already exist. Main loop now tracks `last_remote_check` and calls check_remote every GIT_PULL_INTERVAL_SECONDS=180. Guard: only [ADVISOR-STAGED] commits trigger file extraction — random auto-process pushes are ignored. 12 tests in tests/background/test_remote_staging_bridge.py.
+**Total:** 14,771 tests
 
 ### Harness Hardening + Observability + Sim Boundary Audit (2026-07-03)
 15 tests added (plausibility vs industry). (1) Sim boundary audit: 3 epistemic violations fixed (simulation.segments in segment_report.py, sim.scenario.bimodal_generator in annual_report.py, simulation.tou_periods in annual_report.py); company/market/tou_periods.py created as company-observable replacement; epistemic verifier extended to scan saas/ (437 files, PASS). (2) Observability: tools/generate_customer_sample.py builds site/data/customer_sample.json (20-customer ground truth per run); tools/generate_shadow_html.py builds site/shadow/ static HTML mirror (5 pages: index/customers/supplier/sim/project); both hooked into background/process_run_complete.py pipeline. (3) Harness hardening: CLAUDE.md + PRIORITIES.md updated with 3 durable rules: PRIORITIES.md freshness is phase-close gate; "Done" = named artifact; NEXT_PHASE.md must state fidelity value. (4) Annual report: _section_plausibility_vs_industry — compares net margin%, gross margin%, bad debt%, annual churn% against UK retail energy benchmarks (Ofgem/Cornwall Insight), RAG-flagged. Phases LQ-MU archived to phase-history.md.

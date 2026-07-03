@@ -1,15 +1,15 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T09:23:18Z
+Last updated: 2026-07-03T09:27:53Z
 
 ## Current Status
-Harness Hardening COMPLETE (2026-07-03) -- sim boundary audit closed (3 violations); observability live (customer_sample.json + shadow HTML); 3 durability rules encoded in CLAUDE.md; plausibility vs industry section added to annual report (14,759 tests)
+Remote Staging Bridge + Harness Hardening COMPLETE (2026-07-03) -- staging_watcher git fetch every 3min, [ADVISOR-STAGED] commits surface to local staging; sim boundary audit closed (3 violations); observability live; 14,771 tests
 
 ## Last Run
 See docs/reports/run_output_latest.json.
 Net position: £1,436,949 (git dca9dd03, 2026-07-03)
 
 ## Test Suite
-- **14,759 tests passing** (fast suite ~10s)
+- **14,771 tests passing** (fast suite ~10s)
 - Epistemic verifier: PASS
 
 ## Recent Phases
