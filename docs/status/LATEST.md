@@ -1,5 +1,5 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T13:20:43Z
+Last updated: 2026-07-03T13:30:18Z
 
 ## Current Status
 NQ Advisor Redirect (2026-07-03) -- enriched_churn_estimate 5% floor DROPPED (uniform shift, no discrimination); PRIORITIES.md refreshed (P1: observability, P2: billing infra, P3: population anchoring, P4: shadow ops); PROJECT_STATE.txt sync fixed (deploy-pages.yml overwrite removed). 14,823 tests total.
@@ -12,7 +12,7 @@ Phase NQ COMPLETE (2026-07-03) -- Churn Model Recalibration: INDUSTRY_BASE_CHURN
 
 ## Last Run
 See docs/reports/run_output_latest.json.
-Net position: £1,445,258 (git f0c4ff18, 2026-07-03)
+Net position: £1,445,258 (git 73fc89e3, 2026-07-03)
 
 ## Test Suite
 - **14,823 tests passing** (fast suite ~10s)
