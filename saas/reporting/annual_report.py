@@ -4936,6 +4936,49 @@ def _section_licence_health(data: dict) -> str:
 
 
 
+
+def _section_whd_liability(data: dict) -> str:
+    from company.regulatory.warm_home_discount import _CORE_DISCOUNT, _BROADER_DISCOUNT
+    _WHD_THRESHOLD = 150_000  # mandatory participation threshold (domestic customers)
+    years = data.get("years", {})
+    if not years:
+        return ""
+    lines = ["## Warm Home Discount (WHD) Liability Observatory"]
+    lines.append("")
+    lines.append(f"WHD is mandatory for suppliers with {_WHD_THRESHOLD:,}+ domestic customers.")
+    lines.append("Eligible customers receive a GBP 140-150 rebate applied to their electricity bill.")
+    lines.append("")
+    lines.append("| Year | Domestic Customers | WHD Threshold | Status | Rebate/Customer | Liability |")
+    lines.append("|------|-------------------|--------------|--------|----------------|---------|")
+    any_liable = False
+    for yr in sorted(years.keys()):
+        yd = years[yr]
+        yr_int = int(yr)
+        active_ids = yd.get("active_customer_ids", [])
+        resi_count = sum(1 for cid in active_ids if not (cid.startswith("C_IC") or cid.startswith("IC")))
+        rebate = _BROADER_DISCOUNT.get(yr_int, 150.0)
+        below = resi_count < _WHD_THRESHOLD
+        status = "EXEMPT" if below else "LIABLE"
+        liability_gbp = 0.0 if below else round(resi_count * rebate, 0)
+        if not below:
+            any_liable = True
+        lines.append(
+            "| " + yr + " | "
+            + f"{resi_count:,}" + " | "
+            + f"{_WHD_THRESHOLD:,}" + " | "
+            + ("OK (exempt)" if below else "MANDATORY") + " | "
+            + ("GBP" + f"{rebate:.0f}" if not below else "N/A") + " | "
+            + ("NIL" if below else "GBP" + f"{liability_gbp:,.0f}") + " |"
+        )
+    lines.append("")
+    if any_liable:
+        lines.append("> WARNING: domestic customer count exceeds WHD threshold. WHD registration with Ofgem required.")
+    else:
+        lines.append("> Portfolio is primarily I&C. Domestic customer count is far below WHD threshold -- no obligation to participate.")
+        lines.append("> If domestic portfolio grows to 150,000+, WHD registration with Ofgem becomes mandatory.")
+    return "\n".join(lines)
+
+
 def _section_ccl_levy(data: dict) -> str:
     from company.regulatory.ccl_ledger import _CCL_ELECTRICITY_P_KWH, _CCL_GAS_P_KWH
     ccl = data.get("ccl_summary", {})
@@ -8339,6 +8382,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_roc_obligations(data))                 # Phase OG
     sections.append(_section_fit_levy(data))                        # Phase OH
     sections.append(_section_ccl_levy(data))                        # Phase OI
+    sections.append(_section_whd_liability(data))                   # Phase OJ
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX

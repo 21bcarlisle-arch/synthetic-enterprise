@@ -1,19 +1,19 @@
 # LATEST -- Synthetic Enterprise Simulation
-Last updated: 2026-07-03T16:26:54Z
+Last updated: 2026-07-03T16:34:16Z
 
 ## Current Status
-Phase OI COMPLETE (2026-07-03) -- CCL Observatory: CCLLedger wired; I&C elec+gas CCL by year; 2019 spike (+45%/+67%) flagged; pass-through note. 19 tests, 15,093 total.
+Phase OJ COMPLETE (2026-07-03) -- WHD Observatory: threshold check; EXEMPT (domestic << 150k); NIL liability; growth warning. 19 tests, 15,112 total.
 
-Phase OH COMPLETE (2026-07-03) -- FiT Levelisation Levy: FITBook wired; per-year GBP/MWh levy; NIL from 2020. 21 tests, 15,074 total.
+Phase OI COMPLETE (2026-07-03) -- CCL Observatory: I&C elec+gas CCL; 2019 spike flagged; pass-through note. 19 tests, 15,093 total.
 
 ## Last Run
-Net position: GBP 1,445,258 (git 27603f95, 2026-07-03)
+Net position: GBP 1,445,258 (git a84378da, 2026-07-03)
 Revenue: GBP 14,060,576 | Treasury: GBP 3,911,894
 
 ## Test Suite
-- **15,093 tests passing**
+- **15,112 tests passing**
 - Epistemic verifier: PASS
-- PRIORITIES.md: OJ (WHD Liability) next
+- PRIORITIES.md: OK (ECO Observatory) next
 
 **Latest simulation results (2016-2025)**:
 - Net margin: GBP 1,445,257.67 | Treasury: GBP 3,911,894
