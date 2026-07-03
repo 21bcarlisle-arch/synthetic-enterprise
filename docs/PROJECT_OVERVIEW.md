@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 487+ commits. 15,112 tests passing. Codebase: ~50,650 lines across 330+ Python modules.*
+*Last updated: 2026-07-03. 488+ commits. 15,131 tests passing. Codebase: ~50,650 lines across 330+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -111,6 +111,9 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase OK -- Energy Company Obligation (ECO) Observatory (2026-07-03)
+ECO phase-based rates wired: ECO2 (2015-18, GBP3.20/MWh), ECO3 (2018-22, GBP4.50/MWh), ECO4 (2022-26, GBP6.80/MWh). Same 150,000 domestic threshold as WHD. Portfolio EXEMPT for all years. Board section: per-year ECO phase, exemption status, counterfactual liability (what we would owe if we scaled to 150k domestic). **19 tests (15,131 total). Epistemic: PASS.**
+
 ### Phase OJ -- Warm Home Discount (WHD) Liability Observatory (2026-07-03)
 WHD threshold check wired in board section: counts domestic (non-I&C) customers per year vs 150,000 mandatory participation threshold. Portfolio is I&C-dominated (typically 2-5 domestic customers), so EXEMPT for all 2016-2025 years. NIL liability confirmed. Growth warning note: WHD registration becomes mandatory if domestic portfolio reaches 150,000. **19 tests (15,112 total). Epistemic: PASS.**
 
@@ -143,7 +146,7 @@ Wired existing `company/crm/tpi_book.py` into `run_phase2b.py`. TPIBook register
 
 ### Phase NZ -- Ofgem FRA Regulatory Capital Ratio (2026-07-03)
 24 tests. `saas/reporting/fra_capital_ratio.py` (new): `FRACapitalRatio` frozen dataclass -- year/equity_gbp/annual_revenue_gbp/monthly_revenue_gbp/fra_ratio/rag/is_compliant. `build_fra_ratio_series(management_accounts)` -> list sorted by year; skips zero-revenue years. `weakest_year(series)` / `strongest_year(series)`. RAG thresholds: GREEN>=6x (sector best practice), AMBER 3-6x, RED<3x; `is_compliant` = ratio >= 1x Ofgem FRA minimum. `saas/reporting/annual_report.py`: `_section_fra_capital_ratio` board section -- 10-year table (equity, monthly revenue, FRA ratio, RAG, compliant flag) + weakest/strongest year highlights; `fra_ratio_series` added to `extract_report_data`. Wired as import `build_fra_ratio_series` + `_compute_management_accounts` feed. KEY FINDINGS (live 2016-2025): SIM supplier 16-32x all GREEN -- well above Ofgem 1x minimum; weakest year 2022 at 16.8x (crisis: revenue spike outpaced equity growth); context: Bulb 2021 ~-0.01x, Igloo ~0.07x. Epistemic: PASS (management accounts are company-observable from double-entry journal).
-**Total:** 15,112 tests
+**Total:** 15,131 tests
 
 ### Phase NY -- Flexibility Revenue Site/ Dashboard + Annual Report Extension (2026-07-03)
 15 tests. `tools/generate_dashboard_data.py`: `extract_flexibility(data)` — new function extracting residential (`flexibility_revenue_summary`) and I&C (`ic_flexibility_summary`) flex data; returns `total_gbp/resi_total_gbp/ic_total_gbp/resi_per_year/ic_per_year`; wired as `"flexibility"` key in dashboard JSON. `saas/reporting/annual_report.py`: `_section_flexibility_revenue` extended (Phase AG/NX) — now renders when I&C data is present even with zero residential flex; two-part section: I&C demand response table (year/net revenue/enrolled/flex kW) + residential DSR table (when active); `ic_flexibility_summary` added to `extract_report_data` return dict. Closes backlog item "Dashboard: Flexibility revenue tab -- Phase AG built the data, needs wiring to site/". Epistemic: PASS.

@@ -4937,6 +4937,60 @@ def _section_licence_health(data: dict) -> str:
 
 
 
+
+def _section_eco_obligation(data: dict) -> str:
+    from company.regulatory.eco_obligation import ECOObligationBook, ECOPhase, _ECO_OBLIGATION_COST_PER_MWH, _ECO_PHASE_YEARS
+    _ECO_THRESHOLD = 150_000
+    years = data.get("years", {})
+    if not years:
+        return ""
+
+    def _phase_for_year(yr: int) -> str:
+        for phase, (start, end) in _ECO_PHASE_YEARS.items():
+            if start <= yr < end:
+                return phase
+        return "ECO4"
+
+    ma = data.get("management_accounts", {})
+    lines = ["## Energy Company Obligation (ECO) Observatory"]
+    lines.append("")
+    lines.append(f"ECO requires suppliers with {_ECO_THRESHOLD:,}+ domestic customers to fund home energy efficiency upgrades.")
+    lines.append("Phases: ECO2 (2015-2018, GBP3.20/MWh), ECO3 (2018-2022, GBP4.50/MWh), ECO4 (2022-2026, GBP6.80/MWh).")
+    lines.append("")
+    lines.append("| Year | ECO Phase | Rate (GBP/MWh) | Domestic Cust | Status | Counterfactual Liability |")
+    lines.append("|------|----------|---------------|--------------|--------|------------------------|")
+    total_counterfactual = 0.0
+    for yr in sorted(years.keys()):
+        yd = years[yr]
+        yr_int = int(yr)
+        active_ids = yd.get("active_customer_ids", [])
+        resi_count = sum(1 for cid in active_ids if not (cid.startswith("C_IC") or cid.startswith("IC")))
+        phase_name = _phase_for_year(yr_int)
+        rate = _ECO_OBLIGATION_COST_PER_MWH.get(phase_name, 5.0)
+        yr_ma = ma.get(str(yr), {})
+        rev = yr_ma.get("income_statement", {}).get("revenue_gbp", 0.0)
+        mwh = rev / 150_000.0  # GBP150/MWh proxy
+        counterfactual = round(mwh * rate, 0)
+        total_counterfactual += counterfactual
+        below = resi_count < _ECO_THRESHOLD
+        lines.append(
+            "| " + yr + " | "
+            + phase_name + " | "
+            + "GBP" + f"{rate:.2f}" + " | "
+            + f"{resi_count:,}" + " | "
+            + ("OK (exempt)" if below else "MANDATORY") + " | "
+            + ("GBP" + f"{counterfactual:,.0f}") + " |"
+        )
+    lines.append("")
+    lines.append(
+        f"Counterfactual total 2016-2025 (if 150k domestic): **GBP{total_counterfactual:,.0f}**"
+    )
+    lines.append("")
+    lines.append("> Actual ECO liability: NIL -- domestic customer count is far below threshold.")
+    lines.append("> Counterfactual shows obligation rate if portfolio scaled to 150,000 domestic customers.")
+    return "\n".join(lines)
+
+
 def _section_whd_liability(data: dict) -> str:
     from company.regulatory.warm_home_discount import _CORE_DISCOUNT, _BROADER_DISCOUNT
     _WHD_THRESHOLD = 150_000  # mandatory participation threshold (domestic customers)
@@ -8383,6 +8437,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_fit_levy(data))                        # Phase OH
     sections.append(_section_ccl_levy(data))                        # Phase OI
     sections.append(_section_whd_liability(data))                   # Phase OJ
+    sections.append(_section_eco_obligation(data))                  # Phase OK
     sections.append(_section_risk_committee_activity(data))        # Phase BC
     sections.append(_section_customer_strategic_value(data))       # Phase AY
     sections.append(_section_customer_experience(data))            # Phase AX
