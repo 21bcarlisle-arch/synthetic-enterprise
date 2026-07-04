@@ -1,6 +1,8 @@
 """Phase 108: Retention risk scoring tests."""
 
-from company.crm.retention_risk import retention_risk, portfolio_risk_summary
+from company.crm.retention_risk import (
+    retention_risk, portfolio_risk_summary, retention_risk_feature_vector,
+)
 
 
 _CUSTOMER = {
@@ -154,3 +156,61 @@ def test_portfolio_customers_list_matches_count():
     customers = [_CUSTOMER]
     summary = portfolio_risk_summary(customers, [], [])
     assert len(summary['customers']) == 1
+
+
+
+# --- Phase QL Part 2: retention_risk_feature_vector tests ---
+
+def test_feature_vector_all_zero_for_no_signals():
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [])
+    assert vec["customer_id"] == "C1"
+    assert vec["overdue_invoice"] == 0.0
+    assert vec["recent_complaint_90d"] == 0.0
+    assert vec["renewal_window_open"] == 0.0
+    assert vec["renewal_is_fixed"] == 0.0
+    assert vec["rate_gap_pct_vs_market"] == 0.0
+    assert vec["rate_protected"] == 0.0
+    assert vec["smart_meter_installed"] == 0.0
+
+
+def test_feature_vector_overdue_invoice_flag():
+    from datetime import date, timedelta
+    overdue = {"customer_id": "C1", "payment_status": "unpaid",
+               "due_date": (date.today() - timedelta(days=5)).isoformat()}
+    vec = retention_risk_feature_vector(_CUSTOMER, [overdue], [])
+    assert vec["overdue_invoice"] == 1.0
+
+
+def test_feature_vector_recent_complaint_flag():
+    from datetime import date
+    contact = {"customer_id": "C1", "complaint_flag": True,
+               "event_date": date.today().isoformat()}
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [contact])
+    assert vec["recent_complaint_90d"] == 1.0
+
+
+def test_feature_vector_renewal_window_and_fixed():
+    renewal = {"in_notice_window": True, "is_fixed": True}
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [], renewal_info=renewal)
+    assert vec["renewal_window_open"] == 1.0
+    assert vec["renewal_is_fixed"] == 1.0
+
+
+def test_feature_vector_rate_gap_and_protected():
+    rate_cmp = {"protected": True, "delta_p": 3.5}
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [], rate_cmp=rate_cmp)
+    assert vec["rate_gap_pct_vs_market"] == 3.5
+    assert vec["rate_protected"] == 1.0
+
+
+def test_feature_vector_smart_meter_installed():
+    cust = {**_CUSTOMER, "smart_meter": True}
+    vec = retention_risk_feature_vector(cust, [], [])
+    assert vec["smart_meter_installed"] == 1.0
+
+
+def test_feature_vector_returns_raw_features_not_collapsed_score():
+    """Unlike retention_risk(), this must not collapse to a single score/tier."""
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [])
+    assert "score" not in vec
+    assert "tier" not in vec

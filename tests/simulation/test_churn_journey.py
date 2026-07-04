@@ -157,6 +157,48 @@ def test_home_move_terminal_does_not_advance_further():
     assert state == ChurnJourneyState.HOME_MOVE_CHURNED
 
 
+def test_stayed_svt_resets_to_content_after_one_period():
+    """Phase QL Part 2: STAYED_SVT is not permanently terminal -- a retained
+    customer keeps renewing, so the journey must resume tracking, not freeze."""
+    reg = ChurnJourneyRegister()
+    reg.register_customer("C1")
+    journey = reg.get_journey("C1")
+    journey.record_decision(dt.date(2024, 3, 1), switched=False)
+    assert journey.state == ChurnJourneyState.STAYED_SVT
+    state = reg.advance("C1", dt.date(2024, 4, 1))
+    assert state == ChurnJourneyState.CONTENT
+
+
+def test_stayed_svt_reset_customer_can_re_enter_funnel():
+    """After the post-decision reset, fresh friction can move the customer
+    through the funnel again -- this is what lets a decayed-then-recurring
+    risk (Phase QK's finding) show up in a later renewal cycle."""
+    reg = ChurnJourneyRegister()
+    reg.register_customer("C1", tenure_years=0.0, churn_threshold=50.0)
+    journey = reg.get_journey("C1")
+    journey.record_decision(dt.date(2024, 3, 1), switched=False)
+    reg.advance("C1", dt.date(2024, 4, 1))  # -> CONTENT (reset)
+    reg.record_friction("C1", FrictionEventType.BILL_SHOCK, dt.date(2024, 5, 1))
+    state = reg.advance("C1", dt.date(2024, 5, 2))
+    assert state == ChurnJourneyState.IRRITATED
+
+
+def test_burned_customer_returns_to_comparing_even_after_staying():
+    """An irreversibly-burned customer who was nonetheless retained this cycle
+    must resurface at COMPARING next period, not reset to CONTENT -- the
+    resentment burn, unlike the funnel stage, does not un-happen."""
+    reg = ChurnJourneyRegister()
+    reg.register_customer("C1", tenure_years=0.0, churn_threshold=20.0)
+    reg.record_friction("C1", FrictionEventType.COMPLAINT_UNRESOLVED, dt.date(2024, 1, 1))  # +20
+    journey = reg.get_journey("C1")
+    journey.resentment.check_threshold(dt.date(2024, 1, 1))
+    assert journey.resentment.is_burned is True
+    journey.record_decision(dt.date(2024, 1, 2), switched=False)
+    assert journey.state == ChurnJourneyState.STAYED_SVT
+    state = reg.advance("C1", dt.date(2024, 2, 1))
+    assert state == ChurnJourneyState.COMPARING
+
+
 def test_portfolio_summary_counts_states():
     reg = ChurnJourneyRegister()
     reg.register_customer("C1")

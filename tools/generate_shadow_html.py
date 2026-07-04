@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 from datetime import datetime, timezone
 
+from company.crm.retention_risk import retention_risk_feature_vector
+
 PROJECT = Path(__file__).resolve().parent.parent
 SHADOW = PROJECT / "site" / "shadow"
 DATA = PROJECT / "site" / "data"
@@ -245,7 +247,7 @@ def _behavioral_case_study(sample, ledger, cid):
     )
 
 
-def build_customers(dash, sample, ts, ledger=None):
+def build_customers(dash, sample, ts, ledger=None, journey_log=None):
     git_commit = dash.get("meta", {}).get("git_commit", "?")
     phase = dash.get("build", {}).get("current_phase", "?")
     lifetime = dash["customers"].get("lifetime", {})
@@ -299,6 +301,9 @@ def build_customers(dash, sample, ts, ledger=None):
         + "<h2>Retention Offers</h2>"
         + _table(["Customer", "Date", "Discount", "Cost", "Outcome"], ret_rows)
         + _behavioral_case_study(sample, ledger or {}, BEHAVIORAL_CASE_STUDY_CID)
+        + _churn_journey_case_study(
+            journey_log or [], ledger or {}, _pick_journey_case_study_cid(journey_log or []),
+        )
         + "<h2>Full Ground Truth</h2>"
         + "<p>Machine-readable per-customer data:<br>"
         + '<a href="/state/customer_sample.json">customer_sample.json</a> | '
@@ -357,7 +362,7 @@ def _collections_process(billing_ledger):
     return body
 
 
-def build_supplier(dash, ts, billing_ledger=None):
+def build_supplier(dash, ts, billing_ledger=None, journey_log=None):
     git_commit = dash.get("meta", {}).get("git_commit", "?")
     annual = dash["financial"]["annual"]
     ledger = dash["financial"].get("ledger", {})
@@ -484,6 +489,7 @@ def build_supplier(dash, ts, billing_ledger=None):
         + _table(["Domain", "Capabilities"], cap_rows)
         + _collections_process(billing_ledger)
         + _renewal_decision_case_study(retention_records)
+        + _churn_journey_portfolio_funnel(journey_log or [])
     )
     return _page("Supplier P&amp;L", "Supplier", body, ts, git_commit, build.get("current_phase", "?"))
 
@@ -578,6 +584,151 @@ def _churn_model_signal(events, churn_perf):
     )
 
 
+_JOURNEY_STATE_ORDER = ["content", "irritated", "in_market", "comparing", "home_move_churned"]
+
+
+def _churn_journey_signal(journey_log, events):
+    if not journey_log:
+        return ""
+    by_year = {}
+    for j in journey_log:
+        yr = (j.get("date") or "")[:4]
+        if not yr:
+            continue
+        y = by_year.setdefault(yr, {"total": 0, "by_state": {}, "resentment_sum": 0.0})
+        y["total"] += 1
+        st = j.get("state", "")
+        y["by_state"][st] = y["by_state"].get(st, 0) + 1
+        y["resentment_sum"] += j.get("resentment_score", 0)
+
+    churned_by_year = {}
+    for e in events or []:
+        yr = (e.get("date") or "")[:4]
+        if not yr:
+            continue
+        c = churned_by_year.setdefault(yr, {"churned": 0, "total": 0})
+        c["total"] += 1
+        if e.get("type") == "churned":
+            c["churned"] += 1
+
+    rows = ""
+    for yr in sorted(by_year):
+        y = by_year[yr]
+        beyond_content = sum(n for st, n in y["by_state"].items() if st != "content")
+        pct_beyond = beyond_content / y["total"] * 100 if y["total"] else 0
+        avg_resentment = y["resentment_sum"] / y["total"] if y["total"] else 0
+        c = churned_by_year.get(yr, {"churned": 0, "total": 0})
+        churn_rate = c["churned"] / c["total"] * 100 if c["total"] else 0
+        rows += _row(
+            yr, y["total"], format(pct_beyond, ".1f") + "%",
+            format(avg_resentment, ".1f"), format(churn_rate, ".1f") + "%",
+        )
+
+    return (
+        "<h2>Churn Journey Funnel: Hidden State vs Realized Churn</h2>"
+        + "<p class=\"meta\">SIM-side hidden churn-journey state (CONTENT/IRRITATED/IN_MARKET/"
+        + "COMPARING), tracked at every renewal period, never observed directly by the company -- "
+        + "docs/design/PROCESS_MODEL.md Section 2</p>"
+        + _table(
+            ["Year", "Renewals Tracked", "% Beyond CONTENT", "Avg Resentment Score", "Realized Churn Rate"],
+            rows,
+        )
+        + "<p>Years where a larger share of the book has moved beyond CONTENT (irritated or further "
+        + "into the funnel) are the years the realized churn rate should track, if the state machine "
+        + "is doing real work rather than window dressing on top of the old single-dice-roll model.</p>"
+    )
+
+
+def _pick_journey_case_study_cid(journey_log):
+    counts = {}
+    for j in journey_log or []:
+        if j.get("state") != "content":
+            counts[j["customer_id"]] = counts.get(j["customer_id"], 0) + 1
+    if not counts:
+        return None
+    return max(sorted(counts), key=lambda c: counts[c])
+
+
+def _churn_journey_case_study(journey_log, ledger, cid):
+    if not cid:
+        return ""
+    trajectory = sorted(
+        (j for j in journey_log if j.get("customer_id") == cid),
+        key=lambda j: j.get("date", ""),
+    )
+    if not trajectory:
+        return ""
+
+    traj_rows = "".join(
+        _row(
+            j["date"], j["state"].replace("_", " ").upper(),
+            format(j.get("resentment_score", 0), ".1f"),
+            "yes" if j.get("is_burned") else "no",
+        )
+        for j in trajectory
+    )
+
+    ledger_cust = (ledger or {}).get("customers", {}).get(cid, {})
+    invoices = ledger_cust.get("invoices", [])
+    feature_vec = retention_risk_feature_vector({"customer_id": cid}, invoices, [])
+    feature_rows = "".join(
+        _row(k.replace("_", " "), v) for k, v in feature_vec.items() if k != "customer_id"
+    )
+
+    furthest_state = max(
+        (j["state"] for j in trajectory if j["state"] in _JOURNEY_STATE_ORDER),
+        key=_JOURNEY_STATE_ORDER.index,
+        default=trajectory[-1]["state"],
+    )
+
+    return (
+        "<h2>Churn Journey Case Study: " + cid + "</h2>"
+        + "<p class=\"meta\">Both sides of the epistemic wall -- docs/design/PROCESS_MODEL.md "
+        + "Section 3</p>"
+        + "<h3>SIM Ground Truth &#8212; Hidden Journey State (not observable to the company)</h3>"
+        + _table(["Date", "State", "Resentment Score", "Resentment Burned"], traj_rows)
+        + "<h3>Company-Observable &#8212; Retention Risk Feature Vector (from real invoices)</h3>"
+        + _table(["Feature", "Value"], feature_rows)
+        + "<h3>The Divergence</h3>"
+        + "<p>" + cid + " reached " + furthest_state.replace("_", " ").upper()
+        + " in the SIM's hidden churn journey -- a state the company can never read directly. "
+        + "The company's only real proxy here is the feature vector above, built entirely from its "
+        + "own invoice records: no complaint log or renewal-window feed is threaded into this evidence "
+        + "view yet, so recent_complaint_90d and renewal_window_open read as placeholders (0.0) until "
+        + "those company-side feeds are wired into this generator.</p>"
+    )
+
+
+def _churn_journey_portfolio_funnel(journey_log):
+    if not journey_log:
+        return ""
+    dated = [j for j in journey_log if j.get("date")]
+    if not dated:
+        return ""
+    latest_year = max(j["date"][:4] for j in dated)
+    year_entries = [j for j in dated if j["date"].startswith(latest_year)]
+    counts = {}
+    for j in year_entries:
+        st = j.get("state", "")
+        counts[st] = counts.get(st, 0) + 1
+
+    rows = "".join(
+        _row(st.replace("_", " ").upper(), counts.get(st, 0))
+        for st in _JOURNEY_STATE_ORDER if st in counts
+    )
+    total = len(year_entries)
+    beyond = sum(n for st, n in counts.items() if st != "content")
+
+    return (
+        "<h2>Churn Journey Funnel (" + latest_year + ")</h2>"
+        + "<p>" + str(total) + " renewal-period observations this year; " + str(beyond)
+        + " sitting beyond CONTENT in the hidden funnel (IRRITATED or further) -- a monitoring view "
+        + "the retention team did not have before this phase, when churn risk was invisible between "
+        + "annual renewal dice rolls.</p>"
+        + _table(["State", "Count"], rows)
+    )
+
+
 def _renewal_decision_case_study(retention):
     both_sides = [r for r in retention if r.get("sim_churn_p") is not None]
     if not both_sides:
@@ -607,7 +758,7 @@ def _renewal_decision_case_study(retention):
     return body
 
 
-def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None, churn_events=None, churn_perf=None):
+def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None, churn_events=None, churn_perf=None, journey_log=None):
     annual = sim_data.get("annual", [])
     monthly = sim_data.get("monthly", [])[:12]
     peaks = sim_data.get("peak_records", [])[:5]
@@ -646,6 +797,7 @@ def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledg
         + _table(["Date", "Settlement Period", "SSP (GBP/MWh)"], peak_rows)
         + _behavioral_signal_correlation(sample or {}, billing_ledger or {}, financial_annual or [])
         + _churn_model_signal(churn_events or [], churn_perf or {})
+        + _churn_journey_signal(journey_log or [], churn_events or [])
     )
     return _page("Simulation Data", "Sim", body, ts, git_commit, phase)
 
@@ -697,11 +849,12 @@ def generate(run_json_path=None):
     _financial_annual = dash.get("financial", {}).get("annual", [])
     _churn_events = dash.get("customers", {}).get("events", [])
     _churn_perf = dash.get("churn_model_performance", {})
+    _journey_log = dash.get("customers", {}).get("journey_log", [])
     pages = {
         SHADOW / "index.html": build_index(dash, ts),
-        SHADOW / "customers" / "index.html": build_customers(dash, sample, ts, billing_ledger),
-        SHADOW / "supplier" / "index.html": build_supplier(dash, ts, billing_ledger),
-        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf),
+        SHADOW / "customers" / "index.html": build_customers(dash, sample, ts, billing_ledger, _journey_log),
+        SHADOW / "supplier" / "index.html": build_supplier(dash, ts, billing_ledger, _journey_log),
+        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf, _journey_log),
         SHADOW / "project" / "index.html": build_project(dash, latest_md, ts),
     }
 

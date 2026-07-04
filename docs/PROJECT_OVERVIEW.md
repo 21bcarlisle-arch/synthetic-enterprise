@@ -111,6 +111,49 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QL -- Churn Journey State Machine, Live Wiring + Evidence Retrofit (2026-07-04/05)
+Tier 2 (PROCESS_NOT_EVENTS.md, pre-approved via PREAPPROVE_PROCESS_MODEL.md). docs/design/PROCESS_MODEL.md
+(written first) found that most of the behavioral physics this directive asked for already existed,
+built and unit-tested, but was never wired into the live sim or any surface: company/core/resentment_ledger.py
+(Phase EA), activation_energy.py (Phase ED), reputation_index.py (Phase EB). Part 1 (2026-07-04):
+simulation/churn_journey.py orchestrates these three into a CONTENT -> IRRITATED -> IN_MARKET ->
+COMPARING -> (SWITCHED | STAYED_SVT) state machine, hidden from the company by construction, plus a
+HOME_MOVE_CHURNED forced-churn subtype (defined but not yet wired to a real trigger -- household.py has
+no home-move life-event mechanic to hang it on; a genuine gap the design note assumed was already solved
+and is not, left honestly unaddressed this phase).
+
+Part 2 (2026-07-05): live wiring + evidence retrofit closes the phase. simulation/run_phase2b.py calls
+ChurnJourneyRegister.advance() once per renewal period (not sub-annual settlement-period cadence as
+PROCESS_MODEL.md Section 2 originally described -- a known simplification: the funnel still visits
+IRRITATED/IN_MARKET/COMPARING explicitly across renewal cycles via the STAYED_SVT post-decision reset,
+but true monthly-cadence progression is not built). CustomerJourney.advance() gained the post-decision
+reset (STAYED_SVT is not permanently terminal -- a retained customer keeps renewing, so the journey resets
+to CONTENT one period later, letting the Phase QK decayed-then-recurring-risk finding reproduce honestly
+across multiple cycles instead of freezing after the first retained renewal). company/crm/retention_risk.py
+gained retention_risk_feature_vector() -- the same observable signals retention_risk() scores, re-expressed
+as a raw named feature vector (no complaint/renewal-window feed threaded through the shadow generator yet,
+so those two features read 0.0 there honestly rather than being faked).
+
+Evidence retrofit (all three business surfaces, generated from the live run): Sim tab
+_churn_journey_signal() -- per-year renewal-count/% -beyond-CONTENT/avg-resentment next to that year's
+realized churn rate. Customers tab _churn_journey_case_study() -- the customer with the most non-CONTENT
+journey entries, full stage-by-stage trajectory (SIM hidden state) next to their real
+retention_risk_feature_vector computed from actual billing_ledger invoices (company-observable), with an
+explicit divergence paragraph. Supplier tab _churn_journey_portfolio_funnel() -- latest-year state counts,
+framed honestly as new operational monitoring (previously churn risk was invisible between annual renewal
+dice rolls) rather than a decision-loop change (decision-loop wiring is PROCESS_MODEL.md Section 8 item 2,
+not this phase).
+
+Also fixed a discovered bug while verifying: tests/tools/test_website_integrity_fix.py
+test_generate_dashboard_json_returns_gate_status() called the real background.process_run_complete.generate_dashboard_json()
+without isolating its LOG_FILE, so every test-suite run appended false "CONSISTENCY GATE FAILED" /
+generation-failure entries to the real docs/observability/sim-runner-log.md (confirmed 40+ / 240+ false
+entries since 2026-07-04 17:49 UTC) -- log noise only, no real data corruption (every downstream generator
+fails closed on the missing tmp-path input before any write), fixed by monkeypatching prc.LOG_FILE.
+
+17 new tests (7 retention_risk_feature_vector, 10 churn-journey evidence retrofit) plus the uncommitted
+3 STAYED_SVT-reset tests folded in from the Part 1 working tree; 15,536 collected. Epistemic: PASS.
+
 ### Phase QK -- Enriched Passive-Renewal Churn Estimate (2026-07-04)
 10 new tests. Tier 2 (WEEKEND_ACCELERATION.md Q4, "churn model validation loop -- rerun NK recall/precision
 with QA+QB fixes in place; report before/after"). QJ exposed the root cause: `company/analytics/churn_accuracy_report.py`
@@ -5271,7 +5314,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,377 tests (fast suite / ~103s; simulation integration ~8 min per run)
+- 15,536 tests collected (fast suite; simulation integration ~8 min per run)
+- Phase QL (2026-07-04/05): churn journey state machine wired into the live sim loop + evidence
+  retrofit on all three business surfaces -- see Section 4. 17 new tests.
 - Phase QK (2026-07-04): passive-renewal churn estimate enrichment -- see Section 4. Wiring fix verified
   correct live (3 new above-cap risk detections triggering retention offers) but did NOT close the
   headline recall=0%/precision=0% finding -- root cause reclassified as a signal-decay-timing gap, not

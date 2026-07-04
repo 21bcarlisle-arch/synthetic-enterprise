@@ -343,12 +343,24 @@ def extract_customers(data):
             "net_after_cts_gbp": _fmt(cdata.get("net_margin_after_cost_to_serve_gbp", 0)),
         }
 
+    journey_log = []  # Phase QL Part 2: churn journey trajectory (SIM-side hidden state)
+    for j in data.get("churn_journey_log", []):
+        journey_log.append({
+            "customer_id": j.get("customer_id", ""),
+            "date": j.get("term_start", ""),
+            "state": j.get("journey_state", ""),
+            "resentment_score": j.get("resentment_score", 0),
+            "is_burned": bool(j.get("is_burned", False)),
+            "perceived_bill_saving_gbp": j.get("perceived_bill_saving_gbp", 0),
+        })
+
     return {
         "book_annual": book_annual,
         "per_year_net": dict(per_year_net),
         "events": events,
         "retention": retention,
         "lifetime": lifetime,
+        "journey_log": journey_log,
     }
 
 

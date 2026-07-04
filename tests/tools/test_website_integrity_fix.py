@@ -187,6 +187,7 @@ def test_check_consistency_gate_result_propagates_from_generate(tmp_path, monkey
 def test_generate_dashboard_json_returns_gate_status(tmp_path, monkeypatch):
     import background.process_run_complete as prc
 
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")  # isolate from real sim-runner-log.md
     monkeypatch.setattr(
         "tools.generate_dashboard_data.generate",
         lambda json_path: False,

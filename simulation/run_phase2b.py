@@ -82,6 +82,8 @@ from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.customer_events import roll_lifecycle_event
+from simulation.churn_journey import ChurnJourneyRegister
+from company.core.resentment_ledger import FrictionEventType
 from saas.cost_to_serve import get_bad_debt_rate
 from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
 from simulation.demand_model import build_demand_shape, solar_generation_shape
@@ -773,6 +775,8 @@ def main(report_end: str | None = None, sim_interface=None):
     hangover_remaining: dict[str, int] = {}
     # Phase NG: company-side satisfaction tracker using observable bill-shock signals only
     _company_sat_acc = CustomerSatisfactionAccumulator()
+    _churn_journey_register = ChurnJourneyRegister()
+    churn_journey_log: list[dict] = []
     # Phase NH: payment behaviour analytics -- three-signal churn model wiring
     _payment_analytics = PaymentBehaviourAnalytics()
     _payment_rng = random.Random(42 + 7919)
@@ -1007,8 +1011,15 @@ def main(report_end: str | None = None, sim_interface=None):
                 _nh_behaviour_score = _payment_analytics.get_score(cid)
                 # Phase NG: apply yearly decay then record shock if rate rose >20%
                 _company_sat_acc.apply_monthly_decay(cid, months=12)
+                if _churn_journey_register.get_journey(billing_account) is None:
+                    _churn_journey_register.register_customer(
+                        billing_account, tenure_years=tenure_for_est, churn_threshold=50.0,
+                    )
                 if old_elec_rate > 0 and unit_rate / old_elec_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
                     _company_sat_acc.record_bill_shock(cid)
+                    _churn_journey_register.record_friction(
+                        billing_account, FrictionEventType.BILL_SHOCK, date.fromisoformat(term_start_str),
+                    )
                 _ng_satisfaction = _company_sat_acc.get_satisfaction(cid)
                 if not active_renewal and segment_for_churn != "I&C":
                     company_est_pre = round(_enriched_passive_churn_estimate(
@@ -1080,6 +1091,24 @@ def main(report_end: str | None = None, sim_interface=None):
             _nf_satisfaction = _sim_satisfaction_score(
                 _nf_shock_count, _nf_tenure, _churn_income_stress
             )
+            _perceived_bill_saving_gbp = (
+                max(0.0, unit_rate - old_elec_rate) * (company_eac / 1000.0)
+                if old_elec_rate else 0.0
+            )
+            _journey_state = _churn_journey_register.advance(
+                billing_account, date.fromisoformat(term_start_str),
+                renewal_window_open=True,
+                perceived_bill_saving_gbp=_perceived_bill_saving_gbp,
+            )
+            _journey = _churn_journey_register.get_journey(billing_account)
+            churn_journey_log.append({
+                "customer_id": billing_account,
+                "term_start": term_start_str,
+                "journey_state": _journey_state.value,
+                "resentment_score": round(_journey.resentment.current_score(date.fromisoformat(term_start_str)), 2),
+                "is_burned": _journey.resentment.is_burned,
+                "perceived_bill_saving_gbp": round(_perceived_bill_saving_gbp, 2),
+            })
             event = roll_lifecycle_event(
                 cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
                 old_rate_gbp_per_mwh=old_elec_rate,
@@ -1092,6 +1121,9 @@ def main(report_end: str | None = None, sim_interface=None):
                 market_year=int(term_start_str[:4]),
             )
             if event is not None:
+                _journey.record_decision(
+                    date.fromisoformat(term_start_str), switched=(event["event_type"] == "churned"),
+                )
                 event["is_active_renewal"] = active_renewal
                 event["unit_rate_gbp_per_mwh"] = unit_rate
                 customer_events_log.append(event)
@@ -1983,6 +2015,9 @@ def main(report_end: str | None = None, sim_interface=None):
         "churn_model_performance": _compute_churn_model_performance(
             customer_events_log, retention_log, no_offer_churn_log
         ),
+        # Phase QL Part 2: hidden churn-journey state trajectory (SIM-side shadow
+        # tracker -- does not gate the roll_lifecycle_event dice roll itself)
+        "churn_journey_log": churn_journey_log,
     }
 
 

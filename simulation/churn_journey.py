@@ -10,6 +10,13 @@ journey specified in docs/design/PROCESS_MODEL.md Section 2:
 Plus a HOME_MOVE_CHURNED forced-churn subtype that bypasses the funnel
 entirely (existing simulation/household.py life-event handling triggers it).
 
+Phase QL Part 2 (simulation/run_phase2b.py wiring): SWITCHED and
+HOME_MOVE_CHURNED are permanently terminal (the customer is gone), but
+STAYED_SVT is not -- one evaluation period after a "stayed" decision the
+journey resets to CONTENT (PROCESS_MODEL.md Section 2's "post-decision
+reset") so a renewing customer keeps being tracked across multiple renewal
+cycles instead of freezing after the first retained renewal.
+
 SIM-side only: this module tracks HIDDEN state. The company must never read
 ChurnJourneyState directly -- it observes only exhaust (complaints, contact
 events, renewal-window flags) via company/crm/retention_risk.py and friends,
@@ -51,7 +58,6 @@ class ChurnJourneyState(str, Enum):
 
 _TERMINAL_STATES = frozenset({
     ChurnJourneyState.SWITCHED,
-    ChurnJourneyState.STAYED_SVT,
     ChurnJourneyState.HOME_MOVE_CHURNED,
 })
 
@@ -120,6 +126,20 @@ class CustomerJourney:
 
         elif self.state == ChurnJourneyState.IN_MARKET:
             self.state = ChurnJourneyState.COMPARING
+
+        elif self.state == ChurnJourneyState.STAYED_SVT:
+            # Phase QL Part 2: post-decision reset (PROCESS_MODEL.md Section 2,
+            # "CONTENT: Entry: initial / post-decision reset"). STAYED_SVT is a
+            # real decision outcome but not a permanent absorbing state the way
+            # SWITCHED/HOME_MOVE_CHURNED are -- a customer who is retained keeps
+            # renewing and must go on being tracked. One evaluation period after
+            # the decision, the journey resets to CONTENT so the funnel can run
+            # again. Resentment stock itself is untouched here (no synthetic
+            # repair) -- if it is still elevated, the very next advance() call
+            # will move straight back through IRRITATED, which is the intended,
+            # honest reproduction of the Phase QK finding (decayed-then-recurring
+            # risk), not a bug to suppress.
+            self.state = ChurnJourneyState.CONTENT
 
         return self.state
 

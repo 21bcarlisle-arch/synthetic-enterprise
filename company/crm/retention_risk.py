@@ -83,6 +83,42 @@ def retention_risk(
     return {"score": score, "tier": tier, "signals": signals}
 
 
+def retention_risk_feature_vector(
+    customer: dict,
+    invoices: list[dict],
+    contacts: list[dict],
+    renewal_info: dict | None = None,
+    rate_cmp: dict | None = None,
+) -> dict:
+    """Re-express the same observable signals `retention_risk()` scores as a
+    numeric feature vector (Phase QL Part 2, docs/design/PROCESS_MODEL.md
+    Section 3).
+
+    PROCESS_MODEL.md names retention_risk.py's composite score as "the
+    natural feature vector" a churn-estimate model should consume for the
+    company's only proxy on the SIM-hidden churn-journey state
+    (simulation/churn_journey.py): the company can never read
+    ChurnJourneyState directly, only its exhaust -- overdue invoices, a
+    recent complaint, the renewal window opening, and its own tariff-vs-
+    market rate comparison. This function collapses nothing to a single
+    0-5 score; it returns the raw named features so a model can weight them
+    independently. Every feature is something a real UK supplier's own CRM/
+    billing systems would already hold -- no SIM-internal read, consistent
+    with `retention_risk()` above (unchanged, still epistemically clean).
+    """
+    account_id = customer.get("customer_id", "")
+    return {
+        "customer_id": account_id,
+        "overdue_invoice": 1.0 if _has_overdue_invoice(account_id, invoices) else 0.0,
+        "recent_complaint_90d": 1.0 if _has_recent_complaint(account_id, contacts) else 0.0,
+        "renewal_window_open": 1.0 if (renewal_info and renewal_info.get("in_notice_window")) else 0.0,
+        "renewal_is_fixed": 1.0 if (renewal_info and renewal_info.get("is_fixed")) else 0.0,
+        "rate_gap_pct_vs_market": float(rate_cmp.get("delta_p", 0.0)) if rate_cmp else 0.0,
+        "rate_protected": 1.0 if (rate_cmp and rate_cmp.get("protected")) else 0.0,
+        "smart_meter_installed": 1.0 if customer.get("smart_meter") else 0.0,
+    }
+
+
 def portfolio_risk_summary(
     customers: list[dict],
     invoices: list[dict],
