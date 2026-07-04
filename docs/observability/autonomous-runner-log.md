@@ -12487,3 +12487,7 @@
 - [2026-07-04 11:52 UTC] Previous autonomous turn still running — skipping this cycle
 - [2026-07-04 11:52 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-317/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
 - [2026-07-04 11:52 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-04 11:56 UTC] Autonomous turn completed (pid=272343, rc=0)
+- [2026-07-04 12:00 UTC] Session idle 30min — launching autonomous turn
+- [2026-07-04 12:00 UTC] Launching autonomous turn (claude -p)
+- [2026-07-04 12:00 UTC] Autonomous turn launched (pid=282637)
