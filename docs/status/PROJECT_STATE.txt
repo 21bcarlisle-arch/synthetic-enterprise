@@ -1,0 +1,41 @@
+# PROJECT STATE -- Synthetic Enterprise
+Generated: 2026-07-04T05:25:04Z
+
+## Summary
+- Current Phase: PY
+- Test Suite: 15,402 tests passing (unit / fast suite ~10s)
+- Company Modules: 405+ Python modules across company/
+- Simulation Window: 2016-2025 (Elexon HH settlement data)
+- Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)
+
+## Latest Simulation Results (auto-processed 2026-07-04)
+- Net Margin: GBP1,445,258 (10-year 2016-2025)
+- Gross Margin: GBP6,452,602
+- Capital at Risk: GBP51,433
+- Treasury: GBP2,466,636 -> GBP3,911,894
+- Enterprise Value: GBP8,826,939 | Net after CTS: GBP6,360,822
+- Risk Committee Interventions: 38
+- Bills Issued: 1,605
+- Retention: 12/12 offers accepted | 6 no-offer churns | 6 total churned
+
+## Key Files (fetchable without JavaScript)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt -- THIS FILE (canonical, GitHub Pages)
+- https://poesys.net/state/PROJECT_STATE.txt -- mirror (Cloudflare Pages)
+- https://poesys.net/state/customer_sample.json -- per-customer ground truth
+- https://poesys.net/shadow/ -- no-JS HTML: Supplier dashboard
+- https://poesys.net/shadow/customers/ -- no-JS HTML: Customer portal
+- https://poesys.net/shadow/project/ -- no-JS HTML: Project overview
+- https://poesys.net/shadow/sim/ -- no-JS HTML: SIM market data
+- https://poesys.net/state/billing_ledger.json -- per-customer invoice/payment/arrears ledger
+- https://poesys.net/state/population_anchoring.json -- SIM vs Ofgem/DESNZ benchmark validation
+- docs/reports/run_output_latest.json -- full run output (JSON)
+
+## Architecture & Key Rules
+- Epistemic Honesty: company layer cannot see SIM internals (Point-in-Time Blindfold)
+- Board sections are NOT phases: reporting is a byproduct, not the capability
+- Churn model: bill shock YoY + payment behaviour + satisfaction + market year elasticity
+
+## Key Metrics
+- Tests at start (Phase 0): 0 | Tests now: 15,402
+- Net margin all-time: GBP1,445,258 | Crisis survived: 2021-22
+- Retention: 12/12 offers | 6 no-offer churns

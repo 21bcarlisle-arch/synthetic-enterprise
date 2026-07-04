@@ -266,6 +266,9 @@ def git_commit_push(git_hash, net_margin):
     site_state_project = PROJECT_DIR / "site" / "state" / "PROJECT_STATE.txt"
     if site_state_project.exists():
         files.append(str(site_state_project))
+    docs_status_project = PROJECT_DIR / "docs" / "status" / "PROJECT_STATE.txt"
+    if docs_status_project.exists():
+        files.append(str(docs_status_project))
     site_state_billing = PROJECT_DIR / "site" / "state" / "billing_ledger.json"
     if site_state_billing.exists():
         files.append(str(site_state_billing))

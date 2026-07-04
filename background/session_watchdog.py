@@ -320,6 +320,32 @@ USAGE_PAUSE_THRESHOLD_PCT = 90
 
 USAGE_PAUSE_FILE = Path(f"{PROJECT_DIR}/docs/observability/.usage_pause.json")
 
+# Indicates CC exited so fast that RESUME_INSTRUCTION ran as shell commands.
+# Pattern: -sh: N: N.: not found (numbered list items treated as shell commands)
+_QUICK_EXIT_PATTERN = re.compile(r"-sh:\s*\d+:\s*\d+\.\s*:\s*not found")
+_CRASH_SIGNALS = re.compile(
+    r"(Traceback|Error:|fatal:|Killed|Segmentation fault|SIGSEGV)",
+    re.IGNORECASE,
+)
+_last_exit_ntfy_state: str | None = None
+
+
+def classify_exit(pane_text: str) -> tuple[str, str]:
+    """Classify why the session ended from pane content.
+    Returns (reason, detail).
+    reason: usage_limit | quick_exit | crash | completion | unknown
+    quick_exit: CC exited immediately on startup (RESUME_INSTRUCTION ran as shell cmds)
+    """
+    if usage_limit_detected(pane_text):
+        return "usage_limit", ""
+    if _QUICK_EXIT_PATTERN.search(pane_text):
+        return "quick_exit", "CC exited before accepting input (likely usage/rate limit)"
+    tail_lines = [l.strip() for l in pane_text.splitlines()[-10:] if l.strip()]
+    tail = " | ".join(tail_lines[-5:])
+    if _CRASH_SIGNALS.search("\n".join(tail_lines)):
+        return "crash", tail[:200]
+    return "completion", tail[:100]
+
 # Matches the "Current session" block of `/usage` output, e.g.:
 #   Current session · Resets 4:59pm (Europe/London)
 #   █████████████████▊
@@ -1021,10 +1047,35 @@ def check_autoloop(pane_text: str) -> None:
     autoloop_times.append(time.time())
 
 
-def handle_session_ended() -> None:
-    log("Claude Code session ended — auto-restarting")
-    ntfy("Claude Code session ended — restarting automatically.")
-    restart_claude()
+def handle_session_ended(pane_text: str = "") -> None:
+    global _last_exit_ntfy_state
+    reason, detail = classify_exit(pane_text)
+    log(f"Session ended — reason: {reason} | {detail[:100] if detail else 'clean exit'}")
+
+    if reason in ("usage_limit", "quick_exit"):
+        if reason == "quick_exit":
+            msg = ("CC exited immediately on startup (likely usage/rate limit) — "
+                   "waiting 30min before retry.")
+        else:
+            msg = "CC usage limit — auto-resuming after 30min wait."
+        if _last_exit_ntfy_state not in ("usage_limit", "quick_exit"):
+            ntfy(msg)
+            _last_exit_ntfy_state = reason
+        else:
+            log(f"Deduped NTFY — still in {_last_exit_ntfy_state} state")
+        time.sleep(30 * 60)
+        _last_exit_ntfy_state = None
+        restart_claude(resume=True)
+    elif reason == "crash":
+        crash_msg = (f"CC crashed — restarting. Last: {detail[:100]}"
+                     if detail else "CC crashed — restarting.")
+        ntfy(crash_msg, needs_input=True)
+        _last_exit_ntfy_state = "crash"
+        restart_claude()
+    else:
+        log("Session ended (completion/unknown) — restarting without NTFY")
+        _last_exit_ntfy_state = "completion"
+        restart_claude()
 
 
 def main() -> None:
@@ -1065,7 +1116,7 @@ def main() -> None:
                     )
                     if last_lines:
                         log(f"Pane at death: {last_lines[:300]}")
-                    handle_session_ended()
+                    handle_session_ended(pane_text=pane_text)
                     consecutive_down = 0
                 continue
 

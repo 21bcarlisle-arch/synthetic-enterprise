@@ -10,6 +10,7 @@ CLAUDE_MD = PROJECT / "CLAUDE.md"
 DASHBOARD_JSON = PROJECT / "site" / "data" / "dashboard.json"
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "site" / "state" / "PROJECT_STATE.txt"
+DOCS_STATUS_PATH = PROJECT / "docs" / "status" / "PROJECT_STATE.txt"
 
 
 def _parse_phase_and_tests():
@@ -91,7 +92,8 @@ def generate():
             retained, offers, no_offer_churns, total_churned),
         "",
         "## Key Files (fetchable without JavaScript)",
-        "- https://poesys.net/state/PROJECT_STATE.txt -- THIS FILE (auto-generated on every push)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt -- THIS FILE (canonical, GitHub Pages)",
+        "- https://poesys.net/state/PROJECT_STATE.txt -- mirror (Cloudflare Pages)",
         "- https://poesys.net/state/customer_sample.json -- per-customer ground truth",
         "- https://poesys.net/shadow/ -- no-JS HTML: Supplier dashboard",
         "- https://poesys.net/shadow/customers/ -- no-JS HTML: Customer portal",
@@ -114,7 +116,9 @@ def generate():
     content = "\n".join(lines) + "\n"
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(content)
-    print("Written: {} (Phase={}, tests={:,})".format(OUT_PATH, phase, test_count))
+    DOCS_STATUS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DOCS_STATUS_PATH.write_text(content)
+    print("Written: {} + {} (Phase={}, tests={:,})".format(OUT_PATH, DOCS_STATUS_PATH, phase, test_count))
     return True
 
 
