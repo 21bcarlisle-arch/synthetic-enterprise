@@ -1,6 +1,6 @@
 # Current Priorities
 
-Last updated: 2026-07-04 -- P1-P4 base complete; Phase PX (Correlated Synthetic Market Generator) proposed.
+Last updated: 2026-07-04 -- P1-P4 base complete; Phase PX (Correlated Synthetic Market Generator) COMPLETE (21 tests, 15,380 total).
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
 Coverage sprints (phases LQ through MU, 95+ sprints) are complete. Test count: 14,485.
@@ -8,13 +8,14 @@ All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Last updated: 2026-07-04 -- All P1-P4 base work complete. Phase PX proposed.
+Last updated: 2026-07-04 -- All P1-P4 base work complete. Phase PX COMPLETE.
 
 Phase PS COMPLETE (2026-07-03): Complaints & Arrears Population Anchoring -- 22 tests (15,276 total).
 Phase PT COMPLETE (2026-07-03): customers.json + supplier.json stable fetchable paths -- 14 tests (15,290 total).
 Phase PU COMPLETE (2026-07-03): Shadow Live Operation P4 MVP -- 24 tests (15,314 total). live_decisions_latest.json live.
 Phase PV COMPLETE (2026-07-04): Market Feed Swappable Adapter (MarketDataPort + Frozen2025Adapter + factory) -- 21 tests (15,335 total).
 Phase PW COMPLETE (2026-07-04): I&C Corporate Arrears Calibration -- 24 tests (15,359 total). IC arrears 0%->5.4% GREEN.
+Phase PX COMPLETE (2026-07-04): Correlated Synthetic Market Generator -- 21 tests (15,380 total). CorrelatedGeneratorAdapter; bivariate OU; crisis regime; contango forward.
 
 Observability URLs (all confirmed live at poesys.net):
 - /state/PROJECT_STATE.txt -- Phase PW / 15,359 tests
@@ -26,7 +27,7 @@ Observability URLs (all confirmed live at poesys.net):
 
 
 ## Next (roadmap items outbid self-generated work)
-Last refreshed: 2026-07-04 -- Phase PX proposed: Correlated Synthetic Market Generator (CorrelatedGeneratorAdapter).
+Last refreshed: 2026-07-04 -- Phase PX COMPLETE. Next: see roadmap below (Gap 3 shadow close-out, Gap 4 network actuals, or next highest capability gap).
 
 **RULE (permanent, added to phase-close checklist):** A new board/report/Observatory section is NOT a phase. Board sections are byproducts of building capability. Any "add an X Observatory / X dashboard" proposal is automatically outbid by the priorities below.
 
@@ -104,6 +105,7 @@ in run_phase2b.py. C_IC3g: net -GBP 134k -> +GBP 95k (service_fee x volume over 
 - Bad debt stress test: does bad_debt_provision feed back into capital model?
 
 ## Recently completed real capability
+- **Phase PX** (2026-07-04): Correlated Synthetic Market Generator -- CorrelatedGeneratorAdapter; bivariate OU gas+elec; regime switching 8% crisis prob; 0.70 corr; seed reproducibility. Addresses regime-change blindness failure mode.
 - **I&C churn calibration fix** (2026-07-02): IC_BILL_STRESS_SENSITIVITY 0.10->0.0. I&C was estimating 95% churn vs SIM 5% (1800% error) at stable rates. 58% of retention offers were wasted. Rate-sensitivity (IC_RATE_SENSITIVITY=1.5x) now drives I&C churn exclusively. Crisis spikes still correctly reach 95%.
 - Phase MW (2026-07-02): Income Stress -> Observed Payment Behaviour (14,485 tests)
 - Phase MV (2026-07-01): Economic Life Events -- income_stress enum, job_loss/income_recovery/new_baby/retirement

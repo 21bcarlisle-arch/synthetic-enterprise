@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-04. 492+ commits. 15,359 tests passing. Codebase: ~51,350 lines across 339+ Python modules.*
+*Last updated: 2026-07-04. 493+ commits. 15,380 tests passing. Codebase: ~51,450 lines across 340+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase PX -- Correlated Synthetic Market Generator (2026-07-04)
+21 new tests. tools/market_adapters/synthetic_generator.py (new): `CorrelatedGeneratorAdapter` implements MarketDataPort via bivariate Ornstein-Uhlenbeck process. Gas: kappa=0.5, mu=54 GBP/MWh. Elec: kappa=0.6, mu=85 GBP/MWh. Cross-commodity correlation=0.70 (Cholesky decomposition). Normal vol: gas 35%, elec 45% annualised. Crisis vol: gas 120%, elec 150% annualised -- calibrated to 2021-22 UK energy crisis. CRISIS_REGIME_PROB=8% (8 of 100 months). Forward curve: contango at 2%/year storage+carry. Seed param: fully reproducible paths. regime="crisis": forces high-vol permanently (stress testing). tools/market_adapters/__init__.py: factory registers "synthetic" -> CorrelatedGeneratorAdapter. KEY FIDELITY GAIN: company can now stress-test renewal and hedging decisions against crisis-regime volatility -- directly addressing regime-change blindness (known CLAUDE.md failure mode). MARKET_ADAPTER_SOURCE=synthetic drops in with zero company-layer changes (PV guarantee maintained). Epistemic: synthetic model is company-built from publicly observable NBP/SSP statistics. PASS.
+**Total:** 15,380 tests
 
 ### Phase PW -- I&C Corporate Arrears Calibration (2026-07-04)
 24 new tests. generate_billing_ledger.py extended: I&C BACS/CHAPS changed from 100% on-time to invoice dispute model: 92% on-time, 7.3% late (14-45 days), 0.7% formal dispute (INVOICE_DISPUTED->DISPUTE_NOTICE->PAYMENT_PLAN_AGREED|WRITTEN_OFF). Segment stored in customer ledger. population_anchor.py extended: _arrears_check_by_year identifies I&C customers via segment field; calculates ic_arrears_rate_pct (per year) and ic_aggregate_rate_pct (10-year) separately. RAG uses 10-year aggregate IC rate vs DESNZ commercial benchmark (<8% normal); falls back to overall rate when no IC customers (backward compat). KEY FINDING: IC arrears 0% -> 5.4% (10-year aggregate); all years rag=GREEN. Previous PS finding (29-31% RED) was comparing full portfolio (resi income-stress arrears) to I&C commercial benchmark. Phase PW closes calibration gap: arrears_vs_benchmark now separates corporate credit risk from household income stress. Epistemic: PASS.
@@ -5172,7 +5176,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 356+ Python modules (company layer + tools), ~55,200 lines total
 - 491+ git commits
-- 15,359 tests (fast / ~10s; simulation integration ~8 min per run)
+- 15,380 tests (fast / ~10s; simulation integration ~8 min per run)
 - Phase NK (2026-07-02): extract_report_data churn_model_performance extraction fix + _section_churn_model_performance board report section.
 
 **Data:**

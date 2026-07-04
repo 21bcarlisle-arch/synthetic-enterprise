@@ -17,4 +17,7 @@ def get_market_adapter(source: str | None = None) -> MarketDataPort:
     if resolved == "frozen_2025":
         from tools.market_adapters.frozen_2025 import Frozen2025Adapter
         return Frozen2025Adapter()
+    if resolved == "synthetic":
+        from tools.market_adapters.synthetic_generator import CorrelatedGeneratorAdapter
+        return CorrelatedGeneratorAdapter()
     raise ValueError(f"Unknown market adapter source: {resolved!r}")
