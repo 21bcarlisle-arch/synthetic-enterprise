@@ -14,6 +14,8 @@ LATEST_MD = PROJECT_DIR / "docs" / "status" / "LATEST.md"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
 LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_hash"
 LAST_PUSH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_push_time.json"
+RUN_INSIGHTS_PATH = PROJECT_DIR / "docs" / "observability" / "run_insights.json"
+RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
 # DEPLOY_CONTENTION_BATCH_COMMITS.md (2026-07-04): sim_runner cycles every
 # ~10 min and each cycle committed+pushed unconditionally (LATEST.md's
 # timestamp always differs), giving ~6 pushes/hour -- enough to contend with
@@ -423,8 +425,8 @@ def main(marker_path_str):
     try:
         from tools.generate_insights import generate_insights, save_insights, append_run_history
         run_insights = generate_insights(data, git_hash)
-        save_insights(run_insights)
-        append_run_history(run_insights)
+        save_insights(run_insights, RUN_INSIGHTS_PATH)
+        append_run_history(run_insights, RUN_HISTORY_PATH)
         log("Run insights saved: {}".format(run_insights.executive_summary[:80]))
     except Exception as exc:
         log("Run insights generation skipped: {}".format(exc))
