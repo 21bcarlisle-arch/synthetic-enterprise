@@ -26609,3 +26609,62 @@
 - [2026-07-04 18:01 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
 - [2026-07-04 18:01 UTC] [process_run] Nothing to commit or commit failed
 - [2026-07-04 18:02 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 18:07 UTC] Run complete — 481s, 1959 KB (run_output_b400481a_20260704T175934Z.json)
+- [2026-07-04 18:07 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 481, "size_kb": 1959, "json": "run_output_b400481a_20260704T175934Z.json"}, "timestamp": "2026-07-04T18:07:35.492988+00:00", "session_id": null}
+- [2026-07-04 18:07 UTC] [process_run] Processing run_complete_20260704T175934Z.md
+- [2026-07-04 18:07 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_b400481a_20260704T175934Z.json
+- [2026-07-04 18:07 UTC] [process_run] Updating LATEST.md
+- [2026-07-04 18:07 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-07-04 18:07 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-07-04 18:07 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-07-04 18:07 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-04 18:07 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-07-04 18:07 UTC] [process_run] Publishing market price feed
+- [2026-07-04 18:07 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-07-04 18:07 UTC] [process_run] Publishing HH consumption data feed
+- [2026-07-04 18:07 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-07-04 18:07 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-07-04 18:07 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-07-04 18:07 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-07-04 18:07 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:07 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 18:09 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 18:09 UTC] [process_run] Committing and pushing (net=£1,445,258)
+- [2026-07-04 18:09 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:09 UTC] [process_run] Moved run_complete_20260704T175934Z.md to done/
+- [2026-07-04 18:09 UTC] [process_run] Done
+- [2026-07-04 18:09 UTC] Auto-processed run complete marker
+- [2026-07-04 18:09 UTC] Waiting 60s before next run...
+- [2026-07-04 18:10 UTC] Starting run — git=e4a82a87, json=run_output_e4a82a87_20260704T181029Z.json
+- [2026-07-04 18:11 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:11 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 18:13 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 18:15 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:15 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 18:16 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 18:19 UTC] Run complete — 514s, 1959 KB (run_output_e4a82a87_20260704T181029Z.json)
+- [2026-07-04 18:19 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 514, "size_kb": 1959, "json": "run_output_e4a82a87_20260704T181029Z.json"}, "timestamp": "2026-07-04T18:19:03.861851+00:00", "session_id": null}
+- [2026-07-04 18:19 UTC] [process_run] Processing run_complete_20260704T181029Z.md
+- [2026-07-04 18:19 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_e4a82a87_20260704T181029Z.json
+- [2026-07-04 18:19 UTC] [process_run] Updating LATEST.md
+- [2026-07-04 18:19 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-07-04 18:19 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-07-04 18:19 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-07-04 18:19 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-04 18:19 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-07-04 18:19 UTC] [process_run] Publishing market price feed
+- [2026-07-04 18:19 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-07-04 18:19 UTC] [process_run] Publishing HH consumption data feed
+- [2026-07-04 18:19 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-07-04 18:19 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-07-04 18:19 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-07-04 18:19 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-07-04 18:19 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:19 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 18:20 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 18:21 UTC] [process_run] Committing and pushing (net=£1,445,258)
+- [2026-07-04 18:21 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:21 UTC] [process_run] Moved run_complete_20260704T181029Z.md to done/
+- [2026-07-04 18:21 UTC] [process_run] Done
+- [2026-07-04 18:21 UTC] Auto-processed run complete marker
+- [2026-07-04 18:21 UTC] Waiting 60s before next run...
