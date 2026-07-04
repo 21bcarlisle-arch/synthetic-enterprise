@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-04T12:27:48.780821+00:00",
+  "last_updated": "2026-07-04T12:28:18.781469+00:00",
   "agents": [
     {
       "name": "session-watchdog",
-      "status": "running",
-      "last_heartbeat": "2026-07-04T12:27:12.381950+00:00",
-      "last_action": "Watchdog started",
-      "last_action_ts": "2026-07-04T12:27:12.381950+00:00",
+      "status": "idle",
+      "last_heartbeat": "2026-07-04T12:28:06.171681+00:00",
+      "last_action": "Session alive check passed",
+      "last_action_ts": "2026-07-04T12:28:06.171681+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-04T12:27:48.780821+00:00",
+      "last_heartbeat": "2026-07-04T12:28:18.781469+00:00",
       "last_action": "Heartbeat \u2014 1 files tracked",
-      "last_action_ts": "2026-07-04T12:27:48.780821+00:00",
+      "last_action_ts": "2026-07-04T12:28:18.781469+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -65,9 +65,9 @@
     {
       "name": "autonomous-runner",
       "status": "working",
-      "last_heartbeat": "2026-07-04T12:26:11.462076+00:00",
+      "last_heartbeat": "2026-07-04T12:28:11.467208+00:00",
       "last_action": "Autonomous turn running",
-      "last_action_ts": "2026-07-04T12:26:11.462076+00:00",
+      "last_action_ts": "2026-07-04T12:28:11.467208+00:00",
       "anomaly": null,
       "role": "Runs scheduled Claude Code sessions for background work when session is idle",
       "produces": "CC session activity, phase completions"
@@ -93,7 +93,7 @@
       "produces": "PASS/FAIL report to stdout"
     }
   ],
-  "treasury_gbp": 11131.0,
-  "net_margin_gbp": -8317.21,
-  "enterprise_value_gbp": -20661.9
+  "treasury_gbp": 3911893.8860475523,
+  "net_margin_gbp": 1445257.665458,
+  "enterprise_value_gbp": 8826938.57269744
 }
