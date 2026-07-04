@@ -1,23 +1,20 @@
-## Phase PZ COMPLETE -- Scenario Stress Testing via Synthetic Market
-Last updated: 2026-07-04T23:41:33Z
+## Phase QM COMPLETE -- Retention as Deferral, H1 vs H2
+Last updated: 2026-07-04T23:50:25Z
 
-**Status:** COMPLETE. 15,300 tests (fast suite). Epistemic: PASS.
+**Status:** COMPLETE. 15,555 tests collected (fast suite). Epistemic: PASS.
 
-**Phase PZ -- Scenario Stress Testing via Synthetic Market:**
-- tools/run_live_decisions.py: run_scenario_analysis() with 4 persistent scenarios (base/bull/bear/crisis)
-- Scenario prices = CorrelatedGeneratorAdapter start prices (sustained levels, not OU projection)
-- portfolio_exposure_delta: additional unhedged annual cost vs base scenario
-- tools/market_adapters/synthetic_generator.py: gas_start/elec_start params added
-- saas/reporting/annual_report.py: _section_scenario_sensitivity board section
-- process_run_complete.py: run_scenario_analysis() wired + JSON committed
+**Phase QM -- Retention as Deferral (docs/staging/QL_WIRE_AND_DEFERRAL.md):**
+- simulation/run_phase2b.py: ASSUMED_DEFERRAL_MONTHS=12 (H1), named on every retention offer
+- company/analytics/retention_deferral_economics.py (new): H2 realized deferral + serial-saver EV flag
+- Evidence on all 3 surfaces: Sim (H1 vs H2 by year), Customers (C_IC1 4-offer timeline), Supplier (serial-saver table)
+- saas/reporting/annual_report.py: _section_retention_deferral_economics() board section
 
-**KEY FINDINGS:**
-- Crisis scenario: elec 217 GBP/MWh, gas 110 GBP/MWh → +£1,562,206 unhedged exposure vs base
-- Bull scenario: elec 56 GBP/MWh → -£398,252 (cheap energy, hedge reduces cost)
-- All scenarios: INCREASE hedge recommendation (portfolio underpins at 30% avg hedge fraction)
-- CLOSES CLAUDE.md known failure: regime-change blindness — board can now ask "what if 2021-22 again?"
+**KEY FINDING:**
+- 0/10 resolved offers underperformed their assumed 12-month window
+- C1/C5/C6 (Phase QK's defer-then-churn names) churned at 12-24 months post-offer, matching or exceeding H1
+- The offer worked exactly as priced -- it was never priced to buy more than one term
 
-**PRIORITIES.md P1 (Correlated Simulation Endgame):** COMPLETE.
+**Prior milestone:** Phase PZ (Scenario Stress Testing) closed PRIORITIES.md P1 (Correlated Simulation Endgame).
 
 
 **Latest simulation results (2016–2025)** — auto-processed (512s / 9 min):
