@@ -26668,3 +26668,33 @@
 - [2026-07-04 18:21 UTC] [process_run] Done
 - [2026-07-04 18:21 UTC] Auto-processed run complete marker
 - [2026-07-04 18:21 UTC] Waiting 60s before next run...
+- [2026-07-04 18:22 UTC] Starting run — git=ea4fb4d5, json=run_output_ea4fb4d5_20260704T182200Z.json
+- [2026-07-04 18:29 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:29 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 18:30 UTC] Run complete — 508s, 1959 KB (run_output_ea4fb4d5_20260704T182200Z.json)
+- [2026-07-04 18:30 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 508, "size_kb": 1959, "json": "run_output_ea4fb4d5_20260704T182200Z.json"}, "timestamp": "2026-07-04T18:30:28.004776+00:00", "session_id": null}
+- [2026-07-04 18:30 UTC] [process_run] Processing run_complete_20260704T182200Z.md
+- [2026-07-04 18:30 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_ea4fb4d5_20260704T182200Z.json
+- [2026-07-04 18:30 UTC] [process_run] Updating LATEST.md
+- [2026-07-04 18:30 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-07-04 18:30 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-07-04 18:30 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-07-04 18:30 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-04 18:30 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-07-04 18:30 UTC] [process_run] Publishing market price feed
+- [2026-07-04 18:30 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-07-04 18:30 UTC] [process_run] Publishing HH consumption data feed
+- [2026-07-04 18:30 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-07-04 18:30 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-07-04 18:30 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-07-04 18:30 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-07-04 18:30 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:30 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 18:32 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 18:32 UTC] [process_run] Committing and pushing (net=£1,445,258)
+- [2026-07-04 18:32 UTC] [process_run] Commit/push failed (possibly nothing changed)
+- [2026-07-04 18:32 UTC] [process_run] Moved run_complete_20260704T182200Z.md to done/
+- [2026-07-04 18:32 UTC] [process_run] Done
+- [2026-07-04 18:32 UTC] Auto-processed run complete marker
+- [2026-07-04 18:32 UTC] Waiting 60s before next run...
+- [2026-07-04 18:33 UTC] Starting run — git=ff24a9a6, json=run_output_ff24a9a6_20260704T183322Z.json

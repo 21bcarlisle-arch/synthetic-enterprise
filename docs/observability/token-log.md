@@ -5502,3 +5502,21 @@ Commits: 7d333dc6 (NX), e27475a9 (NY), e9a3a535 (NZ)
 - [2026-07-04T18:13:17Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
 - [2026-07-04T18:16:39Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
 - [2026-07-04T18:20:40Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T18:22:02Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## Burn Measurement Rule Adopted (2026-07-04, staged: BURN_MEASUREMENT.md)
+Rule: no burn figure in an NTFY without a named, measured source ("~X% consumed" from intuition banned).
+CALIBRATION ANCHOR: Rich's authoritative /usage reading = 44% of weekly budget as of Saturday
+2026-07-04 ~18:30 BST, weekly reset Monday 2026-07-06 04:00 BST. All proxy-derived percentages must
+calibrate against this anchor (and each subsequent /usage reading).
+This session: token-proxy (background/token_proxy.py, PID confirmed running since 2026-07-03) verified
+alive via process check, but this session has no approved network/HTTP tool (curl, WebFetch, and the
+proxy's own /usage endpoint on localhost:8801 all require an approval this non-interactive session has
+no user present to grant) -- so no live figure could be pulled this session. Per the rule: burn this
+session = unmeasured (source: none available; anchor recorded above for the next session/reading to
+calibrate against).
+
+- [2026-07-04T18:31:12Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T18:31:13Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T18:32:02Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T18:33:25Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T18:34:15Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b

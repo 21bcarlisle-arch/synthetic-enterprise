@@ -25,6 +25,24 @@
   Phase QB added market_conditions_multiplier so passive estimates vary 3-22% by year instead of pinning
   at a flat 5-10% floor). Residual: I&C estimates still hit the 0.95 ceiling -- noted as a follow-on, not
   blocking.
+- Churn model validation loop rerun (2026-07-04, WEEKEND_ACCELERATION.md Q4): reran recall/precision/F1
+  on the live production run (docs/reports/run_output_latest.json) with QA+QB in place. Result: TP=0,
+  FP=6, FN=6, recall=precision=F1=0.0 at the 0.30 threshold -- UNCHANGED from the structural limitation
+  Phase NK already documented (passive SVT-rollers capped at PASSIVE_CHURN_CAP=0.10 pre-multiplier in
+  company/crm/churn_model.py:estimate_passive_churn_probability). ROOT CAUSE CONFIRMED: the market
+  multiplier is applied AFTER that cap, and its max value (2.17x, year 2016) can only lift the passive
+  estimate to ~0.217 -- structurally below the 0.30 classification/RETENTION_THRESHOLD regardless of
+  market conditions, so the multiplier fix cannot move recall for this segment without either raising
+  the cap or lowering the threshold. company/analytics/threshold_sensitivity.py (already wired, Phase NO)
+  independently confirms this: optimal_threshold=0.00 (flag everyone) with F1=0.176 vs current threshold
+  0.30 with F1=0.000 -- no positive threshold currently separates churners from renewers at all.
+  NOT auto-fixed: lowering RETENTION_THRESHOLD to chase recall means offering paid discounts to the
+  ~34 false-positive renewals the 0.05 threshold would also flag (precision 0.081 there) -- a real
+  spending-policy tradeoff, not a mechanical bug. Flagged for Rich, not actioned autonomously. NOT a
+  regression -- Phase NK predicted exactly this ("passive churns are below detection threshold by
+  design"); QB improved estimate accuracy (mean error 1.25->1.00 per Phase QB) without ever being able
+  to move TP/FP/FN counts for this segment. Q4 in WEEKEND_ACCELERATION.md CLOSED on this measurement;
+  no code changed.
 - Website data integrity Part A: DONE (Phase QC, staged WEBSITE_INTEGRITY_AND_DESIGN.md) -- fixed the
   step-ordering bug that put a stale Executive Summary next to correct 10-Year Totals on the same page, and
   replaced the hardcoded phase/test-count site header with docs/observability/build_info.json.
