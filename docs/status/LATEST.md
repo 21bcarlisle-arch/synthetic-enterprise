@@ -1,5 +1,5 @@
 ## Phase PW COMPLETE -- I&C Corporate Arrears Calibration
-Last updated: 2026-07-04T02:14:34Z
+Last updated: 2026-07-04T02:24:21Z
 
 **Status:** COMPLETE. 15,359 tests passing. Epistemic: PASS.
 
@@ -15,7 +15,7 @@ Last updated: 2026-07-04T02:14:34Z
 **Next:** Reviewing PRIORITIES.md for P2 (Network Charge Year-Indexed Actuals) or next highest gap.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (470s / 8 min):
 - Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
