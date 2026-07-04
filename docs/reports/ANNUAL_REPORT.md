@@ -1559,7 +1559,7 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-04T19:11:53Z
+Generated: 2026-07-04T19:18:10Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
