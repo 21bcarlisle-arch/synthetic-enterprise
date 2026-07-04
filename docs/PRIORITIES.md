@@ -1,6 +1,6 @@
 # Current Priorities
 
-Last updated: 2026-07-03 -- HARD REDIRECT: Stop Observatory loop; build observability/billing/anchoring.
+Last updated: 2026-07-04 -- P1-P4 base complete; Phase PX (Correlated Synthetic Market Generator) proposed.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
 Coverage sprints (phases LQ through MU, 95+ sprints) are complete. Test count: 14,485.
@@ -8,23 +8,25 @@ All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Last updated: 2026-07-03 -- P1/P2/P3 complete; Phase PR improves anchoring robustness.
+Last updated: 2026-07-04 -- All P1-P4 base work complete. Phase PX proposed.
 
-Phase PP COMPLETE (2026-07-03): Per-Customer Invoice & Payment Ledger -- billing_ledger.json; 1,605 invoices live. 23 tests (15,171 total).
-Phase PQ COMPLETE (2026-07-03): Population Anchoring Validation Gate -- population_anchoring.json; SIM vs Ofgem benchmarks. 23 tests (15,194 total, +5 from PQ update).
-Phase PR COMPLETE (2026-07-03): Population Anchoring Robustness -- 3-year rolling crisis comparison; long-run 10yr average (SIM 6.4% vs Ofgem 13.6%, ratio=0.47 GREEN); crisis_divergence_flag now requires rolling+absolute+N>=10. overall_rag: AMBER (was false-alarm RED). 23 tests (15,194 total).
-Cloudflare cache fix: /state/* paths now have no-cache header.
+Phase PS COMPLETE (2026-07-03): Complaints & Arrears Population Anchoring -- 22 tests (15,276 total).
+Phase PT COMPLETE (2026-07-03): customers.json + supplier.json stable fetchable paths -- 14 tests (15,290 total).
+Phase PU COMPLETE (2026-07-03): Shadow Live Operation P4 MVP -- 24 tests (15,314 total). live_decisions_latest.json live.
+Phase PV COMPLETE (2026-07-04): Market Feed Swappable Adapter (MarketDataPort + Frozen2025Adapter + factory) -- 21 tests (15,335 total).
+Phase PW COMPLETE (2026-07-04): I&C Corporate Arrears Calibration -- 24 tests (15,359 total). IC arrears 0%->5.4% GREEN.
 
-Observability URLs (all live at poesys.net):
-- /state/PROJECT_STATE.txt -- Phase PQ / 15,189 tests (auto-regenerates on push; will update to PR on next run)
-- /state/customer_sample.json -- behavioral data now populated (3c5c124f run processed 19:40 UTC)
-- /state/billing_ledger.json -- 1,605 invoices live (confirmed)
-- /state/population_anchoring.json -- AMBER (not RED); long-run GREEN
-- /shadow/ /shadow/customers/ /shadow/project/ /shadow/sim/ -- all sections live
+Observability URLs (all confirmed live at poesys.net):
+- /state/PROJECT_STATE.txt -- Phase PW / 15,359 tests
+- /state/billing_ledger.json -- 1,605 invoices
+- /state/population_anchoring.json -- AMBER (long-run GREEN; IC arrears GREEN)
+- /data/customers.json + /data/supplier.json -- live portfolio
+- /shadow/ /shadow/customers/ /shadow/project/ /shadow/sim/ -- all sections
+- /state/live_decisions_latest.json -- shadow live decisions (as-of 2025-06-07)
 
 
 ## Next (roadmap items outbid self-generated work)
-Last refreshed: 2026-07-03 -- HARD REDIRECT (ADVISOR). Observatory loop stopped; board sections are NOT phases.
+Last refreshed: 2026-07-04 -- Phase PX proposed: Correlated Synthetic Market Generator (CorrelatedGeneratorAdapter).
 
 **RULE (permanent, added to phase-close checklist):** A new board/report/Observatory section is NOT a phase. Board sections are byproducts of building capability. Any "add an X Observatory / X dashboard" proposal is automatically outbid by the priorities below.
 

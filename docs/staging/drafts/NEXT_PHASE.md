@@ -1,56 +1,85 @@
-# NEXT PHASE PROPOSAL: Phase PW -- I&C Corporate Arrears Calibration
+# NEXT PHASE PROPOSAL: Phase PX -- Correlated Synthetic Market Generator
 
 ## Gap addressed
-Phase PS Population Anchoring RED finding: arrears 29-31% of active customers per year
-vs DESNZ I&C commercial energy debt benchmark <8%. Root cause: I&C customers use
-BACS/CHAPS payment, which generate_billing_ledger.py always marks as ("success", 0) --
-producing 0% I&C arrears (unrealistically clean). Real I&C businesses have ~5-8%
-invoice dispute/late-payment rate from cashflow management, disputes, and admin delays.
+Phase PV (Market Feed Swappable Adapter) built the MarketDataPort architecture and explicitly
+named correlated synthetic generator (endgame) in its key architecture note. The current
+live decisions module (PU) is frozen to a single 2025-06-07 market snapshot via Frozen2025Adapter.
+CLAUDE.md flags regime-change blindness as a known failure mode: the company converged to
+near-naked hedging during calm 2016-2020 data, directly before the crisis. A real UK energy
+supplier stress-tests hedging and renewal decisions against multiple plausible market scenarios.
 
 ## What real fidelity is gained
-- I&C arrears rate 0% -> ~5-8% (DESNZ benchmark range)
-- Residential arrears still driven by income_stress (current model correct)
-- Population Anchoring overall_rag transitions RED -> AMBER/GREEN
-- Board can now distinguish corporate credit risk from household income stress
+1. Company generates correlated electricity+gas price paths using a calibrated statistical model
+   rather than being locked to a frozen historical snapshot.
+2. Forward curve computed analytically from the model (contango/backwardation), not a fixed
+   offset over a single historical point.
+3. Regime switching explicitly modelled: can sample in low-vol (normal) or high-vol (crisis)
+   regime, matching the observed 2021-22 volatility spike.
+4. CorrelatedGeneratorAdapter drops in as MARKET_ADAPTER_SOURCE=synthetic with zero company-layer
+   changes (PV guarantee maintained). Frozen2025Adapter remains default.
+5. Enables future scenario stress testing: board can request base/bull/bear market decisions
+   without touching company layer code.
 
 ## Architecture
-The fix is entirely in tools/generate_billing_ledger.py:
-1. Add _IC_INVOICE_LATE_PROB = 0.06 (6% of I&C invoices have payment delay)
-2. Add _IC_LATE_DAYS = (14, 45) -- corporate payment delay range
-3. Add _IC_DISPUTE_PROB = 0.02 -- 2% escalate to formal dispute (arrears case)
-4. Modify _payment_outcome: BACS/CHAPS outcome now has small late/dispute probability
-   - 92% on-time success (was 100%)
-   - 6% late success (days_late 14-45)
-   - 2% dispute -> triggers arrears case
-5. Add _ic_arrears_stages: INVOICE_DISPUTED -> DISPUTE_NOTICE -> PAYMENT_PLAN_AGREED | WRITTEN_OFF
-   (no DD_FAILED stage -- I&C uses bank transfer)
-6. generate_billing_ledger.py: I&C arrears cases use _ic_arrears_stages
-7. population_anchor.py: annotate arrears check with portfolio_type note
-   (benchmark is from DESNZ commercial energy debt statistics, not residential)
+
+New file: tools/market_adapters/synthetic_generator.py
+  CorrelatedGeneratorAdapter(seed=None, regime="normal")
+
+  Calibrated constants (from 2016-2025 NBP+SSP data):
+    GAS_LONG_RUN_MEAN_GBP_PER_MWH = 54.0   (post-2023 ~25p/th normalisation)
+    ELEC_LONG_RUN_MEAN_GBP_PER_MWH = 85.0  (post-2023 normalisation)
+    GAS_MEAN_REVERSION_SPEED = 0.5          (half-life ~18 months)
+    ELEC_MEAN_REVERSION_SPEED = 0.6         (faster reversion; weather-driven)
+    GAS_VOL_NORMAL = 0.35                   (35% annualised; normal regime)
+    GAS_VOL_CRISIS = 1.20                   (120% annualised; calibrated to 2021-22)
+    ELEC_VOL_NORMAL = 0.45
+    ELEC_VOL_CRISIS = 1.50
+    ELEC_GAS_CORR = 0.70                    (cross-commodity correlation)
+    CRISIS_REGIME_PROB = 0.08               (8% of months; 2 of 25 years in crisis)
+    FORWARD_CONTANGO_ANNUAL = 0.02          (2%/year storage/carry)
+
+  Bivariate OU step:
+    x(t+dt) = x(t) + kappa*(mu - x(t))*dt + sigma*sqrt(dt)*Z
+    [Z_gas, Z_elec] drawn from bivariate normal with corr=ELEC_GAS_CORR
+
+  Methods satisfying MarketDataPort:
+    get_spot_elec_gbp_per_mwh(as_of=None) -> float
+    get_spot_gas_gbp_per_mwh(as_of=None) -> float
+    get_forward_price(as_of=None, delivery_date=None, commodity="electricity") -> float
+    get_market_summary(as_of=None) -> dict  (same shape as Frozen2025Adapter)
+
+Modified: tools/market_adapters/__init__.py
+  Register source="synthetic" -> CorrelatedGeneratorAdapter
+
+No company-layer changes (PV guarantee maintained).
 
 ## Epistemic check
-All changes are in the billing ledger generator (company-observable document).
-I&C payment records are company-observable (invoice payment history).
-No SIM internals accessed. PASS.
+CorrelatedGeneratorAdapter is the companys own price model -- built from publicly
+observable market statistics (NBP/SSP historical data). No SIM internals. PASS.
 
-## Test targets (~15 tests)
-1. _payment_outcome BACS/CHAPS: ~92% success-on-time, ~6% late, ~2% dispute
-2. I&C dispute creates arrears case with INVOICE_DISPUTED stage (not DD_FAILED)
-3. Arrears stages for I&C: INVOICE_DISPUTED -> DISPUTE_NOTICE -> PAYMENT_PLAN_AGREED or WRITTEN_OFF
-4. Residential DD_FAILED path unchanged (regression)
-5. I&C arrears rate across full portfolio: 4-10% of billing months (benchmark range)
-6. Residential arrears rate unchanged (income_stress driven, was 29-31%)
-7. Arrears case count for I&C customer over full sim: > 0 (was 0)
-8. BACS on-time probability set correctly (0.92 base)
-9. Late BACS payment: days_late in (14-45) range
-10. Written-off I&C arrears: bad_debt raised (matches written_off stage)
-11. generate() populates arrears_history for an I&C customer
-12. I&C arrears_case_count > 0 for C_IC1 (high volume customer, most likely to dispute)
-13. SME BACS path: also gets small late probability (SME ~3-4% dispute rate)
-14. Arrears check in population_anchor.py: RED when ic_arrears_rate > 8%; GREEN when <8%
-15. population_anchor overall_rag AMBER after PW fix (arrears transitions to benchmark range)
+## Test targets (~18 tests)
+1. OU gas spot stays within plausible range (2-300 GBP/MWh) over 1000 steps
+2. OU elec spot stays within plausible range (5-1000 GBP/MWh) over 1000 steps
+3. Gas mean-reversion: long simulation mean within 20% of GAS_LONG_RUN_MEAN
+4. Elec mean-reversion: long simulation mean within 20% of ELEC_LONG_RUN_MEAN
+5. Elec-gas correlation positive (Pearson r > 0.5) over 1000 samples
+6. Same seed -> same spot prices (reproducibility)
+7. Different seeds -> different spot prices
+8. get_forward_price contango: delivery_date=3mo ahead > spot (normal regime)
+9. get_forward_price returns float, not NaN/None
+10. get_market_summary() returns same top-level keys as Frozen2025Adapter
+11. get_market_summary()[spot_electricity_gbp_per_mwh] matches get_spot_elec()
+12. Factory resolves synthetic -> CorrelatedGeneratorAdapter instance
+13. Factory raises ValueError on unknown source (regression)
+14. Factory resolves frozen_2025 -> Frozen2025Adapter instance (regression)
+15. Crisis regime produces higher volatility than normal regime
+16. MarketDataPort protocol: isinstance(CorrelatedGeneratorAdapter(), MarketDataPort) == True
+17. Spot prices are positive (no negative prices in 10000 steps, normal regime)
+18. as_of param accepted without error (interface compliance)
 
 ## Expected outcome
-Population anchoring arrears check transitions from RED (29-31%) to GREEN/AMBER (~5-8%).
-No changes to income_stress model (residential arrears remain driven by stress trajectory).
-No changes to simulation/ layer. Purely company-observable billing ledger calibration.
+MARKET_ADAPTER_SOURCE=synthetic enables the company to run decisions against a statistically
+sound forward-looking price model. Frozen2025Adapter remains the default for live production
+decisions; synthetic enables scenario analysis and stress testing. Regime-change blindness
+failure mode (CLAUDE.md known failure) is directly addressed: company can request a crisis-regime
+market summary and see what hedging/renewal decisions look like under 2021-22 volatility.
