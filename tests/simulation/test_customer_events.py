@@ -325,3 +325,67 @@ def test_passive_churn_cap_none_leaves_behavior_unchanged():
     assert result_default["effective_retention_probability"] == pytest.approx(
         result_none["effective_retention_probability"]
     )
+
+
+# ── Phase QA: effective_retention_probability must reflect adjustments ──────
+# (test_passive_churn_cap_raises_retention_probability above used >=, which
+# passes trivially even if the returned field were never adjusted at all —
+# that gap in test strength is exactly how the Phase QA bug went undetected.
+# These tests use strict inequalities against a fixed reference to prove the
+# adjustments actually reach the returned field.)
+
+def test_passive_churn_cap_strictly_changes_returned_effective_probability():
+    """A cap tighter than the unadjusted SIM churn rate must strictly raise
+    the returned effective_retention_probability -- not just leave it as a
+    copy of the pre-adjustment value."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result_uncapped = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    result_capped = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", records, customers,
+        passive_churn_cap=0.01,  # tighter than the 5% base churn rate
+    )
+    assert result_uncapped is not None and result_capped is not None
+    assert result_capped["effective_retention_probability"] > result_uncapped["effective_retention_probability"]
+
+
+def test_realized_churn_probability_present_and_in_unit_interval():
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result is not None
+    assert 0.0 <= result["realized_churn_probability"] <= 1.0
+
+
+def test_realized_churn_probability_matches_effective_retention_without_offer():
+    """With no retention offer, realized_churn_probability is exactly
+    1 - effective_retention_probability (no pre/post-offer distinction)."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result is not None
+    assert result["realized_churn_probability"] == pytest.approx(
+        1.0 - result["effective_retention_probability"]
+    )
+
+
+def test_realized_churn_probability_excludes_retention_offer_effect():
+    """With a retention offer, effective_retention_probability includes the
+    offer's uplift but realized_churn_probability (the ground truth a company
+    estimate is judged against) must reflect the risk BEFORE that offer --
+    otherwise the company would look wrong purely because its own retention
+    action worked."""
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _build_one_year_records("C5", 2016)
+    result_no_offer = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    result_with_offer = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", records, customers,
+        retention_modifier=0.50,
+    )
+    assert result_no_offer is not None and result_with_offer is not None
+    # The offer raises effective_retention_probability (used for the roll)...
+    assert result_with_offer["effective_retention_probability"] > result_no_offer["effective_retention_probability"]
+    # ...but realized_churn_probability (pre-offer ground truth) is unchanged.
+    assert result_with_offer["realized_churn_probability"] == pytest.approx(
+        result_no_offer["realized_churn_probability"]
+    )

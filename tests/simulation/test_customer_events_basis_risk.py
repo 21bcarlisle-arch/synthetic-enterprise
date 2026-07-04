@@ -86,7 +86,13 @@ def test_company_churn_estimate_differs_from_sim():
 
 
 def test_churn_estimate_error_pct_correct():
-    """churn_estimate_error_pct = (company_est - sim_est) / sim_est."""
+    """churn_estimate_error_pct = (company_est - realized_est) / realized_est.
+
+    Phase QA: the ground truth is realized_churn_probability (the fully
+    adjusted probability the dice roll actually used), not the raw
+    pre-adjustment churn_probability -- comparing against the raw base rate
+    was the bug this phase fixed.
+    """
     customers = _make_customers()
     records = _build_one_year_records()
     result = roll_lifecycle_event(
@@ -95,7 +101,7 @@ def test_churn_estimate_error_pct_correct():
         new_rate_gbp_per_mwh=100.0,  # no rate change
     )
     assert result is not None
-    sim_p = result["churn_probability"]
+    sim_p = result["realized_churn_probability"]
     co_p = result["company_churn_estimate"]
     expected_error = (co_p - sim_p) / sim_p
     assert abs(result["churn_estimate_error_pct"] - round(expected_error, 4)) < 1e-9

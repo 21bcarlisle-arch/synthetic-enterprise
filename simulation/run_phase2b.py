@@ -482,7 +482,7 @@ def _build_churn_basis_risk(customer_events_log: list) -> list[dict]:
         records.append({
             "customer_id": e["customer_id"],
             "term_start": term_start,
-            "sim_churn_probability": e["churn_probability"],
+            "sim_churn_probability": e.get("realized_churn_probability", e["churn_probability"]),
             "company_churn_estimate": e["company_churn_estimate"],
             "churn_estimate_error_pct": e["churn_estimate_error_pct"],
             "is_active_renewal": e.get("is_active_renewal", True),
@@ -513,7 +513,7 @@ def _build_company_event_log(
                 "customer_id": evt["customer_id"],
                 "event_date": evt["event_date"],
                 "reason": "non-renewal",
-                "sim_churn_probability": evt.get("churn_probability"),
+                "sim_churn_probability": evt.get("realized_churn_probability", evt.get("churn_probability")),
                 "company_churn_estimate": evt.get("company_churn_estimate"),
             })
     for successor_id, activation_date in won_successor_activations.items():
@@ -1114,7 +1114,7 @@ def main(report_end: str | None = None, sim_interface=None):
                             billing_account,
                             term_start_str,
                             reason="non-renewal",
-                            sim_churn_probability=event.get("churn_probability"),
+                            sim_churn_probability=event.get("realized_churn_probability", event.get("churn_probability")),
                             company_churn_estimate=event.get("company_churn_estimate"),
                         )
                     if event.get("home_move_won"):

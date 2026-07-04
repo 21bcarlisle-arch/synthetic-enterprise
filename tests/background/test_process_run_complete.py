@@ -98,6 +98,9 @@ def test_main_success_flow(tmp_path, monkeypatch):
     # generate_dashboard_json writes to the REAL site/data/dashboard.json (hardcoded path
     # inside generate_dashboard_data.py) — mock it to avoid corrupting the live dashboard
     monkeypatch.setattr(prc, "generate_dashboard_json", lambda p: None)
+    # run_fast_tests writes to the REAL docs/observability/.last_tested_hash on a
+    # returncode==0 fake pytest run — mock it to avoid corrupting the live cache file
+    monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
 
     latest_md = tmp_path / "LATEST.md"
     latest_md.write_text(

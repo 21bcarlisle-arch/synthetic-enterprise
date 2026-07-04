@@ -59,7 +59,7 @@ def generate(run_json_path=None):
             "event_date": e["event_date"],
             "commodity": e["commodity"],
             "event_type": e["event_type"],
-            "sim_churn_probability": e.get("churn_probability"),
+            "sim_churn_probability": e.get("realized_churn_probability", e.get("churn_probability")),
             "company_churn_estimate": e.get("company_churn_estimate"),
             "churn_estimate_error_pct": e.get("churn_estimate_error_pct"),
             "retention_offered": e.get("retention_offered"),

@@ -66,7 +66,17 @@ def roll_lifecycle_event(
       {customer_id (billing account), event_date, commodity,
        event_type: "renewed"|"churned",
        churn_probability, win_probability, effective_retention_probability,
-       random_roll}
+       realized_churn_probability, random_roll}
+
+    `churn_probability` is the raw, pre-adjustment SIM base rate (bill-shock
+    driven, from `saas.churn_model`) -- informational only, never what the
+    dice roll actually used. `effective_retention_probability` is the true
+    probability used for the roll, after every adjustment (passive cap,
+    market conditions, income stress, satisfaction, retention offer).
+    `realized_churn_probability` (Phase QA) is `1 - effective_retention_probability`
+    captured BEFORE the retention-offer adjustment -- the correct ground
+    truth to compare a company churn estimate against, since the estimate is
+    computed before the company decides whether to make an offer.
 
     Returns None if no renewal data is available in the churn model (can
     happen when `records_so_far` is too short to compute bill-shock history
@@ -107,6 +117,13 @@ def roll_lifecycle_event(
     if satisfaction_score is not None:
         p_churn_sat = adjust_churn_for_satisfaction(1.0 - effective_p_retain, satisfaction_score)
         effective_p_retain = 1.0 - p_churn_sat
+    # Phase QA: capture the true pre-retention-offer probability. This is what
+    # the company's churn estimate (computed before any retention decision) is
+    # actually trying to predict -- comparing it against a probability that
+    # already bakes in the company's own retention action would be circular
+    # (the company would look "wrong" purely because its own intervention
+    # worked).
+    effective_p_retain_pre_offer = effective_p_retain
     if retention_modifier is not None:
         p_churn_base = 1.0 - effective_p_retain
         effective_p_retain = 1.0 - p_churn_base * (1.0 - retention_modifier)
@@ -131,8 +148,18 @@ def roll_lifecycle_event(
         company_churn_estimate = round(
             estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years), 4
         )
+    # Phase QA: realized_churn_probability is the true, fully-adjusted (passive
+    # cap / market conditions / income stress / satisfaction) probability that
+    # was actually rolled against, captured BEFORE any retention-offer effect.
+    # Prior to this phase, churn_estimate_error_pct compared the company's
+    # estimate against renewal_data["churn_probability"] -- the raw, pre-
+    # adjustment bill-shock base rate that was never the number the dice roll
+    # used. That mismatch was the source of the apparent systematic ~-80%
+    # "underestimate" pattern the company's model showed at nearly every
+    # renewal: the comparison was against a number the SIM itself discarded.
+    realized_churn_probability = round(1.0 - effective_p_retain_pre_offer, 4)
     if company_churn_estimate is not None:
-        sim_prob = renewal_data["churn_probability"]
+        sim_prob = realized_churn_probability
         if sim_prob:
             churn_estimate_error_pct = round(
                 (company_churn_estimate - sim_prob) / sim_prob, 4
@@ -145,7 +172,8 @@ def roll_lifecycle_event(
         "event_type": "renewed" if retained else "churned",
         "churn_probability": round(renewal_data["churn_probability"], 4),
         "win_probability": round(renewal_data["win_probability"], 4),
-        "effective_retention_probability": round(renewal_data["effective_retention_probability"], 4),
+        "effective_retention_probability": round(effective_p_retain, 4),
+        "realized_churn_probability": realized_churn_probability,
         "random_roll": round(roll, 4),
         "home_move_won": home_move_won,
         "company_churn_estimate": company_churn_estimate,

@@ -66,7 +66,7 @@ def compute_counterfactual_retention(
         expected_margin = miss.get("expected_term_margin_gbp", 0.0)
 
         evt = events_by_key.get((cid, event_date), {})
-        sim_p = evt.get("churn_probability", 0.0)
+        sim_p = evt.get("realized_churn_probability", evt.get("churn_probability", 0.0))
         roll = evt.get("random_roll", 0.0)
         eff_p_retain = evt.get("effective_retention_probability", 1.0 - sim_p)
 
