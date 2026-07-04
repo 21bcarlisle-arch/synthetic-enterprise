@@ -115,6 +115,133 @@ def run_decisions(portfolio_path=None, run_output_path=None, out_dir=None, marke
     latest.write_text(json.dumps(decision, indent=2))
     return decision
 
+_SCENARIO_PROJECTION_MONTHS = 12
+
+_SCENARIO_CONFIGS = {
+    "base": {
+        "label": "Base (normal OU, long-run mean start)",
+        "regime": "normal",
+        "seed": 42,
+        "gas_start": None,
+        "elec_start": None,
+    },
+    "bull": {
+        "label": "Bull (prices below long-run mean — cheap energy)",
+        "regime": "normal",
+        "seed": 1,
+        "gas_start": 35.0,
+        "elec_start": 55.0,
+    },
+    "bear": {
+        "label": "Bear (prices above long-run mean — expensive energy)",
+        "regime": "normal",
+        "seed": 2,
+        "gas_start": 92.0,
+        "elec_start": 145.0,
+    },
+    "crisis": {
+        "label": "Crisis (high-vol regime forced — 2021-22 style shock)",
+        "regime": "crisis",
+        "seed": 3,
+        "gas_start": 108.0,
+        "elec_start": 213.0,
+    },
+}
+
+SCENARIO_ANALYSIS_PATH = PROJECT / "site" / "state" / "scenario_analysis_latest.json"
+
+
+def _scenario_market_state(cfg):
+    """Return market state for a scenario using the configured starting prices.
+
+    Scenarios represent PERSISTENT price levels (what if prices STAY here for 12 months?),
+    not OU projections. Starting prices are the scenario's sustained market level.
+    """
+    from tools.market_adapters.synthetic_generator import CorrelatedGeneratorAdapter, FORWARD_CONTANGO_ANNUAL
+    adapter = CorrelatedGeneratorAdapter(
+        seed=cfg["seed"],
+        regime=cfg["regime"],
+        gas_start=cfg.get("gas_start"),
+        elec_start=cfg.get("elec_start"),
+    )
+    elec = adapter._elec
+    gas = adapter._gas
+    return {
+        "elec_spot_gbp_per_mwh": round(elec, 2),
+        "gas_spot_gbp_per_mwh": round(gas, 2),
+        "elec_12m_forward_gbp_per_mwh": round(elec * (1.0 + FORWARD_CONTANGO_ANNUAL), 2),
+        "gas_12m_forward_gbp_per_mwh": round(gas * (1.0 + FORWARD_CONTANGO_ANNUAL), 2),
+    }
+
+
+def _portfolio_exposure_delta(customers, scenario_elec_fwd, scenario_gas_fwd, base_elec_fwd, base_gas_fwd):
+    """Additional annual commodity cost exposure vs base (unhedged portion)."""
+    total = 0.0
+    for c in customers:
+        eac = c.get("eac_kwh_per_year") or 0
+        hf = c.get("hedge_fraction") or 0.0
+        fuel = c.get("commodity", "electricity")
+        delta_fwd = (scenario_gas_fwd - base_gas_fwd) if fuel == "gas" else (scenario_elec_fwd - base_elec_fwd)
+        total += eac / 1000.0 * delta_fwd * (1.0 - hf)
+    return round(total, 2)
+
+
+def run_scenario_analysis(portfolio_path=None, out_dir=None):
+    """Run renewal/hedge decisions under base/bull/bear/crisis market scenarios.
+
+    Returns scenario_analysis dict; writes scenario_analysis_latest.json.
+    """
+    port_path = Path(portfolio_path) if portfolio_path else PORTFOLIO_PATH
+    out = Path(out_dir) if out_dir else LIVE_DECISIONS_DIR
+    portfolio = json.loads(port_path.read_text())
+    customers = portfolio.get("customers", [])
+    as_of = portfolio.get("generated_at", "2025-06-07")[:10]
+
+    scenarios = {}
+    for name, cfg in _SCENARIO_CONFIGS.items():
+        mkt = _scenario_market_state(cfg)
+        elec_fwd = mkt["elec_12m_forward_gbp_per_mwh"]
+        gas_fwd = mkt["gas_12m_forward_gbp_per_mwh"]
+        hedge_rec, hedge_affected = _hedge_recommendation(customers)
+        flags = _renewal_flags(customers, as_of, elec_fwd, gas_fwd)
+        scenarios[name] = {
+            "label": cfg["label"],
+            "elec_spot_gbp_per_mwh": mkt["elec_spot_gbp_per_mwh"],
+            "gas_spot_gbp_per_mwh": mkt["gas_spot_gbp_per_mwh"],
+            "elec_12m_forward_gbp_per_mwh": elec_fwd,
+            "gas_12m_forward_gbp_per_mwh": gas_fwd,
+            "hedge_recommendation": hedge_rec,
+            "hedge_affected_customers": hedge_affected,
+            "renewal_flags": flags,
+        }
+
+    base_elec_fwd = scenarios["base"]["elec_12m_forward_gbp_per_mwh"]
+    base_gas_fwd = scenarios["base"]["gas_12m_forward_gbp_per_mwh"]
+    margin_delta = {}
+    for name in ("bull", "bear", "crisis"):
+        s = scenarios[name]
+        margin_delta[name] = _portfolio_exposure_delta(
+            customers,
+            s["elec_12m_forward_gbp_per_mwh"],
+            s["gas_12m_forward_gbp_per_mwh"],
+            base_elec_fwd,
+            base_gas_fwd,
+        )
+
+    result = {
+        "generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "portfolio_as_of": portfolio.get("generated_at"),
+        "active_customers": portfolio.get("active_customer_count"),
+        "projection_months": _SCENARIO_PROJECTION_MONTHS,
+        "scenarios": scenarios,
+        "portfolio_exposure_delta_gbp": margin_delta,
+    }
+    out.mkdir(parents=True, exist_ok=True)
+    out_file = out / "scenario_analysis_latest.json"
+    out_file.write_text(json.dumps(result, indent=2))
+    return result
+
+
 if __name__ == "__main__":
     d = run_decisions()
     print("Decision run at:", d["decision_run_at"])

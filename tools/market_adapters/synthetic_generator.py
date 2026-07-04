@@ -42,12 +42,12 @@ class CorrelatedGeneratorAdapter:
     get_spot_elec/gas() return the current state without advancing.
     """
 
-    def __init__(self, seed=None, regime="normal"):
+    def __init__(self, seed=None, regime="normal", gas_start=None, elec_start=None):
         self._rng = _random.Random(seed)
         self._forced_crisis = (regime == "crisis")
         self._is_crisis = self._forced_crisis
-        self._gas = GAS_LONG_RUN_MEAN_GBP_PER_MWH
-        self._elec = ELEC_LONG_RUN_MEAN_GBP_PER_MWH
+        self._gas = gas_start if gas_start is not None else GAS_LONG_RUN_MEAN_GBP_PER_MWH
+        self._elec = elec_start if elec_start is not None else ELEC_LONG_RUN_MEAN_GBP_PER_MWH
 
     def _draw_correlated(self):
         """Draw (z_gas, z_elec) ~ bivariate N(0,I) with correlation ELEC_GAS_CORR."""

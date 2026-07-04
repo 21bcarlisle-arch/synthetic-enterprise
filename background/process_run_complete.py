@@ -235,6 +235,12 @@ def generate_dashboard_json(json_path):
         log("Generated site/state/live_decisions_latest.json")
     except Exception as exc:
         log("Live decisions generation failed: {}".format(exc))
+    try:
+        from tools.run_live_decisions import run_scenario_analysis
+        run_scenario_analysis()
+        log("Generated site/state/scenario_analysis_latest.json")
+    except Exception as exc:
+        log("Scenario analysis generation failed: {}".format(exc))
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):
@@ -281,6 +287,9 @@ def git_commit_push(git_hash, net_margin):
     site_data_supplier = PROJECT_DIR / "site" / "data" / "supplier.json"
     if site_data_supplier.exists():
         files.append(str(site_data_supplier))
+    site_state_scenario = PROJECT_DIR / "site" / "state" / "scenario_analysis_latest.json"
+    if site_state_scenario.exists():
+        files.append(str(site_state_scenario))
     subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin

@@ -1,18 +1,23 @@
-## Phase PW COMPLETE -- I&C Corporate Arrears Calibration
-Last updated: 2026-07-04T06:02:08Z
+## Phase PZ COMPLETE -- Scenario Stress Testing via Synthetic Market
+Last updated: 2026-07-04T06:05:13Z
 
-**Status:** COMPLETE. 15,359 tests passing. Epistemic: PASS.
+**Status:** COMPLETE. 15,300 tests (fast suite). Epistemic: PASS.
 
-**Phase PW -- I&C Corporate Arrears Calibration:**
-- generate_billing_ledger.py: I&C BACS/CHAPS invoice dispute model (92% on-time, 7.3% late, 0.7% dispute)
-- Dispute stages: INVOICE_DISPUTED -> DISPUTE_NOTICE -> PAYMENT_PLAN_AGREED | WRITTEN_OFF
-- Segment stored in customer ledger dict
-- population_anchor.py: _arrears_check_by_year separates I&C from resi
-- ic_aggregate_rate_pct (10-yr) used for RAG vs DESNZ commercial benchmark (<8% normal)
-- KEY FINDING: IC arrears 0% -> 5.4% aggregate; all years rag=GREEN
-- Prior PS RED (29-31%) was resi income-stress arrears vs I&C benchmark (category mismatch fixed)
+**Phase PZ -- Scenario Stress Testing via Synthetic Market:**
+- tools/run_live_decisions.py: run_scenario_analysis() with 4 persistent scenarios (base/bull/bear/crisis)
+- Scenario prices = CorrelatedGeneratorAdapter start prices (sustained levels, not OU projection)
+- portfolio_exposure_delta: additional unhedged annual cost vs base scenario
+- tools/market_adapters/synthetic_generator.py: gas_start/elec_start params added
+- saas/reporting/annual_report.py: _section_scenario_sensitivity board section
+- process_run_complete.py: run_scenario_analysis() wired + JSON committed
 
-**Next:** Reviewing PRIORITIES.md for P2 (Network Charge Year-Indexed Actuals) or next highest gap.
+**KEY FINDINGS:**
+- Crisis scenario: elec 217 GBP/MWh, gas 110 GBP/MWh → +£1,562,206 unhedged exposure vs base
+- Bull scenario: elec 56 GBP/MWh → -£398,252 (cheap energy, hedge reduces cost)
+- All scenarios: INCREASE hedge recommendation (portfolio underpins at 30% avg hedge fraction)
+- CLOSES CLAUDE.md known failure: regime-change blindness — board can now ask "what if 2021-22 again?"
+
+**PRIORITIES.md P1 (Correlated Simulation Endgame):** COMPLETE.
 
 
 **Latest simulation results (2016–2025)** — auto-processed (473s / 8 min):

@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-07-04T06:01:17Z",
+  "generated_at": "2026-07-04T06:03:03Z",
   "portfolio_as_of": "2026-07-04T06:01:15Z",
   "active_customers": 11,
   "projection_months": 12,
   "scenarios": {
     "base": {
       "label": "Base (normal OU, long-run mean start)",
-      "elec_spot_gbp_per_mwh": 26.57,
-      "gas_spot_gbp_per_mwh": 20.1,
-      "elec_12m_forward_gbp_per_mwh": 27.1,
-      "gas_12m_forward_gbp_per_mwh": 20.5,
+      "elec_spot_gbp_per_mwh": 85.0,
+      "gas_spot_gbp_per_mwh": 54.0,
+      "elec_12m_forward_gbp_per_mwh": 86.7,
+      "gas_12m_forward_gbp_per_mwh": 55.08,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "C1_2",
@@ -26,10 +26,10 @@
     },
     "bull": {
       "label": "Bull (prices below long-run mean \u2014 cheap energy)",
-      "elec_spot_gbp_per_mwh": 97.29,
-      "gas_spot_gbp_per_mwh": 42.56,
-      "elec_12m_forward_gbp_per_mwh": 99.24,
-      "gas_12m_forward_gbp_per_mwh": 43.41,
+      "elec_spot_gbp_per_mwh": 55.0,
+      "gas_spot_gbp_per_mwh": 35.0,
+      "elec_12m_forward_gbp_per_mwh": 56.1,
+      "gas_12m_forward_gbp_per_mwh": 35.7,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "C1_2",
@@ -46,10 +46,10 @@
     },
     "bear": {
       "label": "Bear (prices above long-run mean \u2014 expensive energy)",
-      "elec_spot_gbp_per_mwh": 123.47,
-      "gas_spot_gbp_per_mwh": 62.07,
-      "elec_12m_forward_gbp_per_mwh": 125.94,
-      "gas_12m_forward_gbp_per_mwh": 63.31,
+      "elec_spot_gbp_per_mwh": 145.0,
+      "gas_spot_gbp_per_mwh": 92.0,
+      "elec_12m_forward_gbp_per_mwh": 147.9,
+      "gas_12m_forward_gbp_per_mwh": 93.84,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "C1_2",
@@ -66,10 +66,10 @@
     },
     "crisis": {
       "label": "Crisis (high-vol regime forced \u2014 2021-22 style shock)",
-      "elec_spot_gbp_per_mwh": 42.26,
-      "gas_spot_gbp_per_mwh": 64.93,
-      "elec_12m_forward_gbp_per_mwh": 43.1,
-      "gas_12m_forward_gbp_per_mwh": 66.22,
+      "elec_spot_gbp_per_mwh": 213.0,
+      "gas_spot_gbp_per_mwh": 108.0,
+      "elec_12m_forward_gbp_per_mwh": 217.26,
+      "gas_12m_forward_gbp_per_mwh": 110.16,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "C1_2",
@@ -86,8 +86,8 @@
     }
   },
   "portfolio_exposure_delta_gbp": {
-    "bull": 825848.57,
-    "bear": 1188180.27,
-    "crisis": 384830.88
+    "bull": -398251.76,
+    "bear": 796503.52,
+    "crisis": 1562206.04
   }
 }
