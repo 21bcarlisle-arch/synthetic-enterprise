@@ -14,23 +14,28 @@ DOCS_STATUS_PATH = PROJECT / "docs" / "status" / "PROJECT_STATE.txt"
 
 
 def _parse_phase_and_tests():
+    """Return (phase, test_count) for the MOST RECENT phase, not the one with
+    the highest test count -- the fast-suite total isn't monotonic (it
+    fluctuates with which slow/simulation tests are ignored at write time),
+    so picking the max silently regressed the reported phase label to an
+    older one whenever a later phase happened to report a smaller count.
+    New phases are always prepended at the top of "## Current state"
+    (CLAUDE.md phase-close checklist step 5), so the first COMPLETE line is
+    the current one."""
     try:
         text = CLAUDE_MD.read_text()
         idx = text.find("## Current state")
         if idx < 0:
             return "?", 0
         section = text[idx:]
-        best_tests, best_phase = 0, "?"
         for line in section.split("\n"):
             if "COMPLETE" not in line:
                 continue
             m_ph = re.search(r"\*\*Phase (\w+) COMPLETE", line)
             m_tc = re.search(r"(\d[\d,]+)\s+total", line)
             if m_ph and m_tc:
-                tc = int(m_tc.group(1).replace(",", ""))
-                if tc > best_tests:
-                    best_tests, best_phase = tc, m_ph.group(1)
-        return best_phase, best_tests
+                return m_ph.group(1), int(m_tc.group(1).replace(",", ""))
+        return "?", 0
     except Exception:
         return "?", 0
 
@@ -92,7 +97,21 @@ def generate():
             retained, offers, no_offer_churns, total_churned),
         "",
         "## Key Files (fetchable without JavaScript)",
+        "# ADVISOR: use the github.io URLs below for verification fetches -- poesys.net (Cloudflare",
+        "# Pages) has proven persistently stale on the advisor's egress path specifically, independent",
+        "# of any CD incident (docs/staging/done/ADVISOR_GITHUBIO_MIRROR*.md). github.io is served",
+        "# straight from this repo's docs/ folder on every push -- no separate CDN in the path.",
         "- https://21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt -- THIS FILE (canonical, GitHub Pages)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/ -- no-JS HTML: Supplier dashboard (GitHub Pages mirror)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/customers/ -- no-JS HTML: Customer portal (GitHub Pages mirror)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/supplier/ -- no-JS HTML: Supplier P&L (GitHub Pages mirror)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/project/ -- no-JS HTML: Project overview (GitHub Pages mirror)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/sim/ -- no-JS HTML: SIM market data (GitHub Pages mirror)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/customer_sample.json -- per-customer ground truth (GitHub Pages mirror)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/billing_ledger.json -- per-customer invoice/payment/arrears ledger (GitHub Pages mirror)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/population_anchoring.json -- SIM vs Ofgem/DESNZ benchmark validation (GitHub Pages mirror)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/sim_data.json -- Elexon SSP settlement data (GitHub Pages mirror)",
+        "# Visitor surface (Cloudflare Pages, same generator pass -- not for advisor verification fetches):",
         "- https://poesys.net/state/PROJECT_STATE.txt -- mirror (Cloudflare Pages)",
         "- https://poesys.net/state/customer_sample.json -- per-customer ground truth",
         "- https://poesys.net/shadow/ -- no-JS HTML: Supplier dashboard",

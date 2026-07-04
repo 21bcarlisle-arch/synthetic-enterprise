@@ -43,6 +43,19 @@
   net margin, just never applied to gross. Fixed at root (precedence flipped to match net margin's and
   extract_portfolio's convention). Part B (design system + customer portal per-fuel legs) is the only
   remaining scope from the staged instruction.
+- GitHub Pages advisor-verification mirror: DONE (Phase QG, docs/staging/ADVISOR_GITHUBIO_MIRROR.md) --
+  poesys.net (Cloudflare Pages) proven persistently stale on the advisor's own fetch path specifically
+  (cache-busted fetch still returned an 08:35Z generation while CC's direct fetch of the same URL at
+  17:58 returned the current one), independent of any CD incident. tools/mirror_github_pages.py copies
+  site/shadow/ -> docs/shadow/ and the 4 named state JSONs (customer_sample, billing_ledger,
+  population_anchoring, sim_data) -> docs/state/ every run (same generator pass, no regeneration);
+  wired into process_run_complete.py's site-generation + git_commit_push staging list. docs/status/
+  PROJECT_STATE.txt Key Files section now lists the github.io URLs as the advisor-verification channel,
+  poesys.net kept as the visitor-only surface. Also fixed a related bug found while touching this file:
+  generate_project_state.py::_parse_phase_and_tests() picked the phase with the HIGHEST reported test
+  count rather than the most recent one -- since the fast-suite total isn't monotonic across phases,
+  this had silently regressed PROJECT_STATE.txt's "Current Phase" label to an older phase (PZ instead
+  of the actual QF) whenever a later phase reported a smaller count.
 
 ## ORDERING NOTE (2026-07-04, advisor steer)
 Phase PZ (scenario stress testing) jumped the queue: ADVISOR_CONFIRM_STATE_FRESH.md released the

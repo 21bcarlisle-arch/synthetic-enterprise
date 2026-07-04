@@ -261,6 +261,12 @@ def generate_dashboard_json(json_path):
         log("Generated site/state/scenario_analysis_latest.json")
     except Exception as exc:
         log("Scenario analysis generation failed: {}".format(exc))
+    try:
+        from tools.mirror_github_pages import mirror as mirror_gh_pages
+        mirrored = mirror_gh_pages()
+        log("Mirrored {} file(s) to docs/shadow + docs/state for GitHub Pages".format(len(mirrored)))
+    except Exception as exc:
+        log("GitHub Pages mirror failed: {}".format(exc))
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):
@@ -313,6 +319,16 @@ def git_commit_push(git_hash, net_margin):
     site_state_decision_log = PROJECT_DIR / "site" / "state" / "live_decisions_log.jsonl"
     if site_state_decision_log.exists():
         files.append(str(site_state_decision_log))
+    # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
+    # fetch path to poesys.net proved persistently stale independent of any CD
+    # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),
+    # same as docs/status/PROJECT_STATE.txt already does.
+    docs_shadow = PROJECT_DIR / "docs" / "shadow"
+    if docs_shadow.exists():
+        files.append(str(docs_shadow))
+    docs_state = PROJECT_DIR / "docs" / "state"
+    if docs_state.exists():
+        files.append(str(docs_state))
     subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin

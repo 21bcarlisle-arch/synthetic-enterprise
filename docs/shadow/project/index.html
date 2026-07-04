@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><title>Project Status - Synthetic Enterprise</title><style>body{font-family:monospace;background:#1a1a1a;color:#e0e0e0;margin:0;padding:16px}h1,h2{color:#aaf}table{border-collapse:collapse;width:100%;margin-bottom:24px}th{background:#2a2a4a;color:#aaf;text-align:left;padding:6px 10px;border:1px solid #333}td{padding:5px 10px;border:1px solid #2a2a2a;vertical-align:top}tr:nth-child(even){background:#1e1e1e}.pos{color:#4f4}.neg{color:#f44}.meta{color:#888;font-size:0.85em;margin-bottom:16px}pre{background:#111;padding:12px;overflow-x:auto;color:#cce;white-space:pre-wrap}dl{display:grid;grid-template-columns:200px 1fr;gap:4px 16px;margin-bottom:16px}dt{color:#aaf}dd{margin:0}</style></head><body><nav style="background:#111;color:#ccc;padding:8px;font-family:monospace"><a href="/shadow/" style="color:#88f">Overview</a> &bull; <a href="/shadow/customers/" style="color:#88f">Customers</a> &bull; <a href="/shadow/supplier/" style="color:#88f">Supplier</a> &bull; <a href="/shadow/sim/" style="color:#88f">Sim</a> &bull; <strong style="color:#fff">Project</strong> | <a href="/" style="color:#666">Live site</a> | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></nav><h1>Project Status</h1><dl><dt>Current Phase</dt><dd>QB</dd><dt>Test Count</dt><dd>15331</dd><dt>Company Modules</dt><dd>448</dd><dt>Simulation Window</dt><dd>2016-2025</dd></dl><h2>LATEST.md</h2><pre>## Phase PZ COMPLETE -- Scenario Stress Testing via Synthetic Market
+Last updated: 2026-07-04T17:56:27Z
+
+**Status:** COMPLETE. 15,300 tests (fast suite). Epistemic: PASS.
+
+**Phase PZ -- Scenario Stress Testing via Synthetic Market:**
+- tools/run_live_decisions.py: run_scenario_analysis() with 4 persistent scenarios (base/bull/bear/crisis)
+- Scenario prices = CorrelatedGeneratorAdapter start prices (sustained levels, not OU projection)
+- portfolio_exposure_delta: additional unhedged annual cost vs base scenario
+- tools/market_adapters/synthetic_generator.py: gas_start/elec_start params added
+- saas/reporting/annual_report.py: _section_scenario_sensitivity board section
+- process_run_complete.py: run_scenario_analysis() wired + JSON committed
+
+**KEY FINDINGS:**
+- Crisis scenario: elec 217 GBP/MWh, gas 110 GBP/MWh → +£1,562,206 unhedged exposure vs base
+- Bull scenario: elec 56 GBP/MWh → -£398,252 (cheap energy, hedge reduces cost)
+- All scenarios: INCREASE hedge recommendation (portfolio underpins at 30% avg hedge fraction)
+- CLOSES CLAUDE.md known failure: regime-change blindness — board can now ask "what if 2021-22 again?"
+
+**PRIORITIES.md P1 (Correlated Simulation Endgame):** COMPLETE.
+
+
+**Latest simulation results (2016–2025)** — auto-processed (515s / 9 min):
+- Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
+- Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
+- Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
+- Retention: 14 offers, 14/14 retained | 6 no-offer churns | 6 total churned accounts</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-07-04T17:57:01Z | Run latest | Phase QB | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></p></body></html>

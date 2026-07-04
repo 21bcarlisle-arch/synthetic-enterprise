@@ -1,9 +1,9 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-07-04T17:39:29Z
+Generated: 2026-07-04T18:11:27Z
 
 ## Summary
-- Current Phase: PZ
-- Test Suite: 15,424 tests passing (unit / fast suite ~10s)
+- Current Phase: QF
+- Test Suite: 15,342 tests passing (unit / fast suite ~10s)
 - Company Modules: 448+ Python modules across company/
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)
@@ -19,7 +19,21 @@ Generated: 2026-07-04T17:39:29Z
 - Retention: 14/14 offers accepted | 6 no-offer churns | 6 total churned
 
 ## Key Files (fetchable without JavaScript)
+# ADVISOR: use the github.io URLs below for verification fetches -- poesys.net (Cloudflare
+# Pages) has proven persistently stale on the advisor's egress path specifically, independent
+# of any CD incident (docs/staging/done/ADVISOR_GITHUBIO_MIRROR*.md). github.io is served
+# straight from this repo's docs/ folder on every push -- no separate CDN in the path.
 - https://21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt -- THIS FILE (canonical, GitHub Pages)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/ -- no-JS HTML: Supplier dashboard (GitHub Pages mirror)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/customers/ -- no-JS HTML: Customer portal (GitHub Pages mirror)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/supplier/ -- no-JS HTML: Supplier P&L (GitHub Pages mirror)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/project/ -- no-JS HTML: Project overview (GitHub Pages mirror)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/sim/ -- no-JS HTML: SIM market data (GitHub Pages mirror)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/customer_sample.json -- per-customer ground truth (GitHub Pages mirror)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/billing_ledger.json -- per-customer invoice/payment/arrears ledger (GitHub Pages mirror)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/population_anchoring.json -- SIM vs Ofgem/DESNZ benchmark validation (GitHub Pages mirror)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/sim_data.json -- Elexon SSP settlement data (GitHub Pages mirror)
+# Visitor surface (Cloudflare Pages, same generator pass -- not for advisor verification fetches):
 - https://poesys.net/state/PROJECT_STATE.txt -- mirror (Cloudflare Pages)
 - https://poesys.net/state/customer_sample.json -- per-customer ground truth
 - https://poesys.net/shadow/ -- no-JS HTML: Supplier dashboard
@@ -36,6 +50,6 @@ Generated: 2026-07-04T17:39:29Z
 - Churn model: bill shock YoY + payment behaviour + satisfaction + market year elasticity
 
 ## Key Metrics
-- Tests at start (Phase 0): 0 | Tests now: 15,424
+- Tests at start (Phase 0): 0 | Tests now: 15,342
 - Net margin all-time: GBP1,445,258 | Crisis survived: 2021-22
 - Retention: 14/14 offers | 6 no-offer churns

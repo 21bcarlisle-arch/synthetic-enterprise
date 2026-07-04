@@ -1,0 +1,500 @@
+{
+  "meta": {
+    "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
+    "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)",
+    "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
+    "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis"
+  },
+  "overall_rag": "RED",
+  "long_run_comparison": {
+    "sim_avg_pct": 6.4,
+    "ofgem_avg_pct": 13.6,
+    "ratio": 0.47,
+    "years_compared": 10,
+    "total_renewals": 62,
+    "rag": "GREEN",
+    "note": "SIM portfolio is predominantly I&C (B2B contract churn) vs Ofgem residential switching. Long-run average comparison is more robust than single-year with N<15 renewals."
+  },
+  "crisis_churn_direction": {
+    "pre_crisis_avg_pct": 6.7,
+    "crisis_avg_pct": 7.4,
+    "2022_sim_rate_pct": 22.2,
+    "2022_ofgem_rate_pct": 4.0,
+    "2022_ratio_vs_ofgem": 5.6,
+    "rolling_divergence_flag": false,
+    "absolute_divergence_flag": true,
+    "crisis_divergence_flag": false,
+    "insufficient_data": false,
+    "note": "3-year rolling comparison reduces single-year small-N noise. crisis_divergence_flag requires BOTH rolling AND absolute divergence AND adequate N. I&C at-contract-end churn is structurally higher than residential -- 4x Ofgem threshold allows for portfolio composition difference."
+  },
+  "bad_debt_vs_benchmark": [
+    {
+      "year": 2016,
+      "bad_debt_gbp": 602.0,
+      "bad_debt_rate": 5.78,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "RED"
+    },
+    {
+      "year": 2017,
+      "bad_debt_gbp": 469.0,
+      "bad_debt_rate": 0.2,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2018,
+      "bad_debt_gbp": 433.0,
+      "bad_debt_rate": 0.1,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2019,
+      "bad_debt_gbp": 660.0,
+      "bad_debt_rate": 0.06,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2020,
+      "bad_debt_gbp": 0.0,
+      "bad_debt_rate": 0.0,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2021,
+      "bad_debt_gbp": 721.0,
+      "bad_debt_rate": 0.04,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 4.0,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2022,
+      "bad_debt_gbp": 166.0,
+      "bad_debt_rate": 0.0,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 4.0,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2023,
+      "bad_debt_gbp": 0.0,
+      "bad_debt_rate": 0.0,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 4.0,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2024,
+      "bad_debt_gbp": 0.0,
+      "bad_debt_rate": 0.0,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2025,
+      "bad_debt_gbp": 0.0,
+      "bad_debt_rate": 0.0,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 2.5,
+      "rag": "GREEN"
+    }
+  ],
+  "multiplier_alignment": [
+    {
+      "year_transition": "2016->2017",
+      "ofgem_direction": "down",
+      "sim_direction": "flat",
+      "ofgem_rate_prev": 0.2,
+      "ofgem_rate_curr": 0.19,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2017->2018",
+      "ofgem_direction": "down",
+      "sim_direction": "flat",
+      "ofgem_rate_prev": 0.19,
+      "ofgem_rate_curr": 0.18,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2018->2019",
+      "ofgem_direction": "down",
+      "sim_direction": "flat",
+      "ofgem_rate_prev": 0.18,
+      "ofgem_rate_curr": 0.17,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2019->2020",
+      "ofgem_direction": "down",
+      "sim_direction": "up",
+      "ofgem_rate_prev": 0.17,
+      "ofgem_rate_curr": 0.14,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.2,
+      "rag": "AMBER"
+    },
+    {
+      "year_transition": "2020->2021",
+      "ofgem_direction": "down",
+      "sim_direction": "down",
+      "ofgem_rate_prev": 0.14,
+      "ofgem_rate_curr": 0.09,
+      "sim_rate_prev": 0.2,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2021->2022",
+      "ofgem_direction": "down",
+      "sim_direction": "up",
+      "ofgem_rate_prev": 0.09,
+      "ofgem_rate_curr": 0.04,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.2222,
+      "rag": "AMBER"
+    },
+    {
+      "year_transition": "2022->2023",
+      "ofgem_direction": "up",
+      "sim_direction": "down",
+      "ofgem_rate_prev": 0.04,
+      "ofgem_rate_curr": 0.08,
+      "sim_rate_prev": 0.2222,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2023->2024",
+      "ofgem_direction": "up",
+      "sim_direction": "up",
+      "ofgem_rate_prev": 0.08,
+      "ofgem_rate_curr": 0.13,
+      "sim_rate_prev": 0.0,
+      "sim_rate_curr": 0.2222,
+      "rag": "GREEN"
+    },
+    {
+      "year_transition": "2024->2025",
+      "ofgem_direction": "up",
+      "sim_direction": "down",
+      "ofgem_rate_prev": 0.13,
+      "ofgem_rate_curr": 0.14,
+      "sim_rate_prev": 0.2222,
+      "sim_rate_curr": 0.0,
+      "rag": "GREEN"
+    }
+  ],
+  "churn_by_year": {
+    "2016": {
+      "renewals": 3,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.2,
+      "calibrated_multiplier": 2.17
+    },
+    "2017": {
+      "renewals": 3,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.19,
+      "calibrated_multiplier": 1.88
+    },
+    "2018": {
+      "renewals": 4,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.18,
+      "calibrated_multiplier": 1.72
+    },
+    "2019": {
+      "renewals": 4,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.17,
+      "calibrated_multiplier": 1.43
+    },
+    "2020": {
+      "renewals": 8,
+      "churns": 2,
+      "sim_churn_rate": 0.2,
+      "ofgem_benchmark": 0.14,
+      "calibrated_multiplier": 0.95
+    },
+    "2021": {
+      "renewals": 9,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.09,
+      "calibrated_multiplier": 0.57
+    },
+    "2022": {
+      "renewals": 7,
+      "churns": 2,
+      "sim_churn_rate": 0.2222,
+      "ofgem_benchmark": 0.04,
+      "calibrated_multiplier": 0.44
+    },
+    "2023": {
+      "renewals": 9,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.08,
+      "calibrated_multiplier": 0.79
+    },
+    "2024": {
+      "renewals": 7,
+      "churns": 2,
+      "sim_churn_rate": 0.2222,
+      "ofgem_benchmark": 0.13,
+      "calibrated_multiplier": 1.0
+    },
+    "2025": {
+      "renewals": 2,
+      "churns": 0,
+      "sim_churn_rate": 0.0,
+      "ofgem_benchmark": 0.14,
+      "calibrated_multiplier": 0.93
+    }
+  },
+  "complaints_vs_benchmark": [
+    {
+      "year": 2016,
+      "complaint_rate_pct": 4.7,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2017,
+      "complaint_rate_pct": 4.67,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2018,
+      "complaint_rate_pct": 4.66,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2019,
+      "complaint_rate_pct": 4.67,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2020,
+      "complaint_rate_pct": 4.29,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2021,
+      "complaint_rate_pct": 4.8,
+      "benchmark_green_hi": 8.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": true,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2022,
+      "complaint_rate_pct": 5.81,
+      "benchmark_green_hi": 8.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": true,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2023,
+      "complaint_rate_pct": 5.05,
+      "benchmark_green_hi": 8.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": true,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2024,
+      "complaint_rate_pct": 4.82,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "GREEN"
+    },
+    {
+      "year": 2025,
+      "complaint_rate_pct": 6.07,
+      "benchmark_green_hi": 6.0,
+      "benchmark_lo": 1.0,
+      "is_crisis_year": false,
+      "rag": "AMBER"
+    }
+  ],
+  "arrears_vs_benchmark": [
+    {
+      "year": 2016,
+      "new_arrears_count": 4,
+      "active_customers": 13,
+      "new_arrears_rate_pct": 30.8,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 0,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    },
+    {
+      "year": 2017,
+      "new_arrears_count": 3,
+      "active_customers": 14,
+      "new_arrears_rate_pct": 21.4,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 1,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    },
+    {
+      "year": 2018,
+      "new_arrears_count": 5,
+      "active_customers": 15,
+      "new_arrears_rate_pct": 33.3,
+      "ic_arrears_count": 1,
+      "ic_active_customers": 2,
+      "ic_arrears_rate_pct": 50.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    },
+    {
+      "year": 2019,
+      "new_arrears_count": 4,
+      "active_customers": 17,
+      "new_arrears_rate_pct": 23.5,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 4,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    },
+    {
+      "year": 2020,
+      "new_arrears_count": 1,
+      "active_customers": 19,
+      "new_arrears_rate_pct": 5.3,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    },
+    {
+      "year": 2021,
+      "new_arrears_count": 3,
+      "active_customers": 15,
+      "new_arrears_rate_pct": 20.0,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 12.0,
+      "is_crisis_year": true,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    },
+    {
+      "year": 2022,
+      "new_arrears_count": 6,
+      "active_customers": 17,
+      "new_arrears_rate_pct": 35.3,
+      "ic_arrears_count": 1,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 20.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 12.0,
+      "is_crisis_year": true,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    },
+    {
+      "year": 2023,
+      "new_arrears_count": 3,
+      "active_customers": 14,
+      "new_arrears_rate_pct": 21.4,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 12.0,
+      "is_crisis_year": true,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    },
+    {
+      "year": 2024,
+      "new_arrears_count": 4,
+      "active_customers": 14,
+      "new_arrears_rate_pct": 28.6,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    },
+    {
+      "year": 2025,
+      "new_arrears_count": 1,
+      "active_customers": 11,
+      "new_arrears_rate_pct": 9.1,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
+      "benchmark_green_hi": 8.0,
+      "is_crisis_year": false,
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+    }
+  ]
+}

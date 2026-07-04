@@ -111,6 +111,14 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QG -- GitHub Pages Advisor-Verification Mirror (2026-07-04)
+7 new tests. Tier 2 (WEEKEND_ACCELERATION.md Q3, staged docs/staging/ADVISOR_GITHUBIO_MIRROR.md: "may already be actioned; verify then close"). Verification found it was NOT actioned: poesys.net (Cloudflare Pages) is proven persistently stale specifically on the advisor's own fetch path -- a cache-busted fetch of poesys.net/shadow/?v=1804 at ~18:04 still returned an 08:35Z generation (Phase OL, stale exec summary) while CC's direct fetch of the identical URL at 17:58 returned the current Phase QB content with Cf-Cache-Status=DYNAMIC -- so this is not simple CDN staleness but a persistent divergence in the advisor's egress path, the same class of producer/consumer split PROJECT_STATE.txt hit before it moved to docs/status/ (GitHub Pages, published straight from this repo's `docs/` folder on every push, no separate CDN in the path).
+
+`tools/mirror_github_pages.py` (new): `mirror()` copies `site/shadow/` (all 5 pages) to `docs/shadow/` (removing any stale tree first) and the 4 state JSONs named in the staged instruction (`customer_sample.json`, `billing_ledger.json`, `population_anchoring.json`, `sim_data.json`) from `site/state/`/`site/data/` to `docs/state/` -- a pure file copy of the same generator pass's output, not a second regeneration, so the github.io mirror always carries identical freshness stamps to the Cloudflare original. Wired into `background/process_run_complete.py`'s site-generation step and into `git_commit_push()`'s targeted file list (`docs/shadow`, `docs/state`) alongside the existing `docs/status/PROJECT_STATE.txt` handling. `tools/generate_project_state.py`'s "Key Files" section now lists the github.io URLs as the advisor-verification channel with an explanatory comment, keeping the poesys.net URLs as the visitor-only surface per the staged instruction's standing rule.
+
+KEY FINDING (bug found while touching `generate_project_state.py`): `_parse_phase_and_tests()` scanned CLAUDE.md's "Current state" section for the COMPLETE entry with the **highest** reported test count, not the most recent one. Since the fast-suite total fluctuates non-monotonically across phases (different ignore-lists / slow-test exclusions at write time -- e.g. QF=15,342, QE=15,329, QD=15,393, QC=15,341), this silently regressed `PROJECT_STATE.txt`'s "Current Phase" label to phase PZ (an older, higher-count phase) instead of the actual current phase QF, immediately before this fix. Corrected to take the first COMPLETE line (phases are always prepended at the top per the phase-close checklist), verified against a synthetic fixture and against the live CLAUDE.md (now correctly reports QF as of this phase's start). Epistemic: PASS (tooling/site-generation only).
+**Total:** 15,349 tests
+
 ### Phase QF -- Website Integrity Part C: Permanent Consistency-Gate Wiring (2026-07-04)
 13 new tests. Tier 2 (PRIORITIES.md P1/P2, staged docs/staging/done/WEBSITE_INTEGRITY_AND_DESIGN_PARTA_DONE.md Part C: "every run regenerates ALL surfaces from the canonical artifact as one pipeline step; the consistency gate (A3) runs every time... this is standing infrastructure, not a one-off polish"). Phase QC's Part A gate only ever compared `net_margin_gbp` between dashboard totals and `run_insights.json`, and critically its `True`/`False` result was discarded by both `generate()` and the caller -- a mismatch printed to stderr but never blocked anything or notified anyone, violating Part A's own "never ships silently" acceptance criterion.
 
@@ -5226,7 +5234,12 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,342 tests (fast suite / ~100s; simulation integration ~8 min per run)
+- 15,349 tests (fast suite / ~100s; simulation integration ~8 min per run)
+- Phase QG (2026-07-04): GitHub Pages advisor-verification mirror -- poesys.net proven persistently
+  stale on the advisor's own fetch path (independent of any CD incident); site/shadow/ + 4 state JSONs
+  now also mirrored to docs/shadow/ + docs/state/ (GitHub Pages, same reliable channel already proven
+  for docs/status/PROJECT_STATE.txt). Also fixed generate_project_state.py picking the highest-test-count
+  phase instead of the most recent one.
 - Phase QF (2026-07-04): website-integrity Part C (permanent consistency-gate wiring). Widened the Part A
   net-margin-only check to 8 headline metrics (net/gross margin, enterprise value, bills, committee
   interventions, retention offers/retained, churn count); generate() now propagates the gate result
