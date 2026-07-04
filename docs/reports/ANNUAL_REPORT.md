@@ -666,6 +666,31 @@ Post-retention survival: how long did retained customers stay before churning or
 **Eventually churned (5/9)**: C3, C4, C1, C5, C6 — avg 31 months post-retention before final churn.
 **Still active (4/9)**: C8, C_IC1, C_IC2, C_IC3 — survived to simulation end.
 
+## Retention as Deferral (H1 vs H2)
+
+Every retention offer prices one renewal term margin (H1, assumed 12 months). This tracks what actually happened (H2): the realized months to that customer's next retention offer or churn.
+
+| Customer | Offer Date | Assumed (H1) | Realized (H2) | Next Event | Underperformed |
+|----------|-----------|---------------|----------------|-------------|-----------------|
+| C8 | 2017-04-01 | 12 mo | still active | none yet | no |
+| C3 | 2017-07-01 | 12 mo | 36.0 mo | churn | no |
+| C_IC1 | 2018-01-31 | 12 mo | 13.0 mo | next_offer | no |
+| C_IC1 | 2019-03-02 | 12 mo | 26.0 mo | next_offer | no |
+| C_IC1 | 2021-04-30 | 12 mo | 13.0 mo | next_offer | no |
+| C_IC1 | 2022-05-30 | 12 mo | still active | none yet | no |
+| C4 | 2018-10-01 | 12 mo | 71.9 mo | churn | no |
+| C1 | 2018-12-31 | 12 mo | 24.0 mo | churn | no |
+| C_IC2 | 2019-01-31 | 12 mo | 26.0 mo | next_offer | no |
+| C_IC2 | 2021-03-31 | 12 mo | 13.0 mo | next_offer | no |
+| C_IC2 | 2022-04-30 | 12 mo | still active | none yet | no |
+| C5 | 2021-12-30 | 12 mo | 12.0 mo | churn | no |
+| C_IC3 | 2021-12-31 | 12 mo | still active | none yet | no |
+| C6 | 2023-03-31 | 12 mo | 12.0 mo | churn | no |
+
+0/10 resolved offers (0%) underperformed their assumed deferral window -- the next offer or churn arrived sooner than the term the discount was priced to buy.
+
+Serial savers (2): C_IC1 (4 offers, £68,286), C_IC2 (3 offers, £29,570).
+
 ## Enterprise Value Analysis (Phase 22a)
 
 **Full-history EV:** £8,826,938.57 — anchored to all 10 years including crisis losses
@@ -1559,7 +1584,7 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-04T23:29:57Z
+Generated: 2026-07-04T23:48:39Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
