@@ -1,7 +1,14 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-04 (P1 churn recalibration DELIVERED same day via Phases QA/QB; P2 promoted to P1)
+# Last refreshed: 2026-07-04 (P1 billing depth DELIVERED via Phase QD; P2 shadow-live hardening promoted to P1)
 
 ## COMPLETED
+- P1 (billing depth): Arrears states + dunning cycles + emergent bad debt -- DONE (Phase QD).
+  simulation/arrears_engine.py: arrears_stages()/ic_arrears_stages() model the full missed-payment
+  -> FIRST_NOTICE -> SECOND_NOTICE -> RESOLVED|WRITTEN_OFF cascade per customer (resi + I&C dispute
+  variant); compute_emergent_bad_debt()/apply_emergent_bad_debt() replace the flat get_bad_debt_rate()
+  formula with real written-off arrears. KEY FINDING: flat-rate bad debt was £92,550.88; real emergent
+  figure is £3,051.07 -- confirms the PP/PW/NU infrastructure PRIORITY 1's note flagged was already
+  most of the way there; QD closed the remaining "bad debt emerges from arrears, not a formula" gap.
 - P1a: PROJECT_STATE.txt auto-sync -- FIXED (Phase PT; GH Pages fix 2026-07-04)
 - P1b: customer_sample.json + customers.json + supplier.json at stable fetchable paths -- DONE (Phase PT)
 - P1c: Shadow HTML site (4 sections) -- DONE (site/shadow/* auto-regenerating on every run)
@@ -25,27 +32,20 @@
 
 ## ORDERING NOTE (2026-07-04, advisor steer)
 Phase PZ (scenario stress testing) jumped the queue: ADVISOR_CONFIRM_STATE_FRESH.md released the
-correlated-generator hold WITH explicit conditions -- it stays BACKLOG behind P1-P3 below until those
-are DELIVERED, not just listed. No further generator/scenario phases until P1-P3 below are complete.
+correlated-generator hold WITH explicit conditions -- it stays BACKLOG behind P1-P2 below until those
+are DELIVERED, not just listed. No further generator/scenario phases until P1-P2 below are complete.
 
-## PRIORITY 1 -- BILLING DEPTH (promoted from P2, 2026-07-04)
-Arrears states and dunning cycles emerging from the 1,605-invoice base; missed payment -> arrears
--> escalation, per customer. Bad debt emerges from this; do not build it separately. NOTE: much of
-this may already exist (Phase PP invoice/payment ledger + I&C dispute stages, Phase PW I&C arrears
-calibration, Phase NU payment health observatory) -- next session should verify what gap actually
-remains before proposing new work here, rather than assume the priority is unstarted.
-
-## PRIORITY 2 -- SHADOW-LIVE HARDENING (promoted from P3, 2026-07-04)
+## PRIORITY 1 -- SHADOW-LIVE HARDENING (promoted from P2, 2026-07-04)
 Daily decision log persistence, timestamped decisions building the falsifiable track record, on
 the swappable-adapter interface per the PU_ADAPTER instruction.
 
-## PRIORITY 3 -- WEBSITE INTEGRITY PARTS B+C
+## PRIORITY 2 -- WEBSITE INTEGRITY PARTS B+C
 Professional design system across all four shadow sections + customer portal (per-fuel legs,
 never combined-only); permanent per-run wiring of the consistency gate (Phase QC only fixed the
 ordering bug + one net-margin check, Part A item 3 asked for ALL headline numbers compared across
 ALL surfaces). See docs/staging/done/ once archived for the full staged instruction.
 
-## Backlog (after P1-P3 delivered)
+## Backlog (after P1-P2 delivered)
 - Further correlated-generator scenarios, extended stress suites, shadow-live index page
 - C2/C3/C4 resi EAC benchmarking vs Ofgem TDCV by dwelling type
 - Smart meter customers on real HH shapes for segment model
