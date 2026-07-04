@@ -29733,16 +29733,6 @@
       "avg_peak_rate": 272.73,
       "avg_offpeak_rate": 154.57
     },
-    "C7": {
-      "total_kwh": 120839.4,
-      "peak_kwh": 36249.2,
-      "offpeak_kwh": 84590.1,
-      "peak_pct": 30.0,
-      "peak_revenue_gbp": 9524.77,
-      "offpeak_revenue_gbp": 12268.08,
-      "avg_peak_rate": 262.76,
-      "avg_offpeak_rate": 145.03
-    },
     "C9": {
       "total_kwh": 109386.6,
       "peak_kwh": 43689.1,
@@ -29752,6 +29742,16 @@
       "offpeak_revenue_gbp": 9310.54,
       "avg_peak_rate": 250.25,
       "avg_offpeak_rate": 141.72
+    },
+    "C7": {
+      "total_kwh": 120839.4,
+      "peak_kwh": 36249.2,
+      "offpeak_kwh": 84590.1,
+      "peak_pct": 30.0,
+      "peak_revenue_gbp": 9524.77,
+      "offpeak_revenue_gbp": 12268.08,
+      "avg_peak_rate": 262.76,
+      "avg_offpeak_rate": 145.03
     }
   },
   "company_gas_churn_log": [
@@ -61250,8 +61250,8 @@
     }
   ],
   "scenario_analysis": {
-    "generated_at": "2026-07-04T15:07:42Z",
-    "portfolio_as_of": "2026-07-04T15:07:39Z",
+    "generated_at": "2026-07-04T15:42:13Z",
+    "portfolio_as_of": "2026-07-04T15:42:11Z",
     "active_customers": 11,
     "projection_months": 12,
     "scenarios": {
