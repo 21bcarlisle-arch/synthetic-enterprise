@@ -5,7 +5,7 @@
     "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
     "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis"
   },
-  "overall_rag": "AMBER",
+  "overall_rag": "RED",
   "long_run_comparison": {
     "sim_avg_pct": 6.4,
     "ofgem_avg_pct": 13.6,
@@ -30,83 +30,83 @@
   "bad_debt_vs_benchmark": [
     {
       "year": 2016,
-      "bad_debt_gbp": 167.0,
-      "bad_debt_rate": 1.6,
+      "bad_debt_gbp": 602.0,
+      "bad_debt_rate": 5.78,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "AMBER"
+      "rag": "RED"
     },
     {
       "year": 2017,
-      "bad_debt_gbp": 1375.0,
-      "bad_debt_rate": 0.59,
+      "bad_debt_gbp": 469.0,
+      "bad_debt_rate": 0.2,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2018,
-      "bad_debt_gbp": 2385.0,
-      "bad_debt_rate": 0.55,
+      "bad_debt_gbp": 433.0,
+      "bad_debt_rate": 0.1,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2019,
-      "bad_debt_gbp": 6207.0,
-      "bad_debt_rate": 0.52,
+      "bad_debt_gbp": 660.0,
+      "bad_debt_rate": 0.06,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2020,
-      "bad_debt_gbp": 6295.0,
-      "bad_debt_rate": 0.51,
+      "bad_debt_gbp": 0.0,
+      "bad_debt_rate": 0.0,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2021,
-      "bad_debt_gbp": 9146.0,
-      "bad_debt_rate": 0.53,
+      "bad_debt_gbp": 721.0,
+      "bad_debt_rate": 0.04,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2022,
-      "bad_debt_gbp": 36025.0,
-      "bad_debt_rate": 1.05,
+      "bad_debt_gbp": 166.0,
+      "bad_debt_rate": 0.0,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2023,
-      "bad_debt_gbp": 14424.0,
-      "bad_debt_rate": 0.55,
+      "bad_debt_gbp": 0.0,
+      "bad_debt_rate": 0.0,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2024,
-      "bad_debt_gbp": 11505.0,
-      "bad_debt_rate": 0.53,
+      "bad_debt_gbp": 0.0,
+      "bad_debt_rate": 0.0,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2025,
-      "bad_debt_gbp": 5022.0,
-      "bad_debt_rate": 0.52,
+      "bad_debt_gbp": 0.0,
+      "bad_debt_rate": 0.0,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "AMBER"
+      "rag": "GREEN"
     }
   ],
   "multiplier_alignment": [
