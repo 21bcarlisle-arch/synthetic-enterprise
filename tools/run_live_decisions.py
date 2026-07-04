@@ -10,6 +10,7 @@ PROJECT = Path(__file__).resolve().parent.parent
 PORTFOLIO_PATH = PROJECT / "site" / "state" / "live_portfolio.json"
 LIVE_DECISIONS_DIR = PROJECT / "site" / "state"
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
+DECISION_LOG_PATH = PROJECT / "site" / "state" / "live_decisions_log.jsonl"
 
 _RENEWAL_WINDOW_DAYS = 60
 _HEDGE_MIN = 0.50
@@ -69,6 +70,31 @@ def _renewal_flags(customers, as_of_date, elec_fwd, gas_fwd):
         })
     return sorted(flags, key=lambda x: x["days_to_renewal"])
 
+def append_decision_log(decision, log_path=None):
+    """Append decision to the persistent daily track record (site/state/live_decisions_log.jsonl).
+
+    One entry per UTC calendar day of decision_run_at -- the first decision logged
+    for a given day is locked in and never overwritten by later re-runs the same day,
+    so the log is a genuine, falsifiable record of what was recommended and when
+    (not just the latest re-run's answer restated under an unchanged timestamp).
+    """
+    log_path = Path(log_path) if log_path else DECISION_LOG_PATH
+    run_date = decision["decision_run_at"][:10]
+    existing_dates = set()
+    if log_path.exists():
+        for line in log_path.read_text().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            existing_dates.add(json.loads(line)["decision_run_at"][:10])
+    if run_date in existing_dates:
+        return False
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "a") as f:
+        f.write(json.dumps(decision) + "\n")
+    return True
+
+
 def _acquisition_prices(elec_fwd, gas_fwd):
     return {
         "resi_elec_gbp_per_mwh": round(elec_fwd + _NON_COMMODITY_ELEC_GBP_MWH + _SEGMENT_MARGINS["resi"], 2),
@@ -113,6 +139,7 @@ def run_decisions(portfolio_path=None, run_output_path=None, out_dir=None, marke
     latest = out / "live_decisions_latest.json"
     out_file.write_text(json.dumps(decision, indent=2))
     latest.write_text(json.dumps(decision, indent=2))
+    append_decision_log(decision, out / "live_decisions_log.jsonl")
     return decision
 
 _SCENARIO_PROJECTION_MONTHS = 12

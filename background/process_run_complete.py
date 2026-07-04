@@ -304,6 +304,9 @@ def git_commit_push(git_hash, net_margin):
     site_state_scenario = PROJECT_DIR / "site" / "state" / "scenario_analysis_latest.json"
     if site_state_scenario.exists():
         files.append(str(site_state_scenario))
+    site_state_decision_log = PROJECT_DIR / "site" / "state" / "live_decisions_log.jsonl"
+    if site_state_decision_log.exists():
+        files.append(str(site_state_decision_log))
     subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin

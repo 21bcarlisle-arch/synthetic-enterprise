@@ -111,6 +111,13 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QE -- Shadow-Live Decision Log Persistence (2026-07-04)
+7 new tests. Tier 2 (PRIORITIES.md P1, promoted from P2/P3 on PRIORITIES.md refresh same day: "Daily decision log persistence, timestamped decisions building the falsifiable track record, on the swappable-adapter interface per the PU_ADAPTER instruction"). Gap found: `tools/run_live_decisions.py::run_decisions()` wrote a per-market-date snapshot file (`live_decisions_<as_of_date>.json`) alongside `live_decisions_latest.json`, but the filename was keyed on the market adapter's `as_of_date` -- which is frozen at `2025-06-07` under `Frozen2025Adapter` (the production default). Every sim_runner cycle (~every 10-15 min) called `run_decisions()` again, producing the exact same filename and silently overwriting the previous run's decision -- there was no accumulating history at all, only ever one live snapshot. This defeats the stated purpose: a "falsifiable track record" requires that a decision made on a given day survive being overwritten by a later re-run of the same day, so it can later be checked against what actually happened.
+
+`tools/run_live_decisions.py`: new `append_decision_log(decision, log_path=None)` writes to `site/state/live_decisions_log.jsonl`, keyed on the UTC calendar date of `decision["decision_run_at"]` (the actual wall-clock run timestamp, not the frozen market date) -- one immutable entry per day; the first decision logged for a given day is locked in, later same-day calls are no-ops (verified: a second same-day call with a different hedge recommendation does not overwrite the first). Wired into `run_decisions()` immediately after the existing `latest.json`/dated-snapshot writes. `background/process_run_complete.py::git_commit_push()` now stages `site/state/live_decisions_log.jsonl` alongside the other site/state artifacts.
+
+Verified live: ran `run_decisions()` directly against production data twice in the same UTC day -- first call created `live_decisions_log.jsonl` with 1 entry (hedge_recommendation=INCREASE, 11 active customers, C9 renewal flagged at 22 days); second call left the log unchanged at 1 entry. Epistemic: decisions are derived entirely from company-observable portfolio/market data already flowing through the existing swappable-adapter interface (Phase PV) -- no new SIM-internal reads. PASS.
+
 ### Phase QD -- Emergent Bad Debt Replaces Flat-Rate Formula (2026-07-04)
 10 new tests. Tier 2 (PRIORITIES.md P2: "Real Billing & Payment Infrastructure -- bad debt emerges naturally, do NOT build separately") -- a read-only investigation (staged 2026-07-04) found that instruction was being violated: the board-reported `bad_debt_gbp` (`simulation/run_phase2b.py`, feeding `net_margin_gbp` and Phase NU's payment-health observatory) was a flat `revenue * get_bad_debt_rate(year, segment)` formula, completely disconnected from the real per-customer arrears/dunning state machine already built in Phases PP/PW (`tools/generate_billing_ledger.py`). A third, unused `ArrearsBook` (`company/billing/arrears_book.py`, zero non-test importers) was dead code.
 
@@ -5211,7 +5218,8 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,393 tests (fast suite / ~100s; simulation integration ~8 min per run)
+- 15,329 tests (fast suite / ~100s; simulation integration ~8 min per run)
+- Phase QE (2026-07-04): shadow-live decision log persistence fixed -- run_decisions() was overwriting the same as-of-dated snapshot file every sim cycle (frozen 2025-06-07 market date never changes), so no falsifiable track record accumulated. site/state/live_decisions_log.jsonl now appends one immutable entry per UTC calendar day (first decision of the day locked in; later re-runs same day don't overwrite it).
 - Phase QD (2026-07-04): board-reported bad debt replaced with real emergent arrears/write-off figure (was a flat-rate formula, disconnected from the per-customer billing ledger); £92,550.88 -> £3,051.07 across the full run.
 - Phase QC (2026-07-04): website exec-summary/totals contradiction fixed (step-ordering bug in process_run_complete.py) + dynamic build-phase label.
 
