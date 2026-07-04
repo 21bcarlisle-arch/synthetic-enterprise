@@ -1557,6 +1557,10 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 
 **RAG [~]:** AMBER — Credit stress material but below 1% revenue
 
+## Scenario Sensitivity Analysis (Phase PZ)
+
+_Not available: run process_run_complete to generate._
+
 ## Tariff Estimation Accuracy
 
 Mean and maximum absolute error between company tariff estimates and actual outturn.
