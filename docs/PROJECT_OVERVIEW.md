@@ -111,6 +111,10 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Infra: PROJECT_STATE.txt freshness + watchdog exit-reason classification (2026-07-04)
+tools/generate_project_state.py: now writes to both site/state/ (Cloudflare Pages) AND docs/status/ (GitHub Pages -- same commit as LATEST.md, proven to reach edge fresh every cycle). Canonical advisor URL updated to 21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt. process_run_complete.py: commits docs/status/PROJECT_STATE.txt alongside LATEST.md. background/session_watchdog.py: added classify_exit(pane_text) -> (reason, detail) detecting quick_exit (RESUME_INSTRUCTION numbered list ran as shell commands = CC exited before accepting input), usage_limit, crash, or completion. handle_session_ended() now acts per reason: quick_exit/usage_limit -> 30min wait + ONE deduped NTFY; crash -> NTFY with error text; completion -> silent restart. Root cause this morning (03:00-04:16 UTC): CC hit usage/rate limit on startup, exited, watchdog sent 10+ identical NTFYs burning restart cap each hour. Pattern -sh: N: N.: not found in pane now classified as quick_exit.
+**No test count change (infra fix).**
+
 ### Phase PY -- Synthetic Generator Statistical Equivalence Gate (2026-07-04)
 22 new tests. tools/synthetic_validation.py (new): `EquivalenceCheck` dataclass (name/passed/value/benchmark/message); `EquivalenceGate` dataclass (overall_pass/checks/model_params/n_steps/timestamp); `HISTORICAL_BENCHMARKS` dict (10 calibrated values from NBP/SSP research); `run_gate(seed=0, n_steps=5000)` -> EquivalenceGate; `write_gate_json()`. 10 checks: gas/elec long-run mean (target 54/85 +/-20%), gas/elec return vol ([0.30,0.80]/[0.35,0.95]), elec-gas correlation ([0.55,0.85]), crisis frequency ([0.04,0.14]), lag-1 ACF of returns <0 (mean reversion), excess kurtosis >0 (fat tails from regime mixture). CALIBRATION BUG FOUND AND FIXED in PX generator: arithmetic OU (sigma*sqrt(dt)) produced only 0.009 annualised log-return vol vs intended 35%; fixed to proportional vol (sigma*X(t)*sqrt(dt)) -- gas vol now 0.60/elec 0.76 annualised. Gate result: PASS (10/10 checks). Artifact: docs/market_research/findings/synthetic_equivalence_gate.json. Endgame backlog gate UNLOCKED (distributional moments, cross-commodity structure, time-series stylised facts all validated). All 21 PX tests still pass. Epistemic: benchmarks from published NBP/SSP data. PASS.
 **Total:** 15,402 tests
@@ -5179,18 +5183,18 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Codebase:**
 - 356+ Python modules (company layer + tools), ~55,200 lines total
-- 491+ git commits
-- 15,380 tests (fast / ~10s; simulation integration ~8 min per run)
-- Phase NK (2026-07-02): extract_report_data churn_model_performance extraction fix + _section_churn_model_performance board report section.
+- 500+ git commits
+- 15,402 tests (fast / ~10s; simulation integration ~8 min per run)
+- Phase PY (2026-07-04): Synthetic Generator Statistical Equivalence Gate PASS -- endgame backlog gate UNLOCKED.
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase NG, 2026-07-02, git c6b49c35):**
-- Net margin £1,443,537 | Gross £5,422,401 | EV £5,256,728 | Treasury £3,910,174 | SURVIVED
-- 14,717 tests. Phase NJ: churn_model_performance wired; company can now measure recall/precision/F1 of its own churn model.
+**Latest full run (Phase PW, 2026-07-04, git cbdc212e):**
+- Net margin £1,445,258 | Gross £6,467,309 | Treasury £2,466,636 → £3,911,894 | SURVIVED
+- 15,402 tests. Phase PY: synthetic OU market generator validated; Phase PX: CorrelatedGeneratorAdapter (regime-change blindness addressed).
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

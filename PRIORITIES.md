@@ -1,22 +1,22 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-04 (Phase PY: statistical equivalence gate PASS; endgame backlog gate UNLOCKED)
+# Last refreshed: 2026-07-04 (Infra: PROJECT_STATE.txt GH Pages fix + watchdog exit-reason; endgame pending advisor confirmation)
 
 ## COMPLETED
-- P1a: PROJECT_STATE.txt auto-sync -- FIXED (Phase PT + HARD GATE verified 2026-07-03T21:36:23Z)
+- P1a: PROJECT_STATE.txt auto-sync -- FIXED (Phase PT; GH Pages fix 2026-07-04)
 - P1b: customer_sample.json + customers.json + supplier.json at stable fetchable paths -- DONE (Phase PT)
 - P1c: Shadow HTML site (4 sections) -- DONE (site/shadow/* auto-regenerating on every run)
 - P2 (billing): Billing & Payment Infrastructure -- DONE (Phases PP/MW/MX/MY/NH)
 - P2 (network): Network Charge Year-Indexed Actuals -- DONE (Phase 78; PROJECT_OVERVIEW.md Sec 9 gap closed)
 - P3: Population Anchoring -- DONE (Phases NS/PQ/PR/PS: switching, churn, complaints, arrears)
 - P4: Shadow Live Operation -- DONE (Phases PU/PV: live decisions + market adapter)
+- P1 (correlated market): Correlated Synthetic Market Generator -- DONE (Phase PX: bivariate OU adapter; Phase PY: equivalence gate PASS)
 
-## PRIORITY 1 -- CORRELATED SYNTHETIC MARKET GENERATOR (Phase PX)
-Gate condition: P4 done + P2 network charges done. GATE NOW LIFTED.
-Bivariate OU process (calibrated from 2016-2025 NBP+SSP) plugs in as CorrelatedGeneratorAdapter
-satisfying MarketDataPort (Phase PV guarantee: zero company-layer changes).
-Enables scenario stress testing: base/bull/bear market decisions without touching company layer.
-Addresses CLAUDE.md known failure: regime-change blindness.
-NEXT_PHASE.md draft exists (written 2026-07-04T03:30 BST; 4h opt-out window expires ~07:30 BST).
+## PRIORITY 1 -- CORRELATED SIMULATION ENDGAME (on hold: awaiting PROJECT_STATE.txt advisor confirmation)
+Gate: PY statistical-equivalence gate PASS (done). Advisor must confirm PROJECT_STATE.txt fresh at
+21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt before starting.
+Goal: scenario stress testing -- run live renewal/hedging decisions against base/bull/bear/crisis
+market scenarios using CorrelatedGeneratorAdapter. Demonstrates regime-change blindness is now
+addressable: board can see hedge recommendations under 2021-22 style volatility without historical replay.
 
 ## PRIORITY 2 -- COMPANY OPERATIONAL INDEPENDENCE (long horizon)
 Company layer shares code-execution paths with SIM.
