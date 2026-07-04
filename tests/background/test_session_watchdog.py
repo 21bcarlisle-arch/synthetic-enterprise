@@ -96,15 +96,67 @@ def test_restart_claude_always_uses_continue_flag_and_resume_instruction(monkeyp
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
     monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)  # avoid real HTTP
+    monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)  # simulate a clean launch
 
     watchdog.restart_claude()
 
     send_keys_calls = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    new_session_calls = [c for c in calls if c[:2] == ["tmux", "new-session"]]
     # Always uses claude -c (resume last conversation)
     assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, "claude -c", "Enter"] in send_keys_calls
     # Always sends RESUME_INSTRUCTION so in-progress work is checked on resume
     assert any(watchdog.RESUME_INSTRUCTION in c for c in send_keys_calls)
+    # Launches via a login shell so PATH is sourced from the profile (WATCHDOG_LAUNCH_RACE.md)
+    assert any(c[-2:] == ["bash", "-l"] for c in new_session_calls)
     watchdog.restart_times.clear()
+
+
+def test_restart_claude_does_not_send_resume_instruction_if_claude_never_comes_up(monkeypatch):
+    """If `claude` never becomes the pane's foreground process, RESUME_INSTRUCTION
+    must not be sent -- sending it into a bare shell is exactly the
+    WATCHDOG_LAUNCH_RACE.md bug (numbered list executed as shell commands)."""
+    watchdog.restart_times.clear()
+    calls = []
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)
+    monkeypatch.setattr(watchdog, "claude_is_running", lambda: False)  # launch never comes up
+    monkeypatch.setattr(watchdog, "capture_pane", lambda: "-sh: 2: Session: not found")
+
+    watchdog.restart_claude()
+
+    send_keys_calls = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
+    assert not any(watchdog.RESUME_INSTRUCTION in c for c in send_keys_calls)
+    assert any("failed to launch" in m for m in ntfy_messages)
+    watchdog.restart_times.clear()
+
+
+def test_wait_for_claude_launch_returns_true_once_running(monkeypatch):
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    states = iter([False, False, True])
+    monkeypatch.setattr(watchdog, "claude_is_running", lambda: next(states))
+
+    assert watchdog.wait_for_claude_launch(timeout_seconds=10) is True
+
+
+def test_wait_for_claude_launch_returns_false_on_timeout(monkeypatch):
+    # Simulate time passing without a real sleep: each call to time.time()
+    # advances the clock by more than the poll interval, and claude never
+    # comes up, so the deadline is exceeded quickly.
+    fake_now = {"t": 1_000_000.0}
+
+    def fake_time():
+        fake_now["t"] += watchdog.CLAUDE_LAUNCH_POLL_INTERVAL_SECONDS
+        return fake_now["t"]
+
+    monkeypatch.setattr(watchdog.time, "time", fake_time)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "claude_is_running", lambda: False)
+
+    assert watchdog.wait_for_claude_launch(timeout_seconds=5) is False
 
 
 def test_handle_usage_limit_resumes_in_place_once_message_clears(monkeypatch):

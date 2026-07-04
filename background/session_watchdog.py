@@ -740,15 +740,48 @@ def wait_for_api_connectivity() -> None:
             last_ntfy_time = time.time()
 
 
+CLAUDE_LAUNCH_TIMEOUT_SECONDS = 30
+CLAUDE_LAUNCH_POLL_INTERVAL_SECONDS = 2
+
+
+def wait_for_claude_launch(timeout_seconds: int = CLAUDE_LAUNCH_TIMEOUT_SECONDS) -> bool:
+    """Poll the freshly-launched pane until `claude_is_running()` is true, or
+    `timeout_seconds` elapses.
+
+    Replaces a fixed `time.sleep(15)` guess with an actual check of the
+    pane's foreground command -- see WATCHDOG_LAUNCH_RACE.md (2026-07-04):
+    the previous fixed sleep sent RESUME_INSTRUCTION regardless of whether
+    `claude` had actually started, so on a slow or failed launch the
+    instruction's numbered list landed in a bare shell and was executed line
+    by line as shell commands (`-sh: 2: Session: not found`, etc.), which
+    then looped through the restart cap without ever surfacing the real
+    launch failure.
+    """
+    deadline = time.time() + timeout_seconds
+    while time.time() < deadline:
+        if claude_is_running():
+            return True
+        time.sleep(CLAUDE_LAUNCH_POLL_INTERVAL_SECONDS)
+    return claude_is_running()
+
+
 def restart_claude(resume: bool = True) -> None:
     """Restart the 'claude' tmux session.
 
-    Always uses `claude -c` (resume last conversation) — keeps context
+    Always uses `claude -c` (resume last conversation) -- keeps context
     intact across crashes and connectivity blips, so the autoloop
     instruction lands in a familiar session rather than a cold start that
     can stall. RESUME_INSTRUCTION is still sent so in-progress work is
     checked before advancing.
     --dangerously-skip-permissions is never used.
+
+    The new session is launched via `bash -l` (login shell) rather than the
+    pane's default shell, so PATH is sourced from the profile the same way
+    an interactive terminal would see it -- a non-interactive tmux shell can
+    otherwise lack the `claude` binary on PATH entirely (see
+    WATCHDOG_LAUNCH_RACE.md). RESUME_INSTRUCTION is only sent once
+    `wait_for_claude_launch()` confirms `claude` is actually the pane's
+    foreground process -- never into a shell that never started it.
     """
     if restarts_in_last_hour() >= MAX_RESTARTS_PER_HOUR:
         msg = (f"Session watchdog: restart cap reached "
@@ -766,7 +799,8 @@ def restart_claude(resume: bool = True) -> None:
     time.sleep(5)
 
     subprocess.run([
-        "tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", PROJECT_DIR
+        "tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", PROJECT_DIR,
+        "bash", "-l"
     ])
     time.sleep(3)
 
@@ -774,7 +808,23 @@ def restart_claude(resume: bool = True) -> None:
         "tmux", "send-keys", "-t", SESSION_NAME,
         "claude -c", "Enter"
     ])
-    time.sleep(15)
+
+    if not wait_for_claude_launch():
+        pane_text = capture_pane()
+        last_lines = " | ".join(
+            ln.strip() for ln in pane_text.splitlines()[-10:] if ln.strip()
+        )
+        log(f"Claude Code did not come up within {CLAUDE_LAUNCH_TIMEOUT_SECONDS}s of "
+            f"launch — pane: {last_lines[:300]}")
+        ntfy(
+            f"CC failed to launch (still not running {CLAUDE_LAUNCH_TIMEOUT_SECONDS}s "
+            f"after `claude -c`) — pane: {last_lines[:200]}",
+            needs_input=True,
+        )
+        # Count against the restart cap so a persistently broken launch backs
+        # off (60min pause) instead of retrying every cycle indefinitely.
+        restart_times.append(time.time())
+        return
 
     # Always send RESUME_INSTRUCTION so in-progress work is checked.
     subprocess.run([
