@@ -1,6 +1,12 @@
 # Current Priorities
 
-Last updated: 2026-07-04 -- Phases PY-QK COMPLETE (churn/bad-debt/website-integrity/shadow-live retrofit queue + passive-renewal churn enrichment). QK did NOT close the recall=0% finding; see below.
+Last updated: 2026-07-04 -- Phases PY-QK COMPLETE. Major redirect merged from advisor-staged
+directives (PROCESS_NOT_EVENTS, DECISION_LOOP_AND_EVENT_LEDGER, PREAPPROVE_PROCESS_MODEL,
+SAAS_COVERAGE_MAP, FEEDBACK_AND_REPUTATION) -- supersedes the Q4 churn-validation-loop framing.
+docs/design/PROCESS_MODEL.md written per pre-approval. Phase QL (churn journey) IN PROGRESS:
+Part 1 (simulation/churn_journey.py state machine, standalone + tested, 15 tests) shipped;
+Part 2 (wiring into simulation/run_phase2b.py's live per-period loop + evidence retrofit on
+Sim/Customers/Supplier tabs) NOT yet started -- do not treat QL as closed until Part 2 lands.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
 Coverage sprints (phases LQ through MU, 95+ sprints) are complete.
