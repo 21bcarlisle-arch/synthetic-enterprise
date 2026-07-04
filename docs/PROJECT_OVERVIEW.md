@@ -5149,6 +5149,7 @@ tools/           2 tests
 | `docs/instructions/NTFY_TWO_WAY_PROTOCOL.md` | repo | NTFY communication protocol specification |
 | `docs/staging/` | repo | Active instruction queue (Rich's staged instructions + run_complete markers) |
 | `docs/observability/PHASE_10a_SUMMARY.md` | repo | Phase 10a design decisions, findings, open questions |
+| `docs/retrospectives/` | repo | Standing-practice retrospectives (multi-day/multi-false-claim problems, every ~50 phases, harness rule changes) |
 
 ---
 
