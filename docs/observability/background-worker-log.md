@@ -2225,3 +2225,14 @@ Structured performance entries are added after each task completes.
 - [2026-07-04 16:07 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:07 UTC
 - [2026-07-04 16:22 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:22 UTC
 - [2026-07-04 16:37 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:37 UTC
+- [2026-07-04 16:52 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-04 16:54 UTC] Processed run_complete_20260704T164237Z.md
+- [2026-07-04 16:54 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:54 UTC
+- [2026-07-04 17:09 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:09 UTC
+- [2026-07-04 17:24 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:24 UTC
+- [2026-07-04 17:39 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-04 17:39 UTC] Processed run_complete_20260704T172852Z.md
+- [2026-07-04 17:39 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:39 UTC
+- [2026-07-04 17:54 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-04 17:56 UTC] Processed run_complete_20260704T174025Z.md
+- [2026-07-04 17:56 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:56 UTC
