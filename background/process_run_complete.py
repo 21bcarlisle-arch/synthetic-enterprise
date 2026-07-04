@@ -166,7 +166,11 @@ def _fmt_gbp(v):
 
 
 def generate_dashboard_json(json_path):
-    """Generate site/data/dashboard.json for the SPA dashboard."""
+    """Generate site/data/dashboard.json for the SPA dashboard.
+
+    Returns False if the cross-surface consistency gate failed (Part C of the
+    website-integrity fix: a mismatch must be surfaced loudly, never shipped
+    silently) so the caller can NTFY immediately."""
     try:
         sys.path.insert(0, str(PROJECT_DIR))
         from tools.generate_dashboard_data import generate
@@ -174,9 +178,11 @@ def generate_dashboard_json(json_path):
         if ok:
             log("Generated site/data/dashboard.json")
         else:
-            log("Dashboard data generation returned False — skipping")
+            log("CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)")
+        return ok
     except Exception as exc:
         log("Dashboard data generation failed: {}".format(exc))
+        return True  # generation exception is not a consistency-gate failure; don't false-alarm
     try:
         from tools.generate_customer_data import generate as gen_cust
         gen_cust(json_path)
@@ -435,7 +441,15 @@ def main(marker_path_str):
         log("Run insights generation skipped: {}".format(exc))
 
     log("Generating site/data/dashboard.json")
-    generate_dashboard_json(json_path)
+    consistency_ok = generate_dashboard_json(json_path)
+    if not consistency_ok:
+        from background.ntfy_utils import send_ntfy
+        send_ntfy(
+            "[SIM] CONSISTENCY GATE FAILED (git={}) — dashboard totals and exec-summary "
+            "insights disagree on a headline number. Site figures may be untrustworthy "
+            "until this is fixed. See docs/observability/sim-runner-log.md for detail.".format(git_hash)
+        )
+        log("NTFY sent: consistency gate failure")
     generate_site(data, elapsed_s, git_hash, fields.get("finished"))
 
     try:

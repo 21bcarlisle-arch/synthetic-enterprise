@@ -111,6 +111,14 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QF -- Website Integrity Part C: Permanent Consistency-Gate Wiring (2026-07-04)
+13 new tests. Tier 2 (PRIORITIES.md P1/P2, staged docs/staging/done/WEBSITE_INTEGRITY_AND_DESIGN_PARTA_DONE.md Part C: "every run regenerates ALL surfaces from the canonical artifact as one pipeline step; the consistency gate (A3) runs every time... this is standing infrastructure, not a one-off polish"). Phase QC's Part A gate only ever compared `net_margin_gbp` between dashboard totals and `run_insights.json`, and critically its `True`/`False` result was discarded by both `generate()` and the caller -- a mismatch printed to stderr but never blocked anything or notified anyone, violating Part A's own "never ships silently" acceptance criterion.
+
+`tools/generate_dashboard_data.py`: `_check_consistency()` widened from one field to 8 headline metrics via a new `_CONSISTENCY_CHECKS` table (net margin, gross margin, enterprise value, bills total, committee interventions, retention offers/retained, churn count), each looked up from the correct per-area `key_metrics` block in `run_insights.json` via new `_insights_metric()`; `generate()` now returns the gate's boolean result instead of an unconditional `True`. `background/process_run_complete.py`: `generate_dashboard_json()` returns that result; `main()` sends an immediate NTFY ("[SIM] CONSISTENCY GATE FAILED...") the moment a mismatch is detected, rather than only logging to `sim-runner-log.md`. `tools/generate_shadow_html.py`: every page footer (`_page()`) now stamps `Run <git_commit> | Phase <phase>` alongside the existing timestamp, sourced from `dashboard.json`'s `meta`/`build` blocks, so a stale surface is identifiable without cross-referencing another page.
+
+KEY FINDING: turning the widened gate on against live production data immediately caught a real, pre-existing mismatch -- dashboard totals `total_gross_gbp` = £6,452,602.50 vs `run_insights.json`'s `gross_margin_gbp` = £6,467,308.57 (~£14.7k / 0.2% apart), despite net margin agreeing. Root cause: `tools/generate_insights.py::_financial_insight()` computed `gross = lh.get("gross_margin_gbp", data.get("total_gross_gbp", 0.0))` -- preferring the `_ledger_headline` subtotal over the final `total_gross_gbp` figure, the exact opposite precedence used for net margin in the same function and for both fields in `extract_portfolio()`. This is the same class of bug Part A fixed (a ledger subtotal masquerading as the final total) but it was never applied to gross margin. Fixed at root by flipping the precedence to match; verified by regenerating `run_insights.json` + `dashboard.json` end-to-end with zero consistency-gate failures. Epistemic: PASS (tooling/site-generation only, no company/saas changes).
+**Total:** 15,342 tests
+
 ### Phase QE -- Shadow-Live Decision Log Persistence (2026-07-04)
 7 new tests. Tier 2 (PRIORITIES.md P1, promoted from P2/P3 on PRIORITIES.md refresh same day: "Daily decision log persistence, timestamped decisions building the falsifiable track record, on the swappable-adapter interface per the PU_ADAPTER instruction"). Gap found: `tools/run_live_decisions.py::run_decisions()` wrote a per-market-date snapshot file (`live_decisions_<as_of_date>.json`) alongside `live_decisions_latest.json`, but the filename was keyed on the market adapter's `as_of_date` -- which is frozen at `2025-06-07` under `Frozen2025Adapter` (the production default). Every sim_runner cycle (~every 10-15 min) called `run_decisions()` again, producing the exact same filename and silently overwriting the previous run's decision -- there was no accumulating history at all, only ever one live snapshot. This defeats the stated purpose: a "falsifiable track record" requires that a decision made on a given day survive being overwritten by a later re-run of the same day, so it can later be checked against what actually happened.
 
@@ -5218,7 +5226,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,329 tests (fast suite / ~100s; simulation integration ~8 min per run)
+- 15,342 tests (fast suite / ~100s; simulation integration ~8 min per run)
+- Phase QF (2026-07-04): website-integrity Part C (permanent consistency-gate wiring). Widened the Part A
+  net-margin-only check to 8 headline metrics (net/gross margin, enterprise value, bills, committee
+  interventions, retention offers/retained, churn count); generate() now propagates the gate result
+  instead of discarding it, and a mismatch NTFYs Rich immediately rather than only logging. Freshness
+  stamps (git commit + phase) added to every shadow page footer. Caught a real pre-existing gross-margin
+  discrepancy (£6,452,603 vs £6,467,309) in tools/generate_insights.py -- same class of bug as the QC
+  net-margin fix, never applied to gross; fixed at root (precedence flipped to prefer total_gross_gbp).
 - Phase QE (2026-07-04): shadow-live decision log persistence fixed -- run_decisions() was overwriting the same as-of-dated snapshot file every sim cycle (frozen 2025-06-07 market date never changes), so no falsifiable track record accumulated. site/state/live_decisions_log.jsonl now appends one immutable entry per UTC calendar day (first decision of the day locked in; later re-runs same day don't overwrite it).
 - Phase QD (2026-07-04): board-reported bad debt replaced with real emergent arrears/write-off figure (was a flat-rate formula, disconnected from the per-customer billing ledger); £92,550.88 -> £3,051.07 across the full run.
 - Phase QC (2026-07-04): website exec-summary/totals contradiction fixed (step-ordering bug in process_run_complete.py) + dynamic build-phase label.

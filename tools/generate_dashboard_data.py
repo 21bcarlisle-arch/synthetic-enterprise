@@ -617,7 +617,7 @@ def generate(run_json_path=None):
         },
     }
 
-    _check_consistency(portfolio, insights, run_json_path.name)
+    consistency_ok = _check_consistency(portfolio, insights, run_json_path.name)
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -625,27 +625,65 @@ def generate(run_json_path=None):
 
     size_kb = OUTPUT_PATH.stat().st_size / 1024
     print(f"Wrote {OUTPUT_PATH} ({size_kb:.1f} KB)")
-    return True
+    return consistency_ok
+
+
+# Headline metrics checked across surfaces (Part C of the website-integrity fix:
+# the Part A gate only ever compared net_margin_gbp; this widens it to the full
+# set of numbers a board member would actually read off the page). Each entry is
+# (portfolio_key, label, insights_area, insights_key). insights_area=None means
+# the field lives at the top level of run_insights.json rather than nested under
+# one of its per-area "insights" blocks.
+_CONSISTENCY_CHECKS = [
+    ("net_margin_gbp", "net margin", None, "net_margin_gbp"),
+    ("gross_margin_gbp", "gross margin", "financial", "gross_margin_gbp"),
+    ("enterprise_value_gbp", "enterprise value", "customers", "enterprise_value_gbp"),
+    ("bills_total", "bills total", "operations", "bills_total"),
+    ("committee_interventions_total", "committee interventions", "risk", "committee_interventions_total"),
+    ("retention_offers", "retention offers", "customers", "retention_offers"),
+    ("retention_retained", "retention retained", "customers", "retained"),
+    ("churn_count", "churn count", "customers", "total_churned"),
+]
+
+
+def _insights_metric(insights, area, key):
+    """Look up key_metrics[key] from the named per-area block in run_insights.json's
+    'insights' list (or the top-level field when area is None)."""
+    if area is None:
+        return insights.get(key)
+    for block in insights.get("insights", []) or []:
+        if block.get("area") == area:
+            return block.get("key_metrics", {}).get(key)
+    return None
 
 
 def _check_consistency(portfolio, insights, source_file, tolerance_gbp=1.0):
-    """Guard against surfaces on the same page disagreeing (Part A #3 of the
-    website-integrity fix): the exec-summary insights are generated from a
-    separate run_insights.json snapshot, not from the run_output.json this
-    call just loaded, so a step-ordering regression upstream can silently
-    re-introduce a stale/mismatched exec summary next to correct totals."""
+    """Guard against surfaces on the same page disagreeing (Part A #3 / Part C of
+    the website-integrity fix): the exec-summary insights are generated from a
+    separate run_insights.json snapshot, not from the run_output.json this call
+    just loaded, so a step-ordering regression upstream can silently re-introduce
+    a stale/mismatched exec summary next to correct totals. Checks the full set
+    of headline numbers (net/gross margin, enterprise value, bills, committee
+    interventions, retention, churn), not just net margin."""
     if not insights:
         print("CONSISTENCY GATE: no run_insights.json present -- skipping check", file=sys.stderr)
         return True
-    totals_net = portfolio.get("net_margin_gbp")
-    insights_net = insights.get("net_margin_gbp")
-    if totals_net is None or insights_net is None:
-        return True
-    if abs(totals_net - insights_net) > tolerance_gbp:
+
+    mismatches = []
+    for p_key, label, area, i_key in _CONSISTENCY_CHECKS:
+        p_val = portfolio.get(p_key)
+        i_val = _insights_metric(insights, area, i_key)
+        if p_val is None or i_val is None:
+            continue
+        tol = tolerance_gbp if p_key.endswith("_gbp") else 0
+        if abs(p_val - i_val) > tol:
+            mismatches.append("{}: dashboard={} vs insights={}".format(label, p_val, i_val))
+
+    if mismatches:
         print(
-            "CONSISTENCY GATE FAILED: dashboard totals net_margin_gbp={} vs "
-            "run_insights.json net_margin_gbp={} (source={}) -- exec summary "
-            "is stale relative to this run's totals".format(totals_net, insights_net, source_file),
+            "CONSISTENCY GATE FAILED (source={}): {} surface(s) disagree -- {}".format(
+                source_file, len(mismatches), "; ".join(mismatches)
+            ),
             file=sys.stderr,
         )
         return False

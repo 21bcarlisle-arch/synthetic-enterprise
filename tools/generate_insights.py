@@ -181,7 +181,12 @@ def _risk_insight(data: dict) -> AreaInsight:
 def _financial_insight(data: dict) -> AreaInsight:
     lh = data.get("_ledger_headline", {})
     net = data.get("total_net_gbp", lh.get("net_margin_gbp", 0.0))
-    gross = lh.get("gross_margin_gbp", data.get("total_gross_gbp", 0.0))
+    # Prefer total_gross_gbp (final P&L gross, same precedence as total_net_gbp
+    # above and as tools.generate_dashboard_data.extract_portfolio) over the
+    # _ledger_headline subtotal -- Phase QF found these two disagreeing on
+    # live data (ledger subtotal vs final total differ by ~1.5%), which the
+    # widened consistency gate now catches as a cross-surface mismatch.
+    gross = data.get("total_gross_gbp", lh.get("gross_margin_gbp", 0.0))
     revenue = lh.get("revenue_gbp", data.get("total_revenue_gbp", 0.0))
     net_pct = (net / revenue * 100) if revenue else 0.0
     pcl = data.get("per_customer_lifetime", {})

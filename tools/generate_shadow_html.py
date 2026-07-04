@@ -68,9 +68,14 @@ def _cls(v):
     return "" if v is None else ("pos" if v >= 0 else "neg")
 
 
-def _page(title, active, body, ts):
+def _page(title, active, body, ts, git_commit="?", phase="?"):
+    # Freshness stamp (Part A #4 / Part C of the website-integrity fix): every
+    # page footer names the run it was generated from (git commit + phase), not
+    # just a timestamp, so a stale surface is identifiable at a glance without
+    # cross-referencing another page.
     footer = (
         '<p class="meta">Generated: ' + ts
+        + ' | Run ' + str(git_commit) + ' | Phase ' + str(phase)
         + ' | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></p>'
     )
     return (
@@ -158,10 +163,12 @@ def build_index(dash, ts):
         + "<h2>Executive Summary</h2><pre>" + summary + "</pre>"
         + _table(["Area", "Headline", "Narrative (excerpt)"], insight_rows)
     )
-    return _page("Portfolio Overview", "Overview", body, ts)
+    return _page("Portfolio Overview", "Overview", body, ts, dash.get("meta", {}).get("git_commit", "?"), phase)
 
 
 def build_customers(dash, sample, ts):
+    git_commit = dash.get("meta", {}).get("git_commit", "?")
+    phase = dash.get("build", {}).get("current_phase", "?")
     lifetime = dash["customers"].get("lifetime", {})
     events_by_cid = {}
     for e in dash["customers"].get("events", []):
@@ -216,11 +223,12 @@ def build_customers(dash, sample, ts):
         + "<p>Machine-readable per-customer data:<br>"
         + '<a href="/state/customer_sample.json">customer_sample.json</a></p>'
     )
-    return _page("Customer Portfolio", "Customers", body, ts)
+    return _page("Customer Portfolio", "Customers", body, ts, git_commit, phase)
 
 
 
 def build_supplier(dash, ts):
+    git_commit = dash.get("meta", {}).get("git_commit", "?")
     annual = dash["financial"]["annual"]
     ledger = dash["financial"].get("ledger", {})
     seg = dash["financial"].get("segment_annual", [])
@@ -344,10 +352,10 @@ def build_supplier(dash, ts):
         + "<p>6 domains | 72+ capabilities | Point-in-Time Blindfold enforced</p>"
         + _table(["Domain", "Capabilities"], cap_rows)
     )
-    return _page("Supplier P&amp;L", "Supplier", body, ts)
+    return _page("Supplier P&amp;L", "Supplier", body, ts, git_commit, build.get("current_phase", "?"))
 
 
-def build_sim(sim_data, ts):
+def build_sim(sim_data, ts, git_commit="?", phase="?"):
     annual = sim_data.get("annual", [])
     monthly = sim_data.get("monthly", [])[:12]
     peaks = sim_data.get("peak_records", [])[:5]
@@ -385,7 +393,7 @@ def build_sim(sim_data, ts):
         + "<h2>Peak SSP Records</h2>"
         + _table(["Date", "Settlement Period", "SSP (GBP/MWh)"], peak_rows)
     )
-    return _page("Simulation Data", "Sim", body, ts)
+    return _page("Simulation Data", "Sim", body, ts, git_commit, phase)
 
 
 def build_project(dash, latest_md, ts):
@@ -416,7 +424,7 @@ def build_project(dash, latest_md, ts):
         + "<h2>Recent Simulation Runs</h2>"
         + _table(["Git Commit", "Date", "Net Margin"], hist_rows)
     )
-    return _page("Project Status", "Project", body, ts)
+    return _page("Project Status", "Project", body, ts, dash.get("meta", {}).get("git_commit", "?"), phase)
 
 
 def generate(run_json_path=None):
@@ -428,11 +436,13 @@ def generate(run_json_path=None):
     sample = json.loads(sample_path.read_text()) if sample_path.exists() else {}
     latest_md = LATEST_MD.read_text() if LATEST_MD.exists() else ""
 
+    _git_commit = dash.get("meta", {}).get("git_commit", "?")
+    _phase = dash.get("build", {}).get("current_phase", "?")
     pages = {
         SHADOW / "index.html": build_index(dash, ts),
         SHADOW / "customers" / "index.html": build_customers(dash, sample, ts),
         SHADOW / "supplier" / "index.html": build_supplier(dash, ts),
-        SHADOW / "sim" / "index.html": build_sim(sim_data, ts),
+        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase),
         SHADOW / "project" / "index.html": build_project(dash, latest_md, ts),
     }
 
