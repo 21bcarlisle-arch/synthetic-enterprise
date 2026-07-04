@@ -5079,6 +5079,15 @@ Commits: 7d333dc6 (NX), e27475a9 (NY), e9a3a535 (NZ)
 - [2026-07-03T21:25:30Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-03T21:25:54Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
 - [2026-07-03T21:25:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## 2026-07-04T06:00:00Z — Phase PZ: Scenario Stress Testing via Synthetic Market
+- **Phases:** PZ (scenario stress testing -- closes regime-change blindness)
+- **Frontier tokens (est):** ~60,000 (architecture review + implementation)
+- **Qwen tokens:** 0 (all inline)
+- **Tests added:** 22 (PZ) = 15,424 total (full suite)
+- **Artifacts:** tools/run_live_decisions.py (+run_scenario_analysis), tools/market_adapters/synthetic_generator.py (+start-price params), saas/reporting/annual_report.py (+_section_scenario_sensitivity, +_load_scenario_analysis), background/process_run_complete.py (+scenario wiring), tests/tools/test_phase_pz_scenario_stress.py (22 tests), site/state/scenario_analysis_latest.json
+- **Key finding:** Crisis scenario +£1,562,206 unhedged annual exposure vs base; bull -£398,252. Board now has persistent scenario sensitivity table.
+- **PRIORITIES.md:** P1 Correlated Simulation Endgame CLOSED. P1 now = Company Operational Independence.
+
 ## 2026-07-03T21:29:28Z — Phase PT + Staging (3 advisor files) + rebase/push fix
 - **Phases:** PT (customers.json + supplier.json), staging actions x3
 - **Frontier tokens (est):** ~80,000 (continuation session, mainly planning + code)
@@ -5292,3 +5301,6 @@ Commits: 7d333dc6 (NX), e27475a9 (NY), e9a3a535 (NZ)
 - [2026-07-04T05:51:57Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
 - [2026-07-04T05:53:20Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-04T05:53:27Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T06:01:49Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T06:02:38Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T06:03:11Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
