@@ -5531,3 +5531,65 @@ calibrate against).
 - [2026-07-04T19:06:15Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
 - [2026-07-04T19:07:41Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-04T19:11:36Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T19:17:51Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T19:19:17Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T19:29:30Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T19:30:56Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T19:40:51Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T19:42:16Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T19:42:24Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T19:51:02Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T19:52:34Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T19:53:45Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T19:53:54Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T19:55:39Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T19:55:40Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T19:56:20Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:02:07Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T20:03:32Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:13:37Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T20:15:01Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:15:03Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T20:20:22Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T20:20:23Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:23:23Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:25:07Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T20:26:33Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:27:07Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:29:57Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:32:54Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:35:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:36:37Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T20:38:03Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:38:47Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:43:42Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T20:44:12Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:47:01Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:47:09Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:48:23Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T20:49:48Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T20:59:59Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T21:01:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## 2026-07-04 — Phase QK — Enriched passive-renewal churn estimate + WEEKEND_ACCELERATION Q4 close-out
+
+- **Frontier tokens:** not computed this session (no `/cost` access in this mode, no transcript
+  usage-block tooling available) — flagged as a gap, same as Phase 0b.
+- **Local model calls:** 0 (session picked up already-written code/tests from a prior interrupted
+  session and completed verification + phase-close directly).
+- **Produced:**
+  - Files modified: `company/crm/enriched_churn_estimate.py` (+enriched_passive_churn_estimate),
+    `simulation/run_phase2b.py` (signal-collection moved out of active-only branch),
+    `docs/PROJECT_OVERVIEW.md`, `docs/PRIORITIES.md`, `CLAUDE.md`, `docs/observability/build_info.json`.
+  - Files created: `tests/company/crm/test_phase_qk_enriched_passive_churn_estimate.py` (10 tests).
+  - Features shipped: passive (SVT-roll) renewals now receive the payment-behaviour/satisfaction
+    signal the active/I&C path already had; verified live against a full 2016-2025 production re-run.
+- **Notes:** the interesting part of this session was verification, not code. QK's own test suite
+  passed cleanly, but a live re-run showed the headline recall=0%/precision=0% metric from QJ was
+  UNCHANGED. Traced it rather than declaring victory or filing it as a regression: 3 passive renewers
+  (C1/C5/C6) now correctly cross the old 0.10 cap under real stress and get retention offers -- all
+  three were retained in the near term, then churned anyway 1-2 years later once the satisfaction/
+  behaviour signal had decayed back down. The classifier only scores the terminal renewal before
+  departure, so a correctly-caught-then-decayed risk still reads as a false negative. Reclassified the
+  open finding from "missing signal" to "signal-decay-timing" rather than shipping a second patch on
+  top of an unverified first one (R3 two-strike discipline) -- the honest state is QK is correct and
+  complete for what it set out to do, but the KEY OPEN FINDING survives, now with a sharper diagnosis.

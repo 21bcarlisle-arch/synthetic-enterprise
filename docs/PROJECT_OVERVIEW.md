@@ -111,6 +111,43 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QK -- Enriched Passive-Renewal Churn Estimate (2026-07-04)
+10 new tests. Tier 2 (WEEKEND_ACCELERATION.md Q4, "churn model validation loop -- rerun NK recall/precision
+with QA+QB fixes in place; report before/after"). QJ exposed the root cause: `company/analytics/churn_accuracy_report.py`
+showed recall=0%/precision=0% across all 10 years -- every one of the 6 real churn events had
+`company_churn_estimate` 0.02-0.25 against a 0.30 threshold. `estimate_passive_churn_probability()`
+(SVT-inertia model, `company/crm/churn_model.py`) deliberately caps passive renewers at
+`PASSIVE_CHURN_CAP=0.10` and its own docstring says their real churn driver is life events, not price --
+but the payment-behaviour/satisfaction signal that `enriched_churn_estimate()` already applies to
+active/I&C renewals was never applied to passive ones (65% of resi renewals most years, 100% in crisis
+years) because the signal-collection code itself (`_elec_rate_shock_counts`, `_payment_analytics.get_score`,
+`_company_sat_acc` decay/record) sat inside the active-only branch.
+
+`company/crm/enriched_churn_estimate.py`: new `enriched_passive_churn_estimate()` -- same
+`max(rate_estimate, payment_estimate) x market_conditions_multiplier` combination rule as
+`enriched_churn_estimate()`, but built on `estimate_passive_churn_probability()` instead of the full
+rate model, so passive renewers keep their SVT-inertia rate-insensitivity while still being able to
+break above the 0.10 cap on a genuine payment/satisfaction signal. `simulation/run_phase2b.py`: moved
+shock-count/behaviour-score/satisfaction decay-and-record out of the active-only branch so it runs for
+every renewal; passive resi renewals now call `enriched_passive_churn_estimate()` instead of the bare
+rate model.
+
+VERIFIED LIVE (full 2016-2025 production re-run post-fix): headline recall/precision are still
+0%/0% -- unchanged from before the fix -- but this is not a wiring failure. Three passive renewers now
+correctly cross the old 0.10 ceiling under genuine stress and trigger retention offers that would have
+been structurally impossible before QK: C1 2018-12-31 (est 0.359, retained), C5 2021-12-30 (est 0.492,
+retained), C6 2023-03-31 (est 0.387, retained) -- all three subsequently churned at a LATER renewal
+(C1 2020-12-30 est 0.073; C5 2022-12-30 est 0.048; C6 2024-03-30 est 0.246) once the satisfaction/
+behaviour signal had decayed back down between the near-miss and the actual departure. The classifier
+only scores the terminal renewal before departure, so a correctly-detected-then-decayed risk signal
+still counts as a false negative at the end. Diagnosis (R4): the miss is a signal-decay-timing gap, not
+a missing-signal gap -- QK closed the latter but the former remains open. Two candidate next steps,
+neither started: slow the satisfaction/behaviour decay rate so a flagged customer stays flagged closer
+to real payment/credit-history persistence, or redefine the accuracy metric to credit a prevented-churn
+intervention rather than scoring only the terminal event. Epistemic: PASS (payment/satisfaction signals
+are already company-observable via Phases MW/NG/NH; no new SIM-internal reads).
+**Total:** 15,377 tests (fast suite)
+
 ### Phase QG -- GitHub Pages Advisor-Verification Mirror (2026-07-04)
 7 new tests. Tier 2 (WEEKEND_ACCELERATION.md Q3, staged docs/staging/ADVISOR_GITHUBIO_MIRROR.md: "may already be actioned; verify then close"). Verification found it was NOT actioned: poesys.net (Cloudflare Pages) is proven persistently stale specifically on the advisor's own fetch path -- a cache-busted fetch of poesys.net/shadow/?v=1804 at ~18:04 still returned an 08:35Z generation (Phase OL, stale exec summary) while CC's direct fetch of the identical URL at 17:58 returned the current Phase QB content with Cf-Cache-Status=DYNAMIC -- so this is not simple CDN staleness but a persistent divergence in the advisor's egress path, the same class of producer/consumer split PROJECT_STATE.txt hit before it moved to docs/status/ (GitHub Pages, published straight from this repo's `docs/` folder on every push, no separate CDN in the path).
 
@@ -5234,7 +5271,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,367 tests (fast suite / ~103s; simulation integration ~8 min per run)
+- 15,377 tests (fast suite / ~103s; simulation integration ~8 min per run)
+- Phase QK (2026-07-04): passive-renewal churn estimate enrichment -- see Section 4. Wiring fix verified
+  correct live (3 new above-cap risk detections triggering retention offers) but did NOT close the
+  headline recall=0%/precision=0% finding -- root cause reclassified as a signal-decay-timing gap, not
+  a missing-signal gap. 10 new tests.
 - Phase QJ (2026-07-04): closes the EVIDENCE_IN_BUSINESS_SURFACES.md retrofit queue (item 3 of 3, churn model). tools/generate_dashboard_data.py: events export gains market_signal (Phase QB switching multiplier) and realized_churn_p (SIM outcome), previously computed by run_phase2b but never exported; retention export cross-references customer_events by (customer_id, date) to add the same SIM-side fields to every retention decision, since retention_log only ever recorded the company side. tools/generate_shadow_html.py: _churn_model_signal() (Sim tab) shows average market signal per year next to the real TP/FP/FN/recall/precision the company classifier achieved -- recall and precision are honestly 0.0% in every year, the same structural finding PRIORITIES.md already documented (PASSIVE_CHURN_CAP=0.10 clamped before the QB multiplier applies), now visible on the surface instead of only in a markdown file; _renewal_decision_case_study() (Supplier tab) picks the real retention decision with the widest company-vs-SIM divergence (C_IC1, 2018-01-31: company estimated 95% churn risk, SIM ground truth was 5%, a 90pp gap from the 0.95 estimate ceiling Phase QB flagged) and shows both sides plus the outcome. 7 new tests. This closes all three named retrofit items (QD bad debt, C7 income-stress/life-event, churn model); docs/staging/EVIDENCE_IN_BUSINESS_SURFACES.md moved to done/.
 - Phase QI (2026-07-04): retrofitted the first EVIDENCE_IN_BUSINESS_SURFACES.md capability -- QD bad debt/arrears is now visible on all three business surfaces, generated from the live run, not just described in a spec. Sim tab: customer count by income-stress level per year (SIM ground truth) alongside arrears cases opened + bad debt (company-observable) in the same table -- a real correlation panel, not narrative. Customers tab: a named case study (C7) showing the SIM-only life event (new_baby, 2023-12-23) and income-stress trajectory next to the company-observable payment-behaviour score and the 6 real arrears cases it produced, with an explicit divergence callout -- both sides of the epistemic wall on one page. Supplier tab: the real dunning cascade aggregated across every account (46 cases, GBP112,182 total arrears, 20 written off = GBP3,051 exactly matching the Phase QD emergent bad debt figure) as an operational process view. Also reordered process_run_complete.py so billing_ledger.json generates BEFORE generate_shadow_html.py (the new sections read it; the old order would have shipped it one cycle stale). 11 new tests. Remaining retrofit queue: the three-signal churn model, further income-stress/life-event cases.
 - Phase QH (2026-07-04): fixed a dead-code regression in process_run_complete.py::generate_dashboard_json()

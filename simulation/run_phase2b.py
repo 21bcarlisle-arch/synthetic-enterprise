@@ -90,7 +90,7 @@ from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hed
 from company.trading.forward_book import ForwardContract, TradingBook
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost
 from company.crm.customer_profitability import compute_profitability_uplift
-from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate, INDUSTRY_BASE_CHURN_RATE as _INDUSTRY_BASE_CHURN_RATE
+from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate, enriched_passive_churn_estimate as _enriched_passive_churn_estimate, INDUSTRY_BASE_CHURN_RATE as _INDUSTRY_BASE_CHURN_RATE
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
 from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
@@ -957,9 +957,7 @@ def main(report_end: str | None = None, sim_interface=None):
             passive_cap = None
             if old_elec_rate is not None:
                 from company.crm.churn_model import (
-                    estimate_churn_probability as _est_churn,
                     is_active_renewal as _is_active_renewal,
-                    estimate_passive_churn_probability as _est_passive_churn,
                     PASSIVE_CHURN_CAP as _PASSIVE_CHURN_CAP,
                 )
                 active_renewal = _is_active_renewal(term_start_str, f"{billing_account}_{term_index}")
@@ -997,21 +995,31 @@ def main(report_end: str | None = None, sim_interface=None):
                 # Phase 33: passive renewers use SVT-inertia constants; active use full model.
                 # I&C customers are always active (brokers shop every renewal — no passive roll).
                 _renewal_year = int(term_start_str[:4])
+                # Phase QK: signal collection (shock count, behaviour score, satisfaction
+                # decay/record) runs for EVERY renewal, not just active ones -- these are
+                # observable state updates independent of which estimate formula applies.
+                # Previously gated behind the active/I&C branch, so a passive-rolling
+                # customer's satisfaction/shock tracking was frozen and never fed into
+                # their estimate -- the root cause of the churn classifier's structural
+                # recall=0%/precision=0% (docs/staging/EVIDENCE_IN_BUSINESS_SURFACES.md).
+                _nd_shock_count = _elec_rate_shock_counts.get(cid, 0)
+                # Phase NH: payment behaviour score from observable payment history
+                _nh_behaviour_score = _payment_analytics.get_score(cid)
+                # Phase NG: apply yearly decay then record shock if rate rose >20%
+                _company_sat_acc.apply_monthly_decay(cid, months=12)
+                if old_elec_rate > 0 and unit_rate / old_elec_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
+                    _company_sat_acc.record_bill_shock(cid)
+                _ng_satisfaction = _company_sat_acc.get_satisfaction(cid)
                 if not active_renewal and segment_for_churn != "I&C":
-                    company_est_pre = round(_est_passive_churn(
+                    company_est_pre = round(_enriched_passive_churn_estimate(
                         old_elec_rate, unit_rate, tenure_for_est,
+                        bill_shock_count=_nd_shock_count,
+                        behaviour_score=_nh_behaviour_score,
+                        satisfaction_score=_ng_satisfaction,
                         renewal_year=_renewal_year,
                     ), 4)
                 else:
                     # Phase ND: use enriched estimate with bill_shock_count from prior terms
-                    _nd_shock_count = _elec_rate_shock_counts.get(cid, 0)
-                    # Phase NH: payment behaviour score from observable payment history
-                    _nh_behaviour_score = _payment_analytics.get_score(cid)
-                    # Phase NG: apply yearly decay then record shock if rate rose >20%
-                    _company_sat_acc.apply_monthly_decay(cid, months=12)
-                    if old_elec_rate > 0 and unit_rate / old_elec_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
-                        _company_sat_acc.record_bill_shock(cid)
-                    _ng_satisfaction = _company_sat_acc.get_satisfaction(cid)
                     company_est_pre = round(_enriched_churn_estimate(
                         old_elec_rate, unit_rate, tenure_for_est,
                         company_eac,

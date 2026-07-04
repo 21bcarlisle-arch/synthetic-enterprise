@@ -1,33 +1,59 @@
 # Current Priorities
 
-Last updated: 2026-07-04 -- P1-P4 base complete; Phase PX (Correlated Synthetic Market Generator) COMPLETE (21 tests, 15,380 total).
+Last updated: 2026-07-04 -- Phases PY-QK COMPLETE (churn/bad-debt/website-integrity/shadow-live retrofit queue + passive-renewal churn enrichment). QK did NOT close the recall=0% finding; see below.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
-Coverage sprints (phases LQ through MU, 95+ sprints) are complete. Test count: 14,485.
+Coverage sprints (phases LQ through MU, 95+ sprints) are complete.
 All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Last updated: 2026-07-04 -- All P1-P4 base work complete. Phase PX COMPLETE.
+Last updated: 2026-07-04 -- WEEKEND_ACCELERATION.md queue (Tier 2, pre-approved): Q1 (QD bad debt), Q3
+(QG advisor mirror), Q6 (QE shadow-live persistence) DONE. Q7 (scenario suite) pre-empted by Phase PZ.
+Q4 (churn model validation loop) DONE as Phase QK -- fix verified correct, recall/precision finding
+reclassified (decay-timing, not missing-signal), see KEY OPEN FINDING below. Q2 (website design system)
+and Q5 (customer portal per-fuel depth -- likely already substantially covered by Phase PT's dual-fuel
+legs + generate_invoice_data.py, needs verification) remain open, next candidates.
 
-Phase PS COMPLETE (2026-07-03): Complaints & Arrears Population Anchoring -- 22 tests (15,276 total).
-Phase PT COMPLETE (2026-07-03): customers.json + supplier.json stable fetchable paths -- 14 tests (15,290 total).
-Phase PU COMPLETE (2026-07-03): Shadow Live Operation P4 MVP -- 24 tests (15,314 total). live_decisions_latest.json live.
-Phase PV COMPLETE (2026-07-04): Market Feed Swappable Adapter (MarketDataPort + Frozen2025Adapter + factory) -- 21 tests (15,335 total).
-Phase PW COMPLETE (2026-07-04): I&C Corporate Arrears Calibration -- 24 tests (15,359 total). IC arrears 0%->5.4% GREEN.
-Phase PX COMPLETE (2026-07-04): Correlated Synthetic Market Generator -- 21 tests (15,380 total). CorrelatedGeneratorAdapter; bivariate OU; crisis regime; contango forward.
+Phase PY COMPLETE (2026-07-04): Synthetic Generator Statistical Equivalence Gate -- 15,402 tests.
+Phase PZ COMPLETE (2026-07-04): Scenario Stress Testing via Synthetic Market -- 15,424 tests.
+Phase QA/QB COMPLETE (2026-07-04): Churn estimate error-metric fix + observable market-conditions signal -- 15,319 tests.
+Phase QC COMPLETE (2026-07-04): Website Data Integrity (Part A) -- 15,341 tests.
+Phase QD COMPLETE (2026-07-04): Emergent Bad Debt (WEEKEND_ACCELERATION Q1) -- 15,393 tests. Real bad debt
+GBP3,051 vs old flat-formula GBP92,551.
+Phase QE COMPLETE (2026-07-04): Shadow-Live Decision Log Persistence (WEEKEND_ACCELERATION Q6) -- 15,329 tests.
+Phase QF COMPLETE (2026-07-04): Permanent Consistency-Gate Wiring, 8 headline metrics -- 15,342 tests.
+Phase QG COMPLETE (2026-07-04): GitHub Pages Advisor-Verification Mirror (WEEKEND_ACCELERATION Q3) -- 15,349 tests.
+Phase QH COMPLETE (2026-07-04): Dead-code regression fix (dashboard generation early-return bug) -- 15,349 tests.
+Phase QI/QJ COMPLETE (2026-07-04): EVIDENCE_IN_BUSINESS_SURFACES.md retrofit (bad debt + churn-model
+evidence onto Sim/Customers/Supplier tabs) -- 15,367 tests.
+Phase QK COMPLETE (2026-07-04): Enriched passive-renewal churn estimate -- 15,377 tests.
 
-Observability URLs (all confirmed live at poesys.net):
-- /state/PROJECT_STATE.txt -- Phase PW / 15,359 tests
-- /state/billing_ledger.json -- 1,605 invoices
-- /state/population_anchoring.json -- AMBER (long-run GREEN; IC arrears GREEN)
+KEY OPEN FINDING (exposed by QJ, RECLASSIFIED not closed by QK): live churn classifier
+(company/analytics/churn_accuracy_report.py) still shows recall=0%/precision=0% on the full live re-run
+AFTER the QK fix. QK correctly closed the "passive renewals never receive the payment/satisfaction
+signal" bug -- verified live: 3 passive renewers now cross the old 0.10 SVT-inertia cap under genuine
+stress and trigger retention offers that were structurally impossible before (C1 2018-12-31 est 0.359,
+C5 2021-12-30 est 0.492, C6 2023-03-31 est 0.387, all "retained"). But all three later churned anyway at
+a SUBSEQUENT renewal once the satisfaction/behaviour signal had decayed back down (C1 2020-12-30 est
+0.073; C5 2022-12-30 est 0.048; C6 2024-03-30 est 0.246) -- the classifier only scores the terminal
+renewal before departure, so a correctly-detected-then-decayed risk still counts as a false negative.
+Real root cause: signal-decay-timing, not a missing signal. Next candidates (neither started): slow the
+satisfaction/behaviour decay rate, or redefine the accuracy metric to credit a prevented-churn
+intervention instead of only the terminal event.
+
+Observability URLs (all confirmed live at poesys.net and github.io mirror):
+- /state/PROJECT_STATE.txt, /state/billing_ledger.json, /state/population_anchoring.json
 - /data/customers.json + /data/supplier.json -- live portfolio
 - /shadow/ /shadow/customers/ /shadow/project/ /shadow/sim/ -- all sections
-- /state/live_decisions_latest.json -- shadow live decisions (as-of 2025-06-07)
+- /state/live_decisions_latest.json -- shadow live decisions + persisted daily log
 
 
 ## Next (roadmap items outbid self-generated work)
-Last refreshed: 2026-07-04 -- Phase PX COMPLETE. Next: see roadmap below (Gap 3 shadow close-out, Gap 4 network actuals, or next highest capability gap).
+Last refreshed: 2026-07-04 -- Phase QK complete (see KEY OPEN FINDING). Next: WEEKEND_ACCELERATION.md
+Q2 (professional design system across all four shadow sections + customer portal) or Q5 (verify/complete
+C4/C4g fully separate per-fuel legs: consumption/tariff/invoices/P&L, combined as roll-up only), or a
+QL-style decay-timing/metric-redesign phase closing the reclassified churn-recall finding above.
 
 **RULE (permanent, added to phase-close checklist):** A new board/report/Observatory section is NOT a phase. Board sections are byproducts of building capability. Any "add an X Observatory / X dashboard" proposal is automatically outbid by the priorities below.
 

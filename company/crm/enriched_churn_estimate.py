@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from company.crm.churn_model import estimate_churn_probability
+from company.crm.churn_model import estimate_churn_probability, estimate_passive_churn_probability
 from company.crm.market_conditions import market_conditions_multiplier
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.crm.payment_churn_model import combined_churn_probability
@@ -71,6 +71,40 @@ def enriched_churn_estimate(
         hedge_fraction=hedge_fraction,
         hangover_periods_remaining=hangover_periods_remaining,
         segment=segment,
+    )
+    payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
+    result = max(rate_est, payment_est) * market_conditions_multiplier(renewal_year)
+    return max(0.0, min(result, MAX_CHURN_PROBABILITY))
+
+
+def enriched_passive_churn_estimate(
+    old_rate_gbp_per_mwh: float,
+    new_rate_gbp_per_mwh: float,
+    tenure_years: float,
+    *,
+    bill_shock_count: int = 0,
+    behaviour_score: Optional[BehaviourScore] = None,
+    satisfaction_score: Optional[float] = None,
+    renewal_year: int | None = None,
+) -> float:
+    """Return enriched churn probability for a passive (SVT-roll) renewal.
+
+    estimate_passive_churn_probability() deliberately gives passive renewers low
+    rate-sensitivity (SVT inertia — Ofgem/CMA evidence) but its own docstring says
+    their real churn driver is life events, not price. Life events surface to the
+    company as payment stress and satisfaction decline (Phase MW/NB) — the same
+    observable signal enriched_churn_estimate() already applies to active/I&C
+    renewals. Prior to this fix, passive renewals (65% of resi renewals in most
+    years, and 100% of resi renewals in crisis years) never received this signal
+    at all, so a passive customer sliding into arrears before departing showed no
+    estimate movement (Phase QK: root cause of recall=0%/precision=0% in the
+    live company-vs-SIM churn classifier — see churn_accuracy_report.py).
+
+    result = max(passive_rate_estimate, payment_estimate) x market_conditions_multiplier,
+    same combination rule as enriched_churn_estimate(), capped at MAX_CHURN_PROBABILITY.
+    """
+    rate_est = estimate_passive_churn_probability(
+        old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years,
     )
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
     result = max(rate_est, payment_est) * market_conditions_multiplier(renewal_year)

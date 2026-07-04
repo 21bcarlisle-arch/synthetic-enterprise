@@ -2242,3 +2242,14 @@ Structured performance entries are added after each task completes.
 - [2026-07-04 18:56 UTC] Found 1 leftover run_complete marker(s) — processing
 - [2026-07-04 18:58 UTC] Processed run_complete_20260704T184444Z.md
 - [2026-07-04 18:58 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:58 UTC
+- [2026-07-04 19:13 UTC] Found queued tasks — beginning execution
+- [2026-07-04 19:13 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-04 19:43 UTC] Found queued tasks — beginning execution
+- [2026-07-04 19:43 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-04 20:13 UTC] Found 2 leftover run_complete marker(s) — processing
+- [2026-07-04 20:15 UTC] Processed run_complete_20260704T194213Z.md
+- [2026-07-04 20:15 UTC] Processed run_complete_20260704T200329Z.md
+- [2026-07-04 20:15 UTC] Found queued tasks — beginning execution
+- [2026-07-04 20:15 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-04 20:45 UTC] Found queued tasks — beginning execution
+- [2026-07-04 20:45 UTC] run_queued_tasks: no parseable QUEUED task found
