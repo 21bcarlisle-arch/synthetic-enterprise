@@ -1,5 +1,5 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-04 (Network charges confirmed done Phase 78; correlated generator backlog gate LIFTED)
+# Last refreshed: 2026-07-04 (Phase PY: statistical equivalence gate PASS; endgame backlog gate UNLOCKED)
 
 ## COMPLETED
 - P1a: PROJECT_STATE.txt auto-sync -- FIXED (Phase PT + HARD GATE verified 2026-07-03T21:36:23Z)

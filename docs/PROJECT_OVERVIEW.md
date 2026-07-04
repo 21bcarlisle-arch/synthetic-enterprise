@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-04. 493+ commits. 15,380 tests passing. Codebase: ~51,450 lines across 340+ Python modules.*
+*Last updated: 2026-07-04. 494+ commits. 15,402 tests passing. Codebase: ~51,600 lines across 341+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase PY -- Synthetic Generator Statistical Equivalence Gate (2026-07-04)
+22 new tests. tools/synthetic_validation.py (new): `EquivalenceCheck` dataclass (name/passed/value/benchmark/message); `EquivalenceGate` dataclass (overall_pass/checks/model_params/n_steps/timestamp); `HISTORICAL_BENCHMARKS` dict (10 calibrated values from NBP/SSP research); `run_gate(seed=0, n_steps=5000)` -> EquivalenceGate; `write_gate_json()`. 10 checks: gas/elec long-run mean (target 54/85 +/-20%), gas/elec return vol ([0.30,0.80]/[0.35,0.95]), elec-gas correlation ([0.55,0.85]), crisis frequency ([0.04,0.14]), lag-1 ACF of returns <0 (mean reversion), excess kurtosis >0 (fat tails from regime mixture). CALIBRATION BUG FOUND AND FIXED in PX generator: arithmetic OU (sigma*sqrt(dt)) produced only 0.009 annualised log-return vol vs intended 35%; fixed to proportional vol (sigma*X(t)*sqrt(dt)) -- gas vol now 0.60/elec 0.76 annualised. Gate result: PASS (10/10 checks). Artifact: docs/market_research/findings/synthetic_equivalence_gate.json. Endgame backlog gate UNLOCKED (distributional moments, cross-commodity structure, time-series stylised facts all validated). All 21 PX tests still pass. Epistemic: benchmarks from published NBP/SSP data. PASS.
+**Total:** 15,402 tests
 
 ### Phase PX -- Correlated Synthetic Market Generator (2026-07-04)
 21 new tests. tools/market_adapters/synthetic_generator.py (new): `CorrelatedGeneratorAdapter` implements MarketDataPort via bivariate Ornstein-Uhlenbeck process. Gas: kappa=0.5, mu=54 GBP/MWh. Elec: kappa=0.6, mu=85 GBP/MWh. Cross-commodity correlation=0.70 (Cholesky decomposition). Normal vol: gas 35%, elec 45% annualised. Crisis vol: gas 120%, elec 150% annualised -- calibrated to 2021-22 UK energy crisis. CRISIS_REGIME_PROB=8% (8 of 100 months). Forward curve: contango at 2%/year storage+carry. Seed param: fully reproducible paths. regime="crisis": forces high-vol permanently (stress testing). tools/market_adapters/__init__.py: factory registers "synthetic" -> CorrelatedGeneratorAdapter. KEY FIDELITY GAIN: company can now stress-test renewal and hedging decisions against crisis-regime volatility -- directly addressing regime-change blindness (known CLAUDE.md failure mode). MARKET_ADAPTER_SOURCE=synthetic drops in with zero company-layer changes (PV guarantee maintained). Epistemic: synthetic model is company-built from publicly observable NBP/SSP statistics. PASS.

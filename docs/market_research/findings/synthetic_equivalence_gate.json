@@ -1,0 +1,87 @@
+{
+  "overall_pass": true,
+  "checks": [
+    {
+      "name": "gas_long_run_mean",
+      "passed": true,
+      "value": 54.4,
+      "benchmark": "[43.2, 64.8] GBP/MWh",
+      "message": "gas mean 54.40 vs target 54.0 +/-20pct"
+    },
+    {
+      "name": "elec_long_run_mean",
+      "passed": true,
+      "value": 80.22,
+      "benchmark": "[68.0, 102.0] GBP/MWh",
+      "message": "elec mean 80.22 vs target 85.0 +/-20pct"
+    },
+    {
+      "name": "gas_return_vol",
+      "passed": true,
+      "value": 0.5989,
+      "benchmark": "[0.30, 0.80]",
+      "message": "gas annualised vol 0.599 (target ~0.35)"
+    },
+    {
+      "name": "elec_return_vol",
+      "passed": true,
+      "value": 0.7603,
+      "benchmark": "[0.35, 0.95]",
+      "message": "elec annualised vol 0.760 (target ~0.45)"
+    },
+    {
+      "name": "elec_gas_correlation",
+      "passed": true,
+      "value": 0.7087,
+      "benchmark": "[0.55, 0.85]",
+      "message": "Pearson r 0.709 vs target 0.70"
+    },
+    {
+      "name": "crisis_freq",
+      "passed": true,
+      "value": 0.0822,
+      "benchmark": "[0.04, 0.14]",
+      "message": "crisis fraction 0.082 vs target 0.08"
+    },
+    {
+      "name": "gas_mean_reversion",
+      "passed": true,
+      "value": -0.0515,
+      "benchmark": "< 0.0",
+      "message": "gas returns lag-1 ACF -0.0515"
+    },
+    {
+      "name": "elec_mean_reversion",
+      "passed": true,
+      "value": -0.0718,
+      "benchmark": "< 0.0",
+      "message": "elec returns lag-1 ACF -0.0718"
+    },
+    {
+      "name": "gas_fat_tails",
+      "passed": true,
+      "value": 59.2976,
+      "benchmark": "> 0.0",
+      "message": "gas excess kurtosis 59.2976"
+    },
+    {
+      "name": "elec_fat_tails",
+      "passed": true,
+      "value": 38.2108,
+      "benchmark": "> 0.0",
+      "message": "elec excess kurtosis 38.2108"
+    }
+  ],
+  "model_params": {
+    "gas_mu": 54.0,
+    "elec_mu": 85.0,
+    "gas_kappa": 0.5,
+    "elec_kappa": 0.6,
+    "gas_vol_normal": 0.35,
+    "elec_vol_normal": 0.45,
+    "corr": 0.7,
+    "crisis_prob": 0.08
+  },
+  "n_steps": 5000,
+  "timestamp": "2026-07-04T04:54:55Z"
+}

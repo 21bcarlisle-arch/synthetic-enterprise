@@ -71,13 +71,13 @@ class CorrelatedGeneratorAdapter:
         self._gas = _clamp(
             self._gas
             + GAS_MEAN_REVERSION_SPEED * (GAS_LONG_RUN_MEAN_GBP_PER_MWH - self._gas) * _DT
-            + gas_vol * sqrt_dt * z_gas,
+            + gas_vol * self._gas * sqrt_dt * z_gas,
             _GAS_FLOOR, _GAS_CEILING,
         )
         self._elec = _clamp(
             self._elec
             + ELEC_MEAN_REVERSION_SPEED * (ELEC_LONG_RUN_MEAN_GBP_PER_MWH - self._elec) * _DT
-            + elec_vol * sqrt_dt * z_elec,
+            + elec_vol * self._elec * sqrt_dt * z_elec,
             _ELEC_FLOOR, _ELEC_CEILING,
         )
 
