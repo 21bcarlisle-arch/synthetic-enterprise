@@ -40,6 +40,9 @@ The bill burden term captures what the rate-change-only model misses:
     activates only when the PREVIOUS year's bill exceeded £3,000 GBP
     (the threshold where empirically customers start actively switching)
 """
+from __future__ import annotations
+
+from company.crm.market_conditions import market_conditions_multiplier
 
 BASE_CHURN_RATE = 0.10
 RATE_SENSITIVITY = 0.8
@@ -103,12 +106,19 @@ def estimate_passive_churn_probability(
     old_rate_gbp_per_mwh: float,
     new_rate_gbp_per_mwh: float,
     tenure_years: float,
+    renewal_year: int | None = None,
 ) -> float:
     """Churn estimate for a passive SVT-roller.
 
     Uses SVT-inertia constants: low base rate, very low rate sensitivity.
     These customers don't actively respond to rate changes — their churn
     is driven mainly by life events (house moves), not price signals.
+
+    renewal_year: if given, scales the estimate by the published market
+        switching multiplier (`company.crm.market_conditions`) — even inert
+        SVT-rollers are more/less likely to move when competitor deals are
+        more/less attractive that year. Defaults to None (multiplier 1.0,
+        unchanged behaviour) for backward compatibility.
     """
     if old_rate_gbp_per_mwh > 0:
         rate_increase_pct = (new_rate_gbp_per_mwh - old_rate_gbp_per_mwh) / old_rate_gbp_per_mwh
@@ -116,7 +126,9 @@ def estimate_passive_churn_probability(
         rate_increase_pct = 0.0
     tenure_discount = TENURE_DISCOUNT_PER_YEAR * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
     p = PASSIVE_BASE_CHURN_RATE + PASSIVE_RATE_SENSITIVITY * rate_increase_pct - tenure_discount
-    return max(PASSIVE_BASE_CHURN_RATE, min(PASSIVE_CHURN_CAP, p))
+    p = max(PASSIVE_BASE_CHURN_RATE, min(PASSIVE_CHURN_CAP, p))
+    p *= market_conditions_multiplier(renewal_year)
+    return max(0.0, min(MAX_CHURN_PROBABILITY, p))
 
 
 def estimate_churn_probability(

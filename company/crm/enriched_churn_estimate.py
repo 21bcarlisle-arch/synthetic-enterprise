@@ -20,6 +20,7 @@ from __future__ import annotations
 from typing import Optional
 
 from company.crm.churn_model import estimate_churn_probability
+from company.crm.market_conditions import market_conditions_multiplier
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.crm.payment_churn_model import combined_churn_probability
 from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY, MAX_CHURN_PROBABILITY
@@ -40,18 +41,26 @@ def enriched_churn_estimate(
     hedge_fraction: float = 0.0,
     hangover_periods_remaining: int = 0,
     segment: str = "resi",
+    renewal_year: int | None = None,
 ) -> float:
     """Return enriched churn probability from rate-sensitivity and payment-behaviour signals.
 
     rate_estimate  = estimate_churn_probability(old_rate, new_rate, tenure, ...)
     payment_estimate = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
-    result = max(rate_estimate, payment_estimate), capped at MAX_CHURN_PROBABILITY.
+    result = max(rate_estimate, payment_estimate) x market_conditions_multiplier(renewal_year),
+    capped at MAX_CHURN_PROBABILITY.
     No base-rate floor applied -- company estimates may be low when there is no evidence of
     churn risk. Use PASSIVE_BASE_CHURN_RATE from churn_model.py for passive renewers specifically.
 
     When behaviour_score and satisfaction_score are both None and bill_shock_count is 0,
     payment_estimate = BASE_ANNUAL_CHURN_PROBABILITY (same as combined_churn_probability baseline),
     so the enriched estimate equals the rate model for backward compatibility.
+
+    renewal_year: if given, scales the combined estimate by the published market
+        switching multiplier (`company.crm.market_conditions`) -- even a customer
+        with rate-driven or stress-driven churn risk is less likely to actually
+        leave in a year with no cheaper competitor deal to switch to. Defaults to
+        None (multiplier 1.0, unchanged behaviour) for backward compatibility.
     """
     rate_est = estimate_churn_probability(
         old_rate_gbp_per_mwh,
@@ -64,5 +73,5 @@ def enriched_churn_estimate(
         segment=segment,
     )
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
-    result = max(rate_est, payment_est)
-    return min(result, MAX_CHURN_PROBABILITY)
+    result = max(rate_est, payment_est) * market_conditions_multiplier(renewal_year)
+    return max(0.0, min(result, MAX_CHURN_PROBABILITY))

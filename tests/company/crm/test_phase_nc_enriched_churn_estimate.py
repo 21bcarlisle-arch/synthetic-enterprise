@@ -128,3 +128,30 @@ def test_three_signals_higher_than_any_single():
     assert p_all >= p_rate
     assert p_all >= p_payment
     assert p_all >= p_sat
+
+
+# ── Phase QB: observable market-conditions signal ─────────────────────────────
+
+def test_no_renewal_year_unchanged():
+    """Default (no renewal_year) behaviour is unchanged — backward compatible."""
+    p_none = enriched_churn_estimate(80.0, 90.0, 1.0)
+    p_explicit_none = enriched_churn_estimate(80.0, 90.0, 1.0, renewal_year=None)
+    assert p_none == pytest.approx(p_explicit_none)
+
+
+def test_crisis_year_suppresses_combined_estimate_below_calm_year():
+    """2022 (crisis, multiplier 0.44) must give a lower combined estimate than
+    2016 (peak competition, multiplier 2.17) for identical inputs, even with a
+    payment-behaviour signal in the mix."""
+    p_crisis = enriched_churn_estimate(
+        80.0, 90.0, 1.0, behaviour_score=BehaviourScore.POOR, renewal_year=2022,
+    )
+    p_calm = enriched_churn_estimate(
+        80.0, 90.0, 1.0, behaviour_score=BehaviourScore.POOR, renewal_year=2016,
+    )
+    assert p_crisis < p_calm
+
+
+def test_market_multiplier_clamped_to_valid_range():
+    p = enriched_churn_estimate(80.0, 300.0, 1.0, behaviour_score=BehaviourScore.CRITICAL, renewal_year=2016)
+    assert 0.0 <= p <= MAX_CHURN_PROBABILITY

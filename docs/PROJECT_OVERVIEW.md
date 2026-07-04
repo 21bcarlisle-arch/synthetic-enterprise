@@ -111,6 +111,14 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QB -- Observable Market-Conditions Signal in Company Churn Estimate (2026-07-04)
+12 new tests. Closes the gap Phase QA's ground-truth fix exposed: passive-renewal company estimates were capped at 5-10% (PASSIVE_BASE_CHURN_RATE/PASSIVE_CHURN_CAP) with zero yearly variation, while SIM realized churn (after the Phase NS market-conditions multiplier, applied post-cap) legitimately ranges 3-22% depending on how attractive competitor deals are that year -- a signal the company had no way to see. `company/crm/market_conditions.py` (new): `MARKET_SWITCHING_MULTIPLIER_BY_YEAR` (2016-2025, same public DESNZ/Ofgem-derived values already used for board-facing population anchoring in `tools/population_anchor.py`'s CALIBRATED_MULTIPLIER) and `market_conditions_multiplier(renewal_year)`; reimplemented independently of `simulation/market_switching_propensity.py` since the company layer must not import `simulation/`. `company/crm/churn_model.py`: `estimate_passive_churn_probability` gains optional `renewal_year` param, multiplies the passive-cap-clamped estimate by the market multiplier before a final [0, 0.95] clamp. `company/crm/enriched_churn_estimate.py`: `enriched_churn_estimate` gains optional `renewal_year`, applies the multiplier to the combined (rate/payment) estimate. Both default to `None` (multiplier 1.0) for backward compatibility -- all existing tests unchanged. `simulation/run_phase2b.py`: wires `renewal_year=int(term_start_str[:4])` into both call sites (passive and active/enriched paths), reusing the same year already computed for the SIM-side `market_year` param. Epistemic: market savings/switching-rate data is public (Cornwall Insight/Ofgem/DESNZ) -- the same real-world data a supplier's market intelligence team would track, not a SIM-internal read. PASS.
+**Total:** 15,319 tests
+
+### Phase QA -- Fix churn_estimate_error_pct Ground-Truth Comparison Bug (2026-07-04)
+7 new tests. `churn_estimate_error_pct` (the metric behind Priority 1's "-0.82 to -0.88 error at nearly every renewal" finding) was comparing the company's churn estimate against `renewal_data["churn_probability"]` -- the raw, pre-adjustment bill-shock base rate from `saas.churn_model` that the dice roll never actually used. The true probability rolled against is `effective_retention_probability` after passive-cap / market-conditions / income-stress / satisfaction adjustments. `simulation/customer_events.py`: `roll_lifecycle_event()` now returns `realized_churn_probability` -- captured as `1 - effective_retention_probability` **before** the retention-offer adjustment (so the company isn't judged "wrong" purely because its own retention action worked) -- and `churn_estimate_error_pct` is computed against it instead. Wired through `run_phase2b.py`, `tools/generate_customer_sample.py`, and `company/analytics/counterfactual_retention.py` wherever `churn_probability` was previously read as ground truth. Also fixed a test-isolation bug in `tests/background/test_process_run_complete.py`: `test_main_success_flow` faked `subprocess.run` without mocking `LAST_TESTED_HASH_FILE`, so every test-suite run clobbered the real `docs/observability/.last_tested_hash` with the fixture's dummy hash. Epistemic: PASS.
+**Total:** 15,307 tests
+
 ### Infra: PROJECT_STATE.txt freshness + watchdog exit-reason classification (2026-07-04)
 tools/generate_project_state.py: now writes to both site/state/ (Cloudflare Pages) AND docs/status/ (GitHub Pages -- same commit as LATEST.md, proven to reach edge fresh every cycle). Canonical advisor URL updated to 21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt. process_run_complete.py: commits docs/status/PROJECT_STATE.txt alongside LATEST.md. background/session_watchdog.py: added classify_exit(pane_text) -> (reason, detail) detecting quick_exit (RESUME_INSTRUCTION numbered list ran as shell commands = CC exited before accepting input), usage_limit, crash, or completion. handle_session_ended() now acts per reason: quick_exit/usage_limit -> 30min wait + ONE deduped NTFY; crash -> NTFY with error text; completion -> silent restart. Root cause this morning (03:00-04:16 UTC): CC hit usage/rate limit on startup, exited, watchdog sent 10+ identical NTFYs burning restart cap each hour. Pattern -sh: N: N.: not found in pane now classified as quick_exit.
 **No test count change (infra fix).**
@@ -5188,17 +5196,17 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,300 tests (fast suite / ~42s; simulation integration ~8 min per run)
-- Phase PZ (2026-07-04): Scenario Stress Testing -- regime-change blindness closed; board sees crisis/bull/bear/base scenario sensitivity.
+- 15,319 tests (fast suite / ~73s; simulation integration ~8 min per run)
+- Phase QB (2026-07-04): observable market-conditions signal in company churn estimate -- P1 churn recalibration continues.
 
 **Data:**
 - 168,026 real Elexon SSP records (2015–2025, 123 MB)
 - 3,446 NBP daily gas prices (2016–2025)
 - 9 HH smart meter profiles (C7–C9 residential, C_IC1–C_IC4 I&C at 1–4 GWh/year)
 
-**Latest full run (Phase PZ, 2026-07-04, git 2f6f2bd7):**
+**Latest full run (Phase QB, 2026-07-04, git b59679be):**
 - Net margin £1,445,258 | Gross £6,467,309 | Treasury £2,466,636 → £3,911,894 | SURVIVED
-- 15,300 tests (fast). Phase PZ: scenario stress testing (crisis +£1.56M exposure delta). CLAUDE.md known failure regime-change blindness CLOSED.
+- 15,319 tests (fast). Phase QA fixed the churn_estimate_error_pct ground-truth comparison bug (was comparing against a discarded pre-adjustment rate); Phase QB added the market-conditions signal the company was missing. Mean error moved from ~1.25 to ~1.00; residual overestimate now concentrated in I&C customers hitting the 0.95 estimate ceiling -- next P1 item.
 
 **Simulation complexity:**
 - 165,000+ settlement periods (9.5 years × 48 HH/day)

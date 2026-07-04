@@ -389,6 +389,33 @@ def test_estimate_passive_churn_lower_than_active_same_inputs():
     assert p_passive < p_active
 
 
+# ── Phase QB: observable market-conditions signal ─────────────────────────────
+
+def test_estimate_passive_churn_no_renewal_year_unchanged():
+    """Default (no renewal_year) behaviour is unchanged — backward compatible."""
+    from company.crm.churn_model import estimate_passive_churn_probability
+    p_none = estimate_passive_churn_probability(100.0, 100.0, tenure_years=0.0)
+    p_explicit_none = estimate_passive_churn_probability(100.0, 100.0, tenure_years=0.0, renewal_year=None)
+    assert p_none == pytest.approx(p_explicit_none)
+
+
+def test_estimate_passive_churn_crisis_year_suppressed_below_calm_year():
+    """2022 (crisis, multiplier 0.44) must give a lower passive estimate than
+    2016 (peak competition, multiplier 2.17) for identical rate/tenure inputs —
+    even inert SVT-rollers are less likely to move when there's nowhere
+    cheaper to switch to."""
+    from company.crm.churn_model import estimate_passive_churn_probability
+    p_crisis = estimate_passive_churn_probability(100.0, 100.0, tenure_years=0.0, renewal_year=2022)
+    p_calm = estimate_passive_churn_probability(100.0, 100.0, tenure_years=0.0, renewal_year=2016)
+    assert p_crisis < p_calm
+
+
+def test_estimate_passive_churn_market_multiplier_clamped_to_valid_range():
+    from company.crm.churn_model import estimate_passive_churn_probability, MAX_CHURN_PROBABILITY
+    p = estimate_passive_churn_probability(100.0, 500.0, tenure_years=0.0, renewal_year=2016)
+    assert 0.0 <= p <= MAX_CHURN_PROBABILITY
+
+
 def test_is_active_renewal_crisis_year_always_passive():
     from company.crm.churn_model import is_active_renewal, CRISIS_PASSIVE_YEARS
     for yr in CRISIS_PASSIVE_YEARS:

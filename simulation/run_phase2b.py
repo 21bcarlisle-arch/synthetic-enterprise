@@ -996,9 +996,11 @@ def main(report_end: str | None = None, sim_interface=None):
                 segment_for_churn = cust_for_churn.get("segment", "resi") if cust_for_churn else "resi"
                 # Phase 33: passive renewers use SVT-inertia constants; active use full model.
                 # I&C customers are always active (brokers shop every renewal — no passive roll).
+                _renewal_year = int(term_start_str[:4])
                 if not active_renewal and segment_for_churn != "I&C":
                     company_est_pre = round(_est_passive_churn(
                         old_elec_rate, unit_rate, tenure_for_est,
+                        renewal_year=_renewal_year,
                     ), 4)
                 else:
                     # Phase ND: use enriched estimate with bill_shock_count from prior terms
@@ -1019,6 +1021,7 @@ def main(report_end: str | None = None, sim_interface=None):
                         hedge_fraction=prev_hf,
                         hangover_periods_remaining=hangover_periods,
                         segment=segment_for_churn,
+                        renewal_year=_renewal_year,
                     ), 4)
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
