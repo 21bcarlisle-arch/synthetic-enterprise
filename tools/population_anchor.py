@@ -143,10 +143,16 @@ def _bad_debt_check(years_data: dict) -> list:
 def _arrears_check_by_year(billing_ledger_data: dict, years_data: dict) -> list:
     """Check new arrears rate per year vs DESNZ business energy debt benchmarks.
 
-    Metric: unique customers with a new arrears case opened in each calendar year
-    divided by active customers that year. DESNZ I&C benchmark: <8% normal, <12% crisis.
+    Phase PW: separates I&C and residential customers.
+    I&C rate is benchmarked against DESNZ commercial energy debt (<8% normal).
+    Residential arrears driven by income_stress; reported separately for context.
+    RAG uses 10-year aggregate IC rate when IC customers present; else overall rate.
     """
     customers = billing_ledger_data.get("customers", {})
+    ic_customers = {
+        cid for cid, cdata in customers.items()
+        if cdata.get("segment") in ("ic", "I&C")
+    }
     arrears_by_year: dict = {}
     for cid, cdata in customers.items():
         for case in cdata.get("arrears_history", []):
@@ -159,31 +165,62 @@ def _arrears_check_by_year(billing_ledger_data: dict, years_data: dict) -> list:
                 continue
             arrears_by_year.setdefault(yr, set()).add(cid)
 
-    findings = []
+    total_ic_arr = 0
+    total_ic_cust_years = 0
+    per_year: list = []
     for yr_str in sorted(years_data.keys()):
         yr = int(yr_str)
         yd = years_data[yr_str]
         active = yd.get("active_customer_ids", [])
         n_active = len(active) if active else 0
+        active_ic = [c for c in active if c in ic_customers or "_IC" in c.upper()]
+        n_ic = len(active_ic)
         n_arrears = len(arrears_by_year.get(yr, set()))
         rate = (n_arrears / n_active * 100) if n_active > 0 else 0.0
+        ic_arr = len(arrears_by_year.get(yr, set()) & set(active_ic))
+        ic_rate = (ic_arr / n_ic * 100) if n_ic > 0 else 0.0
+        total_ic_arr += ic_arr
+        total_ic_cust_years += n_ic
         is_crisis = yr in _CRISIS_YEARS
-        green_hi = ARREARS_BENCHMARK_CRISIS_HI if is_crisis else ARREARS_BENCHMARK_NORMAL_HI
-        amber_hi = ARREARS_AMBER_CRISIS_HI if is_crisis else ARREARS_AMBER_HI
-        if rate > amber_hi:
-            rag = "RED"
-        elif rate > green_hi:
-            rag = "AMBER"
-        else:
-            rag = "GREEN"
-        findings.append({
+        per_year.append({
             "year": yr,
             "new_arrears_count": n_arrears,
             "active_customers": n_active,
             "new_arrears_rate_pct": round(rate, 1),
+            "ic_arrears_count": ic_arr,
+            "ic_active_customers": n_ic,
+            "ic_arrears_rate_pct": round(ic_rate, 1),
+            "is_crisis_year": is_crisis,
+        })
+
+    agg_ic_rate = (total_ic_arr / total_ic_cust_years * 100) if total_ic_cust_years > 0 else 0.0
+    use_ic = total_ic_cust_years > 0
+
+    findings = []
+    for row in per_year:
+        is_crisis = row["is_crisis_year"]
+        green_hi = ARREARS_BENCHMARK_CRISIS_HI if is_crisis else ARREARS_BENCHMARK_NORMAL_HI
+        amber_hi = ARREARS_AMBER_CRISIS_HI if is_crisis else ARREARS_AMBER_HI
+        rate_for_rag = agg_ic_rate if use_ic else row["new_arrears_rate_pct"]
+        if rate_for_rag > amber_hi:
+            rag = "RED"
+        elif rate_for_rag > green_hi:
+            rag = "AMBER"
+        else:
+            rag = "GREEN"
+        findings.append({
+            "year": row["year"],
+            "new_arrears_count": row["new_arrears_count"],
+            "active_customers": row["active_customers"],
+            "new_arrears_rate_pct": row["new_arrears_rate_pct"],
+            "ic_arrears_count": row["ic_arrears_count"],
+            "ic_active_customers": row["ic_active_customers"],
+            "ic_arrears_rate_pct": row["ic_arrears_rate_pct"],
+            "ic_aggregate_rate_pct": round(agg_ic_rate, 1),
             "benchmark_green_hi": green_hi,
             "is_crisis_year": is_crisis,
             "rag": rag,
+            "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG",
         })
     return findings
 def _long_run_comparison(churn_by_year: dict) -> dict:

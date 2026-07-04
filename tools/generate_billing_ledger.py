@@ -32,6 +32,12 @@ _DD_FAILURE_PROB = {"LOW": 0.03, "MODERATE": 0.12, "HIGH": 0.35}
 _ON_TIME_PROB = {"LOW": 0.92, "MODERATE": 0.50, "HIGH": 0.10}
 _LATE_DAYS = {"LOW": (3, 14), "MODERATE": (14, 45), "HIGH": (30, 90)}
 
+_CORP_BACS_ON_TIME_PROB = 0.92
+_CORP_BACS_LATE_PROB = 0.073
+_CORP_BACS_DISPUTE_PROB = 0.007
+_CORP_LATE_DAYS = (14, 45)
+_IC_SEGMENTS = ("ic", "I&C")
+
 
 def _stress_for_year(behavioral, year):
     trajectory = behavioral.get("income_stress_trajectory") or []
@@ -49,8 +55,16 @@ def _payment_method(segment, amount_gbp):
     return "direct_debit"
 
 
-def _payment_outcome(method, stress, rng):
+def _payment_outcome(method, stress, rng, segment="resi"):
     if method in ("bacs", "chaps"):
+        if segment in _IC_SEGMENTS:
+            r = rng.random()
+            if r < _CORP_BACS_ON_TIME_PROB:
+                return ("success", 0)
+            elif r < 1.0 - _CORP_BACS_DISPUTE_PROB:
+                return ("success", rng.randint(*_CORP_LATE_DAYS))
+            else:
+                return ("dispute", 0)
         return ("success", 0)
     dd_fail_prob = _DD_FAILURE_PROB.get(stress, 0.03)
     if rng.random() < dd_fail_prob:
@@ -75,6 +89,25 @@ def _arrears_stages(arrears_gbp, due_date, eventually_resolved):
                         "note": "Arrears cleared via payment plan"})
     else:
         stages.append({"stage": "WRITTEN_OFF", "date": (due_date + timedelta(days=90)).isoformat(),
+                        "note": "Debt written off -- bad debt provision raised"})
+    return stages
+
+
+
+def _ic_arrears_stages(arrears_gbp, due_date, eventually_resolved):
+    stages = [
+        {"stage": "INVOICE_DISPUTED", "date": due_date.isoformat(),
+         "note": "Invoice disputed -- GBP%.2f under formal review" % arrears_gbp},
+        {"stage": "DISPUTE_NOTICE", "date": (due_date + timedelta(days=14)).isoformat(),
+         "note": "Dispute notice raised -- escalated to accounts receivable"},
+    ]
+    if eventually_resolved:
+        stages.append({"stage": "PAYMENT_PLAN_AGREED",
+                        "date": (due_date + timedelta(days=30)).isoformat(),
+                        "note": "Payment plan agreed -- arrears to be settled over 60 days"})
+    else:
+        stages.append({"stage": "WRITTEN_OFF",
+                        "date": (due_date + timedelta(days=60)).isoformat(),
                         "note": "Debt written off -- bad debt provision raised"})
     return stages
 
@@ -104,11 +137,13 @@ def generate(run_json_path=None, out_path=None):
     invoices_by_cid = {}
     payments_by_cid = {}
     arrears_by_cid = {}
+    segment_by_cid = {}
     invoice_number = 1
 
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
         segment = bill.get("segment", "resi")
+        segment_by_cid.setdefault(cid, segment)
         amount = bill["total_amount_gbp"]
         period_end = bill["period_end"]
         year = int(period_end[:4])
@@ -119,7 +154,7 @@ def generate(run_json_path=None, out_path=None):
         beh = behavioral.get(cid) or {}
         stress = _stress_for_year(beh, year)
         method = _payment_method(segment, amount)
-        outcome, days_late = _payment_outcome(method, stress, rng)
+        outcome, days_late = _payment_outcome(method, stress, rng, segment)
 
         inv = {
             "invoice_number": invoice_number,
@@ -135,7 +170,7 @@ def generate(run_json_path=None, out_path=None):
             "total_amount_gbp": round(amount, 2),
             "issue_date": issue_date.isoformat(),
             "due_date": due_date.isoformat(),
-            "payment_status": "paid" if outcome == "success" else "overdue",
+            "payment_status": "disputed" if outcome == "dispute" else ("paid" if outcome == "success" else "overdue"),
         }
         invoices_by_cid.setdefault(cid, []).append(inv)
 
@@ -160,6 +195,16 @@ def generate(run_json_path=None, out_path=None):
                 "stages": _arrears_stages(amount, due_date, eventually_resolved),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
+        elif outcome == "dispute":
+            eventually_resolved = cid not in churned
+            arr = {
+                "case_id": "DIS-%s-%s" % (cid, period_end),
+                "invoice_number": invoice_number,
+                "arrears_gbp": round(amount, 2),
+                "opened_date": due_date.isoformat(),
+                "stages": _ic_arrears_stages(amount, due_date, eventually_resolved),
+            }
+            arrears_by_cid.setdefault(cid, []).append(arr)
 
         invoice_number += 1
 
@@ -170,8 +215,9 @@ def generate(run_json_path=None, out_path=None):
         arrs = arrears_by_cid.get(cid, [])
         total_billed = sum(i["total_amount_gbp"] for i in invs)
         total_paid = sum(p["amount_gbp"] for p in pays if p["outcome"] == "success")
-        failed_count = sum(1 for p in pays if p["outcome"] == "failed")
+        failed_count = sum(1 for p in pays if p["outcome"] in ("failed", "dispute"))
         customers[cid] = {
+            "segment": segment_by_cid.get(cid, "resi"),
             "invoice_count": len(invs),
             "total_billed_gbp": round(total_billed, 2),
             "total_paid_gbp": round(total_paid, 2),

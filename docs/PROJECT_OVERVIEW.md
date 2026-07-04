@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-04. 491+ commits. 15,335 tests passing. Codebase: ~51,200 lines across 337+ Python modules.*
+*Last updated: 2026-07-04. 492+ commits. 15,359 tests passing. Codebase: ~51,350 lines across 339+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase PW -- I&C Corporate Arrears Calibration (2026-07-04)
+24 new tests. generate_billing_ledger.py extended: I&C BACS/CHAPS changed from 100% on-time to invoice dispute model: 92% on-time, 7.3% late (14-45 days), 0.7% formal dispute (INVOICE_DISPUTED->DISPUTE_NOTICE->PAYMENT_PLAN_AGREED|WRITTEN_OFF). Segment stored in customer ledger. population_anchor.py extended: _arrears_check_by_year identifies I&C customers via segment field; calculates ic_arrears_rate_pct (per year) and ic_aggregate_rate_pct (10-year) separately. RAG uses 10-year aggregate IC rate vs DESNZ commercial benchmark (<8% normal); falls back to overall rate when no IC customers (backward compat). KEY FINDING: IC arrears 0% -> 5.4% (10-year aggregate); all years rag=GREEN. Previous PS finding (29-31% RED) was comparing full portfolio (resi income-stress arrears) to I&C commercial benchmark. Phase PW closes calibration gap: arrears_vs_benchmark now separates corporate credit risk from household income stress. Epistemic: PASS.
+**Total:** 15,359 tests
 
 ### Phase PV -- Market Feed Swappable Adapter (2026-07-04)
 21 new tests. tools/market_data_port.py (new): `MarketDataPort` Protocol with `get_spot_elec_gbp_per_mwh`, `get_spot_gas_gbp_per_mwh`, `get_forward_price`, `get_market_summary` -- all optional as_of date. tools/market_adapters/frozen_2025.py (new): `Frozen2025Adapter` wraps live_market.py unchanged behind the Protocol. tools/market_adapters/__init__.py: `get_market_adapter(source)` factory -- reads MARKET_ADAPTER_SOURCE env var (default: frozen_2025); unknown source raises ValueError. tools/run_live_decisions.py: `run_decisions` accepts optional `market_adapter` param; defaults to factory; no direct live_market import at call site. Existing patch on tools.live_market.get_market_summary continues to work (adapter calls through). KEY ARCHITECTURE: company layer is now source-agnostic -- correlated synthetic generator (endgame) drops in as a new adapter with zero company-layer changes. FIDELITY GAIN: real UK risk systems consume a market-data port, not a named file; PV makes the company layer architecturally honest. Epistemic: PASS.
@@ -5168,7 +5172,7 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 356+ Python modules (company layer + tools), ~55,200 lines total
 - 491+ git commits
-- 15,335 tests (fast / ~10s; simulation integration ~8 min per run)
+- 15,359 tests (fast / ~10s; simulation integration ~8 min per run)
 - Phase NK (2026-07-02): extract_report_data churn_model_performance extraction fix + _section_churn_model_performance board report section.
 
 **Data:**
