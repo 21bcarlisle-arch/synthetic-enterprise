@@ -5156,3 +5156,16 @@ Commits: 7d333dc6 (NX), e27475a9 (NY), e9a3a535 (NZ)
 - [2026-07-04T00:17:08Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-04T00:19:03Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-04T00:20:22Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-04T00:20:44Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+## Session 2026-07-04 (Phase PV)
+**Start:** ~01:04 BST | **End:** ~01:22 BST
+**Model:** claude-sonnet-4-6
+**Work:** Phase PV - Market Feed Swappable Adapter
+- tools/market_data_port.py (MarketDataPort Protocol)
+- tools/market_adapters/frozen_2025.py (Frozen2025Adapter)
+- tools/market_adapters/__init__.py (factory + MARKET_ADAPTER_SOURCE env var)
+- tools/run_live_decisions.py (market_adapter injection)
+- 21 new tests, 15,335 total; epistemic verifier PASS
+- Archived done files, committed runtime state
+- Queued Phase PW: I&C Corporate Arrears Calibration
+**Frontier tokens:** ~30k (planning + code + test review)
