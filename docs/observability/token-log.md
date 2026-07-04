@@ -5593,3 +5593,6 @@ calibrate against).
   open finding from "missing signal" to "signal-decay-timing" rather than shipping a second patch on
   top of an unverified first one (R3 two-strike discipline) -- the honest state is QK is correct and
   complete for what it set out to do, but the KEY OPEN FINDING survives, now with a sharper diagnosis.
+
+- [2026-07-04T21:11:30Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-04T21:12:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
