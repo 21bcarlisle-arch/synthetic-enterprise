@@ -2961,3 +2961,26 @@
 - [2026-07-04 03:07 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
 - [2026-07-04 03:07 UTC] Claude Code session ended — auto-restarting
 - [2026-07-04 03:07 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-07-04 04:08 UTC] Claude Code not detected (check 1/2)
+- [2026-07-04 04:09 UTC] Claude Code not detected (check 2/2)
+- [2026-07-04 04:09 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-04 04:09 UTC] Claude Code session ended — auto-restarting
+- [2026-07-04 04:09 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-07-04 04:10 UTC] Claude Code restarted (1/3 this hour, claude -c resume)
+- [2026-07-04 04:11 UTC] Claude Code not detected (check 1/2)
+- [2026-07-04 04:12 UTC] Claude Code not detected (check 2/2)
+- [2026-07-04 04:12 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-04 04:12 UTC] Claude Code session ended — auto-restarting
+- [2026-07-04 04:12 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-07-04 04:12 UTC] Claude Code restarted (2/3 this hour, claude -c resume)
+- [2026-07-04 04:13 UTC] Claude Code not detected (check 1/2)
+- [2026-07-04 04:14 UTC] Claude Code not detected (check 2/2)
+- [2026-07-04 04:14 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-04 04:14 UTC] Claude Code session ended — auto-restarting
+- [2026-07-04 04:14 UTC] Restarting Claude Code (normal permissions, no skip flag, claude -c resume)
+- [2026-07-04 04:14 UTC] Claude Code restarted (3/3 this hour, claude -c resume)
+- [2026-07-04 04:15 UTC] Claude Code not detected (check 1/2)
+- [2026-07-04 04:16 UTC] Claude Code not detected (check 2/2)
+- [2026-07-04 04:16 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
+- [2026-07-04 04:16 UTC] Claude Code session ended — auto-restarting
+- [2026-07-04 04:16 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
