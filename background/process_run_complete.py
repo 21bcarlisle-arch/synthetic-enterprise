@@ -13,6 +13,18 @@ DONE_DIR = STAGING_DIR / "done"
 LATEST_MD = PROJECT_DIR / "docs" / "status" / "LATEST.md"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
 LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_hash"
+LAST_PUSH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_push_time.json"
+# DEPLOY_CONTENTION_BATCH_COMMITS.md (2026-07-04): sim_runner cycles every
+# ~10 min and each cycle committed+pushed unconditionally (LATEST.md's
+# timestamp always differs), giving ~6 pushes/hour -- enough to contend with
+# GitHub Pages' build throttling (58 failed "Deploy to GitHub Pages" runs,
+# each superseded by the next push before it finished) and to burn through
+# Cloudflare Pages' free-tier build quota. Commits still happen every cycle
+# (free, local, no deploy trigger) but the push itself -- the thing that
+# actually fires a Pages/Cloudflare build -- is throttled to at most once
+# per PUSH_THROTTLE_SECONDS; the next successful push carries every commit
+# accumulated since the last one.
+PUSH_THROTTLE_SECONDS = 30 * 60
 sys.path.insert(0, str(PROJECT_DIR))
 
 
@@ -298,8 +310,34 @@ def git_commit_push(git_hash, net_margin):
     if result.returncode != 0:
         log("Nothing to commit or commit failed")
         return False
+
+    if not _push_due():
+        log("Committed locally, push deferred (throttled to every {}min)".format(
+            PUSH_THROTTLE_SECONDS // 60
+        ))
+        return True
+
     push = subprocess.run(["git", "push"], cwd=str(PROJECT_DIR), timeout=60)
+    if push.returncode == 0:
+        _record_push_time()
     return push.returncode == 0
+
+
+def _push_due() -> bool:
+    """True if PUSH_THROTTLE_SECONDS have elapsed since the last recorded
+    successful push (or none has ever been recorded)."""
+    if not LAST_PUSH_FILE.exists():
+        return True
+    try:
+        last = json.loads(LAST_PUSH_FILE.read_text())["ts"]
+    except (json.JSONDecodeError, KeyError, TypeError, OSError):
+        return True
+    return (datetime.now(timezone.utc).timestamp() - last) >= PUSH_THROTTLE_SECONDS
+
+
+def _record_push_time() -> None:
+    LAST_PUSH_FILE.parent.mkdir(parents=True, exist_ok=True)
+    LAST_PUSH_FILE.write_text(json.dumps({"ts": datetime.now(timezone.utc).timestamp()}))
 
 
 def _run_history_max_net():

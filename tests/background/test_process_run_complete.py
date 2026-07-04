@@ -210,3 +210,105 @@ def test_run_history_max_net_is_float(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
     result = prc._run_history_max_net()
     assert isinstance(result, float)
+
+
+# ── DEPLOY_CONTENTION_BATCH_COMMITS.md: throttle pushes to <=1/30min ──────────
+
+def test_push_due_true_when_no_prior_push_recorded(tmp_path, monkeypatch):
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", tmp_path / ".last_push_time.json")
+    assert prc._push_due() is True
+
+
+def test_push_due_false_within_throttle_window(tmp_path, monkeypatch):
+    import json as _json
+    import time as _time
+    push_file = tmp_path / ".last_push_time.json"
+    push_file.write_text(_json.dumps({"ts": _time.time()}))
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", push_file)
+    assert prc._push_due() is False
+
+
+def test_push_due_true_after_throttle_window_elapses(tmp_path, monkeypatch):
+    import json as _json
+    import time as _time
+    push_file = tmp_path / ".last_push_time.json"
+    push_file.write_text(_json.dumps({"ts": _time.time() - prc.PUSH_THROTTLE_SECONDS - 1}))
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", push_file)
+    assert prc._push_due() is True
+
+
+def test_push_due_true_on_malformed_file(tmp_path, monkeypatch):
+    push_file = tmp_path / ".last_push_time.json"
+    push_file.write_text("not json")
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", push_file)
+    assert prc._push_due() is True
+
+
+def test_git_commit_push_defers_push_within_throttle_window(tmp_path, monkeypatch):
+    """Commit succeeds locally but git push is skipped when throttled --
+    the return value must still be True (committed, not a failure) so the
+    caller doesn't treat a deferred push as an error."""
+    import json as _json
+    import time as _time
+    push_file = tmp_path / ".last_push_time.json"
+    push_file.write_text(_json.dumps({"ts": _time.time()}))
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", push_file)
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "LATEST.md")
+
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        m = MagicMock()
+        m.returncode = 0
+        return m
+
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    result = prc.git_commit_push("abc1234", 1000.0)
+
+    assert result is True
+    assert not any(c[:2] == ["git", "push"] for c in calls)
+
+
+def test_git_commit_push_pushes_when_throttle_window_elapsed(tmp_path, monkeypatch):
+    push_file = tmp_path / ".last_push_time.json"
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", push_file)  # no prior push recorded
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "LATEST.md")
+
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        m = MagicMock()
+        m.returncode = 0
+        return m
+
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    result = prc.git_commit_push("abc1234", 1000.0)
+
+    assert result is True
+    assert any(c[:2] == ["git", "push"] for c in calls)
+    assert push_file.exists()
+
+
+def test_git_commit_push_no_push_recorded_if_commit_fails(tmp_path, monkeypatch):
+    push_file = tmp_path / ".last_push_time.json"
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", push_file)
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "LATEST.md")
+
+    def fake_run(cmd, **kwargs):
+        m = MagicMock()
+        m.returncode = 1 if cmd[:2] == ["git", "commit"] else 0
+        return m
+
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    result = prc.git_commit_push("abc1234", 1000.0)
+
+    assert result is False
+    assert not push_file.exists()
