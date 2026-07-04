@@ -11,6 +11,10 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from company.analytics.retention_deferral_economics import (
+    compute_realized_deferrals, serial_saver_summary,
+)
+
 PROJECT = Path(__file__).resolve().parent.parent
 SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
 OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
@@ -318,11 +322,20 @@ def extract_customers(data):
             "company_est": round(float(r.get("company_churn_estimate", 0)), 3),
             "discount_pct": round(float(r.get("discount_pct", 0)), 3),
             "cost_gbp": _fmt(r.get("retention_cost_gbp", 0)),
+            "expected_term_margin_gbp": _fmt(r.get("expected_term_margin_gbp", 0)),
+            "assumed_deferral_months": r.get("assumed_deferral_months", 12),
             "outcome": r.get("outcome", ""),
             "sim_churn_p": _sim_side["sim_churn_p"] if _sim_side else None,
             "market_signal": _sim_side["market_signal"] if _sim_side else None,
             "realized_churn_p": _sim_side["realized_churn_p"] if _sim_side else None,
         })
+
+    # Phase QM (QL_WIRE_AND_DEFERRAL.md): retention offers priced as deferral windows
+    # (H1 assumed vs H2 realized), plus serial-saver EV-negative detection.
+    retention_deferral = compute_realized_deferrals(
+        data.get("retention_log", []), data.get("company_event_log", [])
+    )
+    serial_savers = serial_saver_summary(data.get("retention_log", []))
 
     # Lifetime per customer — pull tariff_type from CUSTOMERS master list
     from saas.customers import CUSTOMERS as _CUSTS
@@ -359,6 +372,8 @@ def extract_customers(data):
         "per_year_net": dict(per_year_net),
         "events": events,
         "retention": retention,
+        "retention_deferral": retention_deferral,
+        "serial_savers": serial_savers,
         "lifetime": lifetime,
         "journey_log": journey_log,
     }

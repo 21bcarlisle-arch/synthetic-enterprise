@@ -111,6 +111,39 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QM -- Retention as Deferral, H1 vs H2 (2026-07-05)
+Tier 2, docs/staging/QL_WIRE_AND_DEFERRAL.md (advisor addendum to PROCESS_NOT_EVENTS.md /
+PREAPPROVE_PROCESS_MODEL.md). Phase QK found C1/C5/C6 retained then churned once the
+underlying satisfaction/resentment signal decayed back down before their next renewal --
+an offer buys time, not loyalty. This phase makes that framing explicit and measurable
+instead of leaving it as a narrative finding in a markdown file.
+
+simulation/run_phase2b.py: ASSUMED_DEFERRAL_MONTHS = 12 (H1), the already-implicit
+one-renewal-term assumption baked into expected_term_margin_gbp, now recorded on every
+retention_log entry as a named hypothesis rather than an unstated one.
+company/analytics/retention_deferral_economics.py (new): compute_realized_deferrals()
+computes H2 -- the realized months from an offer to that customer's next terminal event
+(another offer, or churn) -- by joining retention_log to company_event_log, entirely on
+company-observable data (both are the company's own decision/event logs, no SIM internals
+read). serial_saver_summary() flags customers with 2+ offers whose final outcome was still
+churn as EV-negative repeat spend, per the directive's "serial savers may belong in
+managed-exit territory" framing.
+
+Evidence retrofit (all three business surfaces, generated from the live run):
+tools/generate_dashboard_data.py exports retention_deferral + serial_savers alongside the
+existing retention join. tools/generate_shadow_html.py: _retention_deferral_signal() (Sim
+tab, per-year H1-vs-H2 + %underperformed); _retention_deferral_case_study() (Customers tab,
+the customer with the most repeat offers -- live run picks C_IC1, 4 offers, £68,286
+cumulative discount spend, still retained); _serial_saver_portfolio() (Supplier tab,
+portfolio-wide repeat-offer table with EV-negative flags). saas/reporting/annual_report.py:
+_section_retention_deferral_economics() board section.
+
+KEY FINDING (live run): 0/10 resolved offers underperformed their assumed 12-month window --
+C1, C5 and C6 (QK's named defer-then-churn cases) each churned at 12-24 months post-offer,
+roughly matching or exceeding H1, not sooner. The offer worked exactly as priced; it simply
+was never priced to buy more than one term, and the business had no mechanism that named
+this until now. 19 new tests, 15,555 collected. Epistemic: PASS.
+
 ### Phase QL -- Churn Journey State Machine, Live Wiring + Evidence Retrofit (2026-07-04/05)
 Tier 2 (PROCESS_NOT_EVENTS.md, pre-approved via PREAPPROVE_PROCESS_MODEL.md). docs/design/PROCESS_MODEL.md
 (written first) found that most of the behavioral physics this directive asked for already existed,
@@ -5314,9 +5347,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,536 tests collected (fast suite; simulation integration ~8 min per run)
+- 15,555 tests collected (fast suite; simulation integration ~8 min per run)
 - Phase QL (2026-07-04/05): churn journey state machine wired into the live sim loop + evidence
   retrofit on all three business surfaces -- see Section 4. 17 new tests.
+- Phase QM (2026-07-05): retention offers priced as deferral windows (H1 vs H2), serial-saver
+  EV-negative detection -- see Section 4. 19 new tests.
 - Phase QK (2026-07-04): passive-renewal churn estimate enrichment -- see Section 4. Wiring fix verified
   correct live (3 new above-cap risk detections triggering retention offers) but did NOT close the
   headline recall=0%/precision=0% finding -- root cause reclassified as a signal-decay-timing gap, not

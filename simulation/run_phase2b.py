@@ -174,6 +174,12 @@ RESET_HEDGE_FRACTION = MIN_HEDGE_FLOOR
 RETENTION_THRESHOLD = 0.30
 RETENTION_EFFECTIVENESS = 0.20
 
+# Phase QM (QL_WIRE_AND_DEFERRAL.md): expected_term_margin_gbp below already prices ONE
+# renewal term, not lifetime CLV -- this constant makes that implicit assumption an explicit,
+# named H1 hypothesis so company/analytics/retention_deferral_economics.py can compare it
+# against the H2 realized deferral (time to the customer's next offer or churn).
+ASSUMED_DEFERRAL_MONTHS = 12
+
 # Phase 14a: tiered discount — risk-proportional rather than flat 5%
 # Higher churn risk warrants a larger offer; borderline cases get a lighter touch.
 RETENTION_TIERS: list[tuple[float, float]] = [
@@ -1069,6 +1075,7 @@ def main(report_end: str | None = None, sim_interface=None):
                             "retention_cost_gbp": ret_cost,
                             "expected_term_margin_gbp": expected_margin,
                             "acq_cost_saved_gbp": round(acq_cost_saved, 2),
+                            "assumed_deferral_months": ASSUMED_DEFERRAL_MONTHS,
                             "outcome": "pending",
                         })
                     else:

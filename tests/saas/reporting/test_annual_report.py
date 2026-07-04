@@ -1264,6 +1264,54 @@ def test_retention_durability_empty_when_no_log():
     assert _section_retention_durability({"retention_log": [], "company_event_log": [], "churned_billing_accounts": []}) == ""
 
 
+# ---- Phase QM: retention-as-deferral (H1 vs H2) section tests ----
+
+def test_retention_deferral_economics_shows_header():
+    from saas.reporting.annual_report import _section_retention_deferral_economics
+    result = _section_retention_deferral_economics(_durability_fixture())
+    assert "Retention as Deferral" in result
+
+
+def test_retention_deferral_economics_underperformed_offer_flagged():
+    from saas.reporting.annual_report import _section_retention_deferral_economics
+    result = _section_retention_deferral_economics(_durability_fixture())
+    assert "C_short" in result
+    assert "resolved offers" in result
+
+
+def test_retention_deferral_economics_serial_saver_flagged():
+    from saas.reporting.annual_report import _section_retention_deferral_economics
+    fixture = {
+        "retention_log": [
+            {
+                "customer_id": "C_repeat", "event_date": "2018-01-01",
+                "company_churn_estimate": 0.30, "discount_pct": 0.03,
+                "retention_cost_gbp": 5.0, "expected_term_margin_gbp": 10.0,
+                "outcome": "retained",
+            },
+            {
+                "customer_id": "C_repeat", "event_date": "2019-01-01",
+                "company_churn_estimate": 0.35, "discount_pct": 0.05,
+                "retention_cost_gbp": 6.0, "expected_term_margin_gbp": 10.0,
+                "outcome": "churned_despite_offer",
+            },
+        ],
+        "company_event_log": [
+            {"event_type": "churn", "customer_id": "C_repeat", "event_date": "2019-06-01"},
+        ],
+        "churned_billing_accounts": ["C_repeat"],
+    }
+    result = _section_retention_deferral_economics(fixture)
+    assert "Serial savers" in result
+    assert "EV-negative" in result
+    assert "C_repeat" in result
+
+
+def test_retention_deferral_economics_empty_when_no_log():
+    from saas.reporting.annual_report import _section_retention_deferral_economics
+    assert _section_retention_deferral_economics({"retention_log": [], "company_event_log": []}) == ""
+
+
 # ---- Phase 17a: dynamic pricing section tests ----
 
 def _dynamic_pricing_fixture():

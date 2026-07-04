@@ -304,6 +304,11 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
         + _churn_journey_case_study(
             journey_log or [], ledger or {}, _pick_journey_case_study_cid(journey_log or []),
         )
+        + _retention_deferral_case_study(
+            dash["customers"].get("retention_deferral", []),
+            dash["customers"].get("serial_savers", []),
+            _pick_serial_saver_cid(dash["customers"].get("serial_savers", [])),
+        )
         + "<h2>Full Ground Truth</h2>"
         + "<p>Machine-readable per-customer data:<br>"
         + '<a href="/state/customer_sample.json">customer_sample.json</a> | '
@@ -490,6 +495,7 @@ def build_supplier(dash, ts, billing_ledger=None, journey_log=None):
         + _collections_process(billing_ledger)
         + _renewal_decision_case_study(retention_records)
         + _churn_journey_portfolio_funnel(journey_log or [])
+        + _serial_saver_portfolio(dash.get("customers", {}).get("serial_savers", []))
     )
     return _page("Supplier P&amp;L", "Supplier", body, ts, git_commit, build.get("current_phase", "?"))
 
@@ -758,7 +764,129 @@ def _renewal_decision_case_study(retention):
     return body
 
 
-def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None, churn_events=None, churn_perf=None, journey_log=None):
+def _retention_deferral_signal(records):
+    if not records:
+        return ""
+    by_year = {}
+    for r in records:
+        yr = (r.get("offer_date") or "")[:4]
+        if not yr:
+            continue
+        y = by_year.setdefault(yr, {"count": 0, "assumed_sum": 0.0, "realized_sum": 0.0, "realized_n": 0, "underperformed": 0})
+        y["count"] += 1
+        y["assumed_sum"] += r.get("assumed_deferral_months", 0)
+        if r.get("realized_deferral_months") is not None:
+            y["realized_sum"] += r["realized_deferral_months"]
+            y["realized_n"] += 1
+        if r.get("underperformed"):
+            y["underperformed"] += 1
+
+    rows = ""
+    for yr in sorted(by_year):
+        y = by_year[yr]
+        avg_assumed = y["assumed_sum"] / y["count"] if y["count"] else 0
+        avg_realized = y["realized_sum"] / y["realized_n"] if y["realized_n"] else None
+        pct_under = y["underperformed"] / y["count"] * 100 if y["count"] else 0
+        rows += _row(
+            yr, y["count"], format(avg_assumed, ".1f"),
+            format(avg_realized, ".1f") if avg_realized is not None else "&#8212;",
+            format(pct_under, ".0f") + "%",
+        )
+
+    return (
+        "<h2>Retention Offer Deferral: Assumed vs Realized (H1 vs H2)</h2>"
+        + "<p class=\"meta\">Every retention offer prices ONE renewal term (H1, assumed) -- "
+        + "docs/staging/QL_WIRE_AND_DEFERRAL.md. H2 is the realized months to that customer's "
+        + "next offer or churn, measured after the fact.</p>"
+        + _table(
+            ["Year", "Offers", "Avg Assumed Months (H1)", "Avg Realized Months (H2)", "% Underperformed"],
+            rows,
+        )
+        + "<p>Underperformed = the customer's next terminal event (another offer, or churn) "
+        + "arrived sooner than the term the offer was priced to buy. An offer that consistently "
+        + "buys less time than assumed is a pricing signal, not a retention failure.</p>"
+    )
+
+
+def _pick_serial_saver_cid(serial_savers):
+    candidates = [s for s in serial_savers if s.get("is_serial_saver")]
+    if not candidates:
+        return None
+    return max(sorted(candidates, key=lambda s: s["customer_id"]), key=lambda s: s["offer_count"])["customer_id"]
+
+
+def _retention_deferral_case_study(records, serial_savers, cid):
+    if not cid:
+        return ""
+    timeline = sorted(
+        (r for r in records if r.get("customer_id") == cid),
+        key=lambda r: r.get("offer_date", ""),
+    )
+    if not timeline:
+        return ""
+    summary = next((s for s in serial_savers if s.get("customer_id") == cid), {})
+
+    rows = "".join(
+        _row(
+            r["offer_date"],
+            format(r["assumed_deferral_months"], ".0f") + " mo",
+            format(r["realized_deferral_months"], ".1f") + " mo" if r["realized_deferral_months"] is not None else "still active",
+            (r.get("next_event_type") or "&#8212;").replace("_", " "),
+            "yes" if r.get("underperformed") else "no",
+        )
+        for r in timeline
+    )
+
+    if summary.get("ev_negative"):
+        verdict = "an EV-negative repeat saver"
+    elif summary.get("is_serial_saver"):
+        verdict = "a serial saver"
+    else:
+        verdict = "a single retention offer"
+
+    return (
+        "<h2>Retention as Deferral: " + cid + "</h2>"
+        + "<p class=\"meta\">Retention offers buy time, not loyalty -- "
+        + "docs/staging/QL_WIRE_AND_DEFERRAL.md, worked case from Phase QK's defer-then-churn finding</p>"
+        + _table(
+            ["Offer Date", "Assumed Window (H1)", "Realized Window (H2)", "What Happened Next", "Underperformed"],
+            rows,
+        )
+        + "<p>" + cid + " received " + str(summary.get("offer_count", len(timeline))) + " retention offer(s), "
+        + "total discount spend " + _gbp(summary.get("cumulative_cost_gbp")) + " -- " + verdict + ". "
+        + "Each offer bought a finite deferral window; once the underlying satisfaction/resentment signal "
+        + "decayed back down before the next renewal, the customer churned anyway.</p>"
+    )
+
+
+def _serial_saver_portfolio(serial_savers):
+    repeats = [s for s in serial_savers if s.get("is_serial_saver")]
+    if not repeats:
+        return ""
+    repeats = sorted(repeats, key=lambda s: s["cumulative_cost_gbp"], reverse=True)
+    rows = "".join(
+        _row(
+            s["customer_id"], s["offer_count"], _gbp(s["cumulative_cost_gbp"]),
+            s["final_outcome"].replace("_", " "),
+            "EV-NEGATIVE" if s.get("ev_negative") else "retained",
+        )
+        for s in repeats
+    )
+    ev_negative_count = sum(1 for s in repeats if s.get("ev_negative"))
+    ev_negative_spend = sum(s["cumulative_cost_gbp"] for s in repeats if s.get("ev_negative"))
+
+    return (
+        "<h2>Serial Savers: Repeat Retention Offers</h2>"
+        + "<p class=\"meta\">docs/staging/QL_WIRE_AND_DEFERRAL.md: repeat discounting that never bought "
+        + "permanent retention belongs in managed-exit territory, not another offer.</p>"
+        + _table(["Customer", "Offers Received", "Cumulative Discount Spend", "Final Outcome", "Verdict"], rows)
+        + "<p>" + str(ev_negative_count) + " of " + str(len(repeats))
+        + " repeat-offer customers churned anyway on their final offer -- " + _gbp(ev_negative_spend)
+        + " in cumulative discount spend that bought deferral, not durable retention.</p>"
+    )
+
+
+def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None, churn_events=None, churn_perf=None, journey_log=None, retention_deferral=None):
     annual = sim_data.get("annual", [])
     monthly = sim_data.get("monthly", [])[:12]
     peaks = sim_data.get("peak_records", [])[:5]
@@ -798,6 +926,7 @@ def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledg
         + _behavioral_signal_correlation(sample or {}, billing_ledger or {}, financial_annual or [])
         + _churn_model_signal(churn_events or [], churn_perf or {})
         + _churn_journey_signal(journey_log or [], churn_events or [])
+        + _retention_deferral_signal(retention_deferral or [])
     )
     return _page("Simulation Data", "Sim", body, ts, git_commit, phase)
 
@@ -850,11 +979,12 @@ def generate(run_json_path=None):
     _churn_events = dash.get("customers", {}).get("events", [])
     _churn_perf = dash.get("churn_model_performance", {})
     _journey_log = dash.get("customers", {}).get("journey_log", [])
+    _retention_deferral = dash.get("customers", {}).get("retention_deferral", [])
     pages = {
         SHADOW / "index.html": build_index(dash, ts),
         SHADOW / "customers" / "index.html": build_customers(dash, sample, ts, billing_ledger, _journey_log),
         SHADOW / "supplier" / "index.html": build_supplier(dash, ts, billing_ledger, _journey_log),
-        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf, _journey_log),
+        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf, _journey_log, _retention_deferral),
         SHADOW / "project" / "index.html": build_project(dash, latest_md, ts),
     }
 

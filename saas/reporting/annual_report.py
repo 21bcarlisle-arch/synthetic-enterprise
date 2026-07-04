@@ -3860,6 +3860,89 @@ def _section_retention_durability(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_retention_deferral_economics(data: dict) -> str:
+    """Phase QM (QL_WIRE_AND_DEFERRAL.md): retention offers price a deferral window
+    (H1, one renewal term), not lifetime CLV. This reports what actually happened
+    (H2) -- the realized months to each customer's next offer or churn -- and flags
+    serial savers whose repeat discounting never bought durable retention.
+    """
+    from company.analytics.retention_deferral_economics import (
+        compute_realized_deferrals, serial_saver_summary,
+    )
+
+    rl = data.get("retention_log", [])
+    cel = data.get("company_event_log", [])
+    if not rl:
+        return ""
+
+    deferrals = compute_realized_deferrals(rl, cel)
+    savers = serial_saver_summary(rl)
+    if not deferrals:
+        return ""
+
+    resolved = [d for d in deferrals if d.get("realized_deferral_months") is not None]
+    underperformed = [d for d in resolved if d.get("underperformed")]
+    repeats = sorted(
+        (s for s in savers if s.get("is_serial_saver")),
+        key=lambda s: s.get("cumulative_cost_gbp", 0), reverse=True,
+    )
+
+    lines = [
+        "## Retention as Deferral (H1 vs H2)",
+        "",
+        "Every retention offer prices one renewal term margin (H1, assumed 12 months). "
+        "This tracks what actually happened (H2): the realized months to that customer's "
+        "next retention offer or churn.",
+        "",
+        "| Customer | Offer Date | Assumed (H1) | Realized (H2) | Next Event | Underperformed |",
+        "|----------|-----------|---------------|----------------|-------------|-----------------|",
+    ]
+    for d in deferrals:
+        cid = d.get("customer_id")
+        offer_date = d.get("offer_date")
+        assumed = d.get("assumed_deferral_months", 0)
+        realized = d.get("realized_deferral_months")
+        next_evt = d.get("next_event_type") or "none yet"
+        under = "yes" if d.get("underperformed") else "no"
+        realized_str = "still active" if realized is None else (format(realized, ".1f") + " mo")
+        row = "| " + str(cid) + " | " + str(offer_date) + " | " + format(assumed, ".0f") + " mo | "
+        row += realized_str + " | " + str(next_evt) + " | " + under + " |"
+        lines.append(row)
+
+    lines.append("")
+    if resolved:
+        pct_under = len(underperformed) / len(resolved) * 100
+        lines.append(
+            str(len(underperformed)) + "/" + str(len(resolved)) + " resolved offers ("
+            + format(pct_under, ".0f") + "%) underperformed their assumed deferral window "
+            "-- the next offer or churn arrived sooner than the term the discount was priced to buy."
+        )
+
+    lines.append("")
+    if repeats:
+        ev_negative = [s for s in repeats if s.get("ev_negative")]
+        names = ", ".join(
+            str(s.get("customer_id")) + " (" + str(s.get("offer_count")) + " offers, "
+            + _gbp_md(s.get("cumulative_cost_gbp", 0)) + ")"
+            for s in repeats
+        )
+        lines.append("Serial savers (" + str(len(repeats)) + "): " + names + ".")
+        if ev_negative:
+            ev_names = ", ".join(str(s.get("customer_id")) for s in ev_negative)
+            ev_spend = sum(s.get("cumulative_cost_gbp", 0) for s in ev_negative)
+            lines.append(
+                "EV-negative (" + str(len(ev_negative)) + "/" + str(len(repeats)) + "): " + ev_names
+                + " -- churned anyway after " + _gbp_md(ev_spend) + " of cumulative discount spend "
+                "across repeat offers. Managed-exit territory, not another offer."
+            )
+    lines.append("")
+    return chr(10).join(lines)
+
+
+def _gbp_md(v):
+    return chr(163) + format(v, ",.0f")
+
+
 def _section_svt_comparison(data: dict) -> str:
     """Phase 39a: SVT comparative pricing — fixed rate vs Standard Variable Tariff.
 
@@ -8652,6 +8735,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_gas_renewal_pressure(data))
     sections.append(_section_retention_strategy(data))
     sections.append(_section_retention_durability(data))
+    sections.append(_section_retention_deferral_economics(data))   # Phase QM
     sections.append(_section_enterprise_value_analysis(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
