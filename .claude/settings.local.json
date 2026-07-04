@@ -46,7 +46,12 @@
       "Bash(dig www.poesys.net A +short)",
       "Bash(dig poesys-net.pages.dev A +short)",
       "Bash(nslookup poesys.net)",
-      "Bash(nslookup poesys-net.pages.dev)"
+      "Bash(nslookup poesys-net.pages.dev)",
+      "Bash(git merge *)",
+      "Bash(mv docs/staging/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS.md docs/staging/done/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED.md)",
+      "Bash(cat /tmp/quarantine_annotation.txt docs/staging/done/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED.md)",
+      "Bash(mv /tmp/merged.txt docs/staging/done/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED.md)",
+      "Bash(rm /tmp/quarantine_annotation.txt)"
     ]
   }
 }
