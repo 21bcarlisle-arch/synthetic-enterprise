@@ -361,90 +361,140 @@
       "new_arrears_count": 4,
       "active_customers": 13,
       "new_arrears_rate_pct": 30.8,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 0,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
-      "rag": "RED"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
       "year": 2017,
       "new_arrears_count": 3,
       "active_customers": 14,
       "new_arrears_rate_pct": 21.4,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 1,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
-      "rag": "RED"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
       "year": 2018,
-      "new_arrears_count": 4,
+      "new_arrears_count": 5,
       "active_customers": 15,
-      "new_arrears_rate_pct": 26.7,
+      "new_arrears_rate_pct": 33.3,
+      "ic_arrears_count": 1,
+      "ic_active_customers": 2,
+      "ic_arrears_rate_pct": 50.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
-      "rag": "RED"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
       "year": 2019,
       "new_arrears_count": 4,
       "active_customers": 17,
       "new_arrears_rate_pct": 23.5,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 4,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
-      "rag": "RED"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
       "year": 2020,
       "new_arrears_count": 1,
       "active_customers": 19,
       "new_arrears_rate_pct": 5.3,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
-      "rag": "GREEN"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
       "year": 2021,
       "new_arrears_count": 3,
       "active_customers": 15,
       "new_arrears_rate_pct": 20.0,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
-      "rag": "RED"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
       "year": 2022,
-      "new_arrears_count": 5,
+      "new_arrears_count": 6,
       "active_customers": 17,
-      "new_arrears_rate_pct": 29.4,
+      "new_arrears_rate_pct": 35.3,
+      "ic_arrears_count": 1,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 20.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
-      "rag": "RED"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
       "year": 2023,
       "new_arrears_count": 3,
       "active_customers": 14,
       "new_arrears_rate_pct": 21.4,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
-      "rag": "RED"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
       "year": 2024,
       "new_arrears_count": 4,
       "active_customers": 14,
       "new_arrears_rate_pct": 28.6,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
-      "rag": "RED"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
       "year": 2025,
       "new_arrears_count": 1,
       "active_customers": 11,
       "new_arrears_rate_pct": 9.1,
+      "ic_arrears_count": 0,
+      "ic_active_customers": 5,
+      "ic_arrears_rate_pct": 0.0,
+      "ic_aggregate_rate_pct": 5.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
-      "rag": "AMBER"
+      "rag": "GREEN",
+      "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     }
   ]
 }

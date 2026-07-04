@@ -1,5 +1,5 @@
 ## Phase PV COMPLETE -- Market Feed Swappable Adapter
-Last updated: 2026-07-04T01:28:45Z
+Last updated: 2026-07-04T01:42:00Z
 
 **Status:** COMPLETE. 15,335 tests passing.
 
@@ -13,7 +13,7 @@ Last updated: 2026-07-04T01:28:45Z
 
 **Next: Phase PW -- I&C Corporate Arrears Calibration** (proposed 2026-07-04 01:22; 4h opt-out window closes ~05:22 BST)
 
-**Latest simulation results (2016–2025)** — auto-processed (479s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (667s / 11 min):
 - Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
