@@ -301,11 +301,17 @@ def extract_customers(data):
             "sim_churn_p": round(float(ev.get("churn_probability", 0)), 3),
             "company_est": round(float(ev.get("company_churn_estimate", 0)), 3),
             "retention_offered": bool(ev.get("retention_offered", False)),
+            "market_signal": round(float(ev.get("market_switching_multiplier", 0)), 4),
+            "realized_churn_p": round(float(ev.get("realized_churn_probability", 0)), 3),
         })
+
+    _events_by_key = {(e["customer_id"], e["date"]): e for e in events}
 
     # Retention log
     retention = []
     for r in data.get("retention_log", []):
+        _key = (r.get("customer_id", ""), r.get("event_date", ""))
+        _sim_side = _events_by_key.get(_key)
         retention.append({
             "customer_id": r.get("customer_id", ""),
             "date": r.get("event_date", ""),
@@ -313,6 +319,9 @@ def extract_customers(data):
             "discount_pct": round(float(r.get("discount_pct", 0)), 3),
             "cost_gbp": _fmt(r.get("retention_cost_gbp", 0)),
             "outcome": r.get("outcome", ""),
+            "sim_churn_p": _sim_side["sim_churn_p"] if _sim_side else None,
+            "market_signal": _sim_side["market_signal"] if _sim_side else None,
+            "realized_churn_p": _sim_side["realized_churn_p"] if _sim_side else None,
         })
 
     # Lifetime per customer — pull tariff_type from CUSTOMERS master list
@@ -606,6 +615,7 @@ def generate(run_json_path=None):
         "management_accounts": extract_management_accounts(data),
         "monthly_ops": extract_monthly_ops(data),
         "flexibility": extract_flexibility(data),
+        "churn_model_performance": data.get("churn_model_performance", {}),
         "build": {
             "current_phase": build_phase,
             "phases_built": f"Phase {build_phase} (300+ total)",

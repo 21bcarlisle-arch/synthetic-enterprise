@@ -362,6 +362,7 @@ def build_supplier(dash, ts, billing_ledger=None):
     annual = dash["financial"]["annual"]
     ledger = dash["financial"].get("ledger", {})
     seg = dash["financial"].get("segment_annual", [])
+    retention_records = dash.get("customers", {}).get("retention", [])
 
     ann_rows = ""
     for r in annual:
@@ -482,6 +483,7 @@ def build_supplier(dash, ts, billing_ledger=None):
         + "<p>6 domains | 72+ capabilities | Point-in-Time Blindfold enforced</p>"
         + _table(["Domain", "Capabilities"], cap_rows)
         + _collections_process(billing_ledger)
+        + _renewal_decision_case_study(retention_records)
     )
     return _page("Supplier P&amp;L", "Supplier", body, ts, git_commit, build.get("current_phase", "?"))
 
@@ -534,7 +536,78 @@ def _behavioral_signal_correlation(sample, billing_ledger, financial_annual):
     )
 
 
-def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None):
+def _churn_model_signal(events, churn_perf):
+    if not events or not churn_perf:
+        return ""
+    by_year = {}
+    for e in events:
+        date = e.get("date", "")
+        if len(date) < 4:
+            continue
+        yr = date[:4]
+        by_year.setdefault(yr, []).append(e.get("market_signal", 0))
+
+    per_year_perf = churn_perf.get("per_year", {})
+    rows = ""
+    for yr in sorted(per_year_perf):
+        signals = by_year.get(yr, [])
+        avg_signal = sum(signals) / len(signals) if signals else 0
+        p = per_year_perf[yr]
+        rows += _row(
+            yr, format(avg_signal, ".2f"), p.get("tp", 0), p.get("fp", 0),
+            p.get("fn", 0), _pct(p.get("recall")), _pct(p.get("precision")),
+        )
+
+    overall = (
+        "Overall: recall " + _pct(churn_perf.get("recall")) + ", precision "
+        + _pct(churn_perf.get("precision")) + ", F1 " + format(churn_perf.get("f1_score", 0), ".3f")
+        + " across " + str(churn_perf.get("total_churn_events", 0)) + " churn events."
+    )
+
+    return (
+        "<h2>Churn Model: Market Signal vs Classification Accuracy</h2>"
+        + "<p class=\"meta\">market_signal is the Phase QB switching-propensity multiplier (SIM), "
+        + "averaged across every renewal that year, next to the company classifier real "
+        + "TP/FP/FN and recall/precision at the live retention threshold -- "
+        + "docs/staging/EVIDENCE_IN_BUSINESS_SURFACES.md</p>"
+        + _table(
+            ["Year", "Avg Market Signal", "TP", "FP", "FN", "Recall", "Precision"],
+            rows,
+        )
+        + "<p>" + overall + "</p>"
+    )
+
+
+def _renewal_decision_case_study(retention):
+    both_sides = [r for r in retention if r.get("sim_churn_p") is not None]
+    if not both_sides:
+        return ""
+    pick = max(both_sides, key=lambda r: abs(r.get("company_est", 0) - r.get("sim_churn_p", 0)))
+    gap_pp = round((pick["company_est"] - pick["sim_churn_p"]) * 100, 1)
+    direction = "overestimated" if gap_pp > 0 else "underestimated"
+
+    body = (
+        "<h2>One Renewal Decision, Both Sides of the Wall</h2>"
+        + "<p class=\"meta\">A real retention decision (" + pick["customer_id"] + " on "
+        + pick["date"] + "), shown exactly as it happened -- "
+        + "docs/staging/EVIDENCE_IN_BUSINESS_SURFACES.md</p>"
+        + _table(
+            ["Side", "Field", "Value"],
+            _row("SIM ground truth (not observable)", "Churn probability", _pct(pick["sim_churn_p"]))
+            + _row("SIM ground truth (not observable)", "Market switching signal", format(pick["market_signal"], ".2f"))
+            + _row("SIM ground truth (not observable)", "Realized churn probability", _pct(pick["realized_churn_p"]))
+            + _row("Company-observable", "Churn model estimate", _pct(pick["company_est"]))
+            + _row("Company-observable", "Retention offer", _pct(pick["discount_pct"]) + " discount, " + _gbp(pick["cost_gbp"]))
+            + _row("Outcome", "Result", pick["outcome"]),
+        )
+        + "<p>The company estimate " + direction + " the SIM ground truth by " + str(abs(gap_pp))
+        + " percentage points -- it could not see the actual figure, only its own model output, and made "
+        + "the retention call on that alone. Customer outcome: " + pick["outcome"] + ".</p>"
+    )
+    return body
+
+
+def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None, churn_events=None, churn_perf=None):
     annual = sim_data.get("annual", [])
     monthly = sim_data.get("monthly", [])[:12]
     peaks = sim_data.get("peak_records", [])[:5]
@@ -572,6 +645,7 @@ def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledg
         + "<h2>Peak SSP Records</h2>"
         + _table(["Date", "Settlement Period", "SSP (GBP/MWh)"], peak_rows)
         + _behavioral_signal_correlation(sample or {}, billing_ledger or {}, financial_annual or [])
+        + _churn_model_signal(churn_events or [], churn_perf or {})
     )
     return _page("Simulation Data", "Sim", body, ts, git_commit, phase)
 
@@ -621,11 +695,13 @@ def generate(run_json_path=None):
     _git_commit = dash.get("meta", {}).get("git_commit", "?")
     _phase = dash.get("build", {}).get("current_phase", "?")
     _financial_annual = dash.get("financial", {}).get("annual", [])
+    _churn_events = dash.get("customers", {}).get("events", [])
+    _churn_perf = dash.get("churn_model_performance", {})
     pages = {
         SHADOW / "index.html": build_index(dash, ts),
         SHADOW / "customers" / "index.html": build_customers(dash, sample, ts, billing_ledger),
         SHADOW / "supplier" / "index.html": build_supplier(dash, ts, billing_ledger),
-        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual),
+        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf),
         SHADOW / "project" / "index.html": build_project(dash, latest_md, ts),
     }
 
