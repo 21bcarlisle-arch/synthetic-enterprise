@@ -6,6 +6,30 @@ from zoneinfo import ZoneInfo
 from background import session_watchdog as watchdog
 
 
+# ── Phase QB (WATCHDOG_NO_SENDKEYS.md): nvm binary resolution ────────────────
+
+def test_resolve_claude_binary_finds_installed_version(monkeypatch, tmp_path):
+    fake_bin = tmp_path / "v24.16.0" / "bin" / "claude"
+    fake_bin.parent.mkdir(parents=True)
+    fake_bin.write_text("#!/bin/sh\n")
+    monkeypatch.setattr(watchdog, "CLAUDE_NVM_GLOB", str(tmp_path / "*" / "bin" / "claude"))
+    assert watchdog.resolve_claude_binary() == str(fake_bin)
+
+
+def test_resolve_claude_binary_picks_highest_version(monkeypatch, tmp_path):
+    for version in ("v20.0.0", "v24.16.0", "v22.1.0"):
+        d = tmp_path / version / "bin"
+        d.mkdir(parents=True)
+        (d / "claude").write_text("#!/bin/sh\n")
+    monkeypatch.setattr(watchdog, "CLAUDE_NVM_GLOB", str(tmp_path / "*" / "bin" / "claude"))
+    assert watchdog.resolve_claude_binary() == str(tmp_path / "v24.16.0" / "bin" / "claude")
+
+
+def test_resolve_claude_binary_none_if_not_found(monkeypatch, tmp_path):
+    monkeypatch.setattr(watchdog, "CLAUDE_NVM_GLOB", str(tmp_path / "*" / "bin" / "claude"))
+    assert watchdog.resolve_claude_binary() is None
+
+
 def test_ntfy_default_uses_done_priority_and_tag(monkeypatch):
     calls = []
     monkeypatch.setattr(
@@ -88,7 +112,10 @@ def test_usage_limit_detected_ignores_discussion_of_the_pattern():
     )
 
 
-def test_restart_claude_always_uses_continue_flag_and_resume_instruction(monkeypatch):
+def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
+    """WATCHDOG_NO_SENDKEYS.md (2026-07-04): the launch must not use
+    tmux send-keys at all -- claude is the pane's command itself, with
+    -c and RESUME_INSTRUCTION passed as argv, not typed in afterwards."""
     watchdog.restart_times.clear()
     calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
@@ -97,24 +124,28 @@ def test_restart_claude_always_uses_continue_flag_and_resume_instruction(monkeyp
     monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
     monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)  # avoid real HTTP
     monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)  # simulate a clean launch
+    monkeypatch.setattr(watchdog, "resolve_claude_binary", lambda: "/fake/nvm/bin/claude")
 
     watchdog.restart_claude()
 
     send_keys_calls = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
     new_session_calls = [c for c in calls if c[:2] == ["tmux", "new-session"]]
-    # Always uses claude -c (resume last conversation)
-    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, "claude -c", "Enter"] in send_keys_calls
-    # Always sends RESUME_INSTRUCTION so in-progress work is checked on resume
-    assert any(watchdog.RESUME_INSTRUCTION in c for c in send_keys_calls)
-    # Launches via a login shell so PATH is sourced from the profile (WATCHDOG_LAUNCH_RACE.md)
-    assert any(c[-2:] == ["bash", "-l"] for c in new_session_calls)
+    # No send-keys anywhere in the launch sequence.
+    assert send_keys_calls == []
+    # claude is launched directly as the pane's command: -c and
+    # RESUME_INSTRUCTION are argv elements, never typed in.
+    assert len(new_session_calls) == 1
+    launch = new_session_calls[0]
+    assert launch[-3:] == ["/fake/nvm/bin/claude", "-c", watchdog.RESUME_INSTRUCTION]
+    # --dangerously-skip-permissions must never appear.
+    assert not any("skip-permissions" in str(arg) for arg in launch)
     watchdog.restart_times.clear()
 
 
-def test_restart_claude_does_not_send_resume_instruction_if_claude_never_comes_up(monkeypatch):
-    """If `claude` never becomes the pane's foreground process, RESUME_INSTRUCTION
-    must not be sent -- sending it into a bare shell is exactly the
-    WATCHDOG_LAUNCH_RACE.md bug (numbered list executed as shell commands)."""
+def test_restart_claude_no_op_if_claude_never_comes_up(monkeypatch):
+    """If `claude` never becomes the pane's foreground process, there must
+    be exactly one alert with the captured pane content -- no retry loop,
+    no fallback keystroke injection."""
     watchdog.restart_times.clear()
     calls = []
     ntfy_messages = []
@@ -125,12 +156,57 @@ def test_restart_claude_does_not_send_resume_instruction_if_claude_never_comes_u
     monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)
     monkeypatch.setattr(watchdog, "claude_is_running", lambda: False)  # launch never comes up
     monkeypatch.setattr(watchdog, "capture_pane", lambda: "-sh: 2: Session: not found")
+    monkeypatch.setattr(watchdog, "resolve_claude_binary", lambda: "/fake/nvm/bin/claude")
 
     watchdog.restart_claude()
 
     send_keys_calls = [c for c in calls if c[:2] == ["tmux", "send-keys"]]
-    assert not any(watchdog.RESUME_INSTRUCTION in c for c in send_keys_calls)
-    assert any("failed to launch" in m for m in ntfy_messages)
+    assert send_keys_calls == []
+    assert len(ntfy_messages) == 1
+    assert "failed to launch" in ntfy_messages[0]
+    watchdog.restart_times.clear()
+
+
+def test_restart_claude_aborts_if_binary_not_found(monkeypatch):
+    """No claude binary resolvable -- alert once, don't attempt to launch."""
+    watchdog.restart_times.clear()
+    calls = []
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)
+    monkeypatch.setattr(watchdog, "resolve_claude_binary", lambda: None)
+
+    watchdog.restart_claude()
+
+    new_session_calls = [c for c in calls if c[:2] == ["tmux", "new-session"]]
+    assert new_session_calls == []
+    assert len(ntfy_messages) == 1
+    assert "not found" in ntfy_messages[0]
+    watchdog.restart_times.clear()
+
+
+def test_restart_claude_instruction_survives_shell_hostile_characters(monkeypatch):
+    """The whole point of no-send-keys: an apostrophe/quotes/parens in the
+    instruction must reach the launch argv completely unchanged. Verified
+    empirically (not just asserted) via a real tmux + python3 subprocess
+    round-trip during development -- see WATCHDOG_NO_SENDKEYS.md."""
+    watchdog.restart_times.clear()
+    calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)
+    monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)
+    monkeypatch.setattr(watchdog, "resolve_claude_binary", lambda: "/fake/nvm/bin/claude")
+
+    watchdog.restart_claude()
+
+    new_session_calls = [c for c in calls if c[:2] == ["tmux", "new-session"]]
+    assert new_session_calls[0][-1] == watchdog.RESUME_INSTRUCTION
     watchdog.restart_times.clear()
 
 

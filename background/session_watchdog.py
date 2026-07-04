@@ -81,6 +81,7 @@ permission prompt — not an unattended-autonomous session.
 Logs to docs/observability/session-watchdog-log.md.
 """
 
+import glob
 import json
 import re
 import secrets
@@ -740,8 +741,28 @@ def wait_for_api_connectivity() -> None:
             last_ntfy_time = time.time()
 
 
-CLAUDE_LAUNCH_TIMEOUT_SECONDS = 30
+CLAUDE_LAUNCH_TIMEOUT_SECONDS = 60
 CLAUDE_LAUNCH_POLL_INTERVAL_SECONDS = 2
+
+# See WATCHDOG_NO_SENDKEYS.md (2026-07-04): `bash -lc 'which claude'` returns
+# EMPTY on this machine -- nvm only initialises PATH in an INTERACTIVE shell
+# (its .bashrc guard exits early for non-interactive shells), so the previous
+# `bash -l` launch shell never actually had `claude` on PATH. Resolve the
+# absolute binary path directly from the nvm install tree instead.
+CLAUDE_NVM_GLOB = str(Path.home() / ".nvm" / "versions" / "node" / "*" / "bin" / "claude")
+
+
+def resolve_claude_binary() -> str | None:
+    """Resolve the absolute path to the `claude` binary via its nvm install
+    location, or None if not found.
+
+    Re-resolved on every call (not cached) so a node version upgrade that
+    moves the install path doesn't strand the watchdog on a stale one. If
+    more than one version is installed, picks the lexicographically last
+    match (highest version number, since nvm dirs are named `vX.Y.Z`).
+    """
+    matches = sorted(glob.glob(CLAUDE_NVM_GLOB))
+    return matches[-1] if matches else None
 
 
 def wait_for_claude_launch(timeout_seconds: int = CLAUDE_LAUNCH_TIMEOUT_SECONDS) -> bool:
@@ -769,19 +790,40 @@ def restart_claude(resume: bool = True) -> None:
     """Restart the 'claude' tmux session.
 
     Always uses `claude -c` (resume last conversation) -- keeps context
-    intact across crashes and connectivity blips, so the autoloop
-    instruction lands in a familiar session rather than a cold start that
-    can stall. RESUME_INSTRUCTION is still sent so in-progress work is
-    checked before advancing.
-    --dangerously-skip-permissions is never used.
+    intact across crashes and connectivity blips, so the resume instruction
+    lands in a familiar session rather than a cold start that can stall.
+    --dangerously-skip-permissions is never used (Rich's standing
+    instruction) -- normal tool-permission prompts apply to the restarted
+    session exactly as they would to any session.
 
-    The new session is launched via `bash -l` (login shell) rather than the
-    pane's default shell, so PATH is sourced from the profile the same way
-    an interactive terminal would see it -- a non-interactive tmux shell can
-    otherwise lack the `claude` binary on PATH entirely (see
-    WATCHDOG_LAUNCH_RACE.md). RESUME_INSTRUCTION is only sent once
-    `wait_for_claude_launch()` confirms `claude` is actually the pane's
-    foreground process -- never into a shell that never started it.
+    NO SEND-KEYS ANYWHERE IN THE LAUNCH (see WATCHDOG_NO_SENDKEYS.md,
+    2026-07-04). The previous design launched a login shell (`bash -l`) and
+    then typed `claude -c` followed by RESUME_INSTRUCTION as two separate
+    `tmux send-keys` calls. Three proven failure modes are eliminated by
+    construction:
+      1. Launch-timing race: the instruction used to be typed in after a
+         fixed sleep; if `claude` hadn't actually started yet, it landed in
+         a bare shell and ran as literal shell commands.
+      2. nvm PATH: `bash -l` never actually had `claude` on PATH here --
+         `bash -lc 'which claude'` returns empty, since nvm only
+         initialises PATH for interactive shells. `resolve_claude_binary()`
+         finds the absolute path directly instead of relying on PATH.
+      3. Quote-swallowing: RESUME_INSTRUCTION contains an apostrophe; typed
+         via send-keys into a bare shell, that apostrophe opened a PS2
+         quote-continuation prompt that silently swallowed every
+         subsequent line.
+    `claude` is now the tmux pane's command itself (`tmux new-session ...
+    <claude_bin> -c <RESUME_INSTRUCTION>`), with RESUME_INSTRUCTION passed
+    as a single argv element. Verified empirically (not just by inspection):
+    tmux's `new-session` with multiple trailing arguments execs them
+    directly (execve), with no shell in between at all -- confirmed by
+    launching a python3 probe the same way with a payload containing an
+    apostrophe, a double quote, parens, and a numbered list, and reading
+    back the exact bytes it received as argv. There is no shell left to
+    misparse the instruction text, so it doesn't need to live in a separate
+    file the way WATCHDOG_NO_SENDKEYS.md's suggested implementation did --
+    embedding it directly achieves the same "never typed into a shell"
+    guarantee with no extra file to keep in sync.
     """
     if restarts_in_last_hour() >= MAX_RESTARTS_PER_HOUR:
         msg = (f"Session watchdog: restart cap reached "
@@ -794,47 +836,50 @@ def restart_claude(resume: bool = True) -> None:
         return
 
     wait_for_api_connectivity()
-    log("Restarting Claude Code (normal permissions, no skip flag, claude -c resume)")
+
+    claude_bin = resolve_claude_binary()
+    if claude_bin is None:
+        msg = (f"Claude binary not found under {CLAUDE_NVM_GLOB} -- cannot "
+               "restart. Check the nvm install.")
+        log(msg)
+        ntfy(msg, needs_input=True)
+        restart_times.append(time.time())
+        return
+
+    log(f"Restarting Claude Code (normal permissions, no skip flag, "
+        f"direct launch via {claude_bin}, claude -c resume, no send-keys)")
     subprocess.run(["tmux", "kill-session", "-t", SESSION_NAME], capture_output=True)
     time.sleep(5)
 
     subprocess.run([
         "tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", PROJECT_DIR,
-        "bash", "-l"
-    ])
-    time.sleep(3)
-
-    subprocess.run([
-        "tmux", "send-keys", "-t", SESSION_NAME,
-        "claude -c", "Enter"
+        claude_bin, "-c", RESUME_INSTRUCTION,
     ])
 
     if not wait_for_claude_launch():
         pane_text = capture_pane()
         last_lines = " | ".join(
-            ln.strip() for ln in pane_text.splitlines()[-10:] if ln.strip()
+            ln.strip() for ln in pane_text.splitlines()[-30:] if ln.strip()
         )
         log(f"Claude Code did not come up within {CLAUDE_LAUNCH_TIMEOUT_SECONDS}s of "
-            f"launch — pane: {last_lines[:300]}")
+            f"launch — pane: {last_lines[:800]}")
         ntfy(
             f"CC failed to launch (still not running {CLAUDE_LAUNCH_TIMEOUT_SECONDS}s "
-            f"after `claude -c`) — pane: {last_lines[:200]}",
+            f"after direct launch) — pane: {last_lines[:500]}",
             needs_input=True,
         )
         # Count against the restart cap so a persistently broken launch backs
         # off (60min pause) instead of retrying every cycle indefinitely.
+        # One alert, no retry loop -- the next `main()` cycle will notice the
+        # session is still down and call restart_claude() again on its own
+        # schedule; this function does not loop internally.
         restart_times.append(time.time())
         return
 
-    # Always send RESUME_INSTRUCTION so in-progress work is checked.
-    subprocess.run([
-        "tmux", "send-keys", "-t", SESSION_NAME,
-        RESUME_INSTRUCTION, "Enter"
-    ])
-
     restart_times.append(time.time())
     count = restarts_in_last_hour()
-    log(f"Claude Code restarted ({count}/{MAX_RESTARTS_PER_HOUR} this hour, claude -c resume)")
+    log(f"Claude Code restarted ({count}/{MAX_RESTARTS_PER_HOUR} this hour, "
+        "direct launch, claude -c resume, no send-keys)")
 
 
 def queue_downtime_tasks() -> None:
