@@ -1312,3 +1312,23 @@
 - [2026-07-04 00:15 UTC] git fetch failed (network?): network error
 - [2026-07-04 00:15 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
 - [2026-07-04 00:15 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-04 00:28 UTC] Silently registered sim run marker: run_complete_20260704T001441Z.md (Claude polls staging, no notification needed)
+- [2026-07-04 00:28 UTC] git fetch failed (network?): network error
+- [2026-07-04 00:28 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-04 00:28 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-04 00:38 UTC] Silently registered sim run marker: run_complete_20260704T003012Z.md (Claude polls staging, no notification needed)
+- [2026-07-04 00:38 UTC] git fetch failed (network?): network error
+- [2026-07-04 00:38 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-04 00:38 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-04 00:48 UTC] Silently registered sim run marker: run_complete_20260704T004036Z.md (Claude polls staging, no notification needed)
+- [2026-07-04 00:48 UTC] git fetch failed (network?): network error
+- [2026-07-04 00:48 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-04 00:48 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-04 00:58 UTC] git fetch failed (network?): network error
+- [2026-07-04 00:58 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-04 00:58 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-04 00:58 UTC] Silently registered sim run marker: run_complete_20260704T005025Z.md (Claude polls staging, no notification needed)
+- [2026-07-04 01:08 UTC] Silently registered sim run marker: run_complete_20260704T010020Z.md (Claude polls staging, no notification needed)
+- [2026-07-04 01:08 UTC] git fetch failed (network?): network error
+- [2026-07-04 01:08 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-04 01:08 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
