@@ -1867,3 +1867,12 @@
 - [2026-07-04 18:30 UTC] git fetch failed (network?): network error
 - [2026-07-04 18:30 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
 - [2026-07-04 18:30 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-04 18:41 UTC] Notified: EVIDENCE_IN_BUSINESS_SURFACES.md
+- [2026-07-04 18:41 UTC] Notified: QG_REOPENED_R2.md
+- [2026-07-04 18:42 UTC] Silently registered sim run marker: run_complete_20260704T183322Z.md (Claude polls staging, no notification needed)
+- [2026-07-04 18:42 UTC] git fetch failed (network?): network error
+- [2026-07-04 18:42 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-04 18:42 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-04 18:45 UTC] git fetch failed (network?): network error
+- [2026-07-04 18:45 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-04 18:45 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping

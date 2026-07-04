@@ -166,11 +166,19 @@ def _fmt_gbp(v):
 
 
 def generate_dashboard_json(json_path):
-    """Generate site/data/dashboard.json for the SPA dashboard.
+    """Generate site/data/dashboard.json and every downstream site/state artifact.
 
     Returns False if the cross-surface consistency gate failed (Part C of the
     website-integrity fix: a mismatch must be surfaced loudly, never shipped
-    silently) so the caller can NTFY immediately."""
+    silently) so the caller can NTFY immediately. The gate result is captured
+    but must NOT short-circuit the rest of this function -- every generator
+    below (shadow HTML, PROJECT_STATE.txt, billing ledger, population
+    anchoring, customers.json, supplier.json, live decisions, scenario
+    analysis, GitHub Pages mirror) has to run every cycle regardless of the
+    gate outcome. (QG_REOPENED_R2.md, 2026-07-04: an early `return ok` here
+    made all of the below dead code since Phase QF -- none of it had run on
+    any auto-processed cycle since.)"""
+    ok = True
     try:
         sys.path.insert(0, str(PROJECT_DIR))
         from tools.generate_dashboard_data import generate
@@ -179,10 +187,9 @@ def generate_dashboard_json(json_path):
             log("Generated site/data/dashboard.json")
         else:
             log("CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)")
-        return ok
     except Exception as exc:
         log("Dashboard data generation failed: {}".format(exc))
-        return True  # generation exception is not a consistency-gate failure; don't false-alarm
+        ok = True  # generation exception is not a consistency-gate failure; don't false-alarm
     try:
         from tools.generate_customer_data import generate as gen_cust
         gen_cust(json_path)
@@ -267,6 +274,7 @@ def generate_dashboard_json(json_path):
         log("Mirrored {} file(s) to docs/shadow + docs/state for GitHub Pages".format(len(mirrored)))
     except Exception as exc:
         log("GitHub Pages mirror failed: {}".format(exc))
+    return ok
 
 
 def generate_site(data, elapsed_s, git_hash, finished_ts):

@@ -5235,6 +5235,22 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
 - 15,349 tests (fast suite / ~100s; simulation integration ~8 min per run)
+- Phase QH (2026-07-04): fixed a dead-code regression in process_run_complete.py::generate_dashboard_json()
+  introduced by Phase QF -- an early `return ok` (the consistency-gate result) sat inside the first
+  try block, before the calls to generate shadow HTML, PROJECT_STATE.txt, billing ledger, population
+  anchoring, customers.json, supplier.json, live portfolio/decisions, scenario analysis, and the QG
+  GitHub Pages mirror -- making all of them unreachable dead code on every auto-processed run cycle
+  since QF landed. Root cause found per QG_REOPENED_R2.md (advisor's cache-busted fetch kept returning
+  a stale 05:31Z / Phase PY snapshot after QG's own commit): diagnosed as a code bug, not an R2
+  committed!=running daemon-restart issue as first suspected -- both callers (sim_runner.py,
+  background_worker.py) already invoke process_run_complete.py via subprocess.run, so daemon code
+  staleness was never the mechanism. Fix: capture `ok` and return it only after every generator has
+  run, matching each generator's independent try/except-per-step design from before QF. Verified live:
+  re-ran the pipeline against the latest run JSON, confirmed docs/status/PROJECT_STATE.txt regenerated
+  with Phase QG / 15,349 tests (was stuck since 8339c754), all 9 GitHub Pages mirror files updated, full
+  15,349-test suite + epistemic verifier still pass. Live-fetch confirmation from the advisor's own
+  vantage point could not be performed this session (no approved network/HTTP tool available, same gap
+  BURN_MEASUREMENT.md already flagged) -- stated honestly rather than claimed.
 - Phase QG (2026-07-04): GitHub Pages advisor-verification mirror -- poesys.net proven persistently
   stale on the advisor's own fetch path (independent of any CD incident); site/shadow/ + 4 state JSONs
   now also mirrored to docs/shadow/ + docs/state/ (GitHub Pages, same reliable channel already proven
