@@ -412,6 +412,23 @@ def main(marker_path_str):
     log("Updating LATEST.md")
     update_latest_md(data, elapsed_s, git_hash)
 
+    # Run insights (so-what layer) MUST be regenerated before the dashboard/
+    # site build below: generate_dashboard_data.py reads run_insights.json
+    # straight off disk for the exec-summary section, separately from the
+    # run_output.json it loads for the totals section. Building the dashboard
+    # first would bake in the PREVIOUS run's exec summary next to this run's
+    # totals -- exactly the contradiction the website-integrity fix closed.
+    log("Generating run insights (so-what layer)")
+    run_insights = None
+    try:
+        from tools.generate_insights import generate_insights, save_insights, append_run_history
+        run_insights = generate_insights(data, git_hash)
+        save_insights(run_insights)
+        append_run_history(run_insights)
+        log("Run insights saved: {}".format(run_insights.executive_summary[:80]))
+    except Exception as exc:
+        log("Run insights generation skipped: {}".format(exc))
+
     log("Generating site/data/dashboard.json")
     generate_dashboard_json(json_path)
     generate_site(data, elapsed_s, git_hash, fields.get("finished"))
@@ -423,18 +440,6 @@ def main(marker_path_str):
         log("Revenue sanity: {} — see annual report".format(status))
     except Exception as exc:
         log("Revenue sanity check skipped: {}".format(exc))
-
-
-    log("Generating run insights (so-what layer)")
-    run_insights = None
-    try:
-        from tools.generate_insights import generate_insights, save_insights, append_run_history
-        run_insights = generate_insights(data, git_hash)
-        save_insights(run_insights)
-        append_run_history(run_insights)
-        log("Run insights saved: {}".format(run_insights.executive_summary[:80]))
-    except Exception as exc:
-        log("Run insights generation skipped: {}".format(exc))
 
     log("Publishing market price feed")
     try:

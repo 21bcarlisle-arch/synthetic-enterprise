@@ -17,10 +17,28 @@ OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
 
 RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT / "docs" / "observability" / "run_history.json"
+BUILD_INFO_PATH = PROJECT / "docs" / "observability" / "build_info.json"
 
+# Fallback only -- canonical values live in build_info.json, updated at phase
+# close (CLAUDE.md phase-close checklist step 1) so this page never bakes in
+# a stale phase/test-count label.
 _BUILD_PHASE = "OL"
 _BUILD_TEST_COUNT = 15148
 _BUILD_COMPANY_MODULES = 405
+
+
+def _load_build_info():
+    if BUILD_INFO_PATH.exists():
+        try:
+            info = json.loads(BUILD_INFO_PATH.read_text())
+            return (
+                info.get("phase", _BUILD_PHASE),
+                info.get("test_count", _BUILD_TEST_COUNT),
+                info.get("company_modules", _BUILD_COMPANY_MODULES),
+            )
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return _BUILD_PHASE, _BUILD_TEST_COUNT, _BUILD_COMPANY_MODULES
 
 
 # ---------------------------------------------------------------------------
@@ -566,6 +584,10 @@ def generate(run_json_path=None):
     git_commit = cache_meta.get("git_commit", run_json_path.stem.split("_")[2] if "_" in run_json_path.stem else "unknown")
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    build_phase, build_test_count, build_modules = _load_build_info()
+    portfolio = extract_portfolio(data)
+    insights = extract_insights()
+
     dashboard = {
         "meta": {
             "generated_at": generated_at,
@@ -573,27 +595,29 @@ def generate(run_json_path=None):
             "source_file": run_json_path.name,
             "spot_monthly_count": len(spot_monthly),
         },
-        "portfolio": extract_portfolio(data),
+        "portfolio": portfolio,
         "financial": extract_financial(data),
         "trading": extract_trading(data, spot_monthly),
         "customers": extract_customers(data),
         "market": extract_market(data, spot_monthly),
-        "insights": extract_insights(),
+        "insights": insights,
         "run_history": extract_run_history(),
         "query_context": extract_query_context(data),
         "management_accounts": extract_management_accounts(data),
         "monthly_ops": extract_monthly_ops(data),
         "flexibility": extract_flexibility(data),
         "build": {
-            "current_phase": _BUILD_PHASE,
-            "phases_built": f"Phase {_BUILD_PHASE} (300+ total)",
-            "test_count": _BUILD_TEST_COUNT,
-            "test_suite": f"{_BUILD_TEST_COUNT:,}+ (non-sim)",
-            "company_modules": _BUILD_COMPANY_MODULES,
+            "current_phase": build_phase,
+            "phases_built": f"Phase {build_phase} (300+ total)",
+            "test_count": build_test_count,
+            "test_suite": f"{build_test_count:,}+ (non-sim)",
+            "company_modules": build_modules,
             "simulation_window": "2016-2025",
             "regulatory_modules": 48,
         },
     }
+
+    _check_consistency(portfolio, insights, run_json_path.name)
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -601,6 +625,30 @@ def generate(run_json_path=None):
 
     size_kb = OUTPUT_PATH.stat().st_size / 1024
     print(f"Wrote {OUTPUT_PATH} ({size_kb:.1f} KB)")
+    return True
+
+
+def _check_consistency(portfolio, insights, source_file, tolerance_gbp=1.0):
+    """Guard against surfaces on the same page disagreeing (Part A #3 of the
+    website-integrity fix): the exec-summary insights are generated from a
+    separate run_insights.json snapshot, not from the run_output.json this
+    call just loaded, so a step-ordering regression upstream can silently
+    re-introduce a stale/mismatched exec summary next to correct totals."""
+    if not insights:
+        print("CONSISTENCY GATE: no run_insights.json present -- skipping check", file=sys.stderr)
+        return True
+    totals_net = portfolio.get("net_margin_gbp")
+    insights_net = insights.get("net_margin_gbp")
+    if totals_net is None or insights_net is None:
+        return True
+    if abs(totals_net - insights_net) > tolerance_gbp:
+        print(
+            "CONSISTENCY GATE FAILED: dashboard totals net_margin_gbp={} vs "
+            "run_insights.json net_margin_gbp={} (source={}) -- exec summary "
+            "is stale relative to this run's totals".format(totals_net, insights_net, source_file),
+            file=sys.stderr,
+        )
+        return False
     return True
 
 
