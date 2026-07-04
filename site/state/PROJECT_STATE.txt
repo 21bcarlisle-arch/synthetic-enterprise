@@ -1,9 +1,9 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-07-04T05:04:55Z
+Generated: 2026-07-04T05:31:24Z
 
 ## Summary
-- Current Phase: PX
-- Test Suite: 15,380 tests passing (unit / fast suite ~10s)
+- Current Phase: PY
+- Test Suite: 15,402 tests passing (unit / fast suite ~10s)
 - Company Modules: 405+ Python modules across company/
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)
@@ -19,7 +19,8 @@ Generated: 2026-07-04T05:04:55Z
 - Retention: 12/12 offers accepted | 6 no-offer churns | 6 total churned
 
 ## Key Files (fetchable without JavaScript)
-- https://poesys.net/state/PROJECT_STATE.txt -- THIS FILE (auto-generated on every push)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt -- THIS FILE (canonical, GitHub Pages)
+- https://poesys.net/state/PROJECT_STATE.txt -- mirror (Cloudflare Pages)
 - https://poesys.net/state/customer_sample.json -- per-customer ground truth
 - https://poesys.net/shadow/ -- no-JS HTML: Supplier dashboard
 - https://poesys.net/shadow/customers/ -- no-JS HTML: Customer portal
@@ -35,6 +36,6 @@ Generated: 2026-07-04T05:04:55Z
 - Churn model: bill shock YoY + payment behaviour + satisfaction + market year elasticity
 
 ## Key Metrics
-- Tests at start (Phase 0): 0 | Tests now: 15,380
+- Tests at start (Phase 0): 0 | Tests now: 15,402
 - Net margin all-time: GBP1,445,258 | Crisis survived: 2021-22
 - Retention: 12/12 offers | 6 no-offer churns
