@@ -54,6 +54,12 @@ Per-customer money movement -- NOT an Observatory section:
 - Bad debt (stage 5) emerges naturally -- do NOT build separately first
 **Acceptance:** named customer's ledger shows invoices raised, payments received, arrears accruing.
 
+**Bad debt CLOSED (Phase QD, 2026-07-04):** board-reported bad_debt_gbp was a flat rate*revenue
+formula, disconnected from the emergent per-customer arrears ledger (Phases PP/PW). Now the same
+engine (simulation/arrears_engine.py) drives both -- proven equal by a dedicated acceptance test.
+Real figure is £3,051.07 vs the old formula's £92,550.88 across the full run (net margin +£89.5k
+on next production run). Remaining P2 scope: cash/prepay payment methods (DD only modelled).
+
 ### PRIORITY 3: POPULATION ANCHORING AS STANDING CONSTRAINT
 SIM aggregates validated against published UK statistics every run:
 - Ofgem annual switching rates by year (CRITICAL: 2021-22 crisis = switching COLLAPSE, not rise;

@@ -1,84 +1,10 @@
-"""Phase JA coverage expansion: arrears_book, billing_dispute, back_billing."""
+"""Phase JA coverage expansion: billing_dispute, back_billing.
+
+TestArrearsBook removed (Phase QD) -- company/billing/arrears_book.py was
+confirmed dead code (zero non-test importers) and deleted.
+"""
 import datetime as dt
 import unittest
-
-
-class TestArrearsBook(unittest.TestCase):
-
-    def _book(self):
-        from company.billing.arrears_book import ArrearsBook, ArrearsStage
-        return ArrearsBook(), ArrearsStage
-
-    def test_sequential_ids(self):
-        book, _ = self._book()
-        c1 = book.open_case("C1", 150.0, dt.date(2023, 1, 1))
-        c2 = book.open_case("C2", 200.0, dt.date(2023, 2, 1))
-        self.assertEqual(c1.case_id, "ARR-0001")
-        self.assertEqual(c2.case_id, "ARR-0002")
-
-    def test_is_open_true_for_active_stage(self):
-        book, S = self._book()
-        c = book.open_case("C1", 100.0, dt.date(2023, 1, 1))
-        self.assertTrue(c.is_open)
-
-    def test_is_open_false_after_resolve(self):
-        book, _ = self._book()
-        c = book.open_case("C1", 100.0, dt.date(2023, 1, 1))
-        book.resolve(c.case_id, dt.date(2023, 2, 1))
-        self.assertFalse(c.is_open)
-
-    def test_outstanding_gbp(self):
-        book, _ = self._book()
-        c = book.open_case("C1", 200.0, dt.date(2023, 1, 1))
-        book.record_recovery(c.case_id, 75.0)
-        self.assertAlmostEqual(c.outstanding_gbp, 125.0)
-
-    def test_advance_stage(self):
-        book, S = self._book()
-        c = book.open_case("C1", 100.0, dt.date(2023, 1, 1))
-        book.advance_stage(c.case_id, S.FIRST_NOTICE, dt.date(2023, 1, 15))
-        self.assertEqual(c.stage, S.FIRST_NOTICE)
-        self.assertEqual(c.stage_date, dt.date(2023, 1, 15))
-
-    def test_advance_stage_raises_on_terminal(self):
-        book, S = self._book()
-        c = book.open_case("C1", 100.0, dt.date(2023, 1, 1))
-        book.write_off(c.case_id, dt.date(2023, 3, 1))
-        with self.assertRaises(ValueError):
-            book.advance_stage(c.case_id, S.FIRST_NOTICE, dt.date(2023, 4, 1))
-
-    def test_write_off(self):
-        book, S = self._book()
-        c = book.open_case("C1", 100.0, dt.date(2023, 1, 1))
-        book.write_off(c.case_id, dt.date(2023, 6, 1))
-        self.assertEqual(c.stage, S.WRITTEN_OFF)
-        self.assertFalse(c.is_open)
-
-    def test_open_cases(self):
-        book, _ = self._book()
-        c1 = book.open_case("C1", 100.0, dt.date(2023, 1, 1))
-        c2 = book.open_case("C2", 200.0, dt.date(2023, 2, 1))
-        book.resolve(c1.case_id, dt.date(2023, 3, 1))
-        open_ids = {c.case_id for c in book.open_cases()}
-        self.assertNotIn(c1.case_id, open_ids)
-        self.assertIn(c2.case_id, open_ids)
-
-    def test_total_arrears_outstanding_gbp(self):
-        book, _ = self._book()
-        c1 = book.open_case("C1", 200.0, dt.date(2023, 1, 1))
-        c2 = book.open_case("C2", 300.0, dt.date(2023, 2, 1))
-        book.record_recovery(c1.case_id, 50.0)
-        book.resolve(c2.case_id, dt.date(2023, 5, 1))
-        self.assertAlmostEqual(book.total_arrears_outstanding_gbp(), 150.0)
-
-    def test_annual_summary_structure(self):
-        book, _ = self._book()
-        book.open_case("C1", 100.0, dt.date(2023, 1, 1))
-        s = book.annual_summary()
-        self.assertIn("total_cases", s)
-        self.assertIn("open_cases", s)
-        self.assertIn("total_outstanding_gbp", s)
-        self.assertIn("by_stage", s)
 
 
 class TestBillingDisputeBook(unittest.TestCase):

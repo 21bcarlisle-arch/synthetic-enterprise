@@ -22,94 +22,26 @@ import random
 from datetime import date, timedelta
 from pathlib import Path
 
+from simulation.arrears_engine import (
+    PAYMENT_TERMS_DAYS,
+    stress_for_year as _stress_for_year,
+    payment_method as _payment_method,
+    payment_outcome as _payment_outcome,
+    arrears_stages as _arrears_stages,
+    ic_arrears_stages as _ic_arrears_stages,
+    _CORP_BACS_ON_TIME_PROB,
+    _CORP_BACS_LATE_PROB,
+    _CORP_BACS_DISPUTE_PROB,
+    _CORP_LATE_DAYS,
+    _IC_SEGMENTS,
+    _DD_FAILURE_PROB,
+    _ON_TIME_PROB,
+    _LATE_DAYS,
+)
+
 PROJECT = Path(__file__).parent.parent
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
-
-PAYMENT_TERMS_DAYS = 14
-
-_DD_FAILURE_PROB = {"LOW": 0.03, "MODERATE": 0.12, "HIGH": 0.35}
-_ON_TIME_PROB = {"LOW": 0.92, "MODERATE": 0.50, "HIGH": 0.10}
-_LATE_DAYS = {"LOW": (3, 14), "MODERATE": (14, 45), "HIGH": (30, 90)}
-
-_CORP_BACS_ON_TIME_PROB = 0.92
-_CORP_BACS_LATE_PROB = 0.073
-_CORP_BACS_DISPUTE_PROB = 0.007
-_CORP_LATE_DAYS = (14, 45)
-_IC_SEGMENTS = ("ic", "I&C")
-
-
-def _stress_for_year(behavioral, year):
-    trajectory = behavioral.get("income_stress_trajectory") or []
-    for entry in trajectory:
-        if entry.get("year") == year:
-            return (entry.get("stress") or "LOW").upper()
-    return "LOW"
-
-
-def _payment_method(segment, amount_gbp):
-    if segment in ("ic", "I&C"):
-        return "chaps" if amount_gbp >= 10000 else "bacs"
-    if segment == "sme":
-        return "bacs"
-    return "direct_debit"
-
-
-def _payment_outcome(method, stress, rng, segment="resi"):
-    if method in ("bacs", "chaps"):
-        if segment in _IC_SEGMENTS:
-            r = rng.random()
-            if r < _CORP_BACS_ON_TIME_PROB:
-                return ("success", 0)
-            elif r < 1.0 - _CORP_BACS_DISPUTE_PROB:
-                return ("success", rng.randint(*_CORP_LATE_DAYS))
-            else:
-                return ("dispute", 0)
-        return ("success", 0)
-    dd_fail_prob = _DD_FAILURE_PROB.get(stress, 0.03)
-    if rng.random() < dd_fail_prob:
-        return ("failed", 0)
-    on_time_prob = _ON_TIME_PROB.get(stress, 0.92)
-    if rng.random() < on_time_prob:
-        return ("success", 0)
-    lo, hi = _LATE_DAYS.get(stress, (3, 14))
-    return ("success", rng.randint(lo, hi))
-
-
-def _arrears_stages(arrears_gbp, due_date, eventually_resolved):
-    stages = [
-        {"stage": "DD_FAILED", "date": due_date.isoformat(), "note": "Direct debit returned"},
-        {"stage": "FIRST_NOTICE", "date": (due_date + timedelta(days=7)).isoformat(),
-         "note": "First overdue notice -- GBP%.2f outstanding" % arrears_gbp},
-        {"stage": "SECOND_NOTICE", "date": (due_date + timedelta(days=21)).isoformat(),
-         "note": "Second notice -- payment plan offered"},
-    ]
-    if eventually_resolved:
-        stages.append({"stage": "RESOLVED", "date": (due_date + timedelta(days=45)).isoformat(),
-                        "note": "Arrears cleared via payment plan"})
-    else:
-        stages.append({"stage": "WRITTEN_OFF", "date": (due_date + timedelta(days=90)).isoformat(),
-                        "note": "Debt written off -- bad debt provision raised"})
-    return stages
-
-
-
-def _ic_arrears_stages(arrears_gbp, due_date, eventually_resolved):
-    stages = [
-        {"stage": "INVOICE_DISPUTED", "date": due_date.isoformat(),
-         "note": "Invoice disputed -- GBP%.2f under formal review" % arrears_gbp},
-        {"stage": "DISPUTE_NOTICE", "date": (due_date + timedelta(days=14)).isoformat(),
-         "note": "Dispute notice raised -- escalated to accounts receivable"},
-    ]
-    if eventually_resolved:
-        stages.append({"stage": "PAYMENT_PLAN_AGREED",
-                        "date": (due_date + timedelta(days=30)).isoformat(),
-                        "note": "Payment plan agreed -- arrears to be settled over 60 days"})
-    else:
-        stages.append({"stage": "WRITTEN_OFF",
-                        "date": (due_date + timedelta(days=60)).isoformat(),
-                        "note": "Debt written off -- bad debt provision raised"})
-    return stages
 
 
 def generate(run_json_path=None, out_path=None):

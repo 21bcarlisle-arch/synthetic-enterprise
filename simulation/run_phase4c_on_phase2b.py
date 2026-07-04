@@ -48,6 +48,7 @@ from saas.enterprise_value import build_enterprise_value
 from saas.home_move_win_rate import build_home_move_win_rates
 from saas.ledger import build_ledger, derive_pnl, ledger_summary
 from saas.payment_behaviour import build_payment_behaviour
+from simulation.arrears_engine import compute_emergent_bad_debt, apply_emergent_bad_debt
 from simulation.run_phase2b import main as run_phase2b
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
@@ -108,6 +109,20 @@ def main(report_end: str | None = None):
     all_records = phase2b_result["all_records"]
 
     bills = build_monthly_bills(all_records)
+
+    # Phase QD: replace the flat get_bad_debt_rate() formula baked into
+    # all_records by run_phase2b's real-time settlement loop with the real,
+    # emergent bad debt from the same payment/arrears model that drives the
+    # per-customer billing ledger (tools.generate_billing_ledger) -- so the
+    # board-reported bad_debt_gbp is an outcome of simulated payment
+    # behaviour, not a calibrated assumption.
+    emergent_bad_debt = compute_emergent_bad_debt(
+        bills,
+        phase2b_result.get("per_customer_behavioral", {}),
+        set(phase2b_result.get("churned_billing_accounts", [])),
+    )
+    apply_emergent_bad_debt(all_records, emergent_bad_debt)
+
     payment_behaviour = build_payment_behaviour(bills)
     contact_model = build_contact_model(bills)
 

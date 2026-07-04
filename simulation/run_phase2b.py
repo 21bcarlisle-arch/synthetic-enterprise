@@ -1461,6 +1461,10 @@ def main(report_end: str | None = None, sim_interface=None):
                     cid, _pm_due, rec.get('revenue_gbp', 0.0), _income_stress, _payment_rng
                 )
                 _payment_analytics.record_payment(cid, _pm_rec)
+            # Real-time placeholder only -- simulation.run_phase4c_on_phase2b.main()
+            # overwrites this with real, emergent bad debt from the payment/
+            # arrears model (simulation.arrears_engine) once bills exist (Phase QD).
+            # get_bad_debt_rate() itself remains as the historical benchmark table.
             _bd_rate = get_bad_debt_rate(int(rec_year), cust_segment) * _stress_bd_mult
             _bad_debt = round(rec.get("revenue_gbp", 0.0) * _bd_rate, 6)
             rec["bad_debt_gbp"] = _bad_debt
