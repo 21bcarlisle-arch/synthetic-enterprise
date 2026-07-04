@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-03. 490+ commits. 15,314 tests passing. Codebase: ~51,100 lines across 335+ Python modules.*
+*Last updated: 2026-07-04. 491+ commits. 15,335 tests passing. Codebase: ~51,200 lines across 337+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,10 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### Phase PV -- Market Feed Swappable Adapter (2026-07-04)
+21 new tests. tools/market_data_port.py (new): `MarketDataPort` Protocol with `get_spot_elec_gbp_per_mwh`, `get_spot_gas_gbp_per_mwh`, `get_forward_price`, `get_market_summary` -- all optional as_of date. tools/market_adapters/frozen_2025.py (new): `Frozen2025Adapter` wraps live_market.py unchanged behind the Protocol. tools/market_adapters/__init__.py: `get_market_adapter(source)` factory -- reads MARKET_ADAPTER_SOURCE env var (default: frozen_2025); unknown source raises ValueError. tools/run_live_decisions.py: `run_decisions` accepts optional `market_adapter` param; defaults to factory; no direct live_market import at call site. Existing patch on tools.live_market.get_market_summary continues to work (adapter calls through). KEY ARCHITECTURE: company layer is now source-agnostic -- correlated synthetic generator (endgame) drops in as a new adapter with zero company-layer changes. FIDELITY GAIN: real UK risk systems consume a market-data port, not a named file; PV makes the company layer architecturally honest. Epistemic: PASS.
+**Total:** 15,335 tests
 
 ### Phase PU -- Shadow Live Operation P4 MVP (2026-07-03)
 24 new tests. tools/project_portfolio_to_2026.py: extracts active customers from final sim year, last renewal date/rate from customer_events, EAC from bills, hedge fraction from hedge_fractions dict. tools/live_market.py: Elexon SSP EWMA for spot; gas from price_feed.json; gas forward=spot x1.05; get_market_summary. tools/run_live_decisions.py: 60-day renewal window; hedge INCREASE/HOLD/REDUCE vs 50-90% band; proposed_rate=fwd+non_commodity+segment_margin; writes live_decisions_YYYYMMDD.json + live_decisions_latest.json. Wired into process_run_complete.py. KEY FINDING: as-of 2025-06-07, C9 in renewal window (22 days), proposed 153.49 vs current 210.0 GBP/MWh (market fallen from 2022 peak); hedge rec INCREASE (I&C pass-through at 0% hf -- expected). SIM no longer retrodiction-only. P4 MVP delivered.
@@ -5162,9 +5166,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 354+ Python modules (company layer), ~55,200 lines total
-- 420+ git commits
-- 15,314 tests (fast / ~10s; simulation integration ~8 min per run)
+- 356+ Python modules (company layer + tools), ~55,200 lines total
+- 491+ git commits
+- 15,335 tests (fast / ~10s; simulation integration ~8 min per run)
 - Phase NK (2026-07-02): extract_report_data churn_model_performance extraction fix + _section_churn_model_performance board report section.
 
 **Data:**

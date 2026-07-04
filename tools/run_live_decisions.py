@@ -77,12 +77,13 @@ def _acquisition_prices(elec_fwd, gas_fwd):
         "ic_gas_gbp_per_mwh": round(gas_fwd + _NON_COMMODITY_GAS_GBP_MWH + _SEGMENT_MARGINS["I&C"], 2),
     }
 
-def run_decisions(portfolio_path=None, run_output_path=None, out_dir=None):
-    from tools.live_market import get_market_summary
+def run_decisions(portfolio_path=None, run_output_path=None, out_dir=None, market_adapter=None):
+    from tools.market_adapters import get_market_adapter
     port_path = Path(portfolio_path) if portfolio_path else PORTFOLIO_PATH
     out = Path(out_dir) if out_dir else LIVE_DECISIONS_DIR
     portfolio = json.loads(port_path.read_text())
-    market = get_market_summary()
+    adapter = market_adapter if market_adapter is not None else get_market_adapter()
+    market = adapter.get_market_summary()
     as_of = market["as_of_date"]
     elec_fwd = market["elec_12m_forward_gbp_per_mwh"]
     gas_fwd = market["gas_12m_forward_gbp_per_mwh"]
