@@ -1,11 +1,12 @@
 {
   "meta": {
-    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_fa8144c3_20260704T011003Z.json",
+    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_latest.json",
     "invoice_count": 1605,
     "customer_count": 21
   },
   "customers": {
     "C1": {
+      "segment": "resi",
       "invoice_count": 60,
       "total_billed_gbp": 5530.52,
       "total_paid_gbp": 5357.92,
@@ -1516,6 +1517,7 @@
       ]
     },
     "C1_2": {
+      "segment": "resi",
       "invoice_count": 55,
       "total_billed_gbp": 15880.49,
       "total_paid_gbp": 15603.42,
@@ -2906,6 +2908,7 @@
       ]
     },
     "C1g": {
+      "segment": "resi",
       "invoice_count": 60,
       "total_billed_gbp": 3764.38,
       "total_paid_gbp": 3733.64,
@@ -4388,6 +4391,7 @@
       ]
     },
     "C2": {
+      "segment": "resi",
       "invoice_count": 72,
       "total_billed_gbp": 7869.51,
       "total_paid_gbp": 7010.0,
@@ -6354,6 +6358,7 @@
       ]
     },
     "C2_2": {
+      "segment": "resi",
       "invoice_count": 40,
       "total_billed_gbp": 13577.07,
       "total_paid_gbp": 13008.5,
@@ -7384,6 +7389,7 @@
       ]
     },
     "C2g": {
+      "segment": "resi",
       "invoice_count": 72,
       "total_billed_gbp": 5876.62,
       "total_paid_gbp": 5567.53,
@@ -9182,6 +9188,7 @@
       ]
     },
     "C3": {
+      "segment": "resi",
       "invoice_count": 48,
       "total_billed_gbp": 5808.17,
       "total_paid_gbp": 5492.42,
@@ -10432,6 +10439,7 @@
       ]
     },
     "C3g": {
+      "segment": "resi",
       "invoice_count": 48,
       "total_billed_gbp": 4229.74,
       "total_paid_gbp": 4097.18,
@@ -11626,6 +11634,7 @@
       ]
     },
     "C4": {
+      "segment": "resi",
       "invoice_count": 96,
       "total_billed_gbp": 9490.63,
       "total_paid_gbp": 9257.67,
@@ -14028,6 +14037,7 @@
       ]
     },
     "C4g": {
+      "segment": "resi",
       "invoice_count": 96,
       "total_billed_gbp": 14891.2,
       "total_paid_gbp": 14423.23,
@@ -16430,6 +16440,7 @@
       ]
     },
     "C5": {
+      "segment": "SME",
       "invoice_count": 84,
       "total_billed_gbp": 34560.44,
       "total_paid_gbp": 33090.19,
@@ -18572,6 +18583,7 @@
       ]
     },
     "C5_2": {
+      "segment": "SME",
       "invoice_count": 31,
       "total_billed_gbp": 18388.23,
       "total_paid_gbp": 18388.23,
@@ -19329,6 +19341,7 @@
       "arrears_history": []
     },
     "C6": {
+      "segment": "SME",
       "invoice_count": 96,
       "total_billed_gbp": 59323.65,
       "total_paid_gbp": 59323.65,
@@ -21646,6 +21659,7 @@
       "arrears_history": []
     },
     "C7": {
+      "segment": "resi",
       "invoice_count": 114,
       "total_billed_gbp": 31682.25,
       "total_paid_gbp": 29539.04,
@@ -24564,6 +24578,7 @@
       ]
     },
     "C8": {
+      "segment": "resi",
       "invoice_count": 111,
       "total_billed_gbp": 30671.46,
       "total_paid_gbp": 29416.27,
@@ -27382,6 +27397,7 @@
       ]
     },
     "C9": {
+      "segment": "resi",
       "invoice_count": 108,
       "total_billed_gbp": 29331.87,
       "total_paid_gbp": 28465.95,
@@ -30044,12 +30060,13 @@
       ]
     },
     "C_IC1": {
+      "segment": "I&C",
       "invoice_count": 102,
       "total_billed_gbp": 4385600.35,
-      "total_paid_gbp": 4385600.35,
-      "balance_gbp": 0.0,
-      "failed_payment_count": 0,
-      "arrears_case_count": 0,
+      "total_paid_gbp": 4193590.28,
+      "balance_gbp": -192010.07,
+      "failed_payment_count": 5,
+      "arrears_case_count": 5,
       "invoices": [
         {
           "invoice_number": 1192,
@@ -30369,7 +30386,7 @@
           "total_amount_gbp": 40653.28,
           "issue_date": "2018-08-31",
           "due_date": "2018-09-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1212,
@@ -30449,7 +30466,7 @@
           "total_amount_gbp": 39604.95,
           "issue_date": "2019-01-31",
           "due_date": "2019-02-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1217,
@@ -30529,7 +30546,7 @@
           "total_amount_gbp": 40992.27,
           "issue_date": "2019-06-30",
           "due_date": "2019-07-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1222,
@@ -30865,7 +30882,7 @@
           "total_amount_gbp": 32068.78,
           "issue_date": "2021-03-31",
           "due_date": "2021-04-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1243,
@@ -30945,7 +30962,7 @@
           "total_amount_gbp": 38690.79,
           "issue_date": "2021-08-31",
           "due_date": "2021-09-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1248,
@@ -31842,7 +31859,7 @@
           "payment_date": "2018-09-14",
           "amount_gbp": 40653.28,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -31882,7 +31899,7 @@
           "payment_date": "2019-02-14",
           "amount_gbp": 39604.95,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -31922,7 +31939,7 @@
           "payment_date": "2019-07-14",
           "amount_gbp": 40992.27,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -32090,7 +32107,7 @@
           "payment_date": "2021-04-14",
           "amount_gbp": 32068.78,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -32111,7 +32128,7 @@
         },
         {
           "invoice_number": 1245,
-          "payment_date": "2021-07-14",
+          "payment_date": "2021-08-23",
           "amount_gbp": 38502.01,
           "method": "chaps",
           "outcome": "success",
@@ -32130,7 +32147,7 @@
           "payment_date": "2021-09-14",
           "amount_gbp": 38690.79,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -32279,7 +32296,7 @@
         },
         {
           "invoice_number": 1266,
-          "payment_date": "2023-04-14",
+          "payment_date": "2023-05-21",
           "amount_gbp": 77354.51,
           "method": "chaps",
           "outcome": "success",
@@ -32335,7 +32352,7 @@
         },
         {
           "invoice_number": 1273,
-          "payment_date": "2023-11-14",
+          "payment_date": "2023-12-20",
           "amount_gbp": 57305.43,
           "method": "chaps",
           "outcome": "success",
@@ -32367,7 +32384,7 @@
         },
         {
           "invoice_number": 1277,
-          "payment_date": "2024-03-14",
+          "payment_date": "2024-04-10",
           "amount_gbp": 51977.15,
           "method": "chaps",
           "outcome": "success",
@@ -32479,7 +32496,7 @@
         },
         {
           "invoice_number": 1291,
-          "payment_date": "2025-05-14",
+          "payment_date": "2025-06-07",
           "amount_gbp": 51195.84,
           "method": "chaps",
           "outcome": "success",
@@ -32502,15 +32519,132 @@
           "income_stress_at_time": "LOW"
         }
       ],
-      "arrears_history": []
+      "arrears_history": [
+        {
+          "case_id": "DIS-C_IC1-2018-08-31",
+          "invoice_number": 1211,
+          "arrears_gbp": 40653.28,
+          "opened_date": "2018-09-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2018-09-14",
+              "note": "Invoice disputed -- GBP40653.28 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2018-09-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2018-10-14",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        },
+        {
+          "case_id": "DIS-C_IC1-2019-01-31",
+          "invoice_number": 1216,
+          "arrears_gbp": 39604.95,
+          "opened_date": "2019-02-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2019-02-14",
+              "note": "Invoice disputed -- GBP39604.95 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2019-02-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2019-03-16",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        },
+        {
+          "case_id": "DIS-C_IC1-2019-06-30",
+          "invoice_number": 1221,
+          "arrears_gbp": 40992.27,
+          "opened_date": "2019-07-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2019-07-14",
+              "note": "Invoice disputed -- GBP40992.27 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2019-07-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2019-08-13",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        },
+        {
+          "case_id": "DIS-C_IC1-2021-03-31",
+          "invoice_number": 1242,
+          "arrears_gbp": 32068.78,
+          "opened_date": "2021-04-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2021-04-14",
+              "note": "Invoice disputed -- GBP32068.78 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2021-04-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2021-05-14",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        },
+        {
+          "case_id": "DIS-C_IC1-2021-08-31",
+          "invoice_number": 1247,
+          "arrears_gbp": 38690.79,
+          "opened_date": "2021-09-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2021-09-14",
+              "note": "Invoice disputed -- GBP38690.79 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2021-09-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2021-10-14",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        }
+      ]
     },
     "C_IC2": {
+      "segment": "I&C",
       "invoice_count": 90,
       "total_billed_gbp": 2100395.47,
-      "total_paid_gbp": 2100395.47,
-      "balance_gbp": 0.0,
-      "failed_payment_count": 0,
-      "arrears_case_count": 0,
+      "total_paid_gbp": 2088443.56,
+      "balance_gbp": -11951.91,
+      "failed_payment_count": 1,
+      "arrears_case_count": 1,
       "invoices": [
         {
           "invoice_number": 1294,
@@ -32542,7 +32676,7 @@
           "total_amount_gbp": 11951.91,
           "issue_date": "2018-02-28",
           "due_date": "2018-03-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1296,
@@ -33956,7 +34090,7 @@
       "payments": [
         {
           "invoice_number": 1294,
-          "payment_date": "2018-02-14",
+          "payment_date": "2018-03-12",
           "amount_gbp": 13439.28,
           "method": "chaps",
           "outcome": "success",
@@ -33967,7 +34101,7 @@
           "payment_date": "2018-03-14",
           "amount_gbp": 11951.91,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -34476,7 +34610,7 @@
         },
         {
           "invoice_number": 1359,
-          "payment_date": "2023-07-14",
+          "payment_date": "2023-07-29",
           "amount_gbp": 33184.12,
           "method": "chaps",
           "outcome": "success",
@@ -34556,7 +34690,7 @@
         },
         {
           "invoice_number": 1369,
-          "payment_date": "2024-05-14",
+          "payment_date": "2024-06-28",
           "amount_gbp": 29301.9,
           "method": "chaps",
           "outcome": "success",
@@ -34675,15 +34809,40 @@
           "income_stress_at_time": "LOW"
         }
       ],
-      "arrears_history": []
+      "arrears_history": [
+        {
+          "case_id": "DIS-C_IC2-2018-02-28",
+          "invoice_number": 1295,
+          "arrears_gbp": 11951.91,
+          "opened_date": "2018-03-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2018-03-14",
+              "note": "Invoice disputed -- GBP11951.91 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2018-03-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2018-04-13",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        }
+      ]
     },
     "C_IC3": {
+      "segment": "I&C",
       "invoice_count": 78,
       "total_billed_gbp": 6645325.4,
-      "total_paid_gbp": 6645325.4,
-      "balance_gbp": 0.0,
-      "failed_payment_count": 0,
-      "arrears_case_count": 0,
+      "total_paid_gbp": 6581835.66,
+      "balance_gbp": -63489.74,
+      "failed_payment_count": 1,
+      "arrears_case_count": 1,
       "invoices": [
         {
           "invoice_number": 1384,
@@ -34699,7 +34858,7 @@
           "total_amount_gbp": 63489.74,
           "issue_date": "2019-01-31",
           "due_date": "2019-02-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1385,
@@ -35940,7 +36099,7 @@
           "payment_date": "2019-02-14",
           "amount_gbp": 63489.74,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -35977,7 +36136,7 @@
         },
         {
           "invoice_number": 1389,
-          "payment_date": "2019-07-14",
+          "payment_date": "2019-08-22",
           "amount_gbp": 58800.53,
           "method": "chaps",
           "outcome": "success",
@@ -36257,7 +36416,7 @@
         },
         {
           "invoice_number": 1424,
-          "payment_date": "2022-06-14",
+          "payment_date": "2022-07-14",
           "amount_gbp": 133761.0,
           "method": "chaps",
           "outcome": "success",
@@ -36505,7 +36664,7 @@
         },
         {
           "invoice_number": 1455,
-          "payment_date": "2025-01-14",
+          "payment_date": "2025-01-30",
           "amount_gbp": 95271.36,
           "method": "chaps",
           "outcome": "success",
@@ -36560,15 +36719,40 @@
           "income_stress_at_time": "LOW"
         }
       ],
-      "arrears_history": []
+      "arrears_history": [
+        {
+          "case_id": "DIS-C_IC3-2019-01-31",
+          "invoice_number": 1384,
+          "arrears_gbp": 63489.74,
+          "opened_date": "2019-02-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2019-02-14",
+              "note": "Invoice disputed -- GBP63489.74 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2019-02-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2019-03-16",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        }
+      ]
     },
     "C_IC3g": {
+      "segment": "I&C",
       "invoice_count": 78,
       "total_billed_gbp": 2363387.93,
-      "total_paid_gbp": 2363387.93,
-      "balance_gbp": 0.0,
-      "failed_payment_count": 0,
-      "arrears_case_count": 0,
+      "total_paid_gbp": 2283649.14,
+      "balance_gbp": -79738.79,
+      "failed_payment_count": 2,
+      "arrears_case_count": 2,
       "invoices": [
         {
           "invoice_number": 1462,
@@ -36712,7 +36896,7 @@
           "total_amount_gbp": 14812.22,
           "issue_date": "2019-09-30",
           "due_date": "2019-10-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1471,
@@ -37192,7 +37376,7 @@
           "total_amount_gbp": 64926.57,
           "issue_date": "2022-03-31",
           "due_date": "2022-04-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1501,
@@ -37889,12 +38073,12 @@
           "payment_date": "2019-10-14",
           "amount_gbp": 14812.22,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
           "invoice_number": 1471,
-          "payment_date": "2019-11-14",
+          "payment_date": "2019-12-02",
           "amount_gbp": 15100.35,
           "method": "chaps",
           "outcome": "success",
@@ -37998,7 +38182,7 @@
         },
         {
           "invoice_number": 1484,
-          "payment_date": "2020-12-14",
+          "payment_date": "2021-01-09",
           "amount_gbp": 17605.07,
           "method": "chaps",
           "outcome": "success",
@@ -38038,7 +38222,7 @@
         },
         {
           "invoice_number": 1489,
-          "payment_date": "2021-05-14",
+          "payment_date": "2021-05-29",
           "amount_gbp": 20690.03,
           "method": "chaps",
           "outcome": "success",
@@ -38078,7 +38262,7 @@
         },
         {
           "invoice_number": 1494,
-          "payment_date": "2021-10-14",
+          "payment_date": "2021-10-28",
           "amount_gbp": 37732.19,
           "method": "chaps",
           "outcome": "success",
@@ -38129,7 +38313,7 @@
           "payment_date": "2022-04-14",
           "amount_gbp": 64926.57,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -38142,7 +38326,7 @@
         },
         {
           "invoice_number": 1502,
-          "payment_date": "2022-06-14",
+          "payment_date": "2022-07-07",
           "amount_gbp": 45717.15,
           "method": "chaps",
           "outcome": "success",
@@ -38166,7 +38350,7 @@
         },
         {
           "invoice_number": 1505,
-          "payment_date": "2022-09-14",
+          "payment_date": "2022-10-24",
           "amount_gbp": 89641.04,
           "method": "chaps",
           "outcome": "success",
@@ -38190,7 +38374,7 @@
         },
         {
           "invoice_number": 1508,
-          "payment_date": "2022-12-14",
+          "payment_date": "2023-01-02",
           "amount_gbp": 50075.46,
           "method": "chaps",
           "outcome": "success",
@@ -38278,7 +38462,7 @@
         },
         {
           "invoice_number": 1519,
-          "payment_date": "2023-11-14",
+          "payment_date": "2023-12-23",
           "amount_gbp": 33367.11,
           "method": "chaps",
           "outcome": "success",
@@ -38390,7 +38574,7 @@
         },
         {
           "invoice_number": 1533,
-          "payment_date": "2025-01-14",
+          "payment_date": "2025-02-10",
           "amount_gbp": 35812.49,
           "method": "chaps",
           "outcome": "success",
@@ -38445,15 +38629,63 @@
           "income_stress_at_time": "LOW"
         }
       ],
-      "arrears_history": []
+      "arrears_history": [
+        {
+          "case_id": "DIS-C_IC3g-2019-09-30",
+          "invoice_number": 1470,
+          "arrears_gbp": 14812.22,
+          "opened_date": "2019-10-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2019-10-14",
+              "note": "Invoice disputed -- GBP14812.22 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2019-10-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2019-11-13",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        },
+        {
+          "case_id": "DIS-C_IC3g-2022-03-31",
+          "invoice_number": 1500,
+          "arrears_gbp": 64926.57,
+          "opened_date": "2022-04-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2022-04-14",
+              "note": "Invoice disputed -- GBP64926.57 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2022-04-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2022-05-14",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        }
+      ]
     },
     "C_IC4": {
+      "segment": "I&C",
       "invoice_count": 66,
       "total_billed_gbp": 4034035.69,
-      "total_paid_gbp": 4034035.69,
-      "balance_gbp": 0.0,
-      "failed_payment_count": 0,
-      "arrears_case_count": 0,
+      "total_paid_gbp": 3914711.75,
+      "balance_gbp": -119323.94,
+      "failed_payment_count": 2,
+      "arrears_case_count": 2,
       "invoices": [
         {
           "invoice_number": 1540,
@@ -38629,7 +38861,7 @@
           "total_amount_gbp": 41001.59,
           "issue_date": "2020-11-30",
           "due_date": "2020-12-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1551,
@@ -38805,7 +39037,7 @@
           "total_amount_gbp": 78322.35,
           "issue_date": "2021-10-31",
           "due_date": "2021-11-14",
-          "payment_status": "paid"
+          "payment_status": "disputed"
         },
         {
           "invoice_number": 1562,
@@ -39563,7 +39795,7 @@
         },
         {
           "invoice_number": 1546,
-          "payment_date": "2020-08-14",
+          "payment_date": "2020-09-22",
           "amount_gbp": 39546.3,
           "method": "chaps",
           "outcome": "success",
@@ -39598,7 +39830,7 @@
           "payment_date": "2020-12-14",
           "amount_gbp": 41001.59,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -39686,7 +39918,7 @@
           "payment_date": "2021-11-14",
           "amount_gbp": 78322.35,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -40042,7 +40274,54 @@
           "income_stress_at_time": "LOW"
         }
       ],
-      "arrears_history": []
+      "arrears_history": [
+        {
+          "case_id": "DIS-C_IC4-2020-11-30",
+          "invoice_number": 1550,
+          "arrears_gbp": 41001.59,
+          "opened_date": "2020-12-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2020-12-14",
+              "note": "Invoice disputed -- GBP41001.59 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2020-12-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2021-01-13",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        },
+        {
+          "case_id": "DIS-C_IC4-2021-10-31",
+          "invoice_number": 1561,
+          "arrears_gbp": 78322.35,
+          "opened_date": "2021-11-14",
+          "stages": [
+            {
+              "stage": "INVOICE_DISPUTED",
+              "date": "2021-11-14",
+              "note": "Invoice disputed -- GBP78322.35 under formal review"
+            },
+            {
+              "stage": "DISPUTE_NOTICE",
+              "date": "2021-11-28",
+              "note": "Dispute notice raised -- escalated to accounts receivable"
+            },
+            {
+              "stage": "PAYMENT_PLAN_AGREED",
+              "date": "2021-12-14",
+              "note": "Payment plan agreed -- arrears to be settled over 60 days"
+            }
+          ]
+        }
+      ]
     }
   }
 }
