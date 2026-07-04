@@ -3008,3 +3008,4 @@
 - [2026-07-04 05:41 UTC] Pane at death: $ $ -sh: 7: 3.: not found | $ $ -sh: 9: 4.: not found | $ $ -sh: 11: 5.: not found | $ $ -sh: 13: 6.: not found | $
 - [2026-07-04 05:41 UTC] Claude Code session ended — auto-restarting
 - [2026-07-04 05:41 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-07-04 06:37 UTC] Session watchdog started (auto-restart mode — no YES gate, max 3/hr); autoloop active (idle 600s -> continue, REVIEW_GATE/permission prompts pause for Rich)
