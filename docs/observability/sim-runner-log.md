@@ -27704,3 +27704,20 @@
 - [2026-07-04 21:11 UTC] Auto-processed run complete marker
 - [2026-07-04 21:11 UTC] Waiting 60s before next run...
 - [2026-07-04 21:12 UTC] Starting run — git=bc9c8da3, json=run_output_bc9c8da3_20260704T211253Z.json
+- [2026-07-04 21:18 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 21:18 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 21:19 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 21:19 UTC] [process_run] Customer data generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-406/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 21:19 UTC] [process_run] Invoice data generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-406/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 21:19 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-04 21:19 UTC] [process_run] Customer sample generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-406/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 21:19 UTC] [process_run] Billing ledger generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-406/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 21:19 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-04 21:19 UTC] [process_run] Generated site/state/PROJECT_STATE.txt
+- [2026-07-04 21:19 UTC] [process_run] Population anchoring failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-406/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 21:19 UTC] [process_run] customers.json generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-406/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 21:19 UTC] [process_run] supplier.json generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-406/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 21:19 UTC] [process_run] Live portfolio generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-406/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 21:19 UTC] [process_run] Generated site/state/live_decisions_latest.json
+- [2026-07-04 21:19 UTC] [process_run] Generated site/state/scenario_analysis_latest.json
+- [2026-07-04 21:19 UTC] [process_run] Mirrored 9 file(s) to docs/shadow + docs/state for GitHub Pages

@@ -3435,3 +3435,9 @@
 - [2026-07-04 21:12 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
 - [2026-07-04 21:13 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
 - [2026-07-04 21:14 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
+- [2026-07-04 21:15 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
+- [2026-07-04 21:16 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
+- [2026-07-04 21:17 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
+- [2026-07-04 21:18 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
+- [2026-07-04 21:19 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
+- [2026-07-04 21:20 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
