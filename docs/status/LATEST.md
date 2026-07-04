@@ -1,5 +1,5 @@
 ## Phase PZ COMPLETE -- Scenario Stress Testing via Synthetic Market
-Last updated: 2026-07-04T13:37:15Z
+Last updated: 2026-07-04T13:49:25Z
 
 **Status:** COMPLETE. 15,300 tests (fast suite). Epistemic: PASS.
 
@@ -20,7 +20,7 @@ Last updated: 2026-07-04T13:37:15Z
 **PRIORITIES.md P1 (Correlated Simulation Endgame):** COMPLETE.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (514s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (549s / 9 min):
 - Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
