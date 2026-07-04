@@ -110,89 +110,89 @@ Accounts lost before end of window: C1, C2, C3, C4, C5, C6
 
 | Account | Date | Outcome | p(churn) | p(win-back) | p(retain) | Roll |
 |---------|------|---------|----------|-------------|-----------|------|
-| C1 | 2016-12-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.1646 |
-| C5 | 2016-12-31 | renewed | 0.0500 | 0.3500 | 0.9675 | 0.2812 |
-| C7 | 2016-12-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.1050 |
-| C1 | 2017-12-31 | renewed | 0.1100 | 0.5500 | 0.9505 | 0.6188 |
-| C5 | 2017-12-31 | renewed | 0.1100 | 0.3500 | 0.9285 | 0.4449 |
-| C7 | 2017-12-31 | renewed | 0.1100 | 0.5500 | 0.9505 | 0.8255 |
-| C_IC1 | 2018-01-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.3902 |
-| C1 | 2018-12-31 | renewed | 0.1100 | 0.5500 | 0.9505 | 0.0480 |
-| C5 | 2018-12-31 | renewed | 0.1100 | 0.3500 | 0.9285 | 0.3096 |
-| C7 | 2018-12-31 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.6312 |
-| C_IC2 | 2019-01-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.3710 |
-| C1 | 2019-12-31 | renewed | 0.2900 | 0.5500 | 0.8695 | 0.2972 |
-| C5 | 2019-12-31 | renewed | 0.3500 | 0.3500 | 0.7725 | 0.4302 |
-| C7 | 2019-12-31 | renewed | 0.2900 | 0.5500 | 0.8695 | 0.7670 |
-| C2 | 2020-03-31 | renewed | 0.0800 | 0.5500 | 0.9640 | 0.8936 |
-| C6 | 2020-03-31 | renewed | 0.1100 | 0.3500 | 0.9285 | 0.4643 |
-| C8 | 2020-03-31 | renewed | 0.2300 | 0.5500 | 0.8965 | 0.1066 |
-| C3 | 2020-06-30 | churned **CHURNED** | 0.1100 | 0.5500 | 0.9505 | 0.9704 |
-| C9 | 2020-06-30 | renewed | 0.2300 | 0.5500 | 0.8965 | 0.5378 |
-| C4 | 2020-09-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.2845 |
-| C1 | 2020-12-30 | churned **CHURNED** | 0.3800 | 0.5500 | 0.8290 | 0.8047 |
-| C5 | 2020-12-30 | renewed | 0.3200 | 0.3500 | 0.7920 | 0.7480 |
-| C7 | 2020-12-30 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.4829 |
-| C_IC3 | 2020-12-31 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.5941 |
-| C2 | 2021-03-31 | renewed | 0.0800 | 0.5500 | 0.9640 | 0.6102 |
-| C6 | 2021-03-31 | renewed | 0.0800 | 0.3500 | 0.9480 | 0.5431 |
-| C8 | 2021-03-31 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.4901 |
-| C9 | 2021-06-30 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.5305 |
-| C4 | 2021-09-30 | renewed | 0.1100 | 0.5500 | 0.9505 | 0.4564 |
-| C1_2 | 2021-12-30 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.2977 |
-| C5 | 2021-12-30 | renewed | 0.1700 | 0.3500 | 0.8895 | 0.8247 |
-| C7 | 2021-12-30 | renewed | 0.2000 | 0.5500 | 0.9100 | 0.1963 |
-| C_IC3 | 2021-12-31 | renewed | 0.3200 | 0.5500 | 0.8560 | 0.5838 |
-| C2 | 2022-03-31 | churned **CHURNED** | 0.3800 | 0.5500 | 0.8290 | 0.9547 |
-| C6 | 2022-03-31 | renewed | 0.3500 | 0.3500 | 0.7725 | 0.1058 |
-| C8 | 2022-03-31 | renewed | 0.2600 | 0.5500 | 0.8830 | 0.5712 |
-| C9 | 2022-06-30 | renewed | 0.3500 | 0.5500 | 0.8425 | 0.5875 |
-| C4 | 2022-09-30 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.8552 |
-| C1_2 | 2022-12-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.9433 |
-| C5 | 2022-12-30 | churned **CHURNED** | 0.3800 | 0.3500 | 0.7530 | 0.9650 |
-| C7 | 2022-12-30 | renewed | 0.2300 | 0.5500 | 0.8965 | 0.0637 |
-| C_IC3 | 2022-12-31 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.8723 |
-| C2_2 | 2023-03-31 | renewed | 0.0500 | 0.5500 | 0.9775 | 0.0093 |
-| C6 | 2023-03-31 | renewed | 0.4100 | 0.3500 | 0.7335 | 0.5155 |
-| C8 | 2023-03-31 | renewed | 0.3800 | 0.5500 | 0.8290 | 0.3785 |
-| C9 | 2023-06-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.0307 |
-| C4 | 2023-09-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.6095 |
-| C1_2 | 2023-12-30 | renewed | 0.1700 | 0.5500 | 0.9235 | 0.5453 |
-| C5_2 | 2023-12-30 | renewed | 0.0500 | 0.3500 | 0.9675 | 0.6875 |
-| C7 | 2023-12-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.1905 |
-| C_IC3 | 2023-12-31 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.7019 |
-| C2_2 | 2024-03-30 | renewed | 0.2300 | 0.5500 | 0.8965 | 0.6064 |
-| C6 | 2024-03-30 | churned **CHURNED** | 0.2900 | 0.3500 | 0.8115 | 0.9632 |
-| C8 | 2024-03-30 | renewed | 0.1700 | 0.5500 | 0.9235 | 0.0592 |
-| C9 | 2024-06-29 | renewed | 0.1700 | 0.5500 | 0.9235 | 0.0025 |
-| C4 | 2024-09-29 | churned **CHURNED** | 0.3800 | 0.5500 | 0.8290 | 0.9018 |
+| C1 | 2016-12-31 | renewed | 0.0500 | 0.5500 | 0.9462 | 0.1646 |
+| C5 | 2016-12-31 | renewed | 0.0500 | 0.3500 | 0.9223 | 0.2812 |
+| C7 | 2016-12-31 | renewed | 0.0500 | 0.5500 | 0.9462 | 0.1050 |
+| C1 | 2017-12-31 | renewed | 0.1100 | 0.5500 | 0.9113 | 0.6188 |
+| C5 | 2017-12-31 | renewed | 0.1100 | 0.3500 | 0.8718 | 0.4449 |
+| C7 | 2017-12-31 | renewed | 0.1100 | 0.5500 | 0.9113 | 0.8255 |
+| C_IC1 | 2018-01-31 | renewed | 0.0500 | 0.5500 | 0.9677 | 0.3902 |
+| C1 | 2018-12-31 | renewed | 0.1100 | 0.5500 | 0.9113 | 0.0480 |
+| C5 | 2018-12-31 | renewed | 0.1100 | 0.3500 | 0.8718 | 0.3096 |
+| C7 | 2018-12-31 | renewed | 0.2000 | 0.5500 | 0.8387 | 0.6312 |
+| C_IC2 | 2019-01-31 | renewed | 0.0500 | 0.5500 | 0.9707 | 0.3710 |
+| C1 | 2019-12-31 | renewed | 0.2900 | 0.5500 | 0.7873 | 0.2972 |
+| C5 | 2019-12-31 | renewed | 0.3500 | 0.3500 | 0.8370 | 0.4302 |
+| C7 | 2019-12-31 | renewed | 0.2900 | 0.5500 | 0.8370 | 0.7670 |
+| C2 | 2020-03-31 | renewed | 0.0800 | 0.5500 | 0.9531 | 0.8936 |
+| C6 | 2020-03-31 | renewed | 0.1100 | 0.3500 | 0.9068 | 0.4643 |
+| C8 | 2020-03-31 | renewed | 0.2300 | 0.5500 | 0.8651 | 0.1066 |
+| C3 | 2020-06-30 | churned **CHURNED** | 0.1100 | 0.5500 | 0.9355 | 0.9704 |
+| C9 | 2020-06-30 | renewed | 0.2300 | 0.5500 | 0.8651 | 0.5378 |
+| C4 | 2020-09-30 | renewed | 0.4100 | 0.5500 | 0.8696 | 0.2845 |
+| C1 | 2020-12-30 | churned **CHURNED** | 0.3800 | 0.5500 | 0.7771 | 0.8047 |
+| C5 | 2020-12-30 | renewed | 0.3200 | 0.3500 | 0.8696 | 0.7480 |
+| C7 | 2020-12-30 | renewed | 0.2000 | 0.5500 | 0.8827 | 0.4829 |
+| C_IC3 | 2020-12-31 | renewed | 0.2000 | 0.5500 | 0.9061 | 0.5941 |
+| C2 | 2021-03-31 | renewed | 0.0800 | 0.5500 | 0.9707 | 0.6102 |
+| C6 | 2021-03-31 | renewed | 0.0800 | 0.3500 | 0.9576 | 0.5431 |
+| C8 | 2021-03-31 | renewed | 0.2000 | 0.5500 | 0.9267 | 0.4901 |
+| C9 | 2021-06-30 | renewed | 0.2000 | 0.5500 | 0.9267 | 0.5305 |
+| C4 | 2021-09-30 | renewed | 0.1100 | 0.5500 | 0.9597 | 0.4564 |
+| C1_2 | 2021-12-30 | renewed | 0.0500 | 0.5500 | 0.9833 | 0.2977 |
+| C5 | 2021-12-30 | renewed | 0.1700 | 0.3500 | 0.9280 | 0.8247 |
+| C7 | 2021-12-30 | renewed | 0.2000 | 0.5500 | 0.9267 | 0.1963 |
+| C_IC3 | 2021-12-31 | renewed | 0.3200 | 0.5500 | 0.9061 | 0.5838 |
+| C2 | 2022-03-31 | churned **CHURNED** | 0.3800 | 0.5500 | 0.9511 | 0.9547 |
+| C6 | 2022-03-31 | renewed | 0.3500 | 0.3500 | 0.9511 | 0.1058 |
+| C8 | 2022-03-31 | renewed | 0.2600 | 0.5500 | 0.9511 | 0.5712 |
+| C9 | 2022-06-30 | renewed | 0.3500 | 0.5500 | 0.9364 | 0.5875 |
+| C4 | 2022-09-30 | renewed | 0.3800 | 0.5500 | 0.9364 | 0.8552 |
+| C1_2 | 2022-12-30 | renewed | 0.4100 | 0.5500 | 0.9556 | 0.9433 |
+| C5 | 2022-12-30 | churned **CHURNED** | 0.3800 | 0.3500 | 0.9511 | 0.9650 |
+| C7 | 2022-12-30 | renewed | 0.2300 | 0.5500 | 0.9364 | 0.0637 |
+| C_IC3 | 2022-12-31 | renewed | 0.4100 | 0.5500 | 0.9511 | 0.8723 |
+| C2_2 | 2023-03-31 | renewed | 0.0500 | 0.5500 | 0.9802 | 0.0093 |
+| C6 | 2023-03-31 | renewed | 0.4100 | 0.3500 | 0.7933 | 0.5155 |
+| C8 | 2023-03-31 | renewed | 0.3800 | 0.5500 | 0.9251 | 0.3785 |
+| C9 | 2023-06-30 | renewed | 0.4100 | 0.5500 | 0.8739 | 0.0307 |
+| C4 | 2023-09-30 | renewed | 0.4100 | 0.5500 | 0.8739 | 0.6095 |
+| C1_2 | 2023-12-30 | renewed | 0.1700 | 0.5500 | 0.9326 | 0.5453 |
+| C5_2 | 2023-12-30 | renewed | 0.0500 | 0.3500 | 0.9771 | 0.6875 |
+| C7 | 2023-12-30 | renewed | 0.4100 | 0.5500 | 0.9026 | 0.1905 |
+| C_IC3 | 2023-12-31 | renewed | 0.4100 | 0.5500 | 0.9030 | 0.7019 |
+| C2_2 | 2024-03-30 | renewed | 0.2300 | 0.5500 | 0.9000 | 0.6064 |
+| C6 | 2024-03-30 | churned **CHURNED** | 0.2900 | 0.3500 | 0.7926 | 0.9632 |
+| C8 | 2024-03-30 | renewed | 0.1700 | 0.5500 | 0.9350 | 0.0592 |
+| C9 | 2024-06-29 | renewed | 0.1700 | 0.5500 | 0.8906 | 0.0025 |
+| C4 | 2024-09-29 | churned **CHURNED** | 0.3800 | 0.5500 | 0.8570 | 0.9018 |
 | C1_2 | 2024-12-29 | renewed | 0.1700 | 0.5500 | 0.9235 | 0.1722 |
 | C5_2 | 2024-12-29 | renewed | 0.0800 | 0.3500 | 0.9480 | 0.4422 |
-| C7 | 2024-12-29 | renewed | 0.2900 | 0.5500 | 0.8695 | 0.4099 |
-| C_IC3 | 2024-12-30 | renewed | 0.4100 | 0.5500 | 0.8155 | 0.3751 |
-| C2_2 | 2025-03-30 | renewed | 0.3200 | 0.5500 | 0.8560 | 0.4434 |
-| C8 | 2025-03-30 | renewed | 0.3200 | 0.5500 | 0.8560 | 0.4808 |
+| C7 | 2024-12-29 | renewed | 0.2900 | 0.5500 | 0.8895 | 0.4099 |
+| C_IC3 | 2024-12-30 | renewed | 0.4100 | 0.5500 | 0.7971 | 0.3751 |
+| C2_2 | 2025-03-30 | renewed | 0.3200 | 0.5500 | 0.8889 | 0.4434 |
+| C8 | 2025-03-30 | renewed | 0.3200 | 0.5500 | 0.9056 | 0.4808 |
 
 ## Churn Prediction Basis Risk
 
 At each renewal the company estimated churn risk from observable signals (rate change %, customer tenure). The SIM used its bill-shock model (actual bill amount relative to customer-specific thresholds). The gap is epistemic: in crisis years the company sees a rate % while the SIM sees the household-level financial shock — the same failure mode that surprised real suppliers in 2021-22.
 
-- **Average absolute error:** 129.5%
-- **Average signed error:** +28.1% (over-estimates vs SIM)
+- **Average absolute error:** 172.0%
+- **Average signed error:** +124.8% (over-estimates vs SIM)
 - **Renewal events with estimates:** 62
 
 | Year | Renewals | Avg error (signed) | Avg abs error |
 |------|----------|--------------------|---------------|
-| 2016 | 3 | +3.6% | 3.6% |
-| 2017 | 3 | -54.5% | 54.5% |
-| 2018 | 4 | +399.8% | 433.8% |
-| 2019 | 4 | +389.8% | 510.2% |
-| 2020 | 10 | -52.6% | 64.0% |
-| 2021 | 9 | +47.9% | 108.7% |
-| 2022 | 9 | -80.3% | 80.3% |
-| 2023 | 9 | +23.7% | 119.4% |
-| 2024 | 9 | -54.6% | 54.6% |
-| 2025 | 2 | -84.4% | 84.4% |
+| 2016 | 3 | -13.6% | 13.6% |
+| 2017 | 3 | -49.4% | 49.4% |
+| 2018 | 4 | +515.8% | 546.3% |
+| 2019 | 4 | +571.9% | 672.4% |
+| 2020 | 10 | -18.6% | 53.5% |
+| 2021 | 9 | +256.2% | 266.5% |
+| 2022 | 9 | +27.1% | 31.9% |
+| 2023 | 9 | +155.9% | 204.9% |
+| 2024 | 9 | -10.2% | 48.5% |
+| 2025 | 2 | -51.0% | 51.0% |
 
 Positive error = company over-estimated churn vs SIM. Negative error = company under-estimated (more dangerous — expected retentions that were actually at risk).
 
@@ -201,21 +201,21 @@ Positive error = company over-estimated churn vs SIM. Negative error = company u
 ~35% of domestic/SME customers actively choose a new fixed deal at term end. ~65% roll to SVT by inaction — they are inert: low rate sensitivity, ~5% churn base. Crisis years (2022) force all renewals passive (no fixed deals available).
 
 - **Total renewal events:** 62
-- **Active renewers:** 20 (32%) — mean company estimate 28.8%, abs error 184.1%
-- **Passive SVT-rollers:** 42 (68%) — mean company estimate 7.5%, abs error 103.5%
+- **Active renewers:** 20 (32%) — mean company estimate 28.8%, abs error 330.1%
+- **Passive SVT-rollers:** 42 (68%) — mean company estimate 7.5%, abs error 96.8%
 
 | Year | Active | Passive | Active est | Passive est | Active abs err | Passive abs err |
 |------|--------|---------|-----------|------------|---------------|----------------|
-| 2016 | 0 | 3 | 0.0% | 5.2% | 0.0% | 3.6% |
-| 2017 | 0 | 3 | 0.0% | 5.0% | 0.0% | 54.5% |
-| 2018 | 2 | 2 | 19.1% | 44.4% | 51.5% | 816.1% |
-| 2019 | 2 | 2 | 51.5% | 5.0% | 936.2% | 84.2% |
-| 2020 | 5 | 5 | 12.8% | 5.0% | 64.2% | 63.8% |
-| 2021 | 3 | 6 | 67.1% | 6.0% | 201.7% | 62.2% |
-| 2022 | 0 | 9 | 0.0% | 6.6% | 0.0% | 80.3% |
-| 2023 | 4 | 5 | 26.9% | 5.6% | 161.0% | 86.1% |
-| 2024 | 4 | 5 | 15.7% | 5.0% | 34.0% | 71.2% |
-| 2025 | 0 | 2 | 0.0% | 5.0% | 0.0% | 84.4% |
+| 2016 | 0 | 3 | 0.0% | 5.2% | 0.0% | 13.6% |
+| 2017 | 0 | 3 | 0.0% | 5.0% | 0.0% | 49.4% |
+| 2018 | 2 | 2 | 19.1% | 44.4% | 71.3% | 1021.2% |
+| 2019 | 2 | 2 | 51.5% | 5.0% | 1275.5% | 69.3% |
+| 2020 | 5 | 5 | 12.8% | 5.0% | 67.2% | 39.8% |
+| 2021 | 3 | 6 | 67.1% | 6.0% | 580.2% | 109.7% |
+| 2022 | 0 | 9 | 0.0% | 6.6% | 0.0% | 31.9% |
+| 2023 | 4 | 5 | 26.9% | 5.6% | 405.9% | 44.0% |
+| 2024 | 4 | 5 | 15.7% | 5.0% | 52.2% | 45.6% |
+| 2025 | 0 | 2 | 0.0% | 5.0% | 0.0% | 51.0% |
 
 Passive renewers should show lower company estimates and lower SIM churn — high abs error for passive renewers indicates the passive model needs recalibration.
 
@@ -287,16 +287,16 @@ well-hedged and therefore not experiencing bill shocks during their last contrac
 
 | Year | Renewals | Mean Abs Error (×SIM) | Max Abs Error (×SIM) |
 |------|----------|-----------------------|---------------------|
-| 2016 | 3 | 0.04× | 0.05× |
-| 2017 | 3 | 0.55× | 0.55× |
-| 2018 | 4 | 4.34× ⚠ | 15.78× |
-| 2019 | 4 | 5.10× ⚠ | 18.00× |
-| 2020 | 10 | 0.64× | 0.88× |
-| 2021 | 9 | 1.09× | 4.08× |
-| 2022 | 9 | 0.80× | 0.88× |
-| 2023 | 9 | 1.19× | 5.43× |
-| 2024 | 9 | 0.55× | 0.87× |
-| 2025 | 2 | 0.84× | 0.84× |
+| 2016 | 3 | 0.14× | 0.33× |
+| 2017 | 3 | 0.49× | 0.61× |
+| 2018 | 4 | 5.46× ⚠ | 19.81× |
+| 2019 | 4 | 6.72× ⚠ | 24.89× |
+| 2020 | 10 | 0.53× | 1.68× |
+| 2021 | 9 | 2.67× ⚠ | 8.59× |
+| 2022 | 9 | 0.32× | 1.04× |
+| 2023 | 9 | 2.05× ⚠ | 10.25× |
+| 2024 | 9 | 0.48× | 0.84× |
+| 2025 | 2 | 0.51× | 0.55× |
 
 ### Demand Estimation Error (Phase AO)
 
@@ -366,15 +366,15 @@ Total events: **9** (6 churn, 3 acquisition)
 
 | Date | Event | Customer | Detail |
 |------|-------|----------|--------|
-| 2020-06-30 | CHURN | C3 | SIM p=0.11, company est=0.05 |
-| 2020-12-30 | CHURN | C1 | SIM p=0.38, company est=0.08 |
+| 2020-06-30 | CHURN | C3 | SIM p=0.06, company est=0.05 |
+| 2020-12-30 | CHURN | C1 | SIM p=0.22, company est=0.08 |
 | 2020-12-30 | ACQUISITION | C1_2 | home-move-win (predecessor: C1) |
-| 2022-03-31 | CHURN | C2 | SIM p=0.38, company est=0.07 |
+| 2022-03-31 | CHURN | C2 | SIM p=0.05, company est=0.07 |
 | 2022-03-31 | ACQUISITION | C2_2 | home-move-win (predecessor: C2) |
-| 2022-12-30 | CHURN | C5 | SIM p=0.38, company est=0.05 |
+| 2022-12-30 | CHURN | C5 | SIM p=0.05, company est=0.05 |
 | 2022-12-30 | ACQUISITION | C5_2 | home-move-win (predecessor: C5) |
-| 2024-03-30 | CHURN | C6 | SIM p=0.29, company est=0.25 |
-| 2024-09-29 | CHURN | C4 | SIM p=0.38, company est=0.05 |
+| 2024-03-30 | CHURN | C6 | SIM p=0.21, company est=0.25 |
+| 2024-09-29 | CHURN | C4 | SIM p=0.14, company est=0.05 |
 
 **SIM ground truth vs company CRM reconciliation (year-end snapshots):**
 
@@ -844,36 +844,28 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
 
 | Account | Seg | Risk Band | Sim Churn | Co. Est. | Rate vs SVT | Lifetime Margin |
 |---------|-----|-----------|-----------|----------|-------------|-----------------|
-| C_IC3 | I&C | HIGH | 41% | 13% | -53.5% [competitive] | £1,807,029.46 |
-| C1 | resi | HIGH | 38% | 8% | -23.0% [competitive] | £1,948.84 |
-| C5 | SME | HIGH | 38% | 5% | -45.8% [competitive] | £10,944.62 |
-| C2 | resi | HIGH | 38% | 7% | +46.6% [overpriced] | £2,978.09 |
-| C4 | resi | HIGH | 38% | 5% | -9.0% | £2,749.41 |
-| C8 | resi | HIGH | 32% | 5% | -23.6% [competitive] | £11,529.68 |
-| C2_2 | resi | HIGH | 32% | 5% | +17.8% [overpriced] | £5,113.51 |
-| C7 | resi | MEDIUM | 29% | 5% | -14.3% | £9,860.29 |
-| C6 | SME | MEDIUM | 29% | 25% | -24.7% [competitive] | £21,086.52 |
-| C9 | resi | MEDIUM | 17% | 5% | -14.3% | £11,811.56 |
-| C1_2 | resi | MEDIUM | 17% | 14% | +3.3% | £5,179.59 |
-| C3 | resi | LOW | 11% | 5% | -39.0% [competitive] | £2,096.31 |
-| C5_2 | SME | LOW | 8% | 5% | -5.5% | £5,914.60 |
-| C_IC1 | I&C | LOW | 5% | 84% | -0.1% | £1,854,831.25 |
-| C_IC2 | I&C | LOW | 5% | 95% | +12.4% [overpriced] | £898,484.24 |
+| C1 | resi | MEDIUM | 22% | 8% | -23.0% [competitive] | £1,948.84 |
+| C6 | SME | MEDIUM | 21% | 25% | -24.7% [competitive] | £21,086.52 |
+| C_IC3 | I&C | MEDIUM | 20% | 13% | -53.5% [competitive] | £1,807,029.46 |
+| C4 | resi | LOW | 14% | 5% | -9.0% | £2,749.41 |
+| C2_2 | resi | LOW | 11% | 5% | +17.8% [overpriced] | £5,113.51 |
+| C7 | resi | LOW | 11% | 5% | -14.3% | £9,860.29 |
+| C9 | resi | LOW | 11% | 5% | -14.3% | £11,811.56 |
+| C8 | resi | LOW | 9% | 5% | -23.6% [competitive] | £11,529.68 |
+| C1_2 | resi | LOW | 8% | 14% | +3.3% | £5,179.59 |
+| C3 | resi | LOW | 6% | 5% | -39.0% [competitive] | £2,096.31 |
+| C5_2 | SME | LOW | 5% | 5% | -5.5% | £5,914.60 |
+| C5 | SME | LOW | 5% | 5% | -45.8% [competitive] | £10,944.62 |
+| C2 | resi | LOW | 5% | 7% | +46.6% [overpriced] | £2,978.09 |
+| C_IC1 | I&C | LOW | 4% | 84% | -0.1% | £1,854,831.25 |
+| C_IC2 | I&C | LOW | 4% | 95% | +12.4% [overpriced] | £898,484.24 |
 
 **Risk Band Summary (latest renewal):**
 - CRITICAL (>=50%): 0 accounts
-- HIGH (>=30%): 7 accounts
-- MEDIUM (>=15%): 4 accounts
-- LOW (<15%): 4 accounts
-- Lifetime margin at risk (CRITICAL+HIGH): £1,842,293.61
-- Overpriced vs SVT within HIGH/CRITICAL band: 2 account(s) -- rate shock risk compounds churn probability
-
-**Company blind spot:** 6 HIGH/CRITICAL account(s) where company churn estimate was <10%.
-  - C1: sim 38%, company est 8%
-  - C5: sim 38%, company est 5%
-  - C2: sim 38%, company est 7%
-  - C4: sim 38%, company est 5%
-  - C8: sim 32%, company est 5%
+- HIGH (>=30%): 0 accounts
+- MEDIUM (>=15%): 3 accounts
+- LOW (<15%): 12 accounts
+- Lifetime margin at risk (CRITICAL+HIGH): £0.00
 
 ## Churn Root Cause Attribution
 
@@ -881,18 +873,17 @@ Per-churned-account analysis: pricing journey, rate-vs-SVT positioning, and comp
 
 | Account | Seg | Churn Date | Tenure | Last Rate Shock | Rate vs SVT | Sim Risk | Co. Est. | Margin Lost |
 |---------|-----|------------|--------|-----------------|-------------|----------|----------|-------------|
-| C3 | resi | 2020-06-30 | 4.0yr | -4.3% | -39.0% | 11% | 5% | £2,096.31 |
-| C1 | resi | 2020-12-30 | 5.0yr | -0.8% | -23.0% | 38% | 8% | £1,948.84 |
-| C2 | resi | 2022-03-31 | 6.0yr | +11.9% | +46.6% | 38% | 7% | £2,978.09 |
-| C5 | SME | 2022-12-30 | 7.0yr | +5.4% | -45.8% | 38% | 5% | £10,944.62 |
-| C6 | SME | 2024-03-30 | 8.0yr | -0.7% | -24.7% | 29% | 25% | £21,086.52 |
-| C4 | resi | 2024-09-29 | 8.0yr | +3.8% | -9.0% | 38% | 5% | £2,749.41 |
+| C3 | resi | 2020-06-30 | 4.0yr | -4.3% | -39.0% | 6% | 5% | £2,096.31 |
+| C1 | resi | 2020-12-30 | 5.0yr | -0.8% | -23.0% | 22% | 8% | £1,948.84 |
+| C2 | resi | 2022-03-31 | 6.0yr | +11.9% | +46.6% | 5% | 7% | £2,978.09 |
+| C5 | SME | 2022-12-30 | 7.0yr | +5.4% | -45.8% | 5% | 5% | £10,944.62 |
+| C6 | SME | 2024-03-30 | 8.0yr | -0.7% | -24.7% | 21% | 25% | £21,086.52 |
+| C4 | resi | 2024-09-29 | 8.0yr | +3.8% | -9.0% | 14% | 5% | £2,749.41 |
 
 **Root Cause Summary:**
 - Total churned accounts: 6
 - Lifetime margin lost: £41,803.80
 - Average tenure at departure: 6.3 years
-- Company blind misses (sim >=30%, co. est. <10%): 4 -- C1, C2, C5, C4
 - Company-warned churns (co. est. >=20%): 1 -- C6
 - Crisis-era churns (2021-22): 2 -- absolute crisis price level, not rate-change delta, was the driver
 - Overpriced vs SVT at departure: 1 account(s) -- rate shock risk was observable but unactioned
@@ -1214,7 +1205,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 12 | 0.9 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,607 |
 | 2023 | 4 | 36 | 9.0 | £48,915 |
@@ -1448,15 +1439,15 @@ How well the company estimated churn probability versus actual simulation outcom
 
 | Customer | Date | Sim Probability | Company Estimate | Delta | Verdict |
 |----------|------|----------------|-----------------|-------|---------|
-| C3 | 2020-06 | 11.0% | 5.0% | -6.0pp | ACCURATE |
-| C1 | 2020-12 | 38.0% | 7.7% | -30.3pp | UNDERESTIMATED |
-| C2 | 2022-03 | 38.0% | 6.7% | -31.3pp | UNDERESTIMATED |
-| C5 | 2022-12 | 38.0% | 5.0% | -33.0pp | UNDERESTIMATED |
-| C6 | 2024-03 | 29.0% | 24.6% | -4.4pp | ACCURATE |
-| C4 | 2024-09 | 38.0% | 5.0% | -33.0pp | UNDERESTIMATED |
+| C3 | 2020-06 | 6.5% | 5.0% | -1.4pp | ACCURATE |
+| C1 | 2020-12 | 22.3% | 7.7% | -14.6pp | UNDERESTIMATED |
+| C2 | 2022-03 | 4.9% | 6.7% | +1.8pp | ACCURATE |
+| C5 | 2022-12 | 4.9% | 5.0% | +0.1pp | ACCURATE |
+| C6 | 2024-03 | 20.7% | 24.6% | +3.9pp | ACCURATE |
+| C4 | 2024-09 | 14.3% | 5.0% | -9.3pp | ACCURATE |
 
-**Outcomes: 4 underestimated / 2 accurate / 0 overestimated**
-**Mean absolute error: 23.0pp**
+**Outcomes: 1 underestimated / 5 accurate / 0 overestimated**
+**Mean absolute error: 5.2pp**
 **Systematic bias: company consistently UNDER-predicted churn risk.**
 
 > Company churn estimates derived from company-observable signals (bill shock,
@@ -1468,23 +1459,23 @@ How well the company estimated churn probability versus actual simulation outcom
 **Current threshold:** 30% | F1=0.000
 **Optimal threshold:** 0% | F1=0.176
 
-**RAG [!]:** RED — 5 unrecoverable high-value miss(es) — model underestimates churn: optimal threshold below current
+**RAG [!]:** RED — 4 unrecoverable high-value miss(es) — model underestimates churn: optimal threshold below current
 
 **Missed retention opportunities:** 6 no-offer churns
   Value at stake: £6,623
-  Counterfactually recoverable (with offer): 1/6
-  Net value recoverable (after offer cost): £365
+  Counterfactually recoverable (with offer): 2/6
+  Net value recoverable (after offer cost): £552
 
 ### Per-miss detail
 
 | Year | Customer | Est | SIM p | Recoverable? | Margin | Net value |
 |------|----------|-----|-------|-------------|--------|----------|
-| 2020 | C3 | 5% | 11% | No | £585 | £-50 |
-| 2020 | C1 | 8% | 38% | Yes | £415 | £365 |
-| 2022 | C2 | 7% | 38% | No | £237 | £-50 |
-| 2022 | C5 | 5% | 38% | No | £2,053 | £-50 |
-| 2024 | C6 | 25% | 29% | No | £2,865 | £-50 |
-| 2024 | C4 | 5% | 38% | No | £469 | £-50 |
+| 2020 | C3 | 5% | 6% | No | £585 | £-50 |
+| 2020 | C1 | 8% | 22% | Yes | £415 | £365 |
+| 2022 | C2 | 7% | 5% | Yes | £237 | £187 |
+| 2022 | C5 | 5% | 5% | No | £2,053 | £-50 |
+| 2024 | C6 | 25% | 21% | No | £2,865 | £-50 |
+| 2024 | C4 | 5% | 14% | No | £469 | £-50 |
 
 ### Threshold sensitivity curve
 
@@ -1560,7 +1551,7 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-04T06:40:12Z
+Generated: 2026-07-04T06:50:17Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2032,7 +2023,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,380 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 21 sessions
 - C5: 16 sessions
 - C7: 16 sessions
 - C2: 13 sessions
@@ -2229,10 +2220,10 @@ Revenue concentration analysis across 21 margin-positive accounts. Herfindahl-Hi
 
 | Account | Segment | Lifetime Margin | Share | Latest Churn Risk | Margin at Risk |
 |---------|---------|-----------------|-------|-------------------|----------------|
-| C_IC1 | I&C | £1,854,831.25 | 29.2% | 5% | £92,741.56 |
-| C_IC3 | I&C | £1,807,029.46 | 28.4% | 41% | £740,882.08 |
+| C_IC1 | I&C | £1,854,831.25 | 29.2% | 4% | £74,749.70 |
+| C_IC3 | I&C | £1,807,029.46 | 28.4% | 20% | £366,646.28 |
 | C_IC4 | I&C | £1,090,243.56 | 17.1% | 0% | £0.00 |
-| C_IC2 | I&C | £898,484.24 | 14.1% | 5% | £44,924.21 |
+| C_IC2 | I&C | £898,484.24 | 14.1% | 4% | £32,974.37 |
 | C_IC3g | I&C | £613,417.06 | 9.6% | 0% | £0.00 |
 
 **Concentration Risk Warning:**
@@ -2369,19 +2360,19 @@ Company applied portfolio premium adjustments at 117 renewal(s) (25 gas) based o
 
 Total no-offer churns: **6** | Blind misses: **6** | Deliberate passes (uneconomical): **0**
 
-- Blind misses: company estimated churn < 30% → no offer made. Of these, 4 had SIM p ≥ 30% (detectable with a better model).
+- Blind misses: company estimated churn < 30% → no offer made. Of these, 0 had SIM p ≥ 30% (detectable with a better model).
 - Deliberate passes: company estimated churn ≥ 30% but the retention offer was uneconomical (margin + acq cost < offer cost).
 
 **Estimated margin at stake** — blind: £6,623.39 | deliberate: £0.00 | total: £6,623.39
 
 | Customer | Date | Reason | Co. est | SIM p | Detectable? | Margin at stake |
 |----------|------|--------|---------|-------|-------------|----------------|
-| C3 | 2020-06-30 | Blind miss | 0.05 | 0.11 | No | £585.39 |
-| C1 | 2020-12-30 | Blind miss | 0.08 | 0.38 | Yes | £415.17 |
-| C2 | 2022-03-31 | Blind miss | 0.07 | 0.38 | Yes | £236.63 |
-| C5 | 2022-12-30 | Blind miss | 0.05 | 0.38 | Yes | £2,052.65 |
-| C6 | 2024-03-30 | Blind miss | 0.25 | 0.29 | No | £2,864.67 |
-| C4 | 2024-09-29 | Blind miss | 0.05 | 0.38 | Yes | £468.87 |
+| C3 | 2020-06-30 | Blind miss | 0.05 | 0.06 | No | £585.39 |
+| C1 | 2020-12-30 | Blind miss | 0.08 | 0.22 | No | £415.17 |
+| C2 | 2022-03-31 | Blind miss | 0.07 | 0.05 | No | £236.63 |
+| C5 | 2022-12-30 | Blind miss | 0.05 | 0.05 | No | £2,052.65 |
+| C6 | 2024-03-30 | Blind miss | 0.25 | 0.21 | No | £2,864.67 |
+| C4 | 2024-09-29 | Blind miss | 0.05 | 0.14 | No | £468.87 |
 
 ## Dual-Fuel Account P&L (Phase 17d)
 
@@ -2587,7 +2578,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-08-28: treasury £2,466,726.80, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-09-27: treasury £2,466,737.73, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-10-27: treasury £2,466,748.64, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-11-26: treasury £2,466,759.45, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-11-26: treasury £2,466,759.45, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-12-26: treasury £2,466,771.39, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
 - VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.25
 - Worst single period: C6 on 2016-11-08 period 40, net margin £-0.36
