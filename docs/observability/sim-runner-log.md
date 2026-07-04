@@ -26757,3 +26757,154 @@
 - [2026-07-04 18:46 UTC] [process_run] Generated site/state/live_decisions_latest.json
 - [2026-07-04 18:46 UTC] [process_run] Generated site/state/scenario_analysis_latest.json
 - [2026-07-04 18:46 UTC] [process_run] Mirrored 9 file(s) to docs/shadow + docs/state for GitHub Pages
+- [2026-07-04 18:53 UTC] Run complete — 509s, 1959 KB (run_output_1528d3e4_20260704T184444Z.json)
+- [2026-07-04 18:53 UTC] [protocol] run_complete message: {"sender": "sim-runner", "receiver": "broadcast", "intent": "run_complete", "payload": {"elapsed_s": 509, "size_kb": 1959, "json": "run_output_1528d3e4_20260704T184444Z.json"}, "timestamp": "2026-07-04T18:53:13.725817+00:00", "session_id": null}
+- [2026-07-04 18:53 UTC] [process_run] Processing run_complete_20260704T184444Z.md
+- [2026-07-04 18:53 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_1528d3e4_20260704T184444Z.json
+- [2026-07-04 18:53 UTC] [process_run] Updating LATEST.md
+- [2026-07-04 18:53 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-07-04 18:53 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-07-04 18:53 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-07-04 18:53 UTC] [process_run] Generated customer invoice JSON
+- [2026-07-04 18:53 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/data/customer_sample.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-04 18:53 UTC] [process_run] Generated site/state/PROJECT_STATE.txt
+- [2026-07-04 18:53 UTC] [process_run] Generated site/state/billing_ledger.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/state/population_anchoring.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/data/customers.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/data/supplier.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/state/live_portfolio.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/state/live_decisions_latest.json
+- [2026-07-04 18:53 UTC] [process_run] Generated site/state/scenario_analysis_latest.json
+- [2026-07-04 18:53 UTC] [process_run] Mirrored 9 file(s) to docs/shadow + docs/state for GitHub Pages
+- [2026-07-04 18:53 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-07-04 18:53 UTC] [process_run] Publishing market price feed
+- [2026-07-04 18:53 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-07-04 18:53 UTC] [process_run] Publishing HH consumption data feed
+- [2026-07-04 18:53 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-07-04 18:53 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-07-04 18:53 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-07-04 18:53 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-07-04 18:53 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:53 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 18:54 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-04 18:54 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-07-04 18:54 UTC] [process_run] Generated customer invoice JSON
+- [2026-07-04 18:54 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-04 18:54 UTC] [process_run] Generated site/data/customer_sample.json
+- [2026-07-04 18:54 UTC] [process_run] Generated site/state/billing_ledger.json
+- [2026-07-04 18:54 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-04 18:54 UTC] [process_run] Generated site/state/PROJECT_STATE.txt
+- [2026-07-04 18:54 UTC] [process_run] Generated site/state/population_anchoring.json
+- [2026-07-04 18:54 UTC] [process_run] Generated site/data/customers.json
+- [2026-07-04 18:54 UTC] [process_run] Generated site/data/supplier.json
+- [2026-07-04 18:54 UTC] [process_run] Generated site/state/live_portfolio.json
+- [2026-07-04 18:54 UTC] [process_run] Generated site/state/live_decisions_latest.json
+- [2026-07-04 18:54 UTC] [process_run] Generated site/state/scenario_analysis_latest.json
+- [2026-07-04 18:54 UTC] [process_run] Mirrored 9 file(s) to docs/shadow + docs/state for GitHub Pages
+- [2026-07-04 18:55 UTC] [process_run] Tests FAILED - not committing
+- [2026-07-04 18:55 UTC] Auto-process failed (rc=1) -- marker left for background_worker
+- [2026-07-04 18:55 UTC] Waiting 60s before next run...
+- [2026-07-04 18:55 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:55 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 18:56 UTC] Starting run — git=6be97c7e, json=run_output_6be97c7e_20260704T185615Z.json
+- [2026-07-04 18:56 UTC] [process_run] Processing run_complete_20260704T184444Z.md
+- [2026-07-04 18:56 UTC] [process_run] Regenerating ANNUAL_REPORT.md from run_output_1528d3e4_20260704T184444Z.json
+- [2026-07-04 18:56 UTC] [process_run] Updating LATEST.md
+- [2026-07-04 18:56 UTC] [process_run] Generating run insights (so-what layer)
+- [2026-07-04 18:56 UTC] [process_run] Run insights saved: Business survived the full 2016-2025 window including the 2021-22 crisis. Net ma
+- [2026-07-04 18:56 UTC] [process_run] Generating site/data/dashboard.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-07-04 18:56 UTC] [process_run] Generated customer invoice JSON
+- [2026-07-04 18:56 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/data/customer_sample.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/state/billing_ledger.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-04 18:56 UTC] [process_run] Generated site/state/PROJECT_STATE.txt
+- [2026-07-04 18:56 UTC] [process_run] Generated site/state/population_anchoring.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/data/customers.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/data/supplier.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/state/live_portfolio.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/state/live_decisions_latest.json
+- [2026-07-04 18:56 UTC] [process_run] Generated site/state/scenario_analysis_latest.json
+- [2026-07-04 18:56 UTC] [process_run] Mirrored 9 file(s) to docs/shadow + docs/state for GitHub Pages
+- [2026-07-04 18:56 UTC] [process_run] Revenue sanity: PASS — see annual report
+- [2026-07-04 18:56 UTC] [process_run] Publishing market price feed
+- [2026-07-04 18:56 UTC] [process_run] Price feed published to docs/market_data/price_feed.json
+- [2026-07-04 18:56 UTC] [process_run] Publishing HH consumption data feed
+- [2026-07-04 18:56 UTC] [process_run] Consumption feed published to docs/market_data/consumption_feed.json
+- [2026-07-04 18:56 UTC] [process_run] Fetching weather data (Open-Meteo)
+- [2026-07-04 18:56 UTC] [process_run] Weather data written to site/data/weather.json
+- [2026-07-04 18:56 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)
+- [2026-07-04 18:56 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:56 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 18:57 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 18:57 UTC] [process_run] Customer data generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-385/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:57 UTC] [process_run] Invoice data generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-385/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:57 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-04 18:57 UTC] [process_run] Customer sample generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-385/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:57 UTC] [process_run] Billing ledger generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-385/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:57 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-04 18:57 UTC] [process_run] Generated site/state/PROJECT_STATE.txt
+- [2026-07-04 18:57 UTC] [process_run] Population anchoring failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-385/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:57 UTC] [process_run] customers.json generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-385/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:57 UTC] [process_run] supplier.json generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-385/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:57 UTC] [process_run] Live portfolio generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-385/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:57 UTC] [process_run] Generated site/state/live_decisions_latest.json
+- [2026-07-04 18:57 UTC] [process_run] Generated site/state/scenario_analysis_latest.json
+- [2026-07-04 18:57 UTC] [process_run] Mirrored 9 file(s) to docs/shadow + docs/state for GitHub Pages
+- [2026-07-04 18:58 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 18:58 UTC] [process_run] Customer data generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-386/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:58 UTC] [process_run] Invoice data generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-386/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:58 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-04 18:58 UTC] [process_run] Customer sample generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-386/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:58 UTC] [process_run] Billing ledger generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-386/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:58 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-04 18:58 UTC] [process_run] Generated site/state/PROJECT_STATE.txt
+- [2026-07-04 18:58 UTC] [process_run] Population anchoring failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-386/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:58 UTC] [process_run] customers.json generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-386/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:58 UTC] [process_run] supplier.json generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-386/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:58 UTC] [process_run] Live portfolio generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-386/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 18:58 UTC] [process_run] Generated site/state/live_decisions_latest.json
+- [2026-07-04 18:58 UTC] [process_run] Generated site/state/scenario_analysis_latest.json
+- [2026-07-04 18:58 UTC] [process_run] Mirrored 9 file(s) to docs/shadow + docs/state for GitHub Pages
+- [2026-07-04 18:58 UTC] [process_run] Committing and pushing (net=£1,445,258)
+- [2026-07-04 18:58 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 18:58 UTC] [process_run] Moved run_complete_20260704T184444Z.md to done/
+- [2026-07-04 18:58 UTC] [process_run] Done
+- [2026-07-04 19:01 UTC] [process_run] Generated site/data/dashboard.json
+- [2026-07-04 19:01 UTC] [process_run] Generated site/data/customers/ JSON
+- [2026-07-04 19:01 UTC] [process_run] Generated customer invoice JSON
+- [2026-07-04 19:01 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-04 19:01 UTC] [process_run] Generated site/data/customer_sample.json
+- [2026-07-04 19:01 UTC] [process_run] Generated site/state/billing_ledger.json
+- [2026-07-04 19:01 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-04 19:01 UTC] [process_run] Generated site/state/PROJECT_STATE.txt
+- [2026-07-04 19:01 UTC] [process_run] Generated site/state/population_anchoring.json
+- [2026-07-04 19:01 UTC] [process_run] Generated site/data/customers.json
+- [2026-07-04 19:01 UTC] [process_run] Generated site/data/supplier.json
+- [2026-07-04 19:01 UTC] [process_run] Generated site/state/live_portfolio.json
+- [2026-07-04 19:01 UTC] [process_run] Generated site/state/live_decisions_latest.json
+- [2026-07-04 19:01 UTC] [process_run] Generated site/state/scenario_analysis_latest.json
+- [2026-07-04 19:01 UTC] [process_run] Mirrored 9 file(s) to docs/shadow + docs/state for GitHub Pages
+- [2026-07-04 19:01 UTC] [process_run] Committed locally, push deferred (throttled to every 30min)
+- [2026-07-04 19:01 UTC] [process_run] Nothing to commit or commit failed
+- [2026-07-04 19:03 UTC] [process_run] CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)
+- [2026-07-04 19:03 UTC] [process_run] Customer data generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-387/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 19:03 UTC] [process_run] Invoice data generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-387/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 19:03 UTC] [process_run] Generated site/data/sim_data.json
+- [2026-07-04 19:03 UTC] [process_run] Customer sample generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-387/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 19:03 UTC] [process_run] Billing ledger generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-387/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 19:03 UTC] [process_run] Generated site/shadow/ static HTML mirror
+- [2026-07-04 19:03 UTC] [process_run] Generated site/state/PROJECT_STATE.txt
+- [2026-07-04 19:03 UTC] [process_run] Population anchoring failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-387/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 19:03 UTC] [process_run] customers.json generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-387/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 19:03 UTC] [process_run] supplier.json generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-387/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 19:03 UTC] [process_run] Live portfolio generation failed: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-387/test_generate_dashboard_json_r0/run.json'
+- [2026-07-04 19:03 UTC] [process_run] Generated site/state/live_decisions_latest.json
+- [2026-07-04 19:03 UTC] [process_run] Generated site/state/scenario_analysis_latest.json
+- [2026-07-04 19:03 UTC] [process_run] Mirrored 9 file(s) to docs/shadow + docs/state for GitHub Pages

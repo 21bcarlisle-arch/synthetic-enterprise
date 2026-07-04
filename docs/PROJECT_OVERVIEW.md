@@ -5234,7 +5234,8 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,349 tests (fast suite / ~100s; simulation integration ~8 min per run)
+- 15,360 tests (fast suite / ~104s; simulation integration ~8 min per run)
+- Phase QI (2026-07-04): retrofitted the first EVIDENCE_IN_BUSINESS_SURFACES.md capability -- QD bad debt/arrears is now visible on all three business surfaces, generated from the live run, not just described in a spec. Sim tab: customer count by income-stress level per year (SIM ground truth) alongside arrears cases opened + bad debt (company-observable) in the same table -- a real correlation panel, not narrative. Customers tab: a named case study (C7) showing the SIM-only life event (new_baby, 2023-12-23) and income-stress trajectory next to the company-observable payment-behaviour score and the 6 real arrears cases it produced, with an explicit divergence callout -- both sides of the epistemic wall on one page. Supplier tab: the real dunning cascade aggregated across every account (46 cases, GBP112,182 total arrears, 20 written off = GBP3,051 exactly matching the Phase QD emergent bad debt figure) as an operational process view. Also reordered process_run_complete.py so billing_ledger.json generates BEFORE generate_shadow_html.py (the new sections read it; the old order would have shipped it one cycle stale). 11 new tests. Remaining retrofit queue: the three-signal churn model, further income-stress/life-event cases.
 - Phase QH (2026-07-04): fixed a dead-code regression in process_run_complete.py::generate_dashboard_json()
   introduced by Phase QF -- an early `return ok` (the consistency-gate result) sat inside the first
   try block, before the calls to generate shadow HTML, PROJECT_STATE.txt, billing ledger, population

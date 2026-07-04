@@ -215,6 +215,16 @@ def generate_dashboard_json(json_path):
     except Exception as exc:
         log("Customer sample generation failed: {}".format(exc))
     try:
+        # Must run before generate_shadow_html: the shadow Sim/Customers/Supplier
+        # pages read billing_ledger.json for the EVIDENCE_IN_BUSINESS_SURFACES.md
+        # arrears/collections retrofit -- generating shadow HTML first would bake
+        # in the PREVIOUS cycle's ledger, one run stale.
+        from tools.generate_billing_ledger import generate as gen_ledger
+        gen_ledger(json_path)
+        log("Generated site/state/billing_ledger.json")
+    except Exception as exc:
+        log("Billing ledger generation failed: {}".format(exc))
+    try:
         from tools.generate_shadow_html import generate as gen_shadow
         gen_shadow()
         log("Generated site/shadow/ static HTML mirror")
@@ -226,12 +236,6 @@ def generate_dashboard_json(json_path):
         log("Generated site/state/PROJECT_STATE.txt")
     except Exception as exc:
         log("PROJECT_STATE generation failed: {}".format(exc))
-    try:
-        from tools.generate_billing_ledger import generate as gen_ledger
-        gen_ledger(json_path)
-        log("Generated site/state/billing_ledger.json")
-    except Exception as exc:
-        log("Billing ledger generation failed: {}".format(exc))
     try:
         from tools.population_anchor import generate as gen_anchor
         gen_anchor(json_path)

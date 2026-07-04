@@ -2239,3 +2239,6 @@ Structured performance entries are added after each task completes.
 - [2026-07-04 18:11 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:11 UTC
 - [2026-07-04 18:26 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:26 UTC
 - [2026-07-04 18:41 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:41 UTC
+- [2026-07-04 18:56 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-04 18:58 UTC] Processed run_complete_20260704T184444Z.md
+- [2026-07-04 18:58 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:58 UTC

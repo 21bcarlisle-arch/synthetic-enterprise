@@ -10,7 +10,15 @@ from datetime import datetime, timezone
 PROJECT = Path(__file__).resolve().parent.parent
 SHADOW = PROJECT / "site" / "shadow"
 DATA = PROJECT / "site" / "data"
+STATE = PROJECT / "site" / "state"
 LATEST_MD = PROJECT / "docs" / "status" / "LATEST.md"
+
+# EVIDENCE_IN_BUSINESS_SURFACES.md (2026-07-04): C7 is the retrofit's named
+# case study -- a real new_baby life event (2023-12-23) that a real supplier
+# cannot observe directly, sustained income stress from 2023 the company also
+# cannot observe, and 6 real arrears cases the company DOES observe. This is
+# the "both sides of the epistemic wall" example the directive asks for.
+BEHAVIORAL_CASE_STUDY_CID = "C7"
 
 NAV_LINKS = [
     ("Overview", "/shadow/"),
@@ -166,7 +174,78 @@ def build_index(dash, ts):
     return _page("Portfolio Overview", "Overview", body, ts, dash.get("meta", {}).get("git_commit", "?"), phase)
 
 
-def build_customers(dash, sample, ts):
+def _behavioral_case_study(sample, ledger, cid):
+    """SIM ground truth vs company-observable for one named customer
+    (EVIDENCE_IN_BUSINESS_SURFACES.md retrofit) -- both sides of the
+    epistemic wall, generated from the same run as everything else."""
+    cust = sample.get("customers", {}).get(cid)
+    ledger_cust = ledger.get("customers", {}).get(cid) if ledger else None
+    if not cust or not ledger_cust:
+        return ""
+
+    life_events = cust.get("life_event_history") or []
+    stress_traj = cust.get("income_stress_trajectory") or []
+    pay = cust.get("payment_behaviour_analytics") or {}
+    pay_score = pay.get("score")
+    pay_metrics = pay.get("metrics") or {}
+    arrears = ledger_cust.get("arrears_history") or []
+
+    life_rows = "".join(
+        _row(e.get("date", ""), e.get("event_type", "").replace("_", " "))
+        for e in life_events
+    )
+    stress_rows = "".join(
+        _row(s.get("year", ""), s.get("stress", "").upper())
+        for s in stress_traj
+    )
+    arrears_rows = ""
+    for a in arrears:
+        stages = a.get("stages", [])
+        final = stages[-1]["stage"] if stages else "?"
+        arrears_rows += _row(
+            a.get("case_id", ""),
+            a.get("opened_date", ""),
+            _gbp(a.get("arrears_gbp", 0)),
+            final,
+            stages[-1].get("date", "") if stages else "",
+        )
+
+    transition = next(
+        (s for s in stress_traj if s.get("stress", "low") != "low"), None
+    )
+    divergence = (
+        "<p>The SIM knows " + cid + " had a real life event (" +
+        (life_events[-1]["event_type"].replace("_", " ") if life_events else "none") +
+        " on " + (life_events[-1]["date"] if life_events else "?") +
+        ") that pushed income stress from LOW to " +
+        (transition["stress"].upper() if transition else "?") +
+        " from " + (str(transition["year"]) if transition else "?") +
+        " onward. A real supplier cannot see either fact directly -- "
+        "the company only ever observes the downstream payment behaviour: "
+        "score <strong>" + str(pay_score) + "</strong>, on-time rate " +
+        _pct(pay_metrics.get("on_time_rate")) + ", DD-fail rate " +
+        _pct(pay_metrics.get("dd_fail_rate")) + ", and " + str(len(arrears)) +
+        " real arrears cases opening from the same period. That gap -- true "
+        "cause invisible, only the payment-behaviour symptom observable -- "
+        "is the basis risk this retrofit makes visible.</p>"
+    )
+
+    return (
+        "<h2>Behavioral Case Study: " + cid + "</h2>"
+        + '<p class="meta">Both sides of the epistemic wall, generated from this run '
+        + "(docs/staging/done/EVIDENCE_IN_BUSINESS_SURFACES.md)</p>"
+        + "<h3>SIM Ground Truth &#8212; Life Events (not observable to the company)</h3>"
+        + _table(["Date", "Event"], life_rows or _row("&#8212;", "none this window"))
+        + "<h3>SIM Ground Truth &#8212; Income Stress Trajectory (not observable to the company)</h3>"
+        + _table(["Year", "Stress Level"], stress_rows)
+        + "<h3>Company-Observable &#8212; Real Arrears Cases (from billing_ledger.json)</h3>"
+        + _table(["Case", "Opened", "Amount", "Final Stage", "Closed"], arrears_rows or _row("&#8212;", "", "", "none", ""))
+        + "<h3>The Divergence</h3>"
+        + divergence
+    )
+
+
+def build_customers(dash, sample, ts, ledger=None):
     git_commit = dash.get("meta", {}).get("git_commit", "?")
     phase = dash.get("build", {}).get("current_phase", "?")
     lifetime = dash["customers"].get("lifetime", {})
@@ -219,15 +298,66 @@ def build_customers(dash, sample, ts):
         )
         + "<h2>Retention Offers</h2>"
         + _table(["Customer", "Date", "Discount", "Cost", "Outcome"], ret_rows)
+        + _behavioral_case_study(sample, ledger or {}, BEHAVIORAL_CASE_STUDY_CID)
         + "<h2>Full Ground Truth</h2>"
         + "<p>Machine-readable per-customer data:<br>"
-        + '<a href="/state/customer_sample.json">customer_sample.json</a></p>'
+        + '<a href="/state/customer_sample.json">customer_sample.json</a> | '
+        + '<a href="/state/billing_ledger.json">billing_ledger.json</a></p>'
     )
     return _page("Customer Portfolio", "Customers", body, ts, git_commit, phase)
 
 
 
-def build_supplier(dash, ts):
+def _collections_process(billing_ledger):
+    """Aggregate the real dunning cascade across every account (EVIDENCE_IN_
+    BUSINESS_SURFACES.md: show the operational process, not the code)."""
+    if not billing_ledger:
+        return ""
+    customers = billing_ledger.get("customers", {})
+    stage_counts = {}
+    total_cases = 0
+    total_arrears_gbp = 0.0
+    written_off_gbp = 0.0
+    resolved = 0
+    written_off = 0
+    still_open = 0
+    for cust in customers.values():
+        for case in cust.get("arrears_history", []) or []:
+            total_cases += 1
+            total_arrears_gbp += case.get("arrears_gbp", 0)
+            stages = case.get("stages", [])
+            for s in stages:
+                stage_counts[s["stage"]] = stage_counts.get(s["stage"], 0) + 1
+            final = stages[-1]["stage"] if stages else None
+            if final == "RESOLVED":
+                resolved += 1
+            elif final == "WRITTEN_OFF":
+                written_off += 1
+                written_off_gbp += case.get("arrears_gbp", 0)
+            else:
+                still_open += 1
+
+    stage_order = ["DD_FAILED", "FIRST_NOTICE", "SECOND_NOTICE", "PAYMENT_PLAN_AGREED",
+                   "DISPUTE_NOTICE", "RESOLVED", "WRITTEN_OFF"]
+    stage_rows = "".join(
+        _row(stage, stage_counts[stage])
+        for stage in stage_order if stage in stage_counts
+    )
+
+    body = (
+        "<h2>Collections &amp; Dunning Process (real, from billing_ledger.json)</h2>"
+        + "<p>" + str(total_cases) + " arrears cases opened across the customer base, "
+        + _gbp(total_arrears_gbp) + " total arrears value. Outcome: " + str(resolved)
+        + " resolved via payment plan, " + str(written_off) + " written off ("
+        + _gbp(written_off_gbp) + " -- feeds the emergent bad debt figure in the Annual "
+        + "Income Statement above, Phase QD), " + str(still_open) + " still open.</p>"
+        + "<h3>Cascade Stage Volumes (every case passes through these in order)</h3>"
+        + _table(["Stage", "Times Reached"], stage_rows)
+    )
+    return body
+
+
+def build_supplier(dash, ts, billing_ledger=None):
     git_commit = dash.get("meta", {}).get("git_commit", "?")
     annual = dash["financial"]["annual"]
     ledger = dash["financial"].get("ledger", {})
@@ -351,11 +481,60 @@ def build_supplier(dash, ts):
         + "<h2>Business Capability Matrix</h2>"
         + "<p>6 domains | 72+ capabilities | Point-in-Time Blindfold enforced</p>"
         + _table(["Domain", "Capabilities"], cap_rows)
+        + _collections_process(billing_ledger)
     )
     return _page("Supplier P&amp;L", "Supplier", body, ts, git_commit, build.get("current_phase", "?"))
 
 
-def build_sim(sim_data, ts, git_commit="?", phase="?"):
+def _behavioral_signal_correlation(sample, billing_ledger, financial_annual):
+    """The SIM signal (income-stress population mix) graphed against the
+    company-observable outcome it should move with (arrears cases opened,
+    bad debt) -- EVIDENCE_IN_BUSINESS_SURFACES.md's Sim-tab requirement."""
+    if not sample or not billing_ledger:
+        return ""
+    customers = sample.get("customers", {})
+    by_year_stress = {}
+    for cid, cust in customers.items():
+        if cid.endswith("g"):
+            continue
+        for s in cust.get("income_stress_trajectory") or []:
+            yr = s.get("year")
+            lvl = s.get("stress", "low")
+            by_year_stress.setdefault(yr, {"low": 0, "moderate": 0, "high": 0})
+            by_year_stress[yr][lvl] = by_year_stress[yr].get(lvl, 0) + 1
+
+    arrears_opened_by_year = {}
+    for cust in billing_ledger.get("customers", {}).values():
+        for case in cust.get("arrears_history", []) or []:
+            opened = case.get("opened_date", "")
+            if len(opened) >= 4:
+                yr = int(opened[:4])
+                arrears_opened_by_year[yr] = arrears_opened_by_year.get(yr, 0) + 1
+
+    bad_debt_by_year = {r["year"]: r.get("bad_debt_gbp", 0) for r in financial_annual}
+
+    rows = ""
+    for yr in sorted(by_year_stress):
+        counts = by_year_stress[yr]
+        rows += _row(
+            yr, counts.get("low", 0), counts.get("moderate", 0), counts.get("high", 0),
+            arrears_opened_by_year.get(yr, 0),
+            _gbp(bad_debt_by_year.get(yr, 0)),
+        )
+
+    return (
+        "<h2>Customer Behavioral Signal &amp; Correlation</h2>"
+        + '<p class="meta">income_stress_trajectory (SIM ground truth, every customer) vs '
+        + "arrears cases opened and bad debt (both company-observable) -- "
+        + "docs/staging/done/EVIDENCE_IN_BUSINESS_SURFACES.md</p>"
+        + _table(
+            ["Year", "Customers LOW Stress", "MODERATE", "HIGH", "Arrears Cases Opened", "Bad Debt"],
+            rows,
+        )
+    )
+
+
+def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None):
     annual = sim_data.get("annual", [])
     monthly = sim_data.get("monthly", [])[:12]
     peaks = sim_data.get("peak_records", [])[:5]
@@ -392,6 +571,7 @@ def build_sim(sim_data, ts, git_commit="?", phase="?"):
         + _table(["Month", "Mean SSP", "P95 SSP"], mon_rows)
         + "<h2>Peak SSP Records</h2>"
         + _table(["Date", "Settlement Period", "SSP (GBP/MWh)"], peak_rows)
+        + _behavioral_signal_correlation(sample or {}, billing_ledger or {}, financial_annual or [])
     )
     return _page("Simulation Data", "Sim", body, ts, git_commit, phase)
 
@@ -434,15 +614,18 @@ def generate(run_json_path=None):
     sim_data = json.loads((DATA / "sim_data.json").read_text())
     sample_path = DATA / "customer_sample.json"
     sample = json.loads(sample_path.read_text()) if sample_path.exists() else {}
+    ledger_path = STATE / "billing_ledger.json"
+    billing_ledger = json.loads(ledger_path.read_text()) if ledger_path.exists() else {}
     latest_md = LATEST_MD.read_text() if LATEST_MD.exists() else ""
 
     _git_commit = dash.get("meta", {}).get("git_commit", "?")
     _phase = dash.get("build", {}).get("current_phase", "?")
+    _financial_annual = dash.get("financial", {}).get("annual", [])
     pages = {
         SHADOW / "index.html": build_index(dash, ts),
-        SHADOW / "customers" / "index.html": build_customers(dash, sample, ts),
-        SHADOW / "supplier" / "index.html": build_supplier(dash, ts),
-        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase),
+        SHADOW / "customers" / "index.html": build_customers(dash, sample, ts, billing_ledger),
+        SHADOW / "supplier" / "index.html": build_supplier(dash, ts, billing_ledger),
+        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual),
         SHADOW / "project" / "index.html": build_project(dash, latest_md, ts),
     }
 
