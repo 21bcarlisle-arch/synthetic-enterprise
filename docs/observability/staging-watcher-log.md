@@ -1777,3 +1777,4 @@
 - [2026-07-04 15:53 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
 - [2026-07-04 15:53 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
 - [2026-07-04 15:53 UTC] Silently registered sim run marker: run_complete_20260704T154503Z.md (Claude polls staging, no notification needed)
+- [2026-07-04 16:02 UTC] Notified: TIERED_APPROVAL_MODEL.md

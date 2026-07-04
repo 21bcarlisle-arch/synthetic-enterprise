@@ -21,14 +21,14 @@ real UK energy supplier works."
 - `run_complete_*.md` — publish results (regenerate report, LATEST.md, dashboard.json), commit, push, archive. **Do NOT send NTFY for routine sim run completions.** Only NTFY for notable exceptions (admin event, all-time high/low margin). Batch silently if multiple queued.
 - `run_pending_*.md` — check if finished and act accordingly.
 - `from_rich_*.md` — action it, reply via NTFY, archive.
-**At every REVIEW_GATE:**
-1. Complete phase and commit all outputs.
-2. NTFY Rich with what was done and what's next.
-3. Proceed immediately to the next phase — do not hold for confirmation.
-4. Rich redirects via NTFY if he wants a different direction.
+**Tiered approval model (2026-07-04, replaces flat 4h opt-out):** classify every proposal/phase-start into a tier and state it in the NTFY. If in doubt, classify UP.
+- **Tier 1 — one-way doors:** hard REVIEW_GATE, explicit approval required, **no timeout, never proceed on silence.** Applies to: architecture changes expensive to reverse (scale jumps, data-model rewrites, SIM/company boundary changes), anything touching the epistemic law, deleting/rewriting historical run data, external-facing changes (live site structure, anything that could transact), spending decisions, and any safety-control modification (this tier itself, skip-permissions, verifier, staging flow). Park in `docs/review_gates/` with decision needed + options + recommendation; NTFY once, re-ping daily while blocked; work other queue items meanwhile. Misclassifying a Tier 1 as Tier 2/3 is a serious harness violation.
+- **Tier 2 — pre-approved queue:** items already named in PRIORITIES.md, or an actioned staged instruction. Proceed **immediately** on reaching the front of the queue — no opt-out window; staging/priorities approval *was* the approval. NTFY on start is transparency, not a permission request.
+- **Tier 3 — novel self-generated proposals:** anything not in PRIORITIES.md and not staged. Keep the 4h opt-out window. This is where Rich's veto has real information value.
+- NTFY phrasing: `"Tier 2 (P2 in PRIORITIES.md) — starting now"` / `"Tier 3 (novel) — proceeding 4h unless redirected"` / `"Tier 1 (one-way door: <reason>) — BLOCKED awaiting explicit approval"`.
 **Always update and commit LATEST.md before sending NTFY.** If stale, fix the root cause.
 **When budget is available between tasks:** check backlog, fix known issues, improve coverage. Don't sit idle.
-**NEXT_PHASE.md proposals:** must name the gap or roadmap item served and what real-world fidelity is gained. Test-count increases alone are not a valid answer. No value answer = PRIORITIES.md outbids it.
+**NEXT_PHASE.md proposals:** must name the gap or roadmap item served and what real-world fidelity is gained. Test-count increases alone are not a valid answer. No value answer = PRIORITIES.md outbids it. Classify per the tiered model above — most NEXT_PHASE proposals are Tier 3 unless already PRIORITIES-queued (Tier 2).
 ---
 ## Phase-close checklist (in order)
 0. **PRIORITIES.md freshness:** "Next" must have ≥1 real roadmap item outbidding self-generated work. If stale, refreshing it IS the next task — before all else.

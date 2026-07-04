@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-04T16:01:43.791186+00:00",
+  "last_updated": "2026-07-04T16:04:07.024218+00:00",
   "agents": [
     {
       "name": "session-watchdog",
       "status": "idle",
-      "last_heartbeat": "2026-07-04T16:01:18.499388+00:00",
+      "last_heartbeat": "2026-07-04T16:03:19.067115+00:00",
       "last_action": "Session alive check passed",
-      "last_action_ts": "2026-07-04T16:01:18.499388+00:00",
+      "last_action_ts": "2026-07-04T16:03:19.067115+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-04T16:01:27.985501+00:00",
+      "last_heartbeat": "2026-07-04T16:03:58.283924+00:00",
       "last_action": "Heartbeat \u2014 1 files tracked",
-      "last_action_ts": "2026-07-04T16:01:27.985501+00:00",
+      "last_action_ts": "2026-07-04T16:03:58.283924+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -64,10 +64,10 @@
     },
     {
       "name": "autonomous-runner",
-      "status": "idle",
-      "last_heartbeat": "2026-07-04T16:00:20.795799+00:00",
-      "last_action": "Polling \u2014 idle",
-      "last_action_ts": "2026-07-04T16:00:20.795799+00:00",
+      "status": "working",
+      "last_heartbeat": "2026-07-04T16:02:20.807707+00:00",
+      "last_action": "Autonomous turn running",
+      "last_action_ts": "2026-07-04T16:02:20.807707+00:00",
       "anomaly": null,
       "role": "Runs scheduled Claude Code sessions for background work when session is idle",
       "produces": "CC session activity, phase completions"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-04T16:01:43.791186+00:00",
+      "last_heartbeat": "2026-07-04T16:04:07.024218+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-07-04T16:01:43.791186+00:00",
+      "last_action_ts": "2026-07-04T16:04:07.024218+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
