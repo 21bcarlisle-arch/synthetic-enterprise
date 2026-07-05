@@ -3,7 +3,8 @@
     "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
     "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)",
     "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
-    "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis"
+    "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis",
+    "acquisition_funnel_benchmark": "docs/market_research/findings/acquisition_funnel_benchmarks.md Section 3 mid-funnel-anchored (quote-issued to won) compounded win rate: resi 15-20%, SME 15-21%"
   },
   "overall_rag": "RED",
   "long_run_comparison": {
@@ -496,5 +497,6 @@
       "rag": "GREEN",
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     }
-  ]
+  ],
+  "acquisition_funnel_vs_benchmark": []
 }
