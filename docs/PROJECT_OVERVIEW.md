@@ -111,6 +111,11 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RC -- SIM Tab: Freshness Stamp on Remaining Sub-tabs, SIM_TAB_OVERHAUL.md item 5 CLOSED (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 5 remainder)
+Phase RB left two gaps in item 5 ("derive-or-die + freshness stamps ... extended to all SIM surfaces. Light professional theme replacing terminal monospace"): only the Prices sub-tab meta-bar rendered the Run/Phase stamp (buildMeta()); Weather (buildWMeta()), BM Settlement (hardcoded static text), and Customers (plain count string) did not. Added a shared freshnessSpan(meta) helper in site/sim/index.html and wired it into all three: Weather and Customers already fetch sim_data.json alongside their own data source in the same Promise.all, so they reuse its metadata.git_hash/phase rather than duplicating the stamp; BM gained a new buildBmMeta() call (it previously never touched the bm-meta-bar element except on fetch error). Also closed the same gap at the data layer: tools/fetch_weather_data.py generate_weather_data() gained a git_hash parameter and a _load_build_phase() reader (same docs/observability/build_info.json convention as generate_sim_data.py), writing git_hash/phase into weather.json's own metadata block for the first time -- previously only total_records/period_from etc, no run identity. background/process_run_complete.py _run_weather_data() now threads the already-in-scope git_hash through. Checked the light-theme half of item 5 directly: site/sim/index.html's :root already carries the light palette (--bg:#f9f9f7, --text:#0b0b0b) with crisis banding/chips intact, confirming Phase RA/QY's note that this shipped in an earlier pre-QT pass -- no further work needed there. SIM_TAB_OVERHAUL.md is now CLOSED IN FULL (items 1-5 all done across Phases QY/QZ/RA/RB/RC).
+No node available this session (single or chained invocations both required unresolvable approval) -- verified via a brace/paren/bracket balance check on the extracted script block (597/597, 972/972, 231/231) plus grepping the modified call sites/functions for correct wiring, consistent with the verification pattern used since Phase RA/QZ. 2 new tests (tests/tools/test_fetch_weather_data.py: freshness stamp present with an explicit git_hash, and defaults to "unknown"), 15,722 collected, fast suite (15,598, excludes the 8 slow integration files) re-run clean. Epistemic: PASS.
+FOUND, NOT ACTIONED (next queue item): site/shadow/{index,customers,supplier,project}/index.html -- the four shadow-mirror tabs -- are still on the pre-v4 dark terminal-monospace theme (font-family:monospace;background:#1a1a1a), each carrying its own freshness-stamp footer already (generate_shadow_html.py's _page()) but none of the v4 light design system. This is WEBSITE_AS_SHOWCASE.md Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, not SIM_TAB_OVERHAUL.md -- correctly out of scope for this phase, flagged as the front of the queue for the next session per PRIORITIES.md's existing ordering note.
+
 ### Phase RB -- SIM Tab: Freshness Stamps + Orphaned Consistency Test (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 5 partial, completed from an interrupted prior session's mid-flight work)
 Found uncommitted at session start: an interrupted autonomous turn (16:26-16:46 UTC, cut off by a
 usage-limit reset) had modified `tools/generate_sim_data.py` and `background/process_run_complete.py`
@@ -5716,7 +5721,19 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
-- 15,720 tests (full suite incl. simulation integration; ~39 min per run)
+- 15,722 tests (full suite incl. simulation integration; ~39 min per run)
+- Phase RC (2026-07-05): SIM_TAB_OVERHAUL.md item 5 CLOSED -- freshness stamp (Run/Phase) extended
+  to the three remaining SIM sub-tab surfaces (Weather, BM Settlement, Customers) that only the
+  Prices sub-tab carried since Phase RB; weather.json's own generator (tools/fetch_weather_data.py)
+  now threads git_hash/phase into its metadata to match sim_data.json's convention, wired through
+  background/process_run_complete.py. Light theme confirmed already in place site-wide on
+  site/sim/index.html (light palette shipped in an earlier pre-QT pass, crisis banding/chips
+  intact) -- closing item 5's second half without further work. Found and left open for the next
+  session: site/shadow/{index,customers,supplier,project}/index.html (the four shadow-mirror tabs)
+  are still on the pre-v4 dark terminal-monospace theme -- that is WEBSITE_AS_SHOWCASE.md Part 0 /
+  PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, not SIM_TAB_OVERHAUL.md, and is the
+  next queue item. 2 new tests (weather metadata freshness stamp), 15,722 collected, full fast
+  suite (15,598, excl. slow integration) re-run clean. Epistemic: PASS. See Section 4.
 - Phase RB (2026-07-05): freshness stamps (git_hash/phase) threaded into site/data/sim_data.json metadata; committed an orphaned consistency-gate test for the Customers sub-tab stress KPI/table cross-check; fixed 3 tests broken by the interrupted work's signature change. SIM_TAB_OVERHAUL.md item 5 partial. See Section 4.
 - Phase RA (2026-07-05): SIM tab BM Settlement axis legibility fix -- SIM_TAB_OVERHAUL.md item 3.
   Both BM charts' x-axis switched from `maxRotation:60,font:{size:9}` to the `maxTicksLimit:12,

@@ -163,3 +163,21 @@ def test_hdd_formula_matches_base():
     monthly = _compute_monthly(daily_one)
     expected_hdd = max(0, HDD_BASE - 5.0)
     assert abs(monthly[0]["hdd"] - expected_hdd) < 0.01
+
+
+def test_weather_metadata_carries_freshness_stamp(tmp_path, monkeypatch):
+    import tools.fetch_weather_data as fwd
+    daily = _multi_year_daily(2016, 2025)
+    monkeypatch.setattr(fwd, "_fetch_daily_temps", lambda s, e: daily)
+    result = fwd.generate_weather_data(output_path=tmp_path / "weather.json", git_hash="abc1234")
+    assert result["metadata"]["git_hash"] == "abc1234"
+    assert "phase" in result["metadata"]
+
+
+def test_weather_metadata_defaults_git_hash_unknown(tmp_path, monkeypatch):
+    import tools.fetch_weather_data as fwd
+    daily = _multi_year_daily(2016, 2025)
+    monkeypatch.setattr(fwd, "_fetch_daily_temps", lambda s, e: daily)
+    result = fwd.generate_weather_data(output_path=tmp_path / "weather.json")
+    assert result["metadata"]["git_hash"] == "unknown"
+

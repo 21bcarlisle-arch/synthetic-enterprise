@@ -1,15 +1,17 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-05 (stale since Phase QS: PROCESS_NOT_EVENTS.md's debt-branch --
-# third and last in its declared sequence -- shipped 2026-07-05, closing the family in full
-# (churn journey QL / acquisition funnel QR / debt-branch QS). This refresh had never been
-# recorded here, leaving "Next" pointed at already-DONE work -- see phase-close checklist
-# item 0. New P1: the WEBSITE_AS_SHOWCASE.md design wave -- six staged directives
-# (NAV_STORY_PLATFORM_METHOD, WEBSITE_AS_SHOWCASE, SIM/SUPPLIER/PROJECT_TAB_OVERHAUL,
-# CUSTOMER_360_REDESIGN) queued in docs/staging/, all Tier 2 pre-approved. Front of that
-# queue per WEBSITE_AS_SHOWCASE.md's own sequencing: Part 0 (QO styled the wrong surface --
-# company/portal/templates/, not site/ -- redo there) + SIM tab living-world (data already
-# exists). FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md are explicitly queued behind this
-# wave per their own staged text -- do not jump them ahead of it.)
+# Last refreshed: 2026-07-05 (Phase RC: SIM_TAB_OVERHAUL.md CLOSED IN FULL -- items 1-5 all
+# done across Phases QY/QZ/RA/RB/RC, the SIM tab half of WEBSITE_AS_SHOWCASE.md's design
+# wave. Front of queue now: WEBSITE_AS_SHOWCASE.md Part 0 (QO styled company/portal/templates/,
+# the wrong surface -- redo the light v4 design system on site/, specifically the four
+# shadow-mirror tabs site/shadow/{index,customers,supplier,project}/index.html, still on the
+# pre-v4 dark terminal-monospace theme -- found and confirmed during Phase RC, not yet
+# actioned) -- OR PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md (same surfaces, their own
+# staged critiques, R-D in PROJECT_TAB_OVERHAUL.md explicitly requires the same v4 light theme).
+# All three docs converge on the same next unit of work; pick PROJECT_TAB_OVERHAUL.md first
+# per its R-B consistency-gate-extension being the more load-bearing fix (live number
+# mismatches on the Project tab Overview). CUSTOMER_360_REDESIGN.md, NAV_STORY_PLATFORM_METHOD.md
+# remain queued behind. FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md are explicitly queued
+# behind this wave per their own staged text -- do not jump them ahead of it.)
 
 ## COMPLETED
 - P1 (process model, acquisition funnel): PROCESS_NOT_EVENTS.md's quote->application->
@@ -244,6 +246,16 @@ to match the Prices/Weather convention, plain-language Short%/NIV explainer adde
 band added to the SSP-vs-Short% chart matching the Prices tab's same window, real cross-tab link
 added. Presentation-only, no new tests, epistemic PASS. Tab 1 (SIM tab) now has only item 5
 (site-wide consistency gate + light theme) remaining -- the last item before Tab 1 is fully DONE.
+CONTINUED 2026-07-05 (Phase RB): freshness stamp (git_hash/phase) threaded into sim_data.json
+metadata + an orphaned Customers sub-tab consistency-gate test committed. Item 5 partial --
+freshness stamp still missing on Weather/BM/Customers sub-tabs, light theme unconfirmed.
+CONTINUED 2026-07-05 (Phase RC): item 5 CLOSED -- freshness stamp extended to the three remaining
+sub-tabs (shared freshnessSpan() helper reusing sim_data.json's metadata for Weather/Customers,
+new buildBmMeta() for BM); weather.json's own generator now carries git_hash/phase too. Light
+theme confirmed already shipped site-wide on site/sim/index.html, no work needed. SIM_TAB_OVERHAUL.md
+now CLOSED IN FULL. Tab 1 (SIM tab) DONE. Found, not actioned: site/shadow/{index,customers,
+supplier,project}/index.html still on the pre-v4 dark terminal-monospace theme -- WEBSITE_AS_SHOWCASE.md
+Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queue next.
 
 ## Backlog
 - SAAS_COVERAGE_MAP.md item 4 remainder: credit bureau feed into collections strategy

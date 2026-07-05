@@ -194,7 +194,7 @@
         <tbody></tbody>
       </table>
     </div>
-    <div class="meta-bar" id="bm-meta-bar">Elexon Settlement Price &amp; Volume (BSC) &mdash; 2016&ndash;2025 &mdash; 168,026 half-hourly records</div>
+    <div class="meta-bar" id="bm-meta-bar">Loading BM metadata&hellip;</div>
   </div>
   <div id="tab-customers" class="tab-panel">
     <div class="kpi-grid" id="cust-kpi-grid">
@@ -332,7 +332,13 @@
       buildBmShortChart(bm);
       buildBmPriceShortChart(bm);
       buildBmAnnualTable(bm);
+      buildBmMeta(sd.metadata || {});
     }).catch(function(e){ document.getElementById('bm-meta-bar').textContent='Failed to load BM data: '+e; });
+  }
+  function buildBmMeta(meta) {
+    var el = document.getElementById('bm-meta-bar');
+    el.innerHTML = '<span>Elexon Settlement Price &amp; Volume (BSC) &mdash; 2016&ndash;2025 &mdash; 168,026 half-hourly records</span>' +
+      freshnessSpan(meta);
   }
   function buildBmKpis(bm) {
     var short22 = bm.filter(function(m){return m.month.startsWith('2022');});
@@ -433,7 +439,8 @@
       buildCorrPriceInMarketChart(journeyLog, (sd && sd.annual) || []);
       buildWallChurnChart(d);
       var cnt = Object.keys(d.customers || {}).length;
-      document.getElementById('cust-meta-bar').textContent = cnt + ' customers | simulation/run_phase2b.py behavioral trajectories | 4-dimension model: physical / economic / behavioural / emotional';
+      document.getElementById('cust-meta-bar').innerHTML = '<span>' + cnt + ' customers | simulation/run_phase2b.py behavioral trajectories | 4-dimension model: physical / economic / behavioural / emotional</span>' +
+        freshnessSpan((sd && sd.metadata) || {});
     }).catch(function(e) {
       document.getElementById('cust-kpi-grid').innerHTML = '<p style="color:var(--muted);padding:16px">Customer sample not available yet. Error: '+e+'</p>';
     });
@@ -1098,6 +1105,12 @@
     }
     tb.innerHTML = html || '<tr><td colspan="4" style="color:var(--muted)">No data</td></tr>';
   }
+  function freshnessSpan(meta) {
+    meta = meta || {};
+    var run = (meta.git_hash && meta.git_hash !== 'unknown') ? meta.git_hash.slice(0,7) : '—';
+    var phase = (meta.phase && meta.phase !== 'unknown') ? meta.phase : '—';
+    return '<span><strong>Run:</strong> '+run+' &bull; <strong>Phase:</strong> '+phase+'</span>';
+  }
   function buildMeta(meta) {
     var el = document.getElementById('meta-bar');
     var from = meta.period_from || '—';
@@ -1111,7 +1124,8 @@
       '<span><strong>Period:</strong> '+from+' – '+to+'</span>'+
       '<span><strong>Records:</strong> '+total+' settlement periods</span>'+
       '<span><strong>Crisis years:</strong> '+crisis+'</span>'+
-      '<span><strong>Generated:</strong> '+gen+'</span>';
+      '<span><strong>Generated:</strong> '+gen+'</span>'+
+      freshnessSpan(meta);
   }
 
   function loadWeather() {
@@ -1125,7 +1139,7 @@
         weatherDailyCache = d.daily || {};
         priceShortDailyCache = (sd && sd.daily) || {};
         buildWKPIs(d); buildTempBandChart(d.monthly || []); buildHddChart(d.monthly || [], d.kpis || {});
-        buildWAnnualTable(d.annual || [], d.kpis || {}); buildWMeta(d.metadata || {});
+        buildWAnnualTable(d.annual || [], d.kpis || {}); buildWMeta(d.metadata || {}, (sd && sd.metadata) || {});
         var epSel = document.getElementById('chain-episode-select');
         buildChainChart(epSel ? epSel.value : 'beast2018');
       })
@@ -1274,13 +1288,14 @@
     }
     tb.innerHTML = h || '<tr><td colspan="4" style="color:var(--muted)">No data</td></tr>';
   }
-  function buildWMeta(m) {
+  function buildWMeta(m, runMeta) {
     var el = document.getElementById('w-meta-bar');
     el.innerHTML = '<span><strong>Source:</strong> ' + (m.source || 'Open-Meteo Historical Archive API') + '</span>' +
       '<span><strong>Location:</strong> ' + (m.location || 'London') + '</span>' +
       '<span><strong>Period:</strong> ' + (m.start_year || 2016) + '–' + (m.end_year || 2025) + '</span>' +
       '<span><strong>HDD base:</strong> ' + (m.hdd_base_c || 15.5) + '°C (UK National Grid)</span>' +
-      '<span><strong>Months:</strong> ' + (m.months || '--') + '</span>';
+      '<span><strong>Months:</strong> ' + (m.months || '--') + '</span>' +
+      freshnessSpan(runMeta);
   }
   loadPrices();
 }());

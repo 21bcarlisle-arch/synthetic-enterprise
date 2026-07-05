@@ -19,12 +19,22 @@ except ImportError:
 
 SITE_DATA = Path(__file__).resolve().parents[1] / "site" / "data"
 WEATHER_JSON = SITE_DATA / "weather.json"
+BUILD_INFO_PATH = Path(__file__).resolve().parents[1] / "docs" / "observability" / "build_info.json"
 
 HDD_BASE = 15.5
 LATITUDE = 51.51
 LONGITUDE = -0.13
 START_YEAR = 2016
 END_YEAR = 2025
+
+
+def _load_build_phase():
+    if BUILD_INFO_PATH.exists():
+        try:
+            return json.loads(BUILD_INFO_PATH.read_text()).get("phase", "unknown")
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return "unknown"
 
 
 def _fetch_daily_temps(start, end):
@@ -101,7 +111,7 @@ def _daily_out(daily):
     }
 
 
-def generate_weather_data(start_year=START_YEAR, end_year=END_YEAR, output_path=None):
+def generate_weather_data(start_year=START_YEAR, end_year=END_YEAR, output_path=None, git_hash="unknown"):
     start = f"{start_year}-01-01"
     end = f"{end_year}-12-31"
     daily = _fetch_daily_temps(start, end)
@@ -147,6 +157,8 @@ def generate_weather_data(start_year=START_YEAR, end_year=END_YEAR, output_path=
             "hdd_base_c": HDD_BASE,
             "months": len(monthly),
             "years": len(annual),
+            "git_hash": git_hash,
+            "phase": _load_build_phase(),
         },
     }
 

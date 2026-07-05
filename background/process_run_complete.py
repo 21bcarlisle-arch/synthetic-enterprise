@@ -154,9 +154,9 @@ def run_fast_tests(git_hash: str):
         return True, True
 
 
-def _run_weather_data():
+def _run_weather_data(git_hash="unknown"):
     from tools.fetch_weather_data import generate_weather_data
-    generate_weather_data()
+    generate_weather_data(git_hash=git_hash)
 
 
 def _fmt_gbp(v):
@@ -506,7 +506,7 @@ def main(marker_path_str):
 
     log("Fetching weather data (Open-Meteo)")
     try:
-        _run_weather_data()
+        _run_weather_data(git_hash)
         log("Weather data written to site/data/weather.json")
     except Exception as exc:
         log("Weather data fetch skipped: {}".format(exc))
