@@ -3855,3 +3855,9 @@
 - [2026-07-05 07:04 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys)
 - [2026-07-05 07:05 UTC] Claude Code restarted (1/3 this hour, direct launch, claude -c resume, no send-keys)
 - [2026-07-05 07:42 UTC] Permission prompt visible — waiting for Rich, autoloop paused
+- [2026-07-05 09:16 UTC] Permission prompt visible — waiting for Rich, autoloop paused
+- [2026-07-05 09:19 UTC] Inbound NTFY command received but a permission prompt is showing — deferring to next cycle
+- [2026-07-05 09:20 UTC] Inbound NTFY command from Rich: 'I told you do ask here not there' — relaying to session
+- [2026-07-05 09:31 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 09:42 UTC] Session usage at 100% (>= 90%) — writing usage pause until 2026-07-05T09:59:00+00:00, holding off the autoloop nudge this cycle
+- [2026-07-05 09:43 UTC] Usage pause active (docs/observability/.usage_pause.json) — autoloop continuation suppressed until session reset

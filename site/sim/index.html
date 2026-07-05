@@ -6,7 +6,7 @@
   <title>Poesys -- SIM Explorer</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
-    :root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;--text:#e6edf3;--muted:#7d8590;--green:#3fb950;--red:#f85149;--amber:#d29922;--blue:#58a6ff;--teal:#39d353;}
+    :root{--bg:#f9f9f7;--surface:#fcfcfb;--surface2:#f0efec;--border:#e1e0d9;--text:#0b0b0b;--muted:#52514e;--green:#0ca30c;--red:#d03b3b;--amber:#fab219;--blue:#2a78d6;--teal:#1baf7a;}
     *{box-sizing:border-box;margin:0;padding:0;}
     body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,monospace;font-size:14px;line-height:1.5;}
     .site-nav{display:flex;align-items:center;gap:8px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);}
@@ -36,9 +36,9 @@
     td{padding:9px 14px;text-align:right;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;}
     td:first-child{text-align:left;}
     tr:last-child td{border-bottom:none;}
-    tr.crise td{background:rgba(248,81,73,0.07);}
+    tr.crise td{background:rgba(208,59,59,0.07);}
     tr:hover td{background:var(--surface2);}
-    .cbadge{display:inline-block;background:rgba(248,81,73,0.2);color:var(--red);border:1px solid rgba(248,81,73,0.35);border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;letter-spacing:.5px;vertical-align:middle;}
+    .cbadge{display:inline-block;background:rgba(208,59,59,0.2);color:var(--red);border:1px solid rgba(208,59,59,0.35);border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;letter-spacing:.5px;vertical-align:middle;}
     .ssp-val{color:var(--red);font-weight:700;}
     .meta-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;color:var(--muted);font-size:12px;margin-top:8px;display:flex;flex-wrap:wrap;gap:16px;}
 
@@ -49,8 +49,8 @@
     .tab-panel{display:none;}
     .tab-panel.active{display:block;}
     .color-teal{color:var(--teal);}
-    .wbadge{display:inline-block;background:rgba(88,166,255,0.2);color:var(--blue);border:1px solid rgba(88,166,255,0.35);border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;}
-    .cold-winter td{background:rgba(88,166,255,0.05);}
+    .wbadge{display:inline-block;background:rgba(42,120,214,0.2);color:var(--blue);border:1px solid rgba(42,120,214,0.35);border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:6px;}
+    .cold-winter td{background:rgba(42,120,214,0.05);}
     .narrative{background:var(--surface);border:1px solid var(--teal);border-radius:10px;padding:20px;margin-bottom:32px;color:var(--muted);font-size:13px;line-height:1.6;}
     .narrative strong{color:var(--text);}
   </style>
@@ -172,7 +172,7 @@
 (function () {
   var pricesLoaded = false, weatherLoaded = false, bmLoaded = false, customersLoaded = false;
   var monthlyPriceChart = null, wTempChart = null, wHddChart = null;
-  var YEAR_PAL = ['#58a6ff','#3fb950','#d29922','#f85149','#39d353','#a371f7','#ffa657','#79c0ff','#56d364','#ff7b72'];
+  var YEAR_PAL = ['#2a78d6','#1baf7a','#eda100','#008300','#4a3aa7','#e34948','#e87ba4','#eb6834','#256abf','#199e70'];
   function showTab(name, btn) {
     var panels = document.querySelectorAll('.tab-panel');
     for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
@@ -231,13 +231,13 @@
         datasets: [{
           label: 'Short %',
           data: bm.map(function(m){return m.short_pct;}),
-          backgroundColor: bm.map(function(m){return m.is_crisis ? 'rgba(248,81,73,0.7)' : 'rgba(88,166,255,0.6)';}),
+          backgroundColor: bm.map(function(m){return m.is_crisis ? 'rgba(208,59,59,0.7)' : 'rgba(42,120,214,0.6)';}),
           borderRadius: 2,
         }]
       },
       options: {responsive:true, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed.y.toFixed(1)+'%';}}}},
-        scales:{x:{ticks:{maxRotation:60,font:{size:9}},grid:{color:'rgba(48,54,61,0.4)'}},
-                y:{min:0,max:100,grid:{color:'rgba(48,54,61,0.4)'},ticks:{callback:function(v){return v+'%';}}}}}
+        scales:{x:{ticks:{maxRotation:60,font:{size:9}},grid:{color:'rgba(225,224,217,0.4)'}},
+                y:{min:0,max:100,grid:{color:'rgba(225,224,217,0.4)'},ticks:{callback:function(v){return v+'%';}}}}}
     });
   }
   function buildBmPriceShortChart(bm) {
@@ -248,14 +248,14 @@
       data: {
         labels: bm.map(function(m){return m.month;}),
         datasets: [
-          {label:'SSP £/MWh', data:bm.map(function(m){return m.mean_ssp;}), backgroundColor:'rgba(88,166,255,0.5)', yAxisID:'y'},
-          {label:'Short %', data:bm.map(function(m){return m.short_pct;}), type:'line', borderColor:'rgba(248,81,73,0.9)', borderWidth:2, pointRadius:0, yAxisID:'y2', tension:0.3, fill:false}
+          {label:'SSP £/MWh', data:bm.map(function(m){return m.mean_ssp;}), backgroundColor:'rgba(42,120,214,0.5)', yAxisID:'y'},
+          {label:'Short %', data:bm.map(function(m){return m.short_pct;}), type:'line', borderColor:'rgba(208,59,59,0.9)', borderWidth:2, pointRadius:0, yAxisID:'y2', tension:0.3, fill:false}
         ]
       },
       options: {responsive:true,
         scales:{
-          x:{ticks:{maxRotation:60,font:{size:9}},grid:{color:'rgba(48,54,61,0.4)'}},
-          y:{position:'left',grid:{color:'rgba(48,54,61,0.4)'},ticks:{callback:function(v){return '£'+v;}}},
+          x:{ticks:{maxRotation:60,font:{size:9}},grid:{color:'rgba(225,224,217,0.4)'}},
+          y:{position:'left',grid:{color:'rgba(225,224,217,0.4)'},ticks:{callback:function(v){return '£'+v;}}},
           y2:{position:'right',min:0,max:100,grid:{drawOnChartArea:false},ticks:{callback:function(v){return v+'%';}}}
         }
       }
@@ -277,7 +277,7 @@
       var mean_niv = (d.niv.reduce(function(s,v){return s+v;},0)/d.niv.length).toFixed(1);
       var mean_short = (d.short.reduce(function(s,v){return s+v;},0)/d.short.length).toFixed(1);
       var badge = d.crisis ? '<span class="badge-crisis"> CRISIS</span>' : '';
-      return '<tr'+(d.crisis?' style="background:rgba(248,81,73,0.08)"':'')+'>'+
+      return '<tr'+(d.crisis?' style="background:rgba(208,59,59,0.08)"':'')+'>'+
         '<td>'+yr+badge+'</td><td>£'+mean_ssp+'</td><td>'+mean_niv+'</td><td>'+mean_short+'%</td>'+
         '<td>'+(mean_niv > 0 ? 'NET LONG' : 'NET SHORT')+'</td></tr>';
     }).join('');
@@ -363,14 +363,14 @@
       data: {
         labels: years,
         datasets: [
-          {label:'LOW stress', data:years.map(function(y){return yearMap[y].L||0;}), backgroundColor:'rgba(63,185,80,0.6)', stack:'s'},
-          {label:'MODERATE stress', data:years.map(function(y){return yearMap[y].M||0;}), backgroundColor:'rgba(210,153,34,0.6)', stack:'s'},
-          {label:'HIGH stress', data:years.map(function(y){return yearMap[y].H||0;}), backgroundColor:'rgba(248,81,73,0.6)', stack:'s'}
+          {label:'LOW stress', data:years.map(function(y){return yearMap[y].L||0;}), backgroundColor:'rgba(12,163,12,0.6)', stack:'s'},
+          {label:'MODERATE stress', data:years.map(function(y){return yearMap[y].M||0;}), backgroundColor:'rgba(250,178,25,0.6)', stack:'s'},
+          {label:'HIGH stress', data:years.map(function(y){return yearMap[y].H||0;}), backgroundColor:'rgba(208,59,59,0.6)', stack:'s'}
         ]
       },
-      options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#7d8590',font:{size:11},boxWidth:14}}},
-        scales:{x:{stacked:true,ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.6)'}},
-                y:{stacked:true,ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.6)'}}}}
+      options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{x:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+                y:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}
     });
   }
   function buildPayChart(d) {
@@ -391,13 +391,13 @@
         labels: scoreKeys,
         datasets: [{
           data: counts,
-          backgroundColor: ['rgba(63,185,80,0.7)','rgba(63,185,80,0.5)','rgba(125,133,144,0.6)','rgba(210,153,34,0.7)','rgba(248,81,73,0.7)'],
+          backgroundColor: ['rgba(12,163,12,0.7)','rgba(12,163,12,0.5)','rgba(82,81,78,0.6)','rgba(250,178,25,0.7)','rgba(208,59,59,0.7)'],
           borderRadius: 4
         }]
       },
       options: {responsive:true, plugins:{legend:{display:false}},
-        scales:{x:{ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.4)'}},
-                y:{ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.4)'}}}}
+        scales:{x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.4)'}},
+                y:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.4)'}}}}
     });
   }
 
@@ -464,13 +464,13 @@
         labels: labels,
         datasets: [
           {label:'Crisis Zone', data:crisisVals, fill:'origin',
-           backgroundColor:'rgba(248,81,73,0.13)', borderColor:'transparent',
+           backgroundColor:'rgba(208,59,59,0.13)', borderColor:'transparent',
            pointRadius:0, tension:0, spanGaps:false, order:3},
           {label:'P95', data:p95s, fill:'origin',
-           backgroundColor:'rgba(210,153,34,0.13)', borderColor:'rgba(210,153,34,0.4)',
+           backgroundColor:'rgba(250,178,25,0.13)', borderColor:'rgba(250,178,25,0.4)',
            borderWidth:1, pointRadius:0, tension:0.3, order:2},
           {label:'Mean Price', data:means, fill:false,
-           borderColor:'#58a6ff', backgroundColor:'#58a6ff',
+           borderColor:'#2a78d6', backgroundColor:'#2a78d6',
            borderWidth:2, pointRadius:0, tension:0.3, order:1}
         ]
       },
@@ -490,9 +490,9 @@
           }
         },
         scales: {
-          x: {ticks:{color:'#7d8590',maxTicksLimit:12,maxRotation:0}, grid:{color:'rgba(48,54,61,0.6)'}},
-          y: {min:0, ticks:{color:'#7d8590', callback:function(v){return '£'+v;}},
-              grid:{color:'rgba(48,54,61,0.6)'}}
+          x: {ticks:{color:'#52514e',maxTicksLimit:12,maxRotation:0}, grid:{color:'rgba(225,224,217,0.6)'}},
+          y: {min:0, ticks:{color:'#52514e', callback:function(v){return '£'+v;}},
+              grid:{color:'rgba(225,224,217,0.6)'}}
         }
       }
     });
@@ -580,7 +580,7 @@
     for (var j = 0; j < yrs.length; j++) { ds.push({label:yrs[j],data:byY[yrs[j]],borderColor:YEAR_PAL[j%10],backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.3}); }
     var ctx = document.getElementById('w-temp-chart').getContext('2d');
     if (wTempChart) wTempChart.destroy();
-    wTempChart = new Chart(ctx, {type:'line',data:{labels:ML,datasets:ds},options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#7d8590',font:{size:11},boxWidth:14}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+(c.raw!=null?Number(c.raw).toFixed(1):'--')+'°C';}}}},scales:{x:{ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.6)'}},y:{ticks:{color:'#7d8590',callback:function(v){return v+'°C';}},grid:{color:'rgba(48,54,61,0.6)'}}}}});
+    wTempChart = new Chart(ctx, {type:'line',data:{labels:ML,datasets:ds},options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#52514e',font:{size:11},boxWidth:14}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+(c.raw!=null?Number(c.raw).toFixed(1):'--')+'°C';}}}},scales:{x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},y:{ticks:{color:'#52514e',callback:function(v){return v+'°C';}},grid:{color:'rgba(225,224,217,0.6)'}}}}});
   }
   function buildHddChart(m, kd) {
     var lb = [], hv = [], avgM = kd.decadal_avg_annual_hdd ? kd.decadal_avg_annual_hdd / 12 : null;
@@ -588,7 +588,7 @@
     var avgL = avgM ? lb.map(function() { return avgM; }) : [];
     var ctx = document.getElementById('w-hdd-chart').getContext('2d');
     if (wHddChart) wHddChart.destroy();
-    wHddChart = new Chart(ctx, {type:'bar',data:{labels:lb,datasets:[{label:'Monthly HDD',data:hv,backgroundColor:'rgba(88,166,255,0.5)',borderColor:'rgba(88,166,255,0.8)',borderWidth:1,order:2},{label:'10-yr Monthly Avg',data:avgL,type:'line',borderColor:'rgba(210,153,34,0.8)',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0,order:1}]},options:{responsive:true,plugins:{legend:{display:true,labels:{color:'#7d8590',font:{size:11},boxWidth:14}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+Number(c.raw||0).toFixed(1)+' HDD';}}}},scales:{x:{ticks:{color:'#7d8590',maxTicksLimit:12,maxRotation:0},grid:{color:'rgba(48,54,61,0.6)'}},y:{min:0,ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,0.6)'}}}}});
+    wHddChart = new Chart(ctx, {type:'bar',data:{labels:lb,datasets:[{label:'Monthly HDD',data:hv,backgroundColor:'rgba(42,120,214,0.5)',borderColor:'rgba(42,120,214,0.8)',borderWidth:1,order:2},{label:'10-yr Monthly Avg',data:avgL,type:'line',borderColor:'rgba(250,178,25,0.8)',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0,order:1}]},options:{responsive:true,plugins:{legend:{display:true,labels:{color:'#52514e',font:{size:11},boxWidth:14}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+Number(c.raw||0).toFixed(1)+' HDD';}}}},scales:{x:{ticks:{color:'#52514e',maxTicksLimit:12,maxRotation:0},grid:{color:'rgba(225,224,217,0.6)'}},y:{min:0,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}});
   }
   function buildWAnnualTable(an, kd) {
     var tb = document.querySelector('#w-annual-table tbody'), h = '';
