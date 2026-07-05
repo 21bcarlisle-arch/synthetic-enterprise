@@ -119,3 +119,26 @@ Rich confirms explicitly, live/out-of-band (not via ntfy.sh, not via a git
 push) — e.g. directly in a Claude Code session, or by clearing this file
 into `docs/review_gates/done/` himself with a note. Whichever option he
 picks, implement it and archive this gate with the outcome.
+
+## Scope expansion (2026-07-05, second in-conversation confirmation)
+Rich, in this same live conversation, confirmed identity provenance for the
+`21bcarlisle-arch` git author (his advisor's legitimate GitHub-token bridge
+identity, not a spoofed account — recorded separately, does not itself
+authorize anything) and, separately and explicitly, expanded this gate's
+scope: `--dangerously-skip-permissions` now applies to **every session
+launcher**, not just `background/session_watchdog.py`. Same stated
+reasoning as the original approval: this box runs unattended, and an
+unflagged non-interactive spawn with nobody present to answer a permission
+prompt is write-blocked dead weight, not a safety control.
+
+Implemented:
+- `background/autonomous_runner.py`'s `claude -p` turn launcher now passes
+  `--dangerously-skip-permissions`.
+- No other launcher exists in this repo (checked: `dispatcher.py` and
+  `ntfy_responder.py` only relay into an already-running session via
+  `tmux send-keys`, they don't spawn a new `claude` process).
+
+Also per this confirmation: `background/tree_lock.py` added to serialize
+concurrent git writers (`process_run_complete.py`, this interactive session,
+and autonomous_runner's spawned turns) so unattended/parallel writers don't
+race on the same working tree — see CLAUDE.md's "Concurrent writers" line.

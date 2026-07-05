@@ -29,6 +29,8 @@ RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
 PUSH_THROTTLE_SECONDS = 30 * 60
 sys.path.insert(0, str(PROJECT_DIR))
 
+from background.tree_lock import tree_lock  # noqa: E402
+
 
 def log(msg):
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -347,25 +349,32 @@ def git_commit_push(git_hash, net_margin):
     docs_state = PROJECT_DIR / "docs" / "state"
     if docs_state.exists():
         files.append(str(docs_state))
-    subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )
-    result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR), timeout=30)
-    if result.returncode != 0:
-        log("Nothing to commit or commit failed")
-        return False
+    # Serialize against other git writers (interactive session, autonomous_runner
+    # turns, a concurrent process_run_complete.py invocation) -- see
+    # background/tree_lock.py. Without this, a `git add` from another writer
+    # staged between this one's add and commit gets swept into this commit
+    # (observed directly: a manually-staged code change landed inside an
+    # unrelated auto-process commit message).
+    with tree_lock():
+        subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
+        result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR), timeout=30)
+        if result.returncode != 0:
+            log("Nothing to commit or commit failed")
+            return False
 
-    if not _push_due():
-        log("Committed locally, push deferred (throttled to every {}min)".format(
-            PUSH_THROTTLE_SECONDS // 60
-        ))
-        return True
+        if not _push_due():
+            log("Committed locally, push deferred (throttled to every {}min)".format(
+                PUSH_THROTTLE_SECONDS // 60
+            ))
+            return True
 
-    push = subprocess.run(["git", "push"], cwd=str(PROJECT_DIR), timeout=60)
-    if push.returncode == 0:
-        _record_push_time()
-    return push.returncode == 0
+        push = subprocess.run(["git", "push"], cwd=str(PROJECT_DIR), timeout=60)
+        if push.returncode == 0:
+            _record_push_time()
+        return push.returncode == 0
 
 
 def _push_due() -> bool:

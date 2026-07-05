@@ -24,6 +24,14 @@ Doesn't launch a turn if the interactive session is actively changing
 (Rich is in conversation) — only fires when the pane has been static for
 IDLE_THRESHOLD_SECONDS.
 
+Runs with --dangerously-skip-permissions (Rich's direct, live confirmation,
+2026-07-05, expanding docs/review_gates/SKIP_PERMISSIONS_TIER1.md's original
+watchdog-only scope to every session launcher). Same reasoning as the
+watchdog: this is a non-interactive, unattended `claude -p` invocation with
+no TTY and nobody present to answer a permission prompt -- without the flag,
+a turn requiring any tool use beyond the pre-approved allowlist simply stalls
+at its first prompt and burns its rate-limited slot for nothing.
+
 Logs to docs/observability/autonomous-runner-log.md.
 Turn output appended to docs/observability/autonomous-turn-output.md.
 """
@@ -167,7 +175,7 @@ def launch_turn() -> None:
         return
 
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    log("Launching autonomous turn (claude -p)")
+    log("Launching autonomous turn (claude -p --dangerously-skip-permissions)")
 
     TURN_OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(TURN_OUTPUT_FILE, "a") as out:
@@ -180,7 +188,7 @@ def launch_turn() -> None:
     env = os.environ.copy()
     env.pop("ANTHROPIC_BASE_URL", None)
     _active_proc = subprocess.Popen(
-        [str(CLAUDE_BIN), "-p", AUTONOMOUS_PROMPT],
+        [str(CLAUDE_BIN), "-p", "--dangerously-skip-permissions", AUTONOMOUS_PROMPT],
         cwd=str(PROJECT_DIR),
         stdout=outfile,
         stderr=outfile,

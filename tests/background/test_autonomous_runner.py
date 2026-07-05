@@ -96,6 +96,28 @@ def test_launch_turn_skips_when_binary_missing(tmp_path, monkeypatch):
         mock_popen.assert_not_called()
 
 
+def test_launch_turn_uses_skip_permissions_flag(tmp_path, monkeypatch):
+    """Rich's direct, live confirmation (2026-07-05, expanding
+    docs/review_gates/SKIP_PERMISSIONS_TIER1.md beyond the watchdog): every
+    session launcher runs with --dangerously-skip-permissions -- a
+    non-interactive `claude -p` turn has no TTY and nobody present to answer
+    a permission prompt."""
+    autonomous_runner._active_proc = None
+    autonomous_runner._turn_times.clear()
+    fake_bin = tmp_path / "claude"
+    fake_bin.write_text("#!/bin/sh\n")
+    monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", fake_bin)
+    monkeypatch.setattr(autonomous_runner, "_usage_limit_active", lambda: False)
+
+    with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
+        mock_popen.return_value = MagicMock(poll=lambda: None)
+        autonomous_runner.launch_turn()
+        args = mock_popen.call_args[0][0]
+        assert "--dangerously-skip-permissions" in args
+        assert args[0] == str(fake_bin)
+        assert args[1] == "-p"
+
+
 def test_usage_limit_active_detects_limit_phrase(monkeypatch):
     monkeypatch.setattr(
         autonomous_runner, "_pane_content",
