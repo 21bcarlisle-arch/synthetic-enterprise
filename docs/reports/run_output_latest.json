@@ -32316,7 +32316,7 @@
     {
       "customer_id": "C_IC2",
       "event_date": "2022-04-30",
-      "company_churn_estimate": 0.418,
+      "company_churn_estimate": 0.4029,
       "discount_pct": 0.03,
       "retention_cost_gbp": 9417.622492615072,
       "expected_term_margin_gbp": 96241.44383503431,
@@ -32327,7 +32327,7 @@
     {
       "customer_id": "C_IC1",
       "event_date": "2022-05-30",
-      "company_churn_estimate": 0.418,
+      "company_churn_estimate": 0.4132,
       "discount_pct": 0.03,
       "retention_cost_gbp": 18141.95608173459,
       "expected_term_margin_gbp": 231598.92169927407,
@@ -32353,42 +32353,48 @@
       "event_date": "2020-06-30",
       "company_churn_estimate": 0.076,
       "expected_term_margin_gbp": 585.3902872677792,
-      "no_offer_reason": "below_threshold"
+      "no_offer_reason": "below_threshold",
+      "would_be_discount_pct": null
     },
     {
       "customer_id": "C1",
       "event_date": "2020-12-30",
       "company_churn_estimate": 0.0732,
       "expected_term_margin_gbp": 415.17435308184673,
-      "no_offer_reason": "below_threshold"
+      "no_offer_reason": "below_threshold",
+      "would_be_discount_pct": null
     },
     {
       "customer_id": "C2",
       "event_date": "2022-03-31",
       "company_churn_estimate": 0.0616,
       "expected_term_margin_gbp": 236.62823855586973,
-      "no_offer_reason": "below_threshold"
+      "no_offer_reason": "below_threshold",
+      "would_be_discount_pct": null
     },
     {
       "customer_id": "C5",
       "event_date": "2022-12-30",
       "company_churn_estimate": 0.0484,
       "expected_term_margin_gbp": 2052.654271312032,
-      "no_offer_reason": "below_threshold"
+      "no_offer_reason": "below_threshold",
+      "would_be_discount_pct": null
     },
     {
       "customer_id": "C6",
       "event_date": "2024-03-30",
       "company_churn_estimate": 0.2462,
       "expected_term_margin_gbp": 2864.6688471117395,
-      "no_offer_reason": "below_threshold"
+      "no_offer_reason": "below_threshold",
+      "would_be_discount_pct": null
     },
     {
       "customer_id": "C4",
       "event_date": "2024-09-29",
       "company_churn_estimate": 0.14,
       "expected_term_margin_gbp": 468.87101730922535,
-      "no_offer_reason": "below_threshold"
+      "no_offer_reason": "below_threshold",
+      "would_be_discount_pct": null
     }
   ],
   "company_divergence": {
@@ -32549,6 +32555,744 @@
       }
     }
   },
+  "churn_journey_log": [
+    {
+      "customer_id": "C1",
+      "term_start": "2016-12-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 68.41
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2016-12-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 254.47
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2016-12-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 174.8
+    },
+    {
+      "customer_id": "C2",
+      "term_start": "2017-04-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 95.47
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2017-04-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 460.18
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2017-04-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 237.63
+    },
+    {
+      "customer_id": "C3",
+      "term_start": "2017-07-01",
+      "journey_state": "irritated",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 156.85
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2017-07-01",
+      "journey_state": "irritated",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 275.93
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2017-10-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 47.26
+    },
+    {
+      "customer_id": "C1",
+      "term_start": "2017-12-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2017-12-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2017-12-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC1",
+      "term_start": "2018-01-31",
+      "journey_state": "irritated",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 104843.74
+    },
+    {
+      "customer_id": "C2",
+      "term_start": "2018-04-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 95.5
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2018-04-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 369.57
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2018-04-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 79.37
+    },
+    {
+      "customer_id": "C3",
+      "term_start": "2018-07-01",
+      "journey_state": "irritated",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 42.53
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2018-07-01",
+      "journey_state": "in_market",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 146.64
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2018-10-01",
+      "journey_state": "irritated",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 162.37
+    },
+    {
+      "customer_id": "C1",
+      "term_start": "2018-12-31",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 150.71
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2018-12-31",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 618.05
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2018-12-31",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 320.18
+    },
+    {
+      "customer_id": "C_IC2",
+      "term_start": "2019-01-31",
+      "journey_state": "irritated",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 96184.96
+    },
+    {
+      "customer_id": "C_IC1",
+      "term_start": "2019-03-02",
+      "journey_state": "content",
+      "resentment_score": 4.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 46673.36
+    },
+    {
+      "customer_id": "C2",
+      "term_start": "2019-04-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 42.38
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2019-04-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 150.84
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2019-04-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 80.73
+    },
+    {
+      "customer_id": "C3",
+      "term_start": "2019-07-01",
+      "journey_state": "irritated",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2019-07-01",
+      "journey_state": "comparing",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2019-10-01",
+      "journey_state": "irritated",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C1",
+      "term_start": "2019-12-31",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2019-12-31",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2019-12-31",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC3",
+      "term_start": "2020-01-01",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC2",
+      "term_start": "2020-03-01",
+      "journey_state": "content",
+      "resentment_score": 4.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C2",
+      "term_start": "2020-03-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2020-03-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2020-03-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC1",
+      "term_start": "2020-03-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C3",
+      "term_start": "2020-06-30",
+      "journey_state": "irritated",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2020-06-30",
+      "journey_state": "comparing",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2020-09-30",
+      "journey_state": "irritated",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C1",
+      "term_start": "2020-12-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 31.31
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2020-12-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 195.55
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2020-12-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 187.51
+    },
+    {
+      "customer_id": "C_IC3",
+      "term_start": "2020-12-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 25768.29
+    },
+    {
+      "customer_id": "C2",
+      "term_start": "2021-03-31",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 206.9
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2021-03-31",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 1268.64
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2021-03-31",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 511.97
+    },
+    {
+      "customer_id": "C_IC2",
+      "term_start": "2021-03-31",
+      "journey_state": "irritated",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 48904.32
+    },
+    {
+      "customer_id": "C_IC1",
+      "term_start": "2021-04-30",
+      "journey_state": "irritated",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 75046.59
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2021-06-30",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 885.11
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2021-09-30",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 251.11
+    },
+    {
+      "customer_id": "C1_2",
+      "term_start": "2021-12-30",
+      "journey_state": "irritated",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 2069.11
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2021-12-30",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 4043.66
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2021-12-30",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 545.83
+    },
+    {
+      "customer_id": "C_IC3",
+      "term_start": "2021-12-31",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 817354.6
+    },
+    {
+      "customer_id": "C2",
+      "term_start": "2022-03-31",
+      "journey_state": "content",
+      "resentment_score": 24.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 642.34
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2022-03-31",
+      "journey_state": "content",
+      "resentment_score": 24.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 4895.46
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2022-03-31",
+      "journey_state": "content",
+      "resentment_score": 24.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 1408.63
+    },
+    {
+      "customer_id": "C_IC2",
+      "term_start": "2022-04-30",
+      "journey_state": "in_market",
+      "resentment_score": 23.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 138993.06
+    },
+    {
+      "customer_id": "C_IC1",
+      "term_start": "2022-05-30",
+      "journey_state": "in_market",
+      "resentment_score": 23.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 327248.9
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2022-06-30",
+      "journey_state": "content",
+      "resentment_score": 24.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 954.0
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2022-09-30",
+      "journey_state": "content",
+      "resentment_score": 24.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 503.03
+    },
+    {
+      "customer_id": "C1_2",
+      "term_start": "2022-12-30",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C5",
+      "term_start": "2022-12-30",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2022-12-30",
+      "journey_state": "content",
+      "resentment_score": 24.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 1500.18
+    },
+    {
+      "customer_id": "C_IC3",
+      "term_start": "2022-12-31",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C2_2",
+      "term_start": "2023-03-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2023-03-31",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2023-03-31",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC2",
+      "term_start": "2023-05-30",
+      "journey_state": "comparing",
+      "resentment_score": 5.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC1",
+      "term_start": "2023-06-29",
+      "journey_state": "comparing",
+      "resentment_score": 5.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2023-06-30",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2023-09-30",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C1_2",
+      "term_start": "2023-12-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 27.11
+    },
+    {
+      "customer_id": "C5_2",
+      "term_start": "2023-12-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 46.56
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2023-12-30",
+      "journey_state": "content",
+      "resentment_score": 6.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC3",
+      "term_start": "2023-12-31",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C2_2",
+      "term_start": "2024-03-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C6",
+      "term_start": "2024-03-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2024-03-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC2",
+      "term_start": "2024-06-28",
+      "journey_state": "comparing",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C9",
+      "term_start": "2024-06-29",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC1",
+      "term_start": "2024-07-28",
+      "journey_state": "comparing",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C4",
+      "term_start": "2024-09-29",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C1_2",
+      "term_start": "2024-12-29",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C5_2",
+      "term_start": "2024-12-29",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C7",
+      "term_start": "2024-12-29",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C_IC3",
+      "term_start": "2024-12-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    },
+    {
+      "customer_id": "C2_2",
+      "term_start": "2025-03-30",
+      "journey_state": "content",
+      "resentment_score": 18.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 950.08
+    },
+    {
+      "customer_id": "C8",
+      "term_start": "2025-03-30",
+      "journey_state": "content",
+      "resentment_score": 0.0,
+      "is_burned": false,
+      "perceived_bill_saving_gbp": 0.0
+    }
+  ],
   "won_successor_activations": {
     "C1_2": "2020-12-30",
     "C2_2": "2022-03-31",
@@ -32961,7 +33705,7 @@
       "term_start": "2022-09-30",
       "old_gas_rate": 35.0,
       "new_gas_rate": 95.0,
-      "company_gas_churn_estimate": 0.95
+      "company_gas_churn_estimate": 0.9205
     },
     {
       "customer_id": "C_IC3g",
@@ -64290,8 +65034,8 @@
     }
   ],
   "scenario_analysis": {
-    "generated_at": "2026-07-05T02:36:23Z",
-    "portfolio_as_of": "2026-07-05T02:34:33Z",
+    "generated_at": "2026-07-05T03:48:40Z",
+    "portfolio_as_of": "2026-07-05T03:46:50Z",
     "active_customers": 11,
     "projection_months": 12,
     "scenarios": {

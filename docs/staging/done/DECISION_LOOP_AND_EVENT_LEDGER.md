@@ -25,3 +25,12 @@ Build a DECISION EVENT LEDGER surfaced on the business tabs, generated from run 
 Fix en route: the 0.95-ceiling false-positive bug (false positives burn real margin even in an EV frame).
 
 This supersedes "Q4 churn validation loop" as scoped -- recall measurement stays as an honest dashboard metric, but the deliverable is the decision loop + event ledger. Multi-phase; Tier 2; work it as the primary thread alongside Website Part B.
+
+---
+CLOSED 2026-07-05: All 5 parts delivered across Phase QP (Part 5, Decision Event Ledger unification
+-- company/analytics/decision_event_ledger.py, Customers/Supplier tab surfaces) and Phase QQ (Part 4,
+compute_counterfactual_lift_by_class() + the 0.95-ceiling calibration fix in company/crm/churn_model.py).
+Parts 1-3 (moments of truth, EV-based decisions, H1 vs H2 variance) were substantially already covered
+by pre-existing retention_risk.py / retention offer EV logging wired earlier in the QI-QM thread. See
+PRIORITIES.md "COMPLETED (cont. 2)" and "(cont. 3)" entries for the full delivery record. Superseded
+scope (acquisition funnel, debt-branch) continues under docs/staging/PROCESS_NOT_EVENTS.md.
