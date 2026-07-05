@@ -367,6 +367,20 @@ def extract_customers(data):
             "perceived_bill_saving_gbp": j.get("perceived_bill_saving_gbp", 0),
         })
 
+    acquisition_funnel_log = []  # PROCESS_NOT_EVENTS.md: acquisition funnel, not a coin flip
+    for a in data.get("acquisition_funnel_log", []):
+        acquisition_funnel_log.append({
+            "billing_account": a.get("billing_account", ""),
+            "segment": a.get("segment", ""),
+            "term_start": a.get("term_start", ""),
+            "won": bool(a.get("won", False)),
+            "stage_reached": a.get("stage_reached", ""),
+            "total_cost_gbp": a.get("total_cost_gbp", 0),
+            "credit_bureau_score_band": a.get("credit_bureau_score_band"),
+            "credit_bureau_passed": a.get("credit_bureau_passed"),
+            "credit_bureau_true_creditworthy": a.get("credit_bureau_true_creditworthy"),
+        })
+
     return {
         "book_annual": book_annual,
         "per_year_net": dict(per_year_net),
@@ -376,6 +390,7 @@ def extract_customers(data):
         "serial_savers": serial_savers,
         "lifetime": lifetime,
         "journey_log": journey_log,
+        "acquisition_funnel_log": acquisition_funnel_log,
     }
 
 

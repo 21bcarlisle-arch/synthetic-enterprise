@@ -587,6 +587,8 @@ def extract_report_data(run_output: dict) -> dict:
         # in every production run since QL shipped -- the Churn Journey Case Study and
         # Portfolio Funnel sections had nothing to render. Forwarding it now.
         "churn_journey_log": phase2b.get("churn_journey_log", []),
+        # PROCESS_NOT_EVENTS.md: acquisition funnel replaces the flat coin-flip roll.
+        "acquisition_funnel_log": phase2b.get("acquisition_funnel_log", []),
         "won_successor_activations": won_successor_activations,
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),

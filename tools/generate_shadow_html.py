@@ -11,6 +11,7 @@ from company.crm.retention_risk import retention_risk_feature_vector
 from company.analytics.decision_event_ledger import (
     build_customer_ledger, build_portfolio_event_stream,
 )
+from simulation.acquisition_funnel import FUNNEL_STAGES
 
 PROJECT = Path(__file__).resolve().parent.parent
 SHADOW = PROJECT / "site" / "shadow"
@@ -480,6 +481,10 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
             dash["customers"].get("events", []), retention, journey_log or [],
             ledger or {}, DECISION_LEDGER_CASE_STUDY_CID,
         )
+        + _acquisition_funnel_case_study(
+            dash["customers"].get("acquisition_funnel_log", []),
+            _pick_acquisition_case_study_cid(dash["customers"].get("acquisition_funnel_log", [])),
+        )
         + "<h2>Full Ground Truth</h2>"
         + "<p>Machine-readable per-customer data:<br>"
         + '<a href="/state/customer_sample.json">customer_sample.json</a> | '
@@ -724,6 +729,7 @@ def build_supplier(dash, ts, billing_ledger=None, journey_log=None):
             dash.get("customers", {}).get("events", []), retention_records, journey_log or [],
             billing_ledger or {},
         )
+        + _acquisition_funnel_process(dash.get("customers", {}).get("acquisition_funnel_log", []))
     )
     return _page("Supplier P&amp;L", "Supplier", body, ts, git_commit, build.get("current_phase", "?"))
 
@@ -963,6 +969,154 @@ def _churn_journey_portfolio_funnel(journey_log):
     )
 
 
+def _acquisition_funnel_signal(funnel_log):
+    """Sim tab: per-year stage-leakage funnel + win rate -- PROCESS_NOT_EVENTS.md's
+    acquisition funnel replacing the flat coin-flip roll (simulation/acquisition_funnel.py)."""
+    if not funnel_log:
+        return ""
+    by_year: dict = {}
+    for a in funnel_log:
+        yr = (a.get("term_start") or "")[:4]
+        if not yr:
+            continue
+        y = by_year.setdefault(yr, {"attempts": 0, "wins": 0, "by_stage": {}})
+        y["attempts"] += 1
+        if a.get("won"):
+            y["wins"] += 1
+        stage = a.get("stage_reached", "")
+        y["by_stage"][stage] = y["by_stage"].get(stage, 0) + 1
+
+    rows = ""
+    for yr in sorted(by_year):
+        y = by_year[yr]
+        win_rate = y["wins"] / y["attempts"] * 100 if y["attempts"] else 0
+        lost_at_application = y["by_stage"].get("application", 0)
+        lost_at_credit_check = y["by_stage"].get("credit_check", 0)
+        lost_at_onboarding = y["by_stage"].get("onboarding", 0)
+        rows += _row(
+            yr, y["attempts"], format(win_rate, ".1f") + "%",
+            lost_at_application, lost_at_credit_check, lost_at_onboarding,
+        )
+
+    return (
+        "<h2>Acquisition Funnel: Stage Leakage vs Realized Win Rate</h2>"
+        + '<p class="meta">Real quote-to-onboarding funnel (simulation/acquisition_funnel.py) '
+        + "replacing the old flat win/lose coin flip -- docs/market_research/findings/"
+        + "acquisition_funnel_benchmarks.md</p>"
+        + _table(
+            ["Year", "Attempts", "Win Rate", "Lost at Application", "Lost at Credit Check", "Lost at Onboarding"],
+            rows,
+        )
+        + "<p>Credit-check losses are a genuine noisy-bureau-read effect (see the case study below), "
+        + "not a modelling artefact -- the bureau's read and the SIM's ground truth on true "
+        + "creditworthiness can and do disagree.</p>"
+    )
+
+
+def _pick_acquisition_case_study_cid(funnel_log):
+    """Prefer a WON attempt where the credit bureau's read diverged from the SIM's
+    ground truth on true creditworthiness -- the most informative case for showing
+    both sides of the epistemic wall."""
+    diverged = [
+        a for a in (funnel_log or [])
+        if a.get("won")
+        and a.get("credit_bureau_true_creditworthy") is not None
+        and a.get("credit_bureau_passed") != a.get("credit_bureau_true_creditworthy")
+    ]
+    pool = diverged or [a for a in (funnel_log or []) if a.get("won")]
+    if not pool:
+        return None
+    return sorted(pool, key=lambda a: a.get("term_start", ""))[-1].get("billing_account")
+
+
+def _acquisition_funnel_case_study(funnel_log, cid):
+    if not cid:
+        return ""
+    attempt = next(
+        (a for a in funnel_log if a.get("billing_account") == cid and a.get("won")),
+        None,
+    )
+    if attempt is None:
+        return ""
+
+    band = attempt.get("credit_bureau_score_band")
+    passed = attempt.get("credit_bureau_passed")
+    true_creditworthy = attempt.get("credit_bureau_true_creditworthy")
+    diverged = (
+        true_creditworthy is not None and passed is not None and passed != true_creditworthy
+    )
+
+    return (
+        "<h2>Acquisition Funnel Case Study: " + cid + "</h2>"
+        + "<p class=\"meta\">Both sides of the epistemic wall -- docs/market_research/findings/"
+        + "acquisition_funnel_benchmarks.md Section 2</p>"
+        + "<h3>Company-Observable &#8212; Purchased Credit Bureau Read</h3>"
+        + _table(
+            ["Attempted", "Stage Reached", "Total Cost", "Bureau Score Band", "Bureau Decision"],
+            _row(
+                attempt.get("term_start", ""), attempt.get("stage_reached", "").replace("_", " ").upper(),
+                _gbp(attempt.get("total_cost_gbp", 0)), band or "&#8212;",
+                "PASS" if passed else ("FAIL" if passed is False else "&#8212;"),
+            ),
+        )
+        + "<h3>SIM Ground Truth &#8212; Never Exposed to Company Decision Code</h3>"
+        + _table(
+            ["True Creditworthy"],
+            _row("yes" if true_creditworthy else ("no" if true_creditworthy is not None else "&#8212;")),
+        )
+        + "<h3>The Divergence</h3>"
+        + (
+            (
+                "<p>The bureau's purchased read (" + ("PASS" if passed else "FAIL")
+                + ") disagreed with " + cid + "'s true underlying creditworthiness ("
+                + ("creditworthy" if true_creditworthy else "not creditworthy")
+                + ") -- exactly the imperfect-signal effect a real supplier pays a credit "
+                + "bureau for and lives with: the company only ever sees the bureau's read, "
+                + "never the ground truth this evidence view is showing for calibration "
+                + "purposes only.</p>"
+            ) if diverged else
+            "<p>The bureau's read agreed with ground truth for this attempt -- most attempts "
+            "do (see the credit-check divergence rate in the benchmarks research doc); the "
+            "case above is picked to show a real disagreement when one exists in the log.</p>"
+        )
+    )
+
+
+def _acquisition_funnel_process(funnel_log):
+    """Supplier tab: portfolio-level stage-leakage + CAC breakdown -- the decision
+    process this funnel replaces the flat coin-flip roll for."""
+    if not funnel_log:
+        return ""
+    dated = [a for a in funnel_log if a.get("term_start")]
+    if not dated:
+        return ""
+    latest_year = max(a["term_start"][:4] for a in dated)
+    year_entries = [a for a in dated if a["term_start"].startswith(latest_year)]
+
+    stage_counts: dict = {}
+    for a in year_entries:
+        st = a.get("stage_reached", "")
+        stage_counts[st] = stage_counts.get(st, 0) + 1
+
+    rows = "".join(
+        _row(st.replace("_", " ").upper(), stage_counts.get(st, 0))
+        for st in FUNNEL_STAGES if st in stage_counts
+    )
+    total = len(year_entries)
+    won = sum(1 for a in year_entries if a.get("won"))
+    total_cost = sum(a.get("total_cost_gbp", 0) for a in year_entries)
+    cac = total_cost / won if won else 0
+
+    return (
+        "<h2>Acquisition Funnel Process (" + latest_year + ")</h2>"
+        + "<p>" + str(total) + " acquisition attempts this year; " + str(won)
+        + " won at a real (not flat-assumed) blended CAC of " + _gbp(cac)
+        + " -- stage-level leakage below is now a real lever (price position, onboarding "
+        + "friction, credit-check threshold) rather than a single opaque win probability.</p>"
+        + _table(["Stage Reached", "Count"], rows)
+    )
+
+
 def _renewal_decision_case_study(retention):
     both_sides = [r for r in retention if r.get("sim_churn_p") is not None]
     if not both_sides:
@@ -1114,7 +1268,7 @@ def _serial_saver_portfolio(serial_savers):
     )
 
 
-def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None, churn_events=None, churn_perf=None, journey_log=None, retention_deferral=None, population_anchoring=None):
+def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None, churn_events=None, churn_perf=None, journey_log=None, retention_deferral=None, population_anchoring=None, acquisition_funnel_log=None):
     annual = sim_data.get("annual", [])
     monthly = sim_data.get("monthly", [])[:12]
     peaks = sim_data.get("peak_records", [])[:5]
@@ -1155,6 +1309,7 @@ def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledg
         + _churn_model_signal(churn_events or [], churn_perf or {})
         + _churn_journey_signal(journey_log or [], churn_events or [])
         + _retention_deferral_signal(retention_deferral or [])
+        + _acquisition_funnel_signal(acquisition_funnel_log or [])
         + _population_anchoring_rag(population_anchoring or {})
     )
     return _page("Simulation Data", "Sim", body, ts, git_commit, phase)
@@ -1243,11 +1398,12 @@ def generate(run_json_path=None):
     _churn_perf = dash.get("churn_model_performance", {})
     _journey_log = dash.get("customers", {}).get("journey_log", [])
     _retention_deferral = dash.get("customers", {}).get("retention_deferral", [])
+    _acquisition_funnel_log = dash.get("customers", {}).get("acquisition_funnel_log", [])
     pages = {
         SHADOW / "index.html": build_index(dash, ts),
         SHADOW / "customers" / "index.html": build_customers(dash, sample, ts, billing_ledger, _journey_log),
         SHADOW / "supplier" / "index.html": build_supplier(dash, ts, billing_ledger, _journey_log),
-        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf, _journey_log, _retention_deferral, _population_anchoring),
+        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf, _journey_log, _retention_deferral, _population_anchoring, _acquisition_funnel_log),
         SHADOW / "project" / "index.html": build_project(dash, latest_md, ts),
     }
 

@@ -415,6 +415,7 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
     except (FileNotFoundError, json.JSONDecodeError):
         ledger_data = {}
     arrears_findings = _arrears_check_by_year(ledger_data, years_data)
+    acquisition_funnel_findings = _acquisition_funnel_check(data.get("acquisition_funnel_log"))
 
     amber_count = sum(1 for f in bad_debt_findings if f["rag"] == "AMBER")
     red_count = sum(1 for f in bad_debt_findings if f["rag"] == "RED")
@@ -446,6 +447,7 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
         "churn_by_year": {str(k): v for k, v in sorted(churn_by_year.items())},
         "complaints_vs_benchmark": complaints_findings,
         "arrears_vs_benchmark": arrears_findings,
+        "acquisition_funnel_vs_benchmark": acquisition_funnel_findings,
     }
     
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)

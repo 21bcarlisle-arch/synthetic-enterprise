@@ -38,7 +38,6 @@ from saas.growth_mandate import (
     COST_PER_ACQUISITION,
     FIXED_COST_MONTHLY,
     MANDATE,
-    roll_acquisition,
     should_attempt_acquisition,
 )
 from saas.ledger import (
@@ -83,6 +82,8 @@ from sim.system_prices_history import get_system_prices_range
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.customer_events import roll_lifecycle_event
 from simulation.churn_journey import ChurnJourneyRegister
+from simulation.acquisition_funnel import run_acquisition_funnel
+from tools.credit_adapters import get_credit_bureau_adapter
 from company.core.resentment_ledger import FrictionEventType
 from saas.cost_to_serve import get_bad_debt_rate
 from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
@@ -820,6 +821,10 @@ def main(report_end: str | None = None, sim_interface=None):
     acquisition_spend_events: list[dict] = []
     fixed_cost_events: list[dict] = []
     _acquisition_counter: dict[str, int] = {}  # base_id -> next fresh-acquisition suffix
+
+    # PROCESS_NOT_EVENTS.md: acquisition as a funnel, not a coin flip.
+    acquisition_funnel_log: list[dict] = []
+    _credit_bureau = get_credit_bureau_adapter()
     _fixed_cost_emitted: set[str] = set()  # months already charged (dedup across customers)
 
     # Phase 11a: basis risk tracking — company_fwd vs sim_fwd per term
@@ -1209,11 +1214,28 @@ def main(report_end: str | None = None, sim_interface=None):
                             )
                             continue
 
-                        acq_won = roll_acquisition(segment, acq_seed)
+                        _funnel_result = run_acquisition_funnel(
+                            segment, acq_seed, date.fromisoformat(term_start_str),
+                            _credit_bureau, total_amount_gbp=acq_cost,
+                        )
+                        acq_won = _funnel_result.won
+
+                        acquisition_funnel_log.append({
+                            "billing_account": billing_account,
+                            "segment": segment,
+                            "term_start": term_start_str,
+                            "won": acq_won,
+                            "stage_reached": _funnel_result.stage_reached,
+                            "total_cost_gbp": _funnel_result.total_cost_gbp,
+                            "credit_bureau_score_band": _funnel_result.credit_bureau_score_band,
+                            "credit_bureau_passed": _funnel_result.credit_bureau_passed,
+                            "credit_bureau_true_creditworthy": _funnel_result.credit_bureau_true_creditworthy,
+                        })
 
                         acquisition_spend_events.append(
                             make_acquisition_spend_event(
-                                billing_account, term_start_str, acq_cost, acq_won, segment
+                                billing_account, term_start_str,
+                                _funnel_result.total_cost_gbp, acq_won, segment
                             )
                         )
 
@@ -1963,6 +1985,7 @@ def main(report_end: str | None = None, sim_interface=None):
         "starting_treasury": STARTING_TREASURY_GBP,
         # Phase 8a: growth mandate outputs
         "acquisition_spend_events": acquisition_spend_events,
+        "acquisition_funnel_log": acquisition_funnel_log,
         "fixed_cost_events": fixed_cost_events,
         "acquired_customers": [c["customer_id"] for c in ACQUIRED_CUSTOMERS],
         "growth_mandate": MANDATE,
