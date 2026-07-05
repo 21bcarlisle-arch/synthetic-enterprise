@@ -2,7 +2,9 @@
 website-integrity fix): every page footer must name the git commit + phase it
 was generated from, not just a bare timestamp, so a stale surface is
 identifiable without cross-referencing another page."""
-from tools.generate_shadow_html import build_index, build_customers, build_supplier, build_sim, build_project
+from tools.generate_shadow_html import (
+    build_index, build_customers, build_supplier, build_sim, build_project,
+)
 
 
 def _dash(git_commit="abc1234", phase="QF"):
@@ -60,3 +62,16 @@ def test_footer_shows_unknown_when_meta_missing():
     }, "ts")
     assert "Run ?" in html
     assert "Phase ?" in html
+
+
+def test_shadow_page_uses_v4_light_design_system():
+    """WEBSITE_AS_SHOWCASE.md Part 0 (Phase RE): the shadow mirror must share
+    site/sim/index.html's light v4 tokens (:root custom properties, site-nav),
+    not its own dark "advisor-verification" palette -- Rich's directive was
+    that the public-facing site/ surface carries one consistent design
+    language. Guards against reverting to the old dark theme."""
+    html = build_index(_dash(), "2026-07-04T12:00:00Z")
+    assert "--bg:#f9f9f7" in html
+    assert "site-nav" in html
+    assert "#1a1a1a" not in html
+    assert "#2a2a4a" not in html

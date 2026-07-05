@@ -51,49 +51,70 @@ NAV_LINKS = [
     ("Project", "/shadow/project/"),
 ]
 
-# PRIORITIES.md P1 (Website Integrity Part B, design system): kpi-card/kpi-grid
-# and rag-chip give the shadow mirror the same component vocabulary as the
-# customer portal's design system (company/portal/templates/base.html) -- same
-# named components (KPI cards, RAG chips), dark "advisor-verification" palette
-# kept intentionally distinct from the portal's light customer-facing theme.
+# WEBSITE_AS_SHOWCASE.md Part 0 (2026-07-05, Phase RE): the shadow mirror
+# now shares the same light v4 design system tokens as site/sim/index.html
+# (:root custom properties, kpi-card/kpi-grid, site-nav) instead of its own
+# dark "advisor-verification" palette -- Rich's directive was explicit that
+# the public-facing surface (site/, poesys.net) must carry one consistent
+# design language, not a separate theme for the shadow mirror. Class names
+# (pos/neg, kpi-card, rag-chip, meta, btn) are kept identical to v4's so the
+# ~1450 lines of body-generating functions below needed no changes.
 CSS = (
     "<style>"
-    "body{font-family:monospace;background:#1a1a1a;color:#e0e0e0;margin:0;padding:16px}"
-    "h1,h2{color:#aaf}table{border-collapse:collapse;width:100%;margin-bottom:24px}"
-    "th{background:#2a2a4a;color:#aaf;text-align:left;padding:6px 10px;border:1px solid #333}"
-    "td{padding:5px 10px;border:1px solid #2a2a2a;vertical-align:top}"
-    "tr:nth-child(even){background:#1e1e1e}"
-    ".pos{color:#4f4}.neg{color:#f44}"
-    ".meta{color:#888;font-size:0.85em;margin-bottom:16px}"
-    "pre{background:#111;padding:12px;overflow-x:auto;color:#cce;white-space:pre-wrap}"
+    ":root{--bg:#f9f9f7;--surface:#fcfcfb;--surface2:#f0efec;--border:#e1e0d9;"
+    "--text:#0b0b0b;--muted:#52514e;--green:#0ca30c;--red:#d03b3b;--amber:#fab219;"
+    "--blue:#2a78d6;--teal:#1baf7a}"
+    "*{box-sizing:border-box}"
+    "body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,monospace;"
+    "background:var(--bg);color:var(--text);margin:0;padding:0;font-size:14px;line-height:1.5}"
+    ".site-nav{display:flex;align-items:center;gap:8px;padding:12px 24px;"
+    "background:var(--surface);border-bottom:1px solid var(--border)}"
+    ".nav-logo{font-weight:700;font-size:1.1rem;color:var(--text);text-decoration:none;margin-right:12px}"
+    ".nav-link{color:var(--muted);text-decoration:none;padding:4px 10px;border-radius:6px;font-size:13px}"
+    ".nav-link:hover{color:var(--text)}"
+    ".nav-link.active{color:var(--blue);font-weight:600}"
+    ".container{max-width:1100px;margin:0 auto;padding:32px 24px}"
+    "h1,h2{color:var(--text)}"
+    "h1{font-size:1.5rem;font-weight:700;margin-bottom:4px}"
+    "h2{font-size:1rem;font-weight:600;margin:32px 0 14px}"
+    "table{border-collapse:collapse;width:100%;margin-bottom:24px;background:var(--surface);"
+    "border:1px solid var(--border);border-radius:10px;overflow:hidden}"
+    "th{background:var(--surface2);color:var(--muted);text-align:left;padding:9px 14px;"
+    "border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px}"
+    "td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top;"
+    "font-variant-numeric:tabular-nums}"
+    "tr:last-child td{border-bottom:none}"
+    "tr:hover td{background:var(--surface2)}"
+    ".pos{color:var(--green)}.neg{color:var(--red)}"
+    ".meta{color:var(--muted);font-size:0.85em;margin-bottom:16px}"
+    "pre{background:var(--surface);border:1px solid var(--border);border-radius:10px;"
+    "padding:12px;overflow-x:auto;color:var(--text);white-space:pre-wrap}"
     "dl{display:grid;grid-template-columns:200px 1fr;gap:4px 16px;margin-bottom:16px}"
-    "dt{color:#aaf}dd{margin:0}"
-    ".kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}"
-    ".kpi-card{background:#232342;border:1px solid #383868;border-radius:6px;padding:10px 14px}"
-    ".kpi-card .kpi-value{display:block;font-size:1.3em;font-weight:700;color:#aaf}"
-    ".kpi-card .kpi-label{font-size:0.75em;color:#888;text-transform:uppercase;letter-spacing:0.04em}"
+    "dt{color:var(--muted)}dd{margin:0}"
+    ".kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}"
+    ".kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}"
+    ".kpi-card .kpi-value{display:block;font-size:1.5rem;font-weight:700;line-height:1.1;color:var(--text)}"
+    ".kpi-card .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;"
+    "letter-spacing:.6px;margin-top:6px}"
     ".rag-chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.82em;font-weight:700;"
     "border:1px solid currentColor}"
-    ".rag-green{background:#0f2f1a;color:#4f4}"
-    ".rag-amber{background:#3a2f0a;color:#fc4}"
-    ".rag-red{background:#3a0f0f;color:#f44}"
+    ".rag-green{background:rgba(12,163,12,0.12);color:var(--green)}"
+    ".rag-amber{background:rgba(250,178,25,0.18);color:#95720f}"
+    ".rag-red{background:rgba(208,59,59,0.12);color:var(--red)}"
+    ".btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;"
+    "padding:4px 12px;font-size:12px;cursor:pointer;color:var(--text)}"
+    ".btn:hover{background:var(--surface2)}"
     "</style>"
 )
 
 
 def _nav(active=""):
-    parts = []
+    parts = ['<a href="/shadow/" class="nav-logo">&#9889; Poesys</a>']
     for name, href in NAV_LINKS:
-        if name == active:
-            parts.append('<strong style="color:#fff">' + name + "</strong>")
-        else:
-            parts.append('<a href="' + href + '" style="color:#88f">' + name + "</a>")
-    extras = (
-        ' | <a href="/" style="color:#666">Live site</a>'
-        ' | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a>'
-    )
-    inner = " &bull; ".join(parts) + extras
-    return '<nav style="background:#111;color:#ccc;padding:8px;font-family:monospace">' + inner + "</nav>"
+        cls = "nav-link active" if name == active else "nav-link"
+        parts.append('<a href="' + href + '" class="' + cls + '">' + name + "</a>")
+    parts.append('<a href="/" class="nav-link" style="margin-left:auto">Live site</a>')
+    return '<nav class="site-nav">' + "".join(parts) + "</nav>"
 
 
 def _gbp(v, d=0):
@@ -133,12 +154,15 @@ def _page(title, active, body, ts, git_commit="?", phase="?"):
     footer = (
         '<p class="meta">Generated: ' + ts
         + ' | Run ' + str(git_commit) + ' | Phase ' + str(phase)
-        + ' | <a href="/state/customer_sample.json" style="color:#666">customer_sample.json</a></p>'
+        + ' | <a href="/state/customer_sample.json">customer_sample.json</a></p>'
     )
     return (
         "<!DOCTYPE html><html lang=en><head><meta charset=UTF-8>"
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
         + "<title>" + title + " - Synthetic Enterprise</title>" + CSS + "</head>"
-        + "<body>" + _nav(active) + body + footer + "</body></html>"
+        + "<body>" + _nav(active)
+        + '<div class="container">' + body + footer + "</div>"
+        + "</body></html>"
     )
 
 
