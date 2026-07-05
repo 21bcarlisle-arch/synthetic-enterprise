@@ -204,6 +204,40 @@ def test_extract_report_data_splits_by_year():
     assert data["per_customer_lifetime"]["C1"]["net_gbp"] == 11.0
 
 
+def test_extract_report_data_total_net_ignores_stale_phase2b_scalar():
+    """Regression test for the Project tab consistency bug (PROJECT_TAB_OVERHAUL.md
+    critique finding #1): total_net_gbp/total_bad_debt_gbp must be derived live from
+    all_records (post-mutation, after apply_emergent_bad_debt/apply_debt_recovery run
+    in run_phase4c_on_phase2b.py), never trusted from phase2b's own total_net/
+    total_bad_debt scalars, which are captured before those mutation passes run and
+    can go stale relative to all_records."""
+    run_output = _run_output()
+    # Simulate exactly the bug: phase2b's scalars were computed pre-mutation and no
+    # longer match all_records (post-mutation), which is the real invariant.
+    run_output["phase2b"]["total_net"] = 999.0
+    run_output["phase2b"]["total_bad_debt"] = 999.0
+
+    data = extract_report_data(run_output)
+
+    all_records = run_output["phase2b"]["all_records"]
+    expected_net = sum(r["net_margin_gbp"] for r in all_records)
+    expected_bad_debt = sum(r.get("bad_debt_gbp", 0.0) for r in all_records)
+
+    assert expected_net == 15.0
+    assert expected_bad_debt == 4.0
+
+    assert data["total_net_gbp"] == expected_net
+    assert data["total_bad_debt_gbp"] == expected_bad_debt
+    assert data["total_net_gbp"] != 999.0
+    assert data["total_bad_debt_gbp"] != 999.0
+
+    # Core consistency invariant the site needs: the top-level total must equal the
+    # sum of the per-year breakdown, by construction (same source list, same field).
+    assert data["total_net_gbp"] == sum(
+        data["years"][year]["net_gbp"] for year in data["years"]
+    )
+
+
 def test_generate_annual_report_produces_year_sections():
     data = extract_report_data(_run_output())
     report = generate_annual_report(data)

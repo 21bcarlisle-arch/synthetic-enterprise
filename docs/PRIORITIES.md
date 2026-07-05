@@ -1,12 +1,41 @@
 # Current Priorities
 
-Last updated: 2026-07-04 -- Phases PY-QK COMPLETE. Major redirect merged from advisor-staged
-directives (PROCESS_NOT_EVENTS, DECISION_LOOP_AND_EVENT_LEDGER, PREAPPROVE_PROCESS_MODEL,
-SAAS_COVERAGE_MAP, FEEDBACK_AND_REPUTATION) -- supersedes the Q4 churn-validation-loop framing.
-docs/design/PROCESS_MODEL.md written per pre-approval. Phase QL (churn journey) IN PROGRESS:
-Part 1 (simulation/churn_journey.py state machine, standalone + tested, 15 tests) shipped;
-Part 2 (wiring into simulation/run_phase2b.py's live per-period loop + evidence retrofit on
-Sim/Customers/Supplier tabs) NOT yet started -- do not treat QL as closed until Part 2 lands.
+Last updated: 2026-07-05 -- Phases QL-QV COMPLETE. PROCESS_NOT_EVENTS.md CLOSED IN FULL (churn
+journey/QL, acquisition funnel/QR, debt-branch DCA recovery/QS). DECISION_LOOP_AND_EVENT_LEDGER.md
+CLOSED IN FULL (event ledger/QP, calibration fix + counterfactual lift/QQ). SAAS_COVERAGE_MAP.md
+items 3-4 (debt journey extension, credit bureau boundary feed) already done as a side effect of
+QR/QS -- only items 1-2 (the coverage-map doc + Project tab site surface) remain open.
+
+**NEW ACTIVE WAVE (staged 2026-07-04 21:25 - 2026-07-05 06:25, found unactioned in docs/staging/,
+none moved to done/ yet): director-critique site overhaul, 8 documents.** WEBSITE_AS_SHOWCASE.md is
+the master directive (the site as investor-facing showcase, one story per tab); SIM_TAB_OVERHAUL.md,
+SUPPLIER_TAB_OVERHAUL.md, CUSTOMER_360_REDESIGN.md, PROJECT_TAB_OVERHAUL.md, NAV_STORY_PLATFORM_METHOD.md
+elaborate individual tabs/nav; FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md are explicitly queued
+behind this wave (Tier 3 design notes, not yet reached). Per WEBSITE_AS_SHOWCASE.md's own sequencing:
+Part 0 (QO's design system landed on company/portal/templates/ -- the WRONG surface; Rich's actual
+site/ is unchanged) + tabs 1 (SIM) and 4 (Customer 360/case-study recommender) are Tier 2 now (data
+already exists). Tab 2 (Supplier)'s frozen-policy-baseline headline metric needs a Tier 3 design note
+first (policy snapshot/replay is one-way-door-adjacent). Tab 3 (Project) assembles as others land.
+
+Phase QV COMPLETE (2026-07-05, Tier 2): event-frequency data model (SIM_TAB_OVERHAUL.md item 4) --
+payment_miss_trajectory + bill_shock_history now flow from company/crm/payment_behaviour_analytics.py
+through simulation/run_phase2b.py into customer_sample.json; site/sim/index.html's event-frequency
+panel (life events/bill shocks/payment misses/switches per year) consumes them. Found already
+mid-built (uncommitted) from an interrupted prior session; verified (15,578 tests) and committed.
+
+Phase QW IN PROGRESS (2026-07-05, Tier 2 -- closes PROJECT_TAB_OVERHAUL.md critique #1, "CONSISTENCY
+BREACH"): root-caused and fix delegated to saas-engineer. saas/reporting/annual_report.py's
+extract_report_data() reported `total_net_gbp`/`total_bad_debt_gbp` from stale phase2b["total_net"]/
+["total_bad_debt"] scalars captured inside run_phase2b.main() BEFORE run_phase4c_on_phase2b.py's
+apply_emergent_bad_debt()/apply_debt_recovery() correct all_records in place (Phases QD/QS) -- so the
+per-year "years" breakdown (built from the corrected all_records) summed to £1,535,307.74 while the
+top-level total_net_gbp field still reported the pre-correction £1,445,257.67, a live ~£90k two-truths
+bug on site/project/index.html's Overview KPIs. Fix: recompute both fields live from all_records
+(same pattern total_revenue_gbp already used). Also flagged in the same critique, NOT yet started:
+site/data/phases.json is hand-curated (stopped 2026-07-03, no generator script) -- violates the R-A
+"nothing hand-written" rule and needs a generator sourced from PROJECT_OVERVIEW.md Section 4 phase
+headers + Section 10's current test count, matching tools/generate_project_state.py's existing
+regex-parse pattern.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
 Coverage sprints (phases LQ through MU, 95+ sprints) are complete.
@@ -14,12 +43,8 @@ All future phases must close a real capability gap from the list below.
 Do NOT propose another coverage sprint. Do NOT read the old sprint pattern and repeat it.
 
 ## Now (active this session)
-Last updated: 2026-07-04 -- WEEKEND_ACCELERATION.md queue (Tier 2, pre-approved): Q1 (QD bad debt), Q3
-(QG advisor mirror), Q6 (QE shadow-live persistence) DONE. Q7 (scenario suite) pre-empted by Phase PZ.
-Q4 (churn model validation loop) DONE as Phase QK -- fix verified correct, recall/precision finding
-reclassified (decay-timing, not missing-signal), see KEY OPEN FINDING below. Q2 (website design system)
-and Q5 (customer portal per-fuel depth -- likely already substantially covered by Phase PT's dual-fuel
-legs + generate_invoice_data.py, needs verification) remain open, next candidates.
+Last updated: 2026-07-05 -- see "NEW ACTIVE WAVE" above. The WEBSITE_AS_SHOWCASE.md wave outbids
+everything in this section below (all dated 2026-07-04 or earlier); retained for history only.
 
 Phase PY COMPLETE (2026-07-04): Synthetic Generator Statistical Equivalence Gate -- 15,402 tests.
 Phase PZ COMPLETE (2026-07-04): Scenario Stress Testing via Synthetic Market -- 15,424 tests.
