@@ -498,5 +498,36 @@
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     }
   ],
-  "acquisition_funnel_vs_benchmark": []
+  "acquisition_funnel_vs_benchmark": [
+    {
+      "year": 2020,
+      "segment": "resi",
+      "attempts": 1,
+      "wins": 0,
+      "win_rate_pct": 0.0,
+      "benchmark_lo_pct": 15.0,
+      "benchmark_hi_pct": 20.0,
+      "rag": "RED"
+    },
+    {
+      "year": 2024,
+      "segment": "SME",
+      "attempts": 1,
+      "wins": 0,
+      "win_rate_pct": 0.0,
+      "benchmark_lo_pct": 15.0,
+      "benchmark_hi_pct": 21.0,
+      "rag": "RED"
+    },
+    {
+      "year": 2024,
+      "segment": "resi",
+      "attempts": 1,
+      "wins": 0,
+      "win_rate_pct": 0.0,
+      "benchmark_lo_pct": 15.0,
+      "benchmark_hi_pct": 20.0,
+      "rag": "RED"
+    }
+  ]
 }
