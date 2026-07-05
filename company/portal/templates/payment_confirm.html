@@ -1,23 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Payment Confirmation — {{ customer.customer_id }}</title>
-  <style>body{font-family:sans-serif;max-width:600px;margin:40px auto;padding:0 16px}
-    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    .result{padding:16px;border-radius:6px;margin:20px 0}
-    .paid{background:#f0fff4;border:1px solid #276749;color:#276749}
-    .partially_paid{background:#fffbeb;border:1px solid #c05621;color:#c05621}
-    .no_match{background:#fff5f5;border:1px solid #c53030;color:#c53030}
+{% extends "base.html" %}
+{% block title %}Payment Confirmation &mdash; {{ customer.customer_id }}{% endblock %}
+{% block maxwidth %}600px{% endblock %}
+{% block extra_css %}
     dl{display:grid;grid-template-columns:max-content auto;gap:4px 16px}
     dt{font-weight:600}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a>
-       | <a href="/account/{{ customer.customer_id }}/bills">Bills</a></nav>
+{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/account/{{ customer.customer_id }}">Dashboard</a>
+    <a href="/account/{{ customer.customer_id }}/bills">Bills</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
   <h1>Payment Confirmation</h1>
-  <div class="result {{ result }}">
+  <div class="banner {{ 'banner-success' if result == 'paid' else 'banner-warn' if result == 'partially_paid' else 'banner-danger' }}">
     {% if result == "paid" %}
       <strong>Payment recorded — invoice fully settled.</strong>
     {% elif result == "partially_paid" %}
@@ -35,5 +30,4 @@
     <dt>Status</dt><dd>{{ result.replace("_", " ").title() }}</dd>
   </dl>
   <p><a href="/account/{{ customer.customer_id }}/bills">Return to bills</a></p>
-</body>
-</html>
+{% endblock %}

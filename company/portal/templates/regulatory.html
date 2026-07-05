@@ -1,21 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Regulatory Compliance</title>
-  <style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 16px}
-    h1,h2{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
-    th{background:#ebf8ff}
-    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:600}
-    .COMPLIANT{background:#f0fff4;color:#276749}.AT_RISK{background:#fffbeb;color:#c05621}
-    .BREACH{background:#fff5f5;color:#c53030}.OK{background:#f0fff4;color:#276749}
-    .Watch{background:#fffbeb;color:#c05621}.STRESS{background:#fff5f5;color:#c53030}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a></nav>
+{% extends "base.html" %}
+{% block title %}Regulatory Compliance{% endblock %}
+{% block maxwidth %}900px{% endblock %}
+{% block extra_css %}
+    .COMPLIANT{background:var(--green-bg);color:var(--green)}.AT_RISK{background:var(--amber-bg);color:var(--amber)}
+    .BREACH{background:var(--red-bg);color:var(--red)}.OK{background:var(--green-bg);color:var(--green)}
+    .Watch{background:var(--amber-bg);color:var(--amber)}.STRESS{background:var(--red-bg);color:var(--red)}
+{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/admin">Admin</a>
+    <a href="/regulatory" class="active">Regulatory</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
   <h1>Regulatory Compliance Dashboard</h1>
   <p><em>Year: {{ reg.year }} | {{ reg.customer_count }} active accounts</em></p>
 
@@ -27,7 +23,7 @@
     <tr><td>Penetration</td><td>{{ reg.resi_penetration_pct }}%</td></tr>
     <tr><td>Ofgem target ({{ reg.year }})</td><td>{{ reg.sm_target_pct }}%</td></tr>
     <tr><td>Compliance status</td>
-        <td><span class="badge {{ reg.sm_status }}">{{ reg.sm_status }}</span></td></tr>
+        <td><span class="rag-chip {{ reg.sm_status }}">{{ reg.sm_status }}</span></td></tr>
   </table>
 
   <h2>Capital Adequacy (Ofgem MCR)</h2>
@@ -39,7 +35,7 @@
     <tr><td>MCR headroom</td><td>£{{ "%.0f"|format(reg.mcr_headroom_gbp) }}</td></tr>
     <tr><td>MCR ratio</td><td>{{ reg.solvency_ratio }}x</td></tr>
     <tr><td>Status</td>
-        <td><span class="badge {{ reg.solvency_status }}">{{ reg.solvency_status }}</span></td></tr>
+        <td><span class="rag-chip {{ reg.solvency_status }}">{{ reg.solvency_status }}</span></td></tr>
   </table>
 
   <h2>Annual Fees</h2>
@@ -75,10 +71,10 @@
   <h2>Ombudsman Referrals</h2>
   <p>Complaints unresolved beyond 8 weeks are eligible for referral to <em>Ombudsman Services: Energy</em>.</p>
   {% if reg.ombudsman_count > 0 %}
-  <p style="color:#c53030;font-weight:600">&#9888; {{ reg.ombudsman_count }} complaint{{ "s" if ombudsman_count > 1 }} currently Ombudsman-eligible.
+  <p style="color:var(--red);font-weight:600">&#9888; {{ reg.ombudsman_count }} complaint{{ "s" if ombudsman_count > 1 }} currently Ombudsman-eligible.
   <a href="/admin/complaints">View in complaint tracker</a></p>
   {% else %}
-  <p style="color:#276749">&#10003; No complaints currently eligible for Ombudsman referral.</p>
+  <p style="color:var(--green)">&#10003; No complaints currently eligible for Ombudsman referral.</p>
   {% endif %}
   {% endif %}
 
@@ -89,7 +85,7 @@
     <tr><th>Source</th><th>% of supply</th></tr>
     <tr><td>Renewable (wind, solar, hydro, biomass)</td>
         <td><strong>{{ reg.fuel_mix.renewable_pct }}%</strong>
-        {% if reg.fuel_mix.trend_direction == "up" %}<span style="color:#276749"> &#9650; +{{ reg.fuel_mix.renewable_trend }}% vs prior year</span>{% endif %}</td></tr>
+        {% if reg.fuel_mix.trend_direction == "up" %}<span style="color:var(--green)"> &#9650; +{{ reg.fuel_mix.renewable_trend }}% vs prior year</span>{% endif %}</td></tr>
     <tr><td>Nuclear</td><td>{{ reg.fuel_mix.mix.nuclear }}%</td></tr>
     <tr><td>Gas</td><td>{{ reg.fuel_mix.mix.gas }}%</td></tr>
     <tr><td>Coal</td><td>{{ reg.fuel_mix.mix.coal }}%</td></tr>
@@ -98,5 +94,4 @@
   </table>
   {% endif %}
 
-</body>
-</html>
+{% endblock %}

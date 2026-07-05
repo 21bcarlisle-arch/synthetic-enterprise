@@ -1,36 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Consumption — {{ customer.customer_id }}</title>
-  <style>
-    body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-    nav { margin-bottom: 1.5rem; font-size: 0.9rem; }
-    nav a { margin-right: 1rem; }
-    h1 { border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
-    .hh-banner { background: #e8f5e9; border: 1px solid #4caf50; padding: 0.75rem 1rem;
+{% extends "base.html" %}
+{% block title %}Consumption &mdash; {{ customer.customer_id }}{% endblock %}
+{% block maxwidth %}800px{% endblock %}
+{% block extra_css %}
+    .hh-banner { background: var(--green-bg); border: 1px solid var(--green-border); padding: 0.75rem 1rem;
                  border-radius: 4px; margin: 1rem 0; font-size: 0.95rem; }
-    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
-    th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid #ddd; }
-    th { background: #f5f5f5; font-weight: 600; }
-    tr:last-child td { border-bottom: none; }
-    .total-row { font-weight: 600; background: #fafafa; }
-    .no-data { color: #666; font-style: italic; padding: 1rem 0; }
-    .peak { background: #fffbeb; }
-    .off-peak { background: #ebf8ff; }
-    .band-peak { color: #c05621; font-weight: 600; }
-    .band-off { color: #2b6cb0; }
+    .total-row { font-weight: 600; background: var(--surface); }
+    .no-data { color: var(--grey); font-style: italic; padding: 1rem 0; }
+    .peak { background: var(--amber-bg); }
+    .off-peak { background: var(--blue-bg); }
+    .band-peak { color: var(--amber); font-weight: 600; }
+    .band-off { color: var(--blue); }
     .legend { margin: 0.5rem 0 1rem; font-size: 0.88em; }
     .legend span { display: inline-block; padding: 2px 8px; border-radius: 3px; margin-right: 8px; }
-  </style>
-</head>
-<body>
-  <nav>
-    <a href="/">Logout</a> |
-    <a href="/account/{{ customer.customer_id }}">Dashboard</a> |
-    <a href="/account/{{ customer.customer_id }}/bills">Bills</a> |
-    <a href="/account/{{ customer.customer_id }}/billing">Billing Detail</a> |
+{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/account/{{ customer.customer_id }}">Dashboard</a>
+    <a href="/account/{{ customer.customer_id }}/bills">Bills</a>
+    <a href="/account/{{ customer.customer_id }}/billing">Billing Detail</a>
+    <a href="/account/{{ customer.customer_id }}/consumption" class="active">Consumption</a>
     <a href="/account/{{ customer.customer_id }}/tariff-compare">Compare Tariffs</a>
+    <a href="/" class="logout">Logout</a>
   </nav>
 
   <h1>Consumption History</h1>
@@ -45,8 +35,8 @@
   <table>
     {% if is_tou %}
     <div class="legend">
-      <span style="background:#fffbeb;color:#c05621;border:1px solid #c05621">&#9650; Peak 07:00-19:00 weekdays</span>
-      <span style="background:#ebf8ff;color:#2b6cb0;border:1px solid #2b6cb0">&#9660; Off-Peak all other times</span>
+      <span style="background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber)">&#9650; Peak 07:00-19:00 weekdays</span>
+      <span style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue)">&#9660; Off-Peak all other times</span>
     </div>
     {% endif %}
     <thead><tr><th>Date</th><th>Period</th><th>Time</th><th>kWh</th>{% if is_tou %}<th>Band</th>{% endif %}</tr></thead>
@@ -67,11 +57,11 @@
 
 
   {% if calibrated_eac %}
-  <div style="margin:20px 0;padding:12px;background:#f7fafc;border:1px solid #bee3f8;border-radius:6px">
+  <div class="banner banner-info">
     <strong>Calibrated EAC:</strong> {{ calibrated_eac }} kWh/yr
     (original: {{ customer.eac_kwh }} kWh/yr)
     {% if eac_drift %}
-    &mdash; <span style="color:{{ '#c53030' if eac_drift.direction == 'down' else ('#276749' if eac_drift.direction == 'up' else '#718096') }}">
+    &mdash; <span style="color:{{ 'var(--red)' if eac_drift.direction == 'down' else ('var(--green)' if eac_drift.direction == 'up' else 'var(--grey)') }}">
       {{ eac_drift.drift_pct }}% {{ eac_drift.direction }}</span>
     {% endif %}
   </div>
@@ -80,10 +70,7 @@
 
 
   {% if rate_cmp %}
-  <div style="margin:16px 0;padding:12px;border-radius:6px;
-    border:1px solid {{ '#276749' if rate_cmp.protected else '#c53030' if rate_cmp.delta_p and rate_cmp.delta_p > 0.5 else '#bee3f8' }};
-    background:{{ '#f0fff4' if rate_cmp.protected else '#fff5f5' if rate_cmp.delta_p and rate_cmp.delta_p > 0.5 else '#ebf8ff' }};
-    font-size:0.9em">
+  <div class="banner {{ 'banner-success' if rate_cmp.protected else 'banner-danger' if rate_cmp.delta_p and rate_cmp.delta_p > 0.5 else 'banner-info' }}">
     <strong>Market rate comparison:</strong>
     Forward market {{ rate_cmp.market_p }}p/kWh
     {% if rate_cmp.contracted_p %}
@@ -95,7 +82,7 @@
   </div>
   {% endif %}
   {% if carbon %}
-  <div style="margin:16px 0;padding:12px;background:#f0fff4;border:1px solid #9ae6b4;border-radius:6px;font-size:0.9em">
+  <div class="banner banner-success">
     <strong>Estimated carbon footprint ({{ carbon.year }}):</strong>
     {{ carbon.kg_co2e }} kg CO<sub>2</sub>e/yr
     ({{ carbon.tonnes_co2e }} tonnes)
@@ -105,9 +92,7 @@
 
 
   {% if benchmark and benchmark.peer_count > 0 %}
-  <div style="margin:16px 0;padding:12px;border-radius:6px;font-size:0.9em;
-    border:1px solid {{ '#9ae6b4' if benchmark.rating == 'efficient' else '#fed7aa' if benchmark.rating == 'heavy' else '#bee3f8' }};
-    background:{{ '#f0fff4' if benchmark.rating == 'efficient' else '#fffaf0' if benchmark.rating == 'heavy' else '#ebf8ff' }}">
+  <div class="banner {{ 'banner-success' if benchmark.rating == 'efficient' else 'banner-warn' if benchmark.rating == 'heavy' else 'banner-info' }}">
     <strong>Usage vs similar homes:</strong>
     {{ benchmark.label }}
     Your usage: {{ benchmark.customer_eac }} kWh/yr &mdash;
@@ -117,7 +102,7 @@
   {% endif %}
 
   {% if cost_forecast %}
-  <div style="margin:20px 0;padding:14px;background:#f0fff4;border:1px solid #276749;border-radius:6px">
+  <div class="banner banner-success">
     <strong>Estimated annual cost:</strong>
     £{{ "%.0f"|format(cost_forecast.annual_total_gbp) }}
     (based on {{ cost_forecast.eac_kwh }} kWh/yr at {{ cost_forecast.unit_rate_p_per_kwh }}p/kWh
@@ -162,10 +147,10 @@
 
 
   {% if has_gas %}
-  <hr style="margin: 32px 0; border: none; border-top: 2px solid #fed7aa;">
-  <h2 style="color: #c05621;">&#128293; Gas Consumption</h2>
+  <hr style="margin: 32px 0; border: none; border-top: 2px solid var(--amber-bg);">
+  <h2 style="color: var(--amber);">&#128293; Gas Consumption</h2>
   {% if gas_customer %}
-  <p style="font-size:0.88em;color:#718096">
+  <p style="font-size:0.88em;color:var(--grey)">
     Gas account: {{ gas_customer.customer_id }}
     &nbsp;&middot;&nbsp;
     Annual quantity: {{ gas_customer.get("aq_kwh", 0) | int | default(0) }} kWh/yr
@@ -200,6 +185,4 @@
   <p class="no-data">No gas consumption records found.</p>
   {% endif %}
   {% endif %}
-
-</body>
-</html>
+{% endblock %}

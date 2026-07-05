@@ -1,6 +1,7 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-04 (P1 shadow-live hardening DELIVERED via Phase QE; Website Integrity Part C
-# DELIVERED via Phase QF; Part B (design system + customer portal per-fuel legs) is now the sole P1)
+# Last refreshed: 2026-07-05 (Website Integrity Part B DELIVERED via Phase QN + Phase QO -- both
+# per-fuel-legs and design-system halves now done. New P1: Decision Event Ledger, the remaining
+# scope of docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md.)
 
 ## COMPLETED
 - P1 (billing depth): Arrears states + dunning cycles + emergent bad debt -- DONE (Phase QD).
@@ -80,20 +81,42 @@ Phase PZ (scenario stress testing) jumped the queue: ADVISOR_CONFIRM_STATE_FRESH
 correlated-generator hold WITH explicit conditions -- it stays BACKLOG behind P1 below until it's
 DELIVERED, not just listed. No further generator/scenario phases until P1 below is complete.
 
-## PRIORITY 1 -- WEBSITE INTEGRITY PART B (PROFESSIONAL DESIGN SYSTEM)
-Customer portal per-fuel legs: DONE (Phase QN, 2026-07-05) -- Customers tab no longer drops gas
-legs (`if cid.endswith("g"): continue` removed), both fuel legs shown as separate accounts, a
-"Combined Roll-Up" table added as an explicit optional secondary view, and a per-fuel case study
-(C_IC3/C_IC3g) shows real invoice/arrears/failed-payment history per leg from billing_ledger.json
--- live run shows the gas leg carrying a real -GBP89,641 arrears balance the electricity leg (0
-failed payments, 0 arrears) has none of, proving why the legs must stay separate.
-Remaining scope: one coherent design system across all four shadow sections + customer portal --
-consistent nav, typography, spacing, palette, components (KPI cards, tables, RAG chips), responsive.
-Shadow mirror stays in lockstep (same canonical data, same generator pass, plain HTML). See
-docs/staging/done/WEBSITE_INTEGRITY_AND_DESIGN_PARTA_DONE.md for the full original staged instruction
-(Part B, item 6-8).
+## COMPLETED (cont.)
+- Website Integrity Part B (Professional Design System): DONE (Phase QN + Phase QO, 2026-07-05).
+  QN closed the per-fuel-legs data-completeness half -- Customers tab no longer drops gas legs
+  (`if cid.endswith("g"): continue` removed), both fuel legs shown as separate accounts, a
+  "Combined Roll-Up" table added as an explicit optional secondary view, and a per-fuel case study
+  (C_IC3/C_IC3g) shows real invoice/arrears/failed-payment history per leg from billing_ledger.json
+  -- live run shows the gas leg carrying a real -GBP89,641 arrears balance the electricity leg (0
+  failed payments, 0 arrears) has none of, proving why the legs must stay separate.
+  QO closed the design-system half -- company/portal/templates/base.html centralizes design tokens
+  (palette/spacing/typography) and shared components (kpi-card, rag-chip, banner, btn, consistent
+  nav with active-page highlighting) across all 19 customer portal templates, replacing 19
+  independent inline <style> blocks; matching kpi-card/rag-chip CSS added to the shadow mirror
+  (dark advisor-verification theme, kept intentionally distinct from the portal's light customer
+  theme); population_anchoring.json (computed since Phase PQ, never rendered anywhere) now surfaces
+  as real rag-chips on the Sim tab. See docs/staging/done/WEBSITE_INTEGRITY_AND_DESIGN_PARTA_DONE.md
+  for the full original staged instruction.
 
-## Backlog (after P1 delivered)
+## PRIORITY 1 -- DECISION EVENT LEDGER (docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md)
+Staged, Tier 2, explicitly named to run "alongside Website Part B" -- now the primary thread since
+Part B is fully delivered. Parts 1-3 (moments-of-truth triggers, EV-based decisions, H1-vs-H2
+variance) are substantially built already (retention_risk.py triggers, run_phase2b.py EV logging,
+company/analytics/retention_deferral_economics.py H1/H2 from Phase QM). Remaining scope:
+- Part 4, Counterfactual Lift: extend Phase NO's matched no-intervention counterfactual to every
+  intervention class (not just retention), producing real lift-per-pound as the fitness function.
+- Part 5, the Decision Event Ledger itself: a genuine chronological customer timeline (Customers
+  tab) showing every commercial event in sequence -- renewal window opened, trigger fired, decision
+  taken with its EV and options considered, offer made, accepted/declined, arrears entry, dunning
+  step, payment plan, write-off, churn -- for one real named account (C7 or C_IC1 class case). The
+  current surfaces show per-topic case studies (churn journey, renewal decision, retention
+  deferral) built independently across QI/QJ/QL/QM; this ledger unifies them into one ordered feed.
+  Portfolio event stream (Supplier tab): the live-run feed of decisions as a company ops view,
+  filterable by event type, H1 EV shown at decision time and H2 outcome once realized.
+- Also fix en route: the 0.95-ceiling false-positive bug flagged since Phase QB (false positives
+  burn real margin even in an EV frame).
+
+## Backlog
 - Further correlated-generator scenarios, extended stress suites, shadow-live index page
 - C2/C3/C4 resi EAC benchmarking vs Ofgem TDCV by dwelling type
 - Smart meter customers on real HH shapes for segment model

@@ -1,26 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Account Statement — {{ customer.customer_id }}</title>
-  <style>
-    body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 16px}
-    h1,h2{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
-    th{background:#ebf8ff}
-    .paid{color:#276749}.unpaid{color:#c53030}.partially_paid{color:#c05621}.bad_debt{color:#718096}
-    .summary{margin:20px 0;padding:16px;background:#f7fafc;border:1px solid #bee3f8;border-radius:6px}
-    .summary table{margin-top:0}.summary td{border:none;padding:4px 0}
+{% extends "base.html" %}
+{% block title %}Account Statement &mdash; {{ customer.customer_id }}{% endblock %}
+{% block extra_css %}
+    .paid{color:var(--green)}.unpaid{color:var(--red)}.partially_paid{color:var(--amber)}.bad_debt{color:var(--grey)}
+    .summary td{border:none;padding:4px 0}
     .summary td:last-child{text-align:right;font-weight:600}
-    .total-row td{border-top:2px solid #2b6cb0;font-weight:700}
-    @media print{nav{display:none}.summary{border:1px solid #888}button{display:none}}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a>
-       | <a href="/account/{{ customer.customer_id }}/bills">Bills</a>
-       <button onclick="window.print()" style="float:right;padding:6px 12px;background:#2b6cb0;color:#fff;border:none;border-radius:4px;cursor:pointer">Print</button>
+    .total-row td{border-top:2px solid var(--blue);font-weight:700}
+    @media print{.summary{border:1px solid #888}}
+{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/account/{{ customer.customer_id }}">Dashboard</a>
+    <a href="/account/{{ customer.customer_id }}/bills">Bills</a>
+    <a href="/account/{{ customer.customer_id }}/statement" class="active">Statement</a>
+    <button onclick="window.print()" class="btn btn-sm" style="float:right">Print</button>
+    <a href="/" class="logout">Logout</a>
   </nav>
   <h1>Account Statement</h1>
   <p><strong>Account:</strong> {{ customer.customer_id }} &nbsp;
@@ -46,14 +39,13 @@
   <p><em>No invoices on record.</em></p>
   {% endif %}
 
-  <div class="summary">
+  <div class="kpi-card summary">
     <h2 style="margin-top:0">Account Balance</h2>
     <table>
       <tr><td>Total billed</td><td>£{{ "%.2f"|format(total_billed_gbp) }}</td></tr>
-      <tr><td>Total paid</td><td style="color:#276749">£{{ "%.2f"|format(total_paid_gbp) }}</td></tr>
-      <tr><td>Bad debt written off</td><td style="color:#718096">£{{ "%.2f"|format(total_bad_debt_gbp) }}</td></tr>
-      <tr class="total-row"><td>Outstanding balance</td><td style="color:#c53030">£{{ "%.2f"|format(total_outstanding_gbp) }}</td></tr>
+      <tr><td>Total paid</td><td style="color:var(--green)">£{{ "%.2f"|format(total_paid_gbp) }}</td></tr>
+      <tr><td>Bad debt written off</td><td style="color:var(--grey)">£{{ "%.2f"|format(total_bad_debt_gbp) }}</td></tr>
+      <tr class="total-row"><td>Outstanding balance</td><td style="color:var(--red)">£{{ "%.2f"|format(total_outstanding_gbp) }}</td></tr>
     </table>
   </div>
-</body>
-</html>
+{% endblock %}

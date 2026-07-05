@@ -1,17 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Trading Desk</title>
-  <style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 16px}
-    h1,h2{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
-    th{background:#ebf8ff}.pos{color:#276749}.neg{color:#c53030}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a></nav>
+{% extends "base.html" %}
+{% block title %}Trading Desk{% endblock %}
+{% block maxwidth %}900px{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/admin">Admin</a>
+    <a href="/trading" class="active">Trading</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
   <h1>Trading Desk</h1>
   {% if spot and spot.available %}
   <h2>Market Data Feed (M3)</h2>
@@ -24,7 +19,7 @@
         <td>{% if spot.gas_spot %}{{ "%.2f"|format(spot.gas_spot) }}{% else %}—{% endif %}</td>
         <td>{% if spot.gas_forward %}{{ "%.2f"|format(spot.gas_forward) }}{% else %}—{% endif %}</td></tr>
   </table>
-  {% if spot.stale %}<p style="color:#c53030;font-size:0.85em;">&#9888; Feed may be stale (>24h)</p>{% endif %}
+  {% if spot.stale %}<p style="color:var(--red);font-size:0.85em;">&#9888; Feed may be stale (>24h)</p>{% endif %}
   {% endif %}
   {% if data %}
   <h2>Hedge Portfolio Summary</h2>
@@ -60,5 +55,4 @@
   {% else %}
   <p><em>No run data available.</em></p>
   {% endif %}
-</body>
-</html>
+{% endblock %}

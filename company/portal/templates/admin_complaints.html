@@ -1,22 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Complaint Tracker</title>
-  <style>body{font-family:sans-serif;max-width:1000px;margin:40px auto;padding:0 16px}
-    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
-    th{background:#ebf8ff}
-    .ok{color:#276749}.overdue{color:#c53030;font-weight:600}.resolved{color:#718096}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a> | <a href="/admin">Admin</a></nav>
+{% extends "base.html" %}
+{% block title %}Complaint Tracker{% endblock %}
+{% block maxwidth %}1000px{% endblock %}
+{% block extra_css %}
+    .ok{color:var(--green)}.overdue{color:var(--red);font-weight:600}.resolved{color:var(--grey)}
+{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/admin">Admin</a>
+    <a href="/admin/complaints" class="active">Complaints</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
   <h1>Complaint Deadline Tracker</h1>
   <p><em>Ofgem: acknowledge within 2 working days; resolve within 8 weeks.</em></p>
   {% if ombudsman %}
-  <div style="background:#fff5f5;border:1px solid #c53030;border-radius:6px;padding:12px;margin:12px 0;font-size:0.9em">
+  <div class="banner banner-danger">
     <strong>&#9888; {{ ombudsman|length }} complaint{{ "s" if ombudsman|length > 1 }} Ombudsman-eligible</strong>
     — unresolved beyond 8 weeks. Issue a deadlock letter and signpost <em>Ombudsman Services: Energy</em>.
     <ul style="margin:6px 0 0;padding-left:18px">
@@ -48,5 +45,4 @@
   {% else %}
   <p><em>No complaints on record.</em></p>
   {% endif %}
-</body>
-</html>
+{% endblock %}

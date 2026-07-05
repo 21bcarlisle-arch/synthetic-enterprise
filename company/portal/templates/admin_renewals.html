@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Upcoming Renewals</title>
-  <style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 16px}
-    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
-    th{background:#ebf8ff}
-    .urgent{color:#c53030;font-weight:600}.soon{color:#c05621}.upcoming{color:#276749}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a> | <a href="/admin">Admin</a></nav>
+{% extends "base.html" %}
+{% block title %}Upcoming Renewals{% endblock %}
+{% block maxwidth %}900px{% endblock %}
+{% block extra_css %}
+    .urgent{color:var(--red);font-weight:600}.soon{color:var(--amber)}.upcoming{color:var(--green)}
+{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/admin">Admin</a>
+    <a href="/admin/renewals" class="active">Renewals</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
   <h1>Upcoming Renewals (next {{ horizon }} days)</h1>
   {% if upcoming %}
   <table>
@@ -31,5 +28,4 @@
   {% else %}
   <p><em>No contracts renewing in the next {{ horizon }} days.</em></p>
   {% endif %}
-</body>
-</html>
+{% endblock %}

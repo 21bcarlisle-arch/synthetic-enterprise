@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Collections Queue</title>
-  <style>body{font-family:sans-serif;max-width:1000px;margin:40px auto;padding:0 16px}
-    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
-    th{background:#ebf8ff}
-    .t90{color:#c53030;font-weight:600}.t60{color:#c05621}.t30{color:#d69e2e}.t0{color:#276749}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a> | <a href="/admin">Admin</a></nav>
+{% extends "base.html" %}
+{% block title %}Collections Queue{% endblock %}
+{% block maxwidth %}1000px{% endblock %}
+{% block extra_css %}
+    .t90{color:var(--red);font-weight:600}.t60{color:var(--amber)}.t30{color:#d69e2e}.t0{color:var(--green)}
+{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/admin">Admin</a>
+    <a href="/admin/collections" class="active">Collections</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
   <h1>Collections Queue</h1>
   <p><em>Customers with unpaid invoices past due date, sorted by severity.</em></p>
   {% if queue %}
@@ -34,5 +31,4 @@
   {% else %}
   <p><em>No overdue accounts. Collections queue is clear.</em></p>
   {% endif %}
-</body>
-</html>
+{% endblock %}

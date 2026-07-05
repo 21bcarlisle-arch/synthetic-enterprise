@@ -39,6 +39,11 @@ NAV_LINKS = [
     ("Project", "/shadow/project/"),
 ]
 
+# PRIORITIES.md P1 (Website Integrity Part B, design system): kpi-card/kpi-grid
+# and rag-chip give the shadow mirror the same component vocabulary as the
+# customer portal's design system (company/portal/templates/base.html) -- same
+# named components (KPI cards, RAG chips), dark "advisor-verification" palette
+# kept intentionally distinct from the portal's light customer-facing theme.
 CSS = (
     "<style>"
     "body{font-family:monospace;background:#1a1a1a;color:#e0e0e0;margin:0;padding:16px}"
@@ -51,6 +56,15 @@ CSS = (
     "pre{background:#111;padding:12px;overflow-x:auto;color:#cce;white-space:pre-wrap}"
     "dl{display:grid;grid-template-columns:200px 1fr;gap:4px 16px;margin-bottom:16px}"
     "dt{color:#aaf}dd{margin:0}"
+    ".kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}"
+    ".kpi-card{background:#232342;border:1px solid #383868;border-radius:6px;padding:10px 14px}"
+    ".kpi-card .kpi-value{display:block;font-size:1.3em;font-weight:700;color:#aaf}"
+    ".kpi-card .kpi-label{font-size:0.75em;color:#888;text-transform:uppercase;letter-spacing:0.04em}"
+    ".rag-chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.82em;font-weight:700;"
+    "border:1px solid currentColor}"
+    ".rag-green{background:#0f2f1a;color:#4f4}"
+    ".rag-amber{background:#3a2f0a;color:#fc4}"
+    ".rag-red{background:#3a0f0f;color:#f44}"
     "</style>"
 )
 
@@ -163,21 +177,30 @@ def build_index(dash, ts):
         narrative = i.get("narrative", "")[:200]
         insight_rows += _row(area, headline, narrative)
 
+    def _kpi(label, value, cls=""):
+        return ('<div class="kpi-card"><span class="kpi-value ' + cls + '">' + value
+                + '</span><span class="kpi-label">' + label + "</span></div>")
+
+    kpi_grid = (
+        '<div class="kpi-grid">'
+        + _kpi("Net Margin", _gbp(net), _cls(net))
+        + _kpi("Gross Margin", _gbp(gross))
+        + _kpi("Enterprise Value", _gbp(ev))
+        + _kpi("Treasury Start", _gbp(t_start))
+        + _kpi("Treasury End", _gbp(t_end))
+        + _kpi("Bills Issued", str(bills))
+        + _kpi("Churn Events", str(churns))
+        + _kpi("Retention Offers", str(ret_off) + " (retained " + str(ret_ret) + ")")
+        + _kpi("Cost to Serve", _gbp(cts))
+        + "</div>"
+    )
+
     body = (
         "<h1>Synthetic Enterprise &#8212; Portfolio Overview</h1>"
         + '<div class="meta">2016&#8211;2025 | Phase ' + str(phase)
         + " | " + str(tests) + " tests | " + str(modules) + " modules</div>"
-        + "<h2>10-Year Totals</h2><dl>"
-        + '<dt>Net Margin</dt><dd class="' + _cls(net) + '">' + _gbp(net) + "</dd>"
-        + "<dt>Gross Margin</dt><dd>" + _gbp(gross) + "</dd>"
-        + "<dt>Enterprise Value</dt><dd>" + _gbp(ev) + "</dd>"
-        + "<dt>Treasury Start</dt><dd>" + _gbp(t_start) + "</dd>"
-        + "<dt>Treasury End</dt><dd>" + _gbp(t_end) + "</dd>"
-        + "<dt>Bills Issued</dt><dd>" + str(bills) + "</dd>"
-        + "<dt>Churn Events</dt><dd>" + str(churns) + "</dd>"
-        + "<dt>Retention Offers</dt><dd>" + str(ret_off) + " (retained " + str(ret_ret) + ")</dd>"
-        + "<dt>Cost to Serve</dt><dd>" + _gbp(cts) + "</dd>"
-        + "</dl>"
+        + "<h2>10-Year Totals</h2>"
+        + kpi_grid
         + _table(["Year", "Gross", "Net", "Treasury", "Bills", "Avg Shock"], ann_rows)
         + "<h2>Executive Summary</h2><pre>" + summary + "</pre>"
         + _table(["Area", "Headline", "Narrative (excerpt)"], insight_rows)
@@ -976,7 +999,7 @@ def _serial_saver_portfolio(serial_savers):
     )
 
 
-def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None, churn_events=None, churn_perf=None, journey_log=None, retention_deferral=None):
+def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledger=None, financial_annual=None, churn_events=None, churn_perf=None, journey_log=None, retention_deferral=None, population_anchoring=None):
     annual = sim_data.get("annual", [])
     monthly = sim_data.get("monthly", [])[:12]
     peaks = sim_data.get("peak_records", [])[:5]
@@ -1017,8 +1040,41 @@ def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledg
         + _churn_model_signal(churn_events or [], churn_perf or {})
         + _churn_journey_signal(journey_log or [], churn_events or [])
         + _retention_deferral_signal(retention_deferral or [])
+        + _population_anchoring_rag(population_anchoring or {})
     )
     return _page("Simulation Data", "Sim", body, ts, git_commit, phase)
+
+
+def _population_anchoring_rag(pa):
+    """RAG chip rendering of population_anchoring.json (Phase PQ/PR/PS) -- real
+    already-computed switching/bad-debt/complaints/arrears benchmark checks that
+    had no visual home on any shadow page until now (PRIORITIES.md P1 design
+    system: same rag-chip component as the customer portal's base.html)."""
+    if not pa:
+        return ""
+    overall = pa.get("overall_rag", "")
+
+    def _chip(rag):
+        cls = {"GREEN": "rag-green", "AMBER": "rag-amber", "RED": "rag-red"}.get(rag, "rag-amber")
+        return '<span class="rag-chip ' + cls + '">' + str(rag) + "</span>"
+
+    rows = ""
+    long_run = pa.get("long_run_comparison", {})
+    if long_run:
+        rows += _row("Long-run churn vs Ofgem", format(long_run.get("ratio", 0), ".2f") + "x", _chip(long_run.get("rag", "")))
+    for check in pa.get("bad_debt_vs_benchmark", [])[-3:]:
+        rows += _row("Bad debt " + str(check.get("year", "")), format(check.get("bad_debt_pct", 0), ".2f") + "%", _chip(check.get("rag", "")))
+    for check in pa.get("complaints_vs_benchmark", [])[-3:]:
+        rows += _row("Complaints " + str(check.get("year", "")), format(check.get("complaint_rate_pct", 0), ".2f") + "%", _chip(check.get("rag", "")))
+    for check in pa.get("arrears_vs_benchmark", [])[-3:]:
+        rows += _row("Arrears " + str(check.get("year", "")), format(check.get("arrears_pct", 0), ".2f") + "%", _chip(check.get("rag", "")))
+    if not rows:
+        return ""
+    return (
+        "<h2>Population Anchoring vs Real UK Market Benchmarks</h2>"
+        + '<div class="meta">Overall: ' + _chip(overall) + "</div>"
+        + _table(["Check", "Value", "RAG"], rows)
+    )
 
 
 def build_project(dash, latest_md, ts):
@@ -1061,6 +1117,8 @@ def generate(run_json_path=None):
     sample = json.loads(sample_path.read_text()) if sample_path.exists() else {}
     ledger_path = STATE / "billing_ledger.json"
     billing_ledger = json.loads(ledger_path.read_text()) if ledger_path.exists() else {}
+    pa_path = STATE / "population_anchoring.json"
+    _population_anchoring = json.loads(pa_path.read_text()) if pa_path.exists() else {}
     latest_md = LATEST_MD.read_text() if LATEST_MD.exists() else ""
 
     _git_commit = dash.get("meta", {}).get("git_commit", "?")
@@ -1074,7 +1132,7 @@ def generate(run_json_path=None):
         SHADOW / "index.html": build_index(dash, ts),
         SHADOW / "customers" / "index.html": build_customers(dash, sample, ts, billing_ledger, _journey_log),
         SHADOW / "supplier" / "index.html": build_supplier(dash, ts, billing_ledger, _journey_log),
-        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf, _journey_log, _retention_deferral),
+        SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf, _journey_log, _retention_deferral, _population_anchoring),
         SHADOW / "project" / "index.html": build_project(dash, latest_md, ts),
     }
 

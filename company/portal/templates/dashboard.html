@@ -1,26 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Account {{ customer.customer_id }}</title>
-  <style>body{font-family:sans-serif;max-width:700px;margin:40px auto;padding:0 16px}
-    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
-    th{background:#ebf8ff}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}/bills">Bills</a> | <a href="/account/{{ customer.customer_id }}/consumption">Consumption</a> | <a href="/account/{{ customer.customer_id }}/tariff-compare">Compare Tariffs</a> | <a href="/account/{{ customer.customer_id }}/statement">Statement</a> | <a href="/account/{{ customer.customer_id }}/direct-debit">Direct Debit</a> | <a href="/account/{{ customer.customer_id }}/contact">Contact Us</a> | <a href="/regulatory">Regulatory</a></nav>
+{% extends "base.html" %}
+{% block title %}Account {{ customer.customer_id }}{% endblock %}
+{% block maxwidth %}700px{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/account/{{ customer.customer_id }}" class="active">Dashboard</a>
+    <a href="/account/{{ customer.customer_id }}/billing">Billing</a>
+    <a href="/account/{{ customer.customer_id }}/bills">Invoices</a>
+    <a href="/account/{{ customer.customer_id }}/consumption">Consumption</a>
+    <a href="/account/{{ customer.customer_id }}/tariff-compare">Compare Tariffs</a>
+    <a href="/account/{{ customer.customer_id }}/statement">Statement</a>
+    <a href="/account/{{ customer.customer_id }}/direct-debit">Direct Debit</a>
+    <a href="/account/{{ customer.customer_id }}/contact">Contact Us</a>
+    <a href="/regulatory">Regulatory</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
+
   {% if whd_eligible %}
-  <div style="margin:8px 0;padding:6px 12px;background:#ebf8ff;border:1px solid #2b6cb0;border-radius:4px;font-size:0.88em">
-    &#9679; <strong>Warm Home Discount eligible</strong> — you may be entitled to a £150 annual rebate.
+  <div class="banner banner-info">
+    &#9679; <strong>Warm Home Discount eligible</strong> &mdash; you may be entitled to a &pound;150 annual rebate.
     <a href="/account/{{ customer.customer_id }}/contact">Contact us</a> to claim.
   </div>
   {% endif %}
   {% if renewal.is_fixed %}
-  <div style="margin:8px 0;padding:8px 12px;border-radius:4px;font-size:0.9em;border:1px solid;
-    {% if renewal.in_notice_window %}background:#fffbeb;border-color:#c05621{% else %}background:#f7fafc;border-color:#bee3f8{% endif %}">
+  <div class="banner {{ 'banner-warn' if renewal.in_notice_window else 'banner-info' }}">
     <strong>Contract renewal:</strong> {{ renewal.end_date }}
     ({{ renewal.days_until_renewal }} days)
     {% if renewal.in_notice_window %}
@@ -30,10 +32,7 @@
   </div>
   {% endif %}
   {% if switch_rec and switch_rec.action != "not_applicable" %}
-  <div style="margin:8px 0;padding:8px 12px;border-radius:4px;font-size:0.9em;border:1px solid;
-    {% if switch_rec.action == "switch" %}background:#fff5f5;border-color:#c53030
-    {% elif switch_rec.action == "stay" %}background:#f0fff4;border-color:#276749
-    {% else %}background:#f7fafc;border-color:#bee3f8{% endif %}">
+  <div class="banner {{ 'banner-danger' if switch_rec.action == 'switch' else 'banner-success' if switch_rec.action == 'stay' else 'banner-info' }}">
     <strong>Tariff advice:</strong> {{ switch_rec.reason }}
     {% if switch_rec.action in ("switch", "consider_switching") %}
     <a href="/account/{{ customer.customer_id }}/tariff-compare" style="margin-left:8px">Compare tariffs</a>
@@ -41,7 +40,7 @@
   </div>
   {% endif %}
   {% if efficiency.epc_rating %}
-  <details style="margin:8px 0;padding:8px 12px;background:#f7fafc;border:1px solid #bee3f8;border-radius:4px;font-size:0.88em">
+  <details class="banner banner-info">
     <summary style="cursor:pointer;font-weight:600">
       Energy efficiency: EPC {{ efficiency.band }}
       {{ "★ High efficiency" if efficiency.is_high_efficiency else "→ Improvements available" }}
@@ -58,10 +57,11 @@
   </details>
   {% endif %}
   {% if not customer.smart_meter and customer.metering != "HH" %}
-  <div style="margin:8px 0;padding:8px 12px;background:#f7fafc;border:1px solid #e2e8f0;border-radius:4px;font-size:0.88em">
+  <div class="banner banner-info">
     No smart meter on record. <a href="/account/{{ customer.customer_id }}/smart-meter">Request a free upgrade</a>
   </div>
   {% endif %}
+
   <h1>Account {{ customer.customer_id }}</h1>
   <table>
     <tr><th>Field</th><th>Value</th></tr>
@@ -74,15 +74,14 @@
   </table>
   {% if summary.count > 0 %}
   <h2>Billing Summary</h2>
-  <table>
-    <tr><th>Invoices</th><td>{{ summary.count }}</td></tr>
-    <tr><th>Total Billed</th><td>£{{ "%.2f"|format(summary.billed_gbp) }}</td></tr>
-    <tr><th>Paid</th><td>£{{ "%.2f"|format(summary.paid_gbp) }}</td></tr>
-    <tr><th>Outstanding</th><td>£{{ "%.2f"|format(summary.outstanding_gbp) }}</td></tr>
-  </table>
+  <div class="kpi-grid">
+    <div class="kpi-card"><span class="kpi-value">{{ summary.count }}</span><span class="kpi-label">Invoices</span></div>
+    <div class="kpi-card"><span class="kpi-value">&pound;{{ "%.2f"|format(summary.billed_gbp) }}</span><span class="kpi-label">Total Billed</span></div>
+    <div class="kpi-card"><span class="kpi-value">&pound;{{ "%.2f"|format(summary.paid_gbp) }}</span><span class="kpi-label">Paid</span></div>
+    <div class="kpi-card"><span class="kpi-value">&pound;{{ "%.2f"|format(summary.outstanding_gbp) }}</span><span class="kpi-label">Outstanding</span></div>
+  </div>
   <p><a href="/account/{{ customer.customer_id }}/bills">View all invoices &rarr;</a></p>
   {% else %}
   <p><em>No invoices on record.</em></p>
   {% endif %}
-</body>
-</html>
+{% endblock %}

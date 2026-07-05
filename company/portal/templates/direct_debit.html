@@ -1,39 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Direct Debit — {{ customer.customer_id }}</title>
-  <style>body{font-family:sans-serif;max-width:700px;margin:40px auto;padding:0 16px}
-    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
+{% extends "base.html" %}
+{% block title %}Direct Debit &mdash; {{ customer.customer_id }}{% endblock %}
+{% block maxwidth %}700px{% endblock %}
+{% block extra_css %}
     .card{padding:16px;border-radius:6px;margin:16px 0}
-    .active{background:#f0fff4;border:1px solid #276749}
-    .inactive{background:#f7fafc;border:1px solid #bee3f8}
-    .success{background:#f0fff4;border:1px solid #276749;padding:10px;border-radius:4px;margin:12px 0}
-    .cancelled{background:#fffbeb;border:1px solid #c05621;padding:10px;border-radius:4px;margin:12px 0}
-    form label{display:block;margin-top:10px;font-weight:600;font-size:0.9em}
-    form input{width:100%;padding:6px;border:1px solid #cbd5e0;border-radius:4px;font-size:0.9em;box-sizing:border-box}
-    .btn{margin-top:14px;padding:8px 16px;border:none;border-radius:4px;cursor:pointer;font-size:0.9em}
-    .btn-primary{background:#2b6cb0;color:#fff}
-    .btn-danger{background:#c53030;color:#fff}
+    .active-mandate{background:var(--green-bg);border:1px solid var(--green)}
+    .inactive-mandate{background:var(--surface);border:1px solid var(--blue-border)}
     dl{display:grid;grid-template-columns:max-content auto;gap:4px 16px}
     dt{font-weight:600}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a>
-       | <a href="/account/{{ customer.customer_id }}/bills">Bills</a></nav>
+{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/account/{{ customer.customer_id }}">Dashboard</a>
+    <a href="/account/{{ customer.customer_id }}/bills">Bills</a>
+    <a href="/account/{{ customer.customer_id }}/direct-debit" class="active">Direct Debit</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
   <h1>Direct Debit</h1>
   <p><strong>Account:</strong> {{ customer.customer_id }}</p>
 
   {% if success %}
-  <div class="success">&#10003; Direct Debit mandate set successfully.</div>
+  <div class="banner banner-success">&#10003; Direct Debit mandate set successfully.</div>
   {% endif %}
   {% if cancelled %}
-  <div class="cancelled">Direct Debit mandate cancelled.</div>
+  <div class="banner banner-warn">Direct Debit mandate cancelled.</div>
   {% endif %}
 
   {% if mandate %}
-  <div class="card active">
+  <div class="card active-mandate">
     <strong>Active Direct Debit Mandate</strong>
     <dl>
       <dt>Sort code</dt><dd>{{ mandate.sort_code }}</dd>
@@ -46,7 +39,7 @@
     </form>
   </div>
   {% else %}
-  <div class="card inactive">
+  <div class="card inactive-mandate">
     <strong>No active Direct Debit mandate</strong>
     <p>Set up a Direct Debit to have payments collected automatically.</p>
   </div>
@@ -58,8 +51,7 @@
     <input name="account_number" required pattern="[0-9]{8}" placeholder="12345678">
     <label>Collection day (1-28)</label>
     <input name="payment_day" type="number" min="1" max="28" value="1" required>
-    <button type="submit" class="btn btn-primary">Set up Direct Debit</button>
+    <button type="submit" class="btn">Set up Direct Debit</button>
   </form>
   {% endif %}
-</body>
-</html>
+{% endblock %}

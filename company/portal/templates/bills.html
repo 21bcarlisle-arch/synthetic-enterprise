@@ -1,20 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Bills — {{ customer.customer_id }}</title>
-  <style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 16px}
-    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
-    th{background:#ebf8ff}
-    .paid{color:#276749}.unpaid{color:#c53030}.partially_paid{color:#c05621}.bad_debt{color:#718096}
-    .pay-btn{background:#2b6cb0;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.85em}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a> | <a href="/account/{{ customer.customer_id }}">Dashboard</a> | <a href="/account/{{ customer.customer_id }}/billing">Billing Detail</a> | <a href="/account/{{ customer.customer_id }}/statement">Statement</a></nav>
-  <h1>Invoices — {{ customer.customer_id }}</h1>
+{% extends "base.html" %}
+{% block title %}Bills &mdash; {{ customer.customer_id }}{% endblock %}
+{% block extra_css %}
+    .paid{color:var(--green)}.unpaid{color:var(--red)}.partially_paid{color:var(--amber)}.bad_debt{color:var(--grey)}
+{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/account/{{ customer.customer_id }}">Dashboard</a>
+    <a href="/account/{{ customer.customer_id }}/billing">Billing Detail</a>
+    <a href="/account/{{ customer.customer_id }}/bills" class="active">Invoices</a>
+    <a href="/account/{{ customer.customer_id }}/statement">Statement</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
+  <h1>Invoices &mdash; {{ customer.customer_id }}</h1>
   {% if invoices %}
   <table>
     <tr><th>Invoice</th><th>Period</th><th>Commodity</th><th>Total</th><th>Due</th><th>Status</th><th>Action</th></tr>
@@ -31,7 +28,7 @@
         <form method="post" action="/account/{{ customer.customer_id }}/pay" style="display:inline">
           <input type="hidden" name="invoice_number" value="{{ inv.invoice_number }}">
           <input type="hidden" name="amount_gbp" value="{{ "%.2f"|format(inv.total_gbp) }}">
-          <button type="submit" class="pay-btn">Pay £{{ "%.2f"|format(inv.total_gbp) }}</button>
+          <button type="submit" class="btn btn-sm pay-btn">Pay £{{ "%.2f"|format(inv.total_gbp) }}</button>
         </form>
         {% endif %}
       </td>
@@ -41,5 +38,4 @@
   {% else %}
   <p><em>No invoices on record.</em></p>
   {% endif %}
-</body>
-</html>
+{% endblock %}

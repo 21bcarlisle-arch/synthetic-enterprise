@@ -1,51 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Billing &mdash; {{ customer.customer_id }}</title>
-  <style>
-    body { font-family: sans-serif; max-width: 960px; margin: 40px auto; padding: 0 16px; color: #1a202c; }
-    nav a { margin-right: 12px; color: #2b6cb0; text-decoration: none; font-size: 0.9em; }
-    h1 { color: #1a365d; border-bottom: 2px solid #bee3f8; padding-bottom: 8px; }
-    h2 { color: #2b6cb0; margin-top: 28px; font-size: 1.1em; }
+{% extends "base.html" %}
+{% block title %}Billing &mdash; {{ customer.customer_id }}{% endblock %}
+{% block extra_css %}
     .balance-box { padding: 16px 20px; border-radius: 8px; margin: 20px 0; font-size: 1.05em; }
-    .credit { background: #f0fff4; border: 2px solid #276749; color: #276749; }
-    .owing  { background: #fff5f5; border: 2px solid #c53030; color: #c53030; }
-    .zero   { background: #ebf8ff; border: 2px solid #2b6cb0; color: #2b6cb0; }
-    .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0; }
-    .meta-cell { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; }
-    .meta-cell .label { font-size: 0.78em; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; }
+    .meta-cell .label { font-size: 0.78em; color: var(--grey); text-transform: uppercase; letter-spacing: 0.05em; }
     .meta-cell .value { font-size: 1.05em; font-weight: 600; margin-top: 2px; }
-    .bill-card { border: 1px solid #e2e8f0; border-radius: 8px; margin: 16px 0; overflow: hidden; }
-    .bill-header { background: #ebf8ff; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-    .bill-body { padding: 0; }
-    .fuel-section { border-top: 1px solid #e2e8f0; padding: 14px 16px; }
+    .bill-card { border: 1px solid var(--border); border-radius: 8px; margin: 16px 0; overflow: hidden; }
+    .bill-header { background: var(--blue-bg); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+    .fuel-section { border-top: 1px solid var(--border); padding: 14px 16px; }
     .fuel-section:first-child { border-top: none; }
     .fuel-label { font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-    .elec-label { color: #2b6cb0; }
-    .gas-label  { color: #c05621; }
+    .elec-label { color: var(--blue); }
+    .gas-label  { color: var(--amber); }
     .line-table { width: 100%; border-collapse: collapse; font-size: 0.88em; }
-    .line-table td { padding: 3px 6px; }
+    .line-table td { padding: 3px 6px; border-bottom: none; }
     .line-table td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
-    .line-table tr.subtotal td { border-top: 1px solid #e2e8f0; font-weight: 600; }
-    .line-table tr.total-row td { border-top: 2px solid #2b6cb0; font-weight: 700; font-size: 1.0em; }
-    .status-paid { color: #276749; font-weight: 600; }
-    .status-unpaid { color: #c53030; font-weight: 600; }
-    .status-partially_paid { color: #c05621; font-weight: 600; }
-    .status-bad_debt { color: #718096; font-weight: 600; }
-    .pay-btn { background: #2b6cb0; color: #fff; border: none; padding: 5px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85em; margin-top: 6px; }
-    .empty { color: #718096; font-style: italic; padding: 20px 0; }
-    .dual-fuel-badge { background: #9ae6b4; color: #276749; border-radius: 12px; padding: 2px 10px; font-size: 0.78em; font-weight: 700; margin-left: 8px; }
-    .elec-only-badge { background: #bee3f8; color: #2b6cb0; border-radius: 12px; padding: 2px 10px; font-size: 0.78em; font-weight: 700; margin-left: 8px; }
-  </style>
-</head>
-<body>
-<nav>
-  <a href="/">Logout</a> |
-  <a href="/account/{{ customer.customer_id }}">Dashboard</a> |
-  <a href="/account/{{ customer.customer_id }}/bills">Invoice List</a> |
-  <a href="/account/{{ customer.customer_id }}/consumption">Consumption</a> |
+    .line-table tr.subtotal td { border-top: 1px solid var(--border); font-weight: 600; }
+    .line-table tr.total-row td { border-top: 2px solid var(--blue); font-weight: 700; font-size: 1.0em; }
+    .status-paid { color: var(--green); font-weight: 600; }
+    .status-unpaid { color: var(--red); font-weight: 600; }
+    .status-partially_paid { color: var(--amber); font-weight: 600; }
+    .status-bad_debt { color: var(--grey); font-weight: 600; }
+    .empty { color: var(--grey); font-style: italic; padding: 20px 0; }
+    .dual-fuel-badge { background: var(--green-border); color: var(--green); border-radius: 12px; padding: 2px 10px; font-size: 0.78em; font-weight: 700; margin-left: 8px; }
+    .elec-only-badge { background: var(--blue-border); color: var(--blue); border-radius: 12px; padding: 2px 10px; font-size: 0.78em; font-weight: 700; margin-left: 8px; }
+{% endblock %}
+{% block content %}
+<nav class="site-nav">
+  <a href="/account/{{ customer.customer_id }}">Dashboard</a>
+  <a href="/account/{{ customer.customer_id }}/billing" class="active">Billing</a>
+  <a href="/account/{{ customer.customer_id }}/bills">Invoice List</a>
+  <a href="/account/{{ customer.customer_id }}/consumption">Consumption</a>
   <a href="/account/{{ customer.customer_id }}/statement">Statement</a>
+  <a href="/" class="logout">Logout</a>
 </nav>
 
 <h1>
@@ -57,43 +43,43 @@
   {% endif %}
 </h1>
 
-<div class="meta-grid">
-  <div class="meta-cell">
-    <div class="label">Segment</div>
-    <div class="value">{{ market_type | upper }}</div>
+<div class="kpi-grid meta-grid">
+  <div class="kpi-card meta-cell">
+    <div class="kpi-label label">Segment</div>
+    <div class="kpi-value value">{{ market_type | upper }}</div>
   </div>
-  <div class="meta-cell">
-    <div class="label">Billing Cadence</div>
-    <div class="value">{{ billing_calendar | title }}</div>
+  <div class="kpi-card meta-cell">
+    <div class="kpi-label label">Billing Cadence</div>
+    <div class="kpi-value value">{{ billing_calendar | title }}</div>
   </div>
-  <div class="meta-cell">
-    <div class="label">Payment Method</div>
-    <div class="value">{{ payment_method_label }}</div>
+  <div class="kpi-card meta-cell">
+    <div class="kpi-label label">Payment Method</div>
+    <div class="kpi-value value">{{ payment_method_label }}</div>
   </div>
-  <div class="meta-cell">
-    <div class="label">Total Billed</div>
-    <div class="value">&pound;{{ "%.2f"|format(total_billed_gbp) }}</div>
+  <div class="kpi-card meta-cell">
+    <div class="kpi-label label">Total Billed</div>
+    <div class="kpi-value value">&pound;{{ "%.2f"|format(total_billed_gbp) }}</div>
   </div>
-  <div class="meta-cell">
-    <div class="label">Total Paid</div>
-    <div class="value">&pound;{{ "%.2f"|format(total_paid_gbp) }}</div>
+  <div class="kpi-card meta-cell">
+    <div class="kpi-label label">Total Paid</div>
+    <div class="kpi-value value">&pound;{{ "%.2f"|format(total_paid_gbp) }}</div>
   </div>
-  <div class="meta-cell">
-    <div class="label">Outstanding Bills</div>
-    <div class="value">{{ outstanding_count }}</div>
+  <div class="kpi-card meta-cell">
+    <div class="kpi-label label">Outstanding Bills</div>
+    <div class="kpi-value value">{{ outstanding_count }}</div>
   </div>
 </div>
 
 {% if in_credit %}
-<div class="balance-box credit">
+<div class="balance-box banner-success">
   &#10003; Account in credit: <strong>&pound;{{ "%.2f"|format(balance_gbp) }}</strong>
 </div>
 {% elif amount_owing_gbp > 0 %}
-<div class="balance-box owing">
+<div class="balance-box banner-danger">
   &#9888; Amount owing: <strong>&pound;{{ "%.2f"|format(amount_owing_gbp) }}</strong>
 </div>
 {% else %}
-<div class="balance-box zero">
+<div class="balance-box banner-info">
   Account balance: &pound;0.00
 </div>
 {% endif %}
@@ -135,14 +121,14 @@
               <td>&pound;{{ "%.2f"|format(e.vat_gbp) }}</td></tr>
           <tr class="total-row"><td>Electricity total</td><td>&pound;{{ "%.2f"|format(e.total_gbp) }}</td></tr>
         </table>
-        <div style="margin-top:8px;font-size:0.83em;color:#718096">
+        <div style="margin-top:8px;font-size:0.83em;color:var(--grey)">
           Status: <span class="status-{{ e.payment_status }}">{{ e.payment_status.replace("_"," ").title() }}</span>
           {% if e.invoice_number %}&nbsp;&middot; Invoice #{{ e.invoice_number }}{% endif %}
           {% if e.payment_status in ("unpaid", "partially_paid") %}
           <form method="post" action="/account/{{ customer.customer_id }}/pay" style="display:inline;margin-left:12px">
             <input type="hidden" name="invoice_number" value="{{ e.invoice_number }}">
             <input type="hidden" name="amount_gbp" value="{{ "%.2f"|format(e.total_gbp) }}">
-            <button class="pay-btn">Pay &pound;{{ "%.2f"|format(e.total_gbp) }}</button>
+            <button class="btn btn-sm pay-btn">Pay &pound;{{ "%.2f"|format(e.total_gbp) }}</button>
           </form>
           {% endif %}
         </div>
@@ -167,14 +153,14 @@
               <td>&pound;{{ "%.2f"|format(g.vat_gbp) }}</td></tr>
           <tr class="total-row"><td>Gas total</td><td>&pound;{{ "%.2f"|format(g.total_gbp) }}</td></tr>
         </table>
-        <div style="margin-top:8px;font-size:0.83em;color:#718096">
+        <div style="margin-top:8px;font-size:0.83em;color:var(--grey)">
           Status: <span class="status-{{ g.payment_status }}">{{ g.payment_status.replace("_"," ").title() }}</span>
           {% if g.invoice_number %}&nbsp;&middot; Invoice #{{ g.invoice_number }}{% endif %}
           {% if g.payment_status in ("unpaid", "partially_paid") %}
           <form method="post" action="/account/{{ gas_customer.customer_id if gas_customer else customer.customer_id }}/pay" style="display:inline;margin-left:12px">
             <input type="hidden" name="invoice_number" value="{{ g.invoice_number }}">
             <input type="hidden" name="amount_gbp" value="{{ "%.2f"|format(g.total_gbp) }}">
-            <button class="pay-btn">Pay &pound;{{ "%.2f"|format(g.total_gbp) }}</button>
+            <button class="btn btn-sm pay-btn">Pay &pound;{{ "%.2f"|format(g.total_gbp) }}</button>
           </form>
           {% endif %}
         </div>
@@ -187,6 +173,4 @@
 {% else %}
   <p class="empty">No billing records found.</p>
 {% endif %}
-
-</body>
-</html>
+{% endblock %}

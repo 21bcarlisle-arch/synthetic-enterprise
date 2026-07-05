@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Customer Portal{% endblock %} &mdash; Poesys</title>
+  <style>
+    :root{
+      --navy:#1a365d; --blue:#2b6cb0; --blue-dark:#2c5282; --blue-bg:#ebf8ff; --blue-border:#bee3f8;
+      --green:#276749; --green-bg:#f0fff4; --green-border:#9ae6b4;
+      --red:#c53030; --red-bg:#fff5f5;
+      --amber:#c05621; --amber-bg:#fffbeb;
+      --grey:#718096; --border:#e2e8f0; --surface:#f7fafc; --input-border:#cbd5e0;
+      --radius:6px;
+    }
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      max-width:{% block maxwidth %}960px{% endblock %};margin:40px auto;padding:0 16px;
+      color:#1a202c;line-height:1.5}
+    h1{color:var(--navy);border-bottom:2px solid var(--blue-border);padding-bottom:8px;font-size:1.5em;margin-top:0}
+    h2{color:var(--blue);margin-top:28px;font-size:1.12em}
+    a{color:var(--blue)}
+    nav.site-nav{margin-bottom:20px;font-size:0.9em;padding-bottom:12px;border-bottom:1px solid var(--border)}
+    nav.site-nav a{margin-right:14px;color:var(--blue);text-decoration:none}
+    nav.site-nav a.active{color:var(--navy);font-weight:700;text-decoration:underline}
+    nav.site-nav a.logout{float:right;color:var(--grey);margin-right:0}
+    table{width:100%;border-collapse:collapse;margin-top:12px;margin-bottom:16px}
+    th{background:var(--blue-bg);color:var(--navy);text-align:left;padding:8px 10px;font-size:0.9em}
+    td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}
+    .kpi-card{background:var(--surface);border:1px solid var(--blue-border);border-radius:var(--radius);
+      padding:12px 14px}
+    .kpi-card .kpi-value{display:block;font-size:1.25em;font-weight:700;color:var(--blue)}
+    .kpi-card .kpi-label{font-size:0.78em;color:var(--grey);text-transform:uppercase;letter-spacing:0.04em}
+    .rag-chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.82em;font-weight:700;
+      border:1px solid currentColor}
+    .rag-green{background:var(--green-bg);color:var(--green)}
+    .rag-amber{background:var(--amber-bg);color:var(--amber)}
+    .rag-red{background:var(--red-bg);color:var(--red)}
+    .banner{padding:12px 16px;border-radius:var(--radius);margin:16px 0;border:1px solid}
+    .banner-success{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+    .banner-warn{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+    .banner-danger{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+    .banner-info{background:var(--blue-bg);border-color:var(--blue-border);color:#1a202c}
+    .pos{color:var(--green)}.neg{color:var(--red)}
+    .btn{display:inline-block;padding:8px 16px;border:none;border-radius:4px;cursor:pointer;
+      font-size:0.9em;text-decoration:none;color:#fff;background:var(--blue)}
+    .btn:hover{background:var(--blue-dark)}
+    .btn-danger{background:var(--red)}
+    .btn-sm{padding:4px 10px;font-size:0.85em}
+    form label{display:block;margin-top:10px;font-weight:600;font-size:0.9em}
+    form input,form select,form textarea{width:100%;padding:7px;border:1px solid var(--input-border);
+      border-radius:4px;font-size:0.9em}
+    textarea{min-height:80px;resize:vertical}
+    .meta{color:var(--grey);font-size:0.85em}
+    @media print{nav.site-nav,.btn,button{display:none}}
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+{% block content %}{% endblock %}
+</body>
+</html>

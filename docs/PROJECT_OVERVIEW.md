@@ -111,6 +111,50 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QO -- Website Integrity Part B: Design System Unification (2026-07-05)
+Tier 2 (PRIORITIES.md P1, the remaining half of Website Integrity Part B after
+Phase QN closed the per-fuel-legs data-completeness half). 18 new tests.
+
+company/portal/templates/base.html (new): single source of truth for the customer
+portal's design tokens (CSS custom properties: navy/blue/green/red/amber/grey palette,
+spacing, radius) and shared components (kpi-card/kpi-grid, rag-chip in green/amber/red,
+banner in success/warn/danger/info, btn, consistent table/form styling, active-page nav
+highlighting). All 19 portal templates (dashboard, billing, bills, consumption,
+statement, tariff_compare, direct_debit, contact, smart_meter, payment_confirm,
+tariff_switch_confirm, login, admin, admin_complaints, admin_collections,
+admin_renewals, admin_retention, admin_vulnerability, regulatory, trading) migrated
+from independent inline <style> blocks (each hand-duplicating a near-identical but
+subtly inconsistent palette) to `{% extends "base.html" %}`, eliminating 19 separate
+style blocks. Nav link sets standardized (every customer page now links to all account
+sections; every admin page links to all admin sections) with the active page bolded/
+underlined -- previously no page indicated which section you were on. regulatory.html's
+ad-hoc COMPLIANT/AT_RISK/BREACH/OK/Watch/STRESS badges and admin_retention.html's
+HIGH/MEDIUM/LOW tier badges (previously hand-styled per-page with duplicated color
+logic) now render through the shared rag-chip component.
+
+tools/generate_shadow_html.py: matching kpi-card/kpi-grid/rag-chip CSS classes added to
+the shadow mirror's dark advisor-verification theme (same component vocabulary, distinct
+palette by design -- shadow stays dark/plain per PRIORITIES.md, portal stays light/
+customer-facing). build_index()'s 10-Year Totals converted from a bare <dl> to a kpi-grid
+of kpi-cards. New _population_anchoring_rag(): population_anchoring.json (Phase PQ/PR/PS
+switching/bad-debt/complaints/arrears benchmark checks) had been computed and written to
+site/state/ every run since Phase PQ but never rendered on any shadow page -- it now
+appears on the Sim tab as real rag-chips (live run: overall RED, driven by bad-debt-vs-
+Ofgem-benchmark divergence in specific years), closing a silent generate-but-never-show
+gap using data that already existed rather than adding a new computation.
+
+Migration was verified against the existing test suite before any test was added: ~40
+tests across tests/company/portal/, tests/company/billing/, tests/company/crm/,
+tests/company/market/, and tests/company/pricing/ read portal template files directly
+and assert on specific Jinja variable names, hrefs, and literal strings (a common
+"is this field wired up" test pattern in this codebase). Nav markup was kept literal
+per-template (not DRY'd into a Jinja include) specifically so these pre-existing
+raw-file-content assertions would not break -- confirmed 100% passing with zero test
+modifications after the full migration. PRIORITIES.md P1 (Website Integrity Part B) is
+now fully DONE -- both the per-fuel-legs half (QN) and the design-system half (QO).
+Epistemic: PASS (presentation-layer only; population_anchoring.json is company-
+observable historical-benchmark data already flowing through the existing pipeline).
+
 ### Phase QN -- Customer Portal Per-Fuel Depth (2026-07-05)
 Tier 2 (PRIORITIES.md P1, Website Integrity Part B sub-item; also WEEKEND_ACCELERATION.md Q5).
 5 new tests. The Customers tab silently dropped every gas leg of a dual-fuel account
@@ -5369,7 +5413,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,560 tests collected (fast suite; simulation integration ~8 min per run)
+- 15,454 tests passed (fast suite; simulation integration ~8 min per run)
+- Phase QO (2026-07-05): Website Integrity Part B design system -- base.html centralizes design
+  tokens + kpi-card/rag-chip/banner components across all 19 customer portal templates; matching
+  components added to the shadow mirror; population_anchoring.json surfaced as rag-chips on the
+  Sim tab for the first time -- see Section 4. PRIORITIES.md P1 fully DONE. 18 new tests.
 - Phase QN (2026-07-05): Customers tab per-fuel legs -- gas accounts no longer dropped, combined
   roll-up + per-fuel invoice/arrears case study added -- see Section 4. 5 new tests.
 - Phase QL (2026-07-04/05): churn journey state machine wired into the live sim loop + evidence

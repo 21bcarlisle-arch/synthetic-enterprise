@@ -1,44 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Retention Risk Dashboard</title>
-  <style>body{font-family:sans-serif;max-width:1000px;margin:40px auto;padding:0 16px}
-    h1{color:#1a365d}nav a{margin-right:12px;color:#2b6cb0}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}
-    th{background:#ebf8ff}
-    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
-    .card{border-radius:6px;padding:12px;text-align:center}
-    .card strong{display:block;font-size:1.4em}
-    .card span{font-size:0.8em}
-    .HIGH{background:#fff5f5;border:1px solid #c53030;color:#c53030}
-    .MEDIUM{background:#fffbeb;border:1px solid #c05621;color:#c05621}
-    .LOW{background:#f0fff4;border:1px solid #276749;color:#276749}
-    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.82em;font-weight:600}
-  </style>
-</head>
-<body>
-  <nav><a href="/">Logout</a> | <a href="/admin">Admin</a></nav>
+{% extends "base.html" %}
+{% block title %}Retention Risk Dashboard{% endblock %}
+{% block maxwidth %}1000px{% endblock %}
+{% block content %}
+  <nav class="site-nav">
+    <a href="/admin">Admin</a>
+    <a href="/admin/retention" class="active">Retention</a>
+    <a href="/" class="logout">Logout</a>
+  </nav>
   <h1>Retention Risk Dashboard</h1>
-  <div class="summary">
-    <div class="card HIGH"><strong>{{ data.high_risk }}</strong><span>HIGH risk</span></div>
-    <div class="card MEDIUM"><strong>{{ data.medium_risk }}</strong><span>MEDIUM risk</span></div>
-    <div class="card LOW"><strong>{{ data.low_risk }}</strong><span>LOW risk</span></div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><span class="kpi-value"><span class="rag-chip rag-red">{{ data.high_risk }}</span></span><span class="kpi-label">HIGH risk</span></div>
+    <div class="kpi-card"><span class="kpi-value"><span class="rag-chip rag-amber">{{ data.medium_risk }}</span></span><span class="kpi-label">MEDIUM risk</span></div>
+    <div class="kpi-card"><span class="kpi-value"><span class="rag-chip rag-green">{{ data.low_risk }}</span></span><span class="kpi-label">LOW risk</span></div>
   </div>
   <table>
     <tr><th>Account</th><th>Risk tier</th><th>Score</th><th>Signals</th></tr>
     {% for c in data.customers | sort(attribute="score", reverse=True) %}
     <tr>
       <td><a href="/account/{{ c.customer_id }}">{{ c.customer_id }}</a></td>
-      <td><span class="badge {{ c.tier }}"
-        style="background:{{ "#fff5f5" if c.tier=="HIGH" else "#fffbeb" if c.tier=="MEDIUM" else "#f0fff4" }};
-               color:{{ "#c53030" if c.tier=="HIGH" else "#c05621" if c.tier=="MEDIUM" else "#276749" }};
-               border:1px solid currentColor">{{ c.tier }}</span></td>
+      <td><span class="rag-chip {{ "rag-red" if c.tier=="HIGH" else "rag-amber" if c.tier=="MEDIUM" else "rag-green" }}">{{ c.tier }}</span></td>
       <td>{{ c.score }}/5</td>
       <td>{{ c.signals | join(", ") if c.signals else "—" }}</td>
     </tr>
     {% endfor %}
   </table>
-</body>
-</html>
+{% endblock %}
