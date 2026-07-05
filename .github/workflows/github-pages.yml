@@ -1,0 +1,44 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# PAGES_CONCURRENCY_FIX.md (2026-07-05): the automatic "pages build and
+# deployment" workflow GitHub manages for "Deploy from a branch" mode has no
+# concurrency control -- a push burst (e.g. the advisor staging several
+# commits close together) throttles concurrent builds, and the superseded
+# ones report FAILED (with a failure email) even though the build always
+# succeeds and the next deploy self-heals. This explicit workflow replaces
+# it: cancel-in-progress means a superseded run reports CANCELLED, not
+# FAILED -- no more failure emails for ordinary push bursts.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload docs/ as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
