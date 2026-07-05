@@ -111,6 +111,31 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QW (part 1) -- Consistency-Breach Fix: total_net_gbp/total_bad_debt_gbp (2026-07-05, Tier 2 -- PROJECT_TAB_OVERHAUL.md critique #1)
+saas/reporting/annual_report.py::extract_report_data() sourced total_net_gbp/total_bad_debt_gbp from
+phase2b["total_net"]/["total_bad_debt"] -- scalars captured inside run_phase2b.main() BEFORE
+run_phase4c_on_phase2b.py's apply_emergent_bad_debt()/apply_debt_recovery() (Phases QD/QS) correct
+all_records in place. Result: the per-year "years" breakdown (built straight from the corrected
+all_records) summed to £1,535,307.74 across the live run while the stale top-level total_net_gbp
+field still reported £1,445,257.67 -- a live two-truths bug on site/project/index.html's Overview
+KPIs, exactly matching Rich's critique #1 in docs/staging/PROJECT_TAB_OVERHAUL.md. Fix: both fields
+now recomputed live from all_records, the same pattern total_revenue_gbp already used. New
+regression test locks in total_net_gbp == sum(yearly[y]["net_gbp"]). Delegated to saas-engineer
+(saas/ ownership boundary); 182 tests passing in tests/saas/reporting/test_annual_report.py.
+Epistemic: PASS. Part 2 (site/data/phases.json is hand-curated, stopped 2026-07-03, no generator --
+violates the R-A "nothing hand-written" rule) not yet started -- see PRIORITIES.md.
+
+### Phase QV -- Event-Frequency Data Model (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 4)
+Found mid-built (uncommitted) from an interrupted prior session; verified and completed.
+company/crm/payment_behaviour_analytics.py gains get_miss_trajectory() (per-year late/dd_failed/
+total, bucketed from the existing per-event record history). simulation/run_phase2b.py records
+per-customer bill_shock_history dates alongside the existing all-time rolling shock counter, and
+forwards both through _build_behavioral_trajectories(). tools/generate_customer_sample.py surfaces
+both fields plus an honest "not_simulated" complaint_history status (company/crm/complaints.py
+exists but isn't wired into the live sim yet -- a genuine gap, not a plumbing one).
+site/sim/index.html's event-frequency panel (life events / bill shocks / payment misses / switches
+per year) was already wired to consume these fields. 19 new tests, 15,578 fast-suite tests. Epistemic: PASS.
+
 ### Phase QS -- Debt as a Process: DCA Placement / Recovery / Sale (2026-07-05, Tier 2 -- PROCESS_NOT_EVENTS.md, docs/design/PROCESS_MODEL.md Section 4, pre-approved via PREAPPROVE_PROCESS_MODEL.md)
 Closes PROCESS_NOT_EVENTS.md in full -- the third and last of its named items (churn journey/QL,
 acquisition funnel/QR, debt-branch/here). simulation/arrears_engine.py generalizes QD's existing
@@ -5561,7 +5586,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
-- 15,567 tests (fast suite; simulation integration ~8 min per run)
+- 15,578 tests (fast suite; simulation integration ~8 min per run)
+- Phase QW part 1 (2026-07-05): fixed a live consistency breach -- total_net_gbp/total_bad_debt_gbp
+  were sourced from stale pre-mutation scalars, now recomputed live from all_records. See Section 4.
+- Phase QV (2026-07-05): event-frequency data model (payment_miss_trajectory, bill_shock_history)
+  wired into the SIM tab's event-frequency panel. See Section 4.
 - Phase QS (2026-07-05): debt-branch (DCA placement / recovery / sale past WRITTEN_OFF) --
   PROCESS_NOT_EVENTS.md's third and last of three, now fully closed (churn/QL, acquisition/QR,
   debt-branch/here). See Section 4.
