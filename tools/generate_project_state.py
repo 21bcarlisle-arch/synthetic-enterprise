@@ -32,7 +32,10 @@ def _parse_phase_and_tests():
             if "COMPLETE" not in line:
                 continue
             m_ph = re.search(r"\*\*Phase (\w+) COMPLETE", line)
-            m_tc = re.search(r"(\d[\d,]+)\s+total", line)
+            # Phase QP: entries since QL phrase this as "N collected" rather than
+            # "(N total)" -- the strict "total"-only match silently fell through
+            # to an older phase whenever a newer entry used the newer phrasing.
+            m_tc = re.search(r"(\d[\d,]+)\s+(?:total|collected)", line)
             if m_ph and m_tc:
                 return m_ph.group(1), int(m_tc.group(1).replace(",", ""))
         return "?", 0

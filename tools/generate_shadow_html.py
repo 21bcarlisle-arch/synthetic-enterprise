@@ -8,6 +8,9 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 from company.crm.retention_risk import retention_risk_feature_vector
+from company.analytics.decision_event_ledger import (
+    build_customer_ledger, build_portfolio_event_stream,
+)
 
 PROJECT = Path(__file__).resolve().parent.parent
 SHADOW = PROJECT / "site" / "shadow"
@@ -30,6 +33,13 @@ BEHAVIORAL_CASE_STUDY_CID = "C7"
 # which is the reason per-fuel legs must be a real view, not just an internal
 # computation.
 PER_FUEL_CASE_STUDY_BASE = "C_IC3"
+
+# DECISION_LOOP_AND_EVENT_LEDGER.md Part 5: C_IC1 is the existing flagship
+# divergence case (Phase QJ: company believed 95% churn risk in 2018, SIM
+# truth was 5%) and the serial-saver named in Phase QM (4 real retention
+# decisions) -- unifying those into one chronological timeline shows exactly
+# how an EV-driven decision loop looks from the inside for one real account.
+DECISION_LEDGER_CASE_STUDY_CID = "C_IC1"
 
 NAV_LINKS = [
     ("Overview", "/shadow/"),
@@ -337,6 +347,50 @@ def _per_fuel_case_study(ledger, base_id):
     )
 
 
+def _event_type_label(event_type):
+    return event_type.replace("_", " ").upper()
+
+
+def _decision_event_ledger_case_study(events, retention, journey_log, ledger, cid):
+    """DECISION_LOOP_AND_EVENT_LEDGER.md Part 5: one real customer's full
+    commercial history as a single ordered feed -- renewal triggers, EV-priced
+    decisions, offer outcomes, arrears cascade -- unifying what Phases QI/QJ/QL/QM
+    built as separate per-topic case studies into one chronological timeline."""
+    ledger_customer = (ledger or {}).get("customers", {}).get(cid)
+    entries = build_customer_ledger(cid, events, retention, journey_log, ledger_customer)
+    if not entries:
+        return ""
+
+    rows = ""
+    for e in entries:
+        belief = _pct(e.get("company_belief"))
+        # journey_state's sim_truth is a resentment score (0-100 scale), not a
+        # churn probability -- _pct would misrender it as a percentage.
+        truth = "&#8212;" if e["event_type"] == "journey_state" else _pct(e.get("sim_truth"))
+        amount = _gbp(e.get("amount_gbp"))
+        rows += _row(
+            e["date"],
+            _event_type_label(e["event_type"]),
+            e["description"],
+            belief,
+            truth,
+            amount,
+            e.get("outcome") or "&#8212;",
+        )
+
+    return (
+        "<h2>Decision Event Ledger: " + cid + "</h2>"
+        + '<p class="meta">Every commercial event on one real account, in sequence -- '
+        + "docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md Part 5. \"Company Believed\" is the "
+        + "estimate/EV logged at decision time; \"SIM Truth\" is realized churn probability or "
+        + "resentment score, visible to us but never to the company.</p>"
+        + _table(
+            ["Date", "Event", "Description", "Company Believed", "SIM Truth", "Amount", "Outcome"],
+            rows,
+        )
+    )
+
+
 def build_customers(dash, sample, ts, ledger=None, journey_log=None):
     git_commit = dash.get("meta", {}).get("git_commit", "?")
     phase = dash.get("build", {}).get("current_phase", "?")
@@ -422,6 +476,10 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
             _pick_serial_saver_cid(dash["customers"].get("serial_savers", [])),
         )
         + _per_fuel_case_study(ledger or {}, PER_FUEL_CASE_STUDY_BASE)
+        + _decision_event_ledger_case_study(
+            dash["customers"].get("events", []), retention, journey_log or [],
+            ledger or {}, DECISION_LEDGER_CASE_STUDY_CID,
+        )
         + "<h2>Full Ground Truth</h2>"
         + "<p>Machine-readable per-customer data:<br>"
         + '<a href="/state/customer_sample.json">customer_sample.json</a> | '
@@ -478,6 +536,59 @@ def _collections_process(billing_ledger):
         + _table(["Stage", "Times Reached"], stage_rows)
     )
     return body
+
+
+def _portfolio_event_stream(events, retention, journey_log, billing_ledger):
+    """DECISION_LOOP_AND_EVENT_LEDGER.md Part 5: the live-run feed of decisions
+    across the whole portfolio, most recent first -- company ops view of the
+    same events the customer-level ledger shows for one account. Filterable by
+    event type via the buttons above the table (plain JS, no framework)."""
+    stream = build_portfolio_event_stream(events, retention, journey_log, billing_ledger, limit=150)
+    if not stream:
+        return ""
+
+    types_seen = sorted({e["event_type"] for e in stream})
+    filter_buttons = (
+        '<button class="btn" onclick="_filterLedger(\'all\')">All</button>'
+        + "".join(
+            '<button class="btn" onclick="_filterLedger(\'' + t + '\')">'
+            + _event_type_label(t) + "</button>"
+            for t in types_seen
+        )
+    )
+
+    rows = ""
+    for e in stream:
+        belief = _pct(e.get("company_belief"))
+        truth = "&#8212;" if e["event_type"] == "journey_state" else _pct(e.get("sim_truth"))
+        amount = _gbp(e.get("amount_gbp"))
+        rows += (
+            '<tr data-event-type="' + e["event_type"] + '">'
+            + "<td>" + e["date"] + "</td>"
+            + "<td>" + e["customer_id"] + "</td>"
+            + "<td>" + _event_type_label(e["event_type"]) + "</td>"
+            + "<td>" + e["description"] + "</td>"
+            + "<td>" + belief + "</td>"
+            + "<td>" + truth + "</td>"
+            + "<td>" + amount + "</td>"
+            + "</tr>"
+        )
+
+    return (
+        "<h2>Portfolio Decision Event Stream</h2>"
+        + '<p class="meta">Most recent 150 decisions/outcomes across the whole portfolio -- '
+        + "docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md Part 5. \"Company Believed\" is the "
+        + "H1 estimate/EV logged at decision time; \"SIM Truth\" is the realized outcome.</p>"
+        + '<div style="margin-bottom:10px">' + filter_buttons + "</div>"
+        + '<table id="ledger-stream"><thead><tr>'
+        + "".join("<th>" + h + "</th>" for h in
+                  ["Date", "Customer", "Event", "Description", "Company Believed", "SIM Truth", "Amount"])
+        + "</tr></thead><tbody>" + rows + "</tbody></table>"
+        + "<script>function _filterLedger(t){"
+        + "document.querySelectorAll('#ledger-stream tbody tr').forEach(function(r){"
+        + "r.style.display = (t==='all' || r.dataset.eventType===t) ? '' : 'none';"
+        + "});}</script>"
+    )
 
 
 def build_supplier(dash, ts, billing_ledger=None, journey_log=None):
@@ -609,6 +720,10 @@ def build_supplier(dash, ts, billing_ledger=None, journey_log=None):
         + _renewal_decision_case_study(retention_records)
         + _churn_journey_portfolio_funnel(journey_log or [])
         + _serial_saver_portfolio(dash.get("customers", {}).get("serial_savers", []))
+        + _portfolio_event_stream(
+            dash.get("customers", {}).get("events", []), retention_records, journey_log or [],
+            billing_ledger or {},
+        )
     )
     return _page("Supplier P&amp;L", "Supplier", body, ts, git_commit, build.get("current_phase", "?"))
 

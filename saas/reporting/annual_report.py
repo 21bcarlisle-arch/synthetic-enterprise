@@ -580,6 +580,11 @@ def extract_report_data(run_output: dict) -> dict:
         "retention_log": phase2b.get("retention_log", []),
         "no_offer_churn_log": phase2b.get("no_offer_churn_log", []),
         "company_divergence": phase2b.get("company_divergence", {}),
+        # Phase QP: Phase QL's churn_journey_log was computed by run_phase2b but never
+        # forwarded here, so dash["customers"]["journey_log"] has been silently empty
+        # in every production run since QL shipped -- the Churn Journey Case Study and
+        # Portfolio Funnel sections had nothing to render. Forwarding it now.
+        "churn_journey_log": phase2b.get("churn_journey_log", []),
         "won_successor_activations": won_successor_activations,
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),

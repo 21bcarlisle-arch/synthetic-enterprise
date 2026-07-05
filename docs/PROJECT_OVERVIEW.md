@@ -111,6 +111,60 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QP -- Decision Event Ledger (2026-07-05)
+Tier 2 (PRIORITIES.md P1, docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md Part 5).
+18 new tests, 15,596 collected.
+
+Parts 1-3 of the staged instruction (moments-of-truth triggers, EV-based
+decisions, H1-vs-H2 variance) were already substantially built by Phases QI/QJ/QL/QM.
+Part 5 -- "Rich wants to see the events" -- asked for these four independently-built
+per-topic case studies (behavioral signal, renewal decision, churn journey, retention
+deferral) to be unified into one real chronological timeline per customer, plus a
+portfolio-wide feed. New company/analytics/decision_event_ledger.py:
+build_customer_ledger(cid, events, retention, journey_log, ledger_customer) merges
+retention decisions (with their logged EV: estimate, discount, cost, expected margin
+at risk), renewal outcomes (company belief vs SIM-realized churn probability),
+churn-journey state transitions, and the full arrears/dunning cascade into one
+date-sorted feed; build_portfolio_event_stream(...) does the same across every
+customer, most recent first, with arrears collapsed to one entry per case (not
+every dunning stage) to keep portfolio granularity at decision level.
+
+tools/generate_shadow_html.py: _decision_event_ledger_case_study() (Customers tab)
+renders the full sequence for C_IC1 -- the existing flagship divergence case (Phase
+QJ: company believed 95% churn risk at the 2018-01-31 renewal, EV of offering
+GBP139,477; SIM ground truth was 4%) now shows the retention decision immediately
+followed by its real outcome in one ordered table, instead of as two separate
+case-study sections built independently. _portfolio_event_stream() (Supplier tab)
+renders the most recent 150 decisions/outcomes across the whole portfolio with
+plain-JS filter buttons per event type (no framework) -- the company ops view of
+the same events.
+
+FOUND AND FIXED EN ROUTE: while wiring journey_log into the new ledger, found that
+Phase QL's churn_journey_log (computed by run_phase2b) was never forwarded through
+saas/reporting/annual_report.py::extract_report_data() to the saved run_output json
+-- dash["customers"]["journey_log"] had been silently empty in every production run
+since Phase QL shipped, meaning the existing Churn Journey Case Study and Portfolio
+Funnel sections (built and tested in isolation, Phase QL Part 2) had nothing to
+render on the live site. One-line fix (forward the key); the next production run
+will populate journey states for every customer, not just the new ledger.
+
+ALSO FOUND AND FIXED EN ROUTE: tools/generate_project_state.py::_parse_phase_and_tests()
+had regressed to the exact class of bug Phase QG fixed -- its regex only matched the
+older "(N total)" phrasing, but every phase entry since QL phrases the count as "N
+collected", so PROJECT_STATE.txt had been silently reporting a stale phase (QK) pulled
+from the nearest entry still using the old phrasing. Regex widened to accept either;
+regression test added following the same pattern as QG's original fix.
+
+Remaining scope from DECISION_LOOP_AND_EVENT_LEDGER.md: Part 4 (counterfactual lift
+extended from retention-only, Phase NO, to every intervention class, as the fitness
+function for policy comparison) and the 0.95-ceiling false-positive calibration fix
+(flagged since Phase QB: IC_RATE_SENSITIVITY=1.5 saturates the churn estimate at the
+hard clamp for any sufficiently large single-renewal rate rise, collapsing genuinely
+different risk levels into an indistinguishable 95% and sizing the retention
+discount accordingly) -- deliberately deferred to a dedicated phase rather than
+bundled in here, since it is a real calibration/economic judgment call that needs
+its own test-suite-verified pass, not a rendering change. Epistemic: PASS.
+
 ### Phase QO -- Website Integrity Part B: Design System Unification (2026-07-05)
 Tier 2 (PRIORITIES.md P1, the remaining half of Website Integrity Part B after
 Phase QN closed the per-fuel-legs data-completeness half). 18 new tests.
@@ -5411,9 +5465,29 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 357+ Python modules (company layer + tools), ~55,300 lines total
+- 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
-- 15,454 tests passed (fast suite; simulation integration ~8 min per run)
+- 15,595 tests collected (fast suite; simulation integration ~8 min per run)
+- Phase QP (2026-07-05): Decision Event Ledger (PRIORITIES.md P1, docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md
+  Part 5) -- new company/analytics/decision_event_ledger.py merges retention decisions, renewal
+  outcomes, churn-journey states, and arrears cascades (previously four independent per-topic case
+  studies from Phases QI/QJ/QL/QM) into one real chronological timeline. Customers tab: Decision
+  Event Ledger for C_IC1 (the flagship divergence case) shows its 2018-01-31 retention decision
+  (company believed 95% churn risk, EV of offering GBP139,477) immediately followed by the real
+  outcome (SIM truth 4%) in one ordered feed -- both sides of the wall, one page, one sequence.
+  Supplier tab: Portfolio Decision Event Stream, most recent 150 decisions/outcomes across every
+  customer, filterable by event type (plain JS, no framework). FOUND AND FIXED EN ROUTE: Phase QL's
+  churn_journey_log was computed by run_phase2b but never forwarded through
+  saas/reporting/annual_report.py::extract_report_data() -- dash["customers"]["journey_log"] had
+  been silently empty in every production run since QL shipped, so the existing Churn Journey Case
+  Study and Portfolio Funnel sections had nothing to render; this also feeds the new ledger. ALSO
+  FOUND AND FIXED: generate_project_state.py::_parse_phase_and_tests() had regressed to the same
+  class of bug Phase QG fixed -- its regex only matched the older "(N total)" phrasing, but every
+  entry since QL uses "N collected", so PROJECT_STATE.txt was silently reporting a stale phase
+  (QK) pulled from the nearest entry still using the old phrasing. Regex widened to accept either;
+  regression test added. 18 new tests, 15,596 collected. Part 4 (counterfactual lift extended to
+  every intervention class) and the 0.95-ceiling false-positive calibration fix remain open as the
+  next candidate phase -- see PRIORITIES.md.
 - Phase QO (2026-07-05): Website Integrity Part B design system -- base.html centralizes design
   tokens + kpi-card/rag-chip/banner components across all 19 customer portal templates; matching
   components added to the shadow mirror; population_anchoring.json surfaced as rag-chips on the

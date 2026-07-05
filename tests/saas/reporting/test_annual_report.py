@@ -711,6 +711,26 @@ def test_extract_report_data_won_successor_activations_empty_by_default():
     assert data.get("won_successor_activations") == {}
 
 
+# ---- Phase QP: churn_journey_log forwarding (was silently dropped since Phase QL) ----
+
+def test_extract_report_data_forwards_churn_journey_log():
+    """phase2b's churn_journey_log (Phase QL) must reach the saved run_output json --
+    it was computed but never forwarded, leaving dash["customers"]["journey_log"]
+    empty in every production run since Phase QL shipped."""
+    run_output = _run_output()
+    run_output["phase2b"]["churn_journey_log"] = [
+        {"customer_id": "C1", "term_start": "2021-01-01", "journey_state": "irritated",
+         "resentment_score": 12.5, "is_burned": False, "perceived_bill_saving_gbp": 3.2},
+    ]
+    data = extract_report_data(run_output)
+    assert data.get("churn_journey_log") == run_output["phase2b"]["churn_journey_log"]
+
+
+def test_extract_report_data_churn_journey_log_empty_by_default():
+    data = extract_report_data(_run_output())
+    assert data.get("churn_journey_log") == []
+
+
 def test_acquisitions_includes_won_successors_in_activation_year():
     """A won successor activated in 2017 appears in 2017's acquisitions list."""
     data = extract_report_data(_run_output_with_successor_activation())

@@ -1,7 +1,7 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-05 (Website Integrity Part B DELIVERED via Phase QN + Phase QO -- both
-# per-fuel-legs and design-system halves now done. New P1: Decision Event Ledger, the remaining
-# scope of docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md.)
+# Last refreshed: 2026-07-05 (Decision Event Ledger Part 5 DELIVERED via Phase QP. New P1:
+# the remaining scope of docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md -- Part 4 (counterfactual
+# lift for every intervention class) and the 0.95-ceiling false-positive calibration fix.)
 
 ## COMPLETED
 - P1 (billing depth): Arrears states + dunning cycles + emergent bad debt -- DONE (Phase QD).
@@ -98,23 +98,31 @@ DELIVERED, not just listed. No further generator/scenario phases until P1 below 
   as real rag-chips on the Sim tab. See docs/staging/done/WEBSITE_INTEGRITY_AND_DESIGN_PARTA_DONE.md
   for the full original staged instruction.
 
-## PRIORITY 1 -- DECISION EVENT LEDGER (docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md)
-Staged, Tier 2, explicitly named to run "alongside Website Part B" -- now the primary thread since
-Part B is fully delivered. Parts 1-3 (moments-of-truth triggers, EV-based decisions, H1-vs-H2
-variance) are substantially built already (retention_risk.py triggers, run_phase2b.py EV logging,
-company/analytics/retention_deferral_economics.py H1/H2 from Phase QM). Remaining scope:
-- Part 4, Counterfactual Lift: extend Phase NO's matched no-intervention counterfactual to every
-  intervention class (not just retention), producing real lift-per-pound as the fitness function.
-- Part 5, the Decision Event Ledger itself: a genuine chronological customer timeline (Customers
-  tab) showing every commercial event in sequence -- renewal window opened, trigger fired, decision
-  taken with its EV and options considered, offer made, accepted/declined, arrears entry, dunning
-  step, payment plan, write-off, churn -- for one real named account (C7 or C_IC1 class case). The
-  current surfaces show per-topic case studies (churn journey, renewal decision, retention
-  deferral) built independently across QI/QJ/QL/QM; this ledger unifies them into one ordered feed.
-  Portfolio event stream (Supplier tab): the live-run feed of decisions as a company ops view,
-  filterable by event type, H1 EV shown at decision time and H2 outcome once realized.
-- Also fix en route: the 0.95-ceiling false-positive bug flagged since Phase QB (false positives
-  burn real margin even in an EV frame).
+## COMPLETED (cont. 2)
+- Decision Event Ledger Part 5: DONE (Phase QP, 2026-07-05, docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md).
+  company/analytics/decision_event_ledger.py unifies the per-topic case studies built independently
+  across QI/QJ/QL/QM (behavioral signal, renewal decision, churn journey, retention deferral) into
+  one real chronological timeline per customer (Customers tab: C_IC1, the flagship divergence case --
+  2018-01-31 retention decision, company believed 95% churn risk / EV GBP139,477, immediately followed
+  by the real outcome, SIM truth 4%, in one ordered feed) plus a portfolio-wide feed (Supplier tab:
+  most recent 150 decisions/outcomes, filterable by event type, plain JS). FOUND AND FIXED EN ROUTE:
+  Phase QL's churn_journey_log was computed by run_phase2b but never forwarded through
+  saas/reporting/annual_report.py::extract_report_data() -- had been silently empty in every
+  production run since QL shipped. 17 new tests.
+
+## PRIORITY 1 -- DECISION EVENT LEDGER, REMAINING SCOPE (docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md)
+Staged, Tier 2. Parts 1-3 and Part 5 are now built (see COMPLETED above). Remaining scope:
+- Part 4, Counterfactual Lift: extend Phase NO's matched no-intervention counterfactual (currently
+  retention-only) to every intervention class, producing real lift-per-pound as the fitness function
+  Digital Darwinism operates on for policy comparison, not just individual model accuracy.
+- The 0.95-ceiling false-positive calibration fix, flagged since Phase QB and now directly visible
+  in the new ledger's C_IC1 case: IC_RATE_SENSITIVITY=1.5 (company/crm/churn_model.py) saturates the
+  linear churn-estimate formula at the MAX_CHURN_PROBABILITY=0.95 hard clamp for any sufficiently
+  large single-renewal rate rise, collapsing genuinely different underlying risk levels into an
+  indistinguishable 95% and sizing the retention discount accordingly -- a real calibration/economic
+  judgment call (lower the sensitivity? soften the clamp into a saturating curve? require sustained
+  multi-year signal before reaching the ceiling?) that needs its own test-suite-verified pass, not a
+  rendering change alongside the ledger work.
 
 ## Backlog
 - Further correlated-generator scenarios, extended stress suites, shadow-live index page
