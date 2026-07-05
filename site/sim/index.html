@@ -199,6 +199,33 @@
       an honest gap, not a fabricated zero.
     </div>
     <div class="chart-wrap"><canvas id="cust-event-freq-chart" height="220"></canvas></div>
+    <div class="section-title">Correlation Panels &mdash; Where The World Meets Itself</div>
+    <div class="narrative">
+      <strong>The tabs used to be silos.</strong> These panels pair signals from different parts of the
+      sim on the same axis, the SSP-vs-Short% template generalized: does the thing we'd expect to move
+      together actually move together, in this data?
+    </div>
+    <div class="section-title" style="font-size:0.85rem;margin-top:20px">Income Stress vs Payment Delay Rate</div>
+    <div class="chart-wrap"><canvas id="corr-stress-delay-chart" height="220"></canvas></div>
+    <div class="section-title" style="font-size:0.85rem;margin-top:20px">Wholesale Price vs In-Market Entries</div>
+    <div class="chart-wrap"><canvas id="corr-price-inmarket-chart" height="220"></canvas></div>
+    <div class="section-title" style="font-size:0.85rem;margin-top:20px">Satisfaction vs Complaints</div>
+    <div class="narrative">
+      <strong>Honest gap:</strong> this correlation cannot be shown yet. `company/crm/complaints.py`'s
+      <code>ComplaintBook</code> exists but is not wired into the live simulation (same gap the Event
+      Frequency panel above already flags) &mdash; there is no complaint time series to pair against
+      satisfaction. Shown as a stated gap, not a fabricated zero.
+    </div>
+    <div class="section-title">Both Sides of the Wall &mdash; SIM Truth vs Company-Observed</div>
+    <div class="narrative">
+      <strong>The epistemic wall, at portfolio scale:</strong> every renewal records both the SIM's ground-truth
+      churn probability and the company's own model estimate (`churn_accuracy_by_renewal`, the same field
+      behind the C_IC1 flagship divergence case on the Customers tab). Aggregated across all customers and
+      years, this line pair is literally what the company cannot see vs what it estimates instead &mdash; the
+      gap between the two lines IS the wall. (True satisfaction vs measured CSAT will pair here too once
+      FEEDBACK_AND_REPUTATION.md lands &mdash; queued behind this design wave, not yet built.)
+    </div>
+    <div class="chart-wrap"><canvas id="wall-churn-chart" height="220"></canvas></div>
     <div class="meta-bar" id="cust-meta-bar">Loading customer data&hellip;</div>
   </div>
 
@@ -321,13 +348,17 @@
     customersLoaded = true;
     Promise.all([
       fetch('/data/customer_sample.json').then(function(r) { return r.json(); }),
-      fetch('/data/dashboard.json').then(function(r) { return r.json(); }).catch(function() { return null; })
+      fetch('/data/dashboard.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
+      fetch('/data/sim_data.json').then(function(r) { return r.json(); }).catch(function() { return null; })
     ]).then(function(results) {
-      var d = results[0], dash = results[1];
+      var d = results[0], dash = results[1], sd = results[2];
       buildCustKpis(d); buildCustTable(d); buildStressChart(d); buildPayChart(d);
       buildSatChart(d); buildPropensityChart(d); buildEventFreqChart(d);
       var journeyLog = (dash && dash.customers && dash.customers.journey_log) || [];
       buildJourneyKpis(journeyLog); buildJourneyStageChart(journeyLog);
+      buildCorrStressDelayChart(d);
+      buildCorrPriceInMarketChart(journeyLog, (sd && sd.annual) || []);
+      buildWallChurnChart(d);
       var cnt = Object.keys(d.customers || {}).length;
       document.getElementById('cust-meta-bar').textContent = cnt + ' customers | simulation/run_phase2b.py behavioral trajectories | 4-dimension model: physical / economic / behavioural / emotional';
     }).catch(function(e) {
@@ -410,12 +441,33 @@
     }).join('');
   }
   var SIM_END_DATE = Date.UTC(2025, 11, 31);
+  function sparklineSvg(values, color) {
+    if (!values || !values.length) return '<span style="color:var(--muted);font-size:11px">no data</span>';
+    var w = 160, h = 36, pad = 3;
+    var min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+    var range = (max - min) || 1;
+    var step = values.length > 1 ? (w - 2*pad) / (values.length - 1) : 0;
+    var pts = values.map(function(v, i) {
+      var x = pad + i*step;
+      var y = h - pad - ((v - min) / range) * (h - 2*pad);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+
+      '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5"/></svg>';
+  }
+  function toggleCustDetail(id) {
+    var row = document.getElementById(id);
+    if (!row) return;
+    row.style.display = (row.style.display === 'none' || !row.style.display) ? 'table-row' : 'none';
+  }
+  window.toggleCustDetail = toggleCustDetail;
   function buildCustTable(d) {
     var custs = d.customers || {};
     var ids = Object.keys(custs).sort().slice(0, 20);
     var scColors = {EXCELLENT:'var(--green)', GOOD:'var(--green)', FAIR:'var(--muted)', POOR:'var(--amber)', CRITICAL:'var(--red)'};
     var stColors = {LOW:'var(--green)', MODERATE:'var(--amber)', HIGH:'var(--red)'};
-    var rows = ids.map(function(id) {
+    var stressNum = {LOW:0, MODERATE:0.5, HIGH:1};
+    var rows = ids.map(function(id, idx) {
       var c = custs[id];
       var seg = (id.indexOf('IC') >= 0) ? 'I&C' : 'Residential';
       var traj = c.income_stress_trajectory || [];
@@ -428,7 +480,17 @@
       var evts = (c.life_event_history || []).slice(0,3).map(function(e) { return e.event_type; }).join(', ') || '—';
       var stCol = stColors[lastSt] || 'var(--muted)';
       var scCol = scColors[sc] || 'var(--muted)';
-      return '<tr><td style="font-family:monospace;font-size:11px">'+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
+      var detailId = 'cust-detail-' + idx;
+      var stressVals = traj.map(function(pt) { return stressNum[(pt.stress||'low').toUpperCase()] != null ? stressNum[(pt.stress||'low').toUpperCase()] : 0; });
+      var satVals = satTraj.map(function(pt) { return Number(pt.satisfaction_score); });
+      var mainRow = '<tr class="cust-row" style="cursor:pointer" onclick="toggleCustDetail(\''+detailId+'\')" title="Click to expand trajectory"><td style="font-family:monospace;font-size:11px">&#9656; '+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
+      var detailRow = '<tr id="'+detailId+'" style="display:none"><td colspan="7" style="background:var(--surface2);padding:14px 18px">'+
+        '<div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end">'+
+        '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Income Stress Trajectory</div>'+sparklineSvg(stressVals,'#d03b3b')+'</div>'+
+        '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Satisfaction Trajectory</div>'+sparklineSvg(satVals,'#1baf7a')+'</div>'+
+        '<div style="font-size:11px;color:var(--muted);max-width:280px;line-height:1.5">Full Customer 360 profile: pending CUSTOMER_360_REDESIGN.md (separately staged, not yet built &mdash; no link fabricated).</div>'+
+        '</div></td></tr>';
+      return mainRow + detailRow;
     }).join('');
     document.getElementById('cust-tbody').innerHTML = rows || '<tr><td colspan="7" style="color:var(--muted)">No data</td></tr>';
   }
@@ -612,6 +674,118 @@
       options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
         scales:{x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
                 y:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}
+    });
+  }
+
+  var corrStressDelayChart = null;
+  function buildCorrStressDelayChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var yearMap = {};
+    function ensure(yr) {
+      if (!yearMap[yr]) yearMap[yr] = {stressHigh:0, stressTotal:0, missSum:0, billTotal:0};
+      return yearMap[yr];
+    }
+    ids.forEach(function(id) {
+      (custs[id].income_stress_trajectory || []).forEach(function(pt) {
+        var v = ensure(String(pt.year));
+        v.stressTotal++;
+        if ((pt.stress || 'low').toUpperCase() === 'HIGH') v.stressHigh++;
+      });
+      (custs[id].payment_miss_trajectory || []).forEach(function(pt) {
+        var v = ensure(String(pt.year));
+        v.missSum += (pt.late || 0) + (pt.dd_failed || 0);
+        v.billTotal += (pt.total || 0);
+      });
+    });
+    var years = Object.keys(yearMap).sort();
+    var ctx = document.getElementById('corr-stress-delay-chart').getContext('2d');
+    if (corrStressDelayChart) corrStressDelayChart.destroy();
+    if (!years.length) return;
+    corrStressDelayChart = new Chart(ctx, {
+      data: {
+        labels: years,
+        datasets: [
+          {type:'bar', label:'% customers HIGH stress', data: years.map(function(y){var v=yearMap[y]; return v.stressTotal ? +(v.stressHigh/v.stressTotal*100).toFixed(1) : 0;}), backgroundColor:'rgba(208,59,59,0.55)', yAxisID:'y'},
+          {type:'line', label:'Payment delay rate %', data: years.map(function(y){var v=yearMap[y]; return v.billTotal ? +(v.missSum/v.billTotal*100).toFixed(1) : 0;}), borderColor:'rgba(42,120,214,0.9)', backgroundColor:'rgba(42,120,214,0.9)', borderWidth:2, pointRadius:2, tension:0.3, fill:false, yAxisID:'y2'}
+        ]
+      },
+      options: {responsive:true, interaction:{mode:'index',intersect:false}, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{
+          x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+          y:{position:'left',min:0,ticks:{color:'#52514e',callback:function(v){return v+'%';}},grid:{color:'rgba(225,224,217,0.6)'}},
+          y2:{position:'right',min:0,ticks:{color:'#52514e',callback:function(v){return v+'%';}},grid:{drawOnChartArea:false}}
+        }}
+    });
+  }
+
+  var corrPriceInMarketChart = null;
+  function buildCorrPriceInMarketChart(journeyLog, priceAnnual) {
+    var inMarketByYear = {};
+    (journeyLog || []).forEach(function(e) {
+      if (e.state !== 'in_market' || !e.date) return;
+      var yr = e.date.slice(0, 4);
+      inMarketByYear[yr] = (inMarketByYear[yr] || 0) + 1;
+    });
+    var priceByYear = {};
+    (priceAnnual || []).forEach(function(r) { priceByYear[r.year] = r.mean; });
+    var years = Object.keys(inMarketByYear).concat(Object.keys(priceByYear));
+    var seen = {}; var uniqYears = [];
+    years.sort().forEach(function(y) { if (!seen[y]) { seen[y] = true; uniqYears.push(y); } });
+    var ctx = document.getElementById('corr-price-inmarket-chart').getContext('2d');
+    if (corrPriceInMarketChart) corrPriceInMarketChart.destroy();
+    if (!uniqYears.length) return;
+    corrPriceInMarketChart = new Chart(ctx, {
+      data: {
+        labels: uniqYears,
+        datasets: [
+          {type:'bar', label:'In-market entries', data: uniqYears.map(function(y){return inMarketByYear[y] || 0;}), backgroundColor:'rgba(42,120,214,0.55)', yAxisID:'y'},
+          {type:'line', label:'Mean SSP £/MWh', data: uniqYears.map(function(y){return priceByYear[y] != null ? priceByYear[y] : null;}), borderColor:'rgba(208,59,59,0.9)', backgroundColor:'rgba(208,59,59,0.9)', borderWidth:2, pointRadius:2, tension:0.3, fill:false, spanGaps:true, yAxisID:'y2'}
+        ]
+      },
+      options: {responsive:true, interaction:{mode:'index',intersect:false}, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{
+          x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+          y:{position:'left',min:0,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+          y2:{position:'right',min:0,ticks:{color:'#52514e',callback:function(v){return '£'+v;}},grid:{drawOnChartArea:false}}
+        }}
+    });
+  }
+
+  var wallChurnChart = null;
+  function buildWallChurnChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var yearMap = {};
+    ids.forEach(function(id) {
+      (custs[id].renewal_events || []).forEach(function(e) {
+        if (e.sim_churn_probability == null || e.company_churn_estimate == null) return;
+        var yr = String(e.event_date || '').slice(0, 4);
+        if (!yr) return;
+        if (!yearMap[yr]) yearMap[yr] = {simSum:0, compSum:0, n:0};
+        yearMap[yr].simSum += e.sim_churn_probability;
+        yearMap[yr].compSum += e.company_churn_estimate;
+        yearMap[yr].n++;
+      });
+    });
+    var years = Object.keys(yearMap).sort();
+    var ctx = document.getElementById('wall-churn-chart').getContext('2d');
+    if (wallChurnChart) wallChurnChart.destroy();
+    if (!years.length) return;
+    wallChurnChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: years,
+        datasets: [
+          {label:'SIM truth churn probability (mean %)', data: years.map(function(y){var v=yearMap[y]; return v.n ? +(v.simSum/v.n*100).toFixed(1) : null;}), borderColor:'rgba(12,163,12,0.9)', backgroundColor:'rgba(12,163,12,0.15)', borderWidth:2, pointRadius:3, tension:0.3},
+          {label:'Company-estimated churn probability (mean %)', data: years.map(function(y){var v=yearMap[y]; return v.n ? +(v.compSum/v.n*100).toFixed(1) : null;}), borderColor:'rgba(208,59,59,0.9)', backgroundColor:'rgba(208,59,59,0.15)', borderWidth:2, pointRadius:3, tension:0.3, borderDash:[4,3]}
+        ]
+      },
+      options: {responsive:true, interaction:{mode:'index',intersect:false}, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{
+          x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+          y:{min:0,ticks:{color:'#52514e',callback:function(v){return v+'%';}},grid:{color:'rgba(225,224,217,0.6)'}}
+        }}
     });
   }
 

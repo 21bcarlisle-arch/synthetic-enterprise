@@ -216,12 +216,17 @@ and confirming sane, crisis-consistent output (e.g. satisfaction "fair" band ris
 drops in 2021-2022; switching-propensity "high" count dips exactly in the 2022-2024 stress
 years) -- no node available in this session, `python3 -m tools.epistemic_verifier` PASS
 (no company/saas files touched, site/ is presentation-only). Epistemic verifier PASS.
-STILL OPEN for tab 1: event frequency panel (life events/bill shocks/complaints/switches/
-payment misses per year -- payment-miss per-year data does not currently exist as a time
-series, only a rolling aggregate, so that sub-item needs a data-model addition first),
-correlation panels (income stress vs payment delay, satisfaction vs complaints, price vs
-in-market entry), per-customer trajectory sparklines + Customer 360 links, both-sides-of-wall
-strip. Rich's eyes are the acceptance test -- awaiting visual review.
+CONTINUED 2026-07-05 (Phase QX, same wave): event frequency panel was already shipped in QV.
+This phase closes the remaining three tab-1 bullets: correlation panels (income stress vs
+payment delay rate, and wholesale price vs journey-log in-market entries -- both from data
+already computed; satisfaction vs complaints left as an explicit honest gap, complaints still
+not wired into the live sim), per-customer click-to-expand trajectory sparklines (Customer 360
+link honestly noted as pending CUSTOMER_360_REDESIGN.md -- that page doesn't exist yet, no dead
+link fabricated), and a portfolio-scale Both-Sides-of-the-Wall strip (churn_accuracy_by_renewal's
+sim vs company-estimated churn probability, aggregated per year -- shows the divergence narrowing
+after Phase QQ's calibration fix). Tab 1 (SIM tab living-world) is now DONE except items 1-3
+(Prices/Weather/BM sub-tab rebuilds, not part of item 4) and item 5 (site-wide consistency gate +
+light theme). Rich's eyes are the acceptance test -- awaiting visual review.
 Tab 2 (Supplier: frozen-policy-baseline delta-EV) needs its own Tier 3 design note first
 (policy snapshot/replay is one-way-door-adjacent) -- do not start implementation before that
 review lands. Tab 3 (Project: learning ledger) assembles as 1/2 land.

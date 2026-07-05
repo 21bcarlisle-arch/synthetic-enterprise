@@ -111,6 +111,29 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QX -- SIM Tab: Correlation Panels, Trajectory Sparklines, Epistemic Wall Strip (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 4 remainder)
+Closes the last three open bullets of SIM_TAB_OVERHAUL.md item 4 (distributions/journey
+stages/event-frequency were already done in QT/QU/QV). site/sim/index.html's Customers sub-tab
+gains: (1) two real correlation panels generalizing the SSP-vs-Short% template -- income stress
+vs payment delay rate (per year, from income_stress_trajectory + payment_miss_trajectory, both
+already computed) and wholesale price vs journey-log in-market entries (sim_data.json annual
+means vs dashboard.json journey_log) -- plus an explicit honest-gap callout for the third pairing
+(satisfaction vs complaints), which cannot be built because `company/crm/complaints.py`'s
+ComplaintBook still isn't wired into the live sim, the same gap the event-frequency panel already
+flags; (2) per-customer row expansion (click-to-toggle, no popups) showing inline SVG sparklines
+of each customer's income-stress and satisfaction trajectories, with an honest note that a full
+Customer 360 profile link is pending CUSTOMER_360_REDESIGN.md (separately staged, not yet built --
+no dead link fabricated); (3) a "Both Sides of the Wall" strip aggregating
+`churn_accuracy_by_renewal`'s sim_churn_probability vs company_churn_estimate across the whole
+portfolio per year -- the same field behind the C_IC1 flagship divergence case, now shown at
+portfolio scale; live data shows the gap narrowing in later years (2022: 5.3% vs 5.2%), consistent
+with Phase QQ's 0.95-ceiling calibration fix. No node/browser tool available this session: verified
+by reimplementing all three data-transform functions in Python against the live customer_sample.json/
+sim_data.json/dashboard.json and confirming sane, non-degenerate output (same verification pattern
+as Phase QU). Presentation-only change (site/ only); epistemic verifier PASS (no company/saas files
+touched). Remaining SIM_TAB_OVERHAUL.md scope: items 1-3 (Prices/Weather/BM sub-tab rebuilds) and
+item 5 (site-wide consistency gate + light theme, broader than this tab) -- see PRIORITIES.md.
+
 ### Phase QW (part 1) -- Consistency-Breach Fix: total_net_gbp/total_bad_debt_gbp (2026-07-05, Tier 2 -- PROJECT_TAB_OVERHAUL.md critique #1)
 saas/reporting/annual_report.py::extract_report_data() sourced total_net_gbp/total_bad_debt_gbp from
 phase2b["total_net"]/["total_bad_debt"] -- scalars captured inside run_phase2b.main() BEFORE
@@ -5587,6 +5610,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
 - 15,578 tests (fast suite; simulation integration ~8 min per run)
+- Phase QX (2026-07-05): SIM tab correlation panels (stress-vs-delay, price-vs-in-market),
+  per-customer trajectory sparklines, and a portfolio-scale "Both Sides of the Wall" churn
+  divergence strip -- closes SIM_TAB_OVERHAUL.md item 4's remaining scope. See Section 4.
 - Phase QW part 1 (2026-07-05): fixed a live consistency breach -- total_net_gbp/total_bad_debt_gbp
   were sourced from stale pre-mutation scalars, now recomputed live from all_records. See Section 4.
 - Phase QV (2026-07-05): event-frequency data model (payment_miss_trajectory, bill_shock_history)
