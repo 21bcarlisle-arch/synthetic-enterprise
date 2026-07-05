@@ -582,7 +582,7 @@ Threshold for elevated risk: >20% company gas churn estimate.
 | 2019 | 4 | 0% | 0% | 0 |
 | 2020 | 4 | 5% | 21% | 1 ⚠ |
 | 2021 | 3 | 69% | 95% | 3 ⚠ |
-| 2022 | 2 | 48% | 95% | 1 ⚠ |
+| 2022 | 2 | 46% | 92% | 1 ⚠ |
 | 2023 | 2 | 0% | 0% | 0 |
 | 2024 | 1 | 1% | 1% | 0 |
 
@@ -591,7 +591,7 @@ Threshold for elevated risk: >20% company gas churn estimate.
 | Date | Customer | Old Rate (£/MWh) | New Rate (£/MWh) | Est Churn |
 |------|----------|-----------------|-----------------|-----------|
 | 2021-12-31 | C_IC3g | £19.4 | £125.9 (+550%) | 95% |
-| 2022-09-30 | C4g | £35.0 | £95.0 (+171%) | 95% |
+| 2022-09-30 | C4g | £35.0 | £95.0 (+171%) | 92% |
 | 2021-09-30 | C4g | £16.1 | £35.0 (+118%) | 74% |
 | 2021-03-31 | C2g | £21.7 | £35.0 (+62%) | 40% |
 | 2018-10-01 | C4g | £26.1 | £33.6 (+29%) | 23% |
@@ -643,8 +643,8 @@ Missed opportunities (churns with no offer): **6** (£6,623.39 expected margin l
 | 2021-04-30 | C_IC1 | 0.38 | 3% | £8446.52 | £158250.95 | £150 | £149804.43 | retained |
 | 2021-12-30 | C5 | 0.49 | 3% | £198.22 | £2475.25 | £400 | £2277.03 | retained |
 | 2021-12-31 | C_IC3 | 0.54 | 5% | £51615.63 | £161519.05 | £150 | £109903.42 | retained |
-| 2022-04-30 | C_IC2 | 0.42 | 3% | £9417.62 | £96241.44 | £150 | £86823.82 | retained |
-| 2022-05-30 | C_IC1 | 0.42 | 3% | £18141.96 | £231598.92 | £150 | £213456.97 | retained |
+| 2022-04-30 | C_IC2 | 0.40 | 3% | £9417.62 | £96241.44 | £150 | £86823.82 | retained |
+| 2022-05-30 | C_IC1 | 0.41 | 3% | £18141.96 | £231598.92 | £150 | £213456.97 | retained |
 | 2023-03-31 | C6 | 0.39 | 3% | £229.47 | £3221.88 | £400 | £2992.40 | retained |
 
 ## Retention Durability
@@ -1238,7 +1238,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 12 | 0.9 | £9 |
+| 2016 | 13 | 13 | 1.0 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,607 |
 | 2023 | 4 | 36 | 9.0 | £48,915 |
@@ -1592,7 +1592,7 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-05T03:20:10Z
+Generated: 2026-07-05T03:30:04Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2064,7 +2064,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,380 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 21 sessions
+- C1: 22 sessions
 - C5: 16 sessions
 - C7: 16 sessions
 - C2: 13 sessions
@@ -2612,7 +2612,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-01-31: treasury £2,466,648.39, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-01: treasury £2,466,660.65, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-31: treasury £2,466,672.63, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-04-30: treasury £2,466,683.74, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-04-30: treasury £2,466,683.74, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-05-30: treasury £2,466,694.75, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-06-29: treasury £2,466,705.34, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-07-29: treasury £2,466,716.06, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25

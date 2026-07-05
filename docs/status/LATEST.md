@@ -1,26 +1,24 @@
-## Phase QN COMPLETE -- Customer Portal Per-Fuel Depth
-Last updated: 2026-07-05T03:25:46Z
+## Phase QQ COMPLETE -- Decision Loop Remaining Scope (Calibration Fix + Counterfactual Lift)
+Last updated: 2026-07-05T03:37:03Z
 
-**Status:** COMPLETE. 15,436 tests passed (fast suite). Epistemic: PASS.
+**Status:** COMPLETE. 15,622 tests passed (fast suite). Epistemic: PASS.
 
-**Phase QN -- Per-Fuel Legs (PRIORITIES.md P1, WEEKEND_ACCELERATION.md Q5):**
-- tools/generate_shadow_html.py: removed the `if cid.endswith("g"): continue` skip that was
-  dropping every gas leg of a dual-fuel account from the Customers tab
-- Both fuel legs now shown as separate accounts; Combined Roll-Up table added as an explicit
-  optional secondary view (dual-fuel customers only)
-- _per_fuel_case_study(): real per-leg invoice/arrears/failed-payment history from billing_ledger.json
+**Phase QQ (PRIORITIES.md P1, closes DECISION_LOOP_AND_EVENT_LEDGER.md):**
+- company/crm/churn_model.py: hard 0.95 clamp replaced with an asymptotic saturating curve above
+  CHURN_SATURATION_ELBOW=0.90 (identity below it -- every previously-unclamped estimate unchanged);
+  distinguishable elevated risk levels no longer collapse to the same false-precision ceiling
+- company/analytics/counterfactual_retention.py: compute_counterfactual_lift_by_class() classifies
+  every no-offer churn as detection_gate (model problem) or uneconomical_{high,medium,low}
+  (economics problem), scored under H3 (effectiveness scales 0.04/discount point); wired into the
+  Counterfactual Retention & Threshold Optimisation board section
 
-**KEY FINDING:**
-- C_IC3's electricity leg is billed/paid exactly (0 failed payments, 0 arrears)
-- Its gas leg (C_IC3g) carries 1 failed payment and a live -£89,641 arrears case
-- A combined roll-up would have netted this into one number and hidden which fuel is causing the friction
+**PRIORITIES.md P1 (Decision Event Ledger) now fully DONE across Phases QP+QQ.** New P1: PROCESS_NOT_EVENTS.md
+acquisition funnel (second in its declared sequence, pre-approved via PREAPPROVE_PROCESS_MODEL.md).
 
-**Remaining scope (PRIORITIES.md P1):** design-system unification across all four shadow sections + customer portal.
-
-**Prior milestone:** Phase QM (Retention as Deferral, H1 vs H2) -- docs/claude/phase-history.md.
+**Prior milestone:** Phase QP (Decision Event Ledger unification) -- docs/claude/phase-history.md.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (499s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (500s / 8 min):
 - Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
