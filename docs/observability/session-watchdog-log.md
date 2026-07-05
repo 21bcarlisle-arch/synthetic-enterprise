@@ -3861,3 +3861,25 @@
 - [2026-07-05 09:31 UTC] Session idle — sending autoloop continuation instruction
 - [2026-07-05 09:42 UTC] Session usage at 100% (>= 90%) — writing usage pause until 2026-07-05T09:59:00+00:00, holding off the autoloop nudge this cycle
 - [2026-07-05 09:43 UTC] Usage pause active (docs/observability/.usage_pause.json) — autoloop continuation suppressed until session reset
+- [2026-07-05 10:15 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 10:26 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 10:36 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 10:46 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 10:56 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 11:06 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 11:16 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 11:26 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 11:36 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 11:46 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 11:56 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 12:07 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 12:17 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 12:27 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 12:37 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 12:47 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 12:57 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 13:07 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 13:17 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 13:27 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 13:37 UTC] Session idle — sending autoloop continuation instruction
+- [2026-07-05 13:47 UTC] Session idle — sending autoloop continuation instruction

@@ -188,6 +188,17 @@
     </div>
     <div class="section-title">Journey Stage Population Over Time</div>
     <div class="chart-wrap"><canvas id="journey-stage-chart" height="220"></canvas></div>
+    <div class="section-title">Event Frequency &mdash; Life Events, Bill Shocks, Payment Misses, Switches</div>
+    <div class="narrative">
+      <strong>How often does anything actually happen to a customer?</strong> Four independently-tracked event
+      streams, each per year: life events (job loss, house move &mdash; `simulation/life_events.py`), bill shocks
+      (a &gt;20% unit-rate rise at renewal &mdash; `run_phase2b.py`'s `_NG_BILL_SHOCK_THRESHOLD`), payment misses
+      (LATE + DD_FAILED, from the full per-event payment record history &mdash;
+      `company/crm/payment_behaviour_analytics.py`), and switches (realized churn events). Complaints are not
+      shown: `company/crm/complaints.py`'s `ComplaintBook` exists but is not wired into the live simulation &mdash;
+      an honest gap, not a fabricated zero.
+    </div>
+    <div class="chart-wrap"><canvas id="cust-event-freq-chart" height="220"></canvas></div>
     <div class="meta-bar" id="cust-meta-bar">Loading customer data&hellip;</div>
   </div>
 
@@ -314,7 +325,7 @@
     ]).then(function(results) {
       var d = results[0], dash = results[1];
       buildCustKpis(d); buildCustTable(d); buildStressChart(d); buildPayChart(d);
-      buildSatChart(d); buildPropensityChart(d);
+      buildSatChart(d); buildPropensityChart(d); buildEventFreqChart(d);
       var journeyLog = (dash && dash.customers && dash.customers.journey_log) || [];
       buildJourneyKpis(journeyLog); buildJourneyStageChart(journeyLog);
       var cnt = Object.keys(d.customers || {}).length;
@@ -421,7 +432,7 @@
     }).join('');
     document.getElementById('cust-tbody').innerHTML = rows || '<tr><td colspan="7" style="color:var(--muted)">No data</td></tr>';
   }
-  var custStressChart = null, custPayChart = null;
+  var custStressChart = null, custPayChart = null, custEventFreqChart = null;
   function buildStressChart(d) {
     var custs = d.customers || {};
     var ids = Object.keys(custs);
@@ -557,6 +568,50 @@
       options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
         scales:{x:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
                 y:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}
+    });
+  }
+
+  function buildEventFreqChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var yearMap = {};
+    function bump(yr, key, n) {
+      if (!yr) return;
+      if (!yearMap[yr]) yearMap[yr] = {life_events:0, bill_shocks:0, payment_misses:0, switches:0};
+      yearMap[yr][key] += (n || 1);
+    }
+    ids.forEach(function(id) {
+      (custs[id].life_event_history || []).forEach(function(e) {
+        bump(String(e.date || '').slice(0,4), 'life_events');
+      });
+      (custs[id].bill_shock_history || []).forEach(function(dt) {
+        bump(String(dt || '').slice(0,4), 'bill_shocks');
+      });
+      (custs[id].payment_miss_trajectory || []).forEach(function(pt) {
+        bump(String(pt.year), 'payment_misses', (pt.late||0) + (pt.dd_failed||0));
+      });
+      (custs[id].renewal_events || []).forEach(function(e) {
+        if (e.event_type === 'churned') bump(String(e.event_date || '').slice(0,4), 'switches');
+      });
+    });
+    var years = Object.keys(yearMap).sort();
+    var ctx = document.getElementById('cust-event-freq-chart').getContext('2d');
+    if (custEventFreqChart) custEventFreqChart.destroy();
+    if (!years.length) return;
+    custEventFreqChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: [
+          {label:'Life events', data:years.map(function(y){return yearMap[y].life_events||0;}), backgroundColor:'rgba(74,58,167,0.7)'},
+          {label:'Bill shocks', data:years.map(function(y){return yearMap[y].bill_shocks||0;}), backgroundColor:'rgba(208,59,59,0.7)'},
+          {label:'Payment misses', data:years.map(function(y){return yearMap[y].payment_misses||0;}), backgroundColor:'rgba(250,178,25,0.7)'},
+          {label:'Switches', data:years.map(function(y){return yearMap[y].switches||0;}), backgroundColor:'rgba(42,120,214,0.7)'}
+        ]
+      },
+      options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+                y:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}
     });
   }
 

@@ -38435,7 +38435,64 @@
         "late_rate": 0.05,
         "dd_fail_rate": 0.0
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2016,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2017,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        }
+      ],
+      "bill_shock_history": [
+        "2018-12-31"
+      ]
     },
     "C1g": {
       "income_stress_trajectory": [
@@ -38487,7 +38544,41 @@
         "late_rate": 0.05,
         "dd_fail_rate": 0.06666666666666667
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 2,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2017,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 1,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        }
+      ],
+      "bill_shock_history": []
     },
     "C2": {
       "income_stress_trajectory": [
@@ -38552,7 +38643,81 @@
         "late_rate": 0.18055555555555555,
         "dd_fail_rate": 0.05555555555555555
       },
-      "company_satisfaction_score": 0.65
+      "company_satisfaction_score": 0.65,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 3,
+          "dd_failed": 0,
+          "total": 9
+        },
+        {
+          "year": 2017,
+          "late": 4,
+          "dd_failed": 3,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 4,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 3
+        }
+      ],
+      "bill_shock_history": [
+        "2021-03-31",
+        "2022-03-31"
+      ]
     },
     "C2g": {
       "income_stress_trajectory": [
@@ -38604,7 +38769,53 @@
         "late_rate": 0.06944444444444445,
         "dd_fail_rate": 0.041666666666666664
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 9
+        },
+        {
+          "year": 2017,
+          "late": 3,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 1,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 3
+        }
+      ],
+      "bill_shock_history": []
     },
     "C3": {
       "income_stress_trajectory": [
@@ -38665,7 +38876,60 @@
         "late_rate": 0.10416666666666667,
         "dd_fail_rate": 0.041666666666666664
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 6
+        },
+        {
+          "year": 2017,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 1,
+          "dd_failed": 1,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": [
+        "2017-07-01"
+      ]
     },
     "C3g": {
       "income_stress_trajectory": [
@@ -38722,7 +38986,41 @@
         "late_rate": 0.10416666666666667,
         "dd_fail_rate": 0.0
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 6
+        },
+        {
+          "year": 2017,
+          "late": 3,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": []
     },
     "C4": {
       "income_stress_trajectory": [
@@ -38779,7 +39077,102 @@
         "late_rate": 0.08333333333333333,
         "dd_fail_rate": 0.020833333333333332
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 3
+        },
+        {
+          "year": 2017,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 2,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 9
+        }
+      ],
+      "bill_shock_history": [
+        "2018-10-01",
+        "2021-09-30",
+        "2022-09-30"
+      ]
     },
     "C4g": {
       "income_stress_trajectory": [
@@ -38840,7 +39233,65 @@
         "late_rate": 0.052083333333333336,
         "dd_fail_rate": 0.07291666666666667
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 3
+        },
+        {
+          "year": 2017,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 1,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 1,
+          "dd_failed": 3,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 0,
+          "dd_failed": 2,
+          "total": 9
+        }
+      ],
+      "bill_shock_history": []
     },
     "C5": {
       "income_stress_trajectory": [
@@ -38892,7 +39343,85 @@
         "late_rate": 0.11904761904761904,
         "dd_fail_rate": 0.011904761904761904
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2016,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 3,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2017,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 4,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        }
+      ],
+      "bill_shock_history": [
+        "2018-12-31",
+        "2021-12-30"
+      ]
     },
     "C6": {
       "income_stress_trajectory": [
@@ -38944,7 +39473,101 @@
         "late_rate": 0.08333333333333333,
         "dd_fail_rate": 0.03125
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 9
+        },
+        {
+          "year": 2017,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 3,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 1,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 3
+        }
+      ],
+      "bill_shock_history": [
+        "2021-03-31",
+        "2022-03-31"
+      ]
     },
     "C7": {
       "income_stress_trajectory": [
@@ -39005,7 +39628,112 @@
         "late_rate": 0.15789473684210525,
         "dd_fail_rate": 0.09649122807017543
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2016,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2017,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 0,
+          "dd_failed": 3,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 1,
+          "dd_failed": 2,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 7,
+          "dd_failed": 2,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 3,
+          "dd_failed": 2,
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 5,
+          "dd_failed": 0,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": [
+        "2018-12-31",
+        "2021-12-30",
+        "2022-12-30"
+      ]
     },
     "C8": {
       "income_stress_trajectory": [
@@ -39066,7 +39794,111 @@
         "late_rate": 0.18018018018018017,
         "dd_fail_rate": 0.036036036036036036
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2025,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 9
+        },
+        {
+          "year": 2017,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 3,
+          "dd_failed": 2,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 4,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 7,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 3,
+          "dd_failed": 0,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": [
+        "2021-03-31",
+        "2022-03-31"
+      ]
     },
     "C9": {
       "income_stress_trajectory": [
@@ -39118,7 +39950,108 @@
         "late_rate": 0.08333333333333333,
         "dd_fail_rate": 0.018518518518518517
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2016,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 6
+        },
+        {
+          "year": 2017,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 1,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": [
+        "2017-07-01",
+        "2021-06-30",
+        "2022-06-30"
+      ]
     },
     "C_IC1": {
       "income_stress_trajectory": [
@@ -39170,7 +40103,98 @@
         "late_rate": 0.0392156862745098,
         "dd_fail_rate": 0.00980392156862745
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2017,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2018,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 1,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": [
+        "2018-01-31",
+        "2021-04-30",
+        "2022-05-30"
+      ]
     },
     "C_IC2": {
       "income_stress_trajectory": [
@@ -39222,7 +40246,88 @@
         "late_rate": 0.12222222222222222,
         "dd_fail_rate": 0.011111111111111112
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2019,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2018,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2019,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": [
+        "2019-01-31",
+        "2021-03-31",
+        "2022-04-30"
+      ]
     },
     "C_IC3": {
       "income_stress_trajectory": [
@@ -39279,7 +40384,76 @@
         "late_rate": 0.08974358974358974,
         "dd_fail_rate": 0.02564102564102564
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
+      "payment_miss_trajectory": [
+        {
+          "year": 2019,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": [
+        "2021-12-31"
+      ]
     },
     "C_IC3g": {
       "income_stress_trajectory": [
@@ -39331,7 +40505,53 @@
         "late_rate": 0.0641025641025641,
         "dd_fail_rate": 0.07692307692307693
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [],
+      "payment_miss_trajectory": [
+        {
+          "year": 2019,
+          "late": 3,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2020,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 0,
+          "dd_failed": 3,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 1,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": []
     },
     "C_IC4": {
       "income_stress_trajectory": [
@@ -39383,7 +40603,47 @@
         "late_rate": 0.07575757575757576,
         "dd_fail_rate": 0.030303030303030304
       },
-      "company_satisfaction_score": 0.7
+      "company_satisfaction_score": 0.7,
+      "satisfaction_score_trajectory": [],
+      "payment_miss_trajectory": [
+        {
+          "year": 2020,
+          "late": 1,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2021,
+          "late": 0,
+          "dd_failed": 1,
+          "total": 12
+        },
+        {
+          "year": 2022,
+          "late": 0,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2023,
+          "late": 2,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 1,
+          "dd_failed": 0,
+          "total": 6
+        }
+      ],
+      "bill_shock_history": []
     }
   },
   "bills": [
@@ -65069,8 +66329,8 @@
     }
   ],
   "scenario_analysis": {
-    "generated_at": "2026-07-05T09:45:48Z",
-    "portfolio_as_of": "2026-07-05T09:45:46Z",
+    "generated_at": "2026-07-05T13:38:37Z",
+    "portfolio_as_of": "2026-07-05T13:36:41Z",
     "active_customers": 11,
     "projection_months": 12,
     "scenarios": {
