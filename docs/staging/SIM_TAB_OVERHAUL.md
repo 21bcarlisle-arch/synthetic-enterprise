@@ -1,18 +1,25 @@
-[SIM + PROJECT] SIM TAB OVERHAUL -- director critique. This tab's job (WEBSITE_AS_SHOWCASE tab 1): bring the world to life -- physics, event frequencies, behaviours, INTERRELATIONSHIPS. Strong raw material, specific failures.
+[SIM + PROJECT] SIM TAB OVERHAUL -- director critique. From four isolated datasets to a living world. Elaborates WEBSITE_AS_SHOWCASE tab 1; site design laws v4 apply (light theme, progressive disclosure inline, no popups, derive-or-die, consistency gate).
 
-CRITIQUE FINDINGS (Rich's screenshots, 05 Jul):
-- PRICES: crisis spike crushes the y-axis -- decade reads as a flat line. Needs log scale or linked zoom band; crisis spikes expand INLINE to that day's HH profile. Negative-price lows present but unexplained (they are a discovery -- tell it). No correlation panels anywhere.
-- WEATHER: 10-year temperature spaghetti chart unreadable -- replace with 10-yr envelope band + one highlighted/selectable year. Weather presented as trivia, not as link 1 of the demand->price chain.
-- BM SETTLEMENT: best tab. But the 2021-22 crisis paradox (system flips NET LONG while prices explode) sits uncommented in the table -- surface it as a finding card with the explanation. Dual-axis chart unreadable at mobile scale.
-- CUSTOMERS (weakest, live bugs): cards say "MODERATE STRESS: 0" while the table shows C7+C8 moderate -- cross-element inconsistency ON ONE PAGE (gate case). Table full of dashes (tenure --, satisfaction --, most life events --) when customer_sample.json demonstrably CONTAINS satisfaction trajectories and life events -- the page is not wired to existing data. Nothing from the QL journey state machine appears.
+KEEP (these are right): crisis banding on charts; CRISIS/COLD WINTER chips; all-time peak SSP records table; the why-weather-matters explainer pattern; and ESPECIALLY the SSP-vs-Short% overlay -- that two-signal correlation chart is the TEMPLATE for the whole tab.
 
-THE REBUILD -- the tab tells the causal chain at WORLD level (weather -> demand -> price -> settlement -> customer behaviour), per the site-wide grammar:
+CRITIQUE:
+- The tabs are silos: prices never meet weather, weather never meets demand, nothing meets customers. Interrelationships exist on exactly one chart. The brief is a LIVING WORLD: physics, event frequencies, behaviours, interrelationships.
+- CUSTOMERS sub-tab is broken: header cards say 0 moderate-stress while the table shows C7/C8 moderate (consistency gate must cover SIM surfaces); Tenure and Satisfaction columns are dead (every row a dash) -- fix the data or remove the columns; no journey stages, no distributions, no event frequencies.
+- Terminal monospace on black violates the site laws; spaghetti temp chart (10 overlapping years) is illegible; annual tables cannot expand into months/days (no progressive disclosure); chart axes unreadable on mobile.
 
-1. CHART CRAFT RULES (standing, all tabs): no spaghetti (envelope + highlight); log/zoom for spiky series; every chart answers a stated question written above it; dual-axis only with clear pairing; crisis periods bannered consistently.
-2. CORRELATION PANELS as first-class content (Rich's core ask): HDD vs demand vs price (the physics chain); price vs system short%; income stress vs payment delay; price/crisis vs in-market entries. Each panel = scatter or paired series + one-line stated relationship + inline expand to the underlying data.
-3. EVENT-FREQUENCY PANELS (the world's pulse): life events/yr, bill shocks/yr, complaints, switches, review events (when built) -- rates over time with crisis banding. The world breathing in numbers.
-4. JOURNEY FLOWS (QL is live -- show it): population by journey stage (content/irritated/in-market/comparing) over time; stage-transition rates; funnel view once acquisition lands. This is behaviour made visible.
-5. CUSTOMERS TAB REWIRE: bind to customer_sample.json fully -- tenure, satisfaction trajectory sparkline per customer, life events, journey stage; fix the cards-vs-table inconsistency; income-stress distribution over time from real data (crisis years should visibly shift the mix). Link each row to its Customer 360 page.
-6. FINDINGS SURFACED: the BM crisis paradox, negative-price hours, price-elasticity disconfirmation -- each as a finding card with its evidence expansion. Discoveries belong on the world page where they happened.
+REBUILD DIRECTION, per sub-tab:
 
-STANDING RULES (same as Project tab): derive-or-die (no hand-written numbers), consistency gate covers sim/ pages INCLUDING intra-page card-vs-table agreement, freshness stamps, design laws v4 (light, progressive disclosure inline, no popups, UK lens). Acceptance: Rich's eyes; report awaiting-review.
+1. PRICES -> MARKET: keep the structure, add the links: price chart gains selectable overlays (HDD, system short%, gas NBP) so any pair of signals can be compared -- the SSP-vs-Short pattern generalized. Annual rows expand inline to monthly, monthly to daily profile. Add the negative-price-hours story (hours/year trend -- a stylized fact we anchor the synthetic generator on).
+2. WEATHER -> PHYSICS CHAIN: replace the 10-line spaghetti with a band chart (10yr range + this-year line + anomaly highlighting). Add the chain panel: cold snap -> HDD spike -> demand -> price, one composed visual for a chosen episode (e.g. 2018 Beast from the East, Dec 2022) -- weather earning its place in an ENERGY sim.
+3. BM SETTLEMENT: keep (it is the best tab); fix axis legibility; add an inline explainer expansion for short%/NIV for outsiders; link crisis periods to the price tab's same window.
+4. CUSTOMERS -> THE POPULATION (biggest rebuild):
+   - Fix the contradiction + dead columns first (gate covers these cards vs tables).
+   - JOURNEY STAGES LIVE: how many customers sit in content/irritated/in-market/comparing right now (the QL state machine), stage-transition flows over time -- the sim's behavioural pulse.
+   - EVENT FREQUENCY PANEL: life events, bill shocks, complaints, switches, payment misses per year -- the event-rate dashboard Rich asked for, anchored against published rates where we have them.
+   - DISTRIBUTIONS: the four dimensions as distributions (income stress, satisfaction, payment score, switching propensity) over time, not just a per-customer table.
+   - CORRELATION PANELS: income stress vs payment delay; satisfaction vs complaints; price vs in-market entry -- the interrelationships, using the overlay template.
+   - Per-customer rows expand inline to their trajectory sparklines and link to their Customer 360 page.
+   - BOTH SIDES OF THE WALL strip: sim-truth aggregate vs company-observed aggregate (true satisfaction vs measured CSAT once FEEDBACK lands; true stress vs inferred payment risk).
+5. Derive-or-die + freshness stamps + consistency gate extended to all SIM surfaces. Light professional theme replacing terminal monospace (crisis banding and chips survive restyling).
+
+Acceptance: Rich's eyes; the test is whether a stranger can watch the 2021-22 crisis propagate from weather/market through to customer stress on one tab. Report "awaiting Rich's visual review".
