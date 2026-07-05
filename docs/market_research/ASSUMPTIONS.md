@@ -57,6 +57,12 @@ Last seeded: 2026-07-05 from current codebase.
 | Bad debt rate — SME | 1.0% of revenue | 0.5–2% | Industry | 2026-06-18 | ✓ OK |
 | Customer count (portfolio) | 9–13 (incl. successors) | n/a (synthetic portfolio) | Design | 2026-06-18 | n/a |
 | Churn model basis | Bill-shock driven (Shifted-BG CLV) | Industry-aligned | Phase 4 design | 2026-06-18 | ✓ OK |
+| DCA recovery rate — engaged/"overwhelmed" archetype | 30% of placed balance | 20–35% general utility-collections recovery-rate range (no UK energy-specific published figure found) | tratta.io collections-industry benchmark (via web search, 2026-07-05) | 2026-07-05 | ⚠ Unverified — general industry range, not energy-specific |
+| DCA recovery rate — neutral archetype | 20% of placed balance | Same 20–35% range, midpoint-low used for customers without a clear engagement/avoidance signal | Same as above | 2026-07-05 | ⚠ Unverified — same caveat |
+| DCA commission (contingency fee on recovered amount) | 15% of recovered GBP | 5–25% typical UK DCA commission (as low as 8% for larger debts, higher for older/smaller balances) | UK debt-collection fee-structure industry sources (via web search, 2026-07-05) | 2026-07-05 | ⚠ Unverified — general range |
+| Debt-sale haircut — "avoidant" archetype | 12% of face value | 3–20% cited range for UK unsecured consumer debt sales (commercially negotiated, not publicly disclosed per-deal; FCA CONC governs conduct not price) | UK consumer debt-purchase market sources (via web search, 2026-07-05) | 2026-07-05 | ⚠ Unverified — no energy-specific published haircut found; genuine research gap per discovery-agent (2026-07-05) |
+| DCA placement window (WRITTEN_OFF → PLACED_WITH_DCA) | +30 days | Not found — nearest published figure (60–90 days) is for the earlier internal-fail → DCA-referral transition, already captured pre-write-off | Illustrative assumption, not benchmarked | 2026-07-05 | Gap — no post-write-off placement-timing benchmark found |
+| Context: share of UK energy arrears with no repayment plan | n/a (informs archetype mix, not a SIM parameter) | ~75% of £4.43bn domestic energy debt (June 2025) sits with customers on no repayment plan | Citizens Advice / Ofgem debt-strategy reporting (via web search, 2026-07-05) | 2026-07-05 | ✓ Source confirmed, directional context only |
 
 ## Growth & Acquisition
 

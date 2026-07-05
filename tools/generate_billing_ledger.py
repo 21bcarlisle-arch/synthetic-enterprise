@@ -29,6 +29,7 @@ from simulation.arrears_engine import (
     payment_outcome as _payment_outcome,
     arrears_stages as _arrears_stages,
     ic_arrears_stages as _ic_arrears_stages,
+    debt_archetype as _debt_archetype,
     _CORP_BACS_ON_TIME_PROB,
     _CORP_BACS_LATE_PROB,
     _CORP_BACS_DISPUTE_PROB,
@@ -119,22 +120,26 @@ def generate(run_json_path=None, out_path=None):
 
         if outcome == "failed":
             eventually_resolved = cid not in churned
+            write_off_year = (due_date + timedelta(days=90)).year
+            archetype = _debt_archetype(beh.get("income_stress_trajectory") or [], write_off_year)
             arr = {
                 "case_id": "ARR-%s-%s" % (cid, period_end),
                 "invoice_number": invoice_number,
                 "arrears_gbp": round(amount, 2),
                 "opened_date": due_date.isoformat(),
-                "stages": _arrears_stages(amount, due_date, eventually_resolved),
+                "stages": _arrears_stages(amount, due_date, eventually_resolved, archetype),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
         elif outcome == "dispute":
             eventually_resolved = cid not in churned
+            write_off_year = (due_date + timedelta(days=60)).year
+            archetype = _debt_archetype(beh.get("income_stress_trajectory") or [], write_off_year)
             arr = {
                 "case_id": "DIS-%s-%s" % (cid, period_end),
                 "invoice_number": invoice_number,
                 "arrears_gbp": round(amount, 2),
                 "opened_date": due_date.isoformat(),
-                "stages": _ic_arrears_stages(amount, due_date, eventually_resolved),
+                "stages": _ic_arrears_stages(amount, due_date, eventually_resolved, archetype),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
 

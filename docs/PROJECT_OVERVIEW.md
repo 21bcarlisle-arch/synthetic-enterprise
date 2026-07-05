@@ -111,6 +111,36 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QS -- Debt as a Process: DCA Placement / Recovery / Sale (2026-07-05, Tier 2 -- PROCESS_NOT_EVENTS.md, docs/design/PROCESS_MODEL.md Section 4, pre-approved via PREAPPROVE_PROCESS_MODEL.md)
+Closes PROCESS_NOT_EVENTS.md in full -- the third and last of its named items (churn journey/QL,
+acquisition funnel/QR, debt-branch/here). simulation/arrears_engine.py generalizes QD's existing
+stress -> timing-drift -> miss -> arrears -> plan -> write-off pipeline past WRITTEN_OFF: a new
+debt_archetype() classifies every written-off case, from the customer's income_stress_trajectory
+shape alone (SIM-side hidden state, never read by company/ code), into OVERWHELMED (stress just
+turned MODERATE/HIGH after a LOW prior year -- the pitch's Stockport "overwhelmed, not delinquent"
+case; more likely to engage with a DCA payment plan and reach RECOVERED), AVOIDANT (2+ consecutive
+HIGH-stress years -- persistent stress, contact avoidance; debt is SOLD to a third-party purchaser
+rather than worked), or NEUTRAL (default). Every WRITTEN_OFF case now continues
+WRITTEN_OFF -> PLACED_WITH_DCA (+30d) -> RECOVERED (+180d, net of a 15% contingency commission) or
+SOLD (+90d, at a 12% face-value haircut for AVOIDANT cases) -- new terminal states, not a redesign
+of the existing engine. compute_debt_recovery()/apply_debt_recovery() (same structural pattern as
+Phase QD's compute_emergent_bad_debt()/apply_emergent_bad_debt(), opposite sign) wire the real
+recovered/sale proceeds into run_phase4c_on_phase2b.py as a reduction to bad debt and matching
+increase to net margin, carried through treasury_cash_balance_gbp. Recovery-rate/commission/haircut
+figures sourced by the discovery-agent into docs/market_research/ASSUMPTIONS.md's "Customer &
+Portfolio" section (2026-07-05 rows) -- all flagged unverified/illustrative (general
+collections-industry ranges, no UK-energy-specific published figure found for any of them; a
+genuine, named research gap, not load-bearing precision). Evidence, all 3 surfaces: Sim tab
+per-year DCA placement/recovery/sale outcome table with effective recovery rate
+(_debt_recovery_signal); Customers tab one real customer's full post-write-off journey with real
+GBP amounts, preferring a SOLD case (the more informative divergence) with both sides of the
+epistemic wall stated explicitly (_debt_recovery_case_study); Supplier tab's existing Collections
+Process section extended with portfolio-wide recovered/sold counts and GBP totals
+(_collections_process). 17 new tests (tests/simulation/test_arrears_engine.py, 27 collected in
+that file). Fast suite: 15,567 collected, all passing. Slow integration
+(test_run_phase4c_on_phase2b.py, the file whose wiring changed) re-run clean, 15 passed. Epistemic:
+PASS.
+
 ### Phase QR -- Acquisition Funnel (2026-07-05, Tier 2 -- PRIORITIES.md P1, PROCESS_NOT_EVENTS.md)
 Closes the acquisition-funnel item (second of three: churn journey/QL, acquisition funnel/here,
 debt-branch/next) of Rich's PROCESS_NOT_EVENTS.md directive. simulation/acquisition_funnel.py
@@ -5531,7 +5561,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
-- 15,550 tests (fast suite; simulation integration ~8 min per run)
+- 15,567 tests (fast suite; simulation integration ~8 min per run)
+- Phase QS (2026-07-05): debt-branch (DCA placement / recovery / sale past WRITTEN_OFF) --
+  PROCESS_NOT_EVENTS.md's third and last of three, now fully closed (churn/QL, acquisition/QR,
+  debt-branch/here). See Section 4.
 - Phase QR (2026-07-05): acquisition funnel wired into the live sim + all 3 evidence surfaces --
   PROCESS_NOT_EVENTS.md's second of three (churn journey/QL, acquisition/here, debt-branch/next).
   See Section 4.

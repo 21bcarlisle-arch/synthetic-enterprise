@@ -4,6 +4,7 @@
 Pages: index, customers, supplier, sim, project
 """
 import json
+import re
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -110,6 +111,18 @@ def _pct(v, d=1):
 
 def _cls(v):
     return "" if v is None else ("pos" if v >= 0 else "neg")
+
+
+_GBP_NOTE_RE = re.compile(r"GBP([0-9,]+\.[0-9]{2})")
+
+
+def _dca_recovered_amount_from_note(note):
+    """Parse the GBP figure out of a RECOVERED/SOLD stage's note text (Phase
+    [debt-branch]) -- company-observable exhaust, not a re-derivation from
+    SIM-internal archetype/rate: a real collections team reads case notes,
+    it does not read the archetype label that produced them."""
+    m = _GBP_NOTE_RE.search(note or "")
+    return float(m.group(1).replace(",", "")) if m else 0.0
 
 
 def _page(title, active, body, ts, git_commit="?", phase="?"):
@@ -348,6 +361,81 @@ def _per_fuel_case_study(ledger, base_id):
     )
 
 
+def _pick_debt_recovery_case_study_cid(ledger):
+    """Prefer a case that reached SOLD (the more informative divergence --
+    a persistent-HIGH-stress customer whose debt was sold on rather than
+    worked by a DCA); fall back to a RECOVERED case if none sold."""
+    custs = (ledger or {}).get("customers", {})
+    sold_candidates = []
+    recovered_candidates = []
+    for cid, cust in custs.items():
+        for case in cust.get("arrears_history", []) or []:
+            stages = case.get("stages", [])
+            stage_names = [s["stage"] for s in stages]
+            if "SOLD" in stage_names:
+                sold_candidates.append((cid, case))
+            elif "RECOVERED" in stage_names:
+                recovered_candidates.append((cid, case))
+    pool = sold_candidates or recovered_candidates
+    if not pool:
+        return None
+    pool.sort(key=lambda pair: pair[1].get("opened_date", ""))
+    return pool[-1][0]
+
+
+def _debt_recovery_case_study(ledger, cid):
+    """Customers tab: one real customer's full post-write-off journey
+    (WRITTEN_OFF -> PLACED_WITH_DCA -> RECOVERED|SOLD) with real GBP amounts,
+    plus both sides of the epistemic wall -- docs/design/PROCESS_MODEL.md
+    Section 4."""
+    if not cid:
+        return ""
+    cust = (ledger or {}).get("customers", {}).get(cid, {})
+    case = None
+    for c in cust.get("arrears_history", []) or []:
+        stage_names = [s["stage"] for s in c.get("stages", [])]
+        if "SOLD" in stage_names or "RECOVERED" in stage_names:
+            case = c
+            break
+    if case is None:
+        return ""
+
+    stages = case.get("stages", [])
+    rows = "".join(_row(s["stage"], s["date"], s.get("note", "")) for s in stages)
+    terminal = stages[-1]
+    outcome = terminal["stage"]
+    proceeds = _dca_recovered_amount_from_note(terminal.get("note", ""))
+
+    if outcome == "SOLD":
+        divergence = (
+            "<p>" + cid + "'s debt was sold to a third-party purchaser for " + _gbp(proceeds)
+            + " (a haircut on the " + _gbp(case.get("arrears_gbp", 0)) + " face value) rather than "
+            + "worked by a DCA to recovery. The company only ever observes this case's stage notes -- "
+            + "the underlying reason (a persistent multi-year high income-stress pattern, SIM-side "
+            + "hidden state never exposed to company code) is not something a real supplier's "
+            + "collections system would see either; it only sees the outcome, same as here.</p>"
+        )
+    else:
+        divergence = (
+            "<p>" + cid + "'s debt was placed with a DCA and recovered: " + _gbp(proceeds)
+            + " net of commission, out of " + _gbp(case.get("arrears_gbp", 0)) + " face value. "
+            + "The company only ever observes this case's stage notes -- the underlying reason "
+            + "(a recent-onset or blended income-stress pattern, SIM-side hidden state never exposed "
+            + "to company code) is not something a real supplier's collections system would see "
+            + "either; it only sees the outcome, same as here.</p>"
+        )
+
+    return (
+        "<h2>Debt Recovery Case Study: " + cid + "</h2>"
+        + '<p class="meta">Full post-write-off journey, real GBP amounts, from billing_ledger.json -- '
+        + "docs/design/PROCESS_MODEL.md Section 4</p>"
+        + "<h3>Company-Observable &#8212; Arrears Case Stages</h3>"
+        + _table(["Stage", "Date", "Note"], rows)
+        + "<h3>The Divergence</h3>"
+        + divergence
+    )
+
+
 def _event_type_label(event_type):
     return event_type.replace("_", " ").upper()
 
@@ -485,6 +573,9 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
             dash["customers"].get("acquisition_funnel_log", []),
             _pick_acquisition_case_study_cid(dash["customers"].get("acquisition_funnel_log", [])),
         )
+        + _debt_recovery_case_study(
+            ledger or {}, _pick_debt_recovery_case_study_cid(ledger or {}),
+        )
         + "<h2>Full Ground Truth</h2>"
         + "<p>Machine-readable per-customer data:<br>"
         + '<a href="/state/customer_sample.json">customer_sample.json</a> | '
@@ -496,7 +587,11 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
 
 def _collections_process(billing_ledger):
     """Aggregate the real dunning cascade across every account (EVIDENCE_IN_
-    BUSINESS_SURFACES.md: show the operational process, not the code)."""
+    BUSINESS_SURFACES.md: show the operational process, not the code). Phase
+    [debt-branch]: WRITTEN_OFF is no longer necessarily terminal -- cases can
+    continue on to PLACED_WITH_DCA -> RECOVERED|SOLD (docs/design/
+    PROCESS_MODEL.md Section 4), so bucketing now recognizes those as the
+    real final states too."""
     if not billing_ledger:
         return ""
     customers = billing_ledger.get("customers", {})
@@ -504,8 +599,12 @@ def _collections_process(billing_ledger):
     total_cases = 0
     total_arrears_gbp = 0.0
     written_off_gbp = 0.0
+    recovered_gbp = 0.0
+    sold_gbp = 0.0
     resolved = 0
     written_off = 0
+    recovered = 0
+    sold = 0
     still_open = 0
     for cust in customers.values():
         for case in cust.get("arrears_history", []) or []:
@@ -514,9 +613,20 @@ def _collections_process(billing_ledger):
             stages = case.get("stages", [])
             for s in stages:
                 stage_counts[s["stage"]] = stage_counts.get(s["stage"], 0) + 1
+            stage_names = [s["stage"] for s in stages]
             final = stages[-1]["stage"] if stages else None
             if final == "RESOLVED":
                 resolved += 1
+            elif final == "RECOVERED":
+                recovered += 1
+                written_off += 1
+                written_off_gbp += case.get("arrears_gbp", 0)
+                recovered_gbp += _dca_recovered_amount_from_note(stages[-1].get("note", ""))
+            elif final == "SOLD":
+                sold += 1
+                written_off += 1
+                written_off_gbp += case.get("arrears_gbp", 0)
+                sold_gbp += _dca_recovered_amount_from_note(stages[-1].get("note", ""))
             elif final == "WRITTEN_OFF":
                 written_off += 1
                 written_off_gbp += case.get("arrears_gbp", 0)
@@ -524,7 +634,8 @@ def _collections_process(billing_ledger):
                 still_open += 1
 
     stage_order = ["DD_FAILED", "FIRST_NOTICE", "SECOND_NOTICE", "PAYMENT_PLAN_AGREED",
-                   "DISPUTE_NOTICE", "RESOLVED", "WRITTEN_OFF"]
+                   "DISPUTE_NOTICE", "RESOLVED", "WRITTEN_OFF", "PLACED_WITH_DCA",
+                   "RECOVERED", "SOLD"]
     stage_rows = "".join(
         _row(stage, stage_counts[stage])
         for stage in stage_order if stage in stage_counts
@@ -536,7 +647,10 @@ def _collections_process(billing_ledger):
         + _gbp(total_arrears_gbp) + " total arrears value. Outcome: " + str(resolved)
         + " resolved via payment plan, " + str(written_off) + " written off ("
         + _gbp(written_off_gbp) + " -- feeds the emergent bad debt figure in the Annual "
-        + "Income Statement above, Phase QD), " + str(still_open) + " still open.</p>"
+        + "Income Statement above, Phase QD), " + str(still_open) + " still open. Of the "
+        + str(written_off) + " written off, " + str(recovered) + " were later recovered by a "
+        + "DCA (" + _gbp(recovered_gbp) + " net proceeds) and " + str(sold) + " were sold on "
+        + "(" + _gbp(sold_gbp) + " sale proceeds) -- docs/design/PROCESS_MODEL.md Section 4.</p>"
         + "<h3>Cascade Stage Volumes (every case passes through these in order)</h3>"
         + _table(["Stage", "Times Reached"], stage_rows)
     )
@@ -1013,6 +1127,63 @@ def _acquisition_funnel_signal(funnel_log):
     )
 
 
+def _debt_recovery_signal(billing_ledger):
+    """Sim tab: per-year DCA placement / recovery-vs-sale outcome, following
+    the acquisition-funnel / churn-journey signal composition pattern --
+    docs/design/PROCESS_MODEL.md Section 4 (debt as a process past write-off)."""
+    if not billing_ledger:
+        return ""
+    by_year = {}
+    for cust in billing_ledger.get("customers", {}).values():
+        for case in cust.get("arrears_history", []) or []:
+            stages = case.get("stages", [])
+            stage_dates = {s["stage"]: s for s in stages}
+            if "PLACED_WITH_DCA" not in stage_dates:
+                continue
+            yr = stage_dates["PLACED_WITH_DCA"]["date"][:4]
+            y = by_year.setdefault(yr, {"placed": 0, "recovered": 0, "sold": 0,
+                                        "recovered_gbp": 0.0, "sold_gbp": 0.0,
+                                        "arrears_gbp": 0.0})
+            y["placed"] += 1
+            y["arrears_gbp"] += case.get("arrears_gbp", 0)
+            if "RECOVERED" in stage_dates:
+                y["recovered"] += 1
+                y["recovered_gbp"] += _dca_recovered_amount_from_note(
+                    stage_dates["RECOVERED"].get("note", ""))
+            elif "SOLD" in stage_dates:
+                y["sold"] += 1
+                y["sold_gbp"] += _dca_recovered_amount_from_note(
+                    stage_dates["SOLD"].get("note", ""))
+
+    if not by_year:
+        return ""
+
+    rows = ""
+    for yr in sorted(by_year):
+        y = by_year[yr]
+        proceeds = y["recovered_gbp"] + y["sold_gbp"]
+        rate = proceeds / y["arrears_gbp"] * 100 if y["arrears_gbp"] else 0
+        rows += _row(
+            yr, y["placed"], y["recovered"], y["sold"],
+            _gbp(y["recovered_gbp"]), _gbp(y["sold_gbp"]),
+            format(rate, ".1f") + "%",
+        )
+
+    return (
+        "<h2>Debt Recovery: DCA Placement vs Recovery/Sale Outcome</h2>"
+        + '<p class="meta">Every WRITTEN_OFF case continues past write-off to PLACED_WITH_DCA, '
+        + "then either RECOVERED (worked by the DCA) or SOLD (sold to a debt purchaser), "
+        + "depending on the customer's hidden engagement/avoidance archetype -- "
+        + "docs/design/PROCESS_MODEL.md Section 4. Effective recovery rate benchmark range: "
+        + "20-35% of placed balance (docs/market_research/ASSUMPTIONS.md, unverified/general-industry "
+        + "caveat -- no UK energy-specific figure found).</p>"
+        + _table(
+            ["Year", "Placed with DCA", "Recovered", "Sold", "Recovered GBP", "Sold GBP", "Effective Recovery Rate"],
+            rows,
+        )
+    )
+
+
 def _pick_acquisition_case_study_cid(funnel_log):
     """Prefer a WON attempt where the credit bureau's read diverged from the SIM's
     ground truth on true creditworthiness -- the most informative case for showing
@@ -1310,6 +1481,7 @@ def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledg
         + _churn_journey_signal(journey_log or [], churn_events or [])
         + _retention_deferral_signal(retention_deferral or [])
         + _acquisition_funnel_signal(acquisition_funnel_log or [])
+        + _debt_recovery_signal(billing_ledger or {})
         + _population_anchoring_rag(population_anchoring or {})
     )
     return _page("Simulation Data", "Sim", body, ts, git_commit, phase)

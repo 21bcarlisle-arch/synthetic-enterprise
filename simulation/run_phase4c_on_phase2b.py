@@ -48,7 +48,12 @@ from saas.enterprise_value import build_enterprise_value
 from saas.home_move_win_rate import build_home_move_win_rates
 from saas.ledger import build_ledger, derive_pnl, ledger_summary
 from saas.payment_behaviour import build_payment_behaviour
-from simulation.arrears_engine import compute_emergent_bad_debt, apply_emergent_bad_debt
+from simulation.arrears_engine import (
+    compute_emergent_bad_debt,
+    apply_emergent_bad_debt,
+    compute_debt_recovery,
+    apply_debt_recovery,
+)
 from simulation.run_phase2b import main as run_phase2b
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
@@ -122,6 +127,18 @@ def main(report_end: str | None = None):
         set(phase2b_result.get("churned_billing_accounts", [])),
     )
     apply_emergent_bad_debt(all_records, emergent_bad_debt)
+
+    # Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4]: real
+    # post-write-off DCA recovery / debt-sale proceeds, applied as a
+    # reduction to the bad debt just written off above -- same bills/
+    # behavioral/churned inputs as compute_emergent_bad_debt() so the two
+    # line up on the identical set of written-off cases.
+    debt_recovery = compute_debt_recovery(
+        bills,
+        phase2b_result.get("per_customer_behavioral", {}),
+        set(phase2b_result.get("churned_billing_accounts", [])),
+    )
+    apply_debt_recovery(all_records, debt_recovery)
 
     payment_behaviour = build_payment_behaviour(bills)
     contact_model = build_contact_model(bills)

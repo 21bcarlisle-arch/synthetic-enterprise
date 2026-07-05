@@ -9,9 +9,12 @@ draw from the same deterministic engine over the same bills.
 from datetime import date, timedelta
 
 from simulation.arrears_engine import (
+    apply_debt_recovery,
     apply_emergent_bad_debt,
     arrears_stages,
+    compute_debt_recovery,
     compute_emergent_bad_debt,
+    debt_archetype,
     ic_arrears_stages,
     payment_method,
     payment_outcome,
@@ -142,3 +145,137 @@ def test_emergent_bad_debt_matches_billing_ledger_written_off(tmp_path):
                 ledger_writeoffs_by_year[key] = ledger_writeoffs_by_year.get(key, 0.0) + case["arrears_gbp"]
 
     assert ledger_writeoffs_by_year == emergent
+
+
+def test_debt_archetype_overwhelmed_recent_onset():
+    trajectory = [{'year': 2019, 'stress': 'low'}, {'year': 2020, 'stress': 'high'}]
+    assert debt_archetype(trajectory, 2020) == 'OVERWHELMED'
+
+
+def test_debt_archetype_overwhelmed_moderate_also_counts():
+    trajectory = [{'year': 2019, 'stress': 'low'}, {'year': 2020, 'stress': 'moderate'}]
+    assert debt_archetype(trajectory, 2020) == 'OVERWHELMED'
+
+
+def test_debt_archetype_avoidant_two_consecutive_high_years():
+    trajectory = [{'year': 2019, 'stress': 'high'}, {'year': 2020, 'stress': 'high'}]
+    assert debt_archetype(trajectory, 2020) == 'AVOIDANT'
+
+
+def test_debt_archetype_avoidant_three_consecutive_high_years():
+    trajectory = [
+        {'year': 2018, 'stress': 'high'}, {'year': 2019, 'stress': 'high'},
+        {'year': 2020, 'stress': 'high'},
+    ]
+    assert debt_archetype(trajectory, 2020) == 'AVOIDANT'
+
+
+def test_debt_archetype_neutral_no_trajectory():
+    assert debt_archetype([], 2020) == 'NEUTRAL'
+
+
+def test_debt_archetype_neutral_flat_low():
+    trajectory = [{'year': 2019, 'stress': 'low'}, {'year': 2020, 'stress': 'low'}]
+    assert debt_archetype(trajectory, 2020) == 'NEUTRAL'
+
+
+def test_debt_archetype_single_high_year_reads_overwhelmed():
+    trajectory = [{'year': 2020, 'stress': 'high'}]
+    assert debt_archetype(trajectory, 2020) == 'OVERWHELMED'
+
+
+def test_arrears_stages_written_off_unchanged_then_recovered_for_overwhelmed():
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='OVERWHELMED')
+    stage_names = [s['stage'] for s in written_off]
+    assert stage_names == ['DD_FAILED', 'FIRST_NOTICE', 'SECOND_NOTICE', 'WRITTEN_OFF',
+                           'PLACED_WITH_DCA', 'RECOVERED']
+    wo = next(s for s in written_off if s['stage'] == 'WRITTEN_OFF')
+    assert wo['date'] == (date(2022, 1, 1) + timedelta(days=90)).isoformat()
+    recovered = written_off[-1]
+    assert 'GBP' in recovered['note']
+
+
+def test_arrears_stages_written_off_unchanged_then_recovered_for_neutral():
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL')
+    stage_names = [s['stage'] for s in written_off]
+    assert stage_names[-1] == 'RECOVERED'
+    wo = next(s for s in written_off if s['stage'] == 'WRITTEN_OFF')
+    assert wo['date'] == (date(2022, 1, 1) + timedelta(days=90)).isoformat()
+
+
+def test_arrears_stages_written_off_unchanged_then_sold_for_avoidant():
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='AVOIDANT')
+    stage_names = [s['stage'] for s in written_off]
+    assert stage_names == ['DD_FAILED', 'FIRST_NOTICE', 'SECOND_NOTICE', 'WRITTEN_OFF',
+                           'PLACED_WITH_DCA', 'SOLD']
+    wo = next(s for s in written_off if s['stage'] == 'WRITTEN_OFF')
+    assert wo['date'] == (date(2022, 1, 1) + timedelta(days=90)).isoformat()
+    sold = written_off[-1]
+    assert 'GBP' in sold['note']
+
+
+def test_arrears_stages_default_archetype_is_neutral():
+    default = arrears_stages(100.0, date(2022, 1, 1), False)
+    explicit_neutral = arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL')
+    assert default == explicit_neutral
+
+
+def test_ic_arrears_stages_written_off_unchanged_then_recovered():
+    written_off = ic_arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL')
+    stage_names = [s['stage'] for s in written_off]
+    assert stage_names == ['INVOICE_DISPUTED', 'DISPUTE_NOTICE', 'WRITTEN_OFF',
+                           'PLACED_WITH_DCA', 'RECOVERED']
+    wo = next(s for s in written_off if s['stage'] == 'WRITTEN_OFF')
+    assert wo['date'] == (date(2022, 1, 1) + timedelta(days=60)).isoformat()
+
+
+def test_ic_arrears_stages_written_off_unchanged_then_sold_for_avoidant():
+    written_off = ic_arrears_stages(100.0, date(2022, 1, 1), False, archetype='AVOIDANT')
+    stage_names = [s['stage'] for s in written_off]
+    assert stage_names == ['INVOICE_DISPUTED', 'DISPUTE_NOTICE', 'WRITTEN_OFF',
+                           'PLACED_WITH_DCA', 'SOLD']
+    wo = next(s for s in written_off if s['stage'] == 'WRITTEN_OFF')
+    assert wo['date'] == (date(2022, 1, 1) + timedelta(days=60)).isoformat()
+
+
+def test_compute_debt_recovery_deterministic():
+    bills = [_bill('C1', f'202{2 + i // 12}-{(i % 12) + 1:02d}-28', 200.0, 'resi') for i in range(24)]
+    beh = {'C1': {'income_stress_trajectory': [{'year': 2022, 'stress': 'high'}, {'year': 2023, 'stress': 'high'}]}}
+    r1 = compute_debt_recovery(bills, beh, churned_ids={'C1'})
+    r2 = compute_debt_recovery(bills, beh, churned_ids={'C1'})
+    assert r1 == r2
+    assert sum(r1.values()) > 0
+
+
+def test_compute_debt_recovery_only_counts_written_off_cases():
+    bills = [_bill('C1', f'202{2 + i // 12}-{(i % 12) + 1:02d}-28', 200.0, 'resi') for i in range(24)]
+    beh = {'C1': {'income_stress_trajectory': [{'year': 2022, 'stress': 'high'}, {'year': 2023, 'stress': 'high'}]}}
+    result = compute_debt_recovery(bills, beh, churned_ids=set())
+    assert result == {}
+
+
+def test_apply_debt_recovery_reduces_bad_debt_and_increases_margin():
+    records = [
+        {'customer_id': 'C1', 'settlement_date': '2022-01-01', 'bad_debt_gbp': 40.0,
+         'net_margin_gbp': 100.0, 'treasury_cash_balance_gbp': 1000.0},
+        {'customer_id': 'C1', 'settlement_date': '2022-06-01', 'bad_debt_gbp': 0.0,
+         'net_margin_gbp': 50.0, 'treasury_cash_balance_gbp': 1050.0},
+    ]
+    apply_debt_recovery(records, {('C1', 2022): 30.0})
+    assert records[0]['net_margin_gbp'] == 100.0
+    assert records[0]['bad_debt_gbp'] == 40.0
+    assert records[1]['bad_debt_gbp'] == -30.0
+    assert records[1]['net_margin_gbp'] == 80.0
+    assert records[0]['treasury_cash_balance_gbp'] == 1000.0
+    assert records[1]['treasury_cash_balance_gbp'] == 1080.0
+
+
+def test_apply_debt_recovery_noop_when_zero():
+    records = [
+        {'customer_id': 'C1', 'settlement_date': '2022-01-01', 'bad_debt_gbp': 5.0,
+         'net_margin_gbp': 100.0, 'treasury_cash_balance_gbp': 1000.0},
+    ]
+    apply_debt_recovery(records, {('C1', 2022): 0.0})
+    assert records[0]['net_margin_gbp'] == 100.0
+    assert records[0]['bad_debt_gbp'] == 5.0
+    assert records[0]['treasury_cash_balance_gbp'] == 1000.0
