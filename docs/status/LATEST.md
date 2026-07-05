@@ -1,5 +1,5 @@
 ## Phase QM COMPLETE -- Retention as Deferral, H1 vs H2
-Last updated: 2026-07-04T23:52:56Z
+Last updated: 2026-07-05T00:04:29Z
 
 **Status:** COMPLETE. 15,555 tests collected (fast suite). Epistemic: PASS.
 
@@ -17,7 +17,7 @@ Last updated: 2026-07-04T23:52:56Z
 **Prior milestone:** Phase PZ (Scenario Stress Testing) closed PRIORITIES.md P1 (Correlated Simulation Endgame).
 
 
-**Latest simulation results (2016–2025)** — auto-processed (500s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (508s / 8 min):
 - Net margin: £1,445,257.67 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
