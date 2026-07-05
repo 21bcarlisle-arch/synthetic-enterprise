@@ -1584,15 +1584,15 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 | Year | Revenue £ | Bad Debt £ | Bad Debt % | Crisis Stress £ |
 |------|-----------|------------|------------|-----------------|
 
-**Total bad debt (all years):** £92,551
-**Crisis stress incremental:** £138,826
+**Total bad debt (all years):** £2,501
+**Crisis stress incremental:** £3,751
 
-**RAG [~]:** AMBER — Credit stress material but below 1% revenue
+**RAG [OK]:** GREEN — Incremental credit stress below 0.5% revenue — not material
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-05T13:53:00Z
+Generated: 2026-07-05T14:01:51Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2465,9 +2465,9 @@ Lifetime net margin: £1,535,307.74 across 21 billing accounts. Revenue: £14,06
 | Supply Revenue (ex-VAT, ex-policy passthrough) | £14,060,576 | 100.0% |
 | Wholesale cost | -£7,607,974 | 54.1% |
 | **Gross supply margin** | **£6,452,602** | **45.9%** |
-| Policy + Network costs | -£4,955,912 | 35.2% |
+| Policy + Network costs | -£4,865,862 | 34.6% |
 | Capital cost | -£51,433 | 0.4% |
-| **Net supply margin** | **£1,445,258** | **10.3%** |
+| **Net supply margin** | **£1,535,308** | **10.9%** |
 
 > *The ledger's `net_margin_gbp` (£6,415,876) is gross − capital only, not final net.*
 
