@@ -1,20 +1,23 @@
-## Phase QM COMPLETE -- Retention as Deferral, H1 vs H2
-Last updated: 2026-07-05T01:48:50Z
+## Phase QN COMPLETE -- Customer Portal Per-Fuel Depth
+Last updated: 2026-07-05T01:59:22Z
 
-**Status:** COMPLETE. 15,555 tests collected (fast suite). Epistemic: PASS.
+**Status:** COMPLETE. 15,436 tests passed (fast suite). Epistemic: PASS.
 
-**Phase QM -- Retention as Deferral (docs/staging/QL_WIRE_AND_DEFERRAL.md):**
-- simulation/run_phase2b.py: ASSUMED_DEFERRAL_MONTHS=12 (H1), named on every retention offer
-- company/analytics/retention_deferral_economics.py (new): H2 realized deferral + serial-saver EV flag
-- Evidence on all 3 surfaces: Sim (H1 vs H2 by year), Customers (C_IC1 4-offer timeline), Supplier (serial-saver table)
-- saas/reporting/annual_report.py: _section_retention_deferral_economics() board section
+**Phase QN -- Per-Fuel Legs (PRIORITIES.md P1, WEEKEND_ACCELERATION.md Q5):**
+- tools/generate_shadow_html.py: removed the `if cid.endswith("g"): continue` skip that was
+  dropping every gas leg of a dual-fuel account from the Customers tab
+- Both fuel legs now shown as separate accounts; Combined Roll-Up table added as an explicit
+  optional secondary view (dual-fuel customers only)
+- _per_fuel_case_study(): real per-leg invoice/arrears/failed-payment history from billing_ledger.json
 
 **KEY FINDING:**
-- 0/10 resolved offers underperformed their assumed 12-month window
-- C1/C5/C6 (Phase QK's defer-then-churn names) churned at 12-24 months post-offer, matching or exceeding H1
-- The offer worked exactly as priced -- it was never priced to buy more than one term
+- C_IC3's electricity leg is billed/paid exactly (0 failed payments, 0 arrears)
+- Its gas leg (C_IC3g) carries 1 failed payment and a live -£89,641 arrears case
+- A combined roll-up would have netted this into one number and hidden which fuel is causing the friction
 
-**Prior milestone:** Phase PZ (Scenario Stress Testing) closed PRIORITIES.md P1 (Correlated Simulation Endgame).
+**Remaining scope (PRIORITIES.md P1):** design-system unification across all four shadow sections + customer portal.
+
+**Prior milestone:** Phase QM (Retention as Deferral, H1 vs H2) -- docs/claude/phase-history.md.
 
 
 **Latest simulation results (2016–2025)** — auto-processed (541s / 9 min):

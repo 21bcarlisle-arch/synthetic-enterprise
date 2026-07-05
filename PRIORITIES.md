@@ -81,12 +81,15 @@ correlated-generator hold WITH explicit conditions -- it stays BACKLOG behind P1
 DELIVERED, not just listed. No further generator/scenario phases until P1 below is complete.
 
 ## PRIORITY 1 -- WEBSITE INTEGRITY PART B (PROFESSIONAL DESIGN SYSTEM)
-One coherent design system across all four shadow sections + customer portal: consistent nav,
-typography, spacing, palette, components (KPI cards, tables, RAG chips), responsive. Customer portal
-to proper billing/CRM standard -- per-fuel legs everywhere (electricity and gas as SEPARATE accounts,
-e.g. C4 and C4g each with own consumption/tariff/invoices/P&L), combined view as an optional roll-up,
-never the only view; invoice/payment/arrears history per account from billing_ledger.json. Shadow
-mirror stays in lockstep (same canonical data, same generator pass, plain HTML). See
+Customer portal per-fuel legs: DONE (Phase QN, 2026-07-05) -- Customers tab no longer drops gas
+legs (`if cid.endswith("g"): continue` removed), both fuel legs shown as separate accounts, a
+"Combined Roll-Up" table added as an explicit optional secondary view, and a per-fuel case study
+(C_IC3/C_IC3g) shows real invoice/arrears/failed-payment history per leg from billing_ledger.json
+-- live run shows the gas leg carrying a real -GBP89,641 arrears balance the electricity leg (0
+failed payments, 0 arrears) has none of, proving why the legs must stay separate.
+Remaining scope: one coherent design system across all four shadow sections + customer portal --
+consistent nav, typography, spacing, palette, components (KPI cards, tables, RAG chips), responsive.
+Shadow mirror stays in lockstep (same canonical data, same generator pass, plain HTML). See
 docs/staging/done/WEBSITE_INTEGRITY_AND_DESIGN_PARTA_DONE.md for the full original staged instruction
 (Part B, item 6-8).
 

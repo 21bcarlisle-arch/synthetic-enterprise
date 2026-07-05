@@ -32200,6 +32200,7 @@
       "retention_cost_gbp": 46.018114871407,
       "expected_term_margin_gbp": 867.919932160713,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32210,6 +32211,7 @@
       "retention_cost_gbp": 25.178985850965255,
       "expected_term_margin_gbp": 494.52738084726997,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32220,6 +32222,7 @@
       "retention_cost_gbp": 24227.885285230208,
       "expected_term_margin_gbp": 163704.65029282199,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32230,6 +32233,7 @@
       "retention_cost_gbp": 18.418852384327863,
       "expected_term_margin_gbp": 345.05807593604595,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32240,6 +32244,7 @@
       "retention_cost_gbp": 21.128920250808363,
       "expected_term_margin_gbp": 379.36383006773605,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32250,6 +32255,7 @@
       "retention_cost_gbp": 14841.809946755438,
       "expected_term_margin_gbp": 101641.16043774746,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32260,6 +32266,7 @@
       "retention_cost_gbp": 17469.366751803813,
       "expected_term_margin_gbp": 194971.27583066802,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32270,6 +32277,7 @@
       "retention_cost_gbp": 5310.577896492345,
       "expected_term_margin_gbp": 91314.93914208224,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32280,6 +32288,7 @@
       "retention_cost_gbp": 8446.523877797481,
       "expected_term_margin_gbp": 158250.94922909077,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32290,6 +32299,7 @@
       "retention_cost_gbp": 198.22225655473142,
       "expected_term_margin_gbp": 2475.2494635458524,
       "acq_cost_saved_gbp": 400.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32300,6 +32310,7 @@
       "retention_cost_gbp": 51615.632582091326,
       "expected_term_margin_gbp": 161519.04846974224,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32310,6 +32321,7 @@
       "retention_cost_gbp": 9417.622492615072,
       "expected_term_margin_gbp": 96241.44383503431,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32320,6 +32332,7 @@
       "retention_cost_gbp": 18141.95608173459,
       "expected_term_margin_gbp": 231598.92169927407,
       "acq_cost_saved_gbp": 150.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     },
     {
@@ -32330,6 +32343,7 @@
       "retention_cost_gbp": 229.47113115895726,
       "expected_term_margin_gbp": 3221.8751298252555,
       "acq_cost_saved_gbp": 400.0,
+      "assumed_deferral_months": 12,
       "outcome": "retained"
     }
   ],
@@ -32759,16 +32773,6 @@
       "avg_peak_rate": 250.25,
       "avg_offpeak_rate": 141.72
     },
-    "C8": {
-      "total_kwh": 106721.8,
-      "peak_kwh": 43948.0,
-      "offpeak_kwh": 62773.8,
-      "peak_pct": 41.2,
-      "peak_revenue_gbp": 11986.02,
-      "offpeak_revenue_gbp": 9702.76,
-      "avg_peak_rate": 272.73,
-      "avg_offpeak_rate": 154.57
-    },
     "C7": {
       "total_kwh": 120839.4,
       "peak_kwh": 36249.2,
@@ -32778,6 +32782,16 @@
       "offpeak_revenue_gbp": 12268.08,
       "avg_peak_rate": 262.76,
       "avg_offpeak_rate": 145.03
+    },
+    "C8": {
+      "total_kwh": 106721.8,
+      "peak_kwh": 43948.0,
+      "offpeak_kwh": 62773.8,
+      "peak_pct": 41.2,
+      "peak_revenue_gbp": 11986.02,
+      "offpeak_revenue_gbp": 9702.76,
+      "avg_peak_rate": 272.73,
+      "avg_offpeak_rate": 154.57
     }
   },
   "company_gas_churn_log": [
@@ -64276,8 +64290,8 @@
     }
   ],
   "scenario_analysis": {
-    "generated_at": "2026-07-04T21:00:17Z",
-    "portfolio_as_of": "2026-07-04T20:58:26Z",
+    "generated_at": "2026-07-05T01:36:44Z",
+    "portfolio_as_of": "2026-07-05T01:34:54Z",
     "active_customers": 11,
     "projection_months": 12,
     "scenarios": {

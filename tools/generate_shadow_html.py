@@ -22,6 +22,15 @@ LATEST_MD = PROJECT / "docs" / "status" / "LATEST.md"
 # the "both sides of the epistemic wall" example the directive asks for.
 BEHAVIORAL_CASE_STUDY_CID = "C7"
 
+# PRIORITIES.md P1 (Website Integrity Part B, per-fuel legs): C_IC3/C_IC3g is
+# a real I&C dual-fuel account where the two fuel legs diverge sharply --
+# electricity is billed and paid exactly (zero failed payments, zero arrears)
+# while gas carries a failed payment and a live arrears case. A combined
+# roll-up would net these together and hide the gas-side friction entirely,
+# which is the reason per-fuel legs must be a real view, not just an internal
+# computation.
+PER_FUEL_CASE_STUDY_BASE = "C_IC3"
+
 NAV_LINKS = [
     ("Overview", "/shadow/"),
     ("Customers", "/shadow/customers/"),
@@ -247,6 +256,64 @@ def _behavioral_case_study(sample, ledger, cid):
     )
 
 
+def _per_fuel_case_study(ledger, base_id):
+    """Per-fuel account depth (PRIORITIES.md P1, Website Integrity Part B):
+    shows a real dual-fuel customer's two fuel legs as SEPARATE accounts with
+    their own invoice/payment/arrears history, not netted into one number."""
+    custs = (ledger or {}).get("customers", {})
+    elec = custs.get(base_id)
+    gas = custs.get(base_id + "g")
+    if not elec or not gas:
+        return ""
+
+    def _leg_table(cid, leg):
+        invs = leg.get("invoices", [])[-3:]
+        rows = "".join(
+            _row(
+                i.get("period_end", ""),
+                i.get("commodity", ""),
+                _gbp(i.get("total_amount_gbp", 0)),
+                i.get("payment_status", ""),
+            )
+            for i in invs
+        )
+        return (
+            "<h4>" + cid + "</h4>"
+            + "<dl>"
+            + "<dt>Total billed</dt><dd>" + _gbp(leg.get("total_billed_gbp", 0)) + "</dd>"
+            + "<dt>Total paid</dt><dd>" + _gbp(leg.get("total_paid_gbp", 0)) + "</dd>"
+            + "<dt>Balance</dt><dd>" + _gbp(leg.get("balance_gbp", 0)) + "</dd>"
+            + "<dt>Failed payments</dt><dd>" + str(leg.get("failed_payment_count", 0)) + "</dd>"
+            + "<dt>Arrears cases</dt><dd>" + str(leg.get("arrears_case_count", 0)) + "</dd>"
+            + "</dl>"
+            + _table(["Period End", "Fuel", "Amount", "Status"], rows)
+        )
+
+    divergence = (
+        "<p>" + base_id + " is one real dual-fuel account, but its electricity and gas "
+        "legs are billed, paid, and chased for arrears completely separately -- "
+        "electricity has " + str(elec.get("failed_payment_count", 0)) + " failed payment(s) and "
+        + str(elec.get("arrears_case_count", 0)) + " arrears case(s), while gas has "
+        + str(gas.get("failed_payment_count", 0)) + " and " + str(gas.get("arrears_case_count", 0))
+        + " respectively, with a gas balance of " + _gbp(gas.get("balance_gbp", 0))
+        + ". A combined roll-up nets these into one number and hides which fuel is actually "
+        "causing the friction -- this is why per-fuel legs must be a real, separate view, "
+        "not just an internal computation the combined total is derived from.</p>"
+    )
+
+    return (
+        "<h2>Per-Fuel Account Depth: " + base_id + "</h2>"
+        + '<p class="meta">Real invoice/payment/arrears history per fuel leg, from billing_ledger.json '
+        + "(PRIORITIES.md P1, Website Integrity Part B)</p>"
+        + '<div style="display:flex;gap:32px;flex-wrap:wrap">'
+        + '<div style="flex:1;min-width:280px">' + _leg_table(base_id, elec) + "</div>"
+        + '<div style="flex:1;min-width:280px">' + _leg_table(base_id + "g", gas) + "</div>"
+        + "</div>"
+        + "<h3>The Divergence</h3>"
+        + divergence
+    )
+
+
 def build_customers(dash, sample, ts, ledger=None, journey_log=None):
     git_commit = dash.get("meta", {}).get("git_commit", "?")
     phase = dash.get("build", {}).get("current_phase", "?")
@@ -260,8 +327,6 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
 
     rows = ""
     for cid in sorted(lifetime):
-        if cid.endswith("g"):
-            continue
         c = lifetime[cid]
         s = sample_custs.get(cid, {})
         clv = s.get("clv_gbp", 0)
@@ -290,14 +355,38 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
         outcome = r.get("outcome", "")
         ret_rows += _row(r["customer_id"], r["date"], disc, cost, outcome)
 
+    combined_rows = ""
+    seen_base = set()
+    for cid in sorted(lifetime):
+        base = cid[:-1] if cid.endswith("g") else cid
+        if base in seen_base or base not in lifetime:
+            continue
+        seen_base.add(base)
+        if base + "g" not in lifetime:
+            continue  # single-fuel account: combined view would just duplicate the leg row
+        elec_c = lifetime[base]
+        gas_c = lifetime[base + "g"]
+        combined_rows += _row(
+            base,
+            elec_c.get("segment", ""),
+            _gbp(elec_c.get("net_gbp", 0) + gas_c.get("net_gbp", 0)),
+            _gbp(elec_c.get("gross_gbp", 0) + gas_c.get("gross_gbp", 0)),
+        )
+
     body = (
         "<h1>Customer Portfolio</h1>"
         + '<p class="meta">Source: customer_sample.json + dashboard.json</p>'
-        + "<h2>All Customers (electricity accounts)</h2>"
+        + "<h2>All Customer Accounts (per fuel leg)</h2>"
+        + '<p class="meta">Electricity and gas are separate accounts, each with their own '
+        + "invoice/payment/arrears history -- see Per-Fuel Account Depth below.</p>"
         + _table(
             ["CID", "Segment", "Commodity", "Acquired", "Net Lifetime", "Gross", "CLV", "Churn", "Last Event", "Date"],
             rows,
         )
+        + "<h2>Combined Roll-Up (dual-fuel customers, optional view)</h2>"
+        + '<p class="meta">Net of both fuel legs -- a convenience total, never the only view '
+        + "(see per-fuel accounts above and per-fuel depth below).</p>"
+        + _table(["Customer", "Segment", "Combined Net Lifetime", "Combined Gross"], combined_rows)
         + "<h2>Retention Offers</h2>"
         + _table(["Customer", "Date", "Discount", "Cost", "Outcome"], ret_rows)
         + _behavioral_case_study(sample, ledger or {}, BEHAVIORAL_CASE_STUDY_CID)
@@ -309,6 +398,7 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
             dash["customers"].get("serial_savers", []),
             _pick_serial_saver_cid(dash["customers"].get("serial_savers", [])),
         )
+        + _per_fuel_case_study(ledger or {}, PER_FUEL_CASE_STUDY_BASE)
         + "<h2>Full Ground Truth</h2>"
         + "<p>Machine-readable per-customer data:<br>"
         + '<a href="/state/customer_sample.json">customer_sample.json</a> | '

@@ -111,6 +111,28 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QN -- Customer Portal Per-Fuel Depth (2026-07-05)
+Tier 2 (PRIORITIES.md P1, Website Integrity Part B sub-item; also WEEKEND_ACCELERATION.md Q5).
+5 new tests. The Customers tab silently dropped every gas leg of a dual-fuel account
+(`if cid.endswith("g"): continue` in build_customers()) even though customers.json,
+billing_ledger.json and dashboard.json all already carried gas legs as fully separate
+records -- the data existed, the surface just never showed it. tools/generate_shadow_html.py:
+removed the skip so both fuel legs appear as separate accounts in the main table; added a
+"Combined Roll-Up" table (dual-fuel customers only, net of both legs) as an explicit
+secondary view, never the only one; added _per_fuel_case_study() showing a real dual-fuel
+account's two legs side by side with their own last-3-invoice history and arrears/failed-
+payment counts from billing_ledger.json.
+
+KEY FINDING (live run): C_IC3 (I&C) has a pristine electricity leg -- GBP6,645,325 billed
+and paid exactly, 0 failed payments, 0 arrears cases -- while its gas leg (C_IC3g) carries
+1 failed payment and a live arrears case with a -GBP89,641 balance. A combined roll-up would
+net these into one number and hide that the friction is entirely gas-side, which is exactly
+why per-fuel legs must be a real, separate view rather than an internal computation the
+combined total is derived from. Website Integrity Part B's design-system unification
+(consistent CSS/typography/nav across sections) remains open; this closes the per-fuel-legs
+data-completeness half of Part B. Epistemic: PASS (presentation-layer change only, no new
+company-layer reads).
+
 ### Phase QM -- Retention as Deferral, H1 vs H2 (2026-07-05)
 Tier 2, docs/staging/QL_WIRE_AND_DEFERRAL.md (advisor addendum to PROCESS_NOT_EVENTS.md /
 PREAPPROVE_PROCESS_MODEL.md). Phase QK found C1/C5/C6 retained then churned once the
@@ -5347,7 +5369,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 357+ Python modules (company layer + tools), ~55,300 lines total
 - 500+ git commits
-- 15,555 tests collected (fast suite; simulation integration ~8 min per run)
+- 15,560 tests collected (fast suite; simulation integration ~8 min per run)
+- Phase QN (2026-07-05): Customers tab per-fuel legs -- gas accounts no longer dropped, combined
+  roll-up + per-fuel invoice/arrears case study added -- see Section 4. 5 new tests.
 - Phase QL (2026-07-04/05): churn journey state machine wired into the live sim loop + evidence
   retrofit on all three business surfaces -- see Section 4. 17 new tests.
 - Phase QM (2026-07-05): retention offers priced as deferral windows (H1 vs H2), serial-saver
