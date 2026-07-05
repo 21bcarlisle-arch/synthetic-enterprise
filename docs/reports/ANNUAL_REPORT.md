@@ -1592,7 +1592,7 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-05T04:23:16Z
+Generated: 2026-07-05T04:34:26Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -1796,8 +1796,8 @@ Real-world context: Bulb 2021 collapse at ~-0.01x; Igloo 2021 ~0.07x.
 | 2021 | £4,977,644.98 | £201,778.67 | 24.7x | ✓ GREEN | Yes |
 | 2022 | £5,930,261.96 | £353,797.13 | 16.8x | ✓ GREEN | Yes |
 | 2023 | £6,817,903.47 | £291,313.47 | 23.4x | ✓ GREEN | Yes |
-| 2024 | £7,998,172.05 | £249,935.16 | 32.0x | ✓ GREEN | Yes |
-| 2025 | £8,478,280.23 | £102,757.00 | 82.5x | ✓ GREEN | Yes |
+| 2024 | £7,998,309.55 | £249,935.16 | 32.0x | ✓ GREEN | Yes |
+| 2025 | £8,478,417.73 | £102,757.00 | 82.5x | ✓ GREEN | Yes |
 
 **Weakest year:** 2022 — 16.8x (equity £5,930,261.96 vs monthly revenue £353,797.13). RAG: GREEN.
 **Strongest year:** 2016 — 1933.2x.
@@ -1863,8 +1863,8 @@ WATCH = within 20% of threshold. BREACH = threshold crossed.
 | 2021 | 15 | £4,977,644.98 | £2,957,634.93 | 158w | 0.04% | ✗ BREACH |
 | 2022 | 17 | £5,930,261.96 | £3,158,914.62 | 69w | 0.00% | ✗ BREACH |
 | 2023 | 14 | £6,817,903.47 | £3,394,993.56 | 108w | 0.00% | ✗ BREACH |
-| 2024 | 14 | £7,998,172.05 | £3,783,819.14 | 211w | 0.00% | ✗ BREACH |
-| 2025 | 11 | £8,478,280.23 | £3,835,512.32 | 440w | 0.00% | ✗ BREACH |
+| 2024 | 14 | £7,998,309.55 | £3,783,819.14 | 211w | 0.00% | ✗ BREACH |
+| 2025 | 11 | £8,478,417.73 | £3,835,512.32 | 440w | 0.00% | ✗ BREACH |
 
 **BREACH years:** 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 — board escalation required.
 
@@ -2515,9 +2515,9 @@ Total events: 3,535,662
 
 _Cash reconciliation: of £19,819,620.93 billed, bad debt of £396,515.59 was written off, leaving £19,423,105.34 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £6,976,517.22._
 
-| Acquisition spend | (£700.00) |
+| Acquisition spend | (£562.50) |
 | Fixed overhead | (£5,700.00) |
-| Operating net margin | £6,409,475.59 |
+| Operating net margin | £6,409,613.09 |
 
 ## Annual Management Accounts
 
@@ -2533,22 +2533,22 @@ Year-by-year income statement from company accounting records. All figures £.
 | 2021 | £2,421,344.01 | £973,152.05 | £680,438.97 | £767,752.99 | £47,173.73 | £47,773.73 | £714,343.31 (29.5%) |
 | 2022 | £4,245,565.53 | £2,392,501.35 | £802,298.72 | £1,050,765.46 | £84,252.31 | £84,852.31 | £952,616.98 (22.4%) |
 | 2023 | £3,495,761.69 | £1,642,210.96 | £878,317.42 | £975,233.31 | £76,851.81 | £77,451.81 | £887,641.52 (25.4%) |
-| 2024 | £2,999,221.95 | £933,180.92 | £810,905.76 | £1,255,135.26 | £64,215.74 | £65,365.74 | £1,180,268.58 (39.4%) |
+| 2024 | £2,999,221.95 | £933,180.92 | £810,905.76 | £1,255,135.26 | £64,215.74 | £65,228.24 | £1,180,406.08 (39.4%) |
 | 2025 | £1,233,083.98 | £452,920.26 | £257,370.51 | £522,793.21 | £36,687.50 | £36,987.50 | £480,108.18 (38.9%) |
-| **Total** | **£18,862,463.71** | | | | | | **£6,011,644.01 (31.9%)** |
+| **Total** | **£18,862,463.71** | | | | | | **£6,011,781.51 (31.9%)** |
 
-**Best year:** 2024 — net £1,180,268.58 (39.4% margin)
+**Best year:** 2024 — net £1,180,406.08 (39.4% margin)
 **Worst year:** 2016 — net £6,944.88 (45.2% margin)
 
 ### Balance Sheet (Year End 2025)
 
 | Item | Value |
 |------|-------|
-| Cash | £8,478,280.23 |
+| Cash | £8,478,417.73 |
 | Trade Receivables | £0.00 |
-| **Total Assets** | **£8,478,280.23** |
+| **Total Assets** | **£8,478,417.73** |
 | Opening Capital | £2,466,636.22 |
-| Current Period Profit | £6,011,644.01 |
+| Current Period Profit | £6,011,781.51 |
 
 ## Budget vs Actual
 
@@ -2564,7 +2564,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 | 2021 | £2,028,952.42 | £2,421,344.01 | +19.3% | £833,649.22 | £714,343.31 | -14.3% | AMBER |
 | 2022 | £2,607,611.88 | £4,245,565.53 | +62.8% | £790,935.58 | £952,616.98 | +20.4% | RED |
 | 2023 | £4,508,414.67 | £3,495,761.69 | -22.5% | £1,029,561.00 | £887,641.52 | -13.8% | AMBER |
-| 2024 | £3,512,844.39 | £2,999,221.95 | -14.6% | £893,105.75 | £1,180,268.58 | +32.2% | RED |
+| 2024 | £3,512,844.39 | £2,999,221.95 | -14.6% | £893,105.75 | £1,180,406.08 | +32.2% | RED |
 | 2025 | £3,145,356.42 | £1,233,083.98 | -60.8% | £1,315,150.33 | £480,108.18 | -63.5% | RED |
 
 ## Growth & Acquisition
@@ -2576,9 +2576,9 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 | Year | Attempts | Wins | Win Rate | Spend |
 |------|----------|------|----------|-------|
 | 2020 | 1 | 0 | 0% | £150.00 |
-| 2024 | 2 | 0 | 0% | £550.00 |
+| 2024 | 2 | 0 | 0% | £412.50 |
 
-**Total:** 3 attempts, 0 wins (0% win rate), £700.00 total spend
+**Total:** 3 attempts, 0 wins (0% win rate), £562.50 total spend
 
 **Operating overhead**
 
@@ -2596,7 +2596,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 | 2025 | (£300.00) |
 
 **Total fixed cost:** £5,700.00 over simulation window
-**Operating net margin** (energy margin less acquisition spend & fixed costs): £6,409,475.59
+**Operating net margin** (energy margin less acquisition spend & fixed costs): £6,409,613.09
 
 ## 2016
 
