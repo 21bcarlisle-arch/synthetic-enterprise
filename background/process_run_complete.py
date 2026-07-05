@@ -237,6 +237,12 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("PROJECT_STATE generation failed: {}".format(exc))
     try:
+        from tools.generate_phases_json import generate as gen_phases
+        gen_phases()
+        log("Generated site/data/phases.json")
+    except Exception as exc:
+        log("phases.json generation failed: {}".format(exc))
+    try:
         from tools.population_anchor import generate as gen_anchor
         gen_anchor(json_path)
         log("Generated site/state/population_anchoring.json")

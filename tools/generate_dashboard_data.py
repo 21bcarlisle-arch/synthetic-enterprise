@@ -560,6 +560,22 @@ def extract_run_history(history_path=None, max_entries=10):
         return []
 
 
+def count_run_history_total(history_path=None):
+    """Full count of every run ever recorded, not just the last N kept by
+    extract_run_history() for display. The Project tab's "Sim runs" KPI used
+    to read len(run_history) off the truncated list, so it always showed
+    exactly max_entries (10) no matter how many runs had actually happened
+    -- a dead counter (PROJECT_TAB_OVERHAUL.md critique)."""
+    path = history_path or RUN_HISTORY_PATH
+    if not Path(path).exists():
+        return 0
+    try:
+        history = json.loads(Path(path).read_text())
+        return len(history)
+    except (json.JSONDecodeError, ValueError):
+        return 0
+
+
 def extract_query_context(data):
     """Build compact text summary (~2-4k chars) for NL query API context."""
     if not data:
@@ -653,6 +669,7 @@ def generate(run_json_path=None):
         "market": extract_market(data, spot_monthly),
         "insights": insights,
         "run_history": extract_run_history(),
+        "run_history_total": count_run_history_total(),
         "query_context": extract_query_context(data),
         "management_accounts": extract_management_accounts(data),
         "monthly_ops": extract_monthly_ops(data),

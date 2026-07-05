@@ -1,17 +1,17 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-05 (Phase RC: SIM_TAB_OVERHAUL.md CLOSED IN FULL -- items 1-5 all
-# done across Phases QY/QZ/RA/RB/RC, the SIM tab half of WEBSITE_AS_SHOWCASE.md's design
-# wave. Front of queue now: WEBSITE_AS_SHOWCASE.md Part 0 (QO styled company/portal/templates/,
-# the wrong surface -- redo the light v4 design system on site/, specifically the four
-# shadow-mirror tabs site/shadow/{index,customers,supplier,project}/index.html, still on the
-# pre-v4 dark terminal-monospace theme -- found and confirmed during Phase RC, not yet
-# actioned) -- OR PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md (same surfaces, their own
-# staged critiques, R-D in PROJECT_TAB_OVERHAUL.md explicitly requires the same v4 light theme).
-# All three docs converge on the same next unit of work; pick PROJECT_TAB_OVERHAUL.md first
-# per its R-B consistency-gate-extension being the more load-bearing fix (live number
-# mismatches on the Project tab Overview). CUSTOMER_360_REDESIGN.md, NAV_STORY_PLATFORM_METHOD.md
-# remain queued behind. FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md are explicitly queued
-# behind this wave per their own staged text -- do not jump them ahead of it.)
+# Last refreshed: 2026-07-05 (Phase RD: PROJECT_TAB_OVERHAUL.md R-A/consistency scope closed --
+# site/data/phases.json now generated from docs/PROJECT_OVERVIEW.md Section 4 instead of
+# hand-curated (was frozen since 2026-07-03), fixing the stale Timeline/Capabilities and the
+# corrupted Test Progression/Phases-per-day charts; the "Sim runs" dead counter also fixed.
+# Front of queue now: WEBSITE_AS_SHOWCASE.md Part 0 -- redo the light v4 design system on
+# site/shadow/{index,customers,supplier,project}/index.html, still on the pre-v4 dark
+# terminal-monospace theme (found and confirmed during Phase RC, not yet actioned). PROJECT_
+# TAB_OVERHAUL.md's remaining scope (R-D light theme on Company/Regulatory/Capabilities visual
+# polish, broken phases-per-day chart cosmetics beyond the data fix, Company/Overview dedup) and
+# SUPPLIER_TAB_OVERHAUL.md (11-tabs-to-grouped-nav IA rework) remain queued alongside it.
+# CUSTOMER_360_REDESIGN.md, NAV_STORY_PLATFORM_METHOD.md remain queued behind. FEEDBACK_AND_
+# REPUTATION.md and NUDGE_PHYSICS.md are explicitly queued behind this wave per their own staged
+# text -- do not jump them ahead of it.)
 
 ## COMPLETED
 - P1 (process model, acquisition funnel): PROCESS_NOT_EVENTS.md's quote->application->
@@ -256,6 +256,18 @@ theme confirmed already shipped site-wide on site/sim/index.html, no work needed
 now CLOSED IN FULL. Tab 1 (SIM tab) DONE. Found, not actioned: site/shadow/{index,customers,
 supplier,project}/index.html still on the pre-v4 dark terminal-monospace theme -- WEBSITE_AS_SHOWCASE.md
 Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queue next.
+
+## COMPLETED (cont. 5)
+- PROJECT_TAB_OVERHAUL.md R-A/consistency partial + WEBSITE_INTEGRITY_AND_DESIGN QW Part 2:
+  DONE (Phase RD, 2026-07-05). site/data/phases.json regenerated from docs/PROJECT_OVERVIEW.md
+  Section 4 via new tools/generate_phases_json.py (was hand-curated, frozen since 2026-07-03 at
+  latest_phase OL) -- wired into process_run_complete.py so it self-updates every run. Fixes
+  the stale Timeline, frozen Capabilities cards, and the corrupted Test Progression/
+  Phases-per-day charts (duplicate x-axis labels). Also fixed the Project tab's "Sim runs"
+  dead counter (always showed 10, the truncated run_history list length) via new
+  count_run_history_total(). 9 new tests, 14,470 fast suite passed, epistemic PASS. Remaining
+  PROJECT_TAB_OVERHAUL.md scope (R-D light-theme/visual polish, Company/Overview dedup, per-tab
+  direction items 3-7) folds into the WEBSITE_AS_SHOWCASE.md Part 0 design wave below.
 
 ## Backlog
 - SAAS_COVERAGE_MAP.md item 4 remainder: credit bureau feed into collections strategy

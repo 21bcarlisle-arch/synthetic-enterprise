@@ -3,7 +3,10 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.generate_dashboard_data import _fmt, extract_portfolio, extract_financial
+from tools.generate_dashboard_data import (
+    _fmt, extract_portfolio, extract_financial, count_run_history_total,
+)
+import json
 
 
 def test_fmt_rounds_float():
@@ -118,3 +121,23 @@ def test_extract_portfolio_returns_dict():
 def test_extract_financial_annual_is_list():
     r = extract_financial(_financial_data())
     assert isinstance(r["annual"], list)
+
+
+def test_count_run_history_total_missing_file_returns_zero(tmp_path):
+    assert count_run_history_total(tmp_path / "nonexistent.json") == 0
+
+
+def test_count_run_history_total_counts_full_history_not_truncated(tmp_path):
+    """Regression (PROJECT_TAB_OVERHAUL.md): the Project tab's "Sim runs" KPI
+    used to read len() of the already-truncated last-10-entries list, so it
+    always displayed exactly 10 no matter how many runs had really happened
+    -- a dead counter. count_run_history_total() must read the full file."""
+    history_path = tmp_path / "run_history.json"
+    history_path.write_text(json.dumps([{"git_hash": "abc%d" % i} for i in range(37)]))
+    assert count_run_history_total(history_path) == 37
+
+
+def test_count_run_history_total_invalid_json_returns_zero(tmp_path):
+    history_path = tmp_path / "run_history.json"
+    history_path.write_text("not valid json")
+    assert count_run_history_total(history_path) == 0
