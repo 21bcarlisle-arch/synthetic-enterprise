@@ -230,6 +230,11 @@ light theme). Rich's eyes are the acceptance test -- awaiting visual review.
 Tab 2 (Supplier: frozen-policy-baseline delta-EV) needs its own Tier 3 design note first
 (policy snapshot/replay is one-way-door-adjacent) -- do not start implementation before that
 review lands. Tab 3 (Project: learning ledger) assembles as 1/2 land.
+CONTINUED 2026-07-05 (Phase QY): SIM_TAB_OVERHAUL.md item 1 (PRICES -> MARKET) DONE -- selectable
+price-chart overlay (HDD/Short%/Gas NBP), negative-price-hours/year chart, and a real year->month->
+day progressive-disclosure drill-down on the annual table (daily rows built lazily, not pre-baked).
+8 new tests, 15,595 collected, epistemic PASS. Tab 1 (SIM tab) now has only items 2 (Weather physics
+chain), 3 (BM axis legibility), and 5 (consistency gate + light theme) remaining.
 
 ## Backlog
 - SAAS_COVERAGE_MAP.md item 4 remainder: credit bureau feed into collections strategy

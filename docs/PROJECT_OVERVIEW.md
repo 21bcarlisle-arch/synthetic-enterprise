@@ -111,6 +111,40 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QY -- SIM Tab: PRICES -> MARKET Rebuild (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 1, front of the WEBSITE_AS_SHOWCASE.md queue per PRIORITIES.md)
+Closes SIM_TAB_OVERHAUL.md item 1 in full: "keep the structure, add the links: price chart gains
+selectable overlays... Annual rows expand inline to monthly, monthly to daily profile. Add the
+negative-price-hours story." tools/generate_sim_data.py gains three pure functions:
+`_negative_price_hours_by_year()` (half-hourly SSP<0 periods -> hours/year), `_daily_aggregation()`
+(per-day mean/max/min SSP across all 3,446 simulated days, feeding the drill-down), and
+`_gas_monthly_aggregation()` (monthly mean NBP gas price via the pre-existing
+`sim/gas_prices_history.load_nbp_history()`, 3,446 daily records already used by the risk engine --
+no new data source). `short_pct` (already computed for the BM tab) and `gas_mean` are merged onto
+each monthly record so the price chart can overlay either without a second fetch; HDD is fetched
+from the pre-existing site/data/weather.json (kept as the single source, not duplicated into
+sim_data.json). site/sim/index.html: the monthly price chart gains a `<select>` overlay control
+(None / HDD / System Short % / Gas NBP) generalizing the SSP-vs-Short% BM-tab pattern onto a
+secondary axis; a new Negative Price Hours per Year bar chart; and the Annual Summary table becomes
+a real progressive-disclosure drill-down -- click a year to reveal its 12 months (built eagerly,
+cheap at 120 rows total), click a month to reveal its daily profile (built LAZILY on first click,
+not pre-rendered -- baking all 3,446 days into the initial page would have produced an ~830KB
+hidden table; lazy-build keeps the initial annual-table payload ~64KB). Verified with a Node
+harness (`node -e`) that strips the page's IIFE wrapper and executes the real, unmodified
+`buildChart`/`buildAnnualTable`/`buildDailyRowsForMonth`/`buildNegPriceChart` functions against the
+live regenerated site/data/sim_data.json and site/data/weather.json with a minimal DOM stub: all
+four overlay modes return 114/114 non-null monthly points; the annual table's initial render
+confirmed to exclude any daily row (`2022-01-01` absent) while `buildDailyRowsForMonth('2022-01')`
+correctly returns exactly 31 day-rows on demand; a simulated click-then-click on the delegated
+handler confirmed the toggle is idempotent (show then hide) and that a month's `<tbody>` is
+populated exactly once (a `monthDetailBuilt` guard prevents rebuilding on repeat clicks). `docs/`
+and `site/` state mirrors (docs/state/sim_data.json, docs/shadow/) re-synced via the existing
+`tools/mirror_github_pages.mirror()` so both the live site and its no-JS GitHub Pages fallback see
+the new fields. 8 new tests (tests/tools/test_generate_sim_data.py), 15,595 collected, full fast
+suite re-run clean. Epistemic PASS (site/+tools/ only, no company/saas files touched). Remaining
+SIM_TAB_OVERHAUL.md scope: item 2 (Weather -> Physics Chain composed episode visual), item 3 (BM
+axis legibility + inline explainer), item 5 (site-wide consistency gate + light theme -- the light
+theme itself is already substantially in place on this page from an earlier, undocumented pass).
+
 ### Phase QX -- SIM Tab: Correlation Panels, Trajectory Sparklines, Epistemic Wall Strip (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 4 remainder)
 Closes the last three open bullets of SIM_TAB_OVERHAUL.md item 4 (distributions/journey
 stages/event-frequency were already done in QT/QU/QV). site/sim/index.html's Customers sub-tab
@@ -5609,7 +5643,21 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
-- 15,578 tests (fast suite; simulation integration ~8 min per run)
+- 15,595 tests (fast suite; simulation integration ~8 min per run)
+- Phase QY (2026-07-05): SIM tab PRICES -> MARKET rebuild -- SIM_TAB_OVERHAUL.md item 1.
+  tools/generate_sim_data.py gains negative-price-hour counting, per-day SSP aggregation, and
+  monthly gas NBP aggregation (sim/gas_prices_history.load_nbp_history()); site/sim/index.html's
+  price chart gains a selectable overlay (HDD / System Short % / Gas NBP vs the SSP-vs-Short%
+  template generalized), a new negative-price-hours-per-year chart, and the annual table becomes
+  a real drill-down: year row expands to its 12 months, month row lazily fetches and expands to
+  its daily profile (data for all 3,446 days is NOT pre-rendered -- built on first click, keeping
+  the initial table payload ~64KB instead of ~830KB). Verified with a Node harness executing the
+  real (unwrapped) page JS against live site/data/sim_data.json + weather.json -- overlay series
+  return full 114/114 non-null coverage, the lazy daily-expand path populates the correct 31 rows
+  for 2022-01 only on click, toggle logic confirmed idempotent. 8 new tests, 15,595 collected.
+  Epistemic PASS (site/+tools/ only, no company/saas touched). Remaining SIM_TAB_OVERHAUL.md scope:
+  item 2 (Weather -> Physics Chain), item 3 (BM axis legibility), item 5 (consistency gate +
+  light theme -- light theme substantially already in place from a prior pass).
 - Phase QX (2026-07-05): SIM tab correlation panels (stress-vs-delay, price-vs-in-market),
   per-customer trajectory sparklines, and a portfolio-scale "Both Sides of the Wall" churn
   divergence strip -- closes SIM_TAB_OVERHAUL.md item 4's remaining scope. See Section 4.

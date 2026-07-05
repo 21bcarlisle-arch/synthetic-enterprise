@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import json
 import statistics
+import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT))
 SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
 OUTPUT_PATH = PROJECT / "site" / "data" / "sim_data.json"
 
@@ -50,7 +52,8 @@ def _monthly_aggregation(records):
     return result
 
 
-def _annual_aggregation(monthly):
+def _annual_aggregation(monthly, negative_hours_by_year=None):
+    negative_hours_by_year = negative_hours_by_year or {}
     annual_map = defaultdict(list)
     for m in monthly:
         annual_map[m["month"][:4]].append(m)
@@ -69,7 +72,44 @@ def _annual_aggregation(monthly):
             "min": round(min(all_mins), 2),
             "month_count": len(months),
             "is_crisis": year in CRISIS_YEARS,
+            "negative_price_hours": negative_hours_by_year.get(year, 0),
         })
+    return result
+
+
+def _negative_price_hours_by_year(records):
+    """Half-hourly settlement periods with SSP < 0, converted to hours (0.5h/period)."""
+    counts = defaultdict(int)
+    for rec in records:
+        date = rec.get("settlementDate", "")
+        if not (SIM_START <= date <= SIM_END):
+            continue
+        price = rec.get("systemSellPrice")
+        if price is not None and float(price) < 0:
+            counts[date[:4]] += 1
+    return {year: round(n * 0.5, 1) for year, n in counts.items()}
+
+
+def _daily_aggregation(records):
+    """Per-day mean/max/min SSP -- feeds monthly-to-daily progressive disclosure
+    on the price chart (annual -> monthly -> daily is the drill-down chain)."""
+    daily = defaultdict(list)
+    for rec in records:
+        date = rec.get("settlementDate", "")
+        if not (SIM_START <= date <= SIM_END):
+            continue
+        price = rec.get("systemSellPrice")
+        if price is not None:
+            daily[date].append(float(price))
+
+    result = {}
+    for date in sorted(daily):
+        prices = daily[date]
+        result[date] = {
+            "mean": round(statistics.mean(prices), 2),
+            "max": round(max(prices), 2),
+            "min": round(min(prices), 2),
+        }
     return result
 
 
@@ -135,6 +175,25 @@ def _bm_monthly_aggregation(records):
     return result
 
 
+def _gas_monthly_aggregation():
+    """Monthly mean NBP gas price GBP/MWh -- overlay series for the power price
+    chart (PRICES -> MARKET rebuild: any pair of signals can be compared)."""
+    try:
+        from sim.gas_prices_history import load_nbp_history
+    except ImportError:
+        return {}
+    records = load_nbp_history()
+    monthly = defaultdict(list)
+    for rec in records:
+        date = rec.get("settlementDate", "")
+        if not (SIM_START <= date <= SIM_END):
+            continue
+        price = rec.get("systemSellPrice")
+        if price is not None:
+            monthly[date[:7]].append(float(price))
+    return {month: round(statistics.mean(vals), 2) for month, vals in monthly.items()}
+
+
 def generate():
     records = _load_ssp()
     if not records:
@@ -145,9 +204,17 @@ def generate():
         return False
 
     monthly = _monthly_aggregation(records)
-    annual = _annual_aggregation(monthly)
+    negative_hours_by_year = _negative_price_hours_by_year(records)
+    annual = _annual_aggregation(monthly, negative_hours_by_year)
     peaks = _peak_records(records)
     bm = _bm_monthly_aggregation(records)
+    daily = _daily_aggregation(records)
+    gas_monthly = _gas_monthly_aggregation()
+
+    short_pct_by_month = {b["month"]: b["short_pct"] for b in bm}
+    for m in monthly:
+        m["gas_mean"] = gas_monthly.get(m["month"])
+        m["short_pct"] = short_pct_by_month.get(m["month"])
 
     dates = sorted(r["settlementDate"] for r in records if "settlementDate" in r)
     payload = {
@@ -155,6 +222,7 @@ def generate():
         "annual": annual,
         "peak_records": peaks,
         "bm": bm,
+        "daily": daily,
         "metadata": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "total_records": len(records),
@@ -166,8 +234,8 @@ def generate():
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(json.dumps(payload, indent=2))
-    print("Generated", OUTPUT_PATH, "({} months, {} years, {} peak records)".format(
-        len(monthly), len(annual), len(peaks)))
+    print("Generated", OUTPUT_PATH, "({} months, {} years, {} peak records, {} days)".format(
+        len(monthly), len(annual), len(peaks), len(daily)))
     return True
 
 

@@ -3,7 +3,10 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.generate_sim_data import _monthly_aggregation, _annual_aggregation, _peak_records
+from tools.generate_sim_data import (
+    _monthly_aggregation, _annual_aggregation, _peak_records,
+    _negative_price_hours_by_year, _daily_aggregation,
+)
 
 
 def _ssp_rec(date, period, ssp):
@@ -112,3 +115,53 @@ def test_monthly_aggregation_two_periods_same_month():
     assert len(result) == 1
     assert result[0]["period_count"] == 2
     assert result[0]["mean"] == _pytest2.approx(150.0)
+
+
+def test_negative_price_hours_counts_only_negative():
+    records = [
+        _ssp_rec("2022-01-01", 1, -10.0),
+        _ssp_rec("2022-01-01", 2, 50.0),
+        _ssp_rec("2022-01-02", 1, -5.0),
+    ]
+    result = _negative_price_hours_by_year(records)
+    assert result["2022"] == 1.0  # two negative periods * 0.5h
+
+
+def test_negative_price_hours_out_of_range_excluded():
+    records = [_ssp_rec("2015-01-01", 1, -10.0)]
+    result = _negative_price_hours_by_year(records)
+    assert result == {}
+
+
+def test_negative_price_hours_empty():
+    assert _negative_price_hours_by_year([]) == {}
+
+
+def test_annual_aggregation_carries_negative_price_hours():
+    monthly = [{"month": "2022-01", "mean": 100.0, "max": 120.0, "min": 80.0, "p95": 115.0}]
+    result = _annual_aggregation(monthly, {"2022": 12.5})
+    assert result[0]["negative_price_hours"] == 12.5
+
+
+def test_annual_aggregation_defaults_negative_price_hours_to_zero():
+    monthly = [{"month": "2022-01", "mean": 100.0, "max": 120.0, "min": 80.0, "p95": 115.0}]
+    result = _annual_aggregation(monthly)
+    assert result[0]["negative_price_hours"] == 0
+
+
+def test_daily_aggregation_keys():
+    records = [_ssp_rec("2022-06-01", 1, 100.0), _ssp_rec("2022-06-01", 2, 200.0)]
+    result = _daily_aggregation(records)
+    assert "2022-06-01" in result
+    for key in ("mean", "max", "min"):
+        assert key in result["2022-06-01"]
+    assert result["2022-06-01"]["mean"] == 150.0
+
+
+def test_daily_aggregation_out_of_range_excluded():
+    records = [_ssp_rec("2015-01-01", 1, 100.0)]
+    assert _daily_aggregation(records) == {}
+
+
+def test_daily_aggregation_empty():
+    assert _daily_aggregation([]) == {}

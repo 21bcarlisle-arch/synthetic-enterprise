@@ -77,11 +77,34 @@
     <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
   </div>
   <div class="section-title">Monthly Mean Price &pound;/MWh &mdash; 2016&ndash;2025</div>
-  <div class="chart-wrap"><canvas id="monthly-chart" height="280"></canvas></div>
+  <div class="narrative">
+    <strong>Any pair of signals, on the same axis:</strong> the SSP-vs-Short% template generalized &mdash;
+    pick an overlay to see whether the thing that should move with price actually does, in this data.
+  </div>
+  <div class="chart-wrap">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <label for="price-overlay-select" style="font-size:12px;color:var(--muted);margin-right:8px;align-self:center">Overlay:</label>
+      <select id="price-overlay-select" onchange="onPriceOverlayChange(this.value)" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)">
+        <option value="none">None</option>
+        <option value="hdd">Heating Degree Days</option>
+        <option value="short">System Short %</option>
+        <option value="gas">Gas NBP &pound;/MWh</option>
+      </select>
+    </div>
+    <canvas id="monthly-chart" height="280"></canvas>
+  </div>
+  <div class="section-title">Negative Price Hours per Year</div>
+  <div class="narrative">
+    <strong>A stylized fact the synthetic generator is anchored on:</strong> hours per year where the System
+    Sell Price goes negative &mdash; generators paying to keep running rather than shut down, typically
+    high-wind low-demand periods.
+  </div>
+  <div class="chart-wrap"><canvas id="neg-price-chart" height="180"></canvas></div>
   <div class="section-title">Annual Summary</div>
+  <div class="narrative" style="padding:12px 20px;font-size:12px">Click a year to expand its 12 months; click a month to expand its daily profile.</div>
   <div class="table-wrap">
     <table id="annual-table">
-      <thead><tr><th>Year</th><th>Mean &pound;/MWh</th><th>P95 &pound;/MWh</th><th>Peak &pound;/MWh</th><th>Low &pound;/MWh</th></tr></thead>
+      <thead><tr><th>Year</th><th>Mean &pound;/MWh</th><th>P95 &pound;/MWh</th><th>Peak &pound;/MWh</th><th>Low &pound;/MWh</th><th>Neg. Price Hrs</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
@@ -232,7 +255,8 @@
 <script>
 (function () {
   var pricesLoaded = false, weatherLoaded = false, bmLoaded = false, customersLoaded = false;
-  var monthlyPriceChart = null, wTempChart = null, wHddChart = null;
+  var monthlyPriceChart = null, wTempChart = null, wHddChart = null, negPriceChart = null;
+  var priceMonthlyCache = [], priceWeatherMonthlyCache = [];
   var YEAR_PAL = ['#2a78d6','#1baf7a','#eda100','#008300','#4a3aa7','#e34948','#e87ba4','#eb6834','#256abf','#199e70'];
   function showTab(name, btn) {
     var panels = document.querySelectorAll('.tab-panel');
@@ -791,12 +815,17 @@
 
   function loadPrices() {
     pricesLoaded = true;
-    fetch('/data/sim_data.json')
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
+    Promise.all([
+      fetch('/data/sim_data.json').then(function (r) { return r.json(); }),
+      fetch('/data/weather.json').then(function (r) { return r.json(); }).catch(function () { return null; })
+    ]).then(function (results) {
+        var data = results[0], weather = results[1];
+        priceMonthlyCache = data.monthly || [];
+        priceWeatherMonthlyCache = (weather && weather.monthly) || [];
         buildKPIs(data);
-        buildChart(data.monthly || []);
-        buildAnnualTable(data.annual || []);
+        buildChart(priceMonthlyCache, 'none');
+        buildNegPriceChart(data.annual || []);
+        buildAnnualTable(data.annual || [], priceMonthlyCache, data.daily || {});
         buildPeakTable(data.peak_records || []);
         buildMeta(data.metadata || {});
       })
@@ -805,6 +834,8 @@
           '<p style="color:var(--red);padding:16px">Failed: ' + e + '</p>';
       });
   }
+  function onPriceOverlayChange(val) { buildChart(priceMonthlyCache, val); }
+  window.onPriceOverlayChange = onPriceOverlayChange;
   function buildKPIs(data) {
     var annual = data.annual || [];
     var peaks = data.peak_records || [];
@@ -837,68 +868,172 @@
     }
     document.getElementById('kpi-grid').innerHTML = html;
   }
-  function buildChart(monthly) {
+  function buildChart(monthly, overlayType) {
+    overlayType = overlayType || 'none';
     var labels=[], means=[], p95s=[], crisisVals=[];
     for (var i = 0; i < monthly.length; i++) {
       var r = monthly[i];
       labels.push(r.month); means.push(r.mean); p95s.push(r.p95);
       crisisVals.push(r.is_crisis ? 5000 : null);
     }
+    var datasets = [
+      {label:'Crisis Zone', data:crisisVals, fill:'origin',
+       backgroundColor:'rgba(208,59,59,0.13)', borderColor:'transparent',
+       pointRadius:0, tension:0, spanGaps:false, order:3, yAxisID:'y'},
+      {label:'P95', data:p95s, fill:'origin',
+       backgroundColor:'rgba(250,178,25,0.13)', borderColor:'rgba(250,178,25,0.4)',
+       borderWidth:1, pointRadius:0, tension:0.3, order:2, yAxisID:'y'},
+      {label:'Mean Price', data:means, fill:false,
+       borderColor:'#2a78d6', backgroundColor:'#2a78d6',
+       borderWidth:2, pointRadius:0, tension:0.3, order:1, yAxisID:'y'}
+    ];
+    var scales = {
+      x: {ticks:{color:'#52514e',maxTicksLimit:12,maxRotation:0}, grid:{color:'rgba(225,224,217,0.6)'}},
+      y: {min:0, ticks:{color:'#52514e', callback:function(v){return '£'+v;}},
+          grid:{color:'rgba(225,224,217,0.6)'}}
+    };
+    if (overlayType !== 'none') {
+      var hddByMonth = {};
+      priceWeatherMonthlyCache.forEach(function(w) { hddByMonth[w.month] = w.hdd; });
+      var overlayData, overlayLabel, overlayFmt, y2Opts;
+      if (overlayType === 'hdd') {
+        overlayData = labels.map(function(m) { return hddByMonth[m] != null ? hddByMonth[m] : null; });
+        overlayLabel = 'Heating Degree Days';
+        overlayFmt = function(v){return Number(v).toFixed(0)+' HDD';};
+        y2Opts = {position:'right', min:0, grid:{drawOnChartArea:false}, ticks:{color:'#1baf7a'}};
+      } else if (overlayType === 'short') {
+        overlayData = monthly.map(function(r){ return r.short_pct != null ? r.short_pct : null; });
+        overlayLabel = 'System Short %';
+        overlayFmt = function(v){return Number(v).toFixed(1)+'%';};
+        y2Opts = {position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{color:'#1baf7a', callback:function(v){return v+'%';}}};
+      } else {
+        overlayData = monthly.map(function(r){ return r.gas_mean != null ? r.gas_mean : null; });
+        overlayLabel = 'Gas NBP £/MWh';
+        overlayFmt = function(v){return '£'+Number(v).toFixed(1)+'/MWh';};
+        y2Opts = {position:'right', min:0, grid:{drawOnChartArea:false}, ticks:{color:'#1baf7a', callback:function(v){return '£'+v;}}};
+      }
+      datasets.push({label:overlayLabel, data:overlayData, type:'line', borderColor:'#1baf7a',
+        backgroundColor:'transparent', borderWidth:2, borderDash:[4,3], pointRadius:0, tension:0.3,
+        yAxisID:'y2', order:0, _fmt:overlayFmt});
+      scales.y2 = y2Opts;
+    }
     var ctx = document.getElementById('monthly-chart').getContext('2d');
     if (monthlyPriceChart) monthlyPriceChart.destroy();
     monthlyPriceChart = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          {label:'Crisis Zone', data:crisisVals, fill:'origin',
-           backgroundColor:'rgba(208,59,59,0.13)', borderColor:'transparent',
-           pointRadius:0, tension:0, spanGaps:false, order:3},
-          {label:'P95', data:p95s, fill:'origin',
-           backgroundColor:'rgba(250,178,25,0.13)', borderColor:'rgba(250,178,25,0.4)',
-           borderWidth:1, pointRadius:0, tension:0.3, order:2},
-          {label:'Mean Price', data:means, fill:false,
-           borderColor:'#2a78d6', backgroundColor:'#2a78d6',
-           borderWidth:2, pointRadius:0, tension:0.3, order:1}
-        ]
-      },
+      data: { labels: labels, datasets: datasets },
       options: {
         responsive: true,
         interaction: {mode:'index', intersect:false},
         plugins: {
-          legend: {display:false},
+          legend: {display: overlayType !== 'none', labels:{color:'#52514e', font:{size:11}, boxWidth:14}},
           tooltip: {
             callbacks: {
               label: function(c) {
                 if (c.dataset.label === 'Crisis Zone') return null;
+                if (c.dataset._fmt) return c.dataset.label + ': ' + c.dataset._fmt(c.raw);
                 var v = c.raw != null ? Number(c.raw).toFixed(1) : '—';
                 return c.dataset.label + ': £' + v + '/MWh';
               }
             }
           }
         },
+        scales: scales
+      }
+    });
+  }
+  function buildNegPriceChart(annual) {
+    if (negPriceChart) negPriceChart.destroy();
+    var ctx = document.getElementById('neg-price-chart').getContext('2d');
+    negPriceChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: annual.map(function(r){return r.year;}),
+        datasets: [{
+          label: 'Negative Price Hours',
+          data: annual.map(function(r){return r.negative_price_hours || 0;}),
+          backgroundColor: annual.map(function(r){return r.is_crisis ? 'rgba(208,59,59,0.7)' : 'rgba(27,175,122,0.6)';}),
+          borderRadius: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {legend:{display:false}, tooltip:{callbacks:{label:function(c){return c.parsed.y.toFixed(1)+' hrs';}}}},
         scales: {
-          x: {ticks:{color:'#52514e',maxTicksLimit:12,maxRotation:0}, grid:{color:'rgba(225,224,217,0.6)'}},
-          y: {min:0, ticks:{color:'#52514e', callback:function(v){return '£'+v;}},
-              grid:{color:'rgba(225,224,217,0.6)'}}
+          x: {ticks:{color:'#52514e'}, grid:{color:'rgba(225,224,217,0.4)'}},
+          y: {min:0, ticks:{color:'#52514e', callback:function(v){return v+'h';}}, grid:{color:'rgba(225,224,217,0.4)'}}
         }
       }
     });
   }
-  function buildAnnualTable(annual) {
+  var priceDailyCache = {};
+  var monthDetailBuilt = {};
+  function toggleDetailRow(id) {
+    var row = document.getElementById(id);
+    if (!row) return;
+    row.style.display = (row.style.display === 'none' || !row.style.display) ? 'table-row' : 'none';
+  }
+  function buildDailyRowsForMonth(month) {
+    var dayKeys = Object.keys(priceDailyCache).filter(function(d) { return d.indexOf(month) === 0; }).sort();
+    var rows = dayKeys.map(function(dk) {
+      var dd = priceDailyCache[dk];
+      return '<tr><td style="padding-left:32px;font-size:11px">'+dk+'</td>'+
+             '<td style="font-size:11px">£'+fmt(dd.mean,1)+'</td>'+
+             '<td style="font-size:11px">&mdash;</td>'+
+             '<td style="font-size:11px">£'+fmt(dd.max,1)+'</td>'+
+             '<td style="font-size:11px">£'+fmt(dd.min,1)+'</td><td></td></tr>';
+    }).join('');
+    return rows || '<tr><td style="padding-left:32px;color:var(--muted);font-size:11px">No daily data</td></tr>';
+  }
+  var annualTableDelegated = false;
+  function buildAnnualTable(annual, monthly, daily) {
+    monthly = monthly || []; daily = daily || {};
+    priceDailyCache = daily;
+    monthDetailBuilt = {};
     var tb = document.querySelector('#annual-table tbody');
     var html = '';
     for (var i = 0; i < annual.length; i++) {
       var r = annual[i];
       var badge = r.is_crisis ? '<span class="cbadge">CRISIS</span>' : '';
-      html += '<tr class="'+(r.is_crisis?'crise':'')+'">'+
-              '<td>'+r.year+badge+'</td>'+
+      html += '<tr class="'+(r.is_crisis?'crise':'')+' expand-row" style="cursor:pointer" data-toggle="year-detail-'+r.year+'" title="Click to expand months">'+
+              '<td>&#9656; '+r.year+badge+'</td>'+
               '<td>'+fmt(r.mean,1)+'</td>'+
               '<td>'+fmt(r.p95,1)+'</td>'+
               '<td>'+fmt(r.max,1)+'</td>'+
-              '<td>'+fmt(r.min,1)+'</td></tr>';
+              '<td>'+fmt(r.min,1)+'</td>'+
+              '<td>'+fmt(r.negative_price_hours,1)+'h</td></tr>';
+      var yearMonths = monthly.filter(function(m) { return m.month.indexOf(r.year) === 0; });
+      var monthRows = yearMonths.map(function(m) {
+        var monthDetailId = 'month-detail-' + m.month;
+        return '<tr class="expand-row" style="cursor:pointer;background:var(--surface2)" data-toggle="'+monthDetailId+'" data-month="'+m.month+'" title="Click to expand days">'+
+               '<td style="padding-left:20px;font-size:12px">&#9656; '+m.month+'</td>'+
+               '<td style="font-size:12px">'+fmt(m.mean,1)+'</td>'+
+               '<td style="font-size:12px">'+fmt(m.p95,1)+'</td>'+
+               '<td style="font-size:12px">'+fmt(m.max,1)+'</td>'+
+               '<td style="font-size:12px">'+fmt(m.min,1)+'</td><td></td></tr>'+
+               '<tr id="'+monthDetailId+'" style="display:none"><td colspan="6" style="padding:0"><table style="width:100%"><tbody></tbody></table></td></tr>';
+      }).join('');
+      html += '<tr id="year-detail-'+r.year+'" style="display:none"><td colspan="6" style="padding:0"><table style="width:100%"><tbody>'+monthRows+'</tbody></table></td></tr>';
     }
-    tb.innerHTML = html || '<tr><td colspan="5" style="color:var(--muted)">No data</td></tr>';
+    tb.innerHTML = html || '<tr><td colspan="6" style="color:var(--muted)">No data</td></tr>';
+    if (!annualTableDelegated) {
+      annualTableDelegated = true;
+      tb.addEventListener('click', function(ev) {
+        var row = ev.target.closest('tr[data-toggle]');
+        if (!row) return;
+        ev.stopPropagation();
+        var month = row.getAttribute('data-month');
+        var toggleId = row.getAttribute('data-toggle');
+        if (month && !monthDetailBuilt[toggleId]) {
+          var detailRow = document.getElementById(toggleId);
+          if (detailRow) {
+            detailRow.querySelector('tbody').innerHTML = buildDailyRowsForMonth(month);
+            monthDetailBuilt[toggleId] = true;
+          }
+        }
+        toggleDetailRow(toggleId);
+      });
+    }
   }
 
   function buildPeakTable(peaks) {
