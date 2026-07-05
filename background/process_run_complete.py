@@ -165,7 +165,7 @@ def _fmt_gbp(v):
     return "\xa3{}{:,.0f}".format(sign, v)
 
 
-def generate_dashboard_json(json_path):
+def generate_dashboard_json(json_path, git_hash="unknown"):
     """Generate site/data/dashboard.json and every downstream site/state artifact.
 
     Returns False if the cross-surface consistency gate failed (Part C of the
@@ -204,7 +204,7 @@ def generate_dashboard_json(json_path):
         log("Invoice data generation failed: {}".format(exc))
     try:
         from tools.generate_sim_data import generate as gen_sim
-        gen_sim()
+        gen_sim(git_hash)
         log("Generated site/data/sim_data.json")
     except Exception as exc:
         log("Sim data generation failed: {}".format(exc))
@@ -469,7 +469,7 @@ def main(marker_path_str):
         log("Run insights generation skipped: {}".format(exc))
 
     log("Generating site/data/dashboard.json")
-    consistency_ok = generate_dashboard_json(json_path)
+    consistency_ok = generate_dashboard_json(json_path, git_hash)
     if not consistency_ok:
         from background.ntfy_utils import send_ntfy
         send_ntfy(

@@ -3,10 +3,14 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+import json
+
 from tools.generate_sim_data import (
     _monthly_aggregation, _annual_aggregation, _peak_records,
     _negative_price_hours_by_year, _daily_aggregation,
+    generate,
 )
+import tools.generate_sim_data as generate_sim_data_module
 
 
 def _ssp_rec(date, period, ssp):
@@ -189,3 +193,44 @@ def test_daily_aggregation_out_of_range_excluded():
 
 def test_daily_aggregation_empty():
     assert _daily_aggregation([]) == {}
+
+
+def test_generate_embeds_git_hash_and_phase(tmp_path, monkeypatch):
+    """SIM_TAB_OVERHAUL.md item 5: the live SIM tab needs a freshness stamp
+    (git commit + phase), not just a timestamp, matching what shadow pages
+    already carry (tools/generate_shadow_html.py's _page())."""
+    cache = tmp_path / "elexon_ssp_full.json"
+    cache.write_text(json.dumps([
+        {"settlementDate": "2022-06-01", "settlementPeriod": 1, "systemSellPrice": 100.0},
+    ]))
+    build_info = tmp_path / "build_info.json"
+    build_info.write_text(json.dumps({"phase": "RB"}))
+    output = tmp_path / "sim_data.json"
+
+    monkeypatch.setattr(generate_sim_data_module, "SSP_CACHE", cache)
+    monkeypatch.setattr(generate_sim_data_module, "OUTPUT_PATH", output)
+    monkeypatch.setattr(generate_sim_data_module, "BUILD_INFO_PATH", build_info)
+
+    generate(git_hash="abc1234")
+
+    payload = json.loads(output.read_text())
+    assert payload["metadata"]["git_hash"] == "abc1234"
+    assert payload["metadata"]["phase"] == "RB"
+
+
+def test_generate_defaults_unknown_without_build_info(tmp_path, monkeypatch):
+    cache = tmp_path / "elexon_ssp_full.json"
+    cache.write_text(json.dumps([
+        {"settlementDate": "2022-06-01", "settlementPeriod": 1, "systemSellPrice": 100.0},
+    ]))
+    output = tmp_path / "sim_data.json"
+
+    monkeypatch.setattr(generate_sim_data_module, "SSP_CACHE", cache)
+    monkeypatch.setattr(generate_sim_data_module, "OUTPUT_PATH", output)
+    monkeypatch.setattr(generate_sim_data_module, "BUILD_INFO_PATH", tmp_path / "nonexistent.json")
+
+    generate()
+
+    payload = json.loads(output.read_text())
+    assert payload["metadata"]["git_hash"] == "unknown"
+    assert payload["metadata"]["phase"] == "unknown"

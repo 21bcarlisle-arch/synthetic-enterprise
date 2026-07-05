@@ -10,10 +10,20 @@ PROJECT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT))
 SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
 OUTPUT_PATH = PROJECT / "site" / "data" / "sim_data.json"
+BUILD_INFO_PATH = PROJECT / "docs" / "observability" / "build_info.json"
 
 CRISIS_YEARS = {"2021", "2022"}
 SIM_START = "2016-01-01"
 SIM_END = "2025-12-31"
+
+
+def _load_build_phase():
+    if BUILD_INFO_PATH.exists():
+        try:
+            return json.loads(BUILD_INFO_PATH.read_text()).get("phase", "unknown")
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return "unknown"
 
 
 def _load_ssp():
@@ -207,7 +217,7 @@ def _gas_monthly_aggregation():
     return {month: round(statistics.mean(vals), 2) for month, vals in monthly.items()}
 
 
-def generate():
+def generate(git_hash="unknown"):
     records = _load_ssp()
     if not records:
         print("WARNING: SSP cache not found or empty -- writing empty sim_data.json")
@@ -242,6 +252,8 @@ def generate():
             "period_from": dates[0] if dates else "",
             "period_to": dates[-1] if dates else "",
             "crisis_years": sorted(CRISIS_YEARS),
+            "git_hash": git_hash,
+            "phase": _load_build_phase(),
         },
     }
 
@@ -253,4 +265,4 @@ def generate():
 
 
 if __name__ == "__main__":
-    generate()
+    generate(sys.argv[1] if len(sys.argv) > 1 else "unknown")

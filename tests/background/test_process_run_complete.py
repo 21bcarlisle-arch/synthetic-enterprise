@@ -100,7 +100,7 @@ def test_main_success_flow(tmp_path, monkeypatch):
     # Returns True (gate passed) -- generate_dashboard_json's return value now
     # drives an immediate NTFY on consistency-gate failure (Phase QF); this
     # mock represents the happy path, not a gate failure.
-    monkeypatch.setattr(prc, "generate_dashboard_json", lambda p: True)
+    monkeypatch.setattr(prc, "generate_dashboard_json", lambda p, git_hash="unknown": True)
     # run_fast_tests writes to the REAL docs/observability/.last_tested_hash on a
     # returncode==0 fake pytest run — mock it to avoid corrupting the live cache file
     monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
@@ -149,7 +149,7 @@ def test_main_returns_1_when_tests_fail(tmp_path, monkeypatch):
     # Returns True (gate passed) -- generate_dashboard_json's return value now
     # drives an immediate NTFY on consistency-gate failure (Phase QF); this
     # mock represents the happy path, not a gate failure.
-    monkeypatch.setattr(prc, "generate_dashboard_json", lambda p: True)
+    monkeypatch.setattr(prc, "generate_dashboard_json", lambda p, git_hash="unknown": True)
     monkeypatch.setattr(prc, "RUN_INSIGHTS_PATH", tmp_path / "run_insights.json")
     monkeypatch.setattr(prc, "RUN_HISTORY_PATH", tmp_path / "run_history.json")
 

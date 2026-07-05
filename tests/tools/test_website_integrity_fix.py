@@ -80,7 +80,7 @@ def test_process_run_complete_generates_insights_before_dashboard():
     import background.process_run_complete as prc
     source = inspect.getsource(prc.main)
     insights_pos = source.index("generate_insights(data, git_hash)")
-    dashboard_pos = source.index("generate_dashboard_json(json_path)")
+    dashboard_pos = source.index("generate_dashboard_json(json_path, git_hash)")
     assert insights_pos < dashboard_pos
 
 
@@ -202,6 +202,6 @@ def test_main_ntfys_immediately_on_consistency_gate_failure():
     import background.process_run_complete as prc
 
     source = inspect.getsource(prc.main)
-    gate_pos = source.index("consistency_ok = generate_dashboard_json(json_path)")
+    gate_pos = source.index("consistency_ok = generate_dashboard_json(json_path, git_hash)")
     ntfy_pos = source.index("send_ntfy(", gate_pos)
     assert gate_pos < ntfy_pos

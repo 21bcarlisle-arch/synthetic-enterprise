@@ -111,6 +111,25 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RB -- SIM Tab: Freshness Stamps + Orphaned Consistency Test (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 5 partial, completed from an interrupted prior session's mid-flight work)
+Found uncommitted at session start: an interrupted autonomous turn (16:26-16:46 UTC, cut off by a
+usage-limit reset) had modified `tools/generate_sim_data.py` and `background/process_run_complete.py`
+to thread a `git_hash`/`phase` freshness stamp into `site/data/sim_data.json`'s metadata block --
+matching the freshness stamp `tools/generate_shadow_html.py`'s `_page()` already writes on every
+shadow page, closing part of item 5's "derive-or-die + freshness stamps ... extended to all SIM
+surfaces." Also present uncommitted: `tests/tools/test_sim_tab_consistency.py`, a permanent
+regression test for the Customers sub-tab stress-KPI/table cross-surface consistency bug (case-
+sensitive bucketing) that was fixed live in `site/sim/index.html` (`.toUpperCase()` normalization,
+confirmed already shipped) but never got a committed test at the time. Verified both changes: ran
+the full test suite (15,720 passed, 0 failed) and found 3 pre-existing tests broken by the
+interrupted work's signature change (`generate_dashboard_json(json_path)` -> `(json_path, git_hash)`)
+-- `tests/background/test_process_run_complete.py::test_main_success_flow` (mock lambda arity) and
+two string-search assertions in `tests/tools/test_website_integrity_fix.py` expecting the old call-
+site text. Fixed all 3 to match the new signature; full suite green after the fix. Epistemic PASS.
+Remaining SIM_TAB_OVERHAUL.md item 5 scope: extending the freshness stamp to the remaining SIM
+surfaces beyond sim_data.json, and the light-theme conversion (substantially already in place from
+a prior pass per Phase RA's note).
+
 ### Phase RA -- SIM Tab: BM Settlement Axis Legibility + Crisis Link (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 3, WEBSITE_AS_SHOWCASE.md queue per PRIORITIES.md)
 Closes SIM_TAB_OVERHAUL.md item 3: "keep (it is the best tab); fix axis legibility; add an inline
 explainer expansion for short%/NIV for outsiders; link crisis periods to the price tab's same
@@ -5697,7 +5716,8 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
-- 15,591 tests (fast suite; simulation integration ~8 min per run)
+- 15,720 tests (full suite incl. simulation integration; ~39 min per run)
+- Phase RB (2026-07-05): freshness stamps (git_hash/phase) threaded into site/data/sim_data.json metadata; committed an orphaned consistency-gate test for the Customers sub-tab stress KPI/table cross-check; fixed 3 tests broken by the interrupted work's signature change. SIM_TAB_OVERHAUL.md item 5 partial. See Section 4.
 - Phase RA (2026-07-05): SIM tab BM Settlement axis legibility fix -- SIM_TAB_OVERHAUL.md item 3.
   Both BM charts' x-axis switched from `maxRotation:60,font:{size:9}` to the `maxTicksLimit:12,
   maxRotation:0` convention already used on Prices/Weather; added a plain-language Short%/NIV
