@@ -1,31 +1,15 @@
-[SUPPLIER] CUSTOMER 360 REDESIGN -- director critique of the live C1 page. Current state: a dark-themed data dump. Target: a professional SaaS CRM account view. This elaborates WEBSITE_AS_SHOWCASE tab 4 and takes priority within it.
+[SUPPLIER] CUSTOMER 360 REDESIGN v2 -- director refinements + best-in-class CRM research folded in. Supersedes v1 of this file.
 
-DIRECTOR CRITIQUE OF CURRENT PAGE (C1, live):
-- Elec account page with a gas widget, not a dual-fuel customer: Account Details says "commodity: electricity" under a Dual Fuel header; gas has NO tariff/meter/contract/bills shown.
-- ZERO consumption anywhere -- an energy CRM without kWh. Meter says Smart; show the data.
-- NO timeline: none of the event ledger, life events, offers, payments, complaints on the record.
-- NO actions: no renewal countdown, no next-best-action, nothing to DO.
-- Numbers do not reconcile on-page (GBP339 margin vs GBP1,949 net-after-CTS unexplained; 120 bills GBP4,520 vs GBP3,498 revenue; P&L table stops at 2020).
-- No IA: one scroll, uniform card weight, no charts, metric soup without definitions.
+DIRECTOR CRITIQUE OF CURRENT PAGE stands (v1): elec page with gas widget; zero consumption; no timeline; no reconciliation; metric soup; no IA. All v1 requirements carry forward. The following AMENDS and sharpens:
 
-THE REDESIGN -- Customer 360, structured as a household with accounts:
+A. LIGHT THEME + EXPLANATION-RICH. White/light background, professional SaaS look (reference: Attio/HubSpot record pages -- clean, generous whitespace, modern type). More navigation and explanation elements throughout: section intros, metric definitions on hover/inline, "what am I looking at" affordances -- this surface doubles as a showcase for outsiders who need orientation, not just Rich.
 
-1. HEADER IDENTITY STRIP: customer/household identity (synthetic persona name + property archetype from the human sim), segment + vulnerability/PSR flags, tenure, satisfaction indicator (company-observed), live balance, contract status PER FUEL with renewal countdown chips. This is the who/where/state in 3 seconds.
+B. THE OBSERVATORY PRINCIPLE (unique to us): real CRMs are workbenches (log call, send email, raise case). THIS is a VIEWER -- we observe; our fixes happen by changing the SIM or steering CC, never in the CRM. So: NO edit/action affordances. Reallocate all of that to WHY affordances: every event on the timeline links to its cause -- the decision that produced it (with its H1 EV), the trigger that fired, the bill/signal behind it. Investigation without intervention. Where v1 said "next best action", render it as WHAT THE COMPANY DECIDED (read-only decision record), not a button.
 
-2. TABBED IA (not one scroll): Overview | Accounts | Consumption | Billing & Payments | Timeline | Risk & Actions.
+C. CANONICAL LAYOUT (the researched consensus pattern): LEFT panel = record context (identity, household, per-fuel account cards with MPAN/MPRN, flags); CENTER = the interaction timeline, chronological, filterable by type (bills, payments, contacts, offers, life-event inferences, tariff changes, dunning); RIGHT = insights (value metrics with definitions, churn stage as company-inferred, risk trend). Timeline is the spine, exactly as in the best CRMs.
 
-3. ACCOUNTS TAB: two first-class account panels -- Electricity (MPAN) and Gas (MPRN): tariff name + unit rate + standing charge, contract start/end + renewal window state, meter type/serial, EAC. Combined roll-up on Overview only.
+D. UK LENS throughout: MPAN/MPRN as the account identifiers; p/kWh unit rates + standing charge p/day; EAC; tariff presented Ofgem-TIL-style; price-cap context on SVT periods; payment method vocabulary (Direct Debit / receipt of bill / prepay); PSR & vulnerability flags named as such; dual fuel as the household norm it is. A UK energy person must feel at home instantly.
 
-4. CONSUMPTION TAB: monthly usage chart per fuel across the full history, weather overlay (the physics visible), smart-meter granularity where held. This is the product's core noun -- it must be a chart, not absent.
+E. COMMS & INTERACTION RECORD (roadmap layer, design the slot now): eventually the timeline carries the ACTUAL communications -- the bill email, the reminder letter, the offer letter, the complaint response -- as openable artifacts per event, generated from run data. Phase 1: event entries with type/date/cause links. Phase 2: rendered comms artifacts. Design the timeline schema to hold the artifact from day one so phase 2 is additive.
 
-5. BILLING & PAYMENTS: statement view (bill -> payment -> balance running ledger), bill DRILL-DOWN with the full itemisation the sim already computes (commodity/network/levies/standing/VAT per fuel), payment method + DD status, arrears aging + payment-plan state where applicable.
-
-6. TIMELINE TAB: the QP decision event ledger rendered for this customer -- company-observed events (contacts, complaints, bills, payments, offers WITH their H1 EV, tariff changes, dunning steps) in sequence. This is where the week's architecture becomes visible per-customer.
-
-7. RISK & ACTIONS: churn journey stage AS THE COMPANY INFERS IT (not sim truth -- portal is the company view), trend not just a number; three-horizon value (H1 committed / H2 realized / H3 forecast) replacing the current metric soup, each with a one-line definition; NEXT BEST ACTION from the decision loop with its EV ("Renewal in 43 days -- recommended: fixed-offer X, EV +GBPz").
-
-8. RECONCILIATION RULE (consistency gate extended to page level): every roll-up on the page must visibly reconcile -- combined = elec + gas on the same screen; bills total ties to revenue with the difference labeled (VAT/standing); P&L covers ALL years. A page that cannot explain its own numbers fails the gate.
-
-9. DESIGN SYSTEM: this page is the reference implementation for the site/ design system (grid, type scale, chart components, card hierarchy with sparklines on KPIs). Professional, restrained, data-dense. Charts are mandatory: usage, margin by year, value trend.
-
-ACCEPTANCE: Rich's eyes on the live C1 page. Report "awaiting Rich's visual review" -- the case-study recommender should then link into these views.
+F. RECONCILIATION + acceptance unchanged from v1: page-level consistency gate, all years, combined=elec+gas visibly; acceptance = Rich's eyes on live C1; report "awaiting Rich's visual review".
