@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-05T14:47:37.742565+00:00",
+  "last_updated": "2026-07-05T14:49:22.548269+00:00",
   "agents": [
     {
       "name": "session-watchdog",
       "status": "idle",
-      "last_heartbeat": "2026-07-05T14:47:19.851306+00:00",
+      "last_heartbeat": "2026-07-05T14:49:22.548269+00:00",
       "last_action": "Session alive check passed",
-      "last_action_ts": "2026-07-05T14:47:19.851306+00:00",
+      "last_action_ts": "2026-07-05T14:49:22.548269+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-05T14:47:37.742565+00:00",
+      "last_heartbeat": "2026-07-05T14:49:07.745446+00:00",
       "last_action": "Heartbeat \u2014 10 files tracked",
-      "last_action_ts": "2026-07-05T14:47:37.742565+00:00",
+      "last_action_ts": "2026-07-05T14:49:07.745446+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-05T14:47:01.804732+00:00",
-      "last_action": "Run complete in 523s \u2014 2004 KB (run_output_6ef09632_20260705T143818Z.json)",
-      "last_action_ts": "2026-07-05T14:47:01.804732+00:00",
+      "last_heartbeat": "2026-07-05T14:48:21.076678+00:00",
+      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260705T144821Z.json)",
+      "last_action_ts": "2026-07-05T14:48:21.076678+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -64,10 +64,10 @@
     },
     {
       "name": "autonomous-runner",
-      "status": "idle",
-      "last_heartbeat": "2026-07-05T14:46:24.852391+00:00",
-      "last_action": "Polling \u2014 idle",
-      "last_action_ts": "2026-07-05T14:46:24.852391+00:00",
+      "status": "working",
+      "last_heartbeat": "2026-07-05T14:48:24.868602+00:00",
+      "last_action": "Autonomous turn running",
+      "last_action_ts": "2026-07-05T14:48:24.868602+00:00",
       "anomaly": null,
       "role": "Runs scheduled Claude Code sessions for background work when session is idle",
       "produces": "CC session activity, phase completions"
@@ -93,7 +93,7 @@
       "produces": "PASS/FAIL report to stdout"
     }
   ],
-  "treasury_gbp": 11131.0,
-  "net_margin_gbp": -8317.21,
-  "enterprise_value_gbp": -20661.9
+  "treasury_gbp": 3911893.8860475523,
+  "net_margin_gbp": 1535307.740845,
+  "enterprise_value_gbp": 8826938.57269744
 }
