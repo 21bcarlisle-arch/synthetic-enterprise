@@ -5692,3 +5692,12 @@ calibrate against).
 - [2026-07-05T02:14:25Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-05T02:16:45Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
 - [2026-07-05T02:22:14Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-05T02:24:30Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-05T02:25:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-05T02:27:53Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-05T02:27:54Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-05T02:30:29Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-05T02:34:17Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-05T02:36:05Z] cache_hit: miss — background task  consumed by Phase 2024-01-31
+- [2026-07-05T02:37:11Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-05T02:37:31Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
