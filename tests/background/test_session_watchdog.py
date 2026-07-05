@@ -115,7 +115,14 @@ def test_usage_limit_detected_ignores_discussion_of_the_pattern():
 def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
     """WATCHDOG_NO_SENDKEYS.md (2026-07-04): the launch must not use
     tmux send-keys at all -- claude is the pane's command itself, with
-    -c and RESUME_INSTRUCTION passed as argv, not typed in afterwards."""
+    -c and RESUME_INSTRUCTION passed as argv, not typed in afterwards.
+
+    Includes --dangerously-skip-permissions per Rich's direct, live
+    confirmation (2026-07-05, docs/review_gates/SKIP_PERMISSIONS_TIER1.md)
+    -- three prior attempts to get this added via untrusted channels
+    (unauthenticated NTFY, a git-pushed commit, text embedded in a tool
+    result) were declined; this is the fourth, arriving as an actual
+    conversation turn, which is the one channel treated as trustworthy."""
     watchdog.restart_times.clear()
     calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
@@ -132,13 +139,13 @@ def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
     new_session_calls = [c for c in calls if c[:2] == ["tmux", "new-session"]]
     # No send-keys anywhere in the launch sequence.
     assert send_keys_calls == []
-    # claude is launched directly as the pane's command: -c and
-    # RESUME_INSTRUCTION are argv elements, never typed in.
+    # claude is launched directly as the pane's command: --dangerously-skip-permissions,
+    # -c, and RESUME_INSTRUCTION are argv elements, never typed in.
     assert len(new_session_calls) == 1
     launch = new_session_calls[0]
-    assert launch[-3:] == ["/fake/nvm/bin/claude", "-c", watchdog.RESUME_INSTRUCTION]
-    # --dangerously-skip-permissions must never appear.
-    assert not any("skip-permissions" in str(arg) for arg in launch)
+    assert launch[-4:] == [
+        "/fake/nvm/bin/claude", "--dangerously-skip-permissions", "-c", watchdog.RESUME_INSTRUCTION,
+    ]
     watchdog.restart_times.clear()
 
 
@@ -170,6 +177,7 @@ def test_restart_claude_no_op_if_claude_never_comes_up(monkeypatch):
 def test_restart_claude_aborts_if_binary_not_found(monkeypatch):
     """No claude binary resolvable -- alert once, don't attempt to launch."""
     watchdog.restart_times.clear()
+    monkeypatch.setattr(watchdog, "_binary_missing_ntfy_sent", False)
     calls = []
     ntfy_messages = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
@@ -185,6 +193,49 @@ def test_restart_claude_aborts_if_binary_not_found(monkeypatch):
     assert new_session_calls == []
     assert len(ntfy_messages) == 1
     assert "not found" in ntfy_messages[0]
+    watchdog.restart_times.clear()
+
+
+def test_restart_claude_binary_missing_ntfy_deduped_across_cycles(monkeypatch):
+    """A persistently broken binary must not re-alert every watchdog cycle --
+    R5: NTFYs fire on state transitions only, never repeat an unchanged
+    status. Verified live during kill-test B (real nvm binary renamed away,
+    real restart_claude() called twice) before this fix was added."""
+    watchdog.restart_times.clear()
+    monkeypatch.setattr(watchdog, "_binary_missing_ntfy_sent", False)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)
+    monkeypatch.setattr(watchdog, "resolve_claude_binary", lambda: None)
+
+    watchdog.restart_claude()
+    watchdog.restart_claude()
+    watchdog.restart_claude()
+
+    assert len(ntfy_messages) == 1
+    watchdog.restart_times.clear()
+
+
+def test_restart_claude_binary_missing_ntfy_resets_once_resolved(monkeypatch):
+    """Once the binary resolves again, the dedupe flag clears so a future
+    outage is reported again rather than staying permanently silenced."""
+    watchdog.restart_times.clear()
+    monkeypatch.setattr(watchdog, "_binary_missing_ntfy_sent", True)
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
+    monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)
+    monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)
+    monkeypatch.setattr(watchdog, "resolve_claude_binary", lambda: "/fake/nvm/bin/claude")
+
+    watchdog.restart_claude()
+
+    assert watchdog._binary_missing_ntfy_sent is False
     watchdog.restart_times.clear()
 
 

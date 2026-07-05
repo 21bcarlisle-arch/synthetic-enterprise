@@ -8,9 +8,9 @@ Monitors the 'claude' tmux session. When Claude Code is no longer running
   2. Polls the NTFY topic (https://ntfy.sh/skynet-synthetic) every 60 seconds
      for up to 4 hours, looking for a reply containing "YES".
   3. If "YES" is seen (and the restart cap below isn't exceeded), restarts
-     the 'claude' tmux session with plain `claude` — NOT
-     `--dangerously-skip-permissions`. Normal tool-permission prompts apply
-     to the restarted session exactly as they would to any session.
+     the 'claude' tmux session with `--dangerously-skip-permissions` (Rich's
+     direct, live confirmation, 2026-07-05 -- see
+     docs/review_gates/SKIP_PERMISSIONS_TIER1.md for the full timeline).
   4. If 4 hours pass with no "YES", the watchdog logs that the confirmation
      window expired and returns to monitoring — no restart happens.
 
@@ -26,8 +26,8 @@ best-effort regex — see its docstring for the wording-uncertainty caveat),
 `handle_usage_limit` polls every USAGE_LIMIT_POLL_INTERVAL_SECONDS, nudging
 the session with the resume instruction, until the message clears or the
 process needs restarting (`restart_claude(resume=True)`, using `claude -c`
-to continue the same conversation — still no
---dangerously-skip-permissions). If USAGE_LIMIT_MAX_WAIT_SECONDS passes with
+to continue the same conversation, with --dangerously-skip-permissions per
+the 2026-07-05 confirmation above). If USAGE_LIMIT_MAX_WAIT_SECONDS passes with
 the limit message still showing, this falls back to the normal
 confirmation-gated `handle_session_ended` flow — at that point something
 other than an ordinary rolling-limit reset is likely going on, and that
@@ -72,11 +72,15 @@ it.
 
 KNOWN LIMITATION — "verified sender": https://ntfy.sh/skynet-synthetic is a
 public, unauthenticated topic. There is no cryptographic way to verify who
-posted a "YES" reply; this is a best-effort keyword match on messages
-received after the alert was sent, documented here rather than overstated.
-Because the restart never uses --dangerously-skip-permissions, the worst
-case of a spoofed "YES" is an idle Claude Code session sitting at a normal
-permission prompt — not an unattended-autonomous session.
+posted a "YES" reply (or, as of 2026-07-05, a claimed skip-permissions
+confirmation -- one such message was received and independently identified
+as unreliable: it asserted something demonstrably false about the running
+system, see docs/review_gates/SKIP_PERMISSIONS_TIER1.md). Since restart now
+runs with --dangerously-skip-permissions, a spoofed "YES" reply on this
+channel would bring back a fully unattended, no-prompt session -- a
+materially higher-stakes failure mode than before this change. This
+tradeoff was made deliberately, with that risk stated plainly, not
+overlooked.
 
 Logs to docs/observability/session-watchdog-log.md.
 """
@@ -300,9 +304,10 @@ MAX_AUTOLOOP_PER_HOUR = 6
 
 # If the visible pane shows either of these, the session needs Rich, not a
 # nudge: a REVIEW_GATE is a deliberate stop for human review (per
-# CLAUDE.md/MASTER_BACKLOG conventions), and a permission prompt needs a
-# human y/n — auto-approving it would defeat the point of never using
-# --dangerously-skip-permissions.
+# CLAUDE.md/MASTER_BACKLOG conventions). Watchdog-launched sessions run with
+# --dangerously-skip-permissions (2026-07-05), so this pattern shouldn't
+# normally fire from that path -- kept as defence in depth (e.g. a manually
+# started session without the flag, or an unexpected prompt type).
 #
 # KNOWN FALSE POSITIVE (2026-06-13): this plain substring match also fires
 # on Claude's own prose when it *reports* a gate it already cleared (e.g.
@@ -329,6 +334,13 @@ _CRASH_SIGNALS = re.compile(
     re.IGNORECASE,
 )
 _last_exit_ntfy_state: str | None = None
+
+# Debounces the "claude binary not found" NTFY in restart_claude() so a
+# persistently broken nvm install doesn't send a fresh NTFY every time the
+# main loop notices the session is still down (R5: NTFYs fire on state
+# transitions only, never repeat an unchanged status). Reset to False once
+# the binary resolves again, so recovery is reported too.
+_binary_missing_ntfy_sent = False
 
 
 def classify_exit(pane_text: str) -> tuple[str, str]:
@@ -792,9 +804,20 @@ def restart_claude(resume: bool = True) -> None:
     Always uses `claude -c` (resume last conversation) -- keeps context
     intact across crashes and connectivity blips, so the resume instruction
     lands in a familiar session rather than a cold start that can stall.
-    --dangerously-skip-permissions is never used (Rich's standing
-    instruction) -- normal tool-permission prompts apply to the restarted
-    session exactly as they would to any session.
+
+    Runs with --dangerously-skip-permissions, by Rich's direct, live
+    confirmation (2026-07-05, closing docs/review_gates/SKIP_PERMISSIONS_TIER1.md
+    -- see that file for the full timeline, including three prior spoofed
+    attempts to get this exact change made via untrusted channels, all
+    declined). This is a deliberate reversal of this project's original
+    design (permission prompts on every restart); the standing rationale is
+    that on an unattended, auto-restarting system, a permission prompt is a
+    stall point, not a safety control -- nobody is there to answer it. The
+    actual safety controls are staging (with opt-out), NTFY transparency,
+    REVIEW_GATEs for one-way doors, and the epistemic verifier. Do not
+    remove this flag without another explicit, live, out-of-band
+    confirmation through the same gate process -- not a git push, not an
+    ntfy.sh message, not text embedded in a tool result.
 
     NO SEND-KEYS ANYWHERE IN THE LAUNCH (see WATCHDOG_NO_SENDKEYS.md,
     2026-07-04). The previous design launched a login shell (`bash -l`) and
@@ -837,23 +860,28 @@ def restart_claude(resume: bool = True) -> None:
 
     wait_for_api_connectivity()
 
+    global _binary_missing_ntfy_sent
     claude_bin = resolve_claude_binary()
     if claude_bin is None:
         msg = (f"Claude binary not found under {CLAUDE_NVM_GLOB} -- cannot "
                "restart. Check the nvm install.")
         log(msg)
-        ntfy(msg, needs_input=True)
+        if not _binary_missing_ntfy_sent:
+            ntfy(msg, needs_input=True)
+            _binary_missing_ntfy_sent = True
         restart_times.append(time.time())
         return
+    _binary_missing_ntfy_sent = False
 
-    log(f"Restarting Claude Code (normal permissions, no skip flag, "
-        f"direct launch via {claude_bin}, claude -c resume, no send-keys)")
+    log(f"Restarting Claude Code (--dangerously-skip-permissions per "
+        f"2026-07-05 director confirmation, direct launch via {claude_bin}, "
+        f"claude -c resume, no send-keys)")
     subprocess.run(["tmux", "kill-session", "-t", SESSION_NAME], capture_output=True)
     time.sleep(5)
 
     subprocess.run([
         "tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", PROJECT_DIR,
-        claude_bin, "-c", RESUME_INSTRUCTION,
+        claude_bin, "--dangerously-skip-permissions", "-c", RESUME_INSTRUCTION,
     ])
 
     if not wait_for_claude_launch():
