@@ -302,7 +302,7 @@
     var stressH = 0, stressM = 0, stressL = 0;
     ids.forEach(function(id) {
       var traj = custs[id].income_stress_trajectory || [];
-      var s = traj.length ? traj[traj.length-1].stress || 'LOW' : 'LOW';
+      var s = (traj.length ? traj[traj.length-1].stress || 'low' : 'low').toUpperCase();
       if (s === 'HIGH') stressH++;
       else if (s === 'MODERATE') stressM++;
       else stressL++;
@@ -319,6 +319,7 @@
       return '<div class="kpi-card"><div class="kpi-label">'+k.label+'</div><div class="kpi-value '+k.cls+'">'+k.value+'</div><div class="kpi-sub">'+k.sub+'</div></div>';
     }).join('');
   }
+  var SIM_END_DATE = Date.UTC(2025, 11, 31);
   function buildCustTable(d) {
     var custs = d.customers || {};
     var ids = Object.keys(custs).sort().slice(0, 20);
@@ -328,11 +329,12 @@
       var c = custs[id];
       var seg = (id.indexOf('IC') >= 0) ? 'I&C' : 'Residential';
       var traj = c.income_stress_trajectory || [];
-      var lastSt = traj.length ? traj[traj.length-1].stress || 'LOW' : 'LOW';
+      var lastSt = (traj.length ? traj[traj.length-1].stress || 'low' : 'low').toUpperCase();
       var pa = c.payment_behaviour_analytics || {};
-      var sc = pa.current_score || 'GOOD';
-      var tenure = c.tenure_years != null ? Number(c.tenure_years).toFixed(1) : '—';
-      var sat = c.satisfaction_score != null ? (Number(c.satisfaction_score)*100).toFixed(0)+'%' : '—';
+      var sc = pa.score || 'GOOD';
+      var tenure = c.acquisition_date ? ((SIM_END_DATE - Date.parse(c.acquisition_date)) / 31557600000).toFixed(1) : '—';
+      var satTraj = c.satisfaction_score_trajectory || [];
+      var sat = satTraj.length ? (Number(satTraj[satTraj.length-1].satisfaction_score)*100).toFixed(0)+'%' : '—';
       var evts = (c.life_event_history || []).slice(0,3).map(function(e) { return e.event_type; }).join(', ') || '—';
       var stCol = stColors[lastSt] || 'var(--muted)';
       var scCol = scColors[sc] || 'var(--muted)';
@@ -349,7 +351,7 @@
       (custs[id].income_stress_trajectory || []).forEach(function(pt) {
         var yr = String(pt.year);
         if (!yearMap[yr]) yearMap[yr] = {L:0, M:0, H:0};
-        var s = pt.stress || 'LOW';
+        var s = (pt.stress || 'low').toUpperCase();
         if (s === 'HIGH') yearMap[yr].H++;
         else if (s === 'MODERATE') yearMap[yr].M++;
         else yearMap[yr].L++;
@@ -379,7 +381,7 @@
     var scoreKeys = ['EXCELLENT','GOOD','FAIR','POOR','CRITICAL'];
     var counts = [0,0,0,0,0];
     ids.forEach(function(id) {
-      var sc = (custs[id].payment_behaviour_analytics || {}).current_score || 'GOOD';
+      var sc = (custs[id].payment_behaviour_analytics || {}).score || 'GOOD';
       var idx = scoreKeys.indexOf(sc);
       if (idx >= 0) counts[idx]++;
     });
