@@ -1,18 +1,13 @@
-[SUPPLIER + PROJECT] CUSTOMER 360 REDESIGN v3 -- director correction + site-wide generalization. Supersedes v2.
+[SUPPLIER + PROJECT] CUSTOMER 360 v4 -- the causal chain as the page's spine, with usage viz first-class. Supersedes v3; all v1-v3 laws stand (progressive disclosure/no popups, observatory, canonical layout, UK lens, reconciliation, site-wide laws).
 
-All v1/v2 requirements stand (observatory principle, canonical left/center/right layout, UK lens, comms-artifact slot, reconciliation, light theme) with ONE CORRECTION and ONE GENERALIZATION:
+THE PAGE TELLS ONE STORY, per Rich: USAGE x PRICE x SHAPE -> BILL -> EVENTS PERTURB -> CUSTOMER REACTS. Every section is a link in that chain, visualized.
 
-CORRECTION -- EXPANSION, not explanation, as the core interaction pattern:
-PROGRESSIVE DISCLOSURE everywhere. Every section renders COLLAPSED to its essential summary first -- the whole page scannable in one screen-ish without unwieldy scrolling -- and drills down INLINE on click/tap: expandable rows, accordions, disclosure sections that push content down in place.
-- NO POP-UP WINDOWS. No modals, no hover-only tooltips, no overlays. Depth always opens in the flow of the page.
-- Examples: Annual P&L shows 3-line summary + [expand] for the full year table; a bill row expands inline into its full itemisation; a timeline event expands inline to its cause chain (decision, EV, trigger) and later its comms artifact; account cards expand from tariff-summary to full TIL detail.
-- Definitions/explanations live inside the expansions, not as popups.
+1. USAGE VIZ (first-class, per fuel): consumption over time -- monthly bars across the full history, expandable inline to daily and HH where smart-metered; LOAD SHAPE panels (daily profile curve, weekday/weekend, seasonal shape); period-vs-period comparison; weather overlay so the physics is visible (cold snap -> gas spike). This is the missing core noun from the critique, now with shape not just volume.
 
-GENERALIZATION -- these are SITE-WIDE DESIGN LAWS, not portal preferences. The same thinking applies to every surface (Supplier dashboard, SIM tab, Project tab, shadow pages where sensibly applicable):
-1. Progressive disclosure, inline expansion, no popups -- summary first, drill in place.
-2. Observatory principle -- viewer not workbench; why-affordances linking every figure/event to its cause.
-3. Canonical layouts professionals already know how to read.
-4. UK lens in all vocabulary and units.
-5. Page-level reconciliation -- every surface explains its own numbers.
-6. Light, professional, explanation-inside-expansion.
-Encode these six as the design system's laws in the site design tokens/docs; Customer 360 (C1) is the reference implementation; every subsequent surface conforms. WEBSITE_AS_SHOWCASE tabs inherit these laws.
+2. THE BILL EQUATION made visible: each bill expands inline into usage x unit rate + standing charge (+ ToU shape effect where applicable) per fuel. And the WHY-DIFFERENT waterfall: this bill vs last (and vs same month last year) decomposed into usage effect vs price effect vs tariff-change effect. Bill shock becomes visually self-explanatory -- you SEE whether the winter bill doubled because of cold or because of the crisis price.
+
+3. EVENTS PERTURB THE CHAIN: timeline events annotated with their downstream effects, expandable inline: new baby -> usage +X% from date; renewal -> tariff change -> price step visible on the bill series; home move -> account change; income stress inference -> payment timing drift. Each event answers "what did this cause" with the actual numbers.
+
+4. REACTION CLOSES THE LOOP: bill shock -> contact/complaint -> satisfaction inference -> offer (with EV) -> outcome (retained/deferred/churned) -- the decision-loop events rendered as the final links of the same chain, cause-linked back to the bill/event that started it.
+
+Result: reading C1 top to bottom IS the story of an energy relationship -- physics to feelings -- with every claim expandable to its numbers. This chain structure inherits site-wide: the Supplier tab tells the same story at portfolio level (aggregate usage/price/bills/events/reactions), the SIM tab at world level.
