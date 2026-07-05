@@ -111,6 +111,15 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RE -- Shadow Mirror v4 Light Theme (WEBSITE_AS_SHOWCASE.md Part 0 CLOSED) + Consumption Data Layer (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue)
+Found, uncommitted in the working tree at session start: a prior interrupted session had already rewritten tools/generate_shadow_html.py's CSS/nav/page-wrapper to match site/sim/index.html's light v4 design tokens (`:root` custom properties, `.site-nav`, `.kpi-card`, `.rag-chip`) in place of the old dark "advisor-verification" monospace palette -- and a live sim run in between had already regenerated and committed the resulting light-themed HTML for all four site/shadow/ and docs/shadow/ pages (index, customers, supplier, project). The generator source itself, however, was never committed, so the repo was in a state where the committed *output* depended on uncommitted *code* -- a silent R-A/reproducibility gap (a clean checkout would regenerate the old dark theme). Verified the change was complete (no `#1a1a1a`/`#2a2a4a` old-palette colors remained anywhere in the file) and correct (existing + one new guard test `test_shadow_page_uses_v4_light_design_system` both pass), then committed the generator + test. Confirmed live in both site/shadow/ and docs/shadow/ committed HTML (`--bg:#f9f9f7` and `site-nav` present, no `#1a1a1a`, all 4 pages both mirrors) -- WEBSITE_AS_SHOWCASE.md Part 0 is CLOSED. No external fetch available this session (network tool calls gated behind an unresolvable approval prompt, consistent with Phase RA's precedent) -- verified via local committed-artifact inspection instead.
+
+Also recovered a second interrupted work-stream found uncommitted alongside it: new tools/generate_customer_consumption.py (CUSTOMER_360_REDESIGN.md item 1, data layer only) patches a real per-fuel `consumption` key into site/data/customers/{cid}.json -- monthly kWh aggregated from settlement bills (docs/reports/run_output_latest.json), plus daily kWh + weekday/weekend/seasonal load-shape for the subset of customers with sim/hh_data/ CSVs (HH-metered opt-ins only; every other customer honestly gets monthly-only via `has_hh_data:false`, no fabricated daily curve). Wired into background/process_run_complete.py's generate_dashboard_json(). Frontend USAGE-panel rendering is not built yet -- this closes only the data-layer half of CUSTOMER_360_REDESIGN.md item 1.
+
+Also included a test-isolation fix for tests/background/test_dispatcher.py (monkeypatch `LOG_FILE` so tests stop writing into the real docs/observability/dispatcher-log.md).
+
+No new tests added for generate_customer_consumption.py this phase (data-layer recovery, not new-feature authorship -- test coverage is backlog). 1 new test (shadow-theme guard), 15,739 collected, fast suite 14,477 passed (pytest -m "not slow" --ignore=tests/simulation). Epistemic: PASS.
+
 ### Phase RD -- Project Tab: phases.json Generator, Sim-runs Counter Fix (2026-07-05, Tier 2 -- PRIORITIES.md front-of-queue, PROJECT_TAB_OVERHAUL.md R-A/consistency scope, WEBSITE_INTEGRITY_AND_DESIGN QW Part 2)
 site/data/phases.json had been hand-curated since Phase 263 and was frozen at latest_phase "OL" / a 2026-07-03 timestamp while the real build had moved dozens of phases on -- a direct R-A violation ("nothing hand-written on these surfaces... if a fact cannot be generated, it does not appear", PROJECT_TAB_OVERHAUL.md) flagged as remaining scope by Phase QW and explained the Project tab critique's stale Timeline ("stops 2026-07-03"), frozen Capabilities cards, and the corrupted Test Progression / Phases-per-day charts (duplicate x-axis labels, one absurd bar, both frozen at 2026-06-25) -- the underlying data had unsorted, undeduplicated, stale raw entries.
 
@@ -5730,9 +5739,15 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 ## 10. The Numbers at a Glance
 
 **Codebase:**
-- 359+ Python modules (company layer + tools), ~55,500 lines total
+- 360+ Python modules (company layer + tools), ~55,700 lines total
 - 500+ git commits
-- 15,722 tests (full suite incl. simulation integration; ~39 min per run); 14,470 fast suite
+- 15,739 tests collected; 14,477 fast suite (pytest -m "not slow" --ignore=tests/simulation)
+- Phase RE (2026-07-06): recovered two interrupted work-streams found uncommitted in the working
+  tree -- tools/generate_shadow_html.py's dark-to-light v4 theme rewrite (WEBSITE_AS_SHOWCASE.md
+  Part 0, now CLOSED: all four site/shadow/ + docs/shadow/ pages confirmed light-themed in
+  committed HTML) and tools/generate_customer_consumption.py (CUSTOMER_360_REDESIGN.md item 1
+  data layer: real per-fuel monthly/daily/load-shape kWh into site/data/customers/{cid}.json).
+  1 new test, 15,739 collected, fast suite 14,477 passed, epistemic PASS. See Section 4.
 - Phase RD (2026-07-05): site/data/phases.json regenerated from docs/PROJECT_OVERVIEW.md Section 4
   (new tools/generate_phases_json.py) instead of hand-curated -- fixes the stale Timeline/Capabilities
   and the corrupted Test Progression/Phases-per-day charts (PROJECT_TAB_OVERHAUL.md critique); Project

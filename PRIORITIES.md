@@ -1,15 +1,15 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-05 (Phase RD: PROJECT_TAB_OVERHAUL.md R-A/consistency scope closed --
-# site/data/phases.json now generated from docs/PROJECT_OVERVIEW.md Section 4 instead of
-# hand-curated (was frozen since 2026-07-03), fixing the stale Timeline/Capabilities and the
-# corrupted Test Progression/Phases-per-day charts; the "Sim runs" dead counter also fixed.
-# Front of queue now: WEBSITE_AS_SHOWCASE.md Part 0 -- redo the light v4 design system on
-# site/shadow/{index,customers,supplier,project}/index.html, still on the pre-v4 dark
-# terminal-monospace theme (found and confirmed during Phase RC, not yet actioned). PROJECT_
-# TAB_OVERHAUL.md's remaining scope (R-D light theme on Company/Regulatory/Capabilities visual
-# polish, broken phases-per-day chart cosmetics beyond the data fix, Company/Overview dedup) and
-# SUPPLIER_TAB_OVERHAUL.md (11-tabs-to-grouped-nav IA rework) remain queued alongside it.
-# CUSTOMER_360_REDESIGN.md, NAV_STORY_PLATFORM_METHOD.md remain queued behind. FEEDBACK_AND_
+# Last refreshed: 2026-07-06 (Phase RE: WEBSITE_AS_SHOWCASE.md Part 0 CLOSED -- recovered an
+# interrupted prior session's uncommitted rewrite of tools/generate_shadow_html.py, confirmed all
+# four site/shadow/ + docs/shadow/ pages now carry the light v4 design system (no dark
+# terminal-monospace remnants), committed the generator source that the already-live output
+# depended on. Also recovered tools/generate_customer_consumption.py (CUSTOMER_360_REDESIGN.md
+# item 1, data layer only -- no frontend USAGE viz yet).
+# Front of queue now: PROJECT_TAB_OVERHAUL.md's remaining scope (R-D light-theme/visual polish on
+# Company/Regulatory/Capabilities, phases-per-day chart cosmetics beyond the Phase RD data fix,
+# Company/Overview dedup) and SUPPLIER_TAB_OVERHAUL.md (11-tabs-to-grouped-nav IA rework) -- both
+# already queued alongside Part 0 per the original wave. CUSTOMER_360_REDESIGN.md (items 2-4 plus
+# item 1's frontend rendering), NAV_STORY_PLATFORM_METHOD.md remain queued behind. FEEDBACK_AND_
 # REPUTATION.md and NUDGE_PHYSICS.md are explicitly queued behind this wave per their own staged
 # text -- do not jump them ahead of it.)
 
@@ -268,6 +268,19 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   count_run_history_total(). 9 new tests, 14,470 fast suite passed, epistemic PASS. Remaining
   PROJECT_TAB_OVERHAUL.md scope (R-D light-theme/visual polish, Company/Overview dedup, per-tab
   direction items 3-7) folds into the WEBSITE_AS_SHOWCASE.md Part 0 design wave below.
+
+## COMPLETED (cont. 6)
+- WEBSITE_AS_SHOWCASE.md Part 0: CLOSED (Phase RE, 2026-07-06). The shadow-mirror light-theme
+  rewrite of tools/generate_shadow_html.py (flagged as remaining work at the end of Phase RC)
+  had already been written by an interrupted prior session and its output already regenerated
+  and committed by a live sim run -- but the generator source itself was never committed, a
+  silent output-ahead-of-source gap. Verified complete (no dark-palette colors remain) and
+  correct (new guard test `test_shadow_page_uses_v4_light_design_system` passes), then
+  committed. Confirmed live in both site/shadow/ and docs/shadow/ committed HTML, all 4 pages.
+  Also recovered tools/generate_customer_consumption.py (CUSTOMER_360_REDESIGN.md item 1 data
+  layer: real per-fuel monthly/daily/load-shape kWh into site/data/customers/{cid}.json --
+  frontend rendering still open). 1 new test, 15,739 collected, fast suite 14,477, epistemic
+  PASS.
 
 ## Backlog
 - SAAS_COVERAGE_MAP.md item 4 remainder: credit bureau feed into collections strategy
