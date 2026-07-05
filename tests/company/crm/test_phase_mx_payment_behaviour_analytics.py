@@ -204,6 +204,56 @@ def test_BehaviourScore_ordering_EXCELLENT_best():
     assert _SCORE_ORDER[BehaviourScore.POOR] < _SCORE_ORDER[BehaviourScore.CRITICAL]
 
 
+# --- get_miss_trajectory (Phase QV: event frequency panel data model) ---
+
+def test_miss_trajectory_empty_when_no_history():
+    pba = PaymentBehaviourAnalytics()
+    assert pba.get_miss_trajectory("unknown") == []
+
+
+def test_miss_trajectory_ignores_records_without_due_date():
+    pba = PaymentBehaviourAnalytics()
+    pba.record_payment("C1", {"result": "LATE"})
+    assert pba.get_miss_trajectory("C1") == []
+
+
+def test_miss_trajectory_buckets_by_year_from_due_date():
+    from datetime import date
+    pba = PaymentBehaviourAnalytics()
+    pba.record_payment("C1", {"result": "ON_TIME", "due_date": date(2020, 1, 28)})
+    pba.record_payment("C1", {"result": "LATE", "due_date": date(2020, 2, 28)})
+    pba.record_payment("C1", {"result": "DD_FAILED", "due_date": date(2021, 1, 28)})
+    traj = pba.get_miss_trajectory("C1")
+    assert traj == [
+        {"year": 2020, "late": 1, "dd_failed": 0, "total": 2},
+        {"year": 2021, "late": 0, "dd_failed": 1, "total": 1},
+    ]
+
+
+def test_miss_trajectory_sorted_ascending_regardless_of_insertion_order():
+    from datetime import date
+    pba = PaymentBehaviourAnalytics()
+    pba.record_payment("C1", {"result": "LATE", "due_date": date(2022, 1, 28)})
+    pba.record_payment("C1", {"result": "LATE", "due_date": date(2019, 1, 28)})
+    traj = pba.get_miss_trajectory("C1")
+    assert [pt["year"] for pt in traj] == [2019, 2022]
+
+
+def test_miss_trajectory_accepts_string_due_date():
+    pba = PaymentBehaviourAnalytics()
+    pba.record_payment("C1", {"result": "DD_FAILED", "due_date": "2023-06-28"})
+    traj = pba.get_miss_trajectory("C1")
+    assert traj == [{"year": 2023, "late": 0, "dd_failed": 1, "total": 1}]
+
+
+def test_miss_trajectory_independent_per_customer():
+    from datetime import date
+    pba = PaymentBehaviourAnalytics()
+    pba.record_payment("C1", {"result": "DD_FAILED", "due_date": date(2020, 1, 28)})
+    pba.record_payment("C2", {"result": "ON_TIME", "due_date": date(2020, 1, 28)})
+    assert pba.get_miss_trajectory("C1") != pba.get_miss_trajectory("C2")
+
+
 def test_integration_HIGH_stress_payments_produce_POOR_or_worse():
     """HIGH income_stress -> _PAYMENT_DELAY_DAYS HIGH(30-90), _ON_TIME_PROBABILITY=0.10.
     Observable pattern: mostly LATE/DD_FAILED. Company scores this POOR or CRITICAL.

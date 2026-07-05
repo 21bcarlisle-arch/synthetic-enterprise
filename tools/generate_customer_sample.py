@@ -126,6 +126,8 @@ def generate(run_json_path=None):
                 "score": _beh.get("payment_behaviour_score"),
                 "metrics": _beh.get("payment_behaviour_metrics"),
             } if _beh else None,
+            "payment_miss_trajectory": _beh.get("payment_miss_trajectory") or [],
+            "bill_shock_history": _beh.get("bill_shock_history") or [],
             "data_status": {
                 "financial": "complete",
                 "renewal_events": "complete",
@@ -135,6 +137,12 @@ def generate(run_json_path=None):
                 "life_event_history": "complete" if _beh else "pending_sim_emission",
                 "satisfaction_score_trajectory": "complete" if _beh.get("satisfaction_score_trajectory") else "pending_sim_emission",
                 "payment_behaviour_analytics": "complete" if _beh else "pending_sim_emission",
+                "payment_miss_trajectory": "complete" if _beh.get("payment_miss_trajectory") else "pending_sim_emission",
+                "bill_shock_history": "complete" if _beh else "pending_sim_emission",
+                # Phase QV: complaints infrastructure (company/crm/complaints.py) exists
+                # but is not wired into the live simulation -- genuinely unmodeled, not a
+                # plumbing gap. Honest "not_simulated" status rather than a fabricated 0.
+                "complaint_history": "not_simulated",
             },
         }
 

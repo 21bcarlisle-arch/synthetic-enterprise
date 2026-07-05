@@ -802,6 +802,10 @@ def main(report_end: str | None = None, sim_interface=None):
     # Phase NI: term-level rate shock counter. Replaces count_rate_shocks(all_records)
     # which incorrectly counted TOU peak/offpeak transitions as bill shocks for HH customers.
     _elec_rate_shock_counts: dict[str, int] = {}
+    # Phase QV: per-year shock dates (SIM_TAB_OVERHAUL.md event frequency panel) --
+    # _elec_rate_shock_counts above is an all-time rolling scalar; this retains
+    # the actual term_start_str of each shock so the site can bucket per year.
+    _bill_shock_dates: dict[str, list] = {}
     committee_wake_ups: list[dict] = []
     customer_events_log: list[dict] = []
     churned_billing_accounts: set[str] = set()
@@ -960,6 +964,7 @@ def main(report_end: str | None = None, sim_interface=None):
             if old_elec_rate is not None and old_elec_rate > 0:
                 if (unit_rate - old_elec_rate) / old_elec_rate > _NG_BILL_SHOCK_THRESHOLD:
                     _elec_rate_shock_counts[cid] = _elec_rate_shock_counts.get(cid, 0) + 1
+                    _bill_shock_dates.setdefault(cid, []).append(term_start_str)
         elif commodity == "gas" and not _indexed_tariff:
             prev_gas_unit_rates[cid] = unit_rate
 
@@ -2048,6 +2053,7 @@ def main(report_end: str | None = None, sim_interface=None):
             household_demand_register,
             _payment_analytics,
             _company_sat_acc,
+            _bill_shock_dates,
         ),
         # Phase NJ: company churn model calibration report
         "churn_model_performance": _compute_churn_model_performance(
@@ -2060,7 +2066,7 @@ def main(report_end: str | None = None, sim_interface=None):
 
 
 
-def _build_behavioral_trajectories(customers, hdr, payment_analytics, sat_acc):
+def _build_behavioral_trajectories(customers, hdr, payment_analytics, sat_acc, bill_shock_dates=None):
     if hdr is None:
         return {}
     sim_years = list(range(2016, 2026))
@@ -2071,8 +2077,10 @@ def _build_behavioral_trajectories(customers, hdr, payment_analytics, sat_acc):
         life_hist = hdr.life_event_history(cid)
         pay_score = payment_analytics.get_score(cid) if payment_analytics else None
         pay_metrics = payment_analytics.get_metrics(cid) if payment_analytics else None
+        pay_miss_traj = payment_analytics.get_miss_trajectory(cid) if payment_analytics else []
         sat_score = sat_acc.get_satisfaction(cid) if sat_acc else None
         sat_traj = sat_acc.get_trajectory(cid) if sat_acc else []
+        shock_dates = (bill_shock_dates or {}).get(cid, [])
         out[cid] = {
             "income_stress_trajectory": stress_traj,
             "life_event_history": life_hist,
@@ -2085,6 +2093,12 @@ def _build_behavioral_trajectories(customers, hdr, payment_analytics, sat_acc):
             "company_satisfaction_score": round(sat_score, 4) if sat_score else None,
             # Phase QT: per-year history (SIM_TAB_OVERHAUL.md dead-column fix)
             "satisfaction_score_trajectory": sat_traj,
+            # Phase QV: per-year event-frequency data (SIM_TAB_OVERHAUL.md event
+            # frequency panel) -- payment misses bucketed from the full per-event
+            # record history, bill shocks from the term_start_str dates recorded
+            # alongside the existing all-time rolling shock counter.
+            "payment_miss_trajectory": pay_miss_traj,
+            "bill_shock_history": shock_dates,
         }
     return out
 

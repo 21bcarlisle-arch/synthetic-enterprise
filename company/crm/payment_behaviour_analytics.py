@@ -92,6 +92,29 @@ class PaymentBehaviourAnalytics:
     def at_risk_customers(self) -> List[str]:
         return [cid for cid in self._records if self.is_at_risk(cid)]
 
+    def get_miss_trajectory(self, customer_id: str) -> List[dict]:
+        """Return [{"year": int, "late": int, "dd_failed": int, "total": int}, ...].
+
+        Unlike get_score/get_metrics (rolling scalars over all-time history),
+        this buckets the already-retained per-event record list (each carries
+        a due_date) by calendar year -- no separate snapshot bookkeeping is
+        needed since the full history is never discarded.
+        """
+        recs = self._records.get(customer_id, [])
+        by_year: Dict[int, dict] = {}
+        for r in recs:
+            due = r.get("due_date")
+            if due is None:
+                continue
+            year = due.year if hasattr(due, "year") else int(str(due)[:4])
+            bucket = by_year.setdefault(year, {"late": 0, "dd_failed": 0, "total": 0})
+            bucket["total"] += 1
+            if r.get("result") == "LATE":
+                bucket["late"] += 1
+            elif r.get("result") == "DD_FAILED":
+                bucket["dd_failed"] += 1
+        return [{"year": yr, **by_year[yr]} for yr in sorted(by_year)]
+
     def score_trend(self, customer_id: str, window: int = 6) -> str:
         recs = self._records.get(customer_id, [])
         recent = recs[-window:] if len(recs) >= window else recs
