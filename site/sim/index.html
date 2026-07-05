@@ -121,10 +121,33 @@
     <div class="kpi-grid" id="w-kpi-grid">
       <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
     </div>
-    <div class="section-title">Monthly Mean Temperature &mdash; 2016&ndash;2025</div>
+    <div class="section-title">Monthly Mean Temperature &mdash; 10yr Range vs Latest Year</div>
+    <div class="narrative">
+      <strong>Band, not spaghetti:</strong> the shaded band is the min&ndash;max range across all prior years
+      for each calendar month; the dashed line is the 10yr average; the bold line is the latest year.
+      A colored point marks a month where the latest year fell outside every prior year's range for that
+      month &mdash; red for a record-warm month, blue for a record-cold one.
+    </div>
     <div class="chart-wrap"><canvas id="w-temp-chart" height="280"></canvas></div>
     <div class="section-title">Monthly Heating Degree Days (base 15.5&deg;C)</div>
     <div class="chart-wrap"><canvas id="w-hdd-chart" height="240"></canvas></div>
+    <div class="section-title">Weather &rarr; Price Physics Chain</div>
+    <div class="narrative">
+      <strong>Cold snap &rarr; HDD spike &rarr; market tightness &rarr; price:</strong> one composed view of a
+      chosen crisis episode, day by day. Demand proxy is System Short % (Elexon NIV-derived, the same signal
+      used on the BM Settlement tab) &mdash; honest gap: no independent national demand feed is wired into
+      the sim, so this is tightness-as-observed-in-the-market, not a metered demand series.
+    </div>
+    <div class="chart-wrap">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <label for="chain-episode-select" style="font-size:12px;color:var(--muted);margin-right:8px;align-self:center">Episode:</label>
+        <select id="chain-episode-select" onchange="onChainEpisodeChange(this.value)" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)">
+          <option value="beast2018">Beast from the East (Feb&ndash;Mar 2018)</option>
+          <option value="dec2022">December 2022 Cold Snap</option>
+        </select>
+      </div>
+      <canvas id="w-chain-chart" height="280"></canvas>
+    </div>
     <div class="section-title">Annual HDD Summary</div>
     <div class="table-wrap">
       <table id="w-annual-table">
@@ -255,9 +278,13 @@
 <script>
 (function () {
   var pricesLoaded = false, weatherLoaded = false, bmLoaded = false, customersLoaded = false;
-  var monthlyPriceChart = null, wTempChart = null, wHddChart = null, negPriceChart = null;
+  var monthlyPriceChart = null, wTempChart = null, wHddChart = null, negPriceChart = null, wChainChart = null;
   var priceMonthlyCache = [], priceWeatherMonthlyCache = [];
-  var YEAR_PAL = ['#2a78d6','#1baf7a','#eda100','#008300','#4a3aa7','#e34948','#e87ba4','#eb6834','#256abf','#199e70'];
+  var weatherDailyCache = {}, priceShortDailyCache = {};
+  var CHAIN_EPISODES = {
+    beast2018: {label:'Beast from the East', start:'2018-02-15', end:'2018-03-15'},
+    dec2022: {label:'December 2022 Cold Snap', start:'2022-12-01', end:'2022-12-31'}
+  };
   function showTab(name, btn) {
     var panels = document.querySelectorAll('.tab-panel');
     for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
@@ -1067,15 +1094,72 @@
 
   function loadWeather() {
     weatherLoaded = true;
-    fetch('/data/weather.json')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        buildWKPIs(d); buildTempChart(d.monthly || []); buildHddChart(d.monthly || [], d.kpis || {});
+    Promise.all([
+      fetch('/data/weather.json').then(function(r) { return r.json(); }),
+      fetch('/data/sim_data.json').then(function(r) { return r.json(); }).catch(function() { return null; })
+    ])
+      .then(function(results) {
+        var d = results[0], sd = results[1];
+        weatherDailyCache = d.daily || {};
+        priceShortDailyCache = (sd && sd.daily) || {};
+        buildWKPIs(d); buildTempBandChart(d.monthly || []); buildHddChart(d.monthly || [], d.kpis || {});
         buildWAnnualTable(d.annual || [], d.kpis || {}); buildWMeta(d.metadata || {});
+        var epSel = document.getElementById('chain-episode-select');
+        buildChainChart(epSel ? epSel.value : 'beast2018');
       })
       .catch(function(e) {
         document.getElementById('w-kpi-grid').innerHTML = '<p style="color:var(--muted);padding:16px">Weather data not yet available &mdash; will populate on next sim run.</p>';
       });
+  }
+  function onChainEpisodeChange(val) { buildChainChart(val); }
+  window.onChainEpisodeChange = onChainEpisodeChange;
+  function buildChainChart(key) {
+    var ep = CHAIN_EPISODES[key] || CHAIN_EPISODES.beast2018;
+    var dates = [];
+    var d = new Date(ep.start + 'T00:00:00Z'), end = new Date(ep.end + 'T00:00:00Z');
+    while (d <= end) { dates.push(d.toISOString().slice(0, 10)); d.setUTCDate(d.getUTCDate() + 1); }
+    var hdd = [], price = [], shortPct = [];
+    dates.forEach(function(dt) {
+      var w = weatherDailyCache[dt] || {};
+      var p = priceShortDailyCache[dt] || {};
+      hdd.push(w.hdd != null ? w.hdd : null);
+      price.push(p.mean != null ? p.mean : null);
+      shortPct.push(p.short_pct != null ? p.short_pct : null);
+    });
+    var ctx = document.getElementById('w-chain-chart').getContext('2d');
+    if (wChainChart) wChainChart.destroy();
+    wChainChart = new Chart(ctx, {
+      data: {
+        labels: dates,
+        datasets: [
+          {type: 'bar', label: 'Daily HDD', data: hdd, backgroundColor: 'rgba(42,120,214,0.45)', borderColor: 'rgba(42,120,214,0.7)', borderWidth: 1, yAxisID: 'y', order: 3},
+          {type: 'line', label: 'Mean SSP £/MWh', data: price, borderColor: '#d03b3b', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.25, yAxisID: 'y2', order: 1},
+          {type: 'line', label: 'System Short %', data: shortPct, borderColor: '#1baf7a', backgroundColor: 'transparent', borderWidth: 1.5, borderDash: [4, 3], pointRadius: 0, tension: 0.25, yAxisID: 'y3', order: 2}
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: {mode: 'index', intersect: false},
+        plugins: {
+          legend: {display: true, labels: {color: '#52514e', font: {size: 11}, boxWidth: 14}},
+          tooltip: {
+            callbacks: {
+              label: function(c) {
+                if (c.dataset.label === 'Daily HDD') return 'HDD: ' + (c.raw != null ? Number(c.raw).toFixed(1) : '--');
+                if (c.dataset.label === 'Mean SSP £/MWh') return 'SSP: £' + (c.raw != null ? Number(c.raw).toFixed(1) : '--') + '/MWh';
+                return 'Short %: ' + (c.raw != null ? Number(c.raw).toFixed(1) : '--') + '%';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {ticks: {color: '#52514e', maxRotation: 0, maxTicksLimit: 10}, grid: {color: 'rgba(225,224,217,0.4)'}},
+          y: {position: 'left', min: 0, ticks: {color: '#2a78d6'}, grid: {color: 'rgba(225,224,217,0.4)'}, title: {display: true, text: 'HDD', color: '#2a78d6', font: {size: 11}}},
+          y2: {position: 'right', min: 0, ticks: {color: '#d03b3b', callback: function(v) { return '£' + v; }}, grid: {drawOnChartArea: false}, title: {display: true, text: '£/MWh', color: '#d03b3b', font: {size: 11}}},
+          y3: {display: false, min: 0, max: 100}
+        }
+      }
+    });
   }
   function buildWKPIs(d) {
     var k = d.kpis || {};
@@ -1095,15 +1179,62 @@
     }
     document.getElementById('w-kpi-grid').innerHTML = h;
   }
-  function buildTempChart(m) {
-    var byY = {}, yrs = [], ML = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    for (var i = 0; i < m.length; i++) { var yr = m[i].month.slice(0,4); if (!byY[yr]) { byY[yr] = []; yrs.push(yr); } byY[yr].push(m[i].mean_temp_c); }
-    yrs.sort();
-    var ds = [];
-    for (var j = 0; j < yrs.length; j++) { ds.push({label:yrs[j],data:byY[yrs[j]],borderColor:YEAR_PAL[j%10],backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.3}); }
+  function buildTempBandChart(m) {
+    var ML = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var byMonthNum = {}, years = [];
+    for (var mn = 0; mn < 12; mn++) byMonthNum[mn] = [];
+    for (var i = 0; i < m.length; i++) {
+      var yr = m[i].month.slice(0, 4), monthNum = parseInt(m[i].month.slice(5, 7), 10) - 1;
+      if (years.indexOf(yr) === -1) years.push(yr);
+      byMonthNum[monthNum].push({year: yr, val: m[i].mean_temp_c});
+    }
+    years.sort();
+    var latestYear = years[years.length - 1];
+    var minLine = [], maxLine = [], avgLine = [], curLine = [], pointColors = [], pointRadii = [];
+    for (var j = 0; j < 12; j++) {
+      var priorVals = byMonthNum[j].filter(function(e) { return e.year !== latestYear; }).map(function(e) { return e.val; });
+      var min = priorVals.length ? Math.min.apply(null, priorVals) : null;
+      var max = priorVals.length ? Math.max.apply(null, priorVals) : null;
+      var avg = priorVals.length ? priorVals.reduce(function(a, b) { return a + b; }, 0) / priorVals.length : null;
+      var curEntry = byMonthNum[j].filter(function(e) { return e.year === latestYear; })[0];
+      var cur = curEntry ? curEntry.val : null;
+      minLine.push(min); maxLine.push(max);
+      avgLine.push(avg != null ? Math.round(avg * 10) / 10 : null);
+      curLine.push(cur);
+      var color = '#0b0b0b', radius = 2;
+      if (cur != null && max != null && cur > max) { color = '#d03b3b'; radius = 5; }
+      else if (cur != null && min != null && cur < min) { color = '#2a78d6'; radius = 5; }
+      pointColors.push(color); pointRadii.push(radius);
+    }
     var ctx = document.getElementById('w-temp-chart').getContext('2d');
     if (wTempChart) wTempChart.destroy();
-    wTempChart = new Chart(ctx, {type:'line',data:{labels:ML,datasets:ds},options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#52514e',font:{size:11},boxWidth:14}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+(c.raw!=null?Number(c.raw).toFixed(1):'--')+'°C';}}}},scales:{x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},y:{ticks:{color:'#52514e',callback:function(v){return v+'°C';}},grid:{color:'rgba(225,224,217,0.6)'}}}}});
+    wTempChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ML,
+        datasets: [
+          {label: '10yr Range (min)', data: minLine, fill: false, borderColor: 'transparent', backgroundColor: 'transparent', pointRadius: 0, tension: 0.3, order: 4},
+          {label: '10yr Range', data: maxLine, fill: '-1', borderColor: 'transparent', backgroundColor: 'rgba(42,120,214,0.14)', pointRadius: 0, tension: 0.3, order: 3},
+          {label: '10yr Avg', data: avgLine, borderColor: 'rgba(250,178,25,0.85)', backgroundColor: 'transparent', borderDash: [4, 3], borderWidth: 1.5, pointRadius: 0, tension: 0.3, order: 2},
+          {label: latestYear + ' (latest)', data: curLine, borderColor: '#0b0b0b', backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: pointRadii, pointBackgroundColor: pointColors, pointBorderColor: pointColors, tension: 0.3, order: 1}
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: {mode: 'index', intersect: false},
+        plugins: {
+          legend: {display: true, labels: {color: '#52514e', font: {size: 11}, boxWidth: 14}},
+          tooltip: {callbacks: {label: function(c) {
+            if (c.dataset.label === '10yr Range (min)') return null;
+            return c.dataset.label + ': ' + (c.raw != null ? Number(c.raw).toFixed(1) : '--') + '°C';
+          }}}
+        },
+        scales: {
+          x: {ticks: {color: '#52514e'}, grid: {color: 'rgba(225,224,217,0.6)'}},
+          y: {ticks: {color: '#52514e', callback: function(v) { return v + '°C'; }}, grid: {color: 'rgba(225,224,217,0.6)'}}
+        }
+      }
+    });
   }
   function buildHddChart(m, kd) {
     var lb = [], hv = [], avgM = kd.decadal_avg_annual_hdd ? kd.decadal_avg_annual_hdd / 12 : null;

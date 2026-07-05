@@ -153,9 +153,33 @@ def test_daily_aggregation_keys():
     records = [_ssp_rec("2022-06-01", 1, 100.0), _ssp_rec("2022-06-01", 2, 200.0)]
     result = _daily_aggregation(records)
     assert "2022-06-01" in result
-    for key in ("mean", "max", "min"):
+    for key in ("mean", "max", "min", "short_pct"):
         assert key in result["2022-06-01"]
     assert result["2022-06-01"]["mean"] == 150.0
+
+
+def _ssp_niv_rec(date, period, ssp, niv):
+    return {
+        "settlementDate": date, "settlementPeriod": period,
+        "systemSellPrice": ssp, "netImbalanceVolume": niv,
+    }
+
+
+def test_daily_aggregation_short_pct_computed_from_niv():
+    records = [
+        _ssp_niv_rec("2022-12-01", 1, 100.0, -50.0),
+        _ssp_niv_rec("2022-12-01", 2, 100.0, -50.0),
+        _ssp_niv_rec("2022-12-01", 3, 100.0, 20.0),
+        _ssp_niv_rec("2022-12-01", 4, 100.0, 20.0),
+    ]
+    result = _daily_aggregation(records)
+    assert result["2022-12-01"]["short_pct"] == 50.0
+
+
+def test_daily_aggregation_short_pct_none_when_no_niv():
+    records = [_ssp_rec("2022-06-01", 1, 100.0)]
+    result = _daily_aggregation(records)
+    assert result["2022-06-01"]["short_pct"] is None
 
 
 def test_daily_aggregation_out_of_range_excluded():

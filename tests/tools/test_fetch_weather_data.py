@@ -107,8 +107,26 @@ def test_weather_json_structure(tmp_path, monkeypatch):
     assert "annual" in result
     assert "kpis" in result
     assert "metadata" in result
+    assert "daily" in result
     assert len(result["monthly"]) == 120
     assert len(result["annual"]) == 10
+
+
+def test_daily_out_keys_and_hdd_formula():
+    import tools.fetch_weather_data as fwd
+    daily = {"2018-03-01": 2.0, "2018-03-02": 20.0}
+    out = fwd._daily_out(daily)
+    assert out["2018-03-01"]["mean_temp_c"] == 2.0
+    assert out["2018-03-01"]["hdd"] == fwd.HDD_BASE - 2.0
+    assert out["2018-03-02"]["hdd"] == 0.0
+
+
+def test_daily_out_covers_all_input_dates():
+    import tools.fetch_weather_data as fwd
+    daily = _multi_year_daily(2016, 2025)
+    out = fwd._daily_out(daily)
+    assert len(out) == len(daily)
+    assert set(out.keys()) == set(daily.keys())
 
 
 def test_is_cold_winter_flag(tmp_path, monkeypatch):

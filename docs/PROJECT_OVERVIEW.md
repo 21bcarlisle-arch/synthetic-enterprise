@@ -111,6 +111,37 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QZ -- SIM Tab: Weather -> Physics Chain (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 2, WEBSITE_AS_SHOWCASE.md queue per PRIORITIES.md)
+Closes SIM_TAB_OVERHAUL.md item 2: "replace the 10-line spaghetti with a band chart (10yr range +
+this-year line + anomaly highlighting). Add the chain panel: cold snap -> HDD spike -> demand ->
+price, one composed visual for a chosen episode." Two Python changes feed the rebuild:
+`tools/fetch_weather_data.py` gains `_daily_out()`, carrying the per-day mean-temp/HDD pairs the
+existing `_fetch_daily_temps()` call already fetched from Open-Meteo but previously discarded after
+monthly aggregation -- weather.json now exposes a `daily` dict keyed by date (3,653 days,
+2016-2025). `tools/generate_sim_data.py`'s `_daily_aggregation()` gains a `short_pct` field per day
+(NIV<0 fraction of half-hourly periods, the same market-tightness proxy already used monthly on the
+BM tab), so a chosen episode's demand-tightness signal is available at daily resolution alongside
+price. site/sim/index.html: `buildTempChart` (the spaghetti -- one line per year, 10 overlapping
+series) is replaced by `buildTempBandChart` -- for each calendar month, a shaded min-max band across
+all prior years, a dashed 10yr-average line, and the latest year as a bold line; a point is
+recolored (red=record-warm, blue=record-cold) when the latest year falls outside every prior year's
+range for that month, honestly flagging genuine anomalies rather than decorating every point. A new
+Weather -> Price Physics Chain panel adds an episode selector (Beast from the East, Feb-Mar 2018;
+December 2022 Cold Snap) rendering one composed chart -- daily HDD (bars), daily mean SSP (line),
+daily System Short % (line, hidden axis) -- over the chosen date window, with an honest gap noted in
+the narrative: the demand proxy is Elexon NIV-derived market tightness, not a metered national
+demand feed (none is wired into the sim). Verified with a Node harness executing the real
+(unwrapped) page JS via `vm.runInContext`, driven through the real `showTab('weather')` entry point
+against live regenerated site/data/weather.json + sim_data.json with a DOM stub: the band chart
+resolves 2025 as the latest year with all 12 months populated for min/max/current; both episodes'
+chain charts return 100% non-null coverage across all three series (29/29 days for Beast from the
+East, 31/31 for December 2022), with the December window read back as exactly 2022-12-01 to
+2022-12-31. 4 new tests (2 per tool, `tests/tools/test_generate_sim_data.py` +
+`tests/tools/test_fetch_weather_data.py`), 15,591 collected, full fast suite re-run clean. Epistemic
+PASS (site/+tools/ only, no company/saas files touched). Remaining SIM_TAB_OVERHAUL.md scope: item
+3 (BM axis legibility + inline explainer), item 5 (site-wide consistency gate + light theme --
+already substantially in place from an earlier pass).
+
 ### Phase QY -- SIM Tab: PRICES -> MARKET Rebuild (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 1, front of the WEBSITE_AS_SHOWCASE.md queue per PRIORITIES.md)
 Closes SIM_TAB_OVERHAUL.md item 1 in full: "keep the structure, add the links: price chart gains
 selectable overlays... Annual rows expand inline to monthly, monthly to daily profile. Add the
@@ -5643,7 +5674,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
-- 15,595 tests (fast suite; simulation integration ~8 min per run)
+- 15,591 tests (fast suite; simulation integration ~8 min per run)
+- Phase QZ (2026-07-05): SIM tab Weather -> Physics Chain rebuild -- SIM_TAB_OVERHAUL.md item 2.
+  Spaghetti 10-line temp chart replaced with a 10yr min/max band + latest-year line + anomaly
+  points (record-warm/record-cold); new composed episode panel (Beast from the East / Dec 2022)
+  chains daily HDD -> price -> System Short % (honest gap: tightness proxy, not metered demand).
+  weather.json gains daily temp/HDD; sim_data.json's daily aggregation gains short_pct. Verified
+  via Node harness against live regenerated data, 100% non-null coverage both episodes. 4 new
+  tests, 15,591 collected. Epistemic PASS. See Section 4.
 - Phase QY (2026-07-05): SIM tab PRICES -> MARKET rebuild -- SIM_TAB_OVERHAUL.md item 1.
   tools/generate_sim_data.py gains negative-price-hour counting, per-day SSP aggregation, and
   monthly gas NBP aggregation (sim/gas_prices_history.load_nbp_history()); site/sim/index.html's

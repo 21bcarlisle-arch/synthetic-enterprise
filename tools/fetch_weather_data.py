@@ -91,6 +91,16 @@ def _decadal_avg_hdd(annual):
     return round(sum(hdds) / len(hdds), 0) if hdds else 0.0
 
 
+def _daily_out(daily):
+    """Per-day mean temp + HDD -- feeds the Weather tab's physics-chain panel,
+    which needs day-level resolution to trace a chosen cold-snap episode
+    (e.g. Feb-Mar 2018 Beast from the East) against daily price/short%."""
+    return {
+        d: {"mean_temp_c": round(t, 2), "hdd": round(max(0.0, HDD_BASE - t), 1)}
+        for d, t in daily.items()
+    }
+
+
 def generate_weather_data(start_year=START_YEAR, end_year=END_YEAR, output_path=None):
     start = f"{start_year}-01-01"
     end = f"{end_year}-12-31"
@@ -117,6 +127,7 @@ def generate_weather_data(start_year=START_YEAR, end_year=END_YEAR, output_path=
     result = {
         "monthly": monthly,
         "annual": annual,
+        "daily": _daily_out(daily),
         "kpis": {
             "coldest_month": coldest["month"],
             "coldest_temp_c": coldest["mean_temp_c"],

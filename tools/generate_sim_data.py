@@ -92,8 +92,12 @@ def _negative_price_hours_by_year(records):
 
 def _daily_aggregation(records):
     """Per-day mean/max/min SSP -- feeds monthly-to-daily progressive disclosure
-    on the price chart (annual -> monthly -> daily is the drill-down chain)."""
+    on the price chart (annual -> monthly -> daily is the drill-down chain).
+    Also carries daily short_pct (NIV-derived market tightness) so the Weather
+    tab's physics-chain panel can pair a chosen cold-snap episode's daily HDD
+    against daily price and short% without a second aggregation pass."""
     daily = defaultdict(list)
+    daily_niv = defaultdict(list)
     for rec in records:
         date = rec.get("settlementDate", "")
         if not (SIM_START <= date <= SIM_END):
@@ -101,14 +105,23 @@ def _daily_aggregation(records):
         price = rec.get("systemSellPrice")
         if price is not None:
             daily[date].append(float(price))
+        niv = rec.get("netImbalanceVolume")
+        if niv is not None:
+            daily_niv[date].append(float(niv))
 
     result = {}
     for date in sorted(daily):
         prices = daily[date]
+        niv_vals = daily_niv.get(date, [])
+        short_pct = (
+            round(100.0 * sum(1 for v in niv_vals if v < 0) / len(niv_vals), 1)
+            if niv_vals else None
+        )
         result[date] = {
             "mean": round(statistics.mean(prices), 2),
             "max": round(max(prices), 2),
             "min": round(min(prices), 2),
+            "short_pct": short_pct,
         }
     return result
 
