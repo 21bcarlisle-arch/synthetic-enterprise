@@ -1,5 +1,5 @@
 ## Phase QQ COMPLETE -- Decision Loop Remaining Scope (Calibration Fix + Counterfactual Lift)
-Last updated: 2026-07-05T12:39:59Z
+Last updated: 2026-07-05T12:51:48Z
 
 **Status:** COMPLETE. 15,622 tests passed (fast suite). Epistemic: PASS.
 
