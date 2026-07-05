@@ -9,7 +9,7 @@
   "meter_type": "Smart",
   "lifetime_revenue_gbp": 5114.4,
   "lifetime_gross_gbp": 3410.31,
-  "lifetime_net_gbp": 1.98,
+  "lifetime_net_gbp": 179.69,
   "lifetime_net_after_cts_gbp": 2978.09,
   "cost_to_serve_gbp": 432.22,
   "pricing_action": {
@@ -21,7 +21,7 @@
   "expected_lifetime_periods": 23.79,
   "commodity_split": {
     "electricity": {
-      "net_gbp": 1.98,
+      "net_gbp": 179.69,
       "revenue_gbp": 5114.4
     },
     "gas": null
@@ -30,7 +30,7 @@
     "gas_account_id": "C2g",
     "gas_lifetime_net_gbp": 907.09,
     "gas_lifetime_revenue_gbp": 3849.77,
-    "combined_net_gbp": 909.06,
+    "combined_net_gbp": 1086.77,
     "combined_revenue_gbp": 8964.16
   },
   "annual_pnl": [
@@ -46,7 +46,7 @@
       "year": 2017,
       "revenue_gbp": 0,
       "gross_gbp": 477.23,
-      "net_gbp": -260.44,
+      "net_gbp": -212.03,
       "tariff_min": 107.62,
       "tariff_max": 125.75
     },
@@ -54,7 +54,7 @@
       "year": 2018,
       "revenue_gbp": 0,
       "gross_gbp": 491.85,
-      "net_gbp": -228.29,
+      "net_gbp": -127.19,
       "tariff_min": 125.75,
       "tariff_max": 143.89
     },
@@ -86,7 +86,7 @@
       "year": 2022,
       "revenue_gbp": 0,
       "gross_gbp": 200.09,
-      "net_gbp": -127.58,
+      "net_gbp": -99.38,
       "tariff_min": 183.0,
       "tariff_max": 183.0
     }

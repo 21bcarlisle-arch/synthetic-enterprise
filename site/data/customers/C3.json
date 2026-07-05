@@ -9,7 +9,7 @@
   "meter_type": "Smart",
   "lifetime_revenue_gbp": 3628.72,
   "lifetime_gross_gbp": 2388.84,
-  "lifetime_net_gbp": -37.19,
+  "lifetime_net_gbp": 16.48,
   "lifetime_net_after_cts_gbp": 2096.31,
   "cost_to_serve_gbp": 292.52,
   "pricing_action": {
@@ -21,7 +21,7 @@
   "expected_lifetime_periods": 17.88,
   "commodity_split": {
     "electricity": {
-      "net_gbp": -37.19,
+      "net_gbp": 16.48,
       "revenue_gbp": 3628.72
     },
     "gas": null
@@ -30,7 +30,7 @@
     "gas_account_id": "C3g",
     "gas_lifetime_net_gbp": 336.46,
     "gas_lifetime_revenue_gbp": 2683.32,
-    "combined_net_gbp": 299.28,
+    "combined_net_gbp": 352.95,
     "combined_revenue_gbp": 6312.04
   },
   "annual_pnl": [
@@ -46,7 +46,7 @@
       "year": 2017,
       "revenue_gbp": 0,
       "gross_gbp": 570.59,
-      "net_gbp": 88.18,
+      "net_gbp": 104.39,
       "tariff_min": 98.21,
       "tariff_max": 120.78
     },
@@ -62,7 +62,7 @@
       "year": 2019,
       "revenue_gbp": 0,
       "gross_gbp": 626.88,
-      "net_gbp": -63.95,
+      "net_gbp": -45.0,
       "tariff_min": 120.68,
       "tariff_max": 126.9
     },
@@ -70,7 +70,7 @@
       "year": 2020,
       "revenue_gbp": 0,
       "gross_gbp": 327.64,
-      "net_gbp": 25.94,
+      "net_gbp": 44.45,
       "tariff_min": 120.68,
       "tariff_max": 120.68
     }
