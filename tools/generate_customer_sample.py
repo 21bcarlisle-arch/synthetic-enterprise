@@ -121,7 +121,7 @@ def generate(run_json_path=None):
             "churn_accuracy_by_renewal": churn_acc_by_cid.get(cid, []),
             "income_stress_trajectory": _beh.get("income_stress_trajectory"),
             "life_event_history": _beh.get("life_event_history"),
-            "satisfaction_score_trajectory": None,
+            "satisfaction_score_trajectory": _beh.get("satisfaction_score_trajectory") or None,
             "payment_behaviour_analytics": {
                 "score": _beh.get("payment_behaviour_score"),
                 "metrics": _beh.get("payment_behaviour_metrics"),
@@ -133,7 +133,7 @@ def generate(run_json_path=None):
                 "churn_accuracy": "complete",
                 "income_stress_trajectory": "complete" if _beh else "pending_sim_emission",
                 "life_event_history": "complete" if _beh else "pending_sim_emission",
-                "satisfaction_score_trajectory": "pending_sim_emission",
+                "satisfaction_score_trajectory": "complete" if _beh.get("satisfaction_score_trajectory") else "pending_sim_emission",
                 "payment_behaviour_analytics": "complete" if _beh else "pending_sim_emission",
             },
         }

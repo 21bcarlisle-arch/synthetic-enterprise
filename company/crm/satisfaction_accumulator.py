@@ -45,6 +45,7 @@ class CustomerSatisfactionAccumulator:
 
     def __init__(self) -> None:
         self._scores: dict[str, float] = {}
+        self._trajectory: dict[str, dict[int, float]] = {}
 
     def _get_or_init(self, customer_id: str) -> float:
         if customer_id not in self._scores:
@@ -88,3 +89,21 @@ class CustomerSatisfactionAccumulator:
 
     def low_satisfaction_customers(self) -> list[str]:
         return [cid for cid in self._scores if self.is_low_satisfaction(cid)]
+
+    def record_year_snapshot(self, customer_id: str, year: int) -> None:
+        """Snapshot the current satisfaction score under `year`.
+
+        Idempotent per (customer_id, year): a later call for the same year
+        overwrites the earlier value rather than appending a duplicate, since
+        satisfaction can be read multiple times within one calendar year.
+        """
+        score = self.get_satisfaction(customer_id)
+        self._trajectory.setdefault(customer_id, {})[year] = score
+
+    def get_trajectory(self, customer_id: str) -> list[dict]:
+        """Return [{"year": int, "satisfaction_score": float}, ...] sorted by year."""
+        years = self._trajectory.get(customer_id, {})
+        return [
+            {"year": yr, "satisfaction_score": round(years[yr], 4)}
+            for yr in sorted(years)
+        ]

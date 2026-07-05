@@ -172,3 +172,44 @@ def test_css_good_delta_correct():
     acc.record_css_score("C1", 8.0)
     expected = _BASELINE_SATISFACTION + _CSS_GOOD_DELTA
     assert abs(acc.get_satisfaction("C1") - expected) < 1e-9
+
+
+def test_get_trajectory_empty_before_any_snapshot():
+    acc = CustomerSatisfactionAccumulator()
+    acc.get_satisfaction("C1")
+    assert acc.get_trajectory("C1") == []
+
+
+def test_record_year_snapshot_captures_current_score():
+    acc = CustomerSatisfactionAccumulator()
+    acc.record_bill_shock("C1")
+    acc.record_year_snapshot("C1", 2018)
+    traj = acc.get_trajectory("C1")
+    assert traj == [{"year": 2018, "satisfaction_score": round(_BASELINE_SATISFACTION + _BILL_SHOCK_DELTA, 4)}]
+
+
+def test_record_year_snapshot_multiple_years_sorted():
+    acc = CustomerSatisfactionAccumulator()
+    acc.record_year_snapshot("C1", 2020)
+    acc.record_bill_shock("C1")
+    acc.record_year_snapshot("C1", 2018)
+    traj = acc.get_trajectory("C1")
+    assert [pt["year"] for pt in traj] == [2018, 2020]
+
+
+def test_record_year_snapshot_same_year_overwrites_not_duplicates():
+    acc = CustomerSatisfactionAccumulator()
+    acc.record_year_snapshot("C1", 2019)
+    acc.record_bill_shock("C1")
+    acc.record_year_snapshot("C1", 2019)
+    traj = acc.get_trajectory("C1")
+    assert len(traj) == 1
+    assert traj[0]["satisfaction_score"] == round(_BASELINE_SATISFACTION + _BILL_SHOCK_DELTA, 4)
+
+
+def test_trajectory_independent_per_customer():
+    acc = CustomerSatisfactionAccumulator()
+    acc.record_bill_shock("C1")
+    acc.record_year_snapshot("C1", 2018)
+    acc.record_year_snapshot("C2", 2018)
+    assert acc.get_trajectory("C1") != acc.get_trajectory("C2")

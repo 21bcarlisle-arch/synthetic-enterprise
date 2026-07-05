@@ -134,6 +134,10 @@ class TestGenerateCustomerSampleBehavioral:
                         "dd_fail_rate": 0.02,
                     },
                     "company_satisfaction_score": 0.72,
+                    "satisfaction_score_trajectory": [
+                        {"year": 2019, "satisfaction_score": 0.70},
+                        {"year": 2020, "satisfaction_score": 0.65},
+                    ],
                 },
             },
         }
@@ -153,6 +157,11 @@ class TestGenerateCustomerSampleBehavioral:
         assert c1["life_event_history"] == [{"date": "2020-03-15", "event_type": "job_loss"}]
         assert c1["payment_behaviour_analytics"]["score"] == "GOOD"
         assert c1["data_status"]["income_stress_trajectory"] == "complete"
+        assert c1["satisfaction_score_trajectory"] == [
+            {"year": 2019, "satisfaction_score": 0.70},
+            {"year": 2020, "satisfaction_score": 0.65},
+        ]
+        assert c1["data_status"]["satisfaction_score_trajectory"] == "complete"
 
     def test_behavioral_absent_gives_pending_status(self, tmp_path):
         import json
@@ -187,3 +196,5 @@ class TestGenerateCustomerSampleBehavioral:
         assert c1["income_stress_trajectory"] is None
         assert c1["data_status"]["income_stress_trajectory"] == "pending_sim_emission"
         assert c1["payment_behaviour_analytics"] is None
+        assert c1["satisfaction_score_trajectory"] is None
+        assert c1["data_status"]["satisfaction_score_trajectory"] == "pending_sim_emission"

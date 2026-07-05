@@ -1033,6 +1033,11 @@ def main(report_end: str | None = None, sim_interface=None):
                         billing_account, FrictionEventType.BILL_SHOCK, date.fromisoformat(term_start_str),
                     )
                 _ng_satisfaction = _company_sat_acc.get_satisfaction(cid)
+                # Phase QT: per-year snapshot so the site can chart a real
+                # satisfaction_score_trajectory (previously only the current
+                # scalar was retained -- SIM_TAB_OVERHAUL.md's dead Satisfaction
+                # column).
+                _company_sat_acc.record_year_snapshot(cid, _renewal_year)
                 if not active_renewal and segment_for_churn != "I&C":
                     company_est_pre = round(_enriched_passive_churn_estimate(
                         old_elec_rate, unit_rate, tenure_for_est,
@@ -2067,6 +2072,7 @@ def _build_behavioral_trajectories(customers, hdr, payment_analytics, sat_acc):
         pay_score = payment_analytics.get_score(cid) if payment_analytics else None
         pay_metrics = payment_analytics.get_metrics(cid) if payment_analytics else None
         sat_score = sat_acc.get_satisfaction(cid) if sat_acc else None
+        sat_traj = sat_acc.get_trajectory(cid) if sat_acc else []
         out[cid] = {
             "income_stress_trajectory": stress_traj,
             "life_event_history": life_hist,
@@ -2077,6 +2083,8 @@ def _build_behavioral_trajectories(customers, hdr, payment_analytics, sat_acc):
                 "dd_fail_rate": pay_metrics["dd_fail_rate"] if pay_metrics else None,
             } if pay_metrics else None,
             "company_satisfaction_score": round(sat_score, 4) if sat_score else None,
+            # Phase QT: per-year history (SIM_TAB_OVERHAUL.md dead-column fix)
+            "satisfaction_score_trajectory": sat_traj,
         }
     return out
 
