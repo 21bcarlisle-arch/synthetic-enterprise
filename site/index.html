@@ -21,10 +21,10 @@
 .site-nav-link:hover { color: var(--text); background: var(--surface2); }
 .site-nav-link.dim { opacity: 0.4; cursor: default; pointer-events: none; }
 :root {
-  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
-  --border: #30363d; --text: #e6edf3; --muted: #7d8590;
-  --green: #3fb950; --red: #f85149; --amber: #d29922;
-  --blue: #58a6ff; --purple: #bc8cff; --teal: #39d353;
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --purple: #4a3aa7; --teal: #1baf7a;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
@@ -97,13 +97,13 @@ tr:hover td { background: var(--surface2); }
 .hm-cell { padding: 4px 6px; font-size: 10px; border-radius: 3px; text-align: center; min-width: 44px; cursor: default; }
 .hm-label { background: none; color: var(--muted); font-weight: 600; text-align: left; min-width: 56px; }
 .hm-year-hdr { background: none; color: var(--muted); font-size: 10px; font-weight: 600; }
-.hm-great { background: #1a5c28; color: #aaffbb; }
-.hm-good  { background: #1a3d1e; color: #7edd8a; }
-.hm-ok    { background: #14301a; color: #5aad65; }
-.hm-nil   { background: #21262d; color: var(--muted); }
-.hm-warn  { background: #3d2a0a; color: #e0a830; }
-.hm-poor  { background: #3d1a10; color: #e07060; }
-.hm-bad   { background: #4a0e0a; color: #f85149; }
+.hm-great { background: #d7f3d1; color: #046b04; }
+.hm-good  { background: #e3f6e0; color: #0ca30c; }
+.hm-ok    { background: #eef2ea; color: #4c7a4c; }
+.hm-nil   { background: #f0efec; color: var(--muted); }
+.hm-warn  { background: #fef0d1; color: #a66a00; }
+.hm-poor  { background: #fbe4d8; color: #b84f28; }
+.hm-bad   { background: #fbe7e7; color: #d03b3b; }
 
 /* ── Event list ── */
 .event-list { list-style: none; display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; }
@@ -148,28 +148,28 @@ tr:hover td { background: var(--surface2); }
   .chart-wrap.tall { height: 340px; }
 }
 .year-btns{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 8px}
-.year-btn{background:#161b22;border:1px solid #30363d;color:#7d8590;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit}
-.year-btn:hover{border-color:#58a6ff;color:#e6edf3}
-.year-btn.active{background:#1f3d5c;border-color:#58a6ff;color:#58a6ff;font-weight:600}
-.query-input{width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:9px 12px;
+.year-btn{background:#fcfcfb;border:1px solid #e1e0d9;color:#52514e;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit}
+.year-btn:hover{border-color:#2a78d6;color:#0b0b0b}
+.year-btn.active{background:#dbe9f9;border-color:#2a78d6;color:#2a78d6;font-weight:600}
+.query-input{width:100%;background:#f9f9f7;border:1px solid #e1e0d9;color:#0b0b0b;padding:9px 12px;
   border-radius:6px;font-size:13px;font-family:inherit;outline:none}
-.query-input:focus{border-color:#58a6ff}
-.query-submit{background:#1f3d5c;border:1px solid #58a6ff;color:#58a6ff;padding:9px 18px;
+.query-input:focus{border-color:#2a78d6}
+.query-submit{background:#dbe9f9;border:1px solid #2a78d6;color:#2a78d6;padding:9px 18px;
   border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
-.query-submit:hover{background:#2a4f70}
+.query-submit:hover{background:#cde2fb}
 .query-submit:disabled{opacity:.5;cursor:not-allowed}
-.query-example{background:#161b22;border:1px solid #30363d;color:#7d8590;padding:3px 10px;
+.query-example{background:#fcfcfb;border:1px solid #e1e0d9;color:#52514e;padding:3px 10px;
   border-radius:4px;font-size:11px;cursor:pointer;font-family:inherit}
-.query-example:hover{border-color:#58a6ff;color:#e6edf3}
-.query-bubble{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:14px;margin-bottom:10px}
-.query-q{font-size:13px;font-weight:600;color:#58a6ff;margin-bottom:8px}
+.query-example:hover{border-color:#2a78d6;color:#0b0b0b}
+.query-bubble{background:#fcfcfb;border:1px solid #e1e0d9;border-radius:6px;padding:14px;margin-bottom:10px}
+.query-q{font-size:13px;font-weight:600;color:#2a78d6;margin-bottom:8px}
 .query-a{font-size:13px;line-height:1.65;white-space:pre-wrap}
-.query-err{font-size:12px;color:#f85149}
-.spotlight{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px;margin-top:12px}
+.query-err{font-size:12px;color:#d03b3b}
+.spotlight{background:#fcfcfb;border:1px solid #e1e0d9;border-radius:6px;padding:16px;margin-top:12px}
 .sp-title{font-size:13px;font-weight:600;margin-bottom:12px}
 .sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .sp-kpi .val{font-size:16px;font-weight:700;margin-top:2px}
-.sp-kpi .lbl{color:#7d8590;font-size:11px}
+.sp-kpi .lbl{color:#52514e;font-size:11px}
 .kpi-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
 .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 14px 10px;flex:1;min-width:120px}
 .view-header{margin-bottom:16px}
@@ -226,9 +226,9 @@ tr:hover td { background: var(--surface2); }
 <script>
 // ── Config ──────────────────────────────────────────────────────────────────
 const C = {
-  bg:'#0d1117', surface:'#161b22', border:'#30363d', text:'#e6edf3',
-  muted:'#7d8590', green:'#3fb950', red:'#f85149', amber:'#d29922',
-  blue:'#58a6ff', purple:'#bc8cff', teal:'#39d353'
+  bg:'#f9f9f7', surface:'#fcfcfb', border:'#e1e0d9', text:'#0b0b0b',
+  muted:'#52514e', green:'#0ca30c', red:'#d03b3b', amber:'#fab219',
+  blue:'#2a78d6', purple:'#4a3aa7', teal:'#1baf7a'
 };
 
 Chart.defaults.color = C.muted;
@@ -371,7 +371,7 @@ function renderSpotlight(container) {
   const ba = (D.customers.book_annual || []).find(r => r.year == yr) || {};
   const ha = (D.trading.hedge_annual || []).find(r => r.year == yr) || {};
   const isCrisis = yr === 2021 || yr === 2022;
-  const crBadge = isCrisis ? '<span style="background:#4a1a1a;color:#f85149;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:8px">CRISIS YEAR</span>' : '';
+  const crBadge = isCrisis ? '<span style="background:#fbe7e7;color:#d03b3b;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:8px">CRISIS YEAR</span>' : '';
   const ncls = (fa.net_gbp||0) >= 0 ? 'pos' : 'neg';
   const kpi = (lbl, val) => '<div class="sp-kpi"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div></div>';
   container.innerHTML = '<div class="spotlight">' +
@@ -1019,7 +1019,7 @@ function renderMonthly() {
       labels: mo.map(function(m){return m.month;}),
       datasets: [
         {label:'Bill Shocks', data:mo.map(function(m){return m.shock_count;}),
-          backgroundColor:mo.map(function(m){return m.is_crisis ? 'rgba(248,81,73,0.7)' : 'rgba(88,166,255,0.6)';}),
+          backgroundColor:mo.map(function(m){return m.is_crisis ? 'rgba(248,81,73,0.7)' : 'rgba(42,120,214,0.6)';}),
           yAxisID:'y'},
         {label:'Committee', data:mo.map(function(m){return m.committee_interventions;}),
           type:'line', borderColor:'rgba(210,153,34,0.9)', borderWidth:2, pointRadius:3, tension:0.3,
@@ -1027,8 +1027,8 @@ function renderMonthly() {
       ]
     },
     options: {responsive:true, scales:{
-      x:{ticks:{maxRotation:60,font:{size:9}}, grid:{color:'rgba(48,54,61,0.4)'}},
-      y:{grid:{color:'rgba(48,54,61,0.4)'}, ticks:{stepSize:1}, title:{display:true,text:'Shocks'}},
+      x:{ticks:{maxRotation:60,font:{size:9}}, grid:{color:'rgba(225,224,217,0.4)'}},
+      y:{grid:{color:'rgba(225,224,217,0.4)'}, ticks:{stepSize:1}, title:{display:true,text:'Shocks'}},
       y2:{position:'right', grid:{drawOnChartArea:false}, title:{display:true,text:'Committee'}}
     }}
   });
@@ -1348,7 +1348,7 @@ function renderCapabilities() {
   const domains = [
     {
       name: "Customer Lifecycle",
-      color: "#58a6ff",
+      color: "#2a78d6",
       capabilities: [
         ["Acquisition & Book Growth", "Phases 1c-2", true],
         ["EAC-Based Tariff Pricing", "Phases H-K", true],
@@ -1366,7 +1366,7 @@ function renderCapabilities() {
     },
     {
       name: "Billing & Payments",
-      color: "#3fb950",
+      color: "#0ca30c",
       capabilities: [
         ["Dual-Fuel Invoice Engine", "Phase S", true],
         ["Smart Meter Reconciliation", "Phase Z", true],
@@ -1384,7 +1384,7 @@ function renderCapabilities() {
     },
     {
       name: "Wholesale & Trading",
-      color: "#d29922",
+      color: "#fab219",
       capabilities: [
         ["Hedging Strategy Evolution", "Phase 1d-5c", true],
         ["Forward Book Management", "Phase 307", true],
@@ -1402,7 +1402,7 @@ function renderCapabilities() {
     },
     {
       name: "Simulation & Settlement",
-      color: "#bc8cff",
+      color: "#4a3aa7",
       capabilities: [
         ["Half-hourly Settlement (48 periods/day)", "Phase 2+", true],
         ["Gas Daily Settlement + HDD Shape", "Phase W", true],
@@ -1420,7 +1420,7 @@ function renderCapabilities() {
     },
     {
       name: "Regulatory & Compliance",
-      color: "#39d353",
+      color: "#1baf7a",
       capabilities: [
         ["23+ SLC Obligation Modules", "Phases 311-329", true],
         ["ICO Breach Register (72h GDPR)", "Phase DB", true],
@@ -1438,7 +1438,7 @@ function renderCapabilities() {
     },
     {
       name: "Pricing & Market Intelligence",
-      color: "#f85149",
+      color: "#d03b3b",
       capabilities: [
         ["Ofgem Price Cap Tracker", "Phase 47a", true],
         ["Break-even Assessor", "Phase K", true],
