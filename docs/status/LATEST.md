@@ -1,5 +1,5 @@
 ## Phase RD COMPLETE -- phases.json generator + Project tab Sim-runs counter fix
-Last updated: 2026-07-05T22:33:55Z
+Last updated: 2026-07-05T22:45:41Z
 
 **Status:** COMPLETE. 15,732 tests collected, fast suite (14,470) clean. Epistemic: PASS.
 
@@ -23,7 +23,7 @@ correlation panels, Prices/Weather/BM rebuilds, freshness stamps) -- docs/claude
 and docs/PROJECT_OVERVIEW.md Section 4.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (514s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (516s / 9 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
