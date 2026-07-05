@@ -1,9 +1,15 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-05 (PROCESS_NOT_EVENTS.md's acquisition funnel -- second in its
-# declared sequence -- DELIVERED: wired into the live sim + all three evidence surfaces.
-# New P1: PROCESS_NOT_EVENTS.md's debt-branch, third and last in the sequence -- generalize
-# QD's stress->timing drift->miss->arrears->plan->write-off shape with the engagement/
-# avoidance behavioural branch (overwhelmed-not-delinquent distinction).)
+# Last refreshed: 2026-07-05 (stale since Phase QS: PROCESS_NOT_EVENTS.md's debt-branch --
+# third and last in its declared sequence -- shipped 2026-07-05, closing the family in full
+# (churn journey QL / acquisition funnel QR / debt-branch QS). This refresh had never been
+# recorded here, leaving "Next" pointed at already-DONE work -- see phase-close checklist
+# item 0. New P1: the WEBSITE_AS_SHOWCASE.md design wave -- six staged directives
+# (NAV_STORY_PLATFORM_METHOD, WEBSITE_AS_SHOWCASE, SIM/SUPPLIER/PROJECT_TAB_OVERHAUL,
+# CUSTOMER_360_REDESIGN) queued in docs/staging/, all Tier 2 pre-approved. Front of that
+# queue per WEBSITE_AS_SHOWCASE.md's own sequencing: Part 0 (QO styled the wrong surface --
+# company/portal/templates/, not site/ -- redo there) + SIM tab living-world (data already
+# exists). FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md are explicitly queued behind this
+# wave per their own staged text -- do not jump them ahead of it.)
 
 ## COMPLETED
 - P1 (process model, acquisition funnel): PROCESS_NOT_EVENTS.md's quote->application->
@@ -135,17 +141,83 @@ DELIVERED, not just listed. No further generator/scenario phases until P1 below 
   lift-per-pound per class, wired into the board's Counterfactual Retention & Threshold
   Optimisation section. 26 new tests, 15,498 collected.
 
-## PRIORITY 1 -- PROCESS_NOT_EVENTS.md: ACQUISITION FUNNEL (second in declared sequence)
-Staged, Tier 2 (design note docs/design/PROCESS_MODEL.md already reviewed and pre-approved via
-docs/staging/done/PREAPPROVE_PROCESS_MODEL.md). Churn journey (first) shipped via Phase QL.
-Next: awareness -> consideration -> quote -> application -> credit check -> onboarding ->
-cooling-off, with stage-level leakage observable to the company and supplier levers per stage
-(price position, acquisition cost, onboarding friction) -- makes CAC real and gives the
-acquisition-aware retention guard a genuine funnel to price against. Debt-branch extension
-(engagement/avoidance behavioural split, generalizing QD's arrears pattern) is third; DCA-placement
-/ debt-sale stage (SAAS_COVERAGE_MAP.md item 3) can fold into the same debt-branch phase.
+## COMPLETED (cont. 4)
+- PROCESS_NOT_EVENTS.md: FULLY DELIVERED, all three items in its declared sequence (2026-07-05).
+  Churn journey (Phase QL) -> acquisition funnel (Phase QR) -> debt-branch (Phase QS: DCA
+  placement/recovery/sale past WRITTEN_OFF, with debt_archetype() OVERWHELMED/AVOIDANT/NEUTRAL
+  behavioural split generalizing QD's arrears pattern). SAAS_COVERAGE_MAP.md item 3
+  (DCA-placement/debt-sale) folded into QS as designed. Staged instruction archived
+  (docs/staging/done/, "Archive PROCESS_NOT_EVENTS.md" commit 56df5f86). SAAS_COVERAGE_MAP.md
+  item 4 (credit bureau as boundary feed) partially done -- QR wired credit bureau into
+  acquisition credit checks; the collections-strategy half is not yet fed by the same feed
+  (minor backlog item, not blocking).
+
+## PRIORITY 1 -- WEBSITE_AS_SHOWCASE.md design wave (six staged Tier-2 directives)
+Staged 2026-07-05: NAV_STORY_PLATFORM_METHOD.md, WEBSITE_AS_SHOWCASE.md, SIM_TAB_OVERHAUL.md,
+SUPPLIER_TAB_OVERHAUL.md, PROJECT_TAB_OVERHAUL.md, CUSTOMER_360_REDESIGN.md -- all Tier 2,
+structure pre-approved by the directives themselves; Rich's eyes are the acceptance test for
+each visual landing, not a code review.
+Front of queue per WEBSITE_AS_SHOWCASE.md's own sequencing note: **Part 0** -- Phase QO
+(design-system unification) styled company/portal/templates/ (the internal Flask portal)
+instead of site/ (poesys.net, the four public tabs Rich actually looks at) -- a verification
+failure, redo on the correct surface. Paired with **tab 1** (SIM tab living-world: event
+frequency panels, journey-stage flows, correlation panels) since the underlying data already
+exists (QL journey states, population anchoring, income-stress/satisfaction trajectories) --
+no new SIM capability needed, only surfacing what is already computed.
+STARTED 2026-07-05 (Phase QT, in progress): while auditing the SIM tab against
+SIM_TAB_OVERHAUL.md's critique ("header cards say 0 moderate-stress while the table shows
+C7/C8 moderate; Tenure and Satisfaction columns are dead -- every row a dash"), found the
+root causes go deeper than styling -- three separate JS bugs on site/sim/index.html's
+Customers sub-tab: (1) case-sensitivity (SIM emits lowercase 'low'/'moderate'/'high', JS
+compared against uppercase literals -- silently broke the KPI header count, the stress
+distribution chart, AND the per-row colour coding, not just the header/table contradiction
+Rich saw), (2) `payment_behaviour_analytics.current_score` read a field that has never
+existed (real key: `.score`) -- broke the Payment Behaviour Score Distribution chart, every
+customer defaulting to GOOD, (3) `tenure_years` and `satisfaction_score` read fields that
+don't exist on the customer record at all -- Tenure/Satisfaction columns were structurally
+incapable of showing data. Root-caused (3): satisfaction had never been retained as a
+per-year history, only a rolling current scalar (company/crm/satisfaction_accumulator.py) --
+tools/generate_customer_sample.py hardcoded satisfaction_score_trajectory to None with a
+"pending_sim_emission" status. Fixed at root: accumulator gains record_year_snapshot()/
+get_trajectory(); simulation/run_phase2b.py snapshots at each renewal's term_start_str year;
+generate_customer_sample.py wires the real trajectory through; site/sim/index.html computes
+tenure from acquisition_date (fixed SIM_END_DATE=2025-12-31 reference, matching the 10-year
+sim window) and reads the last trajectory point for satisfaction. 6 new/updated tests
+(satisfaction accumulator trajectory + generate_customer_sample field passthrough), fast
+suite re-run clean. NOT YET DONE: needs a fresh production sim run to emit real trajectory
+data end-to-end (verified via unit tests only so far -- the live site/data/customer_sample.json
+still shows the old null until the next natural sim_runner cycle regenerates it), and the
+rest of WEBSITE_AS_SHOWCASE Part 0 + tab 1 (event frequency panel, journey-stage flows,
+correlation panels, light-theme completion started by a prior ADVISOR-STAGED commit but not
+finished) remains open.
+CONTINUED 2026-07-05 (Phase QT, same session resumed after a restart): verified the trajectory
+fix end-to-end against a fresh production run that completed mid-session (git 03fa5747) --
+site/data/customer_sample.json now carries real per-year satisfaction history (e.g. C1: 2016
+0.7, 2017 0.7, 2018 0.65) instead of null, closing the "NOT YET DONE" item above. Also shipped
+JOURNEY STAGES LIVE (first slice of the "journey-stage flows" item): new "Customer Journey
+Stages -- the Behavioural Pulse" section on the Customers sub-tab reads QL's journey_log
+(already computed, dashboard.json, 92 entries/15 customers/4 states -- content/irritated/
+in_market/comparing) and shows (a) current stage distribution as KPI cards (live run: 12
+content, 1 irritated, 0 in-market, 2 comparing) and (b) a stacked bar chart of stage counts
+per year 2016-2025, visibly showing in_market appearing in the 2022 crisis year. Verified with
+a node harness executing the real data-transform functions against the live dashboard.json
+(no browser tool available in this session) plus `node --check` for syntax -- both clean.
+STILL OPEN for tab 1: event frequency panel (life events/bill shocks/complaints/switches/
+payment misses per year -- payment-miss per-year data does not currently exist as a time
+series, only a rolling aggregate, so that sub-item needs a data-model addition first),
+distributions for satisfaction/switching-propensity (income stress and payment score
+distributions already exist), correlation panels (income stress vs payment delay, satisfaction
+vs complaints, price vs in-market entry), per-customer trajectory sparklines + Customer 360
+links, both-sides-of-wall strip. Rich's eyes are the acceptance test -- awaiting visual review.
+Tab 2 (Supplier: frozen-policy-baseline delta-EV) needs its own Tier 3 design note first
+(policy snapshot/replay is one-way-door-adjacent) -- do not start implementation before that
+review lands. Tab 3 (Project: learning ledger) assembles as 1/2 land.
 
 ## Backlog
+- SAAS_COVERAGE_MAP.md item 4 remainder: credit bureau feed into collections strategy
+  (currently only feeds acquisition credit checks)
+- FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md: explicitly queued behind the current design
+  wave per their own staged text -- do not jump ahead of PRIORITY 1 above
 - Further correlated-generator scenarios, extended stress suites, shadow-live index page
 - C2/C3/C4 resi EAC benchmarking vs Ofgem TDCV by dwelling type
 - Smart meter customers on real HH shapes for segment model

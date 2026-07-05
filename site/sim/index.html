@@ -165,6 +165,19 @@
     <div class="chart-wrap"><canvas id="cust-stress-chart" height="220"></canvas></div>
     <div class="section-title">Payment Behaviour Score Distribution</div>
     <div class="chart-wrap"><canvas id="cust-pay-chart" height="200"></canvas></div>
+    <div class="section-title">Customer Journey Stages &mdash; the Behavioural Pulse</div>
+    <div class="narrative">
+      <strong>Journey state machine (Phase QL):</strong> every customer sits in one of four stages at any point &mdash;
+      <strong>content</strong> (no reason to look elsewhere), <strong>irritated</strong> (a friction event has landed,
+      e.g. a bill shock), <strong>in-market</strong> (actively considering switching), <strong>comparing</strong>
+      (evaluating a specific alternative). A renewal resets the cycle. This is the sim's real-time behavioural pulse
+      &mdash; not a survey, an emergent state derived from life events, price shocks and satisfaction.
+    </div>
+    <div class="kpi-grid" id="journey-kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
+    </div>
+    <div class="section-title">Journey Stage Population Over Time</div>
+    <div class="chart-wrap"><canvas id="journey-stage-chart" height="220"></canvas></div>
     <div class="meta-bar" id="cust-meta-bar">Loading customer data&hellip;</div>
   </div>
 
@@ -285,14 +298,69 @@
 
   function loadCustomers() {
     customersLoaded = true;
-    fetch('/data/customer_sample.json').then(function(r) {
-      return r.json();
-    }).then(function(d) {
+    Promise.all([
+      fetch('/data/customer_sample.json').then(function(r) { return r.json(); }),
+      fetch('/data/dashboard.json').then(function(r) { return r.json(); }).catch(function() { return null; })
+    ]).then(function(results) {
+      var d = results[0], dash = results[1];
       buildCustKpis(d); buildCustTable(d); buildStressChart(d); buildPayChart(d);
+      var journeyLog = (dash && dash.customers && dash.customers.journey_log) || [];
+      buildJourneyKpis(journeyLog); buildJourneyStageChart(journeyLog);
       var cnt = Object.keys(d.customers || {}).length;
       document.getElementById('cust-meta-bar').textContent = cnt + ' customers | simulation/run_phase2b.py behavioral trajectories | 4-dimension model: physical / economic / behavioural / emotional';
     }).catch(function(e) {
       document.getElementById('cust-kpi-grid').innerHTML = '<p style="color:var(--muted);padding:16px">Customer sample not available yet. Error: '+e+'</p>';
+    });
+  }
+  var JOURNEY_STAGE_LABELS = {content:'Content', irritated:'Irritated', in_market:'In-Market', comparing:'Comparing'};
+  var JOURNEY_STAGE_COLORS = {content:'rgba(12,163,12,0.7)', irritated:'rgba(250,178,25,0.7)', in_market:'rgba(42,120,214,0.7)', comparing:'rgba(208,59,59,0.7)'};
+  function buildJourneyKpis(journeyLog) {
+    var latestByCust = {};
+    journeyLog.forEach(function(e) {
+      var prev = latestByCust[e.customer_id];
+      if (!prev || e.date > prev.date) latestByCust[e.customer_id] = e;
+    });
+    var counts = {content:0, irritated:0, in_market:0, comparing:0};
+    Object.keys(latestByCust).forEach(function(cid) {
+      var s = latestByCust[cid].state;
+      if (counts[s] != null) counts[s]++;
+    });
+    var total = Object.keys(latestByCust).length;
+    var kpis = Object.keys(JOURNEY_STAGE_LABELS).map(function(s) {
+      return {label:JOURNEY_STAGE_LABELS[s], value:counts[s], sub:total ? (counts[s]/total*100).toFixed(0)+'% of cohort' : '—', cls:''};
+    });
+    document.getElementById('journey-kpi-grid').innerHTML = kpis.map(function(k) {
+      return '<div class="kpi-card"><div class="kpi-label">'+k.label+'</div><div class="kpi-value">'+k.value+'</div><div class="kpi-sub">'+k.sub+'</div></div>';
+    }).join('') || '<div class="kpi-card"><div class="kpi-label">No data</div><div class="kpi-value">&mdash;</div></div>';
+  }
+  var journeyStageChart = null;
+  function buildJourneyStageChart(journeyLog) {
+    var byYear = {};
+    journeyLog.forEach(function(e) {
+      var yr = e.date.slice(0, 4);
+      if (!byYear[yr]) byYear[yr] = {content:0, irritated:0, in_market:0, comparing:0};
+      if (byYear[yr][e.state] != null) byYear[yr][e.state]++;
+    });
+    var years = Object.keys(byYear).sort();
+    var ctx = document.getElementById('journey-stage-chart').getContext('2d');
+    if (journeyStageChart) journeyStageChart.destroy();
+    if (!years.length) return;
+    journeyStageChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: Object.keys(JOURNEY_STAGE_LABELS).map(function(s) {
+          return {
+            label: JOURNEY_STAGE_LABELS[s],
+            data: years.map(function(y) { return byYear[y][s] || 0; }),
+            backgroundColor: JOURNEY_STAGE_COLORS[s],
+            stack: 's'
+          };
+        })
+      },
+      options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{x:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+                y:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}
     });
   }
   function buildCustKpis(d) {
