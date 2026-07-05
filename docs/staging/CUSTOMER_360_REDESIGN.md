@@ -1,15 +1,18 @@
-[SUPPLIER] CUSTOMER 360 REDESIGN v2 -- director refinements + best-in-class CRM research folded in. Supersedes v1 of this file.
+[SUPPLIER + PROJECT] CUSTOMER 360 REDESIGN v3 -- director correction + site-wide generalization. Supersedes v2.
 
-DIRECTOR CRITIQUE OF CURRENT PAGE stands (v1): elec page with gas widget; zero consumption; no timeline; no reconciliation; metric soup; no IA. All v1 requirements carry forward. The following AMENDS and sharpens:
+All v1/v2 requirements stand (observatory principle, canonical left/center/right layout, UK lens, comms-artifact slot, reconciliation, light theme) with ONE CORRECTION and ONE GENERALIZATION:
 
-A. LIGHT THEME + EXPLANATION-RICH. White/light background, professional SaaS look (reference: Attio/HubSpot record pages -- clean, generous whitespace, modern type). More navigation and explanation elements throughout: section intros, metric definitions on hover/inline, "what am I looking at" affordances -- this surface doubles as a showcase for outsiders who need orientation, not just Rich.
+CORRECTION -- EXPANSION, not explanation, as the core interaction pattern:
+PROGRESSIVE DISCLOSURE everywhere. Every section renders COLLAPSED to its essential summary first -- the whole page scannable in one screen-ish without unwieldy scrolling -- and drills down INLINE on click/tap: expandable rows, accordions, disclosure sections that push content down in place.
+- NO POP-UP WINDOWS. No modals, no hover-only tooltips, no overlays. Depth always opens in the flow of the page.
+- Examples: Annual P&L shows 3-line summary + [expand] for the full year table; a bill row expands inline into its full itemisation; a timeline event expands inline to its cause chain (decision, EV, trigger) and later its comms artifact; account cards expand from tariff-summary to full TIL detail.
+- Definitions/explanations live inside the expansions, not as popups.
 
-B. THE OBSERVATORY PRINCIPLE (unique to us): real CRMs are workbenches (log call, send email, raise case). THIS is a VIEWER -- we observe; our fixes happen by changing the SIM or steering CC, never in the CRM. So: NO edit/action affordances. Reallocate all of that to WHY affordances: every event on the timeline links to its cause -- the decision that produced it (with its H1 EV), the trigger that fired, the bill/signal behind it. Investigation without intervention. Where v1 said "next best action", render it as WHAT THE COMPANY DECIDED (read-only decision record), not a button.
-
-C. CANONICAL LAYOUT (the researched consensus pattern): LEFT panel = record context (identity, household, per-fuel account cards with MPAN/MPRN, flags); CENTER = the interaction timeline, chronological, filterable by type (bills, payments, contacts, offers, life-event inferences, tariff changes, dunning); RIGHT = insights (value metrics with definitions, churn stage as company-inferred, risk trend). Timeline is the spine, exactly as in the best CRMs.
-
-D. UK LENS throughout: MPAN/MPRN as the account identifiers; p/kWh unit rates + standing charge p/day; EAC; tariff presented Ofgem-TIL-style; price-cap context on SVT periods; payment method vocabulary (Direct Debit / receipt of bill / prepay); PSR & vulnerability flags named as such; dual fuel as the household norm it is. A UK energy person must feel at home instantly.
-
-E. COMMS & INTERACTION RECORD (roadmap layer, design the slot now): eventually the timeline carries the ACTUAL communications -- the bill email, the reminder letter, the offer letter, the complaint response -- as openable artifacts per event, generated from run data. Phase 1: event entries with type/date/cause links. Phase 2: rendered comms artifacts. Design the timeline schema to hold the artifact from day one so phase 2 is additive.
-
-F. RECONCILIATION + acceptance unchanged from v1: page-level consistency gate, all years, combined=elec+gas visibly; acceptance = Rich's eyes on live C1; report "awaiting Rich's visual review".
+GENERALIZATION -- these are SITE-WIDE DESIGN LAWS, not portal preferences. The same thinking applies to every surface (Supplier dashboard, SIM tab, Project tab, shadow pages where sensibly applicable):
+1. Progressive disclosure, inline expansion, no popups -- summary first, drill in place.
+2. Observatory principle -- viewer not workbench; why-affordances linking every figure/event to its cause.
+3. Canonical layouts professionals already know how to read.
+4. UK lens in all vocabulary and units.
+5. Page-level reconciliation -- every surface explains its own numbers.
+6. Light, professional, explanation-inside-expansion.
+Encode these six as the design system's laws in the site design tokens/docs; Customer 360 (C1) is the reference implementation; every subsequent surface conforms. WEBSITE_AS_SHOWCASE tabs inherit these laws.
