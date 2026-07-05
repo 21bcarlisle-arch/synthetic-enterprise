@@ -27881,7 +27881,7 @@
       },
       "acquisition_attempts": 2,
       "acquisition_wins": 0,
-      "acquisition_spend_gbp": 550.0,
+      "acquisition_spend_gbp": 412.5,
       "fixed_cost_gbp": 600.0,
       "ro_levy_gbp": 308161.52784209535,
       "cfd_levy_gbp": 110127.46609079666,
@@ -33293,6 +33293,41 @@
       "perceived_bill_saving_gbp": 0.0
     }
   ],
+  "acquisition_funnel_log": [
+    {
+      "billing_account": "C3",
+      "segment": "resi",
+      "term_start": "2020-06-30",
+      "won": false,
+      "stage_reached": "cooling_off",
+      "total_cost_gbp": 150.0,
+      "credit_bureau_score_band": "prime",
+      "credit_bureau_passed": true,
+      "credit_bureau_true_creditworthy": true
+    },
+    {
+      "billing_account": "C6",
+      "segment": "SME",
+      "term_start": "2024-03-30",
+      "won": false,
+      "stage_reached": "application",
+      "total_cost_gbp": 300.0,
+      "credit_bureau_score_band": null,
+      "credit_bureau_passed": null,
+      "credit_bureau_true_creditworthy": null
+    },
+    {
+      "billing_account": "C4",
+      "segment": "resi",
+      "term_start": "2024-09-29",
+      "won": false,
+      "stage_reached": "application",
+      "total_cost_gbp": 112.5,
+      "credit_bureau_score_band": null,
+      "credit_bureau_passed": null,
+      "credit_bureau_true_creditworthy": null
+    }
+  ],
   "won_successor_activations": {
     "C1_2": "2020-12-30",
     "C2_2": "2022-03-31",
@@ -33323,9 +33358,9 @@
       "cash_collected_gbp": 19423105.34226528,
       "bad_debt_gbp": 396515.5906342871,
       "cash_net_margin_gbp": 6976517.216671347,
-      "acquisition_spend_gbp": 700.0,
+      "acquisition_spend_gbp": 562.5,
       "fixed_cost_gbp": 5700.0,
-      "operating_net_margin_gbp": 6409475.585899791
+      "operating_net_margin_gbp": 6409613.085899791
     }
   },
   "ledger_pnl": {
@@ -33340,9 +33375,9 @@
     "cash_collected_gbp": 19423105.34226528,
     "bad_debt_gbp": 396515.5906342871,
     "cash_net_margin_gbp": 6976517.216671347,
-    "acquisition_spend_gbp": 700.0,
+    "acquisition_spend_gbp": 562.5,
     "fixed_cost_gbp": 5700.0,
-    "operating_net_margin_gbp": 6409475.585899791
+    "operating_net_margin_gbp": 6409613.085899791
   },
   "clv_snapshots": {
     "2016": {
@@ -33492,7 +33527,7 @@
     }
   },
   "growth_mandate": "flat",
-  "total_acquisition_spend_gbp": 700.0,
+  "total_acquisition_spend_gbp": 562.5,
   "total_fixed_cost_gbp": 5700.0,
   "total_acquisition_attempts": 3,
   "total_acquisition_wins": 0,
@@ -37776,21 +37811,21 @@
         "bad_debt_gbp": 64215.736761994965,
         "cost_to_serve_gbp": 0.0,
         "fixed_cost_gbp": 600.0,
-        "acquisition_spend_gbp": 550.0,
-        "total_opex_gbp": 65365.736761994965,
-        "net_margin_gbp": 1180268.5776806509
+        "acquisition_spend_gbp": 412.5,
+        "total_opex_gbp": 65228.236761994965,
+        "net_margin_gbp": 1180406.0776806509
       },
       "balance_sheet": {
-        "cash_gbp": 7718589.001107993,
+        "cash_gbp": 7718726.501107993,
         "trade_receivables_gbp": 279583.0468337983,
-        "total_assets_gbp": 7998172.047941791,
+        "total_assets_gbp": 7998309.547941791,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 5531535.827359098,
-        "total_equity_gbp": 7998172.047950314,
-        "total_liabilities_and_equity_gbp": 7998172.047950314,
+        "current_period_profit_gbp": 5531673.327359098,
+        "total_equity_gbp": 7998309.547950314,
+        "total_liabilities_and_equity_gbp": 7998309.547950314,
         "equation_holds": true
       }
     },
@@ -37809,16 +37844,16 @@
         "net_margin_gbp": 480108.18011374667
       },
       "balance_sheet": {
-        "cash_gbp": 8478280.228043571,
+        "cash_gbp": 8478417.728043571,
         "trade_receivables_gbp": 2.60770320892334e-08,
-        "total_assets_gbp": 8478280.228043597,
+        "total_assets_gbp": 8478417.728043597,
         "vat_payable_gbp": 0.0,
         "total_liabilities_gbp": 0.0,
         "opening_capital_gbp": 2466636.220591217,
         "retained_earnings_gbp": 0.0,
-        "current_period_profit_gbp": 6011644.007472709,
-        "total_equity_gbp": 8478280.228063926,
-        "total_liabilities_and_equity_gbp": 8478280.228063926,
+        "current_period_profit_gbp": 6011781.507472709,
+        "total_equity_gbp": 8478417.728063926,
+        "total_liabilities_and_equity_gbp": 8478417.728063926,
         "equation_holds": true
       }
     }
@@ -38332,7 +38367,7 @@
     },
     {
       "year": 2024,
-      "equity_gbp": 7998172.047950314,
+      "equity_gbp": 7998309.547950314,
       "annual_revenue_gbp": 2999221.94555085,
       "monthly_revenue_gbp": 249935.16,
       "fra_ratio": 32.0,
@@ -38341,7 +38376,7 @@
     },
     {
       "year": 2025,
-      "equity_gbp": 8478280.228063926,
+      "equity_gbp": 8478417.728063926,
       "annual_revenue_gbp": 1233083.9783287933,
       "monthly_revenue_gbp": 102757.0,
       "fra_ratio": 82.51,
@@ -65034,8 +65069,8 @@
     }
   ],
   "scenario_analysis": {
-    "generated_at": "2026-07-05T03:48:40Z",
-    "portfolio_as_of": "2026-07-05T03:46:50Z",
+    "generated_at": "2026-07-05T07:50:22Z",
+    "portfolio_as_of": "2026-07-05T07:48:27Z",
     "active_customers": 11,
     "projection_months": 12,
     "scenarios": {

@@ -51,7 +51,24 @@
       "Bash(mv docs/staging/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS.md docs/staging/done/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED.md)",
       "Bash(cat /tmp/quarantine_annotation.txt docs/staging/done/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED.md)",
       "Bash(mv /tmp/merged.txt docs/staging/done/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED.md)",
-      "Bash(rm /tmp/quarantine_annotation.txt)"
+      "Bash(rm /tmp/quarantine_annotation.txt)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(mkdir -p docs/review_gates)",
+      "Bash(tmux list-sessions *)",
+      "Bash(rm -f /tmp/claude-1000/-home-rich-synthetic-enterprise/8ca391ae-2fa1-43b4-8bf1-e5e9ffd08ef7/scratchpad/pytest_final.log)",
+      "Bash(SIM_FAST_MODE=1 nohup python3 -m pytest tests/ -x -q --tb=short --ignore=tests/simulation/test_run_phase2b.py --ignore=tests/simulation/test_run_phase2b_event_log.py --ignore=tests/simulation/test_run_phase4c_on_phase2b.py --ignore=tests/simulation/test_phase40b_gas_pass_through.py --ignore=tests/simulation/test_phase24a_ic_customer.py --ignore=tests/simulation/test_phase40a_pass_through.py --ignore=tests/simulation/test_phase40c_deemed_rate.py --ignore=tests/simulation/test_phase41a_flex.py)",
+      "Bash(echo \"pid $!\")",
+      "Bash(kill -0 482768)",
+      "Bash(SIM_FAST_MODE=1 python3 -m pytest tests/simulation/test_acquisition_funnel.py tests/tools/ -q --tb=short)",
+      "Bash(kill -0 484343)",
+      "Bash(tmux new-session *)",
+      "Bash(tmux kill-session *)",
+      "Bash(SIM_FAST_MODE=1 python3 -m pytest tests/background/test_session_watchdog.py -q --tb=short)",
+      "Bash(kill -0 486206)",
+      "Bash(curl -s \"https://ntfy.sh/skynet-synthetic/json?poll=1&since=$\\(date -d '2 hours ago' +%s\\)\")",
+      "Bash(kill -0 488063)",
+      "Bash(echo \"add exit: $?\")",
+      "Bash(tmux send-keys *)"
     ]
   }
 }
