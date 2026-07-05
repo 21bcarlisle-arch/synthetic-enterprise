@@ -1,24 +1,25 @@
-## Phase QQ COMPLETE -- Decision Loop Remaining Scope (Calibration Fix + Counterfactual Lift)
-Last updated: 2026-07-05T18:18:52Z
+## Phase RC COMPLETE -- SIM Tab Freshness Stamp, SIM_TAB_OVERHAUL.md CLOSED IN FULL
+Last updated: 2026-07-05T18:29:37Z
 
-**Status:** COMPLETE. 15,622 tests passed (fast suite). Epistemic: PASS.
+**Status:** COMPLETE. 15,722 tests collected, fast suite (15,598) clean. Epistemic: PASS.
 
-**Phase QQ (PRIORITIES.md P1, closes DECISION_LOOP_AND_EVENT_LEDGER.md):**
-- company/crm/churn_model.py: hard 0.95 clamp replaced with an asymptotic saturating curve above
-  CHURN_SATURATION_ELBOW=0.90 (identity below it -- every previously-unclamped estimate unchanged);
-  distinguishable elevated risk levels no longer collapse to the same false-precision ceiling
-- company/analytics/counterfactual_retention.py: compute_counterfactual_lift_by_class() classifies
-  every no-offer churn as detection_gate (model problem) or uneconomical_{high,medium,low}
-  (economics problem), scored under H3 (effectiveness scales 0.04/discount point); wired into the
-  Counterfactual Retention & Threshold Optimisation board section
+**Phase RC (SIM_TAB_OVERHAUL.md item 5, closing the doc in full):**
+- site/sim/index.html: shared freshnessSpan() helper extends the Run/Phase stamp from the Prices
+  sub-tab (Phase RB) to Weather, BM Settlement, and Customers
+- tools/fetch_weather_data.py: weather.json's own metadata now carries git_hash/phase, wired
+  through background/process_run_complete.py
+- Light theme confirmed already shipped site-wide on site/sim/index.html -- no work needed
 
-**PRIORITIES.md P1 (Decision Event Ledger) now fully DONE across Phases QP+QQ.** New P1: PROCESS_NOT_EVENTS.md
-acquisition funnel (second in its declared sequence, pre-approved via PREAPPROVE_PROCESS_MODEL.md).
+**SIM_TAB_OVERHAUL.md now CLOSED IN FULL (items 1-5, Phases QY/QZ/RA/RB/RC).** Front of queue next:
+WEBSITE_AS_SHOWCASE.md Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md -- the four
+site/shadow/*.html mirror pages are still on the pre-v4 dark terminal-monospace theme.
 
-**Prior milestone:** Phase QP (Decision Event Ledger unification) -- docs/claude/phase-history.md.
+**Prior milestones:** Phases QR-QZ/RA/RB (acquisition funnel, debt-branch, event-frequency,
+correlation panels, Prices/Weather/BM rebuilds, freshness stamps) -- docs/claude/phase-history.md
+and docs/PROJECT_OVERVIEW.md Section 4.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (510s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (533s / 9 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
