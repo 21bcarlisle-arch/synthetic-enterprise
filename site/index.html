@@ -41,7 +41,7 @@ header { position: sticky; top: 0; z-index: 100; background: var(--bg);
 .run-meta a { color: var(--blue); text-decoration: none; }
 .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px;
   font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
-.badge-green { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+.badge-green { background: rgba(12,163,12,.15); color: var(--green); border: 1px solid rgba(12,163,12,.3); }
 
 /* ── Tab nav ── */
 .tab-nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
@@ -85,7 +85,7 @@ table { width: 100%; border-collapse: collapse; font-size: 12px; }
 th { padding: 6px 10px; text-align: right; color: var(--muted); font-weight: 500; font-size: 10px;
      text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid var(--border); }
 th:first-child { text-align: left; }
-td { padding: 5px 10px; text-align: right; border-bottom: 1px solid rgba(48,54,61,.5); }
+td { padding: 5px 10px; text-align: right; border-bottom: 1px solid rgba(225,224,217,.5); }
 td:first-child { text-align: left; font-weight: 500; }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--surface2); }
@@ -108,14 +108,14 @@ tr:hover td { background: var(--surface2); }
 /* ── Event list ── */
 .event-list { list-style: none; display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; }
 .ev-item { display: flex; align-items: baseline; gap: 8px; font-size: 12px; padding: 4px 0;
-  border-bottom: 1px solid rgba(48,54,61,.4); }
+  border-bottom: 1px solid rgba(225,224,217,.4); }
 .ev-item:last-child { border-bottom: none; }
 .ev-date { color: var(--muted); font-size: 11px; min-width: 82px; }
 .ev-tag { padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; text-transform: uppercase; white-space: nowrap; }
-.tag-churned   { background: rgba(248,81,73,.2); color: var(--red); }
-.tag-renewed   { background: rgba(63,185,80,.12); color: var(--green); }
-.tag-retention { background: rgba(210,153,34,.2); color: var(--amber); }
-.tag-acquired  { background: rgba(88,166,255,.15); color: var(--blue); }
+.tag-churned   { background: rgba(208,59,59,.2); color: var(--red); }
+.tag-renewed   { background: rgba(12,163,12,.12); color: var(--green); }
+.tag-retention { background: rgba(250,178,25,.2); color: var(--amber); }
+.tag-acquired  { background: rgba(42,120,214,.15); color: var(--blue); }
 
 /* ── Loading ── */
 #loading { padding: 40px; text-align: center; color: var(--muted); }
@@ -137,10 +137,10 @@ tr:hover td { background: var(--surface2); }
 .agent-ts { font-size: 10px; color: var(--muted); white-space: nowrap; padding-top: 3px; }
 .status-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px;
   font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-left: 6px; }
-.sb-running { background: rgba(63,185,80,.15); color: var(--green); }
-.sb-idle    { background: rgba(125,133,144,.12); color: var(--muted); }
-.sb-working { background: rgba(88,166,255,.15); color: var(--blue); }
-.sb-error   { background: rgba(248,81,73,.15); color: var(--red); }
+.sb-running { background: rgba(12,163,12,.15); color: var(--green); }
+.sb-idle    { background: rgba(82,81,78,.12); color: var(--muted); }
+.sb-working { background: rgba(42,120,214,.15); color: var(--blue); }
+.sb-error   { background: rgba(208,59,59,.15); color: var(--red); }
 
 @media (min-width: 600px) {
   .cards { grid-template-columns: repeat(4, 1fr); }
@@ -283,8 +283,8 @@ function baseLineOpts(title) {
     plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
                title: { display: false }, tooltip: { mode: 'index', intersect: false } },
     scales: {
-      x: { grid: { color: 'rgba(48,54,61,.4)' }, ticks: { maxRotation: 45 } },
-      y: { grid: { color: 'rgba(48,54,61,.4)' } }
+      x: { grid: { color: 'rgba(225,224,217,.4)' }, ticks: { maxRotation: 45 } },
+      y: { grid: { color: 'rgba(225,224,217,.4)' } }
     }
   };
 }
@@ -427,12 +427,12 @@ function renderOverview() {
       labels: yrs,
       datasets: [{
         label: 'Treasury (£)', data: fa.map(r => r.treasury_end_gbp),
-        borderColor: C.blue, backgroundColor: 'rgba(88,166,255,.08)',
+        borderColor: C.blue, backgroundColor: 'rgba(42,120,214,.08)',
         fill: true, tension: 0.3, pointRadius: 3
       }]
     },
-    options: { ...baseLineOpts(), scales: { x: { grid:{color:'rgba(48,54,61,.4)'} },
-      y: { grid:{color:'rgba(48,54,61,.4)'}, ticks:{callback:v=>gbp(v)} } } }
+    options: { ...baseLineOpts(), scales: { x: { grid:{color:'rgba(225,224,217,.4)'} },
+      y: { grid:{color:'rgba(225,224,217,.4)'}, ticks:{callback:v=>gbp(v)} } } }
   });
 
   mkChart('ch-overview-net', {
@@ -442,12 +442,12 @@ function renderOverview() {
       datasets: [{
         label: 'Net Margin (£)',
         data: fa.map(r => r.net_gbp),
-        backgroundColor: fa.map(r => r.net_gbp >= 0 ? 'rgba(63,185,80,.7)' : 'rgba(248,81,73,.7)'),
+        backgroundColor: fa.map(r => r.net_gbp >= 0 ? 'rgba(12,163,12,.7)' : 'rgba(208,59,59,.7)'),
         borderRadius: 3
       }]
     },
-    options: { ...baseLineOpts(), scales: { x:{grid:{color:'rgba(48,54,61,.4)'}},
-      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)},
+    options: { ...baseLineOpts(), scales: { x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>gbp(v)},
          plugins:{legend:{display:false}}} } }
   });
 
@@ -515,15 +515,15 @@ function renderFinancial() {
     data: {
       labels: yrs,
       datasets: [
-        { label: 'Revenue', data: fa.map(r=>r.revenue_gbp), backgroundColor:'rgba(88,166,255,.6)', stack:'a' },
-        { label: 'Wholesale cost', data: fa.map(r=>-Math.abs(r.revenue_gbp - r.gross_gbp)), backgroundColor:'rgba(248,81,73,.5)', stack:'b' },
-        { label: 'Gross margin', data: fa.map(r=>r.gross_gbp), backgroundColor:'rgba(63,185,80,.6)', stack:'c' },
-        { label: 'Net margin', data: fa.map(r=>r.net_gbp), backgroundColor: fa.map(r=>r.net_gbp>=0?'rgba(63,185,80,.9)':'rgba(248,81,73,.9)'), type:'bar', stack:'d' },
+        { label: 'Revenue', data: fa.map(r=>r.revenue_gbp), backgroundColor:'rgba(42,120,214,.6)', stack:'a' },
+        { label: 'Wholesale cost', data: fa.map(r=>-Math.abs(r.revenue_gbp - r.gross_gbp)), backgroundColor:'rgba(208,59,59,.5)', stack:'b' },
+        { label: 'Gross margin', data: fa.map(r=>r.gross_gbp), backgroundColor:'rgba(12,163,12,.6)', stack:'c' },
+        { label: 'Net margin', data: fa.map(r=>r.net_gbp), backgroundColor: fa.map(r=>r.net_gbp>=0?'rgba(12,163,12,.9)':'rgba(208,59,59,.9)'), type:'bar', stack:'d' },
       ]
     },
     options: { ...baseLineOpts(), scales: {
-      x:{grid:{color:'rgba(48,54,61,.4)'}},
-      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)}} } }
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>gbp(v)}} } }
   });
 
   mkChart('ch-commodity', {
@@ -531,13 +531,13 @@ function renderFinancial() {
     data: {
       labels: yrs,
       datasets: [
-        { label: 'Electricity gross', data: fa.map(r=>r.elec_gross_gbp), backgroundColor:'rgba(88,166,255,.7)', borderRadius:2 },
-        { label: 'Gas gross', data: fa.map(r=>r.gas_gross_gbp), backgroundColor:'rgba(188,140,255,.7)', borderRadius:2 },
+        { label: 'Electricity gross', data: fa.map(r=>r.elec_gross_gbp), backgroundColor:'rgba(42,120,214,.7)', borderRadius:2 },
+        { label: 'Gas gross', data: fa.map(r=>r.gas_gross_gbp), backgroundColor:'rgba(74,58,167,.7)', borderRadius:2 },
       ]
     },
     options: { ...baseLineOpts(), scales: {
-      x:{grid:{color:'rgba(48,54,61,.4)'}},
-      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)}} } }
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>gbp(v)}} } }
   });
 }
 
@@ -548,7 +548,7 @@ function renderAccounts() {
   if (!ma.length) { el('tab-accounts').innerHTML = '<p style="color:var(--muted);padding:1rem">No management accounts data available.</p>'; return; }
 
   var rows = ma.map(function(r) {
-    var crisis = (r.year === 2021 || r.year === 2022) ? ' style="background:rgba(210,153,34,.08)"' : '';
+    var crisis = (r.year === 2021 || r.year === 2022) ? ' style="background:rgba(250,178,25,.08)"' : '';
     var netCls = r.net_margin_gbp >= 0 ? 'pos' : 'neg';
     return '<tr' + crisis + '>' +
       '<td>' + r.year + (r.year===2022?'<span class="badge-crisis"> CRISIS</span>':'') + '</td>' +
@@ -580,17 +580,17 @@ function renderAccounts() {
     data: {
       labels: ma.map(function(r){return r.year;}),
       datasets: [
-        { label: 'Wholesale', data: ma.map(function(r){return r.wholesale_cost_gbp;}), backgroundColor:'rgba(248,81,73,.6)', stack:'costs' },
-        { label: 'Non-Commodity', data: ma.map(function(r){return r.non_commodity_cost_gbp;}), backgroundColor:'rgba(210,153,34,.7)', stack:'costs' },
+        { label: 'Wholesale', data: ma.map(function(r){return r.wholesale_cost_gbp;}), backgroundColor:'rgba(208,59,59,.6)', stack:'costs' },
+        { label: 'Non-Commodity', data: ma.map(function(r){return r.non_commodity_cost_gbp;}), backgroundColor:'rgba(250,178,25,.7)', stack:'costs' },
         { label: 'Capital', data: ma.map(function(r){return r.capital_cost_gbp;}), backgroundColor:'rgba(163,113,247,.6)', stack:'costs' },
         { label: 'Bad Debt', data: ma.map(function(r){return r.bad_debt_gbp;}), backgroundColor:'rgba(248,140,0,.5)', stack:'costs' },
         { label: 'CTS+Fixed+Acq', data: ma.map(function(r){return r.cost_to_serve_gbp + r.fixed_cost_gbp + r.acquisition_spend_gbp;}), backgroundColor:'rgba(121,192,255,.5)', stack:'costs' },
-        { label: 'Revenue', data: ma.map(function(r){return r.revenue_gbp;}), type:'line', borderColor:'rgba(63,185,80,.9)', borderWidth:2, pointRadius:3, tension:.3, fill:false, stack:undefined }
+        { label: 'Revenue', data: ma.map(function(r){return r.revenue_gbp;}), type:'line', borderColor:'rgba(12,163,12,.9)', borderWidth:2, pointRadius:3, tension:.3, fill:false, stack:undefined }
       ]
     },
     options: { ...baseLineOpts(), scales: {
-      x:{stacked:true,grid:{color:'rgba(48,54,61,.4)'}},
-      y:{stacked:true,grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:function(v){return gbp(v);}}} } }
+      x:{stacked:true,grid:{color:'rgba(225,224,217,.4)'}},
+      y:{stacked:true,grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:function(v){return gbp(v);}}} } }
   });
 }
 
@@ -641,12 +641,12 @@ function renderTrading() {
       datasets: [
         {
           label: 'Mean (£/MWh)', data: means,
-          borderColor: C.blue, backgroundColor: 'rgba(88,166,255,.08)',
+          borderColor: C.blue, backgroundColor: 'rgba(42,120,214,.08)',
           fill: false, tension: 0.2, pointRadius: 0, borderWidth: 2
         },
         {
           label: 'P95 (£/MWh)', data: p95s,
-          borderColor: C.amber, backgroundColor: 'rgba(210,153,34,.12)',
+          borderColor: C.amber, backgroundColor: 'rgba(250,178,25,.12)',
           fill: '-1', tension: 0.2, pointRadius: 0, borderWidth: 1.5, borderDash: [4,3]
         },
       ]
@@ -659,8 +659,8 @@ function renderTrading() {
           callbacks: { label: ctx => `${ctx.dataset.label}: £${ctx.parsed.y.toFixed(0)}/MWh` } }
       },
       scales: {
-        x: { grid:{color:'rgba(48,54,61,.4)'}, ticks:{ maxTicksLimit: 18, maxRotation: 45 } },
-        y: { grid:{color:'rgba(48,54,61,.4)'}, max: 600,
+        x: { grid:{color:'rgba(225,224,217,.4)'}, ticks:{ maxTicksLimit: 18, maxRotation: 45 } },
+        y: { grid:{color:'rgba(225,224,217,.4)'}, max: 600,
           ticks:{ callback: v => '£'+v },
           title:{ display: true, text:'£/MWh (capped at £600)', color: C.muted, font:{size:10} } }
       }
@@ -673,8 +673,8 @@ function renderTrading() {
     data: {
       labels: months,
       datasets: [
-        { label: '>£500 half-hours', data: above, backgroundColor:'rgba(248,81,73,.6)', yAxisID:'y', borderRadius:1 },
-        { label: 'Committee calls', data: cmte, backgroundColor:'rgba(210,153,34,.6)', yAxisID:'y1', borderRadius:1 },
+        { label: '>£500 half-hours', data: above, backgroundColor:'rgba(208,59,59,.6)', yAxisID:'y', borderRadius:1 },
+        { label: 'Committee calls', data: cmte, backgroundColor:'rgba(250,178,25,.6)', yAxisID:'y1', borderRadius:1 },
       ]
     },
     options: {
@@ -682,8 +682,8 @@ function renderTrading() {
       plugins: { legend:{display:true,position:'bottom',labels:{boxWidth:10,padding:12}},
         tooltip:{mode:'index',intersect:false} },
       scales: {
-        x: { grid:{color:'rgba(48,54,61,.4)'}, ticks:{maxTicksLimit:18,maxRotation:45} },
-        y:  { grid:{color:'rgba(48,54,61,.4)'}, title:{display:true,text:'Extreme periods',color:C.muted,font:{size:10}}, position:'left' },
+        x: { grid:{color:'rgba(225,224,217,.4)'}, ticks:{maxTicksLimit:18,maxRotation:45} },
+        y:  { grid:{color:'rgba(225,224,217,.4)'}, title:{display:true,text:'Extreme periods',color:C.muted,font:{size:10}}, position:'left' },
         y1: { grid:{drawOnChartArea:false}, title:{display:true,text:'Committee calls',color:C.muted,font:{size:10}}, position:'right' }
       }
     }
@@ -695,14 +695,14 @@ function renderTrading() {
       labels: ha.map(r=>r.year),
       datasets: [
         { label: 'Avg hedge fraction', data: ha.map(r=>r.avg_hf*100),
-          backgroundColor:'rgba(63,185,80,.6)', borderRadius:3 },
+          backgroundColor:'rgba(12,163,12,.6)', borderRadius:3 },
         { label: 'Min hedge fraction', data: ha.map(r=>r.min_hf*100),
-          backgroundColor:'rgba(248,81,73,.4)', borderRadius:3 },
+          backgroundColor:'rgba(208,59,59,.4)', borderRadius:3 },
       ]
     },
     options: { ...baseLineOpts(), scales: {
-      x:{grid:{color:'rgba(48,54,61,.4)'}},
-      y:{grid:{color:'rgba(48,54,61,.4)'},min:70,max:105,ticks:{callback:v=>v+'%'},
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},min:70,max:105,ticks:{callback:v=>v+'%'},
          title:{display:true,text:'Hedge fraction (%)',color:C.muted,font:{size:10}}} } }
   });
 }
@@ -815,14 +815,14 @@ function renderCustomers() {
       labels: yrs,
       datasets: [
         { label: 'Electricity accounts', data: ba.map(r=>r.active_elec),
-          backgroundColor:'rgba(88,166,255,.7)', borderRadius:2, stack:'a' },
+          backgroundColor:'rgba(42,120,214,.7)', borderRadius:2, stack:'a' },
         { label: 'Gas accounts', data: ba.map(r=>r.active_gas),
-          backgroundColor:'rgba(188,140,255,.6)', borderRadius:2, stack:'a' },
+          backgroundColor:'rgba(74,58,167,.6)', borderRadius:2, stack:'a' },
       ]
     },
     options: { ...baseLineOpts(), scales: {
-      x:{grid:{color:'rgba(48,54,61,.4)'},stacked:true},
-      y:{grid:{color:'rgba(48,54,61,.4)'},stacked:true,ticks:{stepSize:1}} } }
+      x:{grid:{color:'rgba(225,224,217,.4)'},stacked:true},
+      y:{grid:{color:'rgba(225,224,217,.4)'},stacked:true,ticks:{stepSize:1}} } }
   });
 
   mkChart('ch-shock', {
@@ -831,12 +831,12 @@ function renderCustomers() {
       labels: yrs,
       datasets: [
         { label: 'Bill shock events', data: ba.map(r=>r.bill_shock_count),
-          backgroundColor:'rgba(248,81,73,.6)', borderRadius:2 },
+          backgroundColor:'rgba(208,59,59,.6)', borderRadius:2 },
       ]
     },
     options: { ...baseLineOpts(), scales: {
-      x:{grid:{color:'rgba(48,54,61,.4)'}},
-      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{stepSize:5}} } }
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{stepSize:5}} } }
   });
 }
 
@@ -849,9 +849,9 @@ function renderMarket() {
   const cm = mk.contango_monthly || [];
 
   const segColors = {
-    'resi electricity':'rgba(88,166,255,.7)', 'resi gas':'rgba(188,140,255,.7)',
-    'sme electricity':'rgba(63,185,80,.7)', 'sme gas':'rgba(152,100,220,.7)',
-    'i&c electricity':'rgba(210,153,34,.7)', 'i&c gas':'rgba(240,120,60,.7)',
+    'resi electricity':'rgba(42,120,214,.7)', 'resi gas':'rgba(74,58,167,.7)',
+    'sme electricity':'rgba(12,163,12,.7)', 'sme gas':'rgba(152,100,220,.7)',
+    'i&c electricity':'rgba(250,178,25,.7)', 'i&c gas':'rgba(240,120,60,.7)',
   };
 
   const netDatasets = segs.map((seg, i) => {
@@ -921,7 +921,7 @@ function renderMarket() {
           {
             label: 'Premium (£/MWh)', data: cm.map(r=>r.premium_gbp),
             borderColor: C.green, yAxisID:'y1',
-            backgroundColor: cm.map(r=>r.premium_gbp>=0?'rgba(63,185,80,.15)':'rgba(248,81,73,.15)'),
+            backgroundColor: cm.map(r=>r.premium_gbp>=0?'rgba(12,163,12,.15)':'rgba(208,59,59,.15)'),
             fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5
           },
         ]
@@ -934,8 +934,8 @@ function renderMarket() {
             callbacks: { label: ctx => `${ctx.dataset.label}: £${ctx.parsed.y.toFixed(1)}/MWh` } }
         },
         scales: {
-          x: { grid:{color:'rgba(48,54,61,.4)'}, ticks:{maxTicksLimit:18, maxRotation:45} },
-          y: { grid:{color:'rgba(48,54,61,.4)'},
+          x: { grid:{color:'rgba(225,224,217,.4)'}, ticks:{maxTicksLimit:18, maxRotation:45} },
+          y: { grid:{color:'rgba(225,224,217,.4)'},
             ticks:{callback: v=>'£'+v},
             title:{display:true, text:'£/MWh (spot & forward)', color:C.muted, font:{size:10}} },
           y1: { grid:{drawOnChartArea:false}, position:'right',
@@ -950,8 +950,8 @@ function renderMarket() {
     type: 'bar',
     data: { labels: yrs, datasets: netDatasets },
     options: { ...baseLineOpts(), scales: {
-      x:{grid:{color:'rgba(48,54,61,.4)'}},
-      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>gbp(v)}} } }
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>gbp(v)}} } }
   });
 
   mkChart('ch-fwd-err', {
@@ -961,13 +961,13 @@ function renderMarket() {
       datasets: [{
         label: 'Mean forward price error (£/MWh)',
         data: fpa.map(r=>r.mean_error_gbp_per_mwh),
-        backgroundColor: fpa.map(r => r.mean_error_gbp_per_mwh < 0 ? 'rgba(248,81,73,.7)' : 'rgba(63,185,80,.7)'),
+        backgroundColor: fpa.map(r => r.mean_error_gbp_per_mwh < 0 ? 'rgba(208,59,59,.7)' : 'rgba(12,163,12,.7)'),
         borderRadius: 3
       }]
     },
     options: { ...baseLineOpts(), scales: {
-      x:{grid:{color:'rgba(48,54,61,.4)'}},
-      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{callback:v=>(v>=0?'+':'')+v+'£'},
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>(v>=0?'+':'')+v+'£'},
          title:{display:true,text:'Negative = under-priced',color:C.muted,font:{size:10}}} } }
   });
 }
@@ -990,7 +990,7 @@ function renderMonthly() {
   var maxShock = mo.reduce(function(mx,m){return m.max_shock_pct > (mx.max_shock_pct||0) ? m : mx;}, {max_shock_pct:0, month:'--'});
 
   var trows = mo.map(function(m) {
-    var cr = m.is_crisis ? ' style="background:rgba(248,81,73,0.07)"' : '';
+    var cr = m.is_crisis ? ' style="background:rgba(208,59,59,0.07)"' : '';
     var sh = m.shock_count > 0 ? '<span style="color:var(--red)">'+m.shock_count+'</span>' : '0';
     var ci = m.committee_interventions > 0 ? '<span style="color:var(--amber)">'+m.committee_interventions+'</span>' : '0';
     return '<tr'+cr+'><td>'+m.month+(m.is_crisis ? ' <span class=\"badge-crisis\">CRISIS</span>' : '')+'</td>'+
@@ -1019,10 +1019,10 @@ function renderMonthly() {
       labels: mo.map(function(m){return m.month;}),
       datasets: [
         {label:'Bill Shocks', data:mo.map(function(m){return m.shock_count;}),
-          backgroundColor:mo.map(function(m){return m.is_crisis ? 'rgba(248,81,73,0.7)' : 'rgba(42,120,214,0.6)';}),
+          backgroundColor:mo.map(function(m){return m.is_crisis ? 'rgba(208,59,59,0.7)' : 'rgba(42,120,214,0.6)';}),
           yAxisID:'y'},
         {label:'Committee', data:mo.map(function(m){return m.committee_interventions;}),
-          type:'line', borderColor:'rgba(210,153,34,0.9)', borderWidth:2, pointRadius:3, tension:0.3,
+          type:'line', borderColor:'rgba(250,178,25,0.9)', borderWidth:2, pointRadius:3, tension:0.3,
           yAxisID:'y2', fill:false}
       ]
     },
@@ -1146,7 +1146,7 @@ function renderQuery() {
   const hist = qLoadHistory();
   const gaps = hist.filter(function(e) { return e.is_gap; });
   const histHtml = hist.slice().reverse().map(function(e) {
-    const gapBadge = e.is_gap ? '<span style="background:rgba(248,81,73,.15);color:var(--red);font-size:9px;padding:1px 5px;border-radius:8px;margin-left:6px;font-weight:600">GAP</span>' : '';
+    const gapBadge = e.is_gap ? '<span style="background:rgba(208,59,59,.15);color:var(--red);font-size:9px;padding:1px 5px;border-radius:8px;margin-left:6px;font-weight:600">GAP</span>' : '';
     const ts = e.ts ? '<span style="font-size:10px;color:var(--muted);float:right">' + new Date(e.ts).toLocaleDateString() + '</span>' : '';
     return '<div class="query-bubble">' +
       '<div class="query-q">Q: ' + escHtml(e.q) + gapBadge + ts + '</div>' +
@@ -1225,7 +1225,7 @@ async function submitQuery() {
       ansEl.textContent = answer;
       if (isGap) {
         var gapBadge = document.createElement('span');
-        gapBadge.style.cssText = 'background:rgba(248,81,73,.15);color:var(--red);font-size:9px;padding:1px 5px;border-radius:8px;margin-left:6px;font-weight:600';
+        gapBadge.style.cssText = 'background:rgba(208,59,59,.15);color:var(--red);font-size:9px;padding:1px 5px;border-radius:8px;margin-left:6px;font-weight:600';
         gapBadge.textContent = 'GAP';
         ansEl.parentNode.querySelector('.query-q').appendChild(gapBadge);
       }
@@ -1314,9 +1314,9 @@ function renderRegulatory() {
     "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Phase</th>",
     "</tr></thead><tbody>",
     ...slcs.map(([code,desc,phase]) =>
-      `<tr><td style="padding:6px 12px;border-bottom:1px solid rgba(48,54,61,.4);font-weight:600;color:var(--blue)">${code}</td>` +
-      `<td style="padding:6px 12px;border-bottom:1px solid rgba(48,54,61,.4)">${desc}</td>` +
-      `<td style="padding:6px 12px;border-bottom:1px solid rgba(48,54,61,.4);color:var(--muted);font-size:11px">${phase}</td></tr>`
+      `<tr><td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4);font-weight:600;color:var(--blue)">${code}</td>` +
+      `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)">${desc}</td>` +
+      `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4);color:var(--muted);font-size:11px">${phase}</td></tr>`
     ),
     "</tbody></table></div>",
     "<h3 class=\"section-head\" style=\"margin-top:24px\">Build Progress</h3>",
