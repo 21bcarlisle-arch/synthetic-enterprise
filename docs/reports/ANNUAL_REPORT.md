@@ -1238,7 +1238,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 12 | 0.9 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,607 |
 | 2023 | 4 | 36 | 9.0 | £48,915 |
@@ -1526,6 +1526,14 @@ How well the company estimated churn probability versus actual simulation outcom
 | 45% | 0.000 | 0.000 | 0.000 |
 | 50% | 0.000 | 0.000 | 0.000 |
 
+### Lift-per-pound by intervention class (Part 4)
+
+Every no-offer churn is one of two different management problems: the model never scored enough risk to consider an offer (detection gate), or a tier discount was priced but the cost/benefit guard blocked it (uneconomical). Each gets its own matched counterfactual under H3 (effectiveness scales with discount size) -- this is the fitness function Digital Darwinism compares policies on, not raw miss counts.
+
+| Class | Misses | Assumed discount | Assumed effectiveness | Would retain | Net value | Lift/GBP |
+|-------|--------|-------------------|------------------------|---------------|-----------|----------|
+| Detection gate (never scored above offer threshold) | 6 | 3% | 12% | 1/6 | £-63 | -0.21 |
+
 ## Churn Model Quality (Phase NK)
 
 Company churn model performance: did the company predict churn before it happened?
@@ -1584,7 +1592,7 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-05T03:02:48Z
+Generated: 2026-07-05T03:20:10Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2056,7 +2064,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,380 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 21 sessions
 - C5: 16 sessions
 - C7: 16 sessions
 - C2: 13 sessions
@@ -2604,7 +2612,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-01-31: treasury £2,466,648.39, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-01: treasury £2,466,660.65, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-31: treasury £2,466,672.63, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-04-30: treasury £2,466,683.74, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-04-30: treasury £2,466,683.74, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-05-30: treasury £2,466,694.75, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-06-29: treasury £2,466,705.34, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-07-29: treasury £2,466,716.06, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
