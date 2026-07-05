@@ -1,10 +1,20 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-05 (Decision Event Ledger fully DELIVERED via Phases QP+QQ, all 5
-# parts done. New P1: PROCESS_NOT_EVENTS.md's acquisition funnel -- second in its declared
-# sequence (churn journey done via QL, acquisition funnel second, debt-branch third),
-# design note already reviewed and pre-approved via PREAPPROVE_PROCESS_MODEL.md.)
+# Last refreshed: 2026-07-05 (PROCESS_NOT_EVENTS.md's acquisition funnel -- second in its
+# declared sequence -- DELIVERED: wired into the live sim + all three evidence surfaces.
+# New P1: PROCESS_NOT_EVENTS.md's debt-branch, third and last in the sequence -- generalize
+# QD's stress->timing drift->miss->arrears->plan->write-off shape with the engagement/
+# avoidance behavioural branch (overwhelmed-not-delinquent distinction).)
 
 ## COMPLETED
+- P1 (process model, acquisition funnel): PROCESS_NOT_EVENTS.md's quote->application->
+  credit_check->onboarding->cooling_off funnel (simulation/acquisition_funnel.py,
+  tools/credit_bureau_port.py + synthetic_bureau adapter -- all pre-existing from an
+  interrupted session, completed and wired this phase) replaces the flat coin-flip roll
+  in run_phase2b.py's home-move replacement acquisition. Evidence on all 3 surfaces: Sim
+  tab per-year stage leakage + win rate + population-anchoring RAG check; Customers tab
+  one named won attempt, preferring a real credit-bureau-vs-ground-truth divergence case;
+  Supplier tab portfolio stage leakage + real blended CAC. 11 new tests, full slow
+  integration suite re-run clean. Epistemic: PASS.
 - P1 (billing depth): Arrears states + dunning cycles + emergent bad debt -- DONE (Phase QD).
   simulation/arrears_engine.py: arrears_stages()/ic_arrears_stages() model the full missed-payment
   -> FIRST_NOTICE -> SECOND_NOTICE -> RESOLVED|WRITTEN_OFF cascade per customer (resi + I&C dispute

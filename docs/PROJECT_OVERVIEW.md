@@ -111,6 +111,26 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QR -- Acquisition Funnel (2026-07-05, Tier 2 -- PRIORITIES.md P1, PROCESS_NOT_EVENTS.md)
+Closes the acquisition-funnel item (second of three: churn journey/QL, acquisition funnel/here,
+debt-branch/next) of Rich's PROCESS_NOT_EVENTS.md directive. simulation/acquisition_funnel.py
+(quote -> application -> credit_check -> onboarding -> cooling_off, real per-stage leakage and
+cost, calibrated from docs/market_research/findings/acquisition_funnel_benchmarks.md) and
+tools/credit_bureau_port.py + SyntheticBureauAdapter already existed uncommitted from an
+interrupted prior session; this phase completes the missing tools/population_anchor.py::
+_acquisition_funnel_check() the test suite needed, then wires run_acquisition_funnel() into
+simulation/run_phase2b.py's home-move replacement acquisition roll (replacing
+saas.growth_mandate.roll_acquisition()'s flat coin flip -- that function and its tests are
+untouched, just no longer the live path). Every attempt logs to acquisition_funnel_log (stage
+reached, real cost, credit-bureau read + SIM-internal true_creditworthy for evidence use only).
+Evidence, all 3 surfaces: Sim tab per-year stage leakage/win-rate table
+(_acquisition_funnel_signal) + the population-anchoring RAG check now fed real data; Customers
+tab one named won attempt, preferring a real credit-bureau-vs-ground-truth divergence case
+(_acquisition_funnel_case_study); Supplier tab portfolio stage leakage + real blended CAC for
+the year (_acquisition_funnel_process). 11 new tests (tests/tools/test_acquisition_funnel_evidence.py).
+Full slow integration suite (test_run_phase2b.py + event_log + phase4c, 53 tests) re-run clean
+with the new funnel wired in. 15,550 fast-suite tests. Epistemic: PASS.
+
 ### Phase QQ -- Decision Loop Remaining Scope: Calibration Fix + Counterfactual Lift (2026-07-05)
 Tier 2 (PRIORITIES.md P1, docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md, remaining scope).
 26 new tests, 15,622 collected. Closes PRIORITIES.md P1 in full.
@@ -5511,7 +5531,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
-- 15,622 tests collected (fast suite; simulation integration ~8 min per run)
+- 15,550 tests (fast suite; simulation integration ~8 min per run)
+- Phase QR (2026-07-05): acquisition funnel wired into the live sim + all 3 evidence surfaces --
+  PROCESS_NOT_EVENTS.md's second of three (churn journey/QL, acquisition/here, debt-branch/next).
+  See Section 4.
 - Phase QQ (2026-07-05): closes PRIORITIES.md P1 in full -- Decision Event Ledger Part 4
   (counterfactual lift for every intervention class) + the 0.95-ceiling calibration fix -- see
   Section 4. 26 new tests.
