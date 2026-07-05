@@ -349,6 +349,8 @@ def git_commit_push(git_hash, net_margin):
     docs_state = PROJECT_DIR / "docs" / "state"
     if docs_state.exists():
         files.append(str(docs_state))
+    if DONE_DIR.exists():
+        files.append(str(DONE_DIR))
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )
@@ -534,10 +536,9 @@ def main(marker_path_str):
     if timed_out:
         log("WARNING: tests timed out — results unverified but committing")
 
-    log("Committing and pushing (net=\xa3{:,.0f})".format(net_margin))
-    if not git_commit_push(git_hash, net_margin):
-        log("Commit/push failed (possibly nothing changed)")
-
+    # Move the marker to done/ BEFORE committing so the archive itself lands in
+    # the same commit as the run it documents, instead of sitting untracked
+    # forever (observed: 7+ done/ markers never made it into any commit).
     DONE_DIR.mkdir(parents=True, exist_ok=True)
     try:
         marker.rename(DONE_DIR / marker.name)
@@ -547,6 +548,10 @@ def main(marker_path_str):
             log("{} already in done/ (processed concurrently)".format(marker.name))
         else:
             log("WARNING: {} vanished from staging and not in done/".format(marker.name))
+
+    log("Committing and pushing (net=\xa3{:,.0f})".format(net_margin))
+    if not git_commit_push(git_hash, net_margin):
+        log("Commit/push failed (possibly nothing changed)")
 
     # Keep agent_status.json financial metrics current (phase/tests preserved by phase-close)
     try:
