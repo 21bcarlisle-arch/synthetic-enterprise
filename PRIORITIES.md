@@ -202,13 +202,26 @@ content, 1 irritated, 0 in-market, 2 comparing) and (b) a stacked bar chart of s
 per year 2016-2025, visibly showing in_market appearing in the 2022 crisis year. Verified with
 a node harness executing the real data-transform functions against the live dashboard.json
 (no browser tool available in this session) plus `node --check` for syntax -- both clean.
+CONTINUED 2026-07-05 (Phase QU, same wave): shipped the remaining two of the four
+"distributions" dimension -- Satisfaction Score Distribution (5 bands, critical/poor/fair/
+good/excellent, stacked per year 2016-2025 from satisfaction_score_trajectory, already
+computed by the Phase QT accumulator fix) and Switching Propensity Distribution ("the
+Vulnerability Trap": each customer's income-stress trajectory point mapped through
+simulation/switching_propensity.py's fixed multiplier -- LOW x1.10, MODERATE x0.85, HIGH
+x0.65 -- no new SIM field, purely derived client-side from data the Income Stress chart
+already displays). All four distribution dimensions (income stress, payment score,
+satisfaction, switching propensity) are now live on the Customers sub-tab. Verified by
+reimplementing both binning functions in Python against the live site/data/customer_sample.json
+and confirming sane, crisis-consistent output (e.g. satisfaction "fair" band rises and "good"
+drops in 2021-2022; switching-propensity "high" count dips exactly in the 2022-2024 stress
+years) -- no node available in this session, `python3 -m tools.epistemic_verifier` PASS
+(no company/saas files touched, site/ is presentation-only). Epistemic verifier PASS.
 STILL OPEN for tab 1: event frequency panel (life events/bill shocks/complaints/switches/
 payment misses per year -- payment-miss per-year data does not currently exist as a time
 series, only a rolling aggregate, so that sub-item needs a data-model addition first),
-distributions for satisfaction/switching-propensity (income stress and payment score
-distributions already exist), correlation panels (income stress vs payment delay, satisfaction
-vs complaints, price vs in-market entry), per-customer trajectory sparklines + Customer 360
-links, both-sides-of-wall strip. Rich's eyes are the acceptance test -- awaiting visual review.
+correlation panels (income stress vs payment delay, satisfaction vs complaints, price vs
+in-market entry), per-customer trajectory sparklines + Customer 360 links, both-sides-of-wall
+strip. Rich's eyes are the acceptance test -- awaiting visual review.
 Tab 2 (Supplier: frozen-policy-baseline delta-EV) needs its own Tier 3 design note first
 (policy snapshot/replay is one-way-door-adjacent) -- do not start implementation before that
 review lands. Tab 3 (Project: learning ledger) assembles as 1/2 land.

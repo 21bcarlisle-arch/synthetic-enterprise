@@ -165,6 +165,16 @@
     <div class="chart-wrap"><canvas id="cust-stress-chart" height="220"></canvas></div>
     <div class="section-title">Payment Behaviour Score Distribution</div>
     <div class="chart-wrap"><canvas id="cust-pay-chart" height="200"></canvas></div>
+    <div class="section-title">Satisfaction Score Distribution Over Time</div>
+    <div class="chart-wrap"><canvas id="cust-sat-chart" height="220"></canvas></div>
+    <div class="section-title">Switching Propensity Distribution Over Time &mdash; the Vulnerability Trap</div>
+    <div class="narrative">
+      <strong>Financially stressed customers switch LESS, not more, even when unhappy</strong> (`simulation/switching_propensity.py`):
+      friction costs (deposits, direct debit setup, mental load) suppress switching harder for HIGH-stress households, while
+      LOW-stress customers have the bandwidth to shop around. Derived here from each customer's own income-stress trajectory
+      &mdash; no separate SIM field, the multiplier (LOW &times;1.10, MODERATE &times;0.85, HIGH &times;0.65) is a fixed function of stress.
+    </div>
+    <div class="chart-wrap"><canvas id="cust-propensity-chart" height="220"></canvas></div>
     <div class="section-title">Customer Journey Stages &mdash; the Behavioural Pulse</div>
     <div class="narrative">
       <strong>Journey state machine (Phase QL):</strong> every customer sits in one of four stages at any point &mdash;
@@ -304,6 +314,7 @@
     ]).then(function(results) {
       var d = results[0], dash = results[1];
       buildCustKpis(d); buildCustTable(d); buildStressChart(d); buildPayChart(d);
+      buildSatChart(d); buildPropensityChart(d);
       var journeyLog = (dash && dash.customers && dash.customers.journey_log) || [];
       buildJourneyKpis(journeyLog); buildJourneyStageChart(journeyLog);
       var cnt = Object.keys(d.customers || {}).length;
@@ -468,6 +479,84 @@
       options: {responsive:true, plugins:{legend:{display:false}},
         scales:{x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.4)'}},
                 y:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.4)'}}}}
+    });
+  }
+
+  var custSatChart = null, custPropensityChart = null;
+  var STRESS_PROPENSITY_MULTIPLIER = {LOW: 1.10, MODERATE: 0.85, HIGH: 0.65};
+  function buildSatChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var yearMap = {};
+    ids.forEach(function(id) {
+      (custs[id].satisfaction_score_trajectory || []).forEach(function(pt) {
+        var yr = String(pt.year);
+        if (!yearMap[yr]) yearMap[yr] = {critical:0, poor:0, fair:0, good:0, excellent:0};
+        var s = Number(pt.satisfaction_score);
+        if (s < 0.40) yearMap[yr].critical++;
+        else if (s < 0.55) yearMap[yr].poor++;
+        else if (s < 0.70) yearMap[yr].fair++;
+        else if (s < 0.85) yearMap[yr].good++;
+        else yearMap[yr].excellent++;
+      });
+    });
+    var years = Object.keys(yearMap).sort();
+    var ctx = document.getElementById('cust-sat-chart').getContext('2d');
+    if (custSatChart) custSatChart.destroy();
+    if (!years.length) return;
+    var bands = [
+      {key:'critical', label:'Critical (<40%)', color:'rgba(208,59,59,0.7)'},
+      {key:'poor', label:'Poor (40-55%)', color:'rgba(250,178,25,0.7)'},
+      {key:'fair', label:'Fair (55-70%)', color:'rgba(82,81,78,0.6)'},
+      {key:'good', label:'Good (70-85%)', color:'rgba(12,163,12,0.5)'},
+      {key:'excellent', label:'Excellent (85%+)', color:'rgba(12,163,12,0.7)'}
+    ];
+    custSatChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: bands.map(function(b) {
+          return {label:b.label, data:years.map(function(y){return yearMap[y][b.key]||0;}), backgroundColor:b.color, stack:'s'};
+        })
+      },
+      options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{x:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+                y:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}
+    });
+  }
+  function buildPropensityChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var yearMap = {};
+    ids.forEach(function(id) {
+      (custs[id].income_stress_trajectory || []).forEach(function(pt) {
+        var yr = String(pt.year);
+        var s = (pt.stress || 'low').toUpperCase();
+        var mult = STRESS_PROPENSITY_MULTIPLIER[s] || STRESS_PROPENSITY_MULTIPLIER.LOW;
+        if (!yearMap[yr]) yearMap[yr] = {sum:0, n:0, high:0, mid:0, low:0};
+        yearMap[yr].sum += mult; yearMap[yr].n++;
+        if (mult >= 1.0) yearMap[yr].high++;
+        else if (mult >= 0.80) yearMap[yr].mid++;
+        else yearMap[yr].low++;
+      });
+    });
+    var years = Object.keys(yearMap).sort();
+    var ctx = document.getElementById('cust-propensity-chart').getContext('2d');
+    if (custPropensityChart) custPropensityChart.destroy();
+    if (!years.length) return;
+    custPropensityChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: [
+          {label:'High propensity (LOW stress, x1.10)', data:years.map(function(y){return yearMap[y].high||0;}), backgroundColor:'rgba(42,120,214,0.7)', stack:'s'},
+          {label:'Moderate propensity (MODERATE stress, x0.85)', data:years.map(function(y){return yearMap[y].mid||0;}), backgroundColor:'rgba(250,178,25,0.6)', stack:'s'},
+          {label:'Low propensity (HIGH stress, x0.65)', data:years.map(function(y){return yearMap[y].low||0;}), backgroundColor:'rgba(208,59,59,0.6)', stack:'s'}
+        ]
+      },
+      options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{x:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+                y:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}
     });
   }
 
