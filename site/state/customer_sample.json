@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-07-05T10:17:06Z",
-    "git_commit": "1e9e529d",
+    "generated_at": "2026-07-05T10:30:41Z",
+    "git_commit": "4285283a",
     "customer_count": 21,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
   },
@@ -248,7 +248,28 @@
         }
       ],
       "life_event_history": [],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2016,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "EXCELLENT",
         "metrics": {
@@ -264,7 +285,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -851,7 +872,32 @@
           "event_type": "insulation_upgraded"
         }
       ],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "FAIR",
         "metrics": {
@@ -867,7 +913,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -1362,7 +1408,24 @@
           "event_type": "income_recovery"
         }
       ],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
@@ -1378,7 +1441,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -1829,7 +1892,40 @@
           "event_type": "insulation_upgraded"
         }
       ],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
@@ -1845,7 +1941,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -2370,7 +2466,36 @@
         }
       ],
       "life_event_history": [],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2016,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
@@ -2386,7 +2511,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -2807,7 +2932,40 @@
         }
       ],
       "life_event_history": [],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
@@ -2823,7 +2981,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -3221,7 +3379,44 @@
           "event_type": "new_baby"
         }
       ],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2016,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "FAIR",
         "metrics": {
@@ -3237,7 +3432,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -3575,7 +3770,44 @@
           "event_type": "retirement_starts"
         }
       ],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2025,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "FAIR",
         "metrics": {
@@ -3591,7 +3823,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -3893,7 +4125,40 @@
         }
       ],
       "life_event_history": [],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2017,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2018,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
@@ -3909,7 +4174,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -4166,7 +4431,36 @@
         }
       ],
       "life_event_history": [],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2018,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2019,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
@@ -4182,7 +4476,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -4418,7 +4712,32 @@
         }
       ],
       "life_event_history": [],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2019,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
@@ -4434,7 +4753,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
@@ -4706,7 +5025,28 @@
           "event_type": "insulation_upgraded"
         }
       ],
-      "satisfaction_score_trajectory": null,
+      "satisfaction_score_trajectory": [
+        {
+          "year": 2020,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2021,
+          "satisfaction_score": 0.65
+        },
+        {
+          "year": 2022,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2023,
+          "satisfaction_score": 0.7
+        },
+        {
+          "year": 2024,
+          "satisfaction_score": 0.7
+        }
+      ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
@@ -4722,7 +5062,7 @@
         "churn_accuracy": "complete",
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
-        "satisfaction_score_trajectory": "pending_sim_emission",
+        "satisfaction_score_trajectory": "complete",
         "payment_behaviour_analytics": "complete"
       }
     },
