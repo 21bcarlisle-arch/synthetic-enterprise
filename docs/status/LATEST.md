@@ -1,5 +1,5 @@
 ## Phase QQ COMPLETE -- Decision Loop Remaining Scope (Calibration Fix + Counterfactual Lift)
-Last updated: 2026-07-05T15:47:59Z
+Last updated: 2026-07-05T15:59:48Z
 
 **Status:** COMPLETE. 15,622 tests passed (fast suite). Epistemic: PASS.
 
@@ -18,7 +18,7 @@ acquisition funnel (second in its declared sequence, pre-approved via PREAPPROVE
 **Prior milestone:** Phase QP (Decision Event Ledger unification) -- docs/claude/phase-history.md.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (521s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (519s / 9 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
