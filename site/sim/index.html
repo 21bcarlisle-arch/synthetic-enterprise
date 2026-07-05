@@ -171,8 +171,21 @@
       <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
     </div>
     <div class="section-title">Monthly System Short % &mdash; 2016&ndash;2025</div>
+    <div class="narrative">
+      <strong>Short% and NIV, for outsiders:</strong> Elexon's Net Imbalance Volume (NIV) is the gap
+      between what generators said they'd produce and what the system actually needed each settlement
+      period; when NIV is negative the system is <strong>short</strong> &mdash; National Grid ESO had to
+      call on expensive backup generation to keep the lights on. Short % is the share of settlement
+      periods each month where the system was short. A high Short % month is a tight, expensive month
+      &mdash; the same tightness that shows up as a price spike on the Prices tab.
+    </div>
     <div class="chart-wrap"><canvas id="bm-short-chart" height="260"></canvas></div>
     <div class="section-title">Monthly SSP vs System Short % (2022 focus)</div>
+    <div class="narrative">
+      Red-shaded months are the same crisis window flagged on the Prices tab &mdash; one signal (price),
+      one demand-tightness proxy (Short %), same dates.
+      <a href="#" onclick="jumpToPricesTab();return false;" style="color:var(--blue);font-weight:600">View this window on the Prices tab &rarr;</a>
+    </div>
     <div class="chart-wrap"><canvas id="bm-price-short-chart" height="260"></canvas></div>
     <div class="section-title">Annual BM Summary</div>
     <div class="table-wrap">
@@ -298,6 +311,11 @@
     if (name === 'customers' && !customersLoaded) loadCustomers();
   }
   window.showTab = showTab;
+  function jumpToPricesTab() {
+    var btn = document.querySelector('.tab-btn[onclick*="\'prices\'"]');
+    if (btn) showTab('prices', btn);
+  }
+  window.jumpToPricesTab = jumpToPricesTab;
   function fmt(n, dp) {
     if (n == null || isNaN(n)) return '—';
     return Number(n).toLocaleString('en-GB', {minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0});
@@ -348,26 +366,30 @@
         }]
       },
       options: {responsive:true, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed.y.toFixed(1)+'%';}}}},
-        scales:{x:{ticks:{maxRotation:60,font:{size:9}},grid:{color:'rgba(225,224,217,0.4)'}},
+        scales:{x:{ticks:{color:'#52514e',maxTicksLimit:12,maxRotation:0},grid:{color:'rgba(225,224,217,0.4)'}},
                 y:{min:0,max:100,grid:{color:'rgba(225,224,217,0.4)'},ticks:{callback:function(v){return v+'%';}}}}}
     });
   }
   function buildBmPriceShortChart(bm) {
     if (bmPriceShortChart) bmPriceShortChart.destroy();
     var ctx = document.getElementById('bm-price-short-chart').getContext('2d');
+    var maxSsp = bm.reduce(function(mx,m){return Math.max(mx, m.mean_ssp||0);}, 0);
     bmPriceShortChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: bm.map(function(m){return m.month;}),
         datasets: [
-          {label:'SSP £/MWh', data:bm.map(function(m){return m.mean_ssp;}), backgroundColor:'rgba(42,120,214,0.5)', yAxisID:'y'},
-          {label:'Short %', data:bm.map(function(m){return m.short_pct;}), type:'line', borderColor:'rgba(208,59,59,0.9)', borderWidth:2, pointRadius:0, yAxisID:'y2', tension:0.3, fill:false}
+          {label:'Crisis Zone', data:bm.map(function(m){return m.is_crisis ? maxSsp*1.05 : null;}),
+           type:'line', fill:'origin', backgroundColor:'rgba(208,59,59,0.13)', borderColor:'transparent',
+           pointRadius:0, tension:0, spanGaps:false, order:3, yAxisID:'y'},
+          {label:'SSP £/MWh', data:bm.map(function(m){return m.mean_ssp;}), backgroundColor:'rgba(42,120,214,0.5)', yAxisID:'y', order:2},
+          {label:'Short %', data:bm.map(function(m){return m.short_pct;}), type:'line', borderColor:'rgba(208,59,59,0.9)', borderWidth:2, pointRadius:0, yAxisID:'y2', tension:0.3, fill:false, order:1}
         ]
       },
       options: {responsive:true,
         scales:{
-          x:{ticks:{maxRotation:60,font:{size:9}},grid:{color:'rgba(225,224,217,0.4)'}},
-          y:{position:'left',grid:{color:'rgba(225,224,217,0.4)'},ticks:{callback:function(v){return '£'+v;}}},
+          x:{ticks:{color:'#52514e',maxTicksLimit:12,maxRotation:0},grid:{color:'rgba(225,224,217,0.4)'}},
+          y:{position:'left',min:0,grid:{color:'rgba(225,224,217,0.4)'},ticks:{callback:function(v){return '£'+v;}}},
           y2:{position:'right',min:0,max:100,grid:{drawOnChartArea:false},ticks:{callback:function(v){return v+'%';}}}
         }
       }

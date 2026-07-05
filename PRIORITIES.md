@@ -235,6 +235,15 @@ price-chart overlay (HDD/Short%/Gas NBP), negative-price-hours/year chart, and a
 day progressive-disclosure drill-down on the annual table (daily rows built lazily, not pre-baked).
 8 new tests, 15,595 collected, epistemic PASS. Tab 1 (SIM tab) now has only items 2 (Weather physics
 chain), 3 (BM axis legibility), and 5 (consistency gate + light theme) remaining.
+CONTINUED 2026-07-05 (Phase QZ): item 2 (Weather -> Physics Chain) DONE -- band chart replaces
+spaghetti temp chart, new episode panel chains HDD -> price -> Short% for two named crisis
+episodes. 4 new tests, 15,591 collected, epistemic PASS. Tab 1 now has only items 3 (BM axis
+legibility) and 5 (consistency gate + light theme) remaining.
+CONTINUED 2026-07-05 (Phase RA): item 3 (BM axis legibility) DONE -- both BM charts' x-axis fixed
+to match the Prices/Weather convention, plain-language Short%/NIV explainer added, Crisis Zone
+band added to the SSP-vs-Short% chart matching the Prices tab's same window, real cross-tab link
+added. Presentation-only, no new tests, epistemic PASS. Tab 1 (SIM tab) now has only item 5
+(site-wide consistency gate + light theme) remaining -- the last item before Tab 1 is fully DONE.
 
 ## Backlog
 - SAAS_COVERAGE_MAP.md item 4 remainder: credit bureau feed into collections strategy

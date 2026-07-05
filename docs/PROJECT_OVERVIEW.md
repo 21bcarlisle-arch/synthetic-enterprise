@@ -111,6 +111,29 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RA -- SIM Tab: BM Settlement Axis Legibility + Crisis Link (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 3, WEBSITE_AS_SHOWCASE.md queue per PRIORITIES.md)
+Closes SIM_TAB_OVERHAUL.md item 3: "keep (it is the best tab); fix axis legibility; add an inline
+explainer expansion for short%/NIV for outsiders; link crisis periods to the price tab's same
+window." site/sim/index.html only (presentation, no company/saas/tools touched). Root cause of the
+illegibility: both BM charts (`bm-short-chart`, `bm-price-short-chart`) rendered 114 monthly x-axis
+labels with `maxRotation:60,font:{size:9}` -- the exact anti-pattern already fixed on the
+Prices/Weather tabs' charts (which use `maxTicksLimit:12,maxRotation:0`); both BM charts now match
+that convention. Added a static narrative block (matching the existing "Why weather matters"
+pattern, no popups per site design laws v4) explaining Elexon NIV and Short% in plain language for
+a reader unfamiliar with BM jargon. The SSP-vs-Short% chart gains a "Crisis Zone" background-fill
+dataset (same `rgba(208,59,59,0.13)` fill-origin technique as the Prices tab's monthly chart, keyed
+off the same `is_crisis` field already in `sim_data.json`'s `bm` array -- confirmed 24 crisis months,
+2021-01 through 2022-12, matching the Prices tab's window) so both tabs visually band the identical
+period, plus a "View this window on the Prices tab" link that calls the existing `showTab()`
+mechanism (`jumpToPricesTab()`, a real cross-tab jump, not a popup). Verified: script-block brace/
+paren/bracket balance confirmed zero (no `node` available in this sandbox this session -- Bash
+gated it behind an unresolvable approval prompt); `bm` array fields (`is_crisis`, `mean_ssp`,
+`short_pct`) confirmed present and populated against the live regenerated `site/data/sim_data.json`;
+`jumpToPricesTab()`'s selector confirmed to match the actual Prices tab button markup. No new tests
+(presentation-only JS, no test suite covers this file). Epistemic PASS. Remaining SIM_TAB_OVERHAUL.md
+scope: item 5 (site-wide consistency gate + light theme -- light theme substantially already in
+place from a prior pass).
+
 ### Phase QZ -- SIM Tab: Weather -> Physics Chain (2026-07-05, Tier 2 -- SIM_TAB_OVERHAUL.md item 2, WEBSITE_AS_SHOWCASE.md queue per PRIORITIES.md)
 Closes SIM_TAB_OVERHAUL.md item 2: "replace the 10-line spaghetti with a band chart (10yr range +
 this-year line + anomaly highlighting). Add the chain panel: cold snap -> HDD spike -> demand ->
@@ -5675,6 +5698,13 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
 - 15,591 tests (fast suite; simulation integration ~8 min per run)
+- Phase RA (2026-07-05): SIM tab BM Settlement axis legibility fix -- SIM_TAB_OVERHAUL.md item 3.
+  Both BM charts' x-axis switched from `maxRotation:60,font:{size:9}` to the `maxTicksLimit:12,
+  maxRotation:0` convention already used on Prices/Weather; added a plain-language Short%/NIV
+  explainer narrative; SSP-vs-Short% chart gains a Crisis Zone background band matching the Prices
+  tab's same `is_crisis` window (24 crisis months, 2021-01 to 2022-12) plus a real cross-tab
+  "View this window on the Prices tab" link. Presentation-only (site/sim/index.html), no new tests,
+  15,591 collected unchanged. Epistemic PASS. See Section 4.
 - Phase QZ (2026-07-05): SIM tab Weather -> Physics Chain rebuild -- SIM_TAB_OVERHAUL.md item 2.
   Spaghetti 10-line temp chart replaced with a 10yr min/max band + latest-year line + anomaly
   points (record-warm/record-cold); new composed episode panel (Beast from the East / Dec 2022)
