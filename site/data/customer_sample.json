@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-07-05T13:02:41Z",
-    "git_commit": "9d476621",
+    "generated_at": "2026-07-05T13:13:15Z",
+    "git_commit": "ba75996c",
     "customer_count": 21,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
   },
@@ -278,6 +278,8 @@
           "dd_fail_rate": 0.0
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -286,7 +288,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C1_2": {
@@ -472,6 +477,8 @@
       "life_event_history": null,
       "satisfaction_score_trajectory": null,
       "payment_behaviour_analytics": null,
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -480,7 +487,10 @@
         "income_stress_trajectory": "pending_sim_emission",
         "life_event_history": "pending_sim_emission",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "pending_sim_emission",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "pending_sim_emission",
+        "complaint_history": "not_simulated"
       }
     },
     "C1g": {
@@ -625,6 +635,8 @@
           "dd_fail_rate": 0.06666666666666667
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -633,7 +645,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C2": {
@@ -906,6 +921,8 @@
           "dd_fail_rate": 0.05555555555555555
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -914,7 +931,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C2_2": {
@@ -1059,6 +1079,8 @@
       "life_event_history": null,
       "satisfaction_score_trajectory": null,
       "payment_behaviour_analytics": null,
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1067,7 +1089,10 @@
         "income_stress_trajectory": "pending_sim_emission",
         "life_event_history": "pending_sim_emission",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "pending_sim_emission",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "pending_sim_emission",
+        "complaint_history": "not_simulated"
       }
     },
     "C2g": {
@@ -1233,6 +1258,8 @@
           "dd_fail_rate": 0.041666666666666664
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1241,7 +1268,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C3": {
@@ -1434,6 +1464,8 @@
           "dd_fail_rate": 0.041666666666666664
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1442,7 +1474,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C3g": {
@@ -1585,6 +1620,8 @@
           "dd_fail_rate": 0.0
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1593,7 +1630,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C4": {
@@ -1934,6 +1974,8 @@
           "dd_fail_rate": 0.020833333333333332
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1942,7 +1984,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C4g": {
@@ -2145,6 +2190,8 @@
           "dd_fail_rate": 0.07291666666666667
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -2153,7 +2200,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C5": {
@@ -2504,6 +2554,8 @@
           "dd_fail_rate": 0.011904761904761904
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -2512,7 +2564,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C5_2": {
@@ -2630,6 +2685,8 @@
       "life_event_history": null,
       "satisfaction_score_trajectory": null,
       "payment_behaviour_analytics": null,
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -2638,7 +2695,10 @@
         "income_stress_trajectory": "pending_sim_emission",
         "life_event_history": "pending_sim_emission",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "pending_sim_emission"
+        "payment_behaviour_analytics": "pending_sim_emission",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "pending_sim_emission",
+        "complaint_history": "not_simulated"
       }
     },
     "C6": {
@@ -2974,6 +3034,8 @@
           "dd_fail_rate": 0.03125
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -2982,7 +3044,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C7": {
@@ -3425,6 +3490,8 @@
           "dd_fail_rate": 0.09649122807017543
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -3433,7 +3500,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C8": {
@@ -3816,6 +3886,8 @@
           "dd_fail_rate": 0.036036036036036036
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -3824,7 +3896,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C9": {
@@ -4167,6 +4242,8 @@
           "dd_fail_rate": 0.018518518518518517
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -4175,7 +4252,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C_IC1": {
@@ -4469,6 +4549,8 @@
           "dd_fail_rate": 0.00980392156862745
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -4477,7 +4559,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C_IC2": {
@@ -4746,6 +4831,8 @@
           "dd_fail_rate": 0.011111111111111112
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -4754,7 +4841,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C_IC3": {
@@ -5055,6 +5145,8 @@
           "dd_fail_rate": 0.02564102564102564
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -5063,7 +5155,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "complete",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C_IC3g": {
@@ -5236,6 +5331,8 @@
           "dd_fail_rate": 0.07692307692307693
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -5244,7 +5341,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     },
     "C_IC4": {
@@ -5403,6 +5503,8 @@
           "dd_fail_rate": 0.030303030303030304
         }
       },
+      "payment_miss_trajectory": [],
+      "bill_shock_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -5411,7 +5513,10 @@
         "income_stress_trajectory": "complete",
         "life_event_history": "complete",
         "satisfaction_score_trajectory": "pending_sim_emission",
-        "payment_behaviour_analytics": "complete"
+        "payment_behaviour_analytics": "complete",
+        "payment_miss_trajectory": "pending_sim_emission",
+        "bill_shock_history": "complete",
+        "complaint_history": "not_simulated"
       }
     }
   }
