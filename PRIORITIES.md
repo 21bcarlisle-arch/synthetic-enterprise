@@ -1,7 +1,8 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-05 (Decision Event Ledger Part 5 DELIVERED via Phase QP. New P1:
-# the remaining scope of docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md -- Part 4 (counterfactual
-# lift for every intervention class) and the 0.95-ceiling false-positive calibration fix.)
+# Last refreshed: 2026-07-05 (Decision Event Ledger fully DELIVERED via Phases QP+QQ, all 5
+# parts done. New P1: PROCESS_NOT_EVENTS.md's acquisition funnel -- second in its declared
+# sequence (churn journey done via QL, acquisition funnel second, debt-branch third),
+# design note already reviewed and pre-approved via PREAPPROVE_PROCESS_MODEL.md.)
 
 ## COMPLETED
 - P1 (billing depth): Arrears states + dunning cycles + emergent bad debt -- DONE (Phase QD).
@@ -110,19 +111,29 @@ DELIVERED, not just listed. No further generator/scenario phases until P1 below 
   saas/reporting/annual_report.py::extract_report_data() -- had been silently empty in every
   production run since QL shipped. 17 new tests.
 
-## PRIORITY 1 -- DECISION EVENT LEDGER, REMAINING SCOPE (docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md)
-Staged, Tier 2. Parts 1-3 and Part 5 are now built (see COMPLETED above). Remaining scope:
-- Part 4, Counterfactual Lift: extend Phase NO's matched no-intervention counterfactual (currently
-  retention-only) to every intervention class, producing real lift-per-pound as the fitness function
-  Digital Darwinism operates on for policy comparison, not just individual model accuracy.
-- The 0.95-ceiling false-positive calibration fix, flagged since Phase QB and now directly visible
-  in the new ledger's C_IC1 case: IC_RATE_SENSITIVITY=1.5 (company/crm/churn_model.py) saturates the
-  linear churn-estimate formula at the MAX_CHURN_PROBABILITY=0.95 hard clamp for any sufficiently
-  large single-renewal rate rise, collapsing genuinely different underlying risk levels into an
-  indistinguishable 95% and sizing the retention discount accordingly -- a real calibration/economic
-  judgment call (lower the sensitivity? soften the clamp into a saturating curve? require sustained
-  multi-year signal before reaching the ceiling?) that needs its own test-suite-verified pass, not a
-  rendering change alongside the ledger work.
+## COMPLETED (cont. 3)
+- Decision Event Ledger Part 4 + 0.95-ceiling calibration fix: DONE (Phase QQ, 2026-07-05,
+  docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md, remaining scope). company/crm/churn_model.py:
+  hard clamp at MAX_CHURN_PROBABILITY replaced with an asymptotic saturating curve above
+  CHURN_SATURATION_ELBOW=0.90 (identity below it -- every previously-unclamped estimate
+  unchanged); genuinely different elevated risk levels (60% vs 150% I&C rate rise) now read
+  as distinguishable values instead of both collapsing to the same 95% ceiling -- the exact
+  C_IC1-class bug. company/analytics/counterfactual_retention.py: compute_counterfactual_lift_by_class()
+  classifies every no-offer churn as detection_gate (model problem) or uneconomical_{high,medium,low}
+  (economics problem), each scored under H3 (effectiveness scales 0.04 per discount point,
+  anchored so the medium tier reproduces the old flat 0.20 assumption); produces real
+  lift-per-pound per class, wired into the board's Counterfactual Retention & Threshold
+  Optimisation section. 26 new tests, 15,498 collected.
+
+## PRIORITY 1 -- PROCESS_NOT_EVENTS.md: ACQUISITION FUNNEL (second in declared sequence)
+Staged, Tier 2 (design note docs/design/PROCESS_MODEL.md already reviewed and pre-approved via
+docs/staging/done/PREAPPROVE_PROCESS_MODEL.md). Churn journey (first) shipped via Phase QL.
+Next: awareness -> consideration -> quote -> application -> credit check -> onboarding ->
+cooling-off, with stage-level leakage observable to the company and supplier levers per stage
+(price position, acquisition cost, onboarding friction) -- makes CAC real and gives the
+acquisition-aware retention guard a genuine funnel to price against. Debt-branch extension
+(engagement/avoidance behavioural split, generalizing QD's arrears pattern) is third; DCA-placement
+/ debt-sale stage (SAAS_COVERAGE_MAP.md item 3) can fold into the same debt-branch phase.
 
 ## Backlog
 - Further correlated-generator scenarios, extended stress suites, shadow-live index page

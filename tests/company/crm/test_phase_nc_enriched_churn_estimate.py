@@ -46,11 +46,16 @@ def test_high_rate_increase_dominates_over_excellent_payment():
 
 
 def test_all_three_signals_capped_at_095():
+    """Phase QP+1: the underlying rate estimate now asymptotically approaches the cap
+    (saturating curve, not a hard clamp -- see test_churn_model.py's calibration-fix
+    tests) rather than hitting it exactly, so this extreme combination reads as very
+    close to, but no longer bit-exact with, MAX_CHURN_PROBABILITY."""
     p = enriched_churn_estimate(50.0, 200.0, 0.5, 10000.0,
                                  bill_shock_count=10,
                                  behaviour_score=BehaviourScore.CRITICAL,
                                  satisfaction_score=0.20)
-    assert p == MAX_CHURN_PROBABILITY
+    assert p == pytest.approx(MAX_CHURN_PROBABILITY, abs=0.01)
+    assert p <= MAX_CHURN_PROBABILITY
 
 
 def test_max_is_taken_not_sum():

@@ -962,6 +962,7 @@ def main(report_end: str | None = None, sim_interface=None):
             company_est_pre = None
             retention_modifier_val = None
             _no_offer_reason = "below_threshold"
+            _would_be_discount_pct = None
             # Phase 33: active/passive renewal split. Default True until we know the rate.
             active_renewal = True
             passive_cap = None
@@ -1053,6 +1054,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
                     discount_pct = _retention_discount_for_risk(company_est_pre)
+                    _would_be_discount_pct = discount_pct
                     ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
                     # Phase 15b: include acquisition cost savings in the offer guard.
@@ -1152,6 +1154,7 @@ def main(report_end: str | None = None, sim_interface=None):
                             "company_churn_estimate": company_est_pre,
                             "expected_term_margin_gbp": (unit_rate - company_fwd) * eac_missed / 1000.0,
                             "no_offer_reason": _no_offer_reason,
+                            "would_be_discount_pct": _would_be_discount_pct,
                         })
                     churned_billing_accounts.add(billing_account)
                     print(

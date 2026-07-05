@@ -44,7 +44,9 @@ from saas.capital.bsc_credit import compute_bsc_credit_by_year
 from saas.capital.solvency import compute_solvency_by_year, compute_solvency_signal
 from company.finance import management_accounts as _ma
 from company.finance import budget as _budget
-from company.analytics.counterfactual_retention import compute_counterfactual_retention
+from company.analytics.counterfactual_retention import (
+    compute_counterfactual_retention, compute_counterfactual_lift_by_class,
+)
 from company.analytics.threshold_sensitivity import compute_threshold_sensitivity
 from company.risk.credit_risk_stress import build_credit_risk_stress, CRISIS_BAD_DEBT_MULTIPLIER
 from saas.reporting.margin_attribution import build_margin_bridge_series, dominant_driver
@@ -8483,6 +8485,30 @@ def _section_threshold_optimisation(data: dict) -> str:
         marker = " ← optimal" if abs(pt.threshold - ts.optimal_threshold) < 1e-9 else ""
         lines.append(f"| {pt.threshold:.0%} | {pt.recall:.3f} | {pt.precision:.3f} | {pt.f1:.3f}{marker} |")
     lines.append("")
+
+    lift = compute_counterfactual_lift_by_class(no_offer_log, customer_events)
+    if lift.by_class:
+        lines.append("### Lift-per-pound by intervention class (Part 4)")
+        lines.append("")
+        lines.append(
+            "Every no-offer churn is one of two different management problems: the "
+            "model never scored enough risk to consider an offer (detection gate), or "
+            "a tier discount was priced but the cost/benefit guard blocked it "
+            "(uneconomical). Each gets its own matched counterfactual under H3 "
+            "(effectiveness scales with discount size) -- this is the fitness function "
+            "Digital Darwinism compares policies on, not raw miss counts."
+        )
+        lines.append("")
+        lines.append("| Class | Misses | Assumed discount | Assumed effectiveness | Would retain | Net value | Lift/GBP |")
+        lines.append("|-------|--------|-------------------|------------------------|---------------|-----------|----------|")
+        for cls in lift.by_class:
+            lp = f"{cls.lift_per_pound:+.2f}" if cls.lift_per_pound is not None else "n/a"
+            lines.append(
+                f"| {cls.label} | {cls.miss_count} | {cls.assumed_discount_pct:.0%}"
+                f" | {cls.assumed_effectiveness:.0%} | {cls.would_have_been_retained_count}/{cls.miss_count}"
+                f" | £{cls.net_value_gbp:,.0f} | {lp} |"
+            )
+        lines.append("")
     return "\n".join(lines)
 
 def _section_fra_capital_ratio(data: dict) -> str:

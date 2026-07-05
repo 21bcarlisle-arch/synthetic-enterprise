@@ -111,6 +111,50 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase QQ -- Decision Loop Remaining Scope: Calibration Fix + Counterfactual Lift (2026-07-05)
+Tier 2 (PRIORITIES.md P1, docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md, remaining scope).
+26 new tests, 15,622 collected. Closes PRIORITIES.md P1 in full.
+
+Two independent fixes flagged as the residual scope after Phase QP shipped the ledger.
+
+**0.95-ceiling calibration fix.** company/crm/churn_model.py's estimate_churn_probability()
+hard-clamped every raw score above MAX_CHURN_PROBABILITY (0.95) to exactly that value.
+IC_RATE_SENSITIVITY=1.5 meant any I&C renewal with a rate rise above roughly 50% already
+saturated the clamp -- a 60% rise and a 150% rise both read as an indistinguishable 95%,
+which is exactly what happened in the C_IC1 flagship case (Phase QJ/QP): 95% company
+estimate, GBP139,477 EV of offering, against a SIM truth of 4%. Replaced the hard clamp
+with an asymptotic saturating curve: below CHURN_SATURATION_ELBOW=0.90 the function is
+pure identity (every previously-unclamped estimate is byte-for-byte unchanged -- this
+only touches the region that used to clamp); above it,
+p = ELBOW + (MAX-ELBOW) * (1 - exp(-(raw-ELBOW)/SCALE)), so genuinely different elevated
+risk levels stay distinguishable (a 60% I&C rise now reads ~0.924, a 150% rise ~0.950,
+rather than both at exactly 0.95) while only truly extreme spikes (300%+) still read as
+~0.95 in practice. Four pre-existing tests had encoded the old collapse-to-exact-cap
+behaviour as if it were correct (asserting `p == MAX_CHURN_PROBABILITY` for moderate-large
+rises); updated them to `pytest.approx` with an explanatory note, and added new tests
+proving monotonicity, non-collapse between distinguishable inputs, and that the ceiling is
+still never exceeded.
+
+**Part 4 -- counterfactual lift for every intervention class.** Phase NO's
+compute_counterfactual_retention() scored every no-offer churn with one flat
+retention-effectiveness assumption (0.20), blending together two different management
+problems: a churn estimate that never crossed RETENTION_THRESHOLD (no discount tier was
+ever computed -- a detection/model problem) and an estimate that did cross a tier but
+whose offer was blocked by the cost/benefit guard (an economics problem). New
+compute_counterfactual_lift_by_class() in company/analytics/counterfactual_retention.py
+classifies every miss into detection_gate or uneconomical_{high,medium,low} using the
+no_offer_reason simulation/run_phase2b.py already recorded (plus a new would_be_discount_pct
+field forwarded for "uneconomical" misses -- the tier discount that was actually computed
+and rejected), then scores each class under H3, a named hypothesis: retention-offer
+effectiveness scales 0.04 per percentage point of discount, anchored so the pre-existing
+5% "medium" tier reproduces the original flat 0.20 assumption exactly unchanged. Produces
+a real lift-per-pound per class -- pounds of net portfolio value per pound of offer spend
+-- the fitness function Digital Darwinism compares retention policies on, not raw miss
+counts. Wired into the existing "Counterfactual Retention & Threshold Optimisation" board
+section as a new "Lift-per-pound by intervention class" table. Epistemic: PASS (both
+changes classify/score using only company-observable fields already flowing through the
+existing no-offer log; no new SIM-internal reads).
+
 ### Phase QP -- Decision Event Ledger (2026-07-05)
 Tier 2 (PRIORITIES.md P1, docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md Part 5).
 18 new tests, 15,596 collected.
@@ -5467,7 +5511,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 358+ Python modules (company layer + tools), ~55,500 lines total
 - 500+ git commits
-- 15,595 tests collected (fast suite; simulation integration ~8 min per run)
+- 15,622 tests collected (fast suite; simulation integration ~8 min per run)
+- Phase QQ (2026-07-05): closes PRIORITIES.md P1 in full -- Decision Event Ledger Part 4
+  (counterfactual lift for every intervention class) + the 0.95-ceiling calibration fix -- see
+  Section 4. 26 new tests.
 - Phase QP (2026-07-05): Decision Event Ledger (PRIORITIES.md P1, docs/staging/DECISION_LOOP_AND_EVENT_LEDGER.md
   Part 5) -- new company/analytics/decision_event_ledger.py merges retention decisions, renewal
   outcomes, churn-journey states, and arrears cascades (previously four independent per-topic case

@@ -62,9 +62,13 @@ def test_crisis_rate_spike_approaches_max():
 
 
 def test_extreme_rate_spike_clamps_to_max():
-    """Probability is clamped to MAX_CHURN_PROBABILITY regardless of rate spike."""
+    """A truly extreme spike (900% increase) still asymptotically approaches
+    MAX_CHURN_PROBABILITY (Phase QP+1: saturating curve, not a hard clamp -- see
+    test_moderate_ic_rate_rises_stay_distinguishable_below_cap for why the clamp
+    was replaced)."""
     p = estimate_churn_probability(100.0, 1000.0, tenure_years=0.0)
-    assert p == MAX_CHURN_PROBABILITY
+    assert p == pytest.approx(MAX_CHURN_PROBABILITY)
+    assert p <= MAX_CHURN_PROBABILITY
 
 
 def test_probability_never_below_zero():
@@ -148,7 +152,8 @@ def test_small_resi_unaffected_by_bill_burden_in_normal_years():
 def test_bill_stress_caps_at_max_churn_probability():
     """Extreme bill burden doesn't push probability above MAX_CHURN_PROBABILITY."""
     p = estimate_churn_probability(1000.0, 1000.0, tenure_years=0.0, annual_consumption_kwh=100000.0)
-    assert p == MAX_CHURN_PROBABILITY
+    assert p == pytest.approx(MAX_CHURN_PROBABILITY)
+    assert p <= MAX_CHURN_PROBABILITY
 
 
 # ── Gas fuel tests (Phase 14b) ───────────────────────────────────────────────
@@ -241,11 +246,14 @@ def test_hedge_does_not_reduce_below_zero():
 
 
 def test_hedge_crisis_scenario_reduces_estimate():
-    """Crisis year: 160% rate increase — no-hedge hits cap, well-hedged customer stays below cap."""
-    # old=£50, new=£130 (+160%): no-hedge → capped at 0.95; hf=0.95 → stays below cap
+    """Crisis year: 160% rate increase — no-hedge sits high in the saturating zone,
+    well-hedged customer stays clearly lower (Phase QP+1: no longer both indistinguishably
+    capped at exactly 0.95 -- that collapse was the calibration bug being fixed)."""
+    # old=£50, new=£130 (+160%): no-hedge → high, near-saturated; hf=0.95 → clearly lower
     p = estimate_churn_probability(50.0, 130.0, tenure_years=3.0, hedge_fraction=0.95)
     p_no_hedge = estimate_churn_probability(50.0, 130.0, tenure_years=3.0, hedge_fraction=0.0)
-    assert p_no_hedge == pytest.approx(MAX_CHURN_PROBABILITY)   # capped
+    assert p_no_hedge > 0.90   # still clearly elevated
+    assert p_no_hedge < MAX_CHURN_PROBABILITY   # no longer hard-clamped
     assert p < MAX_CHURN_PROBABILITY   # hedge keeps it below cap
     assert p < p_no_hedge   # strictly lower
 
@@ -429,6 +437,51 @@ def test_is_active_renewal_non_crisis_probabilistic():
     active_count = sum(1 for s in seeds if is_active_renewal("2020-01-01", s))
     # Should be roughly 200 * 0.35 ± noise; accept a wide band [30, 100]
     assert 30 <= active_count <= 100
+
+
+# --- Phase QP+1: 0.95-ceiling calibration fix (PRIORITIES.md P1, flagged since Phase QB) ---
+# The C_IC1 case in the Decision Event Ledger (Phase QP) showed a 95% company estimate
+# sizing a real retention discount against a SIM truth of 4% -- and PRIORITIES.md flagged
+# that IC_RATE_SENSITIVITY=1.5 meant *any* sufficiently large single-renewal I&C rate rise
+# saturated the hard clamp, collapsing genuinely different risk levels into an
+# indistinguishable 95%. These tests lock in the fix: below CHURN_SATURATION_ELBOW nothing
+# changes; above it, a saturating curve keeps realistic crisis-era rises distinguishable.
+
+def test_below_elbow_behaviour_is_byte_for_byte_unchanged():
+    """Every pre-existing non-capped test in this file already proves this, but assert
+    the elbow constant explicitly so a future change to it is caught here first."""
+    from company.crm.churn_model import CHURN_SATURATION_ELBOW
+    assert CHURN_SATURATION_ELBOW == pytest.approx(0.90)
+    # A raw score exactly at the elbow must pass through unchanged.
+    p = estimate_churn_probability(100.0, 100.0 * 1.775, tenure_years=0.0)  # 0.10+0.8*0.775=0.72
+    assert p < CHURN_SATURATION_ELBOW
+
+
+def test_moderate_ic_rate_rises_stay_distinguishable_below_cap():
+    """Two different I&C crisis-era rate rises (60% vs 150%) must no longer both
+    collapse to the same 95% -- this is the exact calibration bug the fix closes."""
+    p_60pct = estimate_churn_probability(100.0, 160.0, tenure_years=0.0, segment="I&C")
+    p_150pct = estimate_churn_probability(100.0, 250.0, tenure_years=0.0, segment="I&C")
+    assert p_60pct < MAX_CHURN_PROBABILITY
+    assert p_150pct < MAX_CHURN_PROBABILITY
+    assert p_60pct < p_150pct, "higher rate rise must still read as higher risk"
+    assert p_150pct - p_60pct > 0.001, "must be genuinely distinguishable, not both ~= cap"
+
+
+def test_saturation_still_monotonic_increasing():
+    """The saturating curve must never make a larger raw score map to a smaller
+    probability -- monotonicity is the property that keeps ordering meaningful."""
+    prev = 0.0
+    for new_rate in (100.0, 150.0, 200.0, 300.0, 500.0, 1000.0, 5000.0):
+        p = estimate_churn_probability(100.0, new_rate, tenure_years=0.0, segment="I&C")
+        assert p >= prev
+        prev = p
+
+
+def test_saturation_never_exceeds_ceiling():
+    """No input, however extreme, pushes the estimate above MAX_CHURN_PROBABILITY."""
+    p = estimate_churn_probability(1.0, 1_000_000.0, tenure_years=0.0, segment="I&C")
+    assert p <= MAX_CHURN_PROBABILITY
 
 
 def test_is_active_renewal_deterministic():

@@ -42,6 +42,8 @@ The bill burden term captures what the rate-change-only model misses:
 """
 from __future__ import annotations
 
+import math
+
 from company.crm.market_conditions import market_conditions_multiplier
 
 BASE_CHURN_RATE = 0.10
@@ -54,6 +56,17 @@ BILL_STRESS_SENSITIVITY = 0.25
 BILL_STRESS_THRESHOLD_GBP = 3000.0
 HEDGE_SENSITIVITY_REDUCTION = 0.4
 MAX_CHURN_PROBABILITY = 0.95
+# Phase QP+1 (0.95-ceiling calibration fix, PRIORITIES.md P1, flagged since Phase QB):
+# a hard clamp at MAX_CHURN_PROBABILITY collapsed every sufficiently large single-renewal
+# rate rise into an indistinguishable 95% -- most visibly in the Decision Event Ledger's
+# C_IC1 case (Phase QP), where a 95% company estimate sized a real retention discount
+# against a SIM truth of 4%. Above CHURN_SATURATION_ELBOW the raw linear score is passed
+# through an asymptotic curve instead of a hard clamp, so genuinely different elevated
+# risk levels (e.g. a 50% vs a 150% I&C rate rise) stay distinguishable below the ceiling;
+# only truly extreme spikes (300%+) still read as ~95%. Below the elbow, behaviour is
+# byte-for-byte unchanged (identity) -- this only touches the region that used to clamp.
+CHURN_SATURATION_ELBOW = 0.90
+CHURN_SATURATION_SCALE = 0.30
 # Phase 27e: I&C-specific churn constants.
 # I&C customers shop via brokers at every renewal — base churn is higher and
 # rate sensitivity is stronger than residential/SME. Tenure loyalty is lower
@@ -86,6 +99,20 @@ PASSIVE_RATE_SENSITIVITY = 0.1      # rate changes don't drive passive customers
 PASSIVE_CHURN_CAP = 0.10            # SIM ground-truth cap for passive churn rolls
 # Crisis years (2022 in UK): no fixed deals available — ALL renewals are forced passive.
 CRISIS_PASSIVE_YEARS = frozenset({"2022"})
+
+
+def _saturate_churn_probability(raw: float) -> float:
+    """Asymptotically approach MAX_CHURN_PROBABILITY above CHURN_SATURATION_ELBOW instead
+    of hard-clamping. Identity below the elbow -- unchanged behaviour for every estimate
+    that was not previously being clamped."""
+    if raw <= 0.0:
+        return 0.0
+    if raw <= CHURN_SATURATION_ELBOW:
+        return raw
+    x = (raw - CHURN_SATURATION_ELBOW) / CHURN_SATURATION_SCALE
+    headroom = MAX_CHURN_PROBABILITY - CHURN_SATURATION_ELBOW
+    saturated = CHURN_SATURATION_ELBOW + headroom * (1.0 - math.exp(-x))
+    return min(MAX_CHURN_PROBABILITY, saturated)
 
 
 def is_active_renewal(term_start_str: str, seed: str) -> bool:
@@ -198,4 +225,4 @@ def estimate_churn_probability(
 
     hangover_uplift = CRISIS_HANGOVER_BASE_UPLIFT if hangover_periods_remaining > 0 else 0.0
     p = base_rate + effective_rate_sensitivity * rate_increase_pct - tenure_discount + bill_stress + hangover_uplift
-    return max(0.0, min(MAX_CHURN_PROBABILITY, p))
+    return _saturate_churn_probability(p)
