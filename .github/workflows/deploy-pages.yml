@@ -14,7 +14,7 @@ jobs:
       contents: read
       deployments: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Deploy site/ to Cloudflare Pages
         run: npx wrangler pages deploy site --project-name=poesys-net --commit-dirty=true
