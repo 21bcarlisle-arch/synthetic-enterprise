@@ -55,6 +55,18 @@ ARREARS_BENCHMARK_CRISIS_HI = 12.0
 ARREARS_AMBER_HI = 15.0
 ARREARS_AMBER_CRISIS_HI = 18.0
 _CRISIS_YEARS = {2021, 2022, 2023}
+
+# Acquisition funnel win-rate benchmarks (mid-funnel anchored: attempt = quote
+# already issued, not top-of-funnel awareness -- see
+# docs/market_research/findings/acquisition_funnel_benchmarks.md). GREEN is
+# the defensible compounded range from real UK stage-conversion data; AMBER
+# is a 5-point buffer either side of it; RED is anything further out.
+ACQUISITION_FUNNEL_GREEN_RANGE = {
+    "resi": (15.0, 20.0),
+    "SME": (15.0, 21.0),
+}
+ACQUISITION_FUNNEL_AMBER_MARGIN = 5.0
+_ACQUISITION_FUNNEL_DEFAULT_GREEN_RANGE = (15.0, 20.0)
 def _churn_by_year(customer_events: list) -> dict:
     """Compute SIM churn rate by year from customer_events list."""
     by_year = {}
@@ -223,6 +235,55 @@ def _arrears_check_by_year(billing_ledger_data: dict, years_data: dict) -> list:
             "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG",
         })
     return findings
+def _acquisition_funnel_check(log: list | None) -> list:
+    """Check acquisition-funnel win rate per (segment, year) vs the mid-funnel
+    UK benchmark ranges (docs/market_research/findings/acquisition_funnel_benchmarks.md).
+
+    `log` is a list of {"segment", "term_start" ("YYYY-MM-DD"), "won": bool}
+    entries, one per acquisition attempt. Returns one finding per segment/year
+    combination present in the log, empty list if `log` is empty or None.
+    """
+    if not log:
+        return []
+
+    by_key: dict[tuple[str, int], list[bool]] = {}
+    for entry in log:
+        segment = entry.get("segment", "resi")
+        term_start = entry.get("term_start", "")
+        try:
+            year = int(term_start[:4])
+        except (ValueError, TypeError):
+            continue
+        by_key.setdefault((segment, year), []).append(bool(entry.get("won")))
+
+    findings = []
+    for (segment, year), wins in sorted(by_key.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+        n_attempts = len(wins)
+        n_wins = sum(wins)
+        win_rate_pct = round(n_wins / n_attempts * 100, 1) if n_attempts > 0 else 0.0
+        green_lo, green_hi = ACQUISITION_FUNNEL_GREEN_RANGE.get(
+            segment, _ACQUISITION_FUNNEL_DEFAULT_GREEN_RANGE
+        )
+        amber_lo = green_lo - ACQUISITION_FUNNEL_AMBER_MARGIN
+        amber_hi = green_hi + ACQUISITION_FUNNEL_AMBER_MARGIN
+        if green_lo <= win_rate_pct <= green_hi:
+            rag = "GREEN"
+        elif amber_lo <= win_rate_pct <= amber_hi:
+            rag = "AMBER"
+        else:
+            rag = "RED"
+        findings.append({
+            "segment": segment,
+            "year": year,
+            "attempts": n_attempts,
+            "wins": n_wins,
+            "win_rate_pct": win_rate_pct,
+            "benchmark_green_range_pct": [green_lo, green_hi],
+            "rag": rag,
+        })
+    return findings
+
+
 def _long_run_comparison(churn_by_year: dict) -> dict:
     """Compare SIM average churn (2016-2025) vs Ofgem average switching rate.
 
