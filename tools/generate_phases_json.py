@@ -17,6 +17,7 @@ range or a split phase counts once, not per sub-phase -- a known
 simplification, not an attempt at precise historical phase numbering.
 """
 import re
+import subprocess
 import sys
 import json
 from pathlib import Path as _P
@@ -24,6 +25,19 @@ from pathlib import Path as _P
 PROJECT = _P(__file__).resolve().parent.parent
 PROJECT_OVERVIEW = PROJECT / "docs" / "PROJECT_OVERVIEW.md"
 OUT_PATH = PROJECT / "site" / "data" / "phases.json"
+
+
+def _total_commits():
+    try:
+        out = subprocess.run(
+            ["git", "rev-list", "--count", "HEAD"],
+            cwd=str(PROJECT), capture_output=True, text=True, timeout=10,
+        )
+        if out.returncode == 0:
+            return int(out.stdout.strip())
+    except Exception:
+        pass
+    return None
 
 sys.path.insert(0, str(PROJECT))
 from tools.generate_project_state import _parse_phase_and_tests  # noqa: E402
@@ -107,6 +121,7 @@ def generate():
         start_date=start_date,
         test_progression=test_progression,
         phase_dates=phase_dates,
+        total_commits=_total_commits(),
     )
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))

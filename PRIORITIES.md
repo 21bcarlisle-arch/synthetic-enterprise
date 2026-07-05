@@ -1,17 +1,21 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-06 (Phase RE: WEBSITE_AS_SHOWCASE.md Part 0 CLOSED -- recovered an
-# interrupted prior session's uncommitted rewrite of tools/generate_shadow_html.py, confirmed all
-# four site/shadow/ + docs/shadow/ pages now carry the light v4 design system (no dark
-# terminal-monospace remnants), committed the generator source that the already-live output
-# depended on. Also recovered tools/generate_customer_consumption.py (CUSTOMER_360_REDESIGN.md
-# item 1, data layer only -- no frontend USAGE viz yet).
-# Front of queue now: PROJECT_TAB_OVERHAUL.md's remaining scope (R-D light-theme/visual polish on
-# Company/Regulatory/Capabilities, phases-per-day chart cosmetics beyond the Phase RD data fix,
-# Company/Overview dedup) and SUPPLIER_TAB_OVERHAUL.md (11-tabs-to-grouped-nav IA rework) -- both
-# already queued alongside Part 0 per the original wave. CUSTOMER_360_REDESIGN.md (items 2-4 plus
-# item 1's frontend rendering), NAV_STORY_PLATFORM_METHOD.md remain queued behind. FEEDBACK_AND_
-# REPUTATION.md and NUDGE_PHYSICS.md are explicitly queued behind this wave per their own staged
-# text -- do not jump them ahead of it.)
+# Last refreshed: 2026-07-05 (Phase RF: PROJECT_TAB_OVERHAUL.md's named remaining-scope items
+# CLOSED -- Company/Overview About dedup (Company tab repurposed as "How It Is Built": governance
+# tiers, staging protocol, R1-R6), Regulatory's 12 scheme rows made click-to-expand inline, and
+# phases-per-day chart given its own Chart.js options (was wrongly sharing the line chart's
+# maxTicksLimit:5). Found + fixed en route: Capabilities/Roadmap cards' hand-written stale stats
+# now generate from dashboard.json build.* + a new live phases.json total_commits field; this
+# surfaced docs/observability/build_info.json itself 5 phases stale since QP -- corrected.
+# NOT done: a real Capabilities register (cards still static prose, not per-card generated from a
+# register), Timeline auto-append from build history, System-tab elevation, and Regulatory
+# board-pack deep-links (ANNUAL_REPORT.md has no HTML anchors to link to under GitHub Pages
+# .nojekyll) -- all remain PROJECT_TAB_OVERHAUL.md backlog.
+# Front of queue now: SUPPLIER_TAB_OVERHAUL.md (11-tabs-to-grouped-nav IA rework, already queued
+# alongside PROJECT_TAB_OVERHAUL.md per the original wave) and PROJECT_TAB_OVERHAUL.md's remaining
+# items above. CUSTOMER_360_REDESIGN.md (items 2-4 plus item 1's frontend rendering),
+# NAV_STORY_PLATFORM_METHOD.md remain queued behind. FEEDBACK_AND_REPUTATION.md and
+# NUDGE_PHYSICS.md are explicitly queued behind this wave per their own staged text -- do not
+# jump them ahead of it.)
 
 ## COMPLETED
 - P1 (process model, acquisition funnel): PROCESS_NOT_EVENTS.md's quote->application->

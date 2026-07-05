@@ -7,7 +7,7 @@ phases on, PROJECT_TAB_OVERHAUL.md critique). These tests exercise the
 Section-4 header parser and the date-dedup/sort behaviour that fixes the
 Project tab's duplicate-x-axis-label chart bug.
 """
-from tools.generate_phases_json import _parse_build_history, _extract_test_count
+from tools.generate_phases_json import _parse_build_history, _extract_test_count, _total_commits
 
 
 def test_parses_phase_id_and_date_from_header():
@@ -53,3 +53,9 @@ def test_extract_test_count_returns_none_when_unparseable():
 
 def test_extract_test_count_handles_tests_passing_phrasing():
     assert _extract_test_count("182 tests passing in the suite") == 182
+
+
+def test_total_commits_returns_positive_int_from_real_repo():
+    count = _total_commits()
+    assert isinstance(count, int)
+    assert count > 0

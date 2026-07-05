@@ -111,6 +111,19 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RF -- Project Tab: Company/Overview Dedup, Regulatory Inline-Expand, Chart Cosmetics (2026-07-05, Tier 2 -- PRIORITIES.md front-of-queue, PROJECT_TAB_OVERHAUL.md remaining scope)
+Closes the three items PRIORITIES.md named as front-of-queue remainder from PROJECT_TAB_OVERHAUL.md (not the full staged instruction -- Timeline auto-append, a real Capabilities register, and System-tab elevation remain open, see PRIORITIES.md).
+
+Found and fixed a live R-A violation while wiring this: the Capabilities-tab intro and Overview Roadmap card carried hand-written stats ("748+ phases, 15,148 tests, 490+ commits" / "330+ modules... 490+ commits") that had gone stale several phases back. Both now render from generated sources only: site/data/dashboard.json's `build.test_count`/`build.company_modules` (already computed per-run, previously unused on this page) plus a new `total_commits` field in site/data/phases.json (tools/generate_phases_json.py now shells `git rev-list --count HEAD`). Diagnosing the staleness surfaced a second, deeper bug: docs/observability/build_info.json -- the manually-maintained canonical source these dashboard fields read, updated at phase close per the checklist -- had been left at Phase QP (test_count 15,595, company_modules 449) since 2026-07-05T02:54Z despite five phases (QQ-RE) closing since without that step being done. Corrected to phase RE / test_count 15,740 / company_modules 420 (real `company/*.py` count, non-test files).
+
+Company tab de-duplicated against Overview (critique finding #8: both carried the identical "Poesys is a high-fidelity..." About paragraph) -- replaced with a "How It Is Built" section: the three-role governance model, the Tier 1/2/3 approval classification, and the R1-R6 permanent rules from the verification-week retrospective, with a pointer to docs/retrospectives/2026-07-04-verification-week.md. Core Design Principles and Infrastructure sections kept as-is (not duplicated elsewhere).
+
+Regulatory tab: all 12 scheme rows are now click-to-expand (Design Laws v4's "progressive disclosure inline, no popups") -- each reveals a short legal-basis note (no new numbers; existing rate figures in the row are untouched) instead of requiring the separate Key Regulatory Findings grid to be scanned for context. Board-pack deep-links (tab direction #5) are NOT done -- docs/reports/ANNUAL_REPORT.md is served as raw markdown via GitHub Pages `.nojekyll`, with no HTML anchors to link to; would need a real HTML conversion to be honest, out of scope here.
+
+Phases-per-day chart: was silently sharing the test-progression line chart's Chart.js options object, including `maxTicksLimit:5` -- wrong for a ~13-category bar chart, hiding most date labels (part of the critique's "duplicate x-axis labels" complaint). Given its own options: `autoSkip:false` with rotated labels so every day shows, plus a per-bar tooltip ("N phases shipped"). The single 164-phase day (2026-06-26) is real data (confirmed against site/data/phases.json), not a rendering bug -- left unannotated as that would be a fabricated claim about *why* it's high.
+
+Verified via a Node harness executing the real page JS (eval'd from the committed HTML, DOM/Chart.js/fetch stubbed) against live dashboard.json/phases.json -- cap-stat/rm-stat render correct generated text; regulatory table tag-balance checked (25 `<tr>` open/close, matching). No node/browser tool blocked this session (unlike Phase RA). 1 new test (`_total_commits` returns a positive int from the real repo), 15,740 collected, fast suite 14,478 passed, epistemic PASS.
+
 ### Phase RE -- Shadow Mirror v4 Light Theme (WEBSITE_AS_SHOWCASE.md Part 0 CLOSED) + Consumption Data Layer (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue)
 Found, uncommitted in the working tree at session start: a prior interrupted session had already rewritten tools/generate_shadow_html.py's CSS/nav/page-wrapper to match site/sim/index.html's light v4 design tokens (`:root` custom properties, `.site-nav`, `.kpi-card`, `.rag-chip`) in place of the old dark "advisor-verification" monospace palette -- and a live sim run in between had already regenerated and committed the resulting light-themed HTML for all four site/shadow/ and docs/shadow/ pages (index, customers, supplier, project). The generator source itself, however, was never committed, so the repo was in a state where the committed *output* depended on uncommitted *code* -- a silent R-A/reproducibility gap (a clean checkout would regenerate the old dark theme). Verified the change was complete (no `#1a1a1a`/`#2a2a4a` old-palette colors remained anywhere in the file) and correct (existing + one new guard test `test_shadow_page_uses_v4_light_design_system` both pass), then committed the generator + test. Confirmed live in both site/shadow/ and docs/shadow/ committed HTML (`--bg:#f9f9f7` and `site-nav` present, no `#1a1a1a`, all 4 pages both mirrors) -- WEBSITE_AS_SHOWCASE.md Part 0 is CLOSED. No external fetch available this session (network tool calls gated behind an unresolvable approval prompt, consistent with Phase RA's precedent) -- verified via local committed-artifact inspection instead.
 
@@ -5740,8 +5753,12 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
-- 500+ git commits
-- 15,739 tests collected; 14,477 fast suite (pytest -m "not slow" --ignore=tests/simulation)
+- 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
+- 15,740 tests collected; 14,478 fast suite (pytest -m "not slow" --ignore=tests/simulation)
+- Phase RF (2026-07-05): Project tab Company/Overview dedup, Regulatory inline-expand, phases-per-day
+  chart cosmetics, and a stale-stats consistency fix (Capabilities/Roadmap hand-written numbers now
+  generated; docs/observability/build_info.json corrected from a 5-phases-stale QP snapshot). 1 new
+  test, 15,740 collected, fast suite 14,478 passed, epistemic PASS. See Section 4.
 - Phase RE (2026-07-06): recovered two interrupted work-streams found uncommitted in the working
   tree -- tools/generate_shadow_html.py's dark-to-light v4 theme rewrite (WEBSITE_AS_SHOWCASE.md
   Part 0, now CLOSED: all four site/shadow/ + docs/shadow/ pages confirmed light-themed in
