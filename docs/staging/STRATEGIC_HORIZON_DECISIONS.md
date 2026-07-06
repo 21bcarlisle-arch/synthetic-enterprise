@@ -1,0 +1,14 @@
+[PROJECT] STRATEGIC HORIZON -- director decisions recorded (6 Jul 2026). This is DIRECTION for the next weekly re-rank, NOT a queue-jump: P2 (CTS reconciliation, frozen-policy baseline, feedback/reputation, nudges, coverage map) completes first, gated on Rich's P1 visual confirmation as already agreed.
+
+THE DECIDED SEQUENCE (Decision 1, amended by Rich):
+S1. PROOF FIRST -- shadow-live track record. QE's immutable daily decision log + PV's swappable adapter are the plumbing; remaining work: live/near-live feed behind the adapter, daily pre-registered decisions (hedge fraction, renewal pricing, retention EVs), predicted-vs-realised scorecard. START THE CLOCK EARLY: track-record length cannot be bought later.
+S2. DEPTH BEFORE SCALE (Rich's amendment): customer physics + psychology depth -- feedback/reputation, nudge physics, richer life-event dynamics, behavioural fidelity -- BEFORE population scale-up. Better to scale a deep human model than multiply a shallow one.
+S3. THEN SCALE (295 -> thousands of lives; performance engineering; creates data-product inventory), THEN market-flows choreography (CoS 48-message process, objections, erroneous transfers, MHHS scenario).
+S4. PRODUCTS: CASEBOOK FIRST (Decision 3) -- the Method as product, chapters largely already written (verification week, send-keys elimination, the security standoff, the retro library); DATASET SECOND, landing when depth-then-scale gives it premium inventory with calibration provenance.
+S5. GO-LIVE PATH: analysis only for now -- advisor drafts the routes memo (licence vs licence-lite vs white-label; boundary adapters per route; capital trigger). One-way-door map, no build.
+
+DECISION 2: TRACK RECORD IS PUBLIC FROM DAY ONE. Contemporaneous publication on the site, misses included -- kills selection-bias objections, consistent with the project's radical-honesty identity (0% recall displayed without flinching). Early misses are content: the learning curve is the Digital Darwinism story.
+
+COMMERCIAL MODEL HYPOTHESIS (Rich, 6 Jul) -- LATENCY-AND-FIDELITY TIERED ACCESS: sell graduated proximity to the observable enterprise, market-data style. Free = public site, scorecard, casebook excerpts (delayed summaries; the marketing engine). Delayed-detailed tier = retro library, digests, dataset samples, lagged decision logs. Live-detailed tier = real-time decision stream with EVs, full data lake, code access, harness in motion. Partner tier = co-exploration, custom scenario runs. Token/credit metering on top for consumption (scenario runs, dataset pulls, queries). The observability layer IS the product; Decision 2's public scorecard is the free tier that proves the paid tiers are real. Fold this framing into the casebook product design and the Platform/Method sections when S4 opens.
+
+For CC now: NOTHING changes in the active queue. At the next weekly re-rank, PRIORITIES.md adopts S1-S5 as the post-P2 ordering. Advisor owns the go-live routes memo.
