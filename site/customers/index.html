@@ -74,6 +74,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 .bill-kpi { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
 .bill-kv { font-size: 16px; font-weight: 700; margin-top: 2px; }
 .no-inv { color: var(--muted); font-size: 13px; font-style: italic; padding: 12px 0; }
+.closed-notice { background: rgba(208,59,59,.06); border: 1px solid rgba(208,59,59,.25); color: var(--red); font-size: 12px; padding: 8px 12px; border-radius: 6px; margin: 8px 0 12px; }
 .df-card { background: linear-gradient(135deg,rgba(27,175,122,.05) 0%,rgba(42,120,214,.05) 100%);
   border: 1px solid rgba(27,175,122,.22); border-radius: 10px; padding: 16px 18px; margin-bottom: 12px; }
 .df-header { font-size: 11px; font-weight: 600; color: var(--teal); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -127,7 +128,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 <div id="app"></div>
 <script>
 var HH={elec:null,gas:null,base:null};
-var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false,DEEPLINK_YEAR=null;
+var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false,DEEPLINK_YEAR=null,EXPANDED_BILL_ID=null;
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function pct(v){return(v*100).toFixed(0)+"%";}
 function nc(v){return v>=0?"green":"red";}
@@ -458,6 +459,14 @@ function billExpandHtml(i,allInvoices){
     "</div>";
 }
 function toggleBillExpand(id){EXPANDED_BILL_ID=(EXPANDED_BILL_ID===id?null:id);renderBills(BILL_FUEL==="elec"?HH.elec:HH.gas);}
+function closedAccountNotice(d, invoices){
+  var tl=d.timeline||[];
+  var churned=null;
+  for(var k=0;k<tl.length;k++){if(tl[k].type==="churned")churned=tl[k];}
+  if(!churned||!invoices.length)return "";
+  var last=invoices[invoices.length-1];
+  return "<div class=\"closed-notice\">Account closed "+churned.date+" \u2014 final bill "+last.id+".</div>";
+}
 function renderBills(d){
   var section=document.getElementById("bills-section");
   if(!section)return;
@@ -484,7 +493,7 @@ function renderBills(d){
         return row;
       }).join("")
     :"<div class=\"no-inv\">No bills for "+(BILL_YEAR||"this period")+".</div>";
-  section.innerHTML=btns+summary+"<div class=\"card\">"+list+"</div>"+
+  section.innerHTML=btns+closedAccountNotice(d,invoices)+summary+"<div class=\"card\">"+list+"</div>"+
     "<div class=\"usage-hint\">Click a bill to see the usage &times; rate + standing charge equation, and how it changed vs the previous bill and the same month last year.</div>";
 }
 function filterBillYear(y){BILL_YEAR=y;renderBills(BILL_FUEL==="elec"?HH.elec:HH.gas);}

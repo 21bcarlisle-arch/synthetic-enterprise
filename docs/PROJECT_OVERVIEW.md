@@ -111,6 +111,50 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RN -- Billing Tab regression fix, closed-account UX (2026-07-06, Tier 2 -- Rich live bug report via advisor bridge, docs/staging/done/BILLING_TAB_FIX.md)
+
+Rich reported live that the Customer 360 portal's Billing tab was broken ("portal otherwise
+much better"). The advisor's pre-diagnosis (via API, couldn't execute the SPA) had already
+ruled out the data layer: `site/data/customers/*.json` invoices carry full itemisation
+matching `renderBills()`'s field contract exactly, and C1's electricity invoices correctly
+end 2020-12-29 (60 bills) because C1 churned in December 2020 -- Phase RK had already replaced
+the old fabricated 120-bills-to-2025 approximation with real ledger data.
+
+**Root cause.** `renderBills()` read `EXPANDED_BILL_ID` (the click-to-expand state
+`toggleBillExpand()` sets) without that identifier ever being declared anywhere in the file --
+not with `var`, not with `let`. Reading a bare identifier that has never been assigned
+anywhere in scope is a JS `ReferenceError` (not `undefined`), thrown inside the very first
+invoice's `.map()` callback on line 483 -- before `renderBills()` ever reaches the
+`section.innerHTML=...` assignment that actually renders the bill list. `renderBillingTab()`
+(called first, builds the tab shell + fuel toggle) never references the variable and always
+succeeds, so the "Billing History" header and fuel buttons always appeared -- only the actual
+bill list silently stayed empty, for every account, on every session, since whichever phase
+introduced `toggleBillExpand`/`EXPANDED_BILL_ID` without its declaration.
+
+**Fix.** Declared `EXPANDED_BILL_ID=null` in the file's top-level `var` statement alongside
+`ACTIVE_TAB`/`BILL_FUEL`/etc.
+
+**Closed-account UX (the staged doc's second ask).** New `closedAccountNotice(d, invoices)`:
+scans the account's own `timeline` for a `churned` entry and, if found, renders "Account
+closed `<date>` -- final bill `<id>`" using the account's own last invoice -- both real,
+neither fabricated. Active accounts (no churned timeline entry) get no notice. Wired into
+`renderBills()`'s `section.innerHTML` assembly, right after the year filter buttons.
+
+**Verification.** No `node` available this session (the same recurring gate as Phases
+RA/RG/RI/RJ/RK/RL/RM), so the staged doc's requested QY/QZ-style executed-JS DOM harness
+couldn't run. Substituted: (1) a static regression guard
+(`tests/tools/test_billing_tab_fix.py::test_expanded_bill_id_is_declared_alongside_other_render_state`)
+asserting `EXPANDED_BILL_ID` stays declared in that var statement, so this exact bug class
+can't silently return; (2) a line-for-line Python port of `closedAccountNotice()` executed
+against every real `site/data/customers/*.json` in the live run (not a mock) -- of 20 accounts,
+12 churned and each got a correct real notice (e.g. C1: "Account closed 2020-12-30 -- final
+bill C1-INV60"), 8 active and each got none, zero exceptions. 6 new tests, fast suite 15,682
+passed (15,806 collected total), epistemic verifier PASS.
+
+Also archived Phases RA-RG from CLAUDE.md's "Current state" to `docs/claude/phase-history.md`
+to stay under the file's 35,000-char limit (was approaching it after Phase RM).
+
+
 ### Phase RM -- SUPPLIER_TAB_OVERHAUL.md P1b remaining scope CLOSED: portfolio event stream spine, board actions elevated, heatmap click-through (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue P1b)
 
 Closed PRIORITIES.md P1b's three remaining items (the IA regroup and Regulatory RAG
@@ -6114,7 +6158,8 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,800 tests collected; 4 new this phase (tests/tools/test_generate_portfolio_event_stream.py)
+- 15,806 tests collected; 6 new this phase (tests/tools/test_billing_tab_fix.py)
+- Phase RN (2026-07-06): Billing Tab regression fix -- Rich live bug report, root cause was an undeclared EXPANDED_BILL_ID throwing a ReferenceError on every Billing tab render (site/customers/index.html), silently emptying the bill list; plus closed-account UX (real churn date + final invoice id). 15,682 fast-suite tests pass, epistemic PASS. See Section 4.
 - Phase RM (2026-07-06): SUPPLIER_TAB_OVERHAUL.md P1b remaining scope CLOSED -- portfolio event stream spine (site/index.html Event Stream tab + tools/generate_portfolio_event_stream.py), Recommended Actions elevated to Overview, heatmap click-through to customer 360 (site/customers/index.html ?acc=&year= deep-linking). 15,676 fast-suite tests pass, epistemic PASS. See Section 4.
 - Phase RL (2026-07-06): CUSTOMER_360_REDESIGN.md v4 items 3-4 -- real event effects (renewal
   rate steps, usage before/after physical life events, income-stress/payment drift for economic
