@@ -100,11 +100,15 @@ class ComplianceScorecard:
         self._checks.append(check)
         return check
 
-    def latest_status(self, domain: ComplianceDomain) -> Optional[RAGStatus]:
+    def latest_check(self, domain: ComplianceDomain) -> Optional[ComplianceCheck]:
         domain_checks = [c for c in self._checks if c.domain == domain]
         if not domain_checks:
             return None
-        return sorted(domain_checks, key=lambda c: c.check_date)[-1].status
+        return sorted(domain_checks, key=lambda c: c.check_date)[-1]
+
+    def latest_status(self, domain: ComplianceDomain) -> Optional[RAGStatus]:
+        check = self.latest_check(domain)
+        return check.status if check else None
 
     def overall_rag(self, as_of_date: dt.date) -> RAGStatus:
         """Worst RAG status across all domains as of date."""

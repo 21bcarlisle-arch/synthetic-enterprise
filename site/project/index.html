@@ -164,6 +164,18 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <div id="sys-container" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px">
     <div style="color:var(--muted);font-size:12px">Loading agent status...</div>
   </div>
+  <div class="sec">Continuity</div>
+  <div id="sys-continuity" class="inv-grid"><div style="color:var(--muted);font-size:12px">Loading...</div></div>
+  <div class="sec">Build Cadence (commits/day, last 30 days)</div>
+  <div class="cb"><canvas id="cburn" style="max-height:180px"></canvas></div>
+  <div class="sec">Staging Queue</div>
+  <div id="sys-queue" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px">
+    <div style="color:var(--muted);font-size:12px">Loading...</div>
+  </div>
+  <div class="sec">Session History</div>
+  <div id="sys-sessions" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px">
+    <div style="color:var(--muted);font-size:12px">Loading...</div>
+  </div>
 </div></div>
 
 <div id="tab-company" class="view"><div class="wrap">
@@ -241,58 +253,77 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 <div id="tab-capabilities" class="view"><div class="wrap">
   <div class="sec">What the simulation can do</div>
   <p style="font-size:12px;color:var(--muted);line-height:1.6;padding:12px 16px;background:var(--surface2);border-radius:8px;margin-bottom:16px" id="cap-stat">Loading...</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:32px">
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Half-Hourly Settlement Engine</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Full 2016-2025 settlement against real Elexon SSP data. 168,000+ half-hourly records. Every customer bill computed against actual historical wholesale prices including the 2021-22 crisis peak (&pound;6,000+/MWh).</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Four-Dimension Customer Model</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Dim 1 Physical: EPC band, heating system, boiler age, insulation, solar/EV upgrades. Dim 2 Economic: income stress, life events (job loss, retirement, new baby). Dim 3 Behavioural: switching propensity. Dim 4 Emotional: satisfaction accumulator (decay + bill shock + CSS events).</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Three-Signal Churn Model</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Company-side estimate: bill shock count + payment behaviour (EXCELLENT&ndash;CRITICAL) + satisfaction. Combined = max(rate_model, payment_model) capped at 95%. Calibration report: recall, precision, F1 per year. Counterfactual retention per customer.</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Payment Behaviour Analytics</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Per-customer payment record per month. On-time rate, late rate, DD failure rate, avg days late. HIGH income stress: 35% DD failure, 30-90 day delays, 3x bad debt multiplier. Score drives churn estimate and board risk dashboard.</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Risk &amp; Hedging Model</div><div style="font-size:12px;color:var(--muted);line-height:1.5">VaR at 98% confidence per term. Hedge fraction decision each renewal. Capital adequacy: equity &gt; (VaR + credit stress). Gas pass-through correctly assigned zero VaR. Regime-change blindness discovered: agent converged to hf=0.00 during 2016-20 calm.</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Price-Elasticity Switching Model</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Market switching rate from savings available (DESNZ 2016-2025), not price level. Post-2023 structural factor 0.75x (fairer-pricing rule). 2022 crisis paradox reproduced: avg bill &pound;3,549, switching rate only 3-4%.</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Full Regulatory Stack (62 modules)</div><div style="font-size:12px;color:var(--muted);line-height:1.5">RO, FiT, CCL, GSOP, WHD/ECO (EXEMPT), Carbon emissions, Settlement Reconciliation, TPI commission, Ofgem Supply Return, SLC Compliance Scorecard, FRA Capital Ratio. All using real published rates.</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Carbon Emissions Reporting</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Scope 2 elec: real UK fuel mix 2016-2025 (coal 9% to 0%, wind 11% to 36%). Grid intensity 290 to 175 gCO2/kWh. Scope 1 gas: 183 gCO2/kWh. 10-year decarbonisation trend in board section.</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">I&amp;C Segment Simulation</div><div style="font-size:12px;color:var(--muted);line-height:1.5">HH metering for large I&amp;C. Gas pass-through (zero VaR, service-fee billing). TPI trail commission &pound;1.50/MWh. Triad demand curtailment 25% on alert days (SSP&gt;&pound;80/MWh). Rate-sensitivity-only churn.</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Year-on-Year Margin Bridge</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Net margin attribution across 9 transitions 2016-2025. Primary driver per year (price/volume/cost/mix). Payment portfolio health observatory. Shadow retention P&amp;L analysis. Portfolio concentration RAG (I&amp;C 99%).</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Counterfactual Retention</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Per-customer: was the retention offer worth making? Net value recovered vs offer cost. Threshold sensitivity: recall/precision/F1 at 0-50% thresholds. Finding: model underestimates churn (optimal threshold = 0%).</div></div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">Annual Board Pack (20+ sections)</div><div style="font-size:12px;color:var(--muted);line-height:1.5">P&amp;L, capital adequacy, churn performance, retention, regulatory compliance, carbon, payment health, margin bridge, portfolio composition, shadow retention, TPI, settlement reconciliation, licence health, compliance scorecard, and more.</div></div>
-  </div>
+  <div id="cap-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:32px"><div style="color:var(--muted);font-size:12px">Loading capabilities...</div></div>
 </div></div>
 
 <script>
-var D=null,PH=null,SYS=null,rendered={};
+var D=null,PH=null,SYS=null,SYS2=null,CAPS=null,rendered={};
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"\u00a3"+s;}
 function ageLabel(ts){if(!ts)return"unknown";var sec=(Date.now()-new Date(ts).getTime())/1000;if(sec<120)return Math.round(sec)+"s ago";if(sec<3600)return Math.round(sec/60)+"m ago";if(sec<86400)return(sec/3600).toFixed(1)+"h ago";return(sec/86400).toFixed(1)+"d ago";}
 function ageDot(ts,st){if(!ts)return"dot-grey";var h=(Date.now()-new Date(ts).getTime())/3600000;if(st==="error")return"dot-red";if(h>6)return"dot-red";if(h>1)return"dot-amber";return"dot-green";}
 function toggleReg(id){var row=document.getElementById(id);if(row)row.style.display=(row.style.display==="none"?"table-row":"none");}
 function switchTab(name){document.querySelectorAll(".view").forEach(function(v){v.classList.remove("active");});document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});document.getElementById("tab-"+name).classList.add("active");document.querySelector("[data-tab='"+name+"']").classList.add("active");if(!rendered[name]){renderTab(name);rendered[name]=true;}}
-function renderTab(n){if(n==="timeline")renderTimeline();else if(n==="system")renderSystem();}
-var PROJ=[
-  {date:"2026-06-07",type:"start",label:"Project started",detail:"Repo scaffolded. SIM/company/SaaS seam defined. qwen3:14b + Claude Code + Ollama risk committee."},
-  {date:"2026-06-08",type:"build",label:"First 100 tests",detail:"Core billing engine, settlement loop, P&L framework. Phase 0 complete."},
-  {date:"2026-06-11",type:"build",label:"First simulation run",detail:"Full 2016-2025 settlement loop live. Electricity and gas P&L running."},
-  {date:"2026-06-21",type:"milestone",label:"Phase 200 - full regulatory suite",detail:"200+ modules: SLC compliance, consumer duty, debt, disconnection, meters."},
-  {date:"2026-06-22",type:"milestone",label:"Phase 250 - risk and hedging",detail:"VaR monitor, hedge policy, forward book, stress test. Regime-change blindness discovered."},
-  {date:"2026-06-25",type:"discovery",label:"Regime-change blindness confirmed",detail:"Capital physics run: agent converged to naked hedging (hf=0.00) during 2016-20 calm, mirroring 28 real supplier failures."},
-  {date:"2026-06-26",type:"milestone",label:"Phase 310 - full operational stack",detail:"Debt collection, account closure, SoLR, winter moratorium, MHHS readiness, energy theft, deemed contracts."},
-  {date:"2026-06-27",type:"milestone",label:"Phase A-D - Household physical model",detail:"EPC bands, heating systems, boiler age, insulation. Life events engine. EAC/AQ into settlement."},
-  {date:"2026-06-29",type:"milestone",label:"Phase E-M - ASHP dual-fuel and profitability",detail:"EPC evolution, heat pump (+5,500 kWh/yr elec, -88% gas), HDD-weighted seasonal demand, per-customer and segment profitability, renewal tracking."},
-  {date:"2026-06-30",type:"milestone",label:"Phase FJ-HH - 8,777 tests - full I&C model",detail:"I&C Triad curtailment, gas pass-through VaR fix, real NBP forward curve. I&C churn calibration (rate-sensitivity-only). 8,777 tests."},
-  {date:"2026-07-01",type:"milestone",label:"Phase MV-MW - Economic life events",detail:"Job loss / income recovery / new baby / retirement. Income stress drives payment delay, DD failure, bad debt multiplier (1.0-3.0x). 13,090 tests."},
-  {date:"2026-07-02",type:"milestone",label:"Four-dimension customer model complete",detail:"Dim 1 Physical, Dim 2 Economic, Dim 3 Behavioural (switching propensity), Dim 4 Emotional (satisfaction). Three-signal churn model: bill shock + payment behaviour + satisfaction. 14,731 tests."},
-  {date:"2026-07-03",type:"discovery",label:"Price elasticity of switching disconfirmed",detail:"Rising absolute prices do NOT increase switching propensity. 2022 crisis bills (avg £3,549) had lowest switching rate (3-4%) of the decade. Primary driver: savings available from switching, not price level."},
-  {date:"2026-07-03",type:"milestone",label:"Phase OG-OL - Full regulatory stack wired",detail:"Renewable Obligation, FiT Levy, CCL, WHD (EXEMPT), ECO (EXEMPT), Carbon Emissions, Settlement Reconciliation, TPI commission, GSOP, Licence Health, Compliance Scorecard, Ofgem Supply Return. 15,148 tests, 62 regulatory modules."}
-];
-var MC={start:"#1baf7a",build:"#2a78d6",milestone:"#0ca30c",discovery:"#fab219"};
+function renderTab(n){if(n==="timeline")renderTimeline();else if(n==="system")renderSystem();else if(n==="capabilities")renderCapabilities();}
+var MC_COLORS={"phase":"#2a78d6","discovery":"#fab219"};
 function renderTimeline(){
-  var rows=PROJ.map(function(ms){var col=MC[ms.type]||"#52514e";return'<div class="tl-row"><div class="tl-dot" style="background:'+col+'"></div><div class="tl-body"><div class="tl-date">'+ms.date+'<span class="tl-badge" style="color:'+col+'">'+ms.type+'</span></div><div class="tl-label">'+ms.label+'</div><div class="tl-detail">'+ms.detail+'</div></div></div>';}).join("");
-  document.getElementById("tl-container").innerHTML=rows;
+  var tl=(PH&&PH.timeline)||[];
+  var rows=tl.map(function(ms){var col=MC_COLORS[ms.type]||"#52514e";return '<div class="tl-row"><div class="tl-dot" style="background:'+col+'"></div><div class="tl-body"><div class="tl-date">'+ms.date+'<span class="tl-badge" style="color:'+col+'">'+ms.type+'</span></div><div class="tl-label">'+ms.label+'</div><div class="tl-detail">'+ms.detail+'</div></div></div>';}).join("");
+  document.getElementById("tl-container").innerHTML=rows||'<div style="color:var(--muted);font-size:12px">No timeline data.</div>';
   if(PH){var tp=PH.test_progression||[];var ctx=document.getElementById("ct2");if(tp.length&&ctx)new Chart(ctx,{type:"line",data:{labels:tp.map(function(p){return p[0];}),datasets:[{data:tp.map(function(p){return p[1];}),borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:6,color:"#52514e"},grid:{color:"#e1e0d9"}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"}}}}});}
+}
+function renderCapabilities(){
+  var grid=document.getElementById("cap-grid");
+  if(!CAPS){fetch("../data/capabilities.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){CAPS=d;renderCapabilities();}).catch(function(){grid.innerHTML='<p style="color:var(--red);font-size:12px">Could not load capabilities.json</p>';});return;}
+  var cards=(CAPS.cards||[]).map(function(c){return '<div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">'+c.name+'</div><div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px">'+c.description+'</div>'+(c.headline?'<div style="font-size:11px;font-weight:600;color:var(--teal);margin-bottom:6px">'+c.headline+'</div>':"")+'<a href="'+c.evidence_link+'" style="font-size:11px;color:var(--blue);text-decoration:none">View evidence &rarr;</a></div>';}).join("");
+  grid.innerHTML=cards||'<div style="color:var(--muted);font-size:12px">No capabilities data.</div>';
 }
 function renderSystem(){
   var c=document.getElementById("sys-container");
-  if(!SYS){fetch("../data/agent_status.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){SYS=d;renderSystem();}).catch(function(){c.innerHTML='<p style="color:var(--red);font-size:12px">Could not load agent_status.json</p>';});return;}
+  if(!SYS||!SYS2){
+    var p1=SYS?Promise.resolve():fetch("../data/agent_status.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){SYS=d;}).catch(function(){SYS=SYS||{};});
+    var p2=SYS2?Promise.resolve():fetch("../data/system_status.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){SYS2=d;}).catch(function(){SYS2=SYS2||{};});
+    Promise.all([p1,p2]).then(renderSystem);
+    return;
+  }
   var upd=SYS.last_updated?ageLabel(SYS.last_updated):"unknown";
   var rows=(SYS.agents||[]).map(function(a){var dc=ageDot(a.last_heartbeat,a.status);var sc={running:"sb-running",idle:"sb-idle",working:"sb-working",error:"sb-error"}[a.status]||"sb-idle";return'<div class="agent-row"><div class="agent-dot '+dc+'"></div><div class="agent-body"><div class="agent-name">'+a.name+'<span class="status-badge '+sc+'">'+a.status+'</span></div><div class="agent-role">'+(a.role||"")+'</div><div class="agent-action">&rarr; '+(a.last_action||"&mdash;")+'</div>'+(a.anomaly?'<div style="color:var(--amber);font-size:11px;margin-top:2px">'+a.anomaly+'</div>':"")+'</div><div class="agent-ts">'+ageLabel(a.last_heartbeat)+'</div></div>';}).join("");
   c.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:12px">Status updated '+upd+'</div><div class="agent-grid">'+rows+'</div>';
+  renderContinuity();
+  renderBurnChart();
+  renderStagingQueue();
+  renderSessionHistory();
+}
+function renderContinuity(){
+  var el=document.getElementById("sys-continuity");
+  var cont=(SYS2&&SYS2.continuity)||{};
+  var kpis=[
+    {l:"Sessions (7d)",v:cont.sessions_last_7d!=null?cont.sessions_last_7d:"--"},
+    {l:"Sessions logged",v:cont.total_sessions_parsed!=null?cont.total_sessions_parsed:"--"},
+    {l:"Current session uptime",v:cont.current_session_uptime_minutes!=null?(cont.current_session_uptime_minutes/60).toFixed(1)+"h":"--"},
+    {l:"Clean exits logged",v:(cont.exit_reason_counts&&cont.exit_reason_counts.completion)||0}
+  ];
+  el.innerHTML=kpis.map(function(k){return'<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv">'+k.v+'</div></div>';}).join("");
+}
+function renderBurnChart(){
+  var burn=(SYS2&&SYS2.commit_burn)||[];
+  var ctx=document.getElementById("cburn");
+  if(!ctx||!burn.length)return;
+  new Chart(ctx,{type:"bar",data:{labels:burn.map(function(p){return p[0];}),datasets:[{data:burn.map(function(p){return p[1];}),backgroundColor:"rgba(42,120,214,0.6)"}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#52514e",maxTicksLimit:10},grid:{display:false}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"},title:{display:true,text:"Commits/day",color:"#52514e",font:{size:10}}}}}});
+}
+function renderStagingQueue(){
+  var el=document.getElementById("sys-queue");
+  var q=(SYS2&&SYS2.staging_queue)||[];
+  if(!q.length){el.innerHTML='<div style="color:var(--muted);font-size:12px">Queue empty.</div>';return;}
+  el.innerHTML=q.map(function(item){return'<div class="agent-row"><div class="agent-body"><div class="agent-name">'+item.filename+'</div><div class="agent-action">'+item.size_bytes+' bytes</div></div><div class="agent-ts">'+ageLabel(item.modified_at)+'</div></div>';}).join("");
+}
+function renderSessionHistory(){
+  var el=document.getElementById("sys-sessions");
+  var cur=SYS2&&SYS2.current_session;
+  var hist=((SYS2&&SYS2.session_history)||[]).slice().reverse();
+  var rows="";
+  if(cur){rows+='<div class="agent-row"><div class="agent-dot dot-green"></div><div class="agent-body"><div class="agent-name">Current session<span class="status-badge sb-running">running</span></div><div class="agent-action">started '+cur.started_at+' UTC</div></div></div>';}
+  rows+=hist.map(function(s){return'<div class="agent-row"><div class="agent-body"><div class="agent-name">'+s.started_at+' &rarr; '+s.ended_at+' UTC</div><div class="agent-action">'+s.duration_minutes+' min &mdash; '+s.exit_reason+'</div></div></div>';}).join("");
+  el.innerHTML=rows||'<div style="color:var(--muted);font-size:12px">No session history parsed.</div>';
 }
 function renderKpis(){if(!D||!PH)return;var ann=(D.financial||{}).annual||[];var totalNet=ann.reduce(function(s,r){return s+(r.net_gbp||0);},0);var treasury=ann.length?(ann[ann.length-1].treasury_end_gbp||0):0;var tp=PH.test_progression||[];var lt=tp.length?tp[tp.length-1][1]:0;var rh=D.run_history||[];var rhTotal=(D.run_history_total!=null)?D.run_history_total:rh.length;var kpis=[{l:"Started",v:PH.start_date||"June 2026"},{l:"Phases shipped",v:PH.total_phases||"--"},{l:"Tests passing",v:lt.toLocaleString()},{l:"Net margin (all time)",v:gbp(totalNet),g:totalNet>=0},{l:"Treasury (end 2025)",v:gbp(treasury)},{l:"Crisis survived",v:"2021-22"},{l:"Sim runs",v:rhTotal},{l:"Built by",v:"1 human + Claude + Qwen"}];document.getElementById("inv-kpis").innerHTML=kpis.map(function(k){return'<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv'+(k.g?" green":"")+'">'+k.v+'</div></div>';}).join("");}
 function renderCharts(){if(!PH)return;var tp=PH.test_progression||[];var lineOpts={responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:5,color:"#52514e"},grid:{color:"#e1e0d9"}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"}}}};new Chart(document.getElementById("ct"),{type:"line",data:{labels:tp.map(function(p){return p[0];}),datasets:[{data:tp.map(function(p){return p[1];}),borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1}]},options:lineOpts});var pd=PH.phase_dates||[];var dm={};pd.forEach(function(p){dm[p[0]]=(dm[p[0]]||0)+1;});var days=Object.keys(dm).sort();var barOpts={responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.y+" phase"+(ctx.parsed.y===1?"":"s")+" shipped";}}}},scales:{x:{ticks:{color:"#52514e",autoSkip:false,maxRotation:60,minRotation:60,font:{size:9}},grid:{display:false}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"},title:{display:true,text:"Phases shipped",color:"#52514e",font:{size:10}}}}};new Chart(document.getElementById("cp"),{type:"bar",data:{labels:days,datasets:[{data:days.map(function(d){return dm[d];}),backgroundColor:"rgba(42,120,214,0.6)"}]},options:barOpts});}

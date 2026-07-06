@@ -576,6 +576,77 @@ def count_run_history_total(history_path=None):
         return 0
 
 
+# The 23 SLC/regulatory obligations shown on the Supplier Regulatory tab, each
+# mapped onto one of the 10 compliance_scorecard.py domains so a real RAG status
+# can be attached per row -- replaces the old hardcoded "Phase XXX" column
+# (SUPPLIER_TAB_OVERHAUL.md: in-world rule + "add RAG compliance status per
+# obligation from the compliance scorecard, not just 'tracked'").
+_SLC_OBLIGATIONS = [
+    ("SLC 2B", "Deemed Contract Register", "governance"),
+    ("SLC 14", "Credit Refund (10 working days)", "billing_metering"),
+    ("SLC 21B", "Account Closure & Final Bill (42 days)", "billing_metering"),
+    ("SLC 21C", "Fuel Mix Disclosure (REGO-backed)", "environmental"),
+    ("SLC 22", "Contract Notice & Renewal Obligations", "information_transparency"),
+    ("SLC 25C", "Communication Channel Choice", "complaints"),
+    ("SLC 26B", "Priority Services Register (9 categories)", "vulnerable_customers"),
+    ("SLC 27", "Debt / Disconnection Moratorium Rules", "payment_debt"),
+    ("SLC 27A", "Ability-to-Pay & Payment Plan Adequacy", "payment_debt"),
+    ("SLC 31A", "Back-billing 12-Month Cap (May 2018+)", "billing_metering"),
+    ("BSC SVA", "DA/DC Metering Agent Appointments", "network_balancing"),
+    ("LC 30A", "Supplier Fitness & Proper Person Test", "governance"),
+    ("UNC TPD", "Gas Nomination / Shipper Code", "network_balancing"),
+    ("GDPR/PECR", "Data Breach Notification (72h ICO)", "governance"),
+    ("UK EMIR", "Trade Repository Reporting (T+1)", "governance"),
+    ("EBRS/EBSS", "Energy Bill Relief / Support Schemes", "billing_metering"),
+    ("FRA", "Financial Resilience Assessment (12m min)", "financial_resilience"),
+    ("IFRS 9", "Hedge Effectiveness (80-125% band)", "financial_resilience"),
+    ("Consumer Duty", "Vulnerable Customer Outcomes & PSR", "vulnerable_customers"),
+    ("WAM/WHD", "Warm Home Discount Phase 2", "vulnerable_customers"),
+    ("FiT/SEG", "Smart Export Guarantee", "environmental"),
+    ("RO/CfD", "Renewable Obligation / CfD Levy", "environmental"),
+    ("CCL", "Climate Change Levy Ledger", "environmental"),
+]
+
+
+def extract_regulatory(data):
+    """Per-obligation RAG for the Regulatory tab, sourced from the real
+    ComplianceScorecard (company/regulatory/compliance_scorecard.py) already
+    computed for the annual report -- not from build/phase metadata."""
+    from saas.reporting.annual_report import populate_compliance_scorecard
+    from company.regulatory.compliance_scorecard import ComplianceDomain
+    import datetime as dt
+
+    years = sorted(data.get("years", {}).keys())
+    scorecard = populate_compliance_scorecard(data) if years else None
+
+    if scorecard is None:
+        obligations = [
+            {"code": code, "description": desc, "domain": domain_key,
+             "status": "GREEN", "notes": ""}
+            for code, desc, domain_key in _SLC_OBLIGATIONS
+        ]
+        return {"latest_year": None, "overall_rag": "GREEN", "obligations": obligations}
+
+    latest_yr = years[-1]
+    as_of = dt.date(int(latest_yr), 12, 31)
+    obligations = []
+    for code, desc, domain_key in _SLC_OBLIGATIONS:
+        check = scorecard.latest_check(ComplianceDomain(domain_key))
+        obligations.append({
+            "code": code,
+            "description": desc,
+            "domain": domain_key,
+            "status": check.status.value if check else "GREEN",
+            "notes": check.notes if check else "",
+        })
+
+    return {
+        "latest_year": latest_yr,
+        "overall_rag": scorecard.overall_rag(as_of).value,
+        "obligations": obligations,
+    }
+
+
 def extract_query_context(data):
     """Build compact text summary (~2-4k chars) for NL query API context."""
     if not data:
@@ -667,6 +738,7 @@ def generate(run_json_path=None):
         "trading": extract_trading(data, spot_monthly),
         "customers": extract_customers(data),
         "market": extract_market(data, spot_monthly),
+        "regulatory": extract_regulatory(data),
         "insights": insights,
         "run_history": extract_run_history(),
         "run_history_total": count_run_history_total(),

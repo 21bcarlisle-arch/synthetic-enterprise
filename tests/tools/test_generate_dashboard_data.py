@@ -5,6 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.generate_dashboard_data import (
     _fmt, extract_portfolio, extract_financial, count_run_history_total,
+    extract_regulatory, _SLC_OBLIGATIONS,
 )
 import json
 
@@ -141,3 +142,66 @@ def test_count_run_history_total_invalid_json_returns_zero(tmp_path):
     history_path = tmp_path / "run_history.json"
     history_path.write_text("not valid json")
     assert count_run_history_total(history_path) == 0
+
+
+def _regulatory_data(**year_overrides):
+    year_2024 = {
+        "revenue_gbp": 1_000_000.0,
+        "bad_debt_gbp": 5_000.0,
+        "avg_clarity": 0.85,
+        "avg_complaint_probability": 0.005,
+        "bsc_credit_required_gbp": 1_000.0,
+        "treasury_end_gbp": 500_000.0,
+    }
+    year_2024.update(year_overrides)
+    return {
+        "years": {"2024": year_2024},
+        "management_accounts": {"2024": {"balance_sheet": {"total_equity_gbp": 1.0}}},
+        "fra_ratio_series": [{"year": 2024, "fra_ratio": 5.0}],
+        "demand_estimation_log": [],
+    }
+
+
+def test_extract_regulatory_no_years_returns_all_green():
+    r = extract_regulatory({"years": {}})
+    assert r["latest_year"] is None
+    assert r["overall_rag"] == "GREEN"
+    assert all(o["status"] == "GREEN" for o in r["obligations"])
+
+
+def test_extract_regulatory_obligation_count():
+    r = extract_regulatory(_regulatory_data())
+    assert len(r["obligations"]) == len(_SLC_OBLIGATIONS)
+
+
+def test_extract_regulatory_latest_year():
+    r = extract_regulatory(_regulatory_data())
+    assert r["latest_year"] == "2024"
+
+
+def test_extract_regulatory_billing_amber_on_low_clarity():
+    r = extract_regulatory(_regulatory_data(avg_clarity=0.65))
+    row = next(o for o in r["obligations"] if o["code"] == "SLC 14")
+    assert row["status"] == "AMBER"
+
+
+def test_extract_regulatory_complaints_red_flows_to_slc25c():
+    r = extract_regulatory(_regulatory_data(avg_complaint_probability=0.10))
+    row = next(o for o in r["obligations"] if o["code"] == "SLC 25C")
+    assert row["status"] == "RED"
+    assert r["overall_rag"] == "RED"
+
+
+def test_extract_regulatory_every_domain_has_an_obligation():
+    """Regression: SLC 25C was originally mapped to information_transparency,
+    leaving the complaints domain with no obligation row to surface a real RED
+    breach (found live: avg_complaint_probability 0.061 -> complaints RED, but
+    no row in the table showed it). Every domain capable of going non-GREEN
+    must be reachable from at least one obligation row. tariff_price_cap is
+    excluded: populate_compliance_scorecard hardcodes it permanently GREEN
+    ("I&C supply exempt from SVT cap") and none of the 23 tracked SLC
+    obligations is a price-cap clause, so it can never surface a breach."""
+    from company.regulatory.compliance_scorecard import ComplianceDomain
+    mapped_domains = {domain for _, _, domain in _SLC_OBLIGATIONS}
+    all_domains = {d.value for d in ComplianceDomain} - {"tariff_price_cap"}
+    assert all_domains <= mapped_domains

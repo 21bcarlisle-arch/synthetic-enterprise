@@ -1,41 +1,36 @@
 # Current Priorities
 
-Last updated: 2026-07-05 -- Phases QL-QV COMPLETE. PROCESS_NOT_EVENTS.md CLOSED IN FULL (churn
-journey/QL, acquisition funnel/QR, debt-branch DCA recovery/QS). DECISION_LOOP_AND_EVENT_LEDGER.md
-CLOSED IN FULL (event ledger/QP, calibration fix + counterfactual lift/QQ). SAAS_COVERAGE_MAP.md
-items 3-4 (debt journey extension, credit bureau boundary feed) already done as a side effect of
-QR/QS -- only items 1-2 (the coverage-map doc + Project tab site surface) remain open.
+Last updated: 2026-07-06 -- Phases QW-RG COMPLETE (see CLAUDE.md "Current state" for full detail
+per phase). PROJECT_TAB_OVERHAUL.md now CLOSED IN FULL (Phase RG). PROCESS_NOT_EVENTS.md and
+DECISION_LOOP_AND_EVENT_LEDGER.md remain CLOSED IN FULL (no change).
 
-**NEW ACTIVE WAVE (staged 2026-07-04 21:25 - 2026-07-05 06:25, found unactioned in docs/staging/,
-none moved to done/ yet): director-critique site overhaul, 8 documents.** WEBSITE_AS_SHOWCASE.md is
-the master directive (the site as investor-facing showcase, one story per tab); SIM_TAB_OVERHAUL.md,
-SUPPLIER_TAB_OVERHAUL.md, CUSTOMER_360_REDESIGN.md, PROJECT_TAB_OVERHAUL.md, NAV_STORY_PLATFORM_METHOD.md
-elaborate individual tabs/nav; FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md are explicitly queued
-behind this wave (Tier 3 design notes, not yet reached). Per WEBSITE_AS_SHOWCASE.md's own sequencing:
-Part 0 (QO's design system landed on company/portal/templates/ -- the WRONG surface; Rich's actual
-site/ is unchanged) + tabs 1 (SIM) and 4 (Customer 360/case-study recommender) are Tier 2 now (data
-already exists). Tab 2 (Supplier)'s frozen-policy-baseline headline metric needs a Tier 3 design note
-first (policy snapshot/replay is one-way-door-adjacent). Tab 3 (Project) assembles as others land.
+**ACTIVE WAVE (director-critique site overhaul, 8 documents, staged 2026-07-04/05):**
+WEBSITE_AS_SHOWCASE.md is the master directive. Progress per tab:
+- Tab 1 (SIM): CLOSED -- SIM_TAB_OVERHAUL.md items 1-5 all done (Phases QY, QZ, RA, RB/RC).
+- Tab 4 (Customer 360): CUSTOMER_360_REDESIGN.md item 1 (Usage Viz -- monthly/daily/HH
+  consumption, load shape, weather overlay, period comparison) data layer + frontend rendering
+  both done (Phases RE/this session) on site/customers/index.html. Items 2-4 (bill equation
+  waterfall, events-perturb-chain, reaction-closes-loop) not started. WEBSITE_AS_SHOWCASE.md's
+  case-study recommender (auto-curated "interesting customers" list) also not started.
+- Tab 3 (Project): PROJECT_TAB_OVERHAUL.md CLOSED IN FULL (Phase RG, 2026-07-06): Timeline
+  auto-append (item 2), real Capabilities register (item 6), and System-tab elevation (item 3) --
+  all three found already implemented in site/project/index.html from an interrupted prior session,
+  verified against live data and committed. Company dedup, Regulatory inline-expand, chart axis fix,
+  capability-card stat generation, CONSISTENCY BREACH and phases.json hand-curation done earlier
+  (RF, QW, RD).
+- Tab 2 (Supplier): SUPPLIER_TAB_OVERHAUL.md's "Worst Shock Month" bug is already fixed (commit
+  57fb0025) and its Regulatory RAG-per-obligation item (GOVERNANCE bullet: "add RAG compliance status
+  per obligation from the compliance scorecard") is DONE (Phase RG) via
+  company/regulatory/compliance_scorecard.py::latest_check() +
+  tools/generate_dashboard_data.py::extract_regulatory(). Not yet started as a full dedicated phase.
+  Frozen-policy-baseline headline metric still needs the Tier 3 design note per the original
+  sequencing (policy snapshot/replay is one-way-door-adjacent) before the rest of the IA regroup
+  (11 tabs -> grouped nav) proceeds.
+- FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md: still queued behind this wave, not yet reached.
 
-Phase QV COMPLETE (2026-07-05, Tier 2): event-frequency data model (SIM_TAB_OVERHAUL.md item 4) --
-payment_miss_trajectory + bill_shock_history now flow from company/crm/payment_behaviour_analytics.py
-through simulation/run_phase2b.py into customer_sample.json; site/sim/index.html's event-frequency
-panel (life events/bill shocks/payment misses/switches per year) consumes them. Found already
-mid-built (uncommitted) from an interrupted prior session; verified (15,578 tests) and committed.
-
-Phase QW IN PROGRESS (2026-07-05, Tier 2 -- closes PROJECT_TAB_OVERHAUL.md critique #1, "CONSISTENCY
-BREACH"): root-caused and fix delegated to saas-engineer. saas/reporting/annual_report.py's
-extract_report_data() reported `total_net_gbp`/`total_bad_debt_gbp` from stale phase2b["total_net"]/
-["total_bad_debt"] scalars captured inside run_phase2b.main() BEFORE run_phase4c_on_phase2b.py's
-apply_emergent_bad_debt()/apply_debt_recovery() correct all_records in place (Phases QD/QS) -- so the
-per-year "years" breakdown (built from the corrected all_records) summed to £1,535,307.74 while the
-top-level total_net_gbp field still reported the pre-correction £1,445,257.67, a live ~£90k two-truths
-bug on site/project/index.html's Overview KPIs. Fix: recompute both fields live from all_records
-(same pattern total_revenue_gbp already used). Also flagged in the same critique, NOT yet started:
-site/data/phases.json is hand-curated (stopped 2026-07-03, no generator script) -- violates the R-A
-"nothing hand-written" rule and needs a generator sourced from PROJECT_OVERVIEW.md Section 4 phase
-headers + Section 10's current test count, matching tools/generate_project_state.py's existing
-regex-parse pattern.
+**Front of queue next:** SUPPLIER_TAB_OVERHAUL.md's remaining scope -- the Tier 3 design note for the
+frozen-policy-baseline metric, then the rest of the tab (IA regroup, 11 tabs -> grouped nav) -- since
+Tab 3 (Project) is now fully closed.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
 Coverage sprints (phases LQ through MU, 95+ sprints) are complete.

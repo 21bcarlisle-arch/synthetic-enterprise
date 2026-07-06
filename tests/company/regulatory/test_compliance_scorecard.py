@@ -55,6 +55,20 @@ def test_scorecard_latest_status_none_if_empty():
     assert sc.latest_status(ComplianceDomain.ENVIRONMENTAL) is None
 
 
+def test_scorecard_latest_check_returns_full_check():
+    sc = ComplianceScorecard()
+    sc.record_check(ComplianceDomain.COMPLAINTS, DATE, RAGStatus.GREEN, notes="ok")
+    sc.record_check(ComplianceDomain.COMPLAINTS, dt.date(2023, 9, 30), RAGStatus.AMBER, notes="watch")
+    check = sc.latest_check(ComplianceDomain.COMPLAINTS)
+    assert check.status == RAGStatus.AMBER
+    assert check.notes == "watch"
+
+
+def test_scorecard_latest_check_none_if_empty():
+    sc = ComplianceScorecard()
+    assert sc.latest_check(ComplianceDomain.ENVIRONMENTAL) is None
+
+
 def test_scorecard_overall_rag_green_all_pass():
     sc = ComplianceScorecard()
     for domain in ComplianceDomain:

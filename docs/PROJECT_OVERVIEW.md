@@ -111,6 +111,60 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RG -- Concurrent Pipeline Race Fix + PROJECT_TAB_OVERHAUL.md CLOSED IN FULL + Supplier Regulatory RAG (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue)
+Two pieces of work found and closed in one session.
+
+(1) Live concurrency bug caught in the act: background/sim_runner.py invokes process_run_complete.py
+synchronously right after writing a run_complete marker; background/background_worker.py separately
+sweeps docs/staging/ every 30 minutes for "leftover" markers still sitting in the root (the marker
+only moves to done/ at the very end of a successful run) and re-invokes the same script on any it
+finds -- with no way to distinguish a marker that is genuinely abandoned (prior invocation
+crashed/timed out) from one simply still being processed by a live sim_runner invocation. Caught two
+PIDs (693899/694354) running the full ~2min pipeline (report regen, dashboard/site rebuild, full test
+suite) concurrently on run_complete_20260706T042751Z.md, confirmed in sim-runner-log.md as two
+complete 04:36-04:38 / 04:37-04:39 cycles. Fixed with a non-blocking flock-based run lock
+(process_run_complete._run_lock, mirroring tree_lock.py's pattern) -- a second invocation now exits
+immediately instead of duplicating the work. main() delegates to a renamed _process() once the lock
+is acquired; two tests in test_website_integrity_fix.py that used inspect.getsource(prc.main) to
+check step ordering are retargeted at _process(). Also committed interrupted prior-session work found
+already in the tree alongside this fix: site/data/capabilities.json + system_status.json generation
+wired into generate_dashboard_json(), verified live via sim-runner-log.md.
+
+(2) PROJECT_TAB_OVERHAUL.md's three remaining items -- Timeline auto-append, a real Capabilities
+register, and System-tab elevation -- were found already implemented in site/project/index.html,
+sitting uncommitted from an interrupted prior session. Verified each against live data rather than
+taking the diff on faith: site/data/phases.json's `timeline` field (424 entries, latest dated
+2026-07-06/Phase RF) drives the Timeline sub-tab in place of the old hand-written 14-entry PROJ
+array; site/data/capabilities.json's 12 cards (name/description/headline/evidence_link) drive the
+Capabilities sub-tab in place of 12 hand-written card blocks; site/data/system_status.json's
+`continuity`/`commit_burn`/`staging_queue`/`session_history` fields drive four new System sub-tab
+panels (uptime/session-count strip, commits/day bar chart, live staging queue, session start/end/
+exit-reason history) -- exactly the tab-direction spec (docs/staging/PROJECT_TAB_OVERHAUL.md item 3:
+"session history from watchdog log, staging queue state, burn line, uptime/continuity strip"). No
+node/browser tool available this session (Bash gated `node` behind an unresolvable approval prompt,
+same limitation as Phase RA) -- verified via brace/paren/bracket balance on the extracted inline
+script (all three pairs balanced) plus direct inspection of every JSON field the new render
+functions read, confirmed present and correctly shaped in the live data files. This closes
+PROJECT_TAB_OVERHAUL.md in full (all six per-tab directions now either done or explicitly deferred
+with a stated reason -- see Phase RF for the Regulatory board-pack-deep-link gap).
+
+(3) Also found and committed alongside the above: SUPPLIER_TAB_OVERHAUL.md's Regulatory
+RAG-per-obligation item (GOVERNANCE bullet -- "add RAG compliance status per obligation from the
+compliance scorecard, not just 'tracked'"), a third interrupted-work branch sitting in the same
+working tree. company/regulatory/compliance_scorecard.py gains `latest_check()` (returns the full
+ComplianceCheck, not just its status, so `.notes` is available); saas/reporting/annual_report.py's
+scorecard-population logic is extracted into a shared `populate_compliance_scorecard()` so both the
+markdown board section and the new dashboard extractor build from one source; tools/generate_
+dashboard_data.py::extract_regulatory() maps the Supplier tab's 23 SLC/regulatory obligation rows onto
+the scorecard's 10 domains for a real per-row RAG chip in place of the old hardcoded "Phase XXX"
+column. PRIORITIES.md's own working copy already documented this as "landed this session" before
+this commit -- the work was done and described, just never checked in.
+
+15,655 fast-suite tests pass (3 new run-lock tests; the capabilities.json/system_status.json/
+regulatory-RAG generators already carried their own tests, collected and passing in the same run,
+no separate count needed), epistemic verifier PASS on the company/saas files touched
+(compliance_scorecard.py, annual_report.py).
+
 ### Phase RF -- Project Tab: Company/Overview Dedup, Regulatory Inline-Expand, Chart Cosmetics (2026-07-05, Tier 2 -- PRIORITIES.md front-of-queue, PROJECT_TAB_OVERHAUL.md remaining scope)
 Closes the three items PRIORITIES.md named as front-of-queue remainder from PROJECT_TAB_OVERHAUL.md (not the full staged instruction -- Timeline auto-append, a real Capabilities register, and System-tab elevation remain open, see PRIORITIES.md).
 
@@ -5754,7 +5808,19 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,740 tests collected; 14,478 fast suite (pytest -m "not slow" --ignore=tests/simulation)
+- 15,655 tests collected (fast-suite run, --ignore=tests/simulation slow integration files); 3 new
+  tests this phase (2 run-lock tests + retargeted source-inspection tests, no count change from the
+  net-new lock tests since 2 were added)
+- Phase RG (2026-07-06): fixed a live concurrency bug (two process_run_complete.py instances running
+  the full pipeline on the same run_complete marker simultaneously -- sim_runner's synchronous
+  invocation racing background_worker's 30min leftover-marker sweep) with a non-blocking flock run
+  lock; closed PROJECT_TAB_OVERHAUL.md in full by verifying and committing interrupted prior-session
+  frontend work (Timeline auto-append from phases.json, real Capabilities register from
+  capabilities.json, System-tab elevation with continuity/burn-chart/staging-queue/session-history
+  panels from system_status.json); also committed a third interrupted branch, SUPPLIER_TAB_OVERHAUL.md's
+  Regulatory RAG-per-obligation item (compliance_scorecard.py::latest_check() +
+  generate_dashboard_data.py::extract_regulatory(), 23 obligation rows mapped to 10 scorecard domains).
+  15,655 fast-suite tests pass, epistemic PASS. See Section 4.
 - Phase RF (2026-07-05): Project tab Company/Overview dedup, Regulatory inline-expand, phases-per-day
   chart cosmetics, and a stale-stats consistency fix (Capabilities/Roadmap hand-written numbers now
   generated; docs/observability/build_info.json corrected from a 5-phases-stale QP snapshot). 1 new

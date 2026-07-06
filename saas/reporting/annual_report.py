@@ -5549,15 +5549,11 @@ def _section_ofgem_supply_return(data: dict) -> str:
 
     return "\n".join(lines)
 
-def _section_compliance_scorecard(data: dict) -> str:
-    """Phase OD: Ofgem SLC Compliance Scorecard Synthesis.
-
-    Populates ComplianceScorecard from existing simulation signals for each year.
-    10 SLC domains: governance, billing, payment, transparency, complaints,
-    vulnerable customers, tariff/price-cap, environmental, network/balancing,
-    financial resilience. RAG derived from metrics already in the report.
-    Silent when no yearly data.
-    """
+def populate_compliance_scorecard(data: dict):
+    """Populate a ComplianceScorecard from simulation signals already present in the
+    report data, one check per SLC domain per year. Returns None when there is no
+    yearly data. Shared by _section_compliance_scorecard's markdown table and
+    tools/generate_dashboard_data.py's Regulatory tab (SUPPLIER_TAB_OVERHAUL.md)."""
     from company.regulatory.compliance_scorecard import (
         ComplianceScorecard,
         ComplianceDomain,
@@ -5570,7 +5566,7 @@ def _section_compliance_scorecard(data: dict) -> str:
     fra_series = {r["year"]: r for r in data.get("fra_ratio_series", [])}
 
     if not years:
-        return ""
+        return None
 
     scorecard = ComplianceScorecard()
 
@@ -5670,6 +5666,25 @@ def _section_compliance_scorecard(data: dict) -> str:
         scorecard.record_check(ComplianceDomain.FINANCIAL_RESILIENCE, as_of, fin_rag,
                                 metric_value=round(fra_ratio, 1), threshold=1.0,
                                 notes=f"FRA ratio {fra_ratio:.1f}x monthly revenue")
+
+    return scorecard
+
+
+def _section_compliance_scorecard(data: dict) -> str:
+    """Phase OD: Ofgem SLC Compliance Scorecard Synthesis.
+
+    10 SLC domains: governance, billing, payment, transparency, complaints,
+    vulnerable customers, tariff/price-cap, environmental, network/balancing,
+    financial resilience. RAG derived from metrics already in the report.
+    Silent when no yearly data.
+    """
+    from company.regulatory.compliance_scorecard import ComplianceDomain
+    import datetime as dt
+
+    years = data.get("years", {})
+    scorecard = populate_compliance_scorecard(data)
+    if scorecard is None:
+        return ""
 
     # Build output table
     all_yrs = sorted(years.keys())
