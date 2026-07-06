@@ -1,5 +1,5 @@
 ## Phase RJ COMPLETE -- Customer 360 tabbed household IA + per-fuel MPAN/MPRN separation
-Last updated: 2026-07-06T09:16:46Z
+Last updated: 2026-07-06T09:33:23Z
 
 **Status:** COMPLETE. 15,791 tests collected, fast suite (15,667) clean. Epistemic: PASS.
 
@@ -23,7 +23,7 @@ waterfall, wiring real billing_ledger.json data into the customer JSON), 3 (even
 effects), 4 (reaction-loop rendering) -- per PRIORITIES.md P1a.
 
 
-**Latest simulation results (2016-2025)** -- auto-processed (698s / 12 min):
+**Latest simulation results (2016–2025)** — auto-processed (491s / 8 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
