@@ -23,10 +23,13 @@
 #   per-event effects on the Timeline (renewal rate steps / usage before-after / income-stress
 #   drift) + a reaction-chain panel reusing decision_event_ledger.build_customer_ledger.)
 #   AWAITING RICH'S VISUAL CONFIRMATION per the P1 acceptance rule below -- report as such, not "done".
-# P1b. SUPPLIER TAB IA (docs/staging/SUPPLIER_TAB_OVERHAUL.md). Phase RH already closed the core
-#   IA regroup (grouped nav + Query FAB) and RG closed Capabilities->Project + Regulatory RAG +
-#   Worst-Shock-Month; remaining: portfolio event stream as spine, Recommended Actions elevated
-#   to Overview, heatmap click-through to customer 360 + year.
+# P1b. SUPPLIER TAB IA (docs/staging/SUPPLIER_TAB_OVERHAUL.md) -- CLOSED IN FULL (Phase RM,
+#   2026-07-06). Phase RH closed the core IA regroup (grouped nav + Query FAB); RG closed
+#   Capabilities->Project + Regulatory RAG + Worst-Shock-Month annotation; RM closed the
+#   remainder: portfolio event stream as the Commercial group's centerpiece tab (real, 122
+#   live events), Recommended Actions elevated to Overview ("What the Board Should Do Next"),
+#   heatmap click-through to customer 360 + year (site/customers/index.html deep-linking).
+#   AWAITING RICH'S VISUAL CONFIRMATION per the P1 acceptance rule below -- report as such, not "done".
 # P1c. SIX-SECTION NAV + STORY (docs/staging/NAV_STORY_PLATFORM_METHOD.md) -- Home/Story landing,
 #   new Platform + Method sections, tab reorder. Not yet started.
 # P2 (resumes after P1a-c land + Rich's visual confirmation): CTS £0/£91,780 reconciliation
