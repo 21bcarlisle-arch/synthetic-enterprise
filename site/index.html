@@ -618,6 +618,12 @@ function renderTrading() {
     </div>
     <div class="chart-box">
       <div class="chart-title">Portfolio Avg Hedge Fraction by Year</div>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 8px">
+        Min HF touches 0% every year 2019–2024 — the regime-change-blindness trap
+        (Phase 1e "hf=0.00" finding): the hedging model converged toward naked positions during
+        calm pre-crisis markets, directly ahead of the 2021–22 crisis it then had to weather.
+        2025's return to an 85% floor across avg/min/max is the corrective fix, not a data gap.
+      </p>
       <div class="chart-wrap"><canvas id="ch-hedge"></canvas></div>
     </div>
     <div class="tbl-box">
@@ -698,7 +704,7 @@ function renderTrading() {
     },
     options: { ...baseLineOpts(), scales: {
       x:{grid:{color:'rgba(225,224,217,.4)'}},
-      y:{grid:{color:'rgba(225,224,217,.4)'},min:70,max:105,ticks:{callback:v=>v+'%'},
+      y:{grid:{color:'rgba(225,224,217,.4)'},min:0,max:105,ticks:{callback:v=>v+'%'},
          title:{display:true,text:'Hedge fraction (%)',color:C.muted,font:{size:10}}} } }
   });
 }

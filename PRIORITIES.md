@@ -1,18 +1,27 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-05 (Phase RF: PROJECT_TAB_OVERHAUL.md's named remaining-scope items
-# CLOSED -- Company/Overview About dedup (Company tab repurposed as "How It Is Built": governance
-# tiers, staging protocol, R1-R6), Regulatory's 12 scheme rows made click-to-expand inline, and
-# phases-per-day chart given its own Chart.js options (was wrongly sharing the line chart's
-# maxTicksLimit:5). Found + fixed en route: Capabilities/Roadmap cards' hand-written stale stats
-# now generate from dashboard.json build.* + a new live phases.json total_commits field; this
-# surfaced docs/observability/build_info.json itself 5 phases stale since QP -- corrected.
-# NOT done: a real Capabilities register (cards still static prose, not per-card generated from a
-# register), Timeline auto-append from build history, System-tab elevation, and Regulatory
-# board-pack deep-links (ANNUAL_REPORT.md has no HTML anchors to link to under GitHub Pages
-# .nojekyll) -- all remain PROJECT_TAB_OVERHAUL.md backlog.
-# Front of queue now: SUPPLIER_TAB_OVERHAUL.md (11-tabs-to-grouped-nav IA rework, already queued
-# alongside PROJECT_TAB_OVERHAUL.md per the original wave) and PROJECT_TAB_OVERHAUL.md's remaining
-# items above. CUSTOMER_360_REDESIGN.md (items 2-4 plus item 1's frontend rendering),
+# Last refreshed: 2026-07-06 (Phase RG, then this session's housekeeping pass: this file had
+# drifted out of sync with docs/PRIORITIES.md, which Phase RG updated but this copy did not --
+# stale for one phase. PROJECT_TAB_OVERHAUL.md is now CLOSED IN FULL (Phase RG, 2026-07-06):
+# Timeline auto-append, a real Capabilities register, and System-tab elevation were all found
+# already implemented in site/project/index.html from an interrupted prior session, verified
+# against live data and committed. Company dedup, Regulatory inline-expand, chart axis fix,
+# capability-card stat generation, CONSISTENCY BREACH and phases.json hand-curation were closed
+# earlier (RF, QW, RD) -- see those phases' entries below for detail.
+# Front of queue now: SUPPLIER_TAB_OVERHAUL.md's remaining scope -- the Tier 3 design note for
+# the frozen-policy-baseline metric (policy snapshot/replay is one-way-door-adjacent) must land
+# before the IA regroup (11 tabs -> grouped nav) proceeds. Its "Worst Shock Month" bug and
+# Regulatory RAG-per-obligation item are already done (RG). This session additionally closed two
+# safe, presentation-only items from its FIX list: the Trading tab's min-HF chart was clipping
+# the 2019-2024 regime-blindness-trap 0% bars off-chart (y-axis floor was 70%) -- now shows the
+# full 0-105% range with an inline narrative explaining the Phase 1e finding. Found but NOT
+# actioned (flagged for Rich, not a routine fix): the Accounts waterfall's CTS £0-every-year vs
+# Insights cost-to-serve £91,780 breach traces to a real gap, not a display bug -- the ledger's
+# chart-of-accounts code 6100 ("Cost to Serve") exists but no event type ever posts to it, AND
+# saas/cost_to_serve.py's own formula still bakes in the old flat BAD_DEBT_RATE assumption Phase
+# QD's emergent-arrears engine superseded elsewhere -- wiring it into the ledger as-is would
+# re-introduce the discredited bad-debt figure as a real cash cost, shifting the whole 10-year
+# net margin. See docs/staging/drafts/NEXT_PHASE.md for the full write-up and options; proceeding
+# per the Tier 3 4h opt-out unless redirected. CUSTOMER_360_REDESIGN.md (items 2-4),
 # NAV_STORY_PLATFORM_METHOD.md remain queued behind. FEEDBACK_AND_REPUTATION.md and
 # NUDGE_PHYSICS.md are explicitly queued behind this wave per their own staged text -- do not
 # jump them ahead of it.)

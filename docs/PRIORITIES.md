@@ -22,14 +22,21 @@ WEBSITE_AS_SHOWCASE.md is the master directive. Progress per tab:
   57fb0025) and its Regulatory RAG-per-obligation item (GOVERNANCE bullet: "add RAG compliance status
   per obligation from the compliance scorecard") is DONE (Phase RG) via
   company/regulatory/compliance_scorecard.py::latest_check() +
-  tools/generate_dashboard_data.py::extract_regulatory(). Not yet started as a full dedicated phase.
-  Frozen-policy-baseline headline metric still needs the Tier 3 design note per the original
-  sequencing (policy snapshot/replay is one-way-door-adjacent) before the rest of the IA regroup
-  (11 tabs -> grouped nav) proceeds.
+  tools/generate_dashboard_data.py::extract_regulatory(). This session closed the min-HF chart
+  clipping bug (Trading tab y-axis floor of 70% hid the 2019-2024 regime-blindness 0% bars;
+  now 0-105% with an inline Phase 1e narrative). Found but NOT actioned: the Accounts waterfall
+  "CTS £0 vs Insights £91,780" breach is a real gap (ledger account 6100 has no posting event
+  type at all) complicated by saas/cost_to_serve.py still including the old flat BAD_DEBT_RATE
+  Phase QD's emergent-arrears engine superseded -- wiring it in naively would shift the whole
+  10-year net margin. Write-up + options in docs/staging/drafts/NEXT_PHASE.md, proceeding per
+  the Tier 3 4h opt-out. Frozen-policy-baseline headline metric still needs its own Tier 3 design
+  note per the original sequencing (policy snapshot/replay is one-way-door-adjacent) before the
+  rest of the IA regroup (11 tabs -> grouped nav) proceeds.
 - FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md: still queued behind this wave, not yet reached.
 
-**Front of queue next:** SUPPLIER_TAB_OVERHAUL.md's remaining scope -- the Tier 3 design note for the
-frozen-policy-baseline metric, then the rest of the tab (IA regroup, 11 tabs -> grouped nav) -- since
+**Front of queue next:** the CTS/cost-to-serve ledger reconciliation design note (proceeding per
+its 4h opt-out, docs/staging/drafts/NEXT_PHASE.md) and SUPPLIER_TAB_OVERHAUL.md's frozen-policy-
+baseline Tier 3 design note, then the rest of the tab (IA regroup, 11 tabs -> grouped nav) -- since
 Tab 3 (Project) is now fully closed.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
