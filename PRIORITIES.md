@@ -23,6 +23,18 @@
 #   per-event effects on the Timeline (renewal rate steps / usage before-after / income-stress
 #   drift) + a reaction-chain panel reusing decision_event_ledger.build_customer_ledger.)
 #   AWAITING RICH'S VISUAL CONFIRMATION per the P1 acceptance rule below -- report as such, not "done".
+#   REOPENED (2026-07-06, docs/staging/BILLING_AND_PAYMENTS_LEDGER.md, [ADVISOR-STAGED] 8a8f2e81,
+#   Tier 2, Rich's own directive labels it "P1a scope, continue on the 360" after live review --
+#   P-2 director-repeat rule applies): Billing tab -> BILLING & PAYMENTS. (1) bill equation renders
+#   inline per row (data already present, pure renderer work); (2) new STATEMENT view -- chronological
+#   ledger per account (invoice/payment/adjustment/write-off with actual payment dates) + running
+#   balance, sourced from billing_ledger.json/ledger events; (3) per-customer CASHFLOW panel --
+#   monthly billed-vs-collected + cumulative net cash curve as the real H2/CLV actuals base, per-fuel
+#   + combined, with page-level reconciliation (cumulative collected must tie to lifetime_revenue
+#   minus outstanding balance; Risk tab arrears state must equal the statement's aged balance); (4)
+#   payment-method (DD/receipt) shown on the statement, DD failures/retries as ledger events.
+#   NOT YET STARTED -- front of queue, ranks ahead of P1c's remaining Method/Project-slim-down scope
+#   per P-2 (this is Rich's own live-reviewed ask, not self-generated backlog).
 # P1b. SUPPLIER TAB IA (docs/staging/SUPPLIER_TAB_OVERHAUL.md) -- CLOSED IN FULL (Phase RM,
 #   2026-07-06). Phase RH closed the core IA regroup (grouped nav + Query FAB); RG closed
 #   Capabilities->Project + Regulatory RAG + Worst-Shock-Month annotation; RM closed the

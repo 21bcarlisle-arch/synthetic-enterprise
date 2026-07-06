@@ -1,25 +1,36 @@
-## Phase RK COMPLETE -- Customer 360 v4 item 2: real bill equation, fabrication debt closed
-Last updated: 2026-07-06T15:09:41Z
+## Phase RO COMPLETE -- NAV_STORY_PLATFORM_METHOD.md P1: Home/Story landing + Platform section
+Last updated: 2026-07-06T15:18:51Z
 
-**Status:** COMPLETE. 15,785 tests collected, fast suite (15,661) clean. Epistemic: PASS.
+**Status:** COMPLETE. 15,818 tests collected, fast suite (15,694) clean. Epistemic: PASS.
 
-**Phase RK:** replaced a real fabrication debt Phase RJ surfaced -- tools/generate_invoice_data.py
-used to synthesise invoice amounts from a hand-picked seasonal weight curve, unrelated to actual
-consumption, even though site/state/billing_ledger.json already carried the real per-invoice
-usage/rate/standing-charge breakdown from the sim's own bills. Rewritten to map real ledger data
-through directly; process_run_complete.py reordered so the ledger generates before the invoice
-step needs it. Billing tab is now click-to-expand per bill: the equation (usage x rate + standing
-charge + non-commodity + VAT = total) and a why-different waterfall vs the previous bill and same
-month last year (usage effect / price effect / other), verified against live data.
+**Phase RO:** recovered a second interrupted prior session's work found uncommitted at session
+start -- site/index.html rewritten from the Supplier dashboard into a Home/Story landing (mission
+pitch, headline metrics, real test-progression learning curve, Three Products framing); old
+dashboard moved intact to site/supplier/index.html; new site/platform/index.html (architecture
+layers, module/domain map, adapter registry, synthetic data catalogue) backed by new
+tools/generate_platform_data.py -- every count computed fresh from the repo filesystem. This
+session verified all nav/cross-links, wired the generator into process_run_complete.py's
+auto-commit pipeline, and fixed a real staleness bug found en route (generate_dashboard_data.py's
+company_modules count was a hand-typed constant drifted stale since Phase RF -- now a live
+filesystem count).
 
-**Prior:** Phase RJ (2026-07-06) -- Customer 360 tabbed household IA + per-fuel MPAN/MPRN
-separation. Phases RF-RI: Company/Regulatory tab dedup, Project tab elevation, concurrency fix,
-Supplier IA regroup, Customer 360 v3 usage-chart rendering. Earlier: docs/claude/phase-history.md
-and docs/PROJECT_OVERVIEW.md Section 4.
+**Also this session:** found and resolved a real git divergence -- this working tree's history had
+forked from origin/main (13 unpushed "Auto-process run complete" commits locally vs a smaller set
+on origin, including Phase RN's already-merged fix and a new advisor-staged directive). Reconciled
+via an ordinary `git merge origin/main` (matching the documented precedent at commit 5aa0a6c9) --
+zero conflicts, full fast-suite re-run clean post-merge (15,694 passed, unchanged), then pushed.
 
-**Front of queue next:** CUSTOMER_360_REDESIGN.md v4 items 3 (event downstream effects on
-Timeline) and 4 (reaction-loop rendering) per PRIORITIES.md P1a -- company/crm/ already has the
-complaint/service-ticket/satisfaction infrastructure, needs joining into the portal JSON.
+**Prior:** Phase RN (2026-07-06) -- Billing tab regression fix + closed-account UX. Phase RM --
+Supplier tab portfolio event stream + Recommended Actions elevation + heatmap click-through
+(CLOSES P1b). Phase RL -- Customer 360 v4 items 3-4, real event effects + reaction chain (CLOSES
+P1a v4 scope). Phases RF-RK: see docs/claude/phase-history.md and docs/PROJECT_OVERVIEW.md Section 4.
+
+**Front of queue next:** docs/staging/BILLING_AND_PAYMENTS_LEDGER.md -- Rich's own live-review
+directive reopening P1a scope on Customer 360: bill-equation inline render, a new STATEMENT view
+(chronological per-account ledger with running balance), a per-customer CASHFLOW panel (billed vs
+collected, cumulative net cash as the real H2/CLV actuals base), and payment-method visibility on
+the ledger. Ranks ahead of P1c's remaining Method-section/Project-slim-down scope per the P-2
+director-repeat rule (see PRIORITIES.md P1a).
 
 
 **Latest simulation results (2016–2025)** — auto-processed (519s / 9 min):
