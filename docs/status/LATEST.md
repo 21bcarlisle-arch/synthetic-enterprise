@@ -1,34 +1,32 @@
-## Phase RQ COMPLETE -- NAV_STORY_PLATFORM_METHOD.md CLOSED IN FULL (PRIORITIES.md P1a-c ALL CLOSED)
-Last updated: 2026-07-06T20:51:24Z
+## Phase RR COMPLETE -- WEBSITE_AS_SHOWCASE.md tab 4 case-study recommender CLOSED, staging hygiene
+Last updated: 2026-07-06T20:58:39Z
 
-**Status:** COMPLETE. 15,856 tests collected, fast suite (15,732) clean. Epistemic: PASS.
+**Status:** COMPLETE. 15,856 tests collected. Epistemic: PASS.
 
-**Phase RQ:** built the Method section (site/method/index.html, tools/generate_method_data.py) --
-operating model (roles/tiers), the R1-R6 permanent rules each paired with the real incident that
-forged it (quoted from docs/retrospectives/2026-07-04-verification-week.md), a live staging-loop
-view (pending/done/draft counts computed fresh from docs/staging/ at generation time), and the
-retrospective library. Project tab slims down: Company + Capabilities sub-tabs removed from
-site/project/index.html, content redistributed to Method (governance/rules/design-principles/
-infrastructure) and Platform (new Capabilities register section, reusing the existing
-capabilities.json generator) -- no content lost, a pointer note added to the Overview tab. Method
-nav link added to all seven site pages; Home page's placeholder Method card and Explore grid wired
-to the real page. node stayed gated behind an unapprovable permission prompt all session -- verified
-via brace/paren/bracket balance across every touched page plus a direct field-name cross-check
-between the generator's JSON keys and every JS accessor, run live against real data.
+**Phase RR:** housekeeping first -- archived 4 staged docs (CUSTOMER_360_REDESIGN.md,
+SUPPLIER_TAB_OVERHAUL.md, NAV_STORY_PLATFORM_METHOD.md, PROJECT_TAB_OVERHAUL.md) to
+docs/staging/done/ that PRIORITIES.md/PROJECT_OVERVIEW.md had already declared CLOSED IN FULL
+(Phases RL/RP, RM, RQ, RG) but were never moved out of the active queue. Main work: new
+tools/generate_case_study_recommender.py auto-curates 5 "interesting customers" (most eventful
+journey, largest company-vs-SIM churn divergence, retention-save-then-churned-anyway, heaviest
+arrears cascade, notable life event) by ranking real per-household signals already computed by
+generate_customer_reaction_chain.py/generate_customer_sample.py -- nobody hand-picked by account
+id. Live run picked C2/C_IC2/C5/C3/C7, each figure real (e.g. C_IC2's 2489% churn-estimate error,
+sim 4% vs company 95%, a live instance of the documented I&C 0.95-ceiling behaviour). Output
+site/data/case_studies.json, wired into process_run_complete.py, rendered as a new panel on
+site/customers/index.html's login page linking into each household's Timeline.
 
-**This closes PRIORITIES.md's entire P1a-c PRIORITY RESET** (P1a Customer 360 v4 -- Phases RL/RP;
-P1b Supplier tab IA -- Phase RM; P1c six-section nav + story -- Phases RO/RQ). Per the reset's own
-standing rule, P2 (CTS reconciliation, frozen-policy baseline, FEEDBACK_AND_REPUTATION.md,
-NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md) resumes only after Rich's visual confirmation on the live
-site -- reported here as ready for that review, not claimed done outright.
+**This closes WEBSITE_AS_SHOWCASE.md tab 4** (case-study recommender). Tabs 2 (frozen-policy
+baseline) and 3 (learning ledger) remain gated behind Rich's visual confirmation of P1a-c, per the
+priority-reset rule, not started. PRIORITIES.md P2 (CTS reconciliation, frozen-policy baseline,
+FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md) resumes only after that
+confirmation -- reported here as ready for review, not claimed done outright.
 
-**Prior:** Phase RP (2026-07-06) -- BILLING_AND_PAYMENTS_LEDGER.md, per-account payment ledger +
-Statement/Cashflow views. Phase RO -- NAV_STORY_PLATFORM_METHOD.md P1, Home/Story landing + Platform
-section. Phase RN -- Billing tab regression fix + closed-account UX. Phases RF-RM: see
+**Prior:** Phase RQ (2026-07-06) -- NAV_STORY_PLATFORM_METHOD.md CLOSED IN FULL, Method section +
+Project tab slim-down (closes PRIORITIES.md's entire P1a-c PRIORITY RESET). Phase RP --
+BILLING_AND_PAYMENTS_LEDGER.md, per-account payment ledger + Statement/Cashflow views. Phase RO --
+NAV_STORY_PLATFORM_METHOD.md P1, Home/Story landing + Platform section. Phases RF-RQ: see
 docs/claude/phase-history.md and docs/PROJECT_OVERVIEW.md Section 4.
-
-**Front of queue next:** PRIORITIES.md P2, gated on Rich's visual confirmation of the live site --
-not self-initiated without it.
 
 
 **Latest simulation results (2016–2025)** — auto-processed (513s / 9 min):
