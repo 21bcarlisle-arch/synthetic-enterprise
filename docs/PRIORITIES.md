@@ -29,15 +29,21 @@ WEBSITE_AS_SHOWCASE.md is the master directive. Progress per tab:
   type at all) complicated by saas/cost_to_serve.py still including the old flat BAD_DEBT_RATE
   Phase QD's emergent-arrears engine superseded -- wiring it in naively would shift the whole
   10-year net margin. Write-up + options in docs/staging/drafts/NEXT_PHASE.md, proceeding per
-  the Tier 3 4h opt-out. Frozen-policy-baseline headline metric still needs its own Tier 3 design
-  note per the original sequencing (policy snapshot/replay is one-way-door-adjacent) before the
-  rest of the IA regroup (11 tabs -> grouped nav) proceeds.
+  the Tier 3 4h opt-out. Frozen-policy-baseline headline metric: design note now written
+  (docs/staging/drafts/FROZEN_POLICY_BASELINE_DESIGN.md, this session) -- there is no existing
+  swappable policy object today (retention/hedge decisions are inlined constants/branches in
+  simulation/run_phase2b.py::main()); recommends an additive optional policy= param defaulting
+  to current behaviour (zero change for existing callers), a NAIVE_POLICY struct pinned to
+  pre-Phase-14a/15b/43b constants, and a new tools/run_frozen_baseline.py replaying the decade
+  twice (replay-safe because churn/acquisition dice rolls are per-customer/term keyed, not one
+  global seed) to diff enterprise value. Tier 3, proceeding per its own 4h opt-out unless
+  redirected; the rest of the IA regroup (11 tabs -> grouped nav) waits behind both design notes.
 - FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md: still queued behind this wave, not yet reached.
 
-**Front of queue next:** the CTS/cost-to-serve ledger reconciliation design note (proceeding per
-its 4h opt-out, docs/staging/drafts/NEXT_PHASE.md) and SUPPLIER_TAB_OVERHAUL.md's frozen-policy-
-baseline Tier 3 design note, then the rest of the tab (IA regroup, 11 tabs -> grouped nav) -- since
-Tab 3 (Project) is now fully closed.
+**Front of queue next:** two Tier 3 design notes proceeding on their own 4h opt-outs -- the
+CTS/cost-to-serve ledger reconciliation (docs/staging/drafts/NEXT_PHASE.md) and the frozen-policy
+baseline (docs/staging/drafts/FROZEN_POLICY_BASELINE_DESIGN.md, this session) -- then the rest of
+the Supplier tab (IA regroup, 11 tabs -> grouped nav), since Tab 3 (Project) is now fully closed.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
 Coverage sprints (phases LQ through MU, 95+ sprints) are complete.
