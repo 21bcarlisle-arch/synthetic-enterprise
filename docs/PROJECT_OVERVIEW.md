@@ -111,6 +111,104 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RI -- Recovered interrupted commits: CUSTOMER_360_REDESIGN.md item 1 frontend + Phase RH docs (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue)
+Session start found two pieces of already-completed work sitting uncommitted in the working
+tree. Neither was code-in-progress; both were staging gaps from prior interrupted sessions.
+
+**(1) Phase RH documentation.** The Supplier tab IA regroup code (site/index.html) was already
+committed; only the phase-close documentation commit (CLAUDE.md/PRIORITIES.md/PROJECT_OVERVIEW.md
+Phase RH entries, checklist step 7) had not landed.
+
+**(2) CUSTOMER_360_REDESIGN.md item 1 frontend rendering.** `docs/PRIORITIES.md` (committed at
+148dabbd, 06:49) already claimed "data layer + frontend rendering both done" for the Usage Viz
+item, but the 161-line `site/customers/index.html` diff implementing the frontend half had never
+been staged -- a `git add` gap, not incomplete work. The diff itself: a Usage section with a
+monthly consumption chart carrying a selectable weather overlay (none/mean temperature/heating
+degree days, sourced from `site/data/weather.json`'s `monthly[]`), click-to-drill daily profile
+for HH-metered accounts (`consumption.daily_kwh`), weekday-vs-weekend and seasonal load-shape
+charts (`consumption.load_shape.{weekday_avg_kwh,weekend_avg_kwh,seasonal_avg_kwh}`, 48-period
+half-hourly arrays), and MoM/YoY period-comparison chips.
+
+Verification: `node` was unexpectedly gated behind an unapprovable permission prompt this session
+(non-interactive autonomous run, no user present to approve) -- same class of gap as Phases RA/RG
+hitting "no node available", but this time an active block rather than absence. Fell back to the
+established substitute: brace/paren/bracket-balance check on the extracted `<script>` body
+(130/130 braces, 262/262 parens, 27/27 brackets -- balanced) plus direct field-by-field
+cross-check against live data rather than a synthetic harness. Confirmed `site/data/customers/
+C1.json` (a non-HH account: `consumption` has only `unit`/`monthly`/`has_hh_data`) and `C7.json`
+(an HH account: adds `daily_kwh`/`load_shape`) both match the code's conditional rendering paths
+exactly, and `site/data/weather.json`'s `monthly[].{mean_temp_c,hdd}` field names match the
+overlay code's fetch-and-map logic verbatim.
+
+Also swept into this commit: routine background-process state sync (sim_runner/autonomous_runner/
+dispatcher/staging_watcher logs, `docs/observability/*.json`) accumulated since the last commit --
+standard housekeeping from the long-running background processes, not phase work.
+
+Full fast suite 14,517 passed (`--ignore=tests/simulation`), `python3 -m tools.epistemic_verifier`
+PASS (presentation-only + housekeeping, no company/saas/ files touched). 0 new tests (no new
+Python behavior -- HTML/JS + doc/log sync only).
+
+### Phase RH -- SUPPLIER_TAB_OVERHAUL.md Information Architecture: 9 flat tabs -> 5 grouped nav, Query -> persistent affordance (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue)
+The IA fix SUPPLIER_TAB_OVERHAUL.md called out as "the big fix": site/index.html's 9 flat
+Supplier tabs (Overview, Financial, Accounts, Trading, Customers, Insights, Monthly, Market,
+Regulatory -- Query and Capabilities already removed from this flat list in earlier phases)
+regrouped into 5 named groups exactly as staged: PERFORMANCE (Overview/Financial/Accounts),
+COMMERCIAL (Customers), TRADING & MARKET (Trading/Market), OPERATIONS (Monthly/Insights),
+GOVERNANCE (Regulatory). Implementation: a `GROUPS` config array (id/label/tabs), `renderGroupNav()`
+draws the 5 top-level buttons, `renderSubNav()` draws a second row of sub-tab buttons only when
+the active group has more than one tab (Commercial and Governance collapse the sub-nav row
+entirely -- there is nothing to disambiguate). `switchGroup(gid)` lands on the group's first tab;
+`switchTab(name)` derives `ACTIVE_GROUP` from the tab via `groupOf()` so deep-linking a tab keeps
+the right group highlighted. All 9 `render*()` functions and their `<div id="tab-*">` view
+containers are untouched -- only the nav layer changed, to keep the blast radius to navigation.
+
+Query converted from a tab into a persistent affordance per the staged spec ("search-style,
+available on every page ... not a tab"): a fixed bottom-right FAB button opens a right-side
+slide-over panel (`.query-panel`, CSS transform on `right`) containing the exact same
+`renderQuery()` output (Ask-the-Data input, example questions, Q&A history with GAP badges,
+"Learning gaps" section) -- panel visibility no longer goes through the tab-switching
+`.view`/`.active` mechanism (would have fought the "always render once, cache in `rendered{}`"
+convention the other 9 tabs use), so `#tab-query` was given its own `.query-content` class instead
+and `toggleQueryPanel()` lazily calls `renderQuery()` on first open using the same `rendered{}`
+cache flag as every other tab.
+
+Found and fixed two direct violations of "THE IN-WORLD RULE" (SUPPLIER_TAB_OVERHAUL.md's own new
+site law: "supplier surfaces stay IN THE FICTION -- no test counts, phase letters, or build
+metadata... a real supplier's MI pack does not display its vendor's sprint number... Header keeps
+net + LIVE only") while touching this file: (1) the header rendered a raw git commit hash as a
+clickable GitHub link next to net margin -- literally build metadata, and in violation of the
+rule's own explicit header spec; removed, header now shows only net margin + the Live badge as
+specified. (2) the Insights tab's executive-summary card appended "&bull; {git_hash}" and, below
+the recommended-actions card, a full "Run History (N runs)" table listing every run's git hash,
+net margin and date -- again build metadata with no in-fiction business meaning. Confirmed
+site/project/index.html already surfaces build cadence/session history (`renderSessionHistory()`,
+commits/day chart, Phase RG/RF work) before removing, so nothing was lost, only duplicated content
+that didn't belong on Supplier removed.
+
+Also closed the FIX list's "Monthly chart committee line fights its axes" item: the dual-axis
+design itself (`y` for shock counts, `y1`/right for committee calls, `drawOnChartArea:false`) was
+already correct, but `ch-monthly-ops`'s x-axis still used the pre-Phase-RA illegible
+`maxRotation:60,font:{size:9}` pattern (120 monthly labels rotated and shrunk) rather than the
+`maxTicksLimit:12,maxRotation:0` convention Phase RA already established for Prices/Weather/BM/
+Trading -- switched over for consistency.
+
+Verification (node available this session, unlike several recent phases): wrote a Node harness
+with a minimal DOM/classList/localStorage/fetch/Chart stub set, loaded the real `<script>` body out
+of `site/index.html` via `eval()`, and served the live `site/data/dashboard.json` through the fetch
+stub. Ran `init()` then `switchTab()` across all 9 tabs -- zero runtime errors, each tab's
+`innerHTML` populated with plausible non-trivial content (1.5k-33k chars). Exercised `switchGroup()`
+for a 1-tab group (Commercial: confirmed sub-nav renders empty) and a 2-tab group (Trading &
+Market: confirmed both sub-tab buttons render, correct one active). Exercised
+`toggleQueryPanel()` open/close. Regex-confirmed the rendered Insights tab HTML no longer contains
+`git_hash` or "Run History". `node --check` on the extracted script confirmed no syntax errors.
+`python3 -m tools.epistemic_verifier` PASS (presentation-only change, no company/saas/ files
+touched). Full test suite unaffected (no Python touched); 15,779 collected, 0 new.
+
+Not actioned this phase (still inside their own Tier 3 4h opt-out windows, filed within the hour):
+the frozen-policy-baseline / delta-EV design note (commit 148dabbd, ~06:49 UTC+1) and the
+cost-to-serve ledger reconciliation design note (commit 4c22ceea, ~06:40 UTC+1) -- both correctly
+classified Tier 3 by the prior session, neither ripe to implement yet.
+
 ### Phase RG -- Concurrent Pipeline Race Fix + PROJECT_TAB_OVERHAUL.md CLOSED IN FULL + Supplier Regulatory RAG (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue)
 Two pieces of work found and closed in one session.
 
@@ -5808,9 +5906,28 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,655 tests collected (fast-suite run, --ignore=tests/simulation slow integration files); 3 new
-  tests this phase (2 run-lock tests + retargeted source-inspection tests, no count change from the
-  net-new lock tests since 2 were added)
+- 15,779 tests collected; 0 new this phase (presentation-only, site/index.html)
+- Phase RH (2026-07-06): SUPPLIER_TAB_OVERHAUL.md's Information Architecture fix -- the 9 flat
+  Supplier tabs (Overview/Financial/Accounts/Trading/Customers/Insights/Monthly/Market/Regulatory)
+  regrouped into 5 named groups (Performance/Commercial/Trading & Market/Operations/Governance)
+  via a two-tier nav (site/index.html: GROUPS config, renderGroupNav/renderSubNav/switchGroup);
+  Query converted from a tab into a persistent floating affordance (bottom-right FAB + slide-over
+  panel) available from every group, per the staged spec's "not a tab" requirement. Found and fixed
+  two THE IN-WORLD RULE violations while touching this file: the header showed a raw git commit
+  hash/link (rule says "Header keeps net + LIVE only") and the Insights tab showed an "Executive
+  summary bull {git_hash}" line plus a full Run History table of git hashes -- both build metadata
+  with no in-fiction meaning, removed (git-hash/build-cadence data already lives on the Project tab,
+  confirmed present there before removing). Also closed the FIX list's "Monthly chart committee line
+  fights its axes" item: ch-monthly-ops's x-axis still used the pre-Phase-RA illegible
+  maxRotation:60/font:size9 pattern; switched to the maxTicksLimit:12/maxRotation:0 convention
+  already used on Prices/Weather/BM/Trading. Verified with a Node harness (DOM/localStorage/fetch/
+  Chart stubs, real site/data/dashboard.json) exercising all 9 renderTab() paths plus switchGroup
+  for both a 1-tab group (Commercial: subnav correctly empty) and a 2-tab group (Trading & Market:
+  subnav shows both) and the query panel open/close cycle -- zero runtime errors, insights content
+  confirmed free of git_hash/Run History strings. Not actioned (still in Tier 3 4h opt-out, not
+  ripe): the frozen-policy-baseline design note (148dabbd) and CTS ledger reconciliation design note
+  (4c22ceea), both filed within the last hour. 0 new tests, 15,779 collected, full suite pass,
+  epistemic PASS. See Section 4.
 - Phase RG (2026-07-06): fixed a live concurrency bug (two process_run_complete.py instances running
   the full pipeline on the same run_complete marker simultaneously -- sim_runner's synchronous
   invocation racing background_worker's 30min leftover-marker sweep) with a non-blocking flock run

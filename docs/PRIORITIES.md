@@ -9,9 +9,11 @@ WEBSITE_AS_SHOWCASE.md is the master directive. Progress per tab:
 - Tab 1 (SIM): CLOSED -- SIM_TAB_OVERHAUL.md items 1-5 all done (Phases QY, QZ, RA, RB/RC).
 - Tab 4 (Customer 360): CUSTOMER_360_REDESIGN.md item 1 (Usage Viz -- monthly/daily/HH
   consumption, load shape, weather overlay, period comparison) data layer + frontend rendering
-  both done (Phases RE/this session) on site/customers/index.html. Items 2-4 (bill equation
-  waterfall, events-perturb-chain, reaction-closes-loop) not started. WEBSITE_AS_SHOWCASE.md's
-  case-study recommender (auto-curated "interesting customers" list) also not started.
+  both done and both committed (Phases RE data layer, RI frontend commit -- RI found the frontend
+  diff already written but never staged, a git-add gap not incomplete work) on
+  site/customers/index.html. Items 2-4 (bill equation waterfall, events-perturb-chain,
+  reaction-closes-loop) not started. WEBSITE_AS_SHOWCASE.md's case-study recommender
+  (auto-curated "interesting customers" list) also not started.
 - Tab 3 (Project): PROJECT_TAB_OVERHAUL.md CLOSED IN FULL (Phase RG, 2026-07-06): Timeline
   auto-append (item 2), real Capabilities register (item 6), and System-tab elevation (item 3) --
   all three found already implemented in site/project/index.html from an interrupted prior session,
@@ -19,31 +21,35 @@ WEBSITE_AS_SHOWCASE.md is the master directive. Progress per tab:
   capability-card stat generation, CONSISTENCY BREACH and phases.json hand-curation done earlier
   (RF, QW, RD).
 - Tab 2 (Supplier): SUPPLIER_TAB_OVERHAUL.md's "Worst Shock Month" bug is already fixed (commit
-  57fb0025) and its Regulatory RAG-per-obligation item (GOVERNANCE bullet: "add RAG compliance status
-  per obligation from the compliance scorecard") is DONE (Phase RG) via
+  57fb0025) and its Regulatory RAG-per-obligation item is DONE (Phase RG) via
   company/regulatory/compliance_scorecard.py::latest_check() +
-  tools/generate_dashboard_data.py::extract_regulatory(). This session closed the min-HF chart
-  clipping bug (Trading tab y-axis floor of 70% hid the 2019-2024 regime-blindness 0% bars;
-  now 0-105% with an inline Phase 1e narrative). Found but NOT actioned: the Accounts waterfall
-  "CTS £0 vs Insights £91,780" breach is a real gap (ledger account 6100 has no posting event
-  type at all) complicated by saas/cost_to_serve.py still including the old flat BAD_DEBT_RATE
-  Phase QD's emergent-arrears engine superseded -- wiring it in naively would shift the whole
-  10-year net margin. Write-up + options in docs/staging/drafts/NEXT_PHASE.md, proceeding per
-  the Tier 3 4h opt-out. Frozen-policy-baseline headline metric: design note now written
-  (docs/staging/drafts/FROZEN_POLICY_BASELINE_DESIGN.md, this session) -- there is no existing
-  swappable policy object today (retention/hedge decisions are inlined constants/branches in
-  simulation/run_phase2b.py::main()); recommends an additive optional policy= param defaulting
-  to current behaviour (zero change for existing callers), a NAIVE_POLICY struct pinned to
-  pre-Phase-14a/15b/43b constants, and a new tools/run_frozen_baseline.py replaying the decade
-  twice (replay-safe because churn/acquisition dice rolls are per-customer/term keyed, not one
-  global seed) to diff enterprise value. Tier 3, proceeding per its own 4h opt-out unless
-  redirected; the rest of the IA regroup (11 tabs -> grouped nav) waits behind both design notes.
+  tools/generate_dashboard_data.py::extract_regulatory(). The min-HF chart clipping bug and the
+  IA regroup ("the big fix": 9 flat tabs -> 5 grouped nav -- Performance/Commercial/Trading &
+  Market/Operations/Governance -- Query converted to a persistent FAB+panel affordance) are DONE
+  (Phase RH, 2026-07-06), plus the Monthly-chart-axis FIX item and two THE IN-WORLD RULE
+  violations found en route (header git-hash link, Insights tab git-hash Run History table --
+  both removed as build metadata; see PROJECT_OVERVIEW.md Section 4 Phase RH). Judgment call:
+  proceeded with the IA regroup once the frozen-policy design note itself had landed (satisfying
+  the specific stated dependency -- "the design note must land before the IA regroup proceeds"),
+  without waiting for that note's own option-B implementation or the separate CTS reconciliation
+  note, since nav regrouping is orthogonal to both open ledger/policy questions and does not
+  preclude the future delta-EV headline (Overview tab untouched). Flagging this reading for Rich
+  in case a stricter sequencing was intended.
+  Still open: the Accounts waterfall "CTS £0 vs Insights £91,780" breach (real gap, not a display
+  bug -- ledger account 6100 has no posting event type; saas/cost_to_serve.py still bakes in the
+  old flat BAD_DEBT_RATE Phase QD's emergent-arrears engine superseded). Write-up + options in
+  docs/staging/drafts/NEXT_PHASE.md, Tier 3, own 4h opt-out (filed ~06:40, 2026-07-06). Also open:
+  frozen-policy-baseline's actual option-B implementation (design written, docs/staging/drafts/
+  FROZEN_POLICY_BASELINE_DESIGN.md) -- Tier 3, own 4h opt-out (filed ~06:49, 2026-07-06). Accounts
+  waterfall CTS reconciliation itself still not actioned pending that opt-out.
 - FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md: still queued behind this wave, not yet reached.
 
-**Front of queue next:** two Tier 3 design notes proceeding on their own 4h opt-outs -- the
-CTS/cost-to-serve ledger reconciliation (docs/staging/drafts/NEXT_PHASE.md) and the frozen-policy
-baseline (docs/staging/drafts/FROZEN_POLICY_BASELINE_DESIGN.md, this session) -- then the rest of
-the Supplier tab (IA regroup, 11 tabs -> grouped nav), since Tab 3 (Project) is now fully closed.
+**Front of queue next:** two Tier 3 design-note implementations proceeding on their own 4h
+opt-outs (filed 2026-07-06) -- the CTS/cost-to-serve ledger reconciliation
+(docs/staging/drafts/NEXT_PHASE.md, option B) and the frozen-policy baseline
+(docs/staging/drafts/FROZEN_POLICY_BASELINE_DESIGN.md, option B). Supplier tab IA regroup is now
+DONE (Phase RH); CUSTOMER_360_REDESIGN.md items 2-4 and NAV_STORY_PLATFORM_METHOD.md remain
+queued behind the two design-note implementations.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
 Coverage sprints (phases LQ through MU, 95+ sprints) are complete.
