@@ -1,36 +1,31 @@
-## Phase RO COMPLETE -- NAV_STORY_PLATFORM_METHOD.md P1: Home/Story landing + Platform section
-Last updated: 2026-07-06T16:08:47Z
+## Phase RP COMPLETE -- BILLING_AND_PAYMENTS_LEDGER.md CLOSED IN FULL (PRIORITIES.md P1a reopened)
+Last updated: 2026-07-06T16:13:23Z
 
-**Status:** COMPLETE. 15,818 tests collected, fast suite (15,694) clean. Epistemic: PASS.
+**Status:** COMPLETE. 15,836 tests collected, fast suite (15,712) clean. Epistemic: PASS.
 
-**Phase RO:** recovered a second interrupted prior session's work found uncommitted at session
-start -- site/index.html rewritten from the Supplier dashboard into a Home/Story landing (mission
-pitch, headline metrics, real test-progression learning curve, Three Products framing); old
-dashboard moved intact to site/supplier/index.html; new site/platform/index.html (architecture
-layers, module/domain map, adapter registry, synthetic data catalogue) backed by new
-tools/generate_platform_data.py -- every count computed fresh from the repo filesystem. This
-session verified all nav/cross-links, wired the generator into process_run_complete.py's
-auto-commit pipeline, and fixed a real staleness bug found en route (generate_dashboard_data.py's
-company_modules count was a hand-typed constant drifted stale since Phase RF -- now a live
-filesystem count).
+**Phase RP:** recovered a second interrupted prior session's uncommitted work (a new
+tools/generate_payment_ledger_data.py + its tests, matching edits already made to
+simulation/arrears_engine.py, site/customers/index.html, tests/tools/test_billing_tab_fix.py, and
+process_run_complete.py) -- verified complete against docs/staging/BILLING_AND_PAYMENTS_LEDGER.md's
+four items and closed it out. Per-account chronological ledger (invoice/payment/notice/write-off/
+recovery, running balance) built from real billing_ledger.json data, patched onto each customer
+JSON. Billing tab renamed BILLING & PAYMENTS with Bills/Statement/Cashflow sub-views on
+site/customers/index.html, each carrying a page-level reconciliation line (Collected + Outstanding
++ Written off == Billed). arrears_engine.py's RECOVERED/SOLD stages gained a structured amount_gbp
+field (previously only inside a prose note string). Verified against the full live book:
+reconciliation identity holds for every household (both fuel legs), at least one real write-off
+case and one real open-balance case confirmed -- not fabricated.
 
-**Also this session:** found and resolved a real git divergence -- this working tree's history had
-forked from origin/main (13 unpushed "Auto-process run complete" commits locally vs a smaller set
-on origin, including Phase RN's already-merged fix and a new advisor-staged directive). Reconciled
-via an ordinary `git merge origin/main` (matching the documented precedent at commit 5aa0a6c9) --
-zero conflicts, full fast-suite re-run clean post-merge (15,694 passed, unchanged), then pushed.
+**Prior:** Phase RO (2026-07-06) -- NAV_STORY_PLATFORM_METHOD.md P1, Home/Story landing + Platform
+section. Phase RN -- Billing tab regression fix + closed-account UX. Phase RM -- Supplier tab
+portfolio event stream + Recommended Actions elevation + heatmap click-through (CLOSES P1b). Phase
+RL -- Customer 360 v4 items 3-4, real event effects + reaction chain (CLOSES P1a v4 scope). Phases
+RF-RK: see docs/claude/phase-history.md and docs/PROJECT_OVERVIEW.md Section 4.
 
-**Prior:** Phase RN (2026-07-06) -- Billing tab regression fix + closed-account UX. Phase RM --
-Supplier tab portfolio event stream + Recommended Actions elevation + heatmap click-through
-(CLOSES P1b). Phase RL -- Customer 360 v4 items 3-4, real event effects + reaction chain (CLOSES
-P1a v4 scope). Phases RF-RK: see docs/claude/phase-history.md and docs/PROJECT_OVERVIEW.md Section 4.
-
-**Front of queue next:** docs/staging/BILLING_AND_PAYMENTS_LEDGER.md -- Rich's own live-review
-directive reopening P1a scope on Customer 360: bill-equation inline render, a new STATEMENT view
-(chronological per-account ledger with running balance), a per-customer CASHFLOW panel (billed vs
-collected, cumulative net cash as the real H2/CLV actuals base), and payment-method visibility on
-the ledger. Ranks ahead of P1c's remaining Method-section/Project-slim-down scope per the P-2
-director-repeat rule (see PRIORITIES.md P1a).
+**Front of queue next:** PRIORITIES.md P1c (NAV_STORY_PLATFORM_METHOD.md) -- Method section
+(operating-model diagram, R1-R6 rules with forging incidents, live staging-loop view, retro
+library) + the Project tab slim-down (Company sub-tab -> Method, Capabilities sub-tab -> Platform).
+Not yet started.
 
 
 **Latest simulation results (2016–2025)** — auto-processed (517s / 9 min):
