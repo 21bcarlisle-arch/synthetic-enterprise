@@ -45,15 +45,41 @@ header { position: sticky; top: 0; z-index: 100; background: var(--bg);
 .badge-amber { background: rgba(250,178,25,.15); color: var(--amber); border: 1px solid rgba(250,178,25,.3); }
 .badge-red { background: rgba(208,59,59,.15); color: var(--red); border: 1px solid rgba(208,59,59,.3); }
 
-/* ── Tab nav ── */
-.tab-nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
+/* ── Group + tab nav ── */
+.group-nav { display: flex; background: var(--surface2); border-bottom: 1px solid var(--border);
   overflow-x: auto; scrollbar-width: none; position: sticky; top: 53px; z-index: 99; }
+.group-nav::-webkit-scrollbar { display: none; }
+.group-btn { flex: 1; min-width: 84px; padding: 9px 6px; background: none; border: none;
+  color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .3px; cursor: pointer; border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: color .15s; }
+.group-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+.group-btn:hover { color: var(--text); }
+.tab-nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none; position: sticky; top: 91px; z-index: 98; }
 .tab-nav::-webkit-scrollbar { display: none; }
 .tab-btn { flex: 1; min-width: 70px; padding: 10px 6px; background: none; border: none;
   color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer;
   border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s; }
 .tab-btn.active { color: var(--text); border-bottom-color: var(--blue); }
 .tab-btn:hover { color: var(--text); }
+.tab-nav.subnav-hidden { display: none; }
+
+/* ── Query FAB + slide-over panel ── */
+.query-fab { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px;
+  border-radius: 50%; background: var(--blue); color: #fff; border: none; font-size: 20px;
+  cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,.2); z-index: 200;
+  display: flex; align-items: center; justify-content: center; }
+.query-fab:hover { background: #1e5fb0; }
+.query-panel { position: fixed; top: 0; right: -420px; width: 400px; max-width: 92vw; height: 100%;
+  background: var(--bg); border-left: 1px solid var(--border); box-shadow: -4px 0 16px rgba(0,0,0,.12);
+  z-index: 300; transition: right .25s ease; overflow-y: auto; }
+.query-panel.open { right: 0; }
+.query-panel-header { position: sticky; top: 0; background: var(--surface);
+  border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex;
+  justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; }
+.query-panel-header button { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--muted); }
+.query-content { padding: 14px; }
 
 /* ── Main content ── */
 main { padding: 16px; max-width: 960px; margin: 0 auto; padding-bottom: 32px; }
@@ -195,18 +221,8 @@ tr:hover td { background: var(--surface2); }
   <div class="run-meta" id="run-meta">Loading…</div>
 </header>
 
-<nav class="tab-nav" id="tab-nav">
-  <button class="tab-btn active" data-tab="overview"  onclick="switchTab('overview')">Overview</button>
-  <button class="tab-btn"        data-tab="financial" onclick="switchTab('financial')">Financial</button>
-  <button class="tab-btn"        data-tab="accounts"  onclick="switchTab('accounts')">Accounts</button>
-  <button class="tab-btn"        data-tab="trading"   onclick="switchTab('trading')">Trading</button>
-  <button class="tab-btn"        data-tab="customers" onclick="switchTab('customers')">Customers</button>
-  <button class="tab-btn"        data-tab="insights"  onclick="switchTab('insights')">Insights</button>
-  <button class="tab-btn"        data-tab="monthly"   onclick="switchTab('monthly')">Monthly</button>
-  <button class="tab-btn"        data-tab="query"     onclick="switchTab('query')">Query</button>
-  <button class="tab-btn"        data-tab="market"    onclick="switchTab('market')">Market</button>
-  <button class="tab-btn"        data-tab="regulatory" onclick="switchTab('regulatory')">Regulatory</button>
-</nav>
+<nav class="group-nav" id="group-nav"></nav>
+<nav class="tab-nav" id="tab-nav"></nav>
 
 <main>
   <div id="loading">Loading dashboard data…</div>
@@ -218,10 +234,15 @@ tr:hover td { background: var(--surface2); }
   <div id="tab-customers" class="view"></div>
   <div id="tab-insights"  class="view"></div>
   <div id="tab-monthly"   class="view"></div>
-  <div id="tab-query"     class="view"></div>
   <div id="tab-market"    class="view"></div>
   <div id="tab-regulatory" class="view"></div>
 </main>
+
+<button class="query-fab" onclick="toggleQueryPanel()" title="Ask the data">💬</button>
+<div class="query-panel" id="query-panel">
+  <div class="query-panel-header"><span>Ask the Data</span><button onclick="toggleQueryPanel()">✕</button></div>
+  <div id="tab-query" class="query-content"></div>
+</div>
 
 <script>
 // ── Config ──────────────────────────────────────────────────────────────────
@@ -338,7 +359,6 @@ function updateHeader() {
   const netCls = p.net_margin_gbp >= 0 ? 'color:' + C.green : 'color:' + C.red;
   el('run-meta').innerHTML =
     `<span style="${netCls};font-weight:700">${gbp(p.net_margin_gbp)} net</span> &nbsp;·&nbsp; ` +
-    `git <a href="https://github.com/21bcarlisle-arch/synthetic-enterprise/commit/${m.git_commit}" target="_blank">${m.git_commit.slice(0,7)}</a> &nbsp;·&nbsp; ` +
     `<span class="badge badge-green">Live</span>`;
 }
 
