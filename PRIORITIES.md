@@ -57,9 +57,11 @@
 #   (CUSTOMER_360_REDESIGN.md, SUPPLIER_TAB_OVERHAUL.md, NAV_STORY_PLATFORM_METHOD.md,
 #   PROJECT_TAB_OVERHAUL.md) to docs/staging/done/ that were already CLOSED IN FULL above but never
 #   moved out of the active queue -- a hygiene gap, not a scope gap.
-# P2 (resumes after P1a-c land + Rich's visual confirmation): CTS £0/£91,780 reconciliation
-#   (docs/staging/drafts/NEXT_PHASE.md), frozen-policy baseline (FROZEN_POLICY_BASELINE_DESIGN.md),
-#   FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
+# P2 -- ACTIVE (2026-07-06 21:05 BST, Rich's visual confirmation received via NTFY: "I like the
+#   live site a lot. It's a big improvement" -- satisfies the P1a-c acceptance rule below. Gate
+#   cleared, resuming P2 top-down): CTS £0/£91,780 reconciliation (docs/staging/drafts/NEXT_PHASE.md,
+#   option B), frozen-policy baseline (FROZEN_POLICY_BASELINE_DESIGN.md), FEEDBACK_AND_REPUTATION.md,
+#   NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
 # Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's
 # visual review", never "done" outright.
 # Already-staged infra fixes (SERIALIZE_WORKERS.md, FLAG_ALL_LAUNCHERS.md, PAGES_CONCURRENCY_FIX.md)

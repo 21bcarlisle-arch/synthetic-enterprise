@@ -1,5 +1,5 @@
 ## Phase RR COMPLETE -- WEBSITE_AS_SHOWCASE.md tab 4 case-study recommender CLOSED, staging hygiene
-Last updated: 2026-07-06T21:03:07Z
+Last updated: 2026-07-06T21:10:59Z
 
 **Status:** COMPLETE. 15,856 tests collected. Epistemic: PASS.
 
@@ -18,9 +18,12 @@ site/customers/index.html's login page linking into each household's Timeline.
 
 **This closes WEBSITE_AS_SHOWCASE.md tab 4** (case-study recommender). Tabs 2 (frozen-policy
 baseline) and 3 (learning ledger) remain gated behind Rich's visual confirmation of P1a-c, per the
-priority-reset rule, not started. PRIORITIES.md P2 (CTS reconciliation, frozen-policy baseline,
-FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md) resumes only after that
-confirmation -- reported here as ready for review, not claimed done outright.
+priority-reset rule, not started.
+
+**Gate cleared (2026-07-06 21:05 BST):** Rich confirmed via NTFY -- "I like the live site a lot.
+It's a big improvement." This satisfies the P1a-c visual-confirmation gate. PRIORITIES.md P2 is
+now ACTIVE (CTS £0/£91,780 reconciliation first, per docs/staging/drafts/NEXT_PHASE.md option B;
+then frozen-policy baseline, FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md).
 
 **Prior:** Phase RQ (2026-07-06) -- NAV_STORY_PLATFORM_METHOD.md CLOSED IN FULL, Method section +
 Project tab slim-down (closes PRIORITIES.md's entire P1a-c PRIORITY RESET). Phase RP --
