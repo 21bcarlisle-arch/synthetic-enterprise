@@ -257,6 +257,16 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Customer consumption generation failed: {}".format(exc))
     try:
+        # Must run after generate_customer_data/generate_invoice_data/
+        # generate_customer_consumption: patches real timeline "effect"
+        # annotations (item 3) and the reaction_chain (item 4) onto the
+        # per-customer JSON those steps already produced.
+        from tools.generate_customer_reaction_chain import generate as gen_reaction
+        gen_reaction(json_path)
+        log("Generated customer timeline effects + reaction_chain (CUSTOMER_360_REDESIGN.md v4 items 3-4)")
+    except Exception as exc:
+        log("Customer reaction-chain generation failed: {}".format(exc))
+    try:
         from tools.generate_sim_data import generate as gen_sim
         gen_sim(git_hash)
         log("Generated site/data/sim_data.json")

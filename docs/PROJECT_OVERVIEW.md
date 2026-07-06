@@ -159,10 +159,59 @@ they tested. Full suite (`--ignore` on the 8 known-slow simulation integration f
 
 Remaining CUSTOMER_360_REDESIGN.md v4 scope: item 3 (event downstream-effect annotations
 on the Timeline tab) and item 4 (reaction-loop rendering: bill shock -> contact/complaint
--> satisfaction -> offer -> outcome). `company/crm/` already has the underlying complaint/
+-> satisfaction -> outcome). `company/crm/` already has the underlying complaint/
 service-ticket/satisfaction-accumulator/contact-journey infrastructure; the remaining work
 is joining those per-customer records into the timeline/portal JSON, same pattern as this
 phase and Phase RJ.
+
+### Phase RL -- Customer 360 v4 items 3-4: real event effects + reaction chain, CLOSES CUSTOMER_360_REDESIGN.md v4 IN FULL, closes PRIORITIES.md P1a (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue P1a)
+Recovered a second interrupted prior-session work-stream found uncommitted at session
+start (`tools/generate_customer_reaction_chain.py` + its test file, written but never
+staged) -- the item 3/4 work Phase RK's "front of queue next" note anticipated.
+
+**Item 3 (event downstream effects on the Timeline).** New
+`tools/generate_customer_reaction_chain.py::_add_effects()` computes a real, numeric
+"effect" per timeline entry from data the sim/company layers already produce, never
+invented: renewals diff the real unit-rate step either side of the date from the
+customer's own invoices (`_renewal_effect`, now sourced from Phase RK's real ledger-backed
+invoices); physical life events (solar/EV/heat-pump/battery/insulation/smart-meter/boiler)
+diff the household's own metered consumption 3 months before vs after (`_usage_effect`);
+economic life events (job loss/income recovery/new baby/retirement) read the real
+income-stress-trajectory step and payment-miss-rate drift already tracked per customer in
+`per_customer_behavioral` (`_economic_effect`). Events with no wired downstream mechanism
+in the sim (e.g. "home move") are left without an effect rather than fabricating one --
+honest gap, matching the project's own epistemic standard.
+
+**Item 4 (reaction-loop rendering).** Rather than build new plumbing, reuses
+`company/analytics/decision_event_ledger.build_customer_ledger()` (already built for the
+Phase QP shadow case study) as the reaction-chain data source per customer: journey-state
+signals, retention decisions, renewal outcomes, and the arrears cascade, cause-linked and
+chronologically merged. `site/customers/index.html`'s Timeline tab gains a `.timeline-effect`
+inline annotation under each event with an effect, plus a new "Reaction Chain -- Bill Shock
+to Outcome" panel below it (`renderReactionChain()`/`mergedReactionChain()`, deduping and
+merging the elec+gas fuel accounts' chains by date).
+
+Wired into `background/process_run_complete.py` immediately after
+`generate_customer_consumption` (must run after `generate_customer_data`,
+`generate_billing_ledger`, `generate_invoice_data`, and `generate_customer_consumption`,
+per the module's own docstring). Live-run verification: 21/21 customers updated, 99
+timeline entries total with 83 carrying a real effect, 20/21 customers with a non-empty
+reaction chain (442 entries total) -- e.g. C1's 2016-08-14 direct-debit failure ->
+first-notice -> second-notice cascade, real dates/amounts (GBP75.60) from the billing
+ledger. `node` was available this session for the harness approach but got gated behind
+an unresolvable approval prompt mid-verification (same pattern as Phases RA/RG/RI/RJ/RK);
+fell back to the established substitute -- brace/paren/bracket-balance check on the
+extracted `<script>` body (182/182 braces, 492/492 parens, 65/65 brackets, all balanced)
+plus direct execution of the Python generator against live data and manual trace of the
+JS's `chainLabel`/`chainColour` field references (`event_type`/`outcome`/`amount_gbp`/
+`description`) against the actual `decision_event_ledger` output shape, confirmed matching.
+11 new tests (`tests/tools/test_customer_reaction_chain.py`), 15,796 collected, fast suite
+14,534 passed, epistemic PASS.
+
+**This closes CUSTOMER_360_REDESIGN.md v4 in full** (items 1-4 all done across Phases
+RI/RJ/RK/RL) and with it PRIORITIES.md P1a. Front of queue next: P1b (SUPPLIER_TAB_OVERHAUL.md
+remaining scope -- portfolio event stream as spine, Recommended Actions elevated to
+Overview, heatmap click-through) per PRIORITIES.md's "work top-down" ordering.
 
 ### Phase RJ -- Recovered interrupted commit: Customer 360 tabbed household IA, per-fuel separation (CUSTOMER_360_REDESIGN.md v4 separation ask) (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue P1a)
 Session start (staging empty, both queued Tier 3 design notes -- CTS reconciliation and
@@ -6010,7 +6059,13 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,779 tests collected; 0 new this phase (presentation-only, site/index.html)
+- 15,796 tests collected; 11 new this phase (tests/tools/test_customer_reaction_chain.py)
+- Phase RL (2026-07-06): CUSTOMER_360_REDESIGN.md v4 items 3-4 -- real event effects (renewal
+  rate steps, usage before/after physical life events, income-stress/payment drift for economic
+  life events) patched onto Timeline entries, plus a reaction-chain panel (decision_event_ledger
+  reuse: journey-state/retention/renewal-outcome/arrears, cause-linked) on site/customers/index.html.
+  CLOSES CUSTOMER_360_REDESIGN.md v4 IN FULL and PRIORITIES.md P1a. 14,534 fast-suite tests pass,
+  epistemic PASS. See Section 4.
 - Phase RH (2026-07-06): SUPPLIER_TAB_OVERHAUL.md's Information Architecture fix -- the 9 flat
   Supplier tabs (Overview/Financial/Accounts/Trading/Customers/Insights/Monthly/Market/Regulatory)
   regrouped into 5 named groups (Performance/Commercial/Trading & Market/Operations/Governance)

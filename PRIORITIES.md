@@ -11,17 +11,18 @@
 # mirror, not a CSS palette flip.
 #
 # NEW ORDER (work top-down, single-writer, each Tier 2/pre-approved):
-# P1a. CUSTOMER 360 v4 (docs/staging/CUSTOMER_360_REDESIGN.md) -- reference implementation.
-#   Household w/ TWO first-class accounts (elec MPAN + gas MPRN, own tariff/meter/consumption/
-#   bills/P&L each), combined roll-up OPTIONAL only; tabbed IA (Overview/Accounts/Consumption/
-#   Billing/Timeline/Risk); usage viz (volume+shape+weather overlay); bill equation + why-different
-#   waterfall; QP event ledger as timeline; progressive disclosure; UK lens (MPAN/MPRN/p-kWh/EAC/
-#   PSR). GAS/ELEC SEPARATED AT EVERY STAGE is the specific repeated complaint -- highest priority
-#   sub-item. (Phase RI closed v3's item 1 usage-chart rendering; Phase RJ closed the tabbed IA +
-#   account-separation ask; Phase RK closed item 2 -- bill equation + why-different waterfall, real
-#   billing_ledger.json data now wired into the customer JSON in place of the old fabricated
-#   seasonal-weight invoices. Still open: item 3 (event downstream effects on Timeline), item 4
-#   (reaction-loop rendering: bill shock -> complaint -> satisfaction -> offer -> outcome).)
+# P1a. CUSTOMER 360 v4 (docs/staging/CUSTOMER_360_REDESIGN.md) -- CLOSED IN FULL (Phase RL,
+#   2026-07-06). Household w/ TWO first-class accounts (elec MPAN + gas MPRN, own tariff/meter/
+#   consumption/bills/P&L each), combined roll-up OPTIONAL only; tabbed IA (Overview/Accounts/
+#   Consumption/Billing/Timeline/Risk); usage viz (volume+shape+weather overlay); bill equation +
+#   why-different waterfall; QP event ledger as timeline; progressive disclosure; UK lens (MPAN/
+#   MPRN/p-kWh/EAC/PSR). GAS/ELEC SEPARATED AT EVERY STAGE, the specific repeated complaint, done
+#   throughout. (Phase RI: v3 item 1 usage-chart rendering. Phase RJ: tabbed IA + account
+#   separation. Phase RK: item 2, bill equation + why-different waterfall, real billing_ledger.json
+#   data wired in place of the old fabricated seasonal-weight invoices. Phase RL: items 3-4, real
+#   per-event effects on the Timeline (renewal rate steps / usage before-after / income-stress
+#   drift) + a reaction-chain panel reusing decision_event_ledger.build_customer_ledger.)
+#   AWAITING RICH'S VISUAL CONFIRMATION per the P1 acceptance rule below -- report as such, not "done".
 # P1b. SUPPLIER TAB IA (docs/staging/SUPPLIER_TAB_OVERHAUL.md). Phase RH already closed the core
 #   IA regroup (grouped nav + Query FAB) and RG closed Capabilities->Project + Regulatory RAG +
 #   Worst-Shock-Month; remaining: portfolio event stream as spine, Recommended Actions elevated

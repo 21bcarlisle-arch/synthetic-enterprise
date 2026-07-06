@@ -111,6 +111,7 @@ tr.crisis-row td { background: rgba(208,59,59,.04); }
 .timeline-item:last-child::after { display: none; }
 .timeline-date { color: var(--muted); font-size: 11px; }
 .timeline-detail { margin-top: 2px; }
+.timeline-effect { margin-top: 3px; font-size: 11px; color: var(--blue); }
 .no-account-note { font-size: 12px; color: var(--muted); font-style: italic; }
 </style>
 </head>
@@ -315,12 +316,56 @@ function renderTimelineTab(){
   var items=tl.map(function(e){
     var cls=_EVENT_ICON_CLASS[e.type]||"";
     var commTag=e.commodity?" <span class=\"muted\">("+e.commodity+")</span>":"";
+    var effectHtml=e.effect?"<div class=\"timeline-effect\">&rarr; "+esc(e.effect)+"</div>":"";
     return "<div class=\"timeline-item "+cls+"\">"+
       "<div class=\"timeline-date\">"+esc(e.date)+"</div>"+
-      "<div class=\"timeline-detail\">"+esc(e.detail)+commTag+"</div></div>";
+      "<div class=\"timeline-detail\">"+esc(e.detail)+commTag+"</div>"+effectHtml+"</div>";
   }).join("");
   return "<div class=\"sec-title\">Timeline</div><div class=\"card\"><div class=\"timeline-list\">"+items+"</div></div>"+
-    "<div class=\"usage-hint\">Renewal/churn events and life events recorded against this household. Bill-shock and reaction-loop annotations are a planned follow-on (CUSTOMER_360_REDESIGN.md v4 items 2-4).</div>";
+    "<div class=\"usage-hint\">Each event's downstream effect (usage change, income-stress/payment drift, or unit-rate step) is computed from this household's own recorded data — no effect shown means the sim has no wired mechanism for that event type yet.</div>"+
+    renderReactionChain();
+}
+
+var _CHAIN_LABEL={
+  journey_state:"Behavioural signal",retention_decision:"Retention decision",
+  arrears_dd_failed:"Payment failed",arrears_first_notice:"Arrears notice",
+  arrears_second_notice:"Arrears notice",arrears_written_off:"Debt written off",
+  arrears_placed_with_dca:"Placed with DCA",arrears_recovered:"Debt recovered"
+};
+function chainLabel(e){
+  if(_CHAIN_LABEL[e.event_type])return _CHAIN_LABEL[e.event_type];
+  if(e.event_type&&e.event_type.indexOf("outcome_")===0)return "Renewal outcome: "+e.event_type.slice(8);
+  return e.event_type;
+}
+function chainColour(e){
+  if(e.event_type==="retention_decision")return "blue";
+  if((e.event_type||"").indexOf("arrears")===0)return "red";
+  if(e.event_type==="journey_state")return e.outcome==="resentment_burned"?"red":"muted";
+  if((e.event_type||"").indexOf("outcome_")===0)return e.outcome==="churned"?"red":"green";
+  return "muted";
+}
+function mergedReactionChain(){
+  var a=(HH.elec&&HH.elec.reaction_chain)||[],b=(HH.gas&&HH.gas.reaction_chain)||[];
+  var seen={},out=[];
+  a.concat(b).forEach(function(e){
+    var key=e.date+"|"+e.event_type+"|"+e.description+"|"+e.amount_gbp+"|"+e.outcome;
+    if(seen[key])return;
+    seen[key]=true;out.push(e);
+  });
+  out.sort(function(x,y){return x.date<y.date?-1:x.date>y.date?1:0;});
+  return out;
+}
+function renderReactionChain(){
+  var chain=mergedReactionChain();
+  if(!chain.length)return "";
+  var items=chain.map(function(e){
+    var amt=(e.amount_gbp!=null)?" <span class=\""+(e.amount_gbp<0?"red":"muted")+"\">"+gbp(e.amount_gbp)+"</span>":"";
+    return "<div class=\"row\"><span class=\"rl\">"+esc(e.date)+" &mdash; <span class=\""+chainColour(e)+"\">"+esc(chainLabel(e))+"</span></span>"+
+      "<span style=\"text-align:left;flex:1;margin-left:10px;font-size:12px\">"+esc(e.description)+amt+"</span></div>";
+  }).join("");
+  return "<div class=\"sec-title\">Reaction Chain &mdash; Bill Shock to Outcome</div>"+
+    "<div class=\"card\">"+items+"</div>"+
+    "<div class=\"usage-hint\">The company's own behavioural signal, retention decisions (with expected value), renewal outcomes, and arrears cascade for this household, in chronological order — cause-linked back to the events above.</div>";
 }
 
 function renderRiskTab(){
