@@ -66,6 +66,7 @@ td { padding: 6px 10px; text-align: right; border-bottom: 1px solid rgba(225,224
 td:first-child { text-align: left; }
 tr:last-child td { border-bottom: none; }
 tr.crisis-row td { background: rgba(208,59,59,.04); }
+tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0 var(--blue); }
 .year-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
 .year-btn.yactive { background: var(--blue); color: #000; border-color: var(--blue); font-weight: 600; }
 .year-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -126,7 +127,7 @@ tr.crisis-row td { background: rgba(208,59,59,.04); }
 <div id="app"></div>
 <script>
 var HH={elec:null,gas:null,base:null};
-var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false;
+var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false,DEEPLINK_YEAR=null;
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function pct(v){return(v*100).toFixed(0)+"%";}
 function nc(v){return v>=0?"green":"red";}
@@ -153,10 +154,8 @@ function fetchAccount(id){
     return r.json();
   });
 }
-function doLogin(){
-  var id=(document.getElementById("acc").value||"").trim();
-  if(!id)return;
-  fetchAccount(id).then(function(d){
+function loadHousehold(id){
+  return fetchAccount(id).then(function(d){
     var isGas=d.commodity==="gas";
     var elecId=isGas?d.base_account_id:d.account_id;
     var gasId=isGas?d.account_id:(d.is_dual_fuel&&d.dual_fuel_combined?d.dual_fuel_combined.gas_account_id:null);
@@ -166,10 +165,34 @@ function doLogin(){
     if(!isGas&&gasId)need.push(fetchAccount(gasId).then(function(g){HH.gas=g;}));
     if(isGas)need.push(fetchAccount(elecId).then(function(e){HH.elec=e;}));
     return Promise.all(need);
-  }).then(function(){
+  });
+}
+function doLogin(){
+  var id=(document.getElementById("acc").value||"").trim();
+  if(!id)return;
+  loadHousehold(id).then(function(){
     ACTIVE_TAB="overview";BILL_FUEL=HH.elec?"elec":"gas";CONS_FUEL=BILL_FUEL;ROLLUP_OPEN=false;
     renderHousehold();
   }).catch(function(e){showLogin(e.message);});
+}
+function initFromUrl(){
+  var params=new URLSearchParams(location.search);
+  var acc=params.get("acc");
+  if(!acc){showLogin(null);return;}
+  var yr=params.get("year");
+  var tab=params.get("tab");
+  loadHousehold(acc).then(function(){
+    ACTIVE_TAB=(tab&&TABS.some(function(t){return t[0]===tab;}))?tab:"accounts";
+    BILL_FUEL=HH.elec?"elec":"gas";CONS_FUEL=BILL_FUEL;ROLLUP_OPEN=false;
+    DEEPLINK_YEAR=yr?parseInt(yr,10):null;
+    renderHousehold();
+    if(DEEPLINK_YEAR){
+      setTimeout(function(){
+        var row=document.getElementById("dl-year-"+DEEPLINK_YEAR);
+        if(row)row.scrollIntoView({behavior:"smooth",block:"center"});
+      },50);
+    }
+  }).catch(function(e){showLogin("Account not found: "+acc);});
 }
 function doLogout(){HH={elec:null,gas:null,base:null};showLogin(null);}
 
@@ -261,8 +284,9 @@ function renderAccountsTab(){
       :"<div class=\"row\"><span class=\"rl\">MPAN (top / bottom line)</span><span>"+esc(d.mpan?d.mpan.top_line:"—")+" / "+esc(d.mpan?d.mpan.bottom_line:"")+"</span></div>";
     var annRows=(d.annual_pnl||[]).filter(function(r){return r.gross_gbp!==0||r.net_gbp!==0;}).map(function(r){
       var crisis=r.year===2021||r.year===2022;
+      var deep=r.year===DEEPLINK_YEAR;
       var tariff=(r.tariff_min&&r.tariff_max)?r.tariff_min.toFixed(0)+"–"+r.tariff_max.toFixed(0)+" p/MWh":"—";
-      return "<tr"+(crisis?" class=\"crisis-row\"":"")+"><td>"+r.year+(crisis?" ⚠":"")+"</td>"+
+      return "<tr id=\"dl-year-"+r.year+"\""+(deep?" class=\"deeplink-row\"":crisis?" class=\"crisis-row\"":"")+"><td>"+r.year+(crisis?" ⚠":"")+"</td>"+
         "<td class=\""+nc(r.gross_gbp)+"\">"+gbp(r.gross_gbp)+"</td>"+
         "<td class=\""+nc(r.net_gbp)+"\">"+gbp(r.net_gbp)+"</td>"+
         "<td style=\"color:var(--muted);font-size:11px\">"+tariff+"</td></tr>";
@@ -623,7 +647,7 @@ function renderUsage(d){
   buildUsageMonthlyChart("none",cons);
   if(hasHH)buildLoadShapeCharts(cons.load_shape);
 }
-showLogin(null);
+initFromUrl();
 </script>
 </body>
 </html>

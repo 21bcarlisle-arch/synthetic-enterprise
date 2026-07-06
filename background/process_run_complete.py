@@ -267,6 +267,15 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Customer reaction-chain generation failed: {}".format(exc))
     try:
+        # Must run after generate_dashboard_data (dashboard.json must exist)
+        # and generate_billing_ledger (arrears-opened events need it).
+        # SUPPLIER_TAB_OVERHAUL.md THE SPINE: portfolio event stream.
+        from tools.generate_portfolio_event_stream import generate as gen_pes
+        gen_pes(json_path)
+        log("Generated portfolio event stream onto dashboard.json (SUPPLIER_TAB_OVERHAUL.md spine)")
+    except Exception as exc:
+        log("Portfolio event stream generation failed: {}".format(exc))
+    try:
         from tools.generate_sim_data import generate as gen_sim
         gen_sim(git_hash)
         log("Generated site/data/sim_data.json")
