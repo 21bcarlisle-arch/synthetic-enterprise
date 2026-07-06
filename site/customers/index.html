@@ -32,9 +32,10 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .btn { width: 100%; background: var(--blue); color: #000; font-weight: 600; border: none; border-radius: 8px; padding: 11px; font-size: 14px; cursor: pointer; margin-top: 20px; }
 .btn:hover { opacity: 0.85; }
 .error-msg { color: var(--red); font-size: 12px; margin-top: 10px; }
-.account-wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 48px; }
-.account-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 16px; flex-wrap: wrap; }
+.account-wrap { max-width: 900px; margin: 0 auto; padding: 28px 20px 48px; }
+.account-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; gap: 16px; flex-wrap: wrap; }
 .account-id { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.account-id .hh-label { font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 8px; }
 .account-meta { display: flex; gap: 6px; margin-top: 8px; align-items: center; flex-wrap: wrap; }
 .logout-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
 .logout-btn:hover { border-color: var(--text); color: var(--text); }
@@ -87,6 +88,30 @@ tr.crisis-row td { background: rgba(208,59,59,.04); }
 .usage-daily-wrap { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .load-shape-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
 .load-shape-cell-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.tab-nav { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 18px; flex-wrap: wrap; }
+.tab-btn { background: none; border: none; color: var(--muted); padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+.fuel-select-row { display: flex; gap: 6px; margin-bottom: 14px; }
+.fuel-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 5px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; }
+.fuel-btn.factive.fbe { background: var(--be); border-color: var(--green); color: var(--green); }
+.fuel-btn.factive.fbg { background: #ece9fb; border-color: #4a3aa7; color: #4a3aa7; }
+.accounts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.account-card-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 700; }
+.rollup-toggle { display: flex; align-items: center; gap: 8px; margin: 16px 0 4px; cursor: pointer; font-size: 12px; color: var(--muted); user-select: none; }
+.rollup-toggle input { cursor: pointer; }
+.rollup-panel { display: none; }
+.timeline-list { position: relative; padding-left: 22px; }
+.timeline-item { position: relative; padding-bottom: 18px; font-size: 13px; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item::before { content: ""; position: absolute; left: -22px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--blue); }
+.timeline-item.life::before { background: var(--teal); }
+.timeline-item.churned::before { background: var(--red); }
+.timeline-item::after { content: ""; position: absolute; left: -18px; top: 13px; bottom: -18px; width: 1px; background: var(--border); }
+.timeline-item:last-child::after { display: none; }
+.timeline-date { color: var(--muted); font-size: 11px; }
+.timeline-detail { margin-top: 2px; }
+.no-account-note { font-size: 12px; color: var(--muted); font-style: italic; }
 </style>
 </head>
 <body>
@@ -99,42 +124,235 @@ tr.crisis-row td { background: rgba(208,59,59,.04); }
 </nav>
 <div id="app"></div>
 <script>
-var ACC=null,BILL_YEAR=null;
-function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"\u00a3"+s;}
+var HH={elec:null,gas:null,base:null};
+var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false;
+function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function pct(v){return(v*100).toFixed(0)+"%";}
 function nc(v){return v>=0?"green":"red";}
 function churnColour(p){return p>=0.5?"red":p>=0.3?"amber":"green";}
 function churnLabel(p){return p>=0.5?"High risk":p>=0.3?"Medium risk":"Low risk";}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
 function showLogin(err){
   document.getElementById("app").innerHTML=
     "<div class=\"login-wrap\"><div class=\"login-card\">"+
     "<h1>Customer Portal</h1>"+
-    "<p>Log in with your Poesys account number to view your account, bills, and value metrics.</p>"+
+    "<p>Log in with your Poesys account number to view your household: electricity and gas accounts, usage, bills, and value metrics.</p>"+
     "<label for=\"acc\">Account number</label>"+
     "<input type=\"text\" id=\"acc\" placeholder=\"e.g. C1, C_IC1, C1g\" autocomplete=\"off\" />"+
-    "<div class=\"hint\">Electricity: C1\u2013C9, C_IC1\u2013C_IC4<br>Gas: C1g\u2013C4g, C_IC3g</div>"+
-    (err?"<div class=\"error-msg\">"+err+"</div>":"")+
+    "<div class=\"hint\">Electricity: C1–C9, C_IC1–C_IC4<br>Gas: C1g–C4g, C_IC3g<br>Enter either fuel's number — we'll load the whole household.</div>"+
+    (err?"<div class=\"error-msg\">"+esc(err)+"</div>":"")+
     "<button class=\"btn\" onclick=\"doLogin()\">Sign in</button>"+
     "</div></div>";
   var inp=document.getElementById("acc");
   if(inp){inp.focus();inp.onkeydown=function(e){if(e.key==="Enter")doLogin();};}
 }
+function fetchAccount(id){
+  return fetch("../data/customers/"+id+".json").then(function(r){
+    if(!r.ok)throw new Error("Account not found: "+id);
+    return r.json();
+  });
+}
 function doLogin(){
   var id=(document.getElementById("acc").value||"").trim();
   if(!id)return;
-  fetch("../data/customers/"+id+".json")
-    .then(function(r){if(!r.ok)throw new Error("Account not found: "+id);return r.json();})
-    .then(function(d){ACC=d;renderAccount();})
-    .catch(function(e){showLogin(e.message);});
+  fetchAccount(id).then(function(d){
+    var isGas=d.commodity==="gas";
+    var elecId=isGas?d.base_account_id:d.account_id;
+    var gasId=isGas?d.account_id:(d.is_dual_fuel&&d.dual_fuel_combined?d.dual_fuel_combined.gas_account_id:null);
+    HH={elec:null,gas:null,base:d.base_account_id};
+    if(isGas)HH.gas=d;else HH.elec=d;
+    var need=[];
+    if(!isGas&&gasId)need.push(fetchAccount(gasId).then(function(g){HH.gas=g;}));
+    if(isGas)need.push(fetchAccount(elecId).then(function(e){HH.elec=e;}));
+    return Promise.all(need);
+  }).then(function(){
+    ACTIVE_TAB="overview";BILL_FUEL=HH.elec?"elec":"gas";CONS_FUEL=BILL_FUEL;ROLLUP_OPEN=false;
+    renderHousehold();
+  }).catch(function(e){showLogin(e.message);});
 }
-function renderBills(){
-  var d=ACC,invoices=d.invoices||[];
+function doLogout(){HH={elec:null,gas:null,base:null};showLogin(null);}
+
+function combinedTotals(){
+  var e=HH.elec,g=HH.gas;
+  return {
+    revenue: (e?e.lifetime_revenue_gbp:0)+(g?g.lifetime_revenue_gbp:0),
+    net: (e?e.lifetime_net_gbp:0)+(g?g.lifetime_net_gbp:0),
+    net_after_cts: (e?e.lifetime_net_after_cts_gbp:0)+(g?g.lifetime_net_after_cts_gbp:0),
+    clv: (e?e.clv_gbp:0)+(g?g.clv_gbp:0)
+  };
+}
+function toggleRollup(){ROLLUP_OPEN=!ROLLUP_OPEN;renderTab();}
+function rollupHtml(){
+  var t=combinedTotals();
+  return "<label class=\"rollup-toggle\"><input type=\"checkbox\" "+(ROLLUP_OPEN?"checked":"")+" onchange=\"toggleRollup()\"> Show combined household roll-up (electricity + gas summed)</label>"+
+    "<div class=\"rollup-panel\" style=\"display:"+(ROLLUP_OPEN?"block":"none")+"\">"+
+    "<div class=\"df-card\"><div class=\"df-header\">⚙ Household total — "+esc(HH.base)+"</div>"+
+    "<div class=\"df-grid\">"+
+    "<div class=\"df-cell\"><div class=\"df-lbl\">Combined Revenue</div><div class=\"df-val blue\">"+gbp(t.revenue)+"</div></div>"+
+    "<div class=\"df-cell\"><div class=\"df-lbl\">Combined Net Margin</div><div class=\"df-val "+nc(t.net)+"\">"+gbp(t.net)+"</div></div>"+
+    "<div class=\"df-cell\"><div class=\"df-lbl\">Combined CLV</div><div class=\"df-val muted\">"+gbp(t.clv)+"</div></div>"+
+    "</div></div></div>";
+}
+
+function fuelBadges(){
+  var b="";
+  if(HH.elec)b+="<span class=\"badge be\">Electricity</span> ";
+  if(HH.gas)b+="<span class=\"badge bg\">Gas</span> ";
+  if(HH.elec&&HH.gas)b+="<span class=\"badge bdf\">Dual Fuel</span> ";
+  var seg=(HH.elec||HH.gas).segment;
+  var segBadge=seg==="I&C"?"<span class=\"badge bi\">I&amp;C</span>":"<span class=\"badge br\">Residential</span>";
+  return segBadge+" "+b;
+}
+var TABS=[["overview","Overview"],["accounts","Accounts"],["consumption","Consumption"],["billing","Billing"],["timeline","Timeline"],["risk","Risk"]];
+function renderHousehold(){
+  var tabsHtml=TABS.map(function(t){
+    return "<button class=\"tab-btn"+(ACTIVE_TAB===t[0]?" active":"")+"\" onclick=\"switchTab('"+t[0]+"')\">"+t[1]+"</button>";
+  }).join("");
+  document.getElementById("app").innerHTML=
+    "<div class=\"account-wrap\">"+
+    "<div class=\"account-header\"><div>"+
+    "<div class=\"account-id\">"+esc(HH.base)+"<span class=\"hh-label\">Household</span></div>"+
+    "<div class=\"account-meta\">"+fuelBadges()+"</div>"+
+    "</div><button class=\"logout-btn\" onclick=\"doLogout()\">Sign out</button></div>"+
+    "<div class=\"tab-nav\">"+tabsHtml+"</div>"+
+    "<div id=\"tab-body\"></div>"+
+    "</div>";
+  renderTab();
+}
+function switchTab(name){ACTIVE_TAB=name;renderHousehold();}
+function renderTab(){
+  var body=document.getElementById("tab-body");
+  if(!body)return;
+  if(ACTIVE_TAB==="overview")body.innerHTML=renderOverviewTab();
+  else if(ACTIVE_TAB==="accounts")body.innerHTML=renderAccountsTab();
+  else if(ACTIVE_TAB==="consumption"){body.innerHTML=renderConsumptionTab();renderUsage(CONS_FUEL==="elec"?HH.elec:HH.gas);}
+  else if(ACTIVE_TAB==="billing"){body.innerHTML=renderBillingTab();renderBills(BILL_FUEL==="elec"?HH.elec:HH.gas);}
+  else if(ACTIVE_TAB==="timeline")body.innerHTML=renderTimelineTab();
+  else if(ACTIVE_TAB==="risk")body.innerHTML=renderRiskTab();
+}
+
+function renderOverviewTab(){
+  var html="";
+  var accts=[["elec",HH.elec,"Electricity","be"],["gas",HH.gas,"Gas","bg"]];
+  html+="<div class=\"sec-title\">Household Accounts</div><div class=\"accounts-grid\">";
+  accts.forEach(function(a){
+    var d=a[1],label=a[2],badgeCls=a[3];
+    if(!d){html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span></div><div class=\"no-account-note\">No "+label.toLowerCase()+" account on this household.</div></div>";return;}
+    html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span>"+esc(d.account_id)+"</div>"+
+      "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Customer Lifetime Value</span><span class=\"blue\">"+gbp(d.clv_gbp)+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Tariff</span><span>"+esc(d.tariff_name)+"</span></div>"+
+      "</div>";
+  });
+  html+="</div>";
+  html+=rollupHtml();
+  return html;
+}
+
+function renderAccountsTab(){
+  var html="<div class=\"sec-title\">Accounts — Per Fuel</div><div class=\"accounts-grid\">";
+  var accts=[["elec",HH.elec,"Electricity","be"],["gas",HH.gas,"Gas","bg"]];
+  accts.forEach(function(a){
+    var d=a[1],label=a[2],badgeCls=a[3];
+    if(!d){html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span></div><div class=\"no-account-note\">No "+label.toLowerCase()+" account on this household.</div></div>";return;}
+    var idLine=d.commodity==="gas"
+      ?"<div class=\"row\"><span class=\"rl\">MPRN</span><span>"+esc(d.mprn||"—")+"</span></div>"
+      :"<div class=\"row\"><span class=\"rl\">MPAN (top / bottom line)</span><span>"+esc(d.mpan?d.mpan.top_line:"—")+" / "+esc(d.mpan?d.mpan.bottom_line:"")+"</span></div>";
+    var annRows=(d.annual_pnl||[]).filter(function(r){return r.gross_gbp!==0||r.net_gbp!==0;}).map(function(r){
+      var crisis=r.year===2021||r.year===2022;
+      var tariff=(r.tariff_min&&r.tariff_max)?r.tariff_min.toFixed(0)+"–"+r.tariff_max.toFixed(0)+" p/MWh":"—";
+      return "<tr"+(crisis?" class=\"crisis-row\"":"")+"><td>"+r.year+(crisis?" ⚠":"")+"</td>"+
+        "<td class=\""+nc(r.gross_gbp)+"\">"+gbp(r.gross_gbp)+"</td>"+
+        "<td class=\""+nc(r.net_gbp)+"\">"+gbp(r.net_gbp)+"</td>"+
+        "<td style=\"color:var(--muted);font-size:11px\">"+tariff+"</td></tr>";
+    }).join("");
+    html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span>"+esc(d.account_id)+"</div>"+
+      "<div class=\"row\"><span class=\"rl\">Account ID</span><span>"+esc(d.account_id)+"</span></div>"+
+      idLine+
+      "<div class=\"row\"><span class=\"rl\">Tariff</span><span>"+esc(d.tariff_name)+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Meter</span><span>"+esc(d.meter_type)+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Customer since</span><span>"+esc(d.acquisition_date)+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Lifetime Revenue</span><span>"+gbp(d.lifetime_revenue_gbp)+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Cost to Serve</span><span class=\"muted\">"+gbp(d.cost_to_serve_gbp)+"</span></div>"+
+      (annRows?"<table style=\"margin-top:10px\"><tr><th>Year</th><th>Gross</th><th>Net</th><th>Tariff Range</th></tr>"+annRows+"</table>":"")+
+      "</div>";
+  });
+  html+="</div>";
+  html+=rollupHtml();
+  return html;
+}
+function renderConsumptionTab(){
+  var html="";
+  if(HH.elec&&HH.gas){
+    html+="<div class=\"fuel-select-row\">"+
+      "<button class=\"fuel-btn fbe"+(CONS_FUEL==="elec"?" factive":"")+"\" onclick=\"setConsFuel('elec')\">Electricity</button>"+
+      "<button class=\"fuel-btn fbg"+(CONS_FUEL==="gas"?" factive":"")+"\" onclick=\"setConsFuel('gas')\">Gas</button>"+
+      "</div>";
+  }
+  html+="<div class=\"sec-title\">Usage</div><div id=\"usage-section\"></div>";
+  return html;
+}
+function setConsFuel(f){CONS_FUEL=f;renderTab();}
+
+function renderBillingTab(){
+  var html="";
+  if(HH.elec&&HH.gas){
+    html+="<div class=\"fuel-select-row\">"+
+      "<button class=\"fuel-btn fbe"+(BILL_FUEL==="elec"?" factive":"")+"\" onclick=\"setBillFuel('elec')\">Electricity</button>"+
+      "<button class=\"fuel-btn fbg"+(BILL_FUEL==="gas"?" factive":"")+"\" onclick=\"setBillFuel('gas')\">Gas</button>"+
+      "</div>";
+  }
+  html+="<div class=\"sec-title\">Billing History</div><div id=\"bills-section\"></div>";
+  return html;
+}
+function setBillFuel(f){BILL_FUEL=f;BILL_YEAR=null;renderTab();}
+
+var _EVENT_ICON_CLASS={renewed:"",churned:"churned",life_event:"life"};
+function renderTimelineTab(){
+  var tl=(HH.elec&&HH.elec.timeline&&HH.elec.timeline.length)?HH.elec.timeline:((HH.gas&&HH.gas.timeline)||[]);
+  if(!tl.length)return "<div class=\"sec-title\">Timeline</div><div class=\"card\"><div class=\"no-inv\">No recorded events for this household yet.</div></div>";
+  var items=tl.map(function(e){
+    var cls=_EVENT_ICON_CLASS[e.type]||"";
+    var commTag=e.commodity?" <span class=\"muted\">("+e.commodity+")</span>":"";
+    return "<div class=\"timeline-item "+cls+"\">"+
+      "<div class=\"timeline-date\">"+esc(e.date)+"</div>"+
+      "<div class=\"timeline-detail\">"+esc(e.detail)+commTag+"</div></div>";
+  }).join("");
+  return "<div class=\"sec-title\">Timeline</div><div class=\"card\"><div class=\"timeline-list\">"+items+"</div></div>"+
+    "<div class=\"usage-hint\">Renewal/churn events and life events recorded against this household. Bill-shock and reaction-loop annotations are a planned follow-on (CUSTOMER_360_REDESIGN.md v4 items 2-4).</div>";
+}
+
+function renderRiskTab(){
+  var d=HH.elec||HH.gas;
+  var churnP=d.churn_probability||0,cc=churnColour(churnP);
+  var pa=d.pricing_action||{},paFlag=pa.flag||"OK";
+  var paColor=paFlag==="URGENT_REPRICE"?"red":paFlag==="REPRICE"?"amber":paFlag==="MONITOR"?"blue":"green";
+  var paSub=pa.recommended_uplift_pct?"Uplift: "+(pa.recommended_uplift_pct*100).toFixed(1)+"%":"";
+  return "<div class=\"sec-title\">Retention &amp; Risk"+(d===HH.elec?" (electricity account)":" (gas account)")+"</div>"+
+    "<div class=\"kpi-grid\">"+
+    "<div class=\"kpi\"><div class=\"kpi-label\">Churn Probability</div>"+
+    "<div class=\"kpi-value "+cc+"\">"+pct(churnP)+"</div>"+
+    "<div class=\"kpi-sub\">"+churnLabel(churnP)+"</div>"+
+    "<div class=\"risk-bar\"><div class=\"risk-fill\" style=\"width:"+pct(churnP)+";background:var(--"+cc+")\"></div></div></div>"+
+    "<div class=\"kpi\"><div class=\"kpi-label\">Expected Lifetime</div><div class=\"kpi-value\">"+(d.expected_lifetime_periods||0).toFixed(1)+" yrs</div></div>"+
+    "<div class=\"kpi\"><div class=\"kpi-label\">Pricing Action</div>"+
+    "<div class=\"kpi-value\" style=\"font-size:14px\"><span class=\""+paColor+"\">"+esc(paFlag)+"</span></div>"+
+    (paSub?"<div class=\"kpi-sub\">"+paSub+"</div>":"")+
+    "</div></div>"+
+    "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel.</div>";
+}
+function renderBills(d){
+  var section=document.getElementById("bills-section");
+  if(!section)return;
+  if(!d){section.innerHTML="<div class=\"no-inv\">No account.</div>";return;}
+  var invoices=d.invoices||[];
   var filtered=BILL_YEAR?invoices.filter(function(i){return i.date.indexOf(BILL_YEAR)===0;}):invoices;
   var years=[];
   invoices.forEach(function(i){var y=i.date.slice(0,4);if(years.indexOf(y)<0)years.push(y);});
   years.sort();
   var btns="<div class=\"year-btns\"><button class=\"year-btn"+((!BILL_YEAR)?" yactive":"")+"\" onclick=\"filterBillYear(null)\">All</button>"+
-    years.map(function(y){return "<button class=\"year-btn"+(BILL_YEAR===y?" yactive":"")+"\" onclick=\"filterBillYear(\+y+\)\">"+y+"</button>";}).join("")+"</div>";
+    years.map(function(y){return "<button class=\"year-btn"+(BILL_YEAR===y?" yactive":"")+"\" onclick=\"filterBillYear('"+y+"')\">"+y+"</button>";}).join("")+"</div>";
   var total=0,unpaid=0;
   filtered.forEach(function(i){total+=i.amount_gbp;if(i.status==="UNPAID")unpaid+=i.amount_gbp;});
   var summary="<div class=\"bill-sum\">"+
@@ -147,103 +365,10 @@ function renderBills(){
         return "<div class=\"row\"><span class=\"rl\">"+i.date+"</span><span>"+gbp(i.amount_gbp)+"</span><span class=\""+c+"\">"+i.status+"</span></div>";
       }).join("")
     :"<div class=\"no-inv\">No bills for "+(BILL_YEAR||"this period")+".</div>";
-  document.getElementById("bills-section").innerHTML=btns+summary+"<div class=\"card\">"+list+"</div>";
+  section.innerHTML=btns+summary+"<div class=\"card\">"+list+"</div>";
 }
-function filterBillYear(y){BILL_YEAR=y;renderBills();}
-function renderAccount(){
-  var d=ACC;
-  var commSplitHtml="";
-  var cs=d.commodity_split||{};
-  var csE=cs.electricity,csG=cs.gas;
-  if(csE||csG){
-    var csRows="";
-    if(csE){var cec=nc(csE.net_gbp);csRows+="<div class=\"row\"><span class=\"rl\">Electricity — Revenue</span><span>"+gbp(csE.revenue_gbp)+"</span></div><div class=\"row\"><span class=\"rl\">Electricity — Net Margin</span><span class=\""+cec+"\">"+gbp(csE.net_gbp)+"</span></div>";}
-    if(csG){var cgc=nc(csG.net_gbp);csRows+="<div class=\"row\"><span class=\"rl\">Gas — Revenue</span><span>"+gbp(csG.revenue_gbp)+"</span></div><div class=\"row\"><span class=\"rl\">Gas — Net Margin</span><span class=\""+cgc+"\">"+gbp(csG.net_gbp)+"</span></div>";}
-    commSplitHtml="<div class=\"sec-title\">Commodity Split</div><div class=\"card\">"+csRows+"</div>";
-  }
-  var netActs=d.lifetime_net_after_cts_gbp||0;
-  var segLabel=d.segment==="I&C"?"I&C":d.segment==="sme"?"SME":"Residential";
-  var segBadge=d.segment==="I&C"?"<span class=\"badge bi\">I&amp;C</span>":"<span class=\"badge br\">Residential</span>";
-  var comBadge=d.commodity==="gas"?"<span class=\"badge bg\">Gas</span>":"<span class=\"badge be\">Electricity</span>";
-  var dfBadge=d.is_dual_fuel?"<span class=\"badge bdf\">Dual Fuel</span>":"";
-  var net=d.lifetime_net_gbp||0;
-  var clv=d.clv_gbp||0;
-  var churnP=d.churn_probability||0;
-  var expYrs=d.expected_lifetime_periods||0;
-  var cc=churnColour(churnP);
-  BILL_YEAR=null;
-  var dfHtml="";
-  if(d.is_dual_fuel&&d.dual_fuel_combined){
-    var df=d.dual_fuel_combined,dfNet=df.combined_net_gbp;
-    dfHtml="<div class=\"sec-title\">Dual-Fuel Combined View</div>"+
-      "<div class=\"df-card\"><div class=\"df-header\">&#9881; "+d.account_id+" + "+df.gas_account_id+"</div>"+
-      "<div class=\"df-grid\">"+
-      "<div class=\"df-cell\"><div class=\"df-lbl\">Combined Revenue</div><div class=\"df-val blue\">"+gbp(df.combined_revenue_gbp)+"</div></div>"+
-      "<div class=\"df-cell\"><div class=\"df-lbl\">Combined Net Margin</div><div class=\"df-val "+nc(dfNet)+"\">"+gbp(dfNet)+"</div></div>"+
-      "<div class=\"df-cell\"><div class=\"df-lbl\">Gas Net Margin</div><div class=\"df-val muted\">"+gbp(df.gas_lifetime_net_gbp)+"</div></div>"+
-      "</div></div>";
-  }
-  var annHtml="";
-  if(d.annual_pnl&&d.annual_pnl.length){
-    var rows=d.annual_pnl.filter(function(r){return r.gross_gbp!==0||r.net_gbp!==0;}).map(function(r){
-      var crisis=r.year===2021||r.year===2022;
-      var tariff=(r.tariff_min&&r.tariff_max)?r.tariff_min.toFixed(0)+"–"+r.tariff_max.toFixed(0)+" p/MWh":"—";
-      return "<tr"+(crisis?" class=\"crisis-row\"":"")+"><td>"+r.year+(crisis?" ⚠":"")+"</td>"+
-        "<td class=\""+nc(r.gross_gbp)+"\">"+gbp(r.gross_gbp)+"</td>"+
-        "<td class=\""+nc(r.net_gbp)+"\">"+gbp(r.net_gbp)+"</td>"+
-        "<td style=\"color:var(--muted);font-size:11px\">"+tariff+"</td></tr>";
-    }).join("");
-    annHtml="<div class=\"sec-title\">Annual P&amp;L</div>"+
-      "<div class=\"card\" style=\"padding:0;overflow:hidden\">"+
-      "<table><tr><th>Year</th><th>Gross Margin</th><th>Net Margin</th><th>Tariff Range</th></tr>"+rows+"</table></div>";
-  }
-  var pa=d.pricing_action||{},paFlag=pa.flag||"OK";
-  var paColor=paFlag==="URGENT_REPRICE"?"red":paFlag==="REPRICE"?"amber":paFlag==="MONITOR"?"blue":"green";
-  var paText="<span class=\""+paColor+"\">"+paFlag+"</span>";
-  var paSub=pa.recommended_uplift_pct?"Uplift: "+(pa.recommended_uplift_pct*100).toFixed(1)+"%":"";
-  document.getElementById("app").innerHTML=
-    "<div class=\"account-wrap\">"+
-    "<div class=\"account-header\"><div>"+
-    "<div class=\"account-id\">"+d.account_id+"</div>"+
-    "<div class=\"account-meta\">"+segBadge+" "+comBadge+" "+dfBadge+"</div>"+
-    "</div><button class=\"logout-btn\" onclick=\"doLogout()\">Sign out</button></div>"+
-    "<div class=\"sec-title\">Customer Value</div>"+
-    "<div class=\"kpi-grid\">"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Lifetime Net Margin</div><div class=\"kpi-value "+nc(net)+"\">"+gbp(net)+"</div></div>"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Customer Lifetime Value</div><div class=\"kpi-value blue\">"+gbp(clv)+"</div><div class=\"kpi-sub\">CLV projection</div></div>"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Lifetime Revenue</div><div class=\"kpi-value\">"+gbp(d.lifetime_revenue_gbp)+"</div></div>"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Cost to Serve</div><div class=\"kpi-value muted\">"+gbp(d.cost_to_serve_gbp)+"</div></div>"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Net after CTS</div><div class=\"kpi-value "+nc(netActs)+"\">"+gbp(netActs)+"</div><div class=\"kpi-sub\">after cost to serve</div></div>"+
-    "</div>"+
-    "<div class=\"sec-title\">Retention &amp; Risk</div>"+
-    "<div class=\"kpi-grid\">"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Churn Probability</div>"+
-    "<div class=\"kpi-value "+cc+"\">"+pct(churnP)+"</div>"+
-    "<div class=\"kpi-sub\">"+churnLabel(churnP)+"</div>"+
-    "<div class=\"risk-bar\"><div class=\"risk-fill\" style=\"width:"+pct(churnP)+";background:var(--"+cc+")\"></div></div></div>"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Expected Lifetime</div><div class=\"kpi-value\">"+expYrs.toFixed(1)+" yrs</div></div>"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Pricing Action</div>"+
-    "<div class=\"kpi-value\" style=\"font-size:14px\">"+paText+"</div>"+
-    (paSub?"<div class=\"kpi-sub\">"+paSub+"</div>":"")+
-    "</div></div>"+
-    dfHtml+annHtml+commSplitHtml+
-    "<div class=\"sec-title\">Account Details</div>"+
-    "<div class=\"card\">"+
-    "<div class=\"row\"><span class=\"rl\">Account ID</span><span>"+d.account_id+"</span></div>"+
-    "<div class=\"row\"><span class=\"rl\">Segment</span><span>"+segLabel+"</span></div>"+
-    "<div class=\"row\"><span class=\"rl\">Commodity</span><span>"+d.commodity+"</span></div>"+
-    "<div class=\"row\"><span class=\"rl\">Tariff</span><span>"+d.tariff_name+"</span></div>"+
-    "<div class=\"row\"><span class=\"rl\">Meter</span><span>"+d.meter_type+"</span></div>"+
-    "<div class=\"row\"><span class=\"rl\">Customer since</span><span>"+d.acquisition_date+"</span></div>"+
-    "</div>"+
-    "<div class=\"sec-title\">Usage</div>"+
-    "<div id=\"usage-section\"></div>"+
-    "<div class=\"sec-title\">Billing History</div>"+
-    "<div id=\"bills-section\"></div>"+
-    "</div>";
-  renderBills();
-  renderUsage();
-}
+function filterBillYear(y){BILL_YEAR=y;renderBills(BILL_FUEL==="elec"?HH.elec:HH.gas);}
+
 var usageMonthlyChart=null,usageDailyChart=null,usageWkdayChart=null,usageSeasonChart=null;
 var usageWeatherMonthly=null;
 var MONTH_NAMES=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -273,8 +398,7 @@ function renderPeriodComparison(monthly){
     "<div class=\"kpi\"><div class=\"kpi-label\">vs "+fmtMonth(lastYearMonth)+" (YoY)</div><div class=\"kpi-value\" style=\"font-size:16px\">"+(yoyEntry?chip(yoyPct):"<span class=\"muted\">no data</span>")+"</div></div>"+
     "</div>";
 }
-function buildUsageMonthlyChart(overlayType){
-  var cons=ACC.consumption;
+function buildUsageMonthlyChart(overlayType,cons){
   var labels=cons.monthly.map(function(m){return m.month;});
   var data=cons.monthly.map(function(m){return m.kwh;});
   var datasets=[{label:"Consumption (kWh)",data:data,backgroundColor:"rgba(42,120,214,0.6)",borderRadius:2,yAxisID:"y"}];
@@ -295,7 +419,9 @@ function buildUsageMonthlyChart(overlayType){
     datasets.push({label:overlayLabel,data:overlayData,type:"line",borderColor:"#d03b3b",backgroundColor:"transparent",borderWidth:2,pointRadius:0,tension:0.3,yAxisID:"y2"});
     scales.y2={position:"right",grid:{drawOnChartArea:false},ticks:{color:"#d03b3b"}};
   }
-  var ctx=document.getElementById("usage-monthly-chart").getContext("2d");
+  var canvas=document.getElementById("usage-monthly-chart");
+  if(!canvas)return;
+  var ctx=canvas.getContext("2d");
   if(usageMonthlyChart)usageMonthlyChart.destroy();
   usageMonthlyChart=new Chart(ctx,{
     type:"bar",
@@ -305,25 +431,26 @@ function buildUsageMonthlyChart(overlayType){
       plugins:{legend:{display:overlayType!=="none",labels:{color:"#52514e",boxWidth:12,font:{size:11}}}},
       scales:scales,
       onClick:function(evt,elements){
-        if(!ACC.consumption.has_hh_data)return;
+        if(!cons.has_hh_data)return;
         if(!elements||!elements.length)return;
-        showDailyForMonth(labels[elements[0].index]);
+        showDailyForMonth(labels[elements[0].index],cons);
       }
     }
   });
 }
-function onUsageOverlayChange(v){
-  if(v==="none"){buildUsageMonthlyChart("none");return;}
-  if(usageWeatherMonthly){buildUsageMonthlyChart(v);return;}
+function onUsageOverlayChange(v,cons){
+  if(v==="none"){buildUsageMonthlyChart("none",cons);return;}
+  if(usageWeatherMonthly){buildUsageMonthlyChart(v,cons);return;}
   fetch("../data/weather.json").then(function(r){return r.json();}).then(function(w){
     usageWeatherMonthly=w.monthly||[];
-    buildUsageMonthlyChart(v);
-  }).catch(function(){buildUsageMonthlyChart("none");});
+    buildUsageMonthlyChart(v,cons);
+  }).catch(function(){buildUsageMonthlyChart("none",cons);});
 }
-function showDailyForMonth(month){
-  var cons=ACC.consumption,daily=cons.daily_kwh||{};
+function showDailyForMonth(month,cons){
+  var daily=cons.daily_kwh||{};
   var days=Object.keys(daily).filter(function(k){return k.indexOf(month)===0;}).sort();
   var wrap=document.getElementById("usage-daily-wrap");
+  if(!wrap)return;
   wrap.style.display="block";
   var labels=days.map(function(k){return k.slice(8);});
   var data=days.map(function(k){return daily[k];});
@@ -339,7 +466,9 @@ function showDailyForMonth(month){
 function buildLoadShapeCharts(shape){
   if(!shape)return;
   var labels=periodLabels();
-  var ctx1=document.getElementById("usage-wkday-chart").getContext("2d");
+  var c1=document.getElementById("usage-wkday-chart");
+  if(!c1)return;
+  var ctx1=c1.getContext("2d");
   if(usageWkdayChart)usageWkdayChart.destroy();
   usageWkdayChart=new Chart(ctx1,{
     type:"line",
@@ -364,16 +493,19 @@ function buildLoadShapeCharts(shape){
       scales:{x:{ticks:{color:"#52514e",maxTicksLimit:8,maxRotation:0}},y:{min:0,ticks:{color:"#52514e",callback:function(v){return v+" kWh";}}}}}
   });
 }
-function renderUsage(){
-  var d=ACC,cons=d.consumption;
+function renderUsage(d){
+  var section=document.getElementById("usage-section");
+  if(!section)return;
+  if(!d){section.innerHTML="<div class=\"card\"><div class=\"no-inv\">No account.</div></div>";return;}
+  var cons=d.consumption;
   if(!cons||!cons.monthly||!cons.monthly.length){
-    document.getElementById("usage-section").innerHTML="<div class=\"card\"><div class=\"no-inv\">No usage data available for this account.</div></div>";
+    section.innerHTML="<div class=\"card\"><div class=\"no-inv\">No usage data available for this account.</div></div>";
     return;
   }
   var hasHH=!!cons.has_hh_data;
   var html="<div class=\"chart-wrap\">"+
     "<div class=\"overlay-row\"><label style=\"font-size:12px;color:var(--muted)\">Weather overlay</label>"+
-    "<select id=\"usage-overlay-select\" onchange=\"onUsageOverlayChange(this.value)\">"+
+    "<select id=\"usage-overlay-select\" onchange=\"onUsageOverlayChange(this.value,ACC_CONS)\">"+
     "<option value=\"none\">None</option><option value=\"temp\">Mean Temperature</option><option value=\"hdd\">Heating Degree Days</option>"+
     "</select></div>"+
     "<canvas id=\"usage-monthly-chart\" height=\"220\"></canvas>"+
@@ -390,11 +522,11 @@ function renderUsage(){
   }else{
     html+="<div class=\"sec-title\">Load Shape</div><div class=\"card\"><div class=\"no-inv\">Half-hourly data not available for this account — monthly totals only.</div></div>";
   }
-  document.getElementById("usage-section").innerHTML=html;
-  buildUsageMonthlyChart("none");
+  section.innerHTML=html;
+  window.ACC_CONS=cons;
+  buildUsageMonthlyChart("none",cons);
   if(hasHH)buildLoadShapeCharts(cons.load_shape);
 }
-function doLogout(){ACC=null;showLogin(null);}
 showLogin(null);
 </script>
 </body>

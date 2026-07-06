@@ -16,8 +16,12 @@
 #   Billing/Timeline/Risk); usage viz (volume+shape+weather overlay); bill equation + why-different
 #   waterfall; QP event ledger as timeline; progressive disclosure; UK lens (MPAN/MPRN/p-kWh/EAC/
 #   PSR). GAS/ELEC SEPARATED AT EVERY STAGE is the specific repeated complaint -- highest priority
-#   sub-item. (Phase RI already closed v3's item 1 usage-chart rendering; v4 supersedes with the
-#   full causal-chain spine and the account-separation ask -- items 2-4 + separation still open.)
+#   sub-item. (Phase RI closed v3's item 1 usage-chart rendering; Phase RJ closed the tabbed IA +
+#   account-separation ask -- MPAN/MPRN per fuel, per-fuel selectors, real Timeline tab. Still open:
+#   items 2 (bill equation + why-different waterfall -- billing_ledger.json already has the real
+#   per-invoice usage/rate/standing-charge data, needs wiring into the customer JSON in place of
+#   generate_invoice_data.py's fabricated seasonal-weight invoices), 3 (event downstream effects),
+#   4 (reaction-loop rendering).)
 # P1b. SUPPLIER TAB IA (docs/staging/SUPPLIER_TAB_OVERHAUL.md). Phase RH already closed the core
 #   IA regroup (grouped nav + Query FAB) and RG closed Capabilities->Project + Regulatory RAG +
 #   Worst-Shock-Month; remaining: portfolio event stream as spine, Recommended Actions elevated
