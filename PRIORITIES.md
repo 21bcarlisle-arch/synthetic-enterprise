@@ -1,30 +1,36 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# Last refreshed: 2026-07-06 (Phase RG, then this session's housekeeping pass: this file had
-# drifted out of sync with docs/PRIORITIES.md, which Phase RG updated but this copy did not --
-# stale for one phase. PROJECT_TAB_OVERHAUL.md is now CLOSED IN FULL (Phase RG, 2026-07-06):
-# Timeline auto-append, a real Capabilities register, and System-tab elevation were all found
-# already implemented in site/project/index.html from an interrupted prior session, verified
-# against live data and committed. Company dedup, Regulatory inline-expand, chart axis fix,
-# capability-card stat generation, CONSISTENCY BREACH and phases.json hand-curation were closed
-# earlier (RF, QW, RD) -- see those phases' entries below for detail.
-# Front of queue now: SUPPLIER_TAB_OVERHAUL.md's remaining scope -- the Tier 3 design note for
-# the frozen-policy-baseline metric (policy snapshot/replay is one-way-door-adjacent) must land
-# before the IA regroup (11 tabs -> grouped nav) proceeds. Its "Worst Shock Month" bug and
-# Regulatory RAG-per-obligation item are already done (RG). This session additionally closed two
-# safe, presentation-only items from its FIX list: the Trading tab's min-HF chart was clipping
-# the 2019-2024 regime-blindness-trap 0% bars off-chart (y-axis floor was 70%) -- now shows the
-# full 0-105% range with an inline narrative explaining the Phase 1e finding. Found but NOT
-# actioned (flagged for Rich, not a routine fix): the Accounts waterfall's CTS £0-every-year vs
-# Insights cost-to-serve £91,780 breach traces to a real gap, not a display bug -- the ledger's
-# chart-of-accounts code 6100 ("Cost to Serve") exists but no event type ever posts to it, AND
-# saas/cost_to_serve.py's own formula still bakes in the old flat BAD_DEBT_RATE assumption Phase
-# QD's emergent-arrears engine superseded elsewhere -- wiring it into the ledger as-is would
-# re-introduce the discredited bad-debt figure as a real cash cost, shifting the whole 10-year
-# net margin. See docs/staging/drafts/NEXT_PHASE.md for the full write-up and options; proceeding
-# per the Tier 3 4h opt-out unless redirected. CUSTOMER_360_REDESIGN.md (items 2-4),
-# NAV_STORY_PLATFORM_METHOD.md remain queued behind. FEEDBACK_AND_REPUTATION.md and
-# NUDGE_PHYSICS.md are explicitly queued behind this wave per their own staged text -- do not
-# jump them ahead of it.)
+# Last refreshed: 2026-07-06 (PRIORITY RESET, docs/staging/PRIORITY_RESET_PUBLIC_SITE.md,
+# [ADVISOR-STAGED] 5fa9a0cf -- Tier 2, pre-approved). Rich's direct verdict: the public site
+# (poesys.net's four top-level tabs) is still structurally pre-overhaul despite backend depth
+# (SIM tab QY-RC, Project generators RD/RG, portal design tokens QO) shipping. THE PUBLIC SITE
+# IS NOW P1, ahead of further backend depth (CTS reconciliation, frozen-policy baseline,
+# FEEDBACK_AND_REPUTATION, NUDGE_PHYSICS, SAAS_COVERAGE_MAP all demoted to P2, resume after P1
+# lands + Rich confirms visually). "Overhaul" means structure/nav/tab-order/layout/per-fuel
+# separation on the REAL site (site/{index,sim,customers,project} + the portal), not the shadow
+# mirror, not a CSS palette flip.
+#
+# NEW ORDER (work top-down, single-writer, each Tier 2/pre-approved):
+# P1a. CUSTOMER 360 v4 (docs/staging/CUSTOMER_360_REDESIGN.md) -- reference implementation.
+#   Household w/ TWO first-class accounts (elec MPAN + gas MPRN, own tariff/meter/consumption/
+#   bills/P&L each), combined roll-up OPTIONAL only; tabbed IA (Overview/Accounts/Consumption/
+#   Billing/Timeline/Risk); usage viz (volume+shape+weather overlay); bill equation + why-different
+#   waterfall; QP event ledger as timeline; progressive disclosure; UK lens (MPAN/MPRN/p-kWh/EAC/
+#   PSR). GAS/ELEC SEPARATED AT EVERY STAGE is the specific repeated complaint -- highest priority
+#   sub-item. (Phase RI already closed v3's item 1 usage-chart rendering; v4 supersedes with the
+#   full causal-chain spine and the account-separation ask -- items 2-4 + separation still open.)
+# P1b. SUPPLIER TAB IA (docs/staging/SUPPLIER_TAB_OVERHAUL.md). Phase RH already closed the core
+#   IA regroup (grouped nav + Query FAB) and RG closed Capabilities->Project + Regulatory RAG +
+#   Worst-Shock-Month; remaining: portfolio event stream as spine, Recommended Actions elevated
+#   to Overview, heatmap click-through to customer 360 + year.
+# P1c. SIX-SECTION NAV + STORY (docs/staging/NAV_STORY_PLATFORM_METHOD.md) -- Home/Story landing,
+#   new Platform + Method sections, tab reorder. Not yet started.
+# P2 (resumes after P1a-c land + Rich's visual confirmation): CTS £0/£91,780 reconciliation
+#   (docs/staging/drafts/NEXT_PHASE.md), frozen-policy baseline (FROZEN_POLICY_BASELINE_DESIGN.md),
+#   FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
+# Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's
+# visual review", never "done" outright.
+# Already-staged infra fixes (SERIALIZE_WORKERS.md, FLAG_ALL_LAUNCHERS.md, PAGES_CONCURRENCY_FIX.md)
+# were actioned prior to this reset -- see docs/staging/done/.
 
 ## COMPLETED
 - P1 (process model, acquisition funnel): PROCESS_NOT_EVENTS.md's quote->application->

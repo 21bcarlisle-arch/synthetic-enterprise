@@ -1,8 +1,23 @@
 # Current Priorities
 
-Last updated: 2026-07-06 -- Phases QW-RG COMPLETE (see CLAUDE.md "Current state" for full detail
-per phase). PROJECT_TAB_OVERHAUL.md now CLOSED IN FULL (Phase RG). PROCESS_NOT_EVENTS.md and
-DECISION_LOOP_AND_EVENT_LEDGER.md remain CLOSED IN FULL (no change).
+Last updated: 2026-07-06 -- PRIORITY RESET (docs/staging/PRIORITY_RESET_PUBLIC_SITE.md,
+[ADVISOR-STAGED] 5fa9a0cf, Tier 2 pre-approved). Rich's direct verdict after reviewing the live
+site: still far below target -- tab order unchanged, gas/electricity still bundled everywhere he
+looks -- despite backend depth (SIM tab QY-RC, Project generators RD/RG, portal tokens QO)
+shipping. THE PUBLIC SITE (poesys.net's four top-level tabs + portal) IS NOW P1, ahead of further
+backend depth. New order, top-down, each Tier 2:
+  P1a. CUSTOMER 360 v4 (CUSTOMER_360_REDESIGN.md) -- household w/ TWO first-class accounts (elec
+    MPAN + gas MPRN, own tariff/meter/consumption/bills/P&L each), combined roll-up OPTIONAL only;
+    tabbed IA (Overview/Accounts/Consumption/Billing/Timeline/Risk). GAS/ELEC SEPARATION AT EVERY
+    STAGE is the specific repeated complaint.
+  P1b. SUPPLIER TAB IA (SUPPLIER_TAB_OVERHAUL.md) -- core IA regroup already done (RH/RG); portfolio
+    event stream, Recommended Actions->Overview, heatmap click-through remain.
+  P1c. SIX-SECTION NAV + STORY (NAV_STORY_PLATFORM_METHOD.md) -- not yet started.
+  P2 (resumes after P1a-c + Rich's visual confirmation): CTS reconciliation, frozen-policy baseline,
+    FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
+Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's visual
+review", never "done" outright. PROJECT_TAB_OVERHAUL.md now CLOSED IN FULL (Phase RG).
+PROCESS_NOT_EVENTS.md and DECISION_LOOP_AND_EVENT_LEDGER.md remain CLOSED IN FULL (no change).
 
 **ACTIVE WAVE (director-critique site overhaul, 8 documents, staged 2026-07-04/05):**
 WEBSITE_AS_SHOWCASE.md is the master directive. Progress per tab:
