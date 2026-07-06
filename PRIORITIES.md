@@ -1,4 +1,5 @@
 # PRIORITIES.md -- Synthetic Enterprise
+# last director review: 2026-07-06 (P-5 freshness stamp, docs/staging/PRIORITISATION_RULES.md)
 # Last refreshed: 2026-07-06 (PRIORITY RESET, docs/staging/PRIORITY_RESET_PUBLIC_SITE.md,
 # [ADVISOR-STAGED] 5fa9a0cf -- Tier 2, pre-approved). Rich's direct verdict: the public site
 # (poesys.net's four top-level tabs) is still structurally pre-overhaul despite backend depth
