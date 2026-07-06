@@ -112,6 +112,44 @@
       "tariff_max": 249.3
     }
   ],
+  "timeline": [
+    {
+      "date": "2020-09-30",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 122.0 \u00a3/MWh"
+    },
+    {
+      "date": "2021-09-30",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 183.0 \u00a3/MWh"
+    },
+    {
+      "date": "2022-09-30",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 305.0 \u00a3/MWh"
+    },
+    {
+      "date": "2023-02-11",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Insulation upgraded"
+    },
+    {
+      "date": "2023-09-30",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 249.0 \u00a3/MWh"
+    },
+    {
+      "date": "2024-09-29",
+      "type": "churned",
+      "commodity": "electricity",
+      "detail": "Churned"
+    }
+  ],
   "invoices": [
     {
       "id": "C4-2016-10",

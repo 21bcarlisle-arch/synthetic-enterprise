@@ -96,6 +96,44 @@
       "tariff_max": 183.0
     }
   ],
+  "timeline": [
+    {
+      "date": "2017-06-28",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Job loss"
+    },
+    {
+      "date": "2018-04-02",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Income recovery"
+    },
+    {
+      "date": "2020-03-31",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 144.0 \u00a3/MWh"
+    },
+    {
+      "date": "2021-03-31",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 183.0 \u00a3/MWh"
+    },
+    {
+      "date": "2022-03-31",
+      "type": "churned",
+      "commodity": "electricity",
+      "detail": "Churned"
+    },
+    {
+      "date": "2023-06-20",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Insulation upgraded"
+    }
+  ],
   "invoices": [
     {
       "id": "C2-2016-04",

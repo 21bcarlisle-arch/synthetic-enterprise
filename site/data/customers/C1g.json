@@ -71,6 +71,38 @@
       "tariff_max": 25.33
     }
   ],
+  "timeline": [
+    {
+      "date": "2016-12-31",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 132.0 \u00a3/MWh"
+    },
+    {
+      "date": "2017-12-31",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 118.0 \u00a3/MWh"
+    },
+    {
+      "date": "2018-12-31",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 150.0 \u00a3/MWh"
+    },
+    {
+      "date": "2019-12-31",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 126.0 \u00a3/MWh"
+    },
+    {
+      "date": "2020-12-30",
+      "type": "churned",
+      "commodity": "electricity",
+      "detail": "Churned"
+    }
+  ],
   "invoices": [
     {
       "id": "C1g-2016-01",
