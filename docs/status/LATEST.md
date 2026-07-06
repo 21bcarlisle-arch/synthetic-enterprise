@@ -1,5 +1,5 @@
 ## Phase RK COMPLETE -- Customer 360 v4 item 2: real bill equation, fabrication debt closed
-Last updated: 2026-07-06T12:18:06Z
+Last updated: 2026-07-06T12:29:51Z
 
 **Status:** COMPLETE. 15,785 tests collected, fast suite (15,661) clean. Epistemic: PASS.
 
@@ -22,7 +22,7 @@ Timeline) and 4 (reaction-loop rendering) per PRIORITIES.md P1a -- company/crm/ 
 complaint/service-ticket/satisfaction infrastructure, needs joining into the portal JSON.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (516s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (510s / 8 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
