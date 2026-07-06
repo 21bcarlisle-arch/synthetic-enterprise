@@ -21,7 +21,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
 .nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
 .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
-.login-wrap { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 48px); }
+.login-wrap { display: flex; align-items: center; justify-content: center; padding: 40px 20px 8px; }
 .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 40px; width: 400px; max-width: 95vw; }
 .login-card h1 { font-size: 22px; margin-bottom: 8px; }
 .login-card p { color: var(--muted); font-size: 13px; margin-bottom: 28px; line-height: 1.5; }
@@ -115,6 +115,14 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 .timeline-detail { margin-top: 2px; }
 .timeline-effect { margin-top: 3px; font-size: 11px; color: var(--blue); }
 .no-account-note { font-size: 12px; color: var(--muted); font-style: italic; }
+.cs-wrap { max-width: 900px; margin: 0 auto; padding: 8px 20px 48px; }
+.cs-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; text-align: center; }
+.cs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.cs-card { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; text-decoration: none; color: var(--text); transition: border-color .15s; }
+.cs-card:hover { border-color: var(--blue); }
+.cs-cat { font-size: 10px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+.cs-acc { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.cs-headline { font-size: 12px; color: var(--muted); line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -151,6 +159,31 @@ function showLogin(err){
     "</div></div>";
   var inp=document.getElementById("acc");
   if(inp){inp.focus();inp.onkeydown=function(e){if(e.key==="Enter")doLogin();};}
+  loadCaseStudies();
+}
+var CASE_STUDIES=null;
+function loadCaseStudies(){
+  if(CASE_STUDIES){renderCaseStudies();return;}
+  fetch("../data/case_studies.json").then(function(r){return r.ok?r.json():null;})
+    .then(function(d){CASE_STUDIES=d;renderCaseStudies();})
+    .catch(function(){});
+}
+function renderCaseStudies(){
+  var app=document.getElementById("app");
+  if(!app||!CASE_STUDIES||!CASE_STUDIES.cases||!CASE_STUDIES.cases.length)return;
+  var cards=CASE_STUDIES.cases.map(function(c){
+    var params=new URLSearchParams(c.link).toString();
+    return "<a class=\"cs-card\" href=\"?"+params+"\">"+
+      "<div class=\"cs-cat\">"+esc(c.category)+"</div>"+
+      "<div class=\"cs-acc\">"+esc(c.account_id)+" &middot; "+esc(c.segment)+"</div>"+
+      "<div class=\"cs-headline\">"+esc(c.headline)+"</div>"+
+      "</a>";
+  }).join("");
+  var wrap=document.createElement("div");
+  wrap.className="cs-wrap";
+  wrap.innerHTML="<div class=\"cs-title\">Interesting customers to explore, auto-curated from the live run</div>"+
+    "<div class=\"cs-grid\">"+cards+"</div>";
+  app.appendChild(wrap);
 }
 function fetchAccount(id){
   return fetch("../data/customers/"+id+".json").then(function(r){

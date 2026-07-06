@@ -111,6 +111,56 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RR -- WEBSITE_AS_SHOWCASE.md tab 4 CLOSED (case-study recommender), housekeeping archive (2026-07-06, Tier 2 -- PRIORITIES.md PRIORITY 1 design wave, structure pre-approved by the directive itself)
+
+Housekeeping first: docs/staging/CUSTOMER_360_REDESIGN.md, SUPPLIER_TAB_OVERHAUL.md,
+NAV_STORY_PLATFORM_METHOD.md, and PROJECT_TAB_OVERHAUL.md were all explicitly declared "CLOSED
+IN FULL" in PRIORITIES.md / this file's own build-history entries (Phases RL/RP, RM, RQ, RG
+respectively) but had never been moved out of the active docs/staging/ root -- a queue-hygiene
+gap, not a scope gap. Archived to docs/staging/done/.
+
+Main work: WEBSITE_AS_SHOWCASE.md tab 4 ("CUSTOMER PORTAL -- MICRO MEETS MACRO") asked for a
+case-study recommender that auto-curates "interesting customers" -- most eventful journeys,
+largest company-vs-SIM divergences, defer-then-churn sequences -- each linking to that customer's
+timeline. This was the one remaining piece of tab 4 not already covered by
+CUSTOMER_360_REDESIGN.md's reaction-chain/timeline work (Phase RL); tabs 2 (frozen-policy
+baseline) and 3 (learning ledger) stay open, gated behind Rich's visual confirmation of P1a-c per
+the priority-reset rule, and were not started this phase.
+
+New tools/generate_case_study_recommender.py ranks real per-household signals already computed
+by generate_customer_reaction_chain.py and generate_customer_sample.py -- nobody is hand-picked
+by account id:
+- Most eventful journey: highest timeline + reaction-chain entry count.
+- Largest company-vs-SIM churn divergence: biggest churn_estimate_error_pct from a real
+  renewal (customer_sample.json's churn_accuracy_by_renewal).
+- Retention save, then churned anyway: a retention_decision fired in the reaction chain
+  before the eventual churn.
+- Heaviest arrears cascade: most WRITTEN_OFF outcomes in the reaction chain.
+- Notable life event: a life_event timeline entry with a real measured before/after effect.
+
+Each category picks a distinct household (already-used households are excluded from later picks).
+Output: site/data/case_studies.json, wired into process_run_complete.py immediately after
+generate_customer_sample (its data source) and before generate_shadow_html. Rendered as a new
+"Interesting customers to explore" panel on site/customers/index.html's login/landing page,
+linking straight into that household's Timeline tab via the existing ?acc=&tab=&year= deep-link
+(Phase RM).
+
+Live-run finding: the run picked C2 (most eventful, 63 entries), C_IC2 (a 2489% churn-estimate
+error at the 2019 renewal -- sim 4% vs company 95%, a real instance of the I&C 0.95-ceiling
+behaviour Phases QA/QB already documented), C5 (retention offered and won in 2018, churned anyway
+in 2022), C3 (3 real debt write-offs), and C7 (the 2023 new-baby life event, real income-stress step
+low->moderate and late-payment-rate jump 8%->58%). All five figures are real, none fabricated.
+
+Verification: node --check was gated behind an unapprovable permission prompt again this
+session (same recurring pattern as Phases RA/RG/RI/RJ/RK/RL/RM/RQ). Fell back to the established
+substitute: brace/paren/bracket balance across the touched <script> body (259/259, 720/720,
+102/102, balanced) plus a direct cross-check of every field the new render code reads
+(category/account_id/segment/headline/link) against the real generated
+site/data/case_studies.json, confirming no missing-field risk.
+
+13 new tests (tests/tools/test_case_study_recommender.py), epistemic verifier PASS (478 files, no
+violations).
+
 ### Phase RQ -- NAV_STORY_PLATFORM_METHOD.md CLOSED IN FULL (2026-07-06, Tier 2 -- PRIORITIES.md P1c, front of queue immediately after Phase RP)
 
 Closed the last two items of the six-section nav directive: item 6 (METHOD, "The Way") and item 7

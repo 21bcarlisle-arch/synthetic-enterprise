@@ -298,6 +298,15 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Customer sample generation failed: {}".format(exc))
     try:
+        # Must run after generate_customer_reaction_chain (timeline/reaction_chain
+        # patched) and generate_customer_sample (churn_accuracy_by_renewal source).
+        # WEBSITE_AS_SHOWCASE.md tab 4: case-study recommender.
+        from tools.generate_case_study_recommender import generate as gen_case_studies
+        gen_case_studies()
+        log("Generated site/data/case_studies.json (WEBSITE_AS_SHOWCASE.md tab 4 case-study recommender)")
+    except Exception as exc:
+        log("Case-study recommender generation failed: {}".format(exc))
+    try:
         from tools.generate_shadow_html import generate as gen_shadow
         gen_shadow()
         log("Generated site/shadow/ static HTML mirror")
@@ -454,6 +463,9 @@ def git_commit_push(git_hash, net_margin):
     site_method_json = PROJECT_DIR / "site" / "data" / "method.json"
     if site_method_json.exists():
         files.append(str(site_method_json))
+    site_case_studies_json = PROJECT_DIR / "site" / "data" / "case_studies.json"
+    if site_case_studies_json.exists():
+        files.append(str(site_case_studies_json))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
     # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),

@@ -42,14 +42,21 @@
 #   live events), Recommended Actions elevated to Overview ("What the Board Should Do Next"),
 #   heatmap click-through to customer 360 + year (site/customers/index.html deep-linking).
 #   AWAITING RICH'S VISUAL CONFIRMATION per the P1 acceptance rule below -- report as such, not "done".
-# P1c. SIX-SECTION NAV + STORY (docs/staging/NAV_STORY_PLATFORM_METHOD.md) -- Home/Story landing +
-#   Platform section skeleton DONE (Phase RO, 2026-07-06): site/index.html is now the Home/Story
-#   landing (was the Supplier dashboard, moved intact to site/supplier/index.html); new
-#   site/platform/index.html (architecture layers, module/domain map, adapter registry, synthetic
-#   data catalogue) backed by tools/generate_platform_data.py, wired into the per-run auto-commit
-#   pipeline. AWAITING RICH'S VISUAL CONFIRMATION per the P1 acceptance rule below. Remaining: the
-#   METHOD section (operating-model diagram, R1-R6 rules + forging incidents, live staging-loop
-#   view, retro library) and PROJECT tab slim-down (Company sub-tab->Method, Capabilities->Platform).
+# P1c. SIX-SECTION NAV + STORY (docs/staging/NAV_STORY_PLATFORM_METHOD.md) -- CLOSED IN FULL
+#   (Phases RO/RQ, 2026-07-06). Home/Story landing + Platform section (Phase RO); METHOD section
+#   (operating model, R1-R6 + forging incidents, live staging-loop view, retro library) + PROJECT
+#   tab slim-down (Company->Method, Capabilities->Platform) (Phase RQ). AWAITING RICH'S VISUAL
+#   CONFIRMATION per the P1 acceptance rule below -- report as such, not "done".
+# P1a/b/c ALL CLOSED IN FULL as of Phase RQ, 2026-07-06. WEBSITE_AS_SHOWCASE.md tab 4
+#   (case-study recommender) CLOSED (Phase RR, 2026-07-06) -- new tools/generate_case_study_recommender.py
+#   auto-curates 5 real "interesting customers" (most eventful / largest churn-model divergence /
+#   retention-save-then-churned-anyway / heaviest arrears cascade / notable life event) onto
+#   site/customers/index.html's login page, linking into each household's Timeline. WEBSITE_AS_SHOWCASE.md
+#   tabs 2 (frozen-policy baseline) and 3 (learning ledger) remain open, gated behind Rich's visual
+#   confirmation of P1a-c below -- not started. Phase RR also archived 4 staged docs
+#   (CUSTOMER_360_REDESIGN.md, SUPPLIER_TAB_OVERHAUL.md, NAV_STORY_PLATFORM_METHOD.md,
+#   PROJECT_TAB_OVERHAUL.md) to docs/staging/done/ that were already CLOSED IN FULL above but never
+#   moved out of the active queue -- a hygiene gap, not a scope gap.
 # P2 (resumes after P1a-c land + Rich's visual confirmation): CTS £0/£91,780 reconciliation
 #   (docs/staging/drafts/NEXT_PHASE.md), frozen-policy baseline (FROZEN_POLICY_BASELINE_DESIGN.md),
 #   FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
