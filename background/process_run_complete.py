@@ -251,6 +251,16 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Invoice data generation failed: {}".format(exc))
     try:
+        # Must run after generate_billing_ledger (real payments/arrears_history
+        # source) and generate_invoice_data (patches the same customer JSON
+        # files, this generator only adds a new "ledger" key alongside them).
+        # BILLING_AND_PAYMENTS_LEDGER.md: Statement/Cashflow views.
+        from tools.generate_payment_ledger_data import generate as gen_pay_ledger
+        gen_pay_ledger()
+        log("Generated per-account payment ledger JSON (BILLING_AND_PAYMENTS_LEDGER.md Statement/Cashflow)")
+    except Exception as exc:
+        log("Payment ledger generation failed: {}".format(exc))
+    try:
         from tools.generate_customer_consumption import generate as gen_consumption
         gen_consumption(json_path)
         log("Generated customer consumption JSON (USAGE panel)")

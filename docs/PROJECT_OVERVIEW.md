@@ -111,6 +111,60 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RP -- BILLING_AND_PAYMENTS_LEDGER.md CLOSED IN FULL (2026-07-06, Tier 2 -- PRIORITIES.md P1a reopened, docs/staging/BILLING_AND_PAYMENTS_LEDGER.md)
+
+Recovered a second interrupted prior session's uncommitted work found sitting in the working tree
+at session start: a new `tools/generate_payment_ledger_data.py`, its unit tests
+(`tests/tools/test_generate_payment_ledger_data.py`), a portal regression test file
+(`tests/tools/test_billing_and_payments_ledger.py`), and matching edits already made to
+`simulation/arrears_engine.py`, `site/customers/index.html`, `tests/tools/test_billing_tab_fix.py`,
+and `background/process_run_complete.py` -- none of it committed. This session's job was to verify
+the work was complete and correct against the staged doc's four items, then close it out.
+
+**Item 1 (bill equation inline)** was already done (Phase RK) -- untouched here beyond a small
+per-fuel unit label fix (`p/kWh (elec)` vs `p/kWh (gas)`) on the existing waterfall renderer.
+
+**Items 2-3 (the account ledger + cashflow)**: `tools/generate_payment_ledger_data.py` reads the
+real `site/state/billing_ledger.json` (invoices, payments with actual `payment_date`/`method`, and
+`arrears_history` dunning cascades from `simulation/arrears_engine.py`) and turns it into one
+chronological ledger per account -- invoice raised / payment received / DD failure or dispute notice
+/ arrears notice / arrears resolved / write-off / post-write-off recovery -- with a running balance,
+patched onto `site/data/customers/{cid}.json` under a new `"ledger"` key. Point-in-time honesty:
+`as_of` is the latest invoice issue_date anywhere in the book, and any arrears stage dated after that
+is withheld, so open accounts correctly show a live balance rather than everything trivially settling
+to zero. `simulation/arrears_engine.py`'s `RECOVERED`/`SOLD` terminal stages gained a structured
+`amount_gbp` field (previously only readable by parsing the prose `note` string) so the ledger could
+show real DCA/debt-sale proceeds as an informational `recovery_note` entry that does not reopen or
+double-count against the write-off that already closed the invoice's line. The Billing tab (renamed
+BILLING & PAYMENTS) gained three sub-views: Bills (existing waterfall), Statement (the chronological
+ledger with running balance), and Cashflow (monthly billed-vs-collected bar chart + cumulative
+collected line, elec/gas/combined scope toggle, plus a lifetime Net Cash Contribution figure against
+`cost_to_serve_gbp` -- explicitly labelled the CLV actuals base). Both Statement and Cashflow render
+a page-level reconciliation line: `Collected + Outstanding + Written off == Billed`, with the ex-VAT
+`lifetime_revenue` figure on the Accounts tab explicitly called out as a different (commodity-only)
+accounting basis so the two are never mistaken for the same number. The Risk tab also gained an
+Outstanding Balance KPI sourced from the same combined ledger totals.
+
+**Item 4 (settlement note)**: payment method (Direct Debit / BACS / CHAPS / payment plan / DCA /
+debt sale) is shown against every ledger entry that carries one.
+
+**Wiring**: `generate_payment_ledger_data.generate()` added to `process_run_complete.py`, explicitly
+sequenced after `generate_billing_ledger` (the real payments/arrears source) and after
+`generate_invoice_data` (patches the same customer JSON files) since this generator only adds the new
+key alongside them.
+
+**Evidence (staged doc's acceptance list)**: verified against the full live book, not spot-checked --
+`test_reconciliation_identity_holds_across_full_live_book` checks the identity for every real
+household (both fuel legs combined); `test_at_least_one_household_has_a_real_write_off_and_one_has_open_balance`
+confirms both a churned-and-written-off case and a live open-balance case are real, not fabricated.
+`tests/tools/test_billing_tab_fix.py`'s `closedAccountNotice` port was extended in the same session
+to state the account's real ledger settlement (settles to zero, or net of a real write-off) instead
+of a bare "final bill" line -- C1 (Phase RN/RK's running example) now correctly reads "settled to
+zero" because its historical write-off is real ledger data, not a fabricated always-collected close.
+
+18 new tests, full suite 15,712 passed (15,836 collected), epistemic verifier PASS (478 files, no
+violations). CLOSES BILLING_AND_PAYMENTS_LEDGER.md and PRIORITIES.md P1a (reopened) in full.
+
 ### Phase RO -- NAV_STORY_PLATFORM_METHOD.md P1: Home/Story landing + Platform section skeleton (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue P1c)
 
 Recovered a second interrupted prior session's work found sitting uncommitted at session start:
@@ -6189,7 +6243,23 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,818 tests collected; 8 new this phase (tests/tools/test_generate_platform_data.py + count_company_modules regression test)
+- 15,836 tests collected; 18 new this phase (tests/tools/test_generate_payment_ledger_data.py + tests/tools/test_billing_and_payments_ledger.py)
+- Phase RP (2026-07-06): BILLING_AND_PAYMENTS_LEDGER.md (PRIORITIES.md P1a reopened) CLOSED IN FULL
+  -- recovered a second interrupted prior session's uncommitted work: new
+  tools/generate_payment_ledger_data.py builds a chronological per-account ledger (invoice raised /
+  payment received / arrears notice / write-off / post-write-off recovery, running balance) from the
+  real billing_ledger.json invoices/payments/arrears_history, patched onto each customer JSON; Billing
+  tab renamed BILLING & PAYMENTS with three sub-views (Bills/Statement/Cashflow) on
+  site/customers/index.html -- Statement is the chronological ledger, Cashflow charts monthly billed
+  vs collected + cumulative collected (elec/gas/combined toggle) against lifetime cost-to-serve as the
+  CLV actuals base, both carrying a page-level reconciliation line (Collected + Outstanding + Written
+  off == Billed). simulation/arrears_engine.py's RECOVERED/SOLD stages gained a structured amount_gbp
+  field (previously only inside a prose note string) so the ledger could show real DCA/debt-sale
+  proceeds as an informational, non-double-counted entry. Wired into
+  background/process_run_complete.py after generate_billing_ledger + generate_invoice_data. Verified:
+  reconciliation identity holds across the full live book (every household, both fuel legs), at least
+  one household shows a real write-off and one shows a real open balance (evidence ask). 18 new tests,
+  full suite 15,712 passed (15,836 collected), epistemic PASS. See Section 4.
 - Phase RO (2026-07-06): NAV_STORY_PLATFORM_METHOD.md P1 -- Home/Story landing (site/index.html) +
   Platform section (site/platform/index.html, tools/generate_platform_data.py) shipped; old
   dashboard moved to site/supplier/index.html; company_modules staleness bug fixed

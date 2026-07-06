@@ -6,10 +6,11 @@ site: still far below target -- tab order unchanged, gas/electricity still bundl
 looks -- despite backend depth (SIM tab QY-RC, Project generators RD/RG, portal tokens QO)
 shipping. THE PUBLIC SITE (poesys.net's four top-level tabs + portal) IS NOW P1, ahead of further
 backend depth. New order, top-down, each Tier 2:
-  P1a. CUSTOMER 360 v4 (CUSTOMER_360_REDESIGN.md) -- household w/ TWO first-class accounts (elec
-    MPAN + gas MPRN, own tariff/meter/consumption/bills/P&L each), combined roll-up OPTIONAL only;
-    tabbed IA (Overview/Accounts/Consumption/Billing/Timeline/Risk). GAS/ELEC SEPARATION AT EVERY
-    STAGE is the specific repeated complaint.
+  P1a. CUSTOMER 360 v4 (CUSTOMER_360_REDESIGN.md) -- CLOSED IN FULL (Phase RL). Reopened once
+    (BILLING_AND_PAYMENTS_LEDGER.md, Rich's directive after live review) for the account
+    ledger/bill-equation/cashflow scope -- CLOSED IN FULL (Phase RP, 2026-07-06): per-account
+    chronological ledger (tools/generate_payment_ledger_data.py) + Billing & Payments tab
+    Bills/Statement/Cashflow sub-views + household reconciliation line on site/customers/index.html.
   P1b. SUPPLIER TAB IA (SUPPLIER_TAB_OVERHAUL.md) -- core IA regroup already done (RH/RG); portfolio
     event stream, Recommended Actions->Overview, heatmap click-through remain.
   P1c. SIX-SECTION NAV + STORY (NAV_STORY_PLATFORM_METHOD.md) -- not yet started.

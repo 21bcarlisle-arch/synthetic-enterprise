@@ -143,7 +143,7 @@ def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: s
         sold_date = dca_date + timedelta(days=DEBT_SALE_DAYS)
         proceeds = _debt_sale_proceeds(arrears_gbp)
         stages.append({
-            "stage": "SOLD", "date": sold_date.isoformat(),
+            "stage": "SOLD", "date": sold_date.isoformat(), "amount_gbp": proceeds,
             "note": "Debt sold to purchaser -- GBP%.2f proceeds at %d%% of face value"
                     % (proceeds, int(round(DEBT_SALE_HAIRCUT_PCT * 100))),
         })
@@ -152,7 +152,7 @@ def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: s
         rate = DCA_RECOVERY_RATE.get(archetype, DCA_RECOVERY_RATE["NEUTRAL"])
         net = _dca_recovered_amount(arrears_gbp, archetype)
         stages.append({
-            "stage": "RECOVERED", "date": recovered_date.isoformat(),
+            "stage": "RECOVERED", "date": recovered_date.isoformat(), "amount_gbp": net,
             "note": "DCA recovered GBP%.2f net of commission (%d%% recovery rate, %d%% commission)"
                     % (net, int(round(rate * 100)), int(round(DCA_COMMISSION_RATE * 100))),
         })

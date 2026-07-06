@@ -130,7 +130,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 <div id="app"></div>
 <script>
 var HH={elec:null,gas:null,base:null};
-var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false,DEEPLINK_YEAR=null,EXPANDED_BILL_ID=null;
+var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false,DEEPLINK_YEAR=null,EXPANDED_BILL_ID=null,BILL_VIEW="bills",CASH_SCOPE="combined";
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function pct(v){return(v*100).toFixed(0)+"%";}
 function nc(v){return v>=0?"green":"red";}
@@ -175,6 +175,7 @@ function doLogin(){
   if(!id)return;
   loadHousehold(id).then(function(){
     ACTIVE_TAB="overview";BILL_FUEL=HH.elec?"elec":"gas";CONS_FUEL=BILL_FUEL;ROLLUP_OPEN=false;
+    BILL_VIEW="bills";CASH_SCOPE=(HH.elec&&HH.gas)?"combined":BILL_FUEL;
     renderHousehold();
   }).catch(function(e){showLogin(e.message);});
 }
@@ -187,6 +188,7 @@ function initFromUrl(){
   loadHousehold(acc).then(function(){
     ACTIVE_TAB=(tab&&TABS.some(function(t){return t[0]===tab;}))?tab:"accounts";
     BILL_FUEL=HH.elec?"elec":"gas";CONS_FUEL=BILL_FUEL;ROLLUP_OPEN=false;
+    BILL_VIEW="bills";CASH_SCOPE=(HH.elec&&HH.gas)?"combined":BILL_FUEL;
     DEEPLINK_YEAR=yr?parseInt(yr,10):null;
     renderHousehold();
     if(DEEPLINK_YEAR){
@@ -207,6 +209,26 @@ function combinedTotals(){
     net_after_cts: (e?e.lifetime_net_after_cts_gbp:0)+(g?g.lifetime_net_after_cts_gbp:0),
     clv: (e?e.clv_gbp:0)+(g?g.clv_gbp:0)
   };
+}
+function combinedLedgerTotals(){
+  var e=HH.elec&&HH.elec.ledger,g=HH.gas&&HH.gas.ledger;
+  return {
+    balance: (e?e.current_balance_gbp:0)+(g?g.current_balance_gbp:0),
+    billed: (e?e.total_billed_gbp:0)+(g?g.total_billed_gbp:0),
+    collected: (e?e.total_collected_gbp:0)+(g?g.total_collected_gbp:0),
+    written_off: (e?e.total_written_off_gross_gbp:0)+(g?g.total_written_off_gross_gbp:0),
+    recovered: (e?e.total_recovered_gbp:0)+(g?g.total_recovered_gbp:0)
+  };
+}
+function reconciliationLine(){
+  var t=combinedLedgerTotals();
+  var lhs=t.collected+t.balance+t.written_off;
+  var ok=Math.abs(lhs-t.billed)<0.02;
+  return "<div class=\"usage-hint\">Reconciliation (household, both fuels, all-in cash basis): Collected "+gbp(t.collected)+
+    " + Outstanding "+gbp(t.balance)+" + Written off "+gbp(t.written_off)+" = "+gbp(lhs)+" "+(ok?"\u2713":"\u2717")+
+    " vs Billed "+gbp(t.billed)+
+    (t.recovered?" (of which "+gbp(t.recovered)+" was later recovered via DCA/debt sale after write-off -- informational, not double-counted in Collected).":".")+
+    " Lifetime Revenue shown on the Accounts tab is a different, ex-VAT commodity-only accounting figure -- it excludes standing charge, network/levy pass-through and VAT, so it will not equal the all-in cash totals here.</div>";
 }
 function toggleRollup(){ROLLUP_OPEN=!ROLLUP_OPEN;renderTab();}
 function rollupHtml(){
@@ -230,7 +252,7 @@ function fuelBadges(){
   var segBadge=seg==="I&C"?"<span class=\"badge bi\">I&amp;C</span>":"<span class=\"badge br\">Residential</span>";
   return segBadge+" "+b;
 }
-var TABS=[["overview","Overview"],["accounts","Accounts"],["consumption","Consumption"],["billing","Billing"],["timeline","Timeline"],["risk","Risk"]];
+var TABS=[["overview","Overview"],["accounts","Accounts"],["consumption","Consumption"],["billing","Billing & Payments"],["timeline","Timeline"],["risk","Risk"]];
 function renderHousehold(){
   var tabsHtml=TABS.map(function(t){
     return "<button class=\"tab-btn"+(ACTIVE_TAB===t[0]?" active":"")+"\" onclick=\"switchTab('"+t[0]+"')\">"+t[1]+"</button>";
@@ -253,7 +275,11 @@ function renderTab(){
   if(ACTIVE_TAB==="overview")body.innerHTML=renderOverviewTab();
   else if(ACTIVE_TAB==="accounts")body.innerHTML=renderAccountsTab();
   else if(ACTIVE_TAB==="consumption"){body.innerHTML=renderConsumptionTab();renderUsage(CONS_FUEL==="elec"?HH.elec:HH.gas);}
-  else if(ACTIVE_TAB==="billing"){body.innerHTML=renderBillingTab();renderBills(BILL_FUEL==="elec"?HH.elec:HH.gas);}
+  else if(ACTIVE_TAB==="billing"){
+    body.innerHTML=renderBillingTab();
+    if(BILL_VIEW==="bills")renderBills(BILL_FUEL==="elec"?HH.elec:HH.gas);
+    else if(BILL_VIEW==="cashflow")renderCashflow();
+  }
   else if(ACTIVE_TAB==="timeline")body.innerHTML=renderTimelineTab();
   else if(ACTIVE_TAB==="risk")body.innerHTML=renderRiskTab();
 }
@@ -323,18 +349,33 @@ function renderConsumptionTab(){
 }
 function setConsFuel(f){CONS_FUEL=f;renderTab();}
 
+var BILL_VIEWS=[["bills","Bills"],["statement","Statement"],["cashflow","Cashflow"]];
 function renderBillingTab(){
   var html="";
-  if(HH.elec&&HH.gas){
-    html+="<div class=\"fuel-select-row\">"+
-      "<button class=\"fuel-btn fbe"+(BILL_FUEL==="elec"?" factive":"")+"\" onclick=\"setBillFuel('elec')\">Electricity</button>"+
-      "<button class=\"fuel-btn fbg"+(BILL_FUEL==="gas"?" factive":"")+"\" onclick=\"setBillFuel('gas')\">Gas</button>"+
-      "</div>";
+  var viewNav="<div class=\"tab-nav\" style=\"margin-bottom:14px\">"+BILL_VIEWS.map(function(v){
+    return "<button class=\"tab-btn"+(BILL_VIEW===v[0]?" active":"")+"\" onclick=\"setBillView('"+v[0]+"')\">"+v[1]+"</button>";
+  }).join("")+"</div>";
+  html+=viewNav;
+  if(BILL_VIEW==="bills"||BILL_VIEW==="statement"){
+    if(HH.elec&&HH.gas){
+      html+="<div class=\"fuel-select-row\">"+
+        "<button class=\"fuel-btn fbe"+(BILL_FUEL==="elec"?" factive":"")+"\" onclick=\"setBillFuel('elec')\">Electricity</button>"+
+        "<button class=\"fuel-btn fbg"+(BILL_FUEL==="gas"?" factive":"")+"\" onclick=\"setBillFuel('gas')\">Gas</button>"+
+        "</div>";
+    }
   }
-  html+="<div class=\"sec-title\">Billing History</div><div id=\"bills-section\"></div>";
+  if(BILL_VIEW==="bills"){
+    html+="<div class=\"sec-title\">Billing History</div><div id=\"bills-section\"></div>";
+  }else if(BILL_VIEW==="statement"){
+    html+=renderStatementView(BILL_FUEL==="elec"?HH.elec:HH.gas);
+  }else if(BILL_VIEW==="cashflow"){
+    html+=renderCashflowShell();
+  }
   return html;
 }
 function setBillFuel(f){BILL_FUEL=f;BILL_YEAR=null;renderTab();}
+function setBillView(v){BILL_VIEW=v;renderTab();}
+function setCashScope(s){CASH_SCOPE=s;renderTab();}
 
 var _EVENT_ICON_CLASS={renewed:"",churned:"churned",life_event:"life"};
 function renderTimelineTab(){
@@ -401,6 +442,8 @@ function renderRiskTab(){
   var pa=d.pricing_action||{},paFlag=pa.flag||"OK";
   var paColor=paFlag==="URGENT_REPRICE"?"red":paFlag==="REPRICE"?"amber":paFlag==="MONITOR"?"blue":"green";
   var paSub=pa.recommended_uplift_pct?"Uplift: "+(pa.recommended_uplift_pct*100).toFixed(1)+"%":"";
+  var lt=combinedLedgerTotals();
+  var balColor=lt.balance>0.005?"red":"green";
   return "<div class=\"sec-title\">Retention &amp; Risk"+(d===HH.elec?" (electricity account)":" (gas account)")+"</div>"+
     "<div class=\"kpi-grid\">"+
     "<div class=\"kpi\"><div class=\"kpi-label\">Churn Probability</div>"+
@@ -411,9 +454,133 @@ function renderRiskTab(){
     "<div class=\"kpi\"><div class=\"kpi-label\">Pricing Action</div>"+
     "<div class=\"kpi-value\" style=\"font-size:14px\"><span class=\""+paColor+"\">"+esc(paFlag)+"</span></div>"+
     (paSub?"<div class=\"kpi-sub\">"+paSub+"</div>":"")+
+    "</div>"+
+    "<div class=\"kpi\"><div class=\"kpi-label\">Outstanding Balance</div>"+
+    "<div class=\"kpi-value "+balColor+"\">"+gbp(lt.balance)+"</div>"+
+    (lt.written_off>0.005?"<div class=\"kpi-sub\">"+gbp(lt.written_off)+" written off lifetime"+(lt.recovered>0.005?", "+gbp(lt.recovered)+" recovered":"")+"</div>":"")+
     "</div></div>"+
-    "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel.</div>";
+    "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel. Outstanding Balance is the household combined (both fuels) live ledger position -- see Billing &amp; Payments &rarr; Statement for the per-account detail.</div>";
 }
+var _LEDGER_LABEL={
+  invoice_raised:"Invoice raised",payment_received:"Payment received",
+  payment_failed:"Direct debit payment failed",invoice_disputed:"Invoice disputed",
+  notice:"Arrears notice",arrears_resolved:"Arrears cleared via payment plan",
+  write_off:"Balance written off",recovery_note:"Post-write-off recovery (informational)"
+};
+var _METHOD_LABEL={
+  direct_debit:"Direct Debit",bacs:"BACS transfer (receipt of bill)",
+  chaps:"CHAPS transfer (receipt of bill)",payment_plan:"Payment plan instalment",
+  dca:"DCA recovery",debt_sale:"Debt sale proceeds"
+};
+function renderStatementView(d){
+  if(!d)return "<div class=\"no-inv\">No account.</div>";
+  var ledger=d.ledger;
+  if(!ledger||!ledger.entries||!ledger.entries.length)return "<div class=\"no-inv\">No ledger entries for this account yet.</div>";
+  var rows=ledger.entries.slice().reverse().map(function(e){
+    var label=_LEDGER_LABEL[e.type]||e.type;
+    var methodTag=e.method?" <span class=\"muted\">("+(_METHOD_LABEL[e.method]||e.method)+")</span>":"";
+    var amtCell;
+    if(e.amount_gbp)amtCell="<span class=\""+(e.amount_gbp>0?"red":"green")+"\">"+gbp(e.amount_gbp)+"</span>";
+    else if(e.info_amount_gbp)amtCell="<span class=\"muted\">"+gbp(e.info_amount_gbp)+" (info)</span>";
+    else amtCell="<span class=\"muted\">&mdash;</span>";
+    return "<div class=\"row\"><span class=\"rl\">"+e.date+" &mdash; "+label+methodTag+"</span>"+
+      "<span>"+amtCell+"</span>"+
+      "<span class=\"muted\" style=\"min-width:90px;text-align:right\">"+gbp(e.running_balance_gbp)+"</span></div>";
+  }).join("");
+  return "<div class=\"sec-title\">Statement &mdash; "+esc(d.account_id)+"</div>"+
+    "<div class=\"bill-sum\">"+
+    "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Current Balance</div><div class=\"bill-kv "+(ledger.current_balance_gbp>0.005?"red":"green")+"\">"+gbp(ledger.current_balance_gbp)+"</div></div>"+
+    "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Total Billed</div><div class=\"bill-kv\">"+gbp(ledger.total_billed_gbp)+"</div></div>"+
+    "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Collected</div><div class=\"bill-kv green\">"+gbp(ledger.total_collected_gbp)+"</div></div>"+
+    (ledger.total_written_off_gross_gbp>0.005?"<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Written Off</div><div class=\"bill-kv red\">"+gbp(ledger.total_written_off_gross_gbp)+"</div></div>":"")+
+    "</div>"+
+    "<div class=\"card\">"+rows+"</div>"+
+    "<div class=\"usage-hint\">Chronological ledger: invoices, payments (with real payment date and method), arrears notices, write-offs, and post-write-off DCA/debt-sale recovery. Running balance shown on the right.</div>"+
+    reconciliationLine();
+}
+function mergeMonthly(out,m){
+  Object.keys(m).forEach(function(k){
+    out[k]=out[k]||{billed:0,collected:0};
+    out[k].billed+=m[k].billed;out[k].collected+=m[k].collected;
+  });
+}
+function monthlyLedgerSeries(scope){
+  function monthly(d){
+    var m={};
+    ((d&&d.ledger&&d.ledger.entries)||[]).forEach(function(e){
+      var mo=e.date.slice(0,7);
+      m[mo]=m[mo]||{billed:0,collected:0};
+      if(e.type==="invoice_raised")m[mo].billed+=e.amount_gbp;
+      else if(e.type==="payment_received"||e.type==="arrears_resolved")m[mo].collected+=-e.amount_gbp;
+    });
+    return m;
+  }
+  var out={};
+  if(scope!=="gas"&&HH.elec)mergeMonthly(out,monthly(HH.elec));
+  if(scope!=="elec"&&HH.gas)mergeMonthly(out,monthly(HH.gas));
+  return out;
+}
+function scopeCtsAndCollected(scope){
+  var e=HH.elec,g=HH.gas,cts=0,collected=0,billed=0;
+  if(scope!=="gas"&&e){cts+=e.cost_to_serve_gbp||0;collected+=(e.ledger?e.ledger.total_collected_gbp:0);billed+=(e.ledger?e.ledger.total_billed_gbp:0);}
+  if(scope!=="elec"&&g){cts+=g.cost_to_serve_gbp||0;collected+=(g.ledger?g.ledger.total_collected_gbp:0);billed+=(g.ledger?g.ledger.total_billed_gbp:0);}
+  return {cts:cts,collected:collected,billed:billed,net:collected-cts};
+}
+function renderCashflowShell(){
+  var html="<div class=\"sec-title\">Cashflow &mdash; the CLV Actuals Base</div>";
+  var opts=[["elec","Electricity"],["gas","Gas"],["combined","Combined"]].filter(function(o){
+    if(o[0]==="elec")return !!HH.elec;
+    if(o[0]==="gas")return !!HH.gas;
+    return HH.elec&&HH.gas;
+  });
+  if(opts.length>1){
+    html+="<div class=\"fuel-select-row\">"+opts.map(function(o){
+      return "<button class=\"fuel-btn fbe"+(CASH_SCOPE===o[0]?" factive":"")+"\" onclick=\"setCashScope('"+o[0]+"')\">"+o[1]+"</button>";
+    }).join("")+"</div>";
+  }
+  html+="<div class=\"chart-wrap\"><canvas id=\"cashflow-chart\" height=\"220\"></canvas></div>"+
+    "<div id=\"cashflow-kpis\"></div>"+
+    "<div class=\"usage-hint\">Monthly billed vs collected, and cumulative collected over the household's lifetime. Cost to Serve is only available as a lifetime total (no monthly series exists in the sim), so the net cash contribution figure below is a lifetime figure, not a monthly one.</div>"+
+    reconciliationLine();
+  return html;
+}
+var cashflowChart=null;
+function renderCashflow(){
+  var series=monthlyLedgerSeries(CASH_SCOPE);
+  var months=Object.keys(series).sort();
+  var billedArr=months.map(function(m){return round2(series[m].billed);});
+  var collectedArr=months.map(function(m){return round2(series[m].collected);});
+  var cum=0,cumArr=collectedArr.map(function(v){cum+=v;return round2(cum);});
+  var canvas=document.getElementById("cashflow-chart");
+  if(canvas){
+    if(cashflowChart)cashflowChart.destroy();
+    cashflowChart=new Chart(canvas.getContext("2d"),{
+      data:{labels:months,datasets:[
+        {type:"bar",label:"Billed",data:billedArr,backgroundColor:"rgba(208,59,59,0.30)"},
+        {type:"bar",label:"Collected",data:collectedArr,backgroundColor:"rgba(27,175,122,0.6)"},
+        {type:"line",label:"Cumulative Collected",data:cumArr,borderColor:"#2a78d6",backgroundColor:"transparent",borderWidth:2,pointRadius:0,yAxisID:"y2",tension:0.2}
+      ]},
+      options:{responsive:true,
+        scales:{
+          x:{ticks:{color:"#52514e",maxTicksLimit:12,maxRotation:0}},
+          y:{ticks:{color:"#52514e",callback:function(v){return gbp(v);}}},
+          y2:{position:"right",grid:{drawOnChartArea:false},ticks:{color:"#2a78d6",callback:function(v){return gbp(v);}}}
+        },
+        plugins:{legend:{labels:{color:"#52514e",boxWidth:12,font:{size:11}}}}
+      }
+    });
+  }
+  var t=scopeCtsAndCollected(CASH_SCOPE);
+  var kpis=document.getElementById("cashflow-kpis");
+  if(kpis){
+    kpis.innerHTML="<div class=\"bill-sum\">"+
+      "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Lifetime Collected</div><div class=\"bill-kv green\">"+gbp(t.collected)+"</div></div>"+
+      "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Cost to Serve (lifetime)</div><div class=\"bill-kv muted\">"+gbp(t.cts)+"</div></div>"+
+      "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Net Cash Contribution (H2-realized value)</div><div class=\"bill-kv "+nc(t.net)+"\">"+gbp(t.net)+"</div></div>"+
+      "</div>";
+  }
+}
+function round2(v){return Math.round(v*100)/100;}
 function billWaterfall(cur,all){
   var idx=all.indexOf(cur);
   var prev=idx>0?all[idx-1]:null;
@@ -440,7 +607,8 @@ function waterfallChip(label,d){
 function billEquationHtml(i){
   var parts=[];
   if(i.unit_rate_p_per_kwh!=null){
-    parts.push("<div class=\"row\"><span class=\"rl\">Usage</span><span>"+i.consumption_kwh.toFixed(1)+" kWh &times; "+i.unit_rate_p_per_kwh.toFixed(2)+"p/kWh = "+gbp(i.commodity_amount_gbp)+"</span></div>");
+    var unitTag=i.commodity==="gas"?"p/kWh (gas)":"p/kWh (elec)";
+    parts.push("<div class=\"row\"><span class=\"rl\">Usage</span><span>"+i.consumption_kwh.toFixed(1)+" kWh &times; "+i.unit_rate_p_per_kwh.toFixed(2)+unitTag+" = "+gbp(i.commodity_amount_gbp)+"</span></div>");
   }else{
     parts.push("<div class=\"row\"><span class=\"rl\">Usage charge</span><span>"+gbp(i.commodity_amount_gbp)+"</span></div>");
   }
@@ -467,7 +635,13 @@ function closedAccountNotice(d, invoices){
   for(var k=0;k<tl.length;k++){if(tl[k].type==="churned")churned=tl[k];}
   if(!churned||!invoices.length)return "";
   var last=invoices[invoices.length-1];
-  return "<div class=\"closed-notice\">Account closed "+churned.date+" \u2014 final bill "+last.id+".</div>";
+  var settleTxt="";
+  if(d.ledger){
+    if(d.ledger.current_balance_gbp>0.005)settleTxt=" Final balance: "+gbp(d.ledger.current_balance_gbp)+" outstanding.";
+    else if(d.ledger.total_written_off_gross_gbp>0.005)settleTxt=" Account settled to zero (net of "+gbp(d.ledger.total_written_off_gross_gbp)+" written off).";
+    else settleTxt=" Account settled to zero.";
+  }
+  return "<div class=\"closed-notice\">Account closed "+churned.date+" \u2014 final bill "+last.id+"."+settleTxt+"</div>";
 }
 function renderBills(d){
   var section=document.getElementById("bills-section");

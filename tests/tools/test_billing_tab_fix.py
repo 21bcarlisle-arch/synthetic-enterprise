@@ -39,9 +39,18 @@ def _script_body():
     return re.search(r"<script>(.*)</script>", html, re.S).group(1)
 
 
+def _gbp(n):
+    if n is None:
+        return "-"
+    sign = "-" if n < 0 else ""
+    return sign + "£" + "{:,.0f}".format(abs(n))
+
+
 def _closed_account_notice(d, invoices):
     """Python port of closedAccountNotice() in site/customers/index.html --
-    kept line-for-line equivalent so this test breaks if the two diverge."""
+    kept line-for-line equivalent so this test breaks if the two diverge.
+    Phase RP (BILLING_AND_PAYMENTS_LEDGER.md) extended it with the account's
+    real ledger settlement state (settles to zero, or net of a write-off)."""
     churned = None
     for e in d.get("timeline", []):
         if e.get("type") == "churned":
@@ -49,7 +58,16 @@ def _closed_account_notice(d, invoices):
     if not churned or not invoices:
         return ""
     last = invoices[-1]
-    return "Account closed " + churned["date"] + " — final bill " + last["id"] + "."
+    settle = ""
+    ledger = d.get("ledger")
+    if ledger:
+        if ledger["current_balance_gbp"] > 0.005:
+            settle = " Final balance: " + _gbp(ledger["current_balance_gbp"]) + " outstanding."
+        elif ledger["total_written_off_gross_gbp"] > 0.005:
+            settle = " Account settled to zero (net of " + _gbp(ledger["total_written_off_gross_gbp"]) + " written off)."
+        else:
+            settle = " Account settled to zero."
+    return "Account closed " + churned["date"] + " — final bill " + last["id"] + "." + settle
 
 
 def test_expanded_bill_id_is_declared_alongside_other_render_state():
@@ -82,7 +100,9 @@ def test_closed_account_notice_real_churned_customer_c1():
     d = json.loads((CUSTOMERS_DIR / "C1.json").read_text())
     notice = _closed_account_notice(d, d["invoices"])
     assert notice.startswith("Account closed 2020-12-30")
-    assert notice.endswith(d["invoices"][-1]["id"] + ".")
+    assert (d["invoices"][-1]["id"] + ".") in notice
+    # C1 has a real historical write-off (Phase RP ledger) -- settles to zero, not fabricated as fully collected
+    assert "settled to zero" in notice
 
 
 def test_closed_account_notice_empty_for_still_active_customer():
@@ -108,6 +128,10 @@ def test_closed_account_notice_across_full_live_book_no_exceptions():
         if has_churn_event and invoices:
             assert notice != "", f.name + " churned but got no closed-account notice"
             assert invoices[-1]["id"] in notice
+            if d.get("ledger"):
+                assert ("settled to zero" in notice) or ("outstanding" in notice), (
+                    f.name + " churned account notice missing ledger settlement state"
+                )
         else:
             assert notice == "", f.name + " not churned but got a spurious notice"
         checked += 1
