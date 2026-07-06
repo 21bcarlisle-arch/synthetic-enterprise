@@ -1,0 +1,11 @@
+[SUPPLIER] BILLING -> BILLING & PAYMENTS: the account ledger, the bill equation, and per-customer cashflow. Rich's directive after live review (billing works but is basic). This is the actuals base of CLV and action optimisation -- P1a scope, continue on the 360.
+
+1. BILL EQUATION INLINE (data already exists -- render it): every bill row expands inline (v4 law, no popups) to: consumption_kwh x unit_rate_p_per_kwh = commodity + standing_charge + non_commodity (named: network/levies) + VAT = total. The invoices JSON already carries every field -- this is pure renderer work. Per-fuel presentation (p/kWh elec, gas equivalents).
+
+2. THE ACCOUNT, NOT JUST THE BILLS: rename tab BILLING & PAYMENTS; add the STATEMENT view -- a chronological ledger per account: invoice raised / payment received (with actual payment date -- timing is modelled) / adjustment / write-off, with RUNNING BALANCE. Arrears become visible as balance age, late payments as date gaps. Source: the company billing ledger (billing_ledger.json / ledger events); extend the per-customer JSON generator to include payment events + ledger entries per fuel account.
+
+3. CASHFLOW PER CUSTOMER (the CLV actuals base): a cashflow panel per account and combined household: monthly BILLED vs COLLECTED (the gap = arrears forming), cumulative net cash contribution curve over the customer lifetime (collections minus cost-to-serve when available). Toggles: elec / gas / combined. This curve IS H2-realized value -- state it as such, and RECONCILE: cumulative collected must tie to lifetime_revenue minus outstanding balance shown on the same page (page-level reconciliation law); the Risk tab's arrears state must equal the statement's aged balance.
+
+4. SETTLEMENT NOTE (in-world): where payment method matters (DD vs receipt-of-bill), show it on the statement -- DD failures and retries are modelled events and belong on the ledger view.
+
+Evidence: C1 (churned -- final statement settles to zero or write-off), C4 (active dual fuel), one arrears-history customer showing billed-vs-collected divergence. Executed-JS harness test per the billing-tab regression pattern. Acceptance: Rich's eyes -- he should be able to read any customer's cash story like a bank statement.
