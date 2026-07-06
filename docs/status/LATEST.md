@@ -1,5 +1,5 @@
 ## Phase RE COMPLETE -- shadow mirror v4 light theme (WEBSITE_AS_SHOWCASE.md Part 0 CLOSED) + consumption data layer
-Last updated: 2026-07-06T04:38:22Z
+Last updated: 2026-07-06T04:49:57Z
 
 **Status:** COMPLETE. 15,739 tests collected, fast suite (14,477) clean. Epistemic: PASS.
 
@@ -21,7 +21,7 @@ correlation panels, Prices/Weather/BM rebuilds, freshness stamps, phases.json ge
 docs/claude/phase-history.md and docs/PROJECT_OVERVIEW.md Section 4.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (504s / 8 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
