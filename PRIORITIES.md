@@ -1,5 +1,6 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-06 (P-5 freshness stamp, docs/staging/PRIORITISATION_RULES.md)
+# PENDING FOR NEXT WEEKLY RE-RANK (docs/staging/done/STRATEGIC_HORIZON_DECISIONS.md, [ADVISOR-STAGED] fba4ae94, 2026-07-06): direction only, NOT a queue-jump -- P2 completes first as already agreed. Post-P2 ordering to adopt: S1 proof-first (shadow-live track record, public scorecard from day one, misses included), S2 depth-before-scale (customer physics/psychology -- feedback/reputation, nudge physics, life-event dynamics -- before population scale-up), S3 then scale (295->thousands, perf engineering, market-flows choreography), S4 products (casebook first, dataset second), S5 go-live routes memo (analysis only, advisor-owned). Also records Rich's latency-and-fidelity tiered-access commercial model hypothesis for the casebook/Platform/Method design once S4 opens.
 # Last refreshed: 2026-07-06 (PRIORITY RESET, docs/staging/PRIORITY_RESET_PUBLIC_SITE.md,
 # [ADVISOR-STAGED] 5fa9a0cf -- Tier 2, pre-approved). Rich's direct verdict: the public site
 # (poesys.net's four top-level tabs) is still structurally pre-overhaul despite backend depth
