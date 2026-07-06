@@ -3,20 +3,26 @@
 Phase 4a-1 (customer value layer). `simulation/portfolio_pnl.py` reports
 `margin_gbp` as revenue minus wholesale cost only — it does not capture the
 operational cost of actually serving an account: billing and customer
-service systems, smart meter operation, and bad debt. This module adds that
-layer on top of settlement records, producing a "net of cost-to-serve"
-margin per customer and per portfolio.
+service systems and smart meter operation. This module adds that layer on
+top of settlement records, producing a "net of cost-to-serve" margin per
+customer and per portfolio.
 
-Cost-to-serve has two components, both applied per settlement period:
+Cost-to-serve is fixed overhead only — billing/IT/customer-service plus
+smart-meter operation, an annual £ figure per account divided evenly across
+settlement periods. SME accounts cost more to serve in absolute terms
+(dedicated account management, more complex billing) but far less per kWh
+given their much larger consumption.
 
-  1. Fixed overhead — billing/IT/customer-service plus smart-meter operation,
-     an annual £ figure per account divided evenly across settlement periods.
-     SME accounts cost more to serve in absolute terms (dedicated account
-     management, more complex billing) but far less per kWh given their much
-     larger consumption.
-  2. Bad debt — a flat percentage of revenue, reflecting expected non-payment
-     write-offs. Applied per period rather than as a year-end true-up, since
-     this model has no concept of arrears ageing.
+Bad debt is deliberately NOT a cost-to-serve component (removed here in the
+CTS ledger-reconciliation fix, docs/staging/drafts/NEXT_PHASE.md option B).
+Bad debt is owned end-to-end by the real, emergent arrears model
+(`simulation/arrears_engine.py`, ledger account 6001 "Bad Debt Expense") since
+Phase QD found the flat `BAD_DEBT_RATE` formula below overstated true bad debt
+~30x. `BAD_DEBT_RATE`/`get_bad_debt_rate()` remain in this module only because
+`simulation/run_phase2b.py` still uses them as a real-time placeholder,
+overwritten once bills exist and `apply_emergent_bad_debt()` runs — they are
+no longer part of the cost-to-serve figure itself, to avoid double-counting
+the same economic event as two different bad-debt lines on one P&L.
 
 Each commodity contract (electricity or gas) is billed as its own account,
 so a dual-fuel household (e.g. C1 + C1g) carries fixed overhead twice — this
@@ -78,10 +84,12 @@ def cost_to_serve_for_period(segment: str, revenue_gbp: float) -> float:
     """Return the cost-to-serve (£) for one settlement period for one account.
 
     segment: "resi" or "SME" — must be a key in FIXED_OVERHEAD_GBP_PER_YEAR.
-    revenue_gbp: this period's billed revenue for the account, used as the
-        base for the bad debt provision.
+    revenue_gbp: this period's billed revenue for the account. Currently
+        unused (cost-to-serve is fixed overhead only, see module docstring)
+        but kept in the signature for call-site stability and in case a
+        future revenue-scaled component (e.g. transaction fees) is added.
     """
-    return FIXED_OVERHEAD_GBP_PER_PERIOD[segment] + BAD_DEBT_RATE[segment] * revenue_gbp
+    return FIXED_OVERHEAD_GBP_PER_PERIOD[segment]
 
 
 def build_cost_to_serve(settlement_records: list[dict], customers: list[dict]) -> dict:
@@ -136,3 +144,35 @@ def build_cost_to_serve(settlement_records: list[dict], customers: list[dict]) -
         portfolio["net_margin_gbp"] += margin - cost
 
     return {"portfolio": portfolio, "by_customer": by_customer}
+
+
+def build_cost_to_serve_ledger_events(
+    settlement_records: list[dict], customers: list[dict],
+) -> list[dict]:
+    """Aggregate cost-to-serve into monthly totals for the double-entry ledger.
+
+    CTS reconciliation fix (docs/staging/drafts/NEXT_PHASE.md option B):
+    `company/finance/double_entry.py` account 6100 ("Cost to Serve") existed
+    but nothing ever emitted a matching ledger event, so it always netted to
+    £0 against the non-zero figure this module reports for customer-value/
+    pricing decisions. Returns one entry per calendar month present in
+    `settlement_records`, keyed the same way `saas.ledger.make_fixed_cost_event`
+    keys `fixed_cost_event` (month bucket, not per-customer), so downstream
+    monthly/annual management accounts get a real, non-zero 6100 balance
+    without a per-settlement-period explosion of ledger entries.
+
+    Returns: [{"month": "YYYY-MM", "amount_gbp": float}, ...] sorted by month.
+    """
+    segment_by_customer = {c["customer_id"]: c["segment"] for c in customers}
+    by_month: dict[str, float] = {}
+
+    for record in settlement_records:
+        month = record["settlement_date"][:7]
+        segment = segment_by_customer[record["customer_id"]]
+        cost = cost_to_serve_for_period(segment, record["revenue_gbp"])
+        by_month[month] = by_month.get(month, 0.0) + cost
+
+    return [
+        {"month": month, "amount_gbp": by_month[month]}
+        for month in sorted(by_month)
+    ]

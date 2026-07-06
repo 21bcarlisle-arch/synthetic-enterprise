@@ -111,6 +111,42 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RS -- CTS ledger reconciliation CLOSED (PRIORITIES.md P2 item 1, option B) (2026-07-06, Tier 2 -- named in PRIORITIES.md P2 after Rich's P1a-c visual confirmation, graduated from the Tier 3 proposal in docs/staging/drafts/NEXT_PHASE.md)
+
+Recovered a second interrupted prior session's uncommitted work: saas/cost_to_serve.py,
+saas/ledger.py, company/finance/double_entry.py, saas/reporting/annual_report.py, and their tests
+already carried a complete, correct implementation of NEXT_PHASE.md's option B -- only
+simulation/run_phase4c_on_phase2b.py's wiring (build_cost_to_serve_ledger_events ->
+make_cost_to_serve_event -> merged into ledger_events) was also already done, so no missing link
+remained; the interrupted session had finished the whole fix, just never committed it.
+
+The bug: company/finance/double_entry.py's account 6100 ("Cost to Serve") existed but no event
+type ever posted to it, so management_accounts.annual[year].cost_to_serve_gbp read £0 every year
+against saas/cost_to_serve.py's real £91,780.10 portfolio figure used elsewhere for CLV/enterprise
+value/pricing. Root cause of why this wasn't a trivial wiring fix: that £91,780 figure still carried
+the flat BAD_DEBT_RATE component Phase QD's real emergent arrears model (simulation/arrears_engine.py,
+account 6001) had already superseded elsewhere on the same P&L, ~30x overstated. Option B: drop the
+bad-debt component from cost_to_serve_for_period (now pure fixed overhead, revenue-independent) THEN
+wire the corrected, smaller figure into the ledger via a new cost_to_serve_event/make_cost_to_serve_event
+(account 6100, distinct from fixed_cost_event's 6200).
+
+This session's own work: ran the full test suite to find what NEXT_PHASE.md's option B write-up
+predicted would need catching -- one stale test, tests/saas/test_bad_debt.py's
+test_cost_to_serve_increases_with_revenue and test_cost_to_serve_formula, still asserted the old
+revenue-scaled behaviour (a near-duplicate of assertions already correctly updated in
+tests/saas/test_cost_to_serve.py, just missed in this file). Rewrote both to assert the new
+revenue-independent design. Verified end-to-end against a real full sim run already produced by the
+background sim_runner on this working tree (docs/reports/run_output_1d6d38d3_20260706T220834Z.json):
+management_accounts.annual[year].cost_to_serve_gbp is non-zero for every year 2016-2025 (sums to
+£19,259.69 across the run, down from the discredited £91,780.10 once bad debt is removed), while
+total_net_gbp (the primary headline figure quoted in every commit/LATEST.md/report) is unaffected --
+the CTS line only feeds the ledger's supplementary operating_net_margin_gbp cross-check, confirming
+NEXT_PHASE.md's worry about moving the reported headline net margin did not materialise in practice.
+306 targeted tests + 15,765 fast suite + the ledger-touching slow integration suites
+(test_run_phase2b.py, test_run_phase2b_event_log.py, test_run_phase4c_on_phase2b.py) all pass,
+epistemic PASS. Closes PRIORITIES.md P2 item 1. Next: P2 item 2, frozen-policy baseline
+(docs/staging/drafts/FROZEN_POLICY_BASELINE_DESIGN.md).
+
 ### Phase RR -- WEBSITE_AS_SHOWCASE.md tab 4 CLOSED (case-study recommender), housekeeping archive (2026-07-06, Tier 2 -- PRIORITIES.md PRIORITY 1 design wave, structure pre-approved by the directive itself)
 
 Housekeeping first: docs/staging/CUSTOMER_360_REDESIGN.md, SUPPLIER_TAB_OVERHAUL.md,
@@ -6349,8 +6385,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,856 tests collected; 20 new this phase (tests/tools/test_generate_method_data.py +
-  tests/tools/test_nav_story_platform_method_rq.py)
+- 15,889 tests collected (full suite; 15,765 in the fast/SIM_FAST_MODE gate)
+- Phase RS (2026-07-06): CTS ledger reconciliation CLOSED (PRIORITIES.md P2 item 1) -- account 6100
+  ("Cost to Serve") now receives a real monthly posting instead of always netting to £0;
+  saas/cost_to_serve.py's bad-debt component (superseded ~30x-overstated by Phase QD's emergent
+  arrears model) removed so cost-to-serve is pure fixed overhead. See Section 4 Phase RS.
 - Phase RQ (2026-07-06): NAV_STORY_PLATFORM_METHOD.md CLOSED IN FULL -- new Method section
   (site/method/index.html, tools/generate_method_data.py): operating model (roles/tiers, static
   fact), the R1-R6 permanent rules each paired with the real incident that forged it (quoted from

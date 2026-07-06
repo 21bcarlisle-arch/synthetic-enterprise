@@ -51,7 +51,11 @@ def _churn_model_metric(d):
     recall, precision, f1 = perf.get("recall"), perf.get("precision"), perf.get("f1_score")
     if recall is None:
         return None
-    return "recall {:.0%}, precision {:.0%}, F1 {:.0%} (live run)".format(recall, precision, f1 or 0.0)
+    text = "recall {:.0%}, precision {:.0%}, F1 {:.0%} (live run)".format(recall, precision, f1 or 0.0)
+    episode_recall = (perf.get("episode_analysis") or {}).get("episode_recall")
+    if episode_recall is not None:
+        text += ", episode-recall {:.0%} (credits catches before departure)".format(episode_recall)
+    return text
 
 
 def _payment_behaviour_metric(d):

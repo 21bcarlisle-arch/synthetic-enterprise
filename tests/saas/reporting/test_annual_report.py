@@ -365,6 +365,26 @@ def test_ledger_summary_section_shows_not_available_when_no_meta():
     assert NOT_AVAILABLE in section
 
 
+def test_ledger_summary_section_shows_cost_to_serve_row():
+    """CTS reconciliation fix (NEXT_PHASE.md option B): the ledger waterfall
+    must show a distinct Cost to serve row, separate from Fixed overhead."""
+    meta = {"event_count": 5, "by_type": {"billing_event": 1}}
+    pnl = {
+        "revenue_gbp": 10000.0,
+        "wholesale_cost_gbp": 7000.0,
+        "gross_margin_gbp": 3000.0,
+        "capital_cost_gbp": 500.0,
+        "net_margin_gbp": 2500.0,
+        "fixed_cost_gbp": 100.0,
+        "cost_to_serve_gbp": 250.0,
+        "operating_net_margin_gbp": 2150.0,
+    }
+    data = {"ledger_meta": meta, "ledger_pnl": pnl}
+    section = _ledger_summary_section(data)
+    assert "Cost to serve" in section
+    assert "£250.00" in section
+
+
 def test_ledger_summary_section_phase9a_shows_vat_breakdown():
     """Phase 9a: total_billed, VAT remittance, and non-commodity lines appear."""
     meta = {"event_count": 5, "by_type": {"billing_event": 1}}

@@ -2522,10 +2522,16 @@ def _ledger_summary_section(data: dict) -> str:
 
     lines += [""]
 
-    if "acquisition_spend_gbp" in pnl or "fixed_cost_gbp" in pnl:
+    if "acquisition_spend_gbp" in pnl or "fixed_cost_gbp" in pnl or "cost_to_serve_gbp" in pnl:
         lines += [
             f"| Acquisition spend | ({_fmt_gbp(pnl.get('acquisition_spend_gbp', 0.0))}) |",
             f"| Fixed overhead | ({_fmt_gbp(pnl.get('fixed_cost_gbp', 0.0))}) |",
+        ]
+        if "cost_to_serve_gbp" in pnl:
+            # CTS reconciliation fix (NEXT_PHASE.md option B): account 6100,
+            # distinct from "Fixed overhead" (6200, company-wide) above.
+            lines.append(f"| Cost to serve | ({_fmt_gbp(pnl.get('cost_to_serve_gbp', 0.0))}) |")
+        lines += [
             f"| Operating net margin | {_fmt_gbp(pnl.get('operating_net_margin_gbp', 0.0))} |",
             "",
         ]
@@ -7033,6 +7039,32 @@ def _section_churn_model_performance(data: dict) -> str:
         "> would be needed to recover these departures.",
         "",
     ])
+
+    episode = perf.get("episode_analysis") or {}
+    if episode.get("total_churners"):
+        lines.extend([
+            "### Episode-Level Recall (credits catches before departure)",
+            "",
+            "The table above scores every renewal in isolation, so a customer correctly",
+            "flagged and saved by a retention offer, whose risk signal later decays before",
+            "they eventually churn at a subsequent renewal, is counted as both a false",
+            "positive (at the save) and a false negative (at the eventual departure) --",
+            "the same real catch penalised twice. Episode-level recall instead asks: did",
+            "the model ever flag this customer, at any renewal, before they left?",
+            "",
+            "| Metric | Value |",
+            "|--------|-------|",
+            "| Churners | {} |".format(episode.get("total_churners", 0)),
+            "| Caught before departure (any renewal) | {} |".format(
+                episode.get("caught_before_departure", 0)),
+            "| Never flagged | {} |".format(episode.get("never_flagged", 0)),
+            "| **Episode recall** | **{:.1%}** |".format(episode.get("episode_recall", 0.0)),
+            "| Decayed after a prior save | {} |".format(
+                episode.get("decayed_after_prior_save", 0)),
+            "| Prevented-churn saves (retention offers that worked) | {} |".format(
+                episode.get("prevented_churn_saves", 0)),
+            "",
+        ])
 
     if per_year:
         lines.extend([

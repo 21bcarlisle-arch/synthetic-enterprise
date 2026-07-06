@@ -81,4 +81,93 @@ def compute_churn_model_performance(
         "precision": round(precision, 4),
         "f1_score": round(f1, 4),
         "per_year": per_year,
+        "episode_analysis": _compute_episode_analysis(
+            customer_events, retention_log, no_offer_churn_log, threshold
+        ),
+    }
+
+
+def _compute_episode_analysis(
+    customer_events: list[dict],
+    retention_log: list[dict],
+    no_offer_churn_log: list[dict],
+    threshold: float,
+) -> dict:
+    """Credit the model for catching a customer's risk at ANY renewal before
+    departure, not only the terminal one.
+
+    The per-event TP/FP/FN/TN counts above score every renewal in isolation,
+    so a customer correctly flagged and saved by a retention offer (estimate
+    above threshold, outcome "retained") at renewal N, whose satisfaction
+    signal then decays back down before they eventually churn at renewal
+    N+k, is scored as a false positive at N AND a false negative at N+k --
+    the same real, correctly-detected risk penalised twice. This computes an
+    episode-level view instead: group each customer's renewals in order,
+    and ask "did the model ever flag this customer before they left?"
+    """
+    by_customer: dict[str, list[dict]] = {}
+    for e in customer_events:
+        cid = e.get("customer_id")
+        if cid is None:
+            continue
+        by_customer.setdefault(cid, []).append(e)
+    for evs in by_customer.values():
+        evs.sort(key=lambda e: e.get("event_date") or "")
+
+    retained_dates: dict[str, set] = {}
+    offered_dates: dict[str, set] = {}
+    prevented_churn_saves = 0
+    for r in retention_log:
+        cid = r.get("customer_id")
+        if cid is None:
+            continue
+        offered_dates.setdefault(cid, set()).add(r.get("event_date"))
+        if r.get("outcome") == "retained":
+            retained_dates.setdefault(cid, set()).add(r.get("event_date"))
+            prevented_churn_saves += 1
+
+    churners: dict[str, str] = {}
+    for e in customer_events:
+        if e.get("event_type") == "churned":
+            churners[e["customer_id"]] = e.get("event_date")
+    for e in no_offer_churn_log:
+        cid = e.get("customer_id")
+        if cid is not None and cid not in churners:
+            churners[cid] = e.get("event_date")
+
+    caught_before_departure = 0
+    never_flagged = 0
+    decayed_after_prior_save = 0
+
+    for cid, churn_date in churners.items():
+        history = by_customer.get(cid, [])
+        was_flagged = any(
+            e.get("company_churn_estimate") is not None
+            and e["company_churn_estimate"] > threshold
+            for e in history
+        )
+        was_offered = cid in offered_dates
+        flagged = was_flagged or was_offered
+        if flagged:
+            caught_before_departure += 1
+            had_prior_save = any(
+                d is not None and d < (churn_date or "") for d in retained_dates.get(cid, set())
+            )
+            if had_prior_save:
+                decayed_after_prior_save += 1
+        else:
+            never_flagged += 1
+
+    total_churners = len(churners)
+    episode_recall = (
+        round(caught_before_departure / total_churners, 4) if total_churners > 0 else 0.0
+    )
+
+    return {
+        "total_churners": total_churners,
+        "caught_before_departure": caught_before_departure,
+        "never_flagged": never_flagged,
+        "episode_recall": episode_recall,
+        "decayed_after_prior_save": decayed_after_prior_save,
+        "prevented_churn_saves": prevented_churn_saves,
     }

@@ -42,11 +42,11 @@ import saas.payment_behaviour as payment_behaviour_module
 from saas.bill_generator import generate_bill
 from saas.churn_model import build_churn_risk
 from saas.contact_model import build_contact_model
-from saas.cost_to_serve import build_cost_to_serve
+from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_events
 from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS, get_customer
 from saas.enterprise_value import build_enterprise_value
 from saas.home_move_win_rate import build_home_move_win_rates
-from saas.ledger import build_ledger, derive_pnl, ledger_summary
+from saas.ledger import build_ledger, derive_pnl, ledger_summary, make_cost_to_serve_event
 from saas.payment_behaviour import build_payment_behaviour
 from simulation.arrears_engine import (
     compute_emergent_bad_debt,
@@ -190,9 +190,15 @@ def main(report_end: str | None = None):
         )
 
     # Phase 8a: merge acquisition_spend and fixed_cost events into the ledger
+    # CTS reconciliation fix (docs/staging/drafts/NEXT_PHASE.md option B):
+    # also emit monthly cost_to_serve_event totals so ledger account 6100
+    # ("Cost to Serve") stops always netting to £0 against the non-zero
+    # figure `cost_to_serve` (above) already reports for pricing/CLV.
+    cost_to_serve_ledger_events = build_cost_to_serve_ledger_events(all_records, all_customers)
     extra_events = (
         phase2b_result.get("acquisition_spend_events", [])
         + phase2b_result.get("fixed_cost_events", [])
+        + [make_cost_to_serve_event(e["month"], e["amount_gbp"]) for e in cost_to_serve_ledger_events]
     )
     ledger_events = build_ledger(
         all_records, bills, payment_behaviour_module,

@@ -60,7 +60,9 @@
 # P2 -- ACTIVE (2026-07-06 21:05 BST, Rich's visual confirmation received via NTFY: "I like the
 #   live site a lot. It's a big improvement" -- satisfies the P1a-c acceptance rule below. Gate
 #   cleared, resuming P2 top-down): CTS £0/£91,780 reconciliation (docs/staging/drafts/NEXT_PHASE.md,
-#   option B), frozen-policy baseline (FROZEN_POLICY_BASELINE_DESIGN.md), FEEDBACK_AND_REPUTATION.md,
+#   option B) -- CLOSED (Phase RS, 2026-07-06): account 6100 now posts a real monthly cost-to-serve
+#   figure (bad-debt component dropped per option B, PROJECT_OVERVIEW.md Section 4 Phase RS). Next:
+#   frozen-policy baseline (FROZEN_POLICY_BASELINE_DESIGN.md), then FEEDBACK_AND_REPUTATION.md,
 #   NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
 # Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's
 # visual review", never "done" outright.

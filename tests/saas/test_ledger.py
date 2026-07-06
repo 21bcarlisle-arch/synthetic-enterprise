@@ -10,6 +10,7 @@ from saas.ledger import (
     make_bad_debt_event,
     make_billing_event,
     make_capital_charge_event,
+    make_cost_to_serve_event,
     make_fixed_cost_event,
     make_non_commodity_cost_event,
     make_payment_received_event,
@@ -454,6 +455,40 @@ def test_operating_net_margin_is_net_less_acquisition_and_fixed():
     # net_margin = revenue - wholesale - capital = 100 - 60 - 5 = 35
     # operating_net = 35 - 150 - 50 = -165
     assert abs(pnl["operating_net_margin_gbp"] - (pnl["net_margin_gbp"] - 150.0 - 50.0)) < 1e-6
+
+
+# ---- CTS reconciliation fix (NEXT_PHASE.md option B): cost_to_serve_event ----
+
+def test_make_cost_to_serve_event_amount_is_negative():
+    event = make_cost_to_serve_event("2020-01", 75.0)
+    assert event["amount_gbp"] == -75.0
+    assert event["event_type"] == "cost_to_serve_event"
+    assert event["month"] == "2020-01"
+
+
+def test_make_cost_to_serve_event_timestamp_is_first_of_month():
+    event = make_cost_to_serve_event("2020-03", 75.0)
+    assert event["timestamp"] == "2020-03-01"
+
+
+def test_build_ledger_with_cost_to_serve_event_included():
+    records = [_settlement_record(date="2020-01-01")]
+    bills = [_bill(period_start="2020-01-01", period_end="2020-01-31")]
+    cts_event = make_cost_to_serve_event("2020-01", 75.0)
+    events = build_ledger(records, bills, extra_events=[cts_event])
+    types = {e["event_type"] for e in events}
+    assert "cost_to_serve_event" in types
+
+
+def test_derive_pnl_includes_cost_to_serve_when_present():
+    records = [_settlement_record(wholesale=6.0, capital=0.5)]
+    bills = [_bill(amount=100.0)]
+    cts_event = make_cost_to_serve_event("2016-01", 75.0)
+    events = build_ledger(records, bills, extra_events=[cts_event])
+    pnl = derive_pnl(events)
+    assert "cost_to_serve_gbp" in pnl
+    assert abs(pnl["cost_to_serve_gbp"] - 75.0) < 1e-6
+    assert abs(pnl["operating_net_margin_gbp"] - (pnl["net_margin_gbp"] - 75.0)) < 1e-6
 
 
 # ---- Phase 9a: non_commodity_cost_event and vat_remittance_event ----

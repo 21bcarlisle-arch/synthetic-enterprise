@@ -100,6 +100,10 @@ def to_journal_entry(event: dict[str, Any]) -> dict[str, Any] | None:
         return _entry(eid, ts, "6200", "1001", amount,
                       f"Fixed overheads: {event.get('month', ts)}", et)
 
+    if et == "cost_to_serve_event":
+        return _entry(eid, ts, "6100", "1001", amount,
+                      f"Cost to serve: {event.get('month', ts)}", et)
+
     return None
 
 

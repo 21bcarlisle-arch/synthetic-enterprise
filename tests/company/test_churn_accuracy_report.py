@@ -1,4 +1,9 @@
-"""Phase NJ: Churn Model Calibration Report -- 16 tests."""
+"""Phase NJ: Churn Model Calibration Report -- 16 tests.
+
+Phase (churn decay-timing): 5 tests added for episode-level analysis --
+credits the model for catching a customer's risk at ANY renewal before
+departure, per docs/PRIORITIES.md KEY OPEN FINDING.
+"""
 import pytest
 from company.analytics.churn_accuracy_report import compute_churn_model_performance
 
@@ -249,3 +254,88 @@ def test_f1_zero_if_no_predictions():
     assert result["precision"] == 0.0
     assert result["recall"] == 0.0
     assert result["f1_score"] == 0.0
+
+
+# ------------------------------------------------------------------
+# 17. episode_analysis: customer flagged+saved early, then churns later
+# once the signal decayed -- credited as caught, not a fresh miss.
+# ------------------------------------------------------------------
+def test_episode_recall_credits_decayed_prior_save():
+    events = [
+        _ce("C1", 0.50, "renewed", "2019", "01"),  # flagged, offer succeeds
+        _ce("C1", 0.10, "churned", "2020", "01"),  # signal decayed, then leaves
+    ]
+    retention = [
+        {"customer_id": "C1", "event_date": "2019-01-01", "outcome": "retained"},
+    ]
+    result = compute_churn_model_performance(events, retention, [])
+    ep = result["episode_analysis"]
+    assert ep["total_churners"] == 1
+    assert ep["caught_before_departure"] == 1
+    assert ep["never_flagged"] == 0
+    assert ep["decayed_after_prior_save"] == 1
+    assert ep["episode_recall"] == 1.0
+    assert ep["prevented_churn_saves"] == 1
+    # Raw per-event counts are untouched by the episode view.
+    assert result["false_positives"] == 1
+    assert result["false_negatives"] == 1
+
+
+# ------------------------------------------------------------------
+# 18. episode_analysis: customer never flagged at any renewal before churn
+# ------------------------------------------------------------------
+def test_episode_recall_never_flagged():
+    events = [
+        _ce("C1", 0.05, "renewed", "2019", "01"),
+        _ce("C1", 0.10, "churned", "2020", "01"),
+    ]
+    result = compute_churn_model_performance(events, [], [])
+    ep = result["episode_analysis"]
+    assert ep["total_churners"] == 1
+    assert ep["caught_before_departure"] == 0
+    assert ep["never_flagged"] == 1
+    assert ep["decayed_after_prior_save"] == 0
+    assert ep["episode_recall"] == 0.0
+
+
+# ------------------------------------------------------------------
+# 19. episode_analysis: single-renewal terminal catch still counts
+# (superset of raw recall -- a TP is also an episode-level catch)
+# ------------------------------------------------------------------
+def test_episode_recall_credits_terminal_catch():
+    events = [_ce("C1", 0.80, "churned")]
+    result = compute_churn_model_performance(events, [], [])
+    ep = result["episode_analysis"]
+    assert ep["caught_before_departure"] == 1
+    assert ep["episode_recall"] == 1.0
+    assert ep["decayed_after_prior_save"] == 0
+
+
+# ------------------------------------------------------------------
+# 20. prevented_churn_saves counts every retained outcome, regardless of
+# whether that customer later churns
+# ------------------------------------------------------------------
+def test_prevented_churn_saves_counts_all_retained_outcomes():
+    events = [
+        _ce("C1", 0.50, "renewed", "2019", "01"),
+        _ce("C2", 0.80, "churned", "2019", "06"),
+    ]
+    retention = [
+        {"customer_id": "C1", "event_date": "2019-01-01", "outcome": "retained"},
+        {"customer_id": "C2", "event_date": "2019-06-01", "outcome": "churned_despite_offer"},
+    ]
+    result = compute_churn_model_performance(events, retention, [])
+    assert result["episode_analysis"]["prevented_churn_saves"] == 1
+
+
+# ------------------------------------------------------------------
+# 21. episode_analysis: no churners at all -> zeros, no division error
+# ------------------------------------------------------------------
+def test_episode_recall_zero_when_no_churners():
+    events = [_ce("C1", 0.50, "renewed")]
+    result = compute_churn_model_performance(events, [], [])
+    ep = result["episode_analysis"]
+    assert ep["total_churners"] == 0
+    assert ep["episode_recall"] == 0.0
+    assert ep["caught_before_departure"] == 0
+    assert ep["never_flagged"] == 0

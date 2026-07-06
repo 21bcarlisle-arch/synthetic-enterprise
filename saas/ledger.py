@@ -16,6 +16,10 @@ Phase 8a (growth mandate):
 - acquisition_spend_event: cost of a fresh market acquisition attempt (cash out)
 - fixed_cost_event: monthly operating overhead (cash out)
 
+CTS reconciliation fix (docs/staging/drafts/NEXT_PHASE.md option B):
+- cost_to_serve_event: monthly per-account cost-to-serve, fixed overhead only
+  (cash out) — distinct from fixed_cost_event, account 6100 not 6200.
+
 Phase 9a (bill structure — non-commodity + VAT):
 - non_commodity_cost_event: network/levy pass-through remitted to network operators (cash out)
 - vat_remittance_event: VAT collected from customer, remitted to HMRC (cash out)
@@ -186,6 +190,25 @@ def make_fixed_cost_event(month: str, amount_gbp: float) -> dict[str, Any]:
     }
 
 
+def make_cost_to_serve_event(month: str, amount_gbp: float) -> dict[str, Any]:
+    """Cash out: monthly per-account cost-to-serve (billing/IT/smart-meter
+    fixed overhead, `saas.cost_to_serve.build_cost_to_serve_ledger_events()`).
+
+    Distinct from `fixed_cost_event` (company-wide flat overhead, account
+    6200) — this is account 6100, the per-account operational cost the
+    customer-value/pricing layer already computes. Bad debt is deliberately
+    excluded (see `saas.cost_to_serve` module docstring) — that is
+    `bad_debt_event`/account 6001 alone.
+    """
+    return {
+        "transaction_id": _tid("cost_to_serve", month),
+        "event_type": "cost_to_serve_event",
+        "timestamp": month + "-01",
+        "month": month,
+        "amount_gbp": -amount_gbp,
+    }
+
+
 def make_non_commodity_cost_event(bill: dict[str, Any]) -> dict[str, Any]:
     """Cash out: network/levy pass-through remitted to network operators.
 
@@ -350,10 +373,16 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         fixed_cost = -sum(e["amount_gbp"] for e in fixed_events)
         result["fixed_cost_gbp"] = fixed_cost
 
-    if acq_events or fixed_events:
+    cts_events = [e for e in events if e["event_type"] == "cost_to_serve_event"]
+    if cts_events:
+        cts_cost = -sum(e["amount_gbp"] for e in cts_events)
+        result["cost_to_serve_gbp"] = cts_cost
+
+    if acq_events or fixed_events or cts_events:
         acq = result.get("acquisition_spend_gbp", 0.0)
         fixed = result.get("fixed_cost_gbp", 0.0)
-        result["operating_net_margin_gbp"] = net - acq - fixed
+        cts = result.get("cost_to_serve_gbp", 0.0)
+        result["operating_net_margin_gbp"] = net - acq - fixed - cts
 
     return result
 

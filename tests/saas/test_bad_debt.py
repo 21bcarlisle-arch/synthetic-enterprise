@@ -66,16 +66,19 @@ def test_cost_to_serve_sme_zero_revenue():
     assert cts == pytest.approx(FIXED_OVERHEAD_GBP_PER_PERIOD["SME"])
 
 
-def test_cost_to_serve_increases_with_revenue():
+def test_cost_to_serve_revenue_independent():
+    """CTS reconciliation fix (NEXT_PHASE.md option B): cost-to-serve is
+    fixed overhead only -- bad debt is owned entirely by the emergent
+    arrears model (ledger account 6001), not duplicated here."""
     low = cost_to_serve_for_period("resi", 10.0)
     high = cost_to_serve_for_period("resi", 100.0)
-    assert high > low
+    assert high == low
 
 
 def test_cost_to_serve_formula():
     rev = 200.0
     cts = cost_to_serve_for_period("resi", rev)
-    expected = FIXED_OVERHEAD_GBP_PER_PERIOD["resi"] + BAD_DEBT_RATE["resi"] * rev
+    expected = FIXED_OVERHEAD_GBP_PER_PERIOD["resi"]
     assert cts == pytest.approx(expected)
 
 

@@ -948,6 +948,17 @@ def _churn_model_signal(events, churn_perf):
         + " across " + str(churn_perf.get("total_churn_events", 0)) + " churn events."
     )
 
+    episode = churn_perf.get("episode_analysis") or {}
+    if episode.get("total_churners"):
+        overall += (
+            " Episode recall (credits a catch at ANY renewal before departure, not"
+            " just the terminal one): " + _pct(episode.get("episode_recall")) + " of "
+            + str(episode.get("total_churners", 0)) + " churners, "
+            + str(episode.get("decayed_after_prior_save", 0))
+            + " previously caught-and-saved then re-emerged after signal decay, "
+            + str(episode.get("prevented_churn_saves", 0)) + " prevented-churn saves overall."
+        )
+
     return (
         "<h2>Churn Model: Market Signal vs Classification Accuracy</h2>"
         + "<p class=\"meta\">market_signal is the Phase QB switching-propensity multiplier (SIM), "

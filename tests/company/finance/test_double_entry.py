@@ -110,6 +110,16 @@ def _acq(acct="C1", amount=50.0, date="2022-01-15", won=True):
     }
 
 
+def _cts(month="2022-01", amount=250.0):
+    return {
+        "transaction_id": f"cts-{month}",
+        "event_type": "cost_to_serve_event",
+        "timestamp": f"{month}-01",
+        "month": month,
+        "amount_gbp": -amount,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Chart of accounts
 # ---------------------------------------------------------------------------
@@ -194,6 +204,15 @@ def test_fixed_cost_dr_overheads_cr_cash():
     assert je["debit_account"] == "6200"
     assert je["credit_account"] == "1001"
     assert je["amount_gbp"] == pytest.approx(1000.0)
+
+
+def test_cost_to_serve_dr_cts_cr_cash():
+    """CTS reconciliation fix (NEXT_PHASE.md option B): account 6100 must
+    actually receive postings, distinct from 6200 (fixed_cost_event)."""
+    je = to_journal_entry(_cts(amount=250.0))
+    assert je["debit_account"] == "6100"
+    assert je["credit_account"] == "1001"
+    assert je["amount_gbp"] == pytest.approx(250.0)
 
 
 def test_acquisition_spend_dr_acq_cr_cash():
