@@ -95,6 +95,7 @@ def test_main_success_flow(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
     # generate_dashboard_json writes to the REAL site/data/dashboard.json (hardcoded path
     # inside generate_dashboard_data.py) — mock it to avoid corrupting the live dashboard
     # Returns True (gate passed) -- generate_dashboard_json's return value now
@@ -137,6 +138,7 @@ def test_main_success_flow(tmp_path, monkeypatch):
 
 def test_main_returns_1_for_missing_marker(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
     rc = prc.main(str(tmp_path / "nonexistent.md"))
     assert rc == 1
 
@@ -146,6 +148,7 @@ def test_main_returns_1_when_tests_fail(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
     # Returns True (gate passed) -- generate_dashboard_json's return value now
     # drives an immediate NTFY on consistency-gate failure (Phase QF); this
     # mock represents the happy path, not a gate failure.
@@ -223,6 +226,44 @@ def test_run_history_max_net_is_float(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
     result = prc._run_history_max_net()
     assert isinstance(result, float)
+
+
+# ── run-lock: prevent duplicate concurrent pipeline runs on one marker ───────
+
+def test_run_lock_second_acquire_fails_while_first_held(tmp_path, monkeypatch):
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
+    with prc._run_lock() as first:
+        assert first is True
+        with prc._run_lock() as second:
+            assert second is False
+
+
+def test_run_lock_reacquirable_after_release(tmp_path, monkeypatch):
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
+    with prc._run_lock() as first:
+        assert first is True
+    with prc._run_lock() as second:
+        assert second is True
+
+
+def test_main_skips_when_lock_already_held(tmp_path, monkeypatch):
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
+
+    marker, _ = make_marker(tmp_path)
+
+    called = []
+    monkeypatch.setattr(prc, "_process", lambda m: called.append(m) or 0)
+
+    with prc._run_lock():
+        rc = prc.main(str(marker))
+
+    assert rc == 0
+    assert called == []  # _process must never run while another instance holds the lock
+    assert marker.exists()  # left in place for the lock-holder to archive
 
 
 # ── DEPLOY_CONTENTION_BATCH_COMMITS.md: throttle pushes to <=1/30min ──────────

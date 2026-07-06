@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import fcntl
 import json
 import os
 import re
 import subprocess
 import sys
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,6 +16,7 @@ LATEST_MD = PROJECT_DIR / "docs" / "status" / "LATEST.md"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
 LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_hash"
 LAST_PUSH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_push_time.json"
+RUN_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".process_run_complete.lock"
 RUN_INSIGHTS_PATH = PROJECT_DIR / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
 # DEPLOY_CONTENTION_BATCH_COMMITS.md (2026-07-04): sim_runner cycles every
@@ -30,6 +33,39 @@ PUSH_THROTTLE_SECONDS = 30 * 60
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background.tree_lock import tree_lock  # noqa: E402
+
+
+@contextmanager
+def _run_lock():
+    """Non-blocking exclusive lock so at most one process_run_complete.py
+    instance does the heavy pipeline (report regen, dashboard/site build,
+    full test suite -- ~5-10 min) at a time.
+
+    sim_runner.py invokes this script synchronously right after writing a
+    run_complete marker. background_worker.py separately sweeps staging/
+    every 30 min for "leftover" markers still sitting in the root (the
+    marker only moves to done/ at the very end of a successful run) and
+    re-invokes this script on any it finds -- with no way to tell a marker
+    that is genuinely abandoned (prior invocation crashed/timed out) apart
+    from one that is simply still being processed by a live sim_runner
+    invocation. Observed directly 2026-07-06: two instances running the
+    full pipeline concurrently on the same marker. Losing this lock is not
+    an error -- it just means another instance already has the marker in
+    hand, so this invocation exits immediately and leaves the marker for
+    that instance to archive."""
+    RUN_LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    fh = open(RUN_LOCK_FILE, "w")
+    try:
+        fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        fh.close()
+        yield False
+        return
+    try:
+        yield True
+    finally:
+        fcntl.flock(fh, fcntl.LOCK_UN)
+        fh.close()
 
 
 def log(msg):
@@ -251,6 +287,18 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("phases.json generation failed: {}".format(exc))
     try:
+        from tools.generate_capabilities_json import generate as gen_capabilities
+        gen_capabilities()
+        log("Generated site/data/capabilities.json")
+    except Exception as exc:
+        log("capabilities.json generation failed: {}".format(exc))
+    try:
+        from tools.generate_system_status import generate as gen_system_status
+        gen_system_status()
+        log("Generated site/data/system_status.json")
+    except Exception as exc:
+        log("system_status.json generation failed: {}".format(exc))
+    try:
         from tools.population_anchor import generate as gen_anchor
         gen_anchor(json_path)
         log("Generated site/state/population_anchoring.json")
@@ -445,6 +493,16 @@ def maybe_ntfy(data, net_margin, insights=None):
 
 
 def main(marker_path_str):
+    with _run_lock() as acquired:
+        if not acquired:
+            log("Another process_run_complete instance is already running -- "
+                "skipping {} (will be picked up next cycle if still present)".format(
+                    Path(marker_path_str).name))
+            return 0
+        return _process(marker_path_str)
+
+
+def _process(marker_path_str):
     marker = Path(marker_path_str).resolve()
     if not marker.exists():
         if (DONE_DIR / Path(marker_path_str).name).exists():

@@ -78,7 +78,10 @@ def test_process_run_complete_generates_insights_before_dashboard():
     must happen before dashboard/site generation so the exec summary on
     site/shadow/index.html reflects THIS run, not the previous one."""
     import background.process_run_complete as prc
-    source = inspect.getsource(prc.main)
+    # main() only wraps the run-lock check; the actual step ordering this
+    # test guards lives in _process(), which main() delegates to once the
+    # lock is acquired.
+    source = inspect.getsource(prc._process)
     insights_pos = source.index("generate_insights(data, git_hash)")
     dashboard_pos = source.index("generate_dashboard_json(json_path, git_hash)")
     assert insights_pos < dashboard_pos
@@ -201,7 +204,10 @@ def test_main_ntfys_immediately_on_consistency_gate_failure():
     not just log to a file nobody is watching in real time."""
     import background.process_run_complete as prc
 
-    source = inspect.getsource(prc.main)
+    # main() only wraps the run-lock check; the actual gate/NTFY ordering
+    # this test guards lives in _process(), which main() delegates to once
+    # the lock is acquired.
+    source = inspect.getsource(prc._process)
     gate_pos = source.index("consistency_ok = generate_dashboard_json(json_path, git_hash)")
     ntfy_pos = source.index("send_ntfy(", gate_pos)
     assert gate_pos < ntfy_pos
