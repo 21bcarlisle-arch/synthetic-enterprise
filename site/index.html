@@ -381,7 +381,7 @@ function renderSpotlight(container) {
     kpi('Revenue', gbp(fa.revenue_gbp||0)) +
     kpi('Treasury (end)', gbp(fa.treasury_end_gbp||0)) +
     kpi('Bill Shocks', '<span style="color:var(--amber)">' + (ba.bill_shock_count||0) + '</span>') +
-    kpi('Worst Shock', '<span style="color:var(--amber)">' + ((ba.worst_shock_pct||0)*100).toFixed(0) + '%</span>') +
+    kpi('Worst Shock', '<span style="color:var(--amber)">' + (ba.worst_shock_pct||0).toFixed(0) + '%</span>') +
     kpi('Active Elec', ba.active_elec||'-') +
     kpi('Avg Hedge %', ((ha.avg_hf||0)*100).toFixed(0) + '%') +
     '</div></div>';
@@ -999,7 +999,7 @@ function renderMonthly() {
     '<div class="kpi-row" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">' +
     '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Total Bill Shocks</div><div class="kpi-value">'+totalShocks+'</div></div>' +
     '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Crisis Bill Shocks</div><div class="kpi-value" style="color:var(--red)">'+crisisShocks+'</div><div class="kpi-sub">2021-22</div></div>' +
-    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Worst Shock Month</div><div class="kpi-value">'+maxShock.max_shock_pct.toFixed(0)+'%</div><div class="kpi-sub">'+maxShock.month+'</div></div>' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Worst Shock Month</div><div class="kpi-value">'+maxShock.max_shock_pct.toFixed(0)+'%</div><div class="kpi-sub">'+maxShock.month+(maxShock.max_shock_pct>200 ? ' — true-up bill vs a small prior baseline, not a data error' : '')+'</div></div>' +
     '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Committee Meetings</div><div class="kpi-value" style="color:var(--amber)">'+totalComm+'</div></div>' +
     '</div>' +
     '<div class="chart-box"><div class="chart-title">Monthly Bill Shocks and Risk Committee Interventions (2016-2025)</div>' +
