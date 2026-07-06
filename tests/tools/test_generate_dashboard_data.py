@@ -205,3 +205,22 @@ def test_extract_regulatory_every_domain_has_an_obligation():
     mapped_domains = {domain for _, _, domain in _SLC_OBLIGATIONS}
     all_domains = {d.value for d in ComplianceDomain} - {"tariff_price_cap"}
     assert all_domains <= mapped_domains
+
+def test_load_frozen_baseline_missing_file_returns_empty(tmp_path):
+    from tools.generate_dashboard_data import _load_frozen_baseline
+    assert _load_frozen_baseline(tmp_path / "missing.json") == {}
+
+
+def test_load_frozen_baseline_reads_real_file(tmp_path):
+    from tools.generate_dashboard_data import _load_frozen_baseline
+    path = tmp_path / "frozen_policy_baseline.json"
+    path.write_text(json.dumps({"delta_ev_gbp": 1234.5}))
+    result = _load_frozen_baseline(path)
+    assert result["delta_ev_gbp"] == 1234.5
+
+
+def test_load_frozen_baseline_invalid_json_returns_empty(tmp_path):
+    from tools.generate_dashboard_data import _load_frozen_baseline
+    path = tmp_path / "frozen_policy_baseline.json"
+    path.write_text("not json")
+    assert _load_frozen_baseline(path) == {}

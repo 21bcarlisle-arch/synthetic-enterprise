@@ -92,6 +92,7 @@ from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from company.trading.forward_book import ForwardContract, TradingBook
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost
+from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY
 from company.crm.customer_profitability import compute_profitability_uplift
 from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate, enriched_passive_churn_estimate as _enriched_passive_churn_estimate, INDUSTRY_BASE_CHURN_RATE as _INDUSTRY_BASE_CHURN_RATE
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
@@ -640,15 +641,20 @@ def _company_eac_estimate(
     return estimated if estimated > 0 else base
 
 
-def main(report_end: str | None = None, sim_interface=None):
+def main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None):
     """Run the full Phase 2b + 4c settlement simulation.
 
     report_end: ISO date string (e.g. "2022-12-31") to truncate the
         simulation window for faster iteration. Defaults to REPORT_END
         (the full 2016-2025 window). Use --end-year on the annual_report
         CLI or pass directly for experiment runs.
+    policy: swappable retention/hedging decision policy (FROZEN_POLICY_BASELINE_DESIGN.md
+        option B). Defaults to CURRENT_POLICY -- every existing caller sees zero
+        behaviour change. tools/run_frozen_baseline.py passes NAIVE_POLICY for the
+        superseded pre-14a/15b/43b comparison run.
     """
     effective_end = report_end or REPORT_END
+    policy = policy or CURRENT_POLICY
     print("=== Phase 2b — Gas Dual Fuel ===")
     print(f"Electricity customers: {[c['customer_id'] for c in ELEC_CUSTOMERS]}")
     print(f"Gas customers:         {[c['customer_id'] for c in GAS_CUSTOMERS]}")
@@ -1068,7 +1074,7 @@ def main(report_end: str | None = None, sim_interface=None):
                     hangover_remaining[cid] = hangover_periods - 1
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
-                    discount_pct = _retention_discount_for_risk(company_est_pre)
+                    discount_pct = policy.retention_discount_for_risk(company_est_pre)
                     _would_be_discount_pct = discount_pct
                     ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
@@ -1076,9 +1082,14 @@ def main(report_end: str | None = None, sim_interface=None):
                     # If the customer churns, the company spends acq_cost on a replacement
                     # attempt (whether it wins or not). So the true value protected by
                     # retaining = expected_margin + acq_cost_saved.
+                    # FROZEN_POLICY_BASELINE_DESIGN.md: NAIVE_POLICY excludes acq_cost_saved
+                    # (pre-Phase-15b, margin-only guard) -- policy.include_acq_cost_saved_in_guard.
                     cust_data_ret = get_customer(billing_account)
                     seg_ret = cust_data_ret["segment"] if cust_data_ret else "resi"
-                    acq_cost_saved = COST_PER_ACQUISITION.get(seg_ret, 150.0)
+                    acq_cost_saved = (
+                        COST_PER_ACQUISITION.get(seg_ret, 150.0)
+                        if policy.include_acq_cost_saved_in_guard else 0.0
+                    )
                     if expected_margin + acq_cost_saved > ret_cost:
                         retention_modifier_val = RETENTION_EFFECTIVENESS
                         retention_cost_events.append(
@@ -1371,7 +1382,7 @@ def main(report_end: str | None = None, sim_interface=None):
                 term_days_count = (
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days
-                if unit_rate and company_fwd and eac_kwh > 0 and term_days_count > 0:
+                if policy.use_var_hedge_decision and unit_rate and company_fwd and eac_kwh > 0 and term_days_count > 0:
                     _var_hf = decide_hedge_fraction(
                         eac_kwh, company_fwd, unit_rate, elec_records, term_days_count
                     )
@@ -1474,7 +1485,7 @@ def main(report_end: str | None = None, sim_interface=None):
             if term_tariff_type == "pass_through":
                 hf = 0.0
                 current_hf[cid] = 0.0
-            elif unit_rate and company_fwd and aq_kwh > 0:
+            elif policy.use_var_hedge_decision and unit_rate and company_fwd and aq_kwh > 0:
                 _gas_term_days = (
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days

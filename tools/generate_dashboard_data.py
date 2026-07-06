@@ -719,6 +719,22 @@ def extract_query_context(data):
     return chr(10).join(lines)
 
 
+def _load_frozen_baseline(path=None):
+    """Load site/state/frozen_policy_baseline.json (FROZEN_POLICY_BASELINE_DESIGN.md
+    option B) if it exists. This is a periodic, on-demand artifact -- a full
+    decade replayed twice (current vs naive policy) -- not regenerated every
+    sim cycle, so it may be older than the rest of this dashboard. Returns
+    {} if not yet generated."""
+    if path is None:
+        path = PROJECT / "site" / "state" / "frozen_policy_baseline.json"
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
 def generate(run_json_path=None):
     if run_json_path is None:
         run_json_path = _find_latest_run_json()
@@ -765,6 +781,7 @@ def generate(run_json_path=None):
         "monthly_ops": extract_monthly_ops(data),
         "flexibility": extract_flexibility(data),
         "churn_model_performance": data.get("churn_model_performance", {}),
+        "frozen_baseline": _load_frozen_baseline(),
         "build": {
             "current_phase": build_phase,
             "phases_built": f"Phase {build_phase} (300+ total)",

@@ -109,8 +109,8 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
     return bills
 
 
-def main(report_end: str | None = None):
-    phase2b_result = run_phase2b(report_end=report_end)
+def main(report_end: str | None = None, policy=None):
+    phase2b_result = run_phase2b(report_end=report_end, policy=policy)
     all_records = phase2b_result["all_records"]
 
     bills = build_monthly_bills(all_records)

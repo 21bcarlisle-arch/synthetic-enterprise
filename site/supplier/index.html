@@ -482,6 +482,25 @@ function renderBoardActionsBlock() {
     '</div>';
 }
 
+function renderFrozenBaselineBlock() {
+  var fb = D.frozen_baseline;
+  if (!fb || fb.delta_ev_gbp === undefined) return '';
+  var delta = fb.delta_ev_gbp;
+  var deltaCls = delta >= 0 ? 'pos' : 'neg';
+  var cur = fb.current_policy || {};
+  var naive = fb.naive_policy || {};
+  var genDate = fb.generated_at ? fb.generated_at.slice(0, 10) : 'unknown';
+  return '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--blue)">' +
+    '<div class="chart-title">The Value of Learning -- Delta-EV vs Last-Generation Policy</div>' +
+    '<div style="font-size:28px;font-weight:700;margin:8px 0" class="' + deltaCls + '">' + gbp(delta) + '</div>' +
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:12px">' + fb.narrative + '</div>' +
+    '<div style="display:flex;gap:24px;font-size:12px;color:var(--muted)">' +
+      '<span>Current policy EV: <b style="color:var(--fg)">' + gbp(cur.enterprise_value_gbp) + '</b></span>' +
+      '<span>Naive (pre-learning) policy EV: <b style="color:var(--fg)">' + gbp(naive.enterprise_value_gbp) + '</b></span>' +
+      '<span>Baseline replay generated: ' + genDate + '</span>' +
+    '</div></div>';
+}
+
 function renderOverview() {
   const p = D.portfolio;
   const fa = D.financial.annual;
@@ -495,6 +514,7 @@ function renderOverview() {
       ${card('Retention', `${p.retention_retained}/${p.retention_offers}`, `${p.churn_count} accounts churned`, 'neu')}
       ${card('Committee', p.committee_interventions_total.toLocaleString(), `${p.bills_total.toLocaleString()} bills`, 'neu')}
     </div>
+    ${renderFrozenBaselineBlock()}
     ${renderBoardActionsBlock()}
     <div class="chart-box">
       <div class="chart-title">Treasury 2016–2025</div>
