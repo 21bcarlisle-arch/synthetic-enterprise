@@ -14,10 +14,18 @@ Also periodically fetches origin/main and surfaces any new staging files
 committed with the [ADVISOR-STAGED] prefix so the strategy advisor can
 stage instructions remotely (Remote Staging Bridge).
 
+Also checks, once per poll cycle, whether it's the 1st of the month (UTC)
+and a monthly maintenance reminder hasn't been queued yet this month
+(docs/operations/MAINTENANCE.md). If due, writes a
+docs/staging/maintenance_due_<YYYYMM>.md marker -- picked up by the normal
+new-staged-file path above, so it gets NTFY'd and actioned like any other
+staged instruction, no separate cron/dispatcher wiring needed.
+
 Logs to docs/observability/staging-watcher-log.md.
 Persists the set of already-seen filenames to
 background/.staging_watcher_seen.json so restarts don\'t re-notify for files
-that arrived in an earlier run.
+that arrived in an earlier run. Persists the last month a maintenance
+reminder was queued to background/.maintenance_reminder_sent.json.
 """
 
 import json
@@ -35,6 +43,8 @@ POLL_INTERVAL_SECONDS = 30
 GIT_PULL_INTERVAL_SECONDS = 180  # check remote every 3 minutes
 IGNORED_NAMES = {".gitkeep"}
 ADVISOR_PREFIX = "[ADVISOR-STAGED]"
+MAINTENANCE_STATE_FILE = PROJECT_DIR / "background" / ".maintenance_reminder_sent.json"
+MAINTENANCE_DOC = PROJECT_DIR / "docs" / "operations" / "MAINTENANCE.md"
 
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it\'s invoked.
@@ -155,6 +165,45 @@ def check_remote(seen: set[str]) -> set[str]:
     return seen  # check_once will pick up new files on next poll
 
 
+def _load_maintenance_state() -> str:
+    """Return the last "YYYY-MM" a maintenance reminder was queued, or "" if none."""
+    if MAINTENANCE_STATE_FILE.exists():
+        try:
+            return json.loads(MAINTENANCE_STATE_FILE.read_text()).get("last_sent_month", "")
+        except (json.JSONDecodeError, Exception):
+            return ""
+    return ""
+
+
+def _save_maintenance_state(month: str) -> None:
+    MAINTENANCE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    MAINTENANCE_STATE_FILE.write_text(json.dumps({"last_sent_month": month}))
+
+
+def check_monthly_maintenance(now: datetime) -> None:
+    """On the 1st of the month (UTC), queue a maintenance_due marker in
+    docs/staging/ if one hasn\'t already been queued this month. The marker
+    is picked up by check_once() like any other new staged file, so it gets
+    NTFY\'d and actioned through the normal staging flow.
+    """
+    if now.day != 1:
+        return
+    month_key = now.strftime("%Y-%m")
+    if _load_maintenance_state() == month_key:
+        return
+
+    marker = STAGING_DIR / f"maintenance_due_{now.strftime('%Y%m')}.md"
+    if not marker.exists():
+        STAGING_DIR.mkdir(parents=True, exist_ok=True)
+        marker.write_text(
+            f"[MAINTENANCE] Monthly maintenance due for {month_key}.\n\n"
+            f"Run the checklist in docs/operations/MAINTENANCE.md and log the "
+            f"result in docs/operations/maintenance-log.md.\n"
+        )
+        log(f"Queued monthly maintenance reminder: {marker.name}")
+    _save_maintenance_state(month_key)
+
+
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
     `seen`, logs each notification, and returns the updated seen set.
@@ -216,6 +265,11 @@ def main() -> None:
             except Exception as e:
                 log(f"Remote check error: {e}")
                 last_remote_check = now  # back off even on error
+
+        try:
+            check_monthly_maintenance(datetime.now(timezone.utc))
+        except Exception as e:
+            log(f"Monthly maintenance check error: {e}")
 
         try:
             seen = check_once(seen)

@@ -136,3 +136,83 @@ def test_check_once_returns_updated_seen(tmp_path, monkeypatch):
     result = watcher.check_once(set())
     assert isinstance(result, set)
     assert "NEW.md" in result
+
+
+def test_check_monthly_maintenance_queues_marker_on_first_of_month(tmp_path, monkeypatch):
+    from datetime import datetime, timezone
+
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(watcher, "MAINTENANCE_STATE_FILE", tmp_path / "maint_state.json")
+
+    watcher.check_monthly_maintenance(datetime(2026, 8, 1, tzinfo=timezone.utc))
+
+    marker = tmp_path / "maintenance_due_202608.md"
+    assert marker.exists()
+    assert "2026-08" in marker.read_text()
+    assert watcher._load_maintenance_state() == "2026-08"
+
+
+def test_check_monthly_maintenance_skips_non_first_day(tmp_path, monkeypatch):
+    from datetime import datetime, timezone
+
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(watcher, "MAINTENANCE_STATE_FILE", tmp_path / "maint_state.json")
+
+    watcher.check_monthly_maintenance(datetime(2026, 8, 15, tzinfo=timezone.utc))
+
+    assert not any(tmp_path.glob("maintenance_due_*.md"))
+
+
+def test_check_monthly_maintenance_is_idempotent_within_month(tmp_path, monkeypatch):
+    from datetime import datetime, timezone
+
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(watcher, "MAINTENANCE_STATE_FILE", tmp_path / "maint_state.json")
+
+    watcher.check_monthly_maintenance(datetime(2026, 9, 1, tzinfo=timezone.utc))
+    marker = tmp_path / "maintenance_due_202609.md"
+    marker.write_text("edited by hand, should not be clobbered")
+
+    watcher.check_monthly_maintenance(datetime(2026, 9, 1, tzinfo=timezone.utc))
+
+    assert marker.read_text() == "edited by hand, should not be clobbered"
+
+
+def test_check_monthly_maintenance_fires_again_next_month(tmp_path, monkeypatch):
+    from datetime import datetime, timezone
+
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(watcher, "MAINTENANCE_STATE_FILE", tmp_path / "maint_state.json")
+
+    watcher.check_monthly_maintenance(datetime(2026, 8, 1, tzinfo=timezone.utc))
+    watcher.check_monthly_maintenance(datetime(2026, 9, 1, tzinfo=timezone.utc))
+
+    assert (tmp_path / "maintenance_due_202608.md").exists()
+    assert (tmp_path / "maintenance_due_202609.md").exists()
+
+
+def test_monthly_maintenance_marker_gets_notified_via_check_once(tmp_path, monkeypatch):
+    from datetime import datetime, timezone
+
+    staging_dir = tmp_path / "staging"
+    staging_dir.mkdir()
+    side_dir = tmp_path / "side"
+    side_dir.mkdir()
+
+    monkeypatch.setattr(watcher, "STAGING_DIR", staging_dir)
+    monkeypatch.setattr(watcher, "STATE_FILE", side_dir / "seen.json")
+    monkeypatch.setattr(watcher, "LOG_FILE", side_dir / "log.md")
+    monkeypatch.setattr(watcher, "MAINTENANCE_STATE_FILE", side_dir / "maint_state.json")
+
+    ntfy_messages = []
+    monkeypatch.setattr(watcher, "ntfy", lambda msg: ntfy_messages.append(msg))
+
+    watcher.check_monthly_maintenance(datetime(2026, 10, 1, tzinfo=timezone.utc))
+    watcher.check_once(set())
+
+    assert len(ntfy_messages) == 1
+    assert "maintenance_due_202610.md" in ntfy_messages[0]
