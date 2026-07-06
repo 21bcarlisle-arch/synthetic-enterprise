@@ -103,7 +103,8 @@
       "date": "2019-01-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 186.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 186.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 9.98p/kWh -> 8.28p/kWh"
     }
   ],
   "invoices": [
@@ -5575,5 +5576,137 @@
         ]
       }
     }
-  }
+  },
+  "reaction_chain": [
+    {
+      "customer_id": "C_IC2",
+      "date": "2018-02-14",
+      "event_type": "arrears_invoice_disputed",
+      "description": "Invoice disputed -- GBP13439.28 under formal review",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 13439.28,
+      "outcome": "INVOICE_DISPUTED"
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2018-02-28",
+      "event_type": "arrears_dispute_notice",
+      "description": "Dispute notice raised -- escalated to accounts receivable",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 13439.28,
+      "outcome": "DISPUTE_NOTICE"
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2018-03-16",
+      "event_type": "arrears_payment_plan_agreed",
+      "description": "Payment plan agreed -- arrears to be settled over 60 days",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 13439.28,
+      "outcome": "PAYMENT_PLAN_AGREED"
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2019-01-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to IRRITATED (resentment score 18.0)",
+      "company_belief": null,
+      "sim_truth": 18.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2019-01-31",
+      "event_type": "retention_decision",
+      "description": "Renewal window: company estimated 95% churn risk, decided to offer a 8% discount (cost GBP14,841.81) against GBP101,641.16 expected term margin at risk -- expected value of offering GBP86,799.35.",
+      "company_belief": 0.95,
+      "sim_truth": 0.037,
+      "amount_gbp": 86799.35,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2019-01-31",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 95% churn risk at decision time, SIM realized probability was 4%.",
+      "company_belief": 0.95,
+      "sim_truth": 0.037,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2020-03-01",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 4.0)",
+      "company_belief": null,
+      "sim_truth": 4.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2021-03-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to IRRITATED (resentment score 18.0)",
+      "company_belief": null,
+      "sim_truth": 18.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2021-03-31",
+      "event_type": "retention_decision",
+      "description": "Renewal window: company estimated 39% churn risk, decided to offer a 3% discount (cost GBP5,310.58) against GBP91,314.94 expected term margin at risk -- expected value of offering GBP86,004.36.",
+      "company_belief": 0.389,
+      "sim_truth": null,
+      "amount_gbp": 86004.36,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2022-04-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to IN_MARKET (resentment score 23.0)",
+      "company_belief": null,
+      "sim_truth": 23.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2022-04-30",
+      "event_type": "retention_decision",
+      "description": "Renewal window: company estimated 40% churn risk, decided to offer a 3% discount (cost GBP9,417.62) against GBP96,241.44 expected term margin at risk -- expected value of offering GBP86,823.82.",
+      "company_belief": 0.403,
+      "sim_truth": null,
+      "amount_gbp": 86823.82,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2023-05-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to COMPARING (resentment score 5.0)",
+      "company_belief": null,
+      "sim_truth": 5.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC2",
+      "date": "2024-06-28",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to COMPARING (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    }
+  ]
 }

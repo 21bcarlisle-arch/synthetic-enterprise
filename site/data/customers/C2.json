@@ -101,25 +101,29 @@
       "date": "2017-06-28",
       "type": "life_event",
       "commodity": null,
-      "detail": "Job loss"
+      "detail": "Job loss",
+      "effect": "Real downstream drift: income stress low -> high"
     },
     {
       "date": "2018-04-02",
       "type": "life_event",
       "commodity": null,
-      "detail": "Income recovery"
+      "detail": "Income recovery",
+      "effect": "Real downstream drift: income stress high -> low"
     },
     {
       "date": "2020-03-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 144.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 144.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 16.77p/kWh -> 16.79p/kWh"
     },
     {
       "date": "2021-03-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 183.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 183.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 16.09p/kWh -> 16.24p/kWh"
     },
     {
       "date": "2022-03-31",
@@ -1509,5 +1513,577 @@
       }
     ],
     "has_hh_data": false
-  }
+  },
+  "reaction_chain": [
+    {
+      "customer_id": "C2",
+      "date": "2016-10-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 83.2,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2016-10-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP83.20 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 83.2,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2016-11-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 83.2,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-01-12",
+      "event_type": "arrears_written_off",
+      "description": "Debt written off -- bad debt provision raised",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 83.2,
+      "outcome": "WRITTEN_OFF"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-02-11",
+      "event_type": "arrears_placed_with_dca",
+      "description": "Debt placed with third-party debt collection agency",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 83.2,
+      "outcome": "PLACED_WITH_DCA"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-02-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 106.64,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-02-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP106.64 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 106.64,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-03-07",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 106.64,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-04-01",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-05-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.0,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-05-15",
+      "event_type": "arrears_written_off",
+      "description": "Debt written off -- bad debt provision raised",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 106.64,
+      "outcome": "WRITTEN_OFF"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-05-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP92.00 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.0,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-06-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.0,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-06-14",
+      "event_type": "arrears_placed_with_dca",
+      "description": "Debt placed with third-party debt collection agency",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 106.64,
+      "outcome": "PLACED_WITH_DCA"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-06-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 89.94,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-06-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP89.94 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 89.94,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-07-05",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 89.94,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-08-10",
+      "event_type": "arrears_recovered",
+      "description": "DCA recovered GBP21.22 net of commission (30% recovery rate, 15% commission)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 83.2,
+      "outcome": "RECOVERED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-08-12",
+      "event_type": "arrears_written_off",
+      "description": "Debt written off -- bad debt provision raised",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.0,
+      "outcome": "WRITTEN_OFF"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-09-11",
+      "event_type": "arrears_placed_with_dca",
+      "description": "Debt placed with third-party debt collection agency",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.0,
+      "outcome": "PLACED_WITH_DCA"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-09-12",
+      "event_type": "arrears_written_off",
+      "description": "Debt written off -- bad debt provision raised",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 89.94,
+      "outcome": "WRITTEN_OFF"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-10-12",
+      "event_type": "arrears_placed_with_dca",
+      "description": "Debt placed with third-party debt collection agency",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 89.94,
+      "outcome": "PLACED_WITH_DCA"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-10-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.33,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-10-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP92.33 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.33,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-11-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.33,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-12-11",
+      "event_type": "arrears_recovered",
+      "description": "DCA recovered GBP27.19 net of commission (30% recovery rate, 15% commission)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 106.64,
+      "outcome": "RECOVERED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-12-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 112.77,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2017-12-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP112.77 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 112.77,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-01-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 112.77,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-01-12",
+      "event_type": "arrears_written_off",
+      "description": "Debt written off -- bad debt provision raised",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.33,
+      "outcome": "WRITTEN_OFF"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-01-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 116.73,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-01-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP116.73 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 116.73,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-02-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 116.73,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-02-11",
+      "event_type": "arrears_placed_with_dca",
+      "description": "Debt placed with third-party debt collection agency",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.33,
+      "outcome": "PLACED_WITH_DCA"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-03-10",
+      "event_type": "arrears_recovered",
+      "description": "DCA recovered GBP23.46 net of commission (30% recovery rate, 15% commission)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.0,
+      "outcome": "RECOVERED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-03-14",
+      "event_type": "arrears_written_off",
+      "description": "Debt written off -- bad debt provision raised",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 112.77,
+      "outcome": "WRITTEN_OFF"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-04-01",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-04-10",
+      "event_type": "arrears_recovered",
+      "description": "DCA recovered GBP22.93 net of commission (30% recovery rate, 15% commission)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 89.94,
+      "outcome": "RECOVERED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-04-13",
+      "event_type": "arrears_placed_with_dca",
+      "description": "Debt placed with third-party debt collection agency",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 112.77,
+      "outcome": "PLACED_WITH_DCA"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-04-14",
+      "event_type": "arrears_written_off",
+      "description": "Debt written off -- bad debt provision raised",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 116.73,
+      "outcome": "WRITTEN_OFF"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-05-14",
+      "event_type": "arrears_placed_with_dca",
+      "description": "Debt placed with third-party debt collection agency",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 116.73,
+      "outcome": "PLACED_WITH_DCA"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-08-10",
+      "event_type": "arrears_recovered",
+      "description": "DCA recovered GBP15.70 net of commission (20% recovery rate, 15% commission)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 92.33,
+      "outcome": "RECOVERED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-10-10",
+      "event_type": "arrears_recovered",
+      "description": "DCA recovered GBP19.17 net of commission (20% recovery rate, 15% commission)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 112.77,
+      "outcome": "RECOVERED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-11-10",
+      "event_type": "arrears_recovered",
+      "description": "DCA recovered GBP19.84 net of commission (20% recovery rate, 15% commission)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 116.73,
+      "outcome": "RECOVERED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2019-04-01",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C2",
+      "date": "2020-03-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C2",
+      "date": "2020-03-31",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 5%.",
+      "company_belief": 0.076,
+      "sim_truth": 0.047,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2021-03-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 18.0)",
+      "company_belief": null,
+      "sim_truth": 18.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C2",
+      "date": "2021-03-31",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 6% churn risk at decision time, SIM realized probability was 3%.",
+      "company_belief": 0.063,
+      "sim_truth": 0.029,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2022-02-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 165.9,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2022-02-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP165.90 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 165.9,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2022-03-07",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 165.9,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2022-03-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 24.0)",
+      "company_belief": null,
+      "sim_truth": 24.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C2",
+      "date": "2022-03-31",
+      "event_type": "outcome_churned",
+      "description": "Renewal outcome: CHURNED -- company believed 6% churn risk at decision time, SIM realized probability was 5%.",
+      "company_belief": 0.062,
+      "sim_truth": 0.049,
+      "amount_gbp": null,
+      "outcome": "churned"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2022-05-15",
+      "event_type": "arrears_written_off",
+      "description": "Debt written off -- bad debt provision raised",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 165.9,
+      "outcome": "WRITTEN_OFF"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2022-06-14",
+      "event_type": "arrears_placed_with_dca",
+      "description": "Debt placed with third-party debt collection agency",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 165.9,
+      "outcome": "PLACED_WITH_DCA"
+    },
+    {
+      "customer_id": "C2",
+      "date": "2022-12-11",
+      "event_type": "arrears_recovered",
+      "description": "DCA recovered GBP28.20 net of commission (20% recovery rate, 15% commission)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 165.9,
+      "outcome": "RECOVERED"
+    }
+  ]
 }

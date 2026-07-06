@@ -111,7 +111,8 @@
       "date": "2018-01-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 152.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 152.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 10.93p/kWh -> 6.83p/kWh"
     }
   ],
   "invoices": [
@@ -5811,5 +5812,127 @@
         ]
       }
     }
-  }
+  },
+  "reaction_chain": [
+    {
+      "customer_id": "C_IC1",
+      "date": "2018-01-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to IRRITATED (resentment score 18.0)",
+      "company_belief": null,
+      "sim_truth": 18.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2018-01-31",
+      "event_type": "retention_decision",
+      "description": "Renewal window: company estimated 95% churn risk, decided to offer a 8% discount (cost GBP24,227.89) against GBP163,704.65 expected term margin at risk -- expected value of offering GBP139,476.76.",
+      "company_belief": 0.95,
+      "sim_truth": 0.04,
+      "amount_gbp": 139476.76,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2018-01-31",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 95% churn risk at decision time, SIM realized probability was 4%.",
+      "company_belief": 0.95,
+      "sim_truth": 0.04,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2019-03-02",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 4.0)",
+      "company_belief": null,
+      "sim_truth": 4.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2019-03-02",
+      "event_type": "retention_decision",
+      "description": "Renewal window: company estimated 66% churn risk, decided to offer a 5% discount (cost GBP17,469.37) against GBP194,971.28 expected term margin at risk -- expected value of offering GBP177,501.91.",
+      "company_belief": 0.66,
+      "sim_truth": null,
+      "amount_gbp": 177501.91,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2020-03-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2021-04-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to IRRITATED (resentment score 18.0)",
+      "company_belief": null,
+      "sim_truth": 18.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2021-04-30",
+      "event_type": "retention_decision",
+      "description": "Renewal window: company estimated 38% churn risk, decided to offer a 3% discount (cost GBP8,446.52) against GBP158,250.95 expected term margin at risk -- expected value of offering GBP149,804.43.",
+      "company_belief": 0.375,
+      "sim_truth": null,
+      "amount_gbp": 149804.43000000002,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2022-05-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to IN_MARKET (resentment score 23.0)",
+      "company_belief": null,
+      "sim_truth": 23.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2022-05-30",
+      "event_type": "retention_decision",
+      "description": "Renewal window: company estimated 41% churn risk, decided to offer a 3% discount (cost GBP18,141.96) against GBP231,598.92 expected term margin at risk -- expected value of offering GBP213,456.96.",
+      "company_belief": 0.413,
+      "sim_truth": null,
+      "amount_gbp": 213456.96000000002,
+      "outcome": "retained"
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2023-06-29",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to COMPARING (resentment score 5.0)",
+      "company_belief": null,
+      "sim_truth": 5.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C_IC1",
+      "date": "2024-07-28",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to COMPARING (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    }
+  ]
 }

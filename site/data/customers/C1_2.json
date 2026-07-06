@@ -87,25 +87,29 @@
       "date": "2021-12-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 332.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 332.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 14.10p/kWh -> 14.69p/kWh"
     },
     {
       "date": "2022-12-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 265.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 265.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 34.72p/kWh -> 33.92p/kWh"
     },
     {
       "date": "2023-12-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 268.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 268.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 27.92p/kWh -> 27.93p/kWh"
     },
     {
       "date": "2024-12-29",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 253.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 253.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 28.49p/kWh -> 28.25p/kWh"
     }
   ],
   "invoices": [
@@ -1160,5 +1164,167 @@
       }
     ],
     "has_hh_data": false
-  }
+  },
+  "reaction_chain": [
+    {
+      "customer_id": "C1_2",
+      "date": "2021-12-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to IRRITATED (resentment score 18.0)",
+      "company_belief": null,
+      "sim_truth": 18.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2021-12-30",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 6% churn risk at decision time, SIM realized probability was 2%.",
+      "company_belief": 0.057,
+      "sim_truth": 0.017,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2022-07-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 147.1,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2022-07-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP147.10 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 147.1,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2022-08-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 147.1,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2022-08-28",
+      "event_type": "arrears_resolved",
+      "description": "Arrears cleared via payment plan",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 147.1,
+      "outcome": "RESOLVED"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2022-12-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 6.0)",
+      "company_belief": null,
+      "sim_truth": 6.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2022-12-30",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 4% churn risk at decision time, SIM realized probability was 4%.",
+      "company_belief": 0.035,
+      "sim_truth": 0.044,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2023-12-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2023-12-30",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 14% churn risk at decision time, SIM realized probability was 7%.",
+      "company_belief": 0.139,
+      "sim_truth": 0.067,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2024-08-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 129.97,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2024-08-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP129.97 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 129.97,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2024-09-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 129.97,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2024-09-28",
+      "event_type": "arrears_resolved",
+      "description": "Arrears cleared via payment plan",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 129.97,
+      "outcome": "RESOLVED"
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2024-12-29",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C1_2",
+      "date": "2024-12-29",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 14% churn risk at decision time, SIM realized probability was 8%.",
+      "company_belief": 0.141,
+      "sim_truth": 0.076,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    }
+  ]
 }

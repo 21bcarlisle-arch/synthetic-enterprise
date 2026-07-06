@@ -119,13 +119,15 @@
       "date": "2016-12-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 131.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 131.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 12.56p/kWh -> 12.64p/kWh"
     },
     {
       "date": "2017-12-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 123.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 123.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 13.84p/kWh -> 13.83p/kWh"
     },
     {
       "date": "2018-12-31",
@@ -137,49 +139,57 @@
       "date": "2019-12-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 127.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 127.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 15.65p/kWh -> 15.70p/kWh"
     },
     {
       "date": "2020-12-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 142.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 142.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 13.59p/kWh -> 13.92p/kWh"
     },
     {
       "date": "2021-08-17",
       "type": "life_event",
       "commodity": null,
-      "detail": "Boiler replaced"
+      "detail": "Boiler replaced",
+      "effect": "Usage moved -5% (avg 687 kWh/mo -> 650 kWh/mo)"
     },
     {
       "date": "2021-12-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 183.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 183.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 15.26p/kWh -> 15.42p/kWh"
     },
     {
       "date": "2022-12-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 305.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 305.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 19.76p/kWh -> 20.23p/kWh"
     },
     {
       "date": "2023-12-23",
       "type": "life_event",
       "commodity": null,
-      "detail": "New baby"
+      "detail": "New baby",
+      "effect": "Real downstream drift: income stress low -> moderate; late-payment rate 8% -> 58%"
     },
     {
       "date": "2023-12-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 244.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 244.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 32.44p/kWh -> 31.71p/kWh"
     },
     {
       "date": "2024-12-29",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 210.0 \u00a3/MWh"
+      "detail": "Tariff renewed at 210.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 26.64p/kWh -> 25.86p/kWh"
     }
   ],
   "invoices": [
@@ -6107,5 +6117,427 @@
         ]
       }
     }
-  }
+  },
+  "reaction_chain": [
+    {
+      "customer_id": "C7",
+      "date": "2016-12-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C7",
+      "date": "2016-12-31",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 11% churn risk at decision time, SIM realized probability was 5%.",
+      "company_belief": 0.111,
+      "sim_truth": 0.054,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2017-12-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C7",
+      "date": "2017-12-31",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 9% churn risk at decision time, SIM realized probability was 9%.",
+      "company_belief": 0.094,
+      "sim_truth": 0.089,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2018-12-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 18.0)",
+      "company_belief": null,
+      "sim_truth": 18.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C7",
+      "date": "2018-12-31",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 30% churn risk at decision time, SIM realized probability was 16%.",
+      "company_belief": 0.298,
+      "sim_truth": 0.161,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2019-12-31",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 6.0)",
+      "company_belief": null,
+      "sim_truth": 6.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C7",
+      "date": "2019-12-31",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 16% churn risk at decision time, SIM realized probability was 16%.",
+      "company_belief": 0.157,
+      "sim_truth": 0.163,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2020-12-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C7",
+      "date": "2020-12-30",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 11% churn risk at decision time, SIM realized probability was 12%.",
+      "company_belief": 0.106,
+      "sim_truth": 0.117,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2021-12-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 18.0)",
+      "company_belief": null,
+      "sim_truth": 18.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C7",
+      "date": "2021-12-30",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 11% churn risk at decision time, SIM realized probability was 7%.",
+      "company_belief": 0.114,
+      "sim_truth": 0.073,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2022-12-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 24.0)",
+      "company_belief": null,
+      "sim_truth": 24.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C7",
+      "date": "2022-12-30",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 6%.",
+      "company_belief": 0.075,
+      "sim_truth": 0.064,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-06-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 354.44,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-06-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP354.44 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 354.44,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-07-05",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 354.44,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-07-29",
+      "event_type": "arrears_resolved",
+      "description": "Arrears cleared via payment plan",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 354.44,
+      "outcome": "RESOLVED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-11-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 356.92,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-11-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP356.92 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 356.92,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-12-05",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 356.92,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-12-29",
+      "event_type": "arrears_resolved",
+      "description": "Arrears cleared via payment plan",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 356.92,
+      "outcome": "RESOLVED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-12-30",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 6.0)",
+      "company_belief": null,
+      "sim_truth": 6.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C7",
+      "date": "2023-12-30",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 13% churn risk at decision time, SIM realized probability was 10%.",
+      "company_belief": 0.134,
+      "sim_truth": 0.097,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2024-07-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 218.86,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2024-07-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP218.86 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 218.86,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2024-08-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 218.86,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2024-08-28",
+      "event_type": "arrears_resolved",
+      "description": "Arrears cleared via payment plan",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 218.86,
+      "outcome": "RESOLVED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2024-12-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 489.13,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2024-12-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP489.13 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 489.13,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2024-12-29",
+      "event_type": "journey_state",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "company_belief": null,
+      "sim_truth": 0.0,
+      "amount_gbp": null,
+      "outcome": null
+    },
+    {
+      "customer_id": "C7",
+      "date": "2024-12-29",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 17% churn risk at decision time, SIM realized probability was 11%.",
+      "company_belief": 0.17,
+      "sim_truth": 0.111,
+      "amount_gbp": null,
+      "outcome": "renewed"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-01-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 489.13,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-01-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 514.74,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-01-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP514.74 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 514.74,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-01-28",
+      "event_type": "arrears_resolved",
+      "description": "Arrears cleared via payment plan",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 489.13,
+      "outcome": "RESOLVED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-02-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 514.74,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-02-28",
+      "event_type": "arrears_resolved",
+      "description": "Arrears cleared via payment plan",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 514.74,
+      "outcome": "RESOLVED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-06-14",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 209.12,
+      "outcome": "DD_FAILED"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-06-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP209.12 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 209.12,
+      "outcome": "FIRST_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-07-05",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 209.12,
+      "outcome": "SECOND_NOTICE"
+    },
+    {
+      "customer_id": "C7",
+      "date": "2025-07-29",
+      "event_type": "arrears_resolved",
+      "description": "Arrears cleared via payment plan",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 209.12,
+      "outcome": "RESOLVED"
+    }
+  ]
 }
