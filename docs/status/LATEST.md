@@ -1,5 +1,5 @@
 ## Phase RQ COMPLETE -- NAV_STORY_PLATFORM_METHOD.md CLOSED IN FULL (PRIORITIES.md P1a-c ALL CLOSED)
-Last updated: 2026-07-06T17:42:54Z
+Last updated: 2026-07-06T17:54:38Z
 
 **Status:** COMPLETE. 15,856 tests collected, fast suite (15,732) clean. Epistemic: PASS.
 
@@ -31,7 +31,7 @@ docs/claude/phase-history.md and docs/PROJECT_OVERVIEW.md Section 4.
 not self-initiated without it.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (510s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (513s / 9 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
