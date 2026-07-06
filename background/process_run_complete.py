@@ -312,6 +312,12 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("capabilities.json generation failed: {}".format(exc))
     try:
+        from tools.generate_platform_data import generate as gen_platform
+        gen_platform()
+        log("Generated site/data/platform.json")
+    except Exception as exc:
+        log("platform.json generation failed: {}".format(exc))
+    try:
         from tools.generate_system_status import generate as gen_system_status
         gen_system_status()
         log("Generated site/data/system_status.json")
@@ -412,6 +418,20 @@ def git_commit_push(git_hash, net_margin):
     site_state_decision_log = PROJECT_DIR / "site" / "state" / "live_decisions_log.jsonl"
     if site_state_decision_log.exists():
         files.append(str(site_state_decision_log))
+    # Phase RO (NAV_STORY_PLATFORM_METHOD.md): site/index.html moved from the
+    # Supplier dashboard to the new Home/Story landing; the dashboard itself
+    # now lives at site/supplier/, and the new Platform section needs both its
+    # static page and its generated data file tracked here or they never get
+    # picked up by the auto-commit pipeline.
+    site_supplier_html = PROJECT_DIR / "site" / "supplier" / "index.html"
+    if site_supplier_html.exists():
+        files.append(str(site_supplier_html))
+    site_platform_html = PROJECT_DIR / "site" / "platform" / "index.html"
+    if site_platform_html.exists():
+        files.append(str(site_platform_html))
+    site_platform_json = PROJECT_DIR / "site" / "data" / "platform.json"
+    if site_platform_json.exists():
+        files.append(str(site_platform_json))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
     # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),

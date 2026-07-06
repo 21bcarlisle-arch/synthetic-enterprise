@@ -48,10 +48,10 @@ _TITLE_RE = re.compile(r"^### Phase\s+\S+(?:\s*\([^)]*\))?\s*--\s*(.+)$")
 _FINDING_RE = re.compile(r"KEY FINDING\b[^\n]*")
 
 _TEST_COUNT_RES = [
-    re.compile(r"\*\*Total:\*\*\s*([\d,]+)\s*tests"),
-    re.compile(r"([\d,]+)\s*collected"),
-    re.compile(r"([\d,]+)\s*tests?\s+passing"),
-    re.compile(r"\(([\d,]+)\+?\s*total\)"),
+    re.compile(r"\*\*Total:\*\*\s*(\d[\d,]*)\s*tests"),
+    re.compile(r"(\d[\d,]*)\s*collected"),
+    re.compile(r"(\d[\d,]*)\s*tests?\s+passing"),
+    re.compile(r"\((\d[\d,]*)\+?\s*total\)"),
 ]
 
 

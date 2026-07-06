@@ -5,7 +5,7 @@ SITE = Path(__file__).resolve().parents[2] / "site"
 
 
 def _html():
-    return (SITE / "index.html").read_text()
+    return (SITE / "supplier" / "index.html").read_text()
 
 
 def test_year_btns_helper_present():

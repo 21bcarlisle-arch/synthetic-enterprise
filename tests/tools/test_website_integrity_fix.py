@@ -4,7 +4,9 @@ staged in docs/staging/WEBSITE_INTEGRITY_AND_DESIGN.md Part A."""
 import json
 import inspect
 
-from tools.generate_dashboard_data import _load_build_info, _check_consistency, BUILD_INFO_PATH
+from tools.generate_dashboard_data import (
+    _load_build_info, _check_consistency, BUILD_INFO_PATH, count_company_modules,
+)
 
 
 def test_load_build_info_reads_file(tmp_path, monkeypatch):
@@ -14,7 +16,9 @@ def test_load_build_info_reads_file(tmp_path, monkeypatch):
     phase, count, modules = _load_build_info()
     assert phase == "ZZ"
     assert count == 99999
-    assert modules == 111
+    # company_modules is always the live repo count now (Phase RO fix) --
+    # build_info.json's own value is ignored to kill the RF-RN staleness drift.
+    assert modules == count_company_modules()
 
 
 def test_load_build_info_falls_back_when_missing(tmp_path, monkeypatch):
@@ -22,7 +26,7 @@ def test_load_build_info_falls_back_when_missing(tmp_path, monkeypatch):
     phase, count, modules = _load_build_info()
     assert phase == "OL"
     assert count == 15148
-    assert modules == 405
+    assert modules == count_company_modules()
 
 
 def test_load_build_info_falls_back_on_invalid_json(tmp_path, monkeypatch):
@@ -31,6 +35,18 @@ def test_load_build_info_falls_back_on_invalid_json(tmp_path, monkeypatch):
     monkeypatch.setattr("tools.generate_dashboard_data.BUILD_INFO_PATH", p)
     phase, count, modules = _load_build_info()
     assert phase == "OL"
+
+
+def test_count_company_modules_matches_independent_filesystem_scan():
+    import pathlib
+    project = pathlib.Path(__file__).resolve().parent.parent.parent
+    company_dir = project / "company"
+    expected = sum(
+        1 for p in company_dir.rglob("*.py")
+        if "__pycache__" not in p.parts and not p.name.startswith("test_")
+    )
+    assert count_company_modules() == expected
+    assert expected > 0
 
 
 def test_load_build_info_partial_file_uses_defaults_for_missing_keys(tmp_path, monkeypatch):

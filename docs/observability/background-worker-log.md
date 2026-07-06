@@ -2465,3 +2465,30 @@ Structured performance entries are added after each task completes.
 - [2026-07-06 10:41 UTC] run_queued_tasks: no parseable QUEUED task found
 - [2026-07-06 11:11 UTC] Found queued tasks — beginning execution
 - [2026-07-06 11:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-06 11:41 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-06 11:41 UTC] Processed run_complete_20260706T113151Z.md
+- [2026-07-06 11:41 UTC] Found queued tasks — beginning execution
+- [2026-07-06 11:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-06 12:11 UTC] Found queued tasks — beginning execution
+- [2026-07-06 12:11 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-06 12:41 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-06 12:41 UTC] Processed run_complete_20260706T123052Z.md
+- [2026-07-06 12:41 UTC] Found queued tasks — beginning execution
+- [2026-07-06 12:41 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-06 13:11 UTC] Found 2 leftover run_complete marker(s) — processing
+- [2026-07-06 13:13 UTC] Failed to process run_complete_20260706T124228Z.md (rc=1) — will retry next cycle
+- [2026-07-06 13:15 UTC] Failed to process run_complete_20260706T125416Z.md (rc=1) — will retry next cycle
+- [2026-07-06 13:15 UTC] Found queued tasks — beginning execution
+- [2026-07-06 13:15 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-06 13:45 UTC] Found 5 leftover run_complete marker(s) — processing
+- [2026-07-06 13:48 UTC] Processed run_complete_20260706T124228Z.md
+- [2026-07-06 13:48 UTC] Processed run_complete_20260706T125416Z.md
+- [2026-07-06 13:48 UTC] Processed run_complete_20260706T130556Z.md
+- [2026-07-06 13:48 UTC] Processed run_complete_20260706T131523Z.md
+- [2026-07-06 13:49 UTC] Processed run_complete_20260706T132659Z.md
+- [2026-07-06 13:49 UTC] Found queued tasks — beginning execution
+- [2026-07-06 13:49 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-06 14:19 UTC] Found queued tasks — beginning execution
+- [2026-07-06 14:19 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-06 14:49 UTC] Found queued tasks — beginning execution
+- [2026-07-06 14:49 UTC] run_queued_tasks: no parseable QUEUED task found

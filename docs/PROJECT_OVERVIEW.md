@@ -111,6 +111,37 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RO -- NAV_STORY_PLATFORM_METHOD.md P1: Home/Story landing + Platform section skeleton (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue P1c)
+
+Recovered a second interrupted prior session's work found sitting uncommitted at session start:
+`site/index.html` had already been rewritten from the Supplier dashboard into the new Home/Story
+landing (mission pitch, four headline metrics, a real test-progression learning-curve chart, the
+Three Products framing linking to Platform/Data-catalogue/Method, an Explore entry grid) -- the
+old dashboard content moved intact to new `site/supplier/index.html`. A new `site/platform/index.html`
+(The Software: architecture layers, company-domain module map, adapter registry, synthetic data
+catalogue) had also been built, backed by a new `tools/generate_platform_data.py` that computes
+every count fresh from the repo filesystem or live-generated artifacts at generation time (module
+counts via `_count_py`/`_company_domain_counts`, adapter `file_exists` checks, catalogue file
+sizes/counts) -- nothing hand-typed that can drift stale. This session's job was verification,
+finishing the wiring, and closing it out: confirmed `site/index.html`'s nav and all cross-links from
+`sim/customers/project` point correctly to `../supplier/` and `../platform/`; found and fixed a real
+staleness bug en route (`tools/generate_dashboard_data.py`'s `company_modules` count was a hand-typed
+constant that had drifted stale for phases RF-RN -- replaced with `count_company_modules()`, a live
+filesystem scan, matching the fix `generate_platform_data.py` already required); wired
+`generate_platform_data.generate()` into `process_run_complete.py`'s per-run regeneration and added
+`site/supplier/index.html`, `site/platform/index.html`, and `site/data/platform.json` to its
+auto-commit file list so they are never silently dropped from future run-complete commits (the
+same class of gap Phase RI found and fixed for the Customer 360 frontend diff). Also fixed
+`generate_phases_json.py`'s test-count regexes to require at least one leading digit (`\d[\d,]*`
+instead of `[\d,]*`), preventing a bare comma match. Verified live: fast suite 15,694 passed
+(15,818 collected), epistemic verifier PASS (478 files, no violations), and a background
+`process_run_complete.py` run mid-session confirmed `platform.json` regenerates correctly end to
+end from real dashboard/company-tree data. Per NAV_STORY_PLATFORM_METHOD.md's own sequencing
+("Home/Story + Platform skeleton first ... Method second ... Project slim-down last"), this closes
+step 1 only -- the METHOD section (operating-model diagram, R1-R6 rules with their forging
+incidents, live staging-loop view, retro library) and the PROJECT tab slim-down (Company sub-tab
+-> Method, Capabilities sub-tab -> Platform) remain queued as the next phase.
+
 ### Phase RN -- Billing Tab regression fix, closed-account UX (2026-07-06, Tier 2 -- Rich live bug report via advisor bridge, docs/staging/done/BILLING_TAB_FIX.md)
 
 Rich reported live that the Customer 360 portal's Billing tab was broken ("portal otherwise
@@ -6158,7 +6189,13 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,806 tests collected; 6 new this phase (tests/tools/test_billing_tab_fix.py)
+- 15,818 tests collected; 8 new this phase (tests/tools/test_generate_platform_data.py + count_company_modules regression test)
+- Phase RO (2026-07-06): NAV_STORY_PLATFORM_METHOD.md P1 -- Home/Story landing (site/index.html) +
+  Platform section (site/platform/index.html, tools/generate_platform_data.py) shipped; old
+  dashboard moved to site/supplier/index.html; company_modules staleness bug fixed
+  (tools/generate_dashboard_data.py::count_company_modules, live filesystem count replacing a
+  hand-typed constant that had drifted since Phase RF). 15,694 fast-suite tests pass, epistemic
+  PASS. See Section 4.
 - Phase RN (2026-07-06): Billing Tab regression fix -- Rich live bug report, root cause was an undeclared EXPANDED_BILL_ID throwing a ReferenceError on every Billing tab render (site/customers/index.html), silently emptying the bill list; plus closed-account UX (real churn date + final invoice id). 15,682 fast-suite tests pass, epistemic PASS. See Section 4.
 - Phase RM (2026-07-06): SUPPLIER_TAB_OVERHAUL.md P1b remaining scope CLOSED -- portfolio event stream spine (site/index.html Event Stream tab + tools/generate_portfolio_event_stream.py), Recommended Actions elevated to Overview, heatmap click-through to customer 360 (site/customers/index.html ?acc=&year= deep-linking). 15,676 fast-suite tests pass, epistemic PASS. See Section 4.
 - Phase RL (2026-07-06): CUSTOMER_360_REDESIGN.md v4 items 3-4 -- real event effects (renewal

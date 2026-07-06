@@ -23,26 +23,44 @@ RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT / "docs" / "observability" / "run_history.json"
 BUILD_INFO_PATH = PROJECT / "docs" / "observability" / "build_info.json"
 
-# Fallback only -- canonical values live in build_info.json, updated at phase
-# close (CLAUDE.md phase-close checklist step 1) so this page never bakes in
-# a stale phase/test-count label.
+# Fallback only -- canonical phase/test-count values live in build_info.json,
+# updated at phase close (CLAUDE.md phase-close checklist step 1) so this page
+# never bakes in a stale phase/test-count label.
 _BUILD_PHASE = "OL"
 _BUILD_TEST_COUNT = 15148
-_BUILD_COMPANY_MODULES = 405
+
+
+def count_company_modules():
+    """Live count of company/*.py modules -- never manually maintained.
+
+    build_info.json's company_modules field drifted stale for 5+ consecutive
+    phases (RF-RN) because the phase-close checklist step that updates it kept
+    getting skipped. Since this number is mechanically derivable (unlike
+    phase/test_count, which track git/pytest history), computing it fresh here
+    removes the manual-update step -- and the drift -- entirely.
+    """
+    company_dir = PROJECT / "company"
+    if not company_dir.exists():
+        return 0
+    return sum(
+        1 for p in company_dir.rglob("*.py")
+        if "__pycache__" not in p.parts and not p.name.startswith("test_")
+    )
 
 
 def _load_build_info():
+    company_modules = count_company_modules()
     if BUILD_INFO_PATH.exists():
         try:
             info = json.loads(BUILD_INFO_PATH.read_text())
             return (
                 info.get("phase", _BUILD_PHASE),
                 info.get("test_count", _BUILD_TEST_COUNT),
-                info.get("company_modules", _BUILD_COMPANY_MODULES),
+                company_modules,
             )
         except (json.JSONDecodeError, ValueError):
             pass
-    return _BUILD_PHASE, _BUILD_TEST_COUNT, _BUILD_COMPANY_MODULES
+    return _BUILD_PHASE, _BUILD_TEST_COUNT, company_modules
 
 
 # ---------------------------------------------------------------------------
