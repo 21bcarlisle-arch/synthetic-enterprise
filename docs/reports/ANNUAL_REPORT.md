@@ -1562,6 +1562,24 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 > effective churn after the passive cap is ~11%. A separate passive loyalty programme
 > would be needed to recover these departures.
 
+### Episode-Level Recall (credits catches before departure)
+
+The table above scores every renewal in isolation, so a customer correctly
+flagged and saved by a retention offer, whose risk signal later decays before
+they eventually churn at a subsequent renewal, is counted as both a false
+positive (at the save) and a false negative (at the eventual departure) --
+the same real catch penalised twice. Episode-level recall instead asks: did
+the model ever flag this customer, at any renewal, before they left?
+
+| Metric | Value |
+|--------|-------|
+| Churners | 6 |
+| Caught before departure (any renewal) | 5 |
+| Never flagged | 1 |
+| **Episode recall** | **83.3%** |
+| Decayed after a prior save | 5 |
+| Prevented-churn saves (retention offers that worked) | 14 |
+
 ### Per-Year Model Performance
 
 | Year | TP | FP | FN | TN | Recall | Precision |
@@ -1592,7 +1610,7 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-06T19:53:16Z
+Generated: 2026-07-06T20:04:34Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
