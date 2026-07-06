@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys — Supplier Dashboard</title>
+<meta name="description" content="Live supplier dashboard for the Synthetic Enterprise autonomous energy simulation">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://poesys.net/supplier/">
+<meta property="og:title" content="Poesys Supplier Dashboard">
+<meta property="og:url" content="https://poesys.net/supplier/">
+<meta property="og:description" content="Synthetic Enterprise autonomous energy simulation -- supplier dashboard">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; height: 40px; gap: 4px; }
+.site-nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 12px; font-size: 14px; }
+.site-nav-link { color: var(--muted); text-decoration: none; padding: 4px 10px; border-radius: 5px; font-size: 12px; }
+.site-nav-link:hover { color: var(--text); background: var(--surface2); }
+.site-nav-link.dim { opacity: 0.4; cursor: default; pointer-events: none; }
+:root {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --purple: #4a3aa7; --teal: #1baf7a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+/* ── Header ── */
+header { position: sticky; top: 0; z-index: 100; background: var(--bg);
+  border-bottom: 1px solid var(--border); padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; }
+.logo span { color: var(--blue); }
+.run-meta { font-size: 11px; color: var(--muted); text-align: right; line-height: 1.4; }
+.run-meta a { color: var(--blue); text-decoration: none; }
+.badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.badge-green { background: rgba(12,163,12,.15); color: var(--green); border: 1px solid rgba(12,163,12,.3); }
+.badge-amber { background: rgba(250,178,25,.15); color: var(--amber); border: 1px solid rgba(250,178,25,.3); }
+.badge-red { background: rgba(208,59,59,.15); color: var(--red); border: 1px solid rgba(208,59,59,.3); }
+
+/* ── Group + tab nav ── */
+.group-nav { display: flex; background: var(--surface2); border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none; position: sticky; top: 53px; z-index: 99; }
+.group-nav::-webkit-scrollbar { display: none; }
+.group-btn { flex: 1; min-width: 84px; padding: 9px 6px; background: none; border: none;
+  color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .3px; cursor: pointer; border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: color .15s; }
+.group-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+.group-btn:hover { color: var(--text); }
+.tab-nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none; position: sticky; top: 91px; z-index: 98; }
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn { flex: 1; min-width: 70px; padding: 10px 6px; background: none; border: none;
+  color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer;
+  border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s; }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--blue); }
+.tab-btn:hover { color: var(--text); }
+.tab-nav.subnav-hidden { display: none; }
+
+/* ── Query FAB + slide-over panel ── */
+.query-fab { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px;
+  border-radius: 50%; background: var(--blue); color: #fff; border: none; font-size: 20px;
+  cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,.2); z-index: 200;
+  display: flex; align-items: center; justify-content: center; }
+.query-fab:hover { background: #1e5fb0; }
+.query-panel { position: fixed; top: 0; right: -420px; width: 400px; max-width: 92vw; height: 100%;
+  background: var(--bg); border-left: 1px solid var(--border); box-shadow: -4px 0 16px rgba(0,0,0,.12);
+  z-index: 300; transition: right .25s ease; overflow-y: auto; }
+.query-panel.open { right: 0; }
+.query-panel-header { position: sticky; top: 0; background: var(--surface);
+  border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex;
+  justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; }
+.query-panel-header button { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--muted); }
+.query-content { padding: 14px; }
+
+/* ── Main content ── */
+main { padding: 16px; max-width: 960px; margin: 0 auto; padding-bottom: 32px; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── Sections ── */
+.section { margin-bottom: 24px; }
+.section-title { font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--muted); margin-bottom: 10px; }
+
+/* ── Metric cards ── */
+.cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-bottom: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 14px 10px; }
+.card-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 5px; }
+.card-value { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
+.card-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.pos { color: var(--green); } .neg { color: var(--red); }
+.neu { color: var(--blue); } .warn { color: var(--amber); }
+
+/* ── Chart containers ── */
+.chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.chart-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 12px; }
+.chart-wrap { position: relative; height: 240px; }
+.chart-wrap.tall { height: 300px; }
+
+/* ── Tables ── */
+.tbl-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+.tbl-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); padding: 12px 14px 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { padding: 6px 10px; text-align: right; color: var(--muted); font-weight: 500; font-size: 10px;
+     text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid var(--border); }
+th:first-child { text-align: left; }
+td { padding: 5px 10px; text-align: right; border-bottom: 1px solid rgba(225,224,217,.5); }
+td:first-child { text-align: left; font-weight: 500; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+
+/* ── Heatmap ── */
+.heatmap-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.heatmap { display: grid; gap: 2px; width: max-content; padding: 2px; }
+.hm-row { display: contents; }
+.hm-cell { padding: 4px 6px; font-size: 10px; border-radius: 3px; text-align: center; min-width: 44px; cursor: default; }
+a.hm-cell { display: block; text-decoration: none; color: inherit; cursor: pointer; }
+a.hm-cell:hover { outline: 2px solid var(--blue); outline-offset: -2px; }
+.ev-filter-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.ev-filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
+#event-stream-table tr[data-etype] { cursor: pointer; }
+#event-stream-table tr[data-etype]:hover td { background: rgba(42,120,214,.06); }
+.ev-summary { max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev-summary.ev-expanded { max-width: none; white-space: normal; }
+.hm-label { background: none; color: var(--muted); font-weight: 600; text-align: left; min-width: 56px; }
+.hm-year-hdr { background: none; color: var(--muted); font-size: 10px; font-weight: 600; }
+.hm-great { background: #d7f3d1; color: #046b04; }
+.hm-good  { background: #e3f6e0; color: #0ca30c; }
+.hm-ok    { background: #eef2ea; color: #4c7a4c; }
+.hm-nil   { background: #f0efec; color: var(--muted); }
+.hm-warn  { background: #fef0d1; color: #a66a00; }
+.hm-poor  { background: #fbe4d8; color: #b84f28; }
+.hm-bad   { background: #fbe7e7; color: #d03b3b; }
+
+/* ── Event list ── */
+.event-list { list-style: none; display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; }
+.ev-item { display: flex; align-items: baseline; gap: 8px; font-size: 12px; padding: 4px 0;
+  border-bottom: 1px solid rgba(225,224,217,.4); }
+.ev-item:last-child { border-bottom: none; }
+.ev-date { color: var(--muted); font-size: 11px; min-width: 82px; }
+.ev-tag { padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+.tag-churned   { background: rgba(208,59,59,.2); color: var(--red); }
+.tag-renewed   { background: rgba(12,163,12,.12); color: var(--green); }
+.tag-retention { background: rgba(250,178,25,.2); color: var(--amber); }
+.tag-acquired  { background: rgba(42,120,214,.15); color: var(--blue); }
+
+/* ── Loading ── */
+#loading { padding: 40px; text-align: center; color: var(--muted); }
+
+/* ── System health panel ── */
+.agent-grid { display: flex; flex-direction: column; gap: 8px; }
+.agent-row { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: start; }
+.agent-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.dot-green  { background: var(--green); box-shadow: 0 0 4px var(--green); }
+.dot-amber  { background: var(--amber); box-shadow: 0 0 4px var(--amber); }
+.dot-red    { background: var(--red);   box-shadow: 0 0 4px var(--red); }
+.dot-grey   { background: var(--muted); }
+.agent-body {}
+.agent-name { font-weight: 600; font-size: 13px; }
+.agent-role { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.agent-action { font-size: 11px; color: var(--text); margin-top: 5px; }
+.agent-anomaly { font-size: 11px; color: var(--red); margin-top: 3px; }
+.agent-ts { font-size: 10px; color: var(--muted); white-space: nowrap; padding-top: 3px; }
+.status-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-left: 6px; }
+.sb-running { background: rgba(12,163,12,.15); color: var(--green); }
+.sb-idle    { background: rgba(82,81,78,.12); color: var(--muted); }
+.sb-working { background: rgba(42,120,214,.15); color: var(--blue); }
+.sb-error   { background: rgba(208,59,59,.15); color: var(--red); }
+
+@media (min-width: 600px) {
+  .cards { grid-template-columns: repeat(4, 1fr); }
+  .chart-wrap { height: 260px; }
+  .chart-wrap.tall { height: 340px; }
+}
+.year-btns{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 8px}
+.year-btn{background:#fcfcfb;border:1px solid #e1e0d9;color:#52514e;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit}
+.year-btn:hover{border-color:#2a78d6;color:#0b0b0b}
+.year-btn.active{background:#dbe9f9;border-color:#2a78d6;color:#2a78d6;font-weight:600}
+.query-input{width:100%;background:#f9f9f7;border:1px solid #e1e0d9;color:#0b0b0b;padding:9px 12px;
+  border-radius:6px;font-size:13px;font-family:inherit;outline:none}
+.query-input:focus{border-color:#2a78d6}
+.query-submit{background:#dbe9f9;border:1px solid #2a78d6;color:#2a78d6;padding:9px 18px;
+  border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.query-submit:hover{background:#cde2fb}
+.query-submit:disabled{opacity:.5;cursor:not-allowed}
+.query-example{background:#fcfcfb;border:1px solid #e1e0d9;color:#52514e;padding:3px 10px;
+  border-radius:4px;font-size:11px;cursor:pointer;font-family:inherit}
+.query-example:hover{border-color:#2a78d6;color:#0b0b0b}
+.query-bubble{background:#fcfcfb;border:1px solid #e1e0d9;border-radius:6px;padding:14px;margin-bottom:10px}
+.query-q{font-size:13px;font-weight:600;color:#2a78d6;margin-bottom:8px}
+.query-a{font-size:13px;line-height:1.65;white-space:pre-wrap}
+.query-err{font-size:12px;color:#d03b3b}
+.spotlight{background:#fcfcfb;border:1px solid #e1e0d9;border-radius:6px;padding:16px;margin-top:12px}
+.sp-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.sp-kpi .val{font-size:16px;font-weight:700;margin-top:2px}
+.sp-kpi .lbl{color:#52514e;font-size:11px}
+.kpi-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 14px 10px;flex:1;min-width:120px}
+.view-header{margin-bottom:16px}
+.view-header h2{font-size:16px;font-weight:600;margin-bottom:6px}
+.view-sub{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.section-head{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:16px 0 8px}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="../" class="site-nav-logo">&#9889; Poesys</a>
+  <a href="../" class="site-nav-link">Home</a>
+  <a href="../sim/" class="site-nav-link">SIM</a>
+  <a href="./" class="site-nav-link" style="color:var(--text)">Supplier</a>
+  <a href="../customers/" class="site-nav-link">Customers</a>
+  <a href="../platform/" class="site-nav-link">Platform</a>
+  <a href="../project/" class="site-nav-link">Project</a>
+</nav>
+
+<header>
+  <div class="logo">Poesys<span>.</span>net</div>
+  <div class="run-meta" id="run-meta">Loading…</div>
+</header>
+
+<nav class="group-nav" id="group-nav"></nav>
+<nav class="tab-nav" id="tab-nav"></nav>
+
+<main>
+  <div id="loading">Loading dashboard data…</div>
+
+  <div id="tab-overview"  class="view active"></div>
+  <div id="tab-financial" class="view"></div>
+  <div id="tab-accounts"  class="view"></div>
+  <div id="tab-trading"   class="view"></div>
+  <div id="tab-events"    class="view"></div>
+  <div id="tab-customers" class="view"></div>
+  <div id="tab-insights"  class="view"></div>
+  <div id="tab-monthly"   class="view"></div>
+  <div id="tab-market"    class="view"></div>
+  <div id="tab-regulatory" class="view"></div>
+</main>
+
+<button class="query-fab" onclick="toggleQueryPanel()" title="Ask the data">💬</button>
+<div class="query-panel" id="query-panel">
+  <div class="query-panel-header"><span>Ask the Data</span><button onclick="toggleQueryPanel()">✕</button></div>
+  <div id="tab-query" class="query-content"></div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const C = {
+  bg:'#f9f9f7', surface:'#fcfcfb', border:'#e1e0d9', text:'#0b0b0b',
+  muted:'#52514e', green:'#0ca30c', red:'#d03b3b', amber:'#fab219',
+  blue:'#2a78d6', purple:'#4a3aa7', teal:'#1baf7a'
+};
+
+Chart.defaults.color = C.muted;
+Chart.defaults.borderColor = C.border;
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+Chart.defaults.font.size = 11;
+
+// ── State ───────────────────────────────────────────────────────────────────
+let D = null;
+const rendered = {};
+let YEAR_FILTER = null;
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+const gbp = (v, d=0) => {
+  const n = Math.abs(v);
+  const s = n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(0)+'k' : n.toFixed(d);
+  return (v < 0 ? '-' : '') + '£' + s;
+};
+const pct = (v, d=1) => (v >= 0 ? '+' : '') + v.toFixed(d) + '%';
+const cls = v => v > 0 ? 'pos' : v < 0 ? 'neg' : 'neu';
+const el = id => document.getElementById(id);
+const mkChart = (id, cfg) => {
+  const existing = Chart.getChart(id);
+  if (existing) existing.destroy();
+  return new Chart(document.getElementById(id), cfg);
+};
+
+function kpi(label, value, _unused, sub) {
+  return '<div class="kpi-card"><div class="card-label">' + label + '</div>' +
+    '<div class="card-value">' + value + '</div>' +
+    (sub ? '<div class="card-sub">' + sub + '</div>' : '') +
+    '</div>';
+}
+
+function card(label, value, sub='', klass='neu') {
+  return `<div class="card"><div class="card-label">${label}</div>
+    <div class="card-value ${klass}">${value}</div>
+    ${sub ? `<div class="card-sub">${sub}</div>` : ''}</div>`;
+}
+
+function yearBtnsHtml() {
+  const ALL_YRS = [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+  return '<div class="year-btns">' +
+    ALL_YRS.map(function(y) { return '<button class="year-btn' + (YEAR_FILTER===y?' active':'') + '" data-yr="' + y + '" onclick="selectYear(' + y + ')">' + y + '</button>'; }).join('') +
+    '<button class="year-btn' + (YEAR_FILTER===null?' active':'') + '" onclick="selectYear(null)">All</button>' +
+    '</div>';
+}
+
+function baseLineOpts(title) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
+               title: { display: false }, tooltip: { mode: 'index', intersect: false } },
+    scales: {
+      x: { grid: { color: 'rgba(225,224,217,.4)' }, ticks: { maxRotation: 45 } },
+      y: { grid: { color: 'rgba(225,224,217,.4)' } }
+    }
+  };
+}
+
+// ── Tab switching ────────────────────────────────────────────────────────────
+const GROUPS = [
+  { id: 'performance', label: 'Performance', tabs: ['overview','financial','accounts'] },
+  { id: 'commercial',  label: 'Commercial',  tabs: ['events','customers'] },
+  { id: 'trading',     label: 'Trading & Market', tabs: ['trading','market'] },
+  { id: 'operations',  label: 'Operations',  tabs: ['monthly','insights'] },
+  { id: 'governance',  label: 'Governance',  tabs: ['regulatory'] },
+];
+const TAB_LABEL = { overview:'Overview', financial:'Financial', accounts:'Accounts',
+  customers:'Customers', events:'Event Stream', trading:'Trading', market:'Market', monthly:'Monthly',
+  insights:'Insights', regulatory:'Regulatory' };
+let CURRENT_TAB = 'overview';
+let ACTIVE_GROUP = 'performance';
+const groupOf = tab => GROUPS.find(g => g.tabs.includes(tab)).id;
+
+function renderGroupNav() {
+  el('group-nav').innerHTML = GROUPS.map(g =>
+    `<button class="group-btn${g.id===ACTIVE_GROUP?' active':''}" data-group="${g.id}" onclick="switchGroup('${g.id}')">${g.label}</button>`
+  ).join('');
+}
+
+function renderSubNav() {
+  const g = GROUPS.find(x => x.id === ACTIVE_GROUP);
+  const nav = el('tab-nav');
+  if (g.tabs.length <= 1) { nav.classList.add('subnav-hidden'); nav.innerHTML = ''; return; }
+  nav.classList.remove('subnav-hidden');
+  nav.innerHTML = g.tabs.map(t =>
+    `<button class="tab-btn${t===CURRENT_TAB?' active':''}" data-tab="${t}" onclick="switchTab('${t}')">${TAB_LABEL[t]}</button>`
+  ).join('');
+}
+
+function switchGroup(gid) {
+  const g = GROUPS.find(x => x.id === gid);
+  switchTab(g.tabs[0]);
+}
+
+function switchTab(name) {
+  CURRENT_TAB = name;
+  ACTIVE_GROUP = groupOf(name);
+  renderGroupNav();
+  renderSubNav();
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  el('tab-' + name).classList.add('active');
+  if (!rendered[name]) { renderTab(name); if (D) rendered[name] = true; }
+}
+
+function toggleQueryPanel() {
+  const panel = el('query-panel');
+  const willOpen = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if (willOpen && !rendered['query']) { renderQuery(); rendered['query'] = true; }
+}
+
+function renderTab(name) {
+  if (!D) return;
+  if (name === 'overview')  renderOverview();
+  if (name === 'financial') renderFinancial();
+  if (name === 'accounts')  renderAccounts();
+  if (name === 'trading')   renderTrading();
+  if (name === 'events')    renderEvents();
+  if (name === 'customers') renderCustomers();
+  if (name === 'insights')  renderInsights();
+  if (name === 'monthly')   renderMonthly();
+  if (name === 'query')     renderQuery();
+  if (name === 'market')    renderMarket();
+  if (name === 'regulatory') renderRegulatory();
+}
+
+function ageLabel(ts) {
+  if (!ts) return 'unknown';
+  const secs = (Date.now() - new Date(ts).getTime()) / 1000;
+  if (secs < 120)   return Math.round(secs) + 's ago';
+  if (secs < 3600)  return Math.round(secs/60) + 'm ago';
+  if (secs < 86400) return (secs/3600).toFixed(1) + 'h ago';
+  return (secs/86400).toFixed(1) + 'd ago';
+}
+
+function ageDot(ts, status) {
+  if (!ts) return 'dot-grey';
+  const hours = (Date.now() - new Date(ts).getTime()) / 3600000;
+  if (status === 'error') return 'dot-red';
+  if (hours > 6) return 'dot-red';
+  if (hours > 1) return 'dot-amber';
+  return 'dot-green';
+}
+
+
+// ── Header ───────────────────────────────────────────────────────────────────
+function updateHeader() {
+  const m = D.meta;
+  const p = D.portfolio;
+  const netCls = p.net_margin_gbp >= 0 ? 'color:' + C.green : 'color:' + C.red;
+  el('run-meta').innerHTML =
+    `<span style="${netCls};font-weight:700">${gbp(p.net_margin_gbp)} net</span> &nbsp;·&nbsp; ` +
+    `<span class="badge badge-green">Live</span>`;
+}
+
+
+// -- Year Spotlight --
+function selectYear(yr) {
+  YEAR_FILTER = (YEAR_FILTER === yr) ? null : yr;
+  document.querySelectorAll('.year-btn').forEach(function(b) {
+    if (b.dataset.yr) {
+      b.classList.toggle('active', parseInt(b.dataset.yr) === YEAR_FILTER);
+    } else {
+      b.classList.toggle('active', YEAR_FILTER === null);
+    }
+  });
+  const sp = document.getElementById('year-spotlight');
+  if (sp) renderSpotlight(sp);
+  ['financial', 'trading', 'customers'].forEach(function(tab) {
+    delete rendered[tab];
+    if (el('tab-' + tab).classList.contains('active')) {
+      renderTab(tab); rendered[tab] = true;
+    }
+  });
+}
+
+function renderSpotlight(container) {
+  if (!YEAR_FILTER) { container.innerHTML = ''; return; }
+  const yr = YEAR_FILTER;
+  const fa = D.financial.annual.find(r => r.year == yr) || {};
+  const ba = (D.customers.book_annual || []).find(r => r.year == yr) || {};
+  const ha = (D.trading.hedge_annual || []).find(r => r.year == yr) || {};
+  const isCrisis = yr === 2021 || yr === 2022;
+  const crBadge = isCrisis ? '<span style="background:#fbe7e7;color:#d03b3b;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:8px">CRISIS YEAR</span>' : '';
+  const ncls = (fa.net_gbp||0) >= 0 ? 'pos' : 'neg';
+  const kpi = (lbl, val) => '<div class="sp-kpi"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div></div>';
+  container.innerHTML = '<div class="spotlight">' +
+    '<div class="sp-title">' + yr + ' Year Spotlight' + crBadge + '</div>' +
+    '<div class="sp-grid">' +
+    kpi('Net Margin', '<span class="' + ncls + '">' + gbp(fa.net_gbp||0) + '</span>') +
+    kpi('Gross Margin', gbp(fa.gross_gbp||0)) +
+    kpi('Revenue', gbp(fa.revenue_gbp||0)) +
+    kpi('Treasury (end)', gbp(fa.treasury_end_gbp||0)) +
+    kpi('Bill Shocks', '<span style="color:var(--amber)">' + (ba.bill_shock_count||0) + '</span>') +
+    kpi('Worst Shock', '<span style="color:var(--amber)">' + (ba.worst_shock_pct||0).toFixed(0) + '%</span>') +
+    kpi('Active Elec', ba.active_elec||'-') +
+    kpi('Avg Hedge %', ((ha.avg_hf||0)*100).toFixed(0) + '%') +
+    '</div></div>';
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+function goToInsightsEvidence() { switchTab('insights'); }
+
+function renderBoardActionsBlock() {
+  var ins = D.insights;
+  if (!ins || !ins.recommended_actions || !ins.recommended_actions.length) return '';
+  var items = ins.recommended_actions.map(function(a, idx) {
+    return '<div style="font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:12px;align-items:center">' +
+      '<span><span style="color:var(--amber);font-weight:600">' + (idx+1) + '.</span> ' + a + '</span>' +
+      '<button class="tab-btn" style="white-space:nowrap;flex-shrink:0" onclick="goToInsightsEvidence()">View evidence &rarr;</button>' +
+      '</div>';
+  }).join('');
+  return '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--amber);padding-left:16px">' +
+    '<div class="chart-title" style="margin-bottom:8px">What the Board Should Do Next</div>' +
+    items +
+    '</div>';
+}
+
+function renderOverview() {
+  const p = D.portfolio;
+  const fa = D.financial.annual;
+
+  el('tab-overview').innerHTML = `
+    <div class="cards">
+      ${card('Net Margin', gbp(p.net_margin_gbp), '10-year total', cls(p.net_margin_gbp))}
+      ${card('Gross Margin', gbp(p.gross_margin_gbp), 'wholesale spread', cls(p.gross_margin_gbp))}
+      ${card('Enterprise Value', gbp(p.enterprise_value_gbp), 'CLV − acq cost', cls(p.enterprise_value_gbp))}
+      ${card('Treasury', gbp(p.treasury_end_gbp), `from ${gbp(p.treasury_start_gbp)}`, 'neu')}
+      ${card('Retention', `${p.retention_retained}/${p.retention_offers}`, `${p.churn_count} accounts churned`, 'neu')}
+      ${card('Committee', p.committee_interventions_total.toLocaleString(), `${p.bills_total.toLocaleString()} bills`, 'neu')}
+    </div>
+    ${renderBoardActionsBlock()}
+    <div class="chart-box">
+      <div class="chart-title">Treasury 2016–2025</div>
+      <div class="chart-wrap"><canvas id="ch-treasury"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Net Margin by Year</div>
+      <div class="chart-wrap"><canvas id="ch-overview-net"></canvas></div>
+    </div>
+    <div style="margin-top:16px">
+      <div class="section-title">Year Spotlight</div>
+      <div class="year-btns" id="year-btns"></div>
+      <div id="year-spotlight"></div>
+    </div>`;
+
+  const yrs = fa.map(r => r.year);
+
+  mkChart('ch-treasury', {
+    type: 'line',
+    data: {
+      labels: yrs,
+      datasets: [{
+        label: 'Treasury (£)', data: fa.map(r => r.treasury_end_gbp),
+        borderColor: C.blue, backgroundColor: 'rgba(42,120,214,.08)',
+        fill: true, tension: 0.3, pointRadius: 3
+      }]
+    },
+    options: { ...baseLineOpts(), scales: { x: { grid:{color:'rgba(225,224,217,.4)'} },
+      y: { grid:{color:'rgba(225,224,217,.4)'}, ticks:{callback:v=>gbp(v)} } } }
+  });
+
+  mkChart('ch-overview-net', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [{
+        label: 'Net Margin (£)',
+        data: fa.map(r => r.net_gbp),
+        backgroundColor: fa.map(r => r.net_gbp >= 0 ? 'rgba(12,163,12,.7)' : 'rgba(208,59,59,.7)'),
+        borderRadius: 3
+      }]
+    },
+    options: { ...baseLineOpts(), scales: { x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>gbp(v)},
+         plugins:{legend:{display:false}}} } }
+  });
+
+  var ALL_YRS = [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+  var yb = document.getElementById('year-btns');
+  if (yb) {
+    yb.innerHTML = ALL_YRS.map(function(y) {
+      return '<button class="year-btn' + (YEAR_FILTER===y?' active':'') + '" data-yr="' + y + '" onclick="selectYear(' + y + ')">' + y + '</button>';
+    }).join('') +
+    '<button class="year-btn' + (YEAR_FILTER===null?' active':'') + '" onclick="selectYear(null)">All</button>';
+  }
+  var spEl = document.getElementById('year-spotlight');
+  if (spEl) renderSpotlight(spEl);
+}
+
+// ── FINANCIAL ────────────────────────────────────────────────────────────────
+function renderFinancial() {
+  const faAll = D.financial.annual;
+  const fa = YEAR_FILTER ? faAll.filter(r => r.year === YEAR_FILTER) : faAll;
+  const ld = D.financial.ledger;
+  const yrs = fa.map(r => r.year);
+
+  el('tab-financial').innerHTML = yearBtnsHtml() + `
+    <div class="chart-box">
+      <div class="chart-title">Annual P&amp;L Components</div>
+      <div class="chart-wrap tall"><canvas id="ch-pnl-stack"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Electricity vs Gas Gross Margin</div>
+      <div class="chart-wrap"><canvas id="ch-commodity"></canvas></div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">10-Year Ledger Summary</div>
+      <table>
+        <tr><th>Item</th><th>£</th></tr>
+        <tr><td>Revenue billed</td><td>${gbp(ld.revenue_gbp)}</td></tr>
+        <tr><td>Wholesale cost</td><td class="neg">${gbp(ld.wholesale_cost_gbp)}</td></tr>
+        <tr><td>Gross margin</td><td class="${cls(ld.gross_margin_gbp)}">${gbp(ld.gross_margin_gbp)}</td></tr>
+        <tr><td>Capital charges</td><td class="neg">${gbp(ld.capital_cost_gbp)}</td></tr>
+        <tr><td>Non-commodity costs</td><td class="neg">${gbp(ld.non_commodity_cost_gbp)}</td></tr>
+        <tr><td>Bad debt</td><td class="neg">${gbp(ld.bad_debt_gbp)}</td></tr>
+        <tr><td>VAT remittance</td><td class="neg">${gbp(ld.vat_remittance_gbp)}</td></tr>
+        <tr><td>Acquisition spend</td><td class="neg">${gbp(ld.acquisition_spend_gbp)}</td></tr>
+        <tr><td>Fixed costs</td><td class="neg">${gbp(ld.fixed_cost_gbp)}</td></tr>
+        <tr><td><strong>Net margin</strong></td><td class="${cls(ld.net_margin_gbp)}"><strong>${gbp(ld.net_margin_gbp)}</strong></td></tr>
+      </table>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Annual P&amp;L</div>
+      <table>
+        <tr><th>Year</th><th>Revenue</th><th>Gross</th><th>Capital</th><th>Net</th><th>Treasury</th></tr>
+        ${fa.map(r=>`<tr>
+          <td>${r.year}</td>
+          <td>${gbp(r.revenue_gbp)}</td>
+          <td class="${cls(r.gross_gbp)}">${gbp(r.gross_gbp)}</td>
+          <td class="neg">${gbp(r.capital_gbp)}</td>
+          <td class="${cls(r.net_gbp)}">${gbp(r.net_gbp)}</td>
+          <td>${gbp(r.treasury_end_gbp)}</td>
+        </tr>`).join('')}
+      </table>
+    </div>`;
+
+  mkChart('ch-pnl-stack', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [
+        { label: 'Revenue', data: fa.map(r=>r.revenue_gbp), backgroundColor:'rgba(42,120,214,.6)', stack:'a' },
+        { label: 'Wholesale cost', data: fa.map(r=>-Math.abs(r.revenue_gbp - r.gross_gbp)), backgroundColor:'rgba(208,59,59,.5)', stack:'b' },
+        { label: 'Gross margin', data: fa.map(r=>r.gross_gbp), backgroundColor:'rgba(12,163,12,.6)', stack:'c' },
+        { label: 'Net margin', data: fa.map(r=>r.net_gbp), backgroundColor: fa.map(r=>r.net_gbp>=0?'rgba(12,163,12,.9)':'rgba(208,59,59,.9)'), type:'bar', stack:'d' },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>gbp(v)}} } }
+  });
+
+  mkChart('ch-commodity', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [
+        { label: 'Electricity gross', data: fa.map(r=>r.elec_gross_gbp), backgroundColor:'rgba(42,120,214,.7)', borderRadius:2 },
+        { label: 'Gas gross', data: fa.map(r=>r.gas_gross_gbp), backgroundColor:'rgba(74,58,167,.7)', borderRadius:2 },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>gbp(v)}} } }
+  });
+}
+
+
+// -- ACCOUNTS ---------------------------------------------------------------
+function renderAccounts() {
+  var ma = (D.management_accounts && D.management_accounts.annual) ? D.management_accounts.annual : [];
+  if (!ma.length) { el('tab-accounts').innerHTML = '<p style="color:var(--muted);padding:1rem">No management accounts data available.</p>'; return; }
+
+  var rows = ma.map(function(r) {
+    var crisis = (r.year === 2021 || r.year === 2022) ? ' style="background:rgba(250,178,25,.08)"' : '';
+    var netCls = r.net_margin_gbp >= 0 ? 'pos' : 'neg';
+    return '<tr' + crisis + '>' +
+      '<td>' + r.year + (r.year===2022?'<span class="badge-crisis"> CRISIS</span>':'') + '</td>' +
+      '<td>' + gbp(r.revenue_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.wholesale_cost_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.non_commodity_cost_gbp) + '</td>' +
+      '<td>' + gbp(r.gross_margin_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.capital_cost_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.bad_debt_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.cost_to_serve_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.fixed_cost_gbp) + '</td>' +
+      '<td class="neg">' + gbp(r.acquisition_spend_gbp) + '</td>' +
+      '<td class="' + netCls + '">' + gbp(r.net_margin_gbp) + '</td>' +
+      '<td class="' + netCls + '">' + r.net_margin_pct.toFixed(1) + '%</td>' +
+      '</tr>';
+  }).join('');
+
+  el('tab-accounts').innerHTML =
+    '<div class="chart-box"><div class="chart-title">Cost Stack vs Revenue (2016-2025)</div>' +
+    '<div class="chart-wrap tall"><canvas id="ch-acct-stack"></canvas></div></div>' +
+    '<div class="tbl-box"><div class="tbl-title">Annual Management Accounts — P&amp;L Waterfall</div>' +
+    '<div style="overflow-x:auto"><table>' +
+    '<tr><th>Year</th><th>Revenue</th><th>Wholesale</th><th>NonComm</th><th>Gross</th>' +
+    '<th>Capital</th><th>Bad Debt</th><th>CTS</th><th>Fixed</th><th>Acq</th><th>Net</th><th>Net%</th></tr>' +
+    rows + '</table></div></div>';
+
+  mkChart('ch-acct-stack', {
+    type: 'bar',
+    data: {
+      labels: ma.map(function(r){return r.year;}),
+      datasets: [
+        { label: 'Wholesale', data: ma.map(function(r){return r.wholesale_cost_gbp;}), backgroundColor:'rgba(208,59,59,.6)', stack:'costs' },
+        { label: 'Non-Commodity', data: ma.map(function(r){return r.non_commodity_cost_gbp;}), backgroundColor:'rgba(250,178,25,.7)', stack:'costs' },
+        { label: 'Capital', data: ma.map(function(r){return r.capital_cost_gbp;}), backgroundColor:'rgba(163,113,247,.6)', stack:'costs' },
+        { label: 'Bad Debt', data: ma.map(function(r){return r.bad_debt_gbp;}), backgroundColor:'rgba(248,140,0,.5)', stack:'costs' },
+        { label: 'CTS+Fixed+Acq', data: ma.map(function(r){return r.cost_to_serve_gbp + r.fixed_cost_gbp + r.acquisition_spend_gbp;}), backgroundColor:'rgba(121,192,255,.5)', stack:'costs' },
+        { label: 'Revenue', data: ma.map(function(r){return r.revenue_gbp;}), type:'line', borderColor:'rgba(12,163,12,.9)', borderWidth:2, pointRadius:3, tension:.3, fill:false, stack:undefined }
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{stacked:true,grid:{color:'rgba(225,224,217,.4)'}},
+      y:{stacked:true,grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:function(v){return gbp(v);}}} } }
+  });
+}
+
+// ── TRADING ──────────────────────────────────────────────────────────────────
+function renderTrading() {
+  const smAll = D.trading.spot_monthly;
+  const sm = YEAR_FILTER ? smAll.filter(r => r.month.startsWith(String(YEAR_FILTER))) : smAll;
+  const haAll = D.trading.hedge_annual;
+  const ha = YEAR_FILTER ? haAll.filter(r => r.year === YEAR_FILTER) : haAll;
+
+  const months = sm.map(r=>r.month);
+  const means  = sm.map(r=>r.mean);
+  const p95s   = sm.map(r=>r.p95);
+  const above  = sm.map(r=>r.above_500);
+  const cmte   = sm.map(r=>r.committee_count);
+
+  // Find peak crisis month for annotation
+  const maxMean = Math.max(...means);
+  const peakMonth = sm[means.indexOf(maxMean)];
+
+  el('tab-trading').innerHTML = yearBtnsHtml() + `
+    <div class="chart-box">
+      <div class="chart-title">Wholesale Spot Price (£/MWh) — Monthly 2016–2025</div>
+      <div class="chart-wrap tall"><canvas id="ch-spot"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Extreme Spot Events (&gt;£500/MWh half-hours per month) + Risk Committee Interventions</div>
+      <div class="chart-wrap"><canvas id="ch-crisis"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Portfolio Avg Hedge Fraction by Year</div>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 8px">
+        Min HF touches 0% every year 2019–2024 — the regime-change-blindness trap
+        (Phase 1e "hf=0.00" finding): the hedging model converged toward naked positions during
+        calm pre-crisis markets, directly ahead of the 2021–22 crisis it then had to weather.
+        2025's return to an 85% floor across avg/min/max is the corrective fix, not a data gap.
+      </p>
+      <div class="chart-wrap"><canvas id="ch-hedge"></canvas></div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Hedge Fraction by Year</div>
+      <table>
+        <tr><th>Year</th><th>Avg HF</th><th>Min HF</th><th>Max HF</th></tr>
+        ${ha.map(r=>`<tr><td>${r.year}</td><td>${(r.avg_hf*100).toFixed(1)}%</td>
+          <td>${(r.min_hf*100).toFixed(1)}%</td><td>${(r.max_hf*100).toFixed(1)}%</td></tr>`).join('')}
+      </table>
+    </div>`;
+
+  // Spot price chart — cap y at 600, show p95 fill
+  mkChart('ch-spot', {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'Mean (£/MWh)', data: means,
+          borderColor: C.blue, backgroundColor: 'rgba(42,120,214,.08)',
+          fill: false, tension: 0.2, pointRadius: 0, borderWidth: 2
+        },
+        {
+          label: 'P95 (£/MWh)', data: p95s,
+          borderColor: C.amber, backgroundColor: 'rgba(250,178,25,.12)',
+          fill: '-1', tension: 0.2, pointRadius: 0, borderWidth: 1.5, borderDash: [4,3]
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
+        tooltip: { mode: 'index', intersect: false,
+          callbacks: { label: ctx => `${ctx.dataset.label}: £${ctx.parsed.y.toFixed(0)}/MWh` } }
+      },
+      scales: {
+        x: { grid:{color:'rgba(225,224,217,.4)'}, ticks:{ maxTicksLimit: 18, maxRotation: 45 } },
+        y: { grid:{color:'rgba(225,224,217,.4)'}, max: 600,
+          ticks:{ callback: v => '£'+v },
+          title:{ display: true, text:'£/MWh (capped at £600)', color: C.muted, font:{size:10} } }
+      }
+    }
+  });
+
+  // Crisis + committee chart
+  mkChart('ch-crisis', {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        { label: '>£500 half-hours', data: above, backgroundColor:'rgba(208,59,59,.6)', yAxisID:'y', borderRadius:1 },
+        { label: 'Committee calls', data: cmte, backgroundColor:'rgba(250,178,25,.6)', yAxisID:'y1', borderRadius:1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:true,position:'bottom',labels:{boxWidth:10,padding:12}},
+        tooltip:{mode:'index',intersect:false} },
+      scales: {
+        x: { grid:{color:'rgba(225,224,217,.4)'}, ticks:{maxTicksLimit:18,maxRotation:45} },
+        y:  { grid:{color:'rgba(225,224,217,.4)'}, title:{display:true,text:'Extreme periods',color:C.muted,font:{size:10}}, position:'left' },
+        y1: { grid:{drawOnChartArea:false}, title:{display:true,text:'Committee calls',color:C.muted,font:{size:10}}, position:'right' }
+      }
+    }
+  });
+
+  mkChart('ch-hedge', {
+    type: 'bar',
+    data: {
+      labels: ha.map(r=>r.year),
+      datasets: [
+        { label: 'Avg hedge fraction', data: ha.map(r=>r.avg_hf*100),
+          backgroundColor:'rgba(12,163,12,.6)', borderRadius:3 },
+        { label: 'Min hedge fraction', data: ha.map(r=>r.min_hf*100),
+          backgroundColor:'rgba(208,59,59,.4)', borderRadius:3 },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},min:0,max:105,ticks:{callback:v=>v+'%'},
+         title:{display:true,text:'Hedge fraction (%)',color:C.muted,font:{size:10}}} } }
+  });
+}
+
+// ── CUSTOMERS ────────────────────────────────────────────────────────────────
+// -- Portfolio Event Stream (SUPPLIER_TAB_OVERHAUL.md THE SPINE) ------------
+function typeLabel(t) {
+  return t.split('_').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+}
+
+function filterEventStream(t) {
+  document.querySelectorAll('#event-stream-table tr[data-etype]').forEach(function(r) {
+    r.style.display = (t === 'all' || r.dataset.etype === t) ? '' : 'none';
+  });
+  document.querySelectorAll('#event-filter-btns button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.etype === t);
+  });
+}
+
+function toggleEventDetail(row) {
+  var cell = row.querySelector('.ev-summary');
+  if (cell) cell.classList.toggle('ev-expanded');
+}
+
+function renderEvents() {
+  var stream = (D.customers && D.customers.portfolio_event_stream) || [];
+  if (!stream.length) {
+    el('tab-events').innerHTML = '<div class="section"><div class="section-title">Portfolio Event Stream</div>' +
+      '<p style="color:var(--muted);font-size:12px">No event stream data available for this run.</p></div>';
+    return;
+  }
+  var types = Array.from(new Set(stream.map(function(e) { return e.event_type; }))).sort();
+  var filterBtns = '<button class="ev-filter-btn active" data-etype="all" onclick="filterEventStream(' + "'all'" + ')">All</button>' +
+    types.map(function(t) {
+      return '<button class="ev-filter-btn" data-etype="' + t + '" onclick="filterEventStream(' + "'" + t + "'" + ')">' + typeLabel(t) + '</button>';
+    }).join('');
+
+  var rows = stream.map(function(e) {
+    var belief = e.company_belief != null ? (e.company_belief * 100).toFixed(0) + '%' : '\u2014';
+    var truth = e.event_type === 'journey_state' ? '\u2014' : (e.sim_truth != null ? (e.sim_truth * 100).toFixed(0) + '%' : '\u2014');
+    var amount = e.amount_gbp != null ? gbp(e.amount_gbp) : '\u2014';
+    var custLink = '<a href="../customers/?acc=' + encodeURIComponent(e.customer_id) + '&tab=timeline" target="_blank" onclick="event.stopPropagation()">' + e.customer_id + '</a>';
+    return '<tr data-etype="' + e.event_type + '" onclick="toggleEventDetail(this)">' +
+      '<td>' + e.date + '</td>' +
+      '<td>' + custLink + '</td>' +
+      '<td>' + typeLabel(e.event_type) + '</td>' +
+      '<td class="ev-summary">' + e.description + '</td>' +
+      '<td>' + belief + '</td><td>' + truth + '</td><td>' + amount + '</td>' +
+      '</tr>';
+  }).join('');
+
+  el('tab-events').innerHTML =
+    '<div class="section"><div class="section-title">Portfolio Event Stream</div>' +
+    '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">' + stream.length + ' most recent commercial decisions/outcomes across the whole portfolio, most recent first -- renewal windows, offers with H1 EV, outcomes, and arrears steps. Click a row to expand its full cause; click a customer to open their 360 page. "Believed" is the estimate/EV logged at decision time, "SIM Truth" the realized outcome.</p>' +
+    '<div id="event-filter-btns" style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap">' + filterBtns + '</div>' +
+    '<div class="tbl-box"><table id="event-stream-table"><tr><th>Date</th><th>Customer</th><th>Event</th><th>Description</th><th>Believed</th><th>SIM Truth</th><th>Amount</th></tr>' +
+    rows + '</table></div></div>';
+}
+
+function renderCustomers() {
+  const cu = D.customers;
+  const baAll = cu.book_annual;
+  const ba = YEAR_FILTER ? baAll.filter(r => r.year === YEAR_FILTER) : baAll;
+  const yrs = ba.map(r=>r.year);
+
+  // Build heatmap
+  const allCids = Object.keys(cu.per_year_net).sort();
+  const allYears = YEAR_FILTER
+    ? [String(YEAR_FILTER)]
+    : [...new Set(baAll.map(r=>String(r.year)))].sort();
+
+  function hmColor(v) {
+    if (v === null || v === undefined) return 'hm-nil';
+    if (v >  2000) return 'hm-great';
+    if (v >   200) return 'hm-good';
+    if (v >     0) return 'hm-ok';
+    if (v > -200)  return 'hm-warn';
+    if (v > -2000) return 'hm-poor';
+    return 'hm-bad';
+  }
+
+  const hmCols = allCids.length + 1;
+  let hmHtml = `<div class="heatmap-wrap"><div class="heatmap" style="grid-template-columns:56px repeat(${allYears.length},44px)">`;
+
+  // Header row
+  hmHtml += `<div class="hm-cell hm-label">Cust</div>`;
+  allYears.forEach(yr => { hmHtml += `<div class="hm-cell hm-year-hdr">${yr.slice(2)}</div>`; });
+
+  // Data rows -- cells with data link through to that customer's 360 page for that year (SUPPLIER_TAB_OVERHAUL.md heatmap click-through)
+  allCids.forEach(function(cid) {
+    hmHtml += '<div class="hm-cell hm-label">' + cid + '</div>';
+    allYears.forEach(function(yr) {
+      var v = cu.per_year_net[cid] ? cu.per_year_net[cid][yr] : undefined;
+      var lbl = v !== undefined ? (Math.abs(v) >= 1000 ? gbp(v,0) : (v < 0 ? '-£'+Math.abs(Math.round(v)) : '£'+Math.round(v))) : '—';
+      var title = cid + ' ' + yr + ': ' + (v !== undefined ? gbp(v,0) : 'n/a');
+      if (v !== undefined) {
+        hmHtml += '<a class="hm-cell ' + hmColor(v) + '" href="../customers/?acc=' + encodeURIComponent(cid) + '&year=' + yr + '&tab=accounts" target="_blank" title="' + title + '">' + lbl + '</a>';
+      } else {
+        hmHtml += '<div class="hm-cell ' + hmColor(v) + '" title="' + title + '">' + lbl + '</div>';
+      }
+    });
+  });
+  hmHtml += '</div></div>';
+
+  // Events list (last 40 most recent, filtered by year if selected)
+  const _sortedEvents = [...cu.events].sort((a,b) => b.date.localeCompare(a.date));
+  const events = (YEAR_FILTER
+    ? _sortedEvents.filter(e => e.date.startsWith(String(YEAR_FILTER)))
+    : _sortedEvents).slice(0, 40);
+  function evTag(type, retention) {
+    if (type === 'churned') return '<span class="ev-tag tag-churned">churned</span>';
+    if (retention) return '<span class="ev-tag tag-retention">offered</span>';
+    return '<span class="ev-tag tag-renewed">renewed</span>';
+  }
+
+  el('tab-customers').innerHTML = yearBtnsHtml() + `
+    <div class="chart-box">
+      <div class="chart-title">Customer Book Size by Year</div>
+      <div class="chart-wrap"><canvas id="ch-book"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Bill Shock Events by Year</div>
+      <div class="chart-wrap"><canvas id="ch-shock"></canvas></div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Net Margin per Customer per Year (£) — heatmap</div>
+      ${hmHtml}
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Lifetime P&amp;L by Customer</div>
+      <table>
+        <tr><th>Customer</th><th>Segment</th><th>Tariff</th><th>Revenue</th><th>Gross</th><th>Net</th></tr>
+        ${Object.entries(cu.lifetime).sort((a,b)=>b[1].net_gbp-a[1].net_gbp).map(([cid,c])=>`
+          <tr><td>${cid}</td><td style="color:var(--muted)">${c.segment}</td>
+          <td style="color:var(--muted)">${c.tariff_type||'fixed'}</td>
+          <td>${gbp(c.revenue_gbp)}</td>
+          <td class="${cls(c.gross_gbp)}">${gbp(c.gross_gbp)}</td>
+          <td class="${cls(c.net_gbp)}">${gbp(c.net_gbp)}</td></tr>`).join('')}
+      </table>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Recent Lifecycle Events</div>
+      <ul class="event-list">
+        ${events.map(e=>`<li class="ev-item">
+          <span class="ev-date">${e.date}</span>
+          <strong>${e.customer_id}</strong>
+          ${evTag(e.type, e.retention_offered)}
+          <span style="color:var(--muted);font-size:11px">sim ${(e.sim_churn_p*100).toFixed(0)}% co ${(e.company_est*100).toFixed(0)}%</span>
+        </li>`).join('')}
+      </ul>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Retention Offers &amp; Outcomes</div>
+      <table>
+        <tr><th>Customer</th><th>Date</th><th>Est %</th><th>Discount</th><th>Cost</th><th>Outcome</th></tr>
+        ${(YEAR_FILTER ? cu.retention.filter(r=>r.date.startsWith(String(YEAR_FILTER))) : cu.retention).map(r=>`<tr>
+          <td>${r.customer_id}</td><td>${r.date}</td>
+          <td>${(r.company_est*100).toFixed(0)}%</td>
+          <td>${(r.discount_pct*100).toFixed(1)}%</td>
+          <td>${gbp(r.cost_gbp)}</td>
+          <td class="${r.outcome==='retained'?'pos':'neg'}">${r.outcome}</td>
+        </tr>`).join('')}
+      </table>
+    </div>`;
+
+  mkChart('ch-book', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [
+        { label: 'Electricity accounts', data: ba.map(r=>r.active_elec),
+          backgroundColor:'rgba(42,120,214,.7)', borderRadius:2, stack:'a' },
+        { label: 'Gas accounts', data: ba.map(r=>r.active_gas),
+          backgroundColor:'rgba(74,58,167,.6)', borderRadius:2, stack:'a' },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(225,224,217,.4)'},stacked:true},
+      y:{grid:{color:'rgba(225,224,217,.4)'},stacked:true,ticks:{stepSize:1}} } }
+  });
+
+  mkChart('ch-shock', {
+    type: 'bar',
+    data: {
+      labels: yrs,
+      datasets: [
+        { label: 'Bill shock events', data: ba.map(r=>r.bill_shock_count),
+          backgroundColor:'rgba(208,59,59,.6)', borderRadius:2 },
+      ]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{stepSize:5}} } }
+  });
+}
+
+// ── MARKET ────────────────────────────────────────────────────────────────────
+function renderMarket() {
+  const mk = D.market;
+  const sa = mk.segment_annual;
+  const yrs = sa.map(r=>r.year);
+  const segs = mk.segments;
+  const cm = mk.contango_monthly || [];
+
+  const segColors = {
+    'resi electricity':'rgba(42,120,214,.7)', 'resi gas':'rgba(74,58,167,.7)',
+    'sme electricity':'rgba(12,163,12,.7)', 'sme gas':'rgba(152,100,220,.7)',
+    'i&c electricity':'rgba(250,178,25,.7)', 'i&c gas':'rgba(240,120,60,.7)',
+  };
+
+  const netDatasets = segs.map((seg, i) => {
+    const key = seg.toLowerCase().replace(/ /g,'_') + '_net';
+    const col = segColors[seg.toLowerCase()] || `hsl(${i*60},60%,55%)`;
+    return {
+      label: seg,
+      data: sa.map(r => r[key] ?? 0),
+      backgroundColor: col,
+      borderRadius: 2
+    };
+  });
+
+  const fpa = mk.forward_premium_annual;
+
+  el('tab-market').innerHTML = `
+    <div class="chart-box">
+      <div class="chart-title">Spot vs 1-Year Forward — Contango &amp; Backwardation 2016–2025</div>
+      <div class="chart-wrap tall"><canvas id="ch-contango"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Net Margin by Segment by Year</div>
+      <div class="chart-wrap tall"><canvas id="ch-seg-net"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Basis Risk — Company Forward Price Error vs SIM (£/MWh per year)</div>
+      <div class="chart-wrap"><canvas id="ch-fwd-err"></canvas></div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Segment Net Margin by Year</div>
+      <table>
+        <tr><th>Year</th>${segs.map(s=>`<th>${s}</th>`).join('')}</tr>
+        ${sa.map(r=>`<tr><td>${r.year}</td>${segs.map(seg=>{
+          const key=seg.toLowerCase().replace(/ /g,'_')+'_net';
+          const v=r[key]??0;
+          return `<td class="${cls(v)}">${gbp(v)}</td>`;
+        }).join('')}</tr>`).join('')}
+      </table>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Basis Risk — Company vs SIM Pricing Error</div>
+      <table>
+        <tr><th>Year</th><th>Mean Error (£/MWh)</th><th>Terms</th></tr>
+        ${fpa.map(r=>`<tr><td>${r.year}</td>
+          <td class="${cls(-r.mean_error_gbp_per_mwh)}">${r.mean_error_gbp_per_mwh >= 0 ? '+' : ''}£${r.mean_error_gbp_per_mwh.toFixed(2)}</td>
+          <td style="color:var(--muted)">${r.count}</td></tr>`).join('')}
+      </table>
+    </div>`;
+
+  // Contango/backwardation: spot vs 1-yr forward over time
+  if (cm.length > 0) {
+    mkChart('ch-contango', {
+      type: 'line',
+      data: {
+        labels: cm.map(r=>r.month),
+        datasets: [
+          {
+            label: 'Spot (£/MWh)', data: cm.map(r=>Math.min(r.spot, 700)),
+            borderColor: C.blue, fill: false, tension: 0.2,
+            pointRadius: 0, borderWidth: 2
+          },
+          {
+            label: '1-yr Forward (£/MWh)', data: cm.map(r=>Math.min(r.forward, 700)),
+            borderColor: C.amber, fill: false, tension: 0.2,
+            pointRadius: 0, borderWidth: 2, borderDash:[4,3]
+          },
+          {
+            label: 'Premium (£/MWh)', data: cm.map(r=>r.premium_gbp),
+            borderColor: C.green, yAxisID:'y1',
+            backgroundColor: cm.map(r=>r.premium_gbp>=0?'rgba(12,163,12,.15)':'rgba(208,59,59,.15)'),
+            fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5
+          },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
+          tooltip: { mode: 'index', intersect: false,
+            callbacks: { label: ctx => `${ctx.dataset.label}: £${ctx.parsed.y.toFixed(1)}/MWh` } }
+        },
+        scales: {
+          x: { grid:{color:'rgba(225,224,217,.4)'}, ticks:{maxTicksLimit:18, maxRotation:45} },
+          y: { grid:{color:'rgba(225,224,217,.4)'},
+            ticks:{callback: v=>'£'+v},
+            title:{display:true, text:'£/MWh (spot & forward)', color:C.muted, font:{size:10}} },
+          y1: { grid:{drawOnChartArea:false}, position:'right',
+            ticks:{callback: v=>(v>=0?'+':'')+v},
+            title:{display:true, text:'Premium (£/MWh)', color:C.muted, font:{size:10}} }
+        }
+      }
+    });
+  }
+
+  mkChart('ch-seg-net', {
+    type: 'bar',
+    data: { labels: yrs, datasets: netDatasets },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>gbp(v)}} } }
+  });
+
+  mkChart('ch-fwd-err', {
+    type: 'bar',
+    data: {
+      labels: fpa.map(r=>r.year),
+      datasets: [{
+        label: 'Mean forward price error (£/MWh)',
+        data: fpa.map(r=>r.mean_error_gbp_per_mwh),
+        backgroundColor: fpa.map(r => r.mean_error_gbp_per_mwh < 0 ? 'rgba(208,59,59,.7)' : 'rgba(12,163,12,.7)'),
+        borderRadius: 3
+      }]
+    },
+    options: { ...baseLineOpts(), scales: {
+      x:{grid:{color:'rgba(225,224,217,.4)'}},
+      y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>(v>=0?'+':'')+v+'£'},
+         title:{display:true,text:'Negative = under-priced',color:C.muted,font:{size:10}}} } }
+  });
+}
+
+
+// ── Timeline ─────────────────────────────────────────────────────────────────
+
+
+// ── Insights ─────────────────────────────────────────────────────────────────
+function renderMonthly() {
+  var mo = (D.monthly_ops && D.monthly_ops.monthly) ? D.monthly_ops.monthly : [];
+  if (!mo.length) {
+    el('tab-monthly').innerHTML = '<p style="color:var(--muted);padding:1rem">No monthly ops data available.</p>';
+    return;
+  }
+  var totalShocks = mo.reduce(function(s,m){return s+m.shock_count;},0);
+  var totalComm = mo.reduce(function(s,m){return s+m.committee_interventions;},0);
+  var crisisMo = mo.filter(function(m){return m.is_crisis;});
+  var crisisShocks = crisisMo.reduce(function(s,m){return s+m.shock_count;},0);
+  var maxShock = mo.reduce(function(mx,m){return m.max_shock_pct > (mx.max_shock_pct||0) ? m : mx;}, {max_shock_pct:0, month:'--'});
+
+  var trows = mo.map(function(m) {
+    var cr = m.is_crisis ? ' style="background:rgba(208,59,59,0.07)"' : '';
+    var sh = m.shock_count > 0 ? '<span style="color:var(--red)">'+m.shock_count+'</span>' : '0';
+    var ci = m.committee_interventions > 0 ? '<span style="color:var(--amber)">'+m.committee_interventions+'</span>' : '0';
+    return '<tr'+cr+'><td>'+m.month+(m.is_crisis ? ' <span class=\"badge-crisis\">CRISIS</span>' : '')+'</td>'+
+      '<td>'+sh+'</td><td>'+(m.shock_count>0 ? m.avg_shock_pct.toFixed(0)+'%' : '\u2014')+'</td>'+
+      '<td>'+(m.shock_count>0 ? m.max_shock_pct.toFixed(0)+'%' : '\u2014')+'</td>'+
+      '<td>'+ci+'</td><td>'+m.retention_offers+'</td><td>'+m.retained+'</td></tr>';
+  }).join('');
+
+  el('tab-monthly').innerHTML =
+    '<div class="kpi-row" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Total Bill Shocks</div><div class="kpi-value">'+totalShocks+'</div></div>' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Crisis Bill Shocks</div><div class="kpi-value" style="color:var(--red)">'+crisisShocks+'</div><div class="kpi-sub">2021-22</div></div>' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Worst Shock Month</div><div class="kpi-value">'+maxShock.max_shock_pct.toFixed(0)+'%</div><div class="kpi-sub">'+maxShock.month+(maxShock.max_shock_pct>200 ? ' — true-up bill vs a small prior baseline, not a data error' : '')+'</div></div>' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Committee Meetings</div><div class="kpi-value" style="color:var(--amber)">'+totalComm+'</div></div>' +
+    '</div>' +
+    '<div class="chart-box"><div class="chart-title">Monthly Bill Shocks and Risk Committee Interventions (2016-2025)</div>' +
+    '<div class="chart-wrap tall"><canvas id="ch-monthly-ops"></canvas></div></div>' +
+    '<div class="tbl-box"><div class="tbl-title">Monthly Operational Timeline</div>' +
+    '<div style="overflow-x:auto;max-height:400px;overflow-y:auto"><table>' +
+    '<thead><tr><th>Month</th><th>Shocks</th><th>Avg%</th><th>Max%</th><th>Committee</th><th>Retention</th><th>Retained</th></tr></thead>' +
+    '<tbody>' + trows + '</tbody></table></div></div>';
+
+  mkChart('ch-monthly-ops', {
+    type: 'bar',
+    data: {
+      labels: mo.map(function(m){return m.month;}),
+      datasets: [
+        {label:'Bill Shocks', data:mo.map(function(m){return m.shock_count;}),
+          backgroundColor:mo.map(function(m){return m.is_crisis ? 'rgba(208,59,59,0.7)' : 'rgba(42,120,214,0.6)';}),
+          yAxisID:'y'},
+        {label:'Committee', data:mo.map(function(m){return m.committee_interventions;}),
+          type:'line', borderColor:'rgba(250,178,25,0.9)', borderWidth:2, pointRadius:3, tension:0.3,
+          yAxisID:'y2', fill:false}
+      ]
+    },
+    options: {responsive:true, scales:{
+      x:{ticks:{maxTicksLimit:12,maxRotation:0}, grid:{color:'rgba(225,224,217,0.4)'}},
+      y:{grid:{color:'rgba(225,224,217,0.4)'}, ticks:{stepSize:1}, title:{display:true,text:'Shocks'}},
+      y2:{position:'right', grid:{drawOnChartArea:false}, title:{display:true,text:'Committee'}}
+    }}
+  });
+}
+
+function renderInsights() {
+  const container = document.getElementById('tab-insights');
+  const ins = D && D.insights;
+  if (!ins) {
+    container.innerHTML = '<div class="section"><div class="section-title">Insights & Recommendations</div>' +
+      '<p style="color:var(--muted);font-size:12px">No insights data available. ' +
+      'Run the simulation to generate insights.</p></div>';
+    return;
+  }
+  const areaIcon = { trading:'📈', customers:'👥', risk:'🛡️', financial:'💷', operations:'⚙️' };
+  const cards = (ins.insights || []).map(i => {
+    const icon = areaIcon[i.area] || '•';
+    const metricsHtml = Object.entries(i.key_metrics || {}).slice(0, 5).map(([k, v]) => {
+      const label = k.replace(/_/g, ' ');
+      const display = typeof v === 'number' ? (Number.isInteger(v) ? v.toLocaleString() : v.toFixed(2)) : String(v);
+      return '<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:3px 0">' +
+        '<span style="color:var(--muted)">' + label + '</span>' +
+        '<span style="font-weight:600">' + display + '</span></div>';
+    }).join('');
+    return '<div class="chart-box" style="margin-bottom:16px">' +
+      '<div style="font-size:14px;font-weight:600;margin-bottom:6px">' + icon + ' ' + i.area.charAt(0).toUpperCase() + i.area.slice(1) + '</div>' +
+      '<div style="font-size:13px;color:var(--blue);margin-bottom:8px">' + i.headline + '</div>' +
+      '<p style="font-size:12px;color:var(--muted);margin:0 0 10px">' + i.narrative + '</p>' +
+      (metricsHtml ? '<div style="font-size:11px">' + metricsHtml + '</div>' : '') +
+      '</div>';
+  }).join('');
+
+  const coherenceHtml = ins.coherence_narrative
+    ? '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--teal);padding-left:16px">' +
+      '<div style="font-size:12px;font-weight:600;color:var(--teal);margin-bottom:6px">Level 3 — Coherence</div>' +
+      '<p style="margin:0;font-size:13px">' + ins.coherence_narrative + '</p>' +
+      '</div>'
+    : '';
+  const actionsHtml = (ins.recommended_actions && ins.recommended_actions.length)
+    ? '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--amber);padding-left:16px">' +
+      '<div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:8px">Recommended Actions</div>' +
+      ins.recommended_actions.map((a, i) => '<div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="color:var(--amber);font-weight:600">' + (i+1) + '.</span> ' + a + '</div>').join('') +
+      '</div>'
+    : '';
+
+  container.innerHTML =
+    '<div class="section"><div class="section-title">Insights & Recommendations</div>' +
+    '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--blue);padding-left:16px">' +
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Executive summary</div>' +
+    '<p style="margin:0;font-size:13px">' + (ins.executive_summary || '') + '</p>' +
+    '</div>' + coherenceHtml + actionsHtml + cards + '</div>';
+}
+
+
+
+
+// ── Query learning loop ───────────────────────────────────────────────────────
+const QUERY_STORAGE_KEY = 'poesys_query_log';
+const QUERY_GAP_PATTERNS = ['unable to', "can't", 'cannot', 'not available', 'insufficient data',
+  "don't have", 'do not have', 'no data for', 'not enough', 'outside the scope',
+  'not captured', 'not modelled', 'no information', 'no records'];
+
+function qLoadHistory() {
+  try { return JSON.parse(localStorage.getItem(QUERY_STORAGE_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function qSaveHistory(hist) {
+  localStorage.setItem(QUERY_STORAGE_KEY, JSON.stringify(hist.slice(-100)));
+}
+function qIsGap(answer) {
+  const lo = (answer || '').toLowerCase();
+  return QUERY_GAP_PATTERNS.some(function(p) { return lo.includes(p); });
+}
+function qClearHistory() {
+  localStorage.removeItem(QUERY_STORAGE_KEY);
+  rendered['query'] = false;
+  renderQuery();
+  rendered['query'] = true;
+}
+
+// ── QUERY ─────────────────────────────────────────────────────────────────────
+const QUERY_EXAMPLES = [
+  "Which customers were unprofitable in 2022?",
+  "What was the worst bill shock year?",
+  "How did hedge fraction change during the energy crisis?",
+  "Which segment generates the most net margin?",
+  "When was treasury highest?",
+];
+
+function renderQuery() {
+  const container = el('tab-query');
+  const exBtns = QUERY_EXAMPLES.map(function(q) {
+    return '<button class="query-example" onclick="setQueryText(' + JSON.stringify(q) + ')">' + q + '</button>';
+  }).join('');
+
+  const hist = qLoadHistory();
+  const gaps = hist.filter(function(e) { return e.is_gap; });
+  const histHtml = hist.slice().reverse().map(function(e) {
+    const gapBadge = e.is_gap ? '<span style="background:rgba(208,59,59,.15);color:var(--red);font-size:9px;padding:1px 5px;border-radius:8px;margin-left:6px;font-weight:600">GAP</span>' : '';
+    const ts = e.ts ? '<span style="font-size:10px;color:var(--muted);float:right">' + new Date(e.ts).toLocaleDateString() + '</span>' : '';
+    return '<div class="query-bubble">' +
+      '<div class="query-q">Q: ' + escHtml(e.q) + gapBadge + ts + '</div>' +
+      '<div class="query-a">' + escHtml(e.a || '') + '</div>' +
+      '</div>';
+  }).join('');
+
+  const gapsHtml = gaps.length ? (
+    '<div class="section" style="margin-top:16px">' +
+    '<div class="section-title" style="color:var(--red)">Learning gaps (' + gaps.length + ') — questions the system should answer</div>' +
+    '<div class="chart-box" style="border-left:3px solid var(--red)">' +
+    gaps.map(function(e, i) {
+      return '<div style="padding:6px 0;' + (i < gaps.length-1 ? 'border-bottom:1px solid var(--border)' : '') + '">' +
+        '<div style="font-size:12px;color:var(--text)">' + escHtml(e.q) + '</div>' +
+        '</div>';
+    }).join('') +
+    '</div></div>'
+  ) : '';
+
+  container.innerHTML =
+    '<div class="section">' +
+    '<div class="section-title">Ask the Data</div>' +
+    '<div class="chart-box">' +
+    '<p style="font-size:12px;color:var(--muted);margin-bottom:14px">Ask questions about the simulation in plain English. Answers generated by Qwen3 on Skynet. Questions are saved locally to build a learning log — gaps show questions the system could not answer.</p>' +
+    '<div style="display:flex;gap:8px;margin-bottom:12px">' +
+    '<input id="query-input" class="query-input" type="text" placeholder="e.g. Which customers were unprofitable in 2022?" ' +
+    'onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();submitQuery()}">' +
+    '<button id="query-btn" class="query-submit" onclick="submitQuery()">Ask &rarr;</button>' +
+    '</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:6px">' + exBtns + '</div>' +
+    '</div>' +
+    '<div id="query-history">' + histHtml + '</div>' +
+    (hist.length ? '<div style="text-align:right;margin-top:8px"><button class="query-example" onclick="qClearHistory()" style="color:var(--red)">Clear history</button></div>' : '') +
+    gapsHtml +
+    '</div>';
+}
+
+function setQueryText(q) {
+  var inp = el('query-input');
+  if (inp) { inp.value = q; inp.focus(); }
+}
+
+async function submitQuery() {
+  var inp = el('query-input');
+  var btn = el('query-btn');
+  if (!inp) return;
+  var question = inp.value.trim();
+  if (!question) return;
+
+  inp.value = '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Asking…'; }
+
+  var history = el('query-history');
+  var bubble = document.createElement('div');
+  bubble.className = 'query-bubble';
+  var uid = 'qa-' + Date.now();
+  bubble.innerHTML = '<div class="query-q">Q: ' + escHtml(question) + '</div>' +
+    '<div class="query-a" id="' + uid + '" style="color:var(--muted)">Thinking…</div>';
+  history.insertBefore(bubble, history.firstChild);
+
+  var answer = '';
+  var isGap = false;
+  try {
+    var ctx = D && D.query_context ? D.query_context : '';
+    var resp = await fetch('https://skynet-1.taila062fa.ts.net/query', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ question: question, queryContext: ctx })
+    });
+    var data = await resp.json();
+    var ansEl = document.getElementById(uid);
+    if (data.answer) {
+      answer = data.answer;
+      isGap = qIsGap(answer);
+      ansEl.style.color = 'var(--text)';
+      ansEl.textContent = answer;
+      if (isGap) {
+        var gapBadge = document.createElement('span');
+        gapBadge.style.cssText = 'background:rgba(208,59,59,.15);color:var(--red);font-size:9px;padding:1px 5px;border-radius:8px;margin-left:6px;font-weight:600';
+        gapBadge.textContent = 'GAP';
+        ansEl.parentNode.querySelector('.query-q').appendChild(gapBadge);
+      }
+    } else {
+      answer = 'Error: ' + (data.error || 'Unknown error');
+      ansEl.className = 'query-err';
+      ansEl.textContent = answer;
+    }
+  } catch (err) {
+    var ansEl = document.getElementById(uid);
+    answer = 'Could not reach Skynet: ' + err.message;
+    if (ansEl) { ansEl.className = 'query-err'; ansEl.textContent = answer; }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Ask →'; }
+    if (answer && !answer.startsWith('Could not reach')) {
+      var hist = qLoadHistory();
+      hist.push({ q: question, a: answer, is_gap: isGap, ts: Date.now() });
+      qSaveHistory(hist);
+    }
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// ── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  renderGroupNav();
+  renderSubNav();
+  try {
+    const res = await fetch('../data/dashboard.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    D = await res.json();
+    el('loading')?.remove();
+    updateHeader();
+    rendered['overview'] = true;
+    renderOverview();
+  } catch(e) {
+    const loadEl = el('loading');
+    if (loadEl) loadEl.textContent = 'Failed to load data: ' + e.message;
+    console.error(e);
+  }
+}
+
+function renderRegulatory() {
+  const reg = D.regulatory || { obligations: [], overall_rag: "GREEN", latest_year: null };
+  const obligations = reg.obligations || [];
+  const ragBadge = (status) => `<span class="badge badge-${status.toLowerCase()}">${status}</span>`;
+  const redCount = obligations.filter(o => o.status === "RED").length;
+  const amberCount = obligations.filter(o => o.status === "AMBER").length;
+  const html = [
+    "<div class=\"view-header\"><h2>Regulatory &amp; Compliance Framework</h2>",
+    "<p class=\"view-sub\">Active SLC/regulatory obligations tracked by the company layer — point-in-time blindfolded, same constraints as a real UK energy supplier</p></div>",
+    "<div class=\"kpi-row\">",
+    kpi("Compliance Status", ragBadge(reg.overall_rag || "GREEN"), null, reg.latest_year ? `As of ${reg.latest_year}` : "No data"),
+    kpi("Breaches", redCount, null, "Obligations at RED"),
+    kpi("Watch", amberCount, null, "Obligations at AMBER"),
+    kpi("SLCs Covered", obligations.length, null, "Obligations tracked"),
+    "</div>",
+    "<h3 class=\"section-head\" style=\"margin-top:24px\">SLC / Regulatory Coverage</h3>",
+    "<p class=\"view-sub\">RAG status per obligation, derived from the Ofgem Compliance Scorecard (company/regulatory/compliance_scorecard.py) against the latest run's own observed metrics — not a build/test artifact.</p>",
+    "<div class=\"card\" style=\"padding:0;overflow:hidden\">",
+    "<table style=\"width:100%;border-collapse:collapse;font-size:12px\">",
+    "<thead><tr>",
+    "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Obligation</th>",
+    "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Description</th>",
+    "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Status</th>",
+    "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Basis</th>",
+    "</tr></thead><tbody>",
+    ...obligations.map(o =>
+      `<tr><td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4);font-weight:600;color:var(--blue)">${o.code}</td>` +
+      `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)">${o.description}</td>` +
+      `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)">${ragBadge(o.status)}</td>` +
+      `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4);color:var(--muted);font-size:11px">${o.notes || ""}</td></tr>`
+    ),
+    "</tbody></table></div>",
+  ].join("");
+  el("tab-regulatory").innerHTML = html;
+}
+
+init();
+</script>
+</body>
+</html>
