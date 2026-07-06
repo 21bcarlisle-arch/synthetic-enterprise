@@ -1592,7 +1592,7 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-06T18:53:04Z
+Generated: 2026-07-06T19:04:46Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2608,7 +2608,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 - Treasury at year end: £2,467,433.90
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89)
 - Risk committee (Context Handshake) interventions: 13
-  - 2016-01-01: treasury £2,466,636.23, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-01-01: treasury £2,466,636.23, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-01-31: treasury £2,466,648.39, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-01: treasury £2,466,660.65, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-31: treasury £2,466,672.63, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
@@ -2619,7 +2619,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-08-28: treasury £2,466,726.80, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-09-27: treasury £2,466,737.73, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-10-27: treasury £2,466,748.64, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-11-26: treasury £2,466,759.45, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-11-26: treasury £2,466,759.45, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-12-26: treasury £2,466,771.39, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
 - VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.25
 - Worst single period: C5 on 2016-12-31 period 48, net margin £-407.78
