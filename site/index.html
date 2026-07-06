@@ -311,12 +311,56 @@ function baseLineOpts(title) {
 }
 
 // ── Tab switching ────────────────────────────────────────────────────────────
+const GROUPS = [
+  { id: 'performance', label: 'Performance', tabs: ['overview','financial','accounts'] },
+  { id: 'commercial',  label: 'Commercial',  tabs: ['customers'] },
+  { id: 'trading',     label: 'Trading & Market', tabs: ['trading','market'] },
+  { id: 'operations',  label: 'Operations',  tabs: ['monthly','insights'] },
+  { id: 'governance',  label: 'Governance',  tabs: ['regulatory'] },
+];
+const TAB_LABEL = { overview:'Overview', financial:'Financial', accounts:'Accounts',
+  customers:'Customers', trading:'Trading', market:'Market', monthly:'Monthly',
+  insights:'Insights', regulatory:'Regulatory' };
+let CURRENT_TAB = 'overview';
+let ACTIVE_GROUP = 'performance';
+const groupOf = tab => GROUPS.find(g => g.tabs.includes(tab)).id;
+
+function renderGroupNav() {
+  el('group-nav').innerHTML = GROUPS.map(g =>
+    `<button class="group-btn${g.id===ACTIVE_GROUP?' active':''}" data-group="${g.id}" onclick="switchGroup('${g.id}')">${g.label}</button>`
+  ).join('');
+}
+
+function renderSubNav() {
+  const g = GROUPS.find(x => x.id === ACTIVE_GROUP);
+  const nav = el('tab-nav');
+  if (g.tabs.length <= 1) { nav.classList.add('subnav-hidden'); nav.innerHTML = ''; return; }
+  nav.classList.remove('subnav-hidden');
+  nav.innerHTML = g.tabs.map(t =>
+    `<button class="tab-btn${t===CURRENT_TAB?' active':''}" data-tab="${t}" onclick="switchTab('${t}')">${TAB_LABEL[t]}</button>`
+  ).join('');
+}
+
+function switchGroup(gid) {
+  const g = GROUPS.find(x => x.id === gid);
+  switchTab(g.tabs[0]);
+}
+
 function switchTab(name) {
+  CURRENT_TAB = name;
+  ACTIVE_GROUP = groupOf(name);
+  renderGroupNav();
+  renderSubNav();
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   el('tab-' + name).classList.add('active');
-  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
   if (!rendered[name]) { renderTab(name); if (D) rendered[name] = true; }
+}
+
+function toggleQueryPanel() {
+  const panel = el('query-panel');
+  const willOpen = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if (willOpen && !rendered['query']) { renderQuery(); rendered['query'] = true; }
 }
 
 function renderTab(name) {
@@ -1049,7 +1093,7 @@ function renderMonthly() {
       ]
     },
     options: {responsive:true, scales:{
-      x:{ticks:{maxRotation:60,font:{size:9}}, grid:{color:'rgba(225,224,217,0.4)'}},
+      x:{ticks:{maxTicksLimit:12,maxRotation:0}, grid:{color:'rgba(225,224,217,0.4)'}},
       y:{grid:{color:'rgba(225,224,217,0.4)'}, ticks:{stepSize:1}, title:{display:true,text:'Shocks'}},
       y2:{position:'right', grid:{drawOnChartArea:false}, title:{display:true,text:'Committee'}}
     }}
@@ -1060,7 +1104,7 @@ function renderInsights() {
   const container = document.getElementById('tab-insights');
   const ins = D && D.insights;
   if (!ins) {
-    container.innerHTML = '<div class="section"><div class="section-title">Run Insights</div>' +
+    container.innerHTML = '<div class="section"><div class="section-title">Insights & Recommendations</div>' +
       '<p style="color:var(--muted);font-size:12px">No insights data available. ' +
       'Run the simulation to generate insights.</p></div>';
     return;
@@ -1097,31 +1141,12 @@ function renderInsights() {
       '</div>'
     : '';
 
-  var rh = D.run_history || [];
-  var historyRows = rh.slice().reverse().map(function(r) {
-    var nm = r.net_margin_gbp || 0;
-    var cl = nm >= 1000000 ? 'color:var(--green)' : nm < 0 ? 'color:var(--red)' : '';
-    return '<tr style="border-top:1px solid var(--border)">' +
-      '<td style="padding:3px 6px;font-family:monospace;color:var(--blue)">' + (r.git_hash||'').slice(0,7) + '</td>' +
-      '<td style="text-align:right;padding:3px 6px;font-weight:600;' + cl + '">' + gbp(nm) + '</td>' +
-      '<td style="padding:3px 6px;color:var(--muted)">' + (r.generated_at||'').slice(0,10) + '</td></tr>';
-  }).join('');
-  var historyHtml = rh.length > 1
-    ? '<div class="chart-box" style="margin-top:16px">' +
-      '<div style="font-size:12px;font-weight:600;margin-bottom:10px">Run History (' + rh.length + ' runs)</div>' +
-      '<table style="width:100%;font-size:11px;border-collapse:collapse">' +
-      '<tr><th style="text-align:left;color:var(--muted);padding:3px 6px">Hash</th>' +
-      '<th style="text-align:right;color:var(--muted);padding:3px 6px">Net Margin</th>' +
-      '<th style="color:var(--muted);padding:3px 6px">Date</th></tr>' +
-      historyRows + '</table></div>'
-    : '';
-
   container.innerHTML =
-    '<div class="section"><div class="section-title">Run Insights</div>' +
+    '<div class="section"><div class="section-title">Insights & Recommendations</div>' +
     '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--blue);padding-left:16px">' +
-    '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Executive summary &bull; ' + (ins.git_hash || '') + '</div>' +
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Executive summary</div>' +
     '<p style="margin:0;font-size:13px">' + (ins.executive_summary || '') + '</p>' +
-    '</div>' + coherenceHtml + actionsHtml + cards + historyHtml + '</div>';
+    '</div>' + coherenceHtml + actionsHtml + cards + '</div>';
 }
 
 
@@ -1147,7 +1172,8 @@ function qIsGap(answer) {
 function qClearHistory() {
   localStorage.removeItem(QUERY_STORAGE_KEY);
   rendered['query'] = false;
-  switchTab('query');
+  renderQuery();
+  rendered['query'] = true;
 }
 
 // ── QUERY ─────────────────────────────────────────────────────────────────────
@@ -1275,6 +1301,8 @@ function escHtml(s) {
 }
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
+  renderGroupNav();
+  renderSubNav();
   try {
     const res = await fetch('./data/dashboard.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
