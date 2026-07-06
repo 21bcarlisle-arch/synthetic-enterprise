@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Method</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 40px; }
+.sec:first-child { margin-top: 0; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 16px; }
+.lede { font-size: 14px; line-height: 1.7; color: var(--text); }
+.lede strong { color: var(--teal); }
+.role-grid, .tier-grid, .rule-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.role-card, .tier-card, .rule-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.role-name, .tier-name, .rule-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.role-desc, .tier-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.rule-id { color: var(--blue); margin-right: 6px; }
+.rule-desc { font-size: 12px; color: var(--text); line-height: 1.5; margin-bottom: 8px; }
+.rule-incident { font-size: 11px; color: var(--muted); line-height: 1.6; border-left: 2px solid var(--amber); padding-left: 10px; }
+.rule-incident-label { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--amber); letter-spacing: .05em; display: block; margin-bottom: 3px; }
+.muted { color: var(--muted); font-size: 12px; }
+.loop-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid rgba(225,224,217,.6); font-size: 12px; }
+.loop-row:last-child { border-bottom: none; }
+.loop-fn { font-weight: 600; }
+.loop-ts { color: var(--muted); }
+.loop-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.loop-kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.loop-kpi-l { font-size: 10px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.loop-kpi-v { font-size: 20px; font-weight: 700; }
+.retro-row { padding: 10px 0; border-bottom: 1px solid rgba(225,224,217,.6); }
+.retro-row:last-child { border-bottom: none; }
+.retro-title { font-size: 13px; font-weight: 600; }
+.retro-date { font-size: 11px; color: var(--muted); margin-left: 8px; }
+.retro-link { font-size: 11px; color: var(--blue); text-decoration: none; }
+.framing { font-size: 13px; line-height: 1.7; color: var(--text); font-style: italic; padding: 16px; background: var(--surface2); border-radius: 8px; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../sim/" class="nav-link">SIM</a>
+  <a href="../supplier/" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../platform/" class="nav-link">Platform</a>
+  <a href="../method/" class="nav-link active">Method</a>
+  <a href="../project/" class="nav-link">Project</a>
+</nav>
+<div class="wrap">
+
+  <div class="sec">The Method</div>
+  <div class="card">
+    <p class="lede">
+      Poesys's third product is not code or data -- it is <strong>the way this was built</strong>:
+      a tiered governance model, a human-in-the-loop staging bridge, verify-by-fetch discipline,
+      and a retrospective practice that turns incidents into permanent rules. This page is that
+      method, shown working on itself.
+    </p>
+  </div>
+
+  <div class="sec">Operating Model</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px">One human principal, two AI roles, a tiered approval model -- not a single hand-rolled script.</p>
+    <div class="role-grid" id="role-grid"><div class="muted">Loading...</div></div>
+  </div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px">Every proposal is classified into a tier before it proceeds:</p>
+    <div class="tier-grid" id="tier-grid"><div class="muted">Loading...</div></div>
+  </div>
+
+  <div class="sec">The Rules (R1-R6)</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px" id="rules-stat">Loading...</p>
+  </div>
+  <div class="rule-grid" id="rule-grid"><div class="muted">Loading...</div></div>
+
+  <div class="sec">The Loop, Shown Working</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px">
+      Rich stages direction in <code>docs/staging/</code>; the agent actions it, verifies it, and
+      moves it to <code>docs/staging/done/</code>. Below is that loop's live state, not a diagram of
+      how it is supposed to work.
+    </p>
+    <div class="loop-kpis" id="loop-kpis"></div>
+    <div class="sec" style="margin-top:24px;font-size:10px">Currently pending</div>
+    <div id="loop-pending"><div class="muted">Loading...</div></div>
+    <div class="sec" style="margin-top:24px;font-size:10px">Recently actioned</div>
+    <div id="loop-recent"><div class="muted">Loading...</div></div>
+  </div>
+
+  <div class="sec">Retrospective Library</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px">
+      Written when a multi-day or multi-false-claim problem closes, roughly every 50 phases or two
+      weeks, or whenever a harness rule changes -- the practice that forged the R1-R6 rules above.
+    </p>
+    <div id="retro-list"><div class="muted">Loading...</div></div>
+  </div>
+
+  <div class="sec">Core Design Principles</div>
+  <div class="rule-grid">
+    <div class="rule-card"><div class="rule-name">Point-in-Time Blindfold</div><div class="rule-desc">The company cannot see future data or simulation internals. It discovers the world through meter reads, market feeds, its own bills and regulatory publications.</div></div>
+    <div class="rule-card"><div class="rule-name">Real Settlement Data</div><div class="rule-desc">Prices from Elexon (SSP half-hourly), NESO, and Open-Meteo. Every bill settled against actual historical wholesale prices. The 2021-22 crisis is in the data.</div></div>
+    <div class="rule-card"><div class="rule-name">Full Policy Cost Stack</div><div class="rule-desc">RO, CfD, FiT, Capacity Market, CCL, GGL all modelled per-period. Network charges from Ofgem Annex 9. Domestic price cap from 2019.</div></div>
+    <div class="rule-card"><div class="rule-name">Autonomous Operation</div><div class="rule-desc">Runs on local GPU (qwen3:14b / Ollama). Claude Code orchestrates design. Risk committee runs locally -- no frontier AI spend in sim runs.</div></div>
+  </div>
+
+  <div class="sec">Infrastructure</div>
+  <div class="card"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;font-size:12px">
+    <div><div style="color:var(--muted);margin-bottom:3px">Orchestrator</div>Claude Code (Anthropic)</div>
+    <div><div style="color:var(--muted);margin-bottom:3px">Code generation</div>qwen3:14b / Ollama (local GPU)</div>
+    <div><div style="color:var(--muted);margin-bottom:3px">Electricity data</div>Elexon Insights Solution</div>
+    <div><div style="color:var(--muted);margin-bottom:3px">Grid data</div>NESO CKAN API</div>
+    <div><div style="color:var(--muted);margin-bottom:3px">Weather</div>Open-Meteo</div>
+    <div><div style="color:var(--muted);margin-bottom:3px">Hosting</div>Cloudflare Pages (poesys.net)</div>
+    <div><div style="color:var(--muted);margin-bottom:3px">Hardware</div>Intel i5-13400F, RTX 3060 12GB, WSL2</div>
+    <div><div style="color:var(--muted);margin-bottom:3px">Project started</div>7 June 2026</div>
+  </div></div>
+
+  <div class="sec">Why This Is a Product</div>
+  <div class="card">
+    <p class="framing" id="method-framing">Loading...</p>
+  </div>
+
+  <div class="sec">Build</div>
+  <div class="card">
+    <p class="muted" id="build-note">Loading...</p>
+  </div>
+
+</div>
+<script>
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+function ageLabel(ts){if(!ts)return"unknown";var sec=(Date.now()-new Date(ts).getTime())/1000;if(sec<120)return Math.round(sec)+"s ago";if(sec<3600)return Math.round(sec/60)+"m ago";if(sec<86400)return(sec/3600).toFixed(1)+"h ago";return(sec/86400).toFixed(1)+"d ago";}
+function fmtBytes(n){if(n==null)return "--";if(n<1024)return n+" B";return (n/1024).toFixed(0)+" KB";}
+
+function renderRoles(d){
+  var el=document.getElementById("role-grid");
+  var rows=((d.operating_model&&d.operating_model.roles)||[]).map(function(r){
+    return '<div class="role-card"><div class="role-name">'+esc(r.name)+'</div><div class="role-desc">'+esc(r.description)+'</div></div>';
+  }).join("");
+  el.innerHTML=rows||'<div class="muted">No role data.</div>';
+  var tel=document.getElementById("tier-grid");
+  var trows=((d.operating_model&&d.operating_model.tiers)||[]).map(function(t){
+    return '<div class="tier-card"><div class="tier-name">'+esc(t.tier)+' -- '+esc(t.name)+'</div><div class="tier-desc">'+esc(t.description)+'</div></div>';
+  }).join("");
+  tel.innerHTML=trows||'<div class="muted">No tier data.</div>';
+}
+
+function renderRules(d){
+  var el=document.getElementById("rule-grid");
+  var rules=d.rules||[];
+  var rows=rules.map(function(r){
+    return '<div class="rule-card"><div class="rule-name"><span class="rule-id">'+esc(r.id)+'</span>'+esc(r.name)+'</div>'+
+      '<div class="rule-desc">'+esc(r.description)+'</div>'+
+      '<div class="rule-incident"><span class="rule-incident-label">The incident that forged it</span>'+esc(r.incident)+'</div></div>';
+  }).join("");
+  el.innerHTML=rows||'<div class="muted">No rule data.</div>';
+  document.getElementById("rules-stat").textContent=rules.length+" permanent rules, each traced to a real incident -- not written in the abstract.";
+}
+
+function renderLoop(d){
+  var loop=d.staging_loop||{};
+  var kpis=[
+    {l:"Pending now",v:loop.pending_count},
+    {l:"Actioned all-time",v:loop.done_total},
+    {l:"Draft proposals",v:loop.drafts_count}
+  ];
+  document.getElementById("loop-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="loop-kpi"><div class="loop-kpi-l">'+esc(k.l)+'</div><div class="loop-kpi-v">'+(k.v!=null?k.v:"--")+'</div></div>';
+  }).join("");
+  var pend=loop.pending||[];
+  document.getElementById("loop-pending").innerHTML=pend.length?pend.map(function(p){
+    return '<div class="loop-row"><span class="loop-fn">'+esc(p.filename)+'</span><span class="loop-ts">'+ageLabel(p.modified_at)+'</span></div>';
+  }).join(""):'<div class="muted">Queue empty -- nothing waiting on Rich right now.</div>';
+  var recent=loop.recent_done||[];
+  document.getElementById("loop-recent").innerHTML=recent.length?recent.map(function(p){
+    return '<div class="loop-row"><span class="loop-fn">'+esc(p.filename)+'</span><span class="loop-ts">'+ageLabel(p.modified_at)+'</span></div>';
+  }).join(""):'<div class="muted">No actioned items recorded yet.</div>';
+}
+
+function renderRetro(d){
+  var el=document.getElementById("retro-list");
+  var lib=d.retro_library||[];
+  el.innerHTML=lib.length?lib.map(function(r){
+    return '<div class="retro-row"><span class="retro-title">'+esc(r.title)+'</span><span class="retro-date">'+esc(r.date||"")+'</span><div style="margin-top:4px"><a class="retro-link" href="'+esc(r.path)+'" target="_blank" rel="noopener">Read the full retrospective &rarr;</a> <span class="muted">('+fmtBytes(r.size_bytes)+')</span></div></div>';
+  }).join(""):'<div class="muted">No retrospectives written yet.</div>';
+}
+
+function renderBuild(d){
+  var el=document.getElementById("build-note");
+  var parts=[];
+  if(d.phase)parts.push("Phase "+d.phase);
+  if(d.test_count)parts.push(d.test_count.toLocaleString()+" tests passing");
+  if(d.generated_at)parts.push("generated "+d.generated_at);
+  el.textContent=parts.length?parts.join(" \u00b7 "):"Build stats unavailable.";
+}
+
+fetch("../data/method.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderRoles(d);
+  renderRules(d);
+  renderLoop(d);
+  renderRetro(d);
+  document.getElementById("method-framing").textContent=d.method_framing||"";
+  renderBuild(d);
+}).catch(function(e){
+  console.error("method.json load error:",e);
+  document.getElementById("role-grid").innerHTML='<div class="muted" style="color:var(--red)">Could not load method.json</div>';
+});
+</script>
+</body>
+</html>

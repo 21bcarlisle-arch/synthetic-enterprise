@@ -11,11 +11,13 @@ backend depth. New order, top-down, each Tier 2:
     ledger/bill-equation/cashflow scope -- CLOSED IN FULL (Phase RP, 2026-07-06): per-account
     chronological ledger (tools/generate_payment_ledger_data.py) + Billing & Payments tab
     Bills/Statement/Cashflow sub-views + household reconciliation line on site/customers/index.html.
-  P1b. SUPPLIER TAB IA (SUPPLIER_TAB_OVERHAUL.md) -- core IA regroup already done (RH/RG); portfolio
-    event stream, Recommended Actions->Overview, heatmap click-through remain.
-  P1c. SIX-SECTION NAV + STORY (NAV_STORY_PLATFORM_METHOD.md) -- not yet started.
-  P2 (resumes after P1a-c + Rich's visual confirmation): CTS reconciliation, frozen-policy baseline,
-    FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
+  P1b. SUPPLIER TAB IA (SUPPLIER_TAB_OVERHAUL.md) -- CLOSED IN FULL (Phase RH IA regroup, Phase RM
+    portfolio event stream + Recommended Actions->Overview + heatmap click-through).
+  P1c. SIX-SECTION NAV + STORY (NAV_STORY_PLATFORM_METHOD.md) -- CLOSED IN FULL (Phase RO: Home/Story
+    landing + Platform skeleton; Phase RQ, 2026-07-06: Method section + Project tab slim-down).
+  P1a-c ALL CLOSED (2026-07-06, Phase RQ). P2 (resumes after Rich's visual confirmation on the live
+    site): CTS reconciliation, frozen-policy baseline, FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md,
+    SAAS_COVERAGE_MAP.md. Not self-initiated without that confirmation per the standing rule below.
 Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's visual
 review", never "done" outright. PROJECT_TAB_OVERHAUL.md now CLOSED IN FULL (Phase RG).
 PROCESS_NOT_EVENTS.md and DECISION_LOOP_AND_EVENT_LEDGER.md remain CLOSED IN FULL (no change).
@@ -60,12 +62,10 @@ WEBSITE_AS_SHOWCASE.md is the master directive. Progress per tab:
   waterfall CTS reconciliation itself still not actioned pending that opt-out.
 - FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md: still queued behind this wave, not yet reached.
 
-**Front of queue next:** two Tier 3 design-note implementations proceeding on their own 4h
-opt-outs (filed 2026-07-06) -- the CTS/cost-to-serve ledger reconciliation
-(docs/staging/drafts/NEXT_PHASE.md, option B) and the frozen-policy baseline
-(docs/staging/drafts/FROZEN_POLICY_BASELINE_DESIGN.md, option B). Supplier tab IA regroup is now
-DONE (Phase RH); CUSTOMER_360_REDESIGN.md items 2-4 and NAV_STORY_PLATFORM_METHOD.md remain
-queued behind the two design-note implementations.
+**SUPERSEDED (2026-07-06, Phase RQ):** the two Tier 3 design-note opt-outs below and the
+"queued behind" ordering are now moot -- P1a-c (see top of file) are ALL CLOSED as of Phase RQ.
+Front of queue next is P2 (CTS reconciliation is one of its five items, see top), gated on Rich's
+visual confirmation of the live site, not a 4h opt-out. Retained below for history only.
 
 ## CRITICAL: NO MORE COVERAGE SPRINTS
 Coverage sprints (phases LQ through MU, 95+ sprints) are complete.

@@ -63,6 +63,7 @@ tr:last-child td { border-bottom: none; }
   <a href="../supplier/" class="nav-link">Supplier</a>
   <a href="../customers/" class="nav-link">Customers</a>
   <a href="../platform/" class="nav-link active">Platform</a>
+  <a href="../method/" class="nav-link">Method</a>
   <a href="../project/" class="nav-link">Project</a>
 </nav>
 <div class="wrap">
@@ -76,6 +77,12 @@ tr:last-child td { border-bottom: none; }
       simulation produces as a byproduct. Everything below is computed from the live
       repository at generation time, not hand-typed.
     </p>
+  </div>
+
+  <div class="sec">Capabilities</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px" id="cap-stat">Loading...</p>
+    <div id="cap-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px"><div class="muted">Loading capabilities...</div></div>
   </div>
 
   <div class="sec">Architecture -- Layers</div>
@@ -188,6 +195,16 @@ function renderBuild(d){
   el.textContent=parts.length?parts.join(" \u00b7 "):"Build stats unavailable.";
 }
 
+function renderCapabilities(d){
+  var grid=document.getElementById("cap-grid");
+  var cards=(d.cards||[]).map(function(c){
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">'+esc(c.name)+'</div><div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px">'+esc(c.description)+'</div>'+(c.headline?'<div style="font-size:11px;font-weight:600;color:var(--teal);margin-bottom:6px">'+esc(c.headline)+'</div>':"")+'<a href="'+esc(c.evidence_link)+'" style="font-size:11px;color:var(--blue);text-decoration:none">View evidence &rarr;</a></div>';
+  }).join("");
+  grid.innerHTML=cards||'<div class="muted">No capabilities data.</div>';
+  var stat=document.getElementById("cap-stat");
+  stat.textContent=(d.cards||[]).length+" capability cards, each with a live headline number from the latest run and a link to its evidence surface -- what the platform can do, not a description of what it might do.";
+}
+
 fetch("../data/platform.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
   renderLayers(d);
   renderDomains(d);
@@ -197,6 +214,13 @@ fetch("../data/platform.json?t="+Date.now()).then(function(r){return r.json();})
 }).catch(function(e){
   console.error("platform.json load error:",e);
   document.getElementById("layer-stack").innerHTML='<div class="muted" style="color:var(--red)">Could not load platform.json</div>';
+});
+
+fetch("../data/capabilities.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderCapabilities(d);
+}).catch(function(e){
+  console.error("capabilities.json load error:",e);
+  document.getElementById("cap-grid").innerHTML='<div class="muted" style="color:var(--red)">Could not load capabilities.json</div>';
 });
 </script>
 </body>

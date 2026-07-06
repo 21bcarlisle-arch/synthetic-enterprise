@@ -111,6 +111,62 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RQ -- NAV_STORY_PLATFORM_METHOD.md CLOSED IN FULL (2026-07-06, Tier 2 -- PRIORITIES.md P1c, front of queue immediately after Phase RP)
+
+Closed the last two items of the six-section nav directive: item 6 (METHOD, "The Way") and item 7
+(Project tab slim-down). New `tools/generate_method_data.py` computes the Method section's data:
+`operating_model` (roles -- Rich/Claude Code/qwen3:14b/risk committee -- and the three approval
+tiers, static fact about the harness) and `rules` (R1-R6, each paired with the real incident that
+forged it, drawn directly from `docs/retrospectives/2026-07-04-verification-week.md`'s L1-L8
+lessons -- e.g. R3's two-strike redesign traces to the watchdog's tmux `send-keys` failing three
+distinct ways before the mechanism itself was eliminated, not patched a third time). Two sections
+are computed fresh from the filesystem every run, not static: `staging_loop` (pending count from
+`docs/staging/*.md`, all-time actioned total and 12 most recent from `docs/staging/done/`, draft
+count from `docs/staging/drafts/`) and `retro_library` (auto-discovered from
+`docs/retrospectives/*.md`, date/title parsed from the filename and first heading). New
+`site/method/index.html` renders all of this plus a closing "why this is a product" framing
+paragraph, in the same visual system as `site/platform/index.html`.
+
+**Project tab slim-down** (the directive's item 7): `site/project/index.html`'s Company and
+Capabilities sub-tabs removed entirely (`data-tab`, `id="tab-*"`, and the now-dead
+`renderCapabilities()`/`CAPS` variable) -- their content didn't disappear, it moved. Company's "How
+It Is Built" and "Permanent Rules" content is superseded by Method's live-updating Operating
+Model/Rules sections; Company's "Core Design Principles" and "Infrastructure" grids (stable facts,
+not run-dependent) were carried over to Method as static sections rather than deleted, so no real
+content was lost in the redistribution. Capabilities' card register moved to
+`site/platform/index.html` as a new "Capabilities" section, reusing the existing
+`tools/generate_capabilities_json.py` generator unchanged -- just a new consumer of the same real
+per-run headline numbers. The Project Overview tab gained a one-line pointer ("moved to Method and
+Platform respectively") so nothing looks silently deleted.
+
+**Nav**: a "Method" link added to all seven site pages (Home, SIM, Supplier, Customers, Platform,
+Project, Method itself); Home page's placeholder "Method section: coming next (PRIORITIES.md P1c)"
+product card and the Explore grid (which had no Method entry at all) both wired to the real
+`../method/` page now that it exists.
+
+**Verification**: `node` stayed gated behind an unapprovable permission prompt for the whole
+session, the same recurring pattern documented in Phases RA/RG/RI/RJ/RK/RL/RM. Fell back to the
+established substitute: brace/paren/bracket balance across every touched page's `<script>` body
+(all seven balanced) plus a direct field-name cross-check between `generate_method_data.py`'s real
+JSON output keys and every accessor `site/method/index.html`'s JS actually reads (all present, zero
+mismatches) -- run live against the real `site/data/method.json`, not a fixture.
+
+Wired `generate_method_data.generate()` into `process_run_complete.py` immediately after
+`generate_platform_data`, and added `site/method/index.html` + `site/data/method.json` to the
+auto-commit file list (same pattern Phase RO established for the Platform section, closing the same
+gap class before it could recur for Method).
+
+This closes `NAV_STORY_PLATFORM_METHOD.md` in full and, with it, all three items of
+`PRIORITIES.md`'s 2026-07-06 PRIORITY RESET (P1a Customer 360 v4 -- Phases RL/RP; P1b Supplier tab
+IA -- Phase RM; P1c six-section nav + story -- Phases RO/RQ). Per the reset's own standing rule,
+P2 (CTS reconciliation, frozen-policy baseline, FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md,
+SAAS_COVERAGE_MAP.md) resumes only after Rich's visual confirmation on the live site -- reported
+here as ready for that review, not claimed done outright.
+
+20 new tests (`tests/tools/test_generate_method_data.py`,
+`tests/tools/test_nav_story_platform_method_rq.py`), full suite 15,732 passed (15,856 collected),
+epistemic verifier PASS (478 files, no violations).
+
 ### Phase RP -- BILLING_AND_PAYMENTS_LEDGER.md CLOSED IN FULL (2026-07-06, Tier 2 -- PRIORITIES.md P1a reopened, docs/staging/BILLING_AND_PAYMENTS_LEDGER.md)
 
 Recovered a second interrupted prior session's uncommitted work found sitting in the working tree
@@ -6243,7 +6299,29 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,836 tests collected; 18 new this phase (tests/tools/test_generate_payment_ledger_data.py + tests/tools/test_billing_and_payments_ledger.py)
+- 15,856 tests collected; 20 new this phase (tests/tools/test_generate_method_data.py +
+  tests/tools/test_nav_story_platform_method_rq.py)
+- Phase RQ (2026-07-06): NAV_STORY_PLATFORM_METHOD.md CLOSED IN FULL -- new Method section
+  (site/method/index.html, tools/generate_method_data.py): operating model (roles/tiers, static
+  fact), the R1-R6 permanent rules each paired with the real incident that forged it (quoted from
+  docs/retrospectives/2026-07-04-verification-week.md), a live staging-loop view (pending/done/draft
+  counts and recent items computed fresh from docs/staging/ at generation time), and the
+  retrospective library (auto-discovered from docs/retrospectives/*.md). Project tab slims down per
+  the directive: Company sub-tab content redistributed to Method (governance model, rules, core
+  design principles, infrastructure), Capabilities sub-tab redistributed to Platform (new
+  Capabilities register section there, reusing the existing capabilities.json generator) -- both
+  tabs and their dead renderCapabilities()/CAPS code removed from site/project/index.html, replaced
+  with a pointer note on the Overview tab. Method nav link added to all seven site pages; Home
+  page's placeholder "Method: coming next" product card and missing Explore entry both wired to the
+  real page. node stayed gated behind an unapprovable permission prompt all session (same recurring
+  pattern as RA/RG/RI/RJ/RK/RL/RM) -- verified via brace/paren/bracket balance across every touched
+  page (all balanced) plus a direct field-name cross-check between generate_method_data.py's JSON
+  keys and every JS accessor in site/method/index.html (all present, no mismatches). This closes
+  PRIORITIES.md's P1a-P1c PRIORITY RESET in full (P1a Phase RL/RP, P1b Phase RM, P1c Phase RO/RQ) --
+  P2 (CTS reconciliation, frozen-policy baseline, FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md,
+  SAAS_COVERAGE_MAP.md) awaits Rich's visual confirmation on the live site per the standing rule
+  before resuming, not self-initiated. 20 new tests, full suite 15,732 passed (15,856 collected),
+  epistemic PASS. See Section 4.
 - Phase RP (2026-07-06): BILLING_AND_PAYMENTS_LEDGER.md (PRIORITIES.md P1a reopened) CLOSED IN FULL
   -- recovered a second interrupted prior session's uncommitted work: new
   tools/generate_payment_ledger_data.py builds a chronological per-account ledger (invoice raised /

@@ -328,6 +328,12 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("platform.json generation failed: {}".format(exc))
     try:
+        from tools.generate_method_data import generate as gen_method
+        gen_method()
+        log("Generated site/data/method.json")
+    except Exception as exc:
+        log("method.json generation failed: {}".format(exc))
+    try:
         from tools.generate_system_status import generate as gen_system_status
         gen_system_status()
         log("Generated site/data/system_status.json")
@@ -442,6 +448,12 @@ def git_commit_push(git_hash, net_margin):
     site_platform_json = PROJECT_DIR / "site" / "data" / "platform.json"
     if site_platform_json.exists():
         files.append(str(site_platform_json))
+    site_method_html = PROJECT_DIR / "site" / "method" / "index.html"
+    if site_method_html.exists():
+        files.append(str(site_method_html))
+    site_method_json = PROJECT_DIR / "site" / "data" / "method.json"
+    if site_method_json.exists():
+        files.append(str(site_method_json))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
     # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),
