@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "generated_at": "2026-07-06T18:39:28Z",
+    "git_commit": "91cc1cac",
+    "household_count": 16,
+    "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
+  },
+  "cases": [
+    {
+      "category": "Most eventful journey",
+      "headline": "63 timeline + reaction-chain entries on record",
+      "account_id": "C2",
+      "base_account_id": "C2",
+      "segment": "resi",
+      "commodity": "electricity",
+      "link": {
+        "acc": "C2",
+        "tab": "timeline"
+      }
+    },
+    {
+      "category": "Largest company-vs-SIM churn divergence",
+      "headline": "2489% error at the 2019 renewal (sim 4% vs company 95%)",
+      "account_id": "C_IC2",
+      "base_account_id": "C_IC2",
+      "segment": "I&C",
+      "commodity": "electricity",
+      "link": {
+        "acc": "C_IC2",
+        "tab": "timeline",
+        "year": 2019
+      }
+    },
+    {
+      "category": "Retention save, then churned anyway",
+      "headline": "The company offered retention and won, then lost the account regardless",
+      "account_id": "C5",
+      "base_account_id": "C5",
+      "segment": "SME",
+      "commodity": "electricity",
+      "link": {
+        "acc": "C5",
+        "tab": "timeline",
+        "year": 2022
+      }
+    },
+    {
+      "category": "Heaviest arrears cascade",
+      "headline": "3 debt write-off event(s) in the arrears cascade",
+      "account_id": "C3",
+      "base_account_id": "C3",
+      "segment": "resi",
+      "commodity": "electricity",
+      "link": {
+        "acc": "C3",
+        "tab": "timeline",
+        "year": 2016
+      }
+    },
+    {
+      "category": "Notable life event",
+      "headline": "New baby (2023) -- Real downstream drift: income stress low -> moderate; late-payment rate 8% -> 58%",
+      "account_id": "C7",
+      "base_account_id": "C7",
+      "segment": "resi",
+      "commodity": "electricity",
+      "link": {
+        "acc": "C7",
+        "tab": "timeline",
+        "year": 2023
+      }
+    }
+  ]
+}
