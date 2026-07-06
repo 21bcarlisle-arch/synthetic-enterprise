@@ -1,29 +1,28 @@
-## Phase RJ COMPLETE -- Customer 360 tabbed household IA + per-fuel MPAN/MPRN separation
-Last updated: 2026-07-06T09:33:23Z
+## Phase RK COMPLETE -- Customer 360 v4 item 2: real bill equation, fabrication debt closed
+Last updated: 2026-07-06T09:37:53Z
 
-**Status:** COMPLETE. 15,791 tests collected, fast suite (15,667) clean. Epistemic: PASS.
+**Status:** COMPLETE. 15,785 tests collected, fast suite (15,661) clean. Epistemic: PASS.
 
-**Phase RJ (recovered an interrupted prior-session's uncommitted work):** site/customers/index.html
-rebuilt from a single-account view into a 6-tab household IA (Overview/Accounts/Consumption/
-Billing/Timeline/Risk) with per-fuel selectors on every tab that carries one -- closes
-CUSTOMER_360_REDESIGN.md v4's "gas/elec separated at every stage" ask. Accounts tab gains real
-MPAN (Elexon modulus-11 check digit) + MPRN per fuel; Timeline tab assembles real renewal/churn +
-life events, merged and sorted. KEY FINDING while surveying remaining v4 scope: billing_ledger.json
-already has real per-invoice usage/rate/standing-charge data from actual sim bills, but the
-customer-facing JSON's own invoices are still a fabricated seasonal-weight approximation --
-flagged as the next fix (closes both the bill-equation item and a real fabrication debt).
+**Phase RK:** replaced a real fabrication debt Phase RJ surfaced -- tools/generate_invoice_data.py
+used to synthesise invoice amounts from a hand-picked seasonal weight curve, unrelated to actual
+consumption, even though site/state/billing_ledger.json already carried the real per-invoice
+usage/rate/standing-charge breakdown from the sim's own bills. Rewritten to map real ledger data
+through directly; process_run_complete.py reordered so the ledger generates before the invoice
+step needs it. Billing tab is now click-to-expand per bill: the equation (usage x rate + standing
+charge + non-commodity + VAT = total) and a why-different waterfall vs the previous bill and same
+month last year (usage effect / price effect / other), verified against live data.
 
-**Prior:** Phases RF-RI (2026-07-05/06) -- Company/Regulatory tab dedup, Project tab Timeline/
-Capabilities/System elevation, concurrency race fix, Supplier IA regroup (grouped nav + Query
-FAB), Customer 360 v3 usage-chart rendering. Phases QR-QE and earlier: docs/claude/phase-history.md
+**Prior:** Phase RJ (2026-07-06) -- Customer 360 tabbed household IA + per-fuel MPAN/MPRN
+separation. Phases RF-RI: Company/Regulatory tab dedup, Project tab elevation, concurrency fix,
+Supplier IA regroup, Customer 360 v3 usage-chart rendering. Earlier: docs/claude/phase-history.md
 and docs/PROJECT_OVERVIEW.md Section 4.
 
-**Front of queue next:** CUSTOMER_360_REDESIGN.md v4 items 2 (bill equation + why-different
-waterfall, wiring real billing_ledger.json data into the customer JSON), 3 (event downstream
-effects), 4 (reaction-loop rendering) -- per PRIORITIES.md P1a.
+**Front of queue next:** CUSTOMER_360_REDESIGN.md v4 items 3 (event downstream effects on
+Timeline) and 4 (reaction-loop rendering) per PRIORITIES.md P1a -- company/crm/ already has the
+complaint/service-ticket/satisfaction infrastructure, needs joining into the portal JSON.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (491s / 8 min):
+**Latest simulation results (2016-2025)** -- auto-processed (698s / 12 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822

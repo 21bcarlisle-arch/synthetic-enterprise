@@ -111,6 +111,59 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RK -- Customer 360 v4 item 2: real bill equation, replacing a fabricated invoice-amount debt (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue P1a)
+Phase RJ's survey of remaining CUSTOMER_360_REDESIGN.md v4 scope surfaced a genuine
+fabrication debt: `tools/generate_invoice_data.py` synthesised each customer's invoice
+amounts by splitting lifetime revenue across months with a hand-picked seasonal weight
+curve (`_ELEC_W`/`_GAS_W`), unrelated to the customer's actual metered consumption --
+even though `site/state/billing_ledger.json` (`tools/generate_billing_ledger.py`) already
+carries the real per-invoice breakdown from the simulation's own bills (`consumption_kwh`,
+`commodity_amount_gbp`, `standing_charge_gbp`, `non_commodity_amount_gbp`, `vat_gbp`,
+`total_amount_gbp`) -- it was simply never wired into the customer-facing JSON.
+
+**Fix.** `tools/generate_invoice_data.py` rewritten in full: `real_invoices_for()` maps
+each ledger invoice onto the customer-portal schema via `_real_invoice()`, deriving
+`unit_rate_p_per_kwh` (`commodity_amount_gbp / consumption_kwh`) -- a real derived
+figure, not an invented one -- and mapping the ledger's three-state `payment_status`
+(paid/overdue/disputed) onto PAID/UNPAID/DISPUTED (previously a fabricated binary
+PAID/UNPAID). `background/process_run_complete.py` reordered so `generate_billing_ledger`
+runs immediately before `generate_invoice_data` (previously after -- the ledger's real
+data was being generated one step too late to be available), removing the now-redundant
+second ledger-generation call that used to sit right before `generate_shadow_html`.
+
+**Frontend (site/customers/index.html Billing tab, CUSTOMER_360_REDESIGN.md v4 item 2):**
+each bill row is now click-to-expand, revealing (1) the bill equation -- usage (kWh) x
+unit rate (p/kWh) = commodity charge, + standing charge, + network/environmental, + VAT
+= total -- and (2) a why-different waterfall against both the previous bill and the same
+month last year, decomposed into usage effect ((usage_now - usage_prev) x rate_prev),
+price effect (usage_now x (rate_now - rate_prev)), and an other/residual effect (standing
+charge and non-commodity/VAT movement) -- the three terms sum exactly to the real delta
+by construction. This is the "bill shock becomes visually self-explanatory" ask verbatim:
+verified against live C1 data, Dec 2016 -> Jan 2017 (GBP100.46 -> GBP108.90, +GBP8.44)
+decomposes to usage effect +GBP0.12, price effect +GBP6.93, other +GBP1.39 -- correctly
+attributing the bill increase to the tariff renewal (13.36p -> 14.83p/kWh) rather than
+a usage change (470.4 -> 471.3 kWh, essentially flat).
+
+**Verification.** `node`/`node --check` remained gated behind an unresolvable approval
+prompt this session; used the established brace/paren/bracket-balance substitute
+(173/173, 451/451, 58/58 -- balanced) plus a live Python reimplementation of the exact
+waterfall arithmetic against real `site/data/customers/C1.json` data (shown above) to
+confirm the decomposition is correct and the three effects sum to the real delta.
+`tests/tools/test_invoice_generation.py` rewritten in full (11 tests: field mapping,
+derived unit-rate correctness, all three status mappings, bill-equation component
+completeness, unknown-customer/empty-ledger handling, full generate() round-trip via
+monkeypatched paths) -- the old 19 tests exercising the removed fabrication functions
+(`generate_invoices`/`_month_end`/`_months_between`/`_seasonal`) are gone with the code
+they tested. Full suite (`--ignore` on the 8 known-slow simulation integration files)
+15,661 passed, 15,785 collected. `python3 -m tools.epistemic_verifier` PASS (478 files).
+
+Remaining CUSTOMER_360_REDESIGN.md v4 scope: item 3 (event downstream-effect annotations
+on the Timeline tab) and item 4 (reaction-loop rendering: bill shock -> contact/complaint
+-> satisfaction -> offer -> outcome). `company/crm/` already has the underlying complaint/
+service-ticket/satisfaction-accumulator/contact-journey infrastructure; the remaining work
+is joining those per-customer records into the timeline/portal JSON, same pattern as this
+phase and Phase RJ.
+
 ### Phase RJ -- Recovered interrupted commit: Customer 360 tabbed household IA, per-fuel separation (CUSTOMER_360_REDESIGN.md v4 separation ask) (2026-07-06, Tier 2 -- PRIORITIES.md front-of-queue P1a)
 Session start (staging empty, both queued Tier 3 design notes -- CTS reconciliation and
 frozen-policy baseline -- still inside their 4h opt-out windows) found a large piece of

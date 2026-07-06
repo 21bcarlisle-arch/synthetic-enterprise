@@ -1,158 +1,118 @@
-"""Phase 264 tests: synthetic invoice generation for customer portal."""
+"""Tests for tools/generate_invoice_data.py -- real per-invoice bill-equation
+data sourced from site/state/billing_ledger.json (Phase RJ: replaces the
+previous fabricated seasonal-weight invoice approximation)."""
 import json
 from pathlib import Path
-from datetime import date
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from tools.generate_invoice_data import generate_invoices, _month_end, _months_between
+
+from tools.generate_invoice_data import _real_invoice, real_invoices_for
 
 
-_CDATA_RESI = {
-    "segment": "resi",
-    "commodity": "electricity",
-    "acquisition_date": "2024-01-01",
-    "revenue_gbp": 1200.0,
-}
-
-_CDATA_GAS = {
-    "segment": "resi",
-    "commodity": "gas",
-    "acquisition_date": "2024-01-01",
-    "revenue_gbp": 800.0,
-}
-
-_CDATA_IC = {
-    "segment": "I&C",
-    "commodity": "electricity",
-    "acquisition_date": "2024-01-01",
-    "revenue_gbp": 500_000.0,
-}
+_LEDGER_INV = dict(
+    invoice_number=7,
+    customer_id="C1",
+    period_start="2016-01-01",
+    period_end="2016-01-31",
+    commodity="electricity",
+    consumption_kwh=471.1,
+    commodity_amount_gbp=62.69,
+    non_commodity_amount_gbp=24.5,
+    standing_charge_gbp=8.37,
+    vat_gbp=4.78,
+    total_amount_gbp=100.34,
+    payment_status="paid",
+)
 
 
-def test_months_between_count():
-    months = _months_between("2024-01-01", date(2024, 12, 31))
-    assert len(months) == 12
+def test_real_invoice_maps_core_fields():
+    out = _real_invoice(_LEDGER_INV)
+    assert out["id"] == "C1-INV7"
+    assert out["date"] == "2016-01-31"
+    assert out["commodity"] == "electricity"
+    assert out["consumption_kwh"] == 471.1
+    assert out["amount_gbp"] == 100.34
 
 
-def test_generate_invoices_count_matches_months():
-    invs = generate_invoices("C1", _CDATA_RESI)
-    assert len(invs) > 0
-    months = _months_between("2024-01-01", min(date.today(), date(2025, 12, 31)))
-    assert len(invs) == len(months)
+def test_real_invoice_derives_unit_rate_from_real_usage_and_charge():
+    out = _real_invoice(_LEDGER_INV)
+    expected = round(62.69 / 471.1 * 100, 2)
+    assert out["unit_rate_p_per_kwh"] == expected
 
 
-def test_generate_invoices_last_is_unpaid():
-    invs = generate_invoices("C1", _CDATA_RESI)
-    assert invs[-1]["status"] == "UNPAID"
+def test_real_invoice_unit_rate_none_when_no_consumption():
+    inv = dict(_LEDGER_INV, consumption_kwh=0)
+    out = _real_invoice(inv)
+    assert out["unit_rate_p_per_kwh"] is None
 
 
-def test_generate_invoices_rest_are_paid():
-    invs = generate_invoices("C1", _CDATA_RESI)
-    for inv in invs[:-1]:
-        assert inv["status"] == "PAID"
+def test_real_invoice_status_paid_maps_to_upper():
+    out = _real_invoice(_LEDGER_INV)
+    assert out["status"] == "PAID"
 
 
-def test_generate_invoices_total_revenue_within_10pct():
-    invs = generate_invoices("C1", _CDATA_RESI)
-    total = sum(i["amount_gbp"] for i in invs)
-    expected = _CDATA_RESI["revenue_gbp"]
-    assert total > expected  # invoices include standing charges on top of revenue
+def test_real_invoice_status_overdue_maps_to_unpaid():
+    inv = dict(_LEDGER_INV, payment_status="overdue")
+    out = _real_invoice(inv)
+    assert out["status"] == "UNPAID"
 
 
-def test_gas_invoices_winter_higher_than_summer():
-    invs = generate_invoices("C1", _CDATA_GAS)
-    jan = next(i for i in invs if i["period_start"].endswith("-01-01"))
-    jul = next((i for i in invs if "-07-" in i["period_start"]), None)
-    if jul:
-        assert jan["amount_gbp"] > jul["amount_gbp"]
+def test_real_invoice_status_disputed_maps_to_disputed():
+    inv = dict(_LEDGER_INV, payment_status="disputed")
+    out = _real_invoice(inv)
+    assert out["status"] == "DISPUTED"
 
 
-def test_ic_invoices_amount_much_larger():
-    invs_resi = generate_invoices("C1", _CDATA_RESI)
-    invs_ic = generate_invoices("C_IC1", _CDATA_IC)
-    avg_resi = sum(i["amount_gbp"] for i in invs_resi) / len(invs_resi)
-    avg_ic = sum(i["amount_gbp"] for i in invs_ic) / len(invs_ic)
-    assert avg_ic > avg_resi * 10
+def test_real_invoice_carries_bill_equation_components():
+    out = _real_invoice(_LEDGER_INV)
+    assert out["commodity_amount_gbp"] == 62.69
+    assert out["standing_charge_gbp"] == 8.37
+    assert out["non_commodity_amount_gbp"] == 24.5
+    assert out["vat_gbp"] == 4.78
 
 
-def test_invoice_id_format():
-    invs = generate_invoices("C1", _CDATA_RESI)
-    assert invs[0]["id"].startswith("C1-2024-")
+def test_real_invoices_for_unknown_customer_returns_empty():
+    assert real_invoices_for("C999", dict()) == []
 
 
-def test_generate_writes_invoices_to_customer_json(tmp_path):
-    from tools.generate_invoice_data import generate
-    import json
+def test_real_invoices_for_maps_all_invoices_in_order():
+    ledger_customers = dict(C1=dict(invoices=[_LEDGER_INV, dict(_LEDGER_INV, invoice_number=8)]))
+    out = real_invoices_for("C1", ledger_customers)
+    assert len(out) == 2
+    assert out[0]["id"] == "C1-INV7"
+    assert out[1]["id"] == "C1-INV8"
+
+
+def test_generate_end_to_end_uses_real_ledger_data(tmp_path, monkeypatch):
+    import tools.generate_invoice_data as gid
+
     cust_dir = tmp_path / "customers"
     cust_dir.mkdir()
-    (cust_dir / "C1.json").write_text(json.dumps({
-        "account_id": "C1", "segment": "resi", "commodity": "electricity",
-        "acquisition_date": "2024-01-01", "revenue_gbp": 1200.0, "invoices": []
-    }))
-    (cust_dir / "_index.json").write_text(json.dumps(["C1"]))
-    run_data = {
-        "per_customer_lifetime": {
-            "C1": {
-                "segment": "resi", "commodity": "electricity",
-                "acquisition_date": "2024-01-01", "revenue_gbp": 1200.0
-            }
-        }
-    }
+    (cust_dir / "C1.json").write_text(json.dumps(dict(account_id="C1", invoices=[])))
+
+    ledger_path = tmp_path / "billing_ledger.json"
+    ledger_path.write_text(json.dumps(dict(customers=dict(C1=dict(invoices=[_LEDGER_INV])))))
+
     run_json = tmp_path / "run.json"
-    run_json.write_text(json.dumps(run_data))
+    run_json.write_text(json.dumps(dict(per_customer_lifetime=dict(C1=dict()))))
 
-    import tools.generate_invoice_data as gid
-    orig = gid.CUSTOMERS_DIR
-    gid.CUSTOMERS_DIR = cust_dir
-    try:
-        gid.generate(str(run_json))
-    finally:
-        gid.CUSTOMERS_DIR = orig
+    monkeypatch.setattr(gid, "CUSTOMERS_DIR", cust_dir)
+    monkeypatch.setattr(gid, "LEDGER_PATH", ledger_path)
 
+    count = gid.generate(str(run_json))
+    assert count == 1
     updated = json.loads((cust_dir / "C1.json").read_text())
-    assert len(updated["invoices"]) > 0
-    assert updated["invoices"][0]["amount_gbp"] > 0
+    assert len(updated["invoices"]) == 1
+    assert updated["invoices"][0]["amount_gbp"] == 100.34
+    assert updated["invoices"][0]["unit_rate_p_per_kwh"] is not None
 
 
-from datetime import date
-from tools.generate_invoice_data import _month_end, _months_between, _seasonal
+def test_generate_returns_zero_when_ledger_missing(tmp_path, monkeypatch):
+    import tools.generate_invoice_data as gid
 
+    run_json = tmp_path / "run.json"
+    run_json.write_text(json.dumps(dict(per_customer_lifetime=dict())))
+    monkeypatch.setattr(gid, "LEDGER_PATH", tmp_path / "no_such_ledger.json")
 
-def test_month_end_december():
-    assert _month_end(2022, 12) == date(2022, 12, 31)
-
-
-def test_month_end_january():
-    assert _month_end(2022, 1) == date(2022, 1, 31)
-
-
-def test_month_end_february_non_leap():
-    assert _month_end(2022, 2) == date(2022, 2, 28)
-
-
-def test_month_end_february_leap():
-    assert _month_end(2024, 2) == date(2024, 2, 29)
-
-
-def test_months_between_cross_year():
-    months = _months_between("2022-11-01", date(2023, 2, 28))
-    assert len(months) == 4
-
-
-def test_months_between_tuples():
-    months = _months_between("2022-01-01", date(2022, 3, 31))
-    assert months[0] == (2022, 1)
-    assert months[-1] == (2022, 3)
-
-
-def test_seasonal_sums_to_total():
-    months = [(2022, m) for m in range(1, 13)]
-    shares = _seasonal(1200.0, months, "electricity")
-    assert abs(sum(shares) - 1200.0) < 1e-6
-
-
-def test_seasonal_gas_winter_higher_than_summer():
-    months = [(2022, m) for m in range(1, 13)]
-    shares = _seasonal(1200.0, months, "gas")
-    assert shares[0] > shares[6]  # Jan > Jul
+    assert gid.generate(str(run_json)) == 0
