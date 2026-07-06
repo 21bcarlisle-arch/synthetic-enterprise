@@ -123,6 +123,14 @@ tr:hover td { background: var(--surface2); }
 .heatmap { display: grid; gap: 2px; width: max-content; padding: 2px; }
 .hm-row { display: contents; }
 .hm-cell { padding: 4px 6px; font-size: 10px; border-radius: 3px; text-align: center; min-width: 44px; cursor: default; }
+a.hm-cell { display: block; text-decoration: none; color: inherit; cursor: pointer; }
+a.hm-cell:hover { outline: 2px solid var(--blue); outline-offset: -2px; }
+.ev-filter-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.ev-filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
+#event-stream-table tr[data-etype] { cursor: pointer; }
+#event-stream-table tr[data-etype]:hover td { background: rgba(42,120,214,.06); }
+.ev-summary { max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev-summary.ev-expanded { max-width: none; white-space: normal; }
 .hm-label { background: none; color: var(--muted); font-weight: 600; text-align: left; min-width: 56px; }
 .hm-year-hdr { background: none; color: var(--muted); font-size: 10px; font-weight: 600; }
 .hm-great { background: #d7f3d1; color: #046b04; }
@@ -231,6 +239,7 @@ tr:hover td { background: var(--surface2); }
   <div id="tab-financial" class="view"></div>
   <div id="tab-accounts"  class="view"></div>
   <div id="tab-trading"   class="view"></div>
+  <div id="tab-events"    class="view"></div>
   <div id="tab-customers" class="view"></div>
   <div id="tab-insights"  class="view"></div>
   <div id="tab-monthly"   class="view"></div>
@@ -313,13 +322,13 @@ function baseLineOpts(title) {
 // ── Tab switching ────────────────────────────────────────────────────────────
 const GROUPS = [
   { id: 'performance', label: 'Performance', tabs: ['overview','financial','accounts'] },
-  { id: 'commercial',  label: 'Commercial',  tabs: ['customers'] },
+  { id: 'commercial',  label: 'Commercial',  tabs: ['events','customers'] },
   { id: 'trading',     label: 'Trading & Market', tabs: ['trading','market'] },
   { id: 'operations',  label: 'Operations',  tabs: ['monthly','insights'] },
   { id: 'governance',  label: 'Governance',  tabs: ['regulatory'] },
 ];
 const TAB_LABEL = { overview:'Overview', financial:'Financial', accounts:'Accounts',
-  customers:'Customers', trading:'Trading', market:'Market', monthly:'Monthly',
+  customers:'Customers', events:'Event Stream', trading:'Trading', market:'Market', monthly:'Monthly',
   insights:'Insights', regulatory:'Regulatory' };
 let CURRENT_TAB = 'overview';
 let ACTIVE_GROUP = 'performance';
@@ -369,6 +378,7 @@ function renderTab(name) {
   if (name === 'financial') renderFinancial();
   if (name === 'accounts')  renderAccounts();
   if (name === 'trading')   renderTrading();
+  if (name === 'events')    renderEvents();
   if (name === 'customers') renderCustomers();
   if (name === 'insights')  renderInsights();
   if (name === 'monthly')   renderMonthly();
@@ -452,6 +462,23 @@ function renderSpotlight(container) {
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────────────────
+function goToInsightsEvidence() { switchTab('insights'); }
+
+function renderBoardActionsBlock() {
+  var ins = D.insights;
+  if (!ins || !ins.recommended_actions || !ins.recommended_actions.length) return '';
+  var items = ins.recommended_actions.map(function(a, idx) {
+    return '<div style="font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:12px;align-items:center">' +
+      '<span><span style="color:var(--amber);font-weight:600">' + (idx+1) + '.</span> ' + a + '</span>' +
+      '<button class="tab-btn" style="white-space:nowrap;flex-shrink:0" onclick="goToInsightsEvidence()">View evidence &rarr;</button>' +
+      '</div>';
+  }).join('');
+  return '<div class="chart-box" style="margin-bottom:16px;border-left:3px solid var(--amber);padding-left:16px">' +
+    '<div class="chart-title" style="margin-bottom:8px">What the Board Should Do Next</div>' +
+    items +
+    '</div>';
+}
+
 function renderOverview() {
   const p = D.portfolio;
   const fa = D.financial.annual;
@@ -465,6 +492,7 @@ function renderOverview() {
       ${card('Retention', `${p.retention_retained}/${p.retention_offers}`, `${p.churn_count} accounts churned`, 'neu')}
       ${card('Committee', p.committee_interventions_total.toLocaleString(), `${p.bills_total.toLocaleString()} bills`, 'neu')}
     </div>
+    ${renderBoardActionsBlock()}
     <div class="chart-box">
       <div class="chart-title">Treasury 2016–2025</div>
       <div class="chart-wrap"><canvas id="ch-treasury"></canvas></div>
@@ -774,6 +802,60 @@ function renderTrading() {
 }
 
 // ── CUSTOMERS ────────────────────────────────────────────────────────────────
+// -- Portfolio Event Stream (SUPPLIER_TAB_OVERHAUL.md THE SPINE) ------------
+function typeLabel(t) {
+  return t.split('_').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+}
+
+function filterEventStream(t) {
+  document.querySelectorAll('#event-stream-table tr[data-etype]').forEach(function(r) {
+    r.style.display = (t === 'all' || r.dataset.etype === t) ? '' : 'none';
+  });
+  document.querySelectorAll('#event-filter-btns button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.etype === t);
+  });
+}
+
+function toggleEventDetail(row) {
+  var cell = row.querySelector('.ev-summary');
+  if (cell) cell.classList.toggle('ev-expanded');
+}
+
+function renderEvents() {
+  var stream = (D.customers && D.customers.portfolio_event_stream) || [];
+  if (!stream.length) {
+    el('tab-events').innerHTML = '<div class="section"><div class="section-title">Portfolio Event Stream</div>' +
+      '<p style="color:var(--muted);font-size:12px">No event stream data available for this run.</p></div>';
+    return;
+  }
+  var types = Array.from(new Set(stream.map(function(e) { return e.event_type; }))).sort();
+  var filterBtns = '<button class="ev-filter-btn active" data-etype="all" onclick="filterEventStream(' + "'all'" + ')">All</button>' +
+    types.map(function(t) {
+      return '<button class="ev-filter-btn" data-etype="' + t + '" onclick="filterEventStream(' + "'" + t + "'" + ')">' + typeLabel(t) + '</button>';
+    }).join('');
+
+  var rows = stream.map(function(e) {
+    var belief = e.company_belief != null ? (e.company_belief * 100).toFixed(0) + '%' : '\u2014';
+    var truth = e.event_type === 'journey_state' ? '\u2014' : (e.sim_truth != null ? (e.sim_truth * 100).toFixed(0) + '%' : '\u2014');
+    var amount = e.amount_gbp != null ? gbp(e.amount_gbp) : '\u2014';
+    var custLink = '<a href="../customers/?acc=' + encodeURIComponent(e.customer_id) + '&tab=timeline" target="_blank" onclick="event.stopPropagation()">' + e.customer_id + '</a>';
+    return '<tr data-etype="' + e.event_type + '" onclick="toggleEventDetail(this)">' +
+      '<td>' + e.date + '</td>' +
+      '<td>' + custLink + '</td>' +
+      '<td>' + typeLabel(e.event_type) + '</td>' +
+      '<td class="ev-summary">' + e.description + '</td>' +
+      '<td>' + belief + '</td><td>' + truth + '</td><td>' + amount + '</td>' +
+      '</tr>';
+  }).join('');
+
+  el('tab-events').innerHTML =
+    '<div class="section"><div class="section-title">Portfolio Event Stream</div>' +
+    '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">' + stream.length + ' most recent commercial decisions/outcomes across the whole portfolio, most recent first -- renewal windows, offers with H1 EV, outcomes, and arrears steps. Click a row to expand its full cause; click a customer to open their 360 page. "Believed" is the estimate/EV logged at decision time, "SIM Truth" the realized outcome.</p>' +
+    '<div id="event-filter-btns" style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap">' + filterBtns + '</div>' +
+    '<div class="tbl-box"><table id="event-stream-table"><tr><th>Date</th><th>Customer</th><th>Event</th><th>Description</th><th>Believed</th><th>SIM Truth</th><th>Amount</th></tr>' +
+    rows + '</table></div></div>';
+}
+
 function renderCustomers() {
   const cu = D.customers;
   const baAll = cu.book_annual;
@@ -803,13 +885,18 @@ function renderCustomers() {
   hmHtml += `<div class="hm-cell hm-label">Cust</div>`;
   allYears.forEach(yr => { hmHtml += `<div class="hm-cell hm-year-hdr">${yr.slice(2)}</div>`; });
 
-  // Data rows
-  allCids.forEach(cid => {
-    hmHtml += `<div class="hm-cell hm-label">${cid}</div>`;
-    allYears.forEach(yr => {
-      const v = cu.per_year_net[cid]?.[yr];
-      const lbl = v !== undefined ? (Math.abs(v) >= 1000 ? gbp(v,0) : (v < 0 ? '-£'+Math.abs(Math.round(v)) : '£'+Math.round(v))) : '—';
-      hmHtml += `<div class="hm-cell ${hmColor(v)}" title="${cid} ${yr}: ${v !== undefined ? gbp(v,0) : 'n/a'}">${lbl}</div>`;
+  // Data rows -- cells with data link through to that customer's 360 page for that year (SUPPLIER_TAB_OVERHAUL.md heatmap click-through)
+  allCids.forEach(function(cid) {
+    hmHtml += '<div class="hm-cell hm-label">' + cid + '</div>';
+    allYears.forEach(function(yr) {
+      var v = cu.per_year_net[cid] ? cu.per_year_net[cid][yr] : undefined;
+      var lbl = v !== undefined ? (Math.abs(v) >= 1000 ? gbp(v,0) : (v < 0 ? '-£'+Math.abs(Math.round(v)) : '£'+Math.round(v))) : '—';
+      var title = cid + ' ' + yr + ': ' + (v !== undefined ? gbp(v,0) : 'n/a');
+      if (v !== undefined) {
+        hmHtml += '<a class="hm-cell ' + hmColor(v) + '" href="../customers/?acc=' + encodeURIComponent(cid) + '&year=' + yr + '&tab=accounts" target="_blank" title="' + title + '">' + lbl + '</a>';
+      } else {
+        hmHtml += '<div class="hm-cell ' + hmColor(v) + '" title="' + title + '">' + lbl + '</div>';
+      }
     });
   });
   hmHtml += '</div></div>';
