@@ -1,5 +1,5 @@
 ## Phase RP COMPLETE -- BILLING_AND_PAYMENTS_LEDGER.md CLOSED IN FULL (PRIORITIES.md P1a reopened)
-Last updated: 2026-07-06T16:13:23Z
+Last updated: 2026-07-06T16:20:32Z
 
 **Status:** COMPLETE. 15,836 tests collected, fast suite (15,712) clean. Epistemic: PASS.
 
@@ -28,7 +28,7 @@ library) + the Project tab slim-down (Company sub-tab -> Method, Capabilities su
 Not yet started.
 
 
-**Latest simulation results (2016–2025)** — auto-processed (517s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (511s / 9 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,826,938.57 | Net after CTS: £6,360,822
