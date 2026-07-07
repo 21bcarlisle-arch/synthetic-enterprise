@@ -1,5 +1,9 @@
 # Current Priorities
 
+Last director review: 2026-07-06. Updated (queue-tracking only, no re-rank): 2026-07-07 --
+P2 CLOSED IN FULL (Phase RW, item 5 SAAS_COVERAGE_MAP.md landed); front of queue is now S1
+(shadow-live proof-first track record, docs/staging/S1_SHADOW_LIVE_TRACK_RECORD_DESIGN.md),
+Tier 3 own 4h opt-out filed 2026-07-07 12:24 UTC, not yet implemented.
 Last updated: 2026-07-06 -- PRIORITY RESET (docs/staging/PRIORITY_RESET_PUBLIC_SITE.md,
 [ADVISOR-STAGED] 5fa9a0cf, Tier 2 pre-approved). Rich's direct verdict after reviewing the live
 site: still far below target -- tab order unchanged, gas/electricity still bundled everywhere he
@@ -19,7 +23,10 @@ backend depth. New order, top-down, each Tier 2:
     item 1 CTS reconciliation CLOSED (Phase RS), item 2 frozen-policy baseline CLOSED (Phase RT),
     item 3 FEEDBACK_AND_REPUTATION.md Layer 1 CLOSED (Phase RU, Layer 2 still open). Item 4
     NUDGE_PHYSICS.md Layer 1 (loss-aversion offer framing) CLOSED (Phase RV, 2026-07-07) -- see
-    Section 4 Phase RV. Item 5 SAAS_COVERAGE_MAP.md not yet reached, now front of P2 queue.
+    Section 4 Phase RV. Item 5 SAAS_COVERAGE_MAP.md CLOSED (Phase RW, 2026-07-07) -- P2 QUEUE
+    FULLY CLOSED. Front of queue next: S1 (shadow-live proof-first track record), design note
+    filed docs/staging/S1_SHADOW_LIVE_TRACK_RECORD_DESIGN.md, Tier 3 own 4h opt-out (filed
+    2026-07-07 12:24 UTC) -- not yet implemented, awaiting opt-out window.
 Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's visual
 review", never "done" outright. PROJECT_TAB_OVERHAUL.md now CLOSED IN FULL (Phase RG).
 PROCESS_NOT_EVENTS.md and DECISION_LOOP_AND_EVENT_LEDGER.md remain CLOSED IN FULL (no change).
