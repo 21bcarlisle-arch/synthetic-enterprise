@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-07-07T07:24:08Z",
+    "generated_at": "2026-07-07T07:26:16Z",
     "git_commit": "b5024291",
     "customer_count": 21,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
@@ -313,8 +313,55 @@
       "bill_shock_history": [
         "2018-12-31"
       ],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2016-12-31",
+          "true_satisfaction": 0.72,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2017-12-31",
+          "true_satisfaction": 0.74,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2018-12-31",
+          "true_satisfaction": 0.66,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-12-31",
+          "true_satisfaction": 0.6799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-12-30",
+          "true_satisfaction": 0.6999,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2018-12-31",
+          "event_type": "complaint_resolved_on_time",
+          "days_to_resolve": 6
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -515,8 +562,47 @@
       "payment_behaviour_analytics": null,
       "payment_miss_trajectory": [],
       "bill_shock_history": [],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2021-12-30",
+          "true_satisfaction": 0.7,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-12-30",
+          "true_satisfaction": 0.7,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2023-12-30",
+          "true_satisfaction": 0.7,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-12-29",
+          "true_satisfaction": 0.7,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2021-12-30",
+          "event_type": "complaint_resolved_on_time",
+          "days_to_resolve": 6
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1042,8 +1128,63 @@
         "2021-03-31",
         "2022-03-31"
       ],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2017-04-01",
+          "true_satisfaction": 0.72,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2018-04-01",
+          "true_satisfaction": 0.59,
+          "csat_responded": true,
+          "csat_score_0_10": 7.5,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-04-01",
+          "true_satisfaction": 0.76,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-03-31",
+          "true_satisfaction": 0.7799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-03-31",
+          "true_satisfaction": 0.6999,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-03-31",
+          "true_satisfaction": 0.6,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": true,
+          "nps_score_0_10": 6
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2021-03-31",
+          "event_type": "complaint_resolved_on_time",
+          "days_to_resolve": 8
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1203,8 +1344,39 @@
       "payment_behaviour_analytics": null,
       "payment_miss_trajectory": [],
       "bill_shock_history": [],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2023-03-31",
+          "true_satisfaction": 0.8,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-03-30",
+          "true_satisfaction": 0.8,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2025-03-30",
+          "true_satisfaction": 0.7,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2025-03-30",
+          "event_type": "complaint_resolved_late",
+          "days_to_resolve": 69
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1670,8 +1842,47 @@
       "bill_shock_history": [
         "2017-07-01"
       ],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2017-07-01",
+          "true_satisfaction": 0.62,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2018-07-01",
+          "true_satisfaction": 0.64,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-07-01",
+          "true_satisfaction": 0.66,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-06-30",
+          "true_satisfaction": 0.6799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2017-07-01",
+          "event_type": "complaint_resolved_late",
+          "days_to_resolve": 41
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -2276,8 +2487,79 @@
         "2021-09-30",
         "2022-09-30"
       ],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2017-10-01",
+          "true_satisfaction": 0.72,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2018-10-01",
+          "true_satisfaction": 0.64,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-10-01",
+          "true_satisfaction": 0.66,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-09-30",
+          "true_satisfaction": 0.6799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-09-30",
+          "true_satisfaction": 0.5999,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-09-30",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2023-09-30",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-09-29",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2021-09-30",
+          "event_type": "complaint_resolved_on_time",
+          "days_to_resolve": 4
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -2963,7 +3245,64 @@
         "2018-12-31",
         "2021-12-30"
       ],
-      "feedback_survey_history": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2016-12-31",
+          "true_satisfaction": 0.72,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2017-12-31",
+          "true_satisfaction": 0.74,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2018-12-31",
+          "true_satisfaction": 0.66,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-12-31",
+          "true_satisfaction": 0.6799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": true,
+          "nps_score_0_10": 7
+        },
+        {
+          "term_start": "2020-12-30",
+          "true_satisfaction": 0.6999,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-12-30",
+          "true_satisfaction": 0.6,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-12-30",
+          "true_satisfaction": 0.6,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": true,
+          "nps_score_0_10": 6
+        }
+      ],
       "reputation_events": [],
       "data_status": {
         "financial": "complete",
@@ -3097,7 +3436,24 @@
       "payment_behaviour_analytics": null,
       "payment_miss_trajectory": [],
       "bill_shock_history": [],
-      "feedback_survey_history": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2023-12-30",
+          "true_satisfaction": 0.8,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-12-29",
+          "true_satisfaction": 0.8,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
       "reputation_events": [],
       "data_status": {
         "financial": "complete",
@@ -3507,8 +3863,79 @@
         "2021-03-31",
         "2022-03-31"
       ],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2017-04-01",
+          "true_satisfaction": 0.72,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2018-04-01",
+          "true_satisfaction": 0.74,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-04-01",
+          "true_satisfaction": 0.76,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-03-31",
+          "true_satisfaction": 0.7799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-03-31",
+          "true_satisfaction": 0.6999,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-03-31",
+          "true_satisfaction": 0.6,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2023-03-31",
+          "true_satisfaction": 0.6,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-03-30",
+          "true_satisfaction": 0.6,
+          "csat_responded": true,
+          "csat_score_0_10": 6.1,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2021-03-31",
+          "event_type": "complaint_resolved_late",
+          "days_to_resolve": 97
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -4031,8 +4458,92 @@
         "2021-12-30",
         "2022-12-30"
       ],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2016-12-31",
+          "true_satisfaction": 0.72,
+          "csat_responded": true,
+          "csat_score_0_10": 6.4,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2017-12-31",
+          "true_satisfaction": 0.74,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2018-12-31",
+          "true_satisfaction": 0.66,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-12-31",
+          "true_satisfaction": 0.6799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-12-30",
+          "true_satisfaction": 0.6999,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-12-30",
+          "true_satisfaction": 0.6,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-12-30",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2023-12-30",
+          "true_satisfaction": 0.45,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-12-29",
+          "true_satisfaction": 0.45,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2018-12-31",
+          "event_type": "complaint_resolved_on_time",
+          "days_to_resolve": 1
+        },
+        {
+          "date": "2022-12-30",
+          "event_type": "complaint_resolved_on_time",
+          "days_to_resolve": 5
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -4494,8 +5005,92 @@
         "2021-03-31",
         "2022-03-31"
       ],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2017-04-01",
+          "true_satisfaction": 0.72,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2018-04-01",
+          "true_satisfaction": 0.74,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-04-01",
+          "true_satisfaction": 0.76,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-03-31",
+          "true_satisfaction": 0.7799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-03-31",
+          "true_satisfaction": 0.6999,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-03-31",
+          "true_satisfaction": 0.6,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2023-03-31",
+          "true_satisfaction": 0.55,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-03-30",
+          "true_satisfaction": 0.55,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": true,
+          "nps_score_0_10": 4
+        },
+        {
+          "term_start": "2025-03-30",
+          "true_satisfaction": 0.55,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2021-03-31",
+          "event_type": "complaint_resolved_late",
+          "days_to_resolve": 44
+        },
+        {
+          "date": "2022-03-31",
+          "event_type": "complaint_resolved_on_time",
+          "days_to_resolve": 8
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -4918,7 +5513,72 @@
         "2021-06-30",
         "2022-06-30"
       ],
-      "feedback_survey_history": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2017-07-01",
+          "true_satisfaction": 0.62,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2018-07-01",
+          "true_satisfaction": 0.64,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-07-01",
+          "true_satisfaction": 0.66,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-06-30",
+          "true_satisfaction": 0.6799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-06-30",
+          "true_satisfaction": 0.5999,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-06-30",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2023-06-30",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-06-29",
+          "true_satisfaction": 0.5,
+          "csat_responded": true,
+          "csat_score_0_10": 4.9,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
       "reputation_events": [],
       "data_status": {
         "financial": "complete",
@@ -5287,8 +5947,71 @@
         "2021-04-30",
         "2022-05-30"
       ],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2018-01-31",
+          "true_satisfaction": 0.6216,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2019-03-02",
+          "true_satisfaction": 0.6433,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-03-31",
+          "true_satisfaction": 0.6649,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-04-30",
+          "true_satisfaction": 0.5865,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-05-30",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2023-06-29",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-07-28",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2021-04-30",
+          "event_type": "complaint_resolved_on_time",
+          "days_to_resolve": 9
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -5625,8 +6348,63 @@
         "2021-03-31",
         "2022-04-30"
       ],
-      "feedback_survey_history": [],
-      "reputation_events": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2019-01-31",
+          "true_satisfaction": 0.6216,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2020-03-01",
+          "true_satisfaction": 0.6433,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-03-31",
+          "true_satisfaction": 0.5649,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-04-30",
+          "true_satisfaction": 0.4865,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2023-05-30",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-06-28",
+          "true_satisfaction": 0.5,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
+      "reputation_events": [
+        {
+          "date": "2021-03-31",
+          "event_type": "complaint_resolved_on_time",
+          "days_to_resolve": 3
+        }
+      ],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -5987,7 +6765,56 @@
       "bill_shock_history": [
         "2021-12-31"
       ],
-      "feedback_survey_history": [],
+      "feedback_survey_history": [
+        {
+          "term_start": "2020-01-01",
+          "true_satisfaction": 0.72,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": true,
+          "nps_score_0_10": 7
+        },
+        {
+          "term_start": "2020-12-31",
+          "true_satisfaction": 0.74,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2021-12-31",
+          "true_satisfaction": 0.66,
+          "csat_responded": true,
+          "csat_score_0_10": 7.9,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2022-12-31",
+          "true_satisfaction": 0.6799,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2023-12-31",
+          "true_satisfaction": 0.6999,
+          "csat_responded": true,
+          "csat_score_0_10": 5.0,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        },
+        {
+          "term_start": "2024-12-30",
+          "true_satisfaction": 0.7,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": false,
+          "nps_score_0_10": null
+        }
+      ],
       "reputation_events": [],
       "data_status": {
         "financial": "complete",
