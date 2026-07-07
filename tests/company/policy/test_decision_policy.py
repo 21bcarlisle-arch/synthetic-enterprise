@@ -1,6 +1,6 @@
 import pytest
 
-from company.policy.decision_policy import CURRENT_POLICY, NAIVE_POLICY, DecisionPolicy
+from company.policy.decision_policy import CURRENT_POLICY, NAIVE_POLICY, DecisionPolicy, framing_type_for
 
 
 def test_current_policy_tiered_discount_matches_phase_14a_tiers():
@@ -47,3 +47,40 @@ def test_flat_mode_ignores_tiers_even_if_present():
         use_var_hedge_decision=True,
     )
     assert policy.retention_discount_for_risk(0.90) == 0.10
+
+
+def test_current_policy_ab_tests_framing():
+    assert CURRENT_POLICY.framing_mode == "ab_test"
+
+
+def test_naive_policy_fixed_gain_framing():
+    assert NAIVE_POLICY.framing_mode == "gain_framed"
+
+
+def test_framing_type_for_fixed_mode_returns_constant():
+    for date in ("2020-01-01", "2021-06-01", "2025-12-31"):
+        assert framing_type_for(NAIVE_POLICY, "C1", date) == "gain_framed"
+
+
+def test_framing_type_for_ab_test_varies_by_date_same_customer():
+    seen = set()
+    for i in range(50):
+        date = "20{:02d}-01-01".format(i)
+        seen.add(framing_type_for(CURRENT_POLICY, "C1", date))
+    assert seen == {"loss_framed", "gain_framed"}
+
+
+def test_framing_type_for_ab_test_is_deterministic():
+    a = framing_type_for(CURRENT_POLICY, "C1", "2020-01-01")
+    b = framing_type_for(CURRENT_POLICY, "C1", "2020-01-01")
+    assert a == b
+
+
+def test_framing_type_for_ab_test_roughly_balanced_across_customers():
+    from collections import Counter
+    counts = Counter(
+        framing_type_for(CURRENT_POLICY, "C" + str(i), "2020-01-01") for i in range(1, 500)
+    )
+    total = sum(counts.values())
+    assert 0.35 < counts["loss_framed"] / total < 0.65
+    assert 0.35 < counts["gain_framed"] / total < 0.65

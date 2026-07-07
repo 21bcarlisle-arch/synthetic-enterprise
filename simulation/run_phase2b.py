@@ -92,7 +92,8 @@ from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from company.trading.forward_book import ForwardContract, TradingBook
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost
-from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY
+from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, framing_type_for
+from simulation.nudge_physics import susceptibility_for, framing_effectiveness_multiplier
 from company.crm.customer_profitability import compute_profitability_uplift
 from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate, enriched_passive_churn_estimate as _enriched_passive_churn_estimate, INDUSTRY_BASE_CHURN_RATE as _INDUSTRY_BASE_CHURN_RATE
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
@@ -803,6 +804,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     _complaint_book = ComplaintBook()
     feedback_survey_log: list[dict] = []
     reputation_events_log: list[dict] = []
+    # Nudge Physics Layer 1 (NUDGE_PHYSICS.md): SIM-side hidden companion to
+    # retention_log's framing_type -- carries the true susceptibility and
+    # effectiveness multiplier for Sim-tab verification only. Company code
+    # must never read this log.
+    nudge_physics_log: list[dict] = []
     # Phase NH: payment behaviour analytics -- three-signal churn model wiring
     _payment_analytics = PaymentBehaviourAnalytics()
     _payment_rng = random.Random(42 + 7919)
@@ -1106,7 +1112,14 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         if policy.include_acq_cost_saved_in_guard else 0.0
                     )
                     if expected_margin + acq_cost_saved > ret_cost:
-                        retention_modifier_val = RETENTION_EFFECTIVENESS
+                        # Nudge Physics Layer 1: framing_type is the company's own
+                        # comms-cohort choice (observable by construction); the
+                        # multiplier below is SIM ground truth (hidden loss-aversion
+                        # susceptibility) applied to the actual offer effectiveness --
+                        # the company never sees this multiplier, only the outcome.
+                        _framing_type = framing_type_for(policy, billing_account, term_start_str)
+                        _framing_multiplier = framing_effectiveness_multiplier(billing_account, _framing_type)
+                        retention_modifier_val = min(0.95, RETENTION_EFFECTIVENESS * _framing_multiplier)
                         retention_cost_events.append(
                             make_retention_cost_event(billing_account, term_start_str, ret_cost, company_est_pre)
                         )
@@ -1119,6 +1132,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                             "expected_term_margin_gbp": expected_margin,
                             "acq_cost_saved_gbp": round(acq_cost_saved, 2),
                             "assumed_deferral_months": ASSUMED_DEFERRAL_MONTHS,
+                            "framing_type": _framing_type,
                             "outcome": "pending",
                         })
                     else:
@@ -1242,6 +1256,16 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 if retention_modifier_val is not None and retention_log:
                     outcome_str = "churned_despite_offer" if event["event_type"] == "churned" else "retained"
                     retention_log[-1]["outcome"] = outcome_str
+                    nudge_physics_log.append({
+                        "customer_id": billing_account,
+                        "event_date": term_start_str,
+                        "framing_type": retention_log[-1].get("framing_type"),
+                        "susceptibility": susceptibility_for(billing_account).value,
+                        "effectiveness_multiplier": round(
+                            retention_modifier_val / RETENTION_EFFECTIVENESS, 4
+                        ) if RETENTION_EFFECTIVENESS else None,
+                        "outcome": outcome_str,
+                    })
                     if sim_interface is not None:
                         sim_interface.notify_retention_attempt(
                             billing_account, term_start_str, company_est_pre,
@@ -1368,6 +1392,16 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             elif retention_modifier_val is not None and retention_log:
                 # No lifecycle event — offer made, customer just renewed normally
                 retention_log[-1]["outcome"] = "retained"
+                nudge_physics_log.append({
+                    "customer_id": billing_account,
+                    "event_date": term_start_str,
+                    "framing_type": retention_log[-1].get("framing_type"),
+                    "susceptibility": susceptibility_for(billing_account).value,
+                    "effectiveness_multiplier": round(
+                        retention_modifier_val / RETENTION_EFFECTIVENESS, 4
+                    ) if RETENTION_EFFECTIVENESS else None,
+                    "outcome": "retained",
+                })
                 if sim_interface is not None:
                     sim_interface.notify_retention_attempt(
                         billing_account, term_start_str, company_est_pre,
@@ -2097,6 +2131,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             customer_events_log, won_successor_activations, fresh_acquisitions, SUCCESSOR_MAP
         ),
         "retention_log": retention_log,
+        "nudge_physics_log": nudge_physics_log,
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,
         "company_gas_churn_log": company_gas_churn_log,

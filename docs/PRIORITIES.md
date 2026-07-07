@@ -15,9 +15,11 @@ backend depth. New order, top-down, each Tier 2:
     portfolio event stream + Recommended Actions->Overview + heatmap click-through).
   P1c. SIX-SECTION NAV + STORY (NAV_STORY_PLATFORM_METHOD.md) -- CLOSED IN FULL (Phase RO: Home/Story
     landing + Platform skeleton; Phase RQ, 2026-07-06: Method section + Project tab slim-down).
-  P1a-c ALL CLOSED (2026-07-06, Phase RQ). P2 (resumes after Rich's visual confirmation on the live
-    site): CTS reconciliation, frozen-policy baseline, FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md,
-    SAAS_COVERAGE_MAP.md. Not self-initiated without that confirmation per the standing rule below.
+  P1a-c ALL CLOSED (2026-07-06, Phase RQ). P2 (Rich's visual confirmation received, queue running):
+    item 1 CTS reconciliation CLOSED (Phase RS), item 2 frozen-policy baseline CLOSED (Phase RT),
+    item 3 FEEDBACK_AND_REPUTATION.md Layer 1 CLOSED (Phase RU, Layer 2 still open). Item 4
+    NUDGE_PHYSICS.md Layer 1 (loss-aversion offer framing) CLOSED (Phase RV, 2026-07-07) -- see
+    Section 4 Phase RV. Item 5 SAAS_COVERAGE_MAP.md not yet reached, now front of P2 queue.
 Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's visual
 review", never "done" outright. PROJECT_TAB_OVERHAUL.md now CLOSED IN FULL (Phase RG).
 PROCESS_NOT_EVENTS.md and DECISION_LOOP_AND_EVENT_LEDGER.md remain CLOSED IN FULL (no change).
@@ -60,7 +62,7 @@ WEBSITE_AS_SHOWCASE.md is the master directive. Progress per tab:
   frozen-policy-baseline's actual option-B implementation (design written, docs/staging/drafts/
   FROZEN_POLICY_BASELINE_DESIGN.md) -- Tier 3, own 4h opt-out (filed ~06:49, 2026-07-06). Accounts
   waterfall CTS reconciliation itself still not actioned pending that opt-out.
-- FEEDBACK_AND_REPUTATION.md and NUDGE_PHYSICS.md: still queued behind this wave, not yet reached.
+- FEEDBACK_AND_REPUTATION.md Layer 1 CLOSED (Phase RU); Layer 2 (public reviews, regulator rating, reputation->funnel loops) still open. NUDGE_PHYSICS.md Layer 1 (loss-aversion offer framing) CLOSED (Phase RV, 2026-07-07); remaining mechanisms from docs/market_research/NUDGE_PHYSICS_BENCHMARKS.md (defaults/status-quo, anchoring, social norms, friction costs, present bias, collections-letter tone, commitment devices) not yet built -- own follow-on phase.
 
 **SUPERSEDED (2026-07-06, Phase RQ):** the two Tier 3 design-note opt-outs below and the
 "queued behind" ordering are now moot -- P1a-c (see top of file) are ALL CLOSED as of Phase RQ.

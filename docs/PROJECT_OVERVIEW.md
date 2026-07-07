@@ -111,6 +111,51 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RV -- NUDGE_PHYSICS.md Layer 1 (loss-aversion offer framing) CLOSED (PRIORITIES.md P2 item 4) (2026-07-07, Tier 2 -- front of queue immediately after Phase RU)
+
+Recovered a fourth interrupted prior session's uncommitted work: simulation/nudge_physics.py
+(hidden per-customer loss-aversion susceptibility -- loss_averse/gain_responsive/neutral,
+weighted 45/35/20, deterministic hash on customer_id, effect sizes grounded in Kahneman & Tversky
+(1979) / Levin, Schneider & Gaeth (1998) meta-review magnitude, see new
+docs/market_research/NUDGE_PHYSICS_BENCHMARKS.md covering all 8 NUDGE_PHYSICS.md mechanisms for
+future phases) and company/analytics/nudge_discovery.py (the company's discovered-lift table --
+retention rate by framing_type x segment from real offers made, plus a Consumer Duty concentration
+check flagging AMBER if loss-framed uplift concentrates disproportionately in the resi segment).
+Epistemic split verified clean: company/policy/decision_policy.py::framing_type_for chooses the
+framing_type as an observable A/B cohort split (hashed on customer_id+event_date, CURRENT_POLICY
+ab_test / NAIVE_POLICY fixed gain_framed); simulation/run_phase2b.py applies the hidden
+susceptibility multiplier to retention effectiveness and logs it to a SIM-only
+nudge_physics_log, separate from the company-visible retention_log (which only ever carries
+framing_type + outcome). Wired into company/analytics/decision_event_ledger.py (Reaction Chain
+description gains a framing note), tools/generate_customer_sample.py (nudge_physics_history per
+customer), tools/generate_dashboard_data.py (extract_nudge_discovery), site/sim/index.html
+(SIM-side verification chart: retention rate by framing x susceptibility) and
+site/supplier/index.html (company's discovered-lift table + Consumer Duty badge).
+
+**Bug found and fixed this session:** the inherited code only appended to nudge_physics_log in
+the branch where a lifecycle event fires (customer churned or was flagged retained/churned by
+roll_lifecycle_event); the sibling branch for a silent normal renewal (offer made, no event,
+"customer just renewed normally") set retention_log's outcome but never logged to
+nudge_physics_log. All 14 real retention offers in the current run took the silent-renewal path,
+so nudge_physics_log was empty in production despite retention_log's framing_type being fully
+populated -- the Sim tab's verification chart and the SIM-side evidence would have silently
+rendered no data. Fixed by mirroring the same append in the silent-renewal branch. Verified live:
+a fresh full-decade run now produces 14/14 nudge_physics_log entries matching all 14 retention_log
+entries, with real susceptibility/framing/effectiveness data (e.g. C1 2018-12-31: loss_framed
+offer, loss_averse customer, 1.15x effectiveness multiplier, retained).
+
+28 new tests (test_nudge_physics.py, test_nudge_discovery.py, decision_policy/decision_event_ledger
+additions), 15,948 collected. Fast suite: 15,824 passed. Epistemic verifier PASS (explicit
+--files check on all 3 touched company-side modules -- diff-mode only picked up 2, since the new
+nudge_discovery.py is untracked; confirmed no simulation.* import in any company/tools file).
+Also cleared scratch debris (simulation/.probe_test.py) left by the interrupted session's own
+verification. NUDGE_PHYSICS.md Layer 1 CLOSED; remaining 7 mechanisms from
+NUDGE_PHYSICS_BENCHMARKS.md (defaults/status-quo, anchoring, social norms, friction costs, present
+bias, collections-letter tone, commitment devices) deferred to a follow-on phase. Front of queue
+next: PRIORITIES.md P2 item 5, SAAS_COVERAGE_MAP.md.
+
+---
+
 ### Phase RU -- FEEDBACK_AND_REPUTATION.md Layer 1 (solicited feedback instrument) CLOSED (PRIORITIES.md P2 item 3) (2026-07-07, Tier 2 -- front of queue immediately after Phase RT)
 
 Recovered a third interrupted prior session's uncommitted work, found substantially complete on
@@ -6468,10 +6513,19 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,928 tests collected (full suite) plus 22 new tests from Phase RU
-  (test_feedback_survey.py, test_generate_case_study_recommender.py, generate_dashboard_data/
-  generate_customer_sample updates), on top of 17 new tests from Phase RT
+- 15,948 tests collected (full suite) plus 28 new tests from Phase RV
+  (test_nudge_physics.py, test_nudge_discovery.py, decision_policy/decision_event_ledger
+  additions), on top of 22 new tests from Phase RU (test_feedback_survey.py,
+  test_generate_case_study_recommender.py, generate_dashboard_data/generate_customer_sample
+  updates), on top of 17 new tests from Phase RT
   (company/policy, tools/run_frozen_baseline, generate_dashboard_data)
+- Phase RV (2026-07-07): NUDGE_PHYSICS.md Layer 1 CLOSED (PRIORITIES.md P2 item 4) -- hidden
+  per-customer loss-aversion susceptibility (simulation/nudge_physics.py) modulates retention-offer
+  effectiveness; company observes only its own framing_type A/B choice and the outcome
+  (company/analytics/nudge_discovery.py's discovered-lift table + Consumer Duty concentration
+  check). Fixed a real bug found this session: the silent-renewal outcome branch never logged to
+  the SIM-side verification log, leaving it empty in every real run despite retention_log's
+  framing_type being fully populated. See Section 4 Phase RV.
 - Phase RT (2026-07-07): Frozen-Policy Baseline / Delta-EV CLOSED IN FULL (PRIORITIES.md P2 item 2) --
   swappable DecisionPolicy struct (company/policy/decision_policy.py) replays the same decade under
   today's CURRENT_POLICY vs the superseded pre-14a/15b/43b NAIVE_POLICY via the real simulation

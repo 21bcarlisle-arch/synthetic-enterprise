@@ -343,6 +343,7 @@ def extract_customers(data):
             "expected_term_margin_gbp": _fmt(r.get("expected_term_margin_gbp", 0)),
             "assumed_deferral_months": r.get("assumed_deferral_months", 12),
             "outcome": r.get("outcome", ""),
+            "framing_type": r.get("framing_type"),
             "sim_churn_p": _sim_side["sim_churn_p"] if _sim_side else None,
             "market_signal": _sim_side["market_signal"] if _sim_side else None,
             "realized_churn_p": _sim_side["realized_churn_p"] if _sim_side else None,
@@ -693,6 +694,35 @@ def extract_reputation(data):
     }
 
 
+def extract_nudge_discovery(data):
+    """Nudge Physics Layer 1 (NUDGE_PHYSICS.md): company-observable
+    discovered-lift table (framing_type x segment retention rate) plus a
+    Consumer Duty concentration check -- the company never reads the
+    SIM-side loss-aversion susceptibility that actually drives the effect.
+    """
+    from company.analytics.nudge_discovery import (
+        compute_framing_lift_by_segment, assess_framing_consumer_duty,
+    )
+    from saas.customers import CUSTOMERS as _CUSTS
+    from dataclasses import asdict
+
+    retention_log = data.get("retention_log", []) or []
+    lift = compute_framing_lift_by_segment(retention_log, _CUSTS)
+    as_of = data.get("years", {})
+    latest_year = max((int(y) for y in as_of.keys()), default=2025)
+    assessment = assess_framing_consumer_duty(lift, str(latest_year) + "-12-31")
+    return {
+        "lift_by_segment": [asdict(x) for x in lift],
+        "consumer_duty": {
+            "rag": assessment.rag.value,
+            "metric_name": assessment.metric_name,
+            "metric_value": assessment.metric_value,
+            "narrative": assessment.narrative,
+            "assessment_date": assessment.assessment_date,
+        },
+    }
+
+
 def extract_query_context(data):
     """Build compact text summary (~2-4k chars) for NL query API context."""
     if not data:
@@ -802,6 +832,7 @@ def generate(run_json_path=None):
         "market": extract_market(data, spot_monthly),
         "regulatory": extract_regulatory(data),
         "reputation": extract_reputation(data),
+        "nudge_discovery": extract_nudge_discovery(data),
         "insights": insights,
         "run_history": extract_run_history(),
         "run_history_total": count_run_history_total(),

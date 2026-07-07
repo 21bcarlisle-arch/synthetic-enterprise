@@ -30,6 +30,9 @@ class LedgerEvent:
     sim_truth: float | None = None
     amount_gbp: float | None = None
     outcome: str | None = None
+    # Nudge Physics Layer 1 (NUDGE_PHYSICS.md): comms framing attribute the
+    # company chose for this offer -- "loss_framed" / "gain_framed".
+    framing_type: str | None = None
 
 
 def _journey_events(cid, journey_log):
@@ -60,6 +63,12 @@ def _retention_decision_events(cid, retention):
         cost = r.get("cost_gbp", 0.0) or 0.0
         expected_margin = r.get("expected_term_margin_gbp", 0.0) or 0.0
         ev = expected_margin - cost
+        framing_type = r.get("framing_type")
+        framing_note = ""
+        if framing_type == "loss_framed":
+            framing_note = " Comms framed as a loss (you will lose the discount)."
+        elif framing_type == "gain_framed":
+            framing_note = " Comms framed as a gain (save with this discount)."
         events.append(LedgerEvent(
             customer_id=cid,
             date=r["date"],
@@ -68,15 +77,16 @@ def _retention_decision_events(cid, retention):
                 "Renewal window: company estimated {:.0%} churn risk, decided to "
                 "offer a {:.0%} discount (cost GBP{:,.2f}) against GBP{:,.2f} "
                 "expected term margin at risk -- expected value of offering "
-                "GBP{:,.2f}.".format(
+                "GBP{:,.2f}.{}".format(
                     r.get("company_est", 0), r.get("discount_pct", 0), cost,
-                    expected_margin, ev,
+                    expected_margin, ev, framing_note,
                 )
             ),
             company_belief=r.get("company_est"),
             sim_truth=r.get("realized_churn_p"),
             amount_gbp=ev,
             outcome=r.get("outcome"),
+            framing_type=framing_type,
         ))
     return events
 

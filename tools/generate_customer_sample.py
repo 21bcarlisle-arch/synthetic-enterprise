@@ -112,6 +112,20 @@ def generate(run_json_path=None):
             "days_to_resolve": e.get("days_to_resolve"),
         })
 
+    # Nudge Physics Layer 1 (NUDGE_PHYSICS.md): SIM-side hidden companion log --
+    # framing_type is company-observable (its own comms-cohort choice), but
+    # susceptibility/effectiveness_multiplier are ground truth the company
+    # never reads. Exposed here only for Sim-tab / Customer-360 verification.
+    nudge_physics_by_cid = defaultdict(list)
+    for e in run.get("nudge_physics_log", []):
+        nudge_physics_by_cid[e["customer_id"]].append({
+            "event_date": e["event_date"],
+            "framing_type": e.get("framing_type"),
+            "susceptibility": e.get("susceptibility"),
+            "effectiveness_multiplier": e.get("effectiveness_multiplier"),
+            "outcome": e.get("outcome"),
+        })
+
     sample = {}
     for cid, cdata in sorted(pcl.items()):
         base = _base_id(cid)
@@ -154,6 +168,7 @@ def generate(run_json_path=None):
             # leg only (dual-fuel gas legs share the same household -- see base_account_id).
             "feedback_survey_history": [] if is_gas else feedback_by_cid.get(cid, []),
             "reputation_events": [] if is_gas else reputation_events_by_cid.get(cid, []),
+            "nudge_physics_history": [] if is_gas else nudge_physics_by_cid.get(cid, []),
             "data_status": {
                 "financial": "complete",
                 "renewal_events": "complete",
@@ -171,6 +186,7 @@ def generate(run_json_path=None):
                 # complaint this run, not a missing-data gap.
                 "feedback_survey_history": "complete" if not is_gas else "see_electricity_account",
                 "complaint_history": "complete" if not is_gas else "see_electricity_account",
+                "nudge_physics_history": "complete" if not is_gas else "see_electricity_account",
             },
         }
 

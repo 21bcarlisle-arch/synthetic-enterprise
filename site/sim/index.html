@@ -297,6 +297,18 @@
       biased sample of the true one, not a clean read of it.
     </div>
     <div class="chart-wrap"><canvas id="wall-satisfaction-chart" height="220"></canvas></div>
+    <div class="section-title" style="font-size:0.85rem;margin-top:20px">Nudge Physics &mdash; Retention Rate by Offer Framing and Susceptibility (Layer 1)</div>
+    <div class="narrative">
+      <strong>NUDGE_PHYSICS.md Layer 1:</strong> every retention offer carries a framing_type
+      (loss_framed / gain_framed) the company itself chose as a comms cohort split &mdash; observable.
+      Each customer also has a hidden loss-aversion susceptibility (loss_averse / gain_responsive /
+      neutral, `simulation/nudge_physics.py`) the company never reads. This panel is the SIM's own
+      verification that the physics is real: retention rate should be higher whenever framing_type
+      matches the customer's hidden disposition, and roughly flat for neutral customers. The company's
+      own discovered version of this (framing lift by segment, without the susceptibility column) is on
+      the Supplier tab's Nudge Discovery section.
+    </div>
+    <div class="chart-wrap"><canvas id="nudge-framing-chart" height="220"></canvas></div>
     <div class="meta-bar" id="cust-meta-bar">Loading customer data&hellip;</div>
   </div>
 
@@ -452,6 +464,7 @@
       buildWallChurnChart(d);
       buildCorrSatisfactionComplaintsChart(d);
       buildWallSatisfactionChart(d);
+      buildNudgeFramingChart(d);
       var cnt = Object.keys(d.customers || {}).length;
       document.getElementById('cust-meta-bar').innerHTML = '<span>' + cnt + ' customers | simulation/run_phase2b.py behavioral trajectories | 4-dimension model: physical / economic / behavioural / emotional</span>' +
         freshnessSpan((sd && sd.metadata) || {});
@@ -964,6 +977,49 @@
         ]
       },
       options: {responsive:true, interaction:{mode:'index',intersect:false}, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{
+          x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+          y:{min:0,max:100,ticks:{color:'#52514e',callback:function(v){return v+'%';}},grid:{color:'rgba(225,224,217,0.6)'}}
+        }}
+    });
+  }
+
+  var nudgeFramingChart = null;
+  function buildNudgeFramingChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var groups = {};
+    function key(framing, susc) { return framing + '|' + susc; }
+    ids.forEach(function(id) {
+      (custs[id].nudge_physics_history || []).forEach(function(e) {
+        if (!e.framing_type || !e.susceptibility) return;
+        var k = key(e.framing_type, e.susceptibility);
+        if (!groups[k]) groups[k] = {n:0, retained:0};
+        groups[k].n++;
+        if (e.outcome === 'retained') groups[k].retained++;
+      });
+    });
+    var susceptibilities = ['loss_averse', 'gain_responsive', 'neutral'];
+    var framings = ['loss_framed', 'gain_framed'];
+    var ctx = document.getElementById('nudge-framing-chart').getContext('2d');
+    if (nudgeFramingChart) nudgeFramingChart.destroy();
+    var hasData = Object.keys(groups).length > 0;
+    if (!hasData) return;
+    var datasets = framings.map(function(framing, i) {
+      var colour = i === 0 ? 'rgba(208,59,59,0.75)' : 'rgba(12,163,12,0.75)';
+      return {
+        label: framing,
+        backgroundColor: colour,
+        data: susceptibilities.map(function(susc) {
+          var g = groups[key(framing, susc)];
+          return g && g.n ? +(g.retained / g.n * 100).toFixed(1) : null;
+        })
+      };
+    });
+    nudgeFramingChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: susceptibilities, datasets: datasets },
+      options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
         scales:{
           x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
           y:{min:0,max:100,ticks:{color:'#52514e',callback:function(v){return v+'%';}},grid:{color:'rgba(225,224,217,0.6)'}}

@@ -27,6 +27,7 @@ current code (see FROZEN_POLICY_BASELINE_DESIGN.md's honest-gap note).
 """
 
 from dataclasses import dataclass
+import hashlib
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,16 @@ class DecisionPolicy:
     # backward-looking evolve_hedge_fraction (Phase 22b). When False, the
     # evolved fraction is used as-is -- the pre-43b state.
     use_var_hedge_decision: bool
+
+    # Nudge Physics Layer 1 (NUDGE_PHYSICS.md): offer comms framing.
+    # "ab_test" runs a stable per-offer cohort split (loss_framed /
+    # gain_framed, hashed on customer_id + event_date) so the company can
+    # discover which framing lifts retention for which segment via
+    # company/analytics/nudge_discovery.py -- without ever seeing the
+    # SIM-side loss-aversion susceptibility that actually drives the
+    # response. A fixed value (e.g. "gain_framed") reproduces the single
+    # framing every pre-Nudge-Physics phase implicitly used.
+    framing_mode: str = "gain_framed"
 
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
@@ -73,6 +84,7 @@ CURRENT_POLICY = DecisionPolicy(
     flat_discount_pct=0.05,  # unused in tiered mode; matches naive's flat rate for reference
     include_acq_cost_saved_in_guard=True,
     use_var_hedge_decision=True,
+    framing_mode="ab_test",
 )
 
 # Pre-Phase-14a/15b/43b state: naive flat-discount retention with a
@@ -84,4 +96,23 @@ NAIVE_POLICY = DecisionPolicy(
     flat_discount_pct=0.05,
     include_acq_cost_saved_in_guard=False,
     use_var_hedge_decision=False,
+    framing_mode="gain_framed",
 )
+
+
+def framing_type_for(policy: DecisionPolicy, customer_id: str, event_date: str) -> str:
+    """Offer comms framing attribute for one retention offer.
+
+    Company-observable by construction (the company chose it) -- this
+    function never reads simulation/nudge_physics.py's hidden
+    susceptibility. In ab_test mode the split is hashed on
+    customer_id + event_date (not customer_id alone), so a single repeat
+    customer can see both framings across their renewal history -- a real
+    cohort-rotation practice, and what lets the Customer 360 timeline show
+    one household two differently framed offers with different outcomes.
+    """
+    if policy.framing_mode != "ab_test":
+        return policy.framing_mode
+    seed = "framing_cohort_" + customer_id + "_" + event_date
+    digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+    return "loss_framed" if int(digest, 16) % 2 == 0 else "gain_framed"

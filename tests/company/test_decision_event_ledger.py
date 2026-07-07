@@ -7,11 +7,12 @@ def _journey(cid, dt, state, resentment=10.0, burned=False):
     return dict(customer_id=cid, date=dt, state=state, resentment_score=resentment, is_burned=burned)
 
 def _retention(cid, dt, company_est=0.5, discount_pct=0.05, cost_gbp=20.0,
-                expected_term_margin_gbp=100.0, outcome="retained", realized_churn_p=0.1):
+                expected_term_margin_gbp=100.0, outcome="retained", realized_churn_p=0.1,
+                framing_type=None):
     return dict(
         customer_id=cid, date=dt, company_est=company_est, discount_pct=discount_pct,
         cost_gbp=cost_gbp, expected_term_margin_gbp=expected_term_margin_gbp,
-        outcome=outcome, realized_churn_p=realized_churn_p,
+        outcome=outcome, realized_churn_p=realized_churn_p, framing_type=framing_type,
     )
 
 def _event(cid, dt, etype="renewed", company_est=0.2, realized_churn_p=0.1):
@@ -107,3 +108,17 @@ def test_build_portfolio_event_stream_respects_limit():
 
 def test_build_portfolio_event_stream_empty_when_no_data():
     assert build_portfolio_event_stream([], [], [], None) == []
+
+def test_retention_decision_event_carries_framing_type_and_note():
+    retention = [_retention("C1", "2021-06-01", framing_type="loss_framed")]
+    result = build_customer_ledger("C1", [], retention, [], None)
+    assert result[0]["framing_type"] == "loss_framed"
+    assert "framed as a loss" in result[0]["description"]
+
+
+def test_retention_decision_event_framing_type_none_when_absent():
+    retention = [_retention("C1", "2021-06-01")]
+    result = build_customer_ledger("C1", [], retention, [], None)
+    assert result[0]["framing_type"] is None
+    assert "framed as a" not in result[0]["description"]
+

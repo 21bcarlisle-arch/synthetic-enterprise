@@ -29176,7 +29176,7 @@
       "event_type": "renewed",
       "churn_probability": 0.05,
       "win_probability": 0.55,
-      "effective_retention_probability": 0.9677,
+      "effective_retention_probability": 0.9691,
       "realized_churn_probability": 0.0403,
       "random_roll": 0.3902,
       "home_move_won": false,
@@ -29194,7 +29194,7 @@
       "event_type": "renewed",
       "churn_probability": 0.11,
       "win_probability": 0.55,
-      "effective_retention_probability": 0.929,
+      "effective_retention_probability": 0.9317,
       "realized_churn_probability": 0.0887,
       "random_roll": 0.048,
       "home_move_won": false,
@@ -29248,7 +29248,7 @@
       "event_type": "renewed",
       "churn_probability": 0.05,
       "win_probability": 0.55,
-      "effective_retention_probability": 0.9707,
+      "effective_retention_probability": 0.9715,
       "realized_churn_probability": 0.0367,
       "random_roll": 0.371,
       "home_move_won": false,
@@ -29644,7 +29644,7 @@
       "event_type": "renewed",
       "churn_probability": 0.32,
       "win_probability": 0.55,
-      "effective_retention_probability": 0.9061,
+      "effective_retention_probability": 0.9138,
       "realized_churn_probability": 0.1173,
       "random_roll": 0.5838,
       "home_move_won": false,
@@ -29842,7 +29842,7 @@
       "event_type": "renewed",
       "churn_probability": 0.41,
       "win_probability": 0.35,
-      "effective_retention_probability": 0.7933,
+      "effective_retention_probability": 0.8084,
       "realized_churn_probability": 0.2584,
       "random_roll": 0.5155,
       "home_move_won": false,
@@ -32201,6 +32201,7 @@
       "expected_term_margin_gbp": 867.919932160713,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "loss_framed",
       "outcome": "retained"
     },
     {
@@ -32212,6 +32213,7 @@
       "expected_term_margin_gbp": 494.52738084726997,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "gain_framed",
       "outcome": "retained"
     },
     {
@@ -32223,6 +32225,7 @@
       "expected_term_margin_gbp": 163704.65029282199,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "gain_framed",
       "outcome": "retained"
     },
     {
@@ -32234,6 +32237,7 @@
       "expected_term_margin_gbp": 345.05807593604595,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "gain_framed",
       "outcome": "retained"
     },
     {
@@ -32245,6 +32249,7 @@
       "expected_term_margin_gbp": 379.36383006773605,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "loss_framed",
       "outcome": "retained"
     },
     {
@@ -32256,6 +32261,7 @@
       "expected_term_margin_gbp": 101641.16043774746,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "loss_framed",
       "outcome": "retained"
     },
     {
@@ -32267,6 +32273,7 @@
       "expected_term_margin_gbp": 194971.27583066802,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "loss_framed",
       "outcome": "retained"
     },
     {
@@ -32278,6 +32285,7 @@
       "expected_term_margin_gbp": 91314.93914208224,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "gain_framed",
       "outcome": "retained"
     },
     {
@@ -32289,6 +32297,7 @@
       "expected_term_margin_gbp": 158250.94922909077,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "loss_framed",
       "outcome": "retained"
     },
     {
@@ -32300,6 +32309,7 @@
       "expected_term_margin_gbp": 2475.2494635458524,
       "acq_cost_saved_gbp": 400.0,
       "assumed_deferral_months": 12,
+      "framing_type": "gain_framed",
       "outcome": "retained"
     },
     {
@@ -32311,6 +32321,7 @@
       "expected_term_margin_gbp": 161519.04846974224,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "gain_framed",
       "outcome": "retained"
     },
     {
@@ -32322,6 +32333,7 @@
       "expected_term_margin_gbp": 96241.44383503431,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "gain_framed",
       "outcome": "retained"
     },
     {
@@ -32333,6 +32345,7 @@
       "expected_term_margin_gbp": 231598.92169927407,
       "acq_cost_saved_gbp": 150.0,
       "assumed_deferral_months": 12,
+      "framing_type": "gain_framed",
       "outcome": "retained"
     },
     {
@@ -32344,6 +32357,7 @@
       "expected_term_margin_gbp": 3221.8751298252555,
       "acq_cost_saved_gbp": 400.0,
       "assumed_deferral_months": 12,
+      "framing_type": "loss_framed",
       "outcome": "retained"
     }
   ],
@@ -67495,8 +67509,8 @@
     }
   ],
   "scenario_analysis": {
-    "generated_at": "2026-07-07T07:57:37Z",
-    "portfolio_as_of": "2026-07-07T07:55:39Z",
+    "generated_at": "2026-07-07T09:04:26Z",
+    "portfolio_as_of": "2026-07-07T08:56:31Z",
     "active_customers": 11,
     "projection_months": 12,
     "scenarios": {
