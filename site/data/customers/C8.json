@@ -8417,12 +8417,12 @@
       "customer_id": "C8",
       "date": "2017-04-01",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 34% churn risk, decided to offer a 3% discount (cost GBP46.02) against GBP867.92 expected term margin at risk -- expected value of offering GBP821.90.",
+      "description": "Renewal window: company estimated 34% churn risk, decided to offer a 3% discount (cost GBP46.02) against GBP867.92 expected term margin at risk -- expected value of offering GBP821.90. Comms framed as a loss (you will lose the discount).",
       "company_belief": 0.345,
       "sim_truth": null,
       "amount_gbp": 821.9,
       "outcome": "retained",
-      "framing_type": null
+      "framing_type": "loss_framed"
     },
     {
       "customer_id": "C8",

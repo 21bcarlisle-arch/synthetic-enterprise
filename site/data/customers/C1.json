@@ -2746,12 +2746,12 @@
       "customer_id": "C1",
       "date": "2018-12-31",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 36% churn risk, decided to offer a 3% discount (cost GBP21.13) against GBP379.36 expected term margin at risk -- expected value of offering GBP358.23.",
+      "description": "Renewal window: company estimated 36% churn risk, decided to offer a 3% discount (cost GBP21.13) against GBP379.36 expected term margin at risk -- expected value of offering GBP358.23. Comms framed as a loss (you will lose the discount).",
       "company_belief": 0.359,
       "sim_truth": 0.089,
       "amount_gbp": 358.23,
       "outcome": "retained",
-      "framing_type": null
+      "framing_type": "loss_framed"
     },
     {
       "customer_id": "C1",
