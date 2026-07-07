@@ -111,6 +111,12 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RW -- SAAS_COVERAGE_MAP.md CLOSED (PRIORITIES.md P2 item 5, closes the P2 queue) (2026-07-07, Tier 2 -- front of queue immediately after Phase RV)
+
+Built the standing SaaS Estate Coverage Map the staged directive asked for: docs/architecture/SAAS_COVERAGE_MAP.md lays out 22 real SaaS categories a UK energy supplier assembles (retail core, ETRM, finance ERP, collections, engagement, regulatory, ESG, demand response, nudge physics, ITSM/observability, credit bureau, PSP, DCC comms, market messaging, message delivery, debt sale, property/EPC data, plus the eliminated-by-architecture set: CDP, iPaaS, process mining, energy margin analytics, BI/data warehouse), each tagged A (eliminated by architecture) / B (recreated, integrated) / C (interfaced at boundary) with named real market leaders and a Poesys module mapping. tools/generate_saas_coverage_data.py computes the headline metric fresh at generation time rather than hand-typing it -- of 22 categories, 5 eliminated (22.7%), 10 recreated (45.5%), 7 interfaced (31.8%) -- and checks every bucket-B (and any bucket-A citing a module) claim against the real filesystem, so a mapping can never silently drift stale without a test catching it (same discipline as the Platform section's own ADAPTER_REGISTRY). Wired into background/process_run_complete.py's per-run regeneration + auto-commit file list. Rendered on site/platform/index.html, replacing the placeholder "Queued, not yet built" section left there since Phase RO with the real bucket-percentage KPIs and full category table -- also closes the Platform page's own outstanding gap. This combines with the Platform section's existing universal/market/UK-specific transferability tagging into one architecture story, per the staged directive's own framing. 11 new tests (test_generate_saas_coverage_data.py, test_saas_coverage_platform_page.py), 15,959 collected. SAAS_COVERAGE_MAP.md's own backlog items (debt-sale/DCA-placement economics, credit bureau as a collections-strategy feed) are explicitly NOT built this phase -- carried forward as backlog, as the staged directive itself specified ("queue behind current threads, do not interrupt"). This closes PRIORITIES.md's entire P2 queue (CTS reconciliation -> frozen-policy baseline -> FEEDBACK_AND_REPUTATION.md Layer 1 -> NUDGE_PHYSICS.md Layer 1 -> SAAS_COVERAGE_MAP.md).
+
+---
+
 ### Phase RV -- NUDGE_PHYSICS.md Layer 1 (loss-aversion offer framing) CLOSED (PRIORITIES.md P2 item 4) (2026-07-07, Tier 2 -- front of queue immediately after Phase RU)
 
 Recovered a fourth interrupted prior session's uncommitted work: simulation/nudge_physics.py
@@ -6513,12 +6519,20 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,948 tests collected (full suite) plus 28 new tests from Phase RV
-  (test_nudge_physics.py, test_nudge_discovery.py, decision_policy/decision_event_ledger
-  additions), on top of 22 new tests from Phase RU (test_feedback_survey.py,
-  test_generate_case_study_recommender.py, generate_dashboard_data/generate_customer_sample
-  updates), on top of 17 new tests from Phase RT
-  (company/policy, tools/run_frozen_baseline, generate_dashboard_data)
+- 15,959 tests collected (full suite) plus 11 new tests from Phase RW
+  (test_generate_saas_coverage_data.py, test_saas_coverage_platform_page.py), on top of
+  28 new tests from Phase RV (test_nudge_physics.py, test_nudge_discovery.py,
+  decision_policy/decision_event_ledger additions), on top of 22 new tests from Phase RU
+  (test_feedback_survey.py, test_generate_case_study_recommender.py,
+  generate_dashboard_data/generate_customer_sample updates), on top of 17 new tests from
+  Phase RT (company/policy, tools/run_frozen_baseline, generate_dashboard_data)
+- Phase RW (2026-07-07): SAAS_COVERAGE_MAP.md CLOSED (PRIORITIES.md P2 item 5, closes the P2
+  queue) -- docs/architecture/SAAS_COVERAGE_MAP.md maps 22 real SaaS categories to an A/B/C
+  taxonomy (eliminated by architecture / recreated integrated / interfaced at boundary);
+  tools/generate_saas_coverage_data.py computes the headline split fresh (5 eliminated 22.7%,
+  10 recreated 45.5%, 7 interfaced 31.8%) and verifies every module claim against the real
+  filesystem. Rendered on site/platform/index.html, replacing the placeholder left since
+  Phase RO. See Section 4 Phase RW.
 - Phase RV (2026-07-07): NUDGE_PHYSICS.md Layer 1 CLOSED (PRIORITIES.md P2 item 4) -- hidden
   per-customer loss-aversion susceptibility (simulation/nudge_physics.py) modulates retention-offer
   effectiveness; company observes only its own framing_type A/B choice and the outcome

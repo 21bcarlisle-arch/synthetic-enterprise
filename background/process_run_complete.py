@@ -349,6 +349,12 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("platform.json generation failed: {}".format(exc))
     try:
+        from tools.generate_saas_coverage_data import generate as gen_saas_coverage
+        gen_saas_coverage()
+        log("Generated site/data/saas_coverage.json")
+    except Exception as exc:
+        log("saas_coverage.json generation failed: {}".format(exc))
+    try:
         from tools.generate_method_data import generate as gen_method
         gen_method()
         log("Generated site/data/method.json")
@@ -469,6 +475,9 @@ def git_commit_push(git_hash, net_margin):
     site_platform_json = PROJECT_DIR / "site" / "data" / "platform.json"
     if site_platform_json.exists():
         files.append(str(site_platform_json))
+    site_saas_coverage_json = PROJECT_DIR / "site" / "data" / "saas_coverage.json"
+    if site_saas_coverage_json.exists():
+        files.append(str(site_saas_coverage_json))
     site_method_html = PROJECT_DIR / "site" / "method" / "index.html"
     if site_method_html.exists():
         files.append(str(site_method_html))
