@@ -1505,6 +1505,7 @@ function renderReputation() {
       ).join("") +
       "</tbody></table></div>"
     ) : "<p class=\"view-sub\">No complaints in this run.</p>",
+    renderNudgeDiscoverySection(),
   ].join("");
   el("tab-reputation").innerHTML = html;
 
@@ -1525,6 +1526,41 @@ function renderReputation() {
       options: opts
     });
   }
+}
+
+function renderNudgeDiscoverySection() {
+  const nd = D.nudge_discovery || { lift_by_segment: [], consumer_duty: null };
+  const lift = nd.lift_by_segment || [];
+  const cd = nd.consumer_duty;
+  const ragColor = (rag) => rag === 'red' ? 'red' : rag === 'amber' ? 'amber' : 'green';
+  const ragBadge = (rag) => `<span class="badge badge-${ragColor(rag)}">${(rag||'green').toUpperCase()}</span>`;
+  let out = "<h3 class=\"section-head\" style=\"margin-top:24px\">Nudge Discovery \u2014 Offer Framing (NUDGE_PHYSICS.md Layer 1)</h3>";
+  out += "<p class=\"view-sub\">Every retention offer carries a framing_type (loss_framed / gain_framed) the company itself chose as a comms A/B cohort split (company/policy/decision_policy.py::framing_type_for). This table is what the company discovers from its own offer outcomes -- retention rate by framing and segment -- without ever seeing the SIM-side loss-aversion susceptibility that actually drives the response (simulation/nudge_physics.py).</p>";
+  if (cd) {
+    out += "<div class=\"kpi-row\">" + kpi("Consumer Duty check", ragBadge(cd.rag), null, cd.narrative) + "</div>";
+  }
+  if (lift.length) {
+    out += "<div class=\"card\" style=\"padding:0;overflow:hidden;margin-top:12px\">" +
+      "<table style=\"width:100%;border-collapse:collapse;font-size:12px\">" +
+      "<thead><tr>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Framing</th>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Segment</th>" +
+      "<th style=\"padding:8px 12px;text-align:right;color:var(--muted);border-bottom:1px solid var(--border)\">Offers Made</th>" +
+      "<th style=\"padding:8px 12px;text-align:right;color:var(--muted);border-bottom:1px solid var(--border)\">Retained</th>" +
+      "<th style=\"padding:8px 12px;text-align:right;color:var(--muted);border-bottom:1px solid var(--border)\">Retention Rate</th>" +
+      "</tr></thead><tbody>" +
+      lift.map(r =>
+        `<tr><td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)">${r.framing_type}</td>` +
+        `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)">${r.segment}</td>` +
+        `<td style="padding:6px 12px;text-align:right;border-bottom:1px solid rgba(225,224,217,.4)">${r.offers_made}</td>` +
+        `<td style="padding:6px 12px;text-align:right;border-bottom:1px solid rgba(225,224,217,.4)">${r.retained_count}</td>` +
+        `<td style="padding:6px 12px;text-align:right;border-bottom:1px solid rgba(225,224,217,.4);font-weight:600">${(r.retention_rate*100).toFixed(1)}%</td></tr>`
+      ).join("") +
+      "</tbody></table></div>";
+  } else {
+    out += "<p class=\"view-sub\">No framed retention offers in this run.</p>";
+  }
+  return out;
 }
 
 init();

@@ -7396,7 +7396,8 @@
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 13439.28,
-      "outcome": "INVOICE_DISPUTED"
+      "outcome": "INVOICE_DISPUTED",
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7406,7 +7407,8 @@
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 13439.28,
-      "outcome": "DISPUTE_NOTICE"
+      "outcome": "DISPUTE_NOTICE",
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7416,7 +7418,8 @@
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 13439.28,
-      "outcome": "PAYMENT_PLAN_AGREED"
+      "outcome": "PAYMENT_PLAN_AGREED",
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7426,7 +7429,8 @@
       "company_belief": null,
       "sim_truth": 18.0,
       "amount_gbp": null,
-      "outcome": null
+      "outcome": null,
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7436,7 +7440,8 @@
       "company_belief": 0.95,
       "sim_truth": 0.037,
       "amount_gbp": 86799.35,
-      "outcome": "retained"
+      "outcome": "retained",
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7446,7 +7451,8 @@
       "company_belief": 0.95,
       "sim_truth": 0.037,
       "amount_gbp": null,
-      "outcome": "renewed"
+      "outcome": "renewed",
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7456,7 +7462,8 @@
       "company_belief": null,
       "sim_truth": 4.0,
       "amount_gbp": null,
-      "outcome": null
+      "outcome": null,
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7466,7 +7473,8 @@
       "company_belief": null,
       "sim_truth": 13.0,
       "amount_gbp": null,
-      "outcome": null
+      "outcome": null,
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7476,7 +7484,8 @@
       "company_belief": 0.389,
       "sim_truth": null,
       "amount_gbp": 86004.36,
-      "outcome": "retained"
+      "outcome": "retained",
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7486,7 +7495,8 @@
       "company_belief": null,
       "sim_truth": 18.0,
       "amount_gbp": null,
-      "outcome": null
+      "outcome": null,
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7496,7 +7506,8 @@
       "company_belief": 0.403,
       "sim_truth": null,
       "amount_gbp": 86823.82,
-      "outcome": "retained"
+      "outcome": "retained",
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7506,7 +7517,8 @@
       "company_belief": null,
       "sim_truth": 0.0,
       "amount_gbp": null,
-      "outcome": null
+      "outcome": null,
+      "framing_type": null
     },
     {
       "customer_id": "C_IC2",
@@ -7516,7 +7528,8 @@
       "company_belief": null,
       "sim_truth": 0.0,
       "amount_gbp": null,
-      "outcome": null
+      "outcome": null,
+      "framing_type": null
     }
   ]
 }

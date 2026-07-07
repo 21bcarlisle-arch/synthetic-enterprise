@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-07-07T08:32:53Z",
-    "git_commit": "ce293ec8",
+    "generated_at": "2026-07-07T08:44:45Z",
+    "git_commit": "f4c1df69",
     "customer_count": 21,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
   },
@@ -362,6 +362,7 @@
           "days_to_resolve": 6
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -374,7 +375,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C1_2": {
@@ -603,6 +605,7 @@
           "days_to_resolve": 6
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -615,7 +618,8 @@
         "payment_miss_trajectory": "pending_sim_emission",
         "bill_shock_history": "pending_sim_emission",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C1g": {
@@ -795,6 +799,7 @@
       "bill_shock_history": [],
       "feedback_survey_history": [],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -807,7 +812,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "see_electricity_account",
-        "complaint_history": "see_electricity_account"
+        "complaint_history": "see_electricity_account",
+        "nudge_physics_history": "see_electricity_account"
       }
     },
     "C2": {
@@ -1185,6 +1191,7 @@
           "days_to_resolve": 8
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1197,7 +1204,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C2_2": {
@@ -1377,6 +1385,7 @@
           "days_to_resolve": 69
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1389,7 +1398,8 @@
         "payment_miss_trajectory": "pending_sim_emission",
         "bill_shock_history": "pending_sim_emission",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C2g": {
@@ -1602,6 +1612,7 @@
       "bill_shock_history": [],
       "feedback_survey_history": [],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1614,7 +1625,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "see_electricity_account",
-        "complaint_history": "see_electricity_account"
+        "complaint_history": "see_electricity_account",
+        "nudge_physics_history": "see_electricity_account"
       }
     },
     "C3": {
@@ -1883,6 +1895,7 @@
           "days_to_resolve": 41
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -1895,7 +1908,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C3g": {
@@ -2073,6 +2087,7 @@
       "bill_shock_history": [],
       "feedback_survey_history": [],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -2085,7 +2100,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "see_electricity_account",
-        "complaint_history": "see_electricity_account"
+        "complaint_history": "see_electricity_account",
+        "nudge_physics_history": "see_electricity_account"
       }
     },
     "C4": {
@@ -2560,6 +2576,7 @@
           "days_to_resolve": 4
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -2572,7 +2589,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C4g": {
@@ -2834,6 +2852,7 @@
       "bill_shock_history": [],
       "feedback_survey_history": [],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -2846,7 +2865,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "see_electricity_account",
-        "complaint_history": "see_electricity_account"
+        "complaint_history": "see_electricity_account",
+        "nudge_physics_history": "see_electricity_account"
       }
     },
     "C5": {
@@ -3304,6 +3324,7 @@
         }
       ],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -3316,7 +3337,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C5_2": {
@@ -3455,6 +3477,7 @@
         }
       ],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -3467,7 +3490,8 @@
         "payment_miss_trajectory": "pending_sim_emission",
         "bill_shock_history": "pending_sim_emission",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C6": {
@@ -3936,6 +3960,7 @@
           "days_to_resolve": 97
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -3948,7 +3973,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C7": {
@@ -4544,6 +4570,7 @@
           "days_to_resolve": 5
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -4556,7 +4583,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C8": {
@@ -5091,6 +5119,7 @@
           "days_to_resolve": 8
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -5103,7 +5132,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C9": {
@@ -5580,6 +5610,7 @@
         }
       ],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -5592,7 +5623,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C_IC1": {
@@ -6012,6 +6044,7 @@
           "days_to_resolve": 9
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -6024,7 +6057,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C_IC2": {
@@ -6405,6 +6439,7 @@
           "days_to_resolve": 3
         }
       ],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -6417,7 +6452,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C_IC3": {
@@ -6816,6 +6852,7 @@
         }
       ],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -6828,7 +6865,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     },
     "C_IC3g": {
@@ -7048,6 +7086,7 @@
       "bill_shock_history": [],
       "feedback_survey_history": [],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -7060,7 +7099,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "see_electricity_account",
-        "complaint_history": "see_electricity_account"
+        "complaint_history": "see_electricity_account",
+        "nudge_physics_history": "see_electricity_account"
       }
     },
     "C_IC4": {
@@ -7260,6 +7300,7 @@
       "bill_shock_history": [],
       "feedback_survey_history": [],
       "reputation_events": [],
+      "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
         "renewal_events": "complete",
@@ -7272,7 +7313,8 @@
         "payment_miss_trajectory": "complete",
         "bill_shock_history": "complete",
         "feedback_survey_history": "complete",
-        "complaint_history": "complete"
+        "complaint_history": "complete",
+        "nudge_physics_history": "complete"
       }
     }
   }
