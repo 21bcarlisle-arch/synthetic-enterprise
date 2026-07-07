@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-07-07T06:10:00Z",
-    "git_commit": "f77aecd1",
+    "generated_at": "2026-07-07T07:08:34Z",
+    "git_commit": "b5024291",
     "household_count": 16,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
@@ -68,6 +68,19 @@
         "acc": "C7",
         "tab": "timeline",
         "year": 2023
+      }
+    },
+    {
+      "category": "Silent-middle churn risk",
+      "headline": "True satisfaction fell 22% (2017 to 2024) but never once answered a survey -- invisible to the company's measurement instrument",
+      "account_id": "C4",
+      "base_account_id": "C4",
+      "segment": "resi",
+      "commodity": "electricity",
+      "link": {
+        "acc": "C4",
+        "tab": "timeline",
+        "year": 2024
       }
     }
   ]

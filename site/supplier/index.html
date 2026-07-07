@@ -248,6 +248,7 @@ a.hm-cell:hover { outline: 2px solid var(--blue); outline-offset: -2px; }
   <div id="tab-monthly"   class="view"></div>
   <div id="tab-market"    class="view"></div>
   <div id="tab-regulatory" class="view"></div>
+  <div id="tab-reputation" class="view"></div>
 </main>
 
 <button class="query-fab" onclick="toggleQueryPanel()" title="Ask the data">💬</button>
@@ -328,11 +329,11 @@ const GROUPS = [
   { id: 'commercial',  label: 'Commercial',  tabs: ['events','customers'] },
   { id: 'trading',     label: 'Trading & Market', tabs: ['trading','market'] },
   { id: 'operations',  label: 'Operations',  tabs: ['monthly','insights'] },
-  { id: 'governance',  label: 'Governance',  tabs: ['regulatory'] },
+  { id: 'governance',  label: 'Governance',  tabs: ['regulatory','reputation'] },
 ];
 const TAB_LABEL = { overview:'Overview', financial:'Financial', accounts:'Accounts',
   customers:'Customers', events:'Event Stream', trading:'Trading', market:'Market', monthly:'Monthly',
-  insights:'Insights', regulatory:'Regulatory' };
+  insights:'Insights', regulatory:'Regulatory', reputation:'Reputation' };
 let CURRENT_TAB = 'overview';
 let ACTIVE_GROUP = 'performance';
 const groupOf = tab => GROUPS.find(g => g.tabs.includes(tab)).id;
@@ -388,6 +389,7 @@ function renderTab(name) {
   if (name === 'query')     renderQuery();
   if (name === 'market')    renderMarket();
   if (name === 'regulatory') renderRegulatory();
+  if (name === 'reputation') renderReputation();
 }
 
 function ageLabel(ts) {
@@ -1462,6 +1464,67 @@ function renderRegulatory() {
     "</tbody></table></div>",
   ].join("");
   el("tab-regulatory").innerHTML = html;
+}
+
+function renderReputation() {
+  const rep = D.reputation || { nps_annual: {}, complaint_annual: {}, gri_trajectory: [], reputation_events: [], latest_nps: null, latest_gri: null, total_reputation_events: 0 };
+  const gri = rep.latest_gri;
+  const nps = rep.latest_nps;
+  const events = rep.reputation_events || [];
+  const griTraj = rep.gri_trajectory || [];
+  const bandColor = (band) => band === 'strong' ? 'green' : band === 'crisis' ? 'red' : band === 'weak' ? 'amber' : 'green';
+  const bandBadge = (band) => `<span class="badge badge-${bandColor(band)}">${(band||'adequate').toUpperCase()}</span>`;
+  const html = [
+    "<div class=\"view-header\"><h2>Reputation &amp; Customer Feedback</h2>",
+    "<p class=\"view-sub\">Company-observed CSAT/NPS survey responses and the Global Reputation Index — the company only ever sees a customer's survey response, never simulation/sim_satisfaction.py's ground truth (Phase RU, FEEDBACK_AND_REPUTATION.md)</p></div>",
+    "<div class=\"kpi-row\">",
+    kpi("Global Reputation Index", gri ? gri.gri_score.toFixed(1) + " " + bandBadge(gri.band) : "—", null, gri ? `As of ${gri.year} year-end` : "No data"),
+    kpi("Net Promoter Score", nps && nps.nps != null ? nps.nps.toFixed(1) : "—", null, nps ? `${nps.responses} responses, ${nps.year}` : "No survey responses yet"),
+    kpi("Reputation Events", rep.total_reputation_events || 0, null, "Complaint outcomes recorded, full run"),
+    kpi("Promoter / Detractor", nps && nps.promoter_pct != null ? nps.promoter_pct + "% / " + nps.detractor_pct + "%" : "—", null, nps ? `Latest survey year ${nps.year}` : ""),
+    "</div>",
+    "<h3 class=\"section-head\" style=\"margin-top:24px\">Global Reputation Index — Portfolio Trend</h3>",
+    "<p class=\"view-sub\">company/core/reputation_index.py's GlobalReputationIndex, fed by real complaint-resolution outcomes (simulation/feedback_survey.py) — previously permanently pinned at the default 50/ADEQUATE with a dead activation_energy_multiplier(); now moves off baseline on real events.</p>",
+    "<div class=\"card\" style=\"height:280px\"><canvas id=\"gri-trend-chart\"></canvas></div>",
+    "<h3 class=\"section-head\" style=\"margin-top:24px\">Reputation Events (Complaint Outcomes)</h3>",
+    "<p class=\"view-sub\">Each row is a real dispatched complaint (simulation/feedback_survey.py::dispatch_complaint_and_resolution), resolved against the 56-day Ombudsman SLC window.</p>",
+    events.length ? (
+      "<div class=\"card\" style=\"padding:0;overflow:hidden\">" +
+      "<table style=\"width:100%;border-collapse:collapse;font-size:12px\">" +
+      "<thead><tr>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Date</th>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Customer</th>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Outcome</th>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Days to Resolve</th>" +
+      "</tr></thead><tbody>" +
+      events.slice().sort((a,b)=> (a.date < b.date ? 1 : -1)).map(e =>
+        `<tr><td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)">${e.date}</td>` +
+        `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4);font-weight:600;color:var(--blue)">${e.customer_id}</td>` +
+        `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)">${e.event_type.replace(/_/g,' ')}</td>` +
+        `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)">${e.days_to_resolve != null ? e.days_to_resolve : "—"}</td></tr>`
+      ).join("") +
+      "</tbody></table></div>"
+    ) : "<p class=\"view-sub\">No complaints in this run.</p>",
+  ].join("");
+  el("tab-reputation").innerHTML = html;
+
+  if (griTraj.length) {
+    const opts = baseLineOpts();
+    opts.scales.y.min = 0;
+    opts.scales.y.max = 100;
+    mkChart('gri-trend-chart', {
+      type: 'line',
+      data: {
+        labels: griTraj.map(g => g.year),
+        datasets: [{
+          label: 'GRI score',
+          data: griTraj.map(g => g.gri_score),
+          borderColor: C.blue, backgroundColor: C.blue, borderWidth: 2, pointRadius: 3, tension: 0.3,
+        }]
+      },
+      options: opts
+    });
+  }
 }
 
 init();
