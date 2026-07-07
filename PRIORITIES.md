@@ -1,6 +1,17 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-06 (P-5 freshness stamp, docs/staging/PRIORITISATION_RULES.md)
-# PENDING FOR NEXT WEEKLY RE-RANK (docs/staging/done/STRATEGIC_HORIZON_DECISIONS.md, [ADVISOR-STAGED] fba4ae94, 2026-07-06): direction only, NOT a queue-jump -- P2 completes first as already agreed. Post-P2 ordering to adopt: S1 proof-first (shadow-live track record, public scorecard from day one, misses included), S2 depth-before-scale (customer physics/psychology -- feedback/reputation, nudge physics, life-event dynamics -- before population scale-up), S3 then scale (295->thousands, perf engineering, market-flows choreography), S4 products (casebook first, dataset second), S5 go-live routes memo (analysis only, advisor-owned). Also records Rich's latency-and-fidelity tiered-access commercial model hypothesis for the casebook/Platform/Method design once S4 opens.
+# ADOPTED 2026-07-07 (docs/staging/done/STRATEGIC_HORIZON_DECISIONS.md, [ADVISOR-STAGED] fba4ae94, 2026-07-06): condition met -- P2 completed in full at Phase RW. Post-P2 ordering to adopt: S1 proof-first (shadow-live track record, public scorecard from day one, misses included), S2 depth-before-scale (customer physics/psychology -- feedback/reputation, nudge physics, life-event dynamics -- before population scale-up), S3 then scale (295->thousands, perf engineering, market-flows choreography), S4 products (casebook first, dataset second), S5 go-live routes memo (analysis only, advisor-owned). Also records Rich's latency-and-fidelity tiered-access commercial model hypothesis for the casebook/Platform/Method design once S4 opens.
+# PENDING FOR NEXT WEEKLY RE-RANK (docs/staging/done/EPOCH3_DIRECTION.md, [ADVISOR-STAGED], 2026-07-06,
+# arrived on this tree 2026-07-07): Part 1 (P1 visual approval recorded, P2 released in order) is
+# moot -- P2 was already completed in full at Phase RW before this file was pulled. Part 2 (EPOCH
+# THREE direction) is explicitly re-rank input only, NOT active queue now -- five mission clauses
+# (mortality/longevity tournament as terminal-state endgame, brand as behavioural physics via
+# causal cashflow channels + terminal-value multiple only, regulated experimentation within
+# licence/consumer-duty limits, anchored-noise dual calibration, temporal realism as first-class
+# latency distributions/doom-loops) plus the S2 "depth" build content (EPC/Census world texture,
+# the Belief Book hypothesis register + time-to-truth convergence dashboard, multi-objective
+# survive-and-compound function, capital allocation as a per-pound ROI budget) -- to be folded into
+# S2's scope definition at the next weekly re-rank, recorded verbatim per the file's own instruction.
 # Last refreshed: 2026-07-06 (PRIORITY RESET, docs/staging/PRIORITY_RESET_PUBLIC_SITE.md,
 # [ADVISOR-STAGED] 5fa9a0cf -- Tier 2, pre-approved). Rich's direct verdict: the public site
 # (poesys.net's four top-level tabs) is still structurally pre-overhaul despite backend depth
@@ -58,23 +69,29 @@
 #   (CUSTOMER_360_REDESIGN.md, SUPPLIER_TAB_OVERHAUL.md, NAV_STORY_PLATFORM_METHOD.md,
 #   PROJECT_TAB_OVERHAUL.md) to docs/staging/done/ that were already CLOSED IN FULL above but never
 #   moved out of the active queue -- a hygiene gap, not a scope gap.
-# P2 -- ACTIVE (2026-07-06 21:05 BST, Rich's visual confirmation received via NTFY: "I like the
-#   live site a lot. It's a big improvement" -- satisfies the P1a-c acceptance rule below. Gate
-#   cleared, resuming P2 top-down): CTS £0/£91,780 reconciliation (docs/staging/drafts/NEXT_PHASE.md,
-#   option B) -- CLOSED (Phase RS, 2026-07-06): account 6100 now posts a real monthly cost-to-serve
-#   figure (bad-debt component dropped per option B, PROJECT_OVERVIEW.md Section 4 Phase RS). Next:
-#   frozen-policy baseline (FROZEN_POLICY_BASELINE_DESIGN.md) -- CLOSED (Phase RT, 2026-07-07):
-#   swappable DecisionPolicy struct (company/policy/decision_policy.py) replays the same decade
-#   under CURRENT_POLICY vs the superseded pre-14a/15b/43b NAIVE_POLICY via the real sim entry
-#   point; delta-EV £159,745 on the live book, rendered on Supplier Overview as "The Value of
-#   Learning" (PROJECT_OVERVIEW.md Section 4 Phase RT). Next: FEEDBACK_AND_REPUTATION.md --
-#   Layer 1 CLOSED (Phase RU, 2026-07-07): solicited CSAT/NPS survey + complaint dispatch engine
-#   (simulation/feedback_survey.py) off real sim_satisfaction.py ground truth, U-shaped response
-#   bias, evidence on all 3 surfaces (Sim correlation+wall-chart, Supplier Reputation section,
-#   Customers case-study "Silent-middle churn risk" -- live account C4). Layer 2 (public reviews,
-#   regulator star-rating, reputation->funnel/in-market feedback loops) NOT built --
-#   FEEDBACK_AND_REPUTATION.md stays open in docs/staging/ for it. Next: NUDGE_PHYSICS.md,
-#   then SAAS_COVERAGE_MAP.md.
+# P2 -- CLOSED IN FULL (2026-07-07, Phase RW). Started 2026-07-06 21:05 BST on Rich's visual
+#   confirmation via NTFY: "I like the live site a lot. It's a big improvement" (satisfies the
+#   P1a-c acceptance rule below). Five items, all closed: (1) CTS £0/£91,780 reconciliation --
+#   CLOSED (Phase RS, 2026-07-06): account 6100 posts a real monthly cost-to-serve figure. (2)
+#   frozen-policy baseline -- CLOSED (Phase RT, 2026-07-07): swappable DecisionPolicy struct,
+#   delta-EV £159,745 on the live book, "The Value of Learning" on Supplier Overview. (3)
+#   FEEDBACK_AND_REPUTATION.md Layer 1 -- CLOSED (Phase RU, 2026-07-07): solicited CSAT/NPS
+#   survey + complaint dispatch engine, evidence on all 3 surfaces. Layer 2 (public reviews,
+#   regulator star-rating, funnel feedback loops) NOT built -- FEEDBACK_AND_REPUTATION.md stays
+#   open in docs/staging/ for it. (4) NUDGE_PHYSICS.md Layer 1 -- CLOSED (Phase RV, 2026-07-07):
+#   hidden per-customer loss-aversion susceptibility modulates retention-offer effectiveness,
+#   company discovers the lift empirically. 7 of 8 NUDGE_PHYSICS_BENCHMARKS.md mechanisms remain
+#   backlog. (5) SAAS_COVERAGE_MAP.md -- CLOSED (Phase RW, 2026-07-07): docs/architecture/
+#   SAAS_COVERAGE_MAP.md maps 22 SaaS categories to an eliminated(A)/recreated(B)/interfaced(C)
+#   taxonomy (5 A / 10 B / 7 C), rendered on site/platform/index.html. Backlog items (debt-sale/
+#   DCA-placement economics, credit bureau as a collections-strategy feed) explicitly deferred.
+# Next (adopted 2026-07-07, Phase RW close -- see PENDING FOR NEXT WEEKLY RE-RANK note above:
+#   "P2 completes first as already agreed", condition now met): S1 proof-first (shadow-live
+#   track record, public scorecard from day one, misses included) is the new front of queue.
+#   NOT YET STARTED -- needs its own concrete Tier-2/3 design note before implementation, same
+#   caution already applied to the frozen-policy-baseline tab (a visible, one-way-door-adjacent
+#   public surface). S2 (depth-before-scale: customer physics/psychology) through S5 (go-live
+#   routes memo) follow per STRATEGIC_HORIZON_DECISIONS.md's sequencing.
 # Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's
 # visual review", never "done" outright.
 # Already-staged infra fixes (SERIALIZE_WORKERS.md, FLAG_ALL_LAUNCHERS.md, PAGES_CONCURRENCY_FIX.md)
