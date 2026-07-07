@@ -37,6 +37,9 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .tag-universal { background: rgba(74,58,167,.12); color: var(--purple); }
 .tag-market { background: rgba(42,120,214,.12); color: var(--blue); }
 .tag-uk { background: rgba(27,175,122,.12); color: var(--teal); }
+.tag-bucket-a { background: rgba(27,175,122,.12); color: var(--teal); }
+.tag-bucket-b { background: rgba(42,120,214,.12); color: var(--blue); }
+.tag-bucket-c { background: rgba(250,178,25,.12); color: var(--amber); }
 .domain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
 .domain-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
 .domain-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; text-transform: capitalize; }
@@ -126,13 +129,19 @@ tr:last-child td { border-bottom: none; }
 
   <div class="sec">SaaS Coverage Map</div>
   <div class="card">
-    <p class="gap-note">
-      Queued, not yet built: an Eliminated / Recreated / Interfaced breakdown of which
-      real-supplier SaaS functions this platform replaces outright, which it recreates
-      in its own model, and which it would interface to on go-live. See
-      docs/staging/SAAS_COVERAGE_MAP.md, PRIORITIES.md P2, resumes after the current
-      nav/story wave lands.
+    <p class="muted" style="margin-bottom:12px">
+      Of the ~20+ SaaS categories a real UK energy supplier assembles to run its business, how
+      much does this architecture eliminate outright, recreate natively, or still need to
+      interface with as a real-world boundary at go-live? See
+      <a href="../../docs/architecture/SAAS_COVERAGE_MAP.md" style="color:var(--blue);text-decoration:none">docs/architecture/SAAS_COVERAGE_MAP.md</a>.
     </p>
+    <div class="domain-grid" id="saas-kpis" style="margin-bottom:16px"><div class="muted">Loading...</div></div>
+    <div class="tbl-box">
+      <table>
+        <thead><tr><th>Category</th><th>Market Leaders</th><th>Poesys Mapping</th><th>Bucket</th></tr></thead>
+        <tbody id="saas-rows"><tr><td colspan="4" class="muted">Loading...</td></tr></tbody>
+      </table>
+    </div>
   </div>
 
   <div class="sec">Build</div>
@@ -195,6 +204,30 @@ function renderBuild(d){
   el.textContent=parts.length?parts.join(" \u00b7 "):"Build stats unavailable.";
 }
 
+function bucketCls(b){if(b==="A")return "tag-bucket-a";if(b==="B")return "tag-bucket-b";return "tag-bucket-c";}
+function bucketLabel(b){if(b==="A")return "A -- Eliminated";if(b==="B")return "B -- Recreated";return "C -- Interfaced";}
+function bucketTag(b){return '<span class="tag '+bucketCls(b)+'">'+bucketLabel(b)+'</span>';}
+
+function bucketFullLabel(b){if(b==="A")return "Eliminated by Architecture";if(b==="B")return "Recreated, Integrated";return "Interfaced at Boundary";}
+
+function renderSaasCoverage(d){
+  var kpiEl=document.getElementById("saas-kpis");
+  var counts=d.bucket_counts||{},pct=d.bucket_pct||{};
+  var buckets=["A","B","C"];
+  var kpis=buckets.map(function(b){
+    var p=(pct[b]!=null)?(pct[b]+"%"):"--";
+    return '<div class="domain-card"><div class="domain-name">'+bucketFullLabel(b)+'</div><div class="domain-count">'+p+'</div><div class="muted">'+(counts[b]||0)+' of '+(d.total_categories||0)+' categories</div></div>';
+  }).join("");
+  kpiEl.innerHTML=kpis;
+  var rowsEl=document.getElementById("saas-rows");
+  var rows=(d.categories||[]).map(function(c){
+    var mods=(c.modules_exist||[]).map(function(m){return esc(m.path);}).join(", ")||"none needed";
+    var note=c.note?('<div class="muted" style="margin-top:2px">'+esc(c.note)+'</div>'):"";
+    return '<tr><td><strong>'+esc(c.category)+'</strong></td><td>'+esc(c.market_leaders)+'</td><td>'+esc(mods)+note+'</td><td>'+bucketTag(c.bucket)+'</td></tr>';
+  }).join("");
+  rowsEl.innerHTML=rows||'<tr><td colspan="4" class="muted">No SaaS coverage data.</td></tr>';
+}
+
 function renderCapabilities(d){
   var grid=document.getElementById("cap-grid");
   var cards=(d.cards||[]).map(function(c){
@@ -221,6 +254,13 @@ fetch("../data/capabilities.json?t="+Date.now()).then(function(r){return r.json(
 }).catch(function(e){
   console.error("capabilities.json load error:",e);
   document.getElementById("cap-grid").innerHTML='<div class="muted" style="color:var(--red)">Could not load capabilities.json</div>';
+});
+
+fetch("../data/saas_coverage.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderSaasCoverage(d);
+}).catch(function(e){
+  console.error("saas_coverage.json load error:",e);
+  document.getElementById("saas-rows").innerHTML='<tr><td colspan="4" class="muted" style="color:var(--red)">Could not load saas_coverage.json</td></tr>';
 });
 </script>
 </body>
