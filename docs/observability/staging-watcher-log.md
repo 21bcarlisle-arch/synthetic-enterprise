@@ -3092,3 +3092,69 @@
 - [2026-07-06 15:15 UTC] git fetch failed (network?): network error
 - [2026-07-06 15:15 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
 - [2026-07-06 15:15 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-06 23:14 UTC] Silently registered sim run marker: run_complete_20260706T230453Z.md (Claude polls staging, no notification needed)
+- [2026-07-06 23:14 UTC] git fetch failed (network?): network error
+- [2026-07-06 23:14 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-06 23:14 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-06 23:26 UTC] git fetch failed (network?): network error
+- [2026-07-06 23:26 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-06 23:26 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-06 23:26 UTC] Silently registered sim run marker: run_complete_20260706T231655Z.md (Claude polls staging, no notification needed)
+- [2026-07-06 23:37 UTC] Silently registered sim run marker: run_complete_20260706T232854Z.md (Claude polls staging, no notification needed)
+- [2026-07-06 23:37 UTC] git fetch failed (network?): network error
+- [2026-07-06 23:37 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-06 23:37 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-06 23:49 UTC] Silently registered sim run marker: run_complete_20260706T234043Z.md (Claude polls staging, no notification needed)
+- [2026-07-06 23:49 UTC] git fetch failed (network?): network error
+- [2026-07-06 23:49 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-06 23:49 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 00:01 UTC] Silently registered sim run marker: run_complete_20260706T235227Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 00:01 UTC] git fetch failed (network?): network error
+- [2026-07-07 00:01 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 00:01 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 00:13 UTC] Silently registered sim run marker: run_complete_20260707T000411Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 00:29 UTC] git fetch failed (network?): network error
+- [2026-07-07 00:29 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 00:29 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 00:41 UTC] Silently registered sim run marker: run_complete_20260707T003251Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 00:41 UTC] git fetch failed (network?): network error
+- [2026-07-07 00:41 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 00:41 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 00:53 UTC] Silently registered sim run marker: run_complete_20260707T004438Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 00:53 UTC] git fetch failed (network?): network error
+- [2026-07-07 00:53 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 00:53 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 01:02 UTC] git fetch failed (network?): network error
+- [2026-07-07 01:02 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 01:02 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 01:05 UTC] Silently registered sim run marker: run_complete_20260707T005628Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 01:05 UTC] git fetch failed (network?): network error
+- [2026-07-07 01:05 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 01:05 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 01:17 UTC] git fetch failed (network?): network error
+- [2026-07-07 01:17 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 01:17 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 01:17 UTC] Silently registered sim run marker: run_complete_20260707T010810Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 01:28 UTC] Silently registered sim run marker: run_complete_20260707T011952Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 01:28 UTC] git fetch failed (network?): network error
+- [2026-07-07 01:28 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 01:28 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 01:40 UTC] git fetch failed (network?): network error
+- [2026-07-07 01:40 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 01:40 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 01:40 UTC] Silently registered sim run marker: run_complete_20260707T013137Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 01:52 UTC] git fetch failed (network?): network error
+- [2026-07-07 01:52 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 01:52 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 01:52 UTC] Silently registered sim run marker: run_complete_20260707T014314Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 02:03 UTC] Silently registered sim run marker: run_complete_20260707T015452Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 02:03 UTC] git fetch failed (network?): network error
+- [2026-07-07 02:03 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 02:03 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 02:14 UTC] Silently registered sim run marker: run_complete_20260707T020553Z.md (Claude polls staging, no notification needed)
+- [2026-07-07 02:14 UTC] git fetch failed (network?): network error
+- [2026-07-07 02:14 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 02:14 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-07 02:15 UTC] git fetch failed (network?): network error
+- [2026-07-07 02:15 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-07 02:15 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping

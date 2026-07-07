@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-07-07T00:29:40Z",
+  "report_end": null,
+  "current_policy": {
+    "enterprise_value_gbp": 8930210.948187593,
+    "account_count": 16,
+    "total_net_gbp": 1445257.665458,
+    "final_treasury_gbp": 3911893.8860475523,
+    "retention_offers_made": 14,
+    "retention_offers_retained": 14,
+    "retention_cost_gbp": 150009.81317559147,
+    "churned_accounts": 6
+  },
+  "naive_policy": {
+    "enterprise_value_gbp": 8770466.17686347,
+    "account_count": 16,
+    "total_net_gbp": 1438795.702548,
+    "final_treasury_gbp": 3905431.923138924,
+    "retention_offers_made": 16,
+    "retention_offers_retained": 16,
+    "retention_cost_gbp": 177808.91010066628,
+    "churned_accounts": 6
+  },
+  "delta_ev_gbp": 159744.7713241242,
+  "delta_net_margin_gbp": 6461.962910000002,
+  "narrative": "Replaying the same decade under the naive pre-learning policy (flat 5% retention discount, margin-only offer guard, no VaR-constrained hedge decision -- the pre-Phase-14a/15b/43b state) instead of today's decisions changes enterprise value by \u00a3159,745 (14 offers made under current policy vs 16 under naive, 14 vs 16 retained)."
+}

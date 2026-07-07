@@ -63,8 +63,12 @@
 #   cleared, resuming P2 top-down): CTS £0/£91,780 reconciliation (docs/staging/drafts/NEXT_PHASE.md,
 #   option B) -- CLOSED (Phase RS, 2026-07-06): account 6100 now posts a real monthly cost-to-serve
 #   figure (bad-debt component dropped per option B, PROJECT_OVERVIEW.md Section 4 Phase RS). Next:
-#   frozen-policy baseline (FROZEN_POLICY_BASELINE_DESIGN.md), then FEEDBACK_AND_REPUTATION.md,
-#   NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
+#   frozen-policy baseline (FROZEN_POLICY_BASELINE_DESIGN.md) -- CLOSED (Phase RT, 2026-07-07):
+#   swappable DecisionPolicy struct (company/policy/decision_policy.py) replays the same decade
+#   under CURRENT_POLICY vs the superseded pre-14a/15b/43b NAIVE_POLICY via the real sim entry
+#   point; delta-EV £159,745 on the live book, rendered on Supplier Overview as "The Value of
+#   Learning" (PROJECT_OVERVIEW.md Section 4 Phase RT). Next: FEEDBACK_AND_REPUTATION.md,
+#   then NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
 # Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's
 # visual review", never "done" outright.
 # Already-staged infra fixes (SERIALIZE_WORKERS.md, FLAG_ALL_LAUNCHERS.md, PAGES_CONCURRENCY_FIX.md)

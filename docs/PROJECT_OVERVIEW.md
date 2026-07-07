@@ -111,6 +111,42 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RT -- Frozen-Policy Baseline / Delta-EV CLOSED IN FULL (PRIORITIES.md P2 item 2, FROZEN_POLICY_BASELINE_DESIGN.md option B) (2026-07-07, Tier 3 graduated to Tier 2 -- PRIORITIES.md P2 item 2, front of queue immediately after Phase RS)
+
+Recovered a second interrupted prior session's uncommitted-then-committed work: commit b9bb1eee
+(2026-07-06 23:59) had already landed the full mechanism -- `company/policy/decision_policy.py`'s
+swappable `DecisionPolicy` struct with `CURRENT_POLICY` (tiered retention discount per Phase 14a,
+acquisition-cost-aware guard per Phase 15b, VaR-constrained hedge decision per Phase 43b) and
+`NAIVE_POLICY` (the specific pre-14a/15b/43b state each mechanic superseded: flat 5% discount/no
+tiers, margin-only guard, hedging left to the backward-looking evolution alone); an optional
+`policy=` parameter threaded through `run_phase2b.main()` and `run_phase4c_on_phase2b.main()`
+defaulting to `CURRENT_POLICY` (zero behaviour change for every existing caller, confirmed by the
+full test suite and the ledger-touching slow integration suites passing unchanged under the
+default); and `tools/run_frozen_baseline.py`, which replays the same historical window through the
+real simulation entry point under both policies (not a recompute from stored records --
+retention/hedge decisions change realized settlement outcomes) and diffs enterprise value ->
+delta-EV, "the value of learning." That commit's own message flagged itself as a checkpoint, not a
+closed phase: the real 2016-2025 baseline artifact was "generating in the background" at commit
+time, and rule 0b requires evidence on the business surface, not just a verified mechanism.
+
+This session found that artifact complete on the working tree (`site/state/frozen_policy_baseline.json`,
+generated 2026-07-07T00:29:40Z, previously untracked) and confirmed it is the real full live book,
+not a stray subset: `account_count: 16` matches `site/data/customers.json`'s live `customer_count`
+exactly. Result: replaying the current decade under `NAIVE_POLICY` instead of `CURRENT_POLICY`
+changes enterprise value by £159,745 (current policy EV £8,930,211 vs naive £8,770,466; current
+policy made 14 retention offers, all retained, at a cost of £150,010, vs naive's 16 offers, all
+retained, at £177,809 -- fewer, better-targeted offers cost less and protect more value). This
+was already wired end-to-end before this session (`tools/generate_dashboard_data.py::_load_frozen_baseline`
+reads the artifact into the dashboard payload; `background/process_run_complete.py` regenerates it
+via `run_frozen_baseline.generate()`, gated weekly by `should_refresh_baseline()`, before
+`generate_dashboard_data` runs; `site/supplier/index.html`'s Overview tab renders it as "The Value
+of Learning" panel) -- this session's own contribution was verifying the artifact was real and
+complete, then closing out the phase-close checklist the interrupted session never reached: this
+Section 4 entry, Section 10 update, archiving `FROZEN_POLICY_BASELINE_DESIGN.md` to
+`docs/staging/done/`, and advancing `PRIORITIES.md` P2 to its next item (`FEEDBACK_AND_REPUTATION.md`).
+Full test suite pass and epistemic PASS reconfirmed on this working tree. Closes
+`WEBSITE_AS_SHOWCASE.md` tab 2 and `PRIORITIES.md` P2 item 2. See Section 10.
+
 ### Phase RS -- CTS ledger reconciliation CLOSED (PRIORITIES.md P2 item 1, option B) (2026-07-06, Tier 2 -- named in PRIORITIES.md P2 after Rich's P1a-c visual confirmation, graduated from the Tier 3 proposal in docs/staging/drafts/NEXT_PHASE.md)
 
 Recovered a second interrupted prior session's uncommitted work: saas/cost_to_serve.py,
@@ -6385,7 +6421,14 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,889 tests collected (full suite; 15,765 in the fast/SIM_FAST_MODE gate)
+- 15,889 tests collected (full suite; 15,765 in the fast/SIM_FAST_MODE gate) plus 17 new tests from
+  Phase RT (company/policy, tools/run_frozen_baseline, generate_dashboard_data)
+- Phase RT (2026-07-07): Frozen-Policy Baseline / Delta-EV CLOSED IN FULL (PRIORITIES.md P2 item 2) --
+  swappable DecisionPolicy struct (company/policy/decision_policy.py) replays the same decade under
+  today's CURRENT_POLICY vs the superseded pre-14a/15b/43b NAIVE_POLICY via the real simulation
+  entry point; delta-EV £159,745 on the live 16-account book (14 retention offers @ £150,010 cost
+  under current policy vs 16 offers @ £177,809 under naive, both fully retained). Renders on
+  Supplier Overview as "The Value of Learning". See Section 4 Phase RT.
 - Phase RS (2026-07-06): CTS ledger reconciliation CLOSED (PRIORITIES.md P2 item 1) -- account 6100
   ("Cost to Serve") now receives a real monthly posting instead of always netting to £0;
   saas/cost_to_serve.py's bad-debt component (superseded ~30x-overstated by Phase QD's emergent

@@ -218,7 +218,19 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     any auto-processed cycle since.)"""
     ok = True
     try:
+        # Must run before generate_dashboard_data (reads frozen_policy_baseline.json
+        # if present). Weekly-gated (should_refresh_baseline) -- replays the full
+        # decade twice under CURRENT_POLICY vs NAIVE_POLICY, so this is deliberately
+        # NOT a per-cycle cost. FROZEN_POLICY_BASELINE_DESIGN.md / PRIORITIES.md P2.
         sys.path.insert(0, str(PROJECT_DIR))
+        from tools.run_frozen_baseline import generate as gen_frozen_baseline
+        refreshed = gen_frozen_baseline()
+        if refreshed is not None:
+            log("Refreshed site/state/frozen_policy_baseline.json (delta-EV £{:,.0f})".format(
+                refreshed.get("delta_ev_gbp", 0.0)))
+    except Exception as exc:
+        log("Frozen-policy baseline generation failed: {}".format(exc))
+    try:
         from tools.generate_dashboard_data import generate
         ok = generate(json_path)
         if ok:
