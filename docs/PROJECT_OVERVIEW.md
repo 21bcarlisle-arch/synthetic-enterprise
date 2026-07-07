@@ -111,6 +111,53 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase RU -- FEEDBACK_AND_REPUTATION.md Layer 1 (solicited feedback instrument) CLOSED (PRIORITIES.md P2 item 3) (2026-07-07, Tier 2 -- front of queue immediately after Phase RT)
+
+Recovered a third interrupted prior session's uncommitted work, found substantially complete on
+the working tree: `simulation/feedback_survey.py`, the SIM-side measurement-instrument engine
+Rich's directive asked for. It dispatches CSAT/NPS surveys off the real ground-truth satisfaction
+score (`simulation/sim_satisfaction.py`) with a U-shaped response propensity (very satisfied and
+very dissatisfied customers respond; the silent middle mostly doesn't -- `response_propensity()`),
+further suppressed under income stress, and a noisy/rounded reported score rather than a clean
+read; complaints occur probabilistically off the same bill-shock signal `saas/contact_model.py`
+already uses, then resolve on a randomised timer against the real 56-day Ombudsman SLC window
+(`company/crm/complaints.py::OMBUDSMAN_ESCALATION_DAYS`). Wired into `simulation/run_phase2b.py`'s
+renewal loop: the company only ever observes the survey response/complaint outcome, never
+`_nf_satisfaction` itself -- the measurement gap the directive's basis-risk display asked for.
+Feeds `company/crm/nps_tracker.py::NPSTracker`, `company/crm/complaints.py::ComplaintBook`, and
+`company/core/reputation_index.py::GlobalReputationIndex` (previously permanently pinned at
+default 50/ADEQUATE with a dead `activation_energy_multiplier()`; now moves off baseline on real
+complaint-resolution events).
+
+Evidence on all three business surfaces, verified against a live run already on this working tree
+(`docs/reports/run_output_latest.json`, £1,535,308 net, 92 feedback-survey dispatches, 13
+complaint/reputation events): **Sim tab** -- a new "Satisfaction vs Complaints" correlation panel
+and a "True Satisfaction vs Measured CSAT" wall-chart (the same both-sides-of-the-wall treatment
+`churn_accuracy_by_renewal` already gets, this time for satisfaction) replace the previous honest
+gaps that flagged complaints as "not wired into the live simulation." **Supplier tab** -- new
+Reputation section/nav tab: NPS, Reputation Events, Promoter/Detractor KPIs, GRI trajectory,
+per-complaint table against the real 56-day SLC window. **Customers tab** -- the case-study
+recommender (Phase RR) gains a sixth category, "Silent-middle churn risk": a household whose
+SIM-true satisfaction fell but who never once answered a dispatched survey. Live pick: C4, true
+satisfaction down 22% from 2017 to 2024, zero survey responses across that span -- the exact
+measurement-gap failure mode the directive's basis-risk display exists to surface, found on a real
+account, not fabricated.
+
+`tools/generate_case_study_recommender.py::_silent_middle_drop`, `tools/generate_customer_sample.py`
+(feedback_survey_history/reputation_events per customer, complaint_history status flipped from the
+long-standing honest "not_simulated" gap to "complete"), `tools/generate_dashboard_data.py::extract_reputation`,
+`saas/reporting/annual_report.py` (passthrough), `site/sim/index.html` (two new panels) all found
+complete and internally consistent; this session's own contribution was verification (full 15,928-test
+suite pass, epistemic PASS, live pipeline re-run confirming every generator step above with real
+current-run data) and closing the phase-close checklist the interrupted session never reached.
+
+**NOT closed:** Layer 2 (public reputation) -- review generation (Trustpilot-class), regulator-style
+quarterly star rating, and the two feedback loops (reputation -> acquisition funnel conversion,
+reputation -> in-market entry probability) are unbuilt. No `ReviewEvent`, star-rating, or
+review-volume code exists anywhere in the tree. `FEEDBACK_AND_REPUTATION.md` stays open in
+`docs/staging/` for Layer 2; PRIORITIES.md P2 advances to NUDGE_PHYSICS.md next, with Layer 2
+available to resume behind it. See Section 10.
+
 ### Phase RT -- Frozen-Policy Baseline / Delta-EV CLOSED IN FULL (PRIORITIES.md P2 item 2, FROZEN_POLICY_BASELINE_DESIGN.md option B) (2026-07-07, Tier 3 graduated to Tier 2 -- PRIORITIES.md P2 item 2, front of queue immediately after Phase RS)
 
 Recovered a second interrupted prior session's uncommitted-then-committed work: commit b9bb1eee
@@ -6421,8 +6468,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,889 tests collected (full suite; 15,765 in the fast/SIM_FAST_MODE gate) plus 17 new tests from
-  Phase RT (company/policy, tools/run_frozen_baseline, generate_dashboard_data)
+- 15,928 tests collected (full suite) plus 22 new tests from Phase RU
+  (test_feedback_survey.py, test_generate_case_study_recommender.py, generate_dashboard_data/
+  generate_customer_sample updates), on top of 17 new tests from Phase RT
+  (company/policy, tools/run_frozen_baseline, generate_dashboard_data)
 - Phase RT (2026-07-07): Frozen-Policy Baseline / Delta-EV CLOSED IN FULL (PRIORITIES.md P2 item 2) --
   swappable DecisionPolicy struct (company/policy/decision_policy.py) replays the same decade under
   today's CURRENT_POLICY vs the superseded pre-14a/15b/43b NAIVE_POLICY via the real simulation

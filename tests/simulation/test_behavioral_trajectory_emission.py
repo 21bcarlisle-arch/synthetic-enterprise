@@ -172,7 +172,7 @@ class TestGenerateCustomerSampleBehavioral:
         assert c1["data_status"]["payment_miss_trajectory"] == "complete"
         assert c1["bill_shock_history"] == ["2020-01-15"]
         assert c1["data_status"]["bill_shock_history"] == "complete"
-        assert c1["data_status"]["complaint_history"] == "not_simulated"
+        assert c1["data_status"]["complaint_history"] == "complete"
 
     def test_behavioral_absent_gives_pending_status(self, tmp_path):
         import json
@@ -211,4 +211,4 @@ class TestGenerateCustomerSampleBehavioral:
         assert c1["data_status"]["satisfaction_score_trajectory"] == "pending_sim_emission"
         assert c1["payment_miss_trajectory"] == []
         assert c1["bill_shock_history"] == []
-        assert c1["data_status"]["complaint_history"] == "not_simulated"
+        assert c1["data_status"]["complaint_history"] == "complete"

@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.generate_dashboard_data import (
     _fmt, extract_portfolio, extract_financial, count_run_history_total,
-    extract_regulatory, _SLC_OBLIGATIONS,
+    extract_regulatory, _SLC_OBLIGATIONS, extract_reputation,
 )
 import json
 
@@ -224,3 +224,45 @@ def test_load_frozen_baseline_invalid_json_returns_empty(tmp_path):
     path = tmp_path / "frozen_policy_baseline.json"
     path.write_text("not json")
     assert _load_frozen_baseline(path) == {}
+
+
+def test_extract_reputation_no_data_returns_empty_shape():
+    r = extract_reputation({})
+    assert r["nps_annual"] == {}
+    assert r["gri_trajectory"] == []
+    assert r["latest_nps"] is None
+    assert r["latest_gri"] is None
+    assert r["total_reputation_events"] == 0
+
+
+def test_extract_reputation_latest_gri_is_last_trajectory_entry():
+    data = {
+        "gri_trajectory": [
+            {"year": 2016, "gri_score": 50.0, "band": "adequate"},
+            {"year": 2017, "gri_score": 49.0, "band": "weak"},
+        ],
+    }
+    r = extract_reputation(data)
+    assert r["latest_gri"] == {"year": 2017, "gri_score": 49.0, "band": "weak"}
+
+
+def test_extract_reputation_latest_nps_skips_years_with_no_responses():
+    data = {
+        "nps_annual_summaries": {
+            "2016": {"year": 2016, "responses": 0, "nps": None},
+            "2017": {"year": 2017, "responses": 3, "nps": 10.0},
+        },
+    }
+    r = extract_reputation(data)
+    assert r["latest_nps"]["year"] == 2017
+
+
+def test_extract_reputation_counts_events():
+    data = {
+        "reputation_events_log": [
+            {"customer_id": "C1", "date": "2020-01-01", "event_type": "complaint_resolved_on_time"},
+            {"customer_id": "C2", "date": "2020-02-01", "event_type": "complaint_resolved_late"},
+        ],
+    }
+    r = extract_reputation(data)
+    assert r["total_reputation_events"] == 2

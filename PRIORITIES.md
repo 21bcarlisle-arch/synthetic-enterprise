@@ -67,8 +67,14 @@
 #   swappable DecisionPolicy struct (company/policy/decision_policy.py) replays the same decade
 #   under CURRENT_POLICY vs the superseded pre-14a/15b/43b NAIVE_POLICY via the real sim entry
 #   point; delta-EV £159,745 on the live book, rendered on Supplier Overview as "The Value of
-#   Learning" (PROJECT_OVERVIEW.md Section 4 Phase RT). Next: FEEDBACK_AND_REPUTATION.md,
-#   then NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md.
+#   Learning" (PROJECT_OVERVIEW.md Section 4 Phase RT). Next: FEEDBACK_AND_REPUTATION.md --
+#   Layer 1 CLOSED (Phase RU, 2026-07-07): solicited CSAT/NPS survey + complaint dispatch engine
+#   (simulation/feedback_survey.py) off real sim_satisfaction.py ground truth, U-shaped response
+#   bias, evidence on all 3 surfaces (Sim correlation+wall-chart, Supplier Reputation section,
+#   Customers case-study "Silent-middle churn risk" -- live account C4). Layer 2 (public reviews,
+#   regulator star-rating, reputation->funnel/in-market feedback loops) NOT built --
+#   FEEDBACK_AND_REPUTATION.md stays open in docs/staging/ for it. Next: NUDGE_PHYSICS.md,
+#   then SAAS_COVERAGE_MAP.md.
 # Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's
 # visual review", never "done" outright.
 # Already-staged infra fixes (SERIALIZE_WORKERS.md, FLAG_ALL_LAUNCHERS.md, PAGES_CONCURRENCY_FIX.md)

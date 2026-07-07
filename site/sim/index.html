@@ -256,9 +256,9 @@
       streams, each per year: life events (job loss, house move &mdash; `simulation/life_events.py`), bill shocks
       (a &gt;20% unit-rate rise at renewal &mdash; `run_phase2b.py`'s `_NG_BILL_SHOCK_THRESHOLD`), payment misses
       (LATE + DD_FAILED, from the full per-event payment record history &mdash;
-      `company/crm/payment_behaviour_analytics.py`), and switches (realized churn events). Complaints are not
-      shown: `company/crm/complaints.py`'s `ComplaintBook` exists but is not wired into the live simulation &mdash;
-      an honest gap, not a fabricated zero.
+      `company/crm/payment_behaviour_analytics.py`), switches (realized churn events), and complaints
+      (Phase RU: `simulation/feedback_survey.py` dispatches occurrence + resolution timing off the
+      same bill-shock signal, resolved against the real 56-day Ombudsman SLC window).
     </div>
     <div class="chart-wrap"><canvas id="cust-event-freq-chart" height="220"></canvas></div>
     <div class="section-title">Correlation Panels &mdash; Where The World Meets Itself</div>
@@ -273,21 +273,30 @@
     <div class="chart-wrap"><canvas id="corr-price-inmarket-chart" height="220"></canvas></div>
     <div class="section-title" style="font-size:0.85rem;margin-top:20px">Satisfaction vs Complaints</div>
     <div class="narrative">
-      <strong>Honest gap:</strong> this correlation cannot be shown yet. `company/crm/complaints.py`'s
-      <code>ComplaintBook</code> exists but is not wired into the live simulation (same gap the Event
-      Frequency panel above already flags) &mdash; there is no complaint time series to pair against
-      satisfaction. Shown as a stated gap, not a fabricated zero.
+      <strong>Phase RU:</strong> mean SIM-true satisfaction (from every dispatched survey event, not just
+      responders) against complaints raised that year (`reputation_events`, `simulation/feedback_survey.py`
+      dispatch_complaint_and_resolution). Complaints are rare in this portfolio (13 across the full decade)
+      so the yearly count is a thin signal, but it is a real one, not a fabricated zero.
     </div>
+    <div class="chart-wrap"><canvas id="corr-satisfaction-complaints-chart" height="220"></canvas></div>
     <div class="section-title">Both Sides of the Wall &mdash; SIM Truth vs Company-Observed</div>
     <div class="narrative">
       <strong>The epistemic wall, at portfolio scale:</strong> every renewal records both the SIM's ground-truth
       churn probability and the company's own model estimate (`churn_accuracy_by_renewal`, the same field
       behind the C_IC1 flagship divergence case on the Customers tab). Aggregated across all customers and
       years, this line pair is literally what the company cannot see vs what it estimates instead &mdash; the
-      gap between the two lines IS the wall. (True satisfaction vs measured CSAT will pair here too once
-      FEEDBACK_AND_REPUTATION.md lands &mdash; queued behind this design wave, not yet built.)
+      gap between the two lines IS the wall.
     </div>
     <div class="chart-wrap"><canvas id="wall-churn-chart" height="220"></canvas></div>
+    <div class="section-title" style="font-size:0.85rem;margin-top:20px">True Satisfaction vs Measured CSAT (Phase RU)</div>
+    <div class="narrative">
+      <strong>The same wall, for satisfaction:</strong> the company never reads `sim_satisfaction_score`
+      directly &mdash; only whatever a customer chooses to report on a solicited CSAT survey. Response
+      propensity is U-shaped (very satisfied and very dissatisfied customers respond; the silent middle
+      mostly doesn't &mdash; `simulation/feedback_survey.py::response_propensity`), so the measured line is a
+      biased sample of the true one, not a clean read of it.
+    </div>
+    <div class="chart-wrap"><canvas id="wall-satisfaction-chart" height="220"></canvas></div>
     <div class="meta-bar" id="cust-meta-bar">Loading customer data&hellip;</div>
   </div>
 
@@ -441,6 +450,8 @@
       buildCorrStressDelayChart(d);
       buildCorrPriceInMarketChart(journeyLog, (sd && sd.annual) || []);
       buildWallChurnChart(d);
+      buildCorrSatisfactionComplaintsChart(d);
+      buildWallSatisfactionChart(d);
       var cnt = Object.keys(d.customers || {}).length;
       document.getElementById('cust-meta-bar').innerHTML = '<span>' + cnt + ' customers | simulation/run_phase2b.py behavioral trajectories | 4-dimension model: physical / economic / behavioural / emotional</span>' +
         freshnessSpan((sd && sd.metadata) || {});
@@ -722,7 +733,7 @@
     var yearMap = {};
     function bump(yr, key, n) {
       if (!yr) return;
-      if (!yearMap[yr]) yearMap[yr] = {life_events:0, bill_shocks:0, payment_misses:0, switches:0};
+      if (!yearMap[yr]) yearMap[yr] = {life_events:0, bill_shocks:0, payment_misses:0, switches:0, complaints:0};
       yearMap[yr][key] += (n || 1);
     }
     ids.forEach(function(id) {
@@ -738,6 +749,9 @@
       (custs[id].renewal_events || []).forEach(function(e) {
         if (e.event_type === 'churned') bump(String(e.event_date || '').slice(0,4), 'switches');
       });
+      (custs[id].reputation_events || []).forEach(function(e) {
+        bump(String(e.date || '').slice(0,4), 'complaints');
+      });
     });
     var years = Object.keys(yearMap).sort();
     var ctx = document.getElementById('cust-event-freq-chart').getContext('2d');
@@ -751,7 +765,8 @@
           {label:'Life events', data:years.map(function(y){return yearMap[y].life_events||0;}), backgroundColor:'rgba(74,58,167,0.7)'},
           {label:'Bill shocks', data:years.map(function(y){return yearMap[y].bill_shocks||0;}), backgroundColor:'rgba(208,59,59,0.7)'},
           {label:'Payment misses', data:years.map(function(y){return yearMap[y].payment_misses||0;}), backgroundColor:'rgba(250,178,25,0.7)'},
-          {label:'Switches', data:years.map(function(y){return yearMap[y].switches||0;}), backgroundColor:'rgba(42,120,214,0.7)'}
+          {label:'Switches', data:years.map(function(y){return yearMap[y].switches||0;}), backgroundColor:'rgba(42,120,214,0.7)'},
+          {label:'Complaints', data:years.map(function(y){return yearMap[y].complaints||0;}), backgroundColor:'rgba(12,163,12,0.7)'}
         ]
       },
       options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
@@ -868,6 +883,90 @@
         scales:{
           x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
           y:{min:0,ticks:{color:'#52514e',callback:function(v){return v+'%';}},grid:{color:'rgba(225,224,217,0.6)'}}
+        }}
+    });
+  }
+
+  var corrSatComplaintsChart = null;
+  function buildCorrSatisfactionComplaintsChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var yearMap = {};
+    function ensure(yr) {
+      if (!yearMap[yr]) yearMap[yr] = {satSum:0, satN:0, complaints:0};
+      return yearMap[yr];
+    }
+    ids.forEach(function(id) {
+      (custs[id].feedback_survey_history || []).forEach(function(e) {
+        if (e.true_satisfaction == null) return;
+        var yr = String(e.term_start || '').slice(0, 4);
+        if (!yr) return;
+        var v = ensure(yr);
+        v.satSum += e.true_satisfaction;
+        v.satN++;
+      });
+      (custs[id].reputation_events || []).forEach(function(e) {
+        var yr = String(e.date || '').slice(0, 4);
+        if (!yr) return;
+        ensure(yr).complaints++;
+      });
+    });
+    var years = Object.keys(yearMap).sort();
+    var ctx = document.getElementById('corr-satisfaction-complaints-chart').getContext('2d');
+    if (corrSatComplaintsChart) corrSatComplaintsChart.destroy();
+    if (!years.length) return;
+    corrSatComplaintsChart = new Chart(ctx, {
+      data: {
+        labels: years,
+        datasets: [
+          {type:'line', label:'Mean true satisfaction %', data: years.map(function(y){var v=yearMap[y]; return v.satN ? +(v.satSum/v.satN*100).toFixed(1) : null;}), borderColor:'rgba(12,163,12,0.9)', backgroundColor:'rgba(12,163,12,0.15)', borderWidth:2, pointRadius:3, tension:0.3, spanGaps:true, yAxisID:'y'},
+          {type:'bar', label:'Complaints raised', data: years.map(function(y){return yearMap[y].complaints || 0;}), backgroundColor:'rgba(208,59,59,0.55)', yAxisID:'y2'}
+        ]
+      },
+      options: {responsive:true, interaction:{mode:'index',intersect:false}, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{
+          x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+          y:{position:'left',min:0,max:100,ticks:{color:'#52514e',callback:function(v){return v+'%';}},grid:{color:'rgba(225,224,217,0.6)'}},
+          y2:{position:'right',min:0,ticks:{color:'#52514e'},grid:{drawOnChartArea:false}}
+        }}
+    });
+  }
+
+  var wallSatChart = null;
+  function buildWallSatisfactionChart(d) {
+    var custs = d.customers || {};
+    var ids = Object.keys(custs);
+    var yearMap = {};
+    function ensure(yr) {
+      if (!yearMap[yr]) yearMap[yr] = {trueSum:0, trueN:0, csatSum:0, csatN:0};
+      return yearMap[yr];
+    }
+    ids.forEach(function(id) {
+      (custs[id].feedback_survey_history || []).forEach(function(e) {
+        var yr = String(e.term_start || '').slice(0, 4);
+        if (!yr) return;
+        var v = ensure(yr);
+        if (e.true_satisfaction != null) { v.trueSum += e.true_satisfaction; v.trueN++; }
+        if (e.csat_responded && e.csat_score_0_10 != null) { v.csatSum += e.csat_score_0_10; v.csatN++; }
+      });
+    });
+    var years = Object.keys(yearMap).sort();
+    var ctx = document.getElementById('wall-satisfaction-chart').getContext('2d');
+    if (wallSatChart) wallSatChart.destroy();
+    if (!years.length) return;
+    wallSatChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: years,
+        datasets: [
+          {label:'SIM truth satisfaction (mean %)', data: years.map(function(y){var v=yearMap[y]; return v.trueN ? +(v.trueSum/v.trueN*100).toFixed(1) : null;}), borderColor:'rgba(12,163,12,0.9)', backgroundColor:'rgba(12,163,12,0.15)', borderWidth:2, pointRadius:3, tension:0.3, spanGaps:true},
+          {label:'Measured CSAT, responders only (mean %)', data: years.map(function(y){var v=yearMap[y]; return v.csatN ? +(v.csatSum/v.csatN*10).toFixed(1) : null;}), borderColor:'rgba(208,59,59,0.9)', backgroundColor:'rgba(208,59,59,0.15)', borderWidth:2, pointRadius:3, tension:0.3, borderDash:[4,3], spanGaps:true}
+        ]
+      },
+      options: {responsive:true, interaction:{mode:'index',intersect:false}, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
+        scales:{
+          x:{ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+          y:{min:0,max:100,ticks:{color:'#52514e',callback:function(v){return v+'%';}},grid:{color:'rgba(225,224,217,0.6)'}}
         }}
     });
   }

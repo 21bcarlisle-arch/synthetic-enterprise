@@ -90,6 +90,28 @@ def generate(run_json_path=None):
         })
 
     behavioral = run.get("per_customer_behavioral", {})
+
+    # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1).
+    # Dispatched once per electricity renewal term, keyed by billing_account (== cid
+    # for electricity legs -- see saas/customer_reaction.py::_billing_account_id).
+    feedback_by_cid = defaultdict(list)
+    for e in run.get("feedback_survey_log", []):
+        feedback_by_cid[e["customer_id"]].append({
+            "term_start": e["term_start"],
+            "true_satisfaction": e.get("true_satisfaction"),
+            "csat_responded": e.get("csat_responded"),
+            "csat_score_0_10": e.get("csat_score_0_10"),
+            "nps_responded": e.get("nps_responded"),
+            "nps_score_0_10": e.get("nps_score_0_10"),
+        })
+    reputation_events_by_cid = defaultdict(list)
+    for e in run.get("reputation_events_log", []):
+        reputation_events_by_cid[e["customer_id"]].append({
+            "date": e["date"],
+            "event_type": e["event_type"],
+            "days_to_resolve": e.get("days_to_resolve"),
+        })
+
     sample = {}
     for cid, cdata in sorted(pcl.items()):
         base = _base_id(cid)
@@ -128,6 +150,10 @@ def generate(run_json_path=None):
             } if _beh else None,
             "payment_miss_trajectory": _beh.get("payment_miss_trajectory") or [],
             "bill_shock_history": _beh.get("bill_shock_history") or [],
+            # Phase RU: solicited feedback survey engine. Dispatched on the electricity
+            # leg only (dual-fuel gas legs share the same household -- see base_account_id).
+            "feedback_survey_history": [] if is_gas else feedback_by_cid.get(cid, []),
+            "reputation_events": [] if is_gas else reputation_events_by_cid.get(cid, []),
             "data_status": {
                 "financial": "complete",
                 "renewal_events": "complete",
@@ -139,10 +165,12 @@ def generate(run_json_path=None):
                 "payment_behaviour_analytics": "complete" if _beh else "pending_sim_emission",
                 "payment_miss_trajectory": "complete" if _beh.get("payment_miss_trajectory") else "pending_sim_emission",
                 "bill_shock_history": "complete" if _beh else "pending_sim_emission",
-                # Phase QV: complaints infrastructure (company/crm/complaints.py) exists
-                # but is not wired into the live simulation -- genuinely unmodeled, not a
-                # plumbing gap. Honest "not_simulated" status rather than a fabricated 0.
-                "complaint_history": "not_simulated",
+                # Phase RU: complaints infrastructure (company/crm/complaints.py) is now
+                # wired live via simulation/feedback_survey.py's dispatch_complaint_and_resolution
+                # -- a customer with zero entries in reputation_events genuinely had no
+                # complaint this run, not a missing-data gap.
+                "feedback_survey_history": "complete" if not is_gas else "see_electricity_account",
+                "complaint_history": "complete" if not is_gas else "see_electricity_account",
             },
         }
 

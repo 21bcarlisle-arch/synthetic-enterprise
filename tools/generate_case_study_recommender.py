@@ -67,6 +67,25 @@ def _life_events(timeline):
     return [e for e in timeline if e.get("type") == "life_event"]
 
 
+def _silent_middle_drop(sample_customers, cid):
+    """Phase RU (FEEDBACK_AND_REPUTATION.md): a household whose SIM-true
+    satisfaction fell across the run but who never once responded to a
+    solicited CSAT/NPS survey -- the company's measurement instrument has
+    zero visibility into this decline. Requires at least one dispatched
+    survey (so "never responded" is a real non-response, not a customer
+    with no survey history at all)."""
+    entries = (sample_customers.get(cid) or {}).get("feedback_survey_history") or []
+    if len(entries) < 2:
+        return None
+    if any(e.get("csat_responded") or e.get("nps_responded") for e in entries):
+        return None
+    first_sat = entries[0].get("true_satisfaction")
+    last_sat = entries[-1].get("true_satisfaction")
+    if first_sat is None or last_sat is None or last_sat >= first_sat:
+        return None
+    return {"first": entries[0], "last": entries[-1], "drop": first_sat - last_sat}
+
+
 def _score_households(by_base, sample_customers):
     scored = []
     for base, pair in sorted(by_base.items()):
@@ -81,6 +100,7 @@ def _score_households(by_base, sample_customers):
             writeoffs=_writeoffs(reaction_chain),
             retention_then_churn=_retention_then_churn(timeline, reaction_chain),
             life_events=life_events,
+            silent_middle=_silent_middle_drop(sample_customers, cid),
         )
         scored.append(row)
     return scored
@@ -150,6 +170,23 @@ def build(by_base, sample_customers):
         cases.append(dict(
             category="Notable life event", headline=headline,
             c=c, year=int(le["date"][:4]),
+        ))
+
+    c = _pick(
+        scored, used, lambda c: c["silent_middle"]["drop"],
+        filt=lambda c: c["silent_middle"] is not None,
+    )
+    if c:
+        sm = c["silent_middle"]
+        headline = (
+            "True satisfaction fell " + _fmt_pct(sm["drop"]) + " ("
+            + sm["first"]["term_start"][:4] + " to " + sm["last"]["term_start"][:4]
+            + ") but never once answered a survey -- invisible to the company's "
+            "measurement instrument"
+        )
+        cases.append(dict(
+            category="Silent-middle churn risk", headline=headline,
+            c=c, year=int(sm["last"]["term_start"][:4]),
         ))
 
     out = []

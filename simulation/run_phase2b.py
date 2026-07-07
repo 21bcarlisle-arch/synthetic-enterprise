@@ -98,6 +98,14 @@ from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enri
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
 from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
+from simulation.feedback_survey import (
+    dispatch_csat_survey,
+    dispatch_nps_survey,
+    dispatch_complaint_and_resolution,
+)
+from company.crm.nps_tracker import NPSTracker
+from company.crm.complaints import ComplaintBook, ComplaintCategory
+from company.core.reputation_index import ReputationEventType
 from company.crm.payment_behaviour_analytics import PaymentBehaviourAnalytics
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
 from company.market.ic_flexibility_revenue import ICFlexibilityRevenueBook
@@ -790,6 +798,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     _company_sat_acc = CustomerSatisfactionAccumulator()
     _churn_journey_register = ChurnJourneyRegister()
     churn_journey_log: list[dict] = []
+    # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
+    _nps_tracker = NPSTracker()
+    _complaint_book = ComplaintBook()
+    feedback_survey_log: list[dict] = []
+    reputation_events_log: list[dict] = []
     # Phase NH: payment behaviour analytics -- three-signal churn model wiring
     _payment_analytics = PaymentBehaviourAnalytics()
     _payment_rng = random.Random(42 + 7919)
@@ -979,6 +992,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             retention_modifier_val = None
             _no_offer_reason = "below_threshold"
             _would_be_discount_pct = None
+            _bill_shock_this_term = False
             # Phase 33: active/passive renewal split. Default True until we know the rate.
             active_renewal = True
             passive_cap = None
@@ -1039,6 +1053,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         billing_account, tenure_years=tenure_for_est, churn_threshold=50.0,
                     )
                 if old_elec_rate > 0 and unit_rate / old_elec_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
+                    _bill_shock_this_term = True
                     _company_sat_acc.record_bill_shock(cid)
                     _churn_journey_register.record_friction(
                         billing_account, FrictionEventType.BILL_SHOCK, date.fromisoformat(term_start_str),
@@ -1126,6 +1141,68 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             _nf_satisfaction = _sim_satisfaction_score(
                 _nf_shock_count, _nf_tenure, _churn_income_stress
             )
+            # Phase RU: solicited feedback survey + complaint dispatch
+            # (FEEDBACK_AND_REPUTATION.md Layer 1) -- CSAT/NPS off the SIM
+            # ground-truth satisfaction just computed above; the company only
+            # ever observes the response, never _nf_satisfaction itself.
+            _csat_result = dispatch_csat_survey(
+                billing_account, term_start_str, _nf_satisfaction, _churn_income_stress,
+            )
+            if _csat_result.responded:
+                _company_sat_acc.record_css_score(cid, _csat_result.score_0_10)
+            _survey_cust_data = get_customer(billing_account)
+            _survey_segment = _survey_cust_data.get("segment", "resi") if _survey_cust_data else "resi"
+            _nps_result = dispatch_nps_survey(
+                billing_account, term_start_str, _nf_satisfaction, _churn_income_stress,
+            )
+            if _nps_result.responded:
+                _nps_tracker.record(
+                    billing_account, _nps_result.score_0_10, date.fromisoformat(term_start_str),
+                    segment=_survey_segment, channel="renewal",
+                )
+            feedback_survey_log.append({
+                "customer_id": billing_account,
+                "term_start": term_start_str,
+                "true_satisfaction": round(_nf_satisfaction, 4),
+                "csat_responded": _csat_result.responded,
+                "csat_score_0_10": _csat_result.score_0_10,
+                "nps_responded": _nps_result.responded,
+                "nps_score_0_10": _nps_result.score_0_10,
+            })
+            _complaint_outcome = dispatch_complaint_and_resolution(
+                billing_account, term_start_str, _bill_shock_this_term,
+            )
+            if _complaint_outcome.occurred:
+                _complaint_book.raise_complaint(
+                    billing_account, ComplaintCategory.BILLING, date.fromisoformat(term_start_str),
+                    description="bill-shock-driven contact" if _bill_shock_this_term else "routine contact",
+                )
+                _company_sat_acc.record_complaint_raised(cid)
+                if _complaint_outcome.reputation_event_type == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME:
+                    _company_sat_acc.record_complaint_resolved(cid)
+                    _churn_journey_register.record_friction(
+                        billing_account, FrictionEventType.COMPLAINT_RESOLVED_WELL,
+                        date.fromisoformat(term_start_str),
+                    )
+                else:
+                    _churn_journey_register.record_friction(
+                        billing_account, FrictionEventType.COMPLAINT_UNRESOLVED,
+                        date.fromisoformat(term_start_str),
+                        amplifier=(
+                            1.5 if _complaint_outcome.reputation_event_type
+                            == ReputationEventType.COMPLAINT_UPHELD_AT_OMBUDSMAN else 1.0
+                        ),
+                    )
+                _churn_journey_register.gri.record(
+                    _complaint_outcome.reputation_event_type, date.fromisoformat(term_start_str),
+                    description=f"{billing_account} complaint raised {term_start_str}",
+                )
+                reputation_events_log.append({
+                    "customer_id": billing_account,
+                    "date": term_start_str,
+                    "event_type": _complaint_outcome.reputation_event_type.value,
+                    "days_to_resolve": _complaint_outcome.days_to_resolve,
+                })
             _perceived_bill_saving_gbp = (
                 max(0.0, unit_rate - old_elec_rate) * (company_eac / 1000.0)
                 if old_elec_rate else 0.0
@@ -2073,6 +2150,19 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         # Phase QL Part 2: hidden churn-journey state trajectory (SIM-side shadow
         # tracker -- does not gate the roll_lifecycle_event dice roll itself)
         "churn_journey_log": churn_journey_log,
+        # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
+        "feedback_survey_log": feedback_survey_log,
+        "reputation_events_log": reputation_events_log,
+        "nps_annual_summaries": {yr: _nps_tracker.annual_summary(yr) for yr in range(2016, 2026)},
+        "complaint_annual_summaries": {yr: _complaint_book.annual_summary(yr) for yr in range(2016, 2026)},
+        "gri_trajectory": [
+            {
+                "year": yr,
+                "gri_score": _churn_journey_register.gri.score(date(yr, 12, 31)),
+                "band": _churn_journey_register.gri.band(date(yr, 12, 31)).value,
+            }
+            for yr in range(2016, 2026)
+        ],
     }
 
 

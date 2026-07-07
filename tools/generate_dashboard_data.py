@@ -665,6 +665,34 @@ def extract_regulatory(data):
     }
 
 
+def extract_reputation(data):
+    """Phase RU (FEEDBACK_AND_REPUTATION.md Layer 1): company CSAT/NPS
+    dashboard reading only solicited survey responses, plus the Global
+    Reputation Index trajectory -- now live off real complaint-resolution
+    events (simulation/feedback_survey.py) instead of pinned at baseline 50."""
+    nps_annual = data.get("nps_annual_summaries", {}) or {}
+    complaint_annual = data.get("complaint_annual_summaries", {}) or {}
+    gri_trajectory = data.get("gri_trajectory", []) or []
+    reputation_events = data.get("reputation_events_log", []) or []
+
+    years_with_responses = sorted(
+        (yr for yr, s in nps_annual.items() if s and s.get("responses")),
+        key=lambda y: int(y),
+    )
+    latest_nps = nps_annual.get(years_with_responses[-1]) if years_with_responses else None
+    latest_gri = gri_trajectory[-1] if gri_trajectory else None
+
+    return {
+        "nps_annual": nps_annual,
+        "complaint_annual": complaint_annual,
+        "gri_trajectory": gri_trajectory,
+        "reputation_events": reputation_events,
+        "latest_nps": latest_nps,
+        "latest_gri": latest_gri,
+        "total_reputation_events": len(reputation_events),
+    }
+
+
 def extract_query_context(data):
     """Build compact text summary (~2-4k chars) for NL query API context."""
     if not data:
@@ -773,6 +801,7 @@ def generate(run_json_path=None):
         "customers": extract_customers(data),
         "market": extract_market(data, spot_monthly),
         "regulatory": extract_regulatory(data),
+        "reputation": extract_reputation(data),
         "insights": insights,
         "run_history": extract_run_history(),
         "run_history_total": count_run_history_total(),

@@ -1,36 +1,27 @@
-## Phase RR COMPLETE -- WEBSITE_AS_SHOWCASE.md tab 4 case-study recommender CLOSED, staging hygiene
-Last updated: 2026-07-07T08:11:37Z
+## Phase RU COMPLETE -- FEEDBACK_AND_REPUTATION.md Layer 1 CLOSED (solicited feedback instrument)
+Last updated: 2026-07-07T08:17:39Z
 
-**Status:** COMPLETE. 15,856 tests collected. Epistemic: PASS.
+**Status:** COMPLETE. 15,928 tests collected. Epistemic: PASS.
 
-**Phase RR:** housekeeping first -- archived 4 staged docs (CUSTOMER_360_REDESIGN.md,
-SUPPLIER_TAB_OVERHAUL.md, NAV_STORY_PLATFORM_METHOD.md, PROJECT_TAB_OVERHAUL.md) to
-docs/staging/done/ that PRIORITIES.md/PROJECT_OVERVIEW.md had already declared CLOSED IN FULL
-(Phases RL/RP, RM, RQ, RG) but were never moved out of the active queue. Main work: new
-tools/generate_case_study_recommender.py auto-curates 5 "interesting customers" (most eventful
-journey, largest company-vs-SIM churn divergence, retention-save-then-churned-anyway, heaviest
-arrears cascade, notable life event) by ranking real per-household signals already computed by
-generate_customer_reaction_chain.py/generate_customer_sample.py -- nobody hand-picked by account
-id. Live run picked C2/C_IC2/C5/C3/C7, each figure real (e.g. C_IC2's 2489% churn-estimate error,
-sim 4% vs company 95%, a live instance of the documented I&C 0.95-ceiling behaviour). Output
-site/data/case_studies.json, wired into process_run_complete.py, rendered as a new panel on
-site/customers/index.html's login page linking into each household's Timeline.
+**Phase RU:** recovered a third interrupted prior session's work -- simulation/feedback_survey.py
+dispatches CSAT/NPS surveys off real sim_satisfaction.py ground truth (U-shaped response
+propensity: very satisfied/dissatisfied respond, the silent middle mostly doesn't) and complaint
+occurrence/resolution against the real 56-day Ombudsman SLC window, wired into run_phase2b.py's
+renewal loop -- the company only ever observes the response, never true satisfaction. Evidence on
+all 3 business surfaces, verified against a live run: Sim tab (satisfaction-vs-complaints
+correlation panel + true-satisfaction-vs-measured-CSAT wall chart), Supplier tab (new Reputation
+section: NPS/GRI trajectory/complaint table), Customers tab (case-study recommender's new 6th
+category "Silent-middle churn risk" -- live pick C4, true satisfaction down 22% 2017-2024, zero
+survey responses across that span).
 
-**This closes WEBSITE_AS_SHOWCASE.md tab 4** (case-study recommender). Tabs 2 (frozen-policy
-baseline) and 3 (learning ledger) remain gated behind Rich's visual confirmation of P1a-c, per the
-priority-reset rule, not started.
+**NOT closed:** Layer 2 (public reviews, regulator star-rating, reputation->acquisition-funnel/
+in-market feedback loops) is unbuilt. FEEDBACK_AND_REPUTATION.md stays open in docs/staging/ for
+it. PRIORITIES.md P2 advances to NUDGE_PHYSICS.md next.
 
-**Gate cleared (2026-07-06 21:05 BST):** Rich confirmed via NTFY -- "I like the live site a lot.
-It's a big improvement." This satisfies the P1a-c visual-confirmation gate. PRIORITIES.md P2 is
-now ACTIVE (CTS £0/£91,780 reconciliation first, per docs/staging/drafts/NEXT_PHASE.md option B;
-then frozen-policy baseline, FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md, SAAS_COVERAGE_MAP.md).
-
-**Prior:** Phase RQ (2026-07-06) -- NAV_STORY_PLATFORM_METHOD.md CLOSED IN FULL, Method section +
-Project tab slim-down (closes PRIORITIES.md's entire P1a-c PRIORITY RESET). Phase RP --
-BILLING_AND_PAYMENTS_LEDGER.md, per-account payment ledger + Statement/Cashflow views. Phase RO --
-NAV_STORY_PLATFORM_METHOD.md P1, Home/Story landing + Platform section. Phases RF-RQ: see
-docs/claude/phase-history.md and docs/PROJECT_OVERVIEW.md Section 4.
-
+**Prior:** Phase RT (2026-07-07) -- frozen-policy baseline / delta-EV £159,745 CLOSED IN FULL.
+Phase RS (2026-07-06) -- CTS ledger reconciliation CLOSED. Phase RR -- WEBSITE_AS_SHOWCASE.md tab 4
+case-study recommender CLOSED, staging hygiene. Phases RF-RT: see docs/claude/phase-history.md and
+docs/PROJECT_OVERVIEW.md Section 4.
 
 **Latest simulation results (2016–2025)** — auto-processed (641s / 11 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
