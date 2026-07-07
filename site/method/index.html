@@ -50,6 +50,16 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .retro-date { font-size: 11px; color: var(--muted); margin-left: 8px; }
 .retro-link { font-size: 11px; color: var(--blue); text-decoration: none; }
 .framing { font-size: 13px; line-height: 1.7; color: var(--text); font-style: italic; padding: 16px; background: var(--surface2); border-radius: 8px; }
+.tr-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tr-kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.tr-kpi-l { font-size: 10px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.tr-kpi-v { font-size: 20px; font-weight: 700; }
+.tr-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid rgba(225,224,217,.6); font-size: 12px; }
+.tr-row:last-child { border-bottom: none; }
+.tr-outcome-on_target, .tr-outcome-renewed_on_target { color: var(--green); font-weight: 600; }
+.tr-outcome-off_target, .tr-outcome-renewed_off_target { color: var(--red); font-weight: 600; }
+.tr-outcome-churned { color: var(--amber); font-weight: 600; }
+.tr-outcome-pending, .tr-outcome-inconclusive, .tr-outcome-ungraded { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -103,6 +113,19 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <div id="loop-pending"><div class="muted">Loading...</div></div>
     <div class="sec" style="margin-top:24px;font-size:10px">Recently actioned</div>
     <div id="loop-recent"><div class="muted">Loading...</div></div>
+  </div>
+
+  <div class="sec">Track Record -- Predicted vs Realised</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px">
+      A daily, pre-registered, immutable decision log (hedge stance, renewal-price flags,
+      retention EVs) graded against what actually happened -- published from the day the
+      clock started, misses included. Two clocks run independently here: market-price
+      freshness (bounded by real Elexon settlement data) and wall-clock elapsed time
+      (what a renewal countdown and grading actually need) -- see
+      <code>docs/staging/S1_SHADOW_LIVE_TRACK_RECORD_DESIGN.md</code>.
+    </p>
+    <div id="track-record-body"><div class="muted">Loading...</div></div>
   </div>
 
   <div class="sec">Retrospective Library</div>
@@ -195,6 +218,52 @@ function renderLoop(d){
   }).join(""):'<div class="muted">No actioned items recorded yet.</div>';
 }
 
+function trOutcomeLabel(o){
+  var map={renewed_on_target:"On target",renewed_off_target:"Off target",churned:"Churned (inferred)",
+    "ungraded -- market data has not advanced":"Ungraded -- market frozen",
+    gradeable_but_no_grading_logic_yet:"Gradeable, no logic yet",
+    no_renewal_detected_yet:"Inconclusive"};
+  return map[o]||o;
+}
+function renderTrackRecord(tr){
+  var el=document.getElementById("track-record-body");
+  if(!tr){el.innerHTML='<div class="muted">No track record yet -- clock not started.</div>';return;}
+  var rg=tr.renewal_grading||{},hg=tr.hedge_grading||{},rev=tr.retention_ev_log||{};
+  var kpis=[
+    {l:"Clock started",v:tr.clock_started||"--"},
+    {l:"Log entries",v:tr.log_entry_count},
+    {l:"Renewals graded",v:rg.graded_count},
+    {l:"On target",v:rg.on_target_count},
+    {l:"Off target",v:rg.off_target_count},
+    {l:"Churned",v:rg.churned_count},
+    {l:"Pending",v:rg.pending_count},
+    {l:"Hedge ungraded",v:hg.ungraded_count},
+    {l:"Retention EVs logged",v:rev.logged_count}
+  ];
+  var html='<div class="tr-kpis">'+kpis.map(function(k){
+    return '<div class="tr-kpi"><div class="tr-kpi-l">'+esc(k.l)+'</div><div class="tr-kpi-v">'+(k.v!=null?esc(String(k.v)):"--")+'</div></div>';
+  }).join("")+'</div>';
+  var rows=(rg.graded||[]).concat(rg.pending||[]).concat(rg.inconclusive||[]);
+  if(rows.length){
+    html+='<div class="sec" style="margin-top:8px;font-size:10px">Renewal-price flags</div>';
+    html+=rows.map(function(r){
+      var outcome=r.outcome||(r.days_to_renewal!=null?"pending":"");
+      return '<div class="tr-row"><span>'+esc(r.cid||"")+' &middot; proposed '+esc(r.proposed_rate_gbp_per_mwh!=null?r.proposed_rate_gbp_per_mwh:"--")+' &pound;/MWh'+
+        (r.actual_rate_gbp_per_mwh!=null?' vs actual '+esc(r.actual_rate_gbp_per_mwh)+' &pound;/MWh':'')+
+        '</span><span class="tr-outcome-'+esc(outcome)+'">'+esc(trOutcomeLabel(outcome))+'</span></div>';
+    }).join("");
+  } else {
+    html+='<div class="muted" style="margin-top:8px">No renewal-price flags logged yet.</div>';
+  }
+  html+='<div class="sec" style="margin-top:16px;font-size:10px">Hedge recommendations</div>';
+  html+='<div class="muted">'+esc(hg.graded_count||0)+' graded, '+esc(hg.ungraded_count||0)+
+    ' ungraded -- market data has not advanced since logged (frozen cache; Option A, a rolling live fetch, not yet built).</div>';
+  html+='<div class="sec" style="margin-top:16px;font-size:10px">Retention EVs</div>';
+  html+='<div class="muted">'+esc(rev.logged_count||0)+' logged, '+esc(rev.graded_count||0)+
+    ' graded -- '+esc(rev.note||"no realised-outcome signal exists yet.")+'</div>';
+  el.innerHTML=html;
+}
+
 function renderRetro(d){
   var el=document.getElementById("retro-list");
   var lib=d.retro_library||[];
@@ -216,6 +285,7 @@ fetch("../data/method.json?t="+Date.now()).then(function(r){return r.json();}).t
   renderRoles(d);
   renderRules(d);
   renderLoop(d);
+  renderTrackRecord(d.track_record);
   renderRetro(d);
   document.getElementById("method-framing").textContent=d.method_framing||"";
   renderBuild(d);
