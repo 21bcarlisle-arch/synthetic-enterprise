@@ -1,6 +1,17 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-08 (CORE_FIDELITY_BEFORE_LOOPS.md reorientation, director-direct)
 #
+# === REGISTERED FOR NEXT P-5 RE-RANK, NOT STARTED (2026-07-08, docs/staging/BACKGROUND_LANE_AND_WALL.md
+#   Part C, advisor-staged/director-approved): WALLED_INTERFACES programme -- full enforcement of
+#   Architectural Law #2: every SIM/company crossing becomes a typed, versioned message through a
+#   real-protocol-shaped adapter (simulated D-flows, DCC service request/response, customer message
+#   bus). Strategic framing: the wall IS the go-live seam -- going live becomes swapping sim adapters
+#   for real endpoints behind unchanged interfaces. Proposed sequencing: after the core-fidelity
+#   block (CORE_FIDELITY_PHASES.md), before RY and scale-up. One-page decomposition sketch filed at
+#   docs/design/WALLED_INTERFACES_SKETCH.md (candidate flows table, sequencing, explicitly NOT a
+#   data-model rewrite or new epistemic rule -- a transport-shape change to already-correct data).
+#   Awaiting director rank -- do not start the first reference-flow conversion without it.
+#
 # === CORE FIDELITY BEFORE LOOPS (2026-07-08, docs/staging/CORE_FIDELITY_BEFORE_LOOPS.md,
 #   director-direct, in-conversation -- Tier 2, proceed, no opt-out window). THIS IS NOW P1,
 #   AHEAD OF PHASE RY. Director's observation: the customer portal bill is still poor, the sim

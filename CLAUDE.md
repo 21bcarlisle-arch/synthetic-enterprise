@@ -99,6 +99,7 @@ calm 2016–2020 data, directly before the crisis — mirroring what killed real
 hedging/risk models must account for this.
 **Activity-based pricing:** flat margin makes some customers net-negative. Any pricing model must
 account for cost-to-serve at the customer level.
+**Typed-flow seam preference (2026-07-08, docs/staging/BACKGROUND_LANE_AND_WALL.md, advisor/director):** new SIM/company boundary crossings from Phase 2/4 onward should prefer a typed, versioned-message adapter shape over a direct function call — the wall IS the future go-live seam (swap sim adapters for real endpoints behind unchanged interfaces). Forward preference only; do not rework already-shipped Phase 3 code for it.
 ---
 ## Key learnings — do not repeat these mistakes
 - **Local models confabulate endpoints.** Pre-load ground-truth API context before any local model touches external sources.
