@@ -12,6 +12,10 @@
 # the Belief Book hypothesis register + time-to-truth convergence dashboard, multi-objective
 # survive-and-compound function, capital allocation as a per-pound ROI budget) -- to be folded into
 # S2's scope definition at the next weekly re-rank, recorded verbatim per the file's own instruction.
+#   (2026-07-08 triage: a re-staged fuller copy, docs/staging/EPOCH_THREE_DIRECTION.md, was reviewed
+#   and confirmed to carry the same director direction as the already-recorded EPOCH3_DIRECTION.md
+#   above -- same re-rank input, no new active-queue item; archived to done/. Nothing here jumps the
+#   queue per the file's own sequencing guidance.)
 # Last refreshed: 2026-07-06 (PRIORITY RESET, docs/staging/PRIORITY_RESET_PUBLIC_SITE.md,
 # [ADVISOR-STAGED] 5fa9a0cf -- Tier 2, pre-approved). Rich's direct verdict: the public site
 # (poesys.net's four top-level tabs) is still structurally pre-overhaul despite backend depth
