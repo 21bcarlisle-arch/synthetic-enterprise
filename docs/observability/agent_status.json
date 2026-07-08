@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-07T09:13:34.189194+00:00",
+  "last_updated": "2026-07-08T10:24:48.863645+00:00",
   "agents": [
     {
       "name": "session-watchdog",
       "status": "idle",
-      "last_heartbeat": "2026-07-07T09:13:09.690192+00:00",
+      "last_heartbeat": "2026-07-08T10:24:25.693206+00:00",
       "last_action": "Session alive check passed",
-      "last_action_ts": "2026-07-07T09:13:09.690192+00:00",
+      "last_action_ts": "2026-07-08T10:24:25.693206+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-07T09:13:34.189194+00:00",
-      "last_action": "Heartbeat \u2014 5 files tracked",
-      "last_action_ts": "2026-07-07T09:13:34.189194+00:00",
+      "last_heartbeat": "2026-07-08T10:24:48.863645+00:00",
+      "last_action": "Heartbeat \u2014 4 files tracked",
+      "last_action_ts": "2026-07-08T10:24:48.863645+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-07T09:09:52.865094+00:00",
-      "last_action": "Waiting for next cycle (4h 45m remaining)",
-      "last_action_ts": "2026-07-07T09:09:52.865094+00:00",
+      "last_heartbeat": "2026-07-08T10:24:37.078093+00:00",
+      "last_action": "Waiting for next cycle (3h 35m remaining)",
+      "last_action_ts": "2026-07-08T10:24:37.078093+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-07T09:11:16.455761+00:00",
-      "last_action": "Sim started \u2014 git=b8d2990c",
-      "last_action_ts": "2026-07-07T09:11:16.455761+00:00",
+      "last_heartbeat": "2026-07-08T10:24:19.276647+00:00",
+      "last_action": "Sim started \u2014 git=4dc1c719",
+      "last_action_ts": "2026-07-08T10:24:19.276647+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-07T09:08:23.942183+00:00",
-      "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-07-07T09:08:23.942183+00:00",
+      "last_heartbeat": "2026-07-08T09:30:08.563105+00:00",
+      "last_action": "Classified from_rich_20260708_093000.md as NORMAL",
+      "last_action_ts": "2026-07-08T09:30:08.563105+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,19 +55,19 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-07T09:08:24.253542+00:00",
-      "last_action": "Acked message: 'Start the full 2016-2025 run when GPU is free.'",
-      "last_action_ts": "2026-07-07T09:08:24.253542+00:00",
+      "last_heartbeat": "2026-07-08T09:30:00.814626+00:00",
+      "last_action": "Acked message: '\"Website pass R1 check failed on defect 4: five \\\\u2014 escaped literals remain i'",
+      "last_action_ts": "2026-07-08T09:30:00.814626+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
     },
     {
       "name": "autonomous-runner",
-      "status": "working",
-      "last_heartbeat": "2026-07-07T09:12:49.861500+00:00",
-      "last_action": "Autonomous turn running",
-      "last_action_ts": "2026-07-07T09:12:49.861500+00:00",
+      "status": "retired",
+      "last_heartbeat": "2026-07-08T10:23:23.284425+00:00",
+      "last_action": "Retired 2026-07-08 (director decision, docs/staging/AUTONOMOUS_RUNNER_TRUE_RETIREMENT.md): confirmed dead via ps/pstree (no process, no tmux session); start_worker.sh launcher block commented out (durable, will not respawn on stack restart); no other hook in this repo can relaunch it.",
+      "last_action_ts": "2026-07-08T10:23:23.284425+00:00",
       "anomaly": null,
       "role": "Runs scheduled Claude Code sessions for background work when session is idle",
       "produces": "CC session activity, phase completions"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-07T08:56:48.975991+00:00",
+      "last_heartbeat": "2026-07-08T10:18:44.034874+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-07-07T08:56:48.975991+00:00",
+      "last_action_ts": "2026-07-08T10:18:44.034874+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-07T09:13:02.887006+00:00",
+      "last_heartbeat": "2026-07-08T10:23:42.848919+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-07-07T09:13:02.887006+00:00",
+      "last_action_ts": "2026-07-08T10:23:42.848919+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"

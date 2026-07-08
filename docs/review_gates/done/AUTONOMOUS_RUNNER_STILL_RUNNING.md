@@ -134,3 +134,30 @@ start_worker.sh, and avoids me killing my own launcher on a premise that's alrea
 wrong. Meanwhile: S1 (director-approved, "proceed NOW") should be executed by the intended
 single-writer session, not by an autonomous turn the director wants retired — so I have
 NOT started the S1 build from this turn.
+
+---
+## RESOLVED (2026-07-08 10:2x UTC) — confirmed dead, retirement finalized
+
+Rich console-killed it (confirmed by his own `ps` check at 10:30 UTC). Verified
+independently this turn, fresh evidence, not trusting the prior note:
+- `ps aux | grep autonomous_runner` — **no process**, PIDs 1005091/1005093 gone.
+- `tmux list-sessions` — **no `autonomous-runner` session** (was present as of the
+  08:37 re-ping, absent now).
+- `background/autonomous-runner-log.md`'s last entry is 08:50 UTC — no activity since,
+  consistent with the kill landing sometime between 08:50 and 10:30.
+- `start_worker.sh`'s `autonomous-runner` block: still commented out (RETIRED banner,
+  confirmed by direct read, not assumed from a prior note).
+- Checked every other background script for a launch hook (`grep -rn autonomous_runner
+  background/*.py`): none exist outside `autonomous_runner.py` itself and two comment-only
+  mentions (`process_run_complete.py`, `tree_lock.py`). `session_watchdog.py` has zero
+  launch capability for it (only prose containing the word "autonomously").
+- Confirmed this session is not a descendant of the killed process (`ps -o pid,ppid` walk
+  from this shell up to `tmux`/`init` — no autonomous_runner ancestor), so no
+  conflict-of-interest in finalizing this.
+
+**Finalized:** `docs/observability/agent_status.json` autonomous-runner entry flipped to
+`status: "retired"` with the evidence above in `last_action` (was previously stuck on
+"working" from its own last heartbeat, 09:04 UTC, since nothing was overwriting it after
+the kill).
+
+**Status: CLOSED.** Archiving to `docs/review_gates/done/`.
