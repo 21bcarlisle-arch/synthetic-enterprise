@@ -1,5 +1,5 @@
 ## Phase RX COMPLETE -- S1 shadow-live track record CLOSED (Options B + A)
-Last updated: 2026-07-08T09:03:26Z
+Last updated: 2026-07-08T19:21:30Z
 
 **Status:** COMPLETE. 15,996 tests collected. Epistemic: PASS.
 
@@ -19,8 +19,8 @@ PHYSICS Layer 1. RU -- FEEDBACK_AND_REPUTATION Layer 1 (Layer 2 still open in do
 frozen-policy baseline delta-EV £159,745. RS -- CTS ledger reconciliation. Phases RF-RW: see
 docs/claude/phase-history.md and docs/PROJECT_OVERVIEW.md Section 4.
 
-**Latest simulation results (2016–2025)** — auto-processed (511s / 9 min):
-- Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
-- Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
-- Enterprise value: £8,930,210.95 | Net after CTS: £6,433,343
-- Retention: 14 offers, 14/14 retained | 6 no-offer churns | 6 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
+- Net margin: £1,526,516.74 | Gross: £6,447,283.33 | Capital: £51,210
+- Treasury: £2,466,636 → £3,903,143 | 38 committee interventions | 1550 bills issued
+- Enterprise value: £8,220,970.68 | Net after CTS: £6,414,742
+- Retention: 12 offers, 12/12 retained | 6 no-offer churns | 6 total churned accounts

@@ -1289,50 +1289,5 @@
     ],
     "has_hh_data": false
   },
-  "reaction_chain": [
-    {
-      "customer_id": "C5_2",
-      "date": "2023-12-30",
-      "event_type": "journey_state",
-      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
-      "company_belief": null,
-      "sim_truth": 0.0,
-      "amount_gbp": null,
-      "outcome": null,
-      "framing_type": null
-    },
-    {
-      "customer_id": "C5_2",
-      "date": "2023-12-30",
-      "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 25% churn risk at decision time, SIM realized probability was 3%.",
-      "company_belief": 0.254,
-      "sim_truth": 0.029,
-      "amount_gbp": null,
-      "outcome": "renewed",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C5_2",
-      "date": "2024-12-29",
-      "event_type": "journey_state",
-      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
-      "company_belief": null,
-      "sim_truth": 0.0,
-      "amount_gbp": null,
-      "outcome": null,
-      "framing_type": null
-    },
-    {
-      "customer_id": "C5_2",
-      "date": "2024-12-29",
-      "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 5%.",
-      "company_belief": 0.05,
-      "sim_truth": 0.052,
-      "amount_gbp": null,
-      "outcome": "renewed",
-      "framing_type": null
-    }
-  ]
+  "reaction_chain": []
 }

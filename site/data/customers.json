@@ -1,6 +1,6 @@
 {
-  "generated": "2026-07-08T08:50:39Z",
-  "customer_count": 16,
+  "generated": "2026-07-08T19:19:22Z",
+  "customer_count": 15,
   "customers": [
     {
       "customer_group": "C1",
@@ -62,10 +62,10 @@
           "commodity": "electricity",
           "segment": "resi",
           "acquisition_date": "2016-01-01",
-          "revenue_gbp": 11623.13,
-          "gross_gbp": 5656.25,
+          "revenue_gbp": 11623.15,
+          "gross_gbp": 5656.27,
           "capital_gbp": 81.6,
-          "net_gbp": 641.46,
+          "net_gbp": 641.48,
           "cost_to_serve_gbp": 244.19,
           "total_kwh": 43769.0,
           "avg_rate_gbp_per_mwh": 265.56,
@@ -73,10 +73,10 @@
         }
       },
       "combined": {
-        "revenue_gbp": 11623.13,
-        "gross_gbp": 5656.25,
+        "revenue_gbp": 11623.15,
+        "gross_gbp": 5656.27,
         "capital_gbp": 81.6,
-        "net_gbp": 641.46,
+        "net_gbp": 641.48,
         "cost_to_serve_gbp": 244.19,
         "total_kwh": 43769.0
       }
@@ -141,21 +141,21 @@
           "commodity": "electricity",
           "segment": "resi",
           "acquisition_date": "2016-04-01",
-          "revenue_gbp": 10303.18,
-          "gross_gbp": 5495.07,
-          "capital_gbp": 67.91,
-          "net_gbp": 1556.91,
+          "revenue_gbp": 10297.47,
+          "gross_gbp": 5489.51,
+          "capital_gbp": 67.89,
+          "net_gbp": 1551.38,
           "cost_to_serve_gbp": 175.5,
           "total_kwh": 31920.0,
-          "avg_rate_gbp_per_mwh": 322.78,
+          "avg_rate_gbp_per_mwh": 322.6,
           "bill_count": 40
         }
       },
       "combined": {
-        "revenue_gbp": 10303.18,
-        "gross_gbp": 5495.07,
-        "capital_gbp": 67.91,
-        "net_gbp": 1556.91,
+        "revenue_gbp": 10297.47,
+        "gross_gbp": 5489.51,
+        "capital_gbp": 67.89,
+        "net_gbp": 1551.38,
         "cost_to_serve_gbp": 175.5,
         "total_kwh": 31920.0
       }
@@ -267,55 +267,23 @@
           "commodity": "electricity",
           "segment": "SME",
           "acquisition_date": "2016-01-01",
-          "revenue_gbp": 21712.25,
-          "gross_gbp": 12001.55,
-          "capital_gbp": 133.94,
-          "net_gbp": -544.3,
-          "cost_to_serve_gbp": 839.81,
-          "total_kwh": 127425.0,
-          "avg_rate_gbp_per_mwh": 170.39,
-          "bill_count": 84
+          "revenue_gbp": 12492.84,
+          "gross_gbp": 7828.28,
+          "capital_gbp": 57.77,
+          "net_gbp": -385.96,
+          "cost_to_serve_gbp": 599.87,
+          "total_kwh": 91041.0,
+          "avg_rate_gbp_per_mwh": 137.22,
+          "bill_count": 60
         }
       },
       "combined": {
-        "revenue_gbp": 21712.25,
-        "gross_gbp": 12001.55,
-        "capital_gbp": 133.94,
-        "net_gbp": -544.3,
-        "cost_to_serve_gbp": 839.81,
-        "total_kwh": 127425.0
-      }
-    },
-    {
-      "customer_group": "C5_2",
-      "segment": "SME",
-      "acquisition_date": "2016-01-01",
-      "fuels": [
-        "electricity"
-      ],
-      "legs": {
-        "electricity": {
-          "cid": "C5_2",
-          "commodity": "electricity",
-          "segment": "SME",
-          "acquisition_date": "2016-01-01",
-          "revenue_gbp": 12351.94,
-          "gross_gbp": 6330.97,
-          "capital_gbp": 86.34,
-          "net_gbp": 380.12,
-          "cost_to_serve_gbp": 292.85,
-          "total_kwh": 44445.0,
-          "avg_rate_gbp_per_mwh": 277.91,
-          "bill_count": 31
-        }
-      },
-      "combined": {
-        "revenue_gbp": 12351.94,
-        "gross_gbp": 6330.97,
-        "capital_gbp": 86.34,
-        "net_gbp": 380.12,
-        "cost_to_serve_gbp": 292.85,
-        "total_kwh": 44445.0
+        "revenue_gbp": 12492.84,
+        "gross_gbp": 7828.28,
+        "capital_gbp": 57.77,
+        "net_gbp": -385.96,
+        "cost_to_serve_gbp": 599.87,
+        "total_kwh": 91041.0
       }
     },
     {
@@ -331,21 +299,21 @@
           "commodity": "electricity",
           "segment": "SME",
           "acquisition_date": "2016-04-01",
-          "revenue_gbp": 38922.12,
-          "gross_gbp": 22435.52,
-          "capital_gbp": 264.2,
-          "net_gbp": 4225.7,
+          "revenue_gbp": 38937.4,
+          "gross_gbp": 22450.89,
+          "capital_gbp": 264.32,
+          "net_gbp": 4240.95,
           "cost_to_serve_gbp": 959.77,
           "total_kwh": 188037.0,
-          "avg_rate_gbp_per_mwh": 206.99,
+          "avg_rate_gbp_per_mwh": 207.07,
           "bill_count": 96
         }
       },
       "combined": {
-        "revenue_gbp": 38922.12,
-        "gross_gbp": 22435.52,
-        "capital_gbp": 264.2,
-        "net_gbp": 4225.7,
+        "revenue_gbp": 38937.4,
+        "gross_gbp": 22450.89,
+        "capital_gbp": 264.32,
+        "net_gbp": 4240.95,
         "cost_to_serve_gbp": 959.77,
         "total_kwh": 188037.0
       }
@@ -363,21 +331,21 @@
           "commodity": "electricity",
           "segment": "resi",
           "acquisition_date": "2016-01-01",
-          "revenue_gbp": 21792.85,
-          "gross_gbp": 10815.29,
-          "capital_gbp": 139.94,
-          "net_gbp": -509.79,
+          "revenue_gbp": 21726.75,
+          "gross_gbp": 10752.54,
+          "capital_gbp": 139.44,
+          "net_gbp": -572.04,
           "cost_to_serve_gbp": 519.13,
           "total_kwh": 120839.0,
-          "avg_rate_gbp_per_mwh": 180.35,
+          "avg_rate_gbp_per_mwh": 179.8,
           "bill_count": 114
         }
       },
       "combined": {
-        "revenue_gbp": 21792.85,
-        "gross_gbp": 10815.29,
-        "capital_gbp": 139.94,
-        "net_gbp": -509.79,
+        "revenue_gbp": 21726.75,
+        "gross_gbp": 10752.54,
+        "capital_gbp": 139.44,
+        "net_gbp": -572.04,
         "cost_to_serve_gbp": 519.13,
         "total_kwh": 120839.0
       }
@@ -395,21 +363,21 @@
           "commodity": "electricity",
           "segment": "resi",
           "acquisition_date": "2016-04-01",
-          "revenue_gbp": 21688.78,
-          "gross_gbp": 12468.89,
-          "capital_gbp": 134.91,
-          "net_gbp": 2330.3,
+          "revenue_gbp": 21686.87,
+          "gross_gbp": 12467.0,
+          "capital_gbp": 134.9,
+          "net_gbp": 2328.43,
           "cost_to_serve_gbp": 505.43,
           "total_kwh": 106722.0,
-          "avg_rate_gbp_per_mwh": 203.23,
+          "avg_rate_gbp_per_mwh": 203.21,
           "bill_count": 111
         }
       },
       "combined": {
-        "revenue_gbp": 21688.78,
-        "gross_gbp": 12468.89,
-        "capital_gbp": 134.91,
-        "net_gbp": 2330.3,
+        "revenue_gbp": 21686.87,
+        "gross_gbp": 12467.0,
+        "capital_gbp": 134.9,
+        "net_gbp": 2328.43,
         "cost_to_serve_gbp": 505.43,
         "total_kwh": 106722.0
       }
@@ -430,7 +398,7 @@
           "revenue_gbp": 20243.67,
           "gross_gbp": 12708.16,
           "capital_gbp": 131.43,
-          "net_gbp": 2239.91,
+          "net_gbp": 2239.92,
           "cost_to_serve_gbp": 491.72,
           "total_kwh": 109387.0,
           "avg_rate_gbp_per_mwh": 185.07,
@@ -441,7 +409,7 @@
         "revenue_gbp": 20243.67,
         "gross_gbp": 12708.16,
         "capital_gbp": 131.43,
-        "net_gbp": 2239.91,
+        "net_gbp": 2239.92,
         "cost_to_serve_gbp": 491.72,
         "total_kwh": 109387.0
       }
@@ -459,10 +427,10 @@
           "commodity": "electricity",
           "segment": "I&C",
           "acquisition_date": "2017-01-01",
-          "revenue_gbp": 3123605.33,
-          "gross_gbp": 1874667.4,
-          "capital_gbp": 18414.27,
-          "net_gbp": 846433.53,
+          "revenue_gbp": 3123591.82,
+          "gross_gbp": 1874654.56,
+          "capital_gbp": 18414.15,
+          "net_gbp": 846420.81,
           "cost_to_serve_gbp": 4218.12,
           "total_kwh": 16697165.0,
           "avg_rate_gbp_per_mwh": 187.07,
@@ -470,10 +438,10 @@
         }
       },
       "combined": {
-        "revenue_gbp": 3123605.33,
-        "gross_gbp": 1874667.4,
-        "capital_gbp": 18414.27,
-        "net_gbp": 846433.53,
+        "revenue_gbp": 3123591.82,
+        "gross_gbp": 1874654.56,
+        "capital_gbp": 18414.15,
+        "net_gbp": 846420.81,
         "cost_to_serve_gbp": 4218.12,
         "total_kwh": 16697165.0
       }
@@ -491,10 +459,10 @@
           "commodity": "electricity",
           "segment": "I&C",
           "acquisition_date": "2018-01-01",
-          "revenue_gbp": 1525269.53,
-          "gross_gbp": 909828.76,
-          "capital_gbp": 8527.56,
-          "net_gbp": 435815.28,
+          "revenue_gbp": 1525272.01,
+          "gross_gbp": 909831.55,
+          "capital_gbp": 8527.57,
+          "net_gbp": 435818.06,
           "cost_to_serve_gbp": 3718.18,
           "total_kwh": 7383110.0,
           "avg_rate_gbp_per_mwh": 206.59,
@@ -502,10 +470,10 @@
         }
       },
       "combined": {
-        "revenue_gbp": 1525269.53,
-        "gross_gbp": 909828.76,
-        "capital_gbp": 8527.56,
-        "net_gbp": 435815.28,
+        "revenue_gbp": 1525272.01,
+        "gross_gbp": 909831.55,
+        "capital_gbp": 8527.57,
+        "net_gbp": 435818.06,
         "cost_to_serve_gbp": 3718.18,
         "total_kwh": 7383110.0
       }
@@ -524,13 +492,13 @@
           "commodity": "electricity",
           "segment": "I&C",
           "acquisition_date": "2019-01-01",
-          "revenue_gbp": 4637989.59,
-          "gross_gbp": 1833437.73,
-          "capital_gbp": 23162.13,
-          "net_gbp": 144961.91,
+          "revenue_gbp": 4629753.36,
+          "gross_gbp": 1824873.15,
+          "capital_gbp": 23102.44,
+          "net_gbp": 136457.01,
           "cost_to_serve_gbp": 3218.32,
           "total_kwh": 25608044.0,
-          "avg_rate_gbp_per_mwh": 181.11,
+          "avg_rate_gbp_per_mwh": 180.79,
           "bill_count": 78
         },
         "gas": {
@@ -549,10 +517,10 @@
         }
       },
       "combined": {
-        "revenue_gbp": 6470569.5,
-        "gross_gbp": 2456084.76,
-        "capital_gbp": 23162.13,
-        "net_gbp": 209472.89,
+        "revenue_gbp": 6462333.27,
+        "gross_gbp": 2447520.18,
+        "capital_gbp": 23102.44,
+        "net_gbp": 200967.99,
         "cost_to_serve_gbp": 3285.39,
         "total_kwh": 57863534.0
       }

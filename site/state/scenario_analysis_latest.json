@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-08T08:52:36Z",
-  "portfolio_as_of": "2026-07-08T08:50:39Z",
-  "active_customers": 11,
+  "generated_at": "2026-07-08T19:21:26Z",
+  "portfolio_as_of": "2026-07-08T19:19:22Z",
+  "active_customers": 10,
   "projection_months": 12,
   "scenarios": {
     "base": {
@@ -13,7 +13,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "C1_2",
-        "C5_2",
         "C7",
         "C9",
         "C_IC1",
@@ -33,7 +32,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "C1_2",
-        "C5_2",
         "C7",
         "C9",
         "C_IC1",
@@ -53,7 +51,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "C1_2",
-        "C5_2",
         "C7",
         "C9",
         "C_IC1",
@@ -73,7 +70,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "C1_2",
-        "C5_2",
         "C7",
         "C9",
         "C_IC1",
@@ -86,8 +82,8 @@
     }
   },
   "portfolio_exposure_delta_gbp": {
-    "bull": -398251.76,
-    "bear": 796503.52,
-    "crisis": 1562206.04
+    "bull": -397725.29,
+    "bear": 795450.58,
+    "crisis": 1559959.76
   }
 }

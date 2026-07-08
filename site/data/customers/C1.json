@@ -21,9 +21,9 @@
     "flag": "OK",
     "recommended_uplift_pct": null
   },
-  "clv_gbp": 5684.57,
+  "clv_gbp": 5355.55,
   "churn_probability": 0.38,
-  "expected_lifetime_periods": 19.49,
+  "expected_lifetime_periods": 16.64,
   "commodity_split": {
     "electricity": {
       "net_gbp": 368.25,
@@ -1019,10 +1019,10 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-07",
+    "as_of_date": "2025-06-20",
     "entries": [
       {
-        "date": "2016-01-31",
+        "date": "2016-02-05",
         "type": "invoice_raised",
         "invoice_number": 1,
         "amount_gbp": 100.34,
@@ -1032,7 +1032,7 @@
         "running_balance_gbp": 100.34
       },
       {
-        "date": "2016-02-14",
+        "date": "2016-02-19",
         "type": "payment_received",
         "invoice_number": 1,
         "amount_gbp": -100.34,
@@ -1042,7 +1042,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2016-02-29",
+        "date": "2016-03-07",
         "type": "invoice_raised",
         "invoice_number": 2,
         "amount_gbp": 93.8,
@@ -1052,7 +1052,7 @@
         "running_balance_gbp": 93.8
       },
       {
-        "date": "2016-03-14",
+        "date": "2016-03-21",
         "type": "payment_received",
         "invoice_number": 2,
         "amount_gbp": -93.8,
@@ -1082,7 +1082,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2016-04-30",
+        "date": "2016-05-01",
         "type": "invoice_raised",
         "invoice_number": 4,
         "amount_gbp": 79.4,
@@ -1092,7 +1092,7 @@
         "running_balance_gbp": 79.4
       },
       {
-        "date": "2016-05-14",
+        "date": "2016-05-15",
         "type": "payment_received",
         "invoice_number": 4,
         "amount_gbp": -79.4,
@@ -1102,7 +1102,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2016-05-31",
+        "date": "2016-06-02",
         "type": "invoice_raised",
         "invoice_number": 5,
         "amount_gbp": 78.24,
@@ -1112,7 +1112,7 @@
         "running_balance_gbp": 78.24
       },
       {
-        "date": "2016-06-14",
+        "date": "2016-06-16",
         "type": "payment_received",
         "invoice_number": 5,
         "amount_gbp": -78.24,
@@ -1122,7 +1122,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2016-06-30",
+        "date": "2016-07-10",
         "type": "invoice_raised",
         "invoice_number": 6,
         "amount_gbp": 72.98,
@@ -1132,7 +1132,7 @@
         "running_balance_gbp": 72.98
       },
       {
-        "date": "2016-07-14",
+        "date": "2016-07-24",
         "type": "payment_received",
         "invoice_number": 6,
         "amount_gbp": -72.98,
@@ -1142,7 +1142,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2016-07-31",
+        "date": "2016-08-03",
         "type": "invoice_raised",
         "invoice_number": 7,
         "amount_gbp": 75.6,
@@ -1152,7 +1152,7 @@
         "running_balance_gbp": 75.6
       },
       {
-        "date": "2016-08-14",
+        "date": "2016-08-17",
         "type": "payment_failed",
         "invoice_number": 7,
         "amount_gbp": 0.0,
@@ -1162,7 +1162,7 @@
         "running_balance_gbp": 75.6
       },
       {
-        "date": "2016-08-21",
+        "date": "2016-08-24",
         "type": "notice",
         "invoice_number": 7,
         "amount_gbp": 0.0,
@@ -1172,7 +1172,7 @@
         "running_balance_gbp": 75.6
       },
       {
-        "date": "2016-08-31",
+        "date": "2016-09-03",
         "type": "invoice_raised",
         "invoice_number": 8,
         "amount_gbp": 75.13,
@@ -1182,7 +1182,7 @@
         "running_balance_gbp": 150.73
       },
       {
-        "date": "2016-09-04",
+        "date": "2016-09-07",
         "type": "notice",
         "invoice_number": 7,
         "amount_gbp": 0.0,
@@ -1192,7 +1192,7 @@
         "running_balance_gbp": 150.73
       },
       {
-        "date": "2016-09-14",
+        "date": "2016-09-17",
         "type": "payment_received",
         "invoice_number": 8,
         "amount_gbp": -75.13,
@@ -1202,7 +1202,7 @@
         "running_balance_gbp": 75.6
       },
       {
-        "date": "2016-09-30",
+        "date": "2016-10-12",
         "type": "invoice_raised",
         "invoice_number": 9,
         "amount_gbp": 79.68,
@@ -1212,7 +1212,7 @@
         "running_balance_gbp": 155.28
       },
       {
-        "date": "2016-10-14",
+        "date": "2016-10-26",
         "type": "payment_received",
         "invoice_number": 9,
         "amount_gbp": -79.68,
@@ -1222,7 +1222,7 @@
         "running_balance_gbp": 75.6
       },
       {
-        "date": "2016-10-31",
+        "date": "2016-11-01",
         "type": "invoice_raised",
         "invoice_number": 10,
         "amount_gbp": 84.61,
@@ -1232,7 +1232,7 @@
         "running_balance_gbp": 160.21
       },
       {
-        "date": "2016-11-12",
+        "date": "2016-11-15",
         "type": "write_off",
         "invoice_number": 7,
         "amount_gbp": -75.6,
@@ -1242,7 +1242,7 @@
         "running_balance_gbp": 84.61
       },
       {
-        "date": "2016-11-14",
+        "date": "2016-11-15",
         "type": "payment_received",
         "invoice_number": 10,
         "amount_gbp": -84.61,
@@ -1252,7 +1252,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2016-11-30",
+        "date": "2016-12-04",
         "type": "invoice_raised",
         "invoice_number": 11,
         "amount_gbp": 97.0,
@@ -1262,7 +1262,7 @@
         "running_balance_gbp": 97.0
       },
       {
-        "date": "2016-12-14",
+        "date": "2016-12-18",
         "type": "payment_failed",
         "invoice_number": 11,
         "amount_gbp": 0.0,
@@ -1272,7 +1272,7 @@
         "running_balance_gbp": 97.0
       },
       {
-        "date": "2016-12-21",
+        "date": "2016-12-25",
         "type": "notice",
         "invoice_number": 11,
         "amount_gbp": 0.0,
@@ -1282,7 +1282,7 @@
         "running_balance_gbp": 97.0
       },
       {
-        "date": "2016-12-31",
+        "date": "2017-01-02",
         "type": "invoice_raised",
         "invoice_number": 12,
         "amount_gbp": 100.46,
@@ -1292,7 +1292,7 @@
         "running_balance_gbp": 197.46
       },
       {
-        "date": "2017-01-04",
+        "date": "2017-01-08",
         "type": "notice",
         "invoice_number": 11,
         "amount_gbp": 0.0,
@@ -1302,7 +1302,7 @@
         "running_balance_gbp": 197.46
       },
       {
-        "date": "2017-01-14",
+        "date": "2017-01-16",
         "type": "payment_received",
         "invoice_number": 12,
         "amount_gbp": -100.46,
@@ -1312,7 +1312,7 @@
         "running_balance_gbp": 97.0
       },
       {
-        "date": "2017-01-31",
+        "date": "2017-02-06",
         "type": "invoice_raised",
         "invoice_number": 13,
         "amount_gbp": 108.9,
@@ -1322,7 +1322,7 @@
         "running_balance_gbp": 205.9
       },
       {
-        "date": "2017-02-14",
+        "date": "2017-02-20",
         "type": "payment_received",
         "invoice_number": 13,
         "amount_gbp": -108.9,
@@ -1332,7 +1332,7 @@
         "running_balance_gbp": 97.0
       },
       {
-        "date": "2017-02-28",
+        "date": "2017-03-04",
         "type": "invoice_raised",
         "invoice_number": 14,
         "amount_gbp": 98.27,
@@ -1342,7 +1342,7 @@
         "running_balance_gbp": 195.27
       },
       {
-        "date": "2017-03-14",
+        "date": "2017-03-18",
         "type": "write_off",
         "invoice_number": 11,
         "amount_gbp": -97.0,
@@ -1352,7 +1352,7 @@
         "running_balance_gbp": 98.27
       },
       {
-        "date": "2017-03-14",
+        "date": "2017-03-18",
         "type": "payment_received",
         "invoice_number": 14,
         "amount_gbp": -98.27,
@@ -1412,7 +1412,7 @@
         "running_balance_gbp": 84.21
       },
       {
-        "date": "2017-06-10",
+        "date": "2017-06-13",
         "type": "recovery_note",
         "invoice_number": 7,
         "amount_gbp": 0.0,
@@ -1432,7 +1432,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2017-06-30",
+        "date": "2017-07-01",
         "type": "invoice_raised",
         "invoice_number": 18,
         "amount_gbp": 79.28,
@@ -1442,7 +1442,7 @@
         "running_balance_gbp": 79.28
       },
       {
-        "date": "2017-07-23",
+        "date": "2017-07-24",
         "type": "payment_received",
         "invoice_number": 18,
         "amount_gbp": -79.28,
@@ -1452,7 +1452,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2017-07-31",
+        "date": "2017-08-02",
         "type": "invoice_raised",
         "invoice_number": 19,
         "amount_gbp": 81.38,
@@ -1462,7 +1462,7 @@
         "running_balance_gbp": 81.38
       },
       {
-        "date": "2017-08-14",
+        "date": "2017-08-16",
         "type": "payment_received",
         "invoice_number": 19,
         "amount_gbp": -81.38,
@@ -1492,7 +1492,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2017-09-30",
+        "date": "2017-10-02",
         "type": "invoice_raised",
         "invoice_number": 21,
         "amount_gbp": 86.38,
@@ -1502,7 +1502,7 @@
         "running_balance_gbp": 86.38
       },
       {
-        "date": "2017-10-10",
+        "date": "2017-10-14",
         "type": "recovery_note",
         "invoice_number": 11,
         "amount_gbp": 0.0,
@@ -1512,7 +1512,7 @@
         "running_balance_gbp": 86.38
       },
       {
-        "date": "2017-10-14",
+        "date": "2017-10-16",
         "type": "payment_received",
         "invoice_number": 21,
         "amount_gbp": -86.38,
@@ -1522,7 +1522,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2017-10-31",
+        "date": "2017-11-03",
         "type": "invoice_raised",
         "invoice_number": 22,
         "amount_gbp": 92.15,
@@ -1532,7 +1532,7 @@
         "running_balance_gbp": 92.15
       },
       {
-        "date": "2017-11-14",
+        "date": "2017-11-17",
         "type": "payment_received",
         "invoice_number": 22,
         "amount_gbp": -92.15,
@@ -1542,7 +1542,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2017-11-30",
+        "date": "2017-12-02",
         "type": "invoice_raised",
         "invoice_number": 23,
         "amount_gbp": 105.23,
@@ -1552,7 +1552,7 @@
         "running_balance_gbp": 105.23
       },
       {
-        "date": "2017-12-20",
+        "date": "2017-12-22",
         "type": "payment_received",
         "invoice_number": 23,
         "amount_gbp": -105.23,
@@ -1562,7 +1562,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2017-12-31",
+        "date": "2018-01-02",
         "type": "invoice_raised",
         "invoice_number": 24,
         "amount_gbp": 108.68,
@@ -1572,7 +1572,7 @@
         "running_balance_gbp": 108.68
       },
       {
-        "date": "2018-01-14",
+        "date": "2018-01-16",
         "type": "payment_received",
         "invoice_number": 24,
         "amount_gbp": -108.68,
@@ -1582,7 +1582,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2018-01-31",
+        "date": "2018-02-06",
         "type": "invoice_raised",
         "invoice_number": 25,
         "amount_gbp": 101.53,
@@ -1592,7 +1592,7 @@
         "running_balance_gbp": 101.53
       },
       {
-        "date": "2018-02-14",
+        "date": "2018-02-20",
         "type": "payment_received",
         "invoice_number": 25,
         "amount_gbp": -101.53,
@@ -1602,7 +1602,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2018-02-28",
+        "date": "2018-03-06",
         "type": "invoice_raised",
         "invoice_number": 26,
         "amount_gbp": 91.78,
@@ -1612,7 +1612,7 @@
         "running_balance_gbp": 91.78
       },
       {
-        "date": "2018-03-14",
+        "date": "2018-03-20",
         "type": "payment_received",
         "invoice_number": 26,
         "amount_gbp": -91.78,
@@ -1622,7 +1622,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2018-03-31",
+        "date": "2018-04-14",
         "type": "invoice_raised",
         "invoice_number": 27,
         "amount_gbp": 97.31,
@@ -1632,7 +1632,7 @@
         "running_balance_gbp": 97.31
       },
       {
-        "date": "2018-04-14",
+        "date": "2018-04-28",
         "type": "payment_received",
         "invoice_number": 27,
         "amount_gbp": -97.31,
@@ -1662,7 +1662,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2018-05-31",
+        "date": "2018-06-03",
         "type": "invoice_raised",
         "invoice_number": 29,
         "amount_gbp": 78.83,
@@ -1672,7 +1672,7 @@
         "running_balance_gbp": 78.83
       },
       {
-        "date": "2018-06-14",
+        "date": "2018-06-17",
         "type": "payment_received",
         "invoice_number": 29,
         "amount_gbp": -78.83,
@@ -1682,7 +1682,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2018-06-30",
+        "date": "2018-07-02",
         "type": "invoice_raised",
         "invoice_number": 30,
         "amount_gbp": 74.1,
@@ -1692,7 +1692,7 @@
         "running_balance_gbp": 74.1
       },
       {
-        "date": "2018-07-14",
+        "date": "2018-07-16",
         "type": "payment_received",
         "invoice_number": 30,
         "amount_gbp": -74.1,
@@ -1702,7 +1702,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2018-07-31",
+        "date": "2018-08-05",
         "type": "invoice_raised",
         "invoice_number": 31,
         "amount_gbp": 77.62,
@@ -1712,27 +1712,27 @@
         "running_balance_gbp": 77.62
       },
       {
-        "date": "2018-08-28",
-        "type": "payment_received",
-        "invoice_number": 31,
-        "amount_gbp": -77.62,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
-        "date": "2018-08-31",
+        "date": "2018-09-01",
         "type": "invoice_raised",
         "invoice_number": 32,
         "amount_gbp": 76.51,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV32 raised",
+        "running_balance_gbp": 154.13
+      },
+      {
+        "date": "2018-09-02",
+        "type": "payment_received",
+        "invoice_number": 31,
+        "amount_gbp": -77.62,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
         "running_balance_gbp": 76.51
       },
       {
-        "date": "2018-09-14",
+        "date": "2018-09-15",
         "type": "payment_received",
         "invoice_number": 32,
         "amount_gbp": -76.51,
@@ -1742,7 +1742,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2018-09-30",
+        "date": "2018-10-06",
         "type": "invoice_raised",
         "invoice_number": 33,
         "amount_gbp": 81.35,
@@ -1752,7 +1752,7 @@
         "running_balance_gbp": 81.35
       },
       {
-        "date": "2018-10-14",
+        "date": "2018-10-20",
         "type": "payment_received",
         "invoice_number": 33,
         "amount_gbp": -81.35,
@@ -1782,7 +1782,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2018-11-30",
+        "date": "2018-12-05",
         "type": "invoice_raised",
         "invoice_number": 35,
         "amount_gbp": 98.28,
@@ -1792,7 +1792,7 @@
         "running_balance_gbp": 98.28
       },
       {
-        "date": "2018-12-14",
+        "date": "2018-12-19",
         "type": "payment_received",
         "invoice_number": 35,
         "amount_gbp": -98.28,
@@ -1802,7 +1802,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2018-12-31",
+        "date": "2019-01-01",
         "type": "invoice_raised",
         "invoice_number": 36,
         "amount_gbp": 101.96,
@@ -1812,7 +1812,7 @@
         "running_balance_gbp": 101.96
       },
       {
-        "date": "2019-01-28",
+        "date": "2019-01-29",
         "type": "payment_received",
         "invoice_number": 36,
         "amount_gbp": -101.96,
@@ -1842,7 +1842,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-02-28",
+        "date": "2019-03-01",
         "type": "invoice_raised",
         "invoice_number": 38,
         "amount_gbp": 107.27,
@@ -1852,7 +1852,7 @@
         "running_balance_gbp": 107.27
       },
       {
-        "date": "2019-03-14",
+        "date": "2019-03-15",
         "type": "payment_received",
         "invoice_number": 38,
         "amount_gbp": -107.27,
@@ -1862,7 +1862,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-03-31",
+        "date": "2019-04-06",
         "type": "invoice_raised",
         "invoice_number": 39,
         "amount_gbp": 118.05,
@@ -1872,7 +1872,7 @@
         "running_balance_gbp": 118.05
       },
       {
-        "date": "2019-04-14",
+        "date": "2019-04-20",
         "type": "payment_received",
         "invoice_number": 39,
         "amount_gbp": -118.05,
@@ -1882,7 +1882,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-04-30",
+        "date": "2019-05-01",
         "type": "invoice_raised",
         "invoice_number": 40,
         "amount_gbp": 93.5,
@@ -1892,7 +1892,7 @@
         "running_balance_gbp": 93.5
       },
       {
-        "date": "2019-05-14",
+        "date": "2019-05-15",
         "type": "payment_received",
         "invoice_number": 40,
         "amount_gbp": -93.5,
@@ -1902,7 +1902,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-05-31",
+        "date": "2019-06-01",
         "type": "invoice_raised",
         "invoice_number": 41,
         "amount_gbp": 91.19,
@@ -1912,7 +1912,7 @@
         "running_balance_gbp": 91.19
       },
       {
-        "date": "2019-06-14",
+        "date": "2019-06-15",
         "type": "payment_received",
         "invoice_number": 41,
         "amount_gbp": -91.19,
@@ -1922,7 +1922,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-06-30",
+        "date": "2019-07-01",
         "type": "invoice_raised",
         "invoice_number": 42,
         "amount_gbp": 86.02,
@@ -1932,7 +1932,7 @@
         "running_balance_gbp": 86.02
       },
       {
-        "date": "2019-07-14",
+        "date": "2019-07-15",
         "type": "payment_received",
         "invoice_number": 42,
         "amount_gbp": -86.02,
@@ -1942,7 +1942,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-07-31",
+        "date": "2019-08-01",
         "type": "invoice_raised",
         "invoice_number": 43,
         "amount_gbp": 89.47,
@@ -1952,7 +1952,7 @@
         "running_balance_gbp": 89.47
       },
       {
-        "date": "2019-08-25",
+        "date": "2019-08-26",
         "type": "payment_received",
         "invoice_number": 43,
         "amount_gbp": -89.47,
@@ -1982,7 +1982,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-09-30",
+        "date": "2019-10-04",
         "type": "invoice_raised",
         "invoice_number": 45,
         "amount_gbp": 94.86,
@@ -1992,7 +1992,7 @@
         "running_balance_gbp": 94.86
       },
       {
-        "date": "2019-10-14",
+        "date": "2019-10-18",
         "type": "payment_received",
         "invoice_number": 45,
         "amount_gbp": -94.86,
@@ -2002,7 +2002,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-10-31",
+        "date": "2019-11-01",
         "type": "invoice_raised",
         "invoice_number": 46,
         "amount_gbp": 101.53,
@@ -2012,7 +2012,7 @@
         "running_balance_gbp": 101.53
       },
       {
-        "date": "2019-11-14",
+        "date": "2019-11-15",
         "type": "payment_received",
         "invoice_number": 46,
         "amount_gbp": -101.53,
@@ -2022,7 +2022,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-11-30",
+        "date": "2019-12-01",
         "type": "invoice_raised",
         "invoice_number": 47,
         "amount_gbp": 114.8,
@@ -2032,7 +2032,7 @@
         "running_balance_gbp": 114.8
       },
       {
-        "date": "2019-12-14",
+        "date": "2019-12-15",
         "type": "payment_received",
         "invoice_number": 47,
         "amount_gbp": -114.8,
@@ -2042,7 +2042,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2019-12-31",
+        "date": "2020-01-07",
         "type": "invoice_raised",
         "invoice_number": 48,
         "amount_gbp": 118.5,
@@ -2052,7 +2052,7 @@
         "running_balance_gbp": 118.5
       },
       {
-        "date": "2020-01-14",
+        "date": "2020-01-21",
         "type": "payment_received",
         "invoice_number": 48,
         "amount_gbp": -118.5,
@@ -2082,7 +2082,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2020-02-29",
+        "date": "2020-03-03",
         "type": "invoice_raised",
         "invoice_number": 50,
         "amount_gbp": 100.98,
@@ -2092,7 +2092,7 @@
         "running_balance_gbp": 100.98
       },
       {
-        "date": "2020-03-14",
+        "date": "2020-03-17",
         "type": "payment_received",
         "invoice_number": 50,
         "amount_gbp": -100.98,
@@ -2122,7 +2122,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2020-04-30",
+        "date": "2020-05-02",
         "type": "invoice_raised",
         "invoice_number": 52,
         "amount_gbp": 85.33,
@@ -2132,7 +2132,7 @@
         "running_balance_gbp": 85.33
       },
       {
-        "date": "2020-05-14",
+        "date": "2020-05-16",
         "type": "payment_received",
         "invoice_number": 52,
         "amount_gbp": -85.33,
@@ -2142,7 +2142,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2020-05-31",
+        "date": "2020-06-04",
         "type": "invoice_raised",
         "invoice_number": 53,
         "amount_gbp": 84.66,
@@ -2152,7 +2152,7 @@
         "running_balance_gbp": 84.66
       },
       {
-        "date": "2020-06-14",
+        "date": "2020-06-18",
         "type": "payment_received",
         "invoice_number": 53,
         "amount_gbp": -84.66,
@@ -2182,7 +2182,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2020-07-31",
+        "date": "2020-08-02",
         "type": "invoice_raised",
         "invoice_number": 55,
         "amount_gbp": 81.15,
@@ -2192,7 +2192,7 @@
         "running_balance_gbp": 81.15
       },
       {
-        "date": "2020-08-14",
+        "date": "2020-08-16",
         "type": "payment_received",
         "invoice_number": 55,
         "amount_gbp": -81.15,
@@ -2202,7 +2202,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2020-08-31",
+        "date": "2020-09-02",
         "type": "invoice_raised",
         "invoice_number": 56,
         "amount_gbp": 82.6,
@@ -2212,7 +2212,7 @@
         "running_balance_gbp": 82.6
       },
       {
-        "date": "2020-09-14",
+        "date": "2020-09-16",
         "type": "payment_received",
         "invoice_number": 56,
         "amount_gbp": -82.6,
@@ -2222,7 +2222,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2020-09-30",
+        "date": "2020-10-02",
         "type": "invoice_raised",
         "invoice_number": 57,
         "amount_gbp": 84.98,
@@ -2232,7 +2232,7 @@
         "running_balance_gbp": 84.98
       },
       {
-        "date": "2020-10-14",
+        "date": "2020-10-16",
         "type": "payment_received",
         "invoice_number": 57,
         "amount_gbp": -84.98,
@@ -2242,7 +2242,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2020-10-31",
+        "date": "2020-11-03",
         "type": "invoice_raised",
         "invoice_number": 58,
         "amount_gbp": 93.8,
@@ -2252,7 +2252,7 @@
         "running_balance_gbp": 93.8
       },
       {
-        "date": "2020-11-14",
+        "date": "2020-11-17",
         "type": "payment_received",
         "invoice_number": 58,
         "amount_gbp": -93.8,
@@ -2282,7 +2282,7 @@
         "running_balance_gbp": 0.0
       },
       {
-        "date": "2020-12-29",
+        "date": "2021-01-04",
         "type": "invoice_raised",
         "invoice_number": 60,
         "amount_gbp": 100.96,
@@ -2292,7 +2292,7 @@
         "running_balance_gbp": 100.96
       },
       {
-        "date": "2021-01-12",
+        "date": "2021-01-18",
         "type": "payment_received",
         "invoice_number": 60,
         "amount_gbp": -100.96,
@@ -2557,7 +2557,7 @@
   "reaction_chain": [
     {
       "customer_id": "C1",
-      "date": "2016-08-14",
+      "date": "2016-08-17",
       "event_type": "arrears_dd_failed",
       "description": "Direct debit returned",
       "company_belief": null,
@@ -2568,7 +2568,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2016-08-21",
+      "date": "2016-08-24",
       "event_type": "arrears_first_notice",
       "description": "First overdue notice -- GBP75.60 outstanding",
       "company_belief": null,
@@ -2579,7 +2579,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2016-09-04",
+      "date": "2016-09-07",
       "event_type": "arrears_second_notice",
       "description": "Second notice -- payment plan offered",
       "company_belief": null,
@@ -2590,7 +2590,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2016-11-12",
+      "date": "2016-11-15",
       "event_type": "arrears_written_off",
       "description": "Debt written off -- bad debt provision raised",
       "company_belief": null,
@@ -2601,7 +2601,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2016-12-12",
+      "date": "2016-12-15",
       "event_type": "arrears_placed_with_dca",
       "description": "Debt placed with third-party debt collection agency",
       "company_belief": null,
@@ -2612,7 +2612,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2016-12-14",
+      "date": "2016-12-18",
       "event_type": "arrears_dd_failed",
       "description": "Direct debit returned",
       "company_belief": null,
@@ -2623,7 +2623,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2016-12-21",
+      "date": "2016-12-25",
       "event_type": "arrears_first_notice",
       "description": "First overdue notice -- GBP97.00 outstanding",
       "company_belief": null,
@@ -2656,7 +2656,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2017-01-04",
+      "date": "2017-01-08",
       "event_type": "arrears_second_notice",
       "description": "Second notice -- payment plan offered",
       "company_belief": null,
@@ -2667,7 +2667,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2017-03-14",
+      "date": "2017-03-18",
       "event_type": "arrears_written_off",
       "description": "Debt written off -- bad debt provision raised",
       "company_belief": null,
@@ -2678,7 +2678,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2017-04-13",
+      "date": "2017-04-17",
       "event_type": "arrears_placed_with_dca",
       "description": "Debt placed with third-party debt collection agency",
       "company_belief": null,
@@ -2689,7 +2689,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2017-06-10",
+      "date": "2017-06-13",
       "event_type": "arrears_recovered",
       "description": "DCA recovered GBP12.85 net of commission (20% recovery rate, 15% commission)",
       "company_belief": null,
@@ -2700,7 +2700,7 @@
     },
     {
       "customer_id": "C1",
-      "date": "2017-10-10",
+      "date": "2017-10-14",
       "event_type": "arrears_recovered",
       "description": "DCA recovered GBP16.49 net of commission (20% recovery rate, 15% commission)",
       "company_belief": null,
@@ -2745,20 +2745,9 @@
     {
       "customer_id": "C1",
       "date": "2018-12-31",
-      "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 36% churn risk, decided to offer a 3% discount (cost GBP21.13) against GBP379.36 expected term margin at risk -- expected value of offering GBP358.23. Comms framed as a loss (you will lose the discount).",
-      "company_belief": 0.359,
-      "sim_truth": 0.089,
-      "amount_gbp": 358.23,
-      "outcome": "retained",
-      "framing_type": "loss_framed"
-    },
-    {
-      "customer_id": "C1",
-      "date": "2018-12-31",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 36% churn risk at decision time, SIM realized probability was 9%.",
-      "company_belief": 0.359,
+      "description": "Renewal outcome: RENEWED -- company believed 14% churn risk at decision time, SIM realized probability was 9%.",
+      "company_belief": 0.138,
       "sim_truth": 0.089,
       "amount_gbp": null,
       "outcome": "renewed",
