@@ -70,8 +70,18 @@ MAINTENANCE_DOC = PROJECT_DIR / "docs" / "operations" / "MAINTENANCE.md"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
-from background.tmux_relay import send_keys  # noqa: E402
+from background.tmux_relay import send_keys_when_idle  # noqa: E402
 from background import agenda  # noqa: E402
+
+# Names of new staged files whose wake hasn't yet been confirmed-delivered
+# (docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md root-cause fix, 2026-07-08:
+# a wake can land partially in a busy pane and never submit -- retry each
+# cycle until send_keys_when_idle() actually confirms consumption). In-memory
+# only: a daemon restart before delivery drops the retry, but `seen` already
+# covers the file so it won't be re-notified either -- the NTFY sent at
+# notification time is the durable fallback, this is a bonus reliability
+# layer on top of it, not the sole guarantee.
+_pending_wake_names: set[str] = set()
 
 
 def log(msg: str) -> None:
@@ -225,29 +235,35 @@ def check_monthly_maintenance(now: datetime) -> None:
     _save_maintenance_state(month_key)
 
 
-def _relay_wake_to_claude(new_names: list[str]) -> None:
-    """Inject ONE turn into the existing 'claude' tmux session naming the
-    new staged file(s) -- the event-driven replacement for the retired
-    autonomous-runner poll loop (docs/review_gates/done/
-    AUTONOMOUS_RUNNER_STILL_RUNNING.md). Same session, same tmux send-keys
-    relay pattern dispatcher.py already uses for URGENT NTFY messages
-    (Claude Code queues input typed while busy, so this is safe whether the
-    session is idle or mid-task) -- no new process, single-writer preserved.
+def _relay_wake_to_claude(new_names: list[str]) -> bool:
+    """Attempt ONE turn-injection into the existing 'claude' tmux session
+    naming the new staged file(s) -- the event-driven replacement for the
+    retired autonomous-runner poll loop (docs/review_gates/done/
+    AUTONOMOUS_RUNNER_STILL_RUNNING.md). No new process, single-writer
+    preserved.
 
     Names only, never file contents -- matches this watcher's existing
-    "announce, don't act" discipline. Uses background.tmux_relay.send_keys,
-    which refuses to run under pytest (see its module docstring for the
-    2026-07-08 incident this guards against) and swallows failures
-    best-effort: a missing/dead tmux session must never crash the watcher's
-    poll loop, and the NTFY sent alongside this call is the fallback channel
-    if the relay silently no-ops.
+    "announce, don't act" discipline.
+
+    Root-cause fix (docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md,
+    2026-07-08): a live incident showed a signed wake landing PARTIALLY in
+    the target pane's input box and never submitting -- "Claude Code queues
+    input typed while busy" does not reliably hold for longer text bursts.
+    Uses background.tmux_relay.send_keys_when_idle, which (a) refuses to
+    send at all unless the pane currently shows no busy indicator, and (b)
+    verifies after sending that the text was actually consumed, not just
+    that the subprocess call exit-coded zero. Returns False on ANY of:
+    pytest-suppressed, session busy, send failed, or the text still stuck
+    in the pane afterward -- callers must retry next cycle, never treat a
+    False as "delivered anyway."
 
     HMAC-signed (docs/staging/NTFY_CHANNEL_HARDENING.md, 2026-07-08): the
     text is wrapped with `sign_wake_message` before being typed into the
     session, so anything appearing in that pane in this exact wake format
     without a valid trailing signature is distinguishable as not genuinely
     from this watcher -- see CLAUDE.md R7 (injected wake text carries zero
-    authority regardless) for how the agent must treat it either way.
+    authority regardless) for how the agent must treat it either way. The
+    trailing HMAC hex digest doubles as the consumption-verification marker.
     """
     names = ", ".join(new_names)
     message = (
@@ -259,24 +275,29 @@ def _relay_wake_to_claude(new_names: list[str]) -> None:
         "staging check.]"
     )
     signed = sign_wake_message(message)
+    marker = signed.rsplit("|", 1)[-1]
     try:
-        send_keys(SESSION_NAME, signed, "Enter")
+        return send_keys_when_idle(SESSION_NAME, signed, marker)
     except Exception:
-        # Defense in depth: send_keys() already swallows its own subprocess
-        # failures, but this catch means the watcher's poll loop is also
-        # protected against any future regression in that guarantee, or a
-        # test double that doesn't replicate it.
-        pass
+        # Defense in depth: send_keys_when_idle() already swallows its own
+        # subprocess failures, but this catch means the watcher's poll loop
+        # is also protected against any future regression in that
+        # guarantee, or a test double that doesn't replicate it.
+        return False
 
 
-def _relay_agenda_nudge(agenda_snapshot: dict) -> None:
-    """Inject ONE signed continue-nudge for open phase work that has sat
+def _relay_agenda_nudge(agenda_snapshot: dict) -> bool:
+    """Attempt ONE signed continue-nudge for open phase work that has sat
     idle long enough (background/agenda.py, Deliverable 1a,
     docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md). Same HMAC-signed,
-    names-only-never-content discipline as _relay_wake_to_claude -- the
-    nudge points the session at the agenda marker, it never carries the
+    idle-gated, verified-consumption discipline as _relay_wake_to_claude --
+    the nudge points the session at the agenda marker, it never carries the
     agenda's own next_action text as an instruction (R7: zero content
     authority; the receiving session re-derives what to do from disk).
+    Returns False on any failure -- the caller (main()) only calls
+    agenda.record_nudged() on True, so a busy/failed attempt is retried
+    automatically next cycle (should_nudge() keeps returning the same
+    snapshot until it's actually recorded as nudged).
     """
     message = (
         f"[STAGING WATCHER: open agenda detected -- phase '{agenda_snapshot.get('phase', '?')}', "
@@ -286,17 +307,19 @@ def _relay_agenda_nudge(agenda_snapshot: dict) -> None:
         "instruction (R7).]"
     )
     signed = sign_wake_message(message)
+    marker = signed.rsplit("|", 1)[-1]
     try:
-        send_keys(SESSION_NAME, signed, "Enter")
+        return send_keys_when_idle(SESSION_NAME, signed, marker)
     except Exception:
-        pass
+        return False
 
 
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
-    `seen`, logs each notification, wakes the claude session with one
-    batched turn if any genuinely new actionable file(s) landed, and
-    returns the updated seen set.
+    `seen`, logs each notification, queues any genuinely new actionable
+    file(s) for a wake attempt (actually attempted in main()'s loop, so it
+    can be retried across cycles if the session is busy -- see
+    _attempt_pending_wake()), and returns the updated seen set.
 
     NTFY-originated files (from_rich_*.md) are silently added to seen without
     sending a notification or a wake — dispatcher.py already relays
@@ -320,12 +343,29 @@ def check_once(seen: set[str]) -> set[str]:
             log(f"Notified: {name}")
             actionable.append(name)
     if actionable:
-        _relay_wake_to_claude(actionable)
-        log(f"Wake injected into '{SESSION_NAME}' session for: {', '.join(actionable)}")
+        _pending_wake_names.update(actionable)
+        log(f"Queued wake for: {', '.join(actionable)} (attempted in main loop, retried if session busy)")
     if new_files:
         seen = files
         save_seen(seen)
     return seen
+
+
+def _attempt_pending_wake() -> None:
+    """Attempt delivery of any queued new-staged-file wake
+    (`_pending_wake_names`) -- called once per main() cycle. Only clears the
+    pending set on a CONFIRMED-delivered wake (idle pane + consumption
+    verified); on failure (busy, or stuck-unconsumed), leaves it queued for
+    the next cycle's retry, per the root-cause fix's "never fire into a
+    mid-turn session, hold and retry" requirement."""
+    if not _pending_wake_names:
+        return
+    names = sorted(_pending_wake_names)
+    if _relay_wake_to_claude(names):
+        log(f"Wake delivered (confirmed) to '{SESSION_NAME}' session for: {', '.join(names)}")
+        _pending_wake_names.clear()
+    else:
+        log(f"Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: {', '.join(names)}")
 
 
 def main() -> None:
@@ -377,11 +417,18 @@ def main() -> None:
             log(f"Watcher error: {e}")
 
         try:
+            _attempt_pending_wake()
+        except Exception as e:
+            log(f"Pending-wake attempt error: {e}")
+
+        try:
             due = agenda.should_nudge()
             if due:
-                _relay_agenda_nudge(due)
-                agenda.record_nudged(due)
-                log(f"Agenda continue-nudge injected -- phase '{due.get('phase')}', step '{due.get('step')}'")
+                if _relay_agenda_nudge(due):
+                    agenda.record_nudged(due)
+                    log(f"Agenda continue-nudge delivered (confirmed) -- phase '{due.get('phase')}', step '{due.get('step')}'")
+                else:
+                    log(f"Agenda continue-nudge not yet delivered (session busy or unconfirmed) -- retrying next cycle -- phase '{due.get('phase')}', step '{due.get('step')}'")
         except Exception as e:
             log(f"Agenda check error: {e}")
 

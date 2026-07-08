@@ -111,6 +111,22 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase SB -- Idle-gated verified tmux relay: root-cause fix for the "queued, no wake" failure (2026-07-08, Tier 1-adjacent safety fix, director-direct in-conversation, R9 evidence-first)
+
+Director flagged (via NTFY, R9-invoking) that the urgent from_rich wake path "empirically failed at 17:47 today (urgent-classified, queued, no wake)" and that "'code already does it' doesn't satisfy R9 against an observed failure." Investigated rather than asserted: live `tmux capture-pane` on the actual `claude` session showed a corrupted, never-submitted wake-message FRAGMENT sitting in the input box across many subsequent turns -- direct observed evidence, not inferred. Isolated the layer: sent the identical signed text to a throwaway `cat`-backed probe session via the real `tmux_relay.send_keys` code path -- delivered byte-for-byte, semicolons/apostrophes/em-dash/HMAC digest all intact. This proved the corruption is NOT in this codebase's relay code; it happens in the Claude Code CLI's own input-widget handling when a long keystroke burst arrives while the app is busy (mid-turn) -- "Claude Code queues input typed while busy" does not reliably hold. That's an external CLI behaviour this repo can't patch directly, so the fix is defensive on the sending side.
+
+**`background/tmux_relay.py`** gains `capture_pane()` (read-only pane capture), `is_session_idle()` (busy-indicator detection: a spinner+gerund status line, or an "esc"-hint footer -- fails safe, any ambiguity/capture-error returns False, never assumes idle), and `send_keys_when_idle()` -- the new required entry point for every wake injection: (a) refuses to send at all unless the pane is currently idle, (b) after sending, re-captures the pane and confirms the just-sent text (via a short marker -- the trailing HMAC hex digest, whitespace-flattened so line-wrapping can't hide a stuck fragment) is no longer sitting there unconsumed. Returns False on any failure; callers must never treat False as "delivered anyway."
+
+**`background/staging_watcher.py`**: `_relay_wake_to_claude()`/`_relay_agenda_nudge()` now return bool via `send_keys_when_idle()`. New-staged-file wakes queue into a `_pending_wake_names` set (populated by `check_once()`) attempted every poll cycle by a new `_attempt_pending_wake()`, clearing only on confirmed delivery -- busy means hold and retry next cycle, exactly per the director's requirement, never firing into a mid-turn session. The agenda-nudge path already composed naturally with this (should_nudge()/record_nudged() only advances on success).
+
+**`background/dispatcher.py`**: `_relay_to_claude()` likewise returns bool via the same verified path. Classification/header-write/high-priority-NTFY still happen immediately in `route_message()` (those are independent of wake delivery and must not wait), but the tmux wake itself queues into `_pending_urgent` (filename -> message), retried each 15s poll by a new `_attempt_pending_urgent()` until confirmed.
+
+**Live-tested end to end, not just unit-tested** (director's explicit ask): (1) `is_session_idle('claude')` against the REAL, genuinely-busy live session -- correctly returned False, matching the visible spinner+"esc" footer. (2) `send_keys_when_idle()` against that same real busy session -- correctly refused to send anything at all; pane verified untouched afterward (`❯` prompt still empty) -- direct proof this fix prevents the exact corruption incident from recurring, since a busy session now never receives a partial keystroke burst in the first place. (3) Built an accurate raw-mode probe (Python `tty.setraw()`, disabling OS-level echo and self-managing its own display-clear-on-submit, matching how a real TUI like Claude Code controls its own rendering -- an earlier canonical-mode `cat`-based probe was a misleading analog, since OS-level terminal echo permanently records typed input in scrollback regardless of app behaviour, which a raw-mode app does not) -- `send_keys_when_idle()` against this idle, realistic probe correctly delivered the full text (semicolons/apostrophes/em-dash intact) and correctly reported success (marker no longer present after consumption).
+
+Both `staging-watcher` and `dispatcher` tmux daemons killed and restarted live via the proven `start_worker.sh` `-e VAR=value` warm-server pattern; verified alive (child process present, `SE_NTFY_TOPIC`/`SE_WAKE_HMAC_KEY` in `/proc/<pid>/environ`, clean "resumed"/"started" log lines) and `health_check.py` confirmed the full stack OK afterward -- R2 discipline (committed != running) applied a second time this session.
+
+25 new tests (13 `test_tmux_relay.py`, 6 `test_staging_watcher.py`, 6 `test_dispatcher.py` -- including a direct unit-test reproduction of the exact wrapped-fragment stuck-marker scenario from the live incident), 16,114 collected, `tests/background/` (333) and epistemic verifier (481 files) both re-run clean.
+
 ### Phase SA -- Open-agenda turn-continuation nudge + tmux session isolation guard (2026-07-08, Tier 2 -- docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md, advisor-staged, director-repeat x3 = P1 by rule P-2)
 
 Closed the harness gap TURN_CONTINUATION_AND_PHASE3_GO.md named: "turns end; nothing grants
@@ -6645,8 +6661,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 16,089 tests collected (full suite) -- 18 new tests from Phase SA (test_agenda.py,
-  test_tmux_relay.py/test_staging_watcher.py additions) plus 47 new tests from Phase RZ
+- 16,114 tests collected (full suite) -- 25 new tests from Phase SB (idle-gated verified tmux
+  relay, test_tmux_relay.py/test_staging_watcher.py/test_dispatcher.py additions) plus 18 new
+  tests from Phase SA (test_agenda.py, test_tmux_relay.py/test_staging_watcher.py additions)
+  plus 47 new tests from Phase RZ
   (test_meter_reads.py, test_credit_refund_events.py, test_contact_centre.py,
   acquisition_funnel/generate_billing_ledger/generate_dashboard_data additions), on top of the
   prior 15,959 tests collected (full suite) plus 11 new tests from Phase RW

@@ -1,127 +1,121 @@
 from background import staging_watcher as watcher
 
 
+def _reset_pending_wake():
+    watcher._pending_wake_names.clear()
+
+
 # ── Event-driven wake (director directive, in-conversation, 2026-07-08): tmux wake on genuinely new staged files ──
 
-def test_check_once_wakes_claude_for_new_actionable_file(tmp_path, monkeypatch):
-    """A genuinely new staged instruction must both NTFY and inject a wake."""
+def test_check_once_queues_wake_for_new_actionable_file(tmp_path, monkeypatch):
+    """A genuinely new staged instruction must both NTFY and queue a wake
+    (the actual send attempt happens in main()'s loop via
+    _attempt_pending_wake(), so it can retry across cycles)."""
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
-
-    wake_calls = []
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: wake_calls.append(names))
 
     (tmp_path / "CORE_FIDELITY_BEFORE_LOOPS.md").write_text("director reorientation")
     watcher.check_once(set())
 
-    assert wake_calls == [["CORE_FIDELITY_BEFORE_LOOPS.md"]]
+    assert watcher._pending_wake_names == {"CORE_FIDELITY_BEFORE_LOOPS.md"}
 
 
 def test_check_once_does_not_wake_for_from_rich_files(tmp_path, monkeypatch):
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
-
-    wake_calls = []
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: wake_calls.append(names))
 
     (tmp_path / "from_rich_20260708_120000.md").write_text("a message")
     watcher.check_once(set())
 
-    assert wake_calls == []
+    assert watcher._pending_wake_names == set()
 
 
 def test_check_once_does_not_wake_for_run_complete_markers(tmp_path, monkeypatch):
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
-
-    wake_calls = []
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: wake_calls.append(names))
 
     (tmp_path / "run_complete_20260708T120000Z.md").write_text("sim run done")
     watcher.check_once(set())
 
-    assert wake_calls == []
+    assert watcher._pending_wake_names == set()
 
 
 def test_check_once_does_not_wake_when_nothing_new(tmp_path, monkeypatch):
     """Zero turns when nothing happens: a poll with no new files must never wake."""
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
-
-    wake_calls = []
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: wake_calls.append(names))
 
     (tmp_path / "OLD.md").write_text("already seen")
     watcher.check_once({"OLD.md"})
 
-    assert wake_calls == []
+    assert watcher._pending_wake_names == set()
 
 
-def test_check_once_batches_multiple_new_files_into_one_wake(tmp_path, monkeypatch):
+def test_check_once_batches_multiple_new_files_into_one_pending_set(tmp_path, monkeypatch):
     """Multiple simultaneous new files (e.g. a multi-file ADVISOR-STAGED
-    commit) must trigger exactly one relay call, not one per file."""
+    commit) must all queue into the same pending wake, delivered as one
+    batched relay call by _attempt_pending_wake()."""
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
-
-    wake_calls = []
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: wake_calls.append(names))
 
     (tmp_path / "A.md").write_text("a")
     (tmp_path / "B.md").write_text("b")
     watcher.check_once(set())
 
-    assert len(wake_calls) == 1
-    assert sorted(wake_calls[0]) == ["A.md", "B.md"]
+    assert watcher._pending_wake_names == {"A.md", "B.md"}
 
 
-def test_check_once_mixed_batch_only_wakes_for_actionable_names(tmp_path, monkeypatch):
+def test_check_once_mixed_batch_only_queues_actionable_names(tmp_path, monkeypatch):
     """A batch containing both actionable and silent-class files must only
-    name the actionable ones in the wake."""
+    queue the actionable ones for wake."""
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
-
-    wake_calls = []
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: wake_calls.append(names))
 
     (tmp_path / "REAL_DIRECTIVE.md").write_text("real")
     (tmp_path / "from_rich_20260708_130000.md").write_text("msg")
     (tmp_path / "run_complete_20260708T130000Z.md").write_text("done")
     watcher.check_once(set())
 
-    assert wake_calls == [["REAL_DIRECTIVE.md"]]
+    assert watcher._pending_wake_names == {"REAL_DIRECTIVE.md"}
 
 
-def test_relay_wake_to_claude_calls_tmux_send_keys(monkeypatch):
-    """Verify the actual tmux invocation shape via the shared, guarded
-    background.tmux_relay.send_keys() helper -- this is the one function the
-    mocked tests above never exercise. Mocking watcher.send_keys here (not
-    subprocess directly) matches the real call chain post-2026-07-08
-    incident: _relay_wake_to_claude -> send_keys() -> (guarded) subprocess."""
+def test_relay_wake_to_claude_calls_send_keys_when_idle(monkeypatch):
+    """Verify the actual relay call shape via the shared, idle-gated,
+    verified background.tmux_relay.send_keys_when_idle() helper (root-cause
+    fix, 2026-07-08: plain send_keys() could land text in a busy pane that
+    never submits)."""
     calls = []
     monkeypatch.setattr(
-        watcher, "send_keys",
-        lambda session, *keys: calls.append((session, keys)) or True,
+        watcher, "send_keys_when_idle",
+        lambda session, text, marker: calls.append((session, text, marker)) or True,
     )
 
-    watcher._relay_wake_to_claude(["CORE_FIDELITY_BEFORE_LOOPS.md"])
+    result = watcher._relay_wake_to_claude(["CORE_FIDELITY_BEFORE_LOOPS.md"])
 
+    assert result is True
     assert len(calls) == 1
-    session, keys = calls[0]
+    session, text, marker = calls[0]
     assert session == watcher.SESSION_NAME
-    assert "CORE_FIDELITY_BEFORE_LOOPS.md" in keys[0]
-    assert keys[-1] == "Enter"
+    assert "CORE_FIDELITY_BEFORE_LOOPS.md" in text
+    assert marker  # a non-empty verification marker was derived
 
 
 def test_relay_wake_to_claude_never_includes_file_contents(monkeypatch):
@@ -129,13 +123,13 @@ def test_relay_wake_to_claude_never_includes_file_contents(monkeypatch):
     prompt -- names only, per its own standing discipline."""
     calls = []
     monkeypatch.setattr(
-        watcher, "send_keys",
-        lambda session, *keys: calls.append((session, keys)) or True,
+        watcher, "send_keys_when_idle",
+        lambda session, text, marker: calls.append((session, text, marker)) or True,
     )
 
     watcher._relay_wake_to_claude(["SECRET_PLAN.md"])
 
-    injected_text = calls[0][1][0]
+    injected_text = calls[0][1]
     assert "SECRET_PLAN.md" in injected_text
     # Only the filename should appear -- verify no other staging-dir file
     # content could have leaked by checking the message is short and
@@ -143,36 +137,90 @@ def test_relay_wake_to_claude_never_includes_file_contents(monkeypatch):
     assert len(injected_text) < 500
 
 
+def test_relay_wake_to_claude_returns_false_when_send_fails(monkeypatch):
+    """Session busy / unconfirmed delivery -- must propagate False, not
+    silently succeed, so the caller retries next cycle."""
+    monkeypatch.setattr(watcher, "send_keys_when_idle", lambda session, text, marker: False)
+
+    assert watcher._relay_wake_to_claude(["X.md"]) is False
+
+
 def test_relay_wake_to_claude_swallows_tmux_errors(monkeypatch):
-    """Defense in depth: even if send_keys() itself somehow raised (a
-    regression, or a test double that doesn't replicate its own guarantee),
-    _relay_wake_to_claude has its own try/except so the watcher's poll loop
-    is still protected. tmux_relay's own suite (test_tmux_relay.py)
-    separately verifies send_keys() swallows subprocess exceptions too."""
+    """Defense in depth: even if send_keys_when_idle() itself somehow raised
+    (a regression, or a test double that doesn't replicate its own
+    guarantee), _relay_wake_to_claude has its own try/except so the
+    watcher's poll loop is still protected."""
     def _raise(*a, **k):
         raise Exception("tmux: no such session")
-    monkeypatch.setattr(watcher, "send_keys", _raise)
+    monkeypatch.setattr(watcher, "send_keys_when_idle", _raise)
 
-    watcher._relay_wake_to_claude(["X.md"])  # must not raise
+    assert watcher._relay_wake_to_claude(["X.md"]) is False  # must not raise
+
+
+# ── Pending-wake retry (root-cause fix, docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md, 2026-07-08) ──
+
+def test_attempt_pending_wake_noop_when_nothing_queued(monkeypatch):
+    _reset_pending_wake()
+    calls = []
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: calls.append(names) or True)
+    watcher._attempt_pending_wake()
+    assert calls == []
+
+
+def test_attempt_pending_wake_clears_on_success(monkeypatch):
+    _reset_pending_wake()
+    watcher._pending_wake_names.update({"A.md", "B.md"})
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: True)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+
+    watcher._attempt_pending_wake()
+
+    assert watcher._pending_wake_names == set()
+
+
+def test_attempt_pending_wake_retains_on_failure(monkeypatch):
+    """Session busy -- must stay queued for the next cycle's retry, never
+    silently dropped."""
+    _reset_pending_wake()
+    watcher._pending_wake_names.update({"A.md"})
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: False)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+
+    watcher._attempt_pending_wake()
+
+    assert watcher._pending_wake_names == {"A.md"}
+
+
+def test_attempt_pending_wake_passes_sorted_names(monkeypatch):
+    _reset_pending_wake()
+    watcher._pending_wake_names.update({"B.md", "A.md"})
+    calls = []
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: calls.append(names) or True)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+
+    watcher._attempt_pending_wake()
+
+    assert calls == [["A.md", "B.md"]]
 
 
 # ── Open-agenda continuation nudge (Deliverable 1a, docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md) ──
 
-def test_relay_agenda_nudge_calls_tmux_send_keys(monkeypatch):
+def test_relay_agenda_nudge_calls_send_keys_when_idle(monkeypatch):
     calls = []
     monkeypatch.setattr(
-        watcher, "send_keys",
-        lambda session, *keys: calls.append((session, keys)) or True,
+        watcher, "send_keys_when_idle",
+        lambda session, text, marker: calls.append((session, text, marker)) or True,
     )
 
-    watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"})
+    result = watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"})
 
+    assert result is True
     assert len(calls) == 1
-    session, keys = calls[0]
+    session, text, marker = calls[0]
     assert session == watcher.SESSION_NAME
-    assert "Phase 3" in keys[0]
-    assert "item 2" in keys[0]
-    assert keys[-1] == "Enter"
+    assert "Phase 3" in text
+    assert "item 2" in text
+    assert marker
 
 
 def test_relay_agenda_nudge_never_includes_next_action_as_instruction(monkeypatch):
@@ -180,8 +228,8 @@ def test_relay_agenda_nudge_never_includes_next_action_as_instruction(monkeypatc
     the agenda's own next_action text as something to execute."""
     calls = []
     monkeypatch.setattr(
-        watcher, "send_keys",
-        lambda session, *keys: calls.append((session, keys)) or True,
+        watcher, "send_keys_when_idle",
+        lambda session, text, marker: calls.append((session, text, marker)) or True,
     )
 
     watcher._relay_agenda_nudge({
@@ -189,16 +237,21 @@ def test_relay_agenda_nudge_never_includes_next_action_as_instruction(monkeypatc
         "next_action": "SECRET INSTRUCTION THAT MUST NOT LEAK VERBATIM",
     })
 
-    injected_text = calls[0][1][0]
+    injected_text = calls[0][1]
     assert "SECRET INSTRUCTION THAT MUST NOT LEAK VERBATIM" not in injected_text
+
+
+def test_relay_agenda_nudge_returns_false_when_send_fails(monkeypatch):
+    monkeypatch.setattr(watcher, "send_keys_when_idle", lambda session, text, marker: False)
+    assert watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"}) is False
 
 
 def test_relay_agenda_nudge_swallows_tmux_errors(monkeypatch):
     def _raise(*a, **k):
         raise Exception("tmux: no such session")
-    monkeypatch.setattr(watcher, "send_keys", _raise)
+    monkeypatch.setattr(watcher, "send_keys_when_idle", _raise)
 
-    watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"})  # must not raise
+    assert watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"}) is False  # must not raise
 
 
 def test_current_files_ignores_dirs_and_gitkeep(tmp_path, monkeypatch):
@@ -232,14 +285,10 @@ def test_load_seen_missing_file_returns_none(tmp_path, monkeypatch):
 
 
 def test_check_once_notifies_only_for_new_files(tmp_path, monkeypatch):
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
-    # Explicit mock, belt-and-braces alongside tmux_relay's own pytest guard
-    # (2026-07-08 incident: this exact test pre-dated the wake feature and
-    # was never updated with this mock when check_once() gained the relay
-    # call -- see background/tmux_relay.py's docstring for the full story).
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
 
     (tmp_path / "TASK_OLD.md").write_text("old")
 
@@ -261,12 +310,12 @@ def test_check_once_notifies_only_for_new_files(tmp_path, monkeypatch):
 
 
 def test_check_once_persists_seen_state(tmp_path, monkeypatch):
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     state_file = tmp_path / "seen.json"
     monkeypatch.setattr(watcher, "STATE_FILE", state_file)
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
 
     (tmp_path / "TASK_NEW.md").write_text("new")
     watcher.check_once(set())
@@ -295,10 +344,10 @@ def test_save_seen_overwrites_previous(tmp_path, monkeypatch):
 
 
 def test_check_once_notifies_for_multiple_new_files(tmp_path, monkeypatch):
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
     (tmp_path / "A.md").write_text("a")
     (tmp_path / "B.md").write_text("b")
 
@@ -335,10 +384,10 @@ def test_save_and_reload_multiple_files(tmp_path, monkeypatch):
 
 
 def test_check_once_returns_updated_seen(tmp_path, monkeypatch):
+    _reset_pending_wake()
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
     (tmp_path / "NEW.md").write_text("content")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
     result = watcher.check_once(set())
@@ -406,6 +455,7 @@ def test_check_monthly_maintenance_fires_again_next_month(tmp_path, monkeypatch)
 def test_monthly_maintenance_marker_gets_notified_via_check_once(tmp_path, monkeypatch):
     from datetime import datetime, timezone
 
+    _reset_pending_wake()
     staging_dir = tmp_path / "staging"
     staging_dir.mkdir()
     side_dir = tmp_path / "side"
@@ -415,7 +465,6 @@ def test_monthly_maintenance_marker_gets_notified_via_check_once(tmp_path, monke
     monkeypatch.setattr(watcher, "STATE_FILE", side_dir / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", side_dir / "log.md")
     monkeypatch.setattr(watcher, "MAINTENANCE_STATE_FILE", side_dir / "maint_state.json")
-    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
 
     ntfy_messages = []
     monkeypatch.setattr(watcher, "ntfy", lambda msg: ntfy_messages.append(msg))

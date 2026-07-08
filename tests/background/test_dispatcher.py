@@ -14,6 +14,10 @@ def _make_staging_file(staging_dir: Path, name: str, message: str) -> Path:
     return path
 
 
+def _reset_pending_urgent():
+    dispatcher._pending_urgent.clear()
+
+
 def test_classify_message_returns_urgent_for_correctness_problem(monkeypatch):
     monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
     result = dispatcher.classify_message("gross margin looks completely wrong")
@@ -38,7 +42,12 @@ def test_classify_message_falls_back_to_normal_on_qwen_unavailable(monkeypatch):
     assert result == "normal"
 
 
-def test_urgent_routing_sends_ntfy_and_relays_to_claude(tmp_path, monkeypatch):
+def test_urgent_routing_sends_ntfy_and_queues_wake(tmp_path, monkeypatch):
+    """route_message() classifies/headers/NTFYs immediately, but only
+    QUEUES the wake -- the actual idle-gated, verified send happens in
+    main()'s loop via _attempt_pending_urgent(), so it can retry across
+    cycles if the session is busy (root-cause fix, 2026-07-08)."""
+    _reset_pending_urgent()
     monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
@@ -47,9 +56,7 @@ def test_urgent_routing_sends_ntfy_and_relays_to_claude(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
 
     sent = []
-    relayed = []
     monkeypatch.setattr(dispatcher, "send_ntfy", lambda msg, headers=None: sent.append(msg))
-    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: relayed.append(msg))
 
     path = _make_staging_file(tmp_path, "from_rich_001.md", "the P&L is completely wrong")
 
@@ -59,10 +66,80 @@ def test_urgent_routing_sends_ntfy_and_relays_to_claude(tmp_path, monkeypatch):
     assert seen["from_rich_001.md"] == "urgent"
     assert len(sent) == 1
     assert "URGENT" in sent[0]
-    assert len(relayed) == 1
+    assert "from_rich_001.md" in dispatcher._pending_urgent
+    assert "the P&L is completely wrong" in dispatcher._pending_urgent["from_rich_001.md"]
     # File should still be in staging (not moved) but with urgency header
     assert path.exists()
     assert "URGENT" in path.read_text()
+
+
+# ── Idle-gated verified relay + retry (root-cause fix, docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md, 2026-07-08) ──
+
+def test_relay_to_claude_calls_send_keys_when_idle(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        dispatcher, "send_keys_when_idle",
+        lambda session, text, marker: calls.append((session, text, marker)) or True,
+    )
+    result = dispatcher._relay_to_claude("urgent message")
+    assert result is True
+    assert len(calls) == 1
+    session, text, marker = calls[0]
+    assert session == dispatcher.SESSION_NAME
+    assert "urgent message" in text
+    assert marker
+
+
+def test_relay_to_claude_returns_false_when_busy(monkeypatch):
+    monkeypatch.setattr(dispatcher, "send_keys_when_idle", lambda session, text, marker: False)
+    assert dispatcher._relay_to_claude("urgent message") is False
+
+
+def test_attempt_pending_urgent_noop_when_empty(monkeypatch):
+    _reset_pending_urgent()
+    calls = []
+    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: calls.append(msg) or True)
+    dispatcher._attempt_pending_urgent()
+    assert calls == []
+
+
+def test_attempt_pending_urgent_clears_on_success(monkeypatch):
+    _reset_pending_urgent()
+    dispatcher._pending_urgent["from_rich_010.md"] = "message text"
+    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: True)
+    monkeypatch.setattr(dispatcher, "log", lambda msg: None)
+
+    dispatcher._attempt_pending_urgent()
+
+    assert dispatcher._pending_urgent == {}
+
+
+def test_attempt_pending_urgent_retains_on_failure(monkeypatch):
+    """Session busy -- must stay queued for the next cycle's retry, never
+    silently dropped (this is the exact live failure mode: an urgent
+    message classified and queued, but the session was busy, so nothing
+    should be marked delivered until it actually is)."""
+    _reset_pending_urgent()
+    dispatcher._pending_urgent["from_rich_011.md"] = "message text"
+    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: False)
+    monkeypatch.setattr(dispatcher, "log", lambda msg: None)
+
+    dispatcher._attempt_pending_urgent()
+
+    assert dispatcher._pending_urgent == {"from_rich_011.md": "message text"}
+
+
+def test_attempt_pending_urgent_retries_independently_per_file(monkeypatch):
+    _reset_pending_urgent()
+    dispatcher._pending_urgent["A.md"] = "msg a"
+    dispatcher._pending_urgent["B.md"] = "msg b"
+    # A succeeds, B stays busy
+    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: msg == "msg a")
+    monkeypatch.setattr(dispatcher, "log", lambda msg: None)
+
+    dispatcher._attempt_pending_urgent()
+
+    assert dispatcher._pending_urgent == {"B.md": "msg b"}
 
 
 def test_fyi_routing_moves_file_to_fyi_dir(tmp_path, monkeypatch):
