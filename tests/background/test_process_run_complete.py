@@ -9,6 +9,16 @@ import pytest
 import background.process_run_complete as prc
 
 
+@pytest.fixture(autouse=True)
+def _isolate_fingerprint_file(tmp_path_factory, monkeypatch):
+    """Redirect the change-detection fingerprint file to a per-test temp path so
+    no test reads or pollutes the real docs/observability/ file (same isolation
+    discipline as .last_tested_hash). Tests that want the gate to fire write to
+    prc.LAST_FINGERPRINT_FILE explicitly."""
+    fp = tmp_path_factory.mktemp("fp") / ".last_processed_fingerprint.json"
+    monkeypatch.setattr(prc, "LAST_FINGERPRINT_FILE", fp)
+
+
 def make_marker(tmp_path, git_hash="abc1234", elapsed_s=1870.0, json_data=None):
     """Write a realistic run_complete marker and its JSON to tmp_path."""
     if json_data is None:
@@ -366,3 +376,89 @@ def test_git_commit_push_no_push_recorded_if_commit_fails(tmp_path, monkeypatch)
 
     assert result is False
     assert not push_file.exists()
+
+
+# --- Change-detection gate (DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md, 2026-07-08) ---
+
+def _sample_data(net=1535307.74):
+    return {
+        "total_net_gbp": net,
+        "total_gross_gbp": 6452602.5,
+        "enterprise_value_gbp": 8930210.95,
+        "final_treasury_gbp": 3911893.89,
+        "starting_treasury_gbp": 2466636.22,
+        "total_capital_gbp": 51432.98,
+        "net_margin_after_cost_to_serve_gbp": 6433342.81,
+        "committee_wake_ups_total": 38,
+        "bills_total": 1605,
+        "retention_log": [{"outcome": "retained"}] * 14,
+        "no_offer_churn_log": [{"r": 1}] * 6,
+        "churned_billing_accounts": ["C%d" % i for i in range(6)],
+        "administration_event": None,
+    }
+
+
+def test_fingerprint_stable_and_sensitive():
+    a = prc._run_fingerprint(_sample_data())
+    b = prc._run_fingerprint(_sample_data())
+    assert a == b  # same inputs, same day -> identical fingerprint
+    c = prc._run_fingerprint(_sample_data(net=999.99))
+    assert c != a  # a changed headline figure must change the fingerprint
+    assert a["retained"] == 14 and a["offers"] == 14
+
+
+def test_fingerprint_roundtrip():
+    assert prc._read_last_fingerprint() is None
+    fp = prc._run_fingerprint(_sample_data())
+    prc._write_last_fingerprint(fp)
+    assert prc._read_last_fingerprint() == fp
+
+
+def test_gate_skips_identical_run(tmp_path, monkeypatch):
+    """An identical run is archived with no regen/test/commit."""
+    staging = tmp_path / "staging"
+    done = staging / "done"
+    staging.mkdir(parents=True)
+    done.mkdir()
+    monkeypatch.setattr(prc, "STAGING_DIR", staging)
+    monkeypatch.setattr(prc, "DONE_DIR", done)
+
+    data = _sample_data()
+    json_path = tmp_path / "run_output_latest.json"
+    json_path.write_text(json.dumps(data))
+    prc._write_last_fingerprint(prc._run_fingerprint(data))
+
+    marker = staging / "run_complete_X.md"
+    marker.write_text("# Run Complete\n\nGit: abc\nJSON: %s\nDuration: 200s\n" % json_path)
+
+    # Any pipeline step running is a gate failure — make report regen explode.
+    monkeypatch.setattr(prc, "regenerate_report", lambda jp: pytest.fail("gate did not skip"))
+
+    rc = prc._process(str(marker))
+    assert rc == 0
+    assert (done / marker.name).exists()  # archived
+    assert not marker.exists()
+
+
+def test_gate_never_skips_admin_event(tmp_path, monkeypatch):
+    """An administration event always processes so the NTFY exception fires."""
+    staging = tmp_path / "staging"
+    done = staging / "done"
+    staging.mkdir(parents=True)
+    done.mkdir()
+    monkeypatch.setattr(prc, "STAGING_DIR", staging)
+    monkeypatch.setattr(prc, "DONE_DIR", done)
+
+    data = _sample_data()
+    data["administration_event"] = {"date": "2020-03-01"}
+    json_path = tmp_path / "run_output_latest.json"
+    json_path.write_text(json.dumps(data))
+    prc._write_last_fingerprint(prc._run_fingerprint(data))
+
+    marker = staging / "run_complete_Y.md"
+    marker.write_text("# Run Complete\n\nGit: abc\nJSON: %s\nDuration: 200s\n" % json_path)
+
+    # Reaching regen proves the gate did NOT skip; stop there to keep the test cheap.
+    monkeypatch.setattr(prc, "regenerate_report", lambda jp: (_ for _ in ()).throw(SystemExit("proceeded")))
+    with pytest.raises(SystemExit):
+        prc._process(str(marker))

@@ -19,6 +19,19 @@ LAST_PUSH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_push_time.json"
 RUN_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".process_run_complete.lock"
 RUN_INSIGHTS_PATH = PROJECT_DIR / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
+# Change-detection gate (DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md, 2026-07-08):
+# the sim is deterministic over frozen historical data, so every ~10-min cycle
+# produced a byte-identical £1,535,308 result and yet still regenerated every
+# report/site artifact, ran the test suite, and committed -- dozens of identical
+# commits per day, pure token/CI burn. This file stores a fingerprint of the
+# last FULLY-processed run; a new run whose fingerprint matches is skipped
+# (one log line, marker archived, no regen/test/commit). The fingerprint
+# deliberately does NOT key on the marker's git_hash -- that advances every
+# cycle from the auto-commit itself, so it could never dedup -- and DOES include
+# the UTC date so the once-per-day legitimate advances (rolling Elexon SSP
+# fetch, live-decision days_to_renewal / market_data_stale_days) still produce
+# exactly one processed commit per day.
+LAST_FINGERPRINT_FILE = PROJECT_DIR / "docs" / "observability" / ".last_processed_fingerprint.json"
 # DEPLOY_CONTENTION_BATCH_COMMITS.md (2026-07-04): sim_runner cycles every
 # ~10 min and each cycle committed+pushed unconditionally (LATEST.md's
 # timestamp always differs), giving ~6 pushes/hour -- enough to contend with
@@ -66,6 +79,64 @@ def _run_lock():
     finally:
         fcntl.flock(fh, fcntl.LOCK_UN)
         fh.close()
+
+
+def _run_fingerprint(data):
+    """Stable content fingerprint of a run's meaningful outputs + the UTC date.
+
+    Excludes volatile fields (timestamps, marker git_hash). Two runs with the
+    same fingerprint would regenerate byte-identical business surfaces, so the
+    second is pure burn. Includes the UTC date so a new calendar day always
+    processes at least once (carrying that day's live-decision / rolling-fetch
+    advance), even if the sim result itself is unchanged."""
+    ret_log = data.get("retention_log", [])
+    return {
+        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "total_net_gbp": round(data.get("total_net_gbp", 0), 2),
+        "total_gross_gbp": round(data.get("total_gross_gbp", 0), 2),
+        "enterprise_value_gbp": round(data.get("enterprise_value_gbp", 0), 2),
+        "final_treasury_gbp": round(data.get("final_treasury_gbp", 0), 2),
+        "starting_treasury_gbp": round(data.get("starting_treasury_gbp", 0), 2),
+        "total_capital_gbp": round(data.get("total_capital_gbp", 0), 2),
+        "net_margin_after_cost_to_serve_gbp": round(data.get("net_margin_after_cost_to_serve_gbp", 0), 2),
+        "committee_wake_ups_total": data.get("committee_wake_ups_total", 0),
+        "bills_total": data.get("bills_total", 0),
+        "offers": len(ret_log),
+        "retained": sum(1 for r in ret_log if r.get("outcome") == "retained"),
+        "no_offer_churns": len(data.get("no_offer_churn_log", [])),
+        "churned_accounts": len(data.get("churned_billing_accounts", [])),
+        "administration_event": bool(data.get("administration_event")),
+    }
+
+
+def _read_last_fingerprint():
+    if not LAST_FINGERPRINT_FILE.exists():
+        return None
+    try:
+        return json.loads(LAST_FINGERPRINT_FILE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _write_last_fingerprint(fp):
+    LAST_FINGERPRINT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    LAST_FINGERPRINT_FILE.write_text(json.dumps(fp, sort_keys=True))
+
+
+def _archive_marker(marker):
+    """Move a processed/skipped marker into done/ so markers don't accumulate."""
+    DONE_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        marker.rename(DONE_DIR / marker.name)
+        return True
+    except FileNotFoundError:
+        return (DONE_DIR / marker.name).exists()
+    except OSError:
+        # Cross-device or similar — fall back to copy + unlink.
+        import shutil
+        shutil.copy2(str(marker), str(DONE_DIR / marker.name))
+        marker.unlink(missing_ok=True)
+        return True
 
 
 def log(msg):
@@ -642,6 +713,20 @@ def _process(marker_path_str):
     data = json.loads(json_path.read_text())
     net_margin = data.get("total_net_gbp", 0)
 
+    # Change-detection gate: if this run's meaningful outputs are identical to
+    # the last fully-processed run (same headline figures, same UTC date), the
+    # entire regen/test/commit pipeline below would reproduce byte-identical
+    # surfaces -- skip it, log one line, archive the marker. An administration
+    # event always processes (never skipped) so the NTFY exception path fires.
+    fingerprint = _run_fingerprint(data)
+    last_fp = _read_last_fingerprint()
+    if last_fp == fingerprint and not fingerprint["administration_event"]:
+        _archive_marker(marker)
+        log("SKIP (change-detection gate): identical to last processed run "
+            "[net=\xa3{:,.0f}, date={}] -- no regen/test/commit. Archived {}.".format(
+                net_margin, fingerprint["date"], marker.name))
+        return 0
+
     log("Regenerating ANNUAL_REPORT.md from {}".format(json_path.name))
     if not regenerate_report(json_path):
         log("Report regeneration failed")
@@ -734,6 +819,12 @@ def _process(marker_path_str):
     log("Committing and pushing (net=\xa3{:,.0f})".format(net_margin))
     if not git_commit_push(git_hash, net_margin):
         log("Commit/push failed (possibly nothing changed)")
+
+    # Record this run's fingerprint AFTER a full process so the next identical
+    # cycle is skipped by the change-detection gate above. Written even if the
+    # commit was a no-op (nothing changed) -- that is exactly the state we want
+    # future identical cycles to short-circuit on.
+    _write_last_fingerprint(fingerprint)
 
     # Keep agent_status.json financial metrics current (phase/tests preserved by phase-close)
     try:
