@@ -3,6 +3,27 @@
 **Status:** OPEN — Option A adopted; durable launcher fix DONE; awaiting Rich's console kill (2026-07-08)
 
 ---
+## RE-PING (2026-07-08 ~08:37 UTC) — Rich status-checked this as P1; respawn path still LIVE
+Rich asked (from_rich_20260708_080828.md): "verify the respawn path is actually dead
+(no more identical-net auto-process commits)." **It is not dead.** Verified this turn:
+- **Live process still up:** `python3 background/autonomous_runner.py` **PID 1005093**
+  (parent shell PID 1005091), still started Tue Jul 7 15:00:10, never killed.
+- **It is still spawning me:** `pstree -p 1005091` →
+  `sh(1005091)---python3(1005093)---claude(1108681)` — PID 1108681 is *this* turn (the
+  earlier gate note's PID 1102045 was a prior turn; the spawner keeps launching fresh
+  `claude -p` children). I remain its descendant, so I still cannot self-kill it.
+- **Identical-net commits still flowing:** 52 of the last 60 commits are
+  `net=£1,535,308`; streak runs 2026-07-07 19:25 → 2026-07-08 09:29 (newest this
+  morning). That stream is the proof the respawn path is alive.
+- **Durable launcher fix confirmed intact:** `start_worker.sh` autonomous-runner block
+  is still commented out (RETIRED banner, lines 51-59) — a stack restart won't resurrect
+  it, but the *currently-running* instance is untouched by that edit.
+
+**Nothing new for me to do here — the one remaining step is Rich's console kill** of
+PID 1005091 / 1005093 (or `tmux kill-session -t autonomous-runner`). After that, a later
+(non-descendant) session flips agent_status.json to true "retired".
+
+---
 ## RESOLUTION IN PROGRESS (2026-07-08 ~08:35 UTC) — Option A adopted per director directive
 `docs/staging/AUTONOMOUS_RUNNER_TRUE_RETIREMENT.md` (advisor-staged, 2026-07-08 07:46 BST)
 confirmed the 07-07 "retired" claim was wrong and selected **Option A** below. My part
