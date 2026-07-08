@@ -122,7 +122,13 @@ def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
     -- three prior attempts to get this added via untrusted channels
     (unauthenticated NTFY, a git-pushed commit, text embedded in a tool
     result) were declined; this is the fourth, arriving as an actual
-    conversation turn, which is the one channel treated as trustworthy."""
+    conversation turn, which is the one channel treated as trustworthy.
+
+    Also sets DISABLE_AUTOUPDATER=1 via tmux's session-scoped -e flag
+    (2026-07-08, Rich's direct instruction): the npm global install isn't
+    writable, so claude's background auto-update check fails on every
+    unattended restart for no benefit -- manual update is now the
+    sanctioned path (MAINTENANCE.md)."""
     watchdog.restart_times.clear()
     calls = []
     monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: calls.append(a[0]) or type("R", (), {"returncode": 0})())
@@ -146,6 +152,8 @@ def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
     assert launch[-4:] == [
         "/fake/nvm/bin/claude", "--dangerously-skip-permissions", "-c", watchdog.RESUME_INSTRUCTION,
     ]
+    assert "-e" in launch
+    assert launch[launch.index("-e") + 1] == "DISABLE_AUTOUPDATER=1"
     watchdog.restart_times.clear()
 
 

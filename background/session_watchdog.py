@@ -875,12 +875,21 @@ def restart_claude(resume: bool = True) -> None:
 
     log(f"Restarting Claude Code (--dangerously-skip-permissions per "
         f"2026-07-05 director confirmation, direct launch via {claude_bin}, "
-        f"claude -c resume, no send-keys)")
+        f"claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)")
     subprocess.run(["tmux", "kill-session", "-t", SESSION_NAME], capture_output=True)
     time.sleep(5)
 
+    # DISABLE_AUTOUPDATER=1 (2026-07-08, Rich's direct instruction): the npm
+    # global install here isn't writable, so claude's background auto-update
+    # check fails every launch (harmless, but noise) and can't actually
+    # update anything -- pointless to attempt on every unattended restart.
+    # Set via tmux's -e (session-scoped env, supported tmux >=3.2) rather than
+    # this script's own os.environ, so it applies only to the spawned Claude
+    # Code session, not to session_watchdog.py itself or anything else it
+    # launches. Sanctioned update path is now manual -- see MAINTENANCE.md.
     subprocess.run([
         "tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", PROJECT_DIR,
+        "-e", "DISABLE_AUTOUPDATER=1",
         claude_bin, "--dangerously-skip-permissions", "-c", RESUME_INSTRUCTION,
     ])
 
