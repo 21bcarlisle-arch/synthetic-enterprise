@@ -201,7 +201,7 @@ function renderBuild(d){
   if(d.test_count)parts.push(d.test_count.toLocaleString()+" tests passing");
   if(d.company_module_total)parts.push(d.company_module_total+" company/ modules");
   if(d.generated_at)parts.push("generated "+d.generated_at);
-  el.textContent=parts.length?parts.join(" \u00b7 "):"Build stats unavailable.";
+  el.textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
 }
 
 function bucketCls(b){if(b==="A")return "tag-bucket-a";if(b==="B")return "tag-bucket-b";return "tag-bucket-c";}

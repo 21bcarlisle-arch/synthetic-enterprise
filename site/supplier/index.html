@@ -860,9 +860,9 @@ function renderEvents() {
     }).join('');
 
   var rows = stream.map(function(e) {
-    var belief = e.company_belief != null ? (e.company_belief * 100).toFixed(0) + '%' : '\u2014';
-    var truth = e.event_type === 'journey_state' ? '\u2014' : (e.sim_truth != null ? (e.sim_truth * 100).toFixed(0) + '%' : '\u2014');
-    var amount = e.amount_gbp != null ? gbp(e.amount_gbp) : '\u2014';
+    var belief = e.company_belief != null ? (e.company_belief * 100).toFixed(0) + '%' : '—';
+    var truth = e.event_type === 'journey_state' ? '—' : (e.sim_truth != null ? (e.sim_truth * 100).toFixed(0) + '%' : '—');
+    var amount = e.amount_gbp != null ? gbp(e.amount_gbp) : '—';
     var custLink = '<a href="../customers/?acc=' + encodeURIComponent(e.customer_id) + '&tab=timeline" target="_blank" onclick="event.stopPropagation()">' + e.customer_id + '</a>';
     return '<tr data-etype="' + e.event_type + '" onclick="toggleEventDetail(this)">' +
       '<td>' + e.date + '</td>' +
@@ -1172,8 +1172,8 @@ function renderMonthly() {
     var sh = m.shock_count > 0 ? '<span style="color:var(--red)">'+m.shock_count+'</span>' : '0';
     var ci = m.committee_interventions > 0 ? '<span style="color:var(--amber)">'+m.committee_interventions+'</span>' : '0';
     return '<tr'+cr+'><td>'+m.month+(m.is_crisis ? ' <span class=\"badge-crisis\">CRISIS</span>' : '')+'</td>'+
-      '<td>'+sh+'</td><td>'+(m.shock_count>0 ? m.avg_shock_pct.toFixed(0)+'%' : '\u2014')+'</td>'+
-      '<td>'+(m.shock_count>0 ? m.max_shock_pct.toFixed(0)+'%' : '\u2014')+'</td>'+
+      '<td>'+sh+'</td><td>'+(m.shock_count>0 ? m.avg_shock_pct.toFixed(0)+'%' : '—')+'</td>'+
+      '<td>'+(m.shock_count>0 ? m.max_shock_pct.toFixed(0)+'%' : '—')+'</td>'+
       '<td>'+ci+'</td><td>'+m.retention_offers+'</td><td>'+m.retained+'</td></tr>';
   }).join('');
 

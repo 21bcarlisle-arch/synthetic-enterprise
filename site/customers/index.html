@@ -259,7 +259,7 @@ function reconciliationLine(){
   var lhs=t.collected+t.balance+t.written_off;
   var ok=Math.abs(lhs-t.billed)<0.02;
   return "<div class=\"usage-hint\">Reconciliation (household, both fuels, all-in cash basis): Collected "+gbp(t.collected)+
-    " + Outstanding "+gbp(t.balance)+" + Written off "+gbp(t.written_off)+" = "+gbp(lhs)+" "+(ok?"\u2713":"\u2717")+
+    " + Outstanding "+gbp(t.balance)+" + Written off "+gbp(t.written_off)+" = "+gbp(lhs)+" "+(ok?"✓":"✗")+
     " vs Billed "+gbp(t.billed)+
     (t.recovered?" (of which "+gbp(t.recovered)+" was later recovered via DCA/debt sale after write-off -- informational, not double-counted in Collected).":".")+
     " Lifetime Revenue shown on the Accounts tab is a different, ex-VAT commodity-only accounting figure -- it excludes standing charge, network/levy pass-through and VAT, so it will not equal the all-in cash totals here.</div>";
@@ -675,7 +675,7 @@ function closedAccountNotice(d, invoices){
     else if(d.ledger.total_written_off_gross_gbp>0.005)settleTxt=" Account settled to zero (net of "+gbp(d.ledger.total_written_off_gross_gbp)+" written off).";
     else settleTxt=" Account settled to zero.";
   }
-  return "<div class=\"closed-notice\">Account closed "+churned.date+" \u2014 final bill "+last.id+"."+settleTxt+"</div>";
+  return "<div class=\"closed-notice\">Account closed "+churned.date+" — final bill "+last.id+"."+settleTxt+"</div>";
 }
 function renderBills(d){
   var section=document.getElementById("bills-section");

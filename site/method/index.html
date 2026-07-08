@@ -278,7 +278,7 @@ function renderBuild(d){
   if(d.phase)parts.push("Phase "+d.phase);
   if(d.test_count)parts.push(d.test_count.toLocaleString()+" tests passing");
   if(d.generated_at)parts.push("generated "+d.generated_at);
-  el.textContent=parts.length?parts.join(" \u00b7 "):"Build stats unavailable.";
+  el.textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
 }
 
 fetch("../data/method.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
