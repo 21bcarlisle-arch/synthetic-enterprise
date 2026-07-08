@@ -104,21 +104,24 @@ def test_check_once_mixed_batch_only_wakes_for_actionable_names(tmp_path, monkey
 
 
 def test_relay_wake_to_claude_calls_tmux_send_keys(monkeypatch):
-    """Verify the actual tmux invocation shape, not just that _relay_wake_to_claude
-    was called -- this is the one function the mocked tests above never exercise."""
+    """Verify the actual tmux invocation shape via the shared, guarded
+    background.tmux_relay.send_keys() helper -- this is the one function the
+    mocked tests above never exercise. Mocking watcher.send_keys here (not
+    subprocess directly) matches the real call chain post-2026-07-08
+    incident: _relay_wake_to_claude -> send_keys() -> (guarded) subprocess."""
     calls = []
     monkeypatch.setattr(
-        watcher.subprocess, "run",
-        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"returncode": 0})(),
+        watcher, "send_keys",
+        lambda session, *keys: calls.append((session, keys)) or True,
     )
 
     watcher._relay_wake_to_claude(["CORE_FIDELITY_BEFORE_LOOPS.md"])
 
     assert len(calls) == 1
-    cmd = calls[0]
-    assert cmd[:4] == ["tmux", "send-keys", "-t", watcher.SESSION_NAME]
-    assert "CORE_FIDELITY_BEFORE_LOOPS.md" in cmd[4]
-    assert cmd[-1] == "Enter"
+    session, keys = calls[0]
+    assert session == watcher.SESSION_NAME
+    assert "CORE_FIDELITY_BEFORE_LOOPS.md" in keys[0]
+    assert keys[-1] == "Enter"
 
 
 def test_relay_wake_to_claude_never_includes_file_contents(monkeypatch):
@@ -126,13 +129,13 @@ def test_relay_wake_to_claude_never_includes_file_contents(monkeypatch):
     prompt -- names only, per its own standing discipline."""
     calls = []
     monkeypatch.setattr(
-        watcher.subprocess, "run",
-        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"returncode": 0})(),
+        watcher, "send_keys",
+        lambda session, *keys: calls.append((session, keys)) or True,
     )
 
     watcher._relay_wake_to_claude(["SECRET_PLAN.md"])
 
-    injected_text = calls[0][4]
+    injected_text = calls[0][1][0]
     assert "SECRET_PLAN.md" in injected_text
     # Only the filename should appear -- verify no other staging-dir file
     # content could have leaked by checking the message is short and
@@ -141,10 +144,14 @@ def test_relay_wake_to_claude_never_includes_file_contents(monkeypatch):
 
 
 def test_relay_wake_to_claude_swallows_tmux_errors(monkeypatch):
-    """A dead/missing tmux session must never crash the watcher's poll loop."""
+    """Defense in depth: even if send_keys() itself somehow raised (a
+    regression, or a test double that doesn't replicate its own guarantee),
+    _relay_wake_to_claude has its own try/except so the watcher's poll loop
+    is still protected. tmux_relay's own suite (test_tmux_relay.py)
+    separately verifies send_keys() swallows subprocess exceptions too."""
     def _raise(*a, **k):
         raise Exception("tmux: no such session")
-    monkeypatch.setattr(watcher.subprocess, "run", _raise)
+    monkeypatch.setattr(watcher, "send_keys", _raise)
 
     watcher._relay_wake_to_claude(["X.md"])  # must not raise
 
@@ -183,6 +190,11 @@ def test_check_once_notifies_only_for_new_files(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    # Explicit mock, belt-and-braces alongside tmux_relay's own pytest guard
+    # (2026-07-08 incident: this exact test pre-dated the wake feature and
+    # was never updated with this mock when check_once() gained the relay
+    # call -- see background/tmux_relay.py's docstring for the full story).
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
 
     (tmp_path / "TASK_OLD.md").write_text("old")
 
@@ -209,6 +221,7 @@ def test_check_once_persists_seen_state(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher, "STATE_FILE", state_file)
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
 
     (tmp_path / "TASK_NEW.md").write_text("new")
     watcher.check_once(set())
@@ -240,6 +253,7 @@ def test_check_once_notifies_for_multiple_new_files(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
     (tmp_path / "A.md").write_text("a")
     (tmp_path / "B.md").write_text("b")
 
@@ -279,6 +293,7 @@ def test_check_once_returns_updated_seen(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
     (tmp_path / "NEW.md").write_text("content")
     monkeypatch.setattr(watcher, "ntfy", lambda msg: None)
     result = watcher.check_once(set())
@@ -355,6 +370,7 @@ def test_monthly_maintenance_marker_gets_notified_via_check_once(tmp_path, monke
     monkeypatch.setattr(watcher, "STATE_FILE", side_dir / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", side_dir / "log.md")
     monkeypatch.setattr(watcher, "MAINTENANCE_STATE_FILE", side_dir / "maint_state.json")
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: None)
 
     ntfy_messages = []
     monkeypatch.setattr(watcher, "ntfy", lambda msg: ntfy_messages.append(msg))

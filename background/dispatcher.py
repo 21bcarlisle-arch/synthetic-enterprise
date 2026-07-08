@@ -51,6 +51,7 @@ OLLAMA_MODEL = "qwen3:14b"
 sys.path.insert(0, str(PROJECT_DIR))
 from background.ntfy_utils import send_ntfy  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
+from background.tmux_relay import send_keys  # noqa: E402
 
 # Files the dispatcher has already classified. Persisted across restarts.
 # Value: classification ("urgent"|"normal"|"fyi")
@@ -151,18 +152,14 @@ def _prepend_urgency_header(path: Path, classification: str) -> None:
 
 
 def _relay_to_claude(message: str) -> None:
-    """Type message into the 'claude' tmux session (same as session_watchdog)."""
+    """Type message into the 'claude' tmux session (same as session_watchdog),
+    via background.tmux_relay.send_keys -- refuses to run under pytest, see
+    that module's docstring for the 2026-07-08 incident this guards against."""
     suffix = (
         " [DISPATCHER: URGENT — this message has been classified as requiring "
         "immediate attention. Pause current work, read this, and respond.]"
     )
-    try:
-        subprocess.run(
-            ["tmux", "send-keys", "-t", SESSION_NAME, message + suffix, "Enter"],
-            capture_output=True, timeout=5,
-        )
-    except Exception:
-        pass
+    send_keys(SESSION_NAME, message + suffix, "Enter")
 
 
 def route_message(path: Path, message: str, classification: str) -> None:

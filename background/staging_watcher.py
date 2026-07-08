@@ -69,6 +69,7 @@ MAINTENANCE_DOC = PROJECT_DIR / "docs" / "operations" / "MAINTENANCE.md"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background.ntfy_utils import send_ntfy  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
+from background.tmux_relay import send_keys  # noqa: E402
 
 
 def log(msg: str) -> None:
@@ -232,10 +233,12 @@ def _relay_wake_to_claude(new_names: list[str]) -> None:
     session is idle or mid-task) -- no new process, single-writer preserved.
 
     Names only, never file contents -- matches this watcher's existing
-    "announce, don't act" discipline. Failures are swallowed (best-effort,
-    same as dispatcher._relay_to_claude): a missing/dead tmux session must
-    never crash the watcher's poll loop, and the NTFY sent alongside this
-    call is the fallback channel if the relay silently no-ops.
+    "announce, don't act" discipline. Uses background.tmux_relay.send_keys,
+    which refuses to run under pytest (see its module docstring for the
+    2026-07-08 incident this guards against) and swallows failures
+    best-effort: a missing/dead tmux session must never crash the watcher's
+    poll loop, and the NTFY sent alongside this call is the fallback channel
+    if the relay silently no-ops.
     """
     names = ", ".join(new_names)
     message = (
@@ -247,11 +250,12 @@ def _relay_wake_to_claude(new_names: list[str]) -> None:
         "staging check.]"
     )
     try:
-        subprocess.run(
-            ["tmux", "send-keys", "-t", SESSION_NAME, message, "Enter"],
-            capture_output=True, timeout=5,
-        )
+        send_keys(SESSION_NAME, message, "Enter")
     except Exception:
+        # Defense in depth: send_keys() already swallows its own subprocess
+        # failures, but this catch means the watcher's poll loop is also
+        # protected against any future regression in that guarantee, or a
+        # test double that doesn't replicate it.
         pass
 
 
