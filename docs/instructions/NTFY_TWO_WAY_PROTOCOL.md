@@ -61,9 +61,11 @@ directly from the phone, no app needed. Plan:
 
 `http` actions transit ntfy.sh's servers as part of the notification
 payload, including any headers (so the real `FILE_API_KEY` would be
-visible to anyone who can read the `skynet-synthetic` topic — topic names
-are the only access control on ntfy.sh and are not secret in any strong
-sense). Recommendation: `/respond` accepts a **short-lived, single-use
+visible to anyone who can read the shared NTFY topic — topic names are the
+only access control on ntfy.sh, so even after the 2026-07-08 rotation to a
+secret, gitignored value (docs/staging/NTFY_CHANNEL_HARDENING.md) they are
+not secret in a strong cryptographic sense, only no-longer-committed-to-git).
+Recommendation: `/respond` accepts a **short-lived, single-use
 per-gate token** instead of the master key — generated when the REVIEW_GATE
 notification is sent, stored in a gitignored
 `docs/staging/.gate_tokens/<gate>.token`, and invalidated on first use.

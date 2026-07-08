@@ -348,7 +348,7 @@ git push
 ```
 
 ### 12. Send NTFY
-Send two messages to `skynet-synthetic`:
+Send two messages to the shared NTFY topic (see `background/ntfy_utils.py`):
 
 **Message 1 — URL:**
 ```

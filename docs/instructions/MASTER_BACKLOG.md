@@ -1,10 +1,10 @@
 # The Synthetic Enterprise — Master Backlog
 
-> **How this works:** Read this file at the start of every session. Execute phases in order. After each phase write `docs/observability/PHASE_<ID>_SUMMARY.md`, send an NTFY notification to `ntfy.sh/skynet-synthetic`, then proceed to the next phase automatically. Gates (`[REVIEW_GATE]`) pause execution and wait for a new instruction before proceeding.
+> **How this works:** Read this file at the start of every session. Execute phases in order. After each phase write `docs/observability/PHASE_<ID>_SUMMARY.md`, send an NTFY notification to the shared topic (see `background/ntfy_utils.py`), then proceed to the next phase automatically. Gates (`[REVIEW_GATE]`) pause execution and wait for a new instruction before proceeding.
 
 ## NTFY Protocol
 
-Send all notifications via: `curl -d "message" ntfy.sh/skynet-synthetic`
+Send all notifications via `background.ntfy_utils.send_ntfy()` (the shared topic is loaded from the environment, not hardcoded here — see that module's docstring; 2026-07-08 topic rotation, docs/staging/NTFY_CHANNEL_HARDENING.md).
 
 **Any file referenced in a notification must be a raw GitHub URL, not a blob URL** — Rich's strategy advisor reads these links directly and needs raw text, not a rendered HTML page. Format:
 `https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/main/[filepath]`
@@ -36,7 +36,7 @@ At the start of every session (and on each polling cycle thereafter):
    promote it by moving/copying the file into `docs/instructions/`, then delete it from `docs/staging/`.
 4. **One-way door** (anything spending money, deleting data, changing irreversible external state, or otherwise
    matching the "Reversibility is law" escalation criteria): do **not** promote automatically. Leave the file in
-   `docs/staging/` and send an NTFY to `skynet-synthetic` summarising the item and asking Rich to approve promotion,
+   `docs/staging/` and send an NTFY to the shared topic summarising the item and asking Rich to approve promotion,
    including the raw GitHub URL to the staged file.
 
 ## Phase Summary Protocol

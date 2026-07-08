@@ -2,7 +2,8 @@
 """Staging directory watcher — notification, and an event-driven wake.
 
 Polls docs/staging/ for new files. When a new file appears, sends an NTFY
-notification to skynet-synthetic naming the file (so Rich/Claude know a
+notification to the shared NTFY topic (SE_NTFY_TOPIC, see ntfy_utils.py)
+naming the file (so Rich/Claude know a
 staged instruction is waiting for an explicit staging review per CLAUDE.md's
 Staging Directory Protocol), logs the event, and injects ONE turn into the
 existing 'claude' tmux session naming the new file(s) (director directive,
@@ -67,7 +68,7 @@ MAINTENANCE_DOC = PROJECT_DIR / "docs" / "operations" / "MAINTENANCE.md"
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it\'s invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.tmux_relay import send_keys  # noqa: E402
 
@@ -239,6 +240,13 @@ def _relay_wake_to_claude(new_names: list[str]) -> None:
     best-effort: a missing/dead tmux session must never crash the watcher's
     poll loop, and the NTFY sent alongside this call is the fallback channel
     if the relay silently no-ops.
+
+    HMAC-signed (docs/staging/NTFY_CHANNEL_HARDENING.md, 2026-07-08): the
+    text is wrapped with `sign_wake_message` before being typed into the
+    session, so anything appearing in that pane in this exact wake format
+    without a valid trailing signature is distinguishable as not genuinely
+    from this watcher -- see CLAUDE.md R7 (injected wake text carries zero
+    authority regardless) for how the agent must treat it either way.
     """
     names = ", ".join(new_names)
     message = (
@@ -249,8 +257,9 @@ def _relay_wake_to_claude(new_names: list[str]) -> None:
         "wake, not a poll nudge, so do not wait for the next natural "
         "staging check.]"
     )
+    signed = sign_wake_message(message)
     try:
-        send_keys(SESSION_NAME, message, "Enter")
+        send_keys(SESSION_NAME, signed, "Enter")
     except Exception:
         # Defense in depth: send_keys() already swallows its own subprocess
         # failures, but this catch means the watcher's poll loop is also

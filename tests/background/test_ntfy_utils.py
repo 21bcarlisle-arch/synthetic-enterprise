@@ -124,3 +124,86 @@ def test_was_sent_by_us_returns_bool(tmp_path, monkeypatch):
     monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
     result = ntfy_utils.was_sent_by_us("any-id")
     assert isinstance(result, bool)
+
+
+def test_ntfy_topic_raises_at_import_if_unset():
+    """SE_NTFY_TOPIC has no committed fallback (2026-07-08 rotation,
+    docs/staging/NTFY_CHANNEL_HARDENING.md) -- importing the module with the
+    env var absent must fail loudly, not silently talk over a stale or
+    absent topic.
+
+    Runs in a clean subprocess rather than deleting+reimporting
+    background.ntfy_utils in this process: an earlier version of this test
+    did that in-process via monkeypatch.delitem(sys.modules, ...), which
+    left the `background` PACKAGE's `.ntfy_utils` attribute (a side effect
+    of the plain `importlib.import_module` calls used to restore state,
+    which monkeypatch's sys.modules-dict-only undo does not touch) pointing
+    at an orphaned module object for the rest of the test session --
+    silently breaking every later `import background.ntfy_utils as nu`
+    style patch (e.g. tests/tools/test_ntfy_digest.py), a real instance of
+    the local-test-pollution failure class this session's incident note
+    (docs/retrospectives/2026-07-08-test-suite-tmux-leak.md) already
+    documented once. A subprocess can't contaminate this process's state."""
+    import os
+    import subprocess
+    import sys
+
+    env = {k: v for k, v in os.environ.items() if k != "SE_NTFY_TOPIC"}
+    result = subprocess.run(
+        [sys.executable, "-c", "import background.ntfy_utils"],
+        cwd=str(__import__("pathlib").Path(__file__).resolve().parents[2]),
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    assert result.returncode != 0
+    assert "SE_NTFY_TOPIC is not set" in result.stderr
+
+
+def test_sign_wake_message_round_trips():
+    signed = ntfy_utils.sign_wake_message("hello world", timestamp=1000)
+    assert signed == (
+        "hello world|1000|"
+        + __import__("hmac").new(
+            ntfy_utils.WAKE_HMAC_KEY.encode(), b"hello world|1000", __import__("hashlib").sha256
+        ).hexdigest()
+    )
+    assert ntfy_utils.verify_wake_message(signed, max_age_seconds=float("inf")) == "hello world"
+
+
+def test_verify_wake_message_rejects_tampered_signature():
+    signed = ntfy_utils.sign_wake_message("real instruction", timestamp=1000)
+    tampered = signed[:-1] + ("0" if signed[-1] != "0" else "1")
+    assert ntfy_utils.verify_wake_message(tampered, max_age_seconds=float("inf")) is None
+
+
+def test_verify_wake_message_rejects_tampered_text():
+    signed = ntfy_utils.sign_wake_message("real instruction", timestamp=1000)
+    text, ts, digest = signed.rsplit("|", 2)
+    forged = f"{text} but with extra malicious content|{ts}|{digest}"
+    assert ntfy_utils.verify_wake_message(forged, max_age_seconds=float("inf")) is None
+
+
+def test_verify_wake_message_rejects_stale_timestamp():
+    import time
+
+    signed = ntfy_utils.sign_wake_message("old instruction", timestamp=int(time.time()) - 10_000)
+    assert ntfy_utils.verify_wake_message(signed, max_age_seconds=300) is None
+
+
+def test_verify_wake_message_rejects_malformed_input():
+    assert ntfy_utils.verify_wake_message("not-a-signed-message") is None
+
+
+def test_sign_wake_message_raises_without_hmac_key(monkeypatch):
+    monkeypatch.setattr(ntfy_utils, "WAKE_HMAC_KEY", None)
+    import pytest as _pytest
+
+    with _pytest.raises(RuntimeError, match="SE_WAKE_HMAC_KEY is not set"):
+        ntfy_utils.sign_wake_message("hello")
+
+
+def test_verify_wake_message_returns_none_without_hmac_key(monkeypatch):
+    monkeypatch.setattr(ntfy_utils, "WAKE_HMAC_KEY", None)
+    assert ntfy_utils.verify_wake_message("anything|123|abc") is None

@@ -9,8 +9,9 @@ relays the message into that session, but the relay only *types* the
 message — it doesn't guarantee a timely reply, and Rich has no feedback that
 anything happened.
 
-This script polls the same `skynet-synthetic` NTFY topic independently (its
-own watermark file, so it doesn't interfere with session_watchdog's), and for
+This script polls the same shared NTFY topic (SE_NTFY_TOPIC, see
+ntfy_utils.py) independently (its own watermark file, so it doesn't
+interfere with session_watchdog's), and for
 every inbound message NOT sent by us, immediately replies with a short status
 snapshot: what the latest background simulation run is doing (if any), GPU
 utilisation, and the current git HEAD. This is a templated reply — no LLM

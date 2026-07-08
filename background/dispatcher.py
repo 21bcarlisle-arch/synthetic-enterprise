@@ -49,7 +49,7 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "qwen3:14b"
 
 sys.path.insert(0, str(PROJECT_DIR))
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.tmux_relay import send_keys  # noqa: E402
 
@@ -154,12 +154,15 @@ def _prepend_urgency_header(path: Path, classification: str) -> None:
 def _relay_to_claude(message: str) -> None:
     """Type message into the 'claude' tmux session (same as session_watchdog),
     via background.tmux_relay.send_keys -- refuses to run under pytest, see
-    that module's docstring for the 2026-07-08 incident this guards against."""
+    that module's docstring for the 2026-07-08 incident this guards against.
+    HMAC-signed (docs/staging/NTFY_CHANNEL_HARDENING.md, 2026-07-08) -- see
+    staging_watcher._relay_wake_to_claude for the same pattern."""
     suffix = (
         " [DISPATCHER: URGENT — this message has been classified as requiring "
         "immediate attention. Pause current work, read this, and respond.]"
     )
-    send_keys(SESSION_NAME, message + suffix, "Enter")
+    signed = sign_wake_message(message + suffix)
+    send_keys(SESSION_NAME, signed, "Enter")
 
 
 def route_message(path: Path, message: str, classification: str) -> None:

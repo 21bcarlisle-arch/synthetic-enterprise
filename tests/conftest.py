@@ -1,3 +1,16 @@
+import os
+
+# background.ntfy_utils raises at import time if SE_NTFY_TOPIC isn't set
+# (2026-07-08 topic rotation, docs/staging/NTFY_CHANNEL_HARDENING.md — no
+# committed default topic any more). setdefault so a real background/.env.ntfy
+# already sourced in the shell (e.g. this session's own tmux env) still wins;
+# this is only a harmless fallback so collection doesn't fail for a dev/CI
+# shell that hasn't loaded it. Must run before any test module imports
+# background.ntfy_utils, so it lives here at conftest.py's top level, not
+# inside a fixture (fixtures run too late for collection-time imports).
+os.environ.setdefault("SE_NTFY_TOPIC", "pytest-fallback-topic-not-a-real-secret")
+os.environ.setdefault("SE_WAKE_HMAC_KEY", "pytest-fallback-hmac-key-not-a-real-secret")
+
 import numpy as np
 import pandas as pd
 import pytest

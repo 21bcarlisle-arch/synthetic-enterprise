@@ -5,8 +5,8 @@ human confirmation (except usage-limit auto-resume, see below).
 Monitors the 'claude' tmux session. When Claude Code is no longer running
 (token limit, crash, or completion):
   1. Sends an NTFY alert asking Rich to reply "YES" to restart.
-  2. Polls the NTFY topic (https://ntfy.sh/skynet-synthetic) every 60 seconds
-     for up to 4 hours, looking for a reply containing "YES".
+  2. Polls the shared NTFY topic (SE_NTFY_TOPIC, see ntfy_utils.py) every 60
+     seconds for up to 4 hours, looking for a reply containing "YES".
   3. If "YES" is seen (and the restart cap below isn't exceeded), restarts
      the 'claude' tmux session with `--dangerously-skip-permissions` (Rich's
      direct, live confirmation, 2026-07-05 -- see
@@ -70,17 +70,23 @@ will pause again if still >= 90%. This is a soft self-imposed checkpoint
 layered in front of the hard usage-limit path above, not a replacement for
 it.
 
-KNOWN LIMITATION — "verified sender": https://ntfy.sh/skynet-synthetic is a
-public, unauthenticated topic. There is no cryptographic way to verify who
-posted a "YES" reply (or, as of 2026-07-05, a claimed skip-permissions
-confirmation -- one such message was received and independently identified
-as unreliable: it asserted something demonstrably false about the running
-system, see docs/review_gates/SKIP_PERMISSIONS_TIER1.md). Since restart now
-runs with --dangerously-skip-permissions, a spoofed "YES" reply on this
-channel would bring back a fully unattended, no-prompt session -- a
-materially higher-stakes failure mode than before this change. This
-tradeoff was made deliberately, with that risk stated plainly, not
-overlooked.
+KNOWN LIMITATION — "verified sender": even after the 2026-07-08 topic
+rotation to a secret value (docs/staging/NTFY_CHANNEL_HARDENING.md), ntfy.sh
+topics are unauthenticated by design -- knowing the topic name is sufficient
+to publish. There is no cryptographic way to verify who posted a "YES" reply
+(or, as of 2026-07-05, a claimed skip-permissions confirmation -- one such
+message was received and independently identified as unreliable: it
+asserted something demonstrably false about the running system, see
+docs/review_gates/SKIP_PERMISSIONS_TIER1.md). Since restart now runs with
+--dangerously-skip-permissions, a spoofed "YES" reply on this channel would
+bring back a fully unattended, no-prompt session -- a materially
+higher-stakes failure mode than before this change. This tradeoff was made
+deliberately, with that risk stated plainly, not overlooked -- the topic
+rotation raises the bar (no longer publishable by anyone who reads the
+public repo) but does not eliminate this limitation, which is why the
+authentication convention (CLAUDE.md: only a live in-conversation turn or
+Rich clearing a gate file himself authorizes safety-control changes) exists
+as the real control, not the topic secrecy alone.
 
 Logs to docs/observability/session-watchdog-log.md.
 """
@@ -104,8 +110,14 @@ import requests
 # root so `from background.ntfy_utils import ...` works regardless of how
 # it's invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from background.ntfy_utils import NTFY_AUTH_TOKEN, send_ntfy, was_sent_by_us  # noqa: E402
+from background.ntfy_utils import (  # noqa: E402
+    NTFY_AUTH_TOKEN,
+    NTFY_TOPIC,
+    send_ntfy,
+    was_sent_by_us,
+)
 from background.agent_status import update_agent_status  # noqa: E402
+from background.tmux_relay import send_keys  # noqa: E402
 
 SESSION_NAME = "claude"
 PROJECT_DIR = "/home/rich/synthetic-enterprise"
@@ -115,7 +127,10 @@ CONFIRM_TIMEOUT_SECONDS = 4 * 3600  # 4 hours
 MAX_RESTARTS_PER_HOUR = 3
 USAGE_LIMIT_POLL_INTERVAL_SECONDS = 15 * 60  # 15 minutes
 USAGE_LIMIT_MAX_WAIT_SECONDS = 6 * 3600  # 6 hours — covers the 5h session limit with margin
-NTFY_TOPIC = "skynet-synthetic"
+# NTFY_TOPIC now sourced from ntfy_utils (single source of truth, itself
+# reading the secret SE_NTFY_TOPIC env var -- 2026-07-08 rotation,
+# docs/staging/NTFY_CHANNEL_HARDENING.md). This used to be a second
+# hardcoded copy of the topic name here; removed to close that duplication.
 
 # API connectivity check — run before any CC restart attempt.
 # WSL2 can silently lose its virtual network adapter (Windows power events,

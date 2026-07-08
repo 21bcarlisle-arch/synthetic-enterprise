@@ -6,6 +6,17 @@ cd ~/synthetic-enterprise
 export OLLAMA_FLASH_ATTENTION=1
 export OLLAMA_NUM_CTX=8192
 
+# Load SE_NTFY_TOPIC / SE_WAKE_HMAC_KEY from the gitignored env file before
+# starting ANY session that touches NTFY or the tmux wake relay (session-
+# watchdog, staging-watcher, ntfy-responder, dispatcher all import
+# background.ntfy_utils, which raises loudly at import time if this isn't
+# set — 2026-07-08 topic rotation, docs/staging/NTFY_CHANNEL_HARDENING.md).
+if [ -f background/.env.ntfy ]; then
+  export $(grep -v "^#" background/.env.ntfy | xargs)
+else
+  echo "WARNING: background/.env.ntfy not found -- NTFY-touching sessions will fail to start." >&2
+fi
+
 _start_session() {
   local name="$1"
   local cmd="$2"
