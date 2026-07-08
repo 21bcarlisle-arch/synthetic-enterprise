@@ -53,6 +53,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
 .br { background: #dbe9f9; color: var(--blue); }
 .bi { background: #fef0d1; color: #a66a00; }
+.bs { background: #f3e3fb; color: #7a2ea6; }
 .be { background: #e3f6e0; color: var(--green); }
 .bg { background: #ece9fb; color: #4a3aa7; }
 .bdf { background: #e0f5ee; color: #158563; }
@@ -277,13 +278,25 @@ function rollupHtml(){
     "</div></div></div>";
 }
 
+/* BILL_CORRECTNESS_ADDENDUM.md Defect 1 (2026-07-08): this used to be a
+   binary I&C-vs-everything-else check, so SME accounts (segment "SME")
+   silently fell into the "Residential" branch -- e.g. C6, a true SME
+   account correctly billed at 20% business VAT, rendered on the portal as
+   "Household / Residential". Every real segment value (see
+   site/data/customer_sample.json) must be listed explicitly here so a new
+   segment can't silently fall through to Residential again. */
+var SEGMENT_BADGE={"I&C":["bi","I&amp;C"],"SME":["bs","SME"],"resi":["br","Residential"]};
+function segmentInfo(){
+  var seg=(HH.elec||HH.gas).segment;
+  return SEGMENT_BADGE[seg]||SEGMENT_BADGE["resi"];
+}
 function fuelBadges(){
   var b="";
   if(HH.elec)b+="<span class=\"badge be\">Electricity</span> ";
   if(HH.gas)b+="<span class=\"badge bg\">Gas</span> ";
   if(HH.elec&&HH.gas)b+="<span class=\"badge bdf\">Dual Fuel</span> ";
-  var seg=(HH.elec||HH.gas).segment;
-  var segBadge=seg==="I&C"?"<span class=\"badge bi\">I&amp;C</span>":"<span class=\"badge br\">Residential</span>";
+  var si=segmentInfo();
+  var segBadge="<span class=\"badge "+si[0]+"\">"+si[1]+"</span>";
   return segBadge+" "+b;
 }
 var TABS=[["overview","Overview"],["accounts","Accounts"],["consumption","Consumption"],["billing","Billing & Payments"],["timeline","Timeline"],["risk","Risk"]];
@@ -294,7 +307,7 @@ function renderHousehold(){
   document.getElementById("app").innerHTML=
     "<div class=\"account-wrap\">"+
     "<div class=\"account-header\"><div>"+
-    "<div class=\"account-id\">"+esc(HH.base)+"<span class=\"hh-label\">Household</span></div>"+
+    "<div class=\"account-id\">"+esc(HH.base)+"<span class=\"hh-label\">"+(segmentInfo()[1]==="Residential"?"Household":"Business")+"</span></div>"+
     "<div class=\"account-meta\">"+fuelBadges()+"</div>"+
     "</div><button class=\"logout-btn\" onclick=\"doLogout()\">Sign out</button></div>"+
     "<div class=\"tab-nav\">"+tabsHtml+"</div>"+

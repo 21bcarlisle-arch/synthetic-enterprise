@@ -74,9 +74,16 @@ STANDING_CHARGE_GBP_PER_DAY: dict[str, dict[str, float]] = {
 
 # VAT rate by segment.
 # UK: 5% reduced rate for domestic energy, 20% standard rate for business.
+# BILL_CORRECTNESS_ADDENDUM.md Defect 1 (2026-07-08): "I&C" was missing from
+# this dict, so vat_rate()'s fallback silently charged I&C accounts the
+# domestic 5% rate instead of the legally-required 20% business rate --
+# same incoherence class as the C6 SME-rendered-as-Household label bug,
+# found while sweeping for it. Every non-domestic segment must be listed
+# explicitly here; see test_vat_rate_never_silently_defaults_a_business_segment.
 VAT_RATE: dict[str, float] = {
     "resi": 0.05,
     "SME": 0.20,
+    "I&C": 0.20,
 }
 
 
