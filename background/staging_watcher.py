@@ -1,18 +1,34 @@
 #!/usr/bin/env python3
-"""Staging directory watcher — notification only, no automatic execution.
+"""Staging directory watcher — notification, and an event-driven wake.
 
 Polls docs/staging/ for new files. When a new file appears, sends an NTFY
 notification to skynet-synthetic naming the file (so Rich/Claude know a
 staged instruction is waiting for an explicit staging review per CLAUDE.md's
-Staging Directory Protocol) and logs the event.
+Staging Directory Protocol), logs the event, and injects ONE turn into the
+existing 'claude' tmux session naming the new file(s) (EVENT_DRIVEN_WAKE.md,
+2026-07-08 — the replacement for the retired autonomous-runner poll loop,
+see docs/review_gates/done/AUTONOMOUS_RUNNER_STILL_RUNNING.md).
 
-This watcher NEVER reads staged file contents into a prompt, runs commands
-based on them, or sends them via tmux send-keys — it only announces that a
-new file exists. Processing happens only during an explicit staging review.
+The wake is deliberately narrow: it fires only for genuinely new, actionable
+staged files (the same set that already triggers an NTFY here) — never for
+from_rich_*.md (dispatcher.py already relays URGENT-classified ones to the
+same session) or run_complete_*.md (routine sim-run markers Claude polls for
+naturally; CLAUDE.md bars NTFY on these too). This is the SAME session
+being nudged, via the SAME tmux send-keys relay pattern dispatcher.py
+already uses for URGENT NTFY — no second process, no new polling loop (this
+watcher's existing 30s poll is reused, not duplicated), and zero turns
+injected when nothing new has actually landed.
+
+This watcher still NEVER reads staged file CONTENTS into the injected
+prompt or runs commands based on them — it names the file(s) only.
+Processing the content happens only when Claude reads the file during an
+explicit staging review, exactly as before.
 
 Also periodically fetches origin/main and surfaces any new staging files
 committed with the [ADVISOR-STAGED] prefix so the strategy advisor can
-stage instructions remotely (Remote Staging Bridge).
+stage instructions remotely (Remote Staging Bridge) — these funnel through
+the same check_once() path above, so an ADVISOR-STAGED commit landing also
+triggers the wake once its files are extracted and next detected as new.
 
 Also checks, once per poll cycle, whether it's the 1st of the month (UTC)
 and a monthly maintenance reminder hasn't been queued yet this month
@@ -41,6 +57,7 @@ STATE_FILE = PROJECT_DIR / "background" / ".staging_watcher_seen.json"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "staging-watcher-log.md"
 POLL_INTERVAL_SECONDS = 30
 GIT_PULL_INTERVAL_SECONDS = 180  # check remote every 3 minutes
+SESSION_NAME = "claude"
 IGNORED_NAMES = {".gitkeep"}
 ADVISOR_PREFIX = "[ADVISOR-STAGED]"
 MAINTENANCE_STATE_FILE = PROJECT_DIR / "background" / ".maintenance_reminder_sent.json"
@@ -204,15 +221,56 @@ def check_monthly_maintenance(now: datetime) -> None:
     _save_maintenance_state(month_key)
 
 
+def _relay_wake_to_claude(new_names: list[str]) -> None:
+    """Inject ONE turn into the existing 'claude' tmux session naming the
+    new staged file(s) -- the event-driven replacement for the retired
+    autonomous-runner poll loop (docs/review_gates/done/
+    AUTONOMOUS_RUNNER_STILL_RUNNING.md). Same session, same tmux send-keys
+    relay pattern dispatcher.py already uses for URGENT NTFY messages
+    (Claude Code queues input typed while busy, so this is safe whether the
+    session is idle or mid-task) -- no new process, single-writer preserved.
+
+    Names only, never file contents -- matches this watcher's existing
+    "announce, don't act" discipline. Failures are swallowed (best-effort,
+    same as dispatcher._relay_to_claude): a missing/dead tmux session must
+    never crash the watcher's poll loop, and the NTFY sent alongside this
+    call is the fallback channel if the relay silently no-ops.
+    """
+    names = ", ".join(new_names)
+    message = (
+        f"[STAGING WATCHER: new staged instruction(s) landed -- {names}. "
+        "Per the Staging Directory Protocol, read docs/staging/ now and "
+        "action per CLAUDE.md's tiered model (Tier 2 if pre-approved/"
+        "already-queued, classify if novel) -- this is an event-driven "
+        "wake, not a poll nudge, so do not wait for the next natural "
+        "staging check.]"
+    )
+    try:
+        subprocess.run(
+            ["tmux", "send-keys", "-t", SESSION_NAME, message, "Enter"],
+            capture_output=True, timeout=5,
+        )
+    except Exception:
+        pass
+
+
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
-    `seen`, logs each notification, and returns the updated seen set.
+    `seen`, logs each notification, wakes the claude session with one
+    batched turn if any genuinely new actionable file(s) landed, and
+    returns the updated seen set.
 
     NTFY-originated files (from_rich_*.md) are silently added to seen without
-    sending a notification — the ntfy_responder already acked those messages.
+    sending a notification or a wake — dispatcher.py already relays
+    URGENT-classified ones to the same session; NORMAL/FYI ones wait for the
+    next natural staging check by design. run_complete_*.md markers are also
+    silent and never wake the session (routine sim-run completions; CLAUDE.md
+    bars NTFY on these, and waking every ~10min sim_runner cycle would
+    violate "zero turns when nothing happens").
     """
     files = current_files()
     new_files = sorted(files - seen)
+    actionable = []
     for name in new_files:
         if name.startswith("from_rich_") and name.endswith(".md"):
             log(f"Silently registered NTFY-originated file: {name} (no staging notification)")
@@ -222,6 +280,10 @@ def check_once(seen: set[str]) -> set[str]:
             msg = f"New staged instruction: {name} — pending explicit staging review"
             ntfy(msg)
             log(f"Notified: {name}")
+            actionable.append(name)
+    if actionable:
+        _relay_wake_to_claude(actionable)
+        log(f"Wake injected into '{SESSION_NAME}' session for: {', '.join(actionable)}")
     if new_files:
         seen = files
         save_seen(seen)
@@ -242,8 +304,8 @@ def main() -> None:
     update_agent_status(
         "staging-watcher", status="idle",
         last_action="Watcher started",
-        role="Monitors docs/staging/ for new files; NTFY on new items; git fetch origin every 3min for [ADVISOR-STAGED] commits",
-        produces="NTFY notifications on new staging files",
+        role="Monitors docs/staging/ for new files; NTFY + event-driven claude-session wake on new items; git fetch origin every 3min for [ADVISOR-STAGED] commits",
+        produces="NTFY notifications + tmux wake on new staging files",
     )
 
     last_remote_check = 0.0
