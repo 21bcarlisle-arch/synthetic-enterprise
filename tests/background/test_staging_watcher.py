@@ -1,7 +1,7 @@
 from background import staging_watcher as watcher
 
 
-# ── EVENT_DRIVEN_WAKE.md (2026-07-08): tmux wake on genuinely new staged files ──
+# ── Event-driven wake (director directive, in-conversation, 2026-07-08): tmux wake on genuinely new staged files ──
 
 def test_check_once_wakes_claude_for_new_actionable_file(tmp_path, monkeypatch):
     """A genuinely new staged instruction must both NTFY and inject a wake."""

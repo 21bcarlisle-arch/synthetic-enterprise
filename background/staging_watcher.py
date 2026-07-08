@@ -5,9 +5,10 @@ Polls docs/staging/ for new files. When a new file appears, sends an NTFY
 notification to skynet-synthetic naming the file (so Rich/Claude know a
 staged instruction is waiting for an explicit staging review per CLAUDE.md's
 Staging Directory Protocol), logs the event, and injects ONE turn into the
-existing 'claude' tmux session naming the new file(s) (EVENT_DRIVEN_WAKE.md,
-2026-07-08 — the replacement for the retired autonomous-runner poll loop,
-see docs/review_gates/done/AUTONOMOUS_RUNNER_STILL_RUNNING.md).
+existing 'claude' tmux session naming the new file(s) (director directive,
+in-conversation, 2026-07-08 — the replacement for the retired
+autonomous-runner poll loop, see docs/review_gates/done/
+AUTONOMOUS_RUNNER_STILL_RUNNING.md).
 
 The wake is deliberately narrow: it fires only for genuinely new, actionable
 staged files (the same set that already triggers an NTFY here) — never for
