@@ -1,9 +1,20 @@
 # Current Priorities
 
-Last director review: 2026-07-06. Updated (queue-tracking only, no re-rank): 2026-07-07 --
-P2 CLOSED IN FULL (Phase RW, item 5 SAAS_COVERAGE_MAP.md landed); front of queue is now S1
-(shadow-live proof-first track record, docs/staging/S1_SHADOW_LIVE_TRACK_RECORD_DESIGN.md),
-Tier 3 own 4h opt-out filed 2026-07-07 12:24 UTC, not yet implemented.
+Last director review: 2026-07-06. Updated (queue-tracking only, no re-rank): 2026-07-08 --
+S1 (shadow-live proof-first track record) CLOSED by Phase RX (Options A rolling live Elexon
+fetch AND B two decoupled clocks; see CLAUDE.md Current state). Its fast-follows (hedge-outcome
+grading once live entries accumulate; a live NBP gas source) are unranked backlog and both
+currently un-actionable autonomously (grading premature; gas is network/endpoint-verification
+blocked). VERIFIED THIS SESSION and corrected below: CUSTOMER_360_REDESIGN.md items 2-4 (bill
+equation + why-different waterfall, events-perturb chain, reaction-closes-loop) are ALL BUILT on
+site/customers/index.html (billWaterfall/billEquationHtml/renderReactionChain/downstream-effect
+annotations) -- the "Tab 4 ... items 2-4 not started" note in the ACTIVE WAVE section below is
+STALE and superseded by this line. With the ranked queue exhausted at its front, the next-phase
+proposal is Tier 3: docs/staging/drafts/NEXT_PHASE.md -- Phase RY, FEEDBACK_AND_REPUTATION Layer 2
+(reputation feedback loop), 4h opt-out filed 2026-07-08. This is queue-TRACKING only; a director
+re-rank (P-5) of the post-S1 backlog is still owed.
+Previous tracking (2026-07-07): P2 CLOSED IN FULL (Phase RW, item 5 SAAS_COVERAGE_MAP.md landed);
+front of queue was S1 (docs/staging/S1_SHADOW_LIVE_TRACK_RECORD_DESIGN.md), since closed per above.
 Last updated: 2026-07-06 -- PRIORITY RESET (docs/staging/PRIORITY_RESET_PUBLIC_SITE.md,
 [ADVISOR-STAGED] 5fa9a0cf, Tier 2 pre-approved). Rich's direct verdict after reviewing the live
 site: still far below target -- tab order unchanged, gas/electricity still bundled everywhere he
