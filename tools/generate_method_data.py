@@ -15,6 +15,7 @@ from pathlib import Path as _P
 
 PROJECT = _P(__file__).resolve().parent.parent
 DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
+SCORECARD_PATH = PROJECT / "site" / "state" / "track_record_scorecard.json"
 STAGING_DIR = PROJECT / "docs" / "staging"
 STAGING_DONE_DIR = STAGING_DIR / "done"
 STAGING_DRAFTS_DIR = STAGING_DIR / "drafts"
@@ -158,6 +159,17 @@ def _retro_library():
     return entries
 
 
+def _track_record():
+    """S1 Option B (docs/staging/S1_SHADOW_LIVE_TRACK_RECORD_DESIGN.md), Decision 2:
+    the predicted-vs-realised scorecard is public from day one, misses included --
+    folded onto the Method page verbatim rather than summarised, so a zero-graded
+    early state reads as honest, not hidden."""
+    try:
+        return json.loads(SCORECARD_PATH.read_text())
+    except Exception:
+        return None
+
+
 def generate():
     try:
         dashboard = json.loads(DASHBOARD_PATH.read_text())
@@ -183,6 +195,7 @@ def generate():
             drafts_count=_staging_drafts_count(),
         ),
         retro_library=_retro_library(),
+        track_record=_track_record(),
     )
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))

@@ -157,11 +157,23 @@ class TestLiveMarket:
             assert k in s
 
 
+import datetime as _dt
+
+# Phase RX (S1 Option B): renewal windows are now computed against real wall-clock
+# "today", decoupled from the frozen market as-of date. Pin the wall clock to the same
+# date as _STUB_MARKET's as_of_date so these pre-existing fixtures (whose
+# next_renewal_estimate values were written relative to 2025-06-07) keep meaning what
+# they meant before the decoupling -- this test file is about the renewal-window/hedge
+# logic, not the clock-decoupling behaviour itself (that gets its own dedicated tests).
+_STUB_CLOCK = _dt.datetime(2025, 6, 7, 12, 0, 0, tzinfo=_dt.timezone.utc)
+
+
 class TestRunLiveDecisions:
     def _run(self, tmp_path, customers=None):
         from tools.run_live_decisions import run_decisions
         pf = _write_portfolio(tmp_path, customers)
-        with patch("tools.live_market.get_market_summary", return_value=_STUB_MARKET):
+        with patch("tools.live_market.get_market_summary", return_value=_STUB_MARKET), \
+             patch("tools.run_live_decisions._utc_now", return_value=_STUB_CLOCK):
             return run_decisions(str(pf), out_dir=str(tmp_path))
 
     def test_renewal_flag_within_60_days(self, tmp_path):

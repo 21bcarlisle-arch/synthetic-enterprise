@@ -1,10 +1,26 @@
 """Daily live decision engine -- produces timestamped decision log for paper-trading.
 
-As-of date: last available SSP data (2025-06-07). Portfolio: frozen at final simulation
-state. Decisions are timestamped with today real date + as-of context for reproducibility.
+Market as-of date: last available SSP data (frozen cache, currently pinned at 2025-06-07 --
+see tools/live_market.py). Portfolio: frozen at final simulation state. Decisions are
+timestamped with today's real date.
+
+Two decoupled clocks (Phase RX / S1 Option B, docs/staging/S1_SHADOW_LIVE_TRACK_RECORD_DESIGN.md):
+1. Market price freshness -- genuinely bounded by what real Elexon settlement data exists
+   in the frozen cache (`market_as_of_date` below, honestly labelled with its real age via
+   `market_data_stale_days`). Extending this forward is Option A (a rolling live fetch),
+   explicitly out of scope here.
+2. Wall-clock elapsed time -- what a renewal countdown and a realised/predicted grading
+   mechanism actually need. `days_to_renewal` is computed against real wall-clock "today",
+   not against the market data's as-of date, so renewal windows genuinely count down even
+   while Option A is unbuilt.
 """
 import json, datetime as dt
 from pathlib import Path
+
+from company.crm.enriched_churn_estimate import enriched_churn_estimate
+from company.analytics.counterfactual_retention import (
+    RESI_OFFER_COST_GBP, IC_OFFER_COST_GBP, _RETENTION_EFFECTIVENESS,
+)
 
 PROJECT = Path(__file__).resolve().parent.parent
 PORTFOLIO_PATH = PROJECT / "site" / "state" / "live_portfolio.json"
@@ -29,10 +45,15 @@ def _load_run_output():
     try: return json.loads(RUN_OUTPUT.read_text())
     except: return {}
 
-def _days_until(renewal_str, as_of_str):
+def _utc_now():
+    """Real wall-clock UTC now. Factored out (rather than inlined) so tests can patch a
+    single, deterministic clock instead of depending on the actual calendar date."""
+    return dt.datetime.now(dt.timezone.utc)
+
+def _days_until(renewal_str, clock_date_str):
     if not renewal_str: return None
     r = dt.date.fromisoformat(renewal_str)
-    a = dt.date.fromisoformat(as_of_str)
+    a = dt.date.fromisoformat(clock_date_str)
     return (r - a).days
 
 def _hedge_recommendation(customers):
@@ -42,10 +63,69 @@ def _hedge_recommendation(customers):
     if above: return "REDUCE", above
     return "HOLD", []
 
-def _renewal_flags(customers, as_of_date, elec_fwd, gas_fwd):
+def _offer_cost_gbp(segment):
+    """Retention-offer cost assumption -- reused unchanged from Phase QQ's
+    counterfactual_retention.py rather than inventing a new figure here."""
+    return IC_OFFER_COST_GBP if segment == "I&C" else RESI_OFFER_COST_GBP
+
+def _tenure_years(last_renewal_date, clock_date_str):
+    """Company-observable tenure proxy: years elapsed since the customer's last known
+    renewal date, per live_portfolio.json.
+
+    This is a conservative LOWER BOUND on true customer tenure, not a SIM-internal value:
+    live_portfolio.json's snapshot generator (tools/project_portfolio_to_2026.py) does not
+    carry the original acquisition date forward, only the most recent renewal event -- so
+    a customer's real relationship length may be longer than this. It is never shorter, and
+    it is something a real supplier genuinely knows (it executed that renewal itself), so
+    using it as a floor for the tenure-discount term is honest even though it may understate.
+    """
+    if not last_renewal_date:
+        return 0.0
+    try:
+        last = dt.date.fromisoformat(last_renewal_date)
+        clock = dt.date.fromisoformat(clock_date_str)
+    except ValueError:
+        return 0.0
+    return max(0.0, (clock - last).days / 365.25)
+
+def _retention_ev(old_rate, proposed_rate, customer, segment, fuel, expected_margin, clock_date_str):
+    """Expected value (GBP) of proactively offering a retention discount at this renewal.
+
+    Epistemic note (S1 Option B, docs/staging/S1_SHADOW_LIVE_TRACK_RECORD_DESIGN.md): every
+    input here is something a real UK supplier could compute from its own records alone --
+    its own live churn-risk model (company/crm/enriched_churn_estimate.py, the same
+    observable-only estimation path exposed through company/interfaces/sim_interface.py's
+    get_churn_estimate), its own last-known and proposed rates, its own meter-read
+    consumption (eac_kwh_per_year), its own hedging records (hedge_fraction), and its own
+    offer-cost/effectiveness assumptions (reused unchanged from counterfactual_retention.py,
+    not invented here). Nothing here imports simulation/ or reads a sim_* ground-truth field
+    -- that usage is only legitimate for RETROSPECTIVE scoring of a decision whose outcome
+    is already known (counterfactual_retention.py's own use case), which this prospective,
+    still-open decision is not. If the observable inputs needed are missing, this returns
+    (None, None) rather than fabricating a number.
+    """
+    if old_rate is None or expected_margin is None:
+        return None, None
+    tenure_years = _tenure_years(customer.get("last_renewal_date"), clock_date_str)
+    churn_est = enriched_churn_estimate(
+        old_rate,
+        proposed_rate,
+        tenure_years,
+        customer.get("eac_kwh_per_year") or 0.0,
+        fuel=fuel,
+        hedge_fraction=customer.get("hedge_fraction") or 0.0,
+        segment=segment,
+    )
+    offer_cost = _offer_cost_gbp(segment)
+    retention_lift = churn_est * _RETENTION_EFFECTIVENESS
+    value_recovered = retention_lift * expected_margin
+    ev_gbp = round(value_recovered - offer_cost, 2)
+    return round(churn_est, 4), ev_gbp
+
+def _renewal_flags(customers, clock_date, elec_fwd, gas_fwd):
     flags = []
     for c in customers:
-        days = _days_until(c.get("next_renewal_estimate"), as_of_date)
+        days = _days_until(c.get("next_renewal_estimate"), clock_date)
         if days is None: continue
         if days < 0 or days > _RENEWAL_WINDOW_DAYS: continue
         fuel = c.get("commodity", "electricity")
@@ -56,17 +136,26 @@ def _renewal_flags(customers, as_of_date, elec_fwd, gas_fwd):
         proposed = round(fwd + non_comm + margin, 2)
         svt = round(fwd * _SVT_PREMIUM, 2)
         eac = c.get("eac_kwh_per_year") or 0
+        old_rate = c.get("current_rate_gbp_per_mwh")
+        expected_margin = round(margin * eac / 1000, 2) if eac else None
+        churn_est, retention_ev_gbp = _retention_ev(
+            old_rate, proposed, c, seg, fuel, expected_margin, clock_date,
+        )
         flags.append({
             "cid": c["cid"],
             "segment": seg,
             "commodity": fuel,
             "days_to_renewal": days,
             "renewal_date": c["next_renewal_estimate"],
-            "current_rate_gbp_per_mwh": c.get("current_rate_gbp_per_mwh"),
+            "current_rate_gbp_per_mwh": old_rate,
             "proposed_rate_gbp_per_mwh": proposed,
             "svt_approx_gbp_per_mwh": svt,
             "eac_kwh": eac,
-            "expected_gross_margin_gbp_pa": round(margin * eac / 1000, 2) if eac else None,
+            "expected_gross_margin_gbp_pa": expected_margin,
+            "company_churn_estimate": churn_est,
+            "retention_ev_gbp": retention_ev_gbp,
+            "retention_ev_note": None if retention_ev_gbp is not None else
+                "ungraded -- missing observable inputs (current rate or annual consumption)",
         })
     return sorted(flags, key=lambda x: x["days_to_renewal"])
 
@@ -115,12 +204,19 @@ def run_decisions(portfolio_path=None, run_output_path=None, out_dir=None, marke
     gas_fwd = market["gas_12m_forward_gbp_per_mwh"]
     customers = portfolio.get("customers", [])
     hedge_rec, hedge_affected = _hedge_recommendation(customers)
-    flags = _renewal_flags(customers, as_of, elec_fwd, gas_fwd)
+
+    # Two decoupled clocks (Phase RX / S1 Option B) -- see module docstring.
+    now_utc = _utc_now()
+    clock_date = now_utc.date().isoformat()
+    market_data_stale_days = (now_utc.date() - dt.date.fromisoformat(as_of)).days if as_of else None
+
+    flags = _renewal_flags(customers, clock_date, elec_fwd, gas_fwd)
     acq = _acquisition_prices(elec_fwd, gas_fwd)
     decision = {
-        "decision_run_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "decision_run_at": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "portfolio_as_of": portfolio.get("generated_at"),
         "market_as_of_date": as_of,
+        "market_data_stale_days": market_data_stale_days,
         "elec_spot_gbp_per_mwh": market["elec_spot_gbp_per_mwh"],
         "gas_spot_gbp_per_mwh": market["gas_spot_gbp_per_mwh"],
         "elec_12m_forward_gbp_per_mwh": elec_fwd,
@@ -272,11 +368,12 @@ def run_scenario_analysis(portfolio_path=None, out_dir=None):
 if __name__ == "__main__":
     d = run_decisions()
     print("Decision run at:", d["decision_run_at"])
-    print("Market as-of:", d["market_as_of_date"])
+    print("Market as-of:", d["market_as_of_date"], "(stale", d["market_data_stale_days"], "days)")
     print("Elec spot:", d["elec_spot_gbp_per_mwh"])
     print("Elec 12m fwd:", d["elec_12m_forward_gbp_per_mwh"])
     print("Hedge recommendation:", d["hedge_recommendation"])
     print("Renewal flags:", len(d["renewal_flags"]))
     for f in d["renewal_flags"][:3]:
-        print(" ", f["cid"], f["days_to_renewal"], "days", f["proposed_rate_gbp_per_mwh"])
+        print(" ", f["cid"], f["days_to_renewal"], "days", f["proposed_rate_gbp_per_mwh"],
+              "churn_est=", f["company_churn_estimate"], "retention_ev=", f["retention_ev_gbp"])
     print("Acquisition prices:", d["acquisition_prices"])

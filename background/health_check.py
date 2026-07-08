@@ -30,7 +30,10 @@ EXPECTED_PANES = {
     "discovery-daemon": "discovery_agent.py",
     "background-worker": "background_worker.py",
     "sim-runner": "sim_runner.py",
-    "autonomous-runner": "autonomous_runner.py",
+    # autonomous-runner deliberately excluded: retired by director decision
+    # (docs/staging/AUTONOMOUS_RUNNER_RETIRED.md, 2026-07-07) -- the watchdog-managed
+    # interactive session is now the single writer. Its absence is not a fault; do
+    # not alert on it. Restart question folds into the next weekly PRIORITIES.md re-rank.
 }
 
 

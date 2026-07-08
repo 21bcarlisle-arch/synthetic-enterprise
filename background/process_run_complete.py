@@ -355,12 +355,6 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("saas_coverage.json generation failed: {}".format(exc))
     try:
-        from tools.generate_method_data import generate as gen_method
-        gen_method()
-        log("Generated site/data/method.json")
-    except Exception as exc:
-        log("method.json generation failed: {}".format(exc))
-    try:
         from tools.generate_system_status import generate as gen_system_status
         gen_system_status()
         log("Generated site/data/system_status.json")
@@ -402,6 +396,21 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         log("Generated site/state/scenario_analysis_latest.json")
     except Exception as exc:
         log("Scenario analysis generation failed: {}".format(exc))
+    try:
+        # Must run after run_live_decisions (reads live_decisions_log.jsonl it appends
+        # to) and before generate_method_data (folds the scorecard onto the public
+        # Method page -- S1 Decision 2: public from day one, misses included).
+        from tools.generate_track_record_scorecard import generate as gen_scorecard
+        gen_scorecard()
+        log("Generated site/state/track_record_scorecard.json (Phase RX / S1 Option B)")
+    except Exception as exc:
+        log("Track record scorecard generation failed: {}".format(exc))
+    try:
+        from tools.generate_method_data import generate as gen_method
+        gen_method()
+        log("Generated site/data/method.json")
+    except Exception as exc:
+        log("method.json generation failed: {}".format(exc))
     try:
         from tools.mirror_github_pages import mirror as mirror_gh_pages
         mirrored = mirror_gh_pages()
@@ -487,6 +496,9 @@ def git_commit_push(git_hash, net_margin):
     site_case_studies_json = PROJECT_DIR / "site" / "data" / "case_studies.json"
     if site_case_studies_json.exists():
         files.append(str(site_case_studies_json))
+    site_track_record_json = PROJECT_DIR / "site" / "state" / "track_record_scorecard.json"
+    if site_track_record_json.exists():
+        files.append(str(site_track_record_json))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
     # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),
