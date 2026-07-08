@@ -93,16 +93,28 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <div class="sec">About</div>
   <div class="card">
     <p class="about-text">
-      <span class="tl">Poesys</span> is a high-fidelity autonomous simulation of a UK electricity and gas
-      supply business, running continuously against real Elexon/NESO half-hourly settlement data (2016-2025).
-      The goal is a simulation detailed enough to say: <span class="tl">"that is how a real UK energy supplier works"</span>
-      -- and use it to build and prove the software that would run one autonomously.
-      When the software is proven, the market interfaces swap from simulated to real -- and the company transacts.
+      <span class="tl">Poesys</span> is not building a model of an energy supplier; it is building a
+      <span class="tl">running autonomous energy business</span> -- one whose commercial, financial, and
+      operational processes all execute, settled continuously against real Elexon/NESO half-hourly
+      settlement data (2016-2025). The company cannot see inside the simulation it runs in: it discovers
+      its world only through what a real supplier could observe -- meter reads, market feeds, customer
+      contacts, bills and payments, regulatory publications. The test on every line of company code is
+      simple: <span class="tl">"could a real UK supplier know this?"</span> The final phase of the roadmap
+      is a go-live analysis -- what it would actually take, legally and operationally, to serve a real
+      customer.
+    </p>
+    <p class="about-text" style="margin-top:10px">
+      It is also a company that can die. Insolvency and licence revocation are terminal states here, not
+      exceptions designed away -- which is what makes the crisis-survival evidence below an earned result,
+      not an assumption: roughly 30 real UK suppliers failed in the 2021-22 crisis, and this one did not.
     </p>
     <p class="about-text" style="margin-top:10px;font-size:12px;color:var(--muted)">
-      Looking for how the team/tooling/rules work, or the capability register? Those moved to
-      <a href="../method/" style="color:var(--blue);text-decoration:none">Method</a> and
-      <a href="../platform/" style="color:var(--blue);text-decoration:none">Platform</a> respectively.
+      Three products come out of this, in order: the <a href="../method/" style="color:var(--blue);text-decoration:none">Method</a>
+      first (the transferable way of directing an autonomous agent to build a company -- the casebook is
+      what makes the rest repeatable), the synthetic data second, and the
+      <a href="../platform/" style="color:var(--blue);text-decoration:none">Platform</a> (the software itself) third.
+      A live, public track record of predictions vs outcomes -- misses included -- runs on the
+      <a href="../method/#track-record" style="color:var(--blue);text-decoration:none">Method page</a>.
     </p>
   </div>
 
@@ -141,6 +153,10 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 
   <div class="sec">Roadmap</div>
   <div class="card">
+    <p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">
+      The path to the end state above: depth before scale, then population scale-up, then real
+      market-flows choreography, then products, then the go-live analysis.
+    </p>
     <div style="font-size:13px;line-height:2">
       <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Company layer: <span id="rm-stat">--</span></div>
       <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Crisis survival: 2021-22 energy crisis replicated and survived</div>

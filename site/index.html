@@ -69,12 +69,15 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 </nav>
 
 <div class="hero">
-  <h1>A UK energy supplier that <span>runs itself</span>.</h1>
+  <h1>A UK energy supplier that <span>runs itself</span> -- and could go live.</h1>
   <p class="pitch">
-    Poesys is a high-fidelity simulation of a fully autonomous UK energy supply business,
-    settled half-hourly against real Elexon and NESO market data since 2016. One human
-    principal, an AI orchestrator, and an autonomous build harness -- proving the software,
-    the data, and the method to run a real one.
+    Poesys is not a model of an energy supplier -- it's a running one. Its commercial,
+    financial, and operational processes all execute, settled half-hourly against real
+    Elexon and NESO market data since 2016, and it can never see inside the simulation it
+    runs in: it discovers its world only the way a real supplier would -- meter reads,
+    market feeds, customer contacts, bills, regulatory publications. The final phase of
+    the roadmap is a go-live analysis: what it would actually take, legally and
+    operationally, to serve a real customer.
   </p>
 </div>
 
@@ -86,13 +89,37 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <div class="sec">The Learning Curve</div>
   <div class="chart-card"><div class="chart-wrap"><canvas id="learning-chart"></canvas></div></div>
 
-  <div class="sec">Three Products</div>
+  <div class="sec">Why This Is Different</div>
   <div class="product-grid">
     <div class="product-card">
-      <h3>The Software</h3>
-      <p>449+ modules across a four-layer architecture, an epistemic boundary enforced in code
-      (not convention), a canonical data pipeline, and 15,000+ tests.</p>
-      <a href="./platform/">View the Platform &rarr;</a>
+      <h3>Proof, in public</h3>
+      <p>A shadow-live track record runs against real Elexon market data: hedge stance,
+      renewal-price flags, and retention decisions are logged and pre-registered before the
+      outcome is known, then graded against what actually happened -- misses included.
+      We publish the predictions before the results arrive, and we keep the failures.</p>
+      <a href="./method/#track-record">View the Track Record &rarr;</a>
+    </div>
+    <div class="product-card">
+      <h3>AI-native, not AI-retrofitted</h3>
+      <p>Most industry platforms bolt agents onto human-designed cores that still assume a
+      person owns the journey. Poesys inverts that: built from first principles with AI as
+      the company, and a human as strategic director only -- mission, risk appetite, and
+      reserved matters, never the keyboard. A company that can also fail -- insolvency and
+      licence revocation are real terminal states here, not exceptions designed away -- is
+      what makes its survival through the 2021-22 crisis, which killed around 30 real UK
+      suppliers, an earned result rather than an assumption.</p>
+      <a href="./project/">See the Crisis Survival Evidence &rarr;</a>
+    </div>
+  </div>
+
+  <div class="sec">Three Products, In Order</div>
+  <div class="product-grid">
+    <div class="product-card">
+      <h3>The Method</h3>
+      <p>Tiered governance, a staging bridge, verify-by-fetch, consistency gates, two-strike
+      redesign, weekly retros -- the transferable way of directing an autonomous agent to
+      build a company. The casebook comes first because it's what makes the rest repeatable.</p>
+      <a href="./method/">View the Method &rarr;</a>
     </div>
     <div class="product-card">
       <h3>The Synthetic Data</h3>
@@ -101,10 +128,10 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       <a href="./platform/#catalogue">View the Data Catalogue &rarr;</a>
     </div>
     <div class="product-card">
-      <h3>The Method</h3>
-      <p>Tiered governance, a staging bridge, verify-by-fetch, consistency gates, two-strike
-      redesign, weekly retros -- the transferable way of building this with an autonomous agent.</p>
-      <a href="./method/">View the Method &rarr;</a>
+      <h3>The Software</h3>
+      <p>449+ modules across a four-layer architecture, an epistemic boundary enforced in code
+      (not convention), a canonical data pipeline, and 15,000+ tests.</p>
+      <a href="./platform/">View the Platform &rarr;</a>
     </div>
   </div>
 
