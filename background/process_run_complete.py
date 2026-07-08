@@ -385,6 +385,18 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Live portfolio generation failed: {}".format(exc))
     try:
+        # S1 Option A: extend the real Elexon SSP cache forward past 2025-06-07 on a
+        # rolling basis BEFORE the live decision reads market state, so market_as_of_date
+        # advances as real settlement data is published. Fully defensive (never raises,
+        # never corrupts the frozen historical cache) -- a network-less/failed run is a
+        # no-op and the decision falls back to the last known real price, honestly labelled.
+        from background.refresh_elexon_ssp_rolling import refresh as refresh_ssp
+        st = refresh_ssp()
+        log("Rolling Elexon SSP refresh: {} ({} new records)".format(
+            st.get("status"), st.get("fetched_records", 0)))
+    except Exception as exc:
+        log("Rolling Elexon SSP refresh failed (non-fatal): {}".format(exc))
+    try:
         from tools.run_live_decisions import run_decisions
         run_decisions()
         log("Generated site/state/live_decisions_latest.json")

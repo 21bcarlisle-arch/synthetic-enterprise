@@ -3,11 +3,27 @@ from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
 SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
+# S1 Option A (background/refresh_elexon_ssp_rolling.py): real settlement prices fetched
+# forward past the sim's 2025-06-07 boundary, kept in a SEPARATE file so the historical
+# sim/dashboards are never perturbed. Merged into the LIVE decision path only, here.
+ROLLING_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_live_rolling.json"
 PRICE_FEED = PROJECT / "docs" / "market_data" / "price_feed.json"
 
 def _load_ssp_records():
-    try: return json.loads(SSP_CACHE.read_text())
-    except: return []
+    """Historical SSP cache, extended forward with the S1-Option-A rolling live cache when
+    present. Records are per settlement-period (many per date), so the rolling file is
+    appended for its post-boundary dates only rather than dedup-by-date -- keeping every
+    historical settlement period intact while letting _effective_as_of advance to the
+    newest real date. Frozen-cache behaviour is exactly restored if the rolling file is
+    absent or empty."""
+    try: hist = json.loads(SSP_CACHE.read_text())
+    except: hist = []
+    try: roll = json.loads(ROLLING_CACHE.read_text())
+    except: roll = []
+    if not roll: return hist
+    if not hist: return roll
+    hist_max = max(r["settlementDate"] for r in hist)
+    return hist + [r for r in roll if r.get("settlementDate", "") > hist_max]
 
 def _load_price_feed_records():
     try:
