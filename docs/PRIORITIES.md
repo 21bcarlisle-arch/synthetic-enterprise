@@ -4,9 +4,23 @@
 Tier-3 opt-out below as front of queue).** Two P1 docs landed via the advisor staging bridge
 (commits 60bb6103, 282d72f2) and are now the front of the ranked queue, ahead of Phase RY:
 1. **BILL_CORRECTNESS_ADDENDUM.md** (Tier 2, binds/expands the already-open CORE_FIDELITY_PHASES.md
-   Phase 4 agenda item -- background/.open_agenda.json). Defect 1 (segment/VAT/label incoherence,
-   "fix first" per its own text) is next; Defects 2-4 complete Phase 4; Defect 5 (I&C billing model)
-   registers to backlog alongside WALLED_INTERFACES per the doc's own instruction.
+   Phase 4 agenda item -- background/.open_agenda.json). **Defect 1 CLOSED (2026-07-08, commit
+   32ab2a4c):** root-caused as a pure render-layer bug -- C6's 20% VAT + ~28MWh/yr were already
+   correct for its true SME segment; site/customers/index.html's badge/label logic only
+   special-cased I&C and silently collapsed every other segment (SME included) into
+   Residential/Household. Fixed with an explicit per-segment lookup (resi/SME/I&C). Sweeping for
+   the same class also found saas/non_commodity.py's VAT_RATE dict was missing an "I&C" key,
+   silently charging I&C accounts the domestic 5% rate instead of the legally-required 20% --
+   fixed, with a regression test guarding against any business segment silently defaulting to the
+   domestic rate again. Domain-invariant test added: every account in the live customer sample
+   checked for badge/label agreement with its true segment. 16,012 tests pass, epistemic PASS.
+   **Next: Defects 2-4** (bill period/reads/meter-serial/MPAN display, register/period-structured
+   ToU-ready bill lines, portal-vs-ledger-vs-sample reconciliation) complete Phase 4. Defect 5
+   (I&C billing model -- bill on HH data with capacity/DUoS components, not domestic-shaped bills
+   at scale) registers to backlog alongside WALLED_INTERFACES per the doc's own instruction; the
+   just-found I&C non-commodity-rate/standing-charge gap in saas/non_commodity.py (same
+   missing-segment-branch pattern, not fixed -- out of scope per Defect 5's own "register, don't
+   build now") is concrete supporting evidence for that backlog item.
 2. **DOMAIN_SENSE_AND_COMPLIANCE.md** (Tier 2, P1 programme). Explicitly sequenced by its own text:
    "does not interrupt Phase 4 / BILL_CORRECTNESS_ADDENDUM -- those complete first; harness-side
    pieces are background-lane eligible immediately." Company-side organs (pre-bill gate, compliance
