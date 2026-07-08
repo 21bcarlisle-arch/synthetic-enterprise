@@ -1,7 +1,7 @@
 {
-  "phase": "RE",
-  "test_count": 15740,
-  "company_modules": 420,
-  "updated": "2026-07-05T23:34:03Z",
-  "note": "Canonical source for the site/shadow build-phase label. Update at phase close alongside PROJECT_OVERVIEW.md Section 10 (CLAUDE.md phase-close checklist step 1)."
+  "phase": "RX",
+  "test_count": 15996,
+  "company_modules": 423,
+  "updated": "2026-07-08T09:00:00Z",
+  "note": "FALLBACK ONLY. The live stamp is now derived from CLAUDE.md's current-state section by tools/generate_dashboard_data.py::_derive_build_from_claude_md (WEBSITE_FRESHNESS_AND_DEDUP.md item 1, 2026-07-08). This file is only read if CLAUDE.md can't be parsed. No page carries its own literal phase/test/date -- all consume dashboard.json's build block."
 }

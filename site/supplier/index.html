@@ -1476,17 +1476,18 @@ function renderReputation() {
   const bandBadge = (band) => `<span class="badge badge-${bandColor(band)}">${(band||'adequate').toUpperCase()}</span>`;
   const html = [
     "<div class=\"view-header\"><h2>Reputation &amp; Customer Feedback</h2>",
-    "<p class=\"view-sub\">Company-observed CSAT/NPS survey responses and the Global Reputation Index — the company only ever sees a customer's survey response, never simulation/sim_satisfaction.py's ground truth (Phase RU, FEEDBACK_AND_REPUTATION.md)</p></div>",
+    "<p class=\"view-sub\">One loop, three steps: <b>what the public feeds back</b> (survey KPIs below) &rarr; <b>what the company infers</b> (the Global Reputation Index it builds from them) &rarr; <b>what it did about it</b> (complaint outcomes it resolved). The company only ever sees a customer's survey response, never simulation/sim_satisfaction.py's ground truth (Phase RU, FEEDBACK_AND_REPUTATION.md).</p></div>",
+    "<h3 class=\"section-head\">1 &middot; What the public feeds back &mdash; survey signals</h3>",
     "<div class=\"kpi-row\">",
     kpi("Global Reputation Index", gri ? gri.gri_score.toFixed(1) + " " + bandBadge(gri.band) : "—", null, gri ? `As of ${gri.year} year-end` : "No data"),
     kpi("Net Promoter Score", nps && nps.nps != null ? nps.nps.toFixed(1) : "—", null, nps ? `${nps.responses} responses, ${nps.year}` : "No survey responses yet"),
     kpi("Reputation Events", rep.total_reputation_events || 0, null, "Complaint outcomes recorded, full run"),
     kpi("Promoter / Detractor", nps && nps.promoter_pct != null ? nps.promoter_pct + "% / " + nps.detractor_pct + "%" : "—", null, nps ? `Latest survey year ${nps.year}` : ""),
     "</div>",
-    "<h3 class=\"section-head\" style=\"margin-top:24px\">Global Reputation Index — Portfolio Trend</h3>",
+    "<h3 class=\"section-head\" style=\"margin-top:24px\">2 &middot; What the company infers &mdash; Global Reputation Index trend</h3>",
     "<p class=\"view-sub\">company/core/reputation_index.py's GlobalReputationIndex, fed by real complaint-resolution outcomes (simulation/feedback_survey.py) — previously permanently pinned at the default 50/ADEQUATE with a dead activation_energy_multiplier(); now moves off baseline on real events.</p>",
     "<div class=\"card\" style=\"height:280px\"><canvas id=\"gri-trend-chart\"></canvas></div>",
-    "<h3 class=\"section-head\" style=\"margin-top:24px\">Reputation Events (Complaint Outcomes)</h3>",
+    "<h3 class=\"section-head\" style=\"margin-top:24px\">3 &middot; What it did about it &mdash; complaint outcomes</h3>",
     "<p class=\"view-sub\">Each row is a real dispatched complaint (simulation/feedback_survey.py::dispatch_complaint_and_resolution), resolved against the 56-day Ombudsman SLC window.</p>",
     events.length ? (
       "<div class=\"card\" style=\"padding:0;overflow:hidden\">" +
@@ -1534,7 +1535,7 @@ function renderNudgeDiscoverySection() {
   const cd = nd.consumer_duty;
   const ragColor = (rag) => rag === 'red' ? 'red' : rag === 'amber' ? 'amber' : 'green';
   const ragBadge = (rag) => `<span class="badge badge-${ragColor(rag)}">${(rag||'green').toUpperCase()}</span>`;
-  let out = "<h3 class=\"section-head\" style=\"margin-top:24px\">Nudge Discovery \u2014 Offer Framing (NUDGE_PHYSICS.md Layer 1)</h3>";
+  let out = "<h3 class=\"section-head\" style=\"margin-top:24px\">Nudge Discovery — Offer Framing (NUDGE_PHYSICS.md Layer 1)</h3>";
   out += "<p class=\"view-sub\">Every retention offer carries a framing_type (loss_framed / gain_framed) the company itself chose as a comms A/B cohort split (company/policy/decision_policy.py::framing_type_for). This table is what the company discovers from its own offer outcomes -- retention rate by framing and segment -- without ever seeing the SIM-side loss-aversion susceptibility that actually drives the response (simulation/nudge_physics.py).</p>";
   if (cd) {
     out += "<div class=\"kpi-row\">" + kpi("Consumer Duty check", ragBadge(cd.rag), null, cd.narrative) + "</div>";

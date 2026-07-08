@@ -63,6 +63,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .status-badge{font-size:9px;font-weight:600;padding:1px 6px;border-radius:10px;margin-left:6px;text-transform:uppercase;}
 .sb-running{background:rgba(12,163,12,.15);color:var(--green);}.sb-idle{background:rgba(82,81,78,.15);color:var(--muted);}
 .sb-working{background:rgba(42,120,214,.15);color:var(--blue);}.sb-error{background:rgba(208,59,59,.15);color:var(--red);}
+.sb-retired{background:rgba(82,81,78,.15);color:var(--muted);}
 .agent-ts{font-size:10px;color:var(--muted);flex-shrink:0;}
 .design-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
 .design-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;}
@@ -186,7 +187,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 
 <div id="tab-regulatory" class="view"><div class="wrap">
   <div class="sec">Policy Cost Stack</div>
-  <p style="font-size:12px;color:var(--muted);line-height:1.6;padding:12px 16px;background:var(--surface2);border-radius:8px;margin-bottom:16px">62 regulatory modules wired (Phase OL, 2026-07-03). All levy calculations use real Ofgem/DESNZ published rates. Click any row below for its legal basis.</p>
+  <p style="font-size:12px;color:var(--muted);line-height:1.6;padding:12px 16px;background:var(--surface2);border-radius:8px;margin-bottom:16px">62 regulatory modules wired. All levy calculations use real Ofgem/DESNZ published rates. Click any row below for its legal basis.</p>
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
       <thead><tr style="background:var(--surface2)"><th style="color:var(--muted);font-size:10px;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Scheme</th><th style="color:var(--muted);font-size:10px;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Key Rate</th><th style="color:var(--muted);font-size:10px;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Status</th></tr></thead>
@@ -239,7 +240,15 @@ function renderSystem(){
     return;
   }
   var upd=SYS.last_updated?ageLabel(SYS.last_updated):"unknown";
-  var rows=(SYS.agents||[]).map(function(a){var dc=ageDot(a.last_heartbeat,a.status);var sc={running:"sb-running",idle:"sb-idle",working:"sb-working",error:"sb-error"}[a.status]||"sb-idle";return'<div class="agent-row"><div class="agent-dot '+dc+'"></div><div class="agent-body"><div class="agent-name">'+a.name+'<span class="status-badge '+sc+'">'+a.status+'</span></div><div class="agent-role">'+(a.role||"")+'</div><div class="agent-action">&rarr; '+(a.last_action||"&mdash;")+'</div>'+(a.anomaly?'<div style="color:var(--amber);font-size:11px;margin-top:2px">'+a.anomaly+'</div>':"")+'</div><div class="agent-ts">'+ageLabel(a.last_heartbeat)+'</div></div>';}).join("");
+  // autonomous-runner retired by director decision (docs/staging/AUTONOMOUS_RUNNER_RETIRED.md,
+  // 2026-07-07): shown as a fixed neutral badge regardless of its live heartbeat/status data,
+  // never red/down -- its absence (or a stray restart) is not a fault to alert on.
+  var RETIRED_AGENTS={"autonomous-runner":"retired (director decision)"};
+  var rows=(SYS.agents||[]).map(function(a){
+    if(RETIRED_AGENTS[a.name]){
+      return'<div class="agent-row"><div class="agent-dot dot-grey"></div><div class="agent-body"><div class="agent-name">'+a.name+'<span class="status-badge sb-retired">'+RETIRED_AGENTS[a.name]+'</span></div><div class="agent-role">'+(a.role||"")+'</div><div class="agent-action">&rarr; single-writer redesign: the watchdog-managed interactive session now covers this role</div></div><div class="agent-ts">--</div></div>';
+    }
+    var dc=ageDot(a.last_heartbeat,a.status);var sc={running:"sb-running",idle:"sb-idle",working:"sb-working",error:"sb-error"}[a.status]||"sb-idle";return'<div class="agent-row"><div class="agent-dot '+dc+'"></div><div class="agent-body"><div class="agent-name">'+a.name+'<span class="status-badge '+sc+'">'+a.status+'</span></div><div class="agent-role">'+(a.role||"")+'</div><div class="agent-action">&rarr; '+(a.last_action||"&mdash;")+'</div>'+(a.anomaly?'<div style="color:var(--amber);font-size:11px;margin-top:2px">'+a.anomaly+'</div>':"")+'</div><div class="agent-ts">'+ageLabel(a.last_heartbeat)+'</div></div>';}).join("");
   c.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:12px">Status updated '+upd+'</div><div class="agent-grid">'+rows+'</div>';
   renderContinuity();
   renderBurnChart();

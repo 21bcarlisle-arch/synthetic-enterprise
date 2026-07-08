@@ -5,6 +5,7 @@ Called by process_run_complete.py after every full sim run, or manually:
   python3 tools/generate_dashboard_data.py [path/to/run_output.json]
 """
 import json
+import re
 import statistics
 import sys
 from collections import defaultdict
@@ -48,19 +49,56 @@ def count_company_modules():
     )
 
 
+def _derive_build_from_claude_md():
+    """Mechanically derive (phase, test_count) from CLAUDE.md's Current-state
+    section -- the doc updated at every phase close.
+
+    WEBSITE_FRESHNESS_AND_DEDUP.md item 1 (2026-07-08): build_info.json was a
+    manually-maintained stamp that drifted stale (dashboard showed "Phase RE /
+    15740 tests" while the project was at RX / 15,996). Rather than one more
+    hand-edited number, derive it from the one doc that is always current --
+    the same live-computation treatment count_company_modules() already gets.
+    The most-recent "Phase XX COMPLETE" heading and the first "NN,NNN collected"
+    figure inside its paragraph are the single source of truth every page then
+    consumes via dashboard.json's build block. Returns (phase, test_count) or
+    (None, None) if CLAUDE.md can't be parsed, so callers fall back to
+    build_info.json then the module constants."""
+    claude_md = PROJECT / "CLAUDE.md"
+    if not claude_md.exists():
+        return None, None
+    try:
+        text = claude_md.read_text()
+    except OSError:
+        return None, None
+    m = re.search(r"Phase ([A-Z]{1,3}) COMPLETE", text)
+    if not m:
+        return None, None
+    phase = m.group(1)
+    # First collected-test figure at/after the current-phase heading.
+    tail = text[m.start():]
+    tm = re.search(r"([\d,]+)\s+collected", tail)
+    test_count = int(tm.group(1).replace(",", "")) if tm else None
+    return phase, test_count
+
+
 def _load_build_info():
     company_modules = count_company_modules()
+    # Preferred source: derive fresh from CLAUDE.md so the stamp can never drift.
+    phase, test_count = _derive_build_from_claude_md()
+    if phase and test_count:
+        return phase, test_count, company_modules
+    # Fallbacks: build_info.json, then the module constants.
     if BUILD_INFO_PATH.exists():
         try:
             info = json.loads(BUILD_INFO_PATH.read_text())
             return (
-                info.get("phase", _BUILD_PHASE),
-                info.get("test_count", _BUILD_TEST_COUNT),
+                phase or info.get("phase", _BUILD_PHASE),
+                test_count or info.get("test_count", _BUILD_TEST_COUNT),
                 company_modules,
             )
         except (json.JSONDecodeError, ValueError):
             pass
-    return _BUILD_PHASE, _BUILD_TEST_COUNT, company_modules
+    return phase or _BUILD_PHASE, test_count or _BUILD_TEST_COUNT, company_modules
 
 
 # ---------------------------------------------------------------------------

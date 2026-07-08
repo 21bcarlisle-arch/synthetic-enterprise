@@ -6,10 +6,43 @@ import inspect
 
 from tools.generate_dashboard_data import (
     _load_build_info, _check_consistency, BUILD_INFO_PATH, count_company_modules,
+    _derive_build_from_claude_md,
 )
 
 
+def test_derive_build_from_claude_md_parses_current_state():
+    """The stamp is derived live from CLAUDE.md's current-state section so it can
+    never drift stale (WEBSITE_FRESHNESS_AND_DEDUP.md item 1)."""
+    phase, count = _derive_build_from_claude_md()
+    assert phase and phase.isalpha() and phase.isupper()
+    assert isinstance(count, int) and count > 10000
+
+
+def _no_claude_md(monkeypatch):
+    """Neutralize the CLAUDE.md-derived stamp so the build_info.json FALLBACK path
+    can be tested in isolation. Since WEBSITE_FRESHNESS_AND_DEDUP.md (2026-07-08),
+    _derive_build_from_claude_md() is the PRIMARY source (never drifts) and
+    build_info.json is only consulted when CLAUDE.md can't be parsed."""
+    monkeypatch.setattr(
+        "tools.generate_dashboard_data._derive_build_from_claude_md",
+        lambda: (None, None),
+    )
+
+
+def test_load_build_info_prefers_claude_md(monkeypatch):
+    # CLAUDE.md derivation wins over whatever build_info.json says.
+    monkeypatch.setattr(
+        "tools.generate_dashboard_data._derive_build_from_claude_md",
+        lambda: ("ZZ", 42424),
+    )
+    phase, count, modules = _load_build_info()
+    assert phase == "ZZ"
+    assert count == 42424
+    assert modules == count_company_modules()
+
+
 def test_load_build_info_reads_file(tmp_path, monkeypatch):
+    _no_claude_md(monkeypatch)
     p = tmp_path / "build_info.json"
     p.write_text(json.dumps({"phase": "ZZ", "test_count": 99999, "company_modules": 111}))
     monkeypatch.setattr("tools.generate_dashboard_data.BUILD_INFO_PATH", p)
@@ -22,6 +55,7 @@ def test_load_build_info_reads_file(tmp_path, monkeypatch):
 
 
 def test_load_build_info_falls_back_when_missing(tmp_path, monkeypatch):
+    _no_claude_md(monkeypatch)
     monkeypatch.setattr("tools.generate_dashboard_data.BUILD_INFO_PATH", tmp_path / "nonexistent.json")
     phase, count, modules = _load_build_info()
     assert phase == "OL"
@@ -30,6 +64,7 @@ def test_load_build_info_falls_back_when_missing(tmp_path, monkeypatch):
 
 
 def test_load_build_info_falls_back_on_invalid_json(tmp_path, monkeypatch):
+    _no_claude_md(monkeypatch)
     p = tmp_path / "build_info.json"
     p.write_text("not valid json {{{{")
     monkeypatch.setattr("tools.generate_dashboard_data.BUILD_INFO_PATH", p)
@@ -50,6 +85,7 @@ def test_count_company_modules_matches_independent_filesystem_scan():
 
 
 def test_load_build_info_partial_file_uses_defaults_for_missing_keys(tmp_path, monkeypatch):
+    _no_claude_md(monkeypatch)
     p = tmp_path / "build_info.json"
     p.write_text(json.dumps({"phase": "QC"}))
     monkeypatch.setattr("tools.generate_dashboard_data.BUILD_INFO_PATH", p)
