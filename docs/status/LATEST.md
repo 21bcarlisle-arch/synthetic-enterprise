@@ -1,5 +1,5 @@
 ## Phase RU COMPLETE -- FEEDBACK_AND_REPUTATION.md Layer 1 CLOSED (solicited feedback instrument)
-Last updated: 2026-07-08T04:48:18Z
+Last updated: 2026-07-08T05:00:00Z
 
 **Status:** COMPLETE. 15,928 tests collected. Epistemic: PASS.
 
@@ -23,7 +23,7 @@ Phase RS (2026-07-06) -- CTS ledger reconciliation CLOSED. Phase RR -- WEBSITE_A
 case-study recommender CLOSED, staging hygiene. Phases RF-RT: see docs/claude/phase-history.md and
 docs/PROJECT_OVERVIEW.md Section 4.
 
-**Latest simulation results (2016–2025)** — auto-processed (509s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (507s / 8 min):
 - Net margin: £1,535,307.74 | Gross: £6,467,308.57 | Capital: £51,433
 - Treasury: £2,466,636 → £3,911,894 | 38 committee interventions | 1605 bills issued
 - Enterprise value: £8,930,210.95 | Net after CTS: £6,433,343
