@@ -258,3 +258,59 @@ def test_stage_cost_share_sums_to_one():
 
 def test_funnel_stages_order():
     assert FUNNEL_STAGES == ("quote", "application", "credit_check", "onboarding", "cooling_off")
+
+
+class TestStageCalendarSpacing:
+    """Phase 3 item 5 (CORE_FIDELITY_PHASES.md): stage-to-stage calendar-day
+    spacing -- previously all 5 stages resolved instantly against a single
+    term_start."""
+
+    def test_quote_stage_date_equals_term_start(self):
+        result = run_acquisition_funnel(
+            "resi", "seedA", date(2020, 1, 1), _FakeBureau(passed=True),
+        )
+        assert result.stages[0].stage == "quote"
+        assert result.stages[0].stage_date == "2020-01-01"
+
+    def test_stage_dates_strictly_non_decreasing(self):
+        result = run_acquisition_funnel(
+            "resi", "seedB", date(2020, 1, 1), _FakeBureau(passed=True),
+        )
+        dates = [date.fromisoformat(s.stage_date) for s in result.stages]
+        assert dates == sorted(dates)
+
+    def test_cooling_off_stage_is_exactly_14_days_after_onboarding(self):
+        # Find a seed that survives to cooling_off (application/onboarding
+        # are probabilistic) rather than assuming any single seed does.
+        for i in range(50):
+            result = run_acquisition_funnel(
+                "resi", f"coolseed{i}", date(2020, 1, 1), _FakeBureau(passed=True),
+            )
+            if result.stage_reached == "cooling_off":
+                by_stage = {s.stage: date.fromisoformat(s.stage_date) for s in result.stages}
+                assert (by_stage["cooling_off"] - by_stage["onboarding"]).days == af.COOLING_OFF_PERIOD_DAYS
+                return
+        pytest.fail("no seed reached cooling_off in 50 tries")
+
+    def test_stage_date_deterministic_for_same_seed(self):
+        r1 = run_acquisition_funnel("resi", "seedD", date(2021, 6, 1), _FakeBureau(passed=True))
+        r2 = run_acquisition_funnel("resi", "seedD", date(2021, 6, 1), _FakeBureau(passed=True))
+        assert [s.stage_date for s in r1.stages] == [s.stage_date for s in r2.stages]
+
+    def test_stage_dates_vary_across_seeds(self):
+        application_dates = {
+            run_acquisition_funnel(
+                "resi", f"seed{i}", date(2020, 1, 1), _FakeBureau(passed=True)
+            ).stages[1].stage_date
+            for i in range(20)
+        }
+        assert len(application_dates) > 1
+
+    def test_early_dropout_still_carries_stage_dates(self):
+        result = run_acquisition_funnel(
+            "resi", "seedE", date(2020, 1, 1), _FakeBureau(passed=False),
+        )
+        assert result.stage_reached == "credit_check"
+        assert len(result.stages) == 3
+        for stage_event in result.stages:
+            date.fromisoformat(stage_event.stage_date)  # doesn't raise

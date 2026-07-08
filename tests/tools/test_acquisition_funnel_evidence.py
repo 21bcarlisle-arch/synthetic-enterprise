@@ -29,7 +29,7 @@ def test_extract_customers_carries_acquisition_funnel_log():
         {"billing_account": "C1", "segment": "resi", "term_start": "2021-01-01",
          "won": True, "stage_reached": "cooling_off", "total_cost_gbp": 145.0,
          "credit_bureau_score_band": "prime", "credit_bureau_passed": True,
-         "credit_bureau_true_creditworthy": True},
+         "credit_bureau_true_creditworthy": True, "stages": []},
     ]
 
 

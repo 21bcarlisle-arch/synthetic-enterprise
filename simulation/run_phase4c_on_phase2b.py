@@ -54,6 +54,9 @@ from simulation.arrears_engine import (
     compute_debt_recovery,
     apply_debt_recovery,
 )
+from simulation.contact_centre import generate_contact_centre_log
+from simulation.credit_refund_events import generate_credit_refund_log
+from simulation.meter_reads import generate_meter_read_log, meter_type_for_customer
 from simulation.run_phase2b import main as run_phase2b
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
@@ -115,6 +118,26 @@ def main(report_end: str | None = None, policy=None):
 
     bills = build_monthly_bills(all_records)
 
+    # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
+    # estimation/failure events, one per bill -- company-observable data
+    # layer only, does not alter settlement-based revenue recognition above.
+    all_customers_for_meter_type = _get_all_customers()
+    customer_meter_types = {
+        c["customer_id"]: meter_type_for_customer(c) for c in all_customers_for_meter_type
+    }
+    meter_read_log = generate_meter_read_log(bills, customer_meter_types)
+
+    # Phase 3 (CORE_FIDELITY_PHASES.md item 2): SLC 14 credit-refund
+    # activation -- company/billing/credit_refund.py already had the real
+    # SLA mechanic but no caller anywhere in simulation/. DD customers who
+    # churn carrying a positive DD-smoothing credit balance now raise a real
+    # refund event with an on-time/breach outcome.
+    churned_ids = set(phase2b_result.get("churned_billing_accounts", []))
+    customer_segments = {
+        c["customer_id"]: c.get("segment", "resi") for c in all_customers_for_meter_type
+    }
+    credit_refund_log = generate_credit_refund_log(bills, customer_segments, churned_ids)
+
     # Phase QD: replace the flat get_bad_debt_rate() formula baked into
     # all_records by run_phase2b's real-time settlement loop with the real,
     # emergent bad debt from the same payment/arrears model that drives the
@@ -124,7 +147,7 @@ def main(report_end: str | None = None, policy=None):
     emergent_bad_debt = compute_emergent_bad_debt(
         bills,
         phase2b_result.get("per_customer_behavioral", {}),
-        set(phase2b_result.get("churned_billing_accounts", [])),
+        churned_ids,
     )
     apply_emergent_bad_debt(all_records, emergent_bad_debt)
 
@@ -136,12 +159,18 @@ def main(report_end: str | None = None, policy=None):
     debt_recovery = compute_debt_recovery(
         bills,
         phase2b_result.get("per_customer_behavioral", {}),
-        set(phase2b_result.get("churned_billing_accounts", [])),
+        churned_ids,
     )
     apply_debt_recovery(all_records, debt_recovery)
 
     payment_behaviour = build_payment_behaviour(bills)
     contact_model = build_contact_model(bills)
+
+    # Phase 3 (CORE_FIDELITY_PHASES.md item 4): contact-centre first-response
+    # time, distinct from feedback_survey's complaint *resolution* timer --
+    # reuses contact_model's already-computed per-bill contact_probability
+    # as the trigger, adds the channel + first-response latency layer.
+    contact_centre_log = generate_contact_centre_log(bills, contact_model)
 
     all_customers = _get_all_customers()
     cost_to_serve = build_cost_to_serve(all_records, all_customers)
@@ -210,6 +239,9 @@ def main(report_end: str | None = None, policy=None):
     return {
         "phase2b": phase2b_result,
         "bills": bills,
+        "meter_read_log": meter_read_log,
+        "credit_refund_log": credit_refund_log,
+        "contact_centre_log": contact_centre_log,
         "payment_behaviour": payment_behaviour,
         "contact_model": contact_model,
         "cost_to_serve": cost_to_serve,

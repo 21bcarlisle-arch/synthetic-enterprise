@@ -111,6 +111,128 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase SA -- Open-agenda turn-continuation nudge + tmux session isolation guard (2026-07-08, Tier 2 -- docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md, advisor-staged, director-repeat x3 = P1 by rule P-2)
+
+Closed the harness gap TURN_CONTINUATION_AND_PHASE3_GO.md named: "turns end; nothing grants
+the next one" once a genuinely new staged file isn't the trigger -- `staging_watcher.py`'s
+existing wake fires only for new staged files by design, and the retired autonomous-runner
+no longer provides idle-turn coverage. **Deliverable 1a (built):** `background/agenda.py`
+(new) -- a small on-disk marker (`background/.open_agenda.json`) a session can record open
+phase work against (`set_agenda(phase, step, next_action)`); `staging_watcher.py`'s existing
+30-second poll loop (no new process, no new polling) checks each cycle whether the agenda has
+sat untouched past `IDLE_THRESHOLD_SECONDS` (10 min, presumed-idle) and, if so, injects ONE
+signed continue-nudge via the same `sign_wake_message` + `send_keys` pattern already used for
+new-staged-file wakes. Nudge-once discipline per R5 ("never repeat an unchanged status"): a
+given agenda snapshot (keyed by its own `updated_at`) is nudged at most once --
+`background/.agenda_last_nudge.json` tracks this, so a session that doesn't wake gets silence,
+not spam, and advancing the agenda (proving the session is alive) makes it eligible again. R7
+holds throughout: the nudge text names the phase/step only, never the recorded `next_action`
+verbatim -- a doorbell, not a directive (`test_relay_agenda_nudge_never_includes_next_action_as_instruction`
+guards this explicitly). **Deliverable 1b (verified already-implemented, not rebuilt):**
+`dispatcher.py::_relay_to_claude` already promotes URGENT-classified `from_rich_*.md` messages
+to a signed tmux relay -- confirmed by reading the code and by this exact from_rich instruction
+(this phase's own trigger) successfully waking this session earlier today. No new code needed
+there; reported as a finding rather than duplicated. **Isolation guard:** `background/tmux_relay.py`
+(the one shared chokepoint all three daemons already route through) gained a session-name check
+-- `send_keys()` now refuses (no-ops) if the target session doesn't match `SE_TMUX_SESSION_NAME`
+(unset = "claude", matching every existing hardcoded caller, so this is a pure hardening add
+with zero live-behaviour change today). Fixing it once in the shared module protects
+`session_watchdog.py`, `dispatcher.py`, and `staging_watcher.py` simultaneously.
+
+**R2 discipline (committed != running):** the `staging-watcher` tmux daemon was killed and
+restarted via the proven `start_worker.sh` `-e VAR=value` pattern (a plain `export` does not
+reach a new session on an already-warm tmux server -- the exact 2026-07-08 NTFY-rotation
+lesson) so the new agenda-nudge code is actually live, not just committed. Verified: process
+alive post-restart, `SE_NTFY_TOPIC`/`SE_WAKE_HMAC_KEY` present in its `/proc/<pid>/environ`,
+log shows a clean "resuming from saved state" entry (no re-notification storm for
+already-seen files), and `health_check.py` reports the full stack OK afterward.
+`session_watchdog.py`/`dispatcher.py` were NOT restarted -- the isolation guard they inherit
+via `tmux_relay.py` is inert-by-default for them (both already always call with
+`session="claude"`, matching the unset-env default), so no functional change is pending a
+restart for either.
+
+18 new tests (11 `test_agenda.py`, 4 `test_tmux_relay.py` isolation-guard additions,
+3 `test_staging_watcher.py` agenda-nudge additions), full `tests/background/` suite (308) re-run
+clean post-change. This phase's own trigger doubled as its acceptance test: the
+`TURN_CONTINUATION_AND_PHASE3_GO.md` staged file itself was found and actioned via a manual
+staging poll mid-turn (the exact "turns end, nothing grants the next one" failure mode this
+phase fixes) -- once live, the same class of arrival will self-wake instead of waiting on
+coincidence.
+
+### Phase RZ -- CORE_FIDELITY_PHASES.md Phase 3: unhappy paths & time as a random variable, all 5 gaps closed (2026-07-08, Tier 2 -- PRIORITIES.md front of queue, director-direct from_rich instruction, CORE_FIDELITY_BEFORE_LOOPS.md reorientation)
+
+Closed all five genuine gaps CORE_FIDELITY_PHASES.md's Phase 1 audit found ("settlement records
+are treated as always-available and always-accurate; nothing models a read arriving late, failing
+to arrive, or being estimated" and four related instant-in-time processes), in the audit's own
+priority order (meter reads first -- it blocks Phase 4's actual-vs-estimated bill flag).
+
+**1. Meter-read arrival/estimation/failure (`simulation/meter_reads.py`, new, highest priority):**
+company-observable read events layered onto (not replacing) the existing settlement-based revenue
+recognition -- Phase 4's own text already scopes the bill *document* as separate from the
+financial-correctness numbers behind it. Smart meters transmit automatically (small delay, ~10%
+"not communicating"/WAN-fallback rate); traditional meters depend on a self-submitted or periodic
+read (~1-in-6-monthly actual-read cadence), otherwise the bill is estimated from that customer's
+own trailing history (never this period's true value -- epistemic wall applied to billing). A
+forced catch-up read fires after 12 consecutive estimated periods, encoding the real Ofgem
+back-billing 12-month rule. Anchored against a live discovery-agent pass (DESNZ Q4 2024 Smart
+Meters Statistics Report, Citizens Advice back-billing guidance) --
+docs/market_research/meter_read_latency_estimation_2026.md +
+docs/market_research/ASSUMPTIONS.md's new table. Wired into
+`simulation/run_phase4c_on_phase2b.py::main()`, evidenced live: Sim tab Customers sub-tab gets a
+new "Meter-Read Delay & Estimation" section (KPI row + stacked actual-vs-estimated histogram by
+delay bucket), the exact "tail visibly producing estimated bills" the phase's evidence bar asked
+for.
+
+**2. SLC 14 credit-refund activation (`simulation/credit_refund_events.py`, new):**
+`company/billing/credit_refund.py` had a real 10-working-day refund SLA mechanic since an earlier
+phase but zero callers anywhere in `simulation/` -- confirmed dead code by grep. Added a narrow,
+closure-only DD-smoothing mechanic (a DD customer's flat monthly amount is the trailing mean of
+their own bills to date, no lookahead) so a churned DD customer carrying a positive smoothing
+balance raises a real refund event, resolved on-time (90%) or breaching the SLC 14 deadline (10%)
+-- the real 2022-crisis pattern Ofgem issued enforcement notices for. Deliberately scoped narrower
+than the still-open BILLING_AND_PAYMENTS_LEDGER.md item 3 (full customer-facing statement/
+cashflow reconciliation) -- this is an internal SIM trigger for one compliance process only.
+
+**3. Bill generation/delivery lag (`tools/generate_billing_ledger.py`):** `issue_date` was
+`period_end` exactly, zero generation or postal delay. Added a small deterministic per-customer-
+period delay (provisional distribution, flagged ⚠ in ASSUMPTIONS.md pending a dedicated anchor
+pass) between period-end and issue_date; due_date now correctly derives from the shifted issue_date
+rather than the unshifted period_end.
+
+**4. Contact-centre first-response time (`simulation/contact_centre.py`, new):** distinct from
+`simulation/feedback_survey.py`'s already-real complaint *resolution* timer, no first-response
+latency existed. Reuses `saas/contact_model.py`'s already-computed per-bill contact_probability as
+the trigger; assigns a channel (phone/email/webchat, UK energy-sector phone-heavy mix) and a
+first-response delay -- phone/webchat are live-conversation channels (near-instant, never breach),
+email is asynchronous and carries a provisional 24-hour SLA target that can breach.
+
+**5. Switching-funnel stage-to-stage calendar spacing (`simulation/acquisition_funnel.py`):** all
+5 stages (quote -> application -> credit_check -> onboarding -> cooling_off) previously resolved
+against one `term_start` with zero elapsed time -- "real in outcome but instant in time." Each
+`FunnelStageEvent` now carries a real `stage_date`, walked forward with provisional short
+stage-to-stage distributions except cooling_off, which is a real, hard-anchored statutory constant
+(Consumer Contracts Regulations 2013, 14 calendar days) rather than a distribution. `term_start`'s
+own meaning to every existing caller is unchanged -- purely additive. Threaded through to
+`acquisition_funnel_log`'s `stages` field (dashboard.json passthrough) for future funnel-timing
+evidence.
+
+Also completed the staged housekeeping in the same from_rich instruction: archived
+NUDGE_PHYSICS.md, FEEDBACK_AND_REPUTATION.md, WEBSITE_AS_SHOWCASE.md to `docs/staging/done/`
+(each verified to carry only its original 4-5 Jul commit -- never reappeared, simply never
+archived). Also proposed and adopted a minimal turn-continuation mechanism per the instruction's
+own ask (reuse the existing `staging_watcher.py` event-driven wake for self-staged continuation
+markers if a turn ends with phase work still open -- no new process, no polling).
+
+47 new tests (`test_meter_reads.py`, `test_credit_refund_events.py`, `test_contact_centre.py`,
+`test_meter_read_evidence.py`, plus additions to `test_generate_billing_ledger.py`,
+`test_acquisition_funnel.py`, `test_run_phase4c_on_phase2b.py`, `test_acquisition_funnel_evidence.py`),
+16,071 collected. Full fast suite (15,942, excluding the known-slow full-pipeline files) +
+the four slow full-pipeline integration files re-run clean. Epistemic verifier PASS (452 files,
+full scan). CORE_FIDELITY_PHASES.md Phase 3 CLOSED IN FULL. Phase 2 (household segments &
+psychology, may interleave with Phase 3 per the design doc's own sequencing note but was not
+started this session) and Phase 4 (UK-compliant bill artefact, rides on Phases 2+3, now unblocked
+by Phase 3's meter-read events) remain open next.
+
 ### Phase RX -- S1 shadow-live track record: Option B (two decoupled clocks + public scorecard) AND Option A (rolling live Elexon fetch, market clock now real) (2026-07-08, Tier 2 -- PRIORITIES.md front of queue S1, director-endorsed docs/staging/S1_OPTION_A_UNBLOCKED.md)
 
 Closed S1 (proof-first shadow-live track record) in both its parts. **Option B** recovered a prior interrupted session's complete work and landed it: the daily shadow-decision log was degenerate (four real days byte-identical except the run timestamp) because both market-price freshness and the renewal-day countdown were pinned to the sim's frozen SSP cache end (2025-06-07); a log that never changes can never be graded. `tools/run_live_decisions.py` now decouples the two clocks -- market freshness stays honestly bounded by real Elexon data (surfaced as `market_data_stale_days`, not hidden) while wall-clock elapsed time drives `days_to_renewal` and all future grading via a factored-out `_utc_now()`. Added the retention-EV field S1's scope requires (company-observable inputs only; returns None rather than fabricating). `tools/generate_track_record_scorecard.py` walks the immutable log and grades three tracks honestly (renewal-price flags ±2% tolerance; hedge recs ungraded until market advances; retention EVs logged-but-ungraded, no realised signal exists yet), correctly reporting the zero-graded early state as honest, not an error. Decision 2 (public from day one, misses included): the scorecard is folded verbatim onto the public Method page (`site/method/index.html` render + `generate_method_data.py` `track_record` field), wired into `process_run_complete.py`'s per-run pipeline. **Option A** (Rich unblocked it; advisor verified Elexon's Insights Solution publishes settlement prices continuously/openly past 2025-06-07, public no-key): `background/refresh_elexon_ssp_rolling.py` fetches real GB settlement prices for (last_covered, yesterday] via the same proven `get_system_prices_range` that built the historical cache, into a SEPARATE gitignored file (`sim/cache/elexon_ssp_live_rolling.json`) merged into the live path only by `tools/live_market.py` -- the historical sim/dashboards read `elexon_ssp_full.json` and are provably unaffected; fully defensive (a network-less/failed run is a no-op, never corrupts). Verified live: 18,960 real records, 2025-06-08..2026-07-07, zero date gaps, 46/48/50 periods-per-day (real clock-change signature), prices -£97.92..£800 mean £82.67; `live_market` as_of advanced 2025-06-07 -> 2026-07-07, stale-days 396 -> 1, elec_spot £70.31 -> £96.02. Electricity-live; gas stays frozen-labelled (Elexon is electricity-only) until its own live source is wired. Today's immutable log entry stays locked at stale=396 by first-write-wins -- the advancement surfaces as an honest jump in the 2026-07-09 entry. Also landed the autonomous-runner alerting-suppression half of the retirement directive (`health_check.py`); the process-still-running half stays tracked by the open review gate `docs/review_gates/AUTONOMOUS_RUNNER_STILL_RUNNING.md`. 50 RX/live-op + 11 rolling-fetch tests, 15,996 collected, epistemic PASS.
@@ -6523,7 +6645,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 15,959 tests collected (full suite) plus 11 new tests from Phase RW
+- 16,089 tests collected (full suite) -- 18 new tests from Phase SA (test_agenda.py,
+  test_tmux_relay.py/test_staging_watcher.py additions) plus 47 new tests from Phase RZ
+  (test_meter_reads.py, test_credit_refund_events.py, test_contact_centre.py,
+  acquisition_funnel/generate_billing_ledger/generate_dashboard_data additions), on top of the
+  prior 15,959 tests collected (full suite) plus 11 new tests from Phase RW
   (test_generate_saas_coverage_data.py, test_saas_coverage_platform_page.py), on top of
   28 new tests from Phase RV (test_nudge_physics.py, test_nudge_discovery.py,
   decision_policy/decision_event_ledger additions), on top of 22 new tests from Phase RU

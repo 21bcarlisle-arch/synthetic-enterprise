@@ -68,3 +68,49 @@ def test_send_keys_swallows_exceptions(monkeypatch):
     monkeypatch.setattr(tmux_relay.subprocess, "run", _raise)
 
     assert tmux_relay.send_keys("claude", "x", "Enter") is False
+
+
+# ── Session isolation guard (docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md, 2026-07-08) ──
+
+def test_default_session_name_matches_every_existing_caller():
+    """Every current daemon hardcodes SESSION_NAME = "claude" -- the default
+    target must match, or this guard would silently break live behaviour."""
+    assert tmux_relay.DEFAULT_SESSION_NAME == "claude"
+
+
+def test_send_keys_unaffected_by_guard_when_unconfigured(monkeypatch):
+    """No SE_TMUX_SESSION_NAME set: the guard must be fully transparent for
+    the default session name (zero behaviour change for existing daemons)."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.delenv("SE_TMUX_SESSION_NAME", raising=False)
+    monkeypatch.setattr(
+        tmux_relay.subprocess, "run",
+        lambda cmd, **kw: type("R", (), {"returncode": 0})(),
+    )
+    assert tmux_relay.send_keys("claude", "x", "Enter") is True
+
+
+def test_send_keys_refuses_mismatched_session_when_configured(monkeypatch):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setenv("SE_TMUX_SESSION_NAME", "claude")
+    calls = []
+    monkeypatch.setattr(
+        tmux_relay.subprocess, "run",
+        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"returncode": 0})(),
+    )
+    result = tmux_relay.send_keys("some-other-session", "x", "Enter")
+    assert result is False
+    assert calls == []  # refused before ever shelling out
+
+
+def test_send_keys_allows_matching_configured_session(monkeypatch):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setenv("SE_TMUX_SESSION_NAME", "custom-session")
+    calls = []
+    monkeypatch.setattr(
+        tmux_relay.subprocess, "run",
+        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"returncode": 0})(),
+    )
+    result = tmux_relay.send_keys("custom-session", "x", "Enter")
+    assert result is True
+    assert calls == [["tmux", "send-keys", "-t", "custom-session", "x", "Enter"]]

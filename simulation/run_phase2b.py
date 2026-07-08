@@ -1352,6 +1352,13 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                             "credit_bureau_score_band": _funnel_result.credit_bureau_score_band,
                             "credit_bureau_passed": _funnel_result.credit_bureau_passed,
                             "credit_bureau_true_creditworthy": _funnel_result.credit_bureau_true_creditworthy,
+                            # Phase 3 item 5: real stage-to-stage calendar
+                            # dates, replacing the previous instant-in-time
+                            # funnel resolution.
+                            "stages": [
+                                {"stage": s.stage, "passed": s.passed, "stage_date": s.stage_date}
+                                for s in _funnel_result.stages
+                            ],
                         })
 
                         acquisition_spend_events.append(

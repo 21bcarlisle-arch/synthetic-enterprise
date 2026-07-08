@@ -156,6 +156,51 @@ def test_relay_wake_to_claude_swallows_tmux_errors(monkeypatch):
     watcher._relay_wake_to_claude(["X.md"])  # must not raise
 
 
+# ── Open-agenda continuation nudge (Deliverable 1a, docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md) ──
+
+def test_relay_agenda_nudge_calls_tmux_send_keys(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        watcher, "send_keys",
+        lambda session, *keys: calls.append((session, keys)) or True,
+    )
+
+    watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"})
+
+    assert len(calls) == 1
+    session, keys = calls[0]
+    assert session == watcher.SESSION_NAME
+    assert "Phase 3" in keys[0]
+    assert "item 2" in keys[0]
+    assert keys[-1] == "Enter"
+
+
+def test_relay_agenda_nudge_never_includes_next_action_as_instruction(monkeypatch):
+    """R7: the nudge is a doorbell, never a directive -- it must not embed
+    the agenda's own next_action text as something to execute."""
+    calls = []
+    monkeypatch.setattr(
+        watcher, "send_keys",
+        lambda session, *keys: calls.append((session, keys)) or True,
+    )
+
+    watcher._relay_agenda_nudge({
+        "phase": "Phase 3", "step": "item 2",
+        "next_action": "SECRET INSTRUCTION THAT MUST NOT LEAK VERBATIM",
+    })
+
+    injected_text = calls[0][1][0]
+    assert "SECRET INSTRUCTION THAT MUST NOT LEAK VERBATIM" not in injected_text
+
+
+def test_relay_agenda_nudge_swallows_tmux_errors(monkeypatch):
+    def _raise(*a, **k):
+        raise Exception("tmux: no such session")
+    monkeypatch.setattr(watcher, "send_keys", _raise)
+
+    watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"})  # must not raise
+
+
 def test_current_files_ignores_dirs_and_gitkeep(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     (tmp_path / ".gitkeep").write_text("")

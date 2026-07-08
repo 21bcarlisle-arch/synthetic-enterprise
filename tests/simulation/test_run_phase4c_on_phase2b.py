@@ -1,6 +1,6 @@
 import pytest
 
-from simulation.run_phase4c_on_phase2b import build_monthly_bills
+from simulation.run_phase4c_on_phase2b import build_monthly_bills, main
 
 
 def make_record(customer_id, settlement_date, kwh, unit_rate=200.0):
@@ -136,3 +136,36 @@ def test_build_monthly_bills_clarity_score_not_none():
     bills = build_monthly_bills(records)
     assert bills[0]["clarity_score"] is not None
     assert isinstance(bills[0]["clarity_score"], float)
+
+
+def test_main_produces_meter_read_log_matching_bills():
+    # Phase 3 (CORE_FIDELITY_PHASES.md item 1) wiring: every bill the full
+    # pipeline produces must have a corresponding meter-read event, and the
+    # events must carry real status/delay data (not a stub).
+    result = main()
+    assert len(result["meter_read_log"]) == len(result["bills"])
+    statuses = {entry["status"] for entry in result["meter_read_log"]}
+    assert statuses <= {"actual", "estimated"}
+    assert all(entry["delay_days"] >= 0 for entry in result["meter_read_log"])
+
+
+def test_main_produces_contact_centre_log():
+    # Phase 3 item 4 wiring: every logged contact carries a resolved
+    # channel + first-response latency.
+    result = main()
+    assert "contact_centre_log" in result
+    for entry in result["contact_centre_log"]:
+        assert entry["channel"] in ("phone", "email", "webchat")
+        assert entry["first_response_hours"] >= 0
+        assert isinstance(entry["breached_sla"], bool)
+
+
+def test_main_produces_credit_refund_log():
+    # Phase 3 item 2 wiring: credit_refund.py's SLA mechanic now has a real
+    # caller -- every logged event must carry a resolved SLC 14 outcome.
+    result = main()
+    assert "credit_refund_log" in result
+    for entry in result["credit_refund_log"]:
+        assert entry["credit_amount_gbp"] > 0
+        assert entry["working_days_to_pay"] is not None
+        assert isinstance(entry["breached_slc14_deadline"], bool)

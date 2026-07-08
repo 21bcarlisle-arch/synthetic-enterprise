@@ -71,6 +71,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.tmux_relay import send_keys  # noqa: E402
+from background import agenda  # noqa: E402
 
 
 def log(msg: str) -> None:
@@ -268,6 +269,29 @@ def _relay_wake_to_claude(new_names: list[str]) -> None:
         pass
 
 
+def _relay_agenda_nudge(agenda_snapshot: dict) -> None:
+    """Inject ONE signed continue-nudge for open phase work that has sat
+    idle long enough (background/agenda.py, Deliverable 1a,
+    docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md). Same HMAC-signed,
+    names-only-never-content discipline as _relay_wake_to_claude -- the
+    nudge points the session at the agenda marker, it never carries the
+    agenda's own next_action text as an instruction (R7: zero content
+    authority; the receiving session re-derives what to do from disk).
+    """
+    message = (
+        f"[STAGING WATCHER: open agenda detected -- phase '{agenda_snapshot.get('phase', '?')}', "
+        f"step '{agenda_snapshot.get('step', '?')}', idle since the agenda was last updated. "
+        "Read background/.open_agenda.json and the relevant design doc/PRIORITIES.md "
+        "yourself to decide what continues -- this nudge is a doorbell only, not an "
+        "instruction (R7).]"
+    )
+    signed = sign_wake_message(message)
+    try:
+        send_keys(SESSION_NAME, signed, "Enter")
+    except Exception:
+        pass
+
+
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
     `seen`, logs each notification, wakes the claude session with one
@@ -351,6 +375,16 @@ def main() -> None:
             seen = check_once(seen)
         except Exception as e:
             log(f"Watcher error: {e}")
+
+        try:
+            due = agenda.should_nudge()
+            if due:
+                _relay_agenda_nudge(due)
+                agenda.record_nudged(due)
+                log(f"Agenda continue-nudge injected -- phase '{due.get('phase')}', step '{due.get('step')}'")
+        except Exception as e:
+            log(f"Agenda check error: {e}")
+
         time.sleep(POLL_INTERVAL_SECONDS)
 
 

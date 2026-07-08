@@ -104,6 +104,28 @@ source document itself.
 | Gentrack g2 production AI agent count | n/a — architectural reference only | "17+ autonomous AI agents in live production" | COMPETITOR_PLATFORMS_2026.md §3 (director-supplied, AI-assisted, unsourced) | 2026-07-08 | ⚠ Unverified — no primary source cited in the survey itself |
 | Kaluza Flex OEM integration count | n/a — architectural reference only | "400+ device OEMs" | COMPETITOR_PLATFORMS_2026.md §5 (director-supplied, AI-assisted, unsourced) | 2026-07-08 | ⚠ Unverified — no primary source cited in the survey itself |
 
+## Meter-Read Arrival Delay, Estimation & Failure (Phase 3, CORE_FIDELITY_PHASES.md)
+
+| Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
+|---|---|---|---|---|---|
+| Smart meter "not communicating" / traditional-mode rate (all meters, GB) | `simulation/meter_reads.py::SMART_METER_NOT_COMMUNICATING_RATE = 0.10` (of installed smart meters) | 6.4% of all meters operating in "traditional mode" (manual read needed); ~10% of installed smart meters not in smart mode, end 2024 | DESNZ Q4 2024 Smart Meters Statistics Report (fetched direct, 2026-07-08) | 2026-07-08 | ✓ OK — Phase 3 item 1 built, blended elec/gas (see module docstring for the not-fuel-differentiated caveat) |
+| Read-estimation-exposed domestic electricity meters | Not directly modelled as a standalone rate — captured implicitly via meter_type_for_customer() reusing the existing Phase 50 smart-meter-penetration curve | ~35.8% (31.1% non-smart/dumb + 4.7% smart-in-traditional-mode), end 2024 | DESNZ Q4 2024 Smart Meters Stats, Table 1/5a domestic split | 2026-07-08 | Reference only — see saas/smart_meter_rollout.py for the calibrated penetration curve this derives from |
+| Read-estimation-exposed domestic gas meters | Not fuel-differentiated (documented simplification, see meter_reads.py docstring) | ~45.3% (36.2% non-smart/dumb + 9.1% smart-in-traditional-mode), end 2024 — gas notably worse than electricity | DESNZ Q4 2024 Smart Meters Stats, Table 1/5a domestic split | 2026-07-08 | Known gap — follow-up if a fuel-differentiated model is needed |
+| Traditional (non-smart) meter actual-read cadence | `simulation/meter_reads.py::TRADITIONAL_ACTUAL_READ_PROBABILITY = 1/6` (≈6-monthly) | ~6-monthly actual read cycle industry practice, self-read/estimate between visits (precise Ofgem SLC 21A text not independently fetched this session) | Citizens Advice consumer guidance (mechanism confirmed); SLC text — genuine gap | 2026-07-08 | ⚠ Unverified precise cadence — mechanism confirmed, number not; SIM uses the confirmed ~6-monthly figure |
+| Back-billing correction deadline | `simulation/meter_reads.py::MAX_CONSECUTIVE_ESTIMATED_PERIODS = 12`; `acquisition_funnel.py`/`credit_refund_events.py` unaffected | 12 months — supplier cannot bill for energy used >12 months ago unless a timely bill was issued and left unpaid | Citizens Advice ("If you haven't received an accurate energy bill in a while"), retrieved 2026-07-08 | 2026-07-08 | ✓ OK — real regulatory ceiling, encoded as the Phase 3 forced-catch-up cap |
+| Non-domestic (SME/I&C) smart/advanced meter operating rate | Not reconciled — meter_reads.py reuses the same smart/traditional split for all segments | 58% of non-domestic meters smart/advanced overall (elec 61%, gas 32%) end 2024 | DESNZ Q4 2024 Smart Meters Stats Table 1 | 2026-07-08 | Gap — not reconciled against domestic split; follow-up if a segment-specific model is needed |
+| Bill generation/delivery lag | `tools/generate_billing_ledger.py::BILL_GENERATION_DELAY_MEAN_DAYS = 3.0` | Not independently benchmarked this round | — | 2026-07-08 | ⚠ Provisional — no DESNZ/Ofgem billing-cycle-latency benchmark registered yet; industry-convention placeholder |
+| Contact-centre channel mix (phone/email/webchat) | `simulation/contact_centre.py::CHANNEL_WEIGHTS = {phone: 0.55, email: 0.25, webchat: 0.20}` | Not independently benchmarked this round | — | 2026-07-08 | ⚠ Provisional — industry customer-service convention, not discovery-agent-verified |
+| Contact-centre email first-response SLA target | `simulation/contact_centre.py::EMAIL_FIRST_RESPONSE_SLA_HOURS = 24.0` | Not independently benchmarked this round | — | 2026-07-08 | ⚠ Provisional — industry customer-service convention, no specific Ofgem complaint-handling-standards figure cited |
+| Acquisition-funnel stage-to-stage day spacing (quote→application, application→credit_check, credit_check→onboarding) | `simulation/acquisition_funnel.py::_QUOTE_TO_APPLICATION_DAYS/_APPLICATION_TO_CREDIT_CHECK_DAYS/_CREDIT_CHECK_TO_ONBOARDING_DAYS` | Not independently benchmarked this round | — | 2026-07-08 | ⚠ Provisional — short seed distributions, not discovery-agent-verified |
+| Cooling-off statutory period | `simulation/acquisition_funnel.py::COOLING_OFF_PERIOD_DAYS = 14` | 14 calendar days — Consumer Contracts (Information, Cancellation and Additional Charges) Regulations 2013, off-premises/distance contract cancellation window | Statutory instrument (general UK consumer law knowledge, not this session's discovery-agent fetch) | 2026-07-08 | ✓ OK — well-established regulatory constant |
+
+See `docs/market_research/meter_read_latency_estimation_2026.md` for full findings, direct
+quotes, and sourcing detail on the meter-read rows. The bill-generation-lag, contact-centre,
+and funnel-spacing rows above are flagged ⚠ provisional pending a dedicated discovery-agent
+pass — not yet requested this session (token-economy tradeoff, Phase 3 items 3-5 unblocked by
+proceeding with clearly-labelled provisional seed values per the Anchored-noise law).
+
 ## Known Gaps (not yet modelled)
 
 | Gap | Impact | Priority |

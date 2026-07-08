@@ -15,12 +15,24 @@ awareness/consideration gate. This module owns quote onward.
 
 Stage order: quote -> application -> credit_check -> onboarding -> cooling_off.
 "quote" is the entry point (attempt == quote issued).
+
+Phase 3 (CORE_FIDELITY_PHASES.md item 5, unhappy-path audit finding #5):
+"the funnel is real in outcome but instant in time" -- all 5 stages
+previously resolved against a single `term_start` with zero calendar-day
+spacing. Each `FunnelStageEvent` now carries a real `stage_date`, walked
+forward from `term_start` (the quote-issued date, unchanged entry-point
+semantics -- no caller's use of `term_start` itself changes). Stage-to-stage
+gaps are provisional short distributions (⚠ not discovery-agent-verified)
+except cooling_off, which is a real, hard-anchored constant: the Consumer
+Contracts (Information, Cancellation and Additional Charges) Regulations
+2013 give a statutory 14-calendar-day cancellation window for off-premises/
+distance energy contracts -- `COOLING_OFF_PERIOD_DAYS` below.
 """
 from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 
 FUNNEL_STAGES: tuple[str, ...] = (
     "quote",
@@ -68,6 +80,21 @@ ONBOARDING_TO_COOLING_OFF_SURVIVAL: dict[str, dict[str, float]] = {
     "SME": {"pre": 0.90, "post": 0.90},
 }
 
+# Phase 3 item 5: stage-to-stage calendar-day spacing. Ranges are provisional
+# short distributions (⚠ not discovery-agent-verified) except cooling_off,
+# a real statutory constant -- see module docstring.
+_QUOTE_TO_APPLICATION_DAYS = (1, 14)
+_APPLICATION_TO_CREDIT_CHECK_DAYS = (0, 2)
+_CREDIT_CHECK_TO_ONBOARDING_DAYS = (1, 5)
+COOLING_OFF_PERIOD_DAYS = 14
+_STAGE_DAY_RANGE: dict[str, tuple[int, int]] = {
+    "quote": (0, 0),
+    "application": _QUOTE_TO_APPLICATION_DAYS,
+    "credit_check": _APPLICATION_TO_CREDIT_CHECK_DAYS,
+    "onboarding": _CREDIT_CHECK_TO_ONBOARDING_DAYS,
+    "cooling_off": (COOLING_OFF_PERIOD_DAYS, COOLING_OFF_PERIOD_DAYS),
+}
+
 # Section 4 cost-per-stage split -- explicitly labelled an estimate/analogue in the
 # research doc (no sourced UK energy-specific CAC stage-cost breakdown found). "quote"
 # carries the bulk of committed cost since that is when the existing flat
@@ -91,6 +118,7 @@ class FunnelStageEvent:
     stage: str
     passed: bool
     cost_increment_gbp: float
+    stage_date: str  # ISO date -- real calendar spacing from quote (Phase 3 item 5)
 
 
 @dataclass
@@ -137,6 +165,16 @@ def _bernoulli(seed: str, stage_name: str, pass_rate: float) -> bool:
     return rng.random() <= pass_rate
 
 
+def _stage_day_offset(seed: str, stage: str) -> int:
+    """Calendar days this stage takes AFTER the previous stage (Phase 3
+    item 5). cooling_off is a fixed statutory 14 days, not a roll."""
+    lo, hi = _STAGE_DAY_RANGE.get(stage, (0, 0))
+    if lo == hi:
+        return lo
+    rng = random.Random(seed + "_" + stage + "_days")
+    return rng.randint(lo, hi)
+
+
 def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amount_gbp=None):
     """Run quote -> application -> credit_check -> onboarding -> cooling_off.
 
@@ -157,13 +195,17 @@ def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amoun
         total_amount_gbp = COST_PER_ACQUISITION.get(segment, COST_PER_ACQUISITION["resi"])
 
     stages = []
-    state = {"cost": 0.0, "band": None, "passed": None}
+    state = {"cost": 0.0, "band": None, "passed": None, "elapsed_days": 0}
     state["true_creditworthy"] = None
 
     def _record(stage, passed):
         increment = _stage_cost_increment(stage, total_amount_gbp)
         state["cost"] += increment
-        stages.append(FunnelStageEvent(stage=stage, passed=passed, cost_increment_gbp=increment))
+        state["elapsed_days"] += _stage_day_offset(seed, stage)
+        stage_date = (term_start + timedelta(days=state["elapsed_days"])).isoformat()
+        stages.append(FunnelStageEvent(
+            stage=stage, passed=passed, cost_increment_gbp=increment, stage_date=stage_date,
+        ))
 
     def _result(stage_reached, won):
         return AcquisitionFunnelResult(

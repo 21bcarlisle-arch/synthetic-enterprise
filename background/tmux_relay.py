@@ -23,11 +23,26 @@ by pytest for the duration of every test it runs (stable, documented pytest
 behaviour, not a private API) -- if set, this function is a silent no-op.
 No test, existing or future, can accidentally send real keystrokes into a
 live tmux session through this path, even if it forgets to mock anything.
+
+Session isolation guard (docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md,
+2026-07-08): every existing call site already hardcodes SESSION_NAME =
+"claude", so this guard changes no live behaviour by default -- it exists
+so an injection can never silently land in the wrong tmux session if that
+constant ever drifts inconsistent across daemons, or a future multi-session
+setup introduces a real one. The target is configurable via
+SE_TMUX_SESSION_NAME (unset = "claude", matching every current caller);
+`send_keys` refuses (no-ops) if `session` doesn't match it.
 """
 from __future__ import annotations
 
 import os
 import subprocess
+
+DEFAULT_SESSION_NAME = "claude"
+
+
+def _configured_session_name() -> str:
+    return os.environ.get("SE_TMUX_SESSION_NAME", DEFAULT_SESSION_NAME)
 
 
 def send_keys(session: str, *keys: str) -> bool:
@@ -35,11 +50,14 @@ def send_keys(session: str, *keys: str) -> bool:
     string plus "Enter", or a bare "Escape") to tmux session `session`.
 
     Returns True if the subprocess call was attempted and returned exit
-    code 0, False otherwise (including when suppressed under test, or on
-    any exception -- callers treat this as best-effort, matching how every
-    existing call site already handled a dead/missing tmux session).
+    code 0, False otherwise (including when suppressed under test, when
+    `session` doesn't match the configured target, or on any exception --
+    callers treat this as best-effort, matching how every existing call
+    site already handled a dead/missing tmux session).
     """
     if os.environ.get("PYTEST_CURRENT_TEST") is not None:
+        return False
+    if session != _configured_session_name():
         return False
     try:
         result = subprocess.run(

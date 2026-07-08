@@ -436,6 +436,20 @@ def extract_customers(data):
             "credit_bureau_score_band": a.get("credit_bureau_score_band"),
             "credit_bureau_passed": a.get("credit_bureau_passed"),
             "credit_bureau_true_creditworthy": a.get("credit_bureau_true_creditworthy"),
+            "stages": a.get("stages", []),
+        })
+
+    # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
+    # estimation/failure events -- raw passthrough, binned client-side to
+    # match the journey_log/acquisition_funnel_log convention above.
+    meter_read_log = []
+    for m in data.get("meter_read_log", []):
+        meter_read_log.append({
+            "customer_id": m.get("customer_id", ""),
+            "period_end": m.get("period_end", ""),
+            "meter_type": m.get("meter_type", ""),
+            "delay_days": m.get("delay_days", 0),
+            "status": m.get("status", ""),
         })
 
     return {
@@ -448,6 +462,7 @@ def extract_customers(data):
         "lifetime": lifetime,
         "journey_log": journey_log,
         "acquisition_funnel_log": acquisition_funnel_log,
+        "meter_read_log": meter_read_log,
     }
 
 

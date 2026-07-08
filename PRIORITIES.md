@@ -28,9 +28,17 @@
 #       context, TDCV framing all absent).
 #     Phase 2 (A implementation: household segments & psychology) -- NOT YET STARTED.
 #     Phase 3 (B implementation: unhappy paths & time-as-random-variable, meter-reads first since
-#       Phase 4 depends on it) -- NOT YET STARTED.
-#     Phase 4 (C implementation: UK-compliant bill artefact, rides on Phases 2+3) -- NOT YET
-#       STARTED.
+#       Phase 4 depends on it) -- CLOSED IN FULL 2026-07-08 (Phase RZ, PROJECT_OVERVIEW.md Section
+#       4): all 5 audit gaps built and wired (meter-read arrival/estimation/failure --
+#       simulation/meter_reads.py; SLC 14 credit-refund activation --
+#       simulation/credit_refund_events.py; bill generation/delivery lag --
+#       tools/generate_billing_ledger.py; contact-centre first-response time --
+#       simulation/contact_centre.py; switching-funnel stage-to-stage calendar spacing --
+#       simulation/acquisition_funnel.py). Evidence on the Sim tab (meter-read delay histogram).
+#       47 new tests, 16,071 collected, epistemic PASS.
+#     Phase 4 (C implementation: UK-compliant bill artefact, rides on Phases 2+3) -- Phase 3 half
+#       now unblocked (meter-read events exist); still blocked on Phase 2 (household segments).
+#       NOT YET STARTED.
 #   Token economy remains a P1 constraint (~50% weekly consumed, Wednesday, per the instruction's
 #   own note) -- SIM_FAST_MODE where possible for calibration runs.
 #   Event-driven wake (2026-07-08, director-direct, in-conversation, same reorientation

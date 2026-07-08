@@ -250,6 +250,18 @@
     </div>
     <div class="section-title">Journey Stage Population Over Time</div>
     <div class="chart-wrap"><canvas id="journey-stage-chart" height="220"></canvas></div>
+    <div class="section-title">Meter-Read Delay &amp; Estimation &mdash; Unhappy-Path Physics</div>
+    <div class="narrative">
+      <strong>Phase 3 (`simulation/meter_reads.py`):</strong> settlement data isn't instant or perfect &mdash; a real
+      supplier only bills off an ACTUAL meter read if one arrives in time. Smart meters transmit automatically (small
+      delay, occasional WAN "not communicating" dropout); traditional meters rely on a self-submitted or periodic
+      read, so most periods without one are ESTIMATED from the customer's own trailing history. The tail of this
+      delay distribution is exactly where estimated bills come from.
+    </div>
+    <div class="kpi-grid" id="meterread-kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Loading</div><div class="kpi-value">&mdash;</div></div>
+    </div>
+    <div class="chart-wrap"><canvas id="cust-meterread-chart" height="220"></canvas></div>
     <div class="section-title">Event Frequency &mdash; Life Events, Bill Shocks, Payment Misses, Switches</div>
     <div class="narrative">
       <strong>How often does anything actually happen to a customer?</strong> Four independently-tracked event
@@ -459,6 +471,8 @@
       buildSatChart(d); buildPropensityChart(d); buildEventFreqChart(d);
       var journeyLog = (dash && dash.customers && dash.customers.journey_log) || [];
       buildJourneyKpis(journeyLog); buildJourneyStageChart(journeyLog);
+      var meterReadLog = (dash && dash.customers && dash.customers.meter_read_log) || [];
+      buildMeterReadKpis(meterReadLog); buildMeterReadChart(meterReadLog);
       buildCorrStressDelayChart(d);
       buildCorrPriceInMarketChart(journeyLog, (sd && sd.annual) || []);
       buildWallChurnChart(d);
@@ -520,6 +534,56 @@
       },
       options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}}},
         scales:{x:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
+                y:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}
+    });
+  }
+  var METERREAD_DELAY_BUCKETS = [
+    {label:'0-1d', test:function(d){return d <= 1;}},
+    {label:'2-3d', test:function(d){return d >= 2 && d <= 3;}},
+    {label:'4-5d', test:function(d){return d >= 4 && d <= 5;}},
+    {label:'6-10d', test:function(d){return d >= 6 && d <= 10;}},
+    {label:'11+ d', test:function(d){return d >= 11;}}
+  ];
+  function buildMeterReadKpis(meterReadLog) {
+    var total = meterReadLog.length;
+    var estimated = meterReadLog.filter(function(e) { return e.status === 'estimated'; }).length;
+    var smart = meterReadLog.filter(function(e) { return e.meter_type === 'smart'; }).length;
+    var avgDelay = total ? (meterReadLog.reduce(function(s, e) { return s + (e.delay_days || 0); }, 0) / total) : 0;
+    var kpis = [
+      {label:'Reads logged', value:total, sub:'meter_read_log entries'},
+      {label:'Estimated bills', value:estimated, sub:total ? (estimated/total*100).toFixed(0)+'% of reads' : '—'},
+      {label:'Smart-metered reads', value:smart, sub:total ? (smart/total*100).toFixed(0)+'% of reads' : '—'},
+      {label:'Avg arrival delay', value:avgDelay.toFixed(1)+'d', sub:'across all reads'}
+    ];
+    document.getElementById('meterread-kpi-grid').innerHTML = kpis.map(function(k) {
+      return '<div class="kpi-card"><div class="kpi-label">'+k.label+'</div><div class="kpi-value">'+k.value+'</div><div class="kpi-sub">'+k.sub+'</div></div>';
+    }).join('') || '<div class="kpi-card"><div class="kpi-label">No data</div><div class="kpi-value">&mdash;</div></div>';
+  }
+  var meterReadChart = null;
+  function buildMeterReadChart(meterReadLog) {
+    var actualCounts = METERREAD_DELAY_BUCKETS.map(function() { return 0; });
+    var estimatedCounts = METERREAD_DELAY_BUCKETS.map(function() { return 0; });
+    meterReadLog.forEach(function(e) {
+      var idx = METERREAD_DELAY_BUCKETS.findIndex(function(b) { return b.test(e.delay_days || 0); });
+      if (idx < 0) return;
+      if (e.status === 'estimated') estimatedCounts[idx]++;
+      else actualCounts[idx]++;
+    });
+    var ctx = document.getElementById('cust-meterread-chart').getContext('2d');
+    if (meterReadChart) meterReadChart.destroy();
+    if (!meterReadLog.length) return;
+    meterReadChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: METERREAD_DELAY_BUCKETS.map(function(b) { return b.label; }),
+        datasets: [
+          {label:'Actual read', data:actualCounts, backgroundColor:'rgba(12,163,12,0.6)', stack:'s'},
+          {label:'Estimated bill', data:estimatedCounts, backgroundColor:'rgba(208,59,59,0.7)', stack:'s'}
+        ]
+      },
+      options: {responsive:true, plugins:{legend:{display:true, labels:{color:'#52514e',font:{size:11},boxWidth:14}},
+        tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.raw+' reads';}}}},
+        scales:{x:{stacked:true,title:{display:true,text:'Arrival delay after period-end',color:'#52514e'},ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}},
                 y:{stacked:true,ticks:{color:'#52514e'},grid:{color:'rgba(225,224,217,0.6)'}}}}
     });
   }
