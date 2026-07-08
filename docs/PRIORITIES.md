@@ -1,6 +1,22 @@
 # Current Priorities
 
-Last director review: 2026-07-08 (P-5 re-rank, DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md, director-
+**Last director review: 2026-07-08 22:57 UTC (director-direct in-console, supersedes the Phase RY
+Tier-3 opt-out below as front of queue).** Two P1 docs landed via the advisor staging bridge
+(commits 60bb6103, 282d72f2) and are now the front of the ranked queue, ahead of Phase RY:
+1. **BILL_CORRECTNESS_ADDENDUM.md** (Tier 2, binds/expands the already-open CORE_FIDELITY_PHASES.md
+   Phase 4 agenda item -- background/.open_agenda.json). Defect 1 (segment/VAT/label incoherence,
+   "fix first" per its own text) is next; Defects 2-4 complete Phase 4; Defect 5 (I&C billing model)
+   registers to backlog alongside WALLED_INTERFACES per the doc's own instruction.
+2. **DOMAIN_SENSE_AND_COMPLIANCE.md** (Tier 2, P1 programme). Explicitly sequenced by its own text:
+   "does not interrupt Phase 4 / BILL_CORRECTNESS_ADDENDUM -- those complete first; harness-side
+   pieces are background-lane eligible immediately." Company-side organs (pre-bill gate, compliance
+   function, internal audit) queue behind item 1 above; harness-side pieces (invariants library,
+   sanity daemon, Qwen skeptic pass) may start in the background lane now. R10 (absurdity-class
+   defects require a class-level invariant/register fix, never an instance patch) to be added to
+   CLAUDE.md when this phase starts landing code.
+Phase RY (FEEDBACK_AND_REPUTATION Layer 2) and the S1 fast-follows drop to backlog behind both.
+
+Prior review: 2026-07-08 (P-5 re-rank, DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md, director-
 confirmed "I agree"): sequence = (1) change-detection gate + runner retirement DONE, (2) website
 freshness pass DONE, (3) Phase RY endorsed but DEFERRED (prefer after weekly reset; token economy is
 a P1 constraint at ~48% weekly burn). Post-RY backlog: (a) NUDGE Layer 2, (b) hedge-outcome grading
