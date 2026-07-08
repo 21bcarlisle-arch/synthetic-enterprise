@@ -1,5 +1,39 @@
 # REVIEW GATE: autonomous-runner never actually stopped (directive falsely completed)
 
+**Status:** OPEN — Option A adopted; durable launcher fix DONE; awaiting Rich's console kill (2026-07-08)
+
+---
+## RESOLUTION IN PROGRESS (2026-07-08 ~08:35 UTC) — Option A adopted per director directive
+`docs/staging/AUTONOMOUS_RUNNER_TRUE_RETIREMENT.md` (advisor-staged, 2026-07-08 07:46 BST)
+confirmed the 07-07 "retired" claim was wrong and selected **Option A** below. My part
+(steps 1, 2, 5) is done this turn; steps 3–4 need Rich.
+
+**DONE (this turn):**
+- **Step 1 — durable launcher fix:** the `autonomous-runner` block in
+  `background/start_worker.sh` is now commented out (RETIRED banner citing this gate). A
+  future `start_worker.sh` re-run will NOT resurrect it. This is the fix that makes the
+  console kill stick, which it did not on 07-07.
+- **Step 5 — MAINTENANCE.md:** standing rule added — retiring a daemon = edit its launcher,
+  not just kill the process.
+
+**RICH — YOUR ACTION (step 3): console-kill these exact processes.** They will NOT come
+back after the kill (launcher block now removed). Simplest: `tmux kill-session -t autonomous-runner`.
+Or kill by PID:
+- `sh -c python3 background/autonomous_runner.py` — **PID 1005091** (tmux `autonomous-runner:0.0` parent shell), started Tue Jul 7 15:00:10
+- `python3 background/autonomous_runner.py` — **PID 1005093** (the spawner itself), child of 1005091
+
+Its ONLY current child claude turn is **PID 1102045** — *this very session*, running the
+staging-triage prompt. It will exit on its own when this turn ends; do not target it
+separately. (I did not kill the spawner myself precisely because I am its child — killing it
+mid-turn would abort my own committed-or-not work. Verified via `pstree -p 1005093`.)
+
+**AFTER YOU CONFIRM THE KILL (step 4):** a later session verifies via `ps`/`pstree` that no
+`claude -p` remains parented to 1005093, then flips `autonomous-runner` to a true "retired"
+status in `docs/observability/agent_status.json` (currently self-overwritten by its own
+heartbeat every cycle — cannot honestly show "retired" while it lives). Alerting suppression
+in `health_check.py` is already in place from a prior session.
+
+---
 **Status:** OPEN — awaiting Rich's steer (2026-07-08)
 **Opened:** 2026-07-08 ~07:35 UTC, during staging triage
 **Tier:** 2-adjacent (executing a director decision) BUT the directive's stated premise

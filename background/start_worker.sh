@@ -48,9 +48,16 @@ _start_session "sim-runner" \
   "python3 background/sim_runner.py" \
   "Continuous 9.5yr simulation loop — pegs GPU off-peak, writes run_complete markers"
 
-_start_session "autonomous-runner" \
-  "python3 background/autonomous_runner.py" \
-  "Fires claude -p turn after 30min idle — replaces broken tmux keystrokes autoloop"
+# RETIRED 2026-07-08 (docs/staging/AUTONOMOUS_RUNNER_TRUE_RETIREMENT.md, director-approved
+# Option A of docs/review_gates/AUTONOMOUS_RUNNER_STILL_RUNNING.md). Deliberately stopped:
+# waste + tree-race source + budget burn. Single-writer mode = the watchdog-managed
+# interactive session only. A console kill alone was NOT durable — a stack re-run
+# (start_worker.sh) resurrected it, so the launcher block itself is commented out here.
+# Retiring a daemon = edit its launcher, not just kill the process (see MAINTENANCE.md).
+# Do NOT re-enable without a fresh director decision at a weekly re-rank.
+# _start_session "autonomous-runner" \
+#   "python3 background/autonomous_runner.py" \
+#   "Fires claude -p turn after 30min idle — replaces broken tmux keystrokes autoloop"
 
 _start_session "token-proxy" \
   "python3 -m background.token_proxy" \
