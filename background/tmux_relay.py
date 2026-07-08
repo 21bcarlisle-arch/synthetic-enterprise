@@ -50,15 +50,80 @@ re-captures the pane and confirms the just-sent text is no longer sitting
 there unconsumed -- if it is, the send is treated as failed (not
 recorded as delivered) so the caller retries next cycle instead of
 silently believing a stuck injection succeeded.
+
+Cross-daemon relay lock (2026-07-08, third wake-doorbell failure,
+docs/retrospectives/2026-07-08-wake-doorbell-third-strike.md): the module
+docstring above claimed session_watchdog.py already went through this one
+relay -- false. Its autoloop-continuation nudge and REVIEW_GATE reply relay
+were left as direct, unguarded `subprocess.run(["tmux", "send-keys", ...])`
+calls at the 2026-07-08 tmux-leak incident fix (commit cc2d741c), flagged
+there as a deliberate follow-up that was never done. Two staged P1 docs sat
+unactioned for 2+ hours despite staging_watcher confirming "delivered" wakes
+for both, because session_watchdog's own unrelated, unguarded autoloop send
+was independently racing the same pane on its own cruder idle heuristic
+(pane-text-unchanged-for-N-polls, not the busy-spinner/footer check below),
+with no coordination between the two daemons. `relay_lock()` makes the
+idle-check+send+verify sequence in `send_keys_when_idle()` an atomic
+cross-process critical section (fcntl flock, mirrors background/tree_lock.py
+for git writers) so no two daemons can interleave sends into the same pane,
+and session_watchdog.py now goes through `send_keys_when_idle()` like every
+other caller -- closing the gap rather than adding a second bespoke guard.
 """
 from __future__ import annotations
 
+import fcntl
 import os
 import re
 import subprocess
 import time
+from contextlib import contextmanager
+from pathlib import Path
 
 DEFAULT_SESSION_NAME = "claude"
+
+_RELAY_LOCK_FILE = Path(__file__).resolve().parent.parent / "docs" / "observability" / ".tmux_relay.lock"
+# Short on purpose: a legitimate holder's critical section is a single
+# idle-check + send + ~1.5s verify sleep + re-capture, so a few seconds is
+# generous headroom. Daemons poll every 30-60s anyway, so a lock-contention
+# failure just retries next cycle rather than blocking a poll loop for long.
+_RELAY_LOCK_TIMEOUT_SECONDS = 5.0
+
+
+class RelayLockTimeout(Exception):
+    """Raised when the cross-daemon relay lock could not be acquired in time."""
+
+
+@contextmanager
+def relay_lock(timeout: float = _RELAY_LOCK_TIMEOUT_SECONDS):
+    """Hold an exclusive cross-process lock for the duration of the `with`
+    block, serializing every daemon's idle-check+send+verify sequence onto
+    the live tmux session so two daemons can never race into the same pane.
+    Mirrors background/tree_lock.py's git-write serialization. Raises
+    RelayLockTimeout on timeout (a stuck holder should surface, not hang
+    every other daemon's poll loop indefinitely) -- send_keys_when_idle()
+    catches this and treats it as an ordinary failed-send/retry-next-cycle
+    outcome."""
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None:
+        yield
+        return
+    _RELAY_LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    fh = open(_RELAY_LOCK_FILE, "w")
+    deadline = time.monotonic() + timeout
+    try:
+        while True:
+            try:
+                fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    raise RelayLockTimeout(
+                        f"Could not acquire tmux relay lock ({_RELAY_LOCK_FILE}) within {timeout}s"
+                    )
+                time.sleep(0.2)
+        yield
+    finally:
+        fcntl.flock(fh, fcntl.LOCK_UN)
+        fh.close()
 
 # A busy pane shows a spinner glyph + gerund-form status line ending in an
 # ellipsis (e.g. "* Wiring evidence and closing phase-close checklist…") --
@@ -159,17 +224,26 @@ def send_keys_when_idle(
     succeeded, AND the marker is no longer visible afterward (proof of
     consumption). Any other outcome returns False -- the caller must
     treat this as "not delivered, retry next cycle," never as delivered.
+
+    The whole idle-check+send+verify sequence runs inside `relay_lock()`
+    so a second daemon calling this concurrently can't interleave its own
+    send between this call's idle-check and its send (see module docstring,
+    "Cross-daemon relay lock").
     """
     if os.environ.get("PYTEST_CURRENT_TEST") is not None:
         return False
-    if not is_session_idle(session):
-        return False
-    if not send_keys(session, text, "Enter"):
-        return False
-    time.sleep(post_send_wait)
-    after = capture_pane(session)
-    if not after:
-        return False  # can't confirm consumption -- treat as failed, retry
-    if _flatten(verify_marker) in _flatten(after):
-        return False  # still sitting unconsumed in the pane
-    return True
+    try:
+        with relay_lock(timeout=_RELAY_LOCK_TIMEOUT_SECONDS):
+            if not is_session_idle(session):
+                return False
+            if not send_keys(session, text, "Enter"):
+                return False
+            time.sleep(post_send_wait)
+            after = capture_pane(session)
+            if not after:
+                return False  # can't confirm consumption -- treat as failed, retry
+            if _flatten(verify_marker) in _flatten(after):
+                return False  # still sitting unconsumed in the pane
+            return True
+    except RelayLockTimeout:
+        return False  # another daemon is mid-send -- retry next cycle

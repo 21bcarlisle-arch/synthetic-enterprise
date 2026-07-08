@@ -373,6 +373,7 @@ def _reset_autoloop_state():
     watchdog._autoloop_waiting_notified = False
     watchdog._autoloop_gate_clear_streak = 0
     watchdog._usage_pause_notified = False
+    watchdog._pending_gate_decision = None
 
 
 def test_check_autoloop_resets_streak_on_pane_change(monkeypatch):
@@ -395,17 +396,40 @@ def test_check_autoloop_sends_instruction_after_idle_streak(monkeypatch):
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    send_keys_calls = []
-    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    relay_calls = []
+    monkeypatch.setattr(
+        watchdog, "send_keys_when_idle",
+        lambda session, text, marker: relay_calls.append((session, text)) or True,
+    )
     monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
 
     idle_pane = "Claude Code is idle at the prompt"
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
         watchdog.check_autoloop(idle_pane)
 
-    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, watchdog.AUTOLOOP_INSTRUCTION, "Enter"] in send_keys_calls
+    assert len(relay_calls) == 1
+    session, text = relay_calls[0]
+    assert session == watchdog.SESSION_NAME
+    assert watchdog.AUTOLOOP_INSTRUCTION in text  # signed wrapper carries the original text verbatim
     # No "milestone reached" NTFY — removed to reduce notification noise (Rich's request 2026-06-16)
     assert not any("milestone reached" in msg for msg in ntfy_messages)
+    _reset_autoloop_state()
+
+
+def test_check_autoloop_retries_instruction_when_relay_fails(monkeypatch):
+    _reset_autoloop_state()
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: None)
+    monkeypatch.setattr(watchdog, "send_keys_when_idle", lambda session, text, marker: False)
+    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
+
+    idle_pane = "Claude Code is idle at the prompt"
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
+        watchdog.check_autoloop(idle_pane)
+
+    # A failed (busy-pane) relay must not be counted against the hourly cap —
+    # nothing was actually delivered.
+    assert len(watchdog.autoloop_times) == 0
     _reset_autoloop_state()
 
 
@@ -445,8 +469,11 @@ def test_check_autoloop_relays_gate_response(monkeypatch, tmp_path):
     )
     ntfy_messages = []
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    send_keys_calls = []
-    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    relay_calls = []
+    monkeypatch.setattr(
+        watchdog, "send_keys_when_idle",
+        lambda session, text, marker: relay_calls.append((session, text)) or True,
+    )
 
     review_gate_pane = "Summary complete. REVIEW_GATE: awaiting Rich's review of Phase 4b-4."
     # REVIEW_GATE_PATTERN is only checked once the pane has been idle
@@ -454,9 +481,36 @@ def test_check_autoloop_relays_gate_response(monkeypatch, tmp_path):
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
         watchdog.check_autoloop(review_gate_pane)
 
-    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, "Rich approved — proceed.", "Enter"] in send_keys_calls
+    assert relay_calls == [(watchdog.SESSION_NAME, "Rich approved — proceed.")]
     assert not (responses_dir / f"{watchdog.GATE_ID}.json").exists()
     assert any("Rich approved" in msg for msg in ntfy_messages)
+
+
+def test_check_autoloop_retries_gate_response_when_relay_fails(monkeypatch, tmp_path):
+    _reset_autoloop_state()
+    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
+    responses_dir = tmp_path / "responses"
+    responses_dir.mkdir()
+    monkeypatch.setattr(watchdog, "RESPONSES_DIR", responses_dir)
+    monkeypatch.setattr(watchdog, "GATE_TOKENS_DIR", tmp_path / "tokens")
+    (responses_dir / f"{watchdog.GATE_ID}.json").write_text(
+        json.dumps({"gate": watchdog.GATE_ID, "decision": "Rich approved — proceed."})
+    )
+    ntfy_messages = []
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
+    monkeypatch.setattr(watchdog, "send_keys_when_idle", lambda session, text, marker: False)
+
+    review_gate_pane = "Summary complete. REVIEW_GATE: awaiting Rich's review of Phase 4b-4."
+    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
+        watchdog.check_autoloop(review_gate_pane)
+
+    # Response file already consumed (single-use, avoids replay), but the
+    # decision must not be lost -- it stays buffered in memory for retry,
+    # never silently dropped because the pane happened to be busy.
+    assert not (responses_dir / f"{watchdog.GATE_ID}.json").exists()
+    assert watchdog._pending_gate_decision == "Rich approved — proceed."
+    assert ntfy_messages == []
+    _reset_autoloop_state()
     _reset_autoloop_state()
 
 
@@ -691,15 +745,19 @@ def test_check_autoloop_resumes_after_usage_pause_expires(tmp_path, monkeypatch)
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    send_keys_calls = []
-    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    relay_calls = []
+    monkeypatch.setattr(
+        watchdog, "send_keys_when_idle",
+        lambda session, text, marker: relay_calls.append((session, text)) or True,
+    )
     monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
 
     idle_pane = "Claude Code is idle at the prompt"
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
         watchdog.check_autoloop(idle_pane)
 
-    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, watchdog.AUTOLOOP_INSTRUCTION, "Enter"] in send_keys_calls
+    assert len(relay_calls) == 1
+    assert watchdog.AUTOLOOP_INSTRUCTION in relay_calls[0][1]
     assert not pause_file.is_file()
     _reset_autoloop_state()
 

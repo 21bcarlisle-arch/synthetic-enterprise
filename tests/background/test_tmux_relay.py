@@ -279,3 +279,65 @@ def test_send_keys_when_idle_returns_false_when_send_keys_fails(monkeypatch):
     monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
     result = tmux_relay.send_keys_when_idle("claude", "hello|123|abc123", "abc123")
     assert result is False
+
+
+# --- relay_lock: cross-daemon mutual exclusion (2026-07-08, third
+# wake-doorbell failure -- session_watchdog's autoloop nudge raced
+# staging_watcher's wake into the same pane with no coordination) ---
+
+def test_relay_lock_serializes_two_acquisitions(monkeypatch, tmp_path):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay, "_RELAY_LOCK_FILE", tmp_path / ".tmux_relay.lock")
+
+    order = []
+    with tmux_relay.relay_lock():
+        order.append("first-held")
+    with tmux_relay.relay_lock():
+        order.append("second-held")
+    assert order == ["first-held", "second-held"]
+
+
+def test_relay_lock_times_out_when_already_held(monkeypatch, tmp_path):
+    """A second daemon (e.g. session_watchdog) trying to acquire the lock
+    while another (e.g. staging_watcher) is mid-send must not silently
+    interleave a send -- it must fail to acquire and raise, so the caller
+    treats it as a failed/retry-next-cycle send, never a race."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay, "_RELAY_LOCK_FILE", tmp_path / ".tmux_relay.lock")
+
+    with tmux_relay.relay_lock():
+        try:
+            with tmux_relay.relay_lock(timeout=0.3):
+                pass
+            raised = False
+        except tmux_relay.RelayLockTimeout:
+            raised = True
+    assert raised is True
+
+
+def test_send_keys_when_idle_fails_safe_when_lock_held_by_another_daemon(monkeypatch, tmp_path):
+    """End-to-end: if another daemon already holds relay_lock, this daemon's
+    send_keys_when_idle() must return False (not delivered, retry), never
+    proceed to check idle/send while unlocked."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay, "_RELAY_LOCK_FILE", tmp_path / ".tmux_relay.lock")
+    monkeypatch.setattr(tmux_relay, "_RELAY_LOCK_TIMEOUT_SECONDS", 0.3)
+    calls = []
+    monkeypatch.setattr(
+        tmux_relay.subprocess, "run",
+        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"returncode": 0, "stdout": IDLE_PANE})(),
+    )
+
+    lock_fh = open(tmp_path / ".tmux_relay.lock", "w")
+    import fcntl
+    fcntl.flock(lock_fh, fcntl.LOCK_EX)
+    try:
+        result = tmux_relay.send_keys_when_idle(
+            "claude", "hello|123|abc123", "abc123",
+        )
+    finally:
+        fcntl.flock(lock_fh, fcntl.LOCK_UN)
+        lock_fh.close()
+
+    assert result is False
+    assert calls == []  # never even attempted the idle check -- lock held elsewhere

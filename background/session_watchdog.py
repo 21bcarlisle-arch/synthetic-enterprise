@@ -114,10 +114,11 @@ from background.ntfy_utils import (  # noqa: E402
     NTFY_AUTH_TOKEN,
     NTFY_TOPIC,
     send_ntfy,
+    sign_wake_message,
     was_sent_by_us,
 )
 from background.agent_status import update_agent_status  # noqa: E402
-from background.tmux_relay import send_keys  # noqa: E402
+from background.tmux_relay import send_keys_when_idle  # noqa: E402
 
 SESSION_NAME = "claude"
 PROJECT_DIR = "/home/rich/synthetic-enterprise"
@@ -461,6 +462,14 @@ _autoloop_gate_clear_streak = 0
 # Mutable across main() loop iterations — debounces the "usage pause active"
 # log/notify in check_autoloop so it logs once per pause, not every cycle.
 _usage_pause_notified = False
+
+# A gate decision read via read_and_clear_response() is consumed (unlinked)
+# from disk immediately, single-use -- but delivery into the tmux pane can
+# fail (busy pane). Buffer it here in memory so a failed send retries next
+# cycle instead of the decision being silently dropped (read-and-cleared but
+# never actually relayed). Cleared only once send_keys_when_idle() confirms
+# consumption.
+_pending_gate_decision: str | None = None
 
 
 def log(msg: str) -> None:
@@ -1076,6 +1085,29 @@ def usage_pause_active() -> bool:
     return False
 
 
+def _flush_pending_gate_reply() -> bool:
+    """Attempt delivery of `_pending_gate_decision` (2026-07-08, third
+    wake-doorbell failure fix -- see tmux_relay.py module docstring). Uses
+    the same idle-gated, verified-consumption send as every other daemon
+    now goes through, instead of the old unguarded direct `tmux send-keys`
+    call. Returns True if there was nothing pending or it was just
+    delivered; False if a delivery attempt is still outstanding (pane busy
+    or unconfirmed) -- caller must retry next cycle, never treat the
+    decision as lost."""
+    global _pending_gate_decision
+    if _pending_gate_decision is None:
+        return True
+    decision = _pending_gate_decision
+    marker = decision[-24:] if len(decision) >= 24 else decision
+    if send_keys_when_idle(SESSION_NAME, decision, marker):
+        log(f"Gate reply delivered (confirmed): {decision!r}")
+        ntfy(f"Got it — relayed to the session: {decision}")
+        _pending_gate_decision = None
+        return True
+    log("Gate reply not yet delivered (session busy or unconfirmed) — retrying next cycle")
+    return False
+
+
 def check_autoloop(pane_text: str) -> None:
     """Autonomous main-loop nudge — see the "Autonomous main loop" section
     of this module's constants for the rationale.
@@ -1133,14 +1165,17 @@ def check_autoloop(pane_text: str) -> None:
     _autoloop_gate_clear_streak = 0
 
     if REVIEW_GATE_PATTERN.search(pane_text):
-        response = read_and_clear_response(GATE_ID)
-        if response is not None:
-            decision = response.get("decision", "")
-            log(f"Gate reply received via NTFY action: {decision!r} — relaying to session")
-            subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, decision, "Enter"])
-            ntfy(f"Got it — relayed to the session: {decision}")
-            _autoloop_waiting_notified = False
-            _autoloop_idle_streak = 0
+        global _pending_gate_decision
+        if _pending_gate_decision is None:
+            response = read_and_clear_response(GATE_ID)
+            if response is not None:
+                _pending_gate_decision = response.get("decision", "")
+                log(f"Gate reply received via NTFY action: {_pending_gate_decision!r} — relaying to session")
+
+        if _pending_gate_decision is not None:
+            if _flush_pending_gate_reply():
+                _autoloop_waiting_notified = False
+                _autoloop_idle_streak = 0
             return
 
         if not _autoloop_waiting_notified:
@@ -1189,9 +1224,14 @@ def check_autoloop(pane_text: str) -> None:
             return
 
     _autoloop_waiting_notified = False
-    log("Session idle — sending autoloop continuation instruction")
-    subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, AUTOLOOP_INSTRUCTION, "Enter"])
-    autoloop_times.append(time.time())
+    signed = sign_wake_message(AUTOLOOP_INSTRUCTION)
+    marker = signed.rsplit("|", 1)[-1]
+    if send_keys_when_idle(SESSION_NAME, signed, marker):
+        log("Session idle — sending autoloop continuation instruction")
+        autoloop_times.append(time.time())
+    else:
+        log("Autoloop continuation instruction not yet delivered (pane busy or "
+            "unconfirmed) — retrying next cycle")
 
 
 def handle_session_ended(pane_text: str = "") -> None:
