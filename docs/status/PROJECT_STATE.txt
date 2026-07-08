@@ -1,9 +1,9 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-07-08T06:45:24Z
+Generated: 2026-07-08T07:08:15Z
 
 ## Summary
-- Current Phase: RW
-- Test Suite: 15,959 tests passing (unit / fast suite ~10s)
+- Current Phase: RX
+- Test Suite: 15,996 tests passing (unit / fast suite ~10s)
 - Company Modules: 423+ Python modules across company/
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)
@@ -50,6 +50,6 @@ Generated: 2026-07-08T06:45:24Z
 - Churn model: bill shock YoY + payment behaviour + satisfaction + market year elasticity
 
 ## Key Metrics
-- Tests at start (Phase 0): 0 | Tests now: 15,959
+- Tests at start (Phase 0): 0 | Tests now: 15,996
 - Net margin all-time: GBP1,535,308 | Crisis survived: 2021-22
 - Retention: 14/14 offers | 6 no-offer churns
