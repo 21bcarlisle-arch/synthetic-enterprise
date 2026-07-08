@@ -1,5 +1,5 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# last director review: 2026-07-06 (P-5 freshness stamp, docs/staging/PRIORITISATION_RULES.md)
+# last director review: 2026-07-08 (P-5 freshness stamp; DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md re-rank, director-confirmed "I agree")
 # ADOPTED 2026-07-07 (docs/staging/done/STRATEGIC_HORIZON_DECISIONS.md, [ADVISOR-STAGED] fba4ae94, 2026-07-06): condition met -- P2 completed in full at Phase RW. Post-P2 ordering to adopt: S1 proof-first (shadow-live track record, public scorecard from day one, misses included), S2 depth-before-scale (customer physics/psychology -- feedback/reputation, nudge physics, life-event dynamics -- before population scale-up), S3 then scale (295->thousands, perf engineering, market-flows choreography), S4 products (casebook first, dataset second), S5 go-live routes memo (analysis only, advisor-owned). Also records Rich's latency-and-fidelity tiered-access commercial model hypothesis for the casebook/Platform/Method design once S4 opens.
 # PENDING FOR NEXT WEEKLY RE-RANK (docs/staging/done/EPOCH3_DIRECTION.md, [ADVISOR-STAGED], 2026-07-06,
 # arrived on this tree 2026-07-07): Part 1 (P1 visual approval recorded, P2 released in order) is
@@ -91,11 +91,38 @@
 #   DCA-placement economics, credit bureau as a collections-strategy feed) explicitly deferred.
 # Next (adopted 2026-07-07, Phase RW close -- see PENDING FOR NEXT WEEKLY RE-RANK note above:
 #   "P2 completes first as already agreed", condition now met): S1 proof-first (shadow-live
-#   track record, public scorecard from day one, misses included) is the new front of queue.
-#   NOT YET STARTED -- needs its own concrete Tier-2/3 design note before implementation, same
-#   caution already applied to the frozen-policy-baseline tab (a visible, one-way-door-adjacent
-#   public surface). S2 (depth-before-scale: customer physics/psychology) through S5 (go-live
-#   routes memo) follow per STRATEGIC_HORIZON_DECISIONS.md's sequencing.
+#   track record, public scorecard from day one, misses included) -- CLOSED by Phase RX
+#   (2026-07-08, Options A rolling live Elexon fetch AND B two decoupled clocks).
+#
+# === DIRECTOR SEQUENCE + P-5 RE-RANK (2026-07-08, docs/staging/DIRECTOR_SEQUENCE_AND_TOKEN_
+#   ECONOMY.md, director-confirmed "I agree"). Token economy is a P1 CONSTRAINT this week: ~48%
+#   of the weekly usage allowance already spent by Wednesday morning (partly the identical-result
+#   auto-process loop). Weigh every autonomous action for token cost; prefer bounded/cheap/
+#   verifiable work; defer expensive novel work toward the weekly reset. ===
+#   Sequence (director-set, executed this session unless noted):
+#     1. Runner true-retirement (R2) + change-detection gate on the auto-process pipeline.
+#        DONE 2026-07-08: change-detection gate live + tested (background/process_run_complete.py
+#        fingerprints each run's headline figures + UTC date; identical => skip regen/test/commit;
+#        dozens of identical £1,535,308 commits/day eliminated). Runner: launcher already commented
+#        out (no respawn); orphaned autonomous_runner process killed as this session's final act.
+#     2. WEBSITE_FRESHNESS_AND_DEDUP.md (P1, director-repeat) -- DONE 2026-07-08: single generator-
+#        owned build stamp derived live from CLAUDE.md (no page carries its own phase/test/date
+#        literal); Supplier reputation collapsed to one 3-step narrative; em-dash escaping; LATEST.md
+#        narrative brought current RU->RX. Remaining (reported to Rich): consistency-gate extension
+#        to phase/test/financials incl shadow-vs-live (item 2); RX scorecard placement on Sim/
+#        Supplier tab (item 5, currently on Method page).
+#     3. Phase RY (FEEDBACK_AND_REPUTATION Layer 2, reputation feedback loop) -- ENDORSED but
+#        DEFERRED start: proceed only after 1+2 are consumer-verified, and PREFER starting after
+#        the weekly reset given the 48% burn. Scope/design approved as filed (NEXT_PHASE.md); no
+#        new opt-out window needed.
+#   P-5 re-rank of the POST-RY backlog (director-set order):
+#     (a) NUDGE_PHYSICS remaining mechanisms (Layer 2 breadth).
+#     (b) Hedge-outcome grading -- PARKED until enough shadow-live entries accumulate to grade;
+#         re-propose with the entry count as evidence of readiness.
+#     (c) Live NBP gas source -- BLOCKED pending a Tier 1 director decision on the external endpoint;
+#         prepare the decision brief (candidate sources, cost, verification plan), connect nothing.
+#   S2 (depth-before-scale: customer physics/psychology) through S5 (go-live routes memo) follow
+#   per STRATEGIC_HORIZON_DECISIONS.md's sequencing.
 # Acceptance for every P1 item: Rich's eyes on the live public page -- report "awaiting Rich's
 # visual review", never "done" outright.
 # Already-staged infra fixes (SERIALIZE_WORKERS.md, FLAG_ALL_LAUNCHERS.md, PAGES_CONCURRENCY_FIX.md)

@@ -1,6 +1,11 @@
 # Current Priorities
 
-Last director review: 2026-07-06. Updated (queue-tracking only, no re-rank): 2026-07-08 --
+Last director review: 2026-07-08 (P-5 re-rank, DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md, director-
+confirmed "I agree"): sequence = (1) change-detection gate + runner retirement DONE, (2) website
+freshness pass DONE, (3) Phase RY endorsed but DEFERRED (prefer after weekly reset; token economy is
+a P1 constraint at ~48% weekly burn). Post-RY backlog: (a) NUDGE Layer 2, (b) hedge-outcome grading
+PARKED until live entries accumulate, (c) live NBP gas BLOCKED pending Tier 1 endpoint decision. See
+root PRIORITIES.md for the full block. Prior tracking (queue-only, 2026-07-08) --
 S1 (shadow-live proof-first track record) CLOSED by Phase RX (Options A rolling live Elexon
 fetch AND B two decoupled clocks; see CLAUDE.md Current state). Its fast-follows (hedge-outcome
 grading once live entries accumulate; a live NBP gas source) are unranked backlog and both
