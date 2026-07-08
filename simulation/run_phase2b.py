@@ -1002,12 +1002,27 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             # Phase 33: active/passive renewal split. Default True until we know the rate.
             active_renewal = True
             passive_cap = None
+            _engagement_level_str = None
             if old_elec_rate is not None:
                 from company.crm.churn_model import (
                     is_active_renewal as _is_active_renewal,
                     PASSIVE_CHURN_CAP as _PASSIVE_CHURN_CAP,
                 )
-                active_renewal = _is_active_renewal(term_start_str, f"{billing_account}_{term_index}")
+                # Phase 2 Layer 1 (CORE_FIDELITY_PHASES.md): each household's
+                # engagement archetype is a persistent trait (keyed on the
+                # stable billing_account, not per-term_index), not a fresh
+                # coin-flip every renewal -- the population-weighted
+                # aggregate still reproduces the existing anchored ~35% rate.
+                from simulation.household_segments import (
+                    active_renewal_probability,
+                    engagement_level_for_customer,
+                )
+                _engagement_level = engagement_level_for_customer(billing_account)
+                _engagement_level_str = _engagement_level.value
+                active_renewal = _is_active_renewal(
+                    term_start_str, f"{billing_account}_{term_index}",
+                    active_renewal_probability(_engagement_level),
+                )
                 passive_cap = None if active_renewal else _PASSIVE_CHURN_CAP
                 acq_date_for_est = next(
                     (c["acquisition_date"] for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account),
@@ -1251,6 +1266,12 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     date.fromisoformat(term_start_str), switched=(event["event_type"] == "churned"),
                 )
                 event["is_active_renewal"] = active_renewal
+                # Phase 2 Layer 1: SIM-internal ground truth, retained here for
+                # evidence-surface use only (same pattern as credit_bureau_true_
+                # creditworthy) -- demonstrates the persistent archetype trait
+                # across a household's renewal history. MUST NEVER be read by
+                # company/** decision code.
+                event["engagement_level"] = _engagement_level_str
                 event["unit_rate_gbp_per_mwh"] = unit_rate
                 customer_events_log.append(event)
                 if retention_modifier_val is not None and retention_log:

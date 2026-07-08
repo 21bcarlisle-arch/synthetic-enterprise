@@ -26,7 +26,19 @@
 #       (standing charge/VAT/network pass-through/waterfall already present; meter serial,
 #       actual-vs-estimated flag, per-bill payment method + running balance, back-billing
 #       context, TDCV framing all absent).
-#     Phase 2 (A implementation: household segments & psychology) -- NOT YET STARTED.
+#     Phase 2 (A implementation: household segments & psychology) -- Layer 1 CLOSED 2026-07-08
+#       (Phase SC, PROJECT_OVERVIEW.md Section 4): simulation/household_segments.py gives each
+#       customer a persistent ACTIVE/PASSIVE/DISENGAGED engagement archetype (Ofgem 2018 Consumer
+#       Engagement Survey proxy shares, calibrated to preserve the existing anchored ~35% aggregate
+#       active-renewal rate), replacing the flat per-renewal coin-flip in
+#       company/crm/churn_model.py::is_active_renewal. 15 new tests, 16,129 collected, epistemic
+#       PASS. Layers 2+ (fuel-poverty/income band, tenure, occupancy, payment-method mix,
+#       complaint-propensity threading) remain backlog -- real anchors already registered in
+#       docs/market_research/ASSUMPTIONS.md's "Household Segment & Psychology" section (ONS Census
+#       2021, EHS 2023-24, DESNZ fuel poverty/payment-method releases), not yet threaded through
+#       switching_propensity.py/feedback_survey.py/arrears_engine.py::payment_method(). A newer
+#       Ofgem Oct 2025 active-share figure (~45%, vs the ~35% baseline preserved this pass) is
+#       flagged for a separate director recalibration decision, not actioned unilaterally.
 #     Phase 3 (B implementation: unhappy paths & time-as-random-variable, meter-reads first since
 #       Phase 4 depends on it) -- CLOSED IN FULL 2026-07-08 (Phase RZ, PROJECT_OVERVIEW.md Section
 #       4): all 5 audit gaps built and wired (meter-read arrival/estimation/failure --

@@ -490,3 +490,45 @@ def test_is_active_renewal_deterministic():
     r1 = is_active_renewal("2020-01-01", "C1_2")
     r2 = is_active_renewal("2020-01-01", "C1_2")
     assert r1 == r2
+
+
+# --- Phase 2 Layer 1 (CORE_FIDELITY_PHASES.md): per-customer active_probability ---
+
+def test_is_active_renewal_default_matches_flat_passive_rate():
+    """No active_probability supplied -- must reproduce the old flat-rate
+    behaviour byte for byte (backward compatibility for any other caller)."""
+    from company.crm.churn_model import is_active_renewal, PASSIVE_RENEWAL_RATE
+    seeds = [f"C{i}_default" for i in range(200)]
+    with_default = [is_active_renewal("2020-01-01", s) for s in seeds]
+    with_explicit_rate = [is_active_renewal("2020-01-01", s, PASSIVE_RENEWAL_RATE) for s in seeds]
+    assert with_default == with_explicit_rate
+
+
+def test_is_active_renewal_honours_custom_active_probability():
+    from company.crm.churn_model import is_active_renewal
+    seeds = [f"C{i}_custom" for i in range(300)]
+    high = sum(is_active_renewal("2020-01-01", s, active_probability=0.90) for s in seeds)
+    low = sum(is_active_renewal("2020-01-01", s, active_probability=0.02) for s in seeds)
+    assert high > low
+    assert high > 200  # ~90% of 300
+    assert low < 30    # ~2% of 300
+
+
+def test_is_active_renewal_zero_probability_never_active():
+    from company.crm.churn_model import is_active_renewal
+    seeds = [f"C{i}_zero" for i in range(100)]
+    assert not any(is_active_renewal("2020-01-01", s, active_probability=0.0) for s in seeds)
+
+
+def test_is_active_renewal_one_probability_always_active_outside_crisis():
+    from company.crm.churn_model import is_active_renewal
+    seeds = [f"C{i}_one" for i in range(100)]
+    assert all(is_active_renewal("2020-01-01", s, active_probability=1.0) for s in seeds)
+
+
+def test_is_active_renewal_crisis_year_forces_passive_regardless_of_probability():
+    """Crisis-year forcing must override even a high active_probability -- no
+    fixed deals were physically available to switch to."""
+    from company.crm.churn_model import is_active_renewal, CRISIS_PASSIVE_YEARS
+    for yr in CRISIS_PASSIVE_YEARS:
+        assert is_active_renewal(f"{yr}-04-01", "C1_crisis", active_probability=1.0) is False

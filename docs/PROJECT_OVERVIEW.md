@@ -111,6 +111,22 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Phase SC -- CORE_FIDELITY_PHASES.md Phase 2 Layer 1: household engagement archetype (2026-07-08, Tier 2 -- PRIORITIES.md front of queue, continuous-build agenda per director's own instruction)
+
+Started Phase 2 (household segments & psychology) -- Phase 1's audit found `simulation/household.py` already implements the *physical* side of the archetype table in full (property type, build era, EPC rating, heating system, insulation, solar/EV/battery, smart meter -- all real, EHS/DESNZ-anchored), so this phase's actual gap is the *psychology* dimensions: engagement level, income band/fuel-poverty status, payment-method mix, tenure, occupancy. Scoped this pass to one well-anchored, fully-threaded vertical slice (Layer 1) rather than a shallow pass across all six, matching this project's established Layer-1-first pattern.
+
+**`simulation/household_segments.py`** (new): gives each customer a persistent, deterministic ACTIVE/PASSIVE/DISENGAGED engagement archetype (population shares 48%/23%/29%, proxied from Ofgem's 2018 Consumer Engagement Survey SVT-tenure cohorts, `docs/market_research/svt_rates_active_passive_2016_2025.md`), replacing `company/crm/churn_model.py`'s previous flat 35%-active-every-renewal coin-flip. Per-archetype active-renewal probabilities (0.65/0.15/0.02) are an honestly-flagged calibration choice, tuned so the population-weighted aggregate reproduces the existing anchored ~35% rate -- deliberately NOT drifting the portfolio-wide baseline as a side effect of adding heterogeneity. `company/crm/churn_model.py::is_active_renewal` gains an optional `active_probability` float parameter (default `None` preserves the old flat-rate behaviour byte for byte for any other caller) -- kept free of any `simulation.*` import (epistemic wall); `simulation/run_phase2b.py` resolves the archetype and passes the plain float in, keyed on the stable `billing_account` (not per-term_index, since engagement is a trait of the household, not a fresh roll each renewal).
+
+**Recalibration flag found and NOT actioned unilaterally:** a parallel discovery-agent pass (launched for the remaining Phase 2 dimensions) found a MORE RECENT Ofgem Retail Market Indicators series (Oct 2025): the real active-tariff share is ~45%, materially higher than the ~35% baseline this phase deliberately preserved (itself sourced from the older 2018-2019 survey, already baked into the codebase before this phase). Registered in `docs/market_research/ASSUMPTIONS.md` as a director-review item for the next weekly re-rank -- recalibrating a portfolio-wide constant is a separate, larger decision than adding archetype heterogeneity within the existing baseline.
+
+**Other Phase 2 anchors registered this pass (Layers 2+, not yet threaded):** ONS Census 2021 occupancy distribution (1-person 30.1%, 2-person 34.0%, 3-4-person 28.9%, 5+-person 7.0%), EHS 2023-24 tenure split (owner 65%, private-rent 19%, social-rent 16%), DESNZ fuel poverty rate (11.0% LILEE / 36.3% on the older >10%-of-income metric -- a real, worth-reflecting methodological gap between the two), DESNZ payment-method Direct Debit share (72% electricity / 75% gas, end-March 2026; the PPM-vs-standard-credit split of the remainder is a genuine unclosed sub-gap). All filed in `docs/market_research/ASSUMPTIONS.md`'s new "Household Segment & Psychology" section with full citations -- ready for a future Layer 2+ pass to thread through payment_method(), the fuel-poverty/forgiveness-buffer bands in `switching_propensity.py`, and complaint propensity in `feedback_survey.py`.
+
+Evidence: `event["engagement_level"]` added to the customer_events log (SIM-internal ground truth, evidence-surface use only -- same pattern as `credit_bureau_true_creditworthy`, never read by company decision code) alongside the existing `is_active_renewal` flag, so a named household's renewal history visibly shows the persistent archetype pattern (e.g. a DISENGAGED household's renewals consistently rolling passive) rather than one-off coin-flip noise; threaded through `tools/generate_dashboard_data.py`'s customer_events whitelist to the Customers tab.
+
+15 new tests (10 `test_household_segments.py`: deterministic assignment, population-share calibration via a 3,000-sample distribution check, and TWO independent confirmations the realized aggregate lands near the anchored 35%; 5 `test_churn_model.py` additions: backward-compatible default, custom-probability honouring, 0.0/1.0 boundary behaviour, crisis-year override even at probability 1.0). 16,129 collected. Full `tests/simulation/test_run_phase2b.py`+`test_run_phase2b_event_log.py` (38) and `test_run_phase4c_on_phase2b.py` (92, includes real full-pipeline runs) re-run clean, epistemic PASS.
+
+Front of queue next: PRIORITIES.md front-of-queue -- Phase 2 Layers 2+ (fuel-poverty/tenure/occupancy/payment-method/complaint-propensity threading, anchors already registered) and Phase 4 (UK-compliant bill artefact, rides on Phases 2+3 -- Phase 3's meter-read events already unblock half of it).
+
 ### Phase SB -- Idle-gated verified tmux relay: root-cause fix for the "queued, no wake" failure (2026-07-08, Tier 1-adjacent safety fix, director-direct in-conversation, R9 evidence-first)
 
 Director flagged (via NTFY, R9-invoking) that the urgent from_rich wake path "empirically failed at 17:47 today (urgent-classified, queued, no wake)" and that "'code already does it' doesn't satisfy R9 against an observed failure." Investigated rather than asserted: live `tmux capture-pane` on the actual `claude` session showed a corrupted, never-submitted wake-message FRAGMENT sitting in the input box across many subsequent turns -- direct observed evidence, not inferred. Isolated the layer: sent the identical signed text to a throwaway `cat`-backed probe session via the real `tmux_relay.send_keys` code path -- delivered byte-for-byte, semicolons/apostrophes/em-dash/HMAC digest all intact. This proved the corruption is NOT in this codebase's relay code; it happens in the Claude Code CLI's own input-widget handling when a long keystroke burst arrives while the app is busy (mid-turn) -- "Claude Code queues input typed while busy" does not reliably hold. That's an external CLI behaviour this repo can't patch directly, so the fix is defensive on the sending side.
@@ -6661,10 +6677,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 16,114 tests collected (full suite) -- 25 new tests from Phase SB (idle-gated verified tmux
-  relay, test_tmux_relay.py/test_staging_watcher.py/test_dispatcher.py additions) plus 18 new
-  tests from Phase SA (test_agenda.py, test_tmux_relay.py/test_staging_watcher.py additions)
-  plus 47 new tests from Phase RZ
+- 16,129 tests collected (full suite) -- 15 new tests from Phase SC (household engagement
+  archetype, test_household_segments.py/test_churn_model.py additions) plus 25 new tests from
+  Phase SB (idle-gated verified tmux relay, test_tmux_relay.py/test_staging_watcher.py/
+  test_dispatcher.py additions) plus 18 new tests from Phase SA (test_agenda.py,
+  test_tmux_relay.py/test_staging_watcher.py additions) plus 47 new tests from Phase RZ
   (test_meter_reads.py, test_credit_refund_events.py, test_contact_centre.py,
   acquisition_funnel/generate_billing_ledger/generate_dashboard_data additions), on top of the
   prior 15,959 tests collected (full suite) plus 11 new tests from Phase RW

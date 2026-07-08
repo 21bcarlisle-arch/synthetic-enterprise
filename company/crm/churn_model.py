@@ -115,8 +115,18 @@ def _saturate_churn_probability(raw: float) -> float:
     return min(MAX_CHURN_PROBABILITY, saturated)
 
 
-def is_active_renewal(term_start_str: str, seed: str) -> bool:
-    """Return True if this renewal is an 'active' choice (35%), False if passive SVT roll (65%).
+def is_active_renewal(term_start_str: str, seed: str, active_probability: float | None = None) -> bool:
+    """Return True if this renewal is an 'active' choice, False if passive SVT roll.
+
+    `active_probability` defaults to the flat population-wide PASSIVE_RENEWAL_RATE
+    (35%) when not supplied -- unchanged behaviour for any caller that doesn't pass
+    it. Phase 2 (CORE_FIDELITY_PHASES.md, household engagement archetype) threads a
+    per-customer probability here instead, so a household's active/passive/
+    disengaged trait is persistent across its whole tenure rather than a fresh
+    coin-flip every renewal. This module stays free of any `simulation.*` import
+    (epistemic wall) -- the caller (simulation/run_phase2b.py) resolves the
+    customer's archetype via simulation/household_segments.py and passes the
+    plain float in.
 
     Crisis years (CRISIS_PASSIVE_YEARS) force all renewals passive — no fixed deals were
     available to switch to (UK 2022: suppliers withdrew fixed tariffs as wholesale costs
@@ -126,7 +136,8 @@ def is_active_renewal(term_start_str: str, seed: str) -> bool:
     year = term_start_str[:4]
     if year in CRISIS_PASSIVE_YEARS:
         return False
-    return _rnd.Random(f"active_renewal_{seed}").random() < PASSIVE_RENEWAL_RATE
+    threshold = PASSIVE_RENEWAL_RATE if active_probability is None else active_probability
+    return _rnd.Random(f"active_renewal_{seed}").random() < threshold
 
 
 def estimate_passive_churn_probability(

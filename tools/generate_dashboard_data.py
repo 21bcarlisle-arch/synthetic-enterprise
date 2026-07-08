@@ -363,6 +363,8 @@ def extract_customers(data):
             "retention_offered": bool(ev.get("retention_offered", False)),
             "market_signal": round(float(ev.get("market_switching_multiplier", 0)), 4),
             "realized_churn_p": round(float(ev.get("realized_churn_probability", 0)), 3),
+            "is_active_renewal": ev.get("is_active_renewal"),
+            "engagement_level": ev.get("engagement_level"),
         })
 
     _events_by_key = {(e["customer_id"], e["date"]): e for e in events}
