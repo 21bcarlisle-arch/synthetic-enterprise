@@ -1,5 +1,45 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# last director review: 2026-07-08 (P-5 freshness stamp; DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md re-rank, director-confirmed "I agree")
+# last director review: 2026-07-08 (CORE_FIDELITY_BEFORE_LOOPS.md reorientation, director-direct)
+#
+# === CORE FIDELITY BEFORE LOOPS (2026-07-08, docs/staging/CORE_FIDELITY_BEFORE_LOOPS.md,
+#   director-direct, in-conversation -- Tier 2, proceed, no opt-out window). THIS IS NOW P1,
+#   AHEAD OF PHASE RY. Director's observation: the customer portal bill is still poor, the sim
+#   has no unhappy-path errors/delays, customers have no household segments/psychology -- the
+#   project has been going deeper into refinement loops (reputation, feedback, gap analyses)
+#   while core SIM/software aspects remain undeveloped. Two of the missing items are
+#   already-decided Epoch Three mission clauses never built ("time as a random variable" /
+#   latency+unhappy-paths first-class; "brand as behavioural physics", which presupposes
+#   customers with psychology). RY's reputation->acquisition loop would act on a homogeneous,
+#   psyche-less population -- mechanically real but behaviourally hollow. Build the substrate
+#   first.
+#   PHASE RY IS DEFERRED, NOT CANCELLED -- re-enters the queue after this block closes.
+#   Phase decomposition (agent-designed per the instruction's own delegation): see
+#   docs/design/CORE_FIDELITY_PHASES.md.
+#     Phase 1 (audits, cheap, no sim runs) -- DONE 2026-07-08: unhappy-path audit (5 confirmed
+#       gaps: meter-read arrival/estimation/failure -- zero code, highest priority; bill
+#       generation/delivery issued same-day as period-end with no lag; refund processing --
+#       company/billing/credit_refund.py has a real SLA mechanic but is NEVER CALLED anywhere in
+#       simulation/, dead code; contact-centre first-response time -- no module; switching-funnel
+#       stage-to-stage calendar spacing -- all 5 stages resolve against one term_start date).
+#       Household-segment archetype design (dimensions + psychology parameters + which existing
+#       mechanisms each feeds) filed. Bill-artefact gap audit against the real UK-bill checklist
+#       (standing charge/VAT/network pass-through/waterfall already present; meter serial,
+#       actual-vs-estimated flag, per-bill payment method + running balance, back-billing
+#       context, TDCV framing all absent).
+#     Phase 2 (A implementation: household segments & psychology) -- NOT YET STARTED.
+#     Phase 3 (B implementation: unhappy paths & time-as-random-variable, meter-reads first since
+#       Phase 4 depends on it) -- NOT YET STARTED.
+#     Phase 4 (C implementation: UK-compliant bill artefact, rides on Phases 2+3) -- NOT YET
+#       STARTED.
+#   Token economy remains a P1 constraint (~50% weekly consumed, Wednesday, per the instruction's
+#   own note) -- SIM_FAST_MODE where possible for calibration runs.
+#   Event-driven wake (2026-07-08, director-direct, in-conversation, same reorientation
+#   conversation): background/staging_watcher.py now injects one batched tmux turn into the live
+#   session for genuinely-new staged files (ADVISOR-STAGED commits included, via the existing
+#   Remote Staging Bridge) -- replaces the retired autonomous-runner's idle-poll wake with an
+#   event-driven one. No new process, single-writer preserved, zero turns when nothing happens.
+#   Live-tested using this exact CORE_FIDELITY_BEFORE_LOOPS.md arrival as the test case
+#   (tmux capture-pane confirmed the injected text landed correctly, queued, no disruption).
 # ADOPTED 2026-07-07 (docs/staging/done/STRATEGIC_HORIZON_DECISIONS.md, [ADVISOR-STAGED] fba4ae94, 2026-07-06): condition met -- P2 completed in full at Phase RW. Post-P2 ordering to adopt: S1 proof-first (shadow-live track record, public scorecard from day one, misses included), S2 depth-before-scale (customer physics/psychology -- feedback/reputation, nudge physics, life-event dynamics -- before population scale-up), S3 then scale (295->thousands, perf engineering, market-flows choreography), S4 products (casebook first, dataset second), S5 go-live routes memo (analysis only, advisor-owned). Also records Rich's latency-and-fidelity tiered-access commercial model hypothesis for the casebook/Platform/Method design once S4 opens.
 # PENDING FOR NEXT WEEKLY RE-RANK (docs/staging/done/EPOCH3_DIRECTION.md, [ADVISOR-STAGED], 2026-07-06,
 # arrived on this tree 2026-07-07): Part 1 (P1 visual approval recorded, P2 released in order) is
