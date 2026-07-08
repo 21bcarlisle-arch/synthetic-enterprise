@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-07-07 from current codebase.
+Last seeded: 2026-07-08 from current codebase.
 
 ---
 
@@ -88,6 +88,21 @@ Last seeded: 2026-07-07 from current codebase.
 | EPC D vs C consumption uplift | Not modelled at property level | Metered: D uses ~20-30% more electricity, ~30-40% more gas than band C (same property type) | EHS 2022-23 AT1_6 (modelled cost: D +44% vs A/B/C avg); adjusted for prebound effect | 2026-06-27 | Gap — household.py not yet built |
 | Loft insulation rate | Not modelled at property level | ~67% of loft-eligible homes insulated (~58% of all homes) | DESNZ HEE Dec 2024; EHS AT_4_10 | 2026-06-27 | Gap — household.py not yet built |
 | Cavity wall insulation rate | Not modelled at property level | ~63% of cavity-eligible homes insulated (~38-40% of all homes) | DESNZ HEE Dec 2024 cumulative ECO installs + pre-ECO stock | 2026-06-27 | Gap — household.py not yet built |
+
+## Competitor Platform Landscape (structural reference only)
+
+`docs/market_research/COMPETITOR_PLATFORMS_2026.md` (director-supplied, 2026-07-08) is an
+unsourced, AI-assisted compilation surveying seven real energy-retail platforms (MaxBill,
+Gorilla, Gentrack g2, Kraken, Kaluza, Axle/Amber, SAP+Salesforce). Used only as a structural
+reference for `docs/market_research/ESTATE_GAP_ANALYSIS.md`'s capability cross-check — never as
+a source of figures. All quantitative claims below are explicitly flagged UNVERIFIED in the
+source document itself.
+
+| Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
+|---|---|---|---|---|---|
+| Kraken cost-to-serve reduction from unified monolith | n/a — architectural reference only | "30-40% operational cost reduction claimed" | COMPETITOR_PLATFORMS_2026.md §4 (director-supplied, AI-assisted, unsourced) | 2026-07-08 | ⚠ Unverified — no primary source cited in the survey itself |
+| Gentrack g2 production AI agent count | n/a — architectural reference only | "17+ autonomous AI agents in live production" | COMPETITOR_PLATFORMS_2026.md §3 (director-supplied, AI-assisted, unsourced) | 2026-07-08 | ⚠ Unverified — no primary source cited in the survey itself |
+| Kaluza Flex OEM integration count | n/a — architectural reference only | "400+ device OEMs" | COMPETITOR_PLATFORMS_2026.md §5 (director-supplied, AI-assisted, unsourced) | 2026-07-08 | ⚠ Unverified — no primary source cited in the survey itself |
 
 ## Known Gaps (not yet modelled)
 
