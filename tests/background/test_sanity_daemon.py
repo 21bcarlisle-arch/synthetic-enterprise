@@ -16,6 +16,11 @@ def _reset_state():
 def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(sanity_daemon, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(sanity_daemon, "RUN_OUTPUT_PATH", tmp_path / "run_output_latest.json")
+    # Isolated from the real, committed site/state/billing_ledger.json --
+    # defaults to a nonexistent tmp_path file (payment-channel-mix check
+    # simply skipped, matching the daemon's own graceful-degradation
+    # design), never the real repo file.
+    monkeypatch.setattr(sanity_daemon, "BILLING_LEDGER_PATH", tmp_path / "billing_ledger.json")
     # Phase 6's internal audit calls a real local Ollama model by default --
     # never let a test hit that network service; default to "nothing
     # flagged" unless a test explicitly overrides this.
@@ -179,3 +184,37 @@ def test_run_cycle_population_and_audit_ntfys_are_independent(monkeypatch):
     )
     sanity_daemon.run_cycle()
     assert len(calls) == 2  # one population NTFY, one audit NTFY -- distinct signals
+
+
+# --- Layer 2 dimension 2: payment-channel-mix population check wiring (2026-07-09) ---
+
+
+def test_run_cycle_reads_billing_ledger_payments_for_channel_mix(monkeypatch):
+    """When site/state/billing_ledger.json (isolated to tmp_path) exists with
+    a lopsided all-direct_debit resi population, run_cycle() must surface the
+    payment_channel_mix_vs_desnz_anchor finding -- proving the daemon actually
+    reads and passes the payments through, not just a dead code path."""
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
+    sanity_daemon.BILLING_LEDGER_PATH.write_text(json.dumps({
+        "customers": {
+            "C1": {"segment": "resi", "payments": [{"method": "direct_debit"}] * 50},
+        }
+    }))
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    sanity_daemon.run_cycle()
+    assert len(calls) == 1
+    assert "Direct Debit share" in sanity_daemon.LOG_FILE.read_text()
+
+
+def test_run_cycle_missing_billing_ledger_skips_channel_mix_check_gracefully(monkeypatch):
+    """No billing_ledger.json at all (e.g. a run predating it) must not
+    crash the cycle -- the check is simply skipped, matching the rest of
+    this daemon's graceful-degradation design."""
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
+    assert not sanity_daemon.BILLING_LEDGER_PATH.exists()
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    sanity_daemon.run_cycle()
+    assert calls == []
+    assert "Clean" in sanity_daemon.LOG_FILE.read_text()

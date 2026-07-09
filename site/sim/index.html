@@ -218,9 +218,10 @@
           <th>Current Income Stress</th>
           <th>Payment Score</th>
           <th>Satisfaction</th>
+          <th>Fuel Poverty</th>
           <th>Life Events</th>
         </tr></thead>
-        <tbody id="cust-tbody"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
+        <tbody id="cust-tbody"><tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
     <div class="section-title">Income Stress Distribution Over Time</div>
@@ -651,14 +652,16 @@
       var evts = (c.life_event_history || []).slice(0,3).map(function(e) { return e.event_type; }).join(', ') || '—';
       var stCol = stColors[lastSt] || 'var(--muted)';
       var scCol = scColors[sc] || 'var(--muted)';
+      var fpCell = c.fuel_poverty == null ? '—' : (c.fuel_poverty ? '<span style="color:var(--red)">Yes</span>' : 'No');
       var detailId = 'cust-detail-' + idx;
       var stressVals = traj.map(function(pt) { return stressNum[(pt.stress||'low').toUpperCase()] != null ? stressNum[(pt.stress||'low').toUpperCase()] : 0; });
       var satVals = satTraj.map(function(pt) { return Number(pt.satisfaction_score); });
-      var mainRow = '<tr class="cust-row" style="cursor:pointer" onclick="toggleCustDetail(\''+detailId+'\')" title="Click to expand trajectory"><td style="font-family:monospace;font-size:11px">&#9656; '+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
-      var detailRow = '<tr id="'+detailId+'" style="display:none"><td colspan="7" style="background:var(--surface2);padding:14px 18px">'+
+      var mainRow = '<tr class="cust-row" style="cursor:pointer" onclick="toggleCustDetail(\''+detailId+'\')" title="Click to expand trajectory"><td style="font-family:monospace;font-size:11px">&#9656; '+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="text-align:right">'+fpCell+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
+      var detailRow = '<tr id="'+detailId+'" style="display:none"><td colspan="8" style="background:var(--surface2);padding:14px 18px">'+
         '<div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end">'+
         '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Income Stress Trajectory</div>'+sparklineSvg(stressVals,'#d03b3b')+'</div>'+
         '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Satisfaction Trajectory</div>'+sparklineSvg(satVals,'#1baf7a')+'</div>'+
+        (c.payment_channel ? '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Payment Channel</div><div style="font-size:13px">'+(c.payment_channel==='direct_debit'?'Direct Debit':'Standard Credit')+'</div></div>' : '')+
         '<div style="font-size:11px;color:var(--muted);max-width:280px;line-height:1.5">Full Customer 360 profile: pending CUSTOMER_360_REDESIGN.md (separately staged, not yet built &mdash; no link fabricated).</div>'+
         '</div></td></tr>';
       return mainRow + detailRow;

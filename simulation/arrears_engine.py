@@ -180,8 +180,35 @@ def payment_method(segment: str, amount_gbp: float, customer_id: str | None = No
     return "direct_debit"
 
 
-def payment_outcome(method: str, stress: str, rng: random.Random, segment: str = "resi"):
-    """Returns (outcome, days_late). outcome is one of success/failed/dispute."""
+def _fuel_poor_for_bill(method: str, customer_id: str | None) -> bool:
+    """Resolve the fuel-poverty flag for a resi bill's payment_outcome() call
+    -- resi-only concept (bacs/chaps corp methods never apply), and only
+    meaningful once a customer_id is known (mirrors payment_method()'s own
+    optional-customer_id convention)."""
+    if customer_id is None or method not in ("direct_debit", "standard_credit"):
+        return False
+    from simulation.household_segments import PaymentChannel, fuel_poverty_for_customer
+    channel = PaymentChannel.DIRECT_DEBIT if method == "direct_debit" else PaymentChannel.STANDARD_CREDIT
+    return fuel_poverty_for_customer(customer_id, channel)
+
+
+FUEL_POVERTY_DD_FAIL_MULTIPLIER = 1.3
+FUEL_POVERTY_ON_TIME_MULTIPLIER = 0.9
+
+
+def payment_outcome(method: str, stress: str, rng: random.Random, segment: str = "resi",
+                     fuel_poor: bool = False):
+    """Returns (outcome, days_late). outcome is one of success/failed/dispute.
+
+    `fuel_poor` is optional -- default False preserves the exact original
+    behaviour. When True (2026-07-09, Layer 2 dimension 2 -- fuel poverty
+    correlates with payment difficulty in the real DESNZ data this codebase
+    already anchors household_segments.py's fuel-poverty flag to), the
+    DD-failure probability is nudged up and the on-time probability nudged
+    down by FUEL_POVERTY_DD_FAIL_MULTIPLIER/FUEL_POVERTY_ON_TIME_MULTIPLIER.
+    These multipliers are a calibration CHOICE (NOT independently sourced --
+    the DESNZ anchor is a population fuel-poverty RATE, not a payment-outcome
+    multiplier), kept modest and capped at 1.0, per the Anchored-noise law."""
     if method in ("bacs", "chaps"):
         if segment in _IC_SEGMENTS:
             r = rng.random()
@@ -193,9 +220,12 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
                 return ("dispute", 0)
         return ("success", 0)
     dd_fail_prob = _DD_FAILURE_PROB.get(stress, 0.03)
+    on_time_prob = _ON_TIME_PROB.get(stress, 0.92)
+    if fuel_poor:
+        dd_fail_prob = min(1.0, dd_fail_prob * FUEL_POVERTY_DD_FAIL_MULTIPLIER)
+        on_time_prob = min(1.0, on_time_prob * FUEL_POVERTY_ON_TIME_MULTIPLIER)
     if rng.random() < dd_fail_prob:
         return ("failed", 0)
-    on_time_prob = _ON_TIME_PROB.get(stress, 0.92)
     if rng.random() < on_time_prob:
         return ("success", 0)
     lo, hi = _LATE_DAYS.get(stress, (3, 14))
@@ -265,7 +295,7 @@ def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: 
         due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
         stress = stress_for_year(behavioral.get(cid) or {}, year)
         method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
-        outcome, _days_late = payment_outcome(method, stress, rng, segment)
+        outcome, _days_late = payment_outcome(method, stress, rng, segment, _fuel_poor_for_bill(method, cid))
 
         if outcome not in ("failed", "dispute"):
             continue
@@ -350,7 +380,7 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
         beh = behavioral.get(cid) or {}
         stress = stress_for_year(beh, year)
         method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
-        outcome, _days_late = payment_outcome(method, stress, rng, segment)
+        outcome, _days_late = payment_outcome(method, stress, rng, segment, _fuel_poor_for_bill(method, cid))
 
         if outcome not in ("failed", "dispute"):
             continue

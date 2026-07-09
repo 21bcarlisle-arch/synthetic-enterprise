@@ -3,6 +3,7 @@ from company.compliance.population_sanity import (
     check_consumption_distribution,
     check_unit_rate_bands,
     check_estimated_read_rate,
+    check_payment_channel_mix,
     run_all_population_checks,
 )
 
@@ -88,3 +89,50 @@ def test_run_all_population_checks_surfaces_every_class_of_finding():
     assert "consumption_distribution_vs_tdcv" in checks_found
     assert "unit_rate_vs_cap_band" in checks_found
     assert "estimated_read_rate_vs_industry_norms" in checks_found
+
+
+def _payment(method):
+    return {"method": method}
+
+
+def test_payment_channel_mix_clean_at_anchor_rate():
+    # 73% DD, 27% standard credit -- within the DESNZ 72-75% anchor band.
+    payments = [_payment("direct_debit")] * 73 + [_payment("standard_credit")] * 27
+    assert check_payment_channel_mix(payments) == []
+
+
+def test_payment_channel_mix_catches_flat_all_direct_debit():
+    payments = [_payment("direct_debit")] * 100
+    findings = check_payment_channel_mix(payments)
+    assert len(findings) == 1
+    assert findings[0]["check"] == "payment_channel_mix_vs_desnz_anchor"
+
+
+def test_payment_channel_mix_catches_flat_all_standard_credit():
+    payments = [_payment("standard_credit")] * 100
+    findings = check_payment_channel_mix(payments)
+    assert len(findings) == 1
+
+
+def test_payment_channel_mix_empty_is_clean():
+    assert check_payment_channel_mix([]) == []
+
+
+def test_payment_channel_mix_ignores_other_methods():
+    payments = [_payment("bacs")] * 50
+    assert check_payment_channel_mix(payments) == []
+
+
+def test_run_all_population_checks_payments_optional_backward_compatible():
+    bills = [_bill("C1", f"2024-{m:02d}-28", 200.0, 150.0) for m in range(1, 13)]
+    meter_read_log = [{"status": "estimated"}] * 30 + [{"status": "actual"}] * 70
+    assert run_all_population_checks(bills, meter_read_log) == []
+
+
+def test_run_all_population_checks_includes_payment_channel_finding():
+    bills = [_bill("C1", f"2024-{m:02d}-28", 200.0, 150.0) for m in range(1, 13)]
+    meter_read_log = [{"status": "estimated"}] * 30 + [{"status": "actual"}] * 70
+    all_dd_payments = [_payment("direct_debit")] * 100
+    findings = run_all_population_checks(bills, meter_read_log, all_dd_payments)
+    checks_found = {f["check"] for f in findings}
+    assert "payment_channel_mix_vs_desnz_anchor" in checks_found

@@ -10,11 +10,13 @@ import statistics
 from simulation.household_segments import (
     DIRECT_DEBIT_SHARE_BY_FUEL,
     ENGAGEMENT_POPULATION_SHARE,
+    FUEL_POVERTY_RATE_BY_CHANNEL,
     EngagementLevel,
     PaymentChannel,
     active_renewal_probability,
     active_renewal_probability_for_customer,
     engagement_level_for_customer,
+    fuel_poverty_for_customer,
     payment_channel_for_customer,
 )
 
@@ -162,3 +164,50 @@ def test_payment_channel_unknown_fuel_falls_back_to_electricity_share():
     )
     observed = dd_count / n
     assert abs(observed - DIRECT_DEBIT_SHARE_BY_FUEL["electricity"]) < 0.03
+
+
+# --- Layer 2 dimension 2: fuel poverty / income band (2026-07-09) ---
+
+
+def test_fuel_poverty_rate_anchors_in_valid_range():
+    for channel, rate in FUEL_POVERTY_RATE_BY_CHANNEL.items():
+        assert 0.0 <= rate <= 1.0
+
+
+def test_fuel_poverty_dd_rate_lower_than_standard_credit():
+    """Real anchor: DD customers are less likely to be fuel poor than
+    standard-credit/prepayment customers (8.8% vs 18.5%/22.3%)."""
+    assert (FUEL_POVERTY_RATE_BY_CHANNEL[PaymentChannel.DIRECT_DEBIT]
+            < FUEL_POVERTY_RATE_BY_CHANNEL[PaymentChannel.STANDARD_CREDIT])
+
+
+def test_fuel_poverty_is_deterministic():
+    a = fuel_poverty_for_customer("C1", PaymentChannel.DIRECT_DEBIT)
+    b = fuel_poverty_for_customer("C1", PaymentChannel.DIRECT_DEBIT)
+    assert a == b
+
+
+def test_fuel_poverty_returns_bool():
+    for i in range(50):
+        result = fuel_poverty_for_customer(f"CUST{i}", PaymentChannel.STANDARD_CREDIT)
+        assert isinstance(result, bool)
+
+
+def test_large_sample_matches_fuel_poverty_rate_direct_debit():
+    n = 3000
+    poor_count = sum(
+        fuel_poverty_for_customer(f"FP_DD_{i}", PaymentChannel.DIRECT_DEBIT)
+        for i in range(n)
+    )
+    observed = poor_count / n
+    assert abs(observed - FUEL_POVERTY_RATE_BY_CHANNEL[PaymentChannel.DIRECT_DEBIT]) < 0.03
+
+
+def test_large_sample_matches_fuel_poverty_rate_standard_credit():
+    n = 3000
+    poor_count = sum(
+        fuel_poverty_for_customer(f"FP_SC_{i}", PaymentChannel.STANDARD_CREDIT)
+        for i in range(n)
+    )
+    observed = poor_count / n
+    assert abs(observed - FUEL_POVERTY_RATE_BY_CHANNEL[PaymentChannel.STANDARD_CREDIT]) < 0.03

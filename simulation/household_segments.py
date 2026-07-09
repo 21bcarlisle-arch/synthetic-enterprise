@@ -145,3 +145,29 @@ def payment_channel_for_customer(customer_id: str, fuel: str = "electricity") ->
     share = DIRECT_DEBIT_SHARE_BY_FUEL.get(fuel, DIRECT_DEBIT_SHARE_BY_FUEL["electricity"])
     rng = random.Random(f"paychannel_{customer_id}_{fuel}")
     return PaymentChannel.DIRECT_DEBIT if rng.random() < share else PaymentChannel.STANDARD_CREDIT
+
+
+# Layer 2 dimension 2 (fuel poverty / income-band, 2026-07-09): DESNZ "Annual
+# Fuel Poverty Statistics in England, 2025 (2024 data)" (fetched 2026-07-08,
+# see ASSUMPTIONS.md) gives fuel-poverty rate (LILEE metric) BY ELECTRICITY
+# PAYMENT METHOD: prepayment 22.3%, standard credit 18.5%, direct debit 8.8%.
+# This codebase's own PaymentChannel collapses prepayment+standard-credit
+# into one STANDARD_CREDIT bucket (see the DD-share note above -- the real
+# sub-split isn't published), so the non-DD rate used here is the unweighted
+# mean of the two published non-DD rates (22.3+18.5)/2 = 20.4% -- an honest
+# blend, not an independently anchored figure, flagged as such.
+FUEL_POVERTY_RATE_BY_CHANNEL: dict[PaymentChannel, float] = {
+    PaymentChannel.DIRECT_DEBIT: 0.088,
+    PaymentChannel.STANDARD_CREDIT: 0.204,
+}
+
+
+def fuel_poverty_for_customer(customer_id: str, payment_channel: PaymentChannel) -> bool:
+    """Deterministic per-customer fuel-poverty flag, conditioned on the
+    customer's own payment-channel archetype (real anchors are published
+    conditional on payment method, not as a flat population rate) -- stable
+    for the account's tenure, same convention as the other archetypes in
+    this module."""
+    rate = FUEL_POVERTY_RATE_BY_CHANNEL.get(payment_channel, FUEL_POVERTY_RATE_BY_CHANNEL[PaymentChannel.STANDARD_CREDIT])
+    rng = random.Random(f"fuelpoverty_{customer_id}")
+    return rng.random() < rate

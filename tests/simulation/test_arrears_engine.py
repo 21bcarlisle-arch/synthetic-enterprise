@@ -9,6 +9,9 @@ draw from the same deterministic engine over the same bills.
 from datetime import date, timedelta
 
 from simulation.arrears_engine import (
+    FUEL_POVERTY_DD_FAIL_MULTIPLIER,
+    FUEL_POVERTY_ON_TIME_MULTIPLIER,
+    _fuel_poor_for_bill,
     apply_debt_recovery,
     apply_emergent_bad_debt,
     arrears_stages,
@@ -315,3 +318,57 @@ def test_apply_debt_recovery_noop_when_zero():
     assert records[0]['net_margin_gbp'] == 100.0
     assert records[0]['bad_debt_gbp'] == 5.0
     assert records[0]['treasury_cash_balance_gbp'] == 1000.0
+
+
+# --- Layer 2 dimension 2: fuel poverty modifier on payment_outcome() (2026-07-09) ---
+
+
+def test_fuel_poor_for_bill_false_when_no_customer_id():
+    assert _fuel_poor_for_bill("direct_debit", None) is False
+
+
+def test_fuel_poor_for_bill_false_for_corp_methods():
+    assert _fuel_poor_for_bill("bacs", "C1") is False
+    assert _fuel_poor_for_bill("chaps", "C1") is False
+
+
+def test_fuel_poor_for_bill_deterministic():
+    a = _fuel_poor_for_bill("direct_debit", "C1")
+    b = _fuel_poor_for_bill("direct_debit", "C1")
+    assert a == b
+
+
+def test_payment_outcome_default_matches_no_fuel_poor_flag():
+    """Backward compatibility: fuel_poor defaults to False, must reproduce
+    the exact original probability behaviour bit-for-bit against the same
+    RNG seed."""
+    import random
+    rng_a = random.Random(42)
+    rng_b = random.Random(42)
+    for _ in range(200):
+        a = payment_outcome("direct_debit", "MODERATE", rng_a, segment="resi")
+        b = payment_outcome("direct_debit", "MODERATE", rng_b, segment="resi", fuel_poor=False)
+        assert a == b
+
+
+def test_payment_outcome_fuel_poor_increases_failure_rate():
+    """A large sample at fixed stress must show a higher failure rate when
+    fuel_poor=True than when False, matching the multiplier direction."""
+    import random
+    n = 3000
+    rng1 = random.Random(7)
+    fails_normal = sum(
+        payment_outcome("direct_debit", "MODERATE", rng1, segment="resi", fuel_poor=False)[0] == "failed"
+        for _ in range(n)
+    )
+    rng2 = random.Random(7)
+    fails_poor = sum(
+        payment_outcome("direct_debit", "MODERATE", rng2, segment="resi", fuel_poor=True)[0] == "failed"
+        for _ in range(n)
+    )
+    assert fails_poor > fails_normal
+
+
+def test_fuel_poverty_multipliers_are_bounded():
+    assert FUEL_POVERTY_DD_FAIL_MULTIPLIER >= 1.0
+    assert 0.0 < FUEL_POVERTY_ON_TIME_MULTIPLIER <= 1.0

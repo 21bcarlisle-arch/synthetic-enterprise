@@ -1,6 +1,6 @@
 {
   "meta": {
-    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_latest.json",
+    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_ad488582_20260709T224439Z.json",
     "invoice_count": 1550,
     "customer_count": 20,
     "held_bill_count": 0
@@ -28836,10 +28836,10 @@
       "segment": "SME",
       "invoice_count": 96,
       "total_billed_gbp": 59340.65,
-      "total_paid_gbp": 59340.65,
-      "balance_gbp": 0.0,
-      "failed_payment_count": 0,
-      "arrears_case_count": 0,
+      "total_paid_gbp": 58105.34,
+      "balance_gbp": -1235.31,
+      "failed_payment_count": 1,
+      "arrears_case_count": 1,
       "invoices": [
         {
           "invoice_number": 708,
@@ -31677,7 +31677,7 @@
           "issue_date": "2023-12-01",
           "generation_delay_days": 1,
           "due_date": "2023-12-15",
-          "payment_status": "paid",
+          "payment_status": "overdue",
           "meter_serial": "M00040486",
           "mpan": "1000000000121",
           "mprn": null,
@@ -31965,7 +31965,7 @@
         },
         {
           "invoice_number": 726,
-          "payment_date": "2017-11-15",
+          "payment_date": "2017-11-23",
           "amount_gbp": 362.17,
           "method": "standard_credit",
           "outcome": "success",
@@ -31989,7 +31989,7 @@
         },
         {
           "invoice_number": 729,
-          "payment_date": "2018-02-15",
+          "payment_date": "2018-02-23",
           "amount_gbp": 614.95,
           "method": "standard_credit",
           "outcome": "success",
@@ -31997,7 +31997,7 @@
         },
         {
           "invoice_number": 730,
-          "payment_date": "2018-03-25",
+          "payment_date": "2018-03-15",
           "amount_gbp": 603.08,
           "method": "standard_credit",
           "outcome": "success",
@@ -32005,7 +32005,7 @@
         },
         {
           "invoice_number": 731,
-          "payment_date": "2018-04-18",
+          "payment_date": "2018-04-29",
           "amount_gbp": 606.58,
           "method": "standard_credit",
           "outcome": "success",
@@ -32029,7 +32029,7 @@
         },
         {
           "invoice_number": 734,
-          "payment_date": "2018-07-21",
+          "payment_date": "2018-07-16",
           "amount_gbp": 287.78,
           "method": "standard_credit",
           "outcome": "success",
@@ -32093,7 +32093,7 @@
         },
         {
           "invoice_number": 742,
-          "payment_date": "2019-03-20",
+          "payment_date": "2019-03-16",
           "amount_gbp": 553.99,
           "method": "standard_credit",
           "outcome": "success",
@@ -32245,7 +32245,7 @@
         },
         {
           "invoice_number": 761,
-          "payment_date": "2020-10-15",
+          "payment_date": "2020-10-25",
           "amount_gbp": 356.96,
           "method": "standard_credit",
           "outcome": "success",
@@ -32269,7 +32269,7 @@
         },
         {
           "invoice_number": 764,
-          "payment_date": "2021-01-20",
+          "payment_date": "2021-02-02",
           "amount_gbp": 678.7,
           "method": "standard_credit",
           "outcome": "success",
@@ -32285,7 +32285,7 @@
         },
         {
           "invoice_number": 766,
-          "payment_date": "2021-03-20",
+          "payment_date": "2021-03-25",
           "amount_gbp": 617.67,
           "method": "standard_credit",
           "outcome": "success",
@@ -32293,7 +32293,7 @@
         },
         {
           "invoice_number": 767,
-          "payment_date": "2021-04-15",
+          "payment_date": "2021-04-28",
           "amount_gbp": 632.47,
           "method": "standard_credit",
           "outcome": "success",
@@ -32301,7 +32301,7 @@
         },
         {
           "invoice_number": 768,
-          "payment_date": "2021-05-27",
+          "payment_date": "2021-05-14",
           "amount_gbp": 723.59,
           "method": "standard_credit",
           "outcome": "success",
@@ -32309,7 +32309,7 @@
         },
         {
           "invoice_number": 769,
-          "payment_date": "2021-06-14",
+          "payment_date": "2021-06-19",
           "amount_gbp": 590.59,
           "method": "standard_credit",
           "outcome": "success",
@@ -32317,7 +32317,7 @@
         },
         {
           "invoice_number": 770,
-          "payment_date": "2021-07-29",
+          "payment_date": "2021-07-24",
           "amount_gbp": 381.84,
           "method": "standard_credit",
           "outcome": "success",
@@ -32333,7 +32333,7 @@
         },
         {
           "invoice_number": 772,
-          "payment_date": "2021-09-16",
+          "payment_date": "2021-09-21",
           "amount_gbp": 367.64,
           "method": "standard_credit",
           "outcome": "success",
@@ -32341,7 +32341,7 @@
         },
         {
           "invoice_number": 773,
-          "payment_date": "2021-10-24",
+          "payment_date": "2021-10-19",
           "amount_gbp": 400.17,
           "method": "standard_credit",
           "outcome": "success",
@@ -32349,7 +32349,7 @@
         },
         {
           "invoice_number": 774,
-          "payment_date": "2021-11-16",
+          "payment_date": "2021-11-30",
           "amount_gbp": 508.08,
           "method": "standard_credit",
           "outcome": "success",
@@ -32357,7 +32357,7 @@
         },
         {
           "invoice_number": 775,
-          "payment_date": "2022-01-01",
+          "payment_date": "2021-12-18",
           "amount_gbp": 759.06,
           "method": "standard_credit",
           "outcome": "success",
@@ -32421,7 +32421,7 @@
         },
         {
           "invoice_number": 783,
-          "payment_date": "2022-08-18",
+          "payment_date": "2022-08-29",
           "amount_gbp": 678.8,
           "method": "standard_credit",
           "outcome": "success",
@@ -32445,7 +32445,7 @@
         },
         {
           "invoice_number": 786,
-          "payment_date": "2022-11-21",
+          "payment_date": "2022-11-22",
           "amount_gbp": 906.87,
           "method": "standard_credit",
           "outcome": "success",
@@ -32453,7 +32453,7 @@
         },
         {
           "invoice_number": 787,
-          "payment_date": "2022-12-22",
+          "payment_date": "2022-12-15",
           "amount_gbp": 1293.69,
           "method": "standard_credit",
           "outcome": "success",
@@ -32485,7 +32485,7 @@
         },
         {
           "invoice_number": 791,
-          "payment_date": "2023-04-27",
+          "payment_date": "2023-05-02",
           "amount_gbp": 1491.8,
           "method": "standard_credit",
           "outcome": "success",
@@ -32493,7 +32493,7 @@
         },
         {
           "invoice_number": 792,
-          "payment_date": "2023-05-19",
+          "payment_date": "2023-05-14",
           "amount_gbp": 1020.03,
           "method": "standard_credit",
           "outcome": "success",
@@ -32552,7 +32552,7 @@
           "payment_date": "2023-12-15",
           "amount_gbp": 1235.31,
           "method": "standard_credit",
-          "outcome": "success",
+          "outcome": "failed",
           "income_stress_at_time": "LOW"
         },
         {
@@ -32588,16 +32588,56 @@
           "income_stress_at_time": "LOW"
         }
       ],
-      "arrears_history": []
+      "arrears_history": [
+        {
+          "case_id": "ARR-C6-2023-11-30",
+          "invoice_number": 799,
+          "arrears_gbp": 1235.31,
+          "opened_date": "2023-12-15",
+          "stages": [
+            {
+              "stage": "DD_FAILED",
+              "date": "2023-12-15",
+              "note": "Direct debit returned"
+            },
+            {
+              "stage": "FIRST_NOTICE",
+              "date": "2023-12-22",
+              "note": "First overdue notice -- GBP1235.31 outstanding"
+            },
+            {
+              "stage": "SECOND_NOTICE",
+              "date": "2024-01-05",
+              "note": "Second notice -- payment plan offered"
+            },
+            {
+              "stage": "WRITTEN_OFF",
+              "date": "2024-03-14",
+              "note": "Debt written off -- bad debt provision raised"
+            },
+            {
+              "stage": "PLACED_WITH_DCA",
+              "date": "2024-04-13",
+              "note": "Debt placed with third-party debt collection agency"
+            },
+            {
+              "stage": "RECOVERED",
+              "date": "2024-10-10",
+              "amount_gbp": 210.0,
+              "note": "DCA recovered GBP210.00 net of commission (20% recovery rate, 15% commission)"
+            }
+          ]
+        }
+      ]
     },
     "C7": {
       "segment": "resi",
       "invoice_count": 114,
       "total_billed_gbp": 31615.0,
-      "total_paid_gbp": 30721.49,
-      "balance_gbp": -893.51,
-      "failed_payment_count": 2,
-      "arrears_case_count": 2,
+      "total_paid_gbp": 30332.31,
+      "balance_gbp": -1282.69,
+      "failed_payment_count": 3,
+      "arrears_case_count": 3,
       "invoices": [
         {
           "invoice_number": 804,
@@ -33079,7 +33119,7 @@
           "issue_date": "2017-05-02",
           "generation_delay_days": 2,
           "due_date": "2017-05-16",
-          "payment_status": "paid",
+          "payment_status": "overdue",
           "meter_serial": "M00040517",
           "mpan": "1000000000122",
           "mprn": null,
@@ -35249,7 +35289,7 @@
           "issue_date": "2023-03-01",
           "generation_delay_days": 1,
           "due_date": "2023-03-15",
-          "payment_status": "paid",
+          "payment_status": "overdue",
           "meter_serial": "M00040517",
           "mpan": "1000000000122",
           "mprn": null,
@@ -35280,7 +35320,7 @@
           "issue_date": "2023-04-05",
           "generation_delay_days": 5,
           "due_date": "2023-04-19",
-          "payment_status": "overdue",
+          "payment_status": "paid",
           "meter_serial": "M00040517",
           "mpan": "1000000000122",
           "mprn": null,
@@ -36024,7 +36064,7 @@
           "issue_date": "2025-04-01",
           "generation_delay_days": 1,
           "due_date": "2025-04-15",
-          "payment_status": "paid",
+          "payment_status": "overdue",
           "meter_serial": "M00040517",
           "mpan": "1000000000122",
           "mprn": null,
@@ -36055,7 +36095,7 @@
           "issue_date": "2025-04-30",
           "generation_delay_days": 0,
           "due_date": "2025-05-14",
-          "payment_status": "overdue",
+          "payment_status": "paid",
           "meter_serial": "M00040517",
           "mpan": "1000000000122",
           "mprn": null,
@@ -36169,7 +36209,7 @@
         },
         {
           "invoice_number": 808,
-          "payment_date": "2016-06-23",
+          "payment_date": "2016-06-15",
           "amount_gbp": 156.85,
           "method": "direct_debit",
           "outcome": "success",
@@ -36209,7 +36249,7 @@
         },
         {
           "invoice_number": 813,
-          "payment_date": "2016-11-17",
+          "payment_date": "2016-11-29",
           "amount_gbp": 190.63,
           "method": "direct_debit",
           "outcome": "success",
@@ -36217,7 +36257,7 @@
         },
         {
           "invoice_number": 814,
-          "payment_date": "2016-12-15",
+          "payment_date": "2016-12-20",
           "amount_gbp": 289.24,
           "method": "direct_debit",
           "outcome": "success",
@@ -36225,7 +36265,7 @@
         },
         {
           "invoice_number": 815,
-          "payment_date": "2017-01-20",
+          "payment_date": "2017-02-03",
           "amount_gbp": 306.27,
           "method": "direct_debit",
           "outcome": "success",
@@ -36260,7 +36300,7 @@
           "payment_date": "2017-05-16",
           "amount_gbp": 233.83,
           "method": "direct_debit",
-          "outcome": "success",
+          "outcome": "failed",
           "income_stress_at_time": "LOW"
         },
         {
@@ -36361,7 +36401,7 @@
         },
         {
           "invoice_number": 832,
-          "payment_date": "2018-06-16",
+          "payment_date": "2018-06-29",
           "amount_gbp": 148.71,
           "method": "direct_debit",
           "outcome": "success",
@@ -36369,7 +36409,7 @@
         },
         {
           "invoice_number": 833,
-          "payment_date": "2018-08-06",
+          "payment_date": "2018-07-24",
           "amount_gbp": 104.75,
           "method": "direct_debit",
           "outcome": "success",
@@ -36641,7 +36681,7 @@
         },
         {
           "invoice_number": 867,
-          "payment_date": "2021-05-15",
+          "payment_date": "2021-05-25",
           "amount_gbp": 322.22,
           "method": "direct_debit",
           "outcome": "success",
@@ -36649,7 +36689,7 @@
         },
         {
           "invoice_number": 868,
-          "payment_date": "2021-06-27",
+          "payment_date": "2021-06-17",
           "amount_gbp": 227.51,
           "method": "direct_debit",
           "outcome": "success",
@@ -36721,7 +36761,7 @@
         },
         {
           "invoice_number": 877,
-          "payment_date": "2022-03-16",
+          "payment_date": "2022-03-30",
           "amount_gbp": 384.07,
           "method": "direct_debit",
           "outcome": "success",
@@ -36729,7 +36769,7 @@
         },
         {
           "invoice_number": 878,
-          "payment_date": "2022-04-30",
+          "payment_date": "2022-04-16",
           "amount_gbp": 405.7,
           "method": "direct_debit",
           "outcome": "success",
@@ -36793,7 +36833,7 @@
         },
         {
           "invoice_number": 886,
-          "payment_date": "2022-12-16",
+          "payment_date": "2022-12-30",
           "amount_gbp": 344.12,
           "method": "direct_debit",
           "outcome": "success",
@@ -36801,7 +36841,7 @@
         },
         {
           "invoice_number": 887,
-          "payment_date": "2023-01-30",
+          "payment_date": "2023-01-16",
           "amount_gbp": 529.55,
           "method": "direct_debit",
           "outcome": "success",
@@ -36820,7 +36860,7 @@
           "payment_date": "2023-03-15",
           "amount_gbp": 633.67,
           "method": "direct_debit",
-          "outcome": "success",
+          "outcome": "failed",
           "income_stress_at_time": "MODERATE"
         },
         {
@@ -36828,7 +36868,7 @@
           "payment_date": "2023-04-19",
           "amount_gbp": 626.82,
           "method": "direct_debit",
-          "outcome": "failed",
+          "outcome": "success",
           "income_stress_at_time": "MODERATE"
         },
         {
@@ -36857,7 +36897,7 @@
         },
         {
           "invoice_number": 894,
-          "payment_date": "2023-08-16",
+          "payment_date": "2023-09-09",
           "amount_gbp": 215.4,
           "method": "direct_debit",
           "outcome": "success",
@@ -36865,7 +36905,7 @@
         },
         {
           "invoice_number": 895,
-          "payment_date": "2023-10-13",
+          "payment_date": "2023-11-02",
           "amount_gbp": 220.2,
           "method": "direct_debit",
           "outcome": "success",
@@ -36873,7 +36913,7 @@
         },
         {
           "invoice_number": 896,
-          "payment_date": "2023-11-28",
+          "payment_date": "2023-10-15",
           "amount_gbp": 233.63,
           "method": "direct_debit",
           "outcome": "success",
@@ -36889,7 +36929,7 @@
         },
         {
           "invoice_number": 898,
-          "payment_date": "2023-12-18",
+          "payment_date": "2024-01-06",
           "amount_gbp": 601.61,
           "method": "direct_debit",
           "outcome": "success",
@@ -36897,7 +36937,7 @@
         },
         {
           "invoice_number": 899,
-          "payment_date": "2024-02-05",
+          "payment_date": "2024-01-17",
           "amount_gbp": 612.01,
           "method": "direct_debit",
           "outcome": "success",
@@ -36905,7 +36945,7 @@
         },
         {
           "invoice_number": 900,
-          "payment_date": "2024-02-18",
+          "payment_date": "2024-03-05",
           "amount_gbp": 623.75,
           "method": "direct_debit",
           "outcome": "success",
@@ -36913,7 +36953,7 @@
         },
         {
           "invoice_number": 901,
-          "payment_date": "2024-04-07",
+          "payment_date": "2024-03-22",
           "amount_gbp": 459.5,
           "method": "direct_debit",
           "outcome": "success",
@@ -36929,7 +36969,7 @@
         },
         {
           "invoice_number": 903,
-          "payment_date": "2024-05-28",
+          "payment_date": "2024-07-06",
           "amount_gbp": 391.35,
           "method": "direct_debit",
           "outcome": "success",
@@ -36937,7 +36977,7 @@
         },
         {
           "invoice_number": 904,
-          "payment_date": "2024-07-24",
+          "payment_date": "2024-06-15",
           "amount_gbp": 249.47,
           "method": "direct_debit",
           "outcome": "success",
@@ -36945,7 +36985,7 @@
         },
         {
           "invoice_number": 905,
-          "payment_date": "2024-07-17",
+          "payment_date": "2024-08-18",
           "amount_gbp": 218.86,
           "method": "direct_debit",
           "outcome": "success",
@@ -36953,7 +36993,7 @@
         },
         {
           "invoice_number": 906,
-          "payment_date": "2024-09-15",
+          "payment_date": "2024-08-14",
           "amount_gbp": 191.8,
           "method": "direct_debit",
           "outcome": "success",
@@ -36977,7 +37017,7 @@
         },
         {
           "invoice_number": 909,
-          "payment_date": "2024-11-20",
+          "payment_date": "2025-01-04",
           "amount_gbp": 332.78,
           "method": "direct_debit",
           "outcome": "success",
@@ -36985,7 +37025,7 @@
         },
         {
           "invoice_number": 910,
-          "payment_date": "2025-01-28",
+          "payment_date": "2024-12-14",
           "amount_gbp": 489.13,
           "method": "direct_debit",
           "outcome": "success",
@@ -37009,7 +37049,7 @@
         },
         {
           "invoice_number": 913,
-          "payment_date": "2025-03-15",
+          "payment_date": "2025-04-09",
           "amount_gbp": 458.7,
           "method": "direct_debit",
           "outcome": "success",
@@ -37017,10 +37057,10 @@
         },
         {
           "invoice_number": 914,
-          "payment_date": "2025-05-10",
+          "payment_date": "2025-04-15",
           "amount_gbp": 415.19,
           "method": "direct_debit",
-          "outcome": "success",
+          "outcome": "failed",
           "income_stress_at_time": "MODERATE"
         },
         {
@@ -37028,7 +37068,7 @@
           "payment_date": "2025-05-14",
           "amount_gbp": 266.69,
           "method": "direct_debit",
-          "outcome": "failed",
+          "outcome": "success",
           "income_stress_at_time": "MODERATE"
         },
         {
@@ -37041,7 +37081,7 @@
         },
         {
           "invoice_number": 917,
-          "payment_date": "2025-06-28",
+          "payment_date": "2025-08-06",
           "amount_gbp": 42.25,
           "method": "direct_debit",
           "outcome": "success",
@@ -37050,57 +37090,85 @@
       ],
       "arrears_history": [
         {
-          "case_id": "ARR-C7-2023-03-31",
-          "invoice_number": 890,
-          "arrears_gbp": 626.82,
-          "opened_date": "2023-04-19",
+          "case_id": "ARR-C7-2017-04-30",
+          "invoice_number": 819,
+          "arrears_gbp": 233.83,
+          "opened_date": "2017-05-16",
           "stages": [
             {
               "stage": "DD_FAILED",
-              "date": "2023-04-19",
+              "date": "2017-05-16",
               "note": "Direct debit returned"
             },
             {
               "stage": "FIRST_NOTICE",
-              "date": "2023-04-26",
-              "note": "First overdue notice -- GBP626.82 outstanding"
+              "date": "2017-05-23",
+              "note": "First overdue notice -- GBP233.83 outstanding"
             },
             {
               "stage": "SECOND_NOTICE",
-              "date": "2023-05-10",
+              "date": "2017-06-06",
               "note": "Second notice -- payment plan offered"
             },
             {
               "stage": "RESOLVED",
-              "date": "2023-06-03",
+              "date": "2017-06-30",
               "note": "Arrears cleared via payment plan"
             }
           ]
         },
         {
-          "case_id": "ARR-C7-2025-04-30",
-          "invoice_number": 915,
-          "arrears_gbp": 266.69,
-          "opened_date": "2025-05-14",
+          "case_id": "ARR-C7-2023-02-28",
+          "invoice_number": 889,
+          "arrears_gbp": 633.67,
+          "opened_date": "2023-03-15",
           "stages": [
             {
               "stage": "DD_FAILED",
-              "date": "2025-05-14",
+              "date": "2023-03-15",
               "note": "Direct debit returned"
             },
             {
               "stage": "FIRST_NOTICE",
-              "date": "2025-05-21",
-              "note": "First overdue notice -- GBP266.69 outstanding"
+              "date": "2023-03-22",
+              "note": "First overdue notice -- GBP633.67 outstanding"
             },
             {
               "stage": "SECOND_NOTICE",
-              "date": "2025-06-04",
+              "date": "2023-04-05",
               "note": "Second notice -- payment plan offered"
             },
             {
               "stage": "RESOLVED",
-              "date": "2025-06-28",
+              "date": "2023-04-29",
+              "note": "Arrears cleared via payment plan"
+            }
+          ]
+        },
+        {
+          "case_id": "ARR-C7-2025-03-31",
+          "invoice_number": 914,
+          "arrears_gbp": 415.19,
+          "opened_date": "2025-04-15",
+          "stages": [
+            {
+              "stage": "DD_FAILED",
+              "date": "2025-04-15",
+              "note": "Direct debit returned"
+            },
+            {
+              "stage": "FIRST_NOTICE",
+              "date": "2025-04-22",
+              "note": "First overdue notice -- GBP415.19 outstanding"
+            },
+            {
+              "stage": "SECOND_NOTICE",
+              "date": "2025-05-06",
+              "note": "Second notice -- payment plan offered"
+            },
+            {
+              "stage": "RESOLVED",
+              "date": "2025-05-30",
               "note": "Arrears cleared via payment plan"
             }
           ]
@@ -37111,8 +37179,8 @@
       "segment": "resi",
       "invoice_count": 111,
       "total_billed_gbp": 30669.59,
-      "total_paid_gbp": 30103.77,
-      "balance_gbp": -565.82,
+      "total_paid_gbp": 29860.24,
+      "balance_gbp": -809.35,
       "failed_payment_count": 2,
       "arrears_case_count": 2,
       "invoices": [
@@ -38650,7 +38718,7 @@
           "issue_date": "2020-06-01",
           "generation_delay_days": 1,
           "due_date": "2020-06-15",
-          "payment_status": "paid",
+          "payment_status": "overdue",
           "meter_serial": "M00040548",
           "mpan": "1000000000123",
           "mprn": null,
@@ -38681,7 +38749,7 @@
           "issue_date": "2020-07-08",
           "generation_delay_days": 8,
           "due_date": "2020-07-22",
-          "payment_status": "overdue",
+          "payment_status": "paid",
           "meter_serial": "M00040548",
           "mpan": "1000000000123",
           "mprn": null,
@@ -39704,7 +39772,7 @@
           "issue_date": "2023-03-31",
           "generation_delay_days": 0,
           "due_date": "2023-04-14",
-          "payment_status": "paid",
+          "payment_status": "overdue",
           "meter_serial": "M00040548",
           "mpan": "1000000000123",
           "mprn": null,
@@ -39735,7 +39803,7 @@
           "issue_date": "2023-04-30",
           "generation_delay_days": 0,
           "due_date": "2023-05-14",
-          "payment_status": "overdue",
+          "payment_status": "paid",
           "meter_serial": "M00040548",
           "mpan": "1000000000123",
           "mprn": null,
@@ -40585,7 +40653,7 @@
         },
         {
           "invoice_number": 921,
-          "payment_date": "2016-08-25",
+          "payment_date": "2016-08-15",
           "amount_gbp": 82.14,
           "method": "standard_credit",
           "outcome": "success",
@@ -40601,7 +40669,7 @@
         },
         {
           "invoice_number": 923,
-          "payment_date": "2016-10-17",
+          "payment_date": "2016-10-24",
           "amount_gbp": 89.63,
           "method": "standard_credit",
           "outcome": "success",
@@ -40609,7 +40677,7 @@
         },
         {
           "invoice_number": 924,
-          "payment_date": "2016-11-24",
+          "payment_date": "2016-11-17",
           "amount_gbp": 179.59,
           "method": "standard_credit",
           "outcome": "success",
@@ -40641,7 +40709,7 @@
         },
         {
           "invoice_number": 928,
-          "payment_date": "2017-03-23",
+          "payment_date": "2017-04-06",
           "amount_gbp": 261.63,
           "method": "standard_credit",
           "outcome": "success",
@@ -40649,7 +40717,7 @@
         },
         {
           "invoice_number": 929,
-          "payment_date": "2017-05-01",
+          "payment_date": "2017-04-17",
           "amount_gbp": 249.4,
           "method": "standard_credit",
           "outcome": "success",
@@ -40657,7 +40725,7 @@
         },
         {
           "invoice_number": 930,
-          "payment_date": "2017-05-15",
+          "payment_date": "2017-05-23",
           "amount_gbp": 238.0,
           "method": "standard_credit",
           "outcome": "success",
@@ -40665,7 +40733,7 @@
         },
         {
           "invoice_number": 931,
-          "payment_date": "2017-06-23",
+          "payment_date": "2017-06-15",
           "amount_gbp": 145.72,
           "method": "standard_credit",
           "outcome": "success",
@@ -40849,7 +40917,7 @@
         },
         {
           "invoice_number": 954,
-          "payment_date": "2019-05-19",
+          "payment_date": "2019-05-23",
           "amount_gbp": 238.39,
           "method": "standard_credit",
           "outcome": "success",
@@ -40857,7 +40925,7 @@
         },
         {
           "invoice_number": 955,
-          "payment_date": "2019-06-18",
+          "payment_date": "2019-06-14",
           "amount_gbp": 198.65,
           "method": "standard_credit",
           "outcome": "success",
@@ -40881,7 +40949,7 @@
         },
         {
           "invoice_number": 958,
-          "payment_date": "2019-09-23",
+          "payment_date": "2019-10-01",
           "amount_gbp": 86.35,
           "method": "standard_credit",
           "outcome": "success",
@@ -40889,7 +40957,7 @@
         },
         {
           "invoice_number": 959,
-          "payment_date": "2019-10-22",
+          "payment_date": "2019-10-14",
           "amount_gbp": 133.59,
           "method": "standard_credit",
           "outcome": "success",
@@ -40956,7 +41024,7 @@
           "payment_date": "2020-06-15",
           "amount_gbp": 167.52,
           "method": "standard_credit",
-          "outcome": "success",
+          "outcome": "failed",
           "income_stress_at_time": "LOW"
         },
         {
@@ -40964,7 +41032,7 @@
           "payment_date": "2020-07-22",
           "amount_gbp": 114.64,
           "method": "standard_credit",
-          "outcome": "failed",
+          "outcome": "success",
           "income_stress_at_time": "LOW"
         },
         {
@@ -41129,7 +41197,7 @@
         },
         {
           "invoice_number": 989,
-          "payment_date": "2022-04-20",
+          "payment_date": "2022-05-15",
           "amount_gbp": 411.21,
           "method": "standard_credit",
           "outcome": "success",
@@ -41137,7 +41205,7 @@
         },
         {
           "invoice_number": 990,
-          "payment_date": "2022-06-20",
+          "payment_date": "2022-05-26",
           "amount_gbp": 460.12,
           "method": "standard_credit",
           "outcome": "success",
@@ -41145,7 +41213,7 @@
         },
         {
           "invoice_number": 991,
-          "payment_date": "2022-06-18",
+          "payment_date": "2022-07-26",
           "amount_gbp": 285.65,
           "method": "standard_credit",
           "outcome": "success",
@@ -41153,7 +41221,7 @@
         },
         {
           "invoice_number": 992,
-          "payment_date": "2022-08-23",
+          "payment_date": "2022-07-16",
           "amount_gbp": 191.01,
           "method": "standard_credit",
           "outcome": "success",
@@ -41169,7 +41237,7 @@
         },
         {
           "invoice_number": 994,
-          "payment_date": "2022-09-19",
+          "payment_date": "2022-11-02",
           "amount_gbp": 147.14,
           "method": "standard_credit",
           "outcome": "success",
@@ -41177,7 +41245,7 @@
         },
         {
           "invoice_number": 995,
-          "payment_date": "2022-11-29",
+          "payment_date": "2022-10-16",
           "amount_gbp": 258.7,
           "method": "standard_credit",
           "outcome": "success",
@@ -41228,7 +41296,7 @@
           "payment_date": "2023-04-14",
           "amount_gbp": 641.83,
           "method": "standard_credit",
-          "outcome": "success",
+          "outcome": "failed",
           "income_stress_at_time": "MODERATE"
         },
         {
@@ -41236,12 +41304,12 @@
           "payment_date": "2023-05-14",
           "amount_gbp": 451.18,
           "method": "standard_credit",
-          "outcome": "failed",
+          "outcome": "success",
           "income_stress_at_time": "MODERATE"
         },
         {
           "invoice_number": 1003,
-          "payment_date": "2023-06-18",
+          "payment_date": "2023-07-05",
           "amount_gbp": 273.44,
           "method": "standard_credit",
           "outcome": "success",
@@ -41249,7 +41317,7 @@
         },
         {
           "invoice_number": 1004,
-          "payment_date": "2023-08-12",
+          "payment_date": "2023-08-11",
           "amount_gbp": 159.64,
           "method": "standard_credit",
           "outcome": "success",
@@ -41257,7 +41325,7 @@
         },
         {
           "invoice_number": 1005,
-          "payment_date": "2023-09-02",
+          "payment_date": "2023-08-17",
           "amount_gbp": 160.87,
           "method": "standard_credit",
           "outcome": "success",
@@ -41265,7 +41333,7 @@
         },
         {
           "invoice_number": 1006,
-          "payment_date": "2023-09-15",
+          "payment_date": "2023-10-12",
           "amount_gbp": 163.29,
           "method": "standard_credit",
           "outcome": "success",
@@ -41273,7 +41341,7 @@
         },
         {
           "invoice_number": 1007,
-          "payment_date": "2023-11-11",
+          "payment_date": "2023-11-19",
           "amount_gbp": 174.83,
           "method": "standard_credit",
           "outcome": "success",
@@ -41281,7 +41349,7 @@
         },
         {
           "invoice_number": 1008,
-          "payment_date": "2023-12-24",
+          "payment_date": "2023-12-16",
           "amount_gbp": 334.96,
           "method": "standard_credit",
           "outcome": "success",
@@ -41289,7 +41357,7 @@
         },
         {
           "invoice_number": 1009,
-          "payment_date": "2024-01-13",
+          "payment_date": "2024-01-07",
           "amount_gbp": 557.26,
           "method": "standard_credit",
           "outcome": "success",
@@ -41297,7 +41365,7 @@
         },
         {
           "invoice_number": 1010,
-          "payment_date": "2024-02-04",
+          "payment_date": "2024-02-12",
           "amount_gbp": 580.37,
           "method": "standard_credit",
           "outcome": "success",
@@ -41305,7 +41373,7 @@
         },
         {
           "invoice_number": 1011,
-          "payment_date": "2024-03-15",
+          "payment_date": "2024-03-25",
           "amount_gbp": 678.87,
           "method": "standard_credit",
           "outcome": "success",
@@ -41313,7 +41381,7 @@
         },
         {
           "invoice_number": 1012,
-          "payment_date": "2024-04-23",
+          "payment_date": "2024-04-16",
           "amount_gbp": 525.65,
           "method": "standard_credit",
           "outcome": "success",
@@ -41321,7 +41389,7 @@
         },
         {
           "invoice_number": 1013,
-          "payment_date": "2024-05-16",
+          "payment_date": "2024-05-20",
           "amount_gbp": 523.85,
           "method": "standard_credit",
           "outcome": "success",
@@ -41329,7 +41397,7 @@
         },
         {
           "invoice_number": 1014,
-          "payment_date": "2024-06-26",
+          "payment_date": "2024-05-21",
           "amount_gbp": 350.32,
           "method": "standard_credit",
           "outcome": "success",
@@ -41345,7 +41413,7 @@
         },
         {
           "invoice_number": 1016,
-          "payment_date": "2024-07-14",
+          "payment_date": "2024-08-17",
           "amount_gbp": 193.97,
           "method": "standard_credit",
           "outcome": "success",
@@ -41353,7 +41421,7 @@
         },
         {
           "invoice_number": 1017,
-          "payment_date": "2024-09-18",
+          "payment_date": "2024-08-15",
           "amount_gbp": 145.53,
           "method": "standard_credit",
           "outcome": "success",
@@ -41361,7 +41429,7 @@
         },
         {
           "invoice_number": 1018,
-          "payment_date": "2024-09-21",
+          "payment_date": "2024-10-19",
           "amount_gbp": 127.6,
           "method": "standard_credit",
           "outcome": "success",
@@ -41369,7 +41437,7 @@
         },
         {
           "invoice_number": 1019,
-          "payment_date": "2024-11-12",
+          "payment_date": "2024-10-15",
           "amount_gbp": 213.57,
           "method": "standard_credit",
           "outcome": "success",
@@ -41377,7 +41445,7 @@
         },
         {
           "invoice_number": 1020,
-          "payment_date": "2024-11-14",
+          "payment_date": "2024-12-24",
           "amount_gbp": 285.67,
           "method": "standard_credit",
           "outcome": "success",
@@ -41385,7 +41453,7 @@
         },
         {
           "invoice_number": 1021,
-          "payment_date": "2025-01-26",
+          "payment_date": "2024-12-17",
           "amount_gbp": 455.46,
           "method": "standard_credit",
           "outcome": "success",
@@ -41393,7 +41461,7 @@
         },
         {
           "invoice_number": 1022,
-          "payment_date": "2025-01-16",
+          "payment_date": "2025-02-14",
           "amount_gbp": 455.61,
           "method": "standard_credit",
           "outcome": "success",
@@ -41401,7 +41469,7 @@
         },
         {
           "invoice_number": 1023,
-          "payment_date": "2025-03-17",
+          "payment_date": "2025-03-23",
           "amount_gbp": 590.83,
           "method": "standard_credit",
           "outcome": "success",
@@ -41409,7 +41477,7 @@
         },
         {
           "invoice_number": 1024,
-          "payment_date": "2025-04-20",
+          "payment_date": "2025-04-30",
           "amount_gbp": 450.65,
           "method": "standard_credit",
           "outcome": "success",
@@ -41417,7 +41485,7 @@
         },
         {
           "invoice_number": 1025,
-          "payment_date": "2025-05-29",
+          "payment_date": "2025-05-20",
           "amount_gbp": 407.55,
           "method": "standard_credit",
           "outcome": "success",
@@ -41425,7 +41493,7 @@
         },
         {
           "invoice_number": 1026,
-          "payment_date": "2025-06-25",
+          "payment_date": "2025-07-04",
           "amount_gbp": 246.63,
           "method": "standard_credit",
           "outcome": "success",
@@ -41433,7 +41501,7 @@
         },
         {
           "invoice_number": 1027,
-          "payment_date": "2025-07-30",
+          "payment_date": "2025-07-02",
           "amount_gbp": 160.98,
           "method": "standard_credit",
           "outcome": "success",
@@ -41441,7 +41509,7 @@
         },
         {
           "invoice_number": 1028,
-          "payment_date": "2025-07-08",
+          "payment_date": "2025-07-09",
           "amount_gbp": 42.84,
           "method": "standard_credit",
           "outcome": "success",
@@ -41450,57 +41518,57 @@
       ],
       "arrears_history": [
         {
-          "case_id": "ARR-C8-2020-06-30",
-          "invoice_number": 968,
-          "arrears_gbp": 114.64,
-          "opened_date": "2020-07-22",
+          "case_id": "ARR-C8-2020-05-31",
+          "invoice_number": 967,
+          "arrears_gbp": 167.52,
+          "opened_date": "2020-06-15",
           "stages": [
             {
               "stage": "DD_FAILED",
-              "date": "2020-07-22",
+              "date": "2020-06-15",
               "note": "Direct debit returned"
             },
             {
               "stage": "FIRST_NOTICE",
-              "date": "2020-07-29",
-              "note": "First overdue notice -- GBP114.64 outstanding"
+              "date": "2020-06-22",
+              "note": "First overdue notice -- GBP167.52 outstanding"
             },
             {
               "stage": "SECOND_NOTICE",
-              "date": "2020-08-12",
+              "date": "2020-07-06",
               "note": "Second notice -- payment plan offered"
             },
             {
               "stage": "RESOLVED",
-              "date": "2020-09-05",
+              "date": "2020-07-30",
               "note": "Arrears cleared via payment plan"
             }
           ]
         },
         {
-          "case_id": "ARR-C8-2023-04-30",
-          "invoice_number": 1002,
-          "arrears_gbp": 451.18,
-          "opened_date": "2023-05-14",
+          "case_id": "ARR-C8-2023-03-31",
+          "invoice_number": 1001,
+          "arrears_gbp": 641.83,
+          "opened_date": "2023-04-14",
           "stages": [
             {
               "stage": "DD_FAILED",
-              "date": "2023-05-14",
+              "date": "2023-04-14",
               "note": "Direct debit returned"
             },
             {
               "stage": "FIRST_NOTICE",
-              "date": "2023-05-21",
-              "note": "First overdue notice -- GBP451.18 outstanding"
+              "date": "2023-04-21",
+              "note": "First overdue notice -- GBP641.83 outstanding"
             },
             {
               "stage": "SECOND_NOTICE",
-              "date": "2023-06-04",
+              "date": "2023-05-05",
               "note": "Second notice -- payment plan offered"
             },
             {
               "stage": "RESOLVED",
-              "date": "2023-06-28",
+              "date": "2023-05-29",
               "note": "Arrears cleared via payment plan"
             }
           ]
@@ -41511,10 +41579,10 @@
       "segment": "resi",
       "invoice_count": 108,
       "total_billed_gbp": 29331.81,
-      "total_paid_gbp": 28763.18,
-      "balance_gbp": -568.63,
-      "failed_payment_count": 2,
-      "arrears_case_count": 2,
+      "total_paid_gbp": 28984.97,
+      "balance_gbp": -346.84,
+      "failed_payment_count": 1,
+      "arrears_case_count": 1,
       "invoices": [
         {
           "invoice_number": 1029,
@@ -41841,7 +41909,7 @@
           "issue_date": "2017-05-31",
           "generation_delay_days": 0,
           "due_date": "2017-06-14",
-          "payment_status": "overdue",
+          "payment_status": "paid",
           "meter_serial": "M00040579",
           "mpan": "1000000000124",
           "mprn": null,
@@ -43515,7 +43583,7 @@
           "issue_date": "2021-12-02",
           "generation_delay_days": 2,
           "due_date": "2021-12-16",
-          "payment_status": "paid",
+          "payment_status": "overdue",
           "meter_serial": "M00040579",
           "mpan": "1000000000124",
           "mprn": null,
@@ -43577,7 +43645,7 @@
           "issue_date": "2022-01-31",
           "generation_delay_days": 0,
           "due_date": "2022-02-14",
-          "payment_status": "overdue",
+          "payment_status": "paid",
           "meter_serial": "M00040579",
           "mpan": "1000000000124",
           "mprn": null,
@@ -44951,7 +45019,7 @@
           "payment_date": "2017-06-14",
           "amount_gbp": 139.32,
           "method": "direct_debit",
-          "outcome": "failed",
+          "outcome": "success",
           "income_stress_at_time": "LOW"
         },
         {
@@ -45012,7 +45080,7 @@
         },
         {
           "invoice_number": 1047,
-          "payment_date": "2018-02-15",
+          "payment_date": "2018-02-21",
           "amount_gbp": 348.77,
           "method": "direct_debit",
           "outcome": "success",
@@ -45028,7 +45096,7 @@
         },
         {
           "invoice_number": 1049,
-          "payment_date": "2018-04-15",
+          "payment_date": "2018-04-28",
           "amount_gbp": 341.7,
           "method": "direct_debit",
           "outcome": "success",
@@ -45044,7 +45112,7 @@
         },
         {
           "invoice_number": 1051,
-          "payment_date": "2018-06-30",
+          "payment_date": "2018-06-17",
           "amount_gbp": 155.98,
           "method": "direct_debit",
           "outcome": "success",
@@ -45116,7 +45184,7 @@
         },
         {
           "invoice_number": 1060,
-          "payment_date": "2019-03-22",
+          "payment_date": "2019-04-02",
           "amount_gbp": 276.26,
           "method": "direct_debit",
           "outcome": "success",
@@ -45132,7 +45200,7 @@
         },
         {
           "invoice_number": 1062,
-          "payment_date": "2019-05-31",
+          "payment_date": "2019-05-20",
           "amount_gbp": 234.43,
           "method": "direct_debit",
           "outcome": "success",
@@ -45204,7 +45272,7 @@
         },
         {
           "invoice_number": 1071,
-          "payment_date": "2020-02-18",
+          "payment_date": "2020-02-21",
           "amount_gbp": 305.03,
           "method": "direct_debit",
           "outcome": "success",
@@ -45220,7 +45288,7 @@
         },
         {
           "invoice_number": 1073,
-          "payment_date": "2020-04-24",
+          "payment_date": "2020-04-21",
           "amount_gbp": 318.73,
           "method": "direct_debit",
           "outcome": "success",
@@ -45383,7 +45451,7 @@
           "payment_date": "2021-12-16",
           "amount_gbp": 346.84,
           "method": "direct_debit",
-          "outcome": "success",
+          "outcome": "failed",
           "income_stress_at_time": "LOW"
         },
         {
@@ -45399,7 +45467,7 @@
           "payment_date": "2022-02-14",
           "amount_gbp": 429.31,
           "method": "direct_debit",
-          "outcome": "failed",
+          "outcome": "success",
           "income_stress_at_time": "LOW"
         },
         {
@@ -45452,7 +45520,7 @@
         },
         {
           "invoice_number": 1102,
-          "payment_date": "2022-09-17",
+          "payment_date": "2022-10-01",
           "amount_gbp": 168.61,
           "method": "direct_debit",
           "outcome": "success",
@@ -45468,7 +45536,7 @@
         },
         {
           "invoice_number": 1104,
-          "payment_date": "2022-11-29",
+          "payment_date": "2022-11-15",
           "amount_gbp": 317.52,
           "method": "direct_debit",
           "outcome": "success",
@@ -45476,7 +45544,7 @@
         },
         {
           "invoice_number": 1105,
-          "payment_date": "2022-12-15",
+          "payment_date": "2022-12-23",
           "amount_gbp": 453.97,
           "method": "direct_debit",
           "outcome": "success",
@@ -45492,7 +45560,7 @@
         },
         {
           "invoice_number": 1107,
-          "payment_date": "2023-02-24",
+          "payment_date": "2023-02-16",
           "amount_gbp": 623.54,
           "method": "direct_debit",
           "outcome": "success",
@@ -45548,7 +45616,7 @@
         },
         {
           "invoice_number": 1114,
-          "payment_date": "2023-09-17",
+          "payment_date": "2023-09-23",
           "amount_gbp": 177.72,
           "method": "direct_debit",
           "outcome": "success",
@@ -45564,7 +45632,7 @@
         },
         {
           "invoice_number": 1116,
-          "payment_date": "2023-11-21",
+          "payment_date": "2023-11-15",
           "amount_gbp": 365.07,
           "method": "direct_debit",
           "outcome": "success",
@@ -45596,7 +45664,7 @@
         },
         {
           "invoice_number": 1120,
-          "payment_date": "2024-03-15",
+          "payment_date": "2024-03-21",
           "amount_gbp": 514.74,
           "method": "direct_debit",
           "outcome": "success",
@@ -45612,7 +45680,7 @@
         },
         {
           "invoice_number": 1122,
-          "payment_date": "2024-05-26",
+          "payment_date": "2024-05-20",
           "amount_gbp": 422.08,
           "method": "direct_debit",
           "outcome": "success",
@@ -45652,7 +45720,7 @@
         },
         {
           "invoice_number": 1127,
-          "payment_date": "2024-10-25",
+          "payment_date": "2024-11-04",
           "amount_gbp": 252.29,
           "method": "direct_debit",
           "outcome": "success",
@@ -45668,7 +45736,7 @@
         },
         {
           "invoice_number": 1129,
-          "payment_date": "2024-12-27",
+          "payment_date": "2024-12-17",
           "amount_gbp": 448.76,
           "method": "direct_debit",
           "outcome": "success",
@@ -45733,57 +45801,29 @@
       ],
       "arrears_history": [
         {
-          "case_id": "ARR-C9-2017-05-31",
-          "invoice_number": 1039,
-          "arrears_gbp": 139.32,
-          "opened_date": "2017-06-14",
+          "case_id": "ARR-C9-2021-11-30",
+          "invoice_number": 1093,
+          "arrears_gbp": 346.84,
+          "opened_date": "2021-12-16",
           "stages": [
             {
               "stage": "DD_FAILED",
-              "date": "2017-06-14",
+              "date": "2021-12-16",
               "note": "Direct debit returned"
             },
             {
               "stage": "FIRST_NOTICE",
-              "date": "2017-06-21",
-              "note": "First overdue notice -- GBP139.32 outstanding"
+              "date": "2021-12-23",
+              "note": "First overdue notice -- GBP346.84 outstanding"
             },
             {
               "stage": "SECOND_NOTICE",
-              "date": "2017-07-05",
+              "date": "2022-01-06",
               "note": "Second notice -- payment plan offered"
             },
             {
               "stage": "RESOLVED",
-              "date": "2017-07-29",
-              "note": "Arrears cleared via payment plan"
-            }
-          ]
-        },
-        {
-          "case_id": "ARR-C9-2022-01-31",
-          "invoice_number": 1095,
-          "arrears_gbp": 429.31,
-          "opened_date": "2022-02-14",
-          "stages": [
-            {
-              "stage": "DD_FAILED",
-              "date": "2022-02-14",
-              "note": "Direct debit returned"
-            },
-            {
-              "stage": "FIRST_NOTICE",
-              "date": "2022-02-21",
-              "note": "First overdue notice -- GBP429.31 outstanding"
-            },
-            {
-              "stage": "SECOND_NOTICE",
-              "date": "2022-03-07",
-              "note": "Second notice -- payment plan offered"
-            },
-            {
-              "stage": "RESOLVED",
-              "date": "2022-03-31",
+              "date": "2022-01-30",
               "note": "Arrears cleared via payment plan"
             }
           ]
@@ -45794,8 +45834,8 @@
       "segment": "I&C",
       "invoice_count": 102,
       "total_billed_gbp": 5012102.28,
-      "total_paid_gbp": 4900689.11,
-      "balance_gbp": -111413.17,
+      "total_paid_gbp": 4911659.32,
+      "balance_gbp": -100442.96,
       "failed_payment_count": 2,
       "arrears_case_count": 2,
       "invoices": [
@@ -46279,7 +46319,7 @@
           "issue_date": "2018-05-06",
           "generation_delay_days": 6,
           "due_date": "2018-05-20",
-          "payment_status": "paid",
+          "payment_status": "disputed",
           "meter_serial": "M00047616",
           "mpan": "1000000000351",
           "mprn": null,
@@ -46403,7 +46443,7 @@
           "issue_date": "2018-09-01",
           "generation_delay_days": 1,
           "due_date": "2018-09-15",
-          "payment_status": "disputed",
+          "payment_status": "paid",
           "meter_serial": "M00047616",
           "mpan": "1000000000351",
           "mprn": null,
@@ -48573,7 +48613,7 @@
           "issue_date": "2024-07-07",
           "generation_delay_days": 7,
           "due_date": "2024-07-21",
-          "payment_status": "paid",
+          "payment_status": "disputed",
           "meter_serial": "M00047616",
           "mpan": "1000000000351",
           "mprn": null,
@@ -48697,7 +48737,7 @@
           "issue_date": "2024-10-31",
           "generation_delay_days": 0,
           "due_date": "2024-11-14",
-          "payment_status": "disputed",
+          "payment_status": "paid",
           "meter_serial": "M00047616",
           "mpan": "1000000000351",
           "mprn": null,
@@ -48973,7 +49013,7 @@
         },
         {
           "invoice_number": 1138,
-          "payment_date": "2017-03-15",
+          "payment_date": "2017-04-19",
           "amount_gbp": 29711.96,
           "method": "chaps",
           "outcome": "success",
@@ -48981,7 +49021,7 @@
         },
         {
           "invoice_number": 1139,
-          "payment_date": "2017-04-15",
+          "payment_date": "2017-05-26",
           "amount_gbp": 34419.63,
           "method": "chaps",
           "outcome": "success",
@@ -49005,7 +49045,7 @@
         },
         {
           "invoice_number": 1142,
-          "payment_date": "2017-08-21",
+          "payment_date": "2017-07-17",
           "amount_gbp": 33029.43,
           "method": "chaps",
           "outcome": "success",
@@ -49013,7 +49053,7 @@
         },
         {
           "invoice_number": 1143,
-          "payment_date": "2017-09-26",
+          "payment_date": "2017-08-16",
           "amount_gbp": 32241.3,
           "method": "chaps",
           "outcome": "success",
@@ -49088,7 +49128,7 @@
           "payment_date": "2018-05-20",
           "amount_gbp": 42909.18,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -49109,7 +49149,7 @@
         },
         {
           "invoice_number": 1155,
-          "payment_date": "2018-08-18",
+          "payment_date": "2018-09-06",
           "amount_gbp": 44792.18,
           "method": "chaps",
           "outcome": "success",
@@ -49120,12 +49160,12 @@
           "payment_date": "2018-09-15",
           "amount_gbp": 46460.2,
           "method": "chaps",
-          "outcome": "dispute",
+          "outcome": "success",
           "income_stress_at_time": "LOW"
         },
         {
           "invoice_number": 1157,
-          "payment_date": "2018-10-19",
+          "payment_date": "2018-11-11",
           "amount_gbp": 41598.95,
           "method": "chaps",
           "outcome": "success",
@@ -49141,7 +49181,7 @@
         },
         {
           "invoice_number": 1159,
-          "payment_date": "2019-01-19",
+          "payment_date": "2018-12-31",
           "amount_gbp": 43388.96,
           "method": "chaps",
           "outcome": "success",
@@ -49157,7 +49197,7 @@
         },
         {
           "invoice_number": 1161,
-          "payment_date": "2019-03-14",
+          "payment_date": "2019-02-19",
           "amount_gbp": 45262.15,
           "method": "chaps",
           "outcome": "success",
@@ -49253,7 +49293,7 @@
         },
         {
           "invoice_number": 1173,
-          "payment_date": "2020-02-14",
+          "payment_date": "2020-03-14",
           "amount_gbp": 52477.79,
           "method": "chaps",
           "outcome": "success",
@@ -49285,7 +49325,7 @@
         },
         {
           "invoice_number": 1177,
-          "payment_date": "2020-07-19",
+          "payment_date": "2020-06-20",
           "amount_gbp": 33763.34,
           "method": "chaps",
           "outcome": "success",
@@ -49477,7 +49517,7 @@
         },
         {
           "invoice_number": 1201,
-          "payment_date": "2022-06-16",
+          "payment_date": "2022-07-20",
           "amount_gbp": 47055.98,
           "method": "chaps",
           "outcome": "success",
@@ -49509,7 +49549,7 @@
         },
         {
           "invoice_number": 1205,
-          "payment_date": "2022-11-21",
+          "payment_date": "2022-10-18",
           "amount_gbp": 83425.23,
           "method": "chaps",
           "outcome": "success",
@@ -49680,7 +49720,7 @@
           "payment_date": "2024-07-21",
           "amount_gbp": 57533.78,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -49712,7 +49752,7 @@
           "payment_date": "2024-11-14",
           "amount_gbp": 64952.97,
           "method": "chaps",
-          "outcome": "dispute",
+          "outcome": "success",
           "income_stress_at_time": "LOW"
         },
         {
@@ -49765,7 +49805,7 @@
         },
         {
           "invoice_number": 1237,
-          "payment_date": "2025-06-14",
+          "payment_date": "2025-07-29",
           "amount_gbp": 59247.12,
           "method": "chaps",
           "outcome": "success",
@@ -49782,47 +49822,47 @@
       ],
       "arrears_history": [
         {
-          "case_id": "DIS-C_IC1-2018-08-31",
-          "invoice_number": 1156,
-          "arrears_gbp": 46460.2,
-          "opened_date": "2018-09-15",
+          "case_id": "DIS-C_IC1-2018-04-30",
+          "invoice_number": 1152,
+          "arrears_gbp": 42909.18,
+          "opened_date": "2018-05-20",
           "stages": [
             {
               "stage": "INVOICE_DISPUTED",
-              "date": "2018-09-15",
-              "note": "Invoice disputed -- GBP46460.20 under formal review"
+              "date": "2018-05-20",
+              "note": "Invoice disputed -- GBP42909.18 under formal review"
             },
             {
               "stage": "DISPUTE_NOTICE",
-              "date": "2018-09-29",
+              "date": "2018-06-03",
               "note": "Dispute notice raised -- escalated to accounts receivable"
             },
             {
               "stage": "PAYMENT_PLAN_AGREED",
-              "date": "2018-10-15",
+              "date": "2018-06-19",
               "note": "Payment plan agreed -- arrears to be settled over 60 days"
             }
           ]
         },
         {
-          "case_id": "DIS-C_IC1-2024-10-31",
-          "invoice_number": 1230,
-          "arrears_gbp": 64952.97,
-          "opened_date": "2024-11-14",
+          "case_id": "DIS-C_IC1-2024-06-30",
+          "invoice_number": 1226,
+          "arrears_gbp": 57533.78,
+          "opened_date": "2024-07-21",
           "stages": [
             {
               "stage": "INVOICE_DISPUTED",
-              "date": "2024-11-14",
-              "note": "Invoice disputed -- GBP64952.97 under formal review"
+              "date": "2024-07-21",
+              "note": "Invoice disputed -- GBP57533.78 under formal review"
             },
             {
               "stage": "DISPUTE_NOTICE",
-              "date": "2024-11-28",
+              "date": "2024-08-04",
               "note": "Dispute notice raised -- escalated to accounts receivable"
             },
             {
               "stage": "PAYMENT_PLAN_AGREED",
-              "date": "2024-12-14",
+              "date": "2024-08-20",
               "note": "Payment plan agreed -- arrears to be settled over 60 days"
             }
           ]
@@ -52648,7 +52688,7 @@
         },
         {
           "invoice_number": 1241,
-          "payment_date": "2018-05-30",
+          "payment_date": "2018-04-15",
           "amount_gbp": 15275.75,
           "method": "chaps",
           "outcome": "success",
@@ -52776,7 +52816,7 @@
         },
         {
           "invoice_number": 1257,
-          "payment_date": "2019-08-18",
+          "payment_date": "2019-09-03",
           "amount_gbp": 30165.81,
           "method": "chaps",
           "outcome": "success",
@@ -52808,7 +52848,7 @@
         },
         {
           "invoice_number": 1261,
-          "payment_date": "2020-01-04",
+          "payment_date": "2019-12-19",
           "amount_gbp": 24802.02,
           "method": "chaps",
           "outcome": "success",
@@ -53016,7 +53056,7 @@
         },
         {
           "invoice_number": 1287,
-          "payment_date": "2022-02-22",
+          "payment_date": "2022-03-26",
           "amount_gbp": 24307.7,
           "method": "chaps",
           "outcome": "success",
@@ -53048,7 +53088,7 @@
         },
         {
           "invoice_number": 1291,
-          "payment_date": "2022-07-16",
+          "payment_date": "2022-07-04",
           "amount_gbp": 42498.5,
           "method": "chaps",
           "outcome": "success",
@@ -53080,7 +53120,7 @@
         },
         {
           "invoice_number": 1295,
-          "payment_date": "2022-11-03",
+          "payment_date": "2022-10-14",
           "amount_gbp": 42400.01,
           "method": "chaps",
           "outcome": "success",
@@ -53296,7 +53336,7 @@
         },
         {
           "invoice_number": 1322,
-          "payment_date": "2025-01-16",
+          "payment_date": "2025-02-21",
           "amount_gbp": 28373.92,
           "method": "chaps",
           "outcome": "success",
@@ -53328,7 +53368,7 @@
         },
         {
           "invoice_number": 1326,
-          "payment_date": "2025-06-21",
+          "payment_date": "2025-06-12",
           "amount_gbp": 28132.89,
           "method": "chaps",
           "outcome": "success",
@@ -53357,8 +53397,8 @@
       "segment": "I&C",
       "invoice_count": 78,
       "total_billed_gbp": 7585031.39,
-      "total_paid_gbp": 7521728.98,
-      "balance_gbp": -63302.41,
+      "total_paid_gbp": 7522089.57,
+      "balance_gbp": -62941.82,
       "failed_payment_count": 1,
       "arrears_case_count": 1,
       "invoices": [
@@ -53842,7 +53882,7 @@
           "issue_date": "2020-05-01",
           "generation_delay_days": 1,
           "due_date": "2020-05-15",
-          "payment_status": "paid",
+          "payment_status": "disputed",
           "meter_serial": "M00047678",
           "mpan": "1000000000353",
           "mprn": null,
@@ -53966,7 +54006,7 @@
           "issue_date": "2020-09-03",
           "generation_delay_days": 3,
           "due_date": "2020-09-17",
-          "payment_status": "disputed",
+          "payment_status": "paid",
           "meter_serial": "M00047678",
           "mpan": "1000000000353",
           "mprn": null,
@@ -55792,7 +55832,7 @@
         },
         {
           "invoice_number": 1330,
-          "payment_date": "2019-04-13",
+          "payment_date": "2019-03-17",
           "amount_gbp": 65700.61,
           "method": "chaps",
           "outcome": "success",
@@ -55872,7 +55912,7 @@
         },
         {
           "invoice_number": 1340,
-          "payment_date": "2020-01-16",
+          "payment_date": "2020-02-09",
           "amount_gbp": 74548.87,
           "method": "chaps",
           "outcome": "success",
@@ -55896,7 +55936,7 @@
         },
         {
           "invoice_number": 1343,
-          "payment_date": "2020-04-21",
+          "payment_date": "2020-05-17",
           "amount_gbp": 66788.94,
           "method": "chaps",
           "outcome": "success",
@@ -55904,10 +55944,10 @@
         },
         {
           "invoice_number": 1344,
-          "payment_date": "2020-06-08",
+          "payment_date": "2020-05-15",
           "amount_gbp": 62941.82,
           "method": "chaps",
-          "outcome": "success",
+          "outcome": "dispute",
           "income_stress_at_time": "LOW"
         },
         {
@@ -55928,7 +55968,7 @@
         },
         {
           "invoice_number": 1347,
-          "payment_date": "2020-09-12",
+          "payment_date": "2020-08-17",
           "amount_gbp": 63831.58,
           "method": "chaps",
           "outcome": "success",
@@ -55939,7 +55979,7 @@
           "payment_date": "2020-09-17",
           "amount_gbp": 63302.41,
           "method": "chaps",
-          "outcome": "dispute",
+          "outcome": "success",
           "income_stress_at_time": "LOW"
         },
         {
@@ -56409,24 +56449,24 @@
       ],
       "arrears_history": [
         {
-          "case_id": "DIS-C_IC3-2020-08-31",
-          "invoice_number": 1348,
-          "arrears_gbp": 63302.41,
-          "opened_date": "2020-09-17",
+          "case_id": "DIS-C_IC3-2020-04-30",
+          "invoice_number": 1344,
+          "arrears_gbp": 62941.82,
+          "opened_date": "2020-05-15",
           "stages": [
             {
               "stage": "INVOICE_DISPUTED",
-              "date": "2020-09-17",
-              "note": "Invoice disputed -- GBP63302.41 under formal review"
+              "date": "2020-05-15",
+              "note": "Invoice disputed -- GBP62941.82 under formal review"
             },
             {
               "stage": "DISPUTE_NOTICE",
-              "date": "2020-10-01",
+              "date": "2020-05-29",
               "note": "Dispute notice raised -- escalated to accounts receivable"
             },
             {
               "stage": "PAYMENT_PLAN_AGREED",
-              "date": "2020-10-17",
+              "date": "2020-06-14",
               "note": "Payment plan agreed -- arrears to be settled over 60 days"
             }
           ]
@@ -58872,7 +58912,7 @@
         },
         {
           "invoice_number": 1408,
-          "payment_date": "2019-03-19",
+          "payment_date": "2019-04-03",
           "amount_gbp": 21040.87,
           "method": "chaps",
           "outcome": "success",
@@ -58904,7 +58944,7 @@
         },
         {
           "invoice_number": 1412,
-          "payment_date": "2019-07-31",
+          "payment_date": "2019-07-16",
           "amount_gbp": 16603.53,
           "method": "chaps",
           "outcome": "success",
@@ -58952,7 +58992,7 @@
         },
         {
           "invoice_number": 1418,
-          "payment_date": "2020-01-16",
+          "payment_date": "2020-03-01",
           "amount_gbp": 20655.93,
           "method": "chaps",
           "outcome": "success",
@@ -58984,7 +59024,7 @@
         },
         {
           "invoice_number": 1422,
-          "payment_date": "2020-07-08",
+          "payment_date": "2020-05-24",
           "amount_gbp": 15460.41,
           "method": "chaps",
           "outcome": "success",
@@ -59072,7 +59112,7 @@
         },
         {
           "invoice_number": 1433,
-          "payment_date": "2021-04-23",
+          "payment_date": "2021-05-11",
           "amount_gbp": 22602.17,
           "method": "chaps",
           "outcome": "success",
@@ -59104,7 +59144,7 @@
         },
         {
           "invoice_number": 1437,
-          "payment_date": "2021-09-01",
+          "payment_date": "2021-08-14",
           "amount_gbp": 29006.05,
           "method": "chaps",
           "outcome": "success",
@@ -59400,7 +59440,7 @@
         },
         {
           "invoice_number": 1474,
-          "payment_date": "2024-09-15",
+          "payment_date": "2024-10-15",
           "amount_gbp": 32829.27,
           "method": "chaps",
           "outcome": "success",
@@ -59432,7 +59472,7 @@
         },
         {
           "invoice_number": 1478,
-          "payment_date": "2025-02-13",
+          "payment_date": "2025-01-14",
           "amount_gbp": 40928.56,
           "method": "chaps",
           "outcome": "success",
@@ -61708,7 +61748,7 @@
         },
         {
           "invoice_number": 1505,
-          "payment_date": "2021-10-16",
+          "payment_date": "2021-11-01",
           "amount_gbp": 91830.61,
           "method": "chaps",
           "outcome": "success",
@@ -61740,7 +61780,7 @@
         },
         {
           "invoice_number": 1509,
-          "payment_date": "2022-03-04",
+          "payment_date": "2022-02-16",
           "amount_gbp": 93259.28,
           "method": "chaps",
           "outcome": "success",
@@ -61828,7 +61868,7 @@
         },
         {
           "invoice_number": 1520,
-          "payment_date": "2023-01-16",
+          "payment_date": "2023-02-24",
           "amount_gbp": 123384.86,
           "method": "chaps",
           "outcome": "success",
@@ -61860,7 +61900,7 @@
         },
         {
           "invoice_number": 1524,
-          "payment_date": "2023-06-23",
+          "payment_date": "2023-05-15",
           "amount_gbp": 71147.92,
           "method": "chaps",
           "outcome": "success",
@@ -62036,7 +62076,7 @@
         },
         {
           "invoice_number": 1546,
-          "payment_date": "2025-03-15",
+          "payment_date": "2025-03-29",
           "amount_gbp": 61924.3,
           "method": "chaps",
           "outcome": "success",
@@ -62068,7 +62108,7 @@
         },
         {
           "invoice_number": 1550,
-          "payment_date": "2025-07-07",
+          "payment_date": "2025-06-23",
           "amount_gbp": 12846.6,
           "method": "chaps",
           "outcome": "success",

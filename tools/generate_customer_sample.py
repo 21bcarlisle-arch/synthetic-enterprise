@@ -37,7 +37,7 @@ def _per_year(run, cid):
     return out
 
 
-def generate(run_json_path=None):
+def generate(run_json_path=None, out_path=None, state_path=None):
     import re
     from datetime import datetime, timezone
     path = Path(run_json_path) if run_json_path else RUN_OUTPUT
@@ -133,11 +133,27 @@ def generate(run_json_path=None):
         clv_data = bba.get(base, {}) if not is_gas else {}
         _beh = behavioral.get(cid) or {}
 
+        _segment = cdata.get("segment", "resi")
+        _commodity = cdata.get("commodity", "electricity")
+        _payment_channel = None
+        _fuel_poverty = None
+        if _segment == "resi":
+            # Layer 2 dimensions 1-2 (2026-07-09): SIM-internal ground truth
+            # (payment channel / fuel poverty archetype), shown here for the
+            # SIM tab's own evidence-surface purpose only -- same caveat as
+            # engagement_level above: MUST NEVER be read by company/** code.
+            from simulation.household_segments import PaymentChannel, fuel_poverty_for_customer, payment_channel_for_customer
+            _channel = payment_channel_for_customer(cid, _commodity)
+            _payment_channel = _channel.value
+            _fuel_poverty = fuel_poverty_for_customer(cid, _channel)
+
         sample[cid] = {
             "account_id": cid,
             "base_account_id": base,
-            "segment": cdata.get("segment", "resi"),
-            "commodity": cdata.get("commodity", "electricity"),
+            "segment": _segment,
+            "commodity": _commodity,
+            "payment_channel": _payment_channel,
+            "fuel_poverty": _fuel_poverty,
             "acquisition_date": cdata.get("acquisition_date"),
             "lifetime_revenue_gbp": round(cdata.get("revenue_gbp", 0), 2),
             "lifetime_gross_gbp": round(cdata.get("gross_gbp", 0), 2),
@@ -201,15 +217,16 @@ def generate(run_json_path=None):
     }
 
     out = {"meta": meta, "customers": sample}
-    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _out_path = Path(out_path) if out_path else OUT_PATH
+    _out_path.parent.mkdir(parents=True, exist_ok=True)
     out_text = json.dumps(out, indent=2)
-    OUT_PATH.write_text(out_text)
+    _out_path.write_text(out_text)
     # Also publish to site/state/ for stable URL (poesys.net/state/customer_sample.json)
-    state_path = PROJECT / "site" / "state" / "customer_sample.json"
-    state_path.parent.mkdir(parents=True, exist_ok=True)
-    state_path.write_text(out_text)
-    print(f"Generated {OUT_PATH} ({len(sample)} customers)")
-    return OUT_PATH
+    _state_path = Path(state_path) if state_path else (PROJECT / "site" / "state" / "customer_sample.json")
+    _state_path.parent.mkdir(parents=True, exist_ok=True)
+    _state_path.write_text(out_text)
+    print(f"Generated {_out_path} ({len(sample)} customers)")
+    return _out_path
 
 
 if __name__ == "__main__":

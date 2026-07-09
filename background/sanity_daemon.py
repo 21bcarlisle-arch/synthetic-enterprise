@@ -36,6 +36,7 @@ from company.compliance.internal_audit import run_internal_audit  # noqa: E402
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sanity-daemon-log.md"
 RUN_OUTPUT_PATH = PROJECT_DIR / "docs" / "reports" / "run_output_latest.json"
+BILLING_LEDGER_PATH = PROJECT_DIR / "site" / "state" / "billing_ledger.json"
 
 POLL_INTERVAL_SECONDS = 1800  # 30 minutes -- detective/sampling cadence, not turn-granting
 
@@ -82,7 +83,22 @@ def run_cycle() -> None:
 
     bills = data.get("bills", [])
 
-    findings = run_all_population_checks(bills, data.get("meter_read_log", []))
+    # Payment-channel mix check (2026-07-09) needs the ALREADY-COMPUTED
+    # payment records (method field), which only exist in the generated
+    # billing ledger, not in run_output_latest.json's raw bills -- read-only,
+    # optional (missing/unreadable file just means that one check is skipped
+    # this cycle, same graceful-degradation style as the rest of this daemon).
+    payments: list = []
+    if BILLING_LEDGER_PATH.is_file():
+        try:
+            ledger = json.loads(BILLING_LEDGER_PATH.read_text())
+            for cust in ledger.get("customers", {}).values():
+                if cust.get("segment") == "resi":
+                    payments.extend(cust.get("payments", []))
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    findings = run_all_population_checks(bills, data.get("meter_read_log", []), payments)
 
     if not findings:
         log("Clean -- 0 population-sanity findings")

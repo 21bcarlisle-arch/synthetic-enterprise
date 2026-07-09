@@ -125,10 +125,48 @@ def check_estimated_read_rate(meter_read_log: list) -> list[dict]:
     }]
 
 
-def run_all_population_checks(bills: list, meter_read_log: list) -> list[dict]:
+# Real anchor (DESNZ "Quarterly Energy Prices: June 2026", ASSUMPTIONS.md):
+# DD share 72% electricity / 75% gas. This is a SANITY band, not a
+# calibration check (the actual archetype logic lives in
+# simulation/household_segments.py, already tested there for exact
+# convergence) -- catches the generation mechanism itself being broken
+# (e.g. everyone landing on one method), not fine calibration drift.
+_DIRECT_DEBIT_SHARE_SANITY_BAND = (0.55, 0.90)
+
+
+def check_payment_channel_mix(payments: list) -> list[dict]:
+    """Population-wide resi Direct-Debit-vs-Standard-Credit split (2026-07-09,
+    Layer 2 dimension 1) -- if the observed DD share across all real resi
+    payment records falls outside a sane band around the DESNZ anchor, the
+    payment-channel archetype mechanism itself may be broken (e.g. every
+    customer landing on the same method)."""
+    if not payments:
+        return []
+    dd_count = sum(1 for p in payments if p.get("method") == "direct_debit")
+    non_dd_count = sum(1 for p in payments if p.get("method") == "standard_credit")
+    total = dd_count + non_dd_count
+    if total == 0:
+        return []
+    rate = dd_count / total
+    low, high = _DIRECT_DEBIT_SHARE_SANITY_BAND
+    if low <= rate <= high:
+        return []
+    return [{
+        "check": "payment_channel_mix_vs_desnz_anchor",
+        "customer_id": None,
+        "year": None,
+        "detail": f"Population resi Direct Debit share {rate:.1%} is outside the sanity band "
+                  f"[{low:.0%}, {high:.0%}] around the DESNZ 72-75% anchor -- the payment-"
+                  f"channel archetype mechanism may be broken",
+    }]
+
+
+def run_all_population_checks(bills: list, meter_read_log: list, payments: list | None = None) -> list[dict]:
     """Every population-level check, concatenated. Empty list means clean."""
     findings = []
     findings.extend(check_consumption_distribution(bills))
     findings.extend(check_unit_rate_bands(bills))
     findings.extend(check_estimated_read_rate(meter_read_log))
+    if payments:
+        findings.extend(check_payment_channel_mix(payments))
     return findings
